@@ -1,11 +1,10 @@
 import { isSourceFileGuard } from './is-source-file-guard';
-import { AbsoluteFilePathStub } from '../../contracts/absolute-file-path/absolute-file-path.stub';
 
 describe('isSourceFileGuard', () => {
   describe('TypeScript source files', () => {
     it('VALID: {filePath: .ts file} => returns true', () => {
       const result = isSourceFileGuard({
-        filePath: AbsoluteFilePathStub({ value: '/src/brokers/user/user-broker.ts' }),
+        filePath: '/src/brokers/user/user-broker.ts',
       });
 
       expect(result).toBe(true);
@@ -13,7 +12,7 @@ describe('isSourceFileGuard', () => {
 
     it('VALID: {filePath: .tsx file} => returns true', () => {
       const result = isSourceFileGuard({
-        filePath: AbsoluteFilePathStub({ value: '/src/widgets/user/user-widget.tsx' }),
+        filePath: '/src/widgets/user/user-widget.tsx',
       });
 
       expect(result).toBe(true);
@@ -23,7 +22,7 @@ describe('isSourceFileGuard', () => {
   describe('JavaScript source files', () => {
     it('VALID: {filePath: .js file} => returns true', () => {
       const result = isSourceFileGuard({
-        filePath: AbsoluteFilePathStub({ value: '/src/index.js' }),
+        filePath: '/src/index.js',
       });
 
       expect(result).toBe(true);
@@ -31,7 +30,7 @@ describe('isSourceFileGuard', () => {
 
     it('VALID: {filePath: .jsx file} => returns true', () => {
       const result = isSourceFileGuard({
-        filePath: AbsoluteFilePathStub({ value: '/src/app.jsx' }),
+        filePath: '/src/app.jsx',
       });
 
       expect(result).toBe(true);
@@ -41,7 +40,7 @@ describe('isSourceFileGuard', () => {
   describe('non-source files', () => {
     it('VALID: {filePath: .json file} => returns false', () => {
       const result = isSourceFileGuard({
-        filePath: AbsoluteFilePathStub({ value: '/src/config.json' }),
+        filePath: '/src/config.json',
       });
 
       expect(result).toBe(false);
@@ -49,7 +48,7 @@ describe('isSourceFileGuard', () => {
 
     it('VALID: {filePath: .md file} => returns false', () => {
       const result = isSourceFileGuard({
-        filePath: AbsoluteFilePathStub({ value: '/README.md' }),
+        filePath: '/README.md',
       });
 
       expect(result).toBe(false);

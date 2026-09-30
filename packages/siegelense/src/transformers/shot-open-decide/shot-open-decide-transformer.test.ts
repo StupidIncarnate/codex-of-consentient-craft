@@ -1,4 +1,3 @@
-import { AbsoluteFilePathStub } from '@dungeonmaster/shared/contracts/absolute-file-path/absolute-file-path.stub';
 
 import { PixelChangeStub } from '../../contracts/pixel-change/pixel-change.stub';
 import { ShotListingStub } from '../../contracts/shot-listing/shot-listing.stub';
@@ -22,9 +21,7 @@ const rawShot = ({
 }): ReturnType<typeof ShotListingStub> =>
   ShotListingStub({
     step: StepIndexStub({ value: step }),
-    path: AbsoluteFilePathStub({
-      value: `/repo/.dungeonmaster-assets/siegelense-assets/.../runs/run_1/step${String(step)}.png`,
-    }),
+    path: `/repo/.dungeonmaster-assets/siegelense-assets/.../runs/run_1/step${String(step)}.png`,
     open,
     why: why === null ? null : ShotOpenReasonStub({ value: why }),
     blank,

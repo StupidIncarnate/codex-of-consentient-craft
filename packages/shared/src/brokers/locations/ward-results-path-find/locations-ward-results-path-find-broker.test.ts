@@ -1,6 +1,5 @@
 import { locationsWardResultsPathFindBroker } from './locations-ward-results-path-find-broker';
 import { locationsWardResultsPathFindBrokerProxy } from './locations-ward-results-path-find-broker.proxy';
-import { AbsoluteFilePathStub } from '../../../contracts/absolute-file-path/absolute-file-path.stub';
 
 describe('locationsWardResultsPathFindBroker', () => {
   describe('ward-results path resolution', () => {
@@ -13,10 +12,10 @@ describe('locationsWardResultsPathFindBroker', () => {
       });
 
       const result = locationsWardResultsPathFindBroker({
-        questFolderPath: AbsoluteFilePathStub({ value: '/quest' }),
+        questFolderPath: '/quest',
       });
 
-      expect(result).toBe(AbsoluteFilePathStub({ value: '/quest/ward-results' }));
+      expect(result).toBe('/quest/ward-results');
     });
   });
 });

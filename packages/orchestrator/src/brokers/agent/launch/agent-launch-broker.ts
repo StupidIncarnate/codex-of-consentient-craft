@@ -19,7 +19,7 @@
  * });
  */
 
-import type { AbsoluteFilePath, ChatEntry, ExitCode, ProcessId, RepoRootCwd, Quest, WorkItem, Session } from '@dungeonmaster/shared/contracts';
+import type { ChatEntry, ExitCode, ProcessId, RepoRootCwd, Quest, WorkItem, Session } from '@dungeonmaster/shared/contracts';
 import { processIdContract } from '@dungeonmaster/shared/contracts';
 import { randomUUID } from '#gateway/node/crypto';
 import { stderr } from '#gateway/node/process';
@@ -109,7 +109,7 @@ export const agentLaunchBroker = ({
   // quest's images directory so a pasted-image Read (a path outside the spawn's cwd) is
   // permitted in headless mode instead of denied outright. Loop-level callers omit it — the
   // orchestration-loop roles never receive pasted images.
-  addDir?: AbsoluteFilePath;
+  addDir?: string;
 }): {
   processId: ProcessId;
   handle: ReturnType<typeof chatStreamProcessHandleBroker>;

@@ -1,5 +1,4 @@
 import { join } from '#gateway/node/path';
-import { AbsoluteFilePathStub } from '@dungeonmaster/shared/contracts/absolute-file-path/absolute-file-path.stub';
 import { GuildIdStub } from '@dungeonmaster/shared/contracts/guild-id/guild-id.stub';
 import type { OperationItemIdStub } from '@dungeonmaster/shared/contracts/operation-item-id/operation-item-id.stub';
 import type { QuestStub } from '@dungeonmaster/shared/contracts/quest/quest.stub';
@@ -14,7 +13,7 @@ import { questWithModifyLockBrokerProxy } from '../with-modify-lock/quest-with-m
 
 type Quest = ReturnType<typeof QuestStub>;
 type OperationItemId = ReturnType<typeof OperationItemIdStub>;
-type AbsoluteFilePath = ReturnType<typeof AbsoluteFilePathStub>;
+type AbsoluteFilePath = string;
 
 const FIXED_TIMESTAMP = '2026-01-15T10:00:00.000Z';
 
@@ -51,9 +50,7 @@ export const questWorkPlanWriteBrokerProxy = (): {
       writesOperationItemId?: OperationItemId;
     }): { questFolderPath: AbsoluteFilePath } => {
       const guildId = GuildIdStub();
-      const questFolderPath = AbsoluteFilePathStub({
-        value: `/home/testuser/.dungeonmaster/guilds/${guildId}/quests/${quest.folder}`,
-      });
+      const questFolderPath = `/home/testuser/.dungeonmaster/guilds/${guildId}/quests/${quest.folder}`;
       const questFilePath = `/home/testuser/.dungeonmaster/guilds/${guildId}/quests/${quest.folder}/quest.json`;
 
       findQuestPathMock

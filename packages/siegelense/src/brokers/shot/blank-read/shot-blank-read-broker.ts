@@ -13,7 +13,6 @@
 
 import { readFileBytes } from '#gateway/node/fs__promises';
 import { decodePng } from '#gateway/npm/pngjs';
-import type { AbsoluteFilePath } from '@dungeonmaster/shared/contracts';
 
 import { blankReadingContract } from '../../../contracts/blank-reading/blank-reading-contract';
 import type { BlankReading } from '../../../contracts/blank-reading/blank-reading-contract';
@@ -30,7 +29,7 @@ const BLUE_BYTE_OFFSET = 2;
 export const shotBlankReadBroker = async ({
   shotPath,
 }: {
-  shotPath: AbsoluteFilePath;
+  shotPath: string;
 }): Promise<BlankReading> => {
   const bytes = await readFileBytes(shotPath);
   const frame = decodePng({ bytes: Buffer.from(bytes) });

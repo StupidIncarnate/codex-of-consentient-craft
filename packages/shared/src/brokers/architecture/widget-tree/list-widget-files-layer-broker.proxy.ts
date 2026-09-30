@@ -1,16 +1,15 @@
 import type { Dirent } from '#gateway/node/fs';
 import { safeReaddirLayerBrokerProxy } from './safe-readdir-layer-broker.proxy';
-import type { AbsoluteFilePath } from '../../../contracts/absolute-file-path/absolute-file-path-contract';
 
 export const listWidgetFilesLayerBrokerProxy = (): {
   setupFlatWidgetsDir: ({
     widgetsDirPath,
     filePaths,
   }: {
-    widgetsDirPath: AbsoluteFilePath;
-    filePaths: AbsoluteFilePath[];
+    widgetsDirPath: string;
+    filePaths: string[];
   }) => void;
-  setupEmpty: ({ widgetsDirPath }: { widgetsDirPath: AbsoluteFilePath }) => void;
+  setupEmpty: ({ widgetsDirPath }: { widgetsDirPath: string }) => void;
   setupImplementation: ({ fn }: { fn: (dirPath: string) => Dirent[] }) => void;
 } => {
   const readdirProxy = safeReaddirLayerBrokerProxy();
@@ -20,8 +19,8 @@ export const listWidgetFilesLayerBrokerProxy = (): {
       widgetsDirPath,
       filePaths,
     }: {
-      widgetsDirPath: AbsoluteFilePath;
-      filePaths: AbsoluteFilePath[];
+      widgetsDirPath: string;
+      filePaths: string[];
     }): void => {
       const names = filePaths.map((fp) => {
         const parts = String(fp).split('/');
@@ -30,7 +29,7 @@ export const listWidgetFilesLayerBrokerProxy = (): {
       readdirProxy.setupFiles({ dirPath: widgetsDirPath, names });
     },
 
-    setupEmpty: ({ widgetsDirPath }: { widgetsDirPath: AbsoluteFilePath }): void => {
+    setupEmpty: ({ widgetsDirPath }: { widgetsDirPath: string }): void => {
       readdirProxy.setupEmpty({ dirPath: widgetsDirPath });
     },
 

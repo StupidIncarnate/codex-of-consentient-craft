@@ -15,7 +15,7 @@
  */
 
 import { contentTextContract } from '@dungeonmaster/shared/contracts';
-import type { AbsoluteFilePath, ContentText } from '@dungeonmaster/shared/contracts';
+import type { ContentText } from '@dungeonmaster/shared/contracts';
 import { safeJsonParseTransformer } from '@dungeonmaster/shared/transformers';
 
 import type { BrowserSession } from '../../../contracts/browser-session/browser-session-contract';
@@ -48,7 +48,7 @@ export const stepHealthBroker = async ({
 }: {
   lane: LaneSession;
   session: BrowserSession;
-  shotPath: AbsoluteFilePath | null;
+  shotPath: string | null;
   browserWindowStart: BufferLengths | null;
 }): Promise<ContentText> => {
   if (shotPath !== null) {

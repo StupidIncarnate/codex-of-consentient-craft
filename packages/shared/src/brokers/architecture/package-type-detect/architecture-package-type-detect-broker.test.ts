@@ -1,4 +1,3 @@
-import { AbsoluteFilePathStub } from '../../../contracts/absolute-file-path/absolute-file-path.stub';
 import { ContentTextStub } from '../../../contracts/content-text/content-text.stub';
 import { architecturePackageTypeDetectBrokerProxy } from './architecture-package-type-detect-broker.proxy';
 import { architecturePackageTypeDetectBroker } from './architecture-package-type-detect-broker';
@@ -16,7 +15,7 @@ describe('architecturePackageTypeDetectBroker', () => {
       });
 
       const result = await architecturePackageTypeDetectBroker({
-        packageRoot: AbsoluteFilePathStub({ value: PACKAGE_ROOT }),
+        packageRoot: PACKAGE_ROOT,
       });
 
       expect(result).toStrictEqual(['http-backend']);
@@ -31,7 +30,7 @@ describe('architecturePackageTypeDetectBroker', () => {
       });
 
       const result = await architecturePackageTypeDetectBroker({
-        packageRoot: AbsoluteFilePathStub({ value: PACKAGE_ROOT }),
+        packageRoot: PACKAGE_ROOT,
       });
 
       expect(result).toStrictEqual(['http-backend']);
@@ -50,7 +49,7 @@ describe('architecturePackageTypeDetectBroker', () => {
       });
 
       const result = await architecturePackageTypeDetectBroker({
-        packageRoot: AbsoluteFilePathStub({ value: PACKAGE_ROOT }),
+        packageRoot: PACKAGE_ROOT,
       });
 
       expect(result).toStrictEqual(['mcp-server']);
@@ -68,7 +67,7 @@ describe('architecturePackageTypeDetectBroker', () => {
       });
 
       const result = await architecturePackageTypeDetectBroker({
-        packageRoot: AbsoluteFilePathStub({ value: PACKAGE_ROOT }),
+        packageRoot: PACKAGE_ROOT,
       });
 
       expect(result).toStrictEqual(['mcp-server']);
@@ -92,7 +91,7 @@ describe('architecturePackageTypeDetectBroker', () => {
       });
 
       const result = await architecturePackageTypeDetectBroker({
-        packageRoot: AbsoluteFilePathStub({ value: PACKAGE_ROOT }),
+        packageRoot: PACKAGE_ROOT,
       });
 
       expect(result).toStrictEqual(['mcp-server']);
@@ -109,7 +108,7 @@ describe('architecturePackageTypeDetectBroker', () => {
       });
 
       const result = await architecturePackageTypeDetectBroker({
-        packageRoot: AbsoluteFilePathStub({ value: PACKAGE_ROOT }),
+        packageRoot: PACKAGE_ROOT,
       });
 
       expect(result).toStrictEqual(['library']);
@@ -131,7 +130,7 @@ describe('architecturePackageTypeDetectBroker', () => {
       });
 
       const result = await architecturePackageTypeDetectBroker({
-        packageRoot: AbsoluteFilePathStub({ value: PACKAGE_ROOT }),
+        packageRoot: PACKAGE_ROOT,
       });
 
       expect(result).toStrictEqual(['programmatic-service']);
@@ -154,7 +153,7 @@ describe('architecturePackageTypeDetectBroker', () => {
       });
 
       const result = await architecturePackageTypeDetectBroker({
-        packageRoot: AbsoluteFilePathStub({ value: PACKAGE_ROOT }),
+        packageRoot: PACKAGE_ROOT,
       });
 
       expect(result).toStrictEqual(['eslint-plugin']);
@@ -177,7 +176,7 @@ describe('architecturePackageTypeDetectBroker', () => {
       });
 
       const result = await architecturePackageTypeDetectBroker({
-        packageRoot: AbsoluteFilePathStub({ value: PACKAGE_ROOT }),
+        packageRoot: PACKAGE_ROOT,
       });
 
       expect(result).toStrictEqual(['hook-handlers']);
@@ -206,7 +205,7 @@ describe('architecturePackageTypeDetectBroker', () => {
       });
 
       const result = await architecturePackageTypeDetectBroker({
-        packageRoot: AbsoluteFilePathStub({ value: PACKAGE_ROOT }),
+        packageRoot: PACKAGE_ROOT,
       });
 
       expect(result).toStrictEqual(['cli-tool']);
@@ -223,7 +222,7 @@ describe('architecturePackageTypeDetectBroker', () => {
       });
 
       const result = await architecturePackageTypeDetectBroker({
-        packageRoot: AbsoluteFilePathStub({ value: PACKAGE_ROOT }),
+        packageRoot: PACKAGE_ROOT,
       });
 
       expect(result).toStrictEqual(['frontend-ink']);
@@ -240,7 +239,7 @@ describe('architecturePackageTypeDetectBroker', () => {
       });
 
       const result = await architecturePackageTypeDetectBroker({
-        packageRoot: AbsoluteFilePathStub({ value: PACKAGE_ROOT }),
+        packageRoot: PACKAGE_ROOT,
       });
 
       expect(result).toStrictEqual(['frontend-react']);
@@ -261,7 +260,7 @@ describe('architecturePackageTypeDetectBroker', () => {
       });
 
       const result = await architecturePackageTypeDetectBroker({
-        packageRoot: AbsoluteFilePathStub({ value: PACKAGE_ROOT }),
+        packageRoot: PACKAGE_ROOT,
       });
 
       expect(result).toStrictEqual(['hook-handlers']);
@@ -281,7 +280,7 @@ describe('architecturePackageTypeDetectBroker', () => {
       });
 
       const result = await architecturePackageTypeDetectBroker({
-        packageRoot: AbsoluteFilePathStub({ value: PACKAGE_ROOT }),
+        packageRoot: PACKAGE_ROOT,
       });
 
       expect(result).toStrictEqual(['eslint-plugin']);
@@ -302,7 +301,7 @@ describe('architecturePackageTypeDetectBroker', () => {
       });
 
       const result = await architecturePackageTypeDetectBroker({
-        packageRoot: AbsoluteFilePathStub({ value: PACKAGE_ROOT }),
+        packageRoot: PACKAGE_ROOT,
       });
 
       expect(result).toStrictEqual(['cli-tool']);
@@ -322,7 +321,7 @@ describe('architecturePackageTypeDetectBroker', () => {
       });
 
       const result = await architecturePackageTypeDetectBroker({
-        packageRoot: AbsoluteFilePathStub({ value: PACKAGE_ROOT }),
+        packageRoot: PACKAGE_ROOT,
       });
 
       expect(result).toStrictEqual(['programmatic-service']);
@@ -338,7 +337,7 @@ describe('architecturePackageTypeDetectBroker', () => {
       });
 
       const result = await architecturePackageTypeDetectBroker({
-        packageRoot: AbsoluteFilePathStub({ value: PACKAGE_ROOT }),
+        packageRoot: PACKAGE_ROOT,
       });
 
       expect(result).toStrictEqual(['library']);
@@ -355,7 +354,7 @@ describe('architecturePackageTypeDetectBroker', () => {
       });
 
       const result = await architecturePackageTypeDetectBroker({
-        packageRoot: AbsoluteFilePathStub({ value: PACKAGE_ROOT }),
+        packageRoot: PACKAGE_ROOT,
       });
 
       expect(result).toStrictEqual(['http-backend', 'frontend-react']);
@@ -370,7 +369,7 @@ describe('architecturePackageTypeDetectBroker', () => {
       });
 
       const result = await architecturePackageTypeDetectBroker({
-        packageRoot: AbsoluteFilePathStub({ value: PACKAGE_ROOT }),
+        packageRoot: PACKAGE_ROOT,
       });
 
       expect(result).toStrictEqual(['http-backend', 'frontend-ink']);
@@ -385,7 +384,7 @@ describe('architecturePackageTypeDetectBroker', () => {
       });
 
       const result = await architecturePackageTypeDetectBroker({
-        packageRoot: AbsoluteFilePathStub({ value: PACKAGE_ROOT }),
+        packageRoot: PACKAGE_ROOT,
       });
 
       expect(result).toStrictEqual(['frontend-react']);
@@ -404,7 +403,7 @@ describe('architecturePackageTypeDetectBroker', () => {
       });
 
       const result = await architecturePackageTypeDetectBroker({
-        packageRoot: AbsoluteFilePathStub({ value: PACKAGE_ROOT }),
+        packageRoot: PACKAGE_ROOT,
       });
 
       expect(result).toStrictEqual(['cli-tool']);
@@ -418,7 +417,7 @@ describe('architecturePackageTypeDetectBroker', () => {
       });
 
       const result = await architecturePackageTypeDetectBroker({
-        packageRoot: AbsoluteFilePathStub({ value: PACKAGE_ROOT }),
+        packageRoot: PACKAGE_ROOT,
       });
 
       expect(result).toStrictEqual(['library']);
@@ -436,7 +435,7 @@ describe('architecturePackageTypeDetectBroker', () => {
       });
 
       const result = await architecturePackageTypeDetectBroker({
-        packageRoot: AbsoluteFilePathStub({ value: PACKAGE_ROOT }),
+        packageRoot: PACKAGE_ROOT,
       });
 
       expect(result).toStrictEqual(['eslint-plugin']);
@@ -455,7 +454,7 @@ describe('architecturePackageTypeDetectBroker', () => {
       });
 
       const result = await architecturePackageTypeDetectBroker({
-        packageRoot: AbsoluteFilePathStub({ value: PACKAGE_ROOT }),
+        packageRoot: PACKAGE_ROOT,
       });
 
       expect(result).toStrictEqual(['hook-handlers']);
@@ -472,7 +471,7 @@ describe('architecturePackageTypeDetectBroker', () => {
       });
 
       const result = await architecturePackageTypeDetectBroker({
-        packageRoot: AbsoluteFilePathStub({ value: PACKAGE_ROOT }),
+        packageRoot: PACKAGE_ROOT,
       });
 
       expect(result).toStrictEqual(['mcp-server']);
@@ -490,7 +489,7 @@ describe('architecturePackageTypeDetectBroker', () => {
       });
 
       const result = await architecturePackageTypeDetectBroker({
-        packageRoot: AbsoluteFilePathStub({ value: PACKAGE_ROOT }),
+        packageRoot: PACKAGE_ROOT,
       });
 
       expect(result).toStrictEqual(['programmatic-service']);
@@ -505,7 +504,7 @@ describe('architecturePackageTypeDetectBroker', () => {
       });
 
       const result = await architecturePackageTypeDetectBroker({
-        packageRoot: AbsoluteFilePathStub({ value: PACKAGE_ROOT }),
+        packageRoot: PACKAGE_ROOT,
       });
 
       expect(result).toStrictEqual(['http-backend']);
@@ -519,7 +518,7 @@ describe('architecturePackageTypeDetectBroker', () => {
       });
 
       const result = await architecturePackageTypeDetectBroker({
-        packageRoot: AbsoluteFilePathStub({ value: PACKAGE_ROOT }),
+        packageRoot: PACKAGE_ROOT,
       });
 
       expect(result).toStrictEqual(['library']);
@@ -538,7 +537,7 @@ describe('architecturePackageTypeDetectBroker', () => {
       });
 
       const result = await architecturePackageTypeDetectBroker({
-        packageRoot: AbsoluteFilePathStub({ value: PACKAGE_ROOT }),
+        packageRoot: PACKAGE_ROOT,
       });
 
       expect(result).toStrictEqual(['cli-tool']);
@@ -557,7 +556,7 @@ describe('architecturePackageTypeDetectBroker', () => {
       });
 
       const result = await architecturePackageTypeDetectBroker({
-        packageRoot: AbsoluteFilePathStub({ value: PACKAGE_ROOT }),
+        packageRoot: PACKAGE_ROOT,
       });
 
       expect(result).toStrictEqual(['cli-tool']);
@@ -572,7 +571,7 @@ describe('architecturePackageTypeDetectBroker', () => {
       });
 
       const result = await architecturePackageTypeDetectBroker({
-        packageRoot: AbsoluteFilePathStub({ value: PACKAGE_ROOT }),
+        packageRoot: PACKAGE_ROOT,
       });
 
       expect(result).toStrictEqual(['frontend-react']);

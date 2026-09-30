@@ -1,5 +1,4 @@
 import { installTestbedCreateBroker } from '@dungeonmaster/testing';
-import { AbsoluteFilePathStub } from '@dungeonmaster/shared/contracts/absolute-file-path/absolute-file-path.stub';
 import { FileNameStub } from '@dungeonmaster/shared/contracts/file-name/file-name.stub';
 import { QuestBranchNameStub } from '@dungeonmaster/shared/contracts/quest-branch-name/quest-branch-name.stub';
 import { RepoRelativePathStub } from '@dungeonmaster/shared/contracts/repo-relative-path/repo-relative-path.stub';
@@ -20,7 +19,7 @@ describe('worktreePrepareBroker (integration) — real git worktree creation', (
     const testbed = installTestbedCreateBroker({
       baseName: 'wpb-success',
     });
-    const repoPath = AbsoluteFilePathStub({ value: testbed.guildPath });
+    const repoPath = testbed.guildPath;
 
     await git.initRepoWithPackages({
       repoPath,
@@ -38,9 +37,7 @@ describe('worktreePrepareBroker (integration) — real git worktree creation', (
       message: 'advance main past develop',
     });
 
-    const worktreePath = AbsoluteFilePathStub({
-      value: `${testbed.guildPath}/worktrees/add-auth-11112222`,
-    });
+    const worktreePath = `${testbed.guildPath}/worktrees/add-auth-11112222`;
     const branchName = QuestBranchNameStub({ value: 'quest/add-auth-11112222' });
     const baseBranch = 'main';
 
@@ -58,16 +55,14 @@ describe('worktreePrepareBroker (integration) — real git worktree creation', (
     const worktreeHeadBranch = await git.gitCurrentBranchName({ repoPath: worktreePath });
     const worktreeDirExists = git.pathExists({ absolutePath: worktreePath });
     const worktreePackagesDirExists = git.pathExists({
-      absolutePath: AbsoluteFilePathStub({ value: `${worktreePath}/packages` }),
+      absolutePath: `${worktreePath}/packages`,
     });
     const worktreeListOutput = await git.gitWorktreeListOutput({ repoPath });
     const worktreeListMentionsPath = worktreeListOutput.includes(String(worktreePath));
     // `dist` is gitignored in the fixture, so the checkout above cannot have produced it — its
     // presence here is the seed and nothing else.
     const seededDistContents = git.readTextFile({
-      absolutePath: AbsoluteFilePathStub({
-        value: `${worktreePath}/packages/shared/dist/index.js`,
-      }),
+      absolutePath: `${worktreePath}/packages/shared/dist/index.js`,
     });
 
     testbed.cleanup();
@@ -97,7 +92,7 @@ describe('worktreePrepareBroker (integration) — real git worktree creation', (
     const testbed = installTestbedCreateBroker({
       baseName: 'wpb-no-leak',
     });
-    const repoPath = AbsoluteFilePathStub({ value: testbed.guildPath });
+    const repoPath = testbed.guildPath;
 
     await git.initRepoWithPackages({
       repoPath,
@@ -105,7 +100,7 @@ describe('worktreePrepareBroker (integration) — real git worktree creation', (
       packageNames: [FileNameStub({ value: 'shared' }), FileNameStub({ value: 'web' })],
     });
     const committedReadme = git.readTextFile({
-      absolutePath: AbsoluteFilePathStub({ value: `${repoPath}/README.md` }),
+      absolutePath: `${repoPath}/README.md`,
     });
 
     // Left modified-but-uncommitted in the ROOT checkout before the worktree is made — the
@@ -116,9 +111,7 @@ describe('worktreePrepareBroker (integration) — real git worktree creation', (
       content: '# fixture repo\nUNCOMMITTED — must never reach the worktree\n',
     });
 
-    const worktreePath = AbsoluteFilePathStub({
-      value: `${testbed.guildPath}/worktrees/no-leak-33334444`,
-    });
+    const worktreePath = `${testbed.guildPath}/worktrees/no-leak-33334444`;
     const branchName = QuestBranchNameStub({ value: 'quest/no-leak-33334444' });
     const baseBranch = 'main';
 
@@ -130,7 +123,7 @@ describe('worktreePrepareBroker (integration) — real git worktree creation', (
     });
 
     const worktreeReadme = git.readTextFile({
-      absolutePath: AbsoluteFilePathStub({ value: `${worktreePath}/README.md` }),
+      absolutePath: `${worktreePath}/README.md`,
     });
     const worktreeStatus = await git.gitStatusPorcelain({ repoPath: worktreePath });
 
@@ -150,7 +143,7 @@ describe('worktreePrepareBroker (integration) — real git worktree creation', (
     const testbed = installTestbedCreateBroker({
       baseName: 'wpb-reattach',
     });
-    const repoPath = AbsoluteFilePathStub({ value: testbed.guildPath });
+    const repoPath = testbed.guildPath;
 
     await git.initRepoWithPackages({
       repoPath,
@@ -177,9 +170,7 @@ describe('worktreePrepareBroker (integration) — real git worktree creation', (
       ref: branchName,
     });
 
-    const worktreePath = AbsoluteFilePathStub({
-      value: `${testbed.guildPath}/worktrees/reattach-88889999`,
-    });
+    const worktreePath = `${testbed.guildPath}/worktrees/reattach-88889999`;
 
     const { baseRef } = await worktreePrepareBroker({
       repoRoot: repoPath,

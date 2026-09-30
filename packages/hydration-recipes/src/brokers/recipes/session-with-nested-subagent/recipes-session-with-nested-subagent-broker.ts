@@ -29,7 +29,7 @@
  * // Writes the three JSONL files and returns { session: { sessionId, outer, nested } }
  */
 
-import { absoluteFilePathContract, contentTextContract } from '@dungeonmaster/shared/contracts';
+import { contentTextContract } from '@dungeonmaster/shared/contracts';
 import type { Guild } from '@dungeonmaster/shared/contracts';
 import { hydrationRunResultContract } from '@dungeonmaster/hydration/contracts';
 import type { HydrationRunResult } from '@dungeonmaster/hydration/contracts';
@@ -85,7 +85,7 @@ export const recipesSessionWithNestedSubagentBroker = async ({
 
   const transcriptDir = claudePathSlugEncoderTransformer({
     homeDir: context.homePath,
-    projectPath: absoluteFilePathContract.parse(owningGuild.path),
+    projectPath: owningGuild.path,
   });
 
   const mainLines = [

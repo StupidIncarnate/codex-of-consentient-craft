@@ -1,6 +1,5 @@
 import { portConfigWalkBroker } from './port-config-walk-broker';
 import { portConfigWalkBrokerProxy } from './port-config-walk-broker.proxy';
-import { AbsoluteFilePathStub } from '../../../contracts/absolute-file-path/absolute-file-path.stub';
 import { NetworkPortStub } from '../../../contracts/network-port/network-port.stub';
 
 describe('portConfigWalkBroker', () => {
@@ -10,7 +9,7 @@ describe('portConfigWalkBroker', () => {
       proxy.setupPortFound({ dir: '/project', port: 4800 });
 
       const result = portConfigWalkBroker({
-        dir: AbsoluteFilePathStub({ value: '/project' }),
+        dir: '/project',
       });
 
       expect(result).toBe(NetworkPortStub({ value: 4800 }));
@@ -27,7 +26,7 @@ describe('portConfigWalkBroker', () => {
       });
 
       const result = portConfigWalkBroker({
-        dir: AbsoluteFilePathStub({ value: '/project/packages/web' }),
+        dir: '/project/packages/web',
       });
 
       expect(result).toBe(NetworkPortStub({ value: 4750 }));
@@ -40,7 +39,7 @@ describe('portConfigWalkBroker', () => {
       proxy.setupWalkToRoot({ startDir: '/no-config' });
 
       const result = portConfigWalkBroker({
-        dir: AbsoluteFilePathStub({ value: '/no-config' }),
+        dir: '/no-config',
       });
 
       expect(result).toBe(undefined);

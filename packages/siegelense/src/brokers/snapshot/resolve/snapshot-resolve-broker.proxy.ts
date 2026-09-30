@@ -1,4 +1,3 @@
-import type { AbsoluteFilePath } from '@dungeonmaster/shared/contracts';
 
 import { snapshotIndexReadBrokerProxy } from '../index-read/snapshot-index-read-broker.proxy';
 import type { SnapshotRecordStub } from '../../../contracts/snapshot-record/snapshot-record.stub';
@@ -6,16 +5,16 @@ import type { SnapshotRecordStub } from '../../../contracts/snapshot-record/snap
 type SnapshotRecord = ReturnType<typeof SnapshotRecordStub>;
 
 export const snapshotResolveBrokerProxy = (): {
-  setupNoStore: (params: { homePath: AbsoluteFilePath }) => void;
+  setupNoStore: (params: { homePath: string }) => void;
   setupStoreHolding: (params: {
-    homePath: AbsoluteFilePath;
+    homePath: string;
     records: readonly SnapshotRecord[];
   }) => void;
 } => {
   const indexReadProxy = snapshotIndexReadBrokerProxy();
 
   return {
-    setupNoStore: ({ homePath }: { homePath: AbsoluteFilePath }): void => {
+    setupNoStore: ({ homePath }: { homePath: string }): void => {
       indexReadProxy.setupNoIndex({ homePath });
     },
 
@@ -23,7 +22,7 @@ export const snapshotResolveBrokerProxy = (): {
       homePath,
       records,
     }: {
-      homePath: AbsoluteFilePath;
+      homePath: string;
       records: readonly SnapshotRecord[];
     }): void => {
       indexReadProxy.setupIndex({ homePath, records });

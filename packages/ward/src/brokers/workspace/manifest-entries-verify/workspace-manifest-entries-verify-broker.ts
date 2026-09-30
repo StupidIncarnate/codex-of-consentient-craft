@@ -16,7 +16,6 @@
  */
 
 import { readFile, statIfExists } from '#gateway/node/fs__promises';
-import { type AbsoluteFilePath } from '@dungeonmaster/shared/contracts';
 
 import { packageJsonRawContract } from '../../../contracts/package-json-raw/package-json-raw-contract';
 import type { ManifestEntryDeclaration } from '../../../contracts/manifest-entry-declaration/manifest-entry-declaration-contract';
@@ -25,7 +24,7 @@ import { packageJsonDeclaredEntriesTransformer } from '../../../transformers/pac
 export const workspaceManifestEntriesVerifyBroker = async ({
   packagePath,
 }: {
-  packagePath: AbsoluteFilePath;
+  packagePath: string;
 }): Promise<ManifestEntryDeclaration[]> => {
   const manifestPath = `${packagePath}/package.json`;
   const raw = await readFile(manifestPath);

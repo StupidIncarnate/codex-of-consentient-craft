@@ -1,7 +1,6 @@
 import { nowProxy } from '#gateway/node/Date/now/now.proxy';
 import { join } from '#gateway/node/path';
 import { stderrProxy } from '#gateway/node/process/stderr/stderr.proxy';
-import { AbsoluteFilePathStub } from '@dungeonmaster/shared/contracts/absolute-file-path/absolute-file-path.stub';
 import { locationsStatics } from '@dungeonmaster/shared/statics';
 import { registerMock } from '@dungeonmaster/testing/register-mock';
 
@@ -86,7 +85,7 @@ export const heartbeatWriteBrokerProxy = (): {
       joinHandle
         .calledWith([evidencePath, locationsStatics.siegelense.heartbeat])
         .returns(heartbeatPathValue);
-      writeProxy.succeeds({ path: AbsoluteFilePathStub({ value: heartbeatPathValue }) });
+      writeProxy.succeeds({ path: heartbeatPathValue });
 
       // Honest default: no /proc means rssMB: null, matching InstanceHeartbeatStub's own default.
       rssProxy.setupProcMissing();
@@ -122,7 +121,7 @@ export const heartbeatWriteBrokerProxy = (): {
       joinHandle
         .calledWith([evidencePath, locationsStatics.siegelense.heartbeat])
         .returns(heartbeatPathValue);
-      writeProxy.succeeds({ path: AbsoluteFilePathStub({ value: heartbeatPathValue }) });
+      writeProxy.succeeds({ path: heartbeatPathValue });
 
       rssProxy.setupProcListing({ pids: [pid] });
       rssProxy.setupPidStat({ pid, pgrp });
@@ -163,7 +162,7 @@ export const heartbeatWriteBrokerProxy = (): {
       joinHandle
         .calledWith([evidencePath, locationsStatics.siegelense.heartbeat])
         .returns(heartbeatPathValue);
-      writeProxy.succeeds({ path: AbsoluteFilePathStub({ value: heartbeatPathValue }) });
+      writeProxy.succeeds({ path: heartbeatPathValue });
 
       // machineRssByPgidBroker rejects on the pid's own /proc/<pid>/stat read — the shape of one
       // unrelated process on the box throwing EACCES, not this instance's own pgids being gone.
@@ -185,9 +184,7 @@ export const heartbeatWriteBrokerProxy = (): {
 
     getWrittenHeartbeatContent: ({ evidencePath }: { evidencePath: string }): unknown =>
       writeProxy.writtenContentsFor({
-        path: AbsoluteFilePathStub({
-          value: `${evidencePath}/${locationsStatics.siegelense.heartbeat}`,
-        }),
+        path: `${evidencePath}/${locationsStatics.siegelense.heartbeat}`,
       }),
 
     getRegistryWrittenContent: (): unknown => registryProxy.getWrittenContent(),

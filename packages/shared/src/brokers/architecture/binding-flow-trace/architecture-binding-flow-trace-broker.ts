@@ -15,7 +15,6 @@
  * the boot-tree's widget subtree renderer and the standalone widget tree section
  */
 
-import type { AbsoluteFilePath } from '../../../contracts/absolute-file-path/absolute-file-path-contract';
 import type { ContentText } from '../../../contracts/content-text/content-text-contract';
 import type { HttpEdge } from '../../../contracts/http-edge/http-edge-contract';
 import type { WsEdge } from '../../../contracts/ws-edge/ws-edge-contract';
@@ -36,8 +35,8 @@ export const architectureBindingFlowTraceBroker = ({
   wsEdges,
 }: {
   bindingName: ContentText;
-  packageRoot: AbsoluteFilePath;
-  projectRoot: AbsoluteFilePath;
+  packageRoot: string;
+  projectRoot: string;
   httpEdges: HttpEdge[];
   wsEdges: WsEdge[];
 }): {

@@ -2,7 +2,7 @@ import { randomUUID } from '#gateway/node/crypto';
 import { homedir } from '#gateway/node/os';
 import { join } from '#gateway/node/path';
 import { stderrProxy } from '#gateway/node/process/stderr/stderr.proxy';
-import type { AbsoluteFilePath, RepoRootCwd, Session } from '@dungeonmaster/shared/contracts';
+import type { RepoRootCwd, Session } from '@dungeonmaster/shared/contracts';
 import type { QuestStub as QuestStubType } from '@dungeonmaster/shared/contracts/quest/quest.stub';
 import { ExitCodeStub } from '@dungeonmaster/shared/contracts/exit-code/exit-code.stub';
 import { QuestStub } from '@dungeonmaster/shared/contracts/quest/quest.stub';
@@ -89,12 +89,12 @@ export const chatSpawnBrokerProxy = (): {
   setupResumeWithWorktree: (params: {
     questId: Quest['id'];
     sessionId: Session['id'];
-    worktreePath: AbsoluteFilePath;
+    worktreePath: string;
   }) => void;
   setupResumeWithMissingWorktree: (params: {
     questId: Quest['id'];
     sessionId: Session['id'];
-    worktreePath: AbsoluteFilePath;
+    worktreePath: string;
   }) => void;
   setupResumeWithRepoRoot: (params: {
     questId: Quest['id'];
@@ -246,7 +246,7 @@ export const chatSpawnBrokerProxy = (): {
     }: {
       questId: Quest['id'];
       sessionId: Session['id'];
-      worktreePath: AbsoluteFilePath;
+      worktreePath: string;
     }): void => {
       const chaosItem = WorkItemStub({ role: 'chaoswhisperer', sessionId });
       const quest = QuestStub({
@@ -267,7 +267,7 @@ export const chatSpawnBrokerProxy = (): {
     }: {
       questId: Quest['id'];
       sessionId: Session['id'];
-      worktreePath: AbsoluteFilePath;
+      worktreePath: string;
     }): void => {
       const chaosItem = WorkItemStub({ role: 'chaoswhisperer', sessionId });
       const quest = QuestStub({

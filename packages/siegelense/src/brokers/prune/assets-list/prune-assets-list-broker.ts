@@ -14,7 +14,7 @@
  */
 
 import { join } from '#gateway/node/path';
-import { absoluteFilePathContract, fileNameContract, siegeRunContract } from '@dungeonmaster/shared/contracts';
+import { fileNameContract, siegeRunContract } from '@dungeonmaster/shared/contracts';
 
 import { readdirIfExists, statIfExists } from '#gateway/node/fs__promises';
 import { pruneAssetContract } from '../../../contracts/prune-asset/prune-asset-contract';
@@ -105,7 +105,7 @@ export const pruneAssetsListBroker = async ({
         return [];
       }
 
-      const filePath = absoluteFilePathContract.parse(join(runsDir, fileName));
+      const filePath = join(runsDir, fileName);
       const stat = await statIfExists(filePath);
 
       return stat === null
@@ -135,7 +135,7 @@ export const pruneAssetsListBroker = async ({
         return [];
       }
 
-      const filePath = absoluteFilePathContract.parse(join(videoDir, fileName));
+      const filePath = join(videoDir, fileName);
       const stat = await statIfExists(filePath);
 
       return stat === null

@@ -1,4 +1,3 @@
-import { AbsoluteFilePathStub } from '@dungeonmaster/shared/contracts/absolute-file-path/absolute-file-path.stub';
 
 import { LaneSessionStub } from '../../../contracts/lane-session/lane-session.stub';
 import { StepFilePathStub } from '../../../contracts/step-file-path/step-file-path.stub';
@@ -15,7 +14,7 @@ describe('stepFileBroker', () => {
         browser: null,
       });
       const path = StepFilePathStub({ value: 'usage-ledger.json' });
-      const filePath = AbsoluteFilePathStub({ value: '/tmp/test-lane-home/usage-ledger.json' });
+      const filePath = '/tmp/test-lane-home/usage-ledger.json';
 
       proxy.setupFileExists({
         filePath,
@@ -37,11 +36,8 @@ describe('stepFileBroker', () => {
         browser: null,
       });
       const path = StepFilePathStub({ value: 'api-server.log' });
-      const homeFilePath = AbsoluteFilePathStub({ value: '/tmp/test-lane-home/api-server.log' });
-      const evidenceFilePath = AbsoluteFilePathStub({
-        value:
-          '/repo/.dungeonmaster-assets/siegelense-assets/guilds/g1/instances/inst_1/api-server.log',
-      });
+      const homeFilePath = '/tmp/test-lane-home/api-server.log';
+      const evidenceFilePath = '/repo/.dungeonmaster-assets/siegelense-assets/guilds/g1/instances/inst_1/api-server.log';
 
       proxy.setupFileNotFound({ filePath: homeFilePath });
       proxy.setupFileExists({
@@ -64,11 +60,8 @@ describe('stepFileBroker', () => {
         browser: null,
       });
       const path = StepFilePathStub({ value: 'missing.log' });
-      const filePath = AbsoluteFilePathStub({ value: '/tmp/test-lane-home/missing.log' });
-      const evidenceFilePath = AbsoluteFilePathStub({
-        value:
-          '/repo/.dungeonmaster-assets/siegelense-assets/guilds/g1/instances/inst_1/missing.log',
-      });
+      const filePath = '/tmp/test-lane-home/missing.log';
+      const evidenceFilePath = '/repo/.dungeonmaster-assets/siegelense-assets/guilds/g1/instances/inst_1/missing.log';
 
       proxy.setupFileNotFound({ filePath, evidenceFilePath });
 

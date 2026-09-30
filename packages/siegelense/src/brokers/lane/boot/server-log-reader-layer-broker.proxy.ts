@@ -3,10 +3,10 @@
 // USAGE: const proxy = serverLogReaderLayerBrokerProxy(); proxy.setupLogContent({ logPath, content });
 
 import { readFileSyncProxy } from '#gateway/node/fs/read-file-sync/read-file-sync.proxy';
-import type { AbsoluteFilePath, ContentText } from '@dungeonmaster/shared/contracts';
+import type { ContentText } from '@dungeonmaster/shared/contracts';
 
 export const serverLogReaderLayerBrokerProxy = (): {
-  setupLogContent: (params: { logPath: AbsoluteFilePath; content: ContentText }) => void;
+  setupLogContent: (params: { logPath: string; content: ContentText }) => void;
 } => {
   const fsProxy = readFileSyncProxy();
 
@@ -15,7 +15,7 @@ export const serverLogReaderLayerBrokerProxy = (): {
       logPath,
       content,
     }: {
-      logPath: AbsoluteFilePath;
+      logPath: string;
       content: ContentText;
     }): void => {
       fsProxy.returns({ path: logPath, contents: content });

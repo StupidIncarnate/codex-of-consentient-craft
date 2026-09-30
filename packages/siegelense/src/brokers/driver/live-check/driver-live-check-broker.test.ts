@@ -1,5 +1,4 @@
 import { pid } from '#gateway/node/process';
-import { AbsoluteFilePathStub } from '@dungeonmaster/shared/contracts/absolute-file-path/absolute-file-path.stub';
 import { ProcessIdStub } from '@dungeonmaster/shared/contracts/process-id/process-id.stub';
 
 import { driverLiveCheckBroker } from './driver-live-check-broker';
@@ -8,7 +7,7 @@ import { ProcessGroupIdStub } from '../../../contracts/process-group-id/process-
 import { RegistryEntryStub } from '../../../contracts/registry-entry/registry-entry.stub';
 
 const DIFFERENT_PID = ProcessIdStub({ value: String(pid + 1) });
-const SOCKET_PATH = AbsoluteFilePathStub({ value: '/tmp/dm-siege-sockets/inst_live0001.sock' });
+const SOCKET_PATH = '/tmp/dm-siege-sockets/inst_live0001.sock';
 
 describe('driverLiveCheckBroker', () => {
   describe('the row has never booted', () => {

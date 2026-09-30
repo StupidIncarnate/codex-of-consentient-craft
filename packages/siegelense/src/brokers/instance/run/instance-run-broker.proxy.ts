@@ -1,4 +1,3 @@
-import type { AbsoluteFilePathStub } from '@dungeonmaster/shared/contracts/absolute-file-path/absolute-file-path.stub';
 
 import { registryReadBrokerProxy } from '../../registry/read/registry-read-broker.proxy';
 import { registryUpdateBrokerProxy } from '../../registry/update/registry-update-broker.proxy';
@@ -18,16 +17,16 @@ type RunResult = ReturnType<typeof RunResultStub>;
 export const instanceRunBrokerProxy = (): {
   setupRegistry: (params: { registry: Registry }) => void;
   setupDriverAnswers: (params: {
-    socketPath: ReturnType<typeof AbsoluteFilePathStub>;
+    socketPath: string;
     runResult: RunResult;
   }) => void;
-  setupDriverUnreachable: (params: { socketPath: ReturnType<typeof AbsoluteFilePathStub> }) => void;
+  setupDriverUnreachable: (params: { socketPath: string }) => void;
   setupDriverReportsFailure: (params: {
-    socketPath: ReturnType<typeof AbsoluteFilePathStub>;
+    socketPath: string;
     errorMessage: string;
   }) => void;
   getRunRequestWritten: (params: {
-    socketPath: ReturnType<typeof AbsoluteFilePathStub>;
+    socketPath: string;
   }) => unknown;
   getWrittenRegistry: () => unknown;
 } => {
@@ -47,7 +46,7 @@ export const instanceRunBrokerProxy = (): {
       socketPath,
       runResult,
     }: {
-      socketPath: ReturnType<typeof AbsoluteFilePathStub>;
+      socketPath: string;
       runResult: RunResult;
     }): void => {
       socketProxy.respondsWith({
@@ -59,7 +58,7 @@ export const instanceRunBrokerProxy = (): {
     setupDriverUnreachable: ({
       socketPath,
     }: {
-      socketPath: ReturnType<typeof AbsoluteFilePathStub>;
+      socketPath: string;
     }): void => {
       socketProxy.connectFailsRefused({ socketPath });
     },
@@ -68,7 +67,7 @@ export const instanceRunBrokerProxy = (): {
       socketPath,
       errorMessage,
     }: {
-      socketPath: ReturnType<typeof AbsoluteFilePathStub>;
+      socketPath: string;
       errorMessage: string;
     }): void => {
       socketProxy.respondsWith({
@@ -80,7 +79,7 @@ export const instanceRunBrokerProxy = (): {
     getRunRequestWritten: ({
       socketPath,
     }: {
-      socketPath: ReturnType<typeof AbsoluteFilePathStub>;
+      socketPath: string;
     }): unknown => socketProxy.getRequestLinesFor({ socketPath }).at(-1),
 
     getWrittenRegistry: (): unknown => {

@@ -1,9 +1,8 @@
 import { architectureEdgeGraphBroker } from './architecture-edge-graph-broker';
 import { architectureEdgeGraphBrokerProxy } from './architecture-edge-graph-broker.proxy';
-import { AbsoluteFilePathStub } from '../../../contracts/absolute-file-path/absolute-file-path.stub';
 import { ContentTextStub } from '../../../contracts/content-text/content-text.stub';
 
-const PROJECT_ROOT = AbsoluteFilePathStub({ value: '/repo' });
+const PROJECT_ROOT = '/repo';
 
 const SERVER_STATICS = ContentTextStub({
   value: `export const apiRoutesStatics = {
@@ -38,9 +37,7 @@ describe('architectureEdgeGraphBroker', () => {
   describe('server flow file with route registration', () => {
     it('VALID: {flow with GET /api/quests} => returns one HTTP edge with correct method and urlPattern', () => {
       const proxy = architectureEdgeGraphBrokerProxy();
-      const flowPath = AbsoluteFilePathStub({
-        value: '/repo/packages/server/src/flows/quest/quest-flow.ts',
-      });
+      const flowPath = '/repo/packages/server/src/flows/quest/quest-flow.ts';
 
       proxy.setup({
         serverStaticsSource: SERVER_STATICS,

@@ -19,7 +19,6 @@
 import { readFileBytes } from '#gateway/node/fs__promises';
 import pixelmatch from '#gateway/npm/pixelmatch';
 import { decodePng } from '#gateway/npm/pngjs';
-import type { AbsoluteFilePath } from '@dungeonmaster/shared/contracts';
 
 import { pixelChangeContract } from '../../../contracts/pixel-change/pixel-change-contract';
 import type { PixelChange } from '../../../contracts/pixel-change/pixel-change-contract';
@@ -32,8 +31,8 @@ export const shotChangeReadBroker = async ({
   previousPath,
   currentPath,
 }: {
-  previousPath: AbsoluteFilePath | null;
-  currentPath: AbsoluteFilePath;
+  previousPath: string | null;
+  currentPath: string;
 }): Promise<PixelChange | null> => {
   if (previousPath === null) {
     return null;

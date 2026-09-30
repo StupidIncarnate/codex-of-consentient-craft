@@ -1,4 +1,3 @@
-import { AbsoluteFilePathStub } from '@dungeonmaster/shared/contracts/absolute-file-path/absolute-file-path.stub';
 
 import { LocalImagePathMatchStub } from '../../contracts/local-image-path-match/local-image-path-match.stub';
 import { PastedImageOrdinalStub } from '../../contracts/pasted-image-ordinal/pasted-image-ordinal.stub';
@@ -9,7 +8,7 @@ describe('localImageTokenSubstituteTransformer', () => {
     it('VALID: {message: "before /tmp/snip.png after", one match copied} => the copied destination path is wrapped in the pasted-image token, everything else unchanged', () => {
       const ordinal = PastedImageOrdinalStub({ value: 1 });
       const match = LocalImagePathMatchStub({ path: '/tmp/snip.png', ordinal });
-      const copiedPath = AbsoluteFilePathStub({ value: '/home/q/images/abc.png' });
+      const copiedPath = '/home/q/images/abc.png';
 
       const result = localImageTokenSubstituteTransformer({
         message: 'before /tmp/snip.png after',
@@ -32,7 +31,7 @@ describe('localImageTokenSubstituteTransformer', () => {
         matchedText: '"/tmp/Screen Shot.png"',
         ordinal,
       });
-      const copiedPath = AbsoluteFilePathStub({ value: '/home/q/images/abc.png' });
+      const copiedPath = '/home/q/images/abc.png';
 
       const result = localImageTokenSubstituteTransformer({
         message: 'before "/tmp/Screen Shot.png" after',
@@ -50,7 +49,7 @@ describe('localImageTokenSubstituteTransformer', () => {
         matchedText: '/tmp/Screen\\ Shot.png',
         ordinal,
       });
-      const copiedPath = AbsoluteFilePathStub({ value: '/home/q/images/abc.png' });
+      const copiedPath = '/home/q/images/abc.png';
 
       const result = localImageTokenSubstituteTransformer({
         message: 'before /tmp/Screen\\ Shot.png after',
@@ -98,7 +97,7 @@ describe('localImageTokenSubstituteTransformer', () => {
     it('VALID: {message: "![Pasted Image 1](/tmp/a.png) and /tmp/a.png", one match at ordinal 2 (the loose occurrence)} => the existing token is untouched and the loose occurrence becomes its own token', () => {
       const ordinal = PastedImageOrdinalStub({ value: 2 });
       const match = LocalImagePathMatchStub({ path: '/tmp/a.png', ordinal });
-      const copiedPath = AbsoluteFilePathStub({ value: '/home/q/images/copy.png' });
+      const copiedPath = '/home/q/images/copy.png';
 
       const result = localImageTokenSubstituteTransformer({
         message: '![Pasted Image 1](/tmp/a.png) and /tmp/a.png',
@@ -116,7 +115,7 @@ describe('localImageTokenSubstituteTransformer', () => {
     it('VALID: {message: "no images here", one match whose path never occurs} => the message is returned byte-identical', () => {
       const ordinal = PastedImageOrdinalStub({ value: 1 });
       const match = LocalImagePathMatchStub({ path: '/tmp/missing.png', ordinal });
-      const copiedPath = AbsoluteFilePathStub({ value: '/home/q/images/copy.png' });
+      const copiedPath = '/home/q/images/copy.png';
 
       const result = localImageTokenSubstituteTransformer({
         message: 'no images here',
@@ -137,8 +136,8 @@ describe('localImageTokenSubstituteTransformer', () => {
         path: '/tmp/snip.png',
         ordinal: secondOrdinal,
       });
-      const firstCopiedPath = AbsoluteFilePathStub({ value: '/q/images/one.png' });
-      const secondCopiedPath = AbsoluteFilePathStub({ value: '/q/images/two.png' });
+      const firstCopiedPath = '/q/images/one.png';
+      const secondCopiedPath = '/q/images/two.png';
 
       const result = localImageTokenSubstituteTransformer({
         message: 'X /tmp/snip.png Y /tmp/snip.png Z',

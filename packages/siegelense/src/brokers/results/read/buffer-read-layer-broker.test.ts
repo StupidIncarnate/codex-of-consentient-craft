@@ -1,4 +1,3 @@
-import { AbsoluteFilePathStub } from '@dungeonmaster/shared/contracts/absolute-file-path/absolute-file-path.stub';
 import { ContentTextStub } from '@dungeonmaster/shared/contracts/content-text/content-text.stub';
 
 import { BufferEntryStub } from '../../../contracts/buffer-entry/buffer-entry.stub';
@@ -8,9 +7,7 @@ import { StepIndexStub } from '../../../contracts/step-index/step-index.stub';
 import { bufferReadLayerBroker } from './buffer-read-layer-broker';
 import { bufferReadLayerBrokerProxy } from './buffer-read-layer-broker.proxy';
 
-const BUFFER_PATH = AbsoluteFilePathStub({
-  value: '/repo/.dungeonmaster-assets/siegelense-assets/unowned/instances/inst_1/network.jsonl',
-});
+const BUFFER_PATH = '/repo/.dungeonmaster-assets/siegelense-assets/unowned/instances/inst_1/network.jsonl';
 const RUN_2 = RunIdStub({ value: 'run_2' });
 
 const networkText = ({

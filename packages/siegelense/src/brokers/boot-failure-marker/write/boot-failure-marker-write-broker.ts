@@ -16,8 +16,7 @@
  */
 
 import { join } from '#gateway/node/path';
-import { absoluteFilePathContract } from '@dungeonmaster/shared/contracts';
-import type { AbsoluteFilePath, ContentText } from '@dungeonmaster/shared/contracts';
+import type { ContentText } from '@dungeonmaster/shared/contracts';
 import { locationsStatics } from '@dungeonmaster/shared/statics';
 
 import { writeFile } from '#gateway/node/fs__promises';
@@ -29,12 +28,10 @@ export const bootFailureMarkerWriteBroker = async ({
   evidencePath,
   message,
 }: {
-  evidencePath: AbsoluteFilePath;
+  evidencePath: string;
   message: ContentText;
 }): Promise<BootFailureMarker> => {
-  const markerPath = absoluteFilePathContract.parse(
-    join(evidencePath, locationsStatics.siegelense.bootFailure),
-  );
+  const markerPath = join(evidencePath, locationsStatics.siegelense.bootFailure);
 
   const marker = bootFailureMarkerContract.parse({
     message,

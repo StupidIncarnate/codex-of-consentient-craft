@@ -15,7 +15,6 @@
 
 import { join } from '#gateway/node/path';
 
-import { AbsoluteFilePathStub } from '@dungeonmaster/shared/contracts/absolute-file-path/absolute-file-path.stub';
 import { FileNameStub } from '@dungeonmaster/shared/contracts/file-name/file-name.stub';
 import { GuildIdStub } from '@dungeonmaster/shared/contracts/guild-id/guild-id.stub';
 import type { OperationItem } from '@dungeonmaster/shared/contracts';
@@ -30,7 +29,7 @@ import { questLoadBrokerProxy } from '../load/quest-load-broker.proxy';
 
 type Quest = ReturnType<typeof QuestStub>;
 type WorkPlan = ReturnType<typeof WorkPlanStub>;
-type AbsoluteFilePath = ReturnType<typeof AbsoluteFilePathStub>;
+type AbsoluteFilePath = string;
 
 const HOME_DIR = '/home/testuser';
 
@@ -84,7 +83,7 @@ export const questGetWorkPlanBrokerProxy = (): {
     // Re-branded from the FilePath the find-quest-path fixture needed to AbsoluteFilePath, the
     // brand plannedWorkReadBrokerProxy requires — same string value, so the plan-file read is
     // staged against the SAME folder plannedWorkReadBroker is really called with.
-    return { questFolderPath: AbsoluteFilePathStub({ value: String(questFolderPath) }) };
+    return { questFolderPath: String(questFolderPath) };
   };
 
   return {

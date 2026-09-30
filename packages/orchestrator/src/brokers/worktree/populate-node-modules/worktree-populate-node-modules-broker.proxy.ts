@@ -1,6 +1,4 @@
 import { locationsNodeModulesPathFindBrokerProxy } from '@dungeonmaster/shared/brokers/locations/node-modules-path-find/locations-node-modules-path-find-broker.proxy';
-import type { AbsoluteFilePath } from '@dungeonmaster/shared/contracts';
-import { AbsoluteFilePathStub } from '@dungeonmaster/shared/contracts/absolute-file-path/absolute-file-path.stub';
 import type { FsError } from '#gateway/node/fs';
 import { pathExistsProxy } from '#gateway/node/fs__promises/path-exists/path-exists.proxy';
 
@@ -8,32 +6,32 @@ import { populateOneRootLayerBrokerProxy } from './populate-one-root-layer-broke
 
 export const worktreePopulateNodeModulesBrokerProxy = (): {
   setupMkdirThrows: (params: { filepath: string; error: FsError }) => void;
-  setupEmptyRepo: (params: { repoRoot: AbsoluteFilePath; worktreePath: AbsoluteFilePath }) => void;
+  setupEmptyRepo: (params: { repoRoot: string; worktreePath: string }) => void;
   setupNoWorkspaceLinks: (params: {
-    repoRoot: AbsoluteFilePath;
-    worktreePath: AbsoluteFilePath;
+    repoRoot: string;
+    worktreePath: string;
     thirdPartyEntry: string;
   }) => void;
   setupWorkspacePackageWithNodeModules: (params: {
-    repoRoot: AbsoluteFilePath;
-    worktreePath: AbsoluteFilePath;
+    repoRoot: string;
+    worktreePath: string;
     packageName: string;
     thirdPartyEntry: string;
   }) => void;
   setupWorkspacePackageWithoutNodeModules: (params: {
-    repoRoot: AbsoluteFilePath;
-    worktreePath: AbsoluteFilePath;
+    repoRoot: string;
+    worktreePath: string;
     packageName: string;
   }) => void;
   setupWorkspacePackagePopulationRejects: (params: {
-    repoRoot: AbsoluteFilePath;
-    worktreePath: AbsoluteFilePath;
+    repoRoot: string;
+    worktreePath: string;
     packageName: string;
     error: FsError;
   }) => void;
-  setupRootTargetAlreadyPopulated: (params: { worktreePath: AbsoluteFilePath }) => void;
+  setupRootTargetAlreadyPopulated: (params: { worktreePath: string }) => void;
   setupPackageTargetAlreadyPopulated: (params: {
-    worktreePath: AbsoluteFilePath;
+    worktreePath: string;
     packageName: string;
   }) => void;
   getAllSymlinks: () => readonly { target: unknown; linkPath: unknown }[];
@@ -54,19 +52,19 @@ export const worktreePopulateNodeModulesBrokerProxy = (): {
     worktreePath,
     packageName,
   }: {
-    repoRoot: AbsoluteFilePath;
-    worktreePath: AbsoluteFilePath;
+    repoRoot: string;
+    worktreePath: string;
     packageName: string;
   }): void => {
     const relativeTarget = `../../packages/${packageName}`;
 
     layerProxy.setupTargetReady({ targetRoot: worktreePath, scopeNames: ['@dungeonmaster'] });
     layerProxy.setupDirectoryEntries({
-      dirPath: AbsoluteFilePathStub({ value: `${repoRoot}/node_modules` }),
+      dirPath: `${repoRoot}/node_modules`,
       entries: [{ name: '@dungeonmaster', isDir: true, isSymlink: false }],
     });
     layerProxy.setupDirectoryEntries({
-      dirPath: AbsoluteFilePathStub({ value: `${repoRoot}/node_modules/@dungeonmaster` }),
+      dirPath: `${repoRoot}/node_modules/@dungeonmaster`,
       entries: [{ name: packageName, isDir: false, isSymlink: true }],
     });
     layerProxy.setupReadlinkTarget({
@@ -89,7 +87,7 @@ export const worktreePopulateNodeModulesBrokerProxy = (): {
     setupEmptyRepo: ({ repoRoot, worktreePath }): void => {
       layerProxy.setupTargetReady({ targetRoot: worktreePath });
       layerProxy.setupDirectoryEntries({
-        dirPath: AbsoluteFilePathStub({ value: `${repoRoot}/node_modules` }),
+        dirPath: `${repoRoot}/node_modules`,
         entries: [],
       });
     },
@@ -97,7 +95,7 @@ export const worktreePopulateNodeModulesBrokerProxy = (): {
     setupNoWorkspaceLinks: ({ repoRoot, worktreePath, thirdPartyEntry }): void => {
       layerProxy.setupTargetReady({ targetRoot: worktreePath });
       layerProxy.setupDirectoryEntries({
-        dirPath: AbsoluteFilePathStub({ value: `${repoRoot}/node_modules` }),
+        dirPath: `${repoRoot}/node_modules`,
         entries: [{ name: thirdPartyEntry, isDir: true, isSymlink: false }],
       });
       // A third-party entry is HARDLINKED, not linked at the source copy, so what the test stages
@@ -117,12 +115,10 @@ export const worktreePopulateNodeModulesBrokerProxy = (): {
       isAccessibleProxy.present({ path: packageNodeModules });
 
       layerProxy.setupTargetReady({
-        targetRoot: AbsoluteFilePathStub({ value: `${worktreePath}/packages/${packageName}` }),
+        targetRoot: `${worktreePath}/packages/${packageName}`,
       });
       layerProxy.setupDirectoryEntries({
-        dirPath: AbsoluteFilePathStub({
-          value: `${repoRoot}/packages/${packageName}/node_modules`,
-        }),
+        dirPath: `${repoRoot}/packages/${packageName}/node_modules`,
         entries: [{ name: thirdPartyEntry, isDir: true, isSymlink: false }],
       });
       layerProxy.setupCopySucceeds();
@@ -156,7 +152,7 @@ export const worktreePopulateNodeModulesBrokerProxy = (): {
     setupRootTargetAlreadyPopulated: ({
       worktreePath,
     }: {
-      worktreePath: AbsoluteFilePath;
+      worktreePath: string;
     }): void => {
       layerProxy.setupTargetNodeModulesOnDisk({
         targetRoot: worktreePath,
@@ -173,11 +169,11 @@ export const worktreePopulateNodeModulesBrokerProxy = (): {
       worktreePath,
       packageName,
     }: {
-      worktreePath: AbsoluteFilePath;
+      worktreePath: string;
       packageName: string;
     }): void => {
       layerProxy.setupTargetNodeModulesOnDisk({
-        targetRoot: AbsoluteFilePathStub({ value: `${worktreePath}/packages/${packageName}` }),
+        targetRoot: `${worktreePath}/packages/${packageName}`,
         entries: [{ name: 'react-router-dom', isDir: false, isSymlink: true }],
       });
     },

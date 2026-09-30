@@ -1,11 +1,10 @@
 import { adapterCensusBuildBrokerProxy } from '../build/adapter-census-build-broker.proxy';
 import { censusRepoReadLayoutBrokerProxy } from '../../census-repo/read-layout/census-repo-read-layout-broker.proxy';
 import { censusRepoReadSourcesBrokerProxy } from '../../census-repo/read-sources/census-repo-read-sources-broker.proxy';
-import type { AbsoluteFilePath } from '../../../contracts/absolute-file-path/absolute-file-path-contract';
 
 export const adapterCensusRunBrokerProxy = (): {
-  setupSharedStemRepo: (params: { repoRoot: AbsoluteFilePath }) => void;
-  setupMissingRoot: (params: { repoRoot: AbsoluteFilePath }) => void;
+  setupSharedStemRepo: (params: { repoRoot: string }) => void;
+  setupMissingRoot: (params: { repoRoot: string }) => void;
 } => {
   const layoutProxy = censusRepoReadLayoutBrokerProxy();
   const sourcesProxy = censusRepoReadSourcesBrokerProxy();

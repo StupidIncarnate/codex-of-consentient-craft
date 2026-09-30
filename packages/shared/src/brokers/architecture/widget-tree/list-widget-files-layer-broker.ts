@@ -10,8 +10,6 @@
  * WHEN-TO-USE: Widget-tree broker collecting the widget file set to build the composition graph
  */
 
-import { absoluteFilePathContract } from '../../../contracts/absolute-file-path/absolute-file-path-contract';
-import type { AbsoluteFilePath } from '../../../contracts/absolute-file-path/absolute-file-path-contract';
 import { isNonTestFileGuard } from '../../../guards/is-non-test-file/is-non-test-file-guard';
 import { matchesWidgetFileNameGuard } from '../../../guards/matches-widget-file-name/matches-widget-file-name-guard';
 import { safeReaddirLayerBroker } from './safe-readdir-layer-broker';
@@ -19,13 +17,13 @@ import { safeReaddirLayerBroker } from './safe-readdir-layer-broker';
 export const listWidgetFilesLayerBroker = ({
   widgetsDirPath,
 }: {
-  widgetsDirPath: AbsoluteFilePath;
-}): AbsoluteFilePath[] => {
+  widgetsDirPath: string;
+}): string[] => {
   const entries = safeReaddirLayerBroker({ dirPath: widgetsDirPath });
-  const results: AbsoluteFilePath[] = [];
+  const results: string[] = [];
 
   for (const entry of entries) {
-    const entryPath = absoluteFilePathContract.parse(`${String(widgetsDirPath)}/${entry.name}`);
+    const entryPath = `${String(widgetsDirPath)}/${entry.name}`;
 
     if (entry.kind === 'directory') {
       const children = listWidgetFilesLayerBroker({ widgetsDirPath: entryPath });

@@ -1,7 +1,6 @@
 import { widgetNodeContract } from './widget-node-contract';
 import { WidgetNodeStub } from './widget-node.stub';
 import { ContentTextStub } from '../content-text/content-text.stub';
-import { AbsoluteFilePathStub } from '../absolute-file-path/absolute-file-path.stub';
 
 describe('widgetNodeContract', () => {
   describe('valid nodes', () => {
@@ -21,12 +20,12 @@ describe('widgetNodeContract', () => {
     it('VALID: {node with children and bindings} => parses successfully', () => {
       const child = WidgetNodeStub({
         widgetName: ContentTextStub({ value: 'child-widget' }),
-        filePath: AbsoluteFilePathStub({ value: '/stub/src/widgets/child/child-widget.tsx' }),
+        filePath: '/stub/src/widgets/child/child-widget.tsx',
       });
 
       const result = WidgetNodeStub({
         widgetName: ContentTextStub({ value: 'parent-widget' }),
-        filePath: AbsoluteFilePathStub({ value: '/stub/src/widgets/parent/parent-widget.tsx' }),
+        filePath: '/stub/src/widgets/parent/parent-widget.tsx',
         bindingsAttached: [ContentTextStub({ value: 'use-data-binding' })],
         children: [child],
       });

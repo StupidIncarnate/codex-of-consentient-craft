@@ -2,8 +2,6 @@ import { listTsFilesLayerBrokerProxy } from './list-ts-files-layer-broker.proxy'
 import { readFileLayerBrokerProxy } from './read-file-layer-broker.proxy';
 import { resolvePackageGroupsLayerBrokerProxy } from './resolve-package-groups-layer-broker.proxy';
 import { resolveStaticsFirstMatchLayerBrokerProxy } from './resolve-statics-first-match-layer-broker.proxy';
-import { AbsoluteFilePathStub } from '../../../contracts/absolute-file-path/absolute-file-path.stub';
-import type { AbsoluteFilePath } from '../../../contracts/absolute-file-path/absolute-file-path-contract';
 import type { ContentText } from '../../../contracts/content-text/content-text-contract';
 
 export const httpEdgesLayerBrokerProxy = (): {
@@ -17,8 +15,8 @@ export const httpEdgesLayerBrokerProxy = (): {
   }: {
     serverStaticsSource: ContentText;
     webStaticsSource: ContentText;
-    flowFiles: { path: AbsoluteFilePath; source: ContentText }[];
-    brokerFiles: { path: AbsoluteFilePath; source: ContentText }[];
+    flowFiles: { path: string; source: ContentText }[];
+    brokerFiles: { path: string; source: ContentText }[];
     httpBackendPackageNames?: string[];
     frontendPackageNames?: string[];
   }) => void;
@@ -39,8 +37,8 @@ export const httpEdgesLayerBrokerProxy = (): {
     }: {
       serverStaticsSource: ContentText;
       webStaticsSource: ContentText;
-      flowFiles: { path: AbsoluteFilePath; source: ContentText }[];
-      brokerFiles: { path: AbsoluteFilePath; source: ContentText }[];
+      flowFiles: { path: string; source: ContentText }[];
+      brokerFiles: { path: string; source: ContentText }[];
       httpBackendPackageNames?: string[];
       frontendPackageNames?: string[];
     }): void => {
@@ -61,9 +59,7 @@ export const httpEdgesLayerBrokerProxy = (): {
           packageJsonContent: JSON.stringify({ dependencies: { hono: '^4.0.0' } }),
         });
         readFileProxy.setupReturns({
-          filePath: AbsoluteFilePathStub({
-            value: `/repo/packages/${name}/src/statics/api-routes/api-routes-statics.ts`,
-          }),
+          filePath: `/repo/packages/${name}/src/statics/api-routes/api-routes-statics.ts`,
           content: serverStaticsSource,
         });
       }
@@ -75,9 +71,7 @@ export const httpEdgesLayerBrokerProxy = (): {
           packageJsonContent: JSON.stringify({ dependencies: { react: '18.2.0' } }),
         });
         readFileProxy.setupReturns({
-          filePath: AbsoluteFilePathStub({
-            value: `/repo/packages/${name}/src/statics/web-config/web-config-statics.ts`,
-          }),
+          filePath: `/repo/packages/${name}/src/statics/web-config/web-config-statics.ts`,
           content: webStaticsSource,
         });
       }

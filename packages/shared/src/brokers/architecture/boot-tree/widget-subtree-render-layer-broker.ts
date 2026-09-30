@@ -22,7 +22,6 @@ import {
   contentTextContract,
   type ContentText,
 } from '../../../contracts/content-text/content-text-contract';
-import type { AbsoluteFilePath } from '../../../contracts/absolute-file-path/absolute-file-path-contract';
 import type { HttpEdge } from '../../../contracts/http-edge/http-edge-contract';
 import type { WsEdge } from '../../../contracts/ws-edge/ws-edge-contract';
 import type { WidgetTreeResult } from '../../../contracts/widget-tree-result/widget-tree-result-contract';
@@ -45,13 +44,13 @@ export const widgetSubtreeRenderLayerBroker = ({
   packageSrcPath,
   indent,
 }: {
-  responderFile: AbsoluteFilePath;
+  responderFile: string;
   widgetTree: WidgetTreeResult;
   httpEdges: HttpEdge[];
   wsEdges: WsEdge[];
-  packageRoot: AbsoluteFilePath;
-  projectRoot: AbsoluteFilePath;
-  packageSrcPath: AbsoluteFilePath;
+  packageRoot: string;
+  projectRoot: string;
+  packageSrcPath: string;
   indent: ContentText;
 }): ContentText[] => {
   const { entries: widgetImports } = importsInFolderTypeFindLayerBroker({

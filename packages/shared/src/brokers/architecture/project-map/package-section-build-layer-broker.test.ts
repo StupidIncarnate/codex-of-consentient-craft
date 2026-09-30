@@ -1,10 +1,9 @@
 import { packageSectionBuildLayerBroker } from './package-section-build-layer-broker';
 import { packageSectionBuildLayerBrokerProxy } from './package-section-build-layer-broker.proxy';
-import { AbsoluteFilePathStub } from '../../../contracts/absolute-file-path/absolute-file-path.stub';
 import { ContentTextStub } from '../../../contracts/content-text/content-text.stub';
 
-const PROJECT_ROOT = AbsoluteFilePathStub({ value: '/repo' });
-const PACKAGE_ROOT = AbsoluteFilePathStub({ value: '/repo/packages/orchestrator' });
+const PROJECT_ROOT = '/repo';
+const PACKAGE_ROOT = '/repo/packages/orchestrator';
 const PACKAGE_NAME = ContentTextStub({ value: 'orchestrator' });
 
 describe('packageSectionBuildLayerBroker', () => {

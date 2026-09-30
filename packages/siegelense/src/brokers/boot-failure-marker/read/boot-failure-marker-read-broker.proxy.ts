@@ -17,7 +17,6 @@ import { readFileIfExistsProxy } from '#gateway/node/fs__promises/read-file-if-e
 import type { FsError } from '#gateway/node/fs';
 import { join } from '#gateway/node/path';
 import { registerMock, requireActual } from '@dungeonmaster/testing/register-mock';
-import type { AbsoluteFilePath } from '@dungeonmaster/shared/contracts';
 import { locationsStatics } from '@dungeonmaster/shared/statics';
 
 import type { BootFailureMarkerStub } from '../../../contracts/boot-failure-marker/boot-failure-marker.stub';
@@ -25,9 +24,9 @@ import type { BootFailureMarkerStub } from '../../../contracts/boot-failure-mark
 type BootFailureMarker = ReturnType<typeof BootFailureMarkerStub>;
 
 export const bootFailureMarkerReadBrokerProxy = (): {
-  setupMarkerFound: (params: { evidencePath: AbsoluteFilePath; marker: BootFailureMarker }) => void;
-  setupMarkerMissing: (params: { evidencePath: AbsoluteFilePath }) => void;
-  setupReadFails: (params: { evidencePath: AbsoluteFilePath; error: FsError }) => void;
+  setupMarkerFound: (params: { evidencePath: string; marker: BootFailureMarker }) => void;
+  setupMarkerMissing: (params: { evidencePath: string }) => void;
+  setupReadFails: (params: { evidencePath: string; error: FsError }) => void;
 } => {
   const realPath = requireActual<{ join: typeof join }>({ module: 'path' });
   const joinHandle = registerMock({ fn: join });
@@ -39,7 +38,7 @@ export const bootFailureMarkerReadBrokerProxy = (): {
       evidencePath,
       marker,
     }: {
-      evidencePath: AbsoluteFilePath;
+      evidencePath: string;
       marker: BootFailureMarker;
     }): void => {
       const markerPathValue = `${evidencePath}/${locationsStatics.siegelense.bootFailure}`;
@@ -49,7 +48,7 @@ export const bootFailureMarkerReadBrokerProxy = (): {
       });
     },
 
-    setupMarkerMissing: ({ evidencePath }: { evidencePath: AbsoluteFilePath }): void => {
+    setupMarkerMissing: ({ evidencePath }: { evidencePath: string }): void => {
       const markerPathValue = `${evidencePath}/${locationsStatics.siegelense.bootFailure}`;
       readProxy.missing({
         path: markerPathValue,
@@ -60,7 +59,7 @@ export const bootFailureMarkerReadBrokerProxy = (): {
       evidencePath,
       error,
     }: {
-      evidencePath: AbsoluteFilePath;
+      evidencePath: string;
       error: FsError;
     }): void => {
       const markerPathValue = `${evidencePath}/${locationsStatics.siegelense.bootFailure}`;

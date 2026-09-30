@@ -1,6 +1,5 @@
 import { locationsInstanceEvidencePathFindBroker } from './locations-instance-evidence-path-find-broker';
 import { locationsInstanceEvidencePathFindBrokerProxy } from './locations-instance-evidence-path-find-broker.proxy';
-import { AbsoluteFilePathStub } from '@dungeonmaster/shared/contracts/absolute-file-path/absolute-file-path.stub';
 import { GuildIdStub } from '@dungeonmaster/shared/contracts/guild-id/guild-id.stub';
 import { InstanceIdStub } from '../../../contracts/instance-id/instance-id.stub';
 
@@ -21,10 +20,7 @@ describe('locationsInstanceEvidencePathFindBroker', () => {
       const result = locationsInstanceEvidencePathFindBroker({ instanceId, guildId });
 
       expect(result).toBe(
-        AbsoluteFilePathStub({
-          value:
-            '/home/user/.dungeonmaster/siegelense/guilds/f47ac10b-58cc-4372-a567-0e02b2c3d479/instances/inst_7f3a9c21',
-        }),
+        '/home/user/.dungeonmaster/siegelense/guilds/f47ac10b-58cc-4372-a567-0e02b2c3d479/instances/inst_7f3a9c21',
       );
     });
   });
@@ -44,9 +40,7 @@ describe('locationsInstanceEvidencePathFindBroker', () => {
       const result = locationsInstanceEvidencePathFindBroker({ instanceId, guildId: null });
 
       expect(result).toBe(
-        AbsoluteFilePathStub({
-          value: '/home/user/.dungeonmaster/siegelense/unowned/instances/inst_7f3a9c21',
-        }),
+        '/home/user/.dungeonmaster/siegelense/unowned/instances/inst_7f3a9c21',
       );
     });
   });

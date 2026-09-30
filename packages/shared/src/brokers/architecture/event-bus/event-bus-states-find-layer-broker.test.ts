@@ -1,18 +1,11 @@
 import { eventBusStatesFindLayerBroker } from './event-bus-states-find-layer-broker';
 import { eventBusStatesFindLayerBrokerProxy } from './event-bus-states-find-layer-broker.proxy';
-import { AbsoluteFilePathStub } from '../../../contracts/absolute-file-path/absolute-file-path.stub';
 import { ContentTextStub } from '../../../contracts/content-text/content-text.stub';
 
-const PROJECT_ROOT = AbsoluteFilePathStub({ value: '/repo' });
-const BUS_STATE_FILE = AbsoluteFilePathStub({
-  value: '/repo/packages/foo/src/state/my-bus/my-bus-state.ts',
-});
-const NON_BUS_STATE_FILE = AbsoluteFilePathStub({
-  value: '/repo/packages/foo/src/state/counter/counter-state.ts',
-});
-const NON_STATE_FILE = AbsoluteFilePathStub({
-  value: '/repo/packages/foo/src/responders/some-responder.ts',
-});
+const PROJECT_ROOT = '/repo';
+const BUS_STATE_FILE = '/repo/packages/foo/src/state/my-bus/my-bus-state.ts';
+const NON_BUS_STATE_FILE = '/repo/packages/foo/src/state/counter/counter-state.ts';
+const NON_STATE_FILE = '/repo/packages/foo/src/responders/some-responder.ts';
 
 describe('eventBusStatesFindLayerBroker', () => {
   describe('no source files', () => {

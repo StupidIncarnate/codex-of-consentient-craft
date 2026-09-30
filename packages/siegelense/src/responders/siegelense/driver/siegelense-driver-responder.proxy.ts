@@ -26,9 +26,8 @@
  * proxy.stageBootSucceeds({ lane });
  */
 
-import { AbsoluteFilePathStub } from '@dungeonmaster/shared/contracts/absolute-file-path/absolute-file-path.stub';
 import { ContentTextStub } from '@dungeonmaster/shared/contracts/content-text/content-text.stub';
-import type { AbsoluteFilePath, SiegeInstance } from '@dungeonmaster/shared/contracts';
+import type { SiegeInstance } from '@dungeonmaster/shared/contracts';
 import { locationsStatics } from '@dungeonmaster/shared/statics';
 import { registerMock } from '@dungeonmaster/testing/register-mock';
 import { getPidProxy } from '#gateway/node/process/get-pid/get-pid.proxy';
@@ -79,8 +78,8 @@ export const SiegelenseDriverResponderProxy = (): {
   }) => void;
   applyRegistryMutate: (params: { current: Registry }) => Registry;
   getServeCallArgs: () => unknown;
-  getExpectedSocketPath: (params: { instanceId: SiegeInstance['id'] }) => AbsoluteFilePath;
-  getExpectedEvidencePath: (params: { instanceId: SiegeInstance['id'] }) => AbsoluteFilePath;
+  getExpectedSocketPath: (params: { instanceId: SiegeInstance['id'] }) => string;
+  getExpectedEvidencePath: (params: { instanceId: SiegeInstance['id'] }) => string;
   getBootLockReleaseCallArgs: () => unknown;
   getBootFailureMarkerWriteCallArgs: () => unknown;
   getRegistryUpdateCallCount: () => ReadingCount;
@@ -209,19 +208,15 @@ export const SiegelenseDriverResponderProxy = (): {
     // Built independently from the fixed tmp dir, the socket statics and the instance id — never
     // by calling the real `locationsSocketPathFindBroker`, which would make this assertion compare
     // the broker's own output against itself and let a wrong path pass silently.
-    getExpectedSocketPath: ({ instanceId }: { instanceId: SiegeInstance['id'] }): AbsoluteFilePath =>
-      AbsoluteFilePathStub({
-        value: `${TMP_DIR_VALUE}/${locationsStatics.siegelense.socketsDirName}/${instanceId}${evidenceFileStatics.extensions.socket}`,
-      }),
+    getExpectedSocketPath: ({ instanceId }: { instanceId: SiegeInstance['id'] }): string =>
+      `${TMP_DIR_VALUE}/${locationsStatics.siegelense.socketsDirName}/${instanceId}${evidenceFileStatics.extensions.socket}`,
 
     // Every registry row this proxy's callers build carries `guildId: null` (RegistryEntryStub's
     // own default, never overridden here), so the broker's real "unowned" shape —
     // `<rootPath>/unowned/instances/<instanceId>` — is what the unstaged outer join genuinely
     // computes off SHARED_PATH_VALUE (staged as rootPath via setupRootOnly above).
-    getExpectedEvidencePath: ({ instanceId }: { instanceId: SiegeInstance['id'] }): AbsoluteFilePath =>
-      AbsoluteFilePathStub({
-        value: `${SHARED_PATH_VALUE}/${locationsStatics.siegelense.unownedDir}/${locationsStatics.siegelense.instancesDir}/${instanceId}`,
-      }),
+    getExpectedEvidencePath: ({ instanceId }: { instanceId: SiegeInstance['id'] }): string =>
+      `${SHARED_PATH_VALUE}/${locationsStatics.siegelense.unownedDir}/${locationsStatics.siegelense.instancesDir}/${instanceId}`,
 
     getBootLockReleaseCallArgs: (): unknown => {
       const argsList = bootLockReleaseHandle.callsMatching([]).map((call) => call[0]);

@@ -1,6 +1,5 @@
 import { randomUUID } from '#gateway/node/crypto';
 import { installTestbedCreateBroker } from '@dungeonmaster/testing';
-import { AbsoluteFilePathStub } from '@dungeonmaster/shared/contracts/absolute-file-path/absolute-file-path.stub';
 import { FileNameStub } from '@dungeonmaster/shared/contracts/file-name/file-name.stub';
 import { FlowNodeStub } from '@dungeonmaster/shared/contracts/flow-node/flow-node.stub';
 import { FlowOffMapSignoffStub } from '@dungeonmaster/shared/contracts/flow-off-map-signoff/flow-off-map-signoff.stub';
@@ -63,16 +62,14 @@ describe('QuestHandleSignalBackResponder (integration) — review coverage no lo
 
     const { questId } = await questHelper.createGuildAndQuest({ testbed });
 
-    const repoPath = AbsoluteFilePathStub({ value: testbed.guildPath });
+    const repoPath = testbed.guildPath;
     await git.initRepoWithPackages({
       repoPath,
       initialBranchName: FileNameStub({ value: 'main' }),
       packageNames: [FileNameStub({ value: 'shared' })],
     });
 
-    const worktreePath = AbsoluteFilePathStub({
-      value: `${testbed.guildPath}/worktrees/review-clear-a1b2c3d4`,
-    });
+    const worktreePath = `${testbed.guildPath}/worktrees/review-clear-a1b2c3d4`;
     const branchName = QuestBranchNameStub({ value: 'quest/review-clear-a1b2c3d4' });
     await worktreeAdd({
       cwd: repoPath,
@@ -187,16 +184,14 @@ describe('QuestHandleSignalBackResponder (integration) — review coverage no lo
 
       const { questId } = await questHelper.createGuildAndQuest({ testbed });
 
-      const repoPath = AbsoluteFilePathStub({ value: testbed.guildPath });
+      const repoPath = testbed.guildPath;
       await git.initRepoWithPackages({
         repoPath,
         initialBranchName: FileNameStub({ value: 'main' }),
         packageNames: [FileNameStub({ value: 'shared' })],
       });
 
-      const worktreePath = AbsoluteFilePathStub({
-        value: `${testbed.guildPath}/worktrees/review-${disposition}-a1b2c3d4`,
-      });
+      const worktreePath = `${testbed.guildPath}/worktrees/review-${disposition}-a1b2c3d4`;
       const branchName = QuestBranchNameStub({ value: `quest/review-${disposition}-a1b2c3d4` });
       await worktreeAdd({
         cwd: repoPath,
@@ -358,16 +353,14 @@ describe('QuestHandleSignalBackResponder (integration) — review coverage no lo
 
     const { questId } = await questHelper.createGuildAndQuest({ testbed });
 
-    const repoPath = AbsoluteFilePathStub({ value: testbed.guildPath });
+    const repoPath = testbed.guildPath;
     await git.initRepoWithPackages({
       repoPath,
       initialBranchName: FileNameStub({ value: 'main' }),
       packageNames: [FileNameStub({ value: 'shared' })],
     });
 
-    const worktreePath = AbsoluteFilePathStub({
-      value: `${testbed.guildPath}/worktrees/review-empty-a1b2c3d4`,
-    });
+    const worktreePath = `${testbed.guildPath}/worktrees/review-empty-a1b2c3d4`;
     const branchName = QuestBranchNameStub({ value: 'quest/review-empty-a1b2c3d4' });
     await worktreeAdd({
       cwd: repoPath,
@@ -456,16 +449,14 @@ describe('QuestHandleSignalBackResponder (integration) — a dirty worktree no l
 
     const { questId } = await questHelper.createGuildAndQuest({ testbed });
 
-    const repoPath = AbsoluteFilePathStub({ value: testbed.guildPath });
+    const repoPath = testbed.guildPath;
     await git.initRepoWithPackages({
       repoPath,
       initialBranchName: FileNameStub({ value: 'main' }),
       packageNames: [FileNameStub({ value: 'shared' })],
     });
 
-    const worktreePath = AbsoluteFilePathStub({
-      value: `${testbed.guildPath}/worktrees/dirty-tree-a1b2c3d4`,
-    });
+    const worktreePath = `${testbed.guildPath}/worktrees/dirty-tree-a1b2c3d4`;
     const branchName = QuestBranchNameStub({ value: 'quest/dirty-tree-a1b2c3d4' });
     await worktreeAdd({
       cwd: repoPath,
@@ -554,16 +545,14 @@ describe('QuestHandleSignalBackResponder (integration) — a dirty worktree no l
 
     const { questId } = await questHelper.createGuildAndQuest({ testbed });
 
-    const repoPath = AbsoluteFilePathStub({ value: testbed.guildPath });
+    const repoPath = testbed.guildPath;
     await git.initRepoWithPackages({
       repoPath,
       initialBranchName: FileNameStub({ value: 'main' }),
       packageNames: [FileNameStub({ value: 'shared' })],
     });
 
-    const worktreePath = AbsoluteFilePathStub({
-      value: `${testbed.guildPath}/worktrees/clean-tree-a1b2c3d4`,
-    });
+    const worktreePath = `${testbed.guildPath}/worktrees/clean-tree-a1b2c3d4`;
     const branchName = QuestBranchNameStub({ value: 'quest/clean-tree-a1b2c3d4' });
     await worktreeAdd({
       cwd: repoPath,
@@ -912,16 +901,14 @@ describe('QuestHandleSignalBackResponder (integration) — warpgate merge comple
 
     const { questId } = await questHelper.createGuildAndQuest({ testbed });
 
-    const repoPath = AbsoluteFilePathStub({ value: testbed.guildPath });
+    const repoPath = testbed.guildPath;
     await git.initRepoWithPackages({
       repoPath,
       initialBranchName: FileNameStub({ value: 'main' }),
       packageNames: [FileNameStub({ value: 'shared' })],
     });
 
-    const worktreePath = AbsoluteFilePathStub({
-      value: `${testbed.guildPath}/worktrees/warpgate-survives-a1b2c3d4`,
-    });
+    const worktreePath = `${testbed.guildPath}/worktrees/warpgate-survives-a1b2c3d4`;
     const branchName = QuestBranchNameStub({ value: 'quest/warpgate-survives-a1b2c3d4' });
     await worktreeAdd({
       cwd: repoPath,

@@ -1,6 +1,5 @@
 import type { DirEntrySync } from '#gateway/node/fs';
 import { FsErrorStub } from '#gateway/node/fs/is-fs-error/fs-error.stub';
-import { AbsoluteFilePathStub } from '@dungeonmaster/shared/contracts/absolute-file-path/absolute-file-path.stub';
 import { FileNameStub } from '@dungeonmaster/shared/contracts/file-name/file-name.stub';
 
 import { EpochMsStub } from '../../../contracts/epoch-ms/epoch-ms.stub';
@@ -21,18 +20,14 @@ const makeDirEntry = ({ name }: { name: FileName }): DirEntrySync => ({
 });
 
 describe('snapshotRestoreLayerBroker', () => {
-  const homePath = AbsoluteFilePathStub({ value: '/tmp/instance-home' });
-  const payloadPath = AbsoluteFilePathStub({
-    value: '/tmp/instance-home/.siegelense-snapshots/1',
-  });
+  const homePath = '/tmp/instance-home';
+  const payloadPath = '/tmp/instance-home/.siegelense-snapshots/1';
 
   it('VALID: {identical trees} => returns 0 files undid', async () => {
     const proxy = snapshotRestoreLayerBrokerProxy();
     const fileName = FileNameStub({ value: 'config.json' });
-    const filePathHome = AbsoluteFilePathStub({ value: `${String(homePath)}/${String(fileName)}` });
-    const filePathPayload = AbsoluteFilePathStub({
-      value: `${String(payloadPath)}/${String(fileName)}`,
-    });
+    const filePathHome = `${String(homePath)}/${String(fileName)}`;
+    const filePathPayload = `${String(payloadPath)}/${String(fileName)}`;
     const sizeBytes = FileSizeBytesStub({ value: 256 });
     const modifiedAtMs = EpochMsStub({ value: 1700000000000 });
 
@@ -72,10 +67,8 @@ describe('snapshotRestoreLayerBroker', () => {
   it('VALID: {same size, different mtime, identical content} => does not count the file as modified (DEF-81)', async () => {
     const proxy = snapshotRestoreLayerBrokerProxy();
     const fileName = FileNameStub({ value: 'seeded.json' });
-    const filePathHome = AbsoluteFilePathStub({ value: `${String(homePath)}/${String(fileName)}` });
-    const filePathPayload = AbsoluteFilePathStub({
-      value: `${String(payloadPath)}/${String(fileName)}`,
-    });
+    const filePathHome = `${String(homePath)}/${String(fileName)}`;
+    const filePathPayload = `${String(payloadPath)}/${String(fileName)}`;
     const sizeBytes = FileSizeBytesStub({ value: 64 });
     const content = '{"seeded":true}';
 
@@ -122,10 +115,8 @@ describe('snapshotRestoreLayerBroker', () => {
   it('VALID: {same size, different content} => counts the file as modified', async () => {
     const proxy = snapshotRestoreLayerBrokerProxy();
     const fileName = FileNameStub({ value: 'seeded.json' });
-    const filePathHome = AbsoluteFilePathStub({ value: `${String(homePath)}/${String(fileName)}` });
-    const filePathPayload = AbsoluteFilePathStub({
-      value: `${String(payloadPath)}/${String(fileName)}`,
-    });
+    const filePathHome = `${String(homePath)}/${String(fileName)}`;
+    const filePathPayload = `${String(payloadPath)}/${String(fileName)}`;
     const sizeBytes = FileSizeBytesStub({ value: 15 });
 
     proxy.setupDirectories({
@@ -168,16 +159,10 @@ describe('snapshotRestoreLayerBroker', () => {
   it('VALID: {added file in home} => removes added file and returns diff with added count', async () => {
     const proxy = snapshotRestoreLayerBrokerProxy();
     const addedFileName = FileNameStub({ value: 'extra.txt' });
-    const addedFilePath = AbsoluteFilePathStub({
-      value: `${String(homePath)}/${String(addedFileName)}`,
-    });
+    const addedFilePath = `${String(homePath)}/${String(addedFileName)}`;
     const existingFileName = FileNameStub({ value: 'base.txt' });
-    const existingFilePathHome = AbsoluteFilePathStub({
-      value: `${String(homePath)}/${String(existingFileName)}`,
-    });
-    const existingFilePathPayload = AbsoluteFilePathStub({
-      value: `${String(payloadPath)}/${String(existingFileName)}`,
-    });
+    const existingFilePathHome = `${String(homePath)}/${String(existingFileName)}`;
+    const existingFilePathPayload = `${String(payloadPath)}/${String(existingFileName)}`;
     const sizeBytes = FileSizeBytesStub({ value: 100 });
     const modifiedAtMs = EpochMsStub({ value: 1700000000000 });
 
@@ -227,15 +212,9 @@ describe('snapshotRestoreLayerBroker', () => {
     const proxy = snapshotRestoreLayerBrokerProxy();
     const modifiedFileName = FileNameStub({ value: 'modified.json' });
     const removedFileName = FileNameStub({ value: 'deleted.txt' });
-    const modifiedHome = AbsoluteFilePathStub({
-      value: `${String(homePath)}/${String(modifiedFileName)}`,
-    });
-    const modifiedPayload = AbsoluteFilePathStub({
-      value: `${String(payloadPath)}/${String(modifiedFileName)}`,
-    });
-    const removedPayload = AbsoluteFilePathStub({
-      value: `${String(payloadPath)}/${String(removedFileName)}`,
-    });
+    const modifiedHome = `${String(homePath)}/${String(modifiedFileName)}`;
+    const modifiedPayload = `${String(payloadPath)}/${String(modifiedFileName)}`;
+    const removedPayload = `${String(payloadPath)}/${String(removedFileName)}`;
 
     proxy.setupDirectories({
       dirs: [
@@ -287,10 +266,8 @@ describe('snapshotRestoreLayerBroker', () => {
     const proxy = snapshotRestoreLayerBrokerProxy();
     const storeDirName = FileNameStub({ value: '.siegelense-snapshots' });
     const fileName = FileNameStub({ value: 'app.ts' });
-    const homeFilePath = AbsoluteFilePathStub({ value: `${String(homePath)}/${String(fileName)}` });
-    const payloadFilePath = AbsoluteFilePathStub({
-      value: `${String(payloadPath)}/${String(fileName)}`,
-    });
+    const homeFilePath = `${String(homePath)}/${String(fileName)}`;
+    const payloadFilePath = `${String(payloadPath)}/${String(fileName)}`;
     const sizeBytes = FileSizeBytesStub({ value: 500 });
     const modifiedAtMs = EpochMsStub({ value: 1700000000000 });
 
@@ -345,7 +322,7 @@ describe('snapshotRestoreLayerBroker', () => {
     proxy.setupFileStats({
       stats: [
         {
-          filePath: AbsoluteFilePathStub({ value: `${String(payloadPath)}/${String(firstName)}` }),
+          filePath: `${String(payloadPath)}/${String(firstName)}`,
           sizeBytes: FileSizeBytesStub({ value: 100 }),
           modifiedAtMs: EpochMsStub({ value: 1700000000000 }),
         },
@@ -361,7 +338,7 @@ describe('snapshotRestoreLayerBroker', () => {
     await expect(snapshotRestoreLayerBroker({ homePath, payloadPath })).rejects.toBe(error);
     expect(
       proxy.getRolledBackFor({
-        path: AbsoluteFilePathStub({ value: `${String(homePath)}/${String(firstName)}` }),
+        path: `${String(homePath)}/${String(firstName)}`,
       }),
     ).toStrictEqual([[`${String(homePath)}/data.txt`, { recursive: true, force: true }]]);
   });

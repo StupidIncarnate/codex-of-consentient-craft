@@ -1,5 +1,4 @@
 import { join } from '#gateway/node/path';
-import type { AbsoluteFilePath } from '@dungeonmaster/shared/contracts';
 import { registerMock, requireActual } from '@dungeonmaster/testing/register-mock';
 
 import { readdirIfExistsProxy } from '#gateway/node/fs__promises/readdir-if-exists/readdir-if-exists.proxy';
@@ -7,13 +6,13 @@ import { statIfExistsProxy } from '#gateway/node/fs__promises/stat-if-exists/sta
 import { locationsRunPathsFindBrokerProxy } from '../../locations/run-paths-find/locations-run-paths-find-broker.proxy';
 
 export const runShotsLayerBrokerProxy = (): {
-  setupShotsDir: (params: { shotsDir: AbsoluteFilePath; entries: readonly string[] }) => void;
+  setupShotsDir: (params: { shotsDir: string; entries: readonly string[] }) => void;
   setupShotFile: (params: {
-    filePath: AbsoluteFilePath;
+    filePath: string;
     sizeBytes: number;
     modifiedAtMs: number;
   }) => void;
-  setupShotFileMissing: (params: { filePath: AbsoluteFilePath }) => void;
+  setupShotFileMissing: (params: { filePath: string }) => void;
 } => {
   const readdirProxy = readdirIfExistsProxy();
   const statProxy = statIfExistsProxy();
@@ -30,7 +29,7 @@ export const runShotsLayerBrokerProxy = (): {
       shotsDir,
       entries,
     }: {
-      shotsDir: AbsoluteFilePath;
+      shotsDir: string;
       entries: readonly string[];
     }): void => {
       readdirProxy.returns({ path: shotsDir, names: [...entries] });
@@ -41,7 +40,7 @@ export const runShotsLayerBrokerProxy = (): {
       sizeBytes,
       modifiedAtMs,
     }: {
-      filePath: AbsoluteFilePath;
+      filePath: string;
       sizeBytes: number;
       modifiedAtMs: number;
     }): void => {
@@ -50,7 +49,7 @@ export const runShotsLayerBrokerProxy = (): {
 
     // The race the layer has to survive: an entry listed a moment ago and gone by the time its
     // size is read. `statIfExists` answers null for ENOENT, and the layer drops the row.
-    setupShotFileMissing: ({ filePath }: { filePath: AbsoluteFilePath }): void => {
+    setupShotFileMissing: ({ filePath }: { filePath: string }): void => {
       statProxy.missing({ path: filePath });
     },
   };

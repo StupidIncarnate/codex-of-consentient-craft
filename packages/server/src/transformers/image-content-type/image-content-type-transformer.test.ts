@@ -1,5 +1,4 @@
 import { imageContentTypeTransformer } from './image-content-type-transformer';
-import { AbsoluteFilePathStub } from '@dungeonmaster/shared/contracts/absolute-file-path/absolute-file-path.stub';
 import { pastedImageStatics } from '@dungeonmaster/shared/statics';
 
 describe('imageContentTypeTransformer', () => {
@@ -10,32 +9,32 @@ describe('imageContentTypeTransformer', () => {
     ['/tmp/a.gif', 'image/gif'],
     ['/tmp/a.webp', 'image/webp'],
   ])('VALID: {filePath: %s} => %s', (path, expected) => {
-    expect(imageContentTypeTransformer({ filePath: AbsoluteFilePathStub({ value: path }) })).toBe(
+    expect(imageContentTypeTransformer({ filePath: path })).toBe(
       expected,
     );
   });
 
   it('VALID: {filePath: "/tmp/a.PNG" uppercase extension} => image/png', () => {
     expect(
-      imageContentTypeTransformer({ filePath: AbsoluteFilePathStub({ value: '/tmp/a.PNG' }) }),
+      imageContentTypeTransformer({ filePath: '/tmp/a.PNG' }),
     ).toBe('image/png');
   });
 
   it('INVALID: {filePath: "/tmp/a.txt"} => null', () => {
     expect(
-      imageContentTypeTransformer({ filePath: AbsoluteFilePathStub({ value: '/tmp/a.txt' }) }),
+      imageContentTypeTransformer({ filePath: '/tmp/a.txt' }),
     ).toBe(null);
   });
 
   it('EMPTY: {filePath: "/tmp/a" no extension} => null', () => {
     expect(
-      imageContentTypeTransformer({ filePath: AbsoluteFilePathStub({ value: '/tmp/a' }) }),
+      imageContentTypeTransformer({ filePath: '/tmp/a' }),
     ).toBe(null);
   });
 
   it('EDGE: {filePath: "/a.dir/file" dot only in directory name} => null', () => {
     expect(
-      imageContentTypeTransformer({ filePath: AbsoluteFilePathStub({ value: '/a.dir/file' }) }),
+      imageContentTypeTransformer({ filePath: '/a.dir/file' }),
     ).toBe(null);
   });
 
@@ -47,7 +46,7 @@ describe('imageContentTypeTransformer', () => {
       pastedImageStatics.allowedExtensions.map((extension) => [
         extension,
         imageContentTypeTransformer({
-          filePath: AbsoluteFilePathStub({ value: `/tmp/a.${extension}` }),
+          filePath: `/tmp/a.${extension}`,
         }) !== null,
       ]),
     );

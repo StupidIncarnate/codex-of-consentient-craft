@@ -21,7 +21,7 @@ import { readFileProxy } from '#gateway/node/fs__promises/read-file/read-file.pr
 import { resolve } from '#gateway/node/path';
 import { registerMock, requireActual } from '@dungeonmaster/testing/register-mock';
 import type { RecordedCalls } from '@dungeonmaster/testing/register-mock';
-import type { AbsoluteFilePath, SiegeInstance } from '@dungeonmaster/shared/contracts';
+import type { SiegeInstance } from '@dungeonmaster/shared/contracts';
 
 import { instanceRunBroker } from '../../../brokers/instance/run/instance-run-broker';
 import { instanceRunBrokerProxy } from '../../../brokers/instance/run/instance-run-broker.proxy';
@@ -37,8 +37,8 @@ export const SiegelenseRunResponderProxy = (): {
   stageRegistry: (params: { registry: Registry }) => void;
   stageRunResult: (params: { result: RunResult }) => void;
   stageRunThrows: (params: { error: Error; instanceId: SiegeInstance['id'] }) => void;
-  stageStepsFileContent: (params: { filePath: AbsoluteFilePath; content: string }) => void;
-  stageStepsFileMissing: (params: { filePath: AbsoluteFilePath; error: Error }) => void;
+  stageStepsFileContent: (params: { filePath: string; content: string }) => void;
+  stageStepsFileMissing: (params: { filePath: string; error: Error }) => void;
   getStdoutWrites: () => unknown[];
   getRunCallsMatching: () => RecordedCalls;
 } => {
@@ -74,7 +74,7 @@ export const SiegelenseRunResponderProxy = (): {
       filePath,
       content,
     }: {
-      filePath: AbsoluteFilePath;
+      filePath: string;
       content: string;
     }): void => {
       resolveHandle
@@ -87,7 +87,7 @@ export const SiegelenseRunResponderProxy = (): {
       filePath,
       error,
     }: {
-      filePath: AbsoluteFilePath;
+      filePath: string;
       error: Error;
     }): void => {
       const fsError: FsError = Object.assign(error, {

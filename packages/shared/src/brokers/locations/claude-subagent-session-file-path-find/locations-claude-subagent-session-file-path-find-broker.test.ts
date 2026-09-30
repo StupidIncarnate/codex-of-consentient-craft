@@ -1,6 +1,5 @@
 import { locationsClaudeSubagentSessionFilePathFindBroker } from './locations-claude-subagent-session-file-path-find-broker';
 import { locationsClaudeSubagentSessionFilePathFindBrokerProxy } from './locations-claude-subagent-session-file-path-find-broker.proxy';
-import { AbsoluteFilePathStub } from '../../../contracts/absolute-file-path/absolute-file-path.stub';
 import { SessionIdStub } from '../../../contracts/session-id/session-id.stub';
 import { AgentIdStub } from '../../../contracts/agent-id/agent-id.stub';
 
@@ -12,16 +11,13 @@ describe('locationsClaudeSubagentSessionFilePathFindBroker', () => {
       proxy.setupSubagentSessionFilePath({ userHome: '/home/user' });
 
       const result = locationsClaudeSubagentSessionFilePathFindBroker({
-        guildPath: AbsoluteFilePathStub({ value: '/home/user/my-project' }),
+        guildPath: '/home/user/my-project',
         sessionId: SessionIdStub({ value: 'abc-123' }),
         agentId: AgentIdStub({ value: 'xyz' }),
       });
 
       expect(result).toBe(
-        AbsoluteFilePathStub({
-          value:
-            '/home/user/.claude/projects/-home-user-my-project/abc-123/subagents/agent-xyz.jsonl',
-        }),
+        '/home/user/.claude/projects/-home-user-my-project/abc-123/subagents/agent-xyz.jsonl',
       );
     });
   });

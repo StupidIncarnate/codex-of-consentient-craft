@@ -1,4 +1,3 @@
-import { AbsoluteFilePathStub } from '@dungeonmaster/shared/contracts/absolute-file-path/absolute-file-path.stub';
 import { QuestBranchNameStub } from '@dungeonmaster/shared/contracts/quest-branch-name/quest-branch-name.stub';
 
 import { worktreePrepareBroker } from './worktree-prepare-broker';
@@ -8,8 +7,8 @@ describe('worktreePrepareBroker', () => {
   describe('happy path', () => {
     it('VALID: {worktree add and rev-parse both succeed} => returns the fork-point sha, spawning exactly those two git calls and never touching discard', async () => {
       const proxy = worktreePrepareBrokerProxy();
-      const repoRoot = AbsoluteFilePathStub({ value: '/repo' });
-      const worktreePath = AbsoluteFilePathStub({ value: '/repo/worktrees/add-auth-7bc217a1' });
+      const repoRoot = '/repo';
+      const worktreePath = '/repo/worktrees/add-auth-7bc217a1';
       const branchName = QuestBranchNameStub({ value: 'quest/add-auth-7bc217a1' });
       const baseBranch = 'main';
       const sha = '1234567890abcdef1234567890abcdef12345678';
@@ -36,8 +35,8 @@ describe('worktreePrepareBroker', () => {
   describe('the branch already exists — a re-carve after the directory was deleted', () => {
     it('VALID: {branch resolves in git} => prunes the stale registration and attaches WITHOUT -b instead of refusing', async () => {
       const proxy = worktreePrepareBrokerProxy();
-      const repoRoot = AbsoluteFilePathStub({ value: '/repo' });
-      const worktreePath = AbsoluteFilePathStub({ value: '/repo/worktrees/add-auth-7bc217a1' });
+      const repoRoot = '/repo';
+      const worktreePath = '/repo/worktrees/add-auth-7bc217a1';
       const branchName = QuestBranchNameStub({ value: 'quest/add-auth-7bc217a1' });
       const baseBranch = 'main';
       const sha = 'fedcba9876543210fedcba9876543210fedcba98';
@@ -61,8 +60,8 @@ describe('worktreePrepareBroker', () => {
 
     it('ERROR: {attached branch, rev-parse HEAD exits non-zero} => rejects WITHOUT discarding, so the branch keeps the commits this call did not create', async () => {
       const proxy = worktreePrepareBrokerProxy();
-      const repoRoot = AbsoluteFilePathStub({ value: '/repo' });
-      const worktreePath = AbsoluteFilePathStub({ value: '/repo/worktrees/add-auth-7bc217a1' });
+      const repoRoot = '/repo';
+      const worktreePath = '/repo/worktrees/add-auth-7bc217a1';
       const branchName = QuestBranchNameStub({ value: 'quest/add-auth-7bc217a1' });
       const baseBranch = 'main';
       proxy.setupAttachExistingBranchHeadShaFails({ worktreePath, branchName });
@@ -91,8 +90,8 @@ describe('worktreePrepareBroker', () => {
   describe('worktree creation fails', () => {
     it('ERROR: {git worktree add exits non-zero} => rejects at step create naming the worktree path, without attempting discard or reading the fork-point sha', async () => {
       const proxy = worktreePrepareBrokerProxy();
-      const repoRoot = AbsoluteFilePathStub({ value: '/repo' });
-      const worktreePath = AbsoluteFilePathStub({ value: '/repo/worktrees/add-auth-7bc217a1' });
+      const repoRoot = '/repo';
+      const worktreePath = '/repo/worktrees/add-auth-7bc217a1';
       const branchName = QuestBranchNameStub({ value: 'quest/add-auth-7bc217a1' });
       const baseBranch = 'main';
       proxy.setupWorktreeAddFails({
@@ -123,8 +122,8 @@ describe('worktreePrepareBroker', () => {
   describe('fork-point sha cannot be read', () => {
     it('ERROR: {git rev-parse HEAD exits non-zero} => rejects at step create and discards the worktree', async () => {
       const proxy = worktreePrepareBrokerProxy();
-      const repoRoot = AbsoluteFilePathStub({ value: '/repo' });
-      const worktreePath = AbsoluteFilePathStub({ value: '/repo/worktrees/add-auth-7bc217a1' });
+      const repoRoot = '/repo';
+      const worktreePath = '/repo/worktrees/add-auth-7bc217a1';
       const branchName = QuestBranchNameStub({ value: 'quest/add-auth-7bc217a1' });
       const baseBranch = 'main';
       proxy.setupHeadShaFailsDiscardSucceeds({ worktreePath, branchName, baseBranch });
@@ -153,8 +152,8 @@ describe('worktreePrepareBroker', () => {
   describe('fork-point sha fails and the discard cleanup also fails', () => {
     it('ERROR: {rev-parse HEAD fails, git worktree remove also exits non-zero} => rejects carrying BOTH the original cause and the cleanup output', async () => {
       const proxy = worktreePrepareBrokerProxy();
-      const repoRoot = AbsoluteFilePathStub({ value: '/repo' });
-      const worktreePath = AbsoluteFilePathStub({ value: '/repo/worktrees/add-auth-7bc217a1' });
+      const repoRoot = '/repo';
+      const worktreePath = '/repo/worktrees/add-auth-7bc217a1';
       const branchName = QuestBranchNameStub({ value: 'quest/add-auth-7bc217a1' });
       const baseBranch = 'main';
       proxy.setupHeadShaFailsDiscardAlsoFails({
@@ -189,8 +188,8 @@ describe('worktreePrepareBroker', () => {
   describe('the compiled output git could not bring across', () => {
     it('VALID: {main checkout built, worktree has no dist yet} => copies the package dist with cp -a', async () => {
       const proxy = worktreePrepareBrokerProxy();
-      const repoRoot = AbsoluteFilePathStub({ value: '/repo' });
-      const worktreePath = AbsoluteFilePathStub({ value: '/repo/worktrees/add-auth-7bc217a1' });
+      const repoRoot = '/repo';
+      const worktreePath = '/repo/worktrees/add-auth-7bc217a1';
       const branchName = QuestBranchNameStub({ value: 'quest/add-auth-7bc217a1' });
       const baseBranch = 'main';
       const sha = '1234567890abcdef1234567890abcdef12345678';
@@ -214,8 +213,8 @@ describe('worktreePrepareBroker', () => {
 
     it('ERROR: {main checkout has no dist for a package} => rejects at step seed-dist naming that package', async () => {
       const proxy = worktreePrepareBrokerProxy();
-      const repoRoot = AbsoluteFilePathStub({ value: '/repo' });
-      const worktreePath = AbsoluteFilePathStub({ value: '/repo/worktrees/add-auth-7bc217a1' });
+      const repoRoot = '/repo';
+      const worktreePath = '/repo/worktrees/add-auth-7bc217a1';
       const branchName = QuestBranchNameStub({ value: 'quest/add-auth-7bc217a1' });
       const baseBranch = 'main';
       const sha = '1234567890abcdef1234567890abcdef12345678';
@@ -240,8 +239,8 @@ describe('worktreePrepareBroker', () => {
   describe('a worktree whose links leave it', () => {
     it('ERROR: {a node_modules link stored as an absolute main-checkout path} => rejects at step verify-links', async () => {
       const proxy = worktreePrepareBrokerProxy();
-      const repoRoot = AbsoluteFilePathStub({ value: '/repo' });
-      const worktreePath = AbsoluteFilePathStub({ value: '/repo/worktrees/add-auth-7bc217a1' });
+      const repoRoot = '/repo';
+      const worktreePath = '/repo/worktrees/add-auth-7bc217a1';
       const branchName = QuestBranchNameStub({ value: 'quest/add-auth-7bc217a1' });
       const baseBranch = 'main';
       const sha = '1234567890abcdef1234567890abcdef12345678';

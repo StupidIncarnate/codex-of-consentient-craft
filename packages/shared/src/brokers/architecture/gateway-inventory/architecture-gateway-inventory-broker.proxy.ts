@@ -3,8 +3,6 @@ import { existsSyncProxy } from '#gateway/node/fs/exists-sync/exists-sync.proxy'
 import { readFileSyncProxy } from '#gateway/node/fs/read-file-sync/read-file-sync.proxy';
 import type { DirEntrySync } from '#gateway/node/fs';
 import { gatewayLintConfigReadBrokerProxy } from '../../gateway-lint-config/read/gateway-lint-config-read-broker.proxy';
-import type { AbsoluteFilePath } from '../../../contracts/absolute-file-path/absolute-file-path-contract';
-import { AbsoluteFilePathStub } from '../../../contracts/absolute-file-path/absolute-file-path.stub';
 import type { ContentText } from '../../../contracts/content-text/content-text-contract';
 import { ContentTextStub } from '../../../contracts/content-text/content-text.stub';
 
@@ -17,7 +15,7 @@ export const architectureGatewayInventoryBrokerProxy = (): {
     subpathName,
     barrelContent,
   }: {
-    projectRoot: AbsoluteFilePath;
+    projectRoot: string;
     folder: string;
     subpathName: string;
     barrelContent?: ContentText;
@@ -26,7 +24,7 @@ export const architectureGatewayInventoryBrokerProxy = (): {
     repoRoot,
     fileContent,
   }: {
-    repoRoot: AbsoluteFilePath;
+    repoRoot: string;
     fileContent: ContentText;
   }) => void;
 } => {
@@ -57,14 +55,12 @@ export const architectureGatewayInventoryBrokerProxy = (): {
       subpathName,
       barrelContent,
     }: {
-      projectRoot: AbsoluteFilePath;
+      projectRoot: string;
       folder: string;
       subpathName: string;
       barrelContent?: ContentText;
     }): void => {
-      const folderSrcPath = AbsoluteFilePathStub({
-        value: `${String(projectRoot)}/packages/@gateway/${folder}/src`,
-      });
+      const folderSrcPath = `${String(projectRoot)}/packages/@gateway/${folder}/src`;
       const folderSrcPathKey = ContentTextStub({ value: String(folderSrcPath) });
 
       const existingEntries = entriesByFolderSrcPath.get(folderSrcPathKey) ?? [];
@@ -76,9 +72,7 @@ export const architectureGatewayInventoryBrokerProxy = (): {
       // calls, which do), so every subpath this proxy describes stages an exact true-or-false
       // answer for its own barrel path — "directory exists, barrel file does not" is exists: false,
       // never an unstaged call.
-      const barrelPath = AbsoluteFilePathStub({
-        value: `${String(folderSrcPath)}/${subpathName}/${subpathName}.ts`,
-      });
+      const barrelPath = `${String(folderSrcPath)}/${subpathName}/${subpathName}.ts`;
       existsProxy.returns({ path: barrelPath, exists: barrelContent !== undefined });
       if (barrelContent !== undefined) {
         readProxy.returns({ path: barrelPath, contents: barrelContent });
@@ -89,11 +83,11 @@ export const architectureGatewayInventoryBrokerProxy = (): {
       repoRoot,
       fileContent,
     }: {
-      repoRoot: AbsoluteFilePath;
+      repoRoot: string;
       fileContent: ContentText;
     }): void => {
       lintConfigProxy.setupConfig({
-        configPath: AbsoluteFilePathStub({ value: `${String(repoRoot)}/.dungeonmaster.json` }),
+        configPath: `${String(repoRoot)}/.dungeonmaster.json`,
         fileContent,
       });
     },

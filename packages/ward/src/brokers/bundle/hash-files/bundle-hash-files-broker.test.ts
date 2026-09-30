@@ -1,4 +1,3 @@
-import { AbsoluteFilePathStub } from '@dungeonmaster/shared/contracts/absolute-file-path/absolute-file-path.stub';
 
 import { bundleHashFilesBroker } from './bundle-hash-files-broker';
 import { bundleHashFilesBrokerProxy } from './bundle-hash-files-broker.proxy';
@@ -14,7 +13,7 @@ const RENAMED_DIGEST = 'c06ab6e928e694a9ba07e76fa538db3e14c6c843be905c941af9c13c
 describe('bundleHashFilesBroker', () => {
   describe('empty input', () => {
     it('EMPTY: {relativePaths: []} => returns the sha-256 of no bytes', () => {
-      const rootPath = AbsoluteFilePathStub({ value: '/repo' });
+      const rootPath = '/repo';
       bundleHashFilesBrokerProxy();
 
       const result = bundleHashFilesBroker({ rootPath, relativePaths: [] });
@@ -25,7 +24,7 @@ describe('bundleHashFilesBroker', () => {
 
   describe('hashing contents', () => {
     it('VALID: {one file} => returns the digest over its path, length and bytes', () => {
-      const rootPath = AbsoluteFilePathStub({ value: '/repo' });
+      const rootPath = '/repo';
       const app = GitRelativePathStub({ value: 'packages/web/src/app.tsx' });
       const proxy = bundleHashFilesBrokerProxy();
       proxy.hasFile({ rootPath, relativePath: app, contents: 'export const App = 1;' });
@@ -36,7 +35,7 @@ describe('bundleHashFilesBroker', () => {
     });
 
     it('VALID: {same file, edited contents} => returns a different digest', () => {
-      const rootPath = AbsoluteFilePathStub({ value: '/repo' });
+      const rootPath = '/repo';
       const app = GitRelativePathStub({ value: 'packages/web/src/app.tsx' });
       const proxy = bundleHashFilesBrokerProxy();
       proxy.hasFile({ rootPath, relativePath: app, contents: 'export const App = 2;' });
@@ -47,7 +46,7 @@ describe('bundleHashFilesBroker', () => {
     });
 
     it('VALID: {same contents at a different path} => returns a different digest', () => {
-      const rootPath = AbsoluteFilePathStub({ value: '/repo' });
+      const rootPath = '/repo';
       const renamed = GitRelativePathStub({ value: 'packages/web/src/app2.tsx' });
       const proxy = bundleHashFilesBrokerProxy();
       proxy.hasFile({ rootPath, relativePath: renamed, contents: 'export const App = 1;' });
@@ -60,7 +59,7 @@ describe('bundleHashFilesBroker', () => {
 
   describe('byte exactness', () => {
     it('VALID: {a file whose bytes are not valid utf-8} => digests the raw bytes and their byte length', () => {
-      const rootPath = AbsoluteFilePathStub({ value: '/repo' });
+      const rootPath = '/repo';
       const binary = GitRelativePathStub({ value: 'a.bin' });
       const proxy = bundleHashFilesBrokerProxy();
       proxy.hasBytes({ rootPath, relativePath: binary, bytes: [0xff, 0xe2, 0x82, 0xac] });
@@ -73,7 +72,7 @@ describe('bundleHashFilesBroker', () => {
 
   describe('path ordering', () => {
     it('VALID: {two files listed in path order} => returns the two-file digest', () => {
-      const rootPath = AbsoluteFilePathStub({ value: '/repo' });
+      const rootPath = '/repo';
       const statics = GitRelativePathStub({ value: 'packages/shared/statics.ts' });
       const app = GitRelativePathStub({ value: 'packages/web/src/app.tsx' });
       const proxy = bundleHashFilesBrokerProxy();
@@ -86,7 +85,7 @@ describe('bundleHashFilesBroker', () => {
     });
 
     it('VALID: {the same two files listed in reverse} => returns the same digest', () => {
-      const rootPath = AbsoluteFilePathStub({ value: '/repo' });
+      const rootPath = '/repo';
       const statics = GitRelativePathStub({ value: 'packages/shared/statics.ts' });
       const app = GitRelativePathStub({ value: 'packages/web/src/app.tsx' });
       const proxy = bundleHashFilesBrokerProxy();
@@ -101,7 +100,7 @@ describe('bundleHashFilesBroker', () => {
 
   describe('entries that carry no content', () => {
     it('EDGE: {a directory among the paths} => hashes as if it were not listed', () => {
-      const rootPath = AbsoluteFilePathStub({ value: '/repo' });
+      const rootPath = '/repo';
       const app = GitRelativePathStub({ value: 'packages/web/src/app.tsx' });
       const directory = GitRelativePathStub({ value: 'packages/web/src' });
       const proxy = bundleHashFilesBrokerProxy();
@@ -114,7 +113,7 @@ describe('bundleHashFilesBroker', () => {
     });
 
     it('EDGE: {a path deleted between glob and read} => hashes as if it were not listed', () => {
-      const rootPath = AbsoluteFilePathStub({ value: '/repo' });
+      const rootPath = '/repo';
       const app = GitRelativePathStub({ value: 'packages/web/src/app.tsx' });
       const gone = GitRelativePathStub({ value: 'packages/web/src/gone.tsx' });
       const proxy = bundleHashFilesBrokerProxy();
@@ -129,7 +128,7 @@ describe('bundleHashFilesBroker', () => {
 
   describe('unreadable input', () => {
     it('ERROR: {a file the process may not read} => rethrows rather than hashing a short set', () => {
-      const rootPath = AbsoluteFilePathStub({ value: '/repo' });
+      const rootPath = '/repo';
       const locked = GitRelativePathStub({ value: 'packages/web/src/locked.tsx' });
       const proxy = bundleHashFilesBrokerProxy();
       proxy.failsWith({ rootPath, relativePath: locked, code: 'EACCES' });

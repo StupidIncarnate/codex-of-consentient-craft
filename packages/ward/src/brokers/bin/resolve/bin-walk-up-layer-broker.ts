@@ -10,7 +10,6 @@
 
 import { existsSync } from '#gateway/node/fs';
 import { dirname, join } from '#gateway/node/path';
-import { absoluteFilePathContract, type AbsoluteFilePath } from '@dungeonmaster/shared/contracts';
 
 import { binWorkspaceRootLayerBroker } from './bin-workspace-root-layer-broker';
 
@@ -19,7 +18,7 @@ export const binWalkUpLayerBroker = ({
   dir,
 }: {
   binName: string;
-  dir: AbsoluteFilePath;
+  dir: string;
 }): string => {
   const candidate = join(dir, 'node_modules', '.bin', String(binName));
   if (existsSync(candidate)) {
@@ -30,7 +29,7 @@ export const binWalkUpLayerBroker = ({
     return binName;
   }
 
-  const parent = absoluteFilePathContract.parse(dirname(dir));
+  const parent = dirname(dir);
   if (parent === dir) {
     return binName;
   }

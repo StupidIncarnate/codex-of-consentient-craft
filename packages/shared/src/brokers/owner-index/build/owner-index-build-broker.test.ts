@@ -1,4 +1,3 @@
-import { AbsoluteFilePathStub } from '../../../contracts/absolute-file-path/absolute-file-path.stub';
 import { ownerIndexBuildBroker } from './owner-index-build-broker';
 import { ownerIndexBuildBrokerProxy } from './owner-index-build-broker.proxy';
 
@@ -29,18 +28,14 @@ describe('ownerIndexBuildBroker', () => {
   describe('valid input', () => {
     it('VALID: {alpha depends on beta} => indexes both owners with their keys and the direct dependency', () => {
       const proxy = ownerIndexBuildBrokerProxy();
-      const rootDir = AbsoluteFilePathStub({ value: '/repo-owners' });
-      const alphaDir = AbsoluteFilePathStub({ value: '/repo-owners/packages/alpha' });
-      const betaDir = AbsoluteFilePathStub({ value: '/repo-owners/packages/beta' });
-      const thingFile = AbsoluteFilePathStub({
-        value: `${alphaDir}/src/contracts/thing/thing-contract.ts`,
-      });
-      const otherFile = AbsoluteFilePathStub({
-        value: `${betaDir}/src/contracts/other/other-contract.ts`,
-      });
+      const rootDir = '/repo-owners';
+      const alphaDir = '/repo-owners/packages/alpha';
+      const betaDir = '/repo-owners/packages/beta';
+      const thingFile = `${alphaDir}/src/contracts/thing/thing-contract.ts`;
+      const otherFile = `${betaDir}/src/contracts/other/other-contract.ts`;
 
       proxy.setupSubfolders({
-        dirPath: AbsoluteFilePathStub({ value: '/repo-owners/packages' }),
+        dirPath: '/repo-owners/packages',
         folders: ['alpha', 'beta'],
       });
       proxy.setupPackageJson({
@@ -50,41 +45,39 @@ describe('ownerIndexBuildBroker', () => {
       proxy.setupPackageJson({ packageDir: betaDir, json: '{"name":"@repo/beta"}' });
       proxy.setupWalkedFolder({ dirPath: alphaDir, folders: ['src'], files: [] });
       proxy.setupWalkedFolder({
-        dirPath: AbsoluteFilePathStub({ value: `${alphaDir}/src` }),
+        dirPath: `${alphaDir}/src`,
         folders: ['contracts'],
         files: [],
       });
       proxy.setupWalkedFolder({
-        dirPath: AbsoluteFilePathStub({ value: `${alphaDir}/src/contracts` }),
+        dirPath: `${alphaDir}/src/contracts`,
         folders: ['thing'],
         files: [],
       });
       proxy.setupWalkedFolder({
-        dirPath: AbsoluteFilePathStub({ value: `${alphaDir}/src/contracts/thing` }),
+        dirPath: `${alphaDir}/src/contracts/thing`,
         folders: [],
         files: ['thing-contract.ts'],
       });
       proxy.setupWalkedFolder({ dirPath: betaDir, folders: ['src'], files: [] });
       proxy.setupWalkedFolder({
-        dirPath: AbsoluteFilePathStub({ value: `${betaDir}/src` }),
+        dirPath: `${betaDir}/src`,
         folders: ['contracts'],
         files: [],
       });
       proxy.setupWalkedFolder({
-        dirPath: AbsoluteFilePathStub({ value: `${betaDir}/src/contracts` }),
+        dirPath: `${betaDir}/src/contracts`,
         folders: ['other', 'kind'],
         files: [],
       });
       proxy.setupWalkedFolder({
-        dirPath: AbsoluteFilePathStub({ value: `${betaDir}/src/contracts/other` }),
+        dirPath: `${betaDir}/src/contracts/other`,
         folders: [],
         files: ['other-contract.ts'],
       });
-      const kindFile = AbsoluteFilePathStub({
-        value: `${betaDir}/src/contracts/kind/kind-contract.ts`,
-      });
+      const kindFile = `${betaDir}/src/contracts/kind/kind-contract.ts`;
       proxy.setupWalkedFolder({
-        dirPath: AbsoluteFilePathStub({ value: `${betaDir}/src/contracts/kind` }),
+        dirPath: `${betaDir}/src/contracts/kind`,
         folders: [],
         files: ['kind-contract.ts'],
       });
@@ -144,9 +137,9 @@ describe('ownerIndexBuildBroker', () => {
 
     it('VALID: {second call for the same root} => returns the identical cached index', () => {
       const proxy = ownerIndexBuildBrokerProxy();
-      const rootDir = AbsoluteFilePathStub({ value: '/repo-owners-cached' });
+      const rootDir = '/repo-owners-cached';
       proxy.setupSubfolders({
-        dirPath: AbsoluteFilePathStub({ value: '/repo-owners-cached/packages' }),
+        dirPath: '/repo-owners-cached/packages',
         folders: [],
       });
 

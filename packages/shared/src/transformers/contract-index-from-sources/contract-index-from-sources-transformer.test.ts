@@ -1,12 +1,11 @@
-import { AbsoluteFilePathStub } from '../../contracts/absolute-file-path/absolute-file-path.stub';
 import { ContentTextStub } from '../../contracts/content-text/content-text.stub';
 import { ContractIndexPackageStub } from '../../contracts/contract-index-package/contract-index-package.stub';
 import { PackageNameStub } from '../../contracts/package-name/package-name.stub';
 import { contractIndexFromSourcesTransformer } from './contract-index-from-sources-transformer';
 
-const rootDir = AbsoluteFilePathStub({ value: '/repo' });
-const alphaDir = AbsoluteFilePathStub({ value: '/repo/packages/alpha' });
-const betaDir = AbsoluteFilePathStub({ value: '/repo/packages/beta' });
+const rootDir = '/repo';
+const alphaDir = '/repo/packages/alpha';
+const betaDir = '/repo/packages/beta';
 const alphaPackage = ContractIndexPackageStub({
   name: PackageNameStub({ value: '@repo/alpha' }),
   dir: alphaDir,
@@ -52,15 +51,9 @@ const DETAIL_CONTRACT_TEXT = ContentTextStub({
 describe('contractIndexFromSourcesTransformer', () => {
   describe('parse detection', () => {
     it('VALID: {a broker parses one contract, another is never parsed} => marks only the parsed one', () => {
-      const parsedFile = AbsoluteFilePathStub({
-        value: '/repo/packages/alpha/src/contracts/one/one-contract.ts',
-      });
-      const lonelyFile = AbsoluteFilePathStub({
-        value: '/repo/packages/alpha/src/contracts/two/two-contract.ts',
-      });
-      const brokerFile = AbsoluteFilePathStub({
-        value: '/repo/packages/alpha/src/brokers/use/use-broker.ts',
-      });
+      const parsedFile = '/repo/packages/alpha/src/contracts/one/one-contract.ts';
+      const lonelyFile = '/repo/packages/alpha/src/contracts/two/two-contract.ts';
+      const brokerFile = '/repo/packages/alpha/src/brokers/use/use-broker.ts';
 
       const result = contractIndexFromSourcesTransformer({
         rootDir,
@@ -103,9 +96,7 @@ describe('contractIndexFromSourcesTransformer', () => {
     });
 
     it('VALID: {a parse that only a test file makes} => the contract stays unparsed', () => {
-      const contractFile = AbsoluteFilePathStub({
-        value: '/repo/packages/alpha/src/contracts/one/one-contract.ts',
-      });
+      const contractFile = '/repo/packages/alpha/src/contracts/one/one-contract.ts';
 
       const result = contractIndexFromSourcesTransformer({
         rootDir,
@@ -113,9 +104,7 @@ describe('contractIndexFromSourcesTransformer', () => {
         sources: [
           { filePath: contractFile, text: ONE_CONTRACT_TEXT },
           {
-            filePath: AbsoluteFilePathStub({
-              value: '/repo/packages/alpha/src/contracts/one/one-contract.test.ts',
-            }),
+            filePath: '/repo/packages/alpha/src/contracts/one/one-contract.test.ts',
             text: ContentTextStub({
               value: "import { oneContract } from './one-contract';\noneContract.parse('x');",
             }),
@@ -140,12 +129,8 @@ describe('contractIndexFromSourcesTransformer', () => {
 
   describe('harness parses', () => {
     it('VALID: {a test/harnesses file parses the contract} => the parse site is the harness and the contract counts as parsed', () => {
-      const contractFile = AbsoluteFilePathStub({
-        value: '/repo/packages/alpha/src/contracts/one/one-contract.ts',
-      });
-      const harnessFile = AbsoluteFilePathStub({
-        value: '/repo/packages/beta/test/harnesses/mock/mock.harness.ts',
-      });
+      const contractFile = '/repo/packages/alpha/src/contracts/one/one-contract.ts';
+      const harnessFile = '/repo/packages/beta/test/harnesses/mock/mock.harness.ts';
 
       const result = contractIndexFromSourcesTransformer({
         rootDir,
@@ -160,7 +145,7 @@ describe('contractIndexFromSourcesTransformer', () => {
             }),
           },
           {
-            filePath: AbsoluteFilePathStub({ value: '/repo/packages/alpha/contracts.ts' }),
+            filePath: '/repo/packages/alpha/contracts.ts',
             text: ContentTextStub({
               value: "export * from './src/contracts/one/one-contract';\n// contract barrel",
             }),
@@ -183,9 +168,7 @@ describe('contractIndexFromSourcesTransformer', () => {
     });
 
     it('VALID: {a test, a stub and a proxy inside test/harnesses parse the contract} => the contract stays unparsed', () => {
-      const contractFile = AbsoluteFilePathStub({
-        value: '/repo/packages/alpha/src/contracts/one/one-contract.ts',
-      });
+      const contractFile = '/repo/packages/alpha/src/contracts/one/one-contract.ts';
       const parseText = ContentTextStub({
         value: "import { oneContract } from '@repo/alpha/contracts';\noneContract.parse('x');",
       });
@@ -196,27 +179,21 @@ describe('contractIndexFromSourcesTransformer', () => {
         sources: [
           { filePath: contractFile, text: ONE_CONTRACT_TEXT },
           {
-            filePath: AbsoluteFilePathStub({ value: '/repo/packages/alpha/contracts.ts' }),
+            filePath: '/repo/packages/alpha/contracts.ts',
             text: ContentTextStub({
               value: "export * from './src/contracts/one/one-contract';\n// contract barrel",
             }),
           },
           {
-            filePath: AbsoluteFilePathStub({
-              value: '/repo/packages/beta/test/harnesses/mock/mock.harness.test.ts',
-            }),
+            filePath: '/repo/packages/beta/test/harnesses/mock/mock.harness.test.ts',
             text: parseText,
           },
           {
-            filePath: AbsoluteFilePathStub({
-              value: '/repo/packages/beta/test/harnesses/mock/mock.stub.ts',
-            }),
+            filePath: '/repo/packages/beta/test/harnesses/mock/mock.stub.ts',
             text: parseText,
           },
           {
-            filePath: AbsoluteFilePathStub({
-              value: '/repo/packages/beta/test/harnesses/mock/mock.harness.proxy.ts',
-            }),
+            filePath: '/repo/packages/beta/test/harnesses/mock/mock.harness.proxy.ts',
             text: parseText,
           },
         ],
@@ -239,9 +216,7 @@ describe('contractIndexFromSourcesTransformer', () => {
 
   describe('types-only contract files', () => {
     it('VALID: {a file exporting only call-signature and method-set types} => no contract names, every type exempt, not parsed', () => {
-      const handleFile = AbsoluteFilePathStub({
-        value: '/repo/packages/alpha/src/contracts/mock-handle/mock-handle-contract.ts',
-      });
+      const handleFile = '/repo/packages/alpha/src/contracts/mock-handle/mock-handle-contract.ts';
 
       const result = contractIndexFromSourcesTransformer({
         rootDir,
@@ -288,15 +263,9 @@ describe('contractIndexFromSourcesTransformer', () => {
 
   describe('nested contracts', () => {
     it('VALID: {a parsed contract uses another as a value} => the nested one counts as parsed', () => {
-      const innerFile = AbsoluteFilePathStub({
-        value: '/repo/packages/alpha/src/contracts/inner/inner-contract.ts',
-      });
-      const outerFile = AbsoluteFilePathStub({
-        value: '/repo/packages/alpha/src/contracts/outer/outer-contract.ts',
-      });
-      const brokerFile = AbsoluteFilePathStub({
-        value: '/repo/packages/alpha/src/brokers/use/use-broker.ts',
-      });
+      const innerFile = '/repo/packages/alpha/src/contracts/inner/inner-contract.ts';
+      const outerFile = '/repo/packages/alpha/src/contracts/outer/outer-contract.ts';
+      const brokerFile = '/repo/packages/alpha/src/brokers/use/use-broker.ts';
 
       const result = contractIndexFromSourcesTransformer({
         rootDir,
@@ -352,15 +321,9 @@ describe('contractIndexFromSourcesTransformer', () => {
 
   describe('barrels and layers', () => {
     it('VALID: {a contract parsed through another package barrel, and a layer contract} => resolves the barrel and flags the layer', () => {
-      const contractFile = AbsoluteFilePathStub({
-        value: '/repo/packages/alpha/src/contracts/one/one-contract.ts',
-      });
-      const layerFile = AbsoluteFilePathStub({
-        value: '/repo/packages/alpha/src/contracts/one/detail-layer-contract.ts',
-      });
-      const brokerFile = AbsoluteFilePathStub({
-        value: '/repo/packages/beta/src/brokers/use/use-broker.ts',
-      });
+      const contractFile = '/repo/packages/alpha/src/contracts/one/one-contract.ts';
+      const layerFile = '/repo/packages/alpha/src/contracts/one/detail-layer-contract.ts';
+      const brokerFile = '/repo/packages/beta/src/brokers/use/use-broker.ts';
 
       const result = contractIndexFromSourcesTransformer({
         rootDir,
@@ -369,7 +332,7 @@ describe('contractIndexFromSourcesTransformer', () => {
           { filePath: contractFile, text: ONE_CONTRACT_TEXT },
           { filePath: layerFile, text: DETAIL_CONTRACT_TEXT },
           {
-            filePath: AbsoluteFilePathStub({ value: '/repo/packages/alpha/contracts.ts' }),
+            filePath: '/repo/packages/alpha/contracts.ts',
             text: ContentTextStub({
               value: "export * from './src/contracts/one/one-contract';\n// contract barrel",
             }),
@@ -419,9 +382,7 @@ describe('contractIndexFromSourcesTransformer', () => {
     });
 
     it('EDGE: {contract outside every package} => reports package unknown', () => {
-      const contractFile = AbsoluteFilePathStub({
-        value: '/repo/tools/src/contracts/one/one-contract.ts',
-      });
+      const contractFile = '/repo/tools/src/contracts/one/one-contract.ts';
 
       const result = contractIndexFromSourcesTransformer({
         rootDir,

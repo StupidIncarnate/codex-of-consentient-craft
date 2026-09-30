@@ -1,4 +1,3 @@
-import { AbsoluteFilePathStub } from '@dungeonmaster/shared/contracts/absolute-file-path/absolute-file-path.stub';
 
 import { e2eArtifactsPruneBroker } from './e2e-artifacts-prune-broker';
 import { e2eArtifactsPruneBrokerProxy } from './e2e-artifacts-prune-broker.proxy';
@@ -8,7 +7,7 @@ const PACKAGE_ROOT = '/repo/packages/web';
 describe('e2eArtifactsPruneBroker', () => {
   describe('the vite cache, on a two-day window', () => {
     it('VALID: {.vite-40000 three days old, port free} => removes it', async () => {
-      const packageRoot = AbsoluteFilePathStub({ value: PACKAGE_ROOT });
+      const packageRoot = PACKAGE_ROOT;
       const proxy = e2eArtifactsPruneBrokerProxy();
 
       proxy.setupEntries({ packageRoot, parentDir: 'node_modules', entries: ['.vite-40000'] });
@@ -26,7 +25,7 @@ describe('e2eArtifactsPruneBroker', () => {
     });
 
     it('VALID: {.vite-40000 one day old} => leaves it, being inside the window', async () => {
-      const packageRoot = AbsoluteFilePathStub({ value: PACKAGE_ROOT });
+      const packageRoot = PACKAGE_ROOT;
       const proxy = e2eArtifactsPruneBrokerProxy();
 
       proxy.setupEntries({ packageRoot, parentDir: 'node_modules', entries: ['.vite-40000'] });
@@ -44,7 +43,7 @@ describe('e2eArtifactsPruneBroker', () => {
     // test-results holds the trace and screenshot of a failing run. Three days must NOT be enough
     // to lose them — that is the whole reason the two windows differ.
     it('VALID: {test-results/40000 three days old} => kept, unlike the cache of the same age', async () => {
-      const packageRoot = AbsoluteFilePathStub({ value: PACKAGE_ROOT });
+      const packageRoot = PACKAGE_ROOT;
       const proxy = e2eArtifactsPruneBrokerProxy();
 
       proxy.setupEntries({ packageRoot, parentDir: 'test-results', entries: ['40000'] });
@@ -58,7 +57,7 @@ describe('e2eArtifactsPruneBroker', () => {
     });
 
     it('VALID: {test-results/40000 eight days old, port free} => removes it', async () => {
-      const packageRoot = AbsoluteFilePathStub({ value: PACKAGE_ROOT });
+      const packageRoot = PACKAGE_ROOT;
       const proxy = e2eArtifactsPruneBrokerProxy();
 
       proxy.setupEntries({ packageRoot, parentDir: 'test-results', entries: ['40000'] });
@@ -81,7 +80,7 @@ describe('e2eArtifactsPruneBroker', () => {
     // parsing it as a port yields NaN — either way the directory is never reclaimed, so bundles
     // accumulate at megabytes apiece while the sweep reports success.
     it('VALID: {a hash-named bundle eight days old} => removes it with no port check', async () => {
-      const packageRoot = AbsoluteFilePathStub({ value: PACKAGE_ROOT });
+      const packageRoot = PACKAGE_ROOT;
       const hash = 'f740c8e2713632d9ec1dd0c6ef7ed6aa0e0df74273dc7210276c1a2f5c1e3d22';
       const proxy = e2eArtifactsPruneBrokerProxy();
 
@@ -103,7 +102,7 @@ describe('e2eArtifactsPruneBroker', () => {
     // and the eight-day one above are what pin that boundary — tie the bundle back to the evidence
     // window and this is the test that goes red.
     it('VALID: {a hash-named bundle three days old} => keeps it, being inside the window', async () => {
-      const packageRoot = AbsoluteFilePathStub({ value: PACKAGE_ROOT });
+      const packageRoot = PACKAGE_ROOT;
       const hash = 'f740c8e2713632d9ec1dd0c6ef7ed6aa0e0df74273dc7210276c1a2f5c1e3d22';
       const proxy = e2eArtifactsPruneBrokerProxy();
 
@@ -120,7 +119,7 @@ describe('e2eArtifactsPruneBroker', () => {
     // A build killed between `vite build` and the rename leaves this behind. It is nobody's bundle,
     // and the pid in its name recurs, so age is the only thing that can decide it.
     it('VALID: {a .tmp- directory a killed build left} => removes it once stale', async () => {
-      const packageRoot = AbsoluteFilePathStub({ value: PACKAGE_ROOT });
+      const packageRoot = PACKAGE_ROOT;
       const proxy = e2eArtifactsPruneBrokerProxy();
 
       proxy.setupEntries({ packageRoot, parentDir: '.ward/bundle', entries: ['.tmp-8123'] });
@@ -142,7 +141,7 @@ describe('e2eArtifactsPruneBroker', () => {
     // directory still on disk reads as abandoned. Taking it kills that run, and the symptom points
     // nowhere near a cleanup.
     it('VALID: {.vite-40000 stale but port bound} => leaves it alone', async () => {
-      const packageRoot = AbsoluteFilePathStub({ value: PACKAGE_ROOT });
+      const packageRoot = PACKAGE_ROOT;
       const proxy = e2eArtifactsPruneBrokerProxy();
 
       proxy.setupEntries({ packageRoot, parentDir: 'node_modules', entries: ['.vite-40000'] });
@@ -161,7 +160,7 @@ describe('e2eArtifactsPruneBroker', () => {
     // Playwright's default outputDir is test-results/ and names folders after the spec. A repo that
     // never adopted per-port paths keeps its failure traces here.
     it('VALID: {test-results holds a spec-named folder} => never stats or removes it', async () => {
-      const packageRoot = AbsoluteFilePathStub({ value: PACKAGE_ROOT });
+      const packageRoot = PACKAGE_ROOT;
       const proxy = e2eArtifactsPruneBrokerProxy();
 
       proxy.setupEntries({
@@ -186,7 +185,7 @@ describe('e2eArtifactsPruneBroker', () => {
     // Four browser walks sweep one directory at once, so losing a race is the common case. A single
     // try around the whole loop would reap one directory per run while the disk still filled.
     it('VALID: {first removal throws ENOTEMPTY} => the second is still removed', async () => {
-      const packageRoot = AbsoluteFilePathStub({ value: PACKAGE_ROOT });
+      const packageRoot = PACKAGE_ROOT;
       const proxy = e2eArtifactsPruneBrokerProxy();
 
       proxy.setupEntries({
@@ -227,7 +226,7 @@ describe('e2eArtifactsPruneBroker', () => {
 
   describe('a package with none of these directories', () => {
     it('EMPTY: {every parent dir absent} => resolves success without removing anything', async () => {
-      const packageRoot = AbsoluteFilePathStub({ value: PACKAGE_ROOT });
+      const packageRoot = PACKAGE_ROOT;
       const proxy = e2eArtifactsPruneBrokerProxy();
 
       proxy.setupEntries({ packageRoot, parentDir: 'node_modules', entries: [] });

@@ -14,8 +14,6 @@
  * under emitter responder lines.
  */
 
-import { absoluteFilePathContract } from '../../../contracts/absolute-file-path/absolute-file-path-contract';
-import type { AbsoluteFilePath } from '../../../contracts/absolute-file-path/absolute-file-path-contract';
 import {
   busEmitterSiteContract,
   type BusEmitterSite,
@@ -32,16 +30,16 @@ export const busEmitterSitesFindLayerBroker = ({
   projectRoot,
   buses,
 }: {
-  projectRoot: AbsoluteFilePath;
+  projectRoot: string;
   buses: EventBus[];
 }): BusEmitterSite[] => {
   if (buses.length === 0) return [];
 
   const root = String(projectRoot);
-  const packagesDir = absoluteFilePathContract.parse(`${root}/${PACKAGES_REL}`);
+  const packagesDir = `${root}/${PACKAGES_REL}`;
   const allFiles = listTsFilesLayerBroker({ dirPath: packagesDir });
 
-  const stateFileSet = new Set<AbsoluteFilePath>(buses.map((b) => b.stateFile));
+  const stateFileSet = new Set<string>(buses.map((b) => b.stateFile));
   const sites: BusEmitterSite[] = [];
 
   for (const filePath of allFiles) {

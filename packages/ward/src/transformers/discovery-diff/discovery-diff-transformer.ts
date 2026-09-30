@@ -6,7 +6,6 @@
  * // Returns: { onlyDiscovered: ['src/a.ts'], onlyProcessed: ['src/b.ts'] }
  */
 
-import type { AbsoluteFilePath } from '@dungeonmaster/shared/contracts';
 
 import {
   gitRelativePathContract,
@@ -21,7 +20,7 @@ export const discoveryDiffTransformer = ({
 }: {
   discoveredFiles: GitRelativePath[];
   processedFiles: GitRelativePath[];
-  cwd: AbsoluteFilePath;
+  cwd: string;
 }): { onlyDiscovered: GitRelativePath[]; onlyProcessed: GitRelativePath[] } => {
   const normalizedDiscovered = new Set(
     discoveredFiles.map((file) => String(normalizeToRelativeTransformer({ filePath: file, cwd }))),

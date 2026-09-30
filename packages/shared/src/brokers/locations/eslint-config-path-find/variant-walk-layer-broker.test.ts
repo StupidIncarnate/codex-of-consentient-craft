@@ -1,6 +1,5 @@
 import { variantWalkLayerBroker } from './variant-walk-layer-broker';
 import { variantWalkLayerBrokerProxy } from './variant-walk-layer-broker.proxy';
-import { AbsoluteFilePathStub } from '../../../contracts/absolute-file-path/absolute-file-path.stub';
 
 describe('variantWalkLayerBroker', () => {
   describe('match cases', () => {
@@ -17,7 +16,7 @@ describe('variantWalkLayerBroker', () => {
         variants: ['eslint.config.ts', 'eslint.config.js'],
       });
 
-      expect(result).toBe(AbsoluteFilePathStub({ value: '/project/eslint.config.ts' }));
+      expect(result).toBe('/project/eslint.config.ts');
     });
 
     it('VALID: {first variant missing, second variant exists} => returns second AbsoluteFilePath', async () => {
@@ -34,7 +33,7 @@ describe('variantWalkLayerBroker', () => {
         variants: ['eslint.config.ts', 'eslint.config.js'],
       });
 
-      expect(result).toBe(AbsoluteFilePathStub({ value: '/project/eslint.config.js' }));
+      expect(result).toBe('/project/eslint.config.js');
     });
   });
 

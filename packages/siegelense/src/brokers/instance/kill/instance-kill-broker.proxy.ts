@@ -5,7 +5,6 @@ import { stderrProxy } from '#gateway/node/process/stderr/stderr.proxy';
 import { setTimeoutProxy } from '#gateway/node/setTimeout/set-timeout/set-timeout.proxy';
 import { registerMock, requireActual } from '@dungeonmaster/testing/register-mock';
 import type { MockHandle } from '@dungeonmaster/testing/register-mock';
-import type { AbsoluteFilePathStub } from '@dungeonmaster/shared/contracts/absolute-file-path/absolute-file-path.stub';
 
 import { registryReadBrokerProxy } from '../../registry/read/registry-read-broker.proxy';
 import { instanceReleaseBrokerProxy } from '../release/instance-release-broker.proxy';
@@ -44,38 +43,38 @@ const LINK_PATH_FILE = LINK_PATH_VALUE;
 export const instanceKillBrokerProxy = (): {
   setupRegistry: (params: { registry: Registry }) => void;
   setupDriverStops: (params: {
-    socketPath: ReturnType<typeof AbsoluteFilePathStub>;
+    socketPath: string;
     killed?: readonly ProcessGroupId[];
   }) => void;
   setupDriverStopsWithMalformedPayload: (params: {
-    socketPath: ReturnType<typeof AbsoluteFilePathStub>;
+    socketPath: string;
   }) => void;
   setupDriverUnreachableReapsLivePgids: (params: {
-    socketPath: ReturnType<typeof AbsoluteFilePathStub>;
+    socketPath: string;
     pgids: readonly ProcessGroupId[];
-    homePath: ReturnType<typeof AbsoluteFilePathStub>;
+    homePath: string;
   }) => void;
   setupDriverUnreachableNoPgids: (params: {
-    socketPath: ReturnType<typeof AbsoluteFilePathStub>;
-    homePath: ReturnType<typeof AbsoluteFilePathStub>;
+    socketPath: string;
+    homePath: string;
   }) => void;
   setupDriverUnreachableSomeAlreadyGone: (params: {
-    socketPath: ReturnType<typeof AbsoluteFilePathStub>;
+    socketPath: string;
     livePgids: readonly ProcessGroupId[];
     alreadyGonePgids: readonly ProcessGroupId[];
-    homePath: ReturnType<typeof AbsoluteFilePathStub>;
+    homePath: string;
   }) => void;
   setupShutdownReasonWriteSucceeds: (params: {
-    evidencePath: ReturnType<typeof AbsoluteFilePathStub>;
+    evidencePath: string;
   }) => void;
   getWrittenShutdownReason: (params: {
-    evidencePath: ReturnType<typeof AbsoluteFilePathStub>;
+    evidencePath: string;
   }) => unknown;
   getRemovedPaths: () => unknown[];
   getKillGroupCallsFor: (params: { pgid: ProcessGroupId }) => unknown[];
   getReleasedRegistry: () => unknown;
   getConnectionCountFor: (params: {
-    socketPath: ReturnType<typeof AbsoluteFilePathStub>;
+    socketPath: string;
   }) => ReturnType<typeof ReadingCountStub>;
 } => {
   const registryProxy = registryReadBrokerProxy();
@@ -146,7 +145,7 @@ export const instanceKillBrokerProxy = (): {
       socketPath,
       killed,
     }: {
-      socketPath: ReturnType<typeof AbsoluteFilePathStub>;
+      socketPath: string;
       killed?: readonly ProcessGroupId[];
     }): void => {
       socketProxy.respondsWith({
@@ -166,7 +165,7 @@ export const instanceKillBrokerProxy = (): {
     setupDriverStopsWithMalformedPayload: ({
       socketPath,
     }: {
-      socketPath: ReturnType<typeof AbsoluteFilePathStub>;
+      socketPath: string;
     }): void => {
       socketProxy.respondsWith({
         socketPath,
@@ -182,9 +181,9 @@ export const instanceKillBrokerProxy = (): {
       pgids,
       homePath,
     }: {
-      socketPath: ReturnType<typeof AbsoluteFilePathStub>;
+      socketPath: string;
       pgids: readonly ProcessGroupId[];
-      homePath: ReturnType<typeof AbsoluteFilePathStub>;
+      homePath: string;
     }): void => {
       socketProxy.connectFailsRefused({ socketPath });
       pgids.forEach((pgid) => {
@@ -205,10 +204,10 @@ export const instanceKillBrokerProxy = (): {
       alreadyGonePgids,
       homePath,
     }: {
-      socketPath: ReturnType<typeof AbsoluteFilePathStub>;
+      socketPath: string;
       livePgids: readonly ProcessGroupId[];
       alreadyGonePgids: readonly ProcessGroupId[];
-      homePath: ReturnType<typeof AbsoluteFilePathStub>;
+      homePath: string;
     }): void => {
       socketProxy.connectFailsRefused({ socketPath });
       alreadyGonePgids.forEach((pgid) => {
@@ -229,8 +228,8 @@ export const instanceKillBrokerProxy = (): {
       socketPath,
       homePath,
     }: {
-      socketPath: ReturnType<typeof AbsoluteFilePathStub>;
-      homePath: ReturnType<typeof AbsoluteFilePathStub>;
+      socketPath: string;
+      homePath: string;
     }): void => {
       socketProxy.connectFailsRefused({ socketPath });
       stagedHomePaths.push(homePath);
@@ -244,7 +243,7 @@ export const instanceKillBrokerProxy = (): {
     setupShutdownReasonWriteSucceeds: ({
       evidencePath,
     }: {
-      evidencePath: ReturnType<typeof AbsoluteFilePathStub>;
+      evidencePath: string;
     }): void => {
       shutdownReasonProxy.setupWriteSucceeds({ evidencePath, nowMs: EpochMsStub().valueOf() });
     },
@@ -252,7 +251,7 @@ export const instanceKillBrokerProxy = (): {
     getWrittenShutdownReason: ({
       evidencePath,
     }: {
-      evidencePath: ReturnType<typeof AbsoluteFilePathStub>;
+      evidencePath: string;
     }): unknown => {
       const written = shutdownReasonProxy.getWrittenMarkerContent({ evidencePath });
       return typeof written === 'string' ? JSON.parse(written) : null;
@@ -276,7 +275,7 @@ export const instanceKillBrokerProxy = (): {
     getConnectionCountFor: ({
       socketPath,
     }: {
-      socketPath: ReturnType<typeof AbsoluteFilePathStub>;
+      socketPath: string;
     }): ReturnType<typeof ReadingCountStub> => socketProxy.getConnectionCountFor({ socketPath }),
   };
 };

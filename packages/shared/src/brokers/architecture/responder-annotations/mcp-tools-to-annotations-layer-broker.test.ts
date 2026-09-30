@@ -1,14 +1,11 @@
 import type { DirEntrySync } from '#gateway/node/fs';
 import { mcpToolsToAnnotationsLayerBroker } from './mcp-tools-to-annotations-layer-broker';
 import { mcpToolsToAnnotationsLayerBrokerProxy } from './mcp-tools-to-annotations-layer-broker.proxy';
-import { AbsoluteFilePathStub } from '../../../contracts/absolute-file-path/absolute-file-path.stub';
 import { ContentTextStub } from '../../../contracts/content-text/content-text.stub';
 
-const PACKAGE_ROOT = AbsoluteFilePathStub({ value: '/repo/packages/mcp' });
+const PACKAGE_ROOT = '/repo/packages/mcp';
 
-const QUEST_HANDLE_RESPONDER_PATH = AbsoluteFilePathStub({
-  value: '/repo/packages/mcp/src/responders/quest/handle/quest-handle-responder.ts',
-});
+const QUEST_HANDLE_RESPONDER_PATH = '/repo/packages/mcp/src/responders/quest/handle/quest-handle-responder.ts';
 
 const makeFileDirent = ({ name }: { name: string }): DirEntrySync => ({ name, kind: 'file' });
 
@@ -32,7 +29,7 @@ describe('mcpToolsToAnnotationsLayerBroker', () => {
         flowEntries: [makeFileDirent({ name: 'quest-flow.ts' })],
         flowFiles: [
           {
-            path: AbsoluteFilePathStub({ value: '/repo/packages/mcp/src/flows/quest-flow.ts' }),
+            path: '/repo/packages/mcp/src/flows/quest-flow.ts',
             source: ContentTextStub({
               value: `import { QuestHandleResponder } from '../responders/quest/handle/quest-handle-responder';
 const tools = [

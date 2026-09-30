@@ -1,11 +1,8 @@
 import { cliBinToAnnotationsLayerBroker } from './cli-bin-to-annotations-layer-broker';
 import { cliBinToAnnotationsLayerBrokerProxy } from './cli-bin-to-annotations-layer-broker.proxy';
-import { AbsoluteFilePathStub } from '../../../contracts/absolute-file-path/absolute-file-path.stub';
 
-const PACKAGE_ROOT = AbsoluteFilePathStub({ value: '/repo/packages/ward' });
-const WARD_STARTUP = AbsoluteFilePathStub({
-  value: '/repo/packages/ward/src/startup/start-ward.ts',
-});
+const PACKAGE_ROOT = '/repo/packages/ward';
+const WARD_STARTUP = '/repo/packages/ward/src/startup/start-ward.ts';
 
 describe('cliBinToAnnotationsLayerBroker', () => {
   describe('package without package.json', () => {

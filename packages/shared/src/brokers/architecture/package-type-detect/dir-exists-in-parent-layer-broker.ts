@@ -11,14 +11,13 @@
  * WHEN-TO-USE: During package-type detection to verify presence of named subdirectories
  */
 
-import type { AbsoluteFilePath } from '../../../contracts/absolute-file-path/absolute-file-path-contract';
 import { safeReaddirLayerBroker } from './safe-readdir-layer-broker';
 
 export const dirExistsInParentLayerBroker = ({
   parentDirPath,
   dirName,
 }: {
-  parentDirPath: AbsoluteFilePath;
+  parentDirPath: string;
   dirName: string;
 }): boolean => {
   const entries = safeReaddirLayerBroker({ dirPath: parentDirPath });

@@ -16,7 +16,6 @@
  */
 
 import { appendFile } from '#gateway/node/fs__promises';
-import type { AbsoluteFilePath } from '@dungeonmaster/shared/contracts';
 
 import type { BufferEntry } from '../../../contracts/buffer-entry/buffer-entry-contract';
 
@@ -24,7 +23,7 @@ export const bufferAppendBroker = async ({
   bufferPath,
   entries,
 }: {
-  bufferPath: AbsoluteFilePath;
+  bufferPath: string;
   entries: readonly BufferEntry[];
 }): Promise<void> => {
   if (entries.length === 0) {

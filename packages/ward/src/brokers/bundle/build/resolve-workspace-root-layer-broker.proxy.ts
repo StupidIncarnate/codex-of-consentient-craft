@@ -1,19 +1,18 @@
 import { readFileProxy } from '#gateway/node/fs__promises/read-file/read-file.proxy';
 import { filePathContract } from '@dungeonmaster/shared/contracts';
-import type { AbsoluteFilePath } from '@dungeonmaster/shared/contracts';
 
 export const resolveWorkspaceRootLayerBrokerProxy = (): {
-  declaresWorkspaces: (params: { dirPath: AbsoluteFilePath; patterns: string[] }) => void;
-  isAPlainPackage: (params: { dirPath: AbsoluteFilePath; name: string }) => void;
-  hasNoManifest: (params: { dirPath: AbsoluteFilePath }) => void;
-  hasAnUnparseableManifest: (params: { dirPath: AbsoluteFilePath }) => void;
+  declaresWorkspaces: (params: { dirPath: string; patterns: string[] }) => void;
+  isAPlainPackage: (params: { dirPath: string; name: string }) => void;
+  hasNoManifest: (params: { dirPath: string }) => void;
+  hasAnUnparseableManifest: (params: { dirPath: string }) => void;
 } => {
   const readProxy = readFileProxy();
 
   const manifestPathFor = ({
     dirPath,
   }: {
-    dirPath: AbsoluteFilePath;
+    dirPath: string;
   }): ReturnType<typeof filePathContract.parse> =>
     `${String(dirPath)}/package.json`;
 
@@ -22,7 +21,7 @@ export const resolveWorkspaceRootLayerBrokerProxy = (): {
       dirPath,
       patterns,
     }: {
-      dirPath: AbsoluteFilePath;
+      dirPath: string;
       patterns: string[];
     }): void => {
       readProxy.returns({
@@ -30,16 +29,16 @@ export const resolveWorkspaceRootLayerBrokerProxy = (): {
         contents: JSON.stringify({ name: 'root', workspaces: patterns }),
       });
     },
-    isAPlainPackage: ({ dirPath, name }: { dirPath: AbsoluteFilePath; name: string }): void => {
+    isAPlainPackage: ({ dirPath, name }: { dirPath: string; name: string }): void => {
       readProxy.returns({
         path: manifestPathFor({ dirPath }),
         contents: JSON.stringify({ name }),
       });
     },
-    hasNoManifest: ({ dirPath }: { dirPath: AbsoluteFilePath }): void => {
+    hasNoManifest: ({ dirPath }: { dirPath: string }): void => {
       readProxy.missing({ path: manifestPathFor({ dirPath }) });
     },
-    hasAnUnparseableManifest: ({ dirPath }: { dirPath: AbsoluteFilePath }): void => {
+    hasAnUnparseableManifest: ({ dirPath }: { dirPath: string }): void => {
       readProxy.returns({ path: manifestPathFor({ dirPath }), contents: '{ not json' });
     },
   };

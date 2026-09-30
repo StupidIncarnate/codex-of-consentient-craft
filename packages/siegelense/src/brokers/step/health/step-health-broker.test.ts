@@ -1,4 +1,3 @@
-import { AbsoluteFilePathStub } from '@dungeonmaster/shared/contracts/absolute-file-path/absolute-file-path.stub';
 import { ContentTextStub } from '@dungeonmaster/shared/contracts/content-text/content-text.stub';
 
 import { BrowserSessionStub } from '../../../contracts/browser-session/browser-session.stub';
@@ -34,7 +33,7 @@ describe('stepHealthBroker', () => {
       checkRootPresent: jest.fn().mockResolvedValue(true),
       capture: captureMock,
     });
-    const shotPath = AbsoluteFilePathStub({ value: '/tmp/health-shot.png' });
+    const shotPath = '/tmp/health-shot.png';
 
     const backgroundPixel = [0x0d, 0x09, 0x07, 255];
     const foregroundPixel = [255, 255, 255, 255];
@@ -87,7 +86,7 @@ describe('stepHealthBroker', () => {
     const session = BrowserSessionStub({
       checkRootPresent: jest.fn().mockResolvedValue(true),
     });
-    const shotPath = AbsoluteFilePathStub({ value: '/tmp/blank-shot.png' });
+    const shotPath = '/tmp/blank-shot.png';
 
     const backgroundPixel = [0x0d, 0x09, 0x07, 255];
     const pixels = new Uint8Array(Array.from({ length: 16 }, () => backgroundPixel).flat());

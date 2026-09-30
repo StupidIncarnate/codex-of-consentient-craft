@@ -1,16 +1,15 @@
-import type { AbsoluteFilePath } from '@dungeonmaster/shared/contracts';
 
 import type { BinCommand } from '../../../contracts/bin-command/bin-command-contract';
 import { binWalkUpLayerBrokerProxy } from './bin-walk-up-layer-broker.proxy';
 
 export const binResolveBrokerProxy = (): {
-  setupFound: (params: { cwd: AbsoluteFilePath; binName: BinCommand }) => BinCommand;
-  setupNotFound: (params: { cwd: AbsoluteFilePath; binName: BinCommand }) => void;
+  setupFound: (params: { cwd: string; binName: BinCommand }) => BinCommand;
+  setupNotFound: (params: { cwd: string; binName: BinCommand }) => void;
   setupFoundAt: (params: {
-    cwd: AbsoluteFilePath;
+    cwd: string;
     binName: BinCommand;
-    binDir: AbsoluteFilePath;
-    workspaceRoot: AbsoluteFilePath | null;
+    binDir: string;
+    workspaceRoot: string | null;
   }) => BinCommand;
 } => {
   const walkProxy = binWalkUpLayerBrokerProxy();
@@ -18,10 +17,10 @@ export const binResolveBrokerProxy = (): {
   return {
     // Returns the resolved command so composing proxies can address the downstream spawn call
     // with the same string binResolveBroker will actually produce.
-    setupFound: ({ cwd, binName }: { cwd: AbsoluteFilePath; binName: BinCommand }): BinCommand =>
+    setupFound: ({ cwd, binName }: { cwd: string; binName: BinCommand }): BinCommand =>
       walkProxy.setupWalk({ dir: cwd, binName, binDir: cwd, workspaceRoot: null }),
 
-    setupNotFound: ({ cwd, binName }: { cwd: AbsoluteFilePath; binName: BinCommand }): void => {
+    setupNotFound: ({ cwd, binName }: { cwd: string; binName: BinCommand }): void => {
       walkProxy.setupWalk({ dir: cwd, binName, binDir: null, workspaceRoot: null });
     },
 
@@ -31,10 +30,10 @@ export const binResolveBrokerProxy = (): {
       binDir,
       workspaceRoot,
     }: {
-      cwd: AbsoluteFilePath;
+      cwd: string;
       binName: BinCommand;
-      binDir: AbsoluteFilePath;
-      workspaceRoot: AbsoluteFilePath | null;
+      binDir: string;
+      workspaceRoot: string | null;
     }): BinCommand => walkProxy.setupWalk({ dir: cwd, binName, binDir, workspaceRoot }),
   };
 };

@@ -1,4 +1,3 @@
-import { AbsoluteFilePathStub } from '@dungeonmaster/shared/contracts/absolute-file-path/absolute-file-path.stub';
 import { rmSyncProxy } from '#gateway/node/fs/rm-sync/rm-sync.proxy';
 import type { runProxy } from '#gateway/node/child_process/run/run.proxy';
 
@@ -26,7 +25,7 @@ export const scanRunBrokerProxy = (): {
   const rmProxy = rmSyncProxy();
 
   // Every scan here runs against rootPath '/project' and writes its wrapper into this directory.
-  const rootPath = AbsoluteFilePathStub({ value: '/project' });
+  const rootPath = '/project';
   const configDirectory = '/tmp/ward-scan-abc123';
   configProxy.setupTempDir({ directory: configDirectory });
   rmProxy.succeeds({ path: configDirectory });

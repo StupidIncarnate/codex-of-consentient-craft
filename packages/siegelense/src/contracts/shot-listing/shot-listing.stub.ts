@@ -1,5 +1,4 @@
 import type { StubArgument } from '@dungeonmaster/shared/@types';
-import { AbsoluteFilePathStub } from '@dungeonmaster/shared/contracts/absolute-file-path/absolute-file-path.stub';
 
 import { PixelChangeStub } from '../pixel-change/pixel-change.stub';
 import { ShotOpenReasonStub } from '../shot-open-reason/shot-open-reason.stub';
@@ -10,10 +9,7 @@ import type { ShotListing } from './shot-listing-contract';
 export const ShotListingStub = ({ ...props }: StubArgument<ShotListing> = {}): ShotListing =>
   shotListingContract.parse({
     step: StepIndexStub({ value: 1 }),
-    path: AbsoluteFilePathStub({
-      value:
-        '/repo/.dungeonmaster-assets/siegelense-assets/guilds/g1/instances/inst_1/runs/run_2/step1.png',
-    }),
+    path: '/repo/.dungeonmaster-assets/siegelense-assets/guilds/g1/instances/inst_1/runs/run_2/step1.png',
     open: true,
     why: ShotOpenReasonStub({ value: 'start' }),
     node: null,

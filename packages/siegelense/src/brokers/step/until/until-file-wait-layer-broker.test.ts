@@ -1,14 +1,11 @@
-import { AbsoluteFilePathStub } from '@dungeonmaster/shared/contracts/absolute-file-path/absolute-file-path.stub';
 
 import { UntilFilePathStub } from '../../../contracts/until-file-path/until-file-path.stub';
 import { untilFileWaitLayerBroker } from './until-file-wait-layer-broker';
 import { untilFileWaitLayerBrokerProxy } from './until-file-wait-layer-broker.proxy';
 
-const HOME_PATH = AbsoluteFilePathStub({ value: '/tmp/dm-siege-inst_1' });
+const HOME_PATH = '/tmp/dm-siege-inst_1';
 const FILE = UntilFilePathStub({ value: 'guilds/g1/quests/q1/quest.json' });
-const RESOLVED_PATH = AbsoluteFilePathStub({
-  value: '/tmp/dm-siege-inst_1/guilds/g1/quests/q1/quest.json',
-});
+const RESOLVED_PATH = '/tmp/dm-siege-inst_1/guilds/g1/quests/q1/quest.json';
 
 describe('untilFileWaitLayerBroker', () => {
   describe('the file is already there', () => {

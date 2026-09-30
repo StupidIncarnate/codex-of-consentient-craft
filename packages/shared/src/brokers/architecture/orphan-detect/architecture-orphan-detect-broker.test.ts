@@ -1,6 +1,5 @@
 import { architectureOrphanDetectBroker } from './architecture-orphan-detect-broker';
 import { architectureOrphanDetectBrokerProxy } from './architecture-orphan-detect-broker.proxy';
-import { AbsoluteFilePathStub } from '../../../contracts/absolute-file-path/absolute-file-path.stub';
 import { ContentTextStub } from '../../../contracts/content-text/content-text.stub';
 import type { Dirent } from '#gateway/node/fs';
 import { FileMissingErrorStub } from '#gateway/node/fs/file-missing-error/file-missing-error.stub';
@@ -36,7 +35,7 @@ const dispatchExistsByPathSet =
 describe('architectureOrphanDetectBroker', () => {
   it('VALID: {one orphan and one reachable broker} => Unreferenced section lists only the orphan', () => {
     const proxy = architectureOrphanDetectBrokerProxy();
-    const packageSrcPath = AbsoluteFilePathStub({ value: '/repo/packages/sample/src' });
+    const packageSrcPath = '/repo/packages/sample/src';
 
     proxy.setupReaddirImplementation({
       fn: dispatchByPath({
@@ -85,7 +84,7 @@ describe('architectureOrphanDetectBroker', () => {
 
   it('VALID: {multiple orphans across folder types} => sorts orphans alphabetically by display path', () => {
     const proxy = architectureOrphanDetectBrokerProxy();
-    const packageSrcPath = AbsoluteFilePathStub({ value: '/repo/packages/sample/src' });
+    const packageSrcPath = '/repo/packages/sample/src';
 
     proxy.setupReaddirImplementation({
       fn: dispatchByPath({
@@ -127,7 +126,7 @@ describe('architectureOrphanDetectBroker', () => {
 
   it('EMPTY: {all walked files reachable from startup} => returns empty string', () => {
     const proxy = architectureOrphanDetectBrokerProxy();
-    const packageSrcPath = AbsoluteFilePathStub({ value: '/repo/packages/sample/src' });
+    const packageSrcPath = '/repo/packages/sample/src';
 
     proxy.setupReaddirImplementation({
       fn: dispatchByPath({
@@ -165,7 +164,7 @@ describe('architectureOrphanDetectBroker', () => {
 
   it('EMPTY: {package with no walked folders} => returns empty string', () => {
     const proxy = architectureOrphanDetectBrokerProxy();
-    const packageSrcPath = AbsoluteFilePathStub({ value: '/repo/packages/sample/src' });
+    const packageSrcPath = '/repo/packages/sample/src';
 
     proxy.setupReaddirImplementation({
       fn: () => throwEnoent(),

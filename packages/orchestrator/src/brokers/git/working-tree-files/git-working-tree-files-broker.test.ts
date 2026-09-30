@@ -1,4 +1,3 @@
-import { AbsoluteFilePathStub } from '@dungeonmaster/shared/contracts/absolute-file-path/absolute-file-path.stub';
 import { RepoRelativePathStub } from '@dungeonmaster/shared/contracts/repo-relative-path/repo-relative-path.stub';
 
 import { gitWorkingTreeFilesBroker } from './git-working-tree-files-broker';
@@ -18,7 +17,7 @@ describe('gitWorkingTreeFilesBroker', () => {
       });
 
       const result = await gitWorkingTreeFilesBroker({
-        cwd: AbsoluteFilePathStub({ value: '/project' }),
+        cwd: '/project',
       });
 
       expect(result).toStrictEqual([
@@ -40,7 +39,7 @@ describe('gitWorkingTreeFilesBroker', () => {
       });
 
       const result = await gitWorkingTreeFilesBroker({
-        cwd: AbsoluteFilePathStub({ value: '/project' }),
+        cwd: '/project',
       });
 
       expect(result).toStrictEqual([
@@ -64,7 +63,7 @@ describe('gitWorkingTreeFilesBroker', () => {
       });
 
       const result = await gitWorkingTreeFilesBroker({
-        cwd: AbsoluteFilePathStub({ value: '/project' }),
+        cwd: '/project',
       });
 
       expect(result).toStrictEqual([
@@ -80,7 +79,7 @@ describe('gitWorkingTreeFilesBroker', () => {
       proxy.setupWorkingTree({ trackedFiles: [], untrackedFiles: [] });
 
       const result = await gitWorkingTreeFilesBroker({
-        cwd: AbsoluteFilePathStub({ value: '/project' }),
+        cwd: '/project',
       });
 
       expect(result).toStrictEqual([]);
@@ -95,7 +94,7 @@ describe('gitWorkingTreeFilesBroker', () => {
       const proxy = gitWorkingTreeFilesBrokerProxy();
       proxy.setupWorkingTree({ trackedFiles: [], untrackedFiles: [] });
 
-      await gitWorkingTreeFilesBroker({ cwd: AbsoluteFilePathStub({ value: '/project' }) });
+      await gitWorkingTreeFilesBroker({ cwd: '/project' });
 
       expect(proxy.getSpawnedArgsList()).toStrictEqual([
         ['diff', 'HEAD', '--name-only'],

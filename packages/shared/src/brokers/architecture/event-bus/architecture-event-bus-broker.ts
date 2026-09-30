@@ -14,7 +14,6 @@
  * render bus emit/subscribe arrows under each responder.
  */
 
-import type { AbsoluteFilePath } from '../../../contracts/absolute-file-path/absolute-file-path-contract';
 import {
   eventBusContextContract,
   type EventBusContext,
@@ -26,7 +25,7 @@ import { busSubscriberFilesFindLayerBroker } from './bus-subscriber-files-find-l
 export const architectureEventBusBroker = ({
   projectRoot,
 }: {
-  projectRoot: AbsoluteFilePath;
+  projectRoot: string;
 }): EventBusContext => {
   const buses = eventBusStatesFindLayerBroker({ projectRoot });
   const emitterSites = busEmitterSitesFindLayerBroker({ projectRoot, buses });

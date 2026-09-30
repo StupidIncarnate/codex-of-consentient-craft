@@ -8,13 +8,9 @@
  * // Returns AbsoluteFilePath '/home/user/.claude/projects/abc-123'
  */
 
-import {
-  absoluteFilePathContract,
-  type AbsoluteFilePath,
-} from '../../contracts/absolute-file-path/absolute-file-path-contract';
 
 export const stripJsonlSuffixTransformer = ({
   filePath,
 }: {
-  filePath: AbsoluteFilePath;
-}): AbsoluteFilePath => absoluteFilePathContract.parse(filePath.replace(/\.jsonl$/u, ''));
+  filePath: string;
+}): string => filePath.replace(/\.jsonl$/u, '');

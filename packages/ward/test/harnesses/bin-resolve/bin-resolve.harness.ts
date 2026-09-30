@@ -15,17 +15,16 @@ import { ensureDir, writeFile } from '#gateway/node/fs__promises';
 import { dirname, join } from '#gateway/node/path';
 import { deleteEnv, getEnv, setEnv } from '#gateway/node/process';
 
-import type { AbsoluteFilePath } from '@dungeonmaster/shared/contracts';
 
 export const binResolveHarness = (): {
   beforeEach: () => void;
   afterEach: () => void;
   seedFile: (params: {
-    root: AbsoluteFilePath;
+    root: string;
     relativePath: string;
     contents: string;
   }) => Promise<void>;
-  prependPathDecoy: (params: { root: AbsoluteFilePath; binName: string }) => void;
+  prependPathDecoy: (params: { root: string; binName: string }) => void;
   firstPathDir: () => string;
 } => {
   const originalPath = { value: getEnv('PATH') };

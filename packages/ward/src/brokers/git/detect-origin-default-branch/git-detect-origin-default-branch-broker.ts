@@ -16,13 +16,12 @@
  */
 
 import { detectOriginDefaultBranch, GitNotInstalledError } from '#gateway/bin/git';
-import type { AbsoluteFilePath } from '@dungeonmaster/shared/contracts';
 
 
 export const gitDetectOriginDefaultBranchBroker = async ({
   cwd,
 }: {
-  cwd: AbsoluteFilePath;
+  cwd: string;
 }): Promise<string | null> => {
   // A missing `git` binary makes the gateway throw GitNotInstalledError rather than resolve a
   // result — folded into null here so "git is not on this machine" reads as "neither origin ref

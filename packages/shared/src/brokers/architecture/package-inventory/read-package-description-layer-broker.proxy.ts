@@ -1,6 +1,5 @@
 import { ContentTextStub } from '../../../contracts/content-text/content-text.stub';
 import { readFileSyncProxy } from '#gateway/node/fs/read-file-sync/read-file-sync.proxy';
-import type { AbsoluteFilePath } from '../../../contracts/absolute-file-path/absolute-file-path-contract';
 import type { ContentText } from '../../../contracts/content-text/content-text-contract';
 import { FileMissingErrorStub } from '#gateway/node/fs/file-missing-error/file-missing-error.stub';
 
@@ -12,10 +11,10 @@ export const readPackageDescriptionLayerBrokerProxy = (): {
     packageJsonPath,
     description,
   }: {
-    packageJsonPath: AbsoluteFilePath;
+    packageJsonPath: string;
     description: ContentText;
   }) => void;
-  setupNoPackageJson: ({ packageJsonPath }: { packageJsonPath: AbsoluteFilePath }) => void;
+  setupNoPackageJson: ({ packageJsonPath }: { packageJsonPath: string }) => void;
   setupImplementation: ({ fn }: { fn: (filePath: ContentText) => ContentText }) => void;
 } => {
   const gatewayProxy = readFileSyncProxy();
@@ -25,7 +24,7 @@ export const readPackageDescriptionLayerBrokerProxy = (): {
       packageJsonPath,
       description,
     }: {
-      packageJsonPath: AbsoluteFilePath;
+      packageJsonPath: string;
       description: ContentText;
     }): void => {
       gatewayProxy.returns({
@@ -34,7 +33,7 @@ export const readPackageDescriptionLayerBrokerProxy = (): {
       });
     },
 
-    setupNoPackageJson: ({ packageJsonPath }: { packageJsonPath: AbsoluteFilePath }): void => {
+    setupNoPackageJson: ({ packageJsonPath }: { packageJsonPath: string }): void => {
       gatewayProxy.throws({
         path: packageJsonPath,
         error: FileMissingErrorStub({ path: packageJsonPath }),

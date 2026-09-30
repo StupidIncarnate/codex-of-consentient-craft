@@ -14,8 +14,8 @@ import { envSnapshotProxy } from '#gateway/node/process/env-snapshot/env-snapsho
 import { ensureDirProxy } from '#gateway/node/fs__promises/ensure-dir/ensure-dir.proxy';
 import { registerMock, requireActual } from '@dungeonmaster/testing/register-mock';
 import { cwdResolveBrokerProxy } from '@dungeonmaster/shared/brokers/cwd/resolve/cwd-resolve-broker.proxy';
-import { absoluteFilePathContract, contentTextContract } from '@dungeonmaster/shared/contracts';
-import type { AbsoluteFilePath, ContentText } from '@dungeonmaster/shared/contracts';
+import { contentTextContract } from '@dungeonmaster/shared/contracts';
+import type { ContentText } from '@dungeonmaster/shared/contracts';
 
 import { rmProxy } from '#gateway/node/fs__promises/rm/rm.proxy';
 import { processKillGroupBrokerProxy } from '../../process/kill-group/process-kill-group-broker.proxy';
@@ -51,9 +51,9 @@ const EVIDENCE_PATH_VALUE =
   '/repo/.dungeonmaster-assets/siegelense-assets/unowned/instances/inst_7f3a9c21';
 
 export const laneBootBrokerProxy = (): {
-  resolveRepoRoot: () => AbsoluteFilePath;
+  resolveRepoRoot: () => string;
   setupProcessBoot: (params: {
-    logPath: AbsoluteFilePath;
+    logPath: string;
     fd: number;
     command: string;
     args: readonly string[];
@@ -62,13 +62,13 @@ export const laneBootBrokerProxy = (): {
   setupServerReachable: (params: { url: string }) => void;
   setupServerNeverReachable: (params: { url: string }) => void;
   setupBootDeadlineAlreadyPast: () => void;
-  setupHomeRemoved: (params: { homePath: AbsoluteFilePath }) => void;
+  setupHomeRemoved: (params: { homePath: string }) => void;
   // Stages laneWorkspaceResolveBroker's two fs boundaries so a spec referencing `{apiWorkspace}`
   // and/or `{webWorkspace}` resolves to a real name instead of throwing "no mock configured" — see
   // that broker's own proxy for why this stages the packages/ listing ONCE with every dir name a
   // test needs, rather than once per workspace kind.
   setupWorkspacesResolved: (params: {
-    repoRoot: AbsoluteFilePath;
+    repoRoot: string;
     apiPackageName?: string;
     webPackageName?: string;
   }) => void;
@@ -107,7 +107,7 @@ export const laneBootBrokerProxy = (): {
   const removeProxy = rmProxy();
   const killProxy = processKillGroupBrokerProxy();
   // Read-back addresses only the paths and fds this test staged; an unstaged call already throws.
-  const stagedHomePaths: AbsoluteFilePath[] = [];
+  const stagedHomePaths: string[] = [];
   const stagedFds: number[] = [];
   const browserProxy = browserSessionLaunchBrokerProxy();
   const readyWaitProxy = laneReadyWaitBrokerProxy();
@@ -115,13 +115,13 @@ export const laneBootBrokerProxy = (): {
   serverLogReaderLayerBrokerProxy();
 
   return {
-    resolveRepoRoot: (): AbsoluteFilePath => {
+    resolveRepoRoot: (): string => {
       // The `cwd` mock staged above already answers CWD_PATH_VALUE — reading it here (rather than
       // picking a value independently) is what keeps this and the implementation's own `cwd()`
       // call agreeing on the same seed.
       const cwdPath = cwd();
       resolveProxy.setupRepoRootFoundAtStart({ startPath: cwdPath });
-      return absoluteFilePathContract.parse(cwdPath);
+      return cwdPath;
     },
 
     setupProcessBoot: ({
@@ -131,7 +131,7 @@ export const laneBootBrokerProxy = (): {
       args,
       pid,
     }: {
-      logPath: AbsoluteFilePath;
+      logPath: string;
       fd: number;
       command: string;
       args: readonly string[];
@@ -165,7 +165,7 @@ export const laneBootBrokerProxy = (): {
     // The failure path removes ONLY this home — never evidencePath, which `rm` is never
     // staged for, so an accidental rm(evidencePath) call throws "nothing set up" instead of quietly
     // succeeding.
-    setupHomeRemoved: ({ homePath }: { homePath: AbsoluteFilePath }): void => {
+    setupHomeRemoved: ({ homePath }: { homePath: string }): void => {
       stagedHomePaths.push(homePath);
       removeProxy.succeeds({ path: homePath });
     },
@@ -175,7 +175,7 @@ export const laneBootBrokerProxy = (): {
       apiPackageName,
       webPackageName,
     }: {
-      repoRoot: AbsoluteFilePath;
+      repoRoot: string;
       apiPackageName?: string;
       webPackageName?: string;
     }): void => {

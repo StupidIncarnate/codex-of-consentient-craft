@@ -16,7 +16,6 @@
  */
 
 import { run } from '#gateway/node/child_process';
-import { absoluteFilePathContract, type AbsoluteFilePath } from '@dungeonmaster/shared/contracts';
 
 import { binCommandContract } from '../../../contracts/bin-command/bin-command-contract';
 import type { ProjectFolder } from '../../../contracts/project-folder/project-folder-contract';
@@ -41,7 +40,7 @@ export const scanPackageBroker = async ({
   configFile,
 }: {
   projectFolder: ProjectFolder;
-  rootPath: AbsoluteFilePath;
+  rootPath: string;
   rule: ScanRuleName;
   targets: string[];
   configFile: ScanConfigFile;
@@ -49,7 +48,7 @@ export const scanPackageBroker = async ({
   const command = String(
     binResolveBroker({
       binName: binCommandContract.parse(scanStatics.eslint.bin),
-      cwd: absoluteFilePathContract.parse(projectFolder.path),
+      cwd: projectFolder.path,
     }),
   );
   const folderRelative = String(projectFolder.path).slice(String(rootPath).length + 1);

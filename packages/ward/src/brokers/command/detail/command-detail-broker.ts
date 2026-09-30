@@ -7,7 +7,6 @@
  */
 
 import { stderr, stdout } from '#gateway/node/process';
-import type { AbsoluteFilePath } from '@dungeonmaster/shared/contracts';
 
 import type { ErrorEntry } from '../../../contracts/error-entry/error-entry-contract';
 import type { TestFailure } from '../../../contracts/test-failure/test-failure-contract';
@@ -22,7 +21,7 @@ export const commandDetailBroker = async ({
   filePath,
   json,
 }: {
-  rootPath: AbsoluteFilePath;
+  rootPath: string;
   runId: WardRunResult['runId'];
   filePath?: ErrorEntry['filePath'] | TestFailure['suitePath'];
   json?: boolean;

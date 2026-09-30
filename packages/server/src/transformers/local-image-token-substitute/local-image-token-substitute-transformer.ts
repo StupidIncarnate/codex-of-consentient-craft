@@ -22,7 +22,6 @@
  * // Returns branded UserMessage with the source path replaced by '![Pasted Image 1](<copiedPath>)'
  */
 
-import type { AbsoluteFilePath } from '@dungeonmaster/shared/contracts';
 
 import { userMessageContract } from '../../contracts/user-message/user-message-contract';
 import type { UserMessage } from '../../contracts/user-message/user-message-contract';
@@ -41,7 +40,7 @@ export const localImageTokenSubstituteTransformer = ({
 }: {
   message: string;
   matches: readonly LocalImagePathMatch[];
-  copiedPathByOrdinal: ReadonlyMap<PastedImageOrdinal, AbsoluteFilePath>;
+  copiedPathByOrdinal: ReadonlyMap<PastedImageOrdinal, string>;
 }): UserMessage => {
   let rebuilt = '';
   let cursor = 0;

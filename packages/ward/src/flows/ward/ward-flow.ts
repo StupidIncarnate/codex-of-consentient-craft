@@ -7,7 +7,6 @@
  */
 
 import { setExitCode, stderr } from '#gateway/node/process';
-import type { AbsoluteFilePath } from '@dungeonmaster/shared/contracts';
 import { wardExitCodeStatics } from '@dungeonmaster/shared/statics';
 
 import { WardRunResponder } from '../../responders/ward/run/ward-run-responder';
@@ -31,7 +30,7 @@ export const WardFlow = async ({
   rootPath,
 }: {
   args: readonly string[];
-  rootPath: AbsoluteFilePath;
+  rootPath: string;
 }): Promise<void> => {
   const rawCommand = args[COMMAND_ARG_INDEX];
   const isImplicitRun = !rawCommand || rawCommand.startsWith('-');

@@ -7,7 +7,7 @@
  */
 
 import { run, RunNotFoundError } from '#gateway/node/child_process';
-import { absoluteFilePathContract, exitCodeContract } from '@dungeonmaster/shared/contracts';
+import { exitCodeContract } from '@dungeonmaster/shared/contracts';
 
 import { binCommandContract } from '../../../contracts/bin-command/bin-command-contract';
 import { eslintJsonReportContract } from '../../../contracts/eslint-json-report/eslint-json-report-contract';
@@ -37,7 +37,7 @@ export const checkRunLintBroker = async ({
   testNamePattern?: string;
 }): Promise<ProjectResult> => {
   const { bin, args } = checkCommandsStatics.lint;
-  const cwd = absoluteFilePathContract.parse(projectFolder.path);
+  const cwd = projectFolder.path;
   const finalArgs = fileList.length > 0 ? [...args.slice(0, -1), ...fileList] : [...args];
   const command = String(binResolveBroker({ binName: binCommandContract.parse(bin), cwd }));
 

@@ -13,7 +13,7 @@
  * // present, or target isn't e2e-eligible)
  */
 
-import { type InstallContext, type InstallResult, installMessageContract, packageNameContract, absoluteFilePathContract } from '@dungeonmaster/shared/contracts';
+import { type InstallContext, type InstallResult, installMessageContract, packageNameContract } from '@dungeonmaster/shared/contracts';
 import { architecturePackageE2eEligibleDetectBroker } from '@dungeonmaster/shared/brokers';
 import { existsSync } from '#gateway/node/fs';
 import { join, dirname } from '#gateway/node/path';
@@ -32,7 +32,7 @@ export const InstallCreatePlaywrightResponder = async ({
 }: {
   context: InstallContext;
 }): Promise<InstallResult> => {
-  const packageRoot = absoluteFilePathContract.parse(String(context.targetProjectRoot));
+  const packageRoot = String(context.targetProjectRoot);
   const e2eEligible = await architecturePackageE2eEligibleDetectBroker({ packageRoot });
 
   if (!e2eEligible) {

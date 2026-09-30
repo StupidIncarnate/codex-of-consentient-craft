@@ -1,12 +1,11 @@
 import { claudePathSlugEncoderTransformer } from './claude-path-slug-encoder-transformer';
-import { AbsoluteFilePathStub } from '../../contracts/absolute-file-path/absolute-file-path.stub';
 
 describe('claudePathSlugEncoderTransformer', () => {
   describe('path encoding', () => {
     it('VALID: {projectPath: "/home/user/my-project"} => encodes slashes to hyphens keeping leading hyphen', () => {
       const result = claudePathSlugEncoderTransformer({
-        homeDir: AbsoluteFilePathStub({ value: '/home/user' }),
-        projectPath: AbsoluteFilePathStub({ value: '/home/user/my-project' }),
+        homeDir: '/home/user',
+        projectPath: '/home/user/my-project',
       });
 
       expect(result).toBe('/home/user/.claude/projects/-home-user-my-project');
@@ -14,8 +13,8 @@ describe('claudePathSlugEncoderTransformer', () => {
 
     it('VALID: {projectPath: "/opt/code/repo"} => encodes deeply nested path', () => {
       const result = claudePathSlugEncoderTransformer({
-        homeDir: AbsoluteFilePathStub({ value: '/root' }),
-        projectPath: AbsoluteFilePathStub({ value: '/opt/code/repo' }),
+        homeDir: '/root',
+        projectPath: '/opt/code/repo',
       });
 
       expect(result).toBe('/root/.claude/projects/-opt-code-repo');
@@ -23,8 +22,8 @@ describe('claudePathSlugEncoderTransformer', () => {
 
     it('VALID: {projectPath: "/single"} => encodes single-level path', () => {
       const result = claudePathSlugEncoderTransformer({
-        homeDir: AbsoluteFilePathStub({ value: '/home/dev' }),
-        projectPath: AbsoluteFilePathStub({ value: '/single' }),
+        homeDir: '/home/dev',
+        projectPath: '/single',
       });
 
       expect(result).toBe('/home/dev/.claude/projects/-single');
@@ -32,8 +31,8 @@ describe('claudePathSlugEncoderTransformer', () => {
 
     it('EDGE: {projectPath: "/a/b/c/d/e"} => encodes all slashes in deeply nested path', () => {
       const result = claudePathSlugEncoderTransformer({
-        homeDir: AbsoluteFilePathStub({ value: '/home/user' }),
-        projectPath: AbsoluteFilePathStub({ value: '/a/b/c/d/e' }),
+        homeDir: '/home/user',
+        projectPath: '/a/b/c/d/e',
       });
 
       expect(result).toBe('/home/user/.claude/projects/-a-b-c-d-e');
@@ -41,8 +40,8 @@ describe('claudePathSlugEncoderTransformer', () => {
 
     it('EDGE: {projectPath: "/home/u/repo/.claude/worktrees/x"} => keeps adjacent slash-then-dot hyphens uncollapsed', () => {
       const result = claudePathSlugEncoderTransformer({
-        homeDir: AbsoluteFilePathStub({ value: '/home/u' }),
-        projectPath: AbsoluteFilePathStub({ value: '/home/u/repo/.claude/worktrees/x' }),
+        homeDir: '/home/u',
+        projectPath: '/home/u/repo/.claude/worktrees/x',
       });
 
       expect(result).toBe('/home/u/.claude/projects/-home-u-repo--claude-worktrees-x');
@@ -50,8 +49,8 @@ describe('claudePathSlugEncoderTransformer', () => {
 
     it('VALID: {projectPath: "/home/user/.config/src"} => encodes a dotfile segment and a plain segment distinctly', () => {
       const result = claudePathSlugEncoderTransformer({
-        homeDir: AbsoluteFilePathStub({ value: '/home/user' }),
-        projectPath: AbsoluteFilePathStub({ value: '/home/user/.config/src' }),
+        homeDir: '/home/user',
+        projectPath: '/home/user/.config/src',
       });
 
       expect(result).toBe('/home/user/.claude/projects/-home-user--config-src');
@@ -59,8 +58,8 @@ describe('claudePathSlugEncoderTransformer', () => {
 
     it('VALID: {projectPath: "/home/user/my_project (v2)"} => encodes underscores, spaces, and parens as hyphens', () => {
       const result = claudePathSlugEncoderTransformer({
-        homeDir: AbsoluteFilePathStub({ value: '/home/user' }),
-        projectPath: AbsoluteFilePathStub({ value: '/home/user/my_project (v2)' }),
+        homeDir: '/home/user',
+        projectPath: '/home/user/my_project (v2)',
       });
 
       expect(result).toBe('/home/user/.claude/projects/-home-user-my-project--v2-');

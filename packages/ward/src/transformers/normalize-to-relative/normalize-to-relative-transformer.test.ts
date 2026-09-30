@@ -1,4 +1,3 @@
-import { AbsoluteFilePathStub } from '@dungeonmaster/shared/contracts/absolute-file-path/absolute-file-path.stub';
 
 import { GitRelativePathStub } from '../../contracts/git-relative-path/git-relative-path.stub';
 
@@ -9,7 +8,7 @@ describe('normalizeToRelativeTransformer', () => {
     it('VALID: {filePath starts with cwd} => strips cwd prefix', () => {
       const result = normalizeToRelativeTransformer({
         filePath: GitRelativePathStub({ value: '/project/src/a.ts' }),
-        cwd: AbsoluteFilePathStub({ value: '/project' }),
+        cwd: '/project',
       });
 
       expect(result).toBe('src/a.ts');
@@ -20,7 +19,7 @@ describe('normalizeToRelativeTransformer', () => {
     it('VALID: {filePath is relative} => returns unchanged', () => {
       const result = normalizeToRelativeTransformer({
         filePath: GitRelativePathStub({ value: 'src/a.ts' }),
-        cwd: AbsoluteFilePathStub({ value: '/project' }),
+        cwd: '/project',
       });
 
       expect(result).toBe('src/a.ts');
@@ -31,7 +30,7 @@ describe('normalizeToRelativeTransformer', () => {
     it('EDGE: {cwd ends with slash} => strips correctly', () => {
       const result = normalizeToRelativeTransformer({
         filePath: GitRelativePathStub({ value: '/project/src/b.ts' }),
-        cwd: AbsoluteFilePathStub({ value: '/project/' }),
+        cwd: '/project/',
       });
 
       expect(result).toBe('src/b.ts');

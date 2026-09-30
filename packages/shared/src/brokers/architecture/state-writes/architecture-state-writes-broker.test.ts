@@ -1,16 +1,13 @@
 import { architectureStateWritesBroker } from './architecture-state-writes-broker';
 import { architectureStateWritesBrokerProxy } from './architecture-state-writes-broker.proxy';
-import { AbsoluteFilePathStub } from '../../../contracts/absolute-file-path/absolute-file-path.stub';
 import { ContentTextStub } from '../../../contracts/content-text/content-text.stub';
 
 describe('architectureStateWritesBroker', () => {
   describe('in-memory stores', () => {
     it('VALID: {state dir imported by a broker} => lists that store in inMemoryStores', () => {
       const proxy = architectureStateWritesBrokerProxy();
-      const packageRoot = AbsoluteFilePathStub({ value: '/repo/packages/orchestrator' });
-      const srcFile = AbsoluteFilePathStub({
-        value: '/repo/packages/orchestrator/src/design-process-broker.ts',
-      });
+      const packageRoot = '/repo/packages/orchestrator';
+      const srcFile = '/repo/packages/orchestrator/src/design-process-broker.ts';
 
       proxy.setupSourceFiles({
         packageRoot,
@@ -34,10 +31,8 @@ describe('architectureStateWritesBroker', () => {
 
     it('VALID: {state dir NOT imported by any file} => not included in inMemoryStores', () => {
       const proxy = architectureStateWritesBrokerProxy();
-      const packageRoot = AbsoluteFilePathStub({ value: '/repo/packages/orchestrator' });
-      const srcFile = AbsoluteFilePathStub({
-        value: '/repo/packages/orchestrator/src/some-broker.ts',
-      });
+      const packageRoot = '/repo/packages/orchestrator';
+      const srcFile = '/repo/packages/orchestrator/src/some-broker.ts';
 
       proxy.setupSourceFiles({
         packageRoot,
@@ -63,10 +58,8 @@ describe('architectureStateWritesBroker', () => {
   describe('file writes', () => {
     it('VALID: {appendFile with literal path} => included in fileWrites sorted', () => {
       const proxy = architectureStateWritesBrokerProxy();
-      const packageRoot = AbsoluteFilePathStub({ value: '/repo/packages/orchestrator' });
-      const srcFile = AbsoluteFilePathStub({
-        value: '/repo/packages/orchestrator/src/append-broker.ts',
-      });
+      const packageRoot = '/repo/packages/orchestrator';
+      const srcFile = '/repo/packages/orchestrator/src/append-broker.ts';
 
       proxy.setupSourceFiles({
         packageRoot,
@@ -90,10 +83,8 @@ describe('architectureStateWritesBroker', () => {
 
     it('VALID: {writeFile with literal path} => included in fileWrites', () => {
       const proxy = architectureStateWritesBrokerProxy();
-      const packageRoot = AbsoluteFilePathStub({ value: '/repo/packages/orchestrator' });
-      const srcFile = AbsoluteFilePathStub({
-        value: '/repo/packages/orchestrator/src/write-broker.ts',
-      });
+      const packageRoot = '/repo/packages/orchestrator';
+      const srcFile = '/repo/packages/orchestrator/src/write-broker.ts';
 
       proxy.setupSourceFiles({
         packageRoot,
@@ -117,10 +108,8 @@ describe('architectureStateWritesBroker', () => {
 
     it('VALID: {ensureDir with broker-call arg} => emits computed entry after literals', () => {
       const proxy = architectureStateWritesBrokerProxy();
-      const packageRoot = AbsoluteFilePathStub({ value: '/repo/packages/orchestrator' });
-      const srcFile = AbsoluteFilePathStub({
-        value: '/repo/packages/orchestrator/src/mkdir-broker.ts',
-      });
+      const packageRoot = '/repo/packages/orchestrator';
+      const srcFile = '/repo/packages/orchestrator/src/mkdir-broker.ts';
 
       proxy.setupSourceFiles({
         packageRoot,
@@ -144,10 +133,8 @@ describe('architectureStateWritesBroker', () => {
 
     it('VALID: {literal paths from one file} => sorted ascending with no duplicates', () => {
       const proxy = architectureStateWritesBrokerProxy();
-      const packageRoot = AbsoluteFilePathStub({ value: '/repo/packages/orchestrator' });
-      const srcFile = AbsoluteFilePathStub({
-        value: '/repo/packages/orchestrator/src/broker-a.ts',
-      });
+      const packageRoot = '/repo/packages/orchestrator';
+      const srcFile = '/repo/packages/orchestrator/src/broker-a.ts';
 
       proxy.setupSourceFiles({
         packageRoot,
@@ -178,10 +165,8 @@ describe('architectureStateWritesBroker', () => {
   describe('browser storage', () => {
     it('VALID: {localStorage.setItem in non-helper file} => listed in browserStorageWrites', () => {
       const proxy = architectureStateWritesBrokerProxy();
-      const packageRoot = AbsoluteFilePathStub({ value: '/repo/packages/web' });
-      const srcFile = AbsoluteFilePathStub({
-        value: '/repo/packages/web/src/session-adapter.ts',
-      });
+      const packageRoot = '/repo/packages/web';
+      const srcFile = '/repo/packages/web/src/session-adapter.ts';
 
       proxy.setupSourceFiles({
         packageRoot,
@@ -207,11 +192,9 @@ describe('architectureStateWritesBroker', () => {
   describe('test file filtering', () => {
     it('VALID: {test file name in source tree} => filtered out, not counted', () => {
       const proxy = architectureStateWritesBrokerProxy();
-      const packageRoot = AbsoluteFilePathStub({ value: '/repo/packages/orchestrator' });
+      const packageRoot = '/repo/packages/orchestrator';
       // The .test.ts extension causes listSourceFilesLayerBroker to exclude this file
-      const testFile = AbsoluteFilePathStub({
-        value: '/repo/packages/orchestrator/src/append-broker.test.ts',
-      });
+      const testFile = '/repo/packages/orchestrator/src/append-broker.test.ts';
 
       proxy.setupSourceFiles({
         packageRoot,
@@ -233,7 +216,7 @@ describe('architectureStateWritesBroker', () => {
   describe('empty package', () => {
     it('EMPTY: {package with no source files} => returns all empty arrays', () => {
       const proxy = architectureStateWritesBrokerProxy();
-      const packageRoot = AbsoluteFilePathStub({ value: '/repo/packages/empty' });
+      const packageRoot = '/repo/packages/empty';
 
       proxy.setupEmpty({ packageRoot });
 

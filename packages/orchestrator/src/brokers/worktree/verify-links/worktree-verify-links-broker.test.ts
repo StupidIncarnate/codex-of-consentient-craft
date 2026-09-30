@@ -1,4 +1,3 @@
-import { AbsoluteFilePathStub } from '@dungeonmaster/shared/contracts/absolute-file-path/absolute-file-path.stub';
 
 import { worktreeVerifyLinksBroker } from './worktree-verify-links-broker';
 import { worktreeVerifyLinksBrokerProxy } from './worktree-verify-links-broker.proxy';
@@ -7,11 +6,11 @@ describe('worktreeVerifyLinksBroker', () => {
   describe('a worktree whose links all stay inside it', () => {
     it('VALID: {every link relative and landing inside} => returns success', async () => {
       const proxy = worktreeVerifyLinksBrokerProxy();
-      const worktreePath = AbsoluteFilePathStub({ value: '/repo/worktrees/probe' });
+      const worktreePath = '/repo/worktrees/probe';
 
       proxy.setupNodeModulesPresent({ worktreePath });
       proxy.setupDirectoryEntries({
-        dirPath: AbsoluteFilePathStub({ value: '/repo/worktrees/probe/node_modules' }),
+        dirPath: '/repo/worktrees/probe/node_modules',
         entries: [{ name: 'ward-link', isDir: false, isSymlink: true }],
       });
       proxy.setupReadlinkTarget({
@@ -24,7 +23,7 @@ describe('worktreeVerifyLinksBroker', () => {
 
     it('EMPTY: {node_modules not populated yet} => returns success without walking anything', async () => {
       const proxy = worktreeVerifyLinksBrokerProxy();
-      const worktreePath = AbsoluteFilePathStub({ value: '/repo/worktrees/probe' });
+      const worktreePath = '/repo/worktrees/probe';
 
       proxy.setupNodeModulesAbsent({ worktreePath });
 
@@ -33,11 +32,11 @@ describe('worktreeVerifyLinksBroker', () => {
 
     it('EMPTY: {node_modules present but holding no links} => returns success', async () => {
       const proxy = worktreeVerifyLinksBrokerProxy();
-      const worktreePath = AbsoluteFilePathStub({ value: '/repo/worktrees/probe' });
+      const worktreePath = '/repo/worktrees/probe';
 
       proxy.setupNodeModulesPresent({ worktreePath });
       proxy.setupDirectoryEntries({
-        dirPath: AbsoluteFilePathStub({ value: '/repo/worktrees/probe/node_modules' }),
+        dirPath: '/repo/worktrees/probe/node_modules',
         entries: [{ name: '.package-lock.json', isDir: false, isSymlink: false }],
       });
 
@@ -48,11 +47,11 @@ describe('worktreeVerifyLinksBroker', () => {
   describe('a worktree that would grade the main checkout', () => {
     it('ERROR: {link stored as an absolute main-checkout path} => rejects naming the link, its target and where it lands', async () => {
       const proxy = worktreeVerifyLinksBrokerProxy();
-      const worktreePath = AbsoluteFilePathStub({ value: '/repo/worktrees/probe' });
+      const worktreePath = '/repo/worktrees/probe';
 
       proxy.setupNodeModulesPresent({ worktreePath });
       proxy.setupDirectoryEntries({
-        dirPath: AbsoluteFilePathStub({ value: '/repo/worktrees/probe/node_modules' }),
+        dirPath: '/repo/worktrees/probe/node_modules',
         entries: [{ name: '.bin', isDir: false, isSymlink: true }],
       });
       proxy.setupReadlinkTarget({
@@ -71,11 +70,11 @@ describe('worktreeVerifyLinksBroker', () => {
 
     it('ERROR: {relative link climbing out of the worktree} => rejects even though the target is relative', async () => {
       const proxy = worktreeVerifyLinksBrokerProxy();
-      const worktreePath = AbsoluteFilePathStub({ value: '/repo/worktrees/probe' });
+      const worktreePath = '/repo/worktrees/probe';
 
       proxy.setupNodeModulesPresent({ worktreePath });
       proxy.setupDirectoryEntries({
-        dirPath: AbsoluteFilePathStub({ value: '/repo/worktrees/probe/node_modules' }),
+        dirPath: '/repo/worktrees/probe/node_modules',
         entries: [{ name: 'escapee', isDir: false, isSymlink: true }],
       });
       proxy.setupReadlinkTarget({
@@ -94,11 +93,11 @@ describe('worktreeVerifyLinksBroker', () => {
 
     it('ERROR: {one bad link beside a good one} => names only the bad one and counts both', async () => {
       const proxy = worktreeVerifyLinksBrokerProxy();
-      const worktreePath = AbsoluteFilePathStub({ value: '/repo/worktrees/probe' });
+      const worktreePath = '/repo/worktrees/probe';
 
       proxy.setupNodeModulesPresent({ worktreePath });
       proxy.setupDirectoryEntries({
-        dirPath: AbsoluteFilePathStub({ value: '/repo/worktrees/probe/node_modules' }),
+        dirPath: '/repo/worktrees/probe/node_modules',
         entries: [
           { name: 'good', isDir: false, isSymlink: true },
           { name: 'bad', isDir: false, isSymlink: true },

@@ -1,6 +1,5 @@
 import { locationsNodeModulesPathFindBroker } from './locations-node-modules-path-find-broker';
 import { locationsNodeModulesPathFindBrokerProxy } from './locations-node-modules-path-find-broker.proxy';
-import { AbsoluteFilePathStub } from '../../../contracts/absolute-file-path/absolute-file-path.stub';
 
 describe('locationsNodeModulesPathFindBroker', () => {
   describe('node_modules path resolution', () => {
@@ -12,10 +11,10 @@ describe('locationsNodeModulesPathFindBroker', () => {
       });
 
       const result = locationsNodeModulesPathFindBroker({
-        rootPath: AbsoluteFilePathStub({ value: '/repo' }),
+        rootPath: '/repo',
       });
 
-      expect(result).toBe(AbsoluteFilePathStub({ value: '/repo/node_modules' }));
+      expect(result).toBe('/repo/node_modules');
     });
 
     it('VALID: {rootPath: "/repo/worktrees/add-auth-7bc217a1"} => resolves worktree-local node_modules', () => {
@@ -26,11 +25,11 @@ describe('locationsNodeModulesPathFindBroker', () => {
       });
 
       const result = locationsNodeModulesPathFindBroker({
-        rootPath: AbsoluteFilePathStub({ value: '/repo/worktrees/add-auth-7bc217a1' }),
+        rootPath: '/repo/worktrees/add-auth-7bc217a1',
       });
 
       expect(result).toBe(
-        AbsoluteFilePathStub({ value: '/repo/worktrees/add-auth-7bc217a1/node_modules' }),
+        '/repo/worktrees/add-auth-7bc217a1/node_modules',
       );
     });
   });

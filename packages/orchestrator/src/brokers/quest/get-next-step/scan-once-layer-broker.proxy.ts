@@ -1,6 +1,5 @@
 import { RepoRootCwdStub } from '@dungeonmaster/shared/contracts/repo-root-cwd/repo-root-cwd.stub';
 import type { GuildListItem, QuestBranchName } from '@dungeonmaster/shared/contracts';
-import type { AbsoluteFilePathStub } from '@dungeonmaster/shared/contracts/absolute-file-path/absolute-file-path.stub';
 import type { QuestStub } from '@dungeonmaster/shared/contracts/quest/quest.stub';
 import { registerMock, registerModuleMock } from '@dungeonmaster/testing/register-mock';
 
@@ -29,7 +28,7 @@ import { recoverOrphanedWorkItemsLayerBrokerProxy } from './recover-orphaned-wor
 registerModuleMock({ module: '../cwd-resolve/quest-cwd-resolve-broker' });
 
 type Quest = ReturnType<typeof QuestStub>;
-type AbsoluteFilePath = ReturnType<typeof AbsoluteFilePathStub>;
+type AbsoluteFilePath = string;
 type RepoRootCwd = ReturnType<typeof RepoRootCwdStub>;
 
 export const scanOnceLayerBrokerProxy = (): {

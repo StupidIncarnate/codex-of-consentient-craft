@@ -1,16 +1,11 @@
 import { busEmitterSitesFindLayerBroker } from './bus-emitter-sites-find-layer-broker';
 import { busEmitterSitesFindLayerBrokerProxy } from './bus-emitter-sites-find-layer-broker.proxy';
-import { AbsoluteFilePathStub } from '../../../contracts/absolute-file-path/absolute-file-path.stub';
 import { ContentTextStub } from '../../../contracts/content-text/content-text.stub';
 import { EventBusStub } from '../../../contracts/event-bus/event-bus.stub';
 
-const PROJECT_ROOT = AbsoluteFilePathStub({ value: '/repo' });
-const STATE_FILE = AbsoluteFilePathStub({
-  value: '/repo/packages/foo/src/state/my-bus/my-bus-state.ts',
-});
-const EMITTER_FILE = AbsoluteFilePathStub({
-  value: '/repo/packages/foo/src/responders/emitter/emitter-responder.ts',
-});
+const PROJECT_ROOT = '/repo';
+const STATE_FILE = '/repo/packages/foo/src/state/my-bus/my-bus-state.ts';
+const EMITTER_FILE = '/repo/packages/foo/src/responders/emitter/emitter-responder.ts';
 
 describe('busEmitterSitesFindLayerBroker', () => {
   describe('no buses', () => {

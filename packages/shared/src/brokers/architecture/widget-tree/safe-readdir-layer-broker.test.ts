@@ -1,13 +1,12 @@
 import { safeReaddirLayerBroker } from './safe-readdir-layer-broker';
 import { safeReaddirLayerBrokerProxy } from './safe-readdir-layer-broker.proxy';
-import { AbsoluteFilePathStub } from '../../../contracts/absolute-file-path/absolute-file-path.stub';
 import { FileMissingErrorStub } from '#gateway/node/fs/file-missing-error/file-missing-error.stub';
 
 describe('safeReaddirLayerBroker', () => {
   describe('successful reads', () => {
     it('VALID: {directory with files} => returns entry list', () => {
       const proxy = safeReaddirLayerBrokerProxy();
-      const dirPath = AbsoluteFilePathStub({ value: '/repo/packages/web/src/widgets' });
+      const dirPath = '/repo/packages/web/src/widgets';
       proxy.setupFiles({ dirPath, names: ['quest-chat-widget.tsx', 'user-card-widget.tsx'] });
 
       const result = safeReaddirLayerBroker({ dirPath });
@@ -20,7 +19,7 @@ describe('safeReaddirLayerBroker', () => {
 
     it('EMPTY: {empty directory} => returns empty array', () => {
       const proxy = safeReaddirLayerBrokerProxy();
-      const dirPath = AbsoluteFilePathStub({ value: '/repo/packages/web/src/widgets' });
+      const dirPath = '/repo/packages/web/src/widgets';
       proxy.setupEmpty({ dirPath });
 
       const result = safeReaddirLayerBroker({ dirPath });
@@ -32,7 +31,7 @@ describe('safeReaddirLayerBroker', () => {
   describe('error handling', () => {
     it('ERROR: {directory does not exist} => returns empty array instead of throwing', () => {
       const proxy = safeReaddirLayerBrokerProxy();
-      const dirPath = AbsoluteFilePathStub({ value: '/repo/packages/web/src/widgets/missing' });
+      const dirPath = '/repo/packages/web/src/widgets/missing';
       proxy.setupImplementation({
         fn: () => {
           throw FileMissingErrorStub({ path: dirPath });

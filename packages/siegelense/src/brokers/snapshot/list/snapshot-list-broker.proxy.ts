@@ -13,8 +13,7 @@
  * proxy.setupIndex({ instanceId, records });
  */
 
-import { AbsoluteFilePathStub } from '@dungeonmaster/shared/contracts/absolute-file-path/absolute-file-path.stub';
-import type { AbsoluteFilePath, SiegeInstance } from '@dungeonmaster/shared/contracts';
+import type { SiegeInstance } from '@dungeonmaster/shared/contracts';
 
 import { RegistryStub } from '../../../contracts/registry/registry.stub';
 import type { RegistryEntryStub } from '../../../contracts/registry-entry/registry-entry.stub';
@@ -32,7 +31,7 @@ type SnapshotRecord = ReturnType<typeof SnapshotRecordStub>;
 const TMP_DIR_VALUE = '/tmp';
 
 export const snapshotListBrokerProxy = (): {
-  homePathFor: (params: { instanceId: SiegeInstance['id'] }) => AbsoluteFilePath;
+  homePathFor: (params: { instanceId: SiegeInstance['id'] }) => string;
   setupInstance: (params: { entry: RegistryEntry }) => void;
   setupUnknownInstance: () => void;
   setupNow: (params: { nowMs: number }) => void;
@@ -46,10 +45,8 @@ export const snapshotListBrokerProxy = (): {
   const indexReadProxy = snapshotIndexReadBrokerProxy();
 
   return {
-    homePathFor: ({ instanceId }: { instanceId: SiegeInstance['id'] }): AbsoluteFilePath =>
-      AbsoluteFilePathStub({
-        value: `${TMP_DIR_VALUE}/${driverStatics.boot.homePrefix}${String(instanceId)}`,
-      }),
+    homePathFor: ({ instanceId }: { instanceId: SiegeInstance['id'] }): string =>
+      `${TMP_DIR_VALUE}/${driverStatics.boot.homePrefix}${String(instanceId)}`,
 
     setupInstance: ({ entry }: { entry: RegistryEntry }): void => {
       instanceStateProxy.setupRegistry({ registry: RegistryStub({ instances: [entry] }) });
@@ -66,9 +63,7 @@ export const snapshotListBrokerProxy = (): {
 
     setupNoStore: ({ instanceId }: { instanceId: SiegeInstance['id'] }): void => {
       indexReadProxy.setupNoIndex({
-        homePath: AbsoluteFilePathStub({
-          value: `${TMP_DIR_VALUE}/${driverStatics.boot.homePrefix}${String(instanceId)}`,
-        }),
+        homePath: `${TMP_DIR_VALUE}/${driverStatics.boot.homePrefix}${String(instanceId)}`,
       });
     },
 
@@ -80,9 +75,7 @@ export const snapshotListBrokerProxy = (): {
       records: readonly SnapshotRecord[];
     }): void => {
       indexReadProxy.setupIndex({
-        homePath: AbsoluteFilePathStub({
-          value: `${TMP_DIR_VALUE}/${driverStatics.boot.homePrefix}${String(instanceId)}`,
-        }),
+        homePath: `${TMP_DIR_VALUE}/${driverStatics.boot.homePrefix}${String(instanceId)}`,
         records,
       });
     },

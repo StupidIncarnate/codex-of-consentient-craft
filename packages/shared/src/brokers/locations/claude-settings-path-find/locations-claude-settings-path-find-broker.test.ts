@@ -1,6 +1,5 @@
 import { locationsClaudeSettingsPathFindBroker } from './locations-claude-settings-path-find-broker';
 import { locationsClaudeSettingsPathFindBrokerProxy } from './locations-claude-settings-path-find-broker.proxy';
-import { AbsoluteFilePathStub } from '../../../contracts/absolute-file-path/absolute-file-path.stub';
 
 describe('locationsClaudeSettingsPathFindBroker', () => {
   describe('shared kind', () => {
@@ -18,7 +17,7 @@ describe('locationsClaudeSettingsPathFindBroker', () => {
         kind: 'shared',
       });
 
-      expect(result).toBe(AbsoluteFilePathStub({ value: '/project/.claude/settings.json' }));
+      expect(result).toBe('/project/.claude/settings.json');
     });
   });
 
@@ -37,7 +36,7 @@ describe('locationsClaudeSettingsPathFindBroker', () => {
         kind: 'local',
       });
 
-      expect(result).toBe(AbsoluteFilePathStub({ value: '/project/.claude/settings.local.json' }));
+      expect(result).toBe('/project/.claude/settings.local.json');
     });
   });
 });

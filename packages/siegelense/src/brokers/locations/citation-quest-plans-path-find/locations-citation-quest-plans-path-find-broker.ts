@@ -13,14 +13,12 @@
  */
 
 import { join } from '#gateway/node/path';
-import { absoluteFilePathContract } from '@dungeonmaster/shared/contracts';
-import type { AbsoluteFilePath } from '@dungeonmaster/shared/contracts';
 
 import { citationStatics } from '../../../statics/citation/citation-statics';
 
 export const locationsCitationQuestPlansPathFindBroker = ({
   worktreePath,
 }: {
-  worktreePath: AbsoluteFilePath;
-}): AbsoluteFilePath =>
-  absoluteFilePathContract.parse(join(worktreePath, citationStatics.questPlans.dirName));
+  worktreePath: string;
+}): string =>
+  join(worktreePath, citationStatics.questPlans.dirName);

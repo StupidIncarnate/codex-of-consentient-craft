@@ -3,10 +3,8 @@ import { ensureDirProxy } from '#gateway/node/fs__promises/ensure-dir/ensure-dir
 import { stderrProxy } from '#gateway/node/process/stderr/stderr.proxy';
 import { registerMock, registerSpyOn } from '@dungeonmaster/testing/register-mock';
 import type { MockHandle } from '@dungeonmaster/testing/register-mock';
-import { absoluteFilePathContract } from '@dungeonmaster/shared/contracts';
-import { AbsoluteFilePathStub } from '@dungeonmaster/shared/contracts/absolute-file-path/absolute-file-path.stub';
 import { ContentTextStub } from '@dungeonmaster/shared/contracts/content-text/content-text.stub';
-import type { AbsoluteFilePath, ContentText, Guild, SiegeRun } from '@dungeonmaster/shared/contracts';
+import type { ContentText, Guild, SiegeRun } from '@dungeonmaster/shared/contracts';
 
 import { BufferLengthsStub } from '../../../contracts/buffer-lengths/buffer-lengths.stub';
 import { LaneSessionStub } from '../../../contracts/lane-session/lane-session.stub';
@@ -35,9 +33,7 @@ const ONE_MATCH_COUNT = 1;
 
 type BufferKind = 'console' | 'network' | 'websocket';
 
-const EVIDENCE_PATH = AbsoluteFilePathStub({
-  value: '/repo/.dungeonmaster-assets/siegelense-assets/guilds/g1/instances/inst_1',
-});
+const EVIDENCE_PATH = '/repo/.dungeonmaster-assets/siegelense-assets/guilds/g1/instances/inst_1';
 
 // `CWD_PATH_VALUE` is staged directly on `repoLinkProxy.setupCwd` below (the address
 // `locationsRepoLinkPathFindBroker`'s own `cwd()` call reads), so the repo-root walk is the ONLY
@@ -68,25 +64,21 @@ const HOME_DIR_VALUE = '/home/default';
 const HOME_PATH_VALUE = `${HOME_DIR_VALUE}/.dungeonmaster`;
 const HOME_PATH = HOME_PATH_VALUE;
 const SIEGELENSE_ROOT_VALUE = `${HOME_PATH_VALUE}/siegelense`;
-const HOME_ROOTED_EVIDENCE_PATH = AbsoluteFilePathStub({
-  value: `${SIEGELENSE_ROOT_VALUE}/guilds/g1/instances/inst_2`,
-});
-const SEED_HOME_PATH = AbsoluteFilePathStub({ value: '/tmp/dm-siege-inst_seed' });
+const HOME_ROOTED_EVIDENCE_PATH = `${SIEGELENSE_ROOT_VALUE}/guilds/g1/instances/inst_2`;
+const SEED_HOME_PATH = '/tmp/dm-siege-inst_seed';
 
-const REPO_LOCAL_EVIDENCE_PATH = AbsoluteFilePathStub({
-  value: `${CWD_PATH_VALUE}/.dungeonmaster-assets/siegelense-assets/guilds/g1/instances/inst_2`,
-});
+const REPO_LOCAL_EVIDENCE_PATH = `${CWD_PATH_VALUE}/.dungeonmaster-assets/siegelense-assets/guilds/g1/instances/inst_2`;
 
 export const runExecuteBrokerProxy = (): {
-  evidencePath: () => AbsoluteFilePath;
-  stagePaths: (params: { runId: SiegeRun['id']; evidencePath?: AbsoluteFilePath }) => {
-    transcript: AbsoluteFilePath;
-    storedReturn: AbsoluteFilePath;
-    shotsDir: AbsoluteFilePath;
+  evidencePath: () => string;
+  stagePaths: (params: { runId: SiegeRun['id']; evidencePath?: string }) => {
+    transcript: string;
+    storedReturn: string;
+    shotsDir: string;
   };
   stageRepoLinkPresent: () => void;
-  homeRootedEvidencePath: () => AbsoluteFilePath;
-  repoLocalEvidencePath: () => AbsoluteFilePath;
+  homeRootedEvidencePath: () => string;
+  repoLocalEvidencePath: () => string;
   cleanLane: () => LaneSession;
   laneRecordingGotoPaths: (params: { apiPort: number }) => {
     lane: LaneSession;
@@ -119,17 +111,17 @@ export const runExecuteBrokerProxy = (): {
     pushConsoleLine: (params: { text: ContentText }) => void;
   };
   laneClickTriggersNetworkLine: () => { lane: LaneSession };
-  laneCapturingShots: (params?: { evidencePath?: AbsoluteFilePath }) => {
+  laneCapturingShots: (params?: { evidencePath?: string }) => {
     lane: LaneSession;
-    captureCalls: () => readonly AbsoluteFilePath[];
+    captureCalls: () => readonly string[];
   };
   headlessLane: () => LaneSession;
-  laneRecordingTranscriptGrowth: (params: { transcriptPath: AbsoluteFilePath }) => {
+  laneRecordingTranscriptGrowth: (params: { transcriptPath: string }) => {
     lane: LaneSession;
     snapshotsAtEachStep: () => readonly ReadingCount[];
   };
-  transcriptWrites: (params: { transcriptPath: AbsoluteFilePath }) => readonly unknown[];
-  storedReturnWrite: (params: { storedReturnPath: AbsoluteFilePath }) => unknown;
+  transcriptWrites: (params: { transcriptPath: string }) => readonly unknown[];
+  storedReturnWrite: (params: { storedReturnPath: string }) => unknown;
   flushCursor: () => {
     consoleLines: ReadingCount;
     networkLines: ReadingCount;
@@ -140,8 +132,8 @@ export const runExecuteBrokerProxy = (): {
     networkLines: ReadingCount;
     websocketLines: ReadingCount;
   }) => void;
-  lastShotPath: () => AbsoluteFilePath | null;
-  setLastShotPath: (params: { path: AbsoluteFilePath }) => void;
+  lastShotPath: () => string | null;
+  setLastShotPath: (params: { path: string }) => void;
   writtenBufferEntriesFor: (params: { kind: BufferKind }) => unknown[];
   bufferAppendCallCountFor: (params: { kind: BufferKind }) => ReturnType<typeof ReadingCountStub>;
   capturedSnapshotCalls: () => unknown[];
@@ -222,18 +214,18 @@ export const runExecuteBrokerProxy = (): {
   };
 
   return {
-    evidencePath: (): AbsoluteFilePath => EVIDENCE_PATH,
+    evidencePath: (): string => EVIDENCE_PATH,
 
     stagePaths: ({
       runId,
       evidencePath = EVIDENCE_PATH,
     }: {
       runId: SiegeRun['id'];
-      evidencePath?: AbsoluteFilePath;
+      evidencePath?: string;
     }): {
-      transcript: AbsoluteFilePath;
-      storedReturn: AbsoluteFilePath;
-      shotsDir: AbsoluteFilePath;
+      transcript: string;
+      storedReturn: string;
+      shotsDir: string;
     } => {
       const paths = locationsRunPathsFindBroker({ evidencePath, runId });
       mkdirProxy.succeeds({ path: String(paths.shotsDir) });
@@ -257,8 +249,8 @@ export const runExecuteBrokerProxy = (): {
       });
     },
 
-    homeRootedEvidencePath: (): AbsoluteFilePath => HOME_ROOTED_EVIDENCE_PATH,
-    repoLocalEvidencePath: (): AbsoluteFilePath => REPO_LOCAL_EVIDENCE_PATH,
+    homeRootedEvidencePath: (): string => HOME_ROOTED_EVIDENCE_PATH,
+    repoLocalEvidencePath: (): string => REPO_LOCAL_EVIDENCE_PATH,
 
     cleanLane: (): LaneSession =>
       LaneSessionStub({
@@ -477,9 +469,9 @@ export const runExecuteBrokerProxy = (): {
     // FULL sequence of paths a batch actually wrote to, not just what `RunResult.shots` reports back.
     laneCapturingShots: ({
       evidencePath = EVIDENCE_PATH,
-    }: { evidencePath?: AbsoluteFilePath } = {}): {
+    }: { evidencePath?: string } = {}): {
       lane: LaneSession;
-      captureCalls: () => readonly AbsoluteFilePath[];
+      captureCalls: () => readonly string[];
     } => {
       const captureMock = jest.fn().mockResolvedValue(undefined);
       const lane = LaneSessionStub({
@@ -488,9 +480,9 @@ export const runExecuteBrokerProxy = (): {
       });
       return {
         lane,
-        captureCalls: (): readonly AbsoluteFilePath[] =>
+        captureCalls: (): readonly string[] =>
           (captureMock.mock.calls as [{ filePath: string }][]).map(([{ filePath }]) =>
-            absoluteFilePathContract.parse(filePath),
+            filePath,
           ),
       };
     },
@@ -501,7 +493,7 @@ export const runExecuteBrokerProxy = (): {
     laneRecordingTranscriptGrowth: ({
       transcriptPath,
     }: {
-      transcriptPath: AbsoluteFilePath;
+      transcriptPath: string;
     }): { lane: LaneSession; snapshotsAtEachStep: () => readonly ReadingCount[] } => {
       const snapshots: ReadingCount[] = [];
       const gotoMock = jest.fn().mockImplementation(async () => {
@@ -522,10 +514,10 @@ export const runExecuteBrokerProxy = (): {
     transcriptWrites: ({
       transcriptPath,
     }: {
-      transcriptPath: AbsoluteFilePath;
+      transcriptPath: string;
     }): readonly unknown[] => transcriptProxy.appendedLinesFor({ transcriptPath }),
 
-    storedReturnWrite: ({ storedReturnPath }: { storedReturnPath: AbsoluteFilePath }): unknown =>
+    storedReturnWrite: ({ storedReturnPath }: { storedReturnPath: string }): unknown =>
       returnWriteProxy.writtenFor({ storedReturnPath }),
 
     flushCursor: (): {

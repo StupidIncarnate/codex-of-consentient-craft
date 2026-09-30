@@ -1,4 +1,3 @@
-import { AbsoluteFilePathStub } from '@dungeonmaster/shared/contracts/absolute-file-path/absolute-file-path.stub';
 
 import { ProjectFolderStub } from '../../../contracts/project-folder/project-folder.stub';
 import { ProjectResultStub } from '../../../contracts/project-result/project-result.stub';
@@ -31,7 +30,7 @@ describe('multiPackageLayerBroker', () => {
         ],
       });
 
-      const rootPath = AbsoluteFilePathStub({ value: '/project' });
+      const rootPath = '/project';
       const projectFolders = [ProjectFolderStub()];
       const config = WardConfigStub({ only: ['lint'] });
 
@@ -70,7 +69,7 @@ describe('multiPackageLayerBroker', () => {
 
   describe('null sub-result', () => {
     it('VALID: {one package, storage load returns null} => reports the package as crashed', async () => {
-      const rootPath = AbsoluteFilePathStub({ value: '/project' });
+      const rootPath = '/project';
       const projectFolder = ProjectFolderStub();
       const config = WardConfigStub({ only: ['lint'] });
 
@@ -146,7 +145,7 @@ describe('multiPackageLayerBroker', () => {
         ],
       });
 
-      const rootPath = AbsoluteFilePathStub({ value: '/project' });
+      const rootPath = '/project';
       const projectFolder = ProjectFolderStub();
       const config = WardConfigStub({ only: ['lint'] });
 
@@ -222,7 +221,7 @@ describe('multiPackageLayerBroker', () => {
         ],
       });
 
-      const rootPath = AbsoluteFilePathStub({ value: '/project' });
+      const rootPath = '/project';
       const projectFolder = ProjectFolderStub();
       const config = WardConfigStub({ only: ['unit'] });
 
@@ -300,7 +299,7 @@ describe('multiPackageLayerBroker', () => {
         ],
       });
 
-      const rootPath = AbsoluteFilePathStub({ value: '/project' });
+      const rootPath = '/project';
       const projectFolders = [ProjectFolderStub()];
       const config = WardConfigStub({ only: ['lint'] });
 
@@ -339,7 +338,7 @@ describe('multiPackageLayerBroker', () => {
         ],
       });
 
-      const rootPath = AbsoluteFilePathStub({ value: '/home/user/project' });
+      const rootPath = '/home/user/project';
       const wardFolder = ProjectFolderStub({
         name: 'ward',
         path: '/home/user/project/packages/ward',
@@ -418,7 +417,7 @@ describe('multiPackageLayerBroker', () => {
         ],
       });
 
-      const rootPath = AbsoluteFilePathStub({ value: '/home/user/project' });
+      const rootPath = '/home/user/project';
       const wardFolder = ProjectFolderStub({
         name: 'ward',
         path: '/home/user/project/packages/ward',
@@ -454,7 +453,7 @@ describe('multiPackageLayerBroker', () => {
     });
 
     it('EMPTY: {passthrough active but no files match any package} => no children spawned', async () => {
-      const rootPath = AbsoluteFilePathStub({ value: '/home/user/project' });
+      const rootPath = '/home/user/project';
       const wardFolder = ProjectFolderStub({
         name: 'ward',
         path: '/home/user/project/packages/ward',
@@ -513,7 +512,7 @@ describe('multiPackageLayerBroker', () => {
         ],
       });
 
-      const rootPath = AbsoluteFilePathStub({ value: '/home/user/project' });
+      const rootPath = '/home/user/project';
       const wardFolder = ProjectFolderStub({
         name: 'ward',
         path: '/home/user/project/packages/ward',
@@ -567,7 +566,7 @@ describe('multiPackageLayerBroker', () => {
         ],
       });
 
-      const rootPath = AbsoluteFilePathStub({ value: '/home/user/project' });
+      const rootPath = '/home/user/project';
       const wardFolder = ProjectFolderStub({
         name: 'ward',
         path: '/home/user/project/packages/ward',
@@ -650,7 +649,7 @@ describe('multiPackageLayerBroker', () => {
         ],
       });
 
-      const rootPath = AbsoluteFilePathStub({ value: '/home/user/project' });
+      const rootPath = '/home/user/project';
       const hooksFolder = ProjectFolderStub({
         name: 'hooks',
         path: '/home/user/project/packages/hooks',
@@ -733,7 +732,7 @@ describe('multiPackageLayerBroker', () => {
         ],
       });
 
-      const rootPath = AbsoluteFilePathStub({ value: '/home/user/project' });
+      const rootPath = '/home/user/project';
       const wardFolder = ProjectFolderStub({
         name: 'ward',
         path: '/home/user/project/packages/ward',
@@ -815,7 +814,7 @@ describe('multiPackageLayerBroker', () => {
         ],
       });
 
-      const rootPath = AbsoluteFilePathStub({ value: '/home/user/project' });
+      const rootPath = '/home/user/project';
       const wardFolder = ProjectFolderStub({
         name: 'ward',
         path: '/home/user/project/packages/ward',
@@ -871,7 +870,7 @@ describe('multiPackageLayerBroker', () => {
         ],
       });
 
-      const rootPath = AbsoluteFilePathStub({ value: '/project' });
+      const rootPath = '/project';
       const projectFolders = [ProjectFolderStub()];
       const config = WardConfigStub({ only: ['lint'] });
 
@@ -960,7 +959,7 @@ describe('multiPackageLayerBroker', () => {
         ],
       });
 
-      const rootPath = AbsoluteFilePathStub({ value: '/home/user/project' });
+      const rootPath = '/home/user/project';
       const wardFolder = ProjectFolderStub({
         name: 'ward',
         path: '/home/user/project/packages/ward',
@@ -1069,7 +1068,7 @@ describe('multiPackageLayerBroker', () => {
     // detail both narrow on, would then print a whole unbounded diff's failures in full and drop a
     // `not run` section that was the real finding.
     it('VALID: {uncommitted run} => records the uncommitted flag beside the resolved paths', async () => {
-      const rootPath = AbsoluteFilePathStub({ value: '/home/user/project' });
+      const rootPath = '/home/user/project';
       const wardFolder = ProjectFolderStub({
         name: 'ward',
         path: '/home/user/project/packages/ward',
@@ -1098,7 +1097,7 @@ describe('multiPackageLayerBroker', () => {
     });
 
     it('VALID: {committed run} => records the committed flag beside the resolved paths', async () => {
-      const rootPath = AbsoluteFilePathStub({ value: '/home/user/project' });
+      const rootPath = '/home/user/project';
       const wardFolder = ProjectFolderStub({
         name: 'ward',
         path: '/home/user/project/packages/ward',
@@ -1127,7 +1126,7 @@ describe('multiPackageLayerBroker', () => {
     });
 
     it('VALID: {caller-typed file list} => records the paths and neither git flag', async () => {
-      const rootPath = AbsoluteFilePathStub({ value: '/home/user/project' });
+      const rootPath = '/home/user/project';
       const wardFolder = ProjectFolderStub({
         name: 'ward',
         path: '/home/user/project/packages/ward',
@@ -1154,7 +1153,7 @@ describe('multiPackageLayerBroker', () => {
     });
 
     it('EMPTY: {no scope of any kind} => records only the check filter', async () => {
-      const rootPath = AbsoluteFilePathStub({ value: '/home/user/project' });
+      const rootPath = '/home/user/project';
       const wardFolder = ProjectFolderStub({
         name: 'ward',
         path: '/home/user/project/packages/ward',
@@ -1201,7 +1200,7 @@ describe('multiPackageLayerBroker', () => {
         ],
       });
 
-      const rootPath = AbsoluteFilePathStub({ value: '/home/user/project' });
+      const rootPath = '/home/user/project';
       const wardFolder = ProjectFolderStub({
         name: 'ward',
         path: '/home/user/project/packages/ward',

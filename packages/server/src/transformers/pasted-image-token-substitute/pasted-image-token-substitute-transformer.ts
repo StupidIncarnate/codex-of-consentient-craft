@@ -12,7 +12,6 @@
  */
 
 import { pastedImageStatics } from '@dungeonmaster/shared/statics';
-import type { AbsoluteFilePath } from '@dungeonmaster/shared/contracts';
 
 import { userMessageContract } from '../../contracts/user-message/user-message-contract';
 import type { UserMessage } from '../../contracts/user-message/user-message-contract';
@@ -22,7 +21,7 @@ export const pastedImageTokenSubstituteTransformer = ({
   imagePaths,
 }: {
   message: string;
-  imagePaths: readonly AbsoluteFilePath[];
+  imagePaths: readonly string[];
 }): UserMessage =>
   userMessageContract.parse(
     message.replace(

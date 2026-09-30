@@ -1,11 +1,10 @@
-import { AbsoluteFilePathStub } from '@dungeonmaster/shared/contracts/absolute-file-path/absolute-file-path.stub';
 
 import { WorktreePrepareError } from '../../../errors/worktree-prepare/worktree-prepare-error';
 import { worktreeProvisionBroker } from './worktree-provision-broker';
 import { worktreeProvisionBrokerProxy } from './worktree-provision-broker.proxy';
 
-const REPO_ROOT = AbsoluteFilePathStub({ value: '/repo' });
-const WORKTREE_PATH = AbsoluteFilePathStub({ value: '/repo/worktrees/probe' });
+const REPO_ROOT = '/repo';
+const WORKTREE_PATH = '/repo/worktrees/probe';
 
 describe('worktreeProvisionBroker', () => {
   describe('a tree that provisions cleanly', () => {

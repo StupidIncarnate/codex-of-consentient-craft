@@ -1,17 +1,15 @@
 import type { Dirent } from '#gateway/node/fs';
 import { listDirEntriesLayerBrokerProxy } from './list-dir-entries-layer-broker.proxy';
-import { AbsoluteFilePathStub } from '../../../contracts/absolute-file-path/absolute-file-path.stub';
-import type { AbsoluteFilePath } from '../../../contracts/absolute-file-path/absolute-file-path-contract';
 
 export const startupFilesFindLayerBrokerProxy = (): {
   setupFiles: ({
     packageSrcPath,
     names,
   }: {
-    packageSrcPath: AbsoluteFilePath;
+    packageSrcPath: string;
     names: string[];
   }) => void;
-  setupEmpty: ({ packageSrcPath }: { packageSrcPath: AbsoluteFilePath }) => void;
+  setupEmpty: ({ packageSrcPath }: { packageSrcPath: string }) => void;
   setupImplementation: ({ fn }: { fn: (dirPath: string) => Dirent[] }) => void;
 } => {
   const listProxy = listDirEntriesLayerBrokerProxy();
@@ -21,15 +19,15 @@ export const startupFilesFindLayerBrokerProxy = (): {
       packageSrcPath,
       names,
     }: {
-      packageSrcPath: AbsoluteFilePath;
+      packageSrcPath: string;
       names: string[];
     }): void => {
-      const dirPath = AbsoluteFilePathStub({ value: `${String(packageSrcPath)}/startup` });
+      const dirPath = `${String(packageSrcPath)}/startup`;
       listProxy.setupFiles({ dirPath, names });
     },
 
-    setupEmpty: ({ packageSrcPath }: { packageSrcPath: AbsoluteFilePath }): void => {
-      const dirPath = AbsoluteFilePathStub({ value: `${String(packageSrcPath)}/startup` });
+    setupEmpty: ({ packageSrcPath }: { packageSrcPath: string }): void => {
+      const dirPath = `${String(packageSrcPath)}/startup`;
       listProxy.setupEmpty({ dirPath });
     },
 

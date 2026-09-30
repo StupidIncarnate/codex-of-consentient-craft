@@ -1,4 +1,3 @@
-import { AbsoluteFilePathStub } from '@dungeonmaster/shared/contracts/absolute-file-path/absolute-file-path.stub';
 import { ContentTextStub } from '@dungeonmaster/shared/contracts/content-text/content-text.stub';
 
 import { instanceStartBootPollLayerBroker } from './instance-start-boot-poll-layer-broker';
@@ -6,10 +5,8 @@ import { instanceStartBootPollLayerBrokerProxy } from './instance-start-boot-pol
 import { BootFailureMarkerStub } from '../../../contracts/boot-failure-marker/boot-failure-marker.stub';
 import { EpochMsStub } from '../../../contracts/epoch-ms/epoch-ms.stub';
 
-const SOCKET_PATH = AbsoluteFilePathStub({ value: '/tmp/dm-siege-sockets/inst_7f3a9c21.sock' });
-const EVIDENCE_PATH = AbsoluteFilePathStub({
-  value: '/home/user/.dungeonmaster/siegelense/unowned/instances/inst_7f3a9c21',
-});
+const SOCKET_PATH = '/tmp/dm-siege-sockets/inst_7f3a9c21.sock';
+const EVIDENCE_PATH = '/home/user/.dungeonmaster/siegelense/unowned/instances/inst_7f3a9c21';
 
 describe('instanceStartBootPollLayerBroker', () => {
   describe('driver answers', () => {

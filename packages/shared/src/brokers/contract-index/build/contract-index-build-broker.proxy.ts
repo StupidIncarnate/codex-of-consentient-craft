@@ -2,7 +2,6 @@ import { readFileSyncProxy } from '#gateway/node/fs/read-file-sync/read-file-syn
 import { readJsonFileSyncIfExistsProxy } from '#gateway/node/fs/read-json-file-sync-if-exists/read-json-file-sync-if-exists.proxy';
 import { walkFilesSyncProxy } from '#gateway/node/fs/walk-files-sync/walk-files-sync.proxy';
 
-import type { AbsoluteFilePath } from '../../../contracts/absolute-file-path/absolute-file-path-contract';
 import { subfolderPathsListLayerBrokerProxy } from './subfolder-paths-list-layer-broker.proxy';
 
 export const contractIndexBuildBrokerProxy = (): {
@@ -10,20 +9,20 @@ export const contractIndexBuildBrokerProxy = (): {
     dirPath,
     folders,
   }: {
-    dirPath: AbsoluteFilePath;
+    dirPath: string;
     folders: readonly string[];
   }) => void;
-  setupPackageJson: ({ packageDir, json }: { packageDir: AbsoluteFilePath; json: string }) => void;
+  setupPackageJson: ({ packageDir, json }: { packageDir: string; json: string }) => void;
   setupWalkedFolder: ({
     dirPath,
     folders,
     files,
   }: {
-    dirPath: AbsoluteFilePath;
+    dirPath: string;
     folders: readonly string[];
     files: readonly string[];
   }) => void;
-  setupSourceText: ({ filePath, text }: { filePath: AbsoluteFilePath; text: string }) => void;
+  setupSourceText: ({ filePath, text }: { filePath: string; text: string }) => void;
 } => {
   const subfolderProxy = subfolderPathsListLayerBrokerProxy();
   const jsonProxy = readJsonFileSyncIfExistsProxy();
@@ -35,7 +34,7 @@ export const contractIndexBuildBrokerProxy = (): {
       dirPath,
       folders,
     }: {
-      dirPath: AbsoluteFilePath;
+      dirPath: string;
       folders: readonly string[];
     }): void => {
       subfolderProxy.setupDirectory({ dirPath, folders, files: [] });
@@ -45,7 +44,7 @@ export const contractIndexBuildBrokerProxy = (): {
       packageDir,
       json,
     }: {
-      packageDir: AbsoluteFilePath;
+      packageDir: string;
       json: string;
     }): void => {
       jsonProxy.returns({ path: `${packageDir}/package.json`, json });
@@ -56,7 +55,7 @@ export const contractIndexBuildBrokerProxy = (): {
       folders,
       files,
     }: {
-      dirPath: AbsoluteFilePath;
+      dirPath: string;
       folders: readonly string[];
       files: readonly string[];
     }): void => {
@@ -66,7 +65,7 @@ export const contractIndexBuildBrokerProxy = (): {
       }
     },
 
-    setupSourceText: ({ filePath, text }: { filePath: AbsoluteFilePath; text: string }): void => {
+    setupSourceText: ({ filePath, text }: { filePath: string; text: string }): void => {
       textProxy.returns({ path: filePath, contents: text });
     },
   };

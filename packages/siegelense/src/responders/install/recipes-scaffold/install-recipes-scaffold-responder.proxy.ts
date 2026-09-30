@@ -2,7 +2,6 @@ import { existsSyncProxy } from '#gateway/node/fs/exists-sync/exists-sync.proxy'
 import { ensureDirProxy } from '#gateway/node/fs__promises/ensure-dir/ensure-dir.proxy';
 import { basename, dirname, resolve } from '#gateway/node/path';
 import { registerMock, requireActual } from '@dungeonmaster/testing/register-mock';
-import { AbsoluteFilePathStub } from '@dungeonmaster/shared/contracts/absolute-file-path/absolute-file-path.stub';
 import { PathSegmentStub } from '@dungeonmaster/shared/contracts/path-segment/path-segment.stub';
 import type { PathSegment } from '@dungeonmaster/shared/contracts';
 import type { PackageNameStub } from '@dungeonmaster/shared/contracts/package-name/package-name.stub';
@@ -54,11 +53,11 @@ const SCAFFOLD_DIR_PATHS = [
 
 const SCAFFOLD_FILE_ABSOLUTE_PATHS: ReadonlyMap<
   PathSegment,
-  ReturnType<typeof AbsoluteFilePathStub>
+  string
 > = new Map(
   SCAFFOLD_RELATIVE_PATHS.map((relativePath) => [
     PathSegmentStub({ value: relativePath }),
-    AbsoluteFilePathStub({ value: `${RECIPES_PACKAGE_ROOT}/${relativePath}` }),
+    `${RECIPES_PACKAGE_ROOT}/${relativePath}`,
   ]),
 );
 

@@ -1,4 +1,3 @@
-import { AbsoluteFilePathStub } from '@dungeonmaster/shared/contracts/absolute-file-path/absolute-file-path.stub';
 
 import { InstanceIdStub } from '../../../contracts/instance-id/instance-id.stub';
 import { RegistryEntryStub } from '../../../contracts/registry-entry/registry-entry.stub';
@@ -23,35 +22,35 @@ describe('pruneAssetsListBroker', () => {
         evidencePath: EVIDENCE,
       });
       proxy.setupFile({
-        filePath: AbsoluteFilePathStub({ value: `${EVIDENCE}/api-server.log` }),
+        filePath: `${EVIDENCE}/api-server.log`,
         sizeBytes: 512,
         modifiedAtMs: 1_700_000_000_000,
       });
       proxy.setupFile({
-        filePath: AbsoluteFilePathStub({ value: `${EVIDENCE}/console.jsonl` }),
+        filePath: `${EVIDENCE}/console.jsonl`,
         sizeBytes: 256,
         modifiedAtMs: 1_700_000_000_100,
       });
       proxy.setupDir({
-        dirPath: AbsoluteFilePathStub({ value: RUNS }),
+        dirPath: RUNS,
         entries: ['run_1.jsonl', 'run_1.json', 'run_1'],
       });
       proxy.setupFile({
-        filePath: AbsoluteFilePathStub({ value: `${RUNS}/run_1.jsonl` }),
+        filePath: `${RUNS}/run_1.jsonl`,
         sizeBytes: 1024,
         modifiedAtMs: 1_700_000_000_200,
       });
       proxy.setupFile({
-        filePath: AbsoluteFilePathStub({ value: `${RUNS}/run_1.json` }),
+        filePath: `${RUNS}/run_1.json`,
         sizeBytes: 64,
         modifiedAtMs: 1_700_000_000_300,
       });
       proxy.setupDir({
-        dirPath: AbsoluteFilePathStub({ value: `${RUNS}/run_1` }),
+        dirPath: `${RUNS}/run_1`,
         entries: ['step1.png'],
       });
       proxy.setupFile({
-        filePath: AbsoluteFilePathStub({ value: `${RUNS}/run_1/step1.png` }),
+        filePath: `${RUNS}/run_1/step1.png`,
         sizeBytes: 4096,
         modifiedAtMs: 1_700_000_000_400,
       });
@@ -108,30 +107,30 @@ describe('pruneAssetsListBroker', () => {
         evidencePath: EVIDENCE,
       });
       proxy.setupDir({
-        dirPath: AbsoluteFilePathStub({ value: RUNS }),
+        dirPath: RUNS,
         entries: ['run_1.jsonl', 'run_1.json', 'run_1', 'run_2.jsonl'],
       });
       proxy.setupFile({
-        filePath: AbsoluteFilePathStub({ value: `${RUNS}/run_1.jsonl` }),
+        filePath: `${RUNS}/run_1.jsonl`,
         sizeBytes: 1,
         modifiedAtMs: 1_700_000_000_000,
       });
       proxy.setupFile({
-        filePath: AbsoluteFilePathStub({ value: `${RUNS}/run_1.json` }),
+        filePath: `${RUNS}/run_1.json`,
         sizeBytes: 1,
         modifiedAtMs: 1_700_000_000_000,
       });
       proxy.setupFile({
-        filePath: AbsoluteFilePathStub({ value: `${RUNS}/run_2.jsonl` }),
+        filePath: `${RUNS}/run_2.jsonl`,
         sizeBytes: 1,
         modifiedAtMs: 1_700_000_000_000,
       });
       proxy.setupDir({
-        dirPath: AbsoluteFilePathStub({ value: `${RUNS}/run_1` }),
+        dirPath: `${RUNS}/run_1`,
         entries: [],
       });
       proxy.setupDir({
-        dirPath: AbsoluteFilePathStub({ value: `${RUNS}/run_2` }),
+        dirPath: `${RUNS}/run_2`,
         entries: [],
       });
 
@@ -152,7 +151,7 @@ describe('pruneAssetsListBroker', () => {
         rootPath: ROOT,
         evidencePath: EVIDENCE,
       });
-      proxy.setupDir({ dirPath: AbsoluteFilePathStub({ value: RUNS }), entries: [] });
+      proxy.setupDir({ dirPath: RUNS, entries: [] });
 
       const result = await pruneAssetsListBroker({
         entry: RegistryEntryStub({ id: INSTANCE_ID, guildId: null, questId: null }),
@@ -172,16 +171,16 @@ describe('pruneAssetsListBroker', () => {
         evidencePath: EVIDENCE,
       });
       proxy.setupDir({
-        dirPath: AbsoluteFilePathStub({ value: RUNS }),
+        dirPath: RUNS,
         entries: ['run_1.jsonl', 'scratch.txt'],
       });
       proxy.setupFile({
-        filePath: AbsoluteFilePathStub({ value: `${RUNS}/run_1.jsonl` }),
+        filePath: `${RUNS}/run_1.jsonl`,
         sizeBytes: 1024,
         modifiedAtMs: 1_700_000_000_200,
       });
       proxy.setupDir({
-        dirPath: AbsoluteFilePathStub({ value: `${RUNS}/run_1` }),
+        dirPath: `${RUNS}/run_1`,
         entries: [],
       });
 
@@ -209,13 +208,13 @@ describe('pruneAssetsListBroker', () => {
         rootPath: ROOT,
         evidencePath: EVIDENCE,
       });
-      proxy.setupDir({ dirPath: AbsoluteFilePathStub({ value: RUNS }), entries: [] });
+      proxy.setupDir({ dirPath: RUNS, entries: [] });
       proxy.setupDir({
-        dirPath: AbsoluteFilePathStub({ value: `${EVIDENCE}/video` }),
+        dirPath: `${EVIDENCE}/video`,
         entries: ['a1b2c3.webm'],
       });
       proxy.setupFile({
-        filePath: AbsoluteFilePathStub({ value: `${EVIDENCE}/video/a1b2c3.webm` }),
+        filePath: `${EVIDENCE}/video/a1b2c3.webm`,
         sizeBytes: 104_857_600,
         modifiedAtMs: 1_700_000_003_000,
       });

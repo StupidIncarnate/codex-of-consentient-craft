@@ -23,7 +23,7 @@
  */
 
 import { questContract, workItemContract } from '@dungeonmaster/shared/contracts';
-import type { AbsoluteFilePath, Quest, WorkItem } from '@dungeonmaster/shared/contracts';
+import type { Quest, WorkItem } from '@dungeonmaster/shared/contracts';
 import { locationsStatics } from '@dungeonmaster/shared/statics';
 import { join } from '#gateway/node/path';
 
@@ -41,7 +41,7 @@ export const laneRecordInstanceBroker = async ({
   instance,
 }: {
   questId: Quest['id'];
-  questPath: AbsoluteFilePath;
+  questPath: string;
   workItemId: WorkItem['id'];
   instance: QuestWorkInstance;
 }): Promise<QuestWorkInstance> =>

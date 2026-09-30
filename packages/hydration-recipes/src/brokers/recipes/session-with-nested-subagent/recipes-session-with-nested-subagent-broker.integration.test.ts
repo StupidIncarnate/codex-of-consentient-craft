@@ -1,4 +1,3 @@
-import { AbsoluteFilePathStub } from '@dungeonmaster/shared/contracts/absolute-file-path/absolute-file-path.stub';
 import { GuildIdStub } from '@dungeonmaster/shared/contracts/guild-id/guild-id.stub';
 import { claudePathSlugEncoderTransformer } from '@dungeonmaster/shared/transformers';
 import { installTestbedCreateBroker } from '@dungeonmaster/testing';
@@ -30,8 +29,8 @@ describe('recipesSessionWithNestedSubagentBroker against a real filesystem', () 
     });
 
     const transcriptDir = claudePathSlugEncoderTransformer({
-      homeDir: AbsoluteFilePathStub({ value: testbed.guildPath }),
-      projectPath: AbsoluteFilePathStub({ value: guildPath }),
+      homeDir: testbed.guildPath,
+      projectPath: guildPath,
     });
     const relativeDir = transcriptDir.slice(testbed.guildPath.length + 1);
 
@@ -100,8 +99,8 @@ describe('recipesSessionWithNestedSubagentBroker against a real filesystem', () 
     });
 
     const transcriptDir = claudePathSlugEncoderTransformer({
-      homeDir: AbsoluteFilePathStub({ value: testbed.guildPath }),
-      projectPath: AbsoluteFilePathStub({ value: guildPath }),
+      homeDir: testbed.guildPath,
+      projectPath: guildPath,
     });
     const relativeDir = transcriptDir.slice(testbed.guildPath.length + 1);
     const firstContents = transcripts.contentsOf({

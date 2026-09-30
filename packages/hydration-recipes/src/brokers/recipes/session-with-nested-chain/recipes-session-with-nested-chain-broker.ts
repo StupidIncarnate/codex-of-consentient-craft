@@ -22,7 +22,6 @@
  * const result = await dmRegistryBroker.run(plan, target);
  */
 
-import { absoluteFilePathContract } from '@dungeonmaster/shared/contracts';
 import { streamLineToJsonLineTransformer } from '@dungeonmaster/shared/transformers';
 
 import { nestedChainArgsContract } from '../../../contracts/nested-chain-args/nested-chain-args-contract';
@@ -44,7 +43,7 @@ export const recipesSessionWithNestedChainBroker = recipe(
   },
   ({ guildPath }) => [
     dmRegistryBroker.sessions
-      .under({ cwd: absoluteFilePathContract.parse(guildPath) })
+      .under({ cwd: guildPath })
       .add(1, (s) => [
         s[0].set({
           lines: [

@@ -1,4 +1,3 @@
-import { AbsoluteFilePathStub } from '@dungeonmaster/shared/contracts/absolute-file-path/absolute-file-path.stub';
 
 import { DrivingOddityStub } from '../../../contracts/driving-oddity/driving-oddity.stub';
 import type { DrivingOddityFileMalformedError } from '../../../errors/driving-oddity-file-malformed/driving-oddity-file-malformed-error';
@@ -6,9 +5,7 @@ import type { DrivingOddityFileMalformedError } from '../../../errors/driving-od
 import { drivingOddityReadBroker } from './driving-oddity-read-broker';
 import { drivingOddityReadBrokerProxy } from './driving-oddity-read-broker.proxy';
 
-const FILE_PATH = AbsoluteFilePathStub({
-  value: '/repo/.dungeonmaster-assets/driving-oddities.jsonl',
-});
+const FILE_PATH = '/repo/.dungeonmaster-assets/driving-oddities.jsonl';
 
 describe('drivingOddityReadBroker', () => {
   describe('a file that does not exist', () => {

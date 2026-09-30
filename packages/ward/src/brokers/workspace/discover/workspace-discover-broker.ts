@@ -7,7 +7,6 @@
  */
 
 import { readFile } from '#gateway/node/fs__promises';
-import { type AbsoluteFilePath } from '@dungeonmaster/shared/contracts';
 
 import type { ProjectFolder } from '../../../contracts/project-folder/project-folder-contract';
 import { packageJsonContract } from '../../../contracts/package-json/package-json-contract';
@@ -16,7 +15,7 @@ import { patternResolveLayerBroker } from './pattern-resolve-layer-broker';
 export const workspaceDiscoverBroker = async ({
   rootPath,
 }: {
-  rootPath: AbsoluteFilePath;
+  rootPath: string;
 }): Promise<ProjectFolder[] | null> => {
   const pkgPath = `${rootPath}/package.json`;
 

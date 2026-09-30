@@ -13,8 +13,6 @@
  * boot-tree's inline bus annotations.
  */
 
-import { absoluteFilePathContract } from '../../../contracts/absolute-file-path/absolute-file-path-contract';
-import type { AbsoluteFilePath } from '../../../contracts/absolute-file-path/absolute-file-path-contract';
 import { eventBusContract, type EventBus } from '../../../contracts/event-bus/event-bus-contract';
 import { isNonTestFileGuard } from '../../../guards/is-non-test-file/is-non-test-file-guard';
 import { busStateShapeDetectTransformer } from '../../../transformers/bus-state-shape-detect/bus-state-shape-detect-transformer';
@@ -27,10 +25,10 @@ const STATE_PATH_SEGMENT = '/state/';
 export const eventBusStatesFindLayerBroker = ({
   projectRoot,
 }: {
-  projectRoot: AbsoluteFilePath;
+  projectRoot: string;
 }): EventBus[] => {
   const root = String(projectRoot);
-  const packagesDir = absoluteFilePathContract.parse(`${root}/${PACKAGES_REL}`);
+  const packagesDir = `${root}/${PACKAGES_REL}`;
   const allFiles = listTsFilesLayerBroker({ dirPath: packagesDir });
 
   const buses: EventBus[] = [];

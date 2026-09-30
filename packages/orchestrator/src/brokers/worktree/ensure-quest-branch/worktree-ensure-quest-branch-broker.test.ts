@@ -1,4 +1,3 @@
-import { AbsoluteFilePathStub } from '@dungeonmaster/shared/contracts/absolute-file-path/absolute-file-path.stub';
 import { QuestBranchNameStub } from '@dungeonmaster/shared/contracts/quest-branch-name/quest-branch-name.stub';
 import { QuestIdStub } from '@dungeonmaster/shared/contracts/quest-id/quest-id.stub';
 import { QuestStub } from '@dungeonmaster/shared/contracts/quest/quest.stub';
@@ -19,7 +18,7 @@ describe('worktreeEnsureQuestBranchBroker', () => {
       const quest = QuestStub({
         id: QuestIdStub({ value: 'ensure-drift' }),
         branchName,
-        worktreePath: AbsoluteFilePathStub({ value: '/repo/worktrees/ensure-drift-11112222' }),
+        worktreePath: '/repo/worktrees/ensure-drift-11112222',
       });
       proxy.setupDrifted({ currentBranchName: 'main' });
       proxy.setupCheckoutSucceeds({ branchName });
@@ -54,7 +53,7 @@ describe('worktreeEnsureQuestBranchBroker', () => {
       const quest = QuestStub({
         id: QuestIdStub({ value: 'ensure-on-branch' }),
         branchName,
-        worktreePath: AbsoluteFilePathStub({ value: '/repo/worktrees/ensure-on-branch-33334444' }),
+        worktreePath: '/repo/worktrees/ensure-on-branch-33334444',
       });
       proxy.setupOnBranch({ branchName });
 
@@ -86,9 +85,7 @@ describe('worktreeEnsureQuestBranchBroker', () => {
       const quest = QuestStub({
         id: questId,
         branchName,
-        worktreePath: AbsoluteFilePathStub({
-          value: '/repo/worktrees/ensure-revparse-fail-bbbbcccc',
-        }),
+        worktreePath: '/repo/worktrees/ensure-revparse-fail-bbbbcccc',
       });
       const output = 'fatal: not a git repository (or any of the parent directories): .git';
       proxy.setupRevParseFails({ output });
@@ -129,7 +126,7 @@ describe('worktreeEnsureQuestBranchBroker', () => {
       const quest = QuestStub({
         id: questId,
         branchName,
-        worktreePath: AbsoluteFilePathStub({ value: '/repo/worktrees/ensure-fail-55556666' }),
+        worktreePath: '/repo/worktrees/ensure-fail-55556666',
       });
       const output =
         "error: pathspec 'quest/ensure-fail-55556666' did not match any file(s) known to git";
@@ -215,9 +212,7 @@ describe('worktreeEnsureQuestBranchBroker', () => {
         quest,
         cwdResolution: QuestCwdResolutionStub({
           kind: 'missing-worktree',
-          worktreePath: AbsoluteFilePathStub({
-            value: '/repo/worktrees/ensure-missing-worktree-aaaabbbb',
-          }),
+          worktreePath: '/repo/worktrees/ensure-missing-worktree-aaaabbbb',
         }),
         trigger: 'dispatch-scan',
       });

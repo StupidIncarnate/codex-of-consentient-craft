@@ -1,4 +1,3 @@
-import { AbsoluteFilePathStub } from '@dungeonmaster/shared/contracts/absolute-file-path/absolute-file-path.stub';
 import { GuildIdStub } from '@dungeonmaster/shared/contracts/guild-id/guild-id.stub';
 import { QuestIdStub } from '@dungeonmaster/shared/contracts/quest-id/quest-id.stub';
 import { QuestNoteStub } from '@dungeonmaster/shared/contracts/quest-note/quest-note.stub';
@@ -89,7 +88,7 @@ describe('citationResolveBroker', () => {
         guildQuestsPath: `${GUILD_DIR}/quests`,
         questFolderPath: QUEST_FOLDER,
       });
-      proxy.setupQuestRecordMissing({ filePath: AbsoluteFilePathStub({ value: QUEST_FILE }) });
+      proxy.setupQuestRecordMissing({ filePath: QUEST_FILE });
 
       const result = await citationResolveBroker({
         entry: RegistryEntryStub({
@@ -121,7 +120,7 @@ describe('citationResolveBroker', () => {
         questFolderPath: QUEST_FOLDER,
       });
       proxy.setupQuestRecord({
-        filePath: AbsoluteFilePathStub({ value: QUEST_FILE }),
+        filePath: QUEST_FILE,
         contents: '{ not json',
       });
 
@@ -153,7 +152,7 @@ describe('citationResolveBroker', () => {
         questFolderPath: QUEST_FOLDER,
       });
       proxy.setupQuestRecord({
-        filePath: AbsoluteFilePathStub({ value: QUEST_FILE }),
+        filePath: QUEST_FILE,
         contents: JSON.stringify({ id: 'add-auth' }),
       });
 
@@ -184,11 +183,11 @@ describe('citationResolveBroker', () => {
         questFolderPath: QUEST_FOLDER,
       });
       proxy.setupQuestRecord({
-        filePath: AbsoluteFilePathStub({ value: QUEST_FILE }),
+        filePath: QUEST_FILE,
         contents: JSON.stringify(
           QuestStub({
             status: 'in_progress',
-            worktreePath: AbsoluteFilePathStub({ value: WORKTREE }),
+            worktreePath: WORKTREE,
             planningNotes: {
               blightLedger: [],
               operationPlans: [],
@@ -204,7 +203,7 @@ describe('citationResolveBroker', () => {
           }),
         ),
       });
-      proxy.setupPlansDir({ dirPath: AbsoluteFilePathStub({ value: PLANS_DIR }), entries: [] });
+      proxy.setupPlansDir({ dirPath: PLANS_DIR, entries: [] });
 
       const result = await citationResolveBroker({
         entry: RegistryEntryStub({
@@ -240,11 +239,11 @@ describe('citationResolveBroker', () => {
         questFolderPath: QUEST_FOLDER,
       });
       proxy.setupQuestRecord({
-        filePath: AbsoluteFilePathStub({ value: QUEST_FILE }),
+        filePath: QUEST_FILE,
         contents: JSON.stringify(
           QuestStub({
             status: 'in_progress',
-            worktreePath: AbsoluteFilePathStub({ value: WORKTREE }),
+            worktreePath: WORKTREE,
             planningNotes: {
               blightLedger: [],
               operationPlans: [],
@@ -260,7 +259,7 @@ describe('citationResolveBroker', () => {
           }),
         ),
       });
-      proxy.setupPlansDir({ dirPath: AbsoluteFilePathStub({ value: PLANS_DIR }), entries: [] });
+      proxy.setupPlansDir({ dirPath: PLANS_DIR, entries: [] });
 
       const result = await citationResolveBroker({
         entry: RegistryEntryStub({
@@ -284,11 +283,11 @@ describe('citationResolveBroker', () => {
         questFolderPath: QUEST_FOLDER,
       });
       proxy.setupQuestRecord({
-        filePath: AbsoluteFilePathStub({ value: QUEST_FILE }),
+        filePath: QUEST_FILE,
         contents: JSON.stringify(
           QuestStub({
             status: 'complete',
-            worktreePath: AbsoluteFilePathStub({ value: WORKTREE }),
+            worktreePath: WORKTREE,
             planningNotes: {
               blightLedger: [],
               operationPlans: [],
@@ -304,7 +303,7 @@ describe('citationResolveBroker', () => {
           }),
         ),
       });
-      proxy.setupPlansDir({ dirPath: AbsoluteFilePathStub({ value: PLANS_DIR }), entries: [] });
+      proxy.setupPlansDir({ dirPath: PLANS_DIR, entries: [] });
 
       const result = await citationResolveBroker({
         entry: RegistryEntryStub({
@@ -328,11 +327,11 @@ describe('citationResolveBroker', () => {
         questFolderPath: QUEST_FOLDER,
       });
       proxy.setupQuestRecord({
-        filePath: AbsoluteFilePathStub({ value: QUEST_FILE }),
+        filePath: QUEST_FILE,
         contents: JSON.stringify(
           QuestStub({
             status: 'in_progress',
-            worktreePath: AbsoluteFilePathStub({ value: WORKTREE }),
+            worktreePath: WORKTREE,
             planningNotes: {
               blightLedger: [],
               operationPlans: [],
@@ -348,7 +347,7 @@ describe('citationResolveBroker', () => {
           }),
         ),
       });
-      proxy.setupPlansDir({ dirPath: AbsoluteFilePathStub({ value: PLANS_DIR }), entries: [] });
+      proxy.setupPlansDir({ dirPath: PLANS_DIR, entries: [] });
 
       const result = await citationResolveBroker({
         entry: RegistryEntryStub({
@@ -374,20 +373,20 @@ describe('citationResolveBroker', () => {
         questFolderPath: QUEST_FOLDER,
       });
       proxy.setupQuestRecord({
-        filePath: AbsoluteFilePathStub({ value: QUEST_FILE }),
+        filePath: QUEST_FILE,
         contents: JSON.stringify(
           QuestStub({
             status: 'in_progress',
-            worktreePath: AbsoluteFilePathStub({ value: WORKTREE }),
+            worktreePath: WORKTREE,
           }),
         ),
       });
       proxy.setupPlansDir({
-        dirPath: AbsoluteFilePathStub({ value: PLANS_DIR }),
+        dirPath: PLANS_DIR,
         entries: ['path-3.md'],
       });
       proxy.setupPlanFile({
-        filePath: AbsoluteFilePathStub({ value: `${PLANS_DIR}/path-3.md` }),
+        filePath: `${PLANS_DIR}/path-3.md`,
         contents:
           '# PATH 3\n  seed  subagent-chain-arrives\n' +
           '  VERIFIED  run_7 · 2026-09-14 · prelude reached the entry, all produces: asserted\n',
@@ -427,20 +426,20 @@ describe('citationResolveBroker', () => {
         questFolderPath: QUEST_FOLDER,
       });
       proxy.setupQuestRecord({
-        filePath: AbsoluteFilePathStub({ value: QUEST_FILE }),
+        filePath: QUEST_FILE,
         contents: JSON.stringify(
           QuestStub({
             status: 'in_progress',
-            worktreePath: AbsoluteFilePathStub({ value: WORKTREE }),
+            worktreePath: WORKTREE,
           }),
         ),
       });
       proxy.setupPlansDir({
-        dirPath: AbsoluteFilePathStub({ value: PLANS_DIR }),
+        dirPath: PLANS_DIR,
         entries: ['path-3.md'],
       });
       proxy.setupPlanFile({
-        filePath: AbsoluteFilePathStub({ value: `${PLANS_DIR}/path-3.md` }),
+        filePath: `${PLANS_DIR}/path-3.md`,
         contents: '  VERIFIED  run_7 · 2026-09-14 · prelude reached the entry\n',
       });
 
@@ -466,20 +465,20 @@ describe('citationResolveBroker', () => {
         questFolderPath: QUEST_FOLDER,
       });
       proxy.setupQuestRecord({
-        filePath: AbsoluteFilePathStub({ value: QUEST_FILE }),
+        filePath: QUEST_FILE,
         contents: JSON.stringify(
           QuestStub({
             status: 'in_progress',
-            worktreePath: AbsoluteFilePathStub({ value: WORKTREE }),
+            worktreePath: WORKTREE,
           }),
         ),
       });
       proxy.setupPlansDir({
-        dirPath: AbsoluteFilePathStub({ value: PLANS_DIR }),
+        dirPath: PLANS_DIR,
         entries: ['path-3.md'],
       });
       proxy.setupPlanFile({
-        filePath: AbsoluteFilePathStub({ value: `${PLANS_DIR}/path-3.md` }),
+        filePath: `${PLANS_DIR}/path-3.md`,
         contents: `  VERIFIED  on ${INSTANCE} · 2026-09-14\n`,
       });
 
@@ -513,20 +512,20 @@ describe('citationResolveBroker', () => {
         questFolderPath: QUEST_FOLDER,
       });
       proxy.setupQuestRecord({
-        filePath: AbsoluteFilePathStub({ value: QUEST_FILE }),
+        filePath: QUEST_FILE,
         contents: JSON.stringify(
           QuestStub({
             status: 'in_progress',
-            worktreePath: AbsoluteFilePathStub({ value: WORKTREE }),
+            worktreePath: WORKTREE,
           }),
         ),
       });
       proxy.setupPlansDir({
-        dirPath: AbsoluteFilePathStub({ value: PLANS_DIR }),
+        dirPath: PLANS_DIR,
         entries: ['abc-map.md'],
       });
       proxy.setupPlanFile({
-        filePath: AbsoluteFilePathStub({ value: `${PLANS_DIR}/abc-map.md` }),
+        filePath: `${PLANS_DIR}/abc-map.md`,
         contents: '# GROUP 1\n- run_7 is mentioned here but nothing was verified\n',
       });
 
@@ -552,24 +551,24 @@ describe('citationResolveBroker', () => {
         questFolderPath: QUEST_FOLDER,
       });
       proxy.setupQuestRecord({
-        filePath: AbsoluteFilePathStub({ value: QUEST_FILE }),
+        filePath: QUEST_FILE,
         contents: JSON.stringify(
           QuestStub({
             status: 'in_progress',
-            worktreePath: AbsoluteFilePathStub({ value: WORKTREE }),
+            worktreePath: WORKTREE,
           }),
         ),
       });
       proxy.setupPlansDir({
-        dirPath: AbsoluteFilePathStub({ value: PLANS_DIR }),
+        dirPath: PLANS_DIR,
         entries: ['1dac5395'],
       });
       proxy.setupPlansDir({
-        dirPath: AbsoluteFilePathStub({ value: `${PLANS_DIR}/1dac5395` }),
+        dirPath: `${PLANS_DIR}/1dac5395`,
         entries: ['path-3.md'],
       });
       proxy.setupPlanFile({
-        filePath: AbsoluteFilePathStub({ value: `${PLANS_DIR}/1dac5395/path-3.md` }),
+        filePath: `${PLANS_DIR}/1dac5395/path-3.md`,
         contents: '  VERIFIED  run_7 · 2026-09-14\n',
       });
 
@@ -603,20 +602,20 @@ describe('citationResolveBroker', () => {
         questFolderPath: QUEST_FOLDER,
       });
       proxy.setupQuestRecord({
-        filePath: AbsoluteFilePathStub({ value: QUEST_FILE }),
+        filePath: QUEST_FILE,
         contents: JSON.stringify(
           QuestStub({
             status: 'in_progress',
-            worktreePath: AbsoluteFilePathStub({ value: WORKTREE }),
+            worktreePath: WORKTREE,
           }),
         ),
       });
       proxy.setupPlansDir({
-        dirPath: AbsoluteFilePathStub({ value: PLANS_DIR }),
+        dirPath: PLANS_DIR,
         entries: ['NOTES'],
       });
       proxy.setupNotADirectory({
-        dirPath: AbsoluteFilePathStub({ value: `${PLANS_DIR}/NOTES` }),
+        dirPath: `${PLANS_DIR}/NOTES`,
       });
 
       const result = await citationResolveBroker({
@@ -643,7 +642,7 @@ describe('citationResolveBroker', () => {
         questFolderPath: QUEST_FOLDER,
       });
       proxy.setupQuestRecord({
-        filePath: AbsoluteFilePathStub({ value: QUEST_FILE }),
+        filePath: QUEST_FILE,
         contents: JSON.stringify(QuestStub({ status: 'in_progress' })),
       });
 

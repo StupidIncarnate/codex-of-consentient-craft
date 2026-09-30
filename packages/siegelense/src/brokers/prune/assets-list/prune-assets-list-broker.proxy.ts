@@ -1,5 +1,4 @@
 import { join } from '#gateway/node/path';
-import type { AbsoluteFilePath } from '@dungeonmaster/shared/contracts';
 import { registerMock, requireActual } from '@dungeonmaster/testing/register-mock';
 
 import { FsErrorStub } from '#gateway/node/fs/is-fs-error/fs-error.stub';
@@ -19,9 +18,9 @@ export const pruneAssetsListBrokerProxy = (): {
     rootPath: string;
     evidencePath: string;
   }) => void;
-  setupDir: (params: { dirPath: AbsoluteFilePath; entries: readonly string[] }) => void;
+  setupDir: (params: { dirPath: string; entries: readonly string[] }) => void;
   setupFile: (params: {
-    filePath: AbsoluteFilePath;
+    filePath: string;
     sizeBytes: number;
     modifiedAtMs: number;
   }) => void;
@@ -76,7 +75,7 @@ export const pruneAssetsListBrokerProxy = (): {
       dirPath,
       entries,
     }: {
-      dirPath: AbsoluteFilePath;
+      dirPath: string;
       entries: readonly string[];
     }): void => {
       readdirProxy.returns({ path: dirPath, names: [...entries] });
@@ -87,7 +86,7 @@ export const pruneAssetsListBrokerProxy = (): {
       sizeBytes,
       modifiedAtMs,
     }: {
-      filePath: AbsoluteFilePath;
+      filePath: string;
       sizeBytes: number;
       modifiedAtMs: number;
     }): void => {

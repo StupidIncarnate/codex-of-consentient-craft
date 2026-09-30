@@ -29,7 +29,6 @@ import { existsSync } from '#gateway/node/fs';
 import { ensureDir, readFile, writeFile } from '#gateway/node/fs__promises';
 import { join } from '#gateway/node/path';
 import { stderr } from '#gateway/node/process';
-import { absoluteFilePathContract } from '@dungeonmaster/shared/contracts';
 
 import type { EpochMs } from '../../../contracts/epoch-ms/epoch-ms-contract';
 import type { Megabytes } from '../../../contracts/megabytes/megabytes-contract';
@@ -72,9 +71,7 @@ export const profileSampleRecordBroker = async ({
   const poolSize = profilePoolSizeContract.parse(Math.max(runningCount, SOLO_POOL_SIZE));
 
   const { samplesDir } = locationsProfileDirsFindBroker({ specHash });
-  const recordPath = absoluteFilePathContract.parse(
-    join(samplesDir, `${instanceId}${profileStatics.extensions.record}`),
-  );
+  const recordPath = join(samplesDir, `${instanceId}${profileStatics.extensions.record}`);
 
   let existing: ProfileObservation | null = null;
   if (existsSync(recordPath)) {

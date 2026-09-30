@@ -15,7 +15,6 @@ import { PNG } from '#gateway/npm/pngjs';
 import { copyFileProxy } from '#gateway/node/fs__promises/copy-file/copy-file.proxy';
 import { dirname, join } from '#gateway/node/path';
 import { setTimeoutProxy } from '#gateway/node/setTimeout/set-timeout/set-timeout.proxy';
-import type { AbsoluteFilePath } from '@dungeonmaster/shared/contracts';
 import { registerMock, requireActual } from '@dungeonmaster/testing/register-mock';
 
 import { shotChangeReadBrokerProxy } from '../../shot/change-read/shot-change-read-broker.proxy';
@@ -40,10 +39,10 @@ export const stepHoldBrokerProxy = (): {
   stagesShot: ReturnType<typeof shotChangeReadBrokerProxy>['stagesShot'];
   stagesDefaultShot: ReturnType<typeof shotChangeReadBrokerProxy>['stagesDefaultShot'];
   succeedsCopy: (params: {
-    sourcePath: AbsoluteFilePath;
-    destinationPath: AbsoluteFilePath;
+    sourcePath: string;
+    destinationPath: string;
   }) => void;
-  getCopiesFrom: (params: { sourcePath: AbsoluteFilePath }) => readonly unknown[][];
+  getCopiesFrom: (params: { sourcePath: string }) => readonly unknown[][];
 } => {
   // #gateway/node/path is a raw passthrough of the Node 'path' module (no per-function wrapper, so
   // no gateway proxy to compose) — mocked directly here, on the same '#gateway/node/path' specifier

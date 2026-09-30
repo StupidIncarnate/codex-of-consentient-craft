@@ -1,4 +1,3 @@
-import { AbsoluteFilePathStub } from '../../../contracts/absolute-file-path/absolute-file-path.stub';
 import { hasResponderCreateLayerBrokerProxy } from './has-responder-create-layer-broker.proxy';
 import { hasResponderCreateLayerBroker } from './has-responder-create-layer-broker';
 
@@ -8,7 +7,7 @@ describe('hasResponderCreateLayerBroker', () => {
     proxy.setupWithCreate({ domainName: 'rule' });
 
     const result = hasResponderCreateLayerBroker({
-      respondersDirPath: AbsoluteFilePathStub({ value: '/project/src/responders' }),
+      respondersDirPath: '/project/src/responders',
     });
 
     expect(result).toBe(true);
@@ -19,7 +18,7 @@ describe('hasResponderCreateLayerBroker', () => {
     proxy.setupWithoutCreate({ domainNames: ['rule', 'handle'] });
 
     const result = hasResponderCreateLayerBroker({
-      respondersDirPath: AbsoluteFilePathStub({ value: '/project/src/responders' }),
+      respondersDirPath: '/project/src/responders',
     });
 
     expect(result).toBe(false);
@@ -27,7 +26,7 @@ describe('hasResponderCreateLayerBroker', () => {
 
   it('EMPTY: {no responders dir} => returns false', () => {
     const proxy = hasResponderCreateLayerBrokerProxy();
-    const respondersDirPath = AbsoluteFilePathStub({ value: '/project/src/responders' });
+    const respondersDirPath = '/project/src/responders';
     proxy.setupEmpty({ respondersDirPath });
 
     const result = hasResponderCreateLayerBroker({ respondersDirPath });

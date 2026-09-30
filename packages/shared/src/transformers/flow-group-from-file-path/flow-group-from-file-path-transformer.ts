@@ -12,7 +12,6 @@
  * WHEN-NOT-TO-USE: When the path may not contain a `flows/` segment
  */
 
-import type { AbsoluteFilePath } from '../../contracts/absolute-file-path/absolute-file-path-contract';
 import {
   contentTextContract,
   type ContentText,
@@ -21,7 +20,7 @@ import {
 export const flowGroupFromFilePathTransformer = ({
   filePath,
 }: {
-  filePath: AbsoluteFilePath;
+  filePath: string;
 }): ContentText => {
   const parts = String(filePath).split('/');
   const flowsIdx = parts.lastIndexOf('flows');

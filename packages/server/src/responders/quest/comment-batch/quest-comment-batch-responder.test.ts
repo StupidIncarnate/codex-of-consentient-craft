@@ -1,4 +1,3 @@
-import { AbsoluteFilePathStub } from '@dungeonmaster/shared/contracts/absolute-file-path/absolute-file-path.stub';
 import { FlowNodeStub } from '@dungeonmaster/shared/contracts/flow-node/flow-node.stub';
 import { FlowObservableStub } from '@dungeonmaster/shared/contracts/flow-observable/flow-observable.stub';
 import { FlowStub } from '@dungeonmaster/shared/contracts/flow/flow.stub';
@@ -32,7 +31,7 @@ describe('QuestCommentBatchResponder', () => {
       proxy.setupFindQuestPath({
         questId,
         guildId,
-        questPath: AbsoluteFilePathStub({ value: '/q/path' }),
+        questPath: '/q/path',
       });
       proxy.setupCommentBatch({
         questId,
@@ -74,7 +73,7 @@ describe('QuestCommentBatchResponder', () => {
       proxy.setupFindQuestPath({
         questId,
         guildId,
-        questPath: AbsoluteFilePathStub({ value: '/q/path' }),
+        questPath: '/q/path',
       });
       proxy.setupCommentBatch({
         questId,
@@ -429,7 +428,7 @@ describe('QuestCommentBatchResponder', () => {
       proxy.setupFindQuestPath({
         questId,
         guildId: GuildIdStub(),
-        questPath: AbsoluteFilePathStub({ value: '/q/path' }),
+        questPath: '/q/path',
       });
       proxy.setupCommentBatchError({
         questId,

@@ -32,7 +32,7 @@
 
 import { getEnv } from '#gateway/node/process';
 import { randomUUID } from '#gateway/node/crypto';
-import { absoluteFilePathContract, contentTextContract, relatedDataItemContract, wardResultContract, type ModifyQuestInput } from '@dungeonmaster/shared/contracts';
+import { contentTextContract, relatedDataItemContract, wardResultContract, type ModifyQuestInput } from '@dungeonmaster/shared/contracts';
 import { locationsStatics, wardExitCodeStatics } from '@dungeonmaster/shared/statics';
 import { streamLines, RunNotFoundError } from '#gateway/node/child_process';
 import { ensureDir, writeFile } from '#gateway/node/fs__promises';
@@ -70,7 +70,7 @@ export const stepHandlerWardBroker = async ({
       `Cannot run ward for quest ${questId}: worktree not found: ${resolution.worktreePath}`,
     );
   }
-  const startPath = absoluteFilePathContract.parse(resolution.cwd);
+  const startPath = resolution.cwd;
 
   const { questPath } = await questFindQuestPathBroker({ questId });
 

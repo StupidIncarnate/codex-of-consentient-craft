@@ -1,7 +1,6 @@
 import type { Dirent } from '#gateway/node/fs';
 import { safeReaddirLayerBrokerProxy } from './safe-readdir-layer-broker.proxy';
 import { countFilesRecursiveLayerBrokerProxy } from './count-files-recursive-layer-broker.proxy';
-import type { AbsoluteFilePath } from '../../../contracts/absolute-file-path/absolute-file-path-contract';
 import type { DirEntrySync } from '#gateway/node/fs';
 import { DirentStub } from '#gateway/node/fs/readdir-entries-sync/dirent.stub';
 
@@ -23,7 +22,7 @@ export const formatFolderContentLayerBrokerProxy = (): {
     dirPath,
     fileNames,
   }: {
-    dirPath: AbsoluteFilePath;
+    dirPath: string;
     fileNames: string[];
   }) => void;
   setupDepth1Subdirs: ({ subdirNames }: { subdirNames: string[] }) => void;
@@ -38,7 +37,7 @@ export const formatFolderContentLayerBrokerProxy = (): {
       actions: { name: string; hasFiles: boolean }[];
     }[];
   }) => void;
-  setupEmpty: ({ dirPath }: { dirPath: AbsoluteFilePath }) => void;
+  setupEmpty: ({ dirPath }: { dirPath: string }) => void;
 } => {
   const safeProxy = safeReaddirLayerBrokerProxy();
   countFilesRecursiveLayerBrokerProxy();
@@ -48,7 +47,7 @@ export const formatFolderContentLayerBrokerProxy = (): {
       dirPath,
       fileNames,
     }: {
-      dirPath: AbsoluteFilePath;
+      dirPath: string;
       fileNames: string[];
     }): void => {
       safeProxy.setupDirectory({
@@ -137,7 +136,7 @@ export const formatFolderContentLayerBrokerProxy = (): {
       });
     },
 
-    setupEmpty: ({ dirPath }: { dirPath: AbsoluteFilePath }): void => {
+    setupEmpty: ({ dirPath }: { dirPath: string }): void => {
       safeProxy.setupDirectory({ dirPath, entries: [] });
     },
   };

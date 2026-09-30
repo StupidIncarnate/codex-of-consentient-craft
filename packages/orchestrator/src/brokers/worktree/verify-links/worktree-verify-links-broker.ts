@@ -19,7 +19,6 @@
  */
 
 import { locationsNodeModulesPathFindBroker } from '@dungeonmaster/shared/brokers';
-import type { AbsoluteFilePath } from '@dungeonmaster/shared/contracts';
 
 import { pathExists } from '#gateway/node/fs__promises';
 import { WorktreePrepareError } from '../../../errors/worktree-prepare/worktree-prepare-error';
@@ -33,7 +32,7 @@ const STEPS = worktreePrepareStepStatics.steps;
 export const worktreeVerifyLinksBroker = async ({
   worktreePath,
 }: {
-  worktreePath: AbsoluteFilePath;
+  worktreePath: string;
 }): Promise<void> => {
   const nodeModules = locationsNodeModulesPathFindBroker({ rootPath: worktreePath });
 

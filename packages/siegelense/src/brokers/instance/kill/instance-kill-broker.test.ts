@@ -1,4 +1,3 @@
-import { AbsoluteFilePathStub } from '@dungeonmaster/shared/contracts/absolute-file-path/absolute-file-path.stub';
 import { ContentTextStub } from '@dungeonmaster/shared/contracts/content-text/content-text.stub';
 
 import { instanceKillBroker } from './instance-kill-broker';
@@ -11,11 +10,9 @@ import { RegistryStub } from '../../../contracts/registry/registry.stub';
 
 const INSTANCE_ID = InstanceIdStub({ value: 'inst_7f3a9c21' });
 const SOCKET_PATH_VALUE = `/tmp/dm-siege-sockets/${INSTANCE_ID}.sock`;
-const SOCKET_PATH = AbsoluteFilePathStub({ value: SOCKET_PATH_VALUE });
-const EVIDENCE_PATH = AbsoluteFilePathStub({
-  value: `/home/user/.dungeonmaster/siegelense/unowned/instances/${INSTANCE_ID}`,
-});
-const HOME_PATH = AbsoluteFilePathStub({ value: `/tmp/dm-siege-${INSTANCE_ID}` });
+const SOCKET_PATH = SOCKET_PATH_VALUE;
+const EVIDENCE_PATH = `/home/user/.dungeonmaster/siegelense/unowned/instances/${INSTANCE_ID}`;
+const HOME_PATH = `/tmp/dm-siege-${INSTANCE_ID}`;
 
 describe('instanceKillBroker', () => {
   describe('driver answers', () => {

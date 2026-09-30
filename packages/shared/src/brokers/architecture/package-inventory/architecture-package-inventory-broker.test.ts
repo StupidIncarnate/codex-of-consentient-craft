@@ -1,6 +1,5 @@
 import { architecturePackageInventoryBroker } from './architecture-package-inventory-broker';
 import { architecturePackageInventoryBrokerProxy } from './architecture-package-inventory-broker.proxy';
-import { AbsoluteFilePathStub } from '../../../contracts/absolute-file-path/absolute-file-path.stub';
 import { ContentTextStub } from '../../../contracts/content-text/content-text.stub';
 
 describe('architecturePackageInventoryBroker', () => {
@@ -24,8 +23,8 @@ describe('architecturePackageInventoryBroker', () => {
 
       const result = architecturePackageInventoryBroker({
         packageName: ContentTextStub({ value: 'web' }),
-        srcPath: AbsoluteFilePathStub({ value: '/repo/packages/web/src' }),
-        packageJsonPath: AbsoluteFilePathStub({ value: '/repo/packages/web/package.json' }),
+        srcPath: '/repo/packages/web/src',
+        packageJsonPath: '/repo/packages/web/package.json',
       });
 
       expect(result).toStrictEqual(
@@ -52,8 +51,8 @@ describe('architecturePackageInventoryBroker', () => {
 
       const result = architecturePackageInventoryBroker({
         packageName: ContentTextStub({ value: 'tools' }),
-        srcPath: AbsoluteFilePathStub({ value: '/repo/packages/tools/src' }),
-        packageJsonPath: AbsoluteFilePathStub({ value: '/repo/packages/tools/package.json' }),
+        srcPath: '/repo/packages/tools/src',
+        packageJsonPath: '/repo/packages/tools/package.json',
       });
 
       expect(result).toStrictEqual(
@@ -67,10 +66,8 @@ describe('architecturePackageInventoryBroker', () => {
   describe('empty src directory', () => {
     it('EMPTY: package with empty src => header plus empty label only', () => {
       const proxy = architecturePackageInventoryBrokerProxy();
-      const srcPath = AbsoluteFilePathStub({ value: '/repo/packages/web/src' });
-      const packageJsonPath = AbsoluteFilePathStub({
-        value: '/repo/packages/web/package.json',
-      });
+      const srcPath = '/repo/packages/web/src';
+      const packageJsonPath = '/repo/packages/web/package.json';
       proxy.setupEmpty({ srcPath, packageJsonPath });
 
       const result = architecturePackageInventoryBroker({
@@ -105,8 +102,8 @@ describe('architecturePackageInventoryBroker', () => {
 
       const result = architecturePackageInventoryBroker({
         packageName: ContentTextStub({ value: 'app' }),
-        srcPath: AbsoluteFilePathStub({ value: '/repo/packages/app/src' }),
-        packageJsonPath: AbsoluteFilePathStub({ value: '/repo/packages/app/package.json' }),
+        srcPath: '/repo/packages/app/src',
+        packageJsonPath: '/repo/packages/app/package.json',
       });
 
       expect(result).toStrictEqual(
@@ -147,8 +144,8 @@ describe('architecturePackageInventoryBroker', () => {
 
       const result = architecturePackageInventoryBroker({
         packageName: ContentTextStub({ value: 'app' }),
-        srcPath: AbsoluteFilePathStub({ value: '/repo/packages/app/src' }),
-        packageJsonPath: AbsoluteFilePathStub({ value: '/repo/packages/app/package.json' }),
+        srcPath: '/repo/packages/app/src',
+        packageJsonPath: '/repo/packages/app/package.json',
       });
 
       expect(result).toStrictEqual(
@@ -179,8 +176,8 @@ describe('architecturePackageInventoryBroker', () => {
 
       const result = architecturePackageInventoryBroker({
         packageName: ContentTextStub({ value: 'app' }),
-        srcPath: AbsoluteFilePathStub({ value: '/repo/packages/app/src' }),
-        packageJsonPath: AbsoluteFilePathStub({ value: '/repo/packages/app/package.json' }),
+        srcPath: '/repo/packages/app/src',
+        packageJsonPath: '/repo/packages/app/package.json',
       });
 
       expect(result).toStrictEqual(
@@ -217,8 +214,8 @@ describe('architecturePackageInventoryBroker', () => {
 
       const result = architecturePackageInventoryBroker({
         packageName: ContentTextStub({ value: 'cli' }),
-        srcPath: AbsoluteFilePathStub({ value: '/repo/packages/cli/src' }),
-        packageJsonPath: AbsoluteFilePathStub({ value: '/repo/packages/cli/package.json' }),
+        srcPath: '/repo/packages/cli/src',
+        packageJsonPath: '/repo/packages/cli/package.json',
       });
 
       expect(result).toStrictEqual(
@@ -251,8 +248,8 @@ describe('architecturePackageInventoryBroker', () => {
 
       const result = architecturePackageInventoryBroker({
         packageName: ContentTextStub({ value: 'empty-pkg' }),
-        srcPath: AbsoluteFilePathStub({ value: '/repo/packages/empty-pkg/src' }),
-        packageJsonPath: AbsoluteFilePathStub({ value: '/repo/packages/empty-pkg/package.json' }),
+        srcPath: '/repo/packages/empty-pkg/src',
+        packageJsonPath: '/repo/packages/empty-pkg/package.json',
       });
 
       expect(result).toStrictEqual(
@@ -284,8 +281,8 @@ describe('architecturePackageInventoryBroker', () => {
 
       const result = architecturePackageInventoryBroker({
         packageName: ContentTextStub({ value: 'app' }),
-        srcPath: AbsoluteFilePathStub({ value: '/repo/packages/app/src' }),
-        packageJsonPath: AbsoluteFilePathStub({ value: '/repo/packages/app/package.json' }),
+        srcPath: '/repo/packages/app/src',
+        packageJsonPath: '/repo/packages/app/package.json',
       });
 
       expect(result).toStrictEqual(
@@ -315,8 +312,8 @@ describe('architecturePackageInventoryBroker', () => {
 
       const result = architecturePackageInventoryBroker({
         packageName: ContentTextStub({ value: 'app' }),
-        srcPath: AbsoluteFilePathStub({ value: '/repo/packages/app/src' }),
-        packageJsonPath: AbsoluteFilePathStub({ value: '/repo/packages/app/package.json' }),
+        srcPath: '/repo/packages/app/src',
+        packageJsonPath: '/repo/packages/app/package.json',
       });
 
       expect(result).toStrictEqual(
@@ -345,8 +342,8 @@ describe('architecturePackageInventoryBroker', () => {
 
       const result = architecturePackageInventoryBroker({
         packageName: ContentTextStub({ value: 'zeta' }),
-        srcPath: AbsoluteFilePathStub({ value: '/repo/packages/zeta/src' }),
-        packageJsonPath: AbsoluteFilePathStub({ value: '/repo/packages/zeta/package.json' }),
+        srcPath: '/repo/packages/zeta/src',
+        packageJsonPath: '/repo/packages/zeta/package.json',
       });
 
       expect(result).toStrictEqual(

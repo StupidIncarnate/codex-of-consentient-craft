@@ -1,4 +1,3 @@
-import { AbsoluteFilePathStub } from '@dungeonmaster/shared/contracts/absolute-file-path/absolute-file-path.stub';
 
 import { workspaceManifestEntriesVerifyBroker } from './workspace-manifest-entries-verify-broker';
 
@@ -16,9 +15,7 @@ import { workspaceManifestEntriesVerifyBroker } from './workspace-manifest-entri
 // does not exist yet, the same caveat packages/cli/bin/cli-entry.integration.test.ts documents.
 describe('workspaceManifestEntriesVerifyBroker (integration) — this repo’s real packages/cli manifest', () => {
   it('VALID: {packages/cli, built} => every declared main/exports/types entry exists on disk', async () => {
-    const packagePath = AbsoluteFilePathStub({
-      value: `${__dirname}/../../../../../../packages/cli`,
-    });
+    const packagePath = `${__dirname}/../../../../../../packages/cli`;
 
     const missing = await workspaceManifestEntriesVerifyBroker({ packagePath });
 

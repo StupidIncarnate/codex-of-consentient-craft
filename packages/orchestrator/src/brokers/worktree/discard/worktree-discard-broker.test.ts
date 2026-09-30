@@ -1,4 +1,3 @@
-import { AbsoluteFilePathStub } from '@dungeonmaster/shared/contracts/absolute-file-path/absolute-file-path.stub';
 import { QuestBranchNameStub } from '@dungeonmaster/shared/contracts/quest-branch-name/quest-branch-name.stub';
 
 import { worktreeDiscardBroker } from './worktree-discard-broker';
@@ -8,8 +7,8 @@ describe('worktreeDiscardBroker', () => {
   describe('both steps succeed', () => {
     it('VALID: {remove exits 0, delete exits 0} => returns discarded true with empty output', async () => {
       const proxy = worktreeDiscardBrokerProxy();
-      const repoRoot = AbsoluteFilePathStub({ value: '/repo' });
-      const worktreePath = AbsoluteFilePathStub({ value: '/repo/worktrees/add-auth-7bc217a1' });
+      const repoRoot = '/repo';
+      const worktreePath = '/repo/worktrees/add-auth-7bc217a1';
       const branchName = QuestBranchNameStub({ value: 'quest/add-auth-7bc217a1' });
       proxy.setupBothSucceed({ worktreePath, branchName });
 
@@ -26,8 +25,8 @@ describe('worktreeDiscardBroker', () => {
   describe('worktree remove fails', () => {
     it('ERROR: {git worktree remove exits non-zero} => returns discarded false carrying remove output and never spawns branch delete', async () => {
       const proxy = worktreeDiscardBrokerProxy();
-      const repoRoot = AbsoluteFilePathStub({ value: '/repo' });
-      const worktreePath = AbsoluteFilePathStub({ value: '/repo/worktrees/add-auth-7bc217a1' });
+      const repoRoot = '/repo';
+      const worktreePath = '/repo/worktrees/add-auth-7bc217a1';
       const branchName = QuestBranchNameStub({ value: 'quest/add-auth-7bc217a1' });
       proxy.setupRemoveFails({ worktreePath, output: 'fatal: working tree is dirty' });
 
@@ -43,8 +42,8 @@ describe('worktreeDiscardBroker', () => {
   describe('branch delete fails', () => {
     it('ERROR: {remove exits 0, git branch -D exits non-zero} => returns discarded false carrying delete output', async () => {
       const proxy = worktreeDiscardBrokerProxy();
-      const repoRoot = AbsoluteFilePathStub({ value: '/repo' });
-      const worktreePath = AbsoluteFilePathStub({ value: '/repo/worktrees/add-auth-7bc217a1' });
+      const repoRoot = '/repo';
+      const worktreePath = '/repo/worktrees/add-auth-7bc217a1';
       const branchName = QuestBranchNameStub({ value: 'quest/add-auth-7bc217a1' });
       proxy.setupDeleteFails({
         worktreePath,

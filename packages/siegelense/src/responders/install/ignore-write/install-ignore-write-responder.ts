@@ -37,7 +37,7 @@
 import { existsSync } from '#gateway/node/fs';
 import { readFile, writeFile } from '#gateway/node/fs__promises';
 import { resolve } from '#gateway/node/path';
-import { type InstallContext, type InstallResult, absoluteFilePathContract, installMessageContract, packageNameContract } from '@dungeonmaster/shared/contracts';
+import { type InstallContext, type InstallResult, installMessageContract, packageNameContract } from '@dungeonmaster/shared/contracts';
 import { locationsStatics } from '@dungeonmaster/shared/statics';
 import { ArrayEntryAnchorInsertLayerResponder } from './array-entry-anchor-insert-layer-responder';
 
@@ -96,9 +96,7 @@ export const InstallIgnoreWriteResponder = async ({
 }: {
   context: InstallContext;
 }): Promise<InstallResult> => {
-  const gitignorePath = absoluteFilePathContract.parse(
-    resolve(context.targetProjectRoot, GITIGNORE_FILENAME),
-  );
+  const gitignorePath = resolve(context.targetProjectRoot, GITIGNORE_FILENAME);
   const gitignorePresent = existsSync(gitignorePath);
   const existingGitignore = gitignorePresent ? await readFile(gitignorePath) : '';
 
@@ -144,7 +142,7 @@ export const InstallIgnoreWriteResponder = async ({
   // one this repo actually uses.
   const eslintConfigPath = locationsStatics.repoRoot.eslintConfig
     .map((candidateName) =>
-      absoluteFilePathContract.parse(resolve(context.targetProjectRoot, candidateName)),
+      resolve(context.targetProjectRoot, candidateName),
     )
     .find((candidatePath) => existsSync(candidatePath));
 
@@ -170,9 +168,7 @@ export const InstallIgnoreWriteResponder = async ({
   }
 
   // tsconfig.json is a SINGLE canonical name — locationsStatics already carries it.
-  const tsconfigPath = absoluteFilePathContract.parse(
-    resolve(context.targetProjectRoot, locationsStatics.repoRoot.tsconfig),
-  );
+  const tsconfigPath = resolve(context.targetProjectRoot, locationsStatics.repoRoot.tsconfig);
   const tsconfigPresent = existsSync(tsconfigPath);
 
   if (tsconfigPresent) {
@@ -194,7 +190,7 @@ export const InstallIgnoreWriteResponder = async ({
 
   const jestConfigPath = [JEST_CONFIG_JS_FILENAME, JEST_CONFIG_CJS_FILENAME]
     .map((candidateName) =>
-      absoluteFilePathContract.parse(resolve(context.targetProjectRoot, candidateName)),
+      resolve(context.targetProjectRoot, candidateName),
     )
     .find((candidatePath) => existsSync(candidatePath));
 

@@ -1,5 +1,4 @@
 import { pid } from '#gateway/node/process';
-import { AbsoluteFilePathStub } from '@dungeonmaster/shared/contracts/absolute-file-path/absolute-file-path.stub';
 
 import { bundleBuildBroker } from './bundle-build-broker';
 import { bundleBuildBrokerProxy } from './bundle-build-broker.proxy';
@@ -14,7 +13,7 @@ const TEMP_DIR = `${BUNDLE_PARENT}/.tmp-${String(pid)}`;
 describe('bundleBuildBroker', () => {
   describe('a bundle for these inputs already exists', () => {
     it('VALID: {the hash directory is on disk} => returns it without building', async () => {
-      const packageRoot = AbsoluteFilePathStub({ value: '/project/packages/web' });
+      const packageRoot = '/project/packages/web';
       const proxy = bundleBuildBrokerProxy();
       proxy.setupWorkspace();
       proxy.setupCachedBundle({ hash: BUNDLE_HASH });
@@ -25,7 +24,7 @@ describe('bundleBuildBroker', () => {
     });
 
     it('VALID: {the hash directory is on disk} => spawns no build', async () => {
-      const packageRoot = AbsoluteFilePathStub({ value: '/project/packages/web' });
+      const packageRoot = '/project/packages/web';
       const proxy = bundleBuildBrokerProxy();
       proxy.setupWorkspace();
       proxy.setupCachedBundle({ hash: BUNDLE_HASH });
@@ -38,7 +37,7 @@ describe('bundleBuildBroker', () => {
 
   describe('no bundle for these inputs yet', () => {
     it('VALID: {no hash directory} => builds into a pid-named temp directory and returns the hash directory', async () => {
-      const packageRoot = AbsoluteFilePathStub({ value: '/project/packages/web' });
+      const packageRoot = '/project/packages/web';
       const proxy = bundleBuildBrokerProxy();
       proxy.setupWorkspace();
       proxy.setupNoCachedBundle({ hash: BUNDLE_HASH });
@@ -51,7 +50,7 @@ describe('bundleBuildBroker', () => {
     });
 
     it('VALID: {no hash directory} => runs the package build script with the temp directory as outDir', async () => {
-      const packageRoot = AbsoluteFilePathStub({ value: '/project/packages/web' });
+      const packageRoot = '/project/packages/web';
       const proxy = bundleBuildBrokerProxy();
       proxy.setupWorkspace();
       proxy.setupNoCachedBundle({ hash: BUNDLE_HASH });
@@ -74,7 +73,7 @@ describe('bundleBuildBroker', () => {
     // Publishing is a rename ONTO the hash directory, never a write INSIDE one. A concurrent run
     // may already be serving files out of that directory.
     it('VALID: {the build succeeded} => publishes by renaming the temp directory onto the hash', async () => {
-      const packageRoot = AbsoluteFilePathStub({ value: '/project/packages/web' });
+      const packageRoot = '/project/packages/web';
       const proxy = bundleBuildBrokerProxy();
       proxy.setupWorkspace();
       proxy.setupNoCachedBundle({ hash: BUNDLE_HASH });
@@ -89,7 +88,7 @@ describe('bundleBuildBroker', () => {
 
   describe('a sibling run published this hash first', () => {
     it('EDGE: {the rename is refused} => discards the temp copy and still returns the hash directory', async () => {
-      const packageRoot = AbsoluteFilePathStub({ value: '/project/packages/web' });
+      const packageRoot = '/project/packages/web';
       const proxy = bundleBuildBrokerProxy();
       proxy.setupWorkspace();
       proxy.setupNoCachedBundle({ hash: BUNDLE_HASH });
@@ -102,7 +101,7 @@ describe('bundleBuildBroker', () => {
     });
 
     it('EDGE: {the rename is refused} => removes the temp directory it built', async () => {
-      const packageRoot = AbsoluteFilePathStub({ value: '/project/packages/web' });
+      const packageRoot = '/project/packages/web';
       const proxy = bundleBuildBrokerProxy();
       proxy.setupWorkspace();
       proxy.setupNoCachedBundle({ hash: BUNDLE_HASH });
@@ -120,7 +119,7 @@ describe('bundleBuildBroker', () => {
 
   describe('the build fails', () => {
     it('ERROR: {a non-zero build exit} => returns no bundle and the build output', async () => {
-      const packageRoot = AbsoluteFilePathStub({ value: '/project/packages/web' });
+      const packageRoot = '/project/packages/web';
       const proxy = bundleBuildBrokerProxy();
       proxy.setupWorkspace();
       proxy.setupNoCachedBundle({ hash: BUNDLE_HASH });
@@ -135,7 +134,7 @@ describe('bundleBuildBroker', () => {
     });
 
     it('ERROR: {a non-zero build exit} => leaves no temp directory behind', async () => {
-      const packageRoot = AbsoluteFilePathStub({ value: '/project/packages/web' });
+      const packageRoot = '/project/packages/web';
       const proxy = bundleBuildBrokerProxy();
       proxy.setupWorkspace();
       proxy.setupNoCachedBundle({ hash: BUNDLE_HASH });
@@ -152,7 +151,7 @@ describe('bundleBuildBroker', () => {
 
   describe('npm is not installed', () => {
     it('ERROR: {npm never starts} => returns no bundle and an empty build output', async () => {
-      const packageRoot = AbsoluteFilePathStub({ value: '/project/packages/web' });
+      const packageRoot = '/project/packages/web';
       const proxy = bundleBuildBrokerProxy();
       proxy.setupWorkspace();
       proxy.setupNoCachedBundle({ hash: BUNDLE_HASH });
@@ -167,7 +166,7 @@ describe('bundleBuildBroker', () => {
     });
 
     it('ERROR: {npm never starts} => leaves no temp directory behind', async () => {
-      const packageRoot = AbsoluteFilePathStub({ value: '/project/packages/web' });
+      const packageRoot = '/project/packages/web';
       const proxy = bundleBuildBrokerProxy();
       proxy.setupWorkspace();
       proxy.setupNoCachedBundle({ hash: BUNDLE_HASH });
@@ -186,7 +185,7 @@ describe('bundleBuildBroker', () => {
     // Nothing but the manifest read is staged here, so any attempt to walk the closure or glob a
     // package would throw on an unstaged call rather than pass quietly.
     it('EMPTY: {no build script} => returns no bundle and no error', async () => {
-      const packageRoot = AbsoluteFilePathStub({ value: '/project/packages/web' });
+      const packageRoot = '/project/packages/web';
       const proxy = bundleBuildBrokerProxy();
       proxy.setupNoBuildScript();
 

@@ -2,10 +2,9 @@ import { readFileSyncProxy } from '#gateway/node/fs/read-file-sync/read-file-syn
 import { FileMissingErrorStub } from '#gateway/node/fs/file-missing-error/file-missing-error.stub';
 import { dirname, join } from '#gateway/node/path';
 import { registerMock } from '@dungeonmaster/testing/register-mock';
-import { AbsoluteFilePathStub } from '../../../contracts/absolute-file-path/absolute-file-path.stub';
 import { dungeonmasterHomeStatics } from '../../../statics/dungeonmaster-home/dungeonmaster-home-statics';
 
-type AbsoluteFilePath = ReturnType<typeof AbsoluteFilePathStub>;
+type AbsoluteFilePath = string;
 
 export const portConfigWalkBrokerProxy = (): {
   setupPortFound: (params: { dir: string; port: number }) => void;
@@ -23,7 +22,7 @@ export const portConfigWalkBrokerProxy = (): {
 
   const configPathFor = ({ dirPath }: { dirPath: string }): AbsoluteFilePath => {
     const configFile = dungeonmasterHomeStatics.paths.projectConfigFile;
-    const configPath = AbsoluteFilePathStub({ value: `${dirPath}/${configFile}` });
+    const configPath = `${dirPath}/${configFile}`;
     joinHandle.calledWith([dirPath, configFile]).returns(configPath);
     return configPath;
   };

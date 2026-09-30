@@ -1,7 +1,6 @@
 import { locationsTsconfigPathFindBroker } from './locations-tsconfig-path-find-broker';
 import { locationsTsconfigPathFindBrokerProxy } from './locations-tsconfig-path-find-broker.proxy';
 import { ProjectRootNotFoundError } from '../../../errors/project-root-not-found/project-root-not-found-error';
-import { AbsoluteFilePathStub } from '../../../contracts/absolute-file-path/absolute-file-path.stub';
 
 describe('locationsTsconfigPathFindBroker', () => {
   describe('tsconfig found cases', () => {
@@ -14,7 +13,7 @@ describe('locationsTsconfigPathFindBroker', () => {
         startPath: '/project',
       });
 
-      expect(result).toBe(AbsoluteFilePathStub({ value: '/project/tsconfig.json' }));
+      expect(result).toBe('/project/tsconfig.json');
     });
 
     it('VALID: {startPath: "/project/src/sub"} => walks up two levels and returns /project/tsconfig.json', async () => {
@@ -34,7 +33,7 @@ describe('locationsTsconfigPathFindBroker', () => {
         startPath: '/project/src/sub',
       });
 
-      expect(result).toBe(AbsoluteFilePathStub({ value: '/project/tsconfig.json' }));
+      expect(result).toBe('/project/tsconfig.json');
     });
   });
 

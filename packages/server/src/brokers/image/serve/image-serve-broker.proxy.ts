@@ -2,7 +2,6 @@ import { existsSyncProxy } from '#gateway/node/fs/exists-sync/exists-sync.proxy'
 import { readFileBytesProxy } from '#gateway/node/fs__promises/read-file-bytes/read-file-bytes.proxy';
 import { realpathProxy } from '#gateway/node/fs__promises/realpath/realpath.proxy';
 import { dirname, join } from '#gateway/node/path';
-import type { AbsoluteFilePath } from '@dungeonmaster/shared/contracts';
 import { locationsStatics } from '@dungeonmaster/shared/statics';
 import { locationsQuestImagesPathFindBrokerProxy } from '@dungeonmaster/shared/brokers/locations/quest-images-path-find/locations-quest-images-path-find-broker.proxy';
 import { registerMock, requireActual } from '@dungeonmaster/testing/register-mock';
@@ -10,12 +9,12 @@ import { registerMock, requireActual } from '@dungeonmaster/testing/register-moc
 import { processDevLogBrokerProxy } from '../../process/dev-log/process-dev-log-broker.proxy';
 
 export const imageServeBrokerProxy = (): {
-  setupFileBytes: (params: { filePath: AbsoluteFilePath; bytes: Uint8Array }) => void;
+  setupFileBytes: (params: { filePath: string; bytes: Uint8Array }) => void;
   setupFileBytesWithoutQuestFile: (params: {
-    filePath: AbsoluteFilePath;
+    filePath: string;
     bytes: Uint8Array;
   }) => void;
-  setupReadFailure: (params: { filePath: AbsoluteFilePath; error: Error }) => void;
+  setupReadFailure: (params: { filePath: string; error: Error }) => void;
 } => {
   const readProxy = readFileBytesProxy();
   const realpathHandleProxy = realpathProxy();
@@ -27,7 +26,7 @@ export const imageServeBrokerProxy = (): {
     module: 'path',
   });
   joinHandle.calledWith([]).implement((...segments: never[]) => realPath.join(...segments));
-  const stageDirnames = ({ filePath }: { filePath: AbsoluteFilePath }): void => {
+  const stageDirnames = ({ filePath }: { filePath: string }): void => {
     const containingDir = realPath.dirname(filePath);
     for (const path of [filePath, containingDir]) {
       dirnameHandle.calledWith([path]).implement((given: string) => realPath.dirname(given));

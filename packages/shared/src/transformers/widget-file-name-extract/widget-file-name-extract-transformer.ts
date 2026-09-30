@@ -10,7 +10,6 @@
  * WHEN-TO-USE: Widget-tree broker and headline renderers deriving widget display names from file paths
  */
 
-import type { AbsoluteFilePath } from '../../contracts/absolute-file-path/absolute-file-path-contract';
 import {
   contentTextContract,
   type ContentText,
@@ -20,7 +19,7 @@ import { widgetTreeStatics } from '../../statics/widget-tree/widget-tree-statics
 export const widgetFileNameExtractTransformer = ({
   filePath,
 }: {
-  filePath: AbsoluteFilePath;
+  filePath: string;
 }): ContentText => {
   const parts = String(filePath).split('/');
   const basename = parts[parts.length - 1] ?? String(filePath);

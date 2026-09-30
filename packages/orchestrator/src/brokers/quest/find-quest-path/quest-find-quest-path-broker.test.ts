@@ -1,4 +1,3 @@
-import { AbsoluteFilePathStub } from '@dungeonmaster/shared/contracts/absolute-file-path/absolute-file-path.stub';
 import { FileNameStub } from '@dungeonmaster/shared/contracts/file-name/file-name.stub';
 import { GuildIdStub } from '@dungeonmaster/shared/contracts/guild-id/guild-id.stub';
 import { QuestIdStub } from '@dungeonmaster/shared/contracts/quest-id/quest-id.stub';
@@ -456,7 +455,7 @@ describe('questFindQuestPathBroker', () => {
       const proxy = questFindQuestPathBrokerProxy();
       const questId = QuestIdStub({ value: 'add-auth' });
       const guildId = GuildIdStub({ value: 'f47ac10b-58cc-4372-a567-0e02b2c3d479' });
-      const questPath = AbsoluteFilePathStub({ value: '/quests/add-auth' });
+      const questPath = '/quests/add-auth';
 
       proxy.setupQuestPath({ questId, guildId, questPath });
 

@@ -21,11 +21,10 @@
  */
 
 import { existsSync } from '#gateway/node/fs';
-import { type AbsoluteFilePath } from '@dungeonmaster/shared/contracts';
 
 const SOURCE_BARREL_SUFFIX = '/node_modules/@dungeonmaster/shared/statics.ts';
 
-export const sourceConditionSupportedBroker = ({ cwd }: { cwd: AbsoluteFilePath }): boolean => {
+export const sourceConditionSupportedBroker = ({ cwd }: { cwd: string }): boolean => {
   const segments = String(cwd).split('/');
 
   // Node resolves a bare specifier by walking `node_modules` up from the importer, and ward's cwd

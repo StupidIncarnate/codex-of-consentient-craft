@@ -1,4 +1,3 @@
-import { AbsoluteFilePathStub } from '@dungeonmaster/shared/contracts/absolute-file-path/absolute-file-path.stub';
 
 
 import { gitDetectOriginDefaultBranchBroker } from './git-detect-origin-default-branch-broker';
@@ -11,7 +10,7 @@ describe('gitDetectOriginDefaultBranchBroker', () => {
       proxy.setupOriginMainExists();
 
       const result = await gitDetectOriginDefaultBranchBroker({
-        cwd: AbsoluteFilePathStub({ value: '/project' }),
+        cwd: '/project',
       });
 
       expect(result).toStrictEqual('origin/main');
@@ -22,7 +21,7 @@ describe('gitDetectOriginDefaultBranchBroker', () => {
       proxy.setupOriginMainExists();
 
       await gitDetectOriginDefaultBranchBroker({
-        cwd: AbsoluteFilePathStub({ value: '/project' }),
+        cwd: '/project',
       });
 
       expect(proxy.getSpawnedCalls()).toStrictEqual([
@@ -37,7 +36,7 @@ describe('gitDetectOriginDefaultBranchBroker', () => {
       proxy.setupOriginMasterExists();
 
       const result = await gitDetectOriginDefaultBranchBroker({
-        cwd: AbsoluteFilePathStub({ value: '/project' }),
+        cwd: '/project',
       });
 
       expect(result).toStrictEqual('origin/master');
@@ -52,7 +51,7 @@ describe('gitDetectOriginDefaultBranchBroker', () => {
       proxy.setupOriginMasterExists();
 
       await gitDetectOriginDefaultBranchBroker({
-        cwd: AbsoluteFilePathStub({ value: '/project' }),
+        cwd: '/project',
       });
 
       expect(proxy.getSpawnedCalls()).toStrictEqual([
@@ -68,7 +67,7 @@ describe('gitDetectOriginDefaultBranchBroker', () => {
       proxy.setupNoOriginRefs();
 
       const result = await gitDetectOriginDefaultBranchBroker({
-        cwd: AbsoluteFilePathStub({ value: '/project' }),
+        cwd: '/project',
       });
 
       expect(result).toBe(null);
@@ -82,7 +81,7 @@ describe('gitDetectOriginDefaultBranchBroker', () => {
       proxy.setupGitNotFound();
 
       const result = await gitDetectOriginDefaultBranchBroker({
-        cwd: AbsoluteFilePathStub({ value: '/project' }),
+        cwd: '/project',
       });
 
       expect(result).toBe(null);

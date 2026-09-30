@@ -1,4 +1,3 @@
-import { AbsoluteFilePathStub } from '@dungeonmaster/shared/contracts/absolute-file-path/absolute-file-path.stub';
 import { QuestIdStub } from '@dungeonmaster/shared/contracts/quest-id/quest-id.stub';
 import { QuestSessionStub } from '@dungeonmaster/shared/contracts/quest-session/quest-session.stub';
 import { QuestStub } from '@dungeonmaster/shared/contracts/quest/quest.stub';
@@ -18,7 +17,7 @@ describe('questSessionRecordBroker', () => {
       const result = await questSessionRecordBroker({
         questId: QuestIdStub({ value: quest.id }),
         sessionId: SessionIdStub({ value: 'e0047cb8-02a2-448f-a1cb-909c9681f999' }),
-        cwd: AbsoluteFilePathStub({ value: '/repo' }),
+        cwd: '/repo',
         role: 'chaoswhisperer',
       });
 
@@ -41,7 +40,7 @@ describe('questSessionRecordBroker', () => {
       const result = await questSessionRecordBroker({
         questId: QuestIdStub({ value: quest.id }),
         sessionId: SessionIdStub({ value: '8e4e1efe-5619-4d0a-8604-5e92d01423b7' }),
-        cwd: AbsoluteFilePathStub({ value: '/repo/worktrees/add-auth' }),
+        cwd: '/repo/worktrees/add-auth',
         role: 'codeweaver',
         workItemId: QuestWorkItemIdStub({ value: '8acf84af-a24b-4d29-9e4e-4819d21a5480' }),
       });
@@ -77,7 +76,7 @@ describe('questSessionRecordBroker', () => {
       const result = await questSessionRecordBroker({
         questId: QuestIdStub({ value: quest.id }),
         sessionId: SessionIdStub({ value: '8e4e1efe-5619-4d0a-8604-5e92d01423b7' }),
-        cwd: AbsoluteFilePathStub({ value: '/repo/worktrees/add-auth' }),
+        cwd: '/repo/worktrees/add-auth',
         role: 'codeweaver',
       });
 
@@ -118,7 +117,7 @@ describe('questSessionRecordBroker', () => {
       const result = await questSessionRecordBroker({
         questId: QuestIdStub({ value: quest.id }),
         sessionId: SessionIdStub({ value: 'e0047cb8-02a2-448f-a1cb-909c9681f999' }),
-        cwd: AbsoluteFilePathStub({ value: '/repo/worktrees/add-auth' }),
+        cwd: '/repo/worktrees/add-auth',
         role: 'chaoswhisperer',
       });
 
@@ -145,7 +144,7 @@ describe('questSessionRecordBroker', () => {
       const result = await questSessionRecordBroker({
         questId: QuestIdStub({ value: quest.id }),
         sessionId: SessionIdStub({ value: 'e0047cb8-02a2-448f-a1cb-909c9681f999' }),
-        cwd: AbsoluteFilePathStub({ value: '/repo/worktrees/add-auth' }),
+        cwd: '/repo/worktrees/add-auth',
         role: 'chaoswhisperer',
       });
 

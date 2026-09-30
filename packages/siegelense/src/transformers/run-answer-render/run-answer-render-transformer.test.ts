@@ -1,4 +1,3 @@
-import { AbsoluteFilePathStub } from '@dungeonmaster/shared/contracts/absolute-file-path/absolute-file-path.stub';
 
 import { RunIdStub } from '../../contracts/run-id/run-id.stub';
 import { RunResultStub } from '../../contracts/run-result/run-result.stub';
@@ -69,9 +68,7 @@ describe('runAnswerRenderTransformer', () => {
     it('VALID: {shots with one screenshot} => renders SCREENSHOTS line with filename and path', () => {
       const shot = ShotListingStub({
         step: StepIndexStub({ value: 1 }),
-        path: AbsoluteFilePathStub({
-          value: '/repo/.dungeonmaster-assets/siegelense-assets/runs/run_1/step1.png',
-        }),
+        path: '/repo/.dungeonmaster-assets/siegelense-assets/runs/run_1/step1.png',
       });
       const result = RunResultStub({
         runId: RunIdStub({ value: 'run_1' }),
@@ -92,15 +89,11 @@ describe('runAnswerRenderTransformer', () => {
     it('VALID: {stoppedAt and shots} => renders header, stopped line, and screenshots line', () => {
       const shot1 = ShotListingStub({
         step: StepIndexStub({ value: 1 }),
-        path: AbsoluteFilePathStub({
-          value: '/repo/.dungeonmaster-assets/siegelense-assets/runs/run_4/step1.png',
-        }),
+        path: '/repo/.dungeonmaster-assets/siegelense-assets/runs/run_4/step1.png',
       });
       const shot2 = ShotListingStub({
         step: StepIndexStub({ value: 2 }),
-        path: AbsoluteFilePathStub({
-          value: '/repo/.dungeonmaster-assets/siegelense-assets/runs/run_4/step2_error.png',
-        }),
+        path: '/repo/.dungeonmaster-assets/siegelense-assets/runs/run_4/step2_error.png',
       });
       const stoppedAt = StoppedAtStub({
         step: StepIndexStub({ value: 2 }),

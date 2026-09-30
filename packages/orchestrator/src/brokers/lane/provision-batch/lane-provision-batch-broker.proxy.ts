@@ -16,7 +16,6 @@
  */
 
 import { dynamicImportProxy } from '#gateway/node/module/dynamic-import/dynamic-import.proxy';
-import { absoluteFilePathContract } from '@dungeonmaster/shared/contracts';
 import { FileNameStub } from '@dungeonmaster/shared/contracts/file-name/file-name.stub';
 import { GuildIdStub } from '@dungeonmaster/shared/contracts/guild-id/guild-id.stub';
 import type { questContract } from '@dungeonmaster/shared/contracts';
@@ -83,7 +82,7 @@ export const laneProvisionBatchBrokerProxy = (): {
       // FilePath above (the union questFindQuestPathBrokerProxy takes) but is genuinely absolute —
       // built with a leading `/` — so it re-parses into the AbsoluteFilePath
       // laneRecordInstanceBrokerProxy requires, rather than widening either proxy's type.
-      const absoluteQuestFolderPath = absoluteFilePathContract.parse(questFolderPath);
+      const absoluteQuestFolderPath = questFolderPath;
       RECORD_CYCLES.forEach(() => {
         recordInstanceProxy.setupQuestFound({ quest, questPath: absoluteQuestFolderPath });
       });

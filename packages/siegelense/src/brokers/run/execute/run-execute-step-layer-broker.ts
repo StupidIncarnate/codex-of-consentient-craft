@@ -49,7 +49,6 @@
  * // { reading, stoppedAt, timedOut } once ok is false
  */
 
-import type { AbsoluteFilePath } from '@dungeonmaster/shared/contracts';
 import { contentTextContract } from '@dungeonmaster/shared/contracts';
 
 import { isNativeError } from '#gateway/node/util__types';
@@ -91,10 +90,10 @@ export const runExecuteStepLayerBroker = async ({
   lane: LaneSession;
   step: Step;
   index: StepIndex;
-  shotPath: AbsoluteFilePath | null;
+  shotPath: string | null;
   browserWindowStart: BufferLengths | null;
-  lastShotPath: () => AbsoluteFilePath | null;
-  setLastShotPath: (params: { path: AbsoluteFilePath }) => void;
+  lastShotPath: () => string | null;
+  setLastShotPath: (params: { path: string }) => void;
   outputs: () => Record<PropertyKey, Record<PropertyKey, unknown>>;
   recordOutput: (params: { name: StepOutputName; result: Record<PropertyKey, unknown> }) => void;
 }): Promise<{ reading: StepReading; stoppedAt: StoppedAt | null; timedOut: boolean }> => {

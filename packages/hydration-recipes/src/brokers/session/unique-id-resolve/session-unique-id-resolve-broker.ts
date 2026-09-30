@@ -21,8 +21,7 @@
  */
 import { claudePathSlugEncoderTransformer } from '@dungeonmaster/shared/transformers';
 import { existsSync } from '#gateway/node/fs';
-import { absoluteFilePathContract } from '@dungeonmaster/shared/contracts';
-import type { AbsoluteFilePath, Session } from '@dungeonmaster/shared/contracts';
+import type { Session } from '@dungeonmaster/shared/contracts';
 
 import { sessionDefaultIdBumpTransformer } from '../../../transformers/session-default-id-bump/session-default-id-bump-transformer';
 import type { DmTarget } from '../../../contracts/dm-target/dm-target-contract';
@@ -33,14 +32,14 @@ export const sessionUniqueIdResolveBroker = ({
   sessionId,
 }: {
   target: DmTarget;
-  cwd: AbsoluteFilePath;
+  cwd: string;
   sessionId: Session['id'];
 }): Session['id'] => {
   const sessionsDir = claudePathSlugEncoderTransformer({
     homeDir: target.claudeHome,
     projectPath: cwd,
   });
-  const filePath = absoluteFilePathContract.parse(`${sessionsDir}/${sessionId}.jsonl`);
+  const filePath = `${sessionsDir}/${sessionId}.jsonl`;
 
   if (!existsSync(filePath)) {
     return sessionId;

@@ -1,5 +1,5 @@
 import type { StubArgument } from '@dungeonmaster/shared/@types';
-import { absoluteFilePathContract, contentTextContract } from '@dungeonmaster/shared/contracts';
+import { contentTextContract } from '@dungeonmaster/shared/contracts';
 import type { ContentText } from '@dungeonmaster/shared/contracts';
 
 import { laneSessionContract } from './lane-session-contract';
@@ -41,10 +41,8 @@ export const LaneSessionStub = ({
           ? SpecNameStub()
           : SpecNameStub({ value: dataProps.specName }),
       ports: PortPairStub(dataProps.ports),
-      homePath: absoluteFilePathContract.parse(dataProps.homePath ?? '/tmp/dm-siege-stub'),
-      evidencePath: absoluteFilePathContract.parse(
-        dataProps.evidencePath ?? '/tmp/dm-siege-stub-evidence',
-      ),
+      homePath: (dataProps.homePath ?? '/tmp/dm-siege-stub'),
+      evidencePath: (dataProps.evidencePath ?? '/tmp/dm-siege-stub-evidence'),
       baseUrl: contentTextContract.parse(dataProps.baseUrl ?? 'http://127.0.0.1:0'),
       apiBaseUrl: contentTextContract.parse(
         dataProps.apiBaseUrl ?? dataProps.baseUrl ?? 'http://127.0.0.1:0',

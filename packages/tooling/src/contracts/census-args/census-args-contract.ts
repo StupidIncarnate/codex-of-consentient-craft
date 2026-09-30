@@ -7,11 +7,10 @@
  * // Returns: CensusArgs
  */
 import { z } from '#gateway/npm/zod';
-import { absoluteFilePathContract } from '../absolute-file-path/absolute-file-path-contract';
 import { censusFormatContract } from '../census-format/census-format-contract';
 
 export const censusArgsContract = z.object({
-  cwd: absoluteFilePathContract.optional(),
+  cwd: z.string().brand<'CensusArgsCwd'>().optional(),
   format: censusFormatContract,
   packageFilter: z.string().min(1).brand<'CensusPackageFilter'>().optional(),
 });

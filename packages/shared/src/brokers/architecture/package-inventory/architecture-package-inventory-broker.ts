@@ -18,8 +18,6 @@ import { formatFolderContentLayerBroker } from './format-folder-content-layer-br
 import { readPackageDescriptionLayerBroker } from './read-package-description-layer-broker';
 import { folderConfigStatics } from '../../../statics/folder-config/folder-config-statics';
 import { projectMapStatics } from '../../../statics/project-map/project-map-statics';
-import type { AbsoluteFilePath } from '../../../contracts/absolute-file-path/absolute-file-path-contract';
-import { absoluteFilePathContract } from '../../../contracts/absolute-file-path/absolute-file-path-contract';
 import type { ContentText } from '../../../contracts/content-text/content-text-contract';
 import { contentTextContract } from '../../../contracts/content-text/content-text-contract';
 import { folderConfigContract } from '../../../contracts/folder-config/folder-config-contract';
@@ -31,8 +29,8 @@ export const architecturePackageInventoryBroker = ({
   packageJsonPath,
 }: {
   packageName: ContentText;
-  srcPath: AbsoluteFilePath;
-  packageJsonPath: AbsoluteFilePath;
+  srcPath: string;
+  packageJsonPath: string;
 }): ContentText => {
   const totalFiles = countFilesRecursiveLayerBroker({ dirPath: srcPath });
   const description = readPackageDescriptionLayerBroker({ packageJsonPath });
@@ -55,7 +53,7 @@ export const architecturePackageInventoryBroker = ({
   ];
 
   for (const folder of folderEntries) {
-    const folderPath = absoluteFilePathContract.parse(`${srcPath}/${folder.name}`);
+    const folderPath = `${srcPath}/${folder.name}`;
     const fileCount = countFilesRecursiveLayerBroker({ dirPath: folderPath });
 
     // Look up folder depth from config

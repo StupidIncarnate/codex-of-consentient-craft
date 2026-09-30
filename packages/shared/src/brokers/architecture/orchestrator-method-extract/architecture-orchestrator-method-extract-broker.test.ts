@@ -1,6 +1,5 @@
 import { architectureOrchestratorMethodExtractBroker } from './architecture-orchestrator-method-extract-broker';
 import { architectureOrchestratorMethodExtractBrokerProxy } from './architecture-orchestrator-method-extract-broker.proxy';
-import { AbsoluteFilePathStub } from '../../../contracts/absolute-file-path/absolute-file-path.stub';
 
 const RESPONDER_PATH = '/repo/packages/server/src/responders/quest/start/quest-start-responder.ts';
 const ADAPTER_PATH =
@@ -22,7 +21,7 @@ describe('architectureOrchestratorMethodExtractBroker', () => {
       architectureOrchestratorMethodExtractBrokerProxy().setupFiles({});
 
       const result = architectureOrchestratorMethodExtractBroker({
-        serverResponderFile: AbsoluteFilePathStub({ value: RESPONDER_PATH }),
+        serverResponderFile: RESPONDER_PATH,
       });
 
       expect(result).toBe(null);
@@ -37,7 +36,7 @@ export const questStartResponder = async (c: Context) => {};`,
       });
 
       const result = architectureOrchestratorMethodExtractBroker({
-        serverResponderFile: AbsoluteFilePathStub({ value: RESPONDER_PATH }),
+        serverResponderFile: RESPONDER_PATH,
       });
 
       expect(result).toBe(null);
@@ -53,7 +52,7 @@ export const questStartResponder = async (c: Context) => {};`,
       });
 
       const result = architectureOrchestratorMethodExtractBroker({
-        serverResponderFile: AbsoluteFilePathStub({ value: RESPONDER_PATH }),
+        serverResponderFile: RESPONDER_PATH,
       });
 
       expect(String(result)).toBe('StartOrchestrator.startQuest({...})');

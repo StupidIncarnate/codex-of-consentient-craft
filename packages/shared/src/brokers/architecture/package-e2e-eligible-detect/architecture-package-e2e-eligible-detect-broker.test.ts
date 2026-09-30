@@ -1,4 +1,3 @@
-import { AbsoluteFilePathStub } from '../../../contracts/absolute-file-path/absolute-file-path.stub';
 import { architecturePackageE2eEligibleDetectBrokerProxy } from './architecture-package-e2e-eligible-detect-broker.proxy';
 import { architecturePackageE2eEligibleDetectBroker } from './architecture-package-e2e-eligible-detect-broker';
 
@@ -13,7 +12,7 @@ describe('architecturePackageE2eEligibleDetectBroker', () => {
       });
 
       const result = await architecturePackageE2eEligibleDetectBroker({
-        packageRoot: AbsoluteFilePathStub({ value: '/repo/packages/pkg' }),
+        packageRoot: '/repo/packages/pkg',
       });
 
       expect(result).toBe(true);
@@ -28,7 +27,7 @@ describe('architecturePackageE2eEligibleDetectBroker', () => {
       });
 
       const result = await architecturePackageE2eEligibleDetectBroker({
-        packageRoot: AbsoluteFilePathStub({ value: '/repo/packages/pkg' }),
+        packageRoot: '/repo/packages/pkg',
       });
 
       expect(result).toBe(true);
@@ -43,7 +42,7 @@ describe('architecturePackageE2eEligibleDetectBroker', () => {
       });
 
       const result = await architecturePackageE2eEligibleDetectBroker({
-        packageRoot: AbsoluteFilePathStub({ value: '/repo/packages/pkg' }),
+        packageRoot: '/repo/packages/pkg',
       });
 
       expect(result).toBe(false);
@@ -58,7 +57,7 @@ describe('architecturePackageE2eEligibleDetectBroker', () => {
       });
 
       const result = await architecturePackageE2eEligibleDetectBroker({
-        packageRoot: AbsoluteFilePathStub({ value: '/repo/packages/pkg' }),
+        packageRoot: '/repo/packages/pkg',
       });
 
       expect(result).toBe(false);
@@ -69,7 +68,7 @@ describe('architecturePackageE2eEligibleDetectBroker', () => {
       proxy.setupPackage({ packageRoot: '/repo/packages/pkg' });
 
       const result = await architecturePackageE2eEligibleDetectBroker({
-        packageRoot: AbsoluteFilePathStub({ value: '/repo/packages/pkg' }),
+        packageRoot: '/repo/packages/pkg',
       });
 
       expect(result).toBe(false);
@@ -86,7 +85,7 @@ describe('architecturePackageE2eEligibleDetectBroker', () => {
       });
 
       const webResult = await architecturePackageE2eEligibleDetectBroker({
-        packageRoot: AbsoluteFilePathStub({ value: '/repo/packages/web' }),
+        packageRoot: '/repo/packages/web',
       });
 
       const tuiProxy = architecturePackageE2eEligibleDetectBrokerProxy();
@@ -97,7 +96,7 @@ describe('architecturePackageE2eEligibleDetectBroker', () => {
       });
 
       const tuiResult = await architecturePackageE2eEligibleDetectBroker({
-        packageRoot: AbsoluteFilePathStub({ value: '/repo/packages/tui' }),
+        packageRoot: '/repo/packages/tui',
       });
 
       expect(webResult).toBe(true);
@@ -119,7 +118,7 @@ describe('architecturePackageE2eEligibleDetectBroker', () => {
       });
 
       const result = await architecturePackageE2eEligibleDetectBroker({
-        packageRoot: AbsoluteFilePathStub({ value: '/repo/packages/pkg' }),
+        packageRoot: '/repo/packages/pkg',
       });
 
       expect(result).toBe(false);
@@ -136,7 +135,7 @@ describe('architecturePackageE2eEligibleDetectBroker', () => {
       });
 
       const result = await architecturePackageE2eEligibleDetectBroker({
-        packageRoot: AbsoluteFilePathStub({ value: '/repo/packages/pkg' }),
+        packageRoot: '/repo/packages/pkg',
       });
 
       expect(result).toBe(false);
@@ -151,7 +150,7 @@ describe('architecturePackageE2eEligibleDetectBroker', () => {
       });
 
       const result = await architecturePackageE2eEligibleDetectBroker({
-        packageRoot: AbsoluteFilePathStub({ value: '/repo/packages/pkg' }),
+        packageRoot: '/repo/packages/pkg',
       });
 
       expect(result).toBe(true);
@@ -166,7 +165,7 @@ describe('architecturePackageE2eEligibleDetectBroker', () => {
       });
 
       const result = await architecturePackageE2eEligibleDetectBroker({
-        packageRoot: AbsoluteFilePathStub({ value: '/repo/packages/pkg' }),
+        packageRoot: '/repo/packages/pkg',
       });
 
       expect(result).toBe(true);
@@ -183,7 +182,7 @@ describe('architecturePackageE2eEligibleDetectBroker', () => {
       });
 
       const result = await architecturePackageE2eEligibleDetectBroker({
-        packageRoot: AbsoluteFilePathStub({ value: '/repo/packages/pkg' }),
+        packageRoot: '/repo/packages/pkg',
       });
 
       expect(result).toBe(false);
@@ -198,7 +197,7 @@ describe('architecturePackageE2eEligibleDetectBroker', () => {
       });
 
       const result = await architecturePackageE2eEligibleDetectBroker({
-        packageRoot: AbsoluteFilePathStub({ value: '/repo/packages/pkg' }),
+        packageRoot: '/repo/packages/pkg',
       });
 
       expect(result).toBe(false);
@@ -213,7 +212,7 @@ describe('architecturePackageE2eEligibleDetectBroker', () => {
       });
 
       const result = await architecturePackageE2eEligibleDetectBroker({
-        packageRoot: AbsoluteFilePathStub({ value: '/repo/packages/pkg' }),
+        packageRoot: '/repo/packages/pkg',
       });
 
       expect(result).toBe(false);
@@ -227,7 +226,7 @@ describe('architecturePackageE2eEligibleDetectBroker', () => {
       });
 
       const result = await architecturePackageE2eEligibleDetectBroker({
-        packageRoot: AbsoluteFilePathStub({ value: '/repo/packages/pkg' }),
+        packageRoot: '/repo/packages/pkg',
       });
 
       expect(result).toBe(false);
@@ -241,7 +240,7 @@ describe('architecturePackageE2eEligibleDetectBroker', () => {
       });
 
       const result = await architecturePackageE2eEligibleDetectBroker({
-        packageRoot: AbsoluteFilePathStub({ value: '/repo/packages/pkg' }),
+        packageRoot: '/repo/packages/pkg',
       });
 
       expect(result).toBe(false);
@@ -260,7 +259,7 @@ describe('architecturePackageE2eEligibleDetectBroker', () => {
       });
 
       const result = await architecturePackageE2eEligibleDetectBroker({
-        packageRoot: AbsoluteFilePathStub({ value: '/repo/packages/pkg' }),
+        packageRoot: '/repo/packages/pkg',
       });
 
       expect(result).toBe(true);

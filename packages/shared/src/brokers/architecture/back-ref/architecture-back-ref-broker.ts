@@ -16,7 +16,6 @@
  * HTTP, WS, and file-bus edges
  */
 
-import type { AbsoluteFilePath } from '../../../contracts/absolute-file-path/absolute-file-path-contract';
 import {
   contentTextContract,
   type ContentText,
@@ -30,8 +29,8 @@ export const architectureBackRefBroker = ({
   filePath,
   projectRoot,
 }: {
-  filePath: AbsoluteFilePath;
-  projectRoot: AbsoluteFilePath;
+  filePath: string;
+  projectRoot: string;
 }): ContentText | null => {
   const raw = String(filePath);
   const packagesPrefix = `${String(projectRoot)}${PACKAGES_SEGMENT}`;

@@ -21,11 +21,8 @@
 import { createHash } from '#gateway/node/crypto';
 import { readdirEntriesSync } from '#gateway/node/fs';
 import { copyDirContents, readFile, rm, statIfExists } from '#gateway/node/fs__promises';
-import {
-  absoluteFilePathContract,
-  relativeFilePathContract,
-} from '@dungeonmaster/shared/contracts';
-import type { AbsoluteFilePath, RelativeFilePath } from '@dungeonmaster/shared/contracts';
+import { relativeFilePathContract } from '@dungeonmaster/shared/contracts';
+import type { RelativeFilePath } from '@dungeonmaster/shared/contracts';
 
 import { fileStatContract } from '../../../contracts/file-stat/file-stat-contract';
 import type { FileStat } from '../../../contracts/file-stat/file-stat-contract';
@@ -38,12 +35,12 @@ export const snapshotRestoreLayerBroker = async ({
   homePath,
   payloadPath,
 }: {
-  homePath: AbsoluteFilePath;
-  payloadPath: AbsoluteFilePath;
+  homePath: string;
+  payloadPath: string;
 }): Promise<ResetUndid> => {
   const homeFiles = new Map<RelativeFilePath, FileStat>();
-  const homeQueue: AbsoluteFilePath[] = [homePath];
-  const homeFilePaths: AbsoluteFilePath[] = [];
+  const homeQueue: string[] = [homePath];
+  const homeFilePaths: string[] = [];
   const homePrefixLen = String(homePath).length + 1;
 
   while (homeQueue.length > 0) {
@@ -56,7 +53,7 @@ export const snapshotRestoreLayerBroker = async ({
       if (currentDir === homePath && entry.name === snapshotStatics.store.dirName) {
         continue;
       }
-      const entryPath = absoluteFilePathContract.parse(`${String(currentDir)}/${entry.name}`);
+      const entryPath = `${String(currentDir)}/${entry.name}`;
       if (entry.kind === 'directory') {
         homeQueue.push(entryPath);
       } else {
@@ -86,8 +83,8 @@ export const snapshotRestoreLayerBroker = async ({
   });
 
   const payloadFiles = new Map<RelativeFilePath, FileStat>();
-  const payloadQueue: AbsoluteFilePath[] = [payloadPath];
-  const payloadFilePaths: AbsoluteFilePath[] = [];
+  const payloadQueue: string[] = [payloadPath];
+  const payloadFilePaths: string[] = [];
   const payloadPrefixLen = String(payloadPath).length + 1;
 
   while (payloadQueue.length > 0) {
@@ -97,7 +94,7 @@ export const snapshotRestoreLayerBroker = async ({
     }
     const entries = readdirEntriesSync(currentDir);
     for (const entry of entries) {
-      const entryPath = absoluteFilePathContract.parse(`${String(currentDir)}/${entry.name}`);
+      const entryPath = `${String(currentDir)}/${entry.name}`;
       if (entry.kind === 'directory') {
         payloadQueue.push(entryPath);
       } else {
@@ -155,10 +152,10 @@ export const snapshotRestoreLayerBroker = async ({
   const contentDiffers = await Promise.all(
     sameSizeCandidates.map(async (relPath) => {
       const homeContent = await readFile(
-        absoluteFilePathContract.parse(`${String(homePath)}${String(relPath).slice(1)}`),
+        `${String(homePath)}${String(relPath).slice(1)}`,
       );
       const payloadContent = await readFile(
-        absoluteFilePathContract.parse(`${String(payloadPath)}${String(relPath).slice(1)}`),
+        `${String(payloadPath)}${String(relPath).slice(1)}`,
       );
       const homeHash = createHash('sha256').update(homeContent).digest('hex');
       const payloadHash = createHash('sha256').update(payloadContent).digest('hex');

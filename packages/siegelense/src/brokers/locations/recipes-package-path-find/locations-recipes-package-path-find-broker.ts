@@ -14,15 +14,14 @@
 import { cwdResolveBroker } from '@dungeonmaster/shared/brokers';
 import { cwd } from '#gateway/node/process';
 import { join } from '#gateway/node/path';
-import { absoluteFilePathContract, type AbsoluteFilePath } from '@dungeonmaster/shared/contracts';
 
 import { recipeLocationStatics } from '../../../statics/recipe-location/recipe-location-statics';
 
-export const locationsRecipesPackagePathFindBroker = async (): Promise<AbsoluteFilePath> => {
+export const locationsRecipesPackagePathFindBroker = async (): Promise<string> => {
   const cwdPath = cwd();
   const repoRoot = await cwdResolveBroker({ startPath: cwdPath, kind: 'repo-root' });
 
   const joined = join(repoRoot, ...recipeLocationStatics.packageDir.segments);
 
-  return absoluteFilePathContract.parse(joined);
+  return joined;
 };

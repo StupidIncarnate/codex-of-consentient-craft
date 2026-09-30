@@ -18,19 +18,15 @@
 import { join } from '#gateway/node/path';
 import { dungeonmasterHomeFindBroker } from '../../dungeonmaster-home/find/dungeonmaster-home-find-broker';
 import { locationsStatics } from '../../../statics/locations/locations-statics';
-import {
-  absoluteFilePathContract,
-  type AbsoluteFilePath,
-} from '../../../contracts/absolute-file-path/absolute-file-path-contract';
 
 export const locationsUsageLedgerTmpPathFindBroker = ({
   token,
 }: {
   token: string;
-}): AbsoluteFilePath => {
+}): string => {
   const { homePath } = dungeonmasterHomeFindBroker();
 
   const joined = join(homePath, `${locationsStatics.dungeonmasterHome.usageLedgerTmp}.${token}`);
 
-  return absoluteFilePathContract.parse(joined);
+  return joined;
 };

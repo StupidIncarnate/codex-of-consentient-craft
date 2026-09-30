@@ -10,7 +10,6 @@ import { variantWalkLayerBroker } from './variant-walk-layer-broker';
 import { dirname } from '#gateway/node/path';
 import { locationsStatics } from '../../../statics/locations/locations-statics';
 import { ProjectRootNotFoundError } from '../../../errors/project-root-not-found/project-root-not-found-error';
-import type { AbsoluteFilePath } from '../../../contracts/absolute-file-path/absolute-file-path-contract';
 
 export const locationsEslintConfigPathFindBroker = async ({
   startPath,
@@ -18,7 +17,7 @@ export const locationsEslintConfigPathFindBroker = async ({
 }: {
   startPath: string;
   currentPath?: string;
-}): Promise<AbsoluteFilePath> => {
+}): Promise<string> => {
   const searchPath = currentPath ?? startPath;
 
   const matched = await variantWalkLayerBroker({

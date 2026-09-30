@@ -25,7 +25,7 @@
  * // Returns the ContentText JSON lines tagged run_2, step 7
  */
 
-import type { ContentText, AbsoluteFilePath, SiegeRun } from '@dungeonmaster/shared/contracts';
+import type { ContentText, SiegeRun } from '@dungeonmaster/shared/contracts';
 
 import { readFileIfExists } from '#gateway/node/fs__promises';
 import { bufferEntryContract } from '../../../contracts/buffer-entry/buffer-entry-contract';
@@ -43,7 +43,7 @@ export const bufferReadLayerBroker = async ({
   step,
   where,
 }: {
-  bufferPath: AbsoluteFilePath;
+  bufferPath: string;
   runId: SiegeRun['id'] | null;
   sinceBoot: boolean;
   step: StepIndex | null;

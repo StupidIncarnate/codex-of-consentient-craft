@@ -13,12 +13,11 @@
 import { dungeonmasterHomeFindBroker } from '@dungeonmaster/shared/brokers';
 import { join } from '#gateway/node/path';
 import { locationsStatics } from '@dungeonmaster/shared/statics';
-import { absoluteFilePathContract, type AbsoluteFilePath } from '@dungeonmaster/shared/contracts';
 
-export const locationsRootPathFindBroker = (): AbsoluteFilePath => {
+export const locationsRootPathFindBroker = (): string => {
   const { homePath } = dungeonmasterHomeFindBroker();
 
   const joined = join(homePath, locationsStatics.siegelense.dir);
 
-  return absoluteFilePathContract.parse(joined);
+  return joined;
 };

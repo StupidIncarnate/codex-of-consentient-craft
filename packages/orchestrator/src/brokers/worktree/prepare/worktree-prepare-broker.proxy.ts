@@ -1,4 +1,4 @@
-import { absoluteFilePathContract, type AbsoluteFilePath, type BaseBranchName, type QuestBranchName } from '@dungeonmaster/shared/contracts';
+import { type BaseBranchName, type QuestBranchName } from '@dungeonmaster/shared/contracts';
 
 import { headShaProxy } from '#gateway/bin/git/head-sha/head-sha.proxy';
 import { verifyRefProxy } from '#gateway/bin/git/verify-ref/verify-ref.proxy';
@@ -25,51 +25,51 @@ const NOT_A_REPO_OUTPUT = 'fatal: not a git repository';
 
 export const worktreePrepareBrokerProxy = (): {
   setupHappyPath: (params: {
-    repoRoot: AbsoluteFilePath;
-    worktreePath: AbsoluteFilePath;
+    repoRoot: string;
+    worktreePath: string;
     branchName: QuestBranchName;
     baseBranch: BaseBranchName;
     sha: string;
   }) => void;
   setupAttachExistingBranch: (params: {
-    repoRoot: AbsoluteFilePath;
-    worktreePath: AbsoluteFilePath;
+    repoRoot: string;
+    worktreePath: string;
     branchName: QuestBranchName;
     sha: string;
   }) => void;
   setupAttachExistingBranchHeadShaFails: (params: {
-    worktreePath: AbsoluteFilePath;
+    worktreePath: string;
     branchName: QuestBranchName;
   }) => void;
   setupWorktreeAddFails: (params: {
-    worktreePath: AbsoluteFilePath;
+    worktreePath: string;
     branchName: QuestBranchName;
     baseBranch: BaseBranchName;
     output: string;
   }) => void;
   setupHeadShaFailsDiscardSucceeds: (params: {
-    worktreePath: AbsoluteFilePath;
+    worktreePath: string;
     branchName: QuestBranchName;
     baseBranch: BaseBranchName;
   }) => void;
   setupHeadShaFailsDiscardAlsoFails: (params: {
-    worktreePath: AbsoluteFilePath;
+    worktreePath: string;
     branchName: QuestBranchName;
     baseBranch: BaseBranchName;
     removeFailureOutput: string;
   }) => void;
   setupUnbuiltMainCheckout: (params: {
-    repoRoot: AbsoluteFilePath;
-    worktreePath: AbsoluteFilePath;
+    repoRoot: string;
+    worktreePath: string;
     packageName: string;
   }) => void;
   setupDistSeeded: (params: {
-    repoRoot: AbsoluteFilePath;
-    worktreePath: AbsoluteFilePath;
+    repoRoot: string;
+    worktreePath: string;
     packageName: string;
   }) => void;
   setupLeakingLink: (params: {
-    worktreePath: AbsoluteFilePath;
+    worktreePath: string;
     entryName: string;
     storedTarget: string;
   }) => void;
@@ -98,7 +98,7 @@ export const worktreePrepareBrokerProxy = (): {
     branchName,
     baseBranch,
   }: {
-    worktreePath: AbsoluteFilePath;
+    worktreePath: string;
     branchName: QuestBranchName;
     baseBranch: BaseBranchName;
   }): void => {
@@ -116,7 +116,7 @@ export const worktreePrepareBrokerProxy = (): {
     worktreePath,
     branchName,
   }: {
-    worktreePath: AbsoluteFilePath;
+    worktreePath: string;
     branchName: QuestBranchName;
   }): void => {
     verifyProxy.setupResult({ ref: String(branchName), exitCode: 0 });
@@ -133,8 +133,8 @@ export const worktreePrepareBrokerProxy = (): {
     repoRoot,
     worktreePath,
   }: {
-    repoRoot: AbsoluteFilePath;
-    worktreePath: AbsoluteFilePath;
+    repoRoot: string;
+    worktreePath: string;
   }): void => {
     seedProxy.setupPackagesDirAbsent({ repoRoot });
     linksProxy.setupNodeModulesAbsent({ worktreePath });
@@ -212,7 +212,7 @@ export const worktreePrepareBrokerProxy = (): {
     setupLeakingLink: ({ worktreePath, entryName, storedTarget }): void => {
       linksProxy.setupNodeModulesPresent({ worktreePath });
       linksProxy.setupDirectoryEntries({
-        dirPath: absoluteFilePathContract.parse(`${String(worktreePath)}/node_modules`),
+        dirPath: `${String(worktreePath)}/node_modules`,
         entries: [{ name: entryName, isDir: false, isSymlink: true }],
       });
       linksProxy.setupReadlinkTarget({

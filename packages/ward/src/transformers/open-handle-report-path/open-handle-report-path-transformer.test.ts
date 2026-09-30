@@ -1,11 +1,10 @@
-import { AbsoluteFilePathStub } from '@dungeonmaster/shared/contracts/absolute-file-path/absolute-file-path.stub';
 import { openHandleReportPathTransformer } from './open-handle-report-path-transformer';
 
 describe('openHandleReportPathTransformer', () => {
   describe('the path it builds', () => {
     it('VALID: {tmpdir: /tmp, unit, 4242} => returns the unit report path', () => {
       const result = openHandleReportPathTransformer({
-        tmpdir: AbsoluteFilePathStub({ value: '/tmp' }),
+        tmpdir: '/tmp',
         checkType: 'unit',
         processId: 4242,
       });
@@ -15,12 +14,12 @@ describe('openHandleReportPathTransformer', () => {
 
     it('VALID: {same pid, integration} => a different path from the unit one', () => {
       const unit = openHandleReportPathTransformer({
-        tmpdir: AbsoluteFilePathStub({ value: '/tmp' }),
+        tmpdir: '/tmp',
         checkType: 'unit',
         processId: 4242,
       });
       const integration = openHandleReportPathTransformer({
-        tmpdir: AbsoluteFilePathStub({ value: '/tmp' }),
+        tmpdir: '/tmp',
         checkType: 'integration',
         processId: 4242,
       });
@@ -33,7 +32,7 @@ describe('openHandleReportPathTransformer', () => {
 
     it('VALID: {a per-user scratch dir} => sits under that dir', () => {
       const result = openHandleReportPathTransformer({
-        tmpdir: AbsoluteFilePathStub({ value: '/var/folders/9k/T' }),
+        tmpdir: '/var/folders/9k/T',
         checkType: 'unit',
         processId: 7,
       });
@@ -43,12 +42,12 @@ describe('openHandleReportPathTransformer', () => {
 
     it('VALID: {two different pids} => two different paths', () => {
       const first = openHandleReportPathTransformer({
-        tmpdir: AbsoluteFilePathStub({ value: '/tmp' }),
+        tmpdir: '/tmp',
         checkType: 'unit',
         processId: 1,
       });
       const second = openHandleReportPathTransformer({
-        tmpdir: AbsoluteFilePathStub({ value: '/tmp' }),
+        tmpdir: '/tmp',
         checkType: 'unit',
         processId: 2,
       });

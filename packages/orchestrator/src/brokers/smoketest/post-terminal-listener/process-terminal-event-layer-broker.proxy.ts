@@ -14,7 +14,6 @@
  */
 
 import { GuildIdStub } from '@dungeonmaster/shared/contracts/guild-id/guild-id.stub';
-import type { AbsoluteFilePath } from '@dungeonmaster/shared/contracts';
 import type { QuestStub } from '@dungeonmaster/shared/contracts/quest/quest.stub';
 import {
   registerMock,
@@ -44,10 +43,10 @@ export const processTerminalEventLayerBrokerProxy = (): {
   setupQuestDeleted: (params: { homeDir: string; homePath: string; guildsDir: string }) => void;
   setupQuestFound: (params: {
     questId: Quest['id'];
-    questPath: AbsoluteFilePath;
+    questPath: string;
     quest: Quest;
   }) => void;
-  getQuestFileJoinArgs: (params: { questPath: AbsoluteFilePath }) => readonly unknown[] | undefined;
+  getQuestFileJoinArgs: (params: { questPath: string }) => readonly unknown[] | undefined;
   getCallArgs: () => RecordedCalls;
 } => {
   const joinHandle: MockHandle = registerMock({ fn: join });
@@ -108,7 +107,7 @@ export const processTerminalEventLayerBrokerProxy = (): {
       quest,
     }: {
       questId: Quest['id'];
-      questPath: AbsoluteFilePath;
+      questPath: string;
       quest: Quest;
     }): void => {
       findProxy.setupQuestPath({ questId, guildId: GuildIdStub(), questPath });
@@ -117,7 +116,7 @@ export const processTerminalEventLayerBrokerProxy = (): {
     getQuestFileJoinArgs: ({
       questPath,
     }: {
-      questPath: AbsoluteFilePath;
+      questPath: string;
     }): readonly unknown[] | undefined => joinHandle.callsMatching([questPath]).at(-1),
     getCallArgs: (): RecordedCalls => mocked.callsMatching([]),
   };

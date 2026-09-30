@@ -10,8 +10,6 @@
  */
 import { existsSync } from '#gateway/node/fs';
 import { agentTranscriptPathTransformer } from '../../../transformers/agent-transcript-path/agent-transcript-path-transformer';
-import { absoluteFilePathContract } from '@dungeonmaster/shared/contracts';
-import type { AbsoluteFilePath } from '@dungeonmaster/shared/contracts';
 
 export const transcriptResolveForHookBroker = ({
   transcriptPath,
@@ -19,9 +17,9 @@ export const transcriptResolveForHookBroker = ({
 }: {
   transcriptPath: string;
   agentId?: string;
-}): AbsoluteFilePath | null => {
+}): string | null => {
   if (agentId === undefined) {
-    return existsSync(transcriptPath) ? absoluteFilePathContract.parse(transcriptPath) : null;
+    return existsSync(transcriptPath) ? transcriptPath : null;
   }
 
   // Never fall back to transcriptPath here: for a sub-agent it is the PARENT session's file, and

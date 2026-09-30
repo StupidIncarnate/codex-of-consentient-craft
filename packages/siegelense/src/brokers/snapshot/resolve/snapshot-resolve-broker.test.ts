@@ -1,11 +1,10 @@
-import { AbsoluteFilePathStub } from '@dungeonmaster/shared/contracts/absolute-file-path/absolute-file-path.stub';
 
 import { snapshotResolveBroker } from './snapshot-resolve-broker';
 import { snapshotResolveBrokerProxy } from './snapshot-resolve-broker.proxy';
 import { SnapshotNameStub } from '../../../contracts/snapshot-name/snapshot-name.stub';
 import { SnapshotRecordStub } from '../../../contracts/snapshot-record/snapshot-record.stub';
 
-const HOME_PATH = AbsoluteFilePathStub({ value: '/tmp/dm-siege-inst_7f3a9c21' });
+const HOME_PATH = '/tmp/dm-siege-inst_7f3a9c21';
 
 describe('snapshotResolveBroker', () => {
   describe('a name that exists', () => {

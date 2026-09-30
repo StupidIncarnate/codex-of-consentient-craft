@@ -9,14 +9,13 @@
 
 import { join } from '#gateway/node/path';
 import { registerMock, registerSpyOn, requireActual } from '@dungeonmaster/testing/register-mock';
-import type { AbsoluteFilePath } from '@dungeonmaster/shared/contracts';
 
 import { statIfExistsProxy } from '#gateway/node/fs__promises/stat-if-exists/stat-if-exists.proxy';
 import { setTimeoutProxy } from '#gateway/node/setTimeout/set-timeout/set-timeout.proxy';
 
 export const untilFileWaitLayerBrokerProxy = (): {
-  fileAppears: (params: { filePath: AbsoluteFilePath }) => void;
-  fileNeverAppears: (params: { filePath: AbsoluteFilePath }) => void;
+  fileAppears: (params: { filePath: string }) => void;
+  fileNeverAppears: (params: { filePath: string }) => void;
   stageElapsedMs: (params: { nowMs: number }) => void;
 } => {
   const statProxy = statIfExistsProxy();
@@ -30,11 +29,11 @@ export const untilFileWaitLayerBrokerProxy = (): {
     .implement((...segments: never[]) => realPath.join(...segments));
 
   return {
-    fileAppears: ({ filePath }: { filePath: AbsoluteFilePath }): void => {
+    fileAppears: ({ filePath }: { filePath: string }): void => {
       statProxy.returnsFile({ path: filePath, sizeBytes: 10, modifiedAtMs: 0 });
     },
 
-    fileNeverAppears: ({ filePath }: { filePath: AbsoluteFilePath }): void => {
+    fileNeverAppears: ({ filePath }: { filePath: string }): void => {
       statProxy.missing({ path: filePath });
     },
 

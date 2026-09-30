@@ -17,7 +17,7 @@
  */
 
 import { cwdResolveBroker, locationsWorktreePathFindBroker } from '@dungeonmaster/shared/brokers';
-import { absoluteFilePathContract, fileNameContract, questBranchNameContract, type AbsoluteFilePath } from '@dungeonmaster/shared/contracts';
+import { fileNameContract, questBranchNameContract } from '@dungeonmaster/shared/contracts';
 import { pathExists } from '#gateway/node/fs__promises';
 import { cwd } from '#gateway/node/process';
 
@@ -30,10 +30,8 @@ export const WorktreeCreateResponder = async ({
   name,
 }: {
   name: string;
-}): Promise<{ worktreePath: AbsoluteFilePath }> => {
-  const repoRoot = absoluteFilePathContract.parse(
-    await cwdResolveBroker({ startPath: cwd(), kind: 'repo-root' }),
-  );
+}): Promise<{ worktreePath: string }> => {
+  const repoRoot = (await cwdResolveBroker({ startPath: cwd(), kind: 'repo-root' }));
   const worktreeDirName = fileNameContract.parse(name);
   const worktreePath = locationsWorktreePathFindBroker({ repoRoot, worktreeDirName });
 

@@ -15,8 +15,6 @@
 
 import { readFileIfExists } from '#gateway/node/fs__promises';
 import { join } from '#gateway/node/path';
-import { absoluteFilePathContract } from '@dungeonmaster/shared/contracts';
-import type { AbsoluteFilePath } from '@dungeonmaster/shared/contracts';
 import { locationsStatics } from '@dungeonmaster/shared/statics';
 
 import { bootFailureMarkerContract } from '../../../contracts/boot-failure-marker/boot-failure-marker-contract';
@@ -25,11 +23,9 @@ import type { BootFailureMarker } from '../../../contracts/boot-failure-marker/b
 export const bootFailureMarkerReadBroker = async ({
   evidencePath,
 }: {
-  evidencePath: AbsoluteFilePath;
+  evidencePath: string;
 }): Promise<BootFailureMarker | null> => {
-  const markerPath = absoluteFilePathContract.parse(
-    join(evidencePath, locationsStatics.siegelense.bootFailure),
-  );
+  const markerPath = join(evidencePath, locationsStatics.siegelense.bootFailure);
 
   const content = await readFileIfExists(markerPath);
 

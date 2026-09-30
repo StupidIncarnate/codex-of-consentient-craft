@@ -11,7 +11,6 @@
  * const result = await proxy.callResponder({ questId, workItemId, payload });
  */
 
-import type { AbsoluteFilePathStub } from '@dungeonmaster/shared/contracts/absolute-file-path/absolute-file-path.stub';
 import type { OperationItemIdStub } from '@dungeonmaster/shared/contracts/operation-item-id/operation-item-id.stub';
 import type { QuestStub } from '@dungeonmaster/shared/contracts/quest/quest.stub';
 
@@ -21,7 +20,7 @@ import { QuestWorkResponder } from './quest-work-responder';
 
 type Quest = ReturnType<typeof QuestStub>;
 type OperationItemId = ReturnType<typeof OperationItemIdStub>;
-type AbsoluteFilePath = ReturnType<typeof AbsoluteFilePathStub>;
+type AbsoluteFilePath = string;
 
 export const QuestWorkResponderProxy = (): {
   callResponder: typeof QuestWorkResponder;

@@ -16,7 +16,6 @@
 
 import { rm } from '#gateway/node/fs__promises';
 import { type NetworkPort } from '@dungeonmaster/shared/contracts';
-import type { AbsoluteFilePath } from '@dungeonmaster/shared/contracts';
 
 import { e2eArtifactsStatics } from '../../../statics/e2e-artifacts/e2e-artifacts-statics';
 
@@ -24,7 +23,7 @@ export const e2eArtifactsRemoveBroker = async ({
   packageRoot,
   port,
 }: {
-  packageRoot: AbsoluteFilePath;
+  packageRoot: string;
   port: NetworkPort;
 }): Promise<void> => {
   const [cache] = e2eArtifactsStatics.artifacts;

@@ -6,7 +6,6 @@
  * // Returns: WardSummary like "run: 1739625600000-a3f1\nlint:      PASS  10 packages"
  */
 
-import type { AbsoluteFilePath } from '@dungeonmaster/shared/contracts';
 
 import { errorEntryContract } from '../../contracts/error-entry/error-entry-contract';
 import type { WardRunResult } from '../../contracts/ward-result/ward-result-contract';
@@ -34,7 +33,7 @@ export const resultToSummaryTransformer = ({
   cwd,
 }: {
   wardResult: WardRunResult;
-  cwd: AbsoluteFilePath;
+  cwd: string;
 }): string => {
   const totalDurationSuffix =
     Number(wardResult.durationMs) > 0

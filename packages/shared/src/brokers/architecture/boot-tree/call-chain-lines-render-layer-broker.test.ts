@@ -1,19 +1,14 @@
 import { callChainLinesRenderLayerBroker } from './call-chain-lines-render-layer-broker';
 import { callChainLinesRenderLayerBrokerProxy } from './call-chain-lines-render-layer-broker.proxy';
-import { AbsoluteFilePathStub } from '../../../contracts/absolute-file-path/absolute-file-path.stub';
 import { ContentTextStub } from '../../../contracts/content-text/content-text.stub';
 
 describe('callChainLinesRenderLayerBroker', () => {
   describe('leaf broker import', () => {
     it('VALID: {responder importing one broker that imports nothing} => emits one → broker line', () => {
       const proxy = callChainLinesRenderLayerBrokerProxy();
-      const sourceFile = AbsoluteFilePathStub({
-        value: '/repo/packages/server/src/responders/quest/start/quest-start-responder.ts',
-      });
-      const packageSrcPath = AbsoluteFilePathStub({ value: '/repo/packages/server/src' });
-      const renderingFilePath = AbsoluteFilePathStub({
-        value: '/repo/packages/server/src/startup/start-server.ts',
-      });
+      const sourceFile = '/repo/packages/server/src/responders/quest/start/quest-start-responder.ts';
+      const packageSrcPath = '/repo/packages/server/src';
+      const renderingFilePath = '/repo/packages/server/src/startup/start-server.ts';
 
       proxy.setupFileContentsMap({
         map: {
@@ -39,15 +34,9 @@ describe('callChainLinesRenderLayerBroker', () => {
   describe('broker chain into broker', () => {
     it('VALID: {responder → broker → broker} => emits two → lines, indented for depth', () => {
       const proxy = callChainLinesRenderLayerBrokerProxy();
-      const sourceFile = AbsoluteFilePathStub({
-        value: '/repo/packages/orchestrator/src/responders/chat/start/chat-start-responder.ts',
-      });
-      const packageSrcPath = AbsoluteFilePathStub({
-        value: '/repo/packages/orchestrator/src',
-      });
-      const renderingFilePath = AbsoluteFilePathStub({
-        value: '/repo/packages/orchestrator/src/startup/start-orchestrator.ts',
-      });
+      const sourceFile = '/repo/packages/orchestrator/src/responders/chat/start/chat-start-responder.ts';
+      const packageSrcPath = '/repo/packages/orchestrator/src';
+      const renderingFilePath = '/repo/packages/orchestrator/src/startup/start-orchestrator.ts';
 
       proxy.setupFileContentsMap({
         map: {
@@ -82,15 +71,9 @@ describe('callChainLinesRenderLayerBroker', () => {
   describe('cycle guard', () => {
     it('VALID: {broker A imports broker B which imports broker A} => stops at second visit', () => {
       const proxy = callChainLinesRenderLayerBrokerProxy();
-      const sourceFile = AbsoluteFilePathStub({
-        value: '/repo/packages/orchestrator/src/responders/cycle/foo/cycle-foo-responder.ts',
-      });
-      const packageSrcPath = AbsoluteFilePathStub({
-        value: '/repo/packages/orchestrator/src',
-      });
-      const renderingFilePath = AbsoluteFilePathStub({
-        value: '/repo/packages/orchestrator/src/startup/start-orchestrator.ts',
-      });
+      const sourceFile = '/repo/packages/orchestrator/src/responders/cycle/foo/cycle-foo-responder.ts';
+      const packageSrcPath = '/repo/packages/orchestrator/src';
+      const renderingFilePath = '/repo/packages/orchestrator/src/startup/start-orchestrator.ts';
 
       proxy.setupFileContentsMap({
         map: {
@@ -128,13 +111,9 @@ describe('callChainLinesRenderLayerBroker', () => {
   describe('empty chain', () => {
     it('EMPTY: {responder with no eligible imports} => returns empty array', () => {
       const proxy = callChainLinesRenderLayerBrokerProxy();
-      const sourceFile = AbsoluteFilePathStub({
-        value: '/repo/packages/server/src/responders/foo/foo-responder.ts',
-      });
-      const packageSrcPath = AbsoluteFilePathStub({ value: '/repo/packages/server/src' });
-      const renderingFilePath = AbsoluteFilePathStub({
-        value: '/repo/packages/server/src/startup/start-server.ts',
-      });
+      const sourceFile = '/repo/packages/server/src/responders/foo/foo-responder.ts';
+      const packageSrcPath = '/repo/packages/server/src';
+      const renderingFilePath = '/repo/packages/server/src/startup/start-server.ts';
 
       proxy.setupMissing({ sourceFile });
 
@@ -151,13 +130,9 @@ describe('callChainLinesRenderLayerBroker', () => {
   describe('export-name fallback', () => {
     it('VALID: {imported file has no extractable export} => falls back to kebab basename', () => {
       const proxy = callChainLinesRenderLayerBrokerProxy();
-      const sourceFile = AbsoluteFilePathStub({
-        value: '/repo/packages/server/src/responders/quest/start/quest-start-responder.ts',
-      });
-      const packageSrcPath = AbsoluteFilePathStub({ value: '/repo/packages/server/src' });
-      const renderingFilePath = AbsoluteFilePathStub({
-        value: '/repo/packages/server/src/startup/start-server.ts',
-      });
+      const sourceFile = '/repo/packages/server/src/responders/quest/start/quest-start-responder.ts';
+      const packageSrcPath = '/repo/packages/server/src';
+      const renderingFilePath = '/repo/packages/server/src/startup/start-server.ts';
 
       proxy.setupFileContentsMap({
         map: {
@@ -183,13 +158,9 @@ describe('callChainLinesRenderLayerBroker', () => {
   describe('layer file rendering', () => {
     it('VALID: {parent broker importing a layer broker that calls another broker} => renders layer at depth 1, broker at depth 2', () => {
       const proxy = callChainLinesRenderLayerBrokerProxy();
-      const sourceFile = AbsoluteFilePathStub({
-        value: '/repo/packages/orch/src/responders/quest/start/quest-start-responder.ts',
-      });
-      const packageSrcPath = AbsoluteFilePathStub({ value: '/repo/packages/orch/src' });
-      const renderingFilePath = AbsoluteFilePathStub({
-        value: '/repo/packages/orch/src/startup/start-orchestrator.ts',
-      });
+      const sourceFile = '/repo/packages/orch/src/responders/quest/start/quest-start-responder.ts';
+      const packageSrcPath = '/repo/packages/orch/src';
+      const renderingFilePath = '/repo/packages/orch/src/startup/start-orchestrator.ts';
 
       proxy.setupFileContentsMap({
         map: {
@@ -229,13 +200,9 @@ describe('callChainLinesRenderLayerBroker', () => {
 
     it('VALID: {layer broker reachable from both parent and another layer} => renders once thanks to shared visited set', () => {
       const proxy = callChainLinesRenderLayerBrokerProxy();
-      const sourceFile = AbsoluteFilePathStub({
-        value: '/repo/packages/orch/src/responders/foo/x/foo-responder.ts',
-      });
-      const packageSrcPath = AbsoluteFilePathStub({ value: '/repo/packages/orch/src' });
-      const renderingFilePath = AbsoluteFilePathStub({
-        value: '/repo/packages/orch/src/startup/start-orchestrator.ts',
-      });
+      const sourceFile = '/repo/packages/orch/src/responders/foo/x/foo-responder.ts';
+      const packageSrcPath = '/repo/packages/orch/src';
+      const renderingFilePath = '/repo/packages/orch/src/startup/start-orchestrator.ts';
 
       proxy.setupFileContentsMap({
         map: {
@@ -276,13 +243,9 @@ describe('callChainLinesRenderLayerBroker', () => {
 
     it('VALID: {layer file imports parent} => cycle does not infinite-loop', () => {
       const proxy = callChainLinesRenderLayerBrokerProxy();
-      const sourceFile = AbsoluteFilePathStub({
-        value: '/repo/packages/orch/src/responders/foo/x/foo-responder.ts',
-      });
-      const packageSrcPath = AbsoluteFilePathStub({ value: '/repo/packages/orch/src' });
-      const renderingFilePath = AbsoluteFilePathStub({
-        value: '/repo/packages/orch/src/startup/start-orchestrator.ts',
-      });
+      const sourceFile = '/repo/packages/orch/src/responders/foo/x/foo-responder.ts';
+      const packageSrcPath = '/repo/packages/orch/src';
+      const renderingFilePath = '/repo/packages/orch/src/startup/start-orchestrator.ts';
 
       proxy.setupFileContentsMap({
         map: {

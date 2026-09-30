@@ -1,4 +1,3 @@
-import { AbsoluteFilePathStub } from '@dungeonmaster/shared/contracts/absolute-file-path/absolute-file-path.stub';
 
 import { WardConfigStub } from '../../../contracts/ward-config/ward-config.stub';
 
@@ -14,7 +13,7 @@ describe('pathCheckLayerBroker', () => {
 
       const result = pathCheckLayerBroker({
         passthrough,
-        rootPath: AbsoluteFilePathStub({ value: '/project' }),
+        rootPath: '/project',
       });
 
       expect(result).toStrictEqual([]);
@@ -37,7 +36,7 @@ describe('pathCheckLayerBroker', () => {
 
       const result = pathCheckLayerBroker({
         passthrough,
-        rootPath: AbsoluteFilePathStub({ value: '/project' }),
+        rootPath: '/project',
       });
 
       expect(result).toStrictEqual([]);
@@ -63,7 +62,7 @@ describe('pathCheckLayerBroker', () => {
 
       const result = pathCheckLayerBroker({
         passthrough,
-        rootPath: AbsoluteFilePathStub({ value: '/project' }),
+        rootPath: '/project',
       });
 
       expect(result).toStrictEqual(['packages/wardd/src/typo.ts']);
@@ -78,7 +77,7 @@ describe('pathCheckLayerBroker', () => {
 
       const result = pathCheckLayerBroker({
         passthrough,
-        rootPath: AbsoluteFilePathStub({ value: '/project' }),
+        rootPath: '/project',
       });
 
       expect(result).toStrictEqual(['one.ts', 'two.ts']);

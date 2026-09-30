@@ -1,4 +1,3 @@
-import { AbsoluteFilePathStub } from '@dungeonmaster/shared/contracts/absolute-file-path/absolute-file-path.stub';
 import { OperationItemStub } from '@dungeonmaster/shared/contracts/operation-item/operation-item.stub';
 import { QuestBranchNameStub } from '@dungeonmaster/shared/contracts/quest-branch-name/quest-branch-name.stub';
 import { QuestIdStub } from '@dungeonmaster/shared/contracts/quest-id/quest-id.stub';
@@ -438,9 +437,7 @@ describe('questOperationsUpdateBroker', () => {
         });
         proxy.setupQuestFound({ quest });
 
-        const worktreePath = AbsoluteFilePathStub({
-          value: '/home/testuser/.dungeonmaster/worktrees/add-auth-7bc217a1',
-        });
+        const worktreePath = '/home/testuser/.dungeonmaster/worktrees/add-auth-7bc217a1';
 
         await questOperationsUpdateBroker({
           questId: QuestIdStub({ value: 'add-auth' }),
@@ -467,9 +464,7 @@ describe('questOperationsUpdateBroker', () => {
           id: 'a1b2c3d4-58cc-4372-a567-0e02b2c3d479',
           status: 'pending',
         });
-        const worktreePath = AbsoluteFilePathStub({
-          value: '/home/testuser/.dungeonmaster/worktrees/add-auth-7bc217a1',
-        });
+        const worktreePath = '/home/testuser/.dungeonmaster/worktrees/add-auth-7bc217a1';
         const quest = QuestStub({
           id: 'add-auth',
           folder: '001-add-auth',
@@ -528,9 +523,7 @@ describe('questOperationsUpdateBroker', () => {
 
         const branchName = QuestBranchNameStub({ value: 'quest/add-auth-7bc217a1' });
         const baseBranch = 'main';
-        const worktreePath = AbsoluteFilePathStub({
-          value: '/home/testuser/.dungeonmaster/worktrees/add-auth-7bc217a1',
-        });
+        const worktreePath = '/home/testuser/.dungeonmaster/worktrees/add-auth-7bc217a1';
         const baseRef = 'a1b2c3d4e5f6a1b2c3d4e5f6a1b2c3d4e5f6a1b2' as never;
 
         await questOperationsUpdateBroker({

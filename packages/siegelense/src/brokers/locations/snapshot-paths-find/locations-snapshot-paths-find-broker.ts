@@ -26,7 +26,6 @@
  */
 
 import { join } from '#gateway/node/path';
-import { absoluteFilePathContract, type AbsoluteFilePath } from '@dungeonmaster/shared/contracts';
 
 import type { SnapshotOrdinal } from '../../../contracts/snapshot-ordinal/snapshot-ordinal-contract';
 import { snapshotStatics } from '../../../statics/snapshot/snapshot-statics';
@@ -35,12 +34,12 @@ export const locationsSnapshotPathsFindBroker = ({
   homePath,
   ordinal,
 }: {
-  homePath: AbsoluteFilePath;
+  homePath: string;
   ordinal: SnapshotOrdinal;
 }): {
-  storeDir: AbsoluteFilePath;
-  index: AbsoluteFilePath;
-  payload: AbsoluteFilePath;
+  storeDir: string;
+  index: string;
+  payload: string;
 } => {
   const storeDir = join(homePath, snapshotStatics.store.dirName);
 
@@ -52,8 +51,8 @@ export const locationsSnapshotPathsFindBroker = ({
   const payload = join(storeDir, String(ordinal));
 
   return {
-    storeDir: absoluteFilePathContract.parse(storeDir),
-    index: absoluteFilePathContract.parse(index),
-    payload: absoluteFilePathContract.parse(payload),
+    storeDir: storeDir,
+    index: index,
+    payload: payload,
   };
 };

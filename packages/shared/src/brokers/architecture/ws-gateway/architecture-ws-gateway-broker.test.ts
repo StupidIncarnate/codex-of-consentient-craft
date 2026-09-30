@@ -1,16 +1,10 @@
 import { architectureWsGatewayBroker } from './architecture-ws-gateway-broker';
 import { architectureWsGatewayBrokerProxy } from './architecture-ws-gateway-broker.proxy';
-import { AbsoluteFilePathStub } from '../../../contracts/absolute-file-path/absolute-file-path.stub';
 import { ContentTextStub } from '../../../contracts/content-text/content-text.stub';
 
-const PROJECT_ROOT = AbsoluteFilePathStub({ value: '/repo' });
-const WS_ADAPTER = AbsoluteFilePathStub({
-  value:
-    '/repo/packages/server/src/adapters/hono/create-node-web-socket/hono-create-node-web-socket-adapter.ts',
-});
-const GATEWAY_FILE = AbsoluteFilePathStub({
-  value: '/repo/packages/server/src/responders/server/init/server-init-responder.ts',
-});
+const PROJECT_ROOT = '/repo';
+const WS_ADAPTER = '/repo/packages/server/src/adapters/hono/create-node-web-socket/hono-create-node-web-socket-adapter.ts';
+const GATEWAY_FILE = '/repo/packages/server/src/responders/server/init/server-init-responder.ts';
 
 describe('architectureWsGatewayBroker', () => {
   describe('no relevant files', () => {
@@ -57,9 +51,7 @@ describe('architectureWsGatewayBroker', () => {
       proxy.setup({
         sourceFiles: [
           {
-            path: AbsoluteFilePathStub({
-              value: '/repo/packages/server/src/adapters/hono/serve/hono-serve-adapter.ts',
-            }),
+            path: '/repo/packages/server/src/adapters/hono/serve/hono-serve-adapter.ts',
             source: ContentTextStub({
               value: "import { serve } from '@hono/node-server';",
             }),

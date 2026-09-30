@@ -1,17 +1,11 @@
 import { importPathToPackagePrefixTransformer } from './import-path-to-package-prefix-transformer';
-import { AbsoluteFilePathStub } from '../../contracts/absolute-file-path/absolute-file-path.stub';
 
 describe('importPathToPackagePrefixTransformer', () => {
   describe('same-package', () => {
     it('VALID: {rendering and referenced in server} => returns bare symbol name', () => {
       const result = importPathToPackagePrefixTransformer({
-        renderingFilePath: AbsoluteFilePathStub({
-          value: '/repo/packages/server/src/responders/quest/start/quest-start-responder.ts',
-        }),
-        referencedFilePath: AbsoluteFilePathStub({
-          value:
-            '/repo/packages/server/src/adapters/orchestrator/get-quest/server-orchestrator-get-quest-adapter.ts',
-        }),
+        renderingFilePath: '/repo/packages/server/src/responders/quest/start/quest-start-responder.ts',
+        referencedFilePath: '/repo/packages/server/src/adapters/orchestrator/get-quest/server-orchestrator-get-quest-adapter.ts',
         symbolName: 'serverOrchestratorGetQuestAdapter',
       });
 
@@ -20,14 +14,8 @@ describe('importPathToPackagePrefixTransformer', () => {
 
     it('VALID: {rendering and referenced both in shared, different folders} => returns bare symbol name', () => {
       const result = importPathToPackagePrefixTransformer({
-        renderingFilePath: AbsoluteFilePathStub({
-          value:
-            '/repo/packages/shared/src/brokers/architecture/project-map/architecture-project-map-broker.ts',
-        }),
-        referencedFilePath: AbsoluteFilePathStub({
-          value:
-            '/repo/packages/shared/src/transformers/name-to-url-slug/name-to-url-slug-transformer.ts',
-        }),
+        renderingFilePath: '/repo/packages/shared/src/brokers/architecture/project-map/architecture-project-map-broker.ts',
+        referencedFilePath: '/repo/packages/shared/src/transformers/name-to-url-slug/name-to-url-slug-transformer.ts',
         symbolName: 'nameToUrlSlugTransformer',
       });
 
@@ -38,12 +26,8 @@ describe('importPathToPackagePrefixTransformer', () => {
   describe('cross-package', () => {
     it('VALID: {server rendering shared/brokers symbol} => returns "shared/brokers/<name>"', () => {
       const result = importPathToPackagePrefixTransformer({
-        renderingFilePath: AbsoluteFilePathStub({
-          value: '/repo/packages/server/src/responders/quest/start/quest-start-responder.ts',
-        }),
-        referencedFilePath: AbsoluteFilePathStub({
-          value: '/repo/packages/shared/src/brokers/port-resolve/port-resolve-broker.ts',
-        }),
+        renderingFilePath: '/repo/packages/server/src/responders/quest/start/quest-start-responder.ts',
+        referencedFilePath: '/repo/packages/shared/src/brokers/port-resolve/port-resolve-broker.ts',
         symbolName: 'portResolveBroker',
       });
 
@@ -52,12 +36,8 @@ describe('importPathToPackagePrefixTransformer', () => {
 
     it('VALID: {web rendering shared/contracts symbol} => returns "shared/contracts/<name>"', () => {
       const result = importPathToPackagePrefixTransformer({
-        renderingFilePath: AbsoluteFilePathStub({
-          value: '/repo/packages/web/src/brokers/quest/start/quest-start-broker.ts',
-        }),
-        referencedFilePath: AbsoluteFilePathStub({
-          value: '/repo/packages/shared/src/contracts/quest-id/quest-id-contract.ts',
-        }),
+        renderingFilePath: '/repo/packages/web/src/brokers/quest/start/quest-start-broker.ts',
+        referencedFilePath: '/repo/packages/shared/src/contracts/quest-id/quest-id-contract.ts',
         symbolName: 'questIdContract',
       });
 
@@ -66,12 +46,8 @@ describe('importPathToPackagePrefixTransformer', () => {
 
     it('VALID: {server rendering shared/adapters symbol} => returns "shared/adapters/<name>"', () => {
       const result = importPathToPackagePrefixTransformer({
-        renderingFilePath: AbsoluteFilePathStub({
-          value: '/repo/packages/server/src/responders/health/health-responder.ts',
-        }),
-        referencedFilePath: AbsoluteFilePathStub({
-          value: '/repo/packages/shared/src/adapters/fs/read-file/fs-read-file-adapter.ts',
-        }),
+        renderingFilePath: '/repo/packages/server/src/responders/health/health-responder.ts',
+        referencedFilePath: '/repo/packages/shared/src/adapters/fs/read-file/fs-read-file-adapter.ts',
         symbolName: 'fsReadFileAdapter',
       });
 
@@ -80,13 +56,8 @@ describe('importPathToPackagePrefixTransformer', () => {
 
     it('VALID: {server rendering shared/transformers symbol} => returns "shared/transformers/<name>"', () => {
       const result = importPathToPackagePrefixTransformer({
-        renderingFilePath: AbsoluteFilePathStub({
-          value: '/repo/packages/server/src/responders/health/health-responder.ts',
-        }),
-        referencedFilePath: AbsoluteFilePathStub({
-          value:
-            '/repo/packages/shared/src/transformers/name-to-url-slug/name-to-url-slug-transformer.ts',
-        }),
+        renderingFilePath: '/repo/packages/server/src/responders/health/health-responder.ts',
+        referencedFilePath: '/repo/packages/shared/src/transformers/name-to-url-slug/name-to-url-slug-transformer.ts',
         symbolName: 'nameToUrlSlugTransformer',
       });
 
@@ -95,12 +66,8 @@ describe('importPathToPackagePrefixTransformer', () => {
 
     it('VALID: {web rendering shared/statics symbol} => returns "shared/statics/<name>"', () => {
       const result = importPathToPackagePrefixTransformer({
-        renderingFilePath: AbsoluteFilePathStub({
-          value: '/repo/packages/web/src/widgets/app/app-widget.tsx',
-        }),
-        referencedFilePath: AbsoluteFilePathStub({
-          value: '/repo/packages/shared/src/statics/web-config/web-config-statics.ts',
-        }),
+        renderingFilePath: '/repo/packages/web/src/widgets/app/app-widget.tsx',
+        referencedFilePath: '/repo/packages/shared/src/statics/web-config/web-config-statics.ts',
         symbolName: 'webConfigStatics',
       });
 
@@ -109,12 +76,8 @@ describe('importPathToPackagePrefixTransformer', () => {
 
     it('VALID: {orchestrator rendering server/brokers symbol} => returns "server/brokers/<name>"', () => {
       const result = importPathToPackagePrefixTransformer({
-        renderingFilePath: AbsoluteFilePathStub({
-          value: '/repo/packages/orchestrator/src/brokers/quest/run/quest-run-broker.ts',
-        }),
-        referencedFilePath: AbsoluteFilePathStub({
-          value: '/repo/packages/server/src/brokers/port-find/port-find-broker.ts',
-        }),
+        renderingFilePath: '/repo/packages/orchestrator/src/brokers/quest/run/quest-run-broker.ts',
+        referencedFilePath: '/repo/packages/server/src/brokers/port-find/port-find-broker.ts',
         symbolName: 'portFindBroker',
       });
 
@@ -126,12 +89,8 @@ describe('importPathToPackagePrefixTransformer', () => {
     it('ERROR: {referenced path outside packages/<pkg>/src/} => throws', () => {
       expect(() =>
         importPathToPackagePrefixTransformer({
-          renderingFilePath: AbsoluteFilePathStub({
-            value: '/repo/packages/server/src/responders/health/health-responder.ts',
-          }),
-          referencedFilePath: AbsoluteFilePathStub({
-            value: '/repo/node_modules/zod/lib/index.js',
-          }),
+          renderingFilePath: '/repo/packages/server/src/responders/health/health-responder.ts',
+          referencedFilePath: '/repo/node_modules/zod/lib/index.js',
           symbolName: 'z',
         }),
       ).toThrow(/file path is not under any packages\/<pkg>\/src\//u);
@@ -140,12 +99,8 @@ describe('importPathToPackagePrefixTransformer', () => {
     it('ERROR: {rendering path outside packages/<pkg>/src/} => throws', () => {
       expect(() =>
         importPathToPackagePrefixTransformer({
-          renderingFilePath: AbsoluteFilePathStub({
-            value: '/repo/scripts/check.ts',
-          }),
-          referencedFilePath: AbsoluteFilePathStub({
-            value: '/repo/packages/shared/src/brokers/port-resolve/port-resolve-broker.ts',
-          }),
+          renderingFilePath: '/repo/scripts/check.ts',
+          referencedFilePath: '/repo/packages/shared/src/brokers/port-resolve/port-resolve-broker.ts',
           symbolName: 'portResolveBroker',
         }),
       ).toThrow(/file path is not under any packages\/<pkg>\/src\//u);
@@ -154,12 +109,8 @@ describe('importPathToPackagePrefixTransformer', () => {
     it('ERROR: {file directly under packages/<pkg>/src with no folder type} => throws', () => {
       expect(() =>
         importPathToPackagePrefixTransformer({
-          renderingFilePath: AbsoluteFilePathStub({
-            value: '/repo/packages/server/src/responders/health/health-responder.ts',
-          }),
-          referencedFilePath: AbsoluteFilePathStub({
-            value: '/repo/packages/shared/src/index.ts',
-          }),
+          renderingFilePath: '/repo/packages/server/src/responders/health/health-responder.ts',
+          referencedFilePath: '/repo/packages/shared/src/index.ts',
           symbolName: 'foo',
         }),
       ).toThrow(/file path is not under any packages\/<pkg>\/src\//u);

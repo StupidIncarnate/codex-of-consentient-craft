@@ -1,5 +1,4 @@
 import { installTestbedCreateBroker } from '@dungeonmaster/testing';
-import { AbsoluteFilePathStub } from '@dungeonmaster/shared/contracts/absolute-file-path/absolute-file-path.stub';
 
 import { GitRelativePathStub } from '../../../contracts/git-relative-path/git-relative-path.stub';
 import { wardGitWorktreeFixtureHarness } from '../../../../test/harnesses/git-worktree-fixture/git-worktree-fixture.harness';
@@ -17,7 +16,7 @@ describe('gitDiffUncommittedBroker (integration) — real working tree, tracked 
     const testbed = installTestbedCreateBroker({
       baseName: 'ward-diff-uncommitted',
     });
-    const repoPath = AbsoluteFilePathStub({ value: `${testbed.guildPath}/repo` });
+    const repoPath = `${testbed.guildPath}/repo`;
 
     await git.initRepo({ repoPath });
 
@@ -59,7 +58,7 @@ describe('gitDiffUncommittedBroker (integration) — real working tree, tracked 
     const testbed = installTestbedCreateBroker({
       baseName: 'ward-diff-uncommitted-ignored',
     });
-    const repoPath = AbsoluteFilePathStub({ value: `${testbed.guildPath}/repo` });
+    const repoPath = `${testbed.guildPath}/repo`;
 
     await git.initRepo({ repoPath });
     await git.commitFile({

@@ -1,10 +1,9 @@
-import { AbsoluteFilePathStub } from '@dungeonmaster/shared/contracts/absolute-file-path/absolute-file-path.stub';
 
 import { locationsSnapshotPathsFindBroker } from './locations-snapshot-paths-find-broker';
 import { locationsSnapshotPathsFindBrokerProxy } from './locations-snapshot-paths-find-broker.proxy';
 import { SnapshotOrdinalStub } from '../../../contracts/snapshot-ordinal/snapshot-ordinal.stub';
 
-const HOME_PATH = AbsoluteFilePathStub({ value: '/tmp/dm-siege-inst_7f3a9c21' });
+const HOME_PATH = '/tmp/dm-siege-inst_7f3a9c21';
 
 describe('locationsSnapshotPathsFindBroker', () => {
   describe('store path resolution', () => {
@@ -17,15 +16,9 @@ describe('locationsSnapshotPathsFindBroker', () => {
       });
 
       expect(result).toStrictEqual({
-        storeDir: AbsoluteFilePathStub({
-          value: '/tmp/dm-siege-inst_7f3a9c21/.siegelense-snapshots',
-        }),
-        index: AbsoluteFilePathStub({
-          value: '/tmp/dm-siege-inst_7f3a9c21/.siegelense-snapshots/index.jsonl',
-        }),
-        payload: AbsoluteFilePathStub({
-          value: '/tmp/dm-siege-inst_7f3a9c21/.siegelense-snapshots/2',
-        }),
+        storeDir: '/tmp/dm-siege-inst_7f3a9c21/.siegelense-snapshots',
+        index: '/tmp/dm-siege-inst_7f3a9c21/.siegelense-snapshots/index.jsonl',
+        payload: '/tmp/dm-siege-inst_7f3a9c21/.siegelense-snapshots/2',
       });
     });
 
@@ -38,15 +31,9 @@ describe('locationsSnapshotPathsFindBroker', () => {
       });
 
       expect(result).toStrictEqual({
-        storeDir: AbsoluteFilePathStub({
-          value: '/tmp/dm-siege-inst_7f3a9c21/.siegelense-snapshots',
-        }),
-        index: AbsoluteFilePathStub({
-          value: '/tmp/dm-siege-inst_7f3a9c21/.siegelense-snapshots/index.jsonl',
-        }),
-        payload: AbsoluteFilePathStub({
-          value: '/tmp/dm-siege-inst_7f3a9c21/.siegelense-snapshots/1',
-        }),
+        storeDir: '/tmp/dm-siege-inst_7f3a9c21/.siegelense-snapshots',
+        index: '/tmp/dm-siege-inst_7f3a9c21/.siegelense-snapshots/index.jsonl',
+        payload: '/tmp/dm-siege-inst_7f3a9c21/.siegelense-snapshots/1',
       });
     });
   });
@@ -65,8 +52,8 @@ describe('locationsSnapshotPathsFindBroker', () => {
       });
 
       expect([first.payload, second.payload]).toStrictEqual([
-        AbsoluteFilePathStub({ value: '/tmp/dm-siege-inst_7f3a9c21/.siegelense-snapshots/1' }),
-        AbsoluteFilePathStub({ value: '/tmp/dm-siege-inst_7f3a9c21/.siegelense-snapshots/2' }),
+        '/tmp/dm-siege-inst_7f3a9c21/.siegelense-snapshots/1',
+        '/tmp/dm-siege-inst_7f3a9c21/.siegelense-snapshots/2',
       ]);
     });
   });
@@ -80,15 +67,13 @@ describe('locationsSnapshotPathsFindBroker', () => {
         ordinal: SnapshotOrdinalStub({ value: 1 }),
       });
       const second = locationsSnapshotPathsFindBroker({
-        homePath: AbsoluteFilePathStub({ value: '/tmp/dm-siege-inst_9b2c4d1e' }),
+        homePath: '/tmp/dm-siege-inst_9b2c4d1e',
         ordinal: SnapshotOrdinalStub({ value: 1 }),
       });
 
       expect([first.storeDir, second.index]).toStrictEqual([
-        AbsoluteFilePathStub({ value: '/tmp/dm-siege-inst_7f3a9c21/.siegelense-snapshots' }),
-        AbsoluteFilePathStub({
-          value: '/tmp/dm-siege-inst_9b2c4d1e/.siegelense-snapshots/index.jsonl',
-        }),
+        '/tmp/dm-siege-inst_7f3a9c21/.siegelense-snapshots',
+        '/tmp/dm-siege-inst_9b2c4d1e/.siegelense-snapshots/index.jsonl',
       ]);
     });
   });

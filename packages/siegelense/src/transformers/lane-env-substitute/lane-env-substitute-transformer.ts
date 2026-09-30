@@ -25,7 +25,7 @@
  */
 
 import { contentTextContract } from '@dungeonmaster/shared/contracts';
-import type { AbsoluteFilePath, ContentText } from '@dungeonmaster/shared/contracts';
+import type { ContentText } from '@dungeonmaster/shared/contracts';
 
 import { isRelativePathEnvValueGuard } from '../../guards/is-relative-path-env-value/is-relative-path-env-value-guard';
 import { lanePlaceholderSubstituteTransformer } from '../lane-placeholder-substitute/lane-placeholder-substitute-transformer';
@@ -44,12 +44,12 @@ export const laneEnvSubstituteTransformer = ({
 }: {
   env: LaneSpec['env'];
   ports: PortPair;
-  home: AbsoluteFilePath;
-  claudeQueueDir: AbsoluteFilePath;
-  wardQueueDir: AbsoluteFilePath;
+  home: string;
+  claudeQueueDir: string;
+  wardQueueDir: string;
   apiWorkspace: ContentText;
   webWorkspace: ContentText;
-  repoRoot: AbsoluteFilePath;
+  repoRoot: string;
 }): Record<PropertyKey, ContentText> =>
   Object.fromEntries(
     Object.entries(env).map(([key, value]): [PropertyKey, ContentText] => {

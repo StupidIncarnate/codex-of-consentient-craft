@@ -15,15 +15,13 @@
 
 import { join } from '#gateway/node/path';
 import { registerMock, registerSpyOn, requireActual } from '@dungeonmaster/testing/register-mock';
-import { AbsoluteFilePathStub } from '@dungeonmaster/shared/contracts/absolute-file-path/absolute-file-path.stub';
-import type { AbsoluteFilePath } from '@dungeonmaster/shared/contracts';
 import { locationsStatics } from '@dungeonmaster/shared/statics';
 
 import { writeFileProxy } from '#gateway/node/fs__promises/write-file/write-file.proxy';
 
 export const shutdownReasonWriteBrokerProxy = (): {
-  setupWriteSucceeds: (params: { evidencePath: AbsoluteFilePath; nowMs: number }) => void;
-  getWrittenMarkerContent: (params: { evidencePath: AbsoluteFilePath }) => unknown;
+  setupWriteSucceeds: (params: { evidencePath: string; nowMs: number }) => void;
+  getWrittenMarkerContent: (params: { evidencePath: string }) => unknown;
 } => {
   const realPath = requireActual<{ join: typeof join }>({ module: 'path' });
   const joinHandle = registerMock({ fn: join });
@@ -36,19 +34,17 @@ export const shutdownReasonWriteBrokerProxy = (): {
       evidencePath,
       nowMs,
     }: {
-      evidencePath: AbsoluteFilePath;
+      evidencePath: string;
       nowMs: number;
     }): void => {
       const markerPathValue = `${evidencePath}/${locationsStatics.siegelense.shutdownReason}`;
-      writeProxy.succeeds({ path: AbsoluteFilePathStub({ value: markerPathValue }) });
+      writeProxy.succeeds({ path: markerPathValue });
       dateHandle.calledWith([]).returns(nowMs);
     },
 
-    getWrittenMarkerContent: ({ evidencePath }: { evidencePath: AbsoluteFilePath }): unknown =>
+    getWrittenMarkerContent: ({ evidencePath }: { evidencePath: string }): unknown =>
       writeProxy.writtenContentsFor({
-        path: AbsoluteFilePathStub({
-          value: `${evidencePath}/${locationsStatics.siegelense.shutdownReason}`,
-        }),
+        path: `${evidencePath}/${locationsStatics.siegelense.shutdownReason}`,
       }),
   };
 };

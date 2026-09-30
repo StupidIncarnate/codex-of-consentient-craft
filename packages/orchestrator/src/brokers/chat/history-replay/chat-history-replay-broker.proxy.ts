@@ -4,9 +4,9 @@ import { readNonEmptyLinesProxy } from '#gateway/node/fs__promises/read-non-empt
 import { homedir } from '#gateway/node/os';
 import { claudeLineNormalizeBrokerProxy } from '@dungeonmaster/shared/brokers/claude-line/normalize/claude-line-normalize-broker.proxy';
 import { cwdResolveBrokerProxy } from '@dungeonmaster/shared/brokers/cwd/resolve/cwd-resolve-broker.proxy';
-import type { AbsoluteFilePath, Quest, Session } from '@dungeonmaster/shared/contracts';
+import type { Quest, Session } from '@dungeonmaster/shared/contracts';
 import type { FileNameStub } from '@dungeonmaster/shared/contracts/file-name/file-name.stub';
-import { absoluteFilePathContract, repoRootCwdContract, sessionContract } from '@dungeonmaster/shared/contracts';
+import { repoRootCwdContract, sessionContract } from '@dungeonmaster/shared/contracts';
 import { dungeonmasterHomeStatics } from '@dungeonmaster/shared/statics';
 import {
   claudeProjectPathEncoderTransformer,
@@ -83,21 +83,21 @@ export const chatHistoryReplayBrokerProxy = (): {
   // transformer instead of keying on calledWith([]), which would hide a wrong-path regression
   // exactly like the class of bug this migration exists to catch. Placeholders below are never
   // read for real — setupGuild always runs first in every test.
-  const homeDirRef: { value: AbsoluteFilePath } = {
-    value: absoluteFilePathContract.parse('/unset'),
+  const homeDirRef: { value: string } = {
+    value: '/unset',
   };
   const sessionIdRef: { value: Session['id'] } = { value: sessionContract.shape.id.parse('unset') };
   // A cwd is a property of the SESSION, so a read is addressed at the directory the session it
   // belongs to resolves to — which is what lets one test stage two sessions of one carved quest at
   // two directories. `setupQuestSession` writes this map; the quest/guild-wide ref below answers a
   // session with no row of its own.
-  const sessionPathOverridesRef = new Map<Session['id'], AbsoluteFilePath>();
-  const projectPathOverrideRef: { value: AbsoluteFilePath | undefined } = { value: undefined };
+  const sessionPathOverridesRef = new Map<Session['id'], string>();
+  const projectPathOverrideRef: { value: string | undefined } = { value: undefined };
   // Keyed per session: two sessions each have their own subagents/ directory, so one shared queue
   // would let one session's `setupSubagentFile` consume the other's filename.
   const subagentFileQueuesRef = new Map<Session['id'], FileName[]>();
 
-  const resolveProjectPath = ({ sessionId }: { sessionId: Session['id'] }): AbsoluteFilePath => {
+  const resolveProjectPath = ({ sessionId }: { sessionId: Session['id'] }): string => {
     const sessionPath = sessionPathOverridesRef.get(sessionId);
     if (sessionPath !== undefined) {
       return sessionPath;
@@ -106,20 +106,18 @@ export const chatHistoryReplayBrokerProxy = (): {
       return projectPathOverrideRef.value;
     }
     const guildPath = guildStartPathsRef.value.at(0);
-    return absoluteFilePathContract.parse(String(guildPath ?? '/unset'));
+    return String(guildPath ?? '/unset');
   };
 
-  const resolveJsonlPath = ({ sessionId }: { sessionId: Session['id'] }): AbsoluteFilePath =>
+  const resolveJsonlPath = ({ sessionId }: { sessionId: Session['id'] }): string =>
     claudeProjectPathEncoderTransformer({
       homeDir: homeDirRef.value,
       projectPath: resolveProjectPath({ sessionId }),
       sessionId,
     });
 
-  const resolveSubagentsDir = ({ sessionId }: { sessionId: Session['id'] }): AbsoluteFilePath =>
-    absoluteFilePathContract.parse(
-      `${stripJsonlSuffixTransformer({ filePath: resolveJsonlPath({ sessionId }) })}/subagents`,
-    );
+  const resolveSubagentsDir = ({ sessionId }: { sessionId: Session['id'] }): string =>
+    `${stripJsonlSuffixTransformer({ filePath: resolveJsonlPath({ sessionId }) })}/subagents`;
 
   return {
     setupGuild: ({
@@ -142,7 +140,7 @@ export const chatHistoryReplayBrokerProxy = (): {
       const homePath = `${homeDir}/${dungeonmasterHomeStatics.paths.configDir}`;
       guildProxy.setupConfig({ config, homeDir, homePath });
       homedirHandle.calledWith([]).returns(homeDir);
-      homeDirRef.value = absoluteFilePathContract.parse(homeDir);
+      homeDirRef.value = homeDir;
       sessionIdRef.value = sessionId;
 
       guildStartPathsRef.value = config.guilds.map((guild) => guild.path);
@@ -192,9 +190,7 @@ export const chatHistoryReplayBrokerProxy = (): {
     }): void => {
       const targetSessionId = sessionId ?? sessionIdRef.value;
       const fileName = (subagentFileQueuesRef.get(targetSessionId) ?? []).shift();
-      const filePath = absoluteFilePathContract.parse(
-        `${resolveSubagentsDir({ sessionId: targetSessionId })}/${String(fileName)}`,
-      );
+      const filePath = `${resolveSubagentsDir({ sessionId: targetSessionId })}/${String(fileName)}`;
       readLinesProxy.returnsRaw({ path: String(filePath), rawContents: content });
     },
     setupSubagentDirMissing: ({ sessionId }: { sessionId?: Session['id'] } = {}): void => {
@@ -205,7 +201,7 @@ export const chatHistoryReplayBrokerProxy = (): {
       });
     },
     setupCwdResolveSuccess: ({ cwd }: { cwd: string }): void => {
-      projectPathOverrideRef.value = absoluteFilePathContract.parse(cwd);
+      projectPathOverrideRef.value = cwd;
       for (const startPath of guildStartPathsRef.value) {
         cwdProxy.setupRepoRootFoundInParent({ startPath: String(startPath), repoRoot: cwd });
       }
@@ -240,7 +236,7 @@ export const chatHistoryReplayBrokerProxy = (): {
           cwd: repoRootCwdContract.parse(cwd),
         }),
       );
-      sessionPathOverridesRef.set(sessionId, absoluteFilePathContract.parse(cwd));
+      sessionPathOverridesRef.set(sessionId, cwd);
     },
     setupQuestWorktree: ({
       questId,
@@ -255,7 +251,7 @@ export const chatHistoryReplayBrokerProxy = (): {
           cwd: repoRootCwdContract.parse(worktreePath),
         }),
       );
-      projectPathOverrideRef.value = absoluteFilePathContract.parse(worktreePath);
+      projectPathOverrideRef.value = worktreePath;
     },
     setupQuestRepoRoot: ({ questId, repoRoot }: { questId: Quest['id']; repoRoot: string }): void => {
       questCwdMock.calledWith([{ questId }]).resolves(
@@ -264,7 +260,7 @@ export const chatHistoryReplayBrokerProxy = (): {
           cwd: repoRootCwdContract.parse(repoRoot),
         }),
       );
-      projectPathOverrideRef.value = absoluteFilePathContract.parse(repoRoot);
+      projectPathOverrideRef.value = repoRoot;
     },
     // No projectPathOverrideRef update — the broker throws before ever computing a JSONL path
     // for this case, so no session/subagent read needs to be staged against one.
@@ -278,7 +274,7 @@ export const chatHistoryReplayBrokerProxy = (): {
       questCwdMock.calledWith([{ questId }]).resolves(
         QuestCwdResolutionStub({
           kind: 'missing-worktree',
-          worktreePath: absoluteFilePathContract.parse(worktreePath),
+          worktreePath: worktreePath,
         }),
       );
     },

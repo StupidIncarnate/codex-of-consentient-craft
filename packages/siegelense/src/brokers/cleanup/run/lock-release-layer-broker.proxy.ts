@@ -1,4 +1,3 @@
-import { AbsoluteFilePathStub } from '@dungeonmaster/shared/contracts/absolute-file-path/absolute-file-path.stub';
 
 import { readFileIfExistsProxy } from '#gateway/node/fs__promises/read-file-if-exists/read-file-if-exists.proxy';
 import type { FsError } from '#gateway/node/fs';
@@ -17,8 +16,8 @@ const BOOT_LOCK_VALUE = `${HOME_PATH_VALUE}/siegelense/boot.lock`;
 const REGISTRY_LOCK_VALUE = `${HOME_PATH_VALUE}/siegelense/registry.lock`;
 
 export const lockReleaseLayerBrokerProxy = (): {
-  bootLockPath: ReturnType<typeof AbsoluteFilePathStub>;
-  registryLockPath: ReturnType<typeof AbsoluteFilePathStub>;
+  bootLockPath: string;
+  registryLockPath: string;
   setupNoLocks: () => void;
   setupBootLockFresh: (params: { acquiredAtMs: EpochMs }) => void;
   setupBootLockStale: (params: { acquiredAtMs: EpochMs }) => void;
@@ -27,8 +26,8 @@ export const lockReleaseLayerBrokerProxy = (): {
   setupRegistryLockStale: (params: { acquiredAtMs: EpochMs }) => void;
   getDeletedPaths: () => unknown[];
 } => {
-  const bootLockPath = AbsoluteFilePathStub({ value: BOOT_LOCK_VALUE });
-  const registryLockPath = AbsoluteFilePathStub({ value: REGISTRY_LOCK_VALUE });
+  const bootLockPath = BOOT_LOCK_VALUE;
+  const registryLockPath = REGISTRY_LOCK_VALUE;
 
   // setupHomeOnly (not setupBootLockPath/setupRegistryLockPath): this proxy is composed alongside
   // instanceKillBrokerProxy in cleanup-run-broker.proxy.ts, and both need the SAME addressed home

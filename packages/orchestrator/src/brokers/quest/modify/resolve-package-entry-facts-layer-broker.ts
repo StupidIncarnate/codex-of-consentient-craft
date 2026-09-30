@@ -19,7 +19,7 @@
  */
 
 import { architecturePackageTypeDetectBroker } from '@dungeonmaster/shared/brokers';
-import { absoluteFilePathContract, packageJsonContract } from '@dungeonmaster/shared/contracts';
+import { packageJsonContract } from '@dungeonmaster/shared/contracts';
 import type { PackageType, RepoRootCwd, QuestPackageEntry } from '@dungeonmaster/shared/contracts';
 import { packageJsonDependencyNamesTransformer } from '@dungeonmaster/shared/transformers';
 import { readdirSync } from '#gateway/node/fs';
@@ -45,9 +45,7 @@ export const resolvePackageEntryFactsLayerBroker = async ({
   // run on one value and describe one directory.
   const locationChecks = await Promise.all(
     entries.map(async (entry) => {
-      const packageRoot = absoluteFilePathContract.parse(
-        resolve(String(projectRoot), String(entry.location)),
-      );
+      const packageRoot = resolve(String(projectRoot), String(entry.location));
       const filePath = packageRoot;
       return {
         location: String(entry.location),

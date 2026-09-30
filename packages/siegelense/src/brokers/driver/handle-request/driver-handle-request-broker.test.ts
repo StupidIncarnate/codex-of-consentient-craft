@@ -1,4 +1,3 @@
-import { AbsoluteFilePathStub } from '@dungeonmaster/shared/contracts/absolute-file-path/absolute-file-path.stub';
 
 import { DriverRequestStub } from '../../../contracts/driver-request/driver-request.stub';
 import { InstanceIdStub } from '../../../contracts/instance-id/instance-id.stub';
@@ -183,7 +182,7 @@ describe('driverHandleRequestBroker', () => {
     it('VALID: {kind: kill} => tears the lane down and answers with the kill result', async () => {
       const proxy = driverHandleRequestBrokerProxy();
       const instanceId = InstanceIdStub();
-      const homePath = AbsoluteFilePathStub({ value: '/tmp/dm-siege-handle-request-kill-home' });
+      const homePath = '/tmp/dm-siege-handle-request-kill-home';
       const registryJson = JSON.stringify({
         instances: [RegistryEntryStub({ id: instanceId })],
       });
@@ -221,9 +220,7 @@ describe('driverHandleRequestBroker', () => {
     it('VALID: {kind: kill} => marks the released registry row killed', async () => {
       const proxy = driverHandleRequestBrokerProxy();
       const instanceId = InstanceIdStub();
-      const homePath = AbsoluteFilePathStub({
-        value: '/tmp/dm-siege-handle-request-kill-registry-home',
-      });
+      const homePath = '/tmp/dm-siege-handle-request-kill-registry-home';
       const registryJson = JSON.stringify({
         instances: [RegistryEntryStub({ id: instanceId })],
       });

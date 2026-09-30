@@ -1,6 +1,5 @@
 import { locationsOutboxPathFindBroker } from './locations-outbox-path-find-broker';
 import { locationsOutboxPathFindBrokerProxy } from './locations-outbox-path-find-broker.proxy';
-import { AbsoluteFilePathStub } from '../../../contracts/absolute-file-path/absolute-file-path.stub';
 
 describe('locationsOutboxPathFindBroker', () => {
   describe('outbox path resolution', () => {
@@ -16,7 +15,7 @@ describe('locationsOutboxPathFindBroker', () => {
       const result = locationsOutboxPathFindBroker();
 
       expect(result).toBe(
-        AbsoluteFilePathStub({ value: '/home/user/.dungeonmaster/event-outbox.jsonl' }),
+        '/home/user/.dungeonmaster/event-outbox.jsonl',
       );
     });
   });

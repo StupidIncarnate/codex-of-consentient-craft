@@ -15,10 +15,6 @@
  * the convention here keeps the two callers in lockstep.
  */
 
-import {
-  absoluteFilePathContract,
-  type AbsoluteFilePath,
-} from '../../contracts/absolute-file-path/absolute-file-path-contract';
 import type { ContentText } from '../../contracts/content-text/content-text-contract';
 
 const BINDING_SUFFIX = '-binding';
@@ -29,8 +25,8 @@ export const bindingNameToFilePathTransformer = ({
   packageRoot,
 }: {
   bindingName: ContentText;
-  packageRoot: AbsoluteFilePath;
-}): AbsoluteFilePath => {
+  packageRoot: string;
+}): string => {
   const bindingNameStr = String(bindingName);
   const folderName = bindingNameStr.endsWith(BINDING_SUFFIX)
     ? bindingNameStr.slice(0, -BINDING_SUFFIX.length)
@@ -39,7 +35,5 @@ export const bindingNameToFilePathTransformer = ({
     ? bindingNameStr
     : `${bindingNameStr}${BINDING_SUFFIX}`;
 
-  return absoluteFilePathContract.parse(
-    `${String(packageRoot)}${BINDINGS_PATH}${folderName}/${fileBaseName}.ts`,
-  );
+  return `${String(packageRoot)}${BINDINGS_PATH}${folderName}/${fileBaseName}.ts`;
 };

@@ -12,12 +12,11 @@
  */
 
 import { readdirEntriesSync, type DirEntrySync } from '#gateway/node/fs';
-import type { AbsoluteFilePath } from '../../../contracts/absolute-file-path/absolute-file-path-contract';
 
 export const safeReaddirLayerBroker = ({
   dirPath,
 }: {
-  dirPath: AbsoluteFilePath;
+  dirPath: string;
 }): DirEntrySync[] => {
   try {
     return readdirEntriesSync(dirPath);

@@ -1,4 +1,4 @@
-import type { AbsoluteFilePath, ContentText } from '@dungeonmaster/shared/contracts';
+import type { ContentText } from '@dungeonmaster/shared/contracts';
 
 import { fetchJsonProxy } from '#gateway/node/fetch/fetch-json/fetch-json.proxy';
 import { writeFileCreatingParentProxy } from '#gateway/node/fs__promises/write-file-creating-parent/write-file-creating-parent.proxy';
@@ -9,18 +9,18 @@ export const recipesSessionWithNestedSubagentBrokerProxy = (): {
   laneAnswers: (params: {
     apiBaseUrl: ContentText;
     guilds: unknown;
-    transcriptPaths: readonly AbsoluteFilePath[];
+    transcriptPaths: readonly string[];
   }) => void;
   filesWritten: () => readonly unknown[];
-  uuidsIn: (params: { filePath: AbsoluteFilePath }) => readonly unknown[];
-  timestampsIn: (params: { filePath: AbsoluteFilePath }) => readonly unknown[];
-  completionAgentIdsIn: (params: { filePath: AbsoluteFilePath }) => readonly unknown[];
-  assistantTextsIn: (params: { filePath: AbsoluteFilePath }) => readonly unknown[];
-  toolUseIdsIn: (params: { filePath: AbsoluteFilePath }) => readonly unknown[];
+  uuidsIn: (params: { filePath: string }) => readonly unknown[];
+  timestampsIn: (params: { filePath: string }) => readonly unknown[];
+  completionAgentIdsIn: (params: { filePath: string }) => readonly unknown[];
+  assistantTextsIn: (params: { filePath: string }) => readonly unknown[];
+  toolUseIdsIn: (params: { filePath: string }) => readonly unknown[];
 } => {
   const fetchProxy = fetchJsonProxy();
   const writeProxy = writeFileCreatingParentProxy();
-  const stagedPaths: AbsoluteFilePath[] = [];
+  const stagedPaths: string[] = [];
 
   return {
     laneAnswers: ({
@@ -30,7 +30,7 @@ export const recipesSessionWithNestedSubagentBrokerProxy = (): {
     }: {
       apiBaseUrl: ContentText;
       guilds: unknown;
-      transcriptPaths: readonly AbsoluteFilePath[];
+      transcriptPaths: readonly string[];
     }): void => {
       fetchProxy.setupSuccess({
         url: `${apiBaseUrl}${recipeHttpStatics.routes.guilds}`,
@@ -45,22 +45,22 @@ export const recipesSessionWithNestedSubagentBrokerProxy = (): {
     filesWritten: (): readonly unknown[] =>
       stagedPaths.filter((path) => writeProxy.writtenContentsFor({ path }) !== undefined),
 
-    uuidsIn: ({ filePath }: { filePath: AbsoluteFilePath }): readonly unknown[] =>
+    uuidsIn: ({ filePath }: { filePath: string }): readonly unknown[] =>
       transcriptLinesReadTransformer({
         contents: String(writeProxy.writtenContentsFor({ path: filePath })),
       }).map((line) => line.uuid),
 
-    timestampsIn: ({ filePath }: { filePath: AbsoluteFilePath }): readonly unknown[] =>
+    timestampsIn: ({ filePath }: { filePath: string }): readonly unknown[] =>
       transcriptLinesReadTransformer({
         contents: String(writeProxy.writtenContentsFor({ path: filePath })),
       }).map((line) => line.timestamp),
 
-    completionAgentIdsIn: ({ filePath }: { filePath: AbsoluteFilePath }): readonly unknown[] =>
+    completionAgentIdsIn: ({ filePath }: { filePath: string }): readonly unknown[] =>
       transcriptLinesReadTransformer({
         contents: String(writeProxy.writtenContentsFor({ path: filePath })),
       }).map((line) => line.toolUseResult?.agentId ?? null),
 
-    assistantTextsIn: ({ filePath }: { filePath: AbsoluteFilePath }): readonly unknown[] =>
+    assistantTextsIn: ({ filePath }: { filePath: string }): readonly unknown[] =>
       transcriptLinesReadTransformer({
         contents: String(writeProxy.writtenContentsFor({ path: filePath })),
       }).flatMap((line): readonly unknown[] =>
@@ -69,7 +69,7 @@ export const recipesSessionWithNestedSubagentBrokerProxy = (): {
           : line.message.content.map((item) => item.text ?? null),
       ),
 
-    toolUseIdsIn: ({ filePath }: { filePath: AbsoluteFilePath }): readonly unknown[] =>
+    toolUseIdsIn: ({ filePath }: { filePath: string }): readonly unknown[] =>
       transcriptLinesReadTransformer({
         contents: String(writeProxy.writtenContentsFor({ path: filePath })),
       }).flatMap((line): readonly unknown[] =>

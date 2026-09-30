@@ -12,7 +12,6 @@
  * the boot-tree's widget subtree renderer
  */
 
-import type { AbsoluteFilePath } from '../../../contracts/absolute-file-path/absolute-file-path-contract';
 import type { ContentText } from '../../../contracts/content-text/content-text-contract';
 import { importStatementsExtractTransformer } from '../../../transformers/import-statements-extract/import-statements-extract-transformer';
 import { relativeImportResolveTransformer } from '../../../transformers/relative-import-resolve/relative-import-resolve-transformer';
@@ -24,7 +23,7 @@ const ORCHESTRATOR_ADAPTER_MARKER = 'adapters/orchestrator/';
 export const architectureOrchestratorMethodExtractBroker = ({
   serverResponderFile,
 }: {
-  serverResponderFile: AbsoluteFilePath | null;
+  serverResponderFile: string | null;
 }): ContentText | null => {
   if (serverResponderFile === null) return null;
 

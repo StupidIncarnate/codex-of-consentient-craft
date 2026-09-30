@@ -1,8 +1,6 @@
 import type { DirEntrySync } from '#gateway/node/fs';
 import { listFlowFilesLayerBrokerProxy } from './list-flow-files-layer-broker.proxy';
 import { architectureSourceReadBrokerProxy } from '../source-read/architecture-source-read-broker.proxy';
-import { AbsoluteFilePathStub } from '../../../contracts/absolute-file-path/absolute-file-path.stub';
-import type { AbsoluteFilePath } from '../../../contracts/absolute-file-path/absolute-file-path-contract';
 import type { ContentText } from '../../../contracts/content-text/content-text-contract';
 import { ContentTextStub } from '../../../contracts/content-text/content-text.stub';
 
@@ -12,9 +10,9 @@ export const mcpToolsToAnnotationsLayerBrokerProxy = (): {
     flowEntries,
     flowFiles,
   }: {
-    packageRoot: AbsoluteFilePath;
+    packageRoot: string;
     flowEntries: DirEntrySync[];
-    flowFiles: { path: AbsoluteFilePath; source: ContentText }[];
+    flowFiles: { path: string; source: ContentText }[];
   }) => void;
 } => {
   const listProxy = listFlowFilesLayerBrokerProxy();
@@ -26,16 +24,16 @@ export const mcpToolsToAnnotationsLayerBrokerProxy = (): {
       flowEntries,
       flowFiles,
     }: {
-      packageRoot: AbsoluteFilePath;
+      packageRoot: string;
       flowEntries: DirEntrySync[];
-      flowFiles: { path: AbsoluteFilePath; source: ContentText }[];
+      flowFiles: { path: string; source: ContentText }[];
     }): void => {
       listProxy.returns({
-        dirPath: AbsoluteFilePathStub({ value: `${String(packageRoot)}/src/flows` }),
+        dirPath: `${String(packageRoot)}/src/flows`,
         entries: flowEntries,
       });
 
-      const fileMap = new Map<AbsoluteFilePath, ContentText>();
+      const fileMap = new Map<string, ContentText>();
       for (const f of flowFiles) {
         fileMap.set(f.path, f.source);
       }

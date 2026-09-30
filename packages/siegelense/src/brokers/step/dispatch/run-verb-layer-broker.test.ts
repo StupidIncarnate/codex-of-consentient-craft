@@ -1,4 +1,3 @@
-import { AbsoluteFilePathStub } from '@dungeonmaster/shared/contracts/absolute-file-path/absolute-file-path.stub';
 import { ContentTextStub } from '@dungeonmaster/shared/contracts/content-text/content-text.stub';
 
 import { LaneSessionStub } from '../../../contracts/lane-session/lane-session.stub';
@@ -379,7 +378,7 @@ describe('runVerbLayerBroker', () => {
       const index = StepIndexStub({ value: 1 });
 
       proxy.setupFileExists({
-        filePath: AbsoluteFilePathStub({ value: `${lane.homePath}/api-server.log` }),
+        filePath: `${lane.homePath}/api-server.log`,
         content: 'server listening on port 3000',
       });
 

@@ -3,7 +3,6 @@ import { ensureDirProxy } from '#gateway/node/fs__promises/ensure-dir/ensure-dir
 import { readlinkProxy } from '#gateway/node/fs__promises/readlink/readlink.proxy';
 import { join } from '#gateway/node/path';
 import { isNativeErrorProxy } from '#gateway/node/util__types/is-native-error/is-native-error.proxy';
-import { AbsoluteFilePathStub } from '@dungeonmaster/shared/contracts/absolute-file-path/absolute-file-path.stub';
 import { registerMock, requireActual } from '@dungeonmaster/testing/register-mock';
 
 import { symlinkProxy } from '#gateway/node/fs__promises/symlink/symlink.proxy';
@@ -24,8 +23,8 @@ const LINK_PATH_VALUE = '/project/.dungeonmaster-assets/siegelense-assets';
 const LEGACY_LINK_PATH_VALUE = '/project/.siegelense';
 
 const targetDirFp = TARGET_DIR_VALUE;
-const linkPathAbs = AbsoluteFilePathStub({ value: LINK_PATH_VALUE });
-const legacyLinkPathAbs = AbsoluteFilePathStub({ value: LEGACY_LINK_PATH_VALUE });
+const linkPathAbs = LINK_PATH_VALUE;
+const legacyLinkPathAbs = LEGACY_LINK_PATH_VALUE;
 
 export const InstallLinkCreateResponderProxy = (): {
   callResponder: typeof InstallLinkCreateResponder;

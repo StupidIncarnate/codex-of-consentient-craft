@@ -1,4 +1,3 @@
-import { AbsoluteFilePathStub } from '@dungeonmaster/shared/contracts/absolute-file-path/absolute-file-path.stub';
 import { GuildIdStub } from '@dungeonmaster/shared/contracts/guild-id/guild-id.stub';
 import { PastedImageUploadStub } from '@dungeonmaster/shared/contracts/pasted-image-upload/pasted-image-upload.stub';
 import { ProcessIdStub } from '@dungeonmaster/shared/contracts/process-id/process-id.stub';
@@ -33,7 +32,7 @@ describe('QuestChatResponder', () => {
       proxy.setupFindQuestPath({
         questId,
         guildId,
-        questPath: AbsoluteFilePathStub({ value: '/quests/abc' }),
+        questPath: '/quests/abc',
       });
       proxy.setupStartChat({ guildId, chatProcessId });
 
@@ -69,7 +68,7 @@ describe('QuestChatResponder', () => {
       proxy.setupFindQuestPath({
         questId,
         guildId,
-        questPath: AbsoluteFilePathStub({ value: '/quests/paused' }),
+        questPath: '/quests/paused',
       });
       proxy.setupResumeQuest({ questId, resumed: true, restoredStatus: 'in_progress' });
       proxy.setupStartChat({ guildId, chatProcessId });
@@ -112,7 +111,7 @@ describe('QuestChatResponder', () => {
       proxy.setupFindQuestPath({
         questId,
         guildId,
-        questPath: AbsoluteFilePathStub({ value: '/quests/tavernkeeper-and-chaoswhisperer' }),
+        questPath: '/quests/tavernkeeper-and-chaoswhisperer',
       });
       proxy.setupStartChat({ guildId, chatProcessId });
 
@@ -152,7 +151,7 @@ describe('QuestChatResponder', () => {
       proxy.setupFindQuestPath({
         questId,
         guildId,
-        questPath: AbsoluteFilePathStub({ value: '/quests/only-tavernkeeper' }),
+        questPath: '/quests/only-tavernkeeper',
       });
       proxy.setupStartChat({ guildId, chatProcessId });
 
@@ -191,7 +190,7 @@ describe('QuestChatResponder', () => {
       proxy.setupFindQuestPath({
         questId,
         guildId,
-        questPath: AbsoluteFilePathStub({ value: '/quests/no-session' }),
+        questPath: '/quests/no-session',
       });
       proxy.setupStartChat({ guildId, chatProcessId });
 
@@ -298,7 +297,7 @@ describe('QuestChatResponder', () => {
       proxy.setupFindQuestPath({
         questId,
         guildId,
-        questPath: AbsoluteFilePathStub({ value: '/quests/throws' }),
+        questPath: '/quests/throws',
       });
       proxy.setupStartChatError({ guildId, message: 'orchestrator startChat exploded' });
 
@@ -326,7 +325,7 @@ describe('QuestChatResponder', () => {
       proxy.setupFindQuestPath({
         questId,
         guildId,
-        questPath: AbsoluteFilePathStub({ value: '/quests/no-images-key' }),
+        questPath: '/quests/no-images-key',
       });
       proxy.setupStartChat({ guildId, chatProcessId });
 
@@ -358,7 +357,7 @@ describe('QuestChatResponder', () => {
       proxy.setupFindQuestPath({
         questId,
         guildId,
-        questPath: AbsoluteFilePathStub({ value: '/quests/empty-images-array' }),
+        questPath: '/quests/empty-images-array',
       });
       proxy.setupStartChat({ guildId, chatProcessId });
 
@@ -390,7 +389,7 @@ describe('QuestChatResponder', () => {
       proxy.setupFindQuestPath({
         questId,
         guildId,
-        questPath: AbsoluteFilePathStub({ value: '/quests/two-images' }),
+        questPath: '/quests/two-images',
       });
       proxy.setupStartChat({ guildId, chatProcessId });
       proxy.stagePastedImageIds({
@@ -507,7 +506,7 @@ describe('QuestChatResponder', () => {
       proxy.setupFindQuestPath({
         questId,
         guildId,
-        questPath: AbsoluteFilePathStub({ value: '/quests/one-image-rewrite' }),
+        questPath: '/quests/one-image-rewrite',
         homePath,
       });
       proxy.setupStartChat({ guildId, chatProcessId });
@@ -539,7 +538,7 @@ describe('QuestChatResponder', () => {
       const copyId = '55555555-5555-4555-8555-555555555555';
       proxy.stagePastedImageIds({ ids: [copyId] });
       proxy.stagePastedImageSourceRead({
-        filePath: AbsoluteFilePathStub({ value: '/tmp/snip.png' }),
+        filePath: '/tmp/snip.png',
         bytes: new Uint8Array([1, 2, 3]),
       });
       const questId = QuestIdStub({ value: 'quest-local-path-no-images-key' });
@@ -551,7 +550,7 @@ describe('QuestChatResponder', () => {
       proxy.setupFindQuestPath({
         questId,
         guildId,
-        questPath: AbsoluteFilePathStub({ value: '/quests/local-path-no-images-key' }),
+        questPath: '/quests/local-path-no-images-key',
         homePath,
       });
       proxy.setupStartChat({ guildId, chatProcessId });

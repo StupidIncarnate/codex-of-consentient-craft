@@ -1,5 +1,3 @@
-import { AbsoluteFilePathStub } from '@dungeonmaster/shared/contracts/absolute-file-path/absolute-file-path.stub';
-import type { AbsoluteFilePath } from '@dungeonmaster/shared/contracts';
 
 import { readFileProxy } from '#gateway/node/fs__promises/read-file/read-file.proxy';
 import { statIfExistsProxy } from '#gateway/node/fs__promises/stat-if-exists/stat-if-exists.proxy';
@@ -20,10 +18,10 @@ const INDEX_MODIFIED_AT_MS = 1735689600000;
 const INDEX_SUFFIX = `${snapshotStatics.store.dirName}/${snapshotStatics.store.indexFileName}`;
 
 export const snapshotIndexReadBrokerProxy = (): {
-  indexPathFor: (params: { homePath: AbsoluteFilePath }) => AbsoluteFilePath;
-  setupNoIndex: (params: { homePath: AbsoluteFilePath }) => void;
-  setupIndex: (params: { homePath: AbsoluteFilePath; records: readonly SnapshotRecord[] }) => void;
-  setupRawIndex: (params: { homePath: AbsoluteFilePath; contents: string }) => void;
+  indexPathFor: (params: { homePath: string }) => string;
+  setupNoIndex: (params: { homePath: string }) => void;
+  setupIndex: (params: { homePath: string; records: readonly SnapshotRecord[] }) => void;
+  setupRawIndex: (params: { homePath: string; contents: string }) => void;
 } => {
   // Runs REAL — it is pure — so its own proxy is constructed for enforce-proxy-child-creation only.
   locationsSnapshotPathsFindBrokerProxy();
@@ -32,10 +30,10 @@ export const snapshotIndexReadBrokerProxy = (): {
   const readProxy = readFileProxy();
 
   return {
-    indexPathFor: ({ homePath }: { homePath: AbsoluteFilePath }): AbsoluteFilePath =>
-      AbsoluteFilePathStub({ value: `${String(homePath)}/${INDEX_SUFFIX}` }),
+    indexPathFor: ({ homePath }: { homePath: string }): string =>
+      `${String(homePath)}/${INDEX_SUFFIX}`,
 
-    setupNoIndex: ({ homePath }: { homePath: AbsoluteFilePath }): void => {
+    setupNoIndex: ({ homePath }: { homePath: string }): void => {
       statProxy.missing({ path: `${String(homePath)}/${INDEX_SUFFIX}` });
     },
 
@@ -43,10 +41,10 @@ export const snapshotIndexReadBrokerProxy = (): {
       homePath,
       records,
     }: {
-      homePath: AbsoluteFilePath;
+      homePath: string;
       records: readonly SnapshotRecord[];
     }): void => {
-      const index = AbsoluteFilePathStub({ value: `${String(homePath)}/${INDEX_SUFFIX}` });
+      const index = `${String(homePath)}/${INDEX_SUFFIX}`;
       statProxy.returnsFile({
         path: index,
         sizeBytes: INDEX_SIZE_BYTES,
@@ -64,10 +62,10 @@ export const snapshotIndexReadBrokerProxy = (): {
       homePath,
       contents,
     }: {
-      homePath: AbsoluteFilePath;
+      homePath: string;
       contents: string;
     }): void => {
-      const index = AbsoluteFilePathStub({ value: `${String(homePath)}/${INDEX_SUFFIX}` });
+      const index = `${String(homePath)}/${INDEX_SUFFIX}`;
       statProxy.returnsFile({
         path: index,
         sizeBytes: INDEX_SIZE_BYTES,

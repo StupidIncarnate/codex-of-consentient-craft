@@ -1,4 +1,3 @@
-import { absoluteFilePathContract } from '@dungeonmaster/shared/contracts';
 import { runProxy } from '#gateway/node/child_process/run/run.proxy';
 import { RunNotFoundErrorProxy } from '#gateway/node/child_process/run-not-found.error.proxy';
 
@@ -32,7 +31,7 @@ export const checkRunLintBrokerProxy = (): {
 
   const resolveCommand = ({ projectFolder }: { projectFolder: ProjectFolder }): BinCommand =>
     binProxy.setupFound({
-      cwd: absoluteFilePathContract.parse(projectFolder.path),
+      cwd: projectFolder.path,
       binName: BinCommandStub({ value: checkCommandsStatics.lint.bin }),
     });
 
@@ -51,7 +50,7 @@ export const checkRunLintBrokerProxy = (): {
   }): void => {
     run.setupSuccess({
       command: String(resolveCommand({ projectFolder })),
-      cwd: String(absoluteFilePathContract.parse(projectFolder.path)),
+      cwd: String(projectFolder.path),
       exitCode,
       stdout,
       stderr,
@@ -121,7 +120,7 @@ export const checkRunLintBrokerProxy = (): {
       const expected = [...checkCommandsStatics.lint.args.slice(0, -1), ...files];
       run.setupSuccess({
         command: String(resolveCommand({ projectFolder })),
-        cwd: String(absoluteFilePathContract.parse(projectFolder.path)),
+        cwd: String(projectFolder.path),
         args: (actual: readonly unknown[]): boolean =>
           actual.length === expected.length &&
           expected.every((arg, index) => arg === actual[index]),

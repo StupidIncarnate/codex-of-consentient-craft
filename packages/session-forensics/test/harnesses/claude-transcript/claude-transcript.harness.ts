@@ -21,8 +21,6 @@ import { ensureDirSync, rmSync, writeFileSync } from '#gateway/node/fs';
 import { join } from '#gateway/node/path';
 
 import { locationsClaudeProjectsRootFindBroker } from '@dungeonmaster/shared/brokers';
-import { absoluteFilePathContract } from '@dungeonmaster/shared/contracts';
-import type { AbsoluteFilePath } from '@dungeonmaster/shared/contracts';
 import type { SessionIdStub } from '@dungeonmaster/shared/contracts/session-id/session-id.stub';
 import type { AgentIdStub } from '@dungeonmaster/shared/contracts/agent-id/agent-id.stub';
 import type { ContentTextStub } from '@dungeonmaster/shared/contracts/content-text/content-text.stub';
@@ -45,7 +43,7 @@ export const claudeTranscriptHarness = (): {
   }) => Promise<void>;
   afterEach: () => void;
 } => {
-  const projectDirs: AbsoluteFilePath[] = [];
+  const projectDirs: string[] = [];
 
   return {
     // Every write below is synchronous (ensureDirSync/writeFileSync) — `async` here exists only to
@@ -60,12 +58,10 @@ export const claudeTranscriptHarness = (): {
       content: ContentText;
       subagentIds?: readonly AgentId[];
     }): Promise<void> => {
-      const projectDir = absoluteFilePathContract.parse(
-        join(
+      const projectDir = join(
           locationsClaudeProjectsRootFindBroker(),
           `${PROJECT_DIR_PREFIX}${String(pid)}-${String(Date.now())}-${Math.random().toString(36).slice(2)}`,
-        ),
-      );
+        );
       ensureDirSync(projectDir);
       writeFileSync(join(projectDir, `${sessionId}${JSONL_SUFFIX}`), content);
 

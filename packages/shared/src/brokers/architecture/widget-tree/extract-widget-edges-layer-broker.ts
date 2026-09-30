@@ -13,8 +13,6 @@
  * WHEN-TO-USE: Widget-tree broker building the widget composition graph, called once per widget file
  */
 
-import type { AbsoluteFilePath } from '../../../contracts/absolute-file-path/absolute-file-path-contract';
-import { absoluteFilePathContract } from '../../../contracts/absolute-file-path/absolute-file-path-contract';
 import {
   contentTextContract,
   type ContentText,
@@ -33,9 +31,9 @@ export const extractWidgetEdgesLayerBroker = ({
   packageSrcPath,
   widgetFileSet,
 }: {
-  widgetFilePath: AbsoluteFilePath;
-  packageSrcPath: AbsoluteFilePath;
-  widgetFileSet: Set<AbsoluteFilePath>;
+  widgetFilePath: string;
+  packageSrcPath: string;
+  widgetFileSet: Set<string>;
 }): WidgetEdges => {
   const content = readWidgetSourceLayerBroker({ filePath: widgetFilePath });
   if (content === undefined) {
@@ -43,7 +41,7 @@ export const extractWidgetEdgesLayerBroker = ({
   }
 
   const importPaths = importStatementsExtractTransformer({ source: content });
-  const childWidgetPaths: AbsoluteFilePath[] = [];
+  const childWidgetPaths: string[] = [];
   const bindingNames: ContentText[] = [];
   const bindingsFolder = `${String(packageSrcPath)}/${widgetTreeStatics.bindingsFolderName}/`;
 
@@ -57,9 +55,7 @@ export const extractWidgetEdgesLayerBroker = ({
       continue;
     }
     if (resolved.endsWith(widgetTreeStatics.tsSuffix)) {
-      const withTsx = absoluteFilePathContract.parse(
-        `${String(resolved).slice(0, -widgetTreeStatics.tsSuffix.length)}${widgetTreeStatics.tsxSuffix}`,
-      );
+      const withTsx = `${String(resolved).slice(0, -widgetTreeStatics.tsSuffix.length)}${widgetTreeStatics.tsxSuffix}`;
       if (widgetFileSet.has(withTsx)) {
         childWidgetPaths.push(withTsx);
         continue;

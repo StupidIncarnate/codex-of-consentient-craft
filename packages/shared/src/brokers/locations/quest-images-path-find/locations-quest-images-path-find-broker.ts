@@ -10,17 +10,13 @@
 
 import { join } from '#gateway/node/path';
 import { locationsStatics } from '../../../statics/locations/locations-statics';
-import {
-  absoluteFilePathContract,
-  type AbsoluteFilePath,
-} from '../../../contracts/absolute-file-path/absolute-file-path-contract';
 
 export const locationsQuestImagesPathFindBroker = ({
   questFolderPath,
 }: {
-  questFolderPath: AbsoluteFilePath;
-}): AbsoluteFilePath => {
+  questFolderPath: string;
+}): string => {
   const joined = join(questFolderPath, locationsStatics.quest.imagesDir);
 
-  return absoluteFilePathContract.parse(joined);
+  return joined;
 };

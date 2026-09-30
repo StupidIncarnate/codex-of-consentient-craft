@@ -12,7 +12,6 @@ import { locationsRegistryLockPathFindBrokerProxy } from '../../locations/regist
 import { locationsRootPathFindBrokerProxy } from '../../locations/root-path-find/locations-root-path-find-broker.proxy';
 import { EpochMsStub } from '../../../contracts/epoch-ms/epoch-ms.stub';
 import { instanceLifecycleStatics } from '../../../statics/instance-lifecycle/instance-lifecycle-statics';
-import { AbsoluteFilePathStub } from '@dungeonmaster/shared/contracts/absolute-file-path/absolute-file-path.stub';
 
 type EpochMs = ReturnType<typeof EpochMsStub>;
 
@@ -25,7 +24,7 @@ const REGISTRY_LOCK_VALUE = `${HOME_DIR}/.dungeonmaster/siegelense/registry.lock
 // recorded EEXIST for a lost exclusive create, and `FsErrorStub` for the read and unlink codes
 // (EMFILE, EACCES) no recorded stub covers.
 export const registryLockAcquireBrokerProxy = (): {
-  lockPath: ReturnType<typeof AbsoluteFilePathStub>;
+  lockPath: string;
   rootPath: string;
   setupNow: (params: { nowMs: EpochMs }) => void;
   setupAvailable: () => void;
@@ -39,7 +38,7 @@ export const registryLockAcquireBrokerProxy = (): {
   getDeletedPaths: () => unknown[];
   getCreatedDirs: () => readonly unknown[];
 } => {
-  const lockPath = AbsoluteFilePathStub({ value: REGISTRY_LOCK_VALUE });
+  const lockPath = REGISTRY_LOCK_VALUE;
   const rootPath = ROOT_PATH_VALUE;
   const homePath = HOME_PATH_VALUE;
 

@@ -46,7 +46,7 @@ import { tmpdir } from '#gateway/node/os';
 import { join } from '#gateway/node/path';
 import { stderr } from '#gateway/node/process';
 import { setTimeout } from '#gateway/node/setTimeout';
-import { absoluteFilePathContract, contentTextContract } from '@dungeonmaster/shared/contracts';
+import { contentTextContract } from '@dungeonmaster/shared/contracts';
 import type { ContentText, SiegeInstance } from '@dungeonmaster/shared/contracts';
 
 import { driverSocketRequestBroker } from '../../driver/socket-request/driver-socket-request-broker';
@@ -166,7 +166,7 @@ export const instanceKillBroker = async ({
         });
       }
 
-      const homePath = absoluteFilePathContract.parse(join(tmpdir(), `dm-siege-${instanceId}`));
+      const homePath = join(tmpdir(), `dm-siege-${instanceId}`);
       await rm(homePath, { recursive: true, force: true });
       await instanceReleaseBroker({ instanceId });
 

@@ -1,4 +1,3 @@
-import { AbsoluteFilePathStub } from '@dungeonmaster/shared/contracts/absolute-file-path/absolute-file-path.stub';
 
 import { UntilConsolePatternStub } from '../../../contracts/until-console-pattern/until-console-pattern.stub';
 import { UntilFilePathStub } from '../../../contracts/until-file-path/until-file-path.stub';
@@ -228,7 +227,7 @@ describe('stepUntilBroker', () => {
       const proxy = stepUntilBrokerProxy();
       const { lane, fileProxy } = proxy.laneForFile({ homePath: '/tmp/dm-siege-inst_1' });
       fileProxy.fileAppears({
-        filePath: AbsoluteFilePathStub({ value: '/tmp/dm-siege-inst_1/guilds/g1/quest.json' }),
+        filePath: '/tmp/dm-siege-inst_1/guilds/g1/quest.json',
       });
       proxy.stageElapsedMs({ nowMs: 0 });
 

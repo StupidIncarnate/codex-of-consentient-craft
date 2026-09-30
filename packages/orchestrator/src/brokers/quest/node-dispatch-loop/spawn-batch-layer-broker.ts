@@ -14,7 +14,7 @@
  */
 
 import { stderr } from '#gateway/node/process';
-import type { AbsoluteFilePath, ModifyQuestInput, ProcessId, RepoRootCwd, Quest, WorkItem } from '@dungeonmaster/shared/contracts';
+import type { ModifyQuestInput, ProcessId, RepoRootCwd, Quest, WorkItem } from '@dungeonmaster/shared/contracts';
 
 import type { SpawnInstruction } from '../../../contracts/spawn-instruction/spawn-instruction-contract';
 import { questCwdResolveBroker } from '../cwd-resolve/quest-cwd-resolve-broker';
@@ -45,7 +45,7 @@ export const spawnBatchLayerBroker = async ({
   const uniqueQuestIds = [...new Set(agents.map((instruction) => instruction.questId))];
   const contextByQuestId = new Map<
     Quest['id'],
-    { cwd: RepoRootCwd } | { worktreePath: AbsoluteFilePath }
+    { cwd: RepoRootCwd } | { worktreePath: string }
   >();
   await Promise.all(
     uniqueQuestIds.map(async (questId) => {

@@ -7,10 +7,6 @@
  */
 
 import type { StubArgument } from '../../@types/stub-argument.type';
-import {
-  absoluteFilePathContract,
-  type AbsoluteFilePath,
-} from '../absolute-file-path/absolute-file-path-contract';
 import { contentTextContract } from '../content-text/content-text-contract';
 import type { ResponderAnnotation } from '../responder-annotation/responder-annotation-contract';
 import {
@@ -18,7 +14,7 @@ import {
   type ResponderAnnotationMap,
 } from './responder-annotation-map-contract';
 
-type Entry = readonly [AbsoluteFilePath, ResponderAnnotation];
+type Entry = readonly [string, ResponderAnnotation];
 
 interface StubProps {
   entries: readonly Entry[];
@@ -28,13 +24,13 @@ export const ResponderAnnotationMapStub = ({
   ...props
 }: StubArgument<StubProps> = {}): ResponderAnnotationMap => {
   const rawEntries = props.entries ?? [];
-  const initial = new Map<AbsoluteFilePath, ResponderAnnotation>();
+  const initial = new Map<string, ResponderAnnotation>();
   for (const item of rawEntries) {
     if (item === undefined) continue;
     const [key, value] = item;
     if (key === undefined || value === undefined) continue;
     const suffixInput = value.suffix;
-    initial.set(absoluteFilePathContract.parse(key), {
+    initial.set(key, {
       suffix:
         suffixInput === null || suffixInput === undefined
           ? null

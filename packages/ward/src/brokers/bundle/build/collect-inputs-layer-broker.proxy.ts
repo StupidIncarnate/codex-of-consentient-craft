@@ -1,6 +1,4 @@
 import { readFileProxy } from '#gateway/node/fs__promises/read-file/read-file.proxy';
-import { absoluteFilePathContract } from '@dungeonmaster/shared/contracts';
-import type { AbsoluteFilePath } from '@dungeonmaster/shared/contracts';
 
 import { globDiscoverFilesBrokerProxy } from '../../glob/discover-files/glob-discover-files-broker.proxy';
 import { bundleInputsTransformer } from '../../../transformers/bundle-inputs/bundle-inputs-transformer';
@@ -15,16 +13,16 @@ const SHELL_PATTERN = 'index.html';
 
 export const collectInputsLayerBrokerProxy = (): {
   setupWorkspaceRoot: (params: { packageDirs: string[]; packageNames: string[] }) => void;
-  setupNoWorkspaceAbove: (params: { packageRoot: AbsoluteFilePath }) => void;
+  setupNoWorkspaceAbove: (params: { packageRoot: string }) => void;
   setupPackage: (params: {
-    packageRoot: AbsoluteFilePath;
+    packageRoot: string;
     name: string;
     dependencies: string[];
     sourceFiles: string[];
     isBundled: boolean;
   }) => void;
   setupUnbundledNeighbour: (params: {
-    packageRoot: AbsoluteFilePath;
+    packageRoot: string;
     name: string;
     dependencies: string[];
   }) => void;
@@ -36,14 +34,14 @@ export const collectInputsLayerBrokerProxy = (): {
 
   // workspaceDiscoverBrokerProxy resolves everything against this root and this base directory —
   // it is the only workspace layout its own setup describes, so the fixtures here share it.
-  const REPO_ROOT = absoluteFilePathContract.parse('/project');
+  const REPO_ROOT = '/project';
 
   const stageManifest = ({
     packageRoot,
     name,
     dependencies,
   }: {
-    packageRoot: AbsoluteFilePath;
+    packageRoot: string;
     name: string;
     dependencies: string[];
   }): void => {
@@ -76,18 +74,18 @@ export const collectInputsLayerBrokerProxy = (): {
       // The walk up from a package passes through the directory the workspaces live in, which has
       // no manifest of its own.
       rootProxy.hasNoManifest({
-        dirPath: absoluteFilePathContract.parse(`${String(REPO_ROOT)}/packages`),
+        dirPath: `${String(REPO_ROOT)}/packages`,
       });
     },
 
-    setupNoWorkspaceAbove: ({ packageRoot }: { packageRoot: AbsoluteFilePath }): void => {
+    setupNoWorkspaceAbove: ({ packageRoot }: { packageRoot: string }): void => {
       const segments = String(packageRoot)
         .split('/')
         .filter((segment) => segment.length > 0);
 
       for (const [index] of segments.slice(0, -1).entries()) {
         rootProxy.hasNoManifest({
-          dirPath: absoluteFilePathContract.parse(`/${segments.slice(0, index + 1).join('/')}`),
+          dirPath: `/${segments.slice(0, index + 1).join('/')}`,
         });
       }
     },
@@ -99,7 +97,7 @@ export const collectInputsLayerBrokerProxy = (): {
       sourceFiles,
       isBundled,
     }: {
-      packageRoot: AbsoluteFilePath;
+      packageRoot: string;
       name: string;
       dependencies: string[];
       sourceFiles: string[];
@@ -124,7 +122,7 @@ export const collectInputsLayerBrokerProxy = (): {
       name,
       dependencies,
     }: {
-      packageRoot: AbsoluteFilePath;
+      packageRoot: string;
       name: string;
       dependencies: string[];
     }): void => {

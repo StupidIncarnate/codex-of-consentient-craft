@@ -1,4 +1,3 @@
-import { AbsoluteFilePathStub } from '@dungeonmaster/shared/contracts/absolute-file-path/absolute-file-path.stub';
 
 import { ScanRuleNameStub } from '../../contracts/scan-rule-name/scan-rule-name.stub';
 import { scanEslintConfigSourceTransformer } from './scan-eslint-config-source-transformer';
@@ -7,7 +6,7 @@ describe('scanEslintConfigSourceTransformer', () => {
   it('VALID: {plugin rule, root config path} => returns the wrapper source naming both, severity error, one entry per registering config object', () => {
     const result = scanEslintConfigSourceTransformer({
       rule: ScanRuleNameStub({ value: '@dungeonmaster/ban-primitives' }),
-      rootConfigPath: AbsoluteFilePathStub({ value: '/repo/eslint.config.js' }),
+      rootConfigPath: '/repo/eslint.config.js',
     });
 
     expect(result).toBe(`const base = require("/repo/eslint.config.js");
@@ -34,7 +33,7 @@ module.exports = [...configs, ...forcing];
   it('VALID: {core rule} => returns source with the rule name embedded as a JSON string literal', () => {
     const result = scanEslintConfigSourceTransformer({
       rule: ScanRuleNameStub({ value: 'no-console' }),
-      rootConfigPath: AbsoluteFilePathStub({ value: '/repo/eslint.config.js' }),
+      rootConfigPath: '/repo/eslint.config.js',
     });
 
     expect(result.split('\n')[2]).toBe('const rule = "no-console";');

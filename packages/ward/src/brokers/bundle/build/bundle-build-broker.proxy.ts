@@ -8,8 +8,6 @@ import { readFileProxy } from '#gateway/node/fs__promises/read-file/read-file.pr
 import { renameProxy } from '#gateway/node/fs__promises/rename/rename.proxy';
 import { rmProxy } from '#gateway/node/fs__promises/rm/rm.proxy';
 import { FsErrorStub } from '#gateway/node/fs/is-fs-error/fs-error.stub';
-import { absoluteFilePathContract } from '@dungeonmaster/shared/contracts';
-import type { AbsoluteFilePath } from '@dungeonmaster/shared/contracts';
 
 import { GitRelativePathStub } from '../../../contracts/git-relative-path/git-relative-path.stub';
 import { bundleStatics } from '../../../statics/bundle/bundle-statics';
@@ -18,9 +16,9 @@ import { collectInputsLayerBrokerProxy } from './collect-inputs-layer-broker.pro
 
 // The workspace setupWorkspace describes: web depends on shared, and the four files they
 // contribute are what the caller's expected hash is the sha-256 of.
-const REPO_ROOT = absoluteFilePathContract.parse('/project');
-const WEB_ROOT = absoluteFilePathContract.parse('/project/packages/web');
-const SHARED_ROOT = absoluteFilePathContract.parse('/project/packages/shared');
+const REPO_ROOT = '/project';
+const WEB_ROOT = '/project/packages/web';
+const SHARED_ROOT = '/project/packages/shared';
 
 // The single-package fixture setupCachedSinglePackageBundle describes: a lockfile and one source
 // file, hashed against the package's own root. Its digest is the same wherever that root sits,
@@ -38,8 +36,8 @@ export const bundleBuildBrokerProxy = (): {
   setupNpmMissing: () => void;
   setupPublishWins: (params: { hash: string }) => void;
   setupPublishLoses: (params: { hash: string }) => void;
-  setupCachedSinglePackageBundle: (params: { packageRoot: AbsoluteFilePath; hash: string }) => void;
-  bundleDirFor: (params: { packageRoot: AbsoluteFilePath; hash: string }) => AbsoluteFilePath;
+  setupCachedSinglePackageBundle: (params: { packageRoot: string; hash: string }) => void;
+  bundleDirFor: (params: { packageRoot: string; hash: string }) => string;
   getBuildCalls: () => readonly unknown[][];
   getRemovedTempPaths: () => readonly unknown[][];
   getPublishCalls: () => readonly unknown[][];
@@ -62,10 +60,10 @@ export const bundleBuildBrokerProxy = (): {
     packageRoot,
     hash,
   }: {
-    packageRoot: AbsoluteFilePath;
+    packageRoot: string;
     hash: string;
-  }): AbsoluteFilePath =>
-    absoluteFilePathContract.parse(`${String(packageRoot)}/${bundleStatics.parentDir}/${hash}`);
+  }): string =>
+    `${String(packageRoot)}/${bundleStatics.parentDir}/${hash}`;
 
   return {
     setupWorkspace: (): void => {
@@ -183,7 +181,7 @@ export const bundleBuildBrokerProxy = (): {
       packageRoot,
       hash,
     }: {
-      packageRoot: AbsoluteFilePath;
+      packageRoot: string;
       hash: string;
     }): void => {
       inputsProxy.setupNoWorkspaceAbove({ packageRoot });
@@ -224,9 +222,9 @@ export const bundleBuildBrokerProxy = (): {
       packageRoot,
       hash,
     }: {
-      packageRoot: AbsoluteFilePath;
+      packageRoot: string;
       hash: string;
-    }): AbsoluteFilePath => hashDirFor({ packageRoot, hash }),
+    }): string => hashDirFor({ packageRoot, hash }),
 
     getBuildCalls: (): readonly unknown[][] =>
       run.getCallsFor({ script: 'build', args: ['--', '--outDir', String(tempPath)] }),

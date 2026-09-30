@@ -1,4 +1,3 @@
-import { AbsoluteFilePathStub } from '@dungeonmaster/shared/contracts/absolute-file-path/absolute-file-path.stub';
 
 import { InstanceIdStub } from '../../../contracts/instance-id/instance-id.stub';
 import { RunIdStub } from '../../../contracts/run-id/run-id.stub';
@@ -7,14 +6,8 @@ import { runMissingCheckLayerBrokerProxy } from './run-missing-check-layer-broke
 
 const INSTANCE_ID = InstanceIdStub();
 const RUN_ID = RunIdStub({ value: 'run_999' });
-const STORED_RETURN_PATH = AbsoluteFilePathStub({
-  value:
-    '/repo/.dungeonmaster-assets/siegelense-assets/unowned/instances/inst_7f3a9c21/runs/run_999.json',
-});
-const TRANSCRIPT_PATH = AbsoluteFilePathStub({
-  value:
-    '/repo/.dungeonmaster-assets/siegelense-assets/unowned/instances/inst_7f3a9c21/runs/run_999.jsonl',
-});
+const STORED_RETURN_PATH = '/repo/.dungeonmaster-assets/siegelense-assets/unowned/instances/inst_7f3a9c21/runs/run_999.json';
+const TRANSCRIPT_PATH = '/repo/.dungeonmaster-assets/siegelense-assets/unowned/instances/inst_7f3a9c21/runs/run_999.jsonl';
 
 describe('runMissingCheckLayerBroker', () => {
   it('VALID: {stored return present} => returns its content without reading the transcript', async () => {

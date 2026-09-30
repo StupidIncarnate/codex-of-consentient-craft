@@ -1,4 +1,3 @@
-import { AbsoluteFilePathStub } from '@dungeonmaster/shared/contracts/absolute-file-path/absolute-file-path.stub';
 import { QuestIdStub } from '@dungeonmaster/shared/contracts/quest-id/quest-id.stub';
 import { QuestSessionStub } from '@dungeonmaster/shared/contracts/quest-session/quest-session.stub';
 import { QuestStub } from '@dungeonmaster/shared/contracts/quest/quest.stub';
@@ -39,7 +38,7 @@ describe('questCwdResolveBroker', () => {
 
     expect(result).toStrictEqual({
       kind: 'missing-worktree',
-      worktreePath: AbsoluteFilePathStub({ value: '/repo/worktrees/add-auth' }),
+      worktreePath: '/repo/worktrees/add-auth',
     });
   });
 

@@ -19,7 +19,6 @@
  * // Throws SnapshotMissingError naming "clen" and listing every snapshot that does exist
  */
 
-import type { AbsoluteFilePath } from '@dungeonmaster/shared/contracts';
 
 import type { SnapshotName } from '../../../contracts/snapshot-name/snapshot-name-contract';
 import type { SnapshotRecord } from '../../../contracts/snapshot-record/snapshot-record-contract';
@@ -31,7 +30,7 @@ export const snapshotResolveBroker = async ({
   homePath,
   name,
 }: {
-  homePath: AbsoluteFilePath;
+  homePath: string;
   name: SnapshotName;
 }): Promise<SnapshotRecord> => {
   const records = await snapshotIndexReadBroker({ homePath });

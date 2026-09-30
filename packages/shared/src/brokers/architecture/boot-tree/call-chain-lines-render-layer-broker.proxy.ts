@@ -1,7 +1,6 @@
 import { architectureExportNameResolveBrokerProxy } from '../export-name-resolve/architecture-export-name-resolve-broker.proxy';
 import { importsInFolderTypeFindLayerBrokerProxy } from './imports-in-folder-type-find-layer-broker.proxy';
 import { FileMissingErrorStub } from '#gateway/node/fs/file-missing-error/file-missing-error.stub';
-import type { AbsoluteFilePath } from '../../../contracts/absolute-file-path/absolute-file-path-contract';
 import type { ContentText } from '../../../contracts/content-text/content-text-contract';
 
 export const callChainLinesRenderLayerBrokerProxy = (): {
@@ -9,10 +8,10 @@ export const callChainLinesRenderLayerBrokerProxy = (): {
     sourceFile,
     content,
   }: {
-    sourceFile: AbsoluteFilePath;
+    sourceFile: string;
     content: ContentText;
   }) => void;
-  setupMissing: ({ sourceFile }: { sourceFile: AbsoluteFilePath }) => void;
+  setupMissing: ({ sourceFile }: { sourceFile: string }) => void;
   setupFileContentsMap: ({ map }: { map: Record<string, ContentText> }) => void;
 } => {
   const importsProxy = importsInFolderTypeFindLayerBrokerProxy();
@@ -39,13 +38,13 @@ export const callChainLinesRenderLayerBrokerProxy = (): {
       sourceFile,
       content,
     }: {
-      sourceFile: AbsoluteFilePath;
+      sourceFile: string;
       content: ContentText;
     }): void => {
       importsProxy.setupSource({ sourceFile, content });
     },
 
-    setupMissing: ({ sourceFile }: { sourceFile: AbsoluteFilePath }): void => {
+    setupMissing: ({ sourceFile }: { sourceFile: string }): void => {
       importsProxy.setupMissing({ sourceFile });
     },
 

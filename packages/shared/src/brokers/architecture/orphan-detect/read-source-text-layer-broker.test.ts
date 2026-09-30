@@ -1,12 +1,11 @@
 import { readSourceTextLayerBroker } from './read-source-text-layer-broker';
 import { readSourceTextLayerBrokerProxy } from './read-source-text-layer-broker.proxy';
-import { AbsoluteFilePathStub } from '../../../contracts/absolute-file-path/absolute-file-path.stub';
 import { ContentTextStub } from '../../../contracts/content-text/content-text.stub';
 
 describe('readSourceTextLayerBroker', () => {
   it('VALID: {file exists} => returns the file contents', () => {
     const proxy = readSourceTextLayerBrokerProxy();
-    const filePath = AbsoluteFilePathStub({ value: '/repo/file.ts' });
+    const filePath = '/repo/file.ts';
     proxy.setupReturns({ filePath, content: ContentTextStub({ value: 'export const foo = 1;' }) });
 
     const result = readSourceTextLayerBroker({ filePath });
@@ -16,7 +15,7 @@ describe('readSourceTextLayerBroker', () => {
 
   it('EMPTY: {file missing} => returns undefined (swallows error)', () => {
     const proxy = readSourceTextLayerBrokerProxy();
-    const filePath = AbsoluteFilePathStub({ value: '/repo/missing.ts' });
+    const filePath = '/repo/missing.ts';
     proxy.setupMissing({ filePath });
 
     const result = readSourceTextLayerBroker({ filePath });

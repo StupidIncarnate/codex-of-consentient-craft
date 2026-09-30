@@ -78,7 +78,7 @@ import { now } from '#gateway/node/Date';
 import { join } from '#gateway/node/path';
 import { openForAppendSync } from '#gateway/node/fs';
 import { cwd, envSnapshot, execPath, stderr } from '#gateway/node/process';
-import { absoluteFilePathContract, contentTextContract, type ContentText, type TimeoutMs } from '@dungeonmaster/shared/contracts';
+import { contentTextContract, type ContentText, type TimeoutMs } from '@dungeonmaster/shared/contracts';
 import { environmentStatics, locationsStatics } from '@dungeonmaster/shared/statics';
 import { cwdResolveBroker } from '@dungeonmaster/shared/brokers';
 
@@ -233,9 +233,7 @@ export const instanceStartBroker = async ({
       instanceId: reservedEntry.id,
       guildId,
     });
-    const driverLogPath = absoluteFilePathContract.parse(
-      join(evidencePath, locationsStatics.siegelense.driverLog),
-    );
+    const driverLogPath = join(evidencePath, locationsStatics.siegelense.driverLog);
     const driverLogFd = openForAppendSync(driverLogPath);
 
     const cwdSeed = cwd();
@@ -276,7 +274,7 @@ export const instanceStartBroker = async ({
         reservedEntry.id,
         ...(idleTimeoutMs === undefined ? [] : ['--idle-timeout-ms', String(idleTimeoutMs)]),
       ],
-      cwd: absoluteFilePathContract.parse(repoRoot),
+      cwd: repoRoot,
       env: inheritedEnv,
       stdoutFd: driverLogFd,
       stderrFd: driverLogFd,
@@ -381,13 +379,9 @@ export const instanceStartBroker = async ({
       );
     }
 
-    const homePath = absoluteFilePathContract.parse(join(tmpdir(), `dm-siege-${reservedEntry.id}`));
-    const apiLogPath = absoluteFilePathContract.parse(
-      join(evidencePath, locationsStatics.siegelense.apiLog),
-    );
-    const webLogPath = absoluteFilePathContract.parse(
-      join(evidencePath, locationsStatics.siegelense.webLog),
-    );
+    const homePath = join(tmpdir(), `dm-siege-${reservedEntry.id}`);
+    const apiLogPath = join(evidencePath, locationsStatics.siegelense.apiLog);
+    const webLogPath = join(evidencePath, locationsStatics.siegelense.webLog);
 
     const [evidenceRepoLocal, apiLogRepoLocal, webLogRepoLocal] = await Promise.all([
       locationsRepoLinkPathFindBroker({ homePath: evidencePath }),

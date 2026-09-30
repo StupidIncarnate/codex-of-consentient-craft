@@ -24,11 +24,7 @@
  */
 
 import { join } from '#gateway/node/path';
-import {
-  absoluteFilePathContract,
-  type AbsoluteFilePath,
-  type FileName,
-} from '@dungeonmaster/shared/contracts';
+import { type FileName } from '@dungeonmaster/shared/contracts';
 import type { StepIndex } from '../../../contracts/step-index/step-index-contract';
 import { evidenceFileStatics } from '../../../statics/evidence-file/evidence-file-statics';
 
@@ -37,13 +33,13 @@ export const locationsShotPathFindBroker = ({
   step,
   name,
 }: {
-  shotsDir: AbsoluteFilePath;
+  shotsDir: string;
   step: StepIndex;
   name?: FileName;
-}): AbsoluteFilePath => {
+}): string => {
   const fileName =
     name ?? `${evidenceFileStatics.naming.shotPrefix}${step}${evidenceFileStatics.extensions.shot}`;
   const joined = join(shotsDir, fileName);
 
-  return absoluteFilePathContract.parse(joined);
+  return joined;
 };

@@ -1,5 +1,4 @@
 import type { StubArgument } from '@dungeonmaster/shared/@types';
-import { AbsoluteFilePathStub } from '@dungeonmaster/shared/contracts/absolute-file-path/absolute-file-path.stub';
 import { ContentTextStub } from '@dungeonmaster/shared/contracts/content-text/content-text.stub';
 
 import { EpochMsStub } from '../epoch-ms/epoch-ms.stub';
@@ -19,10 +18,7 @@ export const StepReadingStub = ({ ...props }: StubArgument<StepReading> = {}): S
     ok: true,
     expected: StepExpectationStub(),
     reading: ContentTextStub({ value: 'clicked [data-testid="GUILD_ADD"]' }),
-    shot: AbsoluteFilePathStub({
-      value:
-        '/repo/.dungeonmaster-assets/siegelense-assets/guilds/g1/instances/inst_1/runs/run_2/step2.png',
-    }),
+    shot: '/repo/.dungeonmaster-assets/siegelense-assets/guilds/g1/instances/inst_1/runs/run_2/step2.png',
     pixelChange: PixelChangeStub(),
     blank: false,
     blankColour: null,

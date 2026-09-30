@@ -1,21 +1,12 @@
 import { fileBusEdgesLayerBroker } from './file-bus-edges-layer-broker';
 import { fileBusEdgesLayerBrokerProxy } from './file-bus-edges-layer-broker.proxy';
-import { AbsoluteFilePathStub } from '../../../contracts/absolute-file-path/absolute-file-path.stub';
 import { ContentTextStub } from '../../../contracts/content-text/content-text.stub';
 
-const PROJECT_ROOT = AbsoluteFilePathStub({ value: '/repo' });
+const PROJECT_ROOT = '/repo';
 
-const WRITER_FILE = AbsoluteFilePathStub({
-  value:
-    '/repo/packages/orchestrator/src/brokers/quest/outbox-append/quest-outbox-append-broker.ts',
-});
-const READER_FILE = AbsoluteFilePathStub({
-  value: '/repo/packages/orchestrator/src/brokers/quest/outbox-watch/quest-outbox-watch-broker.ts',
-});
-const TEST_FILE = AbsoluteFilePathStub({
-  value:
-    '/repo/packages/orchestrator/src/brokers/quest/outbox-append/quest-outbox-append-broker.test.ts',
-});
+const WRITER_FILE = '/repo/packages/orchestrator/src/brokers/quest/outbox-append/quest-outbox-append-broker.ts';
+const READER_FILE = '/repo/packages/orchestrator/src/brokers/quest/outbox-watch/quest-outbox-watch-broker.ts';
+const TEST_FILE = '/repo/packages/orchestrator/src/brokers/quest/outbox-append/quest-outbox-append-broker.test.ts';
 
 const PROMISES_IMPORT = "import { appendFile } from '#gateway/node/fs__promises';";
 const TAIL_IMPORT = "import { tailFile } from '#gateway/node/fs';";
@@ -95,9 +86,7 @@ describe('fileBusEdgesLayerBroker', () => {
 
   describe('several writers', () => {
     it('VALID: {two writers, one reader on the same path} => one paired edge per writer', () => {
-      const otherWriter = AbsoluteFilePathStub({
-        value: '/repo/packages/hydration-recipes/src/brokers/quest/persist-direct/persist.ts',
-      });
+      const otherWriter = '/repo/packages/hydration-recipes/src/brokers/quest/persist-direct/persist.ts';
       const proxy = fileBusEdgesLayerBrokerProxy();
       proxy.setup({
         sourceFiles: [

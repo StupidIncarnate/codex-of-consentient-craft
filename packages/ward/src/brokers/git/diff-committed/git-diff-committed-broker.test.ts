@@ -1,4 +1,3 @@
-import { AbsoluteFilePathStub } from '@dungeonmaster/shared/contracts/absolute-file-path/absolute-file-path.stub';
 
 import { GitRelativePathStub } from '../../../contracts/git-relative-path/git-relative-path.stub';
 
@@ -12,7 +11,7 @@ describe('gitDiffCommittedBroker', () => {
       proxy.setupWithOriginMain({ diffOutput: 'src/file1.ts\nsrc/file2.ts\n' });
 
       const result = await gitDiffCommittedBroker({
-        cwd: AbsoluteFilePathStub({ value: '/project' }),
+        cwd: '/project',
       });
 
       expect(result).toStrictEqual([
@@ -28,7 +27,7 @@ describe('gitDiffCommittedBroker', () => {
       const proxy = gitDiffCommittedBrokerProxy();
       proxy.setupWithOriginMain({ diffOutput: 'src/file1.ts\n' });
 
-      await gitDiffCommittedBroker({ cwd: AbsoluteFilePathStub({ value: '/project' }) });
+      await gitDiffCommittedBroker({ cwd: '/project' });
 
       expect(proxy.getDiffCalls()).toStrictEqual([
         [
@@ -45,7 +44,7 @@ describe('gitDiffCommittedBroker', () => {
       const proxy = gitDiffCommittedBrokerProxy();
       proxy.setupWithOriginMain({ diffOutput: 'src/file1.ts\n' });
 
-      await gitDiffCommittedBroker({ cwd: AbsoluteFilePathStub({ value: '/project' }) });
+      await gitDiffCommittedBroker({ cwd: '/project' });
 
       expect({
         revParse: proxy.getOriginRevParseCalls(),
@@ -65,7 +64,7 @@ describe('gitDiffCommittedBroker', () => {
       proxy.setupWithOriginMain({ diffOutput: '' });
 
       const result = await gitDiffCommittedBroker({
-        cwd: AbsoluteFilePathStub({ value: '/project' }),
+        cwd: '/project',
       });
 
       expect(result).toStrictEqual([]);
@@ -78,7 +77,7 @@ describe('gitDiffCommittedBroker', () => {
       proxy.setupWithLocalFallback({ diffOutput: 'src/offline.ts\n' });
 
       const result = await gitDiffCommittedBroker({
-        cwd: AbsoluteFilePathStub({ value: '/project' }),
+        cwd: '/project',
       });
 
       expect(result).toStrictEqual([GitRelativePathStub({ value: 'src/offline.ts' })]);
@@ -89,7 +88,7 @@ describe('gitDiffCommittedBroker', () => {
       proxy.setupNoBranchAnywhere();
 
       const result = await gitDiffCommittedBroker({
-        cwd: AbsoluteFilePathStub({ value: '/project' }),
+        cwd: '/project',
       });
 
       expect(result).toStrictEqual([]);
@@ -105,7 +104,7 @@ describe('gitDiffCommittedBroker', () => {
       proxy.setupMergeBaseFails();
 
       const result = await gitDiffCommittedBroker({
-        cwd: AbsoluteFilePathStub({ value: '/project' }),
+        cwd: '/project',
       });
 
       expect(result).toStrictEqual([]);
@@ -120,7 +119,7 @@ describe('gitDiffCommittedBroker', () => {
       proxy.setupGitNotFound();
 
       const result = await gitDiffCommittedBroker({
-        cwd: AbsoluteFilePathStub({ value: '/project' }),
+        cwd: '/project',
       });
 
       expect(result).toStrictEqual([]);
@@ -132,7 +131,7 @@ describe('gitDiffCommittedBroker', () => {
       proxy.setupGitNotFoundAtMergeBase();
 
       const result = await gitDiffCommittedBroker({
-        cwd: AbsoluteFilePathStub({ value: '/project' }),
+        cwd: '/project',
       });
 
       expect(result).toStrictEqual([]);

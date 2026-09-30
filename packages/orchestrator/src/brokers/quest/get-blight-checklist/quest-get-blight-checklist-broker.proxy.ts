@@ -12,7 +12,6 @@
  * proxy.setupQuestNotFound();
  */
 
-import { AbsoluteFilePathStub } from '@dungeonmaster/shared/contracts/absolute-file-path/absolute-file-path.stub';
 import { FileNameStub } from '@dungeonmaster/shared/contracts/file-name/file-name.stub';
 import { GuildIdStub } from '@dungeonmaster/shared/contracts/guild-id/guild-id.stub';
 import { RepoRootCwdStub } from '@dungeonmaster/shared/contracts/repo-root-cwd/repo-root-cwd.stub';
@@ -194,7 +193,7 @@ export const questGetBlightChecklistBrokerProxy = (): {
       cwdMock.onceFor([{ questId: quest.id }]).resolves(
         QuestCwdResolutionStub({
           kind: 'missing-worktree',
-          worktreePath: AbsoluteFilePathStub({ value: worktreePath }),
+          worktreePath: worktreePath,
         }),
       );
     },

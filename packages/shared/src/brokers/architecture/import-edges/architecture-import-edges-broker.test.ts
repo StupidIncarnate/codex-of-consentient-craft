@@ -1,10 +1,9 @@
 import { architectureImportEdgesBroker } from './architecture-import-edges-broker';
 import { architectureImportEdgesBrokerProxy } from './architecture-import-edges-broker.proxy';
-import { AbsoluteFilePathStub } from '../../../contracts/absolute-file-path/absolute-file-path.stub';
 import { ContentTextStub } from '../../../contracts/content-text/content-text.stub';
 import { ImportEdgeStub } from '../../../contracts/import-edge/import-edge.stub';
 
-const PROJECT_ROOT = AbsoluteFilePathStub({ value: '/repo' });
+const PROJECT_ROOT = '/repo';
 
 const WEB_PKG = ContentTextStub({ value: 'web' });
 const SHARED_PKG = ContentTextStub({ value: 'shared' });
@@ -29,9 +28,7 @@ describe('architectureImportEdgesBroker', () => {
         packages: [WEB_PKG, SHARED_PKG],
         sourceFiles: [
           {
-            path: AbsoluteFilePathStub({
-              value: '/repo/packages/web/src/widgets/app-widget.ts',
-            }),
+            path: '/repo/packages/web/src/widgets/app-widget.ts',
             source: ContentTextStub({
               value: "import { questContract } from '@dungeonmaster/shared/contracts';",
             }),
@@ -58,13 +55,13 @@ describe('architectureImportEdgesBroker', () => {
         packages: [WEB_PKG, SHARED_PKG],
         sourceFiles: [
           {
-            path: AbsoluteFilePathStub({ value: '/repo/packages/web/src/widgets/a-widget.ts' }),
+            path: '/repo/packages/web/src/widgets/a-widget.ts',
             source: ContentTextStub({
               value: "import { x } from '@dungeonmaster/shared/contracts';",
             }),
           },
           {
-            path: AbsoluteFilePathStub({ value: '/repo/packages/web/src/widgets/b-widget.ts' }),
+            path: '/repo/packages/web/src/widgets/b-widget.ts',
             source: ContentTextStub({
               value: "import { y } from '@dungeonmaster/shared/contracts';",
             }),
@@ -91,7 +88,7 @@ describe('architectureImportEdgesBroker', () => {
         packages: [WEB_PKG, SHARED_PKG],
         sourceFiles: [
           {
-            path: AbsoluteFilePathStub({ value: '/repo/packages/web/src/widgets/app-widget.ts' }),
+            path: '/repo/packages/web/src/widgets/app-widget.ts',
             source: ContentTextStub({ value: "import { foo } from './local-module';" }),
           },
         ],

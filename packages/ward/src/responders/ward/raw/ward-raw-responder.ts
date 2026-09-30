@@ -7,7 +7,6 @@
  */
 
 import { stderr } from '#gateway/node/process';
-import type { AbsoluteFilePath } from '@dungeonmaster/shared/contracts';
 
 import { checkTypeContract } from '../../../contracts/check-type/check-type-contract';
 import { commandRawBroker } from '../../../brokers/command/raw/command-raw-broker';
@@ -21,7 +20,7 @@ export const WardRawResponder = async ({
   rootPath,
 }: {
   args: readonly string[];
-  rootPath: AbsoluteFilePath;
+  rootPath: string;
 }): Promise<void> => {
   const runIdArg = args[FIRST_POSITIONAL_INDEX];
   const checkTypeArg = args[SECOND_POSITIONAL_INDEX];

@@ -1,13 +1,12 @@
 import { architectureGatewayInventoryBroker } from './architecture-gateway-inventory-broker';
 import { architectureGatewayInventoryBrokerProxy } from './architecture-gateway-inventory-broker.proxy';
-import { AbsoluteFilePathStub } from '../../../contracts/absolute-file-path/absolute-file-path.stub';
 import { ContentTextStub } from '../../../contracts/content-text/content-text.stub';
 
 describe('architectureGatewayInventoryBroker', () => {
   describe('every group with no subpaths', () => {
     it('EMPTY: {no subpaths anywhere} => every group renders (empty), in npm/node/browser/bin order', () => {
       architectureGatewayInventoryBrokerProxy();
-      const projectRoot = AbsoluteFilePathStub({ value: '/repo' });
+      const projectRoot = '/repo';
 
       const result = architectureGatewayInventoryBroker({ projectRoot });
 
@@ -32,7 +31,7 @@ describe('architectureGatewayInventoryBroker', () => {
   describe('a subpath that wraps a real Node module', () => {
     it('VALID: {node/fs subpath with one wrapper} => passes-through line plus an ours: line', () => {
       const proxy = architectureGatewayInventoryBrokerProxy();
-      const projectRoot = AbsoluteFilePathStub({ value: '/repo' });
+      const projectRoot = '/repo';
 
       proxy.setupSubpath({
         projectRoot,
@@ -70,7 +69,7 @@ describe('architectureGatewayInventoryBroker', () => {
   describe('a pure pass-through subpath with no wrappers of our own', () => {
     it('VALID: {npm/zod subpath, no relative export lines} => passes-through line with no ours: line', () => {
       const proxy = architectureGatewayInventoryBrokerProxy();
-      const projectRoot = AbsoluteFilePathStub({ value: '/repo' });
+      const projectRoot = '/repo';
 
       proxy.setupSubpath({
         projectRoot,
@@ -104,7 +103,7 @@ describe('architectureGatewayInventoryBroker', () => {
   describe('a bin subpath (no real module)', () => {
     it('VALID: {bin/claude subpath, no export * line} => no passes-through phrase, only the ours: line', () => {
       const proxy = architectureGatewayInventoryBrokerProxy();
-      const projectRoot = AbsoluteFilePathStub({ value: '/repo' });
+      const projectRoot = '/repo';
 
       proxy.setupSubpath({
         projectRoot,
@@ -142,7 +141,7 @@ describe('architectureGatewayInventoryBroker', () => {
   describe('a subpath directory that has no matching barrel file', () => {
     it('EDGE: {subpath dir exists, barrel file does not} => renders only the bare subpath line', () => {
       const proxy = architectureGatewayInventoryBrokerProxy();
-      const projectRoot = AbsoluteFilePathStub({ value: '/repo' });
+      const projectRoot = '/repo';
 
       proxy.setupSubpath({ projectRoot, folder: 'node', subpathName: 'child_process' });
 
@@ -169,7 +168,7 @@ describe('architectureGatewayInventoryBroker', () => {
   describe('a wrapper the gateway config bans', () => {
     it('VALID: {readFile banned on #gateway/node/fs__promises} => the ours: line marks it', () => {
       const proxy = architectureGatewayInventoryBrokerProxy();
-      const projectRoot = AbsoluteFilePathStub({ value: '/repo' });
+      const projectRoot = '/repo';
 
       proxy.setupSubpath({
         projectRoot,

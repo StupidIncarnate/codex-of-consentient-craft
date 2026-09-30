@@ -14,8 +14,8 @@
  */
 
 import { join } from '#gateway/node/path';
-import { absoluteFilePathContract, fileNameContract } from '@dungeonmaster/shared/contracts';
-import type { AbsoluteFilePath, SiegeRun } from '@dungeonmaster/shared/contracts';
+import { fileNameContract } from '@dungeonmaster/shared/contracts';
+import type { SiegeRun } from '@dungeonmaster/shared/contracts';
 
 import { readdirIfExists, statIfExists } from '#gateway/node/fs__promises';
 import { pruneAssetContract } from '../../../contracts/prune-asset/prune-asset-contract';
@@ -27,7 +27,7 @@ export const runShotsLayerBroker = async ({
   evidencePath,
   runId,
 }: {
-  evidencePath: AbsoluteFilePath;
+  evidencePath: string;
   runId: SiegeRun['id'];
 }): Promise<readonly PruneAsset[]> => {
   const { shotsDir } = locationsRunPathsFindBroker({ evidencePath, runId });
@@ -42,7 +42,7 @@ export const runShotsLayerBroker = async ({
         return [];
       }
 
-      const filePath = absoluteFilePathContract.parse(join(shotsDir, fileName));
+      const filePath = join(shotsDir, fileName);
       const stat = await statIfExists(filePath);
 
       if (stat === null) {

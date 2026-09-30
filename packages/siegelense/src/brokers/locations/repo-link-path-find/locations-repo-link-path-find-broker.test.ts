@@ -1,6 +1,5 @@
 import { locationsRepoLinkPathFindBroker } from './locations-repo-link-path-find-broker';
 import { locationsRepoLinkPathFindBrokerProxy } from './locations-repo-link-path-find-broker.proxy';
-import { AbsoluteFilePathStub } from '@dungeonmaster/shared/contracts/absolute-file-path/absolute-file-path.stub';
 import { locationsStatics } from '@dungeonmaster/shared/statics';
 import { RepoLocalPathStub } from '../../../contracts/repo-local-path/repo-local-path.stub';
 
@@ -8,9 +7,7 @@ describe('locationsRepoLinkPathFindBroker', () => {
   describe('the link resolves to this machine siegelense root', () => {
     it('VALID: {homePath under the siegelense home} => returns the repo-local form with linkPresent true', async () => {
       const proxy = locationsRepoLinkPathFindBrokerProxy();
-      const homePath = AbsoluteFilePathStub({
-        value: '/home/user/.dungeonmaster/siegelense/guilds/g1/instances/inst_1',
-      });
+      const homePath = '/home/user/.dungeonmaster/siegelense/guilds/g1/instances/inst_1';
 
       proxy.setupLinkResolvesToRoot({
         cwdPath: '/repo',
@@ -24,9 +21,7 @@ describe('locationsRepoLinkPathFindBroker', () => {
 
       expect(result).toStrictEqual(
         RepoLocalPathStub({
-          path: AbsoluteFilePathStub({
-            value: '/repo/.dungeonmaster-assets/siegelense-assets/guilds/g1/instances/inst_1',
-          }),
+          path: '/repo/.dungeonmaster-assets/siegelense-assets/guilds/g1/instances/inst_1',
           linkPresent: true,
         }),
       );
@@ -36,9 +31,7 @@ describe('locationsRepoLinkPathFindBroker', () => {
   describe('no siegelense-assets symlink at the repo root', () => {
     it('EMPTY: {init has not run here} => returns the real home path with linkPresent false', async () => {
       const proxy = locationsRepoLinkPathFindBrokerProxy();
-      const homePath = AbsoluteFilePathStub({
-        value: '/home/user/.dungeonmaster/siegelense/guilds/g1/instances/inst_1',
-      });
+      const homePath = '/home/user/.dungeonmaster/siegelense/guilds/g1/instances/inst_1';
 
       proxy.setupLinkAbsent({
         cwdPath: '/repo',
@@ -52,9 +45,7 @@ describe('locationsRepoLinkPathFindBroker', () => {
 
     it('VALID: {repoRoot} => joins the dungeonmaster-assets dir before the siegelense link name', async () => {
       const proxy = locationsRepoLinkPathFindBrokerProxy();
-      const homePath = AbsoluteFilePathStub({
-        value: '/home/user/.dungeonmaster/siegelense/guilds/g1/instances/inst_1',
-      });
+      const homePath = '/home/user/.dungeonmaster/siegelense/guilds/g1/instances/inst_1';
 
       proxy.setupLinkAbsent({
         cwdPath: '/repo',
@@ -74,9 +65,7 @@ describe('locationsRepoLinkPathFindBroker', () => {
   describe('the link resolves into a different tree', () => {
     it('EDGE: {siegelense-assets left over from another checkout} => returns the real home path with linkPresent false', async () => {
       const proxy = locationsRepoLinkPathFindBrokerProxy();
-      const homePath = AbsoluteFilePathStub({
-        value: '/home/user/.dungeonmaster/siegelense/guilds/g1/instances/inst_1',
-      });
+      const homePath = '/home/user/.dungeonmaster/siegelense/guilds/g1/instances/inst_1';
 
       proxy.setupLinkPointsElsewhere({
         cwdPath: '/repo',

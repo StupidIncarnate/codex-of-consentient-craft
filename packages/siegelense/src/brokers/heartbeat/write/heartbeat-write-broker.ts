@@ -37,7 +37,6 @@
 import { now } from '#gateway/node/Date';
 import { join } from '#gateway/node/path';
 import { stderr } from '#gateway/node/process';
-import { absoluteFilePathContract } from '@dungeonmaster/shared/contracts';
 import type { ProcessId, Guild, SiegeInstance } from '@dungeonmaster/shared/contracts';
 import { locationsStatics } from '@dungeonmaster/shared/statics';
 
@@ -63,9 +62,7 @@ export const heartbeatWriteBroker = async ({
   guildId: Guild['id'] | null;
 }): Promise<InstanceHeartbeat> => {
   const evidenceDir = locationsInstanceEvidencePathFindBroker({ instanceId, guildId });
-  const heartbeatPath = absoluteFilePathContract.parse(
-    join(evidenceDir, locationsStatics.siegelense.heartbeat),
-  );
+  const heartbeatPath = join(evidenceDir, locationsStatics.siegelense.heartbeat);
 
   let rssMB: Megabytes | null = null;
   try {

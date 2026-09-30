@@ -12,7 +12,6 @@
  */
 
 import { join } from '#gateway/node/path';
-import { absoluteFilePathContract, type AbsoluteFilePath } from '@dungeonmaster/shared/contracts';
 
 import type { SpecHash } from '../../../contracts/spec-hash/spec-hash-contract';
 import { profileStatics } from '../../../statics/profile/profile-statics';
@@ -23,8 +22,8 @@ export const locationsProfileDirsFindBroker = ({
 }: {
   specHash: SpecHash;
 }): {
-  samplesDir: AbsoluteFilePath;
-  bootsDir: AbsoluteFilePath;
+  samplesDir: string;
+  bootsDir: string;
 } => {
   const profilePath = locationsProfilesPathFindBroker({ specHash });
 
@@ -32,7 +31,7 @@ export const locationsProfileDirsFindBroker = ({
   const bootsDir = join(profilePath, profileStatics.dirs.boots);
 
   return {
-    samplesDir: absoluteFilePathContract.parse(samplesDir),
-    bootsDir: absoluteFilePathContract.parse(bootsDir),
+    samplesDir: samplesDir,
+    bootsDir: bootsDir,
   };
 };

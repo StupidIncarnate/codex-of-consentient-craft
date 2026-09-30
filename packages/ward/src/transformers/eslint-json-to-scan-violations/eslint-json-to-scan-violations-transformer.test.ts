@@ -1,9 +1,8 @@
-import { AbsoluteFilePathStub } from '@dungeonmaster/shared/contracts/absolute-file-path/absolute-file-path.stub';
 
 import { ScanRuleNameStub } from '../../contracts/scan-rule-name/scan-rule-name.stub';
 import { eslintJsonToScanViolationsTransformer } from './eslint-json-to-scan-violations-transformer';
 
-const rootPath = AbsoluteFilePathStub({ value: '/repo' });
+const rootPath = '/repo';
 const rule = ScanRuleNameStub({ value: '@dungeonmaster/ban-workspace-export-mocks' });
 
 describe('eslintJsonToScanViolationsTransformer', () => {

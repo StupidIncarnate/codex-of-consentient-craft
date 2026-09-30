@@ -1,4 +1,3 @@
-import { AbsoluteFilePathStub } from '@dungeonmaster/shared/contracts/absolute-file-path/absolute-file-path.stub';
 
 import { ResultWhereStub } from '../../../contracts/result-where/result-where.stub';
 import { ServerLogWindowStub } from '../../../contracts/server-log-window/server-log-window.stub';
@@ -8,9 +7,7 @@ import { serverWindowReadLayerBroker } from './server-window-read-layer-broker';
 import { serverWindowReadLayerBrokerProxy } from './server-window-read-layer-broker.proxy';
 import { Buffer } from '#gateway/node/buffer';
 
-const EVIDENCE_PATH = AbsoluteFilePathStub({
-  value: '/repo/.dungeonmaster-assets/siegelense-assets/unowned/instances/inst_1',
-});
+const EVIDENCE_PATH = '/repo/.dungeonmaster-assets/siegelense-assets/unowned/instances/inst_1';
 
 const LINE_OUTSIDE = '20:10:00 ERROR outside-window issue\n';
 const LINE_STEP_6 = '20:10:30 INFO step6 boot\n';

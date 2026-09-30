@@ -1,10 +1,9 @@
 import type { DirEntrySync } from '#gateway/node/fs';
 import { listFlowFilesLayerBroker } from './list-flow-files-layer-broker';
 import { listFlowFilesLayerBrokerProxy } from './list-flow-files-layer-broker.proxy';
-import { AbsoluteFilePathStub } from '../../../contracts/absolute-file-path/absolute-file-path.stub';
 
-const PACKAGE_ROOT = AbsoluteFilePathStub({ value: '/repo/packages/mcp' });
-const FLOWS_DIR = AbsoluteFilePathStub({ value: '/repo/packages/mcp/src/flows' });
+const PACKAGE_ROOT = '/repo/packages/mcp';
+const FLOWS_DIR = '/repo/packages/mcp/src/flows';
 
 const makeFileDirent = ({ name }: { name: string }): DirEntrySync => ({ name, kind: 'file' });
 
@@ -65,7 +64,7 @@ describe('listFlowFilesLayerBroker', () => {
   describe('subdirectory traversal', () => {
     it('VALID: {subdir containing a flow file} => recurses and returns nested flow path', () => {
       const proxy = listFlowFilesLayerBrokerProxy();
-      const subDir = AbsoluteFilePathStub({ value: '/repo/packages/mcp/src/flows/architecture' });
+      const subDir = '/repo/packages/mcp/src/flows/architecture';
       proxy.returns({ dirPath: FLOWS_DIR, entries: [makeDirDirent({ name: 'architecture' })] });
       proxy.returns({
         dirPath: subDir,

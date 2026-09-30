@@ -1,4 +1,3 @@
-import { AbsoluteFilePathStub } from '@dungeonmaster/shared/contracts/absolute-file-path/absolute-file-path.stub';
 
 import { storageBudgetStatics } from '../../../statics/storage-budget/storage-budget-statics';
 import { ttlStatics } from '../../../statics/ttl/ttl-statics';
@@ -15,7 +14,7 @@ describe('storagePruneBroker', () => {
     it('VALID: {run files older than TTL} => deletes expired files', async () => {
       const now = 1739629200000;
       const expiredTimestamp = now - ttlStatics.runResultTtl - 1000;
-      const rootPath = AbsoluteFilePathStub({ value: '/home/user/project' });
+      const rootPath = '/home/user/project';
       const name = `run-${expiredTimestamp}-a3f1.json`;
 
       const proxy = storagePruneBrokerProxy();
@@ -35,7 +34,7 @@ describe('storagePruneBroker', () => {
     it('VALID: {run files within TTL} => keeps fresh files', async () => {
       const now = 1739629200000;
       const freshTimestamp = now - 1000;
-      const rootPath = AbsoluteFilePathStub({ value: '/home/user/project' });
+      const rootPath = '/home/user/project';
 
       const proxy = storagePruneBrokerProxy();
       proxy.setupWithFiles({
@@ -52,7 +51,7 @@ describe('storagePruneBroker', () => {
 
   describe('empty directory', () => {
     it('EMPTY: {no run files} => completes without error', async () => {
-      const rootPath = AbsoluteFilePathStub({ value: '/home/user/project' });
+      const rootPath = '/home/user/project';
 
       const proxy = storagePruneBrokerProxy();
       proxy.setupEmpty({ rootPath });
@@ -64,7 +63,7 @@ describe('storagePruneBroker', () => {
   describe('non-run files', () => {
     it('VALID: {non-run files in directory} => ignores non-run files', async () => {
       const now = 1739629200000;
-      const rootPath = AbsoluteFilePathStub({ value: '/home/user/project' });
+      const rootPath = '/home/user/project';
 
       const proxy = storagePruneBrokerProxy();
       proxy.setupWithFiles({
@@ -81,7 +80,7 @@ describe('storagePruneBroker', () => {
 
   describe('missing directory', () => {
     it('ERROR: {.ward directory does not exist} => silently ignores error', async () => {
-      const rootPath = AbsoluteFilePathStub({ value: '/home/user/project' });
+      const rootPath = '/home/user/project';
 
       const proxy = storagePruneBrokerProxy();
       proxy.setupReaddirFail({ rootPath });
@@ -93,7 +92,7 @@ describe('storagePruneBroker', () => {
   describe('non-timestamped filename, mtime past the TTL', () => {
     it('VALID: {run-e2e-dispatch-ward-5.json with mtime older than TTL} => deletes the file', async () => {
       const now = 1739629200000;
-      const rootPath = AbsoluteFilePathStub({ value: '/home/user/project' });
+      const rootPath = '/home/user/project';
       const name = 'run-e2e-dispatch-ward-5.json';
       const expiredMtime = now - ttlStatics.runResultTtl - 1000;
 
@@ -114,7 +113,7 @@ describe('storagePruneBroker', () => {
   describe('non-timestamped filename, mtime within the TTL', () => {
     it('VALID: {run-e2e-dispatch-ward-5.json with mtime within TTL} => keeps the file', async () => {
       const now = 1739629200000;
-      const rootPath = AbsoluteFilePathStub({ value: '/home/user/project' });
+      const rootPath = '/home/user/project';
       const name = 'run-e2e-dispatch-ward-5.json';
       const freshMtime = now - 1000;
 
@@ -135,7 +134,7 @@ describe('storagePruneBroker', () => {
   describe('timestamped filename decides on the name alone', () => {
     it('VALID: {run-<expired-timestamp>-a1b2.json whose mtime reads fresh} => deletes it on the filename, not the mtime', async () => {
       const now = 1739629200000;
-      const rootPath = AbsoluteFilePathStub({ value: '/home/user/project' });
+      const rootPath = '/home/user/project';
       const expiredTimestamp = now - ttlStatics.runResultTtl - 1000;
       const name = `run-${expiredTimestamp}-a1b2.json`;
 
@@ -151,7 +150,7 @@ describe('storagePruneBroker', () => {
   describe('stat races another sweep and the file is already gone', () => {
     it('EDGE: {non-timestamped file, stat resolves null} => keeps the file without throwing', async () => {
       const now = 1739629200000;
-      const rootPath = AbsoluteFilePathStub({ value: '/home/user/project' });
+      const rootPath = '/home/user/project';
       const name = 'run-e2e-dispatch-ward-5.json';
 
       const proxy = storagePruneBrokerProxy();
@@ -166,7 +165,7 @@ describe('storagePruneBroker', () => {
   describe('mixed sweep of timestamped and mtime-fallback files', () => {
     it('VALID: {timestamped-expired, timestamped-fresh, mtime-expired, mtime-fresh} => deletes only the expired files', async () => {
       const now = 1739629200000;
-      const rootPath = AbsoluteFilePathStub({ value: '/home/user/project' });
+      const rootPath = '/home/user/project';
       const expiredTimestamp = now - ttlStatics.runResultTtl - 1000;
       const freshTimestamp = now - 1000;
       const timestampedExpiredName = `run-${expiredTimestamp}-c3d4.json`;
@@ -196,7 +195,7 @@ describe('storagePruneBroker', () => {
   describe('size budget', () => {
     const budget = storageBudgetStatics.limits.runResultsPerFolderBytes;
     const now = 1739629200000;
-    const rootPath = AbsoluteFilePathStub({ value: '/home/user/project' });
+    const rootPath = '/home/user/project';
     const minute = 60000;
 
     it('VALID: {files all fit the budget exactly} => deletes nothing', async () => {

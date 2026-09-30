@@ -13,7 +13,7 @@
  */
 
 import { join } from '#gateway/node/path';
-import { absoluteFilePathContract, contentTextContract } from '@dungeonmaster/shared/contracts';
+import { contentTextContract } from '@dungeonmaster/shared/contracts';
 import type { ContentText } from '@dungeonmaster/shared/contracts';
 
 import { readFile, statIfExists } from '#gateway/node/fs__promises';
@@ -28,7 +28,7 @@ export const stepFileBroker = async ({
   lane: LaneSession;
   path: StepFilePath;
 }): Promise<ContentText> => {
-  const homeFilePath = absoluteFilePathContract.parse(join(lane.homePath, path));
+  const homeFilePath = join(lane.homePath, path);
   const homeStat = await statIfExists(homeFilePath);
 
   if (homeStat !== null) {
@@ -36,7 +36,7 @@ export const stepFileBroker = async ({
     return contentTextContract.parse(content);
   }
 
-  const evidenceFilePath = absoluteFilePathContract.parse(join(lane.evidencePath, path));
+  const evidenceFilePath = join(lane.evidencePath, path);
   const evidenceStat = await statIfExists(evidenceFilePath);
 
   if (evidenceStat !== null) {

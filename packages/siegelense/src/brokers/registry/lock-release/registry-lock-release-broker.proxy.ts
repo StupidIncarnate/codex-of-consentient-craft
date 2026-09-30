@@ -1,18 +1,17 @@
 import type { FsError } from '#gateway/node/fs';
 import { locationsRegistryLockPathFindBrokerProxy } from '../../locations/registry-lock-path-find/locations-registry-lock-path-find-broker.proxy';
 import { unlinkProxy } from '#gateway/node/fs__promises/unlink/unlink.proxy';
-import { AbsoluteFilePathStub } from '@dungeonmaster/shared/contracts/absolute-file-path/absolute-file-path.stub';
 
 const HOME_DIR = '/home/user';
 const REGISTRY_LOCK_VALUE = `${HOME_DIR}/.dungeonmaster/siegelense/registry.lock`;
 
 export const registryLockReleaseBrokerProxy = (): {
-  lockPath: ReturnType<typeof AbsoluteFilePathStub>;
+  lockPath: string;
   setupReleaseSucceeds: () => void;
   setupReleaseFails: (params: { error: FsError }) => void;
   getDeletedPaths: () => unknown[];
 } => {
-  const lockPath = AbsoluteFilePathStub({ value: REGISTRY_LOCK_VALUE });
+  const lockPath = REGISTRY_LOCK_VALUE;
 
   const pathProxy = locationsRegistryLockPathFindBrokerProxy();
   // Staged inside each setup method, never at construction — pathJoinAdapterProxy's queue is

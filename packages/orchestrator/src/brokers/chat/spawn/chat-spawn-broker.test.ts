@@ -1,4 +1,3 @@
-import { AbsoluteFilePathStub } from '@dungeonmaster/shared/contracts/absolute-file-path/absolute-file-path.stub';
 import { GuildIdStub } from '@dungeonmaster/shared/contracts/guild-id/guild-id.stub';
 import { RepoRootCwdStub } from '@dungeonmaster/shared/contracts/repo-root-cwd/repo-root-cwd.stub';
 import { SessionIdStub } from '@dungeonmaster/shared/contracts/session-id/session-id.stub';
@@ -623,9 +622,7 @@ describe('chatSpawnBroker', () => {
       const role = 'chaoswhisperer';
       const sessionId = SessionIdStub({ value: 'resume-with-worktree' });
       const questId = QuestIdStub({ value: 'quest-with-worktree' });
-      const worktreePath = AbsoluteFilePathStub({
-        value: '/repo/worktrees/quest-with-worktree',
-      });
+      const worktreePath = '/repo/worktrees/quest-with-worktree';
 
       proxy.setupResumeWithWorktree({ questId, sessionId, worktreePath });
 
@@ -695,9 +692,7 @@ describe('chatSpawnBroker', () => {
       const role = 'chaoswhisperer';
       const sessionId = SessionIdStub({ value: 'resume-missing-worktree' });
       const questId = QuestIdStub({ value: 'quest-missing-worktree' });
-      const worktreePath = AbsoluteFilePathStub({
-        value: '/repo/worktrees/quest-missing-worktree',
-      });
+      const worktreePath = '/repo/worktrees/quest-missing-worktree';
 
       proxy.setupResumeWithMissingWorktree({ questId, sessionId, worktreePath });
 

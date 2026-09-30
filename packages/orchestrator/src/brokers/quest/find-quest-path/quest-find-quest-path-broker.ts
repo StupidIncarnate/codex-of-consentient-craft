@@ -32,7 +32,7 @@
 import { dungeonmasterHomeFindBroker } from '@dungeonmaster/shared/brokers';
 import { dungeonmasterHomeStatics, locationsStatics } from '@dungeonmaster/shared/statics';
 import { fileNameContract } from '@dungeonmaster/shared/contracts';
-import type { AbsoluteFilePath, FileName, Quest, Guild } from '@dungeonmaster/shared/contracts';
+import type { FileName, Quest, Guild } from '@dungeonmaster/shared/contracts';
 import { existsSync, readdirEntriesSync } from '#gateway/node/fs';
 import { join } from '#gateway/node/path';
 
@@ -44,7 +44,7 @@ export const questFindQuestPathBroker = async ({
   questId,
 }: {
   questId: Quest['id'];
-}): Promise<{ questPath: AbsoluteFilePath; guildId: Guild['id'] }> => {
+}): Promise<{ questPath: string; guildId: Guild['id'] }> => {
   const { homePath } = dungeonmasterHomeFindBroker();
 
   const guildsDir = join(homePath, dungeonmasterHomeStatics.paths.guildsDir);

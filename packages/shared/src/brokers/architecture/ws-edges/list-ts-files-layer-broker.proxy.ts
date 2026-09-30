@@ -1,7 +1,5 @@
 import type { Dirent } from '#gateway/node/fs';
 import type { DirEntrySync } from '#gateway/node/fs';
-import { AbsoluteFilePathStub } from '../../../contracts/absolute-file-path/absolute-file-path.stub';
-import type { AbsoluteFilePath } from '../../../contracts/absolute-file-path/absolute-file-path-contract';
 import { safeReaddirLayerBrokerProxy } from './safe-readdir-layer-broker.proxy';
 import { DirentStub } from '#gateway/node/fs/readdir-entries-sync/dirent.stub';
 
@@ -16,14 +14,14 @@ const buildDirDirent = ({ name }: { name: string }): Dirent =>
   DirentStub({ name, kind: 'directory' });
 
 const populateVirtualTree = (
-  tree: Map<AbsoluteFilePath, Dirent[]>,
+  tree: Map<string, Dirent[]>,
   parts: string[],
   depth: number,
 ): void => {
   if (depth >= parts.length) {
     return;
   }
-  const parentDir = AbsoluteFilePathStub({ value: parts.slice(0, depth).join('/') || '/' });
+  const parentDir = (parts.slice(0, depth).join('/') || '/');
   const childName = parts[depth] ?? '';
   if (childName === '') {
     return;
@@ -41,8 +39,8 @@ const populateVirtualTree = (
   populateVirtualTree(tree, parts, depth + 1);
 };
 
-const buildVirtualTree = (filePaths: AbsoluteFilePath[]): Map<AbsoluteFilePath, Dirent[]> => {
-  const tree = new Map<AbsoluteFilePath, Dirent[]>();
+const buildVirtualTree = (filePaths: string[]): Map<string, Dirent[]> => {
+  const tree = new Map<string, Dirent[]>();
   for (const fp of filePaths) {
     populateVirtualTree(tree, String(fp).split('/'), 1);
   }
@@ -54,11 +52,11 @@ export const listTsFilesLayerBrokerProxy = (): {
     dirPath,
     filePaths,
   }: {
-    dirPath: AbsoluteFilePath;
-    filePaths: AbsoluteFilePath[];
+    dirPath: string;
+    filePaths: string[];
   }) => void;
-  setupEmpty: ({ dirPath }: { dirPath: AbsoluteFilePath }) => void;
-  setupVirtualTree: ({ filePaths }: { filePaths: AbsoluteFilePath[] }) => void;
+  setupEmpty: ({ dirPath }: { dirPath: string }) => void;
+  setupVirtualTree: ({ filePaths }: { filePaths: string[] }) => void;
 } => {
   const readdirProxy = safeReaddirLayerBrokerProxy();
 
@@ -67,8 +65,8 @@ export const listTsFilesLayerBrokerProxy = (): {
       dirPath,
       filePaths,
     }: {
-      dirPath: AbsoluteFilePath;
-      filePaths: AbsoluteFilePath[];
+      dirPath: string;
+      filePaths: string[];
     }): void => {
       const entries = filePaths.map((fp) => {
         const parts = String(fp).split('/');
@@ -78,15 +76,15 @@ export const listTsFilesLayerBrokerProxy = (): {
       readdirProxy.setupDirectory({ dirPath, entries });
     },
 
-    setupEmpty: ({ dirPath }: { dirPath: AbsoluteFilePath }): void => {
+    setupEmpty: ({ dirPath }: { dirPath: string }): void => {
       readdirProxy.setupDirectory({ dirPath, entries: [] });
     },
 
-    setupVirtualTree: ({ filePaths }: { filePaths: AbsoluteFilePath[] }): void => {
+    setupVirtualTree: ({ filePaths }: { filePaths: string[] }): void => {
       const tree = buildVirtualTree(filePaths);
       readdirProxy.setupImplementation({
         fn: (dirPath: string): Dirent[] => {
-          const key = AbsoluteFilePathStub({ value: dirPath });
+          const key = dirPath;
           return tree.get(key) ?? [];
         },
       });

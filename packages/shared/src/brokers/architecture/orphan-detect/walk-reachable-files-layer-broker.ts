@@ -15,8 +15,6 @@
  */
 
 import { existsSync } from '#gateway/node/fs';
-import { absoluteFilePathContract } from '../../../contracts/absolute-file-path/absolute-file-path-contract';
-import type { AbsoluteFilePath } from '../../../contracts/absolute-file-path/absolute-file-path-contract';
 import { importStatementsExtractTransformer } from '../../../transformers/import-statements-extract/import-statements-extract-transformer';
 import { relativeImportResolveTransformer } from '../../../transformers/relative-import-resolve/relative-import-resolve-transformer';
 import { findStartupFilesLayerBroker } from './find-startup-files-layer-broker';
@@ -28,12 +26,12 @@ const TSX_SUFFIX = '.tsx';
 export const walkReachableFilesLayerBroker = ({
   packageSrcPath,
 }: {
-  packageSrcPath: AbsoluteFilePath;
-}): Set<AbsoluteFilePath> => {
-  const reachable = new Set<AbsoluteFilePath>();
+  packageSrcPath: string;
+}): Set<string> => {
+  const reachable = new Set<string>();
   const startupFiles = findStartupFilesLayerBroker({ packageSrcPath });
 
-  const queue: AbsoluteFilePath[] = [];
+  const queue: string[] = [];
   for (const startupFile of startupFiles) {
     if (!reachable.has(startupFile)) {
       reachable.add(startupFile);
@@ -60,7 +58,7 @@ export const walkReachableFilesLayerBroker = ({
 
       const resolvedStr = String(resolved);
       const tsxCandidate = resolvedStr.endsWith(TS_SUFFIX)
-        ? absoluteFilePathContract.parse(`${resolvedStr.slice(0, -TS_SUFFIX.length)}${TSX_SUFFIX}`)
+        ? `${resolvedStr.slice(0, -TS_SUFFIX.length)}${TSX_SUFFIX}`
         : null;
       const tsExists = existsSync(resolved);
       const onDisk =

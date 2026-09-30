@@ -1,4 +1,3 @@
-import { AbsoluteFilePathStub } from '@dungeonmaster/shared/contracts/absolute-file-path/absolute-file-path.stub';
 
 import { patternResolveLayerBroker } from './pattern-resolve-layer-broker';
 import { patternResolveLayerBrokerProxy } from './pattern-resolve-layer-broker.proxy';
@@ -12,7 +11,7 @@ describe('patternResolveLayerBroker', () => {
         packageNames: ['@dungeonmaster/ward', '@dungeonmaster/shared'],
       });
 
-      const rootPath = AbsoluteFilePathStub({ value: '/project' });
+      const rootPath = '/project';
 
       const result = await patternResolveLayerBroker({
         pattern: 'packages/*',
@@ -31,7 +30,7 @@ describe('patternResolveLayerBroker', () => {
       const proxy = patternResolveLayerBrokerProxy();
       proxy.setupDirectPattern({ packageName: '@dungeonmaster/ward' });
 
-      const rootPath = AbsoluteFilePathStub({ value: '/project' });
+      const rootPath = '/project';
 
       const result = await patternResolveLayerBroker({
         pattern: 'packages/ward',
@@ -49,7 +48,7 @@ describe('patternResolveLayerBroker', () => {
       const proxy = patternResolveLayerBrokerProxy();
       proxy.setupGlobPatternDirFails();
 
-      const rootPath = AbsoluteFilePathStub({ value: '/project' });
+      const rootPath = '/project';
 
       const result = await patternResolveLayerBroker({
         pattern: 'packages/*',

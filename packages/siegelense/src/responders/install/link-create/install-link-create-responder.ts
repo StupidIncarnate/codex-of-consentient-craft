@@ -40,11 +40,7 @@ import { existsSync } from '#gateway/node/fs';
 import { ensureDir, readlink, symlink, unlink } from '#gateway/node/fs__promises';
 import { join } from '#gateway/node/path';
 import { isNativeError } from '#gateway/node/util__types';
-import {
-  absoluteFilePathContract,
-  installMessageContract,
-  packageNameContract,
-} from '@dungeonmaster/shared/contracts';
+import { installMessageContract, packageNameContract } from '@dungeonmaster/shared/contracts';
 import type { InstallContext, InstallResult } from '@dungeonmaster/shared/contracts';
 import { locationsStatics } from '@dungeonmaster/shared/statics';
 
@@ -69,14 +65,12 @@ export const InstallLinkCreateResponder = async ({
 }): Promise<InstallResult> => {
   const targetDir = locationsRootPathFindBroker();
   const assetsDir = join(context.targetProjectRoot, ASSETS_DIR_ENTRY);
-  const linkPath = absoluteFilePathContract.parse(join(assetsDir, LINK_ENTRY));
+  const linkPath = join(assetsDir, LINK_ENTRY);
 
   await ensureDir(targetDir);
   await ensureDir(assetsDir);
 
-  const legacyLinkPath = absoluteFilePathContract.parse(
-    join(context.targetProjectRoot, LEGACY_LINK_ENTRY),
-  );
+  const legacyLinkPath = join(context.targetProjectRoot, LEGACY_LINK_ENTRY);
 
   // '' means "nothing to report" (the legacy path is absent, the ordinary case) — the ENOENT branch
   // below leaves this initial value in place, so it is a genuine default, not a placeholder every

@@ -22,7 +22,7 @@
  * // Appends a Task tool_use + tool_result to the session, writes agent-seed-agent-1.jsonl, then
  * // appends a nested Task tool_use + tool_result to THAT file and writes agent-seed-agent-1-1.jsonl
  */
-import { absoluteFilePathContract, agentContract, sessionContract } from '@dungeonmaster/shared/contracts';
+import { agentContract, sessionContract } from '@dungeonmaster/shared/contracts';
 import {
   claudePathSlugEncoderTransformer,
   streamLineToJsonLineTransformer,
@@ -51,12 +51,12 @@ export const sessionNestedChainBroker = async ({
 }): Promise<void> => {
   const { depth } = nestedChainArgsContract.parse(args);
   const sessionId = sessionContract.shape.id.parse(record.sessionId);
-  const cwd = absoluteFilePathContract.parse(record.cwd);
+  const cwd = record.cwd;
   const sessionsDir = claudePathSlugEncoderTransformer({
     homeDir: target.claudeHome,
     projectPath: cwd,
   });
-  const sessionFilePath = absoluteFilePathContract.parse(`${sessionsDir}/${sessionId}.jsonl`);
+  const sessionFilePath = `${sessionsDir}/${sessionId}.jsonl`;
   const levels = Array.from({ length: depth }, (_unused, index) => index + 1);
 
   await levels.reduce<Promise<void>>(async (previous, level) => {
@@ -68,9 +68,7 @@ export const sessionNestedChainBroker = async ({
     const parentFilePath =
       level === 1
         ? sessionFilePath
-        : absoluteFilePathContract.parse(
-            `${sessionsDir}/${sessionId}/subagents/agent-seed-agent-1${NESTING_SUFFIX.repeat(previousLevel - 1)}.jsonl`,
-          );
+        : `${sessionsDir}/${sessionId}/subagents/agent-seed-agent-1${NESTING_SUFFIX.repeat(previousLevel - 1)}.jsonl`;
 
     await appendLinesCreatingParent({
       path: parentFilePath,

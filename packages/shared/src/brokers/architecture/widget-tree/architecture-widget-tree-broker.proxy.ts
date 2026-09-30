@@ -3,8 +3,6 @@ import { findRootWidgetImportsLayerBrokerProxy } from './find-root-widget-import
 import { extractWidgetEdgesLayerBrokerProxy } from './extract-widget-edges-layer-broker.proxy';
 import { buildWidgetNodeLayerBrokerProxy } from './build-widget-node-layer-broker.proxy';
 import { widgetTreeStatics } from '../../../statics/widget-tree/widget-tree-statics';
-import { AbsoluteFilePathStub } from '../../../contracts/absolute-file-path/absolute-file-path.stub';
-import type { AbsoluteFilePath } from '../../../contracts/absolute-file-path/absolute-file-path-contract';
 import type { ContentText } from '../../../contracts/content-text/content-text-contract';
 
 export const architectureWidgetTreeBrokerProxy = (): {
@@ -17,15 +15,15 @@ export const architectureWidgetTreeBrokerProxy = (): {
     flowFilePaths,
     flowContents,
   }: {
-    packageRoot: AbsoluteFilePath;
-    widgetFilePaths: AbsoluteFilePath[];
+    packageRoot: string;
+    widgetFilePaths: string[];
     widgetSources: ContentText[];
-    responderFilePaths: AbsoluteFilePath[];
+    responderFilePaths: string[];
     responderContents: ContentText[];
-    flowFilePaths: AbsoluteFilePath[];
+    flowFilePaths: string[];
     flowContents: ContentText[];
   }) => void;
-  setupEmpty: ({ packageRoot }: { packageRoot: AbsoluteFilePath }) => void;
+  setupEmpty: ({ packageRoot }: { packageRoot: string }) => void;
 } => {
   const listWidgetsProxy = listWidgetFilesLayerBrokerProxy();
   const findRootImportsProxy = findRootWidgetImportsLayerBrokerProxy();
@@ -42,18 +40,16 @@ export const architectureWidgetTreeBrokerProxy = (): {
       flowFilePaths,
       flowContents,
     }: {
-      packageRoot: AbsoluteFilePath;
-      widgetFilePaths: AbsoluteFilePath[];
+      packageRoot: string;
+      widgetFilePaths: string[];
       widgetSources: ContentText[];
-      responderFilePaths: AbsoluteFilePath[];
+      responderFilePaths: string[];
       responderContents: ContentText[];
-      flowFilePaths: AbsoluteFilePath[];
+      flowFilePaths: string[];
       flowContents: ContentText[];
     }): void => {
-      const packageSrcPath = AbsoluteFilePathStub({ value: `${String(packageRoot)}/src` });
-      const widgetsDirPath = AbsoluteFilePathStub({
-        value: `${String(packageSrcPath)}/${widgetTreeStatics.widgetsFolderName}`,
-      });
+      const packageSrcPath = `${String(packageRoot)}/src`;
+      const widgetsDirPath = `${String(packageSrcPath)}/${widgetTreeStatics.widgetsFolderName}`;
 
       // readdir call 1: widgets dir
       listWidgetsProxy.setupFlatWidgetsDir({ widgetsDirPath, filePaths: widgetFilePaths });
@@ -76,11 +72,9 @@ export const architectureWidgetTreeBrokerProxy = (): {
       });
     },
 
-    setupEmpty: ({ packageRoot }: { packageRoot: AbsoluteFilePath }): void => {
-      const packageSrcPath = AbsoluteFilePathStub({ value: `${String(packageRoot)}/src` });
-      const widgetsDirPath = AbsoluteFilePathStub({
-        value: `${String(packageSrcPath)}/${widgetTreeStatics.widgetsFolderName}`,
-      });
+    setupEmpty: ({ packageRoot }: { packageRoot: string }): void => {
+      const packageSrcPath = `${String(packageRoot)}/src`;
+      const widgetsDirPath = `${String(packageSrcPath)}/${widgetTreeStatics.widgetsFolderName}`;
       listWidgetsProxy.setupEmpty({ widgetsDirPath });
     },
   };

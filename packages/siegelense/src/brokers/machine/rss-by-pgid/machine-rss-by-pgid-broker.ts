@@ -24,7 +24,6 @@
 import { readdirIfExists, readFileIfExists, statIfExists } from '#gateway/node/fs__promises';
 import { join } from '#gateway/node/path';
 import { isNativeError } from '#gateway/node/util__types';
-import { absoluteFilePathContract } from '@dungeonmaster/shared/contracts';
 
 import { megabytesContract } from '../../../contracts/megabytes/megabytes-contract';
 import type { Megabytes } from '../../../contracts/megabytes/megabytes-contract';
@@ -36,7 +35,7 @@ export const machineRssByPgidBroker = async ({
 }: {
   pgids: readonly ProcessGroupId[];
 }): Promise<Megabytes | null> => {
-  const procRoot = absoluteFilePathContract.parse(machineStatics.procfs.root);
+  const procRoot = machineStatics.procfs.root;
 
   const procRootStat = await statIfExists(procRoot);
   if (procRootStat === null) {
@@ -53,9 +52,7 @@ export const machineRssByPgidBroker = async ({
 
   const residentPagesPerPid = await Promise.all(
     pidEntries.map(async (pidEntry) => {
-      const statPath = absoluteFilePathContract.parse(
-        join(procRoot, pidEntry, machineStatics.procfs.stat),
-      );
+      const statPath = join(procRoot, pidEntry, machineStatics.procfs.stat);
 
       const statContent = await readFileIfExists(statPath).catch((error: unknown) => {
         if (
@@ -92,9 +89,7 @@ export const machineRssByPgidBroker = async ({
         return 0;
       }
 
-      const statmPath = absoluteFilePathContract.parse(
-        join(procRoot, pidEntry, machineStatics.procfs.statm),
-      );
+      const statmPath = join(procRoot, pidEntry, machineStatics.procfs.statm);
 
       const statmContent = await readFileIfExists(statmPath).catch((error: unknown) => {
         if (

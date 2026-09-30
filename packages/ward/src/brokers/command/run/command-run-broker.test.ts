@@ -1,5 +1,4 @@
 import { getExitCode, setExitCode } from '#gateway/node/process';
-import { AbsoluteFilePathStub } from '@dungeonmaster/shared/contracts/absolute-file-path/absolute-file-path.stub';
 
 import { WardConfigStub } from '../../../contracts/ward-config/ward-config.stub';
 import { PlatformCrossingViolationStub } from '../../../contracts/platform-crossing-violation/platform-crossing-violation.stub';
@@ -30,7 +29,7 @@ describe('commandRunBroker', () => {
       proxy.setupSinglePackagePass();
       proxy.setupUncommittedWithCleanTree();
 
-      const rootPath = AbsoluteFilePathStub({ value: '/project' });
+      const rootPath = '/project';
       const config = WardConfigStub({ uncommitted: true });
 
       await commandRunBroker({ config, rootPath });
@@ -50,7 +49,7 @@ describe('commandRunBroker', () => {
       proxy.setupSinglePackagePass();
       proxy.setupCommittedWithNothingCommitted();
 
-      const rootPath = AbsoluteFilePathStub({ value: '/project' });
+      const rootPath = '/project';
       const config = WardConfigStub({ committed: true });
 
       await commandRunBroker({ config, rootPath });
@@ -73,7 +72,7 @@ describe('commandRunBroker', () => {
       const proxy = commandRunBrokerProxy();
       proxy.setupSinglePackagePass();
 
-      const rootPath = AbsoluteFilePathStub({ value: '/project' });
+      const rootPath = '/project';
       const config = WardConfigStub({ passthrough: [] });
 
       await commandRunBroker({ config, rootPath });
@@ -95,7 +94,7 @@ describe('commandRunBroker', () => {
       proxy.setupSinglePackagePass();
       proxy.setupUncommittedWithOneEditedFile();
 
-      const rootPath = AbsoluteFilePathStub({ value: '/project' });
+      const rootPath = '/project';
       const config = WardConfigStub({ uncommitted: true });
 
       await commandRunBroker({ config, rootPath });
@@ -129,7 +128,7 @@ describe('commandRunBroker', () => {
         filePath: '/project/packages/wardd/src/typo.ts',
       });
 
-      const rootPath = AbsoluteFilePathStub({ value: '/project' });
+      const rootPath = '/project';
       const config = WardConfigStub({ passthrough: ['packages/wardd/src/typo.ts'] });
 
       await commandRunBroker({ config, rootPath });
@@ -159,7 +158,7 @@ describe('commandRunBroker', () => {
       proxy.setupSinglePackagePass();
       proxy.setupUncommittedWithSurvivingAndDeletedFile();
 
-      const rootPath = AbsoluteFilePathStub({ value: '/project' });
+      const rootPath = '/project';
       const config = WardConfigStub({ uncommitted: true });
 
       await commandRunBroker({ config, rootPath });
@@ -193,7 +192,7 @@ describe('commandRunBroker', () => {
       proxy.setupSinglePackagePass();
       proxy.setupUncommittedWithOnlyDeletedFile();
 
-      const rootPath = AbsoluteFilePathStub({ value: '/project' });
+      const rootPath = '/project';
       const config = WardConfigStub({ uncommitted: true });
 
       await commandRunBroker({ config, rootPath });
@@ -225,7 +224,7 @@ describe('commandRunBroker', () => {
       proxy.setupSinglePackageLintPassWithNoFiles();
       proxy.setupExistingPath({ filePath: '/project/src/index.ts' });
 
-      const rootPath = AbsoluteFilePathStub({ value: '/project' });
+      const rootPath = '/project';
       const config = WardConfigStub({ only: ['lint'], passthrough: ['src/index.ts'] });
 
       await commandRunBroker({ config, rootPath });
@@ -252,7 +251,7 @@ describe('commandRunBroker', () => {
       proxy.setupSinglePackagePass();
       proxy.setupUncommittedWithOneEditedFile();
 
-      const rootPath = AbsoluteFilePathStub({ value: '/project' });
+      const rootPath = '/project';
       const config = WardConfigStub({ uncommitted: true });
 
       await commandRunBroker({ config, rootPath });
@@ -281,7 +280,7 @@ describe('commandRunBroker', () => {
       proxy.setupSinglePackagePass();
       proxy.setupUncommittedWithOneEditedFile();
 
-      const rootPath = AbsoluteFilePathStub({ value: '/project' });
+      const rootPath = '/project';
       const config = WardConfigStub({ uncommitted: true });
 
       await commandRunBroker({ config, rootPath });
@@ -306,7 +305,7 @@ describe('commandRunBroker', () => {
       const proxy = commandRunBrokerProxy();
       proxy.setupSinglePackagePass();
 
-      const rootPath = AbsoluteFilePathStub({ value: '/project' });
+      const rootPath = '/project';
       const config = WardConfigStub();
 
       await commandRunBroker({ config, rootPath });
@@ -344,7 +343,7 @@ describe('commandRunBroker', () => {
       const proxy = commandRunBrokerProxy();
       proxy.setupSinglePackageFail();
 
-      const rootPath = AbsoluteFilePathStub({ value: '/project' });
+      const rootPath = '/project';
       const config = WardConfigStub({ only: ['lint'] });
 
       await commandRunBroker({ config, rootPath });
@@ -363,7 +362,7 @@ describe('commandRunBroker', () => {
       const proxy = commandRunBrokerProxy();
       proxy.setupMultiPackageOnlyTests({ matches: ['unmatched', 'matched', 'unmatched'] });
 
-      const rootPath = AbsoluteFilePathStub({ value: '/project' });
+      const rootPath = '/project';
       const config = WardConfigStub({ only: ['unit'], onlyTests: 'my specific test' });
 
       await commandRunBroker({ config, rootPath });
@@ -388,7 +387,7 @@ describe('commandRunBroker', () => {
       const proxy = commandRunBrokerProxy();
       proxy.setupMultiPackageOnlyTests({ matches: ['unmatched', 'unmatched', 'unmatched'] });
 
-      const rootPath = AbsoluteFilePathStub({ value: '/project' });
+      const rootPath = '/project';
       const config = WardConfigStub({ only: ['unit'], onlyTests: 'XYZNONEXISTENT' });
 
       await commandRunBroker({ config, rootPath });
@@ -412,7 +411,7 @@ describe('commandRunBroker', () => {
       const proxy = commandRunBrokerProxy();
       proxy.setupSinglePackageCrash();
 
-      const rootPath = AbsoluteFilePathStub({ value: '/project' });
+      const rootPath = '/project';
       const config = WardConfigStub({ only: ['lint'] });
 
       await commandRunBroker({ config, rootPath });
@@ -436,7 +435,7 @@ describe('commandRunBroker', () => {
       proxy.setupSinglePackageCrash();
       proxy.setupExistingPath({ filePath: '/project/src/index.ts' });
 
-      const rootPath = AbsoluteFilePathStub({ value: '/project' });
+      const rootPath = '/project';
       const config = WardConfigStub({ only: ['lint'], passthrough: ['src/index.ts'] });
 
       await commandRunBroker({ config, rootPath });
@@ -471,7 +470,7 @@ describe('commandRunBroker', () => {
         proxy.setupSinglePackagePass();
         proxy.setupStaleCacheEntry({ name: 'jest-transform-cache-stale' });
 
-        const rootPath = AbsoluteFilePathStub({ value: '/project' });
+        const rootPath = '/project';
 
         await commandRunBroker({ config: WardConfigStub({ only: [checkType] }), rootPath });
 
@@ -487,7 +486,7 @@ describe('commandRunBroker', () => {
       proxy.setupSinglePackagePass();
       proxy.setupStaleCacheEntry({ name: 'jest-transform-cache-stale' });
 
-      const rootPath = AbsoluteFilePathStub({ value: '/project' });
+      const rootPath = '/project';
 
       await commandRunBroker({ config: WardConfigStub({ only: ['lint'] }), rootPath });
 
@@ -503,7 +502,7 @@ describe('commandRunBroker', () => {
       const violation = PlatformCrossingViolationStub();
       proxy.setupPlatformCrossingViolation({ violation });
 
-      const rootPath = AbsoluteFilePathStub({ value: '/project' });
+      const rootPath = '/project';
       const config = WardConfigStub({ only: ['lint'] });
 
       await commandRunBroker({ config, rootPath });

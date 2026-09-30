@@ -12,7 +12,6 @@
  * WHEN-TO-USE: Inside architecture-responder-annotations-broker for cli-tool packages
  */
 
-import type { AbsoluteFilePath } from '../../../contracts/absolute-file-path/absolute-file-path-contract';
 import {
   contentTextContract,
   type ContentText,
@@ -28,9 +27,9 @@ import { readPackageJsonLayerBroker } from './read-package-json-layer-broker';
 export const cliBinToAnnotationsLayerBroker = ({
   packageRoot,
 }: {
-  packageRoot: AbsoluteFilePath;
+  packageRoot: string;
 }): ResponderAnnotationMap => {
-  const result = new Map<AbsoluteFilePath, ResponderAnnotation>();
+  const result = new Map<string, ResponderAnnotation>();
   const pkgJson = readPackageJsonLayerBroker({ packageRoot });
 
   if (pkgJson === undefined) {

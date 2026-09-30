@@ -8,12 +8,7 @@
  */
 
 import type { DirEntrySync } from '#gateway/node/fs';
-import type {
-  AbsoluteFilePath,
-  ContentText,
-  FileName,
-  Guild,
-} from '@dungeonmaster/shared/contracts';
+import type { ContentText, FileName, Guild } from '@dungeonmaster/shared/contracts';
 import { QuestStub } from '@dungeonmaster/shared/contracts/quest/quest.stub';
 import { registerMock } from '@dungeonmaster/testing/register-mock';
 import type { MockHandle } from '@dungeonmaster/testing/register-mock';
@@ -30,26 +25,26 @@ import { snapshotRestoreLayerBrokerProxy } from './snapshot-restore-layer-broker
 
 export const stepResetBrokerProxy = (): {
   setupSnapshots: (params: {
-    homePath: AbsoluteFilePath;
+    homePath: string;
     records: readonly SnapshotRecord[];
   }) => void;
-  setupNoSnapshots: (params: { homePath: AbsoluteFilePath }) => void;
+  setupNoSnapshots: (params: { homePath: string }) => void;
   setupRestoreDirectories: (params: {
-    dirs: readonly { dirPath: AbsoluteFilePath; entries: readonly DirEntrySync[] }[];
+    dirs: readonly { dirPath: string; entries: readonly DirEntrySync[] }[];
   }) => void;
   setupRestoreFileStats: (params: {
     stats: readonly {
-      filePath: AbsoluteFilePath;
+      filePath: string;
       sizeBytes: FileSizeBytes;
       modifiedAtMs: EpochMs;
     }[];
   }) => void;
   setupRestoreFileContents: (params: {
-    contents: readonly { filePath: AbsoluteFilePath; content: string }[];
+    contents: readonly { filePath: string; content: string }[];
   }) => void;
-  setupRestoreRmSucceeds: (params: { filePaths: readonly AbsoluteFilePath[] }) => void;
+  setupRestoreRmSucceeds: (params: { filePaths: readonly string[] }) => void;
   setupRestoreCpSucceeds: (params: {
-    sourcePath: AbsoluteFilePath;
+    sourcePath: string;
     entries: readonly FileName[];
   }) => void;
   setupReseed: (params: {

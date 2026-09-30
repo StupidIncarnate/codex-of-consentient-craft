@@ -1,5 +1,4 @@
 import { pidProxy } from '#gateway/node/process/pid/pid.proxy';
-import type { AbsoluteFilePath } from '@dungeonmaster/shared/contracts';
 
 import { driverSocketRequestBrokerProxy } from '../socket-request/driver-socket-request-broker.proxy';
 import { processIsAliveBrokerProxy } from '../../process/is-alive/process-is-alive-broker.proxy';
@@ -11,8 +10,8 @@ type ProcessGroupId = ReturnType<typeof ProcessGroupIdStub>;
 export const driverLiveCheckBrokerProxy = (): {
   setupPidAlive: (params: { pgid: ProcessGroupId }) => void;
   setupPidDead: (params: { pgid: ProcessGroupId }) => void;
-  setupSocketAnswers: (params: { socketPath: AbsoluteFilePath }) => void;
-  setupSocketUnreachable: (params: { socketPath: AbsoluteFilePath }) => void;
+  setupSocketAnswers: (params: { socketPath: string }) => void;
+  setupSocketUnreachable: (params: { socketPath: string }) => void;
 } => {
   pidProxy();
   const isAliveProxy = processIsAliveBrokerProxy();
@@ -27,11 +26,11 @@ export const driverLiveCheckBrokerProxy = (): {
       isAliveProxy.setupGone({ pgid });
     },
 
-    setupSocketAnswers: ({ socketPath }: { socketPath: AbsoluteFilePath }): void => {
+    setupSocketAnswers: ({ socketPath }: { socketPath: string }): void => {
       socketProxy.respondsWith({ socketPath, response: DriverResponseStub({ ok: true }) });
     },
 
-    setupSocketUnreachable: ({ socketPath }: { socketPath: AbsoluteFilePath }): void => {
+    setupSocketUnreachable: ({ socketPath }: { socketPath: string }): void => {
       socketProxy.connectFailsNoSocket({ socketPath });
     },
   };

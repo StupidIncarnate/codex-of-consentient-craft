@@ -1,4 +1,3 @@
-import type { AbsoluteFilePath } from '@dungeonmaster/shared/contracts';
 import { unlinkProxy } from '#gateway/node/fs__promises/unlink/unlink.proxy';
 import { citationResolveBrokerProxy } from '../../citation/resolve/citation-resolve-broker.proxy';
 import { pruneAssetsListBrokerProxy } from '../assets-list/prune-assets-list-broker.proxy';
@@ -7,7 +6,7 @@ export const pruneInstanceReclaimBrokerProxy = (): {
   setupEvidenceTree: ReturnType<typeof pruneAssetsListBrokerProxy>['setupEvidenceTree'];
   setupDir: ReturnType<typeof pruneAssetsListBrokerProxy>['setupDir'];
   setupFile: ReturnType<typeof pruneAssetsListBrokerProxy>['setupFile'];
-  setupDeleteSucceeds: (params: { filePath: AbsoluteFilePath }) => void;
+  setupDeleteSucceeds: (params: { filePath: string }) => void;
   getDeletedPaths: () => unknown[];
   setupQuestFolder: ReturnType<typeof citationResolveBrokerProxy>['setupQuestFolder'];
   setupQuestRecord: ReturnType<typeof citationResolveBrokerProxy>['setupQuestRecord'];
@@ -18,13 +17,13 @@ export const pruneInstanceReclaimBrokerProxy = (): {
   const citationProxy = citationResolveBrokerProxy();
   const deleteProxy = unlinkProxy();
   // Read-back addresses only the paths this test staged; an unstaged unlink already throws.
-  const stagedDeletePaths: AbsoluteFilePath[] = [];
+  const stagedDeletePaths: string[] = [];
 
   return {
     setupEvidenceTree: assetsProxy.setupEvidenceTree,
     setupDir: assetsProxy.setupDir,
     setupFile: assetsProxy.setupFile,
-    setupDeleteSucceeds: ({ filePath }: { filePath: AbsoluteFilePath }): void => {
+    setupDeleteSucceeds: ({ filePath }: { filePath: string }): void => {
       stagedDeletePaths.push(filePath);
       deleteProxy.succeeds({ path: filePath });
     },

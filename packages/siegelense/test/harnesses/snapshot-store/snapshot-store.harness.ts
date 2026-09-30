@@ -21,7 +21,7 @@
  * await store.cleanup(); // removes every throwaway home this harness wrote
  */
 
-import type { AbsoluteFilePath, SiegeInstance } from '@dungeonmaster/shared/contracts';
+import type { SiegeInstance } from '@dungeonmaster/shared/contracts';
 
 import { randomUUID } from '#gateway/node/crypto';
 import { mkdir, rm, writeFile } from '#gateway/node/fs__promises';
@@ -35,15 +35,15 @@ import { snapshotStatics } from '../../../src/statics/snapshot/snapshot-statics'
 
 export const snapshotStoreHarness = (): {
   mintInstanceId: () => SiegeInstance['id'];
-  homePath: (params: { instanceId: SiegeInstance['id'] }) => AbsoluteFilePath;
-  payloadPath: (params: { instanceId: SiegeInstance['id']; ordinal: number }) => AbsoluteFilePath;
+  homePath: (params: { instanceId: SiegeInstance['id'] }) => string;
+  payloadPath: (params: { instanceId: SiegeInstance['id']; ordinal: number }) => string;
   writeIndex: (params: {
     instanceId: SiegeInstance['id'];
     records: readonly SnapshotRecord[];
   }) => Promise<void>;
   cleanup: () => Promise<void>;
 } => {
-  const mintedHomePaths: AbsoluteFilePath[] = [];
+  const mintedHomePaths: string[] = [];
 
   const mintInstanceId = (): SiegeInstance['id'] => {
     const entropyHex = randomUUID().split('-').join('');
@@ -52,7 +52,7 @@ export const snapshotStoreHarness = (): {
     });
   };
 
-  const homePath = ({ instanceId }: { instanceId: SiegeInstance['id'] }): AbsoluteFilePath =>
+  const homePath = ({ instanceId }: { instanceId: SiegeInstance['id'] }): string =>
     locationsInstanceHomePathFindBroker({ instanceId });
 
   const payloadPath = ({
@@ -61,7 +61,7 @@ export const snapshotStoreHarness = (): {
   }: {
     instanceId: SiegeInstance['id'];
     ordinal: number;
-  }): AbsoluteFilePath =>
+  }): string =>
     locationsSnapshotPathsFindBroker({
       homePath: homePath({ instanceId }),
       ordinal: SnapshotOrdinalStub({ value: ordinal }),

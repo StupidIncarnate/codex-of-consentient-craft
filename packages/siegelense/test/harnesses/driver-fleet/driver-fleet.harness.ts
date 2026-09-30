@@ -24,7 +24,7 @@ import { kill, setEnv, stderr } from '#gateway/node/process';
 import { join, resolve as resolvePath } from '#gateway/node/path';
 import { setTimeout } from '#gateway/node/setTimeout';
 
-import type { AbsoluteFilePath, NetworkPort, ProcessId, TimeoutMs, SiegeInstance } from '@dungeonmaster/shared/contracts';
+import type { NetworkPort, ProcessId, TimeoutMs, SiegeInstance } from '@dungeonmaster/shared/contracts';
 import { locationsStatics } from '@dungeonmaster/shared/statics';
 import { configDefaultsStatics } from '@dungeonmaster/config';
 import { DungeonmasterConfigStub } from '@dungeonmaster/config/contracts/dungeonmaster-config/dungeonmaster-config.stub';
@@ -169,7 +169,7 @@ export const driverFleetHarness = (): {
     writeFileSync(`${configDir}/.dungeonmaster.json`, JSON.stringify(config));
   };
 
-  const evidenceDir = ({ instanceId }: { instanceId: SiegeInstance['id'] }): AbsoluteFilePath =>
+  const evidenceDir = ({ instanceId }: { instanceId: SiegeInstance['id'] }): string =>
     locationsInstanceEvidencePathFindBroker({ instanceId, guildId: null });
 
   const boot = async ({

@@ -1,10 +1,9 @@
 import { censusRepoReadSourcesChunkLayerBroker } from './census-repo-read-sources-chunk-layer-broker';
 import { censusRepoReadSourcesChunkLayerBrokerProxy } from './census-repo-read-sources-chunk-layer-broker.proxy';
-import { AbsoluteFilePathStub } from '../../../contracts/absolute-file-path/absolute-file-path.stub';
 import { censusLayoutStatics } from '../../../statics/census-layout/census-layout-statics';
 
 describe('censusRepoReadSourcesChunkLayerBroker', () => {
-  const repoRoot = AbsoluteFilePathStub({ value: '/repo' });
+  const repoRoot = '/repo';
 
   it('VALID: {two files} => entries keyed by repo-relative path, in order', async () => {
     const proxy = censusRepoReadSourcesChunkLayerBrokerProxy();

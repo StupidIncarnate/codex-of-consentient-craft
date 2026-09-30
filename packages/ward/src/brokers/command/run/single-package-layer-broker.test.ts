@@ -1,4 +1,3 @@
-import { AbsoluteFilePathStub } from '@dungeonmaster/shared/contracts/absolute-file-path/absolute-file-path.stub';
 
 import { ProjectFolderStub } from '../../../contracts/project-folder/project-folder.stub';
 import { ProjectResultStub } from '../../../contracts/project-result/project-result.stub';
@@ -14,7 +13,7 @@ describe('singlePackageLayerBroker', () => {
       const proxy = singlePackageLayerBrokerProxy();
       proxy.setupAllChecksPass({ projectFolder });
 
-      const rootPath = AbsoluteFilePathStub({ value: '/project' });
+      const rootPath = '/project';
       const config = WardConfigStub();
 
       const result = await singlePackageLayerBroker({ config, projectFolder, rootPath });
@@ -30,7 +29,7 @@ describe('singlePackageLayerBroker', () => {
       const proxy = singlePackageLayerBrokerProxy();
       proxy.setupLintOnlyPass({ projectFolder });
 
-      const rootPath = AbsoluteFilePathStub({ value: '/project' });
+      const rootPath = '/project';
       const config = WardConfigStub({ only: ['lint'] });
 
       await singlePackageLayerBroker({ config, projectFolder, rootPath });
@@ -58,7 +57,7 @@ describe('singlePackageLayerBroker', () => {
         ]),
       });
 
-      const rootPath = AbsoluteFilePathStub({ value: '/project' });
+      const rootPath = '/project';
       const config = WardConfigStub({ only: ['lint'] });
 
       await singlePackageLayerBroker({ config, projectFolder, rootPath });
@@ -74,7 +73,7 @@ describe('singlePackageLayerBroker', () => {
       const proxy = singlePackageLayerBrokerProxy();
       proxy.setupE2eOnlySkip({ projectFolder });
 
-      const rootPath = AbsoluteFilePathStub({ value: '/project' });
+      const rootPath = '/project';
       const config = WardConfigStub({ only: ['e2e'] });
 
       await singlePackageLayerBroker({ config, projectFolder, rootPath });
@@ -97,7 +96,7 @@ describe('singlePackageLayerBroker', () => {
       const proxy = singlePackageLayerBrokerProxy();
       proxy.setupLintOnlyPass({ projectFolder });
 
-      const rootPath = AbsoluteFilePathStub({ value: '/project' });
+      const rootPath = '/project';
       const config = WardConfigStub({
         only: ['lint'],
         uncommitted: true,
@@ -118,7 +117,7 @@ describe('singlePackageLayerBroker', () => {
       const proxy = singlePackageLayerBrokerProxy();
       proxy.setupLintOnlyPass({ projectFolder });
 
-      const rootPath = AbsoluteFilePathStub({ value: '/project' });
+      const rootPath = '/project';
       const config = WardConfigStub({
         only: ['lint'],
         committed: true,
@@ -139,7 +138,7 @@ describe('singlePackageLayerBroker', () => {
       const proxy = singlePackageLayerBrokerProxy();
       proxy.setupLintOnlyPass({ projectFolder });
 
-      const rootPath = AbsoluteFilePathStub({ value: '/project' });
+      const rootPath = '/project';
       const config = WardConfigStub({ only: ['lint'], passthrough: ['src/a.ts'] });
 
       const result = await singlePackageLayerBroker({ config, projectFolder, rootPath });
@@ -152,7 +151,7 @@ describe('singlePackageLayerBroker', () => {
       const proxy = singlePackageLayerBrokerProxy();
       proxy.setupLintOnlyPass({ projectFolder });
 
-      const rootPath = AbsoluteFilePathStub({ value: '/project' });
+      const rootPath = '/project';
       const config = WardConfigStub({ only: ['lint'] });
 
       const result = await singlePackageLayerBroker({ config, projectFolder, rootPath });
@@ -167,7 +166,7 @@ describe('singlePackageLayerBroker', () => {
       const proxy = singlePackageLayerBrokerProxy();
       proxy.setupLintOnlyPass({ projectFolder });
 
-      const rootPath = AbsoluteFilePathStub({ value: '/project' });
+      const rootPath = '/project';
       const config = WardConfigStub({ only: ['lint'] });
       const platformDedupeProjectResult = ProjectResultStub({
         projectFolder: { name: '(platform + dedupe)', path: '/project' },
@@ -223,7 +222,7 @@ describe('singlePackageLayerBroker', () => {
       const proxy = singlePackageLayerBrokerProxy();
       proxy.setupLintOnlyPass({ projectFolder });
 
-      const rootPath = AbsoluteFilePathStub({ value: '/project' });
+      const rootPath = '/project';
       const config = WardConfigStub({ only: ['lint'] });
 
       const result = await singlePackageLayerBroker({ config, projectFolder, rootPath });

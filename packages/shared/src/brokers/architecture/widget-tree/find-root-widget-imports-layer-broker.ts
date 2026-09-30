@@ -12,8 +12,6 @@
  * WHEN-TO-USE: Widget-tree broker identifying root widgets (UI entry points) for the composition tree
  */
 
-import { absoluteFilePathContract } from '../../../contracts/absolute-file-path/absolute-file-path-contract';
-import type { AbsoluteFilePath } from '../../../contracts/absolute-file-path/absolute-file-path-contract';
 import { importStatementsExtractTransformer } from '../../../transformers/import-statements-extract/import-statements-extract-transformer';
 import { relativeImportResolveTransformer } from '../../../transformers/relative-import-resolve/relative-import-resolve-transformer';
 import { widgetTreeStatics } from '../../../statics/widget-tree/widget-tree-statics';
@@ -24,23 +22,23 @@ export const findRootWidgetImportsLayerBroker = ({
   packageSrcPath,
   widgetFilePaths,
 }: {
-  packageSrcPath: AbsoluteFilePath;
-  widgetFilePaths: AbsoluteFilePath[];
-}): AbsoluteFilePath[] => {
+  packageSrcPath: string;
+  widgetFilePaths: string[];
+}): string[] => {
   if (widgetFilePaths.length === 0) {
     return [];
   }
 
   // Build a lookup map: widget path string → AbsoluteFilePath
-  const widgetByPath = new Map<AbsoluteFilePath, AbsoluteFilePath>();
+  const widgetByPath = new Map<string, string>();
   for (const fp of widgetFilePaths) {
     widgetByPath.set(fp, fp);
   }
 
   // Collect all source files from responders/ and flows/
-  const sourceFiles: AbsoluteFilePath[] = [];
+  const sourceFiles: string[] = [];
   for (const folder of widgetTreeStatics.rootSourceFolders) {
-    const folderPath = absoluteFilePathContract.parse(`${String(packageSrcPath)}/${folder}`);
+    const folderPath = `${String(packageSrcPath)}/${folder}`;
     const files = collectFolderFilesLayerBroker({ dirPath: folderPath });
     for (const f of files) {
       sourceFiles.push(f);
@@ -48,7 +46,7 @@ export const findRootWidgetImportsLayerBroker = ({
   }
 
   // Find which widget files are imported
-  const rootPaths = new Set<AbsoluteFilePath>();
+  const rootPaths = new Set<string>();
   for (const sourceFile of sourceFiles) {
     const content = readWidgetSourceLayerBroker({ filePath: sourceFile });
     if (content === undefined) continue;
@@ -66,9 +64,7 @@ export const findRootWidgetImportsLayerBroker = ({
 
       // Try swapping .ts → .tsx for widget files (relativeImportResolveTransformer appends .ts)
       if (resolved.endsWith(widgetTreeStatics.tsSuffix)) {
-        const withTsx = absoluteFilePathContract.parse(
-          `${String(resolved).slice(0, -widgetTreeStatics.tsSuffix.length)}${widgetTreeStatics.tsxSuffix}`,
-        );
+        const withTsx = `${String(resolved).slice(0, -widgetTreeStatics.tsSuffix.length)}${widgetTreeStatics.tsxSuffix}`;
         if (widgetByPath.has(withTsx)) {
           rootPaths.add(withTsx);
         }

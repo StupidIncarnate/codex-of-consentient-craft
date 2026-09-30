@@ -1,4 +1,3 @@
-import { AbsoluteFilePathStub } from '@dungeonmaster/shared/contracts/absolute-file-path/absolute-file-path.stub';
 import { QuestStub } from '@dungeonmaster/shared/contracts/quest/quest.stub';
 
 import { InstanceIdStub } from '../../../contracts/instance-id/instance-id.stub';
@@ -15,7 +14,7 @@ describe('questRecordParseLayerBroker', () => {
 
       const result = questRecordParseLayerBroker({
         contents: JSON.stringify(QuestStub({ status: 'in_progress' })),
-        questFilePath: AbsoluteFilePathStub({ value: QUEST_FILE }),
+        questFilePath: QUEST_FILE,
         instanceId: InstanceIdStub({ value: INSTANCE }),
       });
 
@@ -32,7 +31,7 @@ describe('questRecordParseLayerBroker', () => {
 
       const result = questRecordParseLayerBroker({
         contents: '{ not json',
-        questFilePath: AbsoluteFilePathStub({ value: QUEST_FILE }),
+        questFilePath: QUEST_FILE,
         instanceId: InstanceIdStub({ value: INSTANCE }),
       });
 
@@ -55,7 +54,7 @@ describe('questRecordParseLayerBroker', () => {
 
       const result = questRecordParseLayerBroker({
         contents: JSON.stringify({ id: 'add-auth' }),
-        questFilePath: AbsoluteFilePathStub({ value: QUEST_FILE }),
+        questFilePath: QUEST_FILE,
         instanceId: InstanceIdStub({ value: INSTANCE }),
       });
 

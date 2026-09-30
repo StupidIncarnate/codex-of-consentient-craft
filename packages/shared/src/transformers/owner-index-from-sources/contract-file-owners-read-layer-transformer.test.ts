@@ -1,12 +1,9 @@
 import * as ts from '#gateway/npm/typescript';
 
-import { AbsoluteFilePathStub } from '../../contracts/absolute-file-path/absolute-file-path.stub';
 import { PackageNameStub } from '../../contracts/package-name/package-name.stub';
 import { contractFileOwnersReadLayerTransformer } from './contract-file-owners-read-layer-transformer';
 
-const filePath = AbsoluteFilePathStub({
-  value: '/repo/packages/alpha/src/contracts/quest/quest-contract.ts',
-});
+const filePath = '/repo/packages/alpha/src/contracts/quest/quest-contract.ts';
 const packageName = PackageNameStub({ value: '@repo/alpha' });
 
 const readText = ({

@@ -1,16 +1,13 @@
 import { importsInFolderTypeFindLayerBroker } from './imports-in-folder-type-find-layer-broker';
 import { importsInFolderTypeFindLayerBrokerProxy } from './imports-in-folder-type-find-layer-broker.proxy';
-import { AbsoluteFilePathStub } from '../../../contracts/absolute-file-path/absolute-file-path.stub';
 import { ContentTextStub } from '../../../contracts/content-text/content-text.stub';
 
 describe('importsInFolderTypeFindLayerBroker', () => {
   describe('flow imports', () => {
     it('VALID: {startup file with flow imports} => returns flow file paths in entries', () => {
       const proxy = importsInFolderTypeFindLayerBrokerProxy();
-      const sourceFile = AbsoluteFilePathStub({
-        value: '/repo/packages/server/src/startup/start-server.ts',
-      });
-      const packageSrcPath = AbsoluteFilePathStub({ value: '/repo/packages/server/src' });
+      const sourceFile = '/repo/packages/server/src/startup/start-server.ts';
+      const packageSrcPath = '/repo/packages/server/src';
 
       proxy.setupSource({
         sourceFile,
@@ -27,9 +24,7 @@ describe('importsInFolderTypeFindLayerBroker', () => {
 
       expect(result).toStrictEqual({
         entries: [
-          AbsoluteFilePathStub({
-            value: '/repo/packages/server/src/flows/quest/quest-flow.ts',
-          }),
+          '/repo/packages/server/src/flows/quest/quest-flow.ts',
         ],
         layers: [],
       });
@@ -37,10 +32,8 @@ describe('importsInFolderTypeFindLayerBroker', () => {
 
     it('VALID: {startup file with multiple flow imports} => returns all flow paths in entries', () => {
       const proxy = importsInFolderTypeFindLayerBrokerProxy();
-      const sourceFile = AbsoluteFilePathStub({
-        value: '/repo/packages/server/src/startup/start-server.ts',
-      });
-      const packageSrcPath = AbsoluteFilePathStub({ value: '/repo/packages/server/src' });
+      const sourceFile = '/repo/packages/server/src/startup/start-server.ts';
+      const packageSrcPath = '/repo/packages/server/src';
 
       proxy.setupSource({
         sourceFile,
@@ -60,12 +53,8 @@ describe('importsInFolderTypeFindLayerBroker', () => {
 
       expect(result).toStrictEqual({
         entries: [
-          AbsoluteFilePathStub({
-            value: '/repo/packages/server/src/flows/quest/quest-flow.ts',
-          }),
-          AbsoluteFilePathStub({
-            value: '/repo/packages/server/src/flows/guild/guild-flow.ts',
-          }),
+          '/repo/packages/server/src/flows/quest/quest-flow.ts',
+          '/repo/packages/server/src/flows/guild/guild-flow.ts',
         ],
         layers: [],
       });
@@ -75,10 +64,8 @@ describe('importsInFolderTypeFindLayerBroker', () => {
   describe('filtering', () => {
     it('VALID: {non-flow imports present} => returns only flow paths in entries', () => {
       const proxy = importsInFolderTypeFindLayerBrokerProxy();
-      const sourceFile = AbsoluteFilePathStub({
-        value: '/repo/packages/server/src/startup/start-server.ts',
-      });
-      const packageSrcPath = AbsoluteFilePathStub({ value: '/repo/packages/server/src' });
+      const sourceFile = '/repo/packages/server/src/startup/start-server.ts';
+      const packageSrcPath = '/repo/packages/server/src';
 
       proxy.setupSource({
         sourceFile,
@@ -98,9 +85,7 @@ describe('importsInFolderTypeFindLayerBroker', () => {
 
       expect(result).toStrictEqual({
         entries: [
-          AbsoluteFilePathStub({
-            value: '/repo/packages/server/src/flows/quest/quest-flow.ts',
-          }),
+          '/repo/packages/server/src/flows/quest/quest-flow.ts',
         ],
         layers: [],
       });
@@ -108,10 +93,8 @@ describe('importsInFolderTypeFindLayerBroker', () => {
 
     it('VALID: {test file import in flows/} => filters out test file from both buckets', () => {
       const proxy = importsInFolderTypeFindLayerBrokerProxy();
-      const sourceFile = AbsoluteFilePathStub({
-        value: '/repo/packages/server/src/startup/start-server.ts',
-      });
-      const packageSrcPath = AbsoluteFilePathStub({ value: '/repo/packages/server/src' });
+      const sourceFile = '/repo/packages/server/src/startup/start-server.ts';
+      const packageSrcPath = '/repo/packages/server/src';
 
       proxy.setupSource({
         sourceFile,
@@ -133,11 +116,8 @@ describe('importsInFolderTypeFindLayerBroker', () => {
   describe('layer file partitioning', () => {
     it('VALID: {parent broker importing a layer broker} => returns the layer file in layers, not entries', () => {
       const proxy = importsInFolderTypeFindLayerBrokerProxy();
-      const sourceFile = AbsoluteFilePathStub({
-        value:
-          '/repo/packages/orch/src/brokers/quest/orchestration-loop/quest-orchestration-loop-broker.ts',
-      });
-      const packageSrcPath = AbsoluteFilePathStub({ value: '/repo/packages/orch/src' });
+      const sourceFile = '/repo/packages/orch/src/brokers/quest/orchestration-loop/quest-orchestration-loop-broker.ts';
+      const packageSrcPath = '/repo/packages/orch/src';
 
       proxy.setupSource({
         sourceFile,
@@ -155,21 +135,15 @@ describe('importsInFolderTypeFindLayerBroker', () => {
       expect(result).toStrictEqual({
         entries: [],
         layers: [
-          AbsoluteFilePathStub({
-            value:
-              '/repo/packages/orch/src/brokers/quest/orchestration-loop/run-siegemaster-layer-broker.ts',
-          }),
+          '/repo/packages/orch/src/brokers/quest/orchestration-loop/run-siegemaster-layer-broker.ts',
         ],
       });
     });
 
     it('VALID: {parent broker importing both entry sibling and layer sibling} => partitions into entries and layers', () => {
       const proxy = importsInFolderTypeFindLayerBrokerProxy();
-      const sourceFile = AbsoluteFilePathStub({
-        value:
-          '/repo/packages/orch/src/brokers/quest/orchestration-loop/quest-orchestration-loop-broker.ts',
-      });
-      const packageSrcPath = AbsoluteFilePathStub({ value: '/repo/packages/orch/src' });
+      const sourceFile = '/repo/packages/orch/src/brokers/quest/orchestration-loop/quest-orchestration-loop-broker.ts';
+      const packageSrcPath = '/repo/packages/orch/src';
 
       proxy.setupSource({
         sourceFile,
@@ -189,15 +163,10 @@ describe('importsInFolderTypeFindLayerBroker', () => {
 
       expect(result).toStrictEqual({
         entries: [
-          AbsoluteFilePathStub({
-            value: '/repo/packages/orch/src/brokers/quest/get/quest-get-broker.ts',
-          }),
+          '/repo/packages/orch/src/brokers/quest/get/quest-get-broker.ts',
         ],
         layers: [
-          AbsoluteFilePathStub({
-            value:
-              '/repo/packages/orch/src/brokers/quest/orchestration-loop/run-siegemaster-layer-broker.ts',
-          }),
+          '/repo/packages/orch/src/brokers/quest/orchestration-loop/run-siegemaster-layer-broker.ts',
         ],
       });
     });
@@ -206,10 +175,8 @@ describe('importsInFolderTypeFindLayerBroker', () => {
   describe('missing source file', () => {
     it('EMPTY: {source file missing} => returns empty entries and empty layers', () => {
       const proxy = importsInFolderTypeFindLayerBrokerProxy();
-      const sourceFile = AbsoluteFilePathStub({
-        value: '/repo/packages/server/src/startup/start-missing.ts',
-      });
-      const packageSrcPath = AbsoluteFilePathStub({ value: '/repo/packages/server/src' });
+      const sourceFile = '/repo/packages/server/src/startup/start-missing.ts';
+      const packageSrcPath = '/repo/packages/server/src';
 
       proxy.setupMissing({ sourceFile });
 

@@ -11,8 +11,6 @@
  * WHEN-NOT-TO-USE: Non-frontend-react packages (no widgets/ directory)
  */
 
-import { absoluteFilePathContract } from '../../../contracts/absolute-file-path/absolute-file-path-contract';
-import type { AbsoluteFilePath } from '../../../contracts/absolute-file-path/absolute-file-path-contract';
 import {
   widgetTreeResultContract,
   type WidgetTreeResult,
@@ -28,18 +26,16 @@ import { buildWidgetNodeLayerBroker } from './build-widget-node-layer-broker';
 export const architectureWidgetTreeBroker = ({
   packageRoot,
 }: {
-  packageRoot: AbsoluteFilePath;
+  packageRoot: string;
 }): WidgetTreeResult => {
-  const packageSrcPath = absoluteFilePathContract.parse(`${String(packageRoot)}/src`);
-  const widgetsDirPath = absoluteFilePathContract.parse(
-    `${String(packageSrcPath)}/${widgetTreeStatics.widgetsFolderName}`,
-  );
+  const packageSrcPath = `${String(packageRoot)}/src`;
+  const widgetsDirPath = `${String(packageSrcPath)}/${widgetTreeStatics.widgetsFolderName}`;
 
   // Step 1: Collect all widget files (non-test)
   const allWidgetFiles = listWidgetFilesLayerBroker({ widgetsDirPath });
 
   // Step 2: Separate layer files from entry widget files (layer files inlined under parents)
-  const entryWidgetFiles: AbsoluteFilePath[] = [];
+  const entryWidgetFiles: string[] = [];
   for (const widgetFile of allWidgetFiles) {
     const parentOrNull = layerFileParentResolveTransformer({
       layerFilePath: widgetFile,
@@ -53,10 +49,10 @@ export const architectureWidgetTreeBroker = ({
     return widgetTreeResultContract.parse({ roots: [], hubs: [] });
   }
 
-  const widgetFileSet = new Set<AbsoluteFilePath>(entryWidgetFiles);
+  const widgetFileSet = new Set<string>(entryWidgetFiles);
 
   // Step 3: Extract edges for each entry widget
-  const edgesMap = new Map<AbsoluteFilePath, ReturnType<typeof extractWidgetEdgesLayerBroker>>();
+  const edgesMap = new Map<string, ReturnType<typeof extractWidgetEdgesLayerBroker>>();
   for (const widgetFile of entryWidgetFiles) {
     edgesMap.set(
       widgetFile,
@@ -69,7 +65,7 @@ export const architectureWidgetTreeBroker = ({
   }
 
   // Step 4: Compute in-degree for each widget
-  const inDegree = new Map<AbsoluteFilePath, number>();
+  const inDegree = new Map<string, number>();
   for (const widgetFile of entryWidgetFiles) {
     if (!inDegree.has(widgetFile)) {
       inDegree.set(widgetFile, 0);
@@ -82,7 +78,7 @@ export const architectureWidgetTreeBroker = ({
   }
 
   // Step 5: Identify hubs (in-degree >= threshold)
-  const hubPaths = new Set<AbsoluteFilePath>();
+  const hubPaths = new Set<string>();
   for (const [widgetFile, degree] of inDegree) {
     if (degree >= widgetTreeStatics.hubInDegreeThreshold) {
       hubPaths.add(widgetFile);
@@ -98,7 +94,7 @@ export const architectureWidgetTreeBroker = ({
   // Step 7: Build the tree from roots. Shared visited set across roots prevents cycles and
   // duplicates a widget reused under multiple roots — first appearance fully expanded,
   // subsequent appearances render as stub leaves.
-  const visited = new Set<AbsoluteFilePath>();
+  const visited = new Set<string>();
   const roots = rootPaths.map((rootPath) =>
     buildWidgetNodeLayerBroker({
       filePath: rootPath,

@@ -1,9 +1,8 @@
 import { censusRepoReadLayoutBroker } from './census-repo-read-layout-broker';
 import { censusRepoReadLayoutBrokerProxy } from './census-repo-read-layout-broker.proxy';
-import { AbsoluteFilePathStub } from '../../../contracts/absolute-file-path/absolute-file-path.stub';
 
 describe('censusRepoReadLayoutBroker', () => {
-  const repoRoot = AbsoluteFilePathStub({ value: '/repo' });
+  const repoRoot = '/repo';
 
   it('VALID: {a scoped root and two packages} => the root scope and packages in path order', async () => {
     const proxy = censusRepoReadLayoutBrokerProxy();

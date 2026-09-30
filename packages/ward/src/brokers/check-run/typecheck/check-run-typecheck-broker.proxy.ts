@@ -1,7 +1,6 @@
 import { existsSyncProxy } from '#gateway/node/fs/exists-sync/exists-sync.proxy';
 import { runProxy } from '#gateway/node/child_process/run/run.proxy';
 import { RunNotFoundErrorProxy } from '#gateway/node/child_process/run-not-found.error.proxy';
-import { absoluteFilePathContract } from '@dungeonmaster/shared/contracts';
 
 import { globDiscoverFilesBrokerProxy } from '../../glob/discover-files/glob-discover-files-broker.proxy';
 import { readJsonFileSyncIfExistsProxy } from '#gateway/node/fs/read-json-file-sync-if-exists/read-json-file-sync-if-exists.proxy';
@@ -58,7 +57,7 @@ export const checkRunTypecheckBrokerProxy = (): {
     });
     globProxy.returnsForPatterns({ patterns: discoverPatterns, files: ['discovered.ts'] });
     return binProxy.setupFound({
-      cwd: absoluteFilePathContract.parse(projectFolder.path),
+      cwd: projectFolder.path,
       binName: BinCommandStub({ value: checkCommandsStatics.typecheck.bin }),
     });
   };
@@ -73,7 +72,7 @@ export const checkRunTypecheckBrokerProxy = (): {
     stdout: string;
   }): void => {
     const command = String(setupDiscovery({ projectFolder }));
-    const cwd = String(absoluteFilePathContract.parse(projectFolder.path));
+    const cwd = String(projectFolder.path);
     lastChecking.command = command;
     lastChecking.cwd = cwd;
     lastChecking.exitCode = exitCode;

@@ -6,9 +6,7 @@ import { RunNotFoundErrorProxy } from '#gateway/node/child_process/run-not-found
 import { freePortPairProxy } from '#gateway/node/net/free-port-pair/free-port-pair.proxy';
 import { readFileProxy } from '#gateway/node/fs__promises/read-file/read-file.proxy';
 import { unlinkProxy } from '#gateway/node/fs__promises/unlink/unlink.proxy';
-import { absoluteFilePathContract, networkPortContract } from '@dungeonmaster/shared/contracts';
-import { AbsoluteFilePathStub } from '@dungeonmaster/shared/contracts/absolute-file-path/absolute-file-path.stub';
-import type { AbsoluteFilePath } from '@dungeonmaster/shared/contracts';
+import { networkPortContract } from '@dungeonmaster/shared/contracts';
 
 import { globDiscoverFilesBrokerProxy } from '../../glob/discover-files/glob-discover-files-broker.proxy';
 import { tmpdirFindBrokerProxy } from '../../tmpdir/find/tmpdir-find-broker.proxy';
@@ -29,7 +27,7 @@ const BUNDLE_HASH = '1d36195dbed4d762ee44bad0c0a391b267a8b412c2832995e82a59b16fe
 export const checkRunE2eBrokerProxy = (): {
   setupPass: (params: { projectFolder: ProjectFolder }) => void;
   setupPassWithBundle: (params: { projectFolder: ProjectFolder }) => void;
-  getBundleDir: (params: { projectFolder: ProjectFolder }) => AbsoluteFilePath;
+  getBundleDir: (params: { projectFolder: ProjectFolder }) => string;
   setupPassWithOutput: (params: { projectFolder: ProjectFolder; stdout: string }) => void;
   setupPassWithJsonReport: (params: { projectFolder: ProjectFolder; jsonContent: string }) => void;
   setupFail: (params: { projectFolder: ProjectFolder; stdout: string }) => void;
@@ -77,7 +75,7 @@ export const checkRunE2eBrokerProxy = (): {
   // cwd in `setupPlaywrightConfigExists`; a cwd `setupSourceConditionUnsupported` marked keeps that
   // answer whichever order the two setups are called in.
   const sourceConditionProxy = sourceConditionSupportedBrokerProxy();
-  const unsupportedCwds = new Set<AbsoluteFilePath>();
+  const unsupportedCwds = new Set<string>();
 
   // The broker names its Playwright report AND its vite cache after the SERVER port, so this
   // number, the readFile address in setupPassWithJsonReport, and the removal staged below all have
@@ -89,7 +87,7 @@ export const checkRunE2eBrokerProxy = (): {
   // unit/integration have — every e2e run asks). Staged by exact path — no wildcard — since no
   // test here stages a leak report; default absent is what every one of them needs.
   const handleReportPath = openHandleReportPathTransformer({
-    tmpdir: AbsoluteFilePathStub({ value: '/tmp' }),
+    tmpdir: '/tmp',
     checkType: 'e2e',
     processId: STAGED_SERVER_PORT,
   });
@@ -110,14 +108,14 @@ export const checkRunE2eBrokerProxy = (): {
 
   const stageCacheRemoval = ({ projectFolder }: { projectFolder: ProjectFolder }): void => {
     removeProxy.setupRemovable({
-      packageRoot: absoluteFilePathContract.parse(projectFolder.path),
+      packageRoot: projectFolder.path,
       port: STAGED_SERVER_PORT,
     });
   };
 
   const resolveCommand = ({ projectFolder }: { projectFolder: ProjectFolder }): BinCommand => {
     const command = binProxy.setupFound({
-      cwd: absoluteFilePathContract.parse(projectFolder.path),
+      cwd: projectFolder.path,
       binName: BinCommandStub({ value: checkCommandsStatics.e2e.bin }),
     });
     resolvedCommandRef.value = command;
@@ -142,21 +140,21 @@ export const checkRunE2eBrokerProxy = (): {
       path: `${projectFolder.path}/playwright.config.ts`,
       exists: true,
     });
-    const cwd = absoluteFilePathContract.parse(projectFolder.path);
+    const cwd = projectFolder.path;
     if (!unsupportedCwds.has(cwd)) {
       sourceConditionProxy.setupSupported({ cwd });
     }
   };
 
-  const bundleDirFor = ({ projectFolder }: { projectFolder: ProjectFolder }): AbsoluteFilePath =>
+  const bundleDirFor = ({ projectFolder }: { projectFolder: ProjectFolder }): string =>
     bundleProxy.bundleDirFor({
-      packageRoot: absoluteFilePathContract.parse(projectFolder.path),
+      packageRoot: projectFolder.path,
       hash: BUNDLE_HASH,
     });
 
   const stageCachedBundle = ({ projectFolder }: { projectFolder: ProjectFolder }): void => {
     bundleProxy.setupCachedSinglePackageBundle({
-      packageRoot: absoluteFilePathContract.parse(projectFolder.path),
+      packageRoot: projectFolder.path,
       hash: BUNDLE_HASH,
     });
   };
@@ -187,7 +185,7 @@ export const checkRunE2eBrokerProxy = (): {
       });
     },
 
-    getBundleDir: ({ projectFolder }: { projectFolder: ProjectFolder }): AbsoluteFilePath =>
+    getBundleDir: ({ projectFolder }: { projectFolder: ProjectFolder }): string =>
       bundleDirFor({ projectFolder }),
 
     setupPassWithOutput: ({
@@ -284,7 +282,7 @@ export const checkRunE2eBrokerProxy = (): {
     }: {
       projectFolder: ProjectFolder;
     }): void => {
-      const cwd = absoluteFilePathContract.parse(projectFolder.path);
+      const cwd = projectFolder.path;
       unsupportedCwds.add(cwd);
       sourceConditionProxy.setupUnsupported({ cwd });
     },
@@ -295,7 +293,7 @@ export const checkRunE2eBrokerProxy = (): {
       projectFolder: ProjectFolder;
     }): readonly unknown[][] =>
       removeProxy.getRemovedPaths({
-        packageRoot: absoluteFilePathContract.parse(projectFolder.path),
+        packageRoot: projectFolder.path,
         port: STAGED_SERVER_PORT,
       }),
     getSpawnedArgs: (): unknown =>

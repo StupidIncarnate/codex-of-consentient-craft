@@ -24,7 +24,6 @@
  * //   that state means the main checkout was never built, which only the operator can fix
  */
 
-import { absoluteFilePathContract, type AbsoluteFilePath } from '@dungeonmaster/shared/contracts';
 import { locationsStatics, projectMapStatics } from '@dungeonmaster/shared/statics';
 import { copyRecursive, CpNotInstalledError } from '#gateway/bin/cp';
 import { readdirEntriesSync } from '#gateway/node/fs';
@@ -43,12 +42,10 @@ export const worktreeSeedDistBroker = async ({
   repoRoot,
   worktreePath,
 }: {
-  repoRoot: AbsoluteFilePath;
-  worktreePath: AbsoluteFilePath;
+  repoRoot: string;
+  worktreePath: string;
 }): Promise<void> => {
-  const sourcePackagesDir = absoluteFilePathContract.parse(
-    join(repoRoot, projectMapStatics.packagesDirName),
-  );
+  const sourcePackagesDir = join(repoRoot, projectMapStatics.packagesDirName);
 
   // A repo with no `packages/` is not a monorepo, so nothing was re-pointed at a workspace package
   // and every dependency already carries its own published `dist`. Nothing to seed, and that is a

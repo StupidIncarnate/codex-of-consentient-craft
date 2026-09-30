@@ -1,6 +1,5 @@
 import { locationsRegistryPathFindBroker } from './locations-registry-path-find-broker';
 import { locationsRegistryPathFindBrokerProxy } from './locations-registry-path-find-broker.proxy';
-import { AbsoluteFilePathStub } from '@dungeonmaster/shared/contracts/absolute-file-path/absolute-file-path.stub';
 
 describe('locationsRegistryPathFindBroker', () => {
   describe('registry path resolution', () => {
@@ -17,7 +16,7 @@ describe('locationsRegistryPathFindBroker', () => {
       const result = locationsRegistryPathFindBroker();
 
       expect(result).toBe(
-        AbsoluteFilePathStub({ value: '/home/user/.dungeonmaster/siegelense/registry.json' }),
+        '/home/user/.dungeonmaster/siegelense/registry.json',
       );
     });
 
@@ -34,7 +33,7 @@ describe('locationsRegistryPathFindBroker', () => {
       const result = locationsRegistryPathFindBroker();
 
       expect(result).toBe(
-        AbsoluteFilePathStub({ value: '/home/user/.dungeonmaster/siegelense/registry.json' }),
+        '/home/user/.dungeonmaster/siegelense/registry.json',
       );
     });
 
@@ -51,9 +50,7 @@ describe('locationsRegistryPathFindBroker', () => {
       const result = locationsRegistryPathFindBroker();
 
       expect(result).toBe(
-        AbsoluteFilePathStub({
-          value: '/srv/agents/worker-3/state/.dungeonmaster/siegelense/registry.json',
-        }),
+        '/srv/agents/worker-3/state/.dungeonmaster/siegelense/registry.json',
       );
     });
   });

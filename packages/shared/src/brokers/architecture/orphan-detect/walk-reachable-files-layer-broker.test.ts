@@ -1,6 +1,5 @@
 import { walkReachableFilesLayerBroker } from './walk-reachable-files-layer-broker';
 import { walkReachableFilesLayerBrokerProxy } from './walk-reachable-files-layer-broker.proxy';
-import { AbsoluteFilePathStub } from '../../../contracts/absolute-file-path/absolute-file-path.stub';
 import { ContentTextStub } from '../../../contracts/content-text/content-text.stub';
 import type { Dirent } from '#gateway/node/fs';
 import { FileMissingErrorStub } from '#gateway/node/fs/file-missing-error/file-missing-error.stub';
@@ -34,7 +33,7 @@ const dispatchExistsByPathSet =
 describe('walkReachableFilesLayerBroker', () => {
   it('VALID: {startup imports broker which imports adapter} => returns startup, broker, and adapter', () => {
     const proxy = walkReachableFilesLayerBrokerProxy();
-    const packageSrcPath = AbsoluteFilePathStub({ value: '/repo/packages/sample/src' });
+    const packageSrcPath = '/repo/packages/sample/src';
 
     proxy.setupReaddirImplementation({
       fn: dispatchByPath({
@@ -87,7 +86,7 @@ describe('walkReachableFilesLayerBroker', () => {
 
   it('VALID: {orphan broker not imported by startup} => walk excludes the orphan', () => {
     const proxy = walkReachableFilesLayerBrokerProxy();
-    const packageSrcPath = AbsoluteFilePathStub({ value: '/repo/packages/sample/src' });
+    const packageSrcPath = '/repo/packages/sample/src';
 
     proxy.setupReaddirImplementation({
       fn: dispatchByPath({
@@ -129,7 +128,7 @@ describe('walkReachableFilesLayerBroker', () => {
 
   it('VALID: {.tsx file exists for resolved .ts path} => follows the .tsx file', () => {
     const proxy = walkReachableFilesLayerBrokerProxy();
-    const packageSrcPath = AbsoluteFilePathStub({ value: '/repo/packages/sample/src' });
+    const packageSrcPath = '/repo/packages/sample/src';
 
     proxy.setupReaddirImplementation({
       fn: dispatchByPath({
@@ -171,7 +170,7 @@ describe('walkReachableFilesLayerBroker', () => {
 
   it('VALID: {non-relative npm import} => walk skips it (out of package)', () => {
     const proxy = walkReachableFilesLayerBrokerProxy();
-    const packageSrcPath = AbsoluteFilePathStub({ value: '/repo/packages/sample/src' });
+    const packageSrcPath = '/repo/packages/sample/src';
 
     proxy.setupReaddirImplementation({
       fn: dispatchByPath({
@@ -207,7 +206,7 @@ describe('walkReachableFilesLayerBroker', () => {
 
   it('EMPTY: {no startup files} => returns empty set', () => {
     const proxy = walkReachableFilesLayerBrokerProxy();
-    const packageSrcPath = AbsoluteFilePathStub({ value: '/repo/packages/sample/src' });
+    const packageSrcPath = '/repo/packages/sample/src';
 
     proxy.setupReaddirImplementation({
       fn: () => throwEnoent(),

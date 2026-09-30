@@ -1,4 +1,3 @@
-import { AbsoluteFilePathStub } from '@dungeonmaster/shared/contracts/absolute-file-path/absolute-file-path.stub';
 
 import { BinCommandStub } from '../../../contracts/bin-command/bin-command.stub';
 
@@ -9,7 +8,7 @@ describe('binResolveBroker', () => {
   describe('binary exists in node_modules/.bin', () => {
     it('VALID: {eslint exists in .bin} => returns absolute path to binary', () => {
       const proxy = binResolveBrokerProxy();
-      const cwd = AbsoluteFilePathStub({ value: '/project' });
+      const cwd = '/project';
       const binName = BinCommandStub({ value: 'eslint' });
       proxy.setupFound({ cwd, binName });
 
@@ -22,8 +21,8 @@ describe('binResolveBroker', () => {
   describe('binary only in the workspace root', () => {
     it('VALID: {jest in /repo/node_modules/.bin, cwd /repo/packages/ward} => returns the root path', () => {
       const proxy = binResolveBrokerProxy();
-      const cwd = AbsoluteFilePathStub({ value: '/repo/packages/ward' });
-      const root = AbsoluteFilePathStub({ value: '/repo' });
+      const cwd = '/repo/packages/ward';
+      const root = '/repo';
       const binName = BinCommandStub({ value: 'jest' });
       proxy.setupFoundAt({ cwd, binName, binDir: root, workspaceRoot: root });
 
@@ -36,7 +35,7 @@ describe('binResolveBroker', () => {
   describe('binary not found in node_modules/.bin', () => {
     it('VALID: {eslint not in .bin} => returns bare binary name', () => {
       const proxy = binResolveBrokerProxy();
-      const cwd = AbsoluteFilePathStub({ value: '/project' });
+      const cwd = '/project';
       const binName = BinCommandStub({ value: 'eslint' });
       proxy.setupNotFound({ cwd, binName });
 

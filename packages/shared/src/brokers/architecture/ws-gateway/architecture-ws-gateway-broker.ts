@@ -14,15 +14,14 @@
  * gateway file rather than the bus emitter.
  */
 
-import type { AbsoluteFilePath } from '../../../contracts/absolute-file-path/absolute-file-path-contract';
 import { wsServerAdaptersFindLayerBroker } from './ws-server-adapters-find-layer-broker';
 import { wsGatewayFilesFindLayerBroker } from './ws-gateway-files-find-layer-broker';
 
 export const architectureWsGatewayBroker = ({
   projectRoot,
 }: {
-  projectRoot: AbsoluteFilePath;
-}): AbsoluteFilePath[] => {
+  projectRoot: string;
+}): string[] => {
   const wsServerAdapters = wsServerAdaptersFindLayerBroker({ projectRoot });
   return wsGatewayFilesFindLayerBroker({ projectRoot, wsServerAdapters });
 };

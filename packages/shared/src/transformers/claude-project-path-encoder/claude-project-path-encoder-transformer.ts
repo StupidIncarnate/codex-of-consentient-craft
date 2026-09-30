@@ -18,10 +18,6 @@
  * // Returns AbsoluteFilePath '/home/user/.claude/projects/-home-user-my-project/abc-123.jsonl'
  */
 
-import {
-  absoluteFilePathContract,
-  type AbsoluteFilePath,
-} from '../../contracts/absolute-file-path/absolute-file-path-contract';
 import type { Session } from '../../contracts/session/session-contract';
 
 export const claudeProjectPathEncoderTransformer = ({
@@ -29,12 +25,10 @@ export const claudeProjectPathEncoderTransformer = ({
   projectPath,
   sessionId,
 }: {
-  homeDir: AbsoluteFilePath;
-  projectPath: AbsoluteFilePath;
+  homeDir: string;
+  projectPath: string;
   sessionId: Session['id'];
-}): AbsoluteFilePath => {
+}): string => {
   const encoded = projectPath.replace(/[^a-zA-Z0-9]/gu, '-');
-  return absoluteFilePathContract.parse(
-    `${homeDir}/.claude/projects/${encoded}/${sessionId}.jsonl`,
-  );
+  return `${homeDir}/.claude/projects/${encoded}/${sessionId}.jsonl`;
 };

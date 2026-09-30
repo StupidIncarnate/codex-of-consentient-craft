@@ -1,11 +1,10 @@
-import { AbsoluteFilePathStub } from '@dungeonmaster/shared/contracts/absolute-file-path/absolute-file-path.stub';
 
 import { driverSocketRequestBroker } from './driver-socket-request-broker';
 import { driverSocketRequestBrokerProxy } from './driver-socket-request-broker.proxy';
 import { DriverRequestStub } from '../../../contracts/driver-request/driver-request.stub';
 import { DriverResponseStub } from '../../../contracts/driver-response/driver-response.stub';
 
-const SOCKET_PATH = AbsoluteFilePathStub({ value: '/tmp/dm-siege-sockets/inst_7f3a9c21.sock' });
+const SOCKET_PATH = '/tmp/dm-siege-sockets/inst_7f3a9c21.sock';
 
 describe('driverSocketRequestBroker', () => {
   describe('a well-formed frame round-trips', () => {

@@ -24,19 +24,17 @@ import {
 import { join } from '#gateway/node/path';
 import type { FileContentStub } from '@dungeonmaster/testing';
 import { installTestbedCreateBroker } from '@dungeonmaster/testing';
-import { AbsoluteFilePathStub } from '@dungeonmaster/shared/contracts/absolute-file-path/absolute-file-path.stub';
-import type { AbsoluteFilePath } from '@dungeonmaster/shared/contracts';
 import type { HydrationTarget } from '../../../src/contracts/hydration-target/hydration-target-contract';
 
 type FileContent = ReturnType<typeof FileContentStub>;
 
-export type FileTarget = HydrationTarget & { home: AbsoluteFilePath };
+export type FileTarget = HydrationTarget & { home: string };
 
 interface FileTargetHarness {
   beforeEach: () => void;
   afterEach: () => void;
   target: () => FileTarget;
-  absolutePath: ({ relativePath }: { relativePath: string }) => AbsoluteFilePath;
+  absolutePath: ({ relativePath }: { relativePath: string }) => string;
   read: ({ relativePath }: { relativePath: string }) => FileContent | null;
   readJson: ({ relativePath }: { relativePath: string }) => unknown;
   denyWrites: ({ relativePath }: { relativePath: string }) => void;
@@ -46,7 +44,7 @@ interface FileTargetHarness {
 
 export const fileTargetHarness = (): FileTargetHarness => {
   let testbed: ReturnType<typeof installTestbedCreateBroker> | null = null;
-  const deniedPaths: AbsoluteFilePath[] = [];
+  const deniedPaths: string[] = [];
 
   return {
     beforeEach: (): void => {
@@ -79,14 +77,14 @@ export const fileTargetHarness = (): FileTargetHarness => {
       if (testbed === null) {
         throw new Error('fileTargetHarness.target: called before beforeEach ran');
       }
-      return { home: AbsoluteFilePathStub({ value: testbed.guildPath }) };
+      return { home: testbed.guildPath };
     },
 
-    absolutePath: ({ relativePath }: { relativePath: string }): AbsoluteFilePath => {
+    absolutePath: ({ relativePath }: { relativePath: string }): string => {
       if (testbed === null) {
         throw new Error('fileTargetHarness.absolutePath: called before beforeEach ran');
       }
-      return AbsoluteFilePathStub({ value: join(testbed.guildPath, relativePath) });
+      return join(testbed.guildPath, relativePath);
     },
 
     read: ({ relativePath }: { relativePath: string }): FileContent | null => {
@@ -111,7 +109,7 @@ export const fileTargetHarness = (): FileTargetHarness => {
       const deniedDir = join(testbed.guildPath, relativePath);
       ensureDirSync(deniedDir);
       chmodSync(deniedDir, 0o500);
-      deniedPaths.push(AbsoluteFilePathStub({ value: deniedDir }));
+      deniedPaths.push(deniedDir);
 
       const probePath = join(deniedDir, '.file-target-harness-probe');
       let deniedTookEffect = false;

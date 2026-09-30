@@ -1,4 +1,3 @@
-import { AbsoluteFilePathStub } from '@dungeonmaster/shared/contracts/absolute-file-path/absolute-file-path.stub';
 
 import { GitRelativePathStub } from '../../contracts/git-relative-path/git-relative-path.stub';
 
@@ -16,7 +15,7 @@ describe('discoveryDiffTransformer', () => {
           GitRelativePathStub({ value: 'src/a.ts' }),
           GitRelativePathStub({ value: 'src/b.ts' }),
         ],
-        cwd: AbsoluteFilePathStub({ value: '/project' }),
+        cwd: '/project',
       });
 
       expect(result).toStrictEqual({
@@ -38,7 +37,7 @@ describe('discoveryDiffTransformer', () => {
           GitRelativePathStub({ value: 'src/a.ts' }),
           GitRelativePathStub({ value: 'src/b.ts' }),
         ],
-        cwd: AbsoluteFilePathStub({ value: '/project' }),
+        cwd: '/project',
       });
 
       expect(result).toStrictEqual({
@@ -56,7 +55,7 @@ describe('discoveryDiffTransformer', () => {
           GitRelativePathStub({ value: 'src/a.ts' }),
           GitRelativePathStub({ value: '@types/error-cause.d.ts' }),
         ],
-        cwd: AbsoluteFilePathStub({ value: '/project' }),
+        cwd: '/project',
       });
 
       expect(result).toStrictEqual({
@@ -77,7 +76,7 @@ describe('discoveryDiffTransformer', () => {
           GitRelativePathStub({ value: '/project/src/a.ts' }),
           GitRelativePathStub({ value: '/project/src/b.ts' }),
         ],
-        cwd: AbsoluteFilePathStub({ value: '/project' }),
+        cwd: '/project',
       });
 
       expect(result).toStrictEqual({
@@ -98,7 +97,7 @@ describe('discoveryDiffTransformer', () => {
           GitRelativePathStub({ value: 'src/a.ts' }),
           GitRelativePathStub({ value: 'src/only-processed.ts' }),
         ],
-        cwd: AbsoluteFilePathStub({ value: '/project' }),
+        cwd: '/project',
       });
 
       expect(result).toStrictEqual({
@@ -113,7 +112,7 @@ describe('discoveryDiffTransformer', () => {
       const result = discoveryDiffTransformer({
         discoveredFiles: [],
         processedFiles: [],
-        cwd: AbsoluteFilePathStub({ value: '/project' }),
+        cwd: '/project',
       });
 
       expect(result).toStrictEqual({

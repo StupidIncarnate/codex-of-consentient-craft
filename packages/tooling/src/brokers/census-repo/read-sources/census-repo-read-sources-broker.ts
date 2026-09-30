@@ -10,13 +10,12 @@
 import { glob } from '#gateway/npm/glob';
 import { censusLayoutStatics } from '../../../statics/census-layout/census-layout-statics';
 import { censusRepoReadSourcesChunkLayerBroker } from './census-repo-read-sources-chunk-layer-broker';
-import type { AbsoluteFilePath } from '../../../contracts/absolute-file-path/absolute-file-path-contract';
 import type { CensusSourceEntry } from '../../../contracts/census-source-entry/census-source-entry-contract';
 
 export const censusRepoReadSourcesBroker = async ({
   repoRoot,
 }: {
-  repoRoot: AbsoluteFilePath;
+  repoRoot: string;
 }): Promise<CensusSourceEntry[]> => {
   const matches = await glob(censusLayoutStatics.sourceGlob, {
     cwd: repoRoot,

@@ -12,7 +12,6 @@
 
 import { ensureDir, rename, writeFile } from '#gateway/node/fs__promises';
 import { join } from '#gateway/node/path';
-import { absoluteFilePathContract } from '@dungeonmaster/shared/contracts';
 import { locationsStatics } from '@dungeonmaster/shared/statics';
 
 import type { Registry } from '../../../contracts/registry/registry-contract';
@@ -22,9 +21,7 @@ import { locationsRootPathFindBroker } from '../../locations/root-path-find/loca
 export const registryWriteBroker = async ({ registry }: { registry: Registry }): Promise<void> => {
   const rootPath = locationsRootPathFindBroker();
   const registryPath = locationsRegistryPathFindBroker();
-  const tmpPath = absoluteFilePathContract.parse(
-    join(rootPath, locationsStatics.siegelense.registryTmp),
-  );
+  const tmpPath = join(rootPath, locationsStatics.siegelense.registryTmp);
 
   await ensureDir(rootPath);
 

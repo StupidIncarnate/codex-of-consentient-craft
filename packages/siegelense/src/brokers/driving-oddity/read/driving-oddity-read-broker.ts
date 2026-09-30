@@ -18,7 +18,6 @@
  */
 
 import { readFile, statIfExists } from '#gateway/node/fs__promises';
-import type { AbsoluteFilePath } from '@dungeonmaster/shared/contracts';
 
 import { drivingOddityContract } from '../../../contracts/driving-oddity/driving-oddity-contract';
 import type { DrivingOddity } from '../../../contracts/driving-oddity/driving-oddity-contract';
@@ -27,7 +26,7 @@ import { DrivingOddityFileMalformedError } from '../../../errors/driving-oddity-
 export const drivingOddityReadBroker = async ({
   filePath,
 }: {
-  filePath: AbsoluteFilePath;
+  filePath: string;
 }): Promise<readonly DrivingOddity[]> => {
   const stat = await statIfExists(filePath);
   if (stat === null) {

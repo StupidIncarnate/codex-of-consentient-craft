@@ -1,5 +1,4 @@
 import { installTestbedCreateBroker } from '@dungeonmaster/testing';
-import { AbsoluteFilePathStub } from '@dungeonmaster/shared/contracts/absolute-file-path/absolute-file-path.stub';
 import { FileNameStub } from '@dungeonmaster/shared/contracts/file-name/file-name.stub';
 import { QuestBranchNameStub } from '@dungeonmaster/shared/contracts/quest-branch-name/quest-branch-name.stub';
 
@@ -22,7 +21,7 @@ describe('worktreePopulateNodeModulesBroker (integration) — real fs mirroring'
     const testbed = installTestbedCreateBroker({
       baseName: 'wpnm-fresh',
     });
-    const repoPath = AbsoluteFilePathStub({ value: testbed.guildPath });
+    const repoPath = testbed.guildPath;
 
     await git.initRepoWithPackages({
       repoPath,
@@ -38,9 +37,7 @@ describe('worktreePopulateNodeModulesBroker (integration) — real fs mirroring'
       },
     });
 
-    const worktreePath = AbsoluteFilePathStub({
-      value: `${testbed.guildPath}/worktrees/mirror-11112222`,
-    });
+    const worktreePath = `${testbed.guildPath}/worktrees/mirror-11112222`;
     await worktreePrepareBroker({
       repoRoot: repoPath,
       worktreePath,
@@ -61,27 +58,19 @@ describe('worktreePopulateNodeModulesBroker (integration) — real fs mirroring'
     ).resolves.toBe(undefined);
 
     const sharedLinkRealpath = git.realpathOf({
-      absolutePath: AbsoluteFilePathStub({
-        value: `${worktreePath}/node_modules/@dungeonmaster/shared`,
-      }),
+      absolutePath: `${worktreePath}/node_modules/@dungeonmaster/shared`,
     });
     const webLinkRealpath = git.realpathOf({
-      absolutePath: AbsoluteFilePathStub({
-        value: `${worktreePath}/node_modules/@dungeonmaster/web`,
-      }),
+      absolutePath: `${worktreePath}/node_modules/@dungeonmaster/web`,
     });
     const zodPackageJsonExists = git.pathExists({
-      absolutePath: AbsoluteFilePathStub({
-        value: `${worktreePath}/node_modules/zod/package.json`,
-      }),
+      absolutePath: `${worktreePath}/node_modules/zod/package.json`,
     });
     const jestShimExecutable = git.isExecutableFile({
-      absolutePath: AbsoluteFilePathStub({ value: `${worktreePath}/node_modules/.bin/jest` }),
+      absolutePath: `${worktreePath}/node_modules/.bin/jest`,
     });
     const hoistedDepExists = git.pathExists({
-      absolutePath: AbsoluteFilePathStub({
-        value: `${worktreePath}/packages/web/node_modules/react-router-dom/package.json`,
-      }),
+      absolutePath: `${worktreePath}/packages/web/node_modules/react-router-dom/package.json`,
     });
 
     testbed.cleanup();
@@ -110,7 +99,7 @@ describe('worktreePopulateNodeModulesBroker (integration) — real fs mirroring'
     const testbed = installTestbedCreateBroker({
       baseName: 'wpnm-rerun',
     });
-    const repoPath = AbsoluteFilePathStub({ value: testbed.guildPath });
+    const repoPath = testbed.guildPath;
 
     await git.initRepoWithPackages({
       repoPath,
@@ -126,9 +115,7 @@ describe('worktreePopulateNodeModulesBroker (integration) — real fs mirroring'
       },
     });
 
-    const worktreePath = AbsoluteFilePathStub({
-      value: `${testbed.guildPath}/worktrees/rerun-33334444`,
-    });
+    const worktreePath = `${testbed.guildPath}/worktrees/rerun-33334444`;
     await worktreePrepareBroker({
       repoRoot: repoPath,
       worktreePath,
@@ -154,14 +141,10 @@ describe('worktreePopulateNodeModulesBroker (integration) — real fs mirroring'
     await expect(secondRun).resolves.toBe(undefined);
 
     const sharedLinkRealpath = git.realpathOf({
-      absolutePath: AbsoluteFilePathStub({
-        value: `${worktreePath}/node_modules/@dungeonmaster/shared`,
-      }),
+      absolutePath: `${worktreePath}/node_modules/@dungeonmaster/shared`,
     });
     const hoistedDepExists = git.pathExists({
-      absolutePath: AbsoluteFilePathStub({
-        value: `${worktreePath}/packages/web/node_modules/react-router-dom/package.json`,
-      }),
+      absolutePath: `${worktreePath}/packages/web/node_modules/react-router-dom/package.json`,
     });
 
     testbed.cleanup();

@@ -1,5 +1,4 @@
 import { installTestbedCreateBroker } from '@dungeonmaster/testing';
-import { AbsoluteFilePathStub } from '@dungeonmaster/shared/contracts/absolute-file-path/absolute-file-path.stub';
 import { FileNameStub } from '@dungeonmaster/shared/contracts/file-name/file-name.stub';
 import { OperationItemStub } from '@dungeonmaster/shared/contracts/operation-item/operation-item.stub';
 import { QuestBranchNameStub } from '@dungeonmaster/shared/contracts/quest-branch-name/quest-branch-name.stub';
@@ -114,7 +113,7 @@ describe('OrchestrationStartResponder (integration) — real quest.json + real g
         folder: '001-startable-counterexample',
         status: 'approved',
         branchName: QuestBranchNameStub({ value: 'quest/already-recorded-aaaaaaaa' }),
-        worktreePath: AbsoluteFilePathStub({ value: '/tmp/already-recorded-worktree' }),
+        worktreePath: '/tmp/already-recorded-worktree',
         operations: [OperationItemStub({ role: 'ward', status: 'pending', locked: true })],
       });
       await seeder.seed({ tempDir: testbed.guildPath, quest, guildId: guild.id });
@@ -143,7 +142,7 @@ describe('OrchestrationStartResponder (integration) — real quest.json + real g
       });
       envHarness.setupHome({ tempDir: testbed.guildPath });
       const { guild } = await questHelper.createGuildAndQuest({ testbed });
-      const repoPath = AbsoluteFilePathStub({ value: testbed.guildPath });
+      const repoPath = testbed.guildPath;
 
       const { baseRef } = await git.initRepoWithPackages({
         repoPath,
@@ -187,7 +186,7 @@ describe('OrchestrationStartResponder (integration) — real quest.json + real g
         ref: TAKEN_BRANCH_NAME_STRING,
       });
       const worktreesDirExists = git.pathExists({
-        absolutePath: AbsoluteFilePathStub({ value: `${testbed.guildPath}/worktrees` }),
+        absolutePath: `${testbed.guildPath}/worktrees`,
       });
       const after = await questHelper.reload({ questId });
 

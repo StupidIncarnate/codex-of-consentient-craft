@@ -1,4 +1,3 @@
-import { AbsoluteFilePathStub } from '@dungeonmaster/shared/contracts/absolute-file-path/absolute-file-path.stub';
 
 import { ErrorEntryStub } from '../../contracts/error-entry/error-entry.stub';
 import { ProjectFolderStub } from '../../contracts/project-folder/project-folder.stub';
@@ -10,7 +9,7 @@ describe('toCwdRelativePathTransformer', () => {
       const result = toCwdRelativePathTransformer({
         filePath: ErrorEntryStub({ filePath: '/repo/packages/cli/src/file.ts' }).filePath,
         projectPath: ProjectFolderStub({ path: '/repo/packages/cli' }).path,
-        cwd: AbsoluteFilePathStub({ value: '/repo/packages/cli' }),
+        cwd: '/repo/packages/cli',
       });
 
       expect(String(result)).toBe('src/file.ts');
@@ -20,7 +19,7 @@ describe('toCwdRelativePathTransformer', () => {
       const result = toCwdRelativePathTransformer({
         filePath: ErrorEntryStub({ filePath: '/repo/packages/cli/src/file.ts' }).filePath,
         projectPath: ProjectFolderStub({ path: '/repo/packages/cli' }).path,
-        cwd: AbsoluteFilePathStub({ value: '/repo' }),
+        cwd: '/repo',
       });
 
       expect(String(result)).toBe('packages/cli/src/file.ts');
@@ -30,7 +29,7 @@ describe('toCwdRelativePathTransformer', () => {
       const result = toCwdRelativePathTransformer({
         filePath: ErrorEntryStub({ filePath: '/other/path/file.ts' }).filePath,
         projectPath: ProjectFolderStub({ path: '/repo/packages/cli' }).path,
-        cwd: AbsoluteFilePathStub({ value: '/repo' }),
+        cwd: '/repo',
       });
 
       expect(String(result)).toBe('/other/path/file.ts');
@@ -42,7 +41,7 @@ describe('toCwdRelativePathTransformer', () => {
       const result = toCwdRelativePathTransformer({
         filePath: ErrorEntryStub({ filePath: 'src/file.ts' }).filePath,
         projectPath: ProjectFolderStub({ path: '/repo/packages/cli' }).path,
-        cwd: AbsoluteFilePathStub({ value: '/repo/packages/cli' }),
+        cwd: '/repo/packages/cli',
       });
 
       expect(String(result)).toBe('src/file.ts');
@@ -52,7 +51,7 @@ describe('toCwdRelativePathTransformer', () => {
       const result = toCwdRelativePathTransformer({
         filePath: ErrorEntryStub({ filePath: 'src/file.ts' }).filePath,
         projectPath: ProjectFolderStub({ path: '/repo/packages/cli' }).path,
-        cwd: AbsoluteFilePathStub({ value: '/repo' }),
+        cwd: '/repo',
       });
 
       expect(String(result)).toBe('packages/cli/src/file.ts');

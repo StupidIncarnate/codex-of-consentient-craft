@@ -7,7 +7,6 @@
  */
 
 import { stderr, stdout } from '#gateway/node/process';
-import type { AbsoluteFilePath } from '@dungeonmaster/shared/contracts';
 
 import { storageLoadBroker } from '../../storage/load/storage-load-broker';
 import { resultToListTransformer } from '../../../transformers/result-to-list/result-to-list-transformer';
@@ -17,7 +16,7 @@ export const commandListBroker = async ({
   rootPath,
   runId,
 }: {
-  rootPath: AbsoluteFilePath;
+  rootPath: string;
   runId?: WardRunResult['runId'];
 }): Promise<void> => {
   const loadArgs = runId ? { rootPath, runId } : { rootPath };

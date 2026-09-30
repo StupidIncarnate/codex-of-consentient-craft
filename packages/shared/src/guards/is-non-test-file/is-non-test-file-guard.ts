@@ -9,10 +9,9 @@
  * headline renderers, package-inventory) so the test-file filter cannot drift across extractors.
  */
 
-import type { AbsoluteFilePath } from '../../contracts/absolute-file-path/absolute-file-path-contract';
 import { projectMapStatics } from '../../statics/project-map/project-map-statics';
 
-export const isNonTestFileGuard = ({ filePath }: { filePath?: AbsoluteFilePath }): boolean => {
+export const isNonTestFileGuard = ({ filePath }: { filePath?: string }): boolean => {
   if (filePath === undefined) {
     return false;
   }

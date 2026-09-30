@@ -1,4 +1,3 @@
-import { AbsoluteFilePathStub } from '@dungeonmaster/shared/contracts/absolute-file-path/absolute-file-path.stub';
 
 import { WardRunResultStub } from '../../../contracts/ward-result/ward-result.stub';
 import { CheckResultStub } from '../../../contracts/check-result/check-result.stub';
@@ -29,7 +28,7 @@ describe('commandRawBroker', () => {
       const proxy = commandRawBrokerProxy();
       proxy.setupWithResult({ content: JSON.stringify(wardResult) });
 
-      const rootPath = AbsoluteFilePathStub({ value: '/project' });
+      const rootPath = '/project';
       const runId = RunIdStub();
       const checkType = 'lint';
 
@@ -56,7 +55,7 @@ describe('commandRawBroker', () => {
       const proxy = commandRawBrokerProxy();
       proxy.setupWithResult({ content: JSON.stringify(wardResult) });
 
-      const rootPath = AbsoluteFilePathStub({ value: '/project' });
+      const rootPath = '/project';
       const runId = RunIdStub();
       const checkType = 'typecheck';
 
@@ -75,7 +74,7 @@ describe('commandRawBroker', () => {
       const proxy = commandRawBrokerProxy();
       proxy.setupWithResult({ content: JSON.stringify(wardResult) });
 
-      const rootPath = AbsoluteFilePathStub({ value: '/project' });
+      const rootPath = '/project';
       const runId = RunIdStub();
       const checkType = 'typecheck';
 
@@ -90,7 +89,7 @@ describe('commandRawBroker', () => {
       const proxy = commandRawBrokerProxy();
       proxy.setupNoResult();
 
-      const rootPath = AbsoluteFilePathStub({ value: '/project' });
+      const rootPath = '/project';
       const runId = RunIdStub();
       const checkType = 'lint';
 

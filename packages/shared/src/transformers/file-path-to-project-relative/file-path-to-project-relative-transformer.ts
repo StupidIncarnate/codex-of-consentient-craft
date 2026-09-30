@@ -15,7 +15,6 @@
  * cross-package display tokens in the project-map output
  */
 
-import type { AbsoluteFilePath } from '../../contracts/absolute-file-path/absolute-file-path-contract';
 import {
   contentTextContract,
   type ContentText,
@@ -29,8 +28,8 @@ export const filePathToProjectRelativeTransformer = ({
   filePath,
   projectRoot,
 }: {
-  filePath: AbsoluteFilePath;
-  projectRoot: AbsoluteFilePath;
+  filePath: string;
+  projectRoot: string;
 }): ContentText => {
   const raw = String(filePath);
   const packagesPrefix = `${String(projectRoot)}${PACKAGES_SEGMENT}`;

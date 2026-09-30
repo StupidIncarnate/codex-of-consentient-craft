@@ -1,4 +1,3 @@
-import { AbsoluteFilePathStub } from '@dungeonmaster/shared/contracts/absolute-file-path/absolute-file-path.stub';
 import { QuestNoteStub } from '@dungeonmaster/shared/contracts/quest-note/quest-note.stub';
 import { QuestStub } from '@dungeonmaster/shared/contracts/quest/quest.stub';
 import { SiegeInstanceIdStub } from '@dungeonmaster/shared/contracts/siege-instance-id/siege-instance-id.stub';
@@ -18,7 +17,7 @@ describe('walkedNoteLayerBroker', () => {
 
       const result = walkedNoteLayerBroker({
         instanceId: InstanceIdStub({ value: INSTANCE }),
-        questFilePath: AbsoluteFilePathStub({ value: QUEST_FILE }),
+        questFilePath: QUEST_FILE,
         quest: QuestStub({
           status: 'in_progress',
           planningNotes: {
@@ -52,7 +51,7 @@ describe('walkedNoteLayerBroker', () => {
 
       const result = walkedNoteLayerBroker({
         instanceId: InstanceIdStub({ value: INSTANCE }),
-        questFilePath: AbsoluteFilePathStub({ value: QUEST_FILE }),
+        questFilePath: QUEST_FILE,
         quest: QuestStub({
           status: 'blocked',
           planningNotes: {
@@ -84,7 +83,7 @@ describe('walkedNoteLayerBroker', () => {
 
       const result = walkedNoteLayerBroker({
         instanceId: InstanceIdStub({ value: INSTANCE }),
-        questFilePath: AbsoluteFilePathStub({ value: QUEST_FILE }),
+        questFilePath: QUEST_FILE,
         quest: QuestStub({
           status: 'in_progress',
           planningNotes: {
@@ -122,7 +121,7 @@ describe('walkedNoteLayerBroker', () => {
 
         const result = walkedNoteLayerBroker({
           instanceId: InstanceIdStub({ value: INSTANCE }),
-          questFilePath: AbsoluteFilePathStub({ value: QUEST_FILE }),
+          questFilePath: QUEST_FILE,
           quest: QuestStub({
             status,
             planningNotes: {
@@ -151,7 +150,7 @@ describe('walkedNoteLayerBroker', () => {
 
       const result = walkedNoteLayerBroker({
         instanceId: InstanceIdStub({ value: INSTANCE }),
-        questFilePath: AbsoluteFilePathStub({ value: QUEST_FILE }),
+        questFilePath: QUEST_FILE,
         quest: QuestStub({ status: 'in_progress' }),
       });
 
@@ -163,7 +162,7 @@ describe('walkedNoteLayerBroker', () => {
 
       const result = walkedNoteLayerBroker({
         instanceId: InstanceIdStub({ value: INSTANCE }),
-        questFilePath: AbsoluteFilePathStub({ value: QUEST_FILE }),
+        questFilePath: QUEST_FILE,
         quest: QuestStub({
           status: 'in_progress',
           planningNotes: {

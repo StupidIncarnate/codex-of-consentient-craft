@@ -1,5 +1,4 @@
 import { registerSpyOn } from '@dungeonmaster/testing/register-mock';
-import { AbsoluteFilePathStub } from '@dungeonmaster/shared/contracts/absolute-file-path/absolute-file-path.stub';
 import { TimeoutMsStub } from '@dungeonmaster/shared/contracts/timeout-ms/timeout-ms.stub';
 
 import { LaneSessionStub } from '../../contracts/lane-session/lane-session.stub';
@@ -167,10 +166,7 @@ describe('driverSessionState', () => {
     it('VALID: {setLastShotPath} => lastShotPath reads that same path', () => {
       const proxy = driverSessionStateProxy();
       proxy.setupEmpty();
-      const path = AbsoluteFilePathStub({
-        value:
-          '/repo/.dungeonmaster-assets/siegelense-assets/guilds/g1/instances/inst_1/runs/run_2/step4.png',
-      });
+      const path = '/repo/.dungeonmaster-assets/siegelense-assets/guilds/g1/instances/inst_1/runs/run_2/step4.png';
 
       driverSessionState.setLastShotPath({ path });
 
@@ -209,10 +205,7 @@ describe('driverSessionState', () => {
         websocketLines: ReadingCountStub({ value: 2 }),
       });
       driverSessionState.setLastShotPath({
-        path: AbsoluteFilePathStub({
-          value:
-            '/repo/.dungeonmaster-assets/siegelense-assets/guilds/g1/instances/inst_1/runs/run_2/step4.png',
-        }),
+        path: '/repo/.dungeonmaster-assets/siegelense-assets/guilds/g1/instances/inst_1/runs/run_2/step4.png',
       });
 
       driverSessionState.clear();

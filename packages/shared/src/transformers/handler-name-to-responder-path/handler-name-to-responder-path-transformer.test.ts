@@ -1,8 +1,7 @@
 import { handlerNameToResponderPathTransformer } from './handler-name-to-responder-path-transformer';
 import { ContentTextStub } from '../../contracts/content-text/content-text.stub';
-import { AbsoluteFilePathStub } from '../../contracts/absolute-file-path/absolute-file-path.stub';
 
-const PKG_SRC = AbsoluteFilePathStub({ value: '/repo/packages/mcp/src' });
+const PKG_SRC = '/repo/packages/mcp/src';
 
 describe('handlerNameToResponderPathTransformer', () => {
   describe('ArchitectureHandleResponder', () => {

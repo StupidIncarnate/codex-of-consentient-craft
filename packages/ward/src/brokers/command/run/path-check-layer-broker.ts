@@ -17,7 +17,6 @@
  */
 
 import { existsSync } from '#gateway/node/fs';
-import type { AbsoluteFilePath } from '@dungeonmaster/shared/contracts';
 
 import type { WardConfig } from '../../../contracts/ward-config/ward-config-contract';
 
@@ -26,7 +25,7 @@ export const pathCheckLayerBroker = ({
   rootPath,
 }: {
   passthrough: WardConfig['passthrough'];
-  rootPath: AbsoluteFilePath;
+  rootPath: string;
 }): NonNullable<WardConfig['passthrough']> => {
   if (passthrough === undefined) {
     return [];

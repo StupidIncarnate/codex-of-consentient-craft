@@ -14,8 +14,6 @@
  */
 
 import { readdirEntriesSync, type DirEntrySync } from '#gateway/node/fs';
-import { absoluteFilePathContract } from '../../../contracts/absolute-file-path/absolute-file-path-contract';
-import type { AbsoluteFilePath } from '../../../contracts/absolute-file-path/absolute-file-path-contract';
 import { contentTextContract } from '../../../contracts/content-text/content-text-contract';
 import type { ContentText } from '../../../contracts/content-text/content-text-contract';
 import { pathSegmentContract } from '../../../contracts/path-segment/path-segment-contract';
@@ -26,7 +24,7 @@ const GROUP_FOLDER_PREFIX = '@';
 export const discoverPackagesLayerBroker = ({
   dirPath,
 }: {
-  dirPath: AbsoluteFilePath;
+  dirPath: string;
 }): { name: ContentText; relativeDir: PathSegment }[] => {
   let topLevelEntries: DirEntrySync[] = [];
   try {
@@ -47,7 +45,7 @@ export const discoverPackagesLayerBroker = ({
   const groupPackages = directoryEntries
     .filter((entry) => entry.name.startsWith(GROUP_FOLDER_PREFIX))
     .flatMap((group) => {
-      const groupPath = absoluteFilePathContract.parse(`${String(dirPath)}/${group.name}`);
+      const groupPath = `${String(dirPath)}/${group.name}`;
       let groupEntries: DirEntrySync[] = [];
       try {
         groupEntries = readdirEntriesSync(String(groupPath));

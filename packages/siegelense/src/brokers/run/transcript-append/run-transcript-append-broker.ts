@@ -15,7 +15,6 @@
  */
 
 import { appendFile } from '#gateway/node/fs__promises';
-import type { AbsoluteFilePath } from '@dungeonmaster/shared/contracts';
 
 import type { StepReading } from '../../../contracts/step-reading/step-reading-contract';
 
@@ -23,6 +22,6 @@ export const runTranscriptAppendBroker = async ({
   transcriptPath,
   reading,
 }: {
-  transcriptPath: AbsoluteFilePath;
+  transcriptPath: string;
   reading: StepReading;
 }): Promise<void> => appendFile(transcriptPath, `${JSON.stringify(reading)}\n`);

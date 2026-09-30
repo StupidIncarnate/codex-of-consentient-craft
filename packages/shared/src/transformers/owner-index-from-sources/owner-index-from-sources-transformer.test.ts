@@ -1,18 +1,17 @@
-import { AbsoluteFilePathStub } from '../../contracts/absolute-file-path/absolute-file-path.stub';
 import { ContentTextStub } from '../../contracts/content-text/content-text.stub';
 import { OwnerIndexPackageStub } from '../../contracts/owner-index-package/owner-index-package.stub';
 import { PackageNameStub } from '../../contracts/package-name/package-name.stub';
 import { ownerIndexFromSourcesTransformer } from './owner-index-from-sources-transformer';
 
-const rootDir = AbsoluteFilePathStub({ value: '/repo' });
+const rootDir = '/repo';
 const alphaPackage = OwnerIndexPackageStub({
   name: PackageNameStub({ value: '@repo/alpha' }),
-  dir: AbsoluteFilePathStub({ value: '/repo/packages/alpha' }),
+  dir: '/repo/packages/alpha',
   dependencies: [PackageNameStub({ value: '@repo/shared' })],
 });
 const sharedPackage = OwnerIndexPackageStub({
   name: PackageNameStub({ value: '@repo/shared' }),
-  dir: AbsoluteFilePathStub({ value: '/repo/packages/shared' }),
+  dir: '/repo/packages/shared',
 });
 
 const QUEST_TEXT = ContentTextStub({
@@ -59,27 +58,19 @@ describe('ownerIndexFromSourcesTransformer', () => {
         packages: [alphaPackage, sharedPackage],
         sources: [
           {
-            filePath: AbsoluteFilePathStub({
-              value: '/repo/packages/shared/src/contracts/quest/quest-contract.ts',
-            }),
+            filePath: '/repo/packages/shared/src/contracts/quest/quest-contract.ts',
             text: QUEST_TEXT,
           },
           {
-            filePath: AbsoluteFilePathStub({
-              value: '/repo/packages/alpha/src/contracts/work-item/work-item-contract.ts',
-            }),
+            filePath: '/repo/packages/alpha/src/contracts/work-item/work-item-contract.ts',
             text: WORK_ITEM_TEXT,
           },
           {
-            filePath: AbsoluteFilePathStub({
-              value: '/repo/packages/alpha/src/contracts/start-input/start-input-contract.ts',
-            }),
+            filePath: '/repo/packages/alpha/src/contracts/start-input/start-input-contract.ts',
             text: START_INPUT_TEXT,
           },
           {
-            filePath: AbsoluteFilePathStub({
-              value: '/repo/packages/alpha/src/contracts/item-id/item-id-contract.ts',
-            }),
+            filePath: '/repo/packages/alpha/src/contracts/item-id/item-id-contract.ts',
             text: ITEM_ID_TEXT,
           },
         ],
@@ -152,9 +143,7 @@ describe('ownerIndexFromSourcesTransformer', () => {
         packages: [alphaPackage],
         sources: [
           {
-            filePath: AbsoluteFilePathStub({
-              value: '/repo/packages/alpha/src/contracts/owner/owner-layer-contract.ts',
-            }),
+            filePath: '/repo/packages/alpha/src/contracts/owner/owner-layer-contract.ts',
             text: LAYER_TEXT,
           },
         ],
@@ -169,15 +158,11 @@ describe('ownerIndexFromSourcesTransformer', () => {
         packages: [alphaPackage],
         sources: [
           {
-            filePath: AbsoluteFilePathStub({
-              value: '/repo/packages/alpha/src/contracts/quest/quest-contract.test.ts',
-            }),
+            filePath: '/repo/packages/alpha/src/contracts/quest/quest-contract.test.ts',
             text: QUEST_TEXT,
           },
           {
-            filePath: AbsoluteFilePathStub({
-              value: '/repo/packages/alpha/src/brokers/quest/quest-broker.ts',
-            }),
+            filePath: '/repo/packages/alpha/src/brokers/quest/quest-broker.ts',
             text: QUEST_TEXT,
           },
         ],
@@ -211,17 +196,13 @@ describe('ownerIndexFromSourcesTransformer', () => {
         packages: [alphaPackage, sharedPackage],
         sources: [
           {
-            filePath: AbsoluteFilePathStub({
-              value: '/repo/packages/shared/src/contracts/role/role-contract.ts',
-            }),
+            filePath: '/repo/packages/shared/src/contracts/role/role-contract.ts',
             text: ContentTextStub({
               value: "export const roleContract = z.enum(['worker', 'admin']);",
             }),
           },
           {
-            filePath: AbsoluteFilePathStub({
-              value: '/repo/packages/alpha/src/contracts/mode/mode-contract.ts',
-            }),
+            filePath: '/repo/packages/alpha/src/contracts/mode/mode-contract.ts',
             text: ContentTextStub({
               value: "export const modeContract = z.enum(['fast', 'slow']).brand<'Mode'>();",
             }),

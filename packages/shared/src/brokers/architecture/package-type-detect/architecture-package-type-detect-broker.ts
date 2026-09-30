@@ -14,8 +14,6 @@
  *   package, and at quest-save time to stamp each declared package entry's kinds
  */
 
-import { absoluteFilePathContract } from '../../../contracts/absolute-file-path/absolute-file-path-contract';
-import type { AbsoluteFilePath } from '../../../contracts/absolute-file-path/absolute-file-path-contract';
 import { packageJsonContract } from '../../../contracts/package-json/package-json-contract';
 import type { PackageType } from '../../../contracts/package-type/package-type-contract';
 import { packageBrowserTypeTransformer } from '../../../transformers/package-browser-type/package-browser-type-transformer';
@@ -31,10 +29,10 @@ import { detectPackageTypeLayerBroker } from './detect-package-type-layer-broker
 export const architecturePackageTypeDetectBroker = async ({
   packageRoot,
 }: {
-  packageRoot: AbsoluteFilePath;
+  packageRoot: string;
 }): Promise<[PackageType, ...PackageType[]]> => {
   // Read and parse package.json
-  const packageJsonPath = absoluteFilePathContract.parse(`${packageRoot}/package.json`);
+  const packageJsonPath = `${packageRoot}/package.json`;
   const packageJsonRaw = readFileOptionalLayerBroker({ filePath: packageJsonPath });
   const packageJson =
     packageJsonRaw === undefined
@@ -42,7 +40,7 @@ export const architecturePackageTypeDetectBroker = async ({
       : packageJsonContract.parse(JSON.parse(String(packageJsonRaw)));
 
   // List top-level dirs in src/
-  const srcPath = absoluteFilePathContract.parse(`${packageRoot}/src`);
+  const srcPath = `${packageRoot}/src`;
   const srcEntries = safeReaddirLayerBroker({ dirPath: srcPath });
   const srcDirNames = srcEntries.filter((e) => e.kind === 'directory').map((e) => e.name);
 
@@ -52,7 +50,7 @@ export const architecturePackageTypeDetectBroker = async ({
   const startupFileContent = readPackageCliContentLayerBroker({ packageRoot });
 
   // Find and read first flow file content (recursive search)
-  const flowsDirPath = absoluteFilePathContract.parse(`${packageRoot}/src/flows`);
+  const flowsDirPath = `${packageRoot}/src/flows`;
   const flowFilePath = findFirstFlowFileRecursiveLayerBroker({ dirPath: flowsDirPath });
   const flowFileContent =
     flowFilePath === undefined
@@ -60,8 +58,8 @@ export const architecturePackageTypeDetectBroker = async ({
       : readFileOptionalLayerBroker({ filePath: flowFilePath });
 
   // Folder presence checks via parent-listing
-  const respondersDirPath = absoluteFilePathContract.parse(`${packageRoot}/src/responders`);
-  const brokersDirPath = absoluteFilePathContract.parse(`${packageRoot}/src/brokers`);
+  const respondersDirPath = `${packageRoot}/src/responders`;
+  const brokersDirPath = `${packageRoot}/src/brokers`;
 
   const hasResponderHook = dirExistsInParentLayerBroker({
     parentDirPath: respondersDirPath,

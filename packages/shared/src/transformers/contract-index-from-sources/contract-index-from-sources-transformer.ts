@@ -11,7 +11,6 @@
  */
 import * as ts from '#gateway/npm/typescript';
 
-import type { AbsoluteFilePath } from '../../contracts/absolute-file-path/absolute-file-path-contract';
 import type { ContentText } from '../../contracts/content-text/content-text-contract';
 import { contractUsesBindingContract } from '../../contracts/contract-uses-binding/contract-uses-binding-contract';
 import { contractIndexEntryContract } from '../../contracts/contract-index-entry/contract-index-entry-contract';
@@ -33,9 +32,9 @@ export const contractIndexFromSourcesTransformer = ({
   packages,
   sources,
 }: {
-  rootDir: AbsoluteFilePath;
+  rootDir: string;
   packages: ContractIndexPackage[];
-  sources: { filePath: AbsoluteFilePath; text: ContentText }[];
+  sources: { filePath: string; text: ContentText }[];
 }): ContractIndexEntry[] => {
   const knownFiles = new Set(sources.map((source) => source.filePath));
   const rootPrefixLength = rootDir.length + 1;
@@ -86,8 +85,8 @@ export const contractIndexFromSourcesTransformer = ({
       .map(({ filePath, links }) => [filePath, links.reExports] as const),
   );
 
-  const parseSitesByContract = new Map<AbsoluteFilePath, ContractParseSite[]>();
-  const nestedInByContract = new Map<AbsoluteFilePath, Set<AbsoluteFilePath>>();
+  const parseSitesByContract = new Map<string, ContractParseSite[]>();
+  const nestedInByContract = new Map<string, Set<string>>();
 
   for (const { filePath, sourceFile, links } of parsedFiles) {
     const bindings = links.imports.flatMap((link) => {
@@ -122,7 +121,7 @@ export const contractIndexFromSourcesTransformer = ({
       for (const targetFile of uses.valueTargets) {
         nestedInByContract.set(
           targetFile,
-          (nestedInByContract.get(targetFile) ?? new Set<AbsoluteFilePath>()).add(filePath),
+          (nestedInByContract.get(targetFile) ?? new Set<string>()).add(filePath),
         );
       }
     }

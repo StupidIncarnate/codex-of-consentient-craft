@@ -10,7 +10,6 @@
 
 // File Path Contracts
 
-export * from './absolute-file-path/absolute-file-path-contract';
 
 export * from './relative-file-path/relative-file-path-contract';
 

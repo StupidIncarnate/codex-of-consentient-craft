@@ -1,7 +1,6 @@
 import { readFileSyncProxy } from '#gateway/node/fs/read-file-sync/read-file-sync.proxy';
 import { readJsonFileSyncIfExistsProxy } from '#gateway/node/fs/read-json-file-sync-if-exists/read-json-file-sync-if-exists.proxy';
 
-import type { AbsoluteFilePath } from '../../../contracts/absolute-file-path/absolute-file-path-contract';
 import { contractIndexBuildBrokerProxy } from '../../contract-index/build/contract-index-build-broker.proxy';
 
 export const ownerIndexBuildBrokerProxy = (): {
@@ -9,20 +8,20 @@ export const ownerIndexBuildBrokerProxy = (): {
     dirPath,
     folders,
   }: {
-    dirPath: AbsoluteFilePath;
+    dirPath: string;
     folders: readonly string[];
   }) => void;
-  setupPackageJson: ({ packageDir, json }: { packageDir: AbsoluteFilePath; json: string }) => void;
+  setupPackageJson: ({ packageDir, json }: { packageDir: string; json: string }) => void;
   setupWalkedFolder: ({
     dirPath,
     folders,
     files,
   }: {
-    dirPath: AbsoluteFilePath;
+    dirPath: string;
     folders: readonly string[];
     files: readonly string[];
   }) => void;
-  setupSourceText: ({ filePath, text }: { filePath: AbsoluteFilePath; text: string }) => void;
+  setupSourceText: ({ filePath, text }: { filePath: string; text: string }) => void;
 } => {
   readFileSyncProxy();
   readJsonFileSyncIfExistsProxy();

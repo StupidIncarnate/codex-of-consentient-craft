@@ -28,7 +28,6 @@
 
 import { listeningPids } from '#gateway/bin/lsof';
 import { readdirIfExists, rm, statIfExists } from '#gateway/node/fs__promises';
-import type { AbsoluteFilePath } from '@dungeonmaster/shared/contracts';
 import { networkPortContract } from '@dungeonmaster/shared/contracts';
 
 import { isPortSuffixedArtifactGuard } from '../../../guards/is-port-suffixed-artifact/is-port-suffixed-artifact-guard';
@@ -37,7 +36,7 @@ import { e2eArtifactsStatics } from '../../../statics/e2e-artifacts/e2e-artifact
 export const e2eArtifactsPruneBroker = async ({
   packageRoot,
 }: {
-  packageRoot: AbsoluteFilePath;
+  packageRoot: string;
 }): Promise<void> => {
   const now = Date.now();
 

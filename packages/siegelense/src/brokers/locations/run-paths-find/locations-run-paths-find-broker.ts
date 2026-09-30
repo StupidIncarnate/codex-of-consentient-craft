@@ -21,7 +21,6 @@
 
 import { join } from '#gateway/node/path';
 import { locationsStatics } from '@dungeonmaster/shared/statics';
-import { absoluteFilePathContract, type AbsoluteFilePath } from '@dungeonmaster/shared/contracts';
 import { evidenceFileStatics } from '../../../statics/evidence-file/evidence-file-statics';
 import type { SiegeRun } from '@dungeonmaster/shared/contracts';
 
@@ -29,12 +28,12 @@ export const locationsRunPathsFindBroker = ({
   evidencePath,
   runId,
 }: {
-  evidencePath: AbsoluteFilePath;
+  evidencePath: string;
   runId: SiegeRun['id'];
 }): {
-  transcript: AbsoluteFilePath;
-  storedReturn: AbsoluteFilePath;
-  shotsDir: AbsoluteFilePath;
+  transcript: string;
+  storedReturn: string;
+  shotsDir: string;
 } => {
   const transcript = join(
     evidencePath,
@@ -51,8 +50,8 @@ export const locationsRunPathsFindBroker = ({
   const shotsDir = join(evidencePath, locationsStatics.siegelense.runsDir, runId);
 
   return {
-    transcript: absoluteFilePathContract.parse(transcript),
-    storedReturn: absoluteFilePathContract.parse(storedReturn),
-    shotsDir: absoluteFilePathContract.parse(shotsDir),
+    transcript: transcript,
+    storedReturn: storedReturn,
+    shotsDir: shotsDir,
   };
 };

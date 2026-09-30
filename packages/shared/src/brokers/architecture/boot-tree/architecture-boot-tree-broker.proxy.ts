@@ -6,9 +6,7 @@ import { architectureWidgetTreeBrokerProxy } from '../widget-tree/architecture-w
 import { architectureEdgeGraphBrokerProxy } from '../edge-graph/architecture-edge-graph-broker.proxy';
 import { architectureWsEdgesBrokerProxy } from '../ws-edges/architecture-ws-edges-broker.proxy';
 import { architectureEventBusBrokerProxy } from '../event-bus/architecture-event-bus-broker.proxy';
-import { AbsoluteFilePathStub } from '../../../contracts/absolute-file-path/absolute-file-path.stub';
 import { FileMissingErrorStub } from '#gateway/node/fs/file-missing-error/file-missing-error.stub';
-import type { AbsoluteFilePath } from '../../../contracts/absolute-file-path/absolute-file-path-contract';
 import type { ContentText } from '../../../contracts/content-text/content-text-contract';
 
 export const architectureBootTreeBrokerProxy = (): {
@@ -16,10 +14,10 @@ export const architectureBootTreeBrokerProxy = (): {
     packageRoot,
     names,
   }: {
-    packageRoot: AbsoluteFilePath;
+    packageRoot: string;
     names: string[];
   }) => void;
-  setupNoStartupFiles: ({ packageRoot }: { packageRoot: AbsoluteFilePath }) => void;
+  setupNoStartupFiles: ({ packageRoot }: { packageRoot: string }) => void;
   setupFileContentsMap: ({ map }: { map: Record<string, ContentText> }) => void;
 } => {
   const startupProxy = startupFilesFindLayerBrokerProxy();
@@ -54,15 +52,15 @@ export const architectureBootTreeBrokerProxy = (): {
       packageRoot,
       names,
     }: {
-      packageRoot: AbsoluteFilePath;
+      packageRoot: string;
       names: string[];
     }): void => {
-      const packageSrcPath = AbsoluteFilePathStub({ value: `${String(packageRoot)}/src` });
+      const packageSrcPath = `${String(packageRoot)}/src`;
       startupProxy.setupFiles({ packageSrcPath, names });
     },
 
-    setupNoStartupFiles: ({ packageRoot }: { packageRoot: AbsoluteFilePath }): void => {
-      const packageSrcPath = AbsoluteFilePathStub({ value: `${String(packageRoot)}/src` });
+    setupNoStartupFiles: ({ packageRoot }: { packageRoot: string }): void => {
+      const packageSrcPath = `${String(packageRoot)}/src`;
       startupProxy.setupEmpty({ packageSrcPath });
     },
 

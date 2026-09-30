@@ -1,7 +1,6 @@
 import { setExitCodeProxy } from '#gateway/node/process/set-exit-code/set-exit-code.proxy';
 import { stderrProxy } from '#gateway/node/process/stderr/stderr.proxy';
 import { stdoutProxy } from '#gateway/node/process/stdout/stdout.proxy';
-import { AbsoluteFilePathStub } from '@dungeonmaster/shared/contracts/absolute-file-path/absolute-file-path.stub';
 import { workspaceDiscoverBrokerProxy } from '../../workspace/discover/workspace-discover-broker.proxy';
 import { ProjectFolderStub } from '../../../contracts/project-folder/project-folder.stub';
 import { ProjectResultStub } from '../../../contracts/project-result/project-result.stub';
@@ -72,7 +71,7 @@ export const commandRunBrokerProxy = (): {
   // duplicate-install checks stay clean by default — a scenario that wants a violation overrides it
   // below, which is the one call REPLACING this default rather than adding to it (the two checks
   // are staged together; see platformDedupeCheckLayerBrokerProxy's own comment for why).
-  const rootPathForPlatformDedupe = AbsoluteFilePathStub({ value: '/project' });
+  const rootPathForPlatformDedupe = '/project';
   platformDedupeProxy.setupClean({ rootPath: rootPathForPlatformDedupe });
 
   // `checkRunUnitBroker`'s own companion check tries EVERY extension in
@@ -179,7 +178,7 @@ export const commandRunBrokerProxy = (): {
       packageCount: number;
       subResultContent: string;
     }): void => {
-      const rootPath = AbsoluteFilePathStub({ value: '/project' });
+      const rootPath = '/project';
       const projectFolders = Array.from({ length: packageCount }, () => ProjectFolderStub());
       multiProxy.setupSpawnAndLoad({ rootPath, projectFolders, subResultContent });
     },
@@ -187,7 +186,7 @@ export const commandRunBrokerProxy = (): {
     // pattern reached anything in that package. Every child ran unit only, so a package without a
     // matching test comes back as a skip — exactly the shape a real child ward saves.
     setupMultiPackageOnlyTests: ({ matches }: { matches: TestNamePatternMatch[] }): void => {
-      const rootPath = AbsoluteFilePathStub({ value: '/project' });
+      const rootPath = '/project';
       const names = matches.map((_, index) => `pkg${String(index)}`);
 
       workspaceProxy.setupMultiPackage({

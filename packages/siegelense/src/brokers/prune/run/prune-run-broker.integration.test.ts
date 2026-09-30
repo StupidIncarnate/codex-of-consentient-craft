@@ -15,7 +15,6 @@
 import { installTestbedCreateBroker } from '@dungeonmaster/testing';
 import { deleteEnv, getEnv, setEnv } from '#gateway/node/process';
 import { ensureDir, statIfExists, writeFile } from '#gateway/node/fs__promises';
-import { AbsoluteFilePathStub } from '@dungeonmaster/shared/contracts/absolute-file-path/absolute-file-path.stub';
 import { GuildIdStub } from '@dungeonmaster/shared/contracts/guild-id/guild-id.stub';
 import { QuestIdStub } from '@dungeonmaster/shared/contracts/quest-id/quest-id.stub';
 import { QuestNoteStub } from '@dungeonmaster/shared/contracts/quest-note/quest-note.stub';
@@ -228,7 +227,7 @@ describe('prune, against a real evidence tree', () => {
           QuestStub({
             id: QUEST,
             status: 'in_progress',
-            worktreePath: AbsoluteFilePathStub({ value: worktreePath }),
+            worktreePath: worktreePath,
             planningNotes: {
               blightLedger: [],
               operationPlans: [],

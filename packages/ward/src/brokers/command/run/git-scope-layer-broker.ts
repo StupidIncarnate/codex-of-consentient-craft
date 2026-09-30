@@ -14,7 +14,6 @@
  * // Returns the same config with passthrough set to the working tree's source files
  */
 
-import type { AbsoluteFilePath } from '@dungeonmaster/shared/contracts';
 
 import type { WardConfig } from '../../../contracts/ward-config/ward-config-contract';
 import type { GitRelativePath } from '../../../contracts/git-relative-path/git-relative-path-contract';
@@ -27,7 +26,7 @@ export const gitScopeLayerBroker = async ({
   rootPath,
 }: {
   config: WardConfig;
-  rootPath: AbsoluteFilePath;
+  rootPath: string;
 }): Promise<WardConfig> => {
   if (config.committed !== true && config.uncommitted !== true) {
     return config;

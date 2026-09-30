@@ -1,18 +1,17 @@
 import { listWidgetFilesLayerBroker } from './list-widget-files-layer-broker';
 import { listWidgetFilesLayerBrokerProxy } from './list-widget-files-layer-broker.proxy';
-import { AbsoluteFilePathStub } from '../../../contracts/absolute-file-path/absolute-file-path.stub';
 
 describe('listWidgetFilesLayerBroker', () => {
   describe('widget file collection', () => {
     it('VALID: {directory with widget files} => returns only widget files', () => {
       const proxy = listWidgetFilesLayerBrokerProxy();
-      const widgetsDirPath = AbsoluteFilePathStub({ value: '/repo/packages/web/src/widgets' });
+      const widgetsDirPath = '/repo/packages/web/src/widgets';
 
       proxy.setupFlatWidgetsDir({
         widgetsDirPath,
         filePaths: [
-          AbsoluteFilePathStub({ value: '/repo/packages/web/src/widgets/quest-chat-widget.tsx' }),
-          AbsoluteFilePathStub({ value: '/repo/packages/web/src/widgets/user-card-widget.tsx' }),
+          '/repo/packages/web/src/widgets/quest-chat-widget.tsx',
+          '/repo/packages/web/src/widgets/user-card-widget.tsx',
         ],
       });
 
@@ -26,17 +25,13 @@ describe('listWidgetFilesLayerBroker', () => {
 
     it('VALID: {test and proxy files present} => filters them out', () => {
       const proxy = listWidgetFilesLayerBrokerProxy();
-      const widgetsDirPath = AbsoluteFilePathStub({ value: '/repo/packages/web/src/widgets' });
+      const widgetsDirPath = '/repo/packages/web/src/widgets';
 
       proxy.setupFlatWidgetsDir({
         widgetsDirPath,
         filePaths: [
-          AbsoluteFilePathStub({
-            value: '/repo/packages/web/src/widgets/quest-chat-widget.test.tsx',
-          }),
-          AbsoluteFilePathStub({
-            value: '/repo/packages/web/src/widgets/quest-chat-widget.proxy.tsx',
-          }),
+          '/repo/packages/web/src/widgets/quest-chat-widget.test.tsx',
+          '/repo/packages/web/src/widgets/quest-chat-widget.proxy.tsx',
         ],
       });
 
@@ -47,7 +42,7 @@ describe('listWidgetFilesLayerBroker', () => {
 
     it('EMPTY: {empty widgets directory} => returns empty array', () => {
       const proxy = listWidgetFilesLayerBrokerProxy();
-      const widgetsDirPath = AbsoluteFilePathStub({ value: '/repo/packages/web/src/widgets' });
+      const widgetsDirPath = '/repo/packages/web/src/widgets';
       proxy.setupEmpty({ widgetsDirPath });
 
       const result = listWidgetFilesLayerBroker({ widgetsDirPath });

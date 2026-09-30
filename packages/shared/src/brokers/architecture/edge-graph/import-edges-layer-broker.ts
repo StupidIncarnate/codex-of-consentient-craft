@@ -13,8 +13,6 @@
  * WHEN-NOT-TO-USE: When TypeScript AST-level accuracy is required (this is a regex v1 heuristic)
  */
 
-import { absoluteFilePathContract } from '../../../contracts/absolute-file-path/absolute-file-path-contract';
-import type { AbsoluteFilePath } from '../../../contracts/absolute-file-path/absolute-file-path-contract';
 import {
   contentTextContract,
   type ContentText,
@@ -35,10 +33,10 @@ const DUNGEONMASTER_SCOPE = '@dungeonmaster/';
 export const importEdgesLayerBroker = ({
   projectRoot,
 }: {
-  projectRoot: AbsoluteFilePath;
+  projectRoot: string;
 }): ImportEdge[] => {
   const root = String(projectRoot);
-  const packagesDir = absoluteFilePathContract.parse(`${root}/${PACKAGES_REL}`);
+  const packagesDir = `${root}/${PACKAGES_REL}`;
 
   // Step 1: collect known package names
   const packageEntries = safeReaddirLayerBroker({ dirPath: packagesDir });
@@ -51,7 +49,7 @@ export const importEdgesLayerBroker = ({
 
   // aggregation map: key = "<consumerPkg>|<sourcePkg>|<barrel>" as ContentText
   // value: Set of distinct consumer file paths (as AbsoluteFilePath strings) that imported this edge
-  const edgeFileMap = new Map<ContentText, Set<AbsoluteFilePath>>();
+  const edgeFileMap = new Map<ContentText, Set<string>>();
   const edgeMeta = new Map<
     ContentText,
     { consumerPackage: ContentText; sourcePackage: ContentText; barrel: ContentText }
@@ -60,9 +58,7 @@ export const importEdgesLayerBroker = ({
   // Step 2: for each consumer package, list all TS source files and parse imports
   for (const consumerPkg of knownPackageNames) {
     const consumerPkgName = String(consumerPkg);
-    const pkgSrcDir = absoluteFilePathContract.parse(
-      `${root}/${PACKAGES_REL}/${consumerPkgName}/src`,
-    );
+    const pkgSrcDir = `${root}/${PACKAGES_REL}/${consumerPkgName}/src`;
 
     const allFiles = listTsFilesLayerBroker({ dirPath: pkgSrcDir });
 
@@ -116,7 +112,7 @@ export const importEdgesLayerBroker = ({
         );
 
         if (!edgeFileMap.has(edgeKey)) {
-          edgeFileMap.set(edgeKey, new Set<AbsoluteFilePath>());
+          edgeFileMap.set(edgeKey, new Set<string>());
           edgeMeta.set(edgeKey, {
             consumerPackage: consumerPkg,
             sourcePackage,

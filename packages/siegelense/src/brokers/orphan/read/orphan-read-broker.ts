@@ -19,7 +19,7 @@
 import { readdirIfExists, readFileIfExists } from '#gateway/node/fs__promises';
 import { join } from '#gateway/node/path';
 import { isNativeError } from '#gateway/node/util__types';
-import { absoluteFilePathContract, contentTextContract } from '@dungeonmaster/shared/contracts';
+import { contentTextContract } from '@dungeonmaster/shared/contracts';
 
 import { processIsAliveBroker } from '../../process/is-alive/process-is-alive-broker';
 import { orphanReadingContract } from '../../../contracts/orphan-reading/orphan-reading-contract';
@@ -32,7 +32,7 @@ export const orphanReadBroker = async ({
 }: {
   pgids: readonly ProcessGroupId[];
 }): Promise<readonly OrphanReading[]> => {
-  const procRoot = absoluteFilePathContract.parse(machineStatics.procfs.root);
+  const procRoot = machineStatics.procfs.root;
   const entries = (await readdirIfExists(procRoot)) ?? [];
   // A pid directory is every entry that is purely a positive integer — 'vmstat', 'self', 'uptime'
   // and friends all fail Number.isInteger on their NaN conversion.
@@ -42,9 +42,7 @@ export const orphanReadBroker = async ({
 
   const statResults = await Promise.all(
     pidEntries.map(async (pidEntry) => {
-      const statPath = absoluteFilePathContract.parse(
-        join(procRoot, pidEntry, machineStatics.procfs.stat),
-      );
+      const statPath = join(procRoot, pidEntry, machineStatics.procfs.stat);
 
       const statContent = await readFileIfExists(statPath).catch((error: unknown) => {
         if (
@@ -88,9 +86,7 @@ export const orphanReadBroker = async ({
         return orphanReadingContract.parse({ pgid, cmd: null, alive });
       }
 
-      const cmdlinePath = absoluteFilePathContract.parse(
-        join(procRoot, match.pid, machineStatics.procfs.cmdline),
-      );
+      const cmdlinePath = join(procRoot, match.pid, machineStatics.procfs.cmdline);
 
       const cmdlineContent = await readFileIfExists(cmdlinePath).catch((error: unknown) => {
         if (

@@ -1,7 +1,6 @@
 import { locationsHookConfigPathFindBroker } from './locations-hook-config-path-find-broker';
 import { locationsHookConfigPathFindBrokerProxy } from './locations-hook-config-path-find-broker.proxy';
 import { ProjectRootNotFoundError } from '../../../errors/project-root-not-found/project-root-not-found-error';
-import { AbsoluteFilePathStub } from '../../../contracts/absolute-file-path/absolute-file-path.stub';
 
 describe('locationsHookConfigPathFindBroker', () => {
   describe('config found cases', () => {
@@ -17,7 +16,7 @@ describe('locationsHookConfigPathFindBroker', () => {
       });
 
       expect(result).toBe(
-        AbsoluteFilePathStub({ value: '/project/.dungeonmaster-hooks.config.ts' }),
+        '/project/.dungeonmaster-hooks.config.ts',
       );
     });
 
@@ -34,7 +33,7 @@ describe('locationsHookConfigPathFindBroker', () => {
       });
 
       expect(result).toBe(
-        AbsoluteFilePathStub({ value: '/project/.dungeonmaster-hooks.config.mjs' }),
+        '/project/.dungeonmaster-hooks.config.mjs',
       );
     });
 
@@ -51,7 +50,7 @@ describe('locationsHookConfigPathFindBroker', () => {
       });
 
       expect(result).toBe(
-        AbsoluteFilePathStub({ value: '/project/src/.dungeonmaster-hooks.config.ts' }),
+        '/project/src/.dungeonmaster-hooks.config.ts',
       );
     });
   });

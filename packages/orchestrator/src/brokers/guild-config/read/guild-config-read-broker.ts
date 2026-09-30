@@ -15,7 +15,7 @@
 
 import { dungeonmasterHomeFindBroker } from '@dungeonmaster/shared/brokers';
 import { guildConfigContract } from '@dungeonmaster/shared/contracts';
-import type { AbsoluteFilePath, GuildConfig } from '@dungeonmaster/shared/contracts';
+import type { GuildConfig } from '@dungeonmaster/shared/contracts';
 import { dungeonmasterHomeStatics } from '@dungeonmaster/shared/statics';
 import { readFileIfExists } from '#gateway/node/fs__promises';
 import { join } from '#gateway/node/path';
@@ -25,7 +25,7 @@ const DEFAULT_CONFIG: GuildConfig = guildConfigContract.parse({ guilds: [] });
 export const guildConfigReadBroker = async ({
   home,
 }: {
-  home?: AbsoluteFilePath;
+  home?: string;
 } = {}): Promise<GuildConfig> => {
   const homePath = home ?? dungeonmasterHomeFindBroker().homePath;
 

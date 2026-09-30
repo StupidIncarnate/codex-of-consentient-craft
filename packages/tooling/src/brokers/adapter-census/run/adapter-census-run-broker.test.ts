@@ -1,9 +1,8 @@
 import { adapterCensusRunBroker } from './adapter-census-run-broker';
 import { adapterCensusRunBrokerProxy } from './adapter-census-run-broker.proxy';
-import { AbsoluteFilePathStub } from '../../../contracts/absolute-file-path/absolute-file-path.stub';
 
 describe('adapterCensusRunBroker', () => {
-  const repoRoot = AbsoluteFilePathStub({ value: '/repo' });
+  const repoRoot = '/repo';
 
   it('VALID: {two packages with the same adapter stem, one caller} => each package lists its own adapter and only app has a caller', async () => {
     const proxy = adapterCensusRunBrokerProxy();

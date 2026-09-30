@@ -13,7 +13,6 @@
  * const result = await stepHandlerCommitBroker({ args: [], questId, workItemId, onLine: () => undefined });
  */
 
-import { AbsoluteFilePathStub } from '@dungeonmaster/shared/contracts/absolute-file-path/absolute-file-path.stub';
 import { GetQuestResultStub } from '@dungeonmaster/shared/contracts/get-quest-result/get-quest-result.stub';
 import { RepoRootCwdStub } from '@dungeonmaster/shared/contracts/repo-root-cwd/repo-root-cwd.stub';
 import { RepoRelativePathStub } from '@dungeonmaster/shared/contracts/repo-relative-path/repo-relative-path.stub';
@@ -99,7 +98,7 @@ export const stepHandlerCommitBrokerProxy = (): {
       cwdMock.calledWith([{ questId }]).resolves(
         QuestCwdResolutionStub({
           kind: 'missing-worktree',
-          worktreePath: AbsoluteFilePathStub({ value: worktreePath }),
+          worktreePath: worktreePath,
         }),
       );
     },

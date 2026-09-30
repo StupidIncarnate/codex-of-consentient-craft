@@ -11,17 +11,15 @@
 import { readdirEntriesSyncProxy } from '#gateway/node/fs/readdir-entries-sync/readdir-entries-sync.proxy';
 import { cwdProxy } from '#gateway/node/process/cwd/cwd.proxy';
 import { FileMissingErrorStub } from '#gateway/node/fs/file-missing-error/file-missing-error.stub';
-import { AbsoluteFilePathStub } from '@dungeonmaster/shared/contracts/absolute-file-path/absolute-file-path.stub';
-import type { AbsoluteFilePath } from '@dungeonmaster/shared/contracts';
 
 // The responder builds `${projectRoot}/packages` as the readdir target — mirror that exact join
 // here so the mock is keyed on the same dirPath the responder actually reads.
-const packagesDirFor = ({ projectRoot }: { projectRoot: AbsoluteFilePath }): AbsoluteFilePath =>
-  AbsoluteFilePathStub({ value: `${String(projectRoot)}/packages` });
+const packagesDirFor = ({ projectRoot }: { projectRoot: string }): string =>
+  `${String(projectRoot)}/packages`;
 
 export const HookSessionSnippetPackagesResponderProxy = (): {
   setupEntries: (params: {
-    projectRoot: AbsoluteFilePath;
+    projectRoot: string;
     entries: {
       name: string;
       isDirectory: boolean;
@@ -30,7 +28,7 @@ export const HookSessionSnippetPackagesResponderProxy = (): {
       children?: { name: string; isDirectory: boolean }[];
     }[];
   }) => void;
-  setupEmptyMonorepo: (params: { projectRoot: AbsoluteFilePath }) => void;
+  setupEmptyMonorepo: (params: { projectRoot: string }) => void;
 } => {
   const cwd = cwdProxy();
   const readdirProxy = readdirEntriesSyncProxy();
@@ -40,7 +38,7 @@ export const HookSessionSnippetPackagesResponderProxy = (): {
       projectRoot,
       entries,
     }: {
-      projectRoot: AbsoluteFilePath;
+      projectRoot: string;
       entries: {
         name: string;
         isDirectory: boolean;
@@ -70,7 +68,7 @@ export const HookSessionSnippetPackagesResponderProxy = (): {
       }
     },
 
-    setupEmptyMonorepo: ({ projectRoot }: { projectRoot: AbsoluteFilePath }): void => {
+    setupEmptyMonorepo: ({ projectRoot }: { projectRoot: string }): void => {
       cwd.setupCwd({ value: projectRoot });
       // Make the responder's readdir throw so it falls back to the literal 'root' name.
       readdirProxy.throws({

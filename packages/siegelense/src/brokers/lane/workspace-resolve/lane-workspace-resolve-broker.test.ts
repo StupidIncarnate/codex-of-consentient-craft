@@ -2,14 +2,13 @@ import { laneWorkspaceResolveBroker } from './lane-workspace-resolve-broker';
 import { laneWorkspaceResolveBrokerProxy } from './lane-workspace-resolve-broker.proxy';
 import type { LaneWorkspaceNoneMatchedError } from '../../../errors/lane-workspace-none-matched/lane-workspace-none-matched-error';
 import { LaneWorkspaceSeveralMatchedError } from '../../../errors/lane-workspace-several-matched/lane-workspace-several-matched-error';
-import { AbsoluteFilePathStub } from '@dungeonmaster/shared/contracts/absolute-file-path/absolute-file-path.stub';
 import { PackageNameStub } from '@dungeonmaster/shared/contracts/package-name/package-name.stub';
 
 describe('laneWorkspaceResolveBroker', () => {
   describe('exactly one package answers the kind', () => {
     it("VALID: {packageType: http-backend, one hono package among two} => resolves that package's name", async () => {
       const proxy = laneWorkspaceResolveBrokerProxy();
-      const repoRoot = AbsoluteFilePathStub({ value: '/repo' });
+      const repoRoot = '/repo';
       proxy.setupPackagesDir({ repoRoot, packageNames: ['server', 'shared'] });
       proxy.setupPackage({
         repoRoot,
@@ -30,7 +29,7 @@ describe('laneWorkspaceResolveBroker', () => {
 
     it("VALID: {packageType: frontend-react, one widgets+react package among two} => resolves that package's name", async () => {
       const proxy = laneWorkspaceResolveBrokerProxy();
-      const repoRoot = AbsoluteFilePathStub({ value: '/repo' });
+      const repoRoot = '/repo';
       proxy.setupPackagesDir({ repoRoot, packageNames: ['web', 'shared'] });
       proxy.setupPackage({
         repoRoot,
@@ -53,7 +52,7 @@ describe('laneWorkspaceResolveBroker', () => {
   describe('a non-directory entry under packages/', () => {
     it('VALID: {a stray file alongside one hono package} => the file is never probed, and the directory still resolves', async () => {
       const proxy = laneWorkspaceResolveBrokerProxy();
-      const repoRoot = AbsoluteFilePathStub({ value: '/repo' });
+      const repoRoot = '/repo';
       proxy.setupPackagesDir({
         repoRoot,
         packageNames: ['server'],
@@ -79,7 +78,7 @@ describe('laneWorkspaceResolveBroker', () => {
   describe('a package whose winning kind is not the requested one', () => {
     it('VALID: {packageType: frontend-react, a hono package that ALSO carries widgets+react} => still resolves it, because the SET (not the winning label) decides', async () => {
       const proxy = laneWorkspaceResolveBrokerProxy();
-      const repoRoot = AbsoluteFilePathStub({ value: '/repo' });
+      const repoRoot = '/repo';
       proxy.setupPackagesDir({ repoRoot, packageNames: ['server'] });
       proxy.setupPackage({
         repoRoot,
@@ -101,7 +100,7 @@ describe('laneWorkspaceResolveBroker', () => {
   describe('no package answers the kind', () => {
     it('ERROR: {packageType: http-backend, no hono/express package on disk} => throws LaneWorkspaceNoneMatchedError naming the repo and kind', async () => {
       const proxy = laneWorkspaceResolveBrokerProxy();
-      const repoRoot = AbsoluteFilePathStub({ value: '/repo' });
+      const repoRoot = '/repo';
       proxy.setupPackagesDir({ repoRoot, packageNames: ['shared', 'web'] });
       proxy.setupPackage({ repoRoot, dirName: 'shared', packageName: '@dungeonmaster/shared' });
       proxy.setupPackage({
@@ -129,7 +128,7 @@ describe('laneWorkspaceResolveBroker', () => {
   describe('several packages answer the kind', () => {
     it('ERROR: {packageType: http-backend, two hono packages} => throws LaneWorkspaceSeveralMatchedError naming both', async () => {
       const proxy = laneWorkspaceResolveBrokerProxy();
-      const repoRoot = AbsoluteFilePathStub({ value: '/repo' });
+      const repoRoot = '/repo';
       proxy.setupPackagesDir({ repoRoot, packageNames: ['server', 'gateway'] });
       proxy.setupPackage({
         repoRoot,
@@ -165,7 +164,7 @@ describe('laneWorkspaceResolveBroker', () => {
   describe('error instances carry PackageName-shaped matches', () => {
     it('VALID: {two http-backend packages} => the thrown error is a real LaneWorkspaceSeveralMatchedError instance', async () => {
       const proxy = laneWorkspaceResolveBrokerProxy();
-      const repoRoot = AbsoluteFilePathStub({ value: '/repo' });
+      const repoRoot = '/repo';
       proxy.setupPackagesDir({ repoRoot, packageNames: ['server', 'gateway'] });
       proxy.setupPackage({
         repoRoot,
@@ -194,7 +193,7 @@ describe('laneWorkspaceResolveBroker', () => {
   describe('a matched package name re-brands through packageNameContract', () => {
     it('VALID: {one http-backend package} => the resolved value equals the PackageName stub for it', async () => {
       const proxy = laneWorkspaceResolveBrokerProxy();
-      const repoRoot = AbsoluteFilePathStub({ value: '/repo' });
+      const repoRoot = '/repo';
       proxy.setupPackagesDir({ repoRoot, packageNames: ['server'] });
       proxy.setupPackage({
         repoRoot,

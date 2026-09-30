@@ -18,10 +18,6 @@
  */
 
 import {
-  absoluteFilePathContract,
-  type AbsoluteFilePath,
-} from '../../../contracts/absolute-file-path/absolute-file-path-contract';
-import {
   contentTextContract,
   type ContentText,
 } from '../../../contracts/content-text/content-text-contract';
@@ -49,13 +45,13 @@ export const architectureWidgetNodeRenderBroker = ({
   isLast: boolean;
   httpEdges: HttpEdge[];
   wsEdges: WsEdge[];
-  packageRoot: AbsoluteFilePath;
-  projectRoot: AbsoluteFilePath;
-  packageSrcPath?: AbsoluteFilePath;
+  packageRoot: string;
+  projectRoot: string;
+  packageSrcPath?: string;
   callChainFn?: (params: {
-    sourceFile: AbsoluteFilePath;
-    packageSrcPath: AbsoluteFilePath;
-    renderingFilePath: AbsoluteFilePath;
+    sourceFile: string;
+    packageSrcPath: string;
+    renderingFilePath: string;
     baseIndent?: ContentText;
   }) => ContentText[];
 }): ContentText[] => {
@@ -122,7 +118,7 @@ export const architectureWidgetNodeRenderBroker = ({
   }
 
   if (callChainFn !== undefined && packageSrcPath !== undefined) {
-    const widgetFile = absoluteFilePathContract.parse(String(node.filePath));
+    const widgetFile = String(node.filePath);
     const widgetChainLines = callChainFn({
       sourceFile: widgetFile,
       packageSrcPath,

@@ -1,4 +1,3 @@
-import { AbsoluteFilePathStub } from '@dungeonmaster/shared/contracts/absolute-file-path/absolute-file-path.stub';
 import { GuildIdStub } from '@dungeonmaster/shared/contracts/guild-id/guild-id.stub';
 import { OperationItemStub } from '@dungeonmaster/shared/contracts/operation-item/operation-item.stub';
 import { QuestIdStub } from '@dungeonmaster/shared/contracts/quest-id/quest-id.stub';
@@ -70,7 +69,7 @@ describe('FollowupChatStartResponder', () => {
       const proxy = FollowupChatStartResponderProxy();
       const guildId = GuildIdStub();
       const questId = QuestIdStub({ value: 'quest-1' });
-      const worktreePath = AbsoluteFilePathStub({ value: '/repo/worktrees/quest-1' });
+      const worktreePath = '/repo/worktrees/quest-1';
       const quest = QuestStub({
         id: 'quest-1',
         folder: 'quest-1',
@@ -112,7 +111,7 @@ describe('FollowupChatStartResponder', () => {
         const proxy = FollowupChatStartResponderProxy();
         const guildId = GuildIdStub();
         const questId = QuestIdStub({ value: `quest-2-${status}` });
-        const worktreePath = AbsoluteFilePathStub({ value: `/repo/worktrees/quest-2-${status}` });
+        const worktreePath = `/repo/worktrees/quest-2-${status}`;
         const quest = QuestStub({
           id: `quest-2-${status}`,
           folder: `quest-2-${status}`,
@@ -151,7 +150,7 @@ describe('FollowupChatStartResponder', () => {
       const proxy = FollowupChatStartResponderProxy();
       const guildId = GuildIdStub();
       const questId = QuestIdStub({ value: 'quest-3' });
-      const worktreePath = AbsoluteFilePathStub({ value: '/repo/worktrees/quest-3' });
+      const worktreePath = '/repo/worktrees/quest-3';
       const sessionId = SessionIdStub({ value: 'tavern-session-3' });
       const existingWorkItemId = 'aaaaaaaa-1111-4222-9333-444444444444';
       const existingItem = WorkItemStub({
@@ -220,7 +219,7 @@ describe('FollowupChatStartResponder', () => {
       const proxy = FollowupChatStartResponderProxy();
       const guildId = GuildIdStub();
       const questId = QuestIdStub({ value: 'quest-3-image' });
-      const worktreePath = AbsoluteFilePathStub({ value: '/repo/worktrees/quest-3-image' });
+      const worktreePath = '/repo/worktrees/quest-3-image';
       const sessionId = SessionIdStub({ value: 'tavern-session-3-image' });
       const existingWorkItemId = 'aaaaaaaa-1111-4222-9333-444444444445';
       const existingItem = WorkItemStub({
@@ -266,9 +265,7 @@ describe('FollowupChatStartResponder', () => {
         const guildId = GuildIdStub();
         const statusIndex = WORK_ITEM_STATUSES.indexOf(status);
         const questId = QuestIdStub({ value: `quest-4-${status}` });
-        const worktreePath = AbsoluteFilePathStub({
-          value: `/repo/worktrees/quest-4-${status}`,
-        });
+        const worktreePath = `/repo/worktrees/quest-4-${status}`;
         const sessionId = SessionIdStub({ value: `tavern-session-4-${status}` });
         const existingItem = WorkItemStub({
           id: `b${String(statusIndex)}bbbbbb-1111-4222-9333-444444444444`,
@@ -309,7 +306,7 @@ describe('FollowupChatStartResponder', () => {
       const proxy = FollowupChatStartResponderProxy();
       const guildId = GuildIdStub();
       const questId = QuestIdStub({ value: 'quest-5' });
-      const worktreePath = AbsoluteFilePathStub({ value: '/repo/worktrees/quest-5' });
+      const worktreePath = '/repo/worktrees/quest-5';
       const existingItem = WorkItemStub({
         id: 'cccccccc-1111-4222-9333-444444444444',
         role: 'tavernkeeper',
@@ -353,7 +350,7 @@ describe('FollowupChatStartResponder', () => {
       const proxy = FollowupChatStartResponderProxy();
       const guildId = GuildIdStub();
       const questId = QuestIdStub({ value: 'quest-6' });
-      const worktreePath = AbsoluteFilePathStub({ value: '/repo/worktrees/quest-6' });
+      const worktreePath = '/repo/worktrees/quest-6';
       const sessionId = SessionIdStub({ value: 'tavern-session-6' });
       const workItemId = 'dddddddd-1111-4222-9333-444444444444';
       const existingItem = WorkItemStub({
@@ -412,7 +409,7 @@ describe('FollowupChatStartResponder', () => {
       const proxy = FollowupChatStartResponderProxy();
       const guildId = GuildIdStub();
       const questId = QuestIdStub({ value: 'quest-7' });
-      const worktreePath = AbsoluteFilePathStub({ value: '/repo/worktrees/quest-7' });
+      const worktreePath = '/repo/worktrees/quest-7';
       const sessionId = SessionIdStub({ value: 'tavern-session-7' });
       const workItemId = 'eeeeeeee-1111-4222-9333-444444444444';
       const existingItem = WorkItemStub({
@@ -475,7 +472,7 @@ describe('FollowupChatStartResponder', () => {
       const proxy = FollowupChatStartResponderProxy();
       const guildId = GuildIdStub();
       const questId = QuestIdStub({ value: 'quest-9' });
-      const worktreePath = AbsoluteFilePathStub({ value: '/repo/worktrees/quest-9-missing' });
+      const worktreePath = '/repo/worktrees/quest-9-missing';
       const existingItem = WorkItemStub({
         id: 'ffffffff-1111-4222-9333-444444444444',
         role: 'tavernkeeper',
@@ -505,7 +502,7 @@ describe('FollowupChatStartResponder', () => {
       const proxy = FollowupChatStartResponderProxy();
       const guildId = GuildIdStub();
       const questId = QuestIdStub({ value: 'quest-10' });
-      const worktreePath = AbsoluteFilePathStub({ value: '/repo/worktrees/quest-10-missing' });
+      const worktreePath = '/repo/worktrees/quest-10-missing';
       const existingItem = WorkItemStub({
         id: 'aaaaaaaa-2222-4222-9333-444444444444',
         role: 'tavernkeeper',

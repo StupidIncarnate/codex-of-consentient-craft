@@ -1,4 +1,3 @@
-import { AbsoluteFilePathStub } from '@dungeonmaster/shared/contracts/absolute-file-path/absolute-file-path.stub';
 
 import { binWorkspaceRootLayerBroker } from './bin-workspace-root-layer-broker';
 import { binWorkspaceRootLayerBrokerProxy } from './bin-workspace-root-layer-broker.proxy';
@@ -7,7 +6,7 @@ describe('binWorkspaceRootLayerBroker', () => {
   describe('package.json declares workspaces', () => {
     it('VALID: {workspaces: ["packages/*"]} => returns true', () => {
       const proxy = binWorkspaceRootLayerBrokerProxy();
-      const dir = AbsoluteFilePathStub({ value: '/repo' });
+      const dir = '/repo';
       proxy.setupWorkspaceRoot({ dir });
 
       expect(binWorkspaceRootLayerBroker({ dir })).toBe(true);
@@ -17,7 +16,7 @@ describe('binWorkspaceRootLayerBroker', () => {
   describe('package.json does not declare workspaces', () => {
     it('VALID: {no workspaces field} => returns false', () => {
       const proxy = binWorkspaceRootLayerBrokerProxy();
-      const dir = AbsoluteFilePathStub({ value: '/repo/packages/a' });
+      const dir = '/repo/packages/a';
       proxy.setupPlainPackage({ dir });
 
       expect(binWorkspaceRootLayerBroker({ dir })).toBe(false);
@@ -25,7 +24,7 @@ describe('binWorkspaceRootLayerBroker', () => {
 
     it('EMPTY: {no package.json} => returns false', () => {
       const proxy = binWorkspaceRootLayerBrokerProxy();
-      const dir = AbsoluteFilePathStub({ value: '/repo/packages' });
+      const dir = '/repo/packages';
       proxy.setupNoPackageJson({ dir });
 
       expect(binWorkspaceRootLayerBroker({ dir })).toBe(false);
@@ -33,7 +32,7 @@ describe('binWorkspaceRootLayerBroker', () => {
 
     it('INVALID: {package.json is not JSON} => returns false', () => {
       const proxy = binWorkspaceRootLayerBrokerProxy();
-      const dir = AbsoluteFilePathStub({ value: '/repo/packages/b' });
+      const dir = '/repo/packages/b';
       proxy.setupMalformedPackageJson({ dir });
 
       expect(binWorkspaceRootLayerBroker({ dir })).toBe(false);

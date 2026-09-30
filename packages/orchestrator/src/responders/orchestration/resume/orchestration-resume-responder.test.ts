@@ -1,4 +1,3 @@
-import { AbsoluteFilePathStub } from '@dungeonmaster/shared/contracts/absolute-file-path/absolute-file-path.stub';
 import { OperationItemIdStub } from '@dungeonmaster/shared/contracts/operation-item-id/operation-item-id.stub';
 import { OperationItemStub } from '@dungeonmaster/shared/contracts/operation-item/operation-item.stub';
 import { QuestBranchNameStub } from '@dungeonmaster/shared/contracts/quest-branch-name/quest-branch-name.stub';
@@ -309,9 +308,7 @@ describe('OrchestrationResumeResponder', () => {
     it('ERROR: {paused quest whose recorded worktree is missing} => quest is blocked with a reason naming the absolute path, and no orchestration loop is launched', async () => {
       const questId = QuestIdStub({ value: 'resume-worktree-missing' });
       const workItemId = QuestWorkItemIdStub({ value: 'aaaa1111-1111-4222-9333-444444444444' });
-      const worktreePath = AbsoluteFilePathStub({
-        value: '/repo/worktrees/resume-worktree-missing',
-      });
+      const worktreePath = '/repo/worktrees/resume-worktree-missing';
       const quest = QuestStub({
         id: questId,
         status: 'paused',
@@ -337,9 +334,7 @@ describe('OrchestrationResumeResponder', () => {
 
     it('EMPTY: {paused quest with no work items, worktree missing} => writes status blocked directly via questModifyBroker, with no work item to carry the reason', async () => {
       const questId = QuestIdStub({ value: 'resume-worktree-missing-empty' });
-      const worktreePath = AbsoluteFilePathStub({
-        value: '/repo/worktrees/resume-worktree-missing-empty',
-      });
+      const worktreePath = '/repo/worktrees/resume-worktree-missing-empty';
       const quest = QuestStub({
         id: questId,
         status: 'paused',
@@ -369,7 +364,7 @@ describe('OrchestrationResumeResponder', () => {
         status: 'paused',
         pausedAtStatus: 'in_progress',
         branchName,
-        worktreePath: AbsoluteFilePathStub({ value: '/repo/worktrees/resume-worktree-drifted' }),
+        worktreePath: '/repo/worktrees/resume-worktree-drifted',
       });
       const proxy = OrchestrationResumeResponderProxy();
       proxy.setupQuestFound({ quest });
@@ -401,7 +396,7 @@ describe('OrchestrationResumeResponder', () => {
         status: 'paused',
         pausedAtStatus: 'in_progress',
         branchName,
-        worktreePath: AbsoluteFilePathStub({ value: '/repo/worktrees/resume-worktree-on-branch' }),
+        worktreePath: '/repo/worktrees/resume-worktree-on-branch',
       });
       const proxy = OrchestrationResumeResponderProxy();
       proxy.setupQuestFound({ quest });
@@ -431,9 +426,7 @@ describe('OrchestrationResumeResponder', () => {
         status: 'paused',
         pausedAtStatus: 'in_progress',
         branchName,
-        worktreePath: AbsoluteFilePathStub({
-          value: '/repo/worktrees/resume-worktree-restore-fails',
-        }),
+        worktreePath: '/repo/worktrees/resume-worktree-restore-fails',
       });
       const output =
         "error: pathspec 'quest/resume-worktree-restore-fails-a1b2c3d4' did not match any file(s) known to git";

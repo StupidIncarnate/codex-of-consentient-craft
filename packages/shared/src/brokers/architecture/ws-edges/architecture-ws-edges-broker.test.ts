@@ -1,15 +1,10 @@
 import { architectureWsEdgesBroker } from './architecture-ws-edges-broker';
 import { architectureWsEdgesBrokerProxy } from './architecture-ws-edges-broker.proxy';
-import { AbsoluteFilePathStub } from '../../../contracts/absolute-file-path/absolute-file-path.stub';
 import { ContentTextStub } from '../../../contracts/content-text/content-text.stub';
 
-const PROJECT_ROOT = AbsoluteFilePathStub({ value: '/repo' });
-const EMIT_FILE = AbsoluteFilePathStub({
-  value: '/repo/packages/orchestrator/src/state/orchestration-events/orchestration-events-state.ts',
-});
-const CONSUME_FILE = AbsoluteFilePathStub({
-  value: '/repo/packages/server/src/adapters/orchestrator/events-on/events-on-adapter.ts',
-});
+const PROJECT_ROOT = '/repo';
+const EMIT_FILE = '/repo/packages/orchestrator/src/state/orchestration-events/orchestration-events-state.ts';
+const CONSUME_FILE = '/repo/packages/server/src/adapters/orchestrator/events-on/events-on-adapter.ts';
 
 describe('architectureWsEdgesBroker', () => {
   describe('no source files', () => {

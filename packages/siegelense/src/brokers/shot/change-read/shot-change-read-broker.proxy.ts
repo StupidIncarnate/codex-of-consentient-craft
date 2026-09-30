@@ -13,12 +13,11 @@
 import { readFileBytesProxy } from '#gateway/node/fs__promises/read-file-bytes/read-file-bytes.proxy';
 import { PNG } from '#gateway/npm/pngjs';
 import { decodePngProxy } from '#gateway/npm/pngjs/decode-png/decode-png.proxy';
-import type { AbsoluteFilePath } from '@dungeonmaster/shared/contracts';
 import { Buffer } from '#gateway/node/buffer';
 
 export const shotChangeReadBrokerProxy = (): {
   stagesShot: (params: {
-    path: AbsoluteFilePath;
+    path: string;
     width: number;
     height: number;
     pixels: Uint8Array;
@@ -39,7 +38,7 @@ export const shotChangeReadBrokerProxy = (): {
       height,
       pixels,
     }: {
-      path: AbsoluteFilePath;
+      path: string;
       width: number;
       height: number;
       pixels: Uint8Array;

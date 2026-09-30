@@ -1,8 +1,7 @@
 import { readPackageJsonLayerBroker } from './read-package-json-layer-broker';
 import { readPackageJsonLayerBrokerProxy } from './read-package-json-layer-broker.proxy';
-import { AbsoluteFilePathStub } from '../../../contracts/absolute-file-path/absolute-file-path.stub';
 
-const PACKAGE_ROOT = AbsoluteFilePathStub({ value: '/repo/packages/hooks' });
+const PACKAGE_ROOT = '/repo/packages/hooks';
 
 describe('readPackageJsonLayerBroker', () => {
   describe('existing package.json', () => {

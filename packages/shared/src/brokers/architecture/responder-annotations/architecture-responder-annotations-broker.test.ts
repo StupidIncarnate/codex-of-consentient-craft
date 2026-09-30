@@ -1,9 +1,8 @@
 import { architectureResponderAnnotationsBroker } from './architecture-responder-annotations-broker';
 import { architectureResponderAnnotationsBrokerProxy } from './architecture-responder-annotations-broker.proxy';
-import { AbsoluteFilePathStub } from '../../../contracts/absolute-file-path/absolute-file-path.stub';
 
-const PROJECT_ROOT = AbsoluteFilePathStub({ value: '/repo' });
-const PACKAGE_ROOT = AbsoluteFilePathStub({ value: '/repo/packages/foo' });
+const PROJECT_ROOT = '/repo';
+const PACKAGE_ROOT = '/repo/packages/foo';
 
 describe('architectureResponderAnnotationsBroker', () => {
   describe('empty packages by type', () => {

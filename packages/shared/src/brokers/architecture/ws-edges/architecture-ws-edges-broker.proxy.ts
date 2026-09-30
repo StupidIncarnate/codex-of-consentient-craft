@@ -1,7 +1,6 @@
 import { listTsFilesLayerBrokerProxy } from './list-ts-files-layer-broker.proxy';
 import { readFileLayerBrokerProxy } from './read-file-layer-broker.proxy';
 import { architectureWsGatewayBrokerProxy } from '../ws-gateway/architecture-ws-gateway-broker.proxy';
-import type { AbsoluteFilePath } from '../../../contracts/absolute-file-path/absolute-file-path-contract';
 import { ContentTextStub } from '../../../contracts/content-text/content-text.stub';
 import type { ContentText } from '../../../contracts/content-text/content-text-contract';
 
@@ -9,7 +8,7 @@ export const architectureWsEdgesBrokerProxy = (): {
   setup: ({
     sourceFiles,
   }: {
-    sourceFiles: { path: AbsoluteFilePath; source: ContentText }[];
+    sourceFiles: { path: string; source: ContentText }[];
   }) => void;
 } => {
   const listFilesProxy = listTsFilesLayerBrokerProxy();
@@ -23,11 +22,11 @@ export const architectureWsEdgesBrokerProxy = (): {
     setup: ({
       sourceFiles,
     }: {
-      sourceFiles: { path: AbsoluteFilePath; source: ContentText }[];
+      sourceFiles: { path: string; source: ContentText }[];
     }): void => {
       listFilesProxy.setupVirtualTree({ filePaths: sourceFiles.map((f) => f.path) });
 
-      const fileMap = new Map<AbsoluteFilePath, ContentText>();
+      const fileMap = new Map<string, ContentText>();
       for (const f of sourceFiles) {
         fileMap.set(f.path, f.source);
       }

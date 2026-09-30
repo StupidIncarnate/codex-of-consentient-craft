@@ -15,7 +15,6 @@
  * // file) or ran clean
  */
 
-import type { AbsoluteFilePath } from '@dungeonmaster/shared/contracts';
 
 import type { CheckType } from '../../../contracts/check-type/check-type-contract';
 import type { WardConfig } from '../../../contracts/ward-config/ward-config-contract';
@@ -45,7 +44,7 @@ export const platformDedupeCheckLayerBroker = async ({
   checkTypes,
   passthrough,
 }: {
-  rootPath: AbsoluteFilePath;
+  rootPath: string;
   checkTypes: CheckType[];
   passthrough: WardConfig['passthrough'];
 }): Promise<ProjectResult | undefined> => {

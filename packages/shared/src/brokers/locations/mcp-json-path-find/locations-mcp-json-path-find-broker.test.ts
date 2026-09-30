@@ -1,6 +1,5 @@
 import { locationsMcpJsonPathFindBroker } from './locations-mcp-json-path-find-broker';
 import { locationsMcpJsonPathFindBrokerProxy } from './locations-mcp-json-path-find-broker.proxy';
-import { AbsoluteFilePathStub } from '../../../contracts/absolute-file-path/absolute-file-path.stub';
 
 describe('locationsMcpJsonPathFindBroker', () => {
   describe('mcp.json path resolution', () => {
@@ -16,7 +15,7 @@ describe('locationsMcpJsonPathFindBroker', () => {
 
       const result = await locationsMcpJsonPathFindBroker({ startPath });
 
-      expect(result).toBe(AbsoluteFilePathStub({ value: '/project/.mcp.json' }));
+      expect(result).toBe('/project/.mcp.json');
     });
 
     it('VALID: {startPath: "/monorepo/packages/web"} => walks up to /monorepo/.mcp.json', async () => {
@@ -31,7 +30,7 @@ describe('locationsMcpJsonPathFindBroker', () => {
 
       const result = await locationsMcpJsonPathFindBroker({ startPath });
 
-      expect(result).toBe(AbsoluteFilePathStub({ value: '/monorepo/.mcp.json' }));
+      expect(result).toBe('/monorepo/.mcp.json');
     });
   });
 });

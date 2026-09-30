@@ -13,17 +13,13 @@
 import { homedir } from '#gateway/node/os';
 import { join } from '#gateway/node/path';
 import { locationsStatics } from '../../../statics/locations/locations-statics';
-import {
-  absoluteFilePathContract,
-  type AbsoluteFilePath,
-} from '../../../contracts/absolute-file-path/absolute-file-path-contract';
 
-export const locationsClaudeProjectsRootFindBroker = (): AbsoluteFilePath => {
+export const locationsClaudeProjectsRootFindBroker = (): string => {
   const joined = join(
     homedir(),
     locationsStatics.userHome.claude.dir,
     locationsStatics.userHome.claude.projectsDir,
   );
 
-  return absoluteFilePathContract.parse(joined);
+  return joined;
 };

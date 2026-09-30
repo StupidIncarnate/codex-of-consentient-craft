@@ -1,4 +1,3 @@
-import { AbsoluteFilePathStub } from '@dungeonmaster/shared/contracts/absolute-file-path/absolute-file-path.stub';
 
 import { WardConfigStub } from '../../../contracts/ward-config/ward-config.stub';
 import { PlatformCrossingViolationStub } from '../../../contracts/platform-crossing-violation/platform-crossing-violation.stub';
@@ -13,7 +12,7 @@ describe('platformDedupeCheckLayerBroker', () => {
   describe('lint not selected', () => {
     it('EMPTY: {checkTypes: ["typecheck"]} => returns undefined without calling either check', async () => {
       platformDedupeCheckLayerBrokerProxy();
-      const rootPath = AbsoluteFilePathStub({ value: '/project' });
+      const rootPath = '/project';
 
       const result = await platformDedupeCheckLayerBroker({
         rootPath,
@@ -28,7 +27,7 @@ describe('platformDedupeCheckLayerBroker', () => {
   describe('scoped run that names neither a package.json nor a gateway file', () => {
     it('EMPTY: {checkTypes: ["lint"], passthrough: ordinary file} => returns undefined without calling either check', async () => {
       platformDedupeCheckLayerBrokerProxy();
-      const rootPath = AbsoluteFilePathStub({ value: '/project' });
+      const rootPath = '/project';
       const { passthrough } = WardConfigStub({ passthrough: ['packages/web/src/index.ts'] });
 
       const result = await platformDedupeCheckLayerBroker({
@@ -43,7 +42,7 @@ describe('platformDedupeCheckLayerBroker', () => {
 
   describe('triggered and clean', () => {
     it('EMPTY: {checkTypes: ["lint"], no passthrough, neither check finds anything} => returns undefined', async () => {
-      const rootPath = AbsoluteFilePathStub({ value: '/project' });
+      const rootPath = '/project';
       const proxy = platformDedupeCheckLayerBrokerProxy();
       proxy.setupClean({ rootPath });
 
@@ -59,7 +58,7 @@ describe('platformDedupeCheckLayerBroker', () => {
 
   describe('triggered by a whole-repo run, platform-crossing finds a violation', () => {
     it('VALID: {checkTypes: ["lint"], no passthrough, one platform-crossing violation} => returns a failing ProjectResult carrying the display text', async () => {
-      const rootPath = AbsoluteFilePathStub({ value: '/project' });
+      const rootPath = '/project';
       const violation = PlatformCrossingViolationStub();
       const proxy = platformDedupeCheckLayerBrokerProxy();
       proxy.setupViolations({ rootPath, platformViolations: [violation] });
@@ -100,7 +99,7 @@ describe('platformDedupeCheckLayerBroker', () => {
 
   describe('triggered by a scoped run naming a gateway file, duplicate-install finds a violation', () => {
     it('VALID: {checkTypes: ["lint"], passthrough names a gateway file, one duplicate-install violation} => returns a failing ProjectResult carrying the display text', async () => {
-      const rootPath = AbsoluteFilePathStub({ value: '/project' });
+      const rootPath = '/project';
       const violation = DuplicateInstallViolationStub();
       const proxy = platformDedupeCheckLayerBrokerProxy();
       proxy.setupViolations({ rootPath, duplicateViolations: [violation] });
@@ -142,7 +141,7 @@ describe('platformDedupeCheckLayerBroker', () => {
 
   describe('both checks find violations', () => {
     it('VALID: {one platform-crossing violation, one duplicate-install violation} => returns one ProjectResult carrying both errors', async () => {
-      const rootPath = AbsoluteFilePathStub({ value: '/project' });
+      const rootPath = '/project';
       const platformViolation = PlatformCrossingViolationStub();
       const duplicateViolation = DuplicateInstallViolationStub();
       const proxy = platformDedupeCheckLayerBrokerProxy();

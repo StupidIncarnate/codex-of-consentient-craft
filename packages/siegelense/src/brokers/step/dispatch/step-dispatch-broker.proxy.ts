@@ -1,7 +1,7 @@
 import { PNG } from '#gateway/npm/pngjs';
 import { z } from '#gateway/npm/zod';
 import { contentTextContract } from '@dungeonmaster/shared/contracts';
-import type { AbsoluteFilePath, ContentText, Guild } from '@dungeonmaster/shared/contracts';
+import type { ContentText, Guild } from '@dungeonmaster/shared/contracts';
 import { registerSpyOn } from '@dungeonmaster/testing/register-mock';
 
 import { isNativeErrorProxy } from '#gateway/node/util__types/is-native-error/is-native-error.proxy';
@@ -78,18 +78,18 @@ export const stepDispatchBrokerProxy = (): {
     questIds: readonly ContentText[];
     secondGuild?: Guild;
   }) => { getCallArgs: () => readonly unknown[] };
-  lastShotPath: () => AbsoluteFilePath | null;
-  setLastShotPath: (params: { path: AbsoluteFilePath }) => void;
+  lastShotPath: () => string | null;
+  setLastShotPath: (params: { path: string }) => void;
   stagesShotFrame: (params: {
-    shotPath: AbsoluteFilePath;
+    shotPath: string;
     width: number;
     height: number;
     pixels: Uint8Array;
   }) => void;
-  stagesShotReadError: (params: { shotPath: AbsoluteFilePath; error: Error }) => void;
+  stagesShotReadError: (params: { shotPath: string; error: Error }) => void;
   stagesHoldCopy: (params: {
-    sourcePath: AbsoluteFilePath;
-    destinationPath: AbsoluteFilePath;
+    sourcePath: string;
+    destinationPath: string;
   }) => void;
   getStderrText: () => ContentText;
 } => {
@@ -121,7 +121,7 @@ export const stepDispatchBrokerProxy = (): {
   // this proxy exercises `stepDispatchBroker` directly, the same way a real caller
   // (`runExecuteStepLayerBroker`) hands these two accessors down rather than importing `state/` (a
   // broker's allowed imports do not include it).
-  const lastShotPathHolder: { current: AbsoluteFilePath | null } = { current: null };
+  const lastShotPathHolder: { current: string | null } = { current: null };
 
   return {
     browserlessLane: ({ specName }: { specName: string }): LaneSession =>
@@ -260,9 +260,9 @@ export const stepDispatchBrokerProxy = (): {
       }),
     }),
 
-    lastShotPath: (): AbsoluteFilePath | null => lastShotPathHolder.current,
+    lastShotPath: (): string | null => lastShotPathHolder.current,
 
-    setLastShotPath: ({ path }: { path: AbsoluteFilePath }): void => {
+    setLastShotPath: ({ path }: { path: string }): void => {
       lastShotPathHolder.current = path;
     },
 
@@ -272,7 +272,7 @@ export const stepDispatchBrokerProxy = (): {
       height,
       pixels,
     }: {
-      shotPath: AbsoluteFilePath;
+      shotPath: string;
       width: number;
       height: number;
       pixels: Uint8Array;
@@ -284,7 +284,7 @@ export const stepDispatchBrokerProxy = (): {
       shotPath,
       error,
     }: {
-      shotPath: AbsoluteFilePath;
+      shotPath: string;
       error: Error;
     }): void => {
       blankReadProxy.stagesShotReadError({ shotPath, error });
@@ -293,8 +293,8 @@ export const stepDispatchBrokerProxy = (): {
       sourcePath,
       destinationPath,
     }: {
-      sourcePath: AbsoluteFilePath;
-      destinationPath: AbsoluteFilePath;
+      sourcePath: string;
+      destinationPath: string;
     }): void => {
       verbLayerProxy.setupHoldCopy({ sourcePath, destinationPath });
     },

@@ -11,7 +11,7 @@
 
 import { questContract, smoketestCaseResultContract } from '@dungeonmaster/shared/contracts';
 import { locationsStatics } from '@dungeonmaster/shared/statics';
-import type { AbsoluteFilePath, Quest, SmoketestCaseResult } from '@dungeonmaster/shared/contracts';
+import type { Quest, SmoketestCaseResult } from '@dungeonmaster/shared/contracts';
 import { isTerminalQuestStatusGuard } from '@dungeonmaster/shared/guards';
 import { join } from '#gateway/node/path';
 
@@ -44,7 +44,7 @@ export const processTerminalEventLayerBroker = async ({
   // next suite run cleared prior quests). In that case `questFindQuestPathBroker` throws
   // — there's nothing to assert against, so stop the scenario driver and unregister the
   // listener so the caller's unregister callback fires and the active-run flag can clear.
-  const foundPath: { questPath: AbsoluteFilePath } | null = await questFindQuestPathBroker({
+  const foundPath: { questPath: string } | null = await questFindQuestPathBroker({
     questId,
   }).catch((error: unknown): null => {
     if (error instanceof QuestNotFoundError || error instanceof GuildNotFoundError) {

@@ -9,7 +9,6 @@
  */
 
 import { globSync } from '#gateway/node/fs';
-import type { AbsoluteFilePath } from '@dungeonmaster/shared/contracts';
 
 import {
   projectResultContract,
@@ -30,7 +29,7 @@ export const globDiscoverFilesBroker = ({
   exclude,
 }: {
   patterns: readonly string[];
-  cwd: AbsoluteFilePath;
+  cwd: string;
   exclude?: readonly string[];
 }): { discoveredCount: DiscoveredCount; discoveredFiles: GitRelativePath[] } => {
   const seen = new Set<GitRelativePath>();

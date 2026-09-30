@@ -1,9 +1,8 @@
-import type { AbsoluteFilePath } from '@dungeonmaster/shared/contracts';
 import { readFileIfExistsProxy } from '#gateway/node/fs__promises/read-file-if-exists/read-file-if-exists.proxy';
 
 export const bufferReadLayerBrokerProxy = (): {
-  setupBuffer: (params: { bufferPath: AbsoluteFilePath; content: string }) => void;
-  setupMissingBuffer: (params: { bufferPath: AbsoluteFilePath }) => void;
+  setupBuffer: (params: { bufferPath: string; content: string }) => void;
+  setupMissingBuffer: (params: { bufferPath: string }) => void;
 } => {
   const readFileProxy = readFileIfExistsProxy();
 
@@ -12,13 +11,13 @@ export const bufferReadLayerBrokerProxy = (): {
       bufferPath,
       content,
     }: {
-      bufferPath: AbsoluteFilePath;
+      bufferPath: string;
       content: string;
     }): void => {
       readFileProxy.returns({ path: bufferPath, contents: content });
     },
 
-    setupMissingBuffer: ({ bufferPath }: { bufferPath: AbsoluteFilePath }): void => {
+    setupMissingBuffer: ({ bufferPath }: { bufferPath: string }): void => {
       readFileProxy.missing({ path: bufferPath });
     },
   };

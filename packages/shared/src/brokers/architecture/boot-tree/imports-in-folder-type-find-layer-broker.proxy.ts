@@ -2,8 +2,6 @@ import { existsSyncProxy } from '#gateway/node/fs/exists-sync/exists-sync.proxy'
 import { readFileContentsLayerBrokerProxy } from './read-file-contents-layer-broker.proxy';
 import { importStatementsExtractTransformer } from '../../../transformers/import-statements-extract/import-statements-extract-transformer';
 import { relativeImportResolveTransformer } from '../../../transformers/relative-import-resolve/relative-import-resolve-transformer';
-import { AbsoluteFilePathStub } from '../../../contracts/absolute-file-path/absolute-file-path.stub';
-import type { AbsoluteFilePath } from '../../../contracts/absolute-file-path/absolute-file-path-contract';
 import type { ContentText } from '../../../contracts/content-text/content-text-contract';
 
 const TS_SUFFIX = '.ts';
@@ -14,10 +12,10 @@ export const importsInFolderTypeFindLayerBrokerProxy = (): {
     sourceFile,
     content,
   }: {
-    sourceFile: AbsoluteFilePath;
+    sourceFile: string;
     content: ContentText;
   }) => void;
-  setupMissing: ({ sourceFile }: { sourceFile: AbsoluteFilePath }) => void;
+  setupMissing: ({ sourceFile }: { sourceFile: string }) => void;
   setupImplementation: (params: {
     fn: (filePath: ContentText) => ContentText;
     map?: Record<string, ContentText>;
@@ -33,14 +31,14 @@ export const importsInFolderTypeFindLayerBrokerProxy = (): {
   // candidates instead of answering every path the same way. Defaults to "the .ts candidate is the
   // real file" — every current scenario's source is a real .ts sibling — and setupTsExists /
   // setupTsxExists override the specific candidates a later scenario needs.
-  const candidates: { tsPath: AbsoluteFilePath; tsxPath: AbsoluteFilePath }[] = [];
+  const candidates: { tsPath: string; tsxPath: string }[] = [];
 
   return {
     setupSource: ({
       sourceFile,
       content,
     }: {
-      sourceFile: AbsoluteFilePath;
+      sourceFile: string;
       content: ContentText;
     }): void => {
       fileProxy.setupReturns({ filePath: sourceFile, content });
@@ -51,11 +49,9 @@ export const importsInFolderTypeFindLayerBrokerProxy = (): {
         if (resolved === null) continue;
 
         const resolvedStr = String(resolved);
-        const tsxPath = AbsoluteFilePathStub({
-          value: resolvedStr.endsWith(TS_SUFFIX)
+        const tsxPath = (resolvedStr.endsWith(TS_SUFFIX)
             ? `${resolvedStr.slice(0, -TS_SUFFIX.length)}${TSX_SUFFIX}`
-            : `${resolvedStr}${TSX_SUFFIX}`,
-        });
+            : `${resolvedStr}${TSX_SUFFIX}`);
 
         candidates.push({ tsPath: resolved, tsxPath });
         existsProxy.returns({ path: resolved, exists: true });
@@ -63,7 +59,7 @@ export const importsInFolderTypeFindLayerBrokerProxy = (): {
       }
     },
 
-    setupMissing: ({ sourceFile }: { sourceFile: AbsoluteFilePath }): void => {
+    setupMissing: ({ sourceFile }: { sourceFile: string }): void => {
       fileProxy.setupMissing({ filePath: sourceFile });
     },
 

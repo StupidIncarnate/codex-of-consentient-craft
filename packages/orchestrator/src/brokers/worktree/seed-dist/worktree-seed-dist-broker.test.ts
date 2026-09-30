@@ -1,4 +1,3 @@
-import { AbsoluteFilePathStub } from '@dungeonmaster/shared/contracts/absolute-file-path/absolute-file-path.stub';
 
 import { worktreeSeedDistBroker } from './worktree-seed-dist-broker';
 import { worktreeSeedDistBrokerProxy } from './worktree-seed-dist-broker.proxy';
@@ -10,8 +9,8 @@ describe('worktreeSeedDistBroker', () => {
     // checkout's output.
     it('VALID: {one built package, worktree has no dist} => copies with cp -a and never with -al', async () => {
       const proxy = worktreeSeedDistBrokerProxy();
-      const repoRoot = AbsoluteFilePathStub({ value: '/repo' });
-      const worktreePath = AbsoluteFilePathStub({ value: '/repo/worktrees/probe' });
+      const repoRoot = '/repo';
+      const worktreePath = '/repo/worktrees/probe';
 
       proxy.setupPackages({
         repoRoot,
@@ -31,8 +30,8 @@ describe('worktreeSeedDistBroker', () => {
 
     it('VALID: {two built packages, neither seeded} => copies the second one to its own package path', async () => {
       const proxy = worktreeSeedDistBrokerProxy();
-      const repoRoot = AbsoluteFilePathStub({ value: '/repo' });
-      const worktreePath = AbsoluteFilePathStub({ value: '/repo/worktrees/probe' });
+      const repoRoot = '/repo';
+      const worktreePath = '/repo/worktrees/probe';
 
       proxy.setupPackages({
         repoRoot,
@@ -57,8 +56,8 @@ describe('worktreeSeedDistBroker', () => {
   describe('the per-package done-check', () => {
     it('VALID: {worktree already holds every dist} => copies nothing', async () => {
       const proxy = worktreeSeedDistBrokerProxy();
-      const repoRoot = AbsoluteFilePathStub({ value: '/repo' });
-      const worktreePath = AbsoluteFilePathStub({ value: '/repo/worktrees/probe' });
+      const repoRoot = '/repo';
+      const worktreePath = '/repo/worktrees/probe';
 
       proxy.setupPackages({
         repoRoot,
@@ -73,8 +72,8 @@ describe('worktreeSeedDistBroker', () => {
 
     it('VALID: {one package seeded, one not} => copies only the one that is missing', async () => {
       const proxy = worktreeSeedDistBrokerProxy();
-      const repoRoot = AbsoluteFilePathStub({ value: '/repo' });
-      const worktreePath = AbsoluteFilePathStub({ value: '/repo/worktrees/probe' });
+      const repoRoot = '/repo';
+      const worktreePath = '/repo/worktrees/probe';
 
       proxy.setupPackages({
         repoRoot,
@@ -99,8 +98,8 @@ describe('worktreeSeedDistBroker', () => {
   describe('an unbuilt main checkout', () => {
     it('ERROR: {a package with no source dist} => rejects naming it and copies nothing', async () => {
       const proxy = worktreeSeedDistBrokerProxy();
-      const repoRoot = AbsoluteFilePathStub({ value: '/repo' });
-      const worktreePath = AbsoluteFilePathStub({ value: '/repo/worktrees/probe' });
+      const repoRoot = '/repo';
+      const worktreePath = '/repo/worktrees/probe';
 
       proxy.setupPackages({
         repoRoot,
@@ -123,8 +122,8 @@ describe('worktreeSeedDistBroker', () => {
 
     it('ERROR: {two packages with no source dist} => names both in one message', async () => {
       const proxy = worktreeSeedDistBrokerProxy();
-      const repoRoot = AbsoluteFilePathStub({ value: '/repo' });
-      const worktreePath = AbsoluteFilePathStub({ value: '/repo/worktrees/probe' });
+      const repoRoot = '/repo';
+      const worktreePath = '/repo/worktrees/probe';
 
       proxy.setupPackages({
         repoRoot,
@@ -149,8 +148,8 @@ describe('worktreeSeedDistBroker', () => {
   describe('directories under packages/ that are not packages', () => {
     it('VALID: {a directory with no package.json and no dist} => is not reported as unbuilt', async () => {
       const proxy = worktreeSeedDistBrokerProxy();
-      const repoRoot = AbsoluteFilePathStub({ value: '/repo' });
-      const worktreePath = AbsoluteFilePathStub({ value: '/repo/worktrees/probe' });
+      const repoRoot = '/repo';
+      const worktreePath = '/repo/worktrees/probe';
 
       proxy.setupPackages({
         repoRoot,
@@ -170,8 +169,8 @@ describe('worktreeSeedDistBroker', () => {
   describe('a repo that is not a monorepo', () => {
     it('EMPTY: {no packages directory} => returns success without copying anything', async () => {
       const proxy = worktreeSeedDistBrokerProxy();
-      const repoRoot = AbsoluteFilePathStub({ value: '/repo' });
-      const worktreePath = AbsoluteFilePathStub({ value: '/repo/worktrees/probe' });
+      const repoRoot = '/repo';
+      const worktreePath = '/repo/worktrees/probe';
 
       proxy.setupPackagesDirAbsent({ repoRoot });
 
@@ -184,8 +183,8 @@ describe('worktreeSeedDistBroker', () => {
   describe('a copy that fails', () => {
     it('ERROR: {cp exits non-zero} => rejects carrying cp own output', async () => {
       const proxy = worktreeSeedDistBrokerProxy();
-      const repoRoot = AbsoluteFilePathStub({ value: '/repo' });
-      const worktreePath = AbsoluteFilePathStub({ value: '/repo/worktrees/probe' });
+      const repoRoot = '/repo';
+      const worktreePath = '/repo/worktrees/probe';
 
       proxy.setupPackages({
         repoRoot,

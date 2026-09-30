@@ -1,19 +1,14 @@
 import { responderLinesRenderLayerBroker } from './responder-lines-render-layer-broker';
 import { responderLinesRenderLayerBrokerProxy } from './responder-lines-render-layer-broker.proxy';
-import { AbsoluteFilePathStub } from '../../../contracts/absolute-file-path/absolute-file-path.stub';
 import { ContentTextStub } from '../../../contracts/content-text/content-text.stub';
 
 describe('responderLinesRenderLayerBroker', () => {
   describe('single responder no brokers', () => {
     it('VALID: {flow with one responder and no brokers} => returns ↳ responder line', () => {
       const proxy = responderLinesRenderLayerBrokerProxy();
-      const flowFile = AbsoluteFilePathStub({
-        value: '/repo/packages/server/src/flows/quest/quest-flow.ts',
-      });
-      const packageSrcPath = AbsoluteFilePathStub({ value: '/repo/packages/server/src' });
-      const renderingFilePath = AbsoluteFilePathStub({
-        value: '/repo/packages/server/src/startup/start-server.ts',
-      });
+      const flowFile = '/repo/packages/server/src/flows/quest/quest-flow.ts';
+      const packageSrcPath = '/repo/packages/server/src';
+      const renderingFilePath = '/repo/packages/server/src/startup/start-server.ts';
 
       proxy.setupFileContentsMap({
         map: {
@@ -39,13 +34,9 @@ describe('responderLinesRenderLayerBroker', () => {
   describe('responder with broker', () => {
     it('VALID: {flow with responder and broker} => renders ↳ line and → broker line', () => {
       const proxy = responderLinesRenderLayerBrokerProxy();
-      const flowFile = AbsoluteFilePathStub({
-        value: '/repo/packages/server/src/flows/server/server-flow.ts',
-      });
-      const packageSrcPath = AbsoluteFilePathStub({ value: '/repo/packages/server/src' });
-      const renderingFilePath = AbsoluteFilePathStub({
-        value: '/repo/packages/server/src/startup/start-server.ts',
-      });
+      const flowFile = '/repo/packages/server/src/flows/server/server-flow.ts';
+      const packageSrcPath = '/repo/packages/server/src';
+      const renderingFilePath = '/repo/packages/server/src/startup/start-server.ts';
 
       proxy.setupFileContentsMap({
         map: {
@@ -80,13 +71,9 @@ describe('responderLinesRenderLayerBroker', () => {
   describe('empty flow', () => {
     it('EMPTY: {flow with no responder imports} => returns empty array', () => {
       const proxy = responderLinesRenderLayerBrokerProxy();
-      const flowFile = AbsoluteFilePathStub({
-        value: '/repo/packages/server/src/flows/health/health-flow.ts',
-      });
-      const packageSrcPath = AbsoluteFilePathStub({ value: '/repo/packages/server/src' });
-      const renderingFilePath = AbsoluteFilePathStub({
-        value: '/repo/packages/server/src/startup/start-server.ts',
-      });
+      const flowFile = '/repo/packages/server/src/flows/health/health-flow.ts';
+      const packageSrcPath = '/repo/packages/server/src';
+      const renderingFilePath = '/repo/packages/server/src/startup/start-server.ts';
 
       proxy.setupFileContentsMap({ map: {} });
 
@@ -103,13 +90,9 @@ describe('responderLinesRenderLayerBroker', () => {
   describe('react-router metadata', () => {
     it('VALID: {flow with path Route} => renders path="..." → ResponderSymbol line', () => {
       const proxy = responderLinesRenderLayerBrokerProxy();
-      const flowFile = AbsoluteFilePathStub({
-        value: '/repo/packages/web/src/flows/home/home-flow.tsx',
-      });
-      const packageSrcPath = AbsoluteFilePathStub({ value: '/repo/packages/web/src' });
-      const renderingFilePath = AbsoluteFilePathStub({
-        value: '/repo/packages/web/src/startup/start-app.ts',
-      });
+      const flowFile = '/repo/packages/web/src/flows/home/home-flow.tsx';
+      const packageSrcPath = '/repo/packages/web/src';
+      const renderingFilePath = '/repo/packages/web/src/startup/start-app.ts';
 
       proxy.setupFileContentsMap({
         map: {
@@ -134,13 +117,9 @@ describe('responderLinesRenderLayerBroker', () => {
 
     it('VALID: {flow with path-less layout Route} => renders (layout) ResponderSymbol line', () => {
       const proxy = responderLinesRenderLayerBrokerProxy();
-      const flowFile = AbsoluteFilePathStub({
-        value: '/repo/packages/web/src/flows/app/app-flow.tsx',
-      });
-      const packageSrcPath = AbsoluteFilePathStub({ value: '/repo/packages/web/src' });
-      const renderingFilePath = AbsoluteFilePathStub({
-        value: '/repo/packages/web/src/startup/start-app.ts',
-      });
+      const flowFile = '/repo/packages/web/src/flows/app/app-flow.tsx';
+      const packageSrcPath = '/repo/packages/web/src';
+      const renderingFilePath = '/repo/packages/web/src/startup/start-app.ts';
 
       proxy.setupFileContentsMap({
         map: {
@@ -167,13 +146,9 @@ describe('responderLinesRenderLayerBroker', () => {
   describe('flow → flow recursion', () => {
     it('VALID: {flow imports child flow} => recurses with deeper indent', () => {
       const proxy = responderLinesRenderLayerBrokerProxy();
-      const flowFile = AbsoluteFilePathStub({
-        value: '/repo/packages/web/src/flows/app-mount/app-mount-flow.tsx',
-      });
-      const packageSrcPath = AbsoluteFilePathStub({ value: '/repo/packages/web/src' });
-      const renderingFilePath = AbsoluteFilePathStub({
-        value: '/repo/packages/web/src/startup/start-app.ts',
-      });
+      const flowFile = '/repo/packages/web/src/flows/app-mount/app-mount-flow.tsx';
+      const packageSrcPath = '/repo/packages/web/src';
+      const renderingFilePath = '/repo/packages/web/src/startup/start-app.ts';
 
       proxy.setupFileContentsMap({
         map: {
@@ -214,13 +189,9 @@ describe('responderLinesRenderLayerBroker', () => {
 
     it('VALID: {circular flow imports} => visited set prevents infinite recursion', () => {
       const proxy = responderLinesRenderLayerBrokerProxy();
-      const flowFile = AbsoluteFilePathStub({
-        value: '/repo/packages/web/src/flows/a/a-flow.tsx',
-      });
-      const packageSrcPath = AbsoluteFilePathStub({ value: '/repo/packages/web/src' });
-      const renderingFilePath = AbsoluteFilePathStub({
-        value: '/repo/packages/web/src/startup/start-app.ts',
-      });
+      const flowFile = '/repo/packages/web/src/flows/a/a-flow.tsx';
+      const packageSrcPath = '/repo/packages/web/src';
+      const renderingFilePath = '/repo/packages/web/src/startup/start-app.ts';
 
       proxy.setupFileContentsMap({
         map: {
@@ -236,12 +207,12 @@ describe('responderLinesRenderLayerBroker', () => {
         },
       });
 
-      const visited = new Set<ReturnType<typeof AbsoluteFilePathStub>>();
+      const visited = new Set<string>();
       visited.add(flowFile);
       // The resolver appends `.ts` to relative imports regardless of the source file's
       // extension. Seed visited with the .ts variant too so b-flow's `import { AFlow }`
       // resolves to an already-visited node and recursion stops.
-      visited.add(AbsoluteFilePathStub({ value: '/repo/packages/web/src/flows/a/a-flow.ts' }));
+      visited.add('/repo/packages/web/src/flows/a/a-flow.ts');
 
       const result = responderLinesRenderLayerBroker({
         flowFile,

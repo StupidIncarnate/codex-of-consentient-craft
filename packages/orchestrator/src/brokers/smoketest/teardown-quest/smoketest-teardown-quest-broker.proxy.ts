@@ -2,7 +2,7 @@ import type { FsError } from '#gateway/node/fs';
 import { rmProxy } from '#gateway/node/fs__promises/rm/rm.proxy';
 import { FileNameStub } from '@dungeonmaster/shared/contracts/file-name/file-name.stub';
 import { QuestStub } from '@dungeonmaster/shared/contracts/quest/quest.stub';
-import type { AbsoluteFilePath, Guild } from '@dungeonmaster/shared/contracts';
+import type { Guild } from '@dungeonmaster/shared/contracts';
 
 import { questFindQuestPathBrokerProxy } from '../../quest/find-quest-path/quest-find-quest-path-broker.proxy';
 
@@ -10,7 +10,7 @@ type Quest = ReturnType<typeof QuestStub>;
 
 export const smoketestTeardownQuestBrokerProxy = (): {
   setupQuestFound: (params: {
-    questPath: AbsoluteFilePath;
+    questPath: string;
     guildId: Guild['id'];
     questId: Quest['id'];
   }) => void;
@@ -28,7 +28,7 @@ export const smoketestTeardownQuestBrokerProxy = (): {
       guildId,
       questId,
     }: {
-      questPath: AbsoluteFilePath;
+      questPath: string;
       guildId: Guild['id'];
       questId: Quest['id'];
     }): void => {

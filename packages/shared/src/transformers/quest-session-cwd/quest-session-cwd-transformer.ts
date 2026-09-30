@@ -15,7 +15,6 @@
  */
 
 import type { Quest } from '../../contracts/quest/quest-contract';
-import type { AbsoluteFilePath } from '../../contracts/absolute-file-path/absolute-file-path-contract';
 import type { Session } from '../../contracts/session/session-contract';
 
 export const questSessionCwdTransformer = ({
@@ -24,7 +23,7 @@ export const questSessionCwdTransformer = ({
 }: {
   quest: Quest;
   sessionId: Session['id'];
-}): AbsoluteFilePath | null => {
+}): string | null => {
   const row = quest.sessions.find((session) => session.sessionId === sessionId);
 
   return row === undefined ? null : row.cwd;

@@ -13,8 +13,6 @@
  * WHEN-TO-USE: Inside httpEdgesLayerBroker, once per scan, before walking flows/ and brokers/
  */
 
-import { absoluteFilePathContract } from '../../../contracts/absolute-file-path/absolute-file-path-contract';
-import type { AbsoluteFilePath } from '../../../contracts/absolute-file-path/absolute-file-path-contract';
 import { packageJsonContract } from '../../../contracts/package-json/package-json-contract';
 import { hasHonoOrExpressDependencyGuard } from '../../../guards/has-hono-or-express-dependency/has-hono-or-express-dependency-guard';
 import { flowCreatesHonoOrExpressAppGuard } from '../../../guards/flow-creates-hono-or-express-app/flow-creates-hono-or-express-app-guard';
@@ -28,40 +26,32 @@ import { readFileLayerBroker } from './read-file-layer-broker';
 export const resolvePackageGroupsLayerBroker = ({
   projectRoot,
 }: {
-  projectRoot: AbsoluteFilePath;
+  projectRoot: string;
 }): {
-  httpBackendRoots: AbsoluteFilePath[];
-  frontendRoots: AbsoluteFilePath[];
+  httpBackendRoots: string[];
+  frontendRoots: string[];
 } => {
-  const packagesDir = absoluteFilePathContract.parse(
-    `${projectRoot}/${projectMapStatics.packagesDirName}`,
-  );
+  const packagesDir = `${projectRoot}/${projectMapStatics.packagesDirName}`;
   const packageEntries = safeReaddirLayerBroker({ dirPath: packagesDir }).filter(
     (entry) => entry.kind === 'directory',
   );
   const candidateRoots =
     packageEntries.length > 0
       ? packageEntries.map((entry) =>
-          absoluteFilePathContract.parse(
-            `${projectRoot}/${projectMapStatics.packagesDirName}/${entry.name}`,
-          ),
+          `${projectRoot}/${projectMapStatics.packagesDirName}/${entry.name}`,
         )
       : [projectRoot];
 
-  const httpBackendRoots: AbsoluteFilePath[] = [];
-  const frontendRoots: AbsoluteFilePath[] = [];
+  const httpBackendRoots: string[] = [];
+  const frontendRoots: string[] = [];
 
   for (const packageRoot of candidateRoots) {
-    const srcPath = absoluteFilePathContract.parse(
-      `${packageRoot}/${projectMapStatics.srcDirName}`,
-    );
+    const srcPath = `${packageRoot}/${projectMapStatics.srcDirName}`;
     const srcDirNames = safeReaddirLayerBroker({ dirPath: srcPath })
       .filter((entry) => entry.kind === 'directory')
       .map((entry) => entry.name);
 
-    const packageJsonPath = absoluteFilePathContract.parse(
-      `${packageRoot}/${projectMapStatics.packageJsonName}`,
-    );
+    const packageJsonPath = `${packageRoot}/${projectMapStatics.packageJsonName}`;
     const packageJsonRaw = readFileLayerBroker({ filePath: packageJsonPath });
     let packageJson = packageJsonContract.parse({});
     if (packageJsonRaw !== undefined) {
@@ -78,9 +68,7 @@ export const resolvePackageGroupsLayerBroker = ({
     if (
       (srcDirNames.includes('flows') && hasHonoOrExpressDependencyGuard({ packageJson })) ||
       listTsFilesLayerBroker({
-        dirPath: absoluteFilePathContract.parse(
-          `${packageRoot}/${projectMapStatics.srcDirName}/flows`,
-        ),
+        dirPath: `${packageRoot}/${projectMapStatics.srcDirName}/flows`,
       }).some(
         (flowPath) =>
           matchesFlowFileNameGuard({ name: flowPath }) &&

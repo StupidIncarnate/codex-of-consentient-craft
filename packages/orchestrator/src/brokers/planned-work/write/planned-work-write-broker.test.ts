@@ -1,4 +1,3 @@
-import { AbsoluteFilePathStub } from '@dungeonmaster/shared/contracts/absolute-file-path/absolute-file-path.stub';
 import { OperationItemIdStub } from '@dungeonmaster/shared/contracts/operation-item-id/operation-item-id.stub';
 import { FsErrorStub } from '#gateway/node/fs/is-fs-error/fs-error.stub';
 
@@ -12,7 +11,7 @@ describe('plannedWorkWriteBroker', () => {
   describe('successful write', () => {
     it('VALID: {questFolderPath, operationItemId, plan} => writes the plan JSON to the tmp path', async () => {
       const proxy = plannedWorkWriteBrokerProxy();
-      const questFolderPath = AbsoluteFilePathStub({ value: '/quests/add-auth' });
+      const questFolderPath = '/quests/add-auth';
       const operationItemId = OperationItemIdStub({
         value: 'a1b2c3d4-58cc-4372-a567-0e02b2c3d479',
       });
@@ -31,7 +30,7 @@ describe('plannedWorkWriteBroker', () => {
 
     it('VALID: {questFolderPath, operationItemId, plan} => renames the tmp file onto the final planned-work path', async () => {
       const proxy = plannedWorkWriteBrokerProxy();
-      const questFolderPath = AbsoluteFilePathStub({ value: '/quests/fix-bug' });
+      const questFolderPath = '/quests/fix-bug';
       const operationItemId = OperationItemIdStub({
         value: 'b2c3d4e5-58cc-4372-a567-0e02b2c3d479',
       });
@@ -53,7 +52,7 @@ describe('plannedWorkWriteBroker', () => {
   describe('error cases', () => {
     it('ERROR: {directory create fails} => throws the mkdir error', async () => {
       const proxy = plannedWorkWriteBrokerProxy();
-      const questFolderPath = AbsoluteFilePathStub({ value: '/quests/mkdir-fails' });
+      const questFolderPath = '/quests/mkdir-fails';
       const operationItemId = OperationItemIdStub({
         value: 'c3d4e5f6-58cc-4372-a567-0e02b2c3d479',
       });
@@ -72,7 +71,7 @@ describe('plannedWorkWriteBroker', () => {
 
     it('ERROR: {tmp write fails} => throws the write error', async () => {
       const proxy = plannedWorkWriteBrokerProxy();
-      const questFolderPath = AbsoluteFilePathStub({ value: '/quests/write-fails' });
+      const questFolderPath = '/quests/write-fails';
       const operationItemId = OperationItemIdStub({
         value: 'd4e5f6a7-58cc-4372-a567-0e02b2c3d479',
       });
@@ -91,7 +90,7 @@ describe('plannedWorkWriteBroker', () => {
 
     it('ERROR: {rename fails} => throws the rename error', async () => {
       const proxy = plannedWorkWriteBrokerProxy();
-      const questFolderPath = AbsoluteFilePathStub({ value: '/quests/rename-fails' });
+      const questFolderPath = '/quests/rename-fails';
       const operationItemId = OperationItemIdStub({
         value: 'e5f6a7b8-58cc-4372-a567-0e02b2c3d479',
       });

@@ -1,4 +1,3 @@
-import { AbsoluteFilePathStub } from '@dungeonmaster/shared/contracts/absolute-file-path/absolute-file-path.stub';
 import { PathSegmentStub } from '@dungeonmaster/shared/contracts/path-segment/path-segment.stub';
 import { SessionIdStub } from '@dungeonmaster/shared/contracts/session-id/session-id.stub';
 
@@ -17,7 +16,7 @@ describe('transcriptResolveBroker', () => {
       const result = transcriptResolveBroker({ target: SessionIdStub({ value: 'abc-123' }) });
 
       expect(result).toBe(
-        AbsoluteFilePathStub({ value: '/home/user/.claude/projects/proj-a/abc-123.jsonl' }),
+        '/home/user/.claude/projects/proj-a/abc-123.jsonl',
       );
     });
 
@@ -41,9 +40,7 @@ describe('transcriptResolveBroker', () => {
       });
 
       expect(result).toBe(
-        AbsoluteFilePathStub({
-          value: '/home/user/.claude/projects/proj-b/target-session.jsonl',
-        }),
+        '/home/user/.claude/projects/proj-b/target-session.jsonl',
       );
     });
 
@@ -63,9 +60,7 @@ describe('transcriptResolveBroker', () => {
       });
 
       expect(result).toBe(
-        AbsoluteFilePathStub({
-          value: '/home/user/.claude/projects/proj-match/target-session.jsonl',
-        }),
+        '/home/user/.claude/projects/proj-match/target-session.jsonl',
       );
     });
 
@@ -99,9 +94,7 @@ describe('transcriptResolveBroker', () => {
       });
 
       expect(result).toBe(
-        AbsoluteFilePathStub({
-          value: '/home/user/.claude/projects/proj-a/session-1/subagents/agent-target.jsonl',
-        }),
+        '/home/user/.claude/projects/proj-a/session-1/subagents/agent-target.jsonl',
       );
     });
 
@@ -116,9 +109,7 @@ describe('transcriptResolveBroker', () => {
       const result = transcriptResolveBroker({ target: SessionIdStub({ value: 'agent-target' }) });
 
       expect(result).toBe(
-        AbsoluteFilePathStub({
-          value: '/home/user/.claude/projects/proj-a/session-1/subagents/agent-target.jsonl',
-        }),
+        '/home/user/.claude/projects/proj-a/session-1/subagents/agent-target.jsonl',
       );
     });
 
@@ -138,9 +129,7 @@ describe('transcriptResolveBroker', () => {
       const result = transcriptResolveBroker({ target: SessionIdStub({ value: 'agent-target' }) });
 
       expect(result).toBe(
-        AbsoluteFilePathStub({
-          value: '/home/user/.claude/projects/proj-a/session-2/subagents/agent-target.jsonl',
-        }),
+        '/home/user/.claude/projects/proj-a/session-2/subagents/agent-target.jsonl',
       );
     });
   });

@@ -1,7 +1,6 @@
 import type { DirEntrySync } from '#gateway/node/fs';
 import { safeReaddirLayerBrokerProxy } from './safe-readdir-layer-broker.proxy';
 import { readFileOptionalLayerBrokerProxy } from './read-file-optional-layer-broker.proxy';
-import { AbsoluteFilePathStub } from '../../../contracts/absolute-file-path/absolute-file-path.stub';
 import { ContentTextStub } from '../../../contracts/content-text/content-text.stub';
 
 const makeDirDirent = ({ name }: { name: string }): DirEntrySync => ({ name, kind: 'directory' });
@@ -32,11 +31,11 @@ export const architecturePackageE2eEligibleDetectBrokerProxy = (): {
       // catch-all regardless of registration order, since specificity is scored per call, not by
       // recency alone.
       readdirProxy.setupDirectory({
-        dirPath: AbsoluteFilePathStub({ value: `${packageRoot}/src` }),
+        dirPath: `${packageRoot}/src`,
         entries: srcDirNames.map((name) => makeDirDirent({ name })),
       });
       readFileProxy.setupReturns({
-        filePath: AbsoluteFilePathStub({ value: `${packageRoot}/package.json` }),
+        filePath: `${packageRoot}/package.json`,
         content: ContentTextStub({ value: packageJsonContent }),
       });
     },

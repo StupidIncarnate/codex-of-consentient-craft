@@ -1,6 +1,5 @@
 import { TextContentSchema } from '#gateway/npm/modelcontextprotocol__sdk__types';
 import { ToolNameStub } from '../../../contracts/tool-name/tool-name.stub';
-import { AbsoluteFilePathStub } from '@dungeonmaster/shared/contracts/absolute-file-path/absolute-file-path.stub';
 import { ContentTextStub } from '@dungeonmaster/shared/contracts/content-text/content-text.stub';
 import { DesignDecisionStub } from '@dungeonmaster/shared/contracts/design-decision/design-decision.stub';
 import { FlowNodeStub } from '@dungeonmaster/shared/contracts/flow-node/flow-node.stub';
@@ -1190,7 +1189,7 @@ describe('QuestHandleResponder', () => {
       const proxy = QuestHandleResponderProxy();
       proxy.setupCreateWorktreeReturns({
         name: 'probe',
-        result: { worktreePath: AbsoluteFilePathStub({ value: '/repo/worktrees/probe' }) },
+        result: { worktreePath: '/repo/worktrees/probe' },
       });
 
       const result = await proxy.callResponder({
@@ -1212,7 +1211,7 @@ describe('QuestHandleResponder', () => {
       const proxy = QuestHandleResponderProxy();
       proxy.setupCreateWorktreeReturns({
         name: 'probe',
-        result: { worktreePath: AbsoluteFilePathStub({ value: '/repo/worktrees/probe' }) },
+        result: { worktreePath: '/repo/worktrees/probe' },
       });
 
       await proxy.callResponder({

@@ -6,7 +6,7 @@
  * await sessions.createSessionFile({ sessionId: 'abc', userMessage: 'Hello' });
  * // afterEach: cleans session directory
  */
-import type { Guild, AbsoluteFilePath } from '@dungeonmaster/shared/contracts';
+import type { Guild } from '@dungeonmaster/shared/contracts';
 import { existsSync } from '#gateway/node/fs';
 import { appendFile, ensureDir, readdir, rm, unlink } from '#gateway/node/fs__promises';
 import * as path from '#gateway/node/path';
@@ -20,7 +20,6 @@ import {
   toolUseIdContract,
 } from '@dungeonmaster/hydration-recipes/contracts';
 import type { DmTarget } from '@dungeonmaster/hydration-recipes/contracts';
-import { AbsoluteFilePathStub } from '@dungeonmaster/shared/contracts/absolute-file-path/absolute-file-path.stub';
 import {
   AskUserQuestionToolResultStreamLineStub,
   SuccessfulToolResultStreamLineStub,
@@ -289,10 +288,10 @@ export const sessionHarness = ({
     return dmTargetContract.parse({ home, claudeHome: home });
   };
 
-  const getJsonlDir = (): AbsoluteFilePath =>
+  const getJsonlDir = (): string =>
     claudePathSlugEncoderTransformer({
       homeDir: resolvedTarget().claudeHome,
-      projectPath: AbsoluteFilePathStub({ value: guildPath }),
+      projectPath: guildPath,
     });
 
   // Writes a session's OWN JSONL lines through dmRegistryBroker's session ingredient — no raw-fs

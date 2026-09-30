@@ -11,10 +11,6 @@
  */
 import { readFileSync, readJsonFileSyncIfExists, walkFilesSync } from '#gateway/node/fs';
 
-import {
-  absoluteFilePathContract,
-  type AbsoluteFilePath,
-} from '../../../contracts/absolute-file-path/absolute-file-path-contract';
 import { contractIndexPackageContract } from '../../../contracts/contract-index-package/contract-index-package-contract';
 import { contentTextContract } from '../../../contracts/content-text/content-text-contract';
 import type { ContractIndexEntry } from '../../../contracts/contract-index-entry/contract-index-entry-contract';
@@ -25,19 +21,19 @@ import { contractIndexStatics } from '../../../statics/contract-index/contract-i
 import { contractIndexFromSourcesTransformer } from '../../../transformers/contract-index-from-sources/contract-index-from-sources-transformer';
 import { subfolderPathsListLayerBroker } from './subfolder-paths-list-layer-broker';
 
-const builtIndexes = new Map<AbsoluteFilePath, ContractIndexEntry[]>();
+const builtIndexes = new Map<string, ContractIndexEntry[]>();
 
 export const contractIndexBuildBroker = ({
   rootDir,
 }: {
-  rootDir: AbsoluteFilePath;
+  rootDir: string;
 }): ContractIndexEntry[] => {
   const cached = builtIndexes.get(rootDir);
   if (cached !== undefined) {
     return cached;
   }
 
-  const packagesDir = absoluteFilePathContract.parse(`${rootDir}/packages`);
+  const packagesDir = `${rootDir}/packages`;
   const packageDirs = subfolderPathsListLayerBroker({ dirPath: packagesDir }).flatMap((dir) =>
     dir.slice(packagesDir.length + 1).startsWith(contractIndexStatics.scan.scopeFolderPrefix)
       ? subfolderPathsListLayerBroker({ dirPath: dir })
@@ -58,7 +54,7 @@ export const contractIndexBuildBroker = ({
         walkFilesSync({ rootPath: dir, suffix }),
       ),
     )
-    .map((file) => absoluteFilePathContract.parse(file.path))
+    .map((file) => file.path)
     .filter((filePath) =>
       isContractParseSourceFileGuard({ relativePath: filePath.slice(rootDir.length + 1) }),
     )

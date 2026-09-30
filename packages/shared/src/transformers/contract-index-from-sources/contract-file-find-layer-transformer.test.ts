@@ -1,4 +1,3 @@
-import { AbsoluteFilePathStub } from '../../contracts/absolute-file-path/absolute-file-path.stub';
 import { ContractIndexPackageStub } from '../../contracts/contract-index-package/contract-index-package.stub';
 import { IdentifierStub } from '../../contracts/identifier/identifier.stub';
 import { ImportPathStub } from '../../contracts/import-path/import-path.stub';
@@ -7,14 +6,12 @@ import { contractFileFindLayerTransformer } from './contract-file-find-layer-tra
 
 const sharedPackage = ContractIndexPackageStub({
   name: PackageNameStub({ value: '@repo/shared' }),
-  dir: AbsoluteFilePathStub({ value: '/repo/packages/shared' }),
+  dir: '/repo/packages/shared',
 });
-const importer = AbsoluteFilePathStub({ value: '/repo/packages/other/src/a.ts' });
-const contractFile = AbsoluteFilePathStub({
-  value: '/repo/packages/shared/src/thing/thing-contract.ts',
-});
-const barrelFile = AbsoluteFilePathStub({ value: '/repo/packages/shared/contracts.ts' });
-const otherBarrelFile = AbsoluteFilePathStub({ value: '/repo/packages/shared/more.ts' });
+const importer = '/repo/packages/other/src/a.ts';
+const contractFile = '/repo/packages/shared/src/thing/thing-contract.ts';
+const barrelFile = '/repo/packages/shared/contracts.ts';
+const otherBarrelFile = '/repo/packages/shared/more.ts';
 
 describe('contractFileFindLayerTransformer', () => {
   describe('direct hits', () => {
@@ -113,9 +110,7 @@ describe('contractFileFindLayerTransformer', () => {
     });
 
     it('VALID: {star barrel listing two contract files} => returns the file that exports the name, not the first', () => {
-      const firstContractFile = AbsoluteFilePathStub({
-        value: '/repo/packages/shared/src/first/first-contract.ts',
-      });
+      const firstContractFile = '/repo/packages/shared/src/first/first-contract.ts';
 
       const result = contractFileFindLayerTransformer({
         specifier: ImportPathStub({ value: '@repo/shared/contracts' }),

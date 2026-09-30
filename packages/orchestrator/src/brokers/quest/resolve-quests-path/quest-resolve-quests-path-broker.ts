@@ -7,8 +7,7 @@
  */
 
 import { dungeonmasterHomeFindBroker } from '@dungeonmaster/shared/brokers';
-import { absoluteFilePathContract } from '@dungeonmaster/shared/contracts';
-import type { AbsoluteFilePath, Guild } from '@dungeonmaster/shared/contracts';
+import type { Guild } from '@dungeonmaster/shared/contracts';
 import { dungeonmasterHomeStatics } from '@dungeonmaster/shared/statics';
 import { join } from '#gateway/node/path';
 
@@ -16,17 +15,15 @@ export const questResolveQuestsPathBroker = ({
   guildId,
 }: {
   guildId: Guild['id'];
-}): { questsPath: AbsoluteFilePath } => {
+}): { questsPath: string } => {
   const { homePath } = dungeonmasterHomeFindBroker();
 
-  const questsPath = absoluteFilePathContract.parse(
-    join(
+  const questsPath = join(
       homePath,
       dungeonmasterHomeStatics.paths.guildsDir,
       guildId,
       dungeonmasterHomeStatics.paths.questsDir,
-    ),
-  );
+    );
 
   return { questsPath };
 };

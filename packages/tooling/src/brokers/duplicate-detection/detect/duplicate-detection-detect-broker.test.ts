@@ -1,13 +1,12 @@
 import { duplicateDetectionDetectBroker } from './duplicate-detection-detect-broker';
 import { duplicateDetectionDetectBrokerProxy } from './duplicate-detection-detect-broker.proxy';
 import { GlobPatternStub } from '../../../contracts/glob-pattern/glob-pattern.stub';
-import { AbsoluteFilePathStub } from '../../../contracts/absolute-file-path/absolute-file-path.stub';
 import { SourceCodeStub } from '../../../contracts/source-code/source-code.stub';
 import { OccurrenceThresholdStub } from '../../../contracts/occurrence-threshold/occurrence-threshold.stub';
 
 // Helper function to create file test data
 const createFile = (params: {
-  filePath: ReturnType<typeof AbsoluteFilePathStub>;
+  filePath: string;
   sourceCode: ReturnType<typeof SourceCodeStub>;
 }) => {
   return params;
@@ -18,11 +17,11 @@ describe('duplicateDetectionDetectBroker', () => {
     const brokerProxy = duplicateDetectionDetectBrokerProxy();
     const pattern = GlobPatternStub({ value: '**/*.ts' });
     const file1 = createFile({
-      filePath: AbsoluteFilePathStub({ value: '/file1.ts' }),
+      filePath: '/file1.ts',
       sourceCode: SourceCodeStub({ value: 'const x = "error"; const y = "error";' }),
     });
     const file2 = createFile({
-      filePath: AbsoluteFilePathStub({ value: '/file2.ts' }),
+      filePath: '/file2.ts',
       sourceCode: SourceCodeStub({ value: 'const z = "error";' }),
     });
     const files = [file1, file2];
@@ -50,11 +49,11 @@ describe('duplicateDetectionDetectBroker', () => {
     const brokerProxy = duplicateDetectionDetectBrokerProxy();
     const pattern = GlobPatternStub({ value: '**/*.ts' });
     const file1 = createFile({
-      filePath: AbsoluteFilePathStub({ value: '/file1.ts' }),
+      filePath: '/file1.ts',
       sourceCode: SourceCodeStub({ value: 'const x = "test";' }),
     });
     const file2 = createFile({
-      filePath: AbsoluteFilePathStub({ value: '/file2.ts' }),
+      filePath: '/file2.ts',
       sourceCode: SourceCodeStub({ value: 'const y = "test";' }),
     });
     const files = [file1, file2];
@@ -71,13 +70,13 @@ describe('duplicateDetectionDetectBroker', () => {
     const brokerProxy = duplicateDetectionDetectBrokerProxy();
     const pattern = GlobPatternStub({ value: '**/*.ts' });
     const file1 = createFile({
-      filePath: AbsoluteFilePathStub({ value: '/file1.ts' }),
+      filePath: '/file1.ts',
       sourceCode: SourceCodeStub({
         value: 'const a = "error"; const b = "error"; const c = "warning";',
       }),
     });
     const file2 = createFile({
-      filePath: AbsoluteFilePathStub({ value: '/file2.ts' }),
+      filePath: '/file2.ts',
       sourceCode: SourceCodeStub({
         value: 'const d = "error"; const e = "warning"; const f = "warning";',
       }),
@@ -117,19 +116,19 @@ describe('duplicateDetectionDetectBroker', () => {
     const brokerProxy = duplicateDetectionDetectBrokerProxy();
     const pattern = GlobPatternStub({ value: '**/*.ts' });
     const file1 = createFile({
-      filePath: AbsoluteFilePathStub({ value: '/file1.ts' }),
+      filePath: '/file1.ts',
       sourceCode: SourceCodeStub({
         value: 'const x = "short"; const y = "very-long-string";',
       }),
     });
     const file2 = createFile({
-      filePath: AbsoluteFilePathStub({ value: '/file2.ts' }),
+      filePath: '/file2.ts',
       sourceCode: SourceCodeStub({
         value: 'const z = "short"; const w = "very-long-string";',
       }),
     });
     const file3 = createFile({
-      filePath: AbsoluteFilePathStub({ value: '/file3.ts' }),
+      filePath: '/file3.ts',
       sourceCode: SourceCodeStub({
         value: 'const a = "short"; const b = "very-long-string";',
       }),
@@ -172,11 +171,11 @@ describe('duplicateDetectionDetectBroker', () => {
     const brokerProxy = duplicateDetectionDetectBrokerProxy();
     const pattern = GlobPatternStub({ value: '**/*.ts' });
     const file1 = createFile({
-      filePath: AbsoluteFilePathStub({ value: '/file1.ts' }),
+      filePath: '/file1.ts',
       sourceCode: SourceCodeStub({ value: 'const x = 123; const y = true;' }),
     });
     const file2 = createFile({
-      filePath: AbsoluteFilePathStub({ value: '/file2.ts' }),
+      filePath: '/file2.ts',
       sourceCode: SourceCodeStub({ value: 'const z = 456;' }),
     });
     const files = [file1, file2];
@@ -194,11 +193,11 @@ describe('duplicateDetectionDetectBroker', () => {
       const brokerProxy = duplicateDetectionDetectBrokerProxy();
       const pattern = GlobPatternStub({ value: '**/*.ts' });
       const file1 = createFile({
-        filePath: AbsoluteFilePathStub({ value: '/file1.ts' }),
+        filePath: '/file1.ts',
         sourceCode: SourceCodeStub({ value: 'const p1 = /test/g; const p2 = /test/g;' }),
       });
       const file2 = createFile({
-        filePath: AbsoluteFilePathStub({ value: '/file2.ts' }),
+        filePath: '/file2.ts',
         sourceCode: SourceCodeStub({ value: 'const p3 = /test/g;' }),
       });
       const files = [file1, file2];
@@ -226,11 +225,11 @@ describe('duplicateDetectionDetectBroker', () => {
       const brokerProxy = duplicateDetectionDetectBrokerProxy();
       const pattern = GlobPatternStub({ value: '**/*.ts' });
       const file1 = createFile({
-        filePath: AbsoluteFilePathStub({ value: '/file1.ts' }),
+        filePath: '/file1.ts',
         sourceCode: SourceCodeStub({ value: 'const p1 = /test/; const p2 = /test/;' }),
       });
       const file2 = createFile({
-        filePath: AbsoluteFilePathStub({ value: '/file2.ts' }),
+        filePath: '/file2.ts',
         sourceCode: SourceCodeStub({ value: 'const p3 = /test/;' }),
       });
       const files = [file1, file2];
@@ -258,13 +257,13 @@ describe('duplicateDetectionDetectBroker', () => {
       const brokerProxy = duplicateDetectionDetectBrokerProxy();
       const pattern = GlobPatternStub({ value: '**/*.ts' });
       const file1 = createFile({
-        filePath: AbsoluteFilePathStub({ value: '/file1.ts' }),
+        filePath: '/file1.ts',
         sourceCode: SourceCodeStub({
           value: 'const p1 = /test/gimsu; const p2 = /test/gimsu;',
         }),
       });
       const file2 = createFile({
-        filePath: AbsoluteFilePathStub({ value: '/file2.ts' }),
+        filePath: '/file2.ts',
         sourceCode: SourceCodeStub({ value: 'const p3 = /test/gimsu;' }),
       });
       const files = [file1, file2];
@@ -292,13 +291,13 @@ describe('duplicateDetectionDetectBroker', () => {
       const brokerProxy = duplicateDetectionDetectBrokerProxy();
       const pattern = GlobPatternStub({ value: '**/*.ts' });
       const file1 = createFile({
-        filePath: AbsoluteFilePathStub({ value: '/file1.ts' }),
+        filePath: '/file1.ts',
         sourceCode: SourceCodeStub({
           value: 'const s = "error"; const r = /test/g; const s2 = "error";',
         }),
       });
       const file2 = createFile({
-        filePath: AbsoluteFilePathStub({ value: '/file2.ts' }),
+        filePath: '/file2.ts',
         sourceCode: SourceCodeStub({
           value: 'const s3 = "error"; const r2 = /test/g; const r3 = /test/g;',
         }),
@@ -338,13 +337,13 @@ describe('duplicateDetectionDetectBroker', () => {
       const brokerProxy = duplicateDetectionDetectBrokerProxy();
       const pattern = GlobPatternStub({ value: '**/*.ts' });
       const file1 = createFile({
-        filePath: AbsoluteFilePathStub({ value: '/file1.ts' }),
+        filePath: '/file1.ts',
         sourceCode: SourceCodeStub({
           value: 'const r1 = /pattern/i; const r2 = /pattern/i;',
         }),
       });
       const file2 = createFile({
-        filePath: AbsoluteFilePathStub({ value: '/file2.ts' }),
+        filePath: '/file2.ts',
         sourceCode: SourceCodeStub({ value: 'const r3 = /pattern/i;' }),
       });
       const files = [file1, file2];
@@ -374,7 +373,7 @@ describe('duplicateDetectionDetectBroker', () => {
       const brokerProxy = duplicateDetectionDetectBrokerProxy();
       const pattern = GlobPatternStub({ value: '**/*.ts' });
       const file1 = createFile({
-        filePath: AbsoluteFilePathStub({ value: '/file1.ts' }),
+        filePath: '/file1.ts',
         sourceCode: SourceCodeStub({
           value: 'const a = "test"; const b = "test"; const c = "test";',
         }),
@@ -403,13 +402,13 @@ describe('duplicateDetectionDetectBroker', () => {
       const brokerProxy = duplicateDetectionDetectBrokerProxy();
       const pattern = GlobPatternStub({ value: '**/*.ts' });
       const file1 = createFile({
-        filePath: AbsoluteFilePathStub({ value: '/file1.ts' }),
+        filePath: '/file1.ts',
         sourceCode: SourceCodeStub({
           value: 'const a = "ab"; const b = "ab"; const c = "ab"; const d = "abc";',
         }),
       });
       const file2 = createFile({
-        filePath: AbsoluteFilePathStub({ value: '/file2.ts' }),
+        filePath: '/file2.ts',
         sourceCode: SourceCodeStub({ value: 'const e = "abc"; const f = "abc";' }),
       });
       const files = [file1, file2];
@@ -438,9 +437,9 @@ describe('duplicateDetectionDetectBroker', () => {
     it('VALID: {cwd provided} => passes cwd to glob adapter', async () => {
       const brokerProxy = duplicateDetectionDetectBrokerProxy();
       const pattern = GlobPatternStub({ value: '**/*.ts' });
-      const cwd = AbsoluteFilePathStub({ value: '/custom/path' });
+      const cwd = '/custom/path';
       const file1 = createFile({
-        filePath: AbsoluteFilePathStub({ value: '/custom/path/file1.ts' }),
+        filePath: '/custom/path/file1.ts',
         sourceCode: SourceCodeStub({
           value: 'const x = "test"; const y = "test"; const z = "test";',
         }),
@@ -470,7 +469,7 @@ describe('duplicateDetectionDetectBroker', () => {
       const brokerProxy = duplicateDetectionDetectBrokerProxy();
       const pattern = GlobPatternStub({ value: '**/*.ts' });
       const file1 = createFile({
-        filePath: AbsoluteFilePathStub({ value: '/file1.ts' }),
+        filePath: '/file1.ts',
         sourceCode: SourceCodeStub({
           value: 'const x = "test"; const y = "test"; const z = "test";',
         }),
@@ -502,13 +501,13 @@ describe('duplicateDetectionDetectBroker', () => {
       const brokerProxy = duplicateDetectionDetectBrokerProxy();
       const pattern = GlobPatternStub({ value: '**/*.ts' });
       const file1 = createFile({
-        filePath: AbsoluteFilePathStub({ value: '/file1.ts' }),
+        filePath: '/file1.ts',
         sourceCode: SourceCodeStub({
           value: 'const a = "He said \\"hello\\""; const b = "He said \\"hello\\"";',
         }),
       });
       const file2 = createFile({
-        filePath: AbsoluteFilePathStub({ value: '/file2.ts' }),
+        filePath: '/file2.ts',
         sourceCode: SourceCodeStub({ value: 'const c = "He said \\"hello\\"";' }),
       });
       const files = [file1, file2];
@@ -536,13 +535,13 @@ describe('duplicateDetectionDetectBroker', () => {
       const brokerProxy = duplicateDetectionDetectBrokerProxy();
       const pattern = GlobPatternStub({ value: '**/*.ts' });
       const file1 = createFile({
-        filePath: AbsoluteFilePathStub({ value: '/file1.ts' }),
+        filePath: '/file1.ts',
         sourceCode: SourceCodeStub({
           value: 'const a = "line1\\nline2"; const b = "line1\\nline2";',
         }),
       });
       const file2 = createFile({
-        filePath: AbsoluteFilePathStub({ value: '/file2.ts' }),
+        filePath: '/file2.ts',
         sourceCode: SourceCodeStub({ value: 'const c = "line1\\nline2";' }),
       });
       const files = [file1, file2];
@@ -570,13 +569,13 @@ describe('duplicateDetectionDetectBroker', () => {
       const brokerProxy = duplicateDetectionDetectBrokerProxy();
       const pattern = GlobPatternStub({ value: '**/*.ts' });
       const file1 = createFile({
-        filePath: AbsoluteFilePathStub({ value: '/file1.ts' }),
+        filePath: '/file1.ts',
         sourceCode: SourceCodeStub({
           value: 'const a = "Hello 👋 世界"; const b = "Hello 👋 世界";',
         }),
       });
       const file2 = createFile({
-        filePath: AbsoluteFilePathStub({ value: '/file2.ts' }),
+        filePath: '/file2.ts',
         sourceCode: SourceCodeStub({ value: 'const c = "Hello 👋 世界";' }),
       });
       const files = [file1, file2];
@@ -604,13 +603,13 @@ describe('duplicateDetectionDetectBroker', () => {
       const brokerProxy = duplicateDetectionDetectBrokerProxy();
       const pattern = GlobPatternStub({ value: '**/*.ts' });
       const file1 = createFile({
-        filePath: AbsoluteFilePathStub({ value: '/file1.ts' }),
+        filePath: '/file1.ts',
         sourceCode: SourceCodeStub({
           value: 'const a = "C:\\\\path\\\\to\\\\file"; const b = "C:\\\\path\\\\to\\\\file";',
         }),
       });
       const file2 = createFile({
-        filePath: AbsoluteFilePathStub({ value: '/file2.ts' }),
+        filePath: '/file2.ts',
         sourceCode: SourceCodeStub({ value: 'const c = "C:\\\\path\\\\to\\\\file";' }),
       });
       const files = [file1, file2];
@@ -640,11 +639,11 @@ describe('duplicateDetectionDetectBroker', () => {
       const brokerProxy = duplicateDetectionDetectBrokerProxy();
       const pattern = GlobPatternStub({ value: '**/*.ts' });
       const file1 = createFile({
-        filePath: AbsoluteFilePathStub({ value: '/file1.ts' }),
+        filePath: '/file1.ts',
         sourceCode: SourceCodeStub({ value: 'const a = "exact"; const b = "exact";' }),
       });
       const file2 = createFile({
-        filePath: AbsoluteFilePathStub({ value: '/file2.ts' }),
+        filePath: '/file2.ts',
         sourceCode: SourceCodeStub({ value: 'const c = "exact";' }),
       });
       const files = [file1, file2];
@@ -672,11 +671,11 @@ describe('duplicateDetectionDetectBroker', () => {
       const brokerProxy = duplicateDetectionDetectBrokerProxy();
       const pattern = GlobPatternStub({ value: '**/*.ts' });
       const file1 = createFile({
-        filePath: AbsoluteFilePathStub({ value: '/file1.ts' }),
+        filePath: '/file1.ts',
         sourceCode: SourceCodeStub({ value: 'const a = "below";' }),
       });
       const file2 = createFile({
-        filePath: AbsoluteFilePathStub({ value: '/file2.ts' }),
+        filePath: '/file2.ts',
         sourceCode: SourceCodeStub({ value: 'const b = "below";' }),
       });
       const files = [file1, file2];
@@ -693,13 +692,13 @@ describe('duplicateDetectionDetectBroker', () => {
       const brokerProxy = duplicateDetectionDetectBrokerProxy();
       const pattern = GlobPatternStub({ value: '**/*.ts' });
       const file1 = createFile({
-        filePath: AbsoluteFilePathStub({ value: '/file1.ts' }),
+        filePath: '/file1.ts',
         sourceCode: SourceCodeStub({
           value: 'const a = "twice"; const b = "twice"; const c = "once";',
         }),
       });
       const file2 = createFile({
-        filePath: AbsoluteFilePathStub({ value: '/file2.ts' }),
+        filePath: '/file2.ts',
         sourceCode: SourceCodeStub({
           value: 'const d = "thrice"; const e = "thrice"; const f = "thrice";',
         }),
@@ -740,11 +739,11 @@ describe('duplicateDetectionDetectBroker', () => {
       const brokerProxy = duplicateDetectionDetectBrokerProxy();
       const pattern = GlobPatternStub({ value: '**/*.ts' });
       const file1 = createFile({
-        filePath: AbsoluteFilePathStub({ value: '/file1.ts' }),
+        filePath: '/file1.ts',
         sourceCode: SourceCodeStub({ value: 'const a = "abc"; const b = "abc";' }),
       });
       const file2 = createFile({
-        filePath: AbsoluteFilePathStub({ value: '/file2.ts' }),
+        filePath: '/file2.ts',
         sourceCode: SourceCodeStub({ value: 'const c = "abc";' }),
       });
       const files = [file1, file2];
@@ -772,11 +771,11 @@ describe('duplicateDetectionDetectBroker', () => {
       const brokerProxy = duplicateDetectionDetectBrokerProxy();
       const pattern = GlobPatternStub({ value: '**/*.ts' });
       const file1 = createFile({
-        filePath: AbsoluteFilePathStub({ value: '/file1.ts' }),
+        filePath: '/file1.ts',
         sourceCode: SourceCodeStub({ value: 'const a = "ab"; const b = "ab";' }),
       });
       const file2 = createFile({
-        filePath: AbsoluteFilePathStub({ value: '/file2.ts' }),
+        filePath: '/file2.ts',
         sourceCode: SourceCodeStub({ value: 'const c = "ab";' }),
       });
       const files = [file1, file2];
@@ -793,11 +792,11 @@ describe('duplicateDetectionDetectBroker', () => {
       const brokerProxy = duplicateDetectionDetectBrokerProxy();
       const pattern = GlobPatternStub({ value: '**/*.ts' });
       const file1 = createFile({
-        filePath: AbsoluteFilePathStub({ value: '/file1.ts' }),
+        filePath: '/file1.ts',
         sourceCode: SourceCodeStub({ value: 'const a = "x"; const b = "x";' }),
       });
       const file2 = createFile({
-        filePath: AbsoluteFilePathStub({ value: '/file2.ts' }),
+        filePath: '/file2.ts',
         sourceCode: SourceCodeStub({ value: 'const c = "x";' }),
       });
       const files = [file1, file2];

@@ -1,13 +1,12 @@
 import { listDirEntriesLayerBroker } from './list-dir-entries-layer-broker';
 import { listDirEntriesLayerBrokerProxy } from './list-dir-entries-layer-broker.proxy';
-import { AbsoluteFilePathStub } from '../../../contracts/absolute-file-path/absolute-file-path.stub';
 import { FileMissingErrorStub } from '#gateway/node/fs/file-missing-error/file-missing-error.stub';
 
 describe('listDirEntriesLayerBroker', () => {
   describe('successful reads', () => {
     it('VALID: {existing directory with files} => returns entries', () => {
       const proxy = listDirEntriesLayerBrokerProxy();
-      const dirPath = AbsoluteFilePathStub({ value: '/project/src/startup' });
+      const dirPath = '/project/src/startup';
       const setupEntries = proxy.setupFiles({ dirPath, names: ['start-app.ts'] });
       const result = listDirEntriesLayerBroker({ dirPath });
 
@@ -16,7 +15,7 @@ describe('listDirEntriesLayerBroker', () => {
 
     it('VALID: {empty directory} => returns empty array', () => {
       const proxy = listDirEntriesLayerBrokerProxy();
-      const dirPath = AbsoluteFilePathStub({ value: '/project/src/startup' });
+      const dirPath = '/project/src/startup';
       proxy.setupEmpty({ dirPath });
       const result = listDirEntriesLayerBroker({ dirPath });
 
@@ -27,7 +26,7 @@ describe('listDirEntriesLayerBroker', () => {
   describe('error handling', () => {
     it('ERROR: {missing directory} => returns empty array', () => {
       const proxy = listDirEntriesLayerBrokerProxy();
-      const dirPath = AbsoluteFilePathStub({ value: '/project/src/nonexistent' });
+      const dirPath = '/project/src/nonexistent';
       proxy.setupError({ dirPath, error: FileMissingErrorStub({ path: dirPath }) });
       const result = listDirEntriesLayerBroker({ dirPath });
 

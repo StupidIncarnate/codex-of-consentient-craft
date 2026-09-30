@@ -1,5 +1,4 @@
 import { registerMock } from '@dungeonmaster/testing/register-mock';
-import type { AbsoluteFilePath } from '@dungeonmaster/shared/contracts';
 
 import type { PlatformCrossingViolation } from '../../../contracts/platform-crossing-violation/platform-crossing-violation-contract';
 import type { DuplicateInstallViolation } from '../../../contracts/duplicate-install-violation/duplicate-install-violation-contract';
@@ -9,13 +8,13 @@ import { duplicateInstallCheckBroker } from '../../duplicate-install/check/dupli
 import { duplicateInstallCheckBrokerProxy } from '../../duplicate-install/check/duplicate-install-check-broker.proxy';
 
 export const platformDedupeCheckLayerBrokerProxy = (): {
-  setupClean: (params: { rootPath: AbsoluteFilePath }) => void;
+  setupClean: (params: { rootPath: string }) => void;
   // Both handles are staged in the SAME call — never split across two calls — because both checks
   // run unconditionally in a `Promise.all`, so a call this proxy did not stage a response for
   // throws unconditionally. Staging them one call at a time would let a second call's default
   // (empty) response for the OTHER check silently overwrite the first call's staging for it.
   setupViolations: (params: {
-    rootPath: AbsoluteFilePath;
+    rootPath: string;
     platformViolations?: readonly PlatformCrossingViolation[];
     duplicateViolations?: readonly DuplicateInstallViolation[];
   }) => void;
@@ -33,7 +32,7 @@ export const platformDedupeCheckLayerBrokerProxy = (): {
     platformViolations = [],
     duplicateViolations = [],
   }: {
-    rootPath: AbsoluteFilePath;
+    rootPath: string;
     platformViolations?: readonly PlatformCrossingViolation[];
     duplicateViolations?: readonly DuplicateInstallViolation[];
   }): void => {
@@ -42,7 +41,7 @@ export const platformDedupeCheckLayerBrokerProxy = (): {
   };
 
   return {
-    setupClean: ({ rootPath }: { rootPath: AbsoluteFilePath }): void => {
+    setupClean: ({ rootPath }: { rootPath: string }): void => {
       setupViolations({ rootPath });
     },
     setupViolations,

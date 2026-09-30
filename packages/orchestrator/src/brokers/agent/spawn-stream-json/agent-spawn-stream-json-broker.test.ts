@@ -1,6 +1,5 @@
 import { readFile } from '#gateway/node/fs__promises';
 import { setImmediate } from '#gateway/node/setImmediate';
-import { AbsoluteFilePathStub } from '@dungeonmaster/shared/contracts/absolute-file-path/absolute-file-path.stub';
 import { ExitCodeStub } from '@dungeonmaster/shared/contracts/exit-code/exit-code.stub';
 import { RepoRootCwdStub } from '@dungeonmaster/shared/contracts/repo-root-cwd/repo-root-cwd.stub';
 import { SessionIdStub } from '@dungeonmaster/shared/contracts/session-id/session-id.stub';
@@ -71,9 +70,7 @@ describe('agentSpawnStreamJsonBroker', () => {
     it('VALID: {addDir: quest images path, resumeSessionId} => --add-dir follows --resume', () => {
       const proxy = agentSpawnStreamJsonBrokerProxy();
       proxy.setupSpawn();
-      const addDir = AbsoluteFilePathStub({
-        value: `/home/user/.dungeonmaster/quests/q-1/${locationsStatics.quest.imagesDir}`,
-      });
+      const addDir = `/home/user/.dungeonmaster/quests/q-1/${locationsStatics.quest.imagesDir}`;
 
       agentSpawnStreamJsonBroker({
         prompt: PromptTextStub({ value: 'Hello' }),

@@ -11,7 +11,7 @@ import { stderrProxy } from '#gateway/node/process/stderr/stderr.proxy';
 import { randomUUID } from '#gateway/node/crypto';
 import { GuildStub } from '@dungeonmaster/shared/contracts/guild/guild.stub';
 import { RepoRootCwdStub } from '@dungeonmaster/shared/contracts/repo-root-cwd/repo-root-cwd.stub';
-import type { AbsoluteFilePath, GuildPath, ProcessId, QuestBranchName, Guild } from '@dungeonmaster/shared/contracts';
+import type { GuildPath, ProcessId, QuestBranchName, Guild } from '@dungeonmaster/shared/contracts';
 import type { QuestStub } from '@dungeonmaster/shared/contracts/quest/quest.stub';
 import {
   registerMock,
@@ -82,10 +82,10 @@ export const RecoverGuildLayerResponderProxy = (): {
     existingProcessQuestId: Quest['id'];
   }) => void;
   setupGuildDirectoryReadFailure: (params: { error: Error }) => void;
-  setupWorktreeMissing: (params: { quest: Quest; worktreePath: AbsoluteFilePath }) => void;
+  setupWorktreeMissing: (params: { quest: Quest; worktreePath: string }) => void;
   setupWorktreeDrifted: (params: {
     quest: Quest;
-    worktreePath: AbsoluteFilePath;
+    worktreePath: string;
     branchName: QuestBranchName;
     currentBranchName: string;
   }) => void;
@@ -93,7 +93,7 @@ export const RecoverGuildLayerResponderProxy = (): {
   // logs under this trigger's own prefix and carries on instead of abandoning the guild.
   setupWorktreeRestoreFails: (params: {
     quest: Quest;
-    worktreePath: AbsoluteFilePath;
+    worktreePath: string;
     branchName: QuestBranchName;
     currentBranchName: string;
     output: string;
@@ -200,7 +200,7 @@ export const RecoverGuildLayerResponderProxy = (): {
       worktreePath,
     }: {
       quest: Quest;
-      worktreePath: AbsoluteFilePath;
+      worktreePath: string;
     }): void => {
       cwdResolveMock
         .onceFor([{ questId: quest.id }])
@@ -214,7 +214,7 @@ export const RecoverGuildLayerResponderProxy = (): {
       currentBranchName,
     }: {
       quest: Quest;
-      worktreePath: AbsoluteFilePath;
+      worktreePath: string;
       branchName: QuestBranchName;
       currentBranchName: string;
     }): void => {
@@ -239,7 +239,7 @@ export const RecoverGuildLayerResponderProxy = (): {
       output,
     }: {
       quest: Quest;
-      worktreePath: AbsoluteFilePath;
+      worktreePath: string;
       branchName: QuestBranchName;
       currentBranchName: string;
       output: string;
@@ -305,7 +305,7 @@ export const RecoverGuildLayerResponderProxy = (): {
     // The exact {worktreePath, branchName} the shared restore step was handed for this sweep.
     getWorktreeRestoreCalls: (): readonly unknown[] =>
       worktreeRestoreMock.callsMatching([]).map((call) => {
-        const [params] = call as [{ worktreePath: AbsoluteFilePath; branchName: QuestBranchName }];
+        const [params] = call as [{ worktreePath: string; branchName: QuestBranchName }];
         return params;
       }),
 

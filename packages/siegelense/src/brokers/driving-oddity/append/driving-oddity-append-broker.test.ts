@@ -1,4 +1,3 @@
-import { AbsoluteFilePathStub } from '@dungeonmaster/shared/contracts/absolute-file-path/absolute-file-path.stub';
 
 import { DrivingOddityStub } from '../../../contracts/driving-oddity/driving-oddity.stub';
 import type { DrivingOddityDuplicateKeyError } from '../../../errors/driving-oddity-duplicate-key/driving-oddity-duplicate-key-error';
@@ -6,9 +5,7 @@ import type { DrivingOddityDuplicateKeyError } from '../../../errors/driving-odd
 import { drivingOddityAppendBroker } from './driving-oddity-append-broker';
 import { drivingOddityAppendBrokerProxy } from './driving-oddity-append-broker.proxy';
 
-const FILE_PATH = AbsoluteFilePathStub({
-  value: '/repo/.dungeonmaster-assets/driving-oddities.jsonl',
-});
+const FILE_PATH = '/repo/.dungeonmaster-assets/driving-oddities.jsonl';
 
 describe('drivingOddityAppendBroker', () => {
   describe('an empty file', () => {

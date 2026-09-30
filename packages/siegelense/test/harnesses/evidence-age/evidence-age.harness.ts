@@ -22,8 +22,7 @@
 import { existsSync } from '#gateway/node/fs';
 import { ensureDir, stat, utimes, writeFile } from '#gateway/node/fs__promises';
 
-import { AbsoluteFilePathStub } from '@dungeonmaster/shared/contracts/absolute-file-path/absolute-file-path.stub';
-import type { AbsoluteFilePath, SiegeInstance } from '@dungeonmaster/shared/contracts';
+import type { SiegeInstance } from '@dungeonmaster/shared/contracts';
 
 import { locationsInstanceEvidencePathFindBroker } from '../../../src/brokers/locations/instance-evidence-path-find/locations-instance-evidence-path-find-broker';
 import { registryUpdateBroker } from '../../../src/brokers/registry/update/registry-update-broker';
@@ -46,13 +45,13 @@ const PORT_BASE = 40_030;
 const PORT_STRIDE = 10;
 
 export const evidenceAgeHarness = (): {
-  backdateFile: (params: { filePath: AbsoluteFilePath; daysOld: number }) => Promise<void>;
-  mtimeMs: (params: { filePath: AbsoluteFilePath }) => Promise<EpochMs>;
-  exists: (params: { filePath: AbsoluteFilePath }) => boolean;
+  backdateFile: (params: { filePath: string; daysOld: number }) => Promise<void>;
+  mtimeMs: (params: { filePath: string }) => Promise<EpochMs>;
+  exists: (params: { filePath: string }) => boolean;
   seedAgingInstance: (params: { daysOld: number }) => Promise<{
     instanceId: SiegeInstance['id'];
-    videoPath: AbsoluteFilePath;
-    shotPath: AbsoluteFilePath;
+    videoPath: string;
+    shotPath: string;
   }>;
 } => {
   let mintedCount = 0;
@@ -62,19 +61,19 @@ export const evidenceAgeHarness = (): {
     filePath,
     daysOld,
   }: {
-    filePath: AbsoluteFilePath;
+    filePath: string;
     daysOld: number;
   }): Promise<void> => {
     const when = Date.now() / 1000 - daysOld * DAY_SECONDS;
     await utimes(String(filePath), when, when);
   };
 
-  const mtimeMs = async ({ filePath }: { filePath: AbsoluteFilePath }): Promise<EpochMs> => {
+  const mtimeMs = async ({ filePath }: { filePath: string }): Promise<EpochMs> => {
     const fileStat = await stat(String(filePath));
     return EpochMsStub({ value: fileStat.modifiedAtMs });
   };
 
-  const exists = ({ filePath }: { filePath: AbsoluteFilePath }): boolean =>
+  const exists = ({ filePath }: { filePath: string }): boolean =>
     existsSync(String(filePath));
 
   const seedAgingInstance = async ({
@@ -83,8 +82,8 @@ export const evidenceAgeHarness = (): {
     daysOld: number;
   }): Promise<{
     instanceId: SiegeInstance['id'];
-    videoPath: AbsoluteFilePath;
-    shotPath: AbsoluteFilePath;
+    videoPath: string;
+    shotPath: string;
   }> => {
     mintedCount += 1;
     const instanceId = InstanceIdStub({ value: `inst_a9e0000${mintedCount}` });
@@ -92,8 +91,8 @@ export const evidenceAgeHarness = (): {
     const runDir = `${evidenceDir}/runs/${RUN_ID}`;
     await ensureDir(runDir);
 
-    const videoPath = AbsoluteFilePathStub({ value: `${runDir}/${VIDEO_FILE_NAME}` });
-    const shotPath = AbsoluteFilePathStub({ value: `${runDir}/${SHOT_FILE_NAME}` });
+    const videoPath = `${runDir}/${VIDEO_FILE_NAME}`;
+    const shotPath = `${runDir}/${SHOT_FILE_NAME}`;
 
     await writeFile(String(videoPath), VIDEO_BODY);
     await writeFile(String(shotPath), SHOT_BODY);

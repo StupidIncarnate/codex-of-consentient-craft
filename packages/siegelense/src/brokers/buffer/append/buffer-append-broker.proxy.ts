@@ -1,27 +1,26 @@
 import type { FsError } from '#gateway/node/fs';
 import { appendFileProxy } from '#gateway/node/fs__promises/append-file/append-file.proxy';
-import type { AbsoluteFilePath } from '@dungeonmaster/shared/contracts';
 
 export const bufferAppendBrokerProxy = (): {
-  succeeds: (params: { bufferPath: AbsoluteFilePath }) => void;
-  throws: (params: { bufferPath: AbsoluteFilePath; error: FsError }) => void;
-  appendCallsFor: (params: { bufferPath: AbsoluteFilePath }) => readonly unknown[];
-  writtenEntriesFor: (params: { bufferPath: AbsoluteFilePath }) => unknown[];
+  succeeds: (params: { bufferPath: string }) => void;
+  throws: (params: { bufferPath: string; error: FsError }) => void;
+  appendCallsFor: (params: { bufferPath: string }) => readonly unknown[];
+  writtenEntriesFor: (params: { bufferPath: string }) => unknown[];
 } => {
   const appendProxy = appendFileProxy();
 
   // Every raw string this path was appended with, IN CALL ORDER — an empty result is what proves
   // `appendFile` was never invoked, which a parsed/filtered view could not tell apart from a call
   // written with an empty string.
-  const appendCallsFor = ({ bufferPath }: { bufferPath: AbsoluteFilePath }): readonly unknown[] =>
+  const appendCallsFor = ({ bufferPath }: { bufferPath: string }): readonly unknown[] =>
     appendProxy.getCallsFor({ path: bufferPath }).map((call) => call[1]);
 
   return {
-    succeeds: ({ bufferPath }: { bufferPath: AbsoluteFilePath }): void => {
+    succeeds: ({ bufferPath }: { bufferPath: string }): void => {
       appendProxy.succeeds({ path: bufferPath });
     },
 
-    throws: ({ bufferPath, error }: { bufferPath: AbsoluteFilePath; error: FsError }): void => {
+    throws: ({ bufferPath, error }: { bufferPath: string; error: FsError }): void => {
       appendProxy.rejects({ path: bufferPath, error });
     },
 
@@ -29,7 +28,7 @@ export const bufferAppendBrokerProxy = (): {
 
     // Every line across every call to this path, parsed back from JSON — proof the bytes on disk are
     // exactly the entries the broker was handed, not just that a write happened.
-    writtenEntriesFor: ({ bufferPath }: { bufferPath: AbsoluteFilePath }): unknown[] =>
+    writtenEntriesFor: ({ bufferPath }: { bufferPath: string }): unknown[] =>
       appendCallsFor({ bufferPath })
         .flatMap((chunk) => String(chunk).split('\n'))
         .filter((line) => line.length > 0)

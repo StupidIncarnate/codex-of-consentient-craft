@@ -19,16 +19,15 @@
 
 import { join } from '#gateway/node/path';
 import { locationsStatics } from '@dungeonmaster/shared/statics';
-import { absoluteFilePathContract, type AbsoluteFilePath } from '@dungeonmaster/shared/contracts';
 
 export const locationsBufferPathsFindBroker = ({
   evidencePath,
 }: {
-  evidencePath: AbsoluteFilePath;
+  evidencePath: string;
 }): {
-  console: AbsoluteFilePath;
-  network: AbsoluteFilePath;
-  websocket: AbsoluteFilePath;
+  console: string;
+  network: string;
+  websocket: string;
 } => {
   const consolePath = join(evidencePath, locationsStatics.siegelense.consoleLog);
 
@@ -37,8 +36,8 @@ export const locationsBufferPathsFindBroker = ({
   const websocketPath = join(evidencePath, locationsStatics.siegelense.websocketLog);
 
   return {
-    console: absoluteFilePathContract.parse(consolePath),
-    network: absoluteFilePathContract.parse(networkPath),
-    websocket: absoluteFilePathContract.parse(websocketPath),
+    console: consolePath,
+    network: networkPath,
+    websocket: websocketPath,
   };
 };

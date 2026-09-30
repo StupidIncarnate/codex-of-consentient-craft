@@ -1,7 +1,6 @@
 import type { Dirent } from '#gateway/node/fs';
 import type { DirEntrySync } from '#gateway/node/fs';
 import { safeReaddirLayerBrokerProxy } from './safe-readdir-layer-broker.proxy';
-import type { AbsoluteFilePath } from '../../../contracts/absolute-file-path/absolute-file-path-contract';
 
 const buildDirent = ({ name, isDir }: { name: string; isDir: boolean }): DirEntrySync => ({
   name,
@@ -13,10 +12,10 @@ export const listSourceFilesLayerBrokerProxy = (): {
     dirPath,
     filePaths,
   }: {
-    dirPath: AbsoluteFilePath;
-    filePaths: AbsoluteFilePath[];
+    dirPath: string;
+    filePaths: string[];
   }) => void;
-  setupEmpty: ({ dirPath }: { dirPath: AbsoluteFilePath }) => void;
+  setupEmpty: ({ dirPath }: { dirPath: string }) => void;
   setupImplementation: ({ fn }: { fn: (dirPath: string) => Dirent[] }) => void;
 } => {
   const readdirProxy = safeReaddirLayerBrokerProxy();
@@ -26,8 +25,8 @@ export const listSourceFilesLayerBrokerProxy = (): {
       dirPath,
       filePaths,
     }: {
-      dirPath: AbsoluteFilePath;
-      filePaths: AbsoluteFilePath[];
+      dirPath: string;
+      filePaths: string[];
     }): void => {
       const entries = filePaths.map((fp) => {
         const name = String(fp).split('/').pop() ?? String(fp);
@@ -36,7 +35,7 @@ export const listSourceFilesLayerBrokerProxy = (): {
       readdirProxy.setupDirectory({ dirPath, entries });
     },
 
-    setupEmpty: ({ dirPath }: { dirPath: AbsoluteFilePath }): void => {
+    setupEmpty: ({ dirPath }: { dirPath: string }): void => {
       readdirProxy.setupDirectory({ dirPath, entries: [] });
     },
 

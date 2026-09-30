@@ -7,7 +7,6 @@
  */
 
 import { ensureDir, writeFile } from '#gateway/node/fs__promises';
-import { type AbsoluteFilePath } from '@dungeonmaster/shared/contracts';
 
 import type { WardRunResult } from '../../../contracts/ward-result/ward-result-contract';
 
@@ -15,7 +14,7 @@ export const storageSaveBroker = async ({
   rootPath,
   wardResult,
 }: {
-  rootPath: AbsoluteFilePath;
+  rootPath: string;
   wardResult: WardRunResult;
 }): Promise<void> => {
   const wardDir = `${rootPath}/.ward`;

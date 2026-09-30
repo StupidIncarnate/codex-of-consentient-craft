@@ -1,9 +1,8 @@
-import { AbsoluteFilePathStub } from '@dungeonmaster/shared/contracts/absolute-file-path/absolute-file-path.stub';
 
 import { RefStub } from '../../../contracts/ref/ref.stub';
 import { browserSessionLaunchBroker } from './browser-session-launch-broker';
 
-const EVIDENCE_PATH = AbsoluteFilePathStub({ value: '/tmp/siegelense-integration' });
+const EVIDENCE_PATH = '/tmp/siegelense-integration';
 const BASE_URL = 'http://localhost';
 const BROWSER_TIMEOUT_MS = 90_000;
 const CLICK_TIMEOUT_MS = 10_000;

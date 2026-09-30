@@ -1,4 +1,3 @@
-import { AbsoluteFilePathStub } from '@dungeonmaster/shared/contracts/absolute-file-path/absolute-file-path.stub';
 import { GuildIdStub } from '@dungeonmaster/shared/contracts/guild-id/guild-id.stub';
 import { PastedImageUploadStub } from '@dungeonmaster/shared/contracts/pasted-image-upload/pasted-image-upload.stub';
 import { ProcessIdStub } from '@dungeonmaster/shared/contracts/process-id/process-id.stub';
@@ -295,7 +294,7 @@ describe('QuestNewResponder', () => {
       const guildId = GuildIdStub();
       const chatProcessId = ProcessIdStub({ value: 'proc-forwarded-to-agent' });
       proxy.setupQuestNew({ guildId, chatProcessId, questId });
-      const sourcePath = AbsoluteFilePathStub({ value: '/tmp/snip.png' });
+      const sourcePath = '/tmp/snip.png';
       const copyId = '66666666-6666-4666-8666-666666666666';
       proxy.stageLocalImageCopy({ sourcePath, bytes: new Uint8Array([9, 9, 9]), copyId });
 
@@ -318,7 +317,7 @@ describe('QuestNewResponder', () => {
       const guildId = GuildIdStub();
       const chatProcessId = ProcessIdStub({ value: 'proc-mint-on-path' });
       proxy.setupQuestNew({ guildId, chatProcessId, questId });
-      const sourcePath = AbsoluteFilePathStub({ value: '/tmp/only-a-path.png' });
+      const sourcePath = '/tmp/only-a-path.png';
       const copyId = '88888888-8888-4888-8888-888888888888';
       proxy.stageLocalImageCopy({ sourcePath, bytes: new Uint8Array([4, 5, 6]), copyId });
 

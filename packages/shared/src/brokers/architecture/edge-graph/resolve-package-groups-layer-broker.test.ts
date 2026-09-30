@@ -1,4 +1,3 @@
-import { AbsoluteFilePathStub } from '../../../contracts/absolute-file-path/absolute-file-path.stub';
 import { resolvePackageGroupsLayerBrokerProxy } from './resolve-package-groups-layer-broker.proxy';
 import { resolvePackageGroupsLayerBroker } from './resolve-package-groups-layer-broker';
 
@@ -19,12 +18,12 @@ describe('resolvePackageGroupsLayerBroker', () => {
       });
 
       const result = resolvePackageGroupsLayerBroker({
-        projectRoot: AbsoluteFilePathStub({ value: '/repo' }),
+        projectRoot: '/repo',
       });
 
       expect(result).toStrictEqual({
-        httpBackendRoots: [AbsoluteFilePathStub({ value: '/repo/packages/server' })],
-        frontendRoots: [AbsoluteFilePathStub({ value: '/repo/packages/web' })],
+        httpBackendRoots: ['/repo/packages/server'],
+        frontendRoots: ['/repo/packages/web'],
       });
     });
   });
@@ -50,11 +49,11 @@ describe('resolvePackageGroupsLayerBroker', () => {
       });
 
       const result = resolvePackageGroupsLayerBroker({
-        projectRoot: AbsoluteFilePathStub({ value: '/repo' }),
+        projectRoot: '/repo',
       });
 
       expect(result).toStrictEqual({
-        httpBackendRoots: [AbsoluteFilePathStub({ value: '/repo/packages/server' })],
+        httpBackendRoots: ['/repo/packages/server'],
         frontendRoots: [],
       });
     });
@@ -71,11 +70,11 @@ describe('resolvePackageGroupsLayerBroker', () => {
       });
 
       const result = resolvePackageGroupsLayerBroker({
-        projectRoot: AbsoluteFilePathStub({ value: '/repo' }),
+        projectRoot: '/repo',
       });
 
       expect(result).toStrictEqual({
-        httpBackendRoots: [AbsoluteFilePathStub({ value: '/repo/packages/api' })],
+        httpBackendRoots: ['/repo/packages/api'],
         frontendRoots: [],
       });
     });
@@ -97,14 +96,14 @@ describe('resolvePackageGroupsLayerBroker', () => {
       });
 
       const result = resolvePackageGroupsLayerBroker({
-        projectRoot: AbsoluteFilePathStub({ value: '/repo' }),
+        projectRoot: '/repo',
       });
 
       expect(result).toStrictEqual({
         httpBackendRoots: [],
         frontendRoots: [
-          AbsoluteFilePathStub({ value: '/repo/packages/web' }),
-          AbsoluteFilePathStub({ value: '/repo/packages/tui' }),
+          '/repo/packages/web',
+          '/repo/packages/tui',
         ],
       });
     });
@@ -117,7 +116,7 @@ describe('resolvePackageGroupsLayerBroker', () => {
       proxy.setupPackage({ packageRoot: '/repo/packages/shared', srcDirNames: ['contracts'] });
 
       const result = resolvePackageGroupsLayerBroker({
-        projectRoot: AbsoluteFilePathStub({ value: '/repo' }),
+        projectRoot: '/repo',
       });
 
       expect(result).toStrictEqual({ httpBackendRoots: [], frontendRoots: [] });
@@ -134,7 +133,7 @@ describe('resolvePackageGroupsLayerBroker', () => {
       proxy.setupPackagesDir({ projectRoot: '/repo', packageDirNames: ['server'] });
 
       const result = resolvePackageGroupsLayerBroker({
-        projectRoot: AbsoluteFilePathStub({ value: '/repo' }),
+        projectRoot: '/repo',
       });
 
       expect(result).toStrictEqual({ httpBackendRoots: [], frontendRoots: [] });
@@ -149,7 +148,7 @@ describe('resolvePackageGroupsLayerBroker', () => {
       proxy.setupPackage({ packageRoot: '/repo' });
 
       const result = resolvePackageGroupsLayerBroker({
-        projectRoot: AbsoluteFilePathStub({ value: '/repo' }),
+        projectRoot: '/repo',
       });
 
       expect(result).toStrictEqual({ httpBackendRoots: [], frontendRoots: [] });

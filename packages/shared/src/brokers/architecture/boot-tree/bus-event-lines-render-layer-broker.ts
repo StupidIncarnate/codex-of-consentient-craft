@@ -15,7 +15,6 @@
  * `→ adapters/...` call chain block.
  */
 
-import type { AbsoluteFilePath } from '../../../contracts/absolute-file-path/absolute-file-path-contract';
 import {
   contentTextContract,
   type ContentText,
@@ -26,7 +25,7 @@ export const busEventLinesRenderLayerBroker = ({
   responderFile,
   eventBusContext,
 }: {
-  responderFile: AbsoluteFilePath;
+  responderFile: string;
   eventBusContext: EventBusContext;
 }): ContentText[] => {
   const lines: ContentText[] = [];

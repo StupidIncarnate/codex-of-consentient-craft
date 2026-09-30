@@ -1,10 +1,9 @@
 import { httpEdgesToAnnotationsLayerBroker } from './http-edges-to-annotations-layer-broker';
 import { httpEdgesToAnnotationsLayerBrokerProxy } from './http-edges-to-annotations-layer-broker.proxy';
-import { AbsoluteFilePathStub } from '../../../contracts/absolute-file-path/absolute-file-path.stub';
 import { ContentTextStub } from '../../../contracts/content-text/content-text.stub';
 
-const PROJECT_ROOT = AbsoluteFilePathStub({ value: '/repo' });
-const PACKAGE_ROOT = AbsoluteFilePathStub({ value: '/repo/packages/server' });
+const PROJECT_ROOT = '/repo';
+const PACKAGE_ROOT = '/repo/packages/server';
 
 const SERVER_STATICS = ContentTextStub({
   value: `export const apiRoutesStatics = {
@@ -20,15 +19,9 @@ const WEB_STATICS = ContentTextStub({
 } as const;`,
 });
 
-const QUEST_FLOW_PATH = AbsoluteFilePathStub({
-  value: '/repo/packages/server/src/flows/quest/quest-flow.ts',
-});
-const QUEST_START_RESPONDER_PATH = AbsoluteFilePathStub({
-  value: '/repo/packages/server/src/responders/quest/start/quest-start-responder.ts',
-});
-const QUEST_START_BROKER_PATH = AbsoluteFilePathStub({
-  value: '/repo/packages/web/src/brokers/quest/start/quest-start-broker.ts',
-});
+const QUEST_FLOW_PATH = '/repo/packages/server/src/flows/quest/quest-flow.ts';
+const QUEST_START_RESPONDER_PATH = '/repo/packages/server/src/responders/quest/start/quest-start-responder.ts';
+const QUEST_START_BROKER_PATH = '/repo/packages/web/src/brokers/quest/start/quest-start-broker.ts';
 
 describe('httpEdgesToAnnotationsLayerBroker', () => {
   describe('empty package', () => {

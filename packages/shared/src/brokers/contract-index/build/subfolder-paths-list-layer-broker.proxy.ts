@@ -1,5 +1,4 @@
 import { readdirEntriesSyncProxy } from '#gateway/node/fs/readdir-entries-sync/readdir-entries-sync.proxy';
-import type { AbsoluteFilePath } from '../../../contracts/absolute-file-path/absolute-file-path-contract';
 
 export const subfolderPathsListLayerBrokerProxy = (): {
   setupDirectory: ({
@@ -7,7 +6,7 @@ export const subfolderPathsListLayerBrokerProxy = (): {
     folders,
     files,
   }: {
-    dirPath: AbsoluteFilePath;
+    dirPath: string;
     folders: readonly string[];
     files: readonly string[];
   }) => void;
@@ -20,7 +19,7 @@ export const subfolderPathsListLayerBrokerProxy = (): {
       folders,
       files,
     }: {
-      dirPath: AbsoluteFilePath;
+      dirPath: string;
       folders: readonly string[];
       files: readonly string[];
     }): void => {

@@ -20,7 +20,6 @@ import {
   contentTextContract,
   type ContentText,
 } from '../../../contracts/content-text/content-text-contract';
-import type { AbsoluteFilePath } from '../../../contracts/absolute-file-path/absolute-file-path-contract';
 import { filePathToDisplayNameTransformer } from '../../../transformers/file-path-to-display-name/file-path-to-display-name-transformer';
 import { listWalkedFolderFilesLayerBroker } from './list-walked-folder-files-layer-broker';
 import { walkReachableFilesLayerBroker } from './walk-reachable-files-layer-broker';
@@ -28,7 +27,7 @@ import { walkReachableFilesLayerBroker } from './walk-reachable-files-layer-brok
 export const architectureOrphanDetectBroker = ({
   packageSrcPath,
 }: {
-  packageSrcPath: AbsoluteFilePath;
+  packageSrcPath: string;
 }): ContentText => {
   const candidates = listWalkedFolderFilesLayerBroker({ packageSrcPath });
   const reachable = walkReachableFilesLayerBroker({ packageSrcPath });

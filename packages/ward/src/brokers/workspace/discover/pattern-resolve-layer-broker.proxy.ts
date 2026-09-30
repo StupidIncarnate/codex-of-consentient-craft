@@ -1,12 +1,11 @@
 import { readdirEntriesProxy } from '#gateway/node/fs__promises/readdir-entries/readdir-entries.proxy';
-import { AbsoluteFilePathStub } from '@dungeonmaster/shared/contracts/absolute-file-path/absolute-file-path.stub';
 
 import { packageReadLayerBrokerProxy } from './package-read-layer-broker.proxy';
 
 // Every caller (pattern-resolve-layer-broker.test.ts and
 // workspace-discover-broker.proxy.ts, which composes this one) resolves patterns against rootPath
 // '/project' with the base directory 'packages' — the only glob pattern exercised is 'packages/*'.
-const ROOT_PATH = AbsoluteFilePathStub({ value: '/project' });
+const ROOT_PATH = '/project';
 const PACKAGES_DIR = `${ROOT_PATH}/packages`;
 
 export const patternResolveLayerBrokerProxy = (): {

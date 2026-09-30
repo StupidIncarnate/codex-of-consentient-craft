@@ -12,7 +12,6 @@ import { architectureProjectMapBrokerProxy } from '@dungeonmaster/shared/brokers
 import { architectureGatewayInventoryBrokerProxy } from '@dungeonmaster/shared/brokers/architecture/gateway-inventory/architecture-gateway-inventory-broker.proxy';
 import { existsSyncProxy } from '#gateway/node/fs/exists-sync/exists-sync.proxy';
 import { readdirEntriesSyncProxy } from '#gateway/node/fs/readdir-entries-sync/readdir-entries-sync.proxy';
-import { AbsoluteFilePathStub } from '@dungeonmaster/shared/contracts/absolute-file-path/absolute-file-path.stub';
 import type { ContentText, GlobPattern, PathSegment } from '@dungeonmaster/shared/contracts';
 import { ContentTextStub } from '../../../contracts/content-text/content-text.stub';
 import type { ToolName } from '../../../contracts/tool-name/tool-name-contract';
@@ -30,7 +29,7 @@ import { ArchitectureHandleResponder } from './architecture-handle-responder';
 // project root via ResolveCallerRepoRootLayerResponder, which (with no `meta` staged for a caller
 // cwd) falls back to the server's own cwd — so this default IS what every call below is keyed on,
 // not a placeholder.
-const DEFAULT_PROJECT_ROOT = AbsoluteFilePathStub({ value: '/default/cwd' });
+const DEFAULT_PROJECT_ROOT = '/default/cwd';
 
 export const ArchitectureHandleResponderProxy = (): {
   callResponder: (params: {
@@ -128,9 +127,7 @@ export const ArchitectureHandleResponderProxy = (): {
       groupName: string;
       packageName: string;
     }): void => {
-      const packagesPath = AbsoluteFilePathStub({
-        value: `${String(DEFAULT_PROJECT_ROOT)}/packages`,
-      });
+      const packagesPath = `${String(DEFAULT_PROJECT_ROOT)}/packages`;
       existsSyncHandle.returns({
         path: `${String(packagesPath)}/${packageName}`,
         exists: false,

@@ -1,4 +1,3 @@
-import type { AbsoluteFilePath } from '@dungeonmaster/shared/contracts';
 
 import { readFileIfExistsProxy } from '#gateway/node/fs__promises/read-file-if-exists/read-file-if-exists.proxy';
 import { locationsCitationQuestFilePathFindBrokerProxy } from '../../locations/citation-quest-file-path-find/locations-citation-quest-file-path-find-broker.proxy';
@@ -14,11 +13,11 @@ export const citationResolveBrokerProxy = (): {
     guildQuestsPath: string;
     questFolderPath: string;
   }) => void;
-  setupQuestRecord: (params: { filePath: AbsoluteFilePath; contents: string }) => void;
-  setupQuestRecordMissing: (params: { filePath: AbsoluteFilePath }) => void;
-  setupPlansDir: (params: { dirPath: AbsoluteFilePath; entries: readonly string[] }) => void;
-  setupPlanFile: (params: { filePath: AbsoluteFilePath; contents: string }) => void;
-  setupNotADirectory: (params: { dirPath: AbsoluteFilePath }) => void;
+  setupQuestRecord: (params: { filePath: string; contents: string }) => void;
+  setupQuestRecordMissing: (params: { filePath: string }) => void;
+  setupPlansDir: (params: { dirPath: string; entries: readonly string[] }) => void;
+  setupPlanFile: (params: { filePath: string; contents: string }) => void;
+  setupNotADirectory: (params: { dirPath: string }) => void;
 } => {
   const readFileProxy = readFileIfExistsProxy();
   const questFilePathProxy = locationsCitationQuestFilePathFindBrokerProxy();
@@ -33,13 +32,13 @@ export const citationResolveBrokerProxy = (): {
       filePath,
       contents,
     }: {
-      filePath: AbsoluteFilePath;
+      filePath: string;
       contents: string;
     }): void => {
       readFileProxy.returns({ path: filePath, contents });
     },
 
-    setupQuestRecordMissing: ({ filePath }: { filePath: AbsoluteFilePath }): void => {
+    setupQuestRecordMissing: ({ filePath }: { filePath: string }): void => {
       readFileProxy.missing({ path: filePath });
     },
 

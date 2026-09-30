@@ -11,7 +11,6 @@
  */
 import * as ts from '#gateway/npm/typescript';
 
-import type { AbsoluteFilePath } from '../../contracts/absolute-file-path/absolute-file-path-contract';
 import { contentTextContract } from '../../contracts/content-text/content-text-contract';
 import { identifierContract } from '../../contracts/identifier/identifier-contract';
 import { ownerIndexEnumContract } from '../../contracts/owner-index-enum/owner-index-enum-contract';
@@ -35,7 +34,7 @@ export const contractFileOwnersReadLayerTransformer = ({
   packageName,
 }: {
   sourceFile: ts.SourceFile;
-  filePath: AbsoluteFilePath;
+  filePath: string;
   packageName: PackageName;
 }): {
   owners: OwnerIndexOwner[];

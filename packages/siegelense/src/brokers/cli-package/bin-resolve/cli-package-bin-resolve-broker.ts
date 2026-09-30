@@ -20,15 +20,14 @@
 
 import { readFileSync } from '#gateway/node/fs';
 import { dirname, join } from '#gateway/node/path';
-import { absoluteFilePathContract, packageJsonContract } from '@dungeonmaster/shared/contracts';
-import type { AbsoluteFilePath } from '@dungeonmaster/shared/contracts';
+import { packageJsonContract } from '@dungeonmaster/shared/contracts';
 
 import { packageRootFindLayerBroker } from './package-root-find-layer-broker';
 
 const CLI_PACKAGE_NAME = '@dungeonmaster/cli';
 const CLI_BIN_NAME = 'dungeonmaster';
 
-export const cliPackageBinResolveBroker = (): AbsoluteFilePath => {
+export const cliPackageBinResolveBroker = (): string => {
   const entryPath = require.resolve(CLI_PACKAGE_NAME);
   const packageRoot = packageRootFindLayerBroker({ startDir: dirname(entryPath) });
 
@@ -52,5 +51,5 @@ export const cliPackageBinResolveBroker = (): AbsoluteFilePath => {
     );
   }
 
-  return absoluteFilePathContract.parse(join(packageRoot, binRelative));
+  return join(packageRoot, binRelative);
 };

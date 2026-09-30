@@ -8,7 +8,6 @@
  * imageContentTypeTransformer({ filePath: AbsoluteFilePathStub({ value: '/tmp/a.png' }) });
  * // → 'image/png'
  */
-import type { AbsoluteFilePath } from '@dungeonmaster/shared/contracts';
 import type { pastedImageStatics } from '@dungeonmaster/shared/statics';
 
 // The tuple's own element type, spelled through `infer` rather than an indexed-access `[number]`
@@ -37,7 +36,7 @@ export type ImageContentType = (typeof CONTENT_TYPES)[keyof typeof CONTENT_TYPES
 export const imageContentTypeTransformer = ({
   filePath,
 }: {
-  filePath: AbsoluteFilePath;
+  filePath: string;
 }): ImageContentType | null => {
   const dotIndex = filePath.lastIndexOf('.');
   const slashIndex = filePath.lastIndexOf('/');

@@ -4,16 +4,14 @@ import { writeFileBytesProxy } from '#gateway/node/fs__promises/write-file-bytes
 import { FsErrorStub } from '#gateway/node/fs/is-fs-error/fs-error.stub';
 import { stderrProxy } from '#gateway/node/process/stderr/stderr.proxy';
 import { registerMock } from '@dungeonmaster/testing/register-mock';
-import { absoluteFilePathContract } from '@dungeonmaster/shared/contracts';
-import type { AbsoluteFilePath } from '@dungeonmaster/shared/contracts';
 
 export const localImageCopyBrokerProxy = (): {
   stageCopyIds: (params: { ids: readonly unknown[] }) => void;
-  sourceReads: (params: { filePath: AbsoluteFilePath; bytes: Uint8Array }) => void;
-  sourceReadFails: (params: { filePath: AbsoluteFilePath }) => void;
-  destinationWriteFails: (params: { filePath: AbsoluteFilePath }) => void;
-  writtenDestinations: () => AbsoluteFilePath[];
-  writtenBytesFor: (params: { filePath: AbsoluteFilePath }) => unknown;
+  sourceReads: (params: { filePath: string; bytes: Uint8Array }) => void;
+  sourceReadFails: (params: { filePath: string }) => void;
+  destinationWriteFails: (params: { filePath: string }) => void;
+  writtenDestinations: () => string[];
+  writtenBytesFor: (params: { filePath: string }) => unknown;
   sourceReadAttemptedPaths: () => unknown[];
   stderrText: () => unknown;
 } => {
@@ -40,26 +38,26 @@ export const localImageCopyBrokerProxy = (): {
         uuidHandle.onceFor([]).returns(id);
       }
     },
-    sourceReads: ({ filePath, bytes }: { filePath: AbsoluteFilePath; bytes: Uint8Array }): void => {
+    sourceReads: ({ filePath, bytes }: { filePath: string; bytes: Uint8Array }): void => {
       readProxy.returns({ path: filePath, bytes });
     },
-    sourceReadFails: ({ filePath }: { filePath: AbsoluteFilePath }): void => {
+    sourceReadFails: ({ filePath }: { filePath: string }): void => {
       readProxy.missing({ path: filePath });
     },
-    destinationWriteFails: ({ filePath }: { filePath: AbsoluteFilePath }): void => {
+    destinationWriteFails: ({ filePath }: { filePath: string }): void => {
       writeProxy.rejects({
         path: filePath,
         error: FsErrorStub({ code: 'EACCES', path: filePath }),
       });
     },
-    writtenDestinations: (): AbsoluteFilePath[] =>
+    writtenDestinations: (): string[] =>
       writeProxy
         .getCallsFor({
           path: (value: unknown): boolean =>
             typeof value === 'string' && stagedIds.includes(value.split('/').pop()?.split('.')[0]),
         })
-        .map((call) => absoluteFilePathContract.parse(call[0])),
-    writtenBytesFor: ({ filePath }: { filePath: AbsoluteFilePath }): unknown =>
+        .map((call) => call[0]),
+    writtenBytesFor: ({ filePath }: { filePath: string }): unknown =>
       writeProxy.writtenBytesFor({ path: filePath }),
     sourceReadAttemptedPaths: (): unknown[] =>
       readProxy.getCallsFor({ path: (): boolean => true }).map((call) => String(call[0])),

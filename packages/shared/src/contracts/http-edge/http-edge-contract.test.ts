@@ -1,7 +1,6 @@
 import { httpEdgeContract } from './http-edge-contract';
 import { HttpEdgeStub } from './http-edge.stub';
 import { ContentTextStub } from '../content-text/content-text.stub';
-import { AbsoluteFilePathStub } from '../absolute-file-path/absolute-file-path.stub';
 
 describe('httpEdgeContract', () => {
   describe('valid inputs', () => {
@@ -9,13 +8,9 @@ describe('httpEdgeContract', () => {
       const result = HttpEdgeStub({
         method: ContentTextStub({ value: 'POST' }),
         urlPattern: ContentTextStub({ value: '/api/quests/:questId/start' }),
-        serverFlowFile: AbsoluteFilePathStub({
-          value: '/repo/packages/server/src/flows/quest/quest-flow.ts',
-        }),
+        serverFlowFile: '/repo/packages/server/src/flows/quest/quest-flow.ts',
         serverResponderFile: null,
-        webBrokerFile: AbsoluteFilePathStub({
-          value: '/repo/packages/web/src/brokers/quest/start/quest-start-broker.ts',
-        }),
+        webBrokerFile: '/repo/packages/web/src/brokers/quest/start/quest-start-broker.ts',
         paired: true,
       });
 
@@ -33,9 +28,7 @@ describe('httpEdgeContract', () => {
       const result = HttpEdgeStub({
         method: ContentTextStub({ value: 'GET' }),
         urlPattern: ContentTextStub({ value: '/api/health' }),
-        serverFlowFile: AbsoluteFilePathStub({
-          value: '/repo/packages/server/src/flows/health/health-flow.ts',
-        }),
+        serverFlowFile: '/repo/packages/server/src/flows/health/health-flow.ts',
         serverResponderFile: null,
         webBrokerFile: null,
         paired: false,
@@ -57,9 +50,7 @@ describe('httpEdgeContract', () => {
         urlPattern: ContentTextStub({ value: '/api/sessions/:sessionId/chat/history' }),
         serverFlowFile: null,
         serverResponderFile: null,
-        webBrokerFile: AbsoluteFilePathStub({
-          value: '/repo/packages/web/src/brokers/session/chat-history-broker.ts',
-        }),
+        webBrokerFile: '/repo/packages/web/src/brokers/session/chat-history-broker.ts',
         paired: false,
       });
 

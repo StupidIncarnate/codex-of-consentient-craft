@@ -1,4 +1,3 @@
-import { AbsoluteFilePathStub } from '@dungeonmaster/shared/contracts/absolute-file-path/absolute-file-path.stub';
 
 import { InstanceIdStub } from '../../../contracts/instance-id/instance-id.stub';
 import { RegistryEntryStub } from '../../../contracts/registry-entry/registry-entry.stub';
@@ -123,9 +122,7 @@ describe('SiegelenseRunResponder', () => {
     it('ERROR: {--steps-file naming a file that does not exist} => refuses naming the path', async () => {
       const proxy = SiegelenseRunResponderProxy();
       const instanceId = InstanceIdStub({ value: 'inst_7f3a9c21' });
-      const filePath = AbsoluteFilePathStub({
-        value: '/tmp/siegelense-run-responder-test/missing-steps.json',
-      });
+      const filePath = '/tmp/siegelense-run-responder-test/missing-steps.json';
       proxy.stageStepsFileMissing({
         filePath,
         error: new Error(
@@ -154,9 +151,7 @@ describe('SiegelenseRunResponder', () => {
       proxy.stageRegistry({ registry });
       proxy.stageRunResult({ result: runResult });
       const stepsJson = JSON.stringify([{ step: 'goto', path: '/' }]);
-      const filePath = AbsoluteFilePathStub({
-        value: '/tmp/siegelense-run-responder-test/steps.json',
-      });
+      const filePath = '/tmp/siegelense-run-responder-test/steps.json';
       proxy.stageStepsFileContent({ filePath, content: stepsJson });
 
       await SiegelenseRunResponder({

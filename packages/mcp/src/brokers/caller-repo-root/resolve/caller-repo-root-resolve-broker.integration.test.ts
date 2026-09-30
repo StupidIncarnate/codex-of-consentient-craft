@@ -12,7 +12,6 @@
 import { cwdResolveBroker } from '@dungeonmaster/shared/brokers';
 import { installTestbedCreateBroker } from '@dungeonmaster/testing';
 import { architecturePackageInventoryBroker } from '@dungeonmaster/shared/brokers';
-import { AbsoluteFilePathStub } from '@dungeonmaster/shared/contracts/absolute-file-path/absolute-file-path.stub';
 import { ContentTextStub } from '@dungeonmaster/shared/contracts/content-text/content-text.stub';
 
 describe('cwdResolveBroker + architecturePackageInventoryBroker (integration: real nested worktree layout)', () => {
@@ -50,20 +49,16 @@ describe('cwdResolveBroker + architecturePackageInventoryBroker (integration: re
 
     const innerInventory = architecturePackageInventoryBroker({
       packageName: ContentTextStub({ value: 'inner-pkg' }),
-      srcPath: AbsoluteFilePathStub({ value: `${repoRoot}/packages/inner-pkg/src` }),
-      packageJsonPath: AbsoluteFilePathStub({
-        value: `${repoRoot}/packages/inner-pkg/package.json`,
-      }),
+      srcPath: `${repoRoot}/packages/inner-pkg/src`,
+      packageJsonPath: `${repoRoot}/packages/inner-pkg/package.json`,
     });
 
     expect(String(innerInventory).split('\n')[0]).toBe('## inner-pkg (1 files)');
 
     const outerOnlyInventory = architecturePackageInventoryBroker({
       packageName: ContentTextStub({ value: 'outer-only-pkg' }),
-      srcPath: AbsoluteFilePathStub({ value: `${repoRoot}/packages/outer-only-pkg/src` }),
-      packageJsonPath: AbsoluteFilePathStub({
-        value: `${repoRoot}/packages/outer-only-pkg/package.json`,
-      }),
+      srcPath: `${repoRoot}/packages/outer-only-pkg/src`,
+      packageJsonPath: `${repoRoot}/packages/outer-only-pkg/package.json`,
     });
 
     testbed.cleanup();

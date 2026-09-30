@@ -4,7 +4,6 @@ import { FsErrorStub } from '#gateway/node/fs/is-fs-error/fs-error.stub';
 import { renameProxy } from '#gateway/node/fs__promises/rename/rename.proxy';
 import { registerMock } from '@dungeonmaster/testing/register-mock';
 import { locationsStatics } from '@dungeonmaster/shared/statics';
-import { AbsoluteFilePathStub } from '@dungeonmaster/shared/contracts/absolute-file-path/absolute-file-path.stub';
 
 import { writeFileProxy } from '#gateway/node/fs__promises/write-file/write-file.proxy';
 import { locationsRegistryPathFindBrokerProxy } from '../../locations/registry-path-find/locations-registry-path-find-broker.proxy';
@@ -20,7 +19,7 @@ const homePath = HOME_PATH_VALUE;
 const rootPath = ROOT_PATH_VALUE;
 const registryPath = REGISTRY_PATH_VALUE;
 const tmpPath = TMP_PATH_VALUE;
-const tmpPathAbs = AbsoluteFilePathStub({ value: TMP_PATH_VALUE });
+const tmpPathAbs = TMP_PATH_VALUE;
 
 export const registryWriteBrokerProxy = (): {
   setupWriteSuccess: () => void;

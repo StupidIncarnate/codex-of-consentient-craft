@@ -1,4 +1,3 @@
-import { AbsoluteFilePathStub } from '@dungeonmaster/shared/contracts/absolute-file-path/absolute-file-path.stub';
 
 import { RunIdStub } from '../../../contracts/run-id/run-id.stub';
 import { runShotsLayerBroker } from './run-shots-layer-broker';
@@ -12,22 +11,22 @@ describe('runShotsLayerBroker', () => {
     it('VALID: {two shots} => both, each carrying its real size and last write', async () => {
       const proxy = runShotsLayerBrokerProxy();
       proxy.setupShotsDir({
-        shotsDir: AbsoluteFilePathStub({ value: SHOTS_DIR }),
+        shotsDir: SHOTS_DIR,
         entries: ['step1.png', 'step2.png'],
       });
       proxy.setupShotFile({
-        filePath: AbsoluteFilePathStub({ value: `${SHOTS_DIR}/step1.png` }),
+        filePath: `${SHOTS_DIR}/step1.png`,
         sizeBytes: 4096,
         modifiedAtMs: 1_700_000_000_000,
       });
       proxy.setupShotFile({
-        filePath: AbsoluteFilePathStub({ value: `${SHOTS_DIR}/step2.png` }),
+        filePath: `${SHOTS_DIR}/step2.png`,
         sizeBytes: 8192,
         modifiedAtMs: 1_700_000_001_000,
       });
 
       const result = await runShotsLayerBroker({
-        evidencePath: AbsoluteFilePathStub({ value: EVIDENCE }),
+        evidencePath: EVIDENCE,
         runId: RunIdStub({ value: 'run_1' }),
       });
 
@@ -50,17 +49,17 @@ describe('runShotsLayerBroker', () => {
     it('VALID: {a screencast beside the shots} => classified as video, so --kind video is a real match the day one exists', async () => {
       const proxy = runShotsLayerBrokerProxy();
       proxy.setupShotsDir({
-        shotsDir: AbsoluteFilePathStub({ value: SHOTS_DIR }),
+        shotsDir: SHOTS_DIR,
         entries: ['walk.webm'],
       });
       proxy.setupShotFile({
-        filePath: AbsoluteFilePathStub({ value: `${SHOTS_DIR}/walk.webm` }),
+        filePath: `${SHOTS_DIR}/walk.webm`,
         sizeBytes: 104_857_600,
         modifiedAtMs: 1_700_000_002_000,
       });
 
       const result = await runShotsLayerBroker({
-        evidencePath: AbsoluteFilePathStub({ value: EVIDENCE }),
+        evidencePath: EVIDENCE,
         runId: RunIdStub({ value: 'run_1' }),
       });
 
@@ -79,17 +78,17 @@ describe('runShotsLayerBroker', () => {
     it('VALID: {an unrecognised entry beside a shot} => only the shot comes back, and the stranger is never even statted', async () => {
       const proxy = runShotsLayerBrokerProxy();
       proxy.setupShotsDir({
-        shotsDir: AbsoluteFilePathStub({ value: SHOTS_DIR }),
+        shotsDir: SHOTS_DIR,
         entries: ['step1.png', 'notes.txt'],
       });
       proxy.setupShotFile({
-        filePath: AbsoluteFilePathStub({ value: `${SHOTS_DIR}/step1.png` }),
+        filePath: `${SHOTS_DIR}/step1.png`,
         sizeBytes: 4096,
         modifiedAtMs: 1_700_000_000_000,
       });
 
       const result = await runShotsLayerBroker({
-        evidencePath: AbsoluteFilePathStub({ value: EVIDENCE }),
+        evidencePath: EVIDENCE,
         runId: RunIdStub({ value: 'run_1' }),
       });
 
@@ -108,12 +107,12 @@ describe('runShotsLayerBroker', () => {
     it('EMPTY: {a run that captured nothing} => an empty list, not a throw', async () => {
       const proxy = runShotsLayerBrokerProxy();
       proxy.setupShotsDir({
-        shotsDir: AbsoluteFilePathStub({ value: SHOTS_DIR }),
+        shotsDir: SHOTS_DIR,
         entries: [],
       });
 
       const result = await runShotsLayerBroker({
-        evidencePath: AbsoluteFilePathStub({ value: EVIDENCE }),
+        evidencePath: EVIDENCE,
         runId: RunIdStub({ value: 'run_1' }),
       });
 
@@ -125,20 +124,20 @@ describe('runShotsLayerBroker', () => {
     it('EDGE: {stat answers ENOENT} => the row is dropped rather than counted at an unknown size', async () => {
       const proxy = runShotsLayerBrokerProxy();
       proxy.setupShotsDir({
-        shotsDir: AbsoluteFilePathStub({ value: SHOTS_DIR }),
+        shotsDir: SHOTS_DIR,
         entries: ['step1.png', 'step2.png'],
       });
       proxy.setupShotFileMissing({
-        filePath: AbsoluteFilePathStub({ value: `${SHOTS_DIR}/step1.png` }),
+        filePath: `${SHOTS_DIR}/step1.png`,
       });
       proxy.setupShotFile({
-        filePath: AbsoluteFilePathStub({ value: `${SHOTS_DIR}/step2.png` }),
+        filePath: `${SHOTS_DIR}/step2.png`,
         sizeBytes: 8192,
         modifiedAtMs: 1_700_000_001_000,
       });
 
       const result = await runShotsLayerBroker({
-        evidencePath: AbsoluteFilePathStub({ value: EVIDENCE }),
+        evidencePath: EVIDENCE,
         runId: RunIdStub({ value: 'run_1' }),
       });
 

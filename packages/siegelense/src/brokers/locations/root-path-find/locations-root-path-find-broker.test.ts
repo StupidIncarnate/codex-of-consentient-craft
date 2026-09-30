@@ -1,6 +1,5 @@
 import { locationsRootPathFindBroker } from './locations-root-path-find-broker';
 import { locationsRootPathFindBrokerProxy } from './locations-root-path-find-broker.proxy';
-import { AbsoluteFilePathStub } from '@dungeonmaster/shared/contracts/absolute-file-path/absolute-file-path.stub';
 
 describe('locationsRootPathFindBroker', () => {
   describe('root path resolution', () => {
@@ -15,7 +14,7 @@ describe('locationsRootPathFindBroker', () => {
 
       const result = locationsRootPathFindBroker();
 
-      expect(result).toBe(AbsoluteFilePathStub({ value: '/home/user/.dungeonmaster/siegelense' }));
+      expect(result).toBe('/home/user/.dungeonmaster/siegelense');
     });
 
     it('EDGE: {homePath with trailing separator} => returns siegelense joined without a double slash', () => {
@@ -29,7 +28,7 @@ describe('locationsRootPathFindBroker', () => {
 
       const result = locationsRootPathFindBroker();
 
-      expect(result).toBe(AbsoluteFilePathStub({ value: '/home/user/.dungeonmaster/siegelense' }));
+      expect(result).toBe('/home/user/.dungeonmaster/siegelense');
     });
 
     it('EDGE: {homePath nested several levels deep} => returns siegelense appended to the full nested path', () => {
@@ -44,7 +43,7 @@ describe('locationsRootPathFindBroker', () => {
       const result = locationsRootPathFindBroker();
 
       expect(result).toBe(
-        AbsoluteFilePathStub({ value: '/srv/agents/worker-3/state/.dungeonmaster/siegelense' }),
+        '/srv/agents/worker-3/state/.dungeonmaster/siegelense',
       );
     });
   });

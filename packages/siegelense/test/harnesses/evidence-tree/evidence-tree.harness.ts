@@ -44,7 +44,7 @@ import { PNG } from '#gateway/npm/pngjs';
 import { installTestbedCreateBroker } from '@dungeonmaster/testing';
 import { ContentTextStub } from '@dungeonmaster/shared/contracts/content-text/content-text.stub';
 import { ProcessIdStub } from '@dungeonmaster/shared/contracts/process-id/process-id.stub';
-import type { AbsoluteFilePath, ContentText, SiegeInstance, SiegeRun } from '@dungeonmaster/shared/contracts';
+import type { ContentText, SiegeInstance, SiegeRun } from '@dungeonmaster/shared/contracts';
 import { locationsStatics } from '@dungeonmaster/shared/statics';
 
 import { cleanupRunBroker } from '../../../src/brokers/cleanup/run/cleanup-run-broker';
@@ -187,14 +187,14 @@ export const evidenceTreeHarness = (): {
   fakePgid: () => ProcessGroupId;
   runOne: () => SiegeRun['id'];
   runTwo: () => SiegeRun['id'];
-  killedInstanceEvidenceDir: () => AbsoluteFilePath;
-  run1Shot1Path: () => AbsoluteFilePath;
-  run2Shot1Path: () => AbsoluteFilePath;
+  killedInstanceEvidenceDir: () => string;
+  run1Shot1Path: () => string;
+  run2Shot1Path: () => string;
   run1Steps: () => readonly StepReading[];
   run2Steps: () => readonly StepReading[];
   run1Result: () => RunResult;
   run2Result: () => RunResult;
-  run2StoredReturnPath: () => AbsoluteFilePath;
+  run2StoredReturnPath: () => string;
   crashRun2: () => void;
   addStaleAliveEntry: () => Promise<SiegeInstance['id']>;
   consoleStep2Rows: () => readonly ContentText[];
@@ -213,10 +213,10 @@ export const evidenceTreeHarness = (): {
   readCompare: (params: { query: CompareQuery }) => Promise<CompareAnswer>;
   runCleanup: () => Promise<CleanupAnswer>;
   readRegistry: () => Promise<Registry>;
-  measureBlank: (params: { shotPath: AbsoluteFilePath }) => Promise<BlankReading>;
+  measureBlank: (params: { shotPath: string }) => Promise<BlankReading>;
   measureChange: (params: {
-    previousPath: AbsoluteFilePath | null;
-    currentPath: AbsoluteFilePath;
+    previousPath: string | null;
+    currentPath: string;
   }) => Promise<PixelChange | null>;
 } => {
   let testbed: ReturnType<typeof installTestbedCreateBroker> | null = null;
@@ -225,10 +225,10 @@ export const evidenceTreeHarness = (): {
   // why a bare literal pgid no longer proves anything.
   let staleChildPgid: ReturnType<typeof ProcessGroupIdStub> | null = null;
 
-  const killedInstanceEvidenceDir = (): AbsoluteFilePath =>
+  const killedInstanceEvidenceDir = (): string =>
     locationsInstanceEvidencePathFindBroker({ instanceId: KILLED_INSTANCE_ID, guildId: null });
 
-  const staleInstanceEvidenceDir = (): AbsoluteFilePath =>
+  const staleInstanceEvidenceDir = (): string =>
     locationsInstanceEvidencePathFindBroker({ instanceId: STALE_INSTANCE_ID, guildId: null });
 
   const run1Paths = (): ReturnType<typeof locationsRunPathsFindBroker> =>
@@ -237,19 +237,19 @@ export const evidenceTreeHarness = (): {
   const run2Paths = (): ReturnType<typeof locationsRunPathsFindBroker> =>
     locationsRunPathsFindBroker({ evidencePath: killedInstanceEvidenceDir(), runId: RUN_2 });
 
-  const run1Shot1Path = (): AbsoluteFilePath =>
+  const run1Shot1Path = (): string =>
     locationsShotPathFindBroker({
       shotsDir: run1Paths().shotsDir,
       step: StepIndexStub({ value: 1 }),
     });
 
-  const run2Shot1Path = (): AbsoluteFilePath =>
+  const run2Shot1Path = (): string =>
     locationsShotPathFindBroker({
       shotsDir: run2Paths().shotsDir,
       step: StepIndexStub({ value: 1 }),
     });
 
-  const writeSolidPng = async ({ filePath }: { filePath: AbsoluteFilePath }): Promise<void> => {
+  const writeSolidPng = async ({ filePath }: { filePath: string }): Promise<void> => {
     const png = new PNG({ width: IMAGE_SIDE, height: IMAGE_SIDE });
     for (let offset = 0; offset < png.data.length; offset += RGBA_CHANNELS) {
       png.data[offset] = 13;
@@ -263,7 +263,7 @@ export const evidenceTreeHarness = (): {
   const writeHalfDifferentPng = async ({
     filePath,
   }: {
-    filePath: AbsoluteFilePath;
+    filePath: string;
   }): Promise<void> => {
     const png = new PNG({ width: IMAGE_SIDE, height: IMAGE_SIDE });
     for (let row = 0; row < IMAGE_SIDE; row += 1) {
@@ -696,14 +696,14 @@ export const evidenceTreeHarness = (): {
       compareReadBroker({ query }),
     runCleanup: async (): Promise<CleanupAnswer> => cleanupRunBroker(),
     readRegistry: async (): Promise<Registry> => registryReadBroker(),
-    measureBlank: async ({ shotPath }: { shotPath: AbsoluteFilePath }): Promise<BlankReading> =>
+    measureBlank: async ({ shotPath }: { shotPath: string }): Promise<BlankReading> =>
       shotBlankReadBroker({ shotPath }),
     measureChange: async ({
       previousPath,
       currentPath,
     }: {
-      previousPath: AbsoluteFilePath | null;
-      currentPath: AbsoluteFilePath;
+      previousPath: string | null;
+      currentPath: string;
     }): Promise<PixelChange | null> => shotChangeReadBroker({ previousPath, currentPath }),
   };
 };

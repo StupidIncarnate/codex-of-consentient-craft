@@ -9,16 +9,13 @@
 
 import { architectureProjectMapBroker } from './architecture-project-map-broker';
 import { discoverPackagesLayerBroker } from './discover-packages-layer-broker';
-import { AbsoluteFilePathStub } from '../../../contracts/absolute-file-path/absolute-file-path.stub';
 import { PackageNameStub } from '../../../contracts/package-name/package-name.stub';
 import { cwd as getCwd } from '#gateway/node/process';
 import { projectMapStatics } from '../../../statics/project-map/project-map-statics';
 
 const cwd = getCwd();
-const projectRoot = AbsoluteFilePathStub({
-  value: cwd.slice(0, cwd.lastIndexOf('/packages/')),
-});
-const packagesPath = AbsoluteFilePathStub({ value: `${projectRoot}/packages` });
+const projectRoot = cwd.slice(0, cwd.lastIndexOf('/packages/'));
+const packagesPath = `${projectRoot}/packages`;
 const allPackages = discoverPackagesLayerBroker({ dirPath: packagesPath }).map((entry) =>
   PackageNameStub({ value: entry.name }),
 );

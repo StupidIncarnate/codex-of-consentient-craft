@@ -17,8 +17,6 @@
  * e2e check runner, the CLI's Playwright installer
  */
 
-import { absoluteFilePathContract } from '../../../contracts/absolute-file-path/absolute-file-path-contract';
-import type { AbsoluteFilePath } from '../../../contracts/absolute-file-path/absolute-file-path-contract';
 import { packageJsonContract } from '../../../contracts/package-json/package-json-contract';
 import { isPackageE2eEligibleGuard } from '../../../guards/is-package-e2e-eligible/is-package-e2e-eligible-guard';
 import { readFileOptionalLayerBroker } from './read-file-optional-layer-broker';
@@ -27,16 +25,16 @@ import { safeReaddirLayerBroker } from './safe-readdir-layer-broker';
 export const architecturePackageE2eEligibleDetectBroker = async ({
   packageRoot,
 }: {
-  packageRoot: AbsoluteFilePath;
+  packageRoot: string;
 }): Promise<boolean> => {
-  const packageJsonPath = absoluteFilePathContract.parse(`${packageRoot}/package.json`);
+  const packageJsonPath = `${packageRoot}/package.json`;
   const packageJsonRaw = readFileOptionalLayerBroker({ filePath: packageJsonPath });
   const packageJson =
     packageJsonRaw === undefined
       ? packageJsonContract.parse({})
       : packageJsonContract.parse(JSON.parse(String(packageJsonRaw)));
 
-  const srcPath = absoluteFilePathContract.parse(`${packageRoot}/src`);
+  const srcPath = `${packageRoot}/src`;
   const srcEntries = safeReaddirLayerBroker({ dirPath: srcPath });
   const srcDirNames = srcEntries
     .filter((entry) => entry.kind === 'directory')

@@ -21,7 +21,7 @@
  */
 import { claudePathSlugEncoderTransformer } from '@dungeonmaster/shared/transformers';
 import { readFileSync, readdirEntriesSync } from '#gateway/node/fs';
-import { absoluteFilePathContract, contentTextContract, lineCountContract, agentContract, sessionContract } from '@dungeonmaster/shared/contracts';
+import { contentTextContract, lineCountContract, agentContract, sessionContract } from '@dungeonmaster/shared/contracts';
 
 import { isJsonlFileGuard } from '../../../guards/is-jsonl-file/is-jsonl-file-guard';
 import { matchesWhereClauseGuard } from '../../../guards/matches-where-clause/matches-where-clause-guard';
@@ -41,14 +41,14 @@ export const subagentQueryRouteBroker = ({
   where: Record<string, unknown>;
 }): SubagentRecord[] => {
   const { cwd: cwdValue, sessionId: sessionIdValue, ...rest } = where;
-  const cwd = absoluteFilePathContract.parse(cwdValue);
+  const cwd = cwdValue;
   const sessionId = sessionContract.shape.id.parse(sessionIdValue);
   const sessionsDir = claudePathSlugEncoderTransformer({
     homeDir: target.claudeHome,
     projectPath: cwd,
   });
-  const subagentsDirPath = absoluteFilePathContract.parse(`${sessionsDir}/${sessionId}/subagents`);
-  const parentFilePath = absoluteFilePathContract.parse(`${sessionsDir}/${sessionId}.jsonl`);
+  const subagentsDirPath = `${sessionsDir}/${sessionId}/subagents`;
+  const parentFilePath = `${sessionsDir}/${sessionId}.jsonl`;
 
   const parentLines = contentTextContract
     .parse(readFileSync(parentFilePath))
@@ -61,7 +61,7 @@ export const subagentQueryRouteBroker = ({
   );
 
   const subagentFileLines = subagentFiles.map((entry) => {
-    const filePath = absoluteFilePathContract.parse(`${subagentsDirPath}/${entry.name}`);
+    const filePath = `${subagentsDirPath}/${entry.name}`;
     return {
       entry,
       filePath,

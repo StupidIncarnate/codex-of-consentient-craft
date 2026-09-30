@@ -29,7 +29,7 @@
  */
 
 import { filePathContract, wardDetailContract } from '@dungeonmaster/shared/contracts';
-import type { AbsoluteFilePath, Quest } from '@dungeonmaster/shared/contracts';
+import type { Quest } from '@dungeonmaster/shared/contracts';
 import { locationsStatics } from '@dungeonmaster/shared/statics';
 import { readFileIfExists } from '#gateway/node/fs__promises';
 import { join } from '#gateway/node/path';
@@ -46,7 +46,7 @@ export const wardRowsLayerBroker = async ({
   questPath,
   quest,
 }: {
-  questPath: AbsoluteFilePath;
+  questPath: string;
   quest: Quest;
 }): Promise<{ ward: QuestWorkWard | null; riftcarverLogPath: string | null }> => {
   const failedCarve = [...quest.riftcarverResults]

@@ -1,4 +1,3 @@
-import { AbsoluteFilePathStub } from '@dungeonmaster/shared/contracts/absolute-file-path/absolute-file-path.stub';
 
 import { EpochMsStub } from '../../../contracts/epoch-ms/epoch-ms.stub';
 import { InstanceIdStub } from '../../../contracts/instance-id/instance-id.stub';
@@ -9,11 +8,9 @@ import { staleReapLayerBroker } from './stale-reap-layer-broker';
 import { staleReapLayerBrokerProxy } from './stale-reap-layer-broker.proxy';
 
 const INSTANCE_ID = InstanceIdStub({ value: 'inst_9b2c' });
-const SOCKET_PATH = AbsoluteFilePathStub({ value: `/tmp/dm-siege-sockets/${INSTANCE_ID}.sock` });
-const EVIDENCE_PATH = AbsoluteFilePathStub({
-  value: `/home/user/.dungeonmaster/siegelense/unowned/instances/${INSTANCE_ID}`,
-});
-const HOME_PATH = AbsoluteFilePathStub({ value: `/tmp/dm-siege-${INSTANCE_ID}` });
+const SOCKET_PATH = `/tmp/dm-siege-sockets/${INSTANCE_ID}.sock`;
+const EVIDENCE_PATH = `/home/user/.dungeonmaster/siegelense/unowned/instances/${INSTANCE_ID}`;
+const HOME_PATH = `/tmp/dm-siege-${INSTANCE_ID}`;
 const NOW_MS = EpochMsStub({ value: 1_700_000_000_000 });
 
 describe('staleReapLayerBroker', () => {

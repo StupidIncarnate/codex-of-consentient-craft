@@ -11,19 +11,17 @@
  * WHEN-TO-USE: mcp-tools annotation extractor discovering flow files for tool registration scan
  */
 
-import { absoluteFilePathContract } from '../../../contracts/absolute-file-path/absolute-file-path-contract';
-import type { AbsoluteFilePath } from '../../../contracts/absolute-file-path/absolute-file-path-contract';
 import { isNonTestFileGuard } from '../../../guards/is-non-test-file/is-non-test-file-guard';
 import { readdirEntriesSync } from '#gateway/node/fs';
 
 export const listFlowFilesLayerBroker = ({
   packageRoot,
 }: {
-  packageRoot: AbsoluteFilePath;
-}): AbsoluteFilePath[] => {
-  const flowsDir = absoluteFilePathContract.parse(`${String(packageRoot)}/src/flows`);
-  const stack: AbsoluteFilePath[] = [flowsDir];
-  const results: AbsoluteFilePath[] = [];
+  packageRoot: string;
+}): string[] => {
+  const flowsDir = `${String(packageRoot)}/src/flows`;
+  const stack: string[] = [flowsDir];
+  const results: string[] = [];
 
   while (stack.length > 0) {
     const current = stack.pop();
@@ -32,7 +30,7 @@ export const listFlowFilesLayerBroker = ({
     try {
       const entries = readdirEntriesSync(String(current));
       for (const entry of entries) {
-        const entryPath = absoluteFilePathContract.parse(`${String(current)}/${entry.name}`);
+        const entryPath = `${String(current)}/${entry.name}`;
         if (entry.kind === 'directory') {
           stack.push(entryPath);
         } else if (entry.name.endsWith('-flow.ts') && isNonTestFileGuard({ filePath: entryPath })) {

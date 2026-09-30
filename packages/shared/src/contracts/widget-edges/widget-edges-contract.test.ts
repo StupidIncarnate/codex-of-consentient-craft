@@ -1,6 +1,5 @@
 import { widgetEdgesContract } from './widget-edges-contract';
 import { WidgetEdgesStub } from './widget-edges.stub';
-import { AbsoluteFilePathStub } from '../absolute-file-path/absolute-file-path.stub';
 import { ContentTextStub } from '../content-text/content-text.stub';
 
 describe('widgetEdgesContract', () => {
@@ -14,9 +13,7 @@ describe('widgetEdgesContract', () => {
     });
 
     it('VALID: {populated child paths and binding names} => parses successfully', () => {
-      const childPath = AbsoluteFilePathStub({
-        value: '/repo/packages/web/src/widgets/child/child-widget.tsx',
-      });
+      const childPath = '/repo/packages/web/src/widgets/child/child-widget.tsx';
       const bindingName = ContentTextStub({ value: 'use-quest-binding' });
 
       const result = WidgetEdgesStub({

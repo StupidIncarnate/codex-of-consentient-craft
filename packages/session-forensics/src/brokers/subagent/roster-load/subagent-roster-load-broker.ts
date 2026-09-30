@@ -14,7 +14,6 @@ import { join } from '#gateway/node/path';
 import { locationsStatics } from '@dungeonmaster/shared/statics';
 import { safeJsonParseTransformer } from '@dungeonmaster/shared/transformers';
 import { contentTextContract, agentContract } from '@dungeonmaster/shared/contracts';
-import type { AbsoluteFilePath } from '@dungeonmaster/shared/contracts';
 import { subagentMetaContract } from '../../../contracts/subagent-meta/subagent-meta-contract';
 import { isoTimestampContract } from '../../../contracts/iso-timestamp/iso-timestamp-contract';
 import {
@@ -29,7 +28,7 @@ const META_FILE_SUFFIX = '.meta.json';
 export const subagentRosterLoadBroker = ({
   sessionFilePath,
 }: {
-  sessionFilePath: AbsoluteFilePath;
+  sessionFilePath: string;
 }): readonly SubagentRosterRow[] => {
   const sessionDirBase = sessionFilePath.slice(0, -JSONL_FILE_SUFFIX.length);
   const subagentsDir = join(sessionDirBase, locationsStatics.userHome.claude.subagentsDir);

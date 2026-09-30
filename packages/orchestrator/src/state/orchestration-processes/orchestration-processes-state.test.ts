@@ -1,4 +1,3 @@
-import { AbsoluteFilePathStub } from '@dungeonmaster/shared/contracts/absolute-file-path/absolute-file-path.stub';
 import { ProcessIdStub } from '@dungeonmaster/shared/contracts/process-id/process-id.stub';
 import { QuestIdStub } from '@dungeonmaster/shared/contracts/quest-id/quest-id.stub';
 import { QuestWorkItemIdStub } from '@dungeonmaster/shared/contracts/quest-work-item-id/quest-work-item-id.stub';
@@ -397,7 +396,7 @@ describe('orchestrationProcessesState', () => {
       orchestrationProcessesState.setMetadata({
         processId,
         osPid: ProcessPidStub({ value: 4321 }),
-        sessionJsonlPath: AbsoluteFilePathStub({ value: '/home/user/.claude/projects/x/s.jsonl' }),
+        sessionJsonlPath: '/home/user/.claude/projects/x/s.jsonl',
       });
 
       expect(orchestrationProcessesState.getActivity({ processId })).toStrictEqual({

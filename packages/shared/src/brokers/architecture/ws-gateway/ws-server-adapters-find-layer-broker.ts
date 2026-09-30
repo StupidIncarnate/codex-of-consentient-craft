@@ -14,8 +14,6 @@
  * package that owns the WebSocket transport, regardless of repo-specific naming.
  */
 
-import { absoluteFilePathContract } from '../../../contracts/absolute-file-path/absolute-file-path-contract';
-import type { AbsoluteFilePath } from '../../../contracts/absolute-file-path/absolute-file-path-contract';
 import { isNonTestFileGuard } from '../../../guards/is-non-test-file/is-non-test-file-guard';
 import { wsServerNpmPackagesStatics } from '../../../statics/ws-server-npm-packages/ws-server-npm-packages-statics';
 import { importStatementsExtractTransformer } from '../../../transformers/import-statements-extract/import-statements-extract-transformer';
@@ -28,14 +26,14 @@ const ADAPTERS_PATH_SEGMENT = '/adapters/';
 export const wsServerAdaptersFindLayerBroker = ({
   projectRoot,
 }: {
-  projectRoot: AbsoluteFilePath;
-}): AbsoluteFilePath[] => {
+  projectRoot: string;
+}): string[] => {
   const root = String(projectRoot);
-  const packagesDir = absoluteFilePathContract.parse(`${root}/${PACKAGES_REL}`);
+  const packagesDir = `${root}/${PACKAGES_REL}`;
   const allFiles = listTsFilesLayerBroker({ dirPath: packagesDir });
 
   const knownPackages = wsServerNpmPackagesStatics.npmPackages;
-  const adapters: AbsoluteFilePath[] = [];
+  const adapters: string[] = [];
 
   for (const filePath of allFiles) {
     if (!isNonTestFileGuard({ filePath })) continue;

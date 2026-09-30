@@ -7,8 +7,6 @@
  * repoRootFromSourcePathTransformer({ filePath: '/repo/packages/a/src/x/x-contract.ts' });
  * // Returns '/repo', or undefined when the path is not under a package's `src/`
  */
-import { absoluteFilePathContract } from '../../contracts/absolute-file-path/absolute-file-path-contract';
-import type { AbsoluteFilePath } from '../../contracts/absolute-file-path/absolute-file-path-contract';
 
 const PACKAGE_SOURCE_PATTERN = /^(?<root>\/.*?)\/packages\/(?:@[^/]+\/)?[^/]+\/src\//u;
 
@@ -16,7 +14,7 @@ export const repoRootFromSourcePathTransformer = ({
   filePath,
 }: {
   filePath: string;
-}): AbsoluteFilePath | undefined => {
+}): string | undefined => {
   const root = PACKAGE_SOURCE_PATTERN.exec(filePath)?.groups?.root;
-  return root === undefined ? undefined : absoluteFilePathContract.parse(root);
+  return root === undefined ? undefined : root;
 };

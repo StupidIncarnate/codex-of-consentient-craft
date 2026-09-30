@@ -1,6 +1,5 @@
 import { locationsNodeModulesBinPathFindBroker } from './locations-node-modules-bin-path-find-broker';
 import { locationsNodeModulesBinPathFindBrokerProxy } from './locations-node-modules-bin-path-find-broker.proxy';
-import { AbsoluteFilePathStub } from '../../../contracts/absolute-file-path/absolute-file-path.stub';
 import { FileNameStub } from '../../../contracts/file-name/file-name.stub';
 
 describe('locationsNodeModulesBinPathFindBroker', () => {
@@ -13,11 +12,11 @@ describe('locationsNodeModulesBinPathFindBroker', () => {
       });
 
       const result = locationsNodeModulesBinPathFindBroker({
-        rootPath: AbsoluteFilePathStub({ value: '/repo' }),
+        rootPath: '/repo',
         binName: FileNameStub({ value: 'jest' }),
       });
 
-      expect(result).toBe(AbsoluteFilePathStub({ value: '/repo/node_modules/.bin/jest' }));
+      expect(result).toBe('/repo/node_modules/.bin/jest');
     });
 
     it('VALID: {rootPath: "/repo/packages/web", binName: "tsc"} => resolves workspace-local bin', () => {
@@ -28,12 +27,12 @@ describe('locationsNodeModulesBinPathFindBroker', () => {
       });
 
       const result = locationsNodeModulesBinPathFindBroker({
-        rootPath: AbsoluteFilePathStub({ value: '/repo/packages/web' }),
+        rootPath: '/repo/packages/web',
         binName: FileNameStub({ value: 'tsc' }),
       });
 
       expect(result).toBe(
-        AbsoluteFilePathStub({ value: '/repo/packages/web/node_modules/.bin/tsc' }),
+        '/repo/packages/web/node_modules/.bin/tsc',
       );
     });
   });

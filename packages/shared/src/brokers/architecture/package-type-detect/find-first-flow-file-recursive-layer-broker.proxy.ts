@@ -1,6 +1,5 @@
 import type { Dirent } from '#gateway/node/fs';
 import { safeReaddirLayerBrokerProxy } from './safe-readdir-layer-broker.proxy';
-import type { AbsoluteFilePath } from '../../../contracts/absolute-file-path/absolute-file-path-contract';
 import type { DirEntrySync } from '#gateway/node/fs';
 import { DirentStub } from '#gateway/node/fs/readdir-entries-sync/dirent.stub';
 
@@ -9,7 +8,7 @@ export const findFirstFlowFileRecursiveLayerBrokerProxy = (): {
     dirPath,
     fileNames,
   }: {
-    dirPath: AbsoluteFilePath;
+    dirPath: string;
     fileNames: readonly string[];
   }) => void;
   setupNested: ({
@@ -19,7 +18,7 @@ export const findFirstFlowFileRecursiveLayerBrokerProxy = (): {
     subDirName: string;
     fileNames: readonly string[];
   }) => void;
-  setupEmpty: ({ dirPath }: { dirPath: AbsoluteFilePath }) => void;
+  setupEmpty: ({ dirPath }: { dirPath: string }) => void;
 } => {
   const readdirProxy = safeReaddirLayerBrokerProxy();
 
@@ -43,7 +42,7 @@ export const findFirstFlowFileRecursiveLayerBrokerProxy = (): {
       dirPath,
       fileNames,
     }: {
-      dirPath: AbsoluteFilePath;
+      dirPath: string;
       fileNames: readonly string[];
     }): void => {
       readdirProxy.setupDirectory({
@@ -69,7 +68,7 @@ export const findFirstFlowFileRecursiveLayerBrokerProxy = (): {
       });
     },
 
-    setupEmpty: ({ dirPath }: { dirPath: AbsoluteFilePath }): void => {
+    setupEmpty: ({ dirPath }: { dirPath: string }): void => {
       readdirProxy.setupDirectory({ dirPath, entries: [] });
     },
   };

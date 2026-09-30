@@ -12,19 +12,15 @@
  * for further inspection. Returns null when importPath is not relative (e.g. npm packages).
  */
 
-import {
-  absoluteFilePathContract,
-  type AbsoluteFilePath,
-} from '../../contracts/absolute-file-path/absolute-file-path-contract';
 import type { ContentText } from '../../contracts/content-text/content-text-contract';
 
 export const relativeImportResolveTransformer = ({
   sourceFile,
   importPath,
 }: {
-  sourceFile: AbsoluteFilePath;
+  sourceFile: string;
   importPath: ContentText;
-}): AbsoluteFilePath | null => {
+}): string | null => {
   const importPathStr = String(importPath);
   if (!importPathStr.startsWith('.')) {
     return null;
@@ -47,7 +43,7 @@ export const relativeImportResolveTransformer = ({
   const withTs = resolved.endsWith('.ts') ? resolved : `${resolved}.ts`;
 
   try {
-    return absoluteFilePathContract.parse(withTs);
+    return withTs;
   } catch {
     return null;
   }

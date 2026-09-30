@@ -9,7 +9,6 @@
  */
 
 import { setExitCode, stderr, stdout } from '#gateway/node/process';
-import type { AbsoluteFilePath } from '@dungeonmaster/shared/contracts';
 import { wardExitCodeStatics } from '@dungeonmaster/shared/statics';
 
 import { cliArgContract } from '../../../contracts/cli-arg/cli-arg-contract';
@@ -24,7 +23,7 @@ export const WardScanResponder = async ({
   rootPath,
 }: {
   args: readonly string[];
-  rootPath: AbsoluteFilePath;
+  rootPath: string;
 }): Promise<void> => {
   try {
     const config = scanArgsParseTransformer({

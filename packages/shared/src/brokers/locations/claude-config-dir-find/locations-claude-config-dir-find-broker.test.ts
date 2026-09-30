@@ -1,6 +1,5 @@
 import { locationsClaudeConfigDirFindBroker } from './locations-claude-config-dir-find-broker';
 import { locationsClaudeConfigDirFindBrokerProxy } from './locations-claude-config-dir-find-broker.proxy';
-import { AbsoluteFilePathStub } from '../../../contracts/absolute-file-path/absolute-file-path.stub';
 
 describe('locationsClaudeConfigDirFindBroker', () => {
   describe('CLAUDE_CONFIG_DIR unset', () => {
@@ -11,7 +10,7 @@ describe('locationsClaudeConfigDirFindBroker', () => {
 
       const result = locationsClaudeConfigDirFindBroker();
 
-      expect(result).toBe(AbsoluteFilePathStub({ value: '/home/user/.claude' }));
+      expect(result).toBe('/home/user/.claude');
     });
   });
 
@@ -24,7 +23,7 @@ describe('locationsClaudeConfigDirFindBroker', () => {
 
       const result = locationsClaudeConfigDirFindBroker();
 
-      expect(result).toBe(AbsoluteFilePathStub({ value: '/home/user/.claude' }));
+      expect(result).toBe('/home/user/.claude');
     });
   });
 
@@ -38,7 +37,7 @@ describe('locationsClaudeConfigDirFindBroker', () => {
 
       proxy.setupUnset({ homeDir: '/home/user' });
 
-      expect(result).toBe(AbsoluteFilePathStub({ value: '/custom/claude' }));
+      expect(result).toBe('/custom/claude');
     });
 
     it('INVALID: {CLAUDE_CONFIG_DIR: "relative/claude"} => throws naming CLAUDE_CONFIG_DIR', () => {
@@ -53,7 +52,7 @@ describe('locationsClaudeConfigDirFindBroker', () => {
       proxy.setupUnset({ homeDir: '/home/user' });
 
       expect(locationsClaudeConfigDirFindBroker()).toBe(
-        AbsoluteFilePathStub({ value: '/home/user/.claude' }),
+        '/home/user/.claude',
       );
     });
   });

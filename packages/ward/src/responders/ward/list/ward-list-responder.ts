@@ -6,7 +6,6 @@
  * // Loads and displays errors-by-file list from most recent or specified run
  */
 
-import type { AbsoluteFilePath } from '@dungeonmaster/shared/contracts';
 
 import { commandListBroker } from '../../../brokers/command/list/command-list-broker';
 import { wardRunResultContract } from '../../../contracts/ward-result/ward-result-contract';
@@ -18,7 +17,7 @@ export const WardListResponder = async ({
   rootPath,
 }: {
   args: readonly string[];
-  rootPath: AbsoluteFilePath;
+  rootPath: string;
 }): Promise<void> => {
   const runIdArg = args[FIRST_POSITIONAL_INDEX];
   const runId = runIdArg ? wardRunResultContract.shape.runId.parse(runIdArg) : undefined;

@@ -61,7 +61,7 @@
 
 import { ensureDir } from '#gateway/node/fs__promises';
 import { stderr } from '#gateway/node/process';
-import type { AbsoluteFilePath, ContentText, SiegeInstance, SiegeRun } from '@dungeonmaster/shared/contracts';
+import type { ContentText, SiegeInstance, SiegeRun } from '@dungeonmaster/shared/contracts';
 
 import { bufferEntryContract } from '../../../contracts/buffer-entry/buffer-entry-contract';
 import { epochMsContract } from '../../../contracts/epoch-ms/epoch-ms-contract';
@@ -122,8 +122,8 @@ export const runExecuteBroker = async ({
     networkLines: ReadingCount;
     websocketLines: ReadingCount;
   }) => void;
-  lastShotPath: () => AbsoluteFilePath | null;
-  setLastShotPath: (params: { path: AbsoluteFilePath }) => void;
+  lastShotPath: () => string | null;
+  setLastShotPath: (params: { path: string }) => void;
 }): Promise<RunResult> => {
   const browserWindowStart = lane.browser === null ? null : lane.browser.bufferLengths();
   const serverWindowStartByte = lane.serverLogLength();

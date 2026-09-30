@@ -13,7 +13,6 @@
  * display names for the rendered output
  */
 
-import type { AbsoluteFilePath } from '../../contracts/absolute-file-path/absolute-file-path-contract';
 import {
   contentTextContract,
   type ContentText,
@@ -23,8 +22,8 @@ export const filePathToDisplayNameTransformer = ({
   filePath,
   packageSrcPath,
 }: {
-  filePath: AbsoluteFilePath;
-  packageSrcPath: AbsoluteFilePath;
+  filePath: string;
+  packageSrcPath: string;
 }): ContentText => {
   const prefix = `${String(packageSrcPath)}/`;
   const relative = String(filePath).startsWith(prefix)

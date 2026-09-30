@@ -27,7 +27,6 @@
 import { deleteEnv, getEnv, setEnv, stdout } from '#gateway/node/process';
 import { registerSpyOn } from '@dungeonmaster/testing/register-mock';
 import { installTestbedCreateBroker } from '@dungeonmaster/testing';
-import { AbsoluteFilePathStub } from '@dungeonmaster/shared/contracts/absolute-file-path/absolute-file-path.stub';
 import { ContentTextStub } from '@dungeonmaster/shared/contracts/content-text/content-text.stub';
 import { GuildIdStub } from '@dungeonmaster/shared/contracts/guild-id/guild-id.stub';
 import { QuestIdStub } from '@dungeonmaster/shared/contracts/quest-id/quest-id.stub';
@@ -277,9 +276,7 @@ describe('SiegelensePruneLayerFlow', () => {
       relativePath: VIDEO_DEFAULT_WINDOW_VIDEO_PATH,
       content: VIDEO_DEFAULT_WINDOW_BODY,
     });
-    const videoDefaultWindowAbsolutePath = AbsoluteFilePathStub({
-      value: `${testbed.guildPath}/${VIDEO_DEFAULT_WINDOW_VIDEO_PATH}`,
-    });
+    const videoDefaultWindowAbsolutePath = `${testbed.guildPath}/${VIDEO_DEFAULT_WINDOW_VIDEO_PATH}`;
     await age.backdateFile({ filePath: videoDefaultWindowAbsolutePath, daysOld: 3 });
     videoDefaultWindowMtimeAfterBackdate = await age.mtimeMs({
       filePath: videoDefaultWindowAbsolutePath,
@@ -301,7 +298,7 @@ describe('SiegelensePruneLayerFlow', () => {
           QuestStub({
             id: QUEST,
             status: 'in_progress',
-            worktreePath: AbsoluteFilePathStub({ value: `${testbed.guildPath}/cited-worktree` }),
+            worktreePath: `${testbed.guildPath}/cited-worktree`,
             planningNotes: {
               blightLedger: [],
               operationPlans: [],

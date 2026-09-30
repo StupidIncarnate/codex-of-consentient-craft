@@ -1,4 +1,3 @@
-import { AbsoluteFilePathStub } from '@dungeonmaster/shared/contracts/absolute-file-path/absolute-file-path.stub';
 
 import { recipesLocateBroker } from './recipes-locate-broker';
 import { recipesLocateBrokerProxy } from './recipes-locate-broker.proxy';
@@ -19,7 +18,7 @@ describe('recipesLocateBroker', () => {
       const result = await recipesLocateBroker();
 
       expect(result).toStrictEqual(
-        AbsoluteFilePathStub({ value: '/repo/packages/hydration-recipes/dist/index.js' }),
+        '/repo/packages/hydration-recipes/dist/index.js',
       );
     });
   });

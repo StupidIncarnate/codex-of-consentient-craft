@@ -14,8 +14,6 @@
  * WHEN-NOT-TO-USE: For library package type (libraries skip the Boot section)
  */
 
-import { absoluteFilePathContract } from '../../../contracts/absolute-file-path/absolute-file-path-contract';
-import type { AbsoluteFilePath } from '../../../contracts/absolute-file-path/absolute-file-path-contract';
 import {
   contentTextContract,
   type ContentText,
@@ -43,13 +41,13 @@ export const architectureBootTreeBroker = ({
   responderAnnotations,
   startupAnnotations,
 }: {
-  packageRoot: AbsoluteFilePath;
-  projectRoot?: AbsoluteFilePath;
+  packageRoot: string;
+  projectRoot?: string;
   packageType?: PackageType;
   responderAnnotations?: ResponderAnnotationMap;
   startupAnnotations?: ResponderAnnotationMap;
 }): ContentText => {
-  const packageSrcPath = absoluteFilePathContract.parse(`${String(packageRoot)}/src`);
+  const packageSrcPath = `${String(packageRoot)}/src`;
   const startupFiles = startupFilesFindLayerBroker({ packageSrcPath });
 
   if (startupFiles.length === 0) {
@@ -71,8 +69,8 @@ export const architectureBootTreeBroker = ({
     projectRoot === undefined ? undefined : architectureEventBusBroker({ projectRoot });
 
   const allBlocks: ContentText[] = [];
-  const visited = new Set<AbsoluteFilePath>();
-  const consumedWidgetResponders = new Set<AbsoluteFilePath>();
+  const visited = new Set<string>();
+  const consumedWidgetResponders = new Set<string>();
 
   for (const startupFile of startupFiles) {
     const startupDisplay = architectureExportNameResolveBroker({ filePath: startupFile });

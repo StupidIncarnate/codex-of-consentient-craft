@@ -7,7 +7,6 @@
  */
 
 import { stderr, stdout } from '#gateway/node/process';
-import type { AbsoluteFilePath } from '@dungeonmaster/shared/contracts';
 
 import type { CheckType } from '../../../contracts/check-type/check-type-contract';
 import { storageLoadBroker } from '../../storage/load/storage-load-broker';
@@ -18,7 +17,7 @@ export const commandRawBroker = async ({
   runId,
   checkType,
 }: {
-  rootPath: AbsoluteFilePath;
+  rootPath: string;
   runId: WardRunResult['runId'];
   checkType: CheckType;
 }): Promise<void> => {

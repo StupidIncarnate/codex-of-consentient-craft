@@ -16,8 +16,6 @@ import { randomUUID } from '#gateway/node/crypto';
 import { readFileBytes, writeFileBytes } from '#gateway/node/fs__promises';
 import { join } from '#gateway/node/path';
 import { stderr } from '#gateway/node/process';
-import { absoluteFilePathContract } from '@dungeonmaster/shared/contracts';
-import type { AbsoluteFilePath } from '@dungeonmaster/shared/contracts';
 
 import type { LocalImagePathMatch } from '../../../contracts/local-image-path-match/local-image-path-match-contract';
 import type { PastedImageOrdinal } from '../../../contracts/pasted-image-ordinal/pasted-image-ordinal-contract';
@@ -28,11 +26,11 @@ export const localImageCopyBroker = async ({
   imagesDirPath,
 }: {
   matches: readonly LocalImagePathMatch[];
-  imagesDirPath: AbsoluteFilePath;
-}): Promise<ReadonlyMap<PastedImageOrdinal, AbsoluteFilePath>> => {
+  imagesDirPath: string;
+}): Promise<ReadonlyMap<PastedImageOrdinal, string>> => {
   const copied = await Promise.all(
     matches.map(
-      async (match): Promise<readonly [PastedImageOrdinal, AbsoluteFilePath] | undefined> => {
+      async (match): Promise<readonly [PastedImageOrdinal, string] | undefined> => {
         if (imageContentTypeTransformer({ filePath: match.path }) === null) {
           stderr.write(
             `[local-image-copy-broker] skipped ${match.path}: not a served image type\n`,
@@ -48,9 +46,7 @@ export const localImageCopyBroker = async ({
         // chooses. The serve route lowercases before reading its content-type map either way, so
         // this changes no behaviour there — it keeps the quest's images directory uniform.
         const extension = match.path.slice(match.path.lastIndexOf('.') + 1).toLowerCase();
-        const destination = absoluteFilePathContract.parse(
-          join(imagesDirPath, `${randomUUID()}.${extension}`),
-        );
+        const destination = join(imagesDirPath, `${randomUUID()}.${extension}`);
 
         try {
           const bytes = await readFileBytes(match.path);

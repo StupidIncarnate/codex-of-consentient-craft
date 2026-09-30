@@ -1,8 +1,6 @@
 import { collectFolderFilesLayerBrokerProxy } from './collect-folder-files-layer-broker.proxy';
 import { readWidgetSourceLayerBrokerProxy } from './read-widget-source-layer-broker.proxy';
 import { widgetTreeStatics } from '../../../statics/widget-tree/widget-tree-statics';
-import { AbsoluteFilePathStub } from '../../../contracts/absolute-file-path/absolute-file-path.stub';
-import type { AbsoluteFilePath } from '../../../contracts/absolute-file-path/absolute-file-path-contract';
 import type { ContentText } from '../../../contracts/content-text/content-text-contract';
 
 export const findRootWidgetImportsLayerBrokerProxy = (): {
@@ -13,13 +11,13 @@ export const findRootWidgetImportsLayerBrokerProxy = (): {
     flowFilePaths,
     flowContents,
   }: {
-    packageSrcPath: AbsoluteFilePath;
-    responderFilePaths: AbsoluteFilePath[];
+    packageSrcPath: string;
+    responderFilePaths: string[];
     responderContents: ContentText[];
-    flowFilePaths: AbsoluteFilePath[];
+    flowFilePaths: string[];
     flowContents: ContentText[];
   }) => void;
-  setupEmpty: ({ packageSrcPath }: { packageSrcPath: AbsoluteFilePath }) => void;
+  setupEmpty: ({ packageSrcPath }: { packageSrcPath: string }) => void;
 } => {
   const folderFilesProxy = collectFolderFilesLayerBrokerProxy();
   const readSourceProxy = readWidgetSourceLayerBrokerProxy();
@@ -34,22 +32,20 @@ export const findRootWidgetImportsLayerBrokerProxy = (): {
       flowFilePaths,
       flowContents,
     }: {
-      packageSrcPath: AbsoluteFilePath;
-      responderFilePaths: AbsoluteFilePath[];
+      packageSrcPath: string;
+      responderFilePaths: string[];
       responderContents: ContentText[];
-      flowFilePaths: AbsoluteFilePath[];
+      flowFilePaths: string[];
       flowContents: ContentText[];
     }): void => {
       // readdir call for responders dir
       folderFilesProxy.setupFlatDirectory({
-        dirPath: AbsoluteFilePathStub({
-          value: `${String(packageSrcPath)}/${respondersFolder}`,
-        }),
+        dirPath: `${String(packageSrcPath)}/${respondersFolder}`,
         filePaths: responderFilePaths,
       });
       // readdir call for flows dir
       folderFilesProxy.setupFlatDirectory({
-        dirPath: AbsoluteFilePathStub({ value: `${String(packageSrcPath)}/${flowsFolder}` }),
+        dirPath: `${String(packageSrcPath)}/${flowsFolder}`,
         filePaths: flowFilePaths,
       });
       // readFile calls: responder sources then flow sources
@@ -65,14 +61,12 @@ export const findRootWidgetImportsLayerBrokerProxy = (): {
       });
     },
 
-    setupEmpty: ({ packageSrcPath }: { packageSrcPath: AbsoluteFilePath }): void => {
+    setupEmpty: ({ packageSrcPath }: { packageSrcPath: string }): void => {
       folderFilesProxy.setupEmpty({
-        dirPath: AbsoluteFilePathStub({
-          value: `${String(packageSrcPath)}/${respondersFolder}`,
-        }),
+        dirPath: `${String(packageSrcPath)}/${respondersFolder}`,
       });
       folderFilesProxy.setupEmpty({
-        dirPath: AbsoluteFilePathStub({ value: `${String(packageSrcPath)}/${flowsFolder}` }),
+        dirPath: `${String(packageSrcPath)}/${flowsFolder}`,
       });
     },
   };

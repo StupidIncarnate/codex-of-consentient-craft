@@ -1,4 +1,3 @@
-import { AbsoluteFilePathStub } from '@dungeonmaster/shared/contracts/absolute-file-path/absolute-file-path.stub';
 import { GuildIdStub } from '@dungeonmaster/shared/contracts/guild-id/guild-id.stub';
 import { QuestIdStub } from '@dungeonmaster/shared/contracts/quest-id/quest-id.stub';
 
@@ -27,9 +26,7 @@ describe('locationsCitationQuestFilePathFindBroker', () => {
       });
 
       expect(result).toBe(
-        AbsoluteFilePathStub({
-          value: `${HOME}/guilds/${GUILD_A}/quests/quest-1/quest.json`,
-        }),
+        `${HOME}/guilds/${GUILD_A}/quests/quest-1/quest.json`,
       );
     });
 
@@ -49,9 +46,7 @@ describe('locationsCitationQuestFilePathFindBroker', () => {
       });
 
       expect(result).toBe(
-        AbsoluteFilePathStub({
-          value: `${HOME}/guilds/${GUILD_B}/quests/quest-2/quest.json`,
-        }),
+        `${HOME}/guilds/${GUILD_B}/quests/quest-2/quest.json`,
       );
     });
   });

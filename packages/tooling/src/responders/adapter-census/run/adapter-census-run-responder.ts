@@ -8,7 +8,6 @@
  * // Writes the census to stdout
  */
 import { cwd as processCwd, stdout } from '#gateway/node/process';
-import { absoluteFilePathContract } from '../../../contracts/absolute-file-path/absolute-file-path-contract';
 import { adapterCensusRunBroker } from '../../../brokers/adapter-census/run/adapter-census-run-broker';
 import { censusArgsParseTransformer } from '../../../transformers/census-args-parse/census-args-parse-transformer';
 import { censusTableRenderTransformer } from '../../../transformers/census-table-render/census-table-render-transformer';
@@ -22,7 +21,7 @@ export const AdapterCensusRunResponder = async ({
   const { cwd, format, packageFilter } = censusArgsParseTransformer({ args });
 
   const census = await adapterCensusRunBroker({
-    repoRoot: cwd ?? absoluteFilePathContract.parse(processCwd()),
+    repoRoot: cwd ?? processCwd(),
     ...(packageFilter === undefined ? {} : { packageFilter }),
   });
 

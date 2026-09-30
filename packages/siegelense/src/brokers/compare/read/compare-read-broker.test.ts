@@ -1,4 +1,3 @@
-import { AbsoluteFilePathStub } from '@dungeonmaster/shared/contracts/absolute-file-path/absolute-file-path.stub';
 import { ContentTextStub } from '@dungeonmaster/shared/contracts/content-text/content-text.stub';
 import { GuildIdStub } from '@dungeonmaster/shared/contracts/guild-id/guild-id.stub';
 
@@ -110,10 +109,7 @@ describe('compareReadBroker', () => {
       const guildId = GuildIdStub();
       const runA = RunIdStub({ value: 'run_4' });
       const runB = RunIdStub({ value: 'run_5' });
-      const previousPath = AbsoluteFilePathStub({
-        value:
-          '/repo/.dungeonmaster-assets/siegelense-assets/guilds/g1/instances/inst_7f3a9c21/runs/run_4/step1.png',
-      });
+      const previousPath = '/repo/.dungeonmaster-assets/siegelense-assets/guilds/g1/instances/inst_7f3a9c21/runs/run_4/step1.png';
 
       proxy.setupInstance({
         entry: RegistryEntryStub({ id: instanceId, guildId, state: 'killed' }),
@@ -147,14 +143,8 @@ describe('compareReadBroker', () => {
       const guildId = GuildIdStub();
       const runA = RunIdStub({ value: 'run_4' });
       const runB = RunIdStub({ value: 'run_5' });
-      const previousPath = AbsoluteFilePathStub({
-        value:
-          '/repo/.dungeonmaster-assets/siegelense-assets/guilds/g1/instances/inst_7f3a9c21/runs/run_4/step1.png',
-      });
-      const currentPath = AbsoluteFilePathStub({
-        value:
-          '/repo/.dungeonmaster-assets/siegelense-assets/guilds/g1/instances/inst_7f3a9c21/runs/run_5/step1.png',
-      });
+      const previousPath = '/repo/.dungeonmaster-assets/siegelense-assets/guilds/g1/instances/inst_7f3a9c21/runs/run_4/step1.png';
+      const currentPath = '/repo/.dungeonmaster-assets/siegelense-assets/guilds/g1/instances/inst_7f3a9c21/runs/run_5/step1.png';
       const previousPixels = new Uint8Array(400).fill(255);
       const currentPixels = new Uint8Array(400).fill(255);
       const flatPixelStride = 4;
@@ -206,10 +196,7 @@ describe('compareReadBroker', () => {
       const instanceId = InstanceIdStub();
       const guildId = GuildIdStub();
       const runId = RunIdStub({ value: 'run_4' });
-      const shotPath = AbsoluteFilePathStub({
-        value:
-          '/repo/.dungeonmaster-assets/siegelense-assets/guilds/g1/instances/inst_7f3a9c21/runs/run_4/step1.png',
-      });
+      const shotPath = '/repo/.dungeonmaster-assets/siegelense-assets/guilds/g1/instances/inst_7f3a9c21/runs/run_4/step1.png';
       const identicalPixels = new Uint8Array(400).fill(255);
 
       proxy.setupInstance({

@@ -6,7 +6,6 @@
  * // Returns [AbsoluteFilePath('/src/file.ts')]
  */
 
-import { absoluteFilePathContract, type AbsoluteFilePath } from '@dungeonmaster/shared/contracts';
 
 import { wardDetailJsonContract } from '../../contracts/ward-detail-json/ward-detail-json-contract';
 
@@ -14,7 +13,7 @@ export const wardOutputToFilePathsTransformer = ({
   wardResultJson,
 }: {
   wardResultJson: string;
-}): AbsoluteFilePath[] => {
+}): string[] => {
   const parseResult = wardDetailJsonContract.safeParse(JSON.parse(wardResultJson));
 
   if (!parseResult.success) {
@@ -23,8 +22,8 @@ export const wardOutputToFilePathsTransformer = ({
 
   const detail = parseResult.data;
   const checks = detail.checks ?? [];
-  const seen = new Set<AbsoluteFilePath>();
-  const result: AbsoluteFilePath[] = [];
+  const seen = new Set<string>();
+  const result: string[] = [];
 
   for (const check of checks) {
     const projectResults = check.projectResults ?? [];
@@ -37,7 +36,7 @@ export const wardOutputToFilePathsTransformer = ({
 
         if (typeof filePath === 'string') {
           try {
-            const absolutePath = absoluteFilePathContract.parse(String(filePath));
+            const absolutePath = String(filePath);
 
             if (!seen.has(absolutePath)) {
               seen.add(absolutePath);
@@ -56,7 +55,7 @@ export const wardOutputToFilePathsTransformer = ({
 
         if (typeof suitePath === 'string') {
           try {
-            const absolutePath = absoluteFilePathContract.parse(String(suitePath));
+            const absolutePath = String(suitePath);
 
             if (!seen.has(absolutePath)) {
               seen.add(absolutePath);

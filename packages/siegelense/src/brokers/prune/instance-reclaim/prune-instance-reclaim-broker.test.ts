@@ -1,4 +1,3 @@
-import { AbsoluteFilePathStub } from '@dungeonmaster/shared/contracts/absolute-file-path/absolute-file-path.stub';
 
 import { CitationGapStub } from '../../../contracts/citation-gap/citation-gap.stub';
 import { EpochMsStub } from '../../../contracts/epoch-ms/epoch-ms.stub';
@@ -86,7 +85,7 @@ describe('pruneInstanceReclaimBroker', () => {
         evidencePath: EVIDENCE,
       });
       proxy.setupFile({
-        filePath: AbsoluteFilePathStub({ value: `${EVIDENCE}/api-server.log` }),
+        filePath: `${EVIDENCE}/api-server.log`,
         sizeBytes: 999_999,
         modifiedAtMs: NOW_MS - SEVEN_DAYS_MS * 10,
       });
@@ -119,7 +118,7 @@ describe('pruneInstanceReclaimBroker', () => {
         rootPath: ROOT,
         evidencePath: EVIDENCE,
       });
-      proxy.setupDir({ dirPath: AbsoluteFilePathStub({ value: `${EVIDENCE}/runs` }), entries: [] });
+      proxy.setupDir({ dirPath: `${EVIDENCE}/runs`, entries: [] });
 
       const result = await pruneInstanceReclaimBroker({
         entry: RegistryEntryStub({
@@ -147,11 +146,11 @@ describe('pruneInstanceReclaimBroker', () => {
         evidencePath: EVIDENCE,
       });
       proxy.setupFile({
-        filePath: AbsoluteFilePathStub({ value: `${EVIDENCE}/api-server.log` }),
+        filePath: `${EVIDENCE}/api-server.log`,
         sizeBytes: 512,
         modifiedAtMs: NOW_MS - 1000,
       });
-      proxy.setupDir({ dirPath: AbsoluteFilePathStub({ value: `${EVIDENCE}/runs` }), entries: [] });
+      proxy.setupDir({ dirPath: `${EVIDENCE}/runs`, entries: [] });
 
       const result = await pruneInstanceReclaimBroker({
         entry: RegistryEntryStub({
@@ -182,13 +181,13 @@ describe('pruneInstanceReclaimBroker', () => {
         evidencePath: EVIDENCE,
       });
       proxy.setupFile({
-        filePath: AbsoluteFilePathStub({ value: `${EVIDENCE}/api-server.log` }),
+        filePath: `${EVIDENCE}/api-server.log`,
         sizeBytes: 3_145_728,
         modifiedAtMs: NOW_MS - SEVEN_DAYS_MS * 2,
       });
-      proxy.setupDir({ dirPath: AbsoluteFilePathStub({ value: `${EVIDENCE}/runs` }), entries: [] });
+      proxy.setupDir({ dirPath: `${EVIDENCE}/runs`, entries: [] });
       proxy.setupDeleteSucceeds({
-        filePath: AbsoluteFilePathStub({ value: `${EVIDENCE}/api-server.log` }),
+        filePath: `${EVIDENCE}/api-server.log`,
       });
 
       const result = await pruneInstanceReclaimBroker({
@@ -228,11 +227,11 @@ describe('pruneInstanceReclaimBroker', () => {
         evidencePath: EVIDENCE,
       });
       proxy.setupFile({
-        filePath: AbsoluteFilePathStub({ value: `${EVIDENCE}/api-server.log` }),
+        filePath: `${EVIDENCE}/api-server.log`,
         sizeBytes: 3_145_728,
         modifiedAtMs: NOW_MS - SEVEN_DAYS_MS * 2,
       });
-      proxy.setupDir({ dirPath: AbsoluteFilePathStub({ value: `${EVIDENCE}/runs` }), entries: [] });
+      proxy.setupDir({ dirPath: `${EVIDENCE}/runs`, entries: [] });
 
       const result = await pruneInstanceReclaimBroker({
         entry: RegistryEntryStub({
@@ -272,25 +271,25 @@ describe('pruneInstanceReclaimBroker', () => {
         evidencePath: EVIDENCE,
       });
       proxy.setupFile({
-        filePath: AbsoluteFilePathStub({ value: `${EVIDENCE}/api-server.log` }),
+        filePath: `${EVIDENCE}/api-server.log`,
         sizeBytes: 512,
         modifiedAtMs: NOW_MS - SEVEN_DAYS_MS * 2,
       });
       proxy.setupDir({
-        dirPath: AbsoluteFilePathStub({ value: `${EVIDENCE}/runs` }),
+        dirPath: `${EVIDENCE}/runs`,
         entries: ['run_1'],
       });
       proxy.setupDir({
-        dirPath: AbsoluteFilePathStub({ value: `${EVIDENCE}/runs/run_1` }),
+        dirPath: `${EVIDENCE}/runs/run_1`,
         entries: ['step1.png'],
       });
       proxy.setupFile({
-        filePath: AbsoluteFilePathStub({ value: `${EVIDENCE}/runs/run_1/step1.png` }),
+        filePath: `${EVIDENCE}/runs/run_1/step1.png`,
         sizeBytes: 4096,
         modifiedAtMs: NOW_MS - SEVEN_DAYS_MS * 2,
       });
       proxy.setupDeleteSucceeds({
-        filePath: AbsoluteFilePathStub({ value: `${EVIDENCE}/runs/run_1/step1.png` }),
+        filePath: `${EVIDENCE}/runs/run_1/step1.png`,
       });
 
       const result = await pruneInstanceReclaimBroker({
@@ -330,31 +329,31 @@ describe('pruneInstanceReclaimBroker', () => {
         evidencePath: EVIDENCE,
       });
       proxy.setupFile({
-        filePath: AbsoluteFilePathStub({ value: `${EVIDENCE}/api-server.log` }),
+        filePath: `${EVIDENCE}/api-server.log`,
         sizeBytes: 512,
         modifiedAtMs: NOW_MS - SEVEN_DAYS_MS * 2,
       });
       proxy.setupFile({
-        filePath: AbsoluteFilePathStub({ value: `${EVIDENCE}/console.jsonl` }),
+        filePath: `${EVIDENCE}/console.jsonl`,
         sizeBytes: 256,
         modifiedAtMs: NOW_MS - SEVEN_DAYS_MS * 2,
       });
       proxy.setupDir({
-        dirPath: AbsoluteFilePathStub({ value: `${EVIDENCE}/runs` }),
+        dirPath: `${EVIDENCE}/runs`,
         entries: ['run_1.jsonl', 'run_1.json', 'run_1'],
       });
       proxy.setupFile({
-        filePath: AbsoluteFilePathStub({ value: `${EVIDENCE}/runs/run_1.jsonl` }),
+        filePath: `${EVIDENCE}/runs/run_1.jsonl`,
         sizeBytes: 1024,
         modifiedAtMs: NOW_MS - SEVEN_DAYS_MS * 2,
       });
       proxy.setupFile({
-        filePath: AbsoluteFilePathStub({ value: `${EVIDENCE}/runs/run_1.json` }),
+        filePath: `${EVIDENCE}/runs/run_1.json`,
         sizeBytes: 64,
         modifiedAtMs: NOW_MS - SEVEN_DAYS_MS * 2,
       });
       proxy.setupDir({
-        dirPath: AbsoluteFilePathStub({ value: `${EVIDENCE}/runs/run_1` }),
+        dirPath: `${EVIDENCE}/runs/run_1`,
         entries: [],
       });
 
@@ -385,25 +384,25 @@ describe('pruneInstanceReclaimBroker', () => {
         evidencePath: EVIDENCE,
       });
       proxy.setupFile({
-        filePath: AbsoluteFilePathStub({ value: `${EVIDENCE}/api-server.log` }),
+        filePath: `${EVIDENCE}/api-server.log`,
         sizeBytes: 512,
         modifiedAtMs: NOW_MS - 1000,
       });
       proxy.setupDir({
-        dirPath: AbsoluteFilePathStub({ value: `${EVIDENCE}/runs` }),
+        dirPath: `${EVIDENCE}/runs`,
         entries: [],
       });
       proxy.setupDir({
-        dirPath: AbsoluteFilePathStub({ value: `${EVIDENCE}/video` }),
+        dirPath: `${EVIDENCE}/video`,
         entries: ['a1b2c3.webm'],
       });
       proxy.setupFile({
-        filePath: AbsoluteFilePathStub({ value: `${EVIDENCE}/video/a1b2c3.webm` }),
+        filePath: `${EVIDENCE}/video/a1b2c3.webm`,
         sizeBytes: 104_857_600,
         modifiedAtMs: NOW_MS - SEVEN_DAYS_MS * 2,
       });
       proxy.setupDeleteSucceeds({
-        filePath: AbsoluteFilePathStub({ value: `${EVIDENCE}/video/a1b2c3.webm` }),
+        filePath: `${EVIDENCE}/video/a1b2c3.webm`,
       });
 
       const result = await pruneInstanceReclaimBroker({

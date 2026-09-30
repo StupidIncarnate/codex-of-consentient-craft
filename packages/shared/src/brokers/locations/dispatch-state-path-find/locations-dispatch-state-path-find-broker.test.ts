@@ -1,6 +1,5 @@
 import { locationsDispatchStatePathFindBroker } from './locations-dispatch-state-path-find-broker';
 import { locationsDispatchStatePathFindBrokerProxy } from './locations-dispatch-state-path-find-broker.proxy';
-import { AbsoluteFilePathStub } from '../../../contracts/absolute-file-path/absolute-file-path.stub';
 
 describe('locationsDispatchStatePathFindBroker', () => {
   describe('dispatch-state path resolution', () => {
@@ -16,7 +15,7 @@ describe('locationsDispatchStatePathFindBroker', () => {
       const result = locationsDispatchStatePathFindBroker();
 
       expect(result).toBe(
-        AbsoluteFilePathStub({ value: '/home/user/.dungeonmaster/dispatch-state.json' }),
+        '/home/user/.dungeonmaster/dispatch-state.json',
       );
     });
   });

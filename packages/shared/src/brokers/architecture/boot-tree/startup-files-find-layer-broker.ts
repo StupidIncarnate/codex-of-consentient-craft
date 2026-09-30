@@ -10,8 +10,6 @@
  * WHEN-TO-USE: First step in boot-tree rendering — locate the package's startup entry points
  */
 
-import { absoluteFilePathContract } from '../../../contracts/absolute-file-path/absolute-file-path-contract';
-import type { AbsoluteFilePath } from '../../../contracts/absolute-file-path/absolute-file-path-contract';
 import { isNonTestFileGuard } from '../../../guards/is-non-test-file/is-non-test-file-guard';
 import { matchesStartupFileNameGuard } from '../../../guards/matches-startup-file-name/matches-startup-file-name-guard';
 import { listDirEntriesLayerBroker } from './list-dir-entries-layer-broker';
@@ -19,16 +17,16 @@ import { listDirEntriesLayerBroker } from './list-dir-entries-layer-broker';
 export const startupFilesFindLayerBroker = ({
   packageSrcPath,
 }: {
-  packageSrcPath: AbsoluteFilePath;
-}): AbsoluteFilePath[] => {
-  const startupDir = absoluteFilePathContract.parse(`${String(packageSrcPath)}/startup`);
+  packageSrcPath: string;
+}): string[] => {
+  const startupDir = `${String(packageSrcPath)}/startup`;
   const entries = listDirEntriesLayerBroker({ dirPath: startupDir });
 
-  const result: AbsoluteFilePath[] = [];
+  const result: string[] = [];
   for (const entry of entries) {
     if (entry.kind === 'directory') continue;
     if (!matchesStartupFileNameGuard({ name: entry.name })) continue;
-    const filePath = absoluteFilePathContract.parse(`${String(startupDir)}/${entry.name}`);
+    const filePath = `${String(startupDir)}/${entry.name}`;
     if (!isNonTestFileGuard({ filePath })) continue;
     result.push(filePath);
   }

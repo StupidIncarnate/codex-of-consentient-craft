@@ -1,4 +1,3 @@
-import { AbsoluteFilePathStub } from '@dungeonmaster/shared/contracts/absolute-file-path/absolute-file-path.stub';
 import { ContentTextStub } from '@dungeonmaster/shared/contracts/content-text/content-text.stub';
 
 import { BootFailureMarkerStub } from '../../../contracts/boot-failure-marker/boot-failure-marker.stub';
@@ -6,9 +5,7 @@ import { BootFailureMarkerStub } from '../../../contracts/boot-failure-marker/bo
 import { bootFailureMarkerReadBroker } from './boot-failure-marker-read-broker';
 import { bootFailureMarkerReadBrokerProxy } from './boot-failure-marker-read-broker.proxy';
 
-const EVIDENCE_PATH = AbsoluteFilePathStub({
-  value: '/home/user/.dungeonmaster/siegelense/unowned/instances/inst_7f3a9c21',
-});
+const EVIDENCE_PATH = '/home/user/.dungeonmaster/siegelense/unowned/instances/inst_7f3a9c21';
 
 describe('bootFailureMarkerReadBroker', () => {
   describe('the driver reported a boot failure', () => {

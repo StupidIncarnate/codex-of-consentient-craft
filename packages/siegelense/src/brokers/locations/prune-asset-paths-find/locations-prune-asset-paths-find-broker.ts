@@ -14,8 +14,6 @@
  */
 
 import { join } from '#gateway/node/path';
-import { absoluteFilePathContract } from '@dungeonmaster/shared/contracts';
-import type { AbsoluteFilePath } from '@dungeonmaster/shared/contracts';
 import { locationsStatics } from '@dungeonmaster/shared/statics';
 
 import { evidenceFileStatics } from '../../../statics/evidence-file/evidence-file-statics';
@@ -24,12 +22,12 @@ import { locationsBufferPathsFindBroker } from '../buffer-paths-find/locations-b
 export const locationsPruneAssetPathsFindBroker = ({
   evidencePath,
 }: {
-  evidencePath: AbsoluteFilePath;
+  evidencePath: string;
 }): {
-  runsDir: AbsoluteFilePath;
-  videoDir: AbsoluteFilePath;
-  logs: readonly AbsoluteFilePath[];
-  transcripts: readonly AbsoluteFilePath[];
+  runsDir: string;
+  videoDir: string;
+  logs: readonly string[];
+  transcripts: readonly string[];
 } => {
   const buffers = locationsBufferPathsFindBroker({ evidencePath });
 
@@ -43,17 +41,13 @@ export const locationsPruneAssetPathsFindBroker = ({
   ];
 
   return {
-    runsDir: absoluteFilePathContract.parse(
-      join(evidencePath, locationsStatics.siegelense.runsDir),
-    ),
+    runsDir: join(evidencePath, locationsStatics.siegelense.runsDir),
     // Where `playwrightSessionAdapter`'s `recordVideo.dir` writes — `--kind video` has to list this
     // directory to have anything to match at all.
-    videoDir: absoluteFilePathContract.parse(
-      join(evidencePath, evidenceFileStatics.naming.videoDir),
-    ),
+    videoDir: join(evidencePath, evidenceFileStatics.naming.videoDir),
     // The process's own record of what it did — the two server logs, the driver log, and the three
     // small state files a post-mortem reads for WHY an instance stopped.
-    logs: names.map((name) => absoluteFilePathContract.parse(join(evidencePath, name))),
+    logs: names.map((name) => join(evidencePath, name)),
     // The three instance-level capture buffers. They span every run rather than one, which is why
     // they sit beside the logs here rather than under `runs/`.
     transcripts: [buffers.console, buffers.network, buffers.websocket],

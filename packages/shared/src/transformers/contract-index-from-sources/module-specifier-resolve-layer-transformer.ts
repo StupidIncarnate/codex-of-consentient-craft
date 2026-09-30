@@ -10,8 +10,6 @@
  */
 import { dirname, resolve } from '#gateway/node/path';
 
-import { absoluteFilePathContract } from '../../contracts/absolute-file-path/absolute-file-path-contract';
-import type { AbsoluteFilePath } from '../../contracts/absolute-file-path/absolute-file-path-contract';
 import type { ImportPath } from '../../contracts/import-path/import-path-contract';
 import type { ContractIndexPackage } from '../../contracts/contract-index-package/contract-index-package-contract';
 import { contractIndexStatics } from '../../statics/contract-index/contract-index-statics';
@@ -25,17 +23,15 @@ export const moduleSpecifierResolveLayerTransformer = ({
   packages,
 }: {
   specifier: ImportPath;
-  fromFile: AbsoluteFilePath;
-  knownFiles: ReadonlySet<AbsoluteFilePath>;
+  fromFile: string;
+  knownFiles: ReadonlySet<string>;
   packages: ContractIndexPackage[];
-}): AbsoluteFilePath | undefined => {
-  const bases: AbsoluteFilePath[] = [];
+}): string | undefined => {
+  const bases: string[] = [];
 
   if (specifier.startsWith('.')) {
     bases.push(
-      absoluteFilePathContract.parse(
-        resolve(dirname(fromFile), specifier.replace(JS_EXTENSION_PATTERN, '')),
-      ),
+      resolve(dirname(fromFile), specifier.replace(JS_EXTENSION_PATTERN, '')),
     );
   } else {
     const [owner] = packages
@@ -60,7 +56,7 @@ export const moduleSpecifierResolveLayerTransformer = ({
             `${owner.dir}/src/${subpath}`,
             `${owner.dir}/src/${subpath}/${lastSegment}`,
           ]
-      ).map((base) => absoluteFilePathContract.parse(base)),
+      ).map((base) => base),
     );
   }
 
@@ -68,7 +64,7 @@ export const moduleSpecifierResolveLayerTransformer = ({
     .flatMap((base) =>
       contractIndexStatics.resolve.fileSuffixes.map((suffix) => `${base}${suffix}`),
     )
-    .find((candidate) => knownFiles.has(absoluteFilePathContract.parse(candidate)));
+    .find((candidate) => knownFiles.has(candidate));
 
-  return found === undefined ? undefined : absoluteFilePathContract.parse(found);
+  return found === undefined ? undefined : found;
 };

@@ -22,7 +22,7 @@
  * // Returns a DriverResponse — ok:true with an empty payload for a ping
  */
 
-import type { AbsoluteFilePath, SiegeInstance, SiegeRun } from '@dungeonmaster/shared/contracts';
+import type { SiegeInstance, SiegeRun } from '@dungeonmaster/shared/contracts';
 
 import { driverResponseContract } from '../../../contracts/driver-response/driver-response-contract';
 import type { DriverResponse } from '../../../contracts/driver-response/driver-response-contract';
@@ -61,8 +61,8 @@ export const driverHandleRequestBroker = async ({
     networkLines: ReadingCount;
     websocketLines: ReadingCount;
   }) => void;
-  lastShotPath: () => AbsoluteFilePath | null;
-  setLastShotPath: (params: { path: AbsoluteFilePath }) => void;
+  lastShotPath: () => string | null;
+  setLastShotPath: (params: { path: string }) => void;
 }): Promise<DriverResponse> => {
   if (request.kind === 'ping') {
     return driverResponseContract.parse({ ok: true, payload: '', error: null });

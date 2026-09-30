@@ -13,7 +13,6 @@
  */
 
 import { questContract } from '@dungeonmaster/shared/contracts';
-import type { AbsoluteFilePathStub } from '@dungeonmaster/shared/contracts/absolute-file-path/absolute-file-path.stub';
 import type { QuestStub } from '@dungeonmaster/shared/contracts/quest/quest.stub';
 import { join } from '#gateway/node/path';
 import { locationsStatics } from '@dungeonmaster/shared/statics';
@@ -24,7 +23,7 @@ import { questPersistBrokerProxy } from '../../quest/persist/quest-persist-broke
 import { questWithModifyLockBrokerProxy } from '../../quest/with-modify-lock/quest-with-modify-lock-broker.proxy';
 
 type Quest = ReturnType<typeof QuestStub>;
-type AbsoluteFilePath = ReturnType<typeof AbsoluteFilePathStub>;
+type AbsoluteFilePath = string;
 type Parsed = ReturnType<typeof questContract.parse>;
 
 export const laneRecordInstanceBrokerProxy = (): {

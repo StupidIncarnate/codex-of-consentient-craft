@@ -33,7 +33,7 @@ import { readdirSync } from '#gateway/node/fs';
 import { readNonEmptyLines } from '#gateway/node/fs__promises';
 import { homedir } from '#gateway/node/os';
 import { claudeLineNormalizeBroker, cwdResolveBroker } from '@dungeonmaster/shared/brokers';
-import { absoluteFilePathContract, arrayIndexContract, fileNameContract, agentContract } from '@dungeonmaster/shared/contracts';
+import { arrayIndexContract, fileNameContract, agentContract } from '@dungeonmaster/shared/contracts';
 import type { ArrayIndex, ChatEntry, StreamJsonLine, Quest, Guild, Session } from '@dungeonmaster/shared/contracts';
 import {
   claudeProjectPathEncoderTransformer,
@@ -84,7 +84,7 @@ export const chatHistoryReplayBroker = async ({
           `Cannot replay chat history for quest ${questId}: worktree not found: ${resolution.worktreePath}`,
         );
       }
-      return absoluteFilePathContract.parse(resolution.cwd);
+      return resolution.cwd;
     }
     // No quest is linked to this session — there is no quest-recorded worktree to prefer, so
     // walk up from the guild path to the repo root (directory containing `.dungeonmaster.json`)
@@ -102,12 +102,12 @@ export const chatHistoryReplayBroker = async ({
         startPath: guildStartPath,
         kind: 'repo-root',
       });
-      return absoluteFilePathContract.parse(repoRootCwd);
+      return repoRootCwd;
     } catch {
-      return absoluteFilePathContract.parse(guild.path);
+      return guild.path;
     }
   })();
-  const homeDir = absoluteFilePathContract.parse(homedir());
+  const homeDir = homedir();
 
   const jsonlPath = claudeProjectPathEncoderTransformer({
     homeDir,
@@ -150,7 +150,7 @@ export const chatHistoryReplayBroker = async ({
         agentId: stripAgentFilenamePrefixTransformer({ fileName: fileNameContract.parse(file) }),
         lines: streamJsonLinesFromRawTransformer({
           rawLines: await readNonEmptyLines(
-            absoluteFilePathContract.parse(`${subagentsDir}/${file}`),
+            `${subagentsDir}/${file}`,
           ),
         }),
       })),

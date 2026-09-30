@@ -10,21 +10,19 @@
  * WHEN-TO-USE: Widget-tree broker scanning responders/ and flows/ to find widget root imports
  */
 
-import { absoluteFilePathContract } from '../../../contracts/absolute-file-path/absolute-file-path-contract';
-import type { AbsoluteFilePath } from '../../../contracts/absolute-file-path/absolute-file-path-contract';
 import { isNonTestFileGuard } from '../../../guards/is-non-test-file/is-non-test-file-guard';
 import { safeReaddirLayerBroker } from './safe-readdir-layer-broker';
 
 export const collectFolderFilesLayerBroker = ({
   dirPath,
 }: {
-  dirPath: AbsoluteFilePath;
-}): AbsoluteFilePath[] => {
+  dirPath: string;
+}): string[] => {
   const entries = safeReaddirLayerBroker({ dirPath });
-  const results: AbsoluteFilePath[] = [];
+  const results: string[] = [];
 
   for (const entry of entries) {
-    const entryPath = absoluteFilePathContract.parse(`${String(dirPath)}/${entry.name}`);
+    const entryPath = `${String(dirPath)}/${entry.name}`;
     if (entry.kind === 'directory') {
       const children = collectFolderFilesLayerBroker({ dirPath: entryPath });
       for (const child of children) {

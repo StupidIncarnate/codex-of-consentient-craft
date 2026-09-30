@@ -1,4 +1,3 @@
-import { AbsoluteFilePathStub } from '@dungeonmaster/shared/contracts/absolute-file-path/absolute-file-path.stub';
 import { InstallContextStub } from '@dungeonmaster/shared/contracts/install-context/install-context.stub';
 import { InstallLinkCreateResponderProxy } from './install-link-create-responder.proxy';
 
@@ -30,10 +29,8 @@ describe('InstallLinkCreateResponder', () => {
       });
       expect(proxy.getSymlinkCalls()).toStrictEqual([
         {
-          targetPath: AbsoluteFilePathStub({ value: '/home/user/.dungeonmaster/siegelense' }),
-          linkPath: AbsoluteFilePathStub({
-            value: '/project/.dungeonmaster-assets/siegelense-assets',
-          }),
+          targetPath: '/home/user/.dungeonmaster/siegelense',
+          linkPath: '/project/.dungeonmaster-assets/siegelense-assets',
           type: 'dir',
         },
       ]);
@@ -89,8 +86,8 @@ describe('InstallLinkCreateResponder', () => {
       });
       expect(proxy.getSymlinkCalls()).toStrictEqual([]);
       expect(proxy.getReadlinkCalls()).toStrictEqual([
-        AbsoluteFilePathStub({ value: '/project/.siegelense' }),
-        AbsoluteFilePathStub({ value: '/project/.dungeonmaster-assets/siegelense-assets' }),
+        '/project/.siegelense',
+        '/project/.dungeonmaster-assets/siegelense-assets',
       ]);
     });
   });
@@ -110,14 +107,12 @@ describe('InstallLinkCreateResponder', () => {
           'Replaced .dungeonmaster-assets/siegelense-assets to point at /home/user/.dungeonmaster/siegelense',
       });
       expect(proxy.getUnlinkedPaths()).toStrictEqual([
-        AbsoluteFilePathStub({ value: '/project/.dungeonmaster-assets/siegelense-assets' }),
+        '/project/.dungeonmaster-assets/siegelense-assets',
       ]);
       expect(proxy.getSymlinkCalls()).toStrictEqual([
         {
-          targetPath: AbsoluteFilePathStub({ value: '/home/user/.dungeonmaster/siegelense' }),
-          linkPath: AbsoluteFilePathStub({
-            value: '/project/.dungeonmaster-assets/siegelense-assets',
-          }),
+          targetPath: '/home/user/.dungeonmaster/siegelense',
+          linkPath: '/project/.dungeonmaster-assets/siegelense-assets',
           type: 'dir',
         },
       ]);
@@ -139,7 +134,7 @@ describe('InstallLinkCreateResponder', () => {
           '.dungeonmaster-assets/siegelense-assets already points at /home/user/.dungeonmaster/siegelense; removed legacy .siegelense symlink',
       });
       expect(proxy.getUnlinkedPaths()).toStrictEqual([
-        AbsoluteFilePathStub({ value: '/project/.siegelense' }),
+        '/project/.siegelense',
       ]);
     });
 

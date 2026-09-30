@@ -31,7 +31,6 @@ import type { BootPollOutcome } from '../../../contracts/boot-poll-outcome/boot-
 import { driverRequestContract } from '../../../contracts/driver-request/driver-request-contract';
 import type { EpochMs } from '../../../contracts/epoch-ms/epoch-ms-contract';
 import { driverStatics } from '../../../statics/driver/driver-statics';
-import type { AbsoluteFilePath } from '@dungeonmaster/shared/contracts';
 import { contentTextContract } from '@dungeonmaster/shared/contracts';
 
 export const instanceStartBootPollLayerBroker = async ({
@@ -39,9 +38,9 @@ export const instanceStartBootPollLayerBroker = async ({
   deadlineMs,
   evidencePath,
 }: {
-  socketPath: AbsoluteFilePath;
+  socketPath: string;
   deadlineMs: EpochMs;
-  evidencePath: AbsoluteFilePath;
+  evidencePath: string;
 }): Promise<BootPollOutcome> => {
   try {
     const response = await driverSocketRequestBroker({

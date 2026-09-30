@@ -18,7 +18,6 @@ import { join } from '#gateway/node/path';
 import { existsSync } from '#gateway/node/fs';
 import { realpath } from '#gateway/node/fs__promises';
 import { locationsStatics } from '@dungeonmaster/shared/statics';
-import { absoluteFilePathContract, type AbsoluteFilePath } from '@dungeonmaster/shared/contracts';
 
 import { locationsRootPathFindBroker } from '../root-path-find/locations-root-path-find-broker';
 import {
@@ -29,7 +28,7 @@ import {
 export const locationsRepoLinkPathFindBroker = async ({
   homePath,
 }: {
-  homePath: AbsoluteFilePath;
+  homePath: string;
 }): Promise<RepoLocalPath> => {
   const cwdPath = cwd();
   const repoRoot = await cwdResolveBroker({ startPath: cwdPath, kind: 'repo-root' });
@@ -53,7 +52,7 @@ export const locationsRepoLinkPathFindBroker = async ({
     return repoLocalPathContract.parse({ path: homePath, linkPresent: false });
   }
 
-  const repoLocalPath = absoluteFilePathContract.parse(homePath.replace(rootPath, linkPath));
+  const repoLocalPath = homePath.replace(rootPath, linkPath);
 
   return repoLocalPathContract.parse({ path: repoLocalPath, linkPresent: true });
 };

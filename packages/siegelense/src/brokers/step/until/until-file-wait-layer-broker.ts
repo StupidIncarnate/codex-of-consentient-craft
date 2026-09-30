@@ -13,8 +13,8 @@
  */
 
 import { join } from '#gateway/node/path';
-import { absoluteFilePathContract, contentTextContract } from '@dungeonmaster/shared/contracts';
-import type { AbsoluteFilePath, ContentText } from '@dungeonmaster/shared/contracts';
+import { contentTextContract } from '@dungeonmaster/shared/contracts';
+import type { ContentText } from '@dungeonmaster/shared/contracts';
 
 import { statIfExists } from '#gateway/node/fs__promises';
 import { setTimeout } from '#gateway/node/setTimeout';
@@ -29,13 +29,13 @@ export const untilFileWaitLayerBroker = async ({
   deadlineAtMs,
   timeoutMs,
 }: {
-  homePath: AbsoluteFilePath;
+  homePath: string;
   file: UntilFilePath;
   startedAtMs: number;
   deadlineAtMs: number;
   timeoutMs: number;
 }): Promise<ContentText> => {
-  const filePath = absoluteFilePathContract.parse(join(homePath, file));
+  const filePath = join(homePath, file);
   const stat = await statIfExists(filePath);
 
   if (stat !== null) {

@@ -11,8 +11,6 @@
  * WHEN-NOT-TO-USE: For library-type packages that perform no writes
  */
 
-import { absoluteFilePathContract } from '../../../contracts/absolute-file-path/absolute-file-path-contract';
-import type { AbsoluteFilePath } from '../../../contracts/absolute-file-path/absolute-file-path-contract';
 import type { ContentText } from '../../../contracts/content-text/content-text-contract';
 import {
   stateWritesResultContract,
@@ -28,9 +26,9 @@ import { readSourceFileLayerBroker } from './read-source-file-layer-broker';
 export const architectureStateWritesBroker = ({
   packageRoot,
 }: {
-  packageRoot: AbsoluteFilePath;
+  packageRoot: string;
 }): StateWritesResult => {
-  const srcPath = absoluteFilePathContract.parse(`${String(packageRoot)}/src`);
+  const srcPath = `${String(packageRoot)}/src`;
 
   // Collect all non-test source files
   const sourceFiles = listSourceFilesLayerBroker({ dirPath: srcPath });
@@ -38,7 +36,7 @@ export const architectureStateWritesBroker = ({
   // Collect all source file contents (skip missing files silently). Keep filePath alongside
   // each content so per-folder filtering (e.g. adapters-only browser-storage scanning) works.
   const fileContents: ContentText[] = [];
-  const fileEntries: { filePath: AbsoluteFilePath; content: ContentText }[] = [];
+  const fileEntries: { filePath: string; content: ContentText }[] = [];
   for (const filePath of sourceFiles) {
     const content = readSourceFileLayerBroker({ filePath });
     if (content !== undefined) {

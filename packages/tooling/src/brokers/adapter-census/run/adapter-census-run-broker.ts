@@ -11,14 +11,13 @@
 import { adapterCensusBuildBroker } from '../build/adapter-census-build-broker';
 import { censusRepoReadLayoutBroker } from '../../census-repo/read-layout/census-repo-read-layout-broker';
 import { censusRepoReadSourcesBroker } from '../../census-repo/read-sources/census-repo-read-sources-broker';
-import type { AbsoluteFilePath } from '../../../contracts/absolute-file-path/absolute-file-path-contract';
 import type { AdapterCensus } from '../../../contracts/adapter-census/adapter-census-contract';
 
 export const adapterCensusRunBroker = async ({
   repoRoot,
   packageFilter,
 }: {
-  repoRoot: AbsoluteFilePath;
+  repoRoot: string;
   packageFilter?: string;
 }): Promise<AdapterCensus> => {
   const layout = await censusRepoReadLayoutBroker({ repoRoot });

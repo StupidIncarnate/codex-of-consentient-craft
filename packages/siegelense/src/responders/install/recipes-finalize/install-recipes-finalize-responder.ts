@@ -15,13 +15,7 @@
  * // npm run build and reports success, or the command to run by hand on failure
  */
 
-import {
-  type InstallContext,
-  type InstallResult,
-  absoluteFilePathContract,
-  installMessageContract,
-  packageNameContract,
-} from '@dungeonmaster/shared/contracts';
+import { type InstallContext, type InstallResult, installMessageContract, packageNameContract } from '@dungeonmaster/shared/contracts';
 
 import { install, runBuild } from '#gateway/bin/npm';
 import { recipesScaffoldState } from '../../../state/recipes-scaffold/recipes-scaffold-state';
@@ -47,7 +41,7 @@ export const InstallRecipesFinalizeResponder = async ({
   }
 
   const buildCommand = `npm run build --workspace=${recipesPackageName}`;
-  const targetProjectRootCwd = absoluteFilePathContract.parse(context.targetProjectRoot);
+  const targetProjectRootCwd = context.targetProjectRoot;
 
   const installResult = await install({ cwd: targetProjectRootCwd });
   if (installResult.exitCode !== 0) {

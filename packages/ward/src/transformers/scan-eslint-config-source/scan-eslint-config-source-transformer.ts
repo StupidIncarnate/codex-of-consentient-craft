@@ -17,7 +17,6 @@
  * read as a clean package.
  */
 
-import type { AbsoluteFilePath } from '@dungeonmaster/shared/contracts';
 
 import type { ScanRuleName } from '../../contracts/scan-rule-name/scan-rule-name-contract';
 import { scanStatics } from '../../statics/scan/scan-statics';
@@ -27,7 +26,7 @@ export const scanEslintConfigSourceTransformer = ({
   rootConfigPath,
 }: {
   rule: ScanRuleName;
-  rootConfigPath: AbsoluteFilePath;
+  rootConfigPath: string;
 }): string =>
   [
       `const base = require(${JSON.stringify(String(rootConfigPath))});`,

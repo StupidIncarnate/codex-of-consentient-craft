@@ -7,7 +7,6 @@
  */
 
 import { readFile } from '#gateway/node/fs__promises';
-import { type AbsoluteFilePath } from '@dungeonmaster/shared/contracts';
 
 import {
   projectFolderContract,
@@ -18,7 +17,7 @@ import { packageJsonContract } from '../../../contracts/package-json/package-jso
 export const folderResolveLayerBroker = async ({
   rootPath,
 }: {
-  rootPath: AbsoluteFilePath;
+  rootPath: string;
 }): Promise<ProjectFolder> => {
   const pkgPath = `${rootPath}/package.json`;
   try {

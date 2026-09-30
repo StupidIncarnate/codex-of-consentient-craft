@@ -1,4 +1,3 @@
-import { AbsoluteFilePathStub } from '@dungeonmaster/shared/contracts/absolute-file-path/absolute-file-path.stub';
 
 
 import { gitDetectDefaultBranchBroker } from './git-detect-default-branch-broker';
@@ -11,7 +10,7 @@ describe('gitDetectDefaultBranchBroker', () => {
       proxy.setupMainExists();
 
       const result = await gitDetectDefaultBranchBroker({
-        cwd: AbsoluteFilePathStub({ value: '/project' }),
+        cwd: '/project',
       });
 
       expect(result).toBe('main');
@@ -22,7 +21,7 @@ describe('gitDetectDefaultBranchBroker', () => {
       proxy.setupMasterExists();
 
       const result = await gitDetectDefaultBranchBroker({
-        cwd: AbsoluteFilePathStub({ value: '/project' }),
+        cwd: '/project',
       });
 
       expect(result).toBe('master');
@@ -33,7 +32,7 @@ describe('gitDetectDefaultBranchBroker', () => {
       proxy.setupNeitherExists();
 
       const result = await gitDetectDefaultBranchBroker({
-        cwd: AbsoluteFilePathStub({ value: '/project' }),
+        cwd: '/project',
       });
 
       expect(result).toBe(null);
@@ -45,7 +44,7 @@ describe('gitDetectDefaultBranchBroker', () => {
       proxy.setupGitNotFound();
 
       const result = await gitDetectDefaultBranchBroker({
-        cwd: AbsoluteFilePathStub({ value: '/project' }),
+        cwd: '/project',
       });
 
       expect(result).toBe(null);

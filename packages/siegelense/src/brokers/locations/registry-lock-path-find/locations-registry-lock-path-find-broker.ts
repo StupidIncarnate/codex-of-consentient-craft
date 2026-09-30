@@ -12,12 +12,11 @@
 import { locationsRootPathFindBroker } from '../root-path-find/locations-root-path-find-broker';
 import { join } from '#gateway/node/path';
 import { locationsStatics } from '@dungeonmaster/shared/statics';
-import { absoluteFilePathContract, type AbsoluteFilePath } from '@dungeonmaster/shared/contracts';
 
-export const locationsRegistryLockPathFindBroker = (): AbsoluteFilePath => {
+export const locationsRegistryLockPathFindBroker = (): string => {
   const rootPath = locationsRootPathFindBroker();
 
   const joined = join(rootPath, locationsStatics.siegelense.registryLock);
 
-  return absoluteFilePathContract.parse(joined);
+  return joined;
 };

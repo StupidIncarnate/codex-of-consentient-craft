@@ -14,8 +14,7 @@
  */
 
 import { readFile } from '#gateway/node/fs__promises';
-import { absoluteFilePathContract, packageJsonContract as workspaceNameContract } from '@dungeonmaster/shared/contracts';
-import type { AbsoluteFilePath } from '@dungeonmaster/shared/contracts';
+import { packageJsonContract as workspaceNameContract } from '@dungeonmaster/shared/contracts';
 import {
   dependencyGraphAdjacencyBuildTransformer,
   dependencyGraphClosureWalkTransformer,
@@ -39,13 +38,13 @@ const packageNameContract = workspaceNameContract.shape.name.unwrap();
 export const collectInputsLayerBroker = async ({
   packageRoot,
 }: {
-  packageRoot: AbsoluteFilePath;
-}): Promise<{ repoRoot: AbsoluteFilePath; relativePaths: GitRelativePath[] }> => {
+  packageRoot: string;
+}): Promise<{ repoRoot: string; relativePaths: GitRelativePath[] }> => {
   const workspaceRoot = await resolveWorkspaceRootLayerBroker({ startPath: packageRoot });
   const repoRoot = workspaceRoot ?? packageRoot;
 
   const folders = (await workspaceDiscoverBroker({ rootPath: repoRoot })) ?? [];
-  const folderPaths = folders.map((folder) => absoluteFilePathContract.parse(String(folder.path)));
+  const folderPaths = folders.map((folder) => String(folder.path));
 
   // A single-package repo declares no workspaces, and a package can also be excluded from the
   // patterns that DO exist. Either way its own sources are what the bundle is built from, so the

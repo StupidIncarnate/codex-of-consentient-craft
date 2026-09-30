@@ -10,7 +10,6 @@
  */
 
 import { rmSync } from '#gateway/node/fs';
-import type { AbsoluteFilePath } from '@dungeonmaster/shared/contracts';
 import { promisePoolTransformer } from '@dungeonmaster/shared/transformers';
 
 import type { ProjectFolder } from '../../../contracts/project-folder/project-folder-contract';
@@ -31,7 +30,7 @@ export const scanRunBroker = async ({
   rootPath,
 }: {
   config: ScanConfig;
-  rootPath: AbsoluteFilePath;
+  rootPath: string;
 }): Promise<ScanReport> => {
   const projectFolders = await workspaceDiscoverBroker({ rootPath });
 

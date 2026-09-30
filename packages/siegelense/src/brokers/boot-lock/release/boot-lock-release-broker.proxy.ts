@@ -6,7 +6,6 @@ import { BootLockStub } from '../../../contracts/boot-lock/boot-lock.stub';
 import type { InstanceIdStub } from '../../../contracts/instance-id/instance-id.stub';
 import type { EpochMsStub } from '../../../contracts/epoch-ms/epoch-ms.stub';
 import type { ProcessIdStub } from '@dungeonmaster/shared/contracts/process-id/process-id.stub';
-import { AbsoluteFilePathStub } from '@dungeonmaster/shared/contracts/absolute-file-path/absolute-file-path.stub';
 
 type InstanceId = ReturnType<typeof InstanceIdStub>;
 type EpochMs = ReturnType<typeof EpochMsStub>;
@@ -15,7 +14,7 @@ const HOME_DIR = '/home/user';
 const BOOT_LOCK_VALUE = `${HOME_DIR}/.dungeonmaster/siegelense/boot.lock`;
 
 export const bootLockReleaseBrokerProxy = (): {
-  bootLockPath: ReturnType<typeof AbsoluteFilePathStub>;
+  bootLockPath: string;
   setupNoLock: () => void;
   setupLockHeldBy: (params: {
     heldBy: InstanceId;
@@ -25,7 +24,7 @@ export const bootLockReleaseBrokerProxy = (): {
   setupLockReadFailsForNonAbsenceReason: () => void;
   getDeletedPaths: () => unknown[];
 } => {
-  const bootLockPath = AbsoluteFilePathStub({ value: BOOT_LOCK_VALUE });
+  const bootLockPath = BOOT_LOCK_VALUE;
 
   const pathProxy = locationsBootLockPathFindBrokerProxy();
   pathProxy.setupBootLockPath({

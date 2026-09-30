@@ -28,7 +28,6 @@ import { appendFile, ensureDir } from '#gateway/node/fs__promises';
 import { getEnv, stderr } from '#gateway/node/process';
 import { homedir } from '#gateway/node/os';
 import { claudeLineNormalizeBroker } from '@dungeonmaster/shared/brokers';
-import { absoluteFilePathContract } from '@dungeonmaster/shared/contracts';
 import type { ChatEntry, RepoRootCwd, ProcessId, Agent, Session } from '@dungeonmaster/shared/contracts';
 import {
   claudeProjectPathEncoderTransformer,
@@ -53,8 +52,8 @@ export const chatSubagentTailBroker = async ({
   onEntries: (params: { chatProcessId: ProcessId; entries: ChatEntry[] }) => void;
   chatProcessId: ProcessId;
 }): Promise<{ stop: () => void; initialDrain: Promise<void> }> => {
-  const projectPath = absoluteFilePathContract.parse(cwd);
-  const homeDir = absoluteFilePathContract.parse(homedir());
+  const projectPath = cwd;
+  const homeDir = homedir();
 
   const jsonlPath = claudeProjectPathEncoderTransformer({
     homeDir,
@@ -68,9 +67,7 @@ export const chatSubagentTailBroker = async ({
   // subagents-dir argument would miss those and throw "nothing set up". Computing the directory
   // from the same pieces the full path is built from sidesteps that shared mock entirely.
   const subagentsDir = `${stripJsonlSuffixTransformer({ filePath: jsonlPath })}/subagents`;
-  const subagentJsonlPath = absoluteFilePathContract.parse(
-    `${subagentsDir}/agent-${agentId}.jsonl`,
-  );
+  const subagentJsonlPath = `${subagentsDir}/agent-${agentId}.jsonl`;
 
   // Ensure the directory + file exist before handing the path to tailFile.
   // For a `run_in_background` Task, Claude CLI emits the `async_launched` tool_result on

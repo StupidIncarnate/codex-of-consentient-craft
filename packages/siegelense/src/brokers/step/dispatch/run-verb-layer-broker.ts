@@ -23,7 +23,6 @@
  */
 
 import type { ContentText } from '@dungeonmaster/shared/contracts';
-import type { AbsoluteFilePath } from '@dungeonmaster/shared/contracts';
 
 import type { BufferLengths } from '../../../contracts/buffer-lengths/buffer-lengths-contract';
 import type { LaneSession } from '../../../contracts/lane-session/lane-session-contract';
@@ -73,7 +72,7 @@ export const runVerbLayerBroker = async ({
   lane: LaneSession;
   step: Step;
   index: StepIndex;
-  shotPath: AbsoluteFilePath | null;
+  shotPath: string | null;
   browserWindowStart: BufferLengths | null;
   recordBinding: (params: { name: SeedBindingName; result: unknown }) => void;
 }): Promise<ContentText> => {

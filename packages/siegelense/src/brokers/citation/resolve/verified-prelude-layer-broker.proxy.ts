@@ -1,4 +1,3 @@
-import type { AbsoluteFilePath } from '@dungeonmaster/shared/contracts';
 import { join } from '#gateway/node/path';
 import { registerMock, requireActual } from '@dungeonmaster/testing/register-mock';
 
@@ -8,9 +7,9 @@ import { isNativeErrorProxy } from '#gateway/node/util__types/is-native-error/is
 import { locationsCitationQuestPlansPathFindBrokerProxy } from '../../locations/citation-quest-plans-path-find/locations-citation-quest-plans-path-find-broker.proxy';
 
 export const verifiedPreludeLayerBrokerProxy = (): {
-  setupPlansDir: (params: { dirPath: AbsoluteFilePath; entries: readonly string[] }) => void;
-  setupNotADirectory: (params: { dirPath: AbsoluteFilePath }) => void;
-  setupPlanFile: (params: { filePath: AbsoluteFilePath; contents: string }) => void;
+  setupPlansDir: (params: { dirPath: string; entries: readonly string[] }) => void;
+  setupNotADirectory: (params: { dirPath: string }) => void;
+  setupPlanFile: (params: { filePath: string; contents: string }) => void;
 } => {
   const readdirProxy = readdirIfExistsProxy();
   const readFileMock = readFileProxy();
@@ -30,7 +29,7 @@ export const verifiedPreludeLayerBrokerProxy = (): {
       dirPath,
       entries,
     }: {
-      dirPath: AbsoluteFilePath;
+      dirPath: string;
       entries: readonly string[];
     }): void => {
       readdirProxy.returns({ path: dirPath, names: [...entries] });
@@ -38,7 +37,7 @@ export const verifiedPreludeLayerBrokerProxy = (): {
 
     // An entry the scan tried to descend into that turns out to be an ordinary file. The OS says
     // ENOTDIR, and the layer treats it as "nothing to read here" rather than crashing the prune.
-    setupNotADirectory: ({ dirPath }: { dirPath: AbsoluteFilePath }): void => {
+    setupNotADirectory: ({ dirPath }: { dirPath: string }): void => {
       readdirProxy.notADirectory({ path: dirPath });
     },
 
@@ -46,7 +45,7 @@ export const verifiedPreludeLayerBrokerProxy = (): {
       filePath,
       contents,
     }: {
-      filePath: AbsoluteFilePath;
+      filePath: string;
       contents: string;
     }): void => {
       readFileMock.returns({ path: filePath, contents });

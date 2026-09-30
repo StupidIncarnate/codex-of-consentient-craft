@@ -1,7 +1,6 @@
 import { stderrProxy } from '#gateway/node/process/stderr/stderr.proxy';
 import { streamProxy } from '#gateway/node/child_process/stream/stream.proxy';
 import { RunNotFoundErrorProxy } from '#gateway/node/child_process/run-not-found.error.proxy';
-import { absoluteFilePathContract, type AbsoluteFilePath } from '@dungeonmaster/shared/contracts';
 import { registerSpyOn } from '@dungeonmaster/testing/register-mock';
 import { DungeonmasterConfigStub } from '@dungeonmaster/config/contracts/dungeonmaster-config/dungeonmaster-config.stub';
 import { configResolveBrokerProxy } from '@dungeonmaster/config/startup/start-config.proxy';
@@ -21,26 +20,26 @@ import { childCrashLayerBrokerProxy } from './child-crash-layer-broker.proxy';
 
 export const multiPackageLayerBrokerProxy = (): {
   setupSpawnAndLoad: (params: {
-    rootPath: AbsoluteFilePath;
+    rootPath: string;
     projectFolders: ProjectFolder[];
     subResultContent: string;
   }) => void;
   setupSpawnAndLoadSelective: (params: {
-    rootPath: AbsoluteFilePath;
+    rootPath: string;
     packages: { projectFolder: ProjectFolder; subResultContent: string }[];
   }) => void;
   setupSpawnWithNullLoad: (params: {
-    rootPath: AbsoluteFilePath;
+    rootPath: string;
     projectFolder: ProjectFolder;
   }) => void;
   setupCrashedChildOverStaleResult: (params: {
-    rootPath: AbsoluteFilePath;
+    rootPath: string;
     projectFolder: ProjectFolder;
     childStdout: string;
     staleResultContent: string;
   }) => void;
-  setupNoSpawns: (params: { rootPath: AbsoluteFilePath }) => void;
-  setupWardConcurrency: (params: { rootPath: AbsoluteFilePath; concurrency: number }) => void;
+  setupNoSpawns: (params: { rootPath: string }) => void;
+  setupWardConcurrency: (params: { rootPath: string; concurrency: number }) => void;
   getStderrCalls: () => unknown[];
   getAllSpawnedArgs: () => unknown[];
 } => {
@@ -71,7 +70,7 @@ export const multiPackageLayerBrokerProxy = (): {
     rootPath,
     config,
   }: {
-    rootPath: AbsoluteFilePath;
+    rootPath: string;
     config: ReturnType<typeof DungeonmasterConfigStub>;
   }): void => {
     configProxy.setupResolves({
@@ -88,7 +87,7 @@ export const multiPackageLayerBrokerProxy = (): {
   // Matches what a child ward actually prints — id plus the trailing total-duration suffix.
   const childSummaryLine = `run: ${runId}  (1.2s)\n`;
 
-  const resolveWardBin = ({ rootPath }: { rootPath: AbsoluteFilePath }): BinCommand => {
+  const resolveWardBin = ({ rootPath }: { rootPath: string }): BinCommand => {
     const command = binProxy.setupFound({
       cwd: rootPath,
       binName: BinCommandStub({ value: wardSpawnCommandStatics.bin }),
@@ -104,7 +103,7 @@ export const multiPackageLayerBrokerProxy = (): {
       projectFolders,
       subResultContent,
     }: {
-      rootPath: AbsoluteFilePath;
+      rootPath: string;
       projectFolders: ProjectFolder[];
       subResultContent: string;
     }): void => {
@@ -115,7 +114,7 @@ export const multiPackageLayerBrokerProxy = (): {
       stream.setupSuccess({ command, exitCode: 0, stdout: childSummaryLine, stderr: '' });
       for (const folder of projectFolders) {
         loadProxy.setupRunById({
-          rootPath: absoluteFilePathContract.parse(folder.path),
+          rootPath: folder.path,
           runId,
           content: subResultContent,
         });
@@ -128,14 +127,14 @@ export const multiPackageLayerBrokerProxy = (): {
       rootPath,
       packages,
     }: {
-      rootPath: AbsoluteFilePath;
+      rootPath: string;
       packages: { projectFolder: ProjectFolder; subResultContent: string }[];
     }): void => {
       const command = String(resolveWardBin({ rootPath }));
       stream.setupSuccess({ command, exitCode: 0, stdout: childSummaryLine, stderr: '' });
       for (const pkg of packages) {
         loadProxy.setupRunById({
-          rootPath: absoluteFilePathContract.parse(pkg.projectFolder.path),
+          rootPath: pkg.projectFolder.path,
           runId,
           content: pkg.subResultContent,
         });
@@ -148,13 +147,13 @@ export const multiPackageLayerBrokerProxy = (): {
       rootPath,
       projectFolder,
     }: {
-      rootPath: AbsoluteFilePath;
+      rootPath: string;
       projectFolder: ProjectFolder;
     }): void => {
       const command = String(resolveWardBin({ rootPath }));
       stream.setupSuccess({ command, exitCode: 1, stdout: childSummaryLine, stderr: '' });
       loadProxy.setupReadFail({
-        rootPath: absoluteFilePathContract.parse(projectFolder.path),
+        rootPath: projectFolder.path,
         runId,
       });
       saveProxy.setupSuccess({ rootPath, runId });
@@ -170,7 +169,7 @@ export const multiPackageLayerBrokerProxy = (): {
       childStdout,
       staleResultContent,
     }: {
-      rootPath: AbsoluteFilePath;
+      rootPath: string;
       projectFolder: ProjectFolder;
       childStdout: string;
       staleResultContent: string;
@@ -179,7 +178,7 @@ export const multiPackageLayerBrokerProxy = (): {
       stream.setupSuccess({ command, exitCode: 1, stdout: childStdout, stderr: '' });
       const staleRunId = RunIdStub({ value: '1739000000000-01de' });
       loadProxy.setupLatestRun({
-        rootPath: absoluteFilePathContract.parse(projectFolder.path),
+        rootPath: projectFolder.path,
         entries: [`run-${staleRunId}.json`],
         latestEntry: `run-${staleRunId}.json`,
         content: staleResultContent,
@@ -188,7 +187,7 @@ export const multiPackageLayerBrokerProxy = (): {
       pruneProxy.setupEmpty({ rootPath });
     },
 
-    setupNoSpawns: ({ rootPath }: { rootPath: AbsoluteFilePath }): void => {
+    setupNoSpawns: ({ rootPath }: { rootPath: string }): void => {
       resolveWardBin({ rootPath });
       saveProxy.setupSuccess({ rootPath, runId });
       pruneProxy.setupEmpty({ rootPath });
@@ -200,7 +199,7 @@ export const multiPackageLayerBrokerProxy = (): {
       rootPath,
       concurrency,
     }: {
-      rootPath: AbsoluteFilePath;
+      rootPath: string;
       concurrency: number;
     }): void => {
       stageConfigForRoot({ rootPath, config: DungeonmasterConfigStub({ ward: { concurrency } }) });

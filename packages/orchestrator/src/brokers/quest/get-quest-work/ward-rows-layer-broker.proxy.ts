@@ -9,7 +9,6 @@
  * const rows = await wardRowsLayerBroker({ questPath, quest });
  */
 
-import type { AbsoluteFilePath } from '@dungeonmaster/shared/contracts';
 import type { RiftcarverResultStub } from '@dungeonmaster/shared/contracts/riftcarver-result/riftcarver-result.stub';
 import type { WardResultStub } from '@dungeonmaster/shared/contracts/ward-result/ward-result.stub';
 import { locationsStatics } from '@dungeonmaster/shared/statics';
@@ -26,14 +25,14 @@ const LOG_EXTENSION = '.log';
 
 export const wardRowsLayerBrokerProxy = (): {
   setupBlobReadable: (params: {
-    questPath: AbsoluteFilePath;
+    questPath: string;
     wardResultId: WardResultId;
     detailJson: string;
   }) => void;
-  setupBlobMissing: (params: { questPath: AbsoluteFilePath; wardResultId: WardResultId }) => void;
-  setupCarveLog: (params: { questPath: AbsoluteFilePath; carveId: RiftcarverResultId }) => void;
-  blobPathFor: (params: { questPath: AbsoluteFilePath; wardResultId: WardResultId }) => string;
-  logPathFor: (params: { questPath: AbsoluteFilePath; carveId: RiftcarverResultId }) => string;
+  setupBlobMissing: (params: { questPath: string; wardResultId: WardResultId }) => void;
+  setupCarveLog: (params: { questPath: string; carveId: RiftcarverResultId }) => void;
+  blobPathFor: (params: { questPath: string; wardResultId: WardResultId }) => string;
+  logPathFor: (params: { questPath: string; carveId: RiftcarverResultId }) => string;
 } => {
   const joinHandle: MockHandle = registerMock({ fn: join });
   const readFileHandle = readFileIfExistsProxy();
@@ -42,7 +41,7 @@ export const wardRowsLayerBrokerProxy = (): {
     questPath,
     wardResultId,
   }: {
-    questPath: AbsoluteFilePath;
+    questPath: string;
     wardResultId: WardResultId;
   }): string =>
     `${String(questPath)}/${locationsStatics.quest.wardResultsDir}/${String(wardResultId)}${JSON_EXTENSION}`;
@@ -51,7 +50,7 @@ export const wardRowsLayerBrokerProxy = (): {
     questPath,
     carveId,
   }: {
-    questPath: AbsoluteFilePath;
+    questPath: string;
     carveId: RiftcarverResultId;
   }): string =>
     `${String(questPath)}/${locationsStatics.quest.riftcarverResultsDir}/${String(carveId)}${LOG_EXTENSION}`;

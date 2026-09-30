@@ -1,17 +1,16 @@
 import { readPackageJsonLayerBrokerProxy } from './read-package-json-layer-broker.proxy';
-import type { AbsoluteFilePath } from '../../../contracts/absolute-file-path/absolute-file-path-contract';
 
 export const hookBinsToAnnotationsLayerBrokerProxy = (): {
-  setupJson: ({ packageRoot, json }: { packageRoot: AbsoluteFilePath; json: unknown }) => void;
-  setupMissing: ({ packageRoot }: { packageRoot: AbsoluteFilePath }) => void;
+  setupJson: ({ packageRoot, json }: { packageRoot: string; json: unknown }) => void;
+  setupMissing: ({ packageRoot }: { packageRoot: string }) => void;
 } => {
   const pkgJsonProxy = readPackageJsonLayerBrokerProxy();
 
   return {
-    setupJson: ({ packageRoot, json }: { packageRoot: AbsoluteFilePath; json: unknown }): void => {
+    setupJson: ({ packageRoot, json }: { packageRoot: string; json: unknown }): void => {
       pkgJsonProxy.setupJson({ packageRoot, json });
     },
-    setupMissing: ({ packageRoot }: { packageRoot: AbsoluteFilePath }): void => {
+    setupMissing: ({ packageRoot }: { packageRoot: string }): void => {
       pkgJsonProxy.setupMissing({ packageRoot });
     },
   };

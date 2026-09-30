@@ -15,8 +15,7 @@ import { existsSync, readdirEntriesSync } from '#gateway/node/fs';
 import { homedir } from '#gateway/node/os';
 import { join } from '#gateway/node/path';
 import { locationsStatics } from '@dungeonmaster/shared/statics';
-import { absoluteFilePathContract } from '@dungeonmaster/shared/contracts';
-import type { AbsoluteFilePath, Session } from '@dungeonmaster/shared/contracts';
+import type { Session } from '@dungeonmaster/shared/contracts';
 
 const SUBAGENT_TARGET_PREFIX = 'agent-';
 
@@ -26,7 +25,7 @@ export const transcriptResolveBroker = ({
 }: {
   target: Session['id'];
   parentSessionId?: Session['id'];
-}): AbsoluteFilePath | undefined => {
+}): string | undefined => {
   const projectsRoot = join(
     homedir(),
     locationsStatics.userHome.claude.dir,
@@ -45,7 +44,7 @@ export const transcriptResolveBroker = ({
     const matched = projectDirs
       .map((projectDir) => join(projectDir, `${target}.jsonl`))
       .find((candidate) => existsSync(candidate));
-    return matched === undefined ? undefined : absoluteFilePathContract.parse(matched);
+    return matched === undefined ? undefined : matched;
   }
 
   if (parentSessionId !== undefined) {
@@ -59,7 +58,7 @@ export const transcriptResolveBroker = ({
         ),
       )
       .find((candidate) => existsSync(candidate));
-    return matched === undefined ? undefined : absoluteFilePathContract.parse(matched);
+    return matched === undefined ? undefined : matched;
   }
 
   const matched = projectDirs
@@ -76,5 +75,5 @@ export const transcriptResolveBroker = ({
         ),
     )
     .find((candidate) => existsSync(candidate));
-  return matched === undefined ? undefined : absoluteFilePathContract.parse(matched);
+  return matched === undefined ? undefined : matched;
 };

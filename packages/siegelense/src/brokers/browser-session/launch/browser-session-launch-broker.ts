@@ -32,7 +32,7 @@ import { homedir } from '#gateway/node/os';
 import { join } from '#gateway/node/path';
 import { getEnv, setEnv, stderr } from '#gateway/node/process';
 import { contentTextContract } from '@dungeonmaster/shared/contracts';
-import type { AbsoluteFilePath, ContentText } from '@dungeonmaster/shared/contracts';
+import type { ContentText } from '@dungeonmaster/shared/contracts';
 
 import { boxReadingContract } from '../../../contracts/box-reading/box-reading-contract';
 import type { BoxReading } from '../../../contracts/box-reading/box-reading-contract';
@@ -132,7 +132,7 @@ export const browserSessionLaunchBroker = async ({
   evidencePath,
 }: {
   baseUrl: string;
-  evidencePath: AbsoluteFilePath;
+  evidencePath: string;
 }): Promise<BrowserSession> => {
   if (getEnv('PLAYWRIGHT_BROWSERS_PATH') === undefined) {
     setEnv('PLAYWRIGHT_BROWSERS_PATH', join(homedir(), '.cache', 'ms-playwright'));

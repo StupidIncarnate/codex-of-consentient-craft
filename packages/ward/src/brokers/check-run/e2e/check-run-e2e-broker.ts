@@ -16,7 +16,7 @@ import {
   portKillListenersBroker,
 } from '@dungeonmaster/shared/brokers';
 
-import { absoluteFilePathContract, exitCodeContract, networkPortContract } from '@dungeonmaster/shared/contracts';
+import { exitCodeContract, networkPortContract } from '@dungeonmaster/shared/contracts';
 
 import { binCommandContract } from '../../../contracts/bin-command/bin-command-contract';
 import { rawOutputContract } from '../../../contracts/raw-output/raw-output-contract';
@@ -54,7 +54,7 @@ export const checkRunE2eBroker = async ({
   fileList: GitRelativePath[];
   testNamePattern?: string;
 }): Promise<ProjectResult> => {
-  const packageRoot = absoluteFilePathContract.parse(projectFolder.path);
+  const packageRoot = projectFolder.path;
   const e2eEligible = await architecturePackageE2eEligibleDetectBroker({ packageRoot });
 
   if (!e2eEligible) {
@@ -93,7 +93,7 @@ export const checkRunE2eBroker = async ({
   }
 
   const { bin, args, discoverPatterns } = checkCommandsStatics.e2e;
-  const cwd = absoluteFilePathContract.parse(projectFolder.path);
+  const cwd = projectFolder.path;
   const { discoveredCount, discoveredFiles } = globDiscoverFilesBroker({
     patterns: discoverPatterns,
     cwd,

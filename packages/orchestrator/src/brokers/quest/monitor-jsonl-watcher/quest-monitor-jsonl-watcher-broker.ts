@@ -19,7 +19,7 @@
  */
 
 import { stderr } from '#gateway/node/process';
-import { absoluteFilePathContract, type ChatEntry, type ProcessId, sessionContract } from '@dungeonmaster/shared/contracts';
+import { type ChatEntry, type ProcessId, sessionContract } from '@dungeonmaster/shared/contracts';
 import { claudeLineNormalizeBroker } from '@dungeonmaster/shared/brokers';
 import { tailFile } from '#gateway/node/fs';
 import type { TailFileHandle } from '#gateway/node/fs';
@@ -113,7 +113,7 @@ export const questMonitorJsonlWatcherBroker = ({
   // matching `agent-*.jsonl` get a tail each. Missing directory is non-fatal: the poll
   // tick below retries every second, and `agent-detected` from the main tail is a third
   // path that covers the Task-completion window.
-  const sessionFilePathAbsolute = absoluteFilePathContract.parse(String(sessionFilePath));
+  const sessionFilePathAbsolute = String(sessionFilePath);
   const sessionFileNoSuffix = stripJsonlSuffixTransformer({ filePath: sessionFilePathAbsolute });
   const subagentsDir = `${sessionFileNoSuffix}/subagents`;
   // The worker session's own UUID — the basename of the session JSONL minus `.jsonl`.
@@ -164,7 +164,7 @@ export const questMonitorJsonlWatcherBroker = ({
   // (which uses startPosition: 'end' because stdout streaming already emitted everything),
   // the monitor's main JSONL has never been streamed anywhere — every line is new to the
   // web UI from the moment this watcher registers.
-  const mainJsonlPath = absoluteFilePathContract.parse(String(sessionFilePath));
+  const mainJsonlPath = String(sessionFilePath);
   const mainHandle = tailFile({
     path: mainJsonlPath,
     // The session JSONL may not exist yet: a node-dispatch worker's sessionId reaches the

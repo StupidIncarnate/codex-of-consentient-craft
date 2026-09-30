@@ -1,16 +1,15 @@
 import type { FsError } from '#gateway/node/fs';
 import { appendFileProxy } from '#gateway/node/fs__promises/append-file/append-file.proxy';
-import type { AbsoluteFilePath } from '@dungeonmaster/shared/contracts';
 
 export const runTranscriptAppendBrokerProxy = (): {
-  succeeds: (params: { transcriptPath: AbsoluteFilePath }) => void;
-  throws: (params: { transcriptPath: AbsoluteFilePath; error: FsError }) => void;
-  appendedLinesFor: (params: { transcriptPath: AbsoluteFilePath }) => readonly unknown[];
+  succeeds: (params: { transcriptPath: string }) => void;
+  throws: (params: { transcriptPath: string; error: FsError }) => void;
+  appendedLinesFor: (params: { transcriptPath: string }) => readonly unknown[];
 } => {
   const appendProxy = appendFileProxy();
 
   return {
-    succeeds: ({ transcriptPath }: { transcriptPath: AbsoluteFilePath }): void => {
+    succeeds: ({ transcriptPath }: { transcriptPath: string }): void => {
       appendProxy.succeeds({ path: transcriptPath });
     },
 
@@ -18,7 +17,7 @@ export const runTranscriptAppendBrokerProxy = (): {
       transcriptPath,
       error,
     }: {
-      transcriptPath: AbsoluteFilePath;
+      transcriptPath: string;
       error: FsError;
     }): void => {
       appendProxy.rejects({ path: transcriptPath, error });
@@ -30,7 +29,7 @@ export const runTranscriptAppendBrokerProxy = (): {
     appendedLinesFor: ({
       transcriptPath,
     }: {
-      transcriptPath: AbsoluteFilePath;
+      transcriptPath: string;
     }): readonly unknown[] =>
       appendProxy.getCallsFor({ path: transcriptPath }).map((call) => call[1]),
   };

@@ -16,8 +16,6 @@
 
 import { join } from '#gateway/node/path';
 import { readFileIfExists } from '#gateway/node/fs__promises';
-import { absoluteFilePathContract } from '@dungeonmaster/shared/contracts';
-import type { AbsoluteFilePath } from '@dungeonmaster/shared/contracts';
 import { locationsStatics } from '@dungeonmaster/shared/statics';
 
 import { shutdownReasonContract } from '../../../contracts/shutdown-reason/shutdown-reason-contract';
@@ -26,11 +24,9 @@ import type { ShutdownReason } from '../../../contracts/shutdown-reason/shutdown
 export const shutdownReasonReadBroker = async ({
   evidencePath,
 }: {
-  evidencePath: AbsoluteFilePath;
+  evidencePath: string;
 }): Promise<ShutdownReason | null> => {
-  const markerPath = absoluteFilePathContract.parse(
-    join(evidencePath, locationsStatics.siegelense.shutdownReason),
-  );
+  const markerPath = join(evidencePath, locationsStatics.siegelense.shutdownReason);
 
   const content = await readFileIfExists(markerPath);
 

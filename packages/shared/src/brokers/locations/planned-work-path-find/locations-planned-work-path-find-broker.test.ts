@@ -1,6 +1,5 @@
 import { locationsPlannedWorkPathFindBroker } from './locations-planned-work-path-find-broker';
 import { locationsPlannedWorkPathFindBrokerProxy } from './locations-planned-work-path-find-broker.proxy';
-import { AbsoluteFilePathStub } from '../../../contracts/absolute-file-path/absolute-file-path.stub';
 
 describe('locationsPlannedWorkPathFindBroker', () => {
   describe('planned-work path resolution', () => {
@@ -12,10 +11,10 @@ describe('locationsPlannedWorkPathFindBroker', () => {
       });
 
       const result = locationsPlannedWorkPathFindBroker({
-        questFolderPath: AbsoluteFilePathStub({ value: '/quest' }),
+        questFolderPath: '/quest',
       });
 
-      expect(result).toBe(AbsoluteFilePathStub({ value: '/quest/planned-work' }));
+      expect(result).toBe('/quest/planned-work');
     });
   });
 });

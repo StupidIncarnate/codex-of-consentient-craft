@@ -13,7 +13,6 @@
  */
 import * as ts from '#gateway/npm/typescript';
 
-import type { AbsoluteFilePath } from '../../contracts/absolute-file-path/absolute-file-path-contract';
 import type { ContentText } from '../../contracts/content-text/content-text-contract';
 import type { OwnerIndexEnum } from '../../contracts/owner-index-enum/owner-index-enum-contract';
 import type { OwnerIndexOwner } from '../../contracts/owner-index-owner/owner-index-owner-contract';
@@ -34,9 +33,9 @@ export const ownerIndexFromSourcesTransformer = ({
   packages,
   sources,
 }: {
-  rootDir: AbsoluteFilePath;
+  rootDir: string;
   packages: OwnerIndexPackage[];
-  sources: { filePath: AbsoluteFilePath; text: ContentText }[];
+  sources: { filePath: string; text: ContentText }[];
 }): OwnerIndex => {
   const rootPrefixLength = rootDir.length + 1;
 

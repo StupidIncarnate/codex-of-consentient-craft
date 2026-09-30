@@ -7,7 +7,6 @@
  */
 
 import { stderr } from '#gateway/node/process';
-import type { AbsoluteFilePath } from '@dungeonmaster/shared/contracts';
 
 import {
   wardRunResultContract,
@@ -48,7 +47,7 @@ export const singlePackageLayerBroker = async ({
 }: {
   config: WardConfig;
   projectFolder: ProjectFolder;
-  rootPath: AbsoluteFilePath;
+  rootPath: string;
   platformDedupeProjectResult?: ProjectResult;
 }): Promise<WardRunResult> => {
   const runId = runIdGenerateTransformer();

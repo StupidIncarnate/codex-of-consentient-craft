@@ -14,7 +14,7 @@ import { randomUUID } from '#gateway/node/crypto';
 import { existsSync, mkdirSync, readFileSync, rmSync, writeFileSync } from '#gateway/node/fs';
 import { tmpdir } from '#gateway/node/os';
 
-import type { AbsoluteFilePath, GuildPath, RepoRelativePath, Guild } from '@dungeonmaster/shared/contracts';
+import type { GuildPath, RepoRelativePath, Guild } from '@dungeonmaster/shared/contracts';
 import type { FlowStub } from '@dungeonmaster/shared/contracts/flow/flow.stub';
 import type { OperationItemStub } from '@dungeonmaster/shared/contracts/operation-item/operation-item.stub';
 import type { QuestCommentStub } from '@dungeonmaster/shared/contracts/quest-comment/quest-comment.stub';
@@ -22,7 +22,7 @@ import type { QuestContractEntryStub } from '@dungeonmaster/shared/contracts/que
 import type { QuestPackageEntryStub } from '@dungeonmaster/shared/contracts/quest-package-entry/quest-package-entry.stub';
 import type { QuestStub } from '@dungeonmaster/shared/contracts/quest/quest.stub';
 import type { WorkItemStub } from '@dungeonmaster/shared/contracts/work-item/work-item.stub';
-import { absoluteFilePathContract, questContract } from '@dungeonmaster/shared/contracts';
+import { questContract } from '@dungeonmaster/shared/contracts';
 import { GuildNameStub } from '@dungeonmaster/shared/contracts/guild-name/guild-name.stub';
 import { GuildPathStub } from '@dungeonmaster/shared/contracts/guild-path/guild-path.stub';
 import type { installTestbedCreateBroker } from '@dungeonmaster/testing';
@@ -230,7 +230,7 @@ export const orchestrationQuestHarness = (): {
     cwd,
   }: {
     args: readonly string[];
-    cwd: AbsoluteFilePath;
+    cwd: string;
   }): Promise<void> => {
     await gitRun({ args: [...args], cwd });
   };
@@ -243,7 +243,7 @@ export const orchestrationQuestHarness = (): {
     cwd,
   }: {
     message: string;
-    cwd: AbsoluteFilePath;
+    cwd: string;
   }): Promise<void> => {
     await runGit({ args: ['add', '-A'], cwd });
     await runGit({
@@ -267,7 +267,7 @@ export const orchestrationQuestHarness = (): {
   }: {
     repoPath: GuildPath;
   }): Promise<{ baseRef: GitBaseRef }> => {
-    const cwd = absoluteFilePathContract.parse(String(repoPath));
+    const cwd = String(repoPath);
     await runGit({ args: ['init'], cwd });
     writeFileSync(join(String(repoPath), 'BASE_MARKER.md'), '# base commit\n');
     await commitAll({ message: 'base', cwd });
@@ -288,7 +288,7 @@ export const orchestrationQuestHarness = (): {
     repoPath: GuildPath;
     files: readonly { relativePath: RepoRelativePath; content: string }[];
   }): Promise<void> => {
-    const cwd = absoluteFilePathContract.parse(String(repoPath));
+    const cwd = String(repoPath);
     for (const file of files) {
       const fullPath = join(String(repoPath), String(file.relativePath));
       mkdirSync(dirname(fullPath), { recursive: true });

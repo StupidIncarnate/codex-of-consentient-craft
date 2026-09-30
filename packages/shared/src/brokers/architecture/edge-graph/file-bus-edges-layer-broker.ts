@@ -15,8 +15,6 @@
  * WHEN-NOT-TO-USE: When TypeScript AST-level accuracy is required (this is a regex v1 heuristic)
  */
 
-import { absoluteFilePathContract } from '../../../contracts/absolute-file-path/absolute-file-path-contract';
-import type { AbsoluteFilePath } from '../../../contracts/absolute-file-path/absolute-file-path-contract';
 import type { ContentText } from '../../../contracts/content-text/content-text-contract';
 import {
   fileBusEdgeContract,
@@ -32,13 +30,13 @@ const PACKAGES_REL = 'packages';
 export const fileBusEdgesLayerBroker = ({
   projectRoot,
 }: {
-  projectRoot: AbsoluteFilePath;
+  projectRoot: string;
 }): FileBusEdge[] => {
-  const packagesDir = absoluteFilePathContract.parse(`${String(projectRoot)}/${PACKAGES_REL}`);
+  const packagesDir = `${String(projectRoot)}/${PACKAGES_REL}`;
   const allFiles = listTsFilesLayerBroker({ dirPath: packagesDir });
 
-  const writerEntries: { filePath: ContentText; writerFile: AbsoluteFilePath }[] = [];
-  const readerEntries: { filePath: ContentText; watcherFile: AbsoluteFilePath }[] = [];
+  const writerEntries: { filePath: ContentText; writerFile: string }[] = [];
+  const readerEntries: { filePath: ContentText; watcherFile: string }[] = [];
 
   for (const filePath of allFiles) {
     const source = readFileLayerBroker({ filePath });
@@ -62,7 +60,7 @@ export const fileBusEdgesLayerBroker = ({
   const edges: FileBusEdge[] = [];
   for (const busPath of busPaths) {
     const watcherFile = readerEntries.find((r) => r.filePath === busPath)?.watcherFile ?? null;
-    const writerFiles = new Set<AbsoluteFilePath>(
+    const writerFiles = new Set<string>(
       writerEntries
         .filter((w) => w.filePath === busPath && w.writerFile !== watcherFile)
         .map((w) => w.writerFile),

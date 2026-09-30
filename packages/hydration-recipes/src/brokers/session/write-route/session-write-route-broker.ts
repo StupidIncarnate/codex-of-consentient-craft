@@ -31,7 +31,7 @@
  * // Returns a SessionRecord — appends to <claudeHome>/.claude/projects/<encoded-cwd>/<sessionId>.jsonl
  */
 import { claudePathSlugEncoderTransformer } from '@dungeonmaster/shared/transformers';
-import { absoluteFilePathContract, lineCountContract, sessionContract } from '@dungeonmaster/shared/contracts';
+import { lineCountContract, sessionContract } from '@dungeonmaster/shared/contracts';
 
 import { appendLinesCreatingParent } from '#gateway/node/fs__promises';
 import { sessionUniqueIdResolveBroker } from '../unique-id-resolve/session-unique-id-resolve-broker';
@@ -48,14 +48,14 @@ export const sessionWriteRouteBroker = async ({
   target: DmTarget;
   fields: Record<string, unknown>;
 }): Promise<SessionRecord> => {
-  const cwd = absoluteFilePathContract.parse(fields.cwd);
+  const cwd = fields.cwd;
   const requestedSessionId = sessionContract.shape.id.parse(fields.sessionId);
   const sessionId = sessionUniqueIdResolveBroker({ target, cwd, sessionId: requestedSessionId });
   const sessionsDir = claudePathSlugEncoderTransformer({
     homeDir: target.claudeHome,
     projectPath: cwd,
   });
-  const filePath = absoluteFilePathContract.parse(`${sessionsDir}/${sessionId}.jsonl`);
+  const filePath = `${sessionsDir}/${sessionId}.jsonl`;
 
   const parsedFields = ((): SessionFields => {
     try {

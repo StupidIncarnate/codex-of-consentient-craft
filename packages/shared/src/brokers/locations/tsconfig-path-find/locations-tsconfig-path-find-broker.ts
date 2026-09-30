@@ -10,10 +10,6 @@ import { pathExists } from '#gateway/node/fs__promises';
 import { dirname, join } from '#gateway/node/path';
 import { locationsStatics } from '../../../statics/locations/locations-statics';
 import { ProjectRootNotFoundError } from '../../../errors/project-root-not-found/project-root-not-found-error';
-import {
-  absoluteFilePathContract,
-  type AbsoluteFilePath,
-} from '../../../contracts/absolute-file-path/absolute-file-path-contract';
 
 export const locationsTsconfigPathFindBroker = async ({
   startPath,
@@ -21,14 +17,14 @@ export const locationsTsconfigPathFindBroker = async ({
 }: {
   startPath: string;
   currentPath?: string;
-}): Promise<AbsoluteFilePath> => {
+}): Promise<string> => {
   const searchPath = currentPath ?? startPath;
 
   const candidate = join(searchPath, locationsStatics.repoRoot.tsconfig);
 
   const exists = await pathExists(candidate);
   if (exists) {
-    return absoluteFilePathContract.parse(candidate);
+    return candidate;
   }
 
   const parentPath = dirname(searchPath);

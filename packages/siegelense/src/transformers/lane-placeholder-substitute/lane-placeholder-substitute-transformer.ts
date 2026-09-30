@@ -25,7 +25,7 @@
  */
 
 import { contentTextContract } from '@dungeonmaster/shared/contracts';
-import type { AbsoluteFilePath, ContentText } from '@dungeonmaster/shared/contracts';
+import type { ContentText } from '@dungeonmaster/shared/contracts';
 
 import type { PortPair } from '../../contracts/port-pair/port-pair-contract';
 
@@ -40,9 +40,9 @@ export const lanePlaceholderSubstituteTransformer = ({
 }: {
   template: string;
   ports: PortPair;
-  home: AbsoluteFilePath;
-  claudeQueueDir: AbsoluteFilePath;
-  wardQueueDir: AbsoluteFilePath;
+  home: string;
+  claudeQueueDir: string;
+  wardQueueDir: string;
   apiWorkspace: ContentText;
   webWorkspace: ContentText;
 }): ContentText =>

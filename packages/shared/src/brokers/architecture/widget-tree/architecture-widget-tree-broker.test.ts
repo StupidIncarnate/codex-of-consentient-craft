@@ -1,13 +1,12 @@
 import { architectureWidgetTreeBroker } from './architecture-widget-tree-broker';
 import { architectureWidgetTreeBrokerProxy } from './architecture-widget-tree-broker.proxy';
-import { AbsoluteFilePathStub } from '../../../contracts/absolute-file-path/absolute-file-path.stub';
 import { ContentTextStub } from '../../../contracts/content-text/content-text.stub';
 
 describe('architectureWidgetTreeBroker', () => {
   describe('empty package', () => {
     it('EMPTY: {package with no widget files} => returns empty roots and hubs', () => {
       const proxy = architectureWidgetTreeBrokerProxy();
-      const packageRoot = AbsoluteFilePathStub({ value: '/repo/packages/web' });
+      const packageRoot = '/repo/packages/web';
       proxy.setupEmpty({ packageRoot });
 
       const result = architectureWidgetTreeBroker({ packageRoot });
@@ -19,13 +18,13 @@ describe('architectureWidgetTreeBroker', () => {
   describe('test and proxy file filtering', () => {
     it('VALID: {test/proxy/stub widget files only} => all filtered, returns empty tree', () => {
       const proxy = architectureWidgetTreeBrokerProxy();
-      const packageRoot = AbsoluteFilePathStub({ value: '/repo/packages/web' });
+      const packageRoot = '/repo/packages/web';
       proxy.setupPackage({
         packageRoot,
         widgetFilePaths: [
-          AbsoluteFilePathStub({ value: '/repo/packages/web/src/widgets/app-widget.test.tsx' }),
-          AbsoluteFilePathStub({ value: '/repo/packages/web/src/widgets/app-widget.proxy.tsx' }),
-          AbsoluteFilePathStub({ value: '/repo/packages/web/src/widgets/app-widget.stub.ts' }),
+          '/repo/packages/web/src/widgets/app-widget.test.tsx',
+          '/repo/packages/web/src/widgets/app-widget.proxy.tsx',
+          '/repo/packages/web/src/widgets/app-widget.stub.ts',
         ],
         widgetSources: [],
         responderFilePaths: [],
@@ -43,15 +42,13 @@ describe('architectureWidgetTreeBroker', () => {
   describe('layer file handling', () => {
     it('VALID: {layer widget alongside entry widget} => layer file not in tree as sibling', () => {
       const proxy = architectureWidgetTreeBrokerProxy();
-      const packageRoot = AbsoluteFilePathStub({ value: '/repo/packages/web' });
+      const packageRoot = '/repo/packages/web';
       // app-widget.tsx is entry widget; content-layer-widget.tsx is its layer file
       proxy.setupPackage({
         packageRoot,
         widgetFilePaths: [
-          AbsoluteFilePathStub({ value: '/repo/packages/web/src/widgets/app-widget.tsx' }),
-          AbsoluteFilePathStub({
-            value: '/repo/packages/web/src/widgets/content-layer-widget.tsx',
-          }),
+          '/repo/packages/web/src/widgets/app-widget.tsx',
+          '/repo/packages/web/src/widgets/content-layer-widget.tsx',
         ],
         widgetSources: [
           // app-widget source: no widget imports
@@ -60,7 +57,7 @@ describe('architectureWidgetTreeBroker', () => {
           ContentTextStub({ value: `import React from 'react';` }),
         ],
         responderFilePaths: [
-          AbsoluteFilePathStub({ value: '/repo/packages/web/src/responders/app-responder.ts' }),
+          '/repo/packages/web/src/responders/app-responder.ts',
         ],
         responderContents: [
           ContentTextStub({
@@ -91,15 +88,15 @@ describe('architectureWidgetTreeBroker', () => {
   describe('single root with no children', () => {
     it('VALID: {one root widget imported by responder, no child widgets} => tree with one node', () => {
       const proxy = architectureWidgetTreeBrokerProxy();
-      const packageRoot = AbsoluteFilePathStub({ value: '/repo/packages/web' });
+      const packageRoot = '/repo/packages/web';
       proxy.setupPackage({
         packageRoot,
         widgetFilePaths: [
-          AbsoluteFilePathStub({ value: '/repo/packages/web/src/widgets/app-widget.tsx' }),
+          '/repo/packages/web/src/widgets/app-widget.tsx',
         ],
         widgetSources: [ContentTextStub({ value: `import React from 'react';` })],
         responderFilePaths: [
-          AbsoluteFilePathStub({ value: '/repo/packages/web/src/responders/app-responder.ts' }),
+          '/repo/packages/web/src/responders/app-responder.ts',
         ],
         responderContents: [
           ContentTextStub({
@@ -129,11 +126,11 @@ describe('architectureWidgetTreeBroker', () => {
   describe('bindings in widget', () => {
     it('VALID: {widget imports binding} => binding name in bindingsAttached', () => {
       const proxy = architectureWidgetTreeBrokerProxy();
-      const packageRoot = AbsoluteFilePathStub({ value: '/repo/packages/web' });
+      const packageRoot = '/repo/packages/web';
       proxy.setupPackage({
         packageRoot,
         widgetFilePaths: [
-          AbsoluteFilePathStub({ value: '/repo/packages/web/src/widgets/data-widget.tsx' }),
+          '/repo/packages/web/src/widgets/data-widget.tsx',
         ],
         widgetSources: [
           ContentTextStub({
@@ -141,7 +138,7 @@ describe('architectureWidgetTreeBroker', () => {
           }),
         ],
         responderFilePaths: [
-          AbsoluteFilePathStub({ value: '/repo/packages/web/src/responders/app-responder.ts' }),
+          '/repo/packages/web/src/responders/app-responder.ts',
         ],
         responderContents: [
           ContentTextStub({
@@ -171,18 +168,18 @@ describe('architectureWidgetTreeBroker', () => {
   describe('hub detection', () => {
     it('VALID: {widget with in-degree >= 5} => appears in hubs list, not nested in tree', () => {
       const proxy = architectureWidgetTreeBrokerProxy();
-      const packageRoot = AbsoluteFilePathStub({ value: '/repo/packages/web' });
+      const packageRoot = '/repo/packages/web';
       // 5 different widgets all import shared-widget → in-degree 5 → hub
       proxy.setupPackage({
         packageRoot,
         widgetFilePaths: [
-          AbsoluteFilePathStub({ value: '/repo/packages/web/src/widgets/app-widget.tsx' }),
-          AbsoluteFilePathStub({ value: '/repo/packages/web/src/widgets/panel-a-widget.tsx' }),
-          AbsoluteFilePathStub({ value: '/repo/packages/web/src/widgets/panel-b-widget.tsx' }),
-          AbsoluteFilePathStub({ value: '/repo/packages/web/src/widgets/panel-c-widget.tsx' }),
-          AbsoluteFilePathStub({ value: '/repo/packages/web/src/widgets/panel-d-widget.tsx' }),
-          AbsoluteFilePathStub({ value: '/repo/packages/web/src/widgets/panel-e-widget.tsx' }),
-          AbsoluteFilePathStub({ value: '/repo/packages/web/src/widgets/shared-widget.tsx' }),
+          '/repo/packages/web/src/widgets/app-widget.tsx',
+          '/repo/packages/web/src/widgets/panel-a-widget.tsx',
+          '/repo/packages/web/src/widgets/panel-b-widget.tsx',
+          '/repo/packages/web/src/widgets/panel-c-widget.tsx',
+          '/repo/packages/web/src/widgets/panel-d-widget.tsx',
+          '/repo/packages/web/src/widgets/panel-e-widget.tsx',
+          '/repo/packages/web/src/widgets/shared-widget.tsx',
         ],
         widgetSources: [
           // app-widget: no imports
@@ -211,7 +208,7 @@ describe('architectureWidgetTreeBroker', () => {
           ContentTextStub({ value: `import React from 'react';` }),
         ],
         responderFilePaths: [
-          AbsoluteFilePathStub({ value: '/repo/packages/web/src/responders/app-responder.ts' }),
+          '/repo/packages/web/src/responders/app-responder.ts',
         ],
         responderContents: [
           ContentTextStub({

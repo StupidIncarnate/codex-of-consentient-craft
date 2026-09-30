@@ -14,7 +14,6 @@
 import { tmpdir } from '#gateway/node/os';
 import { join } from '#gateway/node/path';
 import { locationsStatics } from '@dungeonmaster/shared/statics';
-import { absoluteFilePathContract, type AbsoluteFilePath } from '@dungeonmaster/shared/contracts';
 import { evidenceFileStatics } from '../../../statics/evidence-file/evidence-file-statics';
 import type { SiegeInstance } from '@dungeonmaster/shared/contracts';
 
@@ -22,7 +21,7 @@ export const locationsSocketPathFindBroker = ({
   instanceId,
 }: {
   instanceId: SiegeInstance['id'];
-}): AbsoluteFilePath => {
+}): string => {
   const tmpDir = tmpdir();
 
   const joined = join(
@@ -31,5 +30,5 @@ export const locationsSocketPathFindBroker = ({
     `${instanceId}${evidenceFileStatics.extensions.socket}`,
   );
 
-  return absoluteFilePathContract.parse(joined);
+  return joined;
 };

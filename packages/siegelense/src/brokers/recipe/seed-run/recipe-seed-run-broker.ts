@@ -12,7 +12,7 @@
 
 import { dynamicImport } from '#gateway/node/module';
 import { z } from '#gateway/npm/zod';
-import type { AbsoluteFilePath, ContentText } from '@dungeonmaster/shared/contracts';
+import type { ContentText } from '@dungeonmaster/shared/contracts';
 import { recipesConventionStatics } from '@dungeonmaster/shared/statics';
 
 import type { RecipeName } from '../../../contracts/recipe-name/recipe-name-contract';
@@ -31,7 +31,7 @@ export const recipeSeedRunBroker = async ({
 }: {
   recipe: RecipeName;
   apiBaseUrl: ContentText;
-  homePath: AbsoluteFilePath;
+  homePath: string;
   parameters: Record<string, ContentText>;
 }): Promise<SeedResult> => {
   const entryPath = await recipesLocateBroker();

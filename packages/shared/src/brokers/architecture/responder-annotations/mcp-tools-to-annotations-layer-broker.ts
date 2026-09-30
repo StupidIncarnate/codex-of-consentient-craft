@@ -13,10 +13,6 @@
  */
 
 import {
-  absoluteFilePathContract,
-  type AbsoluteFilePath,
-} from '../../../contracts/absolute-file-path/absolute-file-path-contract';
-import {
   contentTextContract,
   type ContentText,
 } from '../../../contracts/content-text/content-text-contract';
@@ -36,13 +32,13 @@ import { listFlowFilesLayerBroker } from './list-flow-files-layer-broker';
 export const mcpToolsToAnnotationsLayerBroker = ({
   packageRoot,
 }: {
-  packageRoot: AbsoluteFilePath;
+  packageRoot: string;
 }): ResponderAnnotationMap => {
   const flowFiles = listFlowFilesLayerBroker({ packageRoot });
-  const result = new Map<AbsoluteFilePath, ResponderAnnotation>();
+  const result = new Map<string, ResponderAnnotation>();
 
   // Collect tools per responder file.
-  const toolsByResponder = new Map<AbsoluteFilePath, ContentText[]>();
+  const toolsByResponder = new Map<string, ContentText[]>();
 
   for (const flowFile of flowFiles) {
     const source = architectureSourceReadBroker({ filePath: flowFile });
@@ -55,7 +51,7 @@ export const mcpToolsToAnnotationsLayerBroker = ({
 
     // Build a map of kebab-case responder symbol → resolved responder file by walking the
     // flow's import statements. Keyed by ContentText (kebab symbol) for brand-safety.
-    const importedResponderFiles = new Map<ContentText, AbsoluteFilePath>();
+    const importedResponderFiles = new Map<ContentText, string>();
     const importPaths = importStatementsExtractTransformer({ source });
     for (const importPath of importPaths) {
       const resolved = relativeImportResolveTransformer({ sourceFile: flowFile, importPath });
@@ -68,7 +64,7 @@ export const mcpToolsToAnnotationsLayerBroker = ({
       const stem = dot === -1 ? basename : basename.slice(0, dot);
       importedResponderFiles.set(
         contentTextContract.parse(stem),
-        absoluteFilePathContract.parse(resolvedStr),
+        resolvedStr,
       );
     }
 

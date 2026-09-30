@@ -13,7 +13,6 @@
  * // Returns: readonly DuplicateInstallViolation[] — empty when every candidate resolves to one copy
  */
 
-import { absoluteFilePathContract } from '@dungeonmaster/shared/contracts';
 
 import {
   duplicateInstallViolationContract,
@@ -34,7 +33,7 @@ export const duplicateInstallCheckBroker = async ({
 }: {
   rootPath: string;
 }): Promise<readonly DuplicateInstallViolation[]> => {
-  const rootAbsolute = absoluteFilePathContract.parse(rootPath);
+  const rootAbsolute = rootPath;
   const rootAbsoluteString = String(rootAbsolute);
   const folders = (await workspaceDiscoverBroker({ rootPath: rootAbsolute })) ?? [];
 

@@ -1,16 +1,14 @@
 import { existsSyncProxy } from '#gateway/node/fs/exists-sync/exists-sync.proxy';
 import { join } from '#gateway/node/path';
-import { AbsoluteFilePathStub } from '@dungeonmaster/shared/contracts/absolute-file-path/absolute-file-path.stub';
-import type { AbsoluteFilePath } from '@dungeonmaster/shared/contracts';
 
 import { binWorkspaceRootLayerBrokerProxy } from './bin-workspace-root-layer-broker.proxy';
 
 export const binWalkUpLayerBrokerProxy = (): {
   setupWalk: (params: {
-    dir: AbsoluteFilePath;
+    dir: string;
     binName: string;
-    binDir: AbsoluteFilePath | null;
-    workspaceRoot: AbsoluteFilePath | null;
+    binDir: string | null;
+    workspaceRoot: string | null;
   }) => string;
 } => {
   const existsProxy = existsSyncProxy();
@@ -30,10 +28,10 @@ export const binWalkUpLayerBrokerProxy = (): {
       binDir,
       workspaceRoot,
     }: {
-      dir: AbsoluteFilePath;
+      dir: string;
       binName: string;
-      binDir: AbsoluteFilePath | null;
-      workspaceRoot: AbsoluteFilePath | null;
+      binDir: string | null;
+      workspaceRoot: string | null;
     }): string => {
       const segments = String(dir)
         .split('/')
@@ -51,7 +49,7 @@ export const binWalkUpLayerBrokerProxy = (): {
       const visited = stopIndex === -1 ? deepestFirst : deepestFirst.slice(0, stopIndex + 1);
 
       visited.forEach((ancestor) => {
-        const ancestorDir = AbsoluteFilePathStub({ value: ancestor });
+        const ancestorDir = ancestor;
         existsProxy.returns({
           path: join(ancestorDir, 'node_modules', '.bin', String(binName)),
           exists: holdsBinary(ancestor),

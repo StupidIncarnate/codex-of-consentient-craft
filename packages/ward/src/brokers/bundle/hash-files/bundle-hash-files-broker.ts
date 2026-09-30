@@ -18,7 +18,6 @@
 
 import { createHash } from '#gateway/node/crypto';
 import { readFileBytesSync } from '#gateway/node/fs';
-import type { AbsoluteFilePath } from '@dungeonmaster/shared/contracts';
 
 import {
   bundleHashContract,
@@ -37,7 +36,7 @@ export const bundleHashFilesBroker = ({
   rootPath,
   relativePaths,
 }: {
-  rootPath: AbsoluteFilePath;
+  rootPath: string;
   relativePaths: readonly GitRelativePath[];
 }): BundleHash => {
   const hash = createHash(bundleStatics.hashAlgorithm);

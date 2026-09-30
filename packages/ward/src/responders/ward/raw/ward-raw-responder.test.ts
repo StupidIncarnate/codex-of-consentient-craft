@@ -1,4 +1,3 @@
-import { AbsoluteFilePathStub } from '@dungeonmaster/shared/contracts/absolute-file-path/absolute-file-path.stub';
 
 import { WardRunResultStub } from '../../../contracts/ward-result/ward-result.stub';
 import { WardRawResponderProxy } from './ward-raw-responder.proxy';
@@ -10,7 +9,7 @@ describe('WardRawResponder', () => {
 
       await proxy.callResponder({
         args: ['node', 'ward', 'raw'],
-        rootPath: AbsoluteFilePathStub({ value: '/project' }),
+        rootPath: '/project',
       });
 
       expect(proxy.getStderrCalls()).toStrictEqual(['Usage: ward raw <run-id> <check-type>\n']);
@@ -23,7 +22,7 @@ describe('WardRawResponder', () => {
 
       await proxy.callResponder({
         args: ['node', 'ward', 'raw', '1739625600000-a3f1'],
-        rootPath: AbsoluteFilePathStub({ value: '/project' }),
+        rootPath: '/project',
       });
 
       expect(proxy.getStderrCalls()).toStrictEqual(['Usage: ward raw <run-id> <check-type>\n']);
@@ -37,7 +36,7 @@ describe('WardRawResponder', () => {
 
       await proxy.callResponder({
         args: ['node', 'ward', 'raw', '1739625600000-a3f1', 'lint'],
-        rootPath: AbsoluteFilePathStub({ value: '/project' }),
+        rootPath: '/project',
       });
 
       expect(proxy.getStderrCalls()).toStrictEqual([

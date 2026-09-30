@@ -12,7 +12,6 @@
  */
 
 import { readFileSync } from '#gateway/node/fs';
-import type { AbsoluteFilePath } from '../../../contracts/absolute-file-path/absolute-file-path-contract';
 import {
   contentTextContract,
   type ContentText,
@@ -21,7 +20,7 @@ import {
 export const readSourceFileLayerBroker = ({
   filePath,
 }: {
-  filePath: AbsoluteFilePath;
+  filePath: string;
 }): ContentText | undefined => {
   try {
     return contentTextContract.parse(readFileSync(String(filePath)));

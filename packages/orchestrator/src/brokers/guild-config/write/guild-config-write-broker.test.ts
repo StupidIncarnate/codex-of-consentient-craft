@@ -1,4 +1,3 @@
-import { AbsoluteFilePathStub } from '@dungeonmaster/shared/contracts/absolute-file-path/absolute-file-path.stub';
 import { GuildConfigStub } from '@dungeonmaster/shared/contracts/guild-config/guild-config.stub';
 import { GuildStub } from '@dungeonmaster/shared/contracts/guild/guild.stub';
 
@@ -21,7 +20,7 @@ describe('guildConfigWriteBroker', () => {
 
       await guildConfigWriteBroker({
         config,
-        home: AbsoluteFilePathStub({ value: '/tmp/dm-home-target' }),
+        home: '/tmp/dm-home-target',
       });
 
       expect(proxy.configFilesWritten()).toStrictEqual(['/tmp/dm-home-target/config.json']);
@@ -43,7 +42,7 @@ describe('guildConfigWriteBroker', () => {
 
       await guildConfigWriteBroker({
         config,
-        home: AbsoluteFilePathStub({ value: '/tmp/dm-home-target' }),
+        home: '/tmp/dm-home-target',
       });
 
       expect(

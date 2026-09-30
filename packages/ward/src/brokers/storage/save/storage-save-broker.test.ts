@@ -1,4 +1,3 @@
-import { AbsoluteFilePathStub } from '@dungeonmaster/shared/contracts/absolute-file-path/absolute-file-path.stub';
 
 import { WardRunResultStub } from '../../../contracts/ward-result/ward-result.stub';
 import { CheckResultStub } from '../../../contracts/check-result/check-result.stub';
@@ -20,7 +19,7 @@ const failingWardResult = (): ReturnType<typeof WardRunResultStub> =>
 describe('storageSaveBroker', () => {
   describe('successful save', () => {
     it('VALID: {rootPath, wardResult with failures} => writes JSON file to .ward directory', async () => {
-      const rootPath = AbsoluteFilePathStub({ value: '/home/user/project' });
+      const rootPath = '/home/user/project';
       const wardResult = failingWardResult();
 
       const proxy = storageSaveBrokerProxy();
@@ -36,7 +35,7 @@ describe('storageSaveBroker', () => {
 
   describe('all checks pass', () => {
     it('VALID: {wardResult with no failures} => still writes file', async () => {
-      const rootPath = AbsoluteFilePathStub({ value: '/home/user/project' });
+      const rootPath = '/home/user/project';
       const wardResult = WardRunResultStub();
 
       const proxy = storageSaveBrokerProxy();
@@ -48,7 +47,7 @@ describe('storageSaveBroker', () => {
 
   describe('mkdir failure', () => {
     it('ERROR: {mkdir fails} => throws error', async () => {
-      const rootPath = AbsoluteFilePathStub({ value: '/home/user/project' });
+      const rootPath = '/home/user/project';
       const wardResult = failingWardResult();
 
       const proxy = storageSaveBrokerProxy();
@@ -60,7 +59,7 @@ describe('storageSaveBroker', () => {
 
   describe('write failure', () => {
     it('ERROR: {write fails} => throws error', async () => {
-      const rootPath = AbsoluteFilePathStub({ value: '/home/user/project' });
+      const rootPath = '/home/user/project';
       const wardResult = failingWardResult();
 
       const proxy = storageSaveBrokerProxy();

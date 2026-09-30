@@ -1,6 +1,5 @@
 import { locationsUsageLedgerTmpPathFindBroker } from './locations-usage-ledger-tmp-path-find-broker';
 import { locationsUsageLedgerTmpPathFindBrokerProxy } from './locations-usage-ledger-tmp-path-find-broker.proxy';
-import { AbsoluteFilePathStub } from '../../../contracts/absolute-file-path/absolute-file-path.stub';
 
 describe('locationsUsageLedgerTmpPathFindBroker', () => {
   it('VALID: {homeDir: "/home/user"} => returns the staging path under the dungeonmaster home', () => {
@@ -16,9 +15,7 @@ describe('locationsUsageLedgerTmpPathFindBroker', () => {
     const result = locationsUsageLedgerTmpPathFindBroker({ token: '4821-1789337123234' });
 
     expect(result).toBe(
-      AbsoluteFilePathStub({
-        value: '/home/user/.dungeonmaster/usage-ledger.json.tmp.4821-1789337123234',
-      }),
+      '/home/user/.dungeonmaster/usage-ledger.json.tmp.4821-1789337123234',
     );
   });
 
@@ -34,9 +31,7 @@ describe('locationsUsageLedgerTmpPathFindBroker', () => {
       const result = locationsUsageLedgerTmpPathFindBroker({ token: '4821-1789337123234' });
 
       expect(result).toBe(
-        AbsoluteFilePathStub({
-          value: '/home/user/.dungeonmaster/usage-ledger.json.tmp.4821-1789337123234',
-        }),
+        '/home/user/.dungeonmaster/usage-ledger.json.tmp.4821-1789337123234',
       );
     });
 
@@ -58,14 +53,10 @@ describe('locationsUsageLedgerTmpPathFindBroker', () => {
       const second = locationsUsageLedgerTmpPathFindBroker({ token: '4822-1789337123234' });
 
       expect(first).toBe(
-        AbsoluteFilePathStub({
-          value: '/home/user/.dungeonmaster/usage-ledger.json.tmp.4821-1789337123234',
-        }),
+        '/home/user/.dungeonmaster/usage-ledger.json.tmp.4821-1789337123234',
       );
       expect(second).toBe(
-        AbsoluteFilePathStub({
-          value: '/home/user/.dungeonmaster/usage-ledger.json.tmp.4822-1789337123234',
-        }),
+        '/home/user/.dungeonmaster/usage-ledger.json.tmp.4822-1789337123234',
       );
     });
   });

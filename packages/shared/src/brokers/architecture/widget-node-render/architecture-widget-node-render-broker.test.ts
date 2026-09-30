@@ -2,12 +2,11 @@ import { architectureWidgetNodeRenderBroker } from './architecture-widget-node-r
 import { architectureWidgetNodeRenderBrokerProxy } from './architecture-widget-node-render-broker.proxy';
 import { WidgetNodeStub } from '../../../contracts/widget-node/widget-node.stub';
 import { ContentTextStub } from '../../../contracts/content-text/content-text.stub';
-import { AbsoluteFilePathStub } from '../../../contracts/absolute-file-path/absolute-file-path.stub';
 import { projectMapHeadlineFrontendReactStatics } from '../../../statics/project-map-headline-frontend-react/project-map-headline-frontend-react-statics';
 
 const EMPTY_PREFIX = ContentTextStub({ value: '' });
-const PACKAGE_ROOT = AbsoluteFilePathStub({ value: '/repo/packages/web' });
-const PROJECT_ROOT = AbsoluteFilePathStub({ value: '/repo' });
+const PACKAGE_ROOT = '/repo/packages/web';
+const PROJECT_ROOT = '/repo';
 
 describe('architectureWidgetNodeRenderBroker', () => {
   describe('leaf node (no children, no bindings)', () => {
@@ -20,9 +19,7 @@ describe('architectureWidgetNodeRenderBroker', () => {
       });
 
       const node = WidgetNodeStub({
-        filePath: AbsoluteFilePathStub({
-          value: '/repo/packages/web/src/widgets/my/my-widget.tsx',
-        }),
+        filePath: '/repo/packages/web/src/widgets/my/my-widget.tsx',
         bindingsAttached: [],
         children: [],
       });
@@ -51,9 +48,7 @@ describe('architectureWidgetNodeRenderBroker', () => {
       });
 
       const node = WidgetNodeStub({
-        filePath: AbsoluteFilePathStub({
-          value: '/repo/packages/web/src/widgets/my/my-widget.tsx',
-        }),
+        filePath: '/repo/packages/web/src/widgets/my/my-widget.tsx',
         bindingsAttached: [],
         children: [],
       });
@@ -92,9 +87,7 @@ describe('architectureWidgetNodeRenderBroker', () => {
       const node = WidgetNodeStub({
         bindingsAttached: [ContentTextStub({ value: 'use-quest-chat' })],
         children: [],
-        filePath: AbsoluteFilePathStub({
-          value: '/repo/packages/web/src/widgets/chat/chat-widget.tsx',
-        }),
+        filePath: '/repo/packages/web/src/widgets/chat/chat-widget.tsx',
       });
 
       const lines = architectureWidgetNodeRenderBroker({
@@ -131,16 +124,12 @@ describe('architectureWidgetNodeRenderBroker', () => {
       const child = WidgetNodeStub({
         bindingsAttached: [],
         children: [],
-        filePath: AbsoluteFilePathStub({
-          value: '/repo/packages/web/src/widgets/child/child-widget.tsx',
-        }),
+        filePath: '/repo/packages/web/src/widgets/child/child-widget.tsx',
       });
       const node = WidgetNodeStub({
         bindingsAttached: [],
         children: [child],
-        filePath: AbsoluteFilePathStub({
-          value: '/repo/packages/web/src/widgets/parent/parent-widget.tsx',
-        }),
+        filePath: '/repo/packages/web/src/widgets/parent/parent-widget.tsx',
       });
 
       const lines = architectureWidgetNodeRenderBroker({

@@ -57,7 +57,7 @@
  */
 
 import { contentTextContract } from '@dungeonmaster/shared/contracts';
-import type { AbsoluteFilePath, ContentText } from '@dungeonmaster/shared/contracts';
+import type { ContentText } from '@dungeonmaster/shared/contracts';
 
 import { isNativeError } from '#gateway/node/util__types';
 import { stderr } from '#gateway/node/process';
@@ -96,10 +96,10 @@ export const stepDispatchBroker = async ({
   lane: LaneSession;
   step: Step;
   index: StepIndex;
-  shotPath: AbsoluteFilePath | null;
+  shotPath: string | null;
   browserWindowStart: BufferLengths | null;
-  lastShotPath: () => AbsoluteFilePath | null;
-  setLastShotPath: (params: { path: AbsoluteFilePath }) => void;
+  lastShotPath: () => string | null;
+  setLastShotPath: (params: { path: string }) => void;
   recordBinding: (params: { name: SeedBindingName; result: unknown }) => void;
 }): Promise<StepReading> => {
   const verb = stepVerbContract.parse(step.step);

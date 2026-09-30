@@ -24,7 +24,6 @@
  */
 
 import { join } from '#gateway/node/path';
-import { absoluteFilePathContract } from '@dungeonmaster/shared/contracts';
 
 import { readdirIfExists, readFile } from '#gateway/node/fs__promises';
 import { stderr } from '#gateway/node/process';
@@ -66,7 +65,7 @@ export const profileReadBroker = async ({
     sampleNames
       .filter((name) => name.endsWith(profileStatics.extensions.record))
       .map(async (name): Promise<ProfileObservation | null> => {
-        const recordPath = absoluteFilePathContract.parse(join(samplesDir, name));
+        const recordPath = join(samplesDir, name);
         const contents = await readFile(recordPath);
         try {
           return profileObservationContract.parse(JSON.parse(contents));
@@ -83,7 +82,7 @@ export const profileReadBroker = async ({
     bootNames
       .filter((name) => name.endsWith(profileStatics.extensions.record))
       .map(async (name): Promise<ProfileBoot | null> => {
-        const recordPath = absoluteFilePathContract.parse(join(bootsDir, name));
+        const recordPath = join(bootsDir, name);
         const contents = await readFile(recordPath);
         try {
           return profileBootContract.parse(JSON.parse(contents));

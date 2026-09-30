@@ -21,8 +21,8 @@
 
 import { join } from '#gateway/node/path';
 import { locationsStatics } from '@dungeonmaster/shared/statics';
-import { absoluteFilePathContract, contentTextContract } from '@dungeonmaster/shared/contracts';
-import type { AbsoluteFilePath, ContentText } from '@dungeonmaster/shared/contracts';
+import { contentTextContract } from '@dungeonmaster/shared/contracts';
+import type { ContentText } from '@dungeonmaster/shared/contracts';
 
 import { readFileIfExists } from '#gateway/node/fs__promises';
 import type { ResultWhere } from '../../../contracts/result-where/result-where-contract';
@@ -38,7 +38,7 @@ export const serverWindowReadLayerBroker = async ({
   step,
   where,
 }: {
-  evidencePath: AbsoluteFilePath;
+  evidencePath: string;
   readings: readonly StepReading[];
   step: StepIndex | null;
   where: ResultWhere | null;
@@ -63,9 +63,7 @@ export const serverWindowReadLayerBroker = async ({
   const fromByte = Math.min(...targetWindows.map((window) => window.fromByte));
   const toByte = Math.max(...targetWindows.map((window) => window.toByte));
 
-  const logPath = absoluteFilePathContract.parse(
-    join(evidencePath, locationsStatics.siegelense.apiLog),
-  );
+  const logPath = join(evidencePath, locationsStatics.siegelense.apiLog);
 
   const content = await readFileIfExists(logPath);
 

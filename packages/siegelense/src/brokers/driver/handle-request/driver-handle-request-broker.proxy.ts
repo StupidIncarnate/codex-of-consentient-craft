@@ -12,7 +12,7 @@
  * proxy.stageRunSucceeds({ runId });
  */
 
-import type { AbsoluteFilePath, SiegeRun } from '@dungeonmaster/shared/contracts';
+import type { SiegeRun } from '@dungeonmaster/shared/contracts';
 
 import type { LaneSession } from '../../../contracts/lane-session/lane-session-contract';
 import { LaneSessionStub } from '../../../contracts/lane-session/lane-session.stub';
@@ -30,8 +30,8 @@ const KILL_LANE_PGID = ProcessGroupIdStub({ value: 4821 });
 export const driverHandleRequestBrokerProxy = (): {
   laneForRun: () => LaneSession;
   stageRunSucceeds: (params: { runId: SiegeRun['id'] }) => void;
-  laneForKill: (params: { homePath: AbsoluteFilePath }) => LaneSession;
-  stageKillSucceeds: (params: { homePath: AbsoluteFilePath; registryJson: string }) => void;
+  laneForKill: (params: { homePath: string }) => LaneSession;
+  stageKillSucceeds: (params: { homePath: string; registryJson: string }) => void;
   getReleasedRegistry: () => ReturnType<typeof RegistryStub>;
   decodeRunResult: (params: { payload: string }) => ReturnType<typeof RunResultStub>;
   decodeKillResult: (params: { payload: string }) => ReturnType<typeof KillResultStub>;
@@ -45,8 +45,8 @@ export const driverHandleRequestBrokerProxy = (): {
     networkLines: ReadingCount;
     websocketLines: ReadingCount;
   }) => void;
-  lastShotPath: () => AbsoluteFilePath | null;
-  setLastShotPath: (params: { path: AbsoluteFilePath }) => void;
+  lastShotPath: () => string | null;
+  setLastShotPath: (params: { path: string }) => void;
 } => {
   const runExecuteProxy = runExecuteBrokerProxy();
   const laneTeardownProxy = laneTeardownBrokerProxy();
@@ -64,7 +64,7 @@ export const driverHandleRequestBrokerProxy = (): {
       runExecuteProxy.stagePaths({ runId });
     },
 
-    laneForKill: ({ homePath }: { homePath: AbsoluteFilePath }): LaneSession =>
+    laneForKill: ({ homePath }: { homePath: string }): LaneSession =>
       LaneSessionStub({
         evidencePath: laneTeardownProxy.getEvidencePath(),
         homePath,
@@ -75,7 +75,7 @@ export const driverHandleRequestBrokerProxy = (): {
       homePath,
       registryJson,
     }: {
-      homePath: AbsoluteFilePath;
+      homePath: string;
       registryJson: string;
     }): void => {
       laneTeardownProxy.setupAlreadyGoneGroup({ pgid: KILL_LANE_PGID });

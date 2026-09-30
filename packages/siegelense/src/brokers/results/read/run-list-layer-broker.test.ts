@@ -1,11 +1,8 @@
-import { AbsoluteFilePathStub } from '@dungeonmaster/shared/contracts/absolute-file-path/absolute-file-path.stub';
 
 import { runListLayerBroker } from './run-list-layer-broker';
 import { runListLayerBrokerProxy } from './run-list-layer-broker.proxy';
 
-const EVIDENCE_PATH = AbsoluteFilePathStub({
-  value: '/repo/.dungeonmaster-assets/siegelense-assets/unowned/instances/inst_1',
-});
+const EVIDENCE_PATH = '/repo/.dungeonmaster-assets/siegelense-assets/unowned/instances/inst_1';
 
 describe('runListLayerBroker', () => {
   it('EMPTY: {no runs directory} => runCount 0, latestRunId null, evidenceComplete true', async () => {

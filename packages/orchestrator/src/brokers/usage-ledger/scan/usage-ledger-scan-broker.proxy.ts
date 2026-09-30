@@ -1,5 +1,4 @@
 import { stderrProxy } from '#gateway/node/process/stderr/stderr.proxy';
-import { AbsoluteFilePathStub } from '@dungeonmaster/shared/contracts/absolute-file-path/absolute-file-path.stub';
 import { UsageLedgerStub } from '@dungeonmaster/shared/contracts/usage-ledger/usage-ledger.stub';
 import { locationsClaudeProjectsRootFindBrokerProxy } from '@dungeonmaster/shared/brokers/locations/claude-projects-root-find/locations-claude-projects-root-find-broker.proxy';
 import { registerModuleMock, registerSpyOn } from '@dungeonmaster/testing/register-mock';
@@ -20,7 +19,7 @@ type UsageLedger = ReturnType<typeof UsageLedgerStub>;
 registerModuleMock({ module: '../read/usage-ledger-read-broker' });
 registerModuleMock({ module: '../write/usage-ledger-write-broker' });
 
-const PROJECTS_ROOT = AbsoluteFilePathStub({ value: '/home/user/.claude/projects' });
+const PROJECTS_ROOT = '/home/user/.claude/projects';
 
 export const usageLedgerScanBrokerProxy = (): {
   setupExistingLedger: (params: { ledger: UsageLedger }) => void;
@@ -85,7 +84,7 @@ export const usageLedgerScanBrokerProxy = (): {
       });
 
       for (const file of files) {
-        const path = AbsoluteFilePathStub({ value: `/home/user/.claude/projects/${file.name}` });
+        const path = `/home/user/.claude/projects/${file.name}`;
         walkProxy.setupFileStat({
           filePath: path,
           modifiedAtMs: file.mtimeMs,

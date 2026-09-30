@@ -1,5 +1,4 @@
 import { FileMissingErrorStub } from '#gateway/node/fs/file-missing-error/file-missing-error.stub';
-import { AbsoluteFilePathStub } from '@dungeonmaster/shared/contracts/absolute-file-path/absolute-file-path.stub';
 
 import { imageServeStatics } from '../../../statics/image-serve/image-serve-statics';
 import { ImageServeResponderProxy } from './image-serve-responder.proxy';
@@ -22,7 +21,7 @@ const MALFORMED_CASES = [
 
 describe('ImageServeResponder', () => {
   it('VALID: {path: readable .png} => 200 with those exact bytes and image/png', async () => {
-    const filePath = AbsoluteFilePathStub({ value: '/tmp/quest/images/abc.png' });
+    const filePath = '/tmp/quest/images/abc.png';
     const bytes = new Uint8Array([...PNG_SIGNATURE, 0x01, 0x02, 0x03]);
     const proxy = ImageServeResponderProxy();
     proxy.setupFileBytes({ filePath, bytes });
@@ -33,7 +32,7 @@ describe('ImageServeResponder', () => {
   });
 
   it('VALID: {path: readable .webp} => 200 with those exact bytes and image/webp', async () => {
-    const filePath = AbsoluteFilePathStub({ value: '/tmp/quest/images/abc.webp' });
+    const filePath = '/tmp/quest/images/abc.webp';
     const bytes = new Uint8Array([0x52, 0x49, 0x46, 0x46, 0x00, 0x00, 0x00, 0x00]);
     const proxy = ImageServeResponderProxy();
     proxy.setupFileBytes({ filePath, bytes });
@@ -81,7 +80,7 @@ describe('ImageServeResponder', () => {
   });
 
   it('ERROR: {read rejects ENOENT} => 404 with an empty body', async () => {
-    const filePath = AbsoluteFilePathStub({ value: '/tmp/quest/images/missing.png' });
+    const filePath = '/tmp/quest/images/missing.png';
     const proxy = ImageServeResponderProxy();
     proxy.setupReadFailure({ filePath, error: FileMissingErrorStub({ path: filePath }) });
 
@@ -123,7 +122,7 @@ describe('ImageServeResponder', () => {
   // Positive control for the negative assertion above: if the recorder above recorded nothing at
   // all, this proves it would still report an empty list, which would make that test vacuous.
   it('ERROR: {fsReadFileBytesAdapter rejects for a readable image path} => 404 and logs "Image read failed for"', async () => {
-    const filePath = AbsoluteFilePathStub({ value: '/tmp/quest/images/missing.png' });
+    const filePath = '/tmp/quest/images/missing.png';
     const proxy = ImageServeResponderProxy();
     proxy.enableDevLogs();
     proxy.setupReadFailure({ filePath, error: FileMissingErrorStub({ path: filePath }) });

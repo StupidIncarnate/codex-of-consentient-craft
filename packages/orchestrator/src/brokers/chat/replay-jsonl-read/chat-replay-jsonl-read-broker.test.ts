@@ -1,5 +1,4 @@
 import { FsErrorStub } from '#gateway/node/fs/is-fs-error/fs-error.stub';
-import { AbsoluteFilePathStub } from '@dungeonmaster/shared/contracts/absolute-file-path/absolute-file-path.stub';
 
 import { chatReplayJsonlReadBroker } from './chat-replay-jsonl-read-broker';
 import { chatReplayJsonlReadBrokerProxy } from './chat-replay-jsonl-read-broker.proxy';
@@ -8,7 +7,7 @@ describe('chatReplayJsonlReadBroker', () => {
   describe('JSONL read with retry on ENOENT', () => {
     it('VALID: {file readable on first attempt} => returns parsed lines', async () => {
       const proxy = chatReplayJsonlReadBrokerProxy();
-      const filePath = AbsoluteFilePathStub({ value: '/tmp/session.jsonl' });
+      const filePath = '/tmp/session.jsonl';
       proxy.returns({ filePath, content: '{"type":"system"}\n{"type":"assistant"}\n' });
 
       const result = await chatReplayJsonlReadBroker({ filePath });
@@ -18,7 +17,7 @@ describe('chatReplayJsonlReadBroker', () => {
 
     it('VALID: {ENOENT once, then file appears} => retries and returns parsed lines', async () => {
       const proxy = chatReplayJsonlReadBrokerProxy();
-      const filePath = AbsoluteFilePathStub({ value: '/tmp/session.jsonl' });
+      const filePath = '/tmp/session.jsonl';
       // throwsOnce wins over the sticky `returns` for the SAME filePath on the first call only,
       // so the first read genuinely ENOENTs and the broker's retry loop is what makes the
       // second read (which lands on the sticky `returns`) succeed.
@@ -35,7 +34,7 @@ describe('chatReplayJsonlReadBroker', () => {
 
     it('ERROR: {ENOENT past deadline} => throws ENOENT', async () => {
       const proxy = chatReplayJsonlReadBrokerProxy();
-      const filePath = AbsoluteFilePathStub({ value: '/tmp/session.jsonl' });
+      const filePath = '/tmp/session.jsonl';
       proxy.throws({ filePath, error: FsErrorStub({ code: 'ENOENT', path: String(filePath) }) });
 
       await expect(
@@ -48,7 +47,7 @@ describe('chatReplayJsonlReadBroker', () => {
 
     it('ERROR: {non-ENOENT error} => throws immediately without retry', async () => {
       const proxy = chatReplayJsonlReadBrokerProxy();
-      const filePath = AbsoluteFilePathStub({ value: '/tmp/session.jsonl' });
+      const filePath = '/tmp/session.jsonl';
       proxy.throws({ filePath, error: FsErrorStub({ code: 'EACCES', path: String(filePath) }) });
 
       await expect(chatReplayJsonlReadBroker({ filePath })).rejects.toThrow(/EACCES/u);

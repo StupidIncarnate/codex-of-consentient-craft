@@ -1,6 +1,5 @@
 import { listWalkedFolderFilesLayerBroker } from './list-walked-folder-files-layer-broker';
 import { listWalkedFolderFilesLayerBrokerProxy } from './list-walked-folder-files-layer-broker.proxy';
-import { AbsoluteFilePathStub } from '../../../contracts/absolute-file-path/absolute-file-path.stub';
 import type { Dirent } from '#gateway/node/fs';
 import { FileMissingErrorStub } from '#gateway/node/fs/file-missing-error/file-missing-error.stub';
 import { DirentStub } from '#gateway/node/fs/readdir-entries-sync/dirent.stub';
@@ -23,7 +22,7 @@ const dispatchByPath =
 describe('listWalkedFolderFilesLayerBroker', () => {
   it('VALID: {package with files in walked folder types} => returns those files', () => {
     const proxy = listWalkedFolderFilesLayerBrokerProxy();
-    const packageSrcPath = AbsoluteFilePathStub({ value: '/repo/packages/sample/src' });
+    const packageSrcPath = '/repo/packages/sample/src';
     proxy.implementation({
       fn: dispatchByPath({
         entries: new Map([
@@ -51,7 +50,7 @@ describe('listWalkedFolderFilesLayerBroker', () => {
 
   it('VALID: {test/proxy/stub files alongside implementation} => excludes them from results', () => {
     const proxy = listWalkedFolderFilesLayerBrokerProxy();
-    const packageSrcPath = AbsoluteFilePathStub({ value: '/repo/packages/sample/src' });
+    const packageSrcPath = '/repo/packages/sample/src';
     proxy.implementation({
       fn: dispatchByPath({
         entries: new Map([
@@ -80,7 +79,7 @@ describe('listWalkedFolderFilesLayerBroker', () => {
 
   it('VALID: {non-.ts/.tsx files in walked dir} => excluded from results', () => {
     const proxy = listWalkedFolderFilesLayerBrokerProxy();
-    const packageSrcPath = AbsoluteFilePathStub({ value: '/repo/packages/sample/src' });
+    const packageSrcPath = '/repo/packages/sample/src';
     proxy.implementation({
       fn: dispatchByPath({
         entries: new Map([
@@ -104,7 +103,7 @@ describe('listWalkedFolderFilesLayerBroker', () => {
 
   it('EMPTY: {all folders missing on disk} => returns empty array', () => {
     const proxy = listWalkedFolderFilesLayerBrokerProxy();
-    const packageSrcPath = AbsoluteFilePathStub({ value: '/repo/packages/sample/src' });
+    const packageSrcPath = '/repo/packages/sample/src';
     proxy.implementation({
       fn: () => throwEnoent(),
     });

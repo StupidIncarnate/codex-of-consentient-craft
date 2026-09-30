@@ -1,5 +1,3 @@
-import type { AbsoluteFilePath } from '@dungeonmaster/shared/contracts';
-import { AbsoluteFilePathStub } from '@dungeonmaster/shared/contracts/absolute-file-path/absolute-file-path.stub';
 
 import { worktreePopulateNodeModulesBrokerProxy } from '../populate-node-modules/worktree-populate-node-modules-broker.proxy';
 import { worktreeSeedDistBrokerProxy } from '../seed-dist/worktree-seed-dist-broker.proxy';
@@ -7,16 +5,16 @@ import { worktreeVerifyLinksBrokerProxy } from '../verify-links/worktree-verify-
 
 export const worktreeProvisionBrokerProxy = (): {
   setupBareWorktree: (params: {
-    repoRoot: AbsoluteFilePath;
-    worktreePath: AbsoluteFilePath;
+    repoRoot: string;
+    worktreePath: string;
   }) => void;
   setupUnbuiltSourcePackage: (params: {
-    repoRoot: AbsoluteFilePath;
-    worktreePath: AbsoluteFilePath;
+    repoRoot: string;
+    worktreePath: string;
     packageName: string;
   }) => void;
   setupMirroredLinkEscapingTheWorktree: (params: {
-    worktreePath: AbsoluteFilePath;
+    worktreePath: string;
     linkName: string;
     absoluteTarget: string;
   }) => void;
@@ -34,8 +32,8 @@ export const worktreeProvisionBrokerProxy = (): {
       repoRoot,
       worktreePath,
     }: {
-      repoRoot: AbsoluteFilePath;
-      worktreePath: AbsoluteFilePath;
+      repoRoot: string;
+      worktreePath: string;
     }): void => {
       populateProxy.setupNoWorkspaceLinks({ repoRoot, worktreePath, thirdPartyEntry: 'zod' });
       seedProxy.setupPackagesDirAbsent({ repoRoot });
@@ -48,8 +46,8 @@ export const worktreeProvisionBrokerProxy = (): {
       worktreePath,
       packageName,
     }: {
-      repoRoot: AbsoluteFilePath;
-      worktreePath: AbsoluteFilePath;
+      repoRoot: string;
+      worktreePath: string;
       packageName: string;
     }): void => {
       seedProxy.setupPackages({
@@ -67,13 +65,13 @@ export const worktreeProvisionBrokerProxy = (): {
       linkName,
       absoluteTarget,
     }: {
-      worktreePath: AbsoluteFilePath;
+      worktreePath: string;
       linkName: string;
       absoluteTarget: string;
     }): void => {
       verifyProxy.setupNodeModulesPresent({ worktreePath });
       verifyProxy.setupDirectoryEntries({
-        dirPath: AbsoluteFilePathStub({ value: `${String(worktreePath)}/node_modules` }),
+        dirPath: `${String(worktreePath)}/node_modules`,
         entries: [{ name: linkName, isDir: false, isSymlink: true }],
       });
       verifyProxy.setupReadlinkTarget({

@@ -1,4 +1,3 @@
-import { AbsoluteFilePathStub } from '@dungeonmaster/shared/contracts/absolute-file-path/absolute-file-path.stub';
 import { FsErrorStub } from '#gateway/node/fs/is-fs-error/fs-error.stub';
 
 import { worktreePopulateNodeModulesBroker } from './worktree-populate-node-modules-broker';
@@ -10,8 +9,8 @@ describe('worktreePopulateNodeModulesBroker', () => {
   describe('workspace package carries its own node_modules', () => {
     it('VALID: {workspace package with a react-router-dom-style third-party dep} => symlinks the root-level workspace link and HARDLINKS the per-package third-party entry', async () => {
       const proxy = worktreePopulateNodeModulesBrokerProxy();
-      const repoRoot = AbsoluteFilePathStub({ value: '/repo' });
-      const worktreePath = AbsoluteFilePathStub({ value: '/repo/worktrees/quest-slug-a1b2c3d4' });
+      const repoRoot = '/repo';
+      const worktreePath = '/repo/worktrees/quest-slug-a1b2c3d4';
       proxy.setupWorkspacePackageWithNodeModules({
         repoRoot,
         worktreePath,
@@ -46,8 +45,8 @@ describe('worktreePopulateNodeModulesBroker', () => {
   describe('workspace package has no node_modules of its own', () => {
     it('VALID: {workspace package with no node_modules} => links only the root-level workspace link; the layer is not invoked for that package', async () => {
       const proxy = worktreePopulateNodeModulesBrokerProxy();
-      const repoRoot = AbsoluteFilePathStub({ value: '/repo' });
-      const worktreePath = AbsoluteFilePathStub({ value: '/repo/worktrees/quest-slug-a1b2c3d4' });
+      const repoRoot = '/repo';
+      const worktreePath = '/repo/worktrees/quest-slug-a1b2c3d4';
       proxy.setupWorkspacePackageWithoutNodeModules({
         repoRoot,
         worktreePath,
@@ -74,8 +73,8 @@ describe('worktreePopulateNodeModulesBroker', () => {
   describe('no workspace links at the root', () => {
     it('VALID: {repo root with only third-party entries} => hardlinks the root-level entries; no second-level population', async () => {
       const proxy = worktreePopulateNodeModulesBrokerProxy();
-      const repoRoot = AbsoluteFilePathStub({ value: '/repo' });
-      const worktreePath = AbsoluteFilePathStub({ value: '/repo/worktrees/quest-slug-a1b2c3d4' });
+      const repoRoot = '/repo';
+      const worktreePath = '/repo/worktrees/quest-slug-a1b2c3d4';
       proxy.setupNoWorkspaceLinks({ repoRoot, worktreePath, thirdPartyEntry: 'zod' });
 
       await expect(
@@ -96,8 +95,8 @@ describe('worktreePopulateNodeModulesBroker', () => {
   describe('return value', () => {
     it('VALID: {repo root with no node_modules entries at all} => returns success true', async () => {
       const proxy = worktreePopulateNodeModulesBrokerProxy();
-      const repoRoot = AbsoluteFilePathStub({ value: '/repo' });
-      const worktreePath = AbsoluteFilePathStub({ value: '/repo/worktrees/quest-slug-a1b2c3d4' });
+      const repoRoot = '/repo';
+      const worktreePath = '/repo/worktrees/quest-slug-a1b2c3d4';
       proxy.setupEmptyRepo({ repoRoot, worktreePath });
 
       await expect(
@@ -115,8 +114,8 @@ describe('worktreePopulateNodeModulesBroker', () => {
   describe('root-level node_modules mkdir rejects', () => {
     it('ERROR: {root-level target node_modules mkdir rejects} => propagates out of the parent', async () => {
       const proxy = worktreePopulateNodeModulesBrokerProxy();
-      const repoRoot = AbsoluteFilePathStub({ value: '/repo' });
-      const worktreePath = AbsoluteFilePathStub({ value: '/repo/worktrees/quest-slug-a1b2c3d4' });
+      const repoRoot = '/repo';
+      const worktreePath = '/repo/worktrees/quest-slug-a1b2c3d4';
       proxy.setupMkdirThrows({
         filepath: '/repo/worktrees/quest-slug-a1b2c3d4/node_modules',
         error: FsErrorStub({
@@ -134,8 +133,8 @@ describe('worktreePopulateNodeModulesBroker', () => {
   describe('per-package population rejects', () => {
     it('ERROR: {per-package populateOneRootLayerBroker call rejects} => propagates out of the parent', async () => {
       const proxy = worktreePopulateNodeModulesBrokerProxy();
-      const repoRoot = AbsoluteFilePathStub({ value: '/repo' });
-      const worktreePath = AbsoluteFilePathStub({ value: '/repo/worktrees/quest-slug-a1b2c3d4' });
+      const repoRoot = '/repo';
+      const worktreePath = '/repo/worktrees/quest-slug-a1b2c3d4';
       proxy.setupWorkspacePackagePopulationRejects({
         repoRoot,
         worktreePath,
@@ -157,8 +156,8 @@ describe('worktreePopulateNodeModulesBroker', () => {
   describe('live streaming', () => {
     it('VALID: {fresh worktree with one workspace package} => onLine receives one mirroring line per root, root first', async () => {
       const proxy = worktreePopulateNodeModulesBrokerProxy();
-      const repoRoot = AbsoluteFilePathStub({ value: '/repo' });
-      const worktreePath = AbsoluteFilePathStub({ value: '/repo/worktrees/quest-slug-a1b2c3d4' });
+      const repoRoot = '/repo';
+      const worktreePath = '/repo/worktrees/quest-slug-a1b2c3d4';
       const streamed: StreamedLine[] = [];
       proxy.setupWorkspacePackageWithNodeModules({
         repoRoot,
@@ -185,8 +184,8 @@ describe('worktreePopulateNodeModulesBroker', () => {
   describe('resumed after a partial mirror', () => {
     it('VALID: {root already populated, its workspace package not} => mirrors ONLY the package entry and emits a skip line for the root', async () => {
       const proxy = worktreePopulateNodeModulesBrokerProxy();
-      const repoRoot = AbsoluteFilePathStub({ value: '/repo' });
-      const worktreePath = AbsoluteFilePathStub({ value: '/repo/worktrees/quest-slug-a1b2c3d4' });
+      const repoRoot = '/repo';
+      const worktreePath = '/repo/worktrees/quest-slug-a1b2c3d4';
       const streamed: StreamedLine[] = [];
       proxy.setupWorkspacePackageWithNodeModules({
         repoRoot,
@@ -222,8 +221,8 @@ describe('worktreePopulateNodeModulesBroker', () => {
 
     it('VALID: {workspace package already populated, root not} => links ONLY the root entry and emits a skip line for the package', async () => {
       const proxy = worktreePopulateNodeModulesBrokerProxy();
-      const repoRoot = AbsoluteFilePathStub({ value: '/repo' });
-      const worktreePath = AbsoluteFilePathStub({ value: '/repo/worktrees/quest-slug-a1b2c3d4' });
+      const repoRoot = '/repo';
+      const worktreePath = '/repo/worktrees/quest-slug-a1b2c3d4';
       const streamed: StreamedLine[] = [];
       proxy.setupWorkspacePackageWithNodeModules({
         repoRoot,
@@ -257,8 +256,8 @@ describe('worktreePopulateNodeModulesBroker', () => {
 
     it('VALID: {both root and its workspace package already populated} => writes ZERO symlinks and emits a skip line for each', async () => {
       const proxy = worktreePopulateNodeModulesBrokerProxy();
-      const repoRoot = AbsoluteFilePathStub({ value: '/repo' });
-      const worktreePath = AbsoluteFilePathStub({ value: '/repo/worktrees/quest-slug-a1b2c3d4' });
+      const repoRoot = '/repo';
+      const worktreePath = '/repo/worktrees/quest-slug-a1b2c3d4';
       const streamed: StreamedLine[] = [];
       proxy.setupWorkspacePackageWithNodeModules({
         repoRoot,

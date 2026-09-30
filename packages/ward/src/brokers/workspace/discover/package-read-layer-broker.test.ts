@@ -1,4 +1,3 @@
-import { AbsoluteFilePathStub } from '@dungeonmaster/shared/contracts/absolute-file-path/absolute-file-path.stub';
 
 import { packageReadLayerBroker } from './package-read-layer-broker';
 import { packageReadLayerBrokerProxy } from './package-read-layer-broker.proxy';
@@ -10,7 +9,7 @@ describe('packageReadLayerBroker', () => {
       const proxy = packageReadLayerBrokerProxy();
       proxy.setupReturnsPackage({ fullPath, name: '@dungeonmaster/ward' });
 
-      const rootPath = AbsoluteFilePathStub({ value: '/project' });
+      const rootPath = '/project';
 
       const result = await packageReadLayerBroker({
         fullPath,
@@ -30,7 +29,7 @@ describe('packageReadLayerBroker', () => {
       const proxy = packageReadLayerBrokerProxy();
       proxy.setupThrows({ fullPath });
 
-      const rootPath = AbsoluteFilePathStub({ value: '/project' });
+      const rootPath = '/project';
 
       const result = await packageReadLayerBroker({
         fullPath,
@@ -47,7 +46,7 @@ describe('packageReadLayerBroker', () => {
       const proxy = packageReadLayerBrokerProxy();
       proxy.setupReturnsNoName({ fullPath });
 
-      const rootPath = AbsoluteFilePathStub({ value: '/project' });
+      const rootPath = '/project';
 
       const result = await packageReadLayerBroker({
         fullPath,
@@ -64,7 +63,7 @@ describe('packageReadLayerBroker', () => {
       const proxy = packageReadLayerBrokerProxy();
       proxy.setupReturnsPackageNoSrc({ fullPath, name: '@dungeonmaster/standards' });
 
-      const rootPath = AbsoluteFilePathStub({ value: '/project' });
+      const rootPath = '/project';
 
       const result = await packageReadLayerBroker({
         fullPath,

@@ -1,18 +1,17 @@
 import { collectFolderFilesLayerBroker } from './collect-folder-files-layer-broker';
 import { collectFolderFilesLayerBrokerProxy } from './collect-folder-files-layer-broker.proxy';
-import { AbsoluteFilePathStub } from '../../../contracts/absolute-file-path/absolute-file-path.stub';
 
 describe('collectFolderFilesLayerBroker', () => {
   describe('file collection', () => {
     it('VALID: {directory with source files} => returns all non-test files', () => {
       const proxy = collectFolderFilesLayerBrokerProxy();
-      const dirPath = AbsoluteFilePathStub({ value: '/repo/packages/web/src/responders' });
+      const dirPath = '/repo/packages/web/src/responders';
 
       proxy.setupFlatDirectory({
         dirPath,
         filePaths: [
-          AbsoluteFilePathStub({ value: '/repo/packages/web/src/responders/app-responder.ts' }),
-          AbsoluteFilePathStub({ value: '/repo/packages/web/src/responders/another-responder.ts' }),
+          '/repo/packages/web/src/responders/app-responder.ts',
+          '/repo/packages/web/src/responders/another-responder.ts',
         ],
       });
 
@@ -26,14 +25,12 @@ describe('collectFolderFilesLayerBroker', () => {
 
     it('VALID: {test files in directory} => filters test files out', () => {
       const proxy = collectFolderFilesLayerBrokerProxy();
-      const dirPath = AbsoluteFilePathStub({ value: '/repo/packages/web/src/responders' });
+      const dirPath = '/repo/packages/web/src/responders';
 
       proxy.setupFlatDirectory({
         dirPath,
         filePaths: [
-          AbsoluteFilePathStub({
-            value: '/repo/packages/web/src/responders/app-responder.test.ts',
-          }),
+          '/repo/packages/web/src/responders/app-responder.test.ts',
         ],
       });
 
@@ -44,7 +41,7 @@ describe('collectFolderFilesLayerBroker', () => {
 
     it('EMPTY: {missing directory} => returns empty array', () => {
       const proxy = collectFolderFilesLayerBrokerProxy();
-      const dirPath = AbsoluteFilePathStub({ value: '/repo/packages/web/src/flows' });
+      const dirPath = '/repo/packages/web/src/flows';
       proxy.setupEmpty({ dirPath });
 
       const result = collectFolderFilesLayerBroker({ dirPath });

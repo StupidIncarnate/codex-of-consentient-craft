@@ -1,5 +1,4 @@
 import { readFileContentsLayerBrokerProxy } from './read-file-contents-layer-broker.proxy';
-import type { AbsoluteFilePath } from '../../../contracts/absolute-file-path/absolute-file-path-contract';
 import type { ContentText } from '../../../contracts/content-text/content-text-contract';
 
 export const routeMetadataExtractLayerBrokerProxy = (): {
@@ -7,10 +6,10 @@ export const routeMetadataExtractLayerBrokerProxy = (): {
     flowFile,
     content,
   }: {
-    flowFile: AbsoluteFilePath;
+    flowFile: string;
     content: ContentText;
   }) => void;
-  setupMissing: ({ flowFile }: { flowFile: AbsoluteFilePath }) => void;
+  setupMissing: ({ flowFile }: { flowFile: string }) => void;
   setupImplementation: ({ fn }: { fn: (filePath: ContentText) => ContentText }) => void;
 } => {
   const fileProxy = readFileContentsLayerBrokerProxy();
@@ -20,12 +19,12 @@ export const routeMetadataExtractLayerBrokerProxy = (): {
       flowFile,
       content,
     }: {
-      flowFile: AbsoluteFilePath;
+      flowFile: string;
       content: ContentText;
     }): void => {
       fileProxy.setupReturns({ filePath: flowFile, content });
     },
-    setupMissing: ({ flowFile }: { flowFile: AbsoluteFilePath }): void => {
+    setupMissing: ({ flowFile }: { flowFile: string }): void => {
       fileProxy.setupMissing({ filePath: flowFile });
     },
     setupImplementation: ({ fn }: { fn: (filePath: ContentText) => ContentText }): void => {

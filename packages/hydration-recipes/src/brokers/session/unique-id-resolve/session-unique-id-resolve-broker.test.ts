@@ -1,7 +1,6 @@
 import { sessionUniqueIdResolveBroker } from './session-unique-id-resolve-broker';
 import { sessionUniqueIdResolveBrokerProxy } from './session-unique-id-resolve-broker.proxy';
 import { DmTargetStub } from '../../../contracts/dm-target/dm-target.stub';
-import { AbsoluteFilePathStub } from '@dungeonmaster/shared/contracts/absolute-file-path/absolute-file-path.stub';
 import { SessionIdStub } from '@dungeonmaster/shared/contracts/session-id/session-id.stub';
 
 describe('sessionUniqueIdResolveBroker', () => {
@@ -15,7 +14,7 @@ describe('sessionUniqueIdResolveBroker', () => {
 
       const result = sessionUniqueIdResolveBroker({
         target,
-        cwd: AbsoluteFilePathStub({ value: '/tmp/guild-1' }),
+        cwd: '/tmp/guild-1',
         sessionId: SessionIdStub({ value: 'seed-session-1' }),
       });
 
@@ -36,7 +35,7 @@ describe('sessionUniqueIdResolveBroker', () => {
 
       const result = sessionUniqueIdResolveBroker({
         target,
-        cwd: AbsoluteFilePathStub({ value: '/tmp/guild-1' }),
+        cwd: '/tmp/guild-1',
         sessionId: SessionIdStub({ value: 'seed-session-1' }),
       });
 
@@ -58,7 +57,7 @@ describe('sessionUniqueIdResolveBroker', () => {
 
       const result = sessionUniqueIdResolveBroker({
         target,
-        cwd: AbsoluteFilePathStub({ value: '/tmp/guild-1' }),
+        cwd: '/tmp/guild-1',
         sessionId: SessionIdStub({ value: 'seed-session-1' }),
       });
 
@@ -76,7 +75,7 @@ describe('sessionUniqueIdResolveBroker', () => {
 
       const result = sessionUniqueIdResolveBroker({
         target,
-        cwd: AbsoluteFilePathStub({ value: '/tmp/guild-1' }),
+        cwd: '/tmp/guild-1',
         sessionId: SessionIdStub({ value: 'my-custom-session' }),
       });
 

@@ -12,8 +12,6 @@
  */
 
 import { readFileSync } from '#gateway/node/fs';
-import { absoluteFilePathContract } from '../../../contracts/absolute-file-path/absolute-file-path-contract';
-import type { AbsoluteFilePath } from '../../../contracts/absolute-file-path/absolute-file-path-contract';
 import {
   packageJsonContract,
   type PackageJson,
@@ -22,9 +20,9 @@ import {
 export const readPackageJsonLayerBroker = ({
   packageRoot,
 }: {
-  packageRoot: AbsoluteFilePath;
+  packageRoot: string;
 }): PackageJson | undefined => {
-  const filePath = absoluteFilePathContract.parse(`${String(packageRoot)}/package.json`);
+  const filePath = `${String(packageRoot)}/package.json`;
   try {
     const content = readFileSync(String(filePath));
     return packageJsonContract.parse(JSON.parse(content));

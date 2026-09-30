@@ -15,8 +15,8 @@
  */
 
 import { join } from '#gateway/node/path';
-import { absoluteFilePathContract, contentTextContract, siegeRunContract } from '@dungeonmaster/shared/contracts';
-import type { AbsoluteFilePath, SiegeInstance, SiegeRun } from '@dungeonmaster/shared/contracts';
+import { contentTextContract, siegeRunContract } from '@dungeonmaster/shared/contracts';
+import type { SiegeInstance, SiegeRun } from '@dungeonmaster/shared/contracts';
 
 import { readFile, readdirIfExists } from '#gateway/node/fs__promises';
 import { isNativeError } from '#gateway/node/util__types';
@@ -34,7 +34,7 @@ export const verifiedPreludeLayerBroker = async ({
   runIds,
 }: {
   instanceId: SiegeInstance['id'];
-  worktreePath: AbsoluteFilePath;
+  worktreePath: string;
   runIds: readonly SiegeRun['id'][];
 }): Promise<readonly CitationReference[]> => {
   const plansDir = locationsCitationQuestPlansPathFindBroker({ worktreePath });
@@ -46,7 +46,7 @@ export const verifiedPreludeLayerBroker = async ({
         return [];
       }
 
-      const nestedDir = absoluteFilePathContract.parse(join(plansDir, name));
+      const nestedDir = join(plansDir, name);
 
       // A plan directory holds markdown files and per-quest subdirectories. Anything else is a
       // file this scan has no use for, and ENOTDIR is how the OS says so — every other read
@@ -68,14 +68,14 @@ export const verifiedPreludeLayerBroker = async ({
 
       return entries
         .filter((entryName) => entryName.endsWith(citationStatics.questPlans.preludeExtension))
-        .map((entryName) => absoluteFilePathContract.parse(join(nestedDir, entryName)));
+        .map((entryName) => join(nestedDir, entryName));
     }),
   );
 
   const planFiles = [
     ...topEntries
       .filter((name) => name.endsWith(citationStatics.questPlans.preludeExtension))
-      .map((name) => absoluteFilePathContract.parse(join(plansDir, name))),
+      .map((name) => join(plansDir, name)),
     ...nested.flat(),
   ];
 

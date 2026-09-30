@@ -1,6 +1,5 @@
 import type { Guild, Quest } from '@dungeonmaster/shared/contracts';
 import { stderrProxy } from '#gateway/node/process/stderr/stderr.proxy';
-import { AbsoluteFilePathStub } from '@dungeonmaster/shared/contracts/absolute-file-path/absolute-file-path.stub';
 import { RepoRootCwdStub } from '@dungeonmaster/shared/contracts/repo-root-cwd/repo-root-cwd.stub';
 import {
   registerMock,
@@ -91,7 +90,7 @@ export const spawnBatchLayerBrokerProxy = (): {
       cwdMock.calledWith([{ questId }]).resolves(
         QuestCwdResolutionStub({
           kind: 'missing-worktree',
-          worktreePath: AbsoluteFilePathStub({ value: worktreePath }),
+          worktreePath: worktreePath,
         }),
       );
     },

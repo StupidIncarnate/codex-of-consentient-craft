@@ -1,4 +1,3 @@
-import { AbsoluteFilePathStub } from '@dungeonmaster/shared/contracts/absolute-file-path/absolute-file-path.stub';
 import { GuildIdStub } from '@dungeonmaster/shared/contracts/guild-id/guild-id.stub';
 import { QuestIdStub } from '@dungeonmaster/shared/contracts/quest-id/quest-id.stub';
 import { QuestNoteStub } from '@dungeonmaster/shared/contracts/quest-note/quest-note.stub';
@@ -57,25 +56,25 @@ describe('assetsAgeLayerBroker', () => {
         evidencePath: UNOWNED_EVIDENCE,
       });
       proxy.setupDir({
-        dirPath: AbsoluteFilePathStub({ value: `${UNOWNED_EVIDENCE}/runs` }),
+        dirPath: `${UNOWNED_EVIDENCE}/runs`,
         entries: ['run_1'],
       });
       proxy.setupDir({
-        dirPath: AbsoluteFilePathStub({ value: `${UNOWNED_EVIDENCE}/runs/run_1` }),
+        dirPath: `${UNOWNED_EVIDENCE}/runs/run_1`,
         entries: ['walk.webm', 'step1.png'],
       });
       proxy.setupFile({
-        filePath: AbsoluteFilePathStub({ value: `${UNOWNED_EVIDENCE}/runs/run_1/walk.webm` }),
+        filePath: `${UNOWNED_EVIDENCE}/runs/run_1/walk.webm`,
         sizeBytes: 104_857_600,
         modifiedAtMs: NOW_MS - DAY_MS * 3,
       });
       proxy.setupFile({
-        filePath: AbsoluteFilePathStub({ value: `${UNOWNED_EVIDENCE}/runs/run_1/step1.png` }),
+        filePath: `${UNOWNED_EVIDENCE}/runs/run_1/step1.png`,
         sizeBytes: 4096,
         modifiedAtMs: NOW_MS - DAY_MS * 3,
       });
       proxy.setupDeleteSucceeds({
-        filePath: AbsoluteFilePathStub({ value: `${UNOWNED_EVIDENCE}/runs/run_1/walk.webm` }),
+        filePath: `${UNOWNED_EVIDENCE}/runs/run_1/walk.webm`,
       });
 
       const result = await assetsAgeLayerBroker({
@@ -137,16 +136,16 @@ describe('assetsAgeLayerBroker', () => {
         questFolderPath: QUEST_FOLDER,
       });
       proxy.setupFile({
-        filePath: AbsoluteFilePathStub({ value: `${OWNED_EVIDENCE}/api-server.log` }),
+        filePath: `${OWNED_EVIDENCE}/api-server.log`,
         sizeBytes: 999_999,
         modifiedAtMs: NOW_MS - DAY_MS * 30,
       });
       proxy.setupDir({
-        dirPath: AbsoluteFilePathStub({ value: `${OWNED_EVIDENCE}/runs` }),
+        dirPath: `${OWNED_EVIDENCE}/runs`,
         entries: [],
       });
       proxy.setupQuestRecord({
-        filePath: AbsoluteFilePathStub({ value: QUEST_FILE }),
+        filePath: QUEST_FILE,
         contents: JSON.stringify(
           QuestStub({
             status: 'in_progress',

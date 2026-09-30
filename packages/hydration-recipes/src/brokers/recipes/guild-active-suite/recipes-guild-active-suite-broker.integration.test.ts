@@ -1,4 +1,3 @@
-import { AbsoluteFilePathStub } from '@dungeonmaster/shared/contracts/absolute-file-path/absolute-file-path.stub';
 import { claudePathSlugEncoderTransformer } from '@dungeonmaster/shared/transformers';
 
 import { liveQuestTargetHarness } from '../../../../test/harnesses/live-quest-target/live-quest-target.harness';
@@ -75,7 +74,7 @@ describe('recipesGuildActiveSuiteBroker', () => {
         unknown
       >;
       const guild = result.guild as Record<PropertyKey, unknown>;
-      const guildPath = AbsoluteFilePathStub({ value: guild.path });
+      const guildPath = guild.path;
       const sessionsDir = claudePathSlugEncoderTransformer({
         homeDir: target.claudeHome,
         projectPath: guildPath,

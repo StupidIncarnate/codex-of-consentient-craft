@@ -1,4 +1,4 @@
-import type { AbsoluteFilePath, ContentText, Guild, SiegeInstance } from '@dungeonmaster/shared/contracts';
+import type { ContentText, Guild, SiegeInstance } from '@dungeonmaster/shared/contracts';
 
 import type { RegistryEntryStub } from '../../../contracts/registry-entry/registry-entry.stub';
 import { RegistryStub } from '../../../contracts/registry/registry.stub';
@@ -27,29 +27,29 @@ export const compareReadBrokerProxy = (): {
   evidencePathFor: (params: {
     instanceId: SiegeInstance['id'];
     guildId?: Guild['id'] | null;
-  }) => AbsoluteFilePath;
+  }) => string;
   setupInstance: (params: { entry: RegistryEntry }) => void;
   setupUnknownInstance: () => void;
-  setupRun: (params: { evidencePath: AbsoluteFilePath; runId: RunId; result: RunResult }) => void;
-  setupMissingRun: (params: { evidencePath: AbsoluteFilePath; runId: RunId }) => void;
+  setupRun: (params: { evidencePath: string; runId: RunId; result: RunResult }) => void;
+  setupMissingRun: (params: { evidencePath: string; runId: RunId }) => void;
   stagesShotFrame: (params: {
-    path: AbsoluteFilePath;
+    path: string;
     width: number;
     height: number;
     pixels: Uint8Array;
   }) => void;
   setupConsoleLines: (params: {
-    evidencePath: AbsoluteFilePath;
+    evidencePath: string;
     runId: RunId;
     lines: readonly ContentText[];
   }) => void;
   setupNetworkLines: (params: {
-    evidencePath: AbsoluteFilePath;
+    evidencePath: string;
     runId: RunId;
     lines: readonly ContentText[];
   }) => void;
   setupStepReadings: (params: {
-    evidencePath: AbsoluteFilePath;
+    evidencePath: string;
     runId: RunId;
     readings: readonly StepReading[];
   }) => void;
@@ -82,7 +82,7 @@ export const compareReadBrokerProxy = (): {
     evidencePathFor: (params: {
       instanceId: SiegeInstance['id'];
       guildId?: Guild['id'] | null;
-    }): AbsoluteFilePath => resultsProxy.evidencePathFor(params),
+    }): string => resultsProxy.evidencePathFor(params),
 
     setupInstance: ({ entry }: { entry: RegistryEntry }): void => {
       resultsProxy.setupRegistry({ registry: RegistryStub({ instances: [entry] }) });
@@ -116,7 +116,7 @@ export const compareReadBrokerProxy = (): {
       runId,
       result,
     }: {
-      evidencePath: AbsoluteFilePath;
+      evidencePath: string;
       runId: RunId;
       result: RunResult;
     }): void => {
@@ -140,7 +140,7 @@ export const compareReadBrokerProxy = (): {
       evidencePath,
       runId,
     }: {
-      evidencePath: AbsoluteFilePath;
+      evidencePath: string;
       runId: RunId;
     }): void => {
       resultsProxy.setupMissingStoredReturn({ evidencePath, runId });
@@ -152,7 +152,7 @@ export const compareReadBrokerProxy = (): {
       height,
       pixels,
     }: {
-      path: AbsoluteFilePath;
+      path: string;
       width: number;
       height: number;
       pixels: Uint8Array;
@@ -165,7 +165,7 @@ export const compareReadBrokerProxy = (): {
       runId,
       lines,
     }: {
-      evidencePath: AbsoluteFilePath;
+      evidencePath: string;
       runId: RunId;
       lines: readonly ContentText[];
     }): void => {
@@ -190,7 +190,7 @@ export const compareReadBrokerProxy = (): {
       runId,
       lines,
     }: {
-      evidencePath: AbsoluteFilePath;
+      evidencePath: string;
       runId: RunId;
       lines: readonly ContentText[];
     }): void => {
@@ -213,7 +213,7 @@ export const compareReadBrokerProxy = (): {
       runId,
       readings,
     }: {
-      evidencePath: AbsoluteFilePath;
+      evidencePath: string;
       runId: RunId;
       readings: readonly StepReading[];
     }): void => {

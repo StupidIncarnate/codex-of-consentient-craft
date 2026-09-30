@@ -1,8 +1,7 @@
 import { listTsFilesLayerBroker } from './list-ts-files-layer-broker';
 import { listTsFilesLayerBrokerProxy } from './list-ts-files-layer-broker.proxy';
-import { AbsoluteFilePathStub } from '../../../contracts/absolute-file-path/absolute-file-path.stub';
 
-const DIR = AbsoluteFilePathStub({ value: '/repo/packages' });
+const DIR = '/repo/packages';
 
 describe('listTsFilesLayerBroker', () => {
   describe('empty directory', () => {
@@ -19,12 +18,8 @@ describe('listTsFilesLayerBroker', () => {
   describe('directory with ts files', () => {
     it('VALID: {two ts files} => returns both paths', () => {
       const proxy = listTsFilesLayerBrokerProxy();
-      const file1 = AbsoluteFilePathStub({
-        value: '/repo/packages/orchestrator/src/state/orchestration-events-state.ts',
-      });
-      const file2 = AbsoluteFilePathStub({
-        value: '/repo/packages/server/src/adapters/orchestrator/events-on/events-on-adapter.ts',
-      });
+      const file1 = '/repo/packages/orchestrator/src/state/orchestration-events-state.ts';
+      const file2 = '/repo/packages/server/src/adapters/orchestrator/events-on/events-on-adapter.ts';
       proxy.setupVirtualTree({ filePaths: [file1, file2] });
 
       const result = listTsFilesLayerBroker({ dirPath: DIR });

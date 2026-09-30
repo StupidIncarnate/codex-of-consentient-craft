@@ -1,4 +1,3 @@
-import { AbsoluteFilePathStub } from '@dungeonmaster/shared/contracts/absolute-file-path/absolute-file-path.stub';
 import { QuestStub } from '@dungeonmaster/shared/contracts/quest/quest.stub';
 import { RiftcarverResultStub } from '@dungeonmaster/shared/contracts/riftcarver-result/riftcarver-result.stub';
 import { WardDetailStub } from '@dungeonmaster/shared/contracts/ward-detail/ward-detail.stub';
@@ -7,9 +6,7 @@ import { WardResultStub } from '@dungeonmaster/shared/contracts/ward-result/ward
 import { wardRowsLayerBroker } from './ward-rows-layer-broker';
 import { wardRowsLayerBrokerProxy } from './ward-rows-layer-broker.proxy';
 
-const QUEST_PATH = AbsoluteFilePathStub({
-  value: '/home/testuser/.dungeonmaster/guilds/g1/quests/001-add-auth',
-});
+const QUEST_PATH = '/home/testuser/.dungeonmaster/guilds/g1/quests/001-add-auth';
 const WARD_RESULT_ID = 'a1b2c3d4-e5f6-7890-abcd-ef1234567890';
 const CARVE_ID = 'c3d4e5f6-e5f6-7890-abcd-ef1234567890';
 

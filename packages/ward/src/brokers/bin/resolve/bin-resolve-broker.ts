@@ -9,7 +9,6 @@
  * // Returns BinCommand('/project/node_modules/.bin/eslint') if it exists, else the nearest ancestor's up to the workspace root, else BinCommand('eslint')
  */
 
-import type { AbsoluteFilePath } from '@dungeonmaster/shared/contracts';
 
 import type { BinCommand } from '../../../contracts/bin-command/bin-command-contract';
 import { binWalkUpLayerBroker } from './bin-walk-up-layer-broker';
@@ -19,5 +18,5 @@ export const binResolveBroker = ({
   cwd,
 }: {
   binName: BinCommand;
-  cwd: AbsoluteFilePath;
+  cwd: string;
 }): BinCommand => binWalkUpLayerBroker({ binName, dir: cwd });

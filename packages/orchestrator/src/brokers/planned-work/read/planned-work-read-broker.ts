@@ -10,7 +10,7 @@
  */
 
 import { locationsPlannedWorkPathFindBroker } from '@dungeonmaster/shared/brokers';
-import type { AbsoluteFilePath, OperationItem } from '@dungeonmaster/shared/contracts';
+import type { OperationItem } from '@dungeonmaster/shared/contracts';
 import { readFileIfExists } from '#gateway/node/fs__promises';
 import { join } from '#gateway/node/path';
 
@@ -23,7 +23,7 @@ export const plannedWorkReadBroker = async ({
   questFolderPath,
   operationItemId,
 }: {
-  questFolderPath: AbsoluteFilePath;
+  questFolderPath: string;
   operationItemId: OperationItem['id'];
 }): Promise<WorkPlan | null> => {
   const dirPath = locationsPlannedWorkPathFindBroker({ questFolderPath });

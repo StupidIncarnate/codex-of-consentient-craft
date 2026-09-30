@@ -1,14 +1,13 @@
 import { listSourceFilesLayerBroker } from './list-source-files-layer-broker';
 import { listSourceFilesLayerBrokerProxy } from './list-source-files-layer-broker.proxy';
-import { AbsoluteFilePathStub } from '../../../contracts/absolute-file-path/absolute-file-path.stub';
 import { FileMissingErrorStub } from '#gateway/node/fs/file-missing-error/file-missing-error.stub';
 
 describe('listSourceFilesLayerBroker', () => {
   describe('flat directory', () => {
     it('VALID: {dir with .ts files} => returns those paths', () => {
       const proxy = listSourceFilesLayerBrokerProxy();
-      const dirPath = AbsoluteFilePathStub({ value: '/repo/packages/server/src' });
-      const filePath = AbsoluteFilePathStub({ value: '/repo/packages/server/src/broker.ts' });
+      const dirPath = '/repo/packages/server/src';
+      const filePath = '/repo/packages/server/src/broker.ts';
 
       proxy.setupFlatDirectory({ dirPath, filePaths: [filePath] });
 
@@ -19,8 +18,8 @@ describe('listSourceFilesLayerBroker', () => {
 
     it('VALID: {test files} => excluded from result', () => {
       const proxy = listSourceFilesLayerBrokerProxy();
-      const dirPath = AbsoluteFilePathStub({ value: '/repo/packages/server/src' });
-      const testFile = AbsoluteFilePathStub({ value: '/repo/packages/server/src/broker.test.ts' });
+      const dirPath = '/repo/packages/server/src';
+      const testFile = '/repo/packages/server/src/broker.test.ts';
 
       proxy.setupFlatDirectory({ dirPath, filePaths: [testFile] });
 
@@ -31,10 +30,8 @@ describe('listSourceFilesLayerBroker', () => {
 
     it('VALID: {proxy files} => excluded from result', () => {
       const proxy = listSourceFilesLayerBrokerProxy();
-      const dirPath = AbsoluteFilePathStub({ value: '/repo/packages/server/src' });
-      const proxyFile = AbsoluteFilePathStub({
-        value: '/repo/packages/server/src/broker.proxy.ts',
-      });
+      const dirPath = '/repo/packages/server/src';
+      const proxyFile = '/repo/packages/server/src/broker.proxy.ts';
 
       proxy.setupFlatDirectory({ dirPath, filePaths: [proxyFile] });
 
@@ -45,8 +42,8 @@ describe('listSourceFilesLayerBroker', () => {
 
     it('VALID: {stub files} => excluded from result', () => {
       const proxy = listSourceFilesLayerBrokerProxy();
-      const dirPath = AbsoluteFilePathStub({ value: '/repo/packages/server/src' });
-      const stubFile = AbsoluteFilePathStub({ value: '/repo/packages/server/src/user.stub.ts' });
+      const dirPath = '/repo/packages/server/src';
+      const stubFile = '/repo/packages/server/src/user.stub.ts';
 
       proxy.setupFlatDirectory({ dirPath, filePaths: [stubFile] });
 
@@ -57,8 +54,8 @@ describe('listSourceFilesLayerBroker', () => {
 
     it('VALID: {non-source files like .json} => excluded from result', () => {
       const proxy = listSourceFilesLayerBrokerProxy();
-      const dirPath = AbsoluteFilePathStub({ value: '/repo/packages/server/src' });
-      const jsonFile = AbsoluteFilePathStub({ value: '/repo/packages/server/src/config.json' });
+      const dirPath = '/repo/packages/server/src';
+      const jsonFile = '/repo/packages/server/src/config.json';
 
       proxy.setupFlatDirectory({ dirPath, filePaths: [jsonFile] });
 
@@ -71,7 +68,7 @@ describe('listSourceFilesLayerBroker', () => {
   describe('empty directory', () => {
     it('EMPTY: {empty dir} => returns empty array', () => {
       const proxy = listSourceFilesLayerBrokerProxy();
-      const dirPath = AbsoluteFilePathStub({ value: '/repo/packages/server/src' });
+      const dirPath = '/repo/packages/server/src';
 
       proxy.setupEmpty({ dirPath });
 
@@ -84,7 +81,7 @@ describe('listSourceFilesLayerBroker', () => {
   describe('missing directory', () => {
     it('ERROR: {readdir throws} => returns empty array', () => {
       const proxy = listSourceFilesLayerBrokerProxy();
-      const dirPath = AbsoluteFilePathStub({ value: '/repo/packages/nonexistent/src' });
+      const dirPath = '/repo/packages/nonexistent/src';
 
       proxy.setupImplementation({
         fn: () => {

@@ -2,7 +2,6 @@ import type { dirname, join } from '#gateway/node/path';
 import { readFileSyncProxy } from '#gateway/node/fs/read-file-sync/read-file-sync.proxy';
 
 import { requireActual } from '@dungeonmaster/testing/register-mock';
-import { AbsoluteFilePathStub } from '@dungeonmaster/shared/contracts/absolute-file-path/absolute-file-path.stub';
 
 import { packageRootFindLayerBrokerProxy } from './package-root-find-layer-broker.proxy';
 
@@ -16,7 +15,7 @@ export const cliPackageBinResolveBrokerProxy = (): {
   manifestDeclaresBin: (params: { binRelative: string }) => void;
   manifestHasNoBinField: () => void;
   packageRootDoesNotExist: () => void;
-  getExpectedBinPath: (params: { binRelative: string }) => ReturnType<typeof AbsoluteFilePathStub>;
+  getExpectedBinPath: (params: { binRelative: string }) => string;
 } => {
   const layerProxy = packageRootFindLayerBrokerProxy();
   const readFileProxy = readFileSyncProxy();
@@ -51,7 +50,7 @@ export const cliPackageBinResolveBrokerProxy = (): {
       binRelative,
     }: {
       binRelative: string;
-    }): ReturnType<typeof AbsoluteFilePathStub> =>
-      AbsoluteFilePathStub({ value: realPath.join(entryDir, binRelative) }),
+    }): string =>
+      realPath.join(entryDir, binRelative),
   };
 };

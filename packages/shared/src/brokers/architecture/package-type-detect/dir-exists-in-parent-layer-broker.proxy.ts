@@ -1,16 +1,15 @@
 import type { DirEntrySync } from '#gateway/node/fs';
 import { safeReaddirLayerBrokerProxy } from './safe-readdir-layer-broker.proxy';
-import type { AbsoluteFilePath } from '../../../contracts/absolute-file-path/absolute-file-path-contract';
 
 export const dirExistsInParentLayerBrokerProxy = (): {
   setupWithDir: ({
     parentDirPath,
     dirName,
   }: {
-    parentDirPath: AbsoluteFilePath;
+    parentDirPath: string;
     dirName: string;
   }) => void;
-  setupEmpty: ({ parentDirPath }: { parentDirPath: AbsoluteFilePath }) => void;
+  setupEmpty: ({ parentDirPath }: { parentDirPath: string }) => void;
 } => {
   const readdirProxy = safeReaddirLayerBrokerProxy();
 
@@ -21,7 +20,7 @@ export const dirExistsInParentLayerBrokerProxy = (): {
       parentDirPath,
       dirName,
     }: {
-      parentDirPath: AbsoluteFilePath;
+      parentDirPath: string;
       dirName: string;
     }): void => {
       readdirProxy.setupDirectory({
@@ -30,7 +29,7 @@ export const dirExistsInParentLayerBrokerProxy = (): {
       });
     },
 
-    setupEmpty: ({ parentDirPath }: { parentDirPath: AbsoluteFilePath }): void => {
+    setupEmpty: ({ parentDirPath }: { parentDirPath: string }): void => {
       readdirProxy.setupDirectory({ dirPath: parentDirPath, entries: [] });
     },
   };

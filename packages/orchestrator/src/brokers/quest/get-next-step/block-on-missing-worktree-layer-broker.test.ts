@@ -1,4 +1,3 @@
-import { AbsoluteFilePathStub } from '@dungeonmaster/shared/contracts/absolute-file-path/absolute-file-path.stub';
 import { QuestIdStub } from '@dungeonmaster/shared/contracts/quest-id/quest-id.stub';
 import { QuestStub } from '@dungeonmaster/shared/contracts/quest/quest.stub';
 import { QuestWorkItemIdStub } from '@dungeonmaster/shared/contracts/quest-work-item-id/quest-work-item-id.stub';
@@ -13,7 +12,7 @@ describe('blockOnMissingWorktreeLayerBroker', () => {
     proxy.setupBlocked();
     const questId = QuestIdStub({ value: 'q-missing-worktree' });
     const pendingId = QuestWorkItemIdStub({ value: 'aaa00000-1111-4222-9333-444444444444' });
-    const worktreePath = AbsoluteFilePathStub({ value: '/repo/worktrees/quest-1' });
+    const worktreePath = '/repo/worktrees/quest-1';
     const quest = QuestStub({
       id: questId,
       status: 'in_progress',
@@ -40,7 +39,7 @@ describe('blockOnMissingWorktreeLayerBroker', () => {
     const questId = QuestIdStub({ value: 'q-missing-worktree-terminal' });
     const firstId = QuestWorkItemIdStub({ value: 'bbb00000-1111-4222-9333-444444444444' });
     const lastId = QuestWorkItemIdStub({ value: 'ccc00000-1111-4222-9333-444444444444' });
-    const worktreePath = AbsoluteFilePathStub({ value: '/repo/worktrees/quest-2' });
+    const worktreePath = '/repo/worktrees/quest-2';
     const quest = QuestStub({
       id: questId,
       status: 'in_progress',
@@ -72,7 +71,7 @@ describe('blockOnMissingWorktreeLayerBroker', () => {
   it('EMPTY: {quest with no work items} => writes the quest status blocked directly via questModifyBroker', async () => {
     const proxy = blockOnMissingWorktreeLayerBrokerProxy();
     const questId = QuestIdStub({ value: 'q-missing-worktree-empty' });
-    const worktreePath = AbsoluteFilePathStub({ value: '/repo/worktrees/quest-3' });
+    const worktreePath = '/repo/worktrees/quest-3';
     const quest = QuestStub({ id: questId, status: 'in_progress', workItems: [] });
     proxy.setupQuestFound({ quest });
 

@@ -9,19 +9,15 @@
 import { configRootFindBroker } from '../../config-root/find/config-root-find-broker';
 import { join } from '#gateway/node/path';
 import { locationsStatics } from '../../../statics/locations/locations-statics';
-import {
-  absoluteFilePathContract,
-  type AbsoluteFilePath,
-} from '../../../contracts/absolute-file-path/absolute-file-path-contract';
 
 export const locationsMcpJsonPathFindBroker = async ({
   startPath,
 }: {
   startPath: string;
-}): Promise<AbsoluteFilePath> => {
+}): Promise<string> => {
   const configRoot = await configRootFindBroker({ startPath });
 
   const joined = join(configRoot, locationsStatics.repoRoot.mcpJson);
 
-  return absoluteFilePathContract.parse(joined);
+  return joined;
 };

@@ -8,10 +8,6 @@
 
 import { readFileSync } from '#gateway/node/fs';
 import { dirname, join } from '#gateway/node/path';
-import {
-  absoluteFilePathContract,
-  type AbsoluteFilePath,
-} from '../../../contracts/absolute-file-path/absolute-file-path-contract';
 import { contentTextContract } from '../../../contracts/content-text/content-text-contract';
 import type { NetworkPort } from '../../../contracts/network-port/network-port-contract';
 import { projectConfigContract } from '../../../contracts/project-config/project-config-contract';
@@ -20,7 +16,7 @@ import { dungeonmasterHomeStatics } from '../../../statics/dungeonmaster-home/du
 export const portConfigWalkBroker = ({
   dir,
 }: {
-  dir: AbsoluteFilePath;
+  dir: string;
 }): NetworkPort | undefined => {
   const configPath = join(dir, dungeonmasterHomeStatics.paths.projectConfigFile);
   try {
@@ -31,6 +27,6 @@ export const portConfigWalkBroker = ({
   } catch {
     const parent = dirname(dir);
     if (parent === dir) return undefined;
-    return portConfigWalkBroker({ dir: absoluteFilePathContract.parse(parent) });
+    return portConfigWalkBroker({ dir: parent });
   }
 };

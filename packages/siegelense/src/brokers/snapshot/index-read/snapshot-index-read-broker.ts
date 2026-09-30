@@ -17,7 +17,6 @@
  */
 
 import { readFile, statIfExists } from '#gateway/node/fs__promises';
-import type { AbsoluteFilePath } from '@dungeonmaster/shared/contracts';
 
 import { snapshotOrdinalContract } from '../../../contracts/snapshot-ordinal/snapshot-ordinal-contract';
 import { snapshotRecordContract } from '../../../contracts/snapshot-record/snapshot-record-contract';
@@ -29,7 +28,7 @@ import { locationsSnapshotPathsFindBroker } from '../../locations/snapshot-paths
 export const snapshotIndexReadBroker = async ({
   homePath,
 }: {
-  homePath: AbsoluteFilePath;
+  homePath: string;
 }): Promise<readonly SnapshotRecord[]> => {
   // The index path does not depend on the ordinal — the resolver takes one anyway so that its
   // `payload` is never a null every caller has to narrow, and this reader passes the first and

@@ -7,7 +7,7 @@
  */
 
 import { dungeonmasterHomeFindBroker } from '@dungeonmaster/shared/brokers';
-import { absoluteFilePathContract, guildListItemContract } from '@dungeonmaster/shared/contracts';
+import { guildListItemContract } from '@dungeonmaster/shared/contracts';
 import type { GuildListItem } from '@dungeonmaster/shared/contracts';
 import { dungeonmasterHomeStatics } from '@dungeonmaster/shared/statics';
 import { nameToUrlSlugTransformer } from '@dungeonmaster/shared/transformers';
@@ -46,7 +46,7 @@ export const guildListBroker = async (): Promise<GuildListItem[]> => {
         dungeonmasterHomeStatics.paths.questsDir,
       );
 
-      const questsDir = absoluteFilePathContract.parse(questsDirPath);
+      const questsDir = questsDirPath;
 
       let questCount = 0;
       try {

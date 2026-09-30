@@ -1,6 +1,5 @@
 import { deleteEnv, getEnv, setEnv } from '#gateway/node/process';
 import { installTestbedCreateBroker } from '@dungeonmaster/testing';
-import { AbsoluteFilePathStub } from '@dungeonmaster/shared/contracts/absolute-file-path/absolute-file-path.stub';
 
 import { InstanceIdStub } from '../../contracts/instance-id/instance-id.stub';
 import { RegistryEntryStub } from '../../contracts/registry-entry/registry-entry.stub';
@@ -134,9 +133,7 @@ describe('SiegelenseRunLayerFlow', () => {
   // siegelense-run-responder.test.ts's mocked-broker success cases.
   describe('a known instance whose driver is unreachable', () => {
     const knownInstanceId = InstanceIdStub({ value: 'inst_c0ffee01' });
-    const deadSocketPath = AbsoluteFilePathStub({
-      value: `${testbed.guildPath}/dead-driver.sock`,
-    });
+    const deadSocketPath = `${testbed.guildPath}/dead-driver.sock`;
 
     beforeAll(() => {
       const registry = RegistryStub({

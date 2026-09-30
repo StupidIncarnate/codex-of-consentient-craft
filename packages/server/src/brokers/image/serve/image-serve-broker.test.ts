@@ -1,5 +1,4 @@
 import { FileMissingErrorStub } from '#gateway/node/fs/file-missing-error/file-missing-error.stub';
-import { AbsoluteFilePathStub } from '@dungeonmaster/shared/contracts/absolute-file-path/absolute-file-path.stub';
 
 import { imageServeBroker } from './image-serve-broker';
 import { imageServeBrokerProxy } from './image-serve-broker.proxy';
@@ -8,7 +7,7 @@ const PNG_SIGNATURE = [0x89, 0x50, 0x4e, 0x47, 0x0d, 0x0a, 0x1a, 0x0a];
 
 describe('imageServeBroker', () => {
   it('VALID: {path: readable .png} => returns those exact bytes with image/png', async () => {
-    const filePath = AbsoluteFilePathStub({ value: '/tmp/quest/images/abc.png' });
+    const filePath = '/tmp/quest/images/abc.png';
     const bytes = new Uint8Array([...PNG_SIGNATURE, 0x01, 0x02, 0x03]);
     const proxy = imageServeBrokerProxy();
     proxy.setupFileBytes({ filePath, bytes });
@@ -19,7 +18,7 @@ describe('imageServeBroker', () => {
   });
 
   it('VALID: {path: readable .webp} => returns those exact bytes with image/webp', async () => {
-    const filePath = AbsoluteFilePathStub({ value: '/tmp/quest/images/abc.webp' });
+    const filePath = '/tmp/quest/images/abc.webp';
     const bytes = new Uint8Array([0x52, 0x49, 0x46, 0x46, 0x00, 0x00, 0x00, 0x00]);
     const proxy = imageServeBrokerProxy();
     proxy.setupFileBytes({ filePath, bytes });
@@ -54,7 +53,7 @@ describe('imageServeBroker', () => {
   // {bytes, contentType: 'image/png'} instead of null, which is exactly the defect: an allowed
   // extension anywhere on the host used to be servable.
   it('INVALID: {path: a readable .png outside any images directory} => null', async () => {
-    const filePath = AbsoluteFilePathStub({ value: '/tmp/quest/backup/id_rsa.png' });
+    const filePath = '/tmp/quest/backup/id_rsa.png';
     const bytes = new Uint8Array([...PNG_SIGNATURE, 0x01, 0x02, 0x03]);
     const proxy = imageServeBrokerProxy();
     proxy.setupFileBytes({ filePath, bytes });
@@ -68,7 +67,7 @@ describe('imageServeBroker', () => {
   // the one holding it, not any images directory further up the tree. Red at {bytes, contentType}
   // if the check is ever loosened to a prefix/startsWith test against an ancestor.
   it('INVALID: {path: a readable .png in a subdirectory of an images directory} => null', async () => {
-    const filePath = AbsoluteFilePathStub({ value: '/tmp/quest/images/nested/abc.png' });
+    const filePath = '/tmp/quest/images/nested/abc.png';
     const bytes = new Uint8Array([...PNG_SIGNATURE, 0x04, 0x05, 0x06]);
     const proxy = imageServeBrokerProxy();
     proxy.setupFileBytes({ filePath, bytes });
@@ -84,7 +83,7 @@ describe('imageServeBroker', () => {
   // {bytes, contentType: 'image/png'}: every `images` directory on the host becomes servable,
   // which is a folder name far too ordinary to hang a boundary on.
   it('INVALID: {path: a readable .png in an images directory whose parent holds no quest file} => null', async () => {
-    const filePath = AbsoluteFilePathStub({ value: '/home/user/Pictures/images/private.png' });
+    const filePath = '/home/user/Pictures/images/private.png';
     const bytes = new Uint8Array([...PNG_SIGNATURE, 0x07, 0x08, 0x09]);
     const proxy = imageServeBrokerProxy();
     proxy.setupFileBytesWithoutQuestFile({ filePath, bytes });
@@ -95,7 +94,7 @@ describe('imageServeBroker', () => {
   });
 
   it('ERROR: {read rejects ENOENT} => null', async () => {
-    const filePath = AbsoluteFilePathStub({ value: '/tmp/quest/images/missing.png' });
+    const filePath = '/tmp/quest/images/missing.png';
     const proxy = imageServeBrokerProxy();
     proxy.setupReadFailure({
       filePath,

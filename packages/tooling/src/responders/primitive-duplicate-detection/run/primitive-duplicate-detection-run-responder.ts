@@ -8,7 +8,6 @@
 import { cwd as processCwd, stdout } from '#gateway/node/process';
 import { duplicateDetectionDetectBroker } from '../../../brokers/duplicate-detection/detect/duplicate-detection-detect-broker';
 import { globPatternContract } from '../../../contracts/glob-pattern/glob-pattern-contract';
-import { absoluteFilePathContract } from '../../../contracts/absolute-file-path/absolute-file-path-contract';
 import { occurrenceThresholdContract } from '../../../contracts/occurrence-threshold/occurrence-threshold-contract';
 import { duplicateDetectionStatics } from '../../../statics/duplicate-detection/duplicate-detection-statics';
 
@@ -26,8 +25,8 @@ export const PrimitiveDuplicateDetectionRunResponder = async ({
 
   const pattern = globPatternContract.parse(patternArg ? patternArg.split('=')[1] : '**/*.ts');
   const cwd = cwdArg
-    ? absoluteFilePathContract.parse(cwdArg.split('=')[1] ?? '')
-    : absoluteFilePathContract.parse(processCwd());
+    ? (cwdArg.split('=')[1] ?? '')
+    : processCwd();
   const threshold = occurrenceThresholdContract.parse(
     thresholdArg
       ? parseInt(

@@ -78,7 +78,7 @@ describe('recipesSessionWithNestedSubagentBroker', () => {
         guild: GuildIdStub({ value: GUILD_ID }),
       });
 
-      const filePath = AbsoluteFilePathStub({ value: MAIN_PATH });
+      const filePath = MAIN_PATH;
 
       expect(proxy.uuidsIn({ filePath })).toStrictEqual([
         `${SESSION_ID}-user`,
@@ -106,7 +106,7 @@ describe('recipesSessionWithNestedSubagentBroker', () => {
         guild: GuildIdStub({ value: GUILD_ID }),
       });
 
-      const filePath = AbsoluteFilePathStub({ value: OUTER_PATH });
+      const filePath = OUTER_PATH;
 
       expect(proxy.uuidsIn({ filePath })).toStrictEqual([
         `${SESSION_ID}-outer-text`,
@@ -139,7 +139,7 @@ describe('recipesSessionWithNestedSubagentBroker', () => {
         guild: GuildIdStub({ value: GUILD_ID }),
       });
 
-      const filePath = AbsoluteFilePathStub({ value: NESTED_PATH });
+      const filePath = NESTED_PATH;
 
       expect(proxy.uuidsIn({ filePath })).toStrictEqual([`${SESSION_ID}-nested-text`]);
       expect(proxy.assistantTextsIn({ filePath })).toStrictEqual([

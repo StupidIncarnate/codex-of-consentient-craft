@@ -13,8 +13,6 @@
  * WHEN-NOT-TO-USE: When TypeScript AST-level accuracy is required (regex v1 heuristic)
  */
 
-import { absoluteFilePathContract } from '../../../contracts/absolute-file-path/absolute-file-path-contract';
-import type { AbsoluteFilePath } from '../../../contracts/absolute-file-path/absolute-file-path-contract';
 import type { ContentText } from '../../../contracts/content-text/content-text-contract';
 import { wsEdgeContract, type WsEdge } from '../../../contracts/ws-edge/ws-edge-contract';
 import { isNonTestFileGuard } from '../../../guards/is-non-test-file/is-non-test-file-guard';
@@ -29,14 +27,14 @@ const PACKAGES_REL = 'packages';
 export const architectureWsEdgesBroker = ({
   projectRoot,
 }: {
-  projectRoot: AbsoluteFilePath;
+  projectRoot: string;
 }): WsEdge[] => {
   const root = String(projectRoot);
-  const packagesDir = absoluteFilePathContract.parse(`${root}/${PACKAGES_REL}`);
+  const packagesDir = `${root}/${PACKAGES_REL}`;
   const allFiles = listTsFilesLayerBroker({ dirPath: packagesDir });
 
-  const emitterEntries: { eventType: ContentText; emitterFile: AbsoluteFilePath }[] = [];
-  const consumerEntries: { eventType: ContentText; consumerFile: AbsoluteFilePath }[] = [];
+  const emitterEntries: { eventType: ContentText; emitterFile: string }[] = [];
+  const consumerEntries: { eventType: ContentText; consumerFile: string }[] = [];
 
   for (const filePath of allFiles) {
     if (!isNonTestFileGuard({ filePath })) {
@@ -85,7 +83,7 @@ export const architectureWsEdgesBroker = ({
   // gateway attribution because every WS frame in this codebase exits the same
   // boundary file (the file that imports the WS-server adapter).
   const gateways = architectureWsGatewayBroker({ projectRoot });
-  const wsGatewayFile: AbsoluteFilePath | null = gateways[0] ?? null;
+  const wsGatewayFile: string | null = gateways[0] ?? null;
 
   const edges: WsEdge[] = [];
 
@@ -93,7 +91,7 @@ export const architectureWsEdgesBroker = ({
     const matchingEmitter = emitterEntries.find((e) => String(e.eventType) === String(eventType));
     const emitterFile = matchingEmitter?.emitterFile ?? null;
 
-    const consumerFiles: AbsoluteFilePath[] = consumerEntries
+    const consumerFiles: string[] = consumerEntries
       .filter((e) => String(e.eventType) === String(eventType))
       .map((e) => e.consumerFile);
 

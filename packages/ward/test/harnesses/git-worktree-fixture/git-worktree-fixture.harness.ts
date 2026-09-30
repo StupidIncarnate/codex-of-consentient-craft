@@ -23,7 +23,6 @@ import { gitRun } from '#gateway/bin/git';
 import { ensureDirSync, writeFileSync } from '#gateway/node/fs';
 import { ensureDir, writeFile } from '#gateway/node/fs__promises';
 import { dirname, join } from '#gateway/node/path';
-import type { AbsoluteFilePath } from '@dungeonmaster/shared/contracts';
 
 import type { GitRelativePath } from '../../../src/contracts/git-relative-path/git-relative-path-contract';
 
@@ -42,26 +41,26 @@ const GIT_COMMIT_CONFIG_ARGS = Object.entries(GIT_COMMIT_CONFIG).flatMap(([key, 
 ]);
 
 export const wardGitWorktreeFixtureHarness = (): {
-  initRepo: (params: { repoPath: AbsoluteFilePath }) => Promise<void>;
-  initBareRemote: (params: { remotePath: AbsoluteFilePath }) => Promise<void>;
-  addRemote: (params: { cwd: AbsoluteFilePath; remotePath: AbsoluteFilePath }) => Promise<void>;
-  pushBranch: (params: { cwd: AbsoluteFilePath; branchName: string }) => Promise<void>;
+  initRepo: (params: { repoPath: string }) => Promise<void>;
+  initBareRemote: (params: { remotePath: string }) => Promise<void>;
+  addRemote: (params: { cwd: string; remotePath: string }) => Promise<void>;
+  pushBranch: (params: { cwd: string; branchName: string }) => Promise<void>;
   checkoutNewBranch: (params: {
-    cwd: AbsoluteFilePath;
+    cwd: string;
     branchName: string;
   }) => Promise<void>;
   addWorktree: (params: {
-    repoPath: AbsoluteFilePath;
-    worktreePath: AbsoluteFilePath;
+    repoPath: string;
+    worktreePath: string;
     branchName: string;
   }) => Promise<void>;
   commitFile: (params: {
-    cwd: AbsoluteFilePath;
+    cwd: string;
     relativePath: GitRelativePath;
     content: string;
   }) => Promise<void>;
   writeUncommittedFile: (params: {
-    cwd: AbsoluteFilePath;
+    cwd: string;
     relativePath: GitRelativePath;
     content: string;
   }) => Promise<void>;
@@ -70,7 +69,7 @@ export const wardGitWorktreeFixtureHarness = (): {
     cwd,
     args,
   }: {
-    cwd: AbsoluteFilePath;
+    cwd: string;
     args: readonly string[];
   }): Promise<void> => {
     // A real fixture repo: git is expected on the machine running these integration tests, so a
@@ -86,7 +85,7 @@ export const wardGitWorktreeFixtureHarness = (): {
   };
 
   return {
-    initRepo: async ({ repoPath }: { repoPath: AbsoluteFilePath }): Promise<void> => {
+    initRepo: async ({ repoPath }: { repoPath: string }): Promise<void> => {
       ensureDirSync(repoPath);
       await runGit({ cwd: repoPath, args: ['init', '-b', 'main'] });
       writeFileSync(join(repoPath, 'base.txt'), 'base\n');
@@ -94,7 +93,7 @@ export const wardGitWorktreeFixtureHarness = (): {
       await runGit({ cwd: repoPath, args: ['commit', '-m', 'base'] });
     },
 
-    initBareRemote: async ({ remotePath }: { remotePath: AbsoluteFilePath }): Promise<void> => {
+    initBareRemote: async ({ remotePath }: { remotePath: string }): Promise<void> => {
       ensureDirSync(remotePath);
       await runGit({ cwd: remotePath, args: ['init', '--bare', '-b', 'main'] });
     },
@@ -103,8 +102,8 @@ export const wardGitWorktreeFixtureHarness = (): {
       cwd,
       remotePath,
     }: {
-      cwd: AbsoluteFilePath;
-      remotePath: AbsoluteFilePath;
+      cwd: string;
+      remotePath: string;
     }): Promise<void> => {
       await runGit({ cwd, args: ['remote', 'add', 'origin', remotePath] });
     },
@@ -115,7 +114,7 @@ export const wardGitWorktreeFixtureHarness = (): {
       cwd,
       branchName,
     }: {
-      cwd: AbsoluteFilePath;
+      cwd: string;
       branchName: string;
     }): Promise<void> => {
       await runGit({ cwd, args: ['push', '-u', 'origin', branchName] });
@@ -125,7 +124,7 @@ export const wardGitWorktreeFixtureHarness = (): {
       cwd,
       branchName,
     }: {
-      cwd: AbsoluteFilePath;
+      cwd: string;
       branchName: string;
     }): Promise<void> => {
       await runGit({ cwd, args: ['checkout', '-b', branchName] });
@@ -136,8 +135,8 @@ export const wardGitWorktreeFixtureHarness = (): {
       worktreePath,
       branchName,
     }: {
-      repoPath: AbsoluteFilePath;
-      worktreePath: AbsoluteFilePath;
+      repoPath: string;
+      worktreePath: string;
       branchName: string;
     }): Promise<void> => {
       await runGit({ cwd: repoPath, args: ['worktree', 'add', worktreePath, '-b', branchName] });
@@ -148,7 +147,7 @@ export const wardGitWorktreeFixtureHarness = (): {
       relativePath,
       content,
     }: {
-      cwd: AbsoluteFilePath;
+      cwd: string;
       relativePath: GitRelativePath;
       content: string;
     }): Promise<void> => {
@@ -164,7 +163,7 @@ export const wardGitWorktreeFixtureHarness = (): {
       relativePath,
       content,
     }: {
-      cwd: AbsoluteFilePath;
+      cwd: string;
       relativePath: GitRelativePath;
       content: string;
     }): Promise<void> => {

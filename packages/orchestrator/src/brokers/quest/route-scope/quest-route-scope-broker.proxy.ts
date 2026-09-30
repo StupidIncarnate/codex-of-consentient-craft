@@ -25,7 +25,6 @@
  */
 
 import { randomUUID } from '#gateway/node/crypto';
-import { AbsoluteFilePathStub } from '@dungeonmaster/shared/contracts/absolute-file-path/absolute-file-path.stub';
 import { GuildIdStub } from '@dungeonmaster/shared/contracts/guild-id/guild-id.stub';
 import type { Quest, OperationItem } from '@dungeonmaster/shared/contracts';
 import type { QuestStub } from '@dungeonmaster/shared/contracts/quest/quest.stub';
@@ -132,9 +131,7 @@ export const questRouteScopeBrokerProxy = (): {
 
       // No planner has run on any scope until `setupPlan` says one has: every scope's plan file is
       // staged absent at its own path, and `setupPlan` restages one of them (the later wins).
-      const questFolderPath = AbsoluteFilePathStub({
-        value: `${QUESTS_DIR}/${String(quest.folder)}`,
-      });
+      const questFolderPath = `${QUESTS_DIR}/${String(quest.folder)}`;
       for (const operation of quest.operations) {
         planProxy.setupPlanMissing({ questFolderPath, operationItemId: operation.id });
       }
@@ -150,7 +147,7 @@ export const questRouteScopeBrokerProxy = (): {
       plan: WorkPlan;
     }): void => {
       planProxy.setupPlanFound({
-        questFolderPath: AbsoluteFilePathStub({ value: `${QUESTS_DIR}/${String(quest.folder)}` }),
+        questFolderPath: `${QUESTS_DIR}/${String(quest.folder)}`,
         operationItemId,
         plan,
       });

@@ -18,7 +18,6 @@
 import { diskFreeBytes } from '#gateway/node/fs__promises';
 import { cpus, freemem, loadavg, totalmem } from '#gateway/node/os';
 import { dungeonmasterHomeFindBroker } from '@dungeonmaster/shared/brokers';
-import { absoluteFilePathContract } from '@dungeonmaster/shared/contracts';
 
 import { loadAverageContract } from '../../../contracts/load-average/load-average-contract';
 import { machineReadingContract } from '../../../contracts/machine-reading/machine-reading-contract';
@@ -36,7 +35,7 @@ export const machineReadBroker = async (): Promise<MachineReading> => {
   const loadAvg = loadAverageContract.parse(loadavg());
 
   const { homePath } = dungeonmasterHomeFindBroker();
-  const homeDirPath = absoluteFilePathContract.parse(homePath);
+  const homeDirPath = homePath;
 
   const [freeDiskBytes, oomKillsSinceBoot] = await Promise.all([
     diskFreeBytes(homeDirPath),

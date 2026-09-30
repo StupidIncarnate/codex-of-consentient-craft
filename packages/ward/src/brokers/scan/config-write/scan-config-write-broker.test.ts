@@ -1,4 +1,3 @@
-import { AbsoluteFilePathStub } from '@dungeonmaster/shared/contracts/absolute-file-path/absolute-file-path.stub';
 
 import { ScanRuleNameStub } from '../../../contracts/scan-rule-name/scan-rule-name.stub';
 import { scanConfigWriteBroker } from './scan-config-write-broker';
@@ -11,7 +10,7 @@ describe('scanConfigWriteBroker', () => {
 
     const result = scanConfigWriteBroker({
       rule: ScanRuleNameStub({ value: 'no-console' }),
-      rootPath: AbsoluteFilePathStub({ value: '/repo' }),
+      rootPath: '/repo',
     });
 
     const source = String(proxy.getWrittenSource({ directory: '/tmp/ward-scan-x1y2z3' }));

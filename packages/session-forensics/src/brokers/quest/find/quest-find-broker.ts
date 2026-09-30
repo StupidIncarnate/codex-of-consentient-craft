@@ -15,14 +15,13 @@ import { cwd } from '#gateway/node/process';
 import { join } from '#gateway/node/path';
 import { dungeonmasterHomeFindBroker } from '@dungeonmaster/shared/brokers';
 import { locationsStatics } from '@dungeonmaster/shared/statics';
-import { absoluteFilePathContract, type AbsoluteFilePath } from '@dungeonmaster/shared/contracts';
 import type { Quest } from '@dungeonmaster/shared/contracts';
 
 export const questFindBroker = ({
   questId,
 }: {
   questId: Quest['id'];
-}): AbsoluteFilePath | undefined => {
+}): string | undefined => {
   const { homePath: fallbackHomePath } = dungeonmasterHomeFindBroker();
   const currentDir = cwd();
 
@@ -54,7 +53,7 @@ export const questFindBroker = ({
     const matchedPath = candidatePaths.find((candidate) => existsSync(candidate));
 
     if (matchedPath !== undefined) {
-      return absoluteFilePathContract.parse(matchedPath);
+      return matchedPath;
     }
   }
 

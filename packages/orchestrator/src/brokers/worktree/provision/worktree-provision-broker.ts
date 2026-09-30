@@ -26,7 +26,6 @@
  * // { ok: true }, or { ok: false, failedStep: 'verify-links', error } for the caller to route
  */
 
-import type { AbsoluteFilePath } from '@dungeonmaster/shared/contracts';
 
 import { worktreePrepareStepStatics } from '../../../statics/worktree-prepare-step/worktree-prepare-step-statics';
 import { worktreePopulateNodeModulesBroker } from '../populate-node-modules/worktree-populate-node-modules-broker';
@@ -48,8 +47,8 @@ export const worktreeProvisionBroker = async ({
   worktreePath,
   onLine,
 }: {
-  repoRoot: AbsoluteFilePath;
-  worktreePath: AbsoluteFilePath;
+  repoRoot: string;
+  worktreePath: string;
   // Required, never optional — see packages/shared/CLAUDE.md, "Streaming Adapters". The mirror is
   // the long step, and this callback is the only route its output has to a UI.
   onLine: (line: string) => void;

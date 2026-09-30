@@ -1,5 +1,4 @@
 import { existsSyncProxy } from '#gateway/node/fs/exists-sync/exists-sync.proxy';
-import { type AbsoluteFilePath } from '@dungeonmaster/shared/contracts';
 
 const SOURCE_BARREL_SUFFIX = '/node_modules/@dungeonmaster/shared/statics.ts';
 
@@ -7,7 +6,7 @@ const SOURCE_BARREL_SUFFIX = '/node_modules/@dungeonmaster/shared/statics.ts';
 // to answer for every one of them — this proxy's own existsSyncProxy() sets no catch-all, but
 // several composing proxies (check-run's `implementation({ fn: () => true })`) register one of
 // their own on the SAME underlying fs.existsSync mock, so an unstaged path there answers true.
-const barrelCandidatesOf = ({ cwd }: { cwd: AbsoluteFilePath }): string[] => {
+const barrelCandidatesOf = ({ cwd }: { cwd: string }): string[] => {
   const segments = String(cwd).split('/');
   return [...segments.keys()]
     .map((index) => segments.slice(0, segments.length - index).join('/'))
@@ -16,13 +15,13 @@ const barrelCandidatesOf = ({ cwd }: { cwd: AbsoluteFilePath }): string[] => {
 };
 
 export const sourceConditionSupportedBrokerProxy = (): {
-  setupSupported: (params: { cwd: AbsoluteFilePath }) => void;
-  setupSupportedInProjectFolder: (params: { cwd: AbsoluteFilePath }) => void;
-  setupUnsupported: (params: { cwd: AbsoluteFilePath }) => void;
+  setupSupported: (params: { cwd: string }) => void;
+  setupSupportedInProjectFolder: (params: { cwd: string }) => void;
+  setupUnsupported: (params: { cwd: string }) => void;
 } => {
   const existsProxy = existsSyncProxy();
 
-  const stage = ({ cwd, presentAt }: { cwd: AbsoluteFilePath; presentAt: number }): void => {
+  const stage = ({ cwd, presentAt }: { cwd: string; presentAt: number }): void => {
     const candidates = barrelCandidatesOf({ cwd });
     for (const [index, candidate] of candidates.entries()) {
       existsProxy.returns({ path: candidate, exists: index === presentAt });
@@ -32,15 +31,15 @@ export const sourceConditionSupportedBrokerProxy = (): {
   return {
     // Stages the barrel at the OUTERMOST ancestor only, which is where npm hoists a workspace link
     // to — so a test using this also proves the broker keeps walking past folders that lack one.
-    setupSupported: ({ cwd }: { cwd: AbsoluteFilePath }): void => {
+    setupSupported: ({ cwd }: { cwd: string }): void => {
       stage({ cwd, presentAt: barrelCandidatesOf({ cwd }).length - 1 });
     },
 
-    setupSupportedInProjectFolder: ({ cwd }: { cwd: AbsoluteFilePath }): void => {
+    setupSupportedInProjectFolder: ({ cwd }: { cwd: string }): void => {
       stage({ cwd, presentAt: 0 });
     },
 
-    setupUnsupported: ({ cwd }: { cwd: AbsoluteFilePath }): void => {
+    setupUnsupported: ({ cwd }: { cwd: string }): void => {
       stage({ cwd, presentAt: -1 });
     },
   };

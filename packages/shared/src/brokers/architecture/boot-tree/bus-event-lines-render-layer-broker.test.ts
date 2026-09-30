@@ -1,15 +1,10 @@
 import { busEventLinesRenderLayerBroker } from './bus-event-lines-render-layer-broker';
 import { busEventLinesRenderLayerBrokerProxy } from './bus-event-lines-render-layer-broker.proxy';
-import { AbsoluteFilePathStub } from '../../../contracts/absolute-file-path/absolute-file-path.stub';
 import { ContentTextStub } from '../../../contracts/content-text/content-text.stub';
 import { EventBusContextStub } from '../../../contracts/event-bus-context/event-bus-context.stub';
 
-const RESPONDER_FILE = AbsoluteFilePathStub({
-  value: '/repo/packages/foo/src/responders/foo/foo-responder.ts',
-});
-const OTHER_FILE = AbsoluteFilePathStub({
-  value: '/repo/packages/foo/src/responders/other/other-responder.ts',
-});
+const RESPONDER_FILE = '/repo/packages/foo/src/responders/foo/foo-responder.ts';
+const OTHER_FILE = '/repo/packages/foo/src/responders/other/other-responder.ts';
 
 describe('busEventLinesRenderLayerBroker', () => {
   describe('responder is neither emitter nor subscriber', () => {

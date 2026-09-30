@@ -17,8 +17,6 @@
 
 import { existsSync, readFileSync, readdirEntriesSync } from '#gateway/node/fs';
 import type { DirEntrySync } from '#gateway/node/fs';
-import { absoluteFilePathContract } from '../../../contracts/absolute-file-path/absolute-file-path-contract';
-import type { AbsoluteFilePath } from '../../../contracts/absolute-file-path/absolute-file-path-contract';
 import { contentTextContract } from '../../../contracts/content-text/content-text-contract';
 import type { ContentText } from '../../../contracts/content-text/content-text-contract';
 import { gatewayLocationsStatics } from '../../../statics/gateway-locations/gateway-locations-statics';
@@ -37,14 +35,12 @@ const SUBPATH_LINE_INDENT = '  ';
 export const architectureGatewayInventoryBroker = ({
   projectRoot,
 }: {
-  projectRoot: AbsoluteFilePath;
+  projectRoot: string;
 }): ContentText => {
   const gatewayLintConfig = gatewayLintConfigReadBroker({ repoRoot: projectRoot });
 
   const groupSections = Object.values(gatewayLocationsStatics.folders).map((folder) => {
-    const folderSrcPath = absoluteFilePathContract.parse(
-      `${projectRoot}/${projectMapStatics.packagesDirName}/${GATEWAY_GROUP_DIR_NAME}/${folder}/${projectMapStatics.srcDirName}`,
-    );
+    const folderSrcPath = `${projectRoot}/${projectMapStatics.packagesDirName}/${GATEWAY_GROUP_DIR_NAME}/${folder}/${projectMapStatics.srcDirName}`;
 
     let subpathEntries: DirEntrySync[] = [];
     try {
@@ -64,9 +60,7 @@ export const architectureGatewayInventoryBroker = ({
 
     const subpathLines = subpathNames.flatMap((subpathName) => {
       const fullSubpath = `${gatewayLocationsStatics.importPrefix}/${folder}/${subpathName}`;
-      const barrelPath = absoluteFilePathContract.parse(
-        `${folderSrcPath}/${subpathName}/${subpathName}.ts`,
-      );
+      const barrelPath = `${folderSrcPath}/${subpathName}/${subpathName}.ts`;
       const bareSubpathLine = `${SUBPATH_LINE_INDENT}${fullSubpath}`;
 
       if (!existsSync(barrelPath)) {

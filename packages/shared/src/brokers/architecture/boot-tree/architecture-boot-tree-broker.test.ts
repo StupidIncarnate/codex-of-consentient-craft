@@ -1,13 +1,12 @@
 import { architectureBootTreeBroker } from './architecture-boot-tree-broker';
 import { architectureBootTreeBrokerProxy } from './architecture-boot-tree-broker.proxy';
-import { AbsoluteFilePathStub } from '../../../contracts/absolute-file-path/absolute-file-path.stub';
 import { ContentTextStub } from '../../../contracts/content-text/content-text.stub';
 
 describe('architectureBootTreeBroker', () => {
   describe('single startup → single flow → single responder → single broker', () => {
     it('VALID: {simple startup→flow→responder→broker chain} => renders clean boot tree', () => {
       const proxy = architectureBootTreeBrokerProxy();
-      const packageRoot = AbsoluteFilePathStub({ value: '/repo/packages/server' });
+      const packageRoot = '/repo/packages/server';
 
       proxy.setupStartupFiles({ packageRoot, names: ['start-server.ts'] });
       proxy.setupFileContentsMap({
@@ -60,7 +59,7 @@ describe('architectureBootTreeBroker', () => {
   describe('multi-flow startup', () => {
     it('VALID: {startup with three flows} => expands flows/{questFlow, guildFlow, healthFlow}', () => {
       const proxy = architectureBootTreeBrokerProxy();
-      const packageRoot = AbsoluteFilePathStub({ value: '/repo/packages/server' });
+      const packageRoot = '/repo/packages/server';
 
       proxy.setupStartupFiles({ packageRoot, names: ['start-server.ts'] });
       proxy.setupFileContentsMap({
@@ -105,7 +104,7 @@ describe('architectureBootTreeBroker', () => {
   describe('layer file inlining', () => {
     it('VALID: {flow imports entry + layer responder} => layer file absent from ↳ lines', () => {
       const proxy = architectureBootTreeBrokerProxy();
-      const packageRoot = AbsoluteFilePathStub({ value: '/repo/packages/server' });
+      const packageRoot = '/repo/packages/server';
 
       proxy.setupStartupFiles({ packageRoot, names: ['start-server.ts'] });
       proxy.setupFileContentsMap({
@@ -152,7 +151,7 @@ describe('architectureBootTreeBroker', () => {
   describe('WS subscriber broker', () => {
     it('VALID: {EventsOn broker in responder} => renders as a regular → broker leaf', () => {
       const proxy = architectureBootTreeBrokerProxy();
-      const packageRoot = AbsoluteFilePathStub({ value: '/repo/packages/server' });
+      const packageRoot = '/repo/packages/server';
 
       proxy.setupStartupFiles({ packageRoot, names: ['start-server.ts'] });
       proxy.setupFileContentsMap({
@@ -205,7 +204,7 @@ describe('architectureBootTreeBroker', () => {
   describe('no startup files', () => {
     it('EMPTY: {package with no startup files} => returns placeholder', () => {
       const proxy = architectureBootTreeBrokerProxy();
-      const packageRoot = AbsoluteFilePathStub({ value: '/repo/packages/library' });
+      const packageRoot = '/repo/packages/library';
 
       proxy.setupNoStartupFiles({ packageRoot });
 
@@ -222,7 +221,7 @@ describe('architectureBootTreeBroker', () => {
   describe('test and proxy file filtering', () => {
     it('VALID: {startup dir with proxy file} => proxy file absent from output', () => {
       const proxy = architectureBootTreeBrokerProxy();
-      const packageRoot = AbsoluteFilePathStub({ value: '/repo/packages/server' });
+      const packageRoot = '/repo/packages/server';
 
       proxy.setupStartupFiles({
         packageRoot,

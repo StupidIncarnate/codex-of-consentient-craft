@@ -15,7 +15,6 @@
  * WHEN-TO-USE: Inside architecture-responder-annotations-broker for http-backend packages
  */
 
-import type { AbsoluteFilePath } from '../../../contracts/absolute-file-path/absolute-file-path-contract';
 import {
   contentTextContract,
   type ContentText,
@@ -33,14 +32,14 @@ export const httpEdgesToAnnotationsLayerBroker = ({
   projectRoot,
   packageRoot,
 }: {
-  projectRoot: AbsoluteFilePath;
-  packageRoot: AbsoluteFilePath;
+  projectRoot: string;
+  packageRoot: string;
 }): ResponderAnnotationMap => {
   const allEdges = architectureEdgeGraphBroker({ projectRoot });
   const packageRootStr = String(packageRoot);
 
   // Collect edges that have a server responder file under this package.
-  const grouped = new Map<AbsoluteFilePath, HttpEdge[]>();
+  const grouped = new Map<string, HttpEdge[]>();
   for (const edge of allEdges) {
     if (edge.serverResponderFile === null) continue;
     if (!String(edge.serverResponderFile).startsWith(packageRootStr)) continue;
@@ -52,7 +51,7 @@ export const httpEdgesToAnnotationsLayerBroker = ({
     }
   }
 
-  const result = new Map<AbsoluteFilePath, ResponderAnnotation>();
+  const result = new Map<string, ResponderAnnotation>();
 
   for (const [responderFile, edges] of grouped) {
     // Build suffix: deduplicate (method, url) pairs so the same route isn't repeated.
@@ -73,7 +72,7 @@ export const httpEdgesToAnnotationsLayerBroker = ({
 
     // Build childLines: deduplicate webBrokerFile entries, render each as ← packages/<pkg> (Symbol).
     const childLines: ContentText[] = [];
-    const seenConsumerPaths: AbsoluteFilePath[] = [];
+    const seenConsumerPaths: string[] = [];
     for (const edge of edges) {
       if (edge.webBrokerFile === null) continue;
       const alreadySeen = seenConsumerPaths.some((p) => String(p) === String(edge.webBrokerFile));

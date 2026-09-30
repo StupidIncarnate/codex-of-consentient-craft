@@ -17,32 +17,27 @@
 import { ensureDirSync, rmSync } from '#gateway/node/fs';
 import { join } from '#gateway/node/path';
 
-import {
-  absoluteFilePathContract,
-  fileNameContract,
-  type AbsoluteFilePath,
-  type FileName,
-} from '@dungeonmaster/shared/contracts';
+import { fileNameContract, type FileName } from '@dungeonmaster/shared/contracts';
 import { homedir } from '#gateway/node/os';
 import { pid } from '#gateway/node/process';
 
 const MARKER_PREFIX = 'directory-flow-default-path-marker-';
 
 export const homeDirectoryMarkerHarness = (): {
-  create: () => Promise<{ name: FileName; path: AbsoluteFilePath }>;
-  cleanup: (params: { path: AbsoluteFilePath }) => void;
+  create: () => Promise<{ name: FileName; path: string }>;
+  cleanup: (params: { path: string }) => void;
 } => ({
   // Async only to satisfy `ban-sync-seeding-methods`, which requires every harness seeding method
   // to return a Promise — the write itself (ensureDirSync) stays synchronous, same as
   // `orchestrationEnvironmentHarness.seedHome`.
-  create: async (): Promise<{ name: FileName; path: AbsoluteFilePath }> => {
+  create: async (): Promise<{ name: FileName; path: string }> => {
     await Promise.resolve();
     const name = fileNameContract.parse(`${MARKER_PREFIX}${String(pid)}`);
-    const markerPath = absoluteFilePathContract.parse(join(homedir(), name));
+    const markerPath = join(homedir(), name);
     ensureDirSync(markerPath);
     return { name, path: markerPath };
   },
-  cleanup: ({ path }: { path: AbsoluteFilePath }): void => {
+  cleanup: ({ path }: { path: string }): void => {
     rmSync(path, { recursive: true, force: true });
   },
 });

@@ -1,4 +1,3 @@
-import { AbsoluteFilePathStub } from '@dungeonmaster/shared/contracts/absolute-file-path/absolute-file-path.stub';
 
 import { GitRelativePathStub } from '../../../contracts/git-relative-path/git-relative-path.stub';
 
@@ -15,7 +14,7 @@ describe('gitDiffUncommittedBroker', () => {
       });
 
       const result = await gitDiffUncommittedBroker({
-        cwd: AbsoluteFilePathStub({ value: '/project' }),
+        cwd: '/project',
       });
 
       expect(result).toStrictEqual([
@@ -36,7 +35,7 @@ describe('gitDiffUncommittedBroker', () => {
       });
 
       const result = await gitDiffUncommittedBroker({
-        cwd: AbsoluteFilePathStub({ value: '/project' }),
+        cwd: '/project',
       });
 
       expect(result).toStrictEqual([
@@ -52,7 +51,7 @@ describe('gitDiffUncommittedBroker', () => {
       const proxy = gitDiffUncommittedBrokerProxy();
       proxy.setupWorkingTree({ trackedOutput: 'x.ts\n', untrackedOutput: '' });
 
-      await gitDiffUncommittedBroker({ cwd: AbsoluteFilePathStub({ value: '/project' }) });
+      await gitDiffUncommittedBroker({ cwd: '/project' });
 
       expect({
         diff: proxy.getDiffCalls(),
@@ -91,7 +90,7 @@ describe('gitDiffUncommittedBroker', () => {
       });
 
       const result = await gitDiffUncommittedBroker({
-        cwd: AbsoluteFilePathStub({ value: '/project' }),
+        cwd: '/project',
       });
 
       expect(result).toStrictEqual([
@@ -108,7 +107,7 @@ describe('gitDiffUncommittedBroker', () => {
       proxy.setupWorkingTree({ trackedOutput: '', untrackedOutput: '' });
 
       const result = await gitDiffUncommittedBroker({
-        cwd: AbsoluteFilePathStub({ value: '/project' }),
+        cwd: '/project',
       });
 
       expect(result).toStrictEqual([]);
@@ -123,7 +122,7 @@ describe('gitDiffUncommittedBroker', () => {
       proxy.setupGitNotFound();
 
       const result = await gitDiffUncommittedBroker({
-        cwd: AbsoluteFilePathStub({ value: '/project' }),
+        cwd: '/project',
       });
 
       expect(result).toStrictEqual([]);

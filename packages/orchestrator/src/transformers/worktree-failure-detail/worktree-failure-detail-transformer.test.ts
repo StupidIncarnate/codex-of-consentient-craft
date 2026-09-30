@@ -1,10 +1,9 @@
-import { AbsoluteFilePathStub } from '@dungeonmaster/shared/contracts/absolute-file-path/absolute-file-path.stub';
 
 import { worktreeFailureDetailTransformer } from './worktree-failure-detail-transformer';
 
 describe('worktreeFailureDetailTransformer', () => {
   it('VALID: {no cleanupOutput} => returns worktreePath and cause joined by a colon', () => {
-    const worktreePath = AbsoluteFilePathStub({ value: '/repo/worktrees/quest-slug-a1b2c3d4' });
+    const worktreePath = '/repo/worktrees/quest-slug-a1b2c3d4';
 
     const result = worktreeFailureDetailTransformer({
       worktreePath,
@@ -15,7 +14,7 @@ describe('worktreeFailureDetailTransformer', () => {
   });
 
   it('VALID: {non-empty cleanupOutput} => appends the cleanup failure detail', () => {
-    const worktreePath = AbsoluteFilePathStub({ value: '/repo/worktrees/quest-slug-a1b2c3d4' });
+    const worktreePath = '/repo/worktrees/quest-slug-a1b2c3d4';
     const cleanupOutput = 'rm -rf failed: EBUSY';
 
     const result = worktreeFailureDetailTransformer({
@@ -30,7 +29,7 @@ describe('worktreeFailureDetailTransformer', () => {
   });
 
   it('EMPTY: {cleanupOutput: ""} => omits the cleanup suffix', () => {
-    const worktreePath = AbsoluteFilePathStub({ value: '/repo/worktrees/quest-slug-a1b2c3d4' });
+    const worktreePath = '/repo/worktrees/quest-slug-a1b2c3d4';
     const cleanupOutput = '';
 
     const result = worktreeFailureDetailTransformer({

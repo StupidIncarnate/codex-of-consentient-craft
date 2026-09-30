@@ -9,7 +9,6 @@
  */
 
 import { readdirIfExists, statIfExists, unlink } from '#gateway/node/fs__promises';
-import { type AbsoluteFilePath } from '@dungeonmaster/shared/contracts';
 
 import { storageBudgetStatics } from '../../../statics/storage-budget/storage-budget-statics';
 import { ttlStatics } from '../../../statics/ttl/ttl-statics';
@@ -19,7 +18,7 @@ const RUN_PREFIX_LENGTH = 'run-'.length;
 export const storagePruneBroker = async ({
   rootPath,
 }: {
-  rootPath: AbsoluteFilePath;
+  rootPath: string;
 }): Promise<void> => {
   const wardDir = `${rootPath}/.ward`;
 

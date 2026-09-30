@@ -3,13 +3,12 @@ import { DuplicateLiteralReportStub } from './duplicate-literal-report.stub';
 import { LiteralValueStub } from '../literal-value/literal-value.stub';
 import { LiteralTypeStub } from '../literal-type/literal-type.stub';
 import { LiteralOccurrenceStub } from '../literal-occurrence/literal-occurrence.stub';
-import { AbsoluteFilePathStub } from '../absolute-file-path/absolute-file-path.stub';
 
 describe('duplicateLiteralReportContract', () => {
   it('VALID: {value, type, occurrences, count: 2} => parses successfully', () => {
     const value = LiteralValueStub({ value: 'test' });
     const type = LiteralTypeStub({ value: 'string' });
-    const filePath = AbsoluteFilePathStub({ value: '/file.ts' });
+    const filePath = '/file.ts';
     const occurrences = [
       LiteralOccurrenceStub({ filePath, line: 1, column: 0 }),
       LiteralOccurrenceStub({ filePath, line: 10, column: 5 }),
@@ -31,8 +30,8 @@ describe('duplicateLiteralReportContract', () => {
   it('VALID: {value, type: "regex", occurrences, count: 5} => parses successfully', () => {
     const value = LiteralValueStub({ value: '/test/g' });
     const type = LiteralTypeStub({ value: 'regex' });
-    const filePath1 = AbsoluteFilePathStub({ value: '/file1.ts' });
-    const filePath2 = AbsoluteFilePathStub({ value: '/file2.ts' });
+    const filePath1 = '/file1.ts';
+    const filePath2 = '/file2.ts';
     const occurrences = [
       LiteralOccurrenceStub({ filePath: filePath1, line: 1, column: 0 }),
       LiteralOccurrenceStub({ filePath: filePath1, line: 5, column: 2 }),
@@ -60,7 +59,7 @@ describe('duplicateLiteralReportContract', () => {
   it('VALID: {value, type, occurrences, count: 150} => parses successfully', () => {
     const value = LiteralValueStub({ value: 'error' });
     const type = LiteralTypeStub({ value: 'string' });
-    const filePath = AbsoluteFilePathStub({ value: '/large/file.ts' });
+    const filePath = '/large/file.ts';
     const occurrences = Array.from({ length: 150 }, (_, i) => {
       return LiteralOccurrenceStub({ filePath, line: i + 1, column: 0 });
     });
@@ -84,7 +83,7 @@ describe('duplicateLiteralReportContract', () => {
   it('VALID: {value: "", type, occurrences, count: 3} => parses successfully', () => {
     const value = LiteralValueStub({ value: '' });
     const type = LiteralTypeStub({ value: 'string' });
-    const filePath = AbsoluteFilePathStub({ value: '/file.ts' });
+    const filePath = '/file.ts';
     const occurrences = [
       LiteralOccurrenceStub({ filePath, line: 1, column: 0 }),
       LiteralOccurrenceStub({ filePath, line: 2, column: 0 }),
@@ -109,7 +108,7 @@ describe('duplicateLiteralReportContract', () => {
     const longValue = 'a'.repeat(5000);
     const value = LiteralValueStub({ value: longValue });
     const type = LiteralTypeStub({ value: 'string' });
-    const filePath = AbsoluteFilePathStub({ value: '/file.ts' });
+    const filePath = '/file.ts';
     const occurrences = [
       LiteralOccurrenceStub({ filePath, line: 1, column: 0 }),
       LiteralOccurrenceStub({ filePath, line: 10, column: 5 }),
@@ -131,7 +130,7 @@ describe('duplicateLiteralReportContract', () => {
   it('VALID: {value: "special!@#$%chars", type, occurrences, count: 2} => parses successfully', () => {
     const value = LiteralValueStub({ value: 'special!@#$%chars' });
     const type = LiteralTypeStub({ value: 'string' });
-    const filePath = AbsoluteFilePathStub({ value: '/file.ts' });
+    const filePath = '/file.ts';
     const occurrences = [
       LiteralOccurrenceStub({ filePath, line: 1, column: 0 }),
       LiteralOccurrenceStub({ filePath, line: 5, column: 10 }),

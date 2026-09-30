@@ -15,7 +15,6 @@
  */
 
 import { readFileSync } from '#gateway/node/fs';
-import type { AbsoluteFilePath } from '../../../contracts/absolute-file-path/absolute-file-path-contract';
 import { contentTextContract } from '../../../contracts/content-text/content-text-contract';
 import type { ContentText } from '../../../contracts/content-text/content-text-contract';
 import { exportNameExtractTransformer } from '../../../transformers/export-name-extract/export-name-extract-transformer';
@@ -24,7 +23,7 @@ import { filePathToSymbolNameTransformer } from '../../../transformers/file-path
 export const architectureExportNameResolveBroker = ({
   filePath,
 }: {
-  filePath: AbsoluteFilePath;
+  filePath: string;
 }): ContentText => {
   const fallback = filePathToSymbolNameTransformer({ filePath });
   try {

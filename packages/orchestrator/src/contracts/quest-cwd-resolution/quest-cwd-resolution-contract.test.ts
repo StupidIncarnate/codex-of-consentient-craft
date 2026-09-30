@@ -1,4 +1,3 @@
-import { AbsoluteFilePathStub } from '@dungeonmaster/shared/contracts/absolute-file-path/absolute-file-path.stub';
 import { RepoRootCwdStub } from '@dungeonmaster/shared/contracts/repo-root-cwd/repo-root-cwd.stub';
 
 import { questCwdResolutionContract } from './quest-cwd-resolution-contract';
@@ -67,7 +66,7 @@ describe('questCwdResolutionContract', () => {
 
   describe('missing-worktree variant', () => {
     it('VALID: {kind: missing-worktree, worktreePath} => parses successfully', () => {
-      const worktreePath = AbsoluteFilePathStub({ value: '/repo/worktrees/quest-1' });
+      const worktreePath = '/repo/worktrees/quest-1';
 
       const result = questCwdResolutionContract.parse({
         kind: 'missing-worktree',
@@ -84,7 +83,7 @@ describe('questCwdResolutionContract', () => {
     });
 
     it('EDGE: {kind: missing-worktree, cwd also present} => strips the extraneous cwd field', () => {
-      const worktreePath = AbsoluteFilePathStub({ value: '/repo/worktrees/quest-1' });
+      const worktreePath = '/repo/worktrees/quest-1';
 
       const result = questCwdResolutionContract.parse({
         kind: 'missing-worktree',

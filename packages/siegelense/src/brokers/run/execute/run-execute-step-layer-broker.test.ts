@@ -1,5 +1,4 @@
 import { FsErrorStub } from '#gateway/node/fs/is-fs-error/fs-error.stub';
-import { AbsoluteFilePathStub } from '@dungeonmaster/shared/contracts/absolute-file-path/absolute-file-path.stub';
 
 import { UrlPathStub } from '../../../contracts/url-path/url-path.stub';
 import { SelectorStub } from '../../../contracts/selector/selector.stub';
@@ -145,10 +144,7 @@ describe('runExecuteStepLayerBroker', () => {
         error: new Error('page.goto: Timeout 30000ms exceeded.'),
       });
       const step = StepStub({ step: 'goto', path: UrlPathStub({ value: '/guilds' }) });
-      const shotPath = AbsoluteFilePathStub({
-        value:
-          '/repo/.dungeonmaster-assets/siegelense-assets/guilds/g1/instances/inst_1/runs/run_1/step3.png',
-      });
+      const shotPath = '/repo/.dungeonmaster-assets/siegelense-assets/guilds/g1/instances/inst_1/runs/run_1/step3.png';
 
       const outcome = await runExecuteStepLayerBroker({
         lane,
@@ -199,10 +195,7 @@ describe('runExecuteStepLayerBroker', () => {
         captureError: FsErrorStub({ code: 'ENOSPC', syscall: 'write', path: '/shots/step3.png' }),
       });
       const step = StepStub({ step: 'goto', path: UrlPathStub({ value: '/guilds' }) });
-      const shotPath = AbsoluteFilePathStub({
-        value:
-          '/repo/.dungeonmaster-assets/siegelense-assets/guilds/g1/instances/inst_1/runs/run_1/step3.png',
-      });
+      const shotPath = '/repo/.dungeonmaster-assets/siegelense-assets/guilds/g1/instances/inst_1/runs/run_1/step3.png';
 
       const outcome = await runExecuteStepLayerBroker({
         lane,

@@ -5,7 +5,6 @@
  * npm run ward -- --only test -- recover-guild-layer-responder.test.ts
  */
 
-import { AbsoluteFilePathStub } from '@dungeonmaster/shared/contracts/absolute-file-path/absolute-file-path.stub';
 import { GuildIdStub } from '@dungeonmaster/shared/contracts/guild-id/guild-id.stub';
 import { GuildListItemStub } from '@dungeonmaster/shared/contracts/guild-list-item/guild-list-item.stub';
 import { GuildPathStub } from '@dungeonmaster/shared/contracts/guild-path/guild-path.stub';
@@ -548,7 +547,7 @@ describe('RecoverGuildLayerResponder', () => {
       const questId = QuestIdStub({ value: 'quest-missing-worktree' });
       const workItemId = 'a99ef0d8-6ae0-1972-9617-694d449a8242';
       const workItem = WorkItemStub({ id: workItemId, status: 'pending' });
-      const worktreePath = AbsoluteFilePathStub({ value: '/repo/worktrees/missing-quest' });
+      const worktreePath = '/repo/worktrees/missing-quest';
       const quest = QuestStub({
         id: questId,
         folder: '001-missing-worktree-quest',
@@ -588,7 +587,7 @@ describe('RecoverGuildLayerResponder', () => {
       const guildPath = GuildPathStub({ value: '/home/user/test-guild' });
       const missingQuestId = QuestIdStub({ value: 'quest-missing-worktree-2' });
       const okQuestId = QuestIdStub({ value: 'quest-ok-2' });
-      const worktreePath = AbsoluteFilePathStub({ value: '/repo/worktrees/missing-quest-2' });
+      const worktreePath = '/repo/worktrees/missing-quest-2';
       const missingQuest = QuestStub({
         id: missingQuestId,
         folder: '001-missing-worktree-quest-2',
@@ -617,7 +616,7 @@ describe('RecoverGuildLayerResponder', () => {
       const guildPath = GuildPathStub({ value: '/home/user/test-guild' });
       const questId = QuestIdStub({ value: 'quest-drifted-branch' });
       const branchName = QuestBranchNameStub({ value: 'quest/drifted-branch-quest-drifted-b' });
-      const worktreePath = AbsoluteFilePathStub({ value: '/repo/worktrees/drifted-branch-quest' });
+      const worktreePath = '/repo/worktrees/drifted-branch-quest';
       const quest = QuestStub({
         id: questId,
         folder: '001-drifted-branch-quest',
@@ -658,9 +657,7 @@ describe('RecoverGuildLayerResponder', () => {
       const guildPath = GuildPathStub({ value: '/home/user/test-guild' });
       const questId = QuestIdStub({ value: 'quest-drifted-restore-fails' });
       const branchName = QuestBranchNameStub({ value: 'quest/drifted-restore-fails-d1e2f3a4' });
-      const worktreePath = AbsoluteFilePathStub({
-        value: '/repo/worktrees/drifted-restore-fails-quest',
-      });
+      const worktreePath = '/repo/worktrees/drifted-restore-fails-quest';
       const quest = QuestStub({
         id: questId,
         folder: '001-drifted-restore-fails-quest',

@@ -1,5 +1,4 @@
 import { installTestbedCreateBroker } from '@dungeonmaster/testing';
-import { AbsoluteFilePathStub } from '@dungeonmaster/shared/contracts/absolute-file-path/absolute-file-path.stub';
 
 import { binResolveHarness } from '../../../../test/harnesses/bin-resolve/bin-resolve.harness';
 import { BinCommandStub } from '../../../contracts/bin-command/bin-command.stub';
@@ -16,7 +15,7 @@ describe('binResolveBroker (integration)', () => {
     const testbed = installTestbedCreateBroker({
       baseName: 'ward-bin-resolve',
     });
-    const root = AbsoluteFilePathStub({ value: testbed.guildPath });
+    const root = testbed.guildPath;
     await harness.seedFile({
       root,
       relativePath: 'package.json',
@@ -33,7 +32,7 @@ describe('binResolveBroker (integration)', () => {
       contents: '#!/bin/sh\n',
     });
     harness.prependPathDecoy({ root, binName: 'jest' });
-    const cwd = AbsoluteFilePathStub({ value: `${testbed.guildPath}/packages/app` });
+    const cwd = `${testbed.guildPath}/packages/app`;
 
     const result = binResolveBroker({ binName: BinCommandStub({ value: 'jest' }), cwd });
 
@@ -51,7 +50,7 @@ describe('binResolveBroker (integration)', () => {
     const testbed = installTestbedCreateBroker({
       baseName: 'ward-bin-resolve-own',
     });
-    const root = AbsoluteFilePathStub({ value: testbed.guildPath });
+    const root = testbed.guildPath;
     await harness.seedFile({
       root,
       relativePath: 'package.json',
@@ -67,7 +66,7 @@ describe('binResolveBroker (integration)', () => {
       relativePath: 'packages/app/node_modules/.bin/jest',
       contents: '#!/bin/sh\n',
     });
-    const cwd = AbsoluteFilePathStub({ value: `${testbed.guildPath}/packages/app` });
+    const cwd = `${testbed.guildPath}/packages/app`;
 
     const result = binResolveBroker({ binName: BinCommandStub({ value: 'jest' }), cwd });
 
@@ -80,7 +79,7 @@ describe('binResolveBroker (integration)', () => {
     const testbed = installTestbedCreateBroker({
       baseName: 'ward-bin-resolve-bare',
     });
-    const root = AbsoluteFilePathStub({ value: testbed.guildPath });
+    const root = testbed.guildPath;
     await harness.seedFile({
       root,
       relativePath: 'package.json',
@@ -92,7 +91,7 @@ describe('binResolveBroker (integration)', () => {
       contents: JSON.stringify({ name: 'app' }),
     });
     harness.prependPathDecoy({ root, binName: 'jest' });
-    const cwd = AbsoluteFilePathStub({ value: `${testbed.guildPath}/packages/app` });
+    const cwd = `${testbed.guildPath}/packages/app`;
 
     const result = binResolveBroker({ binName: BinCommandStub({ value: 'jest' }), cwd });
 

@@ -1,4 +1,3 @@
-import { AbsoluteFilePathStub } from '@dungeonmaster/shared/contracts/absolute-file-path/absolute-file-path.stub';
 import { QuestIdStub } from '@dungeonmaster/shared/contracts/quest-id/quest-id.stub';
 import { QuestStub } from '@dungeonmaster/shared/contracts/quest/quest.stub';
 import { QuestWorkItemIdStub } from '@dungeonmaster/shared/contracts/quest-work-item-id/quest-work-item-id.stub';
@@ -153,7 +152,7 @@ describe('runChatLayerBroker', () => {
         role: 'chaoswhisperer',
         status: 'in_progress',
       });
-      const worktreePath = AbsoluteFilePathStub({ value: '/repo/worktrees/add-auth' });
+      const worktreePath = '/repo/worktrees/add-auth';
       const quest = QuestStub({
         id: 'add-auth',
         folder: '001-add-auth',
@@ -219,7 +218,7 @@ describe('runChatLayerBroker', () => {
         role: 'chaoswhisperer',
         status: 'in_progress',
       });
-      const worktreePath = AbsoluteFilePathStub({ value: '/repo/worktrees/add-auth' });
+      const worktreePath = '/repo/worktrees/add-auth';
       const quest = QuestStub({
         id: 'add-auth',
         folder: '001-add-auth',

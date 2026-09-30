@@ -1,12 +1,11 @@
 import { FsErrorStub } from '#gateway/node/fs/is-fs-error/fs-error.stub';
-import { AbsoluteFilePathStub } from '@dungeonmaster/shared/contracts/absolute-file-path/absolute-file-path.stub';
 
 import { snapshotCaptureBroker } from './snapshot-capture-broker';
 import { snapshotCaptureBrokerProxy } from './snapshot-capture-broker.proxy';
 import { SnapshotNameStub } from '../../../contracts/snapshot-name/snapshot-name.stub';
 import { SnapshotRecordStub } from '../../../contracts/snapshot-record/snapshot-record.stub';
 
-const HOME_PATH = AbsoluteFilePathStub({ value: '/tmp/dm-siege-inst_7f3a9c21' });
+const HOME_PATH = '/tmp/dm-siege-inst_7f3a9c21';
 const CAPTURE_AT_MS = 1735689600000;
 
 describe('snapshotCaptureBroker', () => {

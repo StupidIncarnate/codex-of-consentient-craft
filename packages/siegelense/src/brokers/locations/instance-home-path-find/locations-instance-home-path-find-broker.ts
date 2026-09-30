@@ -14,7 +14,6 @@
 
 import { tmpdir } from '#gateway/node/os';
 import { join } from '#gateway/node/path';
-import { absoluteFilePathContract, type AbsoluteFilePath } from '@dungeonmaster/shared/contracts';
 import { driverStatics } from '../../../statics/driver/driver-statics';
 import type { SiegeInstance } from '@dungeonmaster/shared/contracts';
 
@@ -22,10 +21,10 @@ export const locationsInstanceHomePathFindBroker = ({
   instanceId,
 }: {
   instanceId: SiegeInstance['id'];
-}): AbsoluteFilePath => {
+}): string => {
   const tmpDir = tmpdir();
 
   const joined = join(tmpDir, `${driverStatics.boot.homePrefix}${instanceId}`);
 
-  return absoluteFilePathContract.parse(joined);
+  return joined;
 };

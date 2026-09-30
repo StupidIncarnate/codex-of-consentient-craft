@@ -15,8 +15,6 @@
  * under subscriber responder lines.
  */
 
-import { absoluteFilePathContract } from '../../../contracts/absolute-file-path/absolute-file-path-contract';
-import type { AbsoluteFilePath } from '../../../contracts/absolute-file-path/absolute-file-path-contract';
 import {
   busSubscriberFileContract,
   type BusSubscriberFile,
@@ -37,24 +35,24 @@ export const busSubscriberFilesFindLayerBroker = ({
   projectRoot,
   buses,
 }: {
-  projectRoot: AbsoluteFilePath;
+  projectRoot: string;
   buses: EventBus[];
 }): BusSubscriberFile[] => {
   if (buses.length === 0) return [];
 
   const root = String(projectRoot);
-  const packagesDir = absoluteFilePathContract.parse(`${root}/${PACKAGES_REL}`);
+  const packagesDir = `${root}/${PACKAGES_REL}`;
   const allFiles = listTsFilesLayerBroker({ dirPath: packagesDir });
 
-  const stateFileSet = new Set<AbsoluteFilePath>(buses.map((b) => b.stateFile));
+  const stateFileSet = new Set<string>(buses.map((b) => b.stateFile));
 
   // Pass 1: per bus, find every file that calls `<exportName>.on(`.
   // Track sources so pass 2 can use them without re-reading.
-  const filesWithSource: { path: AbsoluteFilePath; source: ContentText }[] = [];
+  const filesWithSource: { path: string; source: ContentText }[] = [];
   // Map from bus exportName to the adapter files that subscribe to that bus.
-  const subscriberAdaptersByBus = new Map<ContentText, Set<AbsoluteFilePath>>();
+  const subscriberAdaptersByBus = new Map<ContentText, Set<string>>();
   // Map from bus exportName to non-adapter files that call `.on` directly.
-  const directNonAdapterByBus = new Map<ContentText, Set<AbsoluteFilePath>>();
+  const directNonAdapterByBus = new Map<ContentText, Set<string>>();
 
   for (const filePath of allFiles) {
     if (!isNonTestFileGuard({ filePath })) continue;
@@ -68,11 +66,11 @@ export const busSubscriberFilesFindLayerBroker = ({
       const matches = busOnCallDetectTransformer({ source, busExportName: bus.exportName });
       if (!matches) continue;
       if (isAdapter) {
-        const adapters = subscriberAdaptersByBus.get(bus.exportName) ?? new Set<AbsoluteFilePath>();
+        const adapters = subscriberAdaptersByBus.get(bus.exportName) ?? new Set<string>();
         adapters.add(filePath);
         subscriberAdaptersByBus.set(bus.exportName, adapters);
       } else {
-        const directs = directNonAdapterByBus.get(bus.exportName) ?? new Set<AbsoluteFilePath>();
+        const directs = directNonAdapterByBus.get(bus.exportName) ?? new Set<string>();
         directs.add(filePath);
         directNonAdapterByBus.set(bus.exportName, directs);
       }
@@ -86,7 +84,7 @@ export const busSubscriberFilesFindLayerBroker = ({
   for (const bus of buses) {
     const subscriberAdapters = subscriberAdaptersByBus.get(bus.exportName) ?? new Set();
     const directNonAdapters = directNonAdapterByBus.get(bus.exportName) ?? new Set();
-    const seen = new Set<AbsoluteFilePath>();
+    const seen = new Set<string>();
 
     for (const direct of directNonAdapters) {
       seen.add(direct);

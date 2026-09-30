@@ -1,6 +1,5 @@
 import { locationsProfilesPathFindBroker } from './locations-profiles-path-find-broker';
 import { locationsProfilesPathFindBrokerProxy } from './locations-profiles-path-find-broker.proxy';
-import { AbsoluteFilePathStub } from '@dungeonmaster/shared/contracts/absolute-file-path/absolute-file-path.stub';
 import { SpecHashStub } from '../../../contracts/spec-hash/spec-hash.stub';
 
 describe('locationsProfilesPathFindBroker', () => {
@@ -19,7 +18,7 @@ describe('locationsProfilesPathFindBroker', () => {
       const result = locationsProfilesPathFindBroker({ specHash });
 
       expect(result).toBe(
-        AbsoluteFilePathStub({ value: '/home/user/.dungeonmaster/siegelense/profiles/a3f9c2e1' }),
+        '/home/user/.dungeonmaster/siegelense/profiles/a3f9c2e1',
       );
     });
 
@@ -38,9 +37,7 @@ describe('locationsProfilesPathFindBroker', () => {
       const result = locationsProfilesPathFindBroker({ specHash });
 
       expect(result).toBe(
-        AbsoluteFilePathStub({
-          value: `/srv/agents/worker-3/state/.dungeonmaster/siegelense/profiles/${longHash}`,
-        }),
+        `/srv/agents/worker-3/state/.dungeonmaster/siegelense/profiles/${longHash}`,
       );
     });
   });

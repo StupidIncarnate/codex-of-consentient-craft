@@ -16,7 +16,6 @@
 import { existsSyncProxy } from '#gateway/node/fs/exists-sync/exists-sync.proxy';
 import { ensureDirProxy } from '#gateway/node/fs__promises/ensure-dir/ensure-dir.proxy';
 import { join } from '#gateway/node/path';
-import { AbsoluteFilePathStub } from '@dungeonmaster/shared/contracts/absolute-file-path/absolute-file-path.stub';
 import { ContentTextStub } from '@dungeonmaster/shared/contracts/content-text/content-text.stub';
 import type { ContentText } from '@dungeonmaster/shared/contracts';
 import { registerMock, requireActual } from '@dungeonmaster/testing/register-mock';
@@ -107,9 +106,7 @@ export const profileSampleRecordBrokerProxy = (): {
 
     mkdirProxy.succeeds({ path: samplesDirFor({ profilesPath }) });
     writeProxy.succeeds({
-      path: AbsoluteFilePathStub({
-        value: String(recordPathFor({ profilesPath, instanceId })),
-      }),
+      path: String(recordPathFor({ profilesPath, instanceId })),
     });
   };
 
@@ -136,9 +133,7 @@ export const profileSampleRecordBrokerProxy = (): {
 
     getWrittenRecord: ({ profilesPath, instanceId }): unknown =>
       writeProxy.writtenContentsFor({
-        path: AbsoluteFilePathStub({
-          value: String(recordPathFor({ profilesPath, instanceId })),
-        }),
+        path: String(recordPathFor({ profilesPath, instanceId })),
       }),
 
     getStderrMessages: (): readonly ContentText[] =>

@@ -1,6 +1,4 @@
 import { CpNotInstalledErrorProxy } from '#gateway/bin/cp/cp-run/cp-not-installed.error.proxy';
-import type { AbsoluteFilePath } from '@dungeonmaster/shared/contracts';
-import { AbsoluteFilePathStub } from '@dungeonmaster/shared/contracts/absolute-file-path/absolute-file-path.stub';
 import { registerMock, requireActual } from '@dungeonmaster/testing/register-mock';
 import { copyRecursiveProxy } from '#gateway/bin/cp/copy-recursive/copy-recursive.proxy';
 import { readdirEntriesSyncProxy } from '#gateway/node/fs/readdir-entries-sync/readdir-entries-sync.proxy';
@@ -21,10 +19,10 @@ const copyArgsOf = (call: readonly unknown[]): unknown => {
 };
 
 export const worktreeSeedDistBrokerProxy = (): {
-  setupPackagesDirAbsent: (params: { repoRoot: AbsoluteFilePath }) => void;
+  setupPackagesDirAbsent: (params: { repoRoot: string }) => void;
   setupPackages: (params: {
-    repoRoot: AbsoluteFilePath;
-    worktreePath: AbsoluteFilePath;
+    repoRoot: string;
+    worktreePath: string;
     packages: {
       name: string;
       isPackage?: boolean;
@@ -49,7 +47,7 @@ export const worktreeSeedDistBrokerProxy = (): {
     .implement((...segments: never[]) => realPath.join(...segments));
 
   return {
-    setupPackagesDirAbsent: ({ repoRoot }: { repoRoot: AbsoluteFilePath }): void => {
+    setupPackagesDirAbsent: ({ repoRoot }: { repoRoot: string }): void => {
       isAccessibleProxy.missing({ path: `${String(repoRoot)}/packages` });
     },
 
@@ -58,8 +56,8 @@ export const worktreeSeedDistBrokerProxy = (): {
       worktreePath,
       packages,
     }: {
-      repoRoot: AbsoluteFilePath;
-      worktreePath: AbsoluteFilePath;
+      repoRoot: string;
+      worktreePath: string;
       packages: {
         name: string;
         isPackage?: boolean;
@@ -69,7 +67,7 @@ export const worktreeSeedDistBrokerProxy = (): {
     }): void => {
       isAccessibleProxy.present({ path: `${String(repoRoot)}/packages` });
       readdirProxy.returns({
-        path: AbsoluteFilePathStub({ value: `${String(repoRoot)}/packages` }),
+        path: `${String(repoRoot)}/packages`,
         entries: packages.map(({ name }) => ({ name, kind: 'directory' as const })),
       });
 

@@ -1,6 +1,5 @@
 import { locationsRateLimitsHistoryPathFindBroker } from './locations-rate-limits-history-path-find-broker';
 import { locationsRateLimitsHistoryPathFindBrokerProxy } from './locations-rate-limits-history-path-find-broker.proxy';
-import { AbsoluteFilePathStub } from '../../../contracts/absolute-file-path/absolute-file-path.stub';
 
 describe('locationsRateLimitsHistoryPathFindBroker', () => {
   it('VALID: {homeDir: "/home/user"} => returns /home/user/.dungeonmaster/rate-limits-history.jsonl', () => {
@@ -15,7 +14,7 @@ describe('locationsRateLimitsHistoryPathFindBroker', () => {
     const result = locationsRateLimitsHistoryPathFindBroker();
 
     expect(result).toBe(
-      AbsoluteFilePathStub({ value: '/home/user/.dungeonmaster/rate-limits-history.jsonl' }),
+      '/home/user/.dungeonmaster/rate-limits-history.jsonl',
     );
   });
 });

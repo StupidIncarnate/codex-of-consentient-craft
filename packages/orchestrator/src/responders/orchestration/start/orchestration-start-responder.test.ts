@@ -1,4 +1,3 @@
-import { AbsoluteFilePathStub } from '@dungeonmaster/shared/contracts/absolute-file-path/absolute-file-path.stub';
 import { GuildIdStub } from '@dungeonmaster/shared/contracts/guild-id/guild-id.stub';
 import { OperationItemStub } from '@dungeonmaster/shared/contracts/operation-item/operation-item.stub';
 import { PackageGraphEntryStub } from '@dungeonmaster/shared/contracts/package-graph-entry/package-graph-entry.stub';
@@ -55,9 +54,7 @@ const PRIOR_RIFTCARVER_OP_UUID = 'dddd0000-58cc-4372-a567-0e02b2c3d479';
 // quest a previous Start already seeded and a previous riftcarver already carved, so its quest.json
 // holds both — Start reads neither and writes neither.
 const EXISTING_BRANCH_NAME = QuestBranchNameStub({ value: 'quest/add-auth-f47ac10b' });
-const EXISTING_WORKTREE_PATH = AbsoluteFilePathStub({
-  value: '/repo/worktrees/add-auth-f47ac10b',
-});
+const EXISTING_WORKTREE_PATH = '/repo/worktrees/add-auth-f47ac10b';
 
 // The entry family's own text — `questFlowStatics.feature.families.riftcarver.text`, identical for
 // bug-hunt — restated as one literal so the assertions below read as plain objects.

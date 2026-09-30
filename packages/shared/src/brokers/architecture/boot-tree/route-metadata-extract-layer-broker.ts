@@ -11,7 +11,6 @@
  *   safely return [] because they contain no &lt;Route&gt; JSX
  */
 
-import type { AbsoluteFilePath } from '../../../contracts/absolute-file-path/absolute-file-path-contract';
 import type { RouteMetadata } from '../../../contracts/route-metadata/route-metadata-contract';
 import { routeMetadataExtractTransformer } from '../../../transformers/route-metadata-extract/route-metadata-extract-transformer';
 import { readFileContentsLayerBroker } from './read-file-contents-layer-broker';
@@ -19,7 +18,7 @@ import { readFileContentsLayerBroker } from './read-file-contents-layer-broker';
 export const routeMetadataExtractLayerBroker = ({
   flowFile,
 }: {
-  flowFile: AbsoluteFilePath;
+  flowFile: string;
 }): RouteMetadata[] => {
   const source = readFileContentsLayerBroker({ filePath: flowFile });
   if (source === undefined) {

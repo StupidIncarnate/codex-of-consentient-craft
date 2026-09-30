@@ -1,13 +1,12 @@
 import { countFilesRecursiveLayerBroker } from './count-files-recursive-layer-broker';
 import { countFilesRecursiveLayerBrokerProxy } from './count-files-recursive-layer-broker.proxy';
-import { AbsoluteFilePathStub } from '../../../contracts/absolute-file-path/absolute-file-path.stub';
 import { FileMissingErrorStub } from '#gateway/node/fs/file-missing-error/file-missing-error.stub';
 
 describe('countFilesRecursiveLayerBroker', () => {
   describe('flat directory', () => {
     it('VALID: directory with 3 files => returns 3', () => {
       const proxy = countFilesRecursiveLayerBrokerProxy();
-      const dirPath = AbsoluteFilePathStub({ value: '/project/src/contracts' });
+      const dirPath = '/project/src/contracts';
 
       proxy.setupFlatDirectory({ dirPath, fileNames: ['a.ts', 'b.ts', 'c.ts'] });
 
@@ -20,7 +19,7 @@ describe('countFilesRecursiveLayerBroker', () => {
   describe('nested directory', () => {
     it('VALID: directory with subdirectory containing files => returns total count', () => {
       const proxy = countFilesRecursiveLayerBrokerProxy();
-      const dirPath = AbsoluteFilePathStub({ value: '/project/src/brokers' });
+      const dirPath = '/project/src/brokers';
 
       proxy.setupNestedDirectory({
         dirPath,
@@ -37,7 +36,7 @@ describe('countFilesRecursiveLayerBroker', () => {
   describe('empty directory', () => {
     it('EMPTY: empty directory => returns 0', () => {
       const proxy = countFilesRecursiveLayerBrokerProxy();
-      const dirPath = AbsoluteFilePathStub({ value: '/project/src/empty' });
+      const dirPath = '/project/src/empty';
 
       proxy.setupEmpty({ dirPath });
 
@@ -50,7 +49,7 @@ describe('countFilesRecursiveLayerBroker', () => {
   describe('error handling', () => {
     it('ERROR: directory read fails => returns 0', () => {
       const proxy = countFilesRecursiveLayerBrokerProxy();
-      const dirPath = AbsoluteFilePathStub({ value: '/nonexistent' });
+      const dirPath = '/nonexistent';
 
       proxy.setupError({ dirPath, error: FileMissingErrorStub({ path: dirPath }) });
 

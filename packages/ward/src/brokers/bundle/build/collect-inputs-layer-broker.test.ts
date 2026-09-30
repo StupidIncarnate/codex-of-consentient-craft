@@ -1,4 +1,3 @@
-import { AbsoluteFilePathStub } from '@dungeonmaster/shared/contracts/absolute-file-path/absolute-file-path.stub';
 
 import { collectInputsLayerBroker } from './collect-inputs-layer-broker';
 import { collectInputsLayerBrokerProxy } from './collect-inputs-layer-broker.proxy';
@@ -6,9 +5,9 @@ import { collectInputsLayerBrokerProxy } from './collect-inputs-layer-broker.pro
 describe('collectInputsLayerBroker', () => {
   describe('a workspace with a dependency and a devDependency', () => {
     it('VALID: {web depends on shared} => returns the lockfile plus both packages, workspace-relative', async () => {
-      const web = AbsoluteFilePathStub({ value: '/project/packages/web' });
-      const shared = AbsoluteFilePathStub({ value: '/project/packages/shared' });
-      const testing = AbsoluteFilePathStub({ value: '/project/packages/testing' });
+      const web = '/project/packages/web';
+      const shared = '/project/packages/shared';
+      const testing = '/project/packages/testing';
       const proxy = collectInputsLayerBrokerProxy();
       proxy.setupWorkspaceRoot({
         packageDirs: ['shared', 'testing', 'web'],
@@ -51,9 +50,9 @@ describe('collectInputsLayerBroker', () => {
     // followed devDependencies it would glob there, and the unstaged call throws — which is the
     // only way this assertion can tell "not reached" from "reached and empty".
     it('VALID: {testing reachable only as a devDependency} => never globs it', async () => {
-      const web = AbsoluteFilePathStub({ value: '/project/packages/web' });
-      const shared = AbsoluteFilePathStub({ value: '/project/packages/shared' });
-      const testing = AbsoluteFilePathStub({ value: '/project/packages/testing' });
+      const web = '/project/packages/web';
+      const shared = '/project/packages/shared';
+      const testing = '/project/packages/testing';
       const proxy = collectInputsLayerBrokerProxy();
       proxy.setupWorkspaceRoot({
         packageDirs: ['shared', 'testing', 'web'],
@@ -90,9 +89,9 @@ describe('collectInputsLayerBroker', () => {
 
   describe('transitive reach', () => {
     it('VALID: {web -> shared -> core} => includes the package two hops away', async () => {
-      const web = AbsoluteFilePathStub({ value: '/project/packages/web' });
-      const shared = AbsoluteFilePathStub({ value: '/project/packages/shared' });
-      const core = AbsoluteFilePathStub({ value: '/project/packages/core' });
+      const web = '/project/packages/web';
+      const shared = '/project/packages/shared';
+      const core = '/project/packages/core';
       const proxy = collectInputsLayerBrokerProxy();
       proxy.setupWorkspaceRoot({
         packageDirs: ['core', 'shared', 'web'],
@@ -134,7 +133,7 @@ describe('collectInputsLayerBroker', () => {
 
   describe('a repo with no workspaces', () => {
     it('VALID: {a single-package repo} => hashes the package itself against its own root', async () => {
-      const solo = AbsoluteFilePathStub({ value: '/solo' });
+      const solo = '/solo';
       const proxy = collectInputsLayerBrokerProxy();
       // The manifest this stages declares no `workspaces`, and nothing above /solo declares any
       // either, so the workspace walk answers null and the package is its own root.

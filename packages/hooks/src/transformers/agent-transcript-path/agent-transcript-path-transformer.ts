@@ -14,7 +14,6 @@
  * //   '/home/user/.claude/projects/-repo/agent-abc.jsonl',
  * // ] as branded AbsoluteFilePath entries
  */
-import { absoluteFilePathContract, type AbsoluteFilePath } from '@dungeonmaster/shared/contracts';
 
 const JSONL_SUFFIX = '.jsonl';
 
@@ -24,7 +23,7 @@ export const agentTranscriptPathTransformer = ({
 }: {
   transcriptPath: string;
   agentId: string;
-}): readonly AbsoluteFilePath[] => {
+}): readonly string[] => {
   const agentBasename = `agent-${agentId}.jsonl`;
   const lastSlashIndex = transcriptPath.lastIndexOf('/');
   const basename =
@@ -42,5 +41,5 @@ export const agentTranscriptPathTransformer = ({
 
   return rawCandidates
     .filter((candidate, index) => rawCandidates.indexOf(candidate) === index)
-    .map((candidate) => absoluteFilePathContract.parse(candidate));
+    .map((candidate) => candidate);
 };

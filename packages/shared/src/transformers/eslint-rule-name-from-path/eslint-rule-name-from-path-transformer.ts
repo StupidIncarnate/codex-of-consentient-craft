@@ -15,13 +15,12 @@ import {
   contentTextContract,
   type ContentText,
 } from '../../contracts/content-text/content-text-contract';
-import type { AbsoluteFilePath } from '../../contracts/absolute-file-path/absolute-file-path-contract';
 import { projectMapHeadlineEslintPluginStatics } from '../../statics/project-map-headline-eslint-plugin/project-map-headline-eslint-plugin-statics';
 
 export const eslintRuleNameFromPathTransformer = ({
   filePath,
 }: {
-  filePath: AbsoluteFilePath;
+  filePath: string;
 }): ContentText => {
   const parts = String(filePath).split('/');
   // Parent directory name is the rule domain folder (e.g. 'ban-primitives')

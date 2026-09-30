@@ -1,4 +1,3 @@
-import { AbsoluteFilePathStub } from '@dungeonmaster/shared/contracts/absolute-file-path/absolute-file-path.stub';
 import { ContentTextStub } from '@dungeonmaster/shared/contracts/content-text/content-text.stub';
 
 import { ShutdownReasonStub } from '../../../contracts/shutdown-reason/shutdown-reason.stub';
@@ -6,9 +5,7 @@ import { ShutdownReasonStub } from '../../../contracts/shutdown-reason/shutdown-
 import { shutdownReasonReadBroker } from './shutdown-reason-read-broker';
 import { shutdownReasonReadBrokerProxy } from './shutdown-reason-read-broker.proxy';
 
-const EVIDENCE_PATH = AbsoluteFilePathStub({
-  value: '/home/user/.dungeonmaster/siegelense/unowned/instances/inst_7f3a9c21',
-});
+const EVIDENCE_PATH = '/home/user/.dungeonmaster/siegelense/unowned/instances/inst_7f3a9c21';
 
 describe('shutdownReasonReadBroker', () => {
   describe('the driver reaped its own lane', () => {

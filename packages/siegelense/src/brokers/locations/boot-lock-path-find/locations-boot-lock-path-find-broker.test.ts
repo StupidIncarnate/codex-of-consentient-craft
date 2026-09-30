@@ -1,6 +1,5 @@
 import { locationsBootLockPathFindBroker } from './locations-boot-lock-path-find-broker';
 import { locationsBootLockPathFindBrokerProxy } from './locations-boot-lock-path-find-broker.proxy';
-import { AbsoluteFilePathStub } from '@dungeonmaster/shared/contracts/absolute-file-path/absolute-file-path.stub';
 
 describe('locationsBootLockPathFindBroker', () => {
   describe('boot lock path resolution', () => {
@@ -17,7 +16,7 @@ describe('locationsBootLockPathFindBroker', () => {
       const result = locationsBootLockPathFindBroker();
 
       expect(result).toBe(
-        AbsoluteFilePathStub({ value: '/home/user/.dungeonmaster/siegelense/boot.lock' }),
+        '/home/user/.dungeonmaster/siegelense/boot.lock',
       );
     });
 
@@ -34,7 +33,7 @@ describe('locationsBootLockPathFindBroker', () => {
       const result = locationsBootLockPathFindBroker();
 
       expect(result).toBe(
-        AbsoluteFilePathStub({ value: '/home/user/.dungeonmaster/siegelense/boot.lock' }),
+        '/home/user/.dungeonmaster/siegelense/boot.lock',
       );
     });
 
@@ -51,9 +50,7 @@ describe('locationsBootLockPathFindBroker', () => {
       const result = locationsBootLockPathFindBroker();
 
       expect(result).toBe(
-        AbsoluteFilePathStub({
-          value: '/srv/agents/worker-3/state/.dungeonmaster/siegelense/boot.lock',
-        }),
+        '/srv/agents/worker-3/state/.dungeonmaster/siegelense/boot.lock',
       );
     });
   });

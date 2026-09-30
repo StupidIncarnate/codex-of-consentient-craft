@@ -32,7 +32,7 @@
 
 import type { WorkItem, Quest, Session } from '@dungeonmaster/shared/contracts';
 import { homedir } from '#gateway/node/os';
-import { absoluteFilePathContract, processIdContract, type ChatEntry, type OrchestrationEventType, type ProcessId, questContract, workItemContract, sessionContract } from '@dungeonmaster/shared/contracts';
+import { processIdContract, type ChatEntry, type OrchestrationEventType, type ProcessId, questContract, workItemContract, sessionContract } from '@dungeonmaster/shared/contracts';
 import { claudeProjectPathEncoderTransformer } from '@dungeonmaster/shared/transformers';
 
 import { questMonitorJsonlWatcherBroker } from '../monitor-jsonl-watcher/quest-monitor-jsonl-watcher-broker';
@@ -60,8 +60,8 @@ export const questMonitorWatcherStartBroker = async ({
   // routed by the server's per-quest subscription filter.
   workerQuestId: Quest['id'];
 }): Promise<{ stop: () => void }> => {
-  const homeDir = absoluteFilePathContract.parse(homedir());
-  const projectPath = absoluteFilePathContract.parse(projectDir);
+  const homeDir = homedir();
+  const projectPath = projectDir;
   const sessionId = sessionContract.shape.id.parse(parentSessionId);
 
   // Resolved BEFORE the orphan reset below, which needs it as an exclusion key.

@@ -13,12 +13,11 @@ import type { FsError } from '#gateway/node/fs';
 import { readFileBytesProxy } from '#gateway/node/fs__promises/read-file-bytes/read-file-bytes.proxy';
 import { PNG } from '#gateway/npm/pngjs';
 import { decodePngProxy } from '#gateway/npm/pngjs/decode-png/decode-png.proxy';
-import type { AbsoluteFilePath } from '@dungeonmaster/shared/contracts';
 import { Buffer } from '#gateway/node/buffer';
 
 export const shotBlankReadBrokerProxy = (): {
   stagesShot: (params: {
-    shotPath: AbsoluteFilePath;
+    shotPath: string;
     width: number;
     height: number;
     pixels: Uint8Array;
@@ -28,7 +27,7 @@ export const shotBlankReadBrokerProxy = (): {
   // enforce-proxy-child-creation) can give every unstaged shot path a real decodable frame. A test's
   // own `stagesShot` for a SPECIFIC path still wins — exact-path matches outrank this wildcard.
   stagesDefaultShot: (params: { bytes: Uint8Array }) => void;
-  stagesShotReadError: (params: { shotPath: AbsoluteFilePath; error: Error }) => void;
+  stagesShotReadError: (params: { shotPath: string; error: Error }) => void;
 } => {
   const readProxy = readFileBytesProxy();
   decodePngProxy();
@@ -40,7 +39,7 @@ export const shotBlankReadBrokerProxy = (): {
       height,
       pixels,
     }: {
-      shotPath: AbsoluteFilePath;
+      shotPath: string;
       width: number;
       height: number;
       pixels: Uint8Array;
@@ -61,7 +60,7 @@ export const shotBlankReadBrokerProxy = (): {
       shotPath,
       error,
     }: {
-      shotPath: AbsoluteFilePath;
+      shotPath: string;
       error: Error;
     }): void => {
       const fsError: FsError = Object.assign(error, {

@@ -10,17 +10,13 @@
 
 import { join } from '#gateway/node/path';
 import { locationsStatics } from '../../../statics/locations/locations-statics';
-import {
-  absoluteFilePathContract,
-  type AbsoluteFilePath,
-} from '../../../contracts/absolute-file-path/absolute-file-path-contract';
 
 export const locationsNodeModulesPathFindBroker = ({
   rootPath,
 }: {
-  rootPath: AbsoluteFilePath;
-}): AbsoluteFilePath => {
+  rootPath: string;
+}): string => {
   const joined = join(rootPath, locationsStatics.repoRoot.nodeModules);
 
-  return absoluteFilePathContract.parse(joined);
+  return joined;
 };

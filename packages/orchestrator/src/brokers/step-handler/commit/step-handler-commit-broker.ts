@@ -37,7 +37,7 @@
  * // { outcome: 'done' | 'empty', detail }
  */
 
-import { absoluteFilePathContract, contentTextContract, getQuestInputContract, stepNameContract } from '@dungeonmaster/shared/contracts';
+import { contentTextContract, getQuestInputContract, stepNameContract } from '@dungeonmaster/shared/contracts';
 
 import { addAll, commit, push } from '#gateway/bin/git';
 
@@ -70,7 +70,7 @@ export const stepHandlerCommitBroker = async ({
       `Cannot commit for quest ${questId}: worktree not found: ${resolution.worktreePath}`,
     );
   }
-  const cwd = absoluteFilePathContract.parse(resolution.cwd);
+  const cwd = resolution.cwd;
 
   // Measured BEFORE staging: after `git add -A` the tree always reads clean, so "was this a
   // review-only pass" can only be answered by looking first.

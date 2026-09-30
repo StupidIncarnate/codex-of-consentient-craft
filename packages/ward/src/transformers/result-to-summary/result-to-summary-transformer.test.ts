@@ -1,4 +1,3 @@
-import { AbsoluteFilePathStub } from '@dungeonmaster/shared/contracts/absolute-file-path/absolute-file-path.stub';
 
 import { WardRunResultStub } from '../../contracts/ward-result/ward-result.stub';
 import { CheckResultStub } from '../../contracts/check-result/check-result.stub';
@@ -16,7 +15,7 @@ describe('resultToSummaryTransformer', () => {
 
       const result = resultToSummaryTransformer({
         wardResult,
-        cwd: AbsoluteFilePathStub({ value: '/p' }),
+        cwd: '/p',
       });
 
       expect(result).toBe('run: 1739625600000-a3f1');
@@ -48,7 +47,7 @@ describe('resultToSummaryTransformer', () => {
 
       const result = resultToSummaryTransformer({
         wardResult,
-        cwd: AbsoluteFilePathStub({ value: '/p' }),
+        cwd: '/p',
       });
 
       expect(result).toBe(
@@ -77,7 +76,7 @@ describe('resultToSummaryTransformer', () => {
 
       const result = resultToSummaryTransformer({
         wardResult,
-        cwd: AbsoluteFilePathStub({ value: '/p' }),
+        cwd: '/p',
       });
 
       expect(result).toBe(
@@ -117,7 +116,7 @@ describe('resultToSummaryTransformer', () => {
 
       const result = resultToSummaryTransformer({
         wardResult,
-        cwd: AbsoluteFilePathStub({ value: '/p/web' }),
+        cwd: '/p/web',
       });
 
       expect(result).toBe(
@@ -152,7 +151,7 @@ describe('resultToSummaryTransformer', () => {
 
       const result = resultToSummaryTransformer({
         wardResult,
-        cwd: AbsoluteFilePathStub({ value: '/p/cli' }),
+        cwd: '/p/cli',
       });
 
       expect(result).toBe(
@@ -186,7 +185,7 @@ describe('resultToSummaryTransformer', () => {
 
       const result = resultToSummaryTransformer({
         wardResult,
-        cwd: AbsoluteFilePathStub({ value: '/p/cli' }),
+        cwd: '/p/cli',
       });
 
       expect(result).toBe(
@@ -221,7 +220,7 @@ describe('resultToSummaryTransformer', () => {
 
       const result = resultToSummaryTransformer({
         wardResult,
-        cwd: AbsoluteFilePathStub({ value: '/repo' }),
+        cwd: '/repo',
       });
 
       expect(result).toBe(
@@ -258,7 +257,7 @@ describe('resultToSummaryTransformer', () => {
 
       const result = resultToSummaryTransformer({
         wardResult,
-        cwd: AbsoluteFilePathStub({ value: '/p/cli' }),
+        cwd: '/p/cli',
       });
 
       expect(result).toBe(
@@ -296,7 +295,7 @@ describe('resultToSummaryTransformer', () => {
 
       const result = resultToSummaryTransformer({
         wardResult,
-        cwd: AbsoluteFilePathStub({ value: '/p/cli' }),
+        cwd: '/p/cli',
       });
 
       expect(result).toBe(
@@ -344,7 +343,7 @@ describe('resultToSummaryTransformer', () => {
 
       const result = resultToSummaryTransformer({
         wardResult,
-        cwd: AbsoluteFilePathStub({ value: '/p' }),
+        cwd: '/p',
       });
 
       expect(String(result)).toBe(
@@ -395,7 +394,7 @@ describe('resultToSummaryTransformer', () => {
 
       const result = resultToSummaryTransformer({
         wardResult,
-        cwd: AbsoluteFilePathStub({ value: '/p' }),
+        cwd: '/p',
       });
 
       expect(String(result)).toBe(
@@ -433,7 +432,7 @@ describe('resultToSummaryTransformer', () => {
 
       const result = resultToSummaryTransformer({
         wardResult,
-        cwd: AbsoluteFilePathStub({ value: '/p/web' }),
+        cwd: '/p/web',
       });
 
       expect(result).toBe(
@@ -463,7 +462,7 @@ describe('resultToSummaryTransformer', () => {
 
       const result = resultToSummaryTransformer({
         wardResult,
-        cwd: AbsoluteFilePathStub({ value: '/p' }),
+        cwd: '/p',
       });
 
       expect(result).toBe(
@@ -492,7 +491,7 @@ describe('resultToSummaryTransformer', () => {
 
       const result = resultToSummaryTransformer({
         wardResult,
-        cwd: AbsoluteFilePathStub({ value: '/p/standards' }),
+        cwd: '/p/standards',
       });
 
       expect(result).toBe(
@@ -544,7 +543,7 @@ describe('resultToSummaryTransformer', () => {
 
       const result = resultToSummaryTransformer({
         wardResult,
-        cwd: AbsoluteFilePathStub({ value: '/p/cli' }),
+        cwd: '/p/cli',
       });
 
       expect(result).toBe(
@@ -574,7 +573,7 @@ describe('resultToSummaryTransformer', () => {
 
       const result = resultToSummaryTransformer({
         wardResult,
-        cwd: AbsoluteFilePathStub({ value: '/p' }),
+        cwd: '/p',
       });
 
       expect(result).toBe(
@@ -605,7 +604,7 @@ describe('resultToSummaryTransformer', () => {
 
       const result = resultToSummaryTransformer({
         wardResult,
-        cwd: AbsoluteFilePathStub({ value: '/p' }),
+        cwd: '/p',
       });
 
       expect(result).toBe(
@@ -634,7 +633,7 @@ describe('resultToSummaryTransformer', () => {
 
       const result = resultToSummaryTransformer({
         wardResult,
-        cwd: AbsoluteFilePathStub({ value: '/p' }),
+        cwd: '/p',
       });
 
       expect(result).toBe(
@@ -664,7 +663,7 @@ describe('resultToSummaryTransformer', () => {
 
       const result = resultToSummaryTransformer({
         wardResult,
-        cwd: AbsoluteFilePathStub({ value: '/p' }),
+        cwd: '/p',
       });
 
       expect(result).toBe(
@@ -696,7 +695,7 @@ describe('resultToSummaryTransformer', () => {
 
       const result = resultToSummaryTransformer({
         wardResult,
-        cwd: AbsoluteFilePathStub({ value: '/p' }),
+        cwd: '/p',
       });
 
       expect(result).toBe(
@@ -724,7 +723,7 @@ describe('resultToSummaryTransformer', () => {
 
       const result = resultToSummaryTransformer({
         wardResult,
-        cwd: AbsoluteFilePathStub({ value: '/p' }),
+        cwd: '/p',
       });
 
       expect(result).toBe(
@@ -753,7 +752,7 @@ describe('resultToSummaryTransformer', () => {
 
       const result = resultToSummaryTransformer({
         wardResult,
-        cwd: AbsoluteFilePathStub({ value: '/p' }),
+        cwd: '/p',
       });
 
       expect(result).toBe(
@@ -788,7 +787,7 @@ describe('resultToSummaryTransformer', () => {
 
       const result = resultToSummaryTransformer({
         wardResult,
-        cwd: AbsoluteFilePathStub({ value: '/p' }),
+        cwd: '/p',
       });
 
       expect(result).toBe(
@@ -816,7 +815,7 @@ describe('resultToSummaryTransformer', () => {
 
       const result = resultToSummaryTransformer({
         wardResult,
-        cwd: AbsoluteFilePathStub({ value: '/p' }),
+        cwd: '/p',
       });
 
       expect(result).toBe(
@@ -845,7 +844,7 @@ describe('resultToSummaryTransformer', () => {
 
       const result = resultToSummaryTransformer({
         wardResult,
-        cwd: AbsoluteFilePathStub({ value: '/p' }),
+        cwd: '/p',
       });
 
       expect(result).toBe(
@@ -863,7 +862,7 @@ describe('resultToSummaryTransformer', () => {
 
       const result = resultToSummaryTransformer({
         wardResult,
-        cwd: AbsoluteFilePathStub({ value: '/p' }),
+        cwd: '/p',
       });
 
       expect(result).toBe('run: 1739625600000-a3f1  (23.4s)');
@@ -877,7 +876,7 @@ describe('resultToSummaryTransformer', () => {
 
       const result = resultToSummaryTransformer({
         wardResult,
-        cwd: AbsoluteFilePathStub({ value: '/p' }),
+        cwd: '/p',
       });
 
       expect(result).toBe('run: 1739625600000-a3f1');
@@ -927,7 +926,7 @@ describe('resultToSummaryTransformer', () => {
 
       const result = resultToSummaryTransformer({
         wardResult,
-        cwd: AbsoluteFilePathStub({ value: '/p' }),
+        cwd: '/p',
       });
 
       expect(result).toBe(
@@ -970,7 +969,7 @@ describe('resultToSummaryTransformer', () => {
 
       const result = resultToSummaryTransformer({
         wardResult,
-        cwd: AbsoluteFilePathStub({ value: '/p' }),
+        cwd: '/p',
       });
 
       expect(result).toBe(
@@ -1013,7 +1012,7 @@ describe('resultToSummaryTransformer', () => {
 
       const result = resultToSummaryTransformer({
         wardResult,
-        cwd: AbsoluteFilePathStub({ value: '/p' }),
+        cwd: '/p',
       });
 
       expect(result).toBe(
@@ -1063,7 +1062,7 @@ describe('resultToSummaryTransformer', () => {
 
       const result = resultToSummaryTransformer({
         wardResult,
-        cwd: AbsoluteFilePathStub({ value: '/p' }),
+        cwd: '/p',
       });
 
       expect(result).toBe(
@@ -1098,7 +1097,7 @@ describe('resultToSummaryTransformer', () => {
 
       const result = resultToSummaryTransformer({
         wardResult,
-        cwd: AbsoluteFilePathStub({ value: '/p' }),
+        cwd: '/p',
       });
 
       expect(result).toBe(
@@ -1133,7 +1132,7 @@ describe('resultToSummaryTransformer', () => {
 
       const result = resultToSummaryTransformer({
         wardResult,
-        cwd: AbsoluteFilePathStub({ value: '/p' }),
+        cwd: '/p',
       });
 
       expect(result).toBe(
@@ -1162,7 +1161,7 @@ describe('resultToSummaryTransformer', () => {
 
       const result = resultToSummaryTransformer({
         wardResult,
-        cwd: AbsoluteFilePathStub({ value: '/p' }),
+        cwd: '/p',
       });
 
       expect(result).toBe(
@@ -1190,7 +1189,7 @@ describe('resultToSummaryTransformer', () => {
 
       const result = resultToSummaryTransformer({
         wardResult,
-        cwd: AbsoluteFilePathStub({ value: '/p' }),
+        cwd: '/p',
       });
 
       expect(result).toBe(
@@ -1223,7 +1222,7 @@ describe('resultToSummaryTransformer', () => {
 
       const result = resultToSummaryTransformer({
         wardResult,
-        cwd: AbsoluteFilePathStub({ value: '/p' }),
+        cwd: '/p',
       });
 
       expect(result).toBe(
@@ -1251,7 +1250,7 @@ describe('resultToSummaryTransformer', () => {
 
       const result = resultToSummaryTransformer({
         wardResult,
-        cwd: AbsoluteFilePathStub({ value: '/p' }),
+        cwd: '/p',
       });
 
       expect(result).toBe(
@@ -1285,7 +1284,7 @@ describe('resultToSummaryTransformer', () => {
 
       const result = resultToSummaryTransformer({
         wardResult,
-        cwd: AbsoluteFilePathStub({ value: '/p' }),
+        cwd: '/p',
       });
 
       expect(result).toBe(
@@ -1344,7 +1343,7 @@ describe('resultToSummaryTransformer', () => {
     it('VALID: {explicit file scope} => prints the whole diff inline and drops the runner frame', () => {
       const result = resultToSummaryTransformer({
         wardResult: failingResult({ filters: { passthrough: ['packages/web/src/a.test.ts'] } }),
-        cwd: AbsoluteFilePathStub({ value: '/p' }),
+        cwd: '/p',
       });
 
       expect(String(result)).toBe(
@@ -1374,7 +1373,7 @@ describe('resultToSummaryTransformer', () => {
         wardResult: failingResult({
           filters: { passthrough: ['packages/web/src/a.test.ts'], uncommitted: true },
         }),
-        cwd: AbsoluteFilePathStub({ value: '/p' }),
+        cwd: '/p',
       });
 
       expect(String(result)).toBe(
@@ -1393,7 +1392,7 @@ describe('resultToSummaryTransformer', () => {
     it('VALID: {no file scope} => keeps the one-line form', () => {
       const result = resultToSummaryTransformer({
         wardResult: failingResult({}),
-        cwd: AbsoluteFilePathStub({ value: '/p' }),
+        cwd: '/p',
       });
 
       expect(String(result)).toBe(

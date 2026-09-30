@@ -5,11 +5,10 @@ import { join } from '#gateway/node/path';
 import { registerMock, requireActual } from '@dungeonmaster/testing/register-mock';
 import type { AgentIdStub } from '@dungeonmaster/shared/contracts/agent-id/agent-id.stub';
 import type { PathSegmentStub } from '@dungeonmaster/shared/contracts/path-segment/path-segment.stub';
-import type { AbsoluteFilePathStub } from '@dungeonmaster/shared/contracts/absolute-file-path/absolute-file-path.stub';
 import type { ContentTextStub } from '@dungeonmaster/shared/contracts/content-text/content-text.stub';
 import type { SubagentMetaStub } from '../../../contracts/subagent-meta/subagent-meta.stub';
 
-type AbsoluteFilePath = ReturnType<typeof AbsoluteFilePathStub>;
+type AbsoluteFilePath = string;
 type FilePath = string;
 type ContentText = ReturnType<typeof ContentTextStub>;
 type AgentId = ReturnType<typeof AgentIdStub>;

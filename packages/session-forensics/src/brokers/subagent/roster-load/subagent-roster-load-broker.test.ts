@@ -1,4 +1,3 @@
-import { AbsoluteFilePathStub } from '@dungeonmaster/shared/contracts/absolute-file-path/absolute-file-path.stub';
 import { AgentIdStub } from '@dungeonmaster/shared/contracts/agent-id/agent-id.stub';
 import { ContentTextStub } from '@dungeonmaster/shared/contracts/content-text/content-text.stub';
 import { PathSegmentStub } from '@dungeonmaster/shared/contracts/path-segment/path-segment.stub';
@@ -10,9 +9,7 @@ import { SubagentMetaStub } from '../../../contracts/subagent-meta/subagent-meta
 import { TranscriptRecordStub } from '../../../contracts/transcript-record/transcript-record.stub';
 import { jsonlToRecordsTransformer } from '../../../transformers/jsonl-to-records/jsonl-to-records-transformer';
 
-const SESSION_FILE_PATH = AbsoluteFilePathStub({
-  value: '/home/user/.claude/projects/proj/session-1.jsonl',
-});
+const SESSION_FILE_PATH = '/home/user/.claude/projects/proj/session-1.jsonl';
 const AGENT_A_ID = AgentIdStub({ value: 'agent-a' });
 const AGENT_B_ID = AgentIdStub({ value: 'agent-b' });
 

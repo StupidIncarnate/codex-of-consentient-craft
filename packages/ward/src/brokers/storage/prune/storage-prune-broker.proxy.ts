@@ -2,35 +2,34 @@ import { readdirIfExistsProxy } from '#gateway/node/fs__promises/readdir-if-exis
 import { statIfExistsProxy } from '#gateway/node/fs__promises/stat-if-exists/stat-if-exists.proxy';
 import { unlinkProxy } from '#gateway/node/fs__promises/unlink/unlink.proxy';
 import { registerSpyOn } from '@dungeonmaster/testing/register-mock';
-import { type AbsoluteFilePath } from '@dungeonmaster/shared/contracts';
 
 const TINY_FILE_BYTES = 1024;
 
 export const storagePruneBrokerProxy = (): {
   setupWithFiles: (params: {
-    rootPath: AbsoluteFilePath;
+    rootPath: string;
     entries: string[];
     now: number;
     mtimes?: Record<string, number>;
     sizes?: Record<string, number>;
     statNullFor?: string[];
   }) => void;
-  setupEmpty: (params: { rootPath: AbsoluteFilePath }) => void;
-  setupReaddirFail: (params: { rootPath: AbsoluteFilePath }) => void;
+  setupEmpty: (params: { rootPath: string }) => void;
+  setupReaddirFail: (params: { rootPath: string }) => void;
   getDeletedPaths: () => unknown[];
 } => {
   const readdirProxy = readdirIfExistsProxy();
   const statProxy = statIfExistsProxy();
   const unlink = unlinkProxy();
 
-  const wardDirFor = ({ rootPath }: { rootPath: AbsoluteFilePath }): string =>
+  const wardDirFor = ({ rootPath }: { rootPath: string }): string =>
     `${rootPath}/.ward`;
 
   const runFilePathFor = ({
     rootPath,
     name,
   }: {
-    rootPath: AbsoluteFilePath;
+    rootPath: string;
     name: string;
   }): string => `${wardDirFor({ rootPath })}/${name}`;
 
@@ -43,7 +42,7 @@ export const storagePruneBrokerProxy = (): {
       sizes = {},
       statNullFor = [],
     }: {
-      rootPath: AbsoluteFilePath;
+      rootPath: string;
       entries: string[];
       now: number;
       mtimes?: Record<string, number>;
@@ -70,10 +69,10 @@ export const storagePruneBrokerProxy = (): {
         unlink.succeeds({ path: String(runFilePathFor({ rootPath, name })) });
       }
     },
-    setupEmpty: ({ rootPath }: { rootPath: AbsoluteFilePath }): void => {
+    setupEmpty: ({ rootPath }: { rootPath: string }): void => {
       readdirProxy.returns({ path: String(wardDirFor({ rootPath })), names: [] });
     },
-    setupReaddirFail: ({ rootPath }: { rootPath: AbsoluteFilePath }): void => {
+    setupReaddirFail: ({ rootPath }: { rootPath: string }): void => {
       readdirProxy.missing({ path: String(wardDirFor({ rootPath })) });
     },
     getDeletedPaths: (): unknown[] =>

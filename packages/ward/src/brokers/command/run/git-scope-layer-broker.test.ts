@@ -1,4 +1,3 @@
-import { AbsoluteFilePathStub } from '@dungeonmaster/shared/contracts/absolute-file-path/absolute-file-path.stub';
 
 import { WardConfigStub } from '../../../contracts/ward-config/ward-config.stub';
 
@@ -12,7 +11,7 @@ describe('gitScopeLayerBroker', () => {
 
       const result = await gitScopeLayerBroker({
         config: WardConfigStub({ only: ['lint'] }),
-        rootPath: AbsoluteFilePathStub({ value: '/project' }),
+        rootPath: '/project',
       });
 
       expect(result).toStrictEqual(WardConfigStub({ only: ['lint'] }));
@@ -29,7 +28,7 @@ describe('gitScopeLayerBroker', () => {
 
       const result = await gitScopeLayerBroker({
         config: WardConfigStub({ uncommitted: true }),
-        rootPath: AbsoluteFilePathStub({ value: '/project' }),
+        rootPath: '/project',
       });
 
       expect(result).toStrictEqual(
@@ -49,7 +48,7 @@ describe('gitScopeLayerBroker', () => {
 
       const result = await gitScopeLayerBroker({
         config: WardConfigStub({ uncommitted: true }),
-        rootPath: AbsoluteFilePathStub({ value: '/project' }),
+        rootPath: '/project',
       });
 
       expect(result).toStrictEqual(
@@ -66,7 +65,7 @@ describe('gitScopeLayerBroker', () => {
 
       const result = await gitScopeLayerBroker({
         config: WardConfigStub({ uncommitted: true }),
-        rootPath: AbsoluteFilePathStub({ value: '/project' }),
+        rootPath: '/project',
       });
 
       expect(result).toStrictEqual(WardConfigStub({ uncommitted: true }));
@@ -81,7 +80,7 @@ describe('gitScopeLayerBroker', () => {
 
       const result = await gitScopeLayerBroker({
         config: WardConfigStub({ uncommitted: true }),
-        rootPath: AbsoluteFilePathStub({ value: '/project' }),
+        rootPath: '/project',
       });
 
       expect(result).toStrictEqual(WardConfigStub({ uncommitted: true }));
@@ -95,7 +94,7 @@ describe('gitScopeLayerBroker', () => {
 
       const result = await gitScopeLayerBroker({
         config: WardConfigStub({ committed: true }),
-        rootPath: AbsoluteFilePathStub({ value: '/project' }),
+        rootPath: '/project',
       });
 
       expect(result).toStrictEqual(
@@ -112,7 +111,7 @@ describe('gitScopeLayerBroker', () => {
 
       const result = await gitScopeLayerBroker({
         config: WardConfigStub({ committed: true }),
-        rootPath: AbsoluteFilePathStub({ value: '/project' }),
+        rootPath: '/project',
       });
 
       expect(result).toStrictEqual(WardConfigStub({ committed: true }));
@@ -130,7 +129,7 @@ describe('gitScopeLayerBroker', () => {
 
       const result = await gitScopeLayerBroker({
         config: WardConfigStub({ committed: true, uncommitted: true }),
-        rootPath: AbsoluteFilePathStub({ value: '/project' }),
+        rootPath: '/project',
       });
 
       expect(result).toStrictEqual(
@@ -160,7 +159,7 @@ describe('gitScopeLayerBroker', () => {
 
       const result = await gitScopeLayerBroker({
         config: WardConfigStub({ committed: true, uncommitted: true }),
-        rootPath: AbsoluteFilePathStub({ value: '/project' }),
+        rootPath: '/project',
       });
 
       expect(result).toStrictEqual(
@@ -179,7 +178,7 @@ describe('gitScopeLayerBroker', () => {
 
       const result = await gitScopeLayerBroker({
         config: WardConfigStub({ committed: true, uncommitted: true }),
-        rootPath: AbsoluteFilePathStub({ value: '/project' }),
+        rootPath: '/project',
       });
 
       expect(result).toStrictEqual(WardConfigStub({ committed: true, uncommitted: true }));

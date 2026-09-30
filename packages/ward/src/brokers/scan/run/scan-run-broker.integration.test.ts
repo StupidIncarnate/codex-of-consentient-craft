@@ -1,5 +1,4 @@
 import { installTestbedCreateBroker } from '@dungeonmaster/testing';
-import { AbsoluteFilePathStub } from '@dungeonmaster/shared/contracts/absolute-file-path/absolute-file-path.stub';
 
 import { scanFixtureHarness } from '../../../../test/harnesses/scan-fixture/scan-fixture.harness';
 import { CliArgStub } from '../../../contracts/cli-arg/cli-arg.stub';
@@ -21,7 +20,7 @@ describe('scanRunBroker (integration)', () => {
 
     const result = await scanRunBroker({
       config: ScanConfigStub({ rule: ScanRuleNameStub({ value: 'no-debugger' }) }),
-      rootPath: AbsoluteFilePathStub({ value: testbed.guildPath }),
+      rootPath: testbed.guildPath,
     });
 
     testbed.cleanup();
@@ -68,7 +67,7 @@ describe('scanRunBroker (integration)', () => {
         rule: ScanRuleNameStub({ value: 'no-debugger' }),
         paths: [CliArgStub({ value: 'packages/app/src/b.js' })],
       }),
-      rootPath: AbsoluteFilePathStub({ value: testbed.guildPath }),
+      rootPath: testbed.guildPath,
     });
 
     testbed.cleanup();
@@ -101,7 +100,7 @@ describe('scanRunBroker (integration)', () => {
 
     const result = await scanRunBroker({
       config: ScanConfigStub({ rule: ScanRuleNameStub({ value: 'fixture/no-forbidden' }) }),
-      rootPath: AbsoluteFilePathStub({ value: testbed.guildPath }),
+      rootPath: testbed.guildPath,
     });
 
     testbed.cleanup();
@@ -132,7 +131,7 @@ describe('scanRunBroker (integration)', () => {
 
     const outcome = await scanRunBroker({
       config: ScanConfigStub({ rule: ScanRuleNameStub({ value: 'absent/no-such-rule' }) }),
-      rootPath: AbsoluteFilePathStub({ value: testbed.guildPath }),
+      rootPath: testbed.guildPath,
     }).catch((error: unknown) =>
       String(error)
         .replace(testbed.guildPath, '<root>')
@@ -156,7 +155,7 @@ describe('scanRunBroker (integration)', () => {
 
     const outcome = await scanRunBroker({
       config: ScanConfigStub({ rule: ScanRuleNameStub({ value: 'no-such-rule-anywhere' }) }),
-      rootPath: AbsoluteFilePathStub({ value: testbed.guildPath }),
+      rootPath: testbed.guildPath,
     }).catch((error: unknown) => String(error).split('\n')[0]);
 
     testbed.cleanup();

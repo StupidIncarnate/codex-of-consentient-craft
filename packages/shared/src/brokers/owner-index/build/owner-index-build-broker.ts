@@ -13,10 +13,6 @@
  */
 import { readFileSync, readJsonFileSyncIfExists } from '#gateway/node/fs';
 
-import {
-  absoluteFilePathContract,
-  type AbsoluteFilePath,
-} from '../../../contracts/absolute-file-path/absolute-file-path-contract';
 import { contentTextContract } from '../../../contracts/content-text/content-text-contract';
 import { ownerIndexPackageContract } from '../../../contracts/owner-index-package/owner-index-package-contract';
 import type { OwnerIndexPackage } from '../../../contracts/owner-index-package/owner-index-package-contract';
@@ -29,9 +25,9 @@ import { contractIndexBuildBroker } from '../../contract-index/build/contract-in
 
 const SOURCE_FOLDER = '/src/';
 
-const builtIndexes = new Map<AbsoluteFilePath, OwnerIndex>();
+const builtIndexes = new Map<string, OwnerIndex>();
 
-export const ownerIndexBuildBroker = ({ rootDir }: { rootDir: AbsoluteFilePath }): OwnerIndex => {
+export const ownerIndexBuildBroker = ({ rootDir }: { rootDir: string }): OwnerIndex => {
   const cached = builtIndexes.get(rootDir);
   if (cached !== undefined) {
     return cached;
@@ -39,11 +35,11 @@ export const ownerIndexBuildBroker = ({ rootDir }: { rootDir: AbsoluteFilePath }
 
   const entries = contractIndexBuildBroker({ rootDir });
 
-  const dirsByName = new Map<PackageName, AbsoluteFilePath>();
+  const dirsByName = new Map<PackageName, string>();
   for (const { filePath, packageName } of entries) {
     const sourceIndex = filePath.indexOf(SOURCE_FOLDER);
     if (sourceIndex > 0) {
-      dirsByName.set(packageName, absoluteFilePathContract.parse(filePath.slice(0, sourceIndex)));
+      dirsByName.set(packageName, filePath.slice(0, sourceIndex));
     }
   }
 

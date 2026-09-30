@@ -2,7 +2,6 @@ import { existsSyncProxy } from '#gateway/node/fs/exists-sync/exists-sync.proxy'
 import { readFileProxy } from '#gateway/node/fs__promises/read-file/read-file.proxy';
 import { resolve } from '#gateway/node/path';
 import { registerMock, requireActual } from '@dungeonmaster/testing/register-mock';
-import { AbsoluteFilePathStub } from '@dungeonmaster/shared/contracts/absolute-file-path/absolute-file-path.stub';
 import { writeFileProxy } from '#gateway/node/fs__promises/write-file/write-file.proxy';
 import { ArrayEntryAnchorInsertLayerResponderProxy } from './array-entry-anchor-insert-layer-responder.proxy';
 import { InstallIgnoreWriteResponder } from './install-ignore-write-responder';
@@ -12,24 +11,20 @@ import { InstallIgnoreWriteResponder } from './install-ignore-write-responder';
 // `existsSyncProxy`, `readFileProxy` and `writeFileProxy` (gateway) all take a raw path; the
 // `AbsoluteFilePath` constants are the same strings, branded.
 const GITIGNORE_PATH_STRING = '/project/.gitignore';
-const GITIGNORE_ABSOLUTE_PATH = AbsoluteFilePathStub({ value: GITIGNORE_PATH_STRING });
+const GITIGNORE_ABSOLUTE_PATH = GITIGNORE_PATH_STRING;
 
 const ESLINT_CONFIG_TS_PATH_STRING = '/project/eslint.config.ts';
 const ESLINT_CONFIG_JS_PATH_STRING = '/project/eslint.config.js';
-const ESLINT_CONFIG_JS_ABSOLUTE_PATH = AbsoluteFilePathStub({
-  value: ESLINT_CONFIG_JS_PATH_STRING,
-});
+const ESLINT_CONFIG_JS_ABSOLUTE_PATH = ESLINT_CONFIG_JS_PATH_STRING;
 const ESLINT_CONFIG_MJS_PATH_STRING = '/project/eslint.config.mjs';
 const ESLINT_CONFIG_CJS_PATH_STRING = '/project/eslint.config.cjs';
 
 const TSCONFIG_PATH_STRING = '/project/tsconfig.json';
-const TSCONFIG_ABSOLUTE_PATH = AbsoluteFilePathStub({ value: TSCONFIG_PATH_STRING });
+const TSCONFIG_ABSOLUTE_PATH = TSCONFIG_PATH_STRING;
 
 // "TestRunner", never the literal word this file's own proxy pattern rule bans in a helper name.
 const TEST_RUNNER_CONFIG_JS_PATH_STRING = '/project/jest.config.js';
-const TEST_RUNNER_CONFIG_JS_ABSOLUTE_PATH = AbsoluteFilePathStub({
-  value: TEST_RUNNER_CONFIG_JS_PATH_STRING,
-});
+const TEST_RUNNER_CONFIG_JS_ABSOLUTE_PATH = TEST_RUNNER_CONFIG_JS_PATH_STRING;
 const TEST_RUNNER_CONFIG_CJS_PATH_STRING = '/project/jest.config.cjs';
 
 export const InstallIgnoreWriteResponderProxy = (): {

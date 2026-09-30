@@ -6,7 +6,6 @@ import { homedir } from '#gateway/node/os';
 import { join } from '#gateway/node/path';
 import { deleteEnv } from '#gateway/node/process';
 import { registerMock, requireActual } from '@dungeonmaster/testing/register-mock';
-import type { AbsoluteFilePath } from '@dungeonmaster/shared/contracts';
 import { locationsQuestFolderPathFindBrokerProxy } from '@dungeonmaster/shared/brokers/locations/quest-folder-path-find/locations-quest-folder-path-find-broker.proxy';
 import { locationsQuestImagesPathFindBrokerProxy } from '@dungeonmaster/shared/brokers/locations/quest-images-path-find/locations-quest-images-path-find-broker.proxy';
 
@@ -30,11 +29,11 @@ export const pastedImagePersistBrokerProxy = (): {
   writtenImagePaths: () => unknown[];
   sourceReadAttemptedPaths: () => unknown[];
   stageCopyIds: (params: { ids: readonly string[] }) => void;
-  sourceReads: (params: { filePath: AbsoluteFilePath; bytes: Uint8Array }) => void;
-  sourceReadFails: (params: { filePath: AbsoluteFilePath }) => void;
-  destinationWriteFails: (params: { filePath: AbsoluteFilePath }) => void;
-  writtenDestinations: () => AbsoluteFilePath[];
-  writtenBytesFor: (params: { filePath: AbsoluteFilePath }) => unknown;
+  sourceReads: (params: { filePath: string; bytes: Uint8Array }) => void;
+  sourceReadFails: (params: { filePath: string }) => void;
+  destinationWriteFails: (params: { filePath: string }) => void;
+  writtenDestinations: () => string[];
+  writtenBytesFor: (params: { filePath: string }) => unknown;
 } => {
   const ensureDirChild = ensureDirProxy();
   const writeFileChild = writeFileFromBase64Proxy();
@@ -120,20 +119,20 @@ export const pastedImagePersistBrokerProxy = (): {
       stageImagesFolder();
       copyProxy.stageCopyIds({ ids });
     },
-    sourceReads: ({ filePath, bytes }: { filePath: AbsoluteFilePath; bytes: Uint8Array }): void => {
+    sourceReads: ({ filePath, bytes }: { filePath: string; bytes: Uint8Array }): void => {
       stageImagesFolder();
       copyProxy.sourceReads({ filePath, bytes });
     },
-    sourceReadFails: ({ filePath }: { filePath: AbsoluteFilePath }): void => {
+    sourceReadFails: ({ filePath }: { filePath: string }): void => {
       stageImagesFolder();
       copyProxy.sourceReadFails({ filePath });
     },
-    destinationWriteFails: ({ filePath }: { filePath: AbsoluteFilePath }): void => {
+    destinationWriteFails: ({ filePath }: { filePath: string }): void => {
       stageImagesFolder();
       copyProxy.destinationWriteFails({ filePath });
     },
-    writtenDestinations: (): AbsoluteFilePath[] => copyProxy.writtenDestinations(),
-    writtenBytesFor: ({ filePath }: { filePath: AbsoluteFilePath }): unknown =>
+    writtenDestinations: (): string[] => copyProxy.writtenDestinations(),
+    writtenBytesFor: ({ filePath }: { filePath: string }): unknown =>
       copyProxy.writtenBytesFor({ filePath }),
   };
 };

@@ -44,11 +44,7 @@
  */
 
 import { locationsNodeModulesPathFindBroker } from '@dungeonmaster/shared/brokers';
-import {
-  absoluteFilePathContract,
-  filePathContract,
-  type AbsoluteFilePath,
-} from '@dungeonmaster/shared/contracts';
+import { absoluteFilePathContract, filePathContract } from '@dungeonmaster/shared/contracts';
 import { cpRun, CpNotInstalledError } from '#gateway/bin/cp';
 import { readdirEntriesSync } from '#gateway/node/fs';
 import { ensureDir, pathExists, readlinkIfLink, symlink } from '#gateway/node/fs__promises';
@@ -67,8 +63,8 @@ const COPY_GREEN_EXIT_CODE = 0;
 const RUN_NOT_FOUND_RESULT = { exitCode: 1, output: '', signal: null, timedOut: false } as const;
 
 export type WorktreeRootPair = Readonly<{
-  sourceRoot: AbsoluteFilePath;
-  targetRoot: AbsoluteFilePath;
+  sourceRoot: string;
+  targetRoot: string;
 }>;
 
 export const populateOneRootLayerBroker = async ({
@@ -76,8 +72,8 @@ export const populateOneRootLayerBroker = async ({
   targetRoot,
   onLine,
 }: {
-  sourceRoot: AbsoluteFilePath;
-  targetRoot: AbsoluteFilePath;
+  sourceRoot: string;
+  targetRoot: string;
   // Required, never optional — see packages/shared/CLAUDE.md, "Streaming Adapters". Mirroring a
   // monorepo's node_modules takes minutes, so a caller that cannot stream must say so out loud
   // with `() => undefined`.
@@ -224,8 +220,8 @@ export const populateOneRootLayerBroker = async ({
       // scope directory normalises the `..` segments away and names the same package under each
       // root — which is precisely the pair of roots whose own node_modules must be mirrored next.
       return workspaceChildren.map((item) => ({
-        sourceRoot: absoluteFilePathContract.parse(join(entrySourcePath, item.relativeTarget)),
-        targetRoot: absoluteFilePathContract.parse(join(entryTargetPath, item.relativeTarget)),
+        sourceRoot: join(entrySourcePath, item.relativeTarget),
+        targetRoot: join(entryTargetPath, item.relativeTarget),
       }));
     }),
   );

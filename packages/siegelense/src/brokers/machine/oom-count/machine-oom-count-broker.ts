@@ -13,7 +13,6 @@
  * // Returns the kernel's oom_kill counter, or null if /proc/vmstat or the key is unavailable
  */
 
-import { absoluteFilePathContract } from '@dungeonmaster/shared/contracts';
 import { join } from '#gateway/node/path';
 
 import { readFileIfExists } from '#gateway/node/fs__promises';
@@ -22,9 +21,7 @@ import type { ReadingCount } from '../../../contracts/reading-count/reading-coun
 import { machineStatics } from '../../../statics/machine/machine-statics';
 
 export const machineOomCountBroker = async (): Promise<ReadingCount | null> => {
-  const vmstatPath = absoluteFilePathContract.parse(
-    join(machineStatics.procfs.root, machineStatics.procfs.vmstat),
-  );
+  const vmstatPath = join(machineStatics.procfs.root, machineStatics.procfs.vmstat);
 
   const content = await readFileIfExists(vmstatPath);
 

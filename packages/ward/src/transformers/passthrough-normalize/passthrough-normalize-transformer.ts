@@ -31,7 +31,6 @@
  * silently rewritten path is the failure this transformer exists to end.
  */
 
-import type { AbsoluteFilePath } from '@dungeonmaster/shared/contracts';
 
 import {
   wardConfigContract,
@@ -43,7 +42,7 @@ export const passthroughNormalizeTransformer = ({
   rootPath,
 }: {
   passthrough: WardConfig['passthrough'];
-  rootPath: AbsoluteFilePath;
+  rootPath: string;
 }): WardConfig['passthrough'] => {
   if (passthrough === undefined) {
     return undefined;

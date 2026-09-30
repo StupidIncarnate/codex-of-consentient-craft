@@ -1,5 +1,5 @@
 import { z } from '#gateway/npm/zod';
-import type { AbsoluteFilePath, ContentText, Guild } from '@dungeonmaster/shared/contracts';
+import type { ContentText, Guild } from '@dungeonmaster/shared/contracts';
 
 import { isNativeErrorProxy } from '#gateway/node/util__types/is-native-error/is-native-error.proxy';
 import { LaneSessionStub } from '../../../contracts/lane-session/lane-session.stub';
@@ -41,8 +41,8 @@ export const runExecuteStepLayerBrokerProxy = (): {
     questIds: readonly ContentText[];
     secondGuild?: Guild;
   }) => { getCallArgs: () => readonly unknown[] };
-  lastShotPath: () => AbsoluteFilePath | null;
-  setLastShotPath: (params: { path: AbsoluteFilePath }) => void;
+  lastShotPath: () => string | null;
+  setLastShotPath: (params: { path: string }) => void;
 } => {
   const dispatchProxy = stepDispatchBrokerProxy();
   isNativeErrorProxy();

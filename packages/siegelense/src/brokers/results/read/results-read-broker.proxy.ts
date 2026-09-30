@@ -1,7 +1,6 @@
 import { homedir } from '#gateway/node/os';
 import { registerMock } from '@dungeonmaster/testing/register-mock';
-import { AbsoluteFilePathStub } from '@dungeonmaster/shared/contracts/absolute-file-path/absolute-file-path.stub';
-import type { AbsoluteFilePath, Guild, SiegeInstance, SiegeRun } from '@dungeonmaster/shared/contracts';
+import type { Guild, SiegeInstance, SiegeRun } from '@dungeonmaster/shared/contracts';
 
 import type { RegistryStub } from '../../../contracts/registry/registry.stub';
 import type { RunResultStub } from '../../../contracts/run-result/run-result.stub';
@@ -35,28 +34,28 @@ export const resultsReadBrokerProxy = (): {
   evidencePathFor: (params: {
     instanceId: SiegeInstance['id'];
     guildId?: Guild['id'] | null;
-  }) => AbsoluteFilePath;
+  }) => string;
   setupRegistry: (params: { registry: Registry }) => void;
   setupNow: (params: { nowMs: number }) => void;
-  setupRuns: (params: { evidencePath: AbsoluteFilePath; entries: readonly string[] }) => void;
+  setupRuns: (params: { evidencePath: string; entries: readonly string[] }) => void;
   setupTranscript: (params: {
-    evidencePath: AbsoluteFilePath;
+    evidencePath: string;
     runId: SiegeRun['id'];
     content: string;
   }) => void;
-  setupMissingTranscript: (params: { evidencePath: AbsoluteFilePath; runId: SiegeRun['id'] }) => void;
+  setupMissingTranscript: (params: { evidencePath: string; runId: SiegeRun['id'] }) => void;
   setupStoredReturn: (params: {
-    evidencePath: AbsoluteFilePath;
+    evidencePath: string;
     runId: SiegeRun['id'];
     result: RunResult;
   }) => void;
-  setupMissingStoredReturn: (params: { evidencePath: AbsoluteFilePath; runId: SiegeRun['id'] }) => void;
+  setupMissingStoredReturn: (params: { evidencePath: string; runId: SiegeRun['id'] }) => void;
   setupBuffer: (params: {
-    evidencePath: AbsoluteFilePath;
+    evidencePath: string;
     kind: BufferKind;
     content: string;
   }) => void;
-  setupServerLog: (params: { evidencePath: AbsoluteFilePath; content: string }) => void;
+  setupServerLog: (params: { evidencePath: string; content: string }) => void;
 } => {
   const instanceStateProxy = instanceStateResolveBrokerProxy();
   locationsInstanceEvidencePathFindBrokerProxy();
@@ -83,12 +82,12 @@ export const resultsReadBrokerProxy = (): {
     }: {
       instanceId: SiegeInstance['id'];
       guildId?: Guild['id'] | null;
-    }): AbsoluteFilePath => {
+    }): string => {
       const partition =
         guildId === null
           ? `unowned/instances/${instanceId}`
           : `guilds/${guildId}/instances/${instanceId}`;
-      return AbsoluteFilePathStub({ value: `${ROOT_PATH_VALUE}/${partition}` });
+      return `${ROOT_PATH_VALUE}/${partition}`;
     },
 
     setupRegistry: ({ registry }: { registry: Registry }): void => {
@@ -103,7 +102,7 @@ export const resultsReadBrokerProxy = (): {
       evidencePath,
       entries,
     }: {
-      evidencePath: AbsoluteFilePath;
+      evidencePath: string;
       entries: readonly string[];
     }): void => {
       runListProxy.setupRuns({ evidencePath, entries });
@@ -114,13 +113,11 @@ export const resultsReadBrokerProxy = (): {
       runId,
       content,
     }: {
-      evidencePath: AbsoluteFilePath;
+      evidencePath: string;
       runId: SiegeRun['id'];
       content: string;
     }): void => {
-      const transcriptPath = AbsoluteFilePathStub({
-        value: `${evidencePath}/runs/${runId}.jsonl`,
-      });
+      const transcriptPath = `${evidencePath}/runs/${runId}.jsonl`;
       transcriptProxy.setupTranscript({ transcriptPath, content });
     },
 
@@ -128,12 +125,10 @@ export const resultsReadBrokerProxy = (): {
       evidencePath,
       runId,
     }: {
-      evidencePath: AbsoluteFilePath;
+      evidencePath: string;
       runId: SiegeRun['id'];
     }): void => {
-      const transcriptPath = AbsoluteFilePathStub({
-        value: `${evidencePath}/runs/${runId}.jsonl`,
-      });
+      const transcriptPath = `${evidencePath}/runs/${runId}.jsonl`;
       transcriptProxy.setupMissingTranscript({ transcriptPath });
     },
 
@@ -142,13 +137,11 @@ export const resultsReadBrokerProxy = (): {
       runId,
       result,
     }: {
-      evidencePath: AbsoluteFilePath;
+      evidencePath: string;
       runId: SiegeRun['id'];
       result: RunResult;
     }): void => {
-      const storedReturnPath = AbsoluteFilePathStub({
-        value: `${evidencePath}/runs/${runId}.json`,
-      });
+      const storedReturnPath = `${evidencePath}/runs/${runId}.json`;
       storedReturnReadProxy.setupStoredReturn({
         storedReturnPath,
         content: JSON.stringify(result),
@@ -159,12 +152,10 @@ export const resultsReadBrokerProxy = (): {
       evidencePath,
       runId,
     }: {
-      evidencePath: AbsoluteFilePath;
+      evidencePath: string;
       runId: SiegeRun['id'];
     }): void => {
-      const storedReturnPath = AbsoluteFilePathStub({
-        value: `${evidencePath}/runs/${runId}.json`,
-      });
+      const storedReturnPath = `${evidencePath}/runs/${runId}.json`;
       storedReturnReadProxy.setupMissingStoredReturn({ storedReturnPath });
     },
 
@@ -173,12 +164,12 @@ export const resultsReadBrokerProxy = (): {
       kind,
       content,
     }: {
-      evidencePath: AbsoluteFilePath;
+      evidencePath: string;
       kind: BufferKind;
       content: string;
     }): void => {
       const suffix = kind === 'websocket' ? 'ws.jsonl' : `${kind}.jsonl`;
-      const bufferPath = AbsoluteFilePathStub({ value: `${evidencePath}/${suffix}` });
+      const bufferPath = `${evidencePath}/${suffix}`;
       bufferProxy.setupBuffer({ bufferPath, content });
     },
 
@@ -186,7 +177,7 @@ export const resultsReadBrokerProxy = (): {
       evidencePath,
       content,
     }: {
-      evidencePath: AbsoluteFilePath;
+      evidencePath: string;
       content: string;
     }): void => {
       serverWindowProxy.setupServerLog({ evidencePath, content });

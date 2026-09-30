@@ -19,7 +19,6 @@
  */
 
 import { unixSocketRequest } from '#gateway/node/net';
-import type { AbsoluteFilePath } from '@dungeonmaster/shared/contracts';
 
 import { driverResponseContract } from '../../../contracts/driver-response/driver-response-contract';
 import type { DriverResponse } from '../../../contracts/driver-response/driver-response-contract';
@@ -30,7 +29,7 @@ export const driverSocketRequestBroker = async ({
   request,
   timeoutMs,
 }: {
-  socketPath: AbsoluteFilePath;
+  socketPath: string;
   request: DriverRequest;
   timeoutMs: number;
 }): Promise<DriverResponse> => {

@@ -1,9 +1,8 @@
 import { safeReaddirLayerBroker } from './safe-readdir-layer-broker';
 import { safeReaddirLayerBrokerProxy } from './safe-readdir-layer-broker.proxy';
-import { AbsoluteFilePathStub } from '../../../contracts/absolute-file-path/absolute-file-path.stub';
 import { FileMissingErrorStub } from '#gateway/node/fs/file-missing-error/file-missing-error.stub';
 
-const DIR = AbsoluteFilePathStub({ value: '/repo/packages' });
+const DIR = '/repo/packages';
 
 describe('safeReaddirLayerBroker', () => {
   describe('directory exists', () => {

@@ -1,4 +1,3 @@
-import { AbsoluteFilePathStub } from '@dungeonmaster/shared/contracts/absolute-file-path/absolute-file-path.stub';
 import { ContentTextStub } from '@dungeonmaster/shared/contracts/content-text/content-text.stub';
 import { GuildStub } from '@dungeonmaster/shared/contracts/guild/guild.stub';
 import { QuestStub } from '@dungeonmaster/shared/contracts/quest/quest.stub';
@@ -30,7 +29,7 @@ describe('recipeSeedRunBroker', () => {
       const result = await recipeSeedRunBroker({
         recipe: RecipeNameStub({ value: 'guild-with-three-quests' }),
         apiBaseUrl: ContentTextStub({ value: API }),
-        homePath: AbsoluteFilePathStub({ value: HOME }),
+        homePath: HOME,
         parameters: {},
       });
 
@@ -50,7 +49,7 @@ describe('recipeSeedRunBroker', () => {
         recipeSeedRunBroker({
           recipe: RecipeNameStub({ value: 'guild-with-three-quests' }),
           apiBaseUrl: ContentTextStub({ value: API }),
-          homePath: AbsoluteFilePathStub({ value: HOME }),
+          homePath: HOME,
           parameters: {},
         }),
       ).rejects.toThrow(/No recipes package found at/u);
@@ -64,7 +63,7 @@ describe('recipeSeedRunBroker', () => {
         recipeSeedRunBroker({
           recipe: RecipeNameStub({ value: 'guild-with-three-quests' }),
           apiBaseUrl: ContentTextStub({ value: API }),
-          homePath: AbsoluteFilePathStub({ value: HOME }),
+          homePath: HOME,
           parameters: {},
         }),
       ).rejects.toThrow(

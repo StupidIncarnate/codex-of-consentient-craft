@@ -1,5 +1,4 @@
 import { ownerIndexBuildBrokerProxy } from '@dungeonmaster/shared/brokers/owner-index/build/owner-index-build-broker.proxy';
-import { AbsoluteFilePathStub } from '@dungeonmaster/shared/contracts/absolute-file-path/absolute-file-path.stub';
 
 import { layerContractCheckLayerBrokerProxy } from './layer-contract-check-layer-broker.proxy';
 
@@ -54,12 +53,12 @@ export const ruleRequireObjectContractBrandsIndexedBrokerProxy = (): {
     // reuse of alpha's own Guild; nothing else in either package is claimed.
     setupProject: (): void => {
       buildProxy.setupSubfolders({
-        dirPath: AbsoluteFilePathStub({ value: root }),
+        dirPath: root,
         folders: PACKAGES.map(({ folder }) => folder),
       });
 
       for (const { folder, dependencies, file, contractFolder, text } of PACKAGES) {
-        const packageDir = AbsoluteFilePathStub({ value: `${root}/${folder}` });
+        const packageDir = `${root}/${folder}`;
         const contractsDir = `${root}/${folder}/src/contracts`;
 
         buildProxy.setupPackageJson({
@@ -68,22 +67,22 @@ export const ruleRequireObjectContractBrandsIndexedBrokerProxy = (): {
         });
         buildProxy.setupWalkedFolder({ dirPath: packageDir, folders: ['src'], files: [] });
         buildProxy.setupWalkedFolder({
-          dirPath: AbsoluteFilePathStub({ value: `${root}/${folder}/src` }),
+          dirPath: `${root}/${folder}/src`,
           folders: ['contracts'],
           files: [],
         });
         buildProxy.setupWalkedFolder({
-          dirPath: AbsoluteFilePathStub({ value: contractsDir }),
+          dirPath: contractsDir,
           folders: [contractFolder],
           files: [],
         });
         buildProxy.setupWalkedFolder({
-          dirPath: AbsoluteFilePathStub({ value: `${contractsDir}/${contractFolder}` }),
+          dirPath: `${contractsDir}/${contractFolder}`,
           folders: [],
           files: [file],
         });
         buildProxy.setupSourceText({
-          filePath: AbsoluteFilePathStub({ value: `${contractsDir}/${contractFolder}/${file}` }),
+          filePath: `${contractsDir}/${contractFolder}/${file}`,
           text,
         });
       }

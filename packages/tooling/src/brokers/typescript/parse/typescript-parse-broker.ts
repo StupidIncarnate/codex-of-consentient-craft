@@ -9,12 +9,10 @@
  */
 import * as ts from '#gateway/npm/typescript';
 import type { SourceCode } from '../../../contracts/source-code/source-code-contract';
-import type { AbsoluteFilePath } from '../../../contracts/absolute-file-path/absolute-file-path-contract';
 import type { LiteralOccurrence } from '../../../contracts/literal-occurrence/literal-occurrence-contract';
 import type { LiteralValue } from '../../../contracts/literal-value/literal-value-contract';
 import { literalOccurrenceContract } from '../../../contracts/literal-occurrence/literal-occurrence-contract';
 import { literalValueContract } from '../../../contracts/literal-value/literal-value-contract';
-import { absoluteFilePathContract } from '../../../contracts/absolute-file-path/absolute-file-path-contract';
 
 export const typescriptParseBroker = ({
   sourceCode,
@@ -22,7 +20,7 @@ export const typescriptParseBroker = ({
   minLength = 3,
 }: {
   sourceCode: SourceCode;
-  filePath: AbsoluteFilePath;
+  filePath: string;
   minLength?: number;
 }): ReadonlyMap<LiteralValue, readonly LiteralOccurrence[]> => {
   const sourceFile = ts.createSourceFile(filePath, sourceCode, ts.ScriptTarget.Latest, true);
@@ -46,7 +44,7 @@ export const typescriptParseBroker = ({
       if (value.length >= minLength) {
         const position = sourceFile.getLineAndCharacterOfPosition(node.getStart());
         const occurrence = literalOccurrenceContract.parse({
-          filePath: absoluteFilePathContract.parse(filePath),
+          filePath: filePath,
           line: position.line + 1, // TypeScript uses 0-based lines
           column: position.character,
         });
@@ -66,7 +64,7 @@ export const typescriptParseBroker = ({
       const value = node.text;
       const position = sourceFile.getLineAndCharacterOfPosition(node.getStart());
       const occurrence = literalOccurrenceContract.parse({
-        filePath: absoluteFilePathContract.parse(filePath),
+        filePath: filePath,
         line: position.line + 1,
         column: position.character,
       });

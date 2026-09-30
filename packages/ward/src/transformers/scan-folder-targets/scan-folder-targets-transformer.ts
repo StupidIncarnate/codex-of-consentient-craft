@@ -8,7 +8,6 @@
  * // Returns: { inScope: true, targets: ['src/a.ts'] } for a package at packages/ward
  */
 
-import type { AbsoluteFilePath } from '@dungeonmaster/shared/contracts';
 
 import type { CliArg } from '../../contracts/cli-arg/cli-arg-contract';
 import type { ProjectFolder } from '../../contracts/project-folder/project-folder-contract';
@@ -28,7 +27,7 @@ export const scanFolderTargetsTransformer = ({
 }: {
   paths: CliArg[];
   projectFolder: ProjectFolder;
-  rootPath: AbsoluteFilePath;
+  rootPath: string;
 }): ScanFolderTargets => {
   if (paths.length === 0) {
     return scanFolderTargetsContract.parse({ inScope: true, targets: [] });

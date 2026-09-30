@@ -1,7 +1,5 @@
 import type { DirEntrySync } from '#gateway/node/fs';
 import { safeReaddirLayerBrokerProxy } from './safe-readdir-layer-broker.proxy';
-import { AbsoluteFilePathStub } from '../../../contracts/absolute-file-path/absolute-file-path.stub';
-import type { AbsoluteFilePath } from '../../../contracts/absolute-file-path/absolute-file-path-contract';
 
 const makeDirent = ({ name, isDir }: { name: string; isDir: boolean }): DirEntrySync => ({
   name,
@@ -13,7 +11,7 @@ export const countFilesRecursiveLayerBrokerProxy = (): {
     dirPath,
     fileNames,
   }: {
-    dirPath: AbsoluteFilePath;
+    dirPath: string;
     fileNames: string[];
   }) => void;
   setupNestedDirectory: ({
@@ -21,12 +19,12 @@ export const countFilesRecursiveLayerBrokerProxy = (): {
     files,
     subdirs,
   }: {
-    dirPath: AbsoluteFilePath;
+    dirPath: string;
     files: string[];
     subdirs: { name: string; files: string[] }[];
   }) => void;
-  setupEmpty: ({ dirPath }: { dirPath: AbsoluteFilePath }) => void;
-  setupError: ({ dirPath, error }: { dirPath: AbsoluteFilePath; error: Error }) => void;
+  setupEmpty: ({ dirPath }: { dirPath: string }) => void;
+  setupError: ({ dirPath, error }: { dirPath: string; error: Error }) => void;
 } => {
   const safeProxy = safeReaddirLayerBrokerProxy();
 
@@ -35,7 +33,7 @@ export const countFilesRecursiveLayerBrokerProxy = (): {
       dirPath,
       fileNames,
     }: {
-      dirPath: AbsoluteFilePath;
+      dirPath: string;
       fileNames: string[];
     }): void => {
       safeProxy.setupDirectory({
@@ -49,7 +47,7 @@ export const countFilesRecursiveLayerBrokerProxy = (): {
       files,
       subdirs,
     }: {
-      dirPath: AbsoluteFilePath;
+      dirPath: string;
       files: string[];
       subdirs: { name: string; files: string[] }[];
     }): void => {
@@ -61,17 +59,17 @@ export const countFilesRecursiveLayerBrokerProxy = (): {
 
       for (const sub of subdirs) {
         safeProxy.setupDirectory({
-          dirPath: AbsoluteFilePathStub({ value: `${String(dirPath)}/${sub.name}` }),
+          dirPath: `${String(dirPath)}/${sub.name}`,
           entries: sub.files.map((name) => makeDirent({ name, isDir: false })),
         });
       }
     },
 
-    setupEmpty: ({ dirPath }: { dirPath: AbsoluteFilePath }): void => {
+    setupEmpty: ({ dirPath }: { dirPath: string }): void => {
       safeProxy.setupDirectory({ dirPath, entries: [] });
     },
 
-    setupError: ({ dirPath, error }: { dirPath: AbsoluteFilePath; error: Error }): void => {
+    setupError: ({ dirPath, error }: { dirPath: string; error: Error }): void => {
       safeProxy.setupError({ dirPath, error });
     },
   };

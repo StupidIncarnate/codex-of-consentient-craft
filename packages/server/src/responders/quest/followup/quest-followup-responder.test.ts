@@ -1,4 +1,3 @@
-import { AbsoluteFilePathStub } from '@dungeonmaster/shared/contracts/absolute-file-path/absolute-file-path.stub';
 import { GuildIdStub } from '@dungeonmaster/shared/contracts/guild-id/guild-id.stub';
 import { PastedImageUploadStub } from '@dungeonmaster/shared/contracts/pasted-image-upload/pasted-image-upload.stub';
 import { ProcessIdStub } from '@dungeonmaster/shared/contracts/process-id/process-id.stub';
@@ -396,7 +395,7 @@ describe('QuestFollowupResponder', () => {
       proxy.setupPastedImageHome({ homePath });
       proxy.stagePastedImageIds({ ids: [copyId] });
       proxy.stagePastedImageSourceRead({
-        filePath: AbsoluteFilePathStub({ value: '/tmp/snip.png' }),
+        filePath: '/tmp/snip.png',
         bytes: new Uint8Array([1, 2, 3]),
       });
 

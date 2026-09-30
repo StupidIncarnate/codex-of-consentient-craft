@@ -7,7 +7,6 @@
  */
 
 import { readdirEntries } from '#gateway/node/fs__promises';
-import { type AbsoluteFilePath } from '@dungeonmaster/shared/contracts';
 
 import {
   projectFolderContract,
@@ -21,7 +20,7 @@ export const patternResolveLayerBroker = async ({
   rootPath,
 }: {
   pattern: string;
-  rootPath: AbsoluteFilePath;
+  rootPath: string;
 }): Promise<ProjectFolder[]> => {
   if (pattern.endsWith(workspaceGlobStatics.wildcardSuffix)) {
     const baseDir = pattern.slice(0, pattern.length - workspaceGlobStatics.wildcardSuffixLength);

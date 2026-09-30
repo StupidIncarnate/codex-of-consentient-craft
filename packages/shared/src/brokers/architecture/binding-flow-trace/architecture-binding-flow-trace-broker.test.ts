@@ -1,6 +1,5 @@
 import { architectureBindingFlowTraceBroker } from './architecture-binding-flow-trace-broker';
 import { architectureBindingFlowTraceBrokerProxy } from './architecture-binding-flow-trace-broker.proxy';
-import { AbsoluteFilePathStub } from '../../../contracts/absolute-file-path/absolute-file-path.stub';
 import { ContentTextStub } from '../../../contracts/content-text/content-text.stub';
 import { HttpEdgeStub } from '../../../contracts/http-edge/http-edge.stub';
 import { WsEdgeStub } from '../../../contracts/ws-edge/ws-edge.stub';
@@ -30,8 +29,8 @@ describe('architectureBindingFlowTraceBroker', () => {
 
       const result = architectureBindingFlowTraceBroker({
         bindingName: ContentTextStub({ value: BINDING_NAME }),
-        packageRoot: AbsoluteFilePathStub({ value: PACKAGE_ROOT }),
-        projectRoot: AbsoluteFilePathStub({ value: PROJECT_ROOT }),
+        packageRoot: PACKAGE_ROOT,
+        projectRoot: PROJECT_ROOT,
         httpEdges: [],
         wsEdges: [],
       });
@@ -50,16 +49,16 @@ describe('architectureBindingFlowTraceBroker', () => {
       const edge = HttpEdgeStub({
         method: ContentTextStub({ value: 'GET' }),
         urlPattern: ContentTextStub({ value: '/api/quests' }),
-        serverFlowFile: AbsoluteFilePathStub({ value: FLOW_FILE }),
+        serverFlowFile: FLOW_FILE,
         serverResponderFile: null,
-        webBrokerFile: AbsoluteFilePathStub({ value: BROKER_FILE }),
+        webBrokerFile: BROKER_FILE,
         paired: true,
       });
 
       const result = architectureBindingFlowTraceBroker({
         bindingName: ContentTextStub({ value: BINDING_NAME }),
-        packageRoot: AbsoluteFilePathStub({ value: PACKAGE_ROOT }),
-        projectRoot: AbsoluteFilePathStub({ value: PROJECT_ROOT }),
+        packageRoot: PACKAGE_ROOT,
+        projectRoot: PROJECT_ROOT,
         httpEdges: [edge],
         wsEdges: [],
       });
@@ -75,16 +74,16 @@ describe('architectureBindingFlowTraceBroker', () => {
       });
 
       const edge = HttpEdgeStub({
-        serverFlowFile: AbsoluteFilePathStub({ value: FLOW_FILE }),
+        serverFlowFile: FLOW_FILE,
         serverResponderFile: null,
-        webBrokerFile: AbsoluteFilePathStub({ value: BROKER_FILE }),
+        webBrokerFile: BROKER_FILE,
         paired: true,
       });
 
       const result = architectureBindingFlowTraceBroker({
         bindingName: ContentTextStub({ value: BINDING_NAME }),
-        packageRoot: AbsoluteFilePathStub({ value: PACKAGE_ROOT }),
-        projectRoot: AbsoluteFilePathStub({ value: PROJECT_ROOT }),
+        packageRoot: PACKAGE_ROOT,
+        projectRoot: PROJECT_ROOT,
         httpEdges: [edge],
         wsEdges: [],
       });
@@ -100,16 +99,16 @@ describe('architectureBindingFlowTraceBroker', () => {
       });
 
       const edge = HttpEdgeStub({
-        serverFlowFile: AbsoluteFilePathStub({ value: FLOW_FILE }),
-        serverResponderFile: AbsoluteFilePathStub({ value: RESPONDER_FILE }),
-        webBrokerFile: AbsoluteFilePathStub({ value: BROKER_FILE }),
+        serverFlowFile: FLOW_FILE,
+        serverResponderFile: RESPONDER_FILE,
+        webBrokerFile: BROKER_FILE,
         paired: true,
       });
 
       const result = architectureBindingFlowTraceBroker({
         bindingName: ContentTextStub({ value: BINDING_NAME }),
-        packageRoot: AbsoluteFilePathStub({ value: PACKAGE_ROOT }),
-        projectRoot: AbsoluteFilePathStub({ value: PROJECT_ROOT }),
+        packageRoot: PACKAGE_ROOT,
+        projectRoot: PROJECT_ROOT,
         httpEdges: [edge],
         wsEdges: [],
       });
@@ -126,16 +125,14 @@ describe('architectureBindingFlowTraceBroker', () => {
       });
 
       const unrelatedEdge = HttpEdgeStub({
-        webBrokerFile: AbsoluteFilePathStub({
-          value: '/repo/packages/web/src/brokers/other/other-broker.ts',
-        }),
+        webBrokerFile: '/repo/packages/web/src/brokers/other/other-broker.ts',
         paired: true,
       });
 
       const result = architectureBindingFlowTraceBroker({
         bindingName: ContentTextStub({ value: BINDING_NAME }),
-        packageRoot: AbsoluteFilePathStub({ value: PACKAGE_ROOT }),
-        projectRoot: AbsoluteFilePathStub({ value: PROJECT_ROOT }),
+        packageRoot: PACKAGE_ROOT,
+        projectRoot: PROJECT_ROOT,
         httpEdges: [unrelatedEdge],
         wsEdges: [],
       });
@@ -153,16 +150,16 @@ describe('architectureBindingFlowTraceBroker', () => {
 
       const wsEdge = WsEdgeStub({
         eventType: ContentTextStub({ value: 'quest-updated' }),
-        emitterFile: AbsoluteFilePathStub({ value: EMITTER_FILE }),
-        consumerFiles: [AbsoluteFilePathStub({ value: BINDING_FILE })],
+        emitterFile: EMITTER_FILE,
+        consumerFiles: [BINDING_FILE],
         wsGatewayFile: null,
         paired: true,
       });
 
       const result = architectureBindingFlowTraceBroker({
         bindingName: ContentTextStub({ value: BINDING_NAME }),
-        packageRoot: AbsoluteFilePathStub({ value: PACKAGE_ROOT }),
-        projectRoot: AbsoluteFilePathStub({ value: PROJECT_ROOT }),
+        packageRoot: PACKAGE_ROOT,
+        projectRoot: PROJECT_ROOT,
         httpEdges: [],
         wsEdges: [wsEdge],
       });
@@ -178,16 +175,16 @@ describe('architectureBindingFlowTraceBroker', () => {
 
       const wsEdge = WsEdgeStub({
         eventType: ContentTextStub({ value: 'quest-updated' }),
-        emitterFile: AbsoluteFilePathStub({ value: EMITTER_FILE }),
-        consumerFiles: [AbsoluteFilePathStub({ value: BINDING_FILE })],
+        emitterFile: EMITTER_FILE,
+        consumerFiles: [BINDING_FILE],
         wsGatewayFile: null,
         paired: true,
       });
 
       const result = architectureBindingFlowTraceBroker({
         bindingName: ContentTextStub({ value: BINDING_NAME }),
-        packageRoot: AbsoluteFilePathStub({ value: PACKAGE_ROOT }),
-        projectRoot: AbsoluteFilePathStub({ value: PROJECT_ROOT }),
+        packageRoot: PACKAGE_ROOT,
+        projectRoot: PROJECT_ROOT,
         httpEdges: [],
         wsEdges: [wsEdge],
       });
@@ -208,16 +205,16 @@ describe('architectureBindingFlowTraceBroker', () => {
 
       const wsEdge = WsEdgeStub({
         eventType: ContentTextStub({ value: 'quest-updated' }),
-        emitterFile: AbsoluteFilePathStub({ value: EMITTER_FILE }),
-        consumerFiles: [AbsoluteFilePathStub({ value: BINDING_FILE })],
-        wsGatewayFile: AbsoluteFilePathStub({ value: GATEWAY_FILE }),
+        emitterFile: EMITTER_FILE,
+        consumerFiles: [BINDING_FILE],
+        wsGatewayFile: GATEWAY_FILE,
         paired: true,
       });
 
       const result = architectureBindingFlowTraceBroker({
         bindingName: ContentTextStub({ value: BINDING_NAME }),
-        packageRoot: AbsoluteFilePathStub({ value: PACKAGE_ROOT }),
-        projectRoot: AbsoluteFilePathStub({ value: PROJECT_ROOT }),
+        packageRoot: PACKAGE_ROOT,
+        projectRoot: PROJECT_ROOT,
         httpEdges: [],
         wsEdges: [wsEdge],
       });

@@ -1,5 +1,4 @@
 import { httpEdgesLayerBrokerProxy } from './http-edges-layer-broker.proxy';
-import type { AbsoluteFilePath } from '../../../contracts/absolute-file-path/absolute-file-path-contract';
 import type { ContentText } from '../../../contracts/content-text/content-text-contract';
 
 export const architectureEdgeGraphBrokerProxy = (): {
@@ -11,8 +10,8 @@ export const architectureEdgeGraphBrokerProxy = (): {
   }: {
     serverStaticsSource: ContentText;
     webStaticsSource: ContentText;
-    flowFiles: { path: AbsoluteFilePath; source: ContentText }[];
-    brokerFiles: { path: AbsoluteFilePath; source: ContentText }[];
+    flowFiles: { path: string; source: ContentText }[];
+    brokerFiles: { path: string; source: ContentText }[];
   }) => void;
 } => {
   const httpProxy = httpEdgesLayerBrokerProxy();
@@ -26,8 +25,8 @@ export const architectureEdgeGraphBrokerProxy = (): {
     }: {
       serverStaticsSource: ContentText;
       webStaticsSource: ContentText;
-      flowFiles: { path: AbsoluteFilePath; source: ContentText }[];
-      brokerFiles: { path: AbsoluteFilePath; source: ContentText }[];
+      flowFiles: { path: string; source: ContentText }[];
+      brokerFiles: { path: string; source: ContentText }[];
     }): void => {
       httpProxy.setup({ serverStaticsSource, webStaticsSource, flowFiles, brokerFiles });
     },

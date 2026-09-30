@@ -17,7 +17,7 @@
  * // [{ linkPath, storedTarget, resolvedTarget, relative: true, inside: true }, ...]
  */
 
-import { absoluteFilePathContract, filePathContract, type AbsoluteFilePath } from '@dungeonmaster/shared/contracts';
+import { absoluteFilePathContract, filePathContract } from '@dungeonmaster/shared/contracts';
 import { readdirEntriesSync } from '#gateway/node/fs';
 import { readlinkIfLink } from '#gateway/node/fs__promises';
 import { join, resolve } from '#gateway/node/path';
@@ -25,9 +25,9 @@ import { join, resolve } from '#gateway/node/path';
 const PATH_SEPARATOR = '/';
 
 export type WorktreeLinkAudit = Readonly<{
-  linkPath: AbsoluteFilePath;
+  linkPath: string;
   storedTarget: string;
-  resolvedTarget: AbsoluteFilePath;
+  resolvedTarget: string;
   relative: boolean;
   inside: boolean;
 }>;
@@ -36,14 +36,14 @@ export const walkSymlinksLayerBroker = async ({
   worktreePath,
   dirPath,
 }: {
-  worktreePath: AbsoluteFilePath;
-  dirPath: AbsoluteFilePath;
+  worktreePath: string;
+  dirPath: string;
 }): Promise<readonly WorktreeLinkAudit[]> => {
   const entries = readdirEntriesSync(dirPath);
 
   const perEntry = await Promise.all(
     entries.map(async (entry): Promise<readonly WorktreeLinkAudit[]> => {
-      const entryPath = absoluteFilePathContract.parse(join(dirPath, entry.name));
+      const entryPath = join(dirPath, entry.name);
 
       if (entry.kind === 'symlink') {
         const rawTarget = await readlinkIfLink(entryPath);
@@ -60,7 +60,7 @@ export const walkSymlinksLayerBroker = async ({
         const storedTarget = parsedTarget.data;
 
         // Resolved against the LINK'S OWN directory, which is what a relative target means on disk.
-        const resolvedTarget = absoluteFilePathContract.parse(resolve(dirPath, storedTarget));
+        const resolvedTarget = resolve(dirPath, storedTarget);
         const resolved = String(resolvedTarget);
         const root = String(worktreePath);
 

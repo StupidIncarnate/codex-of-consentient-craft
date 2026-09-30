@@ -1,13 +1,12 @@
 import { globProxy } from '#gateway/npm/glob/glob/glob.proxy';
 import { readJsonFileProxy } from '#gateway/node/fs__promises/read-json-file/read-json-file.proxy';
 import { censusLayoutStatics } from '../../../statics/census-layout/census-layout-statics';
-import type { AbsoluteFilePath } from '../../../contracts/absolute-file-path/absolute-file-path-contract';
 
 export const censusRepoReadLayoutBrokerProxy = (): {
-  setupRoot: (params: { repoRoot: AbsoluteFilePath; rawContents: string }) => void;
-  setupMissingRoot: (params: { repoRoot: AbsoluteFilePath }) => void;
+  setupRoot: (params: { repoRoot: string; rawContents: string }) => void;
+  setupMissingRoot: (params: { repoRoot: string }) => void;
   setupPackages: (params: {
-    repoRoot: AbsoluteFilePath;
+    repoRoot: string;
     packages: readonly { dir: string; rawContents: string }[];
   }) => void;
 } => {

@@ -16,16 +16,15 @@ import { readFileSyncProxy } from '#gateway/node/fs/read-file-sync/read-file-syn
 import { readdirEntriesSyncProxy } from '#gateway/node/fs/readdir-entries-sync/readdir-entries-sync.proxy';
 import { registerMock, requireActual } from '@dungeonmaster/testing/register-mock';
 import { architecturePackageTypeDetectBrokerProxy } from '@dungeonmaster/shared/brokers/architecture/package-type-detect/architecture-package-type-detect-broker.proxy';
-import type { AbsoluteFilePath } from '@dungeonmaster/shared/contracts';
 
 export const laneWorkspaceResolveBrokerProxy = (): {
   setupPackagesDir: (params: {
-    repoRoot: AbsoluteFilePath;
+    repoRoot: string;
     packageNames: readonly string[];
     fileNames?: readonly string[];
   }) => void;
   setupPackage: (params: {
-    repoRoot: AbsoluteFilePath;
+    repoRoot: string;
     dirName: string;
     packageName: string;
     srcDirNames?: readonly string[];
@@ -52,7 +51,7 @@ export const laneWorkspaceResolveBrokerProxy = (): {
       packageNames,
       fileNames = [],
     }: {
-      repoRoot: AbsoluteFilePath;
+      repoRoot: string;
       packageNames: readonly string[];
       fileNames?: readonly string[];
     }): void => {
@@ -72,7 +71,7 @@ export const laneWorkspaceResolveBrokerProxy = (): {
       srcDirNames = [],
       dependencies = {},
     }: {
-      repoRoot: AbsoluteFilePath;
+      repoRoot: string;
       dirName: string;
       packageName: string;
       srcDirNames?: readonly string[];

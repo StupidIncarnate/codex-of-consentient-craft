@@ -8,16 +8,15 @@
 
 import { join } from '#gateway/node/path';
 import { registerMock, requireActual } from '@dungeonmaster/testing/register-mock';
-import type { AbsoluteFilePath } from '@dungeonmaster/shared/contracts';
 
 import { readFileProxy } from '#gateway/node/fs__promises/read-file/read-file.proxy';
 import { statIfExistsProxy } from '#gateway/node/fs__promises/stat-if-exists/stat-if-exists.proxy';
 
 export const stepFileBrokerProxy = (): {
-  setupFileExists: (params: { filePath: AbsoluteFilePath; content: string }) => void;
+  setupFileExists: (params: { filePath: string; content: string }) => void;
   setupFileNotFound: (params: {
-    filePath: AbsoluteFilePath;
-    evidenceFilePath?: AbsoluteFilePath;
+    filePath: string;
+    evidenceFilePath?: string;
   }) => void;
 } => {
   // #gateway/node/path is a raw passthrough of the Node 'path' module (no per-function wrapper, so
@@ -35,7 +34,7 @@ export const stepFileBrokerProxy = (): {
       filePath,
       content,
     }: {
-      filePath: AbsoluteFilePath;
+      filePath: string;
       content: string;
     }): void => {
       statProxy.returnsFile({
@@ -50,8 +49,8 @@ export const stepFileBrokerProxy = (): {
       filePath,
       evidenceFilePath,
     }: {
-      filePath: AbsoluteFilePath;
-      evidenceFilePath?: AbsoluteFilePath;
+      filePath: string;
+      evidenceFilePath?: string;
     }): void => {
       statProxy.missing({ path: filePath });
       if (evidenceFilePath !== undefined) {

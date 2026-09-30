@@ -1,5 +1,5 @@
 import { homedir } from '#gateway/node/os';
-import { absoluteFilePathContract, type AbsoluteFilePath, type FileName, sessionContract } from '@dungeonmaster/shared/contracts';
+import { type FileName, sessionContract } from '@dungeonmaster/shared/contracts';
 import {
   claudeProjectPathEncoderTransformer,
   stripJsonlSuffixTransformer,
@@ -71,10 +71,10 @@ export const questMonitorWatcherStartBrokerProxy = (): {
     homeDir: string;
     projectDir: string;
     parentSessionId: string;
-  }): AbsoluteFilePath =>
+  }): string =>
     claudeProjectPathEncoderTransformer({
-      homeDir: absoluteFilePathContract.parse(homeDir),
-      projectPath: absoluteFilePathContract.parse(projectDir),
+      homeDir: homeDir,
+      projectPath: projectDir,
       sessionId: sessionContract.shape.id.parse(parentSessionId),
     });
   // No pre-queued subagent-dir state — the underlying readdir mock defaults to `[]`
@@ -98,13 +98,11 @@ export const questMonitorWatcherStartBrokerProxy = (): {
       files: readonly FileName[];
     }): void => {
       const sessionFilePath = claudeProjectPathEncoderTransformer({
-        homeDir: absoluteFilePathContract.parse(homeDir),
-        projectPath: absoluteFilePathContract.parse(projectDir),
+        homeDir: homeDir,
+        projectPath: projectDir,
         sessionId: sessionContract.shape.id.parse(parentSessionId),
       });
-      const subagentsDir = absoluteFilePathContract.parse(
-        `${stripJsonlSuffixTransformer({ filePath: sessionFilePath })}/subagents`,
-      );
+      const subagentsDir = `${stripJsonlSuffixTransformer({ filePath: sessionFilePath })}/subagents`;
       jsonlWatcherProxy.setupSubagentDirFiles({ subagentsDir, files });
     },
     setupSessionFile: ({

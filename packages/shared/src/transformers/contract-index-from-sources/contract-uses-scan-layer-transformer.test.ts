@@ -1,11 +1,10 @@
 import * as ts from '#gateway/npm/typescript';
 
-import { AbsoluteFilePathStub } from '../../contracts/absolute-file-path/absolute-file-path.stub';
 import { ContractUsesBindingStub } from '../../contracts/contract-uses-binding/contract-uses-binding.stub';
 import { IdentifierStub } from '../../contracts/identifier/identifier.stub';
 import { contractUsesScanLayerTransformer } from './contract-uses-scan-layer-transformer';
 
-const targetFile = AbsoluteFilePathStub({ value: '/repo/packages/a/src/thing/thing-contract.ts' });
+const targetFile = '/repo/packages/a/src/thing/thing-contract.ts';
 const thingBinding = ContractUsesBindingStub({
   localName: IdentifierStub({ value: 'thingContract' }),
   targetFile,

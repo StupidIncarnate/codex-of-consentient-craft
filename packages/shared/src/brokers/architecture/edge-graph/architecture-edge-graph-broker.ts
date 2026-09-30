@@ -12,12 +12,11 @@
  * WHEN-NOT-TO-USE: When TypeScript AST-level accuracy is required (regex v1 heuristic)
  */
 
-import type { AbsoluteFilePath } from '../../../contracts/absolute-file-path/absolute-file-path-contract';
 import type { HttpEdge } from '../../../contracts/http-edge/http-edge-contract';
 import { httpEdgesLayerBroker } from './http-edges-layer-broker';
 
 export const architectureEdgeGraphBroker = ({
   projectRoot,
 }: {
-  projectRoot: AbsoluteFilePath;
+  projectRoot: string;
 }): HttpEdge[] => httpEdgesLayerBroker({ projectRoot });

@@ -1,4 +1,3 @@
-import { AbsoluteFilePathStub } from '@dungeonmaster/shared/contracts/absolute-file-path/absolute-file-path.stub';
 
 import { WorktreeCreateResponder } from './worktree-create-responder';
 import { WorktreeCreateResponderProxy } from './worktree-create-responder.proxy';
@@ -7,8 +6,8 @@ describe('WorktreeCreateResponder', () => {
   describe('a name nothing has carved yet', () => {
     it('VALID: {name: probe} => carves off the detected base branch and returns the path under worktrees/', async () => {
       const proxy = WorktreeCreateResponderProxy();
-      const repoRoot = AbsoluteFilePathStub({ value: '/repo' });
-      const worktreePath = AbsoluteFilePathStub({ value: '/repo/worktrees/probe' });
+      const repoRoot = '/repo';
+      const worktreePath = '/repo/worktrees/probe';
       proxy.setupFreshCarve({
         repoRoot,
         worktreePath,
@@ -36,8 +35,8 @@ describe('WorktreeCreateResponder', () => {
     // for itself what is already satisfied.
     it('VALID: {worktrees/probe already on disk} => returns the same path and spawns NO git at all', async () => {
       const proxy = WorktreeCreateResponderProxy();
-      const repoRoot = AbsoluteFilePathStub({ value: '/repo' });
-      const worktreePath = AbsoluteFilePathStub({ value: '/repo/worktrees/probe' });
+      const repoRoot = '/repo';
+      const worktreePath = '/repo/worktrees/probe';
       proxy.setupFreshCarve({
         repoRoot,
         worktreePath,
@@ -56,10 +55,10 @@ describe('WorktreeCreateResponder', () => {
   describe('no base branch to fork from', () => {
     it('ERROR: {neither main nor master resolves} => rejects with BaseBranchNotFoundError before carving anything', async () => {
       const proxy = WorktreeCreateResponderProxy();
-      const repoRoot = AbsoluteFilePathStub({ value: '/repo' });
+      const repoRoot = '/repo';
       proxy.setupRepoRoot({ repoRoot });
       proxy.setupNoBaseBranch({
-        worktreePath: AbsoluteFilePathStub({ value: '/repo/worktrees/probe' }),
+        worktreePath: '/repo/worktrees/probe',
       });
 
       const error = await WorktreeCreateResponder({ name: 'probe' }).catch(
@@ -82,8 +81,8 @@ describe('WorktreeCreateResponder', () => {
     // commands in it that grade the main checkout and report green.
     it('ERROR: {an absolute node_modules link} => rejects at verify-links rather than returning the path', async () => {
       const proxy = WorktreeCreateResponderProxy();
-      const repoRoot = AbsoluteFilePathStub({ value: '/repo' });
-      const worktreePath = AbsoluteFilePathStub({ value: '/repo/worktrees/probe' });
+      const repoRoot = '/repo';
+      const worktreePath = '/repo/worktrees/probe';
       proxy.setupWorktreeAlreadyOnDisk({ worktreePath });
       proxy.setupRepoRoot({ repoRoot });
       proxy.setupLeakingLink({

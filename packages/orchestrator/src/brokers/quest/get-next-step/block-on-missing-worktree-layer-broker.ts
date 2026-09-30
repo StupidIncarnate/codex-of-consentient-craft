@@ -15,7 +15,7 @@
  * //   reports whether the write actually landed.
  */
 
-import type { AbsoluteFilePath, ModifyQuestInput, Quest } from '@dungeonmaster/shared/contracts';
+import type { ModifyQuestInput, Quest } from '@dungeonmaster/shared/contracts';
 import { isTerminalWorkItemStatusGuard } from '@dungeonmaster/shared/guards';
 
 import { questBlockOnFailureBroker } from '../block-on-failure/quest-block-on-failure-broker';
@@ -26,7 +26,7 @@ export const blockOnMissingWorktreeLayerBroker = async ({
   worktreePath,
 }: {
   quest: Quest;
-  worktreePath: AbsoluteFilePath;
+  worktreePath: string;
 }): Promise<{ blocked: boolean }> => {
   const reason = `Worktree not found: ${worktreePath}`;
 

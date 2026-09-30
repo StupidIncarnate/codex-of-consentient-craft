@@ -6,7 +6,7 @@
  * // Returns session entries sorted most-recently-active-first (by JSONL mtime) with optional quest correlation
  */
 
-import { absoluteFilePathContract, sessionContract } from '@dungeonmaster/shared/contracts';
+import { sessionContract } from '@dungeonmaster/shared/contracts';
 import type { Guild, Session } from '@dungeonmaster/shared/contracts';
 import { readFile, stat } from '#gateway/node/fs__promises';
 import { homedir } from '#gateway/node/os';
@@ -37,8 +37,8 @@ export const sessionListBroker = async ({
 }): Promise<unknown[]> => {
   const guild = await StartOrchestrator.getGuild({ guildId });
 
-  const homeDir = absoluteFilePathContract.parse(homedir());
-  const guildPath = absoluteFilePathContract.parse(guild.path);
+  const homeDir = homedir();
+  const guildPath = guild.path;
   const dummySessionId = sessionContract.shape.id.parse('_probe');
   const probePath = claudeProjectPathEncoderTransformer({
     homeDir,

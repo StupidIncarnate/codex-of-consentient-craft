@@ -1,6 +1,4 @@
 import type { Dirent } from '#gateway/node/fs';
-import { AbsoluteFilePathStub } from '../../../contracts/absolute-file-path/absolute-file-path.stub';
-import type { AbsoluteFilePath } from '../../../contracts/absolute-file-path/absolute-file-path-contract';
 import type { ContentText } from '../../../contracts/content-text/content-text-contract';
 import { listTsFilesLayerBrokerProxy } from './list-ts-files-layer-broker.proxy';
 import { readFileLayerBrokerProxy } from './read-file-layer-broker.proxy';
@@ -13,8 +11,8 @@ const buildDirDirent = ({ name }: { name: string }): Dirent =>
 const buildFileDirent = ({ name }: { name: string }): Dirent => DirentStub({ name, kind: 'file' });
 
 const addToTree = (
-  tree: Map<AbsoluteFilePath, Dirent[]>,
-  dirPath: AbsoluteFilePath,
+  tree: Map<string, Dirent[]>,
+  dirPath: string,
   entry: Dirent,
 ): void => {
   const existing = tree.get(dirPath) ?? [];
@@ -26,14 +24,14 @@ const addToTree = (
 };
 
 const addFilePathPartsToTree = (
-  tree: Map<AbsoluteFilePath, Dirent[]>,
+  tree: Map<string, Dirent[]>,
   parts: string[],
   depth: number,
 ): void => {
   if (depth >= parts.length) {
     return;
   }
-  const parentDir = AbsoluteFilePathStub({ value: parts.slice(0, depth).join('/') || '/' });
+  const parentDir = (parts.slice(0, depth).join('/') || '/');
   const childName = parts[depth] ?? '';
   if (childName === '') {
     return;
@@ -48,8 +46,8 @@ const addFilePathPartsToTree = (
 };
 
 const addFilePathToTree = (
-  tree: Map<AbsoluteFilePath, Dirent[]>,
-  filePath: AbsoluteFilePath,
+  tree: Map<string, Dirent[]>,
+  filePath: string,
 ): void => {
   const parts = String(filePath).split('/');
   addFilePathPartsToTree(tree, parts, 1);
@@ -61,9 +59,9 @@ export const importEdgesLayerBrokerProxy = (): {
     packages,
     sourceFiles,
   }: {
-    projectRoot: AbsoluteFilePath;
+    projectRoot: string;
     packages: ContentText[];
-    sourceFiles: { path: AbsoluteFilePath; source: ContentText }[];
+    sourceFiles: { path: string; source: ContentText }[];
   }) => void;
 } => {
   const readdirProxy = safeReaddirLayerBrokerProxy();
@@ -78,18 +76,18 @@ export const importEdgesLayerBrokerProxy = (): {
       packages,
       sourceFiles,
     }: {
-      projectRoot: AbsoluteFilePath;
+      projectRoot: string;
       packages: ContentText[];
-      sourceFiles: { path: AbsoluteFilePath; source: ContentText }[];
+      sourceFiles: { path: string; source: ContentText }[];
     }): void => {
       const root = String(projectRoot);
 
       // Build a unified virtual directory tree covering:
       // - packages/ (one dir entry per package)
       // - packages/<P>/src/... (full file paths for source files)
-      const tree = new Map<AbsoluteFilePath, Dirent[]>();
+      const tree = new Map<string, Dirent[]>();
 
-      const packagesDir = AbsoluteFilePathStub({ value: `${root}/packages` });
+      const packagesDir = `${root}/packages`;
       for (const pkg of packages) {
         addToTree(tree, packagesDir, buildDirDirent({ name: String(pkg) }));
       }
@@ -100,12 +98,12 @@ export const importEdgesLayerBrokerProxy = (): {
 
       readdirProxy.setupImplementation({
         fn: (dirPath: string): Dirent[] => {
-          const key = AbsoluteFilePathStub({ value: dirPath });
+          const key = dirPath;
           return tree.get(key) ?? [];
         },
       });
 
-      const fileMap = new Map<AbsoluteFilePath, ContentText>();
+      const fileMap = new Map<string, ContentText>();
       for (const file of sourceFiles) {
         fileMap.set(file.path, file.source);
       }

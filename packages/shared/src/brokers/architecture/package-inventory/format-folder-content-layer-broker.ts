@@ -12,8 +12,6 @@
  */
 
 import { projectMapStatics } from '../../../statics/project-map/project-map-statics';
-import type { AbsoluteFilePath } from '../../../contracts/absolute-file-path/absolute-file-path-contract';
-import { absoluteFilePathContract } from '../../../contracts/absolute-file-path/absolute-file-path-contract';
 import type { ContentText } from '../../../contracts/content-text/content-text-contract';
 import { contentTextContract } from '../../../contracts/content-text/content-text-contract';
 import { safeReaddirLayerBroker } from './safe-readdir-layer-broker';
@@ -26,7 +24,7 @@ export const formatFolderContentLayerBroker = ({
   dirPath,
   folderDepth,
 }: {
-  dirPath: AbsoluteFilePath;
+  dirPath: string;
   folderDepth: FolderDepth;
 }): ContentText => {
   // Depth 0: list file stems (strip extension)
@@ -47,7 +45,7 @@ export const formatFolderContentLayerBroker = ({
     const domains = safeReaddirLayerBroker({ dirPath })
       .filter((entry) => entry.kind === 'directory')
       .filter((entry) => {
-        const domainPath = absoluteFilePathContract.parse(`${dirPath}/${entry.name}`);
+        const domainPath = `${dirPath}/${entry.name}`;
         return countFilesRecursiveLayerBroker({ dirPath: domainPath }) > 0;
       })
       .sort((a, b) => a.name.localeCompare(b.name));
@@ -55,11 +53,11 @@ export const formatFolderContentLayerBroker = ({
     const domainParts: ContentText[] = [];
 
     for (const domain of domains) {
-      const domainPath = absoluteFilePathContract.parse(`${dirPath}/${domain.name}`);
+      const domainPath = `${dirPath}/${domain.name}`;
       const actions = safeReaddirLayerBroker({ dirPath: domainPath })
         .filter((entry) => entry.kind === 'directory')
         .filter((entry) => {
-          const actionPath = absoluteFilePathContract.parse(`${domainPath}/${entry.name}`);
+          const actionPath = `${domainPath}/${entry.name}`;
           return countFilesRecursiveLayerBroker({ dirPath: actionPath }) > 0;
         })
         .map((entry) => `${entry.name}/`)
@@ -80,7 +78,7 @@ export const formatFolderContentLayerBroker = ({
   const subdirNames = entries
     .filter((entry) => entry.kind === 'directory')
     .filter((entry) => {
-      const subdirPath = absoluteFilePathContract.parse(`${dirPath}/${entry.name}`);
+      const subdirPath = `${dirPath}/${entry.name}`;
       return countFilesRecursiveLayerBroker({ dirPath: subdirPath }) > 0;
     })
     .map((entry) => `${entry.name}/`)

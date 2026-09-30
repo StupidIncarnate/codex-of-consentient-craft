@@ -1,22 +1,20 @@
 import type { Dirent } from '#gateway/node/fs';
 import type { DirEntrySync } from '#gateway/node/fs';
 import { safeReaddirLayerBrokerProxy } from './safe-readdir-layer-broker.proxy';
-import { AbsoluteFilePathStub } from '../../../contracts/absolute-file-path/absolute-file-path.stub';
-import type { AbsoluteFilePath } from '../../../contracts/absolute-file-path/absolute-file-path-contract';
 
 export const findStartupFilesLayerBrokerProxy = (): {
   setupReturns: ({
     packageSrcPath,
     entries,
   }: {
-    packageSrcPath: AbsoluteFilePath;
+    packageSrcPath: string;
     entries: DirEntrySync[];
   }) => void;
   setupReaddirThrows: ({
     packageSrcPath,
     error,
   }: {
-    packageSrcPath: AbsoluteFilePath;
+    packageSrcPath: string;
     error: Error;
   }) => void;
   setupReaddirImplementation: ({ fn }: { fn: (dirPath: string) => Dirent[] }) => void;
@@ -27,20 +25,20 @@ export const findStartupFilesLayerBrokerProxy = (): {
       packageSrcPath,
       entries,
     }: {
-      packageSrcPath: AbsoluteFilePath;
+      packageSrcPath: string;
       entries: DirEntrySync[];
     }): void => {
-      const dirPath = AbsoluteFilePathStub({ value: `${String(packageSrcPath)}/startup` });
+      const dirPath = `${String(packageSrcPath)}/startup`;
       readdirProxy.setupReaddirReturns({ dirPath, entries });
     },
     setupReaddirThrows: ({
       packageSrcPath,
       error,
     }: {
-      packageSrcPath: AbsoluteFilePath;
+      packageSrcPath: string;
       error: Error;
     }): void => {
-      const dirPath = AbsoluteFilePathStub({ value: `${String(packageSrcPath)}/startup` });
+      const dirPath = `${String(packageSrcPath)}/startup`;
       readdirProxy.setupReaddirThrows({ dirPath, error });
     },
     setupReaddirImplementation: ({ fn }: { fn: (dirPath: string) => Dirent[] }): void => {

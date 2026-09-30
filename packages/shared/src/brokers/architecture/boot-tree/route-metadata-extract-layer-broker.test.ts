@@ -1,15 +1,12 @@
 import { routeMetadataExtractLayerBroker } from './route-metadata-extract-layer-broker';
 import { routeMetadataExtractLayerBrokerProxy } from './route-metadata-extract-layer-broker.proxy';
-import { AbsoluteFilePathStub } from '../../../contracts/absolute-file-path/absolute-file-path.stub';
 import { ContentTextStub } from '../../../contracts/content-text/content-text.stub';
 
 describe('routeMetadataExtractLayerBroker', () => {
   describe('reads flow source and extracts routes', () => {
     it('VALID: {flow file with Route JSX} => returns metadata entries', () => {
       const proxy = routeMetadataExtractLayerBrokerProxy();
-      const flowFile = AbsoluteFilePathStub({
-        value: '/repo/packages/web/src/flows/quest-chat/quest-chat-flow.tsx',
-      });
+      const flowFile = '/repo/packages/web/src/flows/quest-chat/quest-chat-flow.tsx';
       proxy.setupSource({
         flowFile,
         content: ContentTextStub({
@@ -30,9 +27,7 @@ describe('routeMetadataExtractLayerBroker', () => {
   describe('missing source', () => {
     it('EMPTY: {flow file missing on disk} => returns empty array', () => {
       const proxy = routeMetadataExtractLayerBrokerProxy();
-      const flowFile = AbsoluteFilePathStub({
-        value: '/repo/packages/web/src/flows/missing/missing-flow.tsx',
-      });
+      const flowFile = '/repo/packages/web/src/flows/missing/missing-flow.tsx';
       proxy.setupMissing({ flowFile });
       const result = routeMetadataExtractLayerBroker({ flowFile });
 
@@ -43,9 +38,7 @@ describe('routeMetadataExtractLayerBroker', () => {
   describe('non-router flow', () => {
     it('VALID: {flow file with no Route JSX} => returns empty array', () => {
       const proxy = routeMetadataExtractLayerBrokerProxy();
-      const flowFile = AbsoluteFilePathStub({
-        value: '/repo/packages/cli/src/flows/cli/cli-flow.ts',
-      });
+      const flowFile = '/repo/packages/cli/src/flows/cli/cli-flow.ts';
       proxy.setupSource({
         flowFile,
         content: ContentTextStub({

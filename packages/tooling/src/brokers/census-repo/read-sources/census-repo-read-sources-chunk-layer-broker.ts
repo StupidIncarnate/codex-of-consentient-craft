@@ -12,14 +12,13 @@ import { readFileIfExists } from '#gateway/node/fs__promises';
 import { relative } from '#gateway/node/path';
 import { censusSourceEntryContract } from '../../../contracts/census-source-entry/census-source-entry-contract';
 import { censusLayoutStatics } from '../../../statics/census-layout/census-layout-statics';
-import type { AbsoluteFilePath } from '../../../contracts/absolute-file-path/absolute-file-path-contract';
 import type { CensusSourceEntry } from '../../../contracts/census-source-entry/census-source-entry-contract';
 
 export const censusRepoReadSourcesChunkLayerBroker = async ({
   repoRoot,
   files,
 }: {
-  repoRoot: AbsoluteFilePath;
+  repoRoot: string;
   files: readonly string[];
 }): Promise<CensusSourceEntry[]> => {
   if (files.length === 0) {

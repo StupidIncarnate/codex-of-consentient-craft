@@ -10,7 +10,6 @@
  * contractFileFindLayerTransformer({ specifier, fromFile, name, contractFiles, exportedNamesByFile, reExportsByFile, knownFiles, packages });
  * // Returns the contract file's AbsoluteFilePath, or undefined when the name lands on no contract file
  */
-import type { AbsoluteFilePath } from '../../contracts/absolute-file-path/absolute-file-path-contract';
 import type { Identifier } from '../../contracts/identifier/identifier-contract';
 import type { ImportPath } from '../../contracts/import-path/import-path-contract';
 import type { ContractIndexPackage } from '../../contracts/contract-index-package/contract-index-package-contract';
@@ -30,18 +29,18 @@ export const contractFileFindLayerTransformer = ({
   visited = [],
 }: {
   specifier: ImportPath;
-  fromFile: AbsoluteFilePath;
+  fromFile: string;
   name: Identifier;
-  contractFiles: ReadonlySet<AbsoluteFilePath>;
-  exportedNamesByFile: ReadonlyMap<AbsoluteFilePath, readonly Identifier[]>;
+  contractFiles: ReadonlySet<string>;
+  exportedNamesByFile: ReadonlyMap<string, readonly Identifier[]>;
   reExportsByFile: ReadonlyMap<
-    AbsoluteFilePath,
+    string,
     ReturnType<typeof moduleLinksReadLayerTransformer>['reExports']
   >;
-  knownFiles: ReadonlySet<AbsoluteFilePath>;
+  knownFiles: ReadonlySet<string>;
   packages: ContractIndexPackage[];
   visited?: readonly string[];
-}): AbsoluteFilePath | undefined => {
+}): string | undefined => {
   const target = moduleSpecifierResolveLayerTransformer({
     specifier,
     fromFile,

@@ -1,4 +1,3 @@
-import { AbsoluteFilePathStub } from '@dungeonmaster/shared/contracts/absolute-file-path/absolute-file-path.stub';
 
 import { CreateWorktreeLayerResponder } from './create-worktree-layer-responder';
 import { CreateWorktreeLayerResponderProxy } from './create-worktree-layer-responder.proxy';
@@ -11,7 +10,7 @@ describe('CreateWorktreeLayerResponder', () => {
       const proxy = CreateWorktreeLayerResponderProxy();
       proxy.setupReturns({
         name: 'probe',
-        result: { worktreePath: AbsoluteFilePathStub({ value: '/repo/worktrees/probe' }) },
+        result: { worktreePath: '/repo/worktrees/probe' },
       });
 
       const result = await CreateWorktreeLayerResponder({ args: { name: 'probe' } });
@@ -31,7 +30,7 @@ describe('CreateWorktreeLayerResponder', () => {
       proxy.setupReturns({
         name: 'quest-add-auth',
         result: {
-          worktreePath: AbsoluteFilePathStub({ value: '/repo/worktrees/quest-add-auth' }),
+          worktreePath: '/repo/worktrees/quest-add-auth',
         },
       });
 

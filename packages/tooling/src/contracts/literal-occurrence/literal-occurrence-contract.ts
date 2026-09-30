@@ -6,10 +6,9 @@
  * // Returns: LiteralOccurrence (object with filePath, line, column)
  */
 import { z } from '#gateway/npm/zod';
-import { absoluteFilePathContract } from '../absolute-file-path/absolute-file-path-contract';
 
 export const literalOccurrenceContract = z.object({
-  filePath: absoluteFilePathContract,
+  filePath: z.string().brand<'LiteralOccurrenceFilePath'>(),
   line: z.number().int().positive().brand<'LineNumber'>(),
   column: z.number().int().nonnegative().brand<'ColumnNumber'>(),
 });

@@ -1,4 +1,3 @@
-import type { AbsoluteFilePath } from '@dungeonmaster/shared/contracts';
 
 import { readFileProxy } from '#gateway/node/fs__promises/read-file/read-file.proxy';
 import { statIfExistsProxy } from '#gateway/node/fs__promises/stat-if-exists/stat-if-exists.proxy';
@@ -10,15 +9,15 @@ const FILE_SIZE_BYTES = 128;
 const FILE_MODIFIED_AT_MS = 1735689600000;
 
 export const drivingOddityReadBrokerProxy = (): {
-  setupNoFile: (params: { filePath: AbsoluteFilePath }) => void;
-  setupFile: (params: { filePath: AbsoluteFilePath; entries: readonly DrivingOddity[] }) => void;
-  setupRawFile: (params: { filePath: AbsoluteFilePath; contents: string }) => void;
+  setupNoFile: (params: { filePath: string }) => void;
+  setupFile: (params: { filePath: string; entries: readonly DrivingOddity[] }) => void;
+  setupRawFile: (params: { filePath: string; contents: string }) => void;
 } => {
   const statProxy = statIfExistsProxy();
   const readFileMock = readFileProxy();
 
   return {
-    setupNoFile: ({ filePath }: { filePath: AbsoluteFilePath }): void => {
+    setupNoFile: ({ filePath }: { filePath: string }): void => {
       statProxy.missing({ path: filePath });
     },
 
@@ -26,7 +25,7 @@ export const drivingOddityReadBrokerProxy = (): {
       filePath,
       entries,
     }: {
-      filePath: AbsoluteFilePath;
+      filePath: string;
       entries: readonly DrivingOddity[];
     }): void => {
       statProxy.returnsFile({
@@ -46,7 +45,7 @@ export const drivingOddityReadBrokerProxy = (): {
       filePath,
       contents,
     }: {
-      filePath: AbsoluteFilePath;
+      filePath: string;
       contents: string;
     }): void => {
       statProxy.returnsFile({

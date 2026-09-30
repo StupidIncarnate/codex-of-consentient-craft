@@ -12,7 +12,6 @@
 
 import { contentTextContract } from '../../contracts/content-text/content-text-contract';
 import type { ContentText } from '../../contracts/content-text/content-text-contract';
-import type { AbsoluteFilePath } from '../../contracts/absolute-file-path/absolute-file-path-contract';
 
 const PACKAGE_PATH_PATTERN = /\/packages\/([^/]+)\/src\/([^/]+)\//u;
 const OUT_OF_BOUNDS_MESSAGE =
@@ -23,8 +22,8 @@ export const importPathToPackagePrefixTransformer = ({
   referencedFilePath,
   symbolName,
 }: {
-  renderingFilePath: AbsoluteFilePath;
-  referencedFilePath: AbsoluteFilePath;
+  renderingFilePath: string;
+  referencedFilePath: string;
   symbolName: string;
 }): ContentText => {
   const renderingMatch = PACKAGE_PATH_PATTERN.exec(renderingFilePath);

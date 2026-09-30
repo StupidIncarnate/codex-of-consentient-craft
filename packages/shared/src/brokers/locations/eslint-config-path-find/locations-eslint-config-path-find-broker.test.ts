@@ -1,7 +1,6 @@
 import { locationsEslintConfigPathFindBroker } from './locations-eslint-config-path-find-broker';
 import { locationsEslintConfigPathFindBrokerProxy } from './locations-eslint-config-path-find-broker.proxy';
 import { ProjectRootNotFoundError } from '../../../errors/project-root-not-found/project-root-not-found-error';
-import { AbsoluteFilePathStub } from '../../../contracts/absolute-file-path/absolute-file-path.stub';
 
 describe('locationsEslintConfigPathFindBroker', () => {
   describe('config found cases', () => {
@@ -17,7 +16,7 @@ describe('locationsEslintConfigPathFindBroker', () => {
         startPath: '/project',
       });
 
-      expect(result).toBe(AbsoluteFilePathStub({ value: '/project/eslint.config.ts' }));
+      expect(result).toBe('/project/eslint.config.ts');
     });
 
     it('VALID: {startPath: "/project"} => returns .js path when .ts variant missing', async () => {
@@ -33,7 +32,7 @@ describe('locationsEslintConfigPathFindBroker', () => {
         startPath: '/project',
       });
 
-      expect(result).toBe(AbsoluteFilePathStub({ value: '/project/eslint.config.js' }));
+      expect(result).toBe('/project/eslint.config.js');
     });
 
     it('VALID: {startPath: "/repo/packages/foo/src"} => walks up to parent and returns config at /repo', async () => {
@@ -51,7 +50,7 @@ describe('locationsEslintConfigPathFindBroker', () => {
         startPath: '/repo/packages/foo/src',
       });
 
-      expect(result).toBe(AbsoluteFilePathStub({ value: '/repo/eslint.config.js' }));
+      expect(result).toBe('/repo/eslint.config.js');
     });
   });
 

@@ -1,6 +1,5 @@
 import { variantWalkLayerBroker } from './variant-walk-layer-broker';
 import { variantWalkLayerBrokerProxy } from './variant-walk-layer-broker.proxy';
-import { AbsoluteFilePathStub } from '../../../contracts/absolute-file-path/absolute-file-path.stub';
 
 describe('variantWalkLayerBroker', () => {
   describe('match cases', () => {
@@ -18,7 +17,7 @@ describe('variantWalkLayerBroker', () => {
       });
 
       expect(result).toBe(
-        AbsoluteFilePathStub({ value: '/project/.dungeonmaster-hooks.config.ts' }),
+        '/project/.dungeonmaster-hooks.config.ts',
       );
     });
 
@@ -37,7 +36,7 @@ describe('variantWalkLayerBroker', () => {
       });
 
       expect(result).toBe(
-        AbsoluteFilePathStub({ value: '/project/.dungeonmaster-hooks.config.js' }),
+        '/project/.dungeonmaster-hooks.config.js',
       );
     });
   });

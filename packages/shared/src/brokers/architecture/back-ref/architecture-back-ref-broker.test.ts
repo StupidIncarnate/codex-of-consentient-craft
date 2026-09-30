@@ -1,15 +1,12 @@
 import { architectureBackRefBroker } from './architecture-back-ref-broker';
 import { architectureBackRefBrokerProxy } from './architecture-back-ref-broker.proxy';
-import { AbsoluteFilePathStub } from '../../../contracts/absolute-file-path/absolute-file-path.stub';
 import { ContentTextStub } from '../../../contracts/content-text/content-text.stub';
 
 describe('architectureBackRefBroker', () => {
   describe('responder file with PascalCase export', () => {
     it('VALID: {orchestrator responder} => returns packages/orchestrator (ChatReplayResponder)', () => {
       const proxy = architectureBackRefBrokerProxy();
-      const filePath = AbsoluteFilePathStub({
-        value: '/repo/packages/orchestrator/src/responders/chat/replay/chat-replay-responder.ts',
-      });
+      const filePath = '/repo/packages/orchestrator/src/responders/chat/replay/chat-replay-responder.ts';
       proxy.setupSource({
         filePath,
         content: ContentTextStub({
@@ -19,7 +16,7 @@ describe('architectureBackRefBroker', () => {
 
       const result = architectureBackRefBroker({
         filePath,
-        projectRoot: AbsoluteFilePathStub({ value: '/repo' }),
+        projectRoot: '/repo',
       });
 
       expect(String(result)).toBe('packages/orchestrator (ChatReplayResponder)');
@@ -29,9 +26,7 @@ describe('architectureBackRefBroker', () => {
   describe('binding file with camelCase export', () => {
     it('VALID: {web binding} => returns packages/web (useQuestQueueBinding)', () => {
       const proxy = architectureBackRefBrokerProxy();
-      const filePath = AbsoluteFilePathStub({
-        value: '/repo/packages/web/src/bindings/use-quest-queue/use-quest-queue-binding.ts',
-      });
+      const filePath = '/repo/packages/web/src/bindings/use-quest-queue/use-quest-queue-binding.ts';
       proxy.setupSource({
         filePath,
         content: ContentTextStub({
@@ -41,7 +36,7 @@ describe('architectureBackRefBroker', () => {
 
       const result = architectureBackRefBroker({
         filePath,
-        projectRoot: AbsoluteFilePathStub({ value: '/repo' }),
+        projectRoot: '/repo',
       });
 
       expect(String(result)).toBe('packages/web (useQuestQueueBinding)');
@@ -51,14 +46,12 @@ describe('architectureBackRefBroker', () => {
   describe('file outside packages/', () => {
     it('EMPTY: {repo-root file} => returns null', () => {
       const proxy = architectureBackRefBrokerProxy();
-      const filePath = AbsoluteFilePathStub({
-        value: '/repo/scripts/build.ts',
-      });
+      const filePath = '/repo/scripts/build.ts';
       proxy.setupMissing({ filePath });
 
       const result = architectureBackRefBroker({
         filePath,
-        projectRoot: AbsoluteFilePathStub({ value: '/repo' }),
+        projectRoot: '/repo',
       });
 
       expect(result).toBe(null);
@@ -68,14 +61,12 @@ describe('architectureBackRefBroker', () => {
   describe('missing file', () => {
     it('EMPTY: {file not found} => returns null', () => {
       const proxy = architectureBackRefBrokerProxy();
-      const filePath = AbsoluteFilePathStub({
-        value: '/repo/packages/web/src/missing.ts',
-      });
+      const filePath = '/repo/packages/web/src/missing.ts';
       proxy.setupMissing({ filePath });
 
       const result = architectureBackRefBroker({
         filePath,
-        projectRoot: AbsoluteFilePathStub({ value: '/repo' }),
+        projectRoot: '/repo',
       });
 
       expect(result).toBe(null);
@@ -85,9 +76,7 @@ describe('architectureBackRefBroker', () => {
   describe('source has no matching export', () => {
     it('EMPTY: {imports only, no export} => returns null', () => {
       const proxy = architectureBackRefBrokerProxy();
-      const filePath = AbsoluteFilePathStub({
-        value: '/repo/packages/web/src/bindings/use-x/use-x-binding.ts',
-      });
+      const filePath = '/repo/packages/web/src/bindings/use-x/use-x-binding.ts';
       proxy.setupSource({
         filePath,
         content: ContentTextStub({
@@ -97,7 +86,7 @@ describe('architectureBackRefBroker', () => {
 
       const result = architectureBackRefBroker({
         filePath,
-        projectRoot: AbsoluteFilePathStub({ value: '/repo' }),
+        projectRoot: '/repo',
       });
 
       expect(result).toBe(null);

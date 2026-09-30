@@ -9,8 +9,6 @@
  */
 
 import { mkdtempSync, writeFileSync } from '#gateway/node/fs';
-import type { AbsoluteFilePath } from '@dungeonmaster/shared/contracts';
-import { absoluteFilePathContract } from '@dungeonmaster/shared/contracts';
 import { locationsStatics } from '@dungeonmaster/shared/statics';
 
 import {
@@ -27,7 +25,7 @@ export const scanConfigWriteBroker = ({
   rootPath,
 }: {
   rule: ScanRuleName;
-  rootPath: AbsoluteFilePath;
+  rootPath: string;
 }): ScanConfigFile => {
   const directory = mkdtempSync(
     `${String(tmpdirFindBroker())}/${scanStatics.config.tempDirPrefix}`,
@@ -38,9 +36,7 @@ export const scanConfigWriteBroker = ({
     path,
     scanEslintConfigSourceTransformer({
       rule,
-      rootConfigPath: absoluteFilePathContract.parse(
-        `${String(rootPath)}/${locationsStatics.repoRoot.eslintConfig[1]}`,
-      ),
+      rootConfigPath: `${String(rootPath)}/${locationsStatics.repoRoot.eslintConfig[1]}`,
     }),
   );
 

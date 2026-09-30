@@ -1,4 +1,3 @@
-import type { AbsoluteFilePath } from '@dungeonmaster/shared/contracts';
 import type { RecordedCalls } from '@dungeonmaster/testing/register-mock';
 
 import { processDevLogBrokerProxy } from '../../../brokers/process/dev-log/process-dev-log-broker.proxy';
@@ -6,8 +5,8 @@ import { imageServeBrokerProxy } from '../../../brokers/image/serve/image-serve-
 import { ImageServeResponder } from './image-serve-responder';
 
 export const ImageServeResponderProxy = (): {
-  setupFileBytes: (params: { filePath: AbsoluteFilePath; bytes: Uint8Array }) => void;
-  setupReadFailure: (params: { filePath: AbsoluteFilePath; error: Error }) => void;
+  setupFileBytes: (params: { filePath: string; bytes: Uint8Array }) => void;
+  setupReadFailure: (params: { filePath: string; error: Error }) => void;
   callResponder: typeof ImageServeResponder;
   enableDevLogs: () => void;
   disableDevLogs: () => void;

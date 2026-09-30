@@ -11,7 +11,6 @@
  * // Returns '/tmp/ward-open-handles-4242-unit.jsonl'
  */
 
-import type { AbsoluteFilePath } from '@dungeonmaster/shared/contracts';
 import type { CheckType } from '../../contracts/check-type/check-type-contract';
 import { openHandleReportStatics } from '../../statics/open-handle-report/open-handle-report-statics';
 
@@ -20,7 +19,7 @@ export const openHandleReportPathTransformer = ({
   checkType,
   processId,
 }: {
-  tmpdir: AbsoluteFilePath;
+  tmpdir: string;
   checkType: CheckType;
   processId: number;
 }): string =>

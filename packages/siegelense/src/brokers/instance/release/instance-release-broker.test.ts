@@ -1,4 +1,3 @@
-import { AbsoluteFilePathStub } from '@dungeonmaster/shared/contracts/absolute-file-path/absolute-file-path.stub';
 import { ProcessIdStub } from '@dungeonmaster/shared/contracts/process-id/process-id.stub';
 
 import { instanceReleaseBroker } from './instance-release-broker';
@@ -17,7 +16,7 @@ describe('instanceReleaseBroker', () => {
         id: instanceId,
         pid: ProcessIdStub(),
         pgids: [ProcessGroupIdStub()],
-        socketPath: AbsoluteFilePathStub({ value: '/tmp/dm-siege-sockets/inst_7f3a9c21.sock' }),
+        socketPath: '/tmp/dm-siege-sockets/inst_7f3a9c21.sock',
         state: 'alive',
       });
       const registry = RegistryStub({ instances: [entry] });
@@ -40,7 +39,7 @@ describe('instanceReleaseBroker', () => {
         id: instanceId,
         pid: ProcessIdStub(),
         pgids: [ProcessGroupIdStub()],
-        socketPath: AbsoluteFilePathStub({ value: '/tmp/dm-siege-sockets/inst_7f3a9c21.sock' }),
+        socketPath: '/tmp/dm-siege-sockets/inst_7f3a9c21.sock',
       });
       const bystander = RegistryEntryStub({ id: bystanderId });
       const registry = RegistryStub({ instances: [bystander, released] });

@@ -12,10 +12,6 @@
 
 import { pathExists } from '#gateway/node/fs__promises';
 import { join } from '#gateway/node/path';
-import {
-  absoluteFilePathContract,
-  type AbsoluteFilePath,
-} from '../../../contracts/absolute-file-path/absolute-file-path-contract';
 
 export const variantWalkLayerBroker = async ({
   searchPath,
@@ -23,7 +19,7 @@ export const variantWalkLayerBroker = async ({
 }: {
   searchPath: string;
   variants: readonly string[];
-}): Promise<AbsoluteFilePath | null> => {
+}): Promise<string | null> => {
   const [head, ...rest] = variants;
   if (head === undefined) {
     return null;
@@ -33,7 +29,7 @@ export const variantWalkLayerBroker = async ({
 
   const exists = await pathExists(candidate);
   if (exists) {
-    return absoluteFilePathContract.parse(candidate);
+    return candidate;
   }
 
   return variantWalkLayerBroker({ searchPath, variants: rest });

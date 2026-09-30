@@ -19,29 +19,28 @@ import { now } from '#gateway/node/Date';
 import { join } from '#gateway/node/path';
 
 import { FileNameStub } from '@dungeonmaster/shared/contracts/file-name/file-name.stub';
-import type { AbsoluteFilePath } from '@dungeonmaster/shared/contracts';
 
 const DAY_SECONDS = 86_400;
 
 export const e2eArtifactsHarness = (): {
   seedDir: (params: {
-    packageRoot: AbsoluteFilePath;
+    packageRoot: string;
     relativePath: string;
     daysOld: number;
   }) => Promise<void>;
   seedFile: (params: {
-    packageRoot: AbsoluteFilePath;
+    packageRoot: string;
     relativePath: string;
     daysOld: number;
   }) => Promise<void>;
-  exists: (params: { packageRoot: AbsoluteFilePath; relativePath: string }) => boolean;
-  listRoot: (params: { packageRoot: AbsoluteFilePath }) => ReturnType<typeof FileNameStub>[];
+  exists: (params: { packageRoot: string; relativePath: string }) => boolean;
+  listRoot: (params: { packageRoot: string }) => ReturnType<typeof FileNameStub>[];
 } => {
   const absolute = ({
     packageRoot,
     relativePath,
   }: {
-    packageRoot: AbsoluteFilePath;
+    packageRoot: string;
     relativePath: string;
   }): string =>
     join(String(packageRoot), relativePath);

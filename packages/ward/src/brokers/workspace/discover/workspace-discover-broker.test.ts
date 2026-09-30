@@ -1,4 +1,3 @@
-import { AbsoluteFilePathStub } from '@dungeonmaster/shared/contracts/absolute-file-path/absolute-file-path.stub';
 
 import { workspaceDiscoverBroker } from './workspace-discover-broker';
 import { workspaceDiscoverBrokerProxy } from './workspace-discover-broker.proxy';
@@ -13,7 +12,7 @@ describe('workspaceDiscoverBroker', () => {
         packageNames: ['@dungeonmaster/ward', '@dungeonmaster/shared'],
       });
 
-      const rootPath = AbsoluteFilePathStub({ value: '/project' });
+      const rootPath = '/project';
 
       const result = await workspaceDiscoverBroker({ rootPath });
 
@@ -29,7 +28,7 @@ describe('workspaceDiscoverBroker', () => {
       const proxy = workspaceDiscoverBrokerProxy();
       proxy.setupSinglePackage();
 
-      const rootPath = AbsoluteFilePathStub({ value: '/project' });
+      const rootPath = '/project';
 
       const result = await workspaceDiscoverBroker({ rootPath });
 
@@ -42,7 +41,7 @@ describe('workspaceDiscoverBroker', () => {
       const proxy = workspaceDiscoverBrokerProxy();
       proxy.setupNoPackageJson();
 
-      const rootPath = AbsoluteFilePathStub({ value: '/project' });
+      const rootPath = '/project';
 
       const result = await workspaceDiscoverBroker({ rootPath });
 

@@ -1,4 +1,3 @@
-import { AbsoluteFilePathStub } from '../../../contracts/absolute-file-path/absolute-file-path.stub';
 import { contractIndexBuildBroker } from './contract-index-build-broker';
 import { contractIndexBuildBrokerProxy } from './contract-index-build-broker.proxy';
 
@@ -26,20 +25,14 @@ describe('contractIndexBuildBroker', () => {
   describe('valid input', () => {
     it('VALID: {a plain and a scoped package} => indexes both contracts, marking the parsed one', () => {
       const proxy = contractIndexBuildBrokerProxy();
-      const rootDir = AbsoluteFilePathStub({ value: '/repo-two-packages' });
-      const packagesDir = AbsoluteFilePathStub({ value: '/repo-two-packages/packages' });
-      const alphaDir = AbsoluteFilePathStub({ value: '/repo-two-packages/packages/alpha' });
-      const scopeDir = AbsoluteFilePathStub({ value: '/repo-two-packages/packages/@gateway' });
-      const betaDir = AbsoluteFilePathStub({ value: '/repo-two-packages/packages/@gateway/beta' });
-      const thingFile = AbsoluteFilePathStub({
-        value: '/repo-two-packages/packages/alpha/src/contracts/thing/thing-contract.ts',
-      });
-      const useFile = AbsoluteFilePathStub({
-        value: '/repo-two-packages/packages/alpha/src/brokers/use/use-broker.ts',
-      });
-      const otherFile = AbsoluteFilePathStub({
-        value: '/repo-two-packages/packages/@gateway/beta/src/contracts/other/other-contract.ts',
-      });
+      const rootDir = '/repo-two-packages';
+      const packagesDir = '/repo-two-packages/packages';
+      const alphaDir = '/repo-two-packages/packages/alpha';
+      const scopeDir = '/repo-two-packages/packages/@gateway';
+      const betaDir = '/repo-two-packages/packages/@gateway/beta';
+      const thingFile = '/repo-two-packages/packages/alpha/src/contracts/thing/thing-contract.ts';
+      const useFile = '/repo-two-packages/packages/alpha/src/brokers/use/use-broker.ts';
+      const otherFile = '/repo-two-packages/packages/@gateway/beta/src/contracts/other/other-contract.ts';
 
       proxy.setupSubfolders({ dirPath: packagesDir, folders: ['alpha', '@gateway'] });
       proxy.setupSubfolders({ dirPath: scopeDir, folders: ['beta'] });
@@ -47,43 +40,43 @@ describe('contractIndexBuildBroker', () => {
       proxy.setupPackageJson({ packageDir: betaDir, json: '{"name":"@repo/beta"}' });
       proxy.setupWalkedFolder({ dirPath: alphaDir, folders: ['src'], files: [] });
       proxy.setupWalkedFolder({
-        dirPath: AbsoluteFilePathStub({ value: `${alphaDir}/src` }),
+        dirPath: `${alphaDir}/src`,
         folders: ['contracts', 'brokers'],
         files: ['index.d.ts'],
       });
       proxy.setupWalkedFolder({
-        dirPath: AbsoluteFilePathStub({ value: `${alphaDir}/src/contracts` }),
+        dirPath: `${alphaDir}/src/contracts`,
         folders: ['thing'],
         files: [],
       });
       proxy.setupWalkedFolder({
-        dirPath: AbsoluteFilePathStub({ value: `${alphaDir}/src/contracts/thing` }),
+        dirPath: `${alphaDir}/src/contracts/thing`,
         folders: [],
         files: ['thing-contract.ts', 'thing-contract.test.ts'],
       });
       proxy.setupWalkedFolder({
-        dirPath: AbsoluteFilePathStub({ value: `${alphaDir}/src/brokers` }),
+        dirPath: `${alphaDir}/src/brokers`,
         folders: ['use'],
         files: [],
       });
       proxy.setupWalkedFolder({
-        dirPath: AbsoluteFilePathStub({ value: `${alphaDir}/src/brokers/use` }),
+        dirPath: `${alphaDir}/src/brokers/use`,
         folders: [],
         files: ['use-broker.ts'],
       });
       proxy.setupWalkedFolder({ dirPath: betaDir, folders: ['src'], files: [] });
       proxy.setupWalkedFolder({
-        dirPath: AbsoluteFilePathStub({ value: `${betaDir}/src` }),
+        dirPath: `${betaDir}/src`,
         folders: ['contracts'],
         files: [],
       });
       proxy.setupWalkedFolder({
-        dirPath: AbsoluteFilePathStub({ value: `${betaDir}/src/contracts` }),
+        dirPath: `${betaDir}/src/contracts`,
         folders: ['other'],
         files: [],
       });
       proxy.setupWalkedFolder({
-        dirPath: AbsoluteFilePathStub({ value: `${betaDir}/src/contracts/other` }),
+        dirPath: `${betaDir}/src/contracts/other`,
         folders: [],
         files: ['other-contract.ts'],
       });
@@ -119,8 +112,8 @@ describe('contractIndexBuildBroker', () => {
 
     it('VALID: {second call for the same root} => returns the identical cached index', () => {
       const proxy = contractIndexBuildBrokerProxy();
-      const rootDir = AbsoluteFilePathStub({ value: '/repo-cached' });
-      const packagesDir = AbsoluteFilePathStub({ value: '/repo-cached/packages' });
+      const rootDir = '/repo-cached';
+      const packagesDir = '/repo-cached/packages';
       proxy.setupSubfolders({ dirPath: packagesDir, folders: [] });
 
       const first = contractIndexBuildBroker({ rootDir });
@@ -134,9 +127,9 @@ describe('contractIndexBuildBroker', () => {
   describe('empty input', () => {
     it('EMPTY: {package.json without a name} => skips that package', () => {
       const proxy = contractIndexBuildBrokerProxy();
-      const rootDir = AbsoluteFilePathStub({ value: '/repo-nameless' });
-      const packagesDir = AbsoluteFilePathStub({ value: '/repo-nameless/packages' });
-      const namelessDir = AbsoluteFilePathStub({ value: '/repo-nameless/packages/nameless' });
+      const rootDir = '/repo-nameless';
+      const packagesDir = '/repo-nameless/packages';
+      const namelessDir = '/repo-nameless/packages/nameless';
       proxy.setupSubfolders({ dirPath: packagesDir, folders: ['nameless'] });
       proxy.setupPackageJson({ packageDir: namelessDir, json: '{}' });
 

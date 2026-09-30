@@ -11,7 +11,6 @@
  */
 
 import { ensureDirProxy } from '#gateway/node/fs__promises/ensure-dir/ensure-dir.proxy';
-import { AbsoluteFilePathStub } from '@dungeonmaster/shared/contracts/absolute-file-path/absolute-file-path.stub';
 import { registerSpyOn } from '@dungeonmaster/testing/register-mock';
 
 import { writeFileProxy } from '#gateway/node/fs__promises/write-file/write-file.proxy';
@@ -65,9 +64,7 @@ export const profileBootRecordBrokerProxy = (): {
       const bootsDirValue = `${String(profilesPath)}/${profileStatics.dirs.boots}`;
       mkdirProxy.succeeds({ path: bootsDirValue });
       writeProxy.succeeds({
-        path: AbsoluteFilePathStub({
-          value: `${bootsDirValue}/${instanceId}${profileStatics.extensions.record}`,
-        }),
+        path: `${bootsDirValue}/${instanceId}${profileStatics.extensions.record}`,
       });
       dateHandle.calledWith([]).returns(nowMs);
     },
@@ -86,9 +83,7 @@ export const profileBootRecordBrokerProxy = (): {
       instanceId: InstanceId;
     }): unknown =>
       writeProxy.writtenContentsFor({
-        path: AbsoluteFilePathStub({
-          value: `${String(profilesPath)}/${profileStatics.dirs.boots}/${instanceId}${profileStatics.extensions.record}`,
-        }),
+        path: `${String(profilesPath)}/${profileStatics.dirs.boots}/${instanceId}${profileStatics.extensions.record}`,
       }),
   };
 };

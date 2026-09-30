@@ -1,14 +1,13 @@
 import { locationsNodeModulesPathFindBrokerProxy } from '@dungeonmaster/shared/brokers/locations/node-modules-path-find/locations-node-modules-path-find-broker.proxy';
-import type { AbsoluteFilePath } from '@dungeonmaster/shared/contracts';
 import { pathExistsProxy } from '#gateway/node/fs__promises/path-exists/path-exists.proxy';
 
 import { walkSymlinksLayerBrokerProxy } from './walk-symlinks-layer-broker.proxy';
 
 export const worktreeVerifyLinksBrokerProxy = (): {
-  setupNodeModulesAbsent: (params: { worktreePath: AbsoluteFilePath }) => void;
-  setupNodeModulesPresent: (params: { worktreePath: AbsoluteFilePath }) => void;
+  setupNodeModulesAbsent: (params: { worktreePath: string }) => void;
+  setupNodeModulesPresent: (params: { worktreePath: string }) => void;
   setupDirectoryEntries: (params: {
-    dirPath: AbsoluteFilePath;
+    dirPath: string;
     entries: { name: string; isDir: boolean; isSymlink: boolean }[];
   }) => void;
   setupReadlinkTarget: (params: { linkPath: string; target: string }) => void;
@@ -20,11 +19,11 @@ export const worktreeVerifyLinksBrokerProxy = (): {
   locationsNodeModulesPathFindBrokerProxy();
 
   return {
-    setupNodeModulesAbsent: ({ worktreePath }: { worktreePath: AbsoluteFilePath }): void => {
+    setupNodeModulesAbsent: ({ worktreePath }: { worktreePath: string }): void => {
       isAccessibleProxy.missing({ path: `${String(worktreePath)}/node_modules` });
     },
 
-    setupNodeModulesPresent: ({ worktreePath }: { worktreePath: AbsoluteFilePath }): void => {
+    setupNodeModulesPresent: ({ worktreePath }: { worktreePath: string }): void => {
       isAccessibleProxy.present({ path: `${String(worktreePath)}/node_modules` });
     },
 
@@ -32,7 +31,7 @@ export const worktreeVerifyLinksBrokerProxy = (): {
       dirPath,
       entries,
     }: {
-      dirPath: AbsoluteFilePath;
+      dirPath: string;
       entries: { name: string; isDir: boolean; isSymlink: boolean }[];
     }): void => {
       walkProxy.setupDirectoryEntries({ dirPath, entries });

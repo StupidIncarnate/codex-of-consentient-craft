@@ -1,4 +1,3 @@
-import { AbsoluteFilePathStub } from '@dungeonmaster/shared/contracts/absolute-file-path/absolute-file-path.stub';
 
 import { WardRunResultStub } from '../../../contracts/ward-result/ward-result.stub';
 import { CheckResultStub } from '../../../contracts/check-result/check-result.stub';
@@ -32,7 +31,7 @@ describe('commandListBroker', () => {
       const proxy = commandListBrokerProxy();
       proxy.setupWithResult({ content: JSON.stringify(wardResult) });
 
-      const rootPath = AbsoluteFilePathStub({ value: '/project' });
+      const rootPath = '/project';
       const runId = RunIdStub();
 
       await commandListBroker({ rootPath, runId });
@@ -52,7 +51,7 @@ describe('commandListBroker', () => {
       const proxy = commandListBrokerProxy();
       proxy.setupNoResult();
 
-      const rootPath = AbsoluteFilePathStub({ value: '/project' });
+      const rootPath = '/project';
       const runId = RunIdStub();
 
       await commandListBroker({ rootPath, runId });

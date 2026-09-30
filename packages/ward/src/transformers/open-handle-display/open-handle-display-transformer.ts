@@ -8,7 +8,6 @@
  * // Returns '  orchestrator  setImmediate still armed when src/a.test.ts finished\n      at ...'
  */
 
-import type { AbsoluteFilePath } from '@dungeonmaster/shared/contracts';
 import type { OpenHandle } from '../../contracts/open-handle/open-handle-contract';
 import type { ProjectFolder } from '../../contracts/project-folder/project-folder-contract';
 import { openHandleStackStatics } from '../../statics/open-handle-stack/open-handle-stack-statics';
@@ -20,7 +19,7 @@ export const openHandleDisplayTransformer = ({
 }: {
   packageName: ProjectFolder['name'];
   handle: OpenHandle;
-  cwd: AbsoluteFilePath;
+  cwd: string;
 }): string => {
   const prefix = `${String(cwd)}/`;
   const frames = String(handle.stack)

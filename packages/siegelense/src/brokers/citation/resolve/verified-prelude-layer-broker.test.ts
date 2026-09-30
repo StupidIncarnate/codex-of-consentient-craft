@@ -1,4 +1,3 @@
-import { AbsoluteFilePathStub } from '@dungeonmaster/shared/contracts/absolute-file-path/absolute-file-path.stub';
 
 import { InstanceIdStub } from '../../../contracts/instance-id/instance-id.stub';
 import { RunIdStub } from '../../../contracts/run-id/run-id.stub';
@@ -14,17 +13,17 @@ describe('verifiedPreludeLayerBroker', () => {
     it('VALID: {a line naming run_7, an instance holding run_7} => one citation carrying the real file path', async () => {
       const proxy = verifiedPreludeLayerBrokerProxy();
       proxy.setupPlansDir({
-        dirPath: AbsoluteFilePathStub({ value: PLANS_DIR }),
+        dirPath: PLANS_DIR,
         entries: ['path-3.md'],
       });
       proxy.setupPlanFile({
-        filePath: AbsoluteFilePathStub({ value: `${PLANS_DIR}/path-3.md` }),
+        filePath: `${PLANS_DIR}/path-3.md`,
         contents: '  VERIFIED  run_7 · 2026-09-14 · prelude reached the entry\n',
       });
 
       const result = await verifiedPreludeLayerBroker({
         instanceId: InstanceIdStub({ value: INSTANCE }),
-        worktreePath: AbsoluteFilePathStub({ value: WORKTREE }),
+        worktreePath: WORKTREE,
         runIds: [RunIdStub({ value: 'run_7' })],
       });
 
@@ -42,17 +41,17 @@ describe('verifiedPreludeLayerBroker', () => {
     it('EDGE: {ten VERIFIED lines in one file} => ONE citation, because ten lines in one prelude are one reason', async () => {
       const proxy = verifiedPreludeLayerBrokerProxy();
       proxy.setupPlansDir({
-        dirPath: AbsoluteFilePathStub({ value: PLANS_DIR }),
+        dirPath: PLANS_DIR,
         entries: ['path-3.md'],
       });
       proxy.setupPlanFile({
-        filePath: AbsoluteFilePathStub({ value: `${PLANS_DIR}/path-3.md` }),
+        filePath: `${PLANS_DIR}/path-3.md`,
         contents: '  VERIFIED  run_7\n  VERIFIED  run_7\n  VERIFIED  run_7\n',
       });
 
       const result = await verifiedPreludeLayerBroker({
         instanceId: InstanceIdStub({ value: INSTANCE }),
-        worktreePath: AbsoluteFilePathStub({ value: WORKTREE }),
+        worktreePath: WORKTREE,
         runIds: [RunIdStub({ value: 'run_7' })],
       });
 
@@ -64,21 +63,21 @@ describe('verifiedPreludeLayerBroker', () => {
     it('VALID: {two plan files, both citing} => one citation per FILE, so a caller can open each', async () => {
       const proxy = verifiedPreludeLayerBrokerProxy();
       proxy.setupPlansDir({
-        dirPath: AbsoluteFilePathStub({ value: PLANS_DIR }),
+        dirPath: PLANS_DIR,
         entries: ['path-3.md', 'path-4.md'],
       });
       proxy.setupPlanFile({
-        filePath: AbsoluteFilePathStub({ value: `${PLANS_DIR}/path-3.md` }),
+        filePath: `${PLANS_DIR}/path-3.md`,
         contents: '  VERIFIED  run_7\n',
       });
       proxy.setupPlanFile({
-        filePath: AbsoluteFilePathStub({ value: `${PLANS_DIR}/path-4.md` }),
+        filePath: `${PLANS_DIR}/path-4.md`,
         contents: '  VERIFIED  run_9\n',
       });
 
       const result = await verifiedPreludeLayerBroker({
         instanceId: InstanceIdStub({ value: INSTANCE }),
-        worktreePath: AbsoluteFilePathStub({ value: WORKTREE }),
+        worktreePath: WORKTREE,
         runIds: [RunIdStub({ value: 'run_7' }), RunIdStub({ value: 'run_9' })],
       });
 
@@ -93,17 +92,17 @@ describe('verifiedPreludeLayerBroker', () => {
     it('EDGE: {a line naming run_70, an instance holding run_7} => no citation, because run_7 is not a prefix match', async () => {
       const proxy = verifiedPreludeLayerBrokerProxy();
       proxy.setupPlansDir({
-        dirPath: AbsoluteFilePathStub({ value: PLANS_DIR }),
+        dirPath: PLANS_DIR,
         entries: ['path-3.md'],
       });
       proxy.setupPlanFile({
-        filePath: AbsoluteFilePathStub({ value: `${PLANS_DIR}/path-3.md` }),
+        filePath: `${PLANS_DIR}/path-3.md`,
         contents: '  VERIFIED  run_70 · 2026-09-14\n',
       });
 
       const result = await verifiedPreludeLayerBroker({
         instanceId: InstanceIdStub({ value: INSTANCE }),
-        worktreePath: AbsoluteFilePathStub({ value: WORKTREE }),
+        worktreePath: WORKTREE,
         runIds: [RunIdStub({ value: 'run_7' })],
       });
 
@@ -114,11 +113,11 @@ describe('verifiedPreludeLayerBroker', () => {
   describe('a plan directory with nothing citing', () => {
     it('EMPTY: {no entries} => no citations', async () => {
       const proxy = verifiedPreludeLayerBrokerProxy();
-      proxy.setupPlansDir({ dirPath: AbsoluteFilePathStub({ value: PLANS_DIR }), entries: [] });
+      proxy.setupPlansDir({ dirPath: PLANS_DIR, entries: [] });
 
       const result = await verifiedPreludeLayerBroker({
         instanceId: InstanceIdStub({ value: INSTANCE }),
-        worktreePath: AbsoluteFilePathStub({ value: WORKTREE }),
+        worktreePath: WORKTREE,
         runIds: [RunIdStub({ value: 'run_7' })],
       });
 
@@ -128,17 +127,17 @@ describe('verifiedPreludeLayerBroker', () => {
     it('VALID: {a VERIFIED line naming a run this instance never had} => no citation', async () => {
       const proxy = verifiedPreludeLayerBrokerProxy();
       proxy.setupPlansDir({
-        dirPath: AbsoluteFilePathStub({ value: PLANS_DIR }),
+        dirPath: PLANS_DIR,
         entries: ['path-3.md'],
       });
       proxy.setupPlanFile({
-        filePath: AbsoluteFilePathStub({ value: `${PLANS_DIR}/path-3.md` }),
+        filePath: `${PLANS_DIR}/path-3.md`,
         contents: '  VERIFIED  run_7 · 2026-09-14\n',
       });
 
       const result = await verifiedPreludeLayerBroker({
         instanceId: InstanceIdStub({ value: INSTANCE }),
-        worktreePath: AbsoluteFilePathStub({ value: WORKTREE }),
+        worktreePath: WORKTREE,
         runIds: [RunIdStub({ value: 'run_1' })],
       });
 

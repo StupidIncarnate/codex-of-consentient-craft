@@ -19,12 +19,8 @@
 import { architecturePackageTypeDetectBroker } from '@dungeonmaster/shared/brokers';
 import { readFileSync, readdirEntriesSync } from '#gateway/node/fs';
 import { join } from '#gateway/node/path';
-import {
-  absoluteFilePathContract,
-  packageJsonContract,
-  packageNameContract,
-} from '@dungeonmaster/shared/contracts';
-import type { AbsoluteFilePath, PackageName, PackageType } from '@dungeonmaster/shared/contracts';
+import { packageJsonContract, packageNameContract } from '@dungeonmaster/shared/contracts';
+import type { PackageName, PackageType } from '@dungeonmaster/shared/contracts';
 
 import { LaneWorkspaceNoneMatchedError } from '../../../errors/lane-workspace-none-matched/lane-workspace-none-matched-error';
 import { LaneWorkspaceSeveralMatchedError } from '../../../errors/lane-workspace-several-matched/lane-workspace-several-matched-error';
@@ -33,17 +29,17 @@ export const laneWorkspaceResolveBroker = async ({
   repoRoot,
   packageType,
 }: {
-  repoRoot: AbsoluteFilePath;
+  repoRoot: string;
   packageType: PackageType;
 }): Promise<PackageName> => {
-  const packagesDirPath = absoluteFilePathContract.parse(join(repoRoot, 'packages'));
+  const packagesDirPath = join(repoRoot, 'packages');
   const packageDirs = readdirEntriesSync(packagesDirPath).filter(
     (entry) => entry.kind === 'directory',
   );
 
   const detections = await Promise.all(
     packageDirs.map(async (entry) => {
-      const packageRoot = absoluteFilePathContract.parse(join(packagesDirPath, entry.name));
+      const packageRoot = join(packagesDirPath, entry.name);
       const kinds = await architecturePackageTypeDetectBroker({ packageRoot });
       return { packageRoot, kinds };
     }),
@@ -52,7 +48,7 @@ export const laneWorkspaceResolveBroker = async ({
   const matches = detections
     .filter(({ kinds }) => kinds.includes(packageType))
     .map(({ packageRoot }) => {
-      const packageJsonPath = absoluteFilePathContract.parse(join(packageRoot, 'package.json'));
+      const packageJsonPath = join(packageRoot, 'package.json');
       const packageJson = packageJsonContract.parse(
         JSON.parse(readFileSync(packageJsonPath)) as unknown,
       );

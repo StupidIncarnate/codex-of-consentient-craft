@@ -1,4 +1,3 @@
-import { AbsoluteFilePathStub } from '@dungeonmaster/shared/contracts/absolute-file-path/absolute-file-path.stub';
 
 import { folderResolveLayerBroker } from './folder-resolve-layer-broker';
 import { folderResolveLayerBrokerProxy } from './folder-resolve-layer-broker.proxy';
@@ -9,7 +8,7 @@ describe('folderResolveLayerBroker', () => {
       const proxy = folderResolveLayerBrokerProxy();
       proxy.setupReturnsPackage({ name: '@dungeonmaster/ward' });
 
-      const rootPath = AbsoluteFilePathStub({ value: '/project' });
+      const rootPath = '/project';
 
       const result = await folderResolveLayerBroker({ rootPath });
 
@@ -25,7 +24,7 @@ describe('folderResolveLayerBroker', () => {
       const proxy = folderResolveLayerBrokerProxy();
       proxy.setupThrows();
 
-      const rootPath = AbsoluteFilePathStub({ value: '/project' });
+      const rootPath = '/project';
 
       const result = await folderResolveLayerBroker({ rootPath });
 

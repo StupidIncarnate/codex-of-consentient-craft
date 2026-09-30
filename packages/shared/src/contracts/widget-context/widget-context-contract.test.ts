@@ -1,6 +1,5 @@
 import { widgetContextContract } from './widget-context-contract';
 import { WidgetContextStub } from './widget-context.stub';
-import { AbsoluteFilePathStub } from '../absolute-file-path/absolute-file-path.stub';
 import { WidgetTreeResultStub } from '../widget-tree-result/widget-tree-result.stub';
 
 describe('widgetContextContract', () => {
@@ -19,7 +18,7 @@ describe('widgetContextContract', () => {
 
     it('VALID: {custom packageRoot} => parses with override', () => {
       const result = WidgetContextStub({
-        packageRoot: AbsoluteFilePathStub({ value: '/repo/packages/other' }),
+        packageRoot: '/repo/packages/other',
       });
 
       expect(result).toStrictEqual({

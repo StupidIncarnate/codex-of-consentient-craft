@@ -16,8 +16,6 @@
  * gateway file rather than the orchestrator-side bus emitter.
  */
 
-import { absoluteFilePathContract } from '../../../contracts/absolute-file-path/absolute-file-path-contract';
-import type { AbsoluteFilePath } from '../../../contracts/absolute-file-path/absolute-file-path-contract';
 import { isNonTestFileGuard } from '../../../guards/is-non-test-file/is-non-test-file-guard';
 import { importStatementsExtractTransformer } from '../../../transformers/import-statements-extract/import-statements-extract-transformer';
 import { relativeImportResolveTransformer } from '../../../transformers/relative-import-resolve/relative-import-resolve-transformer';
@@ -31,17 +29,17 @@ export const wsGatewayFilesFindLayerBroker = ({
   projectRoot,
   wsServerAdapters,
 }: {
-  projectRoot: AbsoluteFilePath;
-  wsServerAdapters: AbsoluteFilePath[];
-}): AbsoluteFilePath[] => {
+  projectRoot: string;
+  wsServerAdapters: string[];
+}): string[] => {
   if (wsServerAdapters.length === 0) return [];
 
   const root = String(projectRoot);
-  const packagesDir = absoluteFilePathContract.parse(`${root}/${PACKAGES_REL}`);
+  const packagesDir = `${root}/${PACKAGES_REL}`;
   const allFiles = listTsFilesLayerBroker({ dirPath: packagesDir });
 
-  const adapterPathSet = new Set<AbsoluteFilePath>(wsServerAdapters);
-  const gateways: AbsoluteFilePath[] = [];
+  const adapterPathSet = new Set<string>(wsServerAdapters);
+  const gateways: string[] = [];
 
   for (const filePath of allFiles) {
     if (!isNonTestFileGuard({ filePath })) continue;

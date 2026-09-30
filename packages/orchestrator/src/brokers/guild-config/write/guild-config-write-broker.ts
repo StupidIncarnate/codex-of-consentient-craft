@@ -14,7 +14,7 @@
  */
 
 import { dungeonmasterHomeFindBroker } from '@dungeonmaster/shared/brokers';
-import type { AbsoluteFilePath, GuildConfig } from '@dungeonmaster/shared/contracts';
+import type { GuildConfig } from '@dungeonmaster/shared/contracts';
 import { dungeonmasterHomeStatics } from '@dungeonmaster/shared/statics';
 import { writeFile } from '#gateway/node/fs__promises';
 import { join } from '#gateway/node/path';
@@ -26,7 +26,7 @@ export const guildConfigWriteBroker = async ({
   home,
 }: {
   config: GuildConfig;
-  home?: AbsoluteFilePath;
+  home?: string;
 }): Promise<void> => {
   const homePath = home ?? dungeonmasterHomeFindBroker().homePath;
 

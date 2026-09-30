@@ -7,7 +7,6 @@
  */
 
 import { stderr } from '#gateway/node/process';
-import type { AbsoluteFilePath } from '@dungeonmaster/shared/contracts';
 
 import { errorEntryContract } from '../../../contracts/error-entry/error-entry-contract';
 import { commandDetailBroker } from '../../../brokers/command/detail/command-detail-broker';
@@ -21,7 +20,7 @@ export const WardDetailResponder = async ({
   rootPath,
 }: {
   args: readonly string[];
-  rootPath: AbsoluteFilePath;
+  rootPath: string;
 }): Promise<void> => {
   const positionalArgs = args.slice(FIRST_POSITIONAL_INDEX).filter((arg) => arg !== JSON_FLAG);
   const json = args.includes(JSON_FLAG);

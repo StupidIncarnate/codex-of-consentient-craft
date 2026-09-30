@@ -39,8 +39,8 @@ import { join } from '#gateway/node/path';
 import { cwd, envSnapshot } from '#gateway/node/process';
 import { ensureDir, rm } from '#gateway/node/fs__promises';
 import { environmentStatics, locationsStatics } from '@dungeonmaster/shared/statics';
-import { absoluteFilePathContract, contentTextContract, packageTypeContract } from '@dungeonmaster/shared/contracts';
-import type { AbsoluteFilePath, ContentText, SiegeInstance } from '@dungeonmaster/shared/contracts';
+import { contentTextContract, packageTypeContract } from '@dungeonmaster/shared/contracts';
+import type { ContentText, SiegeInstance } from '@dungeonmaster/shared/contracts';
 
 import { processGroupIdContract } from '../../../contracts/process-group-id/process-group-id-contract';
 import { browserSessionLaunchBroker } from '../../browser-session/launch/browser-session-launch-broker';
@@ -68,8 +68,8 @@ export const laneBootBroker = async ({
   spec: LaneSpec;
   ports: PortPair;
   instanceId: SiegeInstance['id'];
-  homePath: AbsoluteFilePath;
-  evidencePath: AbsoluteFilePath;
+  homePath: string;
+  evidencePath: string;
 }): Promise<LaneSession> => {
   // process.env is inherited by every spawned process; the spec's own env (and each process's
   // further override) is merged OVER it — see LaneSpec's PURPOSE. `[PropertyKey, ContentText]`
@@ -85,17 +85,13 @@ export const laneBootBroker = async ({
 
   const cwdSeed = cwd();
   const repoRoot = await cwdResolveBroker({ startPath: cwdSeed, kind: 'repo-root' });
-  const spawnCwd = absoluteFilePathContract.parse(repoRoot);
+  const spawnCwd = repoRoot;
 
   await Promise.all([ensureDir(homePath), ensureDir(evidencePath)]);
 
   // Per-instance, and known nowhere else: both live inside homePath, which only this call mints.
-  const claudeQueueDir = absoluteFilePathContract.parse(
-    join(homePath, locationsStatics.siegelense.claudeQueueDir),
-  );
-  const wardQueueDir = absoluteFilePathContract.parse(
-    join(homePath, locationsStatics.siegelense.wardQueueDir),
-  );
+  const claudeQueueDir = join(homePath, locationsStatics.siegelense.claudeQueueDir);
+  const wardQueueDir = join(homePath, locationsStatics.siegelense.wardQueueDir);
 
   // `{apiWorkspace}`/`{webWorkspace}` name a package by ROLE rather than by literal name — see
   // lane-spec-statics.ts's header. Resolved only when some process actually references the token:
@@ -131,7 +127,7 @@ export const laneBootBroker = async ({
   });
 
   const booted = spec.processes.map((laneProcess) => {
-    const logPath = absoluteFilePathContract.parse(join(evidencePath, laneProcess.logFileName));
+    const logPath = join(evidencePath, laneProcess.logFileName);
     const fd = openForAppendSync(logPath);
 
     const substitutedArgs = laneProcess.args.map((arg) =>

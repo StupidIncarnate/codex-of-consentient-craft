@@ -5,8 +5,6 @@ import { pid } from '#gateway/node/process';
 import { pidProxy } from '#gateway/node/process/pid/pid.proxy';
 import { readFileProxy } from '#gateway/node/fs__promises/read-file/read-file.proxy';
 import { unlinkProxy } from '#gateway/node/fs__promises/unlink/unlink.proxy';
-import { absoluteFilePathContract, type AbsoluteFilePath } from '@dungeonmaster/shared/contracts';
-import { AbsoluteFilePathStub } from '@dungeonmaster/shared/contracts/absolute-file-path/absolute-file-path.stub';
 
 import { globDiscoverFilesBrokerProxy } from '../../glob/discover-files/glob-discover-files-broker.proxy';
 import { tmpdirFindBrokerProxy } from '../../tmpdir/find/tmpdir-find-broker.proxy';
@@ -62,7 +60,7 @@ export const checkRunIntegrationBrokerProxy = (): {
   const tmpdirProxy = tmpdirFindBrokerProxy();
   tmpdirProxy.returns({ path: '/tmp' });
   const handleReportPath = openHandleReportPathTransformer({
-    tmpdir: AbsoluteFilePathStub({ value: '/tmp' }),
+    tmpdir: '/tmp',
     checkType: 'integration',
     processId: pid,
   });
@@ -92,11 +90,11 @@ export const checkRunIntegrationBrokerProxy = (): {
   // use, so the "reachable" default is staged per-cwd, inside `stage()`, not once here against a
   // guessed path. `unsupportedCwds` remembers which cwd `setupSourceConditionUnsupported` marked
   // explicitly, so `stage()` never clobbers that with its own default regardless of call order.
-  const unsupportedCwds = new Set<AbsoluteFilePath>();
+  const unsupportedCwds = new Set<string>();
 
   const resolveCommand = ({ projectFolder }: { projectFolder: ProjectFolder }): BinCommand => {
     const command = binProxy.setupFound({
-      cwd: absoluteFilePathContract.parse(projectFolder.path),
+      cwd: projectFolder.path,
       binName: BinCommandStub({ value: checkCommandsStatics.integration.bin }),
     });
     resolvedCommandRef.value = command;
@@ -107,7 +105,7 @@ export const checkRunIntegrationBrokerProxy = (): {
   // wildcard — since every test that reaches `run` needs it.
   const stageJestConfigPresent = ({ projectFolder }: { projectFolder: ProjectFolder }): void => {
     existsProxy.returns({
-      path: `${String(absoluteFilePathContract.parse(projectFolder.path))}/jest.config.js`,
+      path: `${String(projectFolder.path)}/jest.config.js`,
       exists: true,
     });
   };
@@ -128,7 +126,7 @@ export const checkRunIntegrationBrokerProxy = (): {
     stdout: string;
     stderr: string;
   }): void => {
-    const cwd = absoluteFilePathContract.parse(projectFolder.path);
+    const cwd = projectFolder.path;
     if (!unsupportedCwds.has(cwd)) {
       sourceConditionProxy.setupSupported({ cwd });
     }
@@ -212,7 +210,7 @@ export const checkRunIntegrationBrokerProxy = (): {
     }: {
       projectFolder: ProjectFolder;
     }): void => {
-      const cwd = absoluteFilePathContract.parse(projectFolder.path);
+      const cwd = projectFolder.path;
       unsupportedCwds.add(cwd);
       sourceConditionProxy.setupUnsupported({ cwd });
     },

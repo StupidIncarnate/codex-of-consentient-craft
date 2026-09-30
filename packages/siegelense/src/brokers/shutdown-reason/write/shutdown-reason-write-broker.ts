@@ -17,8 +17,7 @@
  */
 
 import { join } from '#gateway/node/path';
-import { absoluteFilePathContract } from '@dungeonmaster/shared/contracts';
-import type { AbsoluteFilePath, ContentText } from '@dungeonmaster/shared/contracts';
+import type { ContentText } from '@dungeonmaster/shared/contracts';
 import { locationsStatics } from '@dungeonmaster/shared/statics';
 
 import { writeFile } from '#gateway/node/fs__promises';
@@ -30,12 +29,10 @@ export const shutdownReasonWriteBroker = async ({
   evidencePath,
   reason,
 }: {
-  evidencePath: AbsoluteFilePath;
+  evidencePath: string;
   reason: ContentText;
 }): Promise<ShutdownReason> => {
-  const markerPath = absoluteFilePathContract.parse(
-    join(evidencePath, locationsStatics.siegelense.shutdownReason),
-  );
+  const markerPath = join(evidencePath, locationsStatics.siegelense.shutdownReason);
 
   const marker = shutdownReasonContract.parse({
     reason,

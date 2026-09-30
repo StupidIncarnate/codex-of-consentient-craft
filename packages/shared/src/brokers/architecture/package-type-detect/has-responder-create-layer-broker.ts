@@ -8,20 +8,18 @@
  * WHEN-TO-USE: During package-type detection for the eslint-plugin signal (responders-domain/create/ must exist)
  */
 
-import type { AbsoluteFilePath } from '../../../contracts/absolute-file-path/absolute-file-path-contract';
-import { absoluteFilePathContract } from '../../../contracts/absolute-file-path/absolute-file-path-contract';
 import { safeReaddirLayerBroker } from './safe-readdir-layer-broker';
 
 export const hasResponderCreateLayerBroker = ({
   respondersDirPath,
 }: {
-  respondersDirPath: AbsoluteFilePath;
+  respondersDirPath: string;
 }): boolean => {
   const domainEntries = safeReaddirLayerBroker({ dirPath: respondersDirPath });
 
   return domainEntries.some((domain) => {
     if (domain.kind !== 'directory') return false;
-    const domainPath = absoluteFilePathContract.parse(`${respondersDirPath}/${domain.name}`);
+    const domainPath = `${respondersDirPath}/${domain.name}`;
     const domainEntries2 = safeReaddirLayerBroker({ dirPath: domainPath });
     return domainEntries2.some((entry) => entry.kind === 'directory' && entry.name === 'create');
   });

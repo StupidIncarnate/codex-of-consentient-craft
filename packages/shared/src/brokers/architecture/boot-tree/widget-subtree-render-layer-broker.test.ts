@@ -1,6 +1,5 @@
 import { widgetSubtreeRenderLayerBroker } from './widget-subtree-render-layer-broker';
 import { widgetSubtreeRenderLayerBrokerProxy } from './widget-subtree-render-layer-broker.proxy';
-import { AbsoluteFilePathStub } from '../../../contracts/absolute-file-path/absolute-file-path.stub';
 import { ContentTextStub } from '../../../contracts/content-text/content-text.stub';
 import { WidgetNodeStub } from '../../../contracts/widget-node/widget-node.stub';
 import { WidgetTreeResultStub } from '../../../contracts/widget-tree-result/widget-tree-result.stub';
@@ -9,17 +8,11 @@ describe('widgetSubtreeRenderLayerBroker', () => {
   describe('responder imports a known root widget', () => {
     it('VALID: {responder imports root widget with one child} => returns indented widget tree lines', () => {
       const proxy = widgetSubtreeRenderLayerBrokerProxy();
-      const responderFile = AbsoluteFilePathStub({
-        value: '/repo/packages/web/src/responders/app/home/app-home-responder.ts',
-      });
-      const widgetFile = AbsoluteFilePathStub({
-        value: '/repo/packages/web/src/widgets/home-content/home-content-widget.ts',
-      });
-      const childFile = AbsoluteFilePathStub({
-        value: '/repo/packages/web/src/widgets/guild-list/guild-list-widget.ts',
-      });
-      const packageRoot = AbsoluteFilePathStub({ value: '/repo/packages/web' });
-      const packageSrcPath = AbsoluteFilePathStub({ value: '/repo/packages/web/src' });
+      const responderFile = '/repo/packages/web/src/responders/app/home/app-home-responder.ts';
+      const widgetFile = '/repo/packages/web/src/widgets/home-content/home-content-widget.ts';
+      const childFile = '/repo/packages/web/src/widgets/guild-list/guild-list-widget.ts';
+      const packageRoot = '/repo/packages/web';
+      const packageSrcPath = '/repo/packages/web/src';
 
       proxy.setupSource({
         sourceFile: responderFile,
@@ -47,7 +40,7 @@ describe('widgetSubtreeRenderLayerBroker', () => {
         hubs: [],
       });
 
-      const projectRoot = AbsoluteFilePathStub({ value: '/repo' });
+      const projectRoot = '/repo';
 
       const result = widgetSubtreeRenderLayerBroker({
         responderFile,
@@ -70,11 +63,9 @@ describe('widgetSubtreeRenderLayerBroker', () => {
   describe('responder imports nothing matching a root', () => {
     it('EMPTY: {responder imports widget not in tree.roots} => returns empty array', () => {
       const proxy = widgetSubtreeRenderLayerBrokerProxy();
-      const responderFile = AbsoluteFilePathStub({
-        value: '/repo/packages/web/src/responders/x/x-responder.ts',
-      });
-      const packageRoot = AbsoluteFilePathStub({ value: '/repo/packages/web' });
-      const packageSrcPath = AbsoluteFilePathStub({ value: '/repo/packages/web/src' });
+      const responderFile = '/repo/packages/web/src/responders/x/x-responder.ts';
+      const packageRoot = '/repo/packages/web';
+      const packageSrcPath = '/repo/packages/web/src';
 
       proxy.setupSource({
         sourceFile: responderFile,
@@ -85,7 +76,7 @@ describe('widgetSubtreeRenderLayerBroker', () => {
 
       const widgetTree = WidgetTreeResultStub({ roots: [], hubs: [] });
 
-      const projectRoot = AbsoluteFilePathStub({ value: '/repo' });
+      const projectRoot = '/repo';
 
       const result = widgetSubtreeRenderLayerBroker({
         responderFile,
@@ -105,11 +96,9 @@ describe('widgetSubtreeRenderLayerBroker', () => {
   describe('responder has no widget imports', () => {
     it('EMPTY: {responder imports nothing from widgets/} => returns empty array', () => {
       const proxy = widgetSubtreeRenderLayerBrokerProxy();
-      const responderFile = AbsoluteFilePathStub({
-        value: '/repo/packages/web/src/responders/x/x-responder.ts',
-      });
-      const packageRoot = AbsoluteFilePathStub({ value: '/repo/packages/web' });
-      const packageSrcPath = AbsoluteFilePathStub({ value: '/repo/packages/web/src' });
+      const responderFile = '/repo/packages/web/src/responders/x/x-responder.ts';
+      const packageRoot = '/repo/packages/web';
+      const packageSrcPath = '/repo/packages/web/src';
 
       proxy.setupSource({
         sourceFile: responderFile,
@@ -118,7 +107,7 @@ describe('widgetSubtreeRenderLayerBroker', () => {
 
       const widgetTree = WidgetTreeResultStub({ roots: [], hubs: [] });
 
-      const projectRoot = AbsoluteFilePathStub({ value: '/repo' });
+      const projectRoot = '/repo';
 
       const result = widgetSubtreeRenderLayerBroker({
         responderFile,

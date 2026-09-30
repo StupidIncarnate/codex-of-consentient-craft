@@ -1,5 +1,4 @@
-import { absoluteFilePathContract, sessionContract } from '@dungeonmaster/shared/contracts';
-import type { AbsoluteFilePath } from '@dungeonmaster/shared/contracts';
+import { sessionContract } from '@dungeonmaster/shared/contracts';
 import type { GuildStub } from '@dungeonmaster/shared/contracts/guild/guild.stub';
 import type { QuestListItemStub } from '@dungeonmaster/shared/contracts/quest-list-item/quest-list-item.stub';
 import type { QuestStub } from '@dungeonmaster/shared/contracts/quest/quest.stub';
@@ -53,7 +52,7 @@ export const sessionListBrokerProxy = (): {
   // cross-project scan's cwd is the flat `.claude/projects` root. Recomputing them here — instead
   // of accepting a caller-given cwd — is what makes a broker that computes the WRONG cwd (a
   // mutated homedir, a bad encoding) call glob with an address nothing here answers.
-  const staged: { homeDir: AbsoluteFilePath | undefined; guildPath: AbsoluteFilePath | undefined } =
+  const staged: { homeDir: string | undefined; guildPath: string | undefined } =
     {
       homeDir: undefined,
       guildPath: undefined,
@@ -82,11 +81,11 @@ export const sessionListBrokerProxy = (): {
 
   return {
     setupGuild: ({ guild }: { guild: Guild }): void => {
-      staged.guildPath = absoluteFilePathContract.parse(guild.path);
+      staged.guildPath = guild.path;
       orchestrator.getGuildReturns({ guild });
     },
     setupHomeDir: ({ path }: { path: string }): void => {
-      staged.homeDir = absoluteFilePathContract.parse(path);
+      staged.homeDir = path;
       homedirHandle.calledWith([]).returns(path);
     },
     setupGlobFiles: ({ files, pattern }: { files: string[]; pattern?: string }): void => {

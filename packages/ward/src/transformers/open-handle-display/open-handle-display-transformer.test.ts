@@ -1,9 +1,8 @@
-import { AbsoluteFilePathStub } from '@dungeonmaster/shared/contracts/absolute-file-path/absolute-file-path.stub';
 import { openHandleDisplayTransformer } from './open-handle-display-transformer';
 import { OpenHandleStub } from '../../contracts/open-handle/open-handle.stub';
 import { ProjectFolderStub } from '../../contracts/project-folder/project-folder.stub';
 
-const CWD = AbsoluteFilePathStub({ value: '/repo' });
+const CWD = '/repo';
 const PACKAGE_NAME = ProjectFolderStub({ name: 'orchestrator', path: '/repo/packages/o' }).name;
 
 describe('openHandleDisplayTransformer', () => {

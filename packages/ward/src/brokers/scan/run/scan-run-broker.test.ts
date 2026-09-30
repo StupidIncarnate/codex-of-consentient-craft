@@ -1,4 +1,3 @@
-import { AbsoluteFilePathStub } from '@dungeonmaster/shared/contracts/absolute-file-path/absolute-file-path.stub';
 
 import { CliArgStub } from '../../../contracts/cli-arg/cli-arg.stub';
 import { ProjectFolderStub } from '../../../contracts/project-folder/project-folder.stub';
@@ -7,7 +6,7 @@ import { ScanRuleNameStub } from '../../../contracts/scan-rule-name/scan-rule-na
 import { scanRunBroker } from './scan-run-broker';
 import { scanRunBrokerProxy } from './scan-run-broker.proxy';
 
-const rootPath = AbsoluteFilePathStub({ value: '/project' });
+const rootPath = '/project';
 const rule = ScanRuleNameStub({ value: '@dungeonmaster/ban-workspace-export-mocks' });
 const ward = ProjectFolderStub({ name: '@dungeonmaster/ward', path: '/project/packages/ward' });
 const shared = ProjectFolderStub({

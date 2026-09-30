@@ -25,7 +25,6 @@
  */
 
 import { appendFile, copyDirContents, ensureDir } from '#gateway/node/fs__promises';
-import type { AbsoluteFilePath } from '@dungeonmaster/shared/contracts';
 
 import { epochMsContract } from '../../../contracts/epoch-ms/epoch-ms-contract';
 import type { SnapshotName } from '../../../contracts/snapshot-name/snapshot-name-contract';
@@ -41,7 +40,7 @@ export const snapshotCaptureBroker = async ({
   name,
   manual,
 }: {
-  homePath: AbsoluteFilePath;
+  homePath: string;
   name: SnapshotName;
   manual: boolean;
 }): Promise<SnapshotRecord> => {

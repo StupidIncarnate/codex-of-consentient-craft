@@ -29,7 +29,7 @@
 import { stderr } from '#gateway/node/process';
 import { randomUUID } from '#gateway/node/crypto';
 import type { ExitCode, ProcessId, RepoRootCwd, Quest, WorkItem, Session } from '@dungeonmaster/shared/contracts';
-import { absoluteFilePathContract, getQuestInputContract, modifyQuestInputContract, processIdContract, workItemRoleContract, sessionContract } from '@dungeonmaster/shared/contracts';
+import { getQuestInputContract, modifyQuestInputContract, processIdContract, workItemRoleContract, sessionContract } from '@dungeonmaster/shared/contracts';
 import { isTerminalWorkItemStatusGuard } from '@dungeonmaster/shared/guards';
 
 import type { SpawnInstruction } from '../../../contracts/spawn-instruction/spawn-instruction-contract';
@@ -166,7 +166,7 @@ export const spawnOneAgentLayerBroker = async ({
           await questSessionRecordBroker({
             questId: instruction.questId,
             sessionId: parsed,
-            cwd: absoluteFilePathContract.parse(cwd),
+            cwd: cwd,
             role: workItemRoleContract.parse(instruction.role),
             workItemId: instruction.workItemId,
           }).catch((error: unknown) => {

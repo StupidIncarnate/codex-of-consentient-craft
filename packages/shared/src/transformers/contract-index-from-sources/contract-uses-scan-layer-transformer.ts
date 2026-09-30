@@ -10,7 +10,6 @@
  */
 import * as ts from '#gateway/npm/typescript';
 
-import type { AbsoluteFilePath } from '../../contracts/absolute-file-path/absolute-file-path-contract';
 import { contractParseSiteContract } from '../../contracts/contract-parse-site/contract-parse-site-contract';
 import type { ContractParseSite } from '../../contracts/contract-parse-site/contract-parse-site-contract';
 import type { ContractUsesBinding } from '../../contracts/contract-uses-binding/contract-uses-binding-contract';
@@ -25,16 +24,16 @@ export const contractUsesScanLayerTransformer = ({
   sourceFile: ts.SourceFile;
   bindings: ContractUsesBinding[];
 }): {
-  parseSites: { targetFile: AbsoluteFilePath; site: ContractParseSite }[];
-  valueTargets: AbsoluteFilePath[];
+  parseSites: { targetFile: string; site: ContractParseSite }[];
+  valueTargets: string[];
 } => {
   const targetByLocalName = new Map(
     bindings
       .filter((binding) => !binding.isTypeOnly)
       .map((binding) => [String(binding.localName), binding.targetFile] as const),
   );
-  const parseSites: { targetFile: AbsoluteFilePath; site: ContractParseSite }[] = [];
-  const valueTargets = new Set<AbsoluteFilePath>();
+  const parseSites: { targetFile: string; site: ContractParseSite }[] = [];
+  const valueTargets = new Set<string>();
 
   if (targetByLocalName.size === 0) {
     return { parseSites, valueTargets: [] };
@@ -76,7 +75,7 @@ export const contractUsesScanLayerTransformer = ({
     ) {
       const { line } = sourceFile.getLineAndCharacterOfPosition(node.getStart(sourceFile));
       const receiverPending: ts.Node[] = [parseCallee.expression];
-      const parsedTargets = new Set<AbsoluteFilePath>();
+      const parsedTargets = new Set<string>();
       while (receiverPending.length > 0) {
         const receiverNode = receiverPending.pop();
         if (receiverNode === undefined) {

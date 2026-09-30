@@ -33,15 +33,7 @@
 import { existsSync } from '#gateway/node/fs';
 import { ensureDir, writeFile } from '#gateway/node/fs__promises';
 import { basename, dirname, resolve } from '#gateway/node/path';
-import {
-  type InstallContext,
-  type InstallResult,
-  absoluteFilePathContract,
-  installMessageContract,
-  packageJsonContract,
-  packageNameContract,
-  pathSegmentContract,
-} from '@dungeonmaster/shared/contracts';
+import { type InstallContext, type InstallResult, installMessageContract, packageJsonContract, packageNameContract, pathSegmentContract } from '@dungeonmaster/shared/contracts';
 import { workspaceScopeFromRootNameTransformer } from '@dungeonmaster/shared/transformers';
 
 import { readFile } from '#gateway/node/fs__promises';
@@ -120,7 +112,7 @@ export const InstallRecipesScaffoldResponder = async ({
   await Promise.all(
     scaffoldFiles.map(async (file) =>
       writeFile(
-        absoluteFilePathContract.parse(resolve(recipesPackagePath, file.relativePath)),
+        resolve(recipesPackagePath, file.relativePath),
         file.contents,
       ),
     ),

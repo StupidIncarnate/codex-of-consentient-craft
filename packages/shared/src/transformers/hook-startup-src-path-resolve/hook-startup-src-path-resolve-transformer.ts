@@ -15,8 +15,6 @@
  * WHEN-NOT-TO-USE: For non-dist bin paths
  */
 
-import { absoluteFilePathContract } from '../../contracts/absolute-file-path/absolute-file-path-contract';
-import type { AbsoluteFilePath } from '../../contracts/absolute-file-path/absolute-file-path-contract';
 import type { ContentText } from '../../contracts/content-text/content-text-contract';
 
 // Matches ./dist/... or ./dist/src/... bin paths, capturing the sub-path after dist/
@@ -27,11 +25,11 @@ export const hookStartupSrcPathResolveTransformer = ({
   packageRoot,
 }: {
   binPath: ContentText;
-  packageRoot: AbsoluteFilePath;
-}): AbsoluteFilePath | undefined => {
+  packageRoot: string;
+}): string | undefined => {
   const [, relSrc] = DIST_BIN_PATTERN.exec(String(binPath)) ?? [];
   if (relSrc === undefined) {
     return undefined;
   }
-  return absoluteFilePathContract.parse(`${String(packageRoot)}/src/${relSrc}.ts`);
+  return `${String(packageRoot)}/src/${relSrc}.ts`;
 };

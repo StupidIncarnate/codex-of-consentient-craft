@@ -8,17 +8,13 @@
 
 import { homedir } from '#gateway/node/os';
 import { claudePathSlugEncoderTransformer } from '../../../transformers/claude-path-slug-encoder/claude-path-slug-encoder-transformer';
-import {
-  absoluteFilePathContract,
-  type AbsoluteFilePath,
-} from '../../../contracts/absolute-file-path/absolute-file-path-contract';
 
 export const locationsClaudeSessionsDirFindBroker = ({
   guildPath,
 }: {
-  guildPath: AbsoluteFilePath;
-}): AbsoluteFilePath =>
+  guildPath: string;
+}): string =>
   claudePathSlugEncoderTransformer({
-    homeDir: absoluteFilePathContract.parse(homedir()),
+    homeDir: homedir(),
     projectPath: guildPath,
   });

@@ -1,4 +1,3 @@
-import { AbsoluteFilePathStub } from '@dungeonmaster/shared/contracts/absolute-file-path/absolute-file-path.stub';
 import { QuestBranchNameStub } from '@dungeonmaster/shared/contracts/quest-branch-name/quest-branch-name.stub';
 
 import { worktreeResumeRestoreBroker } from './worktree-resume-restore-broker';
@@ -8,7 +7,7 @@ describe('worktreeResumeRestoreBroker', () => {
   describe('already on the quest branch', () => {
     it('VALID: {worktree already on the quest branch} => returns restored true and runs no checkout', async () => {
       const proxy = worktreeResumeRestoreBrokerProxy();
-      const worktreePath = AbsoluteFilePathStub({ value: '/repo/worktrees/add-auth-7bc217a1' });
+      const worktreePath = '/repo/worktrees/add-auth-7bc217a1';
       const branchName = QuestBranchNameStub({ value: 'quest/add-auth-7bc217a1' });
       proxy.setupOnBranch({ branchName });
 
@@ -26,7 +25,7 @@ describe('worktreeResumeRestoreBroker', () => {
   describe('worktree drifted to another branch', () => {
     it('VALID: {worktree on some other branch} => runs `git checkout <branch>` with exactly [checkout, branchName] and returns restored true', async () => {
       const proxy = worktreeResumeRestoreBrokerProxy();
-      const worktreePath = AbsoluteFilePathStub({ value: '/repo/worktrees/add-auth-7bc217a1' });
+      const worktreePath = '/repo/worktrees/add-auth-7bc217a1';
       const branchName = QuestBranchNameStub({ value: 'quest/add-auth-7bc217a1' });
       proxy.setupDrifted({ currentBranchName: 'main' });
       proxy.setupCheckoutSucceeds({ branchName });
@@ -44,7 +43,7 @@ describe('worktreeResumeRestoreBroker', () => {
   describe('detached HEAD', () => {
     it('EDGE: {rev-parse prints "HEAD" from a detached worktree} => runs checkout and returns restored true', async () => {
       const proxy = worktreeResumeRestoreBrokerProxy();
-      const worktreePath = AbsoluteFilePathStub({ value: '/repo/worktrees/add-auth-7bc217a1' });
+      const worktreePath = '/repo/worktrees/add-auth-7bc217a1';
       const branchName = QuestBranchNameStub({ value: 'quest/add-auth-7bc217a1' });
       proxy.setupDetachedHead();
       proxy.setupCheckoutSucceeds({ branchName });
@@ -62,7 +61,7 @@ describe('worktreeResumeRestoreBroker', () => {
   describe('rev-parse fails', () => {
     it('ERROR: {git rev-parse exits non-zero} => returns restored false and runs no checkout', async () => {
       const proxy = worktreeResumeRestoreBrokerProxy();
-      const worktreePath = AbsoluteFilePathStub({ value: '/repo/worktrees/add-auth-7bc217a1' });
+      const worktreePath = '/repo/worktrees/add-auth-7bc217a1';
       const branchName = QuestBranchNameStub({ value: 'quest/add-auth-7bc217a1' });
       proxy.setupRevParseFails({
         output: 'fatal: not a git repository (or any of the parent directories): .git',
@@ -82,7 +81,7 @@ describe('worktreeResumeRestoreBroker', () => {
   describe('checkout fails', () => {
     it('ERROR: {git checkout exits non-zero} => returns restored false carrying gits stderr text in output', async () => {
       const proxy = worktreeResumeRestoreBrokerProxy();
-      const worktreePath = AbsoluteFilePathStub({ value: '/repo/worktrees/add-auth-7bc217a1' });
+      const worktreePath = '/repo/worktrees/add-auth-7bc217a1';
       const branchName = QuestBranchNameStub({ value: 'quest/add-auth-7bc217a1' });
       proxy.setupDrifted({ currentBranchName: 'main' });
       proxy.setupCheckoutFails({
@@ -107,7 +106,7 @@ describe('worktreeResumeRestoreBroker', () => {
   describe('rev-parse output carries a trailing warning line', () => {
     it('EDGE: {rev-parse output carries a git warning line after the branch name} => branch name is read from the first line so no redundant checkout runs', async () => {
       const proxy = worktreeResumeRestoreBrokerProxy();
-      const worktreePath = AbsoluteFilePathStub({ value: '/repo/worktrees/add-auth-7bc217a1' });
+      const worktreePath = '/repo/worktrees/add-auth-7bc217a1';
       const branchName = QuestBranchNameStub({ value: 'quest/add-auth-7bc217a1' });
       proxy.setupBranchWithTrailingWarning({
         branchName,

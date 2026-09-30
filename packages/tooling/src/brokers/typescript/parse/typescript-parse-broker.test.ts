@@ -1,14 +1,13 @@
 import { typescriptParseBroker } from './typescript-parse-broker';
 import { typescriptParseBrokerProxy } from './typescript-parse-broker.proxy';
 import { SourceCodeStub } from '../../../contracts/source-code/source-code.stub';
-import { AbsoluteFilePathStub } from '../../../contracts/absolute-file-path/absolute-file-path.stub';
 import { LiteralValueStub } from '../../../contracts/literal-value/literal-value.stub';
 
 describe('typescriptParseBroker', () => {
   it('VALID: {sourceCode with string literals} => returns map with literal occurrences', () => {
     typescriptParseBrokerProxy();
     const sourceCode = SourceCodeStub({ value: 'const x = "test"; const y = "test";' });
-    const filePath = AbsoluteFilePathStub({ value: '/file.ts' });
+    const filePath = '/file.ts';
 
     const result = typescriptParseBroker({ sourceCode, filePath });
 
@@ -31,7 +30,7 @@ describe('typescriptParseBroker', () => {
   it('VALID: {sourceCode with regex literals} => returns map with regex occurrences', () => {
     typescriptParseBrokerProxy();
     const sourceCode = SourceCodeStub({ value: 'const pattern = /test/g;' });
-    const filePath = AbsoluteFilePathStub({ value: '/file.ts' });
+    const filePath = '/file.ts';
 
     const result = typescriptParseBroker({ sourceCode, filePath });
 
@@ -51,7 +50,7 @@ describe('typescriptParseBroker', () => {
     const sourceCode = SourceCodeStub({
       value: 'const x = "hi"; const y = "hello";',
     });
-    const filePath = AbsoluteFilePathStub({ value: '/file.ts' });
+    const filePath = '/file.ts';
 
     const result = typescriptParseBroker({ sourceCode, filePath, minLength: 5 });
 
@@ -62,7 +61,7 @@ describe('typescriptParseBroker', () => {
   it('EMPTY: {sourceCode without literals} => returns empty map', () => {
     typescriptParseBrokerProxy();
     const sourceCode = SourceCodeStub({ value: 'const x = 123; const y = true;' });
-    const filePath = AbsoluteFilePathStub({ value: '/file.ts' });
+    const filePath = '/file.ts';
 
     const result = typescriptParseBroker({ sourceCode, filePath });
 
@@ -76,7 +75,7 @@ describe('typescriptParseBroker', () => {
 const message = "error";
 const type = "error";`,
     });
-    const filePath = AbsoluteFilePathStub({ value: '/file.ts' });
+    const filePath = '/file.ts';
 
     const result = typescriptParseBroker({ sourceCode, filePath });
 
@@ -93,7 +92,7 @@ const type = "error";`,
     it('VALID: {single occurrence of literal} => creates new map entry', () => {
       typescriptParseBrokerProxy();
       const sourceCode = SourceCodeStub({ value: 'const x = "unique";' });
-      const filePath = AbsoluteFilePathStub({ value: '/file.ts' });
+      const filePath = '/file.ts';
 
       const result = typescriptParseBroker({ sourceCode, filePath });
 
@@ -107,7 +106,7 @@ const type = "error";`,
       const sourceCode = SourceCodeStub({
         value: 'const x = "repeat"; const y = "repeat"; const z = "repeat";',
       });
-      const filePath = AbsoluteFilePathStub({ value: '/file.ts' });
+      const filePath = '/file.ts';
 
       const result = typescriptParseBroker({ sourceCode, filePath });
 
@@ -125,7 +124,7 @@ const type = "error";`,
     it('EMPTY: {empty source code} => returns empty map', () => {
       typescriptParseBrokerProxy();
       const sourceCode = SourceCodeStub({ value: '' });
-      const filePath = AbsoluteFilePathStub({ value: '/file.ts' });
+      const filePath = '/file.ts';
 
       const result = typescriptParseBroker({ sourceCode, filePath });
 
@@ -138,7 +137,7 @@ const type = "error";`,
         value: `// This is a comment
 /* This is a block comment */`,
       });
-      const filePath = AbsoluteFilePathStub({ value: '/file.ts' });
+      const filePath = '/file.ts';
 
       const result = typescriptParseBroker({ sourceCode, filePath });
 
@@ -150,7 +149,7 @@ const type = "error";`,
       const sourceCode = SourceCodeStub({
         value: 'const x = `template`; const y = `template`;',
       });
-      const filePath = AbsoluteFilePathStub({ value: '/file.ts' });
+      const filePath = '/file.ts';
 
       const result = typescriptParseBroker({ sourceCode, filePath });
 
@@ -162,7 +161,7 @@ const type = "error";`,
       const sourceCode = SourceCodeStub({
         value: 'const obj = { nested: { value: "deep" } }; const obj2 = { value: "deep" };',
       });
-      const filePath = AbsoluteFilePathStub({ value: '/file.ts' });
+      const filePath = '/file.ts';
 
       const result = typescriptParseBroker({ sourceCode, filePath });
 
@@ -179,7 +178,7 @@ const type = "error";`,
       const sourceCode = SourceCodeStub({
         value: 'const arr = ["item", "item", "item"];',
       });
-      const filePath = AbsoluteFilePathStub({ value: '/file.ts' });
+      const filePath = '/file.ts';
 
       const result = typescriptParseBroker({ sourceCode, filePath });
 
@@ -197,7 +196,7 @@ const type = "error";`,
       const sourceCode = SourceCodeStub({
         value: 'function fn(x = "default", y = "default") {}',
       });
-      const filePath = AbsoluteFilePathStub({ value: '/file.ts' });
+      const filePath = '/file.ts';
 
       const result = typescriptParseBroker({ sourceCode, filePath });
 
@@ -214,7 +213,7 @@ const type = "error";`,
       const sourceCode = SourceCodeStub({
         value: 'const el = <div title="title">{"text"}</div>; const el2 = <span>{"text"}</span>;',
       });
-      const filePath = AbsoluteFilePathStub({ value: '/file.tsx' });
+      const filePath = '/file.tsx';
 
       const result = typescriptParseBroker({ sourceCode, filePath });
 
@@ -233,7 +232,7 @@ const type = "error";`,
       const sourceCode = SourceCodeStub({
         value: 'import { x } from "module"; import { y } from "module";',
       });
-      const filePath = AbsoluteFilePathStub({ value: '/file.ts' });
+      const filePath = '/file.ts';
 
       const result = typescriptParseBroker({ sourceCode, filePath });
 
@@ -250,7 +249,7 @@ const type = "error";`,
       const sourceCode = SourceCodeStub({
         value: 'type Status = "active" | "inactive"; const x: "active" = "active";',
       });
-      const filePath = AbsoluteFilePathStub({ value: '/file.ts' });
+      const filePath = '/file.ts';
 
       const result = typescriptParseBroker({ sourceCode, filePath });
 
@@ -268,7 +267,7 @@ const type = "error";`,
     it('EDGE: {string exactly at minLength} => includes string', () => {
       typescriptParseBrokerProxy();
       const sourceCode = SourceCodeStub({ value: 'const x = "abc"; const y = "abc";' });
-      const filePath = AbsoluteFilePathStub({ value: '/file.ts' });
+      const filePath = '/file.ts';
 
       const result = typescriptParseBroker({ sourceCode, filePath, minLength: 3 });
 
@@ -283,7 +282,7 @@ const type = "error";`,
     it('EDGE: {string one char below minLength} => excludes string', () => {
       typescriptParseBrokerProxy();
       const sourceCode = SourceCodeStub({ value: 'const x = "ab"; const y = "ab";' });
-      const filePath = AbsoluteFilePathStub({ value: '/file.ts' });
+      const filePath = '/file.ts';
 
       const result = typescriptParseBroker({ sourceCode, filePath, minLength: 3 });
 
@@ -295,7 +294,7 @@ const type = "error";`,
     it('VALID: {minLength: 0} => includes empty strings', () => {
       typescriptParseBrokerProxy();
       const sourceCode = SourceCodeStub({ value: 'const x = ""; const y = "";' });
-      const filePath = AbsoluteFilePathStub({ value: '/file.ts' });
+      const filePath = '/file.ts';
 
       const result = typescriptParseBroker({ sourceCode, filePath, minLength: 0 });
 
@@ -310,7 +309,7 @@ const type = "error";`,
     it('VALID: {minLength: 1} => includes single character strings', () => {
       typescriptParseBrokerProxy();
       const sourceCode = SourceCodeStub({ value: 'const x = "a"; const y = "a";' });
-      const filePath = AbsoluteFilePathStub({ value: '/file.ts' });
+      const filePath = '/file.ts';
 
       const result = typescriptParseBroker({ sourceCode, filePath, minLength: 1 });
 
@@ -327,7 +326,7 @@ const type = "error";`,
       const sourceCode = SourceCodeStub({
         value: 'const x = "short"; const y = "short";',
       });
-      const filePath = AbsoluteFilePathStub({ value: '/file.ts' });
+      const filePath = '/file.ts';
 
       const result = typescriptParseBroker({ sourceCode, filePath, minLength: 1000 });
 
@@ -341,7 +340,7 @@ const type = "error";`,
       const sourceCode = SourceCodeStub({
         value: 'const x = "Hello 👋"; const y = "Hello 👋";',
       });
-      const filePath = AbsoluteFilePathStub({ value: '/file.ts' });
+      const filePath = '/file.ts';
 
       const result = typescriptParseBroker({ sourceCode, filePath });
 
@@ -358,7 +357,7 @@ const type = "error";`,
       const sourceCode = SourceCodeStub({
         value: 'const x = "path\\\\to\\\\file"; const y = "path\\\\to\\\\file";',
       });
-      const filePath = AbsoluteFilePathStub({ value: '/file.ts' });
+      const filePath = '/file.ts';
 
       const result = typescriptParseBroker({ sourceCode, filePath });
 
@@ -375,7 +374,7 @@ const type = "error";`,
       const sourceCode = SourceCodeStub({
         value: 'const x = "line1\\nline2"; const y = "line1\\nline2";',
       });
-      const filePath = AbsoluteFilePathStub({ value: '/file.ts' });
+      const filePath = '/file.ts';
 
       const result = typescriptParseBroker({ sourceCode, filePath });
 
@@ -393,7 +392,7 @@ const type = "error";`,
       const sourceCode = SourceCodeStub({
         value: `const x = "${longString}"; const y = "${longString}";`,
       });
-      const filePath = AbsoluteFilePathStub({ value: '/file.ts' });
+      const filePath = '/file.ts';
 
       const result = typescriptParseBroker({ sourceCode, filePath });
 
@@ -410,7 +409,7 @@ const type = "error";`,
       const sourceCode = SourceCodeStub({
         value: 'const x = "   "; const y = "   ";',
       });
-      const filePath = AbsoluteFilePathStub({ value: '/file.ts' });
+      const filePath = '/file.ts';
 
       const result = typescriptParseBroker({ sourceCode, filePath });
 
@@ -429,7 +428,7 @@ const type = "error";`,
       const sourceCode = SourceCodeStub({
         value: 'const x = "error"; const y = "error"; invalid syntax here',
       });
-      const filePath = AbsoluteFilePathStub({ value: '/file.ts' });
+      const filePath = '/file.ts';
 
       const result = typescriptParseBroker({ sourceCode, filePath });
 
@@ -446,7 +445,7 @@ const type = "error";`,
       const sourceCode = SourceCodeStub({
         value: 'const x = "complete"; const y = "complete"; const z = "incom',
       });
-      const filePath = AbsoluteFilePathStub({ value: '/file.ts' });
+      const filePath = '/file.ts';
 
       const result = typescriptParseBroker({ sourceCode, filePath });
 
@@ -463,7 +462,7 @@ const type = "error";`,
       const sourceCode = SourceCodeStub({
         value: "const x = 'single'; const y = \"double\"; const z = 'single';",
       });
-      const filePath = AbsoluteFilePathStub({ value: '/file.ts' });
+      const filePath = '/file.ts';
 
       const result = typescriptParseBroker({ sourceCode, filePath });
 
@@ -484,7 +483,7 @@ const type = "error";`,
       const sourceCode = SourceCodeStub({
         value: 'const p1 = /test/gi; const p2 = /test/m; const p3 = /test/gi;',
       });
-      const filePath = AbsoluteFilePathStub({ value: '/file.ts' });
+      const filePath = '/file.ts';
 
       const result = typescriptParseBroker({ sourceCode, filePath });
 
@@ -504,7 +503,7 @@ const type = "error";`,
         value:
           'const email = /^[a-zA-Z0-9]+@[a-zA-Z0-9]+\\.[a-z]{2,}$/; const email2 = /^[a-zA-Z0-9]+@[a-zA-Z0-9]+\\.[a-z]{2,}$/;',
       });
-      const filePath = AbsoluteFilePathStub({ value: '/file.ts' });
+      const filePath = '/file.ts';
 
       const result = typescriptParseBroker({ sourceCode, filePath });
 
@@ -523,7 +522,7 @@ const type = "error";`,
       const sourceCode = SourceCodeStub({
         value: 'const p1 = /\\d+/; const p2 = /\\d+/; const p3 = /\\d+/; const p4 = /\\d+/;',
       });
-      const filePath = AbsoluteFilePathStub({ value: '/file.ts' });
+      const filePath = '/file.ts';
 
       const result = typescriptParseBroker({ sourceCode, filePath });
 
@@ -542,7 +541,7 @@ const type = "error";`,
       const sourceCode = SourceCodeStub({
         value: 'const p1 = /\\d+\\.\\d+/; const p2 = /\\d+\\.\\d+/; const p3 = /\\d+\\.\\d+/;',
       });
-      const filePath = AbsoluteFilePathStub({ value: '/file.ts' });
+      const filePath = '/file.ts';
 
       const result = typescriptParseBroker({ sourceCode, filePath });
 

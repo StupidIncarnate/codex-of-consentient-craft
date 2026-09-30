@@ -1,16 +1,10 @@
 import { wsGatewayFilesFindLayerBroker } from './ws-gateway-files-find-layer-broker';
 import { wsGatewayFilesFindLayerBrokerProxy } from './ws-gateway-files-find-layer-broker.proxy';
-import { AbsoluteFilePathStub } from '../../../contracts/absolute-file-path/absolute-file-path.stub';
 import { ContentTextStub } from '../../../contracts/content-text/content-text.stub';
 
-const PROJECT_ROOT = AbsoluteFilePathStub({ value: '/repo' });
-const WS_ADAPTER = AbsoluteFilePathStub({
-  value:
-    '/repo/packages/server/src/adapters/hono/create-node-web-socket/hono-create-node-web-socket-adapter.ts',
-});
-const GATEWAY_FILE = AbsoluteFilePathStub({
-  value: '/repo/packages/server/src/responders/server/init/server-init-responder.ts',
-});
+const PROJECT_ROOT = '/repo';
+const WS_ADAPTER = '/repo/packages/server/src/adapters/hono/create-node-web-socket/hono-create-node-web-socket-adapter.ts';
+const GATEWAY_FILE = '/repo/packages/server/src/responders/server/init/server-init-responder.ts';
 
 describe('wsGatewayFilesFindLayerBroker', () => {
   describe('no adapters provided', () => {

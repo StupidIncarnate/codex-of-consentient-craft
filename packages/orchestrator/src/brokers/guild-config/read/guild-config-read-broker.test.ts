@@ -1,4 +1,3 @@
-import { AbsoluteFilePathStub } from '@dungeonmaster/shared/contracts/absolute-file-path/absolute-file-path.stub';
 import { GuildConfigStub } from '@dungeonmaster/shared/contracts/guild-config/guild-config.stub';
 import { GuildStub } from '@dungeonmaster/shared/contracts/guild/guild.stub';
 import { FsErrorStub } from '#gateway/node/fs/is-fs-error/fs-error.stub';
@@ -28,7 +27,7 @@ describe('guildConfigReadBroker', () => {
       });
 
       const result = await guildConfigReadBroker({
-        home: AbsoluteFilePathStub({ value: '/tmp/dm-home-target' }),
+        home: '/tmp/dm-home-target',
       });
 
       expect(result).toStrictEqual({
@@ -53,7 +52,7 @@ describe('guildConfigReadBroker', () => {
       });
 
       const result = await guildConfigReadBroker({
-        home: AbsoluteFilePathStub({ value: '/tmp/dm-home-other' }),
+        home: '/tmp/dm-home-other',
       });
 
       expect(result).toStrictEqual({ guilds: [] });

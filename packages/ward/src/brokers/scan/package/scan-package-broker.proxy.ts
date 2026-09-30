@@ -1,4 +1,3 @@
-import { absoluteFilePathContract, type AbsoluteFilePath } from '@dungeonmaster/shared/contracts';
 import { runProxy } from '#gateway/node/child_process/run/run.proxy';
 
 import { binResolveBrokerProxy } from '../../bin/resolve/bin-resolve-broker.proxy';
@@ -10,19 +9,19 @@ import { scanStatics } from '../../../statics/scan/scan-statics';
 export const scanPackageBrokerProxy = (): {
   setupExit: (params: {
     projectFolder: ProjectFolder;
-    rootPath: AbsoluteFilePath;
+    rootPath: string;
     exitCode: number;
     stdout: string;
     stderr: string;
   }) => void;
   setupSignalKill: (params: {
     projectFolder: ProjectFolder;
-    rootPath: AbsoluteFilePath;
+    rootPath: string;
     stdout: string;
   }) => void;
   setupSpawnError: (params: {
     projectFolder: ProjectFolder;
-    rootPath: AbsoluteFilePath;
+    rootPath: string;
     error: Error;
   }) => void;
   getEslintArgs: (params: {
@@ -36,7 +35,7 @@ export const scanPackageBrokerProxy = (): {
   // the repo root.
   const resolveCommand = ({ projectFolder }: { projectFolder: ProjectFolder }): BinCommand =>
     binProxy.setupFound({
-      cwd: absoluteFilePathContract.parse(projectFolder.path),
+      cwd: projectFolder.path,
       binName: BinCommandStub({ value: scanStatics.eslint.bin }),
     });
 

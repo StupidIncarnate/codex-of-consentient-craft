@@ -16,7 +16,6 @@
  * WHEN-TO-USE: Widget-tree broker building root trees after edges and hubs are computed
  */
 
-import type { AbsoluteFilePath } from '../../../contracts/absolute-file-path/absolute-file-path-contract';
 import {
   widgetNodeContract,
   type WidgetNode,
@@ -31,11 +30,11 @@ export const buildWidgetNodeLayerBroker = ({
   hubPaths,
   visited,
 }: {
-  filePath: AbsoluteFilePath;
-  widgetFileSet: Set<AbsoluteFilePath>;
-  edgesMap: Map<AbsoluteFilePath, WidgetEdges>;
-  hubPaths: Set<AbsoluteFilePath>;
-  visited: Set<AbsoluteFilePath>;
+  filePath: string;
+  widgetFileSet: Set<string>;
+  edgesMap: Map<string, WidgetEdges>;
+  hubPaths: Set<string>;
+  visited: Set<string>;
 }): WidgetNode => {
   if (visited.has(filePath)) {
     return widgetNodeContract.parse({

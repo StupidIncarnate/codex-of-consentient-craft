@@ -1,5 +1,4 @@
 import { installTestbedCreateBroker } from '@dungeonmaster/testing';
-import { AbsoluteFilePathStub } from '@dungeonmaster/shared/contracts/absolute-file-path/absolute-file-path.stub';
 
 import { GitBranchNameStub } from '../../../contracts/git-branch-name/git-branch-name.stub';
 import { GitRelativePathStub } from '../../../contracts/git-relative-path/git-relative-path.stub';
@@ -22,12 +21,10 @@ describe('gitDiffCommittedBroker (integration) — real git worktree isolation',
     const testbed = installTestbedCreateBroker({
       baseName: 'ward-diff-worktree-scope',
     });
-    const repoPath = AbsoluteFilePathStub({ value: testbed.guildPath });
+    const repoPath = testbed.guildPath;
     await git.initRepo({ repoPath });
 
-    const worktreePath = AbsoluteFilePathStub({
-      value: `${testbed.guildPath}/worktrees/quest-branch`,
-    });
+    const worktreePath = `${testbed.guildPath}/worktrees/quest-branch`;
     await git.addWorktree({
       repoPath,
       worktreePath,
@@ -75,8 +72,8 @@ describe('gitDiffCommittedBroker (integration) — real git worktree isolation',
     const testbed = installTestbedCreateBroker({
       baseName: 'ward-diff-committed-origin-base',
     });
-    const repoPath = AbsoluteFilePathStub({ value: `${testbed.guildPath}/repo` });
-    const remotePath = AbsoluteFilePathStub({ value: `${testbed.guildPath}/origin.git` });
+    const repoPath = `${testbed.guildPath}/repo`;
+    const remotePath = `${testbed.guildPath}/origin.git`;
     const mainBranch = GitBranchNameStub({ value: 'main' });
 
     await git.initRepo({ repoPath });

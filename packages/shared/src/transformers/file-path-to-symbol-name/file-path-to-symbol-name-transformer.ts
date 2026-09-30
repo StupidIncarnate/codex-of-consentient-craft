@@ -11,7 +11,6 @@
  * rendering — the symbol name is the kebab-case identifier used in imports
  */
 
-import type { AbsoluteFilePath } from '../../contracts/absolute-file-path/absolute-file-path-contract';
 import {
   contentTextContract,
   type ContentText,
@@ -20,7 +19,7 @@ import {
 export const filePathToSymbolNameTransformer = ({
   filePath,
 }: {
-  filePath: AbsoluteFilePath;
+  filePath: string;
 }): ContentText => {
   const filePathStr = String(filePath);
   const lastSlash = filePathStr.lastIndexOf('/');

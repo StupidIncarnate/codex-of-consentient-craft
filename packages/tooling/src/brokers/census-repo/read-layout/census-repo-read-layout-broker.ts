@@ -16,13 +16,12 @@ import { workspaceScopeFromRootNameTransformer } from '@dungeonmaster/shared/tra
 import { censusRepoLayoutContract } from '../../../contracts/census-repo-layout/census-repo-layout-contract';
 import { censusRootPackageContract } from '../../../contracts/census-root-package/census-root-package-contract';
 import { censusLayoutStatics } from '../../../statics/census-layout/census-layout-statics';
-import type { AbsoluteFilePath } from '../../../contracts/absolute-file-path/absolute-file-path-contract';
 import type { CensusRepoLayout } from '../../../contracts/census-repo-layout/census-repo-layout-contract';
 
 export const censusRepoReadLayoutBroker = async ({
   repoRoot,
 }: {
-  repoRoot: AbsoluteFilePath;
+  repoRoot: string;
 }): Promise<CensusRepoLayout> => {
   const rootManifest = join(repoRoot, censusLayoutStatics.packageJsonFile);
   const root = censusRootPackageContract.parse(

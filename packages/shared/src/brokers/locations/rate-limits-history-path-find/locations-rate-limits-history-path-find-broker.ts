@@ -9,15 +9,11 @@
 import { dungeonmasterHomeFindBroker } from '../../dungeonmaster-home/find/dungeonmaster-home-find-broker';
 import { join } from '#gateway/node/path';
 import { locationsStatics } from '../../../statics/locations/locations-statics';
-import {
-  absoluteFilePathContract,
-  type AbsoluteFilePath,
-} from '../../../contracts/absolute-file-path/absolute-file-path-contract';
 
-export const locationsRateLimitsHistoryPathFindBroker = (): AbsoluteFilePath => {
+export const locationsRateLimitsHistoryPathFindBroker = (): string => {
   const { homePath } = dungeonmasterHomeFindBroker();
 
   const joined = join(homePath, locationsStatics.dungeonmasterHome.rateLimitsHistory);
 
-  return absoluteFilePathContract.parse(joined);
+  return joined;
 };

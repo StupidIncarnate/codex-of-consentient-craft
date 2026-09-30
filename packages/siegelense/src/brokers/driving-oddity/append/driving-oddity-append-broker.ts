@@ -17,7 +17,6 @@
  */
 
 import { appendFile } from '#gateway/node/fs__promises';
-import type { AbsoluteFilePath } from '@dungeonmaster/shared/contracts';
 
 import type { DrivingOddity } from '../../../contracts/driving-oddity/driving-oddity-contract';
 import { DrivingOddityDuplicateKeyError } from '../../../errors/driving-oddity-duplicate-key/driving-oddity-duplicate-key-error';
@@ -27,7 +26,7 @@ export const drivingOddityAppendBroker = async ({
   filePath,
   entry,
 }: {
-  filePath: AbsoluteFilePath;
+  filePath: string;
   entry: DrivingOddity;
 }): Promise<void> => {
   const existing = await drivingOddityReadBroker({ filePath });

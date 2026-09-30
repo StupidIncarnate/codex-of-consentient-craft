@@ -18,7 +18,7 @@
 
 import { readFileSync } from '#gateway/node/fs';
 import { contentTextContract } from '@dungeonmaster/shared/contracts';
-import type { AbsoluteFilePath, ContentText } from '@dungeonmaster/shared/contracts';
+import type { ContentText } from '@dungeonmaster/shared/contracts';
 
 import { serverLogByteCountContract } from '../../../contracts/server-log-byte-count/server-log-byte-count-contract';
 import type { ServerLogByteCount } from '../../../contracts/server-log-byte-count/server-log-byte-count-contract';
@@ -27,7 +27,7 @@ import { Buffer } from '#gateway/node/buffer';
 export const serverLogReaderLayerBroker = ({
   logPath,
 }: {
-  logPath: AbsoluteFilePath;
+  logPath: string;
 }): {
   readServerLogSince: ({ fromByte }: { fromByte: number }) => readonly ContentText[];
   serverLogLength: () => ServerLogByteCount;

@@ -15,10 +15,6 @@
  * and call-chain renderer expanding broker → broker / broker → adapter
  */
 
-import {
-  absoluteFilePathContract,
-  type AbsoluteFilePath,
-} from '../../../contracts/absolute-file-path/absolute-file-path-contract';
 import { isNonTestFileGuard } from '../../../guards/is-non-test-file/is-non-test-file-guard';
 import { isFileInFolderTypeGuard } from '../../../guards/is-file-in-folder-type/is-file-in-folder-type-guard';
 import { importStatementsExtractTransformer } from '../../../transformers/import-statements-extract/import-statements-extract-transformer';
@@ -32,18 +28,18 @@ export const importsInFolderTypeFindLayerBroker = ({
   packageSrcPath,
   folderType,
 }: {
-  sourceFile: AbsoluteFilePath;
-  packageSrcPath: AbsoluteFilePath;
+  sourceFile: string;
+  packageSrcPath: string;
   folderType: string;
-}): { entries: AbsoluteFilePath[]; layers: AbsoluteFilePath[] } => {
+}): { entries: string[]; layers: string[] } => {
   const source = readFileContentsLayerBroker({ filePath: sourceFile });
   if (source === undefined) {
     return { entries: [], layers: [] };
   }
 
   const importPaths = importStatementsExtractTransformer({ source });
-  const entries: AbsoluteFilePath[] = [];
-  const layers: AbsoluteFilePath[] = [];
+  const entries: string[] = [];
+  const layers: string[] = [];
 
   for (const importPath of importPaths) {
     const resolved = relativeImportResolveTransformer({ sourceFile, importPath });
@@ -55,7 +51,7 @@ export const importsInFolderTypeFindLayerBroker = ({
     const tsSuffix = '.ts';
     const tsxSuffix = '.tsx';
     const tsxCandidate = resolvedStr.endsWith(tsSuffix)
-      ? absoluteFilePathContract.parse(`${resolvedStr.slice(0, -tsSuffix.length)}${tsxSuffix}`)
+      ? `${resolvedStr.slice(0, -tsSuffix.length)}${tsxSuffix}`
       : null;
     const tsExists = existsSync(resolved);
     const onDisk =

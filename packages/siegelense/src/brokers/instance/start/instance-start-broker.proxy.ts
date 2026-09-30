@@ -10,7 +10,6 @@ import { stderrProxy } from '#gateway/node/process/stderr/stderr.proxy';
 import { registerMock, requireActual } from '@dungeonmaster/testing/register-mock';
 import type { MockHandle } from '@dungeonmaster/testing/register-mock';
 import { cwdResolveBrokerProxy } from '@dungeonmaster/shared/brokers/cwd/resolve/cwd-resolve-broker.proxy';
-import { AbsoluteFilePathStub } from '@dungeonmaster/shared/contracts/absolute-file-path/absolute-file-path.stub';
 import { ContentTextStub } from '@dungeonmaster/shared/contracts/content-text/content-text.stub';
 import { NetworkPortStub } from '@dungeonmaster/shared/contracts/network-port/network-port.stub';
 import { ProcessIdStub } from '@dungeonmaster/shared/contracts/process-id/process-id.stub';
@@ -340,7 +339,7 @@ export const instanceStartBrokerProxy = (): {
       .implement(requireActual<{ dirname: typeof dirname }>({ module: 'path' }).dirname);
     const expectedDriverBinPath = join(dirname(cliEntryPath), CLI_BIN_RELATIVE_VALUE);
 
-    const driverLogPath = AbsoluteFilePathStub({ value: `${String(evidencePath)}/driver.log` });
+    const driverLogPath = `${String(evidencePath)}/driver.log`;
     openFdProxy.returns({ path: driverLogPath, fd: 17 });
 
     spawnProxy.setupSuccess({
@@ -368,9 +367,7 @@ export const instanceStartBrokerProxy = (): {
           : { instanceId, evidencePath, registry, idleTimeoutMs },
       );
 
-      const socketPath = AbsoluteFilePathStub({
-        value: `${TMP_DIR_VALUE}/dm-siege-sockets/${instanceId}.sock`,
-      });
+      const socketPath = `${TMP_DIR_VALUE}/dm-siege-sockets/${instanceId}.sock`;
       pollProxy.setupAnswersOk({ socketPath });
     },
 
@@ -401,9 +398,7 @@ export const instanceStartBrokerProxy = (): {
       });
       clockProxy.setupNowOnce({ ms: startedAtMs + queuedMs });
 
-      const socketPath = AbsoluteFilePathStub({
-        value: `${TMP_DIR_VALUE}/dm-siege-sockets/${instanceId}.sock`,
-      });
+      const socketPath = `${TMP_DIR_VALUE}/dm-siege-sockets/${instanceId}.sock`;
       pollProxy.setupAnswersOk({ socketPath });
     },
 
@@ -422,10 +417,8 @@ export const instanceStartBrokerProxy = (): {
         },
       );
 
-      const socketPath = AbsoluteFilePathStub({
-        value: `${TMP_DIR_VALUE}/dm-siege-sockets/${instanceId}.sock`,
-      });
-      const evidencePathAbs = AbsoluteFilePathStub({ value: String(evidencePath) });
+      const socketPath = `${TMP_DIR_VALUE}/dm-siege-sockets/${instanceId}.sock`;
+      const evidencePathAbs = String(evidencePath);
       pollProxy.setupNeverAnswers({
         socketPath,
         evidencePath: evidencePathAbs,
@@ -452,7 +445,7 @@ export const instanceStartBrokerProxy = (): {
       // heartbeat), so nothing is signalled, and only the throwaway home needs removing.
       killProxy.setupDriverUnreachableNoPgids({
         socketPath,
-        homePath: AbsoluteFilePathStub({ value: `${TMP_DIR_VALUE}/dm-siege-${instanceId}` }),
+        homePath: `${TMP_DIR_VALUE}/dm-siege-${instanceId}`,
       });
     },
 
@@ -469,10 +462,8 @@ export const instanceStartBrokerProxy = (): {
     }): void => {
       stageBoot({ instanceId, evidencePath, registry });
 
-      const socketPath = AbsoluteFilePathStub({
-        value: `${TMP_DIR_VALUE}/dm-siege-sockets/${instanceId}.sock`,
-      });
-      const evidencePathAbs = AbsoluteFilePathStub({ value: String(evidencePath) });
+      const socketPath = `${TMP_DIR_VALUE}/dm-siege-sockets/${instanceId}.sock`;
+      const evidencePathAbs = String(evidencePath);
       pollProxy.setupFailureMarkerAppears({
         socketPath,
         evidencePath: evidencePathAbs,
@@ -493,7 +484,7 @@ export const instanceStartBrokerProxy = (): {
       // before ever finishing its boot never wrote a heartbeat naming any pgids either.
       killProxy.setupDriverUnreachableNoPgids({
         socketPath,
-        homePath: AbsoluteFilePathStub({ value: `${TMP_DIR_VALUE}/dm-siege-${instanceId}` }),
+        homePath: `${TMP_DIR_VALUE}/dm-siege-${instanceId}`,
       });
     },
 
@@ -551,12 +542,8 @@ export const instanceStartBrokerProxy = (): {
     },
 
     setupStaleReap: ({ staleInstanceId }: { staleInstanceId: InstanceId }): void => {
-      const staleSocketPath = AbsoluteFilePathStub({
-        value: `${TMP_DIR_VALUE}/dm-siege-sockets/${staleInstanceId}.sock`,
-      });
-      const staleHomePath = AbsoluteFilePathStub({
-        value: `${TMP_DIR_VALUE}/dm-siege-${staleInstanceId}`,
-      });
+      const staleSocketPath = `${TMP_DIR_VALUE}/dm-siege-sockets/${staleInstanceId}.sock`;
+      const staleHomePath = `${TMP_DIR_VALUE}/dm-siege-${staleInstanceId}`;
 
       killProxy.setupDriverUnreachableNoPgids({
         socketPath: staleSocketPath,
@@ -620,20 +607,18 @@ export const instanceStartBrokerProxy = (): {
       instanceId: InstanceId;
     }): ReturnType<typeof ReadingCountStub> =>
       killProxy.getConnectionCountFor({
-        socketPath: AbsoluteFilePathStub({
-          value: `${TMP_DIR_VALUE}/dm-siege-sockets/${instanceId}.sock`,
-        }),
+        socketPath: `${TMP_DIR_VALUE}/dm-siege-sockets/${instanceId}.sock`,
       }),
 
     stageShutdownReasonWriteSucceeds: ({ evidencePath }: { evidencePath: string }): void => {
       killProxy.setupShutdownReasonWriteSucceeds({
-        evidencePath: AbsoluteFilePathStub({ value: String(evidencePath) }),
+        evidencePath: String(evidencePath),
       });
     },
 
     getWrittenShutdownReason: ({ evidencePath }: { evidencePath: string }): unknown =>
       killProxy.getWrittenShutdownReason({
-        evidencePath: AbsoluteFilePathStub({ value: String(evidencePath) }),
+        evidencePath: String(evidencePath),
       }),
   };
 };

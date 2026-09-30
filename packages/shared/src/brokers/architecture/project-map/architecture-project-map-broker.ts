@@ -20,8 +20,6 @@ import { pointerFooterRenderLayerBroker } from './pointer-footer-render-layer-br
 import { discoverPackagesLayerBroker } from './discover-packages-layer-broker';
 import { projectMapStatics } from '../../../statics/project-map/project-map-statics';
 import { gatewayLocationsStatics } from '../../../statics/gateway-locations/gateway-locations-statics';
-import type { AbsoluteFilePath } from '../../../contracts/absolute-file-path/absolute-file-path-contract';
-import { absoluteFilePathContract } from '../../../contracts/absolute-file-path/absolute-file-path-contract';
 import type { ContentText } from '../../../contracts/content-text/content-text-contract';
 import { contentTextContract } from '../../../contracts/content-text/content-text-contract';
 import type { PackageName } from '../../../contracts/package-name/package-name-contract';
@@ -30,30 +28,26 @@ export const architectureProjectMapBroker = async ({
   projectRoot,
   packages,
 }: {
-  projectRoot: AbsoluteFilePath;
+  projectRoot: string;
   packages: PackageName[];
 }): Promise<ContentText> => {
   if (packages.length === 0) {
     throw new Error('get-project-map requires at least one package name in `packages`.');
   }
 
-  const packagesPath = absoluteFilePathContract.parse(
-    `${projectRoot}/${projectMapStatics.packagesDirName}`,
-  );
+  const packagesPath = `${projectRoot}/${projectMapStatics.packagesDirName}`;
   const packageEntries = discoverPackagesLayerBroker({ dirPath: packagesPath });
 
   const scanTargets: {
     packageName: ContentText;
-    packageRoot: AbsoluteFilePath;
+    packageRoot: string;
   }[] = [];
 
   if (packageEntries.length > 0) {
     const sortedPackages = [...packageEntries].sort((a, b) => a.name.localeCompare(b.name));
 
     for (const pkg of sortedPackages) {
-      const pkgRoot = absoluteFilePathContract.parse(
-        `${projectRoot}/${projectMapStatics.packagesDirName}/${pkg.relativeDir}`,
-      );
+      const pkgRoot = `${projectRoot}/${projectMapStatics.packagesDirName}/${pkg.relativeDir}`;
       scanTargets.push({
         packageName: contentTextContract.parse(pkg.name),
         packageRoot: pkgRoot,

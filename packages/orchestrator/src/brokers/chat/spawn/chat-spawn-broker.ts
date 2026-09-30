@@ -15,7 +15,7 @@
  */
 
 import { stderr } from '#gateway/node/process';
-import { absoluteFilePathContract, workItemRoleContract, sessionContract } from '@dungeonmaster/shared/contracts';
+import { workItemRoleContract, sessionContract } from '@dungeonmaster/shared/contracts';
 import type { ChatEntry, ModifyQuestInput, ProcessId, QuestType, WorkItemRole, Quest, WorkItem, Guild, Session } from '@dungeonmaster/shared/contracts';
 import {
   locationsQuestFolderPathFindBroker,
@@ -187,7 +187,7 @@ export const chatSpawnBroker = async ({
       questSessionRecordBroker({
         questId: resolvedQuestId,
         sessionId: sessionContract.shape.id.parse(extractedSid),
-        cwd: absoluteFilePathContract.parse(repoRootCwd),
+        cwd: repoRootCwd,
         role: workItemRoleContract.parse(role),
         workItemId: chatWorkItemId,
       }).catch((error: unknown) => {

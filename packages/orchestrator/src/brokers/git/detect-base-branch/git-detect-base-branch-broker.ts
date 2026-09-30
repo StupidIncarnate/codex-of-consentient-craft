@@ -9,7 +9,6 @@
  * // Returns BaseBranchName('main'), BaseBranchName('master'), or null if neither exists locally
  */
 
-import type { AbsoluteFilePath } from '@dungeonmaster/shared/contracts';
 import { baseBranchNameContract, type BaseBranchName } from '@dungeonmaster/shared/contracts';
 import { baseBranchStatics } from '@dungeonmaster/shared/statics';
 
@@ -19,7 +18,7 @@ export const gitDetectBaseBranchBroker = async ({
   cwd,
   candidates = baseBranchStatics.candidates,
 }: {
-  cwd: AbsoluteFilePath;
+  cwd: string;
   // Internal: shrinks on each tail-recursive probe. Callers should leave this at its default;
   // the broker walks baseBranchStatics.candidates itself, in order.
   candidates?: readonly string[];

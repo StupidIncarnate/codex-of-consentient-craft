@@ -16,7 +16,6 @@
 import { join } from '#gateway/node/path';
 import { registerMock, requireActual } from '@dungeonmaster/testing/register-mock';
 import type { FsError } from '#gateway/node/fs';
-import type { AbsoluteFilePath } from '@dungeonmaster/shared/contracts';
 import { locationsStatics } from '@dungeonmaster/shared/statics';
 
 import { readFileIfExistsProxy } from '#gateway/node/fs__promises/read-file-if-exists/read-file-if-exists.proxy';
@@ -25,9 +24,9 @@ import type { ShutdownReasonStub } from '../../../contracts/shutdown-reason/shut
 type ShutdownReason = ReturnType<typeof ShutdownReasonStub>;
 
 export const shutdownReasonReadBrokerProxy = (): {
-  setupMarkerFound: (params: { evidencePath: AbsoluteFilePath; marker: ShutdownReason }) => void;
-  setupMarkerMissing: (params: { evidencePath: AbsoluteFilePath }) => void;
-  setupReadFails: (params: { evidencePath: AbsoluteFilePath; error: Error }) => void;
+  setupMarkerFound: (params: { evidencePath: string; marker: ShutdownReason }) => void;
+  setupMarkerMissing: (params: { evidencePath: string }) => void;
+  setupReadFails: (params: { evidencePath: string; error: Error }) => void;
 } => {
   const realPath = requireActual<{ join: typeof join }>({ module: 'path' });
   const joinHandle = registerMock({ fn: join });
@@ -39,7 +38,7 @@ export const shutdownReasonReadBrokerProxy = (): {
       evidencePath,
       marker,
     }: {
-      evidencePath: AbsoluteFilePath;
+      evidencePath: string;
       marker: ShutdownReason;
     }): void => {
       const markerPathValue = `${evidencePath}/${locationsStatics.siegelense.shutdownReason}`;
@@ -49,7 +48,7 @@ export const shutdownReasonReadBrokerProxy = (): {
       });
     },
 
-    setupMarkerMissing: ({ evidencePath }: { evidencePath: AbsoluteFilePath }): void => {
+    setupMarkerMissing: ({ evidencePath }: { evidencePath: string }): void => {
       const markerPathValue = `${evidencePath}/${locationsStatics.siegelense.shutdownReason}`;
       readProxy.missing({ path: markerPathValue });
     },
@@ -58,7 +57,7 @@ export const shutdownReasonReadBrokerProxy = (): {
       evidencePath,
       error,
     }: {
-      evidencePath: AbsoluteFilePath;
+      evidencePath: string;
       error: Error;
     }): void => {
       const markerPathValue = `${evidencePath}/${locationsStatics.siegelense.shutdownReason}`;

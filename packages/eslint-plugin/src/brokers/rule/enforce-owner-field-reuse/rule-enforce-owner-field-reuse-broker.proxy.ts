@@ -1,5 +1,4 @@
 import { ownerIndexBuildBrokerProxy } from '@dungeonmaster/shared/brokers/owner-index/build/owner-index-build-broker.proxy';
-import { AbsoluteFilePathStub } from '@dungeonmaster/shared/contracts/absolute-file-path/absolute-file-path.stub';
 
 const contractText = ({
   contractName,
@@ -94,12 +93,12 @@ export const ruleEnforceOwnerFieldReuseBrokerProxy = (): {
     // a dependency of nobody, so its owner never claims a name in alpha.
     setupProject: (): void => {
       buildProxy.setupSubfolders({
-        dirPath: AbsoluteFilePathStub({ value: root }),
+        dirPath: root,
         folders: PACKAGES.map(({ folder }) => folder),
       });
 
       for (const { folder, dependencies, contracts } of PACKAGES) {
-        const packageDir = AbsoluteFilePathStub({ value: `${root}/${folder}` });
+        const packageDir = `${root}/${folder}`;
         const contractsDir = `${root}/${folder}/src/contracts`;
 
         buildProxy.setupPackageJson({
@@ -108,26 +107,24 @@ export const ruleEnforceOwnerFieldReuseBrokerProxy = (): {
         });
         buildProxy.setupWalkedFolder({ dirPath: packageDir, folders: ['src'], files: [] });
         buildProxy.setupWalkedFolder({
-          dirPath: AbsoluteFilePathStub({ value: `${root}/${folder}/src` }),
+          dirPath: `${root}/${folder}/src`,
           folders: ['contracts'],
           files: [],
         });
         buildProxy.setupWalkedFolder({
-          dirPath: AbsoluteFilePathStub({ value: contractsDir }),
+          dirPath: contractsDir,
           folders: contracts.map((contract) => contract.folder),
           files: [],
         });
 
         for (const contract of contracts) {
           buildProxy.setupWalkedFolder({
-            dirPath: AbsoluteFilePathStub({ value: `${contractsDir}/${contract.folder}` }),
+            dirPath: `${contractsDir}/${contract.folder}`,
             folders: [],
             files: [contract.file],
           });
           buildProxy.setupSourceText({
-            filePath: AbsoluteFilePathStub({
-              value: `${contractsDir}/${contract.folder}/${contract.file}`,
-            }),
+            filePath: `${contractsDir}/${contract.folder}/${contract.file}`,
             text: contract.text,
           });
         }

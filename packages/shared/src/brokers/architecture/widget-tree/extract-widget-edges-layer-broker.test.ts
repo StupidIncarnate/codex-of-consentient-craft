@@ -1,21 +1,16 @@
 import { extractWidgetEdgesLayerBroker } from './extract-widget-edges-layer-broker';
 import { extractWidgetEdgesLayerBrokerProxy } from './extract-widget-edges-layer-broker.proxy';
-import { AbsoluteFilePathStub } from '../../../contracts/absolute-file-path/absolute-file-path.stub';
 import { ContentTextStub } from '../../../contracts/content-text/content-text.stub';
 
-type AbsoluteFilePath = ReturnType<typeof AbsoluteFilePathStub>;
+type AbsoluteFilePath = string;
 
 describe('extractWidgetEdgesLayerBroker', () => {
   describe('child widget edges', () => {
     it('VALID: {widget importing another widget} => child widget path returned', () => {
       const proxy = extractWidgetEdgesLayerBrokerProxy();
-      const packageSrcPath = AbsoluteFilePathStub({ value: '/repo/packages/web/src' });
-      const widgetFilePath = AbsoluteFilePathStub({
-        value: '/repo/packages/web/src/widgets/app/app-widget.tsx',
-      });
-      const childWidgetPath = AbsoluteFilePathStub({
-        value: '/repo/packages/web/src/widgets/chat/chat-widget.tsx',
-      });
+      const packageSrcPath = '/repo/packages/web/src';
+      const widgetFilePath = '/repo/packages/web/src/widgets/app/app-widget.tsx';
+      const childWidgetPath = '/repo/packages/web/src/widgets/chat/chat-widget.tsx';
       const widgetFileSet = new Set<AbsoluteFilePath>([childWidgetPath]);
 
       proxy.setupWidgetSource({
@@ -39,10 +34,8 @@ describe('extractWidgetEdgesLayerBroker', () => {
 
     it('VALID: {widget importing binding} => binding name returned', () => {
       const proxy = extractWidgetEdgesLayerBrokerProxy();
-      const packageSrcPath = AbsoluteFilePathStub({ value: '/repo/packages/web/src' });
-      const widgetFilePath = AbsoluteFilePathStub({
-        value: '/repo/packages/web/src/widgets/app/app-widget.tsx',
-      });
+      const packageSrcPath = '/repo/packages/web/src';
+      const widgetFilePath = '/repo/packages/web/src/widgets/app/app-widget.tsx';
       const widgetFileSet = new Set<AbsoluteFilePath>();
 
       proxy.setupWidgetSource({
@@ -66,10 +59,8 @@ describe('extractWidgetEdgesLayerBroker', () => {
 
     it('EMPTY: {missing widget file} => returns empty edges', () => {
       const proxy = extractWidgetEdgesLayerBrokerProxy();
-      const packageSrcPath = AbsoluteFilePathStub({ value: '/repo/packages/web/src' });
-      const widgetFilePath = AbsoluteFilePathStub({
-        value: '/repo/packages/web/src/widgets/missing/missing-widget.tsx',
-      });
+      const packageSrcPath = '/repo/packages/web/src';
+      const widgetFilePath = '/repo/packages/web/src/widgets/missing/missing-widget.tsx';
       proxy.setupMissingWidget({ filePath: widgetFilePath });
       const widgetFileSet = new Set<AbsoluteFilePath>();
 
@@ -89,10 +80,8 @@ describe('extractWidgetEdgesLayerBroker', () => {
   describe('non-widget imports', () => {
     it('VALID: {widget importing npm package} => ignored, not in edges', () => {
       const proxy = extractWidgetEdgesLayerBrokerProxy();
-      const packageSrcPath = AbsoluteFilePathStub({ value: '/repo/packages/web/src' });
-      const widgetFilePath = AbsoluteFilePathStub({
-        value: '/repo/packages/web/src/widgets/app/app-widget.tsx',
-      });
+      const packageSrcPath = '/repo/packages/web/src';
+      const widgetFilePath = '/repo/packages/web/src/widgets/app/app-widget.tsx';
       const widgetFileSet = new Set<AbsoluteFilePath>();
 
       proxy.setupWidgetSource({

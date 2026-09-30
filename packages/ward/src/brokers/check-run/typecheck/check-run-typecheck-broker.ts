@@ -24,7 +24,7 @@
 
 import { run, RunNotFoundError } from '#gateway/node/child_process';
 import { existsSync, readJsonFileSyncIfExists } from '#gateway/node/fs';
-import { absoluteFilePathContract, exitCodeContract } from '@dungeonmaster/shared/contracts';
+import { exitCodeContract } from '@dungeonmaster/shared/contracts';
 
 import { binCommandContract } from '../../../contracts/bin-command/bin-command-contract';
 import { rawOutputContract } from '../../../contracts/raw-output/raw-output-contract';
@@ -54,7 +54,7 @@ export const checkRunTypecheckBroker = async ({
   fileList: GitRelativePath[];
   testNamePattern?: string;
 }): Promise<ProjectResult> => {
-  const cwd = absoluteFilePathContract.parse(projectFolder.path);
+  const cwd = projectFolder.path;
   const tsconfigPath = `${String(cwd)}/tsconfig.json`;
 
   if (!existsSync(tsconfigPath)) {

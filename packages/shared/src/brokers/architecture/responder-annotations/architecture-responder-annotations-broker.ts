@@ -16,7 +16,6 @@
  * WHEN-TO-USE: Inside package-section-build-layer-broker before invoking the boot-tree renderer
  */
 
-import type { AbsoluteFilePath } from '../../../contracts/absolute-file-path/absolute-file-path-contract';
 import type { PackageType } from '../../../contracts/package-type/package-type-contract';
 import {
   responderAnnotationMapContract,
@@ -33,8 +32,8 @@ export const architectureResponderAnnotationsBroker = ({
   packageRoot,
 }: {
   packageType: PackageType;
-  projectRoot: AbsoluteFilePath;
-  packageRoot: AbsoluteFilePath;
+  projectRoot: string;
+  packageRoot: string;
 }): {
   responderAnnotations: ResponderAnnotationMap;
   startupAnnotations: ResponderAnnotationMap;

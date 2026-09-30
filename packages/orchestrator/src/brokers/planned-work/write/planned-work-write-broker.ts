@@ -14,7 +14,7 @@
  */
 
 import { locationsPlannedWorkPathFindBroker } from '@dungeonmaster/shared/brokers';
-import type { AbsoluteFilePath, OperationItem } from '@dungeonmaster/shared/contracts';
+import type { OperationItem } from '@dungeonmaster/shared/contracts';
 import { ensureDir, rename, writeFile } from '#gateway/node/fs__promises';
 import { join } from '#gateway/node/path';
 
@@ -29,7 +29,7 @@ export const plannedWorkWriteBroker = async ({
   operationItemId,
   plan,
 }: {
-  questFolderPath: AbsoluteFilePath;
+  questFolderPath: string;
   operationItemId: OperationItem['id'];
   plan: WorkPlan;
 }): Promise<void> => {

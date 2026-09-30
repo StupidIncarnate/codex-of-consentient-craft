@@ -1,4 +1,3 @@
-import { AbsoluteFilePathStub } from '@dungeonmaster/shared/contracts/absolute-file-path/absolute-file-path.stub';
 import { QuestIdStub } from '@dungeonmaster/shared/contracts/quest-id/quest-id.stub';
 import { QuestStub } from '@dungeonmaster/shared/contracts/quest/quest.stub';
 import { QuestWorkItemIdStub } from '@dungeonmaster/shared/contracts/quest-work-item-id/quest-work-item-id.stub';
@@ -8,9 +7,7 @@ import { QuestWorkInstanceStub } from '../../../contracts/quest-work-instance/qu
 import { laneRecordInstanceBroker } from './lane-record-instance-broker';
 import { laneRecordInstanceBrokerProxy } from './lane-record-instance-broker.proxy';
 
-const QUEST_PATH = AbsoluteFilePathStub({
-  value: '/home/testuser/.dungeonmaster/guilds/g1/quests/lane-record-quest',
-});
+const QUEST_PATH = '/home/testuser/.dungeonmaster/guilds/g1/quests/lane-record-quest';
 
 describe('laneRecordInstanceBroker', () => {
   describe('a work item with no existing payload', () => {

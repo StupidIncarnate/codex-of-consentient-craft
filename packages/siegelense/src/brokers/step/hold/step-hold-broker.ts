@@ -18,8 +18,7 @@
 
 import { copyFile } from '#gateway/node/fs__promises';
 import { dirname, join } from '#gateway/node/path';
-import { absoluteFilePathContract } from '@dungeonmaster/shared/contracts';
-import type { AbsoluteFilePath, ContentText } from '@dungeonmaster/shared/contracts';
+import type { ContentText } from '@dungeonmaster/shared/contracts';
 
 import { setTimeout } from '#gateway/node/setTimeout';
 import type { BrowserSession } from '../../../contracts/browser-session/browser-session-contract';
@@ -43,18 +42,16 @@ export const stepHoldBroker = async ({
   lane: LaneSession;
   session: BrowserSession;
   index: StepIndex;
-  shotPath: AbsoluteFilePath | null;
+  shotPath: string | null;
   frames: number;
   everyMs: number;
 }): Promise<ContentText> => {
   const dir = shotPath === null ? lane.evidencePath : dirname(shotPath);
 
-  const framePaths: AbsoluteFilePath[] = [];
+  const framePaths: string[] = [];
   for (let i = 0; i < frames; i += 1) {
     const frameNumber = i + 1;
-    const framePath = absoluteFilePathContract.parse(
-      join(dir, `step${String(index)}_frame${String(frameNumber)}.png`),
-    );
+    const framePath = join(dir, `step${String(index)}_frame${String(frameNumber)}.png`);
     framePaths.push(framePath);
   }
 

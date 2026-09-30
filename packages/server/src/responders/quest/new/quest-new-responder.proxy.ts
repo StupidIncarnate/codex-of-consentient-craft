@@ -8,7 +8,6 @@ import { locationsQuestFolderPathFindBrokerProxy } from '@dungeonmaster/shared/b
 
 import { pastedImagePersistBrokerProxy } from '../../../brokers/pasted-image/persist/pasted-image-persist-broker.proxy';
 import { QuestNewResponder } from './quest-new-responder';
-import type { AbsoluteFilePath } from '@dungeonmaster/shared/contracts';
 import type { GuildIdStub } from '@dungeonmaster/shared/contracts/guild-id/guild-id.stub';
 import type { ProcessIdStub } from '@dungeonmaster/shared/contracts/process-id/process-id.stub';
 import type { QuestIdStub } from '@dungeonmaster/shared/contracts/quest-id/quest-id.stub';
@@ -43,7 +42,7 @@ export const QuestNewResponderProxy = (): {
   // destination id behind one call, per the proxy-encapsulation rule. Call AFTER
   // setupPastedImageHome so the images folder is staged.
   stageLocalImageCopy: (params: {
-    sourcePath: AbsoluteFilePath;
+    sourcePath: string;
     bytes: Uint8Array;
     copyId: string;
   }) => void;
@@ -116,7 +115,7 @@ export const QuestNewResponderProxy = (): {
       bytes,
       copyId,
     }: {
-      sourcePath: AbsoluteFilePath;
+      sourcePath: string;
       bytes: Uint8Array;
       copyId: string;
     }): void => {

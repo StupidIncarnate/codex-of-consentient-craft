@@ -13,10 +13,6 @@
 import { locationsClaudeSessionsDirFindBroker } from '../claude-sessions-dir-find/locations-claude-sessions-dir-find-broker';
 import { join } from '#gateway/node/path';
 import { locationsStatics } from '../../../statics/locations/locations-statics';
-import {
-  absoluteFilePathContract,
-  type AbsoluteFilePath,
-} from '../../../contracts/absolute-file-path/absolute-file-path-contract';
 import type { Agent } from '../../../contracts/agent/agent-contract';
 import type { Session } from '../../../contracts/session/session-contract';
 
@@ -25,10 +21,10 @@ export const locationsClaudeSubagentSessionFilePathFindBroker = ({
   sessionId,
   agentId,
 }: {
-  guildPath: AbsoluteFilePath;
+  guildPath: string;
   sessionId: Session['id'];
   agentId: Agent['id'];
-}): AbsoluteFilePath => {
+}): string => {
   const sessionsDir = locationsClaudeSessionsDirFindBroker({ guildPath });
 
   const joined = join(
@@ -38,5 +34,5 @@ export const locationsClaudeSubagentSessionFilePathFindBroker = ({
     `agent-${agentId}.jsonl`,
   );
 
-  return absoluteFilePathContract.parse(joined);
+  return joined;
 };

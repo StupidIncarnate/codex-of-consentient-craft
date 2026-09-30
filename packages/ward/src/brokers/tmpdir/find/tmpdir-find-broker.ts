@@ -9,7 +9,5 @@
  */
 
 import { tmpdir } from '#gateway/node/os';
-import { absoluteFilePathContract } from '@dungeonmaster/shared/contracts';
-import type { AbsoluteFilePath } from '@dungeonmaster/shared/contracts';
 
-export const tmpdirFindBroker = (): AbsoluteFilePath => absoluteFilePathContract.parse(tmpdir());
+export const tmpdirFindBroker = (): string => tmpdir();

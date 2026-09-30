@@ -20,8 +20,7 @@ import { NpmNotInstalledError, runScript } from '#gateway/bin/npm';
 import { existsSync } from '#gateway/node/fs';
 import { ensureDir, readFile, rename, rm } from '#gateway/node/fs__promises';
 import { pid } from '#gateway/node/process';
-import { absoluteFilePathContract, exitCodeContract } from '@dungeonmaster/shared/contracts';
-import type { AbsoluteFilePath } from '@dungeonmaster/shared/contracts';
+import { exitCodeContract } from '@dungeonmaster/shared/contracts';
 
 import { packageJsonContract } from '../../../contracts/package-json/package-json-contract';
 import { bundleStatics } from '../../../statics/bundle/bundle-statics';
@@ -31,8 +30,8 @@ import { collectInputsLayerBroker } from './collect-inputs-layer-broker';
 export const bundleBuildBroker = async ({
   packageRoot,
 }: {
-  packageRoot: AbsoluteFilePath;
-}): Promise<{ bundleDir: AbsoluteFilePath | null; error: string | null }> => {
+  packageRoot: string;
+}): Promise<{ bundleDir: string | null; error: string | null }> => {
   const manifestRaw = await readFile(
     `${String(packageRoot)}/package.json`,
   ).catch(() => null);
@@ -60,7 +59,7 @@ export const bundleBuildBroker = async ({
   const hash = bundleHashFilesBroker({ rootPath: repoRoot, relativePaths });
 
   const bundleParent = `${String(packageRoot)}/${bundleStatics.parentDir}`;
-  const bundleDir = absoluteFilePathContract.parse(`${bundleParent}/${String(hash)}`);
+  const bundleDir = `${bundleParent}/${String(hash)}`;
 
   if (existsSync(String(bundleDir))) {
     return { bundleDir, error: null };

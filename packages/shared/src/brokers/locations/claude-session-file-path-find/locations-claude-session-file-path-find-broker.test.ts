@@ -1,6 +1,5 @@
 import { locationsClaudeSessionFilePathFindBroker } from './locations-claude-session-file-path-find-broker';
 import { locationsClaudeSessionFilePathFindBrokerProxy } from './locations-claude-session-file-path-find-broker.proxy';
-import { AbsoluteFilePathStub } from '../../../contracts/absolute-file-path/absolute-file-path.stub';
 import { SessionIdStub } from '../../../contracts/session-id/session-id.stub';
 
 describe('locationsClaudeSessionFilePathFindBroker', () => {
@@ -11,14 +10,12 @@ describe('locationsClaudeSessionFilePathFindBroker', () => {
       proxy.setupSessionFilePath({ userHome: '/home/user' });
 
       const result = locationsClaudeSessionFilePathFindBroker({
-        guildPath: AbsoluteFilePathStub({ value: '/home/user/my-project' }),
+        guildPath: '/home/user/my-project',
         sessionId: SessionIdStub({ value: 'abc-123' }),
       });
 
       expect(result).toBe(
-        AbsoluteFilePathStub({
-          value: '/home/user/.claude/projects/-home-user-my-project/abc-123.jsonl',
-        }),
+        '/home/user/.claude/projects/-home-user-my-project/abc-123.jsonl',
       );
     });
   });

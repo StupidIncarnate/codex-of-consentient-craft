@@ -17,7 +17,7 @@
  * // FileContents (or null, for a run that crashed before its closing write)
  */
 
-import type { AbsoluteFilePath, SiegeInstance, SiegeRun } from '@dungeonmaster/shared/contracts';
+import type { SiegeInstance, SiegeRun } from '@dungeonmaster/shared/contracts';
 import { readFileIfExists } from '#gateway/node/fs__promises';
 
 import { RunMissingError } from '../../../errors/run-missing/run-missing-error';
@@ -30,8 +30,8 @@ export const runMissingCheckLayerBroker = async ({
 }: {
   instanceId: SiegeInstance['id'];
   runId: SiegeRun['id'];
-  storedReturnPath: AbsoluteFilePath;
-  transcriptPath: AbsoluteFilePath;
+  storedReturnPath: string;
+  transcriptPath: string;
 }): Promise<{ storedReturnContent: string | null }> => {
   const rawStored = await readFileIfExists(storedReturnPath);
   if (rawStored !== null) {

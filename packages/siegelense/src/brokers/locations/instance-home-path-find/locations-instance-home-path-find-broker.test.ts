@@ -1,6 +1,5 @@
 import { locationsInstanceHomePathFindBroker } from './locations-instance-home-path-find-broker';
 import { locationsInstanceHomePathFindBrokerProxy } from './locations-instance-home-path-find-broker.proxy';
-import { AbsoluteFilePathStub } from '@dungeonmaster/shared/contracts/absolute-file-path/absolute-file-path.stub';
 import { InstanceIdStub } from '../../../contracts/instance-id/instance-id.stub';
 
 describe('locationsInstanceHomePathFindBroker', () => {
@@ -16,7 +15,7 @@ describe('locationsInstanceHomePathFindBroker', () => {
 
       const result = locationsInstanceHomePathFindBroker({ instanceId });
 
-      expect(result).toBe(AbsoluteFilePathStub({ value: '/tmp/dm-siege-inst_7f3a9c21' }));
+      expect(result).toBe('/tmp/dm-siege-inst_7f3a9c21');
     });
 
     it('VALID: {different instanceId} => the home path changes with it', () => {
@@ -30,7 +29,7 @@ describe('locationsInstanceHomePathFindBroker', () => {
 
       const result = locationsInstanceHomePathFindBroker({ instanceId });
 
-      expect(result).toBe(AbsoluteFilePathStub({ value: '/tmp/dm-siege-inst_00000000' }));
+      expect(result).toBe('/tmp/dm-siege-inst_00000000');
     });
   });
 });

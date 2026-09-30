@@ -6,7 +6,7 @@
  * per-function wrapper to compose), addressed by the EXACT [dirPath, fileName] tuple.
  */
 
-import type { AbsoluteFilePath, OperationItem } from '@dungeonmaster/shared/contracts';
+import type { OperationItem } from '@dungeonmaster/shared/contracts';
 import { locationsPlannedWorkPathFindBrokerProxy } from '@dungeonmaster/shared/brokers/locations/planned-work-path-find/locations-planned-work-path-find-broker.proxy';
 import type { FsError } from '#gateway/node/fs';
 import { ensureDirProxy } from '#gateway/node/fs__promises/ensure-dir/ensure-dir.proxy';
@@ -19,40 +19,40 @@ const JSON_EXTENSION = '.json';
 const TMP_SUFFIX = '.tmp';
 const PLANNED_WORK_DIR = 'planned-work';
 
-const dirPathFor = ({ questFolderPath }: { questFolderPath: AbsoluteFilePath }): string =>
+const dirPathFor = ({ questFolderPath }: { questFolderPath: string }): string =>
   `${questFolderPath}/${PLANNED_WORK_DIR}`;
 
 const filePathFor = ({
   questFolderPath,
   operationItemId,
 }: {
-  questFolderPath: AbsoluteFilePath;
+  questFolderPath: string;
   operationItemId: OperationItem['id'];
 }): string =>
   `${dirPathFor({ questFolderPath })}/${String(operationItemId)}${JSON_EXTENSION}`;
 
 export const plannedWorkWriteBrokerProxy = (): {
   setupWriteSucceeds: (params: {
-    questFolderPath: AbsoluteFilePath;
+    questFolderPath: string;
     operationItemId: OperationItem['id'];
   }) => void;
   setupMkdirFailure: (params: {
-    questFolderPath: AbsoluteFilePath;
+    questFolderPath: string;
     operationItemId: OperationItem['id'];
     error: FsError;
   }) => void;
   setupWriteFailure: (params: {
-    questFolderPath: AbsoluteFilePath;
+    questFolderPath: string;
     operationItemId: OperationItem['id'];
     error: Error;
   }) => void;
   setupRenameFailure: (params: {
-    questFolderPath: AbsoluteFilePath;
+    questFolderPath: string;
     operationItemId: OperationItem['id'];
     error: Error;
   }) => void;
   getWrittenContent: (params: {
-    questFolderPath: AbsoluteFilePath;
+    questFolderPath: string;
     operationItemId: OperationItem['id'];
   }) => unknown;
   getAllRenames: () => readonly { from: unknown; to: unknown }[];
@@ -69,7 +69,7 @@ export const plannedWorkWriteBrokerProxy = (): {
     questFolderPath,
     operationItemId,
   }: {
-    questFolderPath: AbsoluteFilePath;
+    questFolderPath: string;
     operationItemId: OperationItem['id'];
   }): { dirPath: string; tmpPath: string; filePath: string } => {
     const dirPath = dirPathFor({ questFolderPath });

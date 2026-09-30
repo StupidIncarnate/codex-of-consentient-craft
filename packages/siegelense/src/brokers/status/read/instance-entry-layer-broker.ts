@@ -31,7 +31,7 @@
  */
 
 import { join } from '#gateway/node/path';
-import { absoluteFilePathContract, fileNameContract } from '@dungeonmaster/shared/contracts';
+import { fileNameContract } from '@dungeonmaster/shared/contracts';
 import { locationsStatics } from '@dungeonmaster/shared/statics';
 
 import { readdirIfExists, readFile, statIfExists } from '#gateway/node/fs__promises';
@@ -76,9 +76,7 @@ export const instanceEntryLayerBroker = async ({
     guildId: entry.guildId,
   });
   const heartbeatPromise = heartbeatReadBroker({ instanceId: entry.id, guildId: entry.guildId });
-  const runsDirPath = absoluteFilePathContract.parse(
-    join(evidenceDir, locationsStatics.siegelense.runsDir),
-  );
+  const runsDirPath = join(evidenceDir, locationsStatics.siegelense.runsDir);
 
   const [heartbeat, runsDirEntriesRaw, orphans, rssMB, shutdownReasonMarker] = await Promise.all([
     heartbeatPromise,
@@ -149,13 +147,13 @@ export const instanceEntryLayerBroker = async ({
 
   const [apiLogStat, webLogStat, driverLogStat, repoLocalDir] = await Promise.all([
     statIfExists(
-      absoluteFilePathContract.parse(join(evidenceDir, locationsStatics.siegelense.apiLog)),
+      join(evidenceDir, locationsStatics.siegelense.apiLog),
     ),
     statIfExists(
-      absoluteFilePathContract.parse(join(evidenceDir, locationsStatics.siegelense.webLog)),
+      join(evidenceDir, locationsStatics.siegelense.webLog),
     ),
     statIfExists(
-      absoluteFilePathContract.parse(join(evidenceDir, locationsStatics.siegelense.driverLog)),
+      join(evidenceDir, locationsStatics.siegelense.driverLog),
     ),
     locationsRepoLinkPathFindBroker({ homePath: evidenceDir }),
   ]);
@@ -201,9 +199,7 @@ export const instanceEntryLayerBroker = async ({
     });
   }
 
-  const transcriptPath = absoluteFilePathContract.parse(
-    join(runsDirPath, `${lastRunId}${evidenceFileStatics.extensions.transcript}`),
-  );
+  const transcriptPath = join(runsDirPath, `${lastRunId}${evidenceFileStatics.extensions.transcript}`);
   const transcriptContent = await readFile(transcriptPath);
   const transcriptLines = transcriptContent.split('\n').filter((line) => line.length > 0);
   const lastLine = transcriptLines[transcriptLines.length - 1];

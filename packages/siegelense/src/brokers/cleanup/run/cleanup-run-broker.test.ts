@@ -1,4 +1,3 @@
-import { AbsoluteFilePathStub } from '@dungeonmaster/shared/contracts/absolute-file-path/absolute-file-path.stub';
 
 import { EpochMsStub } from '../../../contracts/epoch-ms/epoch-ms.stub';
 import { InstanceIdStub } from '../../../contracts/instance-id/instance-id.stub';
@@ -22,21 +21,13 @@ const HOME_DIR = '/home/user';
 const HOME_PATH = `${HOME_DIR}/.dungeonmaster`;
 const ROOT_PATH = `${HOME_PATH}/siegelense`;
 
-const STALE_SOCKET_PATH = AbsoluteFilePathStub({ value: `/tmp/dm-siege-sockets/${STALE_ID}.sock` });
-const STALE_EVIDENCE_PATH = AbsoluteFilePathStub({
-  value: `/home/user/.dungeonmaster/siegelense/unowned/instances/${STALE_ID}`,
-});
-const STALE_HOME_PATH = AbsoluteFilePathStub({ value: `/tmp/dm-siege-${STALE_ID}` });
+const STALE_SOCKET_PATH = `/tmp/dm-siege-sockets/${STALE_ID}.sock`;
+const STALE_EVIDENCE_PATH = `/home/user/.dungeonmaster/siegelense/unowned/instances/${STALE_ID}`;
+const STALE_HOME_PATH = `/tmp/dm-siege-${STALE_ID}`;
 
-const ABANDONED_RESERVATION_SOCKET_PATH = AbsoluteFilePathStub({
-  value: `/tmp/dm-siege-sockets/${ABANDONED_RESERVATION_ID}.sock`,
-});
-const ABANDONED_RESERVATION_HOME_PATH = AbsoluteFilePathStub({
-  value: `/tmp/dm-siege-${ABANDONED_RESERVATION_ID}`,
-});
-const ABANDONED_RESERVATION_EVIDENCE_PATH = AbsoluteFilePathStub({
-  value: `/home/user/.dungeonmaster/siegelense/unowned/instances/${ABANDONED_RESERVATION_ID}`,
-});
+const ABANDONED_RESERVATION_SOCKET_PATH = `/tmp/dm-siege-sockets/${ABANDONED_RESERVATION_ID}.sock`;
+const ABANDONED_RESERVATION_HOME_PATH = `/tmp/dm-siege-${ABANDONED_RESERVATION_ID}`;
+const ABANDONED_RESERVATION_EVIDENCE_PATH = `/home/user/.dungeonmaster/siegelense/unowned/instances/${ABANDONED_RESERVATION_ID}`;
 
 describe('cleanupRunBroker', () => {
   describe('a mixed fleet', () => {
@@ -79,7 +70,7 @@ describe('cleanupRunBroker', () => {
         evidencePath: STALE_EVIDENCE_PATH,
       });
       proxy.setupDir({
-        dirPath: AbsoluteFilePathStub({ value: `${STALE_EVIDENCE_PATH}/runs` }),
+        dirPath: `${STALE_EVIDENCE_PATH}/runs`,
         entries: [],
       });
       proxy.setupNoLocks();
@@ -125,7 +116,7 @@ describe('cleanupRunBroker', () => {
         evidencePath: ABANDONED_RESERVATION_EVIDENCE_PATH,
       });
       proxy.setupDir({
-        dirPath: AbsoluteFilePathStub({ value: `${ABANDONED_RESERVATION_EVIDENCE_PATH}/runs` }),
+        dirPath: `${ABANDONED_RESERVATION_EVIDENCE_PATH}/runs`,
         entries: [],
       });
       proxy.setupNoLocks();
@@ -198,7 +189,7 @@ describe('cleanupRunBroker', () => {
         evidencePath: STALE_EVIDENCE_PATH,
       });
       proxy.setupDir({
-        dirPath: AbsoluteFilePathStub({ value: `${STALE_EVIDENCE_PATH}/runs` }),
+        dirPath: `${STALE_EVIDENCE_PATH}/runs`,
         entries: [],
       });
       proxy.setupNoLocks();

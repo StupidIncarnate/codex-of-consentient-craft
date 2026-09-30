@@ -1,4 +1,3 @@
-import { AbsoluteFilePathStub } from '@dungeonmaster/shared/contracts/absolute-file-path/absolute-file-path.stub';
 
 import { globDiscoverFilesBroker } from './glob-discover-files-broker';
 import { globDiscoverFilesBrokerProxy } from './glob-discover-files-broker.proxy';
@@ -14,7 +13,7 @@ describe('globDiscoverFilesBroker', () => {
 
       const result = globDiscoverFilesBroker({
         patterns: ['src/**/*.ts'],
-        cwd: AbsoluteFilePathStub({ value: '/project' }),
+        cwd: '/project',
       });
 
       expect(result).toStrictEqual({
@@ -31,7 +30,7 @@ describe('globDiscoverFilesBroker', () => {
 
       const result = globDiscoverFilesBroker({
         patterns: ['src/**/*.ts'],
-        cwd: AbsoluteFilePathStub({ value: '/project' }),
+        cwd: '/project',
       });
 
       expect(result).toStrictEqual({
@@ -51,7 +50,7 @@ describe('globDiscoverFilesBroker', () => {
 
       const result = globDiscoverFilesBroker({
         patterns: ['src/**/*.ts'],
-        cwd: AbsoluteFilePathStub({ value: '/project' }),
+        cwd: '/project',
         exclude: ['**/*.integration.test.ts'],
       });
 
@@ -70,7 +69,7 @@ describe('globDiscoverFilesBroker', () => {
 
       const result = globDiscoverFilesBroker({
         patterns: ['@types/**/*.ts', '@types/**/*.d.ts'],
-        cwd: AbsoluteFilePathStub({ value: '/project' }),
+        cwd: '/project',
       });
 
       expect(result).toStrictEqual({
@@ -85,18 +84,18 @@ describe('globDiscoverFilesBroker', () => {
       const proxy = globDiscoverFilesBrokerProxy();
       proxy.returnsForPatternInDir({
         pattern: 'src/**',
-        cwd: AbsoluteFilePathStub({ value: '/project-a' }),
+        cwd: '/project-a',
         files: ['src/a.ts'],
       });
       proxy.returnsForPatternInDir({
         pattern: 'src/**',
-        cwd: AbsoluteFilePathStub({ value: '/project-b' }),
+        cwd: '/project-b',
         files: ['src/b.ts'],
       });
 
       const result = globDiscoverFilesBroker({
         patterns: ['src/**'],
-        cwd: AbsoluteFilePathStub({ value: '/project-b' }),
+        cwd: '/project-b',
       });
 
       expect(result).toStrictEqual({
@@ -116,7 +115,7 @@ describe('globDiscoverFilesBroker', () => {
 
       const result = globDiscoverFilesBroker({
         patterns: ['src/**/*.test.ts', 'test/**/*.test.ts'],
-        cwd: AbsoluteFilePathStub({ value: '/project' }),
+        cwd: '/project',
       });
 
       expect(result).toStrictEqual({

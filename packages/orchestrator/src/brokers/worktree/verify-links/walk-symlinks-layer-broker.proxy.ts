@@ -1,4 +1,3 @@
-import type { AbsoluteFilePath } from '@dungeonmaster/shared/contracts';
 import { registerMock, requireActual } from '@dungeonmaster/testing/register-mock';
 import type { FsError } from '#gateway/node/fs';
 import { readdirEntriesSyncProxy } from '#gateway/node/fs/readdir-entries-sync/readdir-entries-sync.proxy';
@@ -7,7 +6,7 @@ import { join, resolve } from '#gateway/node/path';
 
 export const walkSymlinksLayerBrokerProxy = (): {
   setupDirectoryEntries: (params: {
-    dirPath: AbsoluteFilePath;
+    dirPath: string;
     entries: { name: string; isDir: boolean; isSymlink: boolean }[];
   }) => void;
   setupReadlinkTarget: (params: { linkPath: string; target: string }) => void;
@@ -33,7 +32,7 @@ export const walkSymlinksLayerBrokerProxy = (): {
       dirPath,
       entries,
     }: {
-      dirPath: AbsoluteFilePath;
+      dirPath: string;
       entries: { name: string; isDir: boolean; isSymlink: boolean }[];
     }): void => {
       readdirProxy.returns({

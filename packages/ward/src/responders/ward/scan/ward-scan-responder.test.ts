@@ -1,10 +1,9 @@
 import { getExitCode, setExitCode } from '#gateway/node/process';
-import { AbsoluteFilePathStub } from '@dungeonmaster/shared/contracts/absolute-file-path/absolute-file-path.stub';
 
 import { ProjectFolderStub } from '../../../contracts/project-folder/project-folder.stub';
 import { WardScanResponderProxy } from './ward-scan-responder.proxy';
 
-const rootPath = AbsoluteFilePathStub({ value: '/project' });
+const rootPath = '/project';
 const ward = ProjectFolderStub({ name: '@dungeonmaster/ward', path: '/project/packages/ward' });
 
 describe('WardScanResponder', () => {

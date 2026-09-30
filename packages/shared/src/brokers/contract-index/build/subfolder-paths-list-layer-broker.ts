@@ -8,16 +8,12 @@
  */
 import { readdirEntriesSync } from '#gateway/node/fs';
 
-import {
-  absoluteFilePathContract,
-  type AbsoluteFilePath,
-} from '../../../contracts/absolute-file-path/absolute-file-path-contract';
 
 export const subfolderPathsListLayerBroker = ({
   dirPath,
 }: {
-  dirPath: AbsoluteFilePath;
-}): AbsoluteFilePath[] =>
+  dirPath: string;
+}): string[] =>
   readdirEntriesSync(dirPath)
     .filter((entry) => entry.kind === 'directory')
-    .map((entry) => absoluteFilePathContract.parse(`${dirPath}/${entry.name}`));
+    .map((entry) => `${dirPath}/${entry.name}`);

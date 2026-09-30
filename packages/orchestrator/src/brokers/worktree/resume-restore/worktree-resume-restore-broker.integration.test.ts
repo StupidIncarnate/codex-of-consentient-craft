@@ -1,5 +1,4 @@
 import { installTestbedCreateBroker } from '@dungeonmaster/testing';
-import { AbsoluteFilePathStub } from '@dungeonmaster/shared/contracts/absolute-file-path/absolute-file-path.stub';
 import { FileNameStub } from '@dungeonmaster/shared/contracts/file-name/file-name.stub';
 import { QuestBranchNameStub } from '@dungeonmaster/shared/contracts/quest-branch-name/quest-branch-name.stub';
 import { RepoRelativePathStub } from '@dungeonmaster/shared/contracts/repo-relative-path/repo-relative-path.stub';
@@ -17,7 +16,7 @@ describe('worktreeResumeRestoreBroker (integration) — real drift restore + unc
 
   it('VALID: {worktree was left checked out on a different branch} => resume checks it back out onto the quest branch', async () => {
     const testbed = installTestbedCreateBroker({ baseName: 'wrr-drift' });
-    const repoPath = AbsoluteFilePathStub({ value: testbed.guildPath });
+    const repoPath = testbed.guildPath;
 
     await git.initRepoWithPackages({
       repoPath,
@@ -27,9 +26,7 @@ describe('worktreeResumeRestoreBroker (integration) — real drift restore + unc
     const strayBranch = FileNameStub({ value: 'stray-branch' });
     await git.createBranchAt({ repoPath, branchName: strayBranch });
 
-    const worktreePath = AbsoluteFilePathStub({
-      value: `${testbed.guildPath}/worktrees/drift-22223333`,
-    });
+    const worktreePath = `${testbed.guildPath}/worktrees/drift-22223333`;
     const branchName = QuestBranchNameStub({ value: 'quest/drift-22223333' });
     await worktreeAdd({
       cwd: repoPath,
@@ -65,7 +62,7 @@ describe('worktreeResumeRestoreBroker (integration) — real drift restore + unc
     const testbed = installTestbedCreateBroker({
       baseName: 'wrr-preserve',
     });
-    const repoPath = AbsoluteFilePathStub({ value: testbed.guildPath });
+    const repoPath = testbed.guildPath;
 
     await git.initRepoWithPackages({
       repoPath,
@@ -73,9 +70,7 @@ describe('worktreeResumeRestoreBroker (integration) — real drift restore + unc
       packageNames: [FileNameStub({ value: 'shared' }), FileNameStub({ value: 'web' })],
     });
 
-    const worktreePath = AbsoluteFilePathStub({
-      value: `${testbed.guildPath}/worktrees/preserve-55556666`,
-    });
+    const worktreePath = `${testbed.guildPath}/worktrees/preserve-55556666`;
     const branchName = QuestBranchNameStub({ value: 'quest/preserve-55556666' });
     // `git worktree add -b <branch>` checks the new branch out in the worktree immediately, so
     // this worktree starts ALREADY on its own quest branch — the interrupted-edits case, where
@@ -97,14 +92,14 @@ describe('worktreeResumeRestoreBroker (integration) — real drift restore + unc
 
     const statusBefore = await git.gitStatusPorcelain({ repoPath: worktreePath });
     const contentBefore = git.readTextFile({
-      absolutePath: AbsoluteFilePathStub({ value: `${worktreePath}/README.md` }),
+      absolutePath: `${worktreePath}/README.md`,
     });
 
     const result = await worktreeResumeRestoreBroker({ worktreePath, branchName });
 
     const statusAfter = await git.gitStatusPorcelain({ repoPath: worktreePath });
     const contentAfter = git.readTextFile({
-      absolutePath: AbsoluteFilePathStub({ value: `${worktreePath}/README.md` }),
+      absolutePath: `${worktreePath}/README.md`,
     });
 
     testbed.cleanup();

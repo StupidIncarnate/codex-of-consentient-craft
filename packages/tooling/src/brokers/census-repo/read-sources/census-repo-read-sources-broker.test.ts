@@ -1,9 +1,8 @@
 import { censusRepoReadSourcesBroker } from './census-repo-read-sources-broker';
 import { censusRepoReadSourcesBrokerProxy } from './census-repo-read-sources-broker.proxy';
-import { AbsoluteFilePathStub } from '../../../contracts/absolute-file-path/absolute-file-path.stub';
 
 describe('censusRepoReadSourcesBroker', () => {
-  const repoRoot = AbsoluteFilePathStub({ value: '/repo' });
+  const repoRoot = '/repo';
 
   it('VALID: {two matched files, out of order} => entries sorted by path with their text', async () => {
     const proxy = censusRepoReadSourcesBrokerProxy();

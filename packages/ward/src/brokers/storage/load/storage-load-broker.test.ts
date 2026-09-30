@@ -1,4 +1,3 @@
-import { AbsoluteFilePathStub } from '@dungeonmaster/shared/contracts/absolute-file-path/absolute-file-path.stub';
 
 import { WardRunResultStub } from '../../../contracts/ward-result/ward-result.stub';
 import { RunIdStub } from '../../../contracts/run-id/run-id.stub';
@@ -10,7 +9,7 @@ describe('storageLoadBroker', () => {
   describe('load by runId', () => {
     it('VALID: {runId provided, file exists} => returns parsed WardResult', async () => {
       const wardResult = WardRunResultStub();
-      const rootPath = AbsoluteFilePathStub({ value: '/home/user/project' });
+      const rootPath = '/home/user/project';
       const runId = RunIdStub();
       const proxy = storageLoadBrokerProxy();
       proxy.setupRunById({ rootPath, runId, content: JSON.stringify(wardResult) });
@@ -21,7 +20,7 @@ describe('storageLoadBroker', () => {
     });
 
     it('ERROR: {runId provided, file not found} => returns null', async () => {
-      const rootPath = AbsoluteFilePathStub({ value: '/home/user/project' });
+      const rootPath = '/home/user/project';
       const runId = RunIdStub();
       const proxy = storageLoadBrokerProxy();
       proxy.setupReadFail({ rootPath, runId });
@@ -35,7 +34,7 @@ describe('storageLoadBroker', () => {
   describe('load most recent', () => {
     it('VALID: {no runId, files exist} => returns most recent WardResult', async () => {
       const wardResult = WardRunResultStub({ runId: '1739625700000-b4e2' });
-      const rootPath = AbsoluteFilePathStub({ value: '/home/user/project' });
+      const rootPath = '/home/user/project';
       const proxy = storageLoadBrokerProxy();
       proxy.setupLatestRun({
         rootPath,
@@ -51,7 +50,7 @@ describe('storageLoadBroker', () => {
 
     it('VALID: {no runId, run files with non-RunId names} => returns the latest RunId-named run', async () => {
       const wardResult = WardRunResultStub({ runId: '1739625700000-b4e2' });
-      const rootPath = AbsoluteFilePathStub({ value: '/home/user/project' });
+      const rootPath = '/home/user/project';
       const proxy = storageLoadBrokerProxy();
       proxy.setupLatestRunByPath({
         rootPath,
@@ -74,7 +73,7 @@ describe('storageLoadBroker', () => {
     });
 
     it('EMPTY: {no runId, only non-RunId-named run files} => returns null', async () => {
-      const rootPath = AbsoluteFilePathStub({ value: '/home/user/project' });
+      const rootPath = '/home/user/project';
       const proxy = storageLoadBrokerProxy();
       proxy.setupLatestRunByPath({
         rootPath,
@@ -91,7 +90,7 @@ describe('storageLoadBroker', () => {
     });
 
     it('EMPTY: {no runId, no files} => returns null', async () => {
-      const rootPath = AbsoluteFilePathStub({ value: '/home/user/project' });
+      const rootPath = '/home/user/project';
       const proxy = storageLoadBrokerProxy();
       proxy.setupEmptyDir({ rootPath });
 
@@ -101,7 +100,7 @@ describe('storageLoadBroker', () => {
     });
 
     it('ERROR: {no runId, readdir fails} => returns null', async () => {
-      const rootPath = AbsoluteFilePathStub({ value: '/home/user/project' });
+      const rootPath = '/home/user/project';
       const proxy = storageLoadBrokerProxy();
       proxy.setupReaddirFail({ rootPath });
 

@@ -1,5 +1,4 @@
 import { installTestbedCreateBroker } from '@dungeonmaster/testing';
-import { AbsoluteFilePathStub } from '@dungeonmaster/shared/contracts/absolute-file-path/absolute-file-path.stub';
 
 import { e2eArtifactsHarness } from '../../../../test/harnesses/e2e-artifacts/e2e-artifacts.harness';
 import { e2eArtifactsPruneBroker } from './e2e-artifacts-prune-broker';
@@ -24,7 +23,7 @@ describe('e2eArtifactsPruneBroker (integration)', () => {
     const testbed = installTestbedCreateBroker({
       baseName: 'ward-e2e-artifacts',
     });
-    const packageRoot = AbsoluteFilePathStub({ value: testbed.guildPath });
+    const packageRoot = testbed.guildPath;
 
     // Every age sits a clean 2x either side of the window it is grading, so neither a rounding
     // error nor a slow testbed can decide the result: the cache window is one day, the evidence
@@ -77,7 +76,7 @@ describe('e2eArtifactsPruneBroker (integration)', () => {
     const testbed = installTestbedCreateBroker({
       baseName: 'ward-e2e-artifacts-bare',
     });
-    const packageRoot = AbsoluteFilePathStub({ value: testbed.guildPath });
+    const packageRoot = testbed.guildPath;
 
     const before = harness.listRoot({ packageRoot });
 

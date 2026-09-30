@@ -37,8 +37,6 @@ import { join } from '#gateway/node/path';
 
 import { dynamicImport } from '#gateway/node/module';
 import type { StubArgument } from '@dungeonmaster/shared/@types';
-import { absoluteFilePathContract } from '@dungeonmaster/shared/contracts';
-import type { AbsoluteFilePath } from '@dungeonmaster/shared/contracts';
 import { dungeonmasterHomeStatics, recipesConventionStatics } from '@dungeonmaster/shared/statics';
 import { installTestbedCreateBroker } from '@dungeonmaster/testing';
 
@@ -54,16 +52,16 @@ const EMPTY_GUILD_CONFIG = { guilds: [] };
 export const seedHomeHarness = (): {
   beforeEach: () => void;
   afterEach: () => void;
-  homePath: () => AbsoluteFilePath;
+  homePath: () => string;
   runRecipe: (params: { recipeName: RecipeName }) => Promise<SeedResult>;
 } => {
   let testbed: ReturnType<typeof installTestbedCreateBroker> | undefined;
 
-  const homePath = (): AbsoluteFilePath => {
+  const homePath = (): string => {
     if (testbed === undefined) {
       throw new Error('seedHomeHarness: called outside beforeEach/afterEach');
     }
-    return absoluteFilePathContract.parse(testbed.guildPath);
+    return testbed.guildPath;
   };
 
   return {

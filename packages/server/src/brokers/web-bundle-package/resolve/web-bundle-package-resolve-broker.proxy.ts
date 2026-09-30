@@ -1,4 +1,3 @@
-import { absoluteFilePathContract } from '@dungeonmaster/shared/contracts';
 import { ContentTextStub } from '@dungeonmaster/shared/contracts/content-text/content-text.stub';
 import { PackageJsonStub } from '@dungeonmaster/shared/contracts/package-json/package-json.stub';
 import { cwdResolveBrokerProxy } from '@dungeonmaster/shared/brokers/cwd/resolve/cwd-resolve-broker.proxy';
@@ -9,7 +8,7 @@ import { readFileSyncProxy } from '#gateway/node/fs/read-file-sync/read-file-syn
 // the identical starting point the broker's own call resolves from — staging the walk to land on
 // that same directory keeps the two in lockstep without touching the real filesystem.
 const OWN_PACKAGE_ROOT = __dirname;
-const OWN_PACKAGE_JSON_PATH = absoluteFilePathContract.parse(`${OWN_PACKAGE_ROOT}/package.json`);
+const OWN_PACKAGE_JSON_PATH = `${OWN_PACKAGE_ROOT}/package.json`;
 
 export const webBundlePackageResolveBrokerProxy = (): {
   setupOwnDependencies: (params: { dependencyNames: readonly string[] }) => void;
@@ -38,7 +37,7 @@ export const webBundlePackageResolveBrokerProxy = (): {
     // test-controlled.
     setupCandidateReact: ({ candidateName }: { candidateName: string }): void => {
       fsProxy.returns({
-        path: absoluteFilePathContract.parse(require.resolve(`${candidateName}/package.json`)),
+        path: require.resolve(`${candidateName}/package.json`),
         contents: ContentTextStub({
           value: JSON.stringify(PackageJsonStub({ dependencies: { react: '^19.0.0' } })),
         }),
@@ -47,7 +46,7 @@ export const webBundlePackageResolveBrokerProxy = (): {
 
     setupCandidateNoReact: ({ candidateName }: { candidateName: string }): void => {
       fsProxy.returns({
-        path: absoluteFilePathContract.parse(require.resolve(`${candidateName}/package.json`)),
+        path: require.resolve(`${candidateName}/package.json`),
         contents: ContentTextStub({ value: JSON.stringify(PackageJsonStub({ dependencies: {} })) }),
       });
     },

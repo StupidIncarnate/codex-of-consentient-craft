@@ -1,6 +1,5 @@
 import { locationsQuestImagesPathFindBroker } from './locations-quest-images-path-find-broker';
 import { locationsQuestImagesPathFindBrokerProxy } from './locations-quest-images-path-find-broker.proxy';
-import { AbsoluteFilePathStub } from '../../../contracts/absolute-file-path/absolute-file-path.stub';
 import { locationsStatics } from '../../../statics/locations/locations-statics';
 
 describe('locationsQuestImagesPathFindBroker', () => {
@@ -14,11 +13,11 @@ describe('locationsQuestImagesPathFindBroker', () => {
       locationsQuestImagesPathFindBrokerProxy();
 
       const result = locationsQuestImagesPathFindBroker({
-        questFolderPath: AbsoluteFilePathStub({ value: '/quest' }),
+        questFolderPath: '/quest',
       });
 
       expect(result).toBe(
-        AbsoluteFilePathStub({ value: `/quest/${locationsStatics.quest.imagesDir}` }),
+        `/quest/${locationsStatics.quest.imagesDir}`,
       );
     });
   });

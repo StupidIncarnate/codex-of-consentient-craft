@@ -1,6 +1,5 @@
 import { AdapterCensusRunResponder } from './adapter-census-run-responder';
 import { AdapterCensusRunResponderProxy } from './adapter-census-run-responder.proxy';
-import { AbsoluteFilePathStub } from '../../../contracts/absolute-file-path/absolute-file-path.stub';
 
 describe('AdapterCensusRunResponder', () => {
   describe('table output', () => {
@@ -104,7 +103,7 @@ describe('AdapterCensusRunResponder', () => {
   describe('--cwd', () => {
     it('VALID: {--cwd=/other/repo} => scans that directory', async () => {
       const proxy = AdapterCensusRunResponderProxy();
-      const repoRoot = AbsoluteFilePathStub({ value: '/other/repo' });
+      const repoRoot = '/other/repo';
       proxy.setupSharedStemRepo({ repoRoot });
 
       await AdapterCensusRunResponder({ args: ['--cwd=/other/repo', '--package=lib'] });

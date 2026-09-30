@@ -7,7 +7,6 @@
  */
 
 import { setExitCode, stderr, stdout } from '#gateway/node/process';
-import type { AbsoluteFilePath } from '@dungeonmaster/shared/contracts';
 import { wardExitCodeStatics } from '@dungeonmaster/shared/statics';
 
 import type { WardConfig } from '../../../contracts/ward-config/ward-config-contract';
@@ -41,7 +40,7 @@ export const commandRunBroker = async ({
   rootPath,
 }: {
   config: WardConfig;
-  rootPath: AbsoluteFilePath;
+  rootPath: string;
 }): Promise<void> => {
   const gitScopedConfig = await gitScopeLayerBroker({ config, rootPath });
 

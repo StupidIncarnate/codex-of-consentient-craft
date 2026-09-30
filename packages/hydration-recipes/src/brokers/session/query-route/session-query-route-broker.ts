@@ -11,7 +11,7 @@
  */
 import { claudePathSlugEncoderTransformer } from '@dungeonmaster/shared/transformers';
 import { readFileSync, readdirEntriesSync } from '#gateway/node/fs';
-import { absoluteFilePathContract, contentTextContract, lineCountContract, sessionContract } from '@dungeonmaster/shared/contracts';
+import { contentTextContract, lineCountContract, sessionContract } from '@dungeonmaster/shared/contracts';
 
 import { isJsonlFileGuard } from '../../../guards/is-jsonl-file/is-jsonl-file-guard';
 import { matchesWhereClauseGuard } from '../../../guards/matches-where-clause/matches-where-clause-guard';
@@ -28,7 +28,7 @@ export const sessionQueryRouteBroker = ({
   where: Record<string, unknown>;
 }): SessionRecord[] => {
   const { cwd: cwdValue, ...rest } = where;
-  const cwd = absoluteFilePathContract.parse(cwdValue);
+  const cwd = cwdValue;
   const sessionsDir = claudePathSlugEncoderTransformer({
     homeDir: target.claudeHome,
     projectPath: cwd,
@@ -43,7 +43,7 @@ export const sessionQueryRouteBroker = ({
     const sessionId = sessionContract.shape.id.parse(
       stripJsonlExtensionTransformer({ filename: entry.name }),
     );
-    const filePath = absoluteFilePathContract.parse(`${sessionsDir}/${entry.name}`);
+    const filePath = `${sessionsDir}/${entry.name}`;
     const contents = contentTextContract.parse(readFileSync(filePath));
     const lineCount = lineCountContract.parse(
       contents.split('\n').filter((line) => line.length > 0).length,

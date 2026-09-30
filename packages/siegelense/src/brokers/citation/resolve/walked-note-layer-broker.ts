@@ -17,7 +17,7 @@
  * // Returns one CitationReference per walked note naming this instance, or [] on a closed quest
  */
 
-import type { AbsoluteFilePath, Quest, SiegeInstance } from '@dungeonmaster/shared/contracts';
+import type { Quest, SiegeInstance } from '@dungeonmaster/shared/contracts';
 import { contentTextContract, siegeInstanceContract, siegeRunContract } from '@dungeonmaster/shared/contracts';
 import { questStatusMetadataStatics } from '@dungeonmaster/shared/statics';
 
@@ -35,7 +35,7 @@ export const walkedNoteLayerBroker = ({
 }: {
   instanceId: SiegeInstance['id'];
   quest: Quest;
-  questFilePath: AbsoluteFilePath;
+  questFilePath: string;
 }): readonly CitationReference[] => {
   if (questStatusMetadataStatics.statuses[quest.status].isTerminal) {
     return [];

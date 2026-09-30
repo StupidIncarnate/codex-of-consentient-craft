@@ -12,10 +12,6 @@
 import { configRootFindBroker } from '../../config-root/find/config-root-find-broker';
 import { join } from '#gateway/node/path';
 import { locationsStatics } from '../../../statics/locations/locations-statics';
-import {
-  absoluteFilePathContract,
-  type AbsoluteFilePath,
-} from '../../../contracts/absolute-file-path/absolute-file-path-contract';
 
 export type ClaudeSettingsKind = 'shared' | 'local';
 
@@ -25,7 +21,7 @@ export const locationsClaudeSettingsPathFindBroker = async ({
 }: {
   startPath: string;
   kind: ClaudeSettingsKind;
-}): Promise<AbsoluteFilePath> => {
+}): Promise<string> => {
   const configRoot = await configRootFindBroker({ startPath });
 
   const settingsFile =
@@ -35,5 +31,5 @@ export const locationsClaudeSettingsPathFindBroker = async ({
 
   const joined = join(configRoot, locationsStatics.repoRoot.claude.dir, settingsFile);
 
-  return absoluteFilePathContract.parse(joined);
+  return joined;
 };

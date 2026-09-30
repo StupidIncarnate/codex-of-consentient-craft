@@ -1,4 +1,3 @@
-import { AbsoluteFilePathStub } from '@dungeonmaster/shared/contracts/absolute-file-path/absolute-file-path.stub';
 import { GuildIdStub } from '@dungeonmaster/shared/contracts/guild-id/guild-id.stub';
 import { ProcessIdStub } from '@dungeonmaster/shared/contracts/process-id/process-id.stub';
 import { QuestIdStub } from '@dungeonmaster/shared/contracts/quest-id/quest-id.stub';
@@ -26,7 +25,7 @@ describe('QuestClarifyResponder', () => {
       proxy.setupFindQuestPath({
         questId,
         guildId,
-        questPath: AbsoluteFilePathStub({ value: '/q/path' }),
+        questPath: '/q/path',
       });
       proxy.setupClarify({ questId, chatProcessId });
 

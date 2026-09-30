@@ -1,5 +1,4 @@
 import { setTimeout } from '#gateway/node/setTimeout';
-import { AbsoluteFilePathStub } from '@dungeonmaster/shared/contracts/absolute-file-path/absolute-file-path.stub';
 import { GuildIdStub } from '@dungeonmaster/shared/contracts/guild-id/guild-id.stub';
 import { ProcessIdStub } from '@dungeonmaster/shared/contracts/process-id/process-id.stub';
 import { QuestCommentStub } from '@dungeonmaster/shared/contracts/quest-comment/quest-comment.stub';
@@ -177,9 +176,7 @@ describe('ServerInitResponder', () => {
     it('VALID: {ward-detail-request for an existing ward result} => sends ward-detail-response carrying the parsed detail JSON', async () => {
       const proxy = ServerInitResponderProxy();
       const questId = QuestIdStub({ value: 'quest-ward-detail-1' });
-      const questPath = AbsoluteFilePathStub({
-        value: '/guilds/g1/quests/quest-ward-detail-1',
-      });
+      const questPath = '/guilds/g1/quests/quest-ward-detail-1';
       const guildId = GuildIdStub();
       const wardResultId = 'ward-result-abc';
       const wardResultsPath = '/guilds/g1/quests/quest-ward-detail-1/ward-results';
@@ -321,7 +318,7 @@ describe('ServerInitResponder', () => {
       proxy.setupLoadQuestSuccess({ quest });
       proxy.setupFindQuestPathSuccess({
         questId,
-        questPath: AbsoluteFilePathStub({ value: '/q/path' }),
+        questPath: '/q/path',
         guildId,
       });
       proxy.callResponder();
@@ -377,7 +374,7 @@ describe('ServerInitResponder', () => {
       proxy.setupLoadQuestSuccess({ quest: QuestStub({ id: questId, workItems: [] }) });
       proxy.setupFindQuestPathSuccess({
         questId,
-        questPath: AbsoluteFilePathStub({ value: '/quests/quest-retained-completion' }),
+        questPath: '/quests/quest-retained-completion',
         guildId: GuildIdStub(),
       });
       proxy.callResponder();
@@ -427,7 +424,7 @@ describe('ServerInitResponder', () => {
       proxy.setupLoadQuestSuccess({ quest: QuestStub({ id: questIdY, workItems: [] }) });
       proxy.setupFindQuestPathSuccess({
         questId: questIdY,
-        questPath: AbsoluteFilePathStub({ value: '/quests/quest-retained-Y' }),
+        questPath: '/quests/quest-retained-Y',
         guildId: GuildIdStub(),
       });
       proxy.callResponder();
@@ -474,7 +471,7 @@ describe('ServerInitResponder', () => {
       proxy.setupLoadQuestSuccess({ quest });
       proxy.setupFindQuestPathSuccess({
         questId,
-        questPath: AbsoluteFilePathStub({ value: '/q/path' }),
+        questPath: '/q/path',
         guildId,
       });
       proxy.callResponder();
@@ -555,7 +552,7 @@ describe('ServerInitResponder', () => {
       proxy.setupLoadQuestSuccess({ quest });
       proxy.setupFindQuestPathSuccess({
         questId,
-        questPath: AbsoluteFilePathStub({ value: '/q/path' }),
+        questPath: '/q/path',
         guildId: GuildIdStub(),
       });
       proxy.callResponder();
@@ -614,7 +611,7 @@ describe('ServerInitResponder', () => {
       proxy.setupLoadQuestSuccess({ quest: initialQuest });
       proxy.setupFindQuestPathSuccess({
         questId,
-        questPath: AbsoluteFilePathStub({ value: '/q/path' }),
+        questPath: '/q/path',
         guildId: GuildIdStub(),
       });
       proxy.callResponder();
@@ -699,7 +696,7 @@ describe('ServerInitResponder', () => {
       proxy.setupLoadQuestSuccess({ quest: initialQuest });
       proxy.setupFindQuestPathSuccess({
         questId,
-        questPath: AbsoluteFilePathStub({ value: '/q/path' }),
+        questPath: '/q/path',
         guildId: GuildIdStub(),
       });
       proxy.callResponder();
@@ -1329,7 +1326,7 @@ describe('ServerInitResponder', () => {
       proxy.setupLoadQuestSuccess({ quest });
       proxy.setupFindQuestPathSuccess({
         questId,
-        questPath: AbsoluteFilePathStub({ value: '/q/path' }),
+        questPath: '/q/path',
         guildId,
       });
       proxy.callResponder();

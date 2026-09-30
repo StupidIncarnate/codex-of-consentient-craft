@@ -1,6 +1,5 @@
 import { locationsClaudeProjectsRootFindBroker } from './locations-claude-projects-root-find-broker';
 import { locationsClaudeProjectsRootFindBrokerProxy } from './locations-claude-projects-root-find-broker.proxy';
-import { AbsoluteFilePathStub } from '../../../contracts/absolute-file-path/absolute-file-path.stub';
 
 describe('locationsClaudeProjectsRootFindBroker', () => {
   it('VALID: {homeDir: "/home/user"} => returns /home/user/.claude/projects', () => {
@@ -12,6 +11,6 @@ describe('locationsClaudeProjectsRootFindBroker', () => {
 
     const result = locationsClaudeProjectsRootFindBroker();
 
-    expect(result).toBe(AbsoluteFilePathStub({ value: '/home/user/.claude/projects' }));
+    expect(result).toBe('/home/user/.claude/projects');
   });
 });

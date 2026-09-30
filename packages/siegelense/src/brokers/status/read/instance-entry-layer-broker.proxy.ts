@@ -28,7 +28,6 @@
  * proxy.setupProcListing({ pids: [] });
  */
 
-import { AbsoluteFilePathStub } from '@dungeonmaster/shared/contracts/absolute-file-path/absolute-file-path.stub';
 import { locationsStatics } from '@dungeonmaster/shared/statics';
 
 import { readFileProxy } from '#gateway/node/fs__promises/read-file/read-file.proxy';
@@ -157,7 +156,7 @@ export const instanceEntryLayerBrokerProxy = (): {
 
     setupShutdownReasonMissing: ({ evidencePath }: { evidencePath: string }): void => {
       shutdownReasonProxy.setupMarkerMissing({
-        evidencePath: AbsoluteFilePathStub({ value: String(evidencePath) }),
+        evidencePath: String(evidencePath),
       });
     },
 
@@ -169,7 +168,7 @@ export const instanceEntryLayerBrokerProxy = (): {
       marker: ShutdownReason;
     }): void => {
       shutdownReasonProxy.setupMarkerFound({
-        evidencePath: AbsoluteFilePathStub({ value: String(evidencePath) }),
+        evidencePath: String(evidencePath),
         marker,
       });
     },

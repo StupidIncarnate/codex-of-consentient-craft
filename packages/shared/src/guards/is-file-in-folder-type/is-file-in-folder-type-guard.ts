@@ -12,15 +12,14 @@
  * WHEN-TO-USE: Boot-tree broker filtering resolved import paths by folder type (flows, responders, adapters)
  */
 
-import type { AbsoluteFilePath } from '../../contracts/absolute-file-path/absolute-file-path-contract';
 
 export const isFileInFolderTypeGuard = ({
   filePath,
   packageSrcPath,
   folderType,
 }: {
-  filePath?: AbsoluteFilePath;
-  packageSrcPath?: AbsoluteFilePath;
+  filePath?: string;
+  packageSrcPath?: string;
   folderType?: string;
 }): boolean => {
   if (filePath === undefined || packageSrcPath === undefined || folderType === undefined) {

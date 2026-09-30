@@ -1,8 +1,7 @@
 import { hookStartupSrcPathResolveTransformer } from './hook-startup-src-path-resolve-transformer';
-import { AbsoluteFilePathStub } from '../../contracts/absolute-file-path/absolute-file-path.stub';
 import { ContentTextStub } from '../../contracts/content-text/content-text.stub';
 
-const PACKAGE_ROOT = AbsoluteFilePathStub({ value: '/repo/packages/hooks' });
+const PACKAGE_ROOT = '/repo/packages/hooks';
 
 describe('hookStartupSrcPathResolveTransformer', () => {
   describe('standard dist bin path', () => {

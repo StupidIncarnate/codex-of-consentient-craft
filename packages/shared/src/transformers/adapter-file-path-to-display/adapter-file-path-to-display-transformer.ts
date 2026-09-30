@@ -19,7 +19,6 @@
  * tmp/server-map.md expects (e.g. `adapters/orchestrator/get-quest` not the kebab basename)
  */
 
-import type { AbsoluteFilePath } from '../../contracts/absolute-file-path/absolute-file-path-contract';
 import {
   contentTextContract,
   type ContentText,
@@ -33,8 +32,8 @@ export const adapterFilePathToDisplayTransformer = ({
   filePath,
   renderingFilePath,
 }: {
-  filePath: AbsoluteFilePath;
-  renderingFilePath: AbsoluteFilePath;
+  filePath: string;
+  renderingFilePath: string;
 }): ContentText => {
   const referencedMatch = PACKAGE_PATH_PATTERN.exec(String(filePath));
   if (referencedMatch === null) {

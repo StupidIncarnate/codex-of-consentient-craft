@@ -15,10 +15,6 @@
  */
 
 import {
-  absoluteFilePathContract,
-  type AbsoluteFilePath,
-} from '../../../contracts/absolute-file-path/absolute-file-path-contract';
-import {
   contentTextContract,
   type ContentText,
 } from '../../../contracts/content-text/content-text-contract';
@@ -40,19 +36,19 @@ export const responderLinesRenderLayerBroker = ({
   packageSrcPath,
   renderingFilePath,
   depth = 0,
-  visited = new Set<AbsoluteFilePath>(),
+  visited = new Set<string>(),
   widgetContext,
-  consumedWidgetResponders = new Set<AbsoluteFilePath>(),
+  consumedWidgetResponders = new Set<string>(),
   eventBusContext,
   responderAnnotations,
 }: {
-  flowFile: AbsoluteFilePath;
-  packageSrcPath: AbsoluteFilePath;
-  renderingFilePath: AbsoluteFilePath;
+  flowFile: string;
+  packageSrcPath: string;
+  renderingFilePath: string;
   depth?: number;
-  visited?: Set<AbsoluteFilePath>;
+  visited?: Set<string>;
   widgetContext?: WidgetContext;
-  consumedWidgetResponders?: Set<AbsoluteFilePath>;
+  consumedWidgetResponders?: Set<string>;
   eventBusContext?: EventBusContext;
   responderAnnotations?: ResponderAnnotationMap;
 }): ContentText[] => {
@@ -66,13 +62,13 @@ export const responderLinesRenderLayerBroker = ({
   });
   const routes = routeMetadataExtractLayerBroker({ flowFile });
 
-  const symbolToResponderFile = new Map<ContentText, AbsoluteFilePath>();
+  const symbolToResponderFile = new Map<ContentText, string>();
   for (const responderFile of responders) {
     const symbolName = filePathToSymbolNameTransformer({ filePath: responderFile });
     symbolToResponderFile.set(symbolName, responderFile);
   }
 
-  const consumedResponders = new Set<AbsoluteFilePath>();
+  const consumedResponders = new Set<string>();
 
   for (const route of routes) {
     const kebabSymbol = pascalCaseToKebabCaseTransformer({ pascal: route.responderSymbol });
@@ -190,7 +186,7 @@ export const responderLinesRenderLayerBroker = ({
   });
 
   for (const childFlow of childFlows) {
-    const childAbsPath = absoluteFilePathContract.parse(String(childFlow));
+    const childAbsPath = String(childFlow);
     if (visited.has(childAbsPath)) continue;
     visited.add(childAbsPath);
 

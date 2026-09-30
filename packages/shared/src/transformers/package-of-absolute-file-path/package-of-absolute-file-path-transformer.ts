@@ -20,14 +20,13 @@ import {
   contentTextContract,
   type ContentText,
 } from '../../contracts/content-text/content-text-contract';
-import type { AbsoluteFilePath } from '../../contracts/absolute-file-path/absolute-file-path-contract';
 
 const PACKAGES_DIR_PATTERN = /\/packages\/([^/]+)\//u;
 
 export const packageOfAbsoluteFilePathTransformer = ({
   filePath,
 }: {
-  filePath: AbsoluteFilePath;
+  filePath: string;
 }): ContentText | null => {
   const match = PACKAGES_DIR_PATTERN.exec(String(filePath));
   if (match === null) return null;

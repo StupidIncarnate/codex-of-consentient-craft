@@ -17,7 +17,6 @@
  * proxy exists to exercise the ASSEMBLY.
  */
 
-import { AbsoluteFilePathStub } from '@dungeonmaster/shared/contracts/absolute-file-path/absolute-file-path.stub';
 import { FileNameStub } from '@dungeonmaster/shared/contracts/file-name/file-name.stub';
 import { GuildIdStub } from '@dungeonmaster/shared/contracts/guild-id/guild-id.stub';
 import type { OperationItem } from '@dungeonmaster/shared/contracts';
@@ -102,7 +101,7 @@ export const questGetQuestWorkBrokerProxy = (): {
       // brand plannedWorkReadBrokerProxy requires — same string value, so the plan-file read is
       // staged against the SAME folder plannedWorkReadBroker is really called with.
       plannedWorkProxy.setupPlanMissing({
-        questFolderPath: AbsoluteFilePathStub({ value: String(questFolderPath) }),
+        questFolderPath: String(questFolderPath),
         operationItemId,
       });
       gitRowsProxy.setupWorktreeMissing({ quest });
@@ -113,7 +112,7 @@ export const questGetQuestWorkBrokerProxy = (): {
     setupQuestWithPlan: ({ quest, operationItemId, plan }): { questFolderPath: FilePathValue } => {
       const { questFolderPath } = stageQuestRead({ quest });
       plannedWorkProxy.setupPlanFound({
-        questFolderPath: AbsoluteFilePathStub({ value: String(questFolderPath) }),
+        questFolderPath: String(questFolderPath),
         operationItemId,
         plan,
       });

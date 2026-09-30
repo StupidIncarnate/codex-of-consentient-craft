@@ -1,14 +1,9 @@
 import { hookBinsToAnnotationsLayerBroker } from './hook-bins-to-annotations-layer-broker';
 import { hookBinsToAnnotationsLayerBrokerProxy } from './hook-bins-to-annotations-layer-broker.proxy';
-import { AbsoluteFilePathStub } from '../../../contracts/absolute-file-path/absolute-file-path.stub';
 
-const PACKAGE_ROOT = AbsoluteFilePathStub({ value: '/repo/packages/hooks' });
-const PRE_EDIT_STARTUP = AbsoluteFilePathStub({
-  value: '/repo/packages/hooks/src/startup/start-pre-edit-hook.ts',
-});
-const PRE_BASH_STARTUP = AbsoluteFilePathStub({
-  value: '/repo/packages/hooks/src/startup/start-pre-bash-hook.ts',
-});
+const PACKAGE_ROOT = '/repo/packages/hooks';
+const PRE_EDIT_STARTUP = '/repo/packages/hooks/src/startup/start-pre-edit-hook.ts';
+const PRE_BASH_STARTUP = '/repo/packages/hooks/src/startup/start-pre-bash-hook.ts';
 
 describe('hookBinsToAnnotationsLayerBroker', () => {
   describe('package without package.json', () => {

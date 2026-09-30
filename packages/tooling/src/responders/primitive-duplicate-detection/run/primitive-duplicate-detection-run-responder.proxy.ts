@@ -1,21 +1,19 @@
 import { duplicateDetectionDetectBrokerProxy } from '../../../brokers/duplicate-detection/detect/duplicate-detection-detect-broker.proxy';
 import { PrimitiveDuplicateDetectionRunResponder } from './primitive-duplicate-detection-run-responder';
-import { AbsoluteFilePathStub } from '../../../contracts/absolute-file-path/absolute-file-path.stub';
 import type { SourceCode } from '../../../contracts/source-code/source-code-contract';
-import type { AbsoluteFilePath } from '../../../contracts/absolute-file-path/absolute-file-path-contract';
 import { stdoutProxy } from '#gateway/node/process/stdout/stdout.proxy';
 import { cwdProxy } from '#gateway/node/process/cwd/cwd.proxy';
 
 // Fixed so the no-`--cwd=`-arg path never depends on the real machine's directory — the
 // responder prints this literally on its "Directory:" line, so a test can assert the exact value.
-const DEFAULT_CWD = AbsoluteFilePathStub({ value: '/tooling/default-cwd' });
+const DEFAULT_CWD = '/tooling/default-cwd';
 
 export const PrimitiveDuplicateDetectionRunResponderProxy = (): {
   callResponder: typeof PrimitiveDuplicateDetectionRunResponder;
   setupNoDuplicates: (params?: { pattern?: string }) => void;
   setupWithSourceCode: (params: { sourceCode: SourceCode; pattern?: string }) => void;
   getStdoutOutput: () => readonly unknown[];
-  getDefaultCwd: () => AbsoluteFilePath;
+  getDefaultCwd: () => string;
 } => {
   const brokerProxy = duplicateDetectionDetectBrokerProxy();
   const cwdStage = cwdProxy();
@@ -40,12 +38,12 @@ export const PrimitiveDuplicateDetectionRunResponderProxy = (): {
       cwdStage.setupCwd({ value: String(DEFAULT_CWD) });
       brokerProxy.setupFiles({
         pattern,
-        files: [{ filePath: AbsoluteFilePathStub(), sourceCode }],
+        files: [{ filePath: '/home/user/project/src/file.ts', sourceCode }],
       });
     },
 
     getStdoutOutput: (): readonly unknown[] => stdoutHandle.getWrites(),
 
-    getDefaultCwd: (): AbsoluteFilePath => DEFAULT_CWD,
+    getDefaultCwd: (): string => DEFAULT_CWD,
   };
 };

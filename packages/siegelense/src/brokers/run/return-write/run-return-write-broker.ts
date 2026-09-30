@@ -13,7 +13,6 @@
  * // Writes the whole RunResult as JSON, then resolves with nothing
  */
 
-import type { AbsoluteFilePath } from '@dungeonmaster/shared/contracts';
 
 import { writeFile } from '#gateway/node/fs__promises';
 import type { RunResult } from '../../../contracts/run-result/run-result-contract';
@@ -22,7 +21,7 @@ export const runReturnWriteBroker = async ({
   storedReturnPath,
   result,
 }: {
-  storedReturnPath: AbsoluteFilePath;
+  storedReturnPath: string;
   result: RunResult;
 }): Promise<void> =>
   writeFile(storedReturnPath, `${JSON.stringify(result)}\n`);

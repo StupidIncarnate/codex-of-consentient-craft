@@ -1,4 +1,3 @@
-import { AbsoluteFilePathStub } from '../../../contracts/absolute-file-path/absolute-file-path.stub';
 import { readPackageCliContentLayerBroker } from './read-package-cli-content-layer-broker';
 import { readPackageCliContentLayerBrokerProxy } from './read-package-cli-content-layer-broker.proxy';
 
@@ -13,7 +12,7 @@ describe('readPackageCliContentLayerBroker', () => {
     });
 
     const result = readPackageCliContentLayerBroker({
-      packageRoot: AbsoluteFilePathStub({ value: PACKAGE_ROOT }),
+      packageRoot: PACKAGE_ROOT,
     });
 
     expect(String(result)).toBe('export const StartApp = async () => {};');
@@ -32,7 +31,7 @@ describe('readPackageCliContentLayerBroker', () => {
     });
 
     const result = readPackageCliContentLayerBroker({
-      packageRoot: AbsoluteFilePathStub({ value: PACKAGE_ROOT }),
+      packageRoot: PACKAGE_ROOT,
     });
 
     expect(String(result)).toBe('real content');
@@ -49,7 +48,7 @@ describe('readPackageCliContentLayerBroker', () => {
     });
 
     const result = readPackageCliContentLayerBroker({
-      packageRoot: AbsoluteFilePathStub({ value: PACKAGE_ROOT }),
+      packageRoot: PACKAGE_ROOT,
     });
 
     expect(String(result)).toBe('cli body\n\ninstall body');
@@ -64,7 +63,7 @@ describe('readPackageCliContentLayerBroker', () => {
     });
 
     const result = readPackageCliContentLayerBroker({
-      packageRoot: AbsoluteFilePathStub({ value: PACKAGE_ROOT }),
+      packageRoot: PACKAGE_ROOT,
     });
 
     expect(String(result)).toBe('export const StartCli = () => {};\n\nprocess.argv.slice(2)');
@@ -81,7 +80,7 @@ describe('readPackageCliContentLayerBroker', () => {
     });
 
     const result = readPackageCliContentLayerBroker({
-      packageRoot: AbsoluteFilePathStub({ value: PACKAGE_ROOT }),
+      packageRoot: PACKAGE_ROOT,
     });
 
     expect(String(result)).toBe('real bin');
@@ -92,7 +91,7 @@ describe('readPackageCliContentLayerBroker', () => {
     proxy.setupPackage({ packageRoot: PACKAGE_ROOT });
 
     const result = readPackageCliContentLayerBroker({
-      packageRoot: AbsoluteFilePathStub({ value: PACKAGE_ROOT }),
+      packageRoot: PACKAGE_ROOT,
     });
 
     expect(result).toBe(undefined);

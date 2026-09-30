@@ -7,7 +7,7 @@
  * real call and answer it wrong.
  */
 
-import type { AbsoluteFilePath, OperationItem } from '@dungeonmaster/shared/contracts';
+import type { OperationItem } from '@dungeonmaster/shared/contracts';
 import { locationsPlannedWorkPathFindBrokerProxy } from '@dungeonmaster/shared/brokers/locations/planned-work-path-find/locations-planned-work-path-find-broker.proxy';
 import type { FsError } from '#gateway/node/fs';
 import { readFileIfExistsProxy } from '#gateway/node/fs__promises/read-file-if-exists/read-file-if-exists.proxy';
@@ -21,30 +21,30 @@ type WorkPlan = ReturnType<typeof WorkPlanStub>;
 const JSON_EXTENSION = '.json';
 const PLANNED_WORK_DIR = 'planned-work';
 
-const dirPathFor = ({ questFolderPath }: { questFolderPath: AbsoluteFilePath }): string =>
+const dirPathFor = ({ questFolderPath }: { questFolderPath: string }): string =>
   `${questFolderPath}/${PLANNED_WORK_DIR}`;
 
 const filePathFor = ({
   questFolderPath,
   operationItemId,
 }: {
-  questFolderPath: AbsoluteFilePath;
+  questFolderPath: string;
   operationItemId: OperationItem['id'];
 }): string =>
   `${dirPathFor({ questFolderPath })}/${String(operationItemId)}${JSON_EXTENSION}`;
 
 export const plannedWorkReadBrokerProxy = (): {
   setupPlanFound: (params: {
-    questFolderPath: AbsoluteFilePath;
+    questFolderPath: string;
     operationItemId: OperationItem['id'];
     plan: WorkPlan;
   }) => void;
   setupPlanMissing: (params: {
-    questFolderPath: AbsoluteFilePath;
+    questFolderPath: string;
     operationItemId: OperationItem['id'];
   }) => void;
   setupReadFailure: (params: {
-    questFolderPath: AbsoluteFilePath;
+    questFolderPath: string;
     operationItemId: OperationItem['id'];
     error: FsError;
   }) => void;
@@ -57,7 +57,7 @@ export const plannedWorkReadBrokerProxy = (): {
     questFolderPath,
     operationItemId,
   }: {
-    questFolderPath: AbsoluteFilePath;
+    questFolderPath: string;
     operationItemId: OperationItem['id'];
   }): string => {
     const dirPath = dirPathFor({ questFolderPath });

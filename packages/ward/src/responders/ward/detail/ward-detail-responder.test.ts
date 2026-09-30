@@ -1,4 +1,3 @@
-import { AbsoluteFilePathStub } from '@dungeonmaster/shared/contracts/absolute-file-path/absolute-file-path.stub';
 
 import { WardRunResultStub } from '../../../contracts/ward-result/ward-result.stub';
 import { WardDetailResponderProxy } from './ward-detail-responder.proxy';
@@ -10,7 +9,7 @@ describe('WardDetailResponder', () => {
 
       await proxy.callResponder({
         args: ['node', 'ward', 'detail'],
-        rootPath: AbsoluteFilePathStub({ value: '/project' }),
+        rootPath: '/project',
       });
 
       expect(proxy.getStderrCalls()).toStrictEqual([
@@ -26,7 +25,7 @@ describe('WardDetailResponder', () => {
 
       await proxy.callResponder({
         args: ['node', 'ward', 'detail', '1739625600000-a3f1'],
-        rootPath: AbsoluteFilePathStub({ value: '/project' }),
+        rootPath: '/project',
       });
 
       expect(proxy.getStderrCalls()).toStrictEqual([]);
@@ -41,7 +40,7 @@ describe('WardDetailResponder', () => {
 
       await proxy.callResponder({
         args: ['node', 'ward', 'detail', '1739625600000-a3f1', 'src/index.ts'],
-        rootPath: AbsoluteFilePathStub({ value: '/project' }),
+        rootPath: '/project',
       });
 
       expect(proxy.getStdoutCalls()).toStrictEqual(['src/index.ts\n']);
@@ -55,7 +54,7 @@ describe('WardDetailResponder', () => {
 
       await proxy.callResponder({
         args: ['node', 'ward', 'detail', '1739625600000-a3f1', '--json'],
-        rootPath: AbsoluteFilePathStub({ value: '/project' }),
+        rootPath: '/project',
       });
 
       const stdoutCalls = proxy.getStdoutCalls();
@@ -74,7 +73,7 @@ describe('WardDetailResponder', () => {
 
       await proxy.callResponder({
         args: ['node', 'ward', 'detail', '--json', '1739625600000-a3f1'],
-        rootPath: AbsoluteFilePathStub({ value: '/project' }),
+        rootPath: '/project',
       });
 
       const stdoutCalls = proxy.getStdoutCalls();
@@ -93,7 +92,7 @@ describe('WardDetailResponder', () => {
 
       await proxy.callResponder({
         args: ['node', 'ward', 'detail', '1739625600000-a3f1', 'src/index.ts', '--json'],
-        rootPath: AbsoluteFilePathStub({ value: '/project' }),
+        rootPath: '/project',
       });
 
       const stdoutCalls = proxy.getStdoutCalls();
@@ -111,7 +110,7 @@ describe('WardDetailResponder', () => {
 
       await proxy.callResponder({
         args: ['node', 'ward', 'detail', '--json'],
-        rootPath: AbsoluteFilePathStub({ value: '/project' }),
+        rootPath: '/project',
       });
 
       expect(proxy.getStderrCalls()).toStrictEqual([

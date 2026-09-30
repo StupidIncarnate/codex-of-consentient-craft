@@ -6,7 +6,6 @@
  * // Returns: GitRelativePath 'src/a.ts'
  */
 
-import type { AbsoluteFilePath } from '@dungeonmaster/shared/contracts';
 
 import {
   gitRelativePathContract,
@@ -18,7 +17,7 @@ export const normalizeToRelativeTransformer = ({
   cwd,
 }: {
   filePath: GitRelativePath;
-  cwd: AbsoluteFilePath;
+  cwd: string;
 }): GitRelativePath => {
   const fileString = String(filePath);
   const cwdString = String(cwd);

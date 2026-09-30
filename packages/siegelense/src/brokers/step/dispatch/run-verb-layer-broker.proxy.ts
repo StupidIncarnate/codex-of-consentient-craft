@@ -1,7 +1,7 @@
 import { z } from '#gateway/npm/zod';
 import { contentTextContract } from '@dungeonmaster/shared/contracts';
 import { ContentTextStub } from '@dungeonmaster/shared/contracts/content-text/content-text.stub';
-import type { AbsoluteFilePath, ContentText, Guild } from '@dungeonmaster/shared/contracts';
+import type { ContentText, Guild } from '@dungeonmaster/shared/contracts';
 
 import { BoxReadingStub } from '../../../contracts/box-reading/box-reading.stub';
 import { DomReadingStub } from '../../../contracts/dom-reading/dom-reading.stub';
@@ -67,12 +67,12 @@ export const runVerbLayerBrokerProxy = (): {
     headers?: Record<PropertyKey, unknown>;
     body?: unknown;
   }) => void;
-  setupFileExists: (params: { filePath: AbsoluteFilePath; content: string }) => void;
-  setupFileNotFound: (params: { filePath: AbsoluteFilePath }) => void;
-  setupSnapshotEmptyStore: (params: { homePath: AbsoluteFilePath }) => void;
+  setupFileExists: (params: { filePath: string; content: string }) => void;
+  setupFileNotFound: (params: { filePath: string }) => void;
+  setupSnapshotEmptyStore: (params: { homePath: string }) => void;
   setupHoldCopy: (params: {
-    sourcePath: AbsoluteFilePath;
-    destinationPath: AbsoluteFilePath;
+    sourcePath: string;
+    destinationPath: string;
   }) => void;
 } => {
   // Constructed for their own default behavior only to satisfy enforce-proxy-child-creation — this
@@ -270,17 +270,17 @@ export const runVerbLayerBrokerProxy = (): {
       filePath,
       content,
     }: {
-      filePath: AbsoluteFilePath;
+      filePath: string;
       content: string;
     }): void => {
       fileProxy.setupFileExists({ filePath, content });
     },
 
-    setupFileNotFound: ({ filePath }: { filePath: AbsoluteFilePath }): void => {
+    setupFileNotFound: ({ filePath }: { filePath: string }): void => {
       fileProxy.setupFileNotFound({ filePath });
     },
 
-    setupSnapshotEmptyStore: ({ homePath }: { homePath: AbsoluteFilePath }): void => {
+    setupSnapshotEmptyStore: ({ homePath }: { homePath: string }): void => {
       snapshotProxy.setupEmptyStore({ homePath });
       resetProxy.setupNoSnapshots({ homePath });
     },
@@ -289,8 +289,8 @@ export const runVerbLayerBrokerProxy = (): {
       sourcePath,
       destinationPath,
     }: {
-      sourcePath: AbsoluteFilePath;
-      destinationPath: AbsoluteFilePath;
+      sourcePath: string;
+      destinationPath: string;
     }): void => {
       holdProxy.succeedsCopy({ sourcePath, destinationPath });
     },

@@ -16,8 +16,6 @@
  */
 
 import { existsSync, readFileSync } from '#gateway/node/fs';
-import { absoluteFilePathContract } from '../../../contracts/absolute-file-path/absolute-file-path-contract';
-import type { AbsoluteFilePath } from '../../../contracts/absolute-file-path/absolute-file-path-contract';
 import { contentTextContract } from '../../../contracts/content-text/content-text-contract';
 import { gatewayLintConfigFileContract } from '../../../contracts/gateway-lint-config-file/gateway-lint-config-file-contract';
 import type { GatewayLintConfig } from '../../../contracts/gateway-lint-config/gateway-lint-config-contract';
@@ -28,11 +26,9 @@ const EMPTY_GATEWAY_LINT_CONFIG: GatewayLintConfig = {};
 export const gatewayLintConfigReadBroker = ({
   repoRoot,
 }: {
-  repoRoot: AbsoluteFilePath;
+  repoRoot: string;
 }): GatewayLintConfig => {
-  const configPath = absoluteFilePathContract.parse(
-    `${repoRoot}/${locationsStatics.repoRoot.config}`,
-  );
+  const configPath = `${repoRoot}/${locationsStatics.repoRoot.config}`;
 
   if (!existsSync(configPath)) {
     return EMPTY_GATEWAY_LINT_CONFIG;

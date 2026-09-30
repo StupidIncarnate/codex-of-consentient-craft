@@ -27,7 +27,7 @@
 
 import { join } from '#gateway/node/path';
 import { questContract } from '@dungeonmaster/shared/contracts';
-import type { AbsoluteFilePath, BaseBranchName, OperationItem, PackageGraphEntry, Quest, QuestBranchName, QuestSession, RiftcarverResult, WorkItem } from '@dungeonmaster/shared/contracts';
+import type { BaseBranchName, OperationItem, PackageGraphEntry, Quest, QuestBranchName, QuestSession, RiftcarverResult, WorkItem } from '@dungeonmaster/shared/contracts';
 import { locationsStatics } from '@dungeonmaster/shared/statics';
 
 import { workItemsToQuestStatusTransformer } from '../../../transformers/work-items-to-quest-status/work-items-to-quest-status-transformer';
@@ -49,7 +49,7 @@ export const questOperationsUpdateBroker = async ({
     baseRef?: NonNullable<Quest['baseRef']>;
     branchName?: QuestBranchName;
     baseBranch?: BaseBranchName;
-    worktreePath?: AbsoluteFilePath;
+    worktreePath?: string;
     packageGraph?: PackageGraphEntry[];
     riftcarverResults?: RiftcarverResult[];
     sessions?: QuestSession[];

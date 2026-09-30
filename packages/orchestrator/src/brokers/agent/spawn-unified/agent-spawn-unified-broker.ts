@@ -13,7 +13,7 @@
 
 import { lineReader } from '#gateway/node/readline';
 import { stderr } from '#gateway/node/process';
-import type { AbsoluteFilePath, ExitCode, RepoRootCwd, Session } from '@dungeonmaster/shared/contracts';
+import type { ExitCode, RepoRootCwd, Session } from '@dungeonmaster/shared/contracts';
 import { exitCodeContract } from '@dungeonmaster/shared/contracts';
 import { claudeLineNormalizeBroker } from '@dungeonmaster/shared/brokers';
 
@@ -51,7 +51,7 @@ export const agentSpawnUnifiedBroker = ({
   // Forwarded verbatim to the spawn broker's `--add-dir` grant. See that broker's header
   // for why a chat spawn needs this — the quest's images directory sits outside the spawn's
   // cwd, so a pasted-image Read is denied without it.
-  addDir?: AbsoluteFilePath;
+  addDir?: string;
 }): { kill: () => void; sessionId$: Promise<Session['id'] | null>; pid: ProcessPid | undefined } => {
   const spawnParams: Parameters<typeof agentSpawnStreamJsonBroker>[0] = {
     prompt,

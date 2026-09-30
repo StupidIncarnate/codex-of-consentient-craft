@@ -1,4 +1,3 @@
-import { AbsoluteFilePathStub } from '@dungeonmaster/shared/contracts/absolute-file-path/absolute-file-path.stub';
 import { QuestIdStub } from '@dungeonmaster/shared/contracts/quest-id/quest-id.stub';
 import { QuestStub } from '@dungeonmaster/shared/contracts/quest/quest.stub';
 
@@ -75,9 +74,7 @@ describe('processTerminalEventLayerBroker', () => {
       const proxy = processTerminalEventLayerBrokerProxy();
       proxy.setupPassthrough();
       const questId = QuestIdStub({ value: 'q-not-terminal' });
-      const questPath = AbsoluteFilePathStub({
-        value: '/home/user/.dungeonmaster/guilds/g1/quests/q-not-terminal',
-      });
+      const questPath = '/home/user/.dungeonmaster/guilds/g1/quests/q-not-terminal';
       const quest = QuestStub({ id: questId, status: 'in_progress' });
       proxy.setupQuestFound({ questId, questPath, quest });
 

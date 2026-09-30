@@ -1,15 +1,14 @@
 import { gatewayLintConfigReadBroker } from './gateway-lint-config-read-broker';
 import { gatewayLintConfigReadBrokerProxy } from './gateway-lint-config-read-broker.proxy';
-import { AbsoluteFilePathStub } from '../../../contracts/absolute-file-path/absolute-file-path.stub';
 import { ContentTextStub } from '../../../contracts/content-text/content-text.stub';
 
 describe('gatewayLintConfigReadBroker', () => {
   describe('no .dungeonmaster.json at the repo root', () => {
     it('EMPTY: {repoRoot has no config file} => returns {}', () => {
       const proxy = gatewayLintConfigReadBrokerProxy();
-      const repoRoot = AbsoluteFilePathStub({ value: '/repo' });
+      const repoRoot = '/repo';
       proxy.setupMissingConfig({
-        configPath: AbsoluteFilePathStub({ value: '/repo/.dungeonmaster.json' }),
+        configPath: '/repo/.dungeonmaster.json',
       });
 
       const result = gatewayLintConfigReadBroker({ repoRoot });
@@ -21,8 +20,8 @@ describe('gatewayLintConfigReadBroker', () => {
   describe('a config file with no gateway key', () => {
     it('EMPTY: {.dungeonmaster.json has no "gateway" key} => returns {}', () => {
       const proxy = gatewayLintConfigReadBrokerProxy();
-      const repoRoot = AbsoluteFilePathStub({ value: '/repo' });
-      const configPath = AbsoluteFilePathStub({ value: '/repo/.dungeonmaster.json' });
+      const repoRoot = '/repo';
+      const configPath = '/repo/.dungeonmaster.json';
       proxy.setupConfig({
         configPath,
         fileContent: ContentTextStub({ value: JSON.stringify({ framework: 'monorepo' }) }),
@@ -37,8 +36,8 @@ describe('gatewayLintConfigReadBroker', () => {
   describe('a config file with a gateway key', () => {
     it('VALID: {gateway key with bannedExports} => returns the validated gateway config', () => {
       const proxy = gatewayLintConfigReadBrokerProxy();
-      const repoRoot = AbsoluteFilePathStub({ value: '/repo' });
-      const configPath = AbsoluteFilePathStub({ value: '/repo/.dungeonmaster.json' });
+      const repoRoot = '/repo';
+      const configPath = '/repo/.dungeonmaster.json';
       proxy.setupConfig({
         configPath,
         fileContent: ContentTextStub({
@@ -75,8 +74,8 @@ describe('gatewayLintConfigReadBroker', () => {
   describe('a config file that fails to parse as JSON', () => {
     it('ERROR: {.dungeonmaster.json is not valid JSON} => returns {} rather than throwing', () => {
       const proxy = gatewayLintConfigReadBrokerProxy();
-      const repoRoot = AbsoluteFilePathStub({ value: '/repo' });
-      const configPath = AbsoluteFilePathStub({ value: '/repo/.dungeonmaster.json' });
+      const repoRoot = '/repo';
+      const configPath = '/repo/.dungeonmaster.json';
       proxy.setupConfig({ configPath, fileContent: ContentTextStub({ value: '{not json' }) });
 
       const result = gatewayLintConfigReadBroker({ repoRoot });
@@ -88,8 +87,8 @@ describe('gatewayLintConfigReadBroker', () => {
   describe('a gateway key that fails its own schema', () => {
     it('ERROR: {gateway.bannedExports entry missing "use"} => returns {} rather than throwing', () => {
       const proxy = gatewayLintConfigReadBrokerProxy();
-      const repoRoot = AbsoluteFilePathStub({ value: '/repo' });
-      const configPath = AbsoluteFilePathStub({ value: '/repo/.dungeonmaster.json' });
+      const repoRoot = '/repo';
+      const configPath = '/repo/.dungeonmaster.json';
       proxy.setupConfig({
         configPath,
         fileContent: ContentTextStub({

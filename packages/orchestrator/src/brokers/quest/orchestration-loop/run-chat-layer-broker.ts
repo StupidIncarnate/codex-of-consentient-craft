@@ -6,7 +6,7 @@
  */
 
 import { stderr } from '#gateway/node/process';
-import { absoluteFilePathContract, workItemRoleContract, type ExitCode, type UserInput, type WorkItem, slotIndexContract, sessionContract } from '@dungeonmaster/shared/contracts';
+import { workItemRoleContract, type ExitCode, type UserInput, type WorkItem, slotIndexContract, sessionContract } from '@dungeonmaster/shared/contracts';
 
 import type { ModifyQuestInput, Quest, Session } from '@dungeonmaster/shared/contracts';
 import { isCommandWorkItemRoleGuard } from '@dungeonmaster/shared/guards';
@@ -122,7 +122,7 @@ export const runChatLayerBroker = async ({
       await questSessionRecordBroker({
         questId,
         sessionId: sessionContract.shape.id.parse(sessionId),
-        cwd: absoluteFilePathContract.parse(resolvedCwd),
+        cwd: resolvedCwd,
         role: workItemRoleContract.parse(workItem.role),
         workItemId: workItem.id,
       }).catch((error: unknown) => {

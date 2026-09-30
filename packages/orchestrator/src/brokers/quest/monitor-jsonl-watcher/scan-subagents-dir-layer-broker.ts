@@ -18,7 +18,7 @@
 import { isFsError, readdirSync } from '#gateway/node/fs';
 import type { TailFileHandle } from '#gateway/node/fs';
 import { readNonEmptyLines } from '#gateway/node/fs__promises';
-import { absoluteFilePathContract, fileNameContract, type ChatEntry, type FileName, type ProcessId } from '@dungeonmaster/shared/contracts';
+import { fileNameContract, type ChatEntry, type FileName, type ProcessId } from '@dungeonmaster/shared/contracts';
 import { claudeLineNormalizeBroker } from '@dungeonmaster/shared/brokers';
 
 import type { ChatLineProcessor } from '../../../contracts/chat-line-processor/chat-line-processor-contract';
@@ -104,7 +104,7 @@ export const scanSubagentsDirLayerBroker = async ({
       try {
         const lines = streamJsonLinesFromRawTransformer({
           rawLines: await readNonEmptyLines(
-            absoluteFilePathContract.parse(`${subagentsDir}/${String(fileName)}`),
+            `${subagentsDir}/${String(fileName)}`,
           ),
         });
         const [firstLine] = lines;

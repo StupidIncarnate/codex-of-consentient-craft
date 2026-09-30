@@ -30,11 +30,7 @@ import {
   architectureProjectMapBroker,
   architectureGatewayInventoryBroker,
 } from '@dungeonmaster/shared/brokers';
-import {
-  absoluteFilePathContract,
-  pathSegmentContract,
-  contentTextContract as sharedContentTextContract,
-} from '@dungeonmaster/shared/contracts';
+import { pathSegmentContract, contentTextContract as sharedContentTextContract } from '@dungeonmaster/shared/contracts';
 import { existsSync, readdirEntriesSync } from '#gateway/node/fs';
 import { gatewayLocationsStatics } from '@dungeonmaster/shared/statics';
 // sharedContentTextContract is used to brand the packageName string for the inventory broker call
@@ -147,7 +143,7 @@ export const ArchitectureHandleResponder = async ({
     const { repoRoot, source, configFound } = await ResolveCallerRepoRootLayerResponder({ meta });
     const banner = callerRepoRootBannerTransformer({ repoRoot, source, configFound });
     const result = await architectureProjectMapBroker({
-      projectRoot: absoluteFilePathContract.parse(String(repoRoot)),
+      projectRoot: String(repoRoot),
       packages,
     });
 
@@ -166,7 +162,7 @@ export const ArchitectureHandleResponder = async ({
     // direct/group-folder lookup below, which resolves each of THEM by their own bare name.
     if (String(packageName) === gatewayLocationsStatics.importPrefix) {
       const gatewayResult = architectureGatewayInventoryBroker({
-        projectRoot: absoluteFilePathContract.parse(String(repoRoot)),
+        projectRoot: String(repoRoot),
       });
 
       return {
@@ -181,8 +177,8 @@ export const ArchitectureHandleResponder = async ({
       };
     }
 
-    const packagesPath = absoluteFilePathContract.parse(`${repoRoot}/packages`);
-    const directPackageDir = absoluteFilePathContract.parse(`${packagesPath}/${packageName}`);
+    const packagesPath = `${repoRoot}/packages`;
+    const directPackageDir = `${packagesPath}/${packageName}`;
 
     // Prefer the direct folder when it exists; only scan group folders for a matching child when
     // it does not, so an ordinary (non-gateway) package never pays this extra readdir.
@@ -193,16 +189,16 @@ export const ArchitectureHandleResponder = async ({
             (entry) => entry.kind === 'directory' && entry.name.startsWith(GROUP_FOLDER_PREFIX),
           )
           .flatMap((group) => {
-            const groupPath = absoluteFilePathContract.parse(`${packagesPath}/${group.name}`);
+            const groupPath = `${packagesPath}/${group.name}`;
             return readdirEntriesSync(groupPath)
               .filter((child) => child.kind === 'directory' && child.name === String(packageName))
-              .map((child) => absoluteFilePathContract.parse(`${groupPath}/${child.name}`));
+              .map((child) => `${groupPath}/${child.name}`);
           })
           .at(0);
 
     const packageDir = groupChildMatch ?? directPackageDir;
-    const srcPath = absoluteFilePathContract.parse(`${packageDir}/src`);
-    const packageJsonPath = absoluteFilePathContract.parse(`${packageDir}/package.json`);
+    const srcPath = `${packageDir}/src`;
+    const packageJsonPath = `${packageDir}/package.json`;
     const result = architecturePackageInventoryBroker({
       packageName: sharedContentTextContract.parse(packageName),
       srcPath,

@@ -15,7 +15,7 @@
  */
 
 import { questContract, guildContract } from '@dungeonmaster/shared/contracts';
-import type { AbsoluteFilePath, FileName, Quest, Guild } from '@dungeonmaster/shared/contracts';
+import type { FileName, Quest, Guild } from '@dungeonmaster/shared/contracts';
 
 import { readFile } from '#gateway/node/fs__promises';
 
@@ -35,7 +35,7 @@ export const matchCandidatesLayerBroker = async ({
     guildDirName: FileName;
   }[];
   questId: Quest['id'];
-}): Promise<{ questPath: AbsoluteFilePath; guildId: Guild['id'] } | null> => {
+}): Promise<{ questPath: string; guildId: Guild['id'] } | null> => {
   const results = await Promise.all(
     candidates.map(async (candidate) => {
       try {
@@ -45,7 +45,7 @@ export const matchCandidatesLayerBroker = async ({
 
         if (identity.success && identity.data.id === questId) {
           return {
-            questPath: candidate.questFolderPath as AbsoluteFilePath,
+            questPath: candidate.questFolderPath as string,
             guildId: guildContract.shape.id.parse(candidate.guildDirName),
           };
         }

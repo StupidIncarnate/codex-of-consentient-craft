@@ -18,10 +18,6 @@
  * // Returns AbsoluteFilePath '/home/user/.claude/projects/-home-user-my-project'
  */
 
-import {
-  absoluteFilePathContract,
-  type AbsoluteFilePath,
-} from '../../contracts/absolute-file-path/absolute-file-path-contract';
 import { locationsStatics } from '../../statics/locations/locations-statics';
 
 const NON_ALPHANUMERIC_PATTERN = /[^a-zA-Z0-9]/gu;
@@ -30,11 +26,9 @@ export const claudePathSlugEncoderTransformer = ({
   homeDir,
   projectPath,
 }: {
-  homeDir: AbsoluteFilePath;
-  projectPath: AbsoluteFilePath;
-}): AbsoluteFilePath => {
+  homeDir: string;
+  projectPath: string;
+}): string => {
   const encoded = projectPath.replace(NON_ALPHANUMERIC_PATTERN, '-');
-  return absoluteFilePathContract.parse(
-    `${homeDir}/${locationsStatics.userHome.claude.dir}/${locationsStatics.userHome.claude.projectsDir}/${encoded}`,
-  );
+  return `${homeDir}/${locationsStatics.userHome.claude.dir}/${locationsStatics.userHome.claude.projectsDir}/${encoded}`;
 };

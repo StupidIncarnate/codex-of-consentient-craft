@@ -28,7 +28,7 @@
  * // { outcome: 'done' | 'empty' | 'wall', detail }
  */
 
-import { absoluteFilePathContract, contentTextContract } from '@dungeonmaster/shared/contracts';
+import { contentTextContract } from '@dungeonmaster/shared/contracts';
 import { streamLines, RunNotFoundError } from '#gateway/node/child_process';
 import { getEnv } from '#gateway/node/process';
 
@@ -54,7 +54,7 @@ export const stepHandlerCleanupBroker = async ({
   onLine: (line: string) => void;
 }): Promise<StepHandlerResult> => {
   const repoRoot = await questRepoRootBroker({ questId });
-  const cwd = absoluteFilePathContract.parse(repoRoot);
+  const cwd = repoRoot;
 
   const { exitCode, output } = await streamLines({
     command: getEnv('DUNGEONMASTER_CLI_PATH') ?? cleanupCliCallStatics.call.bin,

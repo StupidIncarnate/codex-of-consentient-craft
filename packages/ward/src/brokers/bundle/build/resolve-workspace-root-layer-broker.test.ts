@@ -1,4 +1,3 @@
-import { AbsoluteFilePathStub } from '@dungeonmaster/shared/contracts/absolute-file-path/absolute-file-path.stub';
 
 import { resolveWorkspaceRootLayerBroker } from './resolve-workspace-root-layer-broker';
 import { resolveWorkspaceRootLayerBrokerProxy } from './resolve-workspace-root-layer-broker.proxy';
@@ -6,9 +5,9 @@ import { resolveWorkspaceRootLayerBrokerProxy } from './resolve-workspace-root-l
 describe('resolveWorkspaceRootLayerBroker', () => {
   describe('the workspace root is above the package', () => {
     it('VALID: {a package two levels under the root} => returns the root', async () => {
-      const repoRoot = AbsoluteFilePathStub({ value: '/repo' });
-      const packagesDir = AbsoluteFilePathStub({ value: '/repo/packages' });
-      const packageRoot = AbsoluteFilePathStub({ value: '/repo/packages/web' });
+      const repoRoot = '/repo';
+      const packagesDir = '/repo/packages';
+      const packageRoot = '/repo/packages/web';
       const proxy = resolveWorkspaceRootLayerBrokerProxy();
       proxy.isAPlainPackage({ dirPath: packageRoot, name: '@dm/web' });
       proxy.hasNoManifest({ dirPath: packagesDir });
@@ -22,7 +21,7 @@ describe('resolveWorkspaceRootLayerBroker', () => {
 
   describe('the start path is itself the workspace root', () => {
     it('VALID: {startPath declares workspaces} => returns it without walking up', async () => {
-      const repoRoot = AbsoluteFilePathStub({ value: '/repo' });
+      const repoRoot = '/repo';
       const proxy = resolveWorkspaceRootLayerBrokerProxy();
       proxy.declaresWorkspaces({ dirPath: repoRoot, patterns: ['packages/*'] });
 
@@ -34,8 +33,8 @@ describe('resolveWorkspaceRootLayerBroker', () => {
 
   describe('nothing declares workspaces', () => {
     it('EMPTY: {no ancestor declares workspaces} => returns null', async () => {
-      const repoRoot = AbsoluteFilePathStub({ value: '/repo' });
-      const packageRoot = AbsoluteFilePathStub({ value: '/repo/solo' });
+      const repoRoot = '/repo';
+      const packageRoot = '/repo/solo';
       const proxy = resolveWorkspaceRootLayerBrokerProxy();
       proxy.isAPlainPackage({ dirPath: packageRoot, name: 'solo' });
       proxy.isAPlainPackage({ dirPath: repoRoot, name: 'outer' });
@@ -46,8 +45,8 @@ describe('resolveWorkspaceRootLayerBroker', () => {
     });
 
     it('EMPTY: {an empty workspaces array} => keeps walking and returns null', async () => {
-      const repoRoot = AbsoluteFilePathStub({ value: '/repo' });
-      const packageRoot = AbsoluteFilePathStub({ value: '/repo/solo' });
+      const repoRoot = '/repo';
+      const packageRoot = '/repo/solo';
       const proxy = resolveWorkspaceRootLayerBrokerProxy();
       proxy.isAPlainPackage({ dirPath: packageRoot, name: 'solo' });
       proxy.declaresWorkspaces({ dirPath: repoRoot, patterns: [] });
@@ -60,8 +59,8 @@ describe('resolveWorkspaceRootLayerBroker', () => {
 
   describe('manifests that say nothing', () => {
     it('EDGE: {an unparseable manifest below the root} => keeps walking and finds the root', async () => {
-      const repoRoot = AbsoluteFilePathStub({ value: '/repo' });
-      const packageRoot = AbsoluteFilePathStub({ value: '/repo/broken' });
+      const repoRoot = '/repo';
+      const packageRoot = '/repo/broken';
       const proxy = resolveWorkspaceRootLayerBrokerProxy();
       proxy.hasAnUnparseableManifest({ dirPath: packageRoot });
       proxy.declaresWorkspaces({ dirPath: repoRoot, patterns: ['packages/*'] });
@@ -72,8 +71,8 @@ describe('resolveWorkspaceRootLayerBroker', () => {
     });
 
     it('EDGE: {no manifest at all below the root} => keeps walking and finds the root', async () => {
-      const repoRoot = AbsoluteFilePathStub({ value: '/repo' });
-      const packageRoot = AbsoluteFilePathStub({ value: '/repo/nothing' });
+      const repoRoot = '/repo';
+      const packageRoot = '/repo/nothing';
       const proxy = resolveWorkspaceRootLayerBrokerProxy();
       proxy.hasNoManifest({ dirPath: packageRoot });
       proxy.declaresWorkspaces({ dirPath: repoRoot, patterns: ['packages/*'] });

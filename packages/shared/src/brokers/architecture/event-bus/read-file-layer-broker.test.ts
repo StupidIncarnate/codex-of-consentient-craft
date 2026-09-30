@@ -1,11 +1,8 @@
 import { readFileLayerBroker } from './read-file-layer-broker';
 import { readFileLayerBrokerProxy } from './read-file-layer-broker.proxy';
-import { AbsoluteFilePathStub } from '../../../contracts/absolute-file-path/absolute-file-path.stub';
 import { ContentTextStub } from '../../../contracts/content-text/content-text.stub';
 
-const FILE = AbsoluteFilePathStub({
-  value: '/repo/packages/orchestrator/src/state/orchestration-events-state.ts',
-});
+const FILE = '/repo/packages/orchestrator/src/state/orchestration-events-state.ts';
 
 describe('readFileLayerBroker', () => {
   describe('file exists', () => {

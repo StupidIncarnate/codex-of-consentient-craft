@@ -4,7 +4,6 @@ import { readNonEmptyLinesProxy } from '#gateway/node/fs__promises/read-non-empt
 import { claudeLineNormalizeBrokerProxy } from '@dungeonmaster/shared/brokers/claude-line/normalize/claude-line-normalize-broker.proxy';
 import { locationsClaudeSessionFilePathFindBrokerProxy } from '@dungeonmaster/shared/brokers/locations/claude-session-file-path-find/locations-claude-session-file-path-find-broker.proxy';
 import { locationsClaudeSessionFilePathFindBroker } from '@dungeonmaster/shared/brokers';
-import { AbsoluteFilePathStub } from '@dungeonmaster/shared/contracts/absolute-file-path/absolute-file-path.stub';
 import { SessionIdStub } from '@dungeonmaster/shared/contracts/session-id/session-id.stub';
 
 export const signalFromSessionJsonlBrokerProxy = (): {
@@ -25,7 +24,7 @@ export const signalFromSessionJsonlBrokerProxy = (): {
   // homedir/path.join defaults the code under test resolves through — so this address can
   // never drift from what fsReadJsonlAdapter is actually called with.
   const filePath = locationsClaudeSessionFilePathFindBroker({
-    guildPath: AbsoluteFilePathStub({ value: '/home/user/repo' }),
+    guildPath: '/home/user/repo',
     sessionId: SessionIdStub({ value: '9c4d8f1c-3e38-48c9-bdec-22b61883b473' }),
   });
 

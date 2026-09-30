@@ -4,7 +4,6 @@ import { rmProxy } from '#gateway/node/fs__promises/rm/rm.proxy';
 import { statIfExistsProxy } from '#gateway/node/fs__promises/stat-if-exists/stat-if-exists.proxy';
 import { FsErrorStub } from '#gateway/node/fs/is-fs-error/fs-error.stub';
 import { filePathContract } from '@dungeonmaster/shared/contracts';
-import type { AbsoluteFilePath } from '@dungeonmaster/shared/contracts';
 
 import { e2eArtifactsStatics } from '../../../statics/e2e-artifacts/e2e-artifacts-statics';
 
@@ -16,30 +15,30 @@ const DAY_MS = 86_400_000;
 
 export const e2eArtifactsPruneBrokerProxy = (): {
   setupEntries: (params: {
-    packageRoot: AbsoluteFilePath;
+    packageRoot: string;
     parentDir: string;
     entries: string[];
   }) => void;
   setupAge: (params: {
-    packageRoot: AbsoluteFilePath;
+    packageRoot: string;
     parentDir: string;
     name: string;
     daysOld: number;
   }) => void;
   setupRemovable: (params: {
-    packageRoot: AbsoluteFilePath;
+    packageRoot: string;
     parentDir: string;
     name: string;
   }) => void;
   setupRemoveFails: (params: {
-    packageRoot: AbsoluteFilePath;
+    packageRoot: string;
     parentDir: string;
     name: string;
   }) => void;
   setupPortHeld: (params: { port: number }) => void;
   setupPortFree: (params: { port: number }) => void;
   getRemovedPaths: (params: {
-    packageRoot: AbsoluteFilePath;
+    packageRoot: string;
     parentDir: string;
     name: string;
   }) => readonly unknown[][];
@@ -58,7 +57,7 @@ export const e2eArtifactsPruneBrokerProxy = (): {
     packageRoot,
     parentDir,
   }: {
-    packageRoot: AbsoluteFilePath;
+    packageRoot: string;
     parentDir: string;
   }): ReturnType<typeof filePathContract.parse> =>
     `${String(packageRoot)}/${parentDir}`;
@@ -68,7 +67,7 @@ export const e2eArtifactsPruneBrokerProxy = (): {
     parentDir,
     name,
   }: {
-    packageRoot: AbsoluteFilePath;
+    packageRoot: string;
     parentDir: string;
     name: string;
   }): ReturnType<typeof filePathContract.parse> =>

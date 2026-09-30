@@ -1,12 +1,11 @@
 import { lanePlaceholderSubstituteTransformer } from './lane-placeholder-substitute-transformer';
-import { AbsoluteFilePathStub } from '@dungeonmaster/shared/contracts/absolute-file-path/absolute-file-path.stub';
 import { ContentTextStub } from '@dungeonmaster/shared/contracts/content-text/content-text.stub';
 import { PortPairStub } from '../../contracts/port-pair/port-pair.stub';
 
 const PORTS = PortPairStub({ api: 34_172, web: 34_173 });
-const HOME = AbsoluteFilePathStub({ value: '/tmp/dm-siege-inst_1' });
-const CLAUDE_QUEUE_DIR = AbsoluteFilePathStub({ value: '/tmp/dm-siege-inst_1/claude-queue' });
-const WARD_QUEUE_DIR = AbsoluteFilePathStub({ value: '/tmp/dm-siege-inst_1/ward-queue' });
+const HOME = '/tmp/dm-siege-inst_1';
+const CLAUDE_QUEUE_DIR = '/tmp/dm-siege-inst_1/claude-queue';
+const WARD_QUEUE_DIR = '/tmp/dm-siege-inst_1/ward-queue';
 const API_WORKSPACE = ContentTextStub({ value: '@dungeonmaster/server' });
 const WEB_WORKSPACE = ContentTextStub({ value: '@dungeonmaster/web' });
 

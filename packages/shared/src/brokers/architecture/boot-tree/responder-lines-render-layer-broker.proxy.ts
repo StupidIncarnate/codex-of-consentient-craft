@@ -5,7 +5,6 @@ import { routeMetadataExtractLayerBrokerProxy } from './route-metadata-extract-l
 import { widgetSubtreeRenderLayerBrokerProxy } from './widget-subtree-render-layer-broker.proxy';
 import { busEventLinesRenderLayerBrokerProxy } from './bus-event-lines-render-layer-broker.proxy';
 import { FileMissingErrorStub } from '#gateway/node/fs/file-missing-error/file-missing-error.stub';
-import type { AbsoluteFilePath } from '../../../contracts/absolute-file-path/absolute-file-path-contract';
 import type { ContentText } from '../../../contracts/content-text/content-text-contract';
 
 export const responderLinesRenderLayerBrokerProxy = (): {
@@ -13,10 +12,10 @@ export const responderLinesRenderLayerBrokerProxy = (): {
     sourceFile,
     content,
   }: {
-    sourceFile: AbsoluteFilePath;
+    sourceFile: string;
     content: ContentText;
   }) => void;
-  setupFlowMissing: ({ sourceFile }: { sourceFile: AbsoluteFilePath }) => void;
+  setupFlowMissing: ({ sourceFile }: { sourceFile: string }) => void;
   setupFlowImplementation: ({ fn }: { fn: (filePath: ContentText) => ContentText }) => void;
   setupFileContentsMap: ({ map }: { map: Record<string, ContentText> }) => void;
 } => {
@@ -47,13 +46,13 @@ export const responderLinesRenderLayerBrokerProxy = (): {
       sourceFile,
       content,
     }: {
-      sourceFile: AbsoluteFilePath;
+      sourceFile: string;
       content: ContentText;
     }): void => {
       flowImportsProxy.setupSource({ sourceFile, content });
     },
 
-    setupFlowMissing: ({ sourceFile }: { sourceFile: AbsoluteFilePath }): void => {
+    setupFlowMissing: ({ sourceFile }: { sourceFile: string }): void => {
       flowImportsProxy.setupMissing({ sourceFile });
     },
 

@@ -1,6 +1,5 @@
 import { cwdResolveBrokerProxy } from '@dungeonmaster/shared/brokers/cwd/resolve/cwd-resolve-broker.proxy';
 import { locationsWorktreePathFindBrokerProxy } from '@dungeonmaster/shared/brokers/locations/worktree-path-find/locations-worktree-path-find-broker.proxy';
-import type { AbsoluteFilePath } from '@dungeonmaster/shared/contracts';
 import { BaseBranchNameStub } from '@dungeonmaster/shared/contracts/base-branch-name/base-branch-name.stub';
 import { QuestBranchNameStub } from '@dungeonmaster/shared/contracts/quest-branch-name/quest-branch-name.stub';
 import { pathExistsProxy } from '#gateway/node/fs__promises/path-exists/path-exists.proxy';
@@ -11,18 +10,18 @@ import { worktreePrepareBrokerProxy } from '../../../brokers/worktree/prepare/wo
 import { worktreeProvisionBrokerProxy } from '../../../brokers/worktree/provision/worktree-provision-broker.proxy';
 
 export const WorktreeCreateResponderProxy = (): {
-  setupRepoRoot: (params: { repoRoot: AbsoluteFilePath }) => void;
+  setupRepoRoot: (params: { repoRoot: string }) => void;
   setupFreshCarve: (params: {
-    repoRoot: AbsoluteFilePath;
-    worktreePath: AbsoluteFilePath;
+    repoRoot: string;
+    worktreePath: string;
     name: string;
     sha: string;
   }) => void;
-  setupWorktreeAlreadyOnDisk: (params: { worktreePath: AbsoluteFilePath }) => void;
-  setupNoBaseBranch: (params: { worktreePath: AbsoluteFilePath }) => void;
+  setupWorktreeAlreadyOnDisk: (params: { worktreePath: string }) => void;
+  setupNoBaseBranch: (params: { worktreePath: string }) => void;
   setupLeakingLink: (params: {
-    repoRoot: AbsoluteFilePath;
-    worktreePath: AbsoluteFilePath;
+    repoRoot: string;
+    worktreePath: string;
     entryName: string;
     storedTarget: string;
   }) => void;
@@ -38,7 +37,7 @@ export const WorktreeCreateResponderProxy = (): {
   // own, so every worktree path a test names must match Node's real path.join output.
   locationsWorktreePathFindBrokerProxy();
 
-  const stageRepoRoot = ({ repoRoot }: { repoRoot: AbsoluteFilePath }): void => {
+  const stageRepoRoot = ({ repoRoot }: { repoRoot: string }): void => {
     cwdSetup.setupCwd({ value: String(repoRoot) });
     cwdResolveProxy.setupRepoRootFoundAtStart({ startPath: String(repoRoot) });
   };
@@ -62,11 +61,11 @@ export const WorktreeCreateResponderProxy = (): {
 
     // Only the DIRECTORY is described, deliberately: the git step is the one gated on it, while the
     // mirror, the seed and the audit each read their own patch of disk and decide for themselves.
-    setupWorktreeAlreadyOnDisk: ({ worktreePath }: { worktreePath: AbsoluteFilePath }): void => {
+    setupWorktreeAlreadyOnDisk: ({ worktreePath }: { worktreePath: string }): void => {
       isAccessibleProxy.present({ path: worktreePath });
     },
 
-    setupNoBaseBranch: ({ worktreePath }: { worktreePath: AbsoluteFilePath }): void => {
+    setupNoBaseBranch: ({ worktreePath }: { worktreePath: string }): void => {
       isAccessibleProxy.missing({ path: worktreePath });
       detectBaseBranchProxy.setupNeitherExists();
     },

@@ -7,7 +7,6 @@
  * proxy.stagesShot({ shotPath, width: 4, height: 4, pixels: new Uint8Array([...]) });
  */
 
-import type { AbsoluteFilePath } from '@dungeonmaster/shared/contracts';
 
 import { BufferLengthsStub } from '../../../contracts/buffer-lengths/buffer-lengths.stub';
 import type { BrowserSession } from '../../../contracts/browser-session/browser-session-contract';
@@ -15,7 +14,7 @@ import { shotBlankReadBrokerProxy } from '../../shot/blank-read/shot-blank-read-
 
 export const stepHealthBrokerProxy = (): {
   stagesShot: (params: {
-    shotPath: AbsoluteFilePath;
+    shotPath: string;
     width: number;
     height: number;
     pixels: Uint8Array;

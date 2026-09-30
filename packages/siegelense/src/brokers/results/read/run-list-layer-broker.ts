@@ -18,8 +18,7 @@
 
 import { join } from '#gateway/node/path';
 import { locationsStatics } from '@dungeonmaster/shared/statics';
-import { absoluteFilePathContract } from '@dungeonmaster/shared/contracts';
-import type { AbsoluteFilePath, SiegeRun } from '@dungeonmaster/shared/contracts';
+import type { SiegeRun } from '@dungeonmaster/shared/contracts';
 
 import { readdirIfExists } from '#gateway/node/fs__promises';
 import type { ReadingCount } from '../../../contracts/reading-count/reading-count-contract';
@@ -28,11 +27,9 @@ import { runEvidenceComputeTransformer } from '../../../transformers/run-evidenc
 export const runListLayerBroker = async ({
   evidencePath,
 }: {
-  evidencePath: AbsoluteFilePath;
+  evidencePath: string;
 }): Promise<{ runCount: ReadingCount; latestRunId: SiegeRun['id'] | null; evidenceComplete: boolean }> => {
-  const runsDir = absoluteFilePathContract.parse(
-    join(evidencePath, locationsStatics.siegelense.runsDir),
-  );
+  const runsDir = join(evidencePath, locationsStatics.siegelense.runsDir);
 
   const entries = (await readdirIfExists(runsDir)) ?? [];
 

@@ -5,7 +5,6 @@
  * const reports = await duplicateDetectionDetectBroker({ pattern: '**\/*.ts', cwd: '/path', threshold: 3, minLength: 3 });
  * // Returns: readonly DuplicateLiteralReport[] (array of duplicate literal reports sorted by occurrence count)
  */
-import type { AbsoluteFilePath } from '../../../contracts/absolute-file-path/absolute-file-path-contract';
 import type { DuplicateLiteralReport } from '../../../contracts/duplicate-literal-report/duplicate-literal-report-contract';
 import type { LiteralOccurrence } from '../../../contracts/literal-occurrence/literal-occurrence-contract';
 import type { LiteralValue } from '../../../contracts/literal-value/literal-value-contract';
@@ -13,7 +12,6 @@ import type { OccurrenceThreshold } from '../../../contracts/occurrence-threshol
 import { glob } from '#gateway/npm/glob';
 import { readFile } from '#gateway/node/fs__promises';
 import { typescriptParseBroker } from '../../typescript/parse/typescript-parse-broker';
-import { absoluteFilePathContract } from '../../../contracts/absolute-file-path/absolute-file-path-contract';
 import { sourceCodeContract } from '../../../contracts/source-code/source-code-contract';
 import { duplicateLiteralReportContract } from '../../../contracts/duplicate-literal-report/duplicate-literal-report-contract';
 import { literalTypeContract } from '../../../contracts/literal-type/literal-type-contract';
@@ -28,7 +26,7 @@ export const duplicateDetectionDetectBroker = async ({
   minLength,
 }: {
   pattern: string;
-  cwd?: AbsoluteFilePath;
+  cwd?: string;
   threshold?: OccurrenceThreshold;
   minLength?: number;
 }): Promise<readonly DuplicateLiteralReport[]> => {
@@ -41,7 +39,7 @@ export const duplicateDetectionDetectBroker = async ({
     nodir: false,
     ignore: globIgnoreStatics.defaults,
   });
-  const filePaths = matches.map((match) => absoluteFilePathContract.parse(match));
+  const filePaths = matches.map((match) => match);
 
   // Aggregate literals across all files
   const globalLiteralsMap = new Map<LiteralValue, LiteralOccurrence[]>();

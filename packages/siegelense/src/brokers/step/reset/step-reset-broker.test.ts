@@ -1,5 +1,4 @@
 import type { DirEntrySync } from '#gateway/node/fs';
-import { AbsoluteFilePathStub } from '@dungeonmaster/shared/contracts/absolute-file-path/absolute-file-path.stub';
 import { FileNameStub } from '@dungeonmaster/shared/contracts/file-name/file-name.stub';
 
 import { BrowserSessionStub } from '../../../contracts/browser-session/browser-session.stub';
@@ -65,9 +64,7 @@ describe('stepResetBroker', () => {
         browser: BrowserSessionStub({ clearStorage: mockClearStorage }),
       });
       const snapshotName = SnapshotNameStub({ value: 'clean' });
-      const payloadPath = AbsoluteFilePathStub({
-        value: `${String(lane.homePath)}/.siegelense-snapshots/1`,
-      });
+      const payloadPath = `${String(lane.homePath)}/.siegelense-snapshots/1`;
 
       proxy.setupSnapshots({
         homePath: lane.homePath,
@@ -80,12 +77,8 @@ describe('stepResetBroker', () => {
       });
 
       const fileName = FileNameStub({ value: 'db.json' });
-      const homeFile = AbsoluteFilePathStub({
-        value: `${String(lane.homePath)}/${String(fileName)}`,
-      });
-      const payloadFile = AbsoluteFilePathStub({
-        value: `${String(payloadPath)}/${String(fileName)}`,
-      });
+      const homeFile = `${String(lane.homePath)}/${String(fileName)}`;
+      const payloadFile = `${String(payloadPath)}/${String(fileName)}`;
 
       proxy.setupRestoreDirectories({
         dirs: [
@@ -135,9 +128,7 @@ describe('stepResetBroker', () => {
       const proxy = stepResetBrokerProxy();
       const lane = LaneSessionStub({ browser: null });
       const snapshotName = SnapshotNameStub({ value: 'init' });
-      const payloadPath = AbsoluteFilePathStub({
-        value: `${String(lane.homePath)}/.siegelense-snapshots/1`,
-      });
+      const payloadPath = `${String(lane.homePath)}/.siegelense-snapshots/1`;
 
       proxy.setupSnapshots({
         homePath: lane.homePath,
@@ -211,9 +202,7 @@ describe('stepResetBroker', () => {
         browser: BrowserSessionStub({ clearStorage: mockClearStorage }),
       });
       const snapshotName = SnapshotNameStub({ value: 'clean' });
-      const payloadPath = AbsoluteFilePathStub({
-        value: `${String(lane.homePath)}/.siegelense-snapshots/1`,
-      });
+      const payloadPath = `${String(lane.homePath)}/.siegelense-snapshots/1`;
 
       proxy.setupSnapshots({
         homePath: lane.homePath,
@@ -269,12 +258,8 @@ describe('stepResetBroker', () => {
     it('VALID: with no to and an earlier boot capture => restores the earliest snapshot and reports what it undid (DEF-82)', async () => {
       const proxy = stepResetBrokerProxy();
       const lane = LaneSessionStub({ browser: null });
-      const bootPayloadPath = AbsoluteFilePathStub({
-        value: `${String(lane.homePath)}/.siegelense-snapshots/1`,
-      });
-      const laterPayloadPath = AbsoluteFilePathStub({
-        value: `${String(lane.homePath)}/.siegelense-snapshots/2`,
-      });
+      const bootPayloadPath = `${String(lane.homePath)}/.siegelense-snapshots/1`;
+      const laterPayloadPath = `${String(lane.homePath)}/.siegelense-snapshots/2`;
 
       // The index in RAW capture order: run_1:start is the earliest — the boot state — and
       // run_1:end postdates the seed step that ran between them.
@@ -293,9 +278,7 @@ describe('stepResetBroker', () => {
       });
 
       const seededFileName = FileNameStub({ value: 'guild-1.json' });
-      const seededFilePath = AbsoluteFilePathStub({
-        value: `${String(lane.homePath)}/${String(seededFileName)}`,
-      });
+      const seededFilePath = `${String(lane.homePath)}/${String(seededFileName)}`;
 
       proxy.setupRestoreDirectories({
         dirs: [

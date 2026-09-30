@@ -7,7 +7,6 @@
  */
 
 import { readdirIfExists, readFile } from '#gateway/node/fs__promises';
-import { type AbsoluteFilePath } from '@dungeonmaster/shared/contracts';
 
 import {
   wardRunResultContract,
@@ -21,7 +20,7 @@ export const storageLoadBroker = async ({
   rootPath,
   runId,
 }: {
-  rootPath: AbsoluteFilePath;
+  rootPath: string;
   runId?: WardRunResult['runId'];
 }): Promise<WardRunResult | null> => {
   const wardDir = `${rootPath}/.ward`;

@@ -1,4 +1,3 @@
-import { AbsoluteFilePathStub } from '@dungeonmaster/shared/contracts/absolute-file-path/absolute-file-path.stub';
 import { ContentTextStub } from '@dungeonmaster/shared/contracts/content-text/content-text.stub';
 
 import { LaneSessionStub } from '../../../contracts/lane-session/lane-session.stub';
@@ -21,7 +20,7 @@ describe('stepSeedBroker', () => {
       });
       const seedRun = proxy.stagesSeedRun({ result: { guild: { id: 'g1', urlSlug: 'guild-1' } } });
       const lane = LaneSessionStub({
-        homePath: AbsoluteFilePathStub({ value: '/tmp/dm-siege-seed-lane' }),
+        homePath: '/tmp/dm-siege-seed-lane',
         baseUrl: ContentTextStub({ value: 'http://127.0.0.1:40410' }),
       });
       const step = StepStub({

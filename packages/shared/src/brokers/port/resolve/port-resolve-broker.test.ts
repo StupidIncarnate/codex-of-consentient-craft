@@ -1,6 +1,5 @@
 import { portResolveBroker } from './port-resolve-broker';
 import { portResolveBrokerProxy } from './port-resolve-broker.proxy';
-import { AbsoluteFilePathStub } from '../../../contracts/absolute-file-path/absolute-file-path.stub';
 import { NetworkPortStub } from '../../../contracts/network-port/network-port.stub';
 
 describe('portResolveBroker', () => {
@@ -11,7 +10,7 @@ describe('portResolveBroker', () => {
       proxy.setupConfigPort({ startDir: '/project', port: 4800 });
 
       const result = portResolveBroker({
-        startDir: AbsoluteFilePathStub({ value: '/project' }),
+        startDir: '/project',
       });
 
       proxy.clearEnvPort();
@@ -25,7 +24,7 @@ describe('portResolveBroker', () => {
       proxy.setupConfigPort({ startDir: '/project', port: 4800 });
 
       const result = portResolveBroker({
-        startDir: AbsoluteFilePathStub({ value: '/project' }),
+        startDir: '/project',
       });
 
       proxy.clearEnvPort();
@@ -39,7 +38,7 @@ describe('portResolveBroker', () => {
       proxy.setupConfigPort({ startDir: '/project', port: 4800 });
 
       const result = portResolveBroker({
-        startDir: AbsoluteFilePathStub({ value: '/project' }),
+        startDir: '/project',
       });
 
       proxy.clearEnvPort();
@@ -55,7 +54,7 @@ describe('portResolveBroker', () => {
       proxy.setupConfigPort({ startDir: '/project', port: 4800 });
 
       const result = portResolveBroker({
-        startDir: AbsoluteFilePathStub({ value: '/project' }),
+        startDir: '/project',
       });
 
       expect(result).toBe(NetworkPortStub({ value: 4800 }));
@@ -69,7 +68,7 @@ describe('portResolveBroker', () => {
       proxy.setupNoConfig({ startDir: '/no-config' });
 
       const result = portResolveBroker({
-        startDir: AbsoluteFilePathStub({ value: '/no-config' }),
+        startDir: '/no-config',
       });
 
       expect(result).toBe(NetworkPortStub({ value: 3737 }));

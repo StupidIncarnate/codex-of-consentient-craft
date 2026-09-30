@@ -11,8 +11,6 @@
  * state/ folder convention
  */
 
-import { absoluteFilePathContract } from '../../../contracts/absolute-file-path/absolute-file-path-contract';
-import type { AbsoluteFilePath } from '../../../contracts/absolute-file-path/absolute-file-path-contract';
 import {
   contentTextContract,
   type ContentText,
@@ -22,9 +20,9 @@ import { safeReaddirLayerBroker } from './safe-readdir-layer-broker';
 export const stateDirsFindLayerBroker = ({
   packageRoot,
 }: {
-  packageRoot: AbsoluteFilePath;
+  packageRoot: string;
 }): ContentText[] => {
-  const stateDirPath = absoluteFilePathContract.parse(`${String(packageRoot)}/src/state`);
+  const stateDirPath = `${String(packageRoot)}/src/state`;
   const entries = safeReaddirLayerBroker({ dirPath: stateDirPath });
 
   return entries

@@ -1,12 +1,11 @@
 import { stateDirsFindLayerBroker } from './state-dirs-find-layer-broker';
 import { stateDirsFindLayerBrokerProxy } from './state-dirs-find-layer-broker.proxy';
-import { AbsoluteFilePathStub } from '../../../contracts/absolute-file-path/absolute-file-path.stub';
 
 describe('stateDirsFindLayerBroker', () => {
   describe('state directory with subdirs', () => {
     it('VALID: {state dir with two stores} => returns their names as ContentText[]', () => {
       const proxy = stateDirsFindLayerBrokerProxy();
-      const packageRoot = AbsoluteFilePathStub({ value: '/repo/packages/orchestrator' });
+      const packageRoot = '/repo/packages/orchestrator';
 
       proxy.setupStateDirs({ packageRoot, names: ['design-process', 'quest-execution-queue'] });
 
@@ -19,7 +18,7 @@ describe('stateDirsFindLayerBroker', () => {
   describe('empty state directory', () => {
     it('EMPTY: {state dir with no subdirs} => returns empty array', () => {
       const proxy = stateDirsFindLayerBrokerProxy();
-      const packageRoot = AbsoluteFilePathStub({ value: '/repo/packages/server' });
+      const packageRoot = '/repo/packages/server';
 
       proxy.setupEmpty({ packageRoot });
 
@@ -32,7 +31,7 @@ describe('stateDirsFindLayerBroker', () => {
   describe('missing state directory', () => {
     it('ERROR: {no state dir exists} => returns empty array', () => {
       const proxy = stateDirsFindLayerBrokerProxy();
-      const packageRoot = AbsoluteFilePathStub({ value: '/repo/packages/shared' });
+      const packageRoot = '/repo/packages/shared';
 
       proxy.setupMissing({ packageRoot });
 

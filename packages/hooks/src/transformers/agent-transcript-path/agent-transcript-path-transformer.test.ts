@@ -1,4 +1,3 @@
-import { AbsoluteFilePathStub } from '@dungeonmaster/shared/contracts/absolute-file-path/absolute-file-path.stub';
 import { agentTranscriptPathTransformer } from './agent-transcript-path-transformer';
 
 describe('agentTranscriptPathTransformer', () => {
@@ -9,10 +8,8 @@ describe('agentTranscriptPathTransformer', () => {
     });
 
     expect(result).toStrictEqual([
-      AbsoluteFilePathStub({
-        value: '/home/user/.claude/projects/-repo/session123/subagents/agent-abc.jsonl',
-      }),
-      AbsoluteFilePathStub({ value: '/home/user/.claude/projects/-repo/agent-abc.jsonl' }),
+      '/home/user/.claude/projects/-repo/session123/subagents/agent-abc.jsonl',
+      '/home/user/.claude/projects/-repo/agent-abc.jsonl',
     ]);
   });
 
@@ -23,13 +20,8 @@ describe('agentTranscriptPathTransformer', () => {
     });
 
     expect(result).toStrictEqual([
-      AbsoluteFilePathStub({
-        value: '/home/user/.claude/projects/-repo/session123/subagents/agent-abc.jsonl',
-      }),
-      AbsoluteFilePathStub({
-        value:
-          '/home/user/.claude/projects/-repo/session123/subagents/agent-abc/subagents/agent-abc.jsonl',
-      }),
+      '/home/user/.claude/projects/-repo/session123/subagents/agent-abc.jsonl',
+      '/home/user/.claude/projects/-repo/session123/subagents/agent-abc/subagents/agent-abc.jsonl',
     ]);
   });
 
@@ -40,13 +32,8 @@ describe('agentTranscriptPathTransformer', () => {
     });
 
     expect(result).toStrictEqual([
-      AbsoluteFilePathStub({
-        value:
-          '/home/user/.claude/projects/-repo/session123/subagents/agent-OTHER/subagents/agent-abc.jsonl',
-      }),
-      AbsoluteFilePathStub({
-        value: '/home/user/.claude/projects/-repo/session123/subagents/agent-abc.jsonl',
-      }),
+      '/home/user/.claude/projects/-repo/session123/subagents/agent-OTHER/subagents/agent-abc.jsonl',
+      '/home/user/.claude/projects/-repo/session123/subagents/agent-abc.jsonl',
     ]);
   });
 
@@ -57,10 +44,8 @@ describe('agentTranscriptPathTransformer', () => {
     });
 
     expect(result).toStrictEqual([
-      AbsoluteFilePathStub({
-        value: '/home/user/.claude/projects/-repo/session123/subagents/agent-abc.jsonl',
-      }),
-      AbsoluteFilePathStub({ value: '/home/user/.claude/projects/-repo/agent-abc.jsonl' }),
+      '/home/user/.claude/projects/-repo/session123/subagents/agent-abc.jsonl',
+      '/home/user/.claude/projects/-repo/agent-abc.jsonl',
     ]);
   });
 
@@ -71,8 +56,8 @@ describe('agentTranscriptPathTransformer', () => {
     });
 
     expect(result).toStrictEqual([
-      AbsoluteFilePathStub({ value: '/s/subagents/agent-z9.jsonl' }),
-      AbsoluteFilePathStub({ value: '/s/subagents/agent-z9/subagents/agent-z9.jsonl' }),
+      '/s/subagents/agent-z9.jsonl',
+      '/s/subagents/agent-z9/subagents/agent-z9.jsonl',
     ]);
   });
 
@@ -80,8 +65,8 @@ describe('agentTranscriptPathTransformer', () => {
     const result = agentTranscriptPathTransformer({ transcriptPath: '', agentId: '' });
 
     expect(result).toStrictEqual([
-      AbsoluteFilePathStub({ value: '/subagents/agent-.jsonl' }),
-      AbsoluteFilePathStub({ value: '/agent-.jsonl' }),
+      '/subagents/agent-.jsonl',
+      '/agent-.jsonl',
     ]);
   });
 });

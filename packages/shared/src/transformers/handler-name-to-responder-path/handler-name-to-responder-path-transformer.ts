@@ -14,8 +14,6 @@
  * WHEN-NOT-TO-USE: When the handler uses a non-standard naming convention
  */
 
-import { absoluteFilePathContract } from '../../contracts/absolute-file-path/absolute-file-path-contract';
-import type { AbsoluteFilePath } from '../../contracts/absolute-file-path/absolute-file-path-contract';
 import type { ContentText } from '../../contracts/content-text/content-text-contract';
 
 export const handlerNameToResponderPathTransformer = ({
@@ -23,8 +21,8 @@ export const handlerNameToResponderPathTransformer = ({
   packageSrcPath,
 }: {
   handlerName: ContentText;
-  packageSrcPath: AbsoluteFilePath;
-}): AbsoluteFilePath => {
+  packageSrcPath: string;
+}): string => {
   // Convert PascalCase to kebab-case: ArchitectureHandleResponder → architecture-handle-responder
   const kebab = String(handlerName)
     .replace(/([A-Z])/gu, '-$1')
@@ -36,5 +34,5 @@ export const handlerNameToResponderPathTransformer = ({
   const domain = handleIdx === -1 ? kebab : kebab.slice(0, handleIdx);
 
   const filePath = `${String(packageSrcPath)}/responders/${domain}/handle/${kebab}.ts`;
-  return absoluteFilePathContract.parse(filePath);
+  return filePath;
 };

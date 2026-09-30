@@ -22,7 +22,6 @@
  */
 
 import { locationsNodeModulesPathFindBroker } from '@dungeonmaster/shared/brokers';
-import type { AbsoluteFilePath } from '@dungeonmaster/shared/contracts';
 
 import { pathExists } from '#gateway/node/fs__promises';
 import { populateOneRootLayerBroker } from './populate-one-root-layer-broker';
@@ -32,8 +31,8 @@ export const worktreePopulateNodeModulesBroker = async ({
   worktreePath,
   onLine,
 }: {
-  repoRoot: AbsoluteFilePath;
-  worktreePath: AbsoluteFilePath;
+  repoRoot: string;
+  worktreePath: string;
   // Required, never optional — see packages/shared/CLAUDE.md, "Streaming Adapters". Threaded
   // straight into every root pass so the panel names each root as it is reached.
   onLine: (line: string) => void;

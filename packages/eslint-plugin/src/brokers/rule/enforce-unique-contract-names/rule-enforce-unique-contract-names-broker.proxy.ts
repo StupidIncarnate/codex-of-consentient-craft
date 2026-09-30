@@ -1,5 +1,4 @@
 import { ownerIndexBuildBrokerProxy } from '@dungeonmaster/shared/brokers/owner-index/build/owner-index-build-broker.proxy';
-import { AbsoluteFilePathStub } from '@dungeonmaster/shared/contracts/absolute-file-path/absolute-file-path.stub';
 
 const OBJECT_TEXT = [
   "import { z } from 'zod';",
@@ -30,31 +29,29 @@ export const ruleEnforceUniqueContractNamesBrokerProxy = (): {
   return {
     setupProject: (): void => {
       buildProxy.setupSubfolders({
-        dirPath: AbsoluteFilePathStub({ value: '/project/packages' }),
+        dirPath: '/project/packages',
         folders: ['alpha', 'beta'],
       });
       for (const [name, folders] of [
         ['alpha', ['thing', 'solo', 'label']],
         ['beta', ['thing', 'label']],
       ] as const) {
-        const packageDir = AbsoluteFilePathStub({ value: `/project/packages/${name}` });
-        const srcDir = AbsoluteFilePathStub({ value: `${packageDir}/src` });
-        const contractsDir = AbsoluteFilePathStub({ value: `${srcDir}/contracts` });
+        const packageDir = `/project/packages/${name}`;
+        const srcDir = `${packageDir}/src`;
+        const contractsDir = `${srcDir}/contracts`;
         buildProxy.setupPackageJson({ packageDir, json: `{"name":"@project/${name}"}` });
         buildProxy.setupWalkedFolder({ dirPath: packageDir, folders: ['src'], files: [] });
         buildProxy.setupWalkedFolder({ dirPath: srcDir, folders: ['contracts'], files: [] });
         buildProxy.setupWalkedFolder({ dirPath: contractsDir, folders, files: [] });
         for (const folder of folders) {
           buildProxy.setupWalkedFolder({
-            dirPath: AbsoluteFilePathStub({ value: `${contractsDir}/${folder}` }),
+            dirPath: `${contractsDir}/${folder}`,
             folders: [],
             files: [`${folder}-contract.ts`],
           });
           const texts = { thing: OBJECT_TEXT, solo: SOLO_TEXT, label: SCALAR_TEXT };
           buildProxy.setupSourceText({
-            filePath: AbsoluteFilePathStub({
-              value: `${contractsDir}/${folder}/${folder}-contract.ts`,
-            }),
+            filePath: `${contractsDir}/${folder}/${folder}-contract.ts`,
             text: texts[folder],
           });
         }

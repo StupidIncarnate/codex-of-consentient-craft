@@ -59,7 +59,7 @@ import {
   questGetBroker,
   questModifyBroker,
 } from '@dungeonmaster/orchestrator/brokers';
-import { absoluteFilePathContract, getQuestInputContract, guildNameContract, guildPathContract, modifyQuestInputContract, operationItemContract, questContract, guildContract } from '@dungeonmaster/shared/contracts';
+import { getQuestInputContract, guildNameContract, guildPathContract, modifyQuestInputContract, operationItemContract, questContract, guildContract } from '@dungeonmaster/shared/contracts';
 import type { Quest, Guild } from '@dungeonmaster/shared/contracts';
 import { dungeonmasterHomeStatics, questFlowStatics } from '@dungeonmaster/shared/statics';
 import { installTestbedCreateBroker } from '@dungeonmaster/testing';
@@ -120,7 +120,7 @@ export const liveQuestTargetHarness = ({
       if (testbed === undefined) {
         throw new Error('liveQuestTargetHarness: target() called outside beforeEach/afterEach');
       }
-      const home = absoluteFilePathContract.parse(testbed.guildPath);
+      const home = testbed.guildPath;
       const innerTarget = DmTargetStub({ home, claudeHome: home });
       // `questContract` carries no `guildId` field (a quest's parent is its FOLDER on disk, never a
       // field on the record — `quest-fields-contract.ts`'s own header) so a later `/start` rewrite

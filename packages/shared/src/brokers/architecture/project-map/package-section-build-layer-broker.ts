@@ -13,8 +13,6 @@
 import { architectureBootTreeBroker } from '../boot-tree/architecture-boot-tree-broker';
 import { architectureOrphanDetectBroker } from '../orphan-detect/architecture-orphan-detect-broker';
 import { architectureResponderAnnotationsBroker } from '../responder-annotations/architecture-responder-annotations-broker';
-import { absoluteFilePathContract } from '../../../contracts/absolute-file-path/absolute-file-path-contract';
-import type { AbsoluteFilePath } from '../../../contracts/absolute-file-path/absolute-file-path-contract';
 import type { ContentText } from '../../../contracts/content-text/content-text-contract';
 import { contentTextContract } from '../../../contracts/content-text/content-text-contract';
 import type { PackageType } from '../../../contracts/package-type/package-type-contract';
@@ -26,9 +24,9 @@ export const packageSectionBuildLayerBroker = ({
   projectRoot,
 }: {
   packageName: ContentText;
-  packageRoot: AbsoluteFilePath;
+  packageRoot: string;
   packageType: PackageType;
-  projectRoot: AbsoluteFilePath;
+  projectRoot: string;
 }): ContentText => {
   const packageParts: ContentText[] = [];
 
@@ -50,7 +48,7 @@ export const packageSectionBuildLayerBroker = ({
     }),
   );
 
-  const packageSrcPath = absoluteFilePathContract.parse(`${String(packageRoot)}/src`);
+  const packageSrcPath = `${String(packageRoot)}/src`;
   const orphanSection = architectureOrphanDetectBroker({ packageSrcPath });
   if (String(orphanSection).length > 0) {
     packageParts.push(orphanSection);

@@ -1,5 +1,4 @@
 import { installTestbedCreateBroker } from '@dungeonmaster/testing';
-import { AbsoluteFilePathStub } from '@dungeonmaster/shared/contracts/absolute-file-path/absolute-file-path.stub';
 import { FileNameStub } from '@dungeonmaster/shared/contracts/file-name/file-name.stub';
 import { QuestBranchNameStub } from '@dungeonmaster/shared/contracts/quest-branch-name/quest-branch-name.stub';
 import { QuestIdStub } from '@dungeonmaster/shared/contracts/quest-id/quest-id.stub';
@@ -20,7 +19,7 @@ describe('worktreeEnsureQuestBranchBroker (integration) — real drift restore a
 
   it('VALID: {worktree drifted onto a stray branch, kind: worktree} => the worktree really is back on the quest branch afterwards', async () => {
     const testbed = installTestbedCreateBroker({ baseName: 'weqb-drift' });
-    const repoPath = AbsoluteFilePathStub({ value: testbed.guildPath });
+    const repoPath = testbed.guildPath;
 
     await git.initRepoWithPackages({
       repoPath,
@@ -31,7 +30,7 @@ describe('worktreeEnsureQuestBranchBroker (integration) — real drift restore a
     await git.createBranchAt({ repoPath, branchName: strayBranch });
 
     const worktreeValue = `${testbed.guildPath}/worktrees/weqb-drift-11112222`;
-    const worktreePath = AbsoluteFilePathStub({ value: worktreeValue });
+    const worktreePath = worktreeValue;
     const branchName = QuestBranchNameStub({ value: 'quest/weqb-drift-11112222' });
     await worktreeAdd({
       cwd: repoPath,
@@ -75,7 +74,7 @@ describe('worktreeEnsureQuestBranchBroker (integration) — real drift restore a
     const testbed = installTestbedCreateBroker({
       baseName: 'weqb-skip',
     });
-    const repoPath = AbsoluteFilePathStub({ value: testbed.guildPath });
+    const repoPath = testbed.guildPath;
 
     await git.initRepoWithPackages({
       repoPath,
@@ -86,7 +85,7 @@ describe('worktreeEnsureQuestBranchBroker (integration) — real drift restore a
     await git.createBranchAt({ repoPath, branchName: strayBranch });
 
     const worktreeValue = `${testbed.guildPath}/worktrees/weqb-skip-33334444`;
-    const worktreePath = AbsoluteFilePathStub({ value: worktreeValue });
+    const worktreePath = worktreeValue;
     const branchName = QuestBranchNameStub({ value: 'quest/weqb-skip-33334444' });
     await worktreeAdd({
       cwd: repoPath,
@@ -124,7 +123,7 @@ describe('worktreeEnsureQuestBranchBroker (integration) — real drift restore a
     const testbed = installTestbedCreateBroker({
       baseName: 'weqb-hostile',
     });
-    const repoPath = AbsoluteFilePathStub({ value: testbed.guildPath });
+    const repoPath = testbed.guildPath;
 
     await git.initRepoWithPackages({
       repoPath,
@@ -135,7 +134,7 @@ describe('worktreeEnsureQuestBranchBroker (integration) — real drift restore a
     await git.createBranchAt({ repoPath, branchName: strayBranch });
 
     const worktreeValue = `${testbed.guildPath}/worktrees/weqb hostile (dir)-55556666`;
-    const worktreePath = AbsoluteFilePathStub({ value: worktreeValue });
+    const worktreePath = worktreeValue;
     // Hostile fixture member, kept to what git will actually accept as a ref: non-ASCII plus the
     // punctuation `git check-ref-format` allows mid-segment. The DIRECTORY carries the spaces and
     // parentheses instead, so both the cwd and the branch argument have to survive argv unquoted.

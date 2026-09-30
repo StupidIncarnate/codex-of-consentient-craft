@@ -10,11 +10,10 @@
 
 import { readFileSyncIfExists } from '#gateway/node/fs';
 import { join } from '#gateway/node/path';
-import type { AbsoluteFilePath } from '@dungeonmaster/shared/contracts';
 
 import { packageJsonContract } from '../../../contracts/package-json/package-json-contract';
 
-export const binWorkspaceRootLayerBroker = ({ dir }: { dir: AbsoluteFilePath }): boolean => {
+export const binWorkspaceRootLayerBroker = ({ dir }: { dir: string }): boolean => {
   const raw = readFileSyncIfExists(join(dir, 'package.json'));
   if (raw === null) {
     return false;

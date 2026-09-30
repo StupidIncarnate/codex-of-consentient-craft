@@ -1,6 +1,5 @@
 import { architectureProjectMapBroker } from './architecture-project-map-broker';
 import { architectureProjectMapBrokerProxy } from './architecture-project-map-broker.proxy';
-import { AbsoluteFilePathStub } from '../../../contracts/absolute-file-path/absolute-file-path.stub';
 import { PackageNameStub } from '../../../contracts/package-name/package-name.stub';
 import { ContentTextStub } from '../../../contracts/content-text/content-text.stub';
 import { projectMapStatics } from '../../../statics/project-map/project-map-statics';
@@ -9,7 +8,7 @@ describe('architectureProjectMapBroker', () => {
   describe('symbol legend and URL pairing convention header', () => {
     it('VALID: {single library package, packages: [shared]} => output starts with symbol legend', async () => {
       const proxy = architectureProjectMapBrokerProxy();
-      const projectRoot = AbsoluteFilePathStub({ value: '/project' });
+      const projectRoot = '/project';
       proxy.setupLibraryPackage({ projectRoot, packageName: 'shared' });
 
       const result = await architectureProjectMapBroker({
@@ -24,7 +23,7 @@ describe('architectureProjectMapBroker', () => {
   describe('library packages', () => {
     it('VALID: {library package named shared, packages: [shared]} => renders # shared [library] header', async () => {
       const proxy = architectureProjectMapBrokerProxy();
-      const projectRoot = AbsoluteFilePathStub({ value: '/project' });
+      const projectRoot = '/project';
       proxy.setupLibraryPackage({ projectRoot, packageName: 'shared' });
 
       const result = await architectureProjectMapBroker({
@@ -41,7 +40,7 @@ describe('architectureProjectMapBroker', () => {
 
     it('VALID: {library package, packages: [shared]} => header is followed by the inventory pointer', async () => {
       const proxy = architectureProjectMapBrokerProxy();
-      const projectRoot = AbsoluteFilePathStub({ value: '/project' });
+      const projectRoot = '/project';
       proxy.setupLibraryPackage({ projectRoot, packageName: 'shared' });
 
       const result = await architectureProjectMapBroker({
@@ -61,7 +60,7 @@ describe('architectureProjectMapBroker', () => {
 
     it('VALID: {library package, packages: [shared]} => output does not contain ## Boot heading', async () => {
       const proxy = architectureProjectMapBrokerProxy();
-      const projectRoot = AbsoluteFilePathStub({ value: '/project' });
+      const projectRoot = '/project';
       proxy.setupLibraryPackage({ projectRoot, packageName: 'shared' });
 
       const result = await architectureProjectMapBroker({
@@ -80,7 +79,7 @@ describe('architectureProjectMapBroker', () => {
   describe('pointer footer', () => {
     it('VALID: {library package, packages: [shared]} => output ends with pointer footer line', async () => {
       const proxy = architectureProjectMapBrokerProxy();
-      const projectRoot = AbsoluteFilePathStub({ value: '/project' });
+      const projectRoot = '/project';
       proxy.setupLibraryPackage({ projectRoot, packageName: 'shared' });
 
       const result = await architectureProjectMapBroker({
@@ -97,7 +96,7 @@ describe('architectureProjectMapBroker', () => {
   describe('empty monorepo (single-repo mode)', () => {
     it('VALID: {no packages/ dir, root has no startups, packages: [root]} => root renders as a library package', async () => {
       const proxy = architectureProjectMapBrokerProxy();
-      const projectRoot = AbsoluteFilePathStub({ value: '/project' });
+      const projectRoot = '/project';
       proxy.setupEmptyMonorepo({ projectRoot });
 
       const result = await architectureProjectMapBroker({
@@ -116,7 +115,7 @@ describe('architectureProjectMapBroker', () => {
   describe('frontend-ink package', () => {
     it('VALID: {frontend-ink package, packages: [ink-cli]} => renders with # ink-cli [frontend-ink] header', async () => {
       const proxy = architectureProjectMapBrokerProxy();
-      const projectRoot = AbsoluteFilePathStub({ value: '/project' });
+      const projectRoot = '/project';
       proxy.setupFrontendInkPackage({ projectRoot, packageName: 'ink-cli' });
 
       const result = await architectureProjectMapBroker({
@@ -135,7 +134,7 @@ describe('architectureProjectMapBroker', () => {
   describe('packages filter', () => {
     it('VALID: {renderable package, packages: [non-matching name]} => header for that package is NOT rendered', async () => {
       const proxy = architectureProjectMapBrokerProxy();
-      const projectRoot = AbsoluteFilePathStub({ value: '/project' });
+      const projectRoot = '/project';
       proxy.setupRenderablePackage({ projectRoot, packageName: 'mcp' });
 
       const result = await architectureProjectMapBroker({
@@ -154,7 +153,7 @@ describe('architectureProjectMapBroker', () => {
   describe('@-scoped group folders (gateway packages)', () => {
     it('VALID: {packages/@gateway/npm on disk, packages: [npm]} => renders the npm section by its bare name', async () => {
       const proxy = architectureProjectMapBrokerProxy();
-      const projectRoot = AbsoluteFilePathStub({ value: '/project' });
+      const projectRoot = '/project';
       proxy.setupGatewayGroupPackage({ projectRoot, groupName: '@gateway', packageName: 'npm' });
 
       const result = await architectureProjectMapBroker({
@@ -171,7 +170,7 @@ describe('architectureProjectMapBroker', () => {
 
     it('INVALID: {packages/@gateway/npm on disk, packages: [@gateway]} => throws Unknown package(s), so the group itself is never a valid name', async () => {
       const proxy = architectureProjectMapBrokerProxy();
-      const projectRoot = AbsoluteFilePathStub({ value: '/project' });
+      const projectRoot = '/project';
       proxy.setupGatewayGroupPackage({ projectRoot, groupName: '@gateway', packageName: 'npm' });
 
       await expect(
@@ -186,7 +185,7 @@ describe('architectureProjectMapBroker', () => {
   describe('#gateway grouped view', () => {
     it('VALID: {packages: [#gateway]} => renders the # #gateway [gateway] header, never "Unknown package(s)"', async () => {
       const proxy = architectureProjectMapBrokerProxy();
-      const projectRoot = AbsoluteFilePathStub({ value: '/project' });
+      const projectRoot = '/project';
       proxy.setupEmptyMonorepo({ projectRoot });
 
       const result = await architectureProjectMapBroker({
@@ -207,7 +206,7 @@ describe('architectureProjectMapBroker', () => {
 
     it('VALID: {packages: [#gateway], a real node/fs subpath on disk} => the grouped body appears inline', async () => {
       const proxy = architectureProjectMapBrokerProxy();
-      const projectRoot = AbsoluteFilePathStub({ value: '/project' });
+      const projectRoot = '/project';
       proxy.setupEmptyMonorepo({ projectRoot });
       proxy.setupGatewaySubpath({
         projectRoot,
@@ -234,7 +233,7 @@ describe('architectureProjectMapBroker', () => {
 
     it('VALID: {packages: [#gateway, root]} => both the gateway section and the other package render', async () => {
       const proxy = architectureProjectMapBrokerProxy();
-      const projectRoot = AbsoluteFilePathStub({ value: '/project' });
+      const projectRoot = '/project';
       proxy.setupEmptyMonorepo({ projectRoot });
 
       const result = await architectureProjectMapBroker({
@@ -252,7 +251,7 @@ describe('architectureProjectMapBroker', () => {
   describe('input validation', () => {
     it('INVALID: {packages: []} => throws "requires at least one package name"', async () => {
       architectureProjectMapBrokerProxy();
-      const projectRoot = AbsoluteFilePathStub({ value: '/project' });
+      const projectRoot = '/project';
 
       await expect(architectureProjectMapBroker({ projectRoot, packages: [] })).rejects.toThrow(
         /requires at least one package name/u,
@@ -261,7 +260,7 @@ describe('architectureProjectMapBroker', () => {
 
     it('INVALID: {packages: [unknown name]} => throws Unknown package error listing valid names', async () => {
       const proxy = architectureProjectMapBrokerProxy();
-      const projectRoot = AbsoluteFilePathStub({ value: '/project' });
+      const projectRoot = '/project';
       proxy.setupRenderablePackage({ projectRoot, packageName: 'mcp' });
 
       await expect(

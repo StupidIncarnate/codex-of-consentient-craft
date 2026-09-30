@@ -1,7 +1,7 @@
 import type { DirEntrySync, FsError } from '#gateway/node/fs';
 import { readdirEntriesSyncProxy } from '#gateway/node/fs/readdir-entries-sync/readdir-entries-sync.proxy';
 import { copyDirContentsProxy } from '#gateway/node/fs__promises/copy-dir-contents/copy-dir-contents.proxy';
-import type { AbsoluteFilePath, FileName } from '@dungeonmaster/shared/contracts';
+import type { FileName } from '@dungeonmaster/shared/contracts';
 
 import { readFileProxy } from '#gateway/node/fs__promises/read-file/read-file.proxy';
 import { rmProxy } from '#gateway/node/fs__promises/rm/rm.proxy';
@@ -11,11 +11,11 @@ import type { FileSizeBytes } from '../../../contracts/file-size-bytes/file-size
 
 export const snapshotRestoreLayerBrokerProxy = (): {
   setupDirectories: (params: {
-    dirs: readonly { dirPath: AbsoluteFilePath; entries: readonly DirEntrySync[] }[];
+    dirs: readonly { dirPath: string; entries: readonly DirEntrySync[] }[];
   }) => void;
   setupFileStats: (params: {
     stats: readonly {
-      filePath: AbsoluteFilePath;
+      filePath: string;
       sizeBytes: FileSizeBytes;
       modifiedAtMs: EpochMs;
     }[];
@@ -24,27 +24,27 @@ export const snapshotRestoreLayerBrokerProxy = (): {
   // test stages a home/payload pair here exactly when it wants to prove the modified-count decision
   // that DEF-81 governs: equal content must not count, no matter what the two mtimes say.
   setupFileContents: (params: {
-    contents: readonly { filePath: AbsoluteFilePath; content: string }[];
+    contents: readonly { filePath: string; content: string }[];
   }) => void;
-  setupRmSucceeds: (params: { filePaths: readonly AbsoluteFilePath[] }) => void;
-  setupCpSucceeds: (params: { sourcePath: AbsoluteFilePath; entries: readonly FileName[] }) => void;
+  setupRmSucceeds: (params: { filePaths: readonly string[] }) => void;
+  setupCpSucceeds: (params: { sourcePath: string; entries: readonly FileName[] }) => void;
   // The copy is entry by entry, so the failure is staged on the SECOND entry: the first lands, then
   // the gateway removes it from the destination before rethrowing.
   setupCpThrows: (params: {
-    sourcePath: AbsoluteFilePath;
-    destinationPath: AbsoluteFilePath;
+    sourcePath: string;
+    destinationPath: string;
     entries: readonly [FileName, FileName];
     error: FsError;
   }) => void;
   getRemovedPaths: () => unknown[];
-  getCopiedFor: (params: { sourcePath: AbsoluteFilePath; entry: FileName }) => unknown;
-  getRolledBackFor: (params: { path: AbsoluteFilePath }) => unknown;
+  getCopiedFor: (params: { sourcePath: string; entry: FileName }) => unknown;
+  getRolledBackFor: (params: { path: string }) => unknown;
 } => {
   const readdirProxy = readdirEntriesSyncProxy();
   const statProxy = statIfExistsProxy();
   const removeProxy = rmProxy();
   // Read-back addresses only the paths this test staged; an unstaged rm already throws.
-  const stagedRmPaths: AbsoluteFilePath[] = [];
+  const stagedRmPaths: string[] = [];
   const cpProxy = copyDirContentsProxy();
   const readProxy = readFileProxy();
 

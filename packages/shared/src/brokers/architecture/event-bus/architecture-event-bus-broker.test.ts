@@ -1,21 +1,12 @@
 import { architectureEventBusBroker } from './architecture-event-bus-broker';
 import { architectureEventBusBrokerProxy } from './architecture-event-bus-broker.proxy';
-import { AbsoluteFilePathStub } from '../../../contracts/absolute-file-path/absolute-file-path.stub';
 import { ContentTextStub } from '../../../contracts/content-text/content-text.stub';
 
-const PROJECT_ROOT = AbsoluteFilePathStub({ value: '/repo' });
-const STATE_FILE = AbsoluteFilePathStub({
-  value: '/repo/packages/foo/src/state/my-bus/my-bus-state.ts',
-});
-const EMITTER_FILE = AbsoluteFilePathStub({
-  value: '/repo/packages/foo/src/responders/emitter/emitter-responder.ts',
-});
-const SUBSCRIBER_ADAPTER = AbsoluteFilePathStub({
-  value: '/repo/packages/bar/src/adapters/foo/events-on/foo-events-on-adapter.ts',
-});
-const GATEWAY_RESPONDER = AbsoluteFilePathStub({
-  value: '/repo/packages/bar/src/responders/server/init/server-init-responder.ts',
-});
+const PROJECT_ROOT = '/repo';
+const STATE_FILE = '/repo/packages/foo/src/state/my-bus/my-bus-state.ts';
+const EMITTER_FILE = '/repo/packages/foo/src/responders/emitter/emitter-responder.ts';
+const SUBSCRIBER_ADAPTER = '/repo/packages/bar/src/adapters/foo/events-on/foo-events-on-adapter.ts';
+const GATEWAY_RESPONDER = '/repo/packages/bar/src/responders/server/init/server-init-responder.ts';
 
 describe('architectureEventBusBroker', () => {
   describe('no source files', () => {

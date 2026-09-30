@@ -6,7 +6,6 @@
  * // Returns ErrorFilePath relative to cwd (e.g., 'src/file.ts' or 'packages/cli/src/file.ts')
  */
 
-import type { AbsoluteFilePath } from '@dungeonmaster/shared/contracts';
 
 import type { ErrorEntry } from '../../contracts/error-entry/error-entry-contract';
 import { errorEntryContract } from '../../contracts/error-entry/error-entry-contract';
@@ -19,7 +18,7 @@ export const toCwdRelativePathTransformer = ({
 }: {
   filePath: ErrorEntry['filePath'];
   projectPath: ProjectFolder['path'];
-  cwd: AbsoluteFilePath;
+  cwd: string;
 }): ErrorEntry['filePath'] => {
   const cwdPrefix = `${String(cwd)}/`;
   const absolute = String(filePath).startsWith('/')

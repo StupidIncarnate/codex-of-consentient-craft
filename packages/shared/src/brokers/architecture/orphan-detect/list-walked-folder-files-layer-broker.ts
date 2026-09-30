@@ -14,8 +14,6 @@
  * reachability walk's `visited` set is compared to surface unreferenced files.
  */
 
-import { absoluteFilePathContract } from '../../../contracts/absolute-file-path/absolute-file-path-contract';
-import type { AbsoluteFilePath } from '../../../contracts/absolute-file-path/absolute-file-path-contract';
 import { isNonTestFileGuard } from '../../../guards/is-non-test-file/is-non-test-file-guard';
 import { safeReaddirLayerBroker } from './safe-readdir-layer-broker';
 import { architectureOrphanDetectStatics } from '../../../statics/architecture-orphan-detect/architecture-orphan-detect-statics';
@@ -26,14 +24,14 @@ const TSX_SUFFIX = '.tsx';
 export const listWalkedFolderFilesLayerBroker = ({
   packageSrcPath,
 }: {
-  packageSrcPath: AbsoluteFilePath;
-}): AbsoluteFilePath[] => {
-  const stack: AbsoluteFilePath[] = [];
+  packageSrcPath: string;
+}): string[] => {
+  const stack: string[] = [];
   for (const folderType of architectureOrphanDetectStatics.walkedFolderTypes) {
-    stack.push(absoluteFilePathContract.parse(`${String(packageSrcPath)}/${folderType}`));
+    stack.push(`${String(packageSrcPath)}/${folderType}`);
   }
 
-  const results: AbsoluteFilePath[] = [];
+  const results: string[] = [];
 
   while (stack.length > 0) {
     const current = stack.pop();
@@ -41,7 +39,7 @@ export const listWalkedFolderFilesLayerBroker = ({
 
     const entries = safeReaddirLayerBroker({ dirPath: current });
     for (const entry of entries) {
-      const entryPath = absoluteFilePathContract.parse(`${String(current)}/${entry.name}`);
+      const entryPath = `${String(current)}/${entry.name}`;
       if (entry.kind === 'directory') {
         stack.push(entryPath);
         continue;

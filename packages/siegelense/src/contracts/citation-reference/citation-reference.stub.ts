@@ -1,5 +1,4 @@
 import type { StubArgument } from '@dungeonmaster/shared/@types';
-import { AbsoluteFilePathStub } from '@dungeonmaster/shared/contracts/absolute-file-path/absolute-file-path.stub';
 import { ContentTextStub } from '@dungeonmaster/shared/contracts/content-text/content-text.stub';
 
 import { CitationKindStub } from '../citation-kind/citation-kind.stub';
@@ -15,7 +14,7 @@ export const CitationReferenceStub = ({
     kind: CitationKindStub({ value: 'walked-note' }),
     instanceId: InstanceIdStub({ value: 'inst_1d09' }),
     runId: RunIdStub({ value: 'run_7' }),
-    citingFile: AbsoluteFilePathStub({ value: '/tmp/quests/q1/quest.json' }),
+    citingFile: '/tmp/quests/q1/quest.json',
     why: ContentTextStub({
       value: 'run_7 cited by a WALKED note on open quest q1 in /tmp/quests/q1/quest.json',
     }),

@@ -9,10 +9,9 @@
  * WHEN-NOT-TO-USE: When you need to distinguish between TypeScript and JavaScript files
  */
 
-import type { AbsoluteFilePath } from '../../contracts/absolute-file-path/absolute-file-path-contract';
 import { projectMapStatics } from '../../statics/project-map/project-map-statics';
 
-export const isSourceFileGuard = ({ filePath }: { filePath?: AbsoluteFilePath }): boolean => {
+export const isSourceFileGuard = ({ filePath }: { filePath?: string }): boolean => {
   if (filePath === undefined) {
     return false;
   }

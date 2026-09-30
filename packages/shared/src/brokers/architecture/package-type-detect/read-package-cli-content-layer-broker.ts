@@ -10,8 +10,6 @@
  * parsed command as a parameter, or vice versa.
  */
 
-import type { AbsoluteFilePath } from '../../../contracts/absolute-file-path/absolute-file-path-contract';
-import { absoluteFilePathContract } from '../../../contracts/absolute-file-path/absolute-file-path-contract';
 import type { ContentText } from '../../../contracts/content-text/content-text-contract';
 import { isBinSourceFileNameGuard } from '../../../guards/is-bin-source-file-name/is-bin-source-file-name-guard';
 import { matchesStartupFileNameGuard } from '../../../guards/matches-startup-file-name/matches-startup-file-name-guard';
@@ -21,28 +19,28 @@ import { safeReaddirLayerBroker } from './safe-readdir-layer-broker';
 export const readPackageCliContentLayerBroker = ({
   packageRoot,
 }: {
-  packageRoot: AbsoluteFilePath;
+  packageRoot: string;
 }): ContentText | undefined => {
   const collected: ContentText[] = [];
 
-  const startupDirPath = absoluteFilePathContract.parse(`${packageRoot}/src/startup`);
+  const startupDirPath = `${packageRoot}/src/startup`;
   const startupEntries = safeReaddirLayerBroker({ dirPath: startupDirPath });
   for (const entry of startupEntries) {
     if (entry.kind === 'directory') continue;
     if (!matchesStartupFileNameGuard({ name: entry.name })) continue;
     const content = readFileOptionalLayerBroker({
-      filePath: absoluteFilePathContract.parse(`${startupDirPath}/${entry.name}`),
+      filePath: `${startupDirPath}/${entry.name}`,
     });
     if (content !== undefined) collected.push(content);
   }
 
-  const binDirPath = absoluteFilePathContract.parse(`${packageRoot}/bin`);
+  const binDirPath = `${packageRoot}/bin`;
   const binEntries = safeReaddirLayerBroker({ dirPath: binDirPath });
   for (const entry of binEntries) {
     if (entry.kind === 'directory') continue;
     if (!isBinSourceFileNameGuard({ name: entry.name })) continue;
     const content = readFileOptionalLayerBroker({
-      filePath: absoluteFilePathContract.parse(`${binDirPath}/${entry.name}`),
+      filePath: `${binDirPath}/${entry.name}`,
     });
     if (content !== undefined) collected.push(content);
   }

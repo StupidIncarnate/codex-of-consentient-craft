@@ -1,7 +1,5 @@
 import { stderrProxy } from '#gateway/node/process/stderr/stderr.proxy';
-import { absoluteFilePathContract } from '@dungeonmaster/shared/contracts';
 import { FileNameStub } from '@dungeonmaster/shared/contracts/file-name/file-name.stub';
-import type { AbsoluteFilePath } from '@dungeonmaster/shared/contracts';
 import { claudeLineNormalizeBrokerProxy } from '@dungeonmaster/shared/brokers/claude-line/normalize/claude-line-normalize-broker.proxy';
 import { stripJsonlSuffixTransformer } from '@dungeonmaster/shared/transformers';
 
@@ -19,10 +17,8 @@ import { startSubagentTailLayerBrokerProxy } from './start-subagent-tail-layer-b
 // but one uses this literal sessionFilePath, so it is the correct default subagentsDir for
 // setupSubagentDirEmpty/Files/FirstLineRead. The one test with a different sessionFilePath
 // (the ENOENT case) calls setupSubagentDirMissing directly with its own sessionFilePath.
-const resolveSubagentsDir = ({ sessionFilePath }: { sessionFilePath: string }): AbsoluteFilePath =>
-  absoluteFilePathContract.parse(
-    `${stripJsonlSuffixTransformer({ filePath: absoluteFilePathContract.parse(sessionFilePath) })}/subagents`,
-  );
+const resolveSubagentsDir = ({ sessionFilePath }: { sessionFilePath: string }): string =>
+  `${stripJsonlSuffixTransformer({ filePath: sessionFilePath })}/subagents`;
 
 const DEFAULT_SUBAGENTS_DIR = resolveSubagentsDir({
   sessionFilePath: '/home/user/.claude/projects/-home-user-proj/abc-123.jsonl',
@@ -38,7 +34,7 @@ export const questMonitorJsonlWatcherBrokerProxy = (): {
     // composing proxy (questMonitorWatcherStartBrokerProxy) whose test drives a
     // different projectDir/parentSessionId. Omit to use the default, matching every
     // test in THIS file's own suite.
-    subagentsDir?: AbsoluteFilePath;
+    subagentsDir?: string;
   }) => void;
   setupFirstLineRead: (params: { content: string }) => void;
   setupFile: (params: { path: string }) => void;
@@ -71,7 +67,7 @@ export const questMonitorJsonlWatcherBrokerProxy = (): {
   // test that later calls setupFirstLineRead staged exactly one file immediately before it,
   // so this is the real fileName + subagentsDir the broker's prompt-pairing read targets.
   const lastStagedFileNamesRef: { value: readonly FileName[] } = { value: [] };
-  const lastStagedSubagentsDirRef: { value: AbsoluteFilePath } = { value: DEFAULT_SUBAGENTS_DIR };
+  const lastStagedSubagentsDirRef: { value: string } = { value: DEFAULT_SUBAGENTS_DIR };
 
   return {
     setupSubagentDirEmpty: (): void => {
@@ -94,7 +90,7 @@ export const questMonitorJsonlWatcherBrokerProxy = (): {
       subagentsDir,
     }: {
       files: readonly FileName[];
-      subagentsDir?: AbsoluteFilePath;
+      subagentsDir?: string;
     }): void => {
       lastStagedFileNamesRef.value = files;
       lastStagedSubagentsDirRef.value = subagentsDir ?? DEFAULT_SUBAGENTS_DIR;

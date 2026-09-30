@@ -4,9 +4,7 @@ import { packageSectionBuildLayerBrokerProxy } from './package-section-build-lay
 import { pointerFooterRenderLayerBrokerProxy } from './pointer-footer-render-layer-broker.proxy';
 import { discoverPackagesLayerBrokerProxy } from './discover-packages-layer-broker.proxy';
 import { ContentTextStub } from '../../../contracts/content-text/content-text.stub';
-import { AbsoluteFilePathStub } from '../../../contracts/absolute-file-path/absolute-file-path.stub';
 import { projectMapStatics } from '../../../statics/project-map/project-map-statics';
-import type { AbsoluteFilePath } from '../../../contracts/absolute-file-path/absolute-file-path-contract';
 import type { ContentText } from '../../../contracts/content-text/content-text-contract';
 
 /**
@@ -23,21 +21,21 @@ export const architectureProjectMapBrokerProxy = (): {
     projectRoot,
     packageName,
   }: {
-    projectRoot: AbsoluteFilePath;
+    projectRoot: string;
     packageName: string;
   }) => void;
   setupRenderablePackage: ({
     projectRoot,
     packageName,
   }: {
-    projectRoot: AbsoluteFilePath;
+    projectRoot: string;
     packageName: string;
   }) => void;
   setupFrontendInkPackage: ({
     projectRoot,
     packageName,
   }: {
-    projectRoot: AbsoluteFilePath;
+    projectRoot: string;
     packageName: string;
   }) => void;
   setupGatewayGroupPackage: ({
@@ -45,18 +43,18 @@ export const architectureProjectMapBrokerProxy = (): {
     groupName,
     packageName,
   }: {
-    projectRoot: AbsoluteFilePath;
+    projectRoot: string;
     groupName: string;
     packageName: string;
   }) => void;
-  setupEmptyMonorepo: ({ projectRoot }: { projectRoot: AbsoluteFilePath }) => void;
+  setupEmptyMonorepo: ({ projectRoot }: { projectRoot: string }) => void;
   setupGatewaySubpath: ({
     projectRoot,
     folder,
     subpathName,
     barrelContent,
   }: {
-    projectRoot: AbsoluteFilePath;
+    projectRoot: string;
     folder: string;
     subpathName: string;
     barrelContent?: ContentText;
@@ -73,15 +71,13 @@ export const architectureProjectMapBrokerProxy = (): {
       projectRoot,
       packageName,
     }: {
-      projectRoot: AbsoluteFilePath;
+      projectRoot: string;
       packageName: string;
     }): void => {
       // Library packages are filtered out before reaching package-section-build, so this
       // setup just configures discovery + type-detection to identify the package as a library.
       discoverProxy.setupPackages({
-        dirPath: AbsoluteFilePathStub({
-          value: `${String(projectRoot)}/${projectMapStatics.packagesDirName}`,
-        }),
+        dirPath: `${String(projectRoot)}/${projectMapStatics.packagesDirName}`,
         entries: [{ name: packageName, isDirectory: true }],
       });
       typeDetectProxy.setupPackage({
@@ -95,16 +91,14 @@ export const architectureProjectMapBrokerProxy = (): {
       projectRoot,
       packageName,
     }: {
-      projectRoot: AbsoluteFilePath;
+      projectRoot: string;
       packageName: string;
     }): void => {
       // Configures a package whose type-detect returns 'programmatic-service' so the package
       // section IS rendered (with a `# name [type]` header). Used by tests that consume the
       // header line (e.g. session-snippet-packages).
       discoverProxy.setupPackages({
-        dirPath: AbsoluteFilePathStub({
-          value: `${String(projectRoot)}/${projectMapStatics.packagesDirName}`,
-        }),
+        dirPath: `${String(projectRoot)}/${projectMapStatics.packagesDirName}`,
         entries: [{ name: packageName, isDirectory: true }],
       });
       typeDetectProxy.setupPackage({
@@ -122,7 +116,7 @@ export const architectureProjectMapBrokerProxy = (): {
       projectRoot,
       packageName,
     }: {
-      projectRoot: AbsoluteFilePath;
+      projectRoot: string;
       packageName: string;
     }): void => {
       typeDetectProxy.setupPackage({
@@ -131,9 +125,7 @@ export const architectureProjectMapBrokerProxy = (): {
         srcDirNames: ['widgets'],
       });
       discoverProxy.setupPackages({
-        dirPath: AbsoluteFilePathStub({
-          value: `${String(projectRoot)}/${projectMapStatics.packagesDirName}`,
-        }),
+        dirPath: `${String(projectRoot)}/${projectMapStatics.packagesDirName}`,
         entries: [{ name: packageName, isDirectory: true }],
       });
     },
@@ -143,7 +135,7 @@ export const architectureProjectMapBrokerProxy = (): {
       groupName,
       packageName,
     }: {
-      projectRoot: AbsoluteFilePath;
+      projectRoot: string;
       groupName: string;
       packageName: string;
     }): void => {
@@ -152,9 +144,7 @@ export const architectureProjectMapBrokerProxy = (): {
       // with a relativeDir the broker builds from BOTH segments — proven at that broker's own level
       // by discover-packages-layer-broker.test.ts. This proxy stages both readdir calls so the
       // composer's OWN test can assert the resulting section uses the bare child name.
-      const packagesDir = AbsoluteFilePathStub({
-        value: `${String(projectRoot)}/${projectMapStatics.packagesDirName}`,
-      });
+      const packagesDir = `${String(projectRoot)}/${projectMapStatics.packagesDirName}`;
       discoverProxy.setupPackages({
         dirPath: packagesDir,
         entries: [{ name: groupName, isDirectory: true }],
@@ -171,16 +161,14 @@ export const architectureProjectMapBrokerProxy = (): {
       });
     },
 
-    setupEmptyMonorepo: ({ projectRoot }: { projectRoot: AbsoluteFilePath }): void => {
+    setupEmptyMonorepo: ({ projectRoot }: { projectRoot: string }): void => {
       typeDetectProxy.setupPackage({
         packageRoot: '/project',
         packageJsonContent: '{}',
         srcDirNames: [],
       });
       discoverProxy.setupMissingPackagesDir({
-        dirPath: AbsoluteFilePathStub({
-          value: `${String(projectRoot)}/${projectMapStatics.packagesDirName}`,
-        }),
+        dirPath: `${String(projectRoot)}/${projectMapStatics.packagesDirName}`,
       });
     },
 
@@ -190,7 +178,7 @@ export const architectureProjectMapBrokerProxy = (): {
       subpathName,
       barrelContent,
     }: {
-      projectRoot: AbsoluteFilePath;
+      projectRoot: string;
       folder: string;
       subpathName: string;
       barrelContent?: ContentText;

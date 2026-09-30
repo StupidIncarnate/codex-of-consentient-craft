@@ -22,7 +22,6 @@ import {
   locationsQuestFolderPathFindBroker,
   locationsQuestImagesPathFindBroker,
 } from '@dungeonmaster/shared/brokers';
-import { absoluteFilePathContract } from '@dungeonmaster/shared/contracts';
 import type { PastedImageUpload, Quest, Guild } from '@dungeonmaster/shared/contracts';
 
 import { userMessageContract } from '../../../contracts/user-message/user-message-contract';
@@ -62,9 +61,7 @@ export const pastedImagePersistBroker = async ({
   const uploadedImagePaths = Promise.all(
     images.map(async (image) => {
       const extension = image.mediaType.split('/')[1] ?? '';
-      const filePath = absoluteFilePathContract.parse(
-        join(imagesDirPath, `${randomUUID()}.${extension}`),
-      );
+      const filePath = join(imagesDirPath, `${randomUUID()}.${extension}`);
 
       await writeFileFromBase64(filePath, image.dataBase64);
 

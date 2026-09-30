@@ -1,15 +1,12 @@
 import { architectureExportNameResolveBroker } from './architecture-export-name-resolve-broker';
 import { architectureExportNameResolveBrokerProxy } from './architecture-export-name-resolve-broker.proxy';
-import { AbsoluteFilePathStub } from '../../../contracts/absolute-file-path/absolute-file-path.stub';
 import { ContentTextStub } from '../../../contracts/content-text/content-text.stub';
 
 describe('architectureExportNameResolveBroker', () => {
   describe('export found in source', () => {
     it('VALID: {file with export const questLoadBroker} => returns "questLoadBroker"', () => {
       const proxy = architectureExportNameResolveBrokerProxy();
-      const filePath = AbsoluteFilePathStub({
-        value: '/repo/packages/server/src/brokers/quest/load/quest-load-broker.ts',
-      });
+      const filePath = '/repo/packages/server/src/brokers/quest/load/quest-load-broker.ts';
 
       proxy.setupReturns({
         filePath,
@@ -27,9 +24,7 @@ describe('architectureExportNameResolveBroker', () => {
   describe('PascalCase widget export', () => {
     it('VALID: {widget file with export const HomeContentWidget} => returns "HomeContentWidget"', () => {
       const proxy = architectureExportNameResolveBrokerProxy();
-      const filePath = AbsoluteFilePathStub({
-        value: '/repo/packages/web/src/widgets/home-content/home-content-widget.tsx',
-      });
+      const filePath = '/repo/packages/web/src/widgets/home-content/home-content-widget.tsx';
 
       proxy.setupReturns({
         filePath,
@@ -47,9 +42,7 @@ describe('architectureExportNameResolveBroker', () => {
   describe('source missing', () => {
     it('EDGE: {file does not exist on disk} => returns kebab basename fallback', () => {
       const proxy = architectureExportNameResolveBrokerProxy();
-      const filePath = AbsoluteFilePathStub({
-        value: '/repo/packages/server/src/brokers/quest/load/quest-load-broker.ts',
-      });
+      const filePath = '/repo/packages/server/src/brokers/quest/load/quest-load-broker.ts';
 
       proxy.setupMissing({ filePath });
 
@@ -62,9 +55,7 @@ describe('architectureExportNameResolveBroker', () => {
   describe('export not extractable', () => {
     it('EDGE: {file source has no export const|function} => returns kebab basename fallback', () => {
       const proxy = architectureExportNameResolveBrokerProxy();
-      const filePath = AbsoluteFilePathStub({
-        value: '/repo/packages/server/src/brokers/quest/load/quest-load-broker.ts',
-      });
+      const filePath = '/repo/packages/server/src/brokers/quest/load/quest-load-broker.ts';
 
       proxy.setupReturns({
         filePath,

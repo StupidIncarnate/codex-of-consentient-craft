@@ -16,7 +16,7 @@
  */
 
 import { stderr } from '#gateway/node/process';
-import { absoluteFilePathContract, type Quest } from '@dungeonmaster/shared/contracts';
+import { type Quest } from '@dungeonmaster/shared/contracts';
 
 import type { QuestCwdResolution } from '../../../contracts/quest-cwd-resolution/quest-cwd-resolution-contract';
 import type { QuestResumeTrigger } from '../../../contracts/quest-resume-trigger/quest-resume-trigger-contract';
@@ -43,7 +43,7 @@ export const worktreeEnsureQuestBranchBroker = async ({
   }
 
   const { restored, output } = await worktreeResumeRestoreBroker({
-    worktreePath: absoluteFilePathContract.parse(cwdResolution.cwd),
+    worktreePath: cwdResolution.cwd,
     branchName,
   });
 

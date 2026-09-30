@@ -1,11 +1,10 @@
 import { FsErrorStub } from '#gateway/node/fs/is-fs-error/fs-error.stub';
-import { AbsoluteFilePathStub } from '@dungeonmaster/shared/contracts/absolute-file-path/absolute-file-path.stub';
 import { SessionIdStub } from '@dungeonmaster/shared/contracts/session-id/session-id.stub';
 
 import { signalFromSessionJsonlBroker } from './signal-from-session-jsonl-broker';
 import { signalFromSessionJsonlBrokerProxy } from './signal-from-session-jsonl-broker.proxy';
 
-const GUILD_PATH = AbsoluteFilePathStub({ value: '/home/user/repo' });
+const GUILD_PATH = '/home/user/repo';
 const SESSION_ID = SessionIdStub({ value: '9c4d8f1c-3e38-48c9-bdec-22b61883b473' });
 
 const signalLineDoneOnly = JSON.stringify({

@@ -13,7 +13,6 @@
  * // Returns every StepReading the transcript holds, dropping only a truncated final line
  */
 
-import type { AbsoluteFilePath } from '@dungeonmaster/shared/contracts';
 import { readFileIfExists } from '#gateway/node/fs__promises';
 
 import { stepReadingContract } from '../../../contracts/step-reading/step-reading-contract';
@@ -22,7 +21,7 @@ import type { StepReading } from '../../../contracts/step-reading/step-reading-c
 export const transcriptReadLayerBroker = async ({
   transcriptPath,
 }: {
-  transcriptPath: AbsoluteFilePath;
+  transcriptPath: string;
 }): Promise<readonly StepReading[]> => {
   const content = await readFileIfExists(transcriptPath);
 

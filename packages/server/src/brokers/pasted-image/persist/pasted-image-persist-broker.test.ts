@@ -2,7 +2,6 @@ import { pastedImageStatics } from '@dungeonmaster/shared/statics';
 import { GuildIdStub } from '@dungeonmaster/shared/contracts/guild-id/guild-id.stub';
 import { QuestIdStub } from '@dungeonmaster/shared/contracts/quest-id/quest-id.stub';
 import { PastedImageUploadStub } from '@dungeonmaster/shared/contracts/pasted-image-upload/pasted-image-upload.stub';
-import { AbsoluteFilePathStub } from '@dungeonmaster/shared/contracts/absolute-file-path/absolute-file-path.stub';
 
 import { pastedImagePersistBroker } from './pasted-image-persist-broker';
 import { pastedImagePersistBrokerProxy } from './pasted-image-persist-broker.proxy';
@@ -189,7 +188,7 @@ describe('pastedImagePersistBroker', () => {
       const questId = QuestIdStub({ value: 'inline-images' });
       proxy.stageCopyIds({ ids: ['facefeed-0000-4000-8000-000000000000'] });
       proxy.sourceReadFails({
-        filePath: AbsoluteFilePathStub({ value: '/tmp/snip.png' }),
+        filePath: '/tmp/snip.png',
       });
 
       const result = await pastedImagePersistBroker({
@@ -246,11 +245,11 @@ describe('pastedImagePersistBroker', () => {
       const copyId = 'bbbbbbbb-0000-4000-8000-000000000000';
       proxy.stageCopyIds({ ids: [copyId] });
       proxy.sourceReads({
-        filePath: AbsoluteFilePathStub({ value: '/tmp/snip.png' }),
+        filePath: '/tmp/snip.png',
         bytes: new Uint8Array([1, 2, 3]),
       });
       proxy.destinationWriteFails({
-        filePath: AbsoluteFilePathStub({ value: `${imagesDirPath}/${copyId}.png` }),
+        filePath: `${imagesDirPath}/${copyId}.png`,
       });
 
       const result = await pastedImagePersistBroker({
@@ -312,7 +311,7 @@ describe('pastedImagePersistBroker', () => {
       proxy.stageImageIds({ ids: [firstId, secondId] });
       proxy.stageCopyIds({ ids: [copyId] });
       proxy.sourceReads({
-        filePath: AbsoluteFilePathStub({ value: '/tmp/snip.png' }),
+        filePath: '/tmp/snip.png',
         bytes: new Uint8Array([9, 9, 9]),
       });
       const firstImage = PastedImageUploadStub({ mediaType: 'image/png', dataBase64: 'aGVsbG8=' });
@@ -364,7 +363,7 @@ describe('pastedImagePersistBroker', () => {
       const questId = QuestIdStub({ value: 'inline-images' });
       proxy.stageCopyIds({ ids: ['deadbeef-0000-4000-8000-000000000000'] });
       proxy.sourceReadFails({
-        filePath: AbsoluteFilePathStub({ value: '/tmp/snip.png' }),
+        filePath: '/tmp/snip.png',
       });
 
       const result = await pastedImagePersistBroker({
@@ -408,7 +407,7 @@ describe('pastedImagePersistBroker', () => {
       const questId = QuestIdStub({ value: 'inline-images' });
       proxy.stageCopyIds({ ids: ['eeeeeeee-0000-4000-8000-000000000000'] });
       proxy.sourceReads({
-        filePath: AbsoluteFilePathStub({ value: '/tmp/snip.png' }),
+        filePath: '/tmp/snip.png',
         bytes: new Uint8Array([4, 5, 6]),
       });
 

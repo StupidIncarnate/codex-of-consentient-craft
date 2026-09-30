@@ -1,15 +1,12 @@
 import { serverLogReaderLayerBroker } from './server-log-reader-layer-broker';
 import { serverLogReaderLayerBrokerProxy } from './server-log-reader-layer-broker.proxy';
-import { AbsoluteFilePathStub } from '@dungeonmaster/shared/contracts/absolute-file-path/absolute-file-path.stub';
 import { ContentTextStub } from '@dungeonmaster/shared/contracts/content-text/content-text.stub';
 
 describe('serverLogReaderLayerBroker', () => {
   describe('serverLogLength()', () => {
     it('VALID: {log content} => returns its byte length', () => {
       const proxy = serverLogReaderLayerBrokerProxy();
-      const logPath = AbsoluteFilePathStub({
-        value: '/repo/.dungeonmaster-assets/siegelense-assets/inst_1/api-server.log',
-      });
+      const logPath = '/repo/.dungeonmaster-assets/siegelense-assets/inst_1/api-server.log';
       proxy.setupLogContent({
         logPath,
         content: ContentTextStub({ value: 'line one\nline two\n' }),
@@ -22,9 +19,7 @@ describe('serverLogReaderLayerBroker', () => {
 
     it('EMPTY: {no content yet} => returns 0', () => {
       const proxy = serverLogReaderLayerBrokerProxy();
-      const logPath = AbsoluteFilePathStub({
-        value: '/repo/.dungeonmaster-assets/siegelense-assets/inst_1/api-server.log',
-      });
+      const logPath = '/repo/.dungeonmaster-assets/siegelense-assets/inst_1/api-server.log';
       proxy.setupLogContent({ logPath, content: ContentTextStub({ value: '' }) });
 
       const { serverLogLength } = serverLogReaderLayerBroker({ logPath });
@@ -36,9 +31,7 @@ describe('serverLogReaderLayerBroker', () => {
   describe('readServerLogSince()', () => {
     it('VALID: {fromByte: 0} => returns every non-empty line', () => {
       const proxy = serverLogReaderLayerBrokerProxy();
-      const logPath = AbsoluteFilePathStub({
-        value: '/repo/.dungeonmaster-assets/siegelense-assets/inst_1/api-server.log',
-      });
+      const logPath = '/repo/.dungeonmaster-assets/siegelense-assets/inst_1/api-server.log';
       proxy.setupLogContent({
         logPath,
         content: ContentTextStub({ value: 'line one\nline two\n' }),
@@ -51,9 +44,7 @@ describe('serverLogReaderLayerBroker', () => {
 
     it('VALID: {fromByte: midway} => returns only the lines written after that offset', () => {
       const proxy = serverLogReaderLayerBrokerProxy();
-      const logPath = AbsoluteFilePathStub({
-        value: '/repo/.dungeonmaster-assets/siegelense-assets/inst_1/api-server.log',
-      });
+      const logPath = '/repo/.dungeonmaster-assets/siegelense-assets/inst_1/api-server.log';
       proxy.setupLogContent({
         logPath,
         content: ContentTextStub({ value: 'line one\nline two\n' }),

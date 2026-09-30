@@ -1,10 +1,9 @@
-import { AbsoluteFilePathStub } from '@dungeonmaster/shared/contracts/absolute-file-path/absolute-file-path.stub';
 
 import { snapshotIndexReadBroker } from './snapshot-index-read-broker';
 import { snapshotIndexReadBrokerProxy } from './snapshot-index-read-broker.proxy';
 import { SnapshotRecordStub } from '../../../contracts/snapshot-record/snapshot-record.stub';
 
-const HOME_PATH = AbsoluteFilePathStub({ value: '/tmp/dm-siege-inst_7f3a9c21' });
+const HOME_PATH = '/tmp/dm-siege-inst_7f3a9c21';
 
 describe('snapshotIndexReadBroker', () => {
   describe('an index that does not exist', () => {

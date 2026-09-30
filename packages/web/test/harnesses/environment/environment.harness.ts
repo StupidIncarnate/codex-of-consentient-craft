@@ -18,7 +18,6 @@ import { gitRunSync } from '#gateway/bin/git';
 import * as fs from '#gateway/node/fs';
 import * as path from '#gateway/node/path';
 
-import { AbsoluteFilePathStub } from '@dungeonmaster/shared/contracts/absolute-file-path/absolute-file-path.stub';
 import { FileNameStub } from '@dungeonmaster/shared/contracts/file-name/file-name.stub';
 import { locationsStatics } from '@dungeonmaster/shared/statics';
 import { claudePathSlugEncoderTransformer } from '@dungeonmaster/shared/transformers';
@@ -65,8 +64,8 @@ export const environmentHarness = ({
     // written by a prior test with the same guildPath gets replayed into the next test
     // via subscribe-quest before the current fake CLI overwrites it — UI shows stale text.
     const jsonlDir = claudePathSlugEncoderTransformer({
-      homeDir: AbsoluteFilePathStub({ value: homedir() }),
-      projectPath: AbsoluteFilePathStub({ value: guildPath }),
+      homeDir: homedir(),
+      projectPath: guildPath,
     });
     fs.rmSync(jsonlDir, { recursive: true, force: true });
   };

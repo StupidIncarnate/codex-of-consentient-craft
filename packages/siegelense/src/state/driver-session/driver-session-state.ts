@@ -34,7 +34,7 @@
  */
 
 import { timeoutMsContract, siegeRunContract } from '@dungeonmaster/shared/contracts';
-import type { AbsoluteFilePath, TimeoutMs, SiegeRun } from '@dungeonmaster/shared/contracts';
+import type { TimeoutMs, SiegeRun } from '@dungeonmaster/shared/contracts';
 
 import { epochMsContract } from '../../contracts/epoch-ms/epoch-ms-contract';
 import type { EpochMs } from '../../contracts/epoch-ms/epoch-ms-contract';
@@ -51,7 +51,7 @@ let idleTimeoutMsValue: TimeoutMs = timeoutMsContract.parse(driverStatics.idle.t
 let flushCursorConsoleLines: ReadingCount = readingCountContract.parse(0);
 let flushCursorNetworkLines: ReadingCount = readingCountContract.parse(0);
 let flushCursorWebsocketLines: ReadingCount = readingCountContract.parse(0);
-let lastShotPathValue: AbsoluteFilePath | null = null;
+let lastShotPathValue: string | null = null;
 
 export const driverSessionState = {
   set: ({ lane, idleTimeoutMs }: { lane: LaneSession; idleTimeoutMs?: TimeoutMs }): void => {
@@ -99,9 +99,9 @@ export const driverSessionState = {
     flushCursorWebsocketLines = websocketLines;
   },
 
-  lastShotPath: (): AbsoluteFilePath | null => lastShotPathValue,
+  lastShotPath: (): string | null => lastShotPathValue,
 
-  setLastShotPath: ({ path }: { path: AbsoluteFilePath }): void => {
+  setLastShotPath: ({ path }: { path: string }): void => {
     lastShotPathValue = path;
   },
 

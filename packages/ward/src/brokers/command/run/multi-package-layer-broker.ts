@@ -8,7 +8,7 @@
 
 import { stream, RunNotFoundError } from '#gateway/node/child_process';
 import { stderr } from '#gateway/node/process';
-import { absoluteFilePathContract, exitCodeContract, type AbsoluteFilePath } from '@dungeonmaster/shared/contracts';
+import { exitCodeContract } from '@dungeonmaster/shared/contracts';
 import { promisePoolTransformer } from '@dungeonmaster/shared/transformers';
 import { configResolveBroker, configDefaultsStatics } from '@dungeonmaster/config';
 
@@ -45,7 +45,7 @@ export const multiPackageLayerBroker = async ({
 }: {
   config: WardConfig;
   projectFolders: ProjectFolder[];
-  rootPath: AbsoluteFilePath;
+  rootPath: string;
   platformDedupeProjectResult?: ProjectResult;
 }): Promise<WardRunResult> => {
   const runId = runIdGenerateTransformer();
@@ -128,7 +128,7 @@ export const multiPackageLayerBroker = async ({
         }
       }
 
-      const cwd = absoluteFilePathContract.parse(folder.path);
+      const cwd = folder.path;
       // A missing `dungeonmaster-ward` binary rejects `stream` with RunNotFoundError rather than
       // resolving a result — caught here and folded into the same failed-spawn shape the old
       // spawn-stream adapter resolved for an ENOENT, so a machine without the resolved bin reads
@@ -147,7 +147,7 @@ export const multiPackageLayerBroker = async ({
         return { exitCode: null, output: '', signal: null };
       });
 
-      const pkgRootPath = absoluteFilePathContract.parse(folder.path);
+      const pkgRootPath = folder.path;
       const childRunId = extractChildRunIdTransformer({ output: spawnResult.output });
 
       // ONLY THIS RUN'S ID MAY BE LOADED. `storageLoadBroker` with no `runId` returns the NEWEST

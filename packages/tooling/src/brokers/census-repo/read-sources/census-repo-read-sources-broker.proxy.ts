@@ -1,11 +1,10 @@
 import { globProxy } from '#gateway/npm/glob/glob/glob.proxy';
 import { censusRepoReadSourcesChunkLayerBrokerProxy } from './census-repo-read-sources-chunk-layer-broker.proxy';
 import { censusLayoutStatics } from '../../../statics/census-layout/census-layout-statics';
-import type { AbsoluteFilePath } from '../../../contracts/absolute-file-path/absolute-file-path-contract';
 
 export const censusRepoReadSourcesBrokerProxy = (): {
   setupSources: (params: {
-    repoRoot: AbsoluteFilePath;
+    repoRoot: string;
     files: readonly { path: string; contents: string }[];
   }) => void;
 } => {

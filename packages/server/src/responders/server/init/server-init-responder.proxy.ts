@@ -1,4 +1,4 @@
-import type { WardResult, AbsoluteFilePath, OrchestrationEventType, ProcessId, Guild } from '@dungeonmaster/shared/contracts';
+import type { WardResult, OrchestrationEventType, ProcessId, Guild } from '@dungeonmaster/shared/contracts';
 import { Hono } from '#gateway/npm/hono';
 import type { QuestStub } from '@dungeonmaster/shared/contracts/quest/quest.stub';
 
@@ -91,12 +91,12 @@ export const ServerInitResponderProxy = (): {
   getReplayChatHistoryCalls: () => unknown[];
   setupFindQuestPathSuccess: (params: {
     questId: Quest['id'];
-    questPath: AbsoluteFilePath;
+    questPath: string;
     guildId: Guild['id'];
   }) => void;
   setupWardDetailSuccess: (params: {
     questId: Quest['id'];
-    questPath: AbsoluteFilePath;
+    questPath: string;
     guildId: Guild['id'];
     wardResultId: WardResult['id'];
     wardResultsPath: string;
@@ -257,7 +257,7 @@ export const ServerInitResponderProxy = (): {
       guildId,
     }: {
       questId: Quest['id'];
-      questPath: AbsoluteFilePath;
+      questPath: string;
       guildId: Guild['id'];
     }): void => {
       findQuestPathProxy.setupResolves({ questId, questPath, guildId });
@@ -272,7 +272,7 @@ export const ServerInitResponderProxy = (): {
       contents,
     }: {
       questId: Quest['id'];
-      questPath: AbsoluteFilePath;
+      questPath: string;
       guildId: Guild['id'];
       wardResultId: WardResult['id'];
       wardResultsPath: string;

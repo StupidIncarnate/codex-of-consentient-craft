@@ -1,6 +1,5 @@
 import { nowProxy } from '#gateway/node/Date/now/now.proxy';
 import { setTimeoutProxy } from '#gateway/node/setTimeout/set-timeout/set-timeout.proxy';
-import type { AbsoluteFilePath } from '@dungeonmaster/shared/contracts';
 
 import { driverSocketRequestBrokerProxy } from '../../driver/socket-request/driver-socket-request-broker.proxy';
 import { bootFailureMarkerReadBrokerProxy } from '../../boot-failure-marker/read/boot-failure-marker-read-broker.proxy';
@@ -10,16 +9,16 @@ import type { BootFailureMarkerStub } from '../../../contracts/boot-failure-mark
 type BootFailureMarker = ReturnType<typeof BootFailureMarkerStub>;
 
 export const instanceStartBootPollLayerBrokerProxy = (): {
-  setupAnswersOk: (params: { socketPath: AbsoluteFilePath }) => void;
+  setupAnswersOk: (params: { socketPath: string }) => void;
   setupNeverAnswers: (params: {
-    socketPath: AbsoluteFilePath;
-    evidencePath: AbsoluteFilePath;
+    socketPath: string;
+    evidencePath: string;
     nowMs: number;
     deadlineMs: number;
   }) => void;
   setupFailureMarkerAppears: (params: {
-    socketPath: AbsoluteFilePath;
-    evidencePath: AbsoluteFilePath;
+    socketPath: string;
+    evidencePath: string;
     marker: BootFailureMarker;
   }) => void;
 } => {
@@ -29,7 +28,7 @@ export const instanceStartBootPollLayerBrokerProxy = (): {
   setTimeoutProxy();
 
   return {
-    setupAnswersOk: ({ socketPath }: { socketPath: AbsoluteFilePath }): void => {
+    setupAnswersOk: ({ socketPath }: { socketPath: string }): void => {
       socketProxy.respondsWith({ socketPath, response: DriverResponseStub({ ok: true }) });
     },
 
@@ -42,8 +41,8 @@ export const instanceStartBootPollLayerBrokerProxy = (): {
       nowMs,
       deadlineMs,
     }: {
-      socketPath: AbsoluteFilePath;
-      evidencePath: AbsoluteFilePath;
+      socketPath: string;
+      evidencePath: string;
       nowMs: number;
       deadlineMs: number;
     }): void => {
@@ -59,8 +58,8 @@ export const instanceStartBootPollLayerBrokerProxy = (): {
       evidencePath,
       marker,
     }: {
-      socketPath: AbsoluteFilePath;
-      evidencePath: AbsoluteFilePath;
+      socketPath: string;
+      evidencePath: string;
       marker: BootFailureMarker;
     }): void => {
       socketProxy.connectFailsRefused({ socketPath });

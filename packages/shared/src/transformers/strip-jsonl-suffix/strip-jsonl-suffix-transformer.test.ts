@@ -1,11 +1,10 @@
 import { stripJsonlSuffixTransformer } from './strip-jsonl-suffix-transformer';
-import { AbsoluteFilePathStub } from '../../contracts/absolute-file-path/absolute-file-path.stub';
 
 describe('stripJsonlSuffixTransformer', () => {
   describe('suffix removal', () => {
     it('VALID: {filePath: "/home/user/.claude/session.jsonl"} => strips .jsonl suffix', () => {
       const result = stripJsonlSuffixTransformer({
-        filePath: AbsoluteFilePathStub({ value: '/home/user/.claude/session.jsonl' }),
+        filePath: '/home/user/.claude/session.jsonl',
       });
 
       expect(result).toBe('/home/user/.claude/session');
@@ -13,7 +12,7 @@ describe('stripJsonlSuffixTransformer', () => {
 
     it('VALID: {filePath: "/tmp/data/export.jsonl"} => strips .jsonl from deeply nested path', () => {
       const result = stripJsonlSuffixTransformer({
-        filePath: AbsoluteFilePathStub({ value: '/tmp/data/export.jsonl' }),
+        filePath: '/tmp/data/export.jsonl',
       });
 
       expect(result).toBe('/tmp/data/export');
@@ -21,7 +20,7 @@ describe('stripJsonlSuffixTransformer', () => {
 
     it('VALID: {filePath: "/home/user/file.jsonl.bak"} => does not strip .jsonl when not at end', () => {
       const result = stripJsonlSuffixTransformer({
-        filePath: AbsoluteFilePathStub({ value: '/home/user/file.jsonl.bak' }),
+        filePath: '/home/user/file.jsonl.bak',
       });
 
       expect(result).toBe('/home/user/file.jsonl.bak');
@@ -29,7 +28,7 @@ describe('stripJsonlSuffixTransformer', () => {
 
     it('EDGE: {filePath: "/home/user/file.txt"} => returns path unchanged when no .jsonl suffix', () => {
       const result = stripJsonlSuffixTransformer({
-        filePath: AbsoluteFilePathStub({ value: '/home/user/file.txt' }),
+        filePath: '/home/user/file.txt',
       });
 
       expect(result).toBe('/home/user/file.txt');
@@ -37,7 +36,7 @@ describe('stripJsonlSuffixTransformer', () => {
 
     it('EDGE: {filePath: "/home/user/.jsonl"} => strips .jsonl leaving directory path', () => {
       const result = stripJsonlSuffixTransformer({
-        filePath: AbsoluteFilePathStub({ value: '/home/user/.jsonl' }),
+        filePath: '/home/user/.jsonl',
       });
 
       expect(result).toBe('/home/user/');

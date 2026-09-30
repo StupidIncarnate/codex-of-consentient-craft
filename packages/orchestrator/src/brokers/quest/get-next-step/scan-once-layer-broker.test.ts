@@ -1,4 +1,3 @@
-import { AbsoluteFilePathStub } from '@dungeonmaster/shared/contracts/absolute-file-path/absolute-file-path.stub';
 import { GuildIdStub } from '@dungeonmaster/shared/contracts/guild-id/guild-id.stub';
 import { GuildListItemStub } from '@dungeonmaster/shared/contracts/guild-list-item/guild-list-item.stub';
 import { OperationItemIdStub } from '@dungeonmaster/shared/contracts/operation-item-id/operation-item-id.stub';
@@ -365,7 +364,7 @@ describe('scanOnceLayerBroker', () => {
     const guildItem = GuildListItemStub({ id: guildId, valid: true });
     const questId = QuestIdStub({ value: 'q-scan-missing-worktree' });
     const pendingId = QuestWorkItemIdStub({ value: 'ddd66666-1111-4222-9333-444444444444' });
-    const worktreePath = AbsoluteFilePathStub({ value: '/repo/worktrees/quest-missing' });
+    const worktreePath = '/repo/worktrees/quest-missing';
     const quest = QuestStub({
       id: questId,
       status: 'in_progress',
@@ -414,9 +413,7 @@ describe('scanOnceLayerBroker', () => {
       const questId = QuestIdStub({ value: 'q-scan-missing-worktree-riftcarver' });
       const carveId = QuestWorkItemIdStub({ value: 'aab11111-1111-4222-9333-444444444444' });
       const operationId = OperationItemIdStub({ value: 'aab00000-58cc-4372-a567-0e02b2c3d479' });
-      const worktreePath = AbsoluteFilePathStub({
-        value: '/repo/worktrees/quest-carve-again-a1b2c3d4',
-      });
+      const worktreePath = '/repo/worktrees/quest-carve-again-a1b2c3d4';
       const quest = QuestStub({
         id: questId,
         status: 'in_progress',
@@ -474,9 +471,7 @@ describe('scanOnceLayerBroker', () => {
       const questId = QuestIdStub({ value: 'q-scan-missing-worktree-ward' });
       const wardId = QuestWorkItemIdStub({ value: 'aab33333-1111-4222-9333-444444444444' });
       const operationId = OperationItemIdStub({ value: 'aab00001-58cc-4372-a567-0e02b2c3d479' });
-      const worktreePath = AbsoluteFilePathStub({
-        value: '/repo/worktrees/quest-carve-again-a1b2c3d4',
-      });
+      const worktreePath = '/repo/worktrees/quest-carve-again-a1b2c3d4';
       const quest = QuestStub({
         id: questId,
         status: 'in_progress',
@@ -535,9 +530,7 @@ describe('scanOnceLayerBroker', () => {
       const carveUuid = 'baa22222-1111-4222-9333-444444444444';
       const carveId = QuestWorkItemIdStub({ value: carveUuid });
       const operationId = OperationItemIdStub({ value: 'dddd4444-58cc-4372-a567-0e02b2c3d479' });
-      const worktreePath = AbsoluteFilePathStub({
-        value: '/repo/worktrees/quest-carve-self-heal-a1b2c3d4',
-      });
+      const worktreePath = '/repo/worktrees/quest-carve-self-heal-a1b2c3d4';
 
       const staleQuest = QuestStub({
         id: questId,
@@ -630,9 +623,7 @@ describe('scanOnceLayerBroker', () => {
       const guildItem = GuildListItemStub({ id: guildId, valid: true });
       const questId = QuestIdStub({ value: 'q-scan-missing-worktree-codeweaver' });
       const cwId = QuestWorkItemIdStub({ value: 'aab22222-1111-4222-9333-444444444444' });
-      const worktreePath = AbsoluteFilePathStub({
-        value: '/repo/worktrees/quest-carve-again-a1b2c3d4',
-      });
+      const worktreePath = '/repo/worktrees/quest-carve-again-a1b2c3d4';
       const quest = QuestStub({
         id: questId,
         status: 'in_progress',
@@ -727,9 +718,7 @@ describe('scanOnceLayerBroker', () => {
       // Hostile fixture member (FIXTURE REQUIREMENTS): a path segment containing a space, and a
       // value that must be a DIFFERENT string from the default repo-root stub ('/test/repo/root')
       // so the two resolutions are distinguishable rather than accidentally matching.
-      const worktreePath = AbsoluteFilePathStub({
-        value: '/repo/worktrees/quest with spaces-a1b2c3d4',
-      });
+      const worktreePath = '/repo/worktrees/quest with spaces-a1b2c3d4';
       const quest = QuestStub({
         id: questId,
         status: 'in_progress',
@@ -778,9 +767,7 @@ describe('scanOnceLayerBroker', () => {
       const guildItem = GuildListItemStub({ id: guildId, valid: true });
       const questId = QuestIdStub({ value: 'q-scan-worktree-agent' });
       const cwId = QuestWorkItemIdStub({ value: 'fff99999-1111-4222-9333-444444444444' });
-      const worktreePath = AbsoluteFilePathStub({
-        value: '/repo/worktrees/quest-worktree-agent-a1b2c3d4',
-      });
+      const worktreePath = '/repo/worktrees/quest-worktree-agent-a1b2c3d4';
       const quest = QuestStub({
         id: questId,
         status: 'in_progress',
@@ -840,9 +827,7 @@ describe('scanOnceLayerBroker', () => {
       const questId = QuestIdStub({ value: 'q-scan-drift-restore' });
       const cwId = QuestWorkItemIdStub({ value: 'a1b2c3d4-1111-4222-9333-444444444444' });
       const branchName = QuestBranchNameStub({ value: 'quest/scan-drift-restore-a1b2c3d4' });
-      const worktreePath = AbsoluteFilePathStub({
-        value: '/repo/worktrees/scan-drift-restore-a1b2c3d4',
-      });
+      const worktreePath = '/repo/worktrees/scan-drift-restore-a1b2c3d4';
       const quest = QuestStub({
         id: questId,
         status: 'in_progress',
@@ -913,9 +898,7 @@ describe('scanOnceLayerBroker', () => {
       const questId = QuestIdStub({ value: 'q-scan-on-branch' });
       const cwId = QuestWorkItemIdStub({ value: 'b2c3d4e5-1111-4222-9333-444444444444' });
       const branchName = QuestBranchNameStub({ value: 'quest/scan-on-branch-b2c3d4e5' });
-      const worktreePath = AbsoluteFilePathStub({
-        value: '/repo/worktrees/scan-on-branch-b2c3d4e5',
-      });
+      const worktreePath = '/repo/worktrees/scan-on-branch-b2c3d4e5';
       const quest = QuestStub({
         id: questId,
         status: 'in_progress',
@@ -976,7 +959,7 @@ describe('scanOnceLayerBroker', () => {
         value: 'quest/ütf8-ünïcode+dots.and_underscores-ff00ff00',
       });
       const longWorktreeValue = `/repo/worktrees/${'deeply-nested-segment/'.repeat(12)}ütf8 quest (dir)-ff00ff00`;
-      const worktreePath = AbsoluteFilePathStub({ value: longWorktreeValue });
+      const worktreePath = longWorktreeValue;
       const quest = QuestStub({
         id: questId,
         status: 'in_progress',
@@ -1019,9 +1002,7 @@ describe('scanOnceLayerBroker', () => {
       const questId = QuestIdStub({ value: 'q-scan-restore-fails' });
       const cwId = QuestWorkItemIdStub({ value: 'd4e5f6a7-1111-4222-9333-444444444444' });
       const branchName = QuestBranchNameStub({ value: 'quest/scan-restore-fails-d4e5f6a7' });
-      const worktreePath = AbsoluteFilePathStub({
-        value: '/repo/worktrees/scan-restore-fails-d4e5f6a7',
-      });
+      const worktreePath = '/repo/worktrees/scan-restore-fails-d4e5f6a7';
       const output =
         "error: pathspec 'quest/scan-restore-fails-d4e5f6a7' did not match any file(s) known to git";
       const quest = QuestStub({

@@ -1,4 +1,3 @@
-import { AbsoluteFilePathStub } from '@dungeonmaster/shared/contracts/absolute-file-path/absolute-file-path.stub';
 
 import { WardRunResultStub } from '../../../contracts/ward-result/ward-result.stub';
 import { WardListResponderProxy } from './ward-list-responder.proxy';
@@ -11,7 +10,7 @@ describe('WardListResponder', () => {
 
       await proxy.callResponder({
         args: ['node', 'ward', 'list'],
-        rootPath: AbsoluteFilePathStub({ value: '/project' }),
+        rootPath: '/project',
       });
 
       expect(proxy.getStderrCalls()).toStrictEqual(['No ward results found\n']);
@@ -25,7 +24,7 @@ describe('WardListResponder', () => {
 
       await proxy.callResponder({
         args: ['node', 'ward', 'list', '1739625600000-a3f1'],
-        rootPath: AbsoluteFilePathStub({ value: '/project' }),
+        rootPath: '/project',
       });
 
       expect(proxy.getStdoutCalls()).toStrictEqual(['\n']);
@@ -39,7 +38,7 @@ describe('WardListResponder', () => {
 
       await proxy.callResponder({
         args: ['node', 'ward', 'list'],
-        rootPath: AbsoluteFilePathStub({ value: '/project' }),
+        rootPath: '/project',
       });
 
       expect(proxy.getStderrCalls()).toStrictEqual(['No ward results found\n']);

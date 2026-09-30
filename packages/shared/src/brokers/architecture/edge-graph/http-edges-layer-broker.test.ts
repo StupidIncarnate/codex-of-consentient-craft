@@ -1,6 +1,5 @@
 import { httpEdgesLayerBroker } from './http-edges-layer-broker';
 import { httpEdgesLayerBrokerProxy } from './http-edges-layer-broker.proxy';
-import { AbsoluteFilePathStub } from '../../../contracts/absolute-file-path/absolute-file-path.stub';
 import { ContentTextStub } from '../../../contracts/content-text/content-text.stub';
 
 const SERVER_STATICS = ContentTextStub({
@@ -30,20 +29,12 @@ const WEB_STATICS = ContentTextStub({
 } as const;`,
 });
 
-const PROJECT_ROOT = AbsoluteFilePathStub({ value: '/repo' });
+const PROJECT_ROOT = '/repo';
 
-const QUEST_FLOW_PATH = AbsoluteFilePathStub({
-  value: '/repo/packages/server/src/flows/quest/quest-flow.ts',
-});
-const HEALTH_FLOW_PATH = AbsoluteFilePathStub({
-  value: '/repo/packages/server/src/flows/health/health-flow.ts',
-});
-const QUEST_LIST_BROKER_PATH = AbsoluteFilePathStub({
-  value: '/repo/packages/web/src/brokers/quest/list/quest-list-broker.ts',
-});
-const QUEST_START_BROKER_PATH = AbsoluteFilePathStub({
-  value: '/repo/packages/web/src/brokers/quest/start/quest-start-broker.ts',
-});
+const QUEST_FLOW_PATH = '/repo/packages/server/src/flows/quest/quest-flow.ts';
+const HEALTH_FLOW_PATH = '/repo/packages/server/src/flows/health/health-flow.ts';
+const QUEST_LIST_BROKER_PATH = '/repo/packages/web/src/brokers/quest/list/quest-list-broker.ts';
+const QUEST_START_BROKER_PATH = '/repo/packages/web/src/brokers/quest/start/quest-start-broker.ts';
 
 describe('httpEdgesLayerBroker', () => {
   describe('statics reference resolution', () => {
@@ -326,9 +317,7 @@ describe('httpEdgesLayerBroker', () => {
         webStaticsSource: WEB_STATICS,
         flowFiles: [
           {
-            path: AbsoluteFilePathStub({
-              value: '/repo/packages/server/src/flows/quest/quest-flow.integration.test.ts',
-            }),
+            path: '/repo/packages/server/src/flows/quest/quest-flow.integration.test.ts',
             source: ContentTextStub({
               value: 'app.get(apiRoutesStatics.quests.list, async (c) => {});',
             }),
@@ -351,9 +340,7 @@ describe('httpEdgesLayerBroker', () => {
         flowFiles: [],
         brokerFiles: [
           {
-            path: AbsoluteFilePathStub({
-              value: '/repo/packages/web/src/brokers/quest/list/quest-list-broker.proxy.ts',
-            }),
+            path: '/repo/packages/web/src/brokers/quest/list/quest-list-broker.proxy.ts',
             source: ContentTextStub({
               value: 'fetchGetAdapter({ url: webConfigStatics.api.routes.quests });',
             }),
@@ -387,9 +374,7 @@ describe('httpEdgesLayerBroker', () => {
   describe('a set of matching packages, never a hardcoded singleton', () => {
     it('VALID: {two frontend packages: web and tui} => broker files from BOTH are scanned and paired', () => {
       const proxy = httpEdgesLayerBrokerProxy();
-      const tuiListBrokerPath = AbsoluteFilePathStub({
-        value: '/repo/packages/tui/src/brokers/quest/list/quest-list-broker.ts',
-      });
+      const tuiListBrokerPath = '/repo/packages/tui/src/brokers/quest/list/quest-list-broker.ts';
 
       proxy.setup({
         serverStaticsSource: SERVER_STATICS,

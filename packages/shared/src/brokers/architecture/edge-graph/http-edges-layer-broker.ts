@@ -15,8 +15,6 @@
  * WHEN-NOT-TO-USE: When TypeScript AST-level accuracy is required (this is a regex v1 heuristic)
  */
 
-import { absoluteFilePathContract } from '../../../contracts/absolute-file-path/absolute-file-path-contract';
-import type { AbsoluteFilePath } from '../../../contracts/absolute-file-path/absolute-file-path-contract';
 import { contentTextContract } from '../../../contracts/content-text/content-text-contract';
 import type { ContentText } from '../../../contracts/content-text/content-text-contract';
 import { httpEdgeContract, type HttpEdge } from '../../../contracts/http-edge/http-edge-contract';
@@ -33,7 +31,7 @@ import { resolveStaticsFirstMatchLayerBroker } from './resolve-statics-first-mat
 export const httpEdgesLayerBroker = ({
   projectRoot,
 }: {
-  projectRoot: AbsoluteFilePath;
+  projectRoot: string;
 }): HttpEdge[] => {
   const { httpBackendRoots, frontendRoots } = resolvePackageGroupsLayerBroker({ projectRoot });
 
@@ -42,9 +40,7 @@ export const httpEdgesLayerBroker = ({
   const serverStaticsSources: ContentText[] = [];
   for (const backendRoot of httpBackendRoots) {
     const source = readFileLayerBroker({
-      filePath: absoluteFilePathContract.parse(
-        `${backendRoot}/src/statics/api-routes/api-routes-statics.ts`,
-      ),
+      filePath: `${backendRoot}/src/statics/api-routes/api-routes-statics.ts`,
     });
     if (source !== undefined) {
       serverStaticsSources.push(source);
@@ -54,9 +50,7 @@ export const httpEdgesLayerBroker = ({
   const webStaticsSources: ContentText[] = [];
   for (const frontendRoot of frontendRoots) {
     const source = readFileLayerBroker({
-      filePath: absoluteFilePathContract.parse(
-        `${frontendRoot}/src/statics/web-config/web-config-statics.ts`,
-      ),
+      filePath: `${frontendRoot}/src/statics/web-config/web-config-statics.ts`,
     });
     if (source !== undefined) {
       webStaticsSources.push(source);
@@ -67,12 +61,12 @@ export const httpEdgesLayerBroker = ({
   const serverEntries: {
     method: ContentText;
     urlPattern: ContentText;
-    flowFile: AbsoluteFilePath;
-    responderFile: AbsoluteFilePath | null;
+    flowFile: string;
+    responderFile: string | null;
   }[] = [];
 
   for (const backendRoot of httpBackendRoots) {
-    const flowsDir = absoluteFilePathContract.parse(`${backendRoot}/src/flows`);
+    const flowsDir = `${backendRoot}/src/flows`;
     const flowFiles = listTsFilesLayerBroker({ dirPath: flowsDir });
 
     for (const flowFile of flowFiles) {
@@ -99,7 +93,7 @@ export const httpEdgesLayerBroker = ({
           urlPattern = resolved;
         }
 
-        let responderFile: AbsoluteFilePath | null = null;
+        let responderFile: string | null = null;
         if (site.responderName !== null) {
           // Find the import path for the responder name (Map keys are branded ContentText, so
           // we iterate to compare by string value).
@@ -127,11 +121,11 @@ export const httpEdgesLayerBroker = ({
   const webEntries: {
     method: ContentText;
     urlPattern: ContentText;
-    brokerFile: AbsoluteFilePath;
+    brokerFile: string;
   }[] = [];
 
   for (const frontendRoot of frontendRoots) {
-    const brokersDir = absoluteFilePathContract.parse(`${frontendRoot}/src/brokers`);
+    const brokersDir = `${frontendRoot}/src/brokers`;
     const brokerFiles = listTsFilesLayerBroker({ dirPath: brokersDir });
 
     for (const brokerFile of brokerFiles) {
@@ -165,7 +159,7 @@ export const httpEdgesLayerBroker = ({
 
   // Join server entries with web entries on (method, urlPattern)
   const edges: HttpEdge[] = [];
-  const matchedWebFiles = new Set<AbsoluteFilePath>();
+  const matchedWebFiles = new Set<string>();
 
   for (const server of serverEntries) {
     const web = webEntries.find(

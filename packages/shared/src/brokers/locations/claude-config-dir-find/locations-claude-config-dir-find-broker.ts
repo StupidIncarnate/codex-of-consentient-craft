@@ -13,12 +13,9 @@ import { homedir } from '#gateway/node/os';
 import { join } from '#gateway/node/path';
 import { getEnv } from '#gateway/node/process';
 import { locationsStatics } from '../../../statics/locations/locations-statics';
-import {
-  absoluteFilePathContract,
-  type AbsoluteFilePath,
-} from '../../../contracts/absolute-file-path/absolute-file-path-contract';
+import { absoluteFilePathContract } from '../../../contracts/absolute-file-path/absolute-file-path-contract';
 
-export const locationsClaudeConfigDirFindBroker = (): AbsoluteFilePath => {
+export const locationsClaudeConfigDirFindBroker = (): string => {
   const envValue = getEnv('CLAUDE_CONFIG_DIR');
 
   if (envValue !== undefined && envValue !== '') {
@@ -33,5 +30,5 @@ export const locationsClaudeConfigDirFindBroker = (): AbsoluteFilePath => {
 
   const joined = join(homedir(), locationsStatics.userHome.claude.dir);
 
-  return absoluteFilePathContract.parse(joined);
+  return joined;
 };

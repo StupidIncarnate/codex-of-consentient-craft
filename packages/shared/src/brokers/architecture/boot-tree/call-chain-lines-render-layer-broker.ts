@@ -19,7 +19,6 @@
  * WHEN-TO-USE: Boot-tree renderer producing the call-graph subtree under each non-routed responder
  */
 
-import type { AbsoluteFilePath } from '../../../contracts/absolute-file-path/absolute-file-path-contract';
 import {
   contentTextContract,
   type ContentText,
@@ -42,14 +41,14 @@ export const callChainLinesRenderLayerBroker = ({
   packageSrcPath,
   renderingFilePath,
   depth = 0,
-  visited = new Set<AbsoluteFilePath>(),
+  visited = new Set<string>(),
   baseIndent,
 }: {
-  sourceFile: AbsoluteFilePath;
-  packageSrcPath: AbsoluteFilePath;
-  renderingFilePath: AbsoluteFilePath;
+  sourceFile: string;
+  packageSrcPath: string;
+  renderingFilePath: string;
   depth?: number;
-  visited?: Set<AbsoluteFilePath>;
+  visited?: Set<string>;
   baseIndent?: ContentText;
 }): ContentText[] => {
   const lines: ContentText[] = [];

@@ -1,5 +1,4 @@
 import { globSyncProxy } from '#gateway/node/fs/glob-sync/glob-sync.proxy';
-import type { AbsoluteFilePath } from '@dungeonmaster/shared/contracts';
 
 export const globDiscoverFilesBrokerProxy = (): {
   returnsForPattern: (params: { pattern: string; files: string[] }) => void;
@@ -8,7 +7,7 @@ export const globDiscoverFilesBrokerProxy = (): {
   // package in the closure.
   returnsForPatternInDir: (params: {
     pattern: string;
-    cwd: AbsoluteFilePath;
+    cwd: string;
     files: string[];
   }) => void;
   // The broker calls globSync once PER discovery pattern — often a dozen calls per check type
@@ -31,7 +30,7 @@ export const globDiscoverFilesBrokerProxy = (): {
       files,
     }: {
       pattern: string;
-      cwd: AbsoluteFilePath;
+      cwd: string;
       files: string[];
     }): void => {
       glob.returns({ patterns: pattern, cwd: String(cwd), matches: files });

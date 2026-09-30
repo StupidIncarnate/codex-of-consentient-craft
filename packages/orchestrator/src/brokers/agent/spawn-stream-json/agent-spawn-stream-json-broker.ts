@@ -23,7 +23,7 @@ import { readFileSyncIfExists } from '#gateway/node/fs';
 import { join } from '#gateway/node/path';
 import { envSnapshot, stderr } from '#gateway/node/process';
 import { lineReader } from '#gateway/node/readline';
-import type { AbsoluteFilePath, RepoRootCwd, Session } from '@dungeonmaster/shared/contracts';
+import type { RepoRootCwd, Session } from '@dungeonmaster/shared/contracts';
 import { locationsStatics } from '@dungeonmaster/shared/statics';
 
 import type { ClaudeModel } from '../../../contracts/claude-model/claude-model-contract';
@@ -52,7 +52,7 @@ export const agentSpawnStreamJsonBroker = ({
   onStderrLine?: (params: { line: string }) => void;
   // Grants the spawned CLI read access to a directory OUTSIDE cwd — chat spawns pass the quest's
   // images directory (`locationsStatics.quest.imagesDir`).
-  addDir?: AbsoluteFilePath;
+  addDir?: string;
 }): ReturnType<typeof spawnStreamJson> => {
   const settingsJson =
     cwd === undefined

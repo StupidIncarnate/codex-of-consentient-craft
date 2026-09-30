@@ -29,11 +29,10 @@
  * // Appends a <task-notification> line to the MAIN session JSONL — the notification landing
  * // mid-test, after the chain already rendered live. Omit durationMs to omit the whole tag.
  */
-import type { Guild, AbsoluteFilePath } from '@dungeonmaster/shared/contracts';
+import type { Guild } from '@dungeonmaster/shared/contracts';
 import * as fs from '#gateway/node/fs';
 import * as path from '#gateway/node/path';
 
-import { AbsoluteFilePathStub } from '@dungeonmaster/shared/contracts/absolute-file-path/absolute-file-path.stub';
 import {
   AssistantTaskToolUseStreamLineStub,
   AssistantTextStreamLineStub,
@@ -142,10 +141,10 @@ export const subagentDurationHarness = ({
     innerNotification?: { at: string; durationMs?: number };
   }) => Promise<void>;
 } => {
-  const getJsonlDir = (): AbsoluteFilePath =>
+  const getJsonlDir = (): string =>
     claudePathSlugEncoderTransformer({
-      homeDir: AbsoluteFilePathStub({ value: homedir() }),
-      projectPath: AbsoluteFilePathStub({ value: guildPath }),
+      homeDir: homedir(),
+      projectPath: guildPath,
     });
 
   const cleanSessionDirectory = async (): Promise<void> => {
@@ -159,7 +158,7 @@ export const subagentDurationHarness = ({
     at,
     text,
   }: {
-    jsonlDir: AbsoluteFilePath;
+    jsonlDir: string;
     sessionId: string;
     agentId: string;
     at: string;

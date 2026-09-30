@@ -17,7 +17,6 @@
  */
 
 import { diffFiles, untrackedFiles, GitNotInstalledError } from '#gateway/bin/git';
-import type { AbsoluteFilePath } from '@dungeonmaster/shared/contracts';
 
 import type { GitRelativePath } from '../../../contracts/git-relative-path/git-relative-path-contract';
 import { parseDiffOutputTransformer } from '../../../transformers/parse-diff-output/parse-diff-output-transformer';
@@ -25,7 +24,7 @@ import { parseDiffOutputTransformer } from '../../../transformers/parse-diff-out
 export const gitDiffUncommittedBroker = async ({
   cwd,
 }: {
-  cwd: AbsoluteFilePath;
+  cwd: string;
 }): Promise<GitRelativePath[]> => {
   // A missing `git` binary makes the gateway throw GitNotInstalledError rather than resolve a
   // result — folded into an empty reading, exactly as it always has. The two readings run in

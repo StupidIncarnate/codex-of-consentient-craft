@@ -1,5 +1,4 @@
 import { installTestbedCreateBroker } from '@dungeonmaster/testing';
-import { AbsoluteFilePathStub } from '@dungeonmaster/shared/contracts/absolute-file-path/absolute-file-path.stub';
 
 import { snapshotCaptureBroker } from './snapshot-capture-broker';
 import { snapshotIndexReadBroker } from '../index-read/snapshot-index-read-broker';
@@ -17,7 +16,7 @@ describe('snapshotCaptureBroker against a real filesystem', () => {
         relativePath: 'home/guilds/g1/quest.json',
         content: '{"status":"created"}',
       });
-      const homePath = AbsoluteFilePathStub({ value: `${testbed.guildPath}/home` });
+      const homePath = `${testbed.guildPath}/home`;
 
       await snapshotCaptureBroker({
         homePath,
@@ -85,7 +84,7 @@ describe('snapshotCaptureBroker against a real filesystem', () => {
         relativePath: 'home/guilds/g1/quest.json',
         content: '{"status":"created"}',
       });
-      const homePath = AbsoluteFilePathStub({ value: `${testbed.guildPath}/home` });
+      const homePath = `${testbed.guildPath}/home`;
 
       await snapshotCaptureBroker({
         homePath,
@@ -110,7 +109,7 @@ describe('snapshotCaptureBroker against a real filesystem', () => {
         relativePath: 'home/guilds/g1/quest.json',
         content: '{"status":"created"}',
       });
-      const homePath = AbsoluteFilePathStub({ value: `${testbed.guildPath}/home` });
+      const homePath = `${testbed.guildPath}/home`;
 
       await snapshotCaptureBroker({
         homePath,
@@ -142,7 +141,7 @@ describe('snapshotCaptureBroker against a real filesystem', () => {
         relativePath: 'home/guilds/g1/quest.json',
         content: '{"status":"created"}',
       });
-      const homePath = AbsoluteFilePathStub({ value: `${testbed.guildPath}/home` });
+      const homePath = `${testbed.guildPath}/home`;
 
       await snapshotCaptureBroker({
         homePath,
@@ -181,7 +180,7 @@ describe('snapshotCaptureBroker against a real filesystem', () => {
         relativePath: 'home/guilds/g1/quest.json',
         content: '{"status":"created"}',
       });
-      const homePath = AbsoluteFilePathStub({ value: `${testbed.guildPath}/home` });
+      const homePath = `${testbed.guildPath}/home`;
 
       await snapshotCaptureBroker({
         homePath,
@@ -216,7 +215,7 @@ describe('snapshotCaptureBroker against a real filesystem', () => {
         relativePath: 'home/guilds/g1/quest.json',
         content: '{"status":"created"}',
       });
-      const homePath = AbsoluteFilePathStub({ value: `${testbed.guildPath}/home` });
+      const homePath = `${testbed.guildPath}/home`;
 
       await snapshotCaptureBroker({
         homePath,
@@ -247,7 +246,7 @@ describe('snapshotCaptureBroker against a real filesystem', () => {
       const testbed = installTestbedCreateBroker({
         baseName: 'snapshot-index-gone',
       });
-      const homePath = AbsoluteFilePathStub({ value: `${testbed.guildPath}/never-booted` });
+      const homePath = `${testbed.guildPath}/never-booted`;
 
       const records = await snapshotIndexReadBroker({ homePath });
 

@@ -11,20 +11,16 @@
 
 import { join } from '#gateway/node/path';
 import { locationsStatics } from '../../../statics/locations/locations-statics';
-import {
-  absoluteFilePathContract,
-  type AbsoluteFilePath,
-} from '../../../contracts/absolute-file-path/absolute-file-path-contract';
 import type { FileName } from '../../../contracts/file-name/file-name-contract';
 
 export const locationsNodeModulesBinPathFindBroker = ({
   rootPath,
   binName,
 }: {
-  rootPath: AbsoluteFilePath;
+  rootPath: string;
   binName: FileName;
-}): AbsoluteFilePath => {
+}): string => {
   const joined = join(rootPath, locationsStatics.repoRoot.nodeModulesBin, binName);
 
-  return absoluteFilePathContract.parse(joined);
+  return joined;
 };

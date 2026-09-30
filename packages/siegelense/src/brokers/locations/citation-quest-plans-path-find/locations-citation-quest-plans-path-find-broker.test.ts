@@ -1,4 +1,3 @@
-import { AbsoluteFilePathStub } from '@dungeonmaster/shared/contracts/absolute-file-path/absolute-file-path.stub';
 
 import { locationsCitationQuestPlansPathFindBroker } from './locations-citation-quest-plans-path-find-broker';
 import { locationsCitationQuestPlansPathFindBrokerProxy } from './locations-citation-quest-plans-path-find-broker.proxy';
@@ -9,11 +8,11 @@ describe('locationsCitationQuestPlansPathFindBroker', () => {
       locationsCitationQuestPlansPathFindBrokerProxy();
 
       const result = locationsCitationQuestPlansPathFindBroker({
-        worktreePath: AbsoluteFilePathStub({ value: '/repo/worktrees/add-auth-7bc217a1' }),
+        worktreePath: '/repo/worktrees/add-auth-7bc217a1',
       });
 
       expect(result).toBe(
-        AbsoluteFilePathStub({ value: '/repo/worktrees/add-auth-7bc217a1/.quest-plans' }),
+        '/repo/worktrees/add-auth-7bc217a1/.quest-plans',
       );
     });
 
@@ -21,11 +20,11 @@ describe('locationsCitationQuestPlansPathFindBroker', () => {
       locationsCitationQuestPlansPathFindBrokerProxy();
 
       const result = locationsCitationQuestPlansPathFindBroker({
-        worktreePath: AbsoluteFilePathStub({ value: '/repo/worktrees/add-auth-7bc217a1/' }),
+        worktreePath: '/repo/worktrees/add-auth-7bc217a1/',
       });
 
       expect(result).toBe(
-        AbsoluteFilePathStub({ value: '/repo/worktrees/add-auth-7bc217a1/.quest-plans' }),
+        '/repo/worktrees/add-auth-7bc217a1/.quest-plans',
       );
     });
   });

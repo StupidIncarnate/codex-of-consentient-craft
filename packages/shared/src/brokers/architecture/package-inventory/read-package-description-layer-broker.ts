@@ -9,7 +9,6 @@
  */
 
 import { readFileSync } from '#gateway/node/fs';
-import type { AbsoluteFilePath } from '../../../contracts/absolute-file-path/absolute-file-path-contract';
 import type { ContentText } from '../../../contracts/content-text/content-text-contract';
 import { packageJsonContract } from '../../../contracts/package-json/package-json-contract';
 import { contentTextContract } from '../../../contracts/content-text/content-text-contract';
@@ -17,7 +16,7 @@ import { contentTextContract } from '../../../contracts/content-text/content-tex
 export const readPackageDescriptionLayerBroker = ({
   packageJsonPath,
 }: {
-  packageJsonPath: AbsoluteFilePath;
+  packageJsonPath: string;
 }): ContentText => {
   try {
     const raw = readFileSync(packageJsonPath);

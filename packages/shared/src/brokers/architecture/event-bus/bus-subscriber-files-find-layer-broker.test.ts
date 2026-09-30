@@ -1,22 +1,13 @@
 import { busSubscriberFilesFindLayerBroker } from './bus-subscriber-files-find-layer-broker';
 import { busSubscriberFilesFindLayerBrokerProxy } from './bus-subscriber-files-find-layer-broker.proxy';
-import { AbsoluteFilePathStub } from '../../../contracts/absolute-file-path/absolute-file-path.stub';
 import { ContentTextStub } from '../../../contracts/content-text/content-text.stub';
 import { EventBusStub } from '../../../contracts/event-bus/event-bus.stub';
 
-const PROJECT_ROOT = AbsoluteFilePathStub({ value: '/repo' });
-const STATE_FILE = AbsoluteFilePathStub({
-  value: '/repo/packages/foo/src/state/my-bus/my-bus-state.ts',
-});
-const SUBSCRIBER_ADAPTER = AbsoluteFilePathStub({
-  value: '/repo/packages/bar/src/adapters/foo/events-on/foo-events-on-adapter.ts',
-});
-const GATEWAY_RESPONDER = AbsoluteFilePathStub({
-  value: '/repo/packages/bar/src/responders/server/init/server-init-responder.ts',
-});
-const UNRELATED_RESPONDER = AbsoluteFilePathStub({
-  value: '/repo/packages/bar/src/responders/other/other-responder.ts',
-});
+const PROJECT_ROOT = '/repo';
+const STATE_FILE = '/repo/packages/foo/src/state/my-bus/my-bus-state.ts';
+const SUBSCRIBER_ADAPTER = '/repo/packages/bar/src/adapters/foo/events-on/foo-events-on-adapter.ts';
+const GATEWAY_RESPONDER = '/repo/packages/bar/src/responders/server/init/server-init-responder.ts';
+const UNRELATED_RESPONDER = '/repo/packages/bar/src/responders/other/other-responder.ts';
 
 describe('busSubscriberFilesFindLayerBroker', () => {
   describe('no buses', () => {

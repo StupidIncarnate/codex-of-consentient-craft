@@ -1,18 +1,17 @@
-import type { AbsoluteFilePath } from '@dungeonmaster/shared/contracts';
 
 import { snapshotCaptureBrokerProxy } from '../../snapshot/capture/snapshot-capture-broker.proxy';
 
 export const stepSnapshotBrokerProxy = (): {
-  setupEmptyStore: (params: { homePath: AbsoluteFilePath }) => void;
-  appendedRecordsFor: (params: { homePath: AbsoluteFilePath }) => unknown[];
+  setupEmptyStore: (params: { homePath: string }) => void;
+  appendedRecordsFor: (params: { homePath: string }) => unknown[];
 } => {
   const captureProxy = snapshotCaptureBrokerProxy();
 
   return {
-    setupEmptyStore: ({ homePath }: { homePath: AbsoluteFilePath }): void => {
+    setupEmptyStore: ({ homePath }: { homePath: string }): void => {
       captureProxy.setupEmptyStore({ homePath });
     },
-    appendedRecordsFor: ({ homePath }: { homePath: AbsoluteFilePath }): unknown[] =>
+    appendedRecordsFor: ({ homePath }: { homePath: string }): unknown[] =>
       captureProxy.appendedRecordsFor({ homePath }),
   };
 };

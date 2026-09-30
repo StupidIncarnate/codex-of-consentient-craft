@@ -1,11 +1,10 @@
-import type { AbsoluteFilePath } from '@dungeonmaster/shared/contracts';
 import { readFileIfExistsProxy } from '#gateway/node/fs__promises/read-file-if-exists/read-file-if-exists.proxy';
 
 export const runMissingCheckLayerBrokerProxy = (): {
-  setupStoredReturn: (params: { storedReturnPath: AbsoluteFilePath; content: string }) => void;
-  setupMissingStoredReturn: (params: { storedReturnPath: AbsoluteFilePath }) => void;
-  setupTranscript: (params: { transcriptPath: AbsoluteFilePath; content: string }) => void;
-  setupMissingTranscript: (params: { transcriptPath: AbsoluteFilePath }) => void;
+  setupStoredReturn: (params: { storedReturnPath: string; content: string }) => void;
+  setupMissingStoredReturn: (params: { storedReturnPath: string }) => void;
+  setupTranscript: (params: { transcriptPath: string; content: string }) => void;
+  setupMissingTranscript: (params: { transcriptPath: string }) => void;
 } => {
   const readFileProxy = readFileIfExistsProxy();
 
@@ -14,7 +13,7 @@ export const runMissingCheckLayerBrokerProxy = (): {
       storedReturnPath,
       content,
     }: {
-      storedReturnPath: AbsoluteFilePath;
+      storedReturnPath: string;
       content: string;
     }): void => {
       readFileProxy.returns({ path: storedReturnPath, contents: content });
@@ -23,7 +22,7 @@ export const runMissingCheckLayerBrokerProxy = (): {
     setupMissingStoredReturn: ({
       storedReturnPath,
     }: {
-      storedReturnPath: AbsoluteFilePath;
+      storedReturnPath: string;
     }): void => {
       readFileProxy.missing({ path: storedReturnPath });
     },
@@ -32,13 +31,13 @@ export const runMissingCheckLayerBrokerProxy = (): {
       transcriptPath,
       content,
     }: {
-      transcriptPath: AbsoluteFilePath;
+      transcriptPath: string;
       content: string;
     }): void => {
       readFileProxy.returns({ path: transcriptPath, contents: content });
     },
 
-    setupMissingTranscript: ({ transcriptPath }: { transcriptPath: AbsoluteFilePath }): void => {
+    setupMissingTranscript: ({ transcriptPath }: { transcriptPath: string }): void => {
       readFileProxy.missing({ path: transcriptPath });
     },
   };

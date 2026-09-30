@@ -1,4 +1,3 @@
-import { AbsoluteFilePathStub } from '@dungeonmaster/shared/contracts/absolute-file-path/absolute-file-path.stub';
 import { ContentTextStub } from '@dungeonmaster/shared/contracts/content-text/content-text.stub';
 import { gatewayLocationsStatics } from '@dungeonmaster/shared/statics';
 import { HookSessionSnippetPackagesResponder } from './hook-session-snippet-packages-responder';
@@ -10,7 +9,7 @@ describe('HookSessionSnippetPackagesResponder', () => {
       const proxy = HookSessionSnippetPackagesResponderProxy();
 
       proxy.setupEntries({
-        projectRoot: AbsoluteFilePathStub({ value: '/project' }),
+        projectRoot: '/project',
         entries: [
           { name: 'web', isDirectory: true },
           { name: 'shared', isDirectory: true },
@@ -21,7 +20,7 @@ describe('HookSessionSnippetPackagesResponder', () => {
       });
 
       const result = HookSessionSnippetPackagesResponder({
-        projectRoot: AbsoluteFilePathStub({ value: '/project' }),
+        projectRoot: '/project',
       });
 
       expect(result).toBe(
@@ -35,7 +34,7 @@ describe('HookSessionSnippetPackagesResponder', () => {
       const proxy = HookSessionSnippetPackagesResponderProxy();
 
       proxy.setupEntries({
-        projectRoot: AbsoluteFilePathStub({ value: '/project' }),
+        projectRoot: '/project',
         entries: [
           { name: 'cli', isDirectory: true },
           { name: 'CLAUDE.md', isDirectory: false },
@@ -43,7 +42,7 @@ describe('HookSessionSnippetPackagesResponder', () => {
       });
 
       const result = HookSessionSnippetPackagesResponder({
-        projectRoot: AbsoluteFilePathStub({ value: '/project' }),
+        projectRoot: '/project',
       });
 
       expect(result).toBe(ContentTextStub({ value: '## Packages\n\n- **cli**' }));
@@ -53,7 +52,7 @@ describe('HookSessionSnippetPackagesResponder', () => {
       const proxy = HookSessionSnippetPackagesResponderProxy();
 
       proxy.setupEntries({
-        projectRoot: AbsoluteFilePathStub({ value: '/default/cwd' }),
+        projectRoot: '/default/cwd',
         entries: [{ name: 'hooks', isDirectory: true }],
       });
 
@@ -68,7 +67,7 @@ describe('HookSessionSnippetPackagesResponder', () => {
       const proxy = HookSessionSnippetPackagesResponderProxy();
 
       proxy.setupEntries({
-        projectRoot: AbsoluteFilePathStub({ value: '/project' }),
+        projectRoot: '/project',
         entries: [
           { name: 'cli', isDirectory: true },
           {
@@ -83,7 +82,7 @@ describe('HookSessionSnippetPackagesResponder', () => {
       });
 
       const result = HookSessionSnippetPackagesResponder({
-        projectRoot: AbsoluteFilePathStub({ value: '/project' }),
+        projectRoot: '/project',
       });
 
       expect(result).toBe(
@@ -97,7 +96,7 @@ describe('HookSessionSnippetPackagesResponder', () => {
       const proxy = HookSessionSnippetPackagesResponderProxy();
 
       proxy.setupEntries({
-        projectRoot: AbsoluteFilePathStub({ value: '/project' }),
+        projectRoot: '/project',
         entries: [
           { name: 'cli', isDirectory: true },
           { name: '@gateway', isDirectory: true },
@@ -105,7 +104,7 @@ describe('HookSessionSnippetPackagesResponder', () => {
       });
 
       const result = HookSessionSnippetPackagesResponder({
-        projectRoot: AbsoluteFilePathStub({ value: '/project' }),
+        projectRoot: '/project',
       });
 
       expect(result).toBe(
@@ -121,12 +120,12 @@ describe('HookSessionSnippetPackagesResponder', () => {
       const proxy = HookSessionSnippetPackagesResponderProxy();
 
       proxy.setupEntries({
-        projectRoot: AbsoluteFilePathStub({ value: '/project' }),
+        projectRoot: '/project',
         entries: [{ name: 'CLAUDE.md', isDirectory: false }],
       });
 
       const result = HookSessionSnippetPackagesResponder({
-        projectRoot: AbsoluteFilePathStub({ value: '/project' }),
+        projectRoot: '/project',
       });
 
       expect(result).toBe(ContentTextStub({ value: '## Packages\n\n- **root**' }));
@@ -135,10 +134,10 @@ describe('HookSessionSnippetPackagesResponder', () => {
     it('EMPTY: {no packages dir} => returns root package entry', () => {
       const proxy = HookSessionSnippetPackagesResponderProxy();
 
-      proxy.setupEmptyMonorepo({ projectRoot: AbsoluteFilePathStub({ value: '/project' }) });
+      proxy.setupEmptyMonorepo({ projectRoot: '/project' });
 
       const result = HookSessionSnippetPackagesResponder({
-        projectRoot: AbsoluteFilePathStub({ value: '/project' }),
+        projectRoot: '/project',
       });
 
       expect(result).toBe(ContentTextStub({ value: '## Packages\n\n- **root**' }));

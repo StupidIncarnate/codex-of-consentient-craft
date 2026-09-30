@@ -3,12 +3,11 @@ import { readdirIfExistsProxy } from '#gateway/node/fs__promises/readdir-if-exis
 import { readFileIfExistsProxy } from '#gateway/node/fs__promises/read-file-if-exists/read-file-if-exists.proxy';
 import { join } from '#gateway/node/path';
 import { isNativeErrorProxy } from '#gateway/node/util__types/is-native-error/is-native-error.proxy';
-import { AbsoluteFilePathStub } from '@dungeonmaster/shared/contracts/absolute-file-path/absolute-file-path.stub';
 import { registerMock, requireActual } from '@dungeonmaster/testing/register-mock';
 
 import { statIfExistsProxy } from '#gateway/node/fs__promises/stat-if-exists/stat-if-exists.proxy';
 
-const PROC_ROOT = AbsoluteFilePathStub({ value: '/proc' });
+const PROC_ROOT = '/proc';
 
 export const machineRssByPgidBrokerProxy = (): {
   setupProcMissing: () => void;

@@ -1,5 +1,4 @@
 import { getExitCode, setExitCode } from '#gateway/node/process';
-import { AbsoluteFilePathStub } from '@dungeonmaster/shared/contracts/absolute-file-path/absolute-file-path.stub';
 
 import { WardRunResponderProxy } from './ward-run-responder.proxy';
 
@@ -14,7 +13,7 @@ describe('WardRunResponder', () => {
 
       await proxy.callResponder({
         args: ['node', 'ward', 'run'],
-        rootPath: AbsoluteFilePathStub({ value: '/project' }),
+        rootPath: '/project',
       });
 
       expect(getExitCode()).toBe(1);
@@ -29,7 +28,7 @@ describe('WardRunResponder', () => {
 
       await proxy.callResponder({
         args: ['node', 'ward', 'run', '--only', 'lint'],
-        rootPath: AbsoluteFilePathStub({ value: '/project' }),
+        rootPath: '/project',
       });
 
       expect(getExitCode()).toBe(0);
@@ -48,7 +47,7 @@ describe('WardRunResponder', () => {
 
       await proxy.callResponder({
         args: ['node', 'ward', 'run', '--', 'src/index.ts', 'src/utils.ts'],
-        rootPath: AbsoluteFilePathStub({ value: '/project' }),
+        rootPath: '/project',
       });
 
       expect(getExitCode()).toBe(1);

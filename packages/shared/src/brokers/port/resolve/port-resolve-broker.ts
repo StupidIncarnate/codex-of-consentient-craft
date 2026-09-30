@@ -11,10 +11,6 @@
 
 import { cwd, getEnv } from '#gateway/node/process';
 import {
-  absoluteFilePathContract,
-  type AbsoluteFilePath,
-} from '../../../contracts/absolute-file-path/absolute-file-path-contract';
-import {
   networkPortContract,
   type NetworkPort,
 } from '../../../contracts/network-port/network-port-contract';
@@ -24,7 +20,7 @@ import { portConfigWalkBroker } from '../config-walk/port-config-walk-broker';
 export const portResolveBroker = ({
   startDir,
 }: {
-  startDir?: AbsoluteFilePath;
+  startDir?: string;
 } = {}): NetworkPort => {
   const envPort = getEnv('DUNGEONMASTER_PORT');
   if (envPort !== undefined && envPort !== '') {
@@ -34,7 +30,7 @@ export const portResolveBroker = ({
     }
   }
 
-  const lookupDir = startDir ?? absoluteFilePathContract.parse(cwd());
+  const lookupDir = startDir ?? cwd();
   const configPort = portConfigWalkBroker({ dir: lookupDir });
   if (configPort !== undefined) {
     return configPort;

@@ -28,7 +28,6 @@ import { verifyRefProxy } from '#gateway/bin/git/verify-ref/verify-ref.proxy';
 
 import { locationsWorktreePathFindBrokerProxy } from '@dungeonmaster/shared/brokers/locations/worktree-path-find/locations-worktree-path-find-broker.proxy';
 import { baseBranchNameContract, exitCodeContract, questBranchNameContract, riftcarverResultContract, type ExitCode, type Quest } from '@dungeonmaster/shared/contracts';
-import { AbsoluteFilePathStub } from '@dungeonmaster/shared/contracts/absolute-file-path/absolute-file-path.stub';
 import { GuildIdStub } from '@dungeonmaster/shared/contracts/guild-id/guild-id.stub';
 import { RepoRootCwdStub } from '@dungeonmaster/shared/contracts/repo-root-cwd/repo-root-cwd.stub';
 import type { QuestStub } from '@dungeonmaster/shared/contracts/quest/quest.stub';
@@ -109,7 +108,7 @@ export const stepHandlerRiftcarverBrokerProxy = (): {
   const repoRootProxy = questRepoRootBrokerProxy();
   repoRootProxy.setupRepoRoot({ repoRoot: RepoRootCwdStub({ value: REPO_ROOT }) });
 
-  const worktreePath = AbsoluteFilePathStub({ value: WORKTREE_PATH });
+  const worktreePath = WORKTREE_PATH;
   const riftcarverResultId = riftcarverResultContract.shape.id.parse(FIXED_RIFTCARVER_RESULT_UUID);
   const questFolderRef = { value: `${QUESTS_DIR}/unset` };
 
@@ -160,7 +159,7 @@ export const stepHandlerRiftcarverBrokerProxy = (): {
     }
     if (questBranch.exists) {
       prepareProxy.setupAttachExistingBranch({
-        repoRoot: AbsoluteFilePathStub({ value: REPO_ROOT }),
+        repoRoot: REPO_ROOT,
         worktreePath,
         branchName,
         sha: HEAD_SHA,
@@ -168,7 +167,7 @@ export const stepHandlerRiftcarverBrokerProxy = (): {
       return;
     }
     prepareProxy.setupHappyPath({
-      repoRoot: AbsoluteFilePathStub({ value: REPO_ROOT }),
+      repoRoot: REPO_ROOT,
       worktreePath,
       branchName,
       baseBranch,
@@ -203,7 +202,7 @@ export const stepHandlerRiftcarverBrokerProxy = (): {
       isAccessibleProxy.missing({ path: WORKTREE_PATH });
       stageCarve();
       provisionProxy.setupBareWorktree({
-        repoRoot: AbsoluteFilePathStub({ value: REPO_ROOT }),
+        repoRoot: REPO_ROOT,
         worktreePath,
       });
       persistResultProxy.setupSuccess({

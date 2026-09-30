@@ -21,12 +21,7 @@
  * // Returns a SubagentRecord
  */
 import { claudePathSlugEncoderTransformer } from '@dungeonmaster/shared/transformers';
-import {
-  absoluteFilePathContract,
-  lineCountContract,
-  streamJsonLineContract,
-  userToolResultStreamLineContract,
-} from '@dungeonmaster/shared/contracts';
+import { lineCountContract, streamJsonLineContract, userToolResultStreamLineContract } from '@dungeonmaster/shared/contracts';
 
 import { appendLinesCreatingParent } from '#gateway/node/fs__promises';
 import { subagentFieldsContract } from '../../../contracts/subagent-fields/subagent-fields-contract';
@@ -46,12 +41,8 @@ export const subagentWriteRouteBroker = async ({
     homeDir: target.claudeHome,
     projectPath: parsedFields.cwd,
   });
-  const parentFilePath = absoluteFilePathContract.parse(
-    `${sessionsDir}/${parsedFields.sessionId}.jsonl`,
-  );
-  const subagentFilePath = absoluteFilePathContract.parse(
-    `${sessionsDir}/${parsedFields.sessionId}/subagents/agent-${parsedFields.agentId}.jsonl`,
-  );
+  const parentFilePath = `${sessionsDir}/${parsedFields.sessionId}.jsonl`;
+  const subagentFilePath = `${sessionsDir}/${parsedFields.sessionId}/subagents/agent-${parsedFields.agentId}.jsonl`;
 
   await appendLinesCreatingParent({ path: subagentFilePath, lines: parsedFields.lines });
 

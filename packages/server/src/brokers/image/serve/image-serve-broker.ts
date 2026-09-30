@@ -20,7 +20,6 @@ import { existsSync } from '#gateway/node/fs';
 import { readFileBytes, realpath } from '#gateway/node/fs__promises';
 import { dirname, join } from '#gateway/node/path';
 import { locationsQuestImagesPathFindBroker } from '@dungeonmaster/shared/brokers';
-import { absoluteFilePathContract } from '@dungeonmaster/shared/contracts';
 import { locationsStatics } from '@dungeonmaster/shared/statics';
 
 import { processDevLogBroker } from '../../process/dev-log/process-dev-log-broker';
@@ -38,7 +37,7 @@ export const imageServeBroker = async ({
     return null;
   }
 
-  const filePath = absoluteFilePathContract.parse(path);
+  const filePath = path;
 
   const contentType = imageContentTypeTransformer({ filePath });
   if (contentType === null) {
@@ -51,8 +50,8 @@ export const imageServeBroker = async ({
     const realFilePath = await realpath(filePath);
 
     const containingDir = dirname(realFilePath);
-    const questFolderPath = absoluteFilePathContract.parse(dirname(containingDir));
-    const containingDirPath = absoluteFilePathContract.parse(containingDir);
+    const questFolderPath = dirname(containingDir);
+    const containingDirPath = containingDir;
 
     if (locationsQuestImagesPathFindBroker({ questFolderPath }) !== containingDirPath) {
       return null;

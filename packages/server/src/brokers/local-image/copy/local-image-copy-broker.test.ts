@@ -1,13 +1,10 @@
-import { AbsoluteFilePathStub } from '@dungeonmaster/shared/contracts/absolute-file-path/absolute-file-path.stub';
 
 import { LocalImagePathMatchStub } from '../../../contracts/local-image-path-match/local-image-path-match.stub';
 
 import { localImageCopyBroker } from './local-image-copy-broker';
 import { localImageCopyBrokerProxy } from './local-image-copy-broker.proxy';
 
-const imagesDirPath = AbsoluteFilePathStub({
-  value: '/repo/.dungeonmaster/guild-1/quest-1/images',
-});
+const imagesDirPath = '/repo/.dungeonmaster/guild-1/quest-1/images';
 
 describe('localImageCopyBroker', () => {
   describe('copy-lands-in-quest-images', () => {
@@ -22,11 +19,11 @@ describe('localImageCopyBroker', () => {
       await localImageCopyBroker({ matches: [match], imagesDirPath });
 
       expect(proxy.writtenDestinations()).toStrictEqual([
-        AbsoluteFilePathStub({ value: `${imagesDirPath}/${stagedUuid}.jpeg` }),
+        `${imagesDirPath}/${stagedUuid}.jpeg`,
       ]);
       expect(
         proxy.writtenBytesFor({
-          filePath: AbsoluteFilePathStub({ value: `${imagesDirPath}/${stagedUuid}.jpeg` }),
+          filePath: `${imagesDirPath}/${stagedUuid}.jpeg`,
         }),
       ).toStrictEqual(bytes);
     });
@@ -72,7 +69,7 @@ describe('localImageCopyBroker', () => {
 
       const result = await localImageCopyBroker({ matches: [badMatch, goodMatch], imagesDirPath });
 
-      const goodDestination = AbsoluteFilePathStub({ value: `${imagesDirPath}/${goodUuid}.png` });
+      const goodDestination = `${imagesDirPath}/${goodUuid}.png`;
 
       expect([...result.entries()]).toStrictEqual([[goodMatch.ordinal, goodDestination]]);
     });
@@ -89,7 +86,7 @@ describe('localImageCopyBroker', () => {
 
       await localImageCopyBroker({ matches: [match], imagesDirPath });
 
-      const destination = AbsoluteFilePathStub({ value: `${imagesDirPath}/${stagedUuid}.gif` });
+      const destination = `${imagesDirPath}/${stagedUuid}.gif`;
 
       expect(proxy.writtenDestinations()).toStrictEqual([destination]);
       expect(proxy.writtenBytesFor({ filePath: destination })).toStrictEqual(bytes);
@@ -107,7 +104,7 @@ describe('localImageCopyBroker', () => {
 
       const result = await localImageCopyBroker({ matches: [match], imagesDirPath });
 
-      const destination = AbsoluteFilePathStub({ value: `${imagesDirPath}/${stagedUuid}.webp` });
+      const destination = `${imagesDirPath}/${stagedUuid}.webp`;
 
       expect([...result.entries()]).toStrictEqual([[match.ordinal, destination]]);
     });
@@ -121,7 +118,7 @@ describe('localImageCopyBroker', () => {
       const proxy = localImageCopyBrokerProxy();
       proxy.stageCopyIds({ ids: [stagedUuid] });
       proxy.sourceReads({ filePath: match.path, bytes });
-      const destination = AbsoluteFilePathStub({ value: `${imagesDirPath}/${stagedUuid}.png` });
+      const destination = `${imagesDirPath}/${stagedUuid}.png`;
       proxy.destinationWriteFails({ filePath: destination });
 
       const result = await localImageCopyBroker({ matches: [match], imagesDirPath });

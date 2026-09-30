@@ -13,8 +13,6 @@
  * WHEN-NOT-TO-USE: When TypeScript AST-level accuracy is required (regex v1 heuristic)
  */
 
-import { absoluteFilePathContract } from '../../../contracts/absolute-file-path/absolute-file-path-contract';
-import type { AbsoluteFilePath } from '../../../contracts/absolute-file-path/absolute-file-path-contract';
 import {
   contentTextContract,
   type ContentText,
@@ -35,10 +33,10 @@ const DUNGEONMASTER_SCOPE = '@dungeonmaster/';
 export const architectureImportEdgesBroker = ({
   projectRoot,
 }: {
-  projectRoot: AbsoluteFilePath;
+  projectRoot: string;
 }): ImportEdge[] => {
   const root = String(projectRoot);
-  const packagesDir = absoluteFilePathContract.parse(`${root}/${PACKAGES_REL}`);
+  const packagesDir = `${root}/${PACKAGES_REL}`;
 
   const packageEntries = safeReaddirLayerBroker({ dirPath: packagesDir });
   if (packageEntries.length === 0) {
@@ -52,7 +50,7 @@ export const architectureImportEdgesBroker = ({
     }
   }
 
-  const edgeFileMap = new Map<ContentText, Set<AbsoluteFilePath>>();
+  const edgeFileMap = new Map<ContentText, Set<string>>();
   const edgeMeta = new Map<
     ContentText,
     { consumerPackage: ContentText; sourcePackage: ContentText; barrel: ContentText }
@@ -60,9 +58,7 @@ export const architectureImportEdgesBroker = ({
 
   for (const consumerPkg of knownPackageNames) {
     const consumerPkgName = String(consumerPkg);
-    const pkgSrcDir = absoluteFilePathContract.parse(
-      `${root}/${PACKAGES_REL}/${consumerPkgName}/src`,
-    );
+    const pkgSrcDir = `${root}/${PACKAGES_REL}/${consumerPkgName}/src`;
 
     const allFiles = listTsFilesRecursiveLayerBroker({ dirPath: pkgSrcDir });
 
@@ -109,7 +105,7 @@ export const architectureImportEdgesBroker = ({
         );
 
         if (!edgeFileMap.has(edgeKey)) {
-          edgeFileMap.set(edgeKey, new Set<AbsoluteFilePath>());
+          edgeFileMap.set(edgeKey, new Set<string>());
           edgeMeta.set(edgeKey, { consumerPackage: consumerPkg, sourcePackage, barrel });
         }
 

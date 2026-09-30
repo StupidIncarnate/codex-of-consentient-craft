@@ -1,4 +1,3 @@
-import { AbsoluteFilePathStub } from '@dungeonmaster/shared/contracts/absolute-file-path/absolute-file-path.stub';
 
 import { ClipboardPayloadStub } from '../../../contracts/clipboard-payload/clipboard-payload.stub';
 import { DomReadingStub } from '../../../contracts/dom-reading/dom-reading.stub';
@@ -12,9 +11,7 @@ import { browserSessionLaunchBrokerProxy } from './browser-session-launch-broker
 import { Buffer } from '#gateway/node/buffer';
 
 const BASE_URL = 'http://localhost:5555';
-const EVIDENCE_PATH = AbsoluteFilePathStub({
-  value: '/home/user/.dungeonmaster/siegelense/inst_1',
-});
+const EVIDENCE_PATH = '/home/user/.dungeonmaster/siegelense/inst_1';
 const TARGET = '[data-testid="PIXEL_BTN"]';
 const WITHIN = '[data-testid="GUILD_LIST"]';
 const REF_INIT_SOURCE = [

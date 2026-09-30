@@ -1,7 +1,5 @@
 import { CpNotInstalledErrorProxy } from '#gateway/bin/cp/cp-run/cp-not-installed.error.proxy';
 import { registerMock, requireActual } from '@dungeonmaster/testing/register-mock';
-import type { AbsoluteFilePath } from '@dungeonmaster/shared/contracts';
-import { AbsoluteFilePathStub } from '@dungeonmaster/shared/contracts/absolute-file-path/absolute-file-path.stub';
 import { locationsNodeModulesPathFindBrokerProxy } from '@dungeonmaster/shared/brokers/locations/node-modules-path-find/locations-node-modules-path-find-broker.proxy';
 import { cpRunProxy } from '#gateway/bin/cp/cp-run/cp-run.proxy';
 import type { DirEntrySync, FsError } from '#gateway/node/fs';
@@ -42,11 +40,11 @@ const dirEntryFrom = ({
 
 export const populateOneRootLayerBrokerProxy = (): {
   setupDirectoryEntries: (params: {
-    dirPath: AbsoluteFilePath;
+    dirPath: string;
     entries: { name: string; isDir: boolean; isSymlink: boolean }[];
   }) => void;
   setupTargetNodeModulesOnDisk: (params: {
-    targetRoot: AbsoluteFilePath;
+    targetRoot: string;
     entries: { name: string; isDir: boolean; isSymlink: boolean }[];
   }) => void;
   setupReadlinkTarget: (params: { linkPath: string; target: string }) => void;
@@ -54,7 +52,7 @@ export const populateOneRootLayerBrokerProxy = (): {
   // makes, plus one per named npm scope directory beneath it — the exact set this layer computes,
   // addressed by their real values rather than an unaddressed catch-all.
   setupTargetReady: (params: {
-    targetRoot: AbsoluteFilePath;
+    targetRoot: string;
     scopeNames?: readonly string[];
   }) => void;
   setupMkdirThrows: (params: { filepath: string; error: FsError }) => void;
@@ -94,7 +92,7 @@ export const populateOneRootLayerBrokerProxy = (): {
       dirPath,
       entries,
     }: {
-      dirPath: AbsoluteFilePath;
+      dirPath: string;
       entries: { name: string; isDir: boolean; isSymlink: boolean }[];
     }): void => {
       readdirProxy.returns({
@@ -110,12 +108,12 @@ export const populateOneRootLayerBrokerProxy = (): {
       targetRoot,
       entries,
     }: {
-      targetRoot: AbsoluteFilePath;
+      targetRoot: string;
       entries: { name: string; isDir: boolean; isSymlink: boolean }[];
     }): void => {
       isAccessibleProxy.present({ path: `${targetRoot}/node_modules` });
       readdirProxy.returns({
-        path: AbsoluteFilePathStub({ value: `${targetRoot}/node_modules` }),
+        path: `${targetRoot}/node_modules`,
         entries: entries.map(dirEntryFrom),
       });
     },
@@ -127,7 +125,7 @@ export const populateOneRootLayerBrokerProxy = (): {
       targetRoot,
       scopeNames = [],
     }: {
-      targetRoot: AbsoluteFilePath;
+      targetRoot: string;
       scopeNames?: readonly string[];
     }): void => {
       const targetNodeModules = `${targetRoot}/node_modules`;

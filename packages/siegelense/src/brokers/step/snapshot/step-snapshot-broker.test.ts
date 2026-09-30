@@ -1,11 +1,10 @@
-import { AbsoluteFilePathStub } from '@dungeonmaster/shared/contracts/absolute-file-path/absolute-file-path.stub';
 
 import { LaneSessionStub } from '../../../contracts/lane-session/lane-session.stub';
 import { SnapshotNameStub } from '../../../contracts/snapshot-name/snapshot-name.stub';
 import { stepSnapshotBroker } from './step-snapshot-broker';
 import { stepSnapshotBrokerProxy } from './step-snapshot-broker.proxy';
 
-const HOME = AbsoluteFilePathStub({ value: '/tmp/dm-siege-inst_snapshot' });
+const HOME = '/tmp/dm-siege-inst_snapshot';
 
 describe('stepSnapshotBroker', () => {
   describe('capturing a snapshot', () => {
