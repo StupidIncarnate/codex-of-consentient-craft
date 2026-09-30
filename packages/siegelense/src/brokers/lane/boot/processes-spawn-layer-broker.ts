@@ -8,7 +8,7 @@
  * unready launch differs between a failed boot and a failed restart, so the caller decides.
  *
  * USAGE:
- * await processesSpawnLayerBroker({ launches: [LaneLaunchStub()], cwd, bootTimeoutMs: TimeoutMsStub() });
+ * await processesSpawnLayerBroker({ launches: [LaneLaunchStub()], cwd, bootTimeoutMs: 60000 });
  * // Returns { pgids: [one per launch, in launch order], unready: [every launch that never answered] }
  */
 

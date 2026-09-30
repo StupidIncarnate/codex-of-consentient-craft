@@ -2,7 +2,7 @@
  * PURPOSE: Normalizes a file path to a relative path by stripping a cwd prefix if present
  *
  * USAGE:
- * normalizeToRelativeTransformer({ filePath: gitRelativePathContract.parse('/project/src/a.ts'), cwd: absoluteFilePathContract.parse('/project') });
+ * normalizeToRelativeTransformer({ filePath: '/project/src/a.ts', cwd: '/project' });
  * // Returns: GitRelativePath 'src/a.ts'
  */
 

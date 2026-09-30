@@ -9,7 +9,7 @@
  *
  * USAGE:
  * collectGatewayTypeDeclarationNamesLayerBroker({
- *   dirPath: filePathContract.parse('/repo/packages/@gateway/node/src/fs/'),
+ *   dirPath: '/repo/packages/@gateway/node/src/fs/',
  *   index: new Map(),
  * });
  * // Mutates and returns `index`, e.g. Map { 'WalkedFile' => ['/repo/.../walked-file.ts'] }

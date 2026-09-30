@@ -6,7 +6,7 @@
  * still running" — the ESRCH/EPERM reading lives here once.
  *
  * USAGE:
- * const alive = processIsAliveBroker({ pid: processPidContract.parse(812325) });
+ * const alive = processIsAliveBroker({ pid: 812325 });
  * // Returns true when the process exists, false on ESRCH.
  */
 

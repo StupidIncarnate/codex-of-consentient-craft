@@ -8,7 +8,7 @@
  *
  * USAGE:
  * const harness = questOutboxHarness();
- * const { homeDir, end } = harness.begin({ name: BaseNameStub({ value: 'outbox-second-watcher' }) });
+ * const { homeDir, end } = harness.begin({ name: 'outbox-second-watcher' });
  * const listener = harness.listener();
  * const { stop } = await questOutboxWatchBroker(listener.callbacks);
  * harness.appendQuestLine({ homeDir, questId: 'alpha' });

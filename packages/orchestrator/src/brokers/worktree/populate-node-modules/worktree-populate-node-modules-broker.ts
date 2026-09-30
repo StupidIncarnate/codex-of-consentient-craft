@@ -13,8 +13,8 @@
  *
  * USAGE:
  * await worktreePopulateNodeModulesBroker({
- *   repoRoot: AbsoluteFilePathStub({ value: '/repo' }),
- *   worktreePath: AbsoluteFilePathStub({ value: '/repo/worktrees/quest-slug-a1b2c3d4' }),
+ *   repoRoot: '/repo',
+ *   worktreePath: '/repo/worktrees/quest-slug-a1b2c3d4',
  *   onLine: (line) => emit(line),
  * });
  * // Populates <worktreePath>/node_modules plus <worktreePath>/packages/<pkg>/node_modules,

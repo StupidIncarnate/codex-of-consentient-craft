@@ -14,7 +14,7 @@
  * would bury the table. The row shows no profile line instead of a crashed `status` call.
  *
  * USAGE:
- * await profileSoloReadLayerBroker({ specName: SpecNameStub({ value: 'stack' }) });
+ * await profileSoloReadLayerBroker({ specName: 'stack' });
  * // Returns the CapacityProfile at pool size 1, the pessimistic nearest group if none was ever
  * // measured solo, or null when the spec has no profile at all
  */

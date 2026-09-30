@@ -28,7 +28,7 @@
  * describe('...', () => {
  *   const seedHome = seedHomeHarness();
  *   it('VALID: {} => runs a real recipe against it', async () => {
- *     const result = await seedHome.runRecipe({ recipeName: RecipeNameStub({ value: 'guild-empty' }) });
+ *     const result = await seedHome.runRecipe({ recipeName: 'guild-empty' });
  *   });
  * });
  */

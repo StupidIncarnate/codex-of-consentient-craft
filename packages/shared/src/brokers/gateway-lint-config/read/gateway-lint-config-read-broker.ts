@@ -11,7 +11,7 @@
  * onward ever add a `gateway` key.
  *
  * USAGE:
- * gatewayLintConfigReadBroker({ repoRoot: absoluteFilePathContract.parse('/repo') });
+ * gatewayLintConfigReadBroker({ repoRoot: '/repo' });
  * // Returns {} when '/repo/.dungeonmaster.json' is absent or carries no 'gateway' key
  */
 

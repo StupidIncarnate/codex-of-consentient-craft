@@ -5,11 +5,11 @@
  *
  * USAGE:
  * const responders = mcpHandlerResponderExtractTransformer({
- *   source: contentTextContract.parse(`[
+ *   source: `[
  *     { name: 'discover' as never, ..., handler: async ({ args }) => ArchitectureHandleResponder({ tool: 'discover' as never, args }) },
- *   ]`),
+ *   ]`,
  * });
- * // Returns ['ArchitectureHandleResponder'] as ContentText[]
+ * // Returns ['ArchitectureHandleResponder'] as string[]
  *
  * WHEN-TO-USE: mcp-server headline broker extracting handler responder names from flow source
  * WHEN-NOT-TO-USE: When full AST parsing is needed — this is a v1 regex heuristic

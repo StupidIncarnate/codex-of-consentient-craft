@@ -8,7 +8,7 @@
  * USAGE:
  * agentFlowPlannedStepsWalkTransformer({
  *   graph: agentFlowFamilyResolveTransformer({ quest, operationItem }),
- *   cursor: RoutedGraphNodeKeyStub({ value: 'review' }),
+ *   cursor: 'review',
  * });
  * // Returns ['review', 'commit', 'ward'] — 'review' plus the `done` chain onward to the family's
  * // own close-out, given `review.routes.done === 'commit'` and `commit.routes.done === 'ward'`

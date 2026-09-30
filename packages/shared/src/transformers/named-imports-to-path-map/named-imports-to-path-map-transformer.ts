@@ -4,12 +4,10 @@
  *
  * USAGE:
  * const map = namedImportsToPathMapTransformer({
- *   source: contentTextContract.parse(
- *     "import { QuestStartResponder } from '../../responders/quest/start/quest-start-responder';",
- *   ),
+ *   source: "import { QuestStartResponder } from '../../responders/quest/start/quest-start-responder';",
  * });
  * map.get('QuestStartResponder');
- * // Returns ContentText '../../responders/quest/start/quest-start-responder'
+ * // Returns '../../responders/quest/start/quest-start-responder'
  *
  * WHEN-TO-USE: HTTP-edges broker resolving a route's responder identifier (extracted from the
  * handler body) back to the responder file path via the flow's import block

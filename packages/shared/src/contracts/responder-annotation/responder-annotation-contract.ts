@@ -5,8 +5,8 @@
  *
  * USAGE:
  * responderAnnotationContract.parse({
- *   suffix: contentTextContract.parse('[POST /api/quests/:questId/start]'),
- *   childLines: [contentTextContract.parse('← packages/web (questStartBroker)')],
+ *   suffix: '[POST /api/quests/:questId/start]',
+ *   childLines: ['← packages/web (questStartBroker)'],
  * });
  * // Returns validated ResponderAnnotation
  *

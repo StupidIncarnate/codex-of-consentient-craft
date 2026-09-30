@@ -6,7 +6,7 @@
  * `next-action-transformer.ts` takes its own copy of this shape as a parameter).
  *
  * USAGE:
- * isStepMintableOnRequestGuard({ family: AgentFamilyNameStub({ value: 'siegemaster' }), step: StepNameStub({ value: 'recipe' }) });
+ * isStepMintableOnRequestGuard({ family: 'siegemaster', step: 'recipe' });
  * // Returns true
  */
 

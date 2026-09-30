@@ -15,7 +15,7 @@
  * not.
  *
  * USAGE:
- * sessionUniqueIdResolveBroker({ target, cwd, sessionId: sessionIdContract.parse('seed-session-1') });
+ * sessionUniqueIdResolveBroker({ target, cwd, sessionId: 'seed-session-1' });
  * // Returns 'seed-session-2' when seed-session-1.jsonl already exists under that cwd's directory,
  * // else the original id unchanged
  */

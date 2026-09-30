@@ -3,7 +3,7 @@
  * workspace's `packages/` folder one level at a time.
  *
  * USAGE:
- * subfolderPathsListLayerBroker({ dirPath: absoluteFilePathContract.parse('/repo/packages') });
+ * subfolderPathsListLayerBroker({ dirPath: '/repo/packages' });
  * // Returns ['/repo/packages/shared', '/repo/packages/@gateway', ...]
  */
 import { readdirEntriesSync } from '#gateway/node/fs';

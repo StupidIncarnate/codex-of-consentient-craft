@@ -3,7 +3,7 @@
  *
  * USAGE:
  * locationsNodeModulesBinPathFindBroker({
- *   rootPath: AbsoluteFilePathStub({ value: '/repo' }),
+ *   rootPath: '/repo',
  *   binName: FileNameStub({ value: 'jest' }),
  * });
  * // Returns AbsoluteFilePath '/repo/node_modules/.bin/jest'

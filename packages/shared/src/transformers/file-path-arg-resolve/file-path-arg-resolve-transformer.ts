@@ -6,8 +6,8 @@
  *
  * USAGE:
  * filePathArgResolveTransformer({
- *   source: contentTextContract.parse('const outboxPath = join(home, locationsStatics.dungeonmasterHome.eventOutbox);'),
- *   variableName: contentTextContract.parse('outboxPath'),
+ *   source: 'const outboxPath = join(home, locationsStatics.dungeonmasterHome.eventOutbox);',
+ *   variableName: 'outboxPath',
  * });
  * // Returns '<computed: locationsStatics.dungeonmasterHome.eventOutbox>'
  */

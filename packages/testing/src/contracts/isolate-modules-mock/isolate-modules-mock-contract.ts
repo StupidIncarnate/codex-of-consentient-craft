@@ -3,7 +3,7 @@
  * entry point — the module's path and the factory whose return value stands in for its exports.
  *
  * USAGE:
- * const mock: IsolateModulesMock = { module: filePathContract.parse('/abs/module'), factory: () => ({}) };
+ * const mock: IsolateModulesMock = { module: '/abs/module', factory: () => ({}) };
  * // One entry of isolateModules({ mocks, entrypoint })
  */
 

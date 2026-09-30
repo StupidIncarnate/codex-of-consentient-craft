@@ -11,7 +11,7 @@
  *
  * USAGE:
  * await driverSocketRequestBroker({
- *   socketPath: AbsoluteFilePathStub({ value: '/tmp/dm-siege-sockets/inst_7f3a9c21.sock' }),
+ *   socketPath: '/tmp/dm-siege-sockets/inst_7f3a9c21.sock',
  *   request: DriverRequestStub({ kind: 'ping', payload: '' }),
  *   timeoutMs: 5000,
  * });

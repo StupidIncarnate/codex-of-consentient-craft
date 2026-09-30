@@ -3,7 +3,7 @@
  * "use-" prefix and appending "-broker", e.g. "use-quest-chat" → "quest-chat-broker".
  *
  * USAGE:
- * bindingNameToBrokerNameTransformer({ bindingName: contentTextContract.parse('use-quest-chat') });
+ * bindingNameToBrokerNameTransformer({ bindingName: 'use-quest-chat' });
  * // Returns ContentText 'quest-chat-broker'
  *
  * WHEN-TO-USE: Frontend-react exemplar trace renderer deriving a broker label from a binding name

@@ -2,7 +2,7 @@
  * PURPOSE: Reads workspaces from root package.json and resolves patterns to ProjectFolder array, or null for single-package mode
  *
  * USAGE:
- * const folders = await workspaceDiscoverBroker({ rootPath: AbsoluteFilePathStub({ value: '/project' }) });
+ * const folders = await workspaceDiscoverBroker({ rootPath: '/project' });
  * // Returns ProjectFolder[] if workspaces field found, null if no workspaces (single-package mode)
  */
 

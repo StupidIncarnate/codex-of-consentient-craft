@@ -8,9 +8,9 @@
  * the identical mechanism `guildDefaultPathBumpTransformer` already uses for DEF-78's guild half.
  *
  * USAGE:
- * sessionDefaultIdBumpTransformer({ id: sessionIdContract.parse('seed-session-1'), by: 1 });
+ * sessionDefaultIdBumpTransformer({ id: 'seed-session-1', by: 1 });
  * // Returns 'seed-session-2'
- * sessionDefaultIdBumpTransformer({ id: sessionIdContract.parse('my-custom-session'), by: 1 });
+ * sessionDefaultIdBumpTransformer({ id: 'my-custom-session', by: 1 });
  * // Returns 'my-custom-session' unchanged
  */
 import { sessionContract } from '@dungeonmaster/shared/contracts';

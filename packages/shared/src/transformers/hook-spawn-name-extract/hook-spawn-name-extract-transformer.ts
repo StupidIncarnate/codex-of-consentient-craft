@@ -5,7 +5,7 @@
  * undefined when no spawn call is detected.
  *
  * USAGE:
- * const name = hookSpawnNameExtractTransformer({ source: contentTextContract.parse(src) });
+ * const name = hookSpawnNameExtractTransformer({ source: src });
  * // Returns ContentText('npm') for `spawnSync('npm', ['run', 'build'])`, or undefined if no spawn found
  *
  * WHEN-TO-USE: hook-handlers headline renderer detecting subprocess spawning in startup/responder source

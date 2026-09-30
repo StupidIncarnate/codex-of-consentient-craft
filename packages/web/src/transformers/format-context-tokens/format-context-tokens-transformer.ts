@@ -2,7 +2,7 @@
  * PURPOSE: Formats a context token count into a human-readable label like "29.4k" or "150"
  *
  * USAGE:
- * formatContextTokensTransformer({count: contextTokenCountContract.parse(29448)});
+ * formatContextTokensTransformer({ count: 29448 });
  * // Returns '29.4k' as FormattedTokenLabel
  */
 

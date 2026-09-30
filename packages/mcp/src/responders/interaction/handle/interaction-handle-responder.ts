@@ -2,7 +2,7 @@
  * PURPOSE: Handles interaction MCP tool calls (signal-back, ask-user-question, get-agent-prompt)
  *
  * USAGE:
- * const result = await InteractionHandleResponder({ tool: ToolNameStub({ value: 'signal-back' }), args: { signal: 'complete' } });
+ * const result = await InteractionHandleResponder({ tool: 'signal-back', args: { signal: 'complete' } });
  * // Returns CallToolResult with interaction result
  */
 

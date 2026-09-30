@@ -2,7 +2,7 @@
  * PURPOSE: Converts a PascalCase identifier to a kebab-case identifier
  *
  * USAGE:
- * pascalCaseToKebabCaseTransformer({ pascal: contentTextContract.parse('AppHomeResponder') });
+ * pascalCaseToKebabCaseTransformer({ pascal: 'AppHomeResponder' });
  * // Returns 'app-home-responder' as ContentText
  *
  * WHEN-TO-USE: Mapping JSX component identifiers (PascalCase) to file basenames (kebab-case) for

@@ -1,11 +1,11 @@
 /**
  * PURPOSE: Answers whether a `GuildPath` value is already absolute, so a route can tell a
  * caller's explicit real-directory override apart from the relative fragment `defaults(index)`
- * mints. Reach for this over `absoluteFilePathContract.safeParse` — that contract additionally
- * requires the value to satisfy `AbsoluteFilePath`'s own brand, which a `GuildPath` never carries.
+ * mints. Reach for this over an absolute-path parse — a `GuildPath` is a relative fragment or an
+ * absolute override, and only this guard tells the two apart.
  *
  * USAGE:
- * isAbsoluteGuildPathGuard({ path: guildPathContract.parse('/tmp/guild-1') });
+ * isAbsoluteGuildPathGuard({ path: '/tmp/guild-1' });
  * // Returns true
  */
 

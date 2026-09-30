@@ -6,7 +6,7 @@
  *
  * USAGE:
  * const sites = busEmitterSitesFindLayerBroker({
- *   projectRoot: absoluteFilePathContract.parse('/repo'),
+ *   projectRoot: '/repo',
  *   buses: [...eventBusList],
  * });
  *

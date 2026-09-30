@@ -16,8 +16,8 @@
  *
  * USAGE:
  * await staleReapLayerBroker({
- *   entry: RegistryEntryStub({ lastBeatMs: EpochMsStub({ value: 0 }) }),
- *   nowMs: EpochMsStub(),
+ *   entry: RegistryEntryStub({ lastBeatMs: 0 }),
+ *   nowMs: 1_700_000_000_000,
  * });
  * // Returns { reaped: ReapedInstance, portsReleased: readonly NetworkPort[] }
  */

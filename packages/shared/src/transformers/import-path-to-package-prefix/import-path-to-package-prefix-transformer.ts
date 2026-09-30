@@ -3,8 +3,8 @@
  *
  * USAGE:
  * importPathToPackagePrefixTransformer({
- *   renderingFilePath: AbsoluteFilePathStub({ value: '/repo/packages/server/src/responders/quest/start/quest-start-responder.ts' }),
- *   referencedFilePath: AbsoluteFilePathStub({ value: '/repo/packages/shared/src/brokers/port-resolve/port-resolve-broker.ts' }),
+ *   renderingFilePath: '/repo/packages/server/src/responders/quest/start/quest-start-responder.ts',
+ *   referencedFilePath: '/repo/packages/shared/src/brokers/port-resolve/port-resolve-broker.ts',
  *   symbolName: 'portResolveBroker',
  * });
  * // Returns ContentText 'shared/brokers/portResolveBroker'

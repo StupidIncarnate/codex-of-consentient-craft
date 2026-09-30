@@ -2,7 +2,7 @@
  * PURPOSE: Extracts the short flow name from a flow file display path by stripping the -flow suffix
  *
  * USAGE:
- * flowNameFromFilePathTransformer({ displayName: contentTextContract.parse('flows/quest/quest-flow') });
+ * flowNameFromFilePathTransformer({ displayName: 'flows/quest/quest-flow' });
  * // Returns ContentText 'quest'
  *
  * WHEN-TO-USE: Boot-tree renderer building the ↳ flows/{f1, f2, ...} line for a startup file,

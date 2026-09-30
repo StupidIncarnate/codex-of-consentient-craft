@@ -7,7 +7,7 @@
  *
  * USAGE:
  * const edges = fileBusEdgesLayerBroker({
- *   projectRoot: absoluteFilePathContract.parse('/repo'),
+ *   projectRoot: '/repo',
  * });
  * // Returns FileBusEdge[] with paired=true when a writer and a reader share the same filePath
  *

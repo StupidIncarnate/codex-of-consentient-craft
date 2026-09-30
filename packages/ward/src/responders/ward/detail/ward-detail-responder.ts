@@ -2,7 +2,7 @@
  * PURPOSE: Parses runId, filePath, and --json flag from CLI args and delegates to the command detail broker
  *
  * USAGE:
- * await WardDetailResponder({ args: ['node', 'ward', 'detail', '123-abc', '--json'], rootPath: AbsoluteFilePathStub() });
+ * await WardDetailResponder({ args: ['node', 'ward', 'detail', '123-abc', '--json'], rootPath: '/home/user/project/src/file.ts' });
  * // Loads and displays detailed errors in JSON format
  */
 

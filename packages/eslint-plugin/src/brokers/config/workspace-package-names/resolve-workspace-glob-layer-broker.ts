@@ -8,7 +8,7 @@
  * breaks the scan `ban-workspace-export-mocks`' option depends on.
  *
  * USAGE:
- * resolveWorkspaceGlobLayerBroker({ rootDir: filePathContract.parse('/repo'), glob: 'packages/*' });
+ * resolveWorkspaceGlobLayerBroker({ rootDir: '/repo', glob: 'packages/*' });
  * // Returns ['@dungeonmaster/orchestrator', '@dungeonmaster/server', ...]
  */
 import { existsSync, readFileSync, readdirEntriesSync } from '#gateway/node/fs';

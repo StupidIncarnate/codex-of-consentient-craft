@@ -6,7 +6,7 @@
  * problem is never read as "not installed here".
  *
  * USAGE:
- * await installedPackageVersionReadOptionalLayerBroker({ packageJsonPath: filePathContract.parse('/repo/packages/web/node_modules/@mantine/core/package.json') });
+ * await installedPackageVersionReadOptionalLayerBroker({ packageJsonPath: '/repo/packages/web/node_modules/@mantine/core/package.json' });
  * // Returns: '8.3.14' as InstalledPackageVersion, or undefined when the file does not exist
  */
 

@@ -2,7 +2,7 @@
  * PURPOSE: Routes ward CLI subcommands to the appropriate responder
  *
  * USAGE:
- * await WardFlow({ args: ['node', 'ward', 'run'], rootPath: AbsoluteFilePathStub() });
+ * await WardFlow({ args: ['node', 'ward', 'run'], rootPath: '/home/user/project/src/file.ts' });
  * // Delegates to WardRunResponder, WardListResponder, WardDetailResponder, WardRawResponder, or WardScanResponder
  */
 

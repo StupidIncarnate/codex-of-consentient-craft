@@ -3,7 +3,7 @@
  *
  * USAGE:
  * const result = architectureStateWritesBroker({
- *   packageRoot: absoluteFilePathContract.parse('/repo/packages/orchestrator'),
+ *   packageRoot: '/repo/packages/orchestrator',
  * });
  * // Returns StateWritesResult with inMemoryStores, fileWrites, browserStorageWrites
  *

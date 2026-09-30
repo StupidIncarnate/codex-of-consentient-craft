@@ -4,7 +4,7 @@
  *
  * USAGE:
  * const types = wsConsumeCallsExtractTransformer({
- *   source: contentTextContract.parse("if (parsed.data.type === 'chat-output') {"),
+ *   source: "if (parsed.data.type === 'chat-output') {",
  * });
  * // Returns ['chat-output']
  *

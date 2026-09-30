@@ -4,7 +4,7 @@
  *
  * USAGE:
  * const purpose = rulePurposeExtractTransformer({
- *   source: ContentTextStub({ value: '/** \n * PURPOSE: Bans raw primitives\n *\/' }),
+ *   source: '/** \n * PURPOSE: Bans raw primitives\n *\/',
  * });
  * // Returns ContentText('Bans raw primitives') or undefined if not found
  *

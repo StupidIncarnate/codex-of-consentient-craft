@@ -6,7 +6,7 @@
  * clamped in one place rather than re-guarded at every call site.
  *
  * USAGE:
- * uploadPercentTransformer({ bytesSent: ByteLengthStub({ value: 512 }), bytesTotal: ByteLengthStub({ value: 1024 }) });
+ * uploadPercentTransformer({ bytesSent: 512, bytesTotal: 1024 });
  * // Returns: 50
  */
 

@@ -4,7 +4,7 @@
  * paths at all, scans the whole package.
  *
  * USAGE:
- * scanFolderTargetsTransformer({ paths: [CliArgStub({ value: 'packages/ward/src/a.ts' })], projectFolder: ProjectFolderStub(), rootPath: AbsoluteFilePathStub() });
+ * scanFolderTargetsTransformer({ paths: ['packages/ward/src/a.ts'], projectFolder: ProjectFolderStub(), rootPath: '/home/user/project/src/file.ts' });
  * // Returns: { inScope: true, targets: ['src/a.ts'] } for a package at packages/ward
  */
 

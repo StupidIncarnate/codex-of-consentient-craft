@@ -6,7 +6,7 @@
  *
  * USAGE:
  * worktreeFailureDetailTransformer({
- *   worktreePath: AbsoluteFilePathStub({ value: '/repo/worktrees/quest-slug-a1b2c3d4' }),
+ *   worktreePath: '/repo/worktrees/quest-slug-a1b2c3d4',
  *   cause: 'ward typecheck exited with code 1',
  * });
  * // Returns '/repo/worktrees/quest-slug-a1b2c3d4: ward typecheck exited with code 1'

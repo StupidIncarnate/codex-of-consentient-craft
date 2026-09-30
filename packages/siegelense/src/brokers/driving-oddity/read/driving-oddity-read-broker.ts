@@ -12,7 +12,7 @@
  *
  * USAGE:
  * await drivingOddityReadBroker({
- *   filePath: AbsoluteFilePathStub({ value: '/repo/.dungeonmaster-assets/driving-oddities.jsonl' }),
+ *   filePath: '/repo/.dungeonmaster-assets/driving-oddities.jsonl',
  * });
  * // Returns every DrivingOddity in append order, or [] when the file does not exist yet
  */

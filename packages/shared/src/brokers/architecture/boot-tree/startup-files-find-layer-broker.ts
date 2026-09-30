@@ -3,7 +3,7 @@
  *
  * USAGE:
  * const files = startupFilesFindLayerBroker({
- *   packageSrcPath: absoluteFilePathContract.parse('/repo/packages/server/src'),
+ *   packageSrcPath: '/repo/packages/server/src',
  * });
  * // Returns AbsoluteFilePath[] of all start-*.ts files in startup/
  *

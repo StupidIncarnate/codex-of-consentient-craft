@@ -3,11 +3,9 @@
  *
  * USAGE:
  * layerFileParentResolveTransformer({
- *   layerFilePath: filePathContract.parse(
- *     'packages/web/src/widgets/quest-chat/quest-chat-content-layer-widget.tsx',
- *   ),
+ *   layerFilePath: 'packages/web/src/widgets/quest-chat/quest-chat-content-layer-widget.tsx',
  * });
- * // Returns FilePath 'packages/web/src/widgets/quest-chat/quest-chat-widget.tsx'
+ * // Returns 'packages/web/src/widgets/quest-chat/quest-chat-widget.tsx'
  *
  * WHEN-TO-USE: Inlining layer files under their parent entry file in project-map renderers (boot-tree, headline)
  * WHEN-NOT-TO-USE: When the input path is not a `-layer-` file (returns null instead of throwing — caller decides)

@@ -6,7 +6,7 @@
  * contractIndexFromSourcesTransformer when you have a directory, not source text already in hand.
  *
  * USAGE:
- * contractIndexBuildBroker({ rootDir: absoluteFilePathContract.parse('/repo') });
+ * contractIndexBuildBroker({ rootDir: '/repo' });
  * // Returns ContractIndexEntry[] — one per `-contract.ts` file
  */
 import { readFileSync, readJsonFileSyncIfExists, walkFilesSync } from '#gateway/node/fs';

@@ -52,8 +52,8 @@
  *
  * USAGE:
  * await stepDispatchBroker({
- *   lane, step: StepStub({ step: 'click', target: SelectorStub() }),
- *   index: StepIndexStub({ value: 3 }), shotPath: AbsoluteFilePathStub({ value: '/repo/.../step3.png' }),
+ *   lane, step: StepStub({ step: 'click', target: '[data-testid="GUILD_ADD"]' }),
+ *   index: 3, shotPath: '/repo/.../step3.png',
  *   browserWindowStart: null,
  *   lastShotPath: driverSessionState.lastShotPath, setLastShotPath: driverSessionState.setLastShotPath,
  * });

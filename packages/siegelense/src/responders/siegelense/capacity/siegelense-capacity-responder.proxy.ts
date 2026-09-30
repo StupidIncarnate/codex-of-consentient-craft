@@ -6,7 +6,7 @@
  *
  * USAGE:
  * const proxy = SiegelenseCapacityResponderProxy();
- * proxy.stageAnswer({ specName: SpecNameStub(), poolSize: null, answer });
+ * proxy.stageAnswer({ specName: 'dungeonmaster-stack', poolSize: null, answer });
  */
 
 import { stdoutProxy } from '#gateway/node/process/stdout/stdout.proxy';

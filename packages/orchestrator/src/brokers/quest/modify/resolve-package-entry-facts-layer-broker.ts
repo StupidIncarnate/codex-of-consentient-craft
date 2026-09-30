@@ -39,9 +39,8 @@ export const resolvePackageEntryFactsLayerBroker = async ({
 }> => {
   // A `location` is repo-relative to the QUEST's own repo, which is rarely the repo this process
   // runs in — so every probe below is anchored on `projectRoot` and the declared string is kept
-  // only as the key the violations transformer looks entries up by. pathResolveAdapter rather than
-  // pathJoinAdapter: join NORMALISES a leading `./` away and stays relative, which filePathContract
-  // rejects, while resolve always yields an absolute path — so the existence check and the detector
+  // only as the key the violations transformer looks entries up by. `resolve` rather than
+  // `join`: join NORMALISES a leading `./` away and stays relative, while resolve always yields an absolute path — so the existence check and the detector
   // run on one value and describe one directory.
   const locationChecks = await Promise.all(
     entries.map(async (entry) => {
@@ -139,8 +138,8 @@ export const resolvePackageEntryFactsLayerBroker = async ({
 
   const manifests = await Promise.all(
     siblingDirs.map(async (sibling) => {
-      // Concatenated rather than joined: the root is an absolute FilePath already, so appending
-      // segments keeps it valid without a second adapter hop through filePathContract.
+      // Concatenated rather than joined: the root is an absolute path already, so appending
+      // segments keeps it absolute without a second hop through `resolve`.
       const manifestPath = `${String(sibling.root)}/${String(sibling.dirName)}/package.json`;
       try {
         const contents = await readFileIfExists(manifestPath);

@@ -2,7 +2,7 @@
  * PURPOSE: Check if file contents contain the required metadata comment structure (PURPOSE, USAGE)
  *
  * USAGE:
- * const hasMetadata = hasMetadataCommentGuard({ fileContents: FileContentsStub({ value: '/** PURPOSE: ... USAGE: ... *\/' }) });
+ * const hasMetadata = hasMetadataCommentGuard({ fileContents: '/** PURPOSE: ... USAGE: ... *\/' });
  * // Returns true if all required sections are present
  */
 

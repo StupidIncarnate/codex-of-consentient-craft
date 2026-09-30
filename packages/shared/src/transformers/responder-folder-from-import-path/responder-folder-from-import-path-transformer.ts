@@ -4,7 +4,7 @@
  *
  * USAGE:
  * responderFolderFromImportPathTransformer({
- *   importPath: contentTextContract.parse('../../responders/quest/start/quest-start-responder'),
+ *   importPath: '../../responders/quest/start/quest-start-responder',
  * });
  * // Returns ContentText 'responders/quest/start'
  *

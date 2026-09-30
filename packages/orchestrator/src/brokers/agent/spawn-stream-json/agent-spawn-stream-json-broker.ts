@@ -7,8 +7,8 @@
  *
  * USAGE:
  * const { process: child, stdout } = agentSpawnStreamJsonBroker({
- *   prompt: PromptTextStub({ value: 'Hello' }),
- *   cwd: RepoRootCwdStub({ value: '/repo' }),
+ *   prompt: 'Hello',
+ *   cwd: '/repo',
  *   model: ClaudeModelStub({ value: 'sonnet' }),
  * });
  * // Returns the live ChildProcess and its stdout Readable

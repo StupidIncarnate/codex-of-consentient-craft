@@ -2,7 +2,7 @@
  * PURPOSE: Converts a file path to be relative to the current working directory
  *
  * USAGE:
- * toCwdRelativePathTransformer({filePath: ErrorEntryStub().filePath, projectPath: ProjectFolderStub().path, cwd: AbsoluteFilePathStub()});
+ * toCwdRelativePathTransformer({filePath: ErrorEntryStub().filePath, projectPath: ProjectFolderStub().path, cwd: '/home/user/project/src/file.ts'});
  * // Returns ErrorFilePath relative to cwd (e.g., 'src/file.ts' or 'packages/cli/src/file.ts')
  */
 

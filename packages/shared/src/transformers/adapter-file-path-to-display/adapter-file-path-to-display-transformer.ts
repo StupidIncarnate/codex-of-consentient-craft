@@ -4,14 +4,14 @@
  *
  * USAGE:
  * adapterFilePathToDisplayTransformer({
- *   filePath: AbsoluteFilePathStub({ value: '/repo/packages/server/src/adapters/orchestrator/get-quest/orchestrator-get-quest-adapter.ts' }),
- *   renderingFilePath: AbsoluteFilePathStub({ value: '/repo/packages/server/src/startup/start-server.ts' }),
+ *   filePath: '/repo/packages/server/src/adapters/orchestrator/get-quest/orchestrator-get-quest-adapter.ts',
+ *   renderingFilePath: '/repo/packages/server/src/startup/start-server.ts',
  * });
  * // Returns ContentText 'adapters/orchestrator/get-quest'  (same package — bare slash-path)
  *
  * adapterFilePathToDisplayTransformer({
- *   filePath: AbsoluteFilePathStub({ value: '/repo/packages/web/src/adapters/fetch/post/fetch-post-adapter.ts' }),
- *   renderingFilePath: AbsoluteFilePathStub({ value: '/repo/packages/server/src/startup/start-server.ts' }),
+ *   filePath: '/repo/packages/web/src/adapters/fetch/post/fetch-post-adapter.ts',
+ *   renderingFilePath: '/repo/packages/server/src/startup/start-server.ts',
  * });
  * // Returns ContentText 'web/adapters/fetch/post'  (cross-package — prefixed)
  *

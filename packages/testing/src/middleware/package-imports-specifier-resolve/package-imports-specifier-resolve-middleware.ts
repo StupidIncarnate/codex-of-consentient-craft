@@ -8,8 +8,8 @@
  *
  * USAGE:
  * const filePath = packageImportsSpecifierResolveMiddleware({
- *   sourceFilePath: filePathContract.parse('/repo/packages/mcp/src/brokers/file/scanner/file-scanner-broker.proxy.ts'),
- *   importPath: importPathContract.parse('#gateway/npm/glob/glob/glob.proxy'),
+ *   sourceFilePath: '/repo/packages/mcp/src/brokers/file/scanner/file-scanner-broker.proxy.ts',
+ *   importPath: '#gateway/npm/glob/glob/glob.proxy',
  * });
  * // Returns FilePath ('/repo/packages/@gateway/npm/src/glob/glob/glob.proxy.ts') or null
  */

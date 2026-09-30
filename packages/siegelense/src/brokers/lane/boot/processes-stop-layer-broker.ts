@@ -9,7 +9,7 @@
  * respawning beside it would collide on its port.
  *
  * USAGE:
- * await processesStopLayerBroker({ pgids: [ProcessGroupIdStub({ value: 1001 })] });
+ * await processesStopLayerBroker({ pgids: [1001] });
  * // Resolves { success: true } once every group has exited; throws naming any group that did not
  */
 

@@ -4,7 +4,7 @@
  * issue actually occurred.
  *
  * USAGE:
- * zodFirstFieldErrorMessageTransformer({ error: parsedBody.error, field: contentTextContract.parse('images') });
+ * zodFirstFieldErrorMessageTransformer({ error: parsedBody.error, field: 'images' });
  * // Returns the first issue message whose path starts with `images`, or undefined when none does
  */
 import type { z } from '#gateway/npm/zod';

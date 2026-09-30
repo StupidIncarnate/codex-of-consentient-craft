@@ -4,9 +4,9 @@
  * USAGE:
  * const stop = chatMainSessionTailBroker({
  *   sessionId: SessionIdStub({ value: 'abc-123' }),
- *   cwd: RepoRootCwdStub({ value: '/home/user/my-project' }),
+ *   cwd: '/home/user/my-project',
  *   processor: <same processor instance used during streaming>,
- *   chatProcessId: ProcessIdStub({ value: 'proc-123' }),
+ *   chatProcessId: 'proc-123',
  *   onEntries: ({ chatProcessId, entries }) => { },
  * });
  * // Returns a stop function. Call it on session teardown.

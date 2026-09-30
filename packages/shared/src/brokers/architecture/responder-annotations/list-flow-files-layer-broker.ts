@@ -4,7 +4,7 @@
  *
  * USAGE:
  * const files = listFlowFilesLayerBroker({
- *   packageRoot: absoluteFilePathContract.parse('/repo/packages/mcp'),
+ *   packageRoot: '/repo/packages/mcp',
  * });
  * // Returns AbsoluteFilePath[] of every *-flow.ts file under src/flows/
  *

@@ -3,7 +3,7 @@
  *
  * USAGE:
  * const files = listWidgetFilesLayerBroker({
- *   widgetsDirPath: absoluteFilePathContract.parse('/repo/packages/web/src/widgets'),
+ *   widgetsDirPath: '/repo/packages/web/src/widgets',
  * });
  * // Returns AbsoluteFilePath[] for every *-widget.{ts,tsx} that passes isNonTestFileGuard
  *

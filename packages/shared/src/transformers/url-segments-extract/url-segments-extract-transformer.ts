@@ -4,7 +4,7 @@
  *
  * USAGE:
  * urlSegmentsExtractTransformer({
- *   urlPattern: contentTextContract.parse('/api/quests/:questId/start'),
+ *   urlPattern: '/api/quests/:questId/start',
  * });
  * // Returns ContentText[] ['quests', 'start']
  *

@@ -4,7 +4,7 @@
  *
  * USAGE:
  * const lines = widgetSubtreeRenderLayerBroker({
- *   responderFile: absoluteFilePathContract.parse('/repo/packages/web/src/responders/app/home/app-home-responder.ts'),
+ *   responderFile: '/repo/packages/web/src/responders/app/home/app-home-responder.ts',
  *   widgetTree,
  *   httpEdges,
  *   wsEdges,

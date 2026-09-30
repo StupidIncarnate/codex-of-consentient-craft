@@ -4,7 +4,7 @@
  *
  * USAGE:
  * const name = exportNameExtractTransformer({
- *   source: contentTextContract.parse('export const useQuestQueueBinding = () => {};'),
+ *   source: 'export const useQuestQueueBinding = () => {};',
  * });
  * // Returns ContentText 'useQuestQueueBinding' or null
  *

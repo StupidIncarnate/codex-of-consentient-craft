@@ -5,7 +5,7 @@
  * row-local consts and returns a multi-child tree; a named leaf widget is what the map calls instead.
  *
  * USAGE:
- * <QueueRowLayerWidget entry={entry} index={arrayIndexContract.parse(0)} total={totalCountContract.parse(2)} isActive={true} />
+ * <QueueRowLayerWidget entry={entry} index={0} total={2} isActive={true} />
  * // Renders a Link row: loot-gold text + raised background when isActive, an error dot when
  * // entry.error is set
  */

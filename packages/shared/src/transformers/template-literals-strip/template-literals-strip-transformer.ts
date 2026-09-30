@@ -6,12 +6,12 @@
  *
  * USAGE:
  * const stripped = templateLiteralsStripTransformer({
- *   source: contentTextContract.parse([
+ *   source: [
  *     'const md = `import { fake } from "./fake";`;',
  *     "import { real } from './real';",
- *   ].join('\n')),
+ *   ].join('\n'),
  * });
- * // Returns ContentText: template body replaced with spaces, real top-level import preserved
+ * // Returns a string: template body replaced with spaces, real top-level import preserved
  *
  * WHEN-TO-USE: Pre-pass for import-extraction regex on TypeScript source that may contain
  *   markdown-generating template literals

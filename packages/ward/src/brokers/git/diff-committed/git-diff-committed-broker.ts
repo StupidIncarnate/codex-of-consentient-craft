@@ -13,7 +13,7 @@
  * origin's default branch while this one sat behind are not reported as this branch's work.
  *
  * USAGE:
- * const files = await gitDiffCommittedBroker({ cwd: AbsoluteFilePathStub({ value: '/project' }) });
+ * const files = await gitDiffCommittedBroker({ cwd: '/project' });
  * // Returns GitRelativePath[] covering every commit this branch added on top of origin/main
  */
 

@@ -5,7 +5,7 @@
  *
  * USAGE:
  * locationsWorktreePathFindBroker({
- *   repoRoot: AbsoluteFilePathStub({ value: '/repo' }),
+ *   repoRoot: '/repo',
  *   worktreeDirName: FileNameStub({ value: 'add-auth-7bc217a1' }),
  * });
  * // Returns AbsoluteFilePath '/repo/worktrees/add-auth-7bc217a1'

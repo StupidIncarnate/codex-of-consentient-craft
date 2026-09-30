@@ -4,8 +4,8 @@
  *
  * USAGE:
  * const edges = extractWidgetEdgesLayerBroker({
- *   widgetFilePath: absoluteFilePathContract.parse('/repo/packages/web/src/widgets/quest-chat/quest-chat-widget.tsx'),
- *   packageSrcPath: absoluteFilePathContract.parse('/repo/packages/web/src'),
+ *   widgetFilePath: '/repo/packages/web/src/widgets/quest-chat/quest-chat-widget.tsx',
+ *   packageSrcPath: '/repo/packages/web/src',
  *   widgetFileSet: new Set([...widgetFilePaths.map(String)]),
  * });
  * // Returns { childWidgetPaths, bindingNames } for this widget

@@ -2,7 +2,7 @@
  * PURPOSE: Stub factory for MethodDomainGroup contract
  *
  * USAGE:
- * const group = MethodDomainGroupStub({ domain: ContentTextStub({ value: 'Guilds' }) });
+ * const group = MethodDomainGroupStub({ domain: 'Guilds' });
  * // Returns a validated MethodDomainGroup with sensible defaults
  */
 

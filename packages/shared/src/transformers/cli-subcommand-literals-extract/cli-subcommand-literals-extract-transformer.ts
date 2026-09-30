@@ -3,7 +3,7 @@
  * `args[0] === 'cmd'` and `case 'cmd':` patterns via regex.
  *
  * USAGE:
- * const cmds = cliSubcommandLiteralsExtractTransformer({ source: contentTextContract.parse(src) });
+ * const cmds = cliSubcommandLiteralsExtractTransformer({ source: src });
  * // Returns ['run', 'list', 'detail'] as ContentText[] for a startup file dispatching on args[0]
  *
  * WHEN-TO-USE: cli-tool headline renderer extracting subcommand literals from startup source

@@ -7,7 +7,7 @@
  * because snapshot capture touches disk state and touches no screen.
  *
  * USAGE:
- * await stepSnapshotBroker({ lane, as: SnapshotNameStub({ value: 'clean' }) });
+ * await stepSnapshotBroker({ lane, as: 'clean' });
  * // Captures snapshot "clean" and returns 'snapshot "clean" recorded' as ContentText
  */
 

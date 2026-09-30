@@ -2,7 +2,7 @@
  * PURPOSE: Replaces a placeholder in a prompt template with a given value
  *
  * USAGE:
- * promptTemplateAssembleTransformer({ template: ContentTextStub({ value: 'Hello {{name}}' }), placeholder: ContentTextStub({ value: '{{name}}' }), value: ContentTextStub({ value: 'World' }) });
+ * promptTemplateAssembleTransformer({ template: 'Hello {{name}}', placeholder: '{{name}}', value: 'World' });
  * // Returns: ContentText('Hello World')
  */
 

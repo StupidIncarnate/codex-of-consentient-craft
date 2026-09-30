@@ -3,7 +3,7 @@
  *
  * USAGE:
  * const files = collectFolderFilesLayerBroker({
- *   dirPath: absoluteFilePathContract.parse('/repo/packages/web/src/responders'),
+ *   dirPath: '/repo/packages/web/src/responders',
  * });
  * // Returns AbsoluteFilePath[] for every non-test file in the directory tree
  *

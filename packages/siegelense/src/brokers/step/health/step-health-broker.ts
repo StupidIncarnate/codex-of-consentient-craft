@@ -17,7 +17,7 @@
  * await stepHealthBroker({
  *   lane,
  *   session,
- *   shotPath: AbsoluteFilePathStub({ value: '/repo/runs/run_1/step1.png' }),
+ *   shotPath: '/repo/runs/run_1/step1.png',
  *   browserWindowStart: null,
  * });
  * // Returns ContentText: 'HEALTHY   root present · not blank · console clean · no 5xx · server log clean — judged since page load of / (this run)'

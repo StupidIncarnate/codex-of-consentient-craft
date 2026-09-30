@@ -2,7 +2,7 @@
  * PURPOSE: Parses optional runId from CLI args and delegates to the command list broker
  *
  * USAGE:
- * await WardListResponder({ args: ['node', 'ward', 'list'], rootPath: AbsoluteFilePathStub() });
+ * await WardListResponder({ args: ['node', 'ward', 'list'], rootPath: '/home/user/project/src/file.ts' });
  * // Loads and displays errors-by-file list from most recent or specified run
  */
 

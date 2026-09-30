@@ -5,8 +5,8 @@
  *
  * USAGE:
  * handlerNameToResponderPathTransformer({
- *   handlerName: contentTextContract.parse('ArchitectureHandleResponder'),
- *   packageSrcPath: absoluteFilePathContract.parse('/repo/packages/mcp/src'),
+ *   handlerName: 'ArchitectureHandleResponder',
+ *   packageSrcPath: '/repo/packages/mcp/src',
  * });
  * // Returns AbsoluteFilePath '/repo/packages/mcp/src/responders/architecture/handle/architecture-handle-responder.ts'
  *

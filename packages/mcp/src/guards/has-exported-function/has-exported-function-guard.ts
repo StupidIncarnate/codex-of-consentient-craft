@@ -2,7 +2,7 @@
  * PURPOSE: Check if file contents contain an exported function declaration
  *
  * USAGE:
- * const hasExport = hasExportedFunctionGuard({ fileContents: FileContentsStub({ value: 'export const foo = () => {}' }) });
+ * const hasExport = hasExportedFunctionGuard({ fileContents: 'export const foo = () => {}' });
  * // Returns true if file has export const
  */
 

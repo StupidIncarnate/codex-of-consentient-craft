@@ -20,7 +20,7 @@
  * driverSessionState.idleTimeoutMs();
  * // Returns driverStatics.idle.timeoutMs — `set` was called with no override
  *
- * driverSessionState.set({ lane, idleTimeoutMs: TimeoutMsStub({ value: 1_800_000 }) });
+ * driverSessionState.set({ lane, idleTimeoutMs: 1_800_000 });
  * driverSessionState.idleTimeoutMs();
  * // Returns 1_800_000 — the caller's raised ceiling, until the next `set` or `clear`
  *

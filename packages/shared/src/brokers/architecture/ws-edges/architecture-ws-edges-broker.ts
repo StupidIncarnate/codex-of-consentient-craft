@@ -5,7 +5,7 @@
  *
  * USAGE:
  * const edges = architectureWsEdgesBroker({
- *   projectRoot: absoluteFilePathContract.parse('/repo'),
+ *   projectRoot: '/repo',
  * });
  * // Returns WsEdge[] with paired=true when at least one emitter AND one consumer share the type
  *

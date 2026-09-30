@@ -3,7 +3,7 @@
  *
  * USAGE:
  * const files = listSourceFilesLayerBroker({
- *   dirPath: absoluteFilePathContract.parse('/repo/packages/server/src'),
+ *   dirPath: '/repo/packages/server/src',
  * });
  * // Returns AbsoluteFilePath[] for every .ts/.tsx/.js/.jsx that passes isNonTestFileGuard
  *

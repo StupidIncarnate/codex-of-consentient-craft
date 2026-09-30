@@ -5,7 +5,7 @@
  *
  * USAGE:
  * const buses = eventBusStatesFindLayerBroker({
- *   projectRoot: absoluteFilePathContract.parse('/repo'),
+ *   projectRoot: '/repo',
  * });
  * // Returns EventBus[] with one entry per discovered pub/sub state singleton
  *

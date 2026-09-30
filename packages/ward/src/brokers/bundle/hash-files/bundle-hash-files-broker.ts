@@ -12,7 +12,7 @@
  * renamed without being edited.
  *
  * USAGE:
- * bundleHashFilesBroker({ rootPath, relativePaths: [GitRelativePathStub({ value: 'packages/web/src/app.tsx' })] });
+ * bundleHashFilesBroker({ rootPath, relativePaths: ['packages/web/src/app.tsx'] });
  * // Returns a BundleHash over those files' paths and bytes
  */
 

@@ -7,7 +7,7 @@
  * `goto`/`screenshot`/`eval` step parses with no `target` key at all, so no list can drift from it.
  *
  * USAGE:
- * isTargetingStepGuard({ step: StepStub({ step: 'click', target: SelectorStub() }) });
+ * isTargetingStepGuard({ step: StepStub({ step: 'click', target: '[data-testid="GUILD_ADD"]' }) });
  * // Returns true
  */
 

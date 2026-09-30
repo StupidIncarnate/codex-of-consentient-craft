@@ -16,8 +16,8 @@
  *
  * USAGE:
  * await runVerbLayerBroker({
- *   lane, step: StepStub({ step: 'click', target: SelectorStub() }),
- *   index: StepIndexStub({ value: 3 }), shotPath: null, browserWindowStart: null, recordBinding,
+ *   lane, step: StepStub({ step: 'click', target: '[data-testid="GUILD_ADD"]' }),
+ *   index: 3, shotPath: null, browserWindowStart: null, recordBinding,
  * });
  * // Resolves the target, clicks it, and returns the reading — or throws
  */

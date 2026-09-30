@@ -3,8 +3,8 @@
  *
  * USAGE:
  * relativeImportResolveTransformer({
- *   sourceFile: absoluteFilePathContract.parse('/repo/packages/server/src/startup/start-server.ts'),
- *   importPath: contentTextContract.parse('../flows/server/server-flow'),
+ *   sourceFile: '/repo/packages/server/src/startup/start-server.ts',
+ *   importPath: '../flows/server/server-flow',
  * });
  * // Returns AbsoluteFilePath '/repo/packages/server/src/flows/server/server-flow.ts' or null if not relative
  *

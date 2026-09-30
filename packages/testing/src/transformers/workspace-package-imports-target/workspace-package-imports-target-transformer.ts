@@ -10,7 +10,7 @@
  * USAGE:
  * workspacePackageImportsTargetTransformer({
  *   importsMap: { '#gateway/npm/*': '@dungeonmaster/npm/*' },
- *   specifier: importPathContract.parse('#gateway/npm/glob/glob/glob.proxy'),
+ *   specifier: '#gateway/npm/glob/glob/glob.proxy',
  * });
  * // Returns '@dungeonmaster/npm/glob/glob/glob.proxy' as branded ImportPath, or null
  */

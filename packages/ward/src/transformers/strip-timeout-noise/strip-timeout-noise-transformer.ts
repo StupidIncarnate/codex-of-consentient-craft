@@ -2,7 +2,7 @@
  * PURPOSE: Strips timeout boilerplate from test failure messages, leaving only meaningful content
  *
  * USAGE:
- * stripTimeoutNoiseTransformer({ message: errorMessageContract.parse('Exceeded timeout of 5000 ms for a test.') });
+ * stripTimeoutNoiseTransformer({ message: 'Exceeded timeout of 5000 ms for a test.' });
  * // Returns 'Timed out (see network log below)' as ErrorMessage
  */
 

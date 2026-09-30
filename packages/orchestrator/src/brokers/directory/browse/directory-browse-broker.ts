@@ -2,7 +2,7 @@
  * PURPOSE: Lists directories at a given absolute path, hiding hidden directories by default
  *
  * USAGE:
- * const entries = await directoryBrowseBroker({ path: GuildPathStub({ value: '/home/user' }) });
+ * const entries = await directoryBrowseBroker({ path: '/home/user' });
  * // Returns: DirectoryEntry[] sorted alphabetically, directories only
  */
 

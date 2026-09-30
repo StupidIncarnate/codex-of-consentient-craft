@@ -3,8 +3,8 @@
  *
  * USAGE:
  * isFileInFolderTypeGuard({
- *   filePath: absoluteFilePathContract.parse('/repo/packages/server/src/flows/quest/quest-flow.ts'),
- *   packageSrcPath: absoluteFilePathContract.parse('/repo/packages/server/src'),
+ *   filePath: '/repo/packages/server/src/flows/quest/quest-flow.ts',
+ *   packageSrcPath: '/repo/packages/server/src',
  *   folderType: 'flows',
  * });
  * // Returns true

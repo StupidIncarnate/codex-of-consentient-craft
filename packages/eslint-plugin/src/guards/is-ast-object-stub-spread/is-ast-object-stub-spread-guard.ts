@@ -2,7 +2,7 @@
  * PURPOSE: Checks if an object expression is built entirely from spreads of stub calls
  *
  * USAGE:
- * const objNode = // AST node for: { ...WalkFactsStub() }
+ * const objNode = // AST node for: { ...QuestStub() }
  * if (isAstObjectStubSpreadGuard({ node: objNode })) {
  *   // Object is a clone of stub output, not a hand-built literal
  * }

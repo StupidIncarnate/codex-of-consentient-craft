@@ -4,8 +4,8 @@
  *
  * USAGE:
  * const trace = architectureBindingFlowTraceBroker({
- *   bindingName: contentTextContract.parse('use-quests'),
- *   packageRoot: absoluteFilePathContract.parse('/repo/packages/web'),
+ *   bindingName: 'use-quests',
+ *   packageRoot: '/repo/packages/web',
  *   httpEdges,
  *   wsEdges,
  * });

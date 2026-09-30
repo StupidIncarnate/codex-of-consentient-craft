@@ -13,12 +13,12 @@
  * laneEnvSubstituteTransformer({
  *   env: LaneSpecStub().env,
  *   ports: PortPairStub(),
- *   home: AbsoluteFilePathStub({ value: '/tmp/dm-siege-inst_1' }),
- *   claudeQueueDir: AbsoluteFilePathStub({ value: '/tmp/dm-siege-inst_1/claude-queue' }),
- *   wardQueueDir: AbsoluteFilePathStub({ value: '/tmp/dm-siege-inst_1/ward-queue' }),
- *   apiWorkspace: ContentTextStub({ value: '@dungeonmaster/server' }),
- *   webWorkspace: ContentTextStub({ value: '@dungeonmaster/web' }),
- *   repoRoot: AbsoluteFilePathStub({ value: '/repo' }),
+ *   home: '/tmp/dm-siege-inst_1',
+ *   claudeQueueDir: '/tmp/dm-siege-inst_1/claude-queue',
+ *   wardQueueDir: '/tmp/dm-siege-inst_1/ward-queue',
+ *   apiWorkspace: '@dungeonmaster/server',
+ *   webWorkspace: '@dungeonmaster/web',
+ *   repoRoot: '/repo',
  * });
  * // Returns the same keys, each value with every known placeholder substituted and any relative
  * // path resolved against /repo

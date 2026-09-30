@@ -2,7 +2,7 @@
  * PURPOSE: Detects whether the git repo uses 'main' or 'master' as its default branch
  *
  * USAGE:
- * const branch = await gitDetectDefaultBranchBroker({ cwd: AbsoluteFilePathStub({ value: '/project' }) });
+ * const branch = await gitDetectDefaultBranchBroker({ cwd: '/project' });
  * // Returns GitBranchName('main'), GitBranchName('master'), or null if neither exists
  */
 

@@ -2,7 +2,7 @@
  * PURPOSE: Removes ANSI escape sequences from a string by scanning for ESC[ sequences character by character
  *
  * USAGE:
- * stripAnsiCodesTransformer({ text: errorMessageContract.parse('\x1b[31mError\x1b[0m') });
+ * stripAnsiCodesTransformer({ text: '\x1b[31mError\x1b[0m' });
  * // Returns 'Error' as ErrorMessage
  */
 

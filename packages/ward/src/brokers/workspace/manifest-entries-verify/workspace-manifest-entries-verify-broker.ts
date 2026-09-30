@@ -10,7 +10,7 @@
  *
  * USAGE:
  * const missing = await workspaceManifestEntriesVerifyBroker({
- *   packagePath: AbsoluteFilePathStub({ value: '/repo/packages/cli' }),
+ *   packagePath: '/repo/packages/cli',
  * });
  * // Returns ManifestEntryDeclaration[] — the declared fields whose path does not exist on disk
  */

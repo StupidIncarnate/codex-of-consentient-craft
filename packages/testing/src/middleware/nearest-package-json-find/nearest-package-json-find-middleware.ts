@@ -9,7 +9,7 @@
  *
  * USAGE:
  * const packageJson = nearestPackageJsonFindMiddleware({
- *   dirPath: filePathContract.parse('/repo/packages/mcp/src/brokers/file/scanner'),
+ *   dirPath: '/repo/packages/mcp/src/brokers/file/scanner',
  * });
  * // Returns WorkspacePackageJson (packages/mcp/package.json's parsed content) or null
  */

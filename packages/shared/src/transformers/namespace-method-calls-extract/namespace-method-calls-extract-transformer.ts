@@ -4,7 +4,7 @@
  *
  * USAGE:
  * const methods = namespaceMethodCallsExtractTransformer({
- *   source: contentTextContract.parse('StartOrchestrator.getQuest({ questId })'),
+ *   source: 'StartOrchestrator.getQuest({ questId })',
  * });
  * // Returns ['getQuest'] as ContentText[]
  *

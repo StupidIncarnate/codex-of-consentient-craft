@@ -1,13 +1,13 @@
 /**
- * PURPOSE: Classifies a named export (e.g. userFetchBroker, filePathContract) into the folder type
+ * PURPOSE: Classifies a named export (e.g. userFetchBroker, questContract) into the folder type
  * that produces it, by matching the export-name suffix declared in folderConfigStatics. Used to
  * gate main-barrel cross-package imports (import { x } from '@scope/pkg') by folder type. No folder
  * export-suffix is a suffix of another, so the first match is unambiguous.
  *
  * USAGE:
- * importFolderTypeFromNameTransformer({ importName: 'filePathContract' });
+ * importFolderTypeFromNameTransformer({ importName: 'questContract' });
  * // Returns 'contracts'
- * importFolderTypeFromNameTransformer({ importName: 'BaseNameStub' });
+ * importFolderTypeFromNameTransformer({ importName: 'QuestStub' });
  * // Returns null (no folder export-suffix matches)
  */
 import { folderConfigStatics } from '@dungeonmaster/shared/statics';

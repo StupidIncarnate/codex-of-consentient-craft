@@ -3,7 +3,7 @@
  *
  * USAGE:
  * const proxy = InteractionHandleResponderProxy();
- * const result = proxy.callResponder({ tool: ToolNameStub({ value: 'signal-back' }), args: { signal: 'complete' } });
+ * const result = proxy.callResponder({ tool: 'signal-back', args: { signal: 'complete' } });
  */
 
 import type { AgentPromptResult, Quest } from '@dungeonmaster/shared/contracts';

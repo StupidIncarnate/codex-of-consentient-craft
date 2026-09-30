@@ -4,7 +4,7 @@
  *
  * USAGE:
  * const edges = architectureEdgeGraphBroker({
- *   projectRoot: absoluteFilePathContract.parse('/repo'),
+ *   projectRoot: '/repo',
  * });
  * // Returns HttpEdge[] with paired=true for server+web matches, paired=false for orphans
  *

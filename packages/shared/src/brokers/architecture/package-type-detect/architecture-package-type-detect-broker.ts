@@ -7,7 +7,7 @@
  * silently costs a hono-serving UI package its browser coverage.
  *
  * USAGE:
- * const types = await architecturePackageTypeDetectBroker({ packageRoot: absoluteFilePathContract.parse('/repo/packages/server') });
+ * const types = await architecturePackageTypeDetectBroker({ packageRoot: '/repo/packages/server' });
  * // Returns: ['http-backend'] — or ['http-backend', 'frontend-react'] when widgets+react sit behind the hono adapter
  *
  * WHEN-TO-USE: During project-map generation to determine which headline renderer to use for each

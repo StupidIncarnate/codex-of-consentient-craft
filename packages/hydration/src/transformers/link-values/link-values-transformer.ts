@@ -11,9 +11,9 @@
  * USAGE:
  * linkValuesTransformer({
  *   links: [LinkSpecStub({ of: 'guild', as: 'guildId' })],
- *   ancestors: [RowRefStub({ value: 'guild[0:0]' })],
+ *   ancestors: ['guild[0:0]'],
  *   ownFields: {},
- *   records: new Map([[RowRefStub({ value: 'guild[0:0]' }), { id: 'g1' }]]),
+ *   records: new Map([['guild[0:0]', { id: 'g1' }]]),
  * });
  * // Returns { ok: true, values: { guildId: 'g1' } }
  */

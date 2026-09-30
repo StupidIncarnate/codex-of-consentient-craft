@@ -5,7 +5,7 @@
  *
  * USAGE:
  * const calls = fileWriteCallsExtractTransformer({
- *   source: contentTextContract.parse("import { appendFile } from '#gateway/node/fs__promises';\nawait appendFile('/a.jsonl', line);"),
+ *   source: "import { appendFile } from '#gateway/node/fs__promises';\nawait appendFile('/a.jsonl', line);",
  * });
  * // Returns [{ adapter: 'appendFile', filePathArg: '/a.jsonl' }]
  *

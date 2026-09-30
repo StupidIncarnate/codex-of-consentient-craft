@@ -5,7 +5,7 @@
  *
  * USAGE:
  * stepRefSubstituteTransformer({
- *   text: ContentTextStub({ value: '/{g.guild.urlSlug}' }),
+ *   text: '/{g.guild.urlSlug}',
  *   outputs: { g: { guild: { urlSlug: 'siege-guild' } } },
  * });
  * // Returns '/siege-guild' as ContentText

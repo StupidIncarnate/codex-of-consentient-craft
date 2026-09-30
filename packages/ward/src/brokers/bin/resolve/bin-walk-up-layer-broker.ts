@@ -4,7 +4,7 @@
  * is the answer when nothing is found, which leaves the resolution to `PATH`.
  *
  * USAGE:
- * binWalkUpLayerBroker({ binName: BinCommandStub({ value: 'jest' }), dir: AbsoluteFilePathStub({ value: '/repo/packages/ward' }) });
+ * binWalkUpLayerBroker({ binName: 'jest', dir: '/repo/packages/ward' });
  * // Returns BinCommand('/repo/node_modules/.bin/jest') when only the root has it
  */
 

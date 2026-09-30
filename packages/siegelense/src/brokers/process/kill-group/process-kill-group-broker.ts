@@ -9,7 +9,7 @@
  * failure (EPERM, an unknown signal name) is a real one and propagates.
  *
  * USAGE:
- * processKillGroupBroker({ pgid: ProcessGroupIdStub({ value: 4821 }), signal: 'SIGTERM' });
+ * processKillGroupBroker({ pgid: 4821, signal: 'SIGTERM' });
  * // Live group: sends the signal, returns { signalSent: true }
  * // Group already gone: returns { signalSent: false } without throwing
  */

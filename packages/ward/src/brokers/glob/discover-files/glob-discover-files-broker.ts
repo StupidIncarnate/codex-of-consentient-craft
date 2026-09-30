@@ -4,7 +4,7 @@
  * same file).
  *
  * USAGE:
- * const { discoveredCount, discoveredFiles } = globDiscoverFilesBroker({patterns: ['src/**\/*.ts'], cwd: absoluteFilePathContract.parse('/project')});
+ * const { discoveredCount, discoveredFiles } = globDiscoverFilesBroker({patterns: ['src/**\/*.ts'], cwd: '/project'});
  * // Returns: { discoveredCount: DiscoveredCount, discoveredFiles: GitRelativePath[] }
  */
 

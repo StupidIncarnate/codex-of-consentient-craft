@@ -3,7 +3,7 @@
  *
  * USAGE:
  * filePathToSymbolNameTransformer({
- *   filePath: absoluteFilePathContract.parse('/repo/packages/server/src/responders/quest/start/quest-start-responder.ts'),
+ *   filePath: '/repo/packages/server/src/responders/quest/start/quest-start-responder.ts',
  * });
  * // Returns ContentText 'quest-start-responder'
  *

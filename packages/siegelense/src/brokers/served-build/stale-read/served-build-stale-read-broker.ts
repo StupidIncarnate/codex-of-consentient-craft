@@ -13,7 +13,7 @@
  * than guess. This only warns; it never builds.
  *
  * USAGE:
- * await servedBuildStaleReadBroker({ specName: SpecNameStub({ value: 'stack' }) });
+ * await servedBuildStaleReadBroker({ specName: 'stack' });
  * // Returns 'STALE BUILD: this lane serves packages/web/dist, last built ...\nREBUILD: ...\n', or ''
  */
 

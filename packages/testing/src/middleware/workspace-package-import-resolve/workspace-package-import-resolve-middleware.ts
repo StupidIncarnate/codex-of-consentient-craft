@@ -9,8 +9,8 @@
  *
  * USAGE:
  * const filePath = workspacePackageImportResolveMiddleware({
- *   sourceFilePath: filePathContract.parse('/repo/packages/siegelense/src/a.proxy.ts'),
- *   importPath: importPathContract.parse('@dungeonmaster/bin/testing'),
+ *   sourceFilePath: '/repo/packages/siegelense/src/a.proxy.ts',
+ *   importPath: '@dungeonmaster/bin/testing',
  * });
  * // Returns FilePath ('/repo/packages/bin/testing.ts') or null
  */

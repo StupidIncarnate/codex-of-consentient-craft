@@ -7,7 +7,7 @@
  * deliberately: a layer file is not an entry file another domain may import.
  *
  * USAGE:
- * findPackageJsonDirLayerBroker({ startDir: filePathContract.parse('/repo/packages/hooks/src/brokers/x') });
+ * findPackageJsonDirLayerBroker({ startDir: '/repo/packages/hooks/src/brokers/x' });
  * // Returns '/repo/packages/hooks' as FilePath, or undefined if no ancestor holds one
  */
 import { existsSync } from '#gateway/node/fs';

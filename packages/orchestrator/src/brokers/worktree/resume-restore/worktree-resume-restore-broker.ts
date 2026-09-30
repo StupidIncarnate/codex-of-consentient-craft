@@ -9,8 +9,8 @@
  *
  * USAGE:
  * const { restored, currentBranch, output } = await worktreeResumeRestoreBroker({
- *   worktreePath: AbsoluteFilePathStub({ value: '/repo/worktrees/add-auth-7bc217a1' }),
- *   branchName: QuestBranchNameStub({ value: 'quest/add-auth-7bc217a1' }),
+ *   worktreePath: '/repo/worktrees/add-auth-7bc217a1',
+ *   branchName: 'quest/add-auth-7bc217a1',
  * });
  * // restored is true once the worktree is confirmed on branchName, whether or not a checkout ran
  */

@@ -2,7 +2,7 @@
  * PURPOSE: Loads a ward run result and writes an errors-by-file list to stdout
  *
  * USAGE:
- * await commandListBroker({ rootPath: AbsoluteFilePathStub({ value: '/project' }) });
+ * await commandListBroker({ rootPath: '/project' });
  * // Writes error list to stdout, or error message if no result found
  */
 

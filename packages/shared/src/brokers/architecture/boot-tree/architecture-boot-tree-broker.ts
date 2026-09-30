@@ -4,8 +4,8 @@
  *
  * USAGE:
  * const section = architectureBootTreeBroker({
- *   packageRoot: absoluteFilePathContract.parse('/repo/packages/server'),
- *   projectRoot: absoluteFilePathContract.parse('/repo'),
+ *   packageRoot: '/repo/packages/server',
+ *   projectRoot: '/repo',
  *   packageType: packageTypeContract.parse('http-backend'),
  * });
  * // Returns markdown ## Boot section string

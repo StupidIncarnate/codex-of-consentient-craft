@@ -11,12 +11,12 @@
  *
  * USAGE:
  * targetPathFromBareSpecifierTransformer({
- *   specifier: ModuleSpecifierStub({value: '@dungeonmaster/shared2/brokers'}),
+ *   specifier: '@dungeonmaster/shared2/brokers',
  *   knownPackages: [ProjectFolderStub({name: '@dungeonmaster/shared2', path: '/repo/packages/shared2'})],
  * });
  * // Returns: '/repo/packages/shared2/brokers' as FilePath
  * targetPathFromBareSpecifierTransformer({
- *   specifier: ModuleSpecifierStub({value: '#gateway/node/fs'}),
+ *   specifier: '#gateway/node/fs',
  *   knownPackages: [ProjectFolderStub({name: '@dungeonmaster/node', path: '/repo/packages/@gateway/node'})],
  * });
  * // Returns: '/repo/packages/@gateway/node/src/fs' as FilePath

@@ -5,7 +5,7 @@
  * when no fs-write call is detected.
  *
  * USAGE:
- * const path = hookFsWritePathExtractTransformer({ source: contentTextContract.parse(src) });
+ * const path = hookFsWritePathExtractTransformer({ source: src });
  * // Returns ContentText('.claude/settings.json') or undefined if no write calls found
  *
  * WHEN-TO-USE: hook-handlers headline renderer detecting file-system writes in startup/responder source

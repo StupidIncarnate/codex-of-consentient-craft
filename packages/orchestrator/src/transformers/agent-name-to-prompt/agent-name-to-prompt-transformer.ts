@@ -5,7 +5,7 @@
  * operation context already substituted in.
  *
  * USAGE:
- * agentNameToPromptTransformer({ agent: agentPromptNameContract.parse('codeweaver') });
+ * agentNameToPromptTransformer({ agent: 'codeweaver' });
  * // Returns { name: 'codeweaver', model: 'opus', prompt: '...' } — `$ARGUMENTS` still
  * // unsubstituted, for the caller that owns the operation context.
  *

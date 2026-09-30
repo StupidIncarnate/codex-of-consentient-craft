@@ -8,8 +8,8 @@
  *
  * USAGE:
  * await resolveSpecifierCachedLayerBroker({
- *   specifier: ModuleSpecifierStub({value: './helper'}),
- *   containingFilePath: filePathContract.parse('/repo/entry.ts'),
+ *   specifier: './helper',
+ *   containingFilePath: '/repo/entry.ts',
  *   knownPackages: [],
  *   resolveCache: new Map(),
  * });

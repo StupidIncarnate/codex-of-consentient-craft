@@ -8,7 +8,7 @@
  * mint prints as `generatedIdMask`. An id holding no mint prints whole.
  *
  * USAGE:
- * domIdMaskTransformer({ domId: contentTextContract.parse('mantine-oxhnuns51') });
+ * domIdMaskTransformer({ domId: 'mantine-oxhnuns51' });
  * // Returns 'mantine-*'
  */
 

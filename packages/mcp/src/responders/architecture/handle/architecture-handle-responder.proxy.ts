@@ -3,7 +3,7 @@
  *
  * USAGE:
  * const proxy = ArchitectureHandleResponderProxy();
- * const result = await proxy.callResponder({ tool: ToolNameStub({ value: 'get-architecture' }), args: {} });
+ * const result = await proxy.callResponder({ tool: 'get-architecture', args: {} });
  */
 
 import { architectureOverviewBrokerProxy } from '@dungeonmaster/shared/brokers/architecture/overview/architecture-overview-broker.proxy';

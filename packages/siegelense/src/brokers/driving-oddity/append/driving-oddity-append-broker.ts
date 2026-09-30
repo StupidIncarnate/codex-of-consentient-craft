@@ -10,7 +10,7 @@
  *
  * USAGE:
  * await drivingOddityAppendBroker({
- *   filePath: AbsoluteFilePathStub({ value: '/repo/.dungeonmaster-assets/driving-oddities.jsonl' }),
+ *   filePath: '/repo/.dungeonmaster-assets/driving-oddities.jsonl',
  *   entry: DrivingOddityStub({ key: 'GUILD_ADD_MODAL' }),
  * });
  * // Appends one JSON line

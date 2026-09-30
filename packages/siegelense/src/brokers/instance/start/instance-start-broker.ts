@@ -58,16 +58,16 @@
  * behind it forever.
  *
  * USAGE:
- * await instanceStartBroker({ specName: SpecNameStub(), questId: null, guildId: null, seed: null });
+ * await instanceStartBroker({ specName: 'dungeonmaster-stack', questId: null, guildId: null, seed: null });
  * // Returns an InstanceManifest once the driver answers `ping`, or throws DriverBootFailedError /
  * // LaneBootFailedError after releasing boot.lock and this attempt's reservation
  *
  * await instanceStartBroker({
- *   specName: SpecNameStub(),
+ *   specName: 'dungeonmaster-stack',
  *   questId: null,
  *   guildId: null,
- *   seed: RecipeNameStub({ value: 'guild-with-three-quests' }),
- *   idleTimeoutMs: TimeoutMsStub({ value: 1_800_000 }),
+ *   seed: 'guild-with-three-quests',
+ *   idleTimeoutMs: 1_800_000,
  * });
  * // Same, but appends `--idle-timeout-ms 1800000` to the spawned driver's own argv, raising the
  * // ceiling that instance reaps itself against above driverStatics.idle.timeoutMs

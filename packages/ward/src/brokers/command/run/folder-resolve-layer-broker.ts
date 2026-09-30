@@ -2,7 +2,7 @@
  * PURPOSE: Reads package.json from a root path and returns a ProjectFolder for single-package mode
  *
  * USAGE:
- * const folder = await folderResolveLayerBroker({ rootPath: AbsoluteFilePathStub({ value: '/project' }) });
+ * const folder = await folderResolveLayerBroker({ rootPath: '/project' });
  * // Returns ProjectFolder with name from package.json or rootPath as fallback
  */
 

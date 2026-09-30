@@ -5,7 +5,7 @@
  * directory in its place) still throws, so a real problem is never read as "package not built yet".
  *
  * USAGE:
- * await readPackageNameOptionalLayerBroker({ packageJsonPath: filePathContract.parse('/repo/packages/node/package.json') });
+ * await readPackageNameOptionalLayerBroker({ packageJsonPath: '/repo/packages/node/package.json' });
  * // Returns: '@dungeonmaster/node' as GatewayPackageName, or undefined when the file does not exist
  */
 

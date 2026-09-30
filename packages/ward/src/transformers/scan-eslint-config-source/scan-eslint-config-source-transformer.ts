@@ -6,7 +6,7 @@
  * rule's plugin.
  *
  * USAGE:
- * scanEslintConfigSourceTransformer({ rule: ScanRuleNameStub(), rootConfigPath: AbsoluteFilePathStub({ value: '/repo/eslint.config.js' }) });
+ * scanEslintConfigSourceTransformer({ rule: '@dungeonmaster/ban-workspace-export-mocks', rootConfigPath: '/repo/eslint.config.js' });
  * // Returns CommonJS source that exports the repo's config array followed by the forcing entries
  *
  * A plugin rule gets one entry per config object that registers its plugin, carrying that object's

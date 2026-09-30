@@ -5,7 +5,7 @@
  * const port = portResolveBroker();
  * // DUNGEONMASTER_PORT env → config.dungeonmaster.port → environmentStatics.defaultPort
  *
- * const port = portResolveBroker({ startDir: absoluteFilePathContract.parse('/path/to/project') });
+ * const port = portResolveBroker({ startDir: '/path/to/project' });
  * // Same ladder, walks up from startDir instead of process.cwd()
  */
 

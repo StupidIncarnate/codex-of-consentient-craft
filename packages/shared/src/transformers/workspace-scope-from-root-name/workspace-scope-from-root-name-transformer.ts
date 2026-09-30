@@ -11,9 +11,9 @@
  * `@dungeonmaster/*` scope, not the consumer's own.
  *
  * USAGE:
- * workspaceScopeFromRootNameTransformer({ rootPackageJsonName: PackageNameStub({ value: '@acme/app' }) });
+ * workspaceScopeFromRootNameTransformer({ rootPackageJsonName: '@acme/app' });
  * // Returns '@acme' as a branded PathSegment
- * workspaceScopeFromRootNameTransformer({ rootPackageJsonName: undefined, fallbackName: PathSegmentStub({ value: 'my-repo' }) });
+ * workspaceScopeFromRootNameTransformer({ rootPackageJsonName: undefined, fallbackName: 'my-repo' });
  * // Returns '@my-repo' as a branded PathSegment — the fallback stands in for a missing/empty name
  * workspaceScopeFromRootNameTransformer({ rootPackageJsonName: undefined });
  * // Returns undefined — nothing to derive a scope from

@@ -27,7 +27,7 @@
  * await stepResetBroker({
  *   lane,
  *   level: ResetLevelStub({ value: 'state' }),
- *   to: SnapshotNameStub({ value: 'clean' }),
+ *   to: 'clean',
  *   reseed: null,
  * });
  * // Rewinds disk, clears storage, and returns formatted ResetReading as ContentText

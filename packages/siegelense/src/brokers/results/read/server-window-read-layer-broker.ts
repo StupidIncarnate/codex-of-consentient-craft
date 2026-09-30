@@ -14,7 +14,7 @@
  *
  * USAGE:
  * await serverWindowReadLayerBroker({
- *   evidencePath: AbsoluteFilePathStub({ value: '/repo/.dungeonmaster-assets/siegelense-assets/.../inst_1' }),
+ *   evidencePath: '/repo/.dungeonmaster-assets/siegelense-assets/.../inst_1',
  *   readings: [StepReadingStub({ step: 7, serverWindow: { fromByte: 900, toByte: 1400 } })],
  *   step: null, where: ResultWhereStub({ steps: '6-8', level: 'error' }), sinceBoot: false,
  * });

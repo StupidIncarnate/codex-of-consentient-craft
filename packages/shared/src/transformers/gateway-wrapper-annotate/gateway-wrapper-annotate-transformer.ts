@@ -11,8 +11,8 @@
  *
  * USAGE:
  * gatewayWrapperAnnotateTransformer({
- *   subpath: ContentTextStub({ value: '#gateway/node/fs__promises' }),
- *   wrapperNames: [ContentTextStub({ value: 'readFile' })],
+ *   subpath: '#gateway/node/fs__promises',
+ *   wrapperNames: ['readFile'],
  *   gatewayLintConfig: { bannedExports: [{subpath: '#gateway/node/fs__promises', name: 'readFile', use: 'readTextFile', reason: 'x'}] },
  * });
  * // Returns ['readFile ✗ banned, use readTextFile']

@@ -374,12 +374,11 @@ export const questModifyBroker = async ({
                 (incoming) => String(incoming.id) === String(entry.id),
               ),
             );
-            // pathResolveAdapter rather than pathJoinAdapter, the same call the package-entry probe
-            // below makes for the same reason: agents write sources bare-repo-relative
-            // (`packages/web/...`), which the strict filePathContract union rejects, and join would
-            // both normalise a leading `./` away and leave the value relative. Resolve always yields
-            // an absolute path under `projectRoot`, and leaves an already-absolute source alone — so
-            // the address probed and the declared string kept as the transformer's key describe one
+            // `resolve` rather than `join`, the same call the package-entry probe below makes for
+            // the same reason: agents write sources bare-repo-relative (`packages/web/...`), and
+            // join would both normalise a leading `./` away and leave the value relative. Resolve
+            // always yields an absolute path under `projectRoot`, and leaves an already-absolute
+            // source alone — so the address probed and the declared string kept as the transformer's key describe one
             // file. `resolvedSources` is keyed on the DECLARED string because that is what the
             // offender message must echo back to the author.
             const sourceExistenceChecks = await Promise.all(

@@ -5,7 +5,7 @@
  * text, say), comes back untouched. The stored reading stays raw JSON, so `--json` still carries it.
  *
  * USAGE:
- * stepReadingTextRenderTransformer({ verb: 'box', reading: ContentTextStub({ value: '{"ref":24,...}' }) });
+ * stepReadingTextRenderTransformer({ verb: 'box', reading: '{"ref":24,...}' });
  * // Returns 'ref 24: 260×36 at (472, 351) — visible, in viewport (viewport 1280×720)'
  */
 

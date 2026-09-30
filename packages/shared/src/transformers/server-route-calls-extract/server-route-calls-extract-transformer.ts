@@ -5,12 +5,12 @@
  *
  * USAGE:
  * const routes = serverRouteCallsExtractTransformer({
- *   source: contentTextContract.parse(`
+ *   source: `
  *     app.get(apiRoutesStatics.quests.list, async (c) => {
  *       const result = await QuestListResponder({ query });
  *       return c.json(result.data);
  *     });
- *   `),
+ *   `,
  * });
  * // Returns [{ method: 'GET', rawArg: 'apiRoutesStatics.quests.list', responderName: 'QuestListResponder' }]
  *

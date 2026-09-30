@@ -31,15 +31,15 @@
  * nothing here builds.
  *
  * USAGE:
- * await SiegelenseStartResponder({ specName: SpecNameStub(), questId: null, guildId: null, seed: null });
+ * await SiegelenseStartResponder({ specName: 'dungeonmaster-stack', questId: null, guildId: null, seed: null });
  * // Writes the human summary to stdout
  *
  * await SiegelenseStartResponder({
- *   specName: SpecNameStub(),
+ *   specName: 'dungeonmaster-stack',
  *   questId: null,
  *   guildId: null,
- *   seed: RecipeNameStub({ value: 'guild-with-three-quests' }),
- *   idleTimeoutMs: TimeoutMsStub({ value: 1_800_000 }),
+ *   seed: 'guild-with-three-quests',
+ *   idleTimeoutMs: 1_800_000,
  * });
  * // Same, but the driver it spawns serves the raised ceiling instead of driverStatics.idle.timeoutMs
  */

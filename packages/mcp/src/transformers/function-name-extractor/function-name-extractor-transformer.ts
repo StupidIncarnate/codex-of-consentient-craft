@@ -3,7 +3,7 @@
  *
  * USAGE:
  * const name = functionNameExtractorTransformer({
- *   filepath: PathSegmentStub({ value: '/path/to/user-fetch-broker.ts' })
+ *   filepath: '/path/to/user-fetch-broker.ts'
  * });
  * // Returns: FunctionName('user-fetch-broker')
  */

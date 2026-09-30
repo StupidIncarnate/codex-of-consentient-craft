@@ -5,7 +5,7 @@
  *
  * USAGE:
  * const annotations = hookBinsToAnnotationsLayerBroker({
- *   packageRoot: absoluteFilePathContract.parse('/repo/packages/hooks'),
+ *   packageRoot: '/repo/packages/hooks',
  * });
  * // Returns ResponderAnnotationMap keyed by startup file path
  *

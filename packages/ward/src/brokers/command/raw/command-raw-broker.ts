@@ -2,7 +2,7 @@
  * PURPOSE: Loads a ward run result and writes raw stdout/stderr for a specific check type to stdout
  *
  * USAGE:
- * await commandRawBroker({ rootPath: AbsoluteFilePathStub({ value: '/project' }), runId: RunIdStub(), checkType: CheckTypeStub() });
+ * await commandRawBroker({ rootPath: '/project', runId: RunIdStub(), checkType: CheckTypeStub() });
  * // Writes raw process output to stdout
  */
 

@@ -4,7 +4,7 @@
  *
  * USAGE:
  * const pkgJson = readPackageJsonLayerBroker({
- *   packageRoot: absoluteFilePathContract.parse('/repo/packages/hooks'),
+ *   packageRoot: '/repo/packages/hooks',
  * });
  * // Returns the parsed PackageJson object or undefined if missing/unparseable
  *

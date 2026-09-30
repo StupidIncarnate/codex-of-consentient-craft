@@ -18,9 +18,9 @@
  * USAGE:
  * likelyCauseLayerBroker({
  *   state: InstanceStateStub({ value: 'dead' }),
- *   specName: SpecNameStub({ value: 'dungeonmaster-stack' }),
- *   rssAtLastBeat: MegabytesStub({ value: 2980 }),
- *   oomKillsSinceBoot: ReadingCountStub({ value: 2 }),
+ *   specName: 'dungeonmaster-stack',
+ *   rssAtLastBeat: 2980,
+ *   oomKillsSinceBoot: 2,
  *   shutdownReason: null,
  *   soloProfile: null,
  * });
@@ -29,9 +29,9 @@
  *
  * likelyCauseLayerBroker({
  *   state: InstanceStateStub({ value: 'dead' }),
- *   specName: SpecNameStub({ value: 'stack' }),
- *   rssAtLastBeat: MegabytesStub({ value: 609 }),
- *   oomKillsSinceBoot: ReadingCountStub({ value: 0 }),
+ *   specName: 'stack',
+ *   rssAtLastBeat: 609,
+ *   oomKillsSinceBoot: 0,
  *   shutdownReason: null,
  *   soloProfile: CapacityProfileStub({ spec: 'stack', poolSize: 1, steadyMB: 488, peakMB: 609, fromRuns: 5 }),
  * });
@@ -40,10 +40,10 @@
  *
  * likelyCauseLayerBroker({
  *   state: InstanceStateStub({ value: 'dead' }),
- *   specName: SpecNameStub({ value: 'dungeonmaster-stack' }),
- *   rssAtLastBeat: MegabytesStub({ value: 622 }),
- *   oomKillsSinceBoot: ReadingCountStub({ value: 1 }),
- *   shutdownReason: ContentTextStub({ value: 'reaped by idle timeout after 900s with no run received' }),
+ *   specName: 'dungeonmaster-stack',
+ *   rssAtLastBeat: 622,
+ *   oomKillsSinceBoot: 1,
+ *   shutdownReason: 'reaped by idle timeout after 900s with no run received',
  *   soloProfile: null,
  * });
  * // Returns 'reaped by idle timeout after 900s with no run received' as ContentText — the

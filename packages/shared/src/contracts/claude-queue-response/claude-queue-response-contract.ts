@@ -2,7 +2,7 @@
  * PURPOSE: Defines the shape for mock Claude CLI queue responses in integration tests
  *
  * USAGE:
- * const response: ClaudeQueueResponse = { sessionId, lines: [...], exitCode: ExitCodeStub() };
+ * const response: ClaudeQueueResponse = { sessionId, lines: [...], exitCode: 0 };
  * // Used by orchestration integration tests to simulate Claude agent outputs
  */
 

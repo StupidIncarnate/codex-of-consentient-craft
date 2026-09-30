@@ -3,7 +3,7 @@
  *
  * USAGE:
  * stripJsonlSuffixTransformer({
- *   filePath: absoluteFilePathContract.parse('/home/user/.claude/projects/abc-123.jsonl'),
+ *   filePath: '/home/user/.claude/projects/abc-123.jsonl',
  * });
  * // Returns AbsoluteFilePath '/home/user/.claude/projects/abc-123'
  */

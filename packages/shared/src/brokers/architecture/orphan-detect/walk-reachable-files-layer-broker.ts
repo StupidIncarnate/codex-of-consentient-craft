@@ -6,7 +6,7 @@
  *
  * USAGE:
  * const reachable = walkReachableFilesLayerBroker({
- *   packageSrcPath: absoluteFilePathContract.parse('/repo/packages/server/src'),
+ *   packageSrcPath: '/repo/packages/server/src',
  * });
  * // Returns Set<AbsoluteFilePath> of every reachable in-package source file
  *

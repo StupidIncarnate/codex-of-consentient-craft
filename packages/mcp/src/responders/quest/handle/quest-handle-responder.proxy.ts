@@ -4,7 +4,7 @@
  * USAGE:
  * const proxy = QuestHandleResponderProxy();
  * proxy.setupGetQuestReturns({ questId: 'abc', result: GetQuestResultStub() });
- * const result = await proxy.callResponder({ tool: ToolNameStub({ value: 'get-quest' }), args: { questId: 'abc' } });
+ * const result = await proxy.callResponder({ tool: 'get-quest', args: { questId: 'abc' } });
  */
 
 import type { Quest } from '@dungeonmaster/shared/contracts';

@@ -5,8 +5,8 @@
  *
  * USAGE:
  * const subscribes = busOnCallDetectTransformer({
- *   source: contentTextContract.parse('myBus.on({ type, handler });'),
- *   busExportName: contentTextContract.parse('myBus'),
+ *   source: 'myBus.on({ type, handler });',
+ *   busExportName: 'myBus',
  * });
  * // Returns true
  *

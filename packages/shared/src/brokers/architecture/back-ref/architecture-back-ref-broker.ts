@@ -6,8 +6,8 @@
  *
  * USAGE:
  * const ref = architectureBackRefBroker({
- *   filePath: absoluteFilePathContract.parse('/repo/packages/orchestrator/src/responders/chat/replay/chat-replay-responder.ts'),
- *   projectRoot: absoluteFilePathContract.parse('/repo'),
+ *   filePath: '/repo/packages/orchestrator/src/responders/chat/replay/chat-replay-responder.ts',
+ *   projectRoot: '/repo',
  * });
  * // Returns ContentText 'packages/orchestrator (ChatReplayResponder)' or null when
  * // the file is outside packages/, missing, or has no exported const/function

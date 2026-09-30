@@ -7,7 +7,7 @@
  *
  * USAGE:
  * const gateways = wsGatewayFilesFindLayerBroker({
- *   projectRoot: absoluteFilePathContract.parse('/repo'),
+ *   projectRoot: '/repo',
  *   wsServerAdapters: [...adapterPaths],
  * });
  * // Returns AbsoluteFilePath[] for every file that imports one of the WS-server adapters

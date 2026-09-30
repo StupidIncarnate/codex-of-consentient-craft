@@ -2,7 +2,7 @@
  * PURPOSE: Filters quest contract entries to those anchored to a specific flow node
  *
  * USAGE:
- * collectNodeContractsTransformer({ nodeId: flowNodeIdContract.parse('submit-form'), contracts });
+ * collectNodeContractsTransformer({ nodeId: 'submit-form', contracts });
  * // Returns: QuestContractEntry[] where each entry's nodeId matches the given nodeId
  */
 

@@ -2,7 +2,7 @@
  * PURPOSE: Reads a WardRunResult from .ward/run-<id>.json or finds the most recent run
  *
  * USAGE:
- * const result = await storageLoadBroker({ rootPath: AbsoluteFilePathStub({ value: '/project' }) });
+ * const result = await storageLoadBroker({ rootPath: '/project' });
  * // Returns the most recent WardRunResult or null if none found
  */
 

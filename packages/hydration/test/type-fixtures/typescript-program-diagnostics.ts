@@ -7,7 +7,7 @@
  *
  * USAGE:
  * typescriptProgramDiagnostics({
- *   files: [repoRelativePathContract.parse('packages/hydration/test/adapter-fixtures/one-error.ts')],
+ *   files: ['packages/hydration/test/adapter-fixtures/one-error.ts'],
  * });
  * // Returns every syntactic and semantic diagnostic in that program, as TypeDiagnostic[]
  */

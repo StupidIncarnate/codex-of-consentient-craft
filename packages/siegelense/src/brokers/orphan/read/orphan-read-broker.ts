@@ -12,7 +12,7 @@
  * skipped; any other read failure (EACCES, a bad handle) still propagates.
  *
  * USAGE:
- * await orphanReadBroker({ pgids: [ProcessGroupIdStub()] });
+ * await orphanReadBroker({ pgids: [12345] });
  * // Returns one OrphanReading per pgid, in the same order; cmd is null once nothing in /proc holds it
  */
 

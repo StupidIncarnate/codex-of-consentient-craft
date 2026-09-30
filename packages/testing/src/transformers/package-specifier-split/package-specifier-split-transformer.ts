@@ -8,7 +8,7 @@
  * a `#`-specifier's TARGET before it ever reaches this function.
  *
  * USAGE:
- * packageSpecifierSplitTransformer({ importPath: importPathContract.parse('@dungeonmaster/bin/testing') });
+ * packageSpecifierSplitTransformer({ importPath: '@dungeonmaster/bin/testing' });
  * // Returns { packageName: '@dungeonmaster/bin', subpath: 'testing' }
  */
 

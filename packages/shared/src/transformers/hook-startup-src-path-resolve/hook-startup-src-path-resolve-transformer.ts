@@ -6,8 +6,8 @@
  *
  * USAGE:
  * const srcPath = hookStartupSrcPathResolveTransformer({
- *   binPath: contentTextContract.parse('./dist/src/startup/start-pre-edit-hook.js'),
- *   packageRoot: absoluteFilePathContract.parse('/repo/packages/hooks'),
+ *   binPath: './dist/src/startup/start-pre-edit-hook.js',
+ *   packageRoot: '/repo/packages/hooks',
  * });
  * // Returns AbsoluteFilePath('/repo/packages/hooks/src/startup/start-pre-edit-hook.ts')
  *

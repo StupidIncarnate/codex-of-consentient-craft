@@ -17,7 +17,7 @@
  *   node: barrelProgramNode,
  *   context,
  *   fileName: 'fs.ts',
- *   subpathDirectory: filePathContract.parse('/repo/packages/@gateway/node/src/fs/'),
+ *   subpathDirectory: '/repo/packages/@gateway/node/src/fs/',
  *   reexports: [{ name: 'readFileSync', source: './read-file-sync/read-file-sync' }],
  * });
  * // Reports 'barrelMissingReexport' for every wrapper export the list above leaves out, and

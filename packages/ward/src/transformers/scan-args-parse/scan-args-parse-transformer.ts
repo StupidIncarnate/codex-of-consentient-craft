@@ -4,7 +4,7 @@
  * and which has no notion of a rule to scan.
  *
  * USAGE:
- * scanArgsParseTransformer({ args: [CliArgStub({ value: 'no-console' }), CliArgStub({ value: '--' }), CliArgStub({ value: 'packages/ward' })] });
+ * scanArgsParseTransformer({ args: ['no-console', '--', 'packages/ward'] });
  * // Returns: ScanConfig { rule: 'no-console', paths: ['packages/ward'] }
  */
 

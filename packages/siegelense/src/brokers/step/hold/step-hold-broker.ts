@@ -10,8 +10,8 @@
  * await stepHoldBroker({
  *   lane,
  *   session,
- *   index: StepIndexStub({ value: 1 }),
- *   shotPath: AbsoluteFilePathStub({ value: '/repo/runs/run_1/step1.png' }),
+ *   index: 1,
+ *   shotPath: '/repo/runs/run_1/step1.png',
  *   frames: 4,
  *   everyMs: 1500,
  * });

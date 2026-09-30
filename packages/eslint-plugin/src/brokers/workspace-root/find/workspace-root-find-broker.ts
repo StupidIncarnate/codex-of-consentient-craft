@@ -10,7 +10,7 @@
  * rules import ONE copy of this walk instead of each keeping its own.
  *
  * USAGE:
- * workspaceRootFindBroker({ startDir: filePathContract.parse(__dirname) });
+ * workspaceRootFindBroker({ startDir: __dirname });
  * // Returns { rootDir: '/repo', rootPackageJsonName: '@dungeonmaster/hooks', packageNames: [...] },
  * // or undefined when no ancestor package.json carries a `workspaces` field
  */

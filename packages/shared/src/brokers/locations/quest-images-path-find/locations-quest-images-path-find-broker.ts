@@ -4,7 +4,7 @@
  * when the target is the quest's images subtree, not ward output.
  *
  * USAGE:
- * locationsQuestImagesPathFindBroker({ questFolderPath: AbsoluteFilePathStub() });
+ * locationsQuestImagesPathFindBroker({ questFolderPath: '/home/user/project/src/file.ts' });
  * // Returns AbsoluteFilePath '<questFolderPath>/images'
  */
 

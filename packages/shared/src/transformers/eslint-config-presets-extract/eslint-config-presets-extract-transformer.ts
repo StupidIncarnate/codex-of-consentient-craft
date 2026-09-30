@@ -5,7 +5,7 @@
  *
  * USAGE:
  * const presets = eslintConfigPresetsExtractTransformer({
- *   source: ContentTextStub({ value: '... configs: { dungeonmaster: x, dungeonmasterTest: y } ...' }),
+ *   source: '... configs: { dungeonmaster: x, dungeonmasterTest: y } ...',
  * });
  * // Returns ContentText[] of preset names, e.g. ['dungeonmaster', 'dungeonmasterTest']
  *

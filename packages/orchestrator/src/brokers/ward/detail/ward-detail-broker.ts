@@ -2,7 +2,7 @@
  * PURPOSE: Calls dungeonmaster-ward detail command and returns the JSON output
  *
  * USAGE:
- * const result = await wardDetailBroker({ startPath: AbsoluteFilePathStub(), runId: FileNameStub() });
+ * const result = await wardDetailBroker({ startPath: '/home/user/project/src/file.ts', runId: FileNameStub() });
  * // Returns ErrorMessage with JSON output, or null if command fails
  */
 

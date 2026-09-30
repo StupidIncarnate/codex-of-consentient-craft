@@ -3,7 +3,7 @@
  *
  * USAGE:
  * const { kill, sessionId$ } = agentSpawnUnifiedBroker({
- *   prompt: PromptTextStub({ value: 'Do something' }),
+ *   prompt: 'Do something',
  *   cwd: '/path/to/project',
  *   onLine: ({ line }) => {},
  *   onComplete: ({ exitCode, sessionId }) => {},

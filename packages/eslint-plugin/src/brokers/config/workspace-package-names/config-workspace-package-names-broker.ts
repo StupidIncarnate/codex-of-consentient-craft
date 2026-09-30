@@ -9,7 +9,7 @@
  * resolves the same way.
  *
  * USAGE:
- * configWorkspacePackageNamesBroker({ startDir: filePathContract.parse(__dirname) });
+ * configWorkspacePackageNamesBroker({ startDir: __dirname });
  * // Returns ['@dungeonmaster/orchestrator', '@dungeonmaster/server', ...] — every packages/* and
  * // packages/@gateway/* member's own package.json name field
  */

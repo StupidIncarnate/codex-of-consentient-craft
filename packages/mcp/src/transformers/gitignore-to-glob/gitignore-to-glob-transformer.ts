@@ -9,7 +9,7 @@
  * author wrote it to preserve.
  *
  * USAGE:
- * gitignoreToGlobTransformer({ contents: FileContentsStub({ value: 'dist\nworktrees/\n' }) });
+ * gitignoreToGlobTransformer({ contents: 'dist\nworktrees/\n' });
  * // Returns ['**\/dist', '**\/dist\/**', '**\/worktrees\/**']
  */
 

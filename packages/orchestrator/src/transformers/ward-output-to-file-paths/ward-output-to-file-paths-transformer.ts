@@ -2,7 +2,7 @@
  * PURPOSE: Extracts deduplicated absolute file paths from structured WardResult JSON
  *
  * USAGE:
- * wardOutputToFilePathsTransformer({ wardResultJson: FileContentsStub({ value: '{"checks":[...]}' }) });
+ * wardOutputToFilePathsTransformer({ wardResultJson: '{"checks":[...]}' });
  * // Returns ['/src/file.ts']
  */
 

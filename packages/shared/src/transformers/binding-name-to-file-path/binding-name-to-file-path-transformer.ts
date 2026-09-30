@@ -5,8 +5,8 @@
  *
  * USAGE:
  * const filePath = bindingNameToFilePathTransformer({
- *   bindingName: contentTextContract.parse('use-quests'),
- *   packageRoot: absoluteFilePathContract.parse('/repo/packages/web'),
+ *   bindingName: 'use-quests',
+ *   packageRoot: '/repo/packages/web',
  * });
  * // Returns AbsoluteFilePath '/repo/packages/web/src/bindings/use-quests/use-quests-binding.ts'
  *

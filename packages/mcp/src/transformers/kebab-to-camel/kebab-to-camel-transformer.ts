@@ -3,7 +3,7 @@
  *
  * USAGE:
  * const camelName = kebabToCamelTransformer({
- *   kebabCase: FunctionNameStub({ value: 'has-permission-guard' })
+ *   kebabCase: 'has-permission-guard'
  * });
  * // Returns: FunctionName('hasPermissionGuard')
  */

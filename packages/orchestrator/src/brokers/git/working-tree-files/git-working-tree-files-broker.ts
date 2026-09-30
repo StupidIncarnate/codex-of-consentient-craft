@@ -8,7 +8,7 @@
  * them. The union of the two readings is the only complete one, and it lives here.
  *
  * USAGE:
- * const files = await gitWorkingTreeFilesBroker({ cwd: AbsoluteFilePathStub({ value: '/project' }) });
+ * const files = await gitWorkingTreeFilesBroker({ cwd: '/project' });
  * // Returns RepoRelativePath[] — tracked modifications first, then untracked additions
  *
  * A path can legitimately appear in both readings on a tree where an intent-to-add (`git add -N`)

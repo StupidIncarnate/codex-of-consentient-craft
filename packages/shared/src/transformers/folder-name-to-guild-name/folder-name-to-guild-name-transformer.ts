@@ -2,7 +2,7 @@
  * PURPOSE: Converts a folder basename (e.g. 'codex-of-consentient-craft') into a Title Case guild display name (e.g. 'Codex of Consentient Craft')
  *
  * USAGE:
- * folderNameToGuildNameTransformer({ folderName: PathSegmentStub({ value: 'codex-of-consentient-craft' }) });
+ * folderNameToGuildNameTransformer({ folderName: 'codex-of-consentient-craft' });
  * // Returns: GuildName('Codex of Consentient Craft')
  *
  * WHEN-TO-USE: Auto-deriving a guild name from a repo root folder when registering a new guild

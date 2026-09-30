@@ -4,7 +4,7 @@
  * (e.g. to inspect or create a symlink under it) rather than a binary inside its .bin folder.
  *
  * USAGE:
- * locationsNodeModulesPathFindBroker({ rootPath: AbsoluteFilePathStub({ value: '/repo' }) });
+ * locationsNodeModulesPathFindBroker({ rootPath: '/repo' });
  * // Returns AbsoluteFilePath '/repo/node_modules'
  */
 

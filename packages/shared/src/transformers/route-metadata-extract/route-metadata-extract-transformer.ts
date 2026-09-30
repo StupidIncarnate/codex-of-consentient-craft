@@ -3,7 +3,7 @@
  *
  * USAGE:
  * const routes = routeMetadataExtractTransformer({
- *   source: contentTextContract.parse('<Route path="/" element={<Home />} />'),
+ *   source: '<Route path="/" element={<Home />} />',
  * });
  * // Returns [{ path: '/', responderSymbol: 'Home' }]
  *

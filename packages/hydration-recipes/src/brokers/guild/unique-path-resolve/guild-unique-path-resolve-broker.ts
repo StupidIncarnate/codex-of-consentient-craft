@@ -23,7 +23,7 @@
  * explicit value alone.
  *
  * USAGE:
- * guildUniquePathResolveBroker({ target, path: guildPathContract.parse('guilds-under-test/guild-1') });
+ * guildUniquePathResolveBroker({ target, path: 'guilds-under-test/guild-1' });
  * // Returns 'guilds-under-test/guild-2' when guild-1's directory already exists under target.home,
  * // else the original path unchanged
  */

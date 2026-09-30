@@ -14,8 +14,8 @@
  *
  * USAGE:
  * isStaleReservationRegistryEntryGuard({
- *   entry: RegistryEntryStub({ bootedAtMs: null, reservedAtMs: EpochMsStub({ value: 0 }) }),
- *   nowMs: EpochMsStub(),
+ *   entry: RegistryEntryStub({ bootedAtMs: null, reservedAtMs: 0 }),
+ *   nowMs: 1_700_000_000_000,
  * });
  * // Returns true once nowMs - reservedAtMs exceeds instanceLifecycleStatics.reservation.staleAfterMs
  */

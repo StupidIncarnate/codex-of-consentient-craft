@@ -2,7 +2,7 @@
  * PURPOSE: Compiles a grep pattern string into a RegExp, treating input as regex (like grep) with safe fallback to literal on syntax errors
  *
  * USAGE:
- * compileGrepRegexTransformer({ pattern: GrepPatternStub({ value: 'delete|remove' }) });
+ * compileGrepRegexTransformer({ pattern: 'delete|remove' });
  * // Returns /delete|remove/gmu — alternation works naturally
  *
  * WHEN-TO-USE: Inside content-grep as an LLM-facing wrapper. LLMs write regex naturally

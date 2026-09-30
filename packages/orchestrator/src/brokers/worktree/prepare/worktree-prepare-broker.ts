@@ -29,9 +29,9 @@
  *
  * USAGE:
  * const { baseRef } = await worktreePrepareBroker({
- *   repoRoot: AbsoluteFilePathStub({ value: '/repo' }),
- *   worktreePath: AbsoluteFilePathStub({ value: '/repo/worktrees/add-auth-7bc217a1' }),
- *   branchName: QuestBranchNameStub({ value: 'quest/add-auth-7bc217a1' }),
+ *   repoRoot: '/repo',
+ *   worktreePath: '/repo/worktrees/add-auth-7bc217a1',
+ *   branchName: 'quest/add-auth-7bc217a1',
  *   baseBranch: BaseBranchNameStub({ value: 'main' }),
  * });
  * // Rejects with WorktreePrepareError, naming the failing step, on any failure

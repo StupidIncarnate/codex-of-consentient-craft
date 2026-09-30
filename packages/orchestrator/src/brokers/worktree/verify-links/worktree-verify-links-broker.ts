@@ -12,7 +12,7 @@
  *
  * USAGE:
  * await worktreeVerifyLinksBroker({
- *   worktreePath: AbsoluteFilePathStub({ value: '/repo/worktrees/probe' }),
+ *   worktreePath: '/repo/worktrees/probe',
  * });
  * // Rejects with WorktreePrepareError naming each offending link, its stored target and where
  * //   that target actually lands

@@ -7,7 +7,7 @@
  *
  * USAGE:
  * await runReturnWriteBroker({
- *   storedReturnPath: AbsoluteFilePathStub({ value: '/repo/.dungeonmaster-assets/siegelense-assets/.../runs/run_2.json' }),
+ *   storedReturnPath: '/repo/.dungeonmaster-assets/siegelense-assets/.../runs/run_2.json',
  *   result: RunResultStub(),
  * });
  * // Writes the whole RunResult as JSON, then resolves with nothing

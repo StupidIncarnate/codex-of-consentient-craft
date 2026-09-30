@@ -3,9 +3,9 @@
  *
  * USAGE:
  * const tree = folderDependencyTreeContract.parse({
- *   hierarchy: ContentTextStub({ value: 'statics/...' }),
+ *   hierarchy: 'statics/...',
  *   graph: { statics: [] },
- *   matrix: ContentTextStub({ value: 'FROM...' })
+ *   matrix: 'FROM...'
  * });
  * // Returns validated FolderDependencyTree object
  */

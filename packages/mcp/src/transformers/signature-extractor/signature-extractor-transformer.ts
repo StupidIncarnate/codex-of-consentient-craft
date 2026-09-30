@@ -3,7 +3,7 @@
  *
  * USAGE:
  * const signature = signatureExtractorTransformer({
- *   fileContents: FileContentsStub({ value: 'export const foo = ({ x }: { x: number }): string => {}' })
+ *   fileContents: 'export const foo = ({ x }: { x: number }): string => {}'
  * });
  * // Returns: { raw: '...', parameters: [...], returnType: 'string' }
  */

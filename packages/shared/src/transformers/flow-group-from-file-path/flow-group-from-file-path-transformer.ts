@@ -4,7 +4,7 @@
  *
  * USAGE:
  * flowGroupFromFilePathTransformer({
- *   filePath: absoluteFilePathContract.parse('/repo/packages/server/src/flows/quest/quest-flow.ts'),
+ *   filePath: '/repo/packages/server/src/flows/quest/quest-flow.ts',
  * });
  * // Returns ContentText 'quest'
  *

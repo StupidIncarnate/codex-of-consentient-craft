@@ -3,7 +3,7 @@
  *
  * USAGE:
  * const routes = routeMetadataExtractLayerBroker({
- *   flowFile: absoluteFilePathContract.parse('/repo/packages/web/src/flows/quest-chat/quest-chat-flow.tsx'),
+ *   flowFile: '/repo/packages/web/src/flows/quest-chat/quest-chat-flow.tsx',
  * });
  * // Returns RouteMetadata[] with path + responderSymbol per Route
  *

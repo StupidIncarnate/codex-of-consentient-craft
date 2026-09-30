@@ -7,7 +7,7 @@
  *
  * USAGE:
  * const subs = busSubscriberFilesFindLayerBroker({
- *   projectRoot: absoluteFilePathContract.parse('/repo'),
+ *   projectRoot: '/repo',
  *   buses: [...eventBusList],
  * });
  *

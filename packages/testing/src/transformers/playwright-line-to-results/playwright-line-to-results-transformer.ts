@@ -2,7 +2,7 @@
  * PURPOSE: Parses Playwright line reporter stderr output into structured per-test results for ward fallback reporting when JSON output is unavailable
  *
  * USAGE:
- * playwrightLineToResultsTransformer({ output: errorMessageContract.parse(stderrOutput) });
+ * playwrightLineToResultsTransformer({ output: stderrOutput });
  * // Returns PlaywrightLineResults with passed/failed test titles and total count
  */
 

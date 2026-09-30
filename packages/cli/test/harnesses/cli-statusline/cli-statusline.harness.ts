@@ -4,7 +4,7 @@
  * USAGE:
  * const harness = cliStatuslineHarness();
  * const env = harness.setupHome({ tempDir: testbed.guildPath });
- * const stdin = harness.setupStdin({ data: FileContentsStub({ value: '{"rate_limits":{...}}' }) });
+ * const stdin = harness.setupStdin({ data: '{"rate_limits":{...}}' });
  * const stdout = harness.captureStdout();
  * await CliFlow({ command: 'statusline-tap', context });
  * stdin.restore();

@@ -16,8 +16,8 @@
  * await git.initRepo({ repoPath });
  * await git.initBareRemote({ remotePath });
  * await git.addRemote({ cwd: repoPath, remotePath });
- * await git.pushBranch({ cwd: repoPath, branchName: GitBranchNameStub({ value: 'main' }) });
- * await git.commitFile({ cwd: repoPath, relativePath: GitRelativePathStub({ value: 'a.txt' }), content: 'hi\n' });
+ * await git.pushBranch({ cwd: repoPath, branchName: 'main' });
+ * await git.commitFile({ cwd: repoPath, relativePath: 'a.txt', content: 'hi\n' });
  */
 import { gitRun } from '#gateway/bin/git';
 import { ensureDirSync, writeFileSync } from '#gateway/node/fs';

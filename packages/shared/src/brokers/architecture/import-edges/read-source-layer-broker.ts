@@ -4,7 +4,7 @@
  *
  * USAGE:
  * const source = readSourceLayerBroker({
- *   filePath: absoluteFilePathContract.parse('/repo/packages/web/src/widgets/app-widget.ts'),
+ *   filePath: '/repo/packages/web/src/widgets/app-widget.ts',
  * });
  * // Returns ContentText or undefined if the file is missing
  *

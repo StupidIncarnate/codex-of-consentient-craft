@@ -5,7 +5,7 @@
  * tsc whatever its shell PATH holds.
  *
  * USAGE:
- * const command = binResolveBroker({ binName: BinCommandStub({ value: 'eslint' }), cwd: absoluteFilePathContract.parse('/project') });
+ * const command = binResolveBroker({ binName: 'eslint', cwd: '/project' });
  * // Returns BinCommand('/project/node_modules/.bin/eslint') if it exists, else the nearest ancestor's up to the workspace root, else BinCommand('eslint')
  */
 

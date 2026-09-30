@@ -54,7 +54,7 @@
  * USAGE:
  * await runExecuteBroker({
  *   lane, instanceId: InstanceIdStub(), runId: RunIdStub({ value: 'run_1' }),
- *   steps: [StepStub({ step: 'goto', path: UrlPathStub() })], stopOn: StopOnStub(),
+ *   steps: [StepStub({ step: 'goto', path: '/api/guilds' })], stopOn: StopOnStub(),
  *   flushCursor: driverSessionState.flushCursor, advanceFlushCursor: driverSessionState.advanceFlushCursor,
  *   lastShotPath: driverSessionState.lastShotPath, setLastShotPath: driverSessionState.setLastShotPath,
  * });

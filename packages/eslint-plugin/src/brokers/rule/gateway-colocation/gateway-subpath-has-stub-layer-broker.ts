@@ -6,7 +6,7 @@
  * through here once, since the barrel's own directory IS the whole subpath.
  *
  * USAGE:
- * gatewaySubpathHasStubLayerBroker({ subpathDirectory: filePathContract.parse('/repo/packages/@gateway/node/src/fs/') });
+ * gatewaySubpathHasStubLayerBroker({ subpathDirectory: '/repo/packages/@gateway/node/src/fs/' });
  * // Returns true once any file anywhere under that directory ends in `.stub.ts`
  */
 import { readdirEntriesSync } from '#gateway/node/fs';

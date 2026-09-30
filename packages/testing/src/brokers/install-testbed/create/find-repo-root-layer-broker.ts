@@ -6,7 +6,7 @@
  * removes one directory level and the fixed count overshoots the repo root.
  *
  * USAGE:
- * const repoRoot = findRepoRootLayerBroker({ startPath: filePathContract.parse(__dirname) });
+ * const repoRoot = findRepoRootLayerBroker({ startPath: __dirname });
  * // Returns FilePath to the nearest ancestor holding a package.json with a workspaces field
  */
 

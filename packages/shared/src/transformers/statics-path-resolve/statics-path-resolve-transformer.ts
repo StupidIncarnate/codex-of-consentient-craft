@@ -5,8 +5,8 @@
  *
  * USAGE:
  * const url = staticsPathResolveTransformer({
- *   source: contentTextContract.parse("export const apiRoutesStatics = { quests: { list: '/api/quests' } } as const;"),
- *   dotPath: contentTextContract.parse('apiRoutesStatics.quests.list'),
+ *   source: "export const apiRoutesStatics = { quests: { list: '/api/quests' } } as const;",
+ *   dotPath: 'apiRoutesStatics.quests.list',
  * });
  * // Returns '/api/quests' or null if the path cannot be resolved
  *

@@ -11,8 +11,8 @@
  *
  * USAGE:
  * const audits = await walkSymlinksLayerBroker({
- *   worktreePath: AbsoluteFilePathStub({ value: '/repo/worktrees/probe' }),
- *   dirPath: AbsoluteFilePathStub({ value: '/repo/worktrees/probe/node_modules' }),
+ *   worktreePath: '/repo/worktrees/probe',
+ *   dirPath: '/repo/worktrees/probe/node_modules',
  * });
  * // [{ linkPath, storedTarget, resolvedTarget, relative: true, inside: true }, ...]
  */

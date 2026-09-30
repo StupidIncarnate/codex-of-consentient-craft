@@ -4,7 +4,7 @@
  *
  * USAGE:
  * const source = architectureSourceReadBroker({
- *   filePath: absoluteFilePathContract.parse('/repo/packages/web/src/bindings/use-quest/use-quest-binding.ts'),
+ *   filePath: '/repo/packages/web/src/bindings/use-quest/use-quest-binding.ts',
  * });
  * // Returns ContentText or undefined if the file is missing
  *

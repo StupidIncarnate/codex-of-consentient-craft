@@ -6,7 +6,7 @@
  *
  * USAGE:
  * const ctx = architectureEventBusBroker({
- *   projectRoot: absoluteFilePathContract.parse('/repo'),
+ *   projectRoot: '/repo',
  * });
  * // Returns EventBusContext with buses, emitterSites, subscriberFiles populated
  *

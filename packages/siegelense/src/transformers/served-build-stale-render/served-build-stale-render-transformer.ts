@@ -8,7 +8,7 @@
  * stderr: `start`'s stdout stays the one document its callers parse.
  *
  * USAGE:
- * servedBuildStaleRenderTransformer({ stale: [ServedBuildStaleStub()], buildCommand: ContentTextStub({ value: 'npm run build' }) });
+ * servedBuildStaleRenderTransformer({ stale: [ServedBuildStaleStub()], buildCommand: 'npm run build' });
  * // Returns 'STALE BUILD: this lane serves packages/web/dist, ...\nREBUILD: run `npm run build` ...\n'
  */
 

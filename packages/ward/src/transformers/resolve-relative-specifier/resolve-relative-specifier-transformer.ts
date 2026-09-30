@@ -6,7 +6,7 @@
  * not import Node builtins directly.
  *
  * USAGE:
- * resolveRelativeSpecifierTransformer({fromDir: filePathContract.parse('/repo/packages/web/src/widgets'), specifier: moduleSpecifierContract.parse('../shared/foo')});
+ * resolveRelativeSpecifierTransformer({fromDir: '/repo/packages/web/src/widgets', specifier: '../shared/foo'});
  * // Returns: '/repo/packages/web/src/shared/foo' as FilePath
  */
 

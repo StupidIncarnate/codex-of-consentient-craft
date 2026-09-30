@@ -4,7 +4,7 @@
  * merely STARTS WITH a known name ('gitk') is never read as that name ('git').
  *
  * USAGE:
- * firstWordTransformer({ text: contentTextContract.parse('git status') });
+ * firstWordTransformer({ text: 'git status' });
  * // Returns 'git' as ContentText
  */
 

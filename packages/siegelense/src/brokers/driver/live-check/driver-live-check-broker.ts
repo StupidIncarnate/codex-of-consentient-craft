@@ -19,7 +19,7 @@
  * await driverLiveCheckBroker({ entry: RegistryEntryStub({ pid: null }) });
  * // Returns false — a fresh reservation, no driver has booted yet
  *
- * await driverLiveCheckBroker({ entry: RegistryEntryStub({ pid: ProcessIdStub({ value: '108019' }) }) });
+ * await driverLiveCheckBroker({ entry: RegistryEntryStub({ pid: '108019' }) });
  * // Returns true when pid 108019 answers process.kill(pid, 0), or its socket answers ping
  */
 

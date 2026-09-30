@@ -3,7 +3,7 @@
  * containing plugin.json and mcp_config.json so Antigravity discovers the dungeonmaster MCP server
  *
  * USAGE:
- * await agentsPluginCreateBroker({ targetProjectRoot: PathSegmentStub({ value: '/project' }) });
+ * await agentsPluginCreateBroker({ targetProjectRoot: '/project' });
  * // Creates .agents/plugins/dungeonmaster/plugin.json and mcp_config.json
  */
 

@@ -2,7 +2,7 @@
  * PURPOSE: Reads the concatenated content of every non-test startup and bin source file in a package
  *
  * USAGE:
- * const content = readPackageCliContentLayerBroker({ packageRoot: absoluteFilePathContract.parse('/repo/packages/cli') });
+ * const content = readPackageCliContentLayerBroker({ packageRoot: '/repo/packages/cli' });
  * // Returns concatenated source of `src/startup/*.ts` (non-test) + `bin/*.ts` (non-test), or undefined if none
  *
  * WHEN-TO-USE: During package-type detection so signals like `process.argv` reference or async-namespace

@@ -8,7 +8,7 @@
  * is built for ward and never for the pre-edit hook, whose cost on every edit is unmeasured.
  *
  * USAGE:
- * ownerIndexBuildBroker({ rootDir: absoluteFilePathContract.parse('/repo') });
+ * ownerIndexBuildBroker({ rootDir: '/repo' });
  * // Returns OwnerIndex — owners, standaloneBrands and packages
  */
 import { readFileSync, readJsonFileSyncIfExists } from '#gateway/node/fs';

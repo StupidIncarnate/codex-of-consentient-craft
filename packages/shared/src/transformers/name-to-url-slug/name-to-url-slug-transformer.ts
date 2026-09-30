@@ -2,7 +2,7 @@
  * PURPOSE: Converts display names to URL-safe kebab-case slugs
  *
  * USAGE:
- * nameToUrlSlugTransformer({ name: GuildNameStub({ value: 'My Cool Guild' }) });
+ * nameToUrlSlugTransformer({ name: 'My Cool Guild' });
  * // Returns: UrlSlug('my-cool-guild')
  */
 

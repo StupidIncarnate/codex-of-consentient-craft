@@ -4,10 +4,10 @@
  *
  * USAGE:
  * urlBestResponderImportPickTransformer({
- *   urlPattern: contentTextContract.parse('/api/quests/:questId/start'),
+ *   urlPattern: '/api/quests/:questId/start',
  *   responderImports: [
- *     contentTextContract.parse('../../responders/quest/start/quest-start-responder'),
- *     contentTextContract.parse('../../responders/quest/get/quest-get-responder'),
+ *     '../../responders/quest/start/quest-start-responder',
+ *     '../../responders/quest/get/quest-get-responder',
  *   ],
  * });
  * // Returns ContentText '../../responders/quest/start/quest-start-responder'

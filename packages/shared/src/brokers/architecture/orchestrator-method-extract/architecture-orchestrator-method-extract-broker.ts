@@ -4,7 +4,7 @@
  *
  * USAGE:
  * const method = architectureOrchestratorMethodExtractBroker({
- *   serverResponderFile: absoluteFilePathContract.parse('/repo/packages/server/src/responders/quest/start-responder.ts'),
+ *   serverResponderFile: '/repo/packages/server/src/responders/quest/start-responder.ts',
  * });
  * // Returns ContentText like 'StartOrchestrator.startQuest({...})' or null if unresolvable
  *

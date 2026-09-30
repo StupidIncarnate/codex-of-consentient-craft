@@ -5,7 +5,7 @@
  *
  * USAGE:
  * const calls = webFetchCallsExtractTransformer({
- *   source: contentTextContract.parse("fetchPostAdapter({ url: webConfigStatics.api.routes.questStart.replace(...), body: {} })"),
+ *   source: "fetchPostAdapter({ url: webConfigStatics.api.routes.questStart.replace(...), body: {} })",
  * });
  * // Returns [{ method: 'POST', rawArg: 'webConfigStatics.api.routes.questStart' }]
  *

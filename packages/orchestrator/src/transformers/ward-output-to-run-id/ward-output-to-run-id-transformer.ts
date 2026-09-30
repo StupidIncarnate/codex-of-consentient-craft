@@ -2,7 +2,7 @@
  * PURPOSE: Extracts the run ID from ward CLI summary output by matching the first line format "run: <id>"
  *
  * USAGE:
- * wardOutputToRunIdTransformer({ output: ErrorMessageStub({ value: 'run: 1739625600000-a3f1\nlint: PASS' }) });
+ * wardOutputToRunIdTransformer({ output: 'run: 1739625600000-a3f1\nlint: PASS' });
  * // Returns FileName('1739625600000-a3f1') or null if not found
  */
 

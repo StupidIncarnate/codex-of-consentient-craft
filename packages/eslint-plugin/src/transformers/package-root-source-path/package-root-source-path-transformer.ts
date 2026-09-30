@@ -13,7 +13,7 @@
  *
  * USAGE:
  * packageRootSourcePathTransformer({
- *   callerFilePath: filePathContract.parse('/repo/packages/mcp/src/adapters/x/x.proxy.ts'),
+ *   callerFilePath: '/repo/packages/mcp/src/adapters/x/x.proxy.ts',
  *   packageName: 'orchestrator',
  *   relativePath: 'index.ts',
  * });

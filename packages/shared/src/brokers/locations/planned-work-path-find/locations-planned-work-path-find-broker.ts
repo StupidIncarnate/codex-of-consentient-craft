@@ -2,7 +2,7 @@
  * PURPOSE: Resolves the absolute path to the planned-work directory inside a quest folder
  *
  * USAGE:
- * locationsPlannedWorkPathFindBroker({ questFolderPath: AbsoluteFilePathStub() });
+ * locationsPlannedWorkPathFindBroker({ questFolderPath: '/home/user/project/src/file.ts' });
  * // Returns AbsoluteFilePath '<questFolderPath>/planned-work'
  */
 

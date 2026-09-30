@@ -9,7 +9,7 @@
  *
  * USAGE:
  * gatewaySpecifierCanonicalizeTransformer({
- *   specifier: ModuleSpecifierStub({value: '#gateway/node/fs'}),
+ *   specifier: '#gateway/node/fs',
  *   knownPackages: [ProjectFolderStub({name: '@dungeonmaster/node', path: '/repo/packages/@gateway/node'})],
  * });
  * // Returns '@dungeonmaster/node/fs' as ModuleSpecifier

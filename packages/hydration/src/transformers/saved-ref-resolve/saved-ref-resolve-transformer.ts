@@ -8,7 +8,7 @@
  * USAGE:
  * savedRefResolveTransformer({
  *   ref: SavedRefStub({ name: 'origin', field: 'sessionId' }),
- *   saved: new Map([[SavedRecordNameStub({ value: 'origin' }), { sessionId: 's1' }]]),
+ *   saved: new Map([['origin', { sessionId: 's1' }]]),
  * });
  * // Returns 's1'
  */

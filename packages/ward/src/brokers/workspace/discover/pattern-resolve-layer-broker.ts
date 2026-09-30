@@ -2,7 +2,7 @@
  * PURPOSE: Resolves a single workspace glob pattern to a ProjectFolder array by reading subdirectories
  *
  * USAGE:
- * const folders = await patternResolveLayerBroker({ pattern: 'packages/*', rootPath: AbsoluteFilePathStub() });
+ * const folders = await patternResolveLayerBroker({ pattern: 'packages/*', rootPath: '/home/user/project/src/file.ts' });
  * // Returns ProjectFolder[] for all matching directories that contain a valid package.json with a name
  */
 

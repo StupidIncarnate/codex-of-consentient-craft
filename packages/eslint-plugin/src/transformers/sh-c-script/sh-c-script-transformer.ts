@@ -3,7 +3,7 @@
  * so `bin-program-spawn-ban` reads the SCRIPT's own program rather than reporting "sh"/"bash" itself.
  *
  * USAGE:
- * shCScriptTransformer({ text: contentTextContract.parse("sh -c 'git status'") });
+ * shCScriptTransformer({ text: "sh -c 'git status'" });
  * // Returns 'git status' as ContentText
  */
 

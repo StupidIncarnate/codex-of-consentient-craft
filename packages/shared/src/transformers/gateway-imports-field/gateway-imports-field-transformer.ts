@@ -9,7 +9,7 @@
  * `hydration-recipes` exists to be scanned.
  *
  * USAGE:
- * gatewayImportsFieldTransformer({ scope: PathSegmentStub({value: '@acme'}) });
+ * gatewayImportsFieldTransformer({ scope: '@acme' });
  * // Returns {'#gateway/npm/*': '@acme/npm/*', '#gateway/node/*': '@acme/node/*', ...}
  */
 

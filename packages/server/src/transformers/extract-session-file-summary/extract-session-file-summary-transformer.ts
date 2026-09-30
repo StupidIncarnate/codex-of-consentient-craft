@@ -2,7 +2,7 @@
  * PURPOSE: Extracts a session summary from JSONL file contents by checking last line, first line, then slug fields
  *
  * USAGE:
- * extractSessionFileSummaryTransformer({ fileContent: fileContentsContract.parse('{"type":"summary","summary":"Built login"}') });
+ * extractSessionFileSummaryTransformer({ fileContent: '{"type":"summary","summary":"Built login"}' });
  * // Returns SessionSummary 'Built login' or undefined if no summary found
  */
 

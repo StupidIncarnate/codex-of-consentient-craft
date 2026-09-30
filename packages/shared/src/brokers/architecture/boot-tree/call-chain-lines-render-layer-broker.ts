@@ -10,9 +10,9 @@
  *
  * USAGE:
  * const lines = callChainLinesRenderLayerBroker({
- *   sourceFile: absoluteFilePathContract.parse('/repo/packages/orchestrator/src/responders/chat/start/chat-start-responder.ts'),
- *   packageSrcPath: absoluteFilePathContract.parse('/repo/packages/orchestrator/src'),
- *   renderingFilePath: absoluteFilePathContract.parse('/repo/packages/orchestrator/src/startup/start-orchestrator.ts'),
+ *   sourceFile: '/repo/packages/orchestrator/src/responders/chat/start/chat-start-responder.ts',
+ *   packageSrcPath: '/repo/packages/orchestrator/src',
+ *   renderingFilePath: '/repo/packages/orchestrator/src/startup/start-orchestrator.ts',
  * });
  * // Returns ContentText[] with deep `→ <exportName>` lines, indented by depth
  *

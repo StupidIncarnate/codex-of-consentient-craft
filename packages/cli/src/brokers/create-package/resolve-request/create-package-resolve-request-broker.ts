@@ -11,7 +11,7 @@
  * USAGE:
  * const request = await createPackageResolveRequestBroker({
  *   args: CreatePackageArgsStub({ name: 'widgets', packageType: 'library' }),
- *   scope: PathSegmentStub({ value: '@acme' }),
+ *   scope: '@acme',
  *   interactive: false,
  * });
  * // Returns a CreatePackageRequest with packageName '@acme/widgets' and directoryName 'widgets'

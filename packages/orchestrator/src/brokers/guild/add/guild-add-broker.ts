@@ -6,7 +6,7 @@
  * to land on the identical id rather than two random ones that can never match.
  *
  * USAGE:
- * const guild = await guildAddBroker({ name: GuildNameStub({ value: 'My App' }), path: GuildPathStub({ value: '/home/user/my-app' }) });
+ * const guild = await guildAddBroker({ name: 'My App', path: '/home/user/my-app' });
  * // Returns: Guild with generated UUID, name, path, and createdAt
  *
  * const guild = await guildAddBroker({ name, path, id: 'f47ac10b-58cc-4372-a567-0e02b2c3d479' });

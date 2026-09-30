@@ -12,7 +12,7 @@
  * measures beats that WENT COLD, not beats that never started.
  *
  * USAGE:
- * isStaleRegistryEntryGuard({ entry: RegistryEntryStub({ lastBeatMs: EpochMsStub({ value: 0 }) }), nowMs: EpochMsStub() });
+ * isStaleRegistryEntryGuard({ entry: RegistryEntryStub({ lastBeatMs: 0 }), nowMs: 1_700_000_000_000 });
  * // Returns true once nowMs - lastBeatMs exceeds intervalMs * stalenessBeats
  */
 

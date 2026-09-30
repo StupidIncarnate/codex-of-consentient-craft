@@ -12,7 +12,7 @@
  * fleet.ensureHomeReady({ home: testbed.guildPath });
  * fleet.configureApiLane({ configDir: testbed.guildPath });
  * process.chdir(testbed.guildPath); // laneSpecFindBroker resolves .dungeonmaster.json off cwd
- * const manifest = await fleet.boot({ specName: SpecNameStub({ value: 'api' }) });
+ * const manifest = await fleet.boot({ specName: 'api' });
  * const entry = await fleet.registryEntry({ instanceId: manifest.instanceId });
  * const result = await fleet.killViaBroker({ instanceId: manifest.instanceId });
  * // fleet.afterAll() reaps anything still alive when the suite ends

@@ -4,11 +4,11 @@
  * USAGE:
  * const { stop, initialDrain } = await chatSubagentTailBroker({
  *   sessionId: SessionIdStub({ value: 'abc-123' }),
- *   cwd: RepoRootCwdStub({ value: '/home/user/my-project' }),
+ *   cwd: '/home/user/my-project',
  *   agentId: AgentIdStub({ value: 'agent-1' }),
  *   processor: chatLineProcessTransformer(),
  *   onEntries: ({ chatProcessId, entries }) => { },
- *   chatProcessId: ProcessIdStub({ value: 'proc-123' }),
+ *   chatProcessId: 'proc-123',
  * });
  * // `stop` ends the tail; `initialDrain` resolves once the pre-existing JSONL content has
  * // been fully delivered. Callers MUST await initialDrain before stop() if they need the

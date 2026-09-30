@@ -3,7 +3,7 @@
  *
  * USAGE:
  * locationsClaudeSessionFilePathFindBroker({
- *   guildPath: AbsoluteFilePathStub({ value: '/home/user/my-project' }),
+ *   guildPath: '/home/user/my-project',
  *   sessionId: SessionIdStub({ value: 'abc-123' }),
  * });
  * // Returns AbsoluteFilePath '/home/user/.claude/projects/-home-user-my-project/abc-123.jsonl'

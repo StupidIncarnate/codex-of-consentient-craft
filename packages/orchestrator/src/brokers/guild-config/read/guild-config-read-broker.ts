@@ -9,7 +9,7 @@
  * const config = await guildConfigReadBroker();
  * // Returns GuildConfig with guilds array, or default { guilds: [] } if file missing
  *
- * const config = await guildConfigReadBroker({ home: absoluteFilePathContract.parse('/tmp/dm-home') });
+ * const config = await guildConfigReadBroker({ home: '/tmp/dm-home' });
  * // Reads /tmp/dm-home/config.json, whatever DUNGEONMASTER_HOME says
  */
 

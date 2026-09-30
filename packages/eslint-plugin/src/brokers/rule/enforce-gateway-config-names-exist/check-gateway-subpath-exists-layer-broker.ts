@@ -7,7 +7,7 @@
  * subpath — fail lint instead of silently banning or restricting nothing.
  *
  * USAGE:
- * checkGatewaySubpathExistsLayerBroker({ rootDir: filePathContract.parse('/repo'), subpath: '#gateway/node/fs' });
+ * checkGatewaySubpathExistsLayerBroker({ rootDir: '/repo', subpath: '#gateway/node/fs' });
  * // Returns '/repo/packages/@gateway/node/src/fs/fs.ts' as FilePath, or undefined when it does not exist
  */
 import { gatewayLocationsStatics } from '@dungeonmaster/shared/statics';

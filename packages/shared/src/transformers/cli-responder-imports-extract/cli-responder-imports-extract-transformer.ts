@@ -3,7 +3,7 @@
  * TypeScript source text by matching `import { SomeResponder } from '...'` patterns.
  *
  * USAGE:
- * const names = cliResponderImportsExtractTransformer({ source: contentTextContract.parse(src) });
+ * const names = cliResponderImportsExtractTransformer({ source: src });
  * // Returns ['WardRunResponder', 'WardDetailResponder'] as ContentText[]
  *
  * WHEN-TO-USE: cli-tool headline renderer pairing subcommand literals with responder targets

@@ -17,7 +17,7 @@
  *
  * USAGE:
  * gatewayBarrelWrapperPathsTransformer({
- *   content: FileContentsStub({ value: "export { readFileIfExists } from './read-file-if-exists/read-file-if-exists';" }),
+ *   content: "export { readFileIfExists } from './read-file-if-exists/read-file-if-exists';",
  * });
  * // Returns a Map with the branded Identifier 'readFileIfExists' -> the branded ModulePath
  * // 'read-file-if-exists/read-file-if-exists'

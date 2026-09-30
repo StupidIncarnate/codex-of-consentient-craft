@@ -8,7 +8,7 @@
  * meaning `stepReadingContract.delta` itself carries.
  *
  * USAGE:
- * elementDeltaLastLayerBroker({ rows: [ContentTextStub({ value: JSON.stringify(StepReadingStub()) })] });
+ * elementDeltaLastLayerBroker({ rows: [JSON.stringify(StepReadingStub())] });
  * // Returns the `delta` off the last row that carried a non-null one, or null when none did
  */
 

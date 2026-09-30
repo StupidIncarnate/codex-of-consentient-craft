@@ -8,9 +8,9 @@
  * USAGE:
  * filterScopeWhereTransformer({
  *   where: { role: 'riftcarver' },
- *   scope: RowRefStub({ value: 'guild[0:0]/quest[0:0]' }),
+ *   scope: 'guild[0:0]/quest[0:0]',
  *   links: [LinkSpecStub({ of: 'quest', as: 'questId' })],
- *   records: new Map([[RowRefStub({ value: 'guild[0:0]/quest[0:0]' }), { id: 'q1' }]]),
+ *   records: new Map([['guild[0:0]/quest[0:0]', { id: 'q1' }]]),
  * });
  * // Returns { role: 'riftcarver', questId: 'q1' }
  */

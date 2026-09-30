@@ -4,7 +4,7 @@
  * does not end in `quest`, `id`, although its raw text ends in "questId".
  *
  * USAGE:
- * identifierCamelWordsTransformer({ identifier: identifierContract.parse('parentQuestId') });
+ * identifierCamelWordsTransformer({ identifier: 'parentQuestId' });
  * // Returns ['parent', 'quest', 'id']
  */
 

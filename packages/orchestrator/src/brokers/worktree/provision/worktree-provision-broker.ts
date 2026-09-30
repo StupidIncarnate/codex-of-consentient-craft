@@ -19,8 +19,8 @@
  *
  * USAGE:
  * const provisioned = await worktreeProvisionBroker({
- *   repoRoot: AbsoluteFilePathStub({ value: '/repo' }),
- *   worktreePath: AbsoluteFilePathStub({ value: '/repo/worktrees/probe' }),
+ *   repoRoot: '/repo',
+ *   worktreePath: '/repo/worktrees/probe',
  *   onLine: (line) => emit(line),
  * });
  * // { ok: true }, or { ok: false, failedStep: 'verify-links', error } for the caller to route

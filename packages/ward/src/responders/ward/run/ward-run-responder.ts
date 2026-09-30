@@ -2,7 +2,7 @@
  * PURPOSE: Parses CLI args and delegates to the command run broker for executing ward checks
  *
  * USAGE:
- * await WardRunResponder({ args: ['node', 'ward', 'run', '--only', 'lint'], rootPath: AbsoluteFilePathStub() });
+ * await WardRunResponder({ args: ['node', 'ward', 'run', '--only', 'lint'], rootPath: '/home/user/project/src/file.ts' });
  * // Parses flags and runs all configured checks
  */
 

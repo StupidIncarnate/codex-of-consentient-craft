@@ -3,7 +3,7 @@
  *
  * USAGE:
  * const content = formatFolderContentLayerBroker({
- *   dirPath: absoluteFilePathContract.parse('/project/src/brokers'),
+ *   dirPath: '/project/src/brokers',
  *   folderDepth: folderConfigContract.shape.folderDepth.parse(2),
  * });
  * // Returns ContentText like "guild (create, detail, list), quest (modify, start)"

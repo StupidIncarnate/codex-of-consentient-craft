@@ -11,7 +11,7 @@
  * would rewrite files a concurrent run is serving out of, mid-suite.
  *
  * USAGE:
- * await bundleBuildBroker({ packageRoot: AbsoluteFilePathStub({ value: '/repo/packages/web' }) });
+ * await bundleBuildBroker({ packageRoot: '/repo/packages/web' });
  * // Returns { bundleDir, error: null } — or { bundleDir: null, error: null } when the package has
  * // no build script, and { bundleDir: null, error } when its build failed
  */

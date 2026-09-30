@@ -7,7 +7,7 @@
  * USAGE:
  * const url = resolveStaticsFirstMatchLayerBroker({
  *   sources: [serverAStaticsSource, serverBStaticsSource],
- *   dotPath: contentTextContract.parse('apiRoutesStatics.quests.list'),
+ *   dotPath: 'apiRoutesStatics.quests.list',
  * });
  * // Returns '/api/quests' from whichever source defines it first, or null if none do
  *

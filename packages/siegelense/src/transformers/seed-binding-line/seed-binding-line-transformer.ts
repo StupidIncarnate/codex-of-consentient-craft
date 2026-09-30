@@ -5,7 +5,7 @@
  * A bare-id binding renders as just that id; there is no row to summarise.
  *
  * USAGE:
- * seedBindingLineTransformer({ binding: ContentTextStub({ value: 'quest' }), value: { id: 'q1', title: 'Add Auth', status: 'created' } });
+ * seedBindingLineTransformer({ binding: 'quest', value: { id: 'q1', title: 'Add Auth', status: 'created' } });
  * // Returns '  quest: q1 (title: Add Auth, status: created)'
  */
 

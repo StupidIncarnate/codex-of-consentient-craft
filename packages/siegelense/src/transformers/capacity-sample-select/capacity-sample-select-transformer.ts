@@ -18,7 +18,7 @@
  * prevent.
  *
  * USAGE:
- * capacitySampleSelectTransformer({ profile, poolSize: ProfilePoolSizeStub({ value: 3 }) });
+ * capacitySampleSelectTransformer({ profile, poolSize: 3 });
  * // Returns the pool-size-3 group as a CapacityProfile, or null when the spec has no samples
  */
 

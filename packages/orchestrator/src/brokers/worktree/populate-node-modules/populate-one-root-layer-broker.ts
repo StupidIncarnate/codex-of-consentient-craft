@@ -34,8 +34,8 @@
  *
  * USAGE:
  * const { workspacePackageRoots } = await populateOneRootLayerBroker({
- *   sourceRoot: AbsoluteFilePathStub({ value: '/repo' }),
- *   targetRoot: AbsoluteFilePathStub({ value: '/repo/worktrees/quest-slug-a1b2c3d4' }),
+ *   sourceRoot: '/repo',
+ *   targetRoot: '/repo/worktrees/quest-slug-a1b2c3d4',
  *   onLine: (line) => emit(line),
  * });
  * // workspacePackageRoots: [{ sourceRoot: '/repo/packages/orchestrator',

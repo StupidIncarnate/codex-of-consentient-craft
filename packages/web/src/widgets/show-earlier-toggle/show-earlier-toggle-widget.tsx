@@ -2,7 +2,7 @@
  * PURPOSE: Renders the "▸ Show N earlier entries" / "▾ Hide N earlier entries" toggle row used by chains that collapse to their tail by default
  *
  * USAGE:
- * <ShowEarlierToggleWidget hiddenCount={tailIndex} expanded={showAllEarlier} onToggle={() => setShowAll(!showAll)} testId={chatListShowEarlierToggleTestIdContract.parse('CHAT_LIST_SHOW_EARLIER_TOGGLE')} />
+ * <ShowEarlierToggleWidget hiddenCount={tailIndex} expanded={showAllEarlier} onToggle={() => setShowAll(!showAll)} testId="CHAT_LIST_SHOW_EARLIER_TOGGLE" />
  * // Renders one clickable row; calls onToggle when clicked.
  */
 

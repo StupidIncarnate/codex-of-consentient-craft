@@ -10,12 +10,12 @@
  *
  * USAGE:
  * await snapshotResolveBroker({
- *   homePath: AbsoluteFilePathStub({ value: '/tmp/dm-siege-inst_7f3a9c21' }),
- *   name: SnapshotNameStub({ value: 'clean' }),
+ *   homePath: '/tmp/dm-siege-inst_7f3a9c21',
+ *   name: 'clean',
  * });
  * // Returns the latest SnapshotRecord captured under that name
  *
- * await snapshotResolveBroker({ homePath, name: SnapshotNameStub({ value: 'clen' }) });
+ * await snapshotResolveBroker({ homePath, name: 'clen' });
  * // Throws SnapshotMissingError naming "clen" and listing every snapshot that does exist
  */
 

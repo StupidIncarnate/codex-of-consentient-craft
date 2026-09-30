@@ -9,7 +9,7 @@
  * disable the `coverage` rule.
  *
  * USAGE:
- * globIgnoreFilterTransformer({ patterns, glob: GlobPatternStub({ value: 'tmp\/**' }) });
+ * globIgnoreFilterTransformer({ patterns, glob: 'tmp\/**' });
  * // Returns patterns without the tmp rule
  */
 

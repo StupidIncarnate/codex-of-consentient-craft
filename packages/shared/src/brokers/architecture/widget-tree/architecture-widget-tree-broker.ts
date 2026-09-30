@@ -3,7 +3,7 @@
  *
  * USAGE:
  * const result = architectureWidgetTreeBroker({
- *   packageRoot: absoluteFilePathContract.parse('/repo/packages/web'),
+ *   packageRoot: '/repo/packages/web',
  * });
  * // Returns WidgetTreeResult with roots[] (2-level tree) and hubs[] (in-degree >= 5)
  *

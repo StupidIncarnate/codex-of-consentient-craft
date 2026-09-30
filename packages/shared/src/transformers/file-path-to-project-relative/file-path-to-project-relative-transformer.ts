@@ -6,8 +6,8 @@
  *
  * USAGE:
  * filePathToProjectRelativeTransformer({
- *   filePath: absoluteFilePathContract.parse('/repo/packages/orchestrator/src/state/events-state.ts'),
- *   projectRoot: absoluteFilePathContract.parse('/repo'),
+ *   filePath: '/repo/packages/orchestrator/src/state/events-state.ts',
+ *   projectRoot: '/repo',
  * });
  * // Returns ContentText 'orchestrator/state/events-state'
  *

@@ -11,7 +11,7 @@
  * NOT imply a found config, and the banner says so rather than reading like a clean resolution.
  *
  * USAGE:
- * callerRepoRootBannerTransformer({ repoRoot: RepoRootCwdStub(), source: 'caller-cwd', configFound: true });
+ * callerRepoRootBannerTransformer({ repoRoot: '/repo', source: 'caller-cwd', configFound: true });
  * // Returns ContentText, e.g. "[project-root: /repo — resolved from the caller's own working directory]"
  */
 

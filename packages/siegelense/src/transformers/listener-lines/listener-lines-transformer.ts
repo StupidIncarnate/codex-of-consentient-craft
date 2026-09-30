@@ -7,7 +7,7 @@
  *
  * USAGE:
  * const linesBuild = listenerLinesTransformer();
- * linesBuild.consoleLine({ at: EpochMsStub({}), type: 'log', text: 'hi', url: 'http://x', line: 1 });
+ * linesBuild.consoleLine({ at: 1_700_000_000_000, type: 'log', text: 'hi', url: 'http://x', line: 1 });
  * // Returns a ContentText JSON line, ready to push onto the console buffer
  */
 

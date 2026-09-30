@@ -5,7 +5,7 @@
  * own spawn call.
  *
  * USAGE:
- * const branch = await gitDetectBaseBranchBroker({ cwd: AbsoluteFilePathStub({ value: '/project' }) });
+ * const branch = await gitDetectBaseBranchBroker({ cwd: '/project' });
  * // Returns BaseBranchName('main'), BaseBranchName('master'), or null if neither exists locally
  */
 

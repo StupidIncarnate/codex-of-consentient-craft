@@ -5,7 +5,7 @@
  * here fails the whole guild list — every page, and the execution queue, with it.
  *
  * USAGE:
- * await pathIsAccessibleBroker({path: GuildPathStub({value: '/home/user/project'})});
+ * await pathIsAccessibleBroker({path: '/home/user/project'});
  * // Returns true if the path exists, false otherwise (never throws)
  */
 

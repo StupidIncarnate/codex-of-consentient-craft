@@ -8,7 +8,7 @@
  * the monorepo root's.
  *
  * USAGE:
- * findNearestPackageJsonLayerBroker({ startDir: filePathContract.parse('/repo/packages/hooks/src/brokers/x') });
+ * findNearestPackageJsonLayerBroker({ startDir: '/repo/packages/hooks/src/brokers/x' });
  * // Returns { packageJsonPath: '/repo/packages/hooks/package.json', packageJson: {...} }, or
  * // undefined when no ancestor package.json exists
  */

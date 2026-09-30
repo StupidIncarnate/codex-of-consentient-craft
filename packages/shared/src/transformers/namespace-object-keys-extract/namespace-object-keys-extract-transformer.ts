@@ -6,7 +6,7 @@
  *
  * USAGE:
  * const keys = namespaceObjectKeysExtractTransformer({
- *   source: contentTextContract.parse('export const StartOrchestrator = {\n  listGuilds: async () => [],\n  addGuild: async ({name}: {name: GuildName}) => {},\n};'),
+ *   source: 'export const StartOrchestrator = {\n  listGuilds: async () => [],\n  addGuild: async ({name}: {name: GuildName}) => {},\n};',
  * });
  * // Returns ['listGuilds', 'addGuild'] — `name` is filtered out because it sits inside a
  * // nested `{name}` destructure / `{name: GuildName}` type-annotation block, not at depth 1.

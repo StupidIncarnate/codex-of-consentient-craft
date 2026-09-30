@@ -2,7 +2,7 @@
  * PURPOSE: Searches file contents for matches and returns line-level hits with optional context
  *
  * USAGE:
- * const hits = contentGrepTransformer({ contents: FileContentsStub({ value: 'line1\nERROR here\nline3' }), pattern: GrepPatternStub({ value: 'ERROR' }) });
+ * const hits = contentGrepTransformer({ contents: 'line1\nERROR here\nline3', pattern: 'ERROR' });
  * // Returns [{ line: 2, text: 'ERROR here' }]
  *
  * WHEN-TO-USE: Default is regex (like grep). Invalid regex falls back to escaped literal. Use `re:<pattern>` prefix or `(?i)foo` inline flags to make intent explicit.

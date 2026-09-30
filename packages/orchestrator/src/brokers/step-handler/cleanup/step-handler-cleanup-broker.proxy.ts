@@ -10,7 +10,7 @@
  *
  * USAGE:
  * const proxy = stepHandlerCleanupBrokerProxy();
- * proxy.cleanupExits({ questId, exitCode: ExitCodeStub({ value: 0 }), answer: CleanupAnswerStub() });
+ * proxy.cleanupExits({ questId, exitCode: 0, answer: CleanupAnswerStub() });
  * const result = await stepHandlerCleanupBroker({ args: [], questId, workItemId, onLine: () => undefined });
  */
 

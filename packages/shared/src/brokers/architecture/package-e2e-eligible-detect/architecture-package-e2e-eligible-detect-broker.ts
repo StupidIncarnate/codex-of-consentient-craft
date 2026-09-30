@@ -8,7 +8,7 @@
  *
  * USAGE:
  * const eligible = await architecturePackageE2eEligibleDetectBroker({
- *   packageRoot: absoluteFilePathContract.parse('/repo/packages/web'),
+ *   packageRoot: '/repo/packages/web',
  * });
  * // Returns true when the package's own widgets+react (or ink) signals qualify it for
  * // Playwright e2e coverage

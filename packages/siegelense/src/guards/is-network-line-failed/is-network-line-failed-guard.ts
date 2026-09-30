@@ -8,9 +8,9 @@
  * `resultsStatics.patterns.networkStatus` rather than a locally declared pattern.
  *
  * USAGE:
- * isNetworkLineFailedGuard({ line: ContentTextStub({ value: '{"status":500}' }) });
+ * isNetworkLineFailedGuard({ line: '{"status":500}' });
  * // Returns true
- * isNetworkLineFailedGuard({ line: ContentTextStub({ value: '{"status":304}' }) });
+ * isNetworkLineFailedGuard({ line: '{"status":304}' });
  * // Returns false
  */
 

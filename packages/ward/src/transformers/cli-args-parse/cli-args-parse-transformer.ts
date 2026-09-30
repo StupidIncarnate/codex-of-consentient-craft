@@ -12,7 +12,7 @@
  * reviewer no single command for the thing it most needs to check.
  *
  * USAGE:
- * cliArgsParseTransformer({ args: [CliArgStub({ value: '--only' }), CliArgStub({ value: 'lint,typecheck' })] });
+ * cliArgsParseTransformer({ args: ['--only', 'lint,typecheck'] });
  * // Returns: WardConfig { only: ['lint', 'typecheck'] }
  */
 

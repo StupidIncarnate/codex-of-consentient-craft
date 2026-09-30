@@ -2,7 +2,7 @@
  * PURPOSE: Safely reads directory entries, returning empty array on error instead of throwing
  *
  * USAGE:
- * const entries = safeReaddirLayerBroker({ dirPath: absoluteFilePathContract.parse('/project/src/widgets') });
+ * const entries = safeReaddirLayerBroker({ dirPath: '/project/src/widgets' });
  * // Returns DirEntrySync[] or empty array if directory does not exist
  *
  * WHEN-TO-USE: Widget-tree broker scanning widget directories where a missing directory should

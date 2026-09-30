@@ -6,7 +6,7 @@
  *
  * USAGE:
  * const adapters = wsServerAdaptersFindLayerBroker({
- *   projectRoot: absoluteFilePathContract.parse('/repo'),
+ *   projectRoot: '/repo',
  * });
  * // Returns AbsoluteFilePath[] for every adapter file wrapping a WS-server library
  *

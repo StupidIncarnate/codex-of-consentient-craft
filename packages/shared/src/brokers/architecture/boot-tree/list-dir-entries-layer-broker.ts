@@ -2,7 +2,7 @@
  * PURPOSE: Lists directory entries safely, returning empty array when the directory does not exist
  *
  * USAGE:
- * const entries = listDirEntriesLayerBroker({ dirPath: absoluteFilePathContract.parse('/project/src/startup') });
+ * const entries = listDirEntriesLayerBroker({ dirPath: '/project/src/startup' });
  * // Returns Dirent[] or [] if directory is missing
  *
  * WHEN-TO-USE: Boot-tree broker scanning startup/, flows/, responders/, and adapters/ directories

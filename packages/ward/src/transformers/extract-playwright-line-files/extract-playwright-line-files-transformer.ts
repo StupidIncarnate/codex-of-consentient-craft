@@ -2,7 +2,7 @@
  * PURPOSE: Extracts unique e2e file paths from Playwright line reporter output as a fallback when JSON report is unavailable
  *
  * USAGE:
- * extractPlaywrightLineFilesTransformer({ output: errorMessageContract.parse('[1/5] [chromium] › packages/web/src/flows/app/smoke.e2e.ts:20:7 › Smoke › test') });
+ * extractPlaywrightLineFilesTransformer({ output: '[1/5] [chromium] › packages/web/src/flows/app/smoke.e2e.ts:20:7 › Smoke › test' });
  * // Returns ['packages/web/src/flows/app/smoke.e2e.ts']
  */
 

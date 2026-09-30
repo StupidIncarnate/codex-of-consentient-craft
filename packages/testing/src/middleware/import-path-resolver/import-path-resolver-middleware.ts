@@ -10,8 +10,8 @@
  *
  * USAGE:
  * const filePath = importPathResolverMiddleware({
- *   sourceFilePath: filePathContract.parse('/src/test.test.ts'),
- *   importPath: importPathContract.parse('./test.proxy')
+ *   sourceFilePath: '/src/test.test.ts',
+ *   importPath: './test.proxy'
  * });
  * // Returns FilePath or null if file doesn't exist
  */

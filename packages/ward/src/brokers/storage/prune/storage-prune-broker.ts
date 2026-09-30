@@ -4,7 +4,7 @@
  * result of the run that just saved, and an oversized one is kept over deleting evidence in use.
  *
  * USAGE:
- * await storagePruneBroker({ rootPath: AbsoluteFilePathStub({ value: '/project' }) });
+ * await storagePruneBroker({ rootPath: '/project' });
  * // Removes run files older than ttlStatics.runResultTtl, then oldest files past the storageBudgetStatics cap
  */
 

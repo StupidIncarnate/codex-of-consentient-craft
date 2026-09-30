@@ -8,7 +8,7 @@
  * orphan apart from a stale record.
  *
  * USAGE:
- * processIsAliveBroker({ pgid: ProcessGroupIdStub({ value: 4821 }) });
+ * processIsAliveBroker({ pgid: 4821 });
  * // Live group: true
  * // Group already exited (ESRCH): false
  */

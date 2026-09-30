@@ -5,7 +5,7 @@
  *
  * USAGE:
  * const map = responderAnnotationMapContract.parse(new Map([
- *   [filePath, { suffix: contentTextContract.parse('[POST /api/x]'), childLines: [] }],
+ *   [filePath, { suffix: '[POST /api/x]', childLines: [] }],
  * ]));
  * // Returns Map<string, ResponderAnnotation>
  *

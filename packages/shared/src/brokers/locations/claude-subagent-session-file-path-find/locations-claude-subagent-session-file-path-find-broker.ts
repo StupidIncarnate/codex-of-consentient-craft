@@ -3,7 +3,7 @@
  *
  * USAGE:
  * locationsClaudeSubagentSessionFilePathFindBroker({
- *   guildPath: AbsoluteFilePathStub({ value: '/home/user/my-project' }),
+ *   guildPath: '/home/user/my-project',
  *   sessionId: SessionIdStub({ value: 'abc-123' }),
  *   agentId: AgentIdStub({ value: 'xyz' }),
  * });

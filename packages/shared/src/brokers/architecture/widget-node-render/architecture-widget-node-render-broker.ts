@@ -5,7 +5,7 @@
  * USAGE:
  * const lines = architectureWidgetNodeRenderBroker({
  *   node,
- *   prefix: contentTextContract.parse(''),
+ *   prefix: '',
  *   isLast: true,
  *   httpEdges: [],
  *   wsEdges: [],

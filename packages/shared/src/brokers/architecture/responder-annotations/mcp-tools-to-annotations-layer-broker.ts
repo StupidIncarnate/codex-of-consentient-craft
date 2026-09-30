@@ -5,7 +5,7 @@
  *
  * USAGE:
  * const annotations = mcpToolsToAnnotationsLayerBroker({
- *   packageRoot: absoluteFilePathContract.parse('/repo/packages/mcp'),
+ *   packageRoot: '/repo/packages/mcp',
  * });
  * // Returns ResponderAnnotationMap keyed by responder file path
  *

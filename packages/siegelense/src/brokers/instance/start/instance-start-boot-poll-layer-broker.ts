@@ -12,9 +12,9 @@
  *
  * USAGE:
  * await instanceStartBootPollLayerBroker({
- *   socketPath: AbsoluteFilePathStub({ value: '/tmp/dm-siege-sockets/inst_1.sock' }),
- *   deadlineMs: EpochMsStub({ value: Date.now() + 180_000 }),
- *   evidencePath: AbsoluteFilePathStub({ value: '/repo/.dungeonmaster-assets/siegelense-assets/unowned/instances/inst_1' }),
+ *   socketPath: '/tmp/dm-siege-sockets/inst_1.sock',
+ *   deadlineMs: Date.now() + 180_000,
+ *   evidencePath: '/repo/.dungeonmaster-assets/siegelense-assets/unowned/instances/inst_1',
  * });
  * // Resolves { status: 'ready' } once the driver answers `ping`
  * // Resolves { status: 'failed', message } the moment a failure marker appears

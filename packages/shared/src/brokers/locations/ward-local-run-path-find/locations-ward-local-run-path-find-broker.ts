@@ -3,7 +3,7 @@
  *
  * USAGE:
  * locationsWardLocalRunPathFindBroker({
- *   rootPath: AbsoluteFilePathStub({ value: '/repo' }),
+ *   rootPath: '/repo',
  *   runId: WardRunIdStub({ value: '1739625600000-a3f1' }),
  * });
  * // Returns AbsoluteFilePath '/repo/.ward/run-1739625600000-a3f1.json'

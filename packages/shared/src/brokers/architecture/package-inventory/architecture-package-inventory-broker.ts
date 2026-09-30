@@ -3,9 +3,9 @@
  *
  * USAGE:
  * const section = architecturePackageInventoryBroker({
- *   packageName: contentTextContract.parse('web'),
- *   srcPath: absoluteFilePathContract.parse('/repo/packages/web/src'),
- *   packageJsonPath: absoluteFilePathContract.parse('/repo/packages/web/package.json'),
+ *   packageName: 'web',
+ *   srcPath: '/repo/packages/web/src',
+ *   packageJsonPath: '/repo/packages/web/package.json',
  * });
  * // Returns ContentText with the package's section (header + folder lines, no leading/trailing newline)
  *

@@ -48,7 +48,7 @@
  * // Resolves once the idle deadline passes or a `kill` (socket or OS signal) tears the lane down,
  * // and the socket server is closed — the driver's own OS process can now exit
  *
- * await DriverServeLayerResponder({ instanceId, guildId: null, lane, idleTimeoutMs: TimeoutMsStub({ value: 1_800_000 }) });
+ * await DriverServeLayerResponder({ instanceId, guildId: null, lane, idleTimeoutMs: 1_800_000 });
  * // Same, but reaps itself after 1_800_000ms of no traffic instead of driverStatics.idle.timeoutMs
  */
 

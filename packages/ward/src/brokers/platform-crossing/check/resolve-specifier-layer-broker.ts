@@ -8,8 +8,8 @@
  *
  * USAGE:
  * await resolveSpecifierLayerBroker({
- *   specifier: ModuleSpecifierStub({value: '@dungeonmaster/node/fs'}),
- *   containingFilePath: filePathContract.parse('/repo/packages/web/src/widgets/chat-widget.tsx'),
+ *   specifier: '@dungeonmaster/node/fs',
+ *   containingFilePath: '/repo/packages/web/src/widgets/chat-widget.tsx',
  *   knownPackages: [ProjectFolderStub({name: '@dungeonmaster/node', path: '/repo/packages/node'})],
  * });
  * // Returns: { filePath: '/repo/packages/node/fs.ts', content: '...' } or undefined

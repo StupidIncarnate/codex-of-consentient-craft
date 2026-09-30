@@ -7,7 +7,7 @@
  * when the caller wants to move on the instant the groups are gone.
  *
  * USAGE:
- * await processesExitWaitLayerBroker({ pgids: [ProcessGroupIdStub()], deadlineMs: Date.now() + 3_000 });
+ * await processesExitWaitLayerBroker({ pgids: [12345], deadlineMs: Date.now() + 3_000 });
  * // Returns [] once every group has exited, or the groups still alive when the deadline passed
  */
 

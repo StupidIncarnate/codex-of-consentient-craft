@@ -2,7 +2,7 @@
  * PURPOSE: Safely reads directory entries, returning empty array on error instead of throwing
  *
  * USAGE:
- * const entries = safeReaddirLayerBroker({ dirPath: absoluteFilePathContract.parse('/project/src') });
+ * const entries = safeReaddirLayerBroker({ dirPath: '/project/src' });
  * // Returns Dirent[] or empty array if directory does not exist
  *
  * WHEN-TO-USE: When scanning source trees where non-existent directories should be skipped

@@ -12,7 +12,7 @@
  * file in the repo.
  *
  * USAGE:
- * const files = await gitDiffUncommittedBroker({ cwd: AbsoluteFilePathStub({ value: '/project' }) });
+ * const files = await gitDiffUncommittedBroker({ cwd: '/project' });
  * // Returns GitRelativePath[] — tracked edits first, then untracked additions
  */
 

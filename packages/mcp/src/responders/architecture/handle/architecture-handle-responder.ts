@@ -2,7 +2,7 @@
  * PURPOSE: Handles architecture-related MCP tool calls (discover, get-architecture, get-folder-detail, get-testing-patterns, get-project-map, get-project-inventory)
  *
  * USAGE:
- * const result = await ArchitectureHandleResponder({ tool: ToolNameStub({ value: 'get-architecture' }), args: {}, meta: undefined });
+ * const result = await ArchitectureHandleResponder({ tool: 'get-architecture', args: {}, meta: undefined });
  * // Returns CallToolResult with architecture content
  *
  * discover, get-project-map and get-project-inventory resolve their project root via

@@ -10,7 +10,7 @@
  * USAGE:
  * const git = gitWorktreeFixtureHarness();
  * const { baseRef } = await git.initRepoWithPackages({
- *   repoPath: AbsoluteFilePathStub({ value: testbed.guildPath }),
+ *   repoPath: testbed.guildPath,
  *   initialBranchName: FileNameStub({ value: 'main' }),
  *   packageNames: [FileNameStub({ value: 'shared' }), FileNameStub({ value: 'web' })],
  * });

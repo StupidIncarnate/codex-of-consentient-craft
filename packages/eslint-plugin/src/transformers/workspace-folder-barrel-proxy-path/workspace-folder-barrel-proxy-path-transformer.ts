@@ -7,8 +7,8 @@
  *
  * USAGE:
  * workspaceFolderBarrelProxyPathTransformer({
- *   importPath: modulePathContract.parse('@dungeonmaster/shared/brokers'),
- *   relativeWrapperPath: modulePathContract.parse('project-root/find/project-root-find-broker'),
+ *   importPath: '@dungeonmaster/shared/brokers',
+ *   relativeWrapperPath: 'project-root/find/project-root-find-broker',
  * });
  * // Returns '@dungeonmaster/shared/brokers/project-root/find/project-root-find-broker.proxy' as branded ModulePath
  */

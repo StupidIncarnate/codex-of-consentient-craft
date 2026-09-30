@@ -6,7 +6,7 @@
  *
  * USAGE:
  * const packages = packageDiscoverBroker({
- *   dungeonmasterRoot: filePathContract.parse('/home/user/projects/dungeonmaster')
+ *   dungeonmasterRoot: '/home/user/projects/dungeonmaster'
  * });
  * // Returns array of {packageName, installPath, finalizeInstallPath} for each package with
  * // start-install.js; finalizeInstallPath is null when that package has no finalize step

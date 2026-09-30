@@ -6,7 +6,7 @@
  *
  * USAGE:
  * const { httpBackendRoots, frontendRoots } = resolvePackageGroupsLayerBroker({
- *   projectRoot: absoluteFilePathContract.parse('/repo'),
+ *   projectRoot: '/repo',
  * });
  * // Returns AbsoluteFilePath[] for each set — empty when packages/ is missing (single-root repo)
  *

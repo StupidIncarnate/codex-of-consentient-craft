@@ -7,8 +7,8 @@
  *
  * USAGE:
  * const annotations = httpEdgesToAnnotationsLayerBroker({
- *   projectRoot: absoluteFilePathContract.parse('/repo'),
- *   packageRoot: absoluteFilePathContract.parse('/repo/packages/server'),
+ *   projectRoot: '/repo',
+ *   packageRoot: '/repo/packages/server',
  * });
  * // Returns ResponderAnnotationMap keyed by responder file path
  *

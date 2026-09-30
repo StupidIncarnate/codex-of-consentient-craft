@@ -8,9 +8,9 @@
  * with a single equality check, no second return shape to carry.
  *
  * USAGE:
- * guildDefaultPathBumpTransformer({ path: guildPathContract.parse('guilds-under-test/guild-1'), by: 1 });
+ * guildDefaultPathBumpTransformer({ path: 'guilds-under-test/guild-1', by: 1 });
  * // Returns 'guilds-under-test/guild-2'
- * guildDefaultPathBumpTransformer({ path: guildPathContract.parse('/home/user/real-project'), by: 1 });
+ * guildDefaultPathBumpTransformer({ path: '/home/user/real-project', by: 1 });
  * // Returns '/home/user/real-project' unchanged
  */
 

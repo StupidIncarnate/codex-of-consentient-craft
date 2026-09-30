@@ -8,7 +8,7 @@
  * expect: 'error' turns into a passing adversarial test.
  *
  * USAGE:
- * await stepFileBroker({ lane, path: StepFilePathStub({ value: 'api-server.log' }) });
+ * await stepFileBroker({ lane, path: 'api-server.log' });
  * // Returns file contents as ContentText
  */
 

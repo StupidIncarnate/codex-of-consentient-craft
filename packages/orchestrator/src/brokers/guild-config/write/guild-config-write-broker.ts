@@ -9,7 +9,7 @@
  * await guildConfigWriteBroker({ config: GuildConfigStub({ guilds: [guild] }) });
  * // Writes pretty-printed JSON to ~/.dungeonmaster/config.json
  *
- * await guildConfigWriteBroker({ config, home: absoluteFilePathContract.parse('/tmp/dm-home') });
+ * await guildConfigWriteBroker({ config, home: '/tmp/dm-home' });
  * // Writes /tmp/dm-home/config.json, whatever DUNGEONMASTER_HOME says
  */
 

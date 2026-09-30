@@ -13,7 +13,7 @@
  *   flag: '--pool',
  *   raw: rawPoolSize,
  *   accepts: 'a whole number of 1 or more',
- *   parse: (value) => profilePoolSizeContract.parse(value),
+ *   parse: (value) => value,
  * });
  * // Throws Error('--pool must be a whole number of 1 or more; got "abc"') when raw is 'abc'
  */

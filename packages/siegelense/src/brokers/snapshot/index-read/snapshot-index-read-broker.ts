@@ -11,7 +11,7 @@
  *
  * USAGE:
  * await snapshotIndexReadBroker({
- *   homePath: AbsoluteFilePathStub({ value: '/tmp/dm-siege-inst_7f3a9c21' }),
+ *   homePath: '/tmp/dm-siege-inst_7f3a9c21',
  * });
  * // Returns every SnapshotRecord in capture order, or [] when no index exists yet
  */

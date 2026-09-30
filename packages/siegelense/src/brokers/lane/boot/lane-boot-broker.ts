@@ -33,8 +33,8 @@
  *   spec: LaneSpecStub({ browser: false }),
  *   ports: PortPairStub(),
  *   instanceId: InstanceIdStub(),
- *   homePath: AbsoluteFilePathStub({ value: '/tmp/dm-siege-inst_1' }),
- *   evidencePath: AbsoluteFilePathStub({ value: '/repo/.dungeonmaster-assets/siegelense-assets/unowned/instances/inst_1' }),
+ *   homePath: '/tmp/dm-siege-inst_1',
+ *   evidencePath: '/repo/.dungeonmaster-assets/siegelense-assets/unowned/instances/inst_1',
  * });
  * // Resolves a LaneSession with browser: null (browserless spec) and every pgid it spawned
  */
@@ -80,11 +80,11 @@ export const laneBootBroker = async ({
   evidencePath: string;
 }): Promise<LaneSession> => {
   // process.env is inherited by every spawned process; the spec's own env (and each process's
-  // further override) is merged OVER it — see LaneSpec's PURPOSE. `[PropertyKey, ContentText]`
+  // further override) is merged OVER it — see LaneSpec's PURPOSE. `[string, string]`
   // on the map callback (not a plain array literal) is what makes `Object.fromEntries` select its
-  // typed overload instead of its untyped `any`-returning one; `contentTextContract.parse` accepts
-  // `unknown` so a value already known non-undefined at runtime passes through with no type
-  // predicate, and a genuinely undefined one is filtered out first.
+  // typed overload instead of its untyped `any`-returning one. A value already known
+  // non-undefined at runtime passes through with no type predicate, and a genuinely undefined one
+  // is filtered out first.
   const inheritedEnv: Record<string, string> = Object.fromEntries(
     Object.entries(envSnapshot()).flatMap(([key, value]): [string, string][] =>
       value === undefined ? [] : [[key, value]],

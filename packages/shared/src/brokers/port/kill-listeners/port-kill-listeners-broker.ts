@@ -5,7 +5,7 @@
  * business logic that belongs here, not in the gateway itself.
  *
  * USAGE:
- * const results = await portKillListenersBroker({ port: NetworkPortStub({ value: 49555 }) });
+ * const results = await portKillListenersBroker({ port: 49555 });
  * // Kills every process listening on port 49555; each entry is killPid's own exitCode/output for
  * // that pid — an empty array means nothing was listening
  */

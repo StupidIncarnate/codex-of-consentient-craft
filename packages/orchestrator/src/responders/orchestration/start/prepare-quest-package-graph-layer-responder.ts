@@ -48,10 +48,9 @@ export const PrepareQuestPackageGraphLayerResponder = async ({
         return { name: node.name, npmName: undefined, dependencyNames: [] };
       }
 
-      // Concatenated rather than joined: path.join normalises a leading './' away, and
-      // pathJoinAdapter re-parses its own result through filePathContract, which rejects a bare
-      // relative path. The location is itself a parsed FilePath, so appending a segment keeps it
-      // valid either way.
+      // Concatenated rather than joined: path.join normalises a leading './' away and
+      // leaves a bare relative path relative. The location is already absolute, so appending a
+      // segment keeps it absolute.
       const manifestPath = `${String(node.location)}/package.json`;
 
       try {

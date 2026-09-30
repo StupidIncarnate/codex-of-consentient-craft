@@ -6,7 +6,7 @@
  *
  * USAGE:
  * questToGitNamesTransformer({
- *   title: QuestTitleStub({ value: 'Add Auth' }),
+ *   title: 'Add Auth',
  *   questId: QuestIdStub({ value: '7bc217a1-41e8-40bd-9e25-803d2716b3e8' }),
  * });
  * // Returns { branchName: 'quest/add-auth-7bc217a1', worktreeDirName: 'add-auth-7bc217a1' }

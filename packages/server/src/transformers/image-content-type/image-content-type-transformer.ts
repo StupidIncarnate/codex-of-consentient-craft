@@ -5,7 +5,7 @@
  * reach for it at that route instead of extending the web-bundle one.
  *
  * USAGE:
- * imageContentTypeTransformer({ filePath: AbsoluteFilePathStub({ value: '/tmp/a.png' }) });
+ * imageContentTypeTransformer({ filePath: '/tmp/a.png' });
  * // → 'image/png'
  */
 import type { pastedImageStatics } from '@dungeonmaster/shared/statics';

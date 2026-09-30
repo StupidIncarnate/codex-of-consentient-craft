@@ -9,7 +9,7 @@
  *
  * USAGE:
  * namedImportEntriesTransformer({ namedImports: 'httpAdapter, type WalkMemo', importPath: '../http/http-adapter' });
- * // Returns [[IdentifierStub({ value: 'httpAdapter' }), ModulePathStub({ value: '../http/http-adapter' })]]
+ * // Returns [[IdentifierStub({ value: 'httpAdapter' }), '../http/http-adapter']]
  */
 import { namedImportValueNamesTransformer } from '../named-import-value-names/named-import-value-names-transformer';
 

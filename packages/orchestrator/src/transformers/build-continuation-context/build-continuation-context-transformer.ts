@@ -2,7 +2,7 @@
  * PURPOSE: Builds a continuation context string from a signal's continuation point and the agent's captured output tail
  *
  * USAGE:
- * buildContinuationContextTransformer({ continuationPoint: SignalContinuationPointStub(), capturedOutput: [StreamTextStub()] });
+ * buildContinuationContextTransformer({ continuationPoint: 'resume at step 3', capturedOutput: ['Hello from Claude'] });
  * // Returns ContinuationContext with continuation point and trimmed agent output, or null if both are empty
  */
 

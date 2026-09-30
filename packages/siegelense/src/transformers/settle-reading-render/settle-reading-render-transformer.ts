@@ -8,13 +8,13 @@
  *
  * USAGE:
  * settleReadingRenderTransformer({
- *   baseMessage: contentTextContract.parse('clicked [data-testid="PIXEL_BTN"]'),
+ *   baseMessage: 'clicked [data-testid="PIXEL_BTN"]',
  *   settleReading: SettleReadingStub({ settled: true }),
  * });
  * // Returns 'clicked [data-testid="PIXEL_BTN"]'
  *
  * settleReadingRenderTransformer({
- *   baseMessage: contentTextContract.parse('clicked [data-testid="SLOW_BTN"]'),
+ *   baseMessage: 'clicked [data-testid="SLOW_BTN"]',
  *   settleReading: SettleReadingStub({ settled: false, waitedMs: 5000, unsettled: ['network'] }),
  * });
  * // Returns 'clicked [data-testid="SLOW_BTN"]; did not settle after 5000ms (still moving: network)'

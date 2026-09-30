@@ -5,7 +5,7 @@
  * bound that avoids it.
  *
  * USAGE:
- * const report = await scanRunBroker({ config: ScanConfigStub(), rootPath: AbsoluteFilePathStub({ value: '/project' }) });
+ * const report = await scanRunBroker({ config: ScanConfigStub(), rootPath: '/project' });
  * // Returns ScanReport { rule, packages: [{ name, violations, batches }] }
  */
 

@@ -18,8 +18,8 @@
  *
  * USAGE:
  * await bufferReadLayerBroker({
- *   bufferPath: AbsoluteFilePathStub({ value: '/repo/.dungeonmaster-assets/siegelense-assets/.../network.jsonl' }),
- *   runId: RunIdStub({ value: 'run_2' }), sinceBoot: false, step: StepIndexStub({ value: 7 }),
+ *   bufferPath: '/repo/.dungeonmaster-assets/siegelense-assets/.../network.jsonl',
+ *   runId: RunIdStub({ value: 'run_2' }), sinceBoot: false, step: 7,
  *   where: null,
  * });
  * // Returns the ContentText JSON lines tagged run_2, step 7

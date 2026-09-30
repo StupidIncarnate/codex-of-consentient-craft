@@ -2,7 +2,7 @@
  * PURPOSE: Defines the shape for mock ward queue responses in integration tests
  *
  * USAGE:
- * const response: WardQueueResponse = { exitCode: ExitCodeStub(), runId: WardRunIdStub() };
+ * const response: WardQueueResponse = { exitCode: 0, runId: WardRunIdStub() };
  * // Used by orchestration integration tests to simulate ward command outputs
  */
 

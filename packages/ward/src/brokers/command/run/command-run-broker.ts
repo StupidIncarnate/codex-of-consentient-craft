@@ -2,7 +2,7 @@
  * PURPOSE: Executes a full ward run and prints a summary to stdout, exiting with appropriate code
  *
  * USAGE:
- * await commandRunBroker({ config: WardConfigStub(), rootPath: AbsoluteFilePathStub() });
+ * await commandRunBroker({ config: WardConfigStub(), rootPath: '/home/user/project/src/file.ts' });
  * // Runs all checks, prints summary, exits 0 on pass or 1 on failure
  */
 

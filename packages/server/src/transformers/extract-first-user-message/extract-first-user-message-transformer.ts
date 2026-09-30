@@ -2,7 +2,7 @@
  * PURPOSE: Extracts the first meaningful user message from JSONL file contents to use as a session display name
  *
  * USAGE:
- * extractFirstUserMessageTransformer({ fileContent: fileContentsContract.parse('{"type":"user","message":{"role":"user","content":"Help me build a login page"}}') });
+ * extractFirstUserMessageTransformer({ fileContent: '{"type":"user","message":{"role":"user","content":"Help me build a login page"}}' });
  * // Returns SessionSummary 'Help me build a login page' or undefined if no valid user message found
  */
 

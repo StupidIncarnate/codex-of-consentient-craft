@@ -3,7 +3,7 @@
  *
  * USAGE:
  * const exists = dirExistsInParentLayerBroker({
- *   parentDirPath: absoluteFilePathContract.parse('/project/src/responders'),
+ *   parentDirPath: '/project/src/responders',
  *   dirName: 'hook',
  * });
  * // Returns true if 'hook' directory exists under responders/

@@ -15,11 +15,11 @@
  * lanePlaceholderSubstituteTransformer({
  *   template: '{apiPort}',
  *   ports: PortPairStub(),
- *   home: AbsoluteFilePathStub({ value: '/tmp/dm-siege-inst_1' }),
- *   claudeQueueDir: AbsoluteFilePathStub({ value: '/tmp/dm-siege-inst_1/claude-queue' }),
- *   wardQueueDir: AbsoluteFilePathStub({ value: '/tmp/dm-siege-inst_1/ward-queue' }),
- *   apiWorkspace: ContentTextStub({ value: '@dungeonmaster/server' }),
- *   webWorkspace: ContentTextStub({ value: '@dungeonmaster/web' }),
+ *   home: '/tmp/dm-siege-inst_1',
+ *   claudeQueueDir: '/tmp/dm-siege-inst_1/claude-queue',
+ *   wardQueueDir: '/tmp/dm-siege-inst_1/ward-queue',
+ *   apiWorkspace: '@dungeonmaster/server',
+ *   webWorkspace: '@dungeonmaster/web',
  * });
  * // Returns '34172' as ContentText
  */

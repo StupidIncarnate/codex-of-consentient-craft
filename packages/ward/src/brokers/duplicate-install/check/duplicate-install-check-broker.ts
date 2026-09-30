@@ -9,7 +9,7 @@
  * symlink, never installed twice) is skipped, matching how npm itself would never duplicate it.
  *
  * USAGE:
- * await duplicateInstallCheckBroker({rootPath: filePathContract.parse('/repo')});
+ * await duplicateInstallCheckBroker({rootPath: '/repo'});
  * // Returns: readonly DuplicateInstallViolation[] — empty when every candidate resolves to one copy
  */
 

@@ -17,8 +17,8 @@
  *
  * USAGE:
  * await worktreeSeedDistBroker({
- *   repoRoot: AbsoluteFilePathStub({ value: '/repo' }),
- *   worktreePath: AbsoluteFilePathStub({ value: '/repo/worktrees/probe' }),
+ *   repoRoot: '/repo',
+ *   worktreePath: '/repo/worktrees/probe',
  * });
  * // Rejects with WorktreePrepareError naming every package whose source dist is missing —
  * //   that state means the main checkout was never built, which only the operator can fix

@@ -3,7 +3,7 @@
  *
  * USAGE:
  * widgetFileNameExtractTransformer({
- *   filePath: absoluteFilePathContract.parse('/repo/packages/web/src/widgets/quest-chat/quest-chat-widget.tsx'),
+ *   filePath: '/repo/packages/web/src/widgets/quest-chat/quest-chat-widget.tsx',
  * });
  * // Returns ContentText 'quest-chat-widget'
  *

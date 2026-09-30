@@ -3,7 +3,7 @@
  *
  * USAGE:
  * const content = readSourceFileLayerBroker({
- *   filePath: absoluteFilePathContract.parse('/repo/packages/server/src/broker.ts'),
+ *   filePath: '/repo/packages/server/src/broker.ts',
  * });
  * // Returns ContentText or undefined if file is missing
  *

@@ -4,12 +4,12 @@
  *
  * USAGE:
  * packageOfAbsoluteFilePathTransformer({
- *   filePath: absoluteFilePathContract.parse('/repo/packages/server/src/responders/x.ts'),
+ *   filePath: '/repo/packages/server/src/responders/x.ts',
  * });
  * // Returns ContentText 'server'
  *
  * packageOfAbsoluteFilePathTransformer({
- *   filePath: absoluteFilePathContract.parse('/some/other/path.ts'),
+ *   filePath: '/some/other/path.ts',
  * });
  * // Returns null
  *

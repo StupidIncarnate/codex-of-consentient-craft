@@ -4,7 +4,7 @@
  *
  * USAGE:
  * const name = eslintRuleNameFromPathTransformer({
- *   filePath: absoluteFilePathContract.parse('/repo/packages/eslint-plugin/src/brokers/rule/ban-primitives/rule-ban-primitives-broker.ts'),
+ *   filePath: '/repo/packages/eslint-plugin/src/brokers/rule/ban-primitives/rule-ban-primitives-broker.ts',
  * });
  * // Returns ContentText('ban-primitives')
  *

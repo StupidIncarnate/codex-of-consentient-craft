@@ -7,7 +7,7 @@
  *   widgetTree,
  *   httpEdges: [],
  *   wsEdges: [],
- *   packageRoot: absoluteFilePathContract.parse('/repo/packages/web'),
+ *   packageRoot: '/repo/packages/web',
  * });
  * // Returns validated WidgetContext for cross-broker plumbing
  *

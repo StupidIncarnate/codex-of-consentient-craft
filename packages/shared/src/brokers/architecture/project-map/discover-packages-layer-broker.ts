@@ -6,7 +6,7 @@
  * project root as the one package.
  *
  * USAGE:
- * const entries = discoverPackagesLayerBroker({ dirPath: absoluteFilePathContract.parse('/repo/packages') });
+ * const entries = discoverPackagesLayerBroker({ dirPath: '/repo/packages' });
  * // Returns [{ name: 'shared', relativeDir: 'shared' }, { name: 'npm', relativeDir: '@gateway/npm' }]
  *
  * WHEN-TO-USE: When the project-map composer needs to detect monorepo vs single-root layout, and

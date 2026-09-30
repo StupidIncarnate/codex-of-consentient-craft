@@ -31,7 +31,7 @@
  * // A boot failure writes boot-failure.json, releases boot.lock, and rethrows without stamping the
  * // registry or serving
  *
- * await SiegelenseDriverResponder({ instanceId: InstanceIdStub(), idleTimeoutMs: TimeoutMsStub({ value: 1_800_000 }) });
+ * await SiegelenseDriverResponder({ instanceId: InstanceIdStub(), idleTimeoutMs: 1_800_000 });
  * // Same, but the served lane reaps itself after 1_800_000ms of no traffic instead of the default
  */
 

@@ -9,7 +9,7 @@
  * USAGE:
  * const provided = proxyReexportNamesResolveMiddleware({
  *   filePath: barrelPath,
- *   candidateNames: [IdentifierNameStub({value: 'pathJoinAdapterProxy'})],
+ *   candidateNames: ['pathJoinAdapterProxy'],
  *   program,
  * });
  * // Returns the names of `candidateNames` that barrelPath (transitively) exports

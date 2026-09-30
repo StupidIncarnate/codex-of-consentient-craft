@@ -11,7 +11,7 @@
  * long quest grade a window that shrank to its own pass.
  *
  * USAGE:
- * const ref = await gitDetectOriginDefaultBranchBroker({ cwd: AbsoluteFilePathStub({ value: '/project' }) });
+ * const ref = await gitDetectOriginDefaultBranchBroker({ cwd: '/project' });
  * // Returns GitBranchName('origin/master'), or null when the repo has no origin refs at all
  */
 

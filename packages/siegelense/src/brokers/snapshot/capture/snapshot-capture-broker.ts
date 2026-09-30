@@ -17,8 +17,8 @@
  *
  * USAGE:
  * await snapshotCaptureBroker({
- *   homePath: AbsoluteFilePathStub({ value: '/tmp/dm-siege-inst_7f3a9c21' }),
- *   name: SnapshotNameStub({ value: 'clean' }),
+ *   homePath: '/tmp/dm-siege-inst_7f3a9c21',
+ *   name: 'clean',
  *   manual: true,
  * });
  * // Copies the home, appends one index line, and returns the SnapshotRecord it wrote

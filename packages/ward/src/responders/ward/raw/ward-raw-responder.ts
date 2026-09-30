@@ -2,7 +2,7 @@
  * PURPOSE: Parses runId and checkType from CLI args and delegates to the command raw broker
  *
  * USAGE:
- * await WardRawResponder({ args: ['node', 'ward', 'raw', '123-abc', 'lint'], rootPath: AbsoluteFilePathStub() });
+ * await WardRawResponder({ args: ['node', 'ward', 'raw', '123-abc', 'lint'], rootPath: '/home/user/project/src/file.ts' });
  * // Loads and displays raw tool output for the specified check type in the specified run
  */
 

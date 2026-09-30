@@ -2,7 +2,7 @@
  * PURPOSE: Persists quest file to disk atomically (temp+rename) then appends to the outbox for downstream notification
  *
  * USAGE:
- * await questPersistBroker({ questFilePath: FilePathStub({ value: '/quests/add-auth/quest.json' }), contents: FileContentsStub({ value: '{}' }), questId: QuestIdStub() });
+ * await questPersistBroker({ questFilePath: FilePathStub({ value: '/quests/add-auth/quest.json' }), contents: '{}', questId: QuestIdStub() });
  * // Writes file atomically (quest.json.tmp -> rename to quest.json) then appends outbox entry
  */
 

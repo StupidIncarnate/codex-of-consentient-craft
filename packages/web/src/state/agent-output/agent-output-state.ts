@@ -2,8 +2,8 @@
  * PURPOSE: Manages parsed chat entries per execution slot with configurable max entry limits
  *
  * USAGE:
- * agentOutputState.append({slotIndex: slotIndexContract.parse(0), entries: [chatEntry]});
- * agentOutputState.get({slotIndex: slotIndexContract.parse(0)});
+ * agentOutputState.append({slotIndex: 0, entries: [chatEntry]});
+ * agentOutputState.get({slotIndex: 0});
  * // Returns ChatEntry[] for the slot
  */
 

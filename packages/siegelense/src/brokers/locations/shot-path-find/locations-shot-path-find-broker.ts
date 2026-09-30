@@ -10,14 +10,14 @@
  *
  * USAGE:
  * locationsShotPathFindBroker({
- *   shotsDir: AbsoluteFilePathStub({ value: '/repo/.../runs/run_2' }),
- *   step: StepIndexStub({ value: 4 }),
+ *   shotsDir: '/repo/.../runs/run_2',
+ *   step: 4,
  * });
  * // Returns AbsoluteFilePath '/repo/.../runs/run_2/step4.png'
  *
  * locationsShotPathFindBroker({
- *   shotsDir: AbsoluteFilePathStub({ value: '/repo/.../runs/run_2' }),
- *   step: StepIndexStub({ value: 4 }),
+ *   shotsDir: '/repo/.../runs/run_2',
+ *   step: 4,
  *   name: FileNameStub({ value: 'after-create.png' }),
  * });
  * // Returns AbsoluteFilePath '/repo/.../runs/run_2/after-create.png'

@@ -11,7 +11,7 @@
  *
  * USAGE:
  * const harness = rateLimitsWatcherHarness();
- * const { tempDir, end } = harness.begin({ name: BaseNameStub({ value: 'hold-raise' }) });
+ * const { tempDir, end } = harness.begin({ name: 'hold-raise' });
  * harness.seedLedger({ tempDir, fiveHour: null, sevenDay: 1_000_000, hourAt, tokens: 900_000 });
  * harness.seedDispatch({ tempDir, mode: 'node-playing' });
  * await harness.awaitHoldDetail({ tempDir, detail: '7d window at 90% — dispatch holds until it resets' });

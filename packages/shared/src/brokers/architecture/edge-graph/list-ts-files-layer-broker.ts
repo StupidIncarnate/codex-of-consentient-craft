@@ -3,7 +3,7 @@
  *
  * USAGE:
  * const files = listTsFilesLayerBroker({
- *   dirPath: absoluteFilePathContract.parse('/repo/packages/server/src/flows'),
+ *   dirPath: '/repo/packages/server/src/flows',
  * });
  * // Returns AbsoluteFilePath[] for every .ts file passing isNonTestFileGuard
  *

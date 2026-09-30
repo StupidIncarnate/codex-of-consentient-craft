@@ -8,8 +8,8 @@
  *
  * USAGE:
  * await evidenceTreeLayerBroker({
- *   homeDir: AbsoluteFilePathStub({ value: '/home/u/.dungeonmaster/siegelense/unowned/instances/inst_1' }),
- *   repoLocalDir: AbsoluteFilePathStub({ value: '/repo/.dungeonmaster-assets/siegelense-assets/unowned/instances/inst_1' }),
+ *   homeDir: '/home/u/.dungeonmaster/siegelense/unowned/instances/inst_1',
+ *   repoLocalDir: '/repo/.dungeonmaster-assets/siegelense-assets/unowned/instances/inst_1',
  * });
  * // Returns [{ path: '/repo/.dungeonmaster-assets/siegelense-assets/unowned/instances/inst_1/api-server.log', bytes: 2048 }, ...]
  */

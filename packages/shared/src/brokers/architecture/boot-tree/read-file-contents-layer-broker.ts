@@ -2,7 +2,7 @@
  * PURPOSE: Reads a file's source text, returning undefined when the file does not exist
  *
  * USAGE:
- * const content = readFileContentsLayerBroker({ filePath: absoluteFilePathContract.parse('/src/startup/start-app.ts') });
+ * const content = readFileContentsLayerBroker({ filePath: '/src/startup/start-app.ts' });
  * // Returns ContentText or undefined if file is missing
  *
  * WHEN-TO-USE: Boot-tree broker reading source files for import extraction — absence is expected

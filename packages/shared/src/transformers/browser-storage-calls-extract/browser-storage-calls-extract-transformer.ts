@@ -3,7 +3,7 @@
  *
  * USAGE:
  * const writes = browserStorageCallsExtractTransformer({
- *   source: contentTextContract.parse('localStorage.setItem("session-id", value)'),
+ *   source: 'localStorage.setItem("session-id", value)',
  * });
  * // Returns ['localStorage: session-id'] as ContentText[]
  *

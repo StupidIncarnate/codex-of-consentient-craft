@@ -10,7 +10,7 @@
  * that has opted in yet.
  *
  * USAGE:
- * await laneSpecFindBroker({ specName: SpecNameStub({ value: 'api' }) });
+ * await laneSpecFindBroker({ specName: 'api' });
  * // Resolves the browserless LaneSpec built from this repo's own devServer.e2e.processes
  */
 

@@ -7,7 +7,7 @@
  * `scrolls/adapters-to-one-place.md`) and is skipped in both directions.
  *
  * USAGE:
- * await platformCrossingCheckBroker({rootPath: filePathContract.parse('/repo')});
+ * await platformCrossingCheckBroker({rootPath: '/repo'});
  * // Returns: readonly PlatformCrossingViolation[] — empty when nothing crosses
  */
 

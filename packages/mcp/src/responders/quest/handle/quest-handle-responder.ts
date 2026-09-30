@@ -2,7 +2,7 @@
  * PURPOSE: Handles quest-related MCP tool calls (get-quest, modify-quest, start-quest, get-quest-status, list-quests, list-guilds, get-quest-planning-notes, get-blight-checklist, get-quest-summary, create-worktree, quest-work, get-quest-work)
  *
  * USAGE:
- * const result = await QuestHandleResponder({ tool: ToolNameStub({ value: 'get-quest' }), args: { questId: 'abc' } });
+ * const result = await QuestHandleResponder({ tool: 'get-quest', args: { questId: 'abc' } });
  * // Returns CallToolResult with quest data
  */
 

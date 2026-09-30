@@ -11,7 +11,7 @@
  * skipped, so a caller sees all four groups exist even before a first wrapper is added to one.
  *
  * USAGE:
- * architectureGatewayInventoryBroker({ projectRoot: absoluteFilePathContract.parse('/repo') });
+ * architectureGatewayInventoryBroker({ projectRoot: '/repo' });
  * // Returns ContentText: "### bin\n  (empty)\n\n### browser\n...\n\n### node\n  #gateway/node/fs  passes through 'fs'\n      ours: existsSync, ...\n\n### npm\n..."
  */
 

@@ -16,7 +16,7 @@
  *
  * USAGE:
  * const proxy = stepHandlerWardBrokerProxy();
- * proxy.wardExits({ questId, exitCode: ExitCodeStub({ value: 0 }), runId, detailJson: FileContentsStub() });
+ * proxy.wardExits({ questId, exitCode: 0, runId, detailJson: 'test file contents' });
  * const result = await stepHandlerWardBroker({ args: [], questId, workItemId, onLine });
  */
 

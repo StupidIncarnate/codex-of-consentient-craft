@@ -11,8 +11,8 @@
  *
  * USAGE:
  * claudeProjectPathEncoderTransformer({
- *   homeDir: AbsoluteFilePathStub({ value: '/home/user' }),
- *   projectPath: AbsoluteFilePathStub({ value: '/home/user/my-project' }),
+ *   homeDir: '/home/user',
+ *   projectPath: '/home/user/my-project',
  *   sessionId: SessionIdStub({ value: 'abc-123' }),
  * });
  * // Returns AbsoluteFilePath '/home/user/.claude/projects/-home-user-my-project/abc-123.jsonl'

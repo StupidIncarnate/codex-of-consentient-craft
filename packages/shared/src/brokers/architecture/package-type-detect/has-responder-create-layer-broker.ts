@@ -2,7 +2,7 @@
  * PURPOSE: Checks whether any domain folder under responders/ contains a create/ subdirectory
  *
  * USAGE:
- * const hasCreate = hasResponderCreateLayerBroker({ respondersDirPath: absoluteFilePathContract.parse('/project/src/responders') });
+ * const hasCreate = hasResponderCreateLayerBroker({ respondersDirPath: '/project/src/responders' });
  * // Returns true if any responders-domain/create/ folder exists
  *
  * WHEN-TO-USE: During package-type detection for the eslint-plugin signal (responders-domain/create/ must exist)

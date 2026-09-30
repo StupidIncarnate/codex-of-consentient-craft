@@ -5,8 +5,8 @@
  *
  * USAGE:
  * const types = busEmitCallsExtractTransformer({
- *   source: contentTextContract.parse("myBus.emit({ type: 'chat-output', payload });"),
- *   busExportName: contentTextContract.parse('myBus'),
+ *   source: "myBus.emit({ type: 'chat-output', payload });",
+ *   busExportName: 'myBus',
  * });
  * // Returns ['chat-output']
  *

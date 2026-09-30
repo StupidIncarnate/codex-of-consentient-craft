@@ -4,7 +4,7 @@
  *
  * USAGE:
  * namespaceNameExtractTransformer({
- *   source: contentTextContract.parse('return StartOrchestrator.startQuest({ questId })'),
+ *   source: 'return StartOrchestrator.startQuest({ questId })',
  * });
  * // Returns ContentText 'StartOrchestrator'
  *

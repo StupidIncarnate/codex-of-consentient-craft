@@ -3,7 +3,7 @@
  *
  * USAGE:
  * const proxy = pathIsAccessibleBrokerProxy();
- * proxy.setupResult({ path: GuildPathStub({ value: '/home/user/project' }), result: true });
+ * proxy.setupResult({ path: '/home/user/project', result: true });
  */
 
 import { pathExistsProxy } from '#gateway/node/fs__promises/path-exists/path-exists.proxy';

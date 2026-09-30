@@ -4,7 +4,7 @@
  * `packages/server`/`packages/web` answer today has zero members in a consumer repo that never
  * built one, or that names its backend/frontend package something a signal this detector does not
  * read. Reach for this ONLY from that broker. `repoRoot`/`packageType` are stored as `unknown`:
- * `errors/` imports nothing, so it cannot brand them through `absoluteFilePathContract`/
+ * `errors/` imports nothing, so it cannot brand them through
  * `packageTypeContract` — the caller already validated both before this throws.
  *
  * USAGE:

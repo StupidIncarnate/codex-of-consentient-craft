@@ -5,8 +5,8 @@
  * whether an edge is even worth following.
  *
  * USAGE:
- * intersectImportedNamesTransformer({names: [ImportedNameStub()], requestedNames: 'all'});
- * // Returns: [ImportedNameStub()]
+ * intersectImportedNamesTransformer({ names: ['readFile'], requestedNames: 'all' });
+ * // Returns: ['readFile']
  */
 
 export const intersectImportedNamesTransformer = ({

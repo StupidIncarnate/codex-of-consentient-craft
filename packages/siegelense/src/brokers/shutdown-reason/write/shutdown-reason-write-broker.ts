@@ -10,8 +10,8 @@
  *
  * USAGE:
  * await shutdownReasonWriteBroker({
- *   evidencePath: AbsoluteFilePathStub({ value: '/repo/.dungeonmaster-assets/siegelense-assets/unowned/instances/inst_1' }),
- *   reason: ContentTextStub({ value: 'reaped by idle timeout after 900s with no run received' }),
+ *   evidencePath: '/repo/.dungeonmaster-assets/siegelense-assets/unowned/instances/inst_1',
+ *   reason: 'reaped by idle timeout after 900s with no run received',
  * });
  * // Writes shutdown-reason.json under that directory and returns the written ShutdownReason
  */

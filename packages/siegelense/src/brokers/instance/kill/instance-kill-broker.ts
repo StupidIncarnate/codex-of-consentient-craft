@@ -36,7 +36,7 @@
  * // live, returns { stopped: true, reapedPgids: [...] }
  * // Row already killed/pruned/unusable: no-op, returns { stopped: true, reapedPgids: [] }
  *
- * await instanceKillBroker({ instanceId, reason: ContentTextStub({ value: 'reaped by cleanup after its heartbeat went stale' }) });
+ * await instanceKillBroker({ instanceId, reason: 'reaped by cleanup after its heartbeat went stale' });
  * // Driver unreachable, live pgids reaped: shutdown-reason.json is written with the SUPPLIED reason
  * // rather than the generic "reaped N orphaned process groups" wording
  */

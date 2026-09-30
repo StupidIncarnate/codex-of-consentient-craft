@@ -5,9 +5,9 @@
  *
  * USAGE:
  * gatewayImportLocalNameFindTransformer({
- *   source: contentTextContract.parse("import { tailFile as tail } from '#gateway/node/fs';"),
- *   importSource: contentTextContract.parse('#gateway/node/fs'),
- *   importedName: contentTextContract.parse('tailFile'),
+ *   source: "import { tailFile as tail } from '#gateway/node/fs';",
+ *   importSource: '#gateway/node/fs',
+ *   importedName: 'tailFile',
  * });
  * // Returns 'tail'; undefined when the source does not import it from that specifier
  */

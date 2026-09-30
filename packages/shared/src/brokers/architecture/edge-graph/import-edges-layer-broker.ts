@@ -5,7 +5,7 @@
  *
  * USAGE:
  * const edges = importEdgesLayerBroker({
- *   projectRoot: absoluteFilePathContract.parse('/repo'),
+ *   projectRoot: '/repo',
  * });
  * // Returns ImportEdge[] grouped by (consumerPackage, sourcePackage, barrel)
  *

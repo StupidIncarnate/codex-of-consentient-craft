@@ -5,7 +5,7 @@
  * what the agent said.
  *
  * USAGE:
- * <MarkdownTextWidget content={markdownSourceContract.parse(entry.content)} />
+ * <MarkdownTextWidget content={entry.content} />
  * // Renders headings, lists, fences, and inline code from the raw message text
  */
 

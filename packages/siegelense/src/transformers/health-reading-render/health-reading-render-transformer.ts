@@ -11,11 +11,11 @@
  *   rootPresent: true,
  *   blank: false,
  *   blankColour: null,
- *   consoleErrors: ReadingCountStub({ value: 0 }),
+ *   consoleErrors: 0,
  *   firstConsoleError: null,
- *   network5xxCount: ReadingCountStub({ value: 0 }),
+ *   network5xxCount: 0,
  *   first5xx: null,
- *   serverErrors: ReadingCountStub({ value: 0 }),
+ *   serverErrors: 0,
  *   firstServerError: null,
  * });
  * // Returns a validated HealthReading whose rendered text is:

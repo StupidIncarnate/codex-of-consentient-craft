@@ -4,7 +4,7 @@
  * same role is exactly the ambiguity `no-hardcoded-package-names` exists to force a caller to handle,
  * rather than silently taking the first match and booting the wrong one. Reach for this ONLY from
  * that broker. Fields are stored as `unknown`: `errors/` imports nothing, so it cannot brand them
- * through `absoluteFilePathContract`/`packageTypeContract`/`packageNameContract` — the caller already
+ * through `packageTypeContract`/`packageNameContract` — the caller already
  * validated all three before this throws.
  *
  * USAGE:

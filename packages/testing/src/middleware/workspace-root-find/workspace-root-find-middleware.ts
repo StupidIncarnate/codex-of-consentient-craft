@@ -6,7 +6,7 @@
  * reason a cross-package import cannot resolve.
  *
  * USAGE:
- * const root = workspaceRootFindMiddleware({ dirPath: filePathContract.parse('/repo/packages/bin/src') });
+ * const root = workspaceRootFindMiddleware({ dirPath: '/repo/packages/bin/src' });
  * // Returns FilePath ('/repo') or null
  */
 

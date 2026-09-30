@@ -7,7 +7,7 @@
  * match. Reads raw bytes with `readFileBytes`: a PNG is binary, and a text read corrupts it.
  *
  * USAGE:
- * await shotBlankReadBroker({ shotPath: AbsoluteFilePathStub({ value: '/repo/.../step1.png' }) });
+ * await shotBlankReadBroker({ shotPath: '/repo/.../step1.png' });
  * // Returns { blank: true, colour: '#0d0907' } or { blank: false, colour: null }
  */
 

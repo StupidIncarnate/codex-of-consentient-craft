@@ -5,7 +5,7 @@
  * when every gateway key is already present, so a caller can skip a write with `updated === existing`.
  *
  * USAGE:
- * gatewayImportsMergeTransformer({ existingImports: { '#alias/*': './src/*' }, scope: PathSegmentStub({value: '@acme'}) });
+ * gatewayImportsMergeTransformer({ existingImports: { '#alias/*': './src/*' }, scope: '@acme' });
  * // Returns { '#alias/*': './src/*', '#gateway/npm/*': '@acme/npm/*', ... }
  */
 

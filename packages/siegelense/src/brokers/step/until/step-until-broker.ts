@@ -17,7 +17,7 @@
  *
  * USAGE:
  * await stepUntilBroker({
- *   lane, visible: SelectorStub(), response: null, file: null, predicate: null, console: null,
+ *   lane, visible: '[data-testid="GUILD_ADD"]', response: null, file: null, predicate: null, console: null,
  *   timeoutMs: 20000, browserWindowStart: null,
  * });
  * // Waits for the selector to become visible and returns a reading naming how long it took, or

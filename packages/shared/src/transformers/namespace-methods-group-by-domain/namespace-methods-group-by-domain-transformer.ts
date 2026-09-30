@@ -4,7 +4,7 @@
  *
  * USAGE:
  * const groups = namespaceMethodsGroupByDomainTransformer({
- *   methodNames: [contentTextContract.parse('listGuilds'), contentTextContract.parse('startQuest')],
+ *   methodNames: ['listGuilds', 'startQuest'],
  *   prefixToDomain: { listGuilds: 'Guilds', startQuest: 'Orchestration' },
  * });
  * // Returns [{ domain: ContentText('Guilds'), methods: [ContentText] }, ...]

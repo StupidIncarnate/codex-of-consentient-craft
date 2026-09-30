@@ -4,7 +4,7 @@
  *
  * USAGE:
  * const files = listTsFilesRecursiveLayerBroker({
- *   dirPath: absoluteFilePathContract.parse('/repo/packages/shared/src'),
+ *   dirPath: '/repo/packages/shared/src',
  * });
  * // Returns AbsoluteFilePath[] for every .ts/.tsx that passes isNonTestFileGuard
  *

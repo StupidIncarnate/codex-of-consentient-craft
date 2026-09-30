@@ -5,7 +5,7 @@
  * `require()` would.
  *
  * USAGE:
- * candidateFilePathsFromTargetTransformer({target: filePathContract.parse('/repo/packages/node/fs')});
+ * candidateFilePathsFromTargetTransformer({target: '/repo/packages/node/fs'});
  * // Returns: ['/repo/packages/node/fs.ts', '/repo/packages/node/fs.tsx', '/repo/packages/node/fs/index.ts', '/repo/packages/node/fs/index.tsx']
  */
 

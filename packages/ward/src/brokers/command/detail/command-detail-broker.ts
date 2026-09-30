@@ -2,7 +2,7 @@
  * PURPOSE: Loads a ward run result and writes detailed errors to stdout (text or JSON format)
  *
  * USAGE:
- * await commandDetailBroker({ rootPath: AbsoluteFilePathStub({ value: '/project' }), runId: RunIdStub(), filePath: 'src/index.ts' });
+ * await commandDetailBroker({ rootPath: '/project', runId: RunIdStub(), filePath: 'src/index.ts' });
  * // Writes file detail to stdout
  */
 

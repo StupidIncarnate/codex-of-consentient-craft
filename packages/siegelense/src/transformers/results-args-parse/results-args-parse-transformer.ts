@@ -16,8 +16,8 @@
  * `Number()` before a contract ever sees it, and a contract given `Number('abc')` never sees "abc" —
  * it sees NaN, so its own message cannot name what the caller typed. `--kind` does not need it
  * because the hand-written check above it already refuses an invalid value before this point, and
- * `--where-path`/`--fields` do not need it because `contentTextContract`/`resultFieldContract`
- * cannot reject a non-empty string. `--run` and `--since boot` are mutually exclusive — the synopsis in
+ * `--where-path`/`--fields` do not need it because `resultFieldContract` and a plain
+ * string cannot reject a non-empty string. `--run` and `--since boot` are mutually exclusive — the synopsis in
  * `siegelense-help-statics.ts` reads `[--run <runId> | --since boot]` — so naming both refuses by
  * naming both flags, the same shape `runArgsParseTransformer` refuses `--steps`/`--steps-file` in.
  * Unlike that pair, neither flag here is required: omitting both is the ordinary "resolve the

@@ -17,7 +17,7 @@
  * status call under-report a live instance's memory as smaller than it really is.
  *
  * USAGE:
- * await machineRssByPgidBroker({ pgids: [ProcessGroupIdStub()] });
+ * await machineRssByPgidBroker({ pgids: [12345] });
  * // Returns the summed resident memory in whole megabytes, or null if /proc is unavailable
  */
 

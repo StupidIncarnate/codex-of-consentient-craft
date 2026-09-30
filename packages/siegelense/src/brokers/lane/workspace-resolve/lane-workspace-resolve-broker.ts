@@ -10,7 +10,7 @@
  *
  * USAGE:
  * await laneWorkspaceResolveBroker({
- *   repoRoot: AbsoluteFilePathStub({ value: '/repo' }),
+ *   repoRoot: '/repo',
  *   packageType: PackageTypeStub({ value: 'http-backend' }),
  * });
  * // Returns PackageName('@dungeonmaster/server') when exactly one packages/* dir detects that kind

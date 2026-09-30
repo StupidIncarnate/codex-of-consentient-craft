@@ -8,7 +8,7 @@
  * has one of those; the nearest match would be the package we started from.
  *
  * USAGE:
- * await resolveWorkspaceRootLayerBroker({ startPath: AbsoluteFilePathStub({ value: '/repo/packages/web' }) });
+ * await resolveWorkspaceRootLayerBroker({ startPath: '/repo/packages/web' });
  * // Returns '/repo', or null when nothing above declares workspaces
  */
 

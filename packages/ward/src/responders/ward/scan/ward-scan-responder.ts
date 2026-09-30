@@ -4,7 +4,7 @@
  * data, not a gate, so finding violations exits 0.
  *
  * USAGE:
- * await WardScanResponder({ args: ['node', 'ward', 'scan', '@dungeonmaster/ban-primitives'], rootPath: AbsoluteFilePathStub() });
+ * await WardScanResponder({ args: ['node', 'ward', 'scan', '@dungeonmaster/ban-primitives'], rootPath: '/home/user/project/src/file.ts' });
  * // Writes { rule, packages: [{ name, violations, batches }] } to stdout
  */
 

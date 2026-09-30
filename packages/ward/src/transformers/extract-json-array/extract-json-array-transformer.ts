@@ -2,7 +2,7 @@
  * PURPOSE: Extracts the first complete JSON array from a string that may contain non-JSON text before or after it
  *
  * USAGE:
- * const json = extractJsonArrayTransformer({ output: errorMessageContract.parse('warn text\n[{"key":"val"}]FAIL bar') });
+ * const json = extractJsonArrayTransformer({ output: 'warn text\n[{"key":"val"}]FAIL bar' });
  * // Returns '[{"key":"val"}]'
  */
 

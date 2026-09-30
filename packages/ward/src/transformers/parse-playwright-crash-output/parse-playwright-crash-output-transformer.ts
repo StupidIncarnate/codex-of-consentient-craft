@@ -2,7 +2,7 @@
  * PURPOSE: Parses Playwright line-reporter text output from a crash into structured TestFailure entries
  *
  * USAGE:
- * parsePlaywrightCrashOutputTransformer({ output: errorMessageContract.parse('  1) [chromium] › packages/web/src/flows/app/smoke.e2e.ts:20:7 › Smoke › test\n\n    Error: timeout') });
+ * parsePlaywrightCrashOutputTransformer({ output: '  1) [chromium] › packages/web/src/flows/app/smoke.e2e.ts:20:7 › Smoke › test\n\n    Error: timeout' });
  * // Returns TestFailure[] with suitePath, testName, message, and stackTrace
  */
 

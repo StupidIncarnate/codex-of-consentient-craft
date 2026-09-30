@@ -5,7 +5,7 @@
  * a plan file that exists but cannot be read surfaces as the disk fault it is.
  *
  * USAGE:
- * await plannedWorkReadBroker({ questFolderPath: AbsoluteFilePathStub(), operationItemId: OperationItemIdStub() });
+ * await plannedWorkReadBroker({ questFolderPath: '/home/user/project/src/file.ts', operationItemId: OperationItemIdStub() });
  * // Returns WorkPlan, or null when no plan has been written for this operation item yet
  */
 

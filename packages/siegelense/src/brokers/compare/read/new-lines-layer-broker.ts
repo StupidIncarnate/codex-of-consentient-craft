@@ -8,8 +8,8 @@
  *
  * USAGE:
  * newLinesLayerBroker({
- *   linesA: [ContentTextStub({ value: 'a' })],
- *   linesB: [ContentTextStub({ value: 'a' }), ContentTextStub({ value: 'b' })],
+ *   linesA: ['a'],
+ *   linesB: ['a', 'b'],
  * });
  * // Returns ['b'] — the one line unique to linesB
  */

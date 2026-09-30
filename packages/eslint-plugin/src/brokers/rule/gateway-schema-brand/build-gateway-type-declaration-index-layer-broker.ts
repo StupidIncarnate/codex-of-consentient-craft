@@ -6,7 +6,7 @@
  * with no `src/` yet (a fresh consumer scaffold) is skipped rather than failing the walk.
  *
  * USAGE:
- * buildGatewayTypeDeclarationIndexLayerBroker({ rootDir: filePathContract.parse('/repo/') });
+ * buildGatewayTypeDeclarationIndexLayerBroker({ rootDir: '/repo/' });
  * // Returns a Map whose 'WalkedFile' key holds every file path across the four gateway packages
  * // that declares an exported `WalkedFile` interface or type alias
  */

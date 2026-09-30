@@ -2,7 +2,7 @@
  * PURPOSE: Extracts all from-paths from import statements in TypeScript source text
  *
  * USAGE:
- * const paths = importStatementsExtractTransformer({ source: contentTextContract.parse('import { foo } from "./foo";') });
+ * const paths = importStatementsExtractTransformer({ source: 'import { foo } from "./foo";' });
  * // Returns ['./foo'] as ContentText[]
  *
  * WHEN-TO-USE: Static analysis of TypeScript source files to discover inter-file dependencies

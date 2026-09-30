@@ -2,7 +2,7 @@
  * PURPOSE: Resolves the absolute path to the ward-results directory inside a quest folder
  *
  * USAGE:
- * locationsWardResultsPathFindBroker({ questFolderPath: AbsoluteFilePathStub() });
+ * locationsWardResultsPathFindBroker({ questFolderPath: '/home/user/project/src/file.ts' });
  * // Returns AbsoluteFilePath '<questFolderPath>/ward-results'
  */
 

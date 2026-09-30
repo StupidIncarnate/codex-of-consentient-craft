@@ -5,7 +5,7 @@
  * file at a time and never needs a whole-program type-check, only the syntax tree.
  *
  * USAGE:
- * typescriptModuleShapeTransformer({sourceText: FileContentsStub({value: "export * from './x';"}), fileName: 'a.ts'});
+ * typescriptModuleShapeTransformer({sourceText: "export * from './x';", fileName: 'a.ts'});
  * // Returns: { dependencies: [{specifier: './x', kind: 'star', importedNames: []}], localExportNames: [] }
  */
 

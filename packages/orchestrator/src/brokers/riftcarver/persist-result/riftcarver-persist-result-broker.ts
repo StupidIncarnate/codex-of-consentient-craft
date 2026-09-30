@@ -10,7 +10,7 @@
  * await riftcarverPersistResultBroker({
  *   questFolderPath: FilePathStub({ value: '/quests/001-add-auth' }),
  *   riftcarverResultId: RiftcarverResultStub().id,
- *   logContents: FileContentsStub({ value: '— build pass 1/3 —\n' }),
+ *   logContents: '— build pass 1/3 —\n',
  * });
  * // Writes {questFolderPath}/riftcarver-results/{riftcarverResultId}.log
  */

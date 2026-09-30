@@ -9,9 +9,9 @@
  *
  * USAGE:
  * const mockCalls = proxyMockCollectorMiddleware({
- *   proxyFilePath: filePathContract.parse('/src/test.proxy.ts'),
+ *   proxyFilePath: '/src/test.proxy.ts',
  *   program: typescriptProgram,
- *   requestedNames: [identifierNameContract.parse('pathJoinAdapterProxy')],
+ *   requestedNames: ['pathJoinAdapterProxy'],
  * });
  * // Returns array of MockCall objects from all proxy files in the chain
  */

@@ -5,9 +5,9 @@
  * resolved `#gateway/...` target to get the package name it checks against `dependencies`.
  *
  * USAGE:
- * packageNameFromSpecifierTransformer({ specifier: importPathContract.parse('@dungeonmaster/npm/zod') });
+ * packageNameFromSpecifierTransformer({ specifier: '@dungeonmaster/npm/zod' });
  * // Returns '@dungeonmaster/npm' as branded PackageName
- * packageNameFromSpecifierTransformer({ specifier: importPathContract.parse('lodash/fp') });
+ * packageNameFromSpecifierTransformer({ specifier: 'lodash/fp' });
  * // Returns 'lodash' as branded PackageName
  */
 

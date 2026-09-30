@@ -6,7 +6,7 @@
  * expect(harness.binExists()).toBe(true);
  * const { exitCode, stdout, stderr } = await harness.runCommand({ args: ['siegelense', 'status', '--help'] });
  * const { exitCode } = await harness.runInit();
- * expect(exitCode).toBe(ExitCodeStub({ value: 0 }));
+ * expect(exitCode).toBe(0);
  */
 import { spawnPiped } from '#gateway/node/child_process';
 import { clearTimeout } from '#gateway/node/clearTimeout';

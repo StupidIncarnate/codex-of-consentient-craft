@@ -5,7 +5,7 @@
  * position or size so nothing else in the stream can tip the selection.
  *
  * USAGE:
- * const json = extractJsonObjectTransformer({ output: errorMessageContract.parse('PASS foo\n{"id":"1"}\n{"numTotalTestSuites":5,"testResults":[]}') });
+ * const json = extractJsonObjectTransformer({ output: 'PASS foo\n{"id":"1"}\n{"numTotalTestSuites":5,"testResults":[]}' });
  * // Returns '{"numTotalTestSuites":5,"testResults":[]}'
  */
 

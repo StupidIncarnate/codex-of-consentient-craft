@@ -2,7 +2,7 @@
  * PURPOSE: Reads package.json from a package directory and extracts the description field
  *
  * USAGE:
- * const desc = readPackageDescriptionLayerBroker({ packageJsonPath: absoluteFilePathContract.parse('/project/packages/web/package.json') });
+ * const desc = readPackageDescriptionLayerBroker({ packageJsonPath: '/project/packages/web/package.json' });
  * // Returns ContentText description or empty string if unavailable
  *
  * WHEN-TO-USE: When building the project map header line for a package

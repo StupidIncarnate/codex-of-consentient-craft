@@ -2,7 +2,7 @@
  * PURPOSE: Reads `.dungeonmaster.json`'s `gateway` key ONCE, at eslint.config.js load time — never
  * inside a rule itself — so configDungeonmasterBroker can hand the parsed value to ban-gateway-export,
  * enforce-gateway-restricted-to, and enforce-gateway-config-names-exist as a single shared rule
- * OPTION. The caller passes `startDir: filePathContract.parse(__dirname)` from its OWN module, the
+ * OPTION. The caller passes `startDir: __dirname` from its OWN module, the
  * same shape repoScopeResolveBroker's callers use: inside this repo that walk resolves the repo
  * root, and once this package is installed under a consumer's `node_modules/@dungeonmaster/eslint-plugin`,
  * the SAME walk climbs out through `node_modules` to that consumer's own root. A missing, unreadable,
@@ -11,7 +11,7 @@
  * and a broken config file must not crash every ESLint invocation across the whole team.
  *
  * USAGE:
- * configGatewayLintConfigBroker({ startDir: filePathContract.parse(__dirname) });
+ * configGatewayLintConfigBroker({ startDir: __dirname });
  * // Returns {} when no `.dungeonmaster.json` exists yet, or the parsed `gateway` key otherwise
  */
 import {

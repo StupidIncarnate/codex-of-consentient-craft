@@ -4,7 +4,7 @@
  * batches. One package per call keeps a type-aware run inside one process's memory.
  *
  * USAGE:
- * const result = await scanPackageBroker({ projectFolder: ProjectFolderStub(), rootPath: AbsoluteFilePathStub(), rule: ScanRuleNameStub(), targets: [], configFile: ScanConfigFileStub() });
+ * const result = await scanPackageBroker({ projectFolder: ProjectFolderStub(), rootPath: '/home/user/project/src/file.ts', rule: '@dungeonmaster/ban-workspace-export-mocks', targets: [], configFile: ScanConfigFileStub() });
  * // Returns ScanPackageResult { name, violations, batches }
  *
  * ESLint runs from the REPO ROOT with the package folder (or the named files) as its target, under

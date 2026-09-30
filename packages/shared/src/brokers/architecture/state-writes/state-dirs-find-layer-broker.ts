@@ -3,7 +3,7 @@
  *
  * USAGE:
  * const dirs = stateDirsFindLayerBroker({
- *   packageRoot: absoluteFilePathContract.parse('/repo/packages/orchestrator'),
+ *   packageRoot: '/repo/packages/orchestrator',
  * });
  * // Returns ['design-process', 'quest-execution-queue'] as ContentText[]
  *

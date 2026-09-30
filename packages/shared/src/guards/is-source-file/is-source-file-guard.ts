@@ -2,7 +2,7 @@
  * PURPOSE: Returns true when a file path ends with a TypeScript or JavaScript source extension
  *
  * USAGE:
- * isSourceFileGuard({ filePath: absoluteFilePathContract.parse('/src/brokers/user/user-broker.ts') });
+ * isSourceFileGuard({ filePath: '/src/brokers/user/user-broker.ts' });
  * // Returns true for .ts, .tsx, .js, .jsx extensions; false otherwise
  *
  * WHEN-TO-USE: Filtering directory entries to select only source files (excluding JSON, markdown, etc.)

@@ -183,9 +183,9 @@ const questWorkGit = z
 // A repair builds `--only <checks>` from `failingCheckTypes`. Handed files alone it guesses the
 // check set, and a guess that omits the failing check reports green over the red it was sent to fix.
 //
-// `failingPaths` is `filePathContract`, not `repoRelativePathContract` like every other path row
+// `failingPaths` is a plain absolute path, not a repo-relative brand like every other path row
 // here: ward writes ABSOLUTE paths into its own detail blob — `wardOutputToFilePathsTransformer`
-// parses that same field through `absoluteFilePathContract` — so a repo-relative brand would refuse
+// reads that same field as absolute — so a repo-relative brand would refuse
 // every real reading. Serving them as ward wrote them is lossless and is what the reader's `Read`
 // takes; rebasing them onto a worktree root would drop any path outside it.
 const questWorkWard = z

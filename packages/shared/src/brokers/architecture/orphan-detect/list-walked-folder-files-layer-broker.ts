@@ -6,7 +6,7 @@
  *
  * USAGE:
  * const files = listWalkedFolderFilesLayerBroker({
- *   packageSrcPath: absoluteFilePathContract.parse('/repo/packages/server/src'),
+ *   packageSrcPath: '/repo/packages/server/src',
  * });
  * // Returns AbsoluteFilePath[] of every implementation file in any walked folder type
  *

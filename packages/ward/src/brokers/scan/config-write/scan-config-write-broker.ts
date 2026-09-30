@@ -4,7 +4,7 @@
  * `--uncommitted`, so a wrapper a killed scan left in the tree would be linted by the next run.
  *
  * USAGE:
- * const file = scanConfigWriteBroker({ rule: ScanRuleNameStub(), rootPath: AbsoluteFilePathStub({ value: '/repo' }) });
+ * const file = scanConfigWriteBroker({ rule: '@dungeonmaster/ban-workspace-export-mocks', rootPath: '/repo' });
  * // Returns ScanConfigFile { directory: '/tmp/ward-scan-a1B2c3', path: '/tmp/ward-scan-a1B2c3/eslint.scan.config.cjs' }
  */
 

@@ -6,7 +6,7 @@
  *
  * USAGE:
  * const packageJson = workspacePackageJsonReadMiddleware({
- *   packageJsonPath: filePathContract.parse('/repo/packages/bin/package.json'),
+ *   packageJsonPath: '/repo/packages/bin/package.json',
  * });
  * // Returns WorkspacePackageJson or null
  */

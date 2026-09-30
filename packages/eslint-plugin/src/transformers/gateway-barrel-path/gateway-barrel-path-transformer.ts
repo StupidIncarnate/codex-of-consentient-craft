@@ -11,7 +11,7 @@
  *
  * USAGE:
  * gatewayBarrelPathTransformer({
- *   callerFilePath: filePathContract.parse('/repo/packages/mcp/src/brokers/x/x-broker.proxy.ts'),
+ *   callerFilePath: '/repo/packages/mcp/src/brokers/x/x-broker.proxy.ts',
  *   gatewayFolder: 'node',
  *   subpath: 'fs__promises',
  * });

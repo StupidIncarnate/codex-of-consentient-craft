@@ -2,7 +2,7 @@
  * PURPOSE: Persists ward detail JSON to a quest's ward-results subdirectory
  *
  * USAGE:
- * await wardPersistResultBroker({ questFolderPath: FilePathStub(), wardResultId: 'run-123', detailJson: ErrorMessageStub() });
+ * await wardPersistResultBroker({ questFolderPath: FilePathStub(), wardResultId: 'run-123', detailJson: 'Unknown error' });
  * // Writes JSON to {questFolderPath}/ward-results/{wardResultId}.json
  */
 

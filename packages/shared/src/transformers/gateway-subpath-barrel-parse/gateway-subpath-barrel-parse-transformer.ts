@@ -13,7 +13,7 @@
  * folders write, not a gap in this parser.
  *
  * USAGE:
- * gatewaySubpathBarrelParseTransformer({ barrelContent: ContentTextStub({ value: "export * from 'fs';\nexport { existsSync } from './exists-sync/exists-sync';" }) });
+ * gatewaySubpathBarrelParseTransformer({ barrelContent: "export * from 'fs';\nexport { existsSync } from './exists-sync/exists-sync';" });
  * // Returns { realModule: 'fs', wrapperNames: ['existsSync'] }
  */
 import { gatewaySubpathBarrelParseContract } from '../../contracts/gateway-subpath-barrel-parse/gateway-subpath-barrel-parse-contract';

@@ -2,7 +2,7 @@
  * PURPOSE: Computes set differences between discovered and processed file lists
  *
  * USAGE:
- * discoveryDiffTransformer({ discoveredFiles: ['src/a.ts'], processedFiles: ['src/b.ts'], cwd: absoluteFilePathContract.parse('/project') });
+ * discoveryDiffTransformer({ discoveredFiles: ['src/a.ts'], processedFiles: ['src/b.ts'], cwd: '/project' });
  * // Returns: { onlyDiscovered: ['src/a.ts'], onlyProcessed: ['src/b.ts'] }
  */
 

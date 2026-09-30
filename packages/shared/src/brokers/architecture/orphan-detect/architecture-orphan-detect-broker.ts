@@ -8,7 +8,7 @@
  *
  * USAGE:
  * const section = architectureOrphanDetectBroker({
- *   packageSrcPath: absoluteFilePathContract.parse('/repo/packages/server/src'),
+ *   packageSrcPath: '/repo/packages/server/src',
  * });
  * // Returns ContentText markdown header + code block, or empty string if no orphans
  *

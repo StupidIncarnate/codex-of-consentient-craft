@@ -6,7 +6,7 @@
  *
  * USAGE:
  * const gateways = architectureWsGatewayBroker({
- *   projectRoot: absoluteFilePathContract.parse('/repo'),
+ *   projectRoot: '/repo',
  * });
  * // Returns AbsoluteFilePath[] for every WS gateway file in the monorepo
  *

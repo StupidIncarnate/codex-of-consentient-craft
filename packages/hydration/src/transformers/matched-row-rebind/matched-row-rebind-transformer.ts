@@ -8,7 +8,7 @@
  * USAGE:
  * matchedRowRebindTransformer({
  *   state: HydrationRunStateStub({}),
- *   matchedRef: RowRefStub({ value: 'guild[0:0]/quest[0:0]/operation[match]' }),
+ *   matchedRef: 'guild[0:0]/quest[0:0]/operation[match]',
  *   record: { id: 'op1', role: 'riftcarver' },
  * });
  * // Returns a HydrationRunState whose records map also holds that record under matchedRef

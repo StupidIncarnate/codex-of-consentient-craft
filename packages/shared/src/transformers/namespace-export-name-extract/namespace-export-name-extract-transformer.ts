@@ -4,7 +4,7 @@
  *
  * USAGE:
  * const name = namespaceExportNameExtractTransformer({
- *   source: contentTextContract.parse('export const StartOrchestrator = { listGuilds: async () => [] };'),
+ *   source: 'export const StartOrchestrator = { listGuilds: async () => [] };',
  * });
  * // Returns ContentText 'StartOrchestrator' or null when no matching export found
  *

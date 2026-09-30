@@ -9,7 +9,7 @@
  *
  * USAGE:
  * locationsRunPathsFindBroker({
- *   evidencePath: AbsoluteFilePathStub({ value: '/repo/.dungeonmaster-assets/siegelense-assets/guilds/g1/instances/inst_1' }),
+ *   evidencePath: '/repo/.dungeonmaster-assets/siegelense-assets/guilds/g1/instances/inst_1',
  *   runId: RunIdStub({ value: 'run_2' }),
  * });
  * // Returns {

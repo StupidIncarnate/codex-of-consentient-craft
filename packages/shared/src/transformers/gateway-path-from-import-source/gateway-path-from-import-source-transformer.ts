@@ -12,11 +12,11 @@
  * whatever that repo names its gateway packages.
  *
  * USAGE:
- * gatewayPathFromImportSourceTransformer({ importSource: ImportPathStub({ value: 'fs' }), builtinModules });
+ * gatewayPathFromImportSourceTransformer({ importSource: 'fs', builtinModules });
  * // Returns '#gateway/node/fs' as branded PackageName
- * gatewayPathFromImportSourceTransformer({ importSource: ImportPathStub({ value: 'zod' }) });
+ * gatewayPathFromImportSourceTransformer({ importSource: 'zod' });
  * // Returns '#gateway/npm/zod' as branded PackageName
- * gatewayPathFromImportSourceTransformer({ importSource: ImportPathStub({ value: '@modelcontextprotocol/sdk/types.js' }) });
+ * gatewayPathFromImportSourceTransformer({ importSource: '@modelcontextprotocol/sdk/types.js' });
  * // Returns '#gateway/npm/modelcontextprotocol__sdk__types' as branded PackageName
  */
 import { gatewayLocationsStatics } from '../../statics/gateway-locations/gateway-locations-statics';

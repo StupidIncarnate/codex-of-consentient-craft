@@ -2,7 +2,7 @@
  * PURPOSE: Computes a tree-display-relative path that preserves package identity so cross-package results do not collide
  *
  * USAGE:
- * pathToTreeRelativeTransformer({ filepath: PathSegmentStub({ value: '/mono/packages/hooks/src/adapters/fs/write-file/fs-write-file-adapter.ts' }) });
+ * pathToTreeRelativeTransformer({ filepath: '/mono/packages/hooks/src/adapters/fs/write-file/fs-write-file-adapter.ts' });
  * // Returns 'hooks/adapters/fs/write-file/fs-write-file-adapter.ts' (monorepo: package name prepended, src/ stripped)
  *
  * WHEN-TO-USE: When building a discover tree so the same relative path under two different packages renders as distinct roots

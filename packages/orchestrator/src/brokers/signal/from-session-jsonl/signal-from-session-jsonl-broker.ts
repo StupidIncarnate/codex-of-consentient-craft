@@ -3,7 +3,7 @@
  *
  * USAGE:
  * const signal = await signalFromSessionJsonlBroker({
- *   guildPath: AbsoluteFilePathStub({ value: '/home/user/repo' }),
+ *   guildPath: '/home/user/repo',
  *   sessionId: SessionIdStub({ value: 'abc-123' }),
  * });
  * // Returns the last StreamSignal found in `~/.claude/projects/<encoded-cwd>/<sessionId>.jsonl`,

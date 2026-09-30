@@ -13,7 +13,7 @@
  * handed back untouched.
  *
  * USAGE:
- * withinSelectorNormaliseTransformer({ within: selectorContract.parse('SUBAGENT_CHAIN_HEADER') });
+ * withinSelectorNormaliseTransformer({ within: 'SUBAGENT_CHAIN_HEADER' });
  * // Returns '[data-testid="SUBAGENT_CHAIN_HEADER"]'
  */
 

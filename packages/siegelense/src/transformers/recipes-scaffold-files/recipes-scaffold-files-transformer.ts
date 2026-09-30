@@ -23,7 +23,7 @@
  * re-scaffolded), so there is no repo-root `jest.config.base.js` to require instead.
  *
  * USAGE:
- * recipesScaffoldFilesTransformer({ packageName: PackageNameStub({ value: '@acme/hydration-recipes' }), scope: PathSegmentStub({ value: '@acme' }) });
+ * recipesScaffoldFilesTransformer({ packageName: '@acme/hydration-recipes', scope: '@acme' });
  * // Returns the ordered RecipesScaffoldFile[]: package.json, tsconfig.json, tsconfig.build.json,
  * // jest.config.js, src/responders/responders.ts, src/index.ts, src/index.integration.test.ts, a startup file
  * // (plus its integration test), a flow (plus its integration test), and two responders (each with

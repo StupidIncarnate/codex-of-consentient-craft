@@ -6,7 +6,7 @@
  *
  * USAGE:
  * await untilFileWaitLayerBroker({
- *   homePath: AbsoluteFilePathStub(), file: UntilFilePathStub(), startedAtMs: Date.now(),
+ *   homePath: '/home/user/project/src/file.ts', file: 'guilds/g1/quests/q1/quest.json', startedAtMs: Date.now(),
  *   deadlineAtMs: Date.now() + 10000, timeoutMs: 10000,
  * });
  * // Resolves the reading once the file appears, or throws UntilCeilingHitError at the ceiling

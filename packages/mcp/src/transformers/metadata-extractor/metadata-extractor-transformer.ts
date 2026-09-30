@@ -3,7 +3,7 @@
  *
  * USAGE:
  * const metadata = metadataExtractorTransformer({
- *   fileContents: FileContentsStub({ value: '/** PURPOSE: Test\n...' })
+ *   fileContents: '/** PURPOSE: Test\n...'
  * });
  * // Returns: { purpose: 'Test', usage: '...', metadata: {...} }
  */

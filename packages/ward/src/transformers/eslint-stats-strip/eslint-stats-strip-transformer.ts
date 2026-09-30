@@ -6,7 +6,7 @@
  * back byte-for-byte unchanged.
  *
  * USAGE:
- * eslintStatsStripTransformer({ output: errorMessageContract.parse('[{"filePath":"a.ts","messages":[],"stats":{}}]') });
+ * eslintStatsStripTransformer({ output: '[{"filePath":"a.ts","messages":[],"stats":{}}]' });
  * // Returns '[{"filePath":"a.ts","messages":[]}]'
  */
 

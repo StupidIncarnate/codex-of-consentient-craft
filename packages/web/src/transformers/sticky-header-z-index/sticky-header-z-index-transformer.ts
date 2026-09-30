@@ -6,7 +6,7 @@
  * separates them, so the rank is derived from it.
  *
  * USAGE:
- * stickyHeaderZIndexTransformer({ stickyTop: cssPixelsContract.parse(23) });
+ * stickyHeaderZIndexTransformer({ stickyTop: 23 });
  * // Returns 77 — one band under the header pinned at 0 that this one stacks beneath
  */
 

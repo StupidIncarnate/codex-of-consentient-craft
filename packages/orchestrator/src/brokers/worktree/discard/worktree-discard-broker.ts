@@ -9,9 +9,9 @@
  *
  * USAGE:
  * const { discarded, output } = await worktreeDiscardBroker({
- *   repoRoot: AbsoluteFilePathStub({ value: '/repo' }),
- *   worktreePath: AbsoluteFilePathStub({ value: '/repo/worktrees/add-auth-7bc217a1' }),
- *   branchName: QuestBranchNameStub({ value: 'quest/add-auth-7bc217a1' }),
+ *   repoRoot: '/repo',
+ *   worktreePath: '/repo/worktrees/add-auth-7bc217a1',
+ *   branchName: 'quest/add-auth-7bc217a1',
  * });
  * // discarded is true only when both `git worktree remove` and `git branch -D` exited 0
  */

@@ -3,7 +3,7 @@
  *
  * USAGE:
  * const content = readFileLayerBroker({
- *   filePath: absoluteFilePathContract.parse('/repo/packages/server/src/flows/quest/quest-flow.ts'),
+ *   filePath: '/repo/packages/server/src/flows/quest/quest-flow.ts',
  * });
  * // Returns ContentText or undefined if file is missing
  *

@@ -9,8 +9,8 @@
  *
  * USAGE:
  * resultRowProjectTransformer({
- *   row: ContentTextStub({ value: '{"status":200,"responseBody":"ok","requestBody":null}' }),
- *   fields: [ResultFieldStub({ value: 'status' }), ResultFieldStub({ value: 'responseBody' })],
+ *   row: '{"status":200,"responseBody":"ok","requestBody":null}',
+ *   fields: ['status', 'responseBody'],
  * });
  * // Returns '{"status":200,"responseBody":"ok"}' as ContentText
  */

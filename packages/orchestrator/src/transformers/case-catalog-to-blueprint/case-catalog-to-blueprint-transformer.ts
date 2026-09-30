@@ -6,7 +6,7 @@
  * const { blueprint, workItems } = caseCatalogToBlueprintTransformer({
  *   suite: 'mcp',
  *   cases: smoketestCaseCatalogStatics.mcp,
- *   now: IsoTimestampStub(),
+ *   now: '2026-09-01T19:09:06.542Z',
  * });
  * // Returns a QuestBlueprint carrying one codeweaver operation item per case, plus N codeweaver work
  * // items linearly chained via dependsOn — each linked to its operation item via

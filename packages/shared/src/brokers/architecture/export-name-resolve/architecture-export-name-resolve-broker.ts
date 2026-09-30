@@ -6,7 +6,7 @@
  *
  * USAGE:
  * architectureExportNameResolveBroker({
- *   filePath: absoluteFilePathContract.parse('/repo/packages/server/src/brokers/quest/load/quest-load-broker.ts'),
+ *   filePath: '/repo/packages/server/src/brokers/quest/load/quest-load-broker.ts',
  * });
  * // Returns ContentText 'questLoadBroker' (when the file exports `export const questLoadBroker = ...`)
  *

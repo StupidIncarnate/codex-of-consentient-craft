@@ -3,7 +3,7 @@
  * true only where the barrel that condition names is actually on disk.
  *
  * USAGE:
- * const supported = sourceConditionSupportedBroker({ cwd: absoluteFilePathContract.parse('/repo/packages/ward') });
+ * const supported = sourceConditionSupportedBroker({ cwd: '/repo/packages/ward' });
  * // Returns true in this monorepo, false in a consumer's install
  *
  * WHY THE CONDITION IS WANTED: the jest configs ask for `source` through `testEnvironmentOptions`,

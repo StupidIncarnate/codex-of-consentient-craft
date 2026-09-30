@@ -18,7 +18,7 @@
  * this folder's condition, so it still resolves this package's exports through `gateway-dist`.
  *
  * USAGE:
- * gatewayPackageScaffoldFilesTransformer({ scope: PathSegmentStub({value: '@acme'}), folder: 'npm' });
+ * gatewayPackageScaffoldFilesTransformer({ scope: '@acme', folder: 'npm' });
  * // Returns the ScaffoldFile entries for packages/@gateway/npm, relative to that package's own root
  */
 

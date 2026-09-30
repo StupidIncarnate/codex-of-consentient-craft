@@ -6,7 +6,7 @@
  * previous one having failed.
  *
  * USAGE:
- * await readFirstExistingCandidateLayerBroker({ candidates: [filePathContract.parse('/repo/x.ts')] });
+ * await readFirstExistingCandidateLayerBroker({ candidates: ['/repo/x.ts'] });
  * // Returns: { filePath: '/repo/x.ts', content: '...' } or undefined when every candidate is absent
  */
 

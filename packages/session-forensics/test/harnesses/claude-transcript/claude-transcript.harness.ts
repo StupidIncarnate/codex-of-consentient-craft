@@ -10,7 +10,7 @@
  * const harness = claudeTranscriptHarness(); // created at describe scope
  * await harness.writeSession({
  *   sessionId: SessionIdStub({ value: 'abc-123' }),
- *   content: ContentTextStub({ value: '{"type":"assistant"}' }),
+ *   content: '{"type":"assistant"}',
  * });
  * // ...run the flow, capture its result...
  * // afterEach removes every project directory this harness instance created — the ts-jest AST

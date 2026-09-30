@@ -2,7 +2,7 @@
  * PURPOSE: Walks up from a starting directory looking for .dungeonmaster.json and returns its dungeonmaster.port field
  *
  * USAGE:
- * const port = portConfigWalkBroker({ dir: absoluteFilePathContract.parse('/project/packages/web') });
+ * const port = portConfigWalkBroker({ dir: '/project/packages/web' });
  * // Returns the port as NetworkPort if found and parseable, else undefined
  */
 

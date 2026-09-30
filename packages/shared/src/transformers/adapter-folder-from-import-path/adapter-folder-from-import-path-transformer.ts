@@ -4,7 +4,7 @@
  *
  * USAGE:
  * adapterFolderFromImportPathTransformer({
- *   importPath: contentTextContract.parse('../adapters/orchestrator/start-quest/orchestrator-start-quest-adapter'),
+ *   importPath: '../adapters/orchestrator/start-quest/orchestrator-start-quest-adapter',
  * });
  * // Returns ContentText 'adapters/orchestrator/start-quest'
  *

@@ -2,7 +2,7 @@
  * PURPOSE: Stub factory for WidgetContext contract
  *
  * USAGE:
- * const ctx = WidgetContextStub({ packageRoot: AbsoluteFilePathStub({ value: '/repo/packages/web' }) });
+ * const ctx = WidgetContextStub({ packageRoot: '/repo/packages/web' });
  * // Returns a validated WidgetContext with empty trees and edges by default
  */
 

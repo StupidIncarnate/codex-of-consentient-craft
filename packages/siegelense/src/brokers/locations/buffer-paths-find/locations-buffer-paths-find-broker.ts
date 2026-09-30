@@ -8,7 +8,7 @@
  *
  * USAGE:
  * locationsBufferPathsFindBroker({
- *   evidencePath: AbsoluteFilePathStub({ value: '/repo/.dungeonmaster-assets/siegelense-assets/guilds/g1/instances/inst_1' }),
+ *   evidencePath: '/repo/.dungeonmaster-assets/siegelense-assets/guilds/g1/instances/inst_1',
  * });
  * // Returns {
  * //   console: '/repo/.dungeonmaster-assets/siegelense-assets/guilds/g1/instances/inst_1/console.jsonl',

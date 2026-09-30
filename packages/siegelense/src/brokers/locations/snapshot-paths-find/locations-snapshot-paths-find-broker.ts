@@ -15,8 +15,8 @@
  *
  * USAGE:
  * locationsSnapshotPathsFindBroker({
- *   homePath: AbsoluteFilePathStub({ value: '/tmp/dm-siege-inst_1' }),
- *   ordinal: SnapshotOrdinalStub({ value: 2 }),
+ *   homePath: '/tmp/dm-siege-inst_1',
+ *   ordinal: 2,
  * });
  * // Returns {
  * //   storeDir: '/tmp/dm-siege-inst_1/.siegelense-snapshots',

@@ -2,7 +2,7 @@
  * PURPOSE: Writes a WardRunResult as JSON to .ward/run-<id>.json in the project root
  *
  * USAGE:
- * await storageSaveBroker({ rootPath: AbsoluteFilePathStub({ value: '/project' }), wardResult: WardRunResultStub() });
+ * await storageSaveBroker({ rootPath: '/project', wardResult: WardRunResultStub() });
  * // Creates .ward/run-1739625600000-a3f1.json with serialized WardRunResult
  */
 

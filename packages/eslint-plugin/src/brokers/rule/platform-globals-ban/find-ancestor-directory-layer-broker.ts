@@ -7,7 +7,7 @@
  * early return the moment the filesystem root repeats its own parent.
  *
  * USAGE:
- * findAncestorDirectoryLayerBroker({ startDir: filePathContract.parse('/repo/packages/@gateway/node/src/fs'), markerFileName: 'package.json' });
+ * findAncestorDirectoryLayerBroker({ startDir: '/repo/packages/@gateway/node/src/fs', markerFileName: 'package.json' });
  * // Returns '/repo/packages/@gateway/node' as FilePath, or undefined if no ancestor holds the marker
  */
 import { existsSync } from '#gateway/node/fs';

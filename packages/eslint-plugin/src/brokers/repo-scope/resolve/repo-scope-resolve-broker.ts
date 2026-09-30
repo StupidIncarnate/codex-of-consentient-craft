@@ -19,7 +19,7 @@
  * `workspaceScopeFromRootNameTransformer`'s `PathSegment`.
  *
  * USAGE:
- * repoScopeResolveBroker({ startDir: filePathContract.parse(__dirname) });
+ * repoScopeResolveBroker({ startDir: __dirname });
  * // Returns '@dungeonmaster' as branded PackageName, read from the repo root package.json's name
  */
 import { packageScopeFromNameTransformer } from '@dungeonmaster/shared/transformers';

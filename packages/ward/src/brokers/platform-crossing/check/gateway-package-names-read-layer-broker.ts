@@ -6,7 +6,7 @@
  * simply leaves that field absent.
  *
  * USAGE:
- * await gatewayPackageNamesReadLayerBroker({rootPath: filePathContract.parse('/repo')});
+ * await gatewayPackageNamesReadLayerBroker({rootPath: '/repo'});
  * // Returns: { node: '@dungeonmaster/node', bin: '@dungeonmaster/bin', browser: '@dungeonmaster/browser' }
  */
 

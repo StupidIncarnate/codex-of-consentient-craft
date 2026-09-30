@@ -6,8 +6,8 @@
  *
  * USAGE:
  * const proxy = DriverIdleWaitLayerResponderProxy();
- * proxy.setupLaneReady({ nowMs: EpochMsStub({ value: 1_000 }) });
- * proxy.stageNow({ ms: EpochMsStub({ value: 2_000 }) });
+ * proxy.setupLaneReady({ nowMs: 1_000 });
+ * proxy.stageNow({ ms: 2_000 });
  */
 
 import { registerSpyOn } from '@dungeonmaster/testing/register-mock';

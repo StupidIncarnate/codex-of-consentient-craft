@@ -6,7 +6,7 @@
  * finished session must never crash on that line.
  *
  * USAGE:
- * jsonlToRecordsTransformer({ contents: ContentTextStub({ value: '{"type":"assistant"}\n{"type":"us' }) });
+ * jsonlToRecordsTransformer({ contents: '{"type":"assistant"}\n{"type":"us' });
  * // Returns one TranscriptRecord for the first line. The truncated second line is dropped.
  */
 

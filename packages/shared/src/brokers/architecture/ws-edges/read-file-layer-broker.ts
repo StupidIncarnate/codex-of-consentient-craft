@@ -3,7 +3,7 @@
  *
  * USAGE:
  * const content = readFileLayerBroker({
- *   filePath: absoluteFilePathContract.parse('/repo/packages/orchestrator/src/state/orchestration-events-state.ts'),
+ *   filePath: '/repo/packages/orchestrator/src/state/orchestration-events-state.ts',
  * });
  * // Returns ContentText or undefined if file is missing
  *

@@ -5,7 +5,7 @@
  * when the question is what a fan-out actually spent, not what the parent asked for.
  *
  * USAGE:
- * subagentRosterLoadBroker({ sessionFilePath: AbsoluteFilePathStub({ value: '/h/.claude/projects/p/s.jsonl' }) });
+ * subagentRosterLoadBroker({ sessionFilePath: '/h/.claude/projects/p/s.jsonl' });
  * // Returns every sub-agent row under that session's subagents dir, sorted by start time ascending
  */
 

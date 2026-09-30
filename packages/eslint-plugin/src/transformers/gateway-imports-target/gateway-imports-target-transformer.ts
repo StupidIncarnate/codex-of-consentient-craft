@@ -8,7 +8,7 @@
  * USAGE:
  * gatewayImportsTargetTransformer({
  *   importsMap: { '#gateway/npm/*': '@dungeonmaster/npm/*' },
- *   specifier: importPathContract.parse('#gateway/npm/zod'),
+ *   specifier: '#gateway/npm/zod',
  * });
  * // Returns '@dungeonmaster/npm/zod' as branded ImportPath
  */

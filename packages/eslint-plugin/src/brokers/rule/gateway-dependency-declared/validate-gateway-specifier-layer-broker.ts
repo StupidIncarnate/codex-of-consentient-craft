@@ -16,7 +16,7 @@
  *   node,
  *   context,
  *   filename: '/repo/packages/hooks/src/x.ts',
- *   specifier: importPathContract.parse('#gateway/npm/zod'),
+ *   specifier: '#gateway/npm/zod',
  * });
  * // Returns false and reports via context when the specifier is unmapped or its target package is
  * // undeclared; returns true, reporting nothing, when the import already resolves to a declared

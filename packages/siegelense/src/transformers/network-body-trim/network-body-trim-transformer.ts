@@ -8,7 +8,7 @@
  * under the ceiling passes through unchanged, with no trailing ellipsis.
  *
  * USAGE:
- * networkBodyTrimTransformer({ body: ContentTextStub({ value: '<a>\n<b>' }) });
+ * networkBodyTrimTransformer({ body: '<a>\n<b>' });
  * // Returns '<a> <b>' as ContentText
  */
 

@@ -12,8 +12,8 @@
  *
  * USAGE:
  * await snapshotRestoreLayerBroker({
- *   homePath: AbsoluteFilePathStub({ value: '/tmp/instance-home' }),
- *   payloadPath: AbsoluteFilePathStub({ value: '/tmp/instance-home/.siegelense-snapshots/1' }),
+ *   homePath: '/tmp/instance-home',
+ *   payloadPath: '/tmp/instance-home/.siegelense-snapshots/1',
  * });
  * // Returns { files: 3, added: 1, modified: 1, removed: 1 }, plus `addedFolders` when home holds a
  * // folder the snapshot never did (the key is absent otherwise)

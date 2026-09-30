@@ -9,7 +9,7 @@
  * note on notifying the browser.
  *
  * USAGE:
- * await plannedWorkWriteBroker({ questFolderPath: AbsoluteFilePathStub(), operationItemId: OperationItemIdStub(), plan: WorkPlanStub() });
+ * await plannedWorkWriteBroker({ questFolderPath: '/home/user/project/src/file.ts', operationItemId: OperationItemIdStub(), plan: WorkPlanStub() });
  * // Writes <questFolderPath>/planned-work/<operationItemId>.json and returns { success: true }
  */
 

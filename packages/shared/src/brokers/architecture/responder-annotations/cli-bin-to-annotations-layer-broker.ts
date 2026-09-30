@@ -5,7 +5,7 @@
  *
  * USAGE:
  * const annotations = cliBinToAnnotationsLayerBroker({
- *   packageRoot: absoluteFilePathContract.parse('/repo/packages/ward'),
+ *   packageRoot: '/repo/packages/ward',
  * });
  * // Returns ResponderAnnotationMap keyed by startup file path
  *

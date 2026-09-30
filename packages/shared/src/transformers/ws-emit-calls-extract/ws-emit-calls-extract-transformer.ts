@@ -4,7 +4,7 @@
  *
  * USAGE:
  * const types = wsEmitCallsExtractTransformer({
- *   source: contentTextContract.parse("orchestrationEventsState.emit({ type: 'chat-output', processId });"),
+ *   source: "orchestrationEventsState.emit({ type: 'chat-output', processId });",
  * });
  * // Returns ['chat-output']
  *

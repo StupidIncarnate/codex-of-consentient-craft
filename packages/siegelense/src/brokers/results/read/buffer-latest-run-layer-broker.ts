@@ -9,7 +9,7 @@
  * `null`, the same "nothing recorded" `bufferReadLayerBroker` answers `[]` for.
  *
  * USAGE:
- * await bufferLatestRunLayerBroker({ bufferPath: AbsoluteFilePathStub({ value: '/repo/.../network.jsonl' }) });
+ * await bufferLatestRunLayerBroker({ bufferPath: '/repo/.../network.jsonl' });
  * // Returns { runId: 'run_5', rows: 7 } when run_5 is the last run with network lines
  */
 

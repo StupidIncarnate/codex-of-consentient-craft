@@ -4,7 +4,7 @@
  * package.json answers false, so the walk keeps climbing.
  *
  * USAGE:
- * binWorkspaceRootLayerBroker({ dir: AbsoluteFilePathStub({ value: '/repo' }) });
+ * binWorkspaceRootLayerBroker({ dir: '/repo' });
  * // Returns true when /repo/package.json has workspaces: ['packages/*']
  */
 

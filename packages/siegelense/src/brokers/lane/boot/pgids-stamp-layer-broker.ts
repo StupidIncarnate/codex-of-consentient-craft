@@ -7,7 +7,7 @@
  * rewrites `pgids` alone.
  *
  * USAGE:
- * await pgidsStampLayerBroker({ instanceId: InstanceIdStub(), pgids: [ProcessGroupIdStub({ value: 2001 })] });
+ * await pgidsStampLayerBroker({ instanceId: InstanceIdStub(), pgids: [2001] });
  * // Rewrites that row's pgids; every other row and field is left as it was
  */
 

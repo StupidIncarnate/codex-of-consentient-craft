@@ -2,7 +2,7 @@
  * PURPOSE: Atomically stamps a smoketestPromptOverride onto a single work item under the quest-modify lock
  *
  * USAGE:
- * await smoketestStampOverrideBroker({ questId, workItemId, override: PromptTextStub() });
+ * await smoketestStampOverrideBroker({ questId, workItemId, override: 'canned prompt text' });
  * // Reads the quest under the lock, mutates one work item, persists atomically. No-op if already stamped.
  *
  * WHEN-TO-USE: The smoketest scenario driver stamps canned overrides on dynamically-inserted work items

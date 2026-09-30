@@ -4,9 +4,9 @@
  *
  * USAGE:
  * const lines = responderLinesRenderLayerBroker({
- *   flowFile: absoluteFilePathContract.parse('/repo/packages/server/src/flows/server/server-flow.ts'),
- *   packageSrcPath: absoluteFilePathContract.parse('/repo/packages/server/src'),
- *   renderingFilePath: absoluteFilePathContract.parse('/repo/packages/server/src/startup/start-server.ts'),
+ *   flowFile: '/repo/packages/server/src/flows/server/server-flow.ts',
+ *   packageSrcPath: '/repo/packages/server/src',
+ *   renderingFilePath: '/repo/packages/server/src/startup/start-server.ts',
  * });
  * // Returns ContentText[] with route lines, ↳ responder lines, → adapter lines, and ↳ flows/... recursion
  *

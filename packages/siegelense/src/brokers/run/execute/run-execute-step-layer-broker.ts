@@ -50,8 +50,8 @@
  *
  * USAGE:
  * await runExecuteStepLayerBroker({
- *   lane, step: StepStub({ step: 'goto', path: UrlPathStub() }),
- *   index: StepIndexStub({ value: 3 }), shotPath: null, browserWindowStart: null,
+ *   lane, step: StepStub({ step: 'goto', path: '/api/guilds' }),
+ *   index: 3, shotPath: null, browserWindowStart: null,
  *   lastShotPath: driverSessionState.lastShotPath, setLastShotPath: driverSessionState.setLastShotPath,
  *   outputs: () => ({}), recordOutput: () => {},
  * });

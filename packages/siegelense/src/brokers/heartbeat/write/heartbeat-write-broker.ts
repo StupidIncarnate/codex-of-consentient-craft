@@ -26,8 +26,8 @@
  * USAGE:
  * await heartbeatWriteBroker({
  *   instanceId: InstanceIdStub(),
- *   pid: ProcessIdStub(),
- *   pgids: [ProcessGroupIdStub()],
+ *   pid: 'proc-12345',
+ *   pgids: [12345],
  *   guildId: null,
  * });
  * // Writes heartbeat.json under the instance's evidence dir, stamps its registry row, and returns

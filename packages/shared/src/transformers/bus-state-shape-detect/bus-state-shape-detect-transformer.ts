@@ -5,11 +5,9 @@
  *
  * USAGE:
  * const exportName = busStateShapeDetectTransformer({
- *   source: contentTextContract.parse(
- *     'export const myBus = { emit: () => {}, on: () => {} };',
- *   ),
+ *   source: 'export const myBus = { emit: () => {}, on: () => {} };',
  * });
- * // Returns ContentText 'myBus', or null when the source does not look like a bus.
+ * // Returns 'myBus', or null when the source does not look like a bus.
  *
  * WHEN-TO-USE: Event-bus discovery layer broker scanning `state/` folders for the
  * pub/sub-shape state singletons that drive the project-map's inline bus annotations.

@@ -2,7 +2,7 @@
  * PURPOSE: Extracts network log content from between __NETWORK_LOG__ delimiters in raw test output
  *
  * USAGE:
- * extractNetworkLogTransformer({ rawOutput: errorMessageContract.parse('before\n__NETWORK_LOG__\nGET /api 200\n__NETWORK_LOG_END__\nafter') });
+ * extractNetworkLogTransformer({ rawOutput: 'before\n__NETWORK_LOG__\nGET /api 200\n__NETWORK_LOG_END__\nafter' });
  * // Returns 'GET /api 200' as ErrorMessage
  */
 

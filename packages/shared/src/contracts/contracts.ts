@@ -2,7 +2,7 @@
  * PURPOSE: Barrel export file for all shared contract types and schemas
  *
  * USAGE:
- * import { absoluteFilePathContract, type AbsoluteFilePath } from '@dungeonmaster/shared/contracts';
+ * import { questContract, type Quest } from '@dungeonmaster/shared/contracts';
  * // Returns branded Zod schemas for type-safe validation
  */
 

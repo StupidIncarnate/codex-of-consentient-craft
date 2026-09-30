@@ -10,7 +10,7 @@
  * stays pure against whatever single clock reading `cleanupRunBroker` took for its whole pass.
  *
  * USAGE:
- * await lockReleaseLayerBroker({ nowMs: EpochMsStub() });
+ * await lockReleaseLayerBroker({ nowMs: 1_700_000_000_000 });
  * // Both locks absent or fresh: { lockReleased: false }.
  * // Either past its own TTL: unlinks it, { lockReleased: true }.
  */

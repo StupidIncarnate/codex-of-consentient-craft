@@ -6,7 +6,7 @@
  * as "absent" and overwrites the user's other settings with a file holding only our permissions.
  *
  * USAGE:
- * await settingsPermissionsAddBroker({ targetProjectRoot: PathSegmentStub() });
+ * await settingsPermissionsAddBroker({ targetProjectRoot: 'src/guards/is-thing-guard.ts' });
  * // Creates/updates .claude/settings.json with the MCP tool + git permissions in permissions.allow
  *
  * Third-party entries already in `allow` are preserved verbatim. Stale dungeonmaster MCP grants

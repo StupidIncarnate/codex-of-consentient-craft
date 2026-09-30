@@ -16,7 +16,7 @@
  *   matches: (parsed) => parsed.method === 'POST',
  *   descriptor: 'response POST /api/quests',
  *   buildReading: ({ parsed, waitedMs }) =>
- *     contentTextContract.parse(`POST /api/quests answered ${String(parsed.status)} after ${String(waitedMs)}ms`),
+ *     `POST /api/quests answered ${String(parsed.status)} after ${String(waitedMs)}ms`,
  * });
  * // Resolves the reading once a line matches, or throws UntilCeilingHitError at the ceiling
  */

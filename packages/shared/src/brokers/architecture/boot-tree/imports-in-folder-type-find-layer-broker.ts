@@ -5,8 +5,8 @@
  *
  * USAGE:
  * const { entries, layers } = importsInFolderTypeFindLayerBroker({
- *   sourceFile: absoluteFilePathContract.parse('/repo/packages/server/src/startup/start-server.ts'),
- *   packageSrcPath: absoluteFilePathContract.parse('/repo/packages/server/src'),
+ *   sourceFile: '/repo/packages/server/src/startup/start-server.ts',
+ *   packageSrcPath: '/repo/packages/server/src',
  *   folderType: 'flows',
  * });
  * // Returns { entries: AbsoluteFilePath[]; layers: AbsoluteFilePath[] }

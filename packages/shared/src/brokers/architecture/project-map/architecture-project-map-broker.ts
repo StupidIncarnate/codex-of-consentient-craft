@@ -5,8 +5,8 @@
  *
  * USAGE:
  * const markdown = await architectureProjectMapBroker({
- *   projectRoot: absoluteFilePathContract.parse('/home/user/project'),
- *   packages: [packageNameContract.parse('mcp'), packageNameContract.parse('shared')],
+ *   projectRoot: '/home/user/project',
+ *   packages: ['mcp', 'shared'],
  * });
  * // Returns ContentText markdown with symbol legend, per-package sections, and pointer footer
  *

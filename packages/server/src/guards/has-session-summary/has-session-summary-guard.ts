@@ -2,7 +2,7 @@
  * PURPOSE: Checks whether a session list entry has an extracted summary for display
  *
  * USAGE:
- * hasSessionSummaryGuard({ session: { summary: SessionSummaryStub() } }); // true
+ * hasSessionSummaryGuard({ session: { summary: 'Built login' } }); // true
  * hasSessionSummaryGuard({ session: {} }); // false
  */
 

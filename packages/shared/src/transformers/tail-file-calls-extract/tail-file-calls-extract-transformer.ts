@@ -5,7 +5,7 @@
  *
  * USAGE:
  * const calls = tailFileCallsExtractTransformer({
- *   source: contentTextContract.parse("import { tailFile } from '#gateway/node/fs';\ntailFile({ path: '/a.jsonl', onLine });"),
+ *   source: "import { tailFile } from '#gateway/node/fs';\ntailFile({ path: '/a.jsonl', onLine });",
  * });
  * // Returns [{ filePathArg: '/a.jsonl' }]
  *

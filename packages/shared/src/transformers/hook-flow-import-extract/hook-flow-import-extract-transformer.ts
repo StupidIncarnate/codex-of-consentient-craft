@@ -3,7 +3,7 @@
  * from TypeScript source text. Used to trace from a startup file to its flow/responder target.
  *
  * USAGE:
- * const flowPath = hookFlowImportExtractTransformer({ source: contentTextContract.parse(src) });
+ * const flowPath = hookFlowImportExtractTransformer({ source: src });
  * // Returns ContentText('../flows/hook-pre-edit/hook-pre-edit-flow') or undefined if none found
  *
  * WHEN-TO-USE: hook-handlers headline renderer tracing startup → flow → responder chain

@@ -4,8 +4,8 @@
  *
  * USAGE:
  * const rootPaths = findRootWidgetImportsLayerBroker({
- *   packageSrcPath: absoluteFilePathContract.parse('/repo/packages/web/src'),
- *   widgetFilePaths: [absoluteFilePathContract.parse('/repo/.../quest-chat-widget.tsx')],
+ *   packageSrcPath: '/repo/packages/web/src',
+ *   widgetFilePaths: ['/repo/.../quest-chat-widget.tsx'],
  * });
  * // Returns the subset of widgetFilePaths imported by any file in responders/ or flows/
  *

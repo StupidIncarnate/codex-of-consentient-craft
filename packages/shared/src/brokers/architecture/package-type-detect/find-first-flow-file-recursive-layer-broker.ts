@@ -2,7 +2,7 @@
  * PURPOSE: Recursively finds the absolute path of the first flow file (*-flow.ts) within a directory tree
  *
  * USAGE:
- * const path = findFirstFlowFileRecursiveLayerBroker({ dirPath: absoluteFilePathContract.parse('/project/src/flows') });
+ * const path = findFirstFlowFileRecursiveLayerBroker({ dirPath: '/project/src/flows' });
  * // Returns '/project/src/flows/quest/quest-flow.ts' as AbsoluteFilePath or undefined if not found
  *
  * WHEN-TO-USE: During package-type detection to locate a flow file for content inspection

@@ -12,8 +12,8 @@
  *
  * USAGE:
  * claudePathSlugEncoderTransformer({
- *   homeDir: AbsoluteFilePathStub({ value: '/home/user' }),
- *   projectPath: AbsoluteFilePathStub({ value: '/home/user/my-project' }),
+ *   homeDir: '/home/user',
+ *   projectPath: '/home/user/my-project',
  * });
  * // Returns AbsoluteFilePath '/home/user/.claude/projects/-home-user-my-project'
  */

@@ -8,7 +8,7 @@
  * override the derived one.
  *
  * USAGE:
- * guildPathDeriveTransformer({ target, path: guildPathContract.parse('guilds-under-test/guild-1') });
+ * guildPathDeriveTransformer({ target, path: 'guilds-under-test/guild-1' });
  * // Returns '<target.home>/guilds-under-test/guild-1' as GuildPath
  */
 

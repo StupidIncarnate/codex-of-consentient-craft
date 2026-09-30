@@ -27,8 +27,8 @@
  *   entry: RegistryEntryStub(),
  *   state: InstanceStateStub({ value: 'dead' }),
  *   named: true,
- *   nowMs: EpochMsStub(),
- *   oomKillsSinceBoot: ReadingCountStub({ value: 2 }),
+ *   nowMs: 1_700_000_000_000,
+ *   oomKillsSinceBoot: 2,
  * });
  * // Returns a validated InstanceStatus
  */

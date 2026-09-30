@@ -7,7 +7,7 @@
  *   resolved (package or its build absent).
  *
  * USAGE:
- * const distPath = webBundleDistPathBroker({ packageName: PackageNameStub({ value: '@dungeonmaster/web' }) });
+ * const distPath = webBundleDistPathBroker({ packageName: '@dungeonmaster/web' });
  * // FilePath to <...>/@dungeonmaster/web/dist, or null when unavailable
  */
 import { existsSync } from '#gateway/node/fs';

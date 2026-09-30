@@ -4,11 +4,11 @@
  *
  * USAGE:
  * const names = mcpToolNamesExtractTransformer({
- *   source: contentTextContract.parse(`[
+ *   source: `[
  *     { name: 'discover' as never, description: '...' as never, inputSchema: ..., handler: ... },
- *   ]`),
+ *   ]`,
  * });
- * // Returns ['discover'] as ContentText[]
+ * // Returns ['discover'] as string[]
  *
  * WHEN-TO-USE: mcp-server headline broker extracting tool names from flow source
  * WHEN-NOT-TO-USE: When full AST parsing is needed — this is a v1 regex heuristic

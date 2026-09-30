@@ -11,7 +11,7 @@
  *
  * USAGE:
  * checkGatewayExportNameExistsLayerBroker({
- *   barrelPath: filePathContract.parse('/repo/packages/@gateway/node/src/fs__promises/fs__promises.ts'),
+ *   barrelPath: '/repo/packages/@gateway/node/src/fs__promises/fs__promises.ts',
  *   name: 'appendFile',
  * });
  * // Returns true

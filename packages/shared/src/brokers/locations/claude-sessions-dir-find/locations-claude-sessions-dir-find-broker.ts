@@ -2,7 +2,7 @@
  * PURPOSE: Resolves the Claude CLI sessions directory for a given guild path — encodes guildPath into the projects-dir slug
  *
  * USAGE:
- * locationsClaudeSessionsDirFindBroker({ guildPath: AbsoluteFilePathStub({ value: '/home/user/my-project' }) });
+ * locationsClaudeSessionsDirFindBroker({ guildPath: '/home/user/my-project' });
  * // Returns AbsoluteFilePath '/home/user/.claude/projects/-home-user-my-project'
  */
 

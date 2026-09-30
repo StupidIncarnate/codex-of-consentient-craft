@@ -14,7 +14,7 @@
  * name merely begins with the target is never mistaken for a path inside it).
  *
  * USAGE:
- * await guildDirectoryEnsureBroker({ target, path: guildPathContract.parse('/tmp/dm-home/guilds-under-test/guild-1') });
+ * await guildDirectoryEnsureBroker({ target, path: '/tmp/dm-home/guilds-under-test/guild-1' });
  * // Creates the directory when it resolves inside target.home; no-ops otherwise
  */
 import { ensureDir } from '#gateway/node/fs__promises';

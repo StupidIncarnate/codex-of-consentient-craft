@@ -2,7 +2,7 @@
  * PURPOSE: Updates an existing guild's name and/or path in the dungeonmaster config
  *
  * USAGE:
- * const updated = await guildUpdateBroker({ guildId: GuildIdStub(), name: GuildNameStub({ value: 'New Name' }) });
+ * const updated = await guildUpdateBroker({ guildId: GuildIdStub(), name: 'New Name' });
  * // Returns: Updated Guild object
  * // Throws if guild not found or path already in use by another guild
  */

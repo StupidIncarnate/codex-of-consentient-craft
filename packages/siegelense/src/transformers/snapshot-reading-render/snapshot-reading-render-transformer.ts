@@ -4,7 +4,7 @@
  * and governed by snapshotStatics.
  *
  * USAGE:
- * snapshotReadingRenderTransformer({ name: SnapshotNameStub({ value: 'clean' }) });
+ * snapshotReadingRenderTransformer({ name: 'clean' });
  * // Returns 'snapshot "clean" recorded' as ContentText
  */
 

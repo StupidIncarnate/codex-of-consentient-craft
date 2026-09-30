@@ -17,7 +17,7 @@
  *
  * USAGE:
  * runIndexComputeTransformer({
- *   consoleLines: [ContentTextStub({ value: '{"at":1,"kind":"console","type":"error","text":"x","url":"","line":0}' })],
+ *   consoleLines: ['{"at":1,"kind":"console","type":"error","text":"x","url":"","line":0}'],
  *   networkLines: [], serverLines: [],
  * });
  * // Returns a validated RunIndex counting only those lines

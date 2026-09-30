@@ -4,7 +4,7 @@
  * keeps every rule's errors and reports absolute paths.
  *
  * USAGE:
- * eslintJsonToScanViolationsTransformer({ jsonOutput: '[{"filePath":"/repo/a.ts","messages":[{"ruleId":"no-console","line":3,"message":"No."}]}]', rule: ScanRuleNameStub({ value: 'no-console' }), rootPath: AbsoluteFilePathStub({ value: '/repo' }) });
+ * eslintJsonToScanViolationsTransformer({ jsonOutput: '[{"filePath":"/repo/a.ts","messages":[{"ruleId":"no-console","line":3,"message":"No."}]}]', rule: 'no-console', rootPath: '/repo' });
  * // Returns: [{ file: 'a.ts', line: 3, message: 'No.' }]
  */
 

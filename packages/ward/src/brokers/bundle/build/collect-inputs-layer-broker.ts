@@ -9,7 +9,7 @@
  * a rebuild that changes not one byte of the output.
  *
  * USAGE:
- * await collectInputsLayerBroker({ packageRoot: AbsoluteFilePathStub({ value: '/repo/packages/web' }) });
+ * await collectInputsLayerBroker({ packageRoot: '/repo/packages/web' });
  * // Returns the workspace root plus the workspace-relative path of every input file
  */
 

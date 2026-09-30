@@ -34,7 +34,7 @@
  * USAGE:
  * await walkGatewayCrossingsLayerBroker({
  *   filePath: entryFilePath, content: entryContent, requestedNames: 'all',
- *   pathHistory: [entryFilePath], chainLabels: [], knownPackages, forbiddenPackageNames: [GatewayPackageNameStub()],
+ *   pathHistory: [entryFilePath], chainLabels: [], knownPackages, forbiddenPackageNames: ['@dungeonmaster/npm'],
  * });
  * // Returns: readonly PlatformCrossingChainHop[][] — the first chain reached to each forbidden import
  */
