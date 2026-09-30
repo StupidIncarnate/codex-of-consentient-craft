@@ -12,10 +12,10 @@ import { z } from '#gateway/npm/zod';
 
 export const workspaceRootPackageJsonContract = z
   .object({
-    name: z.string().brand<'PackageJsonName'>(),
+    name: z.string().brand<'WorkspaceRootPackageJsonName'>(),
     workspaces: z.union([
-      z.array(z.string().brand<'WorkspaceGlob'>()),
-      z.record(z.string().brand<'WorkspaceGlob'>(), z.unknown()),
+      z.array(z.string().brand<'WorkspaceRootPackageJsonWorkspaces'>()),
+      z.record(z.string().brand<'WorkspaceRootPackageJsonWorkspacesKey'>(), z.unknown()),
     ]),
   })
   .loose().brand<'WorkspaceRootPackageJson'>();

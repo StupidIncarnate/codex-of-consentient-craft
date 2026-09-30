@@ -13,16 +13,16 @@
 import { z } from '#gateway/npm/zod';
 
 export const tsconfigOptionsContract = z.object({
-  target: z.string().brand<'TsTarget'>().optional(),
-  module: z.string().brand<'TsModule'>().optional(),
-  lib: z.array(z.string().brand<'TsLibEntry'>()).optional(),
+  target: z.string().brand<'TsconfigOptionsTarget'>().optional(),
+  module: z.string().brand<'TsconfigOptionsModule'>().optional(),
+  lib: z.array(z.string().brand<'TsconfigOptionsLib'>()).optional(),
   strict: z.boolean().optional(),
   noEmit: z.boolean().optional(),
   esModuleInterop: z.boolean().optional(),
   skipLibCheck: z.boolean().optional(),
   forceConsistentCasingInFileNames: z.boolean().optional(),
   resolveJsonModule: z.boolean().optional(),
-  moduleResolution: z.string().brand<'ModuleResolution'>().optional(),
+  moduleResolution: z.string().brand<'TsconfigOptionsModuleResolution'>().optional(),
   allowJs: z.boolean().optional(),
   checkJs: z.boolean().optional(),
   noUnusedLocals: z.boolean().optional(),

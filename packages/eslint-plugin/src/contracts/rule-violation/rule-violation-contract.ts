@@ -24,9 +24,9 @@ type SuggestionDescription = z.infer<typeof _suggestionDescriptionContract>;
 export const ruleViolationContract = z
   .object({
     node: z.unknown(),
-    message: z.string().min(1).brand<'ViolationMessage'>(),
-    messageId: z.string().brand<'MessageId'>().optional(),
-    data: z.record(z.string().brand<'ViolationDataKey'>(), z.unknown()).optional(),
+    message: z.string().min(1).brand<'RuleViolationMessage'>(),
+    messageId: z.string().brand<'RuleViolationMessageId'>().optional(),
+    data: z.record(z.string().brand<'RuleViolationDataKey'>(), z.unknown()).optional(),
   })
   .loose().brand<'RuleViolation'>();
 

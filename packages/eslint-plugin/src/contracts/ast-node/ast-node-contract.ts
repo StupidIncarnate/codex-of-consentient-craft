@@ -11,21 +11,21 @@ export const astNodeContract = z.object({
   type: z.string().min(1).brand<'AstNodeType'>(),
   range: z
     .tuple([
-      z.number().int().min(0).brand<'SourcePosition'>(),
-      z.number().int().min(0).brand<'SourcePosition'>(),
+      z.number().int().min(0).brand<'AstNodeRange0'>(),
+      z.number().int().min(0).brand<'AstNodeRange1'>(),
     ])
     .optional(),
   loc: z
     .object({
       start: z.object({
-        line: z.number().int().positive().brand<'LineNumber'>(),
-        column: z.number().int().min(0).brand<'ColumnNumber'>(),
-      }),
+        line: z.number().int().positive().brand<'AstNodeLocStartLine'>(),
+        column: z.number().int().min(0).brand<'AstNodeLocStartColumn'>(),
+      }).brand<'AstNodeLocStart'>(),
       end: z.object({
-        line: z.number().int().positive().brand<'LineNumber'>(),
-        column: z.number().int().min(0).brand<'ColumnNumber'>(),
-      }),
-    })
+        line: z.number().int().positive().brand<'AstNodeLocEndLine'>(),
+        column: z.number().int().min(0).brand<'AstNodeLocEndColumn'>(),
+      }).brand<'AstNodeLocEnd'>(),
+    }).brand<'AstNodeLoc'>()
     .optional(),
   parent: z.unknown().optional(),
 }).brand<'AstNode'>();

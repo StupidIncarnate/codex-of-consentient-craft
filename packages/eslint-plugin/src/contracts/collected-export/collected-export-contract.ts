@@ -9,7 +9,7 @@
 import { z } from '#gateway/npm/zod';
 
 export const collectedExportContract = z.object({
-  type: z.string().brand<'TsestreeNodeType'>(),
+  type: z.string().brand<'CollectedExportType'>(),
   name: z.string().brand<'CollectedExportName'>().optional(),
   isTypeOnly: z.boolean(),
 }).brand<'CollectedExport'>();

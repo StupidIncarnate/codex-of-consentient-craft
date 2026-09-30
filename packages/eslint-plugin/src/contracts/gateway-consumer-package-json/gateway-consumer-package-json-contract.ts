@@ -20,11 +20,11 @@ const gatewayImportsTargetContract = z.union([
   z.string().brand<'GatewayImportsTarget'>(),
   z
     .object({
-      source: z.string().brand<'GatewayImportsTarget'>().optional(),
-      import: z.string().brand<'GatewayImportsTarget'>().optional(),
-      require: z.string().brand<'GatewayImportsTarget'>().optional(),
-      default: z.string().brand<'GatewayImportsTarget'>().optional(),
-    })
+      source: z.string().brand<'GatewayImportsTargetSource'>().optional(),
+      import: z.string().brand<'GatewayImportsTargetImport'>().optional(),
+      require: z.string().brand<'GatewayImportsTargetRequire'>().optional(),
+      default: z.string().brand<'GatewayImportsTargetDefault'>().optional(),
+    }).brand<'GatewayImportsTarget'>()
     .loose(),
 ]);
 
@@ -32,10 +32,10 @@ export const gatewayConsumerPackageJsonContract = z
   .object({
     name: z.string().min(1).brand<'GatewayConsumerPackageJsonName'>(),
     imports: z
-      .record(z.string().brand<'GatewayImportsSpecifier'>(), gatewayImportsTargetContract)
+      .record(z.string().brand<'GatewayConsumerPackageJsonImportsKey'>(), gatewayImportsTargetContract)
       .optional(),
-    dependencies: z.record(z.string().min(1).brand<'GatewayConsumerPackageJsonDependencies'>(), z.string().brand<'DepVersion'>()).optional(),
-    devDependencies: z.record(z.string().min(1).brand<'GatewayConsumerPackageJsonDevDependencies'>(), z.string().brand<'DepVersion'>()).optional(),
+    dependencies: z.record(z.string().min(1).brand<'GatewayConsumerPackageJsonDependenciesKey'>(), z.string().brand<'GatewayConsumerPackageJsonDependencies'>()).optional(),
+    devDependencies: z.record(z.string().min(1).brand<'GatewayConsumerPackageJsonDevDependenciesKey'>(), z.string().brand<'GatewayConsumerPackageJsonDevDependencies'>()).optional(),
   })
   .loose().brand<'GatewayConsumerPackageJson'>();
 
