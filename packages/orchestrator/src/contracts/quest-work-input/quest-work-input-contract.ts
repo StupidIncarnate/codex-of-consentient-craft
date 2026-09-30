@@ -32,7 +32,6 @@ import { z } from '#gateway/npm/zod';
 
 import { questNoteContract, stepNameContract, unitObservationContract, unitObservationFieldsContract, questContract, workItemContract, flowContract } from '@dungeonmaster/shared/contracts';
 
-import { isoTimestampContract } from '../iso-timestamp/iso-timestamp-contract';
 import { stepOutcomeContract } from '../step-outcome/step-outcome-contract';
 import { workPlanContract } from '../work-plan/work-plan-contract';
 import { workPlanFieldsContract } from '../work-plan-fields/work-plan-fields-contract';
@@ -118,7 +117,7 @@ export const questWorkInputContract = z
     // rules (plannerMarks legality, the units 1:1 check, cant-meet/toSettle pairing); the real
     // server-side timestamp is stamped again in the broker, after this parse has already accepted
     // the call.
-    const placeholderAt = isoTimestampContract.parse(new Date().toISOString());
+    const placeholderAt = new Date().toISOString();
 
     if (value.payload.kind === 'plan' || value.payload.kind === 'amendment') {
       const rehydrated = workPlanContract.safeParse({

@@ -14,12 +14,11 @@
  */
 import { z } from '#gateway/npm/zod';
 
-import { isoTimestampContract } from '../iso-timestamp/iso-timestamp-contract';
 
 export const timeBucketContract = z
   .object({
-    windowStart: isoTimestampContract,
-    windowEnd: isoTimestampContract,
+    windowStart: z.iso.datetime().brand<'TimeBucketWindowStart'>(),
+    windowEnd: z.iso.datetime().brand<'TimeBucketWindowEnd'>(),
     apiResponseCount: z.number().int().nonnegative(),
     toolCallCount: z.number().int().nonnegative(),
     outputTokens: z.number().int().nonnegative(),

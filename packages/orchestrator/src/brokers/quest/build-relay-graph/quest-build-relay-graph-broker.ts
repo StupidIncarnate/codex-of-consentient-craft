@@ -32,7 +32,6 @@ import type { OperationItem, Quest, WorkItem } from '@dungeonmaster/shared/contr
 import { isChatWorkItemRoleGuard, isCommandWorkItemRoleGuard } from '@dungeonmaster/shared/guards';
 import { questFlowStatics } from '@dungeonmaster/shared/statics';
 
-import type { IsoTimestamp } from '../../../contracts/iso-timestamp/iso-timestamp-contract';
 import { agentFlowStatics } from '../../../statics/agent-flow/agent-flow-statics';
 import { familyScopesMintTransformer } from '../../../transformers/family-scopes-mint/family-scopes-mint-transformer';
 import { operationsCodeweaverOrderTransformer } from '../../../transformers/operations-codeweaver-order/operations-codeweaver-order-transformer';
@@ -47,7 +46,7 @@ export const questBuildRelayGraphBroker = ({
 }: {
   quest: Quest;
   priorWorkItemIds: WorkItem['id'][];
-  now: IsoTimestamp;
+  now: string;
 }): { operations: OperationItem[]; workItems: WorkItem[] } => {
   const entryFamily = questFlowStatics[quest.questType].entry;
 

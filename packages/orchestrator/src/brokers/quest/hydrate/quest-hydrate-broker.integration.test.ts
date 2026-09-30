@@ -2,7 +2,6 @@ import { installTestbedCreateBroker } from '@dungeonmaster/testing';
 import { GetQuestInputStub } from '@dungeonmaster/shared/contracts/get-quest-input/get-quest-input.stub';
 import { GuildNameStub } from '@dungeonmaster/shared/contracts/guild-name/guild-name.stub';
 
-import { IsoTimestampStub } from '../../../contracts/iso-timestamp/iso-timestamp.stub';
 import { QuestBlueprintStub } from '../../../contracts/quest-blueprint/quest-blueprint.stub';
 import { smoketestBlueprintsStatics } from '../../../statics/smoketest-blueprints/smoketest-blueprints-statics';
 import { orchestrationEnvironmentHarness } from '../../../../test/harnesses/orchestration-environment/orchestration-environment.harness';
@@ -287,8 +286,8 @@ describe('questHydrateBroker', () => {
     });
     const blueprint = QuestBlueprintStub(smoketestBlueprintsStatics.minimal);
 
-    const fixedCreatedAt = IsoTimestampStub({ value: '2024-01-01T00:00:00.000Z' });
-    const fixedUpdatedAt = IsoTimestampStub({ value: '2024-06-15T12:30:00.000Z' });
+    const fixedCreatedAt = '2024-01-01T00:00:00.000Z';
+    const fixedUpdatedAt = '2024-06-15T12:30:00.000Z';
 
     const { questId } = await questHydrateBroker({
       blueprint,

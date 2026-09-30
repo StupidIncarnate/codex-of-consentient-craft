@@ -20,7 +20,6 @@ import type { Quest, WorkItem, OperationItem } from '@dungeonmaster/shared/contr
 import { locationsStatics } from '@dungeonmaster/shared/statics';
 
 import type { QuestWorkInput } from '../../../contracts/quest-work-input/quest-work-input-contract';
-import { isoTimestampContract } from '../../../contracts/iso-timestamp/iso-timestamp-contract';
 import { workPlanContract } from '../../../contracts/work-plan/work-plan-contract';
 import { workPlanValidateTransformer } from '../../../transformers/work-plan-validate/work-plan-validate-transformer';
 import { plannedWorkWriteBroker } from '../../planned-work/write/planned-work-write-broker';
@@ -56,7 +55,7 @@ export const questWorkPlanWriteBroker = async ({
       const stamped = {
         ...plan,
         writtenBy: workItemId,
-        writtenAt: isoTimestampContract.parse(new Date().toISOString()),
+        writtenAt: new Date().toISOString(),
       };
 
       const failures = workPlanValidateTransformer({ quest, workItem, plan: stamped });

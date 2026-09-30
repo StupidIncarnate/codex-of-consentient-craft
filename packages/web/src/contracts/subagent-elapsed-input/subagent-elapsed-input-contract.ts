@@ -12,7 +12,6 @@
 
 import { z } from '#gateway/npm/zod';
 
-import { isoTimestampContract } from '../iso-timestamp/iso-timestamp-contract';
 
 const taskNotificationDurationMsContract = z
   .number()
@@ -23,14 +22,14 @@ const taskNotificationDurationMsContract = z
 const completionDurationMsContract = z.number().int().nonnegative().brand<'CompletionDurationMs'>();
 
 export const subagentElapsedInputContract = z.object({
-  startedAt: isoTimestampContract,
-  endedAt: isoTimestampContract.optional(),
+  startedAt: z.iso.datetime().brand<'SubagentElapsedInputStartedAt'>(),
+  endedAt: z.iso.datetime().brand<'SubagentElapsedInputEndedAt'>().optional(),
   reportedDurationMs: taskNotificationDurationMsContract.optional(),
   // What the Task's own completion tool_result reported. Its own brand rather than
   // `reportedDurationMs`' — the two come from different wire shapes and rank differently, so a
   // value that slid between them would change which figure wins with nothing to catch it.
   completionDurationMs: completionDurationMsContract.optional(),
-  clockReading: isoTimestampContract.optional(),
+  clockReading: z.iso.datetime().brand<'SubagentElapsedInputClockReading'>().optional(),
 });
 
 export type SubagentElapsedInput = z.infer<typeof subagentElapsedInputContract>;

@@ -10,12 +10,11 @@ import { z } from '#gateway/npm/zod';
 
 import { smoketestSuiteContract } from '@dungeonmaster/shared/contracts';
 
-import { isoTimestampContract } from '../iso-timestamp/iso-timestamp-contract';
 
 export const activeSmoketestRunContract = z.object({
   runId: z.uuid().brand<'ActiveSmoketestRunRunId'>(),
   suite: smoketestSuiteContract,
-  startedAt: isoTimestampContract,
+  startedAt: z.iso.datetime().brand<'ActiveSmoketestRunStartedAt'>(),
 });
 
 export type ActiveSmoketestRun = z.infer<typeof activeSmoketestRunContract>;

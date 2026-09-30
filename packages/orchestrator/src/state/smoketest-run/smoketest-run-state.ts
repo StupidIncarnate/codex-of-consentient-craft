@@ -16,7 +16,6 @@ import {
   activeSmoketestRunContract,
   type ActiveSmoketestRun,
 } from '../../contracts/active-smoketest-run/active-smoketest-run-contract';
-import { isoTimestampContract } from '../../contracts/iso-timestamp/iso-timestamp-contract';
 
 const MAX_BUFFERED_EVENTS = 200;
 
@@ -33,7 +32,7 @@ export const smoketestRunState = {
     state.active = activeSmoketestRunContract.parse({
       runId,
       suite,
-      startedAt: isoTimestampContract.parse(new Date().toISOString()),
+      startedAt: new Date().toISOString(),
     });
     state.events = [];
   },

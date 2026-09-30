@@ -6,17 +6,16 @@
  * // Returns IsoTimestamp '2025-01-01T00:00:00.000Z'
  */
 
-import type { IsoTimestamp } from '../../contracts/iso-timestamp/iso-timestamp-contract';
 import { isoTimestampContract } from '../../contracts/iso-timestamp/iso-timestamp-contract';
 import { normalizedStreamLineContract } from '../../contracts/normalized-stream-line/normalized-stream-line-contract';
 
-const EPOCH_FALLBACK = isoTimestampContract.parse('1970-01-01T00:00:00.000Z');
+const EPOCH_FALLBACK = '1970-01-01T00:00:00.000Z';
 
 export const extractTimestampFromJsonlLineTransformer = ({
   parsed,
 }: {
   parsed: unknown;
-}): IsoTimestamp => {
+}): string => {
   const lineParse = normalizedStreamLineContract.safeParse(parsed);
   if (!lineParse.success) {
     return EPOCH_FALLBACK;

@@ -12,7 +12,7 @@ import { rateLimitWindowContract } from '../rate-limit-window/rate-limit-window-
 export const rateLimitsSnapshotContract = z.object({
   fiveHour: rateLimitWindowContract.nullable(),
   sevenDay: rateLimitWindowContract.nullable(),
-  updatedAt: z.iso.datetime().brand<'IsoTimestamp'>(),
+  updatedAt: z.iso.datetime().brand<'RateLimitsSnapshotUpdatedAt'>(),
 });
 
 export type RateLimitsSnapshot = z.infer<typeof rateLimitsSnapshotContract>;

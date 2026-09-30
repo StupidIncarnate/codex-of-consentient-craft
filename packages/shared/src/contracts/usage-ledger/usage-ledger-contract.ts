@@ -40,7 +40,7 @@ export const usageLedgerContract = z.object({
     fiveHour: weightedTokensContract.nullable(),
     sevenDay: weightedTokensContract.nullable(),
   }),
-  updatedAt: z.iso.datetime().brand<'IsoTimestamp'>(),
+  updatedAt: z.iso.datetime().brand<'UsageLedgerUpdatedAt'>(),
 });
 
 export type UsageLedger = z.infer<typeof usageLedgerContract>;

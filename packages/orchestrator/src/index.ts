@@ -75,8 +75,6 @@ export { orchestrationProcessesState } from './state/orchestration-processes/orc
 export { agentRoleContract } from './contracts/agent-role/agent-role-contract';
 export type { AgentRole } from './contracts/agent-role/agent-role-contract';
 
-export { isoTimestampContract } from './contracts/iso-timestamp/iso-timestamp-contract';
-export type { IsoTimestamp } from './contracts/iso-timestamp/iso-timestamp-contract';
 
 export { slotCountContract } from '@dungeonmaster/shared/contracts';
 export type { SlotCount } from '@dungeonmaster/shared/contracts';

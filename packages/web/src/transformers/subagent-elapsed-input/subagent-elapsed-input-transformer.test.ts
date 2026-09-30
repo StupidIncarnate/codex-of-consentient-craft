@@ -7,7 +7,6 @@ import {
   SingleGroupStub,
   SubagentChainGroupStub,
 } from '../../contracts/chat-entry-group/chat-entry-group.stub';
-import { IsoTimestampStub } from '../../contracts/iso-timestamp/iso-timestamp.stub';
 import { subagentElapsedInputTransformer } from './subagent-elapsed-input-transformer';
 
 describe('subagentElapsedInputTransformer', () => {
@@ -99,7 +98,7 @@ describe('subagentElapsedInputTransformer', () => {
 
       const result = subagentElapsedInputTransformer({
         group,
-        now: IsoTimestampStub({ value: '2026-09-10T11:00:00.000Z' }),
+        now: '2026-09-10T11:00:00.000Z',
       });
 
       expect(result).toStrictEqual({
@@ -119,7 +118,7 @@ describe('subagentElapsedInputTransformer', () => {
 
       const result = subagentElapsedInputTransformer({
         group,
-        now: IsoTimestampStub({ value: '2026-09-10T10:02:00.000Z' }),
+        now: '2026-09-10T10:02:00.000Z',
       });
 
       expect(result).toStrictEqual({

@@ -42,9 +42,9 @@ export const questContract = z.object({
     .describe(
       'Which pipeline this quest follows. Defaults to feature for back-compat with existing quest.json files written before quest types existed.',
     ),
-  createdAt: z.iso.datetime().brand<'IsoTimestamp'>(),
-  updatedAt: z.iso.datetime().brand<'IsoTimestamp'>().optional(),
-  completedAt: z.iso.datetime().brand<'IsoTimestamp'>().optional(),
+  createdAt: z.iso.datetime().brand<'QuestCreatedAt'>(),
+  updatedAt: z.iso.datetime().brand<'QuestUpdatedAt'>().optional(),
+  completedAt: z.iso.datetime().brand<'QuestCompletedAt'>().optional(),
   designDecisions: z
     .array(designDecisionContract)
     .default([])

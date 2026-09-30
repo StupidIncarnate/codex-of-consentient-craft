@@ -15,7 +15,7 @@ import { z } from '#gateway/npm/zod';
 const rawTokenCountContract = z.number().int().min(0).brand<'TokenCount'>();
 
 export const usageLineShapeContract = z.object({
-  timestamp: z.string().min(1).brand<'IsoTimestamp'>(),
+  timestamp: z.string().min(1).brand<'UsageLineShapeTimestamp'>(),
   message: z.object({
     // Every field is optional because the CLI omits a count rather than sending zero, and the set
     // has grown across releases. A line whose `usage` object is present but empty is still a real

@@ -10,7 +10,6 @@ import { randomUUID } from '#gateway/node/crypto';
 import type { QuestQueueEntry, QuestSource, UrlSlug, Quest, Guild } from '@dungeonmaster/shared/contracts';
 import { processIdContract, questQueueEntryContract } from '@dungeonmaster/shared/contracts';
 
-import { isoTimestampContract } from '../../../contracts/iso-timestamp/iso-timestamp-contract';
 import { smoketestListenerEntryContract } from '../../../contracts/smoketest-listener-entry/smoketest-listener-entry-contract';
 import { smoketestScenarioMetaContract } from '../../../contracts/smoketest-scenario-meta/smoketest-scenario-meta-contract';
 import { questHydrateBroker } from '../../../brokers/quest/hydrate/quest-hydrate-broker';
@@ -42,7 +41,7 @@ export const EnqueueBundledSuiteLayerResponder = async ({
     return null;
   }
 
-  const now = isoTimestampContract.parse(new Date().toISOString());
+  const now = new Date().toISOString();
   const { blueprint, workItems } = caseCatalogToBlueprintTransformer({
     suite,
     cases,

@@ -25,13 +25,7 @@ import { URL } from '#gateway/node/url';
 import { createNodeWebSocket } from '#gateway/npm/hono__node-ws';
 import { serve } from '#gateway/npm/hono__node-server';
 
-import {
-  StartOrchestrator,
-  isoTimestampContract,
-  orchestrationEventsState,
-  questFindQuestPathBroker,
-  questOutboxWatchBroker,
-} from '@dungeonmaster/orchestrator';
+import { StartOrchestrator, orchestrationEventsState, questFindQuestPathBroker, questOutboxWatchBroker } from '@dungeonmaster/orchestrator';
 import { processDevLogBroker } from '../../../brokers/process/dev-log/process-dev-log-broker';
 import { questWaitForSessionStampBroker } from '../../../brokers/quest/wait-for-session-stamp/quest-wait-for-session-stamp-broker';
 import { webBundleResponseBroker } from '../../../brokers/web-bundle/response/web-bundle-response-broker';
@@ -260,7 +254,7 @@ export const ServerInitResponder = ({
                     wsMessageContract.parse({
                       type: 'quest-modified',
                       payload: { questId: subQuestId, quest },
-                      timestamp: isoTimestampContract.parse(new Date().toISOString()),
+                      timestamp: new Date().toISOString(),
                     }),
                   ),
                 );
@@ -318,7 +312,7 @@ export const ServerInitResponder = ({
                       wsMessageContract.parse({
                         type: 'quest-load-failed',
                         payload: { questId: subQuestId, error: reason },
-                        timestamp: isoTimestampContract.parse(new Date().toISOString()),
+                        timestamp: new Date().toISOString(),
                       }),
                     ),
                   );
@@ -412,7 +406,7 @@ export const ServerInitResponder = ({
                         wsMessageContract.parse({
                           type: 'chat-history-complete',
                           payload: { questId: subQuestId },
-                          timestamp: isoTimestampContract.parse(new Date().toISOString()),
+                          timestamp: new Date().toISOString(),
                         }),
                       ),
                     );
@@ -448,7 +442,7 @@ export const ServerInitResponder = ({
                     wsMessageContract.parse({
                       type: 'quest-modified',
                       payload: { questId: replayQuestId, quest },
-                      timestamp: isoTimestampContract.parse(new Date().toISOString()),
+                      timestamp: new Date().toISOString(),
                     }),
                   ),
                 );
@@ -481,7 +475,7 @@ export const ServerInitResponder = ({
                     wsMessageContract.parse({
                       type: 'chat-history-complete',
                       payload: { questId: replayQuestId },
-                      timestamp: isoTimestampContract.parse(new Date().toISOString()),
+                      timestamp: new Date().toISOString(),
                     }),
                   ),
                 );
@@ -665,7 +659,7 @@ export const ServerInitResponder = ({
         const envelope = wsMessageContract.parse({
           type,
           payload: { ...effectivePayload, processId },
-          timestamp: isoTimestampContract.parse(new Date().toISOString()),
+          timestamp: new Date().toISOString(),
         });
 
         if (PER_QUEST_EVENT_TYPES.has(type)) {
@@ -826,7 +820,7 @@ export const ServerInitResponder = ({
       const flushEnvelope = wsMessageContract.parse({
         type: 'chat-output',
         payload: { ...item.payload, processId: item.processId },
-        timestamp: isoTimestampContract.parse(new Date().toISOString()),
+        timestamp: new Date().toISOString(),
       });
       const flushParsed = chatOutputRoutingContract.safeParse(item.payload);
       const flushQuestId = flushParsed.success ? flushParsed.data.questId : undefined;
@@ -868,7 +862,7 @@ export const ServerInitResponder = ({
           const outboxEnvelope = wsMessageContract.parse({
             type: 'quest-modified',
             payload: { questId, quest },
-            timestamp: isoTimestampContract.parse(new Date().toISOString()),
+            timestamp: new Date().toISOString(),
           });
 
           // quest-modified is a per-quest event — only subscribed clients receive it.
@@ -895,7 +889,7 @@ export const ServerInitResponder = ({
           const loadFailedEnvelope = wsMessageContract.parse({
             type: 'quest-load-failed',
             payload: { questId, error: reason },
-            timestamp: isoTimestampContract.parse(new Date().toISOString()),
+            timestamp: new Date().toISOString(),
           });
           const serializedLoadFailed = JSON.stringify(loadFailedEnvelope);
           for (const [client, subs] of clientSubscriptions) {

@@ -23,7 +23,7 @@ export const questCommentContract = z.object({
   text: commentTextContract,
   // The age of the text as it currently stands, not of the first draft — editing a queued comment
   // bumps this, and it is carried through the send so newest-first ordering matches authoring order.
-  createdAt: z.iso.datetime().brand<'IsoTimestamp'>(),
+  createdAt: z.iso.datetime().brand<'QuestCommentCreatedAt'>(),
 });
 
 export type QuestComment = z.infer<typeof questCommentContract>;

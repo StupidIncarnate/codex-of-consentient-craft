@@ -17,7 +17,7 @@ export const questListItemContract = z.object({
   folder: z.string().min(1).brand<'QuestFolder'>(),
   title: z.string().min(1).brand<'QuestTitle'>(),
   status: questStatusContract,
-  createdAt: z.iso.datetime().brand<'IsoTimestamp'>(),
+  createdAt: z.iso.datetime().brand<'QuestListItemCreatedAt'>(),
   stepProgress: z.string().brand<'StepProgress'>().optional(),
   activeSessionId: sessionContract.shape.id.optional(),
   userRequest: z.string().brand<'UserRequest'>().optional(),

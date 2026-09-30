@@ -19,7 +19,6 @@ import { DependencyLabelStub } from '../../contracts/dependency-label/dependency
 import { DisplayFilePathStub } from '../../contracts/display-file-path/display-file-path.stub';
 import { DisplayLabelStub } from '../../contracts/display-label/display-label.stub';
 import { ExecutionStepStatusStub } from '../../contracts/execution-step-status/execution-step-status.stub';
-import { IsoTimestampStub } from '../../contracts/iso-timestamp/iso-timestamp.stub';
 import { RowOrderStub } from '../../contracts/row-order/row-order.stub';
 import { executionStepStatusConfigStatics } from '../../statics/execution-step-status-config/execution-step-status-config-statics';
 import type { ExecutionRowLayerWidgetProps } from './execution-row-layer-widget';
@@ -445,7 +444,7 @@ describe('ExecutionRowLayerWidget', () => {
             {...defaultProps()}
             status="in_progress"
             workItem={WorkItemStub({ startedAt: '2024-01-15T10:00:00.000Z' })}
-            now={IsoTimestampStub({ value: '2024-01-15T10:10:00.000Z' })}
+            now={'2024-01-15T10:10:00.000Z'}
           />
         ),
       });
@@ -463,7 +462,7 @@ describe('ExecutionRowLayerWidget', () => {
             {...defaultProps()}
             status="in_progress"
             workItem={WorkItemStub({ startedAt: '2024-01-15T10:00:00.000Z' })}
-            now={IsoTimestampStub({ value: '2024-01-15T10:10:00.000Z' })}
+            now={'2024-01-15T10:10:00.000Z'}
           />
         ),
       });
@@ -483,7 +482,7 @@ describe('ExecutionRowLayerWidget', () => {
             {...defaultProps()}
             status="in_progress"
             workItem={WorkItemStub({ startedAt: '2024-01-15T10:00:00.000Z' })}
-            now={IsoTimestampStub({ value: '2024-01-15T10:10:00.000Z' })}
+            now={'2024-01-15T10:10:00.000Z'}
           />
         ),
       });
@@ -505,7 +504,7 @@ describe('ExecutionRowLayerWidget', () => {
             {...defaultProps()}
             status="in_progress"
             workItem={WorkItemStub({ startedAt: '2024-01-15T10:00:00.000Z' })}
-            now={IsoTimestampStub({ value: '2024-01-15T10:10:00.000Z' })}
+            now={'2024-01-15T10:10:00.000Z'}
           />
         ),
       });
@@ -528,7 +527,7 @@ describe('ExecutionRowLayerWidget', () => {
             {...defaultProps()}
             status="in_progress"
             workItem={WorkItemStub({ startedAt: '2024-01-15T10:00:00.000Z' })}
-            now={IsoTimestampStub({ value: '2024-01-15T10:10:00.000Z' })}
+            now={'2024-01-15T10:10:00.000Z'}
           />
         ),
       });
@@ -1518,7 +1517,7 @@ describe('ExecutionRowLayerWidget', () => {
   });
 
   describe('duration display', () => {
-    const NOW = IsoTimestampStub({ value: '2024-01-15T10:04:00.000Z' });
+    const NOW = '2024-01-15T10:04:00.000Z';
 
     describe('no figure', () => {
       it('EMPTY: {status: in_progress, now, no startedAt} => renders no duration element', () => {
@@ -1840,7 +1839,7 @@ describe('ExecutionRowLayerWidget', () => {
               startedAt: '2024-01-15T10:00:00.000Z',
               completedAt: '2024-01-15T10:04:12.000Z',
             })}
-            now={IsoTimestampStub({ value: '2024-01-15T10:05:00.000Z' })}
+            now={'2024-01-15T10:05:00.000Z'}
           />,
         );
 
@@ -2106,7 +2105,7 @@ describe('ExecutionRowLayerWidget', () => {
             {...defaultProps()}
             status="pending"
             workItem={WorkItemStub({ startedAt: '2024-01-15T10:03:00.500Z' })}
-            now={IsoTimestampStub({ value: '2024-01-15T10:05:00.000Z' })}
+            now={'2024-01-15T10:05:00.000Z'}
           />,
         );
 
@@ -2382,7 +2381,7 @@ describe('ExecutionRowLayerWidget', () => {
         agentId: 'agent-001',
       }),
     ];
-    const NOW = IsoTimestampStub({ value: '2026-09-10T10:04:00.000Z' });
+    const NOW = '2026-09-10T10:04:00.000Z';
 
     it("VALID: {status: in_progress, entries: Task tool use + subagent text} => the SUBAGENT_CHAIN element renders inside the row's own element", () => {
       ExecutionRowLayerWidgetProxy();

@@ -12,7 +12,6 @@
 import { questContract, workItemContract } from '@dungeonmaster/shared/contracts';
 import type { Quest, WorkItem } from '@dungeonmaster/shared/contracts';
 
-import type { IsoTimestamp } from '../../../contracts/iso-timestamp/iso-timestamp-contract';
 import { questPersistBroker } from '../persist/quest-persist-broker';
 
 const JSON_INDENT_SPACES = 2;
@@ -30,7 +29,7 @@ export const workItemPatchLayerBroker = async ({
   questId: Quest['id'];
   workItemId: WorkItem['id'];
   patch: Partial<WorkItem>;
-  nowAt: IsoTimestamp;
+  nowAt: string;
 }): Promise<WorkItem> => {
   const existingItem = quest.workItems.find((item) => item.id === workItemId);
 

@@ -16,7 +16,6 @@
 import { questContract, questNoteContract } from '@dungeonmaster/shared/contracts';
 import type { Quest, QuestNote, WorkItem, Flow } from '@dungeonmaster/shared/contracts';
 
-import type { IsoTimestamp } from '../../../contracts/iso-timestamp/iso-timestamp-contract';
 import { questWorkRecordResultContract } from '../../../contracts/quest-work-record-result/quest-work-record-result-contract';
 import type { QuestWorkRecordResult } from '../../../contracts/quest-work-record-result/quest-work-record-result-contract';
 import { workItemFamilyResolveTransformer } from '../../../transformers/work-item-family-resolve/work-item-family-resolve-transformer';
@@ -42,7 +41,7 @@ export const invalidationApplyLayerBroker = async ({
   questFilePath: string;
   flowId: Flow['id'];
   reason: QuestNote['detail'];
-  nowAt: IsoTimestamp;
+  nowAt: string;
 }): Promise<QuestWorkRecordResult> => {
   const operationItem = workItemLinkedOperationResolveTransformer({ quest, workItem });
 

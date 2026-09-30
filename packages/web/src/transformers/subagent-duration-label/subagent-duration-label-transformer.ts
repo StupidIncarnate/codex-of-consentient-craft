@@ -13,8 +13,6 @@
  * // when the input carries no end point at all
  */
 
-import { isoTimestampContract } from '../../contracts/iso-timestamp/iso-timestamp-contract';
-import type { IsoTimestamp } from '../../contracts/iso-timestamp/iso-timestamp-contract';
 import type { SubagentElapsedInput } from '../../contracts/subagent-elapsed-input/subagent-elapsed-input-contract';
 import type { DisplayLabel } from '../../contracts/display-label/display-label-contract';
 import { elapsedPartsTransformer } from '../elapsed-parts/elapsed-parts-transformer';
@@ -33,10 +31,10 @@ export const subagentDurationLabelTransformer = ({
   // a blocking call's own tool_result.
   const reportedMs = input.reportedDurationMs ?? input.completionDurationMs;
 
-  const endPoint: IsoTimestamp | undefined =
+  const endPoint: string | undefined =
     reportedMs === undefined
       ? (input.endedAt ?? input.clockReading)
-      : isoTimestampContract.parse(new Date(startedAtMs + Number(reportedMs)).toISOString());
+      : new Date(startedAtMs + Number(reportedMs)).toISOString();
 
   if (endPoint === undefined) return null;
 

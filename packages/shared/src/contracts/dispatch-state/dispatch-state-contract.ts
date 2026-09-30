@@ -24,7 +24,7 @@ export const dispatchStateContract = z.object({
   // `.nullish()`, not `.optional()` — clearing an expired hold writes an explicit null through the
   // same persist path that wrote it, and `.optional()` alone rejects that.
   hold: dispatchHoldContract.nullish(),
-  updatedAt: z.iso.datetime().brand<'IsoTimestamp'>(),
+  updatedAt: z.iso.datetime().brand<'DispatchStateUpdatedAt'>(),
 });
 
 export type DispatchState = z.infer<typeof dispatchStateContract>;

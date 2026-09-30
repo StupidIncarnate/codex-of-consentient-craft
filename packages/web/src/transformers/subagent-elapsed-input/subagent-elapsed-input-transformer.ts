@@ -11,7 +11,6 @@
  * // Returns a SubagentElapsedInput, or null when kind !== 'subagent-chain' or taskToolUse is null
  */
 
-import type { IsoTimestamp } from '../../contracts/iso-timestamp/iso-timestamp-contract';
 import { subagentElapsedInputContract } from '../../contracts/subagent-elapsed-input/subagent-elapsed-input-contract';
 import type { SubagentElapsedInput } from '../../contracts/subagent-elapsed-input/subagent-elapsed-input-contract';
 import type { ChatEntryGroup } from '../../contracts/chat-entry-group/chat-entry-group-contract';
@@ -21,7 +20,7 @@ export const subagentElapsedInputTransformer = ({
   now,
 }: {
   group: ChatEntryGroup;
-  now?: IsoTimestamp;
+  now?: string;
 }): SubagentElapsedInput | null => {
   if (group.kind !== 'subagent-chain') return null;
 

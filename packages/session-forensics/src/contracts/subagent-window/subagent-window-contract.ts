@@ -15,13 +15,12 @@
 import { z } from '#gateway/npm/zod';
 
 import { agentContract } from '@dungeonmaster/shared/contracts';
-import { isoTimestampContract } from '../iso-timestamp/iso-timestamp-contract';
 
 export const subagentWindowContract = z
   .object({
     agentId: agentContract.shape.id,
-    startedAt: isoTimestampContract,
-    endedAt: isoTimestampContract,
+    startedAt: z.iso.datetime().brand<'SubagentWindowStartedAt'>(),
+    endedAt: z.iso.datetime().brand<'SubagentWindowEndedAt'>(),
   })
   .brand<'SubagentWindow'>();
 

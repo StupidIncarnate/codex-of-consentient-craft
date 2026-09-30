@@ -50,7 +50,7 @@ export const unitObservationFieldsContract = z.object({
   // `packages/web`, `packages/server` and `packages/session-forensics` each keep their OWN local
   // `isoTimestampContract` for their own package's consumers — none of those is importable from
   // `shared` (shared is the base package; nothing above it may be depended on from here).
-  at: z.iso.datetime().brand<'IsoTimestamp'>(),
+  at: z.iso.datetime().brand<'UnitObservationFieldsAt'>(),
 });
 
 export type UnitObservationFields = z.infer<typeof unitObservationFieldsContract>;

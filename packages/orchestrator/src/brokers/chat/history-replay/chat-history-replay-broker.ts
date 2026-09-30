@@ -43,7 +43,6 @@ import {
 import { chatReplayJsonlReadBroker } from '../replay-jsonl-read/chat-replay-jsonl-read-broker';
 import { chatLineSourceContract } from '../../../contracts/chat-line-source/chat-line-source-contract';
 import type { ChatLineSource } from '../../../contracts/chat-line-source/chat-line-source-contract';
-import type { IsoTimestamp } from '../../../contracts/iso-timestamp/iso-timestamp-contract';
 import { normalizedStreamLineContentItemContract } from '../../../contracts/normalized-stream-line-content-item/normalized-stream-line-content-item-contract';
 import { normalizedStreamLineContract } from '../../../contracts/normalized-stream-line/normalized-stream-line-contract';
 import { taskAgentToolInputContract } from '../../../contracts/task-agent-tool-input/task-agent-tool-input-contract';
@@ -170,7 +169,7 @@ export const chatHistoryReplayBroker = async ({
     parsed: unknown;
     source: ChatLineSource;
     agentId?: ReturnType<typeof agentContract.shape.id.parse>;
-    timestamp: IsoTimestamp;
+    timestamp: string;
     index: ArrayIndex;
   }[] = [];
 

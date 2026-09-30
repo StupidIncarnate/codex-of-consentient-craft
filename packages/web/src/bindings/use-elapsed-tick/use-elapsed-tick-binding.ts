@@ -25,11 +25,9 @@ import { clearInterval } from '#gateway/browser/clearInterval';
 import { document } from '#gateway/browser/document';
 import { setInterval } from '#gateway/browser/setInterval';
 
-import { isoTimestampContract } from '../../contracts/iso-timestamp/iso-timestamp-contract';
-import type { IsoTimestamp } from '../../contracts/iso-timestamp/iso-timestamp-contract';
 import { elapsedDisplayConfigStatics } from '../../statics/elapsed-display-config/elapsed-display-config-statics';
 
-export const useElapsedTickBinding = ({ enabled }: { enabled: boolean }): { now: IsoTimestamp } => {
+export const useElapsedTickBinding = ({ enabled }: { enabled: boolean }): { now: string } => {
   // The initialiser reads Date.now() synchronously on the FIRST render, rather than deferring to
   // the first tick — a row that mounts on a work item already 4 minutes old must read "4m"
   // immediately, not "0m" for up to a whole tick period until the interval below fires once.
@@ -60,5 +58,5 @@ export const useElapsedTickBinding = ({ enabled }: { enabled: boolean }): { now:
     };
   }, [enabled, handleVisibilityChange]);
 
-  return { now: isoTimestampContract.parse(new Date(nowMs).toISOString()) };
+  return { now: new Date(nowMs).toISOString() };
 };

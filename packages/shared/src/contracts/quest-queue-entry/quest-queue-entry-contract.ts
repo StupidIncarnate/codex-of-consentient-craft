@@ -25,12 +25,12 @@ export const questQueueEntryContract = z.object({
   status: questStatusContract,
   questSource: questSourceContract.optional(),
   activeSessionId: sessionContract.shape.id.optional(),
-  enqueuedAt: z.iso.datetime().brand<'IsoTimestamp'>(),
-  startedAt: z.iso.datetime().brand<'IsoTimestamp'>().optional(),
+  enqueuedAt: z.iso.datetime().brand<'QuestQueueEntryEnqueuedAt'>(),
+  startedAt: z.iso.datetime().brand<'QuestQueueEntryStartedAt'>().optional(),
   error: z
     .object({
       message: z.string().min(1).brand<'QuestQueueEntryErrorMessage'>(),
-      at: z.iso.datetime().brand<'IsoTimestamp'>(),
+      at: z.iso.datetime().brand<'QuestQueueEntryErrorAt'>(),
     })
     .optional(),
 });

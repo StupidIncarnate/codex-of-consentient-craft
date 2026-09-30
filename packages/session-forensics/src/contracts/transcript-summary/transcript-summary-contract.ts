@@ -18,14 +18,13 @@
 import { z } from '#gateway/npm/zod';
 
 import { tokenUsageContract } from '../token-usage/token-usage-contract';
-import { isoTimestampContract } from '../iso-timestamp/iso-timestamp-contract';
 
 export const transcriptSummaryContract = z
   .object({
     recordCount: z.number().int().nonnegative(),
     apiResponseCount: z.number().int().nonnegative(),
-    startedAt: isoTimestampContract.optional(),
-    endedAt: isoTimestampContract.optional(),
+    startedAt: z.iso.datetime().brand<'TranscriptSummaryStartedAt'>().optional(),
+    endedAt: z.iso.datetime().brand<'TranscriptSummaryEndedAt'>().optional(),
     wallClockSeconds: z.number().nonnegative().optional(),
     models: z.record(z.string(), z.number().int().nonnegative()),
     recordTypeCounts: z.record(z.string(), z.number().int().nonnegative()),

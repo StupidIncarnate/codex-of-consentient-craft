@@ -21,8 +21,6 @@ import { addQuestInputContract, operationItemContract, questContract, stepNameCo
 import type { QuestSource, QuestStatus, WorkItemRole, Quest, Guild } from '@dungeonmaster/shared/contracts';
 import { isCommandWorkItemRoleGuard } from '@dungeonmaster/shared/guards';
 
-import { isoTimestampContract } from '../../../contracts/iso-timestamp/iso-timestamp-contract';
-import type { IsoTimestamp } from '../../../contracts/iso-timestamp/iso-timestamp-contract';
 import type { QuestBlueprint } from '../../../contracts/quest-blueprint/quest-blueprint-contract';
 import { agentFlowStatics } from '../../../statics/agent-flow/agent-flow-statics';
 import { questHydrateStrategyStatics } from '../../../statics/quest-hydrate-strategy/quest-hydrate-strategy-statics';
@@ -50,8 +48,8 @@ export const questHydrateBroker = async ({
   blueprint: QuestBlueprint;
   guildId: Guild['id'];
   questSource?: QuestSource;
-  createdAt?: IsoTimestamp;
-  updatedAt?: IsoTimestamp;
+  createdAt?: string;
+  updatedAt?: string;
 }): Promise<{ questId: Quest['id'] }> => {
   const questId = blueprint.fixedQuestId ?? questContract.shape.id.parse(randomUUID());
   const targetStatus: QuestStatus = blueprint.targetStatus ?? 'in_progress';
@@ -88,7 +86,7 @@ export const questHydrateBroker = async ({
   //    script), and create ONE work item for the first actionable operation item.
   if (targetStatus === 'in_progress') {
     const quest = await questLoadBroker({ questFilePath });
-    const now = isoTimestampContract.parse(new Date().toISOString());
+    const now = new Date().toISOString();
 
     const relay = questBuildRelayGraphBroker({ quest, priorWorkItemIds: [], now });
     // A blueprint that authors its own implementation ledger REPLACES the derived per-cell items

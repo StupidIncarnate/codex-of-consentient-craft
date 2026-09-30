@@ -15,7 +15,6 @@ import { locationsStatics } from '@dungeonmaster/shared/statics';
 import { safeJsonParseTransformer } from '@dungeonmaster/shared/transformers';
 import { agentContract } from '@dungeonmaster/shared/contracts';
 import { subagentMetaContract } from '../../../contracts/subagent-meta/subagent-meta-contract';
-import { isoTimestampContract } from '../../../contracts/iso-timestamp/iso-timestamp-contract';
 import {
   subagentRosterRowContract,
   type SubagentRosterRow,
@@ -67,7 +66,7 @@ export const subagentRosterLoadBroker = ({
     const timestamps = records
       .map((record) => record.timestamp)
       .filter((timestamp): timestamp is NonNullable<typeof timestamp> => timestamp !== undefined)
-      .map((timestamp) => isoTimestampContract.parse(timestamp))
+      .map((timestamp) => timestamp)
       .sort();
 
     const turnCount = records.filter((record) => record.type === 'assistant').length;

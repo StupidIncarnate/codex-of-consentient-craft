@@ -35,7 +35,6 @@ import {
   isTerminalWorkItemStatusGuard,
 } from '@dungeonmaster/shared/guards';
 
-import { isoTimestampContract } from '../../../contracts/iso-timestamp/iso-timestamp-contract';
 import { questBuildRelayGraphBroker } from '../../../brokers/quest/build-relay-graph/quest-build-relay-graph-broker';
 import { questFindQuestPathBroker } from '../../../brokers/quest/find-quest-path/quest-find-quest-path-broker';
 import { questGetBroker } from '../../../brokers/quest/get/quest-get-broker';
@@ -108,7 +107,7 @@ export const OrchestrationStartResponder = async ({
     .filter((wi) => isChatWorkItemRoleGuard({ role: wi.role }))
     .map((wi) => wi.id);
 
-  const now = isoTimestampContract.parse(new Date().toISOString());
+  const now = new Date().toISOString();
 
   // Hand the relay builder a quest that already carries the freshly derived packageGraph: it orders
   // the derived codeweaver items off that graph, so pre-stamping the quest is what makes the ledger

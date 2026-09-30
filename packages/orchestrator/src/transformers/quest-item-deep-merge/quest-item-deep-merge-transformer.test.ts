@@ -10,7 +10,6 @@ import { WorkItemForUpsertStub } from '@dungeonmaster/shared/contracts/work-item
 import { WorkItemStub } from '@dungeonmaster/shared/contracts/work-item/work-item.stub';
 import { qaOffMapProbeStatics } from '@dungeonmaster/shared/statics';
 
-import { IsoTimestampStub } from '../../contracts/iso-timestamp/iso-timestamp.stub';
 import { questItemDeepMergeTransformer } from './quest-item-deep-merge-transformer';
 
 type Flow = ReturnType<typeof FlowStub>;
@@ -316,7 +315,7 @@ describe('questItemDeepMergeTransformer', () => {
         id,
         status: 'in_progress',
         sessionId: SessionIdStub({ value: 'sess-2' }),
-        startedAt: IsoTimestampStub({ value: '2026-01-01T00:00:00.000Z' }),
+        startedAt: '2026-01-01T00:00:00.000Z',
       });
       const update = WorkItemForUpsertStub({
         id,

@@ -76,7 +76,7 @@ export const questBlightLedgerEntryContract = z.object({
   workItemId: workItemContract.shape.id,
   createdAt: z.iso
     .datetime()
-    .brand<'IsoTimestamp'>()
+    .brand<'QuestBlightLedgerEntryCreatedAt'>()
     .describe(
       'STAMPED SERVER-SIDE — any client-supplied value is ignored and overwritten at write time. ' +
         'An LLM has no reliable clock: agents writing this field have been observed emitting one ' +

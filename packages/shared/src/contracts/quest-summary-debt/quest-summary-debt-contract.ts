@@ -86,7 +86,7 @@ export const questSummaryDebtContract = z
     workItemId: workItemContract.shape.id,
     at: z.iso
       .datetime()
-      .brand<'IsoTimestamp'>()
+      .brand<'QuestSummaryDebtAt'>()
       .describe('The moment the mark was recorded, taken verbatim off the observation.'),
   })
   .superRefine((value, ctx) => {

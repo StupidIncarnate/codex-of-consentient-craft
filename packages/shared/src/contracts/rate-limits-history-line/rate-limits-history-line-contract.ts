@@ -10,7 +10,7 @@ import { z } from '#gateway/npm/zod';
 import { rateLimitWindowContract } from '../rate-limit-window/rate-limit-window-contract';
 
 export const rateLimitsHistoryLineContract = z.object({
-  at: z.iso.datetime().brand<'IsoTimestamp'>(),
+  at: z.iso.datetime().brand<'RateLimitsHistoryLineAt'>(),
   fiveHour: rateLimitWindowContract.nullable(),
   sevenDay: rateLimitWindowContract.nullable(),
 });

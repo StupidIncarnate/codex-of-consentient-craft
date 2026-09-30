@@ -6,7 +6,6 @@ import { QuestWorkItemIdStub } from '@dungeonmaster/shared/contracts/quest-work-
 import { SessionIdStub } from '@dungeonmaster/shared/contracts/session-id/session-id.stub';
 import { WorkItemStub } from '@dungeonmaster/shared/contracts/work-item/work-item.stub';
 
-import { IsoTimestampStub } from '../../../contracts/iso-timestamp/iso-timestamp.stub';
 import { questOrphanResetBroker } from './quest-orphan-reset-broker';
 import { questOrphanResetBrokerProxy } from './quest-orphan-reset-broker.proxy';
 
@@ -125,7 +124,7 @@ describe('questOrphanResetBroker', () => {
         id: workItemId,
         status: 'in_progress',
         sessionId: SessionIdStub({ value: 'a552a01482d154100' }),
-        startedAt: IsoTimestampStub({ value: '2026-05-26T18:25:47.328Z' }),
+        startedAt: '2026-05-26T18:25:47.328Z',
       });
       const quest = QuestStub({
         id: questId,

@@ -44,13 +44,13 @@ export const workItemContract = z.object({
   maxAttempts: z.number().int().positive().default(1).brand<'MaxAttempts'>(),
   retryCount: z.number().int().nonnegative().default(0).brand<'FailCount'>(),
   lastWardRunId: z.string().brand<'WorkItemLastWardRunId'>().optional(),
-  createdAt: z.iso.datetime().brand<'IsoTimestamp'>(),
+  createdAt: z.iso.datetime().brand<'WorkItemCreatedAt'>(),
   // `.nullish()`, not `.optional()` — a quest.json written before this field existed, or a
   // producer that stamps `null` instead of omitting the key, sends an explicit `null` here.
   // `.optional()` accepts an omitted key but rejects `null` outright, and this field sits inside
   // `questContract`'s `workItems` array, so that rejection fails the WHOLE quest.json parse, not
   // just this one row.
-  startedAt: z.iso.datetime().brand<'IsoTimestamp'>().nullish(),
+  startedAt: z.iso.datetime().brand<'WorkItemStartedAt'>().nullish(),
   startRef: z
     .string()
     .min(1)
@@ -61,7 +61,7 @@ export const workItemContract = z.object({
     ),
   // Same reasoning as `startedAt` above — `.nullish()` so an explicit `null` doesn't fail the
   // whole quest.json parse.
-  completedAt: z.iso.datetime().brand<'IsoTimestamp'>().nullish(),
+  completedAt: z.iso.datetime().brand<'WorkItemCompletedAt'>().nullish(),
   errorMessage: z.string().brand<'WorkItemErrorMessage'>().optional(),
   summary: z.string().brand<'SignalSummary'>().optional(),
   insertedBy: workItemId.optional(),

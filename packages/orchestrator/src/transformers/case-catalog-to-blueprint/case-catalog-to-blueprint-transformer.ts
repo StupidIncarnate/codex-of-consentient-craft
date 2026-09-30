@@ -27,7 +27,6 @@ import {
 } from '@dungeonmaster/shared/contracts';
 import type { OperationItem, WorkItem } from '@dungeonmaster/shared/contracts';
 
-import type { IsoTimestamp } from '../../contracts/iso-timestamp/iso-timestamp-contract';
 import { promptTextContract } from '../../contracts/prompt-text/prompt-text-contract';
 import { questBlueprintContract } from '../../contracts/quest-blueprint/quest-blueprint-contract';
 import type { QuestBlueprint } from '../../contracts/quest-blueprint/quest-blueprint-contract';
@@ -46,7 +45,7 @@ export const caseCatalogToBlueprintTransformer = ({
     promptKey: string;
     expectedSignal: string;
   }[];
-  now: IsoTimestamp;
+  now: string;
 }): { blueprint: QuestBlueprint; workItems: WorkItem[] } => {
   const { minimal } = smoketestBlueprintsStatics;
 

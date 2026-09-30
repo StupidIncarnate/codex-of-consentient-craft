@@ -14,7 +14,6 @@ import {
   SingleGroupStub,
   SubagentChainGroupStub,
 } from '../../contracts/chat-entry-group/chat-entry-group.stub';
-import { IsoTimestampStub } from '../../contracts/iso-timestamp/iso-timestamp.stub';
 import { SubagentChainWidget } from './subagent-chain-widget';
 import { SubagentChainWidgetProxy } from './subagent-chain-widget.proxy';
 
@@ -1339,7 +1338,7 @@ describe('SubagentChainWidget', () => {
           ui: (
             <SubagentChainWidget
               group={group}
-              now={IsoTimestampStub({ value: '2026-09-10T10:04:00.000Z' })}
+              now={'2026-09-10T10:04:00.000Z'}
             />
           ),
         });
@@ -1368,7 +1367,7 @@ describe('SubagentChainWidget', () => {
           ui: (
             <SubagentChainWidget
               group={group}
-              now={IsoTimestampStub({ value: '2026-09-10T10:04:00.000Z' })}
+              now={'2026-09-10T10:04:00.000Z'}
             />
           ),
         });
@@ -1395,7 +1394,7 @@ describe('SubagentChainWidget', () => {
           ui: (
             <SubagentChainWidget
               group={group}
-              now={IsoTimestampStub({ value: '2026-09-10T10:04:00.000Z' })}
+              now={'2026-09-10T10:04:00.000Z'}
             />
           ),
         });
@@ -1419,7 +1418,7 @@ describe('SubagentChainWidget', () => {
           ui: (
             <SubagentChainWidget
               group={group}
-              now={IsoTimestampStub({ value: '2026-09-10T10:04:00.000Z' })}
+              now={'2026-09-10T10:04:00.000Z'}
             />
           ),
         });
@@ -1435,7 +1434,7 @@ describe('SubagentChainWidget', () => {
           ui: (
             <SubagentChainWidget
               group={group}
-              now={IsoTimestampStub({ value: '2026-09-10T10:04:00.000Z' })}
+              now={'2026-09-10T10:04:00.000Z'}
             />
           ),
         });
@@ -1533,7 +1532,7 @@ describe('SubagentChainWidget', () => {
           ui: (
             <SubagentChainWidget
               group={group}
-              now={IsoTimestampStub({ value: '2026-09-10T10:04:30.000Z' })}
+              now={'2026-09-10T10:04:30.000Z'}
             />
           ),
         });
@@ -1555,7 +1554,7 @@ describe('SubagentChainWidget', () => {
           ui: (
             <SubagentChainWidget
               group={group}
-              now={IsoTimestampStub({ value: '2026-09-10T10:00:30.000Z' })}
+              now={'2026-09-10T10:00:30.000Z'}
             />
           ),
         });
@@ -1565,7 +1564,7 @@ describe('SubagentChainWidget', () => {
 
       it('VALID: {live chain rerendered with a completion notification} => second read reflects the notification, not the clock', () => {
         const proxy = SubagentChainWidgetProxy();
-        const now = IsoTimestampStub({ value: '2026-09-10T10:04:00.000Z' });
+        const now = '2026-09-10T10:04:00.000Z';
         const group = SubagentChainGroupStub({
           taskToolUse: TaskToolUseChatEntryStub({
             agentId: 'agent-001',
@@ -1612,7 +1611,7 @@ describe('SubagentChainWidget', () => {
           ui: (
             <SubagentChainWidget
               group={group}
-              now={IsoTimestampStub({ value: '2026-09-10T10:04:00.000Z' })}
+              now={'2026-09-10T10:04:00.000Z'}
             />
           ),
         });
@@ -1646,7 +1645,7 @@ describe('SubagentChainWidget', () => {
           ui: (
             <SubagentChainWidget
               group={outer}
-              now={IsoTimestampStub({ value: '2026-09-10T10:04:00.000Z' })}
+              now={'2026-09-10T10:04:00.000Z'}
             />
           ),
         });
@@ -1689,7 +1688,7 @@ describe('SubagentChainWidget', () => {
           ui: (
             <SubagentChainWidget
               group={outer}
-              now={IsoTimestampStub({ value: '2026-09-10T10:04:00.000Z' })}
+              now={'2026-09-10T10:04:00.000Z'}
             />
           ),
         });
@@ -1725,7 +1724,7 @@ describe('SubagentChainWidget', () => {
           ui: (
             <SubagentChainWidget
               group={outer}
-              now={IsoTimestampStub({ value: '2026-09-10T10:04:00.000Z' })}
+              now={'2026-09-10T10:04:00.000Z'}
             />
           ),
         });

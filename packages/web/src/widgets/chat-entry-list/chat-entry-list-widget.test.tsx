@@ -10,7 +10,6 @@ import {
 } from '@dungeonmaster/shared/contracts/chat-entry/chat-entry.stub';
 
 import { mantineRenderMiddleware } from '@dungeonmaster/testing/middleware/mantine-render';
-import { IsoTimestampStub } from '../../contracts/iso-timestamp/iso-timestamp.stub';
 import { ChatEntryListWidget } from './chat-entry-list-widget';
 import { ChatEntryListWidgetProxy } from './chat-entry-list-widget.proxy';
 
@@ -1060,7 +1059,7 @@ describe('ChatEntryListWidget', () => {
           <ChatEntryListWidget
             entries={entries}
             isStreaming={false}
-            now={IsoTimestampStub({ value: '2026-09-10T10:04:00.000Z' })}
+            now={'2026-09-10T10:04:00.000Z'}
           />
         ),
       });

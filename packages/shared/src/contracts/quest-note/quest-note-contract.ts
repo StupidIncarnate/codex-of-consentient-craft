@@ -121,7 +121,7 @@ export const questNoteContract = z.object({
     .describe('What the next session needs in order to act on the note without re-deriving it.'),
   at: z.iso
     .datetime()
-    .brand<'IsoTimestamp'>()
+    .brand<'QuestNoteAt'>()
     .describe(
       'STAMPED SERVER-SIDE — any client-supplied value is ignored and overwritten at write time. ' +
         'An LLM has no reliable clock: agents writing this field have been observed emitting one ' +

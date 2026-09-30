@@ -50,7 +50,6 @@
 import { unitObservationContract, workItemContract, operationItemContract, flowContract } from '@dungeonmaster/shared/contracts';
 import { z } from '#gateway/npm/zod';
 
-import { isoTimestampContract } from '../iso-timestamp/iso-timestamp-contract';
 import { workPlanBatchContract } from '../work-plan-batch/work-plan-batch-contract';
 
 export const workPlanFieldsContract = z.object({
@@ -65,7 +64,7 @@ export const workPlanFieldsContract = z.object({
   writtenBy: workItemContract.shape.id.describe(
     'Server-stamped — the work item whose session submitted this plan.',
   ),
-  writtenAt: isoTimestampContract.describe('Server-stamped, from the server’s own clock.'),
+  writtenAt: z.iso.datetime().brand<'WorkPlanFieldsWrittenAt'>().describe('Server-stamped, from the server’s own clock.'),
   batches: z.array(workPlanBatchContract).default([]),
   plannerMarks: z
     .array(unitObservationContract)

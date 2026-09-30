@@ -8,7 +8,6 @@
  */
 
 // One timestamp shape, shared by everything here that carries a time
-export * from './iso-timestamp/iso-timestamp-contract';
 
 // One parsed line of a Claude Code session JSONL, and one block of its content
 export * from './transcript-record/transcript-record-contract';

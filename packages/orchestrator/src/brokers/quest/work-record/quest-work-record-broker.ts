@@ -21,7 +21,6 @@ import type { Quest, WorkItem } from '@dungeonmaster/shared/contracts';
 import { locationsStatics } from '@dungeonmaster/shared/statics';
 import { join } from '#gateway/node/path';
 
-import { isoTimestampContract } from '../../../contracts/iso-timestamp/iso-timestamp-contract';
 import type { QuestWorkInput } from '../../../contracts/quest-work-input/quest-work-input-contract';
 import { questWorkInstanceContract } from '../../../contracts/quest-work-instance/quest-work-instance-contract';
 import { questWorkRecordResultContract } from '../../../contracts/quest-work-record-result/quest-work-record-result-contract';
@@ -66,7 +65,7 @@ export const questWorkRecordBroker = async ({
         );
       }
 
-      const nowAt = isoTimestampContract.parse(new Date().toISOString());
+      const nowAt = new Date().toISOString();
 
       if (payload.kind === 'observations') {
         const stamped = payload.observations.map((observation) =>

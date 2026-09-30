@@ -35,7 +35,6 @@ import type { DisplayLabel } from '../../contracts/display-label/display-label-c
 import { displayLabelContract } from '../../contracts/display-label/display-label-contract';
 import type { ExecutionRole } from '../../contracts/execution-role/execution-role-contract';
 import { executionStepStatusContract } from '../../contracts/execution-step-status/execution-step-status-contract';
-import type { IsoTimestamp } from '../../contracts/iso-timestamp/iso-timestamp-contract';
 import { mergeDescendantSubagentEntriesTransformer } from '../../transformers/merge-descendant-subagent-entries/merge-descendant-subagent-entries-transformer';
 import { ExecutionRowLayerWidget } from './execution-row-layer-widget';
 
@@ -55,7 +54,7 @@ export interface ExecutionWorkItemRowLayerWidgetProps {
   order?: number;
   workItem: WorkItem;
   questId: Quest['id'];
-  now?: IsoTimestamp;
+  now?: string;
   // Terminal-quest-with-no-operations rendering (see the panel) auto-expands every row so the
   // abandon-early transcript is visible without a click.
   includeSkipped: boolean;

@@ -75,7 +75,7 @@ export const operationPlanContract = z.object({
     ),
   at: z.iso
     .datetime()
-    .brand<'IsoTimestamp'>()
+    .brand<'OperationPlanAt'>()
     .describe(
       'STAMPED SERVER-SIDE — any client-supplied value is ignored and overwritten at write time. ' +
         'An LLM has no reliable clock: agents writing this field have been observed emitting ' +

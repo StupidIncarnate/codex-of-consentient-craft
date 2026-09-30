@@ -26,7 +26,6 @@ import { cssPixelsContract } from '@dungeonmaster/shared/contracts';
 import { useDisclosureAnchorBinding } from '../../bindings/use-disclosure-anchor/use-disclosure-anchor-binding';
 import type { ChatEntryGroup } from '../../contracts/chat-entry-group/chat-entry-group-contract';
 import { contextTokenCountContract } from '../../contracts/context-token-count/context-token-count-contract';
-import type { IsoTimestamp } from '../../contracts/iso-timestamp/iso-timestamp-contract';
 import { toggleTestIdContract } from '../../contracts/toggle-test-id/toggle-test-id-contract';
 import { emberDepthsThemeStatics } from '../../statics/ember-depths-theme/ember-depths-theme-statics';
 import { stickyHeaderStatics } from '../../statics/sticky-header/sticky-header-statics';
@@ -57,7 +56,7 @@ export interface SubagentChainWidgetProps {
   // The execution panel's shared 60-second clock, threaded down only while the owning row
   // is in_progress. Absent, a chain that has reported no duration of its own shows no figure at
   // all, which is what stops a sub-agent that stopped hours ago still climbing on screen.
-  now?: IsoTimestamp;
+  now?: string;
 }
 
 const STICKY_TOP_ROOT = cssPixelsContract.parse(0);

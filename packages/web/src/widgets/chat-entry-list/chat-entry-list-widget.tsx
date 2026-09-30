@@ -25,7 +25,6 @@ import { cssPixelsContract } from '@dungeonmaster/shared/contracts';
 
 import { contextTokenCountContract } from '../../contracts/context-token-count/context-token-count-contract';
 import type { ExecutionRole } from '../../contracts/execution-role/execution-role-contract';
-import type { IsoTimestamp } from '../../contracts/iso-timestamp/iso-timestamp-contract';
 import { tailStartIndexContract } from '../../contracts/tail-start-index/tail-start-index-contract';
 import { toggleTestIdContract } from '../../contracts/toggle-test-id/toggle-test-id-contract';
 import { isMessageAnchorEntryGuard } from '../../guards/is-message-anchor-entry/is-message-anchor-entry-guard';
@@ -70,7 +69,7 @@ export interface ChatEntryListWidgetProps {
   // The execution panel's shared 60-second clock, forwarded untouched to every sub-agent
   // chain this list renders. This list holds no clock of its own and starts no interval —
   // its host decides whether a running chain gets one at all.
-  now?: IsoTimestamp;
+  now?: string;
   // Set by a COMMAND work item's row (ward, riftcarver). Its text entries are raw program output,
   // not agent-authored markdown, so they render verbatim — npm's `> pkg build` script echo is a
   // blockquote to a markdown parser, and a build log is full of backticks and asterisks besides.

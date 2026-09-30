@@ -10,7 +10,6 @@
  * // Returns {hours: 1, minutes: 15, seconds: 30} as a branded ElapsedParts
  */
 
-import type { IsoTimestamp } from '../../contracts/iso-timestamp/iso-timestamp-contract';
 import { elapsedPartsContract } from '../../contracts/elapsed-parts/elapsed-parts-contract';
 import type { ElapsedParts } from '../../contracts/elapsed-parts/elapsed-parts-contract';
 
@@ -24,8 +23,8 @@ export const elapsedPartsTransformer = ({
   startedAt,
   endedAt,
 }: {
-  startedAt: IsoTimestamp;
-  endedAt: IsoTimestamp;
+  startedAt: string;
+  endedAt: string;
 }): ElapsedParts => {
   const ms = new Date(String(endedAt)).getTime() - new Date(String(startedAt)).getTime();
   const totalSeconds = Math.max(Math.floor(ms / MILLIS_PER_SECOND), 0);

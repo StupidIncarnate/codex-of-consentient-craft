@@ -19,6 +19,7 @@ import { rateLimitsHistoryAppendBroker } from '../../../brokers/rate-limits/hist
 import { rateLimitsSnapshotWriteBroker } from '../../../brokers/rate-limits/snapshot-write/rate-limits-snapshot-write-broker';
 import { statuslineInputContract } from '../../../contracts/statusline-input/statusline-input-contract';
 import { statuslineToSnapshotTransformer } from '../../../transformers/statusline-to-snapshot/statusline-to-snapshot-transformer';
+import { rateLimitsHistoryLineContract } from '@dungeonmaster/shared/contracts';
 
 export const CliStatuslineTapResponder = async (): Promise<void> => {
   const inputData = await readStdinToEnd();
@@ -35,7 +36,7 @@ export const CliStatuslineTapResponder = async (): Promise<void> => {
 
     if (writeResult.written) {
       await rateLimitsHistoryAppendBroker({
-        line: { at: snapshot.updatedAt, fiveHour: snapshot.fiveHour, sevenDay: snapshot.sevenDay },
+        line: rateLimitsHistoryLineContract.parse({ at: snapshot.updatedAt, fiveHour: snapshot.fiveHour, sevenDay: snapshot.sevenDay }),
       });
     }
   } catch (error: unknown) {

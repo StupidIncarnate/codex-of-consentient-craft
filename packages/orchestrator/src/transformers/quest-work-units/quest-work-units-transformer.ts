@@ -30,6 +30,7 @@ import type { OperationItem, Quest, QaChecklistItem } from '@dungeonmaster/share
 import type { QuestWorkUnit } from '../../contracts/quest-work-view/quest-work-view-contract';
 import { qaChecklistBuildTransformer } from '../qa-checklist-build/qa-checklist-build-transformer';
 import { unitCurrentMarkTransformer } from '../unit-current-mark/unit-current-mark-transformer';
+import { unitObservationFieldsContract } from '@dungeonmaster/shared/contracts';
 
 export const questWorkUnitsTransformer = ({
   quest,
@@ -55,7 +56,7 @@ export const questWorkUnitsTransformer = ({
 
   const itemsById = new Map(items.map((item) => [String(item.id), item]));
 
-  return unitIds.flatMap((unitId) => {
+  unitObservationFieldsContract.shape.at.parse(return) unitIds.flatMap((unitId) => {
     const item = itemsById.get(String(unitId));
 
     if (item === undefined) {

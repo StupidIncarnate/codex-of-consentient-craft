@@ -12,12 +12,11 @@
  * // Returns undefined — the row stopped, so its transcript gets no clock
  */
 
-import type { IsoTimestamp } from '../../contracts/iso-timestamp/iso-timestamp-contract';
 
 export const runningRowNowTransformer = ({
   isRunning,
   now,
 }: {
   isRunning: boolean;
-  now: IsoTimestamp | undefined;
-}): IsoTimestamp | undefined => (isRunning ? now : undefined);
+  now: string | undefined;
+}): string | undefined => (isRunning ? now : undefined);

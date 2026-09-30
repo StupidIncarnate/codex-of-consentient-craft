@@ -1,10 +1,9 @@
-import { IsoTimestampStub } from '../../contracts/iso-timestamp/iso-timestamp.stub';
 import { smoketestCaseCatalogStatics } from '../../statics/smoketest-case-catalog/smoketest-case-catalog-statics';
 import { smoketestPromptsStatics } from '../../statics/smoketest-prompts/smoketest-prompts-statics';
 import { caseCatalogToBlueprintTransformer } from './case-catalog-to-blueprint-transformer';
 import { caseCatalogToBlueprintTransformerProxy } from './case-catalog-to-blueprint-transformer.proxy';
 
-const NOW = IsoTimestampStub({ value: '2024-01-15T10:00:00.000Z' });
+const NOW = '2024-01-15T10:00:00.000Z';
 
 describe('caseCatalogToBlueprintTransformer', () => {
   describe('signals suite', () => {

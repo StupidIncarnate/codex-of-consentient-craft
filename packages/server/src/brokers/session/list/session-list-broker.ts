@@ -11,7 +11,7 @@ import type { Guild, Session } from '@dungeonmaster/shared/contracts';
 import { readFile, stat } from '#gateway/node/fs__promises';
 import { homedir } from '#gateway/node/os';
 import { glob } from '#gateway/npm/glob';
-import { StartOrchestrator, isoTimestampContract } from '@dungeonmaster/orchestrator';
+import { StartOrchestrator } from '@dungeonmaster/orchestrator';
 
 import { claudeProjectPathEncoderTransformer } from '@dungeonmaster/shared/transformers';
 import { extractSessionFileSummaryTransformer } from '../../../transformers/extract-session-file-summary/extract-session-file-summary-transformer';
@@ -126,7 +126,7 @@ export const sessionListBroker = async ({
 
       try {
         const stats = await stat(filePath);
-        const startedAt = isoTimestampContract.parse(new Date(stats.createdAtMs).toISOString());
+        const startedAt = new Date(stats.createdAtMs).toISOString();
 
         const mtimeMs = stats.modifiedAtMs;
         mtimeBySessionId.set(diskSessionId, mtimeMs);

@@ -26,8 +26,8 @@ export const dispatchHoldContract = z.object({
   // Rendered verbatim in the queue UI, so the user reads why the queue stopped without opening a
   // log. Built by the transformer that raises the hold.
   detail: z.string().min(1).brand<'DispatchHoldDetail'>(),
-  heldAt: z.iso.datetime().brand<'IsoTimestamp'>(),
-  resumeAt: z.iso.datetime().brand<'IsoTimestamp'>(),
+  heldAt: z.iso.datetime().brand<'DispatchHoldHeldAt'>(),
+  resumeAt: z.iso.datetime().brand<'DispatchHoldResumeAt'>(),
 });
 
 export type DispatchHold = z.infer<typeof dispatchHoldContract>;
