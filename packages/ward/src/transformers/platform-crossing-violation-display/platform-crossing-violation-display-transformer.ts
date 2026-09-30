@@ -9,18 +9,16 @@
  */
 
 import type { PlatformCrossingViolation } from '../../contracts/platform-crossing-violation/platform-crossing-violation-contract';
-import { platformCrossingDisplayTextContract } from '../../contracts/platform-crossing-display-text/platform-crossing-display-text-contract';
-import type { PlatformCrossingDisplayText } from '../../contracts/platform-crossing-display-text/platform-crossing-display-text-contract';
 
 export const platformCrossingViolationDisplayTransformer = ({
   violation,
 }: {
   violation: PlatformCrossingViolation;
-}): PlatformCrossingDisplayText => {
+}): string => {
   const chainLine = [`${violation.packageName} (${violation.platform})`, ...violation.chain].join(
     ' → ',
   );
   const messageLine = `${violation.crossedGatewayPackage} is not available in a ${violation.platform} package`;
 
-  return platformCrossingDisplayTextContract.parse(`${chainLine}\n${messageLine}`);
+  return `${chainLine}\n${messageLine}`;
 };

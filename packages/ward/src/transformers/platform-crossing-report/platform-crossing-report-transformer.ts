@@ -12,8 +12,6 @@
  */
 
 import type { PlatformCrossingViolation } from '../../contracts/platform-crossing-violation/platform-crossing-violation-contract';
-import { platformCrossingDisplayTextContract } from '../../contracts/platform-crossing-display-text/platform-crossing-display-text-contract';
-import type { PlatformCrossingDisplayText } from '../../contracts/platform-crossing-display-text/platform-crossing-display-text-contract';
 import { platformCrossingViolationDisplayTransformer } from '../platform-crossing-violation-display/platform-crossing-violation-display-transformer';
 
 const CLEAN_RUN_MESSAGE =
@@ -24,16 +22,14 @@ export const platformCrossingReportTransformer = ({
   violations,
 }: {
   violations: readonly PlatformCrossingViolation[];
-}): PlatformCrossingDisplayText => {
+}): string => {
   if (violations.length === 0) {
-    return platformCrossingDisplayTextContract.parse(CLEAN_RUN_MESSAGE);
+    return CLEAN_RUN_MESSAGE;
   }
 
   const blocks = violations.map((violation) =>
     platformCrossingViolationDisplayTransformer({ violation }),
   );
 
-  return platformCrossingDisplayTextContract.parse(
-    `platform-crossing: FAIL — ${violations.length} crossing(s) found\n\n${blocks.join('\n\n')}`,
-  );
+  return `platform-crossing: FAIL — ${violations.length} crossing(s) found\n\n${blocks.join('\n\n')}`;
 };
