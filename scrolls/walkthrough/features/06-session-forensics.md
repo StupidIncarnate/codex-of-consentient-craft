@@ -201,7 +201,7 @@ treat SF-45/SF-46 as "run only if the user asks for a real post-mortem," not as 
 
 ## Known open items
 
-Open defects from this section moved to scrolls/defects/ on 2026-09-30: DEF-205, DEF-200, DEF-204, DEF-206, DEF-207.
+Open defects from this section moved to scrolls/bounty-board/ on 2026-09-30: DEF-205, DEF-200, DEF-204, DEF-206, DEF-207.
 
 
 ## Sources

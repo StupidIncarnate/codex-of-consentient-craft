@@ -147,7 +147,7 @@ still says the word "screencast").
 
 ## Known open items
 
-Open defects from this section moved to scrolls/defects/ on 2026-09-30: DEF-203.
+Open defects from this section moved to scrolls/bounty-board/ on 2026-09-30: DEF-203.
 
 - **No recorder exists.** `scrolls/consolidated-plan-handoff.md` records two owner decisions that
   closed this: `verifyByHuman` and siegelense video are separate features, and the screencast hold was

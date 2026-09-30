@@ -8,7 +8,7 @@ Two source docs feed this epic. Neither is edited by the epic; they stay as the 
 
 | Source | What it holds |
 |---|---|
-| `scrolls/gateway/followup-sustainability.md` | Open work on the four gateway packages under `packages/@gateway/`, and the deletion of every `adapters/` folder |
+| `scrolls/bounty-board/` | Open gateway work, moved there on 2026-09-30 from `scrolls/gateway/followup-sustainability.md` (deleted; in git history), whose finished items were checked and dropped |
 | `scrolls/brands-types-tests-rules.md` | The rules for brands, library types, returns, tests and mocking, and the lint rules that enforce them |
 
 Every command runs from this worktree's root, `worktrees/gateway-pivot`, on the branch `gateway-pivot`.
@@ -160,7 +160,7 @@ Everything P2 and P3 is bundled with the user's defect list after the merge. No 
 | P2 | Bundle with defects | F130, F131, F132; Z09 (codeweaver prompts learn scripted work); B16's rest; F124's tail; F120; R1 switch-on; F100's plugin half; B17's rest; F63; F105; F107; F116; Z08 and F106; the SD1 `parent === null` and `mockArgValueMatchTransformer` cycle-guard decisions |
 | P3 | Backlog | F126, F127, F128, F115, F119, F30, R3 `checkModuleLevelShapes`; Z01, Z04, Z05, Z06, T09; old worktrees `gp-b01-zod4`, `gp-l2-tsestree`; emptying `tmp/deletions/` |
 
-Open F items are in scrolls/defects/ (find them by number in its README index).
+Open F items are in scrolls/bounty-board/ (find them by number in its README index).
 
 **Quest package graph ignores devDependencies** (the F124 commit): F122's testing-to-shared dependency made the graph
 see a cycle through shared's testing devDependency, and a cycle zeroes every depth. `prepare-quest-package-graph`
@@ -1037,7 +1037,7 @@ briefs, never forks. It still never builds or commits, and the operator's agent 
 
 Work that execution found and no item file owns. Each runs like an item.
 
-Open follow-ups moved to scrolls/defects/ on 2026-09-30 (same F numbers). The rows below are done and kept for their record.
+Open follow-ups moved to scrolls/bounty-board/ on 2026-09-30 (same F numbers). The rows below are done and kept for their record.
 
 | ID | What | Found by | Status | Notes |
 |---|---|---|---|---|

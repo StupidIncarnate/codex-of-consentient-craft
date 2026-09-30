@@ -212,7 +212,7 @@ in a real browser by a human**, which is this doc's whole reason to exist.
 
 ## Known open items
 
-Open defects from this section moved to scrolls/defects/ on 2026-09-30: DEF-208, DEF-218.
+Open defects from this section moved to scrolls/bounty-board/ on 2026-09-30: DEF-208, DEF-218.
 
 - **`scrolls/consolidated-plan-handoff.md`, "What this session landed"**: "Track 2 — execution panel...
   **None of it has been seen in a browser yet**" — this walkthrough is the first real-browser pass over

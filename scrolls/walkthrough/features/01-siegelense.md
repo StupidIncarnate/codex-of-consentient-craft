@@ -354,7 +354,7 @@ One case per step kind. Submit each as `dungeonmaster siegelense run --instance 
 
 ## Known open items
 
-Open defects from this section moved to scrolls/defects/ on 2026-09-30: DEF-213.
+Open defects from this section moved to scrolls/bounty-board/ on 2026-09-30: DEF-213.
 
 - **`start --seed` cannot pass recipe params — 4 of 9 catalog recipes are unreachable through `start`.**
   `instanceStartBroker` hardcodes `parameters: {}` at `packages/siegelense/src/brokers/instance/start/instance-start-broker.ts:393`.

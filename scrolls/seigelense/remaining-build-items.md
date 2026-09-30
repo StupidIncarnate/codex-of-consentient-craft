@@ -498,7 +498,7 @@ produces the same bytes; this says two things inside one plan produce different 
 
 ## 8. Two route defects — these are observables against the app, not framework rules
 
-**8a. A recipe using both the guild and quest write routes spans two unrelated stores.** DONE for the guild route (checked 2026-09-30, `guild-write-route-broker.ts` passes `home: target.home` to `guildAddBroker`). The quest update, reach and operation routes still read the global env var: tracked as DEF-230 in `scrolls/defects/`. The text below is the original.
+**8a. A recipe using both the guild and quest write routes spans two unrelated stores.** DONE for the guild route (checked 2026-09-30, `guild-write-route-broker.ts` passes `home: target.home` to `guildAddBroker`). The quest update, reach and operation routes still read the global env var: tracked as DEF-230 in `scrolls/bounty-board/`. The text below is the original.
 
 | Route                   | Resolves its storage from                                                                                  |
 |-------------------------|------------------------------------------------------------------------------------------------------------|

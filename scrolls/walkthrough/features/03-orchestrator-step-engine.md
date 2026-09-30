@@ -255,7 +255,7 @@ Args: `{ agent, questId, workItemId? }` — `workItemId` required for a relay ro
 
 ## Known open items
 
-Open defects from this section moved to scrolls/defects/ on 2026-09-30: DEF-201, DEF-202, DEF-214.
+Open defects from this section moved to scrolls/bounty-board/ on 2026-09-30: DEF-201, DEF-202, DEF-214.
 
 - **`unitIdContract` and `qaChecklistItemIdContract`** are byte-identical validation under separate
   brands, paying a re-parse at every boundary — a possible dedup, not a bug (same source).

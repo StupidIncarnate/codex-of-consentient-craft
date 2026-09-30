@@ -7,7 +7,7 @@
  * `killGroup` ESRCH-is-not-a-failure convention. A pid that has already exited is not a failure
  * here either — the caller reads `exitCode`/`output` to tell that apart from a real refusal (a
  * permission-denied kill on a pid this process does not own). ward's batched, default-signal
- * callers are the losing side of this reconciliation; see `scrolls/gateway/followup-sustainability.md` item 33.
+ * callers are the losing side of this reconciliation.
  *
  * USAGE:
  * await killPid({ pid: 12345 });

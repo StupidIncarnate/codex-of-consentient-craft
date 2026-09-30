@@ -9,8 +9,7 @@
  * `"./*"` and `"./testing"`, never a per-subpath literal or a root `"."`) needs either the
  * package's own dependency graph or a platform-accurate global list ESLint's own Node process
  * cannot observe for a BROWSER package — those are cheaper and more honest as a unit test inside
- * each gateway package, recorded in `scrolls/gateway/followup-sustainability.md` item 31 rather than guessed at
- * here.
+ * each gateway package (its `gateway-*` integration tests) rather than guessed at here.
  *
  * USAGE:
  * const rule = ruleGatewayLayoutBroker();

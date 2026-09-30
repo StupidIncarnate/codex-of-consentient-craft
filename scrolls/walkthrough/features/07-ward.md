@@ -173,7 +173,7 @@ ward surface, and use `timeout: 600000`+ if scripting it — never a fixed `slee
 
 ## Known open items
 
-Open defects from this section moved to scrolls/defects/ on 2026-09-30: DEF-211, DEF-212, DEF-216, DEF-217.
+Open defects from this section moved to scrolls/bounty-board/ on 2026-09-30: DEF-211, DEF-212, DEF-216, DEF-217.
 
 - **Per-sub-agent worktrees, a borrowed-binaries opt-out, and a role-migration mechanism** are still open per
   section 11.4 of the plan — none of these are ward-specific enough to script into this walkthrough, but a

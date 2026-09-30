@@ -268,7 +268,7 @@ Needs a real `questId` — mint one with IN-66 first if you have none.
 
 ## Known open items
 
-Open defects from this section moved to scrolls/defects/ on 2026-09-30: DEF-210, DEF-215.
+Open defects from this section moved to scrolls/bounty-board/ on 2026-09-30: DEF-210, DEF-215.
 
 - **`dumpster-create-prompt-statics.ts` (~64KB) is deliberately uncapped** (`scrolls/consolidated-plan-handoff.md`,
   "Known gaps") — do not treat IN-109 as a defect on its own; it is a confirm-the-design case.

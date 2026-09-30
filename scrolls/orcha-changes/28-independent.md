@@ -99,9 +99,9 @@ Checked 2026-09-30. All six are done, verified in current code:
 | `orchestrator/CLAUDE.md` is stale on concurrent browser walks | DONE: the "never two browser walks" rule is gone from `packages/orchestrator/CLAUDE.md` |
 | codeweaver's brief template promises a `MIRROR` block it never defines | DONE: no `MIRROR` left in `codeweaver-prompt-statics.ts` |
 
-The unread-config-knobs table that sat under this section moved to `scrolls/defects/`.
+The unread-config-knobs table that sat under this section moved to `scrolls/bounty-board/`.
 
-Moved to scrolls/defects/ on 2026-09-30: DEF-231 (three config knobs, `orchestration.timeoutMs`, `devServer.readinessPath`, `devServer.readinessTimeoutMs`, that nothing reads).
+Moved to scrolls/bounty-board/ on 2026-09-30: DEF-231 (three config knobs, `orchestration.timeoutMs`, `devServer.readinessPath`, `devServer.readinessTimeoutMs`, that nothing reads).
 
 ---
 

@@ -147,7 +147,7 @@ its `id`/`path` from the `SEEDED:` block, then issue one `run` per recipe.
 
 ## Known open items
 
-Open defects from this section moved to scrolls/defects/ on 2026-09-30: DEF-209.
+Open defects from this section moved to scrolls/bounty-board/ on 2026-09-30: DEF-209.
 
 - **Earlier seed fixes, not yet seen live.** Three fixes are proven by tests but not on the real CLI:
   `seedResultContract` accepts a full record, `guild-with-three-quests` seeds three distinct statuses with gate

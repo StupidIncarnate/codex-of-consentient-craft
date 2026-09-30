@@ -8,7 +8,7 @@ The driver keeps this file current. `README.md` says how.
 |---|---|
 | Feature | `features/01-siegelense.md`, second pass (2026-09-28): every case re-run on today's build, the user reviewing live up to SL-095, Claude alone after that (`Claude: … 09-28, Human: ???`) |
 | Next case | The user reviews the `Claude: … 09-28, Human: ???` results from SL-096 on. Then `02-hydration-and-recipes.md`, using the "What to check on every case" table in `01-siegelense.md` |
-| Held back, not skipped | SL-083 to SL-087 (`until` cases): the user ruled out timeout-based cases until DEF-117, DEF-118, DEF-120 and DEF-135 land. DEF-117, DEF-120 and DEF-135 are fixed; only DEF-118 (`needs decision`, in `scrolls/defects/`) is left. Re-run them once it is decided. SL-175 (needs a video aged 2 to 7 days) and SL-178 (needs a quest note citing an instance) need setups not made yet. SL-036 and SL-037 wait on DEF-59 |
+| Held back, not skipped | SL-083 to SL-087 (`until` cases): the user ruled out timeout-based cases until DEF-117, DEF-118, DEF-120 and DEF-135 land. DEF-117, DEF-120 and DEF-135 are fixed; only DEF-118 (`needs decision`, in `scrolls/bounty-board/`) is left. Re-run them once it is decided. SL-175 (needs a video aged 2 to 7 days) and SL-178 (needs a quest note citing an instance) need setups not made yet. SL-036 and SL-037 wait on DEF-59 |
 | How to run cases | `npm run siegelense -- <call>` from the repo root (sets `DUNGEONMASTER_HOME` to `<repo>/.dungeonmaster`). Web cases are checked against the real DOM in Chrome (README) |
 | Rebuild owed | No. The whole repo was built on 2026-09-29 after merge `76cf9af8c`; every later merge changed tests only |
 | Dispatch | 2026-09-29: the orchestrator dispatched DEF-101 to DEF-167 in worktrees and merged each into `master`. Rows fixed that day read `fixed, not built` or `fixed` and wait for the user's review. The last full ward (run `1790726979118-47a0`) passed every check and exited 1 only on DEF-168's slow files |
@@ -32,7 +32,7 @@ Everything the 2026-09-27 handoff queued is fixed, merged into `master`, built a
 
 ### 1. Waiting on the user's contracts/adapters pivot
 
-Moved to scrolls/defects/ on 2026-09-30.
+Moved to scrolls/bounty-board/ on 2026-09-30.
 
 ### 2. Things the next driver must know
 
@@ -47,7 +47,7 @@ Moved to scrolls/defects/ on 2026-09-30.
 
 ## Defects
 
-Open defects moved to scrolls/defects/ on 2026-09-30. The rows below are closed and kept for their record.
+Open defects moved to scrolls/bounty-board/ on 2026-09-30. The rows below are closed and kept for their record.
 
 Status values:
 
@@ -144,13 +144,13 @@ The user's decisions for DEF-32, 2026-09-23:
 3. siegelense has no fake-Claude mechanism of its own. It fakes exactly what the repo's Playwright setup fakes.
 4. The smoke-test playbook is deleted. `dungeonmaster init` adds a `hydration-recipes` folder when a repo has none.
 
-**The hands-off rule for `contracts/` and `adapters/` (2026-09-27) is lifted.** The contracts/adapters pivot merged into `master` on 2026-09-30 (788165421). Every defect that waited on it is now `ready` in `scrolls/defects/`.
+**The hands-off rule for `contracts/` and `adapters/` (2026-09-27) is lifted.** The contracts/adapters pivot merged into `master` on 2026-09-30 (788165421). Every defect that waited on it is now `ready` in `scrolls/bounty-board/`.
 
 The user's decision on the `api` spec, 2026-09-27: `api` boots every configured process, the web one included, and only drops the browser. That is fine for now. What matters is that an `api` lane drives the app through HTTP requests, like curl, rather than through a browser.
 
 ## Suspected defects from the exploration
 
-Open suspicions moved to `scrolls/defects/` on 2026-09-30 (DEF-200 to DEF-212; the old sign-off-key quests are DEF-200, see also DEF-109 above). The rows below are closed and kept for their record.
+Open suspicions moved to `scrolls/bounty-board/` on 2026-09-30 (DEF-200 to DEF-212; the old sign-off-key quests are DEF-200, see also DEF-109 above). The rows below are closed and kept for their record.
 
 | Feature · case | Outcome |
 |---|---|
