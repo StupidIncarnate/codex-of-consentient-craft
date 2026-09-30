@@ -699,6 +699,9 @@ if (STEPS.has('dangling')) {
 }
 
 const eslintBin = path.join(W, 'node_modules', '.bin', 'eslint');
+// `--conditions=source`: eslint.config.js loads the plugin from source, and its imports of @dungeonmaster/npm resolve to a
+// `dist` that the worktree's copied build may not hold; ESLint itself sets no `source` condition.
+const ESLINT_NODE_OPTIONS = '--conditions=source --max-old-space-size=16000';
 if (STEPS.has('brand')) {
   if (!APPLY) log('brand: skipped in a dry run');
   else {
@@ -716,7 +719,7 @@ if (STEPS.has('brand')) {
         for (let i = 0; i < list.length; i += 250) {
           const chunk = list.slice(i, i + 250);
           const r = run(eslintBin, ['-c', path.join(BB, 'brand-fix.config.js'), '--fix', '-f', 'json', '-o', path.join(MM, `brand-${rule}.json`), ...chunk], {
-            env: { ...process.env, NODE_OPTIONS: '--max-old-space-size=16000', MIGRATE_ROOT: W, BRAND_FIX_RULES: rule },
+            env: { ...process.env, NODE_OPTIONS: ESLINT_NODE_OPTIONS, MIGRATE_ROOT: W, BRAND_FIX_RULES: rule },
           });
           let fixed = 0;
           let crashed = false;
@@ -735,14 +738,51 @@ if (STEPS.has('brand')) {
   }
 }
 
+// Same algorithm as bigbang/apply-suggestions.cjs (ESLint's first suggestion for one rule, repeated until none is left), over
+// the master-touched files of each package and with the `source` condition; that script fixes its child's NODE_OPTIONS.
 if (STEPS.has('suggest')) {
   if (!APPLY) log('suggest: skipped in a dry run');
   else {
-    const dirs = [...touchedByPkg().keys()];
-    const r = run('node', [path.join(BB, 'apply-suggestions.cjs'), `--root=${W}`, '@typescript-eslint/no-unnecessary-type-conversion', ...dirs], { env: { ...process.env, NODE_OPTIONS: '--max-old-space-size=16000' } });
-    const tail = (r.stdout || '').split('\n').slice(-12).join('\n');
-    log(`suggest: exit ${r.status}\n${tail}`);
-    Object.assign(summary.suggest, { exit: r.status, packages: dirs, tail });
+    const RULE = '@typescript-eslint/no-unnecessary-type-conversion';
+    const outJson = path.join(MM, 'eslint-suggest.json');
+    const res = {};
+    let total = 0;
+    for (const [pkg, files] of touchedByPkg()) {
+      let applied = 0;
+      let crashed = false;
+      for (let pass = 0; pass < 5; pass++) {
+        const r = run(eslintBin, ['-f', 'json', '-o', outJson, ...files], { env: { ...process.env, NODE_OPTIONS: ESLINT_NODE_OPTIONS }, stdio: ['ignore', 'ignore', 'pipe'] });
+        let report;
+        try {
+          report = JSON.parse(fs.readFileSync(outJson, 'utf8'));
+        } catch {
+          crashed = true;
+          res[pkg] = { crashed, exit: r.status, stderr: (r.stderr || '').slice(-400) };
+          break;
+        }
+        let n = 0;
+        for (const file of report) {
+          const fixes = file.messages.filter((m) => m.ruleId === RULE && m.suggestions && m.suggestions[0]).map((m) => m.suggestions[0].fix);
+          if (!fixes.length) continue;
+          fixes.sort((x, y) => y.range[0] - x.range[0]);
+          let text = fs.readFileSync(file.filePath, 'utf8');
+          let lastStart = Infinity;
+          for (const f of fixes) {
+            if (f.range[1] > lastStart) continue;
+            text = text.slice(0, f.range[0]) + f.text + text.slice(f.range[1]);
+            lastStart = f.range[0];
+            n++;
+          }
+          fs.writeFileSync(file.filePath, text);
+        }
+        applied += n;
+        if (!n) break;
+      }
+      if (!crashed) res[pkg] = { applied };
+      total += applied;
+    }
+    Object.assign(summary.suggest, { total, perPackage: res });
+    log(`suggest: ${total} suggestions applied; packages ${JSON.stringify(res)}`);
   }
 }
 

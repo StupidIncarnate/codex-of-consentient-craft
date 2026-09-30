@@ -65,7 +65,7 @@ the fix is in the root, never in the 108 sites. After the root fix, `quest-modif
 Cause: `blightChecklistContract.baseRef` is `.brand<'BlightChecklistBaseRef'>()`; the transformer takes
 `baseRef: NonNullable<Quest['baseRef']>` (`QuestBaseRef`). Tests pass `BlightChecklistStub().baseRef`.
 
-Fix (one file, `blight-checklist-build-transformer.ts:100`): inputs may be plain, and the value is parsed by
+Fix (one file, `blight-checklist-build-transformer.ts:100`): `baseRef` is no owner's claimed name, so the parameter may be plain (a name an owner claims, like `questId`, keeps `Owner['field']`, R8), and the value is parsed by
 `blightChecklistContract.parse({ baseRef, ... })` at line 268 anyway.
 ```ts
 // before

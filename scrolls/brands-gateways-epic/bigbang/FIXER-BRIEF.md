@@ -17,10 +17,13 @@ they applied are in `scrolls/brands-types-tests-rules.md` (B1 to B6). In short:
 
 ## Operator decisions (these override anything a script did)
 
-1. **Inputs may be plain; returns are branded.** When a script retyped a parameter, a harness input, an error
-   constructor input or a local accumulator from `string`/`number` to a brand or `Owner['field']`, and callers pass
-   plain values, loosen the receiver back to the plain type. Parse where the value becomes part of a returned or
-   stored contract value. Test harnesses (`test/harnesses/**`) always take raw input.
+1. **Returns are branded. A parameter an owner claims takes `Owner['field']`; every other parameter may be plain.**
+   A parameter named for an owner's field (`questId`) takes `Quest['id']`, as `enforce-owner-field-reuse` (R8)
+   enforces everywhere but `errors/`; the caller parses. When a script retyped any OTHER parameter (no owner claims
+   its name, like `processId`), a harness input, an error constructor input or a local accumulator from
+   `string`/`number` to a brand, and callers pass plain values, loosen the receiver back to the plain type. Parse
+   where the value becomes part of a returned or stored contract value. Test harnesses (`test/harnesses/**`) always
+   take raw input.
 2. **A contract used only as a generic constraint is not branded** (`T extends ItemWithId`, `TTarget extends
    HydrationTarget`). Remove its `.brand()`. It describes a structure, not data.
 3. **A record's keys stay plain** (`z.record(z.string(), …)`), unless the key is an owner's id, which then reuses
