@@ -157,15 +157,25 @@ More rules for the operator:
 
 **Open decisions for the next operator:** the two `start-orchestrator.proxy.ts` constructor defaults (T05); whether SD1's dead-condition pass should stop stripping `parent === null` (L2 found it live at runtime); `testing`'s `mockArgValueMatchTransformer` has no cycle guard, so a proxy addressing a call by a real AST node overflows the stack (L2 worked around it in eslint-plugin).
 
-### Session 2026-09-29 afternoon — in flight
+### Handoff (2026-09-29, 17:10) — READ THIS FIRST
 
-- Step 1 done: `build:clean`, full ward 1790704851764-b386 green on all five checks (no slow-file flags).
-- Step 2 done: L2 merged (62507f92d).
-- Plans written: T06 (`items/t06-*.md` "## Plan", 15 agents in 3 waves) and L4 rest (`items/b05-*.md` "## Plan — L4 rest and L3 leftovers", 14 batches; hooks, server and mcp L3 leftovers were already done).
+**State.** Nothing is running and nothing is uncommitted (HEAD after 898ce9e8a). `build:clean` passed at 17:05. The full `npm run ward` was NOT run at the end of this session: the user stopped it to re-plan (see "Open proposal" below). Last full ward: 1790704851764-b386 at 11:01, green, 1,113 s (18.5 minutes; e2e alone 331 s). A full ward of about 20 minutes is therefore the baseline, not a new regression.
 
-### Quiet window planned (16:25)
+**Done this session:** L2 merged; wave 3.5 (L0 to L5); T05, T06, T08, B18; F56, F57, F72, F108 to F114, F117, F118; the F100 shared half; R5 built and on; T05's three rules on; T06's wrapper-mock ban on; R7 a to e built but not registered. The R1 queue is down to: testing 14 (quiet wave), eslint-plugin 4 (`astNode` and `ruleViolation` wait on B06; `eslintRuleName`'s stub is used by the config test; the `RuleViolation` type), orchestrator 1 (`workItemId`, W3), web 12 (W1). Open follow-ups: F30, F63, F100 (plugin half), F105, F106 (tabled), F107, F115, F116, F119.
 
-No new dispatch until the running agents drain (R7 a-e, T06 E1, F100 shared, R1-orch-h). Then, with nothing else running: `build:clean`, full `npm run ward`, `check:consumer` and `check:published` (hooks install parses settings now; shared and testing APIs changed); then testing's quiet wave (K-test-1, K-test-2, R1-testing-a to -c); then R5's switch-on (`outsideTypeCasts` on after a full scan), R7-f/g, F100's eslint-plugin batches.
+**Next, in order (unless the user adopts the open proposal):**
+
+| Step | What |
+|---|---|
+| 1 | Full `npm run ward` (timeout 600000, wait on it), then `check:consumer` (hooks install now parses settings; F117 loosened the Claude Code-owned enums) and `check:published` (shared dropped `adapterResultContract`; orchestrator dropped four exports). |
+| 2 | Testing's quiet wave: K-test-1, K-test-2, R1-testing-a to -c (plans in `items/b02-*.md`), with nothing else running. |
+| 3 | R7-f and R7-g (register off, scan); F100's three eslint-plugin batches; F119, F115, F107. |
+| 4 | R1 switch-on once its scan reads 0 (after W1 and W3 clear the web rows and `workItemId`). |
+| 5 | Phase 4 brand waves W1 to W10, then B16, T09, Phase 6 (Z08 is the slow-test review). |
+
+**Open proposal (user, 17:10), not yet decided:** run every Phase 4 script up front, accept a full-red tree, then fan out agents file by file until green, so each file is touched once instead of once per wave. The operator's recommendation is in this session's Log line; the next session decides it with the user.
+
+**Disk:** 55G free at 17:05. `/tmp/jest_rt` holds 20G of Jest transform cache, and 76 `/tmp/dm-e2e-*` directories remain. Clearing them needs the user's approval; ask before free space nears 30G.
 
 ### Lessons worth keeping
 
@@ -974,3 +984,4 @@ One line per session: the date, what landed, and where the next session starts.
 | 2026-09-29 | Planning session (no code changed): Phase 3 and 4 re-planned against measured counts in `phase-3-4-plan.md` (since merged into "Phases 3 and 4 — the plan"); Phase 3/4 tables replaced; concessions 16 to 18; prototypes and censuses committed under `phase34-scripts/`. |
 | 2026-09-29 | Phase 2 finish session (operator): A18 finished in code — gateway units GB4, U1 to U3, GN13 to GN15, GBIN1, GNPM-vite; the A18 codemod; hand queues in every package; dependency removals (a1d6abed6 to a86065b08); A19 prep (0ba37e71e); F77, F78 closed; concessions 14, 15. The user stopped before the final ward. The last A18 diff (GN15, `vite` subpath, web's last spots) is uncommitted. Phase 3 and 4 plan merged into this file. Next: START HERE "Phase 2 handoff". |
 | 2026-09-29 | Operator session (day): Phase 2 closed (A18, A19 switch-on, P3-0 gate); waves 3.1 to 3.4 done; 3.3's layout with explicit per-barrel keys (concession 22) and `ban-test-support-in-production` (concession 23); 4.0 decisions; R1, R2, R3, R4, R6, R8, R9, T10, T2, T1, L0, L1; L3 and L4 for hooks, server, mcp; L2 part 1 on branch `gp-l2-tsestree`; every SD script; B17 and B18 in most packages; T05 swept; disk-full incident fixed (F95 to F97); about 60 follow-ups closed. Next: START HERE "Handoff (2026-09-29, evening)". |
+| 2026-09-29 | Operator session (afternoon, 10:58 to 17:10): L2 merged; wave 3.5 done; T05, T06, T08, B18 done with their rules on; R5 built and on; the R1 queue went from 122 to about 31 (all waiting on W1, W3, B06 or testing's quiet wave); F56, F57, F72, the F100 shared half, F108 to F114, F117, F118 closed; R7 a to e built. The user tabled slow tests to Phase 6 (rule 21, Z08) and proposed running every Phase 4 script up front, then fixing file by file. Operator recommendation: do it on a worktree branch (rule W), applying the scripts in wave order with each script's leftovers file as the queue; keep gateway-pivot green and merge the branch when it is green. Next: START HERE "Handoff (2026-09-29, 17:10)". |
