@@ -24,6 +24,7 @@ import { z } from '#gateway/npm/zod';
 
 import { siegeInstanceContract } from '@dungeonmaster/shared/contracts';
 
+import { instanceLifecycleStatics } from '../../statics/instance-lifecycle/instance-lifecycle-statics';
 import { repoLocalPathContract } from '../repo-local-path/repo-local-path-contract';
 
 export const killResultContract = z
@@ -31,7 +32,14 @@ export const killResultContract = z
     instanceId: siegeInstanceContract.shape.id,
     stopped: z.boolean(),
     portsReleased: z
-      .array(z.number().int().min(1).max(65_535).brand<'KillResultPortsReleased'>())
+      .array(
+        z
+          .number()
+          .int()
+          .min(1)
+          .max(instanceLifecycleStatics.ports.maxPort)
+          .brand<'KillResultPortsReleased'>(),
+      )
       .readonly(),
     homeRemoved: z.boolean(),
     evidenceKept: repoLocalPathContract,

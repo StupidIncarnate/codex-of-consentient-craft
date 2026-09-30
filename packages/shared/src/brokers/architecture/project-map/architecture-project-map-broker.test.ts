@@ -29,11 +29,7 @@ describe('architectureProjectMapBroker', () => {
         packages: ['shared'],
       });
 
-      expect(
-        result
-          .split('\n')
-          .some((l) => l === '# shared [library]'),
-      ).toBe(true);
+      expect(result.split('\n').some((l) => l === '# shared [library]')).toBe(true);
     });
 
     it('VALID: {library package, packages: [shared]} => header is followed by the inventory pointer', async () => {
@@ -66,11 +62,7 @@ describe('architectureProjectMapBroker', () => {
         packages: ['shared'],
       });
 
-      expect(
-        result
-          .split('\n')
-          .some((l) => l === '## Boot'),
-      ).toBe(false);
+      expect(result.split('\n').some((l) => l === '## Boot')).toBe(false);
     });
   });
 
@@ -102,11 +94,7 @@ describe('architectureProjectMapBroker', () => {
         packages: ['root'],
       });
 
-      expect(
-        result
-          .split('\n')
-          .some((l) => l === '# root [library]'),
-      ).toBe(true);
+      expect(result.split('\n').some((l) => l === '# root [library]')).toBe(true);
     });
   });
 
@@ -121,11 +109,7 @@ describe('architectureProjectMapBroker', () => {
         packages: ['ink-cli'],
       });
 
-      expect(
-        result
-          .split('\n')
-          .some((l) => l === '# ink-cli [frontend-ink]'),
-      ).toBe(true);
+      expect(result.split('\n').some((l) => l === '# ink-cli [frontend-ink]')).toBe(true);
     });
   });
 
@@ -140,11 +124,7 @@ describe('architectureProjectMapBroker', () => {
         packages: ['mcp'],
       });
 
-      expect(
-        result
-          .split('\n')
-          .some((l) => l === '# mcp [programmatic-service]'),
-      ).toBe(true);
+      expect(result.split('\n').some((l) => l === '# mcp [programmatic-service]')).toBe(true);
     });
   });
 
@@ -159,11 +139,7 @@ describe('architectureProjectMapBroker', () => {
         packages: ['npm'],
       });
 
-      expect(
-        result
-          .split('\n')
-          .some((l) => l === '# npm [library]'),
-      ).toBe(true);
+      expect(result.split('\n').some((l) => l === '# npm [library]')).toBe(true);
     });
 
     it('INVALID: {packages/@gateway/npm on disk, packages: [@gateway]} => throws Unknown package(s), so the group itself is never a valid name', async () => {

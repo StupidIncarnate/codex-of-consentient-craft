@@ -8,6 +8,8 @@
 
 import { z } from '#gateway/npm/zod';
 
+import { environmentStatics } from '../../statics/environment/environment-statics';
+
 export const projectConfigContract = z
   .object({
     dungeonmaster: z
@@ -16,7 +18,7 @@ export const projectConfigContract = z
           .number()
           .int()
           .min(1)
-          .max(65_535)
+          .max(environmentStatics.maxPort)
           .brand<'ProjectConfigDungeonmasterPort'>()
           .optional(),
       })

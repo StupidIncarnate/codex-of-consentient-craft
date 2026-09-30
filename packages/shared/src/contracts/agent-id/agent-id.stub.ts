@@ -1,6 +1,7 @@
+import type { Agent } from '../agent/agent-contract';
 import { agentContract } from '../agent/agent-contract';
 
-type AgentId = ReturnType<typeof agentContract.shape.id.parse>;
-
-export const AgentIdStub = ({ value }: { value: string } = { value: 'agent-abc' }): AgentId =>
-  agentContract.shape.id.parse(value);
+export const AgentIdStub = ({ value }: { value: string } = { value: 'agent-abc' }): Agent['id'] => {
+  const agentIdContract = agentContract.shape.id;
+  return agentIdContract.parse(value);
+};

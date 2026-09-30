@@ -42,7 +42,7 @@ export const ToolResultPartLayerWidget = ({
           data-testid="TOOL_RESULT_FIELD_LABEL"
           ff="monospace"
           fw={LABEL_FONT_WEIGHT}
-          style={{ fontSize: fontSize, color: colors['text-dim'] }}
+          style={{ fontSize, color: colors['text-dim'] }}
         >
           {part.label}
         </Text>
@@ -54,7 +54,7 @@ export const ToolResultPartLayerWidget = ({
         // run-on sentence with every nesting level flattened out of it.
         <MarkdownTextWidget content={part.source} preserveLineBreaks={true} />
       ) : (
-        <Text ff="monospace" style={{ fontSize: fontSize, color, whiteSpace: 'pre-wrap' }}>
+        <Text ff="monospace" style={{ fontSize, color, whiteSpace: 'pre-wrap' }}>
           {isInlineField && part.label !== undefined
             ? `${String(part.label)}: ${String(part.text)}`
             : part.text}

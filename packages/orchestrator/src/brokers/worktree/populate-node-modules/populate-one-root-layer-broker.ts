@@ -131,9 +131,7 @@ export const populateOneRootLayerBroker = async ({
     if (copied.exitCode !== COPY_GREEN_EXIT_CODE) {
       // `cp -al` cannot cross filesystems, so a worktree placed on another mount fails here rather
       // than degrading into a mechanism nobody chose.
-      throw new Error(
-        `node_modules hardlink populate failed for ${targetRoot}: ${copied.output}`,
-      );
+      throw new Error(`node_modules hardlink populate failed for ${targetRoot}: ${copied.output}`);
     }
   }
 

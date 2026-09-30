@@ -72,7 +72,7 @@ export const resolvePackageGroupsLayerBroker = ({
         (flowPath) =>
           matchesFlowFileNameGuard({ name: flowPath }) &&
           flowCreatesHonoOrExpressAppGuard({
-            flowFileContent: (readFileLayerBroker({ filePath: flowPath }) ?? ''),
+            flowFileContent: readFileLayerBroker({ filePath: flowPath }) ?? '',
           }),
       )
     ) {

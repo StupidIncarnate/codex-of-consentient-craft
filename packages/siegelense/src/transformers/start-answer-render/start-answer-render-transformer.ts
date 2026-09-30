@@ -40,18 +40,18 @@ export const startAnswerRenderTransformer = ({
                 return `  ${binding}: ${value}`;
               }
 
-              const rowEntries = Object.entries(value);
+              const rowEntries = Object.entries(value).flatMap<[string, string]>(
+                ([key, fieldValue]) => (typeof fieldValue === 'string' ? [[key, fieldValue]] : []),
+              );
               const idEntry = seedRowSummaryStatics.primaryId.fieldOrder.reduce<
                 (typeof rowEntries)[0] | undefined
               >((found, fieldName) => {
                 if (found !== undefined) {
                   return found;
                 }
-                return rowEntries.find(
-                  ([key, fieldValue]) => key === fieldName && typeof fieldValue === 'string',
-                );
+                return rowEntries.find(([key]) => key === fieldName);
               }, undefined);
-              const id = idEntry !== undefined && typeof idEntry[1] === 'string' ? idEntry[1] : '-';
+              const id = idEntry === undefined ? '-' : idEntry[1];
 
               const identityEntries = seedRowSummaryStatics.identity.fieldOrder.reduce<
                 typeof rowEntries
@@ -59,9 +59,7 @@ export const startAnswerRenderTransformer = ({
                 if (accumulated.length >= seedRowSummaryStatics.identity.maxFields) {
                   return accumulated;
                 }
-                const match = rowEntries.find(
-                  ([key, fieldValue]) => key === fieldName && typeof fieldValue === 'string',
-                );
+                const match = rowEntries.find(([key]) => key === fieldName);
                 return match === undefined ? accumulated : [...accumulated, match];
               }, []);
 
@@ -69,7 +67,7 @@ export const startAnswerRenderTransformer = ({
                 identityEntries.length === 0
                   ? ''
                   : ` (${identityEntries
-                      .map(([key, fieldValue]) => `${key}: ${String(fieldValue)}`)
+                      .map(([key, fieldValue]) => `${key}: ${fieldValue}`)
                       .join(', ')})`;
 
               return `  ${binding}: ${id}${identitySuffix}`;

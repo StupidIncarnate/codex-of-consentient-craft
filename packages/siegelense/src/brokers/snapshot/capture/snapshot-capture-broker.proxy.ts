@@ -103,8 +103,7 @@ export const snapshotCaptureBrokerProxy = (): {
     payloadPathFor: ({ homePath, ordinal }: { homePath: string; ordinal: number }): string =>
       `${homePath}/${STORE_DIR_NAME}/${String(ordinal)}`,
 
-    storeDirFor: ({ homePath }: { homePath: string }): string =>
-      `${homePath}/${STORE_DIR_NAME}`,
+    storeDirFor: ({ homePath }: { homePath: string }): string => `${homePath}/${STORE_DIR_NAME}`,
 
     indexPathFor: ({ homePath }: { homePath: string }): string =>
       indexReadProxy.indexPathFor({ homePath }),

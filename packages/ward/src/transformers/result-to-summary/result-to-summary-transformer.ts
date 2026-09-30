@@ -324,9 +324,9 @@ export const resultToSummaryTransformer = ({
 
     const reportLines = died.map((projectResult) =>
       outOfMemoryReportTransformer({
-          projectFolder: projectResult.projectFolder,
-          rawOutput: projectResult.rawOutput,
-        }),
+        projectFolder: projectResult.projectFolder,
+        rawOutput: projectResult.rawOutput,
+      }),
     );
 
     return [

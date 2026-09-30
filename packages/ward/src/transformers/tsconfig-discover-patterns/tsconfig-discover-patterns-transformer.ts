@@ -10,9 +10,8 @@ import { tsconfigDiscoverPatternsContract } from '../../contracts/tsconfig-disco
 import type { TsconfigDiscoverPatterns } from '../../contracts/tsconfig-discover-patterns/tsconfig-discover-patterns-contract';
 import { tsconfigJsonContract } from '../../contracts/tsconfig-json/tsconfig-json-contract';
 import { checkCommandsStatics } from '../../statics/check-commands/check-commands-statics';
+import { tsconfigDiscoverStatics } from '../../statics/tsconfig-discover/tsconfig-discover-statics';
 import { expandToTsGlobsTransformer } from '../expand-to-ts-globs/expand-to-ts-globs-transformer';
-
-const DEFAULT_EXCLUDE: string[] = ['node_modules', 'dist'];
 
 export const tsconfigDiscoverPatternsTransformer = ({
   tsconfigData,
@@ -21,7 +20,7 @@ export const tsconfigDiscoverPatternsTransformer = ({
 }): TsconfigDiscoverPatterns => {
   const fallback = {
     patterns: checkCommandsStatics.typecheck.discoverPatterns.map((p) => p),
-    exclude: [...DEFAULT_EXCLUDE],
+    exclude: [...tsconfigDiscoverStatics.defaultExclude],
   };
 
   const tsconfig = ((): ReturnType<typeof tsconfigJsonContract.parse> | null => {
@@ -49,7 +48,7 @@ export const tsconfigDiscoverPatternsTransformer = ({
     return tsconfigDiscoverPatternsContract.parse(fallback);
   }
 
-  const exclude: string[] = [...DEFAULT_EXCLUDE];
+  const exclude: string[] = [...tsconfigDiscoverStatics.defaultExclude];
   if (tsconfig.exclude !== undefined) {
     for (const entry of tsconfig.exclude) {
       const parsed = String(entry);

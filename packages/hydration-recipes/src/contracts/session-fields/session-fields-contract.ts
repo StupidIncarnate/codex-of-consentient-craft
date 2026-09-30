@@ -19,15 +19,15 @@
  * independent sites (`IngredientConfig['fields']` and `IngredientConfigInferenceAnchor['fields']`),
  * and re-checking one concrete `ZodObject` class against both sites' `deepPartial()` fails for
  * this shape even though the schema itself is valid — `IngredientConfigInferenceAnchor`'s own
- * comment names the upcast as the fix. `.shape` is gone from this export as a result; a caller
- * that needs one field's own contract reaches for the leaf import (`sessionIdContract`, etc.)
- * instead of `sessionFieldsContract.shape.<field>`.
+ * comment names the upcast as the fix. The concrete object schema stays private; the export
+ * carries its `.shape` alongside the upcast, so a caller reads one field's own contract as
+ * `sessionFieldsContract.shape.<field>`.
  */
 import { z } from '#gateway/npm/zod';
 
 import { sessionContract } from '@dungeonmaster/shared/contracts';
 
-export const sessionFieldsShape = z
+const sessionFieldsShape = z
   .object({
     sessionId: sessionContract.shape.id,
     cwd: z
@@ -43,7 +43,8 @@ export const sessionFieldsShape = z
 
 export type SessionFields = z.infer<typeof sessionFieldsShape>;
 
-export const sessionFieldsContract: z.ZodType<
-  SessionFields,
-  z.input<typeof sessionFieldsShape>
-> = sessionFieldsShape.transform((fields) => fields);
+export const sessionFieldsContract: z.ZodType<SessionFields, z.input<typeof sessionFieldsShape>> &
+  Pick<typeof sessionFieldsShape, 'shape'> = Object.assign(
+  sessionFieldsShape.transform((fields) => fields),
+  { shape: sessionFieldsShape.shape },
+);

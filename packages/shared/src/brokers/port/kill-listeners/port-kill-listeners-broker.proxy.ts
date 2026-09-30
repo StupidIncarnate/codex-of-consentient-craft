@@ -12,10 +12,10 @@ export const portKillListenersBrokerProxy = (): {
 
   return {
     setupListeners: ({ port, pids }: { port: number; pids: number[] }): void => {
-      lsofProxy.setupPids({ port: port, pids });
+      lsofProxy.setupPids({ port, pids });
     },
     setupNoneListening: ({ port }: { port: number }): void => {
-      lsofProxy.setupNoneListening({ port: port });
+      lsofProxy.setupNoneListening({ port });
     },
     setupKillResult: ({
       pid,

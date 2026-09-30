@@ -5,4 +5,7 @@ export const BlightChecklistItemIdStub = (
   { value }: { value: string } = {
     value: 'packages/web/src/widgets/quest-chat/quest-chat-widget.tsx:craft',
   },
-): BlightChecklistItem['id'] => blightChecklistItemContract.shape.id.parse(value);
+): BlightChecklistItem['id'] => {
+  const blightChecklistItemIdContract = blightChecklistItemContract.shape.id;
+  return blightChecklistItemIdContract.parse(value);
+};

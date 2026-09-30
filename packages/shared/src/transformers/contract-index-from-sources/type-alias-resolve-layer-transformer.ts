@@ -28,7 +28,6 @@ export const typeAliasResolveLayerTransformer = ({
   const referenced = typeNode.typeName.text;
   return typeAliases.find(
     (alias) =>
-      alias.name === referenced &&
-      !visitedNames.some((visitedName) => visitedName === referenced),
+      alias.name === referenced && !visitedNames.some((visitedName) => visitedName === referenced),
   );
 };

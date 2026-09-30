@@ -193,7 +193,7 @@ export const checkRunTypecheckBroker = async ({
             directoryEntries.some((directory) =>
               isPathUnderDirectoryGuard({
                 path: String(entry.filePath),
-                directory: directory,
+                directory,
               }),
             ),
         )
@@ -206,7 +206,7 @@ export const checkRunTypecheckBroker = async ({
             !directoryEntries.some((directory) =>
               isPathUnderDirectoryGuard({
                 path: String(entry.filePath),
-                directory: directory,
+                directory,
               }),
             ),
         )

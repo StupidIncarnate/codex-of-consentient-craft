@@ -26,9 +26,7 @@ export const scanConfigWriteBroker = ({
   rule: string;
   rootPath: string;
 }): ScanConfigFile => {
-  const directory = mkdtempSync(
-    `${tmpdirFindBroker()}/${scanStatics.config.tempDirPrefix}`,
-  );
+  const directory = mkdtempSync(`${tmpdirFindBroker()}/${scanStatics.config.tempDirPrefix}`);
   const path = `${directory}/${scanStatics.config.wrapperName}`;
 
   writeFileSync(

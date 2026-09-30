@@ -8,10 +8,13 @@
  * // Returns pending questions for a session after promotion from process-level tracking
  */
 
+import type { z } from '#gateway/npm/zod';
 import type { Session } from '@dungeonmaster/shared/contracts';
 
 import { pendingClarificationEntryContract } from '../../contracts/pending-clarification-entry/pending-clarification-entry-contract';
 import type { PendingClarificationEntry } from '../../contracts/pending-clarification-entry/pending-clarification-entry-contract';
+
+type PendingClarificationEntryInput = z.input<typeof pendingClarificationEntryContract>;
 
 const processQuestions = new Map<string, PendingClarificationEntry>();
 const sessionQuestions = new Map<Session['id'], PendingClarificationEntry>();
@@ -19,17 +22,9 @@ const sessionQuestions = new Map<Session['id'], PendingClarificationEntry>();
 export const pendingClarificationState = {
   setForProcess: ({
     processId,
-    questId,
-    questions,
-  }: {
-    processId: string;
-    questId: PendingClarificationEntry['questId'];
-    questions: PendingClarificationEntry['questions'];
-  }): void => {
-    processQuestions.set(
-      processId,
-      pendingClarificationEntryContract.parse({ questId, questions }),
-    );
+    ...entry
+  }: { processId: string } & PendingClarificationEntryInput): void => {
+    processQuestions.set(processId, pendingClarificationEntryContract.parse(entry));
   },
 
   promoteToSession: ({

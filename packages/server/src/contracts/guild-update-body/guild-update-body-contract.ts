@@ -8,9 +8,16 @@
 
 import { z } from '#gateway/npm/zod';
 
+import { guildUpdateBodyLimitsStatics } from '../../statics/guild-update-body-limits/guild-update-body-limits-statics';
+
 export const guildUpdateBodyContract = z
   .object({
-    name: z.string().min(1).max(100).brand<'GuildUpdateBodyName'>().optional(),
+    name: z
+      .string()
+      .min(1)
+      .max(guildUpdateBodyLimitsStatics.maxNameLength)
+      .brand<'GuildUpdateBodyName'>()
+      .optional(),
     path: z.string().min(1).brand<'GuildUpdateBodyPath'>().optional(),
   })
   .brand<'GuildUpdateBody'>();

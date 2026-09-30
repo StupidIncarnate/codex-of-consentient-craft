@@ -1,4 +1,4 @@
-import { allowedExternalImportsContract } from './folder-config-contract';
+import { folderConfigContract } from './folder-config-contract';
 import { AllowedExternalImportsStub } from './folder-config.stub';
 
 describe('folderConfigContract', () => {
@@ -12,7 +12,7 @@ describe('folderConfigContract', () => {
         responders: [],
       });
 
-      const result = allowedExternalImportsContract.parse(frontendConfig);
+      const result = folderConfigContract.parse(frontendConfig);
 
       expect(result).toStrictEqual({
         widgets: ['react', 'react-dom'],
@@ -38,7 +38,7 @@ describe('folderConfigContract', () => {
         responders: [],
       });
 
-      const result = allowedExternalImportsContract.parse(backendConfig);
+      const result = folderConfigContract.parse(backendConfig);
 
       expect(result).toStrictEqual({
         widgets: null,
@@ -64,7 +64,7 @@ describe('folderConfigContract', () => {
         responders: null,
       });
 
-      const result = allowedExternalImportsContract.parse(libraryConfig);
+      const result = folderConfigContract.parse(libraryConfig);
 
       expect(result).toStrictEqual({
         widgets: null,
@@ -96,7 +96,7 @@ describe('folderConfigContract', () => {
         startup: ['dotenv'],
       });
 
-      const result = allowedExternalImportsContract.parse(customConfig);
+      const result = folderConfigContract.parse(customConfig);
 
       expect(result).toStrictEqual(customConfig);
     });
@@ -105,7 +105,7 @@ describe('folderConfigContract', () => {
   describe('invalid configurations', () => {
     it('INVALID: {widgets: "react"} => throws validation error', () => {
       expect(() => {
-        allowedExternalImportsContract.parse({
+        folderConfigContract.parse({
           widgets: 'react',
           bindings: ['react'],
           state: [],
@@ -123,7 +123,7 @@ describe('folderConfigContract', () => {
 
     it('INVALID: {contracts: null} => throws validation error', () => {
       expect(() => {
-        allowedExternalImportsContract.parse({
+        folderConfigContract.parse({
           widgets: null,
           bindings: null,
           state: [],
@@ -141,7 +141,7 @@ describe('folderConfigContract', () => {
 
     it('INVALID: {missing required field} => throws validation error', () => {
       expect(() => {
-        allowedExternalImportsContract.parse({
+        folderConfigContract.parse({
           widgets: null,
           bindings: null,
           state: [],

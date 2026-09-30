@@ -43,8 +43,7 @@ export const ContextDividerWidget = ({
           count: Math.abs(delta),
         });
 
-  const deltaColor =
-    delta === null ? colors.warning : delta >= 0 ? colors.success : colors.warning;
+  const deltaColor = delta === null ? colors.warning : delta >= 0 ? colors.success : colors.warning;
 
   const deltaLabel =
     delta === null ? '' : delta >= 0 ? ` (+${deltaText ?? ''})` : ` (-${deltaText ?? ''})`;

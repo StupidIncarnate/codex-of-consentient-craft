@@ -20,34 +20,32 @@ const WILDCARD_PATTERN = /[*?[\]]/u;
 const NO_PATTERNS: readonly string[] = [];
 
 export const gitignoreToGlobTransformer = ({ contents }: { contents: string }): readonly string[] =>
-  contents
-    .split('\n')
-    .flatMap((rawLine) => {
-      const line = rawLine.trim();
+  contents.split('\n').flatMap((rawLine) => {
+    const line = rawLine.trim();
 
-      if (line === '' || line.startsWith(COMMENT_PREFIX) || line.startsWith(NEGATION_PREFIX)) {
-        return NO_PATTERNS;
-      }
+    if (line === '' || line.startsWith(COMMENT_PREFIX) || line.startsWith(NEGATION_PREFIX)) {
+      return NO_PATTERNS;
+    }
 
-      // A trailing slash is git's "directories only" marker; a leading slash anchors the pattern to
-      // the .gitignore's own directory, which is the scan root.
-      const isDirectoryOnly = line.endsWith(PATH_SEPARATOR);
-      const unsuffixed = isDirectoryOnly ? line.slice(0, -1) : line;
-      const isAnchored = unsuffixed.startsWith(PATH_SEPARATOR);
-      const core = isAnchored ? unsuffixed.slice(1) : unsuffixed;
+    // A trailing slash is git's "directories only" marker; a leading slash anchors the pattern to
+    // the .gitignore's own directory, which is the scan root.
+    const isDirectoryOnly = line.endsWith(PATH_SEPARATOR);
+    const unsuffixed = isDirectoryOnly ? line.slice(0, -1) : line;
+    const isAnchored = unsuffixed.startsWith(PATH_SEPARATOR);
+    const core = isAnchored ? unsuffixed.slice(1) : unsuffixed;
 
-      if (core === '') {
-        return NO_PATTERNS;
-      }
+    if (core === '') {
+      return NO_PATTERNS;
+    }
 
-      // git treats any pattern containing a slash as anchored too, so only a bare name floats.
-      const base = isAnchored || core.includes(PATH_SEPARATOR) ? core : `**/${core}`;
+    // git treats any pattern containing a slash as anchored too, so only a bare name floats.
+    const base = isAnchored || core.includes(PATH_SEPARATOR) ? core : `**/${core}`;
 
-      if (isDirectoryOnly) {
-        return [`${base}/**`];
-      }
+    if (isDirectoryOnly) {
+      return [`${base}/**`];
+    }
 
-      // A bare name matches a file OR a directory in git, and glob needs one pattern for each.
-      // A line that already carries a wildcard is passed through exactly as its author wrote it.
-      return WILDCARD_PATTERN.test(core) ? [base] : [base, `${base}/**`];
-    });
+    // A bare name matches a file OR a directory in git, and glob needs one pattern for each.
+    // A line that already carries a wildcard is passed through exactly as its author wrote it.
+    return WILDCARD_PATTERN.test(core) ? [base] : [base, `${base}/**`];
+  });

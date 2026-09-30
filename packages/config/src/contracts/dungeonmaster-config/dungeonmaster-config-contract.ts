@@ -90,8 +90,8 @@ export const dungeonmasterConfigContract = z
         port: z
           .number()
           .int()
-          .min(1)
-          .max(65_535)
+          .min(configDefaultsStatics.dungeonmaster.port.min)
+          .max(configDefaultsStatics.dungeonmaster.port.max)
           .brand<'DungeonmasterConfigDungeonmasterPort'>()
           .optional(),
       })

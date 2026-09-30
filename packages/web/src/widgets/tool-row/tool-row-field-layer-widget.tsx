@@ -123,9 +123,9 @@ export const ToolRowFieldLayerWidget = ({
       {field.key}:{' '}
       {field.isLong && !isFieldExpanded
         ? elideMiddleTransformer({
-              text: field.value,
-              limit: contentTruncationConfigStatics.longFieldLimit,
-            })
+            text: field.value,
+            limit: contentTruncationConfigStatics.longFieldLimit,
+          })
         : field.value}
       {field.isLong ? (
         <Text

@@ -23,7 +23,7 @@ const addPathToTree = (tree: Map<string, Dirent[]>, parts: string[], depth: numb
     return;
   }
   const parentDir = parts.slice(0, depth).map(String).join('/') || '/';
-  const childName = (parts[depth] ?? '');
+  const childName = parts[depth] ?? '';
   if (childName === '') {
     return;
   }
@@ -72,9 +72,7 @@ export const architectureImportEdgesBrokerProxy = (): {
       }
 
       for (const file of sourceFiles) {
-        const parts = file.path
-          .split('/')
-          .map((p) => p);
+        const parts = file.path.split('/').map((p) => p);
         addPathToTree(tree, parts, 1);
       }
 

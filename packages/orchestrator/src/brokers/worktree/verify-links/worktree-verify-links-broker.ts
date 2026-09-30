@@ -57,10 +57,7 @@ export const worktreeVerifyLinksBroker = async ({
 
   const reported = escaping
     .slice(0, worktreeVerifyLinksStatics.maxReportedLinks)
-    .map(
-      (audit) =>
-        `${audit.linkPath} -> ${audit.storedTarget} (lands at ${audit.resolvedTarget})`,
-    )
+    .map((audit) => `${audit.linkPath} -> ${audit.storedTarget} (lands at ${audit.resolvedTarget})`)
     .join('; ');
   const elided =
     escaping.length - Math.min(escaping.length, worktreeVerifyLinksStatics.maxReportedLinks);

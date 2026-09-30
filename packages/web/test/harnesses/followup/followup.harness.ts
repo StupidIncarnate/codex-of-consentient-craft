@@ -152,7 +152,7 @@ export const followupHarness = ({
     await quests.writeQuestFile({
       questId,
       questFolder,
-      questFilePath: questFilePath,
+      questFilePath,
       status,
       workItems: workItems ?? [],
     });
@@ -161,15 +161,12 @@ export const followupHarness = ({
     // flowrider bundle runs concurrently against this same seed helper, so a real (or
     // deliberately dangling) worktree is patched onto the already-written JSON directly.
     if (worktreePath !== undefined) {
-      const questJson = JSON.parse(readFileSync(questFilePath)) as Record<
-        PropertyKey,
-        unknown
-      >;
+      const questJson = JSON.parse(readFileSync(questFilePath)) as Record<PropertyKey, unknown>;
       questJson.worktreePath = worktreePath;
       await writeFile(questFilePath, JSON.stringify(questJson, null, JSON_INDENT));
     }
 
-    await nav.navigateToQuest({ urlSlug: urlSlug, questId });
+    await nav.navigateToQuest({ urlSlug, questId });
     await page.getByTestId('QUEST_CHAT').waitFor({ state: 'visible', timeout: PANEL_TIMEOUT });
     // QUEST_CHAT going visible only proves the ROUTE mounted; the execution panel paints a frame
     // later, once the seeded quest arrives. Every status this harness is called with is an

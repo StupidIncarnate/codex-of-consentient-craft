@@ -7,7 +7,6 @@ import { FlowStub } from '@dungeonmaster/shared/contracts/flow/flow.stub';
 import { OperationItemIdStub } from '@dungeonmaster/shared/contracts/operation-item-id/operation-item-id.stub';
 import { OperationItemStub } from '@dungeonmaster/shared/contracts/operation-item/operation-item.stub';
 import { QuestCommentStub } from '@dungeonmaster/shared/contracts/quest-comment/quest-comment.stub';
-import { questContract } from '@dungeonmaster/shared/contracts';
 import { QuestIdStub } from '@dungeonmaster/shared/contracts/quest-id/quest-id.stub';
 import { QuestNoteStub } from '@dungeonmaster/shared/contracts/quest-note/quest-note.stub';
 import { QuestStub } from '@dungeonmaster/shared/contracts/quest/quest.stub';
@@ -191,11 +190,10 @@ describe('QuestFlow', () => {
         fields: {
           status: 'in_progress',
           flows: [flow],
-          planningNotes: questContract.shape.planningNotes.parse({
-            blightLedger: [],
+          planningNotes: {
+            ...QuestStub().planningNotes,
             questNotes: [openQuestionNote, toolingErrorNote],
-            operationPlans: [],
-          }),
+          },
         },
       });
       const questId = quest.id;

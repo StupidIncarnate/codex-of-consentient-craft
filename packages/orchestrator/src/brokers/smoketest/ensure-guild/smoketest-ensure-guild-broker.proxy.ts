@@ -56,7 +56,7 @@ export const smoketestEnsureGuildBrokerProxy = (): {
       cwdProxy.setupRepoRootFoundAtStart({ startPath });
       return;
     }
-    cwdProxy.setupRepoRootFoundInParent({ startPath, repoRoot: repoRoot });
+    cwdProxy.setupRepoRootFoundInParent({ startPath, repoRoot });
   };
 
   const mocked = registerMock({ fn: smoketestEnsureGuildBroker });

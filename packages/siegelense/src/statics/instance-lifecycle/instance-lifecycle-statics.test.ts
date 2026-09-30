@@ -25,6 +25,7 @@ describe('instanceLifecycleStatics', () => {
       },
       ports: {
         claimAttempts: 5,
+        maxPort: 65_535,
       },
       registryLock: {
         ttlMs: 2_000,

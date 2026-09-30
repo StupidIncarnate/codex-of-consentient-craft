@@ -259,9 +259,7 @@ export const orchestrationQuestHarness = (): {
     await commitAll({ message: 'base', cwd });
     const rawSha = await headSha({ cwd });
     if (rawSha === null) {
-      throw new Error(
-        `headSha returned null for a freshly-committed test repo at ${repoPath}`,
-      );
+      throw new Error(`headSha returned null for a freshly-committed test repo at ${repoPath}`);
     }
     const baseRef = questContract.shape.baseRef.unwrap().parse(rawSha);
     return { baseRef };

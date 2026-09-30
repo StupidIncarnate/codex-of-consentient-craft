@@ -65,10 +65,7 @@ export const storagePruneBroker = async ({ rootPath }: { rootPath: string }): Pr
       )
     )
       .filter((file) => file !== null)
-      .sort(
-        (a, b) =>
-          b.modifiedAtMs - a.modifiedAtMs || b.filePath.localeCompare(a.filePath),
-      );
+      .sort((a, b) => b.modifiedAtMs - a.modifiedAtMs || b.filePath.localeCompare(a.filePath));
 
     // Once the running total passes the budget, every older file goes too, small ones included, so
     // what is kept stays one unbroken stretch of recent runs.

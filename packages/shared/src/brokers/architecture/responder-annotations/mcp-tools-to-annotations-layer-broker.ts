@@ -69,9 +69,7 @@ export const mcpToolsToAnnotationsLayerBroker = ({
       if (handlerPascal === undefined) continue;
       const handlerKebab = pascalCaseToKebabCaseTransformer({ pascal: handlerPascal });
       // Find responder file via stringified key match (Map.get on branded keys can be flaky)
-      const matched = [...importedResponderFiles.entries()].find(
-        ([k]) => k === handlerKebab,
-      );
+      const matched = [...importedResponderFiles.entries()].find(([k]) => k === handlerKebab);
       if (matched === undefined) continue;
       const [, responderFile] = matched;
 

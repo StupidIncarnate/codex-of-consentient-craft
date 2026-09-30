@@ -73,11 +73,7 @@ export const createPackageResolveRequestBroker = async ({
 
   const isFullyScoped = name.startsWith('@') && name.includes('/');
   const directoryName: string = isFullyScoped ? name.slice(name.indexOf('/') + 1) : name;
-  const packageName: string = isFullyScoped
-    ? name
-    : scope === ''
-      ? name
-      : `${scope}/${name}`;
+  const packageName: string = isFullyScoped ? name : scope === '' ? name : `${scope}/${name}`;
 
   const packageTypeAnswer =
     args.packageType === undefined

@@ -11,6 +11,7 @@ import {
   doMock as gatewayDoMock,
   isolateModulesAsync as gatewayIsolateModulesAsync,
 } from '#gateway/npm/jest__globals';
+import { dynamicImport } from '#gateway/node/module';
 import type { IsolateModulesMock } from '../../contracts/isolate-modules-mock/isolate-modules-mock-contract';
 
 export const modulesIsolateMiddleware = async ({
@@ -26,7 +27,7 @@ export const modulesIsolateMiddleware = async ({
         gatewayDoMock({ moduleName: mock.module, factory: mock.factory });
       }
 
-      await import(entrypoint);
+      await dynamicImport({ path: entrypoint });
     },
   });
 };

@@ -70,9 +70,7 @@ export const computeTokenAnnotationsTransformer = ({
       ) {
         const estimated = estimateContentTokensTransformer({ content: toolResult.content });
         resultTokenBadgeLabel =
-          estimated === 0
-            ? null
-            : `~${formatContextTokensTransformer({ count: estimated })} est`;
+          estimated === 0 ? null : `~${formatContextTokensTransformer({ count: estimated })} est`;
       }
 
       return tokenAnnotationContract.parse({
@@ -126,9 +124,7 @@ export const computeTokenAnnotationsTransformer = ({
     ) {
       const estimated = estimateContentTokensTransformer({ content: entry.content });
       const tokenBadgeLabel =
-        estimated === 0
-          ? null
-          : `~${formatContextTokensTransformer({ count: estimated })} est`;
+        estimated === 0 ? null : `~${formatContextTokensTransformer({ count: estimated })} est`;
 
       return tokenAnnotationContract.parse({
         tokenBadgeLabel,

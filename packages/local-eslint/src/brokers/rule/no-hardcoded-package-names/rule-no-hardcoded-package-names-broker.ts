@@ -86,7 +86,7 @@ export const ruleNoHardcodedPackageNamesBroker = (): TSESLint.RuleModule<
           ctx.report({
             node,
             messageId: 'hardcodedPackagePath',
-            data: { packageName: packageName },
+            data: { packageName },
           });
         }
 

@@ -29,7 +29,7 @@ export const globDiscoverFilesBrokerProxy = (): {
       cwd: string;
       files: string[];
     }): void => {
-      glob.returns({ patterns: pattern, cwd: cwd, matches: files });
+      glob.returns({ patterns: pattern, cwd, matches: files });
     },
     returnsForPatterns: ({
       patterns,

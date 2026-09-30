@@ -9,10 +9,11 @@
  */
 
 import { tmpdir } from '#gateway/node/os';
+import { isAbsolutePathGuard } from '../../../guards/is-absolute-path/is-absolute-path-guard';
 
 export const tmpdirFindBroker = (): string => {
   const path = tmpdir();
-  if (!path.startsWith('/') && !/^[A-Za-z]:\\/u.test(path)) {
+  if (!isAbsolutePathGuard({ path })) {
     throw new Error(`Scratch directory must be an absolute path, received: ${path}`);
   }
   return path;

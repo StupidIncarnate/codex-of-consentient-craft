@@ -8,8 +8,7 @@ export const resolveWorkspaceRootLayerBrokerProxy = (): {
 } => {
   const readProxy = readFileProxy();
 
-  const manifestPathFor = ({ dirPath }: { dirPath: string }): string =>
-    `${dirPath}/package.json`;
+  const manifestPathFor = ({ dirPath }: { dirPath: string }): string => `${dirPath}/package.json`;
 
   return {
     declaresWorkspaces: ({ dirPath, patterns }: { dirPath: string; patterns: string[] }): void => {

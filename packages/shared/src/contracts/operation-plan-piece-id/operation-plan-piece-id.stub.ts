@@ -3,4 +3,7 @@ import { operationPlanPieceContract } from '../operation-plan-piece/operation-pl
 
 export const OperationPlanPieceIdStub = (
   { value }: { value: string } = { value: 'b2c3d4e5-58cc-4372-a567-0e02b2c3d479' },
-): OperationPlanPiece['id'] => operationPlanPieceContract.shape.id.parse(value);
+): OperationPlanPiece['id'] => {
+  const idContract = operationPlanPieceContract.shape.id;
+  return idContract.parse(value);
+};

@@ -12,11 +12,7 @@ import { dynamicImportProxy } from '#gateway/node/module/dynamic-import/dynamic-
 import type { Guild, Quest } from '@dungeonmaster/shared/contracts';
 import { recipesConventionStatics } from '@dungeonmaster/shared/statics';
 
-import { seedResultContract } from '../../../contracts/seed-result/seed-result-contract';
-import { SeedResultStub } from '../../../contracts/seed-result/seed-result.stub';
 import { recipesLocateBrokerProxy } from '../../recipes/locate/recipes-locate-broker.proxy';
-
-type SeedResult = ReturnType<typeof SeedResultStub>;
 
 const ENTRY_PATH = '/repo/packages/hydration-recipes/dist/index.js';
 const PACKAGE_PATH = '/repo/packages/hydration-recipes';
@@ -80,14 +76,10 @@ export const recipeSeedRunBrokerProxy = (): {
       questComplete: Quest;
     }): void => {
       stageEntry();
-      // A saved row enters the seed result as JSON — parsed through the record's own value schema.
-      const result: SeedResult = SeedResultStub({
-        guild: seedResultContract.valueType.parse(guild),
-        questCreated: seedResultContract.valueType.parse(questCreated),
-        questInProgress: seedResultContract.valueType.parse(questInProgress),
-        questComplete: seedResultContract.valueType.parse(questComplete),
-      });
-      moduleExports[recipesConventionStatics.exports.seed] = jest.fn().mockResolvedValue(result);
+      // The raw rows, as the real producer hands them back; the broker parses the whole answer.
+      moduleExports[recipesConventionStatics.exports.seed] = jest
+        .fn()
+        .mockResolvedValue({ guild, questCreated, questInProgress, questComplete });
     },
 
     // `repoRoot` is the cwd the caller already answers to every reader, so the one-shot cwd this

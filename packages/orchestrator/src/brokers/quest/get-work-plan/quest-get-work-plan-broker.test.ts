@@ -88,9 +88,7 @@ describe('questGetWorkPlanBroker', () => {
         operationItemId: OPERATION_ITEM_ID as never,
       });
 
-      const row = text
-        .split('\n')
-        .find((line) => line.startsWith(`| \`${UNIT_B}\``));
+      const row = text.split('\n').find((line) => line.startsWith(`| \`${UNIT_B}\``));
 
       expect(row).toBe(`| \`${UNIT_B}\` | outstanding | — NO PIECE CLAIMS THIS UNIT — |`);
     });
@@ -108,9 +106,7 @@ describe('questGetWorkPlanBroker', () => {
         operationItemId: OPERATION_ITEM_ID as never,
       });
 
-      const row = text
-        .split('\n')
-        .find((line) => line.startsWith(`| \`${UNIT_A}\``));
+      const row = text.split('\n').find((line) => line.startsWith(`| \`${UNIT_A}\``));
 
       expect(row).toBe(`| \`${UNIT_A}\` | outstanding | \`pc-badge\` |`);
     });
@@ -126,9 +122,7 @@ describe('questGetWorkPlanBroker', () => {
         operationItemId: OPERATION_ITEM_ID as never,
       });
 
-      const line = text
-        .split('\n')
-        .find((entry) => entry.startsWith('No planner has run'));
+      const line = text.split('\n').find((entry) => entry.startsWith('No planner has run'));
 
       expect(line).toBe(
         'No planner has run against this item yet, so there is no plan to review. That is a real',

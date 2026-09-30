@@ -30,11 +30,7 @@ describe('packageSectionBuildLayerBroker', () => {
         projectRoot: PROJECT_ROOT,
       });
 
-      expect(
-        result
-          .split('\n')
-          .some((l) => l === '## Boot'),
-      ).toBe(true);
+      expect(result.split('\n').some((l) => l === '## Boot')).toBe(true);
     });
 
     it('VALID: {any package type} => does not emit any per-type ## headline section header', () => {

@@ -28,7 +28,7 @@ import { registerMock, registerModuleMock } from '@dungeonmaster/testing/registe
 
 import { headShaProxy } from '#gateway/bin/git/head-sha/head-sha.proxy';
 import { stderrProxy } from '#gateway/node/process/stderr/stderr.proxy';
-import { questCwdResolutionContract } from '../../../contracts/quest-cwd-resolution/quest-cwd-resolution-contract';
+import { QuestCwdResolutionStub } from '../../../contracts/quest-cwd-resolution/quest-cwd-resolution.stub';
 import { questCwdResolveBroker } from '../../quest/cwd-resolve/quest-cwd-resolve-broker';
 import { questCwdResolveBrokerProxy } from '../../quest/cwd-resolve/quest-cwd-resolve-broker.proxy';
 import { questFindQuestPathBrokerProxy } from '../../quest/find-quest-path/quest-find-quest-path-broker.proxy';
@@ -78,7 +78,7 @@ export const agentPromptGetBrokerProxy = (): {
     typeof questCwdResolveBroker
   >;
   mockedCwdResolve.mockResolvedValue(
-    questCwdResolutionContract.parse({ kind: 'repo-root', cwd: REPO_ROOT_CWD }),
+    QuestCwdResolutionStub({ kind: 'repo-root', cwd: REPO_ROOT_CWD }),
   );
 
   // Every `workItems` replacement the broker's update callback produced, in order. The mock stands
@@ -159,7 +159,7 @@ export const agentPromptGetBrokerProxy = (): {
     // The quest owns a real worktree whose HEAD reads back this sha — the shape that stamps.
     setupWorktreeHead: ({ sha }: { sha: string }): void => {
       mockedCwdResolve.mockResolvedValue(
-        questCwdResolutionContract.parse({ kind: 'worktree', cwd: WORKTREE_CWD }),
+        QuestCwdResolutionStub({ kind: 'worktree', cwd: WORKTREE_CWD }),
       );
       gitHeadShaProxy.setupResult({ exitCode: 0, output: `${sha}\n` });
     },
@@ -168,7 +168,7 @@ export const agentPromptGetBrokerProxy = (): {
     // git at all. gitHeadShaAdapter answers null and the stamp records nothing.
     setupWorktreeHeadUnreadable: (): void => {
       mockedCwdResolve.mockResolvedValue(
-        questCwdResolutionContract.parse({ kind: 'worktree', cwd: WORKTREE_CWD }),
+        QuestCwdResolutionStub({ kind: 'worktree', cwd: WORKTREE_CWD }),
       );
       gitHeadShaProxy.setupResult({ exitCode: 128, output: '' });
     },

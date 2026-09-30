@@ -104,8 +104,8 @@ export const worktreePrepareBrokerProxy = (): {
   }): void => {
     stageBranchMissing({ branchName });
     addProxy.setupCreateBranch({
-      worktreePath: worktreePath,
-      branchName: branchName,
+      worktreePath,
+      branchName,
       baseBranch,
       exitCode: 0,
       output: '',
@@ -122,8 +122,8 @@ export const worktreePrepareBrokerProxy = (): {
     verifyProxy.setupResult({ ref: branchName, exitCode: 0 });
     pruneProxy.setupResult({ exitCode: 0, output: '' });
     addProxy.setupAttachExisting({
-      worktreePath: worktreePath,
-      branchName: branchName,
+      worktreePath,
+      branchName,
       exitCode: 0,
       output: '',
     });
@@ -167,8 +167,8 @@ export const worktreePrepareBrokerProxy = (): {
     setupWorktreeAddFails: ({ worktreePath, branchName, baseBranch, output }): void => {
       stageBranchMissing({ branchName });
       addProxy.setupCreateBranch({
-        worktreePath: worktreePath,
-        branchName: branchName,
+        worktreePath,
+        branchName,
         baseBranch,
         exitCode: 128,
         output,

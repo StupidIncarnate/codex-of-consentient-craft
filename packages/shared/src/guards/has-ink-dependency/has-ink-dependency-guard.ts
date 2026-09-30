@@ -18,5 +18,5 @@ export const hasInkDependencyGuard = ({ packageJson }: { packageJson?: PackageJs
   if (dependencies === undefined) {
     return false;
   }
-  return Reflect.get(dependencies, 'ink') !== undefined;
+  return Object.hasOwn(dependencies, 'ink');
 };

@@ -27,9 +27,7 @@ export const routeMetadataExtractTransformer = ({
 }: {
   source: string;
 }): RouteMetadata[] => {
-  const sourceStr = source
-    .replace(BLOCK_COMMENT_PATTERN, '')
-    .replace(LINE_COMMENT_PATTERN, '');
+  const sourceStr = source.replace(BLOCK_COMMENT_PATTERN, '').replace(LINE_COMMENT_PATTERN, '');
   if (!sourceStr.includes('<Route')) {
     return [];
   }
@@ -41,7 +39,7 @@ export const routeMetadataExtractTransformer = ({
     const attrs = match[1] ?? '';
     const elementMatch = ELEMENT_ATTR_PATTERN.exec(attrs);
     if (elementMatch?.[1] !== undefined) {
-      const responderSymbol = elementMatch[1];
+      const [, responderSymbol] = elementMatch;
       const pathMatch = PATH_ATTR_PATTERN.exec(attrs);
       const path = pathMatch?.[1] === undefined ? null : pathMatch[1];
       result.push(routeMetadataContract.parse({ path, responderSymbol }));

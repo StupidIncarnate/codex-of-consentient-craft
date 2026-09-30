@@ -6,6 +6,7 @@
  * // Reads {hookData?, rawInput?, args?} envelopes per line, processes through the flow, outputs results as NDJSON
  */
 import { argv, exit, getStdin, stderr, stdout } from '#gateway/node/process';
+import { dynamicImport } from '#gateway/node/module';
 import { lineReader } from '#gateway/node/readline';
 
 import type { ExecResult } from '@dungeonmaster/shared/contracts';
@@ -88,7 +89,7 @@ const main = async (): Promise<void> => {
     exit(1);
     return;
   }
-  const flowModule = (await import(flowPath)) as FlowModule;
+  const flowModule = (await dynamicImport({ path: flowPath })) as FlowModule;
 
   stdout.write('READY\n');
 

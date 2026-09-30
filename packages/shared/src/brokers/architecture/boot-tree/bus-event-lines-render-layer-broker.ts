@@ -32,9 +32,7 @@ export const busEventLinesRenderLayerBroker = ({
   const emittedTypes: string[] = [];
   for (const site of eventBusContext.emitterSites) {
     if (String(site.emitterFile) !== responderPath) continue;
-    const alreadyAdded = emittedTypes.some(
-      (existing) => existing === String(site.eventType),
-    );
+    const alreadyAdded = emittedTypes.some((existing) => existing === String(site.eventType));
     if (!alreadyAdded) {
       emittedTypes.push(site.eventType);
     }

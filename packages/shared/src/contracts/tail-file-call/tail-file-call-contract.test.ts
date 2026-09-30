@@ -1,11 +1,10 @@
 import { tailFileCallContract } from './tail-file-call-contract';
+import { TailFileCallStub } from './tail-file-call.stub';
 
 describe('tailFileCallContract', () => {
   describe('parse', () => {
     it('VALID: {literal filePathArg} => parses successfully', () => {
-      const result = tailFileCallContract.parse({
-        filePathArg: '/repo/.dungeonmaster/quests/quest.jsonl',
-      });
+      const result = TailFileCallStub();
 
       expect(result).toStrictEqual({
         filePathArg: '/repo/.dungeonmaster/quests/quest.jsonl',

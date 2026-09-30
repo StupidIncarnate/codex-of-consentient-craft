@@ -21,7 +21,7 @@
 
 import { z } from '#gateway/npm/zod';
 
-export const cleanupCliAnswerContract = z
+export const cleanupAnswerContract = z
   .object({
     reaped: z.array(z.json()),
     portsReleased: z.array(z.json()),
@@ -34,4 +34,4 @@ export const cleanupCliAnswerContract = z
   })
   .brand<'CleanupCliAnswer'>();
 
-export type CleanupCliAnswer = z.infer<typeof cleanupCliAnswerContract>;
+export type CleanupCliAnswer = z.infer<typeof cleanupAnswerContract>;

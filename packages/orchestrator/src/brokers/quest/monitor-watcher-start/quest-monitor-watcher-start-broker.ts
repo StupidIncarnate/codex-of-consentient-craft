@@ -108,7 +108,7 @@ export const questMonitorWatcherStartBroker = async ({
   const stoppedStateSet = new Set<'stopped'>();
 
   const watcherHandle = questMonitorJsonlWatcherBroker({
-    sessionFilePath: sessionFilePath,
+    sessionFilePath,
     activeQuestIdGetter: (): Quest['id'] | null => null,
     chatProcessId,
     // A sub-agent that carries no work item of its own — a parent-summoned minion, or a

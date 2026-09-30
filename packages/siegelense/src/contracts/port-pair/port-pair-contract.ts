@@ -14,10 +14,12 @@
 
 import { z } from '#gateway/npm/zod';
 
+import { instanceLifecycleStatics } from '../../statics/instance-lifecycle/instance-lifecycle-statics';
+
 export const portPairContract = z
   .object({
-    api: z.number().int().min(1).max(65535).brand<'PortPairApi'>(),
-    web: z.number().int().min(1).max(65535).brand<'PortPairWeb'>(),
+    api: z.number().int().min(1).max(instanceLifecycleStatics.ports.maxPort).brand<'PortPairApi'>(),
+    web: z.number().int().min(1).max(instanceLifecycleStatics.ports.maxPort).brand<'PortPairWeb'>(),
   })
   .refine((pair) => pair.api !== Number(pair.web), {
     message: 'api and web ports must differ — Playwright waits on one while Vite binds the other',

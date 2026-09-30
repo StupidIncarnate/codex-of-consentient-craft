@@ -80,9 +80,7 @@ export const collectInputsLayerBroker = async ({
     }),
   );
 
-  const bundledManifest = manifests.find(
-    (manifest) => manifest.path === packageRoot,
-  );
+  const bundledManifest = manifests.find((manifest) => manifest.path === packageRoot);
 
   const adjacency = dependencyGraphAdjacencyBuildTransformer({ packages: manifests });
 
@@ -115,10 +113,7 @@ export const collectInputsLayerBroker = async ({
       cwd: folder.path,
     });
 
-    const prefix =
-      folder.path === repoRoot
-        ? ''
-        : `${folder.path.slice(repoRoot.length + 1)}/`;
+    const prefix = folder.path === repoRoot ? '' : `${folder.path.slice(repoRoot.length + 1)}/`;
 
     for (const file of discoveredFiles) {
       const repoRelative = `${prefix}${String(file)}`;

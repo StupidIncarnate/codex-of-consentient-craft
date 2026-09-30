@@ -14,7 +14,6 @@ import { globIgnoreStatics } from '../../../statics/glob-ignore/glob-ignore-stat
 type Guild = ReturnType<typeof GuildStub>;
 type QuestListItem = ReturnType<typeof QuestListItemStub>;
 type Quest = ReturnType<typeof QuestStub>;
-type GlobPattern = string;
 type FilePath = string;
 
 export const sessionListBrokerProxy = (): {

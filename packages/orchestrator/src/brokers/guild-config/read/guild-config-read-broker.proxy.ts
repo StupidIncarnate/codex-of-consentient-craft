@@ -68,9 +68,7 @@ export const guildConfigReadBrokerProxy = (): {
       homePath?: string;
     }): void => {
       const configFilePath =
-        homePath === DEFAULT_HOME_PATH
-          ? DEFAULT_CONFIG_FILE_PATH
-          : `${homePath}/config.json`;
+        homePath === DEFAULT_HOME_PATH ? DEFAULT_CONFIG_FILE_PATH : `${homePath}/config.json`;
       homeFindProxy.setupHomePath({ homeDir, homePath });
       joinHandle
         .calledWith([homePath, dungeonmasterHomeStatics.paths.configFile])

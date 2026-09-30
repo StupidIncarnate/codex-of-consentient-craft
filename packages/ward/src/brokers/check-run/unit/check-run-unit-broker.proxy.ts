@@ -249,8 +249,7 @@ export const checkRunUnitBrokerProxy = (): {
         openHandleReportStatics.env.pathVar
       ],
 
-    getSpawnedArgs: (): unknown =>
-      run.getCallsFor({ command: resolvedCommandRef.value }).at(-1),
+    getSpawnedArgs: (): unknown => run.getCallsFor({ command: resolvedCommandRef.value }).at(-1),
 
     getSpawnedNodeOptions: (): unknown =>
       run.getOptionsFor({ command: resolvedCommandRef.value }).at(-1)?.env.NODE_OPTIONS,

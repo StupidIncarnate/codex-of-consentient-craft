@@ -5,4 +5,7 @@ export const QaChecklistItemIdStub = (
   { value }: { value: string } = {
     value: 'view-persisted-comments:observable:check-badge-count-text',
   },
-): QaChecklistItem['id'] => qaChecklistItemContract.shape.id.parse(value);
+): QaChecklistItem['id'] => {
+  const qaChecklistItemIdContract = qaChecklistItemContract.shape.id;
+  return qaChecklistItemIdContract.parse(value);
+};

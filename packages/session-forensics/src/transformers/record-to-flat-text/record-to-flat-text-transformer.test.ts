@@ -72,9 +72,7 @@ describe('recordToFlatTextTransformer', () => {
 
       const result = recordToFlatTextTransformer({ record });
 
-      expect(result).toBe(
-        `[thinking] ${'a'.repeat(digestDefaultStatics.thinkingExcerptChars)}`,
-      );
+      expect(result).toBe(`[thinking] ${'a'.repeat(digestDefaultStatics.thinkingExcerptChars)}`);
     });
 
     it('EDGE: {thinkingChars: 5} => truncation honours the explicit value', () => {

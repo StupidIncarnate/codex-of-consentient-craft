@@ -60,9 +60,8 @@ export const architectureFolderDetailBroker = ({
 
   // 3. Naming Conventions
   sections.push(`## Naming Conventions\n`);
-  const fileSuffixText = Array.isArray(config.fileSuffix)
-    ? config.fileSuffix.join('` or `')
-    : config.fileSuffix;
+  const fileSuffixText =
+    typeof config.fileSuffix === 'string' ? config.fileSuffix : config.fileSuffix.join('` or `');
   sections.push(`**File Suffix:** \`${fileSuffixText}\`\n`);
 
   // Only include export suffix if it's defined (skip for startup, assets, migrations)

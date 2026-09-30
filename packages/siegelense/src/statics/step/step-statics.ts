@@ -88,6 +88,10 @@ export const stepStatics = {
       'video',
     ],
   },
+  until: {
+    // Shortest string that can be a `/…/` regex literal: an opening and a closing slash.
+    slashWrappedMinLength: 2,
+  },
   defaults: {
     // A batch stops on its first failing step unless the caller sets `stopOn: 'never'`
     // (siegelense-tooling.md line 1638) — batching is the only way a sub-second race is

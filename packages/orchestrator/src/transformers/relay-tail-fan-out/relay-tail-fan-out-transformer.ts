@@ -229,8 +229,7 @@ export const relayTailFanOutTransformer = ({
           return leftRank - rightRank;
         }
         const depthDelta =
-          (depthByPackage.get(left.name) ?? 0) -
-          (depthByPackage.get(right.name) ?? 0);
+          (depthByPackage.get(left.name) ?? 0) - (depthByPackage.get(right.name) ?? 0);
         if (depthDelta !== 0) {
           return depthDelta;
         }

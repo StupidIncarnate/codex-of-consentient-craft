@@ -608,13 +608,13 @@ export const instanceStartBrokerProxy = (): {
 
     stageShutdownReasonWriteSucceeds: ({ evidencePath }: { evidencePath: string }): void => {
       killProxy.setupShutdownReasonWriteSucceeds({
-        evidencePath: evidencePath,
+        evidencePath,
       });
     },
 
     getWrittenShutdownReason: ({ evidencePath }: { evidencePath: string }): unknown =>
       killProxy.getWrittenShutdownReason({
-        evidencePath: evidencePath,
+        evidencePath,
       }),
   };
 };

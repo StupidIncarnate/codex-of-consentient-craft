@@ -28,7 +28,7 @@ const CONTENT_ITEM = z
   .brand<'CONTENTITEM'>()
   .loose();
 
-export const recipeTranscriptLineContract = z
+export const transcriptLineContract = z
   .object({
     uuid: z.string().min(1).brand<'RecipeTranscriptLineUuid'>(),
     timestamp: z.string().min(1).brand<'RecipeTranscriptLineTimestamp'>(),
@@ -50,4 +50,4 @@ export const recipeTranscriptLineContract = z
   .loose()
   .brand<'RecipeTranscriptLine'>();
 
-export type RecipeTranscriptLine = z.infer<typeof recipeTranscriptLineContract>;
+export type RecipeTranscriptLine = z.infer<typeof transcriptLineContract>;

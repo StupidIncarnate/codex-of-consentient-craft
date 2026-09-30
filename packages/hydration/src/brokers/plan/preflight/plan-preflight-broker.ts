@@ -212,7 +212,10 @@ export const planPreflightBroker = ({
         throw new HydrationTransitionUnreachableError({
           recipeName: plan.recipeName,
           ingredientName,
-          to: String(op.transition.to),
+          to:
+            typeof op.transition.to === 'string'
+              ? op.transition.to
+              : JSON.stringify(op.transition.to),
           reachableStates: transitionSpec.to.map((state) => String(state)),
         });
       }

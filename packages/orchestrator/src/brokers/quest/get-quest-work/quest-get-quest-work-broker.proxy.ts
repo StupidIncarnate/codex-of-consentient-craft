@@ -100,7 +100,7 @@ export const questGetQuestWorkBrokerProxy = (): {
       // brand plannedWorkReadBrokerProxy requires — same string value, so the plan-file read is
       // staged against the SAME folder plannedWorkReadBroker is really called with.
       plannedWorkProxy.setupPlanMissing({
-        questFolderPath: questFolderPath,
+        questFolderPath,
         operationItemId,
       });
       gitRowsProxy.setupWorktreeMissing({ quest });
@@ -111,7 +111,7 @@ export const questGetQuestWorkBrokerProxy = (): {
     setupQuestWithPlan: ({ quest, operationItemId, plan }): { questFolderPath: FilePathValue } => {
       const { questFolderPath } = stageQuestRead({ quest });
       plannedWorkProxy.setupPlanFound({
-        questFolderPath: questFolderPath,
+        questFolderPath,
         operationItemId,
         plan,
       });

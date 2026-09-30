@@ -129,7 +129,7 @@ export const ruleGatewayReturnUnknownNotCallerTypeBroker = (): TSESLint.RuleModu
               node.params.some((param) =>
                 isTypeNameReferencedLayerBroker({
                   node: param,
-                  typeParameterName: typeParameterName,
+                  typeParameterName,
                 }),
               );
 

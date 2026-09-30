@@ -1,3 +1,5 @@
+import { z } from '#gateway/npm/zod';
+
 import { claudePathSlugEncoderTransformer } from '@dungeonmaster/shared/transformers';
 
 import { liveQuestTargetHarness } from '../../../../test/harnesses/live-quest-target/live-quest-target.harness';
@@ -74,10 +76,7 @@ describe('recipesGuildActiveSuiteBroker', () => {
         unknown
       >;
       const guild = result.guild as Record<PropertyKey, unknown>;
-      const guildPath = guild.path;
-      if (typeof guildPath !== 'string') {
-        throw new Error('guild record carries no string path');
-      }
+      const guildPath = z.string().parse(guild.path);
       const sessionsDir = claudePathSlugEncoderTransformer({
         homeDir: target.claudeHome,
         projectPath: guildPath,

@@ -114,9 +114,7 @@ describe('plannedWorkWriteBroker + plannedWorkReadBroker (integration — real d
     await quest.afterEach();
     testbed.cleanup();
 
-    expect(resolvedDir).toBe(
-      `${String(questFolderPath)}/${locationsStatics.quest.plannedWorkDir}`,
-    );
+    expect(resolvedDir).toBe(`${String(questFolderPath)}/${locationsStatics.quest.plannedWorkDir}`);
     expect(onDisk).toBe(true);
   });
 

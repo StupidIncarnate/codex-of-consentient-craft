@@ -1,4 +1,4 @@
-import { recipeTranscriptLineContract } from './transcript-line-contract';
+import { transcriptLineContract } from './transcript-line-contract';
 import { RecipeTranscriptLineStub } from './transcript-line.stub';
 
 describe('transcriptLineContract', () => {
@@ -36,7 +36,7 @@ describe('transcriptLineContract', () => {
   describe('invalid lines', () => {
     it('INVALID: {no uuid} => throws', () => {
       expect(() =>
-        recipeTranscriptLineContract.parse({
+        transcriptLineContract.parse({
           timestamp: '2026-01-01T00:00:00.000Z',
           message: { content: 'x' },
         }),
@@ -44,9 +44,9 @@ describe('transcriptLineContract', () => {
     });
 
     it('INVALID: {no timestamp} => throws', () => {
-      expect(() =>
-        recipeTranscriptLineContract.parse({ uuid: 'u', message: { content: 'x' } }),
-      ).toThrow(/received undefined/u);
+      expect(() => transcriptLineContract.parse({ uuid: 'u', message: { content: 'x' } })).toThrow(
+        /received undefined/u,
+      );
     });
   });
 });

@@ -1,14 +1,10 @@
 import { importEdgeContract } from './import-edge-contract';
+import { ImportEdgeStub } from './import-edge.stub';
 
 describe('importEdgeContract', () => {
   describe('parse', () => {
     it('VALID: {consumerPackage, sourcePackage, barrel, importCount:1} => parses successfully', () => {
-      const result = importEdgeContract.parse({
-        consumerPackage: 'web',
-        sourcePackage: 'shared',
-        barrel: 'contracts',
-        importCount: 1,
-      });
+      const result = importEdgeContract.parse(ImportEdgeStub());
 
       expect(result).toStrictEqual({
         consumerPackage: 'web',

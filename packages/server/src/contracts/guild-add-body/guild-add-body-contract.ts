@@ -8,9 +8,15 @@
 
 import { z } from '#gateway/npm/zod';
 
+import { guildAddBodyStatics } from '../../statics/guild-add-body/guild-add-body-statics';
+
 export const guildAddBodyContract = z
   .object({
-    name: z.string().min(1).max(100).brand<'GuildAddBodyName'>(),
+    name: z
+      .string()
+      .min(1)
+      .max(guildAddBodyStatics.limits.nameMaxLength)
+      .brand<'GuildAddBodyName'>(),
     path: z.string().min(1).brand<'GuildAddBodyPath'>(),
   })
   .brand<'GuildAddBody'>();

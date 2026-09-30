@@ -1,11 +1,9 @@
-import type { HookToolResponse } from './tool-response-contract';
-import { hookToolResponseContract } from './tool-response-contract';
+import type { ToolResponse } from './tool-response-contract';
+import { toolResponseContract } from './tool-response-contract';
 import type { StubArgument } from '@dungeonmaster/shared/@types';
 
-export const HookToolResponseStub = ({
-  ...props
-}: StubArgument<HookToolResponse> = {}): HookToolResponse =>
-  hookToolResponseContract.parse({
+export const ToolResponseStub = ({ ...props }: StubArgument<ToolResponse> = {}): ToolResponse =>
+  toolResponseContract.parse({
     filePath: '/test/file.ts',
     success: true,
     ...props,

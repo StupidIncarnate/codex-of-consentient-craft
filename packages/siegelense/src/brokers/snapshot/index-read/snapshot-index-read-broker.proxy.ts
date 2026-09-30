@@ -29,8 +29,7 @@ export const snapshotIndexReadBrokerProxy = (): {
   const readProxy = readFileProxy();
 
   return {
-    indexPathFor: ({ homePath }: { homePath: string }): string =>
-      `${homePath}/${INDEX_SUFFIX}`,
+    indexPathFor: ({ homePath }: { homePath: string }): string => `${homePath}/${INDEX_SUFFIX}`,
 
     setupNoIndex: ({ homePath }: { homePath: string }): void => {
       statProxy.missing({ path: `${homePath}/${INDEX_SUFFIX}` });

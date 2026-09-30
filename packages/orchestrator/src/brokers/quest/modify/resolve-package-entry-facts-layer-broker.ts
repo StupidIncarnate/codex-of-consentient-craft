@@ -122,9 +122,7 @@ export const resolvePackageEntryFactsLayerBroker = async ({
 
   // Anchored on the RESOLVED location, not the declared one: a delete in a foreign repo would
   // otherwise scan a same-named directory under whichever repo this process happens to sit in.
-  const workspaceRoots = new Set<unknown>(
-    locationChecks.map((check) => dirname(check.filePath)),
-  );
+  const workspaceRoots = new Set<unknown>(locationChecks.map((check) => dirname(check.filePath)));
 
   const siblingDirs: { root: unknown; dirName: unknown }[] = [];
   for (const root of workspaceRoots) {

@@ -8,10 +8,17 @@
 
 import { z } from '#gateway/npm/zod';
 
+import { networkPortStatics } from '../../statics/network-port/network-port-statics';
+
 const portFreeCheckContract = z
   .object({
     kind: z.literal('port-free'),
-    port: z.number().int().min(1).max(65_535).brand<'PortFreeCheckPort'>(),
+    port: z
+      .number()
+      .int()
+      .min(networkPortStatics.min)
+      .max(networkPortStatics.max)
+      .brand<'PortFreeCheckPort'>(),
   })
   .brand<'PortFreeCheck'>();
 

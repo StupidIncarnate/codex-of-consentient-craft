@@ -30,8 +30,7 @@ export const childCrashLayerBroker = ({
   exitCode: number | null;
   output: string;
 }): CheckResult[] => {
-  const resolvedExitCode =
-    exitCode === null ? wardExitCodeStatics.exitCodes.failing : exitCode;
+  const resolvedExitCode = exitCode === null ? wardExitCodeStatics.exitCodes.failing : exitCode;
   const tail = output.slice(-rawOutputCapStatics.cap.maxChars);
   const banner = `ward child process for ${projectFolder.name} exited with code ${String(resolvedExitCode)} and wrote no readable result file`;
 

@@ -8,7 +8,7 @@
  * // the specific shape it needs (e.g. askUserQuestionContract, toolInputContract).
  */
 import { z } from '#gateway/npm/zod';
-import { hookToolResponseContract } from '../tool-response/tool-response-contract';
+import { toolResponseContract } from '../tool-response/tool-response-contract';
 import { sessionContract } from '@dungeonmaster/shared/contracts';
 
 export const postToolUseHookDataContract = z
@@ -19,7 +19,7 @@ export const postToolUseHookDataContract = z
     hook_event_name: z.literal('PostToolUse'),
     tool_name: z.string().min(1).brand<'PostToolUseHookDataToolName'>(),
     tool_input: z.json(),
-    tool_response: hookToolResponseContract.optional(),
+    tool_response: toolResponseContract.optional(),
   })
   .brand<'PostToolUseHookData'>();
 

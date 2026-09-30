@@ -8,9 +8,17 @@
 
 import { z } from '#gateway/npm/zod';
 
+import { wardExitCodeStatics } from '../../statics/ward-exit-code/ward-exit-code-statics';
+
 export const wardQueueResponseContract = z
   .object({
-    exitCode: z.number().int().min(0).max(255).brand<'WardQueueResponseExitCode'>().optional(),
+    exitCode: z
+      .number()
+      .int()
+      .min(0)
+      .max(wardExitCodeStatics.maxExitCode)
+      .brand<'WardQueueResponseExitCode'>()
+      .optional(),
     runId: z.string().min(1).brand<'WardQueueResponseRunId'>().optional(),
     wardResultJson: z.json().optional(),
     outputLines: z.array(z.string().brand<'WardQueueResponseOutputLines'>()).optional(),

@@ -163,7 +163,7 @@ export const stepHandlerWardBrokerProxy = (): {
       wardSpawn.setupSuccess({
         command: WARD_COMMAND,
         args: isRunSubcommand,
-        exitCode: exitCode,
+        exitCode,
         stdoutLines: [`run: ${runId}`, 'lint: PASS'],
       });
       detailProxy.setupSuccess({ output: detailJson });
@@ -180,7 +180,7 @@ export const stepHandlerWardBrokerProxy = (): {
       wardSpawn.setupSuccess({
         command: WARD_COMMAND,
         args: isRunSubcommand,
-        exitCode: exitCode,
+        exitCode,
         stdoutLines: ['ward: the file scope resolved to 0 source files, so NO checks ran'],
       });
     },

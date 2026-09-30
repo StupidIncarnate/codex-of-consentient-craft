@@ -153,7 +153,7 @@ export const ruleRawImportBanBroker = (): TSESLint.RuleModule<
         ctx.report({
           node,
           messageId: 'rawImport',
-          data: { importSource, gatewayPath: gatewayPath },
+          data: { importSource, gatewayPath },
         });
       },
 
@@ -223,7 +223,7 @@ export const ruleRawImportBanBroker = (): TSESLint.RuleModule<
         ctx.report({
           node,
           messageId: 'rawImport',
-          data: { importSource, gatewayPath: gatewayPath },
+          data: { importSource, gatewayPath },
         });
       },
     };

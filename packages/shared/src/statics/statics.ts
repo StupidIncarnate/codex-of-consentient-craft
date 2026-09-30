@@ -93,3 +93,6 @@ export * from './recipes-convention/recipes-convention-statics';
 // gatewayPathFromImportSourceTransformer reads to tell a Node module from a third-party package.
 export * from './gateway-locations/gateway-locations-statics';
 export * from './owner-index/owner-index-statics';
+
+// The exit-code range a port-kill listener result is validated against.
+export * from './port-kill-listener-result/port-kill-listener-result-statics';

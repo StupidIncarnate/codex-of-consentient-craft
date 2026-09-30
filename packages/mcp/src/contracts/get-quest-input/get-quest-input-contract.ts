@@ -18,7 +18,7 @@ import { getQuestInputContract as sharedGetQuestInputContract } from '@dungeonma
 import { getQuestInputConflictsStatics } from '@dungeonmaster/shared/statics';
 import { z } from '#gateway/npm/zod';
 
-export const mcpGetQuestInputContract = sharedGetQuestInputContract
+export const getQuestInputContract = sharedGetQuestInputContract
   .extend({
     format: z
       .enum(['json', 'text'])
@@ -46,4 +46,4 @@ export const mcpGetQuestInputContract = sharedGetQuestInputContract
   })
   .brand<'McpGetQuestInput'>();
 
-export type GetQuestInput = z.infer<typeof mcpGetQuestInputContract>;
+export type GetQuestInput = z.infer<typeof getQuestInputContract>;

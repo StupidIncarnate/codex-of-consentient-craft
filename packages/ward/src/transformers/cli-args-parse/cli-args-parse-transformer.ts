@@ -34,9 +34,7 @@ export const cliArgsParseTransformer = ({ args }: { args: string[] }): WardConfi
   // without a `-- <files>` list — and nothing downstream may route on it: the moment it became a
   // config field, `isFileScopeRequestedGuard` and `isExplicitPathScopeGuard` would each owe it a
   // classification it has no honest answer for, since it scopes nothing itself.
-  const isParentScoped = args.some(
-    (arg) => arg === wardSpawnCommandStatics.parentScopedFlag,
-  );
+  const isParentScoped = args.some((arg) => arg === wardSpawnCommandStatics.parentScopedFlag);
 
   for (let i = 0; i < args.length; i++) {
     const arg = args[i];

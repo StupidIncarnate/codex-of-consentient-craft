@@ -155,7 +155,7 @@ export const instanceEntryLayerBrokerProxy = (): {
 
     setupShutdownReasonMissing: ({ evidencePath }: { evidencePath: string }): void => {
       shutdownReasonProxy.setupMarkerMissing({
-        evidencePath: evidencePath,
+        evidencePath,
       });
     },
 
@@ -167,7 +167,7 @@ export const instanceEntryLayerBrokerProxy = (): {
       marker: ShutdownReason;
     }): void => {
       shutdownReasonProxy.setupMarkerFound({
-        evidencePath: evidencePath,
+        evidencePath,
         marker,
       });
     },

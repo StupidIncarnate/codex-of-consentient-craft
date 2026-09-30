@@ -38,8 +38,8 @@ export const worktreeDiscardBrokerProxy = (): {
       branchName: string;
     }): void => {
       state.worktreePath = worktreePath;
-      removeProxy.setupResult({ worktreePath: worktreePath, exitCode: 0, output: '' });
-      deleteProxy.setupResult({ branchName: branchName, exitCode: 0, output: '' });
+      removeProxy.setupResult({ worktreePath, exitCode: 0, output: '' });
+      deleteProxy.setupResult({ branchName, exitCode: 0, output: '' });
     },
 
     setupRemoveFails: ({
@@ -50,7 +50,7 @@ export const worktreeDiscardBrokerProxy = (): {
       output: string;
     }): void => {
       state.worktreePath = worktreePath;
-      removeProxy.setupResult({ worktreePath: worktreePath, exitCode: 128, output });
+      removeProxy.setupResult({ worktreePath, exitCode: 128, output });
     },
 
     setupDeleteFails: ({
@@ -63,8 +63,8 @@ export const worktreeDiscardBrokerProxy = (): {
       output: string;
     }): void => {
       state.worktreePath = worktreePath;
-      removeProxy.setupResult({ worktreePath: worktreePath, exitCode: 0, output: '' });
-      deleteProxy.setupResult({ branchName: branchName, exitCode: 128, output });
+      removeProxy.setupResult({ worktreePath, exitCode: 0, output: '' });
+      deleteProxy.setupResult({ branchName, exitCode: 128, output });
     },
 
     getSpawnedArgsList: (): readonly unknown[] => {

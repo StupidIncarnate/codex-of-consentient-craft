@@ -586,9 +586,7 @@ describe('blightChecklistToTextTransformer', () => {
       // Disposition exactly ONE concern per file, leaving the rest remaining — every file heading
       // therefore renders both an `[x]` line and a `[ ]` line, the most expensive per-file shape.
       const ledger = implFiles.map((implFile) => {
-        const firstItemForFile = baseline.items.find(
-          (item) => String(item.implPath) === implFile,
-        )!;
+        const firstItemForFile = baseline.items.find((item) => String(item.implPath) === implFile)!;
         return QuestBlightLedgerEntryStub({ itemId: firstItemForFile.id });
       });
 

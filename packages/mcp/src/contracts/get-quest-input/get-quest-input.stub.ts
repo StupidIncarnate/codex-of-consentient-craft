@@ -1,6 +1,6 @@
 import type { StubArgument } from '@dungeonmaster/shared/@types';
 
-import { mcpGetQuestInputContract } from './get-quest-input-contract';
+import { getQuestInputContract } from './get-quest-input-contract';
 import type { GetQuestInput } from './get-quest-input-contract';
 
 export const McpGetQuestInputStub = ({
@@ -8,7 +8,7 @@ export const McpGetQuestInputStub = ({
 }: StubArgument<GetQuestInput> = {}): GetQuestInput => {
   const { stage, flowId, packageName, ...dataProps } = props;
 
-  return mcpGetQuestInputContract.parse({
+  return getQuestInputContract.parse({
     questId: 'test-quest',
     ...dataProps,
     ...(stage !== undefined && { stage }),

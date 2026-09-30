@@ -89,9 +89,7 @@ export const questGetQuestWorkBroker = async ({
   // The family graph is read through `Object.entries` rather than indexed: `agentFamilyNameContract`
   // brands an OPEN string (families are data), and indexing a union of six differently-shaped
   // `steps` objects with one collapses its key set to `never`.
-  const familyGraphs = Object.entries(agentFlowStatics).filter(
-    (entry) => entry[0] === family,
-  );
+  const familyGraphs = Object.entries(agentFlowStatics).filter((entry) => entry[0] === family);
   const entryStep = familyGraphs.map((entry) => entry[1].entry).at(0);
 
   if (entryStep === undefined) {

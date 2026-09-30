@@ -16,5 +16,5 @@ export const reactInDepsGuard = ({ packageJson }: { packageJson?: PackageJson })
   if (dependencies === undefined) {
     return false;
   }
-  return Reflect.get(dependencies, 'react') !== undefined;
+  return Object.hasOwn(dependencies, 'react');
 };

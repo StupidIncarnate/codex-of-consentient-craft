@@ -174,7 +174,9 @@ describe('the profile sample-write path, against a real tree', () => {
     it('VALID: {three solo readings, one of them inside the settle window} => one bucket at pool size 1, peak from the boot reading and steady from the two later ones', async () => {
       expect(soloRecord).toStrictEqual({
         instanceId: 'inst_aaaa1111',
-        specHash: laneSpecHashBroker({ spec: await laneSpecFindBroker({ specName: HEADLESS_SPEC }) }),
+        specHash: laneSpecHashBroker({
+          spec: await laneSpecFindBroker({ specName: HEADLESS_SPEC }),
+        }),
         firstBeatAtMs: FIRST_BEAT_MS,
         measuredAtMs: FIRST_BEAT_MS + SETTLE_MS + 10_000,
         pools: [{ poolSize: 1, peakMB: 2600, steadySumMB: 3700, steadyBeats: 2 }],
@@ -186,7 +188,9 @@ describe('the profile sample-write path, against a real tree', () => {
     it('VALID: {two contended readings} => a SECOND bucket at pool size 3, the solo bucket untouched', async () => {
       expect(contendedRecord).toStrictEqual({
         instanceId: 'inst_aaaa1111',
-        specHash: laneSpecHashBroker({ spec: await laneSpecFindBroker({ specName: HEADLESS_SPEC }) }),
+        specHash: laneSpecHashBroker({
+          spec: await laneSpecFindBroker({ specName: HEADLESS_SPEC }),
+        }),
         firstBeatAtMs: FIRST_BEAT_MS,
         measuredAtMs: FIRST_BEAT_MS + SETTLE_MS + 30_000,
         pools: [

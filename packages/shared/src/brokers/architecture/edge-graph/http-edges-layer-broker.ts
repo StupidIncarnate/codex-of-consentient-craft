@@ -157,9 +157,7 @@ export const httpEdgesLayerBroker = ({ projectRoot }: { projectRoot: string }): 
 
   for (const server of serverEntries) {
     const web = webEntries.find(
-      (w) =>
-        w.method === server.method &&
-        w.urlPattern === server.urlPattern,
+      (w) => w.method === server.method && w.urlPattern === server.urlPattern,
     );
     if (web === undefined) {
       edges.push(

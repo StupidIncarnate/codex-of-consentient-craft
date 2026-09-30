@@ -137,10 +137,7 @@ export const guildAddBrokerProxy = (): {
       configReadProxy.setupConfigAt({ configFilePath, config: existingConfig });
       configWriteProxy.setupSuccessAt({ configFilePath });
 
-      const home = configFilePath.replace(
-        `/${dungeonmasterHomeStatics.paths.configFile}`,
-        '',
-      );
+      const home = configFilePath.replace(`/${dungeonmasterHomeStatics.paths.configFile}`, '');
       const questsDir = realPath.join(
         home,
         dungeonmasterHomeStatics.paths.guildsDir,

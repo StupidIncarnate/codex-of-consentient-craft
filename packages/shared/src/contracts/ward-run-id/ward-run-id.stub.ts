@@ -3,4 +3,7 @@ import { wardQueueResponseContract } from '../ward-queue-response/ward-queue-res
 
 export const WardRunIdStub = (
   { value }: { value: string } = { value: '1773805659495-stub' },
-): WardQueueResponse['runId'] => wardQueueResponseContract.shape.runId.parse(value);
+): WardQueueResponse['runId'] => {
+  const wardRunIdContract = wardQueueResponseContract.shape.runId;
+  return wardRunIdContract.parse(value);
+};

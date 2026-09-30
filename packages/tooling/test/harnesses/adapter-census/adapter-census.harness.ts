@@ -44,16 +44,12 @@ export const adapterCensusHarness = (): {
 } => {
   const runCensus = ({ args }: { args: readonly string[] }): RunResult => {
     try {
-      const stdout = execFileSync(
-        'npx',
-        ['tsx', '--conditions=source', ENTRY_PATH, ...args],
-        {
-          encoding: 'utf8',
-          stdio: ['pipe', 'pipe', 'pipe'],
-          cwd: PACKAGE_DIR,
-          maxBuffer: MAX_OUTPUT_BYTES,
-        },
-      );
+      const stdout = execFileSync('npx', ['tsx', '--conditions=source', ENTRY_PATH, ...args], {
+        encoding: 'utf8',
+        stdio: ['pipe', 'pipe', 'pipe'],
+        cwd: PACKAGE_DIR,
+        maxBuffer: MAX_OUTPUT_BYTES,
+      });
       return { exitCode: 0, stdout, stderr: '' };
     } catch (error) {
       if (!isExecError(error)) {

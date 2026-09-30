@@ -44,9 +44,9 @@ export const scanPackageBroker = async ({
   configFile: ScanConfigFile;
 }): Promise<ScanPackageResult> => {
   const command = binResolveBroker({
-      binName: scanStatics.eslint.bin,
-      cwd: projectFolder.path,
-    });
+    binName: scanStatics.eslint.bin,
+    cwd: projectFolder.path,
+  });
   const folderRelative = String(projectFolder.path).slice(rootPath.length + 1);
   const args = [
     scanStatics.eslint.configFlag,

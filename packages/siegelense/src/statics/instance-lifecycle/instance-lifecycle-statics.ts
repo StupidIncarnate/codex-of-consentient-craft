@@ -80,6 +80,8 @@ export const instanceLifecycleStatics = {
     // of three instances makes a repeated collision against the OS's whole ephemeral range
     // vanishingly unlikely; five attempts absorbs bad luck without spinning indefinitely.
     claimAttempts: 5,
+    // The highest TCP port number; a released port outside 1..this is not a port.
+    maxPort: 65_535,
   },
   registryLock: {
     // registryUpdateBroker's whole read-mutate-write is a couple of small file reads/writes, not a

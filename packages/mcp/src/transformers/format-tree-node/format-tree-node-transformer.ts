@@ -29,9 +29,7 @@ export const formatTreeNodeTransformer = ({
   const indentStr = '  '.repeat(indent);
 
   // Sort children and items alphabetically
-  const sortedChildren = Array.from(node.children.entries()).sort(([a], [b]) =>
-    a.localeCompare(b),
-  );
+  const sortedChildren = Array.from(node.children.entries()).sort(([a], [b]) => a.localeCompare(b));
   const sortedItems = [...node.items].sort((a, b) => String(a.name).localeCompare(String(b.name)));
 
   // Render children (folders)

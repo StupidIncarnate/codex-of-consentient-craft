@@ -36,9 +36,7 @@ export const scanFolderTargetsTransformer = ({
 
   const reaching = paths
     .map((path) => {
-      const relative = path.startsWith(rootPrefix)
-        ? path.slice(rootPrefix.length)
-        : path;
+      const relative = path.startsWith(rootPrefix) ? path.slice(rootPrefix.length) : path;
       return relative.replace(CURRENT_DIRECTORY_PREFIX, '').replace(TRAILING_SLASHES, '');
     })
     .filter((path) => isPathUnderDirectoryGuard({ path, directory: folderPath }));

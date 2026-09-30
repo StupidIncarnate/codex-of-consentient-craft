@@ -138,9 +138,7 @@ describe('smoketestSubstituteWorkItemPlaceholdersTransformer', () => {
       processId: PROCESS_ID,
     });
 
-    expect(updated?.smoketestPromptOverride).toBe(
-      `get-quest-status {"processId":"${PROCESS_ID}"}`,
-    );
+    expect(updated?.smoketestPromptOverride).toBe(`get-quest-status {"processId":"${PROCESS_ID}"}`);
   });
 
   it('VALID: {workItem with all three placeholders} => substitutes all', () => {

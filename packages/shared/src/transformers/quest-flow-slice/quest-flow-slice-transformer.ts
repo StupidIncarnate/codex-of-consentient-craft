@@ -60,10 +60,11 @@ export const questFlowSliceTransformer = ({
       : quest.flows.find((candidate) => String(candidate.id) === String(flowId));
   const packageNameText = packageName === undefined ? undefined : packageName;
 
-  const parts: string[] = [
+  const parts: string[] = [];
+  parts.push(
     `# Quest: ${String(quest.title)}`,
     `Quest ID: ${String(quest.id)} | Status: ${quest.status} | Type: ${quest.questType}`,
-  ];
+  );
 
   if (quest.packagesAffected.length > 0) {
     parts.push(

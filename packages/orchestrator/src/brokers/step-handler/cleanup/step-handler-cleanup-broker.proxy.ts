@@ -57,9 +57,7 @@ export const stepHandlerCleanupBrokerProxy = (): {
     cleanupSpawn.setupSuccess({
       command: CLEANUP_COMMAND,
       exitCode: runResult.exitCode,
-      stdoutLines: runResult.output
-        .split('\n')
-        .filter((entry) => entry.length > 0),
+      stdoutLines: runResult.output.split('\n').filter((entry) => entry.length > 0),
     });
   };
   stageCleanupSpawn();

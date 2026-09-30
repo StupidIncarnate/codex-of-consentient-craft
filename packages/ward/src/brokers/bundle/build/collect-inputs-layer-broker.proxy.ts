@@ -79,9 +79,7 @@ export const collectInputsLayerBrokerProxy = (): {
     },
 
     setupNoWorkspaceAbove: ({ packageRoot }: { packageRoot: string }): void => {
-      const segments = packageRoot
-        .split('/')
-        .filter((segment) => segment.length > 0);
+      const segments = packageRoot.split('/').filter((segment) => segment.length > 0);
 
       for (const [index] of segments.slice(0, -1).entries()) {
         rootProxy.hasNoManifest({
@@ -110,7 +108,7 @@ export const collectInputsLayerBrokerProxy = (): {
         const shellMatches = pattern === SHELL_PATTERN ? [SHELL_PATTERN] : [];
 
         globProxy.returnsForPatternInDir({
-          pattern: pattern,
+          pattern,
           cwd: packageRoot,
           files: [...sourceMatches, ...shellMatches],
         });

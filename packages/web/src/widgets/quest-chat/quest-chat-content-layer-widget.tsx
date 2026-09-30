@@ -134,8 +134,8 @@ export const QuestChatContentLayerWidget = ({
     questTypeOptionsStatics.defaultLabel,
   );
   const selectedQuestType: QuestType =
-    questTypeOptionsStatics.options.find((option) => option.label === questTypeLabel)
-      ?.questType ?? 'feature';
+    questTypeOptionsStatics.options.find((option) => option.label === questTypeLabel)?.questType ??
+    'feature';
 
   const flattenedEntries = useMemo<ChatEntry[]>(() => {
     const all: ChatEntry[] = [];

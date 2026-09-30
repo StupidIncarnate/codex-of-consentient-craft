@@ -109,7 +109,7 @@ export const chatHistoryReplayBrokerProxy = (): {
       return projectPathOverrideRef.value;
     }
     const guildPath = guildStartPathsRef.value.at(0);
-    return (guildPath ?? '/unset');
+    return guildPath ?? '/unset';
   };
 
   const resolveJsonlPath = ({ sessionId }: { sessionId: Session['id'] }): string =>
@@ -148,7 +148,7 @@ export const chatHistoryReplayBrokerProxy = (): {
 
       guildStartPathsRef.value = config.guilds.map((guild) => guild.path);
       for (const startPath of guildStartPathsRef.value) {
-        cwdProxy.setupRepoRootFoundAtStart({ startPath: startPath });
+        cwdProxy.setupRepoRootFoundAtStart({ startPath });
       }
     },
     setupMainSession: ({
@@ -206,12 +206,12 @@ export const chatHistoryReplayBrokerProxy = (): {
     setupCwdResolveSuccess: ({ cwd }: { cwd: string }): void => {
       projectPathOverrideRef.value = cwd;
       for (const startPath of guildStartPathsRef.value) {
-        cwdProxy.setupRepoRootFoundInParent({ startPath: startPath, repoRoot: cwd });
+        cwdProxy.setupRepoRootFoundInParent({ startPath, repoRoot: cwd });
       }
     },
     setupCwdResolveReject: (): void => {
       for (const startPath of guildStartPathsRef.value) {
-        cwdProxy.setupRepoRootNotFound({ startPath: startPath });
+        cwdProxy.setupRepoRootNotFound({ startPath });
       }
     },
     // Each questCwdResolveBroker scenario below records the cwd it resolves, so a read staged

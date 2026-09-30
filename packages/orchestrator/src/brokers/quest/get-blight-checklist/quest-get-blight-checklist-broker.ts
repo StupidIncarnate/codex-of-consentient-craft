@@ -72,7 +72,7 @@ export const questGetBlightChecklistBroker = async ({
   // Read by `scope: 'since-ref'` and by nothing else, so the other scopes cannot change behaviour
   // on a caller that passes it. Absent under that scope, the call names no base and answers null,
   // exactly as an unpinned `baseRef` does for `quest` / `commit`.
-  sinceRef?: NonNullable<Quest['baseRef']>;
+  sinceRef?: string;
 }): Promise<BlightChecklist | null> => {
   const { questPath } = await questFindQuestPathBroker({ questId });
 
@@ -107,7 +107,9 @@ export const questGetBlightChecklistBroker = async ({
     scope === 'working-tree'
       ? questContract.shape.baseRef.unwrap().parse('HEAD')
       : scope === 'since-ref'
-        ? sinceRef
+        ? sinceRef === undefined
+          ? undefined
+          : questContract.shape.baseRef.unwrap().parse(sinceRef)
         : baseRef === undefined
           ? undefined
           : scope === 'commit'

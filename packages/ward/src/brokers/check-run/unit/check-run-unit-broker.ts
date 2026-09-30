@@ -205,9 +205,7 @@ export const checkRunUnitBroker = async ({
     cwd,
     env: {
       ...(sourceConditionSupportedBroker({ cwd }) ? { NODE_OPTIONS: '--conditions=source' } : {}),
-      ...(wantsTimerWatch
-        ? { [openHandleReportStatics.env.pathVar]: handleReportPath }
-        : {}),
+      ...(wantsTimerWatch ? { [openHandleReportStatics.env.pathVar]: handleReportPath } : {}),
     },
   }).catch((error: unknown) => {
     if (!(error instanceof RunNotFoundError)) {

@@ -13,7 +13,7 @@ const packageNameArrayContract = z.array(z.string().brand<'PackageName'>());
 const nullablePackageNameArrayContract = packageNameArrayContract.nullable();
 
 // The computed structure that lint rules actually check
-export const allowedExternalImportsContract = z
+export const folderConfigContract = z
   .object({
     widgets: nullablePackageNameArrayContract,
     bindings: nullablePackageNameArrayContract,
@@ -29,4 +29,4 @@ export const allowedExternalImportsContract = z
   })
   .brand<'AllowedExternalImports'>();
 
-export type AllowedExternalImports = z.infer<typeof allowedExternalImportsContract>;
+export type AllowedExternalImports = z.infer<typeof folderConfigContract>;

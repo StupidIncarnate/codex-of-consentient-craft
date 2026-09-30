@@ -95,11 +95,11 @@ export const useDisclosureAnchorBinding = (): {
     if (scrollport === null || heldOffset === null || anchor === null) return;
 
     scrollport.scrollTop = computeAnchorScrollTopTransformer({
-        currentScrollTop: Math.max(scrollport.scrollTop, 0),
-        anchorOffset: anchor.getBoundingClientRect().top - scrollport.getBoundingClientRect().top,
-        heldOffset,
-        maxScrollTop: Math.max(scrollport.scrollHeight - scrollport.clientHeight, 0),
-      });
+      currentScrollTop: Math.max(scrollport.scrollTop, 0),
+      anchorOffset: anchor.getBoundingClientRect().top - scrollport.getBoundingClientRect().top,
+      heldOffset,
+      maxScrollTop: Math.max(scrollport.scrollHeight - scrollport.clientHeight, 0),
+    });
   });
 
   return { anchorRef, holdAnchor };

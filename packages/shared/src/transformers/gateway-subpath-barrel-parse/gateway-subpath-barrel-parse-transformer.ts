@@ -29,9 +29,7 @@ export const gatewaySubpathBarrelParseTransformer = ({
 }: {
   barrelContent: string;
 }): GatewaySubpathBarrelParse => {
-  const lines = barrelContent
-    .split('\n')
-    .map((line) => line.trim());
+  const lines = barrelContent.split('\n').map((line) => line.trim());
 
   const starLine = lines.find((line) => STAR_EXPORT_PATTERN.test(line));
   const starMatch = starLine === undefined ? null : STAR_EXPORT_PATTERN.exec(starLine);

@@ -34,8 +34,7 @@ export const gatewayWrapperAnnotateTransformer = ({
 }): string[] =>
   wrapperNames.map((wrapperName) => {
     const bannedEntry = gatewayLintConfig.bannedExports?.find(
-      (entry) =>
-        String(entry.subpath) === subpath && String(entry.name) === wrapperName,
+      (entry) => String(entry.subpath) === subpath && String(entry.name) === wrapperName,
     );
     if (bannedEntry !== undefined) {
       return `${wrapperName} ✗ banned, use ${bannedEntry.use}`;

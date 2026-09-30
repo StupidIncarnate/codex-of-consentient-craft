@@ -11,11 +11,11 @@
 
 import { z } from '#gateway/npm/zod';
 
-export const commentBatchDeliveredContract = z
+export const commentBatchResponseContract = z
   .object({
-    chatProcessId: z.string().min(1).brand<'CommentBatchDeliveredChatProcessId'>(),
-    deliveredMessage: z.string().min(1).brand<'CommentBatchDeliveredDeliveredMessage'>(),
+    chatProcessId: z.string().min(1).brand<'CommentBatchResponseChatProcessId'>(),
+    deliveredMessage: z.string().min(1).brand<'CommentBatchResponseDeliveredMessage'>(),
   })
-  .brand<'CommentBatchDelivered'>();
+  .brand<'CommentBatchResponse'>();
 
-export type CommentBatchDelivered = z.infer<typeof commentBatchDeliveredContract>;
+export type CommentBatchResponse = z.infer<typeof commentBatchResponseContract>;

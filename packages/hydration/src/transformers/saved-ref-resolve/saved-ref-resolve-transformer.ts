@@ -12,6 +12,7 @@
  * });
  * // Returns 's1'
  */
+import { z } from '#gateway/npm/zod';
 import { fieldValuesContract } from '../../contracts/field-values/field-values-contract';
 import type { FieldValues } from '../../contracts/field-values/field-values-contract';
 import type { SavedRef } from '../../contracts/saved-ref/saved-ref-contract';
@@ -24,12 +25,9 @@ export const savedRefResolveTransformer = ({
   saved: Map<string, unknown>;
 }): FieldValues[string] | undefined => {
   const record = saved.get(ref.name);
+  const fields = z.record(z.string(), z.unknown()).safeParse(record);
   const value =
-    ref.field === undefined
-      ? record
-      : typeof record === 'object' && record !== null
-        ? Reflect.get(record, ref.field)
-        : undefined;
+    ref.field === undefined ? record : fields.success ? fields.data[ref.field] : undefined;
 
   return value === undefined ? undefined : fieldValuesContract.valueType.parse(value);
 };

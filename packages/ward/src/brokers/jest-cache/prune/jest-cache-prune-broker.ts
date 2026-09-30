@@ -58,9 +58,7 @@ export const jestCachePruneBroker = async (): Promise<void> => {
 
           await rm(entryPath, { recursive: true, force: true });
         } catch (error: unknown) {
-          stderr.write(
-            `ward: could not prune Jest cache entry ${entryPath}: ${String(error)}\n`,
-          );
+          stderr.write(`ward: could not prune Jest cache entry ${entryPath}: ${String(error)}\n`);
         }
       }),
     );

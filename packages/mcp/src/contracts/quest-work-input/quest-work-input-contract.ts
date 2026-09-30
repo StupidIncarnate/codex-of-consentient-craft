@@ -126,7 +126,7 @@ const requestPayloadContract = z
   .strict()
   .brand<'RequestPayload'>();
 
-export const mcpQuestWorkInputContract = z
+export const questWorkInputContract = z
   .object({
     questId: questContract.shape.id.describe('The ID of the quest this call is against.'),
     workItemId: workItemContract.shape.id.describe(
@@ -142,6 +142,6 @@ export const mcpQuestWorkInputContract = z
     ]),
   })
   .strict()
-  .brand<'McpQuestWorkInput'>();
+  .brand<'QuestWorkInput'>();
 
-export type McpQuestWorkInput = z.infer<typeof mcpQuestWorkInputContract>;
+export type QuestWorkInput = z.infer<typeof questWorkInputContract>;

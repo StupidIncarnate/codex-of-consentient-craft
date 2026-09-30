@@ -79,8 +79,7 @@ export const questAdvanceBroker = async ({
       const family = workItemFamilyResolveTransformer({ quest, operationItem: nextOperation });
       // A role no family carries — `spiritmender`, a chat role — runs no step graph and is stamped
       // with no step at all.
-      const entryStep =
-        family === undefined ? undefined : GRAPH_BY_FAMILY.get(family)?.entry;
+      const entryStep = family === undefined ? undefined : GRAPH_BY_FAMILY.get(family)?.entry;
 
       const newWorkItem: WorkItem = workItemContract.parse({
         id: workItemContract.shape.id.parse(randomUUID()),

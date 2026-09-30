@@ -1,7 +1,7 @@
 import { fileScannerBroker } from './file-scanner-broker';
 import { resolvePackageRoot } from '#gateway/node/module';
 import { installTestbedCreateBroker } from '@dungeonmaster/testing';
-import { discoverInputContract } from '../../../contracts/discover-input/discover-input-contract';
+import { DiscoverInputStub } from '../../../contracts/discover-input/discover-input.stub';
 
 describe('fileScannerBroker (integration: real shared package resolution)', () => {
   it('VALID: {specifier @dungeonmaster/shared/contracts} => resolves the real shared package root directory', () => {
@@ -15,14 +15,15 @@ describe('fileScannerBroker (integration: real shared package resolution)', () =
       baseName: 'file-scanner-shared',
     });
 
+    const { glob } = DiscoverInputStub({ glob: '**/contracts/quest/quest-contract.ts' });
+
     const results = await fileScannerBroker({
-      glob: discoverInputContract.shape.glob.unwrap().parse('**/content-text-contract.ts'),
+      glob: glob!,
       rootPath: String(testbed.guildPath),
     });
     testbed.cleanup();
 
-    const expectedPath =
-      '@dungeonmaster/shared/src/contracts/content-text/content-text-contract.ts';
+    const expectedPath = '@dungeonmaster/shared/src/contracts/quest/quest-contract.ts';
 
     expect(results.map((file) => file.path).filter((path) => path === expectedPath)).toStrictEqual([
       expectedPath,

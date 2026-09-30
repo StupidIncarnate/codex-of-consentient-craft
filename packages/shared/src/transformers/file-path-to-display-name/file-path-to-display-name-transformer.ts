@@ -21,9 +21,7 @@ export const filePathToDisplayNameTransformer = ({
   packageSrcPath: string;
 }): string => {
   const prefix = `${packageSrcPath}/`;
-  const relative = filePath.startsWith(prefix)
-    ? filePath.slice(prefix.length)
-    : filePath;
+  const relative = filePath.startsWith(prefix) ? filePath.slice(prefix.length) : filePath;
 
   const withoutExt = relative.endsWith('.tsx')
     ? relative.slice(0, relative.length - '.tsx'.length)

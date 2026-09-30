@@ -95,9 +95,7 @@ export const stepEntryBatchTransformer = ({
   }
 
   return batch.pieces
-    .filter(
-      (piece) => String(piece.step) === step && !startedPieceIds.has(String(piece.id)),
-    )
+    .filter((piece) => String(piece.step) === step && !startedPieceIds.has(String(piece.id)))
     .map((piece) => {
       const assignedUnitIds = piece.assignedUnitIds.filter((unitId) => {
         const mark = unitCurrentMarkTransformer({ quest, unitId });

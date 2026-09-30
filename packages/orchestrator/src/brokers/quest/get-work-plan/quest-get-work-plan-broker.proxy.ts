@@ -82,7 +82,7 @@ export const questGetWorkPlanBrokerProxy = (): {
     // Re-branded from the FilePath the find-quest-path fixture needed to AbsoluteFilePath, the
     // brand plannedWorkReadBrokerProxy requires — same string value, so the plan-file read is
     // staged against the SAME folder plannedWorkReadBroker is really called with.
-    return { questFolderPath: questFolderPath };
+    return { questFolderPath };
   };
 
   return {

@@ -205,8 +205,7 @@ export const blightChecklistBuildTransformer = ({
   // before they are compared. An absolute location with no `projectRoot` to reduce it against keeps
   // its leading slash and therefore matches nothing, which routes its files to the residual group
   // rather than to a package this transformer cannot prove they belong to.
-  const projectRootPrefix =
-    projectRoot === undefined ? '' : `${projectRoot.replace(/\/+$/u, '')}/`;
+  const projectRootPrefix = projectRoot === undefined ? '' : `${projectRoot.replace(/\/+$/u, '')}/`;
 
   // Longest prefix first, so a package declared inside another package's tree claims its own files
   // instead of losing them to the enclosing declaration.

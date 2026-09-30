@@ -35,9 +35,13 @@ describe('agentFlowFamilyResolveTransformer', () => {
         operationItem: OperationItemStub({ role: 'siegemaster' }),
       });
 
-      const wardNode = new Map(Object.entries(graph.nodes)).get('ward');
+      const wardDoneRoutes = Object.entries(graph.nodes)
+        .filter(([stepName]) => stepName === 'ward')
+        .flatMap(([, node]) => Object.entries(node.routes))
+        .filter(([word]) => word === 'done')
+        .map(([, target]) => String(target));
 
-      expect(new Map(Object.entries(wardNode?.routes ?? {})).get('done')).toBe('sweepOut');
+      expect(wardDoneRoutes).toStrictEqual(['sweepOut']);
     });
   });
 

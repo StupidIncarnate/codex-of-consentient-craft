@@ -23,5 +23,5 @@ export const hasModelcontextprotocolDependencyGuard = ({
   if (dependencies === undefined) {
     return false;
   }
-  return Reflect.get(dependencies, '@modelcontextprotocol/sdk') !== undefined;
+  return Object.hasOwn(dependencies, '@modelcontextprotocol/sdk');
 };

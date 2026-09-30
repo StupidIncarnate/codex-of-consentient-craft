@@ -9,6 +9,7 @@
 
 export const environmentStatics = {
   defaultPort: 3737,
+  maxPort: 65_535,
   hostname: 'dungeonmaster.localhost',
   serverUrlPlaceholder: '{{SERVER_URL}}',
 } as const;

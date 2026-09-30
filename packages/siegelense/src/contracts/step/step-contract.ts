@@ -280,7 +280,11 @@ export const stepContract = z
           .min(1)
           .refine(
             (candidate) =>
-              !(candidate.length >= 2 && candidate.startsWith('/') && candidate.endsWith('/')),
+              !(
+                candidate.length >= stepStatics.until.slashWrappedMinLength &&
+                candidate.startsWith('/') &&
+                candidate.endsWith('/')
+              ),
             {
               message:
                 'a console pattern is a regex SOURCE string, not a regex literal — JSON carries no /pattern/ syntax. Drop the surrounding slashes: { "step": "until", "console": "hydrated" }',

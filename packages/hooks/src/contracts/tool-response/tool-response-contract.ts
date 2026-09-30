@@ -7,7 +7,7 @@
  */
 import { z } from '#gateway/npm/zod';
 
-export const hookToolResponseContract = z
+export const toolResponseContract = z
   .object({
     filePath: z.string().brand<'HookToolResponseFilePath'>().optional(),
     success: z.boolean().optional(),
@@ -16,4 +16,4 @@ export const hookToolResponseContract = z
   .loose()
   .brand<'HookToolResponse'>();
 
-export type HookToolResponse = z.infer<typeof hookToolResponseContract>;
+export type ToolResponse = z.infer<typeof toolResponseContract>;

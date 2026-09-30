@@ -18,7 +18,7 @@ const specHashFor = async ({ specName }: { specName: string }): Promise<string> 
   laneSpecHashBroker({ spec: await laneSpecFindBroker({ specName }) });
 
 const profilesPathFor = async ({ specName }: { specName: string }): Promise<string> =>
-  `${ROOT_PATH_VALUE}/profiles/${(await specHashFor({ specName }))}`;
+  `${ROOT_PATH_VALUE}/profiles/${await specHashFor({ specName })}`;
 
 describe('profileReadBroker', () => {
   describe('a spec nothing has ever run', () => {
@@ -32,7 +32,7 @@ describe('profileReadBroker', () => {
       expect(result).toStrictEqual({
         specName: 'api',
         processes: 1,
-        hash: (await specHashFor({ specName: HEADLESS_SPEC })),
+        hash: await specHashFor({ specName: HEADLESS_SPEC }),
         measuredAt: null,
         fromRuns: 0,
         bootMs: null,
@@ -68,7 +68,7 @@ describe('profileReadBroker', () => {
       expect(result).toStrictEqual({
         specName: 'stack',
         processes: 3,
-        hash: (await specHashFor({ specName: WEB_SPEC })),
+        hash: await specHashFor({ specName: WEB_SPEC }),
         measuredAt: null,
         fromRuns: 0,
         bootMs: null,
@@ -97,7 +97,7 @@ describe('profileReadBroker', () => {
         ],
       });
       const profilesPath = await profilesPathFor({ specName: WEB_SPEC });
-      const hash = (await specHashFor({ specName: WEB_SPEC }));
+      const hash = await specHashFor({ specName: WEB_SPEC });
       proxy.setupProfileTree({
         profilesPath,
         sampleFileNames: ['inst_aaaa1111.json', 'inst_bbbb2222.json', 'inst_cccc3333.json'],
@@ -178,7 +178,7 @@ describe('profileReadBroker', () => {
     it('ERROR: {one corrupt sample beside one good one} => folds the good one and reports the skip on stderr', async () => {
       const proxy = profileReadBrokerProxy();
       const profilesPath = await profilesPathFor({ specName: HEADLESS_SPEC });
-      const hash = (await specHashFor({ specName: HEADLESS_SPEC }));
+      const hash = await specHashFor({ specName: HEADLESS_SPEC });
       proxy.setupProfileTree({
         profilesPath,
         sampleFileNames: ['inst_aaaa1111.json', 'inst_bbbb2222.json'],
@@ -222,7 +222,7 @@ describe('profileReadBroker', () => {
     it('EDGE: {a stray README beside one record} => reads only the .json records', async () => {
       const proxy = profileReadBrokerProxy();
       const profilesPath = await profilesPathFor({ specName: HEADLESS_SPEC });
-      const hash = (await specHashFor({ specName: HEADLESS_SPEC }));
+      const hash = await specHashFor({ specName: HEADLESS_SPEC });
       proxy.setupProfileTree({
         profilesPath,
         sampleFileNames: ['README.md', 'inst_aaaa1111.json'],

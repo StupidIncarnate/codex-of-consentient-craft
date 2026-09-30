@@ -33,6 +33,12 @@ export const configDefaultsStatics = {
       default: 4,
     },
   },
+  dungeonmaster: {
+    port: {
+      min: 1,
+      max: 65535,
+    },
+  },
   devServer: {
     buildCommand: 'npm run build',
     devCommand: 'npm run dev',

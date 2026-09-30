@@ -22,8 +22,5 @@ export const hasHonoOrExpressDependencyGuard = ({
   if (dependencies === undefined) {
     return false;
   }
-  return (
-    Reflect.get(dependencies, 'hono') !== undefined ||
-    Reflect.get(dependencies, 'express') !== undefined
-  );
+  return Object.hasOwn(dependencies, 'hono') || Object.hasOwn(dependencies, 'express');
 };

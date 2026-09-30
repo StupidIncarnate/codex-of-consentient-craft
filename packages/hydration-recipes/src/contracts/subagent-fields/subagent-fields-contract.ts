@@ -27,8 +27,8 @@
  * The export is upcast to `z.ZodType<SubagentFields, Input>` rather than left as
  * the concrete `ZodObject` — see `session-fields-contract.ts`'s own header for why: this shape
  * hits the same `ingredient()` two-site `deepPartial()` inference failure the upcast fixes.
- * `.shape` is gone from this export as a result; a caller that needs one field's own contract
- * reaches for the leaf import (`agentIdContract`, `toolUseIdContract`, etc.) instead.
+ * The concrete object schema stays private; the export carries its `.shape` alongside the upcast,
+ * so a caller reads one field's own contract as `subagentFieldsContract.shape.<field>`.
  */
 import { z } from '#gateway/npm/zod';
 
@@ -40,7 +40,7 @@ const taskPromptContract = z.string().min(1).brand<'TaskPrompt'>();
 
 export type TaskPrompt = z.infer<typeof taskPromptContract>;
 
-export const subagentFieldsShape = z
+const subagentFieldsShape = z
   .object({
     agentId: agentContract.shape.id,
     toolUseId: toolUseIdContract,
@@ -73,4 +73,8 @@ export type SubagentFields = z.infer<typeof subagentFieldsShape>;
 export const subagentFieldsContract: z.ZodType<
   SubagentFields,
   z.input<typeof subagentFieldsShape>
-> = subagentFieldsShape.transform((fields) => fields);
+> &
+  Pick<typeof subagentFieldsShape, 'shape'> = Object.assign(
+  subagentFieldsShape.transform((fields) => fields),
+  { shape: subagentFieldsShape.shape },
+);

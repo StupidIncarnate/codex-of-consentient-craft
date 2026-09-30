@@ -41,7 +41,7 @@ export const ToolResultContentWidget = ({
       <Text
         data-testid="TOOL_RESULT_VERBATIM"
         ff="monospace"
-        style={{ fontSize: fontSize, color, whiteSpace: 'pre-wrap' }}
+        style={{ fontSize, color, whiteSpace: 'pre-wrap' }}
       >
         {content}
       </Text>

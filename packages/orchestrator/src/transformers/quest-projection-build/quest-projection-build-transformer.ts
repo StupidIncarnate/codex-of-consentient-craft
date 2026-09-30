@@ -83,7 +83,7 @@ export const questProjectionBuildTransformer = ({ quest }: { quest: Quest }): Qu
 
     const plannedSteps = agentFlowPlannedStepsWalkTransformer({ graph, cursor: plannedStart }).map(
       (step) => ({
-        step: step,
+        step,
         kind: 'planned' as const,
       }),
     );

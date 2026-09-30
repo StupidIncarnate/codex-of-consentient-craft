@@ -34,8 +34,7 @@ export const moduleSpecifierResolveLayerTransformer = ({
     const [owner] = packages
       .filter(
         (candidate) =>
-          specifier === String(candidate.name) ||
-          specifier.startsWith(`${candidate.name}/`),
+          specifier === String(candidate.name) || specifier.startsWith(`${candidate.name}/`),
       )
       .sort((left, right) => right.name.length - left.name.length);
 

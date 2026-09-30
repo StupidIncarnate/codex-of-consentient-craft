@@ -6,6 +6,7 @@
  * // Returns: validated GetServerConfigOutput
  */
 import { z } from '#gateway/npm/zod';
+import { serverPortStatics } from '../../statics/server-port/server-port-statics';
 
 export const getServerConfigOutputContract = z
   .object({
@@ -18,8 +19,8 @@ export const getServerConfigOutputContract = z
     port: z
       .number()
       .int()
-      .min(1)
-      .max(65_535)
+      .min(serverPortStatics.min)
+      .max(serverPortStatics.max)
       .brand<'GetServerConfigOutputPort'>()
       .describe('Numeric port the server is bound to'),
   })

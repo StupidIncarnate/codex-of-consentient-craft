@@ -50,9 +50,9 @@ export const multiPackageLayerBroker = async ({
   const runId = runIdGenerateTransformer();
   const timestamp = Date.now();
   const wardBin = binResolveBroker({
-      binName: wardSpawnCommandStatics.bin,
-      cwd: rootPath,
-    });
+    binName: wardSpawnCommandStatics.bin,
+    cwd: rootPath,
+  });
 
   const checkTypes = config.only ?? [...allCheckTypesStatics];
   const hasPassthrough = Array.isArray(config.passthrough) && config.passthrough.length > 0;

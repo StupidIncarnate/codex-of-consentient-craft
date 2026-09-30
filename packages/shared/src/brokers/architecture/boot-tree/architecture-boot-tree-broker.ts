@@ -77,9 +77,7 @@ export const architectureBootTreeBroker = ({
       folderType: 'flows',
     });
 
-    const flowNames = flowFiles.map((ff) =>
-      architectureExportNameResolveBroker({ filePath: ff }),
-    );
+    const flowNames = flowFiles.map((ff) => architectureExportNameResolveBroker({ filePath: ff }));
 
     const startupAnnotation = startupAnnotations?.get(startupFile);
     const startupSuffixSource = startupAnnotation?.suffix ?? null;

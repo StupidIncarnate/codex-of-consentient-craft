@@ -21,6 +21,12 @@ describe('configDefaultsStatics', () => {
           default: 900000,
         },
       },
+      dungeonmaster: {
+        port: {
+          min: 1,
+          max: 65535,
+        },
+      },
       devServer: {
         buildCommand: 'npm run build',
         devCommand: 'npm run dev',

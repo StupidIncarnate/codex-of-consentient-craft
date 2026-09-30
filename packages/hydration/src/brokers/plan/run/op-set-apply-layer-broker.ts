@@ -58,7 +58,7 @@ export const opSetApplyLayerBroker = async ({
             : typeof from === 'number' || typeof from === 'boolean'
               ? String(from)
               : JSON.stringify(from),
-        to: String(to),
+        to: typeof to === 'string' ? to : JSON.stringify(to),
         gateMessage: cause instanceof Error ? cause.message : String(cause),
       });
     }

@@ -33,15 +33,12 @@ export const binWalkUpLayerBrokerProxy = (): {
       binDir: string | null;
       workspaceRoot: string | null;
     }): string => {
-      const segments = dir
-        .split('/')
-        .filter((segment) => segment !== '');
+      const segments = dir.split('/').filter((segment) => segment !== '');
       const deepestFirst = [
         '/',
         ...segments.map((_segment, index) => `/${segments.slice(0, index + 1).join('/')}`),
       ].reverse();
-      const holdsBinary = (ancestor: string): boolean =>
-        binDir !== null && binDir === ancestor;
+      const holdsBinary = (ancestor: string): boolean => binDir !== null && binDir === ancestor;
       const stopIndex = deepestFirst.findIndex(
         (ancestor) =>
           holdsBinary(ancestor) || (workspaceRoot !== null && workspaceRoot === ancestor),

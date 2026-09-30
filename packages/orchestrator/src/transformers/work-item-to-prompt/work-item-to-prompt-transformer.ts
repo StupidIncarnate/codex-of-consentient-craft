@@ -171,12 +171,13 @@ export const workItemToPromptTransformer = ({
   // `relayTailFanOutTransformer`), so it is the only thing in this block a session reads an ARGUMENT
   // out of. Every prompt that spells out a `get-quest` or `get-qa-checklist` call takes its
   // substitutions from these four.
-  const parts: string[] = [
+  const parts: string[] = [];
+  parts.push(
     `Quest ID: ${String(quest.id)}`,
     `Work Item ID: ${String(workItem.id)}`,
     `Operation Item ID: ${String(linkedOperation.id)}`,
     `Your operation item: [${linkedOperation.role}] ${String(linkedOperation.text)}`,
-  ];
+  );
 
   // Warpgate only. The prompt template tells the agent to resolve the base branch "recorded ON
   // THE QUEST in your Operation Context below" and never re-probe it — this is the half of that

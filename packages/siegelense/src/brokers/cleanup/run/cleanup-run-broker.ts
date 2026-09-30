@@ -23,6 +23,8 @@
  * // Returns { reaped, portsReleased, lockReleased, assetsAged, leftAlone }
  */
 
+import { now } from '#gateway/node/Date';
+
 import { cleanupAnswerContract } from '../../../contracts/cleanup-answer/cleanup-answer-contract';
 import type { CleanupAnswer } from '../../../contracts/cleanup-answer/cleanup-answer-contract';
 import { leftAloneContract } from '../../../contracts/left-alone/left-alone-contract';
@@ -36,7 +38,7 @@ import { lockReleaseLayerBroker } from './lock-release-layer-broker';
 import { staleReapLayerBroker } from './stale-reap-layer-broker';
 
 export const cleanupRunBroker = async (): Promise<CleanupAnswer> => {
-  const nowMs = Date.now();
+  const nowMs = now();
   const registry = await registryReadBroker();
 
   const aliveEntries = registry.instances.filter((entry) => entry.state === 'alive');

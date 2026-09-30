@@ -23,6 +23,7 @@
 
 import { z } from '#gateway/npm/zod';
 
+import { instanceLifecycleStatics } from '../../statics/instance-lifecycle/instance-lifecycle-statics';
 import { leftAloneContract } from '../left-alone/left-alone-contract';
 import { reapedInstanceContract } from '../reaped-instance/reaped-instance-contract';
 
@@ -30,7 +31,14 @@ export const cleanupAnswerContract = z
   .object({
     reaped: z.array(reapedInstanceContract).readonly(),
     portsReleased: z
-      .array(z.number().int().min(1).max(65_535).brand<'CleanupAnswerPortsReleased'>())
+      .array(
+        z
+          .number()
+          .int()
+          .min(1)
+          .max(instanceLifecycleStatics.ports.maxPort)
+          .brand<'CleanupAnswerPortsReleased'>(),
+      )
       .readonly(),
     lockReleased: z.boolean(),
     assetsAged: z

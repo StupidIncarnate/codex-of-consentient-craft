@@ -9,6 +9,7 @@ describe('wardExitCodeStatics', () => {
           failing: 1,
           crash: 2,
         },
+        maxExitCode: 255,
       });
     });
   });

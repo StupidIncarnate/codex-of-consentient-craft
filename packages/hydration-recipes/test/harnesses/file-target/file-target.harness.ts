@@ -180,9 +180,7 @@ export const fileTargetHarness = (): {
           if (contents === null) {
             continue;
           }
-          const parsedJson = JSON.parse(contents) as StubArgument<
-            ReturnType<typeof QuestStub>
-          >;
+          const parsedJson = JSON.parse(contents) as StubArgument<ReturnType<typeof QuestStub>>;
           const parsed = QuestStub(parsedJson);
           if (parsed.title === title) {
             return parsed;

@@ -1,4 +1,4 @@
-import { cleanupCliAnswerContract } from './cleanup-answer-contract';
+import { cleanupAnswerContract } from './cleanup-answer-contract';
 import { CleanupCliAnswerStub } from './cleanup-answer.stub';
 
 describe('cleanupAnswerContract', () => {
@@ -6,7 +6,7 @@ describe('cleanupAnswerContract', () => {
     it('VALID: {every field at zero} => parses successfully', () => {
       const answer = CleanupCliAnswerStub();
 
-      expect(cleanupCliAnswerContract.parse(answer)).toStrictEqual({
+      expect(cleanupAnswerContract.parse(answer)).toStrictEqual({
         reaped: [],
         portsReleased: [],
         lockReleased: false,
@@ -21,7 +21,7 @@ describe('cleanupAnswerContract', () => {
         assetsAged: { instances: 3 },
       });
 
-      expect(cleanupCliAnswerContract.parse(answer)).toStrictEqual({
+      expect(cleanupAnswerContract.parse(answer)).toStrictEqual({
         reaped: [{ id: 'inst_9b2c' }],
         portsReleased: [],
         lockReleased: true,
@@ -30,7 +30,7 @@ describe('cleanupAnswerContract', () => {
     });
 
     it('VALID: {an extra key siegelense adds later} => parses successfully, not .strict()', () => {
-      const result = cleanupCliAnswerContract.parse({
+      const result = cleanupAnswerContract.parse({
         reaped: [],
         portsReleased: [],
         lockReleased: false,
@@ -50,7 +50,7 @@ describe('cleanupAnswerContract', () => {
   describe('invalid answers', () => {
     it('INVALID: {assetsAged.instances: -1} => throws', () => {
       expect(() =>
-        cleanupCliAnswerContract.parse({
+        cleanupAnswerContract.parse({
           reaped: [],
           portsReleased: [],
           lockReleased: false,
@@ -61,7 +61,7 @@ describe('cleanupAnswerContract', () => {
 
     it('INVALID: {missing lockReleased} => throws', () => {
       expect(() =>
-        cleanupCliAnswerContract.parse({
+        cleanupAnswerContract.parse({
           reaped: [],
           portsReleased: [],
           assetsAged: { instances: 0 },

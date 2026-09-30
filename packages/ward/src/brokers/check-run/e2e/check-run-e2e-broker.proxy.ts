@@ -293,8 +293,7 @@ export const checkRunE2eBrokerProxy = (): {
         packageRoot: projectFolder.path,
         port: STAGED_SERVER_PORT,
       }),
-    getSpawnedArgs: (): unknown =>
-      run.getCallsFor({ command: resolvedCommandRef.value }).at(-1),
+    getSpawnedArgs: (): unknown => run.getCallsFor({ command: resolvedCommandRef.value }).at(-1),
     getSpawnedEnvValue: ({ key }: { key: string }): unknown =>
       run.getOptionsFor({ command: resolvedCommandRef.value }).at(-1)?.env[key],
     getSpawnedOptions: (): unknown =>

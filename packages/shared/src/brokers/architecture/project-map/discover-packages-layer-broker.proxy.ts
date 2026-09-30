@@ -50,7 +50,7 @@ export const discoverPackagesLayerBrokerProxy = (): {
       entries: { name: string; isDirectory: boolean }[];
     }): void => {
       gatewayProxy.returns({
-        path: (`${dirPath}/${groupName}`),
+        path: `${dirPath}/${groupName}`,
         entries: entries.map((entry) =>
           makeDirEntry({ name: entry.name, isDir: entry.isDirectory }),
         ),

@@ -1,12 +1,12 @@
 import type { StubArgument } from '@dungeonmaster/shared/@types';
 
-import { mcpQuestWorkInputContract } from './quest-work-input-contract';
-import type { McpQuestWorkInput } from './quest-work-input-contract';
+import { questWorkInputContract } from './quest-work-input-contract';
+import type { QuestWorkInput } from './quest-work-input-contract';
 
-export const McpQuestWorkInputStub = ({
+export const QuestWorkInputStub = ({
   ...props
-}: StubArgument<McpQuestWorkInput> = {}): McpQuestWorkInput =>
-  mcpQuestWorkInputContract.parse({
+}: StubArgument<QuestWorkInput> = {}): QuestWorkInput =>
+  questWorkInputContract.parse({
     questId: 'add-auth',
     workItemId: 'f47ac10b-58cc-4372-a567-0e02b2c3d479',
     payload: {

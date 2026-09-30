@@ -3,4 +3,7 @@ import { qaChecklistItemContract } from '../qa-checklist-item/qa-checklist-item-
 
 export const UnitIdStub = (
   { value }: { value: string } = { value: 'send-flow:observable:check-badge-count-text' },
-): QaChecklistItem['id'] => qaChecklistItemContract.shape.id.parse(value);
+): QaChecklistItem['id'] => {
+  const unitIdContract = qaChecklistItemContract.shape.id;
+  return unitIdContract.parse(value);
+};

@@ -5,7 +5,7 @@ import { QuestStub } from '@dungeonmaster/shared/contracts/quest/quest.stub';
 import { QuestWorkItemIdStub } from '@dungeonmaster/shared/contracts/quest-work-item-id/quest-work-item-id.stub';
 import { WorkItemStub } from '@dungeonmaster/shared/contracts/work-item/work-item.stub';
 
-import { questWorkInputContract } from '../../../contracts/quest-work-input/quest-work-input-contract';
+import { QuestWorkInputStub } from '../../../contracts/quest-work-input/quest-work-input.stub';
 import { questWorkPlanWriteBroker } from './quest-work-plan-write-broker';
 import { questWorkPlanWriteBrokerProxy } from './quest-work-plan-write-broker.proxy';
 
@@ -28,7 +28,7 @@ const WORK_ITEM = WorkItemStub({
 });
 
 const zeroPieceEnvelope = (): Parameters<typeof questWorkPlanWriteBroker>[0]['plan'] => {
-  const { payload } = questWorkInputContract.parse({
+  const { payload } = QuestWorkInputStub({
     questId: 'add-auth',
     workItemId: WORK_ITEM_ID,
     payload: {

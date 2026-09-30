@@ -52,6 +52,9 @@ describe('stepStatics', () => {
           'video',
         ],
       },
+      until: {
+        slashWrappedMinLength: 2,
+      },
       defaults: {
         stopOn: 'error',
         expect: 'ok',

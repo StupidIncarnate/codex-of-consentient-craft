@@ -40,11 +40,11 @@ export const worktreeResumeRestoreBrokerProxy = (): {
     },
 
     setupCheckoutSucceeds: ({ branchName }: { branchName: string }): void => {
-      checkout.setupResult({ branchName: branchName, exitCode: 0, output: '' });
+      checkout.setupResult({ branchName, exitCode: 0, output: '' });
     },
 
     setupCheckoutFails: ({ branchName, output }: { branchName: string; output: string }): void => {
-      checkout.setupResult({ branchName: branchName, exitCode: 128, output });
+      checkout.setupResult({ branchName, exitCode: 128, output });
     },
 
     setupBranchWithTrailingWarning: ({

@@ -39,7 +39,7 @@ describe('binResolveBroker (integration)', () => {
 
     testbed.cleanup();
 
-    expect({ result: result, firstPathDir: firstPathDir }).toStrictEqual({
+    expect({ result, firstPathDir }).toStrictEqual({
       result: `${testbed.guildPath}/node_modules/.bin/jest`,
       firstPathDir: `${testbed.guildPath}/decoy-path`,
     });

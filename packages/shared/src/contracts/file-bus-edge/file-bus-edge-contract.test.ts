@@ -1,4 +1,5 @@
 import { fileBusEdgeContract } from './file-bus-edge-contract';
+import { FileBusEdgeStub } from './file-bus-edge.stub';
 
 describe('fileBusEdgeContract', () => {
   describe('parse', () => {
@@ -11,6 +12,21 @@ describe('fileBusEdgeContract', () => {
           '/repo/packages/server/src/brokers/quest/outbox-watch/quest-outbox-watch-broker.ts',
         paired: true,
       });
+
+      expect(result).toStrictEqual({
+        filePath: '/repo/.dungeonmaster/quests/quest.jsonl',
+        writerFile:
+          '/repo/packages/orchestrator/src/brokers/chat/subagent-tail/chat-subagent-tail-broker.ts',
+        watcherFile:
+          '/repo/packages/server/src/brokers/quest/outbox-watch/quest-outbox-watch-broker.ts',
+        paired: true,
+      });
+    });
+
+    it('VALID: {stub defaults} => parses to the paired edge', () => {
+      const edge = FileBusEdgeStub();
+
+      const result = fileBusEdgeContract.parse(edge);
 
       expect(result).toStrictEqual({
         filePath: '/repo/.dungeonmaster/quests/quest.jsonl',

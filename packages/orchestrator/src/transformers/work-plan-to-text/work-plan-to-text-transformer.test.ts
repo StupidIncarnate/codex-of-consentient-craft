@@ -135,9 +135,7 @@ describe('workPlanToTextTransformer', () => {
         inScopeUnits: IN_SCOPE_UNITS,
       });
 
-      const headings = result
-        .split('\n')
-        .filter((line) => line.startsWith('## Batch'));
+      const headings = result.split('\n').filter((line) => line.startsWith('## Batch'));
 
       expect(headings).toStrictEqual(['## Batch 1 — sequential', '## Batch 2 — parallel']);
     });
@@ -166,9 +164,7 @@ describe('workPlanToTextTransformer', () => {
         inScopeUnits: IN_SCOPE_UNITS,
       });
 
-      const heading = result
-        .split('\n')
-        .find((line) => line.startsWith('### '));
+      const heading = result.split('\n').find((line) => line.startsWith('### '));
 
       expect(heading).toBe('### pc-badge — step `work`');
     });
@@ -180,9 +176,7 @@ describe('workPlanToTextTransformer', () => {
         inScopeUnits: IN_SCOPE_UNITS,
       });
 
-      const row = result
-        .split('\n')
-        .find((line) => line.startsWith('- [outstanding]'));
+      const row = result.split('\n').find((line) => line.startsWith('- [outstanding]'));
 
       expect(row).toBe(
         '- [outstanding] `send-flow:observable:check-badge-count-text` — the badge reads 2 on a box carrying two persisted comments',
@@ -208,9 +202,7 @@ describe('workPlanToTextTransformer', () => {
         inScopeUnits: [],
       });
 
-      const line = result
-        .split('\n')
-        .find((entry) => entry.startsWith('Claims no unit'));
+      const line = result.split('\n').find((entry) => entry.startsWith('Claims no unit'));
 
       expect(line).toBe('Claims no unit — a contracts-only piece proves nothing itself.');
     });
@@ -224,9 +216,7 @@ describe('workPlanToTextTransformer', () => {
         inScopeUnits: IN_SCOPE_UNITS,
       });
 
-      const line = result
-        .split('\n')
-        .find((entry) => entry.startsWith('No planner has run'));
+      const line = result.split('\n').find((entry) => entry.startsWith('No planner has run'));
 
       expect(line).toBe(
         'No planner has run against this item yet, so there is no plan to review. That is a real',
