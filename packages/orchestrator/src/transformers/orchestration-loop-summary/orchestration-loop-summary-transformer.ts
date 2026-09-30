@@ -16,8 +16,6 @@ import {
   satisfiesDependencyWorkItemStatusGuard,
 } from '@dungeonmaster/shared/guards';
 
-import type { OrchestrationLoopSummary } from '../../contracts/orchestration-loop-summary/orchestration-loop-summary-contract';
-import { orchestrationLoopSummaryContract } from '../../contracts/orchestration-loop-summary/orchestration-loop-summary-contract';
 
 const LINE_INDENT = '    ';
 const NUM_PAD = 3;
@@ -44,7 +42,7 @@ export const orchestrationLoopSummaryTransformer = ({
   workItems: WorkItem[];
   ready: WorkItem[];
   chatRoles: readonly WorkItemRole[];
-}): OrchestrationLoopSummary => {
+}): string => {
   const readyIds = new Set(ready.map((item) => item.id));
   const chatRoleSet = new Set<WorkItemRole>(chatRoles);
   const itemById = new Map(workItems.map((item) => [item.id, item]));
@@ -124,10 +122,10 @@ export const orchestrationLoopSummaryTransformer = ({
   const header = `[orchestration-loop] quest=${questId} status=${questStatus} items=${String(workItems.length)} (ready=${String(ready.length)} running=${String(runningCount)} waiting=${String(waitingCount)} done=${String(doneCount)} failed=${String(failedCount)} skipped=${String(skippedCount)})`;
 
   if (lines.length === 0) {
-    return orchestrationLoopSummaryContract.parse(header);
+    return header;
   }
 
   const sectionHeader = '  queue (pick order - ready first, then running, waiting, done):';
 
-  return orchestrationLoopSummaryContract.parse([header, sectionHeader, ...lines].join('\n'));
+  return [header, sectionHeader, ...lines].join('\n');
 };

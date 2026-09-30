@@ -2,7 +2,6 @@ import { QuestIdStub } from '@dungeonmaster/shared/contracts/quest-id/quest-id.s
 import { QuestWorkItemIdStub } from '@dungeonmaster/shared/contracts/quest-work-item-id/quest-work-item-id.stub';
 import { WorkItemStub } from '@dungeonmaster/shared/contracts/work-item/work-item.stub';
 
-import { OrchestrationLoopSummaryStub } from '../../contracts/orchestration-loop-summary/orchestration-loop-summary.stub';
 import { orchestrationLoopSummaryTransformer } from './orchestration-loop-summary-transformer';
 
 describe('orchestrationLoopSummaryTransformer', () => {
@@ -58,7 +57,7 @@ describe('orchestrationLoopSummaryTransformer', () => {
         '        DONE  chaoswhisperer  11111111-1111-4111-8111-111111111111',
       ].join('\n');
 
-      expect(result).toBe(OrchestrationLoopSummaryStub({ value: expected }));
+      expect(result).toBe(expected);
     });
   });
 
@@ -81,7 +80,7 @@ describe('orchestrationLoopSummaryTransformer', () => {
         '    #1  READY chaoswhisperer  12121212-1212-4121-8121-121212121212  [chat]',
       ].join('\n');
 
-      expect(result).toBe(OrchestrationLoopSummaryStub({ value: expected }));
+      expect(result).toBe(expected);
     });
   });
 
@@ -107,7 +106,7 @@ describe('orchestrationLoopSummaryTransformer', () => {
         '        SKIP  ward            99999999-9999-4999-8999-999999999999',
       ].join('\n');
 
-      expect(result).toBe(OrchestrationLoopSummaryStub({ value: expected }));
+      expect(result).toBe(expected);
     });
   });
 
@@ -151,7 +150,7 @@ describe('orchestrationLoopSummaryTransformer', () => {
         '        WAIT  flowrider       dddddddd-dddd-4ddd-8ddd-dddddddddddd  waiting on: unknown',
       ].join('\n');
 
-      expect(result).toBe(OrchestrationLoopSummaryStub({ value: expected }));
+      expect(result).toBe(expected);
     });
   });
 
@@ -166,10 +165,7 @@ describe('orchestrationLoopSummaryTransformer', () => {
       });
 
       expect(result).toBe(
-        OrchestrationLoopSummaryStub({
-          value:
-            '[orchestration-loop] quest=demo-quest status=in_progress items=0 (ready=0 running=0 waiting=0 done=0 failed=0 skipped=0)',
-        }),
+        '[orchestration-loop] quest=demo-quest status=in_progress items=0 (ready=0 running=0 waiting=0 done=0 failed=0 skipped=0)',
       );
     });
   });
