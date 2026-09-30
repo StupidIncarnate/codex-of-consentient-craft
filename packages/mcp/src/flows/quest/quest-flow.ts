@@ -17,12 +17,12 @@ import { getQuestWorkInputContract } from '../../contracts/get-quest-work-input/
 // parses. Generating the advertised schema from the shared contract left `format` unadvertised while
 // the responder still read it, so a caller following an instruction to pass it sent a key the
 // published schema forbids.
-import { getQuestInputContract } from '../../contracts/get-quest-input/get-quest-input-contract';
+import { mcpGetQuestInputContract } from '../../contracts/get-quest-input/get-quest-input-contract';
 import { getQuestStatusInputContract } from '../../contracts/get-quest-status-input/get-quest-status-input-contract';
 import { getQuestSummaryInputContract } from '../../contracts/get-quest-summary-input/get-quest-summary-input-contract';
 import { listQuestsInputContract } from '../../contracts/list-quests-input/list-quests-input-contract';
 import { modifyQuestInputContract } from '@dungeonmaster/shared/contracts';
-import { questWorkInputContract } from '../../contracts/quest-work-input/quest-work-input-contract';
+import { mcpQuestWorkInputContract } from '../../contracts/quest-work-input/quest-work-input-contract';
 import { startQuestInputContract } from '../../contracts/start-quest-input/start-quest-input-contract';
 import type { ToolRegistration } from '../../contracts/tool-registration/tool-registration-contract';
 import { QuestHandleResponder } from '../../responders/quest/handle/quest-handle-responder';
@@ -34,7 +34,7 @@ import { QuestHandleResponder } from '../../responders/quest/handle/quest-handle
 // still provide v3-schemas") — fed a real v4 schema it silently returns an empty shell, which is
 // exactly the MCP tool inputSchema every caller here needs populated.
 const jsonSchemaOptions = { reused: 'inline' as const };
-const getQuestSchema = toJSONSchema(getQuestInputContract, jsonSchemaOptions);
+const getQuestSchema = toJSONSchema(mcpGetQuestInputContract, jsonSchemaOptions);
 const modifyQuestSchema = toJSONSchema(modifyQuestInputContract, jsonSchemaOptions);
 const startQuestSchema = toJSONSchema(startQuestInputContract, jsonSchemaOptions);
 const getQuestStatusSchema = toJSONSchema(getQuestStatusInputContract, jsonSchemaOptions);
@@ -48,7 +48,7 @@ const getBlightChecklistSchema = toJSONSchema(getBlightChecklistInputContract, j
 const createQuestSchema = toJSONSchema(createQuestInputContract, jsonSchemaOptions);
 const getQuestSummarySchema = toJSONSchema(getQuestSummaryInputContract, jsonSchemaOptions);
 const createWorktreeSchema = toJSONSchema(createWorktreeInputContract, jsonSchemaOptions);
-const questWorkSchema = toJSONSchema(questWorkInputContract, jsonSchemaOptions);
+const questWorkSchema = toJSONSchema(mcpQuestWorkInputContract, jsonSchemaOptions);
 const getQuestWorkSchema = toJSONSchema(getQuestWorkInputContract, jsonSchemaOptions);
 
 export const QuestFlow = (): ToolRegistration[] => [

@@ -1,10 +1,10 @@
-import { folderConfigContract } from './folder-config-contract';
-import { FolderConfigStub } from './folder-config.stub';
+import { allowedExternalImportsContract } from './folder-config-contract';
+import { AllowedExternalImportsStub } from './folder-config.stub';
 
 describe('folderConfigContract', () => {
   describe('valid configurations', () => {
     it('VALID: {frontend structure} => parses successfully', () => {
-      const frontendConfig = FolderConfigStub({
+      const frontendConfig = AllowedExternalImportsStub({
         widgets: ['react', 'react-dom'],
         bindings: ['react', 'react-dom'],
         state: ['react', 'react-dom'],
@@ -12,7 +12,7 @@ describe('folderConfigContract', () => {
         responders: [],
       });
 
-      const result = folderConfigContract.parse(frontendConfig);
+      const result = allowedExternalImportsContract.parse(frontendConfig);
 
       expect(result).toStrictEqual({
         widgets: ['react', 'react-dom'],
@@ -30,7 +30,7 @@ describe('folderConfigContract', () => {
     });
 
     it('VALID: {backend structure with null ui folders} => parses successfully', () => {
-      const backendConfig = FolderConfigStub({
+      const backendConfig = AllowedExternalImportsStub({
         widgets: null,
         bindings: null,
         state: [],
@@ -38,7 +38,7 @@ describe('folderConfigContract', () => {
         responders: [],
       });
 
-      const result = folderConfigContract.parse(backendConfig);
+      const result = allowedExternalImportsContract.parse(backendConfig);
 
       expect(result).toStrictEqual({
         widgets: null,
@@ -56,7 +56,7 @@ describe('folderConfigContract', () => {
     });
 
     it('VALID: {library structure with limited imports} => parses successfully', () => {
-      const libraryConfig = FolderConfigStub({
+      const libraryConfig = AllowedExternalImportsStub({
         widgets: null,
         bindings: null,
         state: [],
@@ -64,7 +64,7 @@ describe('folderConfigContract', () => {
         responders: null,
       });
 
-      const result = folderConfigContract.parse(libraryConfig);
+      const result = allowedExternalImportsContract.parse(libraryConfig);
 
       expect(result).toStrictEqual({
         widgets: null,
@@ -82,7 +82,7 @@ describe('folderConfigContract', () => {
     });
 
     it('VALID: {stub with all overrides} => parses with custom values', () => {
-      const customConfig = FolderConfigStub({
+      const customConfig = AllowedExternalImportsStub({
         widgets: ['vue'],
         bindings: ['vue'],
         state: ['pinia'],
@@ -96,7 +96,7 @@ describe('folderConfigContract', () => {
         startup: ['dotenv'],
       });
 
-      const result = folderConfigContract.parse(customConfig);
+      const result = allowedExternalImportsContract.parse(customConfig);
 
       expect(result).toStrictEqual(customConfig);
     });
@@ -105,7 +105,7 @@ describe('folderConfigContract', () => {
   describe('invalid configurations', () => {
     it('INVALID: {widgets: "react"} => throws validation error', () => {
       expect(() => {
-        folderConfigContract.parse({
+        allowedExternalImportsContract.parse({
           widgets: 'react',
           bindings: ['react'],
           state: [],
@@ -123,7 +123,7 @@ describe('folderConfigContract', () => {
 
     it('INVALID: {contracts: null} => throws validation error', () => {
       expect(() => {
-        folderConfigContract.parse({
+        allowedExternalImportsContract.parse({
           widgets: null,
           bindings: null,
           state: [],
@@ -141,7 +141,7 @@ describe('folderConfigContract', () => {
 
     it('INVALID: {missing required field} => throws validation error', () => {
       expect(() => {
-        folderConfigContract.parse({
+        allowedExternalImportsContract.parse({
           widgets: null,
           bindings: null,
           state: [],

@@ -1,10 +1,10 @@
-import { transcriptLineContract } from './transcript-line-contract';
-import { TranscriptLineStub } from './transcript-line.stub';
+import { recipeTranscriptLineContract } from './transcript-line-contract';
+import { RecipeTranscriptLineStub } from './transcript-line.stub';
 
 describe('transcriptLineContract', () => {
   describe('valid lines', () => {
     it('VALID: {a user text line} => parses and keeps every passthrough field', () => {
-      expect(TranscriptLineStub()).toStrictEqual({
+      expect(RecipeTranscriptLineStub()).toStrictEqual({
         uuid: 'a1b2c3d4-0000-4000-8000-000000000001-user',
         timestamp: '2026-01-01T00:00:00.000Z',
         message: { role: 'user', content: 'Seeded by the session-with-nested-subagent recipe.' },
@@ -12,7 +12,7 @@ describe('transcriptLineContract', () => {
     });
 
     it('VALID: {a Task completion line} => keeps toolUseResult.agentId', () => {
-      const line = TranscriptLineStub({
+      const line = RecipeTranscriptLineStub({
         uuid: 'sess-task-outer-result',
         message: {
           role: 'user',
@@ -36,7 +36,7 @@ describe('transcriptLineContract', () => {
   describe('invalid lines', () => {
     it('INVALID: {no uuid} => throws', () => {
       expect(() =>
-        transcriptLineContract.parse({
+        recipeTranscriptLineContract.parse({
           timestamp: '2026-01-01T00:00:00.000Z',
           message: { content: 'x' },
         }),
@@ -44,7 +44,7 @@ describe('transcriptLineContract', () => {
     });
 
     it('INVALID: {no timestamp} => throws', () => {
-      expect(() => transcriptLineContract.parse({ uuid: 'u', message: { content: 'x' } })).toThrow(
+      expect(() => recipeTranscriptLineContract.parse({ uuid: 'u', message: { content: 'x' } })).toThrow(
         /received undefined/u,
       );
     });

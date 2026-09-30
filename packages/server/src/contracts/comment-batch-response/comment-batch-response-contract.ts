@@ -13,9 +13,9 @@ import { z } from '#gateway/npm/zod';
 
 import { processIdContract } from '@dungeonmaster/shared/contracts';
 
-export const commentBatchResponseContract = z.object({
+export const commentBatchDeliveredContract = z.object({
   chatProcessId: processIdContract,
   deliveredMessage: z.string().min(1).brand<'DeliveredCommentMessage'>(),
 });
 
-export type CommentBatchResponse = z.infer<typeof commentBatchResponseContract>;
+export type CommentBatchDelivered = z.infer<typeof commentBatchDeliveredContract>;

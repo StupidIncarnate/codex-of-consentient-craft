@@ -8,7 +8,7 @@
  * // the specific shape it needs (e.g. askUserQuestionContract, toolInputContract).
  */
 import { z } from '#gateway/npm/zod';
-import { toolResponseContract } from '../tool-response/tool-response-contract';
+import { hookToolResponseContract } from '../tool-response/tool-response-contract';
 import { sessionContract } from '@dungeonmaster/shared/contracts';
 
 export const postToolUseHookDataContract = z.object({
@@ -18,7 +18,7 @@ export const postToolUseHookDataContract = z.object({
   hook_event_name: z.literal('PostToolUse'),
   tool_name: z.string().min(1).brand<'ToolName'>(),
   tool_input: z.unknown(),
-  tool_response: toolResponseContract.optional(),
+  tool_response: hookToolResponseContract.optional(),
 });
 
 export type PostToolUseHookData = z.infer<typeof postToolUseHookDataContract>;

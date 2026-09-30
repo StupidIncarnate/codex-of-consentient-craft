@@ -1,10 +1,10 @@
-import { commentBatchResponseContract } from './comment-batch-response-contract';
-import { CommentBatchResponseStub } from './comment-batch-response.stub';
+import { commentBatchDeliveredContract } from './comment-batch-response-contract';
+import { CommentBatchDeliveredStub } from './comment-batch-response.stub';
 
 describe('commentBatchResponseContract', () => {
   describe('valid responses', () => {
     it('VALID: {default stub} => parses a chatProcessId and the delivered markdown', () => {
-      const result = CommentBatchResponseStub();
+      const result = CommentBatchDeliveredStub();
 
       expect(result).toStrictEqual({
         chatProcessId: 'proc-12345',
@@ -14,7 +14,7 @@ describe('commentBatchResponseContract', () => {
     });
 
     it('VALID: {chatProcessId: proc-67890} => parses an overridden chatProcessId', () => {
-      const result = CommentBatchResponseStub({ chatProcessId: 'proc-67890' });
+      const result = CommentBatchDeliveredStub({ chatProcessId: 'proc-67890' });
 
       expect(result).toStrictEqual({
         chatProcessId: 'proc-67890',
@@ -24,7 +24,7 @@ describe('commentBatchResponseContract', () => {
     });
 
     it('VALID: {deliveredMessage: two-block batch} => parses an overridden deliveredMessage', () => {
-      const result = CommentBatchResponseStub({
+      const result = CommentBatchDeliveredStub({
         deliveredMessage:
           'Flow "Login Flow" / node `start` ("Start")\nUser Comment: First\n\n---\n\nFlow "Login Flow" / node `finish` ("Finish")\nUser Comment: Second',
       });
@@ -40,13 +40,13 @@ describe('commentBatchResponseContract', () => {
   describe('invalid responses', () => {
     it('INVALID: {missing chatProcessId} => throws validation error', () => {
       expect(() => {
-        commentBatchResponseContract.parse({});
+        commentBatchDeliveredContract.parse({});
       }).toThrow(/received undefined/u);
     });
 
     it('EMPTY: {chatProcessId: ""} => throws validation error', () => {
       expect(() => {
-        commentBatchResponseContract.parse({
+        commentBatchDeliveredContract.parse({
           chatProcessId: '',
           deliveredMessage: 'User Comment: This copy is wrong',
         });
@@ -55,13 +55,13 @@ describe('commentBatchResponseContract', () => {
 
     it('INVALID: {missing deliveredMessage} => throws validation error', () => {
       expect(() => {
-        commentBatchResponseContract.parse({ chatProcessId: 'proc-12345' });
+        commentBatchDeliveredContract.parse({ chatProcessId: 'proc-12345' });
       }).toThrow(/received undefined/u);
     });
 
     it('EMPTY: {deliveredMessage: ""} => throws validation error', () => {
       expect(() => {
-        commentBatchResponseContract.parse({ chatProcessId: 'proc-12345', deliveredMessage: '' });
+        commentBatchDeliveredContract.parse({ chatProcessId: 'proc-12345', deliveredMessage: '' });
       }).toThrow(/expected string to have >=1 characters/u);
     });
   });

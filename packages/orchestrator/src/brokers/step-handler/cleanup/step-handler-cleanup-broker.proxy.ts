@@ -23,7 +23,7 @@ import { ExitCodeStub } from '@dungeonmaster/shared/contracts/exit-code/exit-cod
 import { RepoRootCwdStub } from '@dungeonmaster/shared/contracts/repo-root-cwd/repo-root-cwd.stub';
 import { registerMock, registerModuleMock } from '@dungeonmaster/testing/register-mock';
 
-import type { CleanupAnswer } from '../../../contracts/cleanup-answer/cleanup-answer-contract';
+import type { CleanupCliAnswer } from '../../../contracts/cleanup-answer/cleanup-answer-contract';
 import { cleanupCliCallStatics } from '../../../statics/cleanup-cli-call/cleanup-cli-call-statics';
 import { questRepoRootBroker } from '../../quest/repo-root/quest-repo-root-broker';
 import { questRepoRootBrokerProxy } from '../../quest/repo-root/quest-repo-root-broker.proxy';
@@ -33,7 +33,7 @@ registerModuleMock({ module: '../../quest/repo-root/quest-repo-root-broker' });
 const CLEANUP_COMMAND = cleanupCliCallStatics.call.bin;
 
 export const stepHandlerCleanupBrokerProxy = (): {
-  cleanupExits: (params: { questId: Quest['id']; exitCode: ExitCode; answer: CleanupAnswer }) => void;
+  cleanupExits: (params: { questId: Quest['id']; exitCode: ExitCode; answer: CleanupCliAnswer }) => void;
   cleanupFails: (params: { questId: Quest['id']; exitCode: ExitCode; output: string }) => void;
   cleanupPrintsInvalidJson: (params: { questId: Quest['id'] }) => void;
   getSpawnedCommand: () => unknown;
@@ -74,7 +74,7 @@ export const stepHandlerCleanupBrokerProxy = (): {
     }: {
       questId: Quest['id'];
       exitCode: ExitCode;
-      answer: CleanupAnswer;
+      answer: CleanupCliAnswer;
     }): void => {
       stageRepoRoot({ questId });
       runResult.exitCode = exitCode;

@@ -41,7 +41,7 @@ import { devLogEventFormatTransformer } from '../../../transformers/dev-log-even
 import { errorFormatReasonTransformer } from '../../../transformers/error-format-reason/error-format-reason-transformer';
 import type { OrchestrationEventType, ProcessId, WsMessage, Quest, WorkItem } from '@dungeonmaster/shared/contracts';
 
-import { chatOutputPayloadContract } from '../../../contracts/chat-output-payload/chat-output-payload-contract';
+import { chatOutputRoutingContract } from '../../../contracts/chat-output-payload/chat-output-payload-contract';
 import { wsEventDataContract } from '../../../contracts/ws-event-data/ws-event-data-contract';
 import { wsIncomingMessageContract } from '../../../contracts/ws-incoming-message/ws-incoming-message-contract';
 import { chatEntriesExtractQuestIdTransformer } from '../../../transformers/chat-entries-extract-quest-id/chat-entries-extract-quest-id-transformer';
@@ -575,7 +575,7 @@ export const ServerInitResponder = ({
     orchestrationEventsState.on({
       type,
       handler: ({ processId, payload }) => {
-        const parsedPayload = chatOutputPayloadContract.safeParse(payload);
+        const parsedPayload = chatOutputRoutingContract.safeParse(payload);
         const slotIndexValue = parsedPayload.success ? parsedPayload.data.slotIndex : undefined;
         const originalPayloadQuestId = parsedPayload.success
           ? parsedPayload.data.questId
@@ -829,7 +829,7 @@ export const ServerInitResponder = ({
         payload: { ...item.payload, processId: item.processId },
         timestamp: isoTimestampContract.parse(new Date().toISOString()),
       });
-      const flushParsed = chatOutputPayloadContract.safeParse(item.payload);
+      const flushParsed = chatOutputRoutingContract.safeParse(item.payload);
       const flushQuestId = flushParsed.success ? flushParsed.data.questId : undefined;
 
       // Pipeline-batched chat-output is a per-quest event — fan out only to

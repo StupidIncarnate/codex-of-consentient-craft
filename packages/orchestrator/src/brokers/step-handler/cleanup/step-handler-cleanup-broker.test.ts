@@ -3,7 +3,7 @@ import { ExitCodeStub } from '@dungeonmaster/shared/contracts/exit-code/exit-cod
 import { QuestIdStub } from '@dungeonmaster/shared/contracts/quest-id/quest-id.stub';
 import { QuestWorkItemIdStub } from '@dungeonmaster/shared/contracts/quest-work-item-id/quest-work-item-id.stub';
 
-import { CleanupAnswerStub } from '../../../contracts/cleanup-answer/cleanup-answer.stub';
+import { CleanupCliAnswerStub } from '../../../contracts/cleanup-answer/cleanup-answer.stub';
 import { stepHandlerCleanupBroker } from './step-handler-cleanup-broker';
 import { stepHandlerCleanupBrokerProxy } from './step-handler-cleanup-broker.proxy';
 
@@ -19,7 +19,7 @@ describe('stepHandlerCleanupBroker', () => {
       proxy.cleanupExits({
         questId: QUEST_ID,
         exitCode: ExitCodeStub({ value: 0 }),
-        answer: CleanupAnswerStub(),
+        answer: CleanupCliAnswerStub(),
       });
 
       const result = await stepHandlerCleanupBroker({
@@ -39,7 +39,7 @@ describe('stepHandlerCleanupBroker', () => {
       proxy.cleanupExits({
         questId: QUEST_ID,
         exitCode: ExitCodeStub({ value: 0 }),
-        answer: CleanupAnswerStub({ reaped: [{ id: 'inst_9b2c' }] }),
+        answer: CleanupCliAnswerStub({ reaped: [{ id: 'inst_9b2c' }] }),
       });
 
       const result = await stepHandlerCleanupBroker({
@@ -79,7 +79,7 @@ describe('stepHandlerCleanupBroker', () => {
       proxy.cleanupExits({
         questId: QUEST_ID,
         exitCode: ExitCodeStub({ value: 0 }),
-        answer: CleanupAnswerStub(),
+        answer: CleanupCliAnswerStub(),
       });
 
       await stepHandlerCleanupBroker({
@@ -97,7 +97,7 @@ describe('stepHandlerCleanupBroker', () => {
       proxy.cleanupExits({
         questId: QUEST_ID,
         exitCode: ExitCodeStub({ value: 0 }),
-        answer: CleanupAnswerStub(),
+        answer: CleanupCliAnswerStub(),
       });
 
       await stepHandlerCleanupBroker({
@@ -117,7 +117,7 @@ describe('stepHandlerCleanupBroker', () => {
       proxy.cleanupExits({
         questId: QUEST_ID,
         exitCode: ExitCodeStub({ value: 0 }),
-        answer: CleanupAnswerStub({ lockReleased: true }),
+        answer: CleanupCliAnswerStub({ lockReleased: true }),
       });
       const seenLines: ContentText[] = [];
 

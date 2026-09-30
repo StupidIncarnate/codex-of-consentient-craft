@@ -1,11 +1,11 @@
 import type { StubArgument } from '@dungeonmaster/shared/@types';
-import { folderConfigContract } from './folder-config-contract';
+import { allowedExternalImportsContract } from './folder-config-contract';
 import type { AllowedExternalImports } from './folder-config-contract';
 
-export const FolderConfigStub = ({
+export const AllowedExternalImportsStub = ({
   ...props
 }: StubArgument<AllowedExternalImports> = {}): AllowedExternalImports =>
-  folderConfigContract.parse({
+  allowedExternalImportsContract.parse({
     widgets: ['react'],
     bindings: ['react'],
     state: [],

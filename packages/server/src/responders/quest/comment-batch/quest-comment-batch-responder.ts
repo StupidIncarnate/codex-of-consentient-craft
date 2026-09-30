@@ -11,7 +11,7 @@ import { questFindQuestPathBroker, StartOrchestrator } from '@dungeonmaster/orch
 import { isChatWorkItemRoleGuard } from '@dungeonmaster/shared/guards';
 
 import { commentBatchBodyContract } from '../../../contracts/comment-batch-body/comment-batch-body-contract';
-import { commentBatchResponseContract } from '../../../contracts/comment-batch-response/comment-batch-response-contract';
+import { commentBatchDeliveredContract } from '../../../contracts/comment-batch-response/comment-batch-response-contract';
 import { questIdParamsContract } from '../../../contracts/quest-id-params/quest-id-params-contract';
 import { responderResultContract } from '../../../contracts/responder-result/responder-result-contract';
 import type { ResponderResult } from '../../../contracts/responder-result/responder-result-contract';
@@ -108,7 +108,7 @@ export const QuestCommentBatchResponder = async ({
       // `deliveredMessage` is the markdown the agent actually received. The browser renders it as
       // the user's own chat entry; Claude's --resume stream never echoes the prompt, so without
       // this the sent batch is invisible until a reload replays the session from disk.
-      data: commentBatchResponseContract.parse({ chatProcessId, deliveredMessage: message }),
+      data: commentBatchDeliveredContract.parse({ chatProcessId, deliveredMessage: message }),
     });
   } catch (error: unknown) {
     // Persist gates delivery: the orchestrator flow throws when the quest write fails, so a 500

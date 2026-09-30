@@ -16,7 +16,7 @@ import { StartOrchestrator } from '@dungeonmaster/orchestrator';
 import { questToTextDisplayTransformer } from '@dungeonmaster/shared/transformers';
 
 import { contentTextContract } from '../../../contracts/content-text/content-text-contract';
-import { getQuestInputContract } from '../../../contracts/get-quest-input/get-quest-input-contract';
+import { mcpGetQuestInputContract } from '../../../contracts/get-quest-input/get-quest-input-contract';
 import type { CallToolResult } from '#gateway/npm/modelcontextprotocol__sdk__types';
 import { questStripCommentsTransformer } from '../../../transformers/quest-strip-comments/quest-strip-comments-transformer';
 
@@ -27,7 +27,7 @@ export const GetQuestLayerResponder = async ({
 }: {
   args: Record<string, unknown>;
 }): Promise<CallToolResult> => {
-  const { questId, stage, flowId, packageName, format } = getQuestInputContract.parse(args);
+  const { questId, stage, flowId, packageName, format } = mcpGetQuestInputContract.parse(args);
 
   try {
     const result = await StartOrchestrator.getQuest({

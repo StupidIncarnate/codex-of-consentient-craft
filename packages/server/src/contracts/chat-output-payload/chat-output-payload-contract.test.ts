@@ -1,18 +1,18 @@
 import { QuestIdStub } from '@dungeonmaster/shared/contracts/quest-id/quest-id.stub';
 import { QuestWorkItemIdStub } from '@dungeonmaster/shared/contracts/quest-work-item-id/quest-work-item-id.stub';
-import { chatOutputPayloadContract } from './chat-output-payload-contract';
-import { ChatOutputPayloadStub } from './chat-output-payload.stub';
+import { chatOutputRoutingContract } from './chat-output-payload-contract';
+import { ChatOutputRoutingStub } from './chat-output-payload.stub';
 
 describe('chatOutputPayloadContract', () => {
   describe('valid inputs', () => {
     it('VALID: empty object => parses successfully (backward compat for orphan-session payloads)', () => {
-      const result = ChatOutputPayloadStub({});
+      const result = ChatOutputRoutingStub({});
 
       expect(result).toStrictEqual({});
     });
 
     it('VALID: {slotIndex: 0} => parses successfully', () => {
-      const result = chatOutputPayloadContract.parse({ slotIndex: 0 });
+      const result = chatOutputRoutingContract.parse({ slotIndex: 0 });
 
       expect(result).toStrictEqual({ slotIndex: 0 });
     });
@@ -21,7 +21,7 @@ describe('chatOutputPayloadContract', () => {
       const questId = QuestIdStub();
       const workItemId = QuestWorkItemIdStub();
 
-      const result = chatOutputPayloadContract.parse({ questId, workItemId });
+      const result = chatOutputRoutingContract.parse({ questId, workItemId });
 
       expect(result).toStrictEqual({ questId, workItemId });
     });
@@ -29,7 +29,7 @@ describe('chatOutputPayloadContract', () => {
     it('VALID: {questId} only => parses successfully (workItemId independently optional)', () => {
       const questId = QuestIdStub();
 
-      const result = chatOutputPayloadContract.parse({ questId });
+      const result = chatOutputRoutingContract.parse({ questId });
 
       expect(result).toStrictEqual({ questId });
     });
@@ -37,13 +37,13 @@ describe('chatOutputPayloadContract', () => {
     it('VALID: {workItemId} only => parses successfully (questId independently optional)', () => {
       const workItemId = QuestWorkItemIdStub();
 
-      const result = chatOutputPayloadContract.parse({ workItemId });
+      const result = chatOutputRoutingContract.parse({ workItemId });
 
       expect(result).toStrictEqual({ workItemId });
     });
 
     it('VALID: passthrough additional fields => preserves them', () => {
-      const result = chatOutputPayloadContract.parse({ extra: 'stuff' }) as Record<
+      const result = chatOutputRoutingContract.parse({ extra: 'stuff' }) as Record<
         PropertyKey,
         unknown
       >;
@@ -55,7 +55,7 @@ describe('chatOutputPayloadContract', () => {
       const questId = QuestIdStub();
       const workItemId = QuestWorkItemIdStub();
 
-      const result = chatOutputPayloadContract.parse({
+      const result = chatOutputRoutingContract.parse({
         questId,
         workItemId,
         chatProcessId: 'cp-123',
@@ -73,29 +73,29 @@ describe('chatOutputPayloadContract', () => {
 
   describe('invalid inputs', () => {
     it('ERROR: {questId: 42} (number) => throws ZodError', () => {
-      expect(() => chatOutputPayloadContract.parse({ questId: 42 })).toThrow(
+      expect(() => chatOutputRoutingContract.parse({ questId: 42 })).toThrow(
         'Invalid input: expected string, received number',
       );
     });
 
     it('ERROR: {questId: ""} (empty string) => throws ZodError', () => {
-      expect(() => chatOutputPayloadContract.parse({ questId: '' })).toThrow(
+      expect(() => chatOutputRoutingContract.parse({ questId: '' })).toThrow(
         'expected string to have >=1 characters',
       );
     });
 
     it('ERROR: {workItemId: 7} (number) => throws ZodError', () => {
-      expect(() => chatOutputPayloadContract.parse({ workItemId: 7 })).toThrow(
+      expect(() => chatOutputRoutingContract.parse({ workItemId: 7 })).toThrow(
         'Invalid input: expected string, received number',
       );
     });
 
     it('ERROR: {workItemId: ""} (empty string) => throws ZodError', () => {
-      expect(() => chatOutputPayloadContract.parse({ workItemId: '' })).toThrow('Invalid UUID');
+      expect(() => chatOutputRoutingContract.parse({ workItemId: '' })).toThrow('Invalid UUID');
     });
 
     it('ERROR: {workItemId: "bad-uuid"} (malformed UUID) => throws ZodError', () => {
-      expect(() => chatOutputPayloadContract.parse({ workItemId: 'bad-uuid' })).toThrow(
+      expect(() => chatOutputRoutingContract.parse({ workItemId: 'bad-uuid' })).toThrow(
         'Invalid UUID',
       );
     });

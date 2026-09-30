@@ -15,15 +15,15 @@
 
 import type { FileContents } from '@dungeonmaster/shared/contracts';
 
-import { transcriptLineContract } from '../../contracts/transcript-line/transcript-line-contract';
-import type { TranscriptLine } from '../../contracts/transcript-line/transcript-line-contract';
+import { recipeTranscriptLineContract } from '../../contracts/transcript-line/transcript-line-contract';
+import type { RecipeTranscriptLine } from '../../contracts/transcript-line/transcript-line-contract';
 
 export const transcriptLinesReadTransformer = ({
   contents,
 }: {
   contents: FileContents;
-}): readonly TranscriptLine[] =>
+}): readonly RecipeTranscriptLine[] =>
   contents
     .split('\n')
     .filter((line) => line.length > 0)
-    .map((line) => transcriptLineContract.parse(JSON.parse(line)));
+    .map((line) => recipeTranscriptLineContract.parse(JSON.parse(line)));

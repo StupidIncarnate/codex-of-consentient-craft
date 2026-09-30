@@ -1,10 +1,10 @@
 import type { StubArgument } from '@dungeonmaster/shared/@types';
 
-import { cleanupAnswerContract } from './cleanup-answer-contract';
-import type { CleanupAnswer } from './cleanup-answer-contract';
+import { cleanupCliAnswerContract } from './cleanup-answer-contract';
+import type { CleanupCliAnswer } from './cleanup-answer-contract';
 
-export const CleanupAnswerStub = ({ ...props }: StubArgument<CleanupAnswer> = {}): CleanupAnswer =>
-  cleanupAnswerContract.parse({
+export const CleanupCliAnswerStub = ({ ...props }: StubArgument<CleanupCliAnswer> = {}): CleanupCliAnswer =>
+  cleanupCliAnswerContract.parse({
     reaped: [],
     portsReleased: [],
     lockReleased: false,

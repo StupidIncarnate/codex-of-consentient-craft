@@ -1,8 +1,8 @@
 import type { StubArgument } from '@dungeonmaster/shared/@types';
-import { chatOutputPayloadContract } from './chat-output-payload-contract';
-import type { ChatOutputPayload } from './chat-output-payload-contract';
+import { chatOutputRoutingContract } from './chat-output-payload-contract';
+import type { ChatOutputRouting } from './chat-output-payload-contract';
 
-export const ChatOutputPayloadStub = ({
+export const ChatOutputRoutingStub = ({
   ...props
-}: StubArgument<ChatOutputPayload> = {}): ChatOutputPayload =>
-  chatOutputPayloadContract.parse({ ...props });
+}: StubArgument<ChatOutputRouting> = {}): ChatOutputRouting =>
+  chatOutputRoutingContract.parse({ ...props });

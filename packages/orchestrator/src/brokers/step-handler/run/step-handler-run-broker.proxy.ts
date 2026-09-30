@@ -19,7 +19,7 @@ import { FileContentsStub } from '@dungeonmaster/shared/contracts/file-contents/
 import { FileNameStub } from '@dungeonmaster/shared/contracts/file-name/file-name.stub';
 import { wardExitCodeStatics } from '@dungeonmaster/shared/statics';
 
-import { CleanupAnswerStub } from '../../../contracts/cleanup-answer/cleanup-answer.stub';
+import { CleanupCliAnswerStub } from '../../../contracts/cleanup-answer/cleanup-answer.stub';
 import { stepHandlerCleanupBrokerProxy } from '../cleanup/step-handler-cleanup-broker.proxy';
 import { stepHandlerCommitBrokerProxy } from '../commit/step-handler-commit-broker.proxy';
 import { stepHandlerRiftcarverBrokerProxy } from '../riftcarver/step-handler-riftcarver-broker.proxy';
@@ -63,7 +63,7 @@ export const stepHandlerRunBrokerProxy = (): {
       cleanupProxy.cleanupExits({
         questId,
         exitCode: ExitCodeStub({ value: 0 }),
-        answer: CleanupAnswerStub({ lockReleased: true }),
+        answer: CleanupCliAnswerStub({ lockReleased: true }),
       });
     },
   };

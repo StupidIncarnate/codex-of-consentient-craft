@@ -1,27 +1,27 @@
-import { questWorkInputContract } from './quest-work-input-contract';
-import { QuestWorkInputStub } from './quest-work-input.stub';
+import { mcpQuestWorkInputContract } from './quest-work-input-contract';
+import { McpQuestWorkInputStub } from './quest-work-input.stub';
 
 describe('questWorkInputContract', () => {
   it('VALID: {kind: outcome} => round-trips', () => {
-    const input = QuestWorkInputStub();
+    const input = McpQuestWorkInputStub();
 
-    const result = questWorkInputContract.parse(input);
+    const result = mcpQuestWorkInputContract.parse(input);
 
     expect(result).toStrictEqual(input);
   });
 
   it('VALID: {kind: plan, plan: a raw record} => round-trips without validating the plan shape', () => {
-    const input = QuestWorkInputStub({
+    const input = McpQuestWorkInputStub({
       payload: { kind: 'plan', plan: { operationItemId: 'a1b2c3d4', batches: [] } },
     });
 
-    const result = questWorkInputContract.parse(input);
+    const result = mcpQuestWorkInputContract.parse(input);
 
     expect(result).toStrictEqual(input);
   });
 
   it('VALID: {kind: observations, cant-meet with toSettle} => round-trips', () => {
-    const input = QuestWorkInputStub({
+    const input = McpQuestWorkInputStub({
       payload: {
         kind: 'observations',
         observations: [
@@ -35,14 +35,14 @@ describe('questWorkInputContract', () => {
       },
     });
 
-    const result = questWorkInputContract.parse(input);
+    const result = mcpQuestWorkInputContract.parse(input);
 
     expect(result).toStrictEqual(input);
   });
 
   it("INVALID: {kind: 'signal'} => refused, no seventh branch exists", () => {
     expect(() =>
-      questWorkInputContract.parse({
+      mcpQuestWorkInputContract.parse({
         questId: 'add-auth',
         workItemId: 'f47ac10b-58cc-4372-a567-0e02b2c3d479',
         payload: { kind: 'signal', reason: 'not a real kind' },
@@ -51,9 +51,9 @@ describe('questWorkInputContract', () => {
   });
 
   it('INVALID: {an unadvertised top-level key} => refused by .strict()', () => {
-    const input: Record<PropertyKey, unknown> = QuestWorkInputStub();
+    const input: Record<PropertyKey, unknown> = McpQuestWorkInputStub();
     input.extra = 'nope';
 
-    expect(() => questWorkInputContract.parse(input)).toThrow(/unrecognized/iu);
+    expect(() => mcpQuestWorkInputContract.parse(input)).toThrow(/unrecognized/iu);
   });
 });

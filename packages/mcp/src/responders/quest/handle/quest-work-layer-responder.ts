@@ -16,7 +16,7 @@
 import { StartOrchestrator } from '@dungeonmaster/orchestrator';
 
 import { contentTextContract } from '../../../contracts/content-text/content-text-contract';
-import { questWorkInputContract } from '../../../contracts/quest-work-input/quest-work-input-contract';
+import { mcpQuestWorkInputContract } from '../../../contracts/quest-work-input/quest-work-input-contract';
 import type { CallToolResult } from '#gateway/npm/modelcontextprotocol__sdk__types';
 
 const JSON_INDENT_SPACES = 2;
@@ -26,7 +26,7 @@ export const QuestWorkLayerResponder = async ({
 }: {
   args: Record<string, unknown>;
 }): Promise<CallToolResult> => {
-  const { questId, workItemId, payload } = questWorkInputContract.parse(args);
+  const { questId, workItemId, payload } = mcpQuestWorkInputContract.parse(args);
 
   try {
     const result = await StartOrchestrator.questWork({ questId, workItemId, payload });

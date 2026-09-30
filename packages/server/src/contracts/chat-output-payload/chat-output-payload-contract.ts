@@ -9,7 +9,7 @@
 import { z } from '#gateway/npm/zod';
 import { processIdContract, questContract, workItemContract } from '@dungeonmaster/shared/contracts';
 
-export const chatOutputPayloadContract = z
+export const chatOutputRoutingContract = z
   .object({
     slotIndex: z.number().int().nonnegative().brand<'SlotIndexField'>().optional(),
     questId: questContract.shape.id.optional(),
@@ -18,4 +18,4 @@ export const chatOutputPayloadContract = z
   })
   .loose();
 
-export type ChatOutputPayload = z.infer<typeof chatOutputPayloadContract>;
+export type ChatOutputRouting = z.infer<typeof chatOutputRoutingContract>;
