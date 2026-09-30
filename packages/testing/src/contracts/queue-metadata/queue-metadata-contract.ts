@@ -10,7 +10,7 @@ import { z } from '#gateway/npm/zod';
 
 export const queueMetadataContract = z
   .object({
-    counter: z.number().int().nonnegative(),
+    counter: z.number().int().nonnegative().brand<'QueueMetadataCounter'>(),
   })
   .brand<'QueueMetadata'>();
 
