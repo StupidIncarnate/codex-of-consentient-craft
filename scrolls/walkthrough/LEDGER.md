@@ -81,7 +81,7 @@ Status values:
 | `interrupted — re-dispatch` | Its sub-agent died with a session. Check for partial edits first                                |
 | `won't fix`                 | The user decided so. The reason is in the cell                                                  |
 
-Next free number: **DEF-168**. It starts there because commits and older scrolls already use DEF-01 to DEF-25
+Next free number: **DEF-169**. It starts there because commits and older scrolls already use DEF-01 to DEF-25
 for a siegelense walkthrough that finished before this one.
 
 Rows fixed before 2026-09-29 were checked again on the 2026-09-29 build and removed. `git log -p` on this file has
@@ -179,6 +179,7 @@ test went red after DEF-107.
 | DEF-165 | SL · full ward 2026-09-29 | Full `npm run ward` (run `1790725683293-c44b`): unit `packages/siegelense/src/brokers/run/execute/run-execute-broker.test.ts` fails `runExecuteBroker a run's shots carry their step's own perception fields VALID: {two steps, one measured change} => each ShotListing carries the pixelChange and blank its step measured` (toStrictEqual). Likely DEF-160 meeting DEF-120 | `fixed` — test only: DEF-160 turned a zero `pixelChange` into `0 px`. `144f34ad2`, merge `f4e59aefa`. Ward passed (run `1790726692350-5222`, 574 unit files) |
 | DEF-166 | WEB · full ward 2026-09-29 | Full `npm run ward` (run `1790725683293-c44b`): e2e `packages/web/src/flows/home/bughunt-begin-transition.e2e.ts` fails `VALID: {Begin Quest pressed again on a quest whose relay a prior Start already seeded} => the second Start mints no second carve and the quest still reaches execution` (toHaveLength). Likely DEF-113 | `fixed` — test harness only; DEF-113 was not involved. The e2e global-setup sweep deleted the fixture's bare remote (its mtime never updates) but kept the guild repo, so riftcarver's push failed and a repair item was minted. `ensureRemote` now runs on every setup and re-creates the remote. `ae743b30e`, merge `924b19b39`. Ward passed (run `1790726912014-ca39`) |
 | DEF-167 | WEB · full ward 2026-09-29 | Full `npm run ward` (run `1790725683293-c44b`): e2e `packages/web/src/flows/home/guild-two-route-comparison.e2e.ts` fails `VALID: {same guild fields via api and write routes} => produces equivalent domain state` (toBe). Likely DEF-133 | `fixed` — spec only: both routes go through `guildAddBroker`, so the second same-named guild gets `-2` either way (a reverse-order test added). `05b6b2852`, merge `35ad90fc0`. Ward passed (run `1790726707734-ff2a`) |
+| DEF-168 | WARD · full ward 2026-09-29 | Full `npm run ward` (run `1790726979118-47a0`) passes every check across 17 packages but exits 1 on two slow files: lint `packages/hydration-recipes/src/brokers/dm/registry/dm-registry-broker.integration.test.ts` (4.4s in rules) and integration `packages/cli/src/startup/start-install.integration.test.ts` (12.1s slowest test). Neither file changed on 2026-09-29. Alone, both pass with no slow flag (runs `1790727882144-09b5`, `1790727887775-9361`). So the full run's parallel load pushes them over the bar: either the two tests get cheaper, or the full-run threshold accounts for load | `queued` — needs real debugging; default model when dispatched |
 
 The user's decisions for the DEF-26 fix, 2026-09-23:
 
