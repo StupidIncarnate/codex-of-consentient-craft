@@ -19,13 +19,13 @@
  */
 import { z } from '#gateway/npm/zod';
 
-import { absoluteFilePathContract, lineCountContract, sessionContract } from '@dungeonmaster/shared/contracts';
+import { absoluteFilePathContract, sessionContract } from '@dungeonmaster/shared/contracts';
 
 export const sessionRecordContract = z.object({
   sessionId: sessionContract.shape.id,
   cwd: absoluteFilePathContract,
   filePath: absoluteFilePathContract,
-  lineCount: lineCountContract,
+  lineCount: z.number().int().positive().brand<'SessionRecordLineCount'>(),
 });
 
 export type SessionRecord = z.infer<typeof sessionRecordContract>;

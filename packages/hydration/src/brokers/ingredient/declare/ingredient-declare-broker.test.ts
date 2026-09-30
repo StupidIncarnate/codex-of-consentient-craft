@@ -3,7 +3,6 @@ import { ingredientDeclareBrokerProxy } from './ingredient-declare-broker.proxy'
 import { IngredientConfigStub } from '../../../contracts/ingredient-config/ingredient-config.stub';
 import { reservedVerbStatics } from '../../../statics/reserved-verb/reserved-verb-statics';
 import { typescriptProgramDiagnostics } from '../../../../test/type-fixtures/typescript-program-diagnostics';
-import { LineCountStub } from '@dungeonmaster/shared/contracts/line-count/line-count.stub';
 
 // ONE ts.createProgram for the whole suite, computed at module scope — a program per test measured
 // 1.1-1.4s each against ward's 1000ms testWarnMs bar (see the adapter's own suite, and the plan's
@@ -147,7 +146,7 @@ describe('ingredientDeclareBroker', () => {
       expect(result).toStrictEqual([
         {
           file: BAD_TRANSITION_FIELD,
-          line: LineCountStub({ value: 21 }),
+          line: 21,
           code: 2322,
           message: 'Type \'"nonexistent"\' is not assignable to type \'"title" | "status"\'.',
         },
@@ -163,7 +162,7 @@ describe('ingredientDeclareBroker', () => {
       expect(result).toStrictEqual([
         {
           file: BAD_TRANSITION_VALUE,
-          line: LineCountStub({ value: 18 }),
+          line: 18,
           code: 2322,
           message:
             'Type \'"ZZZ_not_a_status"\' is not assignable to type \'"queued" | "accepted" | "underway" | "stalled" | "finished"\'.',
@@ -180,7 +179,7 @@ describe('ingredientDeclareBroker', () => {
       expect(result).toStrictEqual([
         {
           file: WRITE_WITHOUT_COPIES,
-          line: LineCountStub({ value: 8 }),
+          line: 8,
           code: 2345,
           message:
             'Argument of type \'{ name: "write-without-copies"; description: "a write route with nothing to compare against"; fields: ZodType<{ title: string & $brand<"SampleTitle">; status: "queued" | "accepted" | "underway" | "stalled" | "finished"; }, { ...; }, $ZodTypeInternals<...>>; record: ZodObject<...>; routes: { ...; }; }\' is not assignable to parameter of type \'{ readonly name: "write-without-copies"; readonly description: "a write route with nothing to compare against"; readonly fields: ZodType<{ title: string & $brand<"SampleTitle">; status: "queued" | ... 3 more ... | "finished"; }, { ...; }, $ZodTypeInternals<...>>; readonly record: ZodObject<...>; readonly routes: { ....\'.   Property \'copies\' is missing in type \'{ name: "write-without-copies"; description: "a write route with nothing to compare against"; fields: ZodType<{ title: string & $brand<"SampleTitle">; status: "queued" | "accepted" | "underway" | "stalled" | "finished"; }, { ...; }, $ZodTypeInternals<...>>; record: ZodObject<...>; routes: { ...; }; }\' but required in type \'{ copies: string; }\'.',
@@ -197,7 +196,7 @@ describe('ingredientDeclareBroker', () => {
       expect(result).toStrictEqual([
         {
           file: NO_ROUTES,
-          line: LineCountStub({ value: 13 }),
+          line: 13,
           code: 2322,
           message: "Type '{}' is not assignable to type 'RoutesFor<DmTarget>'.",
         },
@@ -213,7 +212,7 @@ describe('ingredientDeclareBroker', () => {
       expect(result).toStrictEqual([
         {
           file: EXTRA_NAMED_SET,
-          line: LineCountStub({ value: 17 }),
+          line: 17,
           code: 2322,
           message:
             'Type \'{ args: z.ZodObject<{ depth: z.core.$ZodBranded<z.ZodNumber, "ChainDepth", "out">; }, z.core.$strip>; apply: () => unknown; }\' is not assignable to type \'never\'.',
@@ -230,7 +229,7 @@ describe('ingredientDeclareBroker', () => {
       expect(result).toStrictEqual([
         {
           file: EXTRA_NAMED_REMOVE,
-          line: LineCountStub({ value: 18 }),
+          line: 18,
           code: 2322,
           message:
             "Type '{ args: z.ZodObject<{ hard: z.ZodBoolean; }, z.core.$strip>; apply: () => unknown; }' is not assignable to type 'never'.",
@@ -247,7 +246,7 @@ describe('ingredientDeclareBroker', () => {
       expect(result).toStrictEqual([
         {
           file: BAD_DEFAULTS,
-          line: LineCountStub({ value: 13 }),
+          line: 13,
           code: 2322,
           message:
             'Type \'() => { notAField: number; }\' is not assignable to type \'(index: number) => Partial<{ title: string & $brand<"SampleTitle">; status: "queued" | "accepted" | "underway" | "stalled" | "finished"; }>\'.   Type \'{ notAField: number; }\' has no properties in common with type \'Partial<{ title: string & $brand<"SampleTitle">; status: "queued" | "accepted" | "underway" | "stalled" | "finished"; }>\'.',
@@ -264,7 +263,7 @@ describe('ingredientDeclareBroker', () => {
       expect(result).toStrictEqual([
         {
           file: BAD_LINK_FIELD,
-          line: LineCountStub({ value: 13 }),
+          line: 13,
           code: 2322,
           message: 'Type \'"notAField"\' is not assignable to type \'"title" | "status"\'.',
         },

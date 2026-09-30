@@ -11,7 +11,7 @@
  */
 import { claudePathSlugEncoderTransformer } from '@dungeonmaster/shared/transformers';
 import { readFileSync, readdirEntriesSync } from '#gateway/node/fs';
-import { lineCountContract, sessionContract } from '@dungeonmaster/shared/contracts';
+import { sessionContract } from '@dungeonmaster/shared/contracts';
 
 import { isJsonlFileGuard } from '../../../guards/is-jsonl-file/is-jsonl-file-guard';
 import { matchesWhereClauseGuard } from '../../../guards/matches-where-clause/matches-where-clause-guard';
@@ -45,9 +45,7 @@ export const sessionQueryRouteBroker = ({
     );
     const filePath = `${sessionsDir}/${entry.name}`;
     const contents = readFileSync(filePath);
-    const lineCount = lineCountContract.parse(
-      contents.split('\n').filter((line) => line.length > 0).length,
-    );
+    const lineCount = contents.split('\n').filter((line) => line.length > 0).length;
 
     return sessionRecordContract.parse({ sessionId, cwd, filePath, lineCount });
   });

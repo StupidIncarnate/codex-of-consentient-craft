@@ -5,7 +5,6 @@ import { LinkSpecStub } from '../../../contracts/link-spec/link-spec.stub';
 import { RegistryDuplicateNameError } from '../../../errors/registry-duplicate-name/registry-duplicate-name-error';
 import { RegistryDanglingLinkError } from '../../../errors/registry-dangling-link/registry-dangling-link-error';
 import { typescriptProgramDiagnostics } from '../../../../test/type-fixtures/typescript-program-diagnostics';
-import { LineCountStub } from '@dungeonmaster/shared/contracts/line-count/line-count.stub';
 import {
   guildIngredient,
   questIngredient,
@@ -248,7 +247,7 @@ describe('registryCreateBroker', () => {
       expect(result).toStrictEqual([
         {
           file: DANGLING_LINK,
-          line: LineCountStub({ value: 29 }),
+          line: 29,
           code: 2345,
           message: expect.stringMatching(
             /^Argument of type '\{ orphans: import\(".*"\)\.Ingredient<\{ [^']*\.\.\.' is not assignable to parameter of type '\{ orphans: import\(".*"\)\.Ingredient<\{ [^']*\.\.\.'\. {3}Property 'LINK_NAMES_AN_UNREGISTERED_INGREDIENT' is missing in type '\{ orphans: Ingredient<\{ readonly name: "orphan"; readonly description: "a row linking to an ingredient no registry will ever hold"; readonly fields: ZodType<\{ title: string & \$brand<"SampleTitle">; status: "queued" \| \.\.\. 3 more \.\.\. \| "finished"; \}, \{ \.\.\.; \}, \$ZodTypeInternals<\.\.\.>>; readonly record: ZodObject<\.\.\.>; \.\.\.' but required in type '\{ LINK_NAMES_AN_UNREGISTERED_INGREDIENT: "no-such-ingredient"; \}'\.$/u,
@@ -280,7 +279,7 @@ describe('registryCreateBroker', () => {
         expect(result).toStrictEqual([
           {
             file: ONE_ERROR_FIXTURE,
-            line: LineCountStub({ value: 1 }),
+            line: 1,
             code: 2322,
             message: "Type 'number' is not assignable to type 'string'.",
           },
@@ -297,7 +296,7 @@ describe('registryCreateBroker', () => {
       expect(result).toStrictEqual([
         {
           file: OUT_OF_BOUNDS,
-          line: LineCountStub({ value: 10 }),
+          line: 10,
           code: 2493,
           message:
             'Tuple type \'[Handle<{ guilds: Ingredient<{ readonly name: "guild"; readonly description: "a guild the server has registered, with its id and url slug minted"; readonly fields: ZodType<{ name: string & $brand<"GuildName">; path: string & $brand<...>; }, { ...; }, $ZodTypeInternals<...>>; readonly record: ZodObject<...>; readonly...\' of length \'3\' has no element at index \'3\'.',
@@ -312,7 +311,7 @@ describe('registryCreateBroker', () => {
       expect(result).toStrictEqual([
         {
           file: UNKNOWN_FIELD,
-          line: LineCountStub({ value: 8 }),
+          line: 8,
           code: 2353,
           message:
             'Object literal may only specify known properties, and \'nope\' does not exist in type \'FieldValuesFor<{ name: string & $brand<"GuildName">; path: string & $brand<"GuildPath">; }>\'.',
@@ -329,7 +328,7 @@ describe('registryCreateBroker', () => {
       expect(result).toStrictEqual([
         {
           file: UNREACHABLE_TRANSITION,
-          line: LineCountStub({ value: 11 }),
+          line: 11,
           code: 2322,
           message:
             'Type \'"stalled"\' is not assignable to type \'"queued" | "accepted" | "underway" | "finished"\'.',
@@ -344,7 +343,7 @@ describe('registryCreateBroker', () => {
       expect(result).toStrictEqual([
         {
           file: NOT_A_STATUS,
-          line: LineCountStub({ value: 9 }),
+          line: 9,
           code: 2322,
           message:
             'Type \'"nonsense"\' is not assignable to type \'"queued" | "accepted" | "underway" | "finished"\'.',
@@ -361,7 +360,7 @@ describe('registryCreateBroker', () => {
       expect(result).toStrictEqual([
         {
           file: REAL_QUEST_UNREACHABLE_STATUS,
-          line: LineCountStub({ value: 15 }),
+          line: 15,
           code: 2322,
           message:
             'Type \'"blocked"\' is not assignable to type \'"explore_flows" | "review_flows" | "flows_approved" | "explore_observables" | "review_observables" | "approved" | "in_progress" | "complete" | "abandoned"\'.',
@@ -378,7 +377,7 @@ describe('registryCreateBroker', () => {
       expect(result).toStrictEqual([
         {
           file: EXTRA_NOT_DECLARED,
-          line: LineCountStub({ value: 10 }),
+          line: 10,
           code: 2722,
           message: "Cannot invoke an object which is possibly 'undefined'.",
         },
@@ -392,7 +391,7 @@ describe('registryCreateBroker', () => {
       expect(result).toStrictEqual([
         {
           file: EXTRA_ARG_TYPED,
-          line: LineCountStub({ value: 10 }),
+          line: 10,
           code: 2322,
           message:
             "Type 'string' is not assignable to type 'number & $brand<\"ChainDepth\">'.   Type 'string' is not assignable to type 'number'.",
@@ -407,7 +406,7 @@ describe('registryCreateBroker', () => {
       expect(result).toStrictEqual([
         {
           file: CHILD_WRONG_HOST,
-          line: LineCountStub({ value: 10 }),
+          line: 10,
           code: 2532,
           message: "Object is possibly 'undefined'.",
         },
@@ -423,7 +422,7 @@ describe('registryCreateBroker', () => {
       expect(result).toStrictEqual([
         {
           file: CHILD_LINKS_UNSATISFIED,
-          line: LineCountStub({ value: 10 }),
+          line: 10,
           code: 2532,
           message: "Object is possibly 'undefined'.",
         },
@@ -439,7 +438,7 @@ describe('registryCreateBroker', () => {
       expect(result).toStrictEqual([
         {
           file: UNDER_LINKS_UNSATISFIED,
-          line: LineCountStub({ value: 13 }),
+          line: 13,
           code: 2532,
           message: "Object is possibly 'undefined'.",
         },
@@ -455,7 +454,7 @@ describe('registryCreateBroker', () => {
       expect(result).toStrictEqual([
         {
           file: FILTER_HAS_NO_INDEX,
-          line: LineCountStub({ value: 10 }),
+          line: 10,
           code: 7053,
           message:
             'Element implicitly has an \'any\' type because expression of type \'0\' can\'t be used to index type \'RowVerbs<Ingredient<{ readonly name: "session"; readonly description: "a claude session transcript on disk, addressable by url"; readonly fields: ZodType<{ guildId: string & $brand<"GuildId">; transcript: string & $brand<...>; }, { ...; }, $ZodTypeInternals<...>>; ... 4 more ...; readonly extras: { ...; }; }>> & { ....\'.   Property \'0\' does not exist on type \'RowVerbs<Ingredient<{ readonly name: "session"; readonly description: "a claude session transcript on disk, addressable by url"; readonly fields: ZodType<{ guildId: string & $brand<"GuildId">; transcript: string & $brand<...>; }, { ...; }, $ZodTypeInternals<...>>; ... 4 more ...; readonly extras: { ...; }; }>> & { ....\'.',
@@ -470,7 +469,7 @@ describe('registryCreateBroker', () => {
       expect(result).toStrictEqual([
         {
           file: FILTER_HAS_NO_ADD,
-          line: LineCountStub({ value: 12 }),
+          line: 12,
           code: 2339,
           message:
             'Property \'add\' does not exist on type \'Matched<Ingredient<{ readonly name: "session"; readonly description: "a claude session transcript on disk, addressable by url"; readonly fields: ZodType<{ guildId: string & $brand<"GuildId">; transcript: string & $brand<...>; }, { ...; }, $ZodTypeInternals<...>>; ... 4 more ...; readonly extras: { ...; }; }>>\'.',
@@ -485,7 +484,7 @@ describe('registryCreateBroker', () => {
       expect(result).toStrictEqual([
         {
           file: BAD_EXPECT,
-          line: LineCountStub({ value: 9 }),
+          line: 9,
           code: 2322,
           message: 'Type \'"exactly-two"\' is not assignable to type \'"any" | "some" | "one"\'.',
         },
@@ -499,7 +498,7 @@ describe('registryCreateBroker', () => {
       expect(result).toStrictEqual([
         {
           file: BAD_WHERE_FIELD,
-          line: LineCountStub({ value: 9 }),
+          line: 9,
           code: 2353,
           message:
             'Object literal may only specify known properties, and \'nope\' does not exist in type \'FieldValuesFor<{ title: string & $brand<"QuestTitle">; userRequest: string & $brand<"QuestUserRequest">; status: "queued" | "accepted" | "underway" | "stalled" | "finished"; guildId: string & $brand<...>; }>\'.',
@@ -516,7 +515,7 @@ describe('registryCreateBroker', () => {
       expect(result).toStrictEqual([
         {
           file: ATTACH_BAD_WHERE_FIELD,
-          line: LineCountStub({ value: 8 }),
+          line: 8,
           code: 2353,
           message:
             'Object literal may only specify known properties, and \'nope\' does not exist in type \'FieldValuesFor<{ title: string & $brand<"QuestTitle">; userRequest: string & $brand<"QuestUserRequest">; status: "queued" | "accepted" | "underway" | "stalled" | "finished"; guildId: string & $brand<...>; } & { ...; }>\'.',
@@ -533,7 +532,7 @@ describe('registryCreateBroker', () => {
       expect(result).toStrictEqual([
         {
           file: DB_UNREACHABLE_STATUS,
-          line: LineCountStub({ value: 12 }),
+          line: 12,
           code: 2322,
           message:
             'Type \'"takendown"\' is not assignable to type \'"draft" | "scheduled" | "published"\'.',
@@ -548,7 +547,7 @@ describe('registryCreateBroker', () => {
       expect(result).toStrictEqual([
         {
           file: DB_UNKNOWN_COLUMN,
-          line: LineCountStub({ value: 11 }),
+          line: 11,
           code: 2353,
           message:
             'Object literal may only specify known properties, and \'nope\' does not exist in type \'FieldValuesFor<{ title: string & $brand<"PostTitle">; body: string & $brand<"PostBody">; status: "draft" | "scheduled" | "published" | "takendown"; authorId: string & $brand<"UserId">; }>\'.',

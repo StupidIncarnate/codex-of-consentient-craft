@@ -21,7 +21,7 @@
  * // Returns a SubagentRecord
  */
 import { claudePathSlugEncoderTransformer } from '@dungeonmaster/shared/transformers';
-import { lineCountContract, streamJsonLineContract, userToolResultStreamLineContract } from '@dungeonmaster/shared/contracts';
+import { streamJsonLineContract, userToolResultStreamLineContract } from '@dungeonmaster/shared/contracts';
 
 import { appendLinesCreatingParent } from '#gateway/node/fs__promises';
 import { subagentFieldsContract } from '../../../contracts/subagent-fields/subagent-fields-contract';
@@ -72,6 +72,6 @@ export const subagentWriteRouteBroker = async ({
     agentId: parsedFields.agentId,
     toolUseId: parsedFields.toolUseId,
     filePath: subagentFilePath,
-    lineCount: lineCountContract.parse(parsedFields.lines.length),
+    lineCount: parsedFields.lines.length,
   });
 };

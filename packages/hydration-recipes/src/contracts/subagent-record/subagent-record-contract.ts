@@ -17,7 +17,7 @@
  */
 import { z } from '#gateway/npm/zod';
 
-import { absoluteFilePathContract, lineCountContract, agentContract } from '@dungeonmaster/shared/contracts';
+import { absoluteFilePathContract, agentContract } from '@dungeonmaster/shared/contracts';
 
 import { toolUseIdContract } from '../tool-use-id/tool-use-id-contract';
 
@@ -25,7 +25,7 @@ export const subagentRecordContract = z.object({
   agentId: agentContract.shape.id,
   toolUseId: toolUseIdContract,
   filePath: absoluteFilePathContract,
-  lineCount: lineCountContract,
+  lineCount: z.number().int().positive().brand<'SubagentRecordLineCount'>(),
 });
 
 export type SubagentRecord = z.infer<typeof subagentRecordContract>;

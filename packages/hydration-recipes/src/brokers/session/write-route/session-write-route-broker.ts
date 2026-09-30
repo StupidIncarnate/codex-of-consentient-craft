@@ -31,7 +31,7 @@
  * // Returns a SessionRecord — appends to <claudeHome>/.claude/projects/<encoded-cwd>/<sessionId>.jsonl
  */
 import { claudePathSlugEncoderTransformer } from '@dungeonmaster/shared/transformers';
-import { lineCountContract, sessionContract } from '@dungeonmaster/shared/contracts';
+import { sessionContract } from '@dungeonmaster/shared/contracts';
 
 import { appendLinesCreatingParent } from '#gateway/node/fs__promises';
 import { sessionUniqueIdResolveBroker } from '../unique-id-resolve/session-unique-id-resolve-broker';
@@ -71,6 +71,6 @@ export const sessionWriteRouteBroker = async ({
     sessionId,
     cwd: parsedFields.cwd,
     filePath,
-    lineCount: lineCountContract.parse(parsedFields.lines.length),
+    lineCount: parsedFields.lines.length,
   });
 };

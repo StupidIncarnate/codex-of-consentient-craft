@@ -21,7 +21,7 @@
  */
 import { claudePathSlugEncoderTransformer } from '@dungeonmaster/shared/transformers';
 import { readFileSync, readdirEntriesSync } from '#gateway/node/fs';
-import { lineCountContract, agentContract, sessionContract } from '@dungeonmaster/shared/contracts';
+import { agentContract, sessionContract } from '@dungeonmaster/shared/contracts';
 
 import { isJsonlFileGuard } from '../../../guards/is-jsonl-file/is-jsonl-file-guard';
 import { matchesWhereClauseGuard } from '../../../guards/matches-where-clause/matches-where-clause-guard';
@@ -81,7 +81,7 @@ export const subagentQueryRouteBroker = ({
       return [];
     }
 
-    const lineCount = lineCountContract.parse(lines.length);
+    const lineCount = lines.length;
 
     return [subagentRecordContract.parse({ agentId, toolUseId, filePath, lineCount })];
   });
