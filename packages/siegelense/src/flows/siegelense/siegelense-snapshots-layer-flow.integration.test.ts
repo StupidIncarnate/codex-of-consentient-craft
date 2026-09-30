@@ -63,7 +63,7 @@ const REQUIRED_INSTANCE_MISSING_PATTERN =
 const REQUIRED_INSTANCE_NO_VALUE_PATTERN =
   /^--instance is required: it cannot be missing, and the value cannot itself start with "--"\.$/u;
 const BAD_SHAPE_PATTERN =
-  /^--instance: Instance id must look like "inst_" followed by 4 or more lowercase hex characters, e\.g\. "inst_7f3a9c21"$/u;
+  /^--instance: Siege instance id must look like "inst_" followed by 4 or more lowercase hex characters, e\.g\. "inst_7f3a9c21"$/u;
 
 describe('SiegelenseSnapshotsLayerFlow', () => {
   const store = snapshotStoreHarness();

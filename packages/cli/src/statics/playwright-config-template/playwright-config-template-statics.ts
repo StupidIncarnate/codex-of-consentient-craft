@@ -4,9 +4,7 @@
  * siegelense's own lane-derive broker reads — rather than importing `@dungeonmaster/config`:
  * `devDependenciesStatics` (what `InstallAddDevDepsResponder` actually adds) never lists that
  * package, so nothing guarantees it resolves from a fresh consumer's `node_modules`. Parsing the
- * JSON directly needs `@dungeonmaster/shared/contracts` (a devDependency every consumer already
- * gets) for its branded types (`ban-primitives` applies to a scaffolded file exactly as it does
- * anywhere else) and the consumer's own node gateway (`#gateway/node/{fs,path,process}` — `raw-import-ban`
+ * JSON directly needs only the consumer's own node gateway (`#gateway/node/{fs,path,process}` — `raw-import-ban`
  * and `platform-globals-ban` apply to it too). It exports a plain object, not `defineConfig(...)`:
  * `@playwright/test` is an npm package a consumer's empty npm gateway has no wrapper for, and
  * `defineConfig` only types its argument. A config still
@@ -26,8 +24,6 @@ export const playwrightConfigTemplateStatics = {
   content: `import { readFileSync } from '#gateway/node/fs';
 import { join } from '#gateway/node/path';
 import { getEnv } from '#gateway/node/process';
-import { contentTextContract, networkPortContract } from '@dungeonmaster/shared/contracts';
-import type { ContentText, NetworkPort } from '@dungeonmaster/shared/contracts';
 import { e2eUnresolvableTokenStatics } from './src/statics/e2e-unresolvable-token/e2e-unresolvable-token-statics';
 
 const DEFAULT_API_PORT = 3737;
@@ -38,17 +34,17 @@ const DEFAULT_API_PORT = 3737;
 // "Timed out waiting 60000ms from config.webServer" and says nothing else about why.
 const API_PORT = Number(getEnv('DUNGEONMASTER_PORT')) || DEFAULT_API_PORT;
 const WEB_PORT = Number(getEnv('DUNGEONMASTER_WEB_PORT')) || API_PORT + 1;
-const PORT_BY_ROLE: Record<PropertyKey, NetworkPort> = {
-  api: networkPortContract.parse(API_PORT),
-  web: networkPortContract.parse(WEB_PORT),
+const PORT_BY_ROLE: Record<PropertyKey, number> = {
+  api: API_PORT,
+  web: WEB_PORT,
 };
 
 interface E2eProcessConfig {
-  name: ContentText;
-  command: ContentText;
-  portRole: ContentText;
-  readyPath: ContentText;
-  env?: Record<PropertyKey, ContentText>;
+  name: string;
+  command: string;
+  portRole: string;
+  readyPath: string;
+  env?: Record<PropertyKey, string>;
 }
 
 interface DungeonmasterConfigShape {
@@ -104,9 +100,9 @@ if (isUneditedPlaceholder) {
   );
 }
 
-const RESOLVABLE_TOKENS: Record<PropertyKey, ContentText> = {
-  '{apiPort}': contentTextContract.parse(String(API_PORT)),
-  '{webPort}': contentTextContract.parse(String(WEB_PORT)),
+const RESOLVABLE_TOKENS: Record<PropertyKey, string> = {
+  '{apiPort}': String(API_PORT),
+  '{webPort}': String(WEB_PORT),
 };
 
 const UNRESOLVABLE_TOKENS = e2eUnresolvableTokenStatics.tokens.all;
@@ -115,12 +111,10 @@ const UNRESOLVABLE_TOKENS = e2eUnresolvableTokenStatics.tokens.all;
 // {wardQueueDir} need siegelense's own per-instance mkdir — neither exists in a scaffolded file
 // that imports nothing beyond the node gateway, so a value using one of these fails loudly here
 // instead of spawning a command that still carries the literal, unexpanded token text.
-const substituteTokens = (value: string): ContentText =>
-  contentTextContract.parse(
-    Object.entries(RESOLVABLE_TOKENS).reduce(
-      (result, [token, replacement]) => result.split(token).join(replacement),
-      value,
-    ),
+const substituteTokens = (value: string): string =>
+  Object.entries(RESOLVABLE_TOKENS).reduce(
+    (result, [token, replacement]) => result.split(token).join(replacement),
+    value,
   );
 
 const refuseUnresolvableToken = ({ value, field }: { value: string; field: string }): void => {
@@ -170,9 +164,9 @@ const webServer = processes.map((entry) => {
   refuseUnresolvableToken({ value: entry.command, field: 'command' });
   const port = PORT_BY_ROLE[entry.portRole];
 
-  const env: Record<PropertyKey, ContentText> = {
-    DUNGEONMASTER_PORT: contentTextContract.parse(String(API_PORT)),
-    DUNGEONMASTER_WEB_PORT: contentTextContract.parse(String(WEB_PORT)),
+  const env: Record<PropertyKey, string> = {
+    DUNGEONMASTER_PORT: String(API_PORT),
+    DUNGEONMASTER_WEB_PORT: String(WEB_PORT),
   };
   for (const [key, value] of Object.entries(entry.env ?? {})) {
     refuseUnresolvableToken({ value, field: \`env.\${key}\` });

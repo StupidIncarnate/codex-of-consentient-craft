@@ -41,6 +41,7 @@ const browserGlobalNamesForTest = [
   'Date',
   'document',
   'Element',
+  'Error',
   'Event',
   'fetch',
   'File',

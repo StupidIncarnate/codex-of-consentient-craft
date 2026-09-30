@@ -17,7 +17,9 @@ import { questContract } from '@dungeonmaster/shared/contracts';
 
 export const getQuestSummaryInputContract = z
   .object({
-    questId: questContract.shape.id,
+    questId: questContract.shape.id.describe(
+      'The ID of the quest to summarize the verification state of',
+    ),
   })
   .strict()
   .brand<'GetQuestSummaryInput'>();

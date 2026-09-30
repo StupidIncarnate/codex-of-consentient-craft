@@ -51,11 +51,10 @@ describe('jest module resolution', () => {
     });
 
     it('VALID: {@dungeonmaster/shared/<path>.stub} => resolves to the per-file source stub, never dist', () => {
-      const resolved =
-        require.resolve('@dungeonmaster/shared/contracts/absolute-file-path/absolute-file-path.stub');
+      const resolved = require.resolve('@dungeonmaster/shared/contracts/quest/quest.stub');
 
       expect({ resolved, insideDist: resolved.split('/').includes('dist') }).toStrictEqual({
-        resolved: `${REPO_ROOT}/packages/shared/src/contracts/absolute-file-path/absolute-file-path.stub.ts`,
+        resolved: `${REPO_ROOT}/packages/shared/src/contracts/quest/quest.stub.ts`,
         insideDist: false,
       });
     });

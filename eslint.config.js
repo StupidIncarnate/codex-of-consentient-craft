@@ -23,7 +23,6 @@ const {
   configWorkspacePackageNamesBroker,
 } = require('./packages/eslint-plugin/src/brokers/config/workspace-package-names/config-workspace-package-names-broker.ts');
 const { gatewayLocationsStatics } = require('@dungeonmaster/shared/statics');
-const { filePathContract } = require('@dungeonmaster/shared/contracts');
 // Import repo-private local-eslint plugin (never shipped) from TypeScript source
 const dungeonmasterLocalPlugin = require('./packages/local-eslint/src/index.ts').default;
 
@@ -32,14 +31,14 @@ const dungeonmasterLocalPlugin = require('./packages/local-eslint/src/index.ts')
 // index.ts calls it at MODULE IMPORT time, so any read inside it would run merely from requiring the
 // package, breaking every other package that imports a plugin export.
 const gatewayLintConfig = configGatewayLintConfigBroker({
-  startDir: filePathContract.parse(__dirname),
+  startDir: __dirname,
 });
 
 // Read the workspaces root's own `workspaces` globs ONCE, here, when this file loads — never inside
 // a rule at lint time. ban-workspace-export-mocks reads no file itself, which is what keeps it
 // 'pre-edit' eligible.
 const workspacePackageNames = configWorkspacePackageNamesBroker({
-  startDir: filePathContract.parse(__dirname),
+  startDir: __dirname,
 });
 
 // Get the dungeonmaster configs (returns object with typescript, test, fileOverrides)

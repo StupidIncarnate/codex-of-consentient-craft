@@ -127,7 +127,7 @@ describe('SiegelenseFlow', () => {
       await expect(
         SiegelenseFlow({ args: ['driver', '--instance', 'not-a-valid-id'] }),
       ).rejects.toThrow(
-        /^--instance: Instance id must look like "inst_" followed by 4 or more lowercase hex characters, e\.g\. "inst_7f3a9c21"$/u,
+        /^--instance: Siege instance id must look like "inst_" followed by 4 or more lowercase hex characters, e\.g\. "inst_7f3a9c21"$/u,
       );
     });
 

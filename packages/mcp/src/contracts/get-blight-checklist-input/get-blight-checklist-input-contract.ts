@@ -33,7 +33,9 @@ import { questContract } from '@dungeonmaster/shared/contracts';
 
 export const getBlightChecklistInputContract = z
   .object({
-    questId: questContract.shape.id,
+    questId: questContract.shape.id.describe(
+      'The ID of the quest to enumerate the blight review surface for',
+    ),
     scope: z
       .enum(['quest', 'commit', 'working-tree', 'unpushed'])
       .describe(
