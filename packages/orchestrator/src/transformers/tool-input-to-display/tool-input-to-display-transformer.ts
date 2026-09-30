@@ -6,21 +6,17 @@
  * // Returns 'pattern="*.ts" path="src/"' as branded ToolInputDisplay
  */
 
-import {
-  toolInputDisplayContract,
-  type ToolInputDisplay,
-} from '../../contracts/tool-input-display/tool-input-display-contract';
 import { toolDisplayConfigStatics } from '../../statics/tool-display-config/tool-display-config-statics';
 
 export const toolInputToDisplayTransformer = ({
   input,
 }: {
   input: Record<string, unknown>;
-}): ToolInputDisplay => {
+}): string => {
   const keys = Object.keys(input);
 
   if (keys.length === 0) {
-    return toolInputDisplayContract.parse('');
+    return '';
   }
 
   const { ordered: priorityKeys } = toolDisplayConfigStatics.priorityKeys;
@@ -96,5 +92,5 @@ export const toolInputToDisplayTransformer = ({
   // Join pairs and add ellipsis if more keys available
   const result = hasMoreKeys ? `${pairs.join(' ')} ${ellipsis}` : pairs.join(' ');
 
-  return toolInputDisplayContract.parse(result);
+  return result;
 };
