@@ -16,7 +16,6 @@ import {
 } from '@dungeonmaster/testing/register-mock';
 import type { RecordedCalls } from '@dungeonmaster/testing/register-mock';
 
-import { DeletedCountStub } from '../../../contracts/deleted-count/deleted-count.stub';
 import { questDeleteBrokerProxy } from '../../quest/delete/quest-delete-broker.proxy';
 import { questListBrokerProxy } from '../../quest/list/quest-list-broker.proxy';
 import { smoketestEnsureGuildBrokerProxy } from '../ensure-guild/smoketest-ensure-guild-broker.proxy';
@@ -60,7 +59,7 @@ export const smoketestClearPriorQuestsBrokerProxy = (): {
     setupSucceeds: ({ questSource }: { questSource: QuestSource }): void => {
       mocked
         .calledWith([{ questSource }])
-        .resolves({ deletedCount: DeletedCountStub({ value: 0 }) });
+        .resolves({ deletedCount: 0 });
     },
     setupPassthrough: (): void => {
       const realMod = requireActual<{

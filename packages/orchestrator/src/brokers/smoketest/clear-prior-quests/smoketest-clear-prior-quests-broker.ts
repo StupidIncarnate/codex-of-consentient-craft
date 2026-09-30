@@ -15,8 +15,6 @@
 
 import type { QuestSource } from '@dungeonmaster/shared/contracts';
 
-import { deletedCountContract } from '../../../contracts/deleted-count/deleted-count-contract';
-import type { DeletedCount } from '../../../contracts/deleted-count/deleted-count-contract';
 import { questDeleteBroker } from '../../quest/delete/quest-delete-broker';
 import { questListBroker } from '../../quest/list/quest-list-broker';
 import { smoketestEnsureGuildBroker } from '../ensure-guild/smoketest-ensure-guild-broker';
@@ -25,7 +23,7 @@ export const smoketestClearPriorQuestsBroker = async ({
   questSource,
 }: {
   questSource: QuestSource;
-}): Promise<{ deletedCount: DeletedCount }> => {
+}): Promise<{ deletedCount: number }> => {
   const { guildId } = await smoketestEnsureGuildBroker();
   const quests = await questListBroker({ guildId });
   const matching = quests.filter((quest) => quest.questSource === questSource);
@@ -34,5 +32,5 @@ export const smoketestClearPriorQuestsBroker = async ({
     matching.map(async (quest) => questDeleteBroker({ questId: quest.id, guildId })),
   );
 
-  return { deletedCount: deletedCountContract.parse(matching.length) };
+  return { deletedCount: matching.length };
 };
