@@ -73,7 +73,6 @@ import type { RunStatus } from '../../../contracts/run-status/run-status-contrac
 import { shotListingContract } from '../../../contracts/shot-listing/shot-listing-contract';
 import type { ShotListing } from '../../../contracts/shot-listing/shot-listing-contract';
 import type { Step } from '../../../contracts/step/step-contract';
-import type { StepOutputName } from '../../../contracts/step-output-name/step-output-name-contract';
 import type { StepReading } from '../../../contracts/step-reading/step-reading-contract';
 import type { StopOn } from '../../../contracts/stop-on/stop-on-contract';
 import type { StoppedAt } from '../../../contracts/stopped-at/stopped-at-contract';
@@ -265,7 +264,7 @@ export const runExecuteBroker = async ({
         name,
         result,
       }: {
-        name: StepOutputName;
+        name: string;
         result: Record<PropertyKey, unknown>;
       }) => {
         outputsState.values = { ...outputsState.values, [name]: result };

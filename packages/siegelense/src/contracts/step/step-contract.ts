@@ -40,7 +40,6 @@ import { domTextModeContract } from '../dom-text-mode/dom-text-mode-contract';
 import { httpMethodContract } from '../http-method/http-method-contract';
 import { locatorStateContract } from '../locator-state/locator-state-contract';
 import { nodeLabelContract } from '../node-label/node-label-contract';
-import { stepOutputNameContract } from '../step-output-name/step-output-name-contract';
 import { stepRefContract } from '../step-ref/step-ref-contract';
 import { evidenceFileStatics } from '../../statics/evidence-file/evidence-file-statics';
 import { stepExpectationContract } from '../step-expectation/step-expectation-contract';
@@ -194,7 +193,7 @@ export const stepContract = z
         // `recipe` would shadow the step's own keys, and the collision would be silent
         // (siegelense-tooling.md lines 882-883).
         params: z.record(z.string().min(1).brand<'StepParams'>(), z.unknown()).nullable().default(null),
-        as: stepOutputNameContract.nullable().default(null),
+        as: z.string().min(1).brand<'StepAs'>().nullable().default(null),
         node: nodeLabelContract.nullable().default(null),
         expect: stepExpectationContract.default(
           stepExpectationContract.parse(stepStatics.defaults.expect),

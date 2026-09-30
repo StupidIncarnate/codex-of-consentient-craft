@@ -13,7 +13,6 @@
 
 import { z } from '#gateway/npm/zod';
 
-import { stepOutputNameContract } from '../step-output-name/step-output-name-contract';
 import { stepRefStatics } from '../../statics/step-ref/step-ref-statics';
 
 const STEP_REF_SHAPE = /^\{(.+)\}$/u;
@@ -46,7 +45,7 @@ export const stepRefContract = z
   })
   .pipe(
     z.object({
-      step: stepOutputNameContract,
+      step: z.string().min(1).brand<'StepRefStep'>(),
       row: z.string().min(1).brand<'StepRefRow'>(),
       field: z.string().min(1).brand<'StepRefField'>(),
     }),

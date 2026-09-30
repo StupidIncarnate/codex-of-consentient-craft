@@ -59,8 +59,6 @@ import { stepContract } from '../../../contracts/step/step-contract';
 import type { Step } from '../../../contracts/step/step-contract';
 import { stepReadingContract } from '../../../contracts/step-reading/step-reading-contract';
 import type { StepReading } from '../../../contracts/step-reading/step-reading-contract';
-import { stepOutputNameContract } from '../../../contracts/step-output-name/step-output-name-contract';
-import type { StepOutputName } from '../../../contracts/step-output-name/step-output-name-contract';
 import { stepVerbContract } from '../../../contracts/step-verb/step-verb-contract';
 import { stoppedAtContract } from '../../../contracts/stopped-at/stopped-at-contract';
 import type { StoppedAt } from '../../../contracts/stopped-at/stopped-at-contract';
@@ -91,7 +89,7 @@ export const runExecuteStepLayerBroker = async ({
   lastShotPath: () => string | null;
   setLastShotPath: (params: { path: string }) => void;
   outputs: () => Record<PropertyKey, Record<PropertyKey, unknown>>;
-  recordOutput: (params: { name: StepOutputName; result: Record<PropertyKey, unknown> }) => void;
+  recordOutput: (params: { name: string; result: Record<PropertyKey, unknown> }) => void;
 }): Promise<{ reading: StepReading; stoppedAt: StoppedAt | null; timedOut: boolean }> => {
   const verb = stepVerbContract.parse(step.step);
   const serverLogStartByte = lane.serverLogLength();
@@ -145,7 +143,7 @@ export const runExecuteStepLayerBroker = async ({
 
     if (step.step === 'seed' && step.as !== null) {
       recordOutput({
-        name: stepOutputNameContract.parse(step.as),
+        name: step.as,
         result: seedResultContract.parse(JSON.parse(reading.reading)),
       });
     }
