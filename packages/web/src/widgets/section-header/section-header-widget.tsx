@@ -8,12 +8,11 @@
 
 import { Group, Text } from '#gateway/npm/mantine__core';
 
-import type { SectionCount } from '../../contracts/section-count/section-count-contract';
 import { emberDepthsThemeStatics } from '../../statics/ember-depths-theme/ember-depths-theme-statics';
 
 export interface SectionHeaderWidgetProps {
   label: string;
-  count?: SectionCount;
+  count?: number;
 }
 
 export const SectionHeaderWidget = ({
