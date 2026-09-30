@@ -22,14 +22,14 @@ import { resultFieldContract } from '../result-field/result-field-contract';
 import { resultKindContract } from '../result-kind/result-kind-contract';
 import { resultWhereContract } from '../result-where/result-where-contract';
 import { sinceMarkerContract } from '../since-marker/since-marker-contract';
-import { stepIndexContract } from '../step-index/step-index-contract';
 import { siegeInstanceContract, siegeRunContract } from '@dungeonmaster/shared/contracts';
+import { instanceLifecycleStatics } from '../../statics/instance-lifecycle/instance-lifecycle-statics';
 
 export const resultsArgsContract = z
   .object({
     instanceId: siegeInstanceContract.shape.id,
     runId: siegeRunContract.shape.id.nullable(),
-    step: stepIndexContract.nullable(),
+    step: z.number().int().min(instanceLifecycleStatics.numbering.firstStep).brand<'ResultsArgsStep'>().nullable(),
     kind: resultKindContract.nullable(),
     where: resultWhereContract.nullable(),
     fields: z.array(resultFieldContract).readonly().nullable(),

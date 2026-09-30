@@ -9,7 +9,6 @@ import { RunIdStub } from '../../../contracts/run-id/run-id.stub';
 import { RunIndexStub } from '../../../contracts/run-index/run-index.stub';
 import { RunResultStub } from '../../../contracts/run-result/run-result.stub';
 import { ShotListingStub } from '../../../contracts/shot-listing/shot-listing.stub';
-import { StepIndexStub } from '../../../contracts/step-index/step-index.stub';
 import { StepReadingStub } from '../../../contracts/step-reading/step-reading.stub';
 import { InstanceUnknownError } from '../../../errors/instance-unknown/instance-unknown-error';
 import { RunMissingError } from '../../../errors/run-missing/run-missing-error';
@@ -742,7 +741,7 @@ describe('compareReadBroker', () => {
       proxy.setupStepReadings({
         evidencePath,
         runId: runB,
-        readings: [StepReadingStub({ step: StepIndexStub({ value: 1 }), delta: runBDelta })],
+        readings: [StepReadingStub({ step: 1, delta: runBDelta })],
       });
 
       const result = await compareReadBroker({
@@ -778,8 +777,8 @@ describe('compareReadBroker', () => {
         evidencePath,
         runId: runA,
         readings: [
-          StepReadingStub({ step: StepIndexStub({ value: 1 }), delta: runADelta }),
-          StepReadingStub({ step: StepIndexStub({ value: 2 }) }),
+          StepReadingStub({ step: 1, delta: runADelta }),
+          StepReadingStub({ step: 2 }),
         ],
       });
 
@@ -816,12 +815,12 @@ describe('compareReadBroker', () => {
       proxy.setupStepReadings({
         evidencePath,
         runId: runA,
-        readings: [StepReadingStub({ step: StepIndexStub({ value: 1 }), delta: runADelta })],
+        readings: [StepReadingStub({ step: 1, delta: runADelta })],
       });
       proxy.setupStepReadings({
         evidencePath,
         runId: runB,
-        readings: [StepReadingStub({ step: StepIndexStub({ value: 1 }), delta: runBDelta })],
+        readings: [StepReadingStub({ step: 1, delta: runBDelta })],
       });
 
       const result = await compareReadBroker({

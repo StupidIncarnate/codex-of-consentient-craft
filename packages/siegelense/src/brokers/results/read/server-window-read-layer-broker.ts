@@ -24,7 +24,6 @@ import { locationsStatics } from '@dungeonmaster/shared/statics';
 
 import { readFileIfExists } from '#gateway/node/fs__promises';
 import type { ResultWhere } from '../../../contracts/result-where/result-where-contract';
-import type { StepIndex } from '../../../contracts/step-index/step-index-contract';
 import type { StepReading } from '../../../contracts/step-reading/step-reading-contract';
 import { resultsStatics } from '../../../statics/results/results-statics';
 import { stepRangeExpandTransformer } from '../../../transformers/step-range-expand/step-range-expand-transformer';
@@ -38,12 +37,12 @@ export const serverWindowReadLayerBroker = async ({
 }: {
   evidencePath: string;
   readings: readonly StepReading[];
-  step: StepIndex | null;
+  step: number | null;
   where: ResultWhere | null;
 }): Promise<readonly string[]> => {
   const stepRange = where?.steps ?? null;
 
-  const targetSteps: readonly StepIndex[] =
+  const targetSteps: readonly number[] =
     stepRange === null
       ? step === null
         ? readings.map((reading) => reading.step)

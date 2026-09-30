@@ -24,7 +24,6 @@ import { CleanupAnswerStub } from '../../contracts/cleanup-answer/cleanup-answer
 import { CompareQueryStub } from '../../contracts/compare-query/compare-query.stub';
 import { ResultsQueryStub } from '../../contracts/results-query/results-query.stub';
 import { ResultWhereStub } from '../../contracts/result-where/result-where.stub';
-import { StepIndexStub } from '../../contracts/step-index/step-index.stub';
 import { InstanceUnknownError } from '../../errors/instance-unknown/instance-unknown-error';
 import { machineStatics } from '../../statics/machine/machine-statics';
 import { siegelenseCallStatics } from '../../statics/siegelense-call/siegelense-call-statics';
@@ -413,7 +412,7 @@ describe('SiegelenseFlow', () => {
             instanceId: tree.killedInstanceId(),
             runId: tree.runOne(),
             kind: 'console',
-            step: StepIndexStub({ value: 2 }),
+            step: 2,
           }),
         });
 

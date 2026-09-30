@@ -1,7 +1,6 @@
 
 import { BrowserSessionStub } from '../../../contracts/browser-session/browser-session.stub';
 import { LaneSessionStub } from '../../../contracts/lane-session/lane-session.stub';
-import { StepIndexStub } from '../../../contracts/step-index/step-index.stub';
 import { stepHoldBroker } from './step-hold-broker';
 import { stepHoldBrokerProxy } from './step-hold-broker.proxy';
 
@@ -13,7 +12,7 @@ describe('stepHoldBroker', () => {
       const captureLiveMock = jest.fn().mockResolvedValue(undefined);
       const session = BrowserSessionStub({ captureLive: captureLiveMock });
       const shotPath = '/tmp/runs/run_1/step1.png';
-      const index = StepIndexStub({ value: 1 });
+      const index = 1;
 
       const frame1 = '/tmp/runs/run_1/step1_frame1.png';
       const frame2 = '/tmp/runs/run_1/step1_frame2.png';
@@ -59,7 +58,7 @@ describe('stepHoldBroker', () => {
       const captureLiveMock = jest.fn().mockResolvedValue(undefined);
       const session = BrowserSessionStub({ captureLive: captureLiveMock });
       const shotPath = '/tmp/runs/run_1/step2.png';
-      const index = StepIndexStub({ value: 2 });
+      const index = 2;
 
       const frame1 = '/tmp/runs/run_1/step2_frame1.png';
       const frame2 = '/tmp/runs/run_1/step2_frame2.png';
@@ -104,7 +103,7 @@ describe('stepHoldBroker', () => {
       });
       const captureLiveMock = jest.fn().mockResolvedValue(undefined);
       const session = BrowserSessionStub({ captureLive: captureLiveMock });
-      const index = StepIndexStub({ value: 3 });
+      const index = 3;
 
       const frame1 = '/tmp/evidence/step3_frame1.png';
       const frame2 = '/tmp/evidence/step3_frame2.png';

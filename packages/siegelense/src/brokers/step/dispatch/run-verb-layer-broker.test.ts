@@ -2,7 +2,6 @@
 import { LaneSessionStub } from '../../../contracts/lane-session/lane-session.stub';
 import { SelectorStub } from '../../../contracts/selector/selector.stub';
 import { StepFilePathStub } from '../../../contracts/step-file-path/step-file-path.stub';
-import { StepIndexStub } from '../../../contracts/step-index/step-index.stub';
 import { StepStub } from '../../../contracts/step/step.stub';
 import { UrlPathStub } from '../../../contracts/url-path/url-path.stub';
 
@@ -23,7 +22,7 @@ describe('runVerbLayerBroker', () => {
       await runVerbLayerBroker({
         lane,
         step,
-        index: StepIndexStub(),
+        index: 1,
         shotPath: null,
         browserWindowStart: null,
         recordBinding: NOOP,
@@ -40,7 +39,7 @@ describe('runVerbLayerBroker', () => {
       await runVerbLayerBroker({
         lane,
         step,
-        index: StepIndexStub(),
+        index: 1,
         shotPath: null,
         browserWindowStart: null,
         recordBinding: NOOP,
@@ -57,7 +56,7 @@ describe('runVerbLayerBroker', () => {
       await runVerbLayerBroker({
         lane,
         step,
-        index: StepIndexStub(),
+        index: 1,
         shotPath: null,
         browserWindowStart: null,
         recordBinding: NOOP,
@@ -74,7 +73,7 @@ describe('runVerbLayerBroker', () => {
       await runVerbLayerBroker({
         lane,
         step,
-        index: StepIndexStub(),
+        index: 1,
         shotPath: null,
         browserWindowStart: null,
         recordBinding: NOOP,
@@ -91,7 +90,7 @@ describe('runVerbLayerBroker', () => {
       const result = await runVerbLayerBroker({
         lane,
         step,
-        index: StepIndexStub(),
+        index: 1,
         shotPath: null,
         browserWindowStart: null,
         recordBinding: NOOP,
@@ -113,7 +112,7 @@ describe('runVerbLayerBroker', () => {
       const error = await runVerbLayerBroker({
         lane,
         step,
-        index: StepIndexStub(),
+        index: 1,
         shotPath: null,
         browserWindowStart: null,
         recordBinding: NOOP,
@@ -139,7 +138,7 @@ describe('runVerbLayerBroker', () => {
       const result = await runVerbLayerBroker({
         lane,
         step,
-        index: StepIndexStub(),
+        index: 1,
         shotPath: null,
         browserWindowStart: null,
         recordBinding: NOOP,
@@ -157,7 +156,7 @@ describe('runVerbLayerBroker', () => {
       const result = await runVerbLayerBroker({
         lane,
         step,
-        index: StepIndexStub(),
+        index: 1,
         shotPath: null,
         browserWindowStart: null,
         recordBinding: NOOP,
@@ -177,7 +176,7 @@ describe('runVerbLayerBroker', () => {
       const result = await runVerbLayerBroker({
         lane,
         step,
-        index: StepIndexStub(),
+        index: 1,
         shotPath: null,
         browserWindowStart: null,
         recordBinding: NOOP,
@@ -197,7 +196,7 @@ describe('runVerbLayerBroker', () => {
       const error = await runVerbLayerBroker({
         lane,
         step,
-        index: StepIndexStub(),
+        index: 1,
         shotPath: null,
         browserWindowStart: null,
         recordBinding: NOOP,
@@ -217,7 +216,7 @@ describe('runVerbLayerBroker', () => {
       const proxy = runVerbLayerBrokerProxy();
       const { lane } = proxy.sessionWithOneMatch();
       const step = StepStub({ step: 'screenshot' });
-      const index = StepIndexStub({ value: 3 });
+      const index = 3;
 
       const error = await runVerbLayerBroker({
         lane,
@@ -245,7 +244,7 @@ describe('runVerbLayerBroker', () => {
       const { getSeedRunCallArgs } = proxy.stagesSeedRecipe({ result: { guild: { id: 'g1' } } });
       const lane = LaneSessionStub({ browser: null });
       const step = StepStub({ step: 'seed' });
-      const index = StepIndexStub({ value: 1 });
+      const index = 1;
 
       const reading = await runVerbLayerBroker({
         lane,
@@ -275,7 +274,7 @@ describe('runVerbLayerBroker', () => {
       const proxy = runVerbLayerBrokerProxy();
       const { lane } = proxy.sessionWithOneMatch();
       const step = StepStub({ step: 'health' });
-      const index = StepIndexStub({ value: 1 });
+      const index = 1;
 
       const reading = await runVerbLayerBroker({
         lane,
@@ -297,7 +296,7 @@ describe('runVerbLayerBroker', () => {
       const proxy = runVerbLayerBrokerProxy();
       const { lane } = proxy.sessionWithOneMatch();
       const step = StepStub({ step: 'resize', width: 1280, height: 720 });
-      const index = StepIndexStub({ value: 1 });
+      const index = 1;
 
       const reading = await runVerbLayerBroker({
         lane,
@@ -321,7 +320,7 @@ describe('runVerbLayerBroker', () => {
         method: 'GET',
         path: '/api/guilds',
       });
-      const index = StepIndexStub({ value: 1 });
+      const index = 1;
 
       proxy.setupRequestResponse({
         url: 'http://127.0.0.1:34172/api/guilds',
@@ -351,7 +350,7 @@ describe('runVerbLayerBroker', () => {
         step: 'before',
         source: 'window.__x = 1;',
       });
-      const index = StepIndexStub({ value: 1 });
+      const index = 1;
 
       const reading = await runVerbLayerBroker({
         lane,
@@ -374,7 +373,7 @@ describe('runVerbLayerBroker', () => {
         step: 'file',
         path: StepFilePathStub({ value: 'api-server.log' }),
       });
-      const index = StepIndexStub({ value: 1 });
+      const index = 1;
 
       proxy.setupFileExists({
         filePath: `${lane.homePath}/api-server.log`,
@@ -402,7 +401,7 @@ describe('runVerbLayerBroker', () => {
         step: 'storage',
         prefix: 'dm-',
       });
-      const index = StepIndexStub({ value: 1 });
+      const index = 1;
 
       const reading = await runVerbLayerBroker({
         lane,
@@ -426,7 +425,7 @@ describe('runVerbLayerBroker', () => {
         target: SelectorStub({ value: '[data-testid="INPUT"]' }),
         value: 'hello',
       });
-      const index = StepIndexStub({ value: 1 });
+      const index = 1;
 
       const reading = await runVerbLayerBroker({
         lane,
@@ -450,7 +449,7 @@ describe('runVerbLayerBroker', () => {
         frames: 2,
         everyMs: 1000,
       });
-      const index = StepIndexStub({ value: 1 });
+      const index = 1;
 
       const reading = await runVerbLayerBroker({
         lane,
@@ -472,7 +471,7 @@ describe('runVerbLayerBroker', () => {
       const proxy = runVerbLayerBrokerProxy();
       const { lane } = proxy.sessionWithOneMatch();
       const step = StepStub({ step: 'video', action: 'start' });
-      const index = StepIndexStub({ value: 1 });
+      const index = 1;
 
       const reading = await runVerbLayerBroker({
         lane,
@@ -490,7 +489,7 @@ describe('runVerbLayerBroker', () => {
       const proxy = runVerbLayerBrokerProxy();
       const { lane } = proxy.sessionWithOneMatch();
       const step = StepStub({ step: 'video', action: 'stop' });
-      const index = StepIndexStub({ value: 1 });
+      const index = 1;
 
       const reading = await runVerbLayerBroker({
         lane,
@@ -511,7 +510,7 @@ describe('runVerbLayerBroker', () => {
       const { lane } = proxy.sessionWithOneMatch();
       proxy.setupSnapshotEmptyStore({ homePath: lane.homePath });
       const step = StepStub({ step: 'snapshot', as: 'clean' });
-      const index = StepIndexStub({ value: 1 });
+      const index = 1;
 
       const reading = await runVerbLayerBroker({
         lane,
@@ -531,7 +530,7 @@ describe('runVerbLayerBroker', () => {
       const proxy = runVerbLayerBrokerProxy();
       const { lane } = proxy.sessionWithOneMatch();
       const step = StepStub({ step: 'reset', level: 'page', to: null });
-      const index = StepIndexStub({ value: 1 });
+      const index = 1;
 
       const reading = await runVerbLayerBroker({
         lane,

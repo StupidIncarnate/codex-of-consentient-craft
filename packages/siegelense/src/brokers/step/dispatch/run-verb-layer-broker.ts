@@ -31,7 +31,6 @@ import {
 } from '../../../contracts/seed-binding-name/seed-binding-name-contract';
 import { seedResultContract } from '../../../contracts/seed-result/seed-result-contract';
 import type { Step } from '../../../contracts/step/step-contract';
-import type { StepIndex } from '../../../contracts/step-index/step-index-contract';
 import { stepVerbContract } from '../../../contracts/step-verb/step-verb-contract';
 import { BrowserStepUnsupportedError } from '../../../errors/browser-step-unsupported/browser-step-unsupported-error';
 import { isTargetingStepGuard } from '../../../guards/is-targeting-step/is-targeting-step-guard';
@@ -70,7 +69,7 @@ export const runVerbLayerBroker = async ({
 }: {
   lane: LaneSession;
   step: Step;
-  index: StepIndex;
+  index: number;
   shotPath: string | null;
   browserWindowStart: BufferLengths | null;
   recordBinding: (params: { name: SeedBindingName; result: unknown }) => void;

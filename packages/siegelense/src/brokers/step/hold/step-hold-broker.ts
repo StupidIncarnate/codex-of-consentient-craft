@@ -23,7 +23,6 @@ import { setTimeout } from '#gateway/node/setTimeout';
 import type { BrowserSession } from '../../../contracts/browser-session/browser-session-contract';
 import { holdReadingContract } from '../../../contracts/hold-reading/hold-reading-contract';
 import type { LaneSession } from '../../../contracts/lane-session/lane-session-contract';
-import type { StepIndex } from '../../../contracts/step-index/step-index-contract';
 import { holdStatics } from '../../../statics/hold/hold-statics';
 import { holdReadingRenderTransformer } from '../../../transformers/hold-reading-render/hold-reading-render-transformer';
 import { shotChangeReadBroker } from '../../shot/change-read/shot-change-read-broker';
@@ -40,7 +39,7 @@ export const stepHoldBroker = async ({
 }: {
   lane: LaneSession;
   session: BrowserSession;
-  index: StepIndex;
+  index: number;
   shotPath: string | null;
   frames: number;
   everyMs: number;

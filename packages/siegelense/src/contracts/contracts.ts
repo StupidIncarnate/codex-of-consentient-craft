@@ -20,7 +20,6 @@ export * from './instance-heartbeat/instance-heartbeat-contract';
 
 export * from './registry-entry/registry-entry-contract';
 
-export * from './step-index/step-index-contract';
 
 export * from './port-pair/port-pair-contract';
 

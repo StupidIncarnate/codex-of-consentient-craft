@@ -9,7 +9,6 @@ import { RunIdStub } from '../../../contracts/run-id/run-id.stub';
 import { RunResultStub } from '../../../contracts/run-result/run-result.stub';
 import { ServerLogWindowStub } from '../../../contracts/server-log-window/server-log-window.stub';
 import { ShotListingStub } from '../../../contracts/shot-listing/shot-listing.stub';
-import { StepIndexStub } from '../../../contracts/step-index/step-index.stub';
 import { StepReadingStub } from '../../../contracts/step-reading/step-reading.stub';
 import { resultsStatics } from '../../../statics/results/results-statics';
 import { resultsReadBroker } from './results-read-broker';
@@ -99,8 +98,8 @@ describe('resultsReadBroker', () => {
     proxy.setupRuns({ evidencePath, entries: ['run_2.jsonl', 'run_2.json'] });
     const runResult = RunResultStub({ instanceId: INSTANCE_ID, runId: RUN_2 });
     proxy.setupStoredReturn({ evidencePath, runId: RUN_2, result: runResult });
-    const step1 = StepReadingStub({ step: StepIndexStub({ value: 1 }), verb: 'goto' });
-    const step2 = StepReadingStub({ step: StepIndexStub({ value: 2 }), verb: 'click' });
+    const step1 = StepReadingStub({ step: 1, verb: 'goto' });
+    const step2 = StepReadingStub({ step: 2, verb: 'click' });
     proxy.setupTranscript({
       evidencePath,
       runId: RUN_2,
@@ -134,7 +133,7 @@ describe('resultsReadBroker', () => {
     proxy.setupRegistry({ registry: RegistryStub({ instances: [entry] }) });
     const evidencePath = proxy.evidencePathFor({ instanceId: INSTANCE_ID });
     proxy.setupRuns({ evidencePath, entries: ['run_2.jsonl', 'run_2.json'] });
-    const step7 = StepReadingStub({ step: StepIndexStub({ value: 7 }), verb: 'click' });
+    const step7 = StepReadingStub({ step: 7, verb: 'click' });
     proxy.setupTranscript({
       evidencePath,
       runId: RUN_2,
@@ -145,7 +144,7 @@ describe('resultsReadBroker', () => {
       query: ResultsQueryStub({
         instanceId: INSTANCE_ID,
         runId: RUN_2,
-        step: StepIndexStub({ value: 7 }),
+        step: 7,
       }),
     });
 
@@ -189,7 +188,7 @@ describe('resultsReadBroker', () => {
         instanceId: INSTANCE_ID,
         runId: RUN_2,
         kind: 'network',
-        step: StepIndexStub({ value: 7 }),
+        step: 7,
       }),
     });
 
@@ -325,7 +324,7 @@ describe('resultsReadBroker', () => {
     const evidencePath = proxy.evidencePathFor({ instanceId: INSTANCE_ID });
     proxy.setupRuns({ evidencePath, entries: ['run_2.jsonl', 'run_2.json'] });
     const readings = [1, 2, 3, 4, 5].map((stepValue) =>
-      StepReadingStub({ step: StepIndexStub({ value: stepValue }) }),
+      StepReadingStub({ step: stepValue }),
     );
     proxy.setupTranscript({
       evidencePath,
@@ -366,15 +365,15 @@ describe('resultsReadBroker', () => {
 
     const readings = [
       StepReadingStub({
-        step: StepIndexStub({ value: 6 }),
+        step: 6,
         serverWindow: ServerLogWindowStub({ fromByte: step6From, toByte: step6To }),
       }),
       StepReadingStub({
-        step: StepIndexStub({ value: 7 }),
+        step: 7,
         serverWindow: ServerLogWindowStub({ fromByte: step7From, toByte: step7To }),
       }),
       StepReadingStub({
-        step: StepIndexStub({ value: 8 }),
+        step: 8,
         serverWindow: ServerLogWindowStub({ fromByte: step8From, toByte: step8To }),
       }),
     ];
@@ -613,7 +612,7 @@ describe('resultsReadBroker', () => {
     proxy.setupRegistry({ registry: RegistryStub({ instances: [entry] }) });
     const evidencePath = proxy.evidencePathFor({ instanceId: INSTANCE_ID });
     proxy.setupRuns({ evidencePath, entries: ['run_1.jsonl', 'run_1.json', 'run_2.jsonl'] });
-    const step7 = StepReadingStub({ step: StepIndexStub({ value: 7 }), verb: 'click' });
+    const step7 = StepReadingStub({ step: 7, verb: 'click' });
     proxy.setupTranscript({
       evidencePath,
       runId: RUN_2,
@@ -624,7 +623,7 @@ describe('resultsReadBroker', () => {
       query: ResultsQueryStub({
         instanceId: INSTANCE_ID,
         runId: RUN_2,
-        step: StepIndexStub({ value: 7 }),
+        step: 7,
       }),
     });
 
@@ -920,8 +919,8 @@ describe('resultsReadBroker', () => {
     proxy.setupRegistry({ registry: RegistryStub({ instances: [entry] }) });
     const evidencePath = proxy.evidencePathFor({ instanceId: INSTANCE_ID });
     proxy.setupRuns({ evidencePath, entries: ['run_2.jsonl', 'run_2.json'] });
-    const first = StepReadingStub({ step: StepIndexStub({ value: 1 }) });
-    const second = StepReadingStub({ step: StepIndexStub({ value: 2 }) });
+    const first = StepReadingStub({ step: 1 });
+    const second = StepReadingStub({ step: 2 });
     const truncatedTail = JSON.stringify(second).slice(0, 20);
     proxy.setupTranscript({
       evidencePath,

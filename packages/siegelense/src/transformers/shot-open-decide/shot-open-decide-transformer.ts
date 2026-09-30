@@ -24,14 +24,13 @@ import { perceptionStatics } from '../../statics/perception/perception-statics';
 import { shotListingContract } from '../../contracts/shot-listing/shot-listing-contract';
 import type { ShotListing } from '../../contracts/shot-listing/shot-listing-contract';
 import { shotOpenReasonContract } from '../../contracts/shot-open-reason/shot-open-reason-contract';
-import type { StepIndex } from '../../contracts/step-index/step-index-contract';
 
 export const shotOpenDecideTransformer = ({
   shots,
   failedStep,
 }: {
   shots: readonly ShotListing[];
-  failedStep: StepIndex | null;
+  failedStep: number | null;
 }): readonly ShotListing[] => {
   const lastPosition = shots.length - 1;
 

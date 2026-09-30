@@ -26,7 +26,6 @@ import { registerSpyOn } from '@dungeonmaster/testing/register-mock';
 import { ResultFieldStub } from '../../contracts/result-field/result-field.stub';
 import { ResultsQueryStub } from '../../contracts/results-query/results-query.stub';
 import { ResultWhereStub } from '../../contracts/result-where/result-where.stub';
-import { StepIndexStub } from '../../contracts/step-index/step-index.stub';
 import { RunIdRequiredError } from '../../errors/run-id-required/run-id-required-error';
 import { resultRowProjectTransformer } from '../../transformers/result-row-project/result-row-project-transformer';
 import { resultsAnswerRenderTransformer } from '../../transformers/results-answer-render/results-answer-render-transformer';
@@ -97,7 +96,7 @@ describe('SiegelenseResultsLayerFlow', () => {
           instanceId: tree.killedInstanceId(),
           runId: tree.runOne(),
           kind: 'console',
-          step: StepIndexStub({ value: 2 }),
+          step: 2,
         }),
       });
 

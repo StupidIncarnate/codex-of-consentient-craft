@@ -73,7 +73,6 @@ import type { RunStatus } from '../../../contracts/run-status/run-status-contrac
 import { shotListingContract } from '../../../contracts/shot-listing/shot-listing-contract';
 import type { ShotListing } from '../../../contracts/shot-listing/shot-listing-contract';
 import type { Step } from '../../../contracts/step/step-contract';
-import { stepIndexContract } from '../../../contracts/step-index/step-index-contract';
 import type { StepOutputName } from '../../../contracts/step-output-name/step-output-name-contract';
 import type { StepReading } from '../../../contracts/step-reading/step-reading-contract';
 import type { StopOn } from '../../../contracts/stop-on/stop-on-contract';
@@ -243,7 +242,7 @@ export const runExecuteBroker = async ({
       return;
     }
 
-    const index = stepIndexContract.parse(position + instanceLifecycleStatics.numbering.firstStep);
+    const index = (position + instanceLifecycleStatics.numbering.firstStep);
     // `verbs.capturing`, not `verbs.acting`: `look` captures without acting, because it "returns
     // the KEY inline and writes the SHOT" (siegelense-tooling.md line 2587) while changing nothing
     // on the page.
@@ -385,7 +384,7 @@ export const runExecuteBroker = async ({
     instanceId,
     runId,
     status,
-    stepsRun: stepIndexContract.parse(readings.length),
+    stepsRun: readings.length,
     stoppedAt,
     index,
     shots,

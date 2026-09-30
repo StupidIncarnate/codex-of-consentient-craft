@@ -2,7 +2,6 @@
 import { PixelChangeStub } from '../../contracts/pixel-change/pixel-change.stub';
 import { ShotListingStub } from '../../contracts/shot-listing/shot-listing.stub';
 import { ShotOpenReasonStub } from '../../contracts/shot-open-reason/shot-open-reason.stub';
-import { StepIndexStub } from '../../contracts/step-index/step-index.stub';
 
 import { shotOpenDecideTransformer } from './shot-open-decide-transformer';
 
@@ -20,7 +19,7 @@ const rawShot = ({
   pixelChange?: string | null;
 }): ReturnType<typeof ShotListingStub> =>
   ShotListingStub({
-    step: StepIndexStub({ value: step }),
+    step: step,
     path: `/repo/.dungeonmaster-assets/siegelense-assets/.../runs/run_1/step${String(step)}.png`,
     open,
     why: why === null ? null : ShotOpenReasonStub({ value: why }),
@@ -67,7 +66,7 @@ describe('shotOpenDecideTransformer', () => {
         rawShot({ step: 5, open: false, why: null }),
       ];
 
-      const result = shotOpenDecideTransformer({ shots, failedStep: StepIndexStub({ value: 3 }) });
+      const result = shotOpenDecideTransformer({ shots, failedStep: 3 });
 
       expect(result).toStrictEqual([
         rawShot({ step: 1, open: true, why: 'start' }),
@@ -84,7 +83,7 @@ describe('shotOpenDecideTransformer', () => {
         rawShot({ step: 2, open: false, why: null }),
       ];
 
-      const result = shotOpenDecideTransformer({ shots, failedStep: StepIndexStub({ value: 1 }) });
+      const result = shotOpenDecideTransformer({ shots, failedStep: 1 });
 
       expect(result).toStrictEqual([
         rawShot({ step: 1, open: true, why: 'failed' }),
@@ -98,7 +97,7 @@ describe('shotOpenDecideTransformer', () => {
         rawShot({ step: 2, open: false, why: null }),
       ];
 
-      const result = shotOpenDecideTransformer({ shots, failedStep: StepIndexStub({ value: 2 }) });
+      const result = shotOpenDecideTransformer({ shots, failedStep: 2 });
 
       expect(result).toStrictEqual([
         rawShot({ step: 1, open: true, why: 'start' }),
@@ -115,7 +114,7 @@ describe('shotOpenDecideTransformer', () => {
         rawShot({ step: 3, open: false, why: null }),
       ];
 
-      const result = shotOpenDecideTransformer({ shots, failedStep: StepIndexStub({ value: 2 }) });
+      const result = shotOpenDecideTransformer({ shots, failedStep: 2 });
 
       expect(result).toStrictEqual([
         rawShot({ step: 1, open: true, why: 'start' }),

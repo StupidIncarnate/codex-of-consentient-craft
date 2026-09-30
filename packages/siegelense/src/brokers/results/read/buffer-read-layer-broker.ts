@@ -32,7 +32,6 @@ import { bufferEntryContract } from '../../../contracts/buffer-entry/buffer-entr
 import type { BufferEntry } from '../../../contracts/buffer-entry/buffer-entry-contract';
 import { resultRowContract } from '../../../contracts/result-row/result-row-contract';
 import type { ResultWhere } from '../../../contracts/result-where/result-where-contract';
-import type { StepIndex } from '../../../contracts/step-index/step-index-contract';
 import { resultsStatics } from '../../../statics/results/results-statics';
 import { stepRangeExpandTransformer } from '../../../transformers/step-range-expand/step-range-expand-transformer';
 
@@ -46,7 +45,7 @@ export const bufferReadLayerBroker = async ({
   bufferPath: string;
   runId: SiegeRun['id'] | null;
   sinceBoot: boolean;
-  step: StepIndex | null;
+  step: number | null;
   where: ResultWhere | null;
 }): Promise<readonly string[]> => {
   const content = await readFileIfExists(bufferPath);

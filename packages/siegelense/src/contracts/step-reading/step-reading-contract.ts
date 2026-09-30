@@ -46,11 +46,11 @@ import { nodeLabelContract } from '../node-label/node-label-contract';
 import { pixelChangeContract } from '../pixel-change/pixel-change-contract';
 import { serverLogWindowContract } from '../server-log-window/server-log-window-contract';
 import { stepExpectationContract } from '../step-expectation/step-expectation-contract';
-import { stepIndexContract } from '../step-index/step-index-contract';
 import { stepVerbContract } from '../step-verb/step-verb-contract';
+import { instanceLifecycleStatics } from '../../statics/instance-lifecycle/instance-lifecycle-statics';
 
 export const stepReadingContract = z.object({
-  step: stepIndexContract,
+  step: z.number().int().min(instanceLifecycleStatics.numbering.firstStep).brand<'StepReadingStep'>(),
   verb: stepVerbContract,
   node: nodeLabelContract.nullable(),
   ok: z.boolean(),

@@ -68,7 +68,6 @@ import type { SeedBindingName } from '../../../contracts/seed-binding-name/seed-
 import type { PixelChange } from '../../../contracts/pixel-change/pixel-change-contract';
 import { serverLogWindowContract } from '../../../contracts/server-log-window/server-log-window-contract';
 import type { Step } from '../../../contracts/step/step-contract';
-import type { StepIndex } from '../../../contracts/step-index/step-index-contract';
 import { stepReadingContract } from '../../../contracts/step-reading/step-reading-contract';
 import type { StepReading } from '../../../contracts/step-reading/step-reading-contract';
 import { stepVerbContract } from '../../../contracts/step-verb/step-verb-contract';
@@ -92,7 +91,7 @@ export const stepDispatchBroker = async ({
 }: {
   lane: LaneSession;
   step: Step;
-  index: StepIndex;
+  index: number;
   shotPath: string | null;
   browserWindowStart: BufferLengths | null;
   lastShotPath: () => string | null;

@@ -28,10 +28,10 @@ import { hexColourContract } from '../hex-colour/hex-colour-contract';
 import { nodeLabelContract } from '../node-label/node-label-contract';
 import { pixelChangeContract } from '../pixel-change/pixel-change-contract';
 import { shotOpenReasonContract } from '../shot-open-reason/shot-open-reason-contract';
-import { stepIndexContract } from '../step-index/step-index-contract';
+import { instanceLifecycleStatics } from '../../statics/instance-lifecycle/instance-lifecycle-statics';
 
 export const shotListingContract = z.object({
-  step: stepIndexContract,
+  step: z.number().int().min(instanceLifecycleStatics.numbering.firstStep).brand<'ShotListingStep'>(),
   path: absoluteFilePathContract,
   open: z.boolean(),
   why: shotOpenReasonContract.nullable(),

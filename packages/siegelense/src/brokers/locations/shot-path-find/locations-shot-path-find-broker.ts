@@ -25,7 +25,6 @@
 
 import { join } from '#gateway/node/path';
 import { type FileName } from '@dungeonmaster/shared/contracts';
-import type { StepIndex } from '../../../contracts/step-index/step-index-contract';
 import { evidenceFileStatics } from '../../../statics/evidence-file/evidence-file-statics';
 
 export const locationsShotPathFindBroker = ({
@@ -34,7 +33,7 @@ export const locationsShotPathFindBroker = ({
   name,
 }: {
   shotsDir: string;
-  step: StepIndex;
+  step: number;
   name?: FileName;
 }): string => {
   const fileName =

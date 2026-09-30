@@ -5,7 +5,6 @@ import { KeyListingStub } from '../../../contracts/key-listing/key-listing.stub'
 import { KeyRowStub } from '../../../contracts/key-row/key-row.stub';
 import { NodeLabelStub } from '../../../contracts/node-label/node-label.stub';
 import { SelectorStub } from '../../../contracts/selector/selector.stub';
-import { StepIndexStub } from '../../../contracts/step-index/step-index.stub';
 import { StepStub } from '../../../contracts/step/step.stub';
 import { UrlPathStub } from '../../../contracts/url-path/url-path.stub';
 import type { StepFailureCaptureError } from '../../../errors/step-failure-capture/step-failure-capture-error';
@@ -41,7 +40,7 @@ describe('stepDispatchBroker', () => {
       const result = await stepDispatchBroker({
         lane,
         step,
-        index: StepIndexStub({ value: 1 }),
+        index: 1,
         shotPath,
         browserWindowStart: null,
         lastShotPath: proxy.lastShotPath,
@@ -90,7 +89,7 @@ describe('stepDispatchBroker', () => {
       const result = await stepDispatchBroker({
         lane,
         step,
-        index: StepIndexStub({ value: 1 }),
+        index: 1,
         shotPath,
         browserWindowStart: null,
         lastShotPath: proxy.lastShotPath,
@@ -128,7 +127,7 @@ describe('stepDispatchBroker', () => {
       const result = await stepDispatchBroker({
         lane,
         step,
-        index: StepIndexStub({ value: 1 }),
+        index: 1,
         shotPath,
         browserWindowStart: null,
         lastShotPath: proxy.lastShotPath,
@@ -173,7 +172,7 @@ describe('stepDispatchBroker', () => {
       await stepDispatchBroker({
         lane,
         step: StepStub({ step: 'click', target: SelectorStub() }),
-        index: StepIndexStub({ value: 1 }),
+        index: 1,
         shotPath: firstShotPath,
         browserWindowStart: null,
         lastShotPath: proxy.lastShotPath,
@@ -184,7 +183,7 @@ describe('stepDispatchBroker', () => {
       const result = await stepDispatchBroker({
         lane,
         step: StepStub({ step: 'click', target: SelectorStub() }),
-        index: StepIndexStub({ value: 2 }),
+        index: 2,
         shotPath: secondShotPath,
         browserWindowStart: null,
         lastShotPath: proxy.lastShotPath,
@@ -210,7 +209,7 @@ describe('stepDispatchBroker', () => {
       const result = await stepDispatchBroker({
         lane,
         step,
-        index: StepIndexStub({ value: 1 }),
+        index: 1,
         shotPath,
         browserWindowStart: null,
         lastShotPath: proxy.lastShotPath,
@@ -252,7 +251,7 @@ describe('stepDispatchBroker', () => {
       const result = await stepDispatchBroker({
         lane,
         step,
-        index: StepIndexStub({ value: 1 }),
+        index: 1,
         shotPath: null,
         browserWindowStart: null,
         lastShotPath: proxy.lastShotPath,
@@ -285,7 +284,7 @@ describe('stepDispatchBroker', () => {
       const result = await stepDispatchBroker({
         lane,
         step,
-        index: StepIndexStub({ value: 1 }),
+        index: 1,
         shotPath: null,
         browserWindowStart: null,
         lastShotPath: proxy.lastShotPath,
@@ -306,7 +305,7 @@ describe('stepDispatchBroker', () => {
       const error = await stepDispatchBroker({
         lane,
         step,
-        index: StepIndexStub(),
+        index: 1,
         shotPath: null,
         browserWindowStart: null,
         lastShotPath: proxy.lastShotPath,
@@ -336,7 +335,7 @@ describe('stepDispatchBroker', () => {
       const result = await stepDispatchBroker({
         lane,
         step,
-        index: StepIndexStub(),
+        index: 1,
         shotPath: null,
         browserWindowStart: null,
         lastShotPath: proxy.lastShotPath,
@@ -359,7 +358,7 @@ describe('stepDispatchBroker', () => {
         const error = await stepDispatchBroker({
           lane,
           step,
-          index: StepIndexStub(),
+          index: 1,
           shotPath: null,
           browserWindowStart: null,
           lastShotPath: proxy.lastShotPath,
@@ -390,7 +389,7 @@ describe('stepDispatchBroker', () => {
       const result = await stepDispatchBroker({
         lane,
         step,
-        index: StepIndexStub({ value: 1 }),
+        index: 1,
         shotPath: null,
         browserWindowStart: null,
         lastShotPath: proxy.lastShotPath,
@@ -413,7 +412,7 @@ describe('stepDispatchBroker', () => {
       const result = await stepDispatchBroker({
         lane,
         step,
-        index: StepIndexStub({ value: 1 }),
+        index: 1,
         shotPath: null,
         browserWindowStart: null,
         lastShotPath: proxy.lastShotPath,
@@ -437,7 +436,7 @@ describe('stepDispatchBroker', () => {
       const result = await stepDispatchBroker({
         lane,
         step,
-        index: StepIndexStub({ value: 1 }),
+        index: 1,
         shotPath: null,
         browserWindowStart: null,
         lastShotPath: proxy.lastShotPath,
@@ -472,7 +471,7 @@ describe('stepDispatchBroker', () => {
       const result = await stepDispatchBroker({
         lane,
         step,
-        index: StepIndexStub({ value: 1 }),
+        index: 1,
         shotPath: null,
         browserWindowStart: null,
         lastShotPath: proxy.lastShotPath,
@@ -514,7 +513,7 @@ describe('stepDispatchBroker', () => {
       const result = await stepDispatchBroker({
         lane,
         step,
-        index: StepIndexStub({ value: 1 }),
+        index: 1,
         shotPath: null,
         browserWindowStart: null,
         lastShotPath: proxy.lastShotPath,
@@ -555,7 +554,7 @@ describe('stepDispatchBroker', () => {
       const result = await stepDispatchBroker({
         lane,
         step,
-        index: StepIndexStub({ value: 1 }),
+        index: 1,
         shotPath: null,
         browserWindowStart: null,
         lastShotPath: proxy.lastShotPath,
@@ -595,7 +594,7 @@ describe('stepDispatchBroker', () => {
       const error = await stepDispatchBroker({
         lane,
         step,
-        index: StepIndexStub({ value: 1 }),
+        index: 1,
         shotPath,
         browserWindowStart: null,
         lastShotPath: proxy.lastShotPath,
@@ -637,7 +636,7 @@ describe('stepDispatchBroker', () => {
       const error = await stepDispatchBroker({
         lane,
         step,
-        index: StepIndexStub({ value: 1 }),
+        index: 1,
         shotPath: null,
         browserWindowStart: null,
         lastShotPath: proxy.lastShotPath,
@@ -666,7 +665,7 @@ describe('stepDispatchBroker', () => {
       const error = await stepDispatchBroker({
         lane,
         step,
-        index: StepIndexStub({ value: 1 }),
+        index: 1,
         shotPath,
         browserWindowStart: null,
         lastShotPath: proxy.lastShotPath,
@@ -719,7 +718,7 @@ describe('stepDispatchBroker', () => {
       await stepDispatchBroker({
         lane: firstLane,
         step: StepStub({ step: 'click', target: SelectorStub() }),
-        index: StepIndexStub({ value: 1 }),
+        index: 1,
         shotPath: firstShotPath,
         browserWindowStart: null,
         lastShotPath: proxy.lastShotPath,
@@ -738,7 +737,7 @@ describe('stepDispatchBroker', () => {
       const error = await stepDispatchBroker({
         lane: failingLane,
         step: StepStub({ step: 'click', target: SelectorStub() }),
-        index: StepIndexStub({ value: 2 }),
+        index: 2,
         shotPath: secondShotPath,
         browserWindowStart: null,
         lastShotPath: proxy.lastShotPath,
@@ -782,7 +781,7 @@ describe('stepDispatchBroker', () => {
       await stepDispatchBroker({
         lane: firstLane,
         step: StepStub({ step: 'click', target: SelectorStub() }),
-        index: StepIndexStub({ value: 1 }),
+        index: 1,
         shotPath: firstShotPath,
         browserWindowStart: null,
         lastShotPath: proxy.lastShotPath,
@@ -804,7 +803,7 @@ describe('stepDispatchBroker', () => {
       const error = await stepDispatchBroker({
         lane: failingLane,
         step: StepStub({ step: 'click', target: SelectorStub() }),
-        index: StepIndexStub({ value: 2 }),
+        index: 2,
         shotPath: secondShotPath,
         browserWindowStart: null,
         lastShotPath: proxy.lastShotPath,
@@ -846,7 +845,7 @@ describe('stepDispatchBroker', () => {
       const result = await stepDispatchBroker({
         lane,
         step,
-        index: StepIndexStub(),
+        index: 1,
         shotPath: null,
         browserWindowStart: null,
         lastShotPath: proxy.lastShotPath,
@@ -870,7 +869,7 @@ describe('stepDispatchBroker', () => {
       const result = await stepDispatchBroker({
         lane,
         step,
-        index: StepIndexStub(),
+        index: 1,
         shotPath: null,
         browserWindowStart: null,
         lastShotPath: proxy.lastShotPath,
@@ -891,7 +890,7 @@ describe('stepDispatchBroker', () => {
       const error = await stepDispatchBroker({
         lane,
         step,
-        index: StepIndexStub(),
+        index: 1,
         shotPath: null,
         browserWindowStart: null,
         lastShotPath: proxy.lastShotPath,
@@ -918,7 +917,7 @@ describe('stepDispatchBroker', () => {
       const result = await stepDispatchBroker({
         lane,
         step,
-        index: StepIndexStub(),
+        index: 1,
         shotPath: null,
         browserWindowStart: null,
         lastShotPath: proxy.lastShotPath,
@@ -941,7 +940,7 @@ describe('stepDispatchBroker', () => {
       const result = await stepDispatchBroker({
         lane,
         step,
-        index: StepIndexStub(),
+        index: 1,
         shotPath: null,
         browserWindowStart: null,
         lastShotPath: proxy.lastShotPath,
@@ -964,7 +963,7 @@ describe('stepDispatchBroker', () => {
       const result = await stepDispatchBroker({
         lane,
         step,
-        index: StepIndexStub(),
+        index: 1,
         shotPath: null,
         browserWindowStart: null,
         lastShotPath: proxy.lastShotPath,
@@ -987,7 +986,7 @@ describe('stepDispatchBroker', () => {
       const result = await stepDispatchBroker({
         lane,
         step,
-        index: StepIndexStub({ value: 1 }),
+        index: 1,
         shotPath,
         browserWindowStart: null,
         lastShotPath: proxy.lastShotPath,
@@ -1020,7 +1019,7 @@ describe('stepDispatchBroker', () => {
       const result = await stepDispatchBroker({
         lane,
         step,
-        index: StepIndexStub({ value: 1 }),
+        index: 1,
         shotPath,
         browserWindowStart: null,
         lastShotPath: proxy.lastShotPath,
@@ -1057,7 +1056,7 @@ describe('stepDispatchBroker', () => {
       const result = await stepDispatchBroker({
         lane,
         step,
-        index: StepIndexStub({ value: 1 }),
+        index: 1,
         shotPath,
         browserWindowStart: null,
         lastShotPath: proxy.lastShotPath,
@@ -1082,7 +1081,7 @@ describe('stepDispatchBroker', () => {
       const result = await stepDispatchBroker({
         lane,
         step,
-        index: StepIndexStub(),
+        index: 1,
         shotPath: null,
         browserWindowStart: null,
         lastShotPath: proxy.lastShotPath,
@@ -1110,7 +1109,7 @@ describe('stepDispatchBroker', () => {
       const result = await stepDispatchBroker({
         lane,
         step,
-        index: StepIndexStub({ value: 1 }),
+        index: 1,
         shotPath,
         browserWindowStart: null,
         lastShotPath: proxy.lastShotPath,
@@ -1146,7 +1145,7 @@ describe('stepDispatchBroker', () => {
       const error = await stepDispatchBroker({
         lane,
         step,
-        index: StepIndexStub({ value: 1 }),
+        index: 1,
         shotPath,
         browserWindowStart: null,
         lastShotPath: proxy.lastShotPath,
@@ -1187,7 +1186,7 @@ describe('stepDispatchBroker', () => {
       const result = await stepDispatchBroker({
         lane,
         step,
-        index: StepIndexStub({ value: 1 }),
+        index: 1,
         shotPath,
         browserWindowStart: null,
         lastShotPath: proxy.lastShotPath,

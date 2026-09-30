@@ -2,7 +2,6 @@
 import { BufferEntryStub } from '../../../contracts/buffer-entry/buffer-entry.stub';
 import { ResultWhereStub } from '../../../contracts/result-where/result-where.stub';
 import { RunIdStub } from '../../../contracts/run-id/run-id.stub';
-import { StepIndexStub } from '../../../contracts/step-index/step-index.stub';
 import { bufferReadLayerBroker } from './buffer-read-layer-broker';
 import { bufferReadLayerBrokerProxy } from './buffer-read-layer-broker.proxy';
 
@@ -48,17 +47,17 @@ describe('bufferReadLayerBroker', () => {
     const proxy = bufferReadLayerBrokerProxy();
     const step6 = BufferEntryStub({
       runId: RUN_2,
-      step: StepIndexStub({ value: 6 }),
+      step: 6,
       text: networkText({ method: 'GET', url: '/api/a', status: 200 }),
     });
     const step7 = BufferEntryStub({
       runId: RUN_2,
-      step: StepIndexStub({ value: 7 }),
+      step: 7,
       text: networkText({ method: 'GET', url: '/api/b', status: 200 }),
     });
     const step8 = BufferEntryStub({
       runId: RUN_2,
-      step: StepIndexStub({ value: 8 }),
+      step: 8,
       text: networkText({ method: 'GET', url: '/api/c', status: 200 }),
     });
     proxy.setupBuffer({
@@ -70,7 +69,7 @@ describe('bufferReadLayerBroker', () => {
       bufferPath: BUFFER_PATH,
       runId: RUN_2,
       sinceBoot: false,
-      step: StepIndexStub({ value: 7 }),
+      step: 7,
       where: null,
     });
 
@@ -81,17 +80,17 @@ describe('bufferReadLayerBroker', () => {
     const proxy = bufferReadLayerBrokerProxy();
     const matching = BufferEntryStub({
       runId: RUN_2,
-      step: StepIndexStub({ value: 4 }),
+      step: 4,
       text: networkText({ method: 'POST', url: '/api/quests', status: 201 }),
     });
     const otherPath = BufferEntryStub({
       runId: RUN_2,
-      step: StepIndexStub({ value: 4 }),
+      step: 4,
       text: networkText({ method: 'POST', url: '/api/guilds', status: 201 }),
     });
     const otherMethod = BufferEntryStub({
       runId: RUN_2,
-      step: StepIndexStub({ value: 4 }),
+      step: 4,
       text: networkText({ method: 'GET', url: '/api/quests', status: 200 }),
     });
     proxy.setupBuffer({
@@ -172,17 +171,17 @@ describe('bufferReadLayerBroker', () => {
     const proxy = bufferReadLayerBrokerProxy();
     const step5 = BufferEntryStub({
       runId: RUN_2,
-      step: StepIndexStub({ value: 5 }),
+      step: 5,
       text: networkText({ method: 'GET', url: '/api/a', status: 200 }),
     });
     const step7 = BufferEntryStub({
       runId: RUN_2,
-      step: StepIndexStub({ value: 7 }),
+      step: 7,
       text: networkText({ method: 'GET', url: '/api/b', status: 200 }),
     });
     const step9 = BufferEntryStub({
       runId: RUN_2,
-      step: StepIndexStub({ value: 9 }),
+      step: 9,
       text: networkText({ method: 'GET', url: '/api/c', status: 200 }),
     });
     proxy.setupBuffer({
@@ -204,7 +203,7 @@ describe('bufferReadLayerBroker', () => {
   it("EDGE: {where: {steps: '1-1'}, an untagged between-runs entry with step: null} => the null-step entry never matches a range", async () => {
     const proxy = bufferReadLayerBrokerProxy();
     const betweenRuns = BufferEntryStub({ runId: null, step: null });
-    const step1 = BufferEntryStub({ runId: RUN_2, step: StepIndexStub({ value: 1 }) });
+    const step1 = BufferEntryStub({ runId: RUN_2, step: 1 });
     proxy.setupBuffer({
       bufferPath: BUFFER_PATH,
       content: [betweenRuns, step1].map((entry) => `${JSON.stringify(entry)}\n`).join(''),

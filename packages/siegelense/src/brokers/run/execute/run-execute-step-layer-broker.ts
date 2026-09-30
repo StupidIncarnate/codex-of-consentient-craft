@@ -57,7 +57,6 @@ import { seedResultContract } from '../../../contracts/seed-result/seed-result-c
 import { serverLogWindowContract } from '../../../contracts/server-log-window/server-log-window-contract';
 import { stepContract } from '../../../contracts/step/step-contract';
 import type { Step } from '../../../contracts/step/step-contract';
-import type { StepIndex } from '../../../contracts/step-index/step-index-contract';
 import { stepReadingContract } from '../../../contracts/step-reading/step-reading-contract';
 import type { StepReading } from '../../../contracts/step-reading/step-reading-contract';
 import { stepOutputNameContract } from '../../../contracts/step-output-name/step-output-name-contract';
@@ -87,7 +86,7 @@ export const runExecuteStepLayerBroker = async ({
 }: {
   lane: LaneSession;
   step: Step;
-  index: StepIndex;
+  index: number;
   shotPath: string | null;
   browserWindowStart: BufferLengths | null;
   lastShotPath: () => string | null;

@@ -12,13 +12,13 @@
 
 import { z } from '#gateway/npm/zod';
 
-import { stepIndexContract } from '../step-index/step-index-contract';
 import { stepVerbContract } from '../step-verb/step-verb-contract';
 import { siegeRunContract } from '@dungeonmaster/shared/contracts';
+import { instanceLifecycleStatics } from '../../statics/instance-lifecycle/instance-lifecycle-statics';
 
 export const lastStepReadingContract = z.object({
   run: siegeRunContract.shape.id,
-  step: stepIndexContract,
+  step: z.number().int().min(instanceLifecycleStatics.numbering.firstStep).brand<'LastStepReadingStep'>(),
   verb: stepVerbContract,
 });
 

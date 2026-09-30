@@ -8,7 +8,6 @@ import { InstanceIdStub } from '../../../contracts/instance-id/instance-id.stub'
 import { RunIdStub } from '../../../contracts/run-id/run-id.stub';
 import { SelectorStub } from '../../../contracts/selector/selector.stub';
 import type { StepExpectationStub } from '../../../contracts/step-expectation/step-expectation.stub';
-import { StepIndexStub } from '../../../contracts/step-index/step-index.stub';
 import { StepStub } from '../../../contracts/step/step.stub';
 import { UntilResponseStub } from '../../../contracts/until-response/until-response.stub';
 import { UrlPathStub } from '../../../contracts/url-path/url-path.stub';
@@ -107,9 +106,9 @@ describe('runExecuteBroker', () => {
       // the whole point of this defect: a screenshot written to disk but filtered out because the
       // failure reading hardcoded shot: null.
       expect(result.shots.map((shot) => [shot.step, shot.path])).toStrictEqual([
-        [1, locationsShotPathFindBroker({ shotsDir, step: StepIndexStub({ value: 1 }) })],
-        [2, locationsShotPathFindBroker({ shotsDir, step: StepIndexStub({ value: 2 }) })],
-        [3, locationsShotPathFindBroker({ shotsDir, step: StepIndexStub({ value: 3 }) })],
+        [1, locationsShotPathFindBroker({ shotsDir, step: 1 })],
+        [2, locationsShotPathFindBroker({ shotsDir, step: 2 })],
+        [3, locationsShotPathFindBroker({ shotsDir, step: 3 })],
       ]);
     });
   });
@@ -591,11 +590,11 @@ describe('runExecuteBroker', () => {
 
       const expectedFirstShotPath = locationsShotPathFindBroker({
         shotsDir: secondPaths.shotsDir,
-        step: StepIndexStub({ value: 1 }),
+        step: 1,
       });
       const expectedSecondShotPath = locationsShotPathFindBroker({
         shotsDir: secondPaths.shotsDir,
-        step: StepIndexStub({ value: 2 }),
+        step: 2,
       });
 
       expect({
@@ -817,11 +816,11 @@ describe('runExecuteBroker', () => {
       const lane = proxy.cleanLane();
       const firstShotPath = locationsShotPathFindBroker({
         shotsDir,
-        step: StepIndexStub({ value: 1 }),
+        step: 1,
       });
       const secondShotPath = locationsShotPathFindBroker({
         shotsDir,
-        step: StepIndexStub({ value: 2 }),
+        step: 2,
       });
 
       const result = await runExecuteBroker({
@@ -1015,7 +1014,7 @@ describe('runExecuteBroker', () => {
 
       const expectedShotPath = locationsShotPathFindBroker({
         shotsDir,
-        step: StepIndexStub({ value: 1 }),
+        step: 1,
       });
 
       expect(result.shots.map((shot) => shot.path)).toStrictEqual([expectedShotPath]);

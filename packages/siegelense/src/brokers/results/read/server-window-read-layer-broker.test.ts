@@ -1,7 +1,6 @@
 
 import { ResultWhereStub } from '../../../contracts/result-where/result-where.stub';
 import { ServerLogWindowStub } from '../../../contracts/server-log-window/server-log-window.stub';
-import { StepIndexStub } from '../../../contracts/step-index/step-index.stub';
 import { StepReadingStub } from '../../../contracts/step-reading/step-reading.stub';
 import { serverWindowReadLayerBroker } from './server-window-read-layer-broker';
 import { serverWindowReadLayerBrokerProxy } from './server-window-read-layer-broker.proxy';
@@ -24,15 +23,15 @@ const STEP_8_TO = STEP_8_FROM + Buffer.byteLength(LINE_STEP_8, 'utf8');
 
 const readingsFixture = [
   StepReadingStub({
-    step: StepIndexStub({ value: 6 }),
+    step: 6,
     serverWindow: ServerLogWindowStub({ fromByte: STEP_6_FROM, toByte: STEP_6_TO }),
   }),
   StepReadingStub({
-    step: StepIndexStub({ value: 7 }),
+    step: 7,
     serverWindow: ServerLogWindowStub({ fromByte: STEP_7_FROM, toByte: STEP_7_TO }),
   }),
   StepReadingStub({
-    step: StepIndexStub({ value: 8 }),
+    step: 8,
     serverWindow: ServerLogWindowStub({ fromByte: STEP_8_FROM, toByte: STEP_8_TO }),
   }),
 ];
@@ -59,7 +58,7 @@ describe('serverWindowReadLayerBroker', () => {
     const result = await serverWindowReadLayerBroker({
       evidencePath: EVIDENCE_PATH,
       readings: readingsFixture,
-      step: StepIndexStub({ value: 99 }),
+      step: 99,
       where: null,
     });
 
@@ -87,7 +86,7 @@ describe('serverWindowReadLayerBroker', () => {
     const result = await serverWindowReadLayerBroker({
       evidencePath: EVIDENCE_PATH,
       readings: readingsFixture,
-      step: StepIndexStub({ value: 7 }),
+      step: 7,
       where: null,
     });
 
@@ -119,7 +118,7 @@ describe('serverWindowReadLayerBroker', () => {
     const result = await serverWindowReadLayerBroker({
       evidencePath: EVIDENCE_PATH,
       readings: readingsFixture,
-      step: StepIndexStub({ value: 8 }),
+      step: 8,
       where: ResultWhereStub({ level: 'warn' }),
     });
 

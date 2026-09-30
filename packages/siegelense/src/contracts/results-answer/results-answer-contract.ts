@@ -25,15 +25,15 @@ import { siegeInstanceContract, siegeRunContract } from '@dungeonmaster/shared/c
 import { instanceStateContract } from '../instance-state/instance-state-contract';
 import { resultKindContract } from '../result-kind/result-kind-contract';
 import { runResultContract } from '../run-result/run-result-contract';
-import { stepIndexContract } from '../step-index/step-index-contract';
 import { stepVerbContract } from '../step-verb/step-verb-contract';
+import { instanceLifecycleStatics } from '../../statics/instance-lifecycle/instance-lifecycle-statics';
 
 export const resultsAnswerContract = z.object({
   instanceId: siegeInstanceContract.shape.id,
   instanceState: instanceStateContract,
   runId: siegeRunContract.shape.id.nullable(),
   kind: resultKindContract.nullable(),
-  step: stepIndexContract.nullable(),
+  step: z.number().int().min(instanceLifecycleStatics.numbering.firstStep).brand<'ResultsAnswerStep'>().nullable(),
   verb: stepVerbContract.nullable(),
   prunedAtMs: z.number().int().nonnegative().brand<'ResultsAnswerPrunedAtMs'>().nullable(),
   prunedByRule: z.string().brand<'ResultsAnswerPrunedByRule'>().nullable(),

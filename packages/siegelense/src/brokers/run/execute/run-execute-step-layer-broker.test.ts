@@ -3,7 +3,6 @@ import { FsErrorStub } from '#gateway/node/fs/is-fs-error/fs-error.stub';
 import { UrlPathStub } from '../../../contracts/url-path/url-path.stub';
 import { SelectorStub } from '../../../contracts/selector/selector.stub';
 import { StepCandidateStub } from '../../../contracts/step-candidate/step-candidate.stub';
-import { StepIndexStub } from '../../../contracts/step-index/step-index.stub';
 import { StepStub } from '../../../contracts/step/step.stub';
 
 import { runExecuteStepLayerBroker } from './run-execute-step-layer-broker';
@@ -27,7 +26,7 @@ describe('runExecuteStepLayerBroker', () => {
       const outcome = await runExecuteStepLayerBroker({
         lane,
         step,
-        index: StepIndexStub({ value: 1 }),
+        index: 1,
         shotPath: null,
         browserWindowStart: null,
         lastShotPath: proxy.lastShotPath,
@@ -75,7 +74,7 @@ describe('runExecuteStepLayerBroker', () => {
       const outcome = await runExecuteStepLayerBroker({
         lane,
         step,
-        index: StepIndexStub({ value: 3 }),
+        index: 3,
         shotPath: null,
         browserWindowStart: null,
         lastShotPath: proxy.lastShotPath,
@@ -99,7 +98,7 @@ describe('runExecuteStepLayerBroker', () => {
       const outcome = await runExecuteStepLayerBroker({
         lane,
         step,
-        index: StepIndexStub({ value: 3 }),
+        index: 3,
         shotPath: null,
         browserWindowStart: null,
         lastShotPath: proxy.lastShotPath,
@@ -149,7 +148,7 @@ describe('runExecuteStepLayerBroker', () => {
       const outcome = await runExecuteStepLayerBroker({
         lane,
         step,
-        index: StepIndexStub({ value: 3 }),
+        index: 3,
         shotPath,
         browserWindowStart: null,
         lastShotPath: proxy.lastShotPath,
@@ -200,7 +199,7 @@ describe('runExecuteStepLayerBroker', () => {
       const outcome = await runExecuteStepLayerBroker({
         lane,
         step,
-        index: StepIndexStub({ value: 3 }),
+        index: 3,
         shotPath,
         browserWindowStart: null,
         lastShotPath: proxy.lastShotPath,
@@ -253,7 +252,7 @@ describe('runExecuteStepLayerBroker', () => {
       const outcome = await runExecuteStepLayerBroker({
         lane,
         step,
-        index: StepIndexStub({ value: 2 }),
+        index: 2,
         shotPath: null,
         browserWindowStart: null,
         lastShotPath: proxy.lastShotPath,
@@ -311,7 +310,7 @@ describe('runExecuteStepLayerBroker', () => {
       const outcome = await runExecuteStepLayerBroker({
         lane,
         step,
-        index: StepIndexStub({ value: 5 }),
+        index: 5,
         shotPath: null,
         browserWindowStart: null,
         lastShotPath: proxy.lastShotPath,
@@ -368,7 +367,7 @@ describe('runExecuteStepLayerBroker', () => {
       const outcome = await runExecuteStepLayerBroker({
         lane,
         step,
-        index: StepIndexStub({ value: 5 }),
+        index: 5,
         shotPath: null,
         browserWindowStart: null,
         lastShotPath: proxy.lastShotPath,
@@ -411,7 +410,7 @@ describe('runExecuteStepLayerBroker', () => {
       const outcome = await runExecuteStepLayerBroker({
         lane,
         step,
-        index: StepIndexStub({ value: 2 }),
+        index: 2,
         shotPath: null,
         browserWindowStart: null,
         lastShotPath: proxy.lastShotPath,
@@ -457,7 +456,7 @@ describe('runExecuteStepLayerBroker', () => {
       const outcome = await runExecuteStepLayerBroker({
         lane,
         step,
-        index: StepIndexStub({ value: 4 }),
+        index: 4,
         shotPath: null,
         browserWindowStart: null,
         lastShotPath: proxy.lastShotPath,

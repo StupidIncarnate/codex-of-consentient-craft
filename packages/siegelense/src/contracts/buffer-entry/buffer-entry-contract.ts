@@ -15,12 +15,12 @@
 import { z } from '#gateway/npm/zod';
 
 import { siegeRunContract } from '@dungeonmaster/shared/contracts';
+import { instanceLifecycleStatics } from '../../statics/instance-lifecycle/instance-lifecycle-statics';
 
-import { stepIndexContract } from '../step-index/step-index-contract';
 
 export const bufferEntryContract = z.object({
   runId: siegeRunContract.shape.id.nullable(),
-  step: stepIndexContract.nullable(),
+  step: z.number().int().min(instanceLifecycleStatics.numbering.firstStep).brand<'BufferEntryStep'>().nullable(),
   atMs: z.number().int().nonnegative().brand<'BufferEntryAtMs'>(),
   text: z.string().brand<'BufferEntryText'>(),
 });

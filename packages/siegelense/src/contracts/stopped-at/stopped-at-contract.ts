@@ -22,11 +22,11 @@ import { z } from '#gateway/npm/zod';
 
 
 import { stepCandidateContract } from '../step-candidate/step-candidate-contract';
-import { stepIndexContract } from '../step-index/step-index-contract';
 import { stepVerbContract } from '../step-verb/step-verb-contract';
+import { instanceLifecycleStatics } from '../../statics/instance-lifecycle/instance-lifecycle-statics';
 
 export const stoppedAtContract = z.object({
-  step: stepIndexContract,
+  step: z.number().int().min(instanceLifecycleStatics.numbering.firstStep).brand<'StoppedAtStep'>(),
   verb: stepVerbContract,
   error: z.string().brand<'StoppedAtError'>(),
   candidates: z.array(stepCandidateContract).readonly(),

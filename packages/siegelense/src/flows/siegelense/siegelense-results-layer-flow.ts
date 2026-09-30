@@ -17,6 +17,7 @@
 
 import { SiegelenseResultsResponder } from '../../responders/siegelense/results/siegelense-results-responder';
 import { resultsArgsParseTransformer } from '../../transformers/results-args-parse/results-args-parse-transformer';
+import { resultsQueryContract } from '../../contracts/results-query/results-query-contract';
 
 export const SiegelenseResultsLayerFlow = async ({
   callArgs,
@@ -24,5 +25,5 @@ export const SiegelenseResultsLayerFlow = async ({
   callArgs: readonly string[];
 }): Promise<void> => {
   const { isJson, ...query } = resultsArgsParseTransformer({ args: callArgs });
-  return SiegelenseResultsResponder({ query, isJson });
+  return SiegelenseResultsResponder({ query: resultsQueryContract.shape.step.parse(resultsQueryContract.shape.step.parse(resultsQueryContract.shape.step.parse(query))), isJson });
 };

@@ -1,7 +1,6 @@
 
 import { ElementDeltaStub } from '../../../contracts/element-delta/element-delta.stub';
 import { KeyRowStub } from '../../../contracts/key-row/key-row.stub';
-import { StepIndexStub } from '../../../contracts/step-index/step-index.stub';
 import { StepReadingStub } from '../../../contracts/step-reading/step-reading.stub';
 
 import { elementDeltaLastLayerBroker } from './element-delta-last-layer-broker';
@@ -15,7 +14,7 @@ describe('elementDeltaLastLayerBroker', () => {
     it('VALID: {one row with a non-null delta} => returns that delta', () => {
       elementDeltaLastLayerBrokerProxy();
       const delta = ElementDeltaStub({ appeared: [KeyRowStub({ testId: 'GUILD_ADD_MODAL' })] });
-      const rows = [rowFor(StepReadingStub({ step: StepIndexStub({ value: 1 }), delta }))];
+      const rows = [rowFor(StepReadingStub({ step: 1, delta }))];
 
       const result = elementDeltaLastLayerBroker({ rows });
 
@@ -29,9 +28,9 @@ describe('elementDeltaLastLayerBroker', () => {
       const firstDelta = ElementDeltaStub({ appeared: [KeyRowStub({ testId: 'FIRST' })] });
       const lastDelta = ElementDeltaStub({ disappeared: [KeyRowStub({ testId: 'LAST' })] });
       const rows = [
-        rowFor(StepReadingStub({ step: StepIndexStub({ value: 1 }), delta: firstDelta })),
-        rowFor(StepReadingStub({ step: StepIndexStub({ value: 2 }) })),
-        rowFor(StepReadingStub({ step: StepIndexStub({ value: 3 }), delta: lastDelta })),
+        rowFor(StepReadingStub({ step: 1, delta: firstDelta })),
+        rowFor(StepReadingStub({ step: 2 })),
+        rowFor(StepReadingStub({ step: 3, delta: lastDelta })),
       ];
 
       const result = elementDeltaLastLayerBroker({ rows });
@@ -52,8 +51,8 @@ describe('elementDeltaLastLayerBroker', () => {
         ],
       });
       const rows = [
-        rowFor(StepReadingStub({ step: StepIndexStub({ value: 1 }), delta: onlyDelta })),
-        rowFor(StepReadingStub({ step: StepIndexStub({ value: 2 }) })),
+        rowFor(StepReadingStub({ step: 1, delta: onlyDelta })),
+        rowFor(StepReadingStub({ step: 2 })),
       ];
 
       const result = elementDeltaLastLayerBroker({ rows });
@@ -66,8 +65,8 @@ describe('elementDeltaLastLayerBroker', () => {
     it('VALID: {every row has delta: null} => returns null', () => {
       elementDeltaLastLayerBrokerProxy();
       const rows = [
-        rowFor(StepReadingStub({ step: StepIndexStub({ value: 1 }) })),
-        rowFor(StepReadingStub({ step: StepIndexStub({ value: 2 }) })),
+        rowFor(StepReadingStub({ step: 1 })),
+        rowFor(StepReadingStub({ step: 2 })),
       ];
 
       const result = elementDeltaLastLayerBroker({ rows });

@@ -1,6 +1,5 @@
 
 import { StepReadingStub } from '../../../contracts/step-reading/step-reading.stub';
-import { StepIndexStub } from '../../../contracts/step-index/step-index.stub';
 import { transcriptReadLayerBroker } from './transcript-read-layer-broker';
 import { transcriptReadLayerBrokerProxy } from './transcript-read-layer-broker.proxy';
 
@@ -18,8 +17,8 @@ describe('transcriptReadLayerBroker', () => {
 
   it('VALID: {two complete lines} => parses both readings, in file order', async () => {
     const proxy = transcriptReadLayerBrokerProxy();
-    const first = StepReadingStub({ step: StepIndexStub({ value: 1 }) });
-    const second = StepReadingStub({ step: StepIndexStub({ value: 2 }) });
+    const first = StepReadingStub({ step: 1 });
+    const second = StepReadingStub({ step: 2 });
     proxy.setupTranscript({
       transcriptPath: TRANSCRIPT_PATH,
       content: `${JSON.stringify(first)}\n${JSON.stringify(second)}\n`,
@@ -32,8 +31,8 @@ describe('transcriptReadLayerBroker', () => {
 
   it('EDGE: {a transcript whose last line is truncated} => the earlier readings still answer', async () => {
     const proxy = transcriptReadLayerBrokerProxy();
-    const first = StepReadingStub({ step: StepIndexStub({ value: 1 }) });
-    const second = StepReadingStub({ step: StepIndexStub({ value: 2 }) });
+    const first = StepReadingStub({ step: 1 });
+    const second = StepReadingStub({ step: 2 });
     const truncatedTail = JSON.stringify(second).slice(0, 20);
     proxy.setupTranscript({
       transcriptPath: TRANSCRIPT_PATH,

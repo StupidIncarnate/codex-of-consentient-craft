@@ -43,7 +43,6 @@ import {
   type ResultsArgs,
 } from '../../contracts/results-args/results-args-contract';
 import { sinceMarkerContract } from '../../contracts/since-marker/since-marker-contract';
-import { stepIndexContract } from '../../contracts/step-index/step-index-contract';
 import { stepRangeContract } from '../../contracts/step-range/step-range-contract';
 import { resultsStatics } from '../../statics/results/results-statics';
 import { siegelenseOutputStatics } from '../../statics/siegelense-output/siegelense-output-statics';
@@ -169,7 +168,7 @@ export const resultsArgsParseTransformer = ({ args }: { args: readonly string[] 
             flag: STEP_FLAG,
             raw: stepValue,
             accepts: 'a whole number of 1 or more',
-            parse: (value) => stepIndexContract.parse(value),
+            parse: (value) => value,
           }),
     kind: kindValue === null ? null : resultKindContract.parse(kindValue),
     where: hasWhere

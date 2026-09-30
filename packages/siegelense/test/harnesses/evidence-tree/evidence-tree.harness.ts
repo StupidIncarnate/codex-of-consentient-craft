@@ -71,7 +71,6 @@ import { ServerLogByteCountStub } from '../../../src/contracts/server-log-byte-c
 import { ShotListingStub } from '../../../src/contracts/shot-listing/shot-listing.stub';
 import { SpecHashStub } from '../../../src/contracts/spec-hash/spec-hash.stub';
 import { SpecNameStub } from '../../../src/contracts/spec-name/spec-name.stub';
-import { StepIndexStub } from '../../../src/contracts/step-index/step-index.stub';
 import { StepReadingStub } from '../../../src/contracts/step-reading/step-reading.stub';
 import type { BlankReading } from '../../../src/contracts/blank-reading/blank-reading-contract';
 import type { CleanupAnswer } from '../../../src/contracts/cleanup-answer/cleanup-answer-contract';
@@ -216,13 +215,13 @@ export const evidenceTreeHarness = (): {
   const run1Shot1Path = (): string =>
     locationsShotPathFindBroker({
       shotsDir: run1Paths().shotsDir,
-      step: StepIndexStub({ value: 1 }),
+      step: 1,
     });
 
   const run2Shot1Path = (): string =>
     locationsShotPathFindBroker({
       shotsDir: run2Paths().shotsDir,
-      step: StepIndexStub({ value: 1 }),
+      step: 1,
     });
 
   const writeSolidPng = async ({ filePath }: { filePath: string }): Promise<void> => {
@@ -315,7 +314,7 @@ export const evidenceTreeHarness = (): {
     const serverLog = buildServerLog();
     return [
       StepReadingStub({
-        step: StepIndexStub({ value: 1 }),
+        step: 1,
         verb: 'goto',
         node: null,
         ok: true,
@@ -330,7 +329,7 @@ export const evidenceTreeHarness = (): {
         endedAtMs: 1_700_000_000_100,
       }),
       StepReadingStub({
-        step: StepIndexStub({ value: 2 }),
+        step: 2,
         verb: 'waitFor',
         node: 'open-guild-modal',
         ok: true,
@@ -345,7 +344,7 @@ export const evidenceTreeHarness = (): {
         endedAtMs: 1_700_000_000_200,
       }),
       StepReadingStub({
-        step: StepIndexStub({ value: 3 }),
+        step: 3,
         verb: 'eval',
         node: null,
         ok: true,
@@ -366,7 +365,7 @@ export const evidenceTreeHarness = (): {
     const serverLog = buildServerLog();
     return [
       StepReadingStub({
-        step: StepIndexStub({ value: 1 }),
+        step: 1,
         verb: 'goto',
         node: null,
         ok: true,
@@ -388,7 +387,7 @@ export const evidenceTreeHarness = (): {
       instanceId: KILLED_INSTANCE_ID,
       runId: RUN_1,
       status: 'done',
-      stepsRun: StepIndexStub({ value: 3 }),
+      stepsRun: 3,
       stoppedAt: null,
       index: {
         console: { errors: 2, warnings: 1 },
@@ -397,7 +396,7 @@ export const evidenceTreeHarness = (): {
       },
       shots: [
         ShotListingStub({
-          step: StepIndexStub({ value: 1 }),
+          step: 1,
           path: run1Shot1Path(),
           open: true,
           why: 'blank',
@@ -414,7 +413,7 @@ export const evidenceTreeHarness = (): {
       instanceId: KILLED_INSTANCE_ID,
       runId: RUN_2,
       status: 'done',
-      stepsRun: StepIndexStub({ value: 1 }),
+      stepsRun: 1,
       stoppedAt: null,
       index: {
         console: { errors: 3, warnings: 0 },
@@ -423,7 +422,7 @@ export const evidenceTreeHarness = (): {
       },
       shots: [
         ShotListingStub({
-          step: StepIndexStub({ value: 1 }),
+          step: 1,
           path: run2Shot1Path(),
           open: true,
           why: 'changed',

@@ -2,7 +2,6 @@
 import { RunIdStub } from '../../contracts/run-id/run-id.stub';
 import { RunResultStub } from '../../contracts/run-result/run-result.stub';
 import { ShotListingStub } from '../../contracts/shot-listing/shot-listing.stub';
-import { StepIndexStub } from '../../contracts/step-index/step-index.stub';
 import { StoppedAtStub } from '../../contracts/stopped-at/stopped-at.stub';
 import { runAnswerRenderTransformer } from './run-answer-render-transformer';
 
@@ -12,7 +11,7 @@ describe('runAnswerRenderTransformer', () => {
       const result = RunResultStub({
         runId: RunIdStub({ value: 'run_1' }),
         status: 'done',
-        stepsRun: StepIndexStub({ value: 5 }),
+        stepsRun: 5,
         stoppedAt: null,
         shots: [],
       });
@@ -26,7 +25,7 @@ describe('runAnswerRenderTransformer', () => {
       const result = RunResultStub({
         runId: RunIdStub({ value: 'run_2' }),
         status: 'done',
-        stepsRun: StepIndexStub({ value: 3 }),
+        stepsRun: 3,
         stoppedAt: null,
         shots: [],
         durationMs: 250,
@@ -41,7 +40,7 @@ describe('runAnswerRenderTransformer', () => {
   describe('a failing run with stoppedAt', () => {
     it('VALID: {stoppedAt} => renders STOPPED AT line with step, verb and error', () => {
       const stoppedAt = StoppedAtStub({
-        step: StepIndexStub({ value: 4 }),
+        step: 4,
         verb: 'click',
         error: 'AMBIGUOUS: 2 elements match [data-testid="PIXEL_BTN"]',
         candidates: [],
@@ -49,7 +48,7 @@ describe('runAnswerRenderTransformer', () => {
       const result = RunResultStub({
         runId: RunIdStub({ value: 'run_3' }),
         status: 'failed',
-        stepsRun: StepIndexStub({ value: 3 }),
+        stepsRun: 3,
         stoppedAt,
         shots: [],
         durationMs: 120,
@@ -67,13 +66,13 @@ describe('runAnswerRenderTransformer', () => {
   describe('a run with screenshots', () => {
     it('VALID: {shots with one screenshot} => renders SCREENSHOTS line with filename and path', () => {
       const shot = ShotListingStub({
-        step: StepIndexStub({ value: 1 }),
+        step: 1,
         path: '/repo/.dungeonmaster-assets/siegelense-assets/runs/run_1/step1.png',
       });
       const result = RunResultStub({
         runId: RunIdStub({ value: 'run_1' }),
         status: 'done',
-        stepsRun: StepIndexStub({ value: 1 }),
+        stepsRun: 1,
         stoppedAt: null,
         shots: [shot],
       });
@@ -88,15 +87,15 @@ describe('runAnswerRenderTransformer', () => {
 
     it('VALID: {stoppedAt and shots} => renders header, stopped line, and screenshots line', () => {
       const shot1 = ShotListingStub({
-        step: StepIndexStub({ value: 1 }),
+        step: 1,
         path: '/repo/.dungeonmaster-assets/siegelense-assets/runs/run_4/step1.png',
       });
       const shot2 = ShotListingStub({
-        step: StepIndexStub({ value: 2 }),
+        step: 2,
         path: '/repo/.dungeonmaster-assets/siegelense-assets/runs/run_4/step2_error.png',
       });
       const stoppedAt = StoppedAtStub({
-        step: StepIndexStub({ value: 2 }),
+        step: 2,
         verb: 'waitFor',
         error: 'timeout waiting for element',
         candidates: [],
@@ -104,7 +103,7 @@ describe('runAnswerRenderTransformer', () => {
       const result = RunResultStub({
         runId: RunIdStub({ value: 'run_4' }),
         status: 'timeout',
-        stepsRun: StepIndexStub({ value: 2 }),
+        stepsRun: 2,
         stoppedAt,
         shots: [shot1, shot2],
         durationMs: 5000,
