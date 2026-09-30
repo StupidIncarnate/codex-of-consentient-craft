@@ -20,11 +20,7 @@
 import { questContract } from '@dungeonmaster/shared/contracts';
 import { diffFiles, untrackedFiles } from '#gateway/bin/git';
 
-export const gitWorkingTreeFilesBroker = async ({
-  cwd,
-}: {
-  cwd: string;
-}): Promise<string[]> => {
+export const gitWorkingTreeFilesBroker = async ({ cwd }: { cwd: string }): Promise<string[]> => {
   const [trackedDiff, untrackedAdditions] = await Promise.all([
     diffFiles({
       cwd,

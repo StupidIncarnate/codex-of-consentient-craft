@@ -7,9 +7,11 @@
  */
 import { z } from '#gateway/npm/zod';
 
-export const censusSourceEntryContract = z.object({
-  file: z.string().min(1).brand<'CensusSourceEntryFile'>(),
-  text: z.string().brand<'CensusSourceEntryText'>(),
-}).brand<'CensusSourceEntry'>();
+export const censusSourceEntryContract = z
+  .object({
+    file: z.string().min(1).brand<'CensusSourceEntryFile'>(),
+    text: z.string().brand<'CensusSourceEntryText'>(),
+  })
+  .brand<'CensusSourceEntry'>();
 
 export type CensusSourceEntry = z.infer<typeof censusSourceEntryContract>;

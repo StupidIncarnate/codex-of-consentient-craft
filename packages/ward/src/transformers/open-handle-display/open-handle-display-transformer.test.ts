@@ -127,7 +127,7 @@ describe('openHandleDisplayTransformer', () => {
       const first = openHandleDisplayTransformer({ packageName: PACKAGE_NAME, handle, cwd: CWD });
       const second = openHandleDisplayTransformer({ packageName: PACKAGE_NAME, handle, cwd: CWD });
 
-      expect(first).toBe(String(second));
+      expect(first).toBe(second);
     });
   });
 });

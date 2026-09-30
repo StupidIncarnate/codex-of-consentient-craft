@@ -14,7 +14,6 @@
  * // on every read after (including the next one) until markScaffolded runs again
  */
 
-
 // A mutable container property, not a bare `let` — `init-declarations` demands a `let` be
 // initialized and `no-undef-init` forbids initializing one to literal `undefined`; a property on a
 // `const` object answers to neither rule.

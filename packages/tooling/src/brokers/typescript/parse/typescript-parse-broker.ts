@@ -41,7 +41,7 @@ export const typescriptParseBroker = ({
       if (value.length >= minLength) {
         const position = sourceFile.getLineAndCharacterOfPosition(node.getStart());
         const occurrence = literalOccurrenceContract.parse({
-          filePath: filePath,
+          filePath,
           line: position.line + 1, // TypeScript uses 0-based lines
           column: position.character,
         });
@@ -61,7 +61,7 @@ export const typescriptParseBroker = ({
       const value = node.text;
       const position = sourceFile.getLineAndCharacterOfPosition(node.getStart());
       const occurrence = literalOccurrenceContract.parse({
-        filePath: filePath,
+        filePath,
         line: position.line + 1,
         column: position.character,
       });

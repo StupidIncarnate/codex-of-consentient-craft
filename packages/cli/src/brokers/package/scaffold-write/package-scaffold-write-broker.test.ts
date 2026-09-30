@@ -13,9 +13,7 @@ describe('packageScaffoldWriteBroker', () => {
 
       const result = await packageScaffoldWriteBroker({ packageRoot, files });
 
-      expect(result).toStrictEqual([
-        '/repo/packages/widget-forge/package.json',
-      ]);
+      expect(result).toStrictEqual(['/repo/packages/widget-forge/package.json']);
       expect(proxy.getWrittenFiles()).toStrictEqual([
         {
           path: '/repo/packages/widget-forge/package.json',

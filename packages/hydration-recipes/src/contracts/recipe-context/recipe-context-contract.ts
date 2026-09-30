@@ -25,8 +25,24 @@ import { z } from '#gateway/npm/zod';
 export const recipeContextContract = z
   .object({
     apiBaseUrl: z.string().brand<'RecipeContextApiBaseUrl'>(),
-    homePath: z.string().min(1).refine((path) => { if (path.startsWith('/')) { return true; } if (/^[A-Za-z]:\\/u.test(path)) { return true; } return false; }, { message: 'Path must be absolute (start with / or C:\\ on Windows)', },).brand<'RecipeContextHomePath'>(),
+    homePath: z
+      .string()
+      .min(1)
+      .refine(
+        (path) => {
+          if (path.startsWith('/')) {
+            return true;
+          }
+          if (/^[A-Za-z]:\\/u.test(path)) {
+            return true;
+          }
+          return false;
+        },
+        { message: 'Path must be absolute (start with / or C:\\ on Windows)' },
+      )
+      .brand<'RecipeContextHomePath'>(),
   })
-  .strict().brand<'RecipeContext'>();
+  .strict()
+  .brand<'RecipeContext'>();
 
 export type RecipeContext = z.infer<typeof recipeContextContract>;

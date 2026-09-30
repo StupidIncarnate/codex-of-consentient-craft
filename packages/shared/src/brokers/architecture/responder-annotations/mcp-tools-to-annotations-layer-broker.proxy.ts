@@ -27,7 +27,7 @@ export const mcpToolsToAnnotationsLayerBrokerProxy = (): {
       flowFiles: { path: string; source: string }[];
     }): void => {
       listProxy.returns({
-        dirPath: `${String(packageRoot)}/src/flows`,
+        dirPath: `${packageRoot}/src/flows`,
         entries: flowEntries,
       });
 
@@ -37,7 +37,7 @@ export const mcpToolsToAnnotationsLayerBrokerProxy = (): {
       }
       const fileImpl = (filePath: string): string => {
         for (const [key, source] of fileMap) {
-          if (String(key) === String(filePath)) {
+          if (key === filePath) {
             return source;
           }
         }

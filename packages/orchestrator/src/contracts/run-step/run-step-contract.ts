@@ -30,14 +30,16 @@ import { z } from '#gateway/npm/zod';
 import { agentStepNodeContract } from '../agent-step-node/agent-step-node-contract';
 import { stepHandlerNameContract } from '../step-handler-name/step-handler-name-contract';
 
-export const runStepContract = z.object({
-  type: z.literal('run-step'),
-  questId: questContract.shape.id,
-  workItemId: workItemContract.shape.id,
-  handler: stepHandlerNameContract,
-  // The step node's OWN array schema, unwrapped from its optional — one declaration of what a
-  // handler argument is, so the dispatch instruction cannot brand it differently from the graph.
-  args: agentStepNodeContract.shape.args.unwrap(),
-}).brand<'RunStep'>();
+export const runStepContract = z
+  .object({
+    type: z.literal('run-step'),
+    questId: questContract.shape.id,
+    workItemId: workItemContract.shape.id,
+    handler: stepHandlerNameContract,
+    // The step node's OWN array schema, unwrapped from its optional — one declaration of what a
+    // handler argument is, so the dispatch instruction cannot brand it differently from the graph.
+    args: agentStepNodeContract.shape.args.unwrap(),
+  })
+  .brand<'RunStep'>();
 
 export type RunStep = z.infer<typeof runStepContract>;

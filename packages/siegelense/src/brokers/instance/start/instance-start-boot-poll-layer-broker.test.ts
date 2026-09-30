@@ -1,4 +1,3 @@
-
 import { instanceStartBootPollLayerBroker } from './instance-start-boot-poll-layer-broker';
 import { instanceStartBootPollLayerBrokerProxy } from './instance-start-boot-poll-layer-broker.proxy';
 import { BootFailureMarkerStub } from '../../../contracts/boot-failure-marker/boot-failure-marker.stub';
@@ -36,7 +35,7 @@ describe('instanceStartBootPollLayerBroker', () => {
 
       const result = await instanceStartBootPollLayerBroker({
         socketPath: SOCKET_PATH,
-        deadlineMs: deadlineMs,
+        deadlineMs,
         evidencePath: EVIDENCE_PATH,
       });
 

@@ -13,7 +13,8 @@ describe('webFetchCallsExtractTransformer', () => {
     });
 
     it('VALID: {fetchPostAdapter with statics url ref + .replace} => returns POST with statics ref (ignoring .replace)', () => {
-      const source = "fetchPostAdapter<{processId: ProcessId}>({ url: webConfigStatics.api.routes.questStart.replace(':questId', questId), body: {} });";
+      const source =
+        "fetchPostAdapter<{processId: ProcessId}>({ url: webConfigStatics.api.routes.questStart.replace(':questId', questId), body: {} });";
 
       const result = webFetchCallsExtractTransformer({ source });
 
@@ -23,7 +24,8 @@ describe('webFetchCallsExtractTransformer', () => {
     });
 
     it('VALID: {fetchPatchAdapter} => returns PATCH', () => {
-      const source = "fetchPatchAdapter({ url: webConfigStatics.api.routes.questById.replace(':questId', questId), body: input });";
+      const source =
+        "fetchPatchAdapter({ url: webConfigStatics.api.routes.questById.replace(':questId', questId), body: input });";
 
       const result = webFetchCallsExtractTransformer({ source });
 
@@ -33,7 +35,8 @@ describe('webFetchCallsExtractTransformer', () => {
     });
 
     it('VALID: {fetchDeleteAdapter} => returns DELETE', () => {
-      const source = "fetchDeleteAdapter({ url: webConfigStatics.api.routes.questById.replace(':questId', questId) });";
+      const source =
+        "fetchDeleteAdapter({ url: webConfigStatics.api.routes.questById.replace(':questId', questId) });";
 
       const result = webFetchCallsExtractTransformer({ source });
 
@@ -64,9 +67,9 @@ describe('webFetchCallsExtractTransformer', () => {
   describe('multiple calls', () => {
     it('VALID: {multiple fetch adapter calls} => returns all call sites in order', () => {
       const source = [
-          'const q = await fetchGetAdapter({ url: webConfigStatics.api.routes.quests });',
-          'const r = await fetchPostAdapter({ url: webConfigStatics.api.routes.questStart.replace(":questId", id), body: {} });',
-        ].join('\n');
+        'const q = await fetchGetAdapter({ url: webConfigStatics.api.routes.quests });',
+        'const r = await fetchPostAdapter({ url: webConfigStatics.api.routes.questStart.replace(":questId", id), body: {} });',
+      ].join('\n');
 
       const result = webFetchCallsExtractTransformer({ source });
 

@@ -72,8 +72,7 @@ export const QuestFlow = (): ToolRegistration[] => [
   {
     ...toolRegistrationContract.parse({
       name: 'start-quest',
-      description:
-        'Starts orchestration for a quest by its ID. Returns a process ID for tracking.',
+      description: 'Starts orchestration for a quest by its ID. Returns a process ID for tracking.',
       inputSchema: startQuestSchema,
     }),
     handler: async ({ args }) => QuestHandleResponder({ tool: 'start-quest', args }),
@@ -97,8 +96,7 @@ export const QuestFlow = (): ToolRegistration[] => [
   {
     ...toolRegistrationContract.parse({
       name: 'list-guilds',
-      description:
-        'Lists all registered guilds with their IDs, names, paths, and quest counts.',
+      description: 'Lists all registered guilds with their IDs, names, paths, and quest counts.',
       inputSchema: emptySchema,
     }),
     handler: async ({ args }) => QuestHandleResponder({ tool: 'list-guilds', args }),
@@ -110,8 +108,7 @@ export const QuestFlow = (): ToolRegistration[] => [
         "Returns a quest's `planningNotes`: the `operationPlans` a planning sub-agent persisted, the per-unit `blightLedger` a reviewer writes, and the durable `questNotes` side channel. An operator calls this to read a plan back off the quest — a sub-agent returns a short pointer, never the plan body, so this is the only place the pieces themselves exist.",
       inputSchema: getQuestPlanningNotesSchema,
     }),
-    handler: async ({ args }) =>
-      QuestHandleResponder({ tool: 'get-quest-planning-notes', args }),
+    handler: async ({ args }) => QuestHandleResponder({ tool: 'get-quest-planning-notes', args }),
   },
   {
     ...toolRegistrationContract.parse({
@@ -120,8 +117,7 @@ export const QuestFlow = (): ToolRegistration[] => [
         "Returns a quest's COMPLETE blight review surface, computed deterministically from a git diff: every changed file crossed with each applicable standards concern, paired with its per-unit disposition in quest.planningNotes.blightLedger — and which units still carry no disposition. The `scope` parameter chooses WHICH changes are measured — the uncommitted working tree, what is committed here but not yet pushed, the last commit alone, or the whole quest from its pinned baseRef. Those four are NOT interchangeable and answer four different questions: read `scope`'s own description for what each one measures, and pass the one YOUR prompt names. A quest with no pinned baseRef, or an empty diff, states that plainly rather than erroring.",
       inputSchema: getBlightChecklistSchema,
     }),
-    handler: async ({ args }) =>
-      QuestHandleResponder({ tool: 'get-blight-checklist', args }),
+    handler: async ({ args }) => QuestHandleResponder({ tool: 'get-blight-checklist', args }),
   },
   {
     ...toolRegistrationContract.parse({

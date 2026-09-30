@@ -16,13 +16,7 @@ export const InstallWriteGitignoreResponderProxy = (): {
   return {
     callResponder: InstallWriteGitignoreResponder,
 
-    setupReadFileContent: ({
-      filePath,
-      content,
-    }: {
-      filePath: string;
-      content: string;
-    }): void => {
+    setupReadFileContent: ({ filePath, content }: { filePath: string; content: string }): void => {
       readProxy.returns({ path: filePath, contents: content });
       writeProxy.succeeds({ path: filePath });
     },

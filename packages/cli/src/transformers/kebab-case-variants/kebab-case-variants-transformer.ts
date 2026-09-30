@@ -1,5 +1,3 @@
-import { kebabCaseVariantsContract } from '../../contracts/kebab-case-variants/kebab-case-variants-contract';
-import type { KebabCaseVariants } from '../../contracts/kebab-case-variants/kebab-case-variants-contract';
 /**
  * PURPOSE: `packageScaffoldFilesTransformer` needs camelCase, PascalCase, AND UPPER_SNAKE_CASE
  * from one kebab-case `directoryName` in a single pass. `eslint-plugin`'s
@@ -11,12 +9,10 @@ import type { KebabCaseVariants } from '../../contracts/kebab-case-variants/keba
  * kebabCaseVariantsTransformer({ kebab: 'foo-bar' });
  * // Returns { camel: 'fooBar', pascal: 'FooBar', testId: 'FOO_BAR' }
  */
+import { kebabCaseVariantsContract } from '../../contracts/kebab-case-variants/kebab-case-variants-contract';
+import type { KebabCaseVariants } from '../../contracts/kebab-case-variants/kebab-case-variants-contract';
 
-export const kebabCaseVariantsTransformer = ({
-  kebab,
-}: {
-  kebab: string;
-}): KebabCaseVariants => {
+export const kebabCaseVariantsTransformer = ({ kebab }: { kebab: string }): KebabCaseVariants => {
   const camel = kebab.replace(/-([a-z0-9])/gu, (match) => {
     const [, letter] = match.split('');
     return (letter ?? '').toUpperCase();
@@ -25,8 +21,8 @@ export const kebabCaseVariantsTransformer = ({
   const testId = kebab.replaceAll('-', '_').toUpperCase();
 
   return kebabCaseVariantsContract.parse({
-    camel: camel,
-    pascal: pascal,
-    testId: testId,
+    camel,
+    pascal,
+    testId,
   });
 };

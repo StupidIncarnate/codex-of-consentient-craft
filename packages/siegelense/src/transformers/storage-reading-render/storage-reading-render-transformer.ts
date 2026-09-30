@@ -7,11 +7,7 @@
  * // Returns '{"origin":"http://localhost:3000","local":{},"session":{}}'
  */
 
-
 import type { StorageReading } from '../../contracts/storage-reading/storage-reading-contract';
 
-export const storageReadingRenderTransformer = ({
-  reading,
-}: {
-  reading: StorageReading;
-}): string => JSON.stringify(reading);
+export const storageReadingRenderTransformer = ({ reading }: { reading: StorageReading }): string =>
+  JSON.stringify(reading);

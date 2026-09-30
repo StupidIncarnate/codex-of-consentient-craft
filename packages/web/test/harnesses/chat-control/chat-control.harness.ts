@@ -13,7 +13,6 @@
  */
 import type { Page } from '#gateway/npm/playwright__test';
 
-
 export const chatControlHarness = ({
   page,
 }: {

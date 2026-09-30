@@ -39,7 +39,7 @@ export const busSubscriberFilesFindLayerBroker = ({
 }): BusSubscriberFile[] => {
   if (buses.length === 0) return [];
 
-  const root = String(projectRoot);
+  const root = projectRoot;
   const packagesDir = `${root}/${PACKAGES_REL}`;
   const allFiles = listTsFilesLayerBroker({ dirPath: packagesDir });
 
@@ -60,7 +60,7 @@ export const busSubscriberFilesFindLayerBroker = ({
     if (source === undefined) continue;
     filesWithSource.push({ path: filePath, source });
 
-    const isAdapter = String(filePath).includes(ADAPTERS_PATH_SEGMENT);
+    const isAdapter = filePath.includes(ADAPTERS_PATH_SEGMENT);
     for (const bus of buses) {
       const matches = busOnCallDetectTransformer({ source, busExportName: bus.exportName });
       if (!matches) continue;
@@ -91,7 +91,7 @@ export const busSubscriberFilesFindLayerBroker = ({
 
     if (subscriberAdapters.size > 0) {
       for (const { path: filePath, source } of filesWithSource) {
-        if (String(filePath).includes(ADAPTERS_PATH_SEGMENT)) continue;
+        if (filePath.includes(ADAPTERS_PATH_SEGMENT)) continue;
         if (seen.has(filePath)) continue;
         const imports = importStatementsExtractTransformer({ source });
         for (const importPath of imports) {

@@ -22,11 +22,7 @@ import type { ResultsAnswer } from '../../contracts/results-answer/results-answe
 import { networkBodyTrimTransformer } from '../network-body-trim/network-body-trim-transformer';
 import { runAnswerRenderTransformer } from '../run-answer-render/run-answer-render-transformer';
 
-export const resultsAnswerRenderTransformer = ({
-  answer,
-}: {
-  answer: ResultsAnswer;
-}): string => {
+export const resultsAnswerRenderTransformer = ({ answer }: { answer: ResultsAnswer }): string => {
   const header = `INSTANCE: ${answer.instanceId} (${answer.instanceState})`;
 
   const lines = answer.rows.map((row) => {
@@ -84,7 +80,7 @@ export const resultsAnswerRenderTransformer = ({
 
   if (answer.storedReturn !== null) {
     const summary = `${header}\n${runAnswerRenderTransformer({ result: answer.storedReturn })}`;
-    return (lines.length === 0 ? summary : `${summary}${lines.join('\n')}\n`);
+    return lines.length === 0 ? summary : `${summary}${lines.join('\n')}\n`;
   }
 
   if (lines.length === 0) {

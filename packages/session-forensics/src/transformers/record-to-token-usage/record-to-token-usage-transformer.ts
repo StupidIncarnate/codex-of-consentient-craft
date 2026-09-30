@@ -27,19 +27,17 @@ export const recordToTokenUsageTransformer = ({
   record: TranscriptRecord;
 }): TokenUsage => {
   const usage = record.message?.usage;
-  const details = usage?.['output_tokens_details'];
+  const details = usage?.output_tokens_details;
   const thinkingTokens =
     typeof details === 'object' && details !== null && 'thinking_tokens' in details
       ? details.thinking_tokens
       : undefined;
 
   return tokenUsageContract.parse({
-    inputTokens: usage?.['input_tokens'] ?? 0,
-    outputTokens: usage?.['output_tokens'] ?? 0,
-    cacheReadTokens:
-      usage?.['cache_read_input_tokens'] ?? 0,
-    cacheCreationTokens:
-      usage?.['cache_creation_input_tokens'] ?? 0,
+    inputTokens: usage?.input_tokens ?? 0,
+    outputTokens: usage?.output_tokens ?? 0,
+    cacheReadTokens: usage?.cache_read_input_tokens ?? 0,
+    cacheCreationTokens: usage?.cache_creation_input_tokens ?? 0,
     thinkingTokens: thinkingTokens ?? 0,
   });
 };

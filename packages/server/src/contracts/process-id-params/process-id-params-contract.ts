@@ -8,8 +8,10 @@
 
 import { z } from '#gateway/npm/zod';
 
-export const processIdParamsContract = z.object({
-  processId: z.string().min(1).brand<'ProcessIdParamsProcessId'>(),
-}).brand<'ProcessIdParams'>();
+export const processIdParamsContract = z
+  .object({
+    processId: z.string().min(1).brand<'ProcessIdParamsProcessId'>(),
+  })
+  .brand<'ProcessIdParams'>();
 
 export type ProcessIdParams = z.infer<typeof processIdParamsContract>;

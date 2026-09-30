@@ -17,11 +17,45 @@
 
 import { z } from '#gateway/npm/zod';
 
-export const fileBusEdgeContract = z.object({
-  filePath: z.string().brand<'FileBusEdgeFilePath'>(),
-  writerFile: z.string().min(1).refine((path) => { if (path.startsWith('/')) { return true; } if (/^[A-Za-z]:\\/u.test(path)) { return true; } return false; }, { message: 'Path must be absolute (start with / or C:\\ on Windows)', },).brand<'FileBusEdgeWriterFile'>().nullable(),
-  watcherFile: z.string().min(1).refine((path) => { if (path.startsWith('/')) { return true; } if (/^[A-Za-z]:\\/u.test(path)) { return true; } return false; }, { message: 'Path must be absolute (start with / or C:\\ on Windows)', },).brand<'FileBusEdgeWatcherFile'>().nullable(),
-  paired: z.boolean(),
-}).brand<'FileBusEdge'>();
+export const fileBusEdgeContract = z
+  .object({
+    filePath: z.string().brand<'FileBusEdgeFilePath'>(),
+    writerFile: z
+      .string()
+      .min(1)
+      .refine(
+        (path) => {
+          if (path.startsWith('/')) {
+            return true;
+          }
+          if (/^[A-Za-z]:\\/u.test(path)) {
+            return true;
+          }
+          return false;
+        },
+        { message: 'Path must be absolute (start with / or C:\\ on Windows)' },
+      )
+      .brand<'FileBusEdgeWriterFile'>()
+      .nullable(),
+    watcherFile: z
+      .string()
+      .min(1)
+      .refine(
+        (path) => {
+          if (path.startsWith('/')) {
+            return true;
+          }
+          if (/^[A-Za-z]:\\/u.test(path)) {
+            return true;
+          }
+          return false;
+        },
+        { message: 'Path must be absolute (start with / or C:\\ on Windows)' },
+      )
+      .brand<'FileBusEdgeWatcherFile'>()
+      .nullable(),
+    paired: z.boolean(),
+  })
+  .brand<'FileBusEdge'>();
 
 export type FileBusEdge = z.infer<typeof fileBusEdgeContract>;

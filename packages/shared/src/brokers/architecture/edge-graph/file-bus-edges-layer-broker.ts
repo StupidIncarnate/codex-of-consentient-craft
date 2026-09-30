@@ -31,7 +31,7 @@ export const fileBusEdgesLayerBroker = ({
 }: {
   projectRoot: string;
 }): FileBusEdge[] => {
-  const packagesDir = `${String(projectRoot)}/${PACKAGES_REL}`;
+  const packagesDir = `${projectRoot}/${PACKAGES_REL}`;
   const allFiles = listTsFilesLayerBroker({ dirPath: packagesDir });
 
   const writerEntries: { filePath: string; writerFile: string }[] = [];

@@ -6,15 +6,9 @@
  * // Returns ['packages/web/src/flows/app/smoke.e2e.ts']
  */
 
-
-
 const LINE_REPORTER_PATTERN = /› ([\w/./-]+\.e2e\.ts):\d+/gu;
 
-export const extractPlaywrightLineFilesTransformer = ({
-  output,
-}: {
-  output: string;
-}): string[] => {
+export const extractPlaywrightLineFilesTransformer = ({ output }: { output: string }): string[] => {
   const seen = new Set<string>();
   let match = LINE_REPORTER_PATTERN.exec(output);
   while (match !== null) {

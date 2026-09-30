@@ -12,15 +12,7 @@ export const GuildAddResponderProxy = (): {
   const orchestrator = StartOrchestratorProxy();
 
   return {
-    setupAddGuild: ({
-      name,
-      path,
-      guild,
-    }: {
-      name: string;
-      path: string;
-      guild: Guild;
-    }): void => {
+    setupAddGuild: ({ name, path, guild }: { name: string; path: string; guild: Guild }): void => {
       orchestrator.addGuildReturns({ name, path, guild });
     },
     setupAddGuildError: ({

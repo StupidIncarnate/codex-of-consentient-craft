@@ -6,7 +6,6 @@
  * // Returns [GitRelativePath('src/file1.ts'), GitRelativePath('src/file2.ts')]
  */
 
-
 export const parseDiffOutputTransformer = ({ output }: { output: string }): string[] =>
   output
     .trim()

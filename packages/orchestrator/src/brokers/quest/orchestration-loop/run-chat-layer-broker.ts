@@ -6,7 +6,11 @@
  */
 
 import { stderr } from '#gateway/node/process';
-import { workItemRoleContract, type WorkItem, sessionContract } from '@dungeonmaster/shared/contracts';
+import {
+  workItemRoleContract,
+  type WorkItem,
+  sessionContract,
+} from '@dungeonmaster/shared/contracts';
 
 import type { ModifyQuestInput, Quest, Session } from '@dungeonmaster/shared/contracts';
 import { isCommandWorkItemRoleGuard } from '@dungeonmaster/shared/guards';

@@ -8,7 +8,6 @@
  * // Returns ['{"type":"system"}', '{"type":"assistant"}'] as StreamJsonLine[]
  */
 
-
 export const streamJsonLinesFromRawTransformer = ({
   rawLines,
 }: {

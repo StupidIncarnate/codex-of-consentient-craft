@@ -26,7 +26,7 @@ export const elapsedPartsTransformer = ({
   startedAt: string;
   endedAt: string;
 }): ElapsedParts => {
-  const ms = new Date(String(endedAt)).getTime() - new Date(String(startedAt)).getTime();
+  const ms = new Date(endedAt).getTime() - new Date(startedAt).getTime();
   const totalSeconds = Math.max(Math.floor(ms / MILLIS_PER_SECOND), 0);
   const secondsPerHour = SECONDS_PER_MINUTE * MINUTES_PER_HOUR;
   return elapsedPartsContract.parse({

@@ -25,20 +25,20 @@ describe('compareReadBroker', () => {
       const runA = RunIdStub({ value: 'run_4' });
       const runB = RunIdStub({ value: 'run_5' });
       const firstError = JSON.stringify({
-          at: 1,
-          kind: 'console',
-          type: 'error',
-          text: 'Cannot read properties of null',
-          url: '',
-          line: 0,
-        });
+        at: 1,
+        kind: 'console',
+        type: 'error',
+        text: 'Cannot read properties of null',
+        url: '',
+        line: 0,
+      });
       const secondError = JSON.stringify({
-          at: 2,
-          kind: 'pageerror',
-          type: 'TypeError',
-          text: 'boom',
-          stack: null,
-        });
+        at: 2,
+        kind: 'pageerror',
+        type: 'TypeError',
+        text: 'boom',
+        stack: null,
+      });
 
       proxy.setupInstance({
         entry: RegistryEntryStub({ id: instanceId, guildId, state: 'killed' }),
@@ -102,7 +102,8 @@ describe('compareReadBroker', () => {
       const guildId = GuildIdStub();
       const runA = RunIdStub({ value: 'run_4' });
       const runB = RunIdStub({ value: 'run_5' });
-      const previousPath = '/repo/.dungeonmaster-assets/siegelense-assets/guilds/g1/instances/inst_7f3a9c21/runs/run_4/step1.png';
+      const previousPath =
+        '/repo/.dungeonmaster-assets/siegelense-assets/guilds/g1/instances/inst_7f3a9c21/runs/run_4/step1.png';
 
       proxy.setupInstance({
         entry: RegistryEntryStub({ id: instanceId, guildId, state: 'killed' }),
@@ -136,8 +137,10 @@ describe('compareReadBroker', () => {
       const guildId = GuildIdStub();
       const runA = RunIdStub({ value: 'run_4' });
       const runB = RunIdStub({ value: 'run_5' });
-      const previousPath = '/repo/.dungeonmaster-assets/siegelense-assets/guilds/g1/instances/inst_7f3a9c21/runs/run_4/step1.png';
-      const currentPath = '/repo/.dungeonmaster-assets/siegelense-assets/guilds/g1/instances/inst_7f3a9c21/runs/run_5/step1.png';
+      const previousPath =
+        '/repo/.dungeonmaster-assets/siegelense-assets/guilds/g1/instances/inst_7f3a9c21/runs/run_4/step1.png';
+      const currentPath =
+        '/repo/.dungeonmaster-assets/siegelense-assets/guilds/g1/instances/inst_7f3a9c21/runs/run_5/step1.png';
       const previousPixels = new Uint8Array(400).fill(255);
       const currentPixels = new Uint8Array(400).fill(255);
       const flatPixelStride = 4;
@@ -189,7 +192,8 @@ describe('compareReadBroker', () => {
       const instanceId = InstanceIdStub();
       const guildId = GuildIdStub();
       const runId = RunIdStub({ value: 'run_4' });
-      const shotPath = '/repo/.dungeonmaster-assets/siegelense-assets/guilds/g1/instances/inst_7f3a9c21/runs/run_4/step1.png';
+      const shotPath =
+        '/repo/.dungeonmaster-assets/siegelense-assets/guilds/g1/instances/inst_7f3a9c21/runs/run_4/step1.png';
       const identicalPixels = new Uint8Array(400).fill(255);
 
       proxy.setupInstance({
@@ -239,21 +243,21 @@ describe('compareReadBroker', () => {
       const runA = RunIdStub({ value: 'run_4' });
       const runB = RunIdStub({ value: 'run_5' });
       const sharedLogLine = JSON.stringify({
-          at: 1,
-          kind: 'console',
-          type: 'log',
-          text: 'boot',
-          url: '',
-          line: 0,
-        });
+        at: 1,
+        kind: 'console',
+        type: 'log',
+        text: 'boot',
+        url: '',
+        line: 0,
+      });
       const newErrorLine = JSON.stringify({
-          at: 2,
-          kind: 'console',
-          type: 'error',
-          text: 'Cannot read properties of null',
-          url: '',
-          line: 0,
-        });
+        at: 2,
+        kind: 'console',
+        type: 'error',
+        text: 'Cannot read properties of null',
+        url: '',
+        line: 0,
+      });
 
       proxy.setupInstance({
         entry: RegistryEntryStub({ id: instanceId, guildId, state: 'killed' }),
@@ -286,13 +290,13 @@ describe('compareReadBroker', () => {
       const runA = RunIdStub({ value: 'run_4' });
       const runB = RunIdStub({ value: 'run_5' });
       const sharedErrorLine = JSON.stringify({
-          at: 1,
-          kind: 'console',
-          type: 'error',
-          text: 'boot failed',
-          url: '',
-          line: 0,
-        });
+        at: 1,
+        kind: 'console',
+        type: 'error',
+        text: 'boot failed',
+        url: '',
+        line: 0,
+      });
 
       proxy.setupInstance({
         entry: RegistryEntryStub({ id: instanceId, guildId, state: 'killed' }),
@@ -325,21 +329,21 @@ describe('compareReadBroker', () => {
       const runA = RunIdStub({ value: 'run_4' });
       const runB = RunIdStub({ value: 'run_5' });
       const newErrorLine = JSON.stringify({
-          at: 1,
-          kind: 'console',
-          type: 'error',
-          text: 'Cannot read properties of null',
-          url: '',
-          line: 0,
-        });
+        at: 1,
+        kind: 'console',
+        type: 'error',
+        text: 'Cannot read properties of null',
+        url: '',
+        line: 0,
+      });
       const newWarningLine = JSON.stringify({
-          at: 2,
-          kind: 'console',
-          type: 'warning',
-          text: 'deprecated api call',
-          url: '',
-          line: 0,
-        });
+        at: 2,
+        kind: 'console',
+        type: 'warning',
+        text: 'deprecated api call',
+        url: '',
+        line: 0,
+      });
 
       proxy.setupInstance({
         entry: RegistryEntryStub({ id: instanceId, guildId, state: 'killed' }),
@@ -377,23 +381,23 @@ describe('compareReadBroker', () => {
       const runA = RunIdStub({ value: 'run_4' });
       const runB = RunIdStub({ value: 'run_5' });
       const shared2xxLine = JSON.stringify({
-          at: 1,
-          method: 'GET',
-          url: '/x',
-          resourceType: 'fetch',
-          status: 200,
-          requestBody: null,
-          responseBody: 'ok',
-        });
+        at: 1,
+        method: 'GET',
+        url: '/x',
+        resourceType: 'fetch',
+        status: 200,
+        requestBody: null,
+        responseBody: 'ok',
+      });
       const newNon2xxLine = JSON.stringify({
-          at: 2,
-          method: 'POST',
-          url: '/api/guilds',
-          resourceType: 'fetch',
-          status: 500,
-          requestBody: null,
-          responseBody: null,
-        });
+        at: 2,
+        method: 'POST',
+        url: '/api/guilds',
+        resourceType: 'fetch',
+        status: 500,
+        requestBody: null,
+        responseBody: null,
+      });
 
       proxy.setupInstance({
         entry: RegistryEntryStub({ id: instanceId, guildId, state: 'killed' }),
@@ -426,23 +430,23 @@ describe('compareReadBroker', () => {
       const runA = RunIdStub({ value: 'run_4' });
       const runB = RunIdStub({ value: 'run_5' });
       const newNon2xxLine = JSON.stringify({
-          at: 1,
-          method: 'GET',
-          url: '/api/quests',
-          resourceType: 'fetch',
-          status: 404,
-          requestBody: null,
-          responseBody: null,
-        });
+        at: 1,
+        method: 'GET',
+        url: '/api/quests',
+        resourceType: 'fetch',
+        status: 404,
+        requestBody: null,
+        responseBody: null,
+      });
       const new2xxLine = JSON.stringify({
-          at: 2,
-          method: 'POST',
-          url: '/api/quests',
-          resourceType: 'fetch',
-          status: 201,
-          requestBody: null,
-          responseBody: 'created',
-        });
+        at: 2,
+        method: 'POST',
+        url: '/api/quests',
+        resourceType: 'fetch',
+        status: 201,
+        requestBody: null,
+        responseBody: 'created',
+      });
 
       proxy.setupInstance({
         entry: RegistryEntryStub({ id: instanceId, guildId, state: 'killed' }),
@@ -479,24 +483,24 @@ describe('compareReadBroker', () => {
       const runB = RunIdStub({ value: 'run_2' });
       const cacheRevalidationLines = [1, 2, 3].map((at) =>
         JSON.stringify({
-            at,
-            method: 'GET',
-            url: '/@vite/client',
-            resourceType: 'script',
-            status: 304,
-            requestBody: null,
-            responseBody: null,
-          }),
-      );
-      const realFailureLine = JSON.stringify({
-          at: 4,
-          method: 'POST',
-          url: '/api/guilds',
-          resourceType: 'fetch',
-          status: 500,
+          at,
+          method: 'GET',
+          url: '/@vite/client',
+          resourceType: 'script',
+          status: 304,
           requestBody: null,
           responseBody: null,
-        });
+        }),
+      );
+      const realFailureLine = JSON.stringify({
+        at: 4,
+        method: 'POST',
+        url: '/api/guilds',
+        resourceType: 'fetch',
+        status: 500,
+        requestBody: null,
+        responseBody: null,
+      });
 
       proxy.setupInstance({
         entry: RegistryEntryStub({ id: instanceId, guildId, state: 'killed' }),
@@ -567,23 +571,23 @@ describe('compareReadBroker', () => {
       const runA = RunIdStub({ value: 'run_4' });
       const runB = RunIdStub({ value: 'run_5' });
       const movedPermanentlyLine = JSON.stringify({
-          at: 1,
-          method: 'GET',
-          url: '/old-path',
-          resourceType: 'document',
-          status: 301,
-          requestBody: null,
-          responseBody: null,
-        });
+        at: 1,
+        method: 'GET',
+        url: '/old-path',
+        resourceType: 'document',
+        status: 301,
+        requestBody: null,
+        responseBody: null,
+      });
       const foundLine = JSON.stringify({
-          at: 2,
-          method: 'GET',
-          url: '/redirected',
-          resourceType: 'document',
-          status: 302,
-          requestBody: null,
-          responseBody: null,
-        });
+        at: 2,
+        method: 'GET',
+        url: '/redirected',
+        resourceType: 'document',
+        status: 302,
+        requestBody: null,
+        responseBody: null,
+      });
 
       proxy.setupInstance({
         entry: RegistryEntryStub({ id: instanceId, guildId, state: 'killed' }),
@@ -619,23 +623,23 @@ describe('compareReadBroker', () => {
       const runA = RunIdStub({ value: 'run_4' });
       const runB = RunIdStub({ value: 'run_5' });
       const status399Line = JSON.stringify({
-          at: 1,
-          method: 'GET',
-          url: '/x',
-          resourceType: 'fetch',
-          status: 399,
-          requestBody: null,
-          responseBody: null,
-        });
+        at: 1,
+        method: 'GET',
+        url: '/x',
+        resourceType: 'fetch',
+        status: 399,
+        requestBody: null,
+        responseBody: null,
+      });
       const status400Line = JSON.stringify({
-          at: 2,
-          method: 'GET',
-          url: '/y',
-          resourceType: 'fetch',
-          status: 400,
-          requestBody: null,
-          responseBody: null,
-        });
+        at: 2,
+        method: 'GET',
+        url: '/y',
+        resourceType: 'fetch',
+        status: 400,
+        requestBody: null,
+        responseBody: null,
+      });
 
       proxy.setupInstance({
         entry: RegistryEntryStub({ id: instanceId, guildId, state: 'killed' }),
@@ -671,14 +675,14 @@ describe('compareReadBroker', () => {
       const runA = RunIdStub({ value: 'run_4' });
       const runB = RunIdStub({ value: 'run_5' });
       const noResponseLine = JSON.stringify({
-          at: 1,
-          method: 'GET',
-          url: '/never-answered',
-          resourceType: 'fetch',
-          status: null,
-          requestBody: null,
-          responseBody: null,
-        });
+        at: 1,
+        method: 'GET',
+        url: '/never-answered',
+        resourceType: 'fetch',
+        status: null,
+        requestBody: null,
+        responseBody: null,
+      });
 
       proxy.setupInstance({
         entry: RegistryEntryStub({ id: instanceId, guildId, state: 'killed' }),
@@ -776,10 +780,7 @@ describe('compareReadBroker', () => {
       proxy.setupStepReadings({
         evidencePath,
         runId: runA,
-        readings: [
-          StepReadingStub({ step: 1, delta: runADelta }),
-          StepReadingStub({ step: 2 }),
-        ],
+        readings: [StepReadingStub({ step: 1, delta: runADelta }), StepReadingStub({ step: 2 })],
       });
 
       const result = await compareReadBroker({

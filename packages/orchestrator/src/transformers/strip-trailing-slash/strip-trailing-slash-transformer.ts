@@ -9,6 +9,5 @@
  * // Returns: branded FilePath '/home/user/repo'
  */
 
-
 export const stripTrailingSlashTransformer = ({ path }: { path: string }): string =>
   path.replace(/\/+$/u, '');

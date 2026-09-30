@@ -88,11 +88,12 @@ export const heartbeatWriteBroker = async ({
   await writeFile(heartbeatPath, contents);
 
   await registryUpdateBroker({
-    mutate: (current) => (registryContract.parse({
-      instances: current.instances.map((entry) =>
-        entry.id === instanceId ? { ...entry, lastBeatMs: heartbeat.beatAtMs } : entry,
-      ),
-    })),
+    mutate: (current) =>
+      registryContract.parse({
+        instances: current.instances.map((entry) =>
+          entry.id === instanceId ? { ...entry, lastBeatMs: heartbeat.beatAtMs } : entry,
+        ),
+      }),
   });
 
   return heartbeat;

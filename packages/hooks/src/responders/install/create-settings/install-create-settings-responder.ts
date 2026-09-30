@@ -20,7 +20,11 @@
  * the two: it merges key by key, so the consumer's variables survive alongside the one added here.
  */
 
-import { type InstallContext, type InstallResult, installResultContract } from '@dungeonmaster/shared/contracts';
+import {
+  type InstallContext,
+  type InstallResult,
+  installResultContract,
+} from '@dungeonmaster/shared/contracts';
 import { locationsStatics } from '@dungeonmaster/shared/statics';
 import { jsonFileContentsTransformer } from '@dungeonmaster/shared/transformers';
 import path from '#gateway/node/path';

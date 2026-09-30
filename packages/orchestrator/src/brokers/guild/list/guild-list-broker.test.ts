@@ -24,7 +24,8 @@ describe('guildListBroker', () => {
         path: '/home/user/my-app',
         createdAt: '2024-01-15T10:00:00.000Z',
       });
-      const questsDirPath = '/home/user/.dungeonmaster/guilds/f47ac10b-58cc-4372-a567-0e02b2c3d479/quests';
+      const questsDirPath =
+        '/home/user/.dungeonmaster/guilds/f47ac10b-58cc-4372-a567-0e02b2c3d479/quests';
 
       proxy.setupGuildList({
         config: GuildConfigStub({ guilds: [guild] }),
@@ -67,7 +68,8 @@ describe('guildListBroker', () => {
         path: '/home/user/missing-app',
         createdAt: '2024-01-15T10:00:00.000Z',
       });
-      const questsDirPath = '/home/user/.dungeonmaster/guilds/f47ac10b-58cc-4372-a567-0e02b2c3d479/quests';
+      const questsDirPath =
+        '/home/user/.dungeonmaster/guilds/f47ac10b-58cc-4372-a567-0e02b2c3d479/quests';
 
       proxy.setupGuildList({
         config: GuildConfigStub({ guilds: [guild] }),
@@ -113,8 +115,10 @@ describe('guildListBroker', () => {
         path: '/home/user/second-app',
         createdAt: '2024-02-20T12:00:00.000Z',
       });
-      const questsDirPath1 = '/home/user/.dungeonmaster/guilds/f47ac10b-58cc-4372-a567-0e02b2c3d479/quests';
-      const questsDirPath2 = '/home/user/.dungeonmaster/guilds/a99ef0d8-6ae0-1972-9617-694d449a8242/quests';
+      const questsDirPath1 =
+        '/home/user/.dungeonmaster/guilds/f47ac10b-58cc-4372-a567-0e02b2c3d479/quests';
+      const questsDirPath2 =
+        '/home/user/.dungeonmaster/guilds/a99ef0d8-6ae0-1972-9617-694d449a8242/quests';
 
       proxy.setupGuildList({
         config: GuildConfigStub({ guilds: [guild1, guild2] }),
@@ -173,7 +177,8 @@ describe('guildListBroker', () => {
         path: '/home/user/my-app',
         createdAt: '2024-01-15T10:00:00.000Z',
       });
-      const questsDirPath = '/home/user/.dungeonmaster/guilds/f47ac10b-58cc-4372-a567-0e02b2c3d479/quests';
+      const questsDirPath =
+        '/home/user/.dungeonmaster/guilds/f47ac10b-58cc-4372-a567-0e02b2c3d479/quests';
 
       proxy.setupGuildList({
         config: GuildConfigStub({ guilds: [guild] }),
@@ -220,7 +225,8 @@ describe('guildListBroker', () => {
         urlSlug: undefined,
         createdAt: '2024-01-15T10:00:00.000Z',
       });
-      const questsDirPath = '/home/user/.dungeonmaster/guilds/f47ac10b-58cc-4372-a567-0e02b2c3d479/quests';
+      const questsDirPath =
+        '/home/user/.dungeonmaster/guilds/f47ac10b-58cc-4372-a567-0e02b2c3d479/quests';
 
       proxy.setupGuildList({
         config: GuildConfigStub({ guilds: [guild] }),

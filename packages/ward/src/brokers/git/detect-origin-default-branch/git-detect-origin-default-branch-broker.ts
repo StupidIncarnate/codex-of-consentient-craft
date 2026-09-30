@@ -17,7 +17,6 @@
 
 import { detectOriginDefaultBranch, GitNotInstalledError } from '#gateway/bin/git';
 
-
 export const gitDetectOriginDefaultBranchBroker = async ({
   cwd,
 }: {

@@ -61,7 +61,7 @@ export const resolvePackageGroupsLayerBrokerProxy = (): {
       for (const { name, content } of flowFiles) {
         readFileProxy.setupReturns({
           filePath: `${packageRoot}/src/flows/${name}`,
-          content: content,
+          content,
         });
       }
       // Exact-path address (not .setupImplementation's low-specificity catch-all) — every

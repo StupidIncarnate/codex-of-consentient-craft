@@ -10,7 +10,7 @@ describe('elapsedRenderTransformer', () => {
       [3_600_000, '1h'],
       [86_400_000, '1d'],
     ])('VALID: {elapsedMs: %i} => renders %s', (elapsedMs, expected) => {
-      const result = elapsedRenderTransformer({ elapsedMs: elapsedMs });
+      const result = elapsedRenderTransformer({ elapsedMs });
 
       expect(result).toBe(expected);
     });

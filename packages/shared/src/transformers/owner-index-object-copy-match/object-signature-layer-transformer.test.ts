@@ -24,9 +24,7 @@ describe('objectSignatureLayerTransformer', () => {
 
   describe('no keys', () => {
     it('EMPTY: {z.object({})} => returns undefined', () => {
-      expect(
-        objectSignatureLayerTransformer({ text: 'z.object({})' }),
-      ).toBe(undefined);
+      expect(objectSignatureLayerTransformer({ text: 'z.object({})' })).toBe(undefined);
     });
   });
 });

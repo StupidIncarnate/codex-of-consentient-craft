@@ -9,7 +9,11 @@
  */
 
 import { guildContract } from '@dungeonmaster/shared/contracts';
-import { hydrationRunResultContract, planMakesEntryContract, planRunsResultContract } from '@dungeonmaster/hydration/contracts';
+import {
+  hydrationRunResultContract,
+  planMakesEntryContract,
+  planRunsResultContract,
+} from '@dungeonmaster/hydration/contracts';
 
 import type { RecipeCatalogEntry } from '../../../contracts/recipe-catalog-entry/recipe-catalog-entry-contract';
 import { recipeCatalogEntryContract } from '../../../contracts/recipe-catalog-entry/recipe-catalog-entry-contract';
@@ -63,7 +67,9 @@ export const recipesCatalogBroker = (): readonly RecipeCatalogEntry[] => [
           `recipesSeedRunBroker: recipe 'guild-empty' takes no params, got: ${suppliedKeys.join(', ')}`,
         );
       }
-      return hydrationRunResultContract.parse(await dmRegistryBroker.run(recipesGuildEmptyBroker(), target));
+      return hydrationRunResultContract.parse(
+        await dmRegistryBroker.run(recipesGuildEmptyBroker(), target),
+      );
     },
   },
   {
@@ -87,7 +93,9 @@ export const recipesCatalogBroker = (): readonly RecipeCatalogEntry[] => [
           `recipesSeedRunBroker: recipe 'guild-with-three-quests' takes no params, got: ${suppliedKeys.join(', ')}`,
         );
       }
-      return hydrationRunResultContract.parse(await dmRegistryBroker.run(recipesGuildWithThreeQuestsBroker(), target));
+      return hydrationRunResultContract.parse(
+        await dmRegistryBroker.run(recipesGuildWithThreeQuestsBroker(), target),
+      );
     },
   },
   {
@@ -132,9 +140,7 @@ export const recipesCatalogBroker = (): readonly RecipeCatalogEntry[] => [
       }
       const plan = recipesQuestAdvancesOneStepBroker(parseResult.data);
       const listing = dmRegistryBroker.listing(plan);
-      const inputKeys = Object.keys(parseResult.data).map((key) =>
-        key,
-      );
+      const inputKeys = Object.keys(parseResult.data).map((key) => key);
       return {
         runs: listing.runs,
         makes: listing.makes,
@@ -172,7 +178,9 @@ export const recipesCatalogBroker = (): readonly RecipeCatalogEntry[] => [
           `recipesSeedRunBroker: recipe 'quest-completed' takes no params, got: ${suppliedKeys.join(', ')}`,
         );
       }
-      return hydrationRunResultContract.parse(await dmRegistryBroker.run(recipesQuestCompletedBroker(), target));
+      return hydrationRunResultContract.parse(
+        await dmRegistryBroker.run(recipesQuestCompletedBroker(), target),
+      );
     },
   },
   {
@@ -193,9 +201,7 @@ export const recipesCatalogBroker = (): readonly RecipeCatalogEntry[] => [
       }
       const plan = recipesSessionSingleTurnBroker(parseResult.data);
       const listing = dmRegistryBroker.listing(plan);
-      const inputKeys = Object.keys(parseResult.data).map((key) =>
-        key,
-      );
+      const inputKeys = Object.keys(parseResult.data).map((key) => key);
       return {
         runs: listing.runs,
         makes: listing.makes,
@@ -230,9 +236,7 @@ export const recipesCatalogBroker = (): readonly RecipeCatalogEntry[] => [
       }
       const plan = recipesSessionWithNestedChainBroker(parseResult.data);
       const listing = dmRegistryBroker.listing(plan);
-      const inputKeys = Object.keys(parseResult.data).map((key) =>
-        key,
-      );
+      const inputKeys = Object.keys(parseResult.data).map((key) => key);
       return {
         runs: listing.runs,
         makes: listing.makes,
@@ -270,7 +274,9 @@ export const recipesCatalogBroker = (): readonly RecipeCatalogEntry[] => [
           `recipesSeedRunBroker: recipe 'guild-active-suite' takes no params, got: ${suppliedKeys.join(', ')}`,
         );
       }
-      return hydrationRunResultContract.parse(await dmRegistryBroker.run(recipesGuildActiveSuiteBroker(), target));
+      return hydrationRunResultContract.parse(
+        await dmRegistryBroker.run(recipesGuildActiveSuiteBroker(), target),
+      );
     },
   },
   {

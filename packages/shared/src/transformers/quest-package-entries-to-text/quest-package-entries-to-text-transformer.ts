@@ -19,5 +19,5 @@ export const questPackageEntriesToTextTransformer = ({
   entries: readonly QuestPackageEntry[];
 }): string =>
   entries
-      .map((entry) => `${String(entry.name)} (${entry.changeType}, ${entry.packageType})`)
-      .join(', ');
+    .map((entry) => `${String(entry.name)} (${entry.changeType}, ${entry.packageType})`)
+    .join(', ');

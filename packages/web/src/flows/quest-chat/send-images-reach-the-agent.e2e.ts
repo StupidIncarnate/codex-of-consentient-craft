@@ -56,7 +56,7 @@ test.describe('Composer send — images reach the agent', () => {
     await sessions.createSessionFile({ sessionId, userMessage: 'Build feature' });
 
     const created = await quests.createQuest({
-      guildId: guildId,
+      guildId,
       title: 'Reach Agent Branch Quest',
       userRequest: 'Build feature',
     });
@@ -135,7 +135,7 @@ test.describe('Composer send — images reach the agent', () => {
     await sessions.createSessionFile({ sessionId, userMessage: 'Build feature' });
 
     const created = await quests.createQuest({
-      guildId: guildId,
+      guildId,
       title: 'Reach Agent Forward Once Quest',
       userRequest: 'Build feature',
     });
@@ -228,7 +228,7 @@ test.describe('Composer send — images reach the agent', () => {
     await sessions.createSessionFile({ sessionId, userMessage: 'Build feature' });
 
     const created = await quests.createQuest({
-      guildId: guildId,
+      guildId,
       title: 'Reach Agent Absolute Path Quest',
       userRequest: 'Build feature',
     });
@@ -320,7 +320,7 @@ test.describe('Composer send — images reach the agent', () => {
     await sessions.createSessionFile({ sessionId, userMessage: 'Build feature' });
 
     const created = await quests.createQuest({
-      guildId: guildId,
+      guildId,
       title: 'Reach Agent Markdown Path Quest',
       userRequest: 'Build feature',
     });
@@ -407,7 +407,7 @@ test.describe('Composer send — images reach the agent', () => {
     await sessions.createSessionFile({ sessionId, userMessage: 'Build feature' });
 
     const created = await quests.createQuest({
-      guildId: guildId,
+      guildId,
       title: 'Reach Agent Nth Token Quest',
       userRequest: 'Build feature',
     });
@@ -505,7 +505,7 @@ test.describe('Composer send — images reach the agent', () => {
     await sessions.createSessionFile({ sessionId, userMessage: 'Build feature' });
 
     const created = await quests.createQuest({
-      guildId: guildId,
+      guildId,
       title: 'Reach Agent Trailer Quest',
       userRequest: 'Build feature',
     });
@@ -603,7 +603,7 @@ test.describe('Composer send — images reach the agent', () => {
     await sessions.createSessionFile({ sessionId, userMessage: 'Build feature' });
 
     const created = await quests.createQuest({
-      guildId: guildId,
+      guildId,
       title: 'Reach Agent Argv Quest',
       userRequest: 'Build feature',
     });
@@ -889,7 +889,7 @@ test.describe('Composer send — images reach the agent', () => {
     await sessions.createSessionFile({ sessionId, userMessage: 'Build feature' });
 
     const created = await quests.createQuest({
-      guildId: guildId,
+      guildId,
       title: 'Reach Agent First Token Quest',
       userRequest: 'Build feature',
     });

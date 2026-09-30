@@ -1,4 +1,3 @@
-
 import { ElementDeltaStub } from '../../../contracts/element-delta/element-delta.stub';
 import { KeyRowStub } from '../../../contracts/key-row/key-row.stub';
 import { StepReadingStub } from '../../../contracts/step-reading/step-reading.stub';
@@ -6,8 +5,7 @@ import { StepReadingStub } from '../../../contracts/step-reading/step-reading.st
 import { elementDeltaLastLayerBroker } from './element-delta-last-layer-broker';
 import { elementDeltaLastLayerBrokerProxy } from './element-delta-last-layer-broker.proxy';
 
-const rowFor = (reading: ReturnType<typeof StepReadingStub>): string =>
-  JSON.stringify(reading);
+const rowFor = (reading: ReturnType<typeof StepReadingStub>): string => JSON.stringify(reading);
 
 describe('elementDeltaLastLayerBroker', () => {
   describe('a single row carrying a delta', () => {
@@ -64,10 +62,7 @@ describe('elementDeltaLastLayerBroker', () => {
   describe('no row ever recorded a delta', () => {
     it('VALID: {every row has delta: null} => returns null', () => {
       elementDeltaLastLayerBrokerProxy();
-      const rows = [
-        rowFor(StepReadingStub({ step: 1 })),
-        rowFor(StepReadingStub({ step: 2 })),
-      ];
+      const rows = [rowFor(StepReadingStub({ step: 1 })), rowFor(StepReadingStub({ step: 2 }))];
 
       const result = elementDeltaLastLayerBroker({ rows });
 

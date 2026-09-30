@@ -53,8 +53,8 @@ export const questNewBroker = async ({
     body: post.body,
     onProgress: ({ bytesSent, bytesTotal }): void => {
       post.onProgress({
-        bytesSent: bytesSent,
-        bytesTotal: bytesTotal,
+        bytesSent,
+        bytesTotal,
       });
     },
   });

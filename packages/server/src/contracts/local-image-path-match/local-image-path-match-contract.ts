@@ -20,12 +20,27 @@
 
 import { z } from '#gateway/npm/zod';
 
-
-
-export const localImagePathMatchContract = z.object({
-  path: z.string().min(1).refine((path) => { if (path.startsWith('/')) { return true; } if (/^[A-Za-z]:\\/u.test(path)) { return true; } return false; }, { message: 'Path must be absolute (start with / or C:\\ on Windows)', },).brand<'LocalImagePathMatchPath'>(),
-  matchedText: z.string().min(1).brand<'LocalImagePathMatchMatchedText'>(),
-  ordinal: z.number().int().positive().brand<'LocalImagePathMatchOrdinal'>(),
-}).brand<'LocalImagePathMatch'>();
+export const localImagePathMatchContract = z
+  .object({
+    path: z
+      .string()
+      .min(1)
+      .refine(
+        (path) => {
+          if (path.startsWith('/')) {
+            return true;
+          }
+          if (/^[A-Za-z]:\\/u.test(path)) {
+            return true;
+          }
+          return false;
+        },
+        { message: 'Path must be absolute (start with / or C:\\ on Windows)' },
+      )
+      .brand<'LocalImagePathMatchPath'>(),
+    matchedText: z.string().min(1).brand<'LocalImagePathMatchMatchedText'>(),
+    ordinal: z.number().int().positive().brand<'LocalImagePathMatchOrdinal'>(),
+  })
+  .brand<'LocalImagePathMatch'>();
 
 export type LocalImagePathMatch = z.infer<typeof localImagePathMatchContract>;

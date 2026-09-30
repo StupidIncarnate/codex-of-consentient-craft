@@ -6,12 +6,7 @@
  * // Returns '-broker'
  */
 
-
-export const fileSuffixFormatterTransformer = ({
-  suffix,
-}: {
-  suffix: string;
-}): string => {
+export const fileSuffixFormatterTransformer = ({ suffix }: { suffix: string }): string => {
   const formatted = suffix.replace(/\.tsx?$/u, '');
   return formatted;
 };

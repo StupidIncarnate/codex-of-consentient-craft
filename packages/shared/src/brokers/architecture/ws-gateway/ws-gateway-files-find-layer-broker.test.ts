@@ -2,7 +2,8 @@ import { wsGatewayFilesFindLayerBroker } from './ws-gateway-files-find-layer-bro
 import { wsGatewayFilesFindLayerBrokerProxy } from './ws-gateway-files-find-layer-broker.proxy';
 
 const PROJECT_ROOT = '/repo';
-const WS_ADAPTER = '/repo/packages/server/src/adapters/hono/create-node-web-socket/hono-create-node-web-socket-adapter.ts';
+const WS_ADAPTER =
+  '/repo/packages/server/src/adapters/hono/create-node-web-socket/hono-create-node-web-socket-adapter.ts';
 const GATEWAY_FILE = '/repo/packages/server/src/responders/server/init/server-init-responder.ts';
 
 describe('wsGatewayFilesFindLayerBroker', () => {
@@ -27,7 +28,8 @@ describe('wsGatewayFilesFindLayerBroker', () => {
         sourceFiles: [
           {
             path: GATEWAY_FILE,
-            source: "import { honoCreateNodeWebSocketAdapter } from '../../../adapters/hono/create-node-web-socket/hono-create-node-web-socket-adapter';",
+            source:
+              "import { honoCreateNodeWebSocketAdapter } from '../../../adapters/hono/create-node-web-socket/hono-create-node-web-socket-adapter';",
           },
         ],
       });

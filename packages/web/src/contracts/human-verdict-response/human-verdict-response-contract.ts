@@ -12,9 +12,11 @@
 
 import { z } from '#gateway/npm/zod';
 
-export const humanVerdictResponseContract = z.object({
-  ok: z.literal(true).optional(),
-  error: z.string().min(1).brand<'HumanVerdictResponseError'>().optional(),
-}).brand<'HumanVerdictResponse'>();
+export const humanVerdictResponseContract = z
+  .object({
+    ok: z.literal(true).optional(),
+    error: z.string().min(1).brand<'HumanVerdictResponseError'>().optional(),
+  })
+  .brand<'HumanVerdictResponse'>();
 
 export type HumanVerdictResponse = z.infer<typeof humanVerdictResponseContract>;

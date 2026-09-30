@@ -12,17 +12,19 @@ import { flowNodeContract } from '../flow-node/flow-node-contract';
 import { flowContract } from '../flow/flow-contract';
 import { flowObservableContract } from '../flow-observable/flow-observable-contract';
 
-export const questCommentContract = z.object({
-  id: z.uuid().brand<'QuestCommentId'>(),
-  flowId: flowContract.shape.id,
-  // Stays required even when observableId is set, so an observable comment is findable from its
-  // parent node — observables render as their own always-visible boxes branching right of the node.
-  nodeId: flowNodeContract.shape.id,
-  observableId: flowObservableContract.shape.id.optional(),
-  text: z.string().min(1).brand<'QuestCommentText'>(),
-  // The age of the text as it currently stands, not of the first draft — editing a queued comment
-  // bumps this, and it is carried through the send so newest-first ordering matches authoring order.
-  createdAt: z.iso.datetime().brand<'QuestCommentCreatedAt'>(),
-}).brand<'QuestComment'>();
+export const questCommentContract = z
+  .object({
+    id: z.uuid().brand<'QuestCommentId'>(),
+    flowId: flowContract.shape.id,
+    // Stays required even when observableId is set, so an observable comment is findable from its
+    // parent node — observables render as their own always-visible boxes branching right of the node.
+    nodeId: flowNodeContract.shape.id,
+    observableId: flowObservableContract.shape.id.optional(),
+    text: z.string().min(1).brand<'QuestCommentText'>(),
+    // The age of the text as it currently stands, not of the first draft — editing a queued comment
+    // bumps this, and it is carried through the send so newest-first ordering matches authoring order.
+    createdAt: z.iso.datetime().brand<'QuestCommentCreatedAt'>(),
+  })
+  .brand<'QuestComment'>();
 
 export type QuestComment = z.infer<typeof questCommentContract>;

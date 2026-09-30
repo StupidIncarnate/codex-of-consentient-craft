@@ -40,9 +40,7 @@ export const graphReachabilityViolationsTransformer = ({
   // `Object.entries` erases branding on its own keys, so every step key is re-parsed here, once,
   // rather than compared against the raw string it arrived as everywhere below.
   const nodesMap = new Map(
-    Object.entries(graph.nodes).map(
-      ([stepKey, node]) => [stepKey, node] as const,
-    ),
+    Object.entries(graph.nodes).map(([stepKey, node]) => [stepKey, node] as const),
   );
 
   // Rule 1: every step is reachable from `entry`, or declares the exempt flag for this level.

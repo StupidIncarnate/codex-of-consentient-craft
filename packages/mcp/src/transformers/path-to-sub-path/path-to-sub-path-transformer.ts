@@ -10,11 +10,7 @@
  */
 import { fileDiscoveryStatics } from '../../statics/file-discovery/file-discovery-statics';
 
-export const pathToSubPathTransformer = ({
-  filepath,
-}: {
-  filepath?: string;
-}): string | null => {
+export const pathToSubPathTransformer = ({ filepath }: { filepath?: string }): string | null => {
   if (!filepath) {
     return null;
   }

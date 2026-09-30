@@ -34,7 +34,13 @@
 import { resolveChatQuestLayerResultContract } from '../../../contracts/resolve-chat-quest-layer-result/resolve-chat-quest-layer-result-contract';
 import type { ResolveChatQuestLayerResult } from '../../../contracts/resolve-chat-quest-layer-result/resolve-chat-quest-layer-result-contract';
 import { addQuestInputContract, getQuestInputContract } from '@dungeonmaster/shared/contracts';
-import type { QuestType, WorkItemRole, Quest, Guild, Session } from '@dungeonmaster/shared/contracts';
+import type {
+  QuestType,
+  WorkItemRole,
+  Quest,
+  Guild,
+  Session,
+} from '@dungeonmaster/shared/contracts';
 
 import { questGetBroker } from '../../quest/get/quest-get-broker';
 import { questUserAddBroker } from '../../quest/user-add/quest-user-add-broker';
@@ -80,7 +86,11 @@ export const resolveChatQuestLayerBroker = async ({
     if (!tavernkeeperItem) {
       throw new Error(`Quest ${questId} has no tavernkeeper work item`);
     }
-    return resolveChatQuestLayerResultContract.parse({ questId, workItemId: tavernkeeperItem.id, createdQuest: false });
+    return resolveChatQuestLayerResultContract.parse({
+      questId,
+      workItemId: tavernkeeperItem.id,
+      createdQuest: false,
+    });
   }
 
   if (existingQuestId) {
@@ -96,7 +106,11 @@ export const resolveChatQuestLayerBroker = async ({
     if (!intakeItem) {
       throw new Error(`Quest ${existingQuestId} has no ${role} work item`);
     }
-    return resolveChatQuestLayerResultContract.parse({ questId: existingQuestId, workItemId: intakeItem.id, createdQuest: false });
+    return resolveChatQuestLayerResultContract.parse({
+      questId: existingQuestId,
+      workItemId: intakeItem.id,
+      createdQuest: false,
+    });
   }
 
   if (sessionId && questId) {
@@ -110,7 +124,11 @@ export const resolveChatQuestLayerBroker = async ({
     if (!intakeItem) {
       throw new Error(`Quest ${questId} has no ${role} work item`);
     }
-    return resolveChatQuestLayerResultContract.parse({ questId, workItemId: intakeItem.id, createdQuest: false });
+    return resolveChatQuestLayerResultContract.parse({
+      questId,
+      workItemId: intakeItem.id,
+      createdQuest: false,
+    });
   }
 
   const addInput = addQuestInputContract.parse({

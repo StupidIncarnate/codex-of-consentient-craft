@@ -33,7 +33,9 @@ describe('BlightChecklistLayerResponder', () => {
 
       await BlightChecklistLayerResponder({ args: { questId: 'add-auth' } });
 
-      expect(proxy.getLastCalledInputFor({ questId: QuestIdStub({ value: 'add-auth' }) })).toStrictEqual({
+      expect(
+        proxy.getLastCalledInputFor({ questId: QuestIdStub({ value: 'add-auth' }) }),
+      ).toStrictEqual({
         questId: 'add-auth',
       });
     });
@@ -49,7 +51,9 @@ describe('BlightChecklistLayerResponder', () => {
 
       await BlightChecklistLayerResponder({ args: { questId: 'add-auth', scope: 'commit' } });
 
-      expect(proxy.getLastCalledInputFor({ questId: QuestIdStub({ value: 'add-auth' }) })).toStrictEqual({
+      expect(
+        proxy.getLastCalledInputFor({ questId: QuestIdStub({ value: 'add-auth' }) }),
+      ).toStrictEqual({
         questId: 'add-auth',
         scope: 'commit',
       });
@@ -67,7 +71,9 @@ describe('BlightChecklistLayerResponder', () => {
 
       await BlightChecklistLayerResponder({ args: { questId: 'add-auth', scope: 'unpushed' } });
 
-      expect(proxy.getLastCalledInputFor({ questId: QuestIdStub({ value: 'add-auth' }) })).toStrictEqual({
+      expect(
+        proxy.getLastCalledInputFor({ questId: QuestIdStub({ value: 'add-auth' }) }),
+      ).toStrictEqual({
         questId: 'add-auth',
         scope: 'unpushed',
       });

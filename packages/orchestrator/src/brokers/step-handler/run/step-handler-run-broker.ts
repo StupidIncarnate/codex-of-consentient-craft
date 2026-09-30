@@ -23,7 +23,6 @@
  * // { outcome: 'done' | 'empty' | 'unmet' | 'wall', detail, resultRef? }
  */
 
-
 import { stepHandlerResultContract } from '../../../contracts/step-handler-result/step-handler-result-contract';
 import type { StepHandlerResult } from '../../../contracts/step-handler-result/step-handler-result-contract';
 import type { StepHandlerName } from '../../../contracts/step-handler-name/step-handler-name-contract';
@@ -65,7 +64,7 @@ export const stepHandlerRunBroker = async ({
   } catch (error: unknown) {
     return stepHandlerResultContract.parse({
       outcome: 'wall',
-      detail: (error instanceof Error ? error.message : String(error)),
+      detail: error instanceof Error ? error.message : String(error),
     });
   }
 };

@@ -10,8 +10,10 @@
 
 import { z } from '#gateway/npm/zod';
 
-export const questClarifyResultContract = z.object({
-  chatProcessId: z.string().min(1).brand<'QuestClarifyResultChatProcessId'>(),
-}).brand<'QuestClarifyResult'>();
+export const questClarifyResultContract = z
+  .object({
+    chatProcessId: z.string().min(1).brand<'QuestClarifyResultChatProcessId'>(),
+  })
+  .brand<'QuestClarifyResult'>();
 
 export type QuestClarifyResult = z.infer<typeof questClarifyResultContract>;

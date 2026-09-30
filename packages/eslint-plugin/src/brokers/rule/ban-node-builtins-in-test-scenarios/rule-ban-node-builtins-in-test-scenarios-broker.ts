@@ -40,7 +40,7 @@ export const ruleBanNodeBuiltinsInTestScenariosBroker =
 
           const isSpecFile = isSpecFileGuard({ filename });
           const isIntegrationTestFile = isIntegrationTestFileGuard({
-            filePath: filename as string,
+            filePath: filename,
           });
 
           if (!isSpecFile && !isIntegrationTestFile) {

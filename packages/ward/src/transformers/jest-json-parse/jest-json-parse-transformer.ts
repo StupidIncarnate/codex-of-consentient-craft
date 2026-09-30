@@ -16,11 +16,7 @@ import { stripAnsiCodesTransformer } from '../strip-ansi-codes/strip-ansi-codes-
 import { annotateTimeoutFailureTransformer } from '../annotate-timeout-failure/annotate-timeout-failure-transformer';
 import { stripTimeoutNoiseTransformer } from '../strip-timeout-noise/strip-timeout-noise-transformer';
 
-export const jestJsonParseTransformer = ({
-  jsonOutput,
-}: {
-  jsonOutput: string;
-}): TestFailure[] => {
+export const jestJsonParseTransformer = ({ jsonOutput }: { jsonOutput: string }): TestFailure[] => {
   const jsonString = extractJsonObjectTransformer({ output: jsonOutput });
   const report = jestJsonReportContract.safeParse(JSON.parse(jsonString));
 

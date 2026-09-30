@@ -12,19 +12,15 @@ import { schemaObjectEntriesReadTransformer } from '../schema-object-entries-rea
 const BRAND_CALL = /\.brand<[^>]*>\(\)/gu;
 const WHITESPACE = /\s+/gu;
 
-export const objectSignatureLayerTransformer = ({
-  text,
-}: {
-  text: string;
-}): string | undefined => {
+export const objectSignatureLayerTransformer = ({ text }: { text: string }): string | undefined => {
   const entries = schemaObjectEntriesReadTransformer({ text });
   return entries.length === 0
     ? undefined
     : entries
-          .map(
-            ({ key, valueText }) =>
-              `${key}:${valueText.replace(BRAND_CALL, '').replace(WHITESPACE, '')}`,
-          )
-          .sort((left, right) => left.localeCompare(right))
-          .join('|');
+        .map(
+          ({ key, valueText }) =>
+            `${key}:${valueText.replace(BRAND_CALL, '').replace(WHITESPACE, '')}`,
+        )
+        .sort((left, right) => left.localeCompare(right))
+        .join('|');
 };

@@ -6,10 +6,9 @@
  * // Returns DevLogLine '89362ba3'
  */
 
-
 const SHORT_ID_LENGTH = 8;
 
 export const devLogShortIdTransformer = ({ id }: { id: string }): string => {
   const match = /[0-9a-f]{8}/u.exec(id);
-  return (match ? match[0] : id.slice(0, SHORT_ID_LENGTH));
+  return match ? match[0] : id.slice(0, SHORT_ID_LENGTH);
 };

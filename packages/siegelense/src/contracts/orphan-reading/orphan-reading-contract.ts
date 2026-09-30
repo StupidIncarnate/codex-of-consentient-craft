@@ -14,12 +14,12 @@
 
 import { z } from '#gateway/npm/zod';
 
-
-
-export const orphanReadingContract = z.object({
-  pgid: z.number().int().positive().brand<'OrphanReadingPgid'>(),
-  cmd: z.string().brand<'OrphanReadingCmd'>().nullable(),
-  alive: z.boolean(),
-}).brand<'OrphanReading'>();
+export const orphanReadingContract = z
+  .object({
+    pgid: z.number().int().positive().brand<'OrphanReadingPgid'>(),
+    cmd: z.string().brand<'OrphanReadingCmd'>().nullable(),
+    alive: z.boolean(),
+  })
+  .brand<'OrphanReading'>();
 
 export type OrphanReading = z.infer<typeof orphanReadingContract>;

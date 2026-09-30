@@ -1,4 +1,3 @@
-
 import { platformCrossingCheckBroker } from './platform-crossing-check-broker';
 import { platformCrossingCheckBrokerProxy } from './platform-crossing-check-broker.proxy';
 

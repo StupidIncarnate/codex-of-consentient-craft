@@ -16,6 +16,9 @@
 
 import { z } from '#gateway/npm/zod';
 
-export const seedResultContract = z.record(z.string(), z.union([z.string(), z.record(z.string(), z.json())]));
+export const seedResultContract = z.record(
+  z.string(),
+  z.union([z.string(), z.record(z.string(), z.json())]),
+);
 
 export type SeedResult = z.infer<typeof seedResultContract>;

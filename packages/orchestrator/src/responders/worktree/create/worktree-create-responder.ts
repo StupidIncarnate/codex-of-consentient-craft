@@ -30,7 +30,7 @@ export const WorktreeCreateResponder = async ({
 }: {
   name: string;
 }): Promise<{ worktreePath: string }> => {
-  const repoRoot = (await cwdResolveBroker({ startPath: cwd(), kind: 'repo-root' }));
+  const repoRoot = await cwdResolveBroker({ startPath: cwd(), kind: 'repo-root' });
   const worktreeDirName = name;
   const worktreePath = locationsWorktreePathFindBroker({ repoRoot, worktreeDirName });
 

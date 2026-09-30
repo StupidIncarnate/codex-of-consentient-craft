@@ -282,9 +282,7 @@ export const browserSessionLaunchBroker = async ({
       );
     });
     socket.on('close', () => {
-      websocketLines.push(
-        linesBuild.websocketCloseLine({ at: Date.now(), url: socketUrl }),
-      );
+      websocketLines.push(linesBuild.websocketCloseLine({ at: Date.now(), url: socketUrl }));
     });
   });
 

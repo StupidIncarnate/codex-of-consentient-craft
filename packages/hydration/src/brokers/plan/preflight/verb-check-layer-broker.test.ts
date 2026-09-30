@@ -39,9 +39,7 @@ describe('verbCheckLayerBroker', () => {
     it('INVALID: {no query route} => throws HydrationRouteVerbUnavailableError naming "query"', () => {
       verbCheckLayerBrokerProxy();
       const op = OpFilterStub({ ingredient: 'operation', matchedRef: 'operation[match]', ops: [] });
-      const configByName = new Map([
-        ['operation', IngredientConfigStub({ name: 'operation' })],
-      ]);
+      const configByName = new Map([['operation', IngredientConfigStub({ name: 'operation' })]]);
 
       expect(() => verbCheckLayerBroker({ op, plan: HydrationPlanStub({}), configByName })).toThrow(
         HydrationRouteVerbUnavailableError,
@@ -73,9 +71,7 @@ describe('verbCheckLayerBroker', () => {
     it('INVALID: {no query route} => throws HydrationRouteVerbUnavailableError naming "query"', () => {
       verbCheckLayerBrokerProxy();
       const op = OpAttachStub({ ingredient: 'quest', ref: 'quest[0:0]', ancestors: [] });
-      const configByName = new Map([
-        ['quest', IngredientConfigStub({ name: 'quest' })],
-      ]);
+      const configByName = new Map([['quest', IngredientConfigStub({ name: 'quest' })]]);
 
       expect(() => verbCheckLayerBroker({ op, plan: HydrationPlanStub({}), configByName })).toThrow(
         HydrationRouteVerbUnavailableError,
@@ -87,9 +83,7 @@ describe('verbCheckLayerBroker', () => {
     it('INVALID: {no remove route} => throws naming "remove"', () => {
       verbCheckLayerBrokerProxy();
       const op = OpRemoveStub({ ref: 'quest[0:0]' });
-      const configByName = new Map([
-        ['quest', IngredientConfigStub({ name: 'quest' })],
-      ]);
+      const configByName = new Map([['quest', IngredientConfigStub({ name: 'quest' })]]);
 
       expect(() => verbCheckLayerBroker({ op, plan: HydrationPlanStub({}), configByName })).toThrow(
         /^recipe "guild-mid-execution": ingredient "quest" declares no "remove" route, so a call needing one cannot run$/u,
@@ -101,9 +95,7 @@ describe('verbCheckLayerBroker', () => {
     it('INVALID: {no update route} => throws naming "update"', () => {
       verbCheckLayerBrokerProxy();
       const op = OpSetStub({ ref: 'quest[0:0]', written: { title: 'x' } });
-      const configByName = new Map([
-        ['quest', IngredientConfigStub({ name: 'quest' })],
-      ]);
+      const configByName = new Map([['quest', IngredientConfigStub({ name: 'quest' })]]);
 
       expect(() => verbCheckLayerBroker({ op, plan: HydrationPlanStub({}), configByName })).toThrow(
         /^recipe "guild-mid-execution": ingredient "quest" declares no "update" route, so a call needing one cannot run$/u,
@@ -115,9 +107,7 @@ describe('verbCheckLayerBroker', () => {
     it('VALID: {create} => returns an empty array', () => {
       verbCheckLayerBrokerProxy();
       const op = OpCreateStub();
-      const configByName = new Map([
-        ['quest', IngredientConfigStub({ name: 'quest' })],
-      ]);
+      const configByName = new Map([['quest', IngredientConfigStub({ name: 'quest' })]]);
 
       const result = verbCheckLayerBroker({ op, plan: HydrationPlanStub({}), configByName });
 
@@ -127,9 +117,7 @@ describe('verbCheckLayerBroker', () => {
     it('VALID: {set with no written fields} => returns an empty array, never reaching the update check', () => {
       verbCheckLayerBrokerProxy();
       const op = OpSetStub({ ref: 'quest[0:0]', written: {} });
-      const configByName = new Map([
-        ['quest', IngredientConfigStub({ name: 'quest' })],
-      ]);
+      const configByName = new Map([['quest', IngredientConfigStub({ name: 'quest' })]]);
 
       const result = verbCheckLayerBroker({ op, plan: HydrationPlanStub({}), configByName });
 

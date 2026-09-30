@@ -44,7 +44,7 @@ export const wardRowsLayerBrokerProxy = (): {
     questPath: string;
     wardResultId: WardResultId;
   }): string =>
-    `${String(questPath)}/${locationsStatics.quest.wardResultsDir}/${String(wardResultId)}${JSON_EXTENSION}`;
+    `${questPath}/${locationsStatics.quest.wardResultsDir}/${String(wardResultId)}${JSON_EXTENSION}`;
 
   const logPathFor = ({
     questPath,
@@ -53,7 +53,7 @@ export const wardRowsLayerBrokerProxy = (): {
     questPath: string;
     carveId: RiftcarverResultId;
   }): string =>
-    `${String(questPath)}/${locationsStatics.quest.riftcarverResultsDir}/${String(carveId)}${LOG_EXTENSION}`;
+    `${questPath}/${locationsStatics.quest.riftcarverResultsDir}/${String(carveId)}${LOG_EXTENSION}`;
 
   return {
     blobPathFor,

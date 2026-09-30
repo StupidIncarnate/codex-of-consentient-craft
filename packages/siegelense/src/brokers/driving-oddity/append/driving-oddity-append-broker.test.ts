@@ -1,4 +1,3 @@
-
 import { DrivingOddityStub } from '../../../contracts/driving-oddity/driving-oddity.stub';
 import type { DrivingOddityDuplicateKeyError } from '../../../errors/driving-oddity-duplicate-key/driving-oddity-duplicate-key-error';
 

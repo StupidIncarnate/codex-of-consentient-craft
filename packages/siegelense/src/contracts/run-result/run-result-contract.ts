@@ -30,15 +30,21 @@ import { stoppedAtContract } from '../stopped-at/stopped-at-contract';
 import { siegeInstanceContract, siegeRunContract } from '@dungeonmaster/shared/contracts';
 import { instanceLifecycleStatics } from '../../statics/instance-lifecycle/instance-lifecycle-statics';
 
-export const runResultContract = z.object({
-  instanceId: siegeInstanceContract.shape.id,
-  runId: siegeRunContract.shape.id,
-  status: runStatusContract,
-  stepsRun: z.number().int().min(instanceLifecycleStatics.numbering.firstStep).brand<'RunResultStepsRun'>(),
-  stoppedAt: stoppedAtContract.nullable(),
-  index: runIndexContract,
-  shots: z.array(shotListingContract).readonly(),
-  durationMs: z.number().int().nonnegative().brand<'RunResultDurationMs'>().optional(),
-}).brand<'RunResult'>();
+export const runResultContract = z
+  .object({
+    instanceId: siegeInstanceContract.shape.id,
+    runId: siegeRunContract.shape.id,
+    status: runStatusContract,
+    stepsRun: z
+      .number()
+      .int()
+      .min(instanceLifecycleStatics.numbering.firstStep)
+      .brand<'RunResultStepsRun'>(),
+    stoppedAt: stoppedAtContract.nullable(),
+    index: runIndexContract,
+    shots: z.array(shotListingContract).readonly(),
+    durationMs: z.number().int().nonnegative().brand<'RunResultDurationMs'>().optional(),
+  })
+  .brand<'RunResult'>();
 
 export type RunResult = z.infer<typeof runResultContract>;

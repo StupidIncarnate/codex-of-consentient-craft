@@ -25,13 +25,14 @@ import { z } from '#gateway/npm/zod';
 
 import { siegeInstanceContract } from '@dungeonmaster/shared/contracts';
 
-
-export const instanceHeartbeatContract = z.object({
-  instanceId: siegeInstanceContract.shape.id,
-  pid: z.string().min(1).brand<'InstanceHeartbeatPid'>(),
-  pgids: z.array(z.number().int().positive().brand<'InstanceHeartbeatPgids'>()).readonly(),
-  beatAtMs: z.number().int().nonnegative().brand<'InstanceHeartbeatBeatAtMs'>(),
-  rssMB: z.number().int().nonnegative().brand<'InstanceHeartbeatRssMB'>().nullable(),
-}).brand<'InstanceHeartbeat'>();
+export const instanceHeartbeatContract = z
+  .object({
+    instanceId: siegeInstanceContract.shape.id,
+    pid: z.string().min(1).brand<'InstanceHeartbeatPid'>(),
+    pgids: z.array(z.number().int().positive().brand<'InstanceHeartbeatPgids'>()).readonly(),
+    beatAtMs: z.number().int().nonnegative().brand<'InstanceHeartbeatBeatAtMs'>(),
+    rssMB: z.number().int().nonnegative().brand<'InstanceHeartbeatRssMB'>().nullable(),
+  })
+  .brand<'InstanceHeartbeat'>();
 
 export type InstanceHeartbeat = z.infer<typeof instanceHeartbeatContract>;

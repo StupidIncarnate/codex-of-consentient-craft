@@ -72,10 +72,10 @@ export const createPackageResolveRequestBroker = async ({
   }
 
   const isFullyScoped = name.startsWith('@') && name.includes('/');
-  const directoryName: string = (isFullyScoped ? name.slice(name.indexOf('/') + 1) : name);
+  const directoryName: string = isFullyScoped ? name.slice(name.indexOf('/') + 1) : name;
   const packageName: string = isFullyScoped
     ? name
-    : String(scope) === ''
+    : scope === ''
       ? name
       : `${scope}/${name}`;
 
@@ -110,17 +110,16 @@ export const createPackageResolveRequestBroker = async ({
   const description: string =
     args.description === undefined
       ? interactive
-        ? (await question({
-              input: getStdin(),
-              output: stdout,
-              prompt: 'Description: ',
-              fallback: descriptionDefault,
-            }))
+        ? await question({
+            input: getStdin(),
+            output: stdout,
+            prompt: 'Description: ',
+            fallback: descriptionDefault,
+          })
         : descriptionDefault
       : args.description;
 
-  const packagesDir: string =
-    args.packagesDir ?? packageScaffoldConfigStatics.defaultPackagesDir;
+  const packagesDir: string = args.packagesDir ?? packageScaffoldConfigStatics.defaultPackagesDir;
 
   return createPackageRequestContract.parse({
     packageName,

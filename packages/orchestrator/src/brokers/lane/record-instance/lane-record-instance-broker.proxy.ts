@@ -44,7 +44,7 @@ export const laneRecordInstanceBrokerProxy = (): {
       quest: Quest;
       questPath: AbsoluteFilePath;
     }): void => {
-      const questFilePath = `${String(questPath)}/quest.json`;
+      const questFilePath = `${questPath}/quest.json`;
       const homePath = '/home/testuser/.dungeonmaster';
 
       joinHandle.calledWith([questPath, locationsStatics.quest.questFile]).returns(questFilePath);

@@ -27,7 +27,6 @@
  * // Returns the rendered key as ContentText, ready to be a step's own reading
  */
 
-
 import type { KeyListing } from '../../contracts/key-listing/key-listing-contract';
 
 const COLUMN_GAP = '  ';
@@ -46,10 +45,10 @@ export const keyRenderTransformer = ({ listing }: { listing: KeyListing }): stri
 
   if (listing.rows.length === 0) {
     return [
-        summary,
-        'Nothing here is addressable — no element carries a data-testid, its own text, a control or an image. If the page should have painted by now, that IS the finding.',
-        ...listing.truncated,
-      ].join('\n');
+      summary,
+      'Nothing here is addressable — no element carries a data-testid, its own text, a control or an image. If the page should have painted by now, that IS the finding.',
+      ...listing.truncated,
+    ].join('\n');
   }
 
   const cells = listing.rows.map((row) => {

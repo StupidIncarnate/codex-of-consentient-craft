@@ -190,7 +190,7 @@ export const ruleEnforceImplementationColocationBroker = (): TSESLint.RuleModule
           if (!isStartup) {
             const proxyBaseName = `${removeFileExtensionTransformer({ filename: fileBaseName })}.proxy${extension}`;
             const proxyDir = filename.split('/').slice(0, -1).join('/');
-            const proxyFilePath = (proxyDir ? `${proxyDir}/${proxyBaseName}` : proxyBaseName);
+            const proxyFilePath = proxyDir ? `${proxyDir}/${proxyBaseName}` : proxyBaseName;
             const hasForbiddenProxy = existsSync(proxyFilePath);
 
             if (hasForbiddenProxy) {

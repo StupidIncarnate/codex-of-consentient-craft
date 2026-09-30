@@ -22,9 +22,7 @@ export const questDesignDecisionsMissingRationaleTransformer = ({
     const { rationale } = decision;
     const isEmpty = typeof rationale !== 'string' || rationale.length === 0;
     if (isEmpty) {
-      offenders.push(
-        `design decision '${String(decision.id)}' has empty rationale`,
-      );
+      offenders.push(`design decision '${String(decision.id)}' has empty rationale`);
     }
   }
 

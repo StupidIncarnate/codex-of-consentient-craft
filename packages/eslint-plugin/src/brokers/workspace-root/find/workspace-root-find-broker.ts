@@ -23,9 +23,7 @@ export const workspaceRootFindBroker = ({
   startDir,
 }: {
   startDir: string;
-}):
-  | { rootDir: string; rootPackageJsonName: string; packageNames: string[] }
-  | undefined => {
+}): { rootDir: string; rootPackageJsonName: string; packageNames: string[] } | undefined => {
   const packageJsonPath = join(startDir, 'package.json');
 
   if (existsSync(packageJsonPath)) {

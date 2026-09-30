@@ -48,10 +48,7 @@ const SCAFFOLD_DIR_PATHS = [
   `${RECIPES_PACKAGE_ROOT}/src/responders/recipes/seed`,
 ] as const;
 
-const SCAFFOLD_FILE_ABSOLUTE_PATHS: ReadonlyMap<
-  string,
-  string
-> = new Map(
+const SCAFFOLD_FILE_ABSOLUTE_PATHS: ReadonlyMap<string, string> = new Map(
   SCAFFOLD_RELATIVE_PATHS.map((relativePath) => [
     relativePath,
     `${RECIPES_PACKAGE_ROOT}/${relativePath}`,

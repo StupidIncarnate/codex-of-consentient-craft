@@ -8,10 +8,12 @@
 
 import { z } from '#gateway/npm/zod';
 
-export const wardDetailResponseContract = z.object({
-  type: z.literal('ward-detail-response'),
-  wardResultId: z.uuid().brand<'WardDetailResponseWardResultId'>(),
-  detail: z.json(),
-}).brand<'WardDetailResponse'>();
+export const wardDetailResponseContract = z
+  .object({
+    type: z.literal('ward-detail-response'),
+    wardResultId: z.uuid().brand<'WardDetailResponseWardResultId'>(),
+    detail: z.json(),
+  })
+  .brand<'WardDetailResponse'>();
 
 export type WardDetailResponse = z.infer<typeof wardDetailResponseContract>;

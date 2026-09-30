@@ -43,7 +43,7 @@ test.describe('Spec-phase intake conversation streams into the chat panel', () =
     await sessions.createSessionFile({ sessionId, userMessage: 'The rows do not render' });
 
     const created = await quests.createQuest({
-      guildId: guildId,
+      guildId,
       title: 'Rows do not render',
       userRequest: 'The rows do not render',
     });
@@ -52,8 +52,8 @@ test.describe('Spec-phase intake conversation streams into the chat panel', () =
     // A bug-hunt quest mid-intake: still at explore_flows, with its bughunt work item in_progress
     // and carrying the session the user is talking to.
     await quests.writeQuestFile({
-      questId: questId,
-      questFolder: questFolder,
+      questId,
+      questFolder,
       questFilePath: String(created.filePath),
       status: 'explore_flows',
       questType: 'bug-hunt',
@@ -68,7 +68,7 @@ test.describe('Spec-phase intake conversation streams into the chat panel', () =
     });
 
     const urlSlug = guilds.extractUrlSlug({ guild });
-    await nav.navigateToQuest({ urlSlug, questId: questId });
+    await nav.navigateToQuest({ urlSlug, questId });
 
     await expect(page.getByTestId('QUEST_SPEC_PANEL')).toBeVisible({ timeout: PANEL_TIMEOUT });
     // The chat panel must be mounted, not suppressed — the intake transcript is the point.

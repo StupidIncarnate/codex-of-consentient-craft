@@ -30,7 +30,13 @@ import { getEnv, stderr } from '#gateway/node/process';
 import { randomUUID } from '#gateway/node/crypto';
 import { locationsWorktreePathFindBroker } from '@dungeonmaster/shared/brokers';
 import { streamLines } from '#gateway/node/child_process';
-import { getQuestInputContract, questContract, riftcarverResultContract, type BaseBranchName, type Quest } from '@dungeonmaster/shared/contracts';
+import {
+  getQuestInputContract,
+  questContract,
+  riftcarverResultContract,
+  type BaseBranchName,
+  type Quest,
+} from '@dungeonmaster/shared/contracts';
 
 import { currentBranch, headSha, push, upstreamSha, verifyRef } from '#gateway/bin/git';
 import { pathExists } from '#gateway/node/fs__promises';
@@ -301,7 +307,7 @@ export const stepHandlerRiftcarverBroker = async ({
     stream.emit(`— FAILED at ${carve.failedStep}: ${failureText} —`);
   }
 
-  const exitCode = (carve.ok ? GREEN_EXIT_CODE : FAILED_EXIT_CODE);
+  const exitCode = carve.ok ? GREEN_EXIT_CODE : FAILED_EXIT_CODE;
   const outcome = carve.ok
     ? 'done'
     : riftcarverFailureClassifyTransformer({ failedStep: carve.failedStep, error: carve.error });

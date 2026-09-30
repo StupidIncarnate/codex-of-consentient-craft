@@ -10,11 +10,7 @@ import type { ChatEntry } from '@dungeonmaster/shared/contracts';
 import { taskToolInputContract } from '../../contracts/task-tool-input/task-tool-input-contract';
 const FALLBACK_DESCRIPTION = 'Sub-agent task';
 
-export const extractTaskDescriptionTransformer = ({
-  entry,
-}: {
-  entry: ChatEntry;
-}): string => {
+export const extractTaskDescriptionTransformer = ({ entry }: { entry: ChatEntry }): string => {
   if (entry.role !== 'assistant' || !('toolInput' in entry)) {
     return FALLBACK_DESCRIPTION;
   }

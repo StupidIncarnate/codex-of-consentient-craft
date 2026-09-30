@@ -110,7 +110,7 @@ describe('questObservableAttributionViolationsTransformer', () => {
 
       const offenders = questObservableAttributionViolationsTransformer({ flows: [flow] });
 
-      expect(offenders.map((offender) => String(offender))).toStrictEqual([
+      expect(offenders.map((offender) => offender)).toStrictEqual([
         "Observable 'merge-status-shown' on node 'press-warp' in flow 'warpgate-merge' is attributed to package 'cli', which its node does not tag (node packages: web, server). An observable sits on exactly ONE side of its node's seam — set its package to one the node already tags, or widen the node's packages to include it.",
       ]);
     });
@@ -131,7 +131,7 @@ describe('questObservableAttributionViolationsTransformer', () => {
 
       const offenders = questObservableAttributionViolationsTransformer({ flows: [flow] });
 
-      expect(offenders.map((offender) => String(offender))).toStrictEqual([
+      expect(offenders.map((offender) => offender)).toStrictEqual([
         "Observable 'merge-status-200' on node 'press-warp' in flow 'warpgate-merge' is attributed to package 'server', which its node does not tag (node packages: web). An observable sits on exactly ONE side of its node's seam — set its package to one the node already tags, or widen the node's packages to include it.",
       ]);
     });
@@ -155,7 +155,7 @@ describe('questObservableAttributionViolationsTransformer', () => {
 
       const offenders = questObservableAttributionViolationsTransformer({ flows: [flow] });
 
-      expect(offenders.map((offender) => String(offender))).toStrictEqual([
+      expect(offenders.map((offender) => offender)).toStrictEqual([
         "Observable 'cli-exit-zero' on node 'press-warp' in flow 'warpgate-merge' is attributed to package 'cli', which its node does not tag (node packages: web, server). An observable sits on exactly ONE side of its node's seam — set its package to one the node already tags, or widen the node's packages to include it.",
       ]);
     });
@@ -385,7 +385,7 @@ describe('questObservableAttributionViolationsTransformer', () => {
 
       const offenders = questObservableAttributionViolationsTransformer({ flows: [flow] });
 
-      expect(offenders.map((offender) => String(offender))).toStrictEqual([
+      expect(offenders.map((offender) => offender)).toStrictEqual([
         "Node 'landed-on-base' in flow 'warpgate-merge' tags packages web, server but its observables only cover web. Package(s) server are declared on the node and asserted by nothing — a seam declared on one side only. Add an observable carrying each uncovered package, or narrow the node's packages to what it really lands in.",
       ]);
     });
@@ -406,7 +406,7 @@ describe('questObservableAttributionViolationsTransformer', () => {
 
       const offenders = questObservableAttributionViolationsTransformer({ flows: [flow] });
 
-      expect(offenders.map((offender) => String(offender))).toStrictEqual([
+      expect(offenders.map((offender) => offender)).toStrictEqual([
         "Observable 'cli-exit-zero' on node 'landed-on-base' in flow 'warpgate-merge' is attributed to package 'cli', which its node does not tag (node packages: web, server). An observable sits on exactly ONE side of its node's seam — set its package to one the node already tags, or widen the node's packages to include it.",
         "Node 'landed-on-base' in flow 'warpgate-merge' tags packages web, server but its observables only cover none of them. Package(s) web, server are declared on the node and asserted by nothing — a seam declared on one side only. Add an observable carrying each uncovered package, or narrow the node's packages to what it really lands in.",
       ]);
@@ -430,7 +430,7 @@ describe('questObservableAttributionViolationsTransformer', () => {
 
       const offenders = questObservableAttributionViolationsTransformer({ flows: [flow] });
 
-      expect(offenders.map((offender) => String(offender))).toStrictEqual([
+      expect(offenders.map((offender) => offender)).toStrictEqual([
         "Node 'press-warp' in flow 'warpgate-merge' tags packages web, server, cli but its observables only cover web. Package(s) cli are declared on the node and asserted by nothing — a seam declared on one side only. Add an observable carrying each uncovered package, or narrow the node's packages to what it really lands in.",
       ]);
     });
@@ -453,7 +453,7 @@ describe('questObservableAttributionViolationsTransformer', () => {
 
       const offenders = questObservableAttributionViolationsTransformer({ flows: [flow] });
 
-      expect(offenders.map((offender) => String(offender))).toStrictEqual([
+      expect(offenders.map((offender) => offender)).toStrictEqual([
         "Node 'press-warp' in flow 'warpgate-merge' tags packages web, server but its observables only cover web. Package(s) server are declared on the node and asserted by nothing — a seam declared on one side only. Add an observable carrying each uncovered package, or narrow the node's packages to what it really lands in.",
       ]);
     });
@@ -476,7 +476,7 @@ describe('questObservableAttributionViolationsTransformer', () => {
 
       const offenders = questObservableAttributionViolationsTransformer({ flows: [flow] });
 
-      expect(offenders.map((offender) => String(offender))).toStrictEqual([
+      expect(offenders.map((offender) => offender)).toStrictEqual([
         "Node 'press-warp' in flow 'warpgate-merge' tags packages web, server but its observables only cover web. Package(s) server are declared on the node and asserted by nothing — a seam declared on one side only. Add an observable carrying each uncovered package, or narrow the node's packages to what it really lands in.",
       ]);
     });
@@ -500,7 +500,7 @@ describe('questObservableAttributionViolationsTransformer', () => {
 
       const offenders = questObservableAttributionViolationsTransformer({ flows: [flow] });
 
-      expect(offenders.map((offender) => String(offender))).toStrictEqual([
+      expect(offenders.map((offender) => offender)).toStrictEqual([
         "Node 'press-warp' in flow 'warpgate-merge' tags packages web, server but its observables only cover web. Package(s) server are declared on the node and asserted by nothing — a seam declared on one side only. Add an observable carrying each uncovered package, or narrow the node's packages to what it really lands in.",
       ]);
     });
@@ -522,7 +522,7 @@ describe('questObservableAttributionViolationsTransformer', () => {
 
       const offenders = questObservableAttributionViolationsTransformer({ flows: [flow] });
 
-      expect(offenders.map((offender) => String(offender))).toStrictEqual([
+      expect(offenders.map((offender) => offender)).toStrictEqual([
         "Node 'press-warp' in flow 'warpgate-merge' tags packages web, server but its observables only cover web. Package(s) server are declared on the node and asserted by nothing — a seam declared on one side only. Add an observable carrying each uncovered package, or narrow the node's packages to what it really lands in.",
       ]);
     });

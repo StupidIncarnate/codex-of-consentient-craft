@@ -13,11 +13,7 @@ import { locationsRootPathFindBroker } from '../root-path-find/locations-root-pa
 import { join } from '#gateway/node/path';
 import { locationsStatics } from '@dungeonmaster/shared/statics';
 
-export const locationsProfilesPathFindBroker = ({
-  specHash,
-}: {
-  specHash: string;
-}): string => {
+export const locationsProfilesPathFindBroker = ({ specHash }: { specHash: string }): string => {
   const rootPath = locationsRootPathFindBroker();
 
   const joined = join(rootPath, locationsStatics.siegelense.profilesDir, specHash);

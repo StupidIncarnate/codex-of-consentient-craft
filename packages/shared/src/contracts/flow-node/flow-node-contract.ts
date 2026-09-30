@@ -43,6 +43,7 @@ export const flowNodeContract = z
       ),
     observables: z.array(flowObservableContract).default([]),
   })
-  .strict().brand<'FlowNode'>();
+  .strict()
+  .brand<'FlowNode'>();
 
 export type FlowNode = z.infer<typeof flowNodeContract>;

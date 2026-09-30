@@ -13,9 +13,12 @@ const packageJsonKeyContract = z.string().brand<'PackageJsonKey'>();
 
 export const packageJsonContract = z
   .object({
-    devDependencies: z.record(packageJsonKeyContract, z.string().brand<'PackageJsonDevDependenciesValue'>()).optional(),
+    devDependencies: z
+      .record(packageJsonKeyContract, z.string().brand<'PackageJsonDevDependenciesValue'>())
+      .optional(),
     workspaces: z.array(z.string().brand<'PackageJsonWorkspaces'>()).optional(),
   })
-  .loose().brand<'PackageJson'>();
+  .loose()
+  .brand<'PackageJson'>();
 
 export type PackageJson = z.infer<typeof packageJsonContract>;

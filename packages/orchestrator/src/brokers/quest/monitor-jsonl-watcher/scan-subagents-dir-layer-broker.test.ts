@@ -188,11 +188,7 @@ describe('scanSubagentsDirLayerBroker', () => {
 
     proxy.setupSubagentDirFiles({
       subagentsDir,
-      files: [
-        'notes.txt',
-        'agent-omega.jsonl',
-        'agent-no-ext',
-      ],
+      files: ['notes.txt', 'agent-omega.jsonl', 'agent-no-ext'],
     });
     proxy.setupFirstLineRead({
       subagentsDir,
@@ -262,10 +258,7 @@ describe('scanSubagentsDirLayerBroker', () => {
 
     proxy.setupSubagentDirFiles({
       subagentsDir,
-      files: [
-        'agent-stale-from-prior-run.jsonl',
-        'agent-live-agent.jsonl',
-      ],
+      files: ['agent-stale-from-prior-run.jsonl', 'agent-live-agent.jsonl'],
     });
     // The stale leftover's first line matches no outstanding Task prompt — a prior run's
     // sub-agent, or content this run never spawned.

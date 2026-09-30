@@ -89,9 +89,7 @@ describe('resultToListTransformer', () => {
 
       const result = resultToListTransformer({ wardResult });
 
-      expect(result).toBe(
-        'src/index.ts\n  typecheck (line 23)\n    TS2345',
-      );
+      expect(result).toBe('src/index.ts\n  typecheck (line 23)\n    TS2345');
     });
   });
 
@@ -158,9 +156,7 @@ describe('resultToListTransformer', () => {
 
       const result = resultToListTransformer({ wardResult });
 
-      expect(result).toBe(
-        'src/broken.ts\n  lint\n    Parsing error: Unexpected token',
-      );
+      expect(result).toBe('src/broken.ts\n  lint\n    Parsing error: Unexpected token');
     });
   });
 

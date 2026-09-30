@@ -12,7 +12,6 @@
  * // Returns { stop } — call stop() to tear down (test cleanup or process shutdown).
  */
 
-
 import type { ProcessActivity } from '../../../contracts/process-activity/process-activity-contract';
 import { processStaleThresholdStatics } from '../../../statics/process-stale-threshold/process-stale-threshold-statics';
 import { timerIntervalStartBroker } from '../../timer/interval-start/timer-interval-start-broker';

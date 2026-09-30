@@ -12,12 +12,11 @@
  * // Returns '<a> <b>' as ContentText
  */
 
-
 import { resultsStatics } from '../../statics/results/results-statics';
 
 export const networkBodyTrimTransformer = ({ body }: { body: string }): string => {
   const collapsed = body.replace(/\s+/gu, ' ');
-  return (collapsed.length > resultsStatics.render.bodyTrimChars
-      ? `${collapsed.slice(0, resultsStatics.render.bodyTrimChars)}…`
-      : collapsed);
+  return collapsed.length > resultsStatics.render.bodyTrimChars
+    ? `${collapsed.slice(0, resultsStatics.render.bodyTrimChars)}…`
+    : collapsed;
 };

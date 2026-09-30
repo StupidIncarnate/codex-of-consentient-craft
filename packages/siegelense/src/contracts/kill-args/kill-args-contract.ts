@@ -18,6 +18,7 @@ export const killArgsContract = z
     instanceId: siegeInstanceContract.shape.id,
     isJson: z.boolean().default(false),
   })
-  .strict().brand<'KillArgs'>();
+  .strict()
+  .brand<'KillArgs'>();
 
 export type KillArgs = z.infer<typeof killArgsContract>;

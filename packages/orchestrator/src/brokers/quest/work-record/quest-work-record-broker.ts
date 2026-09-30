@@ -163,7 +163,7 @@ export const questWorkRecordBroker = async ({
       ) {
         throw new Error(
           `quest-work: step '${payload.step}' is not mintableOnRequest in family '${
-            family === undefined ? '(none)' : String(family)
+            family === undefined ? '(none)' : family
           }' — a session cannot conjure an arbitrary step. Nothing was recorded.`,
         );
       }

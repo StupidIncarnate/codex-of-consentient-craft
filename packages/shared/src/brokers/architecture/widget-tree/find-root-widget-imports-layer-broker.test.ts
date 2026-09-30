@@ -38,9 +38,7 @@ describe('findRootWidgetImportsLayerBroker', () => {
       proxy.setupRootSources({
         packageSrcPath,
         responderFilePaths: [responderFilePath],
-        responderContents: [
-          `import { OtherWidget } from '../widgets/other/other-widget';`,
-        ],
+        responderContents: [`import { OtherWidget } from '../widgets/other/other-widget';`],
         flowFilePaths: [],
         flowContents: [],
       });

@@ -61,7 +61,7 @@ export const profileBootRecordBrokerProxy = (): {
     }): void => {
       dirsProxy.setupProfilesPath({ homeDir, homePath, rootPath, profilesPath });
 
-      const bootsDirValue = `${String(profilesPath)}/${profileStatics.dirs.boots}`;
+      const bootsDirValue = `${profilesPath}/${profileStatics.dirs.boots}`;
       mkdirProxy.succeeds({ path: bootsDirValue });
       writeProxy.succeeds({
         path: `${bootsDirValue}/${instanceId}${profileStatics.extensions.record}`,
@@ -71,7 +71,7 @@ export const profileBootRecordBrokerProxy = (): {
 
     setupBootsDirCreated: ({ profilesPath }: { profilesPath: string }): void => {
       mkdirProxy.succeeds({
-        path: `${String(profilesPath)}/${profileStatics.dirs.boots}`,
+        path: `${profilesPath}/${profileStatics.dirs.boots}`,
       });
     },
 
@@ -83,7 +83,7 @@ export const profileBootRecordBrokerProxy = (): {
       instanceId: InstanceId;
     }): unknown =>
       writeProxy.writtenContentsFor({
-        path: `${String(profilesPath)}/${profileStatics.dirs.boots}/${instanceId}${profileStatics.extensions.record}`,
+        path: `${profilesPath}/${profileStatics.dirs.boots}/${instanceId}${profileStatics.extensions.record}`,
       }),
   };
 };

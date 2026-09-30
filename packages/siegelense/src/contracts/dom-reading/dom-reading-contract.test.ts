@@ -1,4 +1,3 @@
-
 import { DomNodeStub } from '../dom-node/dom-node.stub';
 import { domReadingContract } from './dom-reading-contract';
 import { DomReadingStub } from './dom-reading.stub';

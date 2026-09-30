@@ -28,7 +28,7 @@ export const resolveConfigForFile = async ({
 }: {
   filePath: string;
 }): Promise<AllowedExternalImports> => {
-  const config = await configResolveBroker({ filePath: filePath });
+  const config = await configResolveBroker({ filePath });
   return computeAllowedImportsTransformer({ config });
 };
 

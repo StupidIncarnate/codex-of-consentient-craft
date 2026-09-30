@@ -26,28 +26,65 @@ import { z } from '#gateway/npm/zod';
 
 import { blightConcernContract } from '../blight-concern/blight-concern-contract';
 
-export const blightChecklistItemContract = z.object({
-  id: z.string().min(1).brand<'BlightChecklistItemId'>(),
-  implPath: z.string().min(1).refine((path) => { if (path.startsWith('/')) { return false; } if (/^[A-Za-z]:\\/u.test(path)) { return false; } return true; }, { message: 'Path must be repo-relative (not absolute)', },).brand<'BlightChecklistItemImplPath'>(),
-  concern: blightConcernContract,
-  packageName: z.string().min(1).brand<'BlightChecklistItemPackageName'>()
-    .optional()
-    .describe(
-      'The quest package entry whose `location` contains `implPath`, resolved by longest matching prefix. Absent when the path sits under none of them — a file outside every declared package, which is a real state and is owned by the residual partition group rather than assigned to a neighbour.',
-    ),
-  pairedFiles: z
-    .array(z.string().min(1).refine((path) => { if (path.startsWith('/')) { return false; } if (/^[A-Za-z]:\\/u.test(path)) { return false; } return true; }, { message: 'Path must be repo-relative (not absolute)', },).brand<'BlightChecklistItemPairedFiles'>())
-    .default([])
-    .describe(
-      'The test/proxy/stub files that collapsed onto this impl — the diff units a reviewer must also read to review this concern.',
-    ),
-  label: z
-    .string()
-    .min(1)
-    .brand<'BlightChecklistItemLabel'>()
-    .describe(
-      'The human-readable statement of what this unit asserts, e.g. "craft — comment-queue-state.ts\'s logic matches its signature".',
-    ),
-}).brand<'BlightChecklistItem'>();
+export const blightChecklistItemContract = z
+  .object({
+    id: z.string().min(1).brand<'BlightChecklistItemId'>(),
+    implPath: z
+      .string()
+      .min(1)
+      .refine(
+        (path) => {
+          if (path.startsWith('/')) {
+            return false;
+          }
+          if (/^[A-Za-z]:\\/u.test(path)) {
+            return false;
+          }
+          return true;
+        },
+        { message: 'Path must be repo-relative (not absolute)' },
+      )
+      .brand<'BlightChecklistItemImplPath'>(),
+    concern: blightConcernContract,
+    packageName: z
+      .string()
+      .min(1)
+      .brand<'BlightChecklistItemPackageName'>()
+      .optional()
+      .describe(
+        'The quest package entry whose `location` contains `implPath`, resolved by longest matching prefix. Absent when the path sits under none of them — a file outside every declared package, which is a real state and is owned by the residual partition group rather than assigned to a neighbour.',
+      ),
+    pairedFiles: z
+      .array(
+        z
+          .string()
+          .min(1)
+          .refine(
+            (path) => {
+              if (path.startsWith('/')) {
+                return false;
+              }
+              if (/^[A-Za-z]:\\/u.test(path)) {
+                return false;
+              }
+              return true;
+            },
+            { message: 'Path must be repo-relative (not absolute)' },
+          )
+          .brand<'BlightChecklistItemPairedFiles'>(),
+      )
+      .default([])
+      .describe(
+        'The test/proxy/stub files that collapsed onto this impl — the diff units a reviewer must also read to review this concern.',
+      ),
+    label: z
+      .string()
+      .min(1)
+      .brand<'BlightChecklistItemLabel'>()
+      .describe(
+        'The human-readable statement of what this unit asserts, e.g. "craft — comment-queue-state.ts\'s logic matches its signature".',
+      ),
+  })
+  .brand<'BlightChecklistItem'>();
 
 export type BlightChecklistItem = z.infer<typeof blightChecklistItemContract>;

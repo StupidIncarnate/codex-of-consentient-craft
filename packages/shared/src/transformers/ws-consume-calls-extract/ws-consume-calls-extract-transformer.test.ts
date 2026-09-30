@@ -25,9 +25,9 @@ describe('wsConsumeCallsExtractTransformer', () => {
     it('VALID: {two consumer branches} => returns both type literals', () => {
       const result = wsConsumeCallsExtractTransformer({
         source: [
-            "if (parsed.data.type === 'chat-output') {",
-            "if (parsed.data.type === 'chat-complete') {",
-          ].join('\n'),
+          "if (parsed.data.type === 'chat-output') {",
+          "if (parsed.data.type === 'chat-complete') {",
+        ].join('\n'),
       });
 
       expect(result).toStrictEqual(['chat-output', 'chat-complete']);

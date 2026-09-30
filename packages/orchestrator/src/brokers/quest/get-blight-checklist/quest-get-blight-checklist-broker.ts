@@ -151,9 +151,7 @@ export const questGetBlightChecklistBroker = async ({
   const changedFiles =
     scope === 'working-tree'
       ? await gitWorkingTreeFilesBroker({ cwd: resolution.cwd })
-      : (await diffFiles({ cwd: resolution.cwd, baseRef: measuredFrom })).map((file) =>
-          file,
-        );
+      : (await diffFiles({ cwd: resolution.cwd, baseRef: measuredFrom })).map((file) => file);
 
   return blightChecklistBuildTransformer({
     changedFiles,

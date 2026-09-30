@@ -504,9 +504,7 @@ describe('blightChecklistToTextTransformer', () => {
       // file, without importing the concern contract into this test file (banned — tests import
       // stubs, not raw contracts) and without hardcoding the count.
       const singleFileProbe = blightChecklistBuildTransformer({
-        changedFiles: [
-          'packages/orchestrator/src/probe/probe-broker.ts',
-        ],
+        changedFiles: ['packages/orchestrator/src/probe/probe-broker.ts'],
         baseRef,
       });
       const concernsPerFile = singleFileProbe.items.length;
@@ -521,8 +519,8 @@ describe('blightChecklistToTextTransformer', () => {
       const companionFiles = implFiles
         .filter((_implFile, index) => index % SCALE_TEST_COMPANION_EVERY === 0)
         .flatMap((implFile) => [
-          `${String(implFile).slice(0, -'.ts'.length)}.test.ts`,
-          `${String(implFile).slice(0, -'.ts'.length)}.proxy.ts`,
+          `${implFile.slice(0, -'.ts'.length)}.test.ts`,
+          `${implFile.slice(0, -'.ts'.length)}.proxy.ts`,
         ]);
       const changedFiles = [...implFiles, ...companionFiles];
 
@@ -570,9 +568,7 @@ describe('blightChecklistToTextTransformer', () => {
       const { baseRef } = BlightChecklistStub();
 
       const singleFileProbe = blightChecklistBuildTransformer({
-        changedFiles: [
-          'packages/orchestrator/src/probe/probe-broker.ts',
-        ],
+        changedFiles: ['packages/orchestrator/src/probe/probe-broker.ts'],
         baseRef,
       });
       const concernsPerFile = singleFileProbe.items.length;
@@ -591,7 +587,7 @@ describe('blightChecklistToTextTransformer', () => {
       // therefore renders both an `[x]` line and a `[ ]` line, the most expensive per-file shape.
       const ledger = implFiles.map((implFile) => {
         const firstItemForFile = baseline.items.find(
-          (item) => String(item.implPath) === String(implFile),
+          (item) => String(item.implPath) === implFile,
         )!;
         return QuestBlightLedgerEntryStub({ itemId: firstItemForFile.id });
       });
@@ -632,7 +628,7 @@ describe('blightChecklistToTextTransformer', () => {
         .filter((item) => String(item.implPath) === String(remainFiles[0]))
         .map((item) => item.concern);
 
-      const dispImplPaths = new Set(dispFiles.map((file) => String(file)));
+      const dispImplPaths = new Set(dispFiles.map((file) => file));
       const ledger = baseline.items
         .filter((item) => dispImplPaths.has(String(item.implPath)))
         .map((item) => QuestBlightLedgerEntryStub({ itemId: item.id }));

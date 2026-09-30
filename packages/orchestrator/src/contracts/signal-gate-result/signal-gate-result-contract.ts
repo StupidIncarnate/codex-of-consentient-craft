@@ -19,14 +19,18 @@ import { qaChecklistItemContract } from '@dungeonmaster/shared/contracts';
 import { z } from '#gateway/npm/zod';
 
 export const signalGateResultContract = z.discriminatedUnion('ok', [
-  z.object({
-    ok: z.literal(true),
-  }).brand<'SignalGateResult'>(),
-  z.object({
-    ok: z.literal(false),
-    unmarked: z.array(qaChecklistItemContract.shape.id),
-    message: z.string().min(1).brand<'SignalGateResultMessage'>(),
-  }).brand<'SignalGateResult'>(),
+  z
+    .object({
+      ok: z.literal(true),
+    })
+    .brand<'SignalGateResult'>(),
+  z
+    .object({
+      ok: z.literal(false),
+      unmarked: z.array(qaChecklistItemContract.shape.id),
+      message: z.string().min(1).brand<'SignalGateResultMessage'>(),
+    })
+    .brand<'SignalGateResult'>(),
 ]);
 
 export type SignalGateResult = z.infer<typeof signalGateResultContract>;

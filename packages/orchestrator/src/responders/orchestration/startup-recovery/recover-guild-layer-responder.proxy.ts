@@ -157,7 +157,13 @@ export const RecoverGuildLayerResponderProxy = (): {
     );
   };
 
-  const stageOrphanResetChain = ({ guildId, quest }: { guildId: Guild['id']; quest: Quest }): void => {
+  const stageOrphanResetChain = ({
+    guildId,
+    quest,
+  }: {
+    guildId: Guild['id'];
+    quest: Quest;
+  }): void => {
     const questPath = `/home/testuser/.dungeonmaster/guilds/${guildId}/quests/${quest.folder}`;
     const questFilePath = `${questPath}/quest.json`;
 

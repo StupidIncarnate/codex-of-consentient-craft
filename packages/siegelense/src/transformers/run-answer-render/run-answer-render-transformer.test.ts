@@ -1,4 +1,3 @@
-
 import { RunIdStub } from '../../contracts/run-id/run-id.stub';
 import { RunResultStub } from '../../contracts/run-result/run-result.stub';
 import { ShotListingStub } from '../../contracts/shot-listing/shot-listing.stub';

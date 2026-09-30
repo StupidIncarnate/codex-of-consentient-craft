@@ -15,7 +15,7 @@ describe('operationFlowLabelsTransformer', () => {
         flows,
       });
 
-      expect(result.map((label) => String(label))).toStrictEqual(['Send queued comment batch']);
+      expect(result.map((label) => label)).toStrictEqual(['Send queued comment batch']);
     });
 
     it('VALID: {two flowIds} => returns both names in the order the item lists them', () => {
@@ -32,7 +32,7 @@ describe('operationFlowLabelsTransformer', () => {
         flows,
       });
 
-      expect(result.map((label) => String(label))).toStrictEqual([
+      expect(result.map((label) => label)).toStrictEqual([
         'View persisted comments',
         'Send queued comment batch',
       ]);
@@ -48,7 +48,7 @@ describe('operationFlowLabelsTransformer', () => {
         flows,
       });
 
-      expect(result.map((label) => String(label))).toStrictEqual(['deleted-flow']);
+      expect(result.map((label) => label)).toStrictEqual(['deleted-flow']);
     });
 
     it('EDGE: {quest has no flows at all} => every id falls back to itself', () => {
@@ -57,7 +57,7 @@ describe('operationFlowLabelsTransformer', () => {
         flows: [],
       });
 
-      expect(result.map((label) => String(label))).toStrictEqual(['send-queued-comment-batch']);
+      expect(result.map((label) => label)).toStrictEqual(['send-queued-comment-batch']);
     });
   });
 

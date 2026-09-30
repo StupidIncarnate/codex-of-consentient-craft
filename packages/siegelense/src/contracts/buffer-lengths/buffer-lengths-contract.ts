@@ -10,7 +10,6 @@
 
 import { z } from '#gateway/npm/zod';
 
-
 export const bufferLengthsContract = z
   .object({
     consoleLines: z.number().int().nonnegative().brand<'BufferLengthsConsoleLines'>(),

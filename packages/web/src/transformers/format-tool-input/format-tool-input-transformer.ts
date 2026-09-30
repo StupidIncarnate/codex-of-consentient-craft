@@ -70,7 +70,7 @@ export const formatToolInputTransformer = ({
   ];
 
   const fields = orderedKeys.map((key) => {
-    const rawValue = parsed[key as keyof typeof parsed];
+    const rawValue = parsed[key];
     const value = typeof rawValue === 'string' ? rawValue : JSON.stringify(rawValue);
 
     return {

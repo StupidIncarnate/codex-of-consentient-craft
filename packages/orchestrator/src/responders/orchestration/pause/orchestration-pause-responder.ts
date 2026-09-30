@@ -33,8 +33,7 @@ export const OrchestrationPauseResponder = async ({
   // Read the announcement id BEFORE the pause: killing a registration removes it, so a lookup
   // afterwards would find nothing and mint a synthetic id for a process that really existed.
   const existingProcess = orchestrationProcessesState.findByQuestId({ questId });
-  const announcementProcessId =
-    existingProcess?.processId ?? `proc-pause-${randomUUID()}`;
+  const announcementProcessId = existingProcess?.processId ?? `proc-pause-${randomUUID()}`;
 
   const result = await questPauseBroker({
     questId,

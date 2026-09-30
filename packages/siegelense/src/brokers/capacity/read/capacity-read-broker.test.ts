@@ -179,13 +179,13 @@ describe('capacityReadBroker', () => {
             RegistryEntryStub({
               id: InstanceIdStub({ value: 'inst_aaaa1111' }),
               owner: '99999',
-              bootedAtMs: (NOW_MS - 60_000),
-              lastBeatMs: (NOW_MS - 1000),
+              bootedAtMs: NOW_MS - 60_000,
+              lastBeatMs: NOW_MS - 1000,
             }),
             RegistryEntryStub({
               id: InstanceIdStub({ value: 'inst_bbbb2222' }),
               owner: '88888',
-              reservedAtMs: (NOW_MS - 1000),
+              reservedAtMs: NOW_MS - 1000,
               bootedAtMs: null,
               lastBeatMs: null,
             }),
@@ -247,8 +247,8 @@ describe('capacityReadBroker', () => {
             RegistryEntryStub({
               id: InstanceIdStub({ value: 'inst_cccc3333' }),
               owner: '77777',
-              bootedAtMs: (NOW_MS - 600_000),
-              lastBeatMs: (NOW_MS - 60_000),
+              bootedAtMs: NOW_MS - 600_000,
+              lastBeatMs: NOW_MS - 60_000,
             }),
           ],
         }),
@@ -313,7 +313,7 @@ describe('capacityReadBroker', () => {
               // shape a reservation abandoned before boot.lock or the driver's own ping ever
               // fired takes. isStaleRegistryEntryGuard alone never catches this row: lastBeatMs
               // is null, and that guard returns false for a heartbeat that never started.
-              reservedAtMs: (NOW_MS - 16_200_000),
+              reservedAtMs: NOW_MS - 16_200_000,
             }),
           ],
         }),
@@ -371,13 +371,13 @@ describe('capacityReadBroker', () => {
             RegistryEntryStub({
               id: InstanceIdStub({ value: 'inst_dddd4444' }),
               state: 'killed',
-              bootedAtMs: (NOW_MS - 600_000),
-              lastBeatMs: (NOW_MS - 1000),
+              bootedAtMs: NOW_MS - 600_000,
+              lastBeatMs: NOW_MS - 1000,
             }),
             RegistryEntryStub({
               id: InstanceIdStub({ value: 'inst_eeee5555' }),
               state: 'pruned',
-              prunedAtMs: (NOW_MS - 500),
+              prunedAtMs: NOW_MS - 500,
               prunedByRule: 'older-than',
             }),
           ],

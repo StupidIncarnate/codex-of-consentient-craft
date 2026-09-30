@@ -11,10 +11,11 @@
 
 import { z } from '#gateway/npm/zod';
 
-
-export const questGetServerConfigResultContract = z.object({
-  baseUrl: z.url().brand<'QuestGetServerConfigResultBaseUrl'>(),
-  port: z.number().int().min(1).max(65_535).brand<'QuestGetServerConfigResultPort'>(),
-}).brand<'QuestGetServerConfigResult'>();
+export const questGetServerConfigResultContract = z
+  .object({
+    baseUrl: z.url().brand<'QuestGetServerConfigResultBaseUrl'>(),
+    port: z.number().int().min(1).max(65_535).brand<'QuestGetServerConfigResultPort'>(),
+  })
+  .brand<'QuestGetServerConfigResult'>();
 
 export type QuestGetServerConfigResult = z.infer<typeof questGetServerConfigResultContract>;

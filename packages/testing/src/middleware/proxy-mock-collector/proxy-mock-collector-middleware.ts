@@ -40,7 +40,9 @@ export const proxyMockCollectorMiddleware = ({
 }): MockCall[] => {
   const visitedKeys = new Set();
   const mockCalls: MockCall[] = [];
-  const filesToProcess: ProxyMockQueueEntry[] = [proxyMockQueueEntryContract.parse({ filePath: proxyFilePath, requestedNames })];
+  const filesToProcess: ProxyMockQueueEntry[] = [
+    proxyMockQueueEntryContract.parse({ filePath: proxyFilePath, requestedNames }),
+  ];
 
   while (filesToProcess.length > 0) {
     const entry = filesToProcess.pop();
@@ -91,14 +93,18 @@ export const proxyMockCollectorMiddleware = ({
 
       if (edge.kind === 'import') {
         // The current (already-relevant) file's own internal dependency — always followed in full.
-        filesToProcess.push(proxyMockQueueEntryContract.parse({ filePath: nextPath, requestedNames: edge.names }));
+        filesToProcess.push(
+          proxyMockQueueEntryContract.parse({ filePath: nextPath, requestedNames: edge.names }),
+        );
         continue;
       }
 
       // A `reexport` edge is part of entry.filePath's OWN re-export surface — follow it only for
       // the names entry's own requestedNames constraint still needs.
       if (entry.requestedNames === null) {
-        filesToProcess.push(proxyMockQueueEntryContract.parse({ filePath: nextPath, requestedNames: edge.names }));
+        filesToProcess.push(
+          proxyMockQueueEntryContract.parse({ filePath: nextPath, requestedNames: edge.names }),
+        );
         continue;
       }
 
@@ -109,7 +115,9 @@ export const proxyMockCollectorMiddleware = ({
           program,
         });
         if (provided.length > 0) {
-          filesToProcess.push(proxyMockQueueEntryContract.parse({ filePath: nextPath, requestedNames: provided }));
+          filesToProcess.push(
+            proxyMockQueueEntryContract.parse({ filePath: nextPath, requestedNames: provided }),
+          );
         }
         continue;
       }
@@ -117,7 +125,9 @@ export const proxyMockCollectorMiddleware = ({
       const requested: string[] = entry.requestedNames;
       const overlap = edge.names.filter((name) => requested.includes(name));
       if (overlap.length > 0) {
-        filesToProcess.push(proxyMockQueueEntryContract.parse({ filePath: nextPath, requestedNames: overlap }));
+        filesToProcess.push(
+          proxyMockQueueEntryContract.parse({ filePath: nextPath, requestedNames: overlap }),
+        );
       }
     }
   }

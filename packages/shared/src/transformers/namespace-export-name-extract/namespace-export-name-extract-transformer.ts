@@ -12,7 +12,6 @@
  * WHEN-NOT-TO-USE: When full AST accuracy is required — this is a v1 regex heuristic
  */
 
-
 // Matches `export const <Name> = {` — captures the const name
 const NAMESPACE_EXPORT_PATTERN = /export\s+const\s+([A-Z][A-Za-z0-9]*)\s*=/u;
 
@@ -21,7 +20,7 @@ export const namespaceExportNameExtractTransformer = ({
 }: {
   source: string;
 }): string | null => {
-  const match = NAMESPACE_EXPORT_PATTERN.exec(String(source));
+  const match = NAMESPACE_EXPORT_PATTERN.exec(source);
   if (match === null) {
     return null;
   }

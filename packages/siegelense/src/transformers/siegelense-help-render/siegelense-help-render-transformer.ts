@@ -20,7 +20,6 @@
  * // Returns the index: headline, one line per built call, footer
  */
 
-
 import { siegelenseHelpStatics } from '../../statics/siegelense-help/siegelense-help-statics';
 
 export type SiegelenseCall = keyof typeof siegelenseHelpStatics.calls;

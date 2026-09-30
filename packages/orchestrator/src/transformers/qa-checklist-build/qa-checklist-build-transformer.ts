@@ -42,7 +42,13 @@
  */
 
 import { qaChecklistContract, qaChecklistItemContract } from '@dungeonmaster/shared/contracts';
-import type { Flow, PackageGraphEntry, QaChecklist, Quest, QuestPackageEntry } from '@dungeonmaster/shared/contracts';
+import type {
+  Flow,
+  PackageGraphEntry,
+  QaChecklist,
+  Quest,
+  QuestPackageEntry,
+} from '@dungeonmaster/shared/contracts';
 import {
   qaCheckSurfaceStatics,
   qaChecklistLimitsStatics,

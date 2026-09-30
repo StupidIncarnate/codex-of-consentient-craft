@@ -127,32 +127,32 @@ export const architecturePackageTypeDetectBrokerProxy = (): {
 
       readFileProxy.setupImplementation({
         fn: (filePath: string): string => {
-          if (String(filePath) === `${packageRoot}/package.json`) {
+          if (filePath === `${packageRoot}/package.json`) {
             return packageJsonContent;
           }
           if (
             startupFileName !== undefined &&
-            String(filePath) === `${packageRoot}/src/startup/${startupFileName}`
+            filePath === `${packageRoot}/src/startup/${startupFileName}`
           ) {
             if (startupFileContent !== undefined) {
               return startupFileContent;
             }
-            throw FileMissingErrorStub({ path: String(filePath) });
+            throw FileMissingErrorStub({ path: filePath });
           }
           if (
             binFileName !== undefined &&
             binFileContent !== undefined &&
-            String(filePath) === `${packageRoot}/bin/${binFileName}`
+            filePath === `${packageRoot}/bin/${binFileName}`
           ) {
             return binFileContent;
           }
-          if (flowFilePath !== undefined && String(filePath) === flowFilePath) {
+          if (flowFilePath !== undefined && filePath === flowFilePath) {
             if (flowFileContent !== undefined) {
               return flowFileContent;
             }
-            throw FileMissingErrorStub({ path: String(filePath) });
+            throw FileMissingErrorStub({ path: filePath });
           }
-          throw FileMissingErrorStub({ path: String(filePath) });
+          throw FileMissingErrorStub({ path: filePath });
         },
       });
     },

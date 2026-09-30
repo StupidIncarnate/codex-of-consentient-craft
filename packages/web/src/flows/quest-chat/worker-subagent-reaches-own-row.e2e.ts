@@ -66,7 +66,7 @@ test.describe("A worker's own Task sub-agent streams live under that worker's ow
     });
 
     const created = await quests.createQuest({
-      guildId: guildId,
+      guildId,
       title: 'Worker Subagent Reaches Own Row Quest',
       userRequest: 'Build the feature',
     });

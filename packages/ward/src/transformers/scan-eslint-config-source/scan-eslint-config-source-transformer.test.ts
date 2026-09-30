@@ -1,4 +1,3 @@
-
 import { scanEslintConfigSourceTransformer } from './scan-eslint-config-source-transformer';
 
 describe('scanEslintConfigSourceTransformer', () => {

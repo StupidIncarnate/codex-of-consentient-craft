@@ -5,13 +5,7 @@ import { walkFilesSyncProxy } from '#gateway/node/fs/walk-files-sync/walk-files-
 import { subfolderPathsListLayerBrokerProxy } from './subfolder-paths-list-layer-broker.proxy';
 
 export const contractIndexBuildBrokerProxy = (): {
-  setupSubfolders: ({
-    dirPath,
-    folders,
-  }: {
-    dirPath: string;
-    folders: readonly string[];
-  }) => void;
+  setupSubfolders: ({ dirPath, folders }: { dirPath: string; folders: readonly string[] }) => void;
   setupPackageJson: ({ packageDir, json }: { packageDir: string; json: string }) => void;
   setupWalkedFolder: ({
     dirPath,
@@ -40,13 +34,7 @@ export const contractIndexBuildBrokerProxy = (): {
       subfolderProxy.setupDirectory({ dirPath, folders, files: [] });
     },
 
-    setupPackageJson: ({
-      packageDir,
-      json,
-    }: {
-      packageDir: string;
-      json: string;
-    }): void => {
+    setupPackageJson: ({ packageDir, json }: { packageDir: string; json: string }): void => {
       jsonProxy.returns({ path: `${packageDir}/package.json`, json });
     },
 

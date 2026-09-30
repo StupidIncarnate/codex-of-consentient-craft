@@ -23,7 +23,8 @@ describe('driverHeartbeatTickBroker', () => {
       const pgids = [4821, 4822];
       const lane = LaneSessionStub({ pgids });
       const nowMs = 1_700_000_500_000;
-      const evidencePath = '/home/user/.dungeonmaster/siegelense/guilds/f47ac10b-58cc-4372-a567-0e02b2c3d479/instances/inst_7f3a9c21';
+      const evidencePath =
+        '/home/user/.dungeonmaster/siegelense/guilds/f47ac10b-58cc-4372-a567-0e02b2c3d479/instances/inst_7f3a9c21';
       const row = RegistryEntryStub({ id: instanceId });
       const registry = RegistryStub({ instances: [row] });
       proxy.stageBeatSucceeds({

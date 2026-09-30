@@ -11,7 +11,13 @@ import { useState } from '#gateway/npm/react';
 
 import { Box, Group, Text } from '#gateway/npm/mantine__core';
 
-import type { Flow, QuestComment, QuestContractEntry, QuestPackageEntry, Quest } from '@dungeonmaster/shared/contracts';
+import type {
+  Flow,
+  QuestComment,
+  QuestContractEntry,
+  QuestPackageEntry,
+  Quest,
+} from '@dungeonmaster/shared/contracts';
 
 import { emberDepthsThemeStatics } from '../../statics/ember-depths-theme/ember-depths-theme-statics';
 import { ReactFlowDiagramWidget } from '../react-flow-diagram/react-flow-diagram-widget';
@@ -80,7 +86,7 @@ export const FlowsLayerWidget = ({
 
   return (
     <Box data-testid="FLOWS_LAYER" style={FILL_COLUMN_STYLE}>
-      <SectionHeaderWidget label={FLOWS_LABEL} count={flows.length as number} />
+      <SectionHeaderWidget label={FLOWS_LABEL} count={flows.length} />
 
       {flows.length > 1 ? (
         <Group gap={4} mt={4} mb={8} data-testid="FLOW_TABS">

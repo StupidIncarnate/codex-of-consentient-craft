@@ -1,4 +1,3 @@
-
 import { LaneSessionStub } from '../../../contracts/lane-session/lane-session.stub';
 import { RecipeListingEntryStub } from '../../../contracts/recipe-listing-entry/recipe-listing-entry.stub';
 import { StepStub } from '../../../contracts/step/step.stub';
@@ -11,9 +10,7 @@ describe('stepSeedBroker', () => {
     it('VALID: {guild-mid-execution} => calls the seed entry with the lane home and base URL, and returns the seeded record map', async () => {
       const proxy = stepSeedBrokerProxy();
       proxy.stagesListing({
-        listing: [
-          RecipeListingEntryStub({ recipeName: 'guild-mid-execution' }),
-        ],
+        listing: [RecipeListingEntryStub({ recipeName: 'guild-mid-execution' })],
       });
       const seedRun = proxy.stagesSeedRun({ result: { guild: { id: 'g1', urlSlug: 'guild-1' } } });
       const lane = LaneSessionStub({
@@ -45,9 +42,7 @@ describe('stepSeedBroker', () => {
     it('VALID: {lane.browser: null} => the seed still runs, proving it is not a browser verb', async () => {
       const proxy = stepSeedBrokerProxy();
       proxy.stagesListing({
-        listing: [
-          RecipeListingEntryStub({ recipeName: 'guild-mid-execution' }),
-        ],
+        listing: [RecipeListingEntryStub({ recipeName: 'guild-mid-execution' })],
       });
       proxy.stagesSeedRun({ result: { guild: { id: 'g1' } } });
       const lane = LaneSessionStub({ browser: null });
@@ -66,9 +61,7 @@ describe('stepSeedBroker', () => {
     it('INVALID: {recipe: "nope"} => throws RecipeUnknownError listing the recipes the listing holds', async () => {
       const proxy = stepSeedBrokerProxy();
       proxy.stagesListing({
-        listing: [
-          RecipeListingEntryStub({ recipeName: 'guild-mid-execution' }),
-        ],
+        listing: [RecipeListingEntryStub({ recipeName: 'guild-mid-execution' })],
       });
       const lane = LaneSessionStub();
       const step = StepStub({ step: 'seed', recipe: 'nope' });
@@ -91,9 +84,7 @@ describe('stepSeedBroker', () => {
     it('INVALID: {recipe takes none, params: {x}} => throws RecipeParamsRefusedError, never reaching the seed entry', async () => {
       const proxy = stepSeedBrokerProxy();
       proxy.stagesListing({
-        listing: [
-          RecipeListingEntryStub({ recipeName: 'guild-mid-execution' }),
-        ],
+        listing: [RecipeListingEntryStub({ recipeName: 'guild-mid-execution' })],
       });
       const seedRun = proxy.stagesSeedRun({ result: {} });
       const lane = LaneSessionStub();

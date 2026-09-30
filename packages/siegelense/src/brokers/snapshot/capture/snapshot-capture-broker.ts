@@ -48,7 +48,7 @@ export const snapshotCaptureBroker = async ({
   ];
   if (manual && reservedSuffixes.some((suffix) => name.endsWith(suffix))) {
     throw new Error(
-      `Snapshot name "${String(name)}" ends in a suffix reserved for the automatic pair ` +
+      `Snapshot name "${name}" ends in a suffix reserved for the automatic pair ` +
         `(${reservedSuffixes.join(', ')}) — every run mints its own "<runId>:start" and ` +
         `"<runId>:end", and a typed name taking one of those would overwrite a restore point the ` +
         `run is relying on. Pick a name that does not end in one.`,

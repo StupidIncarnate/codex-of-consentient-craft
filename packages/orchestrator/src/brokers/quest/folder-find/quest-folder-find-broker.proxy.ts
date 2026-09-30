@@ -98,7 +98,10 @@ export const questFolderFindBrokerProxy = (): {
       readdirProxy.returns({ path: questsPath, names: questFolders });
 
       const [invalidFolderName, validFolderName] = questFolders;
-      const missingFolderPath = missingFileFolder.replace(`/${locationsStatics.quest.questFile}`, '');
+      const missingFolderPath = missingFileFolder.replace(
+        `/${locationsStatics.quest.questFile}`,
+        '',
+      );
 
       if (invalidFolderName !== undefined) {
         joinHandle.calledWith([questsPath, invalidFolderName]).returns(missingFolderPath);

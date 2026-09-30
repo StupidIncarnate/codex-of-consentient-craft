@@ -195,7 +195,7 @@ export const ArchitectureHandleResponder = async ({
     const srcPath = `${packageDir}/src`;
     const packageJsonPath = `${packageDir}/package.json`;
     const result = architecturePackageInventoryBroker({
-      packageName: packageName,
+      packageName,
       srcPath,
       packageJsonPath,
     });
@@ -205,5 +205,5 @@ export const ArchitectureHandleResponder = async ({
     };
   }
 
-  throw new Error(`Unknown architecture tool: ${String(tool)}`);
+  throw new Error(`Unknown architecture tool: ${tool}`);
 };

@@ -10,11 +10,7 @@
 
 import { safeReaddirLayerBroker } from './safe-readdir-layer-broker';
 
-export const countFilesRecursiveLayerBroker = ({
-  dirPath,
-}: {
-  dirPath: string;
-}): number => {
+export const countFilesRecursiveLayerBroker = ({ dirPath }: { dirPath: string }): number => {
   const entries = safeReaddirLayerBroker({ dirPath });
   let count = 0;
 

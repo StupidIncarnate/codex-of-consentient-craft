@@ -69,7 +69,7 @@ test.describe('A typed screenshot path renders like any other pasted image', () 
     const sessionId = `e2e-screenshot-path-transcript-${Date.now()}`;
 
     const created = await quests.createQuest({
-      guildId: guildId,
+      guildId,
       title: 'Screenshot Path Transcript Quest',
       userRequest: 'Build feature',
     });

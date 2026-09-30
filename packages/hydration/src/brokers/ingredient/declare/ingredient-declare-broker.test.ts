@@ -8,12 +8,16 @@ import { typescriptProgramDiagnostics } from '../../../../test/type-fixtures/typ
 // 1.1-1.4s each against ward's 1000ms testWarnMs bar (see the adapter's own suite, and the plan's
 // §10b "Two measurements, and what they settle"). Every fixture-owning `it` below reads its own
 // file's slice of this one result rather than compiling its own program.
-const BAD_TRANSITION_FIELD = 'packages/hydration/test/type-fixtures/declaration/bad-transition-field.ts';
-const BAD_TRANSITION_VALUE = 'packages/hydration/test/type-fixtures/declaration/bad-transition-value.ts';
-const WRITE_WITHOUT_COPIES = 'packages/hydration/test/type-fixtures/declaration/write-without-copies.ts';
+const BAD_TRANSITION_FIELD =
+  'packages/hydration/test/type-fixtures/declaration/bad-transition-field.ts';
+const BAD_TRANSITION_VALUE =
+  'packages/hydration/test/type-fixtures/declaration/bad-transition-value.ts';
+const WRITE_WITHOUT_COPIES =
+  'packages/hydration/test/type-fixtures/declaration/write-without-copies.ts';
 const NO_ROUTES = 'packages/hydration/test/type-fixtures/declaration/no-routes.ts';
 const EXTRA_NAMED_SET = 'packages/hydration/test/type-fixtures/declaration/extra-named-set.ts';
-const EXTRA_NAMED_REMOVE = 'packages/hydration/test/type-fixtures/declaration/extra-named-remove.ts';
+const EXTRA_NAMED_REMOVE =
+  'packages/hydration/test/type-fixtures/declaration/extra-named-remove.ts';
 const BAD_DEFAULTS = 'packages/hydration/test/type-fixtures/declaration/bad-defaults.ts';
 const BAD_LINK_FIELD = 'packages/hydration/test/type-fixtures/declaration/bad-link-field.ts';
 const declarationFixtureDiagnostics = typescriptProgramDiagnostics({

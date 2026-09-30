@@ -10,10 +10,11 @@
 
 import { z } from '#gateway/npm/zod';
 
-
-export const imageSizeContract = z.object({
-  widthPx: z.number().int().positive().brand<'ImageSizeWidthPx'>(),
-  heightPx: z.number().int().positive().brand<'ImageSizeHeightPx'>(),
-}).brand<'ImageSize'>();
+export const imageSizeContract = z
+  .object({
+    widthPx: z.number().int().positive().brand<'ImageSizeWidthPx'>(),
+    heightPx: z.number().int().positive().brand<'ImageSizeHeightPx'>(),
+  })
+  .brand<'ImageSize'>();
 
 export type ImageSize = z.infer<typeof imageSizeContract>;

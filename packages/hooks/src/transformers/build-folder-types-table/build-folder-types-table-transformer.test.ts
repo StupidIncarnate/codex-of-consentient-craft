@@ -23,8 +23,8 @@ describe('buildFolderTypesTableTransformer', () => {
     it('VALID: {} => orders depth-1 folders before depth-2 folders', () => {
       const result = buildFolderTypesTableTransformer();
 
-      const staticsIndex = String(result).indexOf('| statics/ |');
-      const brokersIndex = String(result).indexOf('| brokers/ |');
+      const staticsIndex = result.indexOf('| statics/ |');
+      const brokersIndex = result.indexOf('| brokers/ |');
 
       expect(staticsIndex).toBeLessThan(brokersIndex);
     });
@@ -32,7 +32,7 @@ describe('buildFolderTypesTableTransformer', () => {
     it('VALID: {} => emits one row per folder type, ordered by depth then name, with no adapters/ row', () => {
       const result = buildFolderTypesTableTransformer();
 
-      expect(String(result).match(/^\| [a-z]+\/ /gmu)).toStrictEqual([
+      expect(result.match(/^\| [a-z]+\/ /gmu)).toStrictEqual([
         '| startup/ ',
         '| assets/ ',
         '| bindings/ ',
@@ -54,7 +54,7 @@ describe('buildFolderTypesTableTransformer', () => {
     it('VALID: {} => result is under 2048 bytes', () => {
       const result = buildFolderTypesTableTransformer();
 
-      expect(Buffer.byteLength(String(result), 'utf8')).toBeLessThanOrEqual(2048);
+      expect(Buffer.byteLength(result, 'utf8')).toBeLessThanOrEqual(2048);
     });
   });
 });

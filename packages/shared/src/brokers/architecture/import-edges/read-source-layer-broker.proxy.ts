@@ -11,13 +11,7 @@ export const readSourceLayerBrokerProxy = (): {
   const gatewayProxy = readFileSyncProxy();
 
   return {
-    returns: ({
-      filePath,
-      content,
-    }: {
-      filePath: string;
-      content: string;
-    }): void => {
+    returns: ({ filePath, content }: { filePath: string; content: string }): void => {
       gatewayProxy.returns({ path: filePath, contents: content });
     },
 

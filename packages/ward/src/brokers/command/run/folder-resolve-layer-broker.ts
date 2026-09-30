@@ -24,10 +24,10 @@ export const folderResolveLayerBroker = async ({
     const contents = await readFile(pkgPath);
     const parsed = packageJsonContract.parse(JSON.parse(contents));
     if (parsed.name !== undefined) {
-      return projectFolderContract.parse({ name: String(parsed.name), path: String(rootPath) });
+      return projectFolderContract.parse({ name: String(parsed.name), path: rootPath });
     }
   } catch {
     // fall through to default
   }
-  return projectFolderContract.parse({ name: String(rootPath), path: String(rootPath) });
+  return projectFolderContract.parse({ name: rootPath, path: rootPath });
 };

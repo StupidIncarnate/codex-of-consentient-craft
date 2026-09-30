@@ -6,12 +6,7 @@
  * // Returns true if all required sections are present
  */
 
-
-export const hasMetadataCommentGuard = ({
-  fileContents,
-}: {
-  fileContents?: string;
-}): boolean => {
+export const hasMetadataCommentGuard = ({ fileContents }: { fileContents?: string }): boolean => {
   if (!fileContents) {
     return false;
   }

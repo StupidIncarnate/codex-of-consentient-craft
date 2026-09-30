@@ -30,7 +30,12 @@
  * orchestrator.getQuestNotFound({ questId });
  */
 
-import type { WorkItem, QuestStatus, SmoketestSuite, Session } from '@dungeonmaster/shared/contracts';
+import type {
+  WorkItem,
+  QuestStatus,
+  SmoketestSuite,
+  Session,
+} from '@dungeonmaster/shared/contracts';
 import { registerMock } from '@dungeonmaster/testing/register-mock';
 import type { RecordedCalls } from '@dungeonmaster/testing/register-mock';
 import { DispatchStateStub } from '@dungeonmaster/shared/contracts/dispatch-state/dispatch-state.stub';
@@ -283,7 +288,10 @@ export const StartOrchestratorProxy = (): {
   // startChatGetCalls. A caller needing the exact forwarded shape (proving an optional field like
   // questType/sessionId reached the call) filters/reads this array itself.
   createQuestForMcpGetCalls: () => readonly unknown[];
-  handleSignalBackResolves: (params: { questId?: Quest['id']; workItemId?: WorkItem['id'] }) => void;
+  handleSignalBackResolves: (params: {
+    questId?: Quest['id'];
+    workItemId?: WorkItem['id'];
+  }) => void;
   handleSignalBackThrows: (params: {
     questId?: Quest['id'];
     workItemId?: WorkItem['id'];
@@ -302,7 +310,10 @@ export const StartOrchestratorProxy = (): {
   // /reads this array itself.
   questWorkGetCalls: () => readonly unknown[];
   // Reverse lookups — QuestFlow.findBySessionId / findByWorkItemId.
-  findQuestBySessionIdReturns: (params: { sessionId: Session['id']; questId: Quest['id'] | null }) => void;
+  findQuestBySessionIdReturns: (params: {
+    sessionId: Session['id'];
+    questId: Quest['id'] | null;
+  }) => void;
   findQuestBySessionIdThrows: (params: { sessionId: Session['id']; error: Error }) => void;
   findQuestByWorkItemIdReturns: (params: {
     workItemId: WorkItem['id'];
@@ -424,15 +435,7 @@ export const StartOrchestratorProxy = (): {
     }): void => {
       addGuildHandle.calledWith([{ name, path }]).resolves(guild);
     },
-    addGuildThrows: ({
-      name,
-      path,
-      error,
-    }: {
-      name: string;
-      path: string;
-      error: Error;
-    }): void => {
+    addGuildThrows: ({ name, path, error }: { name: string; path: string; error: Error }): void => {
       addGuildHandle.calledWith([{ name, path }]).rejects(error);
     },
     updateGuildReturns: ({ guildId, guild }: { guildId: Guild['id']; guild: Guild }): void => {
@@ -483,7 +486,13 @@ export const StartOrchestratorProxy = (): {
     }): void => {
       listQuestsWithSkipsHandle.calledWith([{ guildId }]).resolves({ quests, skipped });
     },
-    listQuestsWithSkipsThrows: ({ guildId, error }: { guildId: Guild['id']; error: Error }): void => {
+    listQuestsWithSkipsThrows: ({
+      guildId,
+      error,
+    }: {
+      guildId: Guild['id'];
+      error: Error;
+    }): void => {
       listQuestsWithSkipsHandle.calledWith([{ guildId }]).rejects(error);
     },
     loadQuestReturns: ({ questId, quest }: { questId: Quest['id']; quest: Quest }): void => {
@@ -513,7 +522,13 @@ export const StartOrchestratorProxy = (): {
           }),
       );
     },
-    getQuestReturns: ({ questId, result }: { questId: Quest['id']; result: GetQuestResult }): void => {
+    getQuestReturns: ({
+      questId,
+      result,
+    }: {
+      questId: Quest['id'];
+      result: GetQuestResult;
+    }): void => {
       getQuestHandle.calledWith([{ questId }]).resolves(result);
     },
     getQuestThrows: ({ questId, error }: { questId: Quest['id']; error: Error }): void => {
@@ -661,13 +676,25 @@ export const StartOrchestratorProxy = (): {
     abandonQuestThrows: ({ questId, error }: { questId: Quest['id']; error: Error }): void => {
       abandonQuestHandle.calledWith([{ questId }]).rejects(error);
     },
-    deleteQuestReturns: ({ questId, deleted }: { questId: Quest['id']; deleted: boolean }): void => {
+    deleteQuestReturns: ({
+      questId,
+      deleted,
+    }: {
+      questId: Quest['id'];
+      deleted: boolean;
+    }): void => {
       deleteQuestHandle.calledWith([{ questId }]).resolves({ deleted });
     },
     deleteQuestThrows: ({ questId, error }: { questId: Quest['id']; error: Error }): void => {
       deleteQuestHandle.calledWith([{ questId }]).rejects(error);
     },
-    addQuestReturns: ({ guildId, result }: { guildId: Guild['id']; result: AddQuestResult }): void => {
+    addQuestReturns: ({
+      guildId,
+      result,
+    }: {
+      guildId: Guild['id'];
+      result: AddQuestResult;
+    }): void => {
       addQuestHandle.calledWith([{ guildId }]).resolves(result);
     },
     addQuestThrows: ({ guildId, error }: { guildId: Guild['id']; error: Error }): void => {

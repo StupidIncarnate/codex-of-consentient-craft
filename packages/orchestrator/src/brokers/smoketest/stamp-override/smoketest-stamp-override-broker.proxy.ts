@@ -69,7 +69,9 @@ export const smoketestStampOverrideBrokerProxy = (): {
     },
 
     setupQuestNotFound: ({ questId }: { questId: string }): void => {
-      findQuestPathMock.calledWith([{ questId }]).rejects(new QuestNotFoundError({ questId: QuestIdStub({ value: questId }) }));
+      findQuestPathMock
+        .calledWith([{ questId }])
+        .rejects(new QuestNotFoundError({ questId: QuestIdStub({ value: questId }) }));
     },
 
     // Read the `contents` argument straight off every questPersistBroker call this test made,

@@ -11,10 +11,22 @@ export const QuestFollowupStopResponderProxy = (): {
 } => {
   const orchestrator = StartOrchestratorProxy();
   return {
-    setupStopFollowupChat: ({ questId, stopped }: { questId: Quest['id']; stopped: boolean }): void => {
+    setupStopFollowupChat: ({
+      questId,
+      stopped,
+    }: {
+      questId: Quest['id'];
+      stopped: boolean;
+    }): void => {
       orchestrator.stopFollowupChatReturns({ questId, stopped });
     },
-    setupStopFollowupChatError: ({ questId, error }: { questId: Quest['id']; error: Error }): void => {
+    setupStopFollowupChatError: ({
+      questId,
+      error,
+    }: {
+      questId: Quest['id'];
+      error: Error;
+    }): void => {
       orchestrator.stopFollowupChatThrows({ questId, error });
     },
     // Every call the adapter received, so a bad-params test can prove it received NONE — not just

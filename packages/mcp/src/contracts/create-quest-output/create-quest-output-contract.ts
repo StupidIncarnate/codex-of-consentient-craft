@@ -12,8 +12,14 @@ import { questContract } from '@dungeonmaster/shared/contracts';
 export const createQuestOutputContract = z
   .object({
     questId: questContract.shape.id.describe('The id of the newly-created quest'),
-    guildSlug: z.string().min(1).regex(/^[a-z0-9]+(?:-[a-z0-9]+)*$/u).brand<'CreateQuestOutputGuildSlug'>().describe('URL-safe slug of the guild the quest was created in'),
+    guildSlug: z
+      .string()
+      .min(1)
+      .regex(/^[a-z0-9]+(?:-[a-z0-9]+)*$/u)
+      .brand<'CreateQuestOutputGuildSlug'>()
+      .describe('URL-safe slug of the guild the quest was created in'),
   })
-  .strict().brand<'CreateQuestOutput'>();
+  .strict()
+  .brand<'CreateQuestOutput'>();
 
 export type CreateQuestOutput = z.infer<typeof createQuestOutputContract>;

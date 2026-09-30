@@ -529,8 +529,8 @@ describe('instanceStartBroker', () => {
       const staleEntry = RegistryEntryStub({
         id: staleInstanceId,
         state: 'alive',
-        bootedAtMs: (NOW_MS - 30_000),
-        lastBeatMs: (NOW_MS - 20_000),
+        bootedAtMs: NOW_MS - 30_000,
+        lastBeatMs: NOW_MS - 20_000,
       });
 
       proxy.setupHappyBoot({

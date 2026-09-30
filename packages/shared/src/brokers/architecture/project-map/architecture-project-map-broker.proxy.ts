@@ -75,7 +75,7 @@ export const architectureProjectMapBrokerProxy = (): {
       // Library packages are filtered out before reaching package-section-build, so this
       // setup just configures discovery + type-detection to identify the package as a library.
       discoverProxy.setupPackages({
-        dirPath: `${String(projectRoot)}/${projectMapStatics.packagesDirName}`,
+        dirPath: `${projectRoot}/${projectMapStatics.packagesDirName}`,
         entries: [{ name: packageName, isDirectory: true }],
       });
       typeDetectProxy.setupPackage({
@@ -96,7 +96,7 @@ export const architectureProjectMapBrokerProxy = (): {
       // section IS rendered (with a `# name [type]` header). Used by tests that consume the
       // header line (e.g. session-snippet-packages).
       discoverProxy.setupPackages({
-        dirPath: `${String(projectRoot)}/${projectMapStatics.packagesDirName}`,
+        dirPath: `${projectRoot}/${projectMapStatics.packagesDirName}`,
         entries: [{ name: packageName, isDirectory: true }],
       });
       typeDetectProxy.setupPackage({
@@ -121,7 +121,7 @@ export const architectureProjectMapBrokerProxy = (): {
         srcDirNames: ['widgets'],
       });
       discoverProxy.setupPackages({
-        dirPath: `${String(projectRoot)}/${projectMapStatics.packagesDirName}`,
+        dirPath: `${projectRoot}/${projectMapStatics.packagesDirName}`,
         entries: [{ name: packageName, isDirectory: true }],
       });
     },
@@ -140,7 +140,7 @@ export const architectureProjectMapBrokerProxy = (): {
       // with a relativeDir the broker builds from BOTH segments — proven at that broker's own level
       // by discover-packages-layer-broker.test.ts. This proxy stages both readdir calls so the
       // composer's OWN test can assert the resulting section uses the bare child name.
-      const packagesDir = `${String(projectRoot)}/${projectMapStatics.packagesDirName}`;
+      const packagesDir = `${projectRoot}/${projectMapStatics.packagesDirName}`;
       discoverProxy.setupPackages({
         dirPath: packagesDir,
         entries: [{ name: groupName, isDirectory: true }],
@@ -164,7 +164,7 @@ export const architectureProjectMapBrokerProxy = (): {
         srcDirNames: [],
       });
       discoverProxy.setupMissingPackagesDir({
-        dirPath: `${String(projectRoot)}/${projectMapStatics.packagesDirName}`,
+        dirPath: `${projectRoot}/${projectMapStatics.packagesDirName}`,
       });
     },
 

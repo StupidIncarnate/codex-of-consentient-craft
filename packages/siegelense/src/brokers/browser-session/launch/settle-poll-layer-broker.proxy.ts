@@ -71,7 +71,7 @@ export const settlePollLayerBrokerProxy = (): {
   } => ({
     evaluate: async ({ source }: { source: ContentText }): Promise<RawSettleProbe> => {
       state.probeSources.push(source);
-      state.probeCount = (state.probeCount + 1);
+      state.probeCount += 1;
       if (state.rejectMessage !== null) {
         return Promise.reject(new Error(state.rejectMessage));
       }
@@ -87,7 +87,7 @@ export const settlePollLayerBrokerProxy = (): {
       );
     },
     pause: async ({ ms }: { ms: number }): Promise<void> => {
-      clock.nowMs = (clock.nowMs + ms);
+      clock.nowMs += ms;
       if (state.tick !== null) {
         state.tick();
       }

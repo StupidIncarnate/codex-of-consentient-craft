@@ -11,11 +11,7 @@ import { dirname, join } from '#gateway/node/path';
 import { projectConfigContract } from '../../../contracts/project-config/project-config-contract';
 import { dungeonmasterHomeStatics } from '../../../statics/dungeonmaster-home/dungeonmaster-home-statics';
 
-export const portConfigWalkBroker = ({
-  dir,
-}: {
-  dir: string;
-}): number | undefined => {
+export const portConfigWalkBroker = ({ dir }: { dir: string }): number | undefined => {
   const configPath = join(dir, dungeonmasterHomeStatics.paths.projectConfigFile);
   try {
     const contents = readFileSync(configPath);

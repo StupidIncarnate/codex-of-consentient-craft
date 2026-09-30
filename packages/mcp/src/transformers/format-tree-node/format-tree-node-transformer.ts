@@ -30,7 +30,7 @@ export const formatTreeNodeTransformer = ({
 
   // Sort children and items alphabetically
   const sortedChildren = Array.from(node.children.entries()).sort(([a], [b]) =>
-    String(a).localeCompare(String(b)),
+    a.localeCompare(b),
   );
   const sortedItems = [...node.items].sort((a, b) => String(a.name).localeCompare(String(b.name)));
 
@@ -47,9 +47,7 @@ export const formatTreeNodeTransformer = ({
     const render = hitRenders.get(item);
     const labelSuffix = render === undefined ? '' : render.labelSuffix;
 
-    lines.push(
-      `${indentStr}${item.name}${typePart}${purposePart}${labelSuffix}`,
-    );
+    lines.push(`${indentStr}${item.name}${typePart}${purposePart}${labelSuffix}`);
 
     for (const hitLine of render?.lines ?? []) {
       lines.push(`${indentStr}  ${hitLine}`);

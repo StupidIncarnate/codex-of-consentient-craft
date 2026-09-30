@@ -27,19 +27,20 @@ export const instanceReleaseBroker = async ({
   instanceId: SiegeInstance['id'];
 }): Promise<RegistryEntry> => {
   const updated = await registryUpdateBroker({
-    mutate: (registry) => registryContract.parse({
-      instances: registry.instances.map((entry) =>
-        entry.id === instanceId
-          ? registryEntryContract.parse({
-              ...entry,
-              state: 'killed',
-              pid: null,
-              pgids: [],
-              socketPath: null,
-            })
-          : entry,
-      ),
-    }),
+    mutate: (registry) =>
+      registryContract.parse({
+        instances: registry.instances.map((entry) =>
+          entry.id === instanceId
+            ? registryEntryContract.parse({
+                ...entry,
+                state: 'killed',
+                pid: null,
+                pgids: [],
+                socketPath: null,
+              })
+            : entry,
+        ),
+      }),
   });
 
   const released = updated.instances.find((entry) => entry.id === instanceId);

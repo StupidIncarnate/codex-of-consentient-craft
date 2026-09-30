@@ -7,11 +7,7 @@
  */
 import type { Flow } from '@dungeonmaster/shared/contracts';
 
-export const questDuplicateFlowEdgeIdsTransformer = ({
-  flows,
-}: {
-  flows?: Flow[];
-}): string[] => {
+export const questDuplicateFlowEdgeIdsTransformer = ({ flows }: { flows?: Flow[] }): string[] => {
   if (!flows) {
     return [];
   }
@@ -35,9 +31,7 @@ export const questDuplicateFlowEdgeIdsTransformer = ({
       const ids = Array.from(duplicates)
         .map((id) => `'${String(id)}'`)
         .join(',');
-      offenders.push(
-        `flow '${String(flow.id)}': duplicate edges ${ids}`,
-      );
+      offenders.push(`flow '${String(flow.id)}': duplicate edges ${ids}`);
     }
   }
 

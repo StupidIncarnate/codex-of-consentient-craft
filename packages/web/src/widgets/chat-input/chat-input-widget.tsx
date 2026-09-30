@@ -100,7 +100,9 @@ export const ChatInputWidget = ({
   // stale-closure trap state would reintroduce here: a paste that called setState and then
   // immediately needed the "current" map for the content-changed step would still see the
   // pre-update value, since React state updates are not synchronous.
-  const attachmentsRef = useRef<Map<ComposerAttachment['attachmentId'], ComposerAttachment>>(new Map());
+  const attachmentsRef = useRef<Map<ComposerAttachment['attachmentId'], ComposerAttachment>>(
+    new Map(),
+  );
   // The attachment id list as of the last IndexedDB write. `handleContentChanged` now runs on every
   // keystroke (wired to the editor's native `input` event, below) as well as on paste/delete, so the
   // IndexedDB write itself is gated on whether this list actually changed since the last write — a
@@ -500,7 +502,9 @@ export const ChatInputWidget = ({
     const rawAttachmentId = target.getAttribute(chatComposerStatics.thumbnail.attributeName);
     if (rawAttachmentId === null) return;
 
-    const attachment = attachmentsRef.current.get(composerAttachmentContract.shape.attachmentId.parse(rawAttachmentId));
+    const attachment = attachmentsRef.current.get(
+      composerAttachmentContract.shape.attachmentId.parse(rawAttachmentId),
+    );
     if (attachment === undefined) return;
 
     setOverlaySrc(attachment.dataUrl);

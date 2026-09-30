@@ -1005,11 +1005,7 @@ describe('ToolRowWidget', () => {
 
       mantineRenderMiddleware({
         ui: (
-          <ToolRowWidget
-            toolUse={toolUse as ToolUseEntry}
-            defaultExpanded={true}
-            stickyTop={54}
-          />
+          <ToolRowWidget toolUse={toolUse as ToolUseEntry} defaultExpanded={true} stickyTop={54} />
         ),
       });
 

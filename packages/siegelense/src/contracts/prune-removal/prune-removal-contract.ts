@@ -20,12 +20,14 @@ import { z } from '#gateway/npm/zod';
 import { pruneAssetKindContract } from '../prune-asset-kind/prune-asset-kind-contract';
 import { siegeInstanceContract } from '@dungeonmaster/shared/contracts';
 
-export const pruneRemovalContract = z.object({
-  id: siegeInstanceContract.shape.id,
-  kind: pruneAssetKindContract.nullable(),
-  freedBytes: z.number().int().nonnegative().brand<'PruneRemovalFreedBytes'>(),
-  freedMB: z.number().int().nonnegative().brand<'PruneRemovalFreedMB'>(),
-  tombstoned: z.boolean(),
-}).brand<'PruneRemoval'>();
+export const pruneRemovalContract = z
+  .object({
+    id: siegeInstanceContract.shape.id,
+    kind: pruneAssetKindContract.nullable(),
+    freedBytes: z.number().int().nonnegative().brand<'PruneRemovalFreedBytes'>(),
+    freedMB: z.number().int().nonnegative().brand<'PruneRemovalFreedMB'>(),
+    tombstoned: z.boolean(),
+  })
+  .brand<'PruneRemoval'>();
 
 export type PruneRemoval = z.infer<typeof pruneRemovalContract>;

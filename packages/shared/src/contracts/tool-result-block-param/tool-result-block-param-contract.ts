@@ -14,24 +14,26 @@ import { searchResultBlockParamContract } from '../search-result-block-param/sea
 import { documentBlockParamContract } from '../document-block-param/document-block-param-contract';
 import { toolReferenceBlockParamContract } from '../tool-reference-block-param/tool-reference-block-param-contract';
 
-export const toolResultBlockParamContract = z.object({
-  type: z.literal('tool_result'),
-  tool_use_id: z.string().min(1).brand<'ToolResultBlockParamToolUseId'>(),
-  content: z
-    .union([
-      z.string().brand<'ToolResultBlockParamContent'>(),
-      z.array(
-        z.discriminatedUnion('type', [
-          textBlockParamContract,
-          imageBlockParamContract,
-          searchResultBlockParamContract,
-          documentBlockParamContract,
-          toolReferenceBlockParamContract,
-        ]),
-      ),
-    ])
-    .optional(),
-  is_error: z.boolean().optional(),
-}).brand<'ToolResultBlockParam'>();
+export const toolResultBlockParamContract = z
+  .object({
+    type: z.literal('tool_result'),
+    tool_use_id: z.string().min(1).brand<'ToolResultBlockParamToolUseId'>(),
+    content: z
+      .union([
+        z.string().brand<'ToolResultBlockParamContent'>(),
+        z.array(
+          z.discriminatedUnion('type', [
+            textBlockParamContract,
+            imageBlockParamContract,
+            searchResultBlockParamContract,
+            documentBlockParamContract,
+            toolReferenceBlockParamContract,
+          ]),
+        ),
+      ])
+      .optional(),
+    is_error: z.boolean().optional(),
+  })
+  .brand<'ToolResultBlockParam'>();
 
 export type ToolResultBlockParam = z.infer<typeof toolResultBlockParamContract>;

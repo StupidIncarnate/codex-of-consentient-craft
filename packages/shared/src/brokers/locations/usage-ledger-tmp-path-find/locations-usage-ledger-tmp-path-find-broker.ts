@@ -19,11 +19,7 @@ import { join } from '#gateway/node/path';
 import { dungeonmasterHomeFindBroker } from '../../dungeonmaster-home/find/dungeonmaster-home-find-broker';
 import { locationsStatics } from '../../../statics/locations/locations-statics';
 
-export const locationsUsageLedgerTmpPathFindBroker = ({
-  token,
-}: {
-  token: string;
-}): string => {
+export const locationsUsageLedgerTmpPathFindBroker = ({ token }: { token: string }): string => {
   const { homePath } = dungeonmasterHomeFindBroker();
 
   const joined = join(homePath, `${locationsStatics.dungeonmasterHome.usageLedgerTmp}.${token}`);

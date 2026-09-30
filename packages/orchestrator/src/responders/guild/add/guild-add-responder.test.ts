@@ -12,7 +12,8 @@ describe('GuildAddResponder', () => {
         homePath: '/home/user/.dungeonmaster',
         guildsPath: '/home/user/.dungeonmaster/guilds',
         guildDirPath: '/home/user/.dungeonmaster/guilds/f47ac10b-58cc-4372-a567-0e02b2c3d479',
-        questsDirPath: '/home/user/.dungeonmaster/guilds/f47ac10b-58cc-4372-a567-0e02b2c3d479/quests',
+        questsDirPath:
+          '/home/user/.dungeonmaster/guilds/f47ac10b-58cc-4372-a567-0e02b2c3d479/quests',
       });
 
       const result = await proxy.callResponder({

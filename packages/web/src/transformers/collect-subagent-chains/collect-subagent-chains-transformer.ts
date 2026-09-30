@@ -150,7 +150,7 @@ export const collectSubagentChainsTransformer = ({
 
       const contextTokens =
         firstContext !== null && lastContext !== null
-          ? Math.max(0, Number(lastContext) - Number(firstContext))
+          ? Math.max(0, lastContext - firstContext)
           : null;
 
       const chain = {

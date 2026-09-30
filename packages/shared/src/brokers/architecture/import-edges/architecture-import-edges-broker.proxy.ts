@@ -9,11 +9,7 @@ const buildDirDirent = ({ name }: { name: string }): Dirent =>
 
 const buildFileDirent = ({ name }: { name: string }): Dirent => DirentStub({ name, kind: 'file' });
 
-const addToTree = (
-  tree: Map<string, Dirent[]>,
-  dirPath: string,
-  entry: Dirent,
-): void => {
+const addToTree = (tree: Map<string, Dirent[]>, dirPath: string, entry: Dirent): void => {
   const existing = tree.get(dirPath) ?? [];
   const alreadyListed = existing.some((e) => e.name === entry.name);
   if (!alreadyListed) {
@@ -22,16 +18,12 @@ const addToTree = (
   }
 };
 
-const addPathToTree = (
-  tree: Map<string, Dirent[]>,
-  parts: string[],
-  depth: number,
-): void => {
+const addPathToTree = (tree: Map<string, Dirent[]>, parts: string[], depth: number): void => {
   if (depth >= parts.length) {
     return;
   }
-  const parentDir = (parts.slice(0, depth).map(String).join('/') || '/');
-  const childName = String(parts[depth] ?? '');
+  const parentDir = parts.slice(0, depth).map(String).join('/') || '/';
+  const childName = (parts[depth] ?? '');
   if (childName === '') {
     return;
   }
@@ -69,18 +61,18 @@ export const architectureImportEdgesBrokerProxy = (): {
       packages: string[];
       sourceFiles: { path: string; source: string }[];
     }): void => {
-      const root = String(projectRoot);
+      const root = projectRoot;
 
       // Build a unified virtual directory tree
       const tree = new Map<string, Dirent[]>();
 
       const packagesDir = `${root}/packages`;
       for (const pkg of packages) {
-        addToTree(tree, packagesDir, buildDirDirent({ name: String(pkg) }));
+        addToTree(tree, packagesDir, buildDirDirent({ name: pkg }));
       }
 
       for (const file of sourceFiles) {
-        const parts = String(file.path)
+        const parts = file.path
           .split('/')
           .map((p) => p);
         addPathToTree(tree, parts, 1);
@@ -101,7 +93,7 @@ export const architectureImportEdgesBrokerProxy = (): {
       readProxy.implementation({
         fn: (filePath): string => {
           for (const [key, content] of fileMap) {
-            if (String(key) === String(filePath)) {
+            if (key === filePath) {
               return content;
             }
           }

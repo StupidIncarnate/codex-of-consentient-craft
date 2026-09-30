@@ -115,9 +115,7 @@ describe('barrelOriginsIndexTransformer', () => {
       packages,
     });
 
-    expect(result.get('aAdapter')).toBe(
-      'packages/api/src/adapters/a/a-adapter.ts',
-    );
+    expect(result.get('aAdapter')).toBe('packages/api/src/adapters/a/a-adapter.ts');
   });
 
   it('EMPTY: {a file with no facts} => an empty index', () => {
@@ -158,9 +156,7 @@ describe('barrelOriginsIndexTransformer', () => {
   });
 
   it('EDGE: {a barrel that defines a name itself} => the name maps to the barrel', () => {
-    const factsByFile = new Map([
-      [barrel, SourceFactsStub({ exportNames: ['local'] })],
-    ]);
+    const factsByFile = new Map([[barrel, SourceFactsStub({ exportNames: ['local'] })]]);
 
     const result = barrelOriginsIndexTransformer({
       file: barrel,

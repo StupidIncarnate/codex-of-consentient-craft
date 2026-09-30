@@ -12,7 +12,6 @@
  * // Returns 'video recording stopped — saved to /path/video.webm' as ContentText
  */
 
-
 import type { VideoResult } from '../../contracts/video-result/video-result-contract';
 import { videoStatics } from '../../statics/video/video-statics';
 

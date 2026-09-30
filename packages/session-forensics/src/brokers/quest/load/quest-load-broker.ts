@@ -22,11 +22,7 @@ import { flowContract, workItemContract } from '@dungeonmaster/shared/contracts'
 import type { Quest } from '@dungeonmaster/shared/contracts';
 import { questFindBroker } from '../find/quest-find-broker';
 
-export const questLoadBroker = ({
-  questId,
-}: {
-  questId: Quest['id'];
-}): QuestLoadResult => {
+export const questLoadBroker = ({ questId }: { questId: Quest['id'] }): QuestLoadResult => {
   const empty = { flows: [], workItems: [] };
   const questPath = questFindBroker({ questId });
 

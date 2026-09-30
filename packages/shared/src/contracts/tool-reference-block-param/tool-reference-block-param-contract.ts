@@ -8,9 +8,11 @@
 
 import { z } from '#gateway/npm/zod';
 
-export const toolReferenceBlockParamContract = z.object({
-  type: z.literal('tool_reference'),
-  tool_name: z.string().brand<'ToolReferenceBlockParamToolName'>(),
-}).brand<'ToolReferenceBlockParam'>();
+export const toolReferenceBlockParamContract = z
+  .object({
+    type: z.literal('tool_reference'),
+    tool_name: z.string().brand<'ToolReferenceBlockParamToolName'>(),
+  })
+  .brand<'ToolReferenceBlockParam'>();
 
 export type ToolReferenceBlockParam = z.infer<typeof toolReferenceBlockParamContract>;

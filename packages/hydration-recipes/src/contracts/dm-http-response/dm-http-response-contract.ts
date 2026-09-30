@@ -12,10 +12,12 @@
  */
 import { z } from '#gateway/npm/zod';
 
-export const dmHttpResponseContract = z.object({
-  status: z.number().int().brand<'DmHttpResponseStatus'>(),
-  body: z.json(),
-}).brand<'DmHttpResponse'>();
+export const dmHttpResponseContract = z
+  .object({
+    status: z.number().int().brand<'DmHttpResponseStatus'>(),
+    body: z.json(),
+  })
+  .brand<'DmHttpResponse'>();
 
 export interface DmHttpResponse<T = unknown> {
   status: z.infer<typeof dmHttpResponseContract>['status'];

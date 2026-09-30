@@ -11,9 +11,7 @@ describe('unitChurnStepContract', () => {
     );
 
     it('VALID: {workItemLabel: "review"} => parses to itself', () => {
-      expect(
-        UnitChurnStepStub({ workItemLabel: 'review' }).workItemLabel,
-      ).toBe('review');
+      expect(UnitChurnStepStub({ workItemLabel: 'review' }).workItemLabel).toBe('review');
     });
   });
 

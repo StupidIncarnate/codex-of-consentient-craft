@@ -1,4 +1,3 @@
-
 import { promptTemplateAssembleTransformer } from './prompt-template-assemble-transformer';
 
 describe('promptTemplateAssembleTransformer', () => {

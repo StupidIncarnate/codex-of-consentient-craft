@@ -3,10 +3,7 @@ import { buildContinuationContextTransformer } from './build-continuation-contex
 describe('buildContinuationContextTransformer', () => {
   describe('both continuationPoint and capturedOutput', () => {
     it('VALID: {continuationPoint and capturedOutput with lines} => returns combined context with output tail', () => {
-      const capturedOutput = [
-        'Created file utils.ts',
-        'Writing test cases',
-      ];
+      const capturedOutput = ['Created file utils.ts', 'Writing test cases'];
 
       const result = buildContinuationContextTransformer({
         continuationPoint: 'Resume from gate 3',
@@ -32,10 +29,7 @@ describe('buildContinuationContextTransformer', () => {
 
   describe('only capturedOutput', () => {
     it('VALID: {no continuationPoint, capturedOutput with lines} => returns output section only', () => {
-      const capturedOutput = [
-        'Line one',
-        'Line two',
-      ];
+      const capturedOutput = ['Line one', 'Line two'];
 
       const result = buildContinuationContextTransformer({
         capturedOutput,
@@ -57,9 +51,7 @@ describe('buildContinuationContextTransformer', () => {
 
   describe('output tail trimming', () => {
     it('EDGE: {capturedOutput exceeds 50 lines} => returns only last 50 lines', () => {
-      const lines = Array.from({ length: 60 }, (_, index) =>
-        `Line ${String(index + 1)}`,
-      );
+      const lines = Array.from({ length: 60 }, (_, index) => `Line ${String(index + 1)}`);
 
       const result = buildContinuationContextTransformer({
         capturedOutput: lines,
@@ -71,9 +63,7 @@ describe('buildContinuationContextTransformer', () => {
     });
 
     it('EDGE: {capturedOutput exactly 50 lines} => returns all 50 lines', () => {
-      const lines = Array.from({ length: 50 }, (_, index) =>
-        `Line ${String(index + 1)}`,
-      );
+      const lines = Array.from({ length: 50 }, (_, index) => `Line ${String(index + 1)}`);
 
       const result = buildContinuationContextTransformer({
         capturedOutput: lines,

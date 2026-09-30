@@ -27,7 +27,7 @@ export const testFilePathToImplementationPathTransformer = ({
   // Remove test suffix (.integration.test, .e2e.test, .test, .spec, etc.)
   for (const suffix of sortedSuffixes) {
     if (implementationPath.includes(suffix)) {
-      implementationPath = implementationPath.replace(suffix, '') as string;
+      implementationPath = implementationPath.replace(suffix, '');
       break;
     }
   }

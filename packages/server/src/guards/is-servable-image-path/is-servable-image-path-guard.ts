@@ -11,7 +11,7 @@
 import { imageServeStatics } from '../../statics/image-serve/image-serve-statics';
 
 export const isServableImagePathGuard = ({ path }: { path?: string }): boolean => {
-  if (!path || !path.startsWith('/')) {
+  if (!path?.startsWith('/')) {
     return false;
   }
 

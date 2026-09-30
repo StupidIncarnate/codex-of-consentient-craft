@@ -49,7 +49,7 @@ export const architectureBindingFlowTraceBroker = ({
   }
 
   const imports = importStatementsExtractTransformer({ source: bindingSource });
-  const brokerImports = imports.filter((p) => String(p).includes(BROKERS_MARKER));
+  const brokerImports = imports.filter((p) => p.includes(BROKERS_MARKER));
 
   const httpFlows: {
     method: string;
@@ -66,7 +66,7 @@ export const architectureBindingFlowTraceBroker = ({
     if (brokerAbsPath === null) continue;
 
     const matchedEdges = httpEdges.filter(
-      (edge) => edge.webBrokerFile !== null && String(edge.webBrokerFile) === String(brokerAbsPath),
+      (edge) => edge.webBrokerFile !== null && String(edge.webBrokerFile) === brokerAbsPath,
     );
 
     for (const edge of matchedEdges) {
@@ -90,7 +90,7 @@ export const architectureBindingFlowTraceBroker = ({
   }
 
   const wsEvents = wsEdges
-    .filter((edge) => edge.consumerFiles.some((f) => String(f) === String(bindingFilePath)))
+    .filter((edge) => edge.consumerFiles.some((f) => String(f) === bindingFilePath))
     .map((edge) => {
       // Prefer the gateway file (the file that owns the WS transport boundary) for
       // the back-ref. The emitter file is the bus origin, not the WS broadcaster —

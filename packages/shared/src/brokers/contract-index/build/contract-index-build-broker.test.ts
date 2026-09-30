@@ -32,7 +32,8 @@ describe('contractIndexBuildBroker', () => {
       const betaDir = '/repo-two-packages/packages/@gateway/beta';
       const thingFile = '/repo-two-packages/packages/alpha/src/contracts/thing/thing-contract.ts';
       const useFile = '/repo-two-packages/packages/alpha/src/brokers/use/use-broker.ts';
-      const otherFile = '/repo-two-packages/packages/@gateway/beta/src/contracts/other/other-contract.ts';
+      const otherFile =
+        '/repo-two-packages/packages/@gateway/beta/src/contracts/other/other-contract.ts';
 
       proxy.setupSubfolders({ dirPath: packagesDir, folders: ['alpha', '@gateway'] });
       proxy.setupSubfolders({ dirPath: scopeDir, folders: ['beta'] });

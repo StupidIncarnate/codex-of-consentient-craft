@@ -37,7 +37,7 @@ export const workItemContextBlockTransformer = ({
 
   if (quest.packagesAffected.length > 0) {
     lines.push(
-      `${labels.packagesAffected} ${String(questPackageEntriesToTextTransformer({ entries: quest.packagesAffected }))}`,
+      `${labels.packagesAffected} ${questPackageEntriesToTextTransformer({ entries: quest.packagesAffected })}`,
     );
   }
 

@@ -35,7 +35,7 @@ export const cliArgsParseTransformer = ({ args }: { args: string[] }): WardConfi
   // config field, `isFileScopeRequestedGuard` and `isExplicitPathScopeGuard` would each owe it a
   // classification it has no honest answer for, since it scopes nothing itself.
   const isParentScoped = args.some(
-    (arg) => String(arg) === wardSpawnCommandStatics.parentScopedFlag,
+    (arg) => arg === wardSpawnCommandStatics.parentScopedFlag,
   );
 
   for (let i = 0; i < args.length; i++) {

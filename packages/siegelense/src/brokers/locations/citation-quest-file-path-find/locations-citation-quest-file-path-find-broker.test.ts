@@ -25,9 +25,7 @@ describe('locationsCitationQuestFilePathFindBroker', () => {
         questId: QuestIdStub({ value: 'quest-1' }),
       });
 
-      expect(result).toBe(
-        `${HOME}/guilds/${GUILD_A}/quests/quest-1/quest.json`,
-      );
+      expect(result).toBe(`${HOME}/guilds/${GUILD_A}/quests/quest-1/quest.json`);
     });
 
     it('EDGE: {a quest folder with a trailing separator} => joined without a double slash', () => {
@@ -45,9 +43,7 @@ describe('locationsCitationQuestFilePathFindBroker', () => {
         questId: QuestIdStub({ value: 'quest-2' }),
       });
 
-      expect(result).toBe(
-        `${HOME}/guilds/${GUILD_B}/quests/quest-2/quest.json`,
-      );
+      expect(result).toBe(`${HOME}/guilds/${GUILD_B}/quests/quest-2/quest.json`);
     });
   });
 });

@@ -22,6 +22,7 @@ export const compareQueryContract = z
     runA: siegeRunContract.shape.id,
     runB: siegeRunContract.shape.id,
   })
-  .strict().brand<'CompareQuery'>();
+  .strict()
+  .brand<'CompareQuery'>();
 
 export type CompareQuery = z.infer<typeof compareQueryContract>;

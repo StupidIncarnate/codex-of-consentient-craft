@@ -10,28 +10,23 @@
  * WHEN-NOT-TO-USE: When full AST parsing is needed — this is a v1 regex heuristic
  */
 
-
 // Matches: import { SomeResponder } from '../../responders/..'
 const RESPONDER_IMPORT_PATTERN = /import\s+\{\s*(\w+Responder)\s*\}\s+from\s+['"][^'"]*['"]/gu;
 
-export const cliResponderImportsExtractTransformer = ({
-  source,
-}: {
-  source: string;
-}): string[] => {
+export const cliResponderImportsExtractTransformer = ({ source }: { source: string }): string[] => {
   const names: string[] = [];
   RESPONDER_IMPORT_PATTERN.lastIndex = 0;
-  let match = RESPONDER_IMPORT_PATTERN.exec(String(source));
+  let match = RESPONDER_IMPORT_PATTERN.exec(source);
   while (match !== null) {
     const [, name] = match;
     if (name !== undefined) {
       const parsed = name;
-      const alreadySeen = names.some((n) => String(n) === String(parsed));
+      const alreadySeen = names.some((n) => n === parsed);
       if (!alreadySeen) {
         names.push(parsed);
       }
     }
-    match = RESPONDER_IMPORT_PATTERN.exec(String(source));
+    match = RESPONDER_IMPORT_PATTERN.exec(source);
   }
   return names;
 };

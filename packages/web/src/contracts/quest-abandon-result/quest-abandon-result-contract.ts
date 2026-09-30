@@ -10,8 +10,10 @@
 
 import { z } from '#gateway/npm/zod';
 
-export const questAbandonResultContract = z.object({
-  abandoned: z.boolean(),
-}).brand<'QuestAbandonResult'>();
+export const questAbandonResultContract = z
+  .object({
+    abandoned: z.boolean(),
+  })
+  .brand<'QuestAbandonResult'>();
 
 export type QuestAbandonResult = z.infer<typeof questAbandonResultContract>;

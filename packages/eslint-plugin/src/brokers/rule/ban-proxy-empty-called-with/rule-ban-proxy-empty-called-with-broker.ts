@@ -191,9 +191,7 @@ export const ruleBanProxyEmptyCalledWithBroker =
             return;
           }
 
-          const takesNoArgsOf = takesNoArgsByHandleName.get(
-            callee.object.name,
-          );
+          const takesNoArgsOf = takesNoArgsByHandleName.get(callee.object.name);
 
           if (!takesNoArgsOf) {
             return;

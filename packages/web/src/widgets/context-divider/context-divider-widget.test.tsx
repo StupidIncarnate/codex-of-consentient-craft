@@ -10,13 +10,7 @@ describe('ContextDividerWidget', () => {
       const proxy = ContextDividerWidgetProxy();
 
       mantineRenderMiddleware({
-        ui: (
-          <ContextDividerWidget
-            contextTokens={25500}
-            delta={null}
-            source="session"
-          />
-        ),
+        ui: <ContextDividerWidget contextTokens={25500} delta={null} source="session" />,
       });
 
       expect(proxy.isDividerVisible()).toBe(true);
@@ -30,13 +24,7 @@ describe('ContextDividerWidget', () => {
       ContextDividerWidgetProxy();
 
       mantineRenderMiddleware({
-        ui: (
-          <ContextDividerWidget
-            contextTokens={25500}
-            delta={2100}
-            source="session"
-          />
-        ),
+        ui: <ContextDividerWidget contextTokens={25500} delta={2100} source="session" />,
       });
 
       const divider = screen.getByTestId('CONTEXT_DIVIDER');
@@ -48,13 +36,7 @@ describe('ContextDividerWidget', () => {
       ContextDividerWidgetProxy();
 
       mantineRenderMiddleware({
-        ui: (
-          <ContextDividerWidget
-            contextTokens={26116}
-            delta={-3682}
-            source="session"
-          />
-        ),
+        ui: <ContextDividerWidget contextTokens={26116} delta={-3682} source="session" />,
       });
 
       const divider = screen.getByTestId('CONTEXT_DIVIDER');
@@ -68,13 +50,7 @@ describe('ContextDividerWidget', () => {
       ContextDividerWidgetProxy();
 
       mantineRenderMiddleware({
-        ui: (
-          <ContextDividerWidget
-            contextTokens={10000}
-            delta={null}
-            source="subagent"
-          />
-        ),
+        ui: <ContextDividerWidget contextTokens={10000} delta={null} source="subagent" />,
       });
 
       const divider = screen.getByTestId('CONTEXT_DIVIDER');
@@ -88,13 +64,7 @@ describe('ContextDividerWidget', () => {
       ContextDividerWidgetProxy();
 
       mantineRenderMiddleware({
-        ui: (
-          <ContextDividerWidget
-            contextTokens={500}
-            delta={null}
-            source="session"
-          />
-        ),
+        ui: <ContextDividerWidget contextTokens={500} delta={null} source="session" />,
       });
 
       const divider = screen.getByTestId('CONTEXT_DIVIDER');
@@ -146,13 +116,7 @@ describe('ContextDividerWidget', () => {
       ContextDividerWidgetProxy();
 
       mantineRenderMiddleware({
-        ui: (
-          <ContextDividerWidget
-            contextTokens={1000}
-            delta={null}
-            source="session"
-          />
-        ),
+        ui: <ContextDividerWidget contextTokens={1000} delta={null} source="session" />,
       });
 
       const divider = screen.getByTestId('CONTEXT_DIVIDER');

@@ -17,8 +17,19 @@
  */
 
 import { randomUUID } from '#gateway/node/crypto';
-import { addQuestInputContract, operationItemContract, questContract, workItemContract } from '@dungeonmaster/shared/contracts';
-import type { QuestSource, QuestStatus, WorkItemRole, Quest, Guild } from '@dungeonmaster/shared/contracts';
+import {
+  addQuestInputContract,
+  operationItemContract,
+  questContract,
+  workItemContract,
+} from '@dungeonmaster/shared/contracts';
+import type {
+  QuestSource,
+  QuestStatus,
+  WorkItemRole,
+  Quest,
+  Guild,
+} from '@dungeonmaster/shared/contracts';
 import { isCommandWorkItemRoleGuard } from '@dungeonmaster/shared/guards';
 
 import type { QuestBlueprint } from '../../../contracts/quest-blueprint/quest-blueprint-contract';

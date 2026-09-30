@@ -97,7 +97,7 @@ export const ToolRowWidget = ({
   const formatted = formatToolInputTransformer({ toolName, toolInput });
 
   const displayName = toolDisplayLabelTransformer({ toolName, toolInput });
-  const inlineSummary = String(toolRowSummaryTransformer({ toolName, toolInput }));
+  const inlineSummary = toolRowSummaryTransformer({ toolName, toolInput });
 
   const detailFields = isSkill
     ? (formatted?.fields.filter((f) => f.key !== 'skill') ?? [])
@@ -179,7 +179,7 @@ export const ToolRowWidget = ({
           // height for the headers nested under it to offset against. The fill is load-bearing
           // once open: without it the detail scrolling underneath reads through the pinned bar.
           position: 'sticky',
-          top: Number(stickyTop),
+          top: stickyTop,
           zIndex: Number(stickyHeaderZIndexTransformer({ stickyTop })),
           height: stickyHeaderStatics.heights.toolRow,
           boxSizing: 'border-box',

@@ -14,9 +14,7 @@ describe('locationsOutboxPathFindBroker', () => {
 
       const result = locationsOutboxPathFindBroker();
 
-      expect(result).toBe(
-        '/home/user/.dungeonmaster/event-outbox.jsonl',
-      );
+      expect(result).toBe('/home/user/.dungeonmaster/event-outbox.jsonl');
     });
   });
 });

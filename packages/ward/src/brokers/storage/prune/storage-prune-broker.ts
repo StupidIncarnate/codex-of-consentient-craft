@@ -15,15 +15,11 @@ import { ttlStatics } from '../../../statics/ttl/ttl-statics';
 
 const RUN_PREFIX_LENGTH = 'run-'.length;
 
-export const storagePruneBroker = async ({
-  rootPath,
-}: {
-  rootPath: string;
-}): Promise<void> => {
+export const storagePruneBroker = async ({ rootPath }: { rootPath: string }): Promise<void> => {
   const wardDir = `${rootPath}/.ward`;
 
   try {
-    const entries = await readdirIfExists(String(wardDir));
+    const entries = await readdirIfExists(wardDir);
     if (entries === null) {
       return;
     }
@@ -46,7 +42,7 @@ export const storagePruneBroker = async ({
         // that shape, so the name is legitimate. Reading an unparseable timestamp as "not a run
         // file" made those immortal — no age could ever expire them, and files five weeks old
         // survived every sweep. The file's own mtime answers the same question for any id shape.
-        const stats = await statIfExists(String(filePath));
+        const stats = await statIfExists(filePath);
         if (stats === null) {
           return { filePath, expired: false };
         }
@@ -61,7 +57,7 @@ export const storagePruneBroker = async ({
     const measured = (
       await Promise.all(
         survivors.map(async ({ filePath }) => {
-          const stats = await statIfExists(String(filePath));
+          const stats = await statIfExists(filePath);
           return stats === null
             ? null
             : { filePath, sizeBytes: stats.sizeBytes, modifiedAtMs: stats.modifiedAtMs };
@@ -71,7 +67,7 @@ export const storagePruneBroker = async ({
       .filter((file) => file !== null)
       .sort(
         (a, b) =>
-          b.modifiedAtMs - a.modifiedAtMs || String(b.filePath).localeCompare(String(a.filePath)),
+          b.modifiedAtMs - a.modifiedAtMs || b.filePath.localeCompare(a.filePath),
       );
 
     // Once the running total passes the budget, every older file goes too, small ones included, so

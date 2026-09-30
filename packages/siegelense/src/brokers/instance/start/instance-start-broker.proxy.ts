@@ -150,9 +150,7 @@ export const instanceStartBrokerProxy = (): {
     steadyMB: number;
     freeMemMB: number;
   }) => void;
-  getKillConnectionCountFor: (params: {
-    instanceId: InstanceId;
-  }) => number;
+  getKillConnectionCountFor: (params: { instanceId: InstanceId }) => number;
   stageShutdownReasonWriteSucceeds: (params: { evidencePath: string }) => void;
   getWrittenShutdownReason: (params: { evidencePath: string }) => unknown;
 } => {
@@ -334,7 +332,7 @@ export const instanceStartBrokerProxy = (): {
       .implement(requireActual<{ dirname: typeof dirname }>({ module: 'path' }).dirname);
     const expectedDriverBinPath = join(dirname(cliEntryPath), CLI_BIN_RELATIVE_VALUE);
 
-    const driverLogPath = `${String(evidencePath)}/driver.log`;
+    const driverLogPath = `${evidencePath}/driver.log`;
     openFdProxy.returns({ path: driverLogPath, fd: 17 });
 
     spawnProxy.setupSuccess({
@@ -413,7 +411,7 @@ export const instanceStartBrokerProxy = (): {
       );
 
       const socketPath = `${TMP_DIR_VALUE}/dm-siege-sockets/${instanceId}.sock`;
-      const evidencePathAbs = String(evidencePath);
+      const evidencePathAbs = evidencePath;
       pollProxy.setupNeverAnswers({
         socketPath,
         evidencePath: evidencePathAbs,
@@ -458,7 +456,7 @@ export const instanceStartBrokerProxy = (): {
       stageBoot({ instanceId, evidencePath, registry });
 
       const socketPath = `${TMP_DIR_VALUE}/dm-siege-sockets/${instanceId}.sock`;
-      const evidencePathAbs = String(evidencePath);
+      const evidencePathAbs = evidencePath;
       pollProxy.setupFailureMarkerAppears({
         socketPath,
         evidencePath: evidencePathAbs,
@@ -603,24 +601,20 @@ export const instanceStartBrokerProxy = (): {
       recipeSeedProxy.bookMissingUnder({ repoRoot: CWD_PATH_VALUE });
     },
 
-    getKillConnectionCountFor: ({
-      instanceId,
-    }: {
-      instanceId: InstanceId;
-    }): number =>
+    getKillConnectionCountFor: ({ instanceId }: { instanceId: InstanceId }): number =>
       killProxy.getConnectionCountFor({
         socketPath: `${TMP_DIR_VALUE}/dm-siege-sockets/${instanceId}.sock`,
       }),
 
     stageShutdownReasonWriteSucceeds: ({ evidencePath }: { evidencePath: string }): void => {
       killProxy.setupShutdownReasonWriteSucceeds({
-        evidencePath: String(evidencePath),
+        evidencePath: evidencePath,
       });
     },
 
     getWrittenShutdownReason: ({ evidencePath }: { evidencePath: string }): unknown =>
       killProxy.getWrittenShutdownReason({
-        evidencePath: String(evidencePath),
+        evidencePath: evidencePath,
       }),
   };
 };

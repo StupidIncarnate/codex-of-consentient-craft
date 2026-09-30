@@ -42,11 +42,11 @@ import { instanceLifecycleStatics } from '../../statics/instance-lifecycle/insta
 
 let currentLane: LaneSession | null = null;
 let runCounter = 0;
-let lastActivityAtMs: number = 0;
+let lastActivityAtMs = 0;
 let idleTimeoutMsValue: number = driverStatics.idle.timeoutMs;
-let flushCursorConsoleLines: number = 0;
-let flushCursorNetworkLines: number = 0;
-let flushCursorWebsocketLines: number = 0;
+let flushCursorConsoleLines = 0;
+let flushCursorNetworkLines = 0;
+let flushCursorWebsocketLines = 0;
 let lastShotPathValue: string | null = null;
 
 export const driverSessionState = {
@@ -62,7 +62,9 @@ export const driverSessionState = {
 
   nextRunId: (): SiegeRun['id'] => {
     runCounter += 1;
-    return siegeRunContract.shape.id.parse(`${instanceLifecycleStatics.ids.runPrefix}${String(runCounter)}`);
+    return siegeRunContract.shape.id.parse(
+      `${instanceLifecycleStatics.ids.runPrefix}${String(runCounter)}`,
+    );
   },
 
   touch: (): void => {

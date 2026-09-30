@@ -17,12 +17,14 @@
 
 import { z } from '#gateway/npm/zod';
 
-export const riftcarverResultContract = z.object({
-  id: z.uuid().brand<'RiftcarverResultId'>(),
-  createdAt: z.iso.datetime().brand<'RiftcarverResultCreatedAt'>(),
-  exitCode: z.number().int().brand<'RiftcarverResultExitCode'>(),
-  failedStep: z.string().min(1).brand<'RiftcarverResultFailedStep'>().optional(),
-  outcome: z.enum(['green', 'repairable', 'blocked']),
-}).brand<'RiftcarverResult'>();
+export const riftcarverResultContract = z
+  .object({
+    id: z.uuid().brand<'RiftcarverResultId'>(),
+    createdAt: z.iso.datetime().brand<'RiftcarverResultCreatedAt'>(),
+    exitCode: z.number().int().brand<'RiftcarverResultExitCode'>(),
+    failedStep: z.string().min(1).brand<'RiftcarverResultFailedStep'>().optional(),
+    outcome: z.enum(['green', 'repairable', 'blocked']),
+  })
+  .brand<'RiftcarverResult'>();
 
 export type RiftcarverResult = z.infer<typeof riftcarverResultContract>;

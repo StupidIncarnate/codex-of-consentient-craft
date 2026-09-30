@@ -16,7 +16,6 @@
  */
 import { z } from '#gateway/npm/zod';
 
-
 /**
  * Returns `unknown`, not a `{ status, body }` shape — whatever an `api` route reads back through
  * this is a raw HTTP response, and a raw response is `unknown` until the route's own contract
@@ -40,13 +39,44 @@ const httpRequestFnContract = z.custom<HttpRequestFn>((value) => typeof value ==
 
 export const dmTargetContract = z
   .object({
-    home: z.string().min(1).refine((path) => { if (path.startsWith('/')) { return true; } if (/^[A-Za-z]:\\/u.test(path)) { return true; } return false; }, { message: 'Path must be absolute (start with / or C:\\ on Windows)', },).brand<'DmTargetHome'>(),
-    claudeHome: z.string().min(1).refine((path) => { if (path.startsWith('/')) { return true; } if (/^[A-Za-z]:\\/u.test(path)) { return true; } return false; }, { message: 'Path must be absolute (start with / or C:\\ on Windows)', },).brand<'DmTargetClaudeHome'>(),
+    home: z
+      .string()
+      .min(1)
+      .refine(
+        (path) => {
+          if (path.startsWith('/')) {
+            return true;
+          }
+          if (/^[A-Za-z]:\\/u.test(path)) {
+            return true;
+          }
+          return false;
+        },
+        { message: 'Path must be absolute (start with / or C:\\ on Windows)' },
+      )
+      .brand<'DmTargetHome'>(),
+    claudeHome: z
+      .string()
+      .min(1)
+      .refine(
+        (path) => {
+          if (path.startsWith('/')) {
+            return true;
+          }
+          if (/^[A-Za-z]:\\/u.test(path)) {
+            return true;
+          }
+          return false;
+        },
+        { message: 'Path must be absolute (start with / or C:\\ on Windows)' },
+      )
+      .brand<'DmTargetClaudeHome'>(),
     baseUrl: urlContract.optional(),
     request: httpRequestFnContract.optional(),
   })
   .refine((target) => target.request === undefined || target.baseUrl !== undefined, {
     message: 'a request function needs a baseUrl',
-  }).brand<'DmTarget'>();
+  })
+  .brand<'DmTarget'>();
 
 export type DmTarget = z.infer<typeof dmTargetContract>;

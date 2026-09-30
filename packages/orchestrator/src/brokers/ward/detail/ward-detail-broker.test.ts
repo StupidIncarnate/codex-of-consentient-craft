@@ -1,4 +1,3 @@
-
 import { wardDetailBroker } from './ward-detail-broker';
 import { wardDetailBrokerProxy } from './ward-detail-broker.proxy';
 

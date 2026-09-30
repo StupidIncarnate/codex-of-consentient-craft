@@ -6,7 +6,6 @@
  * // Parses flags and runs all configured checks
  */
 
-
 import { cliArgsParseTransformer } from '../../../transformers/cli-args-parse/cli-args-parse-transformer';
 import { commandRunBroker } from '../../../brokers/command/run/command-run-broker';
 

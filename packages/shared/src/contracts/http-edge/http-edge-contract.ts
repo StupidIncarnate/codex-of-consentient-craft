@@ -18,13 +18,63 @@
 
 import { z } from '#gateway/npm/zod';
 
-export const httpEdgeContract = z.object({
-  method: z.string().brand<'HttpEdgeMethod'>(),
-  urlPattern: z.string().brand<'HttpEdgeUrlPattern'>(),
-  serverFlowFile: z.string().min(1).refine((path) => { if (path.startsWith('/')) { return true; } if (/^[A-Za-z]:\\/u.test(path)) { return true; } return false; }, { message: 'Path must be absolute (start with / or C:\\ on Windows)', },).brand<'HttpEdgeServerFlowFile'>().nullable(),
-  serverResponderFile: z.string().min(1).refine((path) => { if (path.startsWith('/')) { return true; } if (/^[A-Za-z]:\\/u.test(path)) { return true; } return false; }, { message: 'Path must be absolute (start with / or C:\\ on Windows)', },).brand<'HttpEdgeServerResponderFile'>().nullable(),
-  webBrokerFile: z.string().min(1).refine((path) => { if (path.startsWith('/')) { return true; } if (/^[A-Za-z]:\\/u.test(path)) { return true; } return false; }, { message: 'Path must be absolute (start with / or C:\\ on Windows)', },).brand<'HttpEdgeWebBrokerFile'>().nullable(),
-  paired: z.boolean(),
-}).brand<'HttpEdge'>();
+export const httpEdgeContract = z
+  .object({
+    method: z.string().brand<'HttpEdgeMethod'>(),
+    urlPattern: z.string().brand<'HttpEdgeUrlPattern'>(),
+    serverFlowFile: z
+      .string()
+      .min(1)
+      .refine(
+        (path) => {
+          if (path.startsWith('/')) {
+            return true;
+          }
+          if (/^[A-Za-z]:\\/u.test(path)) {
+            return true;
+          }
+          return false;
+        },
+        { message: 'Path must be absolute (start with / or C:\\ on Windows)' },
+      )
+      .brand<'HttpEdgeServerFlowFile'>()
+      .nullable(),
+    serverResponderFile: z
+      .string()
+      .min(1)
+      .refine(
+        (path) => {
+          if (path.startsWith('/')) {
+            return true;
+          }
+          if (/^[A-Za-z]:\\/u.test(path)) {
+            return true;
+          }
+          return false;
+        },
+        { message: 'Path must be absolute (start with / or C:\\ on Windows)' },
+      )
+      .brand<'HttpEdgeServerResponderFile'>()
+      .nullable(),
+    webBrokerFile: z
+      .string()
+      .min(1)
+      .refine(
+        (path) => {
+          if (path.startsWith('/')) {
+            return true;
+          }
+          if (/^[A-Za-z]:\\/u.test(path)) {
+            return true;
+          }
+          return false;
+        },
+        { message: 'Path must be absolute (start with / or C:\\ on Windows)' },
+      )
+      .brand<'HttpEdgeWebBrokerFile'>()
+      .nullable(),
+    paired: z.boolean(),
+  })
+  .brand<'HttpEdge'>();
 
 export type HttpEdge = z.infer<typeof httpEdgeContract>;

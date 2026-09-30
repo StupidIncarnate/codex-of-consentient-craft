@@ -1,4 +1,3 @@
-
 import { InstanceIdStub } from '../../../contracts/instance-id/instance-id.stub';
 
 import { profileBootRecordBroker } from './profile-boot-record-broker';

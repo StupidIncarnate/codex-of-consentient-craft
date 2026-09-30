@@ -31,11 +31,11 @@ export const namespaceMethodsGroupByDomainTransformer = ({
   const domainGroups = new Map<string, string[]>();
 
   for (const methodName of methodNames) {
-    const nameStr = String(methodName);
+    const nameStr = methodName;
     const domain = prefixToDomain[nameStr] ?? otherDomain;
-    const domainStr = String(domain);
+    const domainStr = domain;
 
-    const existingDomainKey = domainOrder.find((d) => String(d) === domainStr);
+    const existingDomainKey = domainOrder.find((d) => d === domainStr);
 
     if (existingDomainKey === undefined) {
       domainOrder.push(domain);

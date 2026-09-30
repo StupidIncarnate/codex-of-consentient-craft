@@ -72,9 +72,7 @@ export const DigestRunResponder = ({
           : transcriptResolveBroker({ target: workItem.sessionId });
 
       const transcriptSizeBytes =
-        transcriptPath === undefined
-          ? 0
-          : readFileSync(transcriptPath).length;
+        transcriptPath === undefined ? 0 : readFileSync(transcriptPath).length;
 
       const subagentCount =
         transcriptPath === undefined

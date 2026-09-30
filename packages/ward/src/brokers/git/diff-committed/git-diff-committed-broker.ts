@@ -23,11 +23,7 @@ import { parseDiffOutputTransformer } from '../../../transformers/parse-diff-out
 import { gitDetectDefaultBranchBroker } from '../detect-default-branch/git-detect-default-branch-broker';
 import { gitDetectOriginDefaultBranchBroker } from '../detect-origin-default-branch/git-detect-origin-default-branch-broker';
 
-export const gitDiffCommittedBroker = async ({
-  cwd,
-}: {
-  cwd: string;
-}): Promise<string[]> => {
+export const gitDiffCommittedBroker = async ({ cwd }: { cwd: string }): Promise<string[]> => {
   // A missing `git` binary makes the gateway throw GitNotInstalledError rather than resolve a
   // result — folded into an empty answer so it reads as "no merge base" / "empty diff", exactly as
   // it always has.
@@ -44,7 +40,7 @@ export const gitDiffCommittedBroker = async ({
     }
 
     const mergeBaseResult = await gitRun({
-      args: ['merge-base', 'HEAD', String(baseBranch)],
+      args: ['merge-base', 'HEAD', baseBranch],
       cwd,
     });
 

@@ -2,9 +2,9 @@ import { webBundleContentTypeTransformer } from './web-bundle-content-type-trans
 
 describe('webBundleContentTypeTransformer', () => {
   it('VALID: {filePath: "/index.html"} => text/html', () => {
-    expect(
-      webBundleContentTypeTransformer({ filePath: '/index.html' }),
-    ).toBe('text/html; charset=utf-8');
+    expect(webBundleContentTypeTransformer({ filePath: '/index.html' })).toBe(
+      'text/html; charset=utf-8',
+    );
   });
 
   it('VALID: {filePath: "/assets/index-abc.js"} => text/javascript', () => {
@@ -24,9 +24,7 @@ describe('webBundleContentTypeTransformer', () => {
   });
 
   it('VALID: {filePath: "/favicon.svg"} => image/svg+xml', () => {
-    expect(
-      webBundleContentTypeTransformer({ filePath: '/favicon.svg' }),
-    ).toBe('image/svg+xml');
+    expect(webBundleContentTypeTransformer({ filePath: '/favicon.svg' })).toBe('image/svg+xml');
   });
 
   it('EDGE: {filePath: "/codex/quest/abc-123" no extension} => octet-stream fallback', () => {
@@ -38,8 +36,8 @@ describe('webBundleContentTypeTransformer', () => {
   });
 
   it('EDGE: {filePath: "/unknown.xyz"} => octet-stream fallback', () => {
-    expect(
-      webBundleContentTypeTransformer({ filePath: '/unknown.xyz' }),
-    ).toBe('application/octet-stream');
+    expect(webBundleContentTypeTransformer({ filePath: '/unknown.xyz' })).toBe(
+      'application/octet-stream',
+    );
   });
 });

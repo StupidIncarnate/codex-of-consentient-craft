@@ -68,15 +68,15 @@ test.describe('A sub-agent chain reading a live figure freezes the instant its c
     });
 
     const created = await quests.createQuest({
-      guildId: guildId,
+      guildId,
       title: 'Subagent Duration Notification Arrives Duration Quest',
       userRequest: 'Build the feature',
     });
     const { questId, questFolder } = created;
     const questFilePath = String(created.filePath);
     await quests.writeQuestFile({
-      questId: questId,
-      questFolder: questFolder,
+      questId,
+      questFolder,
       questFilePath,
       status: 'in_progress',
       operations: [
@@ -104,7 +104,7 @@ test.describe('A sub-agent chain reading a live figure freezes the instant its c
     await page.clock.install({ time: FIXED_NOW });
 
     const urlSlug = guilds.extractUrlSlug({ guild });
-    await nav.navigateToQuest({ urlSlug, questId: questId });
+    await nav.navigateToQuest({ urlSlug, questId });
 
     const executionPanel = page.getByTestId('execution-panel-widget');
     await expect(executionPanel).toBeVisible({ timeout: PANEL_TIMEOUT });
@@ -132,7 +132,7 @@ test.describe('A sub-agent chain reading a live figure freezes the instant its c
       at: NOTIFICATION_AT,
       durationMs: REPORTED_DURATION_MS,
     });
-    await quests.forceStatusRebroadcast({ questId: questId, status: 'in_progress' });
+    await quests.forceStatusRebroadcast({ questId, status: 'in_progress' });
 
     // Reading (2): …:branch:notification-arrives-yes — the reported duration wins outright, and
     // this string differs from the still-live "1m" above, so the change is provably the
@@ -187,15 +187,15 @@ test.describe('A sub-agent chain reading a live figure freezes the instant its c
     });
 
     const created = await quests.createQuest({
-      guildId: guildId,
+      guildId,
       title: 'Subagent Duration Notification Arrives Gap Quest',
       userRequest: 'Build the feature',
     });
     const { questId, questFolder } = created;
     const questFilePath = String(created.filePath);
     await quests.writeQuestFile({
-      questId: questId,
-      questFolder: questFolder,
+      questId,
+      questFolder,
       questFilePath,
       status: 'in_progress',
       operations: [
@@ -220,7 +220,7 @@ test.describe('A sub-agent chain reading a live figure freezes the instant its c
     await page.clock.install({ time: FIXED_NOW });
 
     const urlSlug = guilds.extractUrlSlug({ guild });
-    await nav.navigateToQuest({ urlSlug, questId: questId });
+    await nav.navigateToQuest({ urlSlug, questId });
 
     const executionPanel = page.getByTestId('execution-panel-widget');
     await expect(executionPanel).toBeVisible({ timeout: PANEL_TIMEOUT });
@@ -241,7 +241,7 @@ test.describe('A sub-agent chain reading a live figure freezes the instant its c
       taskToolUseId: TOOL_USE_ID,
       at: NOTIFICATION_AT,
     });
-    await quests.forceStatusRebroadcast({ questId: questId, status: 'in_progress' });
+    await quests.forceStatusRebroadcast({ questId, status: 'in_progress' });
 
     // Reading (2): the notification landed with no reportedDurationMs, so the figure freezes on
     // the raw timestamp gap between the Task tool use and the notification (270000 ms => `4m`) —

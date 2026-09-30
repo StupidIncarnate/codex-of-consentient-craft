@@ -1,4 +1,3 @@
-
 import { resultsStatics } from '../../statics/results/results-statics';
 import { networkBodyTrimTransformer } from './network-body-trim-transformer';
 

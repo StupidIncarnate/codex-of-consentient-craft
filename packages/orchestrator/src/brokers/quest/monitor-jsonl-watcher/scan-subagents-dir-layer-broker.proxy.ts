@@ -17,11 +17,7 @@ export const scanSubagentsDirLayerBrokerProxy = (): {
   setupSubagentDirEmpty: (params: { subagentsDir: string }) => void;
   setupSubagentDirMissing: (params: { subagentsDir: string; error: Error }) => void;
   setupLines: (params: { path: string; lines: readonly string[] }) => void;
-  setupFirstLineRead: (params: {
-    subagentsDir: string;
-    fileName: string;
-    content: string;
-  }) => void;
+  setupFirstLineRead: (params: { subagentsDir: string; fileName: string; content: string }) => void;
 } => {
   isFsErrorProxy();
   const readdirProxy = readdirSyncProxy();
@@ -70,7 +66,7 @@ export const scanSubagentsDirLayerBrokerProxy = (): {
       content: string;
     }): void => {
       readLinesProxy.returnsRaw({
-        path: `${subagentsDir}/${String(fileName)}`,
+        path: `${subagentsDir}/${fileName}`,
         rawContents: content,
       });
     },

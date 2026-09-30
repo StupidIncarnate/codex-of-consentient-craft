@@ -29,14 +29,12 @@ export const moduleSpecifierResolveLayerTransformer = ({
   const bases: string[] = [];
 
   if (specifier.startsWith('.')) {
-    bases.push(
-      resolve(dirname(fromFile), specifier.replace(JS_EXTENSION_PATTERN, '')),
-    );
+    bases.push(resolve(dirname(fromFile), specifier.replace(JS_EXTENSION_PATTERN, '')));
   } else {
     const [owner] = packages
       .filter(
         (candidate) =>
-          String(specifier) === String(candidate.name) ||
+          specifier === String(candidate.name) ||
           specifier.startsWith(`${candidate.name}/`),
       )
       .sort((left, right) => right.name.length - left.name.length);

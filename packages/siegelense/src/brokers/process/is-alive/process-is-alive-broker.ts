@@ -16,12 +16,11 @@
 import { isFsError } from '#gateway/node/fs';
 import { kill } from '#gateway/node/process';
 
-
 const PROBE_SIGNAL = 0;
 
 export const processIsAliveBroker = ({ pgid }: { pgid: number }): boolean => {
   try {
-    kill(-Number(pgid), PROBE_SIGNAL);
+    kill(-pgid, PROBE_SIGNAL);
     return true;
   } catch (error: unknown) {
     // `isFsError` reads `.code` off any object rather than checking `instanceof Error`: a real ESRCH

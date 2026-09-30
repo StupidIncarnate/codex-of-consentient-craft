@@ -44,7 +44,9 @@ export const cleanupRunBrokerProxy = (): {
 
   return {
     // The registry proxy underneath stages its own clock, so the cleanup clock is restored after it.
-    setupRegistry: (...args: Parameters<ReturnType<typeof staleReapLayerBrokerProxy>['setupRegistry']>): void => {
+    setupRegistry: (
+      ...args: Parameters<ReturnType<typeof staleReapLayerBrokerProxy>['setupRegistry']>
+    ): void => {
       reapProxy.setupRegistry(...args);
       clockProxy.setupNow({ ms: CLEANUP_NOW_MS });
     },

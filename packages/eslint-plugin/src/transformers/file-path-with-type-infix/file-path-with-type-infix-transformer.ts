@@ -13,11 +13,7 @@
  * // Returns: '/src/widgets/button/button-widget.type.tsx'
  */
 
-export const filePathWithTypeInfixTransformer = ({
-  filePath,
-}: {
-  filePath: string;
-}): string => {
-  const withTypeInfix = String(filePath).replace(/\.(ts|tsx)$/u, '.type.$1');
+export const filePathWithTypeInfixTransformer = ({ filePath }: { filePath: string }): string => {
+  const withTypeInfix = filePath.replace(/\.(ts|tsx)$/u, '.type.$1');
   return withTypeInfix;
 };

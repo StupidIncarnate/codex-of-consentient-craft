@@ -28,9 +28,7 @@ export const EndpointControlStub = ({
     holdsOpen:
       holdsOpen ??
       ((): ReturnType<EndpointControl['holdsOpen']> => ({ release: (): void => undefined })),
-    getRequestCount:
-      getRequestCount ??
-      ((): ReturnType<EndpointControl['getRequestCount']> => 0),
+    getRequestCount: getRequestCount ?? ((): ReturnType<EndpointControl['getRequestCount']> => 0),
     getRequestBodies:
       getRequestBodies ??
       (async (): ReturnType<EndpointControl['getRequestBodies']> => Promise.resolve([])),

@@ -38,7 +38,7 @@ export const findRootWidgetImportsLayerBroker = ({
   // Collect all source files from responders/ and flows/
   const sourceFiles: string[] = [];
   for (const folder of widgetTreeStatics.rootSourceFolders) {
-    const folderPath = `${String(packageSrcPath)}/${folder}`;
+    const folderPath = `${packageSrcPath}/${folder}`;
     const files = collectFolderFilesLayerBroker({ dirPath: folderPath });
     for (const f of files) {
       sourceFiles.push(f);
@@ -64,7 +64,7 @@ export const findRootWidgetImportsLayerBroker = ({
 
       // Try swapping .ts → .tsx for widget files (relativeImportResolveTransformer appends .ts)
       if (resolved.endsWith(widgetTreeStatics.tsSuffix)) {
-        const withTsx = `${String(resolved).slice(0, -widgetTreeStatics.tsSuffix.length)}${widgetTreeStatics.tsxSuffix}`;
+        const withTsx = `${resolved.slice(0, -widgetTreeStatics.tsSuffix.length)}${widgetTreeStatics.tsxSuffix}`;
         if (widgetByPath.has(withTsx)) {
           rootPaths.add(withTsx);
         }

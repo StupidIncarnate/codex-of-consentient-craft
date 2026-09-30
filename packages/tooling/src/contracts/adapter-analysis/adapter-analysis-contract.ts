@@ -12,9 +12,11 @@ import { z } from '#gateway/npm/zod';
 import { outsideCallContract } from '../outside-call/outside-call-contract';
 import { adapterLogicReasonContract } from '../adapter-logic-reason/adapter-logic-reason-contract';
 
-export const adapterAnalysisContract = z.object({
-  outsideCalls: z.array(outsideCallContract),
-  reasons: z.array(adapterLogicReasonContract),
-}).brand<'AdapterAnalysis'>();
+export const adapterAnalysisContract = z
+  .object({
+    outsideCalls: z.array(outsideCallContract),
+    reasons: z.array(adapterLogicReasonContract),
+  })
+  .brand<'AdapterAnalysis'>();
 
 export type AdapterAnalysis = z.infer<typeof adapterAnalysisContract>;

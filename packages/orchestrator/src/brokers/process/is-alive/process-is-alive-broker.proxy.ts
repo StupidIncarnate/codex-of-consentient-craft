@@ -1,7 +1,6 @@
 import { isFsErrorProxy } from '#gateway/node/fs/is-fs-error/is-fs-error.proxy';
 import { killProxy } from '#gateway/node/process/kill/kill.proxy';
 
-
 type ProcessPid = number;
 
 const PROBE_SIGNAL = 0;

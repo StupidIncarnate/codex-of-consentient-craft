@@ -24,7 +24,6 @@ import { ensureDirSync, writeFileSync } from '#gateway/node/fs';
 import { ensureDir, writeFile } from '#gateway/node/fs__promises';
 import { dirname, join } from '#gateway/node/path';
 
-
 // Real committer identity + disabled GPG signing, passed as `-c` config so these throwaway fixture
 // commits never depend on, or mutate, the developer's real global git config. `user.*` sets both
 // the author and the committer.
@@ -44,33 +43,20 @@ export const wardGitWorktreeFixtureHarness = (): {
   initBareRemote: (params: { remotePath: string }) => Promise<void>;
   addRemote: (params: { cwd: string; remotePath: string }) => Promise<void>;
   pushBranch: (params: { cwd: string; branchName: string }) => Promise<void>;
-  checkoutNewBranch: (params: {
-    cwd: string;
-    branchName: string;
-  }) => Promise<void>;
+  checkoutNewBranch: (params: { cwd: string; branchName: string }) => Promise<void>;
   addWorktree: (params: {
     repoPath: string;
     worktreePath: string;
     branchName: string;
   }) => Promise<void>;
-  commitFile: (params: {
-    cwd: string;
-    relativePath: string;
-    content: string;
-  }) => Promise<void>;
+  commitFile: (params: { cwd: string; relativePath: string; content: string }) => Promise<void>;
   writeUncommittedFile: (params: {
     cwd: string;
     relativePath: string;
     content: string;
   }) => Promise<void>;
 } => {
-  const runGit = async ({
-    cwd,
-    args,
-  }: {
-    cwd: string;
-    args: readonly string[];
-  }): Promise<void> => {
+  const runGit = async ({ cwd, args }: { cwd: string; args: readonly string[] }): Promise<void> => {
     // A real fixture repo: git is expected on the machine running these integration tests, so a
     // missing binary (GitNotInstalledError) is left to throw. A non-zero exit throws too, so a
     // fixture step that failed cannot pass silently into the assertions built on it.
@@ -97,25 +83,13 @@ export const wardGitWorktreeFixtureHarness = (): {
       await runGit({ cwd: remotePath, args: ['init', '--bare', '-b', 'main'] });
     },
 
-    addRemote: async ({
-      cwd,
-      remotePath,
-    }: {
-      cwd: string;
-      remotePath: string;
-    }): Promise<void> => {
+    addRemote: async ({ cwd, remotePath }: { cwd: string; remotePath: string }): Promise<void> => {
       await runGit({ cwd, args: ['remote', 'add', 'origin', remotePath] });
     },
 
     // `-u` creates the remote-tracking ref, which is what makes `origin/main` resolvable for
     // gitDetectOriginDefaultBranchBroker. A branch never pushed has no such ref for git to verify.
-    pushBranch: async ({
-      cwd,
-      branchName,
-    }: {
-      cwd: string;
-      branchName: string;
-    }): Promise<void> => {
+    pushBranch: async ({ cwd, branchName }: { cwd: string; branchName: string }): Promise<void> => {
       await runGit({ cwd, args: ['push', '-u', 'origin', branchName] });
     },
 

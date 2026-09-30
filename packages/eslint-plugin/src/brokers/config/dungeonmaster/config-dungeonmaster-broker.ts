@@ -68,7 +68,7 @@ export const configDungeonmasterBroker = ({
 
   const baseTypescriptConfig: TSESLint.FlatConfig.Config = {
     plugins: {
-      ['@typescript-eslint']: typescriptEslintPlugin,
+      '@typescript-eslint': typescriptEslintPlugin,
     },
     rules: {
       ...(typescriptEslintRuleStatics.rules as unknown as DeepWritable<

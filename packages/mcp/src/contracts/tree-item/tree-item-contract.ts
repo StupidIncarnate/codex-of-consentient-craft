@@ -9,9 +9,11 @@ import { z } from '#gateway/npm/zod';
 import { grepHitContract } from '../grep-hit/grep-hit-contract';
 import { discoverListItemContract } from '../discover-list-item/discover-list-item-contract';
 
-export const treeItemContract = discoverListItemContract.extend({
-  path: z.string().brand<'TreeItemPath'>(),
-  hits: z.array(grepHitContract).optional(),
-}).brand<'TreeItem'>();
+export const treeItemContract = discoverListItemContract
+  .extend({
+    path: z.string().brand<'TreeItemPath'>(),
+    hits: z.array(grepHitContract).optional(),
+  })
+  .brand<'TreeItem'>();
 
 export type TreeItem = z.infer<typeof treeItemContract>;

@@ -1,5 +1,3 @@
-import { usageLedgerScanFlightStateContract } from '../../contracts/usage-ledger-scan-flight-state/usage-ledger-scan-flight-state-contract';
-import type { UsageLedgerScanFlightState } from '../../contracts/usage-ledger-scan-flight-state/usage-ledger-scan-flight-state-contract';
 /**
  * PURPOSE: Records whether this process has a usage-ledger scan running, so the rate-limits poller
  *   starts at most one at a time. The poller ticks every 5s and a scan's throttle stamp lands only
@@ -12,8 +10,12 @@ import type { UsageLedgerScanFlightState } from '../../contracts/usage-ledger-sc
  * // Returns true until finish() is called
  * usageLedgerScanFlightState.finish();
  */
+import { usageLedgerScanFlightStateContract } from '../../contracts/usage-ledger-scan-flight-state/usage-ledger-scan-flight-state-contract';
+import type { UsageLedgerScanFlightState } from '../../contracts/usage-ledger-scan-flight-state/usage-ledger-scan-flight-state-contract';
 
-const state: UsageLedgerScanFlightState = usageLedgerScanFlightStateContract.parse({ inFlight: false });
+const state: UsageLedgerScanFlightState = usageLedgerScanFlightStateContract.parse({
+  inFlight: false,
+});
 
 export const usageLedgerScanFlightState = {
   isInFlight: (): boolean => state.inFlight,

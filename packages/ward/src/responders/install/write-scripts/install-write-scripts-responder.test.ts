@@ -10,10 +10,12 @@ describe('InstallWriteScriptsResponder', () => {
       proxy.setupFileNotExists();
 
       const result = await proxy.callResponder({
-        context: InstallContextStub({ value: {
-          targetProjectRoot: '/project',
-          dungeonmasterRoot: '/dm-root',
-        } }),
+        context: InstallContextStub({
+          value: {
+            targetProjectRoot: '/project',
+            dungeonmasterRoot: '/dm-root',
+          },
+        }),
       });
 
       expect(result).toStrictEqual({
@@ -34,10 +36,12 @@ describe('InstallWriteScriptsResponder', () => {
       proxy.setupReadFileContent({ filePath, content: '"not-an-object"' });
 
       const result = await proxy.callResponder({
-        context: InstallContextStub({ value: {
-          targetProjectRoot: '/project',
-          dungeonmasterRoot: '/dm-root',
-        } }),
+        context: InstallContextStub({
+          value: {
+            targetProjectRoot: '/project',
+            dungeonmasterRoot: '/dm-root',
+          },
+        }),
       });
 
       expect(result).toStrictEqual({
@@ -61,10 +65,12 @@ describe('InstallWriteScriptsResponder', () => {
       });
 
       const result = await proxy.callResponder({
-        context: InstallContextStub({ value: {
-          targetProjectRoot: '/project',
-          dungeonmasterRoot: '/dm-root',
-        } }),
+        context: InstallContextStub({
+          value: {
+            targetProjectRoot: '/project',
+            dungeonmasterRoot: '/dm-root',
+          },
+        }),
       });
 
       expect(result).toStrictEqual({
@@ -99,10 +105,12 @@ describe('InstallWriteScriptsResponder', () => {
       });
 
       const result = await proxy.callResponder({
-        context: InstallContextStub({ value: {
-          targetProjectRoot: '/project',
-          dungeonmasterRoot: '/dm-root',
-        } }),
+        context: InstallContextStub({
+          value: {
+            targetProjectRoot: '/project',
+            dungeonmasterRoot: '/dm-root',
+          },
+        }),
       });
 
       expect(result).toStrictEqual({
@@ -143,10 +151,12 @@ describe('InstallWriteScriptsResponder', () => {
       });
 
       const result = await proxy.callResponder({
-        context: InstallContextStub({ value: {
-          targetProjectRoot: '/project',
-          dungeonmasterRoot: '/dm-root',
-        } }),
+        context: InstallContextStub({
+          value: {
+            targetProjectRoot: '/project',
+            dungeonmasterRoot: '/dm-root',
+          },
+        }),
       });
 
       expect(result).toStrictEqual({

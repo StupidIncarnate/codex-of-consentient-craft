@@ -15,7 +15,7 @@ import { FileMissingErrorStub } from '#gateway/node/fs/file-missing-error/file-m
 // The responder builds `${projectRoot}/packages` as the readdir target — mirror that exact join
 // here so the mock is keyed on the same dirPath the responder actually reads.
 const packagesDirFor = ({ projectRoot }: { projectRoot: string }): string =>
-  `${String(projectRoot)}/packages`;
+  `${projectRoot}/packages`;
 
 export const HookSessionSnippetPackagesResponderProxy = (): {
   setupEntries: (params: {
@@ -58,7 +58,7 @@ export const HookSessionSnippetPackagesResponderProxy = (): {
       for (const entry of entries) {
         if (entry.children) {
           readdirProxy.returns({
-            path: `${String(packagesDir)}/${entry.name}`,
+            path: `${packagesDir}/${entry.name}`,
             entries: entry.children.map((child) => ({
               name: child.name,
               kind: child.isDirectory ? ('directory' as const) : ('file' as const),

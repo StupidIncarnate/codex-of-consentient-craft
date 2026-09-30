@@ -22,7 +22,11 @@
  */
 
 import type { Quest, WorkItem, OperationItem } from '@dungeonmaster/shared/contracts';
-import { questContract, workItemContract, operationItemContract } from '@dungeonmaster/shared/contracts';
+import {
+  questContract,
+  workItemContract,
+  operationItemContract,
+} from '@dungeonmaster/shared/contracts';
 
 import type { QuestWorkView } from '../../../contracts/quest-work-view/quest-work-view-contract';
 import { questGetQuestWorkBroker } from '../../../brokers/quest/get-quest-work/quest-get-quest-work-broker';

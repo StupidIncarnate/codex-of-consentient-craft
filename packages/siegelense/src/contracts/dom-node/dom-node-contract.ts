@@ -10,7 +10,6 @@
 
 import { z } from '#gateway/npm/zod';
 
-
 import { attrPairContract } from '../attr-pair/attr-pair-contract';
 import { domRectContract } from '../dom-rect/dom-rect-contract';
 
@@ -28,6 +27,7 @@ export const domNodeContract = z
     attrs: z.array(attrPairContract).readonly().optional(),
     value: z.string().brand<'DomNodeValue'>().nullable().optional(),
   })
-  .strict().brand<'DomNode'>();
+  .strict()
+  .brand<'DomNode'>();
 
 export type DomNode = z.infer<typeof domNodeContract>;

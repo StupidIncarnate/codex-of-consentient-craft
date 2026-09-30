@@ -19,11 +19,7 @@ import type { ImageSize } from '../../../contracts/image-size/image-size-contrac
 
 const BASE64_MARKER = ';base64,';
 
-export const imageMeasureBroker = async ({
-  dataUrl,
-}: {
-  dataUrl: string;
-}): Promise<ImageSize> => {
+export const imageMeasureBroker = async ({ dataUrl }: { dataUrl: string }): Promise<ImageSize> => {
   const markerIndex = dataUrl.indexOf(BASE64_MARKER);
   const base64 = dataUrl.slice(markerIndex + BASE64_MARKER.length);
   const binary = atob(base64);

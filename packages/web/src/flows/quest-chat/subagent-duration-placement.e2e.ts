@@ -68,7 +68,7 @@ test.describe('The subagent-chain duration figure is placed and styled like exec
     });
 
     const created = await quests.createQuest({
-      guildId: guildId,
+      guildId,
       title: 'Subagent Duration Placement Quest',
       userRequest: 'Build the feature',
     });
@@ -140,7 +140,7 @@ test.describe('The subagent-chain duration figure is placed and styled like exec
     });
 
     const created = await quests.createQuest({
-      guildId: guildId,
+      guildId,
       title: 'Subagent Duration Styling Quest',
       userRequest: 'Build the feature',
     });

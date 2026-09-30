@@ -1,4 +1,3 @@
-
 import { browserSessionLaunchBroker } from './browser-session-launch-broker';
 
 const EVIDENCE_PATH = '/tmp/siegelense-integration';

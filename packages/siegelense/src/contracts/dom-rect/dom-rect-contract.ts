@@ -9,7 +9,6 @@
 
 import { z } from '#gateway/npm/zod';
 
-
 export const domRectContract = z
   .object({
     x: z.number().int().brand<'DomRectX'>(),
@@ -17,6 +16,7 @@ export const domRectContract = z
     width: z.number().int().nonnegative().brand<'DomRectWidth'>(),
     height: z.number().int().nonnegative().brand<'DomRectHeight'>(),
   })
-  .strict().brand<'DomRect'>();
+  .strict()
+  .brand<'DomRect'>();
 
 export type DomRect = z.infer<typeof domRectContract>;

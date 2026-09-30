@@ -162,7 +162,13 @@ export const SiegelenseDriverResponderProxy = (): {
       serveHandle.calledWith([{ instanceId }]).resolves({ success: true });
     },
 
-    stageBootFails: ({ error, instanceId }: { error: Error; instanceId: SiegeInstance['id'] }): void => {
+    stageBootFails: ({
+      error,
+      instanceId,
+    }: {
+      error: Error;
+      instanceId: SiegeInstance['id'];
+    }): void => {
       laneBootHandle.calledWith([{ instanceId }]).rejects(error);
       bootLockReleaseHandle.calledWith([{ instanceId }]).resolves({ success: true });
       bootFailureMarkerWriteHandle.calledWith([{ message: error.message }]).resolves({
@@ -226,14 +232,12 @@ export const SiegelenseDriverResponderProxy = (): {
       return argsList[argsList.length - 1];
     },
 
-    getRegistryUpdateCallCount: (): ReadingCount =>
-      registryUpdateHandle.callsMatching([]).length,
+    getRegistryUpdateCallCount: (): ReadingCount => registryUpdateHandle.callsMatching([]).length,
 
     stagePid: ({ pid }: { pid: number }): void => {
       pidProxy.setupPid({ pid });
     },
 
-    getStderrText: (): string =>
-      stderrLog.getWrittenText(),
+    getStderrText: (): string => stderrLog.getWrittenText(),
   };
 };

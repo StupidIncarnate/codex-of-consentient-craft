@@ -50,7 +50,7 @@ export const workspaceRootFindBrokerProxy = (): {
     // normalization (the broker joins via the real path.join):
     // a root dir ('/') must not double the leading slash.
     setupNoPackageJson: ({ dir }: { dir: string }): void => {
-      const packageJsonPath = (dir.endsWith('/') ? `${dir}package.json` : `${dir}/package.json`);
+      const packageJsonPath = dir.endsWith('/') ? `${dir}package.json` : `${dir}/package.json`;
       existsProxy.returns({ path: packageJsonPath, exists: false });
     },
   };

@@ -10,11 +10,13 @@ import { z } from '#gateway/npm/zod';
 
 import { textBlockParamContract } from '../text-block-param/text-block-param-contract';
 
-export const searchResultBlockParamContract = z.object({
-  type: z.literal('search_result'),
-  source: z.string().brand<'SearchResultBlockParamSource'>(),
-  title: z.string().brand<'SearchResultBlockParamTitle'>(),
-  content: z.array(textBlockParamContract),
-}).brand<'SearchResultBlockParam'>();
+export const searchResultBlockParamContract = z
+  .object({
+    type: z.literal('search_result'),
+    source: z.string().brand<'SearchResultBlockParamSource'>(),
+    title: z.string().brand<'SearchResultBlockParamTitle'>(),
+    content: z.array(textBlockParamContract),
+  })
+  .brand<'SearchResultBlockParam'>();
 
 export type SearchResultBlockParam = z.infer<typeof searchResultBlockParamContract>;

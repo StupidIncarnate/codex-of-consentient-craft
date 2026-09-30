@@ -10,7 +10,8 @@ describe('QuestListResponder', () => {
       const quest = QuestStub();
       const questsPath = '/home/testuser/.dungeonmaster/guilds/guild-1/quests';
       const homePath = '/home/testuser/.dungeonmaster';
-      const questFilePath = '/home/testuser/.dungeonmaster/guilds/guild-1/quests/001-add-auth/quest.json';
+      const questFilePath =
+        '/home/testuser/.dungeonmaster/guilds/guild-1/quests/001-add-auth/quest.json';
       const proxy = QuestListResponderProxy();
       proxy.setupQuestsPath({ homeDir: '/home/testuser', homePath, questsPath });
       proxy.setupQuestDirectories({ files: ['001-add-auth'] });

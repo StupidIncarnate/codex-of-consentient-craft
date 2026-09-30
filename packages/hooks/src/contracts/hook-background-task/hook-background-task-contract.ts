@@ -24,12 +24,14 @@ import { z } from '#gateway/npm/zod';
 // observed kinds and nothing may read this shape without it: `shell` is a backgrounded COMMAND,
 // while `subagent` is an AGENT — and an event lists the stopping agent itself under that type, with
 // `id` equal to the event's own `agent_id`.
-export const hookBackgroundTaskContract = z.object({
-  id: z.string().min(1).brand<'HookBackgroundTaskId'>(),
-  type: z.string().min(1).brand<'HookBackgroundTaskType'>().optional(),
-  status: z.string().min(1).brand<'HookBackgroundTaskStatus'>(),
-  description: z.string().brand<'HookBackgroundTaskDescription'>().optional(),
-  command: z.string().brand<'HookBackgroundTaskCommand'>().optional(),
-}).brand<'HookBackgroundTask'>();
+export const hookBackgroundTaskContract = z
+  .object({
+    id: z.string().min(1).brand<'HookBackgroundTaskId'>(),
+    type: z.string().min(1).brand<'HookBackgroundTaskType'>().optional(),
+    status: z.string().min(1).brand<'HookBackgroundTaskStatus'>(),
+    description: z.string().brand<'HookBackgroundTaskDescription'>().optional(),
+    command: z.string().brand<'HookBackgroundTaskCommand'>().optional(),
+  })
+  .brand<'HookBackgroundTask'>();
 
 export type HookBackgroundTask = z.infer<typeof hookBackgroundTaskContract>;

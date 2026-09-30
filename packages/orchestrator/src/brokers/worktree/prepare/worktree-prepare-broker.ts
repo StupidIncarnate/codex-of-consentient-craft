@@ -49,7 +49,6 @@ import { worktreeDiscardBroker } from '../discard/worktree-discard-broker';
 import { worktreeSeedDistBroker } from '../seed-dist/worktree-seed-dist-broker';
 import { worktreeVerifyLinksBroker } from '../verify-links/worktree-verify-links-broker';
 
-
 const STEPS = worktreePrepareStepStatics.steps;
 
 export const worktreePrepareBroker = async ({
@@ -88,9 +87,7 @@ export const worktreePrepareBroker = async ({
       detail: worktreeFailureDetailTransformer({
         worktreePath,
         cause: addResult.output,
-        ...(pruned === null || pruned.exitCode === 0
-          ? {}
-          : { cleanupOutput: pruned.output }),
+        ...(pruned === null || pruned.exitCode === 0 ? {} : { cleanupOutput: pruned.output }),
       }),
     });
   }

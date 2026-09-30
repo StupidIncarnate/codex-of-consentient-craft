@@ -36,7 +36,10 @@ export const snapshotListBrokerProxy = (): {
   setupUnknownInstance: () => void;
   setupNow: (params: { nowMs: number }) => void;
   setupNoStore: (params: { instanceId: SiegeInstance['id'] }) => void;
-  setupIndex: (params: { instanceId: SiegeInstance['id']; records: readonly SnapshotRecord[] }) => void;
+  setupIndex: (params: {
+    instanceId: SiegeInstance['id'];
+    records: readonly SnapshotRecord[];
+  }) => void;
 } => {
   const instanceStateProxy = instanceStateResolveBrokerProxy();
   // Constructed for enforce-proxy-child-creation. Deliberately NOT given `setupHomePath`, which

@@ -1,4 +1,3 @@
-
 import { readFileIfExistsProxy } from '#gateway/node/fs__promises/read-file-if-exists/read-file-if-exists.proxy';
 import { locationsCitationQuestFilePathFindBrokerProxy } from '../../locations/citation-quest-file-path-find/locations-citation-quest-file-path-find-broker.proxy';
 import { questRecordParseLayerBrokerProxy } from './quest-record-parse-layer-broker.proxy';
@@ -28,13 +27,7 @@ export const citationResolveBrokerProxy = (): {
   return {
     setupQuestFolder: questFilePathProxy.setupQuestFolder,
 
-    setupQuestRecord: ({
-      filePath,
-      contents,
-    }: {
-      filePath: string;
-      contents: string;
-    }): void => {
+    setupQuestRecord: ({ filePath, contents }: { filePath: string; contents: string }): void => {
       readFileProxy.returns({ path: filePath, contents });
     },
 

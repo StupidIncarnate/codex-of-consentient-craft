@@ -10,17 +10,23 @@ import { z } from '#gateway/npm/zod';
 import { hookBackgroundTaskContract } from '../hook-background-task/hook-background-task-contract';
 import { sessionContract } from '@dungeonmaster/shared/contracts';
 
-export const subagentStopHookDataContract = z.object({
-  session_id: sessionContract.shape.id,
-  transcript_path: z.string().min(1).brand<'SubagentStopHookDataTranscriptPath'>(),
-  agent_transcript_path: z.string().min(1).brand<'SubagentStopHookDataAgentTranscriptPath'>().optional(),
-  cwd: z.string().min(1).brand<'SubagentStopHookDataCwd'>(),
-  hook_event_name: z.literal('SubagentStop'),
-  stop_hook_active: z.boolean().optional(),
-  // Commands the stopping sub-agent backgrounded, with a live `status`. Undocumented, and the only
-  // surface that reports in-flight work: the transcript shows a task was started and never that it
-  // ended.
-  background_tasks: z.array(hookBackgroundTaskContract).optional(),
-}).brand<'SubagentStopHookData'>();
+export const subagentStopHookDataContract = z
+  .object({
+    session_id: sessionContract.shape.id,
+    transcript_path: z.string().min(1).brand<'SubagentStopHookDataTranscriptPath'>(),
+    agent_transcript_path: z
+      .string()
+      .min(1)
+      .brand<'SubagentStopHookDataAgentTranscriptPath'>()
+      .optional(),
+    cwd: z.string().min(1).brand<'SubagentStopHookDataCwd'>(),
+    hook_event_name: z.literal('SubagentStop'),
+    stop_hook_active: z.boolean().optional(),
+    // Commands the stopping sub-agent backgrounded, with a live `status`. Undocumented, and the only
+    // surface that reports in-flight work: the transcript shows a task was started and never that it
+    // ended.
+    background_tasks: z.array(hookBackgroundTaskContract).optional(),
+  })
+  .brand<'SubagentStopHookData'>();
 
 export type SubagentStopHookData = z.infer<typeof subagentStopHookDataContract>;

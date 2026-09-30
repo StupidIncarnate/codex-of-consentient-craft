@@ -1,4 +1,3 @@
-
 import type { StepAmbiguousError } from '../../../errors/step-ambiguous/step-ambiguous-error';
 import { stepTargetResolveBroker } from './step-target-resolve-broker';
 import { stepTargetResolveBrokerProxy } from './step-target-resolve-broker.proxy';
@@ -127,11 +126,7 @@ describe('stepTargetResolveBroker', () => {
   describe('zero matches', () => {
     it('EMPTY: {zero matches} => throws StepNoMatchError naming the nearest testIds', async () => {
       const proxy = stepTargetResolveBrokerProxy();
-      const nearest = [
-        'GUILD_LIST',
-        'GUILD_ITEM_f52cd',
-        'PIXEL_BTN',
-      ];
+      const nearest = ['GUILD_LIST', 'GUILD_ITEM_f52cd', 'PIXEL_BTN'];
       const session = proxy.sessionWithNearest({ nearest });
 
       const error = await stepTargetResolveBroker({

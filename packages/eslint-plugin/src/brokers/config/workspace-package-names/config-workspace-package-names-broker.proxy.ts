@@ -44,13 +44,7 @@ export const configWorkspacePackageNamesBrokerProxy = (): {
       globProxy.setupGlobDirectories({ basePath, dirNames });
     },
 
-    setupMemberPackageJson: ({
-      memberDir,
-      name,
-    }: {
-      memberDir: string;
-      name: string;
-    }): void => {
+    setupMemberPackageJson: ({ memberDir, name }: { memberDir: string; name: string }): void => {
       globProxy.setupMemberPackageJson({ memberDir, name });
     },
   };

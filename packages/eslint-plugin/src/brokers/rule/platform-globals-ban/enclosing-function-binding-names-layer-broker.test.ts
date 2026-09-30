@@ -22,10 +22,7 @@ describe('enclosingFunctionBindingNamesLayerBroker', () => {
 
       const result = enclosingFunctionBindingNamesLayerBroker({ node });
 
-      expect(result).toStrictEqual([
-        'inner',
-        'outer',
-      ]);
+      expect(result).toStrictEqual(['inner', 'outer']);
     });
   });
 

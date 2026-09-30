@@ -32,7 +32,7 @@ describe('SessionForensicsFlow', () => {
 
       const result = SessionForensicsFlow({ argv: ['summary', target] });
 
-      expect(String(result)).toBe(
+      expect(result).toBe(
         [
           'Lines in the transcript  0',
           'Times the model replied  0 (one reply covers several lines of the transcript)',
@@ -61,7 +61,7 @@ describe('SessionForensicsFlow', () => {
 
       const result = SessionForensicsFlow({ argv: ['buckets', target] });
 
-      expect(String(result)).toBe(
+      expect(result).toBe(
         'Window (UTC)        Replies  Tool calls   Tokens out     Tokens in  Bytes from tools  Busiest tools',
       );
     });
@@ -71,7 +71,7 @@ describe('SessionForensicsFlow', () => {
 
       const result = SessionForensicsFlow({ argv: ['gaps', target] });
 
-      expect(String(result)).toBe(
+      expect(result).toBe(
         [
           'Gaps of 120 seconds or more between one model reply and the next.',
           'A gap that names sub-agents is time the session spent waiting on a helper.',
@@ -106,7 +106,7 @@ describe('SessionForensicsFlow', () => {
       chdir(originalCwd);
       testbed.cleanup();
 
-      expect(String(result)).toBe(
+      expect(result).toBe(
         [
           'Flow bare-flow',
           "  sign-off track         REQUIRED  marked        met     can't meet    unmet    unmarked",
@@ -161,11 +161,11 @@ describe('SessionForensicsFlow', () => {
       testbed.writeFile({
         relativePath: `.dungeonmaster/guilds/test-guild/quests/${questId}/quest.json`,
         content: JSON.stringify({
-            userRequest: 'Add real-time notifications',
-            workItems: [workItem],
-            operations: [operation],
-            wardResults: [wardResult],
-          }),
+          userRequest: 'Add real-time notifications',
+          workItems: [workItem],
+          operations: [operation],
+          wardResults: [wardResult],
+        }),
       });
 
       const originalCwd = cwd();
@@ -176,7 +176,7 @@ describe('SessionForensicsFlow', () => {
       chdir(originalCwd);
       testbed.cleanup();
 
-      expect(String(result)).toBe(
+      expect(result).toBe(
         [
           'User request: Add real-time notifications',
           '',
@@ -203,14 +203,14 @@ describe('SessionForensicsFlow', () => {
     it('VALID: {argv: [buckets, target, --minutes, 5]} => a 10-minute gap between real records splits into two 5-minute buckets', async () => {
       const target = SessionIdStub({ value: 'session-flow-buckets-minutes-flag' });
       const content = [
-          JSON.stringify(TranscriptRecordStub({ timestamp: '2026-09-01T19:00:00.000Z' })),
-          JSON.stringify(TranscriptRecordStub({ timestamp: '2026-09-01T19:10:00.000Z' })),
-        ].join('\n');
+        JSON.stringify(TranscriptRecordStub({ timestamp: '2026-09-01T19:00:00.000Z' })),
+        JSON.stringify(TranscriptRecordStub({ timestamp: '2026-09-01T19:10:00.000Z' })),
+      ].join('\n');
       await harness.writeSession({ sessionId: target, content });
 
       const result = SessionForensicsFlow({ argv: ['buckets', target, '--minutes', '5'] });
 
-      expect(String(result)).toBe(
+      expect(result).toBe(
         [
           'Window (UTC)        Replies  Tool calls   Tokens out     Tokens in  Bytes from tools  Busiest tools',
           '19:00-19:05               1           0            0             0                 0  ',
@@ -222,14 +222,14 @@ describe('SessionForensicsFlow', () => {
     it('VALID: {argv: [gaps, target, --floor-seconds, 30]} => a 90-second gap between real records clears the lower floor and is listed', async () => {
       const target = SessionIdStub({ value: 'session-flow-gaps-floor-flag' });
       const content = [
-          JSON.stringify(TranscriptRecordStub({ timestamp: '2026-09-01T19:00:00.000Z' })),
-          JSON.stringify(TranscriptRecordStub({ timestamp: '2026-09-01T19:01:30.000Z' })),
-        ].join('\n');
+        JSON.stringify(TranscriptRecordStub({ timestamp: '2026-09-01T19:00:00.000Z' })),
+        JSON.stringify(TranscriptRecordStub({ timestamp: '2026-09-01T19:01:30.000Z' })),
+      ].join('\n');
       await harness.writeSession({ sessionId: target, content });
 
       const result = SessionForensicsFlow({ argv: ['gaps', target, '--floor-seconds', '30'] });
 
-      expect(String(result)).toBe(
+      expect(result).toBe(
         [
           'Gaps of 30 seconds or more between one model reply and the next.',
           'A gap that names sub-agents is time the session spent waiting on a helper.',
@@ -250,7 +250,7 @@ describe('SessionForensicsFlow', () => {
 
       const result = SessionForensicsFlow({ argv: ['buckets', target, '--minutes', 'abc'] });
 
-      expect(String(result)).toBe(USAGE_BLOCK_TEXT);
+      expect(result).toBe(USAGE_BLOCK_TEXT);
     });
 
     it('INVALID: {argv: [gaps, target, --floor-seconds, -5]} => a negative flag value returns the usage block', () => {
@@ -258,7 +258,7 @@ describe('SessionForensicsFlow', () => {
 
       const result = SessionForensicsFlow({ argv: ['gaps', target, '--floor-seconds', '-5'] });
 
-      expect(String(result)).toBe(USAGE_BLOCK_TEXT);
+      expect(result).toBe(USAGE_BLOCK_TEXT);
     });
   });
 
@@ -266,19 +266,19 @@ describe('SessionForensicsFlow', () => {
     it('EMPTY: {argv: []} => returns the usage block', () => {
       const result = SessionForensicsFlow({ argv: [] });
 
-      expect(String(result)).toBe(USAGE_BLOCK_TEXT);
+      expect(result).toBe(USAGE_BLOCK_TEXT);
     });
 
     it('INVALID: {argv: [unknown-command, target]} => returns the usage block', () => {
       const result = SessionForensicsFlow({ argv: ['unknown-command', 'some-target'] });
 
-      expect(String(result)).toBe(USAGE_BLOCK_TEXT);
+      expect(result).toBe(USAGE_BLOCK_TEXT);
     });
 
     it('EMPTY: {argv: [summary]} with no target => returns the usage block', () => {
       const result = SessionForensicsFlow({ argv: ['summary'] });
 
-      expect(String(result)).toBe(USAGE_BLOCK_TEXT);
+      expect(result).toBe(USAGE_BLOCK_TEXT);
     });
   });
 });

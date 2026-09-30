@@ -24,9 +24,7 @@ export const localExportNamesFromStatementLayerTransformer = ({
       node.exportClause !== undefined &&
       ts.isNamedExports(node.exportClause)
     ) {
-      return node.exportClause.elements.map((element) =>
-        element.name.text,
-      );
+      return node.exportClause.elements.map((element) => element.name.text);
     }
     return [];
   }

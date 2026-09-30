@@ -30,11 +30,13 @@ import { instanceStatusContract } from '../instance-status/instance-status-contr
 import { machineReadingContract } from '../machine-reading/machine-reading-contract';
 import { monitoredMetricContract } from '../monitored-metric/monitored-metric-contract';
 
-export const statusAnswerContract = z.object({
-  monitored: z.array(monitoredMetricContract).readonly(),
-  machine: machineReadingContract,
-  instances: z.array(instanceStatusContract).readonly(),
-  queriedInstanceState: instanceStateContract.nullable(),
-}).brand<'StatusAnswer'>();
+export const statusAnswerContract = z
+  .object({
+    monitored: z.array(monitoredMetricContract).readonly(),
+    machine: machineReadingContract,
+    instances: z.array(instanceStatusContract).readonly(),
+    queriedInstanceState: instanceStateContract.nullable(),
+  })
+  .brand<'StatusAnswer'>();
 
 export type StatusAnswer = z.infer<typeof statusAnswerContract>;

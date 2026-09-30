@@ -80,7 +80,7 @@ export const snapshotRestoreLayerBrokerProxy = (): {
       cpProxy.secondEntryFails({
         from: sourcePath,
         to: destinationPath,
-        entries: [String(first), String(second)],
+        entries: [first, second],
         error,
       });
     },
@@ -93,7 +93,7 @@ export const snapshotRestoreLayerBrokerProxy = (): {
         .map((call) => call[0]),
 
     getCopiedFor: ({ sourcePath, entry }): unknown =>
-      cpProxy.cpCallsFor({ source: `${String(sourcePath)}/${String(entry)}` }),
+      cpProxy.cpCallsFor({ source: `${sourcePath}/${entry}` }),
 
     getRolledBackFor: ({ path }): unknown => cpProxy.rmCallsFor({ path }),
   };

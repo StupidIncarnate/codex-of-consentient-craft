@@ -17,7 +17,9 @@ export const guildRemoveRouteBrokerProxy = (): {
 
   return {
     succeeds: ({ guildId }: { guildId: Guild['id'] }): void => {
-      removeProxy.setupConfig({ config: GuildConfigStub({ guilds: [GuildStub({ id: guildId })] }) });
+      removeProxy.setupConfig({
+        config: GuildConfigStub({ guilds: [GuildStub({ id: guildId })] }),
+      });
     },
   };
 };

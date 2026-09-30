@@ -7,7 +7,6 @@ import { QuestStub } from '@dungeonmaster/shared/contracts/quest/quest.stub';
 import { SessionIdStub } from '@dungeonmaster/shared/contracts/session-id/session-id.stub';
 import { WorkItemStub } from '@dungeonmaster/shared/contracts/work-item/work-item.stub';
 
-
 import { sessionListBroker } from './session-list-broker';
 import { sessionListBrokerProxy } from './session-list-broker.proxy';
 

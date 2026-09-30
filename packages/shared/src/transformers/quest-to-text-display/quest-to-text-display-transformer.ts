@@ -90,9 +90,7 @@ export const questToTextDisplayTransformer = ({
       parts.push(SYM.none);
     } else {
       for (const t of quest.toolingRequirements) {
-        parts.push(
-          `#${String(t.id)}: "${String(t.name)}" (${String(t.packageName)})`,
-        );
+        parts.push(`#${String(t.id)}: "${String(t.name)}" (${String(t.packageName)})`);
         parts.push(`${SYM.indent}Reason: ${String(t.reason)}`);
         if (t.requiredByObservables.length > 0) {
           parts.push(
@@ -131,9 +129,7 @@ export const questToTextDisplayTransformer = ({
   if (isQuestSectionInStageGuard({ section: 'flows', stage })) {
     for (const flow of quest.flows) {
       parts.push('');
-      parts.push(
-        `## Flow: #${String(flow.id)} ${SYM.emDash} "${String(flow.name)}"`,
-      );
+      parts.push(`## Flow: #${String(flow.id)} ${SYM.emDash} "${String(flow.name)}"`);
       if (flow.scope) {
         parts.push(`Scope: ${String(flow.scope)}`);
       }

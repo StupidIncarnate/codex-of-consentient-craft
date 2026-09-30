@@ -20,13 +20,7 @@ import type { ChatEntryUuid } from '@dungeonmaster/shared/contracts';
 const state = new Map<ChatEntryUuid, readonly string[]>();
 
 export const pastedImageMemoryState = {
-  remember: ({
-    uuid,
-    dataUrls,
-  }: {
-    uuid: ChatEntryUuid;
-    dataUrls: readonly string[];
-  }): void => {
+  remember: ({ uuid, dataUrls }: { uuid: ChatEntryUuid; dataUrls: readonly string[] }): void => {
     state.set(uuid, dataUrls);
   },
 

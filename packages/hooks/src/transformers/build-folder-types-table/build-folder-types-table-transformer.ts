@@ -24,8 +24,8 @@ export const buildFolderTypesTableTransformer = (): string => {
     });
 
   const header = '| Folder | Purpose | When to Use |\n|--------|---------|-------------|';
-  const rows = entries.map(({ key, purpose, whenToUse }) =>
-    `| ${key}/ | ${purpose} | ${whenToUse} |`,
+  const rows = entries.map(
+    ({ key, purpose, whenToUse }) => `| ${key}/ | ${purpose} | ${whenToUse} |`,
   );
 
   return `## Folder Types\n\n${header}\n${rows.join('\n')}`;

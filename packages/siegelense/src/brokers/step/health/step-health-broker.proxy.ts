@@ -7,7 +7,6 @@
  * proxy.stagesShot({ shotPath, width: 4, height: 4, pixels: new Uint8Array([...]) });
  */
 
-
 import { BufferLengthsStub } from '../../../contracts/buffer-lengths/buffer-lengths.stub';
 import type { BrowserSession } from '../../../contracts/browser-session/browser-session-contract';
 import { shotBlankReadBrokerProxy } from '../../shot/blank-read/shot-blank-read-broker.proxy';

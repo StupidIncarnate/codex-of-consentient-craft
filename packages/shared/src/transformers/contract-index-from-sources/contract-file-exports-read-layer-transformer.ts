@@ -31,9 +31,7 @@ export const contractFileExportsReadLayerTransformer = ({
   const schemaNames = sourceFile.statements
     .filter((statement): statement is ts.VariableStatement => ts.isVariableStatement(statement))
     .flatMap((statement) => statement.declarationList.declarations)
-    .flatMap((declaration) =>
-      ts.isIdentifier(declaration.name) ? [declaration.name.text] : [],
-    );
+    .flatMap((declaration) => (ts.isIdentifier(declaration.name) ? [declaration.name.text] : []));
 
   const uniqueSymbolNames = sourceFile.statements
     .filter((statement): statement is ts.VariableStatement => ts.isVariableStatement(statement))
@@ -61,9 +59,7 @@ export const contractFileExportsReadLayerTransformer = ({
   const exportedConstNames = exportedStatements
     .filter((statement): statement is ts.VariableStatement => ts.isVariableStatement(statement))
     .flatMap((statement) => statement.declarationList.declarations)
-    .flatMap((declaration) =>
-      ts.isIdentifier(declaration.name) ? [declaration.name.text] : [],
-    );
+    .flatMap((declaration) => (ts.isIdentifier(declaration.name) ? [declaration.name.text] : []));
 
   const typeExports = exportedStatements
     .filter(

@@ -10,10 +10,12 @@ describe('install-flow integration', () => {
       });
 
       const result = await InstallFlow({
-        context: InstallContextStub({ value: {
-          targetProjectRoot: testbed.guildPath,
-          dungeonmasterRoot: testbed.dungeonmasterPath,
-        } }),
+        context: InstallContextStub({
+          value: {
+            targetProjectRoot: testbed.guildPath,
+            dungeonmasterRoot: testbed.dungeonmasterPath,
+          },
+        }),
       });
 
       expect(result).toStrictEqual({
@@ -91,10 +93,12 @@ describe('install-flow integration', () => {
       });
 
       const result = await InstallFlow({
-        context: InstallContextStub({ value: {
-          targetProjectRoot: testbed.guildPath,
-          dungeonmasterRoot: testbed.dungeonmasterPath,
-        } }),
+        context: InstallContextStub({
+          value: {
+            targetProjectRoot: testbed.guildPath,
+            dungeonmasterRoot: testbed.dungeonmasterPath,
+          },
+        }),
       });
 
       expect(result).toStrictEqual({
@@ -121,26 +125,28 @@ describe('install-flow integration', () => {
       testbed.writeFile({
         relativePath: '.dungeonmaster.json',
         content: JSON.stringify(
-            {
-              framework: 'monorepo',
-              schema: 'zod',
-              customTopLevelField: 'keep-me',
-              devServer: {
-                devCommand: 'custom dev command',
-                port: 4001,
-                customDevServerField: 'also-keep-me',
-              },
+          {
+            framework: 'monorepo',
+            schema: 'zod',
+            customTopLevelField: 'keep-me',
+            devServer: {
+              devCommand: 'custom dev command',
+              port: 4001,
+              customDevServerField: 'also-keep-me',
             },
-            null,
-            2,
-          ),
+          },
+          null,
+          2,
+        ),
       });
 
       const result = await InstallFlow({
-        context: InstallContextStub({ value: {
-          targetProjectRoot: testbed.guildPath,
-          dungeonmasterRoot: testbed.dungeonmasterPath,
-        } }),
+        context: InstallContextStub({
+          value: {
+            targetProjectRoot: testbed.guildPath,
+            dungeonmasterRoot: testbed.dungeonmasterPath,
+          },
+        }),
       });
 
       expect(result).toStrictEqual({
@@ -199,10 +205,12 @@ describe('install-flow integration', () => {
       });
 
       const result = await InstallFlow({
-        context: InstallContextStub({ value: {
-          targetProjectRoot: testbed.guildPath,
-          dungeonmasterRoot: testbed.dungeonmasterPath,
-        } }),
+        context: InstallContextStub({
+          value: {
+            targetProjectRoot: testbed.guildPath,
+            dungeonmasterRoot: testbed.dungeonmasterPath,
+          },
+        }),
       });
 
       expect(result.action).toBe('merged');
@@ -252,10 +260,12 @@ describe('install-flow integration', () => {
       });
 
       const result = await InstallFlow({
-        context: InstallContextStub({ value: {
-          targetProjectRoot: testbed.guildPath,
-          dungeonmasterRoot: testbed.dungeonmasterPath,
-        } }),
+        context: InstallContextStub({
+          value: {
+            targetProjectRoot: testbed.guildPath,
+            dungeonmasterRoot: testbed.dungeonmasterPath,
+          },
+        }),
       });
 
       expect(result).toStrictEqual({
@@ -287,10 +297,12 @@ describe('install-flow integration', () => {
       });
 
       const result = await InstallFlow({
-        context: InstallContextStub({ value: {
-          targetProjectRoot: testbed.guildPath,
-          dungeonmasterRoot: testbed.dungeonmasterPath,
-        } }),
+        context: InstallContextStub({
+          value: {
+            targetProjectRoot: testbed.guildPath,
+            dungeonmasterRoot: testbed.dungeonmasterPath,
+          },
+        }),
       });
 
       expect(result).toStrictEqual({

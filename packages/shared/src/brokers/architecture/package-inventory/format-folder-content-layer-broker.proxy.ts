@@ -18,13 +18,7 @@ const makeDirent = ({ name, isDir }: { name: string; isDir: boolean }): Dirent =
   DirentStub({ name, kind: isDir ? 'directory' : 'file' });
 
 export const formatFolderContentLayerBrokerProxy = (): {
-  setupDepth0Files: ({
-    dirPath,
-    fileNames,
-  }: {
-    dirPath: string;
-    fileNames: string[];
-  }) => void;
+  setupDepth0Files: ({ dirPath, fileNames }: { dirPath: string; fileNames: string[] }) => void;
   setupDepth1Subdirs: ({ subdirNames }: { subdirNames: string[] }) => void;
   setupDepth1WithEmpty: ({ subdirs }: { subdirs: { name: string; hasFiles: boolean }[] }) => void;
   setupDepth2Domains: ({ domains }: { domains: { name: string; actions: string[] }[] }) => void;
@@ -43,13 +37,7 @@ export const formatFolderContentLayerBrokerProxy = (): {
   countFilesRecursiveLayerBrokerProxy();
 
   return {
-    setupDepth0Files: ({
-      dirPath,
-      fileNames,
-    }: {
-      dirPath: string;
-      fileNames: string[];
-    }): void => {
+    setupDepth0Files: ({ dirPath, fileNames }: { dirPath: string; fileNames: string[] }): void => {
       safeProxy.setupDirectory({
         dirPath,
         entries: fileNames.map((name) => makeDirEntrySync({ name, isDir: false })),

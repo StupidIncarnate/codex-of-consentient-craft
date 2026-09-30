@@ -58,14 +58,14 @@ export const questListBroker = async ({
   const loaded = await Promise.all(
     questFolders.map(async (folderName): Promise<Quest | null> => {
       const questFilePath = join(questsPath, folderName, locationsStatics.quest.questFile);
-      const reportKey = String(questFilePath);
+      const reportKey = questFilePath;
       try {
         const quest = await questLoadBroker({ questFilePath });
         lastReportedReason.delete(reportKey);
         return quest;
       } catch (error: unknown) {
         // questLoadBroker's message already names the file and the rejected field.
-        const reason = (error instanceof Error ? error.message : String(error));
+        const reason = error instanceof Error ? error.message : String(error);
         if (lastReportedReason.get(reportKey) !== reason) {
           lastReportedReason.set(reportKey, reason);
           stderr.write(
@@ -78,7 +78,7 @@ export const questListBroker = async ({
             questFilePath,
             // The path prefix is already on the stderr line; the caller gets the parse reason on
             // its own so a UI can render it without the redundant absolute path.
-            reason: String(reason).replace(`Failed to parse quest file at ${questFilePath}: `, ''),
+            reason: reason.replace(`Failed to parse quest file at ${questFilePath}: `, ''),
           }),
         });
         return null;

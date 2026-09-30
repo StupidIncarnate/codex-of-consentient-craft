@@ -1,4 +1,3 @@
-
 import { FsErrorStub } from '#gateway/node/fs/is-fs-error/fs-error.stub';
 import { writeFileProxy } from '#gateway/node/fs__promises/write-file/write-file.proxy';
 
@@ -14,13 +13,7 @@ export const runReturnWriteBrokerProxy = (): {
       writeProxy.succeeds({ path: storedReturnPath });
     },
 
-    throws: ({
-      storedReturnPath,
-      code,
-    }: {
-      storedReturnPath: string;
-      code: string;
-    }): void => {
+    throws: ({ storedReturnPath, code }: { storedReturnPath: string; code: string }): void => {
       writeProxy.rejects({
         path: storedReturnPath,
         error: FsErrorStub({ code, path: storedReturnPath, syscall: 'write' }),

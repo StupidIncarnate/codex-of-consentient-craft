@@ -43,10 +43,7 @@ export const spawnBatchLayerBroker = async ({
   // cwd (its own worktree, or the legacy repo-root fallback) or a recorded-but-missing worktree
   // path — the latter carries no usable cwd, so the per-instruction guard below refuses to spawn.
   const uniqueQuestIds = [...new Set(agents.map((instruction) => instruction.questId))];
-  const contextByQuestId = new Map<
-    Quest['id'],
-    { cwd: string } | { worktreePath: string }
-  >();
+  const contextByQuestId = new Map<Quest['id'], { cwd: string } | { worktreePath: string }>();
   await Promise.all(
     uniqueQuestIds.map(async (questId) => {
       const resolution = await questCwdResolveBroker({ questId });

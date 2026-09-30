@@ -136,13 +136,7 @@ export const compareReadBrokerProxy = (): {
     // A KNOWN instance whose named run never stored a return — the run count reads real, the file
     // does not. `resultsProxy.setupMissingStoredReturn` stages the same ENOENT shape a real crashed
     // or never-completed run leaves on disk.
-    setupMissingRun: ({
-      evidencePath,
-      runId,
-    }: {
-      evidencePath: string;
-      runId: RunId;
-    }): void => {
+    setupMissingRun: ({ evidencePath, runId }: { evidencePath: string; runId: RunId }): void => {
       resultsProxy.setupMissingStoredReturn({ evidencePath, runId });
     },
 

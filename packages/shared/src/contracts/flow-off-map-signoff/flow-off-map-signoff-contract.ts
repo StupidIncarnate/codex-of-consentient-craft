@@ -19,8 +19,10 @@ import { z } from '#gateway/npm/zod';
 
 import { qaOffMapFamilyContract } from '../qa-off-map-family/qa-off-map-family-contract';
 
-export const flowOffMapSignoffContract = z.object({
-  id: qaOffMapFamilyContract,
-}).brand<'FlowOffMapSignoff'>();
+export const flowOffMapSignoffContract = z
+  .object({
+    id: qaOffMapFamilyContract,
+  })
+  .brand<'FlowOffMapSignoff'>();
 
 export type FlowOffMapSignoff = z.infer<typeof flowOffMapSignoffContract>;

@@ -157,8 +157,8 @@ test.describe('A carved quest renders the transcripts on both sides of its carve
     // the head, the intake work item force-completed by Start, the codeweaver cell in flight. The
     // `sessions` rows are what a real run appends as each session is stamped.
     await quests.writeQuestFile({
-      questId: questId,
-      questFolder: questFolder,
+      questId,
+      questFolder,
       questFilePath: String(created.filePath),
       title: 'Carved Quest Session Cwds Quest',
       status: 'in_progress',
@@ -217,7 +217,7 @@ test.describe('A carved quest renders the transcripts on both sides of its carve
       ],
     });
 
-    await nav.navigateToQuest({ urlSlug, questId: questId });
+    await nav.navigateToQuest({ urlSlug, questId });
 
     const executionPanel = page.getByTestId('execution-panel-widget');
 

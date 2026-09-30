@@ -20,10 +20,7 @@ describe('mockCallsMergeByModuleTransformer', () => {
           moduleName: 'fs',
           factory: null,
           sourceFile: bareMock.sourceFile,
-          identifierNames: [
-            'readFile',
-            'writeFile',
-          ],
+          identifierNames: ['readFile', 'writeFile'],
           objectIdentifierNames: [],
         },
       ]);
@@ -48,10 +45,7 @@ describe('mockCallsMergeByModuleTransformer', () => {
           moduleName: 'process',
           factory: null,
           sourceFile: cwdMock.sourceFile,
-          identifierNames: [
-            'cwd',
-            'kill',
-          ],
+          identifierNames: ['cwd', 'kill'],
           objectIdentifierNames: [],
         },
       ]);
@@ -194,10 +188,7 @@ describe('mockCallsMergeByModuleTransformer', () => {
       });
       const secondMock = MockCallStub({
         moduleName: '@dungeonmaster/orchestrator',
-        identifierNames: [
-          'questOutboxWatchBroker',
-          'questListBroker',
-        ],
+        identifierNames: ['questOutboxWatchBroker', 'questListBroker'],
       });
 
       const result = mockCallsMergeByModuleTransformer({ mockCalls: [firstMock, secondMock] });
@@ -207,10 +198,7 @@ describe('mockCallsMergeByModuleTransformer', () => {
           moduleName: firstMock.moduleName,
           factory: null,
           sourceFile: firstMock.sourceFile,
-          identifierNames: [
-            'questListBroker',
-            'questOutboxWatchBroker',
-          ],
+          identifierNames: ['questListBroker', 'questOutboxWatchBroker'],
           objectIdentifierNames: [],
         },
       ]);
@@ -238,10 +226,7 @@ describe('mockCallsMergeByModuleTransformer', () => {
           factory: null,
           sourceFile: firstMock.sourceFile,
           identifierNames: [],
-          objectIdentifierNames: [
-            'StartOrchestrator',
-            'orchestrationEventsState',
-          ],
+          objectIdentifierNames: ['StartOrchestrator', 'orchestrationEventsState'],
         },
       ]);
     });

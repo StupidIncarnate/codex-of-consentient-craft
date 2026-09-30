@@ -12,13 +12,9 @@
 
 import { widgetTreeStatics } from '../../statics/widget-tree/widget-tree-statics';
 
-export const widgetFileNameExtractTransformer = ({
-  filePath,
-}: {
-  filePath: string;
-}): string => {
-  const parts = String(filePath).split('/');
-  const basename = parts[parts.length - 1] ?? String(filePath);
+export const widgetFileNameExtractTransformer = ({ filePath }: { filePath: string }): string => {
+  const parts = filePath.split('/');
+  const basename = parts[parts.length - 1] ?? filePath;
 
   if (basename.endsWith(widgetTreeStatics.tsxSuffix)) {
     return basename.slice(0, -widgetTreeStatics.tsxSuffix.length);

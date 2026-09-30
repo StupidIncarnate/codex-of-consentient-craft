@@ -14,7 +14,7 @@ describe('smoketestRunState', () => {
 
   it('VALID: {start then getActive} => returns ActiveSmoketestRun with the supplied runId and suite', () => {
     smoketestRunState.end();
-    const runId = ActiveSmoketestRunStub().runId;
+    const { runId } = ActiveSmoketestRunStub();
     const suite = 'mcp';
 
     smoketestRunState.start({ runId, suite });
@@ -46,7 +46,7 @@ describe('smoketestRunState', () => {
 
   it('VALID: {appendEvent} => events show up in getRecentEvents', () => {
     smoketestRunState.end();
-    const runId = ActiveSmoketestRunStub().runId;
+    const { runId } = ActiveSmoketestRunStub();
     const suite = 'signals';
 
     smoketestRunState.start({ runId, suite });

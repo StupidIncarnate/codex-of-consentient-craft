@@ -146,14 +146,14 @@ export const ruleRawImportBanBroker = (): TSESLint.RuleModule<
         }
 
         const gatewayPath = gatewayPathFromImportSourceTransformer({
-          importSource: importSource,
+          importSource,
           builtinModules,
         });
 
         ctx.report({
           node,
           messageId: 'rawImport',
-          data: { importSource, gatewayPath: String(gatewayPath) },
+          data: { importSource, gatewayPath: gatewayPath },
         });
       },
 
@@ -216,14 +216,14 @@ export const ruleRawImportBanBroker = (): TSESLint.RuleModule<
         }
 
         const gatewayPath = gatewayPathFromImportSourceTransformer({
-          importSource: importSource,
+          importSource,
           builtinModules,
         });
 
         ctx.report({
           node,
           messageId: 'rawImport',
-          data: { importSource, gatewayPath: String(gatewayPath) },
+          data: { importSource, gatewayPath: gatewayPath },
         });
       },
     };

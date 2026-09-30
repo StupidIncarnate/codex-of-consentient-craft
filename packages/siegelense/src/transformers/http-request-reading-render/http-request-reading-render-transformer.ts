@@ -8,7 +8,6 @@
  * // Returns '200 OK — {"ok":true}' as ContentText
  */
 
-
 import { requestStatics } from '../../statics/request/request-statics';
 
 export const httpRequestReadingRenderTransformer = ({

@@ -12,13 +12,13 @@ export const chatReplayJsonlReadBrokerProxy = (): {
   setTimeoutProxy();
   return {
     returns: ({ filePath, content }: { filePath: string; content: string }): void => {
-      readLinesProxy.returnsRaw({ path: String(filePath), rawContents: content });
+      readLinesProxy.returnsRaw({ path: filePath, rawContents: content });
     },
     throws: ({ filePath, error }: { filePath: string; error: FsError }): void => {
-      readLinesProxy.throwsMatchingPath({ path: String(filePath), error });
+      readLinesProxy.throwsMatchingPath({ path: filePath, error });
     },
     throwsOnce: ({ filePath, error }: { filePath: string; error: FsError }): void => {
-      readLinesProxy.throwsOnce({ path: String(filePath), error });
+      readLinesProxy.throwsOnce({ path: filePath, error });
     },
   };
 };

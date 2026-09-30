@@ -36,9 +36,7 @@ describe('barrelSingleHomeLayerBroker', () => {
       node,
       context,
       fileName: 'zod.ts',
-      reexports: [
-        { name: 'default', source: 'zod' },
-      ],
+      reexports: [{ name: 'default', source: 'zod' }],
     });
 
     expect(result).toBe(true);

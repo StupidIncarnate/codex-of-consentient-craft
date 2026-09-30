@@ -11,7 +11,6 @@
  * const reading = domRead.toReading({ raw, fields: ['text', 'rect'] });
  */
 
-
 import type { DomField } from '../../contracts/dom-field/dom-field-contract';
 import { domNodeContract } from '../../contracts/dom-node/dom-node-contract';
 import { domReadingContract } from '../../contracts/dom-reading/dom-reading-contract';

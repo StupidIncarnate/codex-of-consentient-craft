@@ -26,12 +26,29 @@ import { workItemRoleContract } from '../work-item-role/work-item-role-contract'
 import { workItemContract } from '../work-item/work-item-contract';
 import { sessionContract } from '../session/session-contract';
 
-export const questSessionContract = z.object({
-  sessionId: sessionContract.shape.id,
-  cwd: z.string().min(1).refine((path) => { if (path.startsWith('/')) { return true; } if (/^[A-Za-z]:\\/u.test(path)) { return true; } return false; }, { message: 'Path must be absolute (start with / or C:\\ on Windows)', },).brand<'QuestSessionCwd'>(),
-  role: workItemRoleContract,
-  workItemId: workItemContract.shape.id.optional(),
-  startedAt: z.iso.datetime().brand<'QuestSessionStartedAt'>(),
-}).brand<'QuestSession'>();
+export const questSessionContract = z
+  .object({
+    sessionId: sessionContract.shape.id,
+    cwd: z
+      .string()
+      .min(1)
+      .refine(
+        (path) => {
+          if (path.startsWith('/')) {
+            return true;
+          }
+          if (/^[A-Za-z]:\\/u.test(path)) {
+            return true;
+          }
+          return false;
+        },
+        { message: 'Path must be absolute (start with / or C:\\ on Windows)' },
+      )
+      .brand<'QuestSessionCwd'>(),
+    role: workItemRoleContract,
+    workItemId: workItemContract.shape.id.optional(),
+    startedAt: z.iso.datetime().brand<'QuestSessionStartedAt'>(),
+  })
+  .brand<'QuestSession'>();
 
 export type QuestSession = z.infer<typeof questSessionContract>;

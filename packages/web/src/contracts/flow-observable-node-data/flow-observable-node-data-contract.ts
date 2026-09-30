@@ -11,37 +11,45 @@
 
 import { z } from '#gateway/npm/zod';
 
-import { outcomeTypeContract, questContract, flowNodeContract, flowContract, flowObservableContract } from '@dungeonmaster/shared/contracts';
+import {
+  outcomeTypeContract,
+  questContract,
+  flowNodeContract,
+  flowContract,
+  flowObservableContract,
+} from '@dungeonmaster/shared/contracts';
 
 import { reactFlowPackageChipContract } from '../react-flow-package-chip/react-flow-package-chip-contract';
 
-export const flowObservableNodeDataContract = z.object({
-  observableId: flowObservableContract.shape.id,
-  outcomeType: outcomeTypeContract,
-  description: z.string().brand<'FlowObservableNodeDataDescription'>(),
-  // Singular where the parent card's is plural, and painted on the same row as the type tag: a
-  // glue node's card names both packages, and its assertion cards are the only surface that says
-  // WHICH side each criterion is read on. Without it a two-package card leaves the reviewer unable
-  // to tell whether both sides were actually asserted.
-  package: reactFlowPackageChipContract,
-  // True where the criterion is settled by opening a source file rather than by running a test.
-  // It rides on the same row as the type tag because it CONTRADICTS that tag: a read-check keeps
-  // its honest outcome type, and a reviewer reading `custom` alone concludes something has to be
-  // driven and asserted.
-  verifyByReading: z.boolean().optional(),
-  // How many comments this card already carries. Gated INDEPENDENTLY of questId/flowId below — see
-  // reactFlowNodeDataContract's commentCount field for the full rationale: the compose affordance
-  // and the existing-comment record must never share one visibility flag.
-  commentCount: z.number().int().min(0).brand<'FlowObservableNodeDataCommentCount'>(),
-  // The parent flow node this observable branches off, always set by the diagram widget (unlike
-  // questId/flowId below, it is NOT part of the compose gate) so a comment on this card — or a click
-  // on it in an approved, compose-disallowed quest — still resolves through its parent node.
-  nodeId: flowNodeContract.shape.id,
-  // Anchor context for the comment COMPOSE affordance on this assertion card. Present only when the
-  // comment compose controls are allowed for this quest; their absence is what makes the card
-  // render no comment button.
-  questId: questContract.shape.id.optional(),
-  flowId: flowContract.shape.id.optional(),
-}).brand<'FlowObservableNodeData'>();
+export const flowObservableNodeDataContract = z
+  .object({
+    observableId: flowObservableContract.shape.id,
+    outcomeType: outcomeTypeContract,
+    description: z.string().brand<'FlowObservableNodeDataDescription'>(),
+    // Singular where the parent card's is plural, and painted on the same row as the type tag: a
+    // glue node's card names both packages, and its assertion cards are the only surface that says
+    // WHICH side each criterion is read on. Without it a two-package card leaves the reviewer unable
+    // to tell whether both sides were actually asserted.
+    package: reactFlowPackageChipContract,
+    // True where the criterion is settled by opening a source file rather than by running a test.
+    // It rides on the same row as the type tag because it CONTRADICTS that tag: a read-check keeps
+    // its honest outcome type, and a reviewer reading `custom` alone concludes something has to be
+    // driven and asserted.
+    verifyByReading: z.boolean().optional(),
+    // How many comments this card already carries. Gated INDEPENDENTLY of questId/flowId below — see
+    // reactFlowNodeDataContract's commentCount field for the full rationale: the compose affordance
+    // and the existing-comment record must never share one visibility flag.
+    commentCount: z.number().int().min(0).brand<'FlowObservableNodeDataCommentCount'>(),
+    // The parent flow node this observable branches off, always set by the diagram widget (unlike
+    // questId/flowId below, it is NOT part of the compose gate) so a comment on this card — or a click
+    // on it in an approved, compose-disallowed quest — still resolves through its parent node.
+    nodeId: flowNodeContract.shape.id,
+    // Anchor context for the comment COMPOSE affordance on this assertion card. Present only when the
+    // comment compose controls are allowed for this quest; their absence is what makes the card
+    // render no comment button.
+    questId: questContract.shape.id.optional(),
+    flowId: flowContract.shape.id.optional(),
+  })
+  .brand<'FlowObservableNodeData'>();
 
 export type FlowObservableNodeData = z.infer<typeof flowObservableNodeDataContract>;

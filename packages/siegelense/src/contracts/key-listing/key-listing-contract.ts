@@ -27,7 +27,6 @@
 
 import { z } from '#gateway/npm/zod';
 
-
 import { keyRowContract } from '../key-row/key-row-contract';
 
 export const keyListingContract = z
@@ -38,6 +37,7 @@ export const keyListingContract = z
     truncated: z.array(z.string().brand<'KeyListingTruncated'>()).readonly(),
     rendered: z.string().brand<'KeyListingRendered'>(),
   })
-  .strict().brand<'KeyListing'>();
+  .strict()
+  .brand<'KeyListing'>();
 
 export type KeyListing = z.infer<typeof keyListingContract>;

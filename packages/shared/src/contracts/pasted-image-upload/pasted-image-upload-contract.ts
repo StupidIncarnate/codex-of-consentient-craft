@@ -78,9 +78,11 @@ const base64ImageDataContract = z
 
 export type Base64ImageData = z.infer<typeof base64ImageDataContract>;
 
-export const pastedImageUploadContract = z.object({
-  mediaType: pastedImageMediaTypeContract,
-  dataBase64: base64ImageDataContract,
-}).brand<'PastedImageUpload'>();
+export const pastedImageUploadContract = z
+  .object({
+    mediaType: pastedImageMediaTypeContract,
+    dataBase64: base64ImageDataContract,
+  })
+  .brand<'PastedImageUpload'>();
 
 export type PastedImageUpload = z.infer<typeof pastedImageUploadContract>;

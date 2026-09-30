@@ -20,11 +20,7 @@ import { diffFiles, untrackedFiles, GitNotInstalledError } from '#gateway/bin/gi
 
 import { parseDiffOutputTransformer } from '../../../transformers/parse-diff-output/parse-diff-output-transformer';
 
-export const gitDiffUncommittedBroker = async ({
-  cwd,
-}: {
-  cwd: string;
-}): Promise<string[]> => {
+export const gitDiffUncommittedBroker = async ({ cwd }: { cwd: string }): Promise<string[]> => {
   // A missing `git` binary makes the gateway throw GitNotInstalledError rather than resolve a
   // result — folded into an empty reading, exactly as it always has. The two readings run in
   // sequence so a missing git stops at the first instead of leaving a second spawn in flight.

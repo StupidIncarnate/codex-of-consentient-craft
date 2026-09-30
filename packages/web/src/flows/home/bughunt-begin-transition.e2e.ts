@@ -367,7 +367,9 @@ test.describe('Bug-hunt Begin Quest transition', () => {
 
     // First Start: real, through the same endpoint the button calls. The ledger the rest of this
     // test measures is therefore one Start actually produced, not one the fixture hand-wrote.
-    const firstStart = await dispatch.startQuestViaStartRoute({ questId: QuestIdStub({ value: questId }) });
+    const firstStart = await dispatch.startQuestViaStartRoute({
+      questId: QuestIdStub({ value: questId }),
+    });
     expect(firstStart.status).toBe(HTTP_OK);
 
     // Pause once the carve is RUNNING, same reasoning as the sibling test, before the rewind below

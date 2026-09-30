@@ -6,13 +6,7 @@ const isAbsolutePath = (value: unknown): boolean =>
 
 export const safeReaddirLayerBrokerProxy = (): {
   setupReaddirThrows: ({ dirPath, error }: { dirPath: string; error: Error }) => void;
-  setupReaddirReturns: ({
-    dirPath,
-    entries,
-  }: {
-    dirPath: string;
-    entries: DirEntrySync[];
-  }) => void;
+  setupReaddirReturns: ({ dirPath, entries }: { dirPath: string; entries: DirEntrySync[] }) => void;
   setupReaddirImplementation: ({ fn }: { fn: (dirPath: string) => Dirent[] }) => void;
 } => {
   const gatewayProxy = readdirEntriesSyncProxy();

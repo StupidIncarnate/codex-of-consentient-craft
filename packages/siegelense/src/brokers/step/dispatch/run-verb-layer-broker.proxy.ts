@@ -67,10 +67,7 @@ export const runVerbLayerBrokerProxy = (): {
   setupFileExists: (params: { filePath: string; content: string }) => void;
   setupFileNotFound: (params: { filePath: string }) => void;
   setupSnapshotEmptyStore: (params: { homePath: string }) => void;
-  setupHoldCopy: (params: {
-    sourcePath: string;
-    destinationPath: string;
-  }) => void;
+  setupHoldCopy: (params: { sourcePath: string; destinationPath: string }) => void;
 } => {
   // Constructed for their own default behavior only to satisfy enforce-proxy-child-creation — this
   // proxy builds its own BrowserSession scenarios directly (the real boundary every child broker
@@ -191,13 +188,10 @@ export const runVerbLayerBrokerProxy = (): {
       questIds: readonly string[];
       secondGuild?: Guild;
     }): { getCallArgs: () => readonly unknown[] } => {
-      const activeQuestId =
-        questIds[1] ??
-        questIds[0] ??
-        'bbbbbbbb-2222-4222-8222-222222222222';
+      const activeQuestId = questIds[1] ?? questIds[0] ?? 'bbbbbbbb-2222-4222-8222-222222222222';
       const makeResult = (targetGuild: Guild): Record<PropertyKey, unknown> => ({
         guildId: targetGuild.id,
-        guildSlug: (targetGuild.urlSlug ?? 'siege-guild'),
+        guildSlug: targetGuild.urlSlug ?? 'siege-guild',
         questId: activeQuestId,
         guild: {
           id: targetGuild.id,
@@ -263,13 +257,7 @@ export const runVerbLayerBrokerProxy = (): {
       });
     },
 
-    setupFileExists: ({
-      filePath,
-      content,
-    }: {
-      filePath: string;
-      content: string;
-    }): void => {
+    setupFileExists: ({ filePath, content }: { filePath: string; content: string }): void => {
       fileProxy.setupFileExists({ filePath, content });
     },
 

@@ -8,11 +8,13 @@
 
 import { z } from '#gateway/npm/zod';
 
-export const pendingRequestContract = z.object({
-  method: z.string().brand<'PendingRequestMethod'>(),
-  url: z.string().brand<'PendingRequestUrl'>(),
-  timestampMs: z.number().nonnegative().brand<'PendingRequestTimestampMs'>(),
-  requestBody: z.string().brand<'PendingRequestRequestBody'>().optional(),
-}).brand<'PendingRequest'>();
+export const pendingRequestContract = z
+  .object({
+    method: z.string().brand<'PendingRequestMethod'>(),
+    url: z.string().brand<'PendingRequestUrl'>(),
+    timestampMs: z.number().nonnegative().brand<'PendingRequestTimestampMs'>(),
+    requestBody: z.string().brand<'PendingRequestRequestBody'>().optional(),
+  })
+  .brand<'PendingRequest'>();
 
 export type PendingRequest = z.infer<typeof pendingRequestContract>;

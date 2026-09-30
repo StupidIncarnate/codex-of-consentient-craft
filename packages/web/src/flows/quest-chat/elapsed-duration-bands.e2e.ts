@@ -75,8 +75,8 @@ test.describe('Live elapsed duration on in-progress execution rows: value bands 
     const questFilePath = String(created.filePath);
 
     await quests.writeQuestFile({
-      questId: questId,
-      questFolder: questFolder,
+      questId,
+      questFolder,
       questFilePath,
       status: 'in_progress',
       operations: [
@@ -166,7 +166,7 @@ test.describe('Live elapsed duration on in-progress execution rows: value bands 
     await page.clock.setFixedTime(FIXED_NOW);
 
     const urlSlug = guilds.extractUrlSlug({ guild });
-    await nav.navigateToQuest({ urlSlug, questId: questId });
+    await nav.navigateToQuest({ urlSlug, questId });
 
     const executionPanel = page.getByTestId('execution-panel-widget');
     await expect(executionPanel).toBeVisible({ timeout: PANEL_TIMEOUT });
@@ -240,8 +240,8 @@ test.describe('Live elapsed duration on in-progress execution rows: value bands 
     const questFilePath = String(created.filePath);
 
     await quests.writeQuestFile({
-      questId: questId,
-      questFolder: questFolder,
+      questId,
+      questFolder,
       questFilePath,
       status: 'in_progress',
       operations: [
@@ -274,7 +274,7 @@ test.describe('Live elapsed duration on in-progress execution rows: value bands 
     await page.clock.setFixedTime(FIXED_NOW);
 
     const urlSlug = guilds.extractUrlSlug({ guild });
-    await nav.navigateToQuest({ urlSlug, questId: questId });
+    await nav.navigateToQuest({ urlSlug, questId });
 
     const executionPanel = page.getByTestId('execution-panel-widget');
     await expect(executionPanel).toBeVisible({ timeout: PANEL_TIMEOUT });
@@ -320,8 +320,8 @@ test.describe('Live elapsed duration on in-progress execution rows: value bands 
     const questFilePath = String(created.filePath);
 
     await quests.writeQuestFile({
-      questId: questId,
-      questFolder: questFolder,
+      questId,
+      questFolder,
       questFilePath,
       status: 'in_progress',
       operations: [
@@ -355,7 +355,7 @@ test.describe('Live elapsed duration on in-progress execution rows: value bands 
     await page.clock.setFixedTime(FIXED_NOW);
 
     const urlSlug = guilds.extractUrlSlug({ guild });
-    await nav.navigateToQuest({ urlSlug, questId: questId });
+    await nav.navigateToQuest({ urlSlug, questId });
 
     const executionPanel = page.getByTestId('execution-panel-widget');
     await expect(executionPanel).toBeVisible({ timeout: PANEL_TIMEOUT });
@@ -399,8 +399,8 @@ test.describe('Live elapsed duration on in-progress execution rows: value bands 
     const questFilePath = String(created.filePath);
 
     await quests.writeQuestFile({
-      questId: questId,
-      questFolder: questFolder,
+      questId,
+      questFolder,
       questFilePath,
       status: 'in_progress',
       operations: [
@@ -434,7 +434,7 @@ test.describe('Live elapsed duration on in-progress execution rows: value bands 
     await page.clock.setFixedTime(FIXED_NOW);
 
     const urlSlug = guilds.extractUrlSlug({ guild });
-    await nav.navigateToQuest({ urlSlug, questId: questId });
+    await nav.navigateToQuest({ urlSlug, questId });
 
     const executionPanel = page.getByTestId('execution-panel-widget');
     await expect(executionPanel).toBeVisible({ timeout: PANEL_TIMEOUT });
@@ -482,8 +482,8 @@ test.describe('Live elapsed duration on in-progress execution rows: value bands 
     const questFilePath = String(created.filePath);
 
     await quests.writeQuestFile({
-      questId: questId,
-      questFolder: questFolder,
+      questId,
+      questFolder,
       questFilePath,
       status: 'in_progress',
       operations: [
@@ -517,7 +517,7 @@ test.describe('Live elapsed duration on in-progress execution rows: value bands 
     await page.clock.setFixedTime(FIXED_NOW);
 
     const urlSlug = guilds.extractUrlSlug({ guild });
-    await nav.navigateToQuest({ urlSlug, questId: questId });
+    await nav.navigateToQuest({ urlSlug, questId });
 
     const executionPanel = page.getByTestId('execution-panel-widget');
     await expect(executionPanel).toBeVisible({ timeout: PANEL_TIMEOUT });

@@ -68,7 +68,7 @@ export const folderDetailWasCalledBroker = async ({
         (item) =>
           item.type === 'tool_use' &&
           item.name === GET_FOLDER_DETAIL_TOOL_NAME &&
-          item.input?.['folderType'] === folderType,
+          item.input?.folderType === folderType,
       );
     });
 

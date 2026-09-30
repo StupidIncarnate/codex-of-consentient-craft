@@ -46,7 +46,7 @@ export const parseAssistantStreamEntryTransformer = ({
   const resolvedTimestamp =
     typeof timestamp === 'string' && timestamp.length > 0
       ? timestamp
-      : String(extractTimestampFromJsonlLineTransformer({ parsed }));
+      : extractTimestampFromJsonlLineTransformer({ parsed });
 
   const contentArray = message.content;
   const rawUsage = message.usage;

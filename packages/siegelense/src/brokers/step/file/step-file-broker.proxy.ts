@@ -14,10 +14,7 @@ import { statIfExistsProxy } from '#gateway/node/fs__promises/stat-if-exists/sta
 
 export const stepFileBrokerProxy = (): {
   setupFileExists: (params: { filePath: string; content: string }) => void;
-  setupFileNotFound: (params: {
-    filePath: string;
-    evidenceFilePath?: string;
-  }) => void;
+  setupFileNotFound: (params: { filePath: string; evidenceFilePath?: string }) => void;
 } => {
   // #gateway/node/path is a raw passthrough of the Node 'path' module (no per-function wrapper, so
   // no gateway proxy to compose) — mocked directly here, on the same '#gateway/node/path' specifier
@@ -30,13 +27,7 @@ export const stepFileBrokerProxy = (): {
   const readFileMock = readFileProxy();
 
   return {
-    setupFileExists: ({
-      filePath,
-      content,
-    }: {
-      filePath: string;
-      content: string;
-    }): void => {
+    setupFileExists: ({ filePath, content }: { filePath: string; content: string }): void => {
       statProxy.returnsFile({
         path: filePath,
         sizeBytes: content.length,

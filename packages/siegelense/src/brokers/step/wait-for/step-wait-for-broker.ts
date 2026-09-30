@@ -28,7 +28,6 @@
  * // "visible"; did not settle after 5000ms (still moving: network)'
  */
 
-
 import type { BrowserSession } from '../../../contracts/browser-session/browser-session-contract';
 import { WaitForCeilingHitError } from '../../../errors/wait-for-ceiling-hit/wait-for-ceiling-hit-error';
 import { driverStatics } from '../../../statics/driver/driver-statics';

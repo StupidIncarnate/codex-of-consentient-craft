@@ -19,7 +19,7 @@ let currentBuildSequence = 0;
 
 export const buildSequenceMarkTransformer = ({ advance }: { advance: boolean }): number => {
   if (advance) {
-    currentBuildSequence = (currentBuildSequence + 1);
+    currentBuildSequence += 1;
   }
   return currentBuildSequence;
 };

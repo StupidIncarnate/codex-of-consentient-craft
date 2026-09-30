@@ -23,9 +23,7 @@ export const PrimitiveDuplicateDetectionRunResponder = async ({
   const minLengthArg = args.find((arg) => arg.startsWith('--min-length='));
 
   const pattern = (patternArg ? patternArg.split('=')[1] : undefined) ?? '**/*.ts';
-  const cwd = cwdArg
-    ? (cwdArg.split('=')[1] ?? '')
-    : processCwd();
+  const cwd = cwdArg ? (cwdArg.split('=')[1] ?? '') : processCwd();
   const threshold = occurrenceThresholdContract.parse(
     thresholdArg
       ? parseInt(

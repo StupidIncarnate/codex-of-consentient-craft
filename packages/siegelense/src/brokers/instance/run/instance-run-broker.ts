@@ -29,7 +29,6 @@
  * // or throws InstanceKilledError when the registry already reads this instance as killed
  */
 
-
 import { driverSocketRequestBroker } from '../../driver/socket-request/driver-socket-request-broker';
 import { driverRequestContract } from '../../../contracts/driver-request/driver-request-contract';
 import { registryEntryContract } from '../../../contracts/registry-entry/registry-entry-contract';
@@ -93,13 +92,14 @@ export const instanceRunBroker = async ({
 
   if (result.stoppedAt !== null && result.stoppedAt.verb === 'seed') {
     await registryUpdateBroker({
-      mutate: (current) => registryContract.parse({
-        instances: current.instances.map((candidate) =>
-          candidate.id === instanceId
-            ? registryEntryContract.parse({ ...candidate, state: 'unusable' })
-            : candidate,
-        ),
-      }),
+      mutate: (current) =>
+        registryContract.parse({
+          instances: current.instances.map((candidate) =>
+            candidate.id === instanceId
+              ? registryEntryContract.parse({ ...candidate, state: 'unusable' })
+              : candidate,
+          ),
+        }),
     });
   }
 

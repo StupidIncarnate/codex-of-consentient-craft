@@ -10,7 +10,6 @@
  * // Returns '[{"filePath":"a.ts","messages":[]}]'
  */
 
-
 import { eslintRawReportContract } from '../../contracts/eslint-raw-report/eslint-raw-report-contract';
 import { eslintStripKeysStatics } from '../../statics/eslint-strip-keys/eslint-strip-keys-statics';
 import { extractJsonArrayTransformer } from '../extract-json-array/extract-json-array-transformer';

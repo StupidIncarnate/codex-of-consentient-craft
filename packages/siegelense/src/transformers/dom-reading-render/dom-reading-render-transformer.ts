@@ -7,7 +7,6 @@
  * // Returns '{"count":1,"showing":1,"capped":false,"note":null,"nodes":[...]}'
  */
 
-
 import type { DomReading } from '../../contracts/dom-reading/dom-reading-contract';
 
 export const domReadingRenderTransformer = ({ reading }: { reading: DomReading }): string =>

@@ -7,7 +7,6 @@ import { installRunBrokerProxy } from './install-run-broker.proxy';
 import { InstallContextStub } from '@dungeonmaster/shared/contracts/install-context/install-context.stub';
 import { InstallResultStub } from '@dungeonmaster/shared/contracts/install-result/install-result.stub';
 
-
 describe('installRunBroker', () => {
   describe('running installation', () => {
     it('VALID: {context with packages} => discovers and installs packages', async () => {
@@ -109,7 +108,8 @@ describe('installRunBroker', () => {
       });
 
       const siegelenseInstallPath = '/dm/packages/siegelense/dist/startup/start-install.js';
-      const siegelenseFinalizeInstallPath = '/dm/packages/siegelense/dist/startup/start-install-finalize.js';
+      const siegelenseFinalizeInstallPath =
+        '/dm/packages/siegelense/dist/startup/start-install-finalize.js';
       const laterInstallPath = '/dm/packages/writes-devdeps/dist/startup/start-install.js';
 
       // siegelense is discovered FIRST — the exact shape of the readdirSync ordering that used to

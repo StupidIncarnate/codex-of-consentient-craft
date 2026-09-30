@@ -33,7 +33,10 @@ export const getQuestInputContract = z
         'ONE flow, rendered whole: every node with the packages it lands in, every edge with its OWN id as `<edge:…>` and its branch label, every observable, the contracts and design decisions that govern it, and the cross-flow edges in BOTH directions. This is the call a codeweaver, flowrider or siegemaster makes for the flow it owns — one call per flow, never the whole quest.',
       )
       .optional(),
-    packageName: z.string().min(1).brand<'GetQuestInputPackageName'>()
+    packageName: z
+      .string()
+      .min(1)
+      .brand<'GetQuestInputPackageName'>()
       .describe(
         "Narrows the slice to ONE package. With flowId it MARKS that package's nodes in the whole flow, and every labelled edge LEAVING one of them, since a branch belongs to the node it leaves; it prints every observable on a marked node whatever package owns it — a seam node's other half is the contract this one has to meet — while a node the package does not tag keeps its observables as a per-package count. The graph is never filtered, because cutting a package's nodes out of it destroys the edges between them. Without flowId it is the foundation view: every contract this package owns, and which flows it tags nodes in. Codeweaver passes it; flowrider and siegemaster own a whole flow and do not.",
       )

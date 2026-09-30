@@ -17,6 +17,5 @@
  * // Returns '{"guildSlug":"siege-1","sessions.nested":"/x"}' as a branded ContentText
  */
 
-
 export const seedResultRenderTransformer = ({ result }: { result: unknown }): string =>
   JSON.stringify(result);

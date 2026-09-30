@@ -17,11 +17,11 @@ export const AdapterCensusRunResponderProxy = (): {
 
   return {
     setupSharedStemRepo: ({ repoRoot = DEFAULT_CWD }): void => {
-      cwdStage.setupCwd({ value: String(DEFAULT_CWD) });
+      cwdStage.setupCwd({ value: DEFAULT_CWD });
       brokerProxy.setupSharedStemRepo({ repoRoot });
     },
     setupMissingRoot: ({ repoRoot = DEFAULT_CWD }): void => {
-      cwdStage.setupCwd({ value: String(DEFAULT_CWD) });
+      cwdStage.setupCwd({ value: DEFAULT_CWD });
       brokerProxy.setupMissingRoot({ repoRoot });
     },
     getStdoutOutput: (): readonly unknown[] => stdoutHandle.getWrites(),

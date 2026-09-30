@@ -31,5 +31,5 @@ export const durationDisplayTransformer = ({
     return `${String(totalMinutes)}m`;
   }
   // A whole hour prints `1h`, not `1h0m` — the zero carries no information.
-  return (Number(minutes) === 0 ? `${String(hours)}h` : `${String(hours)}h${String(minutes)}m`);
+  return Number(minutes) === 0 ? `${String(hours)}h` : `${String(hours)}h${String(minutes)}m`;
 };

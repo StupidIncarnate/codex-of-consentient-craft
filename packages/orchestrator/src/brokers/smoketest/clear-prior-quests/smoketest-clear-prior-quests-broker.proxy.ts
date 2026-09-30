@@ -51,9 +51,7 @@ export const smoketestClearPriorQuestsBrokerProxy = (): {
 
   return {
     setupSucceeds: ({ questSource }: { questSource: QuestSource }): void => {
-      mocked
-        .calledWith([{ questSource }])
-        .resolves({ deletedCount: 0 });
+      mocked.calledWith([{ questSource }]).resolves({ deletedCount: 0 });
     },
     setupPassthrough: (): void => {
       const realMod = requireActual<{

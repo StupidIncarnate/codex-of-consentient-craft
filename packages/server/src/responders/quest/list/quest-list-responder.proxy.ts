@@ -20,7 +20,13 @@ export const QuestListResponderProxy = (): {
   const orchestrator = StartOrchestratorProxy();
 
   return {
-    setupListQuests: ({ guildId, quests }: { guildId: Guild['id']; quests: QuestListItem[] }): void => {
+    setupListQuests: ({
+      guildId,
+      quests,
+    }: {
+      guildId: Guild['id'];
+      quests: QuestListItem[];
+    }): void => {
       orchestrator.listQuestsWithSkipsReturns({ guildId, quests, skipped: [] });
     },
     setupListQuestsWithSkips: ({
@@ -34,7 +40,13 @@ export const QuestListResponderProxy = (): {
     }): void => {
       orchestrator.listQuestsWithSkipsReturns({ guildId, quests, skipped });
     },
-    setupListQuestsError: ({ guildId, message }: { guildId: Guild['id']; message: string }): void => {
+    setupListQuestsError: ({
+      guildId,
+      message,
+    }: {
+      guildId: Guild['id'];
+      message: string;
+    }): void => {
       orchestrator.listQuestsWithSkipsThrows({ guildId, error: new Error(message) });
     },
     callResponder: QuestListResponder,

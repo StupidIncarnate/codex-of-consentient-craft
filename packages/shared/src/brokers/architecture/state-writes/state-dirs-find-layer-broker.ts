@@ -13,15 +13,9 @@
 
 import { safeReaddirLayerBroker } from './safe-readdir-layer-broker';
 
-export const stateDirsFindLayerBroker = ({
-  packageRoot,
-}: {
-  packageRoot: string;
-}): string[] => {
-  const stateDirPath = `${String(packageRoot)}/src/state`;
+export const stateDirsFindLayerBroker = ({ packageRoot }: { packageRoot: string }): string[] => {
+  const stateDirPath = `${packageRoot}/src/state`;
   const entries = safeReaddirLayerBroker({ dirPath: stateDirPath });
 
-  return entries
-    .filter((entry) => entry.kind === 'directory')
-    .map((entry) => entry.name);
+  return entries.filter((entry) => entry.kind === 'directory').map((entry) => entry.name);
 };

@@ -17,9 +17,7 @@ describe('SiegelenseDocsLayerFlow', () => {
 
       await SiegelenseDocsLayerFlow({ callArgs: [] });
 
-      const writes = stdoutSpy
-        .callsMatching([])
-        .map((call) => String(call[0]));
+      const writes = stdoutSpy.callsMatching([]).map((call) => String(call[0]));
 
       const [wholeOutput] = writes;
       const expectedMarkdown = docsAnswerRenderTransformer({
@@ -50,9 +48,7 @@ describe('SiegelenseDocsLayerFlow', () => {
 
         await SiegelenseDocsLayerFlow({ callArgs: ['--for', scope, '--json'] });
 
-        const writes = stdoutSpy
-          .callsMatching([])
-          .map((call) => String(call[0]));
+        const writes = stdoutSpy.callsMatching([]).map((call) => String(call[0]));
 
         const [wholeOutput] = writes;
         const expectedJson = `${JSON.stringify(
@@ -73,9 +69,7 @@ describe('SiegelenseDocsLayerFlow', () => {
 
       await SiegelenseDocsLayerFlow({ callArgs: ['--for', 'walking', '--json'] });
 
-      const writes = stdoutSpy
-        .callsMatching([])
-        .map((call) => String(call[0]));
+      const writes = stdoutSpy.callsMatching([]).map((call) => String(call[0]));
 
       const [wholeOutput] = writes;
       const expectedJson = `${JSON.stringify(
@@ -103,9 +97,7 @@ describe('SiegelenseDocsLayerFlow', () => {
 
       await SiegelenseDocsLayerFlow({ callArgs: ['--for', 'walking'] });
 
-      const writes = stdoutSpy
-        .callsMatching([])
-        .map((call) => String(call[0]));
+      const writes = stdoutSpy.callsMatching([]).map((call) => String(call[0]));
 
       const [wholeOutput] = writes;
       const expectedMarkdown = docsAnswerRenderTransformer({

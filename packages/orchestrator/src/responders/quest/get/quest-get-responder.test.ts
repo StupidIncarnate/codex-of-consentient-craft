@@ -67,7 +67,9 @@ describe('QuestGetResponder', () => {
       const proxy = QuestGetResponderProxy();
       proxy.setupEmptyFolder();
 
-      const result = await proxy.callResponder({ questId: QuestIdStub({ value: 'nonexistent-quest' }) });
+      const result = await proxy.callResponder({
+        questId: QuestIdStub({ value: 'nonexistent-quest' }),
+      });
 
       expect(result.success).toBe(false);
     });

@@ -41,11 +41,7 @@ export const processTerminalEventLayerBrokerProxy = (): {
   setupRejects: (params: { error: Error }) => void;
   setupPassthrough: () => void;
   setupQuestDeleted: (params: { homeDir: string; homePath: string; guildsDir: string }) => void;
-  setupQuestFound: (params: {
-    questId: Quest['id'];
-    questPath: string;
-    quest: Quest;
-  }) => void;
+  setupQuestFound: (params: { questId: Quest['id']; questPath: string; quest: Quest }) => void;
   getQuestFileJoinArgs: (params: { questPath: string }) => readonly unknown[] | undefined;
   getCallArgs: () => RecordedCalls;
 } => {
@@ -113,11 +109,8 @@ export const processTerminalEventLayerBrokerProxy = (): {
       findProxy.setupQuestPath({ questId, guildId: GuildIdStub(), questPath });
       loadProxy.setupQuestFile({ questJson: JSON.stringify(quest) });
     },
-    getQuestFileJoinArgs: ({
-      questPath,
-    }: {
-      questPath: string;
-    }): readonly unknown[] | undefined => joinHandle.callsMatching([questPath]).at(-1),
+    getQuestFileJoinArgs: ({ questPath }: { questPath: string }): readonly unknown[] | undefined =>
+      joinHandle.callsMatching([questPath]).at(-1),
     getCallArgs: (): RecordedCalls => mocked.callsMatching([]),
   };
 };

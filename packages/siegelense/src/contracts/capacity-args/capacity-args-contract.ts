@@ -15,13 +15,13 @@
 
 import { z } from '#gateway/npm/zod';
 
-
 export const capacityArgsContract = z
   .object({
     specName: z.string().min(1).brand<'CapacityArgsSpecName'>(),
     poolSize: z.number().int().positive().brand<'CapacityArgsPoolSize'>().nullable(),
     isJson: z.boolean().default(false),
   })
-  .strict().brand<'CapacityArgs'>();
+  .strict()
+  .brand<'CapacityArgs'>();
 
 export type CapacityArgs = z.infer<typeof capacityArgsContract>;

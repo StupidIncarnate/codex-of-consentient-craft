@@ -38,15 +38,15 @@ beforeEach(() => {
       // would.
       if (filePath === '/repo/package.json') {
         return JSON.stringify({
-            name: 'dungeonmaster',
-            workspaces: ['packages/*'],
-          });
+          name: 'dungeonmaster',
+          workspaces: ['packages/*'],
+        });
       }
       if (filePath === '/acme-repo/package.json') {
         return JSON.stringify({
-            name: '@acme/repo',
-            workspaces: ['packages/*'],
-          });
+          name: '@acme/repo',
+          workspaces: ['packages/*'],
+        });
       }
       // F13 regression: a fresh consumer's root `dependencies` holds NOTHING yet (no workspace
       // package has ever been registered there — `create-package`'s "register" step is what adds
@@ -55,10 +55,10 @@ beforeEach(() => {
       // init` installed. The scope must still come out '@acme', from the root `name` alone.
       if (filePath === '/acme-devdeps-repo/package.json') {
         return JSON.stringify({
-            name: '@acme/repo',
-            workspaces: ['packages/*'],
-            devDependencies: { '@dungeonmaster/cli': '*', '@dungeonmaster/testing': '*' },
-          });
+          name: '@acme/repo',
+          workspaces: ['packages/*'],
+          devDependencies: { '@dungeonmaster/cli': '*', '@dungeonmaster/testing': '*' },
+        });
       }
       if (filePath.endsWith('/package.json')) {
         return null;

@@ -1,5 +1,3 @@
-
-
 import { gitDiffCommittedBroker } from './git-diff-committed-broker';
 import { gitDiffCommittedBrokerProxy } from './git-diff-committed-broker.proxy';
 
@@ -13,10 +11,7 @@ describe('gitDiffCommittedBroker', () => {
         cwd: '/project',
       });
 
-      expect(result).toStrictEqual([
-        'src/file1.ts',
-        'src/file2.ts',
-      ]);
+      expect(result).toStrictEqual(['src/file1.ts', 'src/file2.ts']);
     });
 
     // The range ends at HEAD, which is the whole point of this broker: a diff with no second ref

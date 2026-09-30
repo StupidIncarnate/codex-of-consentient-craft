@@ -9,13 +9,7 @@
  * // Returns BinCommand('/project/node_modules/.bin/eslint') if it exists, else the nearest ancestor's up to the workspace root, else BinCommand('eslint')
  */
 
-
 import { binWalkUpLayerBroker } from './bin-walk-up-layer-broker';
 
-export const binResolveBroker = ({
-  binName,
-  cwd,
-}: {
-  binName: string;
-  cwd: string;
-}): string => binWalkUpLayerBroker({ binName, dir: cwd });
+export const binResolveBroker = ({ binName, cwd }: { binName: string; cwd: string }): string =>
+  binWalkUpLayerBroker({ binName, dir: cwd });

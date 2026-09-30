@@ -39,41 +39,26 @@ const LINK_PATH_FILE = LINK_PATH_VALUE;
 
 export const instanceKillBrokerProxy = (): {
   setupRegistry: (params: { registry: Registry }) => void;
-  setupDriverStops: (params: {
-    socketPath: string;
-    killed?: readonly ProcessGroupId[];
-  }) => void;
-  setupDriverStopsWithMalformedPayload: (params: {
-    socketPath: string;
-  }) => void;
+  setupDriverStops: (params: { socketPath: string; killed?: readonly ProcessGroupId[] }) => void;
+  setupDriverStopsWithMalformedPayload: (params: { socketPath: string }) => void;
   setupDriverUnreachableReapsLivePgids: (params: {
     socketPath: string;
     pgids: readonly ProcessGroupId[];
     homePath: string;
   }) => void;
-  setupDriverUnreachableNoPgids: (params: {
-    socketPath: string;
-    homePath: string;
-  }) => void;
+  setupDriverUnreachableNoPgids: (params: { socketPath: string; homePath: string }) => void;
   setupDriverUnreachableSomeAlreadyGone: (params: {
     socketPath: string;
     livePgids: readonly ProcessGroupId[];
     alreadyGonePgids: readonly ProcessGroupId[];
     homePath: string;
   }) => void;
-  setupShutdownReasonWriteSucceeds: (params: {
-    evidencePath: string;
-    nowMs?: number;
-  }) => void;
-  getWrittenShutdownReason: (params: {
-    evidencePath: string;
-  }) => unknown;
+  setupShutdownReasonWriteSucceeds: (params: { evidencePath: string; nowMs?: number }) => void;
+  getWrittenShutdownReason: (params: { evidencePath: string }) => unknown;
   getRemovedPaths: () => unknown[];
   getKillGroupCallsFor: (params: { pgid: ProcessGroupId }) => unknown[];
   getReleasedRegistry: () => unknown;
-  getConnectionCountFor: (params: {
-    socketPath: string;
-  }) => number;
+  getConnectionCountFor: (params: { socketPath: string }) => number;
 } => {
   const registryProxy = registryReadBrokerProxy();
   locationsInstanceEvidencePathFindBrokerProxy();
@@ -160,11 +145,7 @@ export const instanceKillBrokerProxy = (): {
     // A payload that fails `killResultContract.parse` — this instance's own driver answered but
     // never carries any `killed`/pgid information a caller can trust, so the kill still succeeds and
     // reports nothing stopped rather than throwing over a shape mismatch.
-    setupDriverStopsWithMalformedPayload: ({
-      socketPath,
-    }: {
-      socketPath: string;
-    }): void => {
+    setupDriverStopsWithMalformedPayload: ({ socketPath }: { socketPath: string }): void => {
       socketProxy.respondsWith({
         socketPath,
         response: DriverResponseStub({ ok: true, payload: 'not json' }),
@@ -248,11 +229,7 @@ export const instanceKillBrokerProxy = (): {
       shutdownReasonProxy.setupWriteSucceeds({ evidencePath, nowMs });
     },
 
-    getWrittenShutdownReason: ({
-      evidencePath,
-    }: {
-      evidencePath: string;
-    }): unknown => {
+    getWrittenShutdownReason: ({ evidencePath }: { evidencePath: string }): unknown => {
       const written = shutdownReasonProxy.getWrittenMarkerContent({ evidencePath });
       return typeof written === 'string' ? JSON.parse(written) : null;
     },
@@ -272,10 +249,7 @@ export const instanceKillBrokerProxy = (): {
       return written;
     },
 
-    getConnectionCountFor: ({
-      socketPath,
-    }: {
-      socketPath: string;
-    }): number => socketProxy.getConnectionCountFor({ socketPath }),
+    getConnectionCountFor: ({ socketPath }: { socketPath: string }): number =>
+      socketProxy.getConnectionCountFor({ socketPath }),
   };
 };

@@ -29,9 +29,9 @@ export const questModifyBroker = async ({
   if (parsedResponse.success && !parsedResponse.data.success) {
     const errorValue = parsedResponse.data.error;
     throw new Error(
-      (typeof errorValue === 'string' && errorValue.length > 0
-          ? errorValue
-          : 'Quest modification failed'),
+      typeof errorValue === 'string' && errorValue.length > 0
+        ? errorValue
+        : 'Quest modification failed',
     );
   }
 };

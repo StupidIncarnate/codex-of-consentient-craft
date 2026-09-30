@@ -17,10 +17,10 @@ describe('InstallFlow', () => {
       testbed.writeFile({
         relativePath: 'package.json',
         content: JSON.stringify(
-            { name: 'test-project', version: '1.0.0', dependencies: { react: '18.2.0' } },
-            null,
-            2,
-          ),
+          { name: 'test-project', version: '1.0.0', dependencies: { react: '18.2.0' } },
+          null,
+          2,
+        ),
       });
       testbed.writeFile({
         relativePath: 'src/widgets/placeholder.ts',
@@ -28,10 +28,12 @@ describe('InstallFlow', () => {
       });
 
       const result = await InstallFlow({
-        context: InstallContextStub({ value: {
-          targetProjectRoot: testbed.guildPath,
-          dungeonmasterRoot: testbed.dungeonmasterPath,
-        } }),
+        context: InstallContextStub({
+          value: {
+            targetProjectRoot: testbed.guildPath,
+            dungeonmasterRoot: testbed.dungeonmasterPath,
+          },
+        }),
       });
 
       const packageJsonContent = testbed.readFile({
@@ -70,15 +72,15 @@ describe('InstallFlow', () => {
       testbed.writeFile({
         relativePath: 'package.json',
         content: JSON.stringify(
-            {
-              name: 'test-project',
-              version: '1.0.0',
-              dependencies: { react: '18.2.0' },
-              devDependencies: { ...devDependenciesStatics.packages },
-            },
-            null,
-            2,
-          ),
+          {
+            name: 'test-project',
+            version: '1.0.0',
+            dependencies: { react: '18.2.0' },
+            devDependencies: { ...devDependenciesStatics.packages },
+          },
+          null,
+          2,
+        ),
       });
       testbed.writeFile({
         relativePath: 'src/widgets/placeholder.ts',
@@ -98,10 +100,12 @@ describe('InstallFlow', () => {
       });
 
       const result = await InstallFlow({
-        context: InstallContextStub({ value: {
-          targetProjectRoot: testbed.guildPath,
-          dungeonmasterRoot: testbed.dungeonmasterPath,
-        } }),
+        context: InstallContextStub({
+          value: {
+            targetProjectRoot: testbed.guildPath,
+            dungeonmasterRoot: testbed.dungeonmasterPath,
+          },
+        }),
       });
 
       const playwrightConfigContent = testbed.readFile({
@@ -128,10 +132,12 @@ describe('InstallFlow', () => {
       // (name + version only) already represents a non-eligible target.
 
       const result = await InstallFlow({
-        context: InstallContextStub({ value: {
-          targetProjectRoot: testbed.guildPath,
-          dungeonmasterRoot: testbed.dungeonmasterPath,
-        } }),
+        context: InstallContextStub({
+          value: {
+            targetProjectRoot: testbed.guildPath,
+            dungeonmasterRoot: testbed.dungeonmasterPath,
+          },
+        }),
       });
 
       const playwrightConfigContent = testbed.readFile({
@@ -157,17 +163,19 @@ describe('InstallFlow', () => {
       testbed.writeFile({
         relativePath: 'package.json',
         content: JSON.stringify(
-            { name: 'monorepo-root', version: '1.0.0', workspaces: ['packages/*'] },
-            null,
-            2,
-          ),
+          { name: 'monorepo-root', version: '1.0.0', workspaces: ['packages/*'] },
+          null,
+          2,
+        ),
       });
 
       const result = await InstallFlow({
-        context: InstallContextStub({ value: {
-          targetProjectRoot: testbed.guildPath,
-          dungeonmasterRoot: testbed.dungeonmasterPath,
-        } }),
+        context: InstallContextStub({
+          value: {
+            targetProjectRoot: testbed.guildPath,
+            dungeonmasterRoot: testbed.dungeonmasterPath,
+          },
+        }),
       });
 
       const jestConfigContent = testbed.readFile({
@@ -196,10 +204,10 @@ describe('InstallFlow', () => {
       testbed.writeFile({
         relativePath: 'package.json',
         content: JSON.stringify(
-            { name: '@acme/app', version: '1.0.0', workspaces: ['packages/*'] },
-            null,
-            2,
-          ),
+          { name: '@acme/app', version: '1.0.0', workspaces: ['packages/*'] },
+          null,
+          2,
+        ),
       });
       testbed.writeFile({
         relativePath: 'packages/pkg-a/package.json',
@@ -208,33 +216,33 @@ describe('InstallFlow', () => {
       testbed.writeFile({
         relativePath: 'packages/pkg-a/tsconfig.json',
         content: JSON.stringify(
-            {
-              extends: '../../tsconfig.json',
-              compilerOptions: { paths: { '#alias/*': ['./src/*'] } },
-            },
-            null,
-            2,
-          ),
+          {
+            extends: '../../tsconfig.json',
+            compilerOptions: { paths: { '#alias/*': ['./src/*'] } },
+          },
+          null,
+          2,
+        ),
       });
       testbed.writeFile({
         relativePath: 'packages/pkg-a/tsconfig.build.json',
         content: JSON.stringify(
-            { extends: './tsconfig.json', compilerOptions: { outDir: './dist' } },
-            null,
-            2,
-          ),
+          { extends: './tsconfig.json', compilerOptions: { outDir: './dist' } },
+          null,
+          2,
+        ),
       });
       testbed.writeFile({
         relativePath: 'packages/pkg-b/package.json',
         content: JSON.stringify(
-            {
-              name: '@acme/pkg-b',
-              version: '1.0.0',
-              imports: { '#custom/*': './other/*' },
-            },
-            null,
-            2,
-          ),
+          {
+            name: '@acme/pkg-b',
+            version: '1.0.0',
+            imports: { '#custom/*': './other/*' },
+          },
+          null,
+          2,
+        ),
       });
       testbed.writeFile({
         relativePath: 'packages/pkg-b/tsconfig.json',
@@ -242,10 +250,12 @@ describe('InstallFlow', () => {
       });
 
       const firstRun = await InstallFlow({
-        context: InstallContextStub({ value: {
-          targetProjectRoot: testbed.guildPath,
-          dungeonmasterRoot: testbed.dungeonmasterPath,
-        } }),
+        context: InstallContextStub({
+          value: {
+            targetProjectRoot: testbed.guildPath,
+            dungeonmasterRoot: testbed.dungeonmasterPath,
+          },
+        }),
       });
 
       expect(firstRun.action).toBe('created');
@@ -369,9 +379,7 @@ export {};
         expect(packageJsonContent).toMatch(new RegExp(`"name": "@acme/${folder}"`, 'u'));
       }
 
-      const rootTsconfig = JSON.parse(
-        String(testbed.readFile({ relativePath: 'tsconfig.json' })),
-      );
+      const rootTsconfig = JSON.parse(String(testbed.readFile({ relativePath: 'tsconfig.json' })));
 
       expect(rootTsconfig).toStrictEqual({
         extends: '@dungeonmaster/eslint-plugin/tsconfig',
@@ -485,10 +493,12 @@ export {};
       );
 
       const secondRun = await InstallFlow({
-        context: InstallContextStub({ value: {
-          targetProjectRoot: testbed.guildPath,
-          dungeonmasterRoot: testbed.dungeonmasterPath,
-        } }),
+        context: InstallContextStub({
+          value: {
+            targetProjectRoot: testbed.guildPath,
+            dungeonmasterRoot: testbed.dungeonmasterPath,
+          },
+        }),
       });
 
       const afterSecondRun = filesToCompare.map((relativePath) =>
@@ -512,10 +522,12 @@ export {};
       });
 
       const result = await InstallFlow({
-        context: InstallContextStub({ value: {
-          targetProjectRoot: testbed.guildPath,
-          dungeonmasterRoot: testbed.dungeonmasterPath,
-        } }),
+        context: InstallContextStub({
+          value: {
+            targetProjectRoot: testbed.guildPath,
+            dungeonmasterRoot: testbed.dungeonmasterPath,
+          },
+        }),
       });
 
       const npmPackageJson = JSON.parse(

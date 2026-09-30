@@ -10,13 +10,13 @@
  */
 import { z } from '#gateway/npm/zod';
 
-
 export const orchestrationEventEnvelopeContract = z
   .object({
     type: z.string().brand<'OrchestrationEventEnvelopeType'>().optional(),
     processId: z.string().brand<'OrchestrationEventEnvelopeProcessId'>().optional(),
     payload: z.record(z.string(), z.json()).optional(),
   })
-  .loose().brand<'OrchestrationEventEnvelope'>();
+  .loose()
+  .brand<'OrchestrationEventEnvelope'>();
 
 export type OrchestrationEventEnvelope = z.infer<typeof orchestrationEventEnvelopeContract>;

@@ -2,11 +2,7 @@ import { wsServerAdaptersFindLayerBrokerProxy } from './ws-server-adapters-find-
 import { wsGatewayFilesFindLayerBrokerProxy } from './ws-gateway-files-find-layer-broker.proxy';
 
 export const architectureWsGatewayBrokerProxy = (): {
-  setup: ({
-    sourceFiles,
-  }: {
-    sourceFiles: { path: string; source: string }[];
-  }) => void;
+  setup: ({ sourceFiles }: { sourceFiles: { path: string; source: string }[] }) => void;
 } => {
   // Both child layer brokers share the same listTsFiles/readFile mock surface
   // (singleton registerMock dispatch). Setting up either child's proxy with the
@@ -16,11 +12,7 @@ export const architectureWsGatewayBrokerProxy = (): {
   const gatewayFilesProxy = wsGatewayFilesFindLayerBrokerProxy();
 
   return {
-    setup: ({
-      sourceFiles,
-    }: {
-      sourceFiles: { path: string; source: string }[];
-    }): void => {
+    setup: ({ sourceFiles }: { sourceFiles: { path: string; source: string }[] }): void => {
       adaptersProxy.setup({ sourceFiles });
       gatewayFilesProxy.setup({ sourceFiles });
     },

@@ -59,9 +59,7 @@ export const questProjectionBuildTransformer = ({ quest }: { quest: Quest }): Qu
 
     const lastStepped = [...scopeWorkItems].reverse().find((item) => item.step !== undefined);
     const currentStepKey: string =
-      lastStepped?.step === undefined
-        ? graph.entry
-        : String(lastStepped.step);
+      lastStepped?.step === undefined ? graph.entry : String(lastStepped.step);
 
     // A scope with no actual work items yet has not entered its entry step — the entry step ITSELF
     // is the first planned row. A scope already underway starts its planned tail one hop PAST the
@@ -73,7 +71,9 @@ export const questProjectionBuildTransformer = ({ quest }: { quest: Quest }): Qu
       currentNodeEntry === undefined
         ? undefined
         : routedGraphContract.shape.nodes.valueType.parse(currentNodeEntry[1]);
-    const doneRoute = Object.entries(currentNode?.routes ?? {}).find(([key]) => key === 'done')?.[1];
+    const doneRoute = Object.entries(currentNode?.routes ?? {}).find(
+      ([key]) => key === 'done',
+    )?.[1];
     const plannedStart: string | undefined =
       actualSteps.length === 0
         ? graph.entry
@@ -83,7 +83,7 @@ export const questProjectionBuildTransformer = ({ quest }: { quest: Quest }): Qu
 
     const plannedSteps = agentFlowPlannedStepsWalkTransformer({ graph, cursor: plannedStart }).map(
       (step) => ({
-        step: String(step),
+        step: step,
         kind: 'planned' as const,
       }),
     );

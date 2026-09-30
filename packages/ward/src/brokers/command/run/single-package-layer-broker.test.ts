@@ -1,4 +1,3 @@
-
 import { ProjectFolderStub } from '../../../contracts/project-folder/project-folder.stub';
 import { ProjectResultStub } from '../../../contracts/project-result/project-result.stub';
 import { WardConfigStub } from '../../../contracts/ward-config/ward-config.stub';

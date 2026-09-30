@@ -108,7 +108,7 @@ test.describe('WS Reconnect', () => {
     const { questId, questFolder, filePath: questFilePath } = created;
 
     await quests.writeQuestFile({
-      questId: questId,
+      questId,
       questFolder,
       questFilePath,
       status: 'review_flows',
@@ -124,7 +124,7 @@ test.describe('WS Reconnect', () => {
     // ── 2. Navigate to the quest page ─────────────────────────────────────────
 
     const nav = navigationHarness({ page });
-    await nav.navigateToQuest({ urlSlug: guildSlug, questId: questId });
+    await nav.navigateToQuest({ urlSlug: guildSlug, questId });
 
     // ── 3. Queue first response and send first chat message ───────────────────
 

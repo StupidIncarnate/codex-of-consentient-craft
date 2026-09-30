@@ -87,13 +87,7 @@ const getCounter = ({ queueDir }: { queueDir: string }) => {
   return COUNTER_START;
 };
 
-const setCounter = ({
-  queueDir,
-  counter,
-}: {
-  queueDir: string;
-  counter: number;
-}): void => {
+const setCounter = ({ queueDir, counter }: { queueDir: string; counter: number }): void => {
   writeFileSync(getMetadataPath({ queueDir }), JSON.stringify({ counter }));
 };
 

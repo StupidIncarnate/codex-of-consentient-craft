@@ -14,17 +14,11 @@
 
 import { resultsStatics } from '../../statics/results/results-statics';
 
-export const stepRangeExpandTransformer = ({
-  range,
-}: {
-  range: string;
-}): readonly number[] => {
+export const stepRangeExpandTransformer = ({ range }: { range: string }): readonly number[] => {
   const [startText, endText] = range.split(resultsStatics.stepRange.separator);
   const start = Number(startText);
   const end = Number(endText);
   const count = Math.max(end - start + 1, 0);
 
-  return Array.from({ length: count }, (_unused, offset) =>
-    (start + offset),
-  );
+  return Array.from({ length: count }, (_unused, offset) => start + offset);
 };

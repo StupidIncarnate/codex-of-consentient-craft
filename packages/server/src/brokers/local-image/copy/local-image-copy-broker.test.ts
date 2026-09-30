@@ -1,4 +1,3 @@
-
 import { LocalImagePathMatchStub } from '../../../contracts/local-image-path-match/local-image-path-match.stub';
 
 import { localImageCopyBroker } from './local-image-copy-broker';
@@ -18,9 +17,7 @@ describe('localImageCopyBroker', () => {
 
       await localImageCopyBroker({ matches: [match], imagesDirPath });
 
-      expect(proxy.writtenDestinations()).toStrictEqual([
-        `${imagesDirPath}/${stagedUuid}.jpeg`,
-      ]);
+      expect(proxy.writtenDestinations()).toStrictEqual([`${imagesDirPath}/${stagedUuid}.jpeg`]);
       expect(
         proxy.writtenBytesFor({
           filePath: `${imagesDirPath}/${stagedUuid}.jpeg`,

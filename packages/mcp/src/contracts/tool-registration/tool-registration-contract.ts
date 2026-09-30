@@ -19,11 +19,13 @@ export type ToolHandler = ({
   meta?: Record<string, unknown>;
 }) => Promise<CallToolResult>;
 
-export const toolRegistrationContract = z.object({
-  name: z.string().brand<'ToolRegistrationName'>(),
-  description: z.string().brand<'ToolRegistrationDescription'>(),
-  inputSchema: z.record(z.string(), z.unknown()),
-}).brand<'ToolRegistration'>();
+export const toolRegistrationContract = z
+  .object({
+    name: z.string().brand<'ToolRegistrationName'>(),
+    description: z.string().brand<'ToolRegistrationDescription'>(),
+    inputSchema: z.record(z.string(), z.unknown()),
+  })
+  .brand<'ToolRegistration'>();
 
 export type ToolRegistration = z.infer<typeof toolRegistrationContract> & {
   handler: ToolHandler;

@@ -1,4 +1,3 @@
-
 import { eslintJsonToScanViolationsTransformer } from './eslint-json-to-scan-violations-transformer';
 
 const rootPath = '/repo';

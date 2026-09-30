@@ -1,4 +1,3 @@
-
 import { eslintIgnoredPatternExtractTransformer } from './eslint-ignored-pattern-extract-transformer';
 
 describe('eslintIgnoredPatternExtractTransformer', () => {
@@ -9,9 +8,7 @@ describe('eslintIgnoredPatternExtractTransformer', () => {
 
       const result = eslintIgnoredPatternExtractTransformer({ output });
 
-      expect(result).toBe(
-        'test/fixtures/ban-proxy-empty-called-with',
-      );
+      expect(result).toBe('test/fixtures/ban-proxy-empty-called-with');
     });
   });
 

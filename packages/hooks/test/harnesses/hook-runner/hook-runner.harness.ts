@@ -12,7 +12,6 @@ import { execPath, envSnapshot } from '#gateway/node/process';
 import { join, resolve } from '#gateway/node/path';
 import { tsxLoaderUrl } from '#gateway/npm/tsx';
 
-
 import { ExecResultStub } from '@dungeonmaster/shared/contracts/exec-result/exec-result.stub';
 
 // `node --import <tsx loader>` is tsx's own documented equivalent of the `tsx` bin, minus two
@@ -69,7 +68,7 @@ export const hookRunnerHarness = (): {
         '--conditions=source',
         '--import',
         tsxLoaderUrl(),
-        String(resolveHookPath({ hookName })),
+        resolveHookPath({ hookName }),
         ...args,
       ],
       cwd: PACKAGE_DIR,

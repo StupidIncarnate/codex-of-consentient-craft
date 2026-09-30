@@ -13,7 +13,11 @@ import { wardRunResultContract } from '../../contracts/ward-result/ward-result-c
 // bounded by whitespace or end-of-line, not by end-of-line alone.
 const RUN_ID_PATTERN = /^run: (\d+-[a-f0-9]+)(?=\s|$)/mu;
 
-export const extractChildRunIdTransformer = ({ output }: { output: string }): WardRunResult['runId'] | null => {
+export const extractChildRunIdTransformer = ({
+  output,
+}: {
+  output: string;
+}): WardRunResult['runId'] | null => {
   const match = RUN_ID_PATTERN.exec(output);
 
   if (match === null) {

@@ -38,11 +38,7 @@
 import type { QuestSummary } from '../../contracts/quest-summary/quest-summary-contract';
 import { questSummaryLimitsStatics } from '../../statics/quest-summary-limits/quest-summary-limits-statics';
 
-export const questSummaryToTextTransformer = ({
-  summary,
-}: {
-  summary: QuestSummary;
-}): string => {
+export const questSummaryToTextTransformer = ({ summary }: { summary: QuestSummary }): string => {
   const flowsShown = summary.flows.slice(0, questSummaryLimitsStatics.maxFlows);
   const flowsDropped = summary.flows.length - flowsShown.length;
   const flowsNotice =

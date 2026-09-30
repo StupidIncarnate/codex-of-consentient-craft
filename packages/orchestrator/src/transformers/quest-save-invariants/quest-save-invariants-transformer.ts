@@ -87,7 +87,7 @@ export const questSaveInvariantsTransformer = ({
       verifyQuestCheckContract.parse({
         name: String(rule.name),
         passed: false,
-        details: String(offender),
+        details: offender,
       }),
     ),
   );

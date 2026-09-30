@@ -73,11 +73,11 @@ test.describe('Resume starts the dispatch queue', () => {
     });
 
     // Precondition: quest paused, and the dispatcher explicitly NOT playing (beforeEach paused it).
-    await quests.pauseQuest({ questId: questId });
+    await quests.pauseQuest({ questId });
 
     expect(await dispatch.isDispatchPlaying()).toBe(false);
 
-    await nav.navigateToQuest({ urlSlug, questId: questId });
+    await nav.navigateToQuest({ urlSlug, questId });
 
     await expect(page.getByTestId('execution-panel-widget')).toBeVisible({
       timeout: PANEL_TIMEOUT,
@@ -109,7 +109,7 @@ test.describe('Resume starts the dispatch queue', () => {
     // And it actually dispatched: the seeded work item ran and the ledger drained — which is the
     // whole point of coupling the two switches.
     const finalQuest = await dispatch.waitForQuest({
-      questId: questId,
+      questId,
       timeoutMs: RELAY_TIMEOUT,
       predicate: ({ quest }) =>
         quest.operations.length === 1 && quest.operations.every((op) => op.status === 'complete'),
@@ -152,9 +152,9 @@ test.describe('Resume starts the dispatch queue', () => {
       ],
     });
 
-    await quests.seedPausedAtStatus({ questId: questId, pausedAtStatus: 'in_progress' });
+    await quests.seedPausedAtStatus({ questId, pausedAtStatus: 'in_progress' });
 
-    await nav.navigateToQuest({ urlSlug, questId: questId });
+    await nav.navigateToQuest({ urlSlug, questId });
 
     await expect(page.getByTestId('execution-panel-widget')).toBeVisible({
       timeout: PANEL_TIMEOUT,

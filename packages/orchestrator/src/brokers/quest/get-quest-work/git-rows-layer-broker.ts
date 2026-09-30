@@ -24,7 +24,7 @@
  * dispatched role works in.
  */
 
-import { type Quest } from '@dungeonmaster/shared/contracts';
+import type { Quest } from '@dungeonmaster/shared/contracts';
 
 import { logNameOnly } from '#gateway/bin/git';
 import {
@@ -58,7 +58,7 @@ export const gitRowsLayerBroker = async ({
     return { git, uncommittedPaths: [], committedPaths: [] };
   }
 
-  const cwd = resolution.cwd;
+  const { cwd } = resolution;
   const { baseRef } = quest;
 
   const [uncommittedPaths, committedPaths] = await Promise.all([

@@ -1,5 +1,3 @@
-
-
 import { DriverIdleWaitLayerResponder } from './driver-idle-wait-layer-responder';
 import { DriverIdleWaitLayerResponderProxy } from './driver-idle-wait-layer-responder.proxy';
 
@@ -43,7 +41,7 @@ describe('DriverIdleWaitLayerResponder', () => {
       // (1_000 + 1_800_000 = 1_801_000) — resolving false here would mean the override never
       // reached the deadline computation.
       proxy.stageNow({ ms: 901_000 });
-      proxy.stageSleepNeverFires({ ms: (1_801_000 - 901_000) });
+      proxy.stageSleepNeverFires({ ms: 1_801_000 - 901_000 });
       const killSignal = new Promise<true>(() => {
         // Never resolves — only the scheduled sleep is observed.
       });
@@ -53,9 +51,7 @@ describe('DriverIdleWaitLayerResponder', () => {
       });
       await Promise.resolve();
 
-      expect(proxy.getSleepCallCount({ ms: (1_801_000 - 901_000) })).toBe(
-        1,
-      );
+      expect(proxy.getSleepCallCount({ ms: 1_801_000 - 901_000 })).toBe(1);
     });
   });
 
@@ -83,7 +79,7 @@ describe('DriverIdleWaitLayerResponder', () => {
       // extended one (500_000 + 900_000 = 1_400_000) — resolving false here would be the exact bug
       // this test exists to catch.
       proxy.stageNow({ ms: 901_500 });
-      proxy.stageSleepNeverFires({ ms: (1_400_000 - 901_500) });
+      proxy.stageSleepNeverFires({ ms: 1_400_000 - 901_500 });
       const killSignal = new Promise<true>(() => {
         // Never resolves in this test — only the scheduled sleep is observed.
       });
@@ -93,9 +89,7 @@ describe('DriverIdleWaitLayerResponder', () => {
       });
       await Promise.resolve();
 
-      expect(proxy.getSleepCallCount({ ms: (1_400_000 - 901_500) })).toBe(
-        1,
-      );
+      expect(proxy.getSleepCallCount({ ms: 1_400_000 - 901_500 })).toBe(1);
     });
   });
 });

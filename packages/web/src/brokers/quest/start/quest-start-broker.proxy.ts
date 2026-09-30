@@ -9,7 +9,6 @@
  * await questStartBroker({ questId });
  */
 
-
 import { fetchWithStatusProxy } from '#gateway/browser/fetch/fetch-with-status/fetch-with-status.proxy';
 
 import { webConfigStatics } from '../../../statics/web-config/web-config-statics';

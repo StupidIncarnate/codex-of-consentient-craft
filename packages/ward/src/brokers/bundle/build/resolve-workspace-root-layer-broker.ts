@@ -21,7 +21,7 @@ export const resolveWorkspaceRootLayerBroker = async ({
 }: {
   startPath: string;
 }): Promise<string | null> => {
-  const manifestPath = `${String(startPath)}/package.json`;
+  const manifestPath = `${startPath}/package.json`;
   const raw = await readFile(manifestPath).catch(() => null);
 
   const workspaces =
@@ -41,7 +41,7 @@ export const resolveWorkspaceRootLayerBroker = async ({
     return startPath;
   }
 
-  const current = String(startPath);
+  const current = startPath;
   const lastSlash = current.lastIndexOf('/');
 
   // `lastSlash <= 0` is a top-level directory, whose parent is the filesystem root. Nothing

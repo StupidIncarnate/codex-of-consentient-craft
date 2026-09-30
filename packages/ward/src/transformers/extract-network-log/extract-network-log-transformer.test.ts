@@ -1,23 +1,20 @@
-
 import { extractNetworkLogTransformer } from './extract-network-log-transformer';
 
 describe('extractNetworkLogTransformer', () => {
   describe('extraction', () => {
     it('VALID: {rawOutput: content between delimiters} => extracts log', () => {
       const rawOutput = [
-          'some test output',
-          '__NETWORK_LOG__',
-          'GET /api/users 200 15ms',
-          'POST /api/sessions 201 42ms',
-          '__NETWORK_LOG_END__',
-          'more output',
-        ].join('\n');
+        'some test output',
+        '__NETWORK_LOG__',
+        'GET /api/users 200 15ms',
+        'POST /api/sessions 201 42ms',
+        '__NETWORK_LOG_END__',
+        'more output',
+      ].join('\n');
 
       const result = extractNetworkLogTransformer({ rawOutput });
 
-      expect(result).toBe(
-        'GET /api/users 200 15ms\nPOST /api/sessions 201 42ms',
-      );
+      expect(result).toBe('GET /api/users 200 15ms\nPOST /api/sessions 201 42ms');
     });
   });
 
@@ -34,14 +31,14 @@ describe('extractNetworkLogTransformer', () => {
   describe('multiple blocks', () => {
     it('VALID: {rawOutput: two delimiter blocks} => returns all blocks concatenated', () => {
       const rawOutput = [
-          '__NETWORK_LOG__',
-          'GET /api/first 200',
-          '__NETWORK_LOG_END__',
-          'middle output',
-          '__NETWORK_LOG__',
-          'POST /api/second 201',
-          '__NETWORK_LOG_END__',
-        ].join('\n');
+        '__NETWORK_LOG__',
+        'GET /api/first 200',
+        '__NETWORK_LOG_END__',
+        'middle output',
+        '__NETWORK_LOG__',
+        'POST /api/second 201',
+        '__NETWORK_LOG_END__',
+      ].join('\n');
 
       const result = extractNetworkLogTransformer({ rawOutput });
 

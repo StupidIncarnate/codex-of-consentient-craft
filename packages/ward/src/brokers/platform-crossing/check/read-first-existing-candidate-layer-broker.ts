@@ -33,7 +33,10 @@ export const readFirstExistingCandidateLayerBroker = async ({
     throw error;
   });
   if (raw !== undefined) {
-    return readFirstExistingCandidateLayerResultContract.parse({ filePath: firstCandidate, content: raw });
+    return readFirstExistingCandidateLayerResultContract.parse({
+      filePath: firstCandidate,
+      content: raw,
+    });
   }
 
   return readFirstExistingCandidateLayerBroker({ candidates: remainingCandidates });

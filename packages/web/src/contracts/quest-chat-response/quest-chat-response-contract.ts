@@ -12,10 +12,11 @@
 
 import { z } from '#gateway/npm/zod';
 
-
-export const questChatResponseContract = z.object({
-  chatProcessId: z.string().min(1).brand<'QuestChatResponseChatProcessId'>().optional(),
-  error: z.string().min(1).brand<'QuestChatResponseError'>().optional(),
-}).brand<'QuestChatResponse'>();
+export const questChatResponseContract = z
+  .object({
+    chatProcessId: z.string().min(1).brand<'QuestChatResponseChatProcessId'>().optional(),
+    error: z.string().min(1).brand<'QuestChatResponseError'>().optional(),
+  })
+  .brand<'QuestChatResponse'>();
 
 export type QuestChatResponse = z.infer<typeof questChatResponseContract>;

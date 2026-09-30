@@ -10,12 +10,28 @@
 
 import { z } from '#gateway/npm/zod';
 
-
-export const ownerIndexStandaloneBrandContract = z.object({
-  contractName: z.string().brand<'OwnerIndexStandaloneBrandContractName'>(),
-  brandText: z.string().brand<'OwnerIndexStandaloneBrandBrandText'>(),
-  filePath: z.string().min(1).refine((path) => { if (path.startsWith('/')) { return true; } if (/^[A-Za-z]:\\/u.test(path)) { return true; } return false; }, { message: 'Path must be absolute (start with / or C:\\ on Windows)', },).brand<'OwnerIndexStandaloneBrandFilePath'>(),
-  packageName: z.string().min(1).brand<'OwnerIndexStandaloneBrandPackageName'>(),
-}).brand<'OwnerIndexStandaloneBrand'>();
+export const ownerIndexStandaloneBrandContract = z
+  .object({
+    contractName: z.string().brand<'OwnerIndexStandaloneBrandContractName'>(),
+    brandText: z.string().brand<'OwnerIndexStandaloneBrandBrandText'>(),
+    filePath: z
+      .string()
+      .min(1)
+      .refine(
+        (path) => {
+          if (path.startsWith('/')) {
+            return true;
+          }
+          if (/^[A-Za-z]:\\/u.test(path)) {
+            return true;
+          }
+          return false;
+        },
+        { message: 'Path must be absolute (start with / or C:\\ on Windows)' },
+      )
+      .brand<'OwnerIndexStandaloneBrandFilePath'>(),
+    packageName: z.string().min(1).brand<'OwnerIndexStandaloneBrandPackageName'>(),
+  })
+  .brand<'OwnerIndexStandaloneBrand'>();
 
 export type OwnerIndexStandaloneBrand = z.infer<typeof ownerIndexStandaloneBrandContract>;

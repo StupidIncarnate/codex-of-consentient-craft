@@ -18,7 +18,6 @@ import { join } from '#gateway/node/path';
 import { deleteEnv, getEnv, setEnv, setStdin, stderr, stdout } from '#gateway/node/process';
 import { Readable } from '#gateway/node/stream';
 
-
 const SNAPSHOT_FILENAME = 'rate-limits.json';
 const HISTORY_FILENAME = 'rate-limits-history.jsonl';
 

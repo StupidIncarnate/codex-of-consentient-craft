@@ -25,9 +25,9 @@ describe('wsEmitCallsExtractTransformer', () => {
     it('VALID: {two emit calls} => returns both type literals', () => {
       const result = wsEmitCallsExtractTransformer({
         source: [
-            "orchestrationEventsState.emit({ type: 'chat-output', processId });",
-            "orchestrationEventsState.emit({ type: 'chat-complete', processId });",
-          ].join('\n'),
+          "orchestrationEventsState.emit({ type: 'chat-output', processId });",
+          "orchestrationEventsState.emit({ type: 'chat-complete', processId });",
+        ].join('\n'),
       });
 
       expect(result).toStrictEqual(['chat-output', 'chat-complete']);

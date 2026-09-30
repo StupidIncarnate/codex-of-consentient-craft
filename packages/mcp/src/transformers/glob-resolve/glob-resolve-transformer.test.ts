@@ -45,9 +45,7 @@ describe('globResolveTransformer', () => {
 
     const result = globResolveTransformer({ glob: glob! });
 
-    expect(result).toStrictEqual(
-      'packages/shared/src/contracts/quest-id/**/*',
-    );
+    expect(result).toStrictEqual('packages/shared/src/contracts/quest-id/**/*');
   });
 
   it('VALID: glob with brace expansion => used as-is', () => {

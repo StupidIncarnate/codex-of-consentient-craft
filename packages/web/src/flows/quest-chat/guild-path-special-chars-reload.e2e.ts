@@ -54,15 +54,15 @@ test.describe('A guild path carrying `.` and `_` resolves to the same session di
     await sessions.createSessionFile({ sessionId, userMessage: 'Build feature' });
 
     const created = await quests.createQuest({
-      guildId: guildId,
+      guildId,
       title: 'Slug Encoding Check Quest',
       userRequest: 'Build feature',
     });
     const { questId, questFolder } = created;
 
     await quests.writeQuestFile({
-      questId: questId,
-      questFolder: questFolder,
+      questId,
+      questFolder,
       questFilePath: String(created.filePath),
       status: 'explore_flows',
       // 'complete', not 'in_progress': quest-driven-watchers opens a PERSISTENT tail for any
@@ -85,7 +85,7 @@ test.describe('A guild path carrying `.` and `_` resolves to the same session di
       response: SimpleTextResponseStub({ sessionId, text: REPLY_TEXT }),
     });
 
-    await nav.navigateToQuest({ urlSlug, questId: questId });
+    await nav.navigateToQuest({ urlSlug, questId });
     await page.getByTestId('CHAT_INPUT').waitFor({ state: 'visible', timeout: PANEL_TIMEOUT });
 
     const chatResponsePromise = page.waitForResponse(

@@ -16,15 +16,22 @@
 
 import { z } from '#gateway/npm/zod';
 
-
 import { stepOutcomeContract } from '../step-outcome/step-outcome-contract';
 
 export const stepHandlerResultContract = z
   .object({
     outcome: stepOutcomeContract,
     detail: z.string().brand<'StepHandlerResultDetail'>(),
-    resultRef: z.string().regex( /^(operations|wardResults|riftcarverResults|flows)\/[a-z0-9-]+$/u, 'Must be {collection}/{id}', ).brand<'StepHandlerResultResultRef'>().optional(),
+    resultRef: z
+      .string()
+      .regex(
+        /^(operations|wardResults|riftcarverResults|flows)\/[a-z0-9-]+$/u,
+        'Must be {collection}/{id}',
+      )
+      .brand<'StepHandlerResultResultRef'>()
+      .optional(),
   })
-  .strict().brand<'StepHandlerResult'>();
+  .strict()
+  .brand<'StepHandlerResult'>();
 
 export type StepHandlerResult = z.infer<typeof stepHandlerResultContract>;

@@ -19,9 +19,7 @@ describe('QuestGetBlightChecklistResponder', () => {
         success: true,
         data: blightChecklistToTextTransformer({
           checklist: blightChecklistBuildTransformer({
-            changedFiles: [
-              'packages/web/src/widgets/foo/foo-widget.tsx',
-            ],
+            changedFiles: ['packages/web/src/widgets/foo/foo-widget.tsx'],
             ledger: quest.planningNotes.blightLedger,
             baseRef: quest.baseRef!,
           }),

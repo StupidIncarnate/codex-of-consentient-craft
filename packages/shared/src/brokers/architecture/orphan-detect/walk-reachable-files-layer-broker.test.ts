@@ -20,7 +20,7 @@ const dispatchByPath =
 const dispatchSourceByPath =
   ({ sources }: { sources: ReadonlyMap<string, string> }) =>
   (filePath: string): string => {
-    const text = sources.get(String(filePath));
+    const text = sources.get(filePath);
     return text === undefined ? throwEnoent() : text;
   };
 
@@ -73,7 +73,7 @@ describe('walkReachableFilesLayerBroker', () => {
     const result = walkReachableFilesLayerBroker({ packageSrcPath });
 
     const sortedDisplay = [...result]
-      .map((p) => String(p).slice(`${String(packageSrcPath)}/`.length))
+      .map((p) => p.slice(`${packageSrcPath}/`.length))
       .sort((a, b) => a.localeCompare(b));
 
     expect(sortedDisplay).toStrictEqual([
@@ -119,7 +119,7 @@ describe('walkReachableFilesLayerBroker', () => {
     const result = walkReachableFilesLayerBroker({ packageSrcPath });
 
     const sortedDisplay = [...result]
-      .map((p) => String(p).slice(`${String(packageSrcPath)}/`.length))
+      .map((p) => p.slice(`${packageSrcPath}/`.length))
       .sort((a, b) => a.localeCompare(b));
 
     expect(sortedDisplay).toStrictEqual(['brokers/foo/foo-broker.ts', 'startup/start-app.ts']);
@@ -161,7 +161,7 @@ describe('walkReachableFilesLayerBroker', () => {
     const result = walkReachableFilesLayerBroker({ packageSrcPath });
 
     const sortedDisplay = [...result]
-      .map((p) => String(p).slice(`${String(packageSrcPath)}/`.length))
+      .map((p) => p.slice(`${packageSrcPath}/`.length))
       .sort((a, b) => a.localeCompare(b));
 
     expect(sortedDisplay).toStrictEqual(['startup/start-app.ts', 'widgets/bar/bar-widget.tsx']);
@@ -197,7 +197,7 @@ describe('walkReachableFilesLayerBroker', () => {
     const result = walkReachableFilesLayerBroker({ packageSrcPath });
 
     const sortedDisplay = [...result]
-      .map((p) => String(p).slice(`${String(packageSrcPath)}/`.length))
+      .map((p) => p.slice(`${packageSrcPath}/`.length))
       .sort((a, b) => a.localeCompare(b));
 
     expect(sortedDisplay).toStrictEqual(['startup/start-app.ts']);

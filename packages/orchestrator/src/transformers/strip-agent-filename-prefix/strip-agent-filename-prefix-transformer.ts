@@ -17,9 +17,9 @@ export const stripAgentFilenamePrefixTransformer = ({
 }: {
   fileName: string;
 }): Agent['id'] => {
-  const withoutSuffix = String(fileName).endsWith(JSONL_SUFFIX)
-    ? String(fileName).slice(0, -JSONL_SUFFIX.length)
-    : String(fileName);
+  const withoutSuffix = fileName.endsWith(JSONL_SUFFIX)
+    ? fileName.slice(0, -JSONL_SUFFIX.length)
+    : fileName;
 
   const withoutPrefix = withoutSuffix.startsWith(AGENT_PREFIX)
     ? withoutSuffix.slice(AGENT_PREFIX.length)

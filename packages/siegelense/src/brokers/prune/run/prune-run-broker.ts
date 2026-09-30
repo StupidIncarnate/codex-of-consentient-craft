@@ -95,19 +95,20 @@ export const pruneRunBroker = async ({
     const prunedByRule = pruneTombstoneRuleRenderTransformer({ query });
 
     await registryUpdateBroker({
-      mutate: (current) => (registryContract.parse({
-        instances: current.instances.map((entry) =>
-          tombstonedIds.has(String(entry.id))
-            ? {
-                ...entry,
-                state: PRUNED_STATE,
-                prunedAtMs: nowMs,
-                prunedByRule,
-                socketPath: null,
-              }
-            : entry,
-        ),
-      })),
+      mutate: (current) =>
+        registryContract.parse({
+          instances: current.instances.map((entry) =>
+            tombstonedIds.has(String(entry.id))
+              ? {
+                  ...entry,
+                  state: PRUNED_STATE,
+                  prunedAtMs: nowMs,
+                  prunedByRule,
+                  socketPath: null,
+                }
+              : entry,
+          ),
+        }),
     });
   }
 
@@ -115,7 +116,7 @@ export const pruneRunBroker = async ({
 
   return pruneAnswerContract.parse({
     freedMB: Math.floor(freedBytes / pruneStatics.size.bytesPerMegabyte),
-    freedBytes: freedBytes,
+    freedBytes,
     removed,
     refused,
     unresolved: [...gapsByKind.values()],

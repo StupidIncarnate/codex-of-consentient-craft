@@ -10,7 +10,6 @@
  * // Returns: '/repo/packages/web/src/shared/foo' as FilePath
  */
 
-
 export const resolveRelativeSpecifierTransformer = ({
   fromDir,
   specifier,

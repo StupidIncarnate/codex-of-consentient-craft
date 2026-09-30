@@ -14,7 +14,6 @@
  * // Returns 600 — the anchor drifted 200px down the scrollport, so the scrollport follows it
  */
 
-
 export const computeAnchorScrollTopTransformer = ({
   currentScrollTop,
   anchorOffset,
@@ -26,8 +25,8 @@ export const computeAnchorScrollTopTransformer = ({
   heldOffset: number;
   maxScrollTop: number;
 }): number => {
-  const target = Number(currentScrollTop) + (Number(anchorOffset) - Number(heldOffset));
-  const ceiling = Math.max(Number(maxScrollTop), 0);
+  const target = currentScrollTop + (anchorOffset - heldOffset);
+  const ceiling = Math.max(maxScrollTop, 0);
 
   return Math.min(Math.max(target, 0), ceiling);
 };

@@ -26,14 +26,18 @@ import { siegeInstanceContract } from '@dungeonmaster/shared/contracts';
 
 import { repoLocalPathContract } from '../repo-local-path/repo-local-path-contract';
 
-export const killResultContract = z.object({
-  instanceId: siegeInstanceContract.shape.id,
-  stopped: z.boolean(),
-  portsReleased: z.array(z.number().int().min(1).max(65_535).brand<'KillResultPortsReleased'>()).readonly(),
-  homeRemoved: z.boolean(),
-  evidenceKept: repoLocalPathContract,
-  reapedPgids: z.array(z.number().int().positive().brand<'KillResultReapedPgids'>()).readonly(),
-  killed: z.array(z.number().int().positive().brand<'KillResultKilled'>()).readonly().optional(),
-}).brand<'KillResult'>();
+export const killResultContract = z
+  .object({
+    instanceId: siegeInstanceContract.shape.id,
+    stopped: z.boolean(),
+    portsReleased: z
+      .array(z.number().int().min(1).max(65_535).brand<'KillResultPortsReleased'>())
+      .readonly(),
+    homeRemoved: z.boolean(),
+    evidenceKept: repoLocalPathContract,
+    reapedPgids: z.array(z.number().int().positive().brand<'KillResultReapedPgids'>()).readonly(),
+    killed: z.array(z.number().int().positive().brand<'KillResultKilled'>()).readonly().optional(),
+  })
+  .brand<'KillResult'>();
 
 export type KillResult = z.infer<typeof killResultContract>;

@@ -29,159 +29,164 @@ import { toolingRequirementContract } from '../tooling-requirement/tooling-requi
 import { wardResultContract } from '../ward-result/ward-result-contract';
 import { workItemContract } from '../work-item/work-item-contract';
 
-export const questContract = z.object({
-  id: z.string().min(1).brand<'QuestId'>(),
-  folder: z.string().min(1).brand<'QuestFolder'>(),
-  title: z.string().min(1).brand<'QuestTitle'>(),
-  status: questStatusContract,
-  questType: questTypeContract
-    .default('feature')
-    .describe(
-      'Which pipeline this quest follows. Defaults to feature for back-compat with existing quest.json files written before quest types existed.',
-    ),
-  createdAt: z.iso.datetime().brand<'QuestCreatedAt'>(),
-  updatedAt: z.iso.datetime().brand<'QuestUpdatedAt'>().optional(),
-  completedAt: z.iso.datetime().brand<'QuestCompletedAt'>().optional(),
-  designDecisions: z
-    .array(designDecisionContract)
-    .default([])
-    .describe('Architectural choices and rationale that emerged during requirements capture'),
-  operations: z
-    .array(operationItemContract)
-    .default([])
-    .describe(
-      'The durable, ordered plan/status ledger driving dispatch. ChaosWhisperer seeds the implementation items at spec time; the orchestrator appends the verify tail at Start and mutates statuses at runtime. Execution agents never write it',
-    ),
-  toolingRequirements: z
-    .array(toolingRequirementContract)
-    .default([])
-    .describe('NPM packages needed for implementation that are not already in the project'),
-  packagesAffected: z
-    .array(questPackageEntryContract)
-    .default([])
-    .describe(
-      'One entry per package this quest will touch, authored by ChaosWhisperer alongside the flow nodes that tag them. This is the closed set every node tag, operation item and observable draws its package names from, so a name absent here is a rejection rather than a new package. Replaced whole on write — the entries are a tag list, not an id-keyed upsert set.',
-    ),
-  packageGraph: z
-    .array(packageGraphEntryContract)
-    .default([])
-    .describe(
-      "The POST-quest package dependency graph, derived from the workspace manifests crossed with packagesAffected: 'new' entries added through their usedBy[] reverse edges, 'delete' entries removed along with theirs. Stamped once at Start beside baseRef and never recomputed, so a dispatch ordering stays stable while the workspace moves. Written only by the orchestrator — it is absent from modifyQuestInputContract, so no agent can write it.",
-    ),
-  contracts: z
-    .array(questContractEntryContract)
-    .default([])
-    .describe(
-      'Shared type dictionary defining all data types, API endpoints, and event schemas. Included in every stage filter as the common reference for all agents',
-    ),
-  flows: z
-    .array(flowContract)
-    .default([])
-    .describe('User journey sequences with nodes, edges, and embedded observables'),
-  comments: z
-    .array(questCommentContract)
-    .default([])
-    .describe(
-      'User comments queued against flow-diagram nodes and delivered to the LLM chat as a batch',
-    ),
-  userRequest: z.string().min(1).brand<'QuestUserRequest'>(),
-  abandonReason: z.string().brand<'QuestAbandonReason'>().optional(),
-  pausedAtStatus: questStatusContract
-    .nullable()
-    .optional()
-    .describe(
-      'The quest status at the moment the quest was paused by the user. Used to restore the pre-pause status on resume. Set by the orchestrator during pause; cleared on resume. Undefined when quest is not paused. Null is the wire-level clear marker written by the resume responder before the field is stripped from the persisted JSON.',
-    ),
-  baseRef: z
-    .string()
-    .min(1)
-    .brand<'QuestBaseRef'>()
-    .optional()
-    .describe(
-      "The fork-point sha the quest's branch was created from, stamped from the worktree's own creation point rather than the server process cwd. It stays the base the review diff is measured from, so a whole-quest review scope remains stable as the base branch moves ahead with other work.",
-    ),
-  branchName: z.string().min(1).brand<'QuestBranchName'>()
-    .optional()
-    .describe(
-      "The branch the quest's work lives on, written once at Start and never changed. Every later dispatch, ward run and chat spawned for the quest targets this branch.",
-    ),
-  baseBranch: baseBranchNameContract
-    .optional()
-    .describe(
-      'The local branch the quest forked from and will merge back into, resolved by probing main then master at Start.',
-    ),
-  worktreePath: z
-    .string()
-    .min(1)
-    .refine((path) => path.startsWith('/') || /^[A-Za-z]:\\/u.test(path), {
-      message: 'Path must be absolute (start with / or C:\\ on Windows)',
-    })
-    .brand<'QuestWorktreePath'>()
-    .optional()
-    .describe(
-      "Absolute path to the quest's worktree; the cwd for every agent, ward run and chat spawned for this quest.",
-    ),
-  workItems: z
-    .array(workItemContract)
-    .default([])
-    .describe('Dependency-ordered queue of prompt executions and commands'),
-  wardResults: z
-    .array(wardResultContract)
-    .default([])
-    .describe('Ward failure outputs referenced by spiritmender work items via relatedDataItems'),
-  riftcarverResults: z
-    .array(riftcarverResultContract)
-    .default([])
-    .describe(
-      "One entry per riftcarver attempt, referenced by that attempt's work item via relatedDataItems. Each attempt appends its own ref and writes its own riftcarver-results/{id}.log, so a repaired carve leaves the whole pt chain's history rather than overwriting the attempt that failed.",
-    ),
-  sessions: z
-    .array(questSessionContract)
-    .default([])
-    .describe(
-      "One row per Claude session that ran on this quest, recording the cwd it ran in — appended once when the session is first stamped and never rewritten. Claude CLI encodes its JSONL directory from the session's own cwd, and `worktreePath` describes only the sessions dispatched AFTER the carve, so the read paths that locate a finished transcript resolve it here rather than deriving one answer for the whole quest. Keyed on the SESSION: a row whose `workItemId` a re-plan has replaced keeps its transcript reachable, and every spawn-side caller keeps asking the per-quest question instead.",
-    ),
-  planningNotes: z
-    .object({
-      blightLedger: z
-        .array(questBlightLedgerEntryContract)
-        .default([])
-        .describe(
-          "A reviewer's per-unit standards-review dispositions, keyed on the derived BlightChecklistItemId (changed file crossed with concern) so coverage is computed rather than remembered. `get-blight-checklist` reads this per unit to report which of a work item's own commits — measured over `<the work item's recorded startRef>..HEAD` — still carry no entry here. This is guidance a reviewer records on its own initiative; nothing refuses a `done` over it.",
-        ),
-      questNotes: z
-        .array(questNoteContract)
-        .default([])
-        .describe(
-          'The durable side channel every role appends to: open questions, tooling failures, out-of-scope observations, and walk resets. Keyed on `id` so a re-stated note upserts rather than appending a duplicate. Nothing here closes a verification unit — a flow unit is closed by an observation on workItem.observations[], and a standards-review unit by its blightLedger disposition.',
-        ),
-      operationPlans: z
-        .array(operationPlanContract)
-        .default([])
-        .describe(
-          "Planner sub-agent outputs, one per plan/work/review pass, so the orchestrator session that dispatched a planner can read its plan back off the quest instead of holding it in the dispatching session's own context. Appended, never replaced — a rejected pass's plan stays for audit alongside the pass that superseded it.",
-        ),
-    })
-    .default({
-      blightLedger: [],
-      questNotes: [],
-      operationPlans: [],
-    })
-    .brand<'QuestPlanningNotes'>()
-    .describe(
-      'The per-unit standards-review ledger a reviewer writes, the durable side-channel quest notes, and planner sub-agent output plans. Verification coverage is NOT here: a flow unit is settled by an observation on the work item assigned it (`workItem.observations[]`), recomputed by `get-qa-checklist` and the quest summary — neither of which is a gate.',
-    ),
-  questSource: questSourceContract
-    .optional()
-    .describe(
-      'Discriminates how the quest was created: real user vs which smoketest suite hydrated it. Used by smoketest bulk-clear to scope deletions.',
-    ),
-  smoketestResults: z
-    .array(smoketestCaseResultContract)
-    .optional()
-    .describe(
-      'Per-case smoketest assertion results written by smoketestAssertFinalStateBroker after the quest reaches a terminal status.',
-    ),
-}).brand<'Quest'>();
+export const questContract = z
+  .object({
+    id: z.string().min(1).brand<'QuestId'>(),
+    folder: z.string().min(1).brand<'QuestFolder'>(),
+    title: z.string().min(1).brand<'QuestTitle'>(),
+    status: questStatusContract,
+    questType: questTypeContract
+      .default('feature')
+      .describe(
+        'Which pipeline this quest follows. Defaults to feature for back-compat with existing quest.json files written before quest types existed.',
+      ),
+    createdAt: z.iso.datetime().brand<'QuestCreatedAt'>(),
+    updatedAt: z.iso.datetime().brand<'QuestUpdatedAt'>().optional(),
+    completedAt: z.iso.datetime().brand<'QuestCompletedAt'>().optional(),
+    designDecisions: z
+      .array(designDecisionContract)
+      .default([])
+      .describe('Architectural choices and rationale that emerged during requirements capture'),
+    operations: z
+      .array(operationItemContract)
+      .default([])
+      .describe(
+        'The durable, ordered plan/status ledger driving dispatch. ChaosWhisperer seeds the implementation items at spec time; the orchestrator appends the verify tail at Start and mutates statuses at runtime. Execution agents never write it',
+      ),
+    toolingRequirements: z
+      .array(toolingRequirementContract)
+      .default([])
+      .describe('NPM packages needed for implementation that are not already in the project'),
+    packagesAffected: z
+      .array(questPackageEntryContract)
+      .default([])
+      .describe(
+        'One entry per package this quest will touch, authored by ChaosWhisperer alongside the flow nodes that tag them. This is the closed set every node tag, operation item and observable draws its package names from, so a name absent here is a rejection rather than a new package. Replaced whole on write — the entries are a tag list, not an id-keyed upsert set.',
+      ),
+    packageGraph: z
+      .array(packageGraphEntryContract)
+      .default([])
+      .describe(
+        "The POST-quest package dependency graph, derived from the workspace manifests crossed with packagesAffected: 'new' entries added through their usedBy[] reverse edges, 'delete' entries removed along with theirs. Stamped once at Start beside baseRef and never recomputed, so a dispatch ordering stays stable while the workspace moves. Written only by the orchestrator — it is absent from modifyQuestInputContract, so no agent can write it.",
+      ),
+    contracts: z
+      .array(questContractEntryContract)
+      .default([])
+      .describe(
+        'Shared type dictionary defining all data types, API endpoints, and event schemas. Included in every stage filter as the common reference for all agents',
+      ),
+    flows: z
+      .array(flowContract)
+      .default([])
+      .describe('User journey sequences with nodes, edges, and embedded observables'),
+    comments: z
+      .array(questCommentContract)
+      .default([])
+      .describe(
+        'User comments queued against flow-diagram nodes and delivered to the LLM chat as a batch',
+      ),
+    userRequest: z.string().min(1).brand<'QuestUserRequest'>(),
+    abandonReason: z.string().brand<'QuestAbandonReason'>().optional(),
+    pausedAtStatus: questStatusContract
+      .nullable()
+      .optional()
+      .describe(
+        'The quest status at the moment the quest was paused by the user. Used to restore the pre-pause status on resume. Set by the orchestrator during pause; cleared on resume. Undefined when quest is not paused. Null is the wire-level clear marker written by the resume responder before the field is stripped from the persisted JSON.',
+      ),
+    baseRef: z
+      .string()
+      .min(1)
+      .brand<'QuestBaseRef'>()
+      .optional()
+      .describe(
+        "The fork-point sha the quest's branch was created from, stamped from the worktree's own creation point rather than the server process cwd. It stays the base the review diff is measured from, so a whole-quest review scope remains stable as the base branch moves ahead with other work.",
+      ),
+    branchName: z
+      .string()
+      .min(1)
+      .brand<'QuestBranchName'>()
+      .optional()
+      .describe(
+        "The branch the quest's work lives on, written once at Start and never changed. Every later dispatch, ward run and chat spawned for the quest targets this branch.",
+      ),
+    baseBranch: baseBranchNameContract
+      .optional()
+      .describe(
+        'The local branch the quest forked from and will merge back into, resolved by probing main then master at Start.',
+      ),
+    worktreePath: z
+      .string()
+      .min(1)
+      .refine((path) => path.startsWith('/') || /^[A-Za-z]:\\/u.test(path), {
+        message: 'Path must be absolute (start with / or C:\\ on Windows)',
+      })
+      .brand<'QuestWorktreePath'>()
+      .optional()
+      .describe(
+        "Absolute path to the quest's worktree; the cwd for every agent, ward run and chat spawned for this quest.",
+      ),
+    workItems: z
+      .array(workItemContract)
+      .default([])
+      .describe('Dependency-ordered queue of prompt executions and commands'),
+    wardResults: z
+      .array(wardResultContract)
+      .default([])
+      .describe('Ward failure outputs referenced by spiritmender work items via relatedDataItems'),
+    riftcarverResults: z
+      .array(riftcarverResultContract)
+      .default([])
+      .describe(
+        "One entry per riftcarver attempt, referenced by that attempt's work item via relatedDataItems. Each attempt appends its own ref and writes its own riftcarver-results/{id}.log, so a repaired carve leaves the whole pt chain's history rather than overwriting the attempt that failed.",
+      ),
+    sessions: z
+      .array(questSessionContract)
+      .default([])
+      .describe(
+        "One row per Claude session that ran on this quest, recording the cwd it ran in — appended once when the session is first stamped and never rewritten. Claude CLI encodes its JSONL directory from the session's own cwd, and `worktreePath` describes only the sessions dispatched AFTER the carve, so the read paths that locate a finished transcript resolve it here rather than deriving one answer for the whole quest. Keyed on the SESSION: a row whose `workItemId` a re-plan has replaced keeps its transcript reachable, and every spawn-side caller keeps asking the per-quest question instead.",
+      ),
+    planningNotes: z
+      .object({
+        blightLedger: z
+          .array(questBlightLedgerEntryContract)
+          .default([])
+          .describe(
+            "A reviewer's per-unit standards-review dispositions, keyed on the derived BlightChecklistItemId (changed file crossed with concern) so coverage is computed rather than remembered. `get-blight-checklist` reads this per unit to report which of a work item's own commits — measured over `<the work item's recorded startRef>..HEAD` — still carry no entry here. This is guidance a reviewer records on its own initiative; nothing refuses a `done` over it.",
+          ),
+        questNotes: z
+          .array(questNoteContract)
+          .default([])
+          .describe(
+            'The durable side channel every role appends to: open questions, tooling failures, out-of-scope observations, and walk resets. Keyed on `id` so a re-stated note upserts rather than appending a duplicate. Nothing here closes a verification unit — a flow unit is closed by an observation on workItem.observations[], and a standards-review unit by its blightLedger disposition.',
+          ),
+        operationPlans: z
+          .array(operationPlanContract)
+          .default([])
+          .describe(
+            "Planner sub-agent outputs, one per plan/work/review pass, so the orchestrator session that dispatched a planner can read its plan back off the quest instead of holding it in the dispatching session's own context. Appended, never replaced — a rejected pass's plan stays for audit alongside the pass that superseded it.",
+          ),
+      })
+      .default({
+        blightLedger: [],
+        questNotes: [],
+        operationPlans: [],
+      })
+      .brand<'QuestPlanningNotes'>()
+      .describe(
+        'The per-unit standards-review ledger a reviewer writes, the durable side-channel quest notes, and planner sub-agent output plans. Verification coverage is NOT here: a flow unit is settled by an observation on the work item assigned it (`workItem.observations[]`), recomputed by `get-qa-checklist` and the quest summary — neither of which is a gate.',
+      ),
+    questSource: questSourceContract
+      .optional()
+      .describe(
+        'Discriminates how the quest was created: real user vs which smoketest suite hydrated it. Used by smoketest bulk-clear to scope deletions.',
+      ),
+    smoketestResults: z
+      .array(smoketestCaseResultContract)
+      .optional()
+      .describe(
+        'Per-case smoketest assertion results written by smoketestAssertFinalStateBroker after the quest reaches a terminal status.',
+      ),
+  })
+  .brand<'Quest'>();
 
 export type Quest = z.infer<typeof questContract>;

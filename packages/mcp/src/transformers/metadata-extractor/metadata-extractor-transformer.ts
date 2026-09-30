@@ -16,4 +16,4 @@ export const metadataExtractorTransformer = ({
   fileContents: string;
 }): ExtractedMetadata | null =>
   // Delegate to shared implementation
-  sharedMetadataExtractor({ commentText: String(fileContents) });
+  sharedMetadataExtractor({ commentText: fileContents });

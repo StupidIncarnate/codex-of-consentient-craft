@@ -16,12 +16,7 @@ import { decodePngProxy } from '#gateway/npm/pngjs/decode-png/decode-png.proxy';
 import { Buffer } from '#gateway/node/buffer';
 
 export const shotChangeReadBrokerProxy = (): {
-  stagesShot: (params: {
-    path: string;
-    width: number;
-    height: number;
-    pixels: Uint8Array;
-  }) => void;
+  stagesShot: (params: { path: string; width: number; height: number; pixels: Uint8Array }) => void;
   // A low-specificity fallback so a caller composing this proxy (e.g. step-dispatch-broker.proxy.ts,
   // which never imports fsReadFileAdapter directly and so may not construct its own proxy for it —
   // enforce-proxy-child-creation) can give every unstaged shot path a real decodable frame. A test's

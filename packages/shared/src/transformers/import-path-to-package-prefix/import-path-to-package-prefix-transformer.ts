@@ -10,7 +10,6 @@
  * // Returns ContentText 'shared/brokers/portResolveBroker'
  */
 
-
 const PACKAGE_PATH_PATTERN = /\/packages\/([^/]+)\/src\/([^/]+)\//u;
 const OUT_OF_BOUNDS_MESSAGE =
   'importPathToPackagePrefixTransformer: file path is not under any packages/<pkg>/src/';

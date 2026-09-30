@@ -108,8 +108,9 @@ export const verifiedPreludeLayerBroker = async ({
           instanceId,
           runId: citedRun === undefined ? null : siegeRunContract.shape.id.parse(String(citedRun)),
           citingFile: filePath,
-          why: (`${citedRun === undefined ? String(instanceId) : String(citedRun)} cited by a ` +
-              `${citationStatics.questPlans.verifiedMarker} prelude in ${filePath}`),
+          why:
+            `${citedRun === undefined ? String(instanceId) : String(citedRun)} cited by a ` +
+            `${citationStatics.questPlans.verifiedMarker} prelude in ${filePath}`,
         }),
       ];
     }),

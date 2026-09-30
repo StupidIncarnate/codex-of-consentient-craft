@@ -13,19 +13,14 @@
  * // Returns ['**\/dist', '**\/dist\/**', '**\/worktrees\/**']
  */
 
-
 const COMMENT_PREFIX = '#';
 const NEGATION_PREFIX = '!';
 const PATH_SEPARATOR = '/';
 const WILDCARD_PATTERN = /[*?[\]]/u;
 const NO_PATTERNS: readonly string[] = [];
 
-export const gitignoreToGlobTransformer = ({
-  contents,
-}: {
-  contents: string;
-}): readonly string[] =>
-  String(contents)
+export const gitignoreToGlobTransformer = ({ contents }: { contents: string }): readonly string[] =>
+  contents
     .split('\n')
     .flatMap((rawLine) => {
       const line = rawLine.trim();
@@ -54,7 +49,5 @@ export const gitignoreToGlobTransformer = ({
 
       // A bare name matches a file OR a directory in git, and glob needs one pattern for each.
       // A line that already carries a wildcard is passed through exactly as its author wrote it.
-      return WILDCARD_PATTERN.test(core)
-        ? [base]
-        : [base, `${base}/**`];
+      return WILDCARD_PATTERN.test(core) ? [base] : [base, `${base}/**`];
     });

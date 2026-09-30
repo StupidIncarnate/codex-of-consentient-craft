@@ -28,20 +28,27 @@ import { runResultContract } from '../run-result/run-result-contract';
 import { stepVerbContract } from '../step-verb/step-verb-contract';
 import { instanceLifecycleStatics } from '../../statics/instance-lifecycle/instance-lifecycle-statics';
 
-export const resultsAnswerContract = z.object({
-  instanceId: siegeInstanceContract.shape.id,
-  instanceState: instanceStateContract,
-  runId: siegeRunContract.shape.id.nullable(),
-  kind: resultKindContract.nullable(),
-  step: z.number().int().min(instanceLifecycleStatics.numbering.firstStep).brand<'ResultsAnswerStep'>().nullable(),
-  verb: stepVerbContract.nullable(),
-  prunedAtMs: z.number().int().nonnegative().brand<'ResultsAnswerPrunedAtMs'>().nullable(),
-  prunedByRule: z.string().brand<'ResultsAnswerPrunedByRule'>().nullable(),
-  matched: z.number().int().nonnegative().brand<'ResultsAnswerMatched'>(),
-  returned: z.number().int().nonnegative().brand<'ResultsAnswerReturned'>(),
-  truncated: z.boolean(),
-  rows: z.array(z.string().brand<'ResultsAnswerRows'>()).readonly(),
-  storedReturn: runResultContract.nullable(),
-}).brand<'ResultsAnswer'>();
+export const resultsAnswerContract = z
+  .object({
+    instanceId: siegeInstanceContract.shape.id,
+    instanceState: instanceStateContract,
+    runId: siegeRunContract.shape.id.nullable(),
+    kind: resultKindContract.nullable(),
+    step: z
+      .number()
+      .int()
+      .min(instanceLifecycleStatics.numbering.firstStep)
+      .brand<'ResultsAnswerStep'>()
+      .nullable(),
+    verb: stepVerbContract.nullable(),
+    prunedAtMs: z.number().int().nonnegative().brand<'ResultsAnswerPrunedAtMs'>().nullable(),
+    prunedByRule: z.string().brand<'ResultsAnswerPrunedByRule'>().nullable(),
+    matched: z.number().int().nonnegative().brand<'ResultsAnswerMatched'>(),
+    returned: z.number().int().nonnegative().brand<'ResultsAnswerReturned'>(),
+    truncated: z.boolean(),
+    rows: z.array(z.string().brand<'ResultsAnswerRows'>()).readonly(),
+    storedReturn: runResultContract.nullable(),
+  })
+  .brand<'ResultsAnswer'>();
 
 export type ResultsAnswer = z.infer<typeof resultsAnswerContract>;

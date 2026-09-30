@@ -20,7 +20,6 @@
 
 import { z } from '#gateway/npm/zod';
 
-
 export const boxReadingContract = z
   .object({
     ref: z.number().int().positive().brand<'BoxReadingRef'>(),
@@ -33,10 +32,12 @@ export const boxReadingContract = z
         width: z.number().int().nonnegative().brand<'BoxReadingViewportWidth'>(),
         height: z.number().int().nonnegative().brand<'BoxReadingViewportHeight'>(),
       })
-      .strict().brand<'BoxReadingViewport'>(),
+      .strict()
+      .brand<'BoxReadingViewport'>(),
     visible: z.boolean(),
     inViewport: z.boolean(),
   })
-  .strict().brand<'BoxReading'>();
+  .strict()
+  .brand<'BoxReading'>();
 
 export type BoxReading = z.infer<typeof boxReadingContract>;

@@ -9,33 +9,23 @@ describe('imageContentTypeTransformer', () => {
     ['/tmp/a.gif', 'image/gif'],
     ['/tmp/a.webp', 'image/webp'],
   ])('VALID: {filePath: %s} => %s', (path, expected) => {
-    expect(imageContentTypeTransformer({ filePath: path })).toBe(
-      expected,
-    );
+    expect(imageContentTypeTransformer({ filePath: path })).toBe(expected);
   });
 
   it('VALID: {filePath: "/tmp/a.PNG" uppercase extension} => image/png', () => {
-    expect(
-      imageContentTypeTransformer({ filePath: '/tmp/a.PNG' }),
-    ).toBe('image/png');
+    expect(imageContentTypeTransformer({ filePath: '/tmp/a.PNG' })).toBe('image/png');
   });
 
   it('INVALID: {filePath: "/tmp/a.txt"} => null', () => {
-    expect(
-      imageContentTypeTransformer({ filePath: '/tmp/a.txt' }),
-    ).toBe(null);
+    expect(imageContentTypeTransformer({ filePath: '/tmp/a.txt' })).toBe(null);
   });
 
   it('EMPTY: {filePath: "/tmp/a" no extension} => null', () => {
-    expect(
-      imageContentTypeTransformer({ filePath: '/tmp/a' }),
-    ).toBe(null);
+    expect(imageContentTypeTransformer({ filePath: '/tmp/a' })).toBe(null);
   });
 
   it('EDGE: {filePath: "/a.dir/file" dot only in directory name} => null', () => {
-    expect(
-      imageContentTypeTransformer({ filePath: '/a.dir/file' }),
-    ).toBe(null);
+    expect(imageContentTypeTransformer({ filePath: '/a.dir/file' })).toBe(null);
   });
 
   it('VALID: {filePath extension in pastedImageStatics.allowedExtensions} => every entry maps to a non-null content type', () => {

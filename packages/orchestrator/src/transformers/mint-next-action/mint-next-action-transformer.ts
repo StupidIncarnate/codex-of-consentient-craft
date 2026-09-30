@@ -77,7 +77,7 @@ export const mintNextActionTransformer = ({
     item.relatedDataItems.some((ref) => String(ref) === scopeRef),
   );
   const visits = scopeItems.filter(
-    (item) => item.step !== undefined && String(item.step) === String(step),
+    (item) => item.step !== undefined && String(item.step) === step,
   ).length;
 
   if (visits + batch.length > maxVisits) {
@@ -92,7 +92,7 @@ export const mintNextActionTransformer = ({
       step,
       reason: 'max-visits',
       message:
-        `maxVisits spent: step \`${String(step)}\` in family \`${family}\` has been entered ` +
+        `maxVisits spent: step \`${step}\` in family \`${family}\` has been entered ` +
         `${String(visits)} times for operation item ${String(operationItemId)}, and its whole ` +
         `budget is ${String(maxVisits)} — the loop is not converging and another session would ` +
         `find the same thing. Still unmet: ${stillUnmet.length === 0 ? 'none' : stillUnmet.join(', ')}.`,
@@ -104,7 +104,7 @@ export const mintNextActionTransformer = ({
       return false;
     }
 
-    if (item.step === undefined || String(item.step) !== String(step)) {
+    if (item.step === undefined || String(item.step) !== step) {
       return false;
     }
 

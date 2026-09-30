@@ -24,12 +24,14 @@ interface TreeNodeSelf extends z.core.$brand<'TreeNode'> {
 
 // A getter, not `z.lazy` + a cast — its return type wraps `z.core.$ZodType`, the self-reference
 // form `contracts/` allows.
-export const treeNodeContract = z.object({
-  name: z.string().brand<'TreeNodeName'>(),
-  items: z.array(treeItemContract),
-  get children(): z.ZodMap<z.ZodString, z.core.$ZodType<TreeNodeSelf>> {
-    return z.map(z.string(), treeNodeContract);
-  },
-}).brand<'TreeNode'>();
+export const treeNodeContract = z
+  .object({
+    name: z.string().brand<'TreeNodeName'>(),
+    items: z.array(treeItemContract),
+    get children(): z.ZodMap<z.ZodString, z.core.$ZodType<TreeNodeSelf>> {
+      return z.map(z.string(), treeNodeContract);
+    },
+  })
+  .brand<'TreeNode'>();
 
 export type TreeNode = z.infer<typeof treeNodeContract>;

@@ -6,12 +6,7 @@
  * // Returns 1 — the last `true` index. visibleStart = result; everything before is hidden.
  */
 
-
-export const findAnchorUnitTailIndexTransformer = ({
-  flags,
-}: {
-  flags: boolean[];
-}): number => {
+export const findAnchorUnitTailIndexTransformer = ({ flags }: { flags: boolean[] }): number => {
   if (flags.length === 0) {
     return 0;
   }
@@ -22,5 +17,5 @@ export const findAnchorUnitTailIndexTransformer = ({
     }
   }
 
-  return (flags.length - 1);
+  return flags.length - 1;
 };

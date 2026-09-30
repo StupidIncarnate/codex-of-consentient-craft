@@ -35,54 +35,73 @@ import { blightDispositionContract } from '../blight-disposition/blight-disposit
 import { workItemContract } from '../work-item/work-item-contract';
 import { blightChecklistItemContract } from '../blight-checklist-item/blight-checklist-item-contract';
 
-export const questBlightLedgerEntryContract = z.object({
-  itemId: blightChecklistItemContract.shape.id,
-  disposition: blightDispositionContract,
-  evidence: z
-    .string()
-    .min(1)
-    .brand<'QuestBlightLedgerEntryEvidence'>()
-    .describe(
-      'The concrete thing observed, or — for gap/recorded/routed — the specific reason. Never an adjective: "looks fine", "confirmed", "as expected" are the report grading itself.',
-    ),
-  brokenWouldShow: z
-    .string()
-    .min(1)
-    .brand<'QuestBlightLedgerEntryBrokenWouldShow'>()
-    .optional()
-    .describe(
-      'The specific different value a broken system would have produced. Absent means the measurement was not shown to be falsifiable.',
-    ),
-  observedBy: z
-    .string()
-    .min(1)
-    .brand<'QuestBlightLedgerEntryObservedBy'>()
-    .describe('Who produced this — the operator itself, or the minion lens that reported it.'),
-  owner: z
-    .string()
-    .min(1)
-    .brand<'QuestBlightLedgerEntryOwner'>()
-    .optional()
-    .describe(
-      'Required in practice for `recorded`: the named owner a defect was handed to. "Noted for later" with no owner is not a disposition.',
-    ),
-  rippleSites: z
-    .array(z.string().min(1).refine((path) => { if (path.startsWith('/')) { return false; } if (/^[A-Za-z]:\\/u.test(path)) { return false; } return true; }, { message: 'Path must be repo-relative (not absolute)', },).brand<'QuestBlightLedgerEntryRippleSites'>())
-    .default([])
-    .describe(
-      'For `fixed`: every other place the same value renders or the same logic runs, that was checked for the identical defect. A fix without a ripple list is half a fix. Repo-relative so the persisted ledger stays portable across machines.',
-    ),
-  workItemId: workItemContract.shape.id,
-  createdAt: z.iso
-    .datetime()
-    .brand<'QuestBlightLedgerEntryCreatedAt'>()
-    .describe(
-      'STAMPED SERVER-SIDE — any client-supplied value is ignored and overwritten at write time. ' +
-        'An LLM has no reliable clock: agents writing this field have been observed emitting one ' +
-        'identical fabricated timestamp across every entry on a quest, and timestamps set in a ' +
-        'future that never happened. Required here because a persisted disposition always carries ' +
-        'one; the modify-quest input shape drops the requirement, since the write path supplies it.',
-    ),
-}).brand<'QuestBlightLedgerEntry'>();
+export const questBlightLedgerEntryContract = z
+  .object({
+    itemId: blightChecklistItemContract.shape.id,
+    disposition: blightDispositionContract,
+    evidence: z
+      .string()
+      .min(1)
+      .brand<'QuestBlightLedgerEntryEvidence'>()
+      .describe(
+        'The concrete thing observed, or — for gap/recorded/routed — the specific reason. Never an adjective: "looks fine", "confirmed", "as expected" are the report grading itself.',
+      ),
+    brokenWouldShow: z
+      .string()
+      .min(1)
+      .brand<'QuestBlightLedgerEntryBrokenWouldShow'>()
+      .optional()
+      .describe(
+        'The specific different value a broken system would have produced. Absent means the measurement was not shown to be falsifiable.',
+      ),
+    observedBy: z
+      .string()
+      .min(1)
+      .brand<'QuestBlightLedgerEntryObservedBy'>()
+      .describe('Who produced this — the operator itself, or the minion lens that reported it.'),
+    owner: z
+      .string()
+      .min(1)
+      .brand<'QuestBlightLedgerEntryOwner'>()
+      .optional()
+      .describe(
+        'Required in practice for `recorded`: the named owner a defect was handed to. "Noted for later" with no owner is not a disposition.',
+      ),
+    rippleSites: z
+      .array(
+        z
+          .string()
+          .min(1)
+          .refine(
+            (path) => {
+              if (path.startsWith('/')) {
+                return false;
+              }
+              if (/^[A-Za-z]:\\/u.test(path)) {
+                return false;
+              }
+              return true;
+            },
+            { message: 'Path must be repo-relative (not absolute)' },
+          )
+          .brand<'QuestBlightLedgerEntryRippleSites'>(),
+      )
+      .default([])
+      .describe(
+        'For `fixed`: every other place the same value renders or the same logic runs, that was checked for the identical defect. A fix without a ripple list is half a fix. Repo-relative so the persisted ledger stays portable across machines.',
+      ),
+    workItemId: workItemContract.shape.id,
+    createdAt: z.iso
+      .datetime()
+      .brand<'QuestBlightLedgerEntryCreatedAt'>()
+      .describe(
+        'STAMPED SERVER-SIDE — any client-supplied value is ignored and overwritten at write time. ' +
+          'An LLM has no reliable clock: agents writing this field have been observed emitting one ' +
+          'identical fabricated timestamp across every entry on a quest, and timestamps set in a ' +
+          'future that never happened. Required here because a persisted disposition always carries ' +
+          'one; the modify-quest input shape drops the requirement, since the write path supplies it.',
+      ),
+  })
+  .brand<'QuestBlightLedgerEntry'>();
 
 export type QuestBlightLedgerEntry = z.infer<typeof questBlightLedgerEntryContract>;

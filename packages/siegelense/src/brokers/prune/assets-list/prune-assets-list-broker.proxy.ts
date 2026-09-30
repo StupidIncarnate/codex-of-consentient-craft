@@ -19,11 +19,7 @@ export const pruneAssetsListBrokerProxy = (): {
     evidencePath: string;
   }) => void;
   setupDir: (params: { dirPath: string; entries: readonly string[] }) => void;
-  setupFile: (params: {
-    filePath: string;
-    sizeBytes: number;
-    modifiedAtMs: number;
-  }) => void;
+  setupFile: (params: { filePath: string; sizeBytes: number; modifiedAtMs: number }) => void;
 } => {
   const readdirProxy = readdirIfExistsProxy();
   const statProxy = statIfExistsProxy();
@@ -71,13 +67,7 @@ export const pruneAssetsListBrokerProxy = (): {
       });
     },
 
-    setupDir: ({
-      dirPath,
-      entries,
-    }: {
-      dirPath: string;
-      entries: readonly string[];
-    }): void => {
+    setupDir: ({ dirPath, entries }: { dirPath: string; entries: readonly string[] }): void => {
       readdirProxy.returns({ path: dirPath, names: [...entries] });
     },
 

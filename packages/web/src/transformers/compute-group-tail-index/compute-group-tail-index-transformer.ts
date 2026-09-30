@@ -29,5 +29,5 @@ export const computeGroupTailIndexTransformer = ({
     }
   }
 
-  return (groups.length - 1);
+  return groups.length - 1;
 };

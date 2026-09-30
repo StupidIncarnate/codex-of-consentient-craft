@@ -78,7 +78,7 @@ export const typeNodeShapeClassifyLayerTransformer = ({
       return firstArgument !== undefined &&
         ts.isTypeQueryNode(firstArgument) &&
         ts.isIdentifier(firstArgument.exprName) &&
-        schemaNames.some((schemaName) => String(schemaName) === firstArgument.exprName.getText())
+        schemaNames.some((schemaName) => schemaName === firstArgument.exprName.getText())
         ? 'inferred'
         : 'other';
     }

@@ -17,10 +17,12 @@ export const jsonlSessionLineContract = z
     message: z
       .object({
         content: z.string().min(1).brand<'JsonlSessionLineMessageContent'>().optional(),
-      }).brand<'JsonlSessionLineMessage'>()
+      })
+      .brand<'JsonlSessionLineMessage'>()
       .loose()
       .optional(),
   })
-  .loose().brand<'JsonlSessionLine'>();
+  .loose()
+  .brand<'JsonlSessionLine'>();
 
 export type JsonlSessionLine = z.infer<typeof jsonlSessionLineContract>;

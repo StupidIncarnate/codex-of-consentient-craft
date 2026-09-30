@@ -12,7 +12,7 @@ const ASSERTION_MAX_LENGTH = 200;
 
 export const collectNodeAssertionsTransformer = ({ node }: { node: FlowNode }): string[] =>
   node.observables.map((observable) =>
-    (String(observable.description).length > ASSERTION_MAX_LENGTH
-        ? `${String(observable.description).slice(0, ASSERTION_MAX_LENGTH)}...`
-        : String(observable.description)),
+    String(observable.description).length > ASSERTION_MAX_LENGTH
+      ? `${String(observable.description).slice(0, ASSERTION_MAX_LENGTH)}...`
+      : String(observable.description),
   );

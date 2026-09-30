@@ -22,10 +22,12 @@ describe('StartInstall', () => {
       });
 
       const result = await StartInstall({
-        context: InstallContextStub({ value: {
-          targetProjectRoot: testbed.guildPath,
-          dungeonmasterRoot: testbed.dungeonmasterPath,
-        } }),
+        context: InstallContextStub({
+          value: {
+            targetProjectRoot: testbed.guildPath,
+            dungeonmasterRoot: testbed.dungeonmasterPath,
+          },
+        }),
       });
 
       const packageJsonContent = testbed.readFile({
@@ -60,10 +62,10 @@ describe('StartInstall', () => {
       testbed.writeFile({
         relativePath: 'package.json',
         content: JSON.stringify({
-            name: 'happy-path',
-            version: '0.0.0',
-            dependencies: { react: '18.2.0' },
-          }),
+          name: 'happy-path',
+          version: '0.0.0',
+          dependencies: { react: '18.2.0' },
+        }),
       });
       testbed.writeFile({
         relativePath: 'src/widgets/marker.tsx',
@@ -72,33 +74,35 @@ describe('StartInstall', () => {
       testbed.writeFile({
         relativePath: '.dungeonmaster.json',
         content: JSON.stringify({
-            devServer: {
-              e2e: {
-                processes: [
-                  {
-                    name: 'api',
-                    command: 'echo api-{apiPort}',
-                    portRole: 'api',
-                    readyPath: '/api/health',
-                    env: { PORT: '{apiPort}' },
-                  },
-                  {
-                    name: 'web',
-                    command: 'echo web-{webPort}',
-                    portRole: 'web',
-                    readyPath: '/',
-                  },
-                ],
-              },
+          devServer: {
+            e2e: {
+              processes: [
+                {
+                  name: 'api',
+                  command: 'echo api-{apiPort}',
+                  portRole: 'api',
+                  readyPath: '/api/health',
+                  env: { PORT: '{apiPort}' },
+                },
+                {
+                  name: 'web',
+                  command: 'echo web-{webPort}',
+                  portRole: 'web',
+                  readyPath: '/',
+                },
+              ],
             },
-          }),
+          },
+        }),
       });
 
       await StartInstall({
-        context: InstallContextStub({ value: {
-          targetProjectRoot: testbed.guildPath,
-          dungeonmasterRoot: testbed.dungeonmasterPath,
-        } }),
+        context: InstallContextStub({
+          value: {
+            targetProjectRoot: testbed.guildPath,
+            dungeonmasterRoot: testbed.dungeonmasterPath,
+          },
+        }),
       });
 
       const writtenContent = testbed.readFile({
@@ -161,10 +165,10 @@ describe('StartInstall', () => {
       testbed.writeFile({
         relativePath: 'package.json',
         content: JSON.stringify({
-            name: 'placeholder-path',
-            version: '0.0.0',
-            dependencies: { react: '18.2.0' },
-          }),
+          name: 'placeholder-path',
+          version: '0.0.0',
+          dependencies: { react: '18.2.0' },
+        }),
       });
       testbed.writeFile({
         relativePath: 'src/widgets/marker.tsx',
@@ -173,27 +177,29 @@ describe('StartInstall', () => {
       testbed.writeFile({
         relativePath: '.dungeonmaster.json',
         content: JSON.stringify({
-            devServer: {
-              e2e: {
-                processes: [
-                  {
-                    name: 'app',
-                    command: 'npm run dev:no-watch',
-                    portRole: 'api',
-                    readyPath: '/',
-                    env: { PORT: '{apiPort}' },
-                  },
-                ],
-              },
+          devServer: {
+            e2e: {
+              processes: [
+                {
+                  name: 'app',
+                  command: 'npm run dev:no-watch',
+                  portRole: 'api',
+                  readyPath: '/',
+                  env: { PORT: '{apiPort}' },
+                },
+              ],
             },
-          }),
+          },
+        }),
       });
 
       await StartInstall({
-        context: InstallContextStub({ value: {
-          targetProjectRoot: testbed.guildPath,
-          dungeonmasterRoot: testbed.dungeonmasterPath,
-        } }),
+        context: InstallContextStub({
+          value: {
+            targetProjectRoot: testbed.guildPath,
+            dungeonmasterRoot: testbed.dungeonmasterPath,
+          },
+        }),
       });
 
       const runHarness = scaffoldedPlaywrightConfigRunHarness();
@@ -219,10 +225,10 @@ describe('StartInstall', () => {
       testbed.writeFile({
         relativePath: 'package.json',
         content: JSON.stringify({
-            name: 'missing-config-path',
-            version: '0.0.0',
-            dependencies: { react: '18.2.0' },
-          }),
+          name: 'missing-config-path',
+          version: '0.0.0',
+          dependencies: { react: '18.2.0' },
+        }),
       });
       testbed.writeFile({
         relativePath: 'src/widgets/marker.tsx',
@@ -234,10 +240,12 @@ describe('StartInstall', () => {
       });
 
       await StartInstall({
-        context: InstallContextStub({ value: {
-          targetProjectRoot: testbed.guildPath,
-          dungeonmasterRoot: testbed.dungeonmasterPath,
-        } }),
+        context: InstallContextStub({
+          value: {
+            targetProjectRoot: testbed.guildPath,
+            dungeonmasterRoot: testbed.dungeonmasterPath,
+          },
+        }),
       });
 
       const runHarness = scaffoldedPlaywrightConfigRunHarness();
@@ -263,10 +271,10 @@ describe('StartInstall', () => {
       testbed.writeFile({
         relativePath: 'package.json',
         content: JSON.stringify({
-            name: 'unresolvable-token-path',
-            version: '0.0.0',
-            dependencies: { react: '18.2.0' },
-          }),
+          name: 'unresolvable-token-path',
+          version: '0.0.0',
+          dependencies: { react: '18.2.0' },
+        }),
       });
       testbed.writeFile({
         relativePath: 'src/widgets/marker.tsx',
@@ -275,26 +283,28 @@ describe('StartInstall', () => {
       testbed.writeFile({
         relativePath: '.dungeonmaster.json',
         content: JSON.stringify({
-            devServer: {
-              e2e: {
-                processes: [
-                  {
-                    name: 'api',
-                    command: 'npm run dev:no-watch --workspace={apiWorkspace}',
-                    portRole: 'api',
-                    readyPath: '/',
-                  },
-                ],
-              },
+          devServer: {
+            e2e: {
+              processes: [
+                {
+                  name: 'api',
+                  command: 'npm run dev:no-watch --workspace={apiWorkspace}',
+                  portRole: 'api',
+                  readyPath: '/',
+                },
+              ],
             },
-          }),
+          },
+        }),
       });
 
       await StartInstall({
-        context: InstallContextStub({ value: {
-          targetProjectRoot: testbed.guildPath,
-          dungeonmasterRoot: testbed.dungeonmasterPath,
-        } }),
+        context: InstallContextStub({
+          value: {
+            targetProjectRoot: testbed.guildPath,
+            dungeonmasterRoot: testbed.dungeonmasterPath,
+          },
+        }),
       });
 
       const runHarness = scaffoldedPlaywrightConfigRunHarness();
@@ -320,10 +330,10 @@ describe('StartInstall', () => {
       testbed.writeFile({
         relativePath: 'package.json',
         content: JSON.stringify({
-            name: 'bad-port-role-path',
-            version: '0.0.0',
-            dependencies: { react: '18.2.0' },
-          }),
+          name: 'bad-port-role-path',
+          version: '0.0.0',
+          dependencies: { react: '18.2.0' },
+        }),
       });
       testbed.writeFile({
         relativePath: 'src/widgets/marker.tsx',
@@ -332,21 +342,23 @@ describe('StartInstall', () => {
       testbed.writeFile({
         relativePath: '.dungeonmaster.json',
         content: JSON.stringify({
-            devServer: {
-              e2e: {
-                processes: [
-                  { name: 'worker', command: 'echo hi', portRole: 'worker', readyPath: '/' },
-                ],
-              },
+          devServer: {
+            e2e: {
+              processes: [
+                { name: 'worker', command: 'echo hi', portRole: 'worker', readyPath: '/' },
+              ],
             },
-          }),
+          },
+        }),
       });
 
       await StartInstall({
-        context: InstallContextStub({ value: {
-          targetProjectRoot: testbed.guildPath,
-          dungeonmasterRoot: testbed.dungeonmasterPath,
-        } }),
+        context: InstallContextStub({
+          value: {
+            targetProjectRoot: testbed.guildPath,
+            dungeonmasterRoot: testbed.dungeonmasterPath,
+          },
+        }),
       });
 
       const runHarness = scaffoldedPlaywrightConfigRunHarness();

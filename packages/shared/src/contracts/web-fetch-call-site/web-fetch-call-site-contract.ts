@@ -8,9 +8,11 @@
 
 import { z } from '#gateway/npm/zod';
 
-export const webFetchCallSiteContract = z.object({
-  method: z.string().brand<'WebFetchCallSiteMethod'>(),
-  rawArg: z.string().brand<'WebFetchCallSiteRawArg'>(),
-}).brand<'WebFetchCallSite'>();
+export const webFetchCallSiteContract = z
+  .object({
+    method: z.string().brand<'WebFetchCallSiteMethod'>(),
+    rawArg: z.string().brand<'WebFetchCallSiteRawArg'>(),
+  })
+  .brand<'WebFetchCallSite'>();
 
 export type WebFetchCallSite = z.infer<typeof webFetchCallSiteContract>;

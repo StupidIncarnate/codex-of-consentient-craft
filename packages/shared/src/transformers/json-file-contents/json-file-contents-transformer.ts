@@ -11,7 +11,6 @@
  * // Returns branded FileContents: `${JSON.stringify(value, null, 2)}\n`
  */
 
-
 const JSON_FILE_INDENT_SPACES = 2;
 
 export const jsonFileContentsTransformer = ({ value }: { value: unknown }): string =>

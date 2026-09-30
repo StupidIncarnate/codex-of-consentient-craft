@@ -141,7 +141,7 @@ describe('pre-edit-lint', () => {
         },
       ])('$label => returns exit code 0', async ({ baseName, content }) => {
         const testbed = installTestbedCreateBroker({
-          baseName: baseName,
+          baseName,
           baseDir: BASE_DIR,
         });
 
@@ -254,7 +254,7 @@ console.log('test');`,
         },
       ])('$label => returns exit code 2', async ({ baseName, content, expectedPattern }) => {
         const testbed = installTestbedCreateBroker({
-          baseName: baseName,
+          baseName,
           baseDir: BASE_DIR,
         });
 
@@ -510,7 +510,7 @@ console.log('test');`,
         '$label => returns exit code 2',
         async ({ baseName, initialContent, oldString, newString, expectedPattern }) => {
           const testbed = installTestbedCreateBroker({
-            baseName: baseName,
+            baseName,
             baseDir: BASE_DIR,
           });
 
@@ -902,7 +902,7 @@ function test({ param }: { param: any }): void {
       },
     ])('$label', async ({ baseName, fileName, content }) => {
       const testbed = installTestbedCreateBroker({
-        baseName: baseName,
+        baseName,
         baseDir: BASE_DIR,
       });
 

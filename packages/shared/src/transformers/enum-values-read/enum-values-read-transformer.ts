@@ -10,12 +10,7 @@
  */
 import * as ts from '#gateway/npm/typescript';
 
-
-export const enumValuesReadTransformer = ({
-  text,
-}: {
-  text: string;
-}): string[] | undefined => {
+export const enumValuesReadTransformer = ({ text }: { text: string }): string[] | undefined => {
   const [statement] = ts.createSourceFile(
     'enum-values.ts',
     `const chain = ${text};`,
@@ -65,8 +60,6 @@ export const enumValuesReadTransformer = ({
     ts.isStringLiteral(element) ? [element.text] : [],
   );
   return literals.length === argument.elements.length
-    ? literals
-        .sort((left, right) => left.localeCompare(right))
-        .map((value) => value)
+    ? literals.sort((left, right) => left.localeCompare(right)).map((value) => value)
     : undefined;
 };

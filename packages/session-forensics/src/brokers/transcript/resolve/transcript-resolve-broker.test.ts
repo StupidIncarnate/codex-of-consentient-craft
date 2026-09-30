@@ -14,9 +14,7 @@ describe('transcriptResolveBroker', () => {
 
       const result = transcriptResolveBroker({ target: SessionIdStub({ value: 'abc-123' }) });
 
-      expect(result).toBe(
-        '/home/user/.claude/projects/proj-a/abc-123.jsonl',
-      );
+      expect(result).toBe('/home/user/.claude/projects/proj-a/abc-123.jsonl');
     });
 
     it('VALID: {sessionId present in the second of three project dirs} => returns its path', () => {
@@ -38,9 +36,7 @@ describe('transcriptResolveBroker', () => {
         target: SessionIdStub({ value: 'target-session' }),
       });
 
-      expect(result).toBe(
-        '/home/user/.claude/projects/proj-b/target-session.jsonl',
-      );
+      expect(result).toBe('/home/user/.claude/projects/proj-b/target-session.jsonl');
     });
 
     it('EDGE: {project dir with no matching file, another with the match} => skips and continues', () => {
@@ -58,9 +54,7 @@ describe('transcriptResolveBroker', () => {
         target: SessionIdStub({ value: 'target-session' }),
       });
 
-      expect(result).toBe(
-        '/home/user/.claude/projects/proj-match/target-session.jsonl',
-      );
+      expect(result).toBe('/home/user/.claude/projects/proj-match/target-session.jsonl');
     });
 
     it('EDGE: {target starting with agent-, a same-named top-level file exists} => never matches it', () => {

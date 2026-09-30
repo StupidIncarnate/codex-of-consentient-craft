@@ -30,9 +30,7 @@ describe('locationsNodeModulesBinPathFindBroker', () => {
         binName: 'tsc',
       });
 
-      expect(result).toBe(
-        '/repo/packages/web/node_modules/.bin/tsc',
-      );
+      expect(result).toBe('/repo/packages/web/node_modules/.bin/tsc');
     });
   });
 });

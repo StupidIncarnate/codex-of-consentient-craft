@@ -21,11 +21,11 @@ export const questResolveQuestsPathBroker = ({
   const { homePath } = dungeonmasterHomeFindBroker();
 
   const questsPath = join(
-      homePath,
-      dungeonmasterHomeStatics.paths.guildsDir,
-      guildId,
-      dungeonmasterHomeStatics.paths.questsDir,
-    );
+    homePath,
+    dungeonmasterHomeStatics.paths.guildsDir,
+    guildId,
+    dungeonmasterHomeStatics.paths.questsDir,
+  );
 
   return questResolveQuestsPathResultContract.parse({ questsPath });
 };

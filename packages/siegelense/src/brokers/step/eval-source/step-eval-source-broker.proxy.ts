@@ -3,7 +3,6 @@
 // value it resolves to.
 // USAGE: const proxy = stepEvalSourceBrokerProxy(); const { session } = proxy.sessionEvaluating({evaluated: '"ok"'});
 
-
 import { BrowserSessionStub } from '../../../contracts/browser-session/browser-session.stub';
 import type { BrowserSession } from '../../../contracts/browser-session/browser-session-contract';
 

@@ -48,7 +48,7 @@ export const worktreeSeedDistBrokerProxy = (): {
 
   return {
     setupPackagesDirAbsent: ({ repoRoot }: { repoRoot: string }): void => {
-      isAccessibleProxy.missing({ path: `${String(repoRoot)}/packages` });
+      isAccessibleProxy.missing({ path: `${repoRoot}/packages` });
     },
 
     setupPackages: ({
@@ -65,16 +65,16 @@ export const worktreeSeedDistBrokerProxy = (): {
         hasTargetDist: boolean;
       }[];
     }): void => {
-      isAccessibleProxy.present({ path: `${String(repoRoot)}/packages` });
+      isAccessibleProxy.present({ path: `${repoRoot}/packages` });
       readdirProxy.returns({
-        path: `${String(repoRoot)}/packages`,
+        path: `${repoRoot}/packages`,
         entries: packages.map(({ name }) => ({ name, kind: 'directory' as const })),
       });
 
       packages.forEach(({ name, isPackage, hasSourceDist, hasTargetDist }) => {
-        const manifestPath = `${String(repoRoot)}/packages/${name}/package.json`;
-        const sourceDistPath = `${String(repoRoot)}/packages/${name}/dist`;
-        const targetDistPath = `${String(worktreePath)}/packages/${name}/dist`;
+        const manifestPath = `${repoRoot}/packages/${name}/package.json`;
+        const sourceDistPath = `${repoRoot}/packages/${name}/dist`;
+        const targetDistPath = `${worktreePath}/packages/${name}/dist`;
         if (isPackage === false) {
           isAccessibleProxy.missing({ path: manifestPath });
         } else {

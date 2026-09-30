@@ -110,7 +110,7 @@ export const SiegelenseDriverResponder = async ({
       try {
         await bootFailureMarkerWriteBroker({
           evidencePath,
-          message: (bootError instanceof Error ? bootError.message : String(bootError)),
+          message: bootError instanceof Error ? bootError.message : String(bootError),
         });
       } catch (markerWriteError: unknown) {
         stderr.write(
@@ -125,19 +125,20 @@ export const SiegelenseDriverResponder = async ({
   const socketPath = locationsSocketPathFindBroker({ instanceId });
 
   await registryUpdateBroker({
-    mutate: (current) => (registryContract.parse({
-      instances: current.instances.map((row) =>
-        row.id === instanceId
-          ? {
-              ...row,
-              bootedAtMs: Date.now(),
-              pid: String(getPid()),
-              pgids: lane.pgids,
-              socketPath,
-            }
-          : row,
-      ),
-    })),
+    mutate: (current) =>
+      registryContract.parse({
+        instances: current.instances.map((row) =>
+          row.id === instanceId
+            ? {
+                ...row,
+                bootedAtMs: Date.now(),
+                pid: String(getPid()),
+                pgids: lane.pgids,
+                socketPath,
+              }
+            : row,
+        ),
+      }),
   });
 
   await bootLockReleaseBroker({ instanceId });

@@ -28,5 +28,5 @@ export const roleToConfigIndexTransformer = ({
           (f) => f.role === role && f.name === floorName,
         );
 
-  return (index === -1 ? executionFloorConfigStatics.floors.length : index);
+  return index === -1 ? executionFloorConfigStatics.floors.length : index;
 };

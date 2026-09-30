@@ -1,4 +1,8 @@
-import type { GetQuestResult, OrchestrationEventType, Quest as QuestContract } from '@dungeonmaster/shared/contracts';
+import type {
+  GetQuestResult,
+  OrchestrationEventType,
+  Quest as QuestContract,
+} from '@dungeonmaster/shared/contracts';
 import type { QuestStub } from '@dungeonmaster/shared/contracts/quest/quest.stub';
 import { getQuestResultContract, questContract } from '@dungeonmaster/shared/contracts';
 import { stderrProxy } from '#gateway/node/process/stderr/stderr.proxy';

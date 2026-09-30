@@ -22,19 +22,47 @@
 
 import { z } from '#gateway/npm/zod';
 
-
 import { shotOpenReasonContract } from '../shot-open-reason/shot-open-reason-contract';
 import { instanceLifecycleStatics } from '../../statics/instance-lifecycle/instance-lifecycle-statics';
 
-export const shotListingContract = z.object({
-  step: z.number().int().min(instanceLifecycleStatics.numbering.firstStep).brand<'ShotListingStep'>(),
-  path: z.string().min(1).refine((path) => { if (path.startsWith('/')) { return true; } if (/^[A-Za-z]:\\/u.test(path)) { return true; } return false; }, { message: 'Path must be absolute (start with / or C:\\ on Windows)', },).brand<'ShotListingPath'>(),
-  open: z.boolean(),
-  why: shotOpenReasonContract.nullable(),
-  node: z.string().min(1).brand<'ShotListingNode'>().nullable(),
-  pixelChange: z.string().regex(/^\d{1,3}%$/u).brand<'ShotListingPixelChange'>().nullable(),
-  blank: z.boolean().nullable(),
-  blankColour: z.string().regex(/^#[0-9a-f]{6}$/u).brand<'ShotListingBlankColour'>().nullable(),
-}).brand<'ShotListing'>();
+export const shotListingContract = z
+  .object({
+    step: z
+      .number()
+      .int()
+      .min(instanceLifecycleStatics.numbering.firstStep)
+      .brand<'ShotListingStep'>(),
+    path: z
+      .string()
+      .min(1)
+      .refine(
+        (path) => {
+          if (path.startsWith('/')) {
+            return true;
+          }
+          if (/^[A-Za-z]:\\/u.test(path)) {
+            return true;
+          }
+          return false;
+        },
+        { message: 'Path must be absolute (start with / or C:\\ on Windows)' },
+      )
+      .brand<'ShotListingPath'>(),
+    open: z.boolean(),
+    why: shotOpenReasonContract.nullable(),
+    node: z.string().min(1).brand<'ShotListingNode'>().nullable(),
+    pixelChange: z
+      .string()
+      .regex(/^\d{1,3}%$/u)
+      .brand<'ShotListingPixelChange'>()
+      .nullable(),
+    blank: z.boolean().nullable(),
+    blankColour: z
+      .string()
+      .regex(/^#[0-9a-f]{6}$/u)
+      .brand<'ShotListingBlankColour'>()
+      .nullable(),
+  })
+  .brand<'ShotListing'>();
 
 export type ShotListing = z.infer<typeof shotListingContract>;

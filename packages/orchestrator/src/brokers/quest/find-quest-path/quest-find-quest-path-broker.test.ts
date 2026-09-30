@@ -281,7 +281,7 @@ describe('questFindQuestPathBroker', () => {
         guilds: [
           {
             dirName: guildId,
-            questsDirPath: questsDirPath,
+            questsDirPath,
             probe: {
               questFolderPath: `${questsDirPath}/${String(questId)}`,
               questFilePath: `${questsDirPath}/${String(questId)}/quest.json`,
@@ -359,7 +359,7 @@ describe('questFindQuestPathBroker', () => {
         guilds: [
           {
             dirName: guildId,
-            questsDirPath: questsDirPath,
+            questsDirPath,
             // A folder whose NAME is the id we want, holding a file that records another one.
             // The probe must not trust the name.
             probe: {
@@ -404,7 +404,7 @@ describe('questFindQuestPathBroker', () => {
         guilds: [
           {
             dirName: guildId,
-            questsDirPath: questsDirPath,
+            questsDirPath,
             questFolders: [
               {
                 folderName: '001-odd',

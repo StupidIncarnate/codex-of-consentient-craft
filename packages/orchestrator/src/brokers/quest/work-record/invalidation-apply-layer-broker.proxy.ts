@@ -17,7 +17,7 @@ export const invalidationApplyLayerBrokerProxy = (): {
     getPersistedQuests: (): readonly unknown[] =>
       persistMock.callsMatching([]).map((call) => {
         const [params] = call as [Parameters<typeof questPersistBroker>[0]];
-        return JSON.parse(String(params.contents)) as unknown;
+        return JSON.parse(params.contents) as unknown;
       }),
   };
 };

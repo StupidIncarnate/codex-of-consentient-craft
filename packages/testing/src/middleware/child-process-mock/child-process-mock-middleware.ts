@@ -41,14 +41,8 @@ export const childProcessMockMiddleware = (): {
     restore: () => void;
   };
   presets: {
-    success: (params: {
-      stdout?: string;
-      code?: number;
-    }) => MockProcessBehavior;
-    failure: (params: {
-      stderr?: string;
-      code?: number;
-    }) => MockProcessBehavior;
+    success: (params: { stdout?: string; code?: number }) => MockProcessBehavior;
+    failure: (params: { stderr?: string; code?: number }) => MockProcessBehavior;
     crash: (params: { error?: Error }) => MockProcessBehavior;
     eslintCrash: () => MockProcessBehavior;
     timeout: (params: { delay?: number | undefined }) => MockProcessBehavior;
@@ -128,13 +122,14 @@ export const childProcessMockMiddleware = (): {
     }: {
       stdout?: string;
       code?: number;
-    } = {}): MockProcessBehavior => mockProcessBehaviorContract.parse({
-      result: {
-        code: code ?? 0,
-        stdout: stdout ?? '',
-        stderr: '',
-      },
-    }),
+    } = {}): MockProcessBehavior =>
+      mockProcessBehaviorContract.parse({
+        result: {
+          code: code ?? 0,
+          stdout: stdout ?? '',
+          stderr: '',
+        },
+      }),
 
     failure: ({
       stderr,
@@ -142,34 +137,38 @@ export const childProcessMockMiddleware = (): {
     }: {
       stderr?: string;
       code?: number;
-    } = {}): MockProcessBehavior => mockProcessBehaviorContract.parse({
-      result: {
-        code: code ?? 1,
-        stdout: '',
-        stderr: stderr ?? 'Process failed',
-      },
-    }),
+    } = {}): MockProcessBehavior =>
+      mockProcessBehaviorContract.parse({
+        result: {
+          code: code ?? 1,
+          stdout: '',
+          stderr: stderr ?? 'Process failed',
+        },
+      }),
 
-    crash: ({ error }: { error?: Error } = {}): MockProcessBehavior => mockProcessBehaviorContract.parse({
-      shouldThrow: true,
-      throwError: error ?? new Error('spawn ENOENT'),
-    }),
+    crash: ({ error }: { error?: Error } = {}): MockProcessBehavior =>
+      mockProcessBehaviorContract.parse({
+        shouldThrow: true,
+        throwError: error ?? new Error('spawn ENOENT'),
+      }),
 
-    eslintCrash: (): MockProcessBehavior => mockProcessBehaviorContract.parse({
-      result: {
-        code: 0,
-        stdout: '',
-        stderr: 'Oops! Something went wrong!',
-      },
-    }),
+    eslintCrash: (): MockProcessBehavior =>
+      mockProcessBehaviorContract.parse({
+        result: {
+          code: 0,
+          stdout: '',
+          stderr: 'Oops! Something went wrong!',
+        },
+      }),
 
-    timeout: ({ delay }: { delay?: number | undefined } = {}): MockProcessBehavior => mockProcessBehaviorContract.parse({
-      delay: delay ?? 0,
-      result: {
-        code: 1,
-        stdout: '',
-        stderr: 'Timeout',
-      },
-    }),
+    timeout: ({ delay }: { delay?: number | undefined } = {}): MockProcessBehavior =>
+      mockProcessBehaviorContract.parse({
+        delay: delay ?? 0,
+        result: {
+          code: 1,
+          stdout: '',
+          stderr: 'Timeout',
+        },
+      }),
   },
 });

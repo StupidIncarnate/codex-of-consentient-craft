@@ -1,4 +1,3 @@
-
 import { runIndexComputeTransformer } from './run-index-compute-transformer';
 
 const consoleLine = ({ type }: { type: string }): string =>
@@ -6,23 +5,23 @@ const consoleLine = ({ type }: { type: string }): string =>
 
 const pageErrorLine = (): string =>
   JSON.stringify({
-      at: 1,
-      kind: 'pageerror',
-      type: 'TypeError',
-      text: 'boom',
-      stack: null,
-    });
+    at: 1,
+    kind: 'pageerror',
+    type: 'TypeError',
+    text: 'boom',
+    stack: null,
+  });
 
 const networkLine = ({ status }: { status: number | null }): string =>
   JSON.stringify({
-      at: 1,
-      method: 'GET',
-      url: '/x',
-      resourceType: 'fetch',
-      status,
-      requestBody: null,
-      responseBody: 'ok',
-    });
+    at: 1,
+    method: 'GET',
+    url: '/x',
+    resourceType: 'fetch',
+    status,
+    requestBody: null,
+    responseBody: 'ok',
+  });
 
 describe('runIndexComputeTransformer', () => {
   describe('empty window', () => {
@@ -99,10 +98,7 @@ describe('runIndexComputeTransformer', () => {
       const result = runIndexComputeTransformer({
         consoleLines: [],
         networkLines: [],
-        serverLines: [
-          '[api] listening on 5051',
-          '[api] Error: connection refused',
-        ],
+        serverLines: ['[api] listening on 5051', '[api] Error: connection refused'],
       });
 
       expect(result.server).toStrictEqual({ errors: 1 });

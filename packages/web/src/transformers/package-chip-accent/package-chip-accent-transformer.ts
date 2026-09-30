@@ -28,5 +28,5 @@ export const packageChipAccentTransformer = ({
   const matched = Object.entries(packageTypeStyleStatics.accent).find(
     ([kind]) => kind === String(packageType),
   );
-  return (matched?.[1] ?? packageTypeStyleStatics.unresolved);
+  return matched?.[1] ?? packageTypeStyleStatics.unresolved;
 };

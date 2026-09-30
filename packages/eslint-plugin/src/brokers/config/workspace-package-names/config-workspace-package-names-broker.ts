@@ -18,11 +18,7 @@ import { workspaceRootFindBroker } from '../../workspace-root/find/workspace-roo
 import { workspaceRootPackageJsonContract } from '../../../contracts/workspace-root-package-json/workspace-root-package-json-contract';
 import { resolveWorkspaceGlobLayerBroker } from './resolve-workspace-glob-layer-broker';
 
-export const configWorkspacePackageNamesBroker = ({
-  startDir,
-}: {
-  startDir: string;
-}): string[] => {
+export const configWorkspacePackageNamesBroker = ({ startDir }: { startDir: string }): string[] => {
   const workspaceRoot = workspaceRootFindBroker({ startDir });
 
   if (workspaceRoot === undefined) {

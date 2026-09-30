@@ -80,7 +80,7 @@ export const questMonitorJsonlWatcherBrokerProxy = (): {
       error: Error;
     }): void => {
       scanLayerProxy.setupSubagentDirMissing({
-        subagentsDir: resolveSubagentsDir({ sessionFilePath: String(sessionFilePath) }),
+        subagentsDir: resolveSubagentsDir({ sessionFilePath: sessionFilePath }),
         error,
       });
     },

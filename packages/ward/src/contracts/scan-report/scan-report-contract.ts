@@ -12,9 +12,11 @@ import { z } from '#gateway/npm/zod';
 
 import { scanPackageResultContract } from '../scan-package-result/scan-package-result-contract';
 
-export const scanReportContract = z.object({
-  rule: z.string().min(1).regex(/^\S+$/u).brand<'ScanReportRule'>(),
-  packages: z.array(scanPackageResultContract),
-}).brand<'ScanReport'>();
+export const scanReportContract = z
+  .object({
+    rule: z.string().min(1).regex(/^\S+$/u).brand<'ScanReportRule'>(),
+    packages: z.array(scanPackageResultContract),
+  })
+  .brand<'ScanReport'>();
 
 export type ScanReport = z.infer<typeof scanReportContract>;

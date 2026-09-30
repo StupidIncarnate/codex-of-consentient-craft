@@ -36,7 +36,7 @@ export const storageLoadBroker = async ({
   }
 
   try {
-    const entries = await readdirIfExists(String(wardDir));
+    const entries = await readdirIfExists(wardDir);
     if (entries === null) {
       return null;
     }
@@ -47,8 +47,9 @@ export const storageLoadBroker = async ({
       .filter((entry) => entry.startsWith(RUN_FILE_PREFIX) && entry.endsWith(RUN_FILE_SUFFIX))
       .filter(
         (entry) =>
-          wardRunResultContract.shape.runId.safeParse(entry.slice(RUN_FILE_PREFIX.length, -RUN_FILE_SUFFIX.length))
-            .success,
+          wardRunResultContract.shape.runId.safeParse(
+            entry.slice(RUN_FILE_PREFIX.length, -RUN_FILE_SUFFIX.length),
+          ).success,
       )
       .sort();
 

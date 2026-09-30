@@ -24,19 +24,55 @@ import { z } from '#gateway/npm/zod';
 
 import { siegeInstanceContract } from '@dungeonmaster/shared/contracts';
 
-const laneManifestLogEntry = z.object({
-  path: z.string().min(1).refine((path) => { if (path.startsWith('/')) { return true; } if (/^[A-Za-z]:\\/u.test(path)) { return true; } return false; }, { message: 'Path must be absolute (start with / or C:\\ on Windows)', },).brand<'LaneManifestLogEntryPath'>(),
-  linkPresent: z.boolean(),
-}).brand<'LaneManifestLogEntry'>();
+const laneManifestLogEntry = z
+  .object({
+    path: z
+      .string()
+      .min(1)
+      .refine(
+        (path) => {
+          if (path.startsWith('/')) {
+            return true;
+          }
+          if (/^[A-Za-z]:\\/u.test(path)) {
+            return true;
+          }
+          return false;
+        },
+        { message: 'Path must be absolute (start with / or C:\\ on Windows)' },
+      )
+      .brand<'LaneManifestLogEntryPath'>(),
+    linkPresent: z.boolean(),
+  })
+  .brand<'LaneManifestLogEntry'>();
 
-export const laneManifestReadingContract = z.object({
-  instanceId: siegeInstanceContract.shape.id,
-  baseUrl: z.string().min(1).brand<'LaneManifestReadingBaseUrl'>().nullable(),
-  // `instanceStartBroker` never sets this field on its returned manifest today, so it arrives as
-  // `undefined` rather than an explicit `null` — `.optional()`, not `.nullable()`.
-  apiUrl: z.string().min(1).brand<'LaneManifestReadingApiUrl'>().optional(),
-  home: z.string().min(1).refine((path) => { if (path.startsWith('/')) { return true; } if (/^[A-Za-z]:\\/u.test(path)) { return true; } return false; }, { message: 'Path must be absolute (start with / or C:\\ on Windows)', },).brand<'LaneManifestReadingHome'>(),
-  logs: z.object({ api: laneManifestLogEntry, web: laneManifestLogEntry }).brand<'LaneManifestReadingLogs'>(),
-}).brand<'LaneManifestReading'>();
+export const laneManifestReadingContract = z
+  .object({
+    instanceId: siegeInstanceContract.shape.id,
+    baseUrl: z.string().min(1).brand<'LaneManifestReadingBaseUrl'>().nullable(),
+    // `instanceStartBroker` never sets this field on its returned manifest today, so it arrives as
+    // `undefined` rather than an explicit `null` — `.optional()`, not `.nullable()`.
+    apiUrl: z.string().min(1).brand<'LaneManifestReadingApiUrl'>().optional(),
+    home: z
+      .string()
+      .min(1)
+      .refine(
+        (path) => {
+          if (path.startsWith('/')) {
+            return true;
+          }
+          if (/^[A-Za-z]:\\/u.test(path)) {
+            return true;
+          }
+          return false;
+        },
+        { message: 'Path must be absolute (start with / or C:\\ on Windows)' },
+      )
+      .brand<'LaneManifestReadingHome'>(),
+    logs: z
+      .object({ api: laneManifestLogEntry, web: laneManifestLogEntry })
+      .brand<'LaneManifestReadingLogs'>(),
+  })
+  .brand<'LaneManifestReading'>();
 
 export type LaneManifestReading = z.infer<typeof laneManifestReadingContract>;

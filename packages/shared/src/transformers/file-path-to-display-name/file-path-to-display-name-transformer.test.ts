@@ -23,9 +23,7 @@ describe('filePathToDisplayNameTransformer', () => {
       const packageSrcPath = '/repo/packages/server/src';
       const result = filePathToDisplayNameTransformer({ filePath, packageSrcPath });
 
-      expect(result).toBe(
-        'responders/quest/start/quest-start-responder',
-      );
+      expect(result).toBe('responders/quest/start/quest-start-responder');
     });
   });
 
@@ -35,9 +33,7 @@ describe('filePathToDisplayNameTransformer', () => {
       const packageSrcPath = '/repo/packages/server/src';
       const result = filePathToDisplayNameTransformer({ filePath, packageSrcPath });
 
-      expect(result).toBe(
-        '/other/packages/shared/src/adapters/foo/foo-adapter',
-      );
+      expect(result).toBe('/other/packages/shared/src/adapters/foo/foo-adapter');
     });
   });
 

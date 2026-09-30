@@ -64,9 +64,7 @@ export const grepHitsCapTransformer = ({
     const lastDropped = run[run.length - 1];
 
     if (droppedFromRun > 0 && firstDropped !== undefined && lastDropped !== undefined) {
-      runLines.push(
-        `… ${droppedFromRun} more lines (:${firstDropped.line}-:${lastDropped.line})`,
-      );
+      runLines.push(`… ${droppedFromRun} more lines (:${firstDropped.line}-:${lastDropped.line})`);
     }
   }
 
@@ -77,13 +75,10 @@ export const grepHitsCapTransformer = ({
   // The kept slice can hold run markers as well as hit lines, so the per-file count is measured
   // against the hit lines actually shown rather than against the slice length.
   const keptLines = runLines.slice(0, maxFileLines);
-  const shownHitLines = keptLines.filter((line) => String(line).startsWith(':')).length;
+  const shownHitLines = keptLines.filter((line) => line.startsWith(':')).length;
 
   return cappedGrepHitsContract.parse({
     labelSuffix: '',
-    lines: [
-      ...keptLines,
-      `… ${hits.length - shownHitLines} more matching lines in this file`,
-    ],
+    lines: [...keptLines, `… ${hits.length - shownHitLines} more matching lines in this file`],
   });
 };

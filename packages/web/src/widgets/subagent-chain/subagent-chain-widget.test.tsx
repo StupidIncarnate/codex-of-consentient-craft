@@ -1334,12 +1334,7 @@ describe('SubagentChainWidget', () => {
         });
 
         mantineRenderMiddleware({
-          ui: (
-            <SubagentChainWidget
-              group={group}
-              now={'2026-09-10T10:04:00.000Z'}
-            />
-          ),
+          ui: <SubagentChainWidget group={group} now={'2026-09-10T10:04:00.000Z'} />,
         });
 
         expect(proxy.getHeaderChildTexts()).toStrictEqual([
@@ -1363,12 +1358,7 @@ describe('SubagentChainWidget', () => {
         });
 
         mantineRenderMiddleware({
-          ui: (
-            <SubagentChainWidget
-              group={group}
-              now={'2026-09-10T10:04:00.000Z'}
-            />
-          ),
+          ui: <SubagentChainWidget group={group} now={'2026-09-10T10:04:00.000Z'} />,
         });
 
         expect(proxy.getHeaderDescriptionFlexStyle()).toStrictEqual({
@@ -1390,12 +1380,7 @@ describe('SubagentChainWidget', () => {
         });
 
         mantineRenderMiddleware({
-          ui: (
-            <SubagentChainWidget
-              group={group}
-              now={'2026-09-10T10:04:00.000Z'}
-            />
-          ),
+          ui: <SubagentChainWidget group={group} now={'2026-09-10T10:04:00.000Z'} />,
         });
 
         const style = proxy.getDurationStyle();
@@ -1414,12 +1399,7 @@ describe('SubagentChainWidget', () => {
         const group = SubagentChainGroupStub({ taskToolUse: null, taskNotification: null });
 
         mantineRenderMiddleware({
-          ui: (
-            <SubagentChainWidget
-              group={group}
-              now={'2026-09-10T10:04:00.000Z'}
-            />
-          ),
+          ui: <SubagentChainWidget group={group} now={'2026-09-10T10:04:00.000Z'} />,
         });
 
         expect(proxy.getDurationTexts()).toStrictEqual([]);
@@ -1430,12 +1410,7 @@ describe('SubagentChainWidget', () => {
         const group = SubagentChainGroupStub({ taskToolUse: null, taskNotification: null });
 
         mantineRenderMiddleware({
-          ui: (
-            <SubagentChainWidget
-              group={group}
-              now={'2026-09-10T10:04:00.000Z'}
-            />
-          ),
+          ui: <SubagentChainWidget group={group} now={'2026-09-10T10:04:00.000Z'} />,
         });
 
         expect(screen.queryByTestId('subagent-chain-duration')).toBe(null);
@@ -1528,12 +1503,7 @@ describe('SubagentChainWidget', () => {
         });
 
         mantineRenderMiddleware({
-          ui: (
-            <SubagentChainWidget
-              group={group}
-              now={'2026-09-10T10:04:30.000Z'}
-            />
-          ),
+          ui: <SubagentChainWidget group={group} now={'2026-09-10T10:04:30.000Z'} />,
         });
 
         expect(proxy.getDurationTexts()).toStrictEqual(['4m']);
@@ -1550,12 +1520,7 @@ describe('SubagentChainWidget', () => {
         });
 
         mantineRenderMiddleware({
-          ui: (
-            <SubagentChainWidget
-              group={group}
-              now={'2026-09-10T10:00:30.000Z'}
-            />
-          ),
+          ui: <SubagentChainWidget group={group} now={'2026-09-10T10:00:30.000Z'} />,
         });
 
         expect(proxy.getDurationTexts()).toStrictEqual(['<1m']);
@@ -1607,12 +1572,7 @@ describe('SubagentChainWidget', () => {
         });
 
         mantineRenderMiddleware({
-          ui: (
-            <SubagentChainWidget
-              group={group}
-              now={'2026-09-10T10:04:00.000Z'}
-            />
-          ),
+          ui: <SubagentChainWidget group={group} now={'2026-09-10T10:04:00.000Z'} />,
         });
 
         expect(proxy.getDurationTexts()).toStrictEqual(['4m']);
@@ -1641,12 +1601,7 @@ describe('SubagentChainWidget', () => {
         });
 
         mantineRenderMiddleware({
-          ui: (
-            <SubagentChainWidget
-              group={outer}
-              now={'2026-09-10T10:04:00.000Z'}
-            />
-          ),
+          ui: <SubagentChainWidget group={outer} now={'2026-09-10T10:04:00.000Z'} />,
         });
 
         expect(proxy.getDurationTexts()).toStrictEqual(['4m', '2m']);
@@ -1684,12 +1639,7 @@ describe('SubagentChainWidget', () => {
         });
 
         mantineRenderMiddleware({
-          ui: (
-            <SubagentChainWidget
-              group={outer}
-              now={'2026-09-10T10:04:00.000Z'}
-            />
-          ),
+          ui: <SubagentChainWidget group={outer} now={'2026-09-10T10:04:00.000Z'} />,
         });
 
         expect(proxy.getDurationTexts()).toStrictEqual(['4m', '3m', '2m']);
@@ -1720,12 +1670,7 @@ describe('SubagentChainWidget', () => {
         });
 
         mantineRenderMiddleware({
-          ui: (
-            <SubagentChainWidget
-              group={outer}
-              now={'2026-09-10T10:04:00.000Z'}
-            />
-          ),
+          ui: <SubagentChainWidget group={outer} now={'2026-09-10T10:04:00.000Z'} />,
         });
 
         expect(proxy.getDurationTexts()).toStrictEqual(['4m', '10m']);

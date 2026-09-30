@@ -52,8 +52,7 @@ export const usageLedgerCalibrateBroker = async ({
   const previous = window === 'seven-day' ? ledger.ceilings.sevenDay : ledger.ceilings.fiveHour;
   // Re-parsed rather than handed straight through: Math.max returns a plain number and drops the
   // WeightedTokens brand, so the contract is what puts it back.
-  const ceiling =
-    previous === null ? observed : Math.max(previous, observed);
+  const ceiling = previous === null ? observed : Math.max(previous, observed);
 
   return usageLedgerWriteBroker({
     ledger: usageLedgerContract.parse({

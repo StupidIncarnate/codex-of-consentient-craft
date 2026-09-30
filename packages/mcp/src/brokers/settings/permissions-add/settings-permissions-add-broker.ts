@@ -57,18 +57,10 @@ export const settingsPermissionsAddBroker = async ({
   // its non-UI walks read a real status and body with (a headless child has no interactive
   // approver, so an ungranted command is denied outright rather than prompted).
   const managedPermissions: string[] = [
-    ...mcpPermissionsCreatorTransformer().map((permission) =>
-      permission,
-    ),
-    ...agentGitPermissionsStatics.allow.map((permission) =>
-      permission,
-    ),
-    ...agentBrowserPermissionsStatics.allow.map((permission) =>
-      permission,
-    ),
-    ...agentQaPermissionsStatics.allow.map((permission) =>
-      permission,
-    ),
+    ...mcpPermissionsCreatorTransformer().map((permission) => permission),
+    ...agentGitPermissionsStatics.allow.map((permission) => permission),
+    ...agentBrowserPermissionsStatics.allow.map((permission) => permission),
+    ...agentQaPermissionsStatics.allow.map((permission) => permission),
   ];
   const managedPermissionsSet = new Set<string>(managedPermissions);
 

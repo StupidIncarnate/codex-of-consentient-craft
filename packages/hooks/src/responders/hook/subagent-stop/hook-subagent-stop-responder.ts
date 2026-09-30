@@ -31,7 +31,7 @@ export const HookSubagentStopResponder = async ({
   // For SubagentStop, `transcript_path` is the PARENT session transcript; the stopping
   // sub-agent's OWN transcript (where its get-agent-prompt + signal-back calls live) is
   // `agent_transcript_path`. Read that; fall back to transcript_path only if absent.
-  const transcriptPath = (parseResult.data.agent_transcript_path ?? parseResult.data.transcript_path);
+  const transcriptPath = parseResult.data.agent_transcript_path ?? parseResult.data.transcript_path;
 
   const transcript = await readFile(transcriptPath).catch(() => null);
 

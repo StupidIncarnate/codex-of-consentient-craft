@@ -45,13 +45,13 @@ export const cliBinToAnnotationsLayerBroker = ({
     const lastSlash = pkgName.lastIndexOf('/');
     const binName = lastSlash === -1 ? pkgName : pkgName.slice(lastSlash + 1);
     binEntries.push({
-      binName: binName,
+      binName,
       binPath: rawBin,
     });
   } else {
     for (const [binName, binPath] of Object.entries(rawBin)) {
       binEntries.push({
-        binName: binName,
+        binName,
         binPath: String(binPath),
       });
     }
@@ -60,7 +60,7 @@ export const cliBinToAnnotationsLayerBroker = ({
   for (const { binName, binPath } of binEntries) {
     const startupPath = hookStartupSrcPathResolveTransformer({ binPath, packageRoot });
     if (startupPath === undefined) continue;
-    const suffix = `[bin: ${String(binName)}]`;
+    const suffix = `[bin: ${binName}]`;
     result.set(startupPath, responderAnnotationContract.parse({ suffix, childLines: [] }));
   }
 

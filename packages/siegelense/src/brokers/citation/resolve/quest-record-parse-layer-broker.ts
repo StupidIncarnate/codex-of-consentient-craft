@@ -19,7 +19,6 @@ import type { QuestRecordParseLayerResult } from '../../../contracts/quest-recor
 import { questContract } from '@dungeonmaster/shared/contracts';
 import type { SiegeInstance } from '@dungeonmaster/shared/contracts';
 
-
 export const questRecordParseLayerBroker = ({
   contents,
   questFilePath,
@@ -30,15 +29,16 @@ export const questRecordParseLayerBroker = ({
   instanceId: SiegeInstance['id'];
 }): QuestRecordParseLayerResult => {
   try {
-    const parsed = questContract.safeParse(JSON.parse(String(contents)));
+    const parsed = questContract.safeParse(JSON.parse(contents));
 
     if (!parsed.success) {
       return questRecordParseLayerResultContract.parse({
         quest: null,
-        blocked: (`the quest record at ${questFilePath} did not parse, so whether it still cites ` +
-            `${instanceId} cannot be established: ${parsed.error.issues
-              .map((issue) => issue.message)
-              .join('; ')}`),
+        blocked:
+          `the quest record at ${questFilePath} did not parse, so whether it still cites ` +
+          `${instanceId} cannot be established: ${parsed.error.issues
+            .map((issue) => issue.message)
+            .join('; ')}`,
       });
     }
 
@@ -46,8 +46,9 @@ export const questRecordParseLayerBroker = ({
   } catch (error: unknown) {
     return questRecordParseLayerResultContract.parse({
       quest: null,
-      blocked: (`the quest record at ${questFilePath} is not readable JSON, so whether it still cites ` +
-          `${instanceId} cannot be established: ${String(error)}`),
+      blocked:
+        `the quest record at ${questFilePath} is not readable JSON, so whether it still cites ` +
+        `${instanceId} cannot be established: ${String(error)}`,
     });
   }
 };

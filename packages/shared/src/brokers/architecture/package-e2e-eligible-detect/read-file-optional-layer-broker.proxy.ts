@@ -5,26 +5,14 @@ const isAbsolutePath = (value: unknown): boolean =>
   typeof value === 'string' && value.startsWith('/');
 
 export const readFileOptionalLayerBrokerProxy = (): {
-  setupReturns: ({
-    filePath,
-    content,
-  }: {
-    filePath: string;
-    content: string;
-  }) => void;
+  setupReturns: ({ filePath, content }: { filePath: string; content: string }) => void;
   setupMissing: ({ filePath }: { filePath: string }) => void;
   setupImplementation: ({ fn }: { fn: (filePath: string) => string }) => void;
 } => {
   const gatewayProxy = readFileSyncProxy();
 
   return {
-    setupReturns: ({
-      filePath,
-      content,
-    }: {
-      filePath: string;
-      content: string;
-    }): void => {
+    setupReturns: ({ filePath, content }: { filePath: string; content: string }): void => {
       gatewayProxy.returns({ path: filePath, contents: content });
     },
 

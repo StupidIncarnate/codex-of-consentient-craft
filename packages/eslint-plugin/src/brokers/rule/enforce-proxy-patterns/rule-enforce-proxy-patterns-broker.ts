@@ -99,7 +99,9 @@ export const ruleEnforceProxyPatternsBroker = (): TSESLint.RuleModule<
 
         // Extract implementation file path by removing .proxy.ts and adding .ts
         // Example: foo-adapter.proxy.ts -> foo-adapter.ts
-        const implementationPathTs = proxyPathToImplementationPathTransformer({ proxyPath: proxyFilePath });
+        const implementationPathTs = proxyPathToImplementationPathTransformer({
+          proxyPath: proxyFilePath,
+        });
 
         // Also check for .tsx extension (React components)
         const implementationPathTsx = tsToTsxPathTransformer({ tsPath: implementationPathTs });
@@ -297,10 +299,7 @@ export const ruleEnforceProxyPatternsBroker = (): TSESLint.RuleModule<
         ) {
           const calleeName = init.callee.name;
           if (calleeName.endsWith('Proxy')) {
-            proxyVariableAssignments.set(
-              id.name,
-              calleeName,
-            );
+            proxyVariableAssignments.set(id.name, calleeName);
           }
         }
       },

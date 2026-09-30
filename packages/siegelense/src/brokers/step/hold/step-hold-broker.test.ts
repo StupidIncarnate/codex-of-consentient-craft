@@ -1,4 +1,3 @@
-
 import { BrowserSessionStub } from '../../../contracts/browser-session/browser-session.stub';
 import { LaneSessionStub } from '../../../contracts/lane-session/lane-session.stub';
 import { stepHoldBroker } from './step-hold-broker';

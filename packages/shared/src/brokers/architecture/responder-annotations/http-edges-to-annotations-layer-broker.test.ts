@@ -15,7 +15,8 @@ const WEB_STATICS = `export const webConfigStatics = {
 } as const;`;
 
 const QUEST_FLOW_PATH = '/repo/packages/server/src/flows/quest/quest-flow.ts';
-const QUEST_START_RESPONDER_PATH = '/repo/packages/server/src/responders/quest/start/quest-start-responder.ts';
+const QUEST_START_RESPONDER_PATH =
+  '/repo/packages/server/src/responders/quest/start/quest-start-responder.ts';
 const QUEST_START_BROKER_PATH = '/repo/packages/web/src/brokers/quest/start/quest-start-broker.ts';
 
 describe('httpEdgesToAnnotationsLayerBroker', () => {

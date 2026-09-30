@@ -1530,10 +1530,7 @@ describe('chatHistoryReplayBroker', () => {
       proxy.setupGuild({ config, sessionId, homeDir: '/home/user' });
       proxy.setupMainSession({ content: [userLine, cwTaskLine, cwResultLine].join('\n') });
       proxy.setupSubagentDir({
-        files: [
-          `agent-${cwRealAgentId}.jsonl`,
-          `agent-${helperRealAgentId}.jsonl`,
-        ],
+        files: [`agent-${cwRealAgentId}.jsonl`, `agent-${helperRealAgentId}.jsonl`],
       });
       // FIFO order must match the files array above: codeweaver stream first, helper stream second.
       proxy.setupSubagentFile({ content: [helperTaskLine, helperResultLine].join('\n') });
@@ -1657,10 +1654,7 @@ describe('chatHistoryReplayBroker', () => {
       proxy.setupGuild({ config, sessionId, homeDir: '/home/user' });
       proxy.setupMainSession({ content: [mainUserLine, aTaskLine, aResultLine].join('\n') });
       proxy.setupSubagentDir({
-        files: [
-          `agent-${aReal}.jsonl`,
-          `agent-${bReal}.jsonl`,
-        ],
+        files: [`agent-${aReal}.jsonl`, `agent-${bReal}.jsonl`],
       });
       // FIFO: agent-realA file content first, agent-realB file content second (matching files order).
       proxy.setupSubagentFile({ content: [bTaskLine, bResultLine].join('\n') });

@@ -14,7 +14,6 @@
  * WHEN-NOT-TO-USE: When the handler uses a non-standard naming convention
  */
 
-
 export const handlerNameToResponderPathTransformer = ({
   handlerName,
   packageSrcPath,
@@ -23,7 +22,7 @@ export const handlerNameToResponderPathTransformer = ({
   packageSrcPath: string;
 }): string => {
   // Convert PascalCase to kebab-case: ArchitectureHandleResponder → architecture-handle-responder
-  const kebab = String(handlerName)
+  const kebab = handlerName
     .replace(/([A-Z])/gu, '-$1')
     .toLowerCase()
     .replace(/^-/u, '');
@@ -32,6 +31,6 @@ export const handlerNameToResponderPathTransformer = ({
   const handleIdx = kebab.indexOf('-handle-');
   const domain = handleIdx === -1 ? kebab : kebab.slice(0, handleIdx);
 
-  const filePath = `${String(packageSrcPath)}/responders/${domain}/handle/${kebab}.ts`;
+  const filePath = `${packageSrcPath}/responders/${domain}/handle/${kebab}.ts`;
   return filePath;
 };

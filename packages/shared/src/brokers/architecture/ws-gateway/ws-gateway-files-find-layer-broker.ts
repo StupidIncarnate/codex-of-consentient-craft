@@ -34,7 +34,7 @@ export const wsGatewayFilesFindLayerBroker = ({
 }): string[] => {
   if (wsServerAdapters.length === 0) return [];
 
-  const root = String(projectRoot);
+  const root = projectRoot;
   const packagesDir = `${root}/${PACKAGES_REL}`;
   const allFiles = listTsFilesLayerBroker({ dirPath: packagesDir });
 
@@ -44,7 +44,7 @@ export const wsGatewayFilesFindLayerBroker = ({
   for (const filePath of allFiles) {
     if (!isNonTestFileGuard({ filePath })) continue;
     // Skip adapter files — the gateway is the higher-layer file consuming an adapter.
-    if (String(filePath).includes(ADAPTERS_PATH_SEGMENT)) continue;
+    if (filePath.includes(ADAPTERS_PATH_SEGMENT)) continue;
     const source = readFileLayerBroker({ filePath });
     if (source === undefined) continue;
     const imports = importStatementsExtractTransformer({ source });

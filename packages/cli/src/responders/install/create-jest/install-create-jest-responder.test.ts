@@ -10,10 +10,12 @@ describe('InstallCreateJestResponder', () => {
       proxy.setupFileNotExists({ filePath: '/project/jest.config.js' });
 
       const result = await proxy.callResponder({
-        context: InstallContextStub({ value: {
-          targetProjectRoot: '/project',
-          dungeonmasterRoot: '/dm-root',
-        } }),
+        context: InstallContextStub({
+          value: {
+            targetProjectRoot: '/project',
+            dungeonmasterRoot: '/dm-root',
+          },
+        }),
       });
 
       expect(result).toStrictEqual({
@@ -37,10 +39,12 @@ describe('InstallCreateJestResponder', () => {
       proxy.setupFileExists({ filePath: '/project/jest.config.js' });
 
       const result = await proxy.callResponder({
-        context: InstallContextStub({ value: {
-          targetProjectRoot: '/project',
-          dungeonmasterRoot: '/dm-root',
-        } }),
+        context: InstallContextStub({
+          value: {
+            targetProjectRoot: '/project',
+            dungeonmasterRoot: '/dm-root',
+          },
+        }),
       });
 
       expect(result).toStrictEqual({
@@ -61,10 +65,12 @@ describe('InstallCreateJestResponder', () => {
       proxy.setupWorkspacesRoot();
 
       const result = await proxy.callResponder({
-        context: InstallContextStub({ value: {
-          targetProjectRoot: '/project',
-          dungeonmasterRoot: '/dm-root',
-        } }),
+        context: InstallContextStub({
+          value: {
+            targetProjectRoot: '/project',
+            dungeonmasterRoot: '/dm-root',
+          },
+        }),
       });
 
       expect(result).toStrictEqual({

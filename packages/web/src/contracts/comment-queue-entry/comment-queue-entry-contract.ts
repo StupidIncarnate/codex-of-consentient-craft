@@ -9,15 +9,16 @@
 
 import { z } from '#gateway/npm/zod';
 
-
 import { commentAnchorContract } from '../comment-anchor/comment-anchor-contract';
 
-export const commentQueueEntryContract = commentAnchorContract.extend({
-  text: z.string().min(1).brand<'CommentQueueEntryText'>(),
-  // The age of the text as it currently stands, not of the first draft — re-queueing an edited
-  // comment resets this to the edit time, which drives both the 7-day expiry sweep and
-  // newest-first ordering after send.
-  createdAt: z.iso.datetime().brand<'CommentQueueEntryCreatedAt'>(),
-}).brand<'CommentQueueEntry'>();
+export const commentQueueEntryContract = commentAnchorContract
+  .extend({
+    text: z.string().min(1).brand<'CommentQueueEntryText'>(),
+    // The age of the text as it currently stands, not of the first draft — re-queueing an edited
+    // comment resets this to the edit time, which drives both the 7-day expiry sweep and
+    // newest-first ordering after send.
+    createdAt: z.iso.datetime().brand<'CommentQueueEntryCreatedAt'>(),
+  })
+  .brand<'CommentQueueEntry'>();
 
 export type CommentQueueEntry = z.infer<typeof commentQueueEntryContract>;

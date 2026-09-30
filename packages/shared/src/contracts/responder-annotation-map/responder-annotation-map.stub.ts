@@ -30,13 +30,13 @@ export const ResponderAnnotationMapStub = ({
     const [key, value] = item;
     if (key === undefined || value === undefined) continue;
     const suffixInput = value.suffix;
-    initial.set(key, ResponderAnnotationStub({
-      suffix:
-        suffixInput === null || suffixInput === undefined
-          ? null
-          : suffixInput,
-      childLines: (value.childLines ?? []).map((line) => line),
-    }));
+    initial.set(
+      key,
+      ResponderAnnotationStub({
+        suffix: suffixInput === null || suffixInput === undefined ? null : suffixInput,
+        childLines: (value.childLines ?? []).map((line) => line),
+      }),
+    );
   }
   return responderAnnotationMapContract.parse(initial);
 };

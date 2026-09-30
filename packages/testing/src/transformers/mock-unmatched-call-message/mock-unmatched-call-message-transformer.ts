@@ -6,7 +6,6 @@
  * // Returns 'registerMock: nothing set up for the call NAME("/a/other.json"). Calls that ARE set up: ("/a/quest.json")'
  */
 
-
 import type { StagedCall } from '../../contracts/staged-call/staged-call-contract';
 
 export const mockUnmatchedCallMessageTransformer = ({
@@ -19,17 +18,17 @@ export const mockUnmatchedCallMessageTransformer = ({
   staged: StagedCall[];
 }): string =>
   [
-      `registerMock: nothing set up for the call ${name}(`,
-      args
-        .map((value) => (typeof value === 'function' ? '<predicate>' : JSON.stringify(value)))
-        .join(', '),
-      '). Calls that ARE set up: ',
-      staged
-        .map(
-          (entry) =>
-            `(${entry.args
-              .map((value) => (typeof value === 'function' ? '<predicate>' : JSON.stringify(value)))
-              .join(', ')})`,
-        )
-        .join(' | '),
-    ].join('');
+    `registerMock: nothing set up for the call ${name}(`,
+    args
+      .map((value) => (typeof value === 'function' ? '<predicate>' : JSON.stringify(value)))
+      .join(', '),
+    '). Calls that ARE set up: ',
+    staged
+      .map(
+        (entry) =>
+          `(${entry.args
+            .map((value) => (typeof value === 'function' ? '<predicate>' : JSON.stringify(value)))
+            .join(', ')})`,
+      )
+      .join(' | '),
+  ].join('');

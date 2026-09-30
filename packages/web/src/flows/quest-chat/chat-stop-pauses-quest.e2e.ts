@@ -49,7 +49,7 @@ test.describe('Chat STOP pauses quest', () => {
     await sessions.createSessionFile({ sessionId, userMessage: 'Build feature' });
 
     const created = await quests.createQuest({
-      guildId: guildId,
+      guildId,
       title: 'Chat Stop Pauses Quest',
       userRequest: 'Build feature',
     });
@@ -61,8 +61,8 @@ test.describe('Chat STOP pauses quest', () => {
     // which in turn routes the chat STOP button to `questPauseBroker` instead of the
     // generic chat-stop broker.
     await quests.writeQuestFile({
-      questId: questId,
-      questFolder: questFolder,
+      questId,
+      questFolder,
       questFilePath: String(questFilePath),
       status: 'explore_flows',
       workItems: [
@@ -105,7 +105,7 @@ test.describe('Chat STOP pauses quest', () => {
     });
 
     const urlSlug = guilds.extractUrlSlug({ guild });
-    await nav.navigateToQuest({ urlSlug, questId: questId });
+    await nav.navigateToQuest({ urlSlug, questId });
 
     // Wait for quest data + spec panel to appear so questWithContent is truthy.
     await expect(page.getByTestId('QUEST_SPEC_PANEL')).toBeVisible({ timeout: PANEL_TIMEOUT });

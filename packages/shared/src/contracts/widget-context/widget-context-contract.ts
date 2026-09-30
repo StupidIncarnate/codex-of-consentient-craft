@@ -19,12 +19,44 @@ import { httpEdgeContract } from '../http-edge/http-edge-contract';
 import { wsEdgeContract } from '../ws-edge/ws-edge-contract';
 import { widgetTreeResultContract } from '../widget-tree-result/widget-tree-result-contract';
 
-export const widgetContextContract = z.object({
-  widgetTree: widgetTreeResultContract,
-  httpEdges: z.array(httpEdgeContract),
-  wsEdges: z.array(wsEdgeContract),
-  packageRoot: z.string().min(1).refine((path) => { if (path.startsWith('/')) { return true; } if (/^[A-Za-z]:\\/u.test(path)) { return true; } return false; }, { message: 'Path must be absolute (start with / or C:\\ on Windows)', },).brand<'WidgetContextPackageRoot'>(),
-  projectRoot: z.string().min(1).refine((path) => { if (path.startsWith('/')) { return true; } if (/^[A-Za-z]:\\/u.test(path)) { return true; } return false; }, { message: 'Path must be absolute (start with / or C:\\ on Windows)', },).brand<'WidgetContextProjectRoot'>(),
-}).brand<'WidgetContext'>();
+export const widgetContextContract = z
+  .object({
+    widgetTree: widgetTreeResultContract,
+    httpEdges: z.array(httpEdgeContract),
+    wsEdges: z.array(wsEdgeContract),
+    packageRoot: z
+      .string()
+      .min(1)
+      .refine(
+        (path) => {
+          if (path.startsWith('/')) {
+            return true;
+          }
+          if (/^[A-Za-z]:\\/u.test(path)) {
+            return true;
+          }
+          return false;
+        },
+        { message: 'Path must be absolute (start with / or C:\\ on Windows)' },
+      )
+      .brand<'WidgetContextPackageRoot'>(),
+    projectRoot: z
+      .string()
+      .min(1)
+      .refine(
+        (path) => {
+          if (path.startsWith('/')) {
+            return true;
+          }
+          if (/^[A-Za-z]:\\/u.test(path)) {
+            return true;
+          }
+          return false;
+        },
+        { message: 'Path must be absolute (start with / or C:\\ on Windows)' },
+      )
+      .brand<'WidgetContextProjectRoot'>(),
+  })
+  .brand<'WidgetContext'>();
 
 export type WidgetContext = z.infer<typeof widgetContextContract>;

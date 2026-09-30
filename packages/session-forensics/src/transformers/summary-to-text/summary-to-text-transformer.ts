@@ -18,11 +18,7 @@ const TOKEN_LABEL_WIDTH = 25;
 const TOOL_COUNT_WIDTH = 5;
 const SECONDS_PER_MINUTE = 60;
 
-export const summaryToTextTransformer = ({
-  summary,
-}: {
-  summary: TranscriptSummary;
-}): string => {
+export const summaryToTextTransformer = ({ summary }: { summary: TranscriptSummary }): string => {
   const startLine =
     summary.startedAt === undefined
       ? `${'Session started'.padEnd(LABEL_WIDTH)}(nothing in the file was timestamped)`

@@ -617,13 +617,13 @@ describe('runExecuteBroker', () => {
         networkStart: 3,
         newConsoleLines: [
           JSON.stringify({
-              at: 1,
-              kind: 'console',
-              type: 'error',
-              text: 'x',
-              url: '',
-              line: 0,
-            }),
+            at: 1,
+            kind: 'console',
+            type: 'error',
+            text: 'x',
+            url: '',
+            line: 0,
+          }),
         ],
         newNetworkLines: [],
       });
@@ -753,9 +753,7 @@ describe('runExecuteBroker', () => {
         setLastShotPath: proxy.setLastShotPath,
       });
 
-      expect(proxy.bufferAppendCallCountFor({ kind: 'console' })).toStrictEqual(
-        0,
-      );
+      expect(proxy.bufferAppendCallCountFor({ kind: 'console' })).toStrictEqual(0);
     });
   });
 
@@ -870,8 +868,8 @@ describe('runExecuteBroker', () => {
         setLastShotPath: proxy.setLastShotPath,
       });
 
-      const expectedActingShotPath = `${String(evidencePath)}/runs/run_1/step1.png`;
-      const expectedNamedShotPath = `${String(evidencePath)}/runs/run_1/after-create.png`;
+      const expectedActingShotPath = `${evidencePath}/runs/run_1/step1.png`;
+      const expectedNamedShotPath = `${evidencePath}/runs/run_1/after-create.png`;
 
       expect({ status: result.status, stepsRun: result.stepsRun }).toStrictEqual({
         status: 'done',
@@ -884,7 +882,7 @@ describe('runExecuteBroker', () => {
       // The seam: `session.capture` — the actual write — received the SAME two paths RunResult
       // reports, in the same order. Asserting only `result.shots` would still pass if the dispatcher
       // captured to one path but reported another.
-      expect(captureCalls().map((path) => String(path))).toStrictEqual([
+      expect(captureCalls().map((path) => path)).toStrictEqual([
         expectedActingShotPath,
         expectedNamedShotPath,
       ]);
@@ -951,8 +949,8 @@ describe('runExecuteBroker', () => {
         String(firstResult.shots[0]?.path),
         String(secondResult.shots[0]?.path),
       ]).toStrictEqual([
-        `${String(evidencePath)}/runs/run_1/shot.png`,
-        `${String(evidencePath)}/runs/run_2/shot.png`,
+        `${evidencePath}/runs/run_1/shot.png`,
+        `${evidencePath}/runs/run_2/shot.png`,
       ]);
     });
   });
@@ -978,7 +976,7 @@ describe('runExecuteBroker', () => {
         setLastShotPath: proxy.setLastShotPath,
       });
 
-      const expectedShotPath = `${String(proxy.repoLocalEvidencePath())}/runs/run_1/step1.png`;
+      const expectedShotPath = `${proxy.repoLocalEvidencePath()}/runs/run_1/step1.png`;
 
       // The complete string, not a startsWith on a fragment: packages/siegelense/CLAUDE.md's
       // "every path handed back is repo-local, through <repoRoot>/.dungeonmaster-assets/siegelense-assets" is a claim about
@@ -988,7 +986,7 @@ describe('runExecuteBroker', () => {
       // The seam: session.capture — the actual write — landed at the SAME repo-local address
       // RunResult reports. Asserting only result.shots would still pass if the write kept
       // targeting the real home path while only the report was swapped for the repo-local one.
-      expect(captureCalls().map((path) => String(path))).toStrictEqual([expectedShotPath]);
+      expect(captureCalls().map((path) => path)).toStrictEqual([expectedShotPath]);
     });
 
     it('VALID: {no .dungeonmaster-assets/siegelense-assets symlink at the repo root} => the shot path stays the real home-rooted one, unchanged from before this resolution existed', async () => {

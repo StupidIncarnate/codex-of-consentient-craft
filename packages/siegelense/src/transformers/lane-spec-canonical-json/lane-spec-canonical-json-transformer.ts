@@ -14,28 +14,27 @@
  * // Returns a ContentText of canonical JSON, stable across two differently-ordered equivalent specs
  */
 
-
 import type { LaneSpec } from '../../contracts/lane-spec/lane-spec-contract';
 
 export const laneSpecCanonicalJsonTransformer = ({ spec }: { spec: LaneSpec }): string =>
   JSON.stringify({
-      name: spec.name,
-      processes: spec.processes.map((process) => ({
-        name: process.name,
-        command: process.command,
-        args: process.args,
-        portRole: process.portRole,
-        readyPath: process.readyPath,
-        logFileName: process.logFileName,
-        env: Object.fromEntries(
-          Object.entries(process.env).sort(([keyA], [keyB]) =>
-            keyA < keyB ? -1 : keyA > keyB ? 1 : 0,
-          ),
-        ),
-      })),
-      browser: spec.browser,
-      bootTimeoutMs: spec.bootTimeoutMs,
+    name: spec.name,
+    processes: spec.processes.map((process) => ({
+      name: process.name,
+      command: process.command,
+      args: process.args,
+      portRole: process.portRole,
+      readyPath: process.readyPath,
+      logFileName: process.logFileName,
       env: Object.fromEntries(
-        Object.entries(spec.env).sort(([keyA], [keyB]) => (keyA < keyB ? -1 : keyA > keyB ? 1 : 0)),
+        Object.entries(process.env).sort(([keyA], [keyB]) =>
+          keyA < keyB ? -1 : keyA > keyB ? 1 : 0,
+        ),
       ),
-    });
+    })),
+    browser: spec.browser,
+    bootTimeoutMs: spec.bootTimeoutMs,
+    env: Object.fromEntries(
+      Object.entries(spec.env).sort(([keyA], [keyB]) => (keyA < keyB ? -1 : keyA > keyB ? 1 : 0)),
+    ),
+  });

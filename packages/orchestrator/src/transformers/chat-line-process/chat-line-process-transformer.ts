@@ -220,7 +220,10 @@ export const chatLineProcessTransformer = ({
               // record that the child sub-agent's chain key links to this sub-agent's chain
               // key so nested entries can be stamped with parentAgentId.
               if (typeof original.agentId === 'string' && String(original.agentId).length > 0) {
-                parentChainMap.set(toolUseId, agentContract.shape.id.parse(String(original.agentId)));
+                parentChainMap.set(
+                  toolUseId,
+                  agentContract.shape.id.parse(String(original.agentId)),
+                );
               }
               outputs.push(
                 chatLineOutputContract.parse({

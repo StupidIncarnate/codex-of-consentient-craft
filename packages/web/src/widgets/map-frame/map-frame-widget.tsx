@@ -8,13 +8,11 @@
 
 import { Box, Text } from '#gateway/npm/mantine__core';
 
-
-
 import { emberDepthsThemeStatics } from '../../statics/ember-depths-theme/ember-depths-theme-statics';
 import { mapFrameStatics } from '../../statics/map-frame/map-frame-statics';
 
-const defaultMaxWidth = mapFrameStatics.defaultMaxWidth;
-const defaultPadding = mapFrameStatics.defaultPadding;
+const { defaultMaxWidth } = mapFrameStatics;
+const { defaultPadding } = mapFrameStatics;
 
 export interface MapFrameWidgetProps {
   children: React.ReactNode;

@@ -57,8 +57,8 @@ test.describe('Paused quest: pending work items with sessionId stay expandable',
 
     const codeweaverOpId = '00000000-0000-4000-8000-0000000000c2';
     await quests.writeQuestFile({
-      questId: questId,
-      questFolder: questFolder,
+      questId,
+      questFolder,
       questFilePath: String(questFilePath),
       status: 'paused',
       operations: [
@@ -87,7 +87,7 @@ test.describe('Paused quest: pending work items with sessionId stay expandable',
     });
 
     const urlSlug = guilds.extractUrlSlug({ guild });
-    await nav.navigateToQuest({ urlSlug, questId: questId });
+    await nav.navigateToQuest({ urlSlug, questId });
 
     const executionPanel = page.getByTestId('execution-panel-widget');
 

@@ -129,7 +129,13 @@ export const QuestChatResponderProxy = (): {
     }): void => {
       orchestrator.resumeQuestReturns({ questId, resumed, restoredStatus });
     },
-    setupResumeQuestError: ({ questId, message }: { questId: Quest['id']; message: string }): void => {
+    setupResumeQuestError: ({
+      questId,
+      message,
+    }: {
+      questId: Quest['id'];
+      message: string;
+    }): void => {
       orchestrator.resumeQuestThrows({ questId, error: new Error(message) });
     },
     getResumeQuestCalls: (): readonly unknown[] => {

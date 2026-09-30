@@ -66,15 +66,17 @@ export const walkSymlinksLayerBroker = async ({
 
         // Resolved against the LINK'S OWN directory, which is what a relative target means on disk.
         const resolvedTarget = resolve(dirPath, storedTarget);
-        const resolved = String(resolvedTarget);
-        const root = String(worktreePath);
+        const resolved = resolvedTarget;
+        const root = worktreePath;
 
         return [
           {
             linkPath: entryPath,
             storedTarget,
             resolvedTarget,
-            relative: !(storedTarget.startsWith(PATH_SEPARATOR) || storedTarget.startsWith(':\\', 1)),
+            relative: !(
+              storedTarget.startsWith(PATH_SEPARATOR) || storedTarget.startsWith(':\\', 1)
+            ),
             // The trailing separator matters: a bare prefix test would read a sibling worktree
             // named `probe-two` as living inside `probe`.
             inside: resolved === root || resolved.startsWith(`${root}${PATH_SEPARATOR}`),

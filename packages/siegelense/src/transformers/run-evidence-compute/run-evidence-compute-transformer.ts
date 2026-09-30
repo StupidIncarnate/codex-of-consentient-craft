@@ -35,7 +35,11 @@ export const runEvidenceComputeTransformer = ({
     .map((candidate) => siegeRunContract.shape.id.parse(candidate));
 
   if (runIds.length === 0) {
-    return runEvidenceComputeContract.parse({ runCount: 0, latestRunId: null, evidenceComplete: true });
+    return runEvidenceComputeContract.parse({
+      runCount: 0,
+      latestRunId: null,
+      evidenceComplete: true,
+    });
   }
 
   const sortedDescending = [...runIds].sort(

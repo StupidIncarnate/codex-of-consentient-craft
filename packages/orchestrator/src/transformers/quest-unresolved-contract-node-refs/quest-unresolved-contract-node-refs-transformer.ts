@@ -32,9 +32,7 @@ export const questUnresolvedContractNodeRefsTransformer = ({
   for (const contract of contracts) {
     const nodeId = String(contract.nodeId);
     if (!allNodeIds.has(nodeId)) {
-      offenders.push(
-        `contract '${String(contract.name)}' has unresolved nodeId '${nodeId}'`,
-      );
+      offenders.push(`contract '${String(contract.name)}' has unresolved nodeId '${nodeId}'`);
     }
   }
 

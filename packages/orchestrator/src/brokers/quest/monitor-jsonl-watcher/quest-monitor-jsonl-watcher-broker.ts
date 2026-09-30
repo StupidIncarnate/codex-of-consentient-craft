@@ -113,7 +113,7 @@ export const questMonitorJsonlWatcherBroker = ({
   // matching `agent-*.jsonl` get a tail each. Missing directory is non-fatal: the poll
   // tick below retries every second, and `agent-detected` from the main tail is a third
   // path that covers the Task-completion window.
-  const sessionFilePathAbsolute = String(sessionFilePath);
+  const sessionFilePathAbsolute = sessionFilePath;
   const sessionFileNoSuffix = stripJsonlSuffixTransformer({ filePath: sessionFilePathAbsolute });
   const subagentsDir = `${sessionFileNoSuffix}/subagents`;
   // The worker session's own UUID — the basename of the session JSONL minus `.jsonl`.
@@ -164,7 +164,7 @@ export const questMonitorJsonlWatcherBroker = ({
   // (which uses startPosition: 'end' because stdout streaming already emitted everything),
   // the monitor's main JSONL has never been streamed anywhere — every line is new to the
   // web UI from the moment this watcher registers.
-  const mainJsonlPath = String(sessionFilePath);
+  const mainJsonlPath = sessionFilePath;
   const mainHandle = tailFile({
     path: mainJsonlPath,
     // The session JSONL may not exist yet: a node-dispatch worker's sessionId reaches the

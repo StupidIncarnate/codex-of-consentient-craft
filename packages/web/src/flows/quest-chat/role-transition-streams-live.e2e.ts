@@ -103,8 +103,8 @@ test.describe('The role after the carve streams into the execution panel with no
     const { questId, questFolder } = created;
 
     await quests.writeQuestFile({
-      questId: questId,
-      questFolder: questFolder,
+      questId,
+      questFolder,
       questFilePath: String(created.filePath),
       title: 'Role Transition Streaming Quest',
       status: 'in_progress',
@@ -138,14 +138,14 @@ test.describe('The role after the carve streams into the execution panel with no
 
     // ONE navigation, before anything runs, and never again. Everything asserted below has to
     // arrive over the socket this page load opened.
-    await nav.navigateToQuest({ urlSlug, questId: questId });
+    await nav.navigateToQuest({ urlSlug, questId });
 
     const executionPanel = page.getByTestId('execution-panel-widget');
 
     await expect(executionPanel).toBeVisible({ timeout: PANEL_TIMEOUT });
 
     await dispatch.playAndDrive({
-      questId: questId,
+      questId,
       script: [{ role: 'codeweaver', outcome: 'done', text: CODEWEAVER_TEXT }],
       agentLineDelayMs: AGENT_LINE_DELAY_MS,
     });
@@ -155,7 +155,7 @@ test.describe('The role after the carve streams into the execution panel with no
     // it timed out on, where a bare "element not found" cannot say whether the role never ran or
     // ran and never streamed.
     await dispatch.waitForQuest({
-      questId: questId,
+      questId,
       timeoutMs: DISPATCH_TIMEOUT,
       predicate: ({ quest }) =>
         quest.workItems.some(

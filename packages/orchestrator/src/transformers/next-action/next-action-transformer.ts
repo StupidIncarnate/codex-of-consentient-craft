@@ -60,7 +60,13 @@
  * the minted step's `done` returns to the session that asked for it.
  */
 
-import type { Quest, WorkItem, OperationItem, QaChecklistItem, Flow } from '@dungeonmaster/shared/contracts';
+import type {
+  Quest,
+  WorkItem,
+  OperationItem,
+  QaChecklistItem,
+  Flow,
+} from '@dungeonmaster/shared/contracts';
 import { qaChecklistItemContract } from '@dungeonmaster/shared/contracts';
 import { isTerminalWorkItemStatusGuard } from '@dungeonmaster/shared/guards';
 
@@ -170,8 +176,8 @@ export const nextActionTransformer = ({
   // timestamp, so a sort over it is unstable. `unitCurrentMarkTransformer` reads the ledger the same
   // way and for the same reason.
   const lastStepped = [...scopeItems].reverse().find((item) => item.step !== undefined);
-  const step = (lastStepped?.step ?? graph.entry);
-  const node = graph.steps[String(step)];
+  const step = lastStepped?.step ?? graph.entry;
+  const node = graph.steps[step];
 
   if (node === undefined) {
     return nextActionContract.parse({
@@ -181,7 +187,7 @@ export const nextActionTransformer = ({
       step,
       reason: 'unknown-step',
       message:
-        `step \`${String(step)}\` is not declared in family \`${family}\` — ` +
+        `step \`${step}\` is not declared in family \`${family}\` — ` +
         `agentFlowStatics.${family}.steps holds: ${Object.keys(graph.steps).join(', ')}. ` +
         `The step-name contract is free-form so a quest.json naming a retired step still loads; ` +
         `dispatch is the only place it may fail.`,
@@ -189,7 +195,7 @@ export const nextActionTransformer = ({
   }
 
   const stepItems = scopeItems.filter(
-    (item) => item.step !== undefined && String(item.step) === String(step),
+    (item) => item.step !== undefined && String(item.step) === step,
   );
   const terminalStepItems = stepItems.filter((item) =>
     isTerminalWorkItemStatusGuard({ status: item.status }),
@@ -212,7 +218,7 @@ export const nextActionTransformer = ({
 
   // --- QUESTION 1: did this step REQUEST another step?
   if (request !== undefined) {
-    const requestedNode = graph.steps[String(request.step)];
+    const requestedNode = graph.steps[request.step];
 
     if (requestedNode === undefined) {
       return nextActionContract.parse({
@@ -222,7 +228,7 @@ export const nextActionTransformer = ({
         step: request.step,
         reason: 'unknown-step',
         message:
-          `step \`${String(request.step)}\` is not declared in family \`${family}\` — ` +
+          `step \`${request.step}\` is not declared in family \`${family}\` — ` +
           `agentFlowStatics.${family}.steps holds: ${Object.keys(graph.steps).join(', ')}. ` +
           `The step-name contract is free-form so a quest.json naming a retired step still loads; ` +
           `dispatch is the only place it may fail.`,
@@ -351,7 +357,7 @@ export const nextActionTransformer = ({
   );
   const hasUnstartedHere = (plan?.batches ?? []).some((planBatch) =>
     planBatch.pieces.some(
-      (piece) => String(piece.step) === String(step) && !startedPieceIds.has(String(piece.id)),
+      (piece) => String(piece.step) === step && !startedPieceIds.has(String(piece.id)),
     ),
   );
 
@@ -437,7 +443,7 @@ export const nextActionTransformer = ({
         step,
         reason: 'no-minter',
         message:
-          `step \`${String(step)}\` in family \`${family}\` folded to \`${outcome}\`, ` +
+          `step \`${step}\` in family \`${family}\` folded to \`${outcome}\`, ` +
           `which it declares no route for, and the work item that recorded it names no minter to ` +
           `return to. An undeclared outcome returns to whoever minted the step; with neither a ` +
           `route nor a minter the scope has nowhere to go.`,
@@ -445,7 +451,7 @@ export const nextActionTransformer = ({
     }
 
     const minterStep = String(minter.step);
-    const minterNode = graph.steps[String(minterStep)];
+    const minterNode = graph.steps[minterStep];
 
     if (minterNode === undefined) {
       return nextActionContract.parse({
@@ -455,7 +461,7 @@ export const nextActionTransformer = ({
         step: minterStep,
         reason: 'unknown-step',
         message:
-          `step \`${String(minterStep)}\` is not declared in family \`${family}\` — ` +
+          `step \`${minterStep}\` is not declared in family \`${family}\` — ` +
           `agentFlowStatics.${family}.steps holds: ${Object.keys(graph.steps).join(', ')}. ` +
           `The step-name contract is free-form so a quest.json naming a retired step still loads; ` +
           `dispatch is the only place it may fail.`,
@@ -550,7 +556,7 @@ export const nextActionTransformer = ({
       step,
       reason: 'wall',
       message:
-        `step \`${String(step)}\` in family \`${family}\` folded to \`${outcome}\` and ` +
+        `step \`${step}\` in family \`${family}\` folded to \`${outcome}\` and ` +
         `routes it to \`@blocked\` for operation item ${String(operationItemId)}. No fresh session ` +
         `of any role passes this, so the quest halts here for a human.`,
     });
@@ -566,7 +572,7 @@ export const nextActionTransformer = ({
       step,
       reason: 'unknown-route-target',
       message:
-        `step \`${String(step)}\` in family \`${family}\` routes \`${outcome}\` to ` +
+        `step \`${step}\` in family \`${family}\` routes \`${outcome}\` to ` +
         `\`${target}\`, which is neither a step in that family nor \`@done\` nor \`@blocked\`. ` +
         `The graph reachability check runs at lint and at load; this throw is its backstop.`,
     });

@@ -7,7 +7,8 @@ describe('locationsShotPathFindBroker', () => {
   describe('shot path resolution', () => {
     it('VALID: {shotsDir, step: 4} => returns shotsDir joined with step4.png', () => {
       locationsShotPathFindBrokerProxy();
-      const shotsDir = '/repo/.dungeonmaster-assets/siegelense-assets/guilds/g1/instances/inst_7f3a9c21/runs/run_2';
+      const shotsDir =
+        '/repo/.dungeonmaster-assets/siegelense-assets/guilds/g1/instances/inst_7f3a9c21/runs/run_2';
       const step = 4;
 
       const result = locationsShotPathFindBroker({ shotsDir, step });
@@ -19,7 +20,8 @@ describe('locationsShotPathFindBroker', () => {
 
     it('EDGE: {shotsDir, step: 1} => returns shotsDir joined with step1.png, the first step of a run', () => {
       locationsShotPathFindBrokerProxy();
-      const shotsDir = '/repo/.dungeonmaster-assets/siegelense-assets/guilds/g1/instances/inst_7f3a9c21/runs/run_1';
+      const shotsDir =
+        '/repo/.dungeonmaster-assets/siegelense-assets/guilds/g1/instances/inst_7f3a9c21/runs/run_1';
       const step = 1;
 
       const result = locationsShotPathFindBroker({ shotsDir, step });
@@ -33,7 +35,8 @@ describe('locationsShotPathFindBroker', () => {
   describe('a caller-supplied name', () => {
     it('VALID: {shotsDir, step: 2, name: after-create.png} => returns shotsDir joined with the caller name, not the step-indexed default', () => {
       locationsShotPathFindBrokerProxy();
-      const shotsDir = '/repo/.dungeonmaster-assets/siegelense-assets/guilds/g1/instances/inst_7f3a9c21/runs/run_2';
+      const shotsDir =
+        '/repo/.dungeonmaster-assets/siegelense-assets/guilds/g1/instances/inst_7f3a9c21/runs/run_2';
       const step = 2;
       const name = 'after-create.png';
 
@@ -46,7 +49,8 @@ describe('locationsShotPathFindBroker', () => {
 
     it('VALID: {same name, two different run shotsDirs} => each stays under its own run directory', () => {
       locationsShotPathFindBrokerProxy();
-      const evidencePath = '/repo/.dungeonmaster-assets/siegelense-assets/guilds/g1/instances/inst_7f3a9c21';
+      const evidencePath =
+        '/repo/.dungeonmaster-assets/siegelense-assets/guilds/g1/instances/inst_7f3a9c21';
       const step = 1;
       const name = 'shot.png';
 
@@ -80,7 +84,8 @@ describe('locationsShotPathFindBroker', () => {
   describe('two runs never overwrite the same step number', () => {
     it('VALID: {run_1, run_2} both at step 4 => produce two different shot paths', () => {
       locationsShotPathFindBrokerProxy();
-      const evidencePath = '/repo/.dungeonmaster-assets/siegelense-assets/guilds/g1/instances/inst_7f3a9c21';
+      const evidencePath =
+        '/repo/.dungeonmaster-assets/siegelense-assets/guilds/g1/instances/inst_7f3a9c21';
       const step = 4;
 
       const firstRunPaths = locationsRunPathsFindBroker({

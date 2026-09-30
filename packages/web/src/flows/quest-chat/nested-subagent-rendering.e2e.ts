@@ -278,7 +278,7 @@ test.describe('Nested sub-agent renders recursively (live streaming + reload rep
 
     // Force the session-view history replay (main + every subagent file) so the full nested
     // conversation hydrates the chat panel.
-    await nav.triggerReplayFromBrowser({ guildId: guildId, sessionIds: [sessionId] });
+    await nav.triggerReplayFromBrowser({ guildId, sessionIds: [sessionId] });
 
     // Parent chain A renders.
     await expect(

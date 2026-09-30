@@ -10,13 +10,7 @@ export const findStartupFilesLayerBrokerProxy = (): {
     packageSrcPath: string;
     entries: DirEntrySync[];
   }) => void;
-  setupReaddirThrows: ({
-    packageSrcPath,
-    error,
-  }: {
-    packageSrcPath: string;
-    error: Error;
-  }) => void;
+  setupReaddirThrows: ({ packageSrcPath, error }: { packageSrcPath: string; error: Error }) => void;
   setupReaddirImplementation: ({ fn }: { fn: (dirPath: string) => Dirent[] }) => void;
 } => {
   const readdirProxy = safeReaddirLayerBrokerProxy();
@@ -28,7 +22,7 @@ export const findStartupFilesLayerBrokerProxy = (): {
       packageSrcPath: string;
       entries: DirEntrySync[];
     }): void => {
-      const dirPath = `${String(packageSrcPath)}/startup`;
+      const dirPath = `${packageSrcPath}/startup`;
       readdirProxy.setupReaddirReturns({ dirPath, entries });
     },
     setupReaddirThrows: ({
@@ -38,7 +32,7 @@ export const findStartupFilesLayerBrokerProxy = (): {
       packageSrcPath: string;
       error: Error;
     }): void => {
-      const dirPath = `${String(packageSrcPath)}/startup`;
+      const dirPath = `${packageSrcPath}/startup`;
       readdirProxy.setupReaddirThrows({ dirPath, error });
     },
     setupReaddirImplementation: ({ fn }: { fn: (dirPath: string) => Dirent[] }): void => {

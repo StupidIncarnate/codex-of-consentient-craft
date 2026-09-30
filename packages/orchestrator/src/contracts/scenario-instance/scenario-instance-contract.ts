@@ -24,9 +24,14 @@ const smoketestPromptNameContract = z.enum(smoketestPromptNames);
 
 // `z.partialRecord`, not `z.record` — zod v4 made an enum-keyed `z.record` exhaustive (every role
 // required), and a real scenario only ever scripts the roles it dispatches.
-export const scenarioInstanceContract = z.object({
-  scripts: z.partialRecord(workItemRoleContract, z.array(smoketestPromptNameContract).readonly()),
-  callOrdinals: z.partialRecord(workItemRoleContract, z.number().int().nonnegative().brand<'ScenarioInstanceCallOrdinals'>()),
-}).brand<'ScenarioInstance'>();
+export const scenarioInstanceContract = z
+  .object({
+    scripts: z.partialRecord(workItemRoleContract, z.array(smoketestPromptNameContract).readonly()),
+    callOrdinals: z.partialRecord(
+      workItemRoleContract,
+      z.number().int().nonnegative().brand<'ScenarioInstanceCallOrdinals'>(),
+    ),
+  })
+  .brand<'ScenarioInstance'>();
 
 export type ScenarioInstance = z.infer<typeof scenarioInstanceContract>;

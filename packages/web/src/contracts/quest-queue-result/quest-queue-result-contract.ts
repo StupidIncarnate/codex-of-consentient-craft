@@ -10,8 +10,10 @@
 import { questQueueEntryContract } from '@dungeonmaster/shared/contracts';
 import { z } from '#gateway/npm/zod';
 
-export const questQueueResultContract = z.object({
-  entries: z.array(questQueueEntryContract),
-}).brand<'QuestQueueResult'>();
+export const questQueueResultContract = z
+  .object({
+    entries: z.array(questQueueEntryContract),
+  })
+  .brand<'QuestQueueResult'>();
 
 export type QuestQueueResult = z.infer<typeof questQueueResultContract>;

@@ -266,9 +266,7 @@ describe('InstallRecipesScaffoldResponder', () => {
 
       await proxy.callResponder({ context: CONTEXT });
 
-      const indexTsContents = String(
-        proxy.getWrittenContents({ relativePath: 'src/index.ts' }),
-      );
+      const indexTsContents = String(proxy.getWrittenContents({ relativePath: 'src/index.ts' }));
 
       expect(indexTsContents).toMatch(
         /^import \{ StartHydrationRecipes \} from '\.\/startup\/start-hydration-recipes';$/mu,

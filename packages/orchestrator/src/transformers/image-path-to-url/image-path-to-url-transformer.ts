@@ -11,7 +11,6 @@
 
 import { pastedImageStatics } from '@dungeonmaster/shared/statics';
 
-
 export const imagePathToUrlTransformer = ({
   content,
   serverBaseUrl,
@@ -20,7 +19,7 @@ export const imagePathToUrlTransformer = ({
   serverBaseUrl: string;
 }): string =>
   content.replace(
-      new RegExp(pastedImageStatics.imageTokenPattern, 'gu'),
-      (_match: string, ordinal: string, target: string) =>
-        `![Pasted Image ${ordinal}](${serverBaseUrl}${pastedImageStatics.serveRoutePath}?path=${encodeURIComponent(target)})`,
-    );
+    new RegExp(pastedImageStatics.imageTokenPattern, 'gu'),
+    (_match: string, ordinal: string, target: string) =>
+      `![Pasted Image ${ordinal}](${serverBaseUrl}${pastedImageStatics.serveRoutePath}?path=${encodeURIComponent(target)})`,
+  );

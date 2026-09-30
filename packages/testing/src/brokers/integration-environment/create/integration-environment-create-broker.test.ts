@@ -221,9 +221,7 @@ describe('integrationEnvironmentCreateBroker', () => {
         baseName: 'test-project',
       });
 
-      expect(
-        guild.executeCommand({ command: 'npm test' }),
-      ).toStrictEqual({
+      expect(guild.executeCommand({ command: 'npm test' })).toStrictEqual({
         stdout: 'all good',
         stderr: '',
         exitCode: 0,
@@ -239,9 +237,7 @@ describe('integrationEnvironmentCreateBroker', () => {
         baseName: 'test-project',
       });
 
-      expect(
-        guild.executeCommand({ command: 'npm test' }),
-      ).toStrictEqual({
+      expect(guild.executeCommand({ command: 'npm test' })).toStrictEqual({
         stdout: '',
         stderr: 'out err',
         exitCode: 3,

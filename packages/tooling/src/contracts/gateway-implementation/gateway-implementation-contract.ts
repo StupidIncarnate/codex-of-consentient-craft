@@ -10,11 +10,13 @@
 import { z } from '#gateway/npm/zod';
 import { outsideCallContract } from '../outside-call/outside-call-contract';
 
-export const gatewayImplementationContract = z.object({
-  importPath: z.string().min(1).brand<'GatewayImplementationImportPath'>(),
-  name: z.string().min(1).brand<'GatewayImplementationName'>(),
-  moduleDir: z.string().min(1).brand<'GatewayImplementationModuleDir'>(),
-  outsideCalls: z.array(outsideCallContract),
-}).brand<'GatewayImplementation'>();
+export const gatewayImplementationContract = z
+  .object({
+    importPath: z.string().min(1).brand<'GatewayImplementationImportPath'>(),
+    name: z.string().min(1).brand<'GatewayImplementationName'>(),
+    moduleDir: z.string().min(1).brand<'GatewayImplementationModuleDir'>(),
+    outsideCalls: z.array(outsideCallContract),
+  })
+  .brand<'GatewayImplementation'>();
 
 export type GatewayImplementation = z.infer<typeof gatewayImplementationContract>;

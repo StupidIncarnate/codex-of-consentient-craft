@@ -18,9 +18,9 @@ export const packageNameFromSpecifierTransformer = ({
 }): string => {
   if (specifier.startsWith('@')) {
     const [scope, name] = specifier.split('/');
-    return (name ? `${scope}/${name}` : specifier);
+    return name ? `${scope}/${name}` : specifier;
   }
 
   const [firstSegment] = specifier.split('/');
-  return (firstSegment ?? specifier);
+  return firstSegment ?? specifier;
 };

@@ -30,5 +30,5 @@ export const namespaceCallFirstExtractTransformer = ({
   if (firstMethod === undefined) {
     return null;
   }
-  return `${String(ns)}.${String(firstMethod)}({...})`;
+  return `${ns}.${firstMethod}({...})`;
 };

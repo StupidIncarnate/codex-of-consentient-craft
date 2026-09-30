@@ -21,13 +21,17 @@
 
 import { z } from '#gateway/npm/zod';
 
-export const cleanupCliAnswerContract = z.object({
-  reaped: z.array(z.json()),
-  portsReleased: z.array(z.json()),
-  lockReleased: z.boolean(),
-  assetsAged: z.object({
-    instances: z.number().int().nonnegative().brand<'CleanupCliAnswerAssetsAgedInstances'>(),
-  }).brand<'CleanupCliAnswerAssetsAged'>(),
-}).brand<'CleanupCliAnswer'>();
+export const cleanupCliAnswerContract = z
+  .object({
+    reaped: z.array(z.json()),
+    portsReleased: z.array(z.json()),
+    lockReleased: z.boolean(),
+    assetsAged: z
+      .object({
+        instances: z.number().int().nonnegative().brand<'CleanupCliAnswerAssetsAgedInstances'>(),
+      })
+      .brand<'CleanupCliAnswerAssetsAged'>(),
+  })
+  .brand<'CleanupCliAnswer'>();
 
 export type CleanupCliAnswer = z.infer<typeof cleanupCliAnswerContract>;

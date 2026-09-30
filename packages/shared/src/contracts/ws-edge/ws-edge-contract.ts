@@ -22,12 +22,63 @@
 
 import { z } from '#gateway/npm/zod';
 
-export const wsEdgeContract = z.object({
-  eventType: z.string().brand<'WsEdgeEventType'>(),
-  emitterFile: z.string().min(1).refine((path) => { if (path.startsWith('/')) { return true; } if (/^[A-Za-z]:\\/u.test(path)) { return true; } return false; }, { message: 'Path must be absolute (start with / or C:\\ on Windows)', },).brand<'WsEdgeEmitterFile'>().nullable(),
-  consumerFiles: z.array(z.string().min(1).refine((path) => { if (path.startsWith('/')) { return true; } if (/^[A-Za-z]:\\/u.test(path)) { return true; } return false; }, { message: 'Path must be absolute (start with / or C:\\ on Windows)', },).brand<'WsEdgeConsumerFiles'>()),
-  wsGatewayFile: z.string().min(1).refine((path) => { if (path.startsWith('/')) { return true; } if (/^[A-Za-z]:\\/u.test(path)) { return true; } return false; }, { message: 'Path must be absolute (start with / or C:\\ on Windows)', },).brand<'WsEdgeWsGatewayFile'>().nullable(),
-  paired: z.boolean(),
-}).brand<'WsEdge'>();
+export const wsEdgeContract = z
+  .object({
+    eventType: z.string().brand<'WsEdgeEventType'>(),
+    emitterFile: z
+      .string()
+      .min(1)
+      .refine(
+        (path) => {
+          if (path.startsWith('/')) {
+            return true;
+          }
+          if (/^[A-Za-z]:\\/u.test(path)) {
+            return true;
+          }
+          return false;
+        },
+        { message: 'Path must be absolute (start with / or C:\\ on Windows)' },
+      )
+      .brand<'WsEdgeEmitterFile'>()
+      .nullable(),
+    consumerFiles: z.array(
+      z
+        .string()
+        .min(1)
+        .refine(
+          (path) => {
+            if (path.startsWith('/')) {
+              return true;
+            }
+            if (/^[A-Za-z]:\\/u.test(path)) {
+              return true;
+            }
+            return false;
+          },
+          { message: 'Path must be absolute (start with / or C:\\ on Windows)' },
+        )
+        .brand<'WsEdgeConsumerFiles'>(),
+    ),
+    wsGatewayFile: z
+      .string()
+      .min(1)
+      .refine(
+        (path) => {
+          if (path.startsWith('/')) {
+            return true;
+          }
+          if (/^[A-Za-z]:\\/u.test(path)) {
+            return true;
+          }
+          return false;
+        },
+        { message: 'Path must be absolute (start with / or C:\\ on Windows)' },
+      )
+      .brand<'WsEdgeWsGatewayFile'>()
+      .nullable(),
+    paired: z.boolean(),
+  })
+  .brand<'WsEdge'>();
 
 export type WsEdge = z.infer<typeof wsEdgeContract>;

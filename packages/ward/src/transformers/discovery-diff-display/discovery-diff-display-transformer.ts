@@ -6,7 +6,6 @@
  * // Returns: WardSummary '\n  only processed: @types/foo.d.ts'
  */
 
-
 export const discoveryDiffDisplayTransformer = ({
   hasMismatch,
   onlyProcessed,

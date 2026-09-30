@@ -9,5 +9,5 @@ import { kebabToCamelCaseTransformer } from '../kebab-to-camel-case/kebab-to-cam
 
 export const kebabToPascalCaseTransformer = ({ str }: { str: string }): string => {
   const camelCase = kebabToCamelCaseTransformer({ str });
-  return (camelCase.charAt(0).toUpperCase() + camelCase.slice(1));
+  return camelCase.charAt(0).toUpperCase() + camelCase.slice(1);
 };

@@ -1,4 +1,3 @@
-
 import { callerRepoRootBannerTransformer } from './caller-repo-root-banner-transformer';
 
 describe('callerRepoRootBannerTransformer', () => {

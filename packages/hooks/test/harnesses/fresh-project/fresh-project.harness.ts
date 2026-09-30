@@ -18,7 +18,6 @@ import { mkdtemp, writeFile } from '#gateway/node/fs__promises';
 import { tmpdir } from '#gateway/node/os';
 import { join } from '#gateway/node/path';
 
-
 export const freshProjectHarness = (): {
   create: () => Promise<string>;
   readSettings: (params: { projectPath: string }) => unknown;
@@ -28,7 +27,7 @@ export const freshProjectHarness = (): {
 
   return {
     create: async (): Promise<string> => {
-      const projectPath = (await mkdtemp(join(tmpdir(), 'dm-fresh-project-')));
+      const projectPath = await mkdtemp(join(tmpdir(), 'dm-fresh-project-'));
       await writeFile(
         join(projectPath, 'package.json'),
         JSON.stringify({ name: 'fresh-project', version: '1.0.0' }, null, 2),

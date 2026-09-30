@@ -9,8 +9,13 @@ import { z } from '#gateway/npm/zod';
 
 export const getProjectInventoryInputContract = z
   .object({
-    packageName: z.string().min(1).brand<'GetProjectInventoryInputPackageName'>().describe('Name of the package to return inventory for'),
+    packageName: z
+      .string()
+      .min(1)
+      .brand<'GetProjectInventoryInputPackageName'>()
+      .describe('Name of the package to return inventory for'),
   })
-  .strict().brand<'GetProjectInventoryInput'>();
+  .strict()
+  .brand<'GetProjectInventoryInput'>();
 
 export type GetProjectInventoryInput = z.infer<typeof getProjectInventoryInputContract>;

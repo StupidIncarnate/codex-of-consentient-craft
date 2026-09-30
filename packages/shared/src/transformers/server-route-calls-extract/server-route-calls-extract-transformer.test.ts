@@ -3,7 +3,8 @@ import { serverRouteCallsExtractTransformer } from './server-route-calls-extract
 describe('serverRouteCallsExtractTransformer', () => {
   describe('statics member-expression args', () => {
     it('VALID: {app.get with statics ref + responder body} => returns method, ref, responder', () => {
-      const source = 'app.get(apiRoutesStatics.quests.list, async (c) => { const r = await QuestListResponder({}); });';
+      const source =
+        'app.get(apiRoutesStatics.quests.list, async (c) => { const r = await QuestListResponder({}); });';
 
       const result = serverRouteCallsExtractTransformer({ source });
 
@@ -17,7 +18,8 @@ describe('serverRouteCallsExtractTransformer', () => {
     });
 
     it('VALID: {app.post with statics ref + responder body} => returns POST tuple', () => {
-      const source = 'app.post(apiRoutesStatics.quests.start, async (c) => { const r = await QuestStartResponder({}); });';
+      const source =
+        'app.post(apiRoutesStatics.quests.start, async (c) => { const r = await QuestStartResponder({}); });';
 
       const result = serverRouteCallsExtractTransformer({ source });
 
@@ -31,7 +33,8 @@ describe('serverRouteCallsExtractTransformer', () => {
     });
 
     it('VALID: {app.patch with statics ref + responder body} => returns PATCH tuple', () => {
-      const source = 'app.patch(apiRoutesStatics.quests.byId, async (c) => { const r = await QuestModifyResponder({}); });';
+      const source =
+        'app.patch(apiRoutesStatics.quests.byId, async (c) => { const r = await QuestModifyResponder({}); });';
 
       const result = serverRouteCallsExtractTransformer({ source });
 
@@ -45,7 +48,8 @@ describe('serverRouteCallsExtractTransformer', () => {
     });
 
     it('VALID: {app.delete with statics ref + responder body} => returns DELETE tuple', () => {
-      const source = 'app.delete(apiRoutesStatics.quests.delete, async (c) => { const r = await QuestDeleteResponder({}); });';
+      const source =
+        'app.delete(apiRoutesStatics.quests.delete, async (c) => { const r = await QuestDeleteResponder({}); });';
 
       const result = serverRouteCallsExtractTransformer({ source });
 
@@ -69,7 +73,8 @@ describe('serverRouteCallsExtractTransformer', () => {
     });
 
     it('VALID: {app.post with double-quoted literal + responder body} => paired tuple', () => {
-      const source = 'app.post("/api/quests", async (c) => { const r = await QuestUserAddResponder({}); });';
+      const source =
+        'app.post("/api/quests", async (c) => { const r = await QuestUserAddResponder({}); });';
 
       const result = serverRouteCallsExtractTransformer({ source });
 
@@ -82,10 +87,10 @@ describe('serverRouteCallsExtractTransformer', () => {
   describe('multiple routes', () => {
     it('VALID: {multiple app.<method> calls each with their own responder} => pairs each call to its body responder', () => {
       const source = [
-          'app.get(apiRoutesStatics.quests.list, async (c) => { await QuestListResponder({}); });',
-          'app.post(apiRoutesStatics.quests.list, async (c) => { await QuestUserAddResponder({}); });',
-          'app.patch(apiRoutesStatics.quests.byId, async (c) => { await QuestModifyResponder({}); });',
-        ].join('\n');
+        'app.get(apiRoutesStatics.quests.list, async (c) => { await QuestListResponder({}); });',
+        'app.post(apiRoutesStatics.quests.list, async (c) => { await QuestUserAddResponder({}); });',
+        'app.patch(apiRoutesStatics.quests.byId, async (c) => { await QuestModifyResponder({}); });',
+      ].join('\n');
 
       const result = serverRouteCallsExtractTransformer({ source });
 

@@ -12,7 +12,7 @@ export const architectureWidgetNodeRenderBrokerProxy = (): {
     setupExportNamesMap: ({ map }: { map: Record<string, string> }): void => {
       exportProxy.setupImplementation({
         fn: (filePath: string): string => {
-          const fp = String(filePath);
+          const fp = filePath;
           for (const [suffix, content] of Object.entries(map)) {
             if (fp.endsWith(suffix)) {
               return content;

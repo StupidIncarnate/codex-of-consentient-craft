@@ -36,44 +36,50 @@ import { flowObservableContract } from '../flow-observable/flow-observable-contr
 
 const KEBAB_SEGMENT = '[a-z][a-z0-9]*(?:-[a-z0-9]+)*';
 
-export const qaChecklistItemContract = z.object({
-  id: z.string().min(1).regex(new RegExp(`^${KEBAB_SEGMENT}:${KEBAB_SEGMENT}:${KEBAB_SEGMENT}$`, 'u')).brand<'QaChecklistItemId'>(),
-  flowId: flowContract.shape.id,
-  kind: qaChecklistKindContract,
-  label: z
-    .string()
-    .min(1)
-    .brand<'QaChecklistItemLabel'>()
-    .describe(
-      'The verbatim text of the thing to confirm — an observable description exactly as the spec words it, a terminal node label, a branch description, or an off-map probe. Never a paraphrase.',
-    ),
-  checkSurface: z
-    .string()
-    .min(1)
-    .brand<'QaChecklistItemCheckSurface'>()
-    .describe(
-      'Where the value must actually be read from. For an observable this is derived from its outcome type, because the surface a flow is DRIVEN at and the surface an observable is CHECKED at are routinely different.',
-    ),
-  nodeId: flowNodeContract.shape.id.optional(),
-  observableId: flowObservableContract.shape.id.optional(),
-  observableType: outcomeTypeContract.optional(),
-  verifyByReading: z
-    .boolean()
-    .optional()
-    .describe(
-      'True on an observable settled by opening a source file rather than by running a test. `checkSurface` already carries the read-the-file wording; this field is what a renderer marks the line with, so the distinction survives a scan of the list.',
-    ),
-  edgeId: flowEdgeContract.shape.id.optional(),
-  // The edge's own three endpoints, kept rather than collapsed into `label`. A renderer needs the
-  // SIBLING branch out of the same `from` node to say whether arriving at `to` is evidence that
-  // THIS branch ran, and it can only find that sibling by matching `edgeFrom` across the item list.
-  // Recovering them by parsing `label` back apart would couple every reader to
-  // `qaChecklistBuildTransformer`'s edge grammar, which is exactly the coupling `label` exists to
-  // absorb.
-  edgeFrom: flowEdgeContract.shape.from.optional(),
-  edgeLabel: flowEdgeContract.shape.label,
-  edgeTo: flowEdgeContract.shape.to.optional(),
-  offMapFamily: qaOffMapFamilyContract.optional(),
-}).brand<'QaChecklistItem'>();
+export const qaChecklistItemContract = z
+  .object({
+    id: z
+      .string()
+      .min(1)
+      .regex(new RegExp(`^${KEBAB_SEGMENT}:${KEBAB_SEGMENT}:${KEBAB_SEGMENT}$`, 'u'))
+      .brand<'QaChecklistItemId'>(),
+    flowId: flowContract.shape.id,
+    kind: qaChecklistKindContract,
+    label: z
+      .string()
+      .min(1)
+      .brand<'QaChecklistItemLabel'>()
+      .describe(
+        'The verbatim text of the thing to confirm — an observable description exactly as the spec words it, a terminal node label, a branch description, or an off-map probe. Never a paraphrase.',
+      ),
+    checkSurface: z
+      .string()
+      .min(1)
+      .brand<'QaChecklistItemCheckSurface'>()
+      .describe(
+        'Where the value must actually be read from. For an observable this is derived from its outcome type, because the surface a flow is DRIVEN at and the surface an observable is CHECKED at are routinely different.',
+      ),
+    nodeId: flowNodeContract.shape.id.optional(),
+    observableId: flowObservableContract.shape.id.optional(),
+    observableType: outcomeTypeContract.optional(),
+    verifyByReading: z
+      .boolean()
+      .optional()
+      .describe(
+        'True on an observable settled by opening a source file rather than by running a test. `checkSurface` already carries the read-the-file wording; this field is what a renderer marks the line with, so the distinction survives a scan of the list.',
+      ),
+    edgeId: flowEdgeContract.shape.id.optional(),
+    // The edge's own three endpoints, kept rather than collapsed into `label`. A renderer needs the
+    // SIBLING branch out of the same `from` node to say whether arriving at `to` is evidence that
+    // THIS branch ran, and it can only find that sibling by matching `edgeFrom` across the item list.
+    // Recovering them by parsing `label` back apart would couple every reader to
+    // `qaChecklistBuildTransformer`'s edge grammar, which is exactly the coupling `label` exists to
+    // absorb.
+    edgeFrom: flowEdgeContract.shape.from.optional(),
+    edgeLabel: flowEdgeContract.shape.label,
+    edgeTo: flowEdgeContract.shape.to.optional(),
+    offMapFamily: qaOffMapFamilyContract.optional(),
+  })
+  .brand<'QaChecklistItem'>();
 
 export type QaChecklistItem = z.infer<typeof qaChecklistItemContract>;

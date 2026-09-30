@@ -37,9 +37,9 @@ describe('architectureGatewayInventoryBroker', () => {
         folder: 'node',
         subpathName: 'fs',
         barrelContent: [
-            "export * from 'fs';",
-            "export { existsSync } from './exists-sync/exists-sync';",
-          ].join('\n'),
+          "export * from 'fs';",
+          "export { existsSync } from './exists-sync/exists-sync';",
+        ].join('\n'),
       });
 
       const result = architectureGatewayInventoryBroker({ projectRoot });
@@ -105,9 +105,9 @@ describe('architectureGatewayInventoryBroker', () => {
         folder: 'bin',
         subpathName: 'claude',
         barrelContent: [
-            "export { resolveClaudeCliPath } from './resolve-claude-cli-path/resolve-claude-cli-path';",
-            "export { spawnStreamJson } from './spawn-stream-json/spawn-stream-json';",
-          ].join('\n'),
+          "export { resolveClaudeCliPath } from './resolve-claude-cli-path/resolve-claude-cli-path';",
+          "export { spawnStreamJson } from './spawn-stream-json/spawn-stream-json';",
+        ].join('\n'),
       });
 
       const result = architectureGatewayInventoryBroker({ projectRoot });
@@ -168,24 +168,24 @@ describe('architectureGatewayInventoryBroker', () => {
         folder: 'node',
         subpathName: 'fs__promises',
         barrelContent: [
-            "export * from 'fs/promises';",
-            "export { readFile } from './read-file/read-file';",
-          ].join('\n'),
+          "export * from 'fs/promises';",
+          "export { readFile } from './read-file/read-file';",
+        ].join('\n'),
       });
       proxy.setupGatewayLintConfig({
         repoRoot: projectRoot,
         fileContent: JSON.stringify({
-            gateway: {
-              bannedExports: [
-                {
-                  subpath: '#gateway/node/fs__promises',
-                  name: 'readFile',
-                  use: 'readTextFile',
-                  reason: 'blocks the loop',
-                },
-              ],
-            },
-          }),
+          gateway: {
+            bannedExports: [
+              {
+                subpath: '#gateway/node/fs__promises',
+                name: 'readFile',
+                use: 'readTextFile',
+                reason: 'blocks the loop',
+              },
+            ],
+          },
+        }),
       });
 
       const result = architectureGatewayInventoryBroker({ projectRoot });

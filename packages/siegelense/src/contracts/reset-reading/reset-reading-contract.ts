@@ -10,10 +10,12 @@ import { z } from '#gateway/npm/zod';
 
 import { resetUndidContract } from '../reset-undid/reset-undid-contract';
 
-export const resetReadingContract = z.object({
-  restored: z.string().brand<'ResetReadingRestored'>(),
-  undid: resetUndidContract,
-  NOT_cleared: z.array(z.string().brand<'ResetReadingNOTCleared'>()),
-}).brand<'ResetReading'>();
+export const resetReadingContract = z
+  .object({
+    restored: z.string().brand<'ResetReadingRestored'>(),
+    undid: resetUndidContract,
+    NOT_cleared: z.array(z.string().brand<'ResetReadingNOTCleared'>()),
+  })
+  .brand<'ResetReading'>();
 
 export type ResetReading = z.infer<typeof resetReadingContract>;

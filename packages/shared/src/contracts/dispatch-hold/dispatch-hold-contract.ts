@@ -17,17 +17,19 @@
 
 import { z } from '#gateway/npm/zod';
 
-export const dispatchHoldContract = z.object({
-  // `approaching-limit` is raised from a snapshot percentage before anything breaks; `rejected` is
-  // raised after the API answered 429, which is the case where no snapshot was fresh enough to
-  // catch it first.
-  reason: z.enum(['approaching-limit', 'rejected']),
-  window: z.enum(['five-hour', 'seven-day']),
-  // Rendered verbatim in the queue UI, so the user reads why the queue stopped without opening a
-  // log. Built by the transformer that raises the hold.
-  detail: z.string().min(1).brand<'DispatchHoldDetail'>(),
-  heldAt: z.iso.datetime().brand<'DispatchHoldHeldAt'>(),
-  resumeAt: z.iso.datetime().brand<'DispatchHoldResumeAt'>(),
-}).brand<'DispatchHold'>();
+export const dispatchHoldContract = z
+  .object({
+    // `approaching-limit` is raised from a snapshot percentage before anything breaks; `rejected` is
+    // raised after the API answered 429, which is the case where no snapshot was fresh enough to
+    // catch it first.
+    reason: z.enum(['approaching-limit', 'rejected']),
+    window: z.enum(['five-hour', 'seven-day']),
+    // Rendered verbatim in the queue UI, so the user reads why the queue stopped without opening a
+    // log. Built by the transformer that raises the hold.
+    detail: z.string().min(1).brand<'DispatchHoldDetail'>(),
+    heldAt: z.iso.datetime().brand<'DispatchHoldHeldAt'>(),
+    resumeAt: z.iso.datetime().brand<'DispatchHoldResumeAt'>(),
+  })
+  .brand<'DispatchHold'>();
 
 export type DispatchHold = z.infer<typeof dispatchHoldContract>;

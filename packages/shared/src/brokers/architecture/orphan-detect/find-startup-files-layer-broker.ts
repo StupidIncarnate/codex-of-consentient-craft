@@ -25,14 +25,14 @@ export const findStartupFilesLayerBroker = ({
 }: {
   packageSrcPath: string;
 }): string[] => {
-  const startupDir = `${String(packageSrcPath)}/startup`;
+  const startupDir = `${packageSrcPath}/startup`;
   const entries = safeReaddirLayerBroker({ dirPath: startupDir });
   const result: string[] = [];
   for (const entry of entries) {
     if (entry.kind === 'directory') continue;
     if (!entry.name.startsWith(STARTUP_PREFIX)) continue;
     if (!entry.name.endsWith(TS_SUFFIX) && !entry.name.endsWith(TSX_SUFFIX)) continue;
-    const filePath = `${String(startupDir)}/${entry.name}`;
+    const filePath = `${startupDir}/${entry.name}`;
     if (!isNonTestFileGuard({ filePath })) continue;
     result.push(filePath);
   }

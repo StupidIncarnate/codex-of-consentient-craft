@@ -12,14 +12,8 @@ describe('gatewayBarrelWrapperPathsTransformer', () => {
 
     expect(result).toStrictEqual(
       new Map([
-        [
-          'readJsonFileIfExists',
-          'read-json-file-if-exists/read-json-file-if-exists',
-        ],
-        [
-          'writeFile',
-          'write-file/write-file',
-        ],
+        ['readJsonFileIfExists', 'read-json-file-if-exists/read-json-file-if-exists'],
+        ['writeFile', 'write-file/write-file'],
         ['glob', 'glob/glob'],
       ]),
     );
@@ -33,11 +27,7 @@ describe('gatewayBarrelWrapperPathsTransformer', () => {
 
     const result = gatewayBarrelWrapperPathsTransformer({ content });
 
-    expect(result).toStrictEqual(
-      new Map([
-        ['readFile', 'read-file/read-file'],
-      ]),
-    );
+    expect(result).toStrictEqual(new Map([['readFile', 'read-file/read-file']]));
   });
 
   it('EDGE: {content: a named re-export from the raw npm module, not a relative path} => excludes it', () => {
@@ -48,9 +38,7 @@ describe('gatewayBarrelWrapperPathsTransformer', () => {
 
     const result = gatewayBarrelWrapperPathsTransformer({ content });
 
-    expect(result).toStrictEqual(
-      new Map([['glob', 'glob/glob']]),
-    );
+    expect(result).toStrictEqual(new Map([['glob', 'glob/glob']]));
   });
 
   it('EDGE: {content: a type-only re-export beside a value one} => excludes only the type', () => {
@@ -61,14 +49,7 @@ describe('gatewayBarrelWrapperPathsTransformer', () => {
 
     const result = gatewayBarrelWrapperPathsTransformer({ content });
 
-    expect(result).toStrictEqual(
-      new Map([
-        [
-          'readdirEntries',
-          'readdir-entries/readdir-entries',
-        ],
-      ]),
-    );
+    expect(result).toStrictEqual(new Map([['readdirEntries', 'readdir-entries/readdir-entries']]));
   });
 
   it("EDGE: {content: a ../ climb into a different subpath's own folder} => excludes it, since that subpath owns the proxy", () => {
@@ -82,11 +63,7 @@ describe('gatewayBarrelWrapperPathsTransformer', () => {
 
     const result = gatewayBarrelWrapperPathsTransformer({ content });
 
-    expect(result).toStrictEqual(
-      new Map([
-        ['readFile', 'read-file/read-file'],
-      ]),
-    );
+    expect(result).toStrictEqual(new Map([['readFile', 'read-file/read-file']]));
   });
 
   it('EMPTY: {content: no export statements} => returns an empty map', () => {

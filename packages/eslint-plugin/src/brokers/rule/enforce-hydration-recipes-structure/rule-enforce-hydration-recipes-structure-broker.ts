@@ -38,9 +38,7 @@ export const ruleEnforceHydrationRecipesStructureBroker = (): TSESLint.RuleModul
     const lastSlash = filename.lastIndexOf('/');
     const fallbackDir = lastSlash === -1 ? '' : filename.slice(0, lastSlash);
     const fallbackCandidate =
-      fallbackDir.length > 0
-        ? `${fallbackDir}/packages/hydration-recipes`
-        : undefined;
+      fallbackDir.length > 0 ? `${fallbackDir}/packages/hydration-recipes` : undefined;
 
     const repoRoot =
       packagesIndex > 0

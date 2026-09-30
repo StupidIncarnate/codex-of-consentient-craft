@@ -48,8 +48,8 @@ export const locationsRunPathsFindBroker = ({
   const shotsDir = join(evidencePath, locationsStatics.siegelense.runsDir, runId);
 
   return locationsRunPathsFindResultContract.parse({
-    transcript: transcript,
-    storedReturn: storedReturn,
-    shotsDir: shotsDir,
+    transcript,
+    storedReturn,
+    shotsDir,
   });
 };

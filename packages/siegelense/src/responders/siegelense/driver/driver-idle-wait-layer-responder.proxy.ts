@@ -68,7 +68,6 @@ export const DriverIdleWaitLayerResponderProxy = (): {
       timeoutProxy.setupNeverFires({ ms });
     },
 
-    getSleepCallCount: ({ ms }: { ms: number }): number =>
-      timeoutProxy.getCallsFor({ ms }).length,
+    getSleepCallCount: ({ ms }: { ms: number }): number => timeoutProxy.getCallsFor({ ms }).length,
   };
 };

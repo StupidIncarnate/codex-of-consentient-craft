@@ -3,10 +3,7 @@ import { duplicateDetectionDetectBrokerProxy } from './duplicate-detection-detec
 import { OccurrenceThresholdStub } from '../../../contracts/occurrence-threshold/occurrence-threshold.stub';
 
 // Helper function to create file test data
-const createFile = (params: {
-  filePath: string;
-  sourceCode: string;
-}) => {
+const createFile = (params: { filePath: string; sourceCode: string }) => {
   return params;
 };
 

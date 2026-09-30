@@ -6,7 +6,6 @@
  * // Returns 'Error' as ErrorMessage
  */
 
-
 const ESC_CHAR_CODE = 27;
 const ESC_SEQUENCE_PREFIX_LENGTH = 2;
 
@@ -27,5 +26,5 @@ export const stripAnsiCodesTransformer = ({ text }: { text: string }): string =>
     }
   }
 
-  return result as string;
+  return result;
 };

@@ -15,7 +15,6 @@
  * WHEN-NOT-TO-USE: For non-dist bin paths
  */
 
-
 // Matches ./dist/... or ./dist/src/... bin paths, capturing the sub-path after dist/
 const DIST_BIN_PATTERN = /^\.\/dist\/(?:src\/)?(.+)\.js$/u;
 
@@ -26,9 +25,9 @@ export const hookStartupSrcPathResolveTransformer = ({
   binPath: string;
   packageRoot: string;
 }): string | undefined => {
-  const [, relSrc] = DIST_BIN_PATTERN.exec(String(binPath)) ?? [];
+  const [, relSrc] = DIST_BIN_PATTERN.exec(binPath) ?? [];
   if (relSrc === undefined) {
     return undefined;
   }
-  return `${String(packageRoot)}/src/${relSrc}.ts`;
+  return `${packageRoot}/src/${relSrc}.ts`;
 };

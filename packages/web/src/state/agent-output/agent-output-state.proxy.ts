@@ -6,13 +6,7 @@ export const agentOutputStateProxy = (): {
   setupSlotOutput: (params: { slotIndex: number; entries: ChatEntry[] }) => void;
   setupEmptyOutput: () => void;
 } => ({
-  setupSlotOutput: ({
-    slotIndex,
-    entries,
-  }: {
-    slotIndex: number;
-    entries: ChatEntry[];
-  }): void => {
+  setupSlotOutput: ({ slotIndex, entries }: { slotIndex: number; entries: ChatEntry[] }): void => {
     agentOutputState.append({ slotIndex, entries });
   },
 

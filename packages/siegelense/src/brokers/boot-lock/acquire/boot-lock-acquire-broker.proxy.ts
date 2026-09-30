@@ -141,9 +141,8 @@ export const bootLockAcquireBrokerProxy = (): {
       otherInstanceId: InstanceId;
       nowMs: EpochMs;
     }): void => {
-      const acquiredAtMs = (nowMs -
-          instanceLifecycleStatics.bootLock.ttlMs -
-          instanceLifecycleStatics.bootLock.pollMs);
+      const acquiredAtMs =
+        nowMs - instanceLifecycleStatics.bootLock.ttlMs - instanceLifecycleStatics.bootLock.pollMs;
       const lock = BootLockStub({
         heldBy: otherInstanceId,
         heldByPid: 'proc-12345',
@@ -169,9 +168,8 @@ export const bootLockAcquireBrokerProxy = (): {
       otherInstanceId: InstanceId;
       nowMs: EpochMs;
     }): void => {
-      const acquiredAtMs = (nowMs -
-          instanceLifecycleStatics.bootLock.ttlMs -
-          instanceLifecycleStatics.bootLock.pollMs);
+      const acquiredAtMs =
+        nowMs - instanceLifecycleStatics.bootLock.ttlMs - instanceLifecycleStatics.bootLock.pollMs;
       const lock = BootLockStub({
         heldBy: otherInstanceId,
         heldByPid: 'proc-12345',
@@ -194,9 +192,8 @@ export const bootLockAcquireBrokerProxy = (): {
       otherInstanceId: InstanceId;
       nowMs: EpochMs;
     }): void => {
-      const acquiredAtMs = (nowMs -
-          instanceLifecycleStatics.bootLock.ttlMs -
-          instanceLifecycleStatics.bootLock.pollMs);
+      const acquiredAtMs =
+        nowMs - instanceLifecycleStatics.bootLock.ttlMs - instanceLifecycleStatics.bootLock.pollMs;
       const lock = BootLockStub({
         heldBy: otherInstanceId,
         heldByPid: 'proc-12345',
@@ -248,12 +245,12 @@ export const bootLockAcquireBrokerProxy = (): {
     }): { startedAtMs: EpochMs; expectedError: BootLockHeldError } => {
       const startedAtMs = 1_700_000_000_000;
       const { pollMs, waitCeilingMs } = instanceLifecycleStatics.bootLock;
-      const nowMs = (startedAtMs + waitCeilingMs);
+      const nowMs = startedAtMs + waitCeilingMs;
 
       const lock = BootLockStub({
         heldBy: otherInstanceId,
         heldByPid: 'proc-12345',
-        acquiredAtMs: (nowMs - pollMs),
+        acquiredAtMs: nowMs - pollMs,
       });
 
       // The exclusive create loses to this already-fresh file before the read ever runs.
@@ -288,17 +285,17 @@ export const bootLockAcquireBrokerProxy = (): {
       const startedAtMs = 1_700_000_000_000;
       const { ttlMs, pollMs, waitCeilingMs } = instanceLifecycleStatics.bootLock;
       const nowMsFirstAttempt = startedAtMs;
-      const nowMsSecondAttempt = (startedAtMs + waitCeilingMs);
+      const nowMsSecondAttempt = startedAtMs + waitCeilingMs;
 
       const staleLock = BootLockStub({
         heldBy: otherInstanceId,
         heldByPid: 'proc-12345',
-        acquiredAtMs: (nowMsFirstAttempt - ttlMs - pollMs),
+        acquiredAtMs: nowMsFirstAttempt - ttlMs - pollMs,
       });
       const freshLock = BootLockStub({
         heldBy: otherInstanceId,
         heldByPid: 'proc-12345',
-        acquiredAtMs: (nowMsSecondAttempt - pollMs),
+        acquiredAtMs: nowMsSecondAttempt - pollMs,
       });
 
       // Every exclusive create this test drives loses — the first to the stale file, the retry to
@@ -343,6 +340,6 @@ export const bootLockAcquireBrokerProxy = (): {
     // matching it, each mapped back to that one path, is the created-dirs list a test compares
     // against `[proxy.rootPath]`.
     getCreatedDirs: (): readonly unknown[] =>
-      mkdirProxy.getCallsFor({ path: String(rootPath) }).map(() => rootPath),
+      mkdirProxy.getCallsFor({ path: rootPath }).map(() => rootPath),
   };
 };

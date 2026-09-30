@@ -1,4 +1,3 @@
-
 import { HealthReadingStub } from '../../contracts/health-reading/health-reading.stub';
 import { healthReadingRenderTransformer } from './health-reading-render-transformer';
 
@@ -58,7 +57,8 @@ describe('healthReadingRenderTransformer', () => {
         first5xx: null,
         serverErrors: 0,
         firstServerError: null,
-        rendered: 'DEGRADED  root present · not blank · console: 1 error "TypeError: null has no properties" · no 5xx · server log clean',
+        rendered:
+          'DEGRADED  root present · not blank · console: 1 error "TypeError: null has no properties" · no 5xx · server log clean',
       }),
     );
   });
@@ -88,7 +88,8 @@ describe('healthReadingRenderTransformer', () => {
         first5xx: null,
         serverErrors: 0,
         firstServerError: null,
-        rendered: 'DEGRADED  root present · not blank · console: 3 errors · no 5xx · server log clean',
+        rendered:
+          'DEGRADED  root present · not blank · console: 3 errors · no 5xx · server log clean',
       }),
     );
   });
@@ -118,7 +119,8 @@ describe('healthReadingRenderTransformer', () => {
         first5xx: 'GET /api/session',
         serverErrors: 0,
         firstServerError: null,
-        rendered: 'DEGRADED  root present · not blank · console clean · network: 1 5xx "GET /api/session" · server log clean',
+        rendered:
+          'DEGRADED  root present · not blank · console clean · network: 1 5xx "GET /api/session" · server log clean',
       }),
     );
   });
@@ -148,7 +150,8 @@ describe('healthReadingRenderTransformer', () => {
         first5xx: null,
         serverErrors: 0,
         firstServerError: null,
-        rendered: 'DEGRADED  root present · not blank · console clean · network: 2 5xx · server log clean',
+        rendered:
+          'DEGRADED  root present · not blank · console clean · network: 2 5xx · server log clean',
       }),
     );
   });
@@ -178,7 +181,8 @@ describe('healthReadingRenderTransformer', () => {
         first5xx: null,
         serverErrors: 1,
         firstServerError: 'fatal exception',
-        rendered: 'DEGRADED  root present · not blank · console clean · no 5xx · server log: 1 error',
+        rendered:
+          'DEGRADED  root present · not blank · console clean · no 5xx · server log: 1 error',
       }),
     );
   });
@@ -208,7 +212,8 @@ describe('healthReadingRenderTransformer', () => {
         first5xx: null,
         serverErrors: 2,
         firstServerError: null,
-        rendered: 'DEGRADED  root present · not blank · console clean · no 5xx · server log: 2 errors',
+        rendered:
+          'DEGRADED  root present · not blank · console clean · no 5xx · server log: 2 errors',
       }),
     );
   });
@@ -268,7 +273,8 @@ describe('healthReadingRenderTransformer', () => {
         first5xx: null,
         serverErrors: 0,
         firstServerError: null,
-        rendered: 'DOWN      root present · page blank (#0d0907) · console clean · no 5xx · server log clean',
+        rendered:
+          'DOWN      root present · page blank (#0d0907) · console clean · no 5xx · server log clean',
       }),
     );
   });

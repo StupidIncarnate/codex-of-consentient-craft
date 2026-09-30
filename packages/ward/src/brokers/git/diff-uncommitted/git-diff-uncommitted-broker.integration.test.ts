@@ -47,10 +47,7 @@ describe('gitDiffUncommittedBroker (integration) — real working tree, tracked 
 
     // toStrictEqual on the COMPLETE list: asserting brand-new.ts is present would not show that
     // committed-work.ts stayed out, and asserting its absence alone would be vacuous.
-    expect(result).toStrictEqual([
-      'base.txt',
-      'brand-new.ts',
-    ]);
+    expect(result).toStrictEqual(['base.txt', 'brand-new.ts']);
   }, 30_000);
 
   it('VALID: {an untracked file matched by .gitignore} => the ignored file stays out of scope', async () => {

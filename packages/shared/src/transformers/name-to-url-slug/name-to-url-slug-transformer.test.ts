@@ -1,4 +1,3 @@
-
 import { nameToUrlSlugTransformer } from './name-to-url-slug-transformer';
 
 describe('nameToUrlSlugTransformer', () => {

@@ -39,7 +39,10 @@ describe('recipesSessionSingleTurnBroker', () => {
       const earlierStep = await run(recipesGuildMidExecutionBroker(), target);
       const guild = earlierStep[GUILD_NAME] as unknown as Guild;
 
-      const result = await run(recipesSessionSingleTurnBroker(SessionWithNestedChainInputsStub({ guildPath: guild.path })), target);
+      const result = await run(
+        recipesSessionSingleTurnBroker(SessionWithNestedChainInputsStub({ guildPath: guild.path })),
+        target,
+      );
 
       expect(Object.keys(result).sort()).toStrictEqual(['session']);
     });
@@ -49,7 +52,10 @@ describe('recipesSessionSingleTurnBroker', () => {
       const earlierStep = await run(recipesGuildMidExecutionBroker(), target);
       const guild = earlierStep[GUILD_NAME] as unknown as Guild;
 
-      const result = await run(recipesSessionSingleTurnBroker(SessionWithNestedChainInputsStub({ guildPath: guild.path })), target);
+      const result = await run(
+        recipesSessionSingleTurnBroker(SessionWithNestedChainInputsStub({ guildPath: guild.path })),
+        target,
+      );
       const session = (result as Record<PropertyKey, unknown>)[SESSION_NAME] as SessionRecord;
 
       expect({ sessionId: session.sessionId, cwd: session.cwd }).toStrictEqual({

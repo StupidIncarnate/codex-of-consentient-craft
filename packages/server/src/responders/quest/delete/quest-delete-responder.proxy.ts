@@ -29,7 +29,13 @@ export const QuestDeleteResponderProxy = (): {
     setupDeleteQuest: ({ questId, deleted }: { questId: Quest['id']; deleted: boolean }): void => {
       orchestrator.deleteQuestReturns({ questId, deleted });
     },
-    setupDeleteQuestError: ({ questId, message }: { questId: Quest['id']; message: string }): void => {
+    setupDeleteQuestError: ({
+      questId,
+      message,
+    }: {
+      questId: Quest['id'];
+      message: string;
+    }): void => {
       orchestrator.deleteQuestThrows({ questId, error: new Error(message) });
     },
     callResponder: QuestDeleteResponder,

@@ -107,13 +107,13 @@ export const profileReadBroker = async ({
 
   return specProfileContract.parse({
     specName,
-    processes: (spec.processes.length + (spec.browser ? BROWSER_PROCESS_COUNT : 0)),
+    processes: spec.processes.length + (spec.browser ? BROWSER_PROCESS_COUNT : 0),
     hash: specHash,
     measuredAt:
       measuredAtMs === null
         ? null
         : profileMeasuredDateRenderTransformer({
-            measuredAtMs: measuredAtMs,
+            measuredAtMs,
           }),
     fromRuns: observations.length,
     bootMs: bootMs === null ? null : bootMs,

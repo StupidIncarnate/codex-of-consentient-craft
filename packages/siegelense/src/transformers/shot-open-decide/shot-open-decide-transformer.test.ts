@@ -1,4 +1,3 @@
-
 import { ShotListingStub } from '../../contracts/shot-listing/shot-listing.stub';
 import { ShotOpenReasonStub } from '../../contracts/shot-open-reason/shot-open-reason.stub';
 
@@ -18,7 +17,7 @@ const rawShot = ({
   pixelChange?: string | null;
 }): ReturnType<typeof ShotListingStub> =>
   ShotListingStub({
-    step: step,
+    step,
     path: `/repo/.dungeonmaster-assets/siegelense-assets/.../runs/run_1/step${String(step)}.png`,
     open,
     why: why === null ? null : ShotOpenReasonStub({ value: why }),

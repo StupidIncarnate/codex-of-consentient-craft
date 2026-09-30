@@ -6,7 +6,7 @@ describe('templateLiteralsStripTransformer', () => {
       const source = '';
       const result = templateLiteralsStripTransformer({ source });
 
-      expect(String(result)).toBe('');
+      expect(result).toBe('');
     });
 
     it('VALID: {source: code with no template literals} => returns input unchanged', () => {
@@ -14,7 +14,7 @@ describe('templateLiteralsStripTransformer', () => {
       const source = text;
       const result = templateLiteralsStripTransformer({ source });
 
-      expect(String(result)).toBe(text);
+      expect(result).toBe(text);
     });
 
     it('VALID: {source: single-quoted import path} => preserves quotes and content', () => {
@@ -22,7 +22,7 @@ describe('templateLiteralsStripTransformer', () => {
       const source = text;
       const result = templateLiteralsStripTransformer({ source });
 
-      expect(String(result)).toBe(text);
+      expect(result).toBe(text);
     });
 
     it('VALID: {source: double-quoted import path} => preserves quotes and content', () => {
@@ -30,7 +30,7 @@ describe('templateLiteralsStripTransformer', () => {
       const source = text;
       const result = templateLiteralsStripTransformer({ source });
 
-      expect(String(result)).toBe(text);
+      expect(result).toBe(text);
     });
 
     it('VALID: {source: string with escaped quote} => preserves the escape sequence', () => {
@@ -38,7 +38,7 @@ describe('templateLiteralsStripTransformer', () => {
       const source = text;
       const result = templateLiteralsStripTransformer({ source });
 
-      expect(String(result)).toBe(text);
+      expect(result).toBe(text);
     });
   });
 
@@ -50,7 +50,7 @@ describe('templateLiteralsStripTransformer', () => {
       const result = templateLiteralsStripTransformer({ source });
       const expected = `${' '.repeat(fakeComment.length)}\n${realImport}`;
 
-      expect(String(result)).toBe(expected);
+      expect(result).toBe(expected);
     });
 
     it('VALID: {source: line comment in middle of file} => preserves trailing newline', () => {
@@ -60,7 +60,7 @@ describe('templateLiteralsStripTransformer', () => {
       const result = templateLiteralsStripTransformer({ source });
       const expected = `${' '.repeat(lineComment.length)}\n${code}`;
 
-      expect(String(result)).toBe(expected);
+      expect(result).toBe(expected);
     });
   });
 
@@ -72,7 +72,7 @@ describe('templateLiteralsStripTransformer', () => {
       const result = templateLiteralsStripTransformer({ source });
       const expected = `const md = ${' '.repeat(templateBody.length + 2)};\n${realImport}`;
 
-      expect(String(result)).toBe(expected);
+      expect(result).toBe(expected);
     });
 
     it('VALID: {source: multi-line template literal} => preserves newlines, strips body', () => {
@@ -85,7 +85,7 @@ describe('templateLiteralsStripTransformer', () => {
       const strippedBody = ` \n${' '.repeat(line2.length)}\n${' '.repeat(line3.length)}\n `;
       const expected = `const md = ${strippedBody};\n${realImport}`;
 
-      expect(String(result)).toBe(expected);
+      expect(result).toBe(expected);
     });
 
     it('VALID: {source: template with dollar-brace interpolation} => strips body and interp content', () => {
@@ -95,7 +95,7 @@ describe('templateLiteralsStripTransformer', () => {
       const result = templateLiteralsStripTransformer({ source });
       const expected = `const md = ${' '.repeat(templateExpr.length)};\n${realImport}`;
 
-      expect(String(result)).toBe(expected);
+      expect(result).toBe(expected);
     });
 
     it('VALID: {source: nested template inside dollar-brace} => strips both outer and inner templates', () => {
@@ -105,7 +105,7 @@ describe('templateLiteralsStripTransformer', () => {
       const result = templateLiteralsStripTransformer({ source });
       const expected = `const md = ${' '.repeat(nestedExpr.length)};\n${realImport}`;
 
-      expect(String(result)).toBe(expected);
+      expect(result).toBe(expected);
     });
 
     it('VALID: {source: object literal inside dollar-brace} => brace counter handles nesting', () => {
@@ -115,7 +115,7 @@ describe('templateLiteralsStripTransformer', () => {
       const result = templateLiteralsStripTransformer({ source });
       const expected = `const x = ${' '.repeat(templateExpr.length)};\n${realImport}`;
 
-      expect(String(result)).toBe(expected);
+      expect(result).toBe(expected);
     });
 
     it('VALID: {source: string with brace inside dollar-brace} => brace counter ignores braces in strings', () => {
@@ -125,7 +125,7 @@ describe('templateLiteralsStripTransformer', () => {
       const result = templateLiteralsStripTransformer({ source });
       const expected = `const x = ${' '.repeat(templateExpr.length)};\n${realImport}`;
 
-      expect(String(result)).toBe(expected);
+      expect(result).toBe(expected);
     });
 
     it('VALID: {source: escaped backtick inside template} => does not exit template prematurely', () => {
@@ -135,7 +135,7 @@ describe('templateLiteralsStripTransformer', () => {
       const result = templateLiteralsStripTransformer({ source });
       const expected = `const x = ${' '.repeat(templateExpr.length)};\n${realImport}`;
 
-      expect(String(result)).toBe(expected);
+      expect(result).toBe(expected);
     });
   });
 });

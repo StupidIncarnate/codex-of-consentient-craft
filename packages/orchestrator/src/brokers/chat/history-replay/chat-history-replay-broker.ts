@@ -148,9 +148,7 @@ export const chatHistoryReplayBroker = async ({
       jsonlFiles.map(async (file) => ({
         agentId: stripAgentFilenamePrefixTransformer({ fileName: file }),
         lines: streamJsonLinesFromRawTransformer({
-          rawLines: await readNonEmptyLines(
-            `${subagentsDir}/${file}`,
-          ),
+          rawLines: await readNonEmptyLines(`${subagentsDir}/${file}`),
         }),
       })),
     );
@@ -214,10 +212,7 @@ export const chatHistoryReplayBroker = async ({
   // candidates: when a tool_result lives in a sub-agent JSONL (container !== null), the child
   // sub-agent B's completion tool_result reveals that B was spawned by the container sub-agent A.
   // PASS 1c then resolves A's chain key and calls registerParentChain for B.
-  const allScanLines: string[] = [
-    ...sessionLines,
-    ...subagentFiles.flatMap((f) => f.lines),
-  ];
+  const allScanLines: string[] = [...sessionLines, ...subagentFiles.flatMap((f) => f.lines)];
   const scanSources: {
     lines: string[];
     container: ReturnType<typeof agentContract.shape.id.parse> | null;

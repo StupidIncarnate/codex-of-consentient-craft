@@ -10,19 +10,28 @@
 import { z } from '#gateway/npm/zod';
 import { catchAllSiteContract } from '../catch-all-site/catch-all-site-contract';
 
-export const sourceFactsContract = z.object({
-  imports: z.array(
-    z.object({ specifier: z.string().min(1).brand<'SourceFactsImportsSpecifier'>(), names: z.array(z.string().min(1).brand<'SourceFactsImportsNames'>()) }).brand<'SourceFactsImports'>(),
-  ),
-  reExports: z.array(
-    z.object({
-      specifier: z.string().min(1).brand<'SourceFactsReExportsSpecifier'>(),
-      names: z.array(z.string().min(1).brand<'SourceFactsReExportsNames'>()),
-      isStar: z.boolean(),
-    }).brand<'SourceFactsReExports'>(),
-  ),
-  exportNames: z.array(z.string().min(1).brand<'SourceFactsExportNames'>()),
-  catchAllSites: z.array(catchAllSiteContract),
-}).brand<'SourceFacts'>();
+export const sourceFactsContract = z
+  .object({
+    imports: z.array(
+      z
+        .object({
+          specifier: z.string().min(1).brand<'SourceFactsImportsSpecifier'>(),
+          names: z.array(z.string().min(1).brand<'SourceFactsImportsNames'>()),
+        })
+        .brand<'SourceFactsImports'>(),
+    ),
+    reExports: z.array(
+      z
+        .object({
+          specifier: z.string().min(1).brand<'SourceFactsReExportsSpecifier'>(),
+          names: z.array(z.string().min(1).brand<'SourceFactsReExportsNames'>()),
+          isStar: z.boolean(),
+        })
+        .brand<'SourceFactsReExports'>(),
+    ),
+    exportNames: z.array(z.string().min(1).brand<'SourceFactsExportNames'>()),
+    catchAllSites: z.array(catchAllSiteContract),
+  })
+  .brand<'SourceFacts'>();
 
 export type SourceFacts = z.infer<typeof sourceFactsContract>;

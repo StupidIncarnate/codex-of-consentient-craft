@@ -41,10 +41,7 @@ import { createDriverHandlerLayerBroker } from './create-driver-handler-layer-br
 import { createDriverPollTickLayerBroker } from './create-driver-poll-tick-layer-broker';
 import { smoketestSweepPendingWorkItemsLayerBroker } from './smoketest-sweep-pending-work-items-layer-broker';
 
-type QuestModifiedHandler = (event: {
-  processId: string;
-  payload: { questId?: unknown };
-}) => void;
+type QuestModifiedHandler = (event: { processId: string; payload: { questId?: unknown } }) => void;
 
 type Dispense = ({ role }: { role: WorkItemRole }) => SmoketestPromptName | null;
 

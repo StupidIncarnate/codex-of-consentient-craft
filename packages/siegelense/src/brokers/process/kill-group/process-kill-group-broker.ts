@@ -17,7 +17,6 @@
 import { isFsError } from '#gateway/node/fs';
 import { kill } from '#gateway/node/process';
 
-
 export const processKillGroupBroker = ({
   pgid,
   signal,
@@ -26,7 +25,7 @@ export const processKillGroupBroker = ({
   signal: NodeJS.Signals;
 }): { signalSent: boolean } => {
   try {
-    kill(-Number(pgid), signal);
+    kill(-pgid, signal);
     return { signalSent: true };
   } catch (error: unknown) {
     // `isFsError` reads `.code` off any object rather than checking `instanceof Error`: a real ESRCH

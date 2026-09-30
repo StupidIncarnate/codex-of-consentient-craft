@@ -18,7 +18,16 @@ import React, { useCallback, useEffect, useMemo, useRef, useState } from '#gatew
 import { Group } from '#gateway/npm/mantine__core';
 import { IconFocusCentered, IconZoomIn, IconZoomOut } from '#gateway/npm/tabler__icons-react';
 
-import type { Flow, FlowNode, FlowObservable, PackageType, QuestComment, QuestContractEntry, QuestPackageEntry, Quest } from '@dungeonmaster/shared/contracts';
+import type {
+  Flow,
+  FlowNode,
+  FlowObservable,
+  PackageType,
+  QuestComment,
+  QuestContractEntry,
+  QuestPackageEntry,
+  Quest,
+} from '@dungeonmaster/shared/contracts';
 
 import { elkLayoutBroker } from '../../brokers/elk/layout/elk-layout-broker';
 import { FlowEdgeWidget } from '../flow-edge/flow-edge-widget';
@@ -231,19 +240,13 @@ export const ReactFlowDiagramWidget = ({
       .forEach((c) => {
         if (c.observableId === undefined) {
           const priorCount = nodeCommentCounts.get(c.nodeId);
-          nodeCommentCounts.set(
-            c.nodeId,
-            ((priorCount === undefined ? 0 : Number(priorCount)) + 1),
-          );
+          nodeCommentCounts.set(c.nodeId, (priorCount === undefined ? 0 : priorCount) + 1);
           return;
         }
         const perObservable =
           observableCommentCounts.get(c.nodeId) ?? new Map<FlowObservable['id'], number>();
         const priorCount = perObservable.get(c.observableId);
-        perObservable.set(
-          c.observableId,
-          ((priorCount === undefined ? 0 : Number(priorCount)) + 1),
-        );
+        perObservable.set(c.observableId, (priorCount === undefined ? 0 : priorCount) + 1);
         observableCommentCounts.set(c.nodeId, perObservable);
       });
     const zeroCommentCount = 0;
@@ -419,7 +422,9 @@ export const ReactFlowDiagramWidget = ({
       const routeData = route === undefined ? {} : { route };
       // A back-edge (target laid out ABOVE the source) is a loop; attach it to the side loop
       // handles so it exits/re-enters from the RIGHT of the cards instead of the top/bottom.
-      const isLoop = (positionByNodeId.get(String(e.to))?.y ?? 0) < (positionByNodeId.get(String(e.from))?.y ?? 0);
+      const isLoop =
+        (positionByNodeId.get(String(e.to))?.y ?? 0) <
+        (positionByNodeId.get(String(e.from))?.y ?? 0);
       const loopHandles = isLoop
         ? {
             sourceHandle: flowHandleStatics.loopSourceId,
@@ -558,7 +563,9 @@ export const ReactFlowDiagramWidget = ({
               // is the only place both ids survive independently of that string's shape.
               const clicked = laidOutFlow.nodes.find((fn) => String(fn.id) === node.id);
               if (clicked !== undefined) {
-                setSelectedAnchor(commentAnchorContract.parse({ flowId: laidOutFlow.id, nodeId: clicked.id }));
+                setSelectedAnchor(
+                  commentAnchorContract.parse({ flowId: laidOutFlow.id, nodeId: clicked.id }),
+                );
                 return;
               }
               const observableData = flowObservableNodeDataContract.safeParse(node.data);
@@ -567,11 +574,13 @@ export const ReactFlowDiagramWidget = ({
               if (!observableData.success) {
                 return;
               }
-              setSelectedAnchor(commentAnchorContract.parse({
-                flowId: laidOutFlow.id,
-                nodeId: observableData.data.nodeId,
-                observableId: observableData.data.observableId,
-              }));
+              setSelectedAnchor(
+                commentAnchorContract.parse({
+                  flowId: laidOutFlow.id,
+                  nodeId: observableData.data.nodeId,
+                  observableId: observableData.data.observableId,
+                }),
+              );
             },
             onPaneClick: () => {
               setSelectedAnchor(null);

@@ -6,7 +6,6 @@
  * hasSessionSummaryGuard({ session: {} }); // false
  */
 
-
 export const hasSessionSummaryGuard = ({
   session,
 }: {

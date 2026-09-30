@@ -24,7 +24,8 @@ const CONTENT_ITEM = z
     text: z.string().brand<'CONTENTITEMText'>().optional(),
     id: z.string().min(1).brand<'CONTENTITEMId'>().optional(),
     tool_use_id: z.string().min(1).brand<'CONTENTITEMToolUseId'>().optional(),
-  }).brand<'CONTENTITEM'>()
+  })
+  .brand<'CONTENTITEM'>()
   .loose();
 
 export const recipeTranscriptLineContract = z
@@ -33,14 +34,20 @@ export const recipeTranscriptLineContract = z
     timestamp: z.string().min(1).brand<'RecipeTranscriptLineTimestamp'>(),
     message: z
       .object({
-        content: z.union([z.string().brand<'RecipeTranscriptLineMessageContent'>(), z.array(CONTENT_ITEM)]),
-      }).brand<'RecipeTranscriptLineMessage'>()
+        content: z.union([
+          z.string().brand<'RecipeTranscriptLineMessageContent'>(),
+          z.array(CONTENT_ITEM),
+        ]),
+      })
+      .brand<'RecipeTranscriptLineMessage'>()
       .loose(),
     toolUseResult: z
-      .object({ agentId: z.string().min(1).brand<'RecipeTranscriptLineToolUseResultAgentId'>() }).brand<'RecipeTranscriptLineToolUseResult'>()
+      .object({ agentId: z.string().min(1).brand<'RecipeTranscriptLineToolUseResultAgentId'>() })
+      .brand<'RecipeTranscriptLineToolUseResult'>()
       .loose()
       .optional(),
   })
-  .loose().brand<'RecipeTranscriptLine'>();
+  .loose()
+  .brand<'RecipeTranscriptLine'>();
 
 export type RecipeTranscriptLine = z.infer<typeof recipeTranscriptLineContract>;

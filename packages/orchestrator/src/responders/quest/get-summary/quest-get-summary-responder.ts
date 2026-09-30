@@ -26,4 +26,5 @@ export const QuestGetSummaryResponder = async ({
   questId,
 }: {
   questId: string;
-}): Promise<QuestSummary> => questGetSummaryBroker({ questId: questContract.shape.id.parse(questId) });
+}): Promise<QuestSummary> =>
+  questGetSummaryBroker({ questId: questContract.shape.id.parse(questId) });

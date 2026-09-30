@@ -146,76 +146,76 @@ describe('SiegelensePruneLayerFlow', () => {
     testbed.writeFile({
       relativePath: REGISTRY_PATH,
       content: JSON.stringify(
-          RegistryStub({
-            instances: [
-              RegistryEntryStub({ id: LOG_KIND_ID, state: 'killed', questId: null, guildId: null }),
-              RegistryEntryStub({
-                id: SHOT_KIND_ID,
-                state: 'killed',
-                questId: null,
-                guildId: null,
-              }),
-              RegistryEntryStub({
-                id: TRANSCRIPT_KIND_ID,
-                state: 'killed',
-                questId: null,
-                guildId: null,
-              }),
-              RegistryEntryStub({
-                id: VIDEO_KIND_ID,
-                state: 'killed',
-                questId: null,
-                guildId: null,
-              }),
-              RegistryEntryStub({
-                id: SCOPE_TARGET_ID,
-                state: 'killed',
-                questId: null,
-                guildId: null,
-              }),
-              RegistryEntryStub({
-                id: SCOPE_NEIGHBOUR_ID,
-                state: 'killed',
-                questId: null,
-                guildId: null,
-              }),
-              RegistryEntryStub({
-                id: LIVE_ID,
-                state: 'alive',
-                questId: null,
-                guildId: null,
-                reservedAtMs: (Date.now() - 120_000),
-                bootedAtMs: (Date.now() - 120_000),
-                lastBeatMs: (Date.now() - 2_000),
-              }),
-              RegistryEntryStub({ id: CITED_ID, state: 'killed', questId: QUEST, guildId: GUILD }),
-              RegistryEntryStub({
-                id: BOUNDARY_ID,
-                state: 'killed',
-                questId: null,
-                guildId: null,
-              }),
-              RegistryEntryStub({
-                id: VIDEO_DEFAULT_WINDOW_ID,
-                state: 'killed',
-                questId: null,
-                guildId: null,
-              }),
-              RegistryEntryStub({
-                id: NO_CONFIRM_ID,
-                state: 'killed',
-                questId: null,
-                guildId: null,
-              }),
-              RegistryEntryStub({
-                id: CONFIRM_ID,
-                state: 'killed',
-                questId: null,
-                guildId: null,
-              }),
-            ],
-          }),
-        ),
+        RegistryStub({
+          instances: [
+            RegistryEntryStub({ id: LOG_KIND_ID, state: 'killed', questId: null, guildId: null }),
+            RegistryEntryStub({
+              id: SHOT_KIND_ID,
+              state: 'killed',
+              questId: null,
+              guildId: null,
+            }),
+            RegistryEntryStub({
+              id: TRANSCRIPT_KIND_ID,
+              state: 'killed',
+              questId: null,
+              guildId: null,
+            }),
+            RegistryEntryStub({
+              id: VIDEO_KIND_ID,
+              state: 'killed',
+              questId: null,
+              guildId: null,
+            }),
+            RegistryEntryStub({
+              id: SCOPE_TARGET_ID,
+              state: 'killed',
+              questId: null,
+              guildId: null,
+            }),
+            RegistryEntryStub({
+              id: SCOPE_NEIGHBOUR_ID,
+              state: 'killed',
+              questId: null,
+              guildId: null,
+            }),
+            RegistryEntryStub({
+              id: LIVE_ID,
+              state: 'alive',
+              questId: null,
+              guildId: null,
+              reservedAtMs: Date.now() - 120_000,
+              bootedAtMs: Date.now() - 120_000,
+              lastBeatMs: Date.now() - 2_000,
+            }),
+            RegistryEntryStub({ id: CITED_ID, state: 'killed', questId: QUEST, guildId: GUILD }),
+            RegistryEntryStub({
+              id: BOUNDARY_ID,
+              state: 'killed',
+              questId: null,
+              guildId: null,
+            }),
+            RegistryEntryStub({
+              id: VIDEO_DEFAULT_WINDOW_ID,
+              state: 'killed',
+              questId: null,
+              guildId: null,
+            }),
+            RegistryEntryStub({
+              id: NO_CONFIRM_ID,
+              state: 'killed',
+              questId: null,
+              guildId: null,
+            }),
+            RegistryEntryStub({
+              id: CONFIRM_ID,
+              state: 'killed',
+              questId: null,
+              guildId: null,
+            }),
+          ],
+        }),
+      ),
     });
 
     // Every kind, on one instance apiece, so a sweep scoped to that instance and that kind proves
@@ -293,24 +293,24 @@ describe('SiegelensePruneLayerFlow', () => {
     testbed.writeFile({
       relativePath: CITED_QUEST_FILE_RELATIVE_PATH,
       content: JSON.stringify(
-          QuestStub({
-            id: QUEST,
-            status: 'in_progress',
-            worktreePath: `${testbed.guildPath}/cited-worktree`,
-            planningNotes: {
-              blightLedger: [],
-              operationPlans: [],
-              questNotes: [
-                QuestNoteStub({
-                  id: 'walked-prune-audit',
-                  kind: 'walked',
-                  instanceId: SiegeInstanceIdStub({ value: String(CITED_ID) }),
-                  runId: SiegeRunIdStub({ value: 'run_1' }),
-                }),
-              ],
-            },
-          }),
-        ),
+        QuestStub({
+          id: QUEST,
+          status: 'in_progress',
+          worktreePath: `${testbed.guildPath}/cited-worktree`,
+          planningNotes: {
+            blightLedger: [],
+            operationPlans: [],
+            questNotes: [
+              QuestNoteStub({
+                id: 'walked-prune-audit',
+                kind: 'walked',
+                instanceId: SiegeInstanceIdStub({ value: String(CITED_ID) }),
+                runId: SiegeRunIdStub({ value: 'run_1' }),
+              }),
+            ],
+          },
+        }),
+      ),
     });
     testbed.writeFile({
       relativePath: CITED_PRELUDE_RELATIVE_PATH,
@@ -708,17 +708,13 @@ describe('SiegelensePruneLayerFlow', () => {
         }),
       ).resolves.toBe(undefined);
 
-      const writes = stdoutSpy
-        .callsMatching([])
-        .map((call) => String(call[0]));
+      const writes = stdoutSpy.callsMatching([]).map((call) => String(call[0]));
 
       const after = testbed.readFile({
         relativePath: NO_CONFIRM_LOG_PATH,
       });
       const registryAfter = RegistryStub(
-        JSON.parse(
-          String(testbed.readFile({ relativePath: REGISTRY_PATH })),
-        ) as never,
+        JSON.parse(String(testbed.readFile({ relativePath: REGISTRY_PATH }))) as never,
       );
       const rowAfter = registryAfter.instances.find(
         (entry) => String(entry.id) === String(NO_CONFIRM_ID),

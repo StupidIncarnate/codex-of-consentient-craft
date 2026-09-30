@@ -35,9 +35,7 @@ describe('locationsWardLocalRunPathFindBroker', () => {
         runId: WardRunIdStub({ value: '1739625600000-a3f1' }),
       });
 
-      expect(result).toBe(
-        '/repo/packages/web/.ward/run-1739625600000-a3f1.json',
-      );
+      expect(result).toBe('/repo/packages/web/.ward/run-1739625600000-a3f1.json');
     });
   });
 });

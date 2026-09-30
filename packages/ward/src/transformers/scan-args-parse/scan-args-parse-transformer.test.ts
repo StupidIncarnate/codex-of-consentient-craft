@@ -12,12 +12,7 @@ describe('scanArgsParseTransformer', () => {
 
     it('VALID: {rule, --, two paths} => returns both paths in order', () => {
       const result = scanArgsParseTransformer({
-        args: [
-          'no-console',
-          '--',
-          'packages/ward',
-          'packages/hooks/src/a.ts',
-        ],
+        args: ['no-console', '--', 'packages/ward', 'packages/hooks/src/a.ts'],
       });
 
       expect(result).toStrictEqual({
@@ -61,11 +56,7 @@ describe('scanArgsParseTransformer', () => {
     it('INVALID: {flag after --} => throws naming the flag', () => {
       expect(() =>
         scanArgsParseTransformer({
-          args: [
-            'no-console',
-            '--',
-            '--fix',
-          ],
+          args: ['no-console', '--', '--fix'],
         }),
       ).toThrow(
         /^Flags after "--" are not forwarded: --fix\nUsage: npm run ward -- scan <rule> \[-- <files or packages>\]$/u,

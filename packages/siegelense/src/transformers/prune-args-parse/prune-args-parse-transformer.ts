@@ -78,7 +78,7 @@ export const pruneArgsParseTransformer = ({ args }: { args: readonly string[] })
 
   const olderThan = flagContractParseTransformer({
     flag: OLDER_THAN_FLAG,
-    parse: () => (olderThanValue ?? pruneStatics.window.defaultOlderThan),
+    parse: () => olderThanValue ?? pruneStatics.window.defaultOlderThan,
   });
 
   // Parsed for its refusal, not its value: a window this cannot read must be answered at the argv

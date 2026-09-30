@@ -15,7 +15,13 @@ export const GuildUpdateResponderProxy = (): {
     setupUpdateGuild: ({ guild }: { guild: Guild }): void => {
       orchestrator.updateGuildReturns({ guildId: guild.id, guild });
     },
-    setupUpdateGuildError: ({ guildId, message }: { guildId: Guild['id']; message: string }): void => {
+    setupUpdateGuildError: ({
+      guildId,
+      message,
+    }: {
+      guildId: Guild['id'];
+      message: string;
+    }): void => {
       orchestrator.updateGuildThrows({ guildId, error: new Error(message) });
     },
     callResponder: GuildUpdateResponder,

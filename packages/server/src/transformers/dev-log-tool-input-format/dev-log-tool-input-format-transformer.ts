@@ -25,26 +25,28 @@ export const devLogToolInputFormatTransformer = ({
     const fp = parsed.file_path;
     if (fp === undefined) return '';
     const parts = fp.split('/');
-    return (parts.length <= PATH_TAIL_SEGMENTS ? fp : `.../${parts.slice(-PATH_TAIL_SEGMENTS).join('/')}`);
+    return parts.length <= PATH_TAIL_SEGMENTS
+      ? fp
+      : `.../${parts.slice(-PATH_TAIL_SEGMENTS).join('/')}`;
   }
   if (toolName === 'Bash') {
     const cmd = parsed.command;
     if (cmd === undefined) return '';
-    return (cmd.length > TOOL_CMD_PREVIEW_LENGTH
-        ? `"${cmd.slice(0, TOOL_CMD_PREVIEW_LENGTH)}..."`
-        : `"${cmd}"`);
+    return cmd.length > TOOL_CMD_PREVIEW_LENGTH
+      ? `"${cmd.slice(0, TOOL_CMD_PREVIEW_LENGTH)}..."`
+      : `"${cmd}"`;
   }
   if (toolName === 'Grep') {
-    return (parsed.pattern === undefined ? '' : `pattern:"${parsed.pattern}"`);
+    return parsed.pattern === undefined ? '' : `pattern:"${parsed.pattern}"`;
   }
   if (toolName === 'Glob') {
-    return (parsed.pattern === undefined ? '' : `"${parsed.pattern}"`);
+    return parsed.pattern === undefined ? '' : `"${parsed.pattern}"`;
   }
   if (toolName === 'Agent') {
-    return (parsed.description === undefined ? '' : `"${parsed.description}"`);
+    return parsed.description === undefined ? '' : `"${parsed.description}"`;
   }
   if (toolName === 'TaskCreate') {
-    return (parsed.subject === undefined ? '' : `"${parsed.subject.slice(0, TEXT_PREVIEW_LENGTH)}"`);
+    return parsed.subject === undefined ? '' : `"${parsed.subject.slice(0, TEXT_PREVIEW_LENGTH)}"`;
   }
   if (toolName === 'TaskUpdate') {
     return `task:${String(parsed.taskId)}  ${String(parsed.status)}`;

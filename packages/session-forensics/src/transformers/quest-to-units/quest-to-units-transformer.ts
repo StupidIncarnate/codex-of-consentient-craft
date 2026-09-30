@@ -159,7 +159,9 @@ export const questToUnitsTransformer = ({
   });
 
   return unitsByFlow.map((unit) => {
-    const compositeId = qaChecklistItemContract.shape.id.safeParse(`${unit.flowId}:${unit.kind}:${unit.unitId}`);
+    const compositeId = qaChecklistItemContract.shape.id.safeParse(
+      `${unit.flowId}:${unit.kind}:${unit.unitId}`,
+    );
 
     return verificationUnitContract.parse({
       ...unit,

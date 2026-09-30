@@ -1028,7 +1028,11 @@ describe('QuestFlow', () => {
         cwd: dungeonmasterHome,
         timeoutMs: 8000,
       });
-      const dir = harness.readImagesDir({ dungeonmasterHome, guildId: GuildIdStub({ value: guildId }), questId });
+      const dir = harness.readImagesDir({
+        dungeonmasterHome,
+        guildId: GuildIdStub({ value: guildId }),
+        questId,
+      });
       const tokenBytes = tokenPaths.map((filePath) => harness.readFileBase64({ filePath }));
 
       cli.restore();
@@ -1041,7 +1045,7 @@ describe('QuestFlow', () => {
       // means the real fs holds precisely the two files the tokens reference, nothing extra and
       // nothing missing.
       const dirFullPathsSorted = dir.fileNames.map((name) => `${dir.dirPath}/${name}`).sort();
-      const tokenPathsSorted = tokenPaths.map((filePath) => String(filePath)).sort();
+      const tokenPathsSorted = tokenPaths.map((filePath) => filePath).sort();
 
       expect(dirFullPathsSorted).toStrictEqual(tokenPathsSorted);
       expect(tokenBytes).toStrictEqual(['Zmlyc3QtaW1hZ2U=', 'c2Vjb25kLWltYWdl']);
@@ -1081,7 +1085,11 @@ describe('QuestFlow', () => {
         body: JSON.stringify({ message: 'far too many pictures', images: overCapImages }),
       });
       const overCapBody: unknown = await overCapResponse.json();
-      const dirAfterOverCap = harness.readImagesDir({ dungeonmasterHome, guildId: GuildIdStub({ value: guildId }), questId });
+      const dirAfterOverCap = harness.readImagesDir({
+        dungeonmasterHome,
+        guildId: GuildIdStub({ value: guildId }),
+        questId,
+      });
 
       const atCapImages = Array.from({ length: pastedImageStatics.maxImagesPerMessage }, () => ({
         mediaType: 'image/png',
@@ -1092,7 +1100,11 @@ describe('QuestFlow', () => {
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ message: 'exactly the cap', images: atCapImages }),
       });
-      const dirAfterAtCap = harness.readImagesDir({ dungeonmasterHome, guildId: GuildIdStub({ value: guildId }), questId });
+      const dirAfterAtCap = harness.readImagesDir({
+        dungeonmasterHome,
+        guildId: GuildIdStub({ value: guildId }),
+        questId,
+      });
 
       cli.restore();
       restore();
@@ -1131,7 +1143,11 @@ describe('QuestFlow', () => {
       const guildId = String(seeded.guild.id);
       const questId = seeded.quest.id;
 
-      const dirBefore = harness.readImagesDir({ dungeonmasterHome, guildId: GuildIdStub({ value: guildId }), questId });
+      const dirBefore = harness.readImagesDir({
+        dungeonmasterHome,
+        guildId: GuildIdStub({ value: guildId }),
+        questId,
+      });
 
       const app = QuestFlow();
       const response = await app.request(`/api/quests/${questId}/chat`, {
@@ -1142,7 +1158,11 @@ describe('QuestFlow', () => {
           images: [{ mediaType: 'image/png', dataBase64: 'Zmlyc3QtaW1hZ2U=' }],
         }),
       });
-      const dirAfter = harness.readImagesDir({ dungeonmasterHome, guildId: GuildIdStub({ value: guildId }), questId });
+      const dirAfter = harness.readImagesDir({
+        dungeonmasterHome,
+        guildId: GuildIdStub({ value: guildId }),
+        questId,
+      });
 
       cli.restore();
       restore();
@@ -1184,7 +1204,11 @@ describe('QuestFlow', () => {
           images: [{ mediaType: 'image/png', dataBase64: 'Zmlyc3QtaW1hZ2U=' }],
         }),
       });
-      const dirAfterFirst = harness.readImagesDir({ dungeonmasterHome, guildId: GuildIdStub({ value: guildId }), questId });
+      const dirAfterFirst = harness.readImagesDir({
+        dungeonmasterHome,
+        guildId: GuildIdStub({ value: guildId }),
+        questId,
+      });
 
       const secondResponse = await app.request(`/api/quests/${questId}/chat`, {
         method: 'POST',
@@ -1194,7 +1218,11 @@ describe('QuestFlow', () => {
           images: [{ mediaType: 'image/jpeg', dataBase64: 'c2Vjb25kLWltYWdl' }],
         }),
       });
-      const dirAfterSecond = harness.readImagesDir({ dungeonmasterHome, guildId: GuildIdStub({ value: guildId }), questId });
+      const dirAfterSecond = harness.readImagesDir({
+        dungeonmasterHome,
+        guildId: GuildIdStub({ value: guildId }),
+        questId,
+      });
 
       cli.restore();
       restore();
@@ -1253,7 +1281,11 @@ describe('QuestFlow', () => {
           images: [{ mediaType: 'image/png', dataBase64 }],
         }),
       });
-      const dir = harness.readImagesDir({ dungeonmasterHome, guildId: GuildIdStub({ value: guildId }), questId });
+      const dir = harness.readImagesDir({
+        dungeonmasterHome,
+        guildId: GuildIdStub({ value: guildId }),
+        questId,
+      });
       const bytesRead = dir.fileNames.map((name) =>
         harness.readFileBase64({ filePath: `${dir.dirPath}/${name}` }),
       );
@@ -1311,7 +1343,11 @@ describe('QuestFlow', () => {
             images: [{ mediaType: 'image/png', dataBase64 }],
           }),
         });
-        const dir = harness.readImagesDir({ dungeonmasterHome, guildId: GuildIdStub({ value: guildId }), questId });
+        const dir = harness.readImagesDir({
+          dungeonmasterHome,
+          guildId: GuildIdStub({ value: guildId }),
+          questId,
+        });
         const writtenBase64 = harness.readFileBase64({
           filePath: `${dir.dirPath}/${dir.fileNames[0]}`,
         });
@@ -1364,7 +1400,11 @@ describe('QuestFlow', () => {
           images: [{ mediaType: 'image/png', dataBase64: 'bm8tc2Vzc2lvbg==' }],
         }),
       });
-      const dir = harness.readImagesDir({ dungeonmasterHome, guildId: GuildIdStub({ value: guildId }), questId });
+      const dir = harness.readImagesDir({
+        dungeonmasterHome,
+        guildId: GuildIdStub({ value: guildId }),
+        questId,
+      });
       const listResponse = await app.request(`/api/quests?guildId=${guildId}`);
       const listBody: unknown = await listResponse.json();
       const listedQuestIds = harness.readListedQuestIds({ body: listBody });
@@ -1412,7 +1452,12 @@ describe('QuestFlow', () => {
           }),
         ],
       });
-      await harness.seedQuest({ dungeonmasterHome, guildId: GuildIdStub({ value: guildId }), questFolder: questId, quest });
+      await harness.seedQuest({
+        dungeonmasterHome,
+        guildId: GuildIdStub({ value: guildId }),
+        questFolder: questId,
+        quest,
+      });
 
       const seeded = await harness.seedImageFile({
         baseName: 'quest-flow-local-image-source-kept-fixture',
@@ -1459,7 +1504,12 @@ describe('QuestFlow', () => {
           }),
         ],
       });
-      await harness.seedQuest({ dungeonmasterHome, guildId: GuildIdStub({ value: guildId }), questFolder: questId, quest });
+      await harness.seedQuest({
+        dungeonmasterHome,
+        guildId: GuildIdStub({ value: guildId }),
+        questFolder: questId,
+        quest,
+      });
 
       const seeded = await harness.seedImageFile({
         baseName: 'quest-flow-local-image-copy-survives-fixture',
@@ -1479,7 +1529,11 @@ describe('QuestFlow', () => {
       // after the send has resolved, so the copy this test is about has already happened.
       seeded.cleanup();
 
-      const dir = harness.readImagesDir({ dungeonmasterHome, guildId: GuildIdStub({ value: guildId }), questId: QuestIdStub({ value: questId }) });
+      const dir = harness.readImagesDir({
+        dungeonmasterHome,
+        guildId: GuildIdStub({ value: guildId }),
+        questId: QuestIdStub({ value: questId }),
+      });
       const [copiedFileName] = dir.fileNames;
       const copiedBase64 = harness.readFileBase64({ filePath: `${dir.dirPath}/${copiedFileName}` });
 
@@ -1515,7 +1569,12 @@ describe('QuestFlow', () => {
           }),
         ],
       });
-      await harness.seedQuest({ dungeonmasterHome, guildId: GuildIdStub({ value: guildId }), questFolder: questId, quest });
+      await harness.seedQuest({
+        dungeonmasterHome,
+        guildId: GuildIdStub({ value: guildId }),
+        questFolder: questId,
+        quest,
+      });
 
       // A distinct extension from the uploaded bitmap's ('png') is what lets this test tell the
       // two written files apart afterward without parsing the prompt it is trying to prove.
@@ -1539,7 +1598,11 @@ describe('QuestFlow', () => {
         cwd: dungeonmasterHome,
         timeoutMs: 8000,
       });
-      const dir = harness.readImagesDir({ dungeonmasterHome, guildId: GuildIdStub({ value: guildId }), questId: QuestIdStub({ value: questId }) });
+      const dir = harness.readImagesDir({
+        dungeonmasterHome,
+        guildId: GuildIdStub({ value: guildId }),
+        questId: QuestIdStub({ value: questId }),
+      });
       const [bitmapFileName] = dir.fileNames.filter((name) => name.endsWith('.png'));
       const [screenshotFileName] = dir.fileNames.filter((name) => name.endsWith('.jpg'));
 
@@ -1583,7 +1646,12 @@ describe('QuestFlow', () => {
           }),
         ],
       });
-      await harness.seedQuest({ dungeonmasterHome, guildId: GuildIdStub({ value: guildId }), questFolder: questId, quest });
+      await harness.seedQuest({
+        dungeonmasterHome,
+        guildId: GuildIdStub({ value: guildId }),
+        questFolder: questId,
+        quest,
+      });
 
       const message = 'plain text with no screenshot path at all';
 
@@ -1647,7 +1715,12 @@ describe('QuestFlow', () => {
           }),
         ],
       });
-      await harness.seedQuest({ dungeonmasterHome, guildId: GuildIdStub({ value: guildId }), questFolder: questId, quest });
+      await harness.seedQuest({
+        dungeonmasterHome,
+        guildId: GuildIdStub({ value: guildId }),
+        questFolder: questId,
+        quest,
+      });
 
       const message = 'relative ./shot.png bare shot.png url https://example.com/a.png done';
 
@@ -1662,7 +1735,11 @@ describe('QuestFlow', () => {
         cwd: dungeonmasterHome,
         timeoutMs: 8000,
       });
-      const dir = harness.readImagesDir({ dungeonmasterHome, guildId: GuildIdStub({ value: guildId }), questId: QuestIdStub({ value: questId }) });
+      const dir = harness.readImagesDir({
+        dungeonmasterHome,
+        guildId: GuildIdStub({ value: guildId }),
+        questId: QuestIdStub({ value: questId }),
+      });
       const sentinelOccurrences = [
         ...actualPrompt.matchAll(new RegExp(pastedImageStatics.promptSentinel, 'gu')),
       ].map((match) => match[0]);
@@ -1698,7 +1775,12 @@ describe('QuestFlow', () => {
           }),
         ],
       });
-      await harness.seedQuest({ dungeonmasterHome, guildId: GuildIdStub({ value: guildId }), questFolder: questId, quest });
+      await harness.seedQuest({
+        dungeonmasterHome,
+        guildId: GuildIdStub({ value: guildId }),
+        questFolder: questId,
+        quest,
+      });
 
       // A real seeded directory with a real sibling file — only `never-written.png` itself is
       // absent, so the miss is "this file", never "this whole tree".
@@ -1721,7 +1803,11 @@ describe('QuestFlow', () => {
         cwd: dungeonmasterHome,
         timeoutMs: 8000,
       });
-      const dir = harness.readImagesDir({ dungeonmasterHome, guildId: GuildIdStub({ value: guildId }), questId: QuestIdStub({ value: questId }) });
+      const dir = harness.readImagesDir({
+        dungeonmasterHome,
+        guildId: GuildIdStub({ value: guildId }),
+        questId: QuestIdStub({ value: questId }),
+      });
 
       cli.restore();
       restore();
@@ -1760,7 +1846,12 @@ describe('QuestFlow', () => {
           }),
         ],
       });
-      await harness.seedQuest({ dungeonmasterHome, guildId: GuildIdStub({ value: guildId }), questFolder: questId, quest });
+      await harness.seedQuest({
+        dungeonmasterHome,
+        guildId: GuildIdStub({ value: guildId }),
+        questFolder: questId,
+        quest,
+      });
 
       // Not uuid-shaped, unlike the copy's own name — a copy that reused the source name would
       // pass the uuid-shape check below only by accident of extension.
@@ -1783,7 +1874,11 @@ describe('QuestFlow', () => {
         cwd: dungeonmasterHome,
         timeoutMs: 8000,
       });
-      const dir = harness.readImagesDir({ dungeonmasterHome, guildId: GuildIdStub({ value: guildId }), questId: QuestIdStub({ value: questId }) });
+      const dir = harness.readImagesDir({
+        dungeonmasterHome,
+        guildId: GuildIdStub({ value: guildId }),
+        questId: QuestIdStub({ value: questId }),
+      });
       const [copiedFileName] = dir.fileNames;
       const copiedBase64 = harness.readFileBase64({ filePath: `${dir.dirPath}/${copiedFileName}` });
 
@@ -1826,7 +1921,12 @@ describe('QuestFlow', () => {
           }),
         ],
       });
-      await harness.seedQuest({ dungeonmasterHome, guildId: GuildIdStub({ value: guildId }), questFolder: questId, quest });
+      await harness.seedQuest({
+        dungeonmasterHome,
+        guildId: GuildIdStub({ value: guildId }),
+        questFolder: questId,
+        quest,
+      });
 
       // Four distinct extensions and four distinct byte arrays — a swapped ordinal-to-file mapping
       // reads identical to correct behavior when every fixture shares one extension, and only the
@@ -1918,7 +2018,12 @@ describe('QuestFlow', () => {
           }),
         ],
       });
-      await harness.seedQuest({ dungeonmasterHome, guildId: GuildIdStub({ value: guildId }), questFolder: questId, quest });
+      await harness.seedQuest({
+        dungeonmasterHome,
+        guildId: GuildIdStub({ value: guildId }),
+        questFolder: questId,
+        quest,
+      });
 
       const seeded = await harness.seedImageFile({
         baseName: 'quest-flow-screenshot-already-tokenised-fixture',
@@ -1938,7 +2043,11 @@ describe('QuestFlow', () => {
         cwd: dungeonmasterHome,
         timeoutMs: 8000,
       });
-      const dir = harness.readImagesDir({ dungeonmasterHome, guildId: GuildIdStub({ value: guildId }), questId: QuestIdStub({ value: questId }) });
+      const dir = harness.readImagesDir({
+        dungeonmasterHome,
+        guildId: GuildIdStub({ value: guildId }),
+        questId: QuestIdStub({ value: questId }),
+      });
 
       cli.restore();
       restore();
@@ -1975,7 +2084,12 @@ describe('QuestFlow', () => {
           }),
         ],
       });
-      await harness.seedQuest({ dungeonmasterHome, guildId: GuildIdStub({ value: guildId }), questFolder: questId, quest });
+      await harness.seedQuest({
+        dungeonmasterHome,
+        guildId: GuildIdStub({ value: guildId }),
+        questFolder: questId,
+        quest,
+      });
 
       // A distinct extension from the uploaded bitmaps' ('png') is what lets this test tell the
       // screenshot's own written file apart from theirs without parsing the prompt it exists to
@@ -2053,7 +2167,12 @@ describe('QuestFlow', () => {
           }),
         ],
       });
-      await harness.seedQuest({ dungeonmasterHome, guildId: GuildIdStub({ value: guildId }), questFolder: questId, quest });
+      await harness.seedQuest({
+        dungeonmasterHome,
+        guildId: GuildIdStub({ value: guildId }),
+        questFolder: questId,
+        quest,
+      });
 
       const seeded = await harness.seedImageFile({
         baseName: 'quest-flow-screenshot-cap-both-kinds-fixture',
@@ -2086,7 +2205,11 @@ describe('QuestFlow', () => {
         cwd: dungeonmasterHome,
         timeoutMs: 8000,
       });
-      const dir = harness.readImagesDir({ dungeonmasterHome, guildId: GuildIdStub({ value: guildId }), questId: QuestIdStub({ value: questId }) });
+      const dir = harness.readImagesDir({
+        dungeonmasterHome,
+        guildId: GuildIdStub({ value: guildId }),
+        questId: QuestIdStub({ value: questId }),
+      });
 
       cli.restore();
       restore();
@@ -2136,7 +2259,12 @@ describe('QuestFlow', () => {
           }),
         ],
       });
-      await harness.seedQuest({ dungeonmasterHome, guildId: GuildIdStub({ value: guildId }), questFolder: questId, quest });
+      await harness.seedQuest({
+        dungeonmasterHome,
+        guildId: GuildIdStub({ value: guildId }),
+        questFolder: questId,
+        quest,
+      });
 
       const seeded = await harness.seedImageFile({
         baseName: 'quest-flow-screenshot-unreadable-file-fixture',
@@ -2159,7 +2287,11 @@ describe('QuestFlow', () => {
         cwd: dungeonmasterHome,
         timeoutMs: 8000,
       });
-      const dir = harness.readImagesDir({ dungeonmasterHome, guildId: GuildIdStub({ value: guildId }), questId: QuestIdStub({ value: questId }) });
+      const dir = harness.readImagesDir({
+        dungeonmasterHome,
+        guildId: GuildIdStub({ value: guildId }),
+        questId: QuestIdStub({ value: questId }),
+      });
 
       // Restored before setupTestHome's own restore and before the fixture cleanup — that restore
       // recursively removes the temp tree and needs write permission on every directory in it.
@@ -2202,7 +2334,12 @@ describe('QuestFlow', () => {
           }),
         ],
       });
-      await harness.seedQuest({ dungeonmasterHome, guildId: GuildIdStub({ value: guildId }), questFolder: questId, quest });
+      await harness.seedQuest({
+        dungeonmasterHome,
+        guildId: GuildIdStub({ value: guildId }),
+        questFolder: questId,
+        quest,
+      });
 
       const seeded = await harness.seedImageFile({
         baseName: 'quest-flow-screenshot-copy-fails-fixture',
@@ -2230,7 +2367,11 @@ describe('QuestFlow', () => {
         cwd: dungeonmasterHome,
         timeoutMs: 8000,
       });
-      const dir = harness.readImagesDir({ dungeonmasterHome, guildId: GuildIdStub({ value: guildId }), questId: QuestIdStub({ value: questId }) });
+      const dir = harness.readImagesDir({
+        dungeonmasterHome,
+        guildId: GuildIdStub({ value: guildId }),
+        questId: QuestIdStub({ value: questId }),
+      });
 
       readOnlyImagesDir.restore();
       cli.restore();
@@ -2268,7 +2409,12 @@ describe('QuestFlow', () => {
           }),
         ],
       });
-      await harness.seedQuest({ dungeonmasterHome, guildId: GuildIdStub({ value: guildId }), questFolder: questId, quest });
+      await harness.seedQuest({
+        dungeonmasterHome,
+        guildId: GuildIdStub({ value: guildId }),
+        questFolder: questId,
+        quest,
+      });
 
       const seeded = await harness.seedImageFile({
         baseName: 'quest-flow-screenshot-source-and-copy-survive-fixture',
@@ -2290,7 +2436,11 @@ describe('QuestFlow', () => {
       // this test find out whether the copy survives the deletion.
       seeded.cleanup();
 
-      const dir = harness.readImagesDir({ dungeonmasterHome, guildId: GuildIdStub({ value: guildId }), questId: QuestIdStub({ value: questId }) });
+      const dir = harness.readImagesDir({
+        dungeonmasterHome,
+        guildId: GuildIdStub({ value: guildId }),
+        questId: QuestIdStub({ value: questId }),
+      });
       const [copiedFileName] = dir.fileNames;
       const copiedBase64AfterDelete = harness.readFileBase64({
         filePath: `${dir.dirPath}/${copiedFileName}`,
@@ -2343,7 +2493,11 @@ describe('QuestFlow', () => {
         cwd: dungeonmasterHome,
         timeoutMs: 8000,
       });
-      const dir = harness.readImagesDir({ dungeonmasterHome, guildId: GuildIdStub({ value: guildId }), questId });
+      const dir = harness.readImagesDir({
+        dungeonmasterHome,
+        guildId: GuildIdStub({ value: guildId }),
+        questId,
+      });
       const tokenBytes = tokenPaths.map((filePath) => harness.readFileBase64({ filePath }));
 
       cli.restore();
@@ -2357,7 +2511,7 @@ describe('QuestFlow', () => {
       // the real fs holds precisely the two files the tokens reference, nothing extra and nothing
       // missing.
       const dirFullPathsSorted = dir.fileNames.map((name) => `${dir.dirPath}/${name}`).sort();
-      const tokenPathsSorted = tokenPaths.map((filePath) => String(filePath)).sort();
+      const tokenPathsSorted = tokenPaths.map((filePath) => filePath).sort();
 
       expect(dirFullPathsSorted).toStrictEqual(tokenPathsSorted);
       expect(tokenBytes).toStrictEqual(['Zmlyc3QtaW1hZ2U=', 'c2Vjb25kLWltYWdl']);

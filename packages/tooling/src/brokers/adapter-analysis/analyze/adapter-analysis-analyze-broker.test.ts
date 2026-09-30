@@ -5,7 +5,7 @@ const analyze = ({ text }: { text: string }): ReturnType<typeof adapterAnalysisA
   adapterAnalysisAnalyzeBrokerProxy();
   return adapterAnalysisAnalyzeBroker({
     file: 'packages/a/src/adapters/x/x-adapter.ts',
-    text: text,
+    text,
     workspaceScope: '@acme',
     workspacePackageNames: ['plain-workspace'],
   });

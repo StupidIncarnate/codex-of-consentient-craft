@@ -9,7 +9,11 @@
  */
 
 import { readFile, writeFile } from '#gateway/node/fs__promises';
-import { type InstallContext, type InstallResult, installResultContract } from '@dungeonmaster/shared/contracts';
+import {
+  type InstallContext,
+  type InstallResult,
+  installResultContract,
+} from '@dungeonmaster/shared/contracts';
 import { gitignoreEntriesStatics } from '../../../statics/gitignore-entries/gitignore-entries-statics';
 
 const PACKAGE_NAME = '@dungeonmaster/ward';
@@ -59,6 +63,6 @@ export const InstallWriteGitignoreResponder = async ({
     packageName: PACKAGE_NAME,
     success: true,
     action,
-    message: message,
+    message,
   });
 };

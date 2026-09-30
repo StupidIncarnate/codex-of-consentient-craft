@@ -133,9 +133,7 @@ describe('InstallLinkCreateResponder', () => {
         message:
           '.dungeonmaster-assets/siegelense-assets already points at /home/user/.dungeonmaster/siegelense; removed legacy .siegelense symlink',
       });
-      expect(proxy.getUnlinkedPaths()).toStrictEqual([
-        '/project/.siegelense',
-      ]);
+      expect(proxy.getUnlinkedPaths()).toStrictEqual(['/project/.siegelense']);
     });
 
     it('EDGE: {legacy .siegelense is a real directory} => leaves it untouched and says so in the message', async () => {

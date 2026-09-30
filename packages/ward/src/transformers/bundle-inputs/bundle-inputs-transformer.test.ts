@@ -33,7 +33,7 @@ describe('bundleInputsTransformer', () => {
     it('VALID: {isBundledPackage: false} => omits every bundler-owned glob', () => {
       const result = bundleInputsTransformer({ isBundledPackage: false });
       const bundlerOwned = result.filter((pattern) =>
-        bundleStatics.uiPatterns.some((uiPattern) => String(pattern) === uiPattern),
+        bundleStatics.uiPatterns.some((uiPattern) => pattern === uiPattern),
       );
 
       expect(bundlerOwned).toStrictEqual([]);

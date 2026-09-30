@@ -12,7 +12,6 @@
 
 import { z } from '#gateway/npm/zod';
 
-
 import { httpMethodContract } from '../http-method/http-method-contract';
 
 export const untilResponseContract = z
@@ -20,6 +19,7 @@ export const untilResponseContract = z
     method: httpMethodContract,
     path: z.string().brand<'UntilResponsePath'>(),
   })
-  .strict().brand<'UntilResponse'>();
+  .strict()
+  .brand<'UntilResponse'>();
 
 export type UntilResponse = z.infer<typeof untilResponseContract>;

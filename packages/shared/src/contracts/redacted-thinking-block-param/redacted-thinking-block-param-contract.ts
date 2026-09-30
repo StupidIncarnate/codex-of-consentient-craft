@@ -8,9 +8,11 @@
 
 import { z } from '#gateway/npm/zod';
 
-export const redactedThinkingBlockParamContract = z.object({
-  type: z.literal('redacted_thinking'),
-  data: z.string().brand<'RedactedThinkingBlockParamData'>(),
-}).brand<'RedactedThinkingBlockParam'>();
+export const redactedThinkingBlockParamContract = z
+  .object({
+    type: z.literal('redacted_thinking'),
+    data: z.string().brand<'RedactedThinkingBlockParamData'>(),
+  })
+  .brand<'RedactedThinkingBlockParam'>();
 
 export type RedactedThinkingBlockParam = z.infer<typeof redactedThinkingBlockParamContract>;

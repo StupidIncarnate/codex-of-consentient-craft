@@ -18,10 +18,12 @@ describe('InstallFlow', () => {
       });
 
       const result = await InstallFlow({
-        context: InstallContextStub({ value: {
-          targetProjectRoot: testbed.guildPath,
-          dungeonmasterRoot: testbed.dungeonmasterPath,
-        } }),
+        context: InstallContextStub({
+          value: {
+            targetProjectRoot: testbed.guildPath,
+            dungeonmasterRoot: testbed.dungeonmasterPath,
+          },
+        }),
       });
 
       const configContent = testbed.readFile({
@@ -115,21 +117,23 @@ describe('InstallFlow', () => {
       testbed.writeFile({
         relativePath: '.mcp.json',
         content: JSON.stringify({
-            mcpServers: {
-              dungeonmaster: {
-                type: 'stdio',
-                command: 'node',
-                args: ['node_modules/@dungeonmaster/mcp/dist/src/index.js'],
-              },
+          mcpServers: {
+            dungeonmaster: {
+              type: 'stdio',
+              command: 'node',
+              args: ['node_modules/@dungeonmaster/mcp/dist/src/index.js'],
             },
-          }),
+          },
+        }),
       });
 
       const result = await InstallFlow({
-        context: InstallContextStub({ value: {
-          targetProjectRoot: testbed.guildPath,
-          dungeonmasterRoot: testbed.dungeonmasterPath,
-        } }),
+        context: InstallContextStub({
+          value: {
+            targetProjectRoot: testbed.guildPath,
+            dungeonmasterRoot: testbed.dungeonmasterPath,
+          },
+        }),
       });
 
       testbed.cleanup();

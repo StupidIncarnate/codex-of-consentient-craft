@@ -24,10 +24,15 @@ const ROW_REF_MESSAGE = "must be an ancestor path like 'guild[0:0]/quest[0:2]'";
 
 const resolvedRecordContract = z.custom<unknown>();
 
-export const hydrationRunStateContract = z.object({
-  recipeName: z.string().min(1).brand<'HydrationRunStateRecipeName'>(),
-  records: z.map(z.string().min(1).regex(ROW_REF_PATTERN, ROW_REF_MESSAGE), resolvedRecordContract),
-  saved: z.map(z.string().min(1), resolvedRecordContract),
-}).brand<'HydrationRunState'>();
+export const hydrationRunStateContract = z
+  .object({
+    recipeName: z.string().min(1).brand<'HydrationRunStateRecipeName'>(),
+    records: z.map(
+      z.string().min(1).regex(ROW_REF_PATTERN, ROW_REF_MESSAGE),
+      resolvedRecordContract,
+    ),
+    saved: z.map(z.string().min(1), resolvedRecordContract),
+  })
+  .brand<'HydrationRunState'>();
 
 export type HydrationRunState = z.infer<typeof hydrationRunStateContract>;

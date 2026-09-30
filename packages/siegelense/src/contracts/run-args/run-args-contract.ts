@@ -30,6 +30,7 @@ export const runArgsContract = z
     stopOn: stopOnContract,
     isJson: z.boolean(),
   })
-  .strict().brand<'RunArgs'>();
+  .strict()
+  .brand<'RunArgs'>();
 
 export type RunArgs = z.infer<typeof runArgsContract>;

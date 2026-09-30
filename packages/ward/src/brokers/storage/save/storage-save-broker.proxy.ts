@@ -14,7 +14,13 @@ export const storageSaveBrokerProxy = (): {
   const writeProxy = writeFileProxy();
 
   return {
-    setupSuccess: ({ rootPath, runId }: { rootPath: string; runId: WardRunResult['runId'] }): void => {
+    setupSuccess: ({
+      rootPath,
+      runId,
+    }: {
+      rootPath: string;
+      runId: WardRunResult['runId'];
+    }): void => {
       mkdirProxy.succeeds({ path: `${rootPath}/.ward` });
       writeProxy.succeeds({ path: `${rootPath}/.ward/run-${runId}.json` });
     },
@@ -22,7 +28,13 @@ export const storageSaveBrokerProxy = (): {
       const path = `${rootPath}/.ward`;
       mkdirProxy.rejects({ path, error: FsErrorStub({ code: 'EACCES', path, syscall: 'mkdir' }) });
     },
-    setupWriteFail: ({ rootPath, runId }: { rootPath: string; runId: WardRunResult['runId'] }): void => {
+    setupWriteFail: ({
+      rootPath,
+      runId,
+    }: {
+      rootPath: string;
+      runId: WardRunResult['runId'];
+    }): void => {
       const path = `${rootPath}/.ward/run-${runId}.json`;
       mkdirProxy.succeeds({ path: `${rootPath}/.ward` });
       writeProxy.rejects({ path, error: FsErrorStub({ code: 'ENOSPC', path, syscall: 'write' }) });

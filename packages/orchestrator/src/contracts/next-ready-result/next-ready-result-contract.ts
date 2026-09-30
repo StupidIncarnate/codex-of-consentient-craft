@@ -10,10 +10,12 @@ import { z } from '#gateway/npm/zod';
 
 import { workItemContract } from '@dungeonmaster/shared/contracts';
 
-export const nextReadyResultContract = z.object({
-  ready: z.array(workItemContract),
-  questTerminal: z.boolean(),
-  questBlocked: z.boolean(),
-}).brand<'NextReadyResult'>();
+export const nextReadyResultContract = z
+  .object({
+    ready: z.array(workItemContract),
+    questTerminal: z.boolean(),
+    questBlocked: z.boolean(),
+  })
+  .brand<'NextReadyResult'>();
 
 export type NextReadyResult = z.infer<typeof nextReadyResultContract>;

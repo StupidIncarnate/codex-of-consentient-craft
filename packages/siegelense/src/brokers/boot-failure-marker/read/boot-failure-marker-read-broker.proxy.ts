@@ -55,13 +55,7 @@ export const bootFailureMarkerReadBrokerProxy = (): {
       });
     },
 
-    setupReadFails: ({
-      evidencePath,
-      error,
-    }: {
-      evidencePath: string;
-      error: FsError;
-    }): void => {
+    setupReadFails: ({ evidencePath, error }: { evidencePath: string; error: FsError }): void => {
       const markerPathValue = `${evidencePath}/${locationsStatics.siegelense.bootFailure}`;
       readProxy.throwsMatchingPath({
         path: markerPathValue,

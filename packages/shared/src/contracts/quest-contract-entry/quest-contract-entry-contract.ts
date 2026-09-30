@@ -13,37 +13,43 @@ import { questContractPropertyContract } from '../quest-contract-property/quest-
 import { questContractStatusContract } from '../quest-contract-status/quest-contract-status-contract';
 import { flowNodeContract } from '../flow-node/flow-node-contract';
 
-export const questContractEntryContract = z.object({
-  id: z
-    .string()
-    .min(1)
-    .regex(/^[a-z][a-z0-9]*(-[a-z0-9]+)*$/u)
-    .brand<'QuestContractEntryId'>()
-    .describe('Unique identifier for this contract entry'),
-  name: z.string().min(1).brand<'QuestContractEntryName'>().describe(
-    'Contract name referenced by steps in inputContracts/outputContracts (e.g., "LoginCredentials", "AuthLoginEndpoint")',
-  ),
-  kind: questContractKindContract.describe(
-    'Contract kind: "data" for Zod types, "endpoint" for API boundaries, "event" for EventEmitter/WebSocket schemas',
-  ),
-  status: questContractStatusContract.describe(
-    'Whether this contract is "new" (created by quest), "existing" (already in codebase), or "modified" (existing contract being changed - properties show FINAL state)',
-  ),
-  source: z
-    .string()
-    .min(1)
-    .brand<'QuestContractEntrySource'>()
-    .describe(
-      'File path where this contract lives or will be created. REQUIRED — the dedup error message uses this path to tell a conflicting writer where the existing entry lives.',
+export const questContractEntryContract = z
+  .object({
+    id: z
+      .string()
+      .min(1)
+      .regex(/^[a-z][a-z0-9]*(-[a-z0-9]+)*$/u)
+      .brand<'QuestContractEntryId'>()
+      .describe('Unique identifier for this contract entry'),
+    name: z
+      .string()
+      .min(1)
+      .brand<'QuestContractEntryName'>()
+      .describe(
+        'Contract name referenced by steps in inputContracts/outputContracts (e.g., "LoginCredentials", "AuthLoginEndpoint")',
+      ),
+    kind: questContractKindContract.describe(
+      'Contract kind: "data" for Zod types, "endpoint" for API boundaries, "event" for EventEmitter/WebSocket schemas',
     ),
-  nodeId: flowNodeContract.shape.id.describe(
-    'Flow node this contract is anchored to — links the contract to the node where it is consumed or produced',
-  ),
-  properties: z
-    .array(questContractPropertyContract)
-    .describe(
-      'The properties/fields that make up this contract. Supports nesting via recursive properties field',
+    status: questContractStatusContract.describe(
+      'Whether this contract is "new" (created by quest), "existing" (already in codebase), or "modified" (existing contract being changed - properties show FINAL state)',
     ),
-}).brand<'QuestContractEntry'>();
+    source: z
+      .string()
+      .min(1)
+      .brand<'QuestContractEntrySource'>()
+      .describe(
+        'File path where this contract lives or will be created. REQUIRED — the dedup error message uses this path to tell a conflicting writer where the existing entry lives.',
+      ),
+    nodeId: flowNodeContract.shape.id.describe(
+      'Flow node this contract is anchored to — links the contract to the node where it is consumed or produced',
+    ),
+    properties: z
+      .array(questContractPropertyContract)
+      .describe(
+        'The properties/fields that make up this contract. Supports nesting via recursive properties field',
+      ),
+  })
+  .brand<'QuestContractEntry'>();
 
 export type QuestContractEntry = z.infer<typeof questContractEntryContract>;

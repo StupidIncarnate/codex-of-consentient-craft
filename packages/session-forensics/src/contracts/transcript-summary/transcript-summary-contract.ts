@@ -25,10 +25,20 @@ export const transcriptSummaryContract = z
     apiResponseCount: z.number().int().nonnegative().brand<'TranscriptSummaryApiResponseCount'>(),
     startedAt: z.iso.datetime().brand<'TranscriptSummaryStartedAt'>().optional(),
     endedAt: z.iso.datetime().brand<'TranscriptSummaryEndedAt'>().optional(),
-    wallClockSeconds: z.number().nonnegative().brand<'TranscriptSummaryWallClockSeconds'>().optional(),
+    wallClockSeconds: z
+      .number()
+      .nonnegative()
+      .brand<'TranscriptSummaryWallClockSeconds'>()
+      .optional(),
     models: z.record(z.string(), z.number().int().nonnegative().brand<'TranscriptSummaryModels'>()),
-    recordTypeCounts: z.record(z.string(), z.number().int().nonnegative().brand<'TranscriptSummaryRecordTypeCounts'>()),
-    toolCallCounts: z.record(z.string(), z.number().int().nonnegative().brand<'TranscriptSummaryToolCallCounts'>()),
+    recordTypeCounts: z.record(
+      z.string(),
+      z.number().int().nonnegative().brand<'TranscriptSummaryRecordTypeCounts'>(),
+    ),
+    toolCallCounts: z.record(
+      z.string(),
+      z.number().int().nonnegative().brand<'TranscriptSummaryToolCallCounts'>(),
+    ),
     toolResultBytes: z.number().int().nonnegative().brand<'TranscriptSummaryToolResultBytes'>(),
     subagentCount: z.number().int().nonnegative().brand<'TranscriptSummarySubagentCount'>(),
     usage: tokenUsageContract,

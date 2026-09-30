@@ -23,8 +23,8 @@ describe('snapshotRestoreLayerBroker', () => {
   it('VALID: {identical trees} => returns 0 files undid', async () => {
     const proxy = snapshotRestoreLayerBrokerProxy();
     const fileName = 'config.json';
-    const filePathHome = `${String(homePath)}/${String(fileName)}`;
-    const filePathPayload = `${String(payloadPath)}/${String(fileName)}`;
+    const filePathHome = `${homePath}/${fileName}`;
+    const filePathPayload = `${payloadPath}/${fileName}`;
     const sizeBytes = 256;
     const modifiedAtMs = 1700000000000;
 
@@ -64,8 +64,8 @@ describe('snapshotRestoreLayerBroker', () => {
   it('VALID: {same size, different mtime, identical content} => does not count the file as modified (DEF-81)', async () => {
     const proxy = snapshotRestoreLayerBrokerProxy();
     const fileName = 'seeded.json';
-    const filePathHome = `${String(homePath)}/${String(fileName)}`;
-    const filePathPayload = `${String(payloadPath)}/${String(fileName)}`;
+    const filePathHome = `${homePath}/${fileName}`;
+    const filePathPayload = `${payloadPath}/${fileName}`;
     const sizeBytes = 64;
     const content = '{"seeded":true}';
 
@@ -112,8 +112,8 @@ describe('snapshotRestoreLayerBroker', () => {
   it('VALID: {same size, different content} => counts the file as modified', async () => {
     const proxy = snapshotRestoreLayerBrokerProxy();
     const fileName = 'seeded.json';
-    const filePathHome = `${String(homePath)}/${String(fileName)}`;
-    const filePathPayload = `${String(payloadPath)}/${String(fileName)}`;
+    const filePathHome = `${homePath}/${fileName}`;
+    const filePathPayload = `${payloadPath}/${fileName}`;
     const sizeBytes = 15;
 
     proxy.setupDirectories({
@@ -156,10 +156,10 @@ describe('snapshotRestoreLayerBroker', () => {
   it('VALID: {added file in home} => removes added file and returns diff with added count', async () => {
     const proxy = snapshotRestoreLayerBrokerProxy();
     const addedFileName = 'extra.txt';
-    const addedFilePath = `${String(homePath)}/${String(addedFileName)}`;
+    const addedFilePath = `${homePath}/${addedFileName}`;
     const existingFileName = 'base.txt';
-    const existingFilePathHome = `${String(homePath)}/${String(existingFileName)}`;
-    const existingFilePathPayload = `${String(payloadPath)}/${String(existingFileName)}`;
+    const existingFilePathHome = `${homePath}/${existingFileName}`;
+    const existingFilePathPayload = `${payloadPath}/${existingFileName}`;
     const sizeBytes = 100;
     const modifiedAtMs = 1700000000000;
 
@@ -209,9 +209,9 @@ describe('snapshotRestoreLayerBroker', () => {
     const proxy = snapshotRestoreLayerBrokerProxy();
     const modifiedFileName = 'modified.json';
     const removedFileName = 'deleted.txt';
-    const modifiedHome = `${String(homePath)}/${String(modifiedFileName)}`;
-    const modifiedPayload = `${String(payloadPath)}/${String(modifiedFileName)}`;
-    const removedPayload = `${String(payloadPath)}/${String(removedFileName)}`;
+    const modifiedHome = `${homePath}/${modifiedFileName}`;
+    const modifiedPayload = `${payloadPath}/${modifiedFileName}`;
+    const removedPayload = `${payloadPath}/${removedFileName}`;
 
     proxy.setupDirectories({
       dirs: [
@@ -263,8 +263,8 @@ describe('snapshotRestoreLayerBroker', () => {
     const proxy = snapshotRestoreLayerBrokerProxy();
     const storeDirName = '.siegelense-snapshots';
     const fileName = 'app.ts';
-    const homeFilePath = `${String(homePath)}/${String(fileName)}`;
-    const payloadFilePath = `${String(payloadPath)}/${String(fileName)}`;
+    const homeFilePath = `${homePath}/${fileName}`;
+    const payloadFilePath = `${payloadPath}/${fileName}`;
     const sizeBytes = 500;
     const modifiedAtMs = 1700000000000;
 
@@ -308,7 +308,7 @@ describe('snapshotRestoreLayerBroker', () => {
     const proxy = snapshotRestoreLayerBrokerProxy();
     const firstName = 'data.txt';
     const secondName = 'more.txt';
-    const error = FsErrorStub({ code: 'ENOSPC', path: `${String(homePath)}/more.txt` });
+    const error = FsErrorStub({ code: 'ENOSPC', path: `${homePath}/more.txt` });
 
     proxy.setupDirectories({
       dirs: [
@@ -319,7 +319,7 @@ describe('snapshotRestoreLayerBroker', () => {
     proxy.setupFileStats({
       stats: [
         {
-          filePath: `${String(payloadPath)}/${String(firstName)}`,
+          filePath: `${payloadPath}/${firstName}`,
           sizeBytes: 100,
           modifiedAtMs: 1700000000000,
         },
@@ -335,9 +335,9 @@ describe('snapshotRestoreLayerBroker', () => {
     await expect(snapshotRestoreLayerBroker({ homePath, payloadPath })).rejects.toBe(error);
     expect(
       proxy.getRolledBackFor({
-        path: `${String(homePath)}/${String(firstName)}`,
+        path: `${homePath}/${firstName}`,
       }),
-    ).toStrictEqual([[`${String(homePath)}/data.txt`, { recursive: true, force: true }]]);
+    ).toStrictEqual([[`${homePath}/data.txt`, { recursive: true, force: true }]]);
   });
 
   it('VALID: {payload holds one entry} => copies that entry from the payload into home', async () => {

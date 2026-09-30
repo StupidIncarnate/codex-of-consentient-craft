@@ -53,13 +53,7 @@ export const shutdownReasonReadBrokerProxy = (): {
       readProxy.missing({ path: markerPathValue });
     },
 
-    setupReadFails: ({
-      evidencePath,
-      error,
-    }: {
-      evidencePath: string;
-      error: Error;
-    }): void => {
+    setupReadFails: ({ evidencePath, error }: { evidencePath: string; error: Error }): void => {
       const markerPathValue = `${evidencePath}/${locationsStatics.siegelense.shutdownReason}`;
       readProxy.throwsMatchingPath({
         path: markerPathValue,

@@ -1,4 +1,3 @@
-
 import { InstanceIdStub } from '../../../contracts/instance-id/instance-id.stub';
 import { RegistryEntryStub } from '../../../contracts/registry-entry/registry-entry.stub';
 import { RegistryStub } from '../../../contracts/registry/registry.stub';
@@ -37,14 +36,14 @@ const networkText = ({
   responseBody?: string;
 }): string =>
   JSON.stringify({
-      at: 1,
-      method,
-      url,
-      resourceType: 'fetch',
-      status,
-      requestBody: null,
-      responseBody: responseBody ?? 'ok',
-    });
+    at: 1,
+    method,
+    url,
+    resourceType: 'fetch',
+    status,
+    requestBody: null,
+    responseBody: responseBody ?? 'ok',
+  });
 
 const bufferLine = ({
   runId,
@@ -54,8 +53,7 @@ const bufferLine = ({
   runId: RunId | null;
   step: number | null;
   text: string;
-}): string =>
-  `${JSON.stringify({ runId, step, atMs: 1_700_000_000_000, text })}\n`;
+}): string => `${JSON.stringify({ runId, step, atMs: 1_700_000_000_000, text })}\n`;
 
 describe('resultsReadBroker', () => {
   it('VALID: {no kind, no step, run named, empty transcript} => storedReturn carries the exact RunResult from disk, rows empty', async () => {
@@ -322,9 +320,7 @@ describe('resultsReadBroker', () => {
     proxy.setupRegistry({ registry: RegistryStub({ instances: [entry] }) });
     const evidencePath = proxy.evidencePathFor({ instanceId: INSTANCE_ID });
     proxy.setupRuns({ evidencePath, entries: ['run_2.jsonl', 'run_2.json'] });
-    const readings = [1, 2, 3, 4, 5].map((stepValue) =>
-      StepReadingStub({ step: stepValue }),
-    );
+    const readings = [1, 2, 3, 4, 5].map((stepValue) => StepReadingStub({ step: stepValue }));
     proxy.setupTranscript({
       evidencePath,
       runId: RUN_2,

@@ -8,11 +8,7 @@
  * // Returns: FunctionName('hasPermissionGuard')
  */
 
-export const kebabToCamelTransformer = ({
-  kebabCase,
-}: {
-  kebabCase: string;
-}): string => {
+export const kebabToCamelTransformer = ({ kebabCase }: { kebabCase: string }): string => {
   const camelCase = kebabCase.replace(/-([a-z])/gu, (_, letter: string) => letter.toUpperCase());
   return camelCase;
 };

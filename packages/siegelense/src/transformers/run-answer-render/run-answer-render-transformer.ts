@@ -9,7 +9,6 @@
  * // Returns 'RUN: run_1 (status: done, steps: 5, duration: 0ms)\n...'
  */
 
-
 import type { RunResult } from '../../contracts/run-result/run-result-contract';
 
 export const runAnswerRenderTransformer = ({ result }: { result: RunResult }): string => {

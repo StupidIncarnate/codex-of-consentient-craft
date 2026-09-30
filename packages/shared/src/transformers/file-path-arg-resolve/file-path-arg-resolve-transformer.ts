@@ -12,7 +12,6 @@
  * // Returns '<computed: locationsStatics.dungeonmasterHome.eventOutbox>'
  */
 
-
 const STATICS_REFERENCE_PATTERN = /\blocationsStatics(?:\.\w+)+/u;
 
 export const filePathArgResolveTransformer = ({
@@ -22,9 +21,9 @@ export const filePathArgResolveTransformer = ({
   source: string;
   variableName: string;
 }): string => {
-  const name = String(variableName);
+  const name = variableName;
   const declarationPattern = new RegExp(`\\b(?:const|let)\\s+${name}\\b[^=]*=([^;]*);`, 'u');
-  const initializer = declarationPattern.exec(String(source))?.[1] ?? '';
+  const initializer = declarationPattern.exec(source)?.[1] ?? '';
   const [staticsReference] = STATICS_REFERENCE_PATTERN.exec(initializer) ?? [];
 
   return `<computed: ${staticsReference ?? name}>`;

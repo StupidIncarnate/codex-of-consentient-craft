@@ -81,8 +81,8 @@ export const questRepoRootBrokerProxy = (): {
     },
 
     setupResolveSuccess: ({ repoRoot }: { repoRoot: RepoRootCwd }): void => {
-      const startPath = String(GUILD_PATH);
-      const repoRootValue = String(repoRoot);
+      const startPath = GUILD_PATH;
+      const repoRootValue = repoRoot;
       if (repoRootValue === startPath) {
         cwdProxy.setupRepoRootFoundAtStart({ startPath });
         return;
@@ -91,7 +91,7 @@ export const questRepoRootBrokerProxy = (): {
     },
 
     setupResolveRejects: (): void => {
-      cwdProxy.setupRepoRootNotFound({ startPath: String(GUILD_PATH) });
+      cwdProxy.setupRepoRootNotFound({ startPath: GUILD_PATH });
     },
 
     // Answers this broker outright for every questId, skipping the quest lookup and the walk-up.

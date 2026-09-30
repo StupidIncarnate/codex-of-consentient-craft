@@ -11,11 +11,7 @@
 
 import { readdirEntriesSync, type DirEntrySync } from '#gateway/node/fs';
 
-export const listDirEntriesLayerBroker = ({
-  dirPath,
-}: {
-  dirPath: string;
-}): DirEntrySync[] => {
+export const listDirEntriesLayerBroker = ({ dirPath }: { dirPath: string }): DirEntrySync[] => {
   try {
     return readdirEntriesSync(dirPath);
   } catch {

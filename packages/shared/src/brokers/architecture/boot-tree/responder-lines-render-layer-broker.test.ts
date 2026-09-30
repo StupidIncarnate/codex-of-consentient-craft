@@ -37,9 +37,9 @@ describe('responderLinesRenderLayerBroker', () => {
         map: {
           'server-flow.ts': `import { serverInitResponder } from '../../responders/server/init/server-init-responder';`,
           'server-init-responder.ts': [
-              `import { serverInitBroker } from '../../../brokers/server/init/server-init-broker';`,
-              `export const serverInitResponder = () => {};`,
-            ].join('\n'),
+            `import { serverInitBroker } from '../../../brokers/server/init/server-init-broker';`,
+            `export const serverInitResponder = () => {};`,
+          ].join('\n'),
           'server-init-broker.ts': `export const serverInitBroker = () => {};`,
         },
       });
@@ -50,10 +50,7 @@ describe('responderLinesRenderLayerBroker', () => {
         renderingFilePath,
       });
 
-      expect(result).toStrictEqual([
-        '  ↳ serverInitResponder',
-        '      → serverInitBroker',
-      ]);
+      expect(result).toStrictEqual(['  ↳ serverInitResponder', '      → serverInitBroker']);
     });
   });
 
@@ -86,9 +83,9 @@ describe('responderLinesRenderLayerBroker', () => {
       proxy.setupFileContentsMap({
         map: {
           'home-flow.tsx': [
-              `import { AppHomeResponder } from '../../responders/app/home/app-home-responder';`,
-              `<Route path="/" element={<AppHomeResponder />} />`,
-            ].join('\n'),
+            `import { AppHomeResponder } from '../../responders/app/home/app-home-responder';`,
+            `<Route path="/" element={<AppHomeResponder />} />`,
+          ].join('\n'),
           'app-home-responder.ts': '',
         },
       });
@@ -111,9 +108,9 @@ describe('responderLinesRenderLayerBroker', () => {
       proxy.setupFileContentsMap({
         map: {
           'app-flow.tsx': [
-              `import { AppLayoutResponder } from '../../responders/app/layout/app-layout-responder';`,
-              `<Route element={<AppLayoutResponder />}>`,
-            ].join('\n'),
+            `import { AppLayoutResponder } from '../../responders/app/layout/app-layout-responder';`,
+            `<Route element={<AppLayoutResponder />}>`,
+          ].join('\n'),
           'app-layout-responder.ts': '',
         },
       });
@@ -139,14 +136,14 @@ describe('responderLinesRenderLayerBroker', () => {
         map: {
           'app-mount-flow.tsx': `import { AppFlow } from '../app/app-flow';`,
           'app-flow.ts': [
-              `import { HomeFlow } from '../home/home-flow';`,
-              `export const appFlow = () => null;`,
-            ].join('\n'),
+            `import { HomeFlow } from '../home/home-flow';`,
+            `export const appFlow = () => null;`,
+          ].join('\n'),
           'home-flow.ts': [
-              `import { AppHomeResponder } from '../../responders/app/home/app-home-responder';`,
-              `<Route path="/" element={<AppHomeResponder />} />`,
-              `export const homeFlow = () => null;`,
-            ].join('\n'),
+            `import { AppHomeResponder } from '../../responders/app/home/app-home-responder';`,
+            `<Route path="/" element={<AppHomeResponder />} />`,
+            `export const homeFlow = () => null;`,
+          ].join('\n'),
           'app-home-responder.ts': `export const AppHomeResponder = () => null;`,
         },
       });
@@ -174,9 +171,9 @@ describe('responderLinesRenderLayerBroker', () => {
         map: {
           'a-flow.tsx': `import { BFlow } from '../b/b-flow';`,
           'b-flow.ts': [
-              `import { AFlow } from '../a/a-flow';`,
-              `export const bFlow = () => null;`,
-            ].join('\n'),
+            `import { AFlow } from '../a/a-flow';`,
+            `export const bFlow = () => null;`,
+          ].join('\n'),
         },
       });
 

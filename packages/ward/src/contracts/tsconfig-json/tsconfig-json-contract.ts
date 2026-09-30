@@ -13,6 +13,7 @@ export const tsconfigJsonContract = z
     include: z.array(z.string().brand<'TsconfigJsonInclude'>()).optional(),
     exclude: z.array(z.string().brand<'TsconfigJsonExclude'>()).optional(),
   })
-  .loose().brand<'TsconfigJson'>();
+  .loose()
+  .brand<'TsconfigJson'>();
 
 export type TsconfigJson = z.infer<typeof tsconfigJsonContract>;

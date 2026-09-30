@@ -16,11 +16,13 @@ import { z } from '#gateway/npm/zod';
 
 import { workPlanPieceContract } from '../work-plan-piece/work-plan-piece-contract';
 
-export const workPlanBatchContract = z.object({
-  mode: z
-    .enum(['sequential', 'parallel'])
-    .describe('Whether this batch’s pieces run one after the next, or all at once.'),
-  pieces: z.array(workPlanPieceContract).min(1),
-}).brand<'WorkPlanBatch'>();
+export const workPlanBatchContract = z
+  .object({
+    mode: z
+      .enum(['sequential', 'parallel'])
+      .describe('Whether this batch’s pieces run one after the next, or all at once.'),
+    pieces: z.array(workPlanPieceContract).min(1),
+  })
+  .brand<'WorkPlanBatch'>();
 
 export type WorkPlanBatch = z.infer<typeof workPlanBatchContract>;

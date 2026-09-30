@@ -13,9 +13,7 @@ export const WsEdgeStub = ({ ...props }: StubArgument<WsEdge> = {}): WsEdge =>
   wsEdgeContract.parse({
     eventType: 'chat-output',
     emitterFile: '/repo/packages/orchestrator/src/responders/chat/start/chat-start-responder.ts',
-    consumerFiles: [
-      '/repo/packages/web/src/bindings/use-quest-chat/use-quest-chat-binding.ts',
-    ],
+    consumerFiles: ['/repo/packages/web/src/bindings/use-quest-chat/use-quest-chat-binding.ts'],
     wsGatewayFile: '/repo/packages/server/src/responders/server/init/server-init-responder.ts',
     paired: true,
     ...props,

@@ -1,4 +1,3 @@
-
 import { ProjectFolderStub } from '../../contracts/project-folder/project-folder.stub';
 import { scanFolderTargetsTransformer } from './scan-folder-targets-transformer';
 
@@ -44,11 +43,7 @@ describe('scanFolderTargetsTransformer', () => {
 
   it('VALID: {two files in the package, one in another} => targets the two, relative to the package', () => {
     const result = scanFolderTargetsTransformer({
-      paths: [
-        'packages/ward/src/a.ts',
-        'packages/hooks/src/b.ts',
-        '/repo/packages/ward/src/c.ts',
-      ],
+      paths: ['packages/ward/src/a.ts', 'packages/hooks/src/b.ts', '/repo/packages/ward/src/c.ts'],
       projectFolder,
       rootPath,
     });
@@ -58,10 +53,7 @@ describe('scanFolderTargetsTransformer', () => {
 
   it('VALID: {the folder and a file inside it} => the folder wins and scans the whole package', () => {
     const result = scanFolderTargetsTransformer({
-      paths: [
-        'packages/ward/src/a.ts',
-        'packages/ward',
-      ],
+      paths: ['packages/ward/src/a.ts', 'packages/ward'],
       projectFolder,
       rootPath,
     });
@@ -71,10 +63,7 @@ describe('scanFolderTargetsTransformer', () => {
 
   it('EDGE: {paths only in other packages, one sharing a name prefix} => out of scope', () => {
     const result = scanFolderTargetsTransformer({
-      paths: [
-        'packages/hooks/src/b.ts',
-        'packages/ward-extra/src/c.ts',
-      ],
+      paths: ['packages/hooks/src/b.ts', 'packages/ward-extra/src/c.ts'],
       projectFolder,
       rootPath,
     });

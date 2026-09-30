@@ -73,8 +73,8 @@ const setupProbeEntries = ({
     const probe = guild.probe ?? {
       // A path no staging claims. Addressed as absent EXPLICITLY rather than left unanswered, so a
       // sibling proxy staging its own catch-all cannot answer this call instead.
-      questFolderPath: `${String(guild.questsDirPath)}/__probe_miss__` as string,
-      questFilePath: `${String(guild.questsDirPath)}/__probe_miss__/quest.json` as string,
+      questFolderPath: `${guild.questsDirPath}/__probe_miss__`,
+      questFilePath: `${guild.questsDirPath}/__probe_miss__/quest.json`,
       exists: false,
       contents: undefined,
     };
@@ -185,11 +185,7 @@ export const questFindQuestPathBrokerProxy = (): {
     }[];
   }) => void;
   setupNoGuilds: (params: { homeDir: string; homePath: string; guildsDir: string }) => void;
-  setupGuildsDirMissing: (params: {
-    homeDir: string;
-    homePath: string;
-    guildsDir: string;
-  }) => void;
+  setupGuildsDirMissing: (params: { homeDir: string; homePath: string; guildsDir: string }) => void;
   setupQuestNotFound: (params: {
     homeDir: string;
     homePath: string;
@@ -465,13 +461,13 @@ export const questFindQuestPathBrokerProxy = (): {
       const homeDir = givenHomeDir ?? `/quest-find-quest-path-broker-proxy/${String(questId)}`;
       const homePath = `${homeDir}/.dungeonmaster`;
       const guildsDir = `${homePath}/guilds`;
-      const questFilePath = `${String(questPath)}/${locationsStatics.quest.questFile}`;
+      const questFilePath = `${questPath}/${locationsStatics.quest.questFile}`;
       const guilds = [
         {
           dirName: String(guildId),
           questsDirPath: `${guildsDir}/${String(guildId)}/quests`,
           probe: {
-            questFolderPath: String(questPath),
+            questFolderPath: questPath,
             questFilePath,
             exists: true,
             // matchCandidatesLayerBroker checks `id` alone (questContract.pick({ id: true })), so

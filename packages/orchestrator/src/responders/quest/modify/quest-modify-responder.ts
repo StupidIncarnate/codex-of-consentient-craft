@@ -6,7 +6,12 @@
  * // Returns ModifyQuestResult with success status
  */
 
-import type { Quest, ModifyQuestInput, ModifyQuestResult, Session } from '@dungeonmaster/shared/contracts';
+import type {
+  Quest,
+  ModifyQuestInput,
+  ModifyQuestResult,
+  Session,
+} from '@dungeonmaster/shared/contracts';
 import { stderr } from '#gateway/node/process';
 import { AbortController } from '#gateway/node/AbortController';
 import { randomUUID } from '#gateway/node/crypto';
@@ -32,7 +37,7 @@ export const QuestModifyResponder = async ({
 
   if (result.success && input.status) {
     if (isAutoResumableQuestStatusGuard({ status: input.status })) {
-      const typedQuestId = questId as Quest['id'];
+      const typedQuestId = questId;
 
       const existingProcess = orchestrationProcessesState.findByQuestId({
         questId: typedQuestId,

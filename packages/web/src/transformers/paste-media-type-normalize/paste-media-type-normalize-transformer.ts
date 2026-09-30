@@ -10,10 +10,5 @@
  * // Returns 'image/png' as NormalizedPasteMediaType
  */
 
-
-export const pasteMediaTypeNormalizeTransformer = ({
-  mediaType,
-}: {
-  mediaType: string;
-}): string =>
+export const pasteMediaTypeNormalizeTransformer = ({ mediaType }: { mediaType: string }): string =>
   mediaType.trim().toLowerCase();

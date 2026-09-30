@@ -7,9 +7,7 @@ describe('relativeImportResolveTransformer', () => {
       const importPath = './server-flow';
       const result = relativeImportResolveTransformer({ sourceFile, importPath });
 
-      expect(result).toBe(
-        '/repo/packages/server/src/startup/server-flow.ts',
-      );
+      expect(result).toBe('/repo/packages/server/src/startup/server-flow.ts');
     });
 
     it('VALID: {parent-dir relative import} => resolves .. correctly', () => {
@@ -17,9 +15,7 @@ describe('relativeImportResolveTransformer', () => {
       const importPath = '../flows/server/server-flow';
       const result = relativeImportResolveTransformer({ sourceFile, importPath });
 
-      expect(result).toBe(
-        '/repo/packages/server/src/flows/server/server-flow.ts',
-      );
+      expect(result).toBe('/repo/packages/server/src/flows/server/server-flow.ts');
     });
 
     it('VALID: {import already has .ts extension} => does not double-add .ts', () => {
@@ -27,9 +23,7 @@ describe('relativeImportResolveTransformer', () => {
       const importPath = './server-flow.ts';
       const result = relativeImportResolveTransformer({ sourceFile, importPath });
 
-      expect(result).toBe(
-        '/repo/packages/server/src/startup/server-flow.ts',
-      );
+      expect(result).toBe('/repo/packages/server/src/startup/server-flow.ts');
     });
   });
 

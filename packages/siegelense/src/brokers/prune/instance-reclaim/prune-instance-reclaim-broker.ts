@@ -63,11 +63,12 @@ export const pruneInstanceReclaimBroker = async ({
       removal: null,
       refusal: pruneRefusalContract.parse({
         id: entry.id,
-        why: (entry.lastBeatMs === null
+        why:
+          entry.lastBeatMs === null
             ? 'reserved — booting, no beat yet'
             : `live — last beat ${elapsedRenderTransformer({
-                elapsedMs: (nowMs - entry.lastBeatMs),
-              })} ago`),
+                elapsedMs: nowMs - entry.lastBeatMs,
+              })} ago`,
       }),
       gaps: [],
     });
@@ -120,7 +121,7 @@ export const pruneInstanceReclaimBroker = async ({
     removal: pruneRemovalContract.parse({
       id: entry.id,
       kind: query.kind,
-      freedBytes: freedBytes,
+      freedBytes,
       freedMB: Math.floor(freedBytes / pruneStatics.size.bytesPerMegabyte),
       // A row reads `pruned` only when its tree is genuinely gone. A `--kind` selector leaves the
       // rest of the evidence on disk, and a row tombstoned over it would make `results` answer

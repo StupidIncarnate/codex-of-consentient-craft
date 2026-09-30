@@ -25,10 +25,22 @@ export const QuestStartResponderProxy = (): {
         result: GetQuestResultStub({ success: true, quest }),
       });
     },
-    setupStartQuest: ({ questId, processId }: { questId: Quest['id']; processId: ProcessId }): void => {
+    setupStartQuest: ({
+      questId,
+      processId,
+    }: {
+      questId: Quest['id'];
+      processId: ProcessId;
+    }): void => {
       orchestrator.startQuestReturns({ questId, processId });
     },
-    setupStartQuestError: ({ questId, message }: { questId: Quest['id']; message: string }): void => {
+    setupStartQuestError: ({
+      questId,
+      message,
+    }: {
+      questId: Quest['id'];
+      message: string;
+    }): void => {
       orchestrator.startQuestThrows({ questId, error: new Error(message) });
     },
 

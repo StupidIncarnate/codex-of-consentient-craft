@@ -9,7 +9,6 @@
  */
 import * as ts from '#gateway/npm/typescript';
 
-
 export const typeAliasResolveLayerTransformer = ({
   typeNode,
   typeAliases,
@@ -29,7 +28,7 @@ export const typeAliasResolveLayerTransformer = ({
   const referenced = typeNode.typeName.text;
   return typeAliases.find(
     (alias) =>
-      String(alias.name) === referenced &&
-      !visitedNames.some((visitedName) => String(visitedName) === referenced),
+      alias.name === referenced &&
+      !visitedNames.some((visitedName) => visitedName === referenced),
   );
 };

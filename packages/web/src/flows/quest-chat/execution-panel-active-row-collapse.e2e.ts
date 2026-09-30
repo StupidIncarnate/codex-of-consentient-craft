@@ -55,8 +55,8 @@ test.describe('Execution panel: active (in_progress) row stays collapsed when us
     // auto-expand effect under test; the row name resolves from the operation `text`.
     const codeweaverOpId = '00000000-0000-4000-8000-0000000000c1';
     await quests.writeQuestFile({
-      questId: questId,
-      questFolder: questFolder,
+      questId,
+      questFolder,
       questFilePath: String(questFilePath),
       status: 'in_progress',
       operations: [
@@ -85,7 +85,7 @@ test.describe('Execution panel: active (in_progress) row stays collapsed when us
     });
 
     const urlSlug = guilds.extractUrlSlug({ guild });
-    await nav.navigateToQuest({ urlSlug, questId: questId });
+    await nav.navigateToQuest({ urlSlug, questId });
 
     const executionPanel = page.getByTestId('execution-panel-widget');
 

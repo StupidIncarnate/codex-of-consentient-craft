@@ -20,17 +20,19 @@ import { wardQueueResponseContract } from '../ward-queue-response/ward-queue-res
 
 const LEGACY_COMMITTED = 'changed';
 
-export const wardResultContract = z.object({
-  id: z.uuid().brand<'WardResultId'>(),
-  createdAt: z.iso.datetime().brand<'WardResultCreatedAt'>(),
-  exitCode: z.number().int().brand<'WardResultExitCode'>(),
-  runId: wardQueueResponseContract.shape.runId.optional(),
-  wardMode: z
-    .preprocess(
-      (value) => (value === LEGACY_COMMITTED ? 'committed' : value),
-      z.enum(['committed', 'full']),
-    )
-    .optional(),
-}).brand<'WardResult'>();
+export const wardResultContract = z
+  .object({
+    id: z.uuid().brand<'WardResultId'>(),
+    createdAt: z.iso.datetime().brand<'WardResultCreatedAt'>(),
+    exitCode: z.number().int().brand<'WardResultExitCode'>(),
+    runId: wardQueueResponseContract.shape.runId.optional(),
+    wardMode: z
+      .preprocess(
+        (value) => (value === LEGACY_COMMITTED ? 'committed' : value),
+        z.enum(['committed', 'full']),
+      )
+      .optional(),
+  })
+  .brand<'WardResult'>();
 
 export type WardResult = z.infer<typeof wardResultContract>;

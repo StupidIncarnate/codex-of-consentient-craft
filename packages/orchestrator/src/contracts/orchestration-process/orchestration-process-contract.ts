@@ -22,7 +22,8 @@ export const orchestrationProcessContract = z
     questId: questContract.shape.id,
     questWorkItemId: workItemContract.shape.id.optional(),
   })
-  .loose().brand<'OrchestrationProcess'>();
+  .loose()
+  .brand<'OrchestrationProcess'>();
 
 export type OrchestrationProcess = z.infer<typeof orchestrationProcessContract> & {
   kill: () => void;

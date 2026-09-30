@@ -1,5 +1,3 @@
-
-
 import { binResolveBroker } from './bin-resolve-broker';
 import { binResolveBrokerProxy } from './bin-resolve-broker.proxy';
 
@@ -13,7 +11,7 @@ describe('binResolveBroker', () => {
 
       const result = binResolveBroker({ binName, cwd });
 
-      expect(String(result)).toBe('/project/node_modules/.bin/eslint');
+      expect(result).toBe('/project/node_modules/.bin/eslint');
     });
   });
 
@@ -27,7 +25,7 @@ describe('binResolveBroker', () => {
 
       const result = binResolveBroker({ binName, cwd });
 
-      expect(String(result)).toBe('/repo/node_modules/.bin/jest');
+      expect(result).toBe('/repo/node_modules/.bin/jest');
     });
   });
 
@@ -40,7 +38,7 @@ describe('binResolveBroker', () => {
 
       const result = binResolveBroker({ binName, cwd });
 
-      expect(String(result)).toBe('eslint');
+      expect(result).toBe('eslint');
     });
   });
 });

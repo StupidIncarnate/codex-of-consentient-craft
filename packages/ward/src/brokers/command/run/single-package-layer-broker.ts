@@ -54,9 +54,7 @@ export const singlePackageLayerBroker = async ({
   const checkTypes = config.only ?? [...allCheckTypesStatics];
   const hasPassthrough = Array.isArray(config.passthrough) && config.passthrough.length > 0;
 
-  const fileList = hasPassthrough
-    ? (config.passthrough ?? []).map((arg) => arg)
-    : [];
+  const fileList = hasPassthrough ? (config.passthrough ?? []).map((arg) => arg) : [];
 
   const CHECK_PAD = 12;
   const NAME_PAD = 20;

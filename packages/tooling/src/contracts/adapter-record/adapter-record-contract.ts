@@ -13,23 +13,26 @@ import { gatewayExportContract } from '../gateway-export/gateway-export-contract
 import { adapterCallerContract } from '../adapter-caller/adapter-caller-contract';
 import { catchAllSiteContract } from '../catch-all-site/catch-all-site-contract';
 
-export const adapterRecordContract = z.object({
-  file: z.string().min(1).brand<'AdapterRecordFile'>(),
-  exportNames: z.array(z.string().min(1).brand<'AdapterRecordExportNames'>()),
-  shape: z.enum(['pass-through', 'logic']),
-  reasons: z.array(adapterLogicReasonContract),
-  outsideCalls: z.array(outsideCallContract),
-  gateway: z.array(gatewayExportContract),
-  productionCallers: z.array(adapterCallerContract),
-  testFiles: z.array(z.string().min(1).brand<'AdapterRecordTestFiles'>()),
-  proxyFiles: z.array(z.string().min(1).brand<'AdapterRecordProxyFiles'>()),
-  adapterProxy: z
-    .object({
-      file: z.string().min(1).brand<'AdapterRecordAdapterProxyFile'>(),
-      catchAll: z.array(catchAllSiteContract),
-      composedBy: z.array(z.string().min(1).brand<'AdapterRecordAdapterProxyComposedBy'>()),
-    }).brand<'AdapterRecordAdapterProxy'>()
-    .nullable(),
-}).brand<'AdapterRecord'>();
+export const adapterRecordContract = z
+  .object({
+    file: z.string().min(1).brand<'AdapterRecordFile'>(),
+    exportNames: z.array(z.string().min(1).brand<'AdapterRecordExportNames'>()),
+    shape: z.enum(['pass-through', 'logic']),
+    reasons: z.array(adapterLogicReasonContract),
+    outsideCalls: z.array(outsideCallContract),
+    gateway: z.array(gatewayExportContract),
+    productionCallers: z.array(adapterCallerContract),
+    testFiles: z.array(z.string().min(1).brand<'AdapterRecordTestFiles'>()),
+    proxyFiles: z.array(z.string().min(1).brand<'AdapterRecordProxyFiles'>()),
+    adapterProxy: z
+      .object({
+        file: z.string().min(1).brand<'AdapterRecordAdapterProxyFile'>(),
+        catchAll: z.array(catchAllSiteContract),
+        composedBy: z.array(z.string().min(1).brand<'AdapterRecordAdapterProxyComposedBy'>()),
+      })
+      .brand<'AdapterRecordAdapterProxy'>()
+      .nullable(),
+  })
+  .brand<'AdapterRecord'>();
 
 export type AdapterRecord = z.infer<typeof adapterRecordContract>;

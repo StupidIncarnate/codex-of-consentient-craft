@@ -24,5 +24,5 @@ export const hasPassthroughMatchGuard = ({
 
   const relativePath = projectFolder.path.slice(rootPath.length + 1);
 
-  return isPathUnderDirectoryGuard({ path: String(passthroughArg), directory: relativePath });
+  return isPathUnderDirectoryGuard({ path: passthroughArg, directory: relativePath });
 };

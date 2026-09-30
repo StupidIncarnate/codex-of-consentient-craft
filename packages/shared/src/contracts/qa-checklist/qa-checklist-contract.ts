@@ -24,32 +24,36 @@ import { qaChecklistItemContract } from '../qa-checklist-item/qa-checklist-item-
 import { qaWalkPathContract } from '../qa-walk-path/qa-walk-path-contract';
 import { flowContract } from '../flow/flow-contract';
 
-export const qaChecklistContract = z.object({
-  flowId: flowContract.shape.id,
-  flowName: z.string().min(1).brand<'QaChecklistFlowName'>(),
-  entryPoint: z.string().min(1).brand<'QaChecklistEntryPoint'>(),
-  paths: z
-    .array(qaWalkPathContract)
-    .default([])
-    .describe('Every simple route from an entry node to a terminal — the itineraries to dispatch.'),
-  pathsTruncated: z
-    .boolean()
-    .default(false)
-    .describe(
-      'True when path enumeration hit its cap and this list is incomplete. Surfaced rather than silently trimmed, because a truncated list that reads as complete is how scope goes missing.',
-    ),
-  items: z
-    .array(qaChecklistItemContract)
-    .default([])
-    .describe(
-      'Every atomic verification unit on this flow. THIS is the definition of done, not `paths`.',
-    ),
-  remainingItemIds: z
-    .array(qaChecklistItemContract.shape.id)
-    .default([])
-    .describe(
-      "The units still outstanding for the track that asked. A unit leaves this list on a `met` or a `cant-meet` recorded in `workItem.observations` by a work item whose ROLE is that track — the tracks are independent, so a unit another track settled is still outstanding for yours, and an `unmet` settles it for nobody, since `unmet` is what mints the successor that carries it again. Asked with no track, every unit is listed: that is the read-only whole-quest shape, not a claim about any track's coverage.",
-    ),
-}).brand<'QaChecklist'>();
+export const qaChecklistContract = z
+  .object({
+    flowId: flowContract.shape.id,
+    flowName: z.string().min(1).brand<'QaChecklistFlowName'>(),
+    entryPoint: z.string().min(1).brand<'QaChecklistEntryPoint'>(),
+    paths: z
+      .array(qaWalkPathContract)
+      .default([])
+      .describe(
+        'Every simple route from an entry node to a terminal — the itineraries to dispatch.',
+      ),
+    pathsTruncated: z
+      .boolean()
+      .default(false)
+      .describe(
+        'True when path enumeration hit its cap and this list is incomplete. Surfaced rather than silently trimmed, because a truncated list that reads as complete is how scope goes missing.',
+      ),
+    items: z
+      .array(qaChecklistItemContract)
+      .default([])
+      .describe(
+        'Every atomic verification unit on this flow. THIS is the definition of done, not `paths`.',
+      ),
+    remainingItemIds: z
+      .array(qaChecklistItemContract.shape.id)
+      .default([])
+      .describe(
+        "The units still outstanding for the track that asked. A unit leaves this list on a `met` or a `cant-meet` recorded in `workItem.observations` by a work item whose ROLE is that track — the tracks are independent, so a unit another track settled is still outstanding for yours, and an `unmet` settles it for nobody, since `unmet` is what mints the successor that carries it again. Asked with no track, every unit is listed: that is the read-only whole-quest shape, not a claim about any track's coverage.",
+      ),
+  })
+  .brand<'QaChecklist'>();
 
 export type QaChecklist = z.infer<typeof qaChecklistContract>;

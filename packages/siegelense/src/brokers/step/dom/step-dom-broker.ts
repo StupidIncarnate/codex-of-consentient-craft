@@ -13,7 +13,6 @@
  * // Reads matching DOM nodes from the session and renders the reading
  */
 
-
 import type { BrowserSession } from '../../../contracts/browser-session/browser-session-contract';
 import { domReadingContract } from '../../../contracts/dom-reading/dom-reading-contract';
 import type { DomField } from '../../../contracts/dom-field/dom-field-contract';

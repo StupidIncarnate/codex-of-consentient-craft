@@ -13,24 +13,14 @@ export const runTranscriptAppendBrokerProxy = (): {
       appendProxy.succeeds({ path: transcriptPath });
     },
 
-    throws: ({
-      transcriptPath,
-      error,
-    }: {
-      transcriptPath: string;
-      error: FsError;
-    }): void => {
+    throws: ({ transcriptPath, error }: { transcriptPath: string; error: FsError }): void => {
       appendProxy.rejects({ path: transcriptPath, error });
     },
 
     // Every line appended for this path, IN CALL ORDER — the proof a transcript is flushed per
     // step rather than buffered is that this list already holds N entries mid-run, not just at
     // the end.
-    appendedLinesFor: ({
-      transcriptPath,
-    }: {
-      transcriptPath: string;
-    }): readonly unknown[] =>
+    appendedLinesFor: ({ transcriptPath }: { transcriptPath: string }): readonly unknown[] =>
       appendProxy.getCallsFor({ path: transcriptPath }).map((call) => call[1]),
   };
 };

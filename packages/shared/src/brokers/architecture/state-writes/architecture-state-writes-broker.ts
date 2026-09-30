@@ -27,7 +27,7 @@ export const architectureStateWritesBroker = ({
 }: {
   packageRoot: string;
 }): StateWritesResult => {
-  const srcPath = `${String(packageRoot)}/src`;
+  const srcPath = `${packageRoot}/src`;
 
   // Collect all non-test source files
   const sourceFiles = listSourceFilesLayerBroker({ dirPath: srcPath });
@@ -54,7 +54,7 @@ export const architectureStateWritesBroker = ({
     }
   }
   const inMemoryStores = stateDirs.filter((dirName) =>
-    allImportPaths.some((importPath) => importPath.includes(String(dirName))),
+    allImportPaths.some((importPath) => importPath.includes(dirName)),
   );
 
   // File writes: scan all source files for fs adapter callers
@@ -65,15 +65,15 @@ export const architectureStateWritesBroker = ({
     for (const call of calls) {
       const arg = call.filePathArg;
       if (String(arg).startsWith('<computed:')) {
-        if (!computedWrites.some((w) => String(w) === String(arg))) {
+        if (!computedWrites.some((w) => w === String(arg))) {
           computedWrites.push(arg);
         }
-      } else if (!literalWrites.some((w) => String(w) === String(arg))) {
+      } else if (!literalWrites.some((w) => w === String(arg))) {
         literalWrites.push(arg);
       }
     }
   }
-  literalWrites.sort((a, b) => String(a).localeCompare(String(b)));
+  literalWrites.sort((a, b) => a.localeCompare(b));
   const fileWrites = [...literalWrites, ...computedWrites];
 
   // Browser storage: scan source files for localStorage/sessionStorage/indexedDB usage,
@@ -83,7 +83,7 @@ export const architectureStateWritesBroker = ({
   // that don't move data and aren't sources of state writes.
   const browserStorageWrites: string[] = [];
   for (const { filePath, content } of fileEntries) {
-    const fp = String(filePath);
+    const fp = filePath;
     if (
       fp.includes('/statics/') ||
       fp.includes('/transformers/') ||
@@ -94,7 +94,7 @@ export const architectureStateWritesBroker = ({
     }
     const writes = browserStorageCallsExtractTransformer({ source: content });
     for (const write of writes) {
-      if (browserStorageWrites.some((w) => String(w) === String(write))) {
+      if (browserStorageWrites.some((w) => w === write)) {
         continue;
       }
       browserStorageWrites.push(write);

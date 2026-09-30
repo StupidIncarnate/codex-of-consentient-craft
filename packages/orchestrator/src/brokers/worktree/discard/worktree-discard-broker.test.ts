@@ -1,4 +1,3 @@
-
 import { worktreeDiscardBroker } from './worktree-discard-broker';
 import { worktreeDiscardBrokerProxy } from './worktree-discard-broker.proxy';
 

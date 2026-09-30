@@ -8,8 +8,10 @@
 
 import { z } from '#gateway/npm/zod';
 
-export const tailFileCallContract = z.object({
-  filePathArg: z.string().brand<'TailFileCallFilePathArg'>(),
-}).brand<'TailFileCall'>();
+export const tailFileCallContract = z
+  .object({
+    filePathArg: z.string().brand<'TailFileCallFilePathArg'>(),
+  })
+  .brand<'TailFileCall'>();
 
 export type TailFileCall = z.infer<typeof tailFileCallContract>;

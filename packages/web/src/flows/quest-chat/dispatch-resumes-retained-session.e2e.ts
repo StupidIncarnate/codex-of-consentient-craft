@@ -65,7 +65,7 @@ test.describe('Dispatch resumes a retained session instead of clobbering it', ()
       firstWorkItemSessionId: RETAINED_SESSION_ID,
     });
 
-    await nav.navigateToQuest({ urlSlug, questId: questId });
+    await nav.navigateToQuest({ urlSlug, questId });
     await expect(page.getByTestId('execution-panel-widget')).toBeVisible({
       timeout: PANEL_TIMEOUT,
     });
@@ -73,12 +73,12 @@ test.describe('Dispatch resumes a retained session instead of clobbering it', ()
     // One scripted outcome: the ledger holds exactly one operation item, and nothing is appended
     // beside it when the session completes.
     await dispatch.playAndDrive({
-      questId: questId,
+      questId,
       script: [{ role: 'siegemaster', outcome: 'done' }],
     });
 
     await dispatch.waitForQuest({
-      questId: questId,
+      questId,
       timeoutMs: RELAY_TIMEOUT,
       predicate: ({ quest }) =>
         quest.workItems.some(
@@ -121,12 +121,12 @@ test.describe('Dispatch resumes a retained session instead of clobbering it', ()
     });
 
     await dispatch.playAndDrive({
-      questId: questId,
+      questId,
       script: [{ role: 'codeweaver', outcome: 'done' }],
     });
 
     await dispatch.waitForQuest({
-      questId: questId,
+      questId,
       timeoutMs: RELAY_TIMEOUT,
       predicate: ({ quest }) =>
         quest.workItems.some(

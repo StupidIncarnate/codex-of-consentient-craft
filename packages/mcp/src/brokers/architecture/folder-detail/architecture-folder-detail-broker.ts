@@ -60,14 +60,14 @@ export const architectureFolderDetailBroker = ({
 
   // 3. Naming Conventions
   sections.push(`## Naming Conventions\n`);
-  const fileSuffixText = (Array.isArray(config.fileSuffix) ? config.fileSuffix.join('` or `') : config.fileSuffix);
+  const fileSuffixText = Array.isArray(config.fileSuffix)
+    ? config.fileSuffix.join('` or `')
+    : config.fileSuffix;
   sections.push(`**File Suffix:** \`${fileSuffixText}\`\n`);
 
   // Only include export suffix if it's defined (skip for startup, assets, migrations)
   if (config.exportSuffix) {
-    sections.push(
-      `**Export Suffix:** \`${config.exportSuffix}\` (${config.exportCase})\n`,
-    );
+    sections.push(`**Export Suffix:** \`${config.exportSuffix}\` (${config.exportCase})\n`);
   }
   sections.push('');
 
@@ -75,13 +75,9 @@ export const architectureFolderDetailBroker = ({
   sections.push(`## Import Rules\n`);
 
   if (config.allowedImports.length === 0) {
-    sections.push(
-      '**Cannot import from any other layers** - Pure domain entities\n',
-    );
+    sections.push('**Cannot import from any other layers** - Pure domain entities\n');
   } else if (config.allowedImports.some((imp) => imp === '*')) {
-    sections.push(
-      '**Can import from anywhere** - Orchestration/startup files\n',
-    );
+    sections.push('**Can import from anywhere** - Orchestration/startup files\n');
   } else {
     sections.push('**Can import from:**\n');
     const importLines = config.allowedImports.map((imp) => `- \`${imp}\``).join('\n');
@@ -91,9 +87,7 @@ export const architectureFolderDetailBroker = ({
 
   // 5. Required Files
   sections.push(`## Required Files\n`);
-  sections.push(
-    `**Proxy Required:** ${config.requireProxy ? 'Yes' : 'No'}\n`,
-  );
+  sections.push(`**Proxy Required:** ${config.requireProxy ? 'Yes' : 'No'}\n`);
 
   const firstSuffix = firstFileSuffixTransformer({ config });
   const baseName = fileSuffixFormatterTransformer({ suffix: firstSuffix });
@@ -106,9 +100,7 @@ export const architectureFolderDetailBroker = ({
   sections.push(`- Implementation: \`{name}${firstSuffix}\`\n`);
 
   if (config.testType !== 'none') {
-    sections.push(
-      `- Test: \`{name}${baseName}${testInfix}${extension}\`\n`,
-    );
+    sections.push(`- Test: \`{name}${baseName}${testInfix}${extension}\`\n`);
   }
 
   if (config.requireProxy) {
@@ -142,9 +134,7 @@ export const architectureFolderDetailBroker = ({
   }
 
   if (config.disallowAdhocTypes) {
-    sections.push(
-      '**Ad-hoc Types Forbidden:** All types must come from contracts\n',
-    );
+    sections.push('**Ad-hoc Types Forbidden:** All types must come from contracts\n');
   }
   sections.push('');
 

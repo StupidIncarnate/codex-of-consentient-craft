@@ -6,7 +6,6 @@
  * // Loads and displays errors-by-file list from most recent or specified run
  */
 
-
 import { commandListBroker } from '../../../brokers/command/list/command-list-broker';
 import { wardRunResultContract } from '../../../contracts/ward-result/ward-result-contract';
 

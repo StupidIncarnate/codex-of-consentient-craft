@@ -10,10 +10,12 @@ describe('InstallCreateTsconfigResponder', () => {
       proxy.setupFileNotExists({ filePath: '/project/tsconfig.json' });
 
       const result = await proxy.callResponder({
-        context: InstallContextStub({ value: {
-          targetProjectRoot: '/project',
-          dungeonmasterRoot: '/dm-root',
-        } }),
+        context: InstallContextStub({
+          value: {
+            targetProjectRoot: '/project',
+            dungeonmasterRoot: '/dm-root',
+          },
+        }),
       });
 
       expect(result).toStrictEqual({
@@ -37,10 +39,12 @@ describe('InstallCreateTsconfigResponder', () => {
       proxy.setupFileExists({ filePath: '/project/tsconfig.json' });
 
       const result = await proxy.callResponder({
-        context: InstallContextStub({ value: {
-          targetProjectRoot: '/project',
-          dungeonmasterRoot: '/dm-root',
-        } }),
+        context: InstallContextStub({
+          value: {
+            targetProjectRoot: '/project',
+            dungeonmasterRoot: '/dm-root',
+          },
+        }),
       });
 
       expect(result).toStrictEqual({

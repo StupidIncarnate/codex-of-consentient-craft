@@ -1,20 +1,19 @@
-
 import { jestJsonParsePassingTransformer } from './jest-json-parse-passing-transformer';
 
 describe('jestJsonParsePassingTransformer', () => {
   describe('valid inputs', () => {
     it('VALID: {jest output with passed assertion results} => returns PassingTest[] entries with durations', () => {
       const jsonOutput = JSON.stringify({
-          testResults: [
-            {
-              name: 'src/a.test.ts',
-              assertionResults: [
-                { status: 'passed', fullName: 'VALID: {a} => b', duration: 15 },
-                { status: 'passed', fullName: 'VALID: {c} => d', duration: 7 },
-              ],
-            },
-          ],
-        });
+        testResults: [
+          {
+            name: 'src/a.test.ts',
+            assertionResults: [
+              { status: 'passed', fullName: 'VALID: {a} => b', duration: 15 },
+              { status: 'passed', fullName: 'VALID: {c} => d', duration: 7 },
+            ],
+          },
+        ],
+      });
 
       const result = jestJsonParsePassingTransformer({ jsonOutput });
 
@@ -26,21 +25,21 @@ describe('jestJsonParsePassingTransformer', () => {
 
     it('VALID: {mix of passed and failed tests} => only returns passed entries', () => {
       const jsonOutput = JSON.stringify({
-          testResults: [
-            {
-              name: 'src/app.test.ts',
-              assertionResults: [
-                { status: 'passed', fullName: 'VALID: ok', duration: 5 },
-                {
-                  status: 'failed',
-                  fullName: 'INVALID: bad',
-                  duration: 12,
-                  failureMessages: ['boom'],
-                },
-              ],
-            },
-          ],
-        });
+        testResults: [
+          {
+            name: 'src/app.test.ts',
+            assertionResults: [
+              { status: 'passed', fullName: 'VALID: ok', duration: 5 },
+              {
+                status: 'failed',
+                fullName: 'INVALID: bad',
+                duration: 12,
+                failureMessages: ['boom'],
+              },
+            ],
+          },
+        ],
+      });
 
       const result = jestJsonParsePassingTransformer({ jsonOutput });
 
@@ -51,13 +50,13 @@ describe('jestJsonParsePassingTransformer', () => {
 
     it('VALID: {passed test without duration} => defaults durationMs to 0', () => {
       const jsonOutput = JSON.stringify({
-          testResults: [
-            {
-              name: 'src/app.test.ts',
-              assertionResults: [{ status: 'passed', fullName: 'VALID: {x} => y' }],
-            },
-          ],
-        });
+        testResults: [
+          {
+            name: 'src/app.test.ts',
+            assertionResults: [{ status: 'passed', fullName: 'VALID: {x} => y' }],
+          },
+        ],
+      });
 
       const result = jestJsonParsePassingTransformer({ jsonOutput });
 
@@ -94,12 +93,12 @@ describe('jestJsonParsePassingTransformer', () => {
 
     it('EMPTY: {suite missing name field} => skips suite', () => {
       const jsonOutput = JSON.stringify({
-          testResults: [
-            {
-              assertionResults: [{ status: 'passed', fullName: 'VALID: ok', duration: 5 }],
-            },
-          ],
-        });
+        testResults: [
+          {
+            assertionResults: [{ status: 'passed', fullName: 'VALID: ok', duration: 5 }],
+          },
+        ],
+      });
 
       const result = jestJsonParsePassingTransformer({ jsonOutput });
 
@@ -116,13 +115,13 @@ describe('jestJsonParsePassingTransformer', () => {
 
     it('EMPTY: {assertion missing fullName} => skips entry', () => {
       const jsonOutput = JSON.stringify({
-          testResults: [
-            {
-              name: 'src/a.test.ts',
-              assertionResults: [{ status: 'passed' }],
-            },
-          ],
-        });
+        testResults: [
+          {
+            name: 'src/a.test.ts',
+            assertionResults: [{ status: 'passed' }],
+          },
+        ],
+      });
 
       const result = jestJsonParsePassingTransformer({ jsonOutput });
 

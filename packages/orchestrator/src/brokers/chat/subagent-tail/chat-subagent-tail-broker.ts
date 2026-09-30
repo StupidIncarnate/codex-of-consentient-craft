@@ -84,7 +84,7 @@ export const chatSubagentTailBroker = async ({
   const subagentDebug = getEnv('SUBAGENT_DEBUG') === '1';
   if (subagentDebug) {
     stderr.write(
-      `[SUBAGENT-TRACE][SUBAGENT-TAIL-OPEN] agentId=${String(agentId)} path=${String(subagentJsonlPath)}\n`,
+      `[SUBAGENT-TRACE][SUBAGENT-TAIL-OPEN] agentId=${String(agentId)} path=${subagentJsonlPath}\n`,
     );
   }
   const handle = tailFile({

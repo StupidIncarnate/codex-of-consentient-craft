@@ -18,12 +18,7 @@
 
 import { wardDetailContract } from '@dungeonmaster/shared/contracts';
 
-
-export const wardDetailToDisplayLinesTransformer = ({
-  detail,
-}: {
-  detail: unknown;
-}): string[] => {
+export const wardDetailToDisplayLinesTransformer = ({ detail }: { detail: unknown }): string[] => {
   const parsed = wardDetailContract.safeParse(detail);
 
   if (!parsed.success) {
@@ -62,9 +57,7 @@ export const wardDetailToDisplayLinesTransformer = ({
         const location = error.line === undefined ? '' : `:${String(error.line)}`;
         const message = error.message === undefined ? '' : String(error.message);
         const rule = error.rule === undefined ? '' : ` [${String(error.rule)}]`;
-        lines.push(
-          `${label}: ${file}${location} — ${message}${rule}`,
-        );
+        lines.push(`${label}: ${file}${location} — ${message}${rule}`);
       }
 
       for (const failure of projectResult.testFailures ?? []) {

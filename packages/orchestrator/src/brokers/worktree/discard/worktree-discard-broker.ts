@@ -16,7 +16,6 @@
  * // discarded is true only when both `git worktree remove` and `git branch -D` exited 0
  */
 
-
 import { worktreeDiscardResultContract } from '../../../contracts/worktree-discard-result/worktree-discard-result-contract';
 import type { WorktreeDiscardResult } from '../../../contracts/worktree-discard-result/worktree-discard-result-contract';
 import { branchDelete, worktreeRemove } from '#gateway/bin/git';

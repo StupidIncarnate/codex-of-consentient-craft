@@ -24,10 +24,12 @@ describe('StartInstall', () => {
       setEnv('DUNGEONMASTER_HOME', dungeonmasterHomePath);
 
       const result = await StartInstall({
-        context: InstallContextStub({ value: {
-          targetProjectRoot: testbed.guildPath,
-          dungeonmasterRoot: `${testbed.guildPath}/.wrong-cli-root`,
-        } }),
+        context: InstallContextStub({
+          value: {
+            targetProjectRoot: testbed.guildPath,
+            dungeonmasterRoot: `${testbed.guildPath}/.wrong-cli-root`,
+          },
+        }),
       });
 
       deleteEnv('DUNGEONMASTER_HOME');
@@ -54,10 +56,12 @@ describe('StartInstall', () => {
       setEnv('DUNGEONMASTER_HOME', dungeonmasterHomePath);
 
       await StartInstall({
-        context: InstallContextStub({ value: {
-          targetProjectRoot: testbed.guildPath,
-          dungeonmasterRoot: `${testbed.guildPath}/.wrong-cli-root`,
-        } }),
+        context: InstallContextStub({
+          value: {
+            targetProjectRoot: testbed.guildPath,
+            dungeonmasterRoot: `${testbed.guildPath}/.wrong-cli-root`,
+          },
+        }),
       });
 
       deleteEnv('DUNGEONMASTER_HOME');
@@ -91,16 +95,20 @@ describe('StartInstall', () => {
       setEnv('DUNGEONMASTER_HOME', dungeonmasterHomePath);
 
       await StartInstall({
-        context: InstallContextStub({ value: {
-          targetProjectRoot: testbed.guildPath,
-          dungeonmasterRoot: `${testbed.guildPath}/.wrong-cli-root`,
-        } }),
+        context: InstallContextStub({
+          value: {
+            targetProjectRoot: testbed.guildPath,
+            dungeonmasterRoot: `${testbed.guildPath}/.wrong-cli-root`,
+          },
+        }),
       });
       await StartInstall({
-        context: InstallContextStub({ value: {
-          targetProjectRoot: testbed.guildPath,
-          dungeonmasterRoot: `${testbed.guildPath}/.wrong-cli-root`,
-        } }),
+        context: InstallContextStub({
+          value: {
+            targetProjectRoot: testbed.guildPath,
+            dungeonmasterRoot: `${testbed.guildPath}/.wrong-cli-root`,
+          },
+        }),
       });
 
       deleteEnv('DUNGEONMASTER_HOME');
@@ -131,10 +139,12 @@ describe('StartInstall', () => {
       setEnv('DUNGEONMASTER_HOME', dungeonmasterHomePath);
 
       await StartInstall({
-        context: InstallContextStub({ value: {
-          targetProjectRoot: testbed.guildPath,
-          dungeonmasterRoot: `${testbed.guildPath}/.wrong-cli-root`,
-        } }),
+        context: InstallContextStub({
+          value: {
+            targetProjectRoot: testbed.guildPath,
+            dungeonmasterRoot: `${testbed.guildPath}/.wrong-cli-root`,
+          },
+        }),
       });
 
       deleteEnv('DUNGEONMASTER_HOME');
@@ -164,10 +174,12 @@ describe('StartInstall', () => {
       setEnv('DUNGEONMASTER_HOME', dungeonmasterHomePath);
 
       await StartInstall({
-        context: InstallContextStub({ value: {
-          targetProjectRoot: testbed.guildPath,
-          dungeonmasterRoot: `${testbed.guildPath}/.wrong-cli-root`,
-        } }),
+        context: InstallContextStub({
+          value: {
+            targetProjectRoot: testbed.guildPath,
+            dungeonmasterRoot: `${testbed.guildPath}/.wrong-cli-root`,
+          },
+        }),
       });
 
       testbed.writeFile({
@@ -176,10 +188,12 @@ describe('StartInstall', () => {
       });
 
       await StartInstall({
-        context: InstallContextStub({ value: {
-          targetProjectRoot: testbed.guildPath,
-          dungeonmasterRoot: `${testbed.guildPath}/.wrong-cli-root`,
-        } }),
+        context: InstallContextStub({
+          value: {
+            targetProjectRoot: testbed.guildPath,
+            dungeonmasterRoot: `${testbed.guildPath}/.wrong-cli-root`,
+          },
+        }),
       });
 
       deleteEnv('DUNGEONMASTER_HOME');
@@ -205,10 +219,12 @@ describe('StartInstall', () => {
       setEnv('DUNGEONMASTER_HOME', dungeonmasterHomePath);
 
       const result = await StartInstall({
-        context: InstallContextStub({ value: {
-          targetProjectRoot: testbed.guildPath,
-          dungeonmasterRoot: `${testbed.guildPath}/.wrong-cli-root`,
-        } }),
+        context: InstallContextStub({
+          value: {
+            targetProjectRoot: testbed.guildPath,
+            dungeonmasterRoot: `${testbed.guildPath}/.wrong-cli-root`,
+          },
+        }),
       });
 
       deleteEnv('DUNGEONMASTER_HOME');
@@ -231,10 +247,12 @@ describe('StartInstall', () => {
       setEnv('DUNGEONMASTER_HOME', dungeonmasterHomePath);
 
       const result = await StartInstall({
-        context: InstallContextStub({ value: {
-          targetProjectRoot: testbed.guildPath,
-          dungeonmasterRoot: `${testbed.guildPath}/.wrong-cli-root`,
-        } }),
+        context: InstallContextStub({
+          value: {
+            targetProjectRoot: testbed.guildPath,
+            dungeonmasterRoot: `${testbed.guildPath}/.wrong-cli-root`,
+          },
+        }),
       });
 
       deleteEnv('DUNGEONMASTER_HOME');

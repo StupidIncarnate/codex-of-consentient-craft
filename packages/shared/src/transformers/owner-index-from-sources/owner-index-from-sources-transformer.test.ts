@@ -13,30 +13,31 @@ const sharedPackage = OwnerIndexPackageStub({
 });
 
 const QUEST_TEXT = [
-    "import { z } from 'zod';",
-    'export const questContract = z.object({',
-    "  id: z.string().min(1).brand<'QuestId'>(),",
-    "  title: z.string().brand<'QuestTitle'>(),",
-    '});',
-    'export type Quest = z.infer<typeof questContract>;',
-  ].join('\n');
+  "import { z } from 'zod';",
+  'export const questContract = z.object({',
+  "  id: z.string().min(1).brand<'QuestId'>(),",
+  "  title: z.string().brand<'QuestTitle'>(),",
+  '});',
+  'export type Quest = z.infer<typeof questContract>;',
+].join('\n');
 const WORK_ITEM_TEXT = [
-    "import { z } from 'zod';",
-    'export const workItemContract = z.object({',
-    "  id: z.string().brand<'WorkItemId'>(),",
-    '  questId: questContract.shape.id,',
-    '});',
-    'export type WorkItem = z.infer<typeof workItemContract>;',
-  ].join('\n');
+  "import { z } from 'zod';",
+  'export const workItemContract = z.object({',
+  "  id: z.string().brand<'WorkItemId'>(),",
+  '  questId: questContract.shape.id,',
+  '});',
+  'export type WorkItem = z.infer<typeof workItemContract>;',
+].join('\n');
 const START_INPUT_TEXT = [
-    "import { z } from 'zod';",
-    'export const startInputContract = z.object({',
-    "  questId: z.string().min(1).brand<'QuestId'>(),",
-    '  itemId: itemIdContract,',
-    '});',
-  ].join('\n');
+  "import { z } from 'zod';",
+  'export const startInputContract = z.object({',
+  "  questId: z.string().min(1).brand<'QuestId'>(),",
+  '  itemId: itemIdContract,',
+  '});',
+].join('\n');
 const ITEM_ID_TEXT = "export const itemIdContract = z.string().brand<'ItemId'>();";
-const LAYER_TEXT = "export const ownerLayerContract = z.object({ id: z.string().brand<'OwnerLayerId'>() });";
+const LAYER_TEXT =
+  "export const ownerLayerContract = z.object({ id: z.string().brand<'OwnerLayerId'>() });";
 
 describe('ownerIndexFromSourcesTransformer', () => {
   describe('owners', () => {

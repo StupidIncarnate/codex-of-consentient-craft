@@ -21,14 +21,21 @@
 import { z } from '#gateway/npm/zod';
 
 import { savedRefContract } from '@dungeonmaster/hydration/contracts';
-import { spawnerTypeContract, workItemRoleContract, workItemStatusContract, operationItemContract } from '@dungeonmaster/shared/contracts';
+import {
+  spawnerTypeContract,
+  workItemRoleContract,
+  workItemStatusContract,
+  operationItemContract,
+} from '@dungeonmaster/shared/contracts';
 
-export const workItemAttachArgsContract = z.object({
-  role: workItemRoleContract,
-  status: workItemStatusContract,
-  spawnerType: spawnerTypeContract,
-  createdAt: z.iso.datetime().brand<'WorkItemAttachArgsCreatedAt'>(),
-  operationId: z.union([operationItemContract.shape.id, savedRefContract]),
-}).brand<'WorkItemAttachArgs'>();
+export const workItemAttachArgsContract = z
+  .object({
+    role: workItemRoleContract,
+    status: workItemStatusContract,
+    spawnerType: spawnerTypeContract,
+    createdAt: z.iso.datetime().brand<'WorkItemAttachArgsCreatedAt'>(),
+    operationId: z.union([operationItemContract.shape.id, savedRefContract]),
+  })
+  .brand<'WorkItemAttachArgs'>();
 
 export type WorkItemAttachArgs = z.infer<typeof workItemAttachArgsContract>;

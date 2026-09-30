@@ -11,10 +11,12 @@ describe('InstallFlow', () => {
       });
 
       const result = await InstallFlow({
-        context: InstallContextStub({ value: {
-          targetProjectRoot: testbed.guildPath,
-          dungeonmasterRoot: testbed.dungeonmasterPath,
-        } }),
+        context: InstallContextStub({
+          value: {
+            targetProjectRoot: testbed.guildPath,
+            dungeonmasterRoot: testbed.dungeonmasterPath,
+          },
+        }),
       });
 
       const settingsContent = testbed.readFile({
@@ -264,10 +266,12 @@ describe('InstallFlow', () => {
       const projectPath = await project.create();
 
       const result = await InstallFlow({
-        context: InstallContextStub({ value: {
-          targetProjectRoot: projectPath,
-          dungeonmasterRoot: projectPath,
-        } }),
+        context: InstallContextStub({
+          value: {
+            targetProjectRoot: projectPath,
+            dungeonmasterRoot: projectPath,
+          },
+        }),
       });
 
       const settings = project.readSettings({ projectPath });

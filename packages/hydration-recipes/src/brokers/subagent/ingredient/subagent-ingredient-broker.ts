@@ -26,7 +26,10 @@
 import { agentContract } from '@dungeonmaster/shared/contracts';
 
 import { recipesHydrationCreateBroker } from '../../recipes-hydration/create/recipes-hydration-create-broker';
-import { subagentFieldsContract, subagentFieldsShape } from '../../../contracts/subagent-fields/subagent-fields-contract';
+import {
+  subagentFieldsContract,
+  subagentFieldsShape,
+} from '../../../contracts/subagent-fields/subagent-fields-contract';
 import { subagentRecordContract } from '../../../contracts/subagent-record/subagent-record-contract';
 import { toolUseIdContract } from '../../../contracts/tool-use-id/tool-use-id-contract';
 import { subagentQueryRouteBroker } from '../query-route/subagent-query-route-broker';

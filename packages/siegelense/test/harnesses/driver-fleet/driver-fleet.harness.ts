@@ -100,7 +100,9 @@ export const driverFleetHarness = (): {
   boot: (params: { specName: string; idleTimeoutMs?: number }) => Promise<InstanceManifest>;
   killViaBroker: (params: { instanceId: SiegeInstance['id'] }) => Promise<KillResult>;
   sigkillDriverPid: (params: { pid: string }) => void;
-  registryEntry: (params: { instanceId: SiegeInstance['id'] }) => Promise<RegistryEntry | undefined>;
+  registryEntry: (params: {
+    instanceId: SiegeInstance['id'];
+  }) => Promise<RegistryEntry | undefined>;
   pingSocket: (params: { instanceId: SiegeInstance['id'] }) => Promise<boolean>;
   isGroupAlive: (params: { pgid: number }) => boolean;
   isPortFree: (params: { port: number }) => Promise<boolean>;
@@ -111,10 +113,7 @@ export const driverFleetHarness = (): {
     deadlineMs: number;
   }) => Promise<readonly number[]>;
   waitForDriverProcessExit: (params: { pid: string; deadlineMs: number }) => Promise<boolean>;
-  waitForGroupsDead: (params: {
-    pgids: readonly number[];
-    deadlineMs: number;
-  }) => Promise<boolean>;
+  waitForGroupsDead: (params: { pgids: readonly number[]; deadlineMs: number }) => Promise<boolean>;
   waitForShutdownReason: (params: {
     instanceId: SiegeInstance['id'];
     deadlineMs: number;
@@ -194,8 +193,11 @@ export const driverFleetHarness = (): {
     return manifest;
   };
 
-  const killViaBroker = async ({ instanceId }: { instanceId: SiegeInstance['id'] }): Promise<KillResult> =>
-    instanceKillBroker({ instanceId });
+  const killViaBroker = async ({
+    instanceId,
+  }: {
+    instanceId: SiegeInstance['id'];
+  }): Promise<KillResult> => instanceKillBroker({ instanceId });
 
   const sigkillDriverPid = ({ pid }: { pid: string }): void => {
     kill(Number(pid), 'SIGKILL');
@@ -210,7 +212,11 @@ export const driverFleetHarness = (): {
     return registry.instances.find((candidate) => candidate.id === instanceId);
   };
 
-  const pingSocket = async ({ instanceId }: { instanceId: SiegeInstance['id'] }): Promise<boolean> => {
+  const pingSocket = async ({
+    instanceId,
+  }: {
+    instanceId: SiegeInstance['id'];
+  }): Promise<boolean> => {
     const entry = await registryEntry({ instanceId });
     const socketPath = entry?.socketPath ?? null;
     if (socketPath === null) {
@@ -226,8 +232,7 @@ export const driverFleetHarness = (): {
       .catch(() => false);
   };
 
-  const isGroupAlive = ({ pgid }: { pgid: number }): boolean =>
-    processIsAliveBroker({ pgid });
+  const isGroupAlive = ({ pgid }: { pgid: number }): boolean => processIsAliveBroker({ pgid });
 
   const isPortFree = async ({ port }: { port: number }): Promise<boolean> =>
     probePortFree({ port });
@@ -249,9 +254,7 @@ export const driverFleetHarness = (): {
         ? (parsed as { pgids: unknown }).pgids
         : [];
 
-    return Array.isArray(pgidsField)
-      ? pgidsField.map((value) => Number(value))
-      : [];
+    return Array.isArray(pgidsField) ? pgidsField.map((value) => Number(value)) : [];
   };
 
   const heartbeatExists = ({ instanceId }: { instanceId: SiegeInstance['id'] }): boolean =>
@@ -367,7 +370,11 @@ export const driverFleetHarness = (): {
   const homeDirExists = ({ instanceId }: { instanceId: SiegeInstance['id'] }): boolean =>
     existsSync(locationsInstanceHomePathFindBroker({ instanceId }));
 
-  const reapDirectly = async ({ instanceId }: { instanceId: SiegeInstance['id'] }): Promise<void> => {
+  const reapDirectly = async ({
+    instanceId,
+  }: {
+    instanceId: SiegeInstance['id'];
+  }): Promise<void> => {
     const entry = await registryEntry({ instanceId }).catch((error: unknown) => {
       stderr.write(
         `[driver-fleet.harness] registry read failed reaping ${instanceId}: ${String(error)}\n`,

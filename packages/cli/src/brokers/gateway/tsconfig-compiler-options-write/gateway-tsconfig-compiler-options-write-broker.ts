@@ -37,7 +37,7 @@ export const gatewayTsconfigCompilerOptionsWriteBroker = async ({
     options,
   });
 
-  if (String(updatedText) === tsconfigText) {
+  if (updatedText === tsconfigText) {
     return false;
   }
 

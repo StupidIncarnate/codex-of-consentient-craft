@@ -64,14 +64,23 @@ const extraApplyFnContract = z.custom<ExtraApplyFn<unknown>>(
 /** One extra verb: the contract typing its arguments, and the body the runner calls to run it.
  * Declaring `args` with no `apply` (or the reverse) leaves a verb nothing can run, so both are
  * required together. */
-const extraContract = z.object({
-  args: zodSchemaContract,
-  apply: extraApplyFnContract,
-}).brand<'Extra'>();
+const extraContract = z
+  .object({
+    args: zodSchemaContract,
+    apply: extraApplyFnContract,
+  })
+  .brand<'Extra'>();
 
 export const ingredientConfigContract = z
   .object({
-    name: z.string().min(1).regex( /^[A-Za-z][A-Za-z0-9-]*$/u, 'must start with a letter and hold only letters, digits and hyphens — the character set a RowRef segment can encode', ).brand<'IngredientConfigName'>(),
+    name: z
+      .string()
+      .min(1)
+      .regex(
+        /^[A-Za-z][A-Za-z0-9-]*$/u,
+        'must start with a letter and hold only letters, digits and hyphens — the character set a RowRef segment can encode',
+      )
+      .brand<'IngredientConfigName'>(),
     description: ingredientDescriptionContract,
     fields: zodSchemaContract,
     record: zodSchemaContract,
@@ -79,7 +88,32 @@ export const ingredientConfigContract = z
     links: z.array(linkSpecContract).optional(),
     transitions: transitionSpecContract.optional(),
     defaults: ingredientDefaultsFnContract.optional(),
-    copies: z.string().min(1).superRefine((value, ctx) => { if (value.includes('/')) { ctx.addIssue({ code: 'custom', message: "copies: may not contain '/'. Use a bare identifier naming in-repo production code " + "(e.g. 'guildAddBroker'), or 'external:<name>' naming a producer outside the repo " + "(e.g. 'external:claude-cli').", }); return; } if (value.startsWith('external:') && value.slice('external:'.length).length === 0) { ctx.addIssue({ code: 'custom', message: "copies: 'external:' must name a producer after the prefix. Use a bare identifier " + "naming in-repo production code (e.g. 'guildAddBroker'), or 'external:<name>' naming a " + "producer outside the repo (e.g. 'external:claude-cli').", }); } }).brand<'IngredientConfigDataCopies'>().optional(),
+    copies: z
+      .string()
+      .min(1)
+      .superRefine((value, ctx) => {
+        if (value.includes('/')) {
+          ctx.addIssue({
+            code: 'custom',
+            message:
+              "copies: may not contain '/'. Use a bare identifier naming in-repo production code " +
+              "(e.g. 'guildAddBroker'), or 'external:<name>' naming a producer outside the repo " +
+              "(e.g. 'external:claude-cli').",
+          });
+          return;
+        }
+        if (value.startsWith('external:') && value.slice('external:'.length).length === 0) {
+          ctx.addIssue({
+            code: 'custom',
+            message:
+              "copies: 'external:' must name a producer after the prefix. Use a bare identifier " +
+              "naming in-repo production code (e.g. 'guildAddBroker'), or 'external:<name>' naming a " +
+              "producer outside the repo (e.g. 'external:claude-cli').",
+          });
+        }
+      })
+      .brand<'IngredientConfigDataCopies'>()
+      .optional(),
     extras: z
       .record(z.string(), extraContract)
       .superRefine((extras, ctx) => {
@@ -102,7 +136,8 @@ export const ingredientConfigContract = z
         path: ['copies'],
       });
     }
-  }).brand<'IngredientConfig'>();
+  })
+  .brand<'IngredientConfig'>();
 
 export type IngredientConfigData = z.infer<typeof ingredientConfigContract>;
 

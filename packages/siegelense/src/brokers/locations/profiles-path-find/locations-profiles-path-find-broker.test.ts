@@ -16,9 +16,7 @@ describe('locationsProfilesPathFindBroker', () => {
 
       const result = locationsProfilesPathFindBroker({ specHash });
 
-      expect(result).toBe(
-        '/home/user/.dungeonmaster/siegelense/profiles/a3f9c2e1',
-      );
+      expect(result).toBe('/home/user/.dungeonmaster/siegelense/profiles/a3f9c2e1');
     });
 
     it('EDGE: {specHash: a different 64-char hash} => returns the profile directory keyed on that hash', () => {

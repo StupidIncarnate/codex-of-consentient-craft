@@ -46,7 +46,7 @@ export const workItemStepNodeTransformer = ({
     return undefined;
   }
 
-  const steps = Object.entries(agentFlowStatics).find(([name]) => name === String(family))?.[1]
+  const steps = Object.entries(agentFlowStatics).find(([name]) => name === family)?.[1]
     .steps;
 
   if (steps === undefined) {

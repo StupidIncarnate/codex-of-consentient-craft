@@ -14,12 +14,7 @@ describe('astExpectedBrandTextTransformer', () => {
 
     it("VALID: {name under a field list} => the list's owner supplies the name", () => {
       const node = CallExpressionStub({ code: 'const treeNodeFields = { name: brand() };' });
-      const fieldListOwners = new Map([
-        [
-          'treeNodeFields',
-          'treeNodeContract',
-        ],
-      ]);
+      const fieldListOwners = new Map([['treeNodeFields', 'treeNodeContract']]);
 
       const result = astExpectedBrandTextTransformer({ node, fieldListOwners });
 

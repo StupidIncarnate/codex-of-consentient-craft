@@ -59,7 +59,13 @@ export const ExecutionQueueSyncListenerBootstrapResponder = (): void => {
     removeByQuestId: ({ questId }: { questId: Quest['id'] }): void => {
       questExecutionQueueState.removeByQuestId({ questId });
     },
-    updateEntryStatus: ({ questId, status }: { questId: Quest['id']; status: QuestStatus }): void => {
+    updateEntryStatus: ({
+      questId,
+      status,
+    }: {
+      questId: Quest['id'];
+      status: QuestStatus;
+    }): void => {
       questExecutionQueueState.updateEntryStatus({ questId, status });
     },
     updateEntryActiveSession: ({

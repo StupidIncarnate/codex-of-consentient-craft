@@ -33,7 +33,12 @@
 import { existsSync } from '#gateway/node/fs';
 import { ensureDir, writeFile, readFile } from '#gateway/node/fs__promises';
 import { basename, dirname, resolve } from '#gateway/node/path';
-import { type InstallContext, type InstallResult, packageJsonContract, installResultContract } from '@dungeonmaster/shared/contracts';
+import {
+  type InstallContext,
+  type InstallResult,
+  packageJsonContract,
+  installResultContract,
+} from '@dungeonmaster/shared/contracts';
 import { workspaceScopeFromRootNameTransformer } from '@dungeonmaster/shared/transformers';
 
 import { recipesScaffoldState } from '../../../state/recipes-scaffold/recipes-scaffold-state';
@@ -83,9 +88,10 @@ export const InstallRecipesScaffoldResponder = async ({
       })
     : undefined;
 
-  const recipesPackageName = (workspaceScope === undefined
+  const recipesPackageName =
+    workspaceScope === undefined
       ? RECIPES_PACKAGE_DIRNAME
-      : `${workspaceScope}/${RECIPES_PACKAGE_DIRNAME}`);
+      : `${workspaceScope}/${RECIPES_PACKAGE_DIRNAME}`;
 
   const scaffoldFiles = recipesScaffoldFilesTransformer({
     packageName: recipesPackageName,
@@ -106,10 +112,7 @@ export const InstallRecipesScaffoldResponder = async ({
 
   await Promise.all(
     scaffoldFiles.map(async (file) =>
-      writeFile(
-        resolve(recipesPackagePath, file.relativePath),
-        file.contents,
-      ),
+      writeFile(resolve(recipesPackagePath, file.relativePath), file.contents),
     ),
   );
 

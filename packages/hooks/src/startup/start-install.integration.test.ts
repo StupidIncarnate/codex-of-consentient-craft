@@ -10,10 +10,12 @@ describe('start-install integration', () => {
       });
 
       const result = await StartInstall({
-        context: InstallContextStub({ value: {
-          targetProjectRoot: testbed.guildPath,
-          dungeonmasterRoot: testbed.dungeonmasterPath,
-        } }),
+        context: InstallContextStub({
+          value: {
+            targetProjectRoot: testbed.guildPath,
+            dungeonmasterRoot: testbed.dungeonmasterPath,
+          },
+        }),
       });
 
       expect(result).toStrictEqual({
@@ -241,10 +243,12 @@ describe('start-install integration', () => {
       });
 
       const result = await StartInstall({
-        context: InstallContextStub({ value: {
-          targetProjectRoot: testbed.guildPath,
-          dungeonmasterRoot: testbed.dungeonmasterPath,
-        } }),
+        context: InstallContextStub({
+          value: {
+            targetProjectRoot: testbed.guildPath,
+            dungeonmasterRoot: testbed.dungeonmasterPath,
+          },
+        }),
       });
 
       expect(result).toStrictEqual({
@@ -470,23 +474,25 @@ describe('start-install integration', () => {
       testbed.writeFile({
         relativePath: '.claude/settings.json',
         content: JSON.stringify(
-            {
-              hooks: {
-                PreToolUse: [
-                  { hooks: [{ type: 'command', command: 'dungeonmaster-pre-edit-lint' }] },
-                ],
-              },
+          {
+            hooks: {
+              PreToolUse: [
+                { hooks: [{ type: 'command', command: 'dungeonmaster-pre-edit-lint' }] },
+              ],
             },
-            null,
-            2,
-          ),
+          },
+          null,
+          2,
+        ),
       });
 
       const result = await StartInstall({
-        context: InstallContextStub({ value: {
-          targetProjectRoot: testbed.guildPath,
-          dungeonmasterRoot: testbed.dungeonmasterPath,
-        } }),
+        context: InstallContextStub({
+          value: {
+            targetProjectRoot: testbed.guildPath,
+            dungeonmasterRoot: testbed.dungeonmasterPath,
+          },
+        }),
       });
 
       const settingsContent = testbed.readFile({
@@ -713,22 +719,24 @@ describe('start-install integration', () => {
       testbed.writeFile({
         relativePath: '.claude/settings.json',
         content: JSON.stringify(
-            {
-              hooks: {
-                PreToolUse: [{ hooks: [{ type: 'command', command: 'existing-hook' }] }],
-                SessionStart: [{ hooks: [{ type: 'command', command: 'existing-session-hook' }] }],
-              },
+          {
+            hooks: {
+              PreToolUse: [{ hooks: [{ type: 'command', command: 'existing-hook' }] }],
+              SessionStart: [{ hooks: [{ type: 'command', command: 'existing-session-hook' }] }],
             },
-            null,
-            2,
-          ),
+          },
+          null,
+          2,
+        ),
       });
 
       const result = await StartInstall({
-        context: InstallContextStub({ value: {
-          targetProjectRoot: testbed.guildPath,
-          dungeonmasterRoot: testbed.dungeonmasterPath,
-        } }),
+        context: InstallContextStub({
+          value: {
+            targetProjectRoot: testbed.guildPath,
+            dungeonmasterRoot: testbed.dungeonmasterPath,
+          },
+        }),
       });
 
       expect(result).toStrictEqual({
@@ -959,10 +967,12 @@ describe('start-install integration', () => {
         });
 
         const result = await StartInstall({
-          context: InstallContextStub({ value: {
-            targetProjectRoot: testbed.guildPath,
-            dungeonmasterRoot: testbed.dungeonmasterPath,
-          } }),
+          context: InstallContextStub({
+            value: {
+              targetProjectRoot: testbed.guildPath,
+              dungeonmasterRoot: testbed.dungeonmasterPath,
+            },
+          }),
         });
 
         expect(result.success).toBe(true);

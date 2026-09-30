@@ -8,11 +8,11 @@
 
 import { z } from '#gateway/npm/zod';
 
-
 export const taskAgentToolInputContract = z
   .object({
     prompt: z.string().min(1).brand<'TaskAgentToolInputPrompt'>(),
   })
-  .loose().brand<'TaskAgentToolInput'>();
+  .loose()
+  .brand<'TaskAgentToolInput'>();
 
 export type TaskAgentToolInput = z.infer<typeof taskAgentToolInputContract>;

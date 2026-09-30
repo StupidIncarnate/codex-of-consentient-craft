@@ -49,10 +49,10 @@ describe('tailFileCallsExtractTransformer', () => {
     it('VALID: {variable built from locationsStatics, path is not the first key} => returns the statics reference', () => {
       const result = tailFileCallsExtractTransformer({
         source: [
-            IMPORT_LINE,
-            'const outboxPath = join(homePath, locationsStatics.dungeonmasterHome.eventOutbox);',
-            "tailFile({ startPosition: 'end', path: outboxPath, onLine });",
-          ].join('\n'),
+          IMPORT_LINE,
+          'const outboxPath = join(homePath, locationsStatics.dungeonmasterHome.eventOutbox);',
+          "tailFile({ startPosition: 'end', path: outboxPath, onLine });",
+        ].join('\n'),
       });
 
       expect(result).toStrictEqual([
@@ -64,7 +64,8 @@ describe('tailFileCallsExtractTransformer', () => {
   describe('import source', () => {
     it('VALID: {aliased import} => matches the alias', () => {
       const result = tailFileCallsExtractTransformer({
-        source: "import { tailFile as tail } from '#gateway/node/fs';\ntail({ path: '/a.jsonl', onLine });",
+        source:
+          "import { tailFile as tail } from '#gateway/node/fs';\ntail({ path: '/a.jsonl', onLine });",
       });
 
       expect(result).toStrictEqual([{ filePathArg: '/a.jsonl' }]);
@@ -99,10 +100,10 @@ describe('tailFileCallsExtractTransformer', () => {
     it('VALID: {two tailFile calls} => returns both in source order', () => {
       const result = tailFileCallsExtractTransformer({
         source: [
-            IMPORT_LINE,
-            "tailFile({ path: '/repo/a.jsonl', onLine });",
-            "tailFile({ path: '/repo/b.jsonl', onLine });",
-          ].join('\n'),
+          IMPORT_LINE,
+          "tailFile({ path: '/repo/a.jsonl', onLine });",
+          "tailFile({ path: '/repo/b.jsonl', onLine });",
+        ].join('\n'),
       });
 
       expect(result).toStrictEqual([

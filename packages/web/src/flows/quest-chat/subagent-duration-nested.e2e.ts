@@ -56,8 +56,8 @@ test.describe('Nested sub-agent chain duration: an inner chain computes its own 
     const questFilePath = String(created.filePath);
 
     await quests.writeQuestFile({
-      questId: questId,
-      questFolder: questFolder,
+      questId,
+      questFolder,
       questFilePath,
       status: 'in_progress',
       operations: [
@@ -97,7 +97,7 @@ test.describe('Nested sub-agent chain duration: an inner chain computes its own 
     await page.clock.install({ time: FIXED_NOW });
 
     const urlSlug = guilds.extractUrlSlug({ guild });
-    await nav.navigateToQuest({ urlSlug, questId: questId });
+    await nav.navigateToQuest({ urlSlug, questId });
 
     const executionPanel = page.getByTestId('execution-panel-widget');
     await expect(executionPanel).toBeVisible({ timeout: PANEL_TIMEOUT });
@@ -165,8 +165,8 @@ test.describe('Nested sub-agent chain duration: an inner chain computes its own 
     const questFilePath = String(created.filePath);
 
     await quests.writeQuestFile({
-      questId: questId,
-      questFolder: questFolder,
+      questId,
+      questFolder,
       questFilePath,
       status: 'in_progress',
       operations: [
@@ -208,7 +208,7 @@ test.describe('Nested sub-agent chain duration: an inner chain computes its own 
     await page.clock.install({ time: FIXED_NOW });
 
     const urlSlug = guilds.extractUrlSlug({ guild });
-    await nav.navigateToQuest({ urlSlug, questId: questId });
+    await nav.navigateToQuest({ urlSlug, questId });
 
     const executionPanel = page.getByTestId('execution-panel-widget');
     await expect(executionPanel).toBeVisible({ timeout: PANEL_TIMEOUT });
@@ -281,8 +281,8 @@ test.describe('Nested sub-agent chain duration: an inner chain computes its own 
     const questFilePath = String(created.filePath);
 
     await quests.writeQuestFile({
-      questId: questId,
-      questFolder: questFolder,
+      questId,
+      questFolder,
       questFilePath,
       status: 'in_progress',
       operations: [
@@ -317,7 +317,7 @@ test.describe('Nested sub-agent chain duration: an inner chain computes its own 
     await page.clock.install({ time: FIXED_NOW });
 
     const urlSlug = guilds.extractUrlSlug({ guild });
-    await nav.navigateToQuest({ urlSlug, questId: questId });
+    await nav.navigateToQuest({ urlSlug, questId });
 
     const executionPanel = page.getByTestId('execution-panel-widget');
     await expect(executionPanel).toBeVisible({ timeout: PANEL_TIMEOUT });
@@ -368,8 +368,8 @@ test.describe('Nested sub-agent chain duration: an inner chain computes its own 
     const questFilePath = String(created.filePath);
 
     await quests.writeQuestFile({
-      questId: questId,
-      questFolder: questFolder,
+      questId,
+      questFolder,
       questFilePath,
       status: 'in_progress',
       operations: [
@@ -404,7 +404,7 @@ test.describe('Nested sub-agent chain duration: an inner chain computes its own 
     await page.clock.install({ time: FIXED_NOW });
 
     const urlSlug = guilds.extractUrlSlug({ guild });
-    await nav.navigateToQuest({ urlSlug, questId: questId });
+    await nav.navigateToQuest({ urlSlug, questId });
 
     const executionPanel = page.getByTestId('execution-panel-widget');
     await expect(executionPanel).toBeVisible({ timeout: PANEL_TIMEOUT });

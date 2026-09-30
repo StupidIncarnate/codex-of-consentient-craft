@@ -44,7 +44,11 @@ import { questOperationsUpdateBroker } from '../operations-update/quest-operatio
 // retired family still loads, and indexing an `as const` object with one gives no key check.
 const GRAPH_BY_FAMILY = new Map(Object.entries(agentFlowStatics));
 
-export const questAdvanceBroker = async ({ questId }: { questId: Quest['id'] }): Promise<boolean> => {
+export const questAdvanceBroker = async ({
+  questId,
+}: {
+  questId: Quest['id'];
+}): Promise<boolean> => {
   const result = await questOperationsUpdateBroker({
     questId,
     update: ({ quest }) => {
@@ -76,7 +80,7 @@ export const questAdvanceBroker = async ({ questId }: { questId: Quest['id'] }):
       // A role no family carries — `spiritmender`, a chat role — runs no step graph and is stamped
       // with no step at all.
       const entryStep =
-        family === undefined ? undefined : GRAPH_BY_FAMILY.get(String(family))?.entry;
+        family === undefined ? undefined : GRAPH_BY_FAMILY.get(family)?.entry;
 
       const newWorkItem: WorkItem = workItemContract.parse({
         id: workItemContract.shape.id.parse(randomUUID()),

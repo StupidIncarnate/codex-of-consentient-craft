@@ -256,11 +256,11 @@ export const commentQueueLifecycleHarness = ({
           userRequest: 'Build the feature',
         });
         const target = which === 'first' ? seeded.first : seeded.second;
-        target.questId = String(created.questId);
+        target.questId = created.questId;
         await quests.writeQuestFile({
           questId: QuestIdStub({ value: target.questId }),
           questFolder: created.questFolder,
-          questFilePath: String(created.filePath),
+          questFilePath: created.filePath,
           status: 'review_flows',
           workItems: [
             { id: 'e2e00000-0000-4000-8000-000000000001', role: 'chaoswhisperer', sessionId },

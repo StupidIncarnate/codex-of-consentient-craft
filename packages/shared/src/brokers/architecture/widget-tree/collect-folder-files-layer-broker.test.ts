@@ -29,9 +29,7 @@ describe('collectFolderFilesLayerBroker', () => {
 
       proxy.setupFlatDirectory({
         dirPath,
-        filePaths: [
-          '/repo/packages/web/src/responders/app-responder.test.ts',
-        ],
+        filePaths: ['/repo/packages/web/src/responders/app-responder.test.ts'],
       });
 
       const result = collectFolderFilesLayerBroker({ dirPath });

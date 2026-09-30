@@ -42,9 +42,9 @@ describe('browserStorageCallsExtractTransformer', () => {
   describe('multiple calls', () => {
     it('VALID: {localStorage and sessionStorage in same file} => returns both in order', () => {
       const source = [
-          `localStorage.setItem('user-pref', value);`,
-          `sessionStorage.setItem('csrf-token', token);`,
-        ].join('\n');
+        `localStorage.setItem('user-pref', value);`,
+        `sessionStorage.setItem('csrf-token', token);`,
+      ].join('\n');
 
       const result = browserStorageCallsExtractTransformer({ source });
 

@@ -130,7 +130,7 @@ describe('runChatLayerBroker', () => {
       // resumeSessionId forwarded to spawn via --resume flag; raw message sent (no template)
       expect(spawnedArgs).toStrictEqual([
         '-p',
-        String(userMessage),
+        userMessage,
         '--output-format',
         'stream-json',
         '--verbose',

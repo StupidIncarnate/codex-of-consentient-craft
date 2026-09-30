@@ -1,4 +1,3 @@
-
 import { ErrorEntryStub } from '../../contracts/error-entry/error-entry.stub';
 import { ProjectFolderStub } from '../../contracts/project-folder/project-folder.stub';
 import { toCwdRelativePathTransformer } from './to-cwd-relative-path-transformer';

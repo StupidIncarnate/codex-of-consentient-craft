@@ -20,8 +20,8 @@ import { recipesConventionStatics } from '@dungeonmaster/shared/statics';
 import { recipesLocateBrokerProxy } from '../../recipes/locate/recipes-locate-broker.proxy';
 import { recipesReadBrokerProxy } from '../../recipes/read/recipes-read-broker.proxy';
 
-const ENTRY_PATH: string = '/repo/packages/hydration-recipes/dist/index.js';
-const PACKAGE_PATH: string = '/repo/packages/hydration-recipes';
+const ENTRY_PATH = '/repo/packages/hydration-recipes/dist/index.js';
+const PACKAGE_PATH = '/repo/packages/hydration-recipes';
 
 const LOCATE_REPEAT_COUNT = 8;
 

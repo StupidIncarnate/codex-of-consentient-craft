@@ -46,7 +46,7 @@ describe('profileObservationMergeTransformer', () => {
         specHash: SPEC_HASH,
         poolSize: 1,
         rssMB: 2900,
-        beatAtMs: (FIRST_BEAT_MS + 1000),
+        beatAtMs: FIRST_BEAT_MS + 1000,
       });
 
       expect(result).toStrictEqual({
@@ -73,7 +73,7 @@ describe('profileObservationMergeTransformer', () => {
         specHash: SPEC_HASH,
         poolSize: 1,
         rssMB: 1800,
-        beatAtMs: (FIRST_BEAT_MS + 1000),
+        beatAtMs: FIRST_BEAT_MS + 1000,
       });
 
       expect(result.pools).toStrictEqual([
@@ -98,7 +98,7 @@ describe('profileObservationMergeTransformer', () => {
         specHash: SPEC_HASH,
         poolSize: 1,
         rssMB: 1800,
-        beatAtMs: (FIRST_BEAT_MS + profileStatics.settle.afterMs),
+        beatAtMs: FIRST_BEAT_MS + profileStatics.settle.afterMs,
       });
 
       expect(result.pools).toStrictEqual([
@@ -121,7 +121,7 @@ describe('profileObservationMergeTransformer', () => {
         specHash: SPEC_HASH,
         poolSize: 1,
         rssMB: 1900,
-        beatAtMs: (FIRST_BEAT_MS + profileStatics.settle.afterMs + 5000),
+        beatAtMs: FIRST_BEAT_MS + profileStatics.settle.afterMs + 5000,
       });
 
       expect(result.pools).toStrictEqual([
@@ -146,7 +146,7 @@ describe('profileObservationMergeTransformer', () => {
         specHash: SPEC_HASH,
         poolSize: 3,
         rssMB: 1920,
-        beatAtMs: (FIRST_BEAT_MS + profileStatics.settle.afterMs + 5000),
+        beatAtMs: FIRST_BEAT_MS + profileStatics.settle.afterMs + 5000,
       });
 
       expect(result.pools).toStrictEqual([
@@ -173,7 +173,7 @@ describe('profileObservationMergeTransformer', () => {
         specHash: SPEC_HASH,
         poolSize: 1,
         rssMB: 1850,
-        beatAtMs: (FIRST_BEAT_MS + profileStatics.settle.afterMs + 9000),
+        beatAtMs: FIRST_BEAT_MS + profileStatics.settle.afterMs + 9000,
       });
 
       expect(result.pools).toStrictEqual([

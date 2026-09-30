@@ -15,7 +15,6 @@
  * // Returns: { filePath: '/repo/packages/node/fs.ts', content: '...' } or undefined
  */
 
-
 import type { ProjectFolder } from '../../../contracts/project-folder/project-folder-contract';
 import { resolveRelativeSpecifierTransformer } from '../../../transformers/resolve-relative-specifier/resolve-relative-specifier-transformer';
 import { targetPathFromBareSpecifierTransformer } from '../../../transformers/target-path-from-bare-specifier/target-path-from-bare-specifier-transformer';

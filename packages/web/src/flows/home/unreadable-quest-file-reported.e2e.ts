@@ -68,9 +68,9 @@ test.describe('Unreadable quest file is reported on homebase', () => {
       'Readable Quest One',
       'Readable Quest Two',
     ]);
-    expect(listBody.skipped.map((skip: { questFolder: Quest['folder'] }) => skip.questFolder)).toStrictEqual(
-      [legacyFolder],
-    );
+    expect(
+      listBody.skipped.map((skip: { questFolder: Quest['folder'] }) => skip.questFolder),
+    ).toStrictEqual([legacyFolder]);
     expect(String(listBody.skipped[0].questFilePath)).toBe(String(legacy.filePath));
 
     // The reason names every field questContract rejected, not just "unreadable".

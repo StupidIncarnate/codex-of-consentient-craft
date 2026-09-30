@@ -12,14 +12,9 @@
  * // Returns 'olderThan 7d' as ContentText
  */
 
-
 import type { PruneQuery } from '../../contracts/prune-query/prune-query-contract';
 
-export const pruneTombstoneRuleRenderTransformer = ({
-  query,
-}: {
-  query: PruneQuery;
-}): string => {
+export const pruneTombstoneRuleRenderTransformer = ({ query }: { query: PruneQuery }): string => {
   const parts = [
     query.instanceId === null ? null : `instance ${query.instanceId}`,
     query.kind === null ? null : `kind ${query.kind}`,

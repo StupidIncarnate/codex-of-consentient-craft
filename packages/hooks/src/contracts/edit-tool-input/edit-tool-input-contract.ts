@@ -7,11 +7,13 @@
  */
 import { z } from '#gateway/npm/zod';
 
-export const editToolInputContract = z.object({
-  file_path: z.string().min(1).brand<'EditToolInputFilePath'>(),
-  old_string: z.string().brand<'EditToolInputOldString'>(),
-  new_string: z.string().brand<'EditToolInputNewString'>(),
-  replace_all: z.boolean().optional(),
-}).brand<'EditToolInput'>();
+export const editToolInputContract = z
+  .object({
+    file_path: z.string().min(1).brand<'EditToolInputFilePath'>(),
+    old_string: z.string().brand<'EditToolInputOldString'>(),
+    new_string: z.string().brand<'EditToolInputNewString'>(),
+    replace_all: z.boolean().optional(),
+  })
+  .brand<'EditToolInput'>();
 
 export type EditToolInput = z.infer<typeof editToolInputContract>;

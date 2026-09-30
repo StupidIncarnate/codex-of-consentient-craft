@@ -19,11 +19,7 @@ export const runMissingCheckLayerBrokerProxy = (): {
       readFileProxy.returns({ path: storedReturnPath, contents: content });
     },
 
-    setupMissingStoredReturn: ({
-      storedReturnPath,
-    }: {
-      storedReturnPath: string;
-    }): void => {
+    setupMissingStoredReturn: ({ storedReturnPath }: { storedReturnPath: string }): void => {
       readFileProxy.missing({ path: storedReturnPath });
     },
 

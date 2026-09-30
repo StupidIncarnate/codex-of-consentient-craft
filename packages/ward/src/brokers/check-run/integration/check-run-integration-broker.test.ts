@@ -232,10 +232,7 @@ describe('checkRunIntegrationBroker', () => {
 
       await checkRunIntegrationBroker({
         projectFolder,
-        fileList: [
-          'src/flows/quest',
-          'src/flows/install',
-        ],
+        fileList: ['src/flows/quest', 'src/flows/install'],
       });
 
       const spawnedArgs: unknown = proxy.getSpawnedArgs();
@@ -258,9 +255,7 @@ describe('checkRunIntegrationBroker', () => {
 
       await checkRunIntegrationBroker({
         projectFolder,
-        fileList: [
-          'src/flows/chat-replay/chat-replay-flow.integration.test.ts',
-        ],
+        fileList: ['src/flows/chat-replay/chat-replay-flow.integration.test.ts'],
       });
 
       const spawnedArgs: unknown = proxy.getSpawnedArgs();
@@ -288,9 +283,7 @@ describe('checkRunIntegrationBroker', () => {
 
       const result = await checkRunIntegrationBroker({
         projectFolder,
-        fileList: [
-          'src/brokers/quest/orchestration-loop/spawn-ward-layer-broker.test.ts',
-        ],
+        fileList: ['src/brokers/quest/orchestration-loop/spawn-ward-layer-broker.test.ts'],
       });
 
       expect(result).toStrictEqual(
@@ -877,9 +870,7 @@ describe('checkRunIntegrationBroker', () => {
       fileScopeProxy.setupPass({ projectFolder });
       await checkRunIntegrationBroker({
         projectFolder,
-        fileList: [
-          'src/flows/chat-replay/chat-replay-flow.integration.test.ts',
-        ],
+        fileList: ['src/flows/chat-replay/chat-replay-flow.integration.test.ts'],
       });
       const fileScopeArgs = String(fileScopeProxy.getSpawnedArgs()).split(',');
 

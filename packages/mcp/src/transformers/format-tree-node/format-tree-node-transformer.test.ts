@@ -57,9 +57,7 @@ describe('formatTreeNodeTransformer', () => {
 
     const result = formatTreeNodeTransformer({ node, indent: 0, hitRenders: NO_HITS });
 
-    expect(result).toStrictEqual(
-      'has-permission-guard (guard) - Validates user permission',
-    );
+    expect(result).toStrictEqual('has-permission-guard (guard) - Validates user permission');
   });
 
   it('VALID: {node: node with multiple items, indent: 0} => returns alphabetically sorted items', () => {
@@ -81,9 +79,7 @@ describe('formatTreeNodeTransformer', () => {
 
     const result = formatTreeNodeTransformer({ node, indent: 0, hitRenders: NO_HITS });
 
-    expect(result).toStrictEqual(
-      'has-permission-guard (guard)\nis-admin-guard (guard)',
-    );
+    expect(result).toStrictEqual('has-permission-guard (guard)\nis-admin-guard (guard)');
   });
 
   it('VALID: {node: node with one item, indent: 1} => returns indented item', () => {
@@ -132,9 +128,7 @@ describe('formatTreeNodeTransformer', () => {
 
     const result = formatTreeNodeTransformer({ node, indent: 0, hitRenders: NO_HITS });
 
-    expect(result).toStrictEqual(
-      'auth/\n  is-admin-guard (guard)\nhas-permission-guard (guard)',
-    );
+    expect(result).toStrictEqual('auth/\n  is-admin-guard (guard)\nhas-permission-guard (guard)');
   });
 
   it('VALID: {node: node with multiple children, indent: 0} => returns alphabetically sorted children', () => {
@@ -235,9 +229,7 @@ describe('formatTreeNodeTransformer', () => {
 
     const result = formatTreeNodeTransformer({ node, indent: 0, hitRenders });
 
-    expect(result).toStrictEqual(
-      'chat-entry-list-widget.test (widget)  — 105 matching lines',
-    );
+    expect(result).toStrictEqual('chat-entry-list-widget.test (widget)  — 105 matching lines');
   });
 
   it('VALID: {item absent from hitRenders, indent: 0} => renders normally with no extra lines', () => {
@@ -255,9 +247,7 @@ describe('formatTreeNodeTransformer', () => {
 
     const result = formatTreeNodeTransformer({ node, indent: 0, hitRenders: NO_HITS });
 
-    expect(result).toStrictEqual(
-      'has-permission-guard (guard) - Validates user permission',
-    );
+    expect(result).toStrictEqual('has-permission-guard (guard) - Validates user permission');
   });
 
   it('VALID: {item carrying one rendered hit line, indent: 1} => renders hits with correct indentation', () => {

@@ -77,7 +77,7 @@ describe('questContractSourceCoverageViolationsTransformer', () => {
         quest: QuestStub({ contracts: [contract], packagesAffected: [SHARED_ENTRY, WEB_ENTRY] }),
       });
 
-      expect(offenders.map((offender) => String(offender))).toStrictEqual([
+      expect(offenders.map((offender) => offender)).toStrictEqual([
         "Contract 'SessionToken' declares source 'packages/cli/src/contracts/session-token/session-token-contract.ts', which sits under no package in quest.packagesAffected. The implementation ledger routes each contract into its package's item by these paths, so a contract resolving nowhere reaches no session at all. Point source at a declared package's location, add the entry { name, location, changeType: 'edit' | 'new', packageType } that owns it, or mark the contract status 'existing' if the quest only references it.",
       ]);
     });
@@ -94,7 +94,7 @@ describe('questContractSourceCoverageViolationsTransformer', () => {
         quest: QuestStub({ contracts: [contract], packagesAffected: [SHARED_ENTRY] }),
       });
 
-      expect(offenders.map((offender) => String(offender))).toStrictEqual([
+      expect(offenders.map((offender) => offender)).toStrictEqual([
         "Contract 'WardMode' declares source 'packages/ward/src/contracts/ward-mode/ward-mode-contract.ts', which sits under no package in quest.packagesAffected. The implementation ledger routes each contract into its package's item by these paths, so a contract resolving nowhere reaches no session at all. Point source at a declared package's location, add the entry { name, location, changeType: 'edit' | 'new', packageType } that owns it, or mark the contract status 'existing' if the quest only references it.",
       ]);
     });
@@ -111,7 +111,7 @@ describe('questContractSourceCoverageViolationsTransformer', () => {
         quest: QuestStub({ contracts: [contract], packagesAffected: [] }),
       });
 
-      expect(offenders.map((offender) => String(offender))).toStrictEqual([
+      expect(offenders.map((offender) => offender)).toStrictEqual([
         "Contract 'SessionToken' declares source 'packages/shared/src/contracts/session-token/session-token-contract.ts', which sits under no package in quest.packagesAffected. The implementation ledger routes each contract into its package's item by these paths, so a contract resolving nowhere reaches no session at all. Point source at a declared package's location, add the entry { name, location, changeType: 'edit' | 'new', packageType } that owns it, or mark the contract status 'existing' if the quest only references it.",
       ]);
     });
@@ -143,7 +143,7 @@ describe('questContractSourceCoverageViolationsTransformer', () => {
         }),
       });
 
-      expect(offenders.map((offender) => String(offender))).toStrictEqual([
+      expect(offenders.map((offender) => offender)).toStrictEqual([
         "Contract 'WardMode' declares source 'packages/ward/src/contracts/ward-mode/ward-mode-contract.ts', which sits under no package in quest.packagesAffected. The implementation ledger routes each contract into its package's item by these paths, so a contract resolving nowhere reaches no session at all. Point source at a declared package's location, add the entry { name, location, changeType: 'edit' | 'new', packageType } that owns it, or mark the contract status 'existing' if the quest only references it.",
         "Contract 'HookEvent' declares source 'packages/hooks/src/contracts/hook-event/hook-event-contract.ts', which sits under no package in quest.packagesAffected. The implementation ledger routes each contract into its package's item by these paths, so a contract resolving nowhere reaches no session at all. Point source at a declared package's location, add the entry { name, location, changeType: 'edit' | 'new', packageType } that owns it, or mark the contract status 'existing' if the quest only references it.",
       ]);
@@ -198,7 +198,7 @@ describe('questContractSourceCoverageViolationsTransformer', () => {
         quest: QuestStub({ contracts: [contract], packagesAffected: [SHARED_ENTRY, WEB_ENTRY] }),
       });
 
-      expect(offenders.map((offender) => String(offender))).toStrictEqual([
+      expect(offenders.map((offender) => offender)).toStrictEqual([
         "Contract 'StatusKeyedStaticsFanout' property 'questGateSectionsStatics.sections' declares source 'packages/cli/src/statics/quest-gate-sections/quest-gate-sections-statics.ts', which sits under no package in quest.packagesAffected. A property carrying its own source is how one contract delivers into several packages, so a property resolving nowhere reaches no session at all. Point it at a declared package's location, add the entry { name, location, changeType: 'edit' | 'new', packageType } that owns it, or drop the property source so it falls back to the contract's.",
       ]);
     });
@@ -285,7 +285,7 @@ describe('questContractSourceCoverageViolationsTransformer', () => {
         quest: QuestStub({ contracts: [reference, work], packagesAffected: [SHARED_ENTRY] }),
       });
 
-      expect(offenders.map((offender) => String(offender))).toStrictEqual([
+      expect(offenders.map((offender) => offender)).toStrictEqual([
         "Contract 'WardMode' declares source 'packages/ward/src/contracts/ward-mode/ward-mode-contract.ts', which sits under no package in quest.packagesAffected. The implementation ledger routes each contract into its package's item by these paths, so a contract resolving nowhere reaches no session at all. Point source at a declared package's location, add the entry { name, location, changeType: 'edit' | 'new', packageType } that owns it, or mark the contract status 'existing' if the quest only references it.",
       ]);
     });
@@ -308,7 +308,7 @@ describe('questContractSourceCoverageViolationsTransformer', () => {
         routesTo: String(packageForPathTransformer({ path: source, packagesAffected })),
         violations: questContractSourceCoverageViolationsTransformer({
           quest: QuestStub({ contracts: [contract], packagesAffected }),
-        }).map((offender) => String(offender)),
+        }).map((offender) => offender),
       }).toStrictEqual({ routesTo: 'chart', violations: [] });
     });
 
@@ -326,7 +326,7 @@ describe('questContractSourceCoverageViolationsTransformer', () => {
         routesTo: String(packageForPathTransformer({ path: source, packagesAffected })),
         violations: questContractSourceCoverageViolationsTransformer({
           quest: QuestStub({ contracts: [contract], packagesAffected }),
-        }).map((offender) => String(offender)),
+        }).map((offender) => offender),
       }).toStrictEqual({
         routesTo: 'undefined',
         violations: [

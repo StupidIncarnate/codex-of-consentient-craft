@@ -15,15 +15,10 @@ import { ensureDir, writeFile } from '#gateway/node/fs__promises';
 import { dirname, join } from '#gateway/node/path';
 import { deleteEnv, getEnv, setEnv } from '#gateway/node/process';
 
-
 export const binResolveHarness = (): {
   beforeEach: () => void;
   afterEach: () => void;
-  seedFile: (params: {
-    root: string;
-    relativePath: string;
-    contents: string;
-  }) => Promise<void>;
+  seedFile: (params: { root: string; relativePath: string; contents: string }) => Promise<void>;
   prependPathDecoy: (params: { root: string; binName: string }) => void;
   firstPathDir: () => string;
 } => {
@@ -41,18 +36,17 @@ export const binResolveHarness = (): {
       setEnv('PATH', originalPath.value);
     },
     seedFile: async ({ root, relativePath, contents }): Promise<void> => {
-      const path = join(String(root), relativePath);
+      const path = join(root, relativePath);
       await ensureDir(dirname(path));
       await writeFile(path, contents);
     },
     prependPathDecoy: ({ root, binName }): void => {
-      const decoyDir = join(String(root), 'decoy-path');
+      const decoyDir = join(root, 'decoy-path');
       ensureDirSync(decoyDir);
       writeFileSync(join(decoyDir, binName), '#!/bin/sh\n');
       chmodSync(join(decoyDir, binName), 0o755);
       setEnv('PATH', `${decoyDir}:${originalPath.value ?? ''}`);
     },
-    firstPathDir: (): string =>
-      ((getEnv('PATH') ?? '').split(':')[0] ?? ''),
+    firstPathDir: (): string => (getEnv('PATH') ?? '').split(':')[0] ?? '',
   };
 };

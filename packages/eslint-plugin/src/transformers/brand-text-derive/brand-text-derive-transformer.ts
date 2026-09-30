@@ -13,11 +13,11 @@ const CONTRACT_SUFFIX = 'Contract';
 
 export const brandTextDeriveTransformer = ({ path }: { path: readonly string[] }): string =>
   path
-      .map((segment, index) =>
-        index === 0 && segment.endsWith(CONTRACT_SUFFIX) && segment !== CONTRACT_SUFFIX
-          ? segment.slice(0, -CONTRACT_SUFFIX.length)
-          : segment,
-      )
-      .flatMap((segment) => segment.split(/[_\-\s]+/u))
-      .map((part) => part.charAt(0).toUpperCase() + part.slice(1))
-      .join('');
+    .map((segment, index) =>
+      index === 0 && segment.endsWith(CONTRACT_SUFFIX) && segment !== CONTRACT_SUFFIX
+        ? segment.slice(0, -CONTRACT_SUFFIX.length)
+        : segment,
+    )
+    .flatMap((segment) => segment.split(/[_\-\s]+/u))
+    .map((part) => part.charAt(0).toUpperCase() + part.slice(1))
+    .join('');

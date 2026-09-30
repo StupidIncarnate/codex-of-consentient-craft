@@ -15,15 +15,17 @@ import { fieldValuesContract } from '../field-values/field-values-contract';
 
 const reservedVerbs: readonly string[] = reservedVerbStatics.verbs;
 
-export const opExtraContract = z.object({
-  op: z.literal('extra'),
-  ref: z.string().min(1).brand<'OpExtraRef'>(),
-  verb: z
-    .string()
-    .min(1)
-    .refine((verb) => !reservedVerbs.includes(verb), { message: 'must not be a reserved verb' })
-    .brand<'OpExtraVerb'>(),
-  args: fieldValuesContract,
-}).brand<'OpExtra'>();
+export const opExtraContract = z
+  .object({
+    op: z.literal('extra'),
+    ref: z.string().min(1).brand<'OpExtraRef'>(),
+    verb: z
+      .string()
+      .min(1)
+      .refine((verb) => !reservedVerbs.includes(verb), { message: 'must not be a reserved verb' })
+      .brand<'OpExtraVerb'>(),
+    args: fieldValuesContract,
+  })
+  .brand<'OpExtra'>();
 
 export type OpExtra = z.infer<typeof opExtraContract>;

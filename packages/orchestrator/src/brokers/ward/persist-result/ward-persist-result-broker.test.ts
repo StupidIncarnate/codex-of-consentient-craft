@@ -1,4 +1,3 @@
-
 import { wardPersistResultBroker } from './ward-persist-result-broker';
 import { wardPersistResultBrokerProxy } from './ward-persist-result-broker.proxy';
 

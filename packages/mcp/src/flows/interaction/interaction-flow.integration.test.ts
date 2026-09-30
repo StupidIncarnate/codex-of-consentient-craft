@@ -58,7 +58,7 @@ describe('InteractionFlow', () => {
       // `get-agent-prompt` each identify their calling sub-agent from
       // `_meta.claudecode/toolUseId`. `argsOnly` is counted so a handler that quietly drops the
       // parameter shows up as the number it changed rather than hiding inside one total.
-      const source = String(readInteractionFlowSource());
+      const source = readInteractionFlowSource();
 
       const destructurePattern = /handler: async \(\{ args, meta \}\)/gu;
       const spreadPattern = /\.\.\.\(meta !== undefined && \{ meta \}\)/gu;

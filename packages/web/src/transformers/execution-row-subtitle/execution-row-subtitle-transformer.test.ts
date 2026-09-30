@@ -15,10 +15,7 @@ describe('executionRowSubtitleTransformer', () => {
     it('VALID: {status: "queued", dependsOn: ["step-1", "step-2"]} => joins multiple deps', () => {
       const result = executionRowSubtitleTransformer({
         status: 'queued',
-        dependsOn: [
-          'step-1',
-          'step-2',
-        ],
+        dependsOn: ['step-1', 'step-2'],
         files: [],
       });
 

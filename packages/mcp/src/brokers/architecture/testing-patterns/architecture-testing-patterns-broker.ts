@@ -8,7 +8,6 @@
  * WHEN-TO-USE: When LLMs need to understand how to write tests and create proxy files
  */
 
-
 export const architectureTestingPatternsBroker = (): string => {
   // Purpose
   const purpose = `**Why so strict?** Loose tests pass when code is broken. Exact tests catch real bugs.`;

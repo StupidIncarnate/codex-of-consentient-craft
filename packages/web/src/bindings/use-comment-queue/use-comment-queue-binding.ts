@@ -49,7 +49,9 @@ export const useCommentQueueBinding = ({
 
   const entryFor = useCallback(
     ({ anchor }: { anchor: CommentAnchor }): CommentQueueEntry | undefined =>
-      entries.find((entry) => isSameCommentAnchorGuard({ left: commentAnchorContract.parse(entry), right: anchor })),
+      entries.find((entry) =>
+        isSameCommentAnchorGuard({ left: commentAnchorContract.parse(entry), right: anchor }),
+      ),
     [entries],
   );
 

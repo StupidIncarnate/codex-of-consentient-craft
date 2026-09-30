@@ -11,10 +11,12 @@ describe('StartInstallFinalize', () => {
       });
 
       const result = await StartInstallFinalize({
-        context: InstallContextStub({ value: {
-          targetProjectRoot: testbed.guildPath,
-          dungeonmasterRoot: `${testbed.guildPath}/.wrong-cli-root`,
-        } }),
+        context: InstallContextStub({
+          value: {
+            targetProjectRoot: testbed.guildPath,
+            dungeonmasterRoot: `${testbed.guildPath}/.wrong-cli-root`,
+          },
+        }),
       });
 
       testbed.cleanup();

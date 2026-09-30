@@ -56,27 +56,37 @@ import { z } from '#gateway/npm/zod';
 import { observableOriginContract } from '../observable-origin/observable-origin-contract';
 import { outcomeTypeContract } from '../outcome-type/outcome-type-contract';
 
-export const flowObservableContract = z.object({
-  id: z.string().min(1).regex(/^[a-z][a-z0-9]*(-[a-z0-9]+)*$/u).brand<'FlowObservableId'>(),
-  type: outcomeTypeContract,
-  description: z.string().brand<'FlowObservableDescription'>(),
-  package: z.string().min(1).brand<'FlowObservablePackage'>().describe(
-    "The one package this observable is read in, drawn from the owning node's tags. Singular where the node's is plural: a node spans a seam, an individual observable sits on one side of it, and the union of a node's observables' packages is what proves both sides were asserted.",
-  ),
-  designRef: z.string().brand<'FlowObservableDesignRef'>().optional(),
-  verifyByReading: z
-    .boolean()
-    .optional()
-    .describe(
-      'Set true when the criterion is about the shape of a source file — an import that must exist, a literal that must not be inlined, a name that must be absent, a style value that must be the one declared — so it is settled by reading the code rather than by running a test. Absent means a test settles it, which is the right answer for every outcome a user perceives, painted geometry included.',
-    ),
-  verifyByHuman: z
-    .boolean()
-    .optional()
-    .describe(
-      'Set true when no automated check — no test, no reading — can settle the criterion at all: only a person can judge it, and only after the quest is done. Setting it drops the criterion from the observable list every other role works from, so from that point on nothing else in the quest is asked to satisfy it. Any role may set this, including one with no way to verify the criterion itself. Absent means an automated check settles it.',
-    ),
-  addedBy: observableOriginContract.default('spec'),
-}).brand<'FlowObservable'>();
+export const flowObservableContract = z
+  .object({
+    id: z
+      .string()
+      .min(1)
+      .regex(/^[a-z][a-z0-9]*(-[a-z0-9]+)*$/u)
+      .brand<'FlowObservableId'>(),
+    type: outcomeTypeContract,
+    description: z.string().brand<'FlowObservableDescription'>(),
+    package: z
+      .string()
+      .min(1)
+      .brand<'FlowObservablePackage'>()
+      .describe(
+        "The one package this observable is read in, drawn from the owning node's tags. Singular where the node's is plural: a node spans a seam, an individual observable sits on one side of it, and the union of a node's observables' packages is what proves both sides were asserted.",
+      ),
+    designRef: z.string().brand<'FlowObservableDesignRef'>().optional(),
+    verifyByReading: z
+      .boolean()
+      .optional()
+      .describe(
+        'Set true when the criterion is about the shape of a source file — an import that must exist, a literal that must not be inlined, a name that must be absent, a style value that must be the one declared — so it is settled by reading the code rather than by running a test. Absent means a test settles it, which is the right answer for every outcome a user perceives, painted geometry included.',
+      ),
+    verifyByHuman: z
+      .boolean()
+      .optional()
+      .describe(
+        'Set true when no automated check — no test, no reading — can settle the criterion at all: only a person can judge it, and only after the quest is done. Setting it drops the criterion from the observable list every other role works from, so from that point on nothing else in the quest is asked to satisfy it. Any role may set this, including one with no way to verify the criterion itself. Absent means an automated check settles it.',
+      ),
+    addedBy: observableOriginContract.default('spec'),
+  })
+  .brand<'FlowObservable'>();
 
 export type FlowObservable = z.infer<typeof flowObservableContract>;

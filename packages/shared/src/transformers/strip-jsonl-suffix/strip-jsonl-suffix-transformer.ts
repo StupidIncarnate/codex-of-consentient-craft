@@ -8,9 +8,5 @@
  * // Returns AbsoluteFilePath '/home/user/.claude/projects/abc-123'
  */
 
-
-export const stripJsonlSuffixTransformer = ({
-  filePath,
-}: {
-  filePath: string;
-}): string => filePath.replace(/\.jsonl$/u, '');
+export const stripJsonlSuffixTransformer = ({ filePath }: { filePath: string }): string =>
+  filePath.replace(/\.jsonl$/u, '');

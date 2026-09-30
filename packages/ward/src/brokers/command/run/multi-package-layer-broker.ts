@@ -49,12 +49,10 @@ export const multiPackageLayerBroker = async ({
 }): Promise<WardRunResult> => {
   const runId = runIdGenerateTransformer();
   const timestamp = Date.now();
-  const wardBin = String(
-    binResolveBroker({
+  const wardBin = binResolveBroker({
       binName: wardSpawnCommandStatics.bin,
       cwd: rootPath,
-    }),
-  );
+    });
 
   const checkTypes = config.only ?? [...allCheckTypesStatics];
   const hasPassthrough = Array.isArray(config.passthrough) && config.passthrough.length > 0;
@@ -79,7 +77,7 @@ export const multiPackageLayerBroker = async ({
   // for fields inside one that's present), so the fallback to configDefaultsStatics is load-bearing,
   // not decorative.
   const dungeonmasterConfig = await configResolveBroker({
-    filePath: `${String(rootPath)}/package.json`,
+    filePath: `${rootPath}/package.json`,
   });
   const CONCURRENCY_LIMIT = Number(
     dungeonmasterConfig.ward?.concurrency ?? configDefaultsStatics.ward.concurrency.default,
@@ -120,7 +118,7 @@ export const multiPackageLayerBroker = async ({
             }),
           )
           .map((arg) => arg.slice(prefix.length))
-          .filter((arg) => String(arg).length > 0);
+          .filter((arg) => arg.length > 0);
 
         if (matchingArgs.length > 0) {
           spawnArgs.push('--', ...matchingArgs.map(String));
@@ -177,8 +175,7 @@ export const multiPackageLayerBroker = async ({
         checks: childCrashLayerBroker({
           projectFolder: folder,
           checkTypes,
-          exitCode:
-            spawnResult.exitCode === null ? null : spawnResult.exitCode,
+          exitCode: spawnResult.exitCode === null ? null : spawnResult.exitCode,
           output: spawnResult.output,
         }),
       };
@@ -217,7 +214,7 @@ export const multiPackageLayerBroker = async ({
     const aggregatedDurationMs = Math.max(0, ...bucket.map((c) => Number(c.durationMs)));
     return checkResultBuildTransformer({
       checkType,
-      projectResults: projectResults,
+      projectResults,
       durationMs: aggregatedDurationMs,
     });
   });

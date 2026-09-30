@@ -6,8 +6,6 @@
  * // Returns: GitRelativePath 'src/a.ts'
  */
 
-
-
 export const normalizeToRelativeTransformer = ({
   filePath,
   cwd,
@@ -15,8 +13,8 @@ export const normalizeToRelativeTransformer = ({
   filePath: string;
   cwd: string;
 }): string => {
-  const fileString = String(filePath);
-  const cwdString = String(cwd);
+  const fileString = filePath;
+  const cwdString = cwd;
   const cwdPrefix = cwdString.endsWith('/') ? cwdString : `${cwdString}/`;
 
   if (fileString.startsWith(cwdPrefix)) {

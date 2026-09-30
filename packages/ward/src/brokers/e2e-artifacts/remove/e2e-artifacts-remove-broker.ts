@@ -27,12 +27,12 @@ export const e2eArtifactsRemoveBroker = async ({
 }): Promise<void> => {
   const [cache] = e2eArtifactsStatics.artifacts;
 
-  const cachePath = `${String(packageRoot)}/${cache.parentDir}/${cache.prefix}${String(port)}${cache.suffix}`;
+  const cachePath = `${packageRoot}/${cache.parentDir}/${cache.prefix}${String(port)}${cache.suffix}`;
 
   try {
     // `force` turns "already gone" into a no-op, which is the ordinary outcome whenever a
     // concurrent sweep reached the same path first.
-    await rm(String(cachePath), { recursive: true, force: true });
+    await rm(cachePath, { recursive: true, force: true });
   } catch {
     // A cleanup must never change a check's verdict. Reclaiming disk is worth nothing next to
     // reporting an e2e run that really passed as a crash.

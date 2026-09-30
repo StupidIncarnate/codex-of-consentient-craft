@@ -27,33 +27,42 @@
  * than to this shape.
  */
 
-import { qaChecklistItemContract, qaChecklistKindContract, flowNodeContract, flowEdgeContract } from '@dungeonmaster/shared/contracts';
+import {
+  qaChecklistItemContract,
+  qaChecklistKindContract,
+  flowNodeContract,
+  flowEdgeContract,
+} from '@dungeonmaster/shared/contracts';
 import { z } from '#gateway/npm/zod';
 
-export const workPlanFlowriderUnitContract = z.object({
-  unitId: qaChecklistItemContract.shape.id,
-  kind: qaChecklistKindContract,
-  layer: z
-    .enum(['browser', 'below-browser'])
-    .describe('Where this unit is driven from — a real browser, or the layer under it.'),
-  surface: qaChecklistItemContract.shape.checkSurface
-    .optional()
-    .describe('Filled by the orchestrator on read; a planner leaves it absent.'),
-  observableTarget: z.object({
-    target: z.enum(['observable', 'node', 'edge']),
-    nodeId: flowNodeContract.shape.id.optional(),
-    edgeId: flowEdgeContract.shape.id.optional(),
-  }).brand<'WorkPlanFlowriderUnitObservableTarget'>(),
-  assert: z
-    .string()
-    .min(1)
-    .brand<'WorkPlanFlowriderUnitAssert'>()
-    .describe('What the spec reads, and off which surface.'),
-  failsIf: z
-    .string()
-    .min(1)
-    .brand<'WorkPlanFlowriderUnitFailsIf'>()
-    .describe('The wrong value that turns that assertion red.'),
-}).brand<'WorkPlanFlowriderUnit'>();
+export const workPlanFlowriderUnitContract = z
+  .object({
+    unitId: qaChecklistItemContract.shape.id,
+    kind: qaChecklistKindContract,
+    layer: z
+      .enum(['browser', 'below-browser'])
+      .describe('Where this unit is driven from — a real browser, or the layer under it.'),
+    surface: qaChecklistItemContract.shape.checkSurface
+      .optional()
+      .describe('Filled by the orchestrator on read; a planner leaves it absent.'),
+    observableTarget: z
+      .object({
+        target: z.enum(['observable', 'node', 'edge']),
+        nodeId: flowNodeContract.shape.id.optional(),
+        edgeId: flowEdgeContract.shape.id.optional(),
+      })
+      .brand<'WorkPlanFlowriderUnitObservableTarget'>(),
+    assert: z
+      .string()
+      .min(1)
+      .brand<'WorkPlanFlowriderUnitAssert'>()
+      .describe('What the spec reads, and off which surface.'),
+    failsIf: z
+      .string()
+      .min(1)
+      .brand<'WorkPlanFlowriderUnitFailsIf'>()
+      .describe('The wrong value that turns that assertion red.'),
+  })
+  .brand<'WorkPlanFlowriderUnit'>();
 
 export type WorkPlanFlowriderUnit = z.infer<typeof workPlanFlowriderUnitContract>;

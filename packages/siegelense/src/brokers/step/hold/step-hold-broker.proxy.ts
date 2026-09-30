@@ -38,10 +38,7 @@ const DEFAULT_FRAME_PNG = new Uint8Array(PNG.sync.write(defaultPng));
 export const stepHoldBrokerProxy = (): {
   stagesShot: ReturnType<typeof shotChangeReadBrokerProxy>['stagesShot'];
   stagesDefaultShot: ReturnType<typeof shotChangeReadBrokerProxy>['stagesDefaultShot'];
-  succeedsCopy: (params: {
-    sourcePath: string;
-    destinationPath: string;
-  }) => void;
+  succeedsCopy: (params: { sourcePath: string; destinationPath: string }) => void;
   getCopiesFrom: (params: { sourcePath: string }) => readonly unknown[][];
 } => {
   // #gateway/node/path is a raw passthrough of the Node 'path' module (no per-function wrapper, so

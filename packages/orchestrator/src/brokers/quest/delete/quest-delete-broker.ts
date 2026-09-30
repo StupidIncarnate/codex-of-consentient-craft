@@ -24,12 +24,12 @@ export const questDeleteBroker = async ({
   const { homePath } = dungeonmasterHomeFindBroker();
 
   const questFolderPath = join(
-      homePath,
-      dungeonmasterHomeStatics.paths.guildsDir,
-      guildId,
-      dungeonmasterHomeStatics.paths.questsDir,
-      questId,
-    );
+    homePath,
+    dungeonmasterHomeStatics.paths.guildsDir,
+    guildId,
+    dungeonmasterHomeStatics.paths.questsDir,
+    questId,
+  );
 
   await rm(questFolderPath, { recursive: true, force: true });
 

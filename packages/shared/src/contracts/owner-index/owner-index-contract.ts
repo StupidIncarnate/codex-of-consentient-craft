@@ -15,11 +15,13 @@ import { ownerIndexOwnerContract } from '../owner-index-owner/owner-index-owner-
 import { ownerIndexPackageContract } from '../owner-index-package/owner-index-package-contract';
 import { ownerIndexStandaloneBrandContract } from '../owner-index-standalone-brand/owner-index-standalone-brand-contract';
 
-export const ownerIndexContract = z.object({
-  owners: z.array(ownerIndexOwnerContract),
-  standaloneBrands: z.array(ownerIndexStandaloneBrandContract),
-  enums: z.array(ownerIndexEnumContract),
-  packages: z.array(ownerIndexPackageContract),
-}).brand<'OwnerIndex'>();
+export const ownerIndexContract = z
+  .object({
+    owners: z.array(ownerIndexOwnerContract),
+    standaloneBrands: z.array(ownerIndexStandaloneBrandContract),
+    enums: z.array(ownerIndexEnumContract),
+    packages: z.array(ownerIndexPackageContract),
+  })
+  .brand<'OwnerIndex'>();
 
 export type OwnerIndex = z.infer<typeof ownerIndexContract>;

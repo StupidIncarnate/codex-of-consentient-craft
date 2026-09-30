@@ -14,10 +14,12 @@ import { z } from '#gateway/npm/zod';
 
 import { sessionContract } from '@dungeonmaster/shared/contracts';
 
-export const chatCompletePayloadContract = z.object({
-  chatProcessId: z.string().min(1).brand<'ChatCompletePayloadChatProcessId'>(),
-  sessionId: sessionContract.shape.id.optional().catch(undefined),
-  retained: z.boolean().optional(),
-}).brand<'ChatCompletePayload'>();
+export const chatCompletePayloadContract = z
+  .object({
+    chatProcessId: z.string().min(1).brand<'ChatCompletePayloadChatProcessId'>(),
+    sessionId: sessionContract.shape.id.optional().catch(undefined),
+    retained: z.boolean().optional(),
+  })
+  .brand<'ChatCompletePayload'>();
 
 export type ChatCompletePayload = z.infer<typeof chatCompletePayloadContract>;

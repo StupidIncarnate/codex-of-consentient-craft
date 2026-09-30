@@ -10,8 +10,10 @@ import { z } from '#gateway/npm/zod';
 
 import { clarificationQuestionContract } from '../clarification-question/clarification-question-contract';
 
-export const askUserQuestionInputContract = z.object({
-  questions: z.array(clarificationQuestionContract),
-}).brand<'AskUserQuestionInput'>();
+export const askUserQuestionInputContract = z
+  .object({
+    questions: z.array(clarificationQuestionContract),
+  })
+  .brand<'AskUserQuestionInput'>();
 
 export type AskUserQuestionInput = z.infer<typeof askUserQuestionInputContract>;

@@ -22,24 +22,26 @@ import { z } from '#gateway/npm/zod';
 
 import { blightChecklistItemContract } from '../blight-checklist-item/blight-checklist-item-contract';
 
-export const blightChecklistContract = z.object({
-  baseRef: z
-    .string()
-    .min(1)
-    .brand<'BlightChecklistBaseRef'>()
-    .describe('The commit this checklist enumerates the diff from — quest.baseRef.'),
-  items: z
-    .array(blightChecklistItemContract)
-    .default([])
-    .describe(
-      'Every changed-file/concern unit on this quest diff. THIS is the definition of done, not the changed-file list alone.',
-    ),
-  remainingItemIds: z
-    .array(blightChecklistItemContract.shape.id)
-    .default([])
-    .describe(
-      'The units carrying no entry in quest.planningNotes.blightLedger — what a reviewer still has to disposition on this pass.',
-    ),
-}).brand<'BlightChecklist'>();
+export const blightChecklistContract = z
+  .object({
+    baseRef: z
+      .string()
+      .min(1)
+      .brand<'BlightChecklistBaseRef'>()
+      .describe('The commit this checklist enumerates the diff from — quest.baseRef.'),
+    items: z
+      .array(blightChecklistItemContract)
+      .default([])
+      .describe(
+        'Every changed-file/concern unit on this quest diff. THIS is the definition of done, not the changed-file list alone.',
+      ),
+    remainingItemIds: z
+      .array(blightChecklistItemContract.shape.id)
+      .default([])
+      .describe(
+        'The units carrying no entry in quest.planningNotes.blightLedger — what a reviewer still has to disposition on this pass.',
+      ),
+  })
+  .brand<'BlightChecklist'>();
 
 export type BlightChecklist = z.infer<typeof blightChecklistContract>;

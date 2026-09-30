@@ -19,12 +19,14 @@ import { z } from '#gateway/npm/zod';
 
 import { dispatchHoldContract } from '../dispatch-hold/dispatch-hold-contract';
 
-export const dispatchStateContract = z.object({
-  mode: z.enum(['node-playing', 'paused']),
-  // `.nullish()`, not `.optional()` — clearing an expired hold writes an explicit null through the
-  // same persist path that wrote it, and `.optional()` alone rejects that.
-  hold: dispatchHoldContract.nullish(),
-  updatedAt: z.iso.datetime().brand<'DispatchStateUpdatedAt'>(),
-}).brand<'DispatchState'>();
+export const dispatchStateContract = z
+  .object({
+    mode: z.enum(['node-playing', 'paused']),
+    // `.nullish()`, not `.optional()` — clearing an expired hold writes an explicit null through the
+    // same persist path that wrote it, and `.optional()` alone rejects that.
+    hold: dispatchHoldContract.nullish(),
+    updatedAt: z.iso.datetime().brand<'DispatchStateUpdatedAt'>(),
+  })
+  .brand<'DispatchState'>();
 
 export type DispatchState = z.infer<typeof dispatchStateContract>;

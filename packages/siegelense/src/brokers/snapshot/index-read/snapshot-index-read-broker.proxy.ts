@@ -1,4 +1,3 @@
-
 import { readFileProxy } from '#gateway/node/fs__promises/read-file/read-file.proxy';
 import { statIfExistsProxy } from '#gateway/node/fs__promises/stat-if-exists/stat-if-exists.proxy';
 import { locationsSnapshotPathsFindBrokerProxy } from '../../locations/snapshot-paths-find/locations-snapshot-paths-find-broker.proxy';
@@ -31,10 +30,10 @@ export const snapshotIndexReadBrokerProxy = (): {
 
   return {
     indexPathFor: ({ homePath }: { homePath: string }): string =>
-      `${String(homePath)}/${INDEX_SUFFIX}`,
+      `${homePath}/${INDEX_SUFFIX}`,
 
     setupNoIndex: ({ homePath }: { homePath: string }): void => {
-      statProxy.missing({ path: `${String(homePath)}/${INDEX_SUFFIX}` });
+      statProxy.missing({ path: `${homePath}/${INDEX_SUFFIX}` });
     },
 
     setupIndex: ({
@@ -44,7 +43,7 @@ export const snapshotIndexReadBrokerProxy = (): {
       homePath: string;
       records: readonly SnapshotRecord[];
     }): void => {
-      const index = `${String(homePath)}/${INDEX_SUFFIX}`;
+      const index = `${homePath}/${INDEX_SUFFIX}`;
       statProxy.returnsFile({
         path: index,
         sizeBytes: INDEX_SIZE_BYTES,
@@ -58,14 +57,8 @@ export const snapshotIndexReadBrokerProxy = (): {
 
     // The same staging as setupIndex, but with the file body written by hand — for the malformed-line
     // case, which no array of valid records can express.
-    setupRawIndex: ({
-      homePath,
-      contents,
-    }: {
-      homePath: string;
-      contents: string;
-    }): void => {
-      const index = `${String(homePath)}/${INDEX_SUFFIX}`;
+    setupRawIndex: ({ homePath, contents }: { homePath: string; contents: string }): void => {
+      const index = `${homePath}/${INDEX_SUFFIX}`;
       statProxy.returnsFile({
         path: index,
         sizeBytes: INDEX_SIZE_BYTES,

@@ -38,7 +38,7 @@ describe('listWalkedFolderFilesLayerBroker', () => {
     const result = listWalkedFolderFilesLayerBroker({ packageSrcPath });
 
     const sortedDisplay = [...result]
-      .map((p) => String(p).slice(`${String(packageSrcPath)}/`.length))
+      .map((p) => p.slice(`${packageSrcPath}/`.length))
       .sort((a, b) => a.localeCompare(b));
 
     expect(sortedDisplay).toStrictEqual([
@@ -71,7 +71,7 @@ describe('listWalkedFolderFilesLayerBroker', () => {
     const result = listWalkedFolderFilesLayerBroker({ packageSrcPath });
 
     const sortedDisplay = [...result]
-      .map((p) => String(p).slice(`${String(packageSrcPath)}/`.length))
+      .map((p) => p.slice(`${packageSrcPath}/`.length))
       .sort((a, b) => a.localeCompare(b));
 
     expect(sortedDisplay).toStrictEqual(['brokers/foo/foo-broker.ts']);
@@ -95,7 +95,7 @@ describe('listWalkedFolderFilesLayerBroker', () => {
     const result = listWalkedFolderFilesLayerBroker({ packageSrcPath });
 
     const sortedDisplay = [...result]
-      .map((p) => String(p).slice(`${String(packageSrcPath)}/`.length))
+      .map((p) => p.slice(`${packageSrcPath}/`.length))
       .sort((a, b) => a.localeCompare(b));
 
     expect(sortedDisplay).toStrictEqual(['brokers/foo/foo-broker.ts']);

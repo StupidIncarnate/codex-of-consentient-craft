@@ -128,7 +128,7 @@ test.describe('The session transcript route never grows its own elapsed-tick clo
     const RUNNING_TEXT = 'codeweaver: subagent duration session same test id row';
 
     const created = await quests.createQuest({
-      guildId: guildId,
+      guildId,
       title: 'Subagent Duration Session Same Test Id Quest',
       userRequest: 'Build the feature',
     });

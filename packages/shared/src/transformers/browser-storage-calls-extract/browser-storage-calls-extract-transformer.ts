@@ -19,34 +19,30 @@ const LOCAL_SESSION_PATTERN = /\b(localStorage|sessionStorage)\.setItem\s*\(\s*[
 // Matches: indexedDB.open('name', ...)
 const INDEXED_DB_PATTERN = /\bindexedDB\.open\s*\(\s*['"]([^'"]+)['"]/gu;
 
-export const browserStorageCallsExtractTransformer = ({
-  source,
-}: {
-  source: string;
-}): string[] => {
+export const browserStorageCallsExtractTransformer = ({ source }: { source: string }): string[] => {
   const results: string[] = [];
   const { localStoragePrefix, sessionStoragePrefix, indexedDbPrefix } =
     projectMapStatics.browserStoragePatterns;
 
   LOCAL_SESSION_PATTERN.lastIndex = 0;
-  let match = LOCAL_SESSION_PATTERN.exec(String(source));
+  let match = LOCAL_SESSION_PATTERN.exec(source);
   while (match !== null) {
     const [, storageType, key] = match;
     if (storageType !== undefined && key !== undefined) {
       const prefix = storageType === 'localStorage' ? localStoragePrefix : sessionStoragePrefix;
       results.push(`${prefix}${key}`);
     }
-    match = LOCAL_SESSION_PATTERN.exec(String(source));
+    match = LOCAL_SESSION_PATTERN.exec(source);
   }
 
   INDEXED_DB_PATTERN.lastIndex = 0;
-  let dbMatch = INDEXED_DB_PATTERN.exec(String(source));
+  let dbMatch = INDEXED_DB_PATTERN.exec(source);
   while (dbMatch !== null) {
     const [, dbName] = dbMatch;
     if (dbName !== undefined) {
       results.push(`${indexedDbPrefix}${dbName}`);
     }
-    dbMatch = INDEXED_DB_PATTERN.exec(String(source));
+    dbMatch = INDEXED_DB_PATTERN.exec(source);
   }
 
   return results;

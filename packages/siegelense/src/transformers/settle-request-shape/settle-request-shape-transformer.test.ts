@@ -21,7 +21,7 @@ describe('settleRequestShapeTransformer', () => {
         url: 'http://localhost:3737/api/quests?since=1750',
       });
 
-      expect(second).toBe(String(first));
+      expect(second).toBe(first);
     });
 
     it('VALID: {url with a fragment after the query} => drops both', () => {
@@ -54,7 +54,7 @@ describe('settleRequestShapeTransformer', () => {
         url: 'http://localhost:3737/api/quests/b',
       });
 
-      expect(`${String(first)} | ${String(second)}`).toBe(
+      expect(`${first} | ${second}`).toBe(
         'GET http://localhost:3737/api/quests/a | GET http://localhost:3737/api/quests/b',
       );
     });
@@ -69,7 +69,7 @@ describe('settleRequestShapeTransformer', () => {
         url: 'http://localhost:3737/api/quests',
       });
 
-      expect(`${String(get)} | ${String(post)}`).toBe(
+      expect(`${get} | ${post}`).toBe(
         'GET http://localhost:3737/api/quests | POST http://localhost:3737/api/quests',
       );
     });

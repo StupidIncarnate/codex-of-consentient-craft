@@ -435,9 +435,7 @@ export const runExecuteBrokerProxy = (): {
     laneClickTriggersNetworkLine: (): { lane: LaneSession } => {
       const networkBuffer: string[] = [];
       const clickMock = jest.fn().mockImplementation(async () => {
-        networkBuffer.push(
-          JSON.stringify({ method: 'POST', url: '/api/guilds', status: 201 }),
-        );
+        networkBuffer.push(JSON.stringify({ method: 'POST', url: '/api/guilds', status: 201 }));
         return Promise.resolve(undefined);
       });
       const lane = LaneSessionStub({
@@ -462,9 +460,7 @@ export const runExecuteBrokerProxy = (): {
     // Records every `session.capture` call's `filePath`, in order — the acting steps' own unasked
     // capture and a `screenshot` step's explicit one land in the same log, so a test can assert the
     // FULL sequence of paths a batch actually wrote to, not just what `RunResult.shots` reports back.
-    laneCapturingShots: ({
-      evidencePath = EVIDENCE_PATH,
-    }: { evidencePath?: string } = {}): {
+    laneCapturingShots: ({ evidencePath = EVIDENCE_PATH }: { evidencePath?: string } = {}): {
       lane: LaneSession;
       captureCalls: () => readonly string[];
     } => {
@@ -476,9 +472,7 @@ export const runExecuteBrokerProxy = (): {
       return {
         lane,
         captureCalls: (): readonly string[] =>
-          (captureMock.mock.calls as [{ filePath: string }][]).map(([{ filePath }]) =>
-            filePath,
-          ),
+          (captureMock.mock.calls as [{ filePath: string }][]).map(([{ filePath }]) => filePath),
       };
     },
 
@@ -492,9 +486,7 @@ export const runExecuteBrokerProxy = (): {
     }): { lane: LaneSession; snapshotsAtEachStep: () => readonly number[] } => {
       const snapshots: number[] = [];
       const gotoMock = jest.fn().mockImplementation(async () => {
-        snapshots.push(
-          transcriptProxy.appendedLinesFor({ transcriptPath }).length,
-        );
+        snapshots.push(transcriptProxy.appendedLinesFor({ transcriptPath }).length);
         return Promise.resolve(undefined);
       });
       const lane = LaneSessionStub({
@@ -504,11 +496,8 @@ export const runExecuteBrokerProxy = (): {
       return { lane, snapshotsAtEachStep: (): readonly number[] => snapshots };
     },
 
-    transcriptWrites: ({
-      transcriptPath,
-    }: {
-      transcriptPath: string;
-    }): readonly unknown[] => transcriptProxy.appendedLinesFor({ transcriptPath }),
+    transcriptWrites: ({ transcriptPath }: { transcriptPath: string }): readonly unknown[] =>
+      transcriptProxy.appendedLinesFor({ transcriptPath }),
 
     storedReturnWrite: ({ storedReturnPath }: { storedReturnPath: string }): unknown =>
       returnWriteProxy.writtenFor({ storedReturnPath }),
@@ -534,11 +523,7 @@ export const runExecuteBrokerProxy = (): {
     writtenBufferEntriesFor: ({ kind }: { kind: BufferKind }): unknown[] =>
       bufferAppendProxy.writtenEntriesFor({ bufferPath: bufferPaths[kind] }),
 
-    bufferAppendCallCountFor: ({
-      kind,
-    }: {
-      kind: BufferKind;
-    }): number =>
+    bufferAppendCallCountFor: ({ kind }: { kind: BufferKind }): number =>
       bufferAppendProxy.appendCallsFor({ bufferPath: bufferPaths[kind] }).length,
 
     // The WHOLE argument object of every automatic capture this run made, in order — so a test
@@ -570,7 +555,6 @@ export const runExecuteBrokerProxy = (): {
       snapshotCaptureHandle.calledWith([{ manual: false }]).rejects(error);
     },
 
-    getStderrText: (): string =>
-      stderrLog.getWrittenText(),
+    getStderrText: (): string => stderrLog.getWrittenText(),
   };
 };

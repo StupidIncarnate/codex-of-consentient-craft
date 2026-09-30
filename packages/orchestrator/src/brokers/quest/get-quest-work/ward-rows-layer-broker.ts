@@ -40,7 +40,9 @@ import type { QuestWorkWard } from '../../../contracts/quest-work-view/quest-wor
 const GREEN_EXIT_CODE = 0;
 const JSON_EXTENSION = '.json';
 const LOG_EXTENSION = '.log';
-const failingPathContract = questWorkViewContract.shape.ward.unwrap().shape.failingPaths.unwrap().element;
+const failingPathContract = questWorkViewContract.shape.ward
+  .unwrap()
+  .shape.failingPaths.unwrap().element;
 
 export const wardRowsLayerBroker = async ({
   questPath,
@@ -57,10 +59,10 @@ export const wardRowsLayerBroker = async ({
     failedCarve === undefined
       ? null
       : join(
-            questPath,
-            locationsStatics.quest.riftcarverResultsDir,
-            `${String(failedCarve.id)}${LOG_EXTENSION}`,
-          );
+          questPath,
+          locationsStatics.quest.riftcarverResultsDir,
+          `${String(failedCarve.id)}${LOG_EXTENSION}`,
+        );
 
   const failedWard = [...quest.wardResults]
     .filter((result) => result.exitCode !== GREEN_EXIT_CODE)
@@ -71,10 +73,10 @@ export const wardRowsLayerBroker = async ({
   }
 
   const blobPath = join(
-      questPath,
-      locationsStatics.quest.wardResultsDir,
-      `${String(failedWard.id)}${JSON_EXTENSION}`,
-    );
+    questPath,
+    locationsStatics.quest.wardResultsDir,
+    `${String(failedWard.id)}${JSON_EXTENSION}`,
+  );
 
   const contents = await readFileIfExists(blobPath);
   const parsed = wardDetailContract.safeParse(contents === null ? {} : JSON.parse(contents));

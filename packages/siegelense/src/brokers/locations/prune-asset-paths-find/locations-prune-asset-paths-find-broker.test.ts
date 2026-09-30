@@ -1,4 +1,3 @@
-
 import { locationsPruneAssetPathsFindBroker } from './locations-prune-asset-paths-find-broker';
 import { locationsPruneAssetPathsFindBrokerProxy } from './locations-prune-asset-paths-find-broker.proxy';
 
@@ -34,7 +33,8 @@ describe('locationsPruneAssetPathsFindBroker', () => {
 
     it('VALID: {an unowned evidencePath} => the same set under the unowned partition, so no branch of prune is guild-only', () => {
       locationsPruneAssetPathsFindBrokerProxy();
-      const evidencePath = '/repo/.dungeonmaster-assets/siegelense-assets/unowned/instances/inst_9b2c0001';
+      const evidencePath =
+        '/repo/.dungeonmaster-assets/siegelense-assets/unowned/instances/inst_9b2c0001';
 
       const result = locationsPruneAssetPathsFindBroker({ evidencePath });
 

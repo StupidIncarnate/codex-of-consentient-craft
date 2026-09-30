@@ -1,4 +1,3 @@
-
 import { transcriptLinesReadTransformer } from './transcript-lines-read-transformer';
 
 describe('transcriptLinesReadTransformer', () => {
@@ -13,9 +12,7 @@ describe('transcriptLinesReadTransformer', () => {
     });
 
     it('EMPTY: {""} => returns no lines', () => {
-      expect(
-        transcriptLinesReadTransformer({ contents: '' }),
-      ).toStrictEqual([]);
+      expect(transcriptLinesReadTransformer({ contents: '' })).toStrictEqual([]);
     });
   });
 

@@ -30,7 +30,7 @@ export const ShowEarlierToggleWidget = ({
   // chain) render this row ABOVE the entries it reveals — so the row itself never moves, and the
   // whole job is stopping the auto-scroll from throwing the reader to the end of what just opened.
   const { anchorRef, holdAnchor } = useDisclosureAnchorBinding();
-  const numericCount = Number(hiddenCount);
+  const numericCount = hiddenCount;
   const noun = numericCount === 1 ? 'entry' : 'entries';
   const label = expanded
     ? `▾ Hide ${String(numericCount)} earlier ${noun}`

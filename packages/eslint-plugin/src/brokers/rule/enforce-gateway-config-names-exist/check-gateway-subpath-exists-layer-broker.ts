@@ -39,7 +39,15 @@ export const checkGatewaySubpathExistsLayerBroker = ({
   }
 
   const lastSegment = rest[rest.length - 1];
-  const barrelPath = join(rootDir, 'packages', '@gateway', folder, 'src', ...rest, `${lastSegment}.ts`);
+  const barrelPath = join(
+    rootDir,
+    'packages',
+    '@gateway',
+    folder,
+    'src',
+    ...rest,
+    `${lastSegment}.ts`,
+  );
 
   return existsSync(barrelPath) ? barrelPath : undefined;
 };

@@ -1,11 +1,11 @@
-
 import { BufferEntryStub } from '../../../contracts/buffer-entry/buffer-entry.stub';
 import { ResultWhereStub } from '../../../contracts/result-where/result-where.stub';
 import { RunIdStub } from '../../../contracts/run-id/run-id.stub';
 import { bufferReadLayerBroker } from './buffer-read-layer-broker';
 import { bufferReadLayerBrokerProxy } from './buffer-read-layer-broker.proxy';
 
-const BUFFER_PATH = '/repo/.dungeonmaster-assets/siegelense-assets/unowned/instances/inst_1/network.jsonl';
+const BUFFER_PATH =
+  '/repo/.dungeonmaster-assets/siegelense-assets/unowned/instances/inst_1/network.jsonl';
 const RUN_2 = RunIdStub({ value: 'run_2' });
 
 const networkText = ({
@@ -18,14 +18,14 @@ const networkText = ({
   status: number;
 }): string =>
   JSON.stringify({
-      at: 1,
-      method,
-      url,
-      resourceType: 'fetch',
-      status,
-      requestBody: null,
-      responseBody: 'ok',
-    });
+    at: 1,
+    method,
+    url,
+    resourceType: 'fetch',
+    status,
+    requestBody: null,
+    responseBody: 'ok',
+  });
 
 describe('bufferReadLayerBroker', () => {
   it('EMPTY: {no buffer file} => returns an empty array', async () => {
@@ -139,13 +139,13 @@ describe('bufferReadLayerBroker', () => {
     const errorEntry = BufferEntryStub({
       runId: RUN_2,
       text: JSON.stringify({
-          at: 1,
-          kind: 'console',
-          type: 'error',
-          text: 'x',
-          url: '',
-          line: 0,
-        }),
+        at: 1,
+        kind: 'console',
+        type: 'error',
+        text: 'x',
+        url: '',
+        line: 0,
+      }),
     });
     const logEntry = BufferEntryStub({
       runId: RUN_2,

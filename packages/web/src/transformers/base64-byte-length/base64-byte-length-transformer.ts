@@ -8,7 +8,6 @@
  * // Returns: 4
  */
 
-
 // This math must match the `.superRefine` in
 // packages/shared/src/contracts/pasted-image-upload/pasted-image-upload-contract.ts digit for
 // digit — that file does not export the schema holding it, so this is a second implementation

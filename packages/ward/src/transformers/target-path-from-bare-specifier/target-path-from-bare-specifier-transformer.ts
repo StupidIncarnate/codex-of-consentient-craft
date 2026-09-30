@@ -22,7 +22,6 @@
  * // Returns: '/repo/packages/@gateway/node/src/fs' as FilePath
  */
 
-
 import type { ProjectFolder } from '../../contracts/project-folder/project-folder-contract';
 import { specifierMatchesPackageGuard } from '../../guards/specifier-matches-package/specifier-matches-package-guard';
 import { isGatewayPackageProjectFolderGuard } from '../../guards/is-gateway-package-project-folder/is-gateway-package-project-folder-guard';
@@ -52,5 +51,5 @@ export const targetPathFromBareSpecifierTransformer = ({
     ? `${matchedPackage.path}/src`
     : matchedPackage.path;
 
-  return (subpath === '' ? packageRoot : `${packageRoot}${subpath}`);
+  return subpath === '' ? packageRoot : `${packageRoot}${subpath}`;
 };

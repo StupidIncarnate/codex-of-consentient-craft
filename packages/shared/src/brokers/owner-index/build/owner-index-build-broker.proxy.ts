@@ -4,13 +4,7 @@ import { readJsonFileSyncIfExistsProxy } from '#gateway/node/fs/read-json-file-s
 import { contractIndexBuildBrokerProxy } from '../../contract-index/build/contract-index-build-broker.proxy';
 
 export const ownerIndexBuildBrokerProxy = (): {
-  setupSubfolders: ({
-    dirPath,
-    folders,
-  }: {
-    dirPath: string;
-    folders: readonly string[];
-  }) => void;
+  setupSubfolders: ({ dirPath, folders }: { dirPath: string; folders: readonly string[] }) => void;
   setupPackageJson: ({ packageDir, json }: { packageDir: string; json: string }) => void;
   setupWalkedFolder: ({
     dirPath,

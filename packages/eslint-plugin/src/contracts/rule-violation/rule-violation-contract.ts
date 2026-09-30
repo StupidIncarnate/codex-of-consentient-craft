@@ -28,7 +28,8 @@ export const ruleViolationContract = z
     messageId: z.string().brand<'RuleViolationMessageId'>().optional(),
     data: z.record(z.string(), z.unknown()).optional(),
   })
-  .loose().brand<'RuleViolation'>();
+  .loose()
+  .brand<'RuleViolation'>();
 
 export type RuleViolation = z.infer<typeof ruleViolationContract> & {
   fix?: (...args: unknown[]) => unknown;

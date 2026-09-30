@@ -24,7 +24,7 @@ export const locationsClaudeConfigDirFindBrokerProxy = (): {
     },
     setupUnset: ({ homeDir }: { homeDir: string }): void => {
       deleteEnv('CLAUDE_CONFIG_DIR');
-      homedirHandle.onceFor([]).returns(String(homeDir));
+      homedirHandle.onceFor([]).returns(homeDir);
     },
   };
 };

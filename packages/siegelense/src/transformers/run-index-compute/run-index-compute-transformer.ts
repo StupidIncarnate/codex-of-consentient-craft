@@ -26,7 +26,6 @@
  * // Returns a validated RunIndex counting only those lines
  */
 
-
 import { runIndexContract } from '../../contracts/run-index/run-index-contract';
 import type { RunIndex } from '../../contracts/run-index/run-index-contract';
 import { isNetworkLineNon2xxGuard } from '../../guards/is-network-line-non2xx/is-network-line-non2xx-guard';

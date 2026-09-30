@@ -33,7 +33,7 @@ export const discoverPackagesLayerBrokerProxy = (): {
       entries: { name: string; isDirectory: boolean }[];
     }): void => {
       gatewayProxy.returns({
-        path: String(dirPath),
+        path: dirPath,
         entries: entries.map((entry) =>
           makeDirEntry({ name: entry.name, isDir: entry.isDirectory }),
         ),
@@ -50,7 +50,7 @@ export const discoverPackagesLayerBrokerProxy = (): {
       entries: { name: string; isDirectory: boolean }[];
     }): void => {
       gatewayProxy.returns({
-        path: String(`${String(dirPath)}/${groupName}`),
+        path: (`${dirPath}/${groupName}`),
         entries: entries.map((entry) =>
           makeDirEntry({ name: entry.name, isDir: entry.isDirectory }),
         ),
@@ -59,8 +59,8 @@ export const discoverPackagesLayerBrokerProxy = (): {
 
     setupMissingPackagesDir: ({ dirPath }: { dirPath: string }): void => {
       gatewayProxy.throws({
-        path: String(dirPath),
-        error: FileMissingErrorStub({ path: String(dirPath) }),
+        path: dirPath,
+        error: FileMissingErrorStub({ path: dirPath }),
       });
     },
   };

@@ -82,8 +82,8 @@ export const ruleNoBareProcessCwdBroker = (): TSESLint.RuleModule<'bareProcessCw
     const allMatchPatterns = [...allowedFiles, ...allowedFolders];
     const isAllowed = allMatchPatterns.some(
       (pattern) =>
-        minimatch(String(relativePath), String(pattern), { dot: true }) ||
-        minimatch(filename, String(pattern), { dot: true }),
+        minimatch(relativePath, pattern, { dot: true }) ||
+        minimatch(filename, pattern, { dot: true }),
     );
     if (isAllowed) {
       return {};

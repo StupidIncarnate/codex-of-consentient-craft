@@ -14,20 +14,26 @@ import { z } from '#gateway/npm/zod';
 const tsconfigTextPositionContract = z.number().int().nonnegative().brand<'TsconfigTextPosition'>();
 
 export const tsconfigCompilerOptionsLocateResultContract = z.discriminatedUnion('situation', [
-  z.object({ situation: z.literal('missingCompilerOptions') }).brand<'TsconfigCompilerOptionsLocateResult'>(),
-  z.object({
-    situation: z.literal('hasCompilerOptions'),
-    insertPos: tsconfigTextPositionContract,
-    indent: z.string().brand<'TsconfigCompilerOptionsLocateResultIndent'>(),
-    needsLeadingComma: z.boolean(),
-    existing: z.array(
-      z.object({
-        key: z.string().brand<'TsconfigCompilerOptionsLocateResultExistingKey'>(),
-        valueStart: tsconfigTextPositionContract,
-        valueEnd: tsconfigTextPositionContract,
-      }).brand<'TsconfigCompilerOptionsLocateResultExisting'>(),
-    ),
-  }).brand<'TsconfigCompilerOptionsLocateResult'>(),
+  z
+    .object({ situation: z.literal('missingCompilerOptions') })
+    .brand<'TsconfigCompilerOptionsLocateResult'>(),
+  z
+    .object({
+      situation: z.literal('hasCompilerOptions'),
+      insertPos: tsconfigTextPositionContract,
+      indent: z.string().brand<'TsconfigCompilerOptionsLocateResultIndent'>(),
+      needsLeadingComma: z.boolean(),
+      existing: z.array(
+        z
+          .object({
+            key: z.string().brand<'TsconfigCompilerOptionsLocateResultExistingKey'>(),
+            valueStart: tsconfigTextPositionContract,
+            valueEnd: tsconfigTextPositionContract,
+          })
+          .brand<'TsconfigCompilerOptionsLocateResultExisting'>(),
+      ),
+    })
+    .brand<'TsconfigCompilerOptionsLocateResult'>(),
 ]);
 
 export type TsconfigCompilerOptionsLocateResult = z.infer<

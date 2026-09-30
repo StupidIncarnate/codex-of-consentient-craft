@@ -23,23 +23,26 @@
 
 import { z } from '#gateway/npm/zod';
 
-
 import { leftAloneContract } from '../left-alone/left-alone-contract';
 import { reapedInstanceContract } from '../reaped-instance/reaped-instance-contract';
 
 export const cleanupAnswerContract = z
   .object({
     reaped: z.array(reapedInstanceContract).readonly(),
-    portsReleased: z.array(z.number().int().min(1).max(65_535).brand<'CleanupAnswerPortsReleased'>()).readonly(),
+    portsReleased: z
+      .array(z.number().int().min(1).max(65_535).brand<'CleanupAnswerPortsReleased'>())
+      .readonly(),
     lockReleased: z.boolean(),
     assetsAged: z
       .object({
         instances: z.number().int().nonnegative().brand<'CleanupAnswerAssetsAgedInstances'>(),
         freedMB: z.number().int().nonnegative().brand<'CleanupAnswerAssetsAgedFreedMB'>(),
       })
-      .strict().brand<'CleanupAnswerAssetsAged'>(),
+      .strict()
+      .brand<'CleanupAnswerAssetsAged'>(),
     leftAlone: z.array(leftAloneContract).readonly(),
   })
-  .strict().brand<'CleanupAnswer'>();
+  .strict()
+  .brand<'CleanupAnswer'>();
 
 export type CleanupAnswer = z.infer<typeof cleanupAnswerContract>;

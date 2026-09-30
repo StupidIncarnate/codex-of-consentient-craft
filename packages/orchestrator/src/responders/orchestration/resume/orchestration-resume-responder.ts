@@ -28,7 +28,12 @@ import { orchestrationResumeResultContract } from '../../../contracts/orchestrat
 import type { OrchestrationResumeResult } from '../../../contracts/orchestration-resume-result/orchestration-resume-result-contract';
 import { AbortController } from '#gateway/node/AbortController';
 import { randomUUID } from '#gateway/node/crypto';
-import type { QuestStatus, ModifyQuestInput, Quest, Session } from '@dungeonmaster/shared/contracts';
+import type {
+  QuestStatus,
+  ModifyQuestInput,
+  Quest,
+  Session,
+} from '@dungeonmaster/shared/contracts';
 
 import { getQuestInputContract, modifyQuestInputContract } from '@dungeonmaster/shared/contracts';
 

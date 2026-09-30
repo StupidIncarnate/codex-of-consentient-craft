@@ -96,7 +96,7 @@ test.describe('Sub-agent chain duration is gated by the owning row status, not b
     });
 
     const created = await quests.createQuest({
-      guildId: guildId,
+      guildId,
       title: 'Subagent Duration Row Status Gate Quest',
       userRequest: 'Build the feature',
     });
@@ -212,7 +212,7 @@ test.describe('Sub-agent chain duration is gated by the owning row status, not b
     });
 
     const created = await quests.createQuest({
-      guildId: guildId,
+      guildId,
       title: 'Subagent Duration No Start Quest',
       userRequest: 'Build the feature',
     });

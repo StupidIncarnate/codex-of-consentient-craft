@@ -60,7 +60,7 @@ export const widgetSubtreeRenderLayerBroker = ({
 
   const { bindingsPrefix, bindingFlowLineSubIndent, httpMethodPadWidth } =
     projectMapHeadlineFrontendReactStatics;
-  const indentStr = String(indent);
+  const indentStr = indent;
   const rootFlowIndent = `   ${bindingFlowLineSubIndent}`;
 
   const rootByPath = new Map<string, WidgetNode>();
@@ -75,16 +75,14 @@ export const widgetSubtreeRenderLayerBroker = ({
     if (root === undefined) continue;
 
     const rootDisplayName = architectureExportNameResolveBroker({ filePath: root.filePath });
-    lines.push(`${indentStr}${String(rootDisplayName)}`);
+    lines.push(`${indentStr}${rootDisplayName}`);
 
     const chainBaseIndent = `${indentStr}${rootFlowIndent}`;
 
     for (const bindingName of root.bindingsAttached) {
       const bindingFile = bindingNameToFilePathTransformer({ bindingName, packageRoot });
       const bindingDisplayName = architectureExportNameResolveBroker({ filePath: bindingFile });
-      lines.push(
-        `${indentStr}${bindingsPrefix}${String(bindingDisplayName)}`,
-      );
+      lines.push(`${indentStr}${bindingsPrefix}${bindingDisplayName}`);
       const chainLines = callChainLinesRenderLayerBroker({
         sourceFile: bindingFile,
         packageSrcPath,
@@ -119,9 +117,7 @@ export const widgetSubtreeRenderLayerBroker = ({
       for (const wsEvent of wsEvents) {
         const emitterSuffix =
           wsEvent.emitterRef === null ? '' : `  ←─ ${String(wsEvent.emitterRef)}`;
-        lines.push(
-          `${indentStr}${rootFlowIndent}ws← ${String(wsEvent.eventType)}${emitterSuffix}`,
-        );
+        lines.push(`${indentStr}${rootFlowIndent}ws← ${String(wsEvent.eventType)}${emitterSuffix}`);
       }
     }
 

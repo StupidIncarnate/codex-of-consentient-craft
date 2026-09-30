@@ -15,7 +15,6 @@
  * // Returns '{"status":200,"responseBody":"ok"}' as ContentText
  */
 
-
 import { resultRowContract } from '../../contracts/result-row/result-row-contract';
 
 export const resultRowProjectTransformer = ({

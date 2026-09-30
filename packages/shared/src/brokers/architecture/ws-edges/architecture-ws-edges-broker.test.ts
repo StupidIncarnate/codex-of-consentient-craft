@@ -2,8 +2,10 @@ import { architectureWsEdgesBroker } from './architecture-ws-edges-broker';
 import { architectureWsEdgesBrokerProxy } from './architecture-ws-edges-broker.proxy';
 
 const PROJECT_ROOT = '/repo';
-const EMIT_FILE = '/repo/packages/orchestrator/src/state/orchestration-events/orchestration-events-state.ts';
-const CONSUME_FILE = '/repo/packages/server/src/adapters/orchestrator/events-on/events-on-adapter.ts';
+const EMIT_FILE =
+  '/repo/packages/orchestrator/src/state/orchestration-events/orchestration-events-state.ts';
+const CONSUME_FILE =
+  '/repo/packages/server/src/adapters/orchestrator/events-on/events-on-adapter.ts';
 
 describe('architectureWsEdgesBroker', () => {
   describe('no source files', () => {

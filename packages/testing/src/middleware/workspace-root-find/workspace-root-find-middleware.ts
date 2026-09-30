@@ -13,11 +13,7 @@
 import { dirname, join } from '#gateway/node/path';
 import { workspacePackageJsonReadMiddleware } from '../workspace-package-json-read/workspace-package-json-read-middleware';
 
-export const workspaceRootFindMiddleware = ({
-  dirPath,
-}: {
-  dirPath: string;
-}): string | null => {
+export const workspaceRootFindMiddleware = ({ dirPath }: { dirPath: string }): string | null => {
   const packageJsonPath = join(dirPath, 'package.json');
   const packageJson = workspacePackageJsonReadMiddleware({ packageJsonPath });
   if (packageJson?.workspaces) {

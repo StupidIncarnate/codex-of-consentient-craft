@@ -8,11 +8,12 @@
 
 import { z } from '#gateway/npm/zod';
 
-
-export const directoryEntryContract = z.object({
-  name: z.string().min(1).brand<'DirectoryEntryName'>(),
-  path: z.string().min(1).brand<'DirectoryEntryPath'>(),
-  isDirectory: z.boolean(),
-}).brand<'DirectoryEntry'>();
+export const directoryEntryContract = z
+  .object({
+    name: z.string().min(1).brand<'DirectoryEntryName'>(),
+    path: z.string().min(1).brand<'DirectoryEntryPath'>(),
+    isDirectory: z.boolean(),
+  })
+  .brand<'DirectoryEntry'>();
 
 export type DirectoryEntry = z.infer<typeof directoryEntryContract>;

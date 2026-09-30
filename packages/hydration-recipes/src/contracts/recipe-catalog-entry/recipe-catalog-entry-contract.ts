@@ -19,7 +19,6 @@ import type {
 } from '@dungeonmaster/hydration/contracts';
 import type { DmTarget } from '../dm-target/dm-target-contract';
 
-
 const recipeDescriptionContract = z.string().min(1).brand<'RecipeDescription'>();
 
 export type RecipeDescription = z.infer<typeof recipeDescriptionContract>;
@@ -30,11 +29,13 @@ const zodSchemaContract = z.custom((value) => value instanceof z.ZodType, {
   message: 'Expected a zod schema',
 });
 
-export const recipeCatalogEntryContract = z.object({
-  recipeName: z.string().min(1).brand<'RecipeCatalogEntryRecipeName'>(),
-  description: recipeDescriptionContract,
-  inputs: zodSchemaContract.optional(),
-}).brand<'RecipeCatalogEntry'>();
+export const recipeCatalogEntryContract = z
+  .object({
+    recipeName: z.string().min(1).brand<'RecipeCatalogEntryRecipeName'>(),
+    description: recipeDescriptionContract,
+    inputs: zodSchemaContract.optional(),
+  })
+  .brand<'RecipeCatalogEntry'>();
 
 export type RecipeCatalogEntryData = z.infer<typeof recipeCatalogEntryContract>;
 

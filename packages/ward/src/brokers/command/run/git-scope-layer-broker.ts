@@ -14,7 +14,6 @@
  * // Returns the same config with passthrough set to the working tree's source files
  */
 
-
 import type { WardConfig } from '../../../contracts/ward-config/ward-config-contract';
 import { isSourceFileGuard } from '../../../guards/is-source-file/is-source-file-guard';
 import { gitDiffCommittedBroker } from '../../git/diff-committed/git-diff-committed-broker';
@@ -47,7 +46,7 @@ export const gitScopeLayerBroker = async ({
     return true;
   });
 
-  const sourceFiles = files.filter((file) => isSourceFileGuard({ filePath: String(file) }));
+  const sourceFiles = files.filter((file) => isSourceFileGuard({ filePath: file }));
 
   if (sourceFiles.length === 0) {
     return config;

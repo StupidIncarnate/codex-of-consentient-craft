@@ -108,7 +108,7 @@ export const stepHandlerWardBroker = async ({
     id: wardResultId,
     createdAt: new Date().toISOString(),
     exitCode,
-    ...(runId ? { runId: String(runId) } : {}),
+    ...(runId ? { runId: runId } : {}),
   });
 
   const modifyResult = await questModifyBroker({

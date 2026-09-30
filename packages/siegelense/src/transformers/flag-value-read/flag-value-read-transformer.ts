@@ -13,7 +13,6 @@
  * // Returns null — the flag was never named
  */
 
-
 export const flagValueReadTransformer = ({
   args,
   flag,

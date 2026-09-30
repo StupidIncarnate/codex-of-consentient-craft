@@ -14,29 +14,29 @@ const betaPackage = ContractIndexPackageStub({
 });
 
 const ONE_CONTRACT_TEXT = [
-    "import { z } from 'zod';",
-    "export const oneContract = z.string().brand<'one'>();",
-    'export type one = z.infer<typeof oneContract>;',
-    '',
-  ].join('\n');
+  "import { z } from 'zod';",
+  "export const oneContract = z.string().brand<'one'>();",
+  'export type one = z.infer<typeof oneContract>;',
+  '',
+].join('\n');
 const TWO_CONTRACT_TEXT = [
-    "import { z } from 'zod';",
-    "export const twoContract = z.string().brand<'two'>();",
-    'export type two = z.infer<typeof twoContract>;',
-    '',
-  ].join('\n');
+  "import { z } from 'zod';",
+  "export const twoContract = z.string().brand<'two'>();",
+  'export type two = z.infer<typeof twoContract>;',
+  '',
+].join('\n');
 const INNER_CONTRACT_TEXT = [
-    "import { z } from 'zod';",
-    "export const innerContract = z.string().brand<'inner'>();",
-    'export type inner = z.infer<typeof innerContract>;',
-    '',
-  ].join('\n');
+  "import { z } from 'zod';",
+  "export const innerContract = z.string().brand<'inner'>();",
+  'export type inner = z.infer<typeof innerContract>;',
+  '',
+].join('\n');
 const DETAIL_CONTRACT_TEXT = [
-    "import { z } from 'zod';",
-    "export const detailContract = z.string().brand<'detail'>();",
-    'export type detail = z.infer<typeof detailContract>;',
-    '',
-  ].join('\n');
+  "import { z } from 'zod';",
+  "export const detailContract = z.string().brand<'detail'>();",
+  'export type detail = z.infer<typeof detailContract>;',
+  '',
+].join('\n');
 
 describe('contractIndexFromSourcesTransformer', () => {
   describe('parse detection', () => {
@@ -149,7 +149,8 @@ describe('contractIndexFromSourcesTransformer', () => {
 
     it('VALID: {a test, a stub and a proxy inside test/harnesses parse the contract} => the contract stays unparsed', () => {
       const contractFile = '/repo/packages/alpha/src/contracts/one/one-contract.ts';
-      const parseText = "import { oneContract } from '@repo/alpha/contracts';\noneContract.parse('x');";
+      const parseText =
+        "import { oneContract } from '@repo/alpha/contracts';\noneContract.parse('x');";
 
       const result = contractIndexFromSourcesTransformer({
         rootDir,
@@ -201,18 +202,18 @@ describe('contractIndexFromSourcesTransformer', () => {
           {
             filePath: handleFile,
             text: [
-                'export type MockHandle = {',
-                '  callsMatching: {',
-                '    (args: readonly []): RecordedCalls;',
-                '    (args: readonly unknown[]): unknown[][];',
-                '  };',
-                '};',
-                'export interface RecordedCalls {',
-                '  readonly length: number;',
-                '  map: <U>(fn: (call: unknown[], index: number) => U) => U[];',
-                '}',
-                '',
-              ].join('\n'),
+              'export type MockHandle = {',
+              '  callsMatching: {',
+              '    (args: readonly []): RecordedCalls;',
+              '    (args: readonly unknown[]): unknown[][];',
+              '  };',
+              '};',
+              'export interface RecordedCalls {',
+              '  readonly length: number;',
+              '  map: <U>(fn: (call: unknown[], index: number) => U) => U[];',
+              '}',
+              '',
+            ].join('\n'),
           },
         ],
       });
@@ -249,12 +250,12 @@ describe('contractIndexFromSourcesTransformer', () => {
           {
             filePath: outerFile,
             text: [
-                "import { z } from 'zod';",
-                "import { innerContract } from '../inner/inner-contract';",
-                'export const outerContract = z.object({ inner: innerContract });',
-                'export type Outer = z.infer<typeof outerContract>;',
-                '',
-              ].join('\n'),
+              "import { z } from 'zod';",
+              "import { innerContract } from '../inner/inner-contract';",
+              'export const outerContract = z.object({ inner: innerContract });',
+              'export type Outer = z.infer<typeof outerContract>;',
+              '',
+            ].join('\n'),
           },
           {
             filePath: brokerFile,

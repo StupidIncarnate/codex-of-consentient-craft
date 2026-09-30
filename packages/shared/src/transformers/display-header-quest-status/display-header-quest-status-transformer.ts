@@ -9,9 +9,5 @@
 import type { QuestStatus } from '../../contracts/quest-status/quest-status-contract';
 import { questStatusMetadataStatics } from '../../statics/quest-status-metadata/quest-status-metadata-statics';
 
-export const displayHeaderQuestStatusTransformer = ({
-  status,
-}: {
-  status: QuestStatus;
-}): string =>
+export const displayHeaderQuestStatusTransformer = ({ status }: { status: QuestStatus }): string =>
   questStatusMetadataStatics.statuses[status].displayHeader;

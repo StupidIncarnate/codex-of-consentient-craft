@@ -10,13 +10,7 @@ export const serverLogReaderLayerBrokerProxy = (): {
   const fsProxy = readFileSyncProxy();
 
   return {
-    setupLogContent: ({
-      logPath,
-      content,
-    }: {
-      logPath: string;
-      content: string;
-    }): void => {
+    setupLogContent: ({ logPath, content }: { logPath: string; content: string }): void => {
       fsProxy.returns({ path: logPath, contents: content });
     },
   };

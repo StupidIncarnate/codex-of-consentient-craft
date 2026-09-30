@@ -33,7 +33,14 @@ import type { OpExtra } from '../op-extra/op-extra-contract';
 
 const baseOpFilterContract = z.object({
   op: z.literal('filter'),
-  ingredient: z.string().min(1).regex( /^[A-Za-z][A-Za-z0-9-]*$/u, 'must start with a letter and hold only letters, digits and hyphens — the character set a RowRef segment can encode', ).brand<'OpFilterIngredient'>(),
+  ingredient: z
+    .string()
+    .min(1)
+    .regex(
+      /^[A-Za-z][A-Za-z0-9-]*$/u,
+      'must start with a letter and hold only letters, digits and hyphens — the character set a RowRef segment can encode',
+    )
+    .brand<'OpFilterIngredient'>(),
   scope: z.string().min(1).brand<'OpFilterScope'>().optional(),
   where: fieldValuesContract,
   expect: filterExpectContract,
@@ -54,35 +61,37 @@ type OpFilterSelf = z.infer<typeof baseOpFilterContract> & {
 // the only self-reference form `contracts/` allows (zod v4 dropped the old `z.ZodTypeDef` type
 // param `z.lazy` needed here). z.discriminatedUnion demands every branch stay a ZodObject, which a
 // self-referencing branch cannot; z.union has no such constraint and validates the identical shapes.
-export const opFilterContract = z.object({
-  ...baseOpFilterContract.shape,
-  get ops(): z.ZodReadonly<
-    z.ZodArray<
-      z.ZodUnion<
-        readonly [
-          typeof opCreateContract,
-          typeof opSetContract,
-          typeof opRemoveContract,
-          typeof opSaveRecordContract,
-          typeof opExtraContract,
-          z.core.$ZodType<OpFilterSelf>,
-        ]
+export const opFilterContract = z
+  .object({
+    ...baseOpFilterContract.shape,
+    get ops(): z.ZodReadonly<
+      z.ZodArray<
+        z.ZodUnion<
+          readonly [
+            typeof opCreateContract,
+            typeof opSetContract,
+            typeof opRemoveContract,
+            typeof opSaveRecordContract,
+            typeof opExtraContract,
+            z.core.$ZodType<OpFilterSelf>,
+          ]
+        >
       >
-    >
-  > {
-    return z
-      .array(
-        z.union([
-          opCreateContract,
-          opSetContract,
-          opRemoveContract,
-          opSaveRecordContract,
-          opExtraContract,
-          opFilterContract,
-        ]),
-      )
-      .readonly();
-  },
-}).brand<'OpFilter'>();
+    > {
+      return z
+        .array(
+          z.union([
+            opCreateContract,
+            opSetContract,
+            opRemoveContract,
+            opSaveRecordContract,
+            opExtraContract,
+            opFilterContract,
+          ]),
+        )
+        .readonly();
+    },
+  })
+  .brand<'OpFilter'>();
 
 export type OpFilter = z.infer<typeof opFilterContract>;

@@ -22,23 +22,23 @@ export const installAgentsSetupBrokerProxy = (): {
 
   const setupSuccess = ({ targetProjectRoot }: { targetProjectRoot: FilePath }): void => {
     const hooksPath = realJoin(
-        targetProjectRoot,
-        locationsStatics.repoRoot.agents.dir,
-        locationsStatics.repoRoot.agents.hooksJson,
-      );
+      targetProjectRoot,
+      locationsStatics.repoRoot.agents.dir,
+      locationsStatics.repoRoot.agents.hooksJson,
+    );
     const skillsPath = realJoin(
-        targetProjectRoot,
-        locationsStatics.repoRoot.agents.dir,
-        locationsStatics.repoRoot.agents.skillsJson,
-      );
+      targetProjectRoot,
+      locationsStatics.repoRoot.agents.dir,
+      locationsStatics.repoRoot.agents.skillsJson,
+    );
     const rulesPath = realJoin(
-        targetProjectRoot,
-        locationsStatics.repoRoot.agents.dir,
-        locationsStatics.repoRoot.agents.pluginsDir,
-        mcpToolsStatics.server.name,
-        locationsStatics.repoRoot.agents.rulesDir,
-        locationsStatics.repoRoot.agentsMd,
-      );
+      targetProjectRoot,
+      locationsStatics.repoRoot.agents.dir,
+      locationsStatics.repoRoot.agents.pluginsDir,
+      mcpToolsStatics.server.name,
+      locationsStatics.repoRoot.agents.rulesDir,
+      locationsStatics.repoRoot.agentsMd,
+    );
     const claudeMdPath = realJoin(targetProjectRoot, locationsStatics.repoRoot.claudeMd);
     const agentsMdPath = realJoin(targetProjectRoot, locationsStatics.repoRoot.agentsMd);
 

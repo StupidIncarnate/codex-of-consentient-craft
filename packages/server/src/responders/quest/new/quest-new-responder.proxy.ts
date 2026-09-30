@@ -40,11 +40,7 @@ export const QuestNewResponderProxy = (): {
   // is a pasted screenshot path. Composes the source read and the copy broker's own minted
   // destination id behind one call, per the proxy-encapsulation rule. Call AFTER
   // setupPastedImageHome so the images folder is staged.
-  stageLocalImageCopy: (params: {
-    sourcePath: string;
-    bytes: Uint8Array;
-    copyId: string;
-  }) => void;
+  stageLocalImageCopy: (params: { sourcePath: string; bytes: Uint8Array; copyId: string }) => void;
   getWrittenPayloadsInOrder: () => unknown[];
   getRemovedFolderCallsInOrder: () => unknown[];
   // The `message` field of the most recent StartOrchestrator.startChat call, read directly off the

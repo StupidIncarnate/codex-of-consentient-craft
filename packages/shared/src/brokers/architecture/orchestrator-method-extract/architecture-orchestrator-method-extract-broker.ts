@@ -30,7 +30,7 @@ export const architectureOrchestratorMethodExtractBroker = ({
   if (responderSource === undefined) return null;
 
   const imports = importStatementsExtractTransformer({ source: responderSource });
-  const orchImports = imports.filter((p) => String(p).includes(ORCHESTRATOR_ADAPTER_MARKER));
+  const orchImports = imports.filter((p) => p.includes(ORCHESTRATOR_ADAPTER_MARKER));
 
   const [firstOrchImport] = orchImports;
   if (firstOrchImport === undefined) return null;

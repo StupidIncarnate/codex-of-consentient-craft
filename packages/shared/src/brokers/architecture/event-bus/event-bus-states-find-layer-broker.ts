@@ -27,7 +27,7 @@ export const eventBusStatesFindLayerBroker = ({
 }: {
   projectRoot: string;
 }): EventBus[] => {
-  const root = String(projectRoot);
+  const root = projectRoot;
   const packagesDir = `${root}/${PACKAGES_REL}`;
   const allFiles = listTsFilesLayerBroker({ dirPath: packagesDir });
 
@@ -35,7 +35,7 @@ export const eventBusStatesFindLayerBroker = ({
 
   for (const filePath of allFiles) {
     if (!isNonTestFileGuard({ filePath })) continue;
-    if (!String(filePath).includes(STATE_PATH_SEGMENT)) continue;
+    if (!filePath.includes(STATE_PATH_SEGMENT)) continue;
     const source = readFileLayerBroker({ filePath });
     if (source === undefined) continue;
     const exportName = busStateShapeDetectTransformer({ source });

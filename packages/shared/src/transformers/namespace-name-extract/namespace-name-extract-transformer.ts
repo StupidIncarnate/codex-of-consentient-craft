@@ -14,16 +14,11 @@
  * (use namespaceCallFirstExtractTransformer)
  */
 
-
 // Matches the first UppercaseNamespace segment before a dot-method call
 const NAMESPACE_PATTERN = /\b([A-Z][A-Za-z0-9]*)\.(?:[a-z][A-Za-z0-9]*)\s*\(/u;
 
-export const namespaceNameExtractTransformer = ({
-  source,
-}: {
-  source: string;
-}): string | null => {
-  const match = NAMESPACE_PATTERN.exec(String(source));
+export const namespaceNameExtractTransformer = ({ source }: { source: string }): string | null => {
+  const match = NAMESPACE_PATTERN.exec(source);
   if (match === null) {
     return null;
   }

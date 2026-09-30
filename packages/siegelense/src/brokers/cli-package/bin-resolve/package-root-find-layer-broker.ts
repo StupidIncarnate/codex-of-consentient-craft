@@ -16,11 +16,7 @@
 import { dirname, join } from '#gateway/node/path';
 import { existsSync } from '#gateway/node/fs';
 
-export const packageRootFindLayerBroker = ({
-  startDir,
-}: {
-  startDir: string;
-}): string | null => {
+export const packageRootFindLayerBroker = ({ startDir }: { startDir: string }): string | null => {
   const packageJsonPath = join(startDir, 'package.json');
 
   if (existsSync(packageJsonPath)) {

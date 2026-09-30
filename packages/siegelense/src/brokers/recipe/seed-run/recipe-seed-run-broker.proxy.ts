@@ -18,8 +18,8 @@ import { recipesLocateBrokerProxy } from '../../recipes/locate/recipes-locate-br
 
 type SeedResult = ReturnType<typeof SeedResultStub>;
 
-const ENTRY_PATH: string = '/repo/packages/hydration-recipes/dist/index.js';
-const PACKAGE_PATH: string = '/repo/packages/hydration-recipes';
+const ENTRY_PATH = '/repo/packages/hydration-recipes/dist/index.js';
+const PACKAGE_PATH = '/repo/packages/hydration-recipes';
 
 export const recipeSeedRunBrokerProxy = (): {
   bookPresent: () => void;

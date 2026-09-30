@@ -14,23 +14,23 @@
 
 import { z } from '#gateway/npm/zod';
 
-export const devServerE2eProcessContract = z.object({
-  // 'api' | 'web' by convention — an open string so a single-server app's spec still validates
-  // with only one process.
-  name: z.string().min(1).brand<'DevServerE2eProcessName'>(),
-  // A complete, already-composed, NO-WATCH shell command — may reference the same
-  // {apiPort}/{webPort}/{apiWorkspace}/{webWorkspace} tokens lanePlaceholderSubstituteTransformer
-  // substitutes at boot time. A free-form string spawned through a shell, exactly like Playwright's
-  // own webServer.command.
-  command: z.string().min(1).brand<'DevServerE2eProcessCommand'>(),
-  portRole: z.enum(['api', 'web']),
-  readyPath: z.string().min(1).brand<'DevServerE2eProcessReadyPath'>(),
-  // Per-process env, so a fake CLI (Claude/ward) is wired here rather than assumed from the
-  // caller's shell — the orchestrator's own siege lanes set no such vars. Values take the same
-  // placeholder tokens as `command`; a relative value resolves against the repo root.
-  env: z
-    .record(z.string(), z.string().brand<'DevServerE2eProcessEnv'>())
-    .optional(),
-}).brand<'DevServerE2eProcess'>();
+export const devServerE2eProcessContract = z
+  .object({
+    // 'api' | 'web' by convention — an open string so a single-server app's spec still validates
+    // with only one process.
+    name: z.string().min(1).brand<'DevServerE2eProcessName'>(),
+    // A complete, already-composed, NO-WATCH shell command — may reference the same
+    // {apiPort}/{webPort}/{apiWorkspace}/{webWorkspace} tokens lanePlaceholderSubstituteTransformer
+    // substitutes at boot time. A free-form string spawned through a shell, exactly like Playwright's
+    // own webServer.command.
+    command: z.string().min(1).brand<'DevServerE2eProcessCommand'>(),
+    portRole: z.enum(['api', 'web']),
+    readyPath: z.string().min(1).brand<'DevServerE2eProcessReadyPath'>(),
+    // Per-process env, so a fake CLI (Claude/ward) is wired here rather than assumed from the
+    // caller's shell — the orchestrator's own siege lanes set no such vars. Values take the same
+    // placeholder tokens as `command`; a relative value resolves against the repo root.
+    env: z.record(z.string(), z.string().brand<'DevServerE2eProcessEnv'>()).optional(),
+  })
+  .brand<'DevServerE2eProcess'>();
 
 export type DevServerE2eProcess = z.infer<typeof devServerE2eProcessContract>;

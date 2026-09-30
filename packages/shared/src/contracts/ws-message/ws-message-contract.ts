@@ -10,10 +10,12 @@ import { z } from '#gateway/npm/zod';
 
 import { orchestrationEventTypeContract } from '../orchestration-event-type/orchestration-event-type-contract';
 
-export const wsMessageContract = z.object({
-  type: orchestrationEventTypeContract,
-  payload: z.record(z.string(), z.json()),
-  timestamp: z.iso.datetime().brand<'WsMessageTimestamp'>(),
-}).brand<'WsMessage'>();
+export const wsMessageContract = z
+  .object({
+    type: orchestrationEventTypeContract,
+    payload: z.record(z.string(), z.json()),
+    timestamp: z.iso.datetime().brand<'WsMessageTimestamp'>(),
+  })
+  .brand<'WsMessage'>();
 
 export type WsMessage = z.infer<typeof wsMessageContract>;

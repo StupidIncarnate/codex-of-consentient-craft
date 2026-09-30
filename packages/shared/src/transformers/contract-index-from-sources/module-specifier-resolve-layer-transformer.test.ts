@@ -13,9 +13,7 @@ const sharedExtraPackage = ContractIndexPackageStub({
 describe('moduleSpecifierResolveLayerTransformer', () => {
   describe('relative specifiers', () => {
     it('VALID: {./b from a.ts} => resolves to the sibling .ts file', () => {
-      const knownFiles = new Set([
-        '/repo/packages/shared/src/b.ts',
-      ]);
+      const knownFiles = new Set(['/repo/packages/shared/src/b.ts']);
 
       const result = moduleSpecifierResolveLayerTransformer({
         specifier: './b',
@@ -28,9 +26,7 @@ describe('moduleSpecifierResolveLayerTransformer', () => {
     });
 
     it('VALID: {./b.js from a.ts} => strips the js extension before resolving', () => {
-      const knownFiles = new Set([
-        '/repo/packages/shared/src/b.ts',
-      ]);
+      const knownFiles = new Set(['/repo/packages/shared/src/b.ts']);
 
       const result = moduleSpecifierResolveLayerTransformer({
         specifier: './b.js',
@@ -43,9 +39,7 @@ describe('moduleSpecifierResolveLayerTransformer', () => {
     });
 
     it('VALID: {../dir from a.ts} => resolves to the directory index', () => {
-      const knownFiles = new Set([
-        '/repo/packages/shared/src/dir/index.ts',
-      ]);
+      const knownFiles = new Set(['/repo/packages/shared/src/dir/index.ts']);
 
       const result = moduleSpecifierResolveLayerTransformer({
         specifier: '../dir',
@@ -71,9 +65,7 @@ describe('moduleSpecifierResolveLayerTransformer', () => {
 
   describe('package specifiers', () => {
     it('VALID: {@repo/shared/contracts} => resolves to the package root barrel', () => {
-      const knownFiles = new Set([
-        '/repo/packages/shared/contracts.ts',
-      ]);
+      const knownFiles = new Set(['/repo/packages/shared/contracts.ts']);
 
       const result = moduleSpecifierResolveLayerTransformer({
         specifier: '@repo/shared/contracts',
@@ -86,9 +78,7 @@ describe('moduleSpecifierResolveLayerTransformer', () => {
     });
 
     it('VALID: {@repo/shared-extra/statics} => picks the longest matching package name', () => {
-      const knownFiles = new Set([
-        '/repo/packages/shared-extra/statics.ts',
-      ]);
+      const knownFiles = new Set(['/repo/packages/shared-extra/statics.ts']);
 
       const result = moduleSpecifierResolveLayerTransformer({
         specifier: '@repo/shared-extra/statics',
@@ -101,9 +91,7 @@ describe('moduleSpecifierResolveLayerTransformer', () => {
     });
 
     it('VALID: {@repo/shared/brokers subpath under src} => resolves to src/<subpath>/<last>', () => {
-      const knownFiles = new Set([
-        '/repo/packages/shared/src/brokers/brokers.ts',
-      ]);
+      const knownFiles = new Set(['/repo/packages/shared/src/brokers/brokers.ts']);
 
       const result = moduleSpecifierResolveLayerTransformer({
         specifier: '@repo/shared/brokers',
@@ -116,9 +104,7 @@ describe('moduleSpecifierResolveLayerTransformer', () => {
     });
 
     it('VALID: {@repo/shared bare} => resolves to src/index', () => {
-      const knownFiles = new Set([
-        '/repo/packages/shared/src/index.ts',
-      ]);
+      const knownFiles = new Set(['/repo/packages/shared/src/index.ts']);
 
       const result = moduleSpecifierResolveLayerTransformer({
         specifier: '@repo/shared',

@@ -47,7 +47,7 @@ export const httpEdgesToAnnotationsLayerBrokerProxy = (): {
       backRefProxy.setupImplementation({
         fn: (filePath: string): string => {
           for (const [key, source] of fileMap) {
-            if (String(key) === String(filePath)) {
+            if (key === filePath) {
               return source;
             }
           }

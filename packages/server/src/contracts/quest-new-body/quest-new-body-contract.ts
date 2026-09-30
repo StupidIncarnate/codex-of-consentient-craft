@@ -20,18 +20,20 @@ import { questTypeContract } from '@dungeonmaster/shared/contracts';
 
 import { pastedImageUploadListContract } from '../pasted-image-upload-list/pasted-image-upload-list-contract';
 
-export const questNewBodyContract = z.object({
-  message: z.string().min(1).brand<'QuestNewBodyMessage'>(),
-  questType: questTypeContract
-    .optional()
-    .describe(
-      "Which pipeline the new quest follows. Omit for the default feature pipeline; 'bug-hunt' seeds the BugHunt intake instead of ChaosWhisperer's — the only way a bug-hunt differs from a feature quest, since both run the identical implementation relay afterward.",
-    ),
-  images: pastedImageUploadListContract
-    .optional()
-    .describe(
-      'Images pasted into the create surface, where no questId exists yet — the first message of a quest is the one most likely to carry screenshots, which is why the create route needs the field at all.',
-    ),
-}).brand<'QuestNewBody'>();
+export const questNewBodyContract = z
+  .object({
+    message: z.string().min(1).brand<'QuestNewBodyMessage'>(),
+    questType: questTypeContract
+      .optional()
+      .describe(
+        "Which pipeline the new quest follows. Omit for the default feature pipeline; 'bug-hunt' seeds the BugHunt intake instead of ChaosWhisperer's — the only way a bug-hunt differs from a feature quest, since both run the identical implementation relay afterward.",
+      ),
+    images: pastedImageUploadListContract
+      .optional()
+      .describe(
+        'Images pasted into the create surface, where no questId exists yet — the first message of a quest is the one most likely to carry screenshots, which is why the create route needs the field at all.',
+      ),
+  })
+  .brand<'QuestNewBody'>();
 
 export type QuestNewBody = z.infer<typeof questNewBodyContract>;

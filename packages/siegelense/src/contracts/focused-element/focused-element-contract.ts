@@ -16,8 +16,6 @@
 
 import { z } from '#gateway/npm/zod';
 
-
-
 export const focusedElementContract = z
   .object({
     tag: z.string().brand<'FocusedElementTag'>(),
@@ -27,6 +25,7 @@ export const focusedElementContract = z
     text: z.string().brand<'FocusedElementText'>().nullable(),
     ref: z.number().int().positive().brand<'FocusedElementRef'>().nullable(),
   })
-  .strict().brand<'FocusedElement'>();
+  .strict()
+  .brand<'FocusedElement'>();
 
 export type FocusedElement = z.infer<typeof focusedElementContract>;

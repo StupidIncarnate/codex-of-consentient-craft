@@ -259,7 +259,7 @@ export const dispatchHarness = ({
       await quests.seedInProgressWithOperations({
         questId: created.questId,
         questFolder: created.questFolder,
-        questFilePath: String(created.filePath),
+        questFilePath: created.filePath,
         title,
         operations,
         firstWorkItemId,

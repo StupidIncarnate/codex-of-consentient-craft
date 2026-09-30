@@ -34,11 +34,7 @@ export const ArchitectureHandleResponderProxy = (): {
     args: Record<string, unknown>;
     meta?: Record<string, unknown>;
   }) => ReturnType<typeof ArchitectureHandleResponder>;
-  setupFileDiscovery: (params: {
-    filepath: string;
-    contents: string;
-    pattern: string;
-  }) => void;
+  setupFileDiscovery: (params: { filepath: string; contents: string; pattern: string }) => void;
   setupDiscoverIgnore: (params: { patterns: readonly string[] }) => void;
   setupFolderConstraint: (params: { folderType: string; content: string }) => void;
   setupLibraryPackage: (params: { packageName: string }) => void;
@@ -104,7 +100,7 @@ export const ArchitectureHandleResponderProxy = (): {
     }): void => {
       folderConstraintsState.set({
         folderType,
-        content: content,
+        content,
       });
     },
     setupLibraryPackage: ({ packageName }: { packageName: string }): void => {
@@ -124,9 +120,9 @@ export const ArchitectureHandleResponderProxy = (): {
       groupName: string;
       packageName: string;
     }): void => {
-      const packagesPath = `${String(DEFAULT_PROJECT_ROOT)}/packages`;
+      const packagesPath = `${DEFAULT_PROJECT_ROOT}/packages`;
       existsSyncHandle.returns({
-        path: `${String(packagesPath)}/${packageName}`,
+        path: `${packagesPath}/${packageName}`,
         exists: false,
       });
       readdirHandle.returns({
@@ -134,7 +130,7 @@ export const ArchitectureHandleResponderProxy = (): {
         entries: [{ name: groupName, kind: 'directory' }],
       });
       readdirHandle.returns({
-        path: `${String(packagesPath)}/${groupName}`,
+        path: `${packagesPath}/${groupName}`,
         entries: [{ name: packageName, kind: 'directory' }],
       });
     },
@@ -161,7 +157,7 @@ export const ArchitectureHandleResponderProxy = (): {
       packageName: string;
       repoRoot?: string;
     }): void => {
-      const root = repoRoot ?? String(DEFAULT_PROJECT_ROOT);
+      const root = repoRoot ?? DEFAULT_PROJECT_ROOT;
       existsSyncHandle.returns({
         path: `${root}/packages/${packageName}`,
         exists: true,

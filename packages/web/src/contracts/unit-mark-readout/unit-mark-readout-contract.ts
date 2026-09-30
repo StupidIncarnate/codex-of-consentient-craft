@@ -14,9 +14,11 @@ import { z } from '#gateway/npm/zod';
 
 import { qaChecklistItemContract } from '@dungeonmaster/shared/contracts';
 
-export const unitMarkReadoutContract = z.object({
-  unitId: qaChecklistItemContract.shape.id,
-  mark: z.enum(['met', 'cant-meet', 'unmet', 'unmarked']),
-}).brand<'UnitMarkReadout'>();
+export const unitMarkReadoutContract = z
+  .object({
+    unitId: qaChecklistItemContract.shape.id,
+    mark: z.enum(['met', 'cant-meet', 'unmet', 'unmarked']),
+  })
+  .brand<'UnitMarkReadout'>();
 
 export type UnitMarkReadout = z.infer<typeof unitMarkReadoutContract>;

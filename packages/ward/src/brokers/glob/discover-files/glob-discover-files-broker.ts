@@ -14,7 +14,6 @@ import { globSync } from '#gateway/node/fs';
 
 import { projectResultContract } from '../../../contracts/project-result/project-result-contract';
 
-
 const discoveredCountContract = projectResultContract.shape.discoveredCount;
 
 export const globDiscoverFilesBroker = ({

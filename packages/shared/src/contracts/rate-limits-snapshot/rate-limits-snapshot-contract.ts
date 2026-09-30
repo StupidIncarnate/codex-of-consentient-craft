@@ -9,10 +9,12 @@ import { z } from '#gateway/npm/zod';
 
 import { rateLimitWindowContract } from '../rate-limit-window/rate-limit-window-contract';
 
-export const rateLimitsSnapshotContract = z.object({
-  fiveHour: rateLimitWindowContract.nullable(),
-  sevenDay: rateLimitWindowContract.nullable(),
-  updatedAt: z.iso.datetime().brand<'RateLimitsSnapshotUpdatedAt'>(),
-}).brand<'RateLimitsSnapshot'>();
+export const rateLimitsSnapshotContract = z
+  .object({
+    fiveHour: rateLimitWindowContract.nullable(),
+    sevenDay: rateLimitWindowContract.nullable(),
+    updatedAt: z.iso.datetime().brand<'RateLimitsSnapshotUpdatedAt'>(),
+  })
+  .brand<'RateLimitsSnapshot'>();
 
 export type RateLimitsSnapshot = z.infer<typeof rateLimitsSnapshotContract>;

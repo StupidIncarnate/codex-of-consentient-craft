@@ -1,4 +1,3 @@
-
 import { ownerIndexImportSourceTransformer } from './owner-index-import-source-transformer';
 
 describe('ownerIndexImportSourceTransformer', () => {

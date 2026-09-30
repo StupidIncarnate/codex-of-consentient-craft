@@ -56,13 +56,7 @@ export const shotBlankReadBrokerProxy = (): {
       });
     },
 
-    stagesShotReadError: ({
-      shotPath,
-      error,
-    }: {
-      shotPath: string;
-      error: Error;
-    }): void => {
+    stagesShotReadError: ({ shotPath, error }: { shotPath: string; error: Error }): void => {
       const fsError: FsError = Object.assign(error, {
         code: 'code' in error && typeof error.code === 'string' ? error.code : 'EIO',
       });

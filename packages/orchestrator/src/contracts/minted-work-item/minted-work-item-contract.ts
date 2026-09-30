@@ -23,31 +23,38 @@
  * nothing to copy from, and synthesising a payload for it would invent a brief nobody wrote.
  */
 
-import { pieceIdContract, workItemRoleContract, workItemContract, qaChecklistItemContract } from '@dungeonmaster/shared/contracts';
+import {
+  pieceIdContract,
+  workItemRoleContract,
+  workItemContract,
+  qaChecklistItemContract,
+} from '@dungeonmaster/shared/contracts';
 import { z } from '#gateway/npm/zod';
 
-export const mintedWorkItemContract = z.object({
-  step: z.string().min(1).brand<'MintedWorkItemStep'>(),
-  role: workItemRoleContract.describe(
-    'Copied from the operation item this scope belongs to — never invented.',
-  ),
-  assignedUnitIds: z.array(qaChecklistItemContract.shape.id).default([]),
-  pieceId: pieceIdContract.optional(),
-  payload: z
-    .record(z.string(), z.unknown())
-    .optional()
-    .describe("The piece's own brief, or the copy inherited from the piece that first claimed."),
-  mintedBy: workItemContract.shape.id
-    .optional()
-    .describe(
-      'THE RETURN EDGE — the work item whose `unmet` marks or `request` caused this one to exist.',
+export const mintedWorkItemContract = z
+  .object({
+    step: z.string().min(1).brand<'MintedWorkItemStep'>(),
+    role: workItemRoleContract.describe(
+      'Copied from the operation item this scope belongs to — never invented.',
     ),
-  needsLane: z
-    .boolean()
-    .default(false)
-    .describe(
-      'Copied off the step config: this item needs a siegelense lane before it dispatches.',
-    ),
-}).brand<'MintedWorkItem'>();
+    assignedUnitIds: z.array(qaChecklistItemContract.shape.id).default([]),
+    pieceId: pieceIdContract.optional(),
+    payload: z
+      .record(z.string(), z.unknown())
+      .optional()
+      .describe("The piece's own brief, or the copy inherited from the piece that first claimed."),
+    mintedBy: workItemContract.shape.id
+      .optional()
+      .describe(
+        'THE RETURN EDGE — the work item whose `unmet` marks or `request` caused this one to exist.',
+      ),
+    needsLane: z
+      .boolean()
+      .default(false)
+      .describe(
+        'Copied off the step config: this item needs a siegelense lane before it dispatches.',
+      ),
+  })
+  .brand<'MintedWorkItem'>();
 
 export type MintedWorkItem = z.infer<typeof mintedWorkItemContract>;

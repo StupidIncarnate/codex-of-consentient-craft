@@ -34,7 +34,7 @@ export const smoketestTeardownQuestBrokerProxy = (): {
       const homePath = '/home/testuser/.dungeonmaster';
       const guildsDir = '/home/testuser/.dungeonmaster/guilds';
       const questsDirPath = `/home/testuser/.dungeonmaster/guilds/${guildId}/quests`;
-      const questFolderPath = String(questPath);
+      const questFolderPath = questPath;
       const questFilePath = `${questPath}/quest.json`;
       const quest: Quest = QuestStub({ id: questId });
 

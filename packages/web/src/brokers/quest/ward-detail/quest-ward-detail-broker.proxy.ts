@@ -1,7 +1,6 @@
 // PURPOSE: Proxy for quest-ward-detail-broker providing test control over HTTP responses
 // USAGE: Create proxy in test, use setup methods to configure endpoint behavior
 
-
 import { fetchJsonProxy } from '#gateway/browser/fetch/fetch-json/fetch-json.proxy';
 
 import { webConfigStatics } from '../../../statics/web-config/web-config-statics';

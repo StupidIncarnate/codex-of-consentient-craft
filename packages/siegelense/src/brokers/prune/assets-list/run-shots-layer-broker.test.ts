@@ -1,4 +1,3 @@
-
 import { RunIdStub } from '../../../contracts/run-id/run-id.stub';
 import { runShotsLayerBroker } from './run-shots-layer-broker';
 import { runShotsLayerBrokerProxy } from './run-shots-layer-broker.proxy';

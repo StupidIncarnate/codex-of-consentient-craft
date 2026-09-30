@@ -49,9 +49,7 @@ export const astMockCallsTransformer = ({
         const [firstArg, secondArg] = node.arguments;
         if (firstArg && ts.isStringLiteral(firstArg)) {
           const moduleName = firstArg.text;
-          const factoryText = secondArg
-            ? secondArg.getText(tsSourceFile)
-            : null;
+          const factoryText = secondArg ? secondArg.getText(tsSourceFile) : null;
 
           mockCalls.push(
             mockCallContract.parse({
@@ -104,7 +102,7 @@ export const astMockCallsTransformer = ({
     for (const element of namedBindings.elements) {
       if (!element.isTypeOnly) {
         const localName = element.name.text;
-        const exportName = (element.propertyName ? element.propertyName.text : element.name.text);
+        const exportName = element.propertyName ? element.propertyName.text : element.name.text;
         importModuleMap.set(localName, moduleName);
         namedExportMap.set(localName, exportName);
       }

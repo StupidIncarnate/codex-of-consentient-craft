@@ -233,7 +233,7 @@ test.describe('Composer send — images and a rejected send', () => {
     await sessions.createSessionFile({ sessionId, userMessage: 'Build feature' });
 
     const created = await quests.createQuest({
-      guildId: guildId,
+      guildId,
       title: 'Send Images Rejection Write Failure Quest',
       userRequest: 'Build feature',
     });
@@ -308,7 +308,7 @@ test.describe('Composer send — images and a rejected send', () => {
     await sessions.createSessionFile({ sessionId, userMessage: 'Build feature' });
 
     const created = await quests.createQuest({
-      guildId: guildId,
+      guildId,
       title: 'Send Images Rejection Retry Quest',
       userRequest: 'Build feature',
     });

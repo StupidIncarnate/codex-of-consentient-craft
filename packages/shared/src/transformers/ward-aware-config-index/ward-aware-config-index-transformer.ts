@@ -22,11 +22,7 @@ import { roleToConfigIndexTransformer } from '../role-to-config-index/role-to-co
 
 const WARD_FLOOR_NAME = 'FLOOR BOSS';
 
-export const wardAwareConfigIndexTransformer = ({
-  workItem,
-}: {
-  workItem: WorkItem;
-}): number =>
+export const wardAwareConfigIndexTransformer = ({ workItem }: { workItem: WorkItem }): number =>
   roleToConfigIndexTransformer({
     role: workItem.role,
     ...(workItem.role === 'ward' ? { floorName: WARD_FLOOR_NAME } : {}),

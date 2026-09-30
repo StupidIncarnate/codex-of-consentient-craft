@@ -11,7 +11,9 @@ describe('InstallSetupGatewayResponder', () => {
     });
 
     const result = await InstallSetupGatewayResponder({
-      context: InstallContextStub({ value: { targetProjectRoot, dungeonmasterRoot: targetProjectRoot } }),
+      context: InstallContextStub({
+        value: { targetProjectRoot, dungeonmasterRoot: targetProjectRoot },
+      }),
     });
 
     expect(result).toStrictEqual({
@@ -76,7 +78,9 @@ describe('InstallSetupGatewayResponder', () => {
     });
 
     const result = await InstallSetupGatewayResponder({
-      context: InstallContextStub({ value: { targetProjectRoot, dungeonmasterRoot: targetProjectRoot } }),
+      context: InstallContextStub({
+        value: { targetProjectRoot, dungeonmasterRoot: targetProjectRoot },
+      }),
     });
 
     expect(result).toStrictEqual({
@@ -118,7 +122,9 @@ describe('InstallSetupGatewayResponder', () => {
     });
 
     const result = await InstallSetupGatewayResponder({
-      context: InstallContextStub({ value: { targetProjectRoot, dungeonmasterRoot: targetProjectRoot } }),
+      context: InstallContextStub({
+        value: { targetProjectRoot, dungeonmasterRoot: targetProjectRoot },
+      }),
     });
 
     expect(result).toStrictEqual({
@@ -190,7 +196,9 @@ describe('InstallSetupGatewayResponder', () => {
     });
 
     const result = await InstallSetupGatewayResponder({
-      context: InstallContextStub({ value: { targetProjectRoot, dungeonmasterRoot: targetProjectRoot } }),
+      context: InstallContextStub({
+        value: { targetProjectRoot, dungeonmasterRoot: targetProjectRoot },
+      }),
     });
 
     expect(result).toStrictEqual({

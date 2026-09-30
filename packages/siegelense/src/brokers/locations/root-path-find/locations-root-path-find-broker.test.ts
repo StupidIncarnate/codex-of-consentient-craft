@@ -42,9 +42,7 @@ describe('locationsRootPathFindBroker', () => {
 
       const result = locationsRootPathFindBroker();
 
-      expect(result).toBe(
-        '/srv/agents/worker-3/state/.dungeonmaster/siegelense',
-      );
+      expect(result).toBe('/srv/agents/worker-3/state/.dungeonmaster/siegelense');
     });
   });
 });

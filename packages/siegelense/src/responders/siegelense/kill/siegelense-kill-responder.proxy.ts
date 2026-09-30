@@ -51,7 +51,13 @@ export const SiegelenseKillResponderProxy = (): {
       instanceKillHandle.calledWith([{ instanceId: result.instanceId }]).resolves(result);
     },
 
-    stageKillThrows: ({ error, instanceId }: { error: Error; instanceId: SiegeInstance['id'] }): void => {
+    stageKillThrows: ({
+      error,
+      instanceId,
+    }: {
+      error: Error;
+      instanceId: SiegeInstance['id'];
+    }): void => {
       instanceKillHandle.calledWith([{ instanceId }]).rejects(error);
     },
 

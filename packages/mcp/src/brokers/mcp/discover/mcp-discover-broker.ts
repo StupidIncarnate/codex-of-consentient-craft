@@ -91,17 +91,15 @@ export const mcpDiscoverBroker = async ({
     // The probes below must see the same tree the scan just saw, or the hint explains an absence
     // the caller never had — so they resolve the ignore list exactly as fileScannerBroker does.
     const ignore = globIgnoreFilterTransformer({
-      patterns:
-        ignorePatterns ??
-        fileDiscoveryStatics.globIgnorePatterns.map((value) => value),
+      patterns: ignorePatterns ?? fileDiscoveryStatics.globIgnorePatterns.map((value) => value),
       glob: globSuffix,
     });
 
     // When grep was set, check if the glob itself matched files before grep filtered them out.
     // This prevents the misleading "append /**" directory hint when the real problem is grep.
     if (validated.grep) {
-      const fileHits = (await globFind(pattern, { cwd: cwdPath, ignore })).map((foundPath) =>
-        foundPath,
+      const fileHits = (await globFind(pattern, { cwd: cwdPath, ignore })).map(
+        (foundPath) => foundPath,
       );
       if (fileHits.length > 0) {
         const hintLines = [

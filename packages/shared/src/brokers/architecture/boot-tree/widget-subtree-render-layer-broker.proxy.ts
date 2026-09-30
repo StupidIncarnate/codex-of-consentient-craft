@@ -5,13 +5,7 @@ import { callChainLinesRenderLayerBrokerProxy } from './call-chain-lines-render-
 import { importsInFolderTypeFindLayerBrokerProxy } from './imports-in-folder-type-find-layer-broker.proxy';
 
 export const widgetSubtreeRenderLayerBrokerProxy = (): {
-  setupSource: ({
-    sourceFile,
-    content,
-  }: {
-    sourceFile: string;
-    content: string;
-  }) => void;
+  setupSource: ({ sourceFile, content }: { sourceFile: string; content: string }) => void;
   setupMissing: ({ sourceFile }: { sourceFile: string }) => void;
   setupImplementation: ({ fn }: { fn: (filePath: string) => string }) => void;
 } => {
@@ -22,13 +16,7 @@ export const widgetSubtreeRenderLayerBrokerProxy = (): {
   callChainLinesRenderLayerBrokerProxy();
 
   return {
-    setupSource: ({
-      sourceFile,
-      content,
-    }: {
-      sourceFile: string;
-      content: string;
-    }): void => {
+    setupSource: ({ sourceFile, content }: { sourceFile: string; content: string }): void => {
       importsProxy.setupSource({ sourceFile, content });
     },
     setupMissing: ({ sourceFile }: { sourceFile: string }): void => {

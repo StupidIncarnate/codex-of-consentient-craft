@@ -24,19 +24,23 @@ const gatewayImportsTargetContract = z.union([
       import: z.string().brand<'GatewayImportsTargetImport'>().optional(),
       require: z.string().brand<'GatewayImportsTargetRequire'>().optional(),
       default: z.string().brand<'GatewayImportsTargetDefault'>().optional(),
-    }).brand<'GatewayImportsTarget'>()
+    })
+    .brand<'GatewayImportsTarget'>()
     .loose(),
 ]);
 
 export const gatewayConsumerPackageJsonContract = z
   .object({
     name: z.string().min(1).brand<'GatewayConsumerPackageJsonName'>(),
-    imports: z
-      .record(z.string(), gatewayImportsTargetContract)
+    imports: z.record(z.string(), gatewayImportsTargetContract).optional(),
+    dependencies: z
+      .record(z.string().min(1), z.string().brand<'GatewayConsumerPackageJsonDependencies'>())
       .optional(),
-    dependencies: z.record(z.string().min(1), z.string().brand<'GatewayConsumerPackageJsonDependencies'>()).optional(),
-    devDependencies: z.record(z.string().min(1), z.string().brand<'GatewayConsumerPackageJsonDevDependencies'>()).optional(),
+    devDependencies: z
+      .record(z.string().min(1), z.string().brand<'GatewayConsumerPackageJsonDevDependencies'>())
+      .optional(),
   })
-  .loose().brand<'GatewayConsumerPackageJson'>();
+  .loose()
+  .brand<'GatewayConsumerPackageJson'>();
 
 export type GatewayConsumerPackageJson = z.infer<typeof gatewayConsumerPackageJsonContract>;

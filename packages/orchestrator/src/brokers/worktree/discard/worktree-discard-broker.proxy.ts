@@ -8,7 +8,6 @@
  * const result = await worktreeDiscardBroker({ repoRoot, worktreePath, branchName });
  */
 
-
 import { branchDeleteProxy } from '#gateway/bin/git/branch-delete/branch-delete.proxy';
 import { worktreeRemoveProxy } from '#gateway/bin/git/worktree-remove/worktree-remove.proxy';
 
@@ -21,16 +20,9 @@ const extractArgs = (call: readonly unknown[]): readonly unknown[] => {
 };
 
 export const worktreeDiscardBrokerProxy = (): {
-  setupBothSucceed: (params: {
-    worktreePath: string;
-    branchName: string;
-  }) => void;
+  setupBothSucceed: (params: { worktreePath: string; branchName: string }) => void;
   setupRemoveFails: (params: { worktreePath: string; output: string }) => void;
-  setupDeleteFails: (params: {
-    worktreePath: string;
-    branchName: string;
-    output: string;
-  }) => void;
+  setupDeleteFails: (params: { worktreePath: string; branchName: string; output: string }) => void;
   getSpawnedArgsList: () => readonly unknown[];
 } => {
   const removeProxy = worktreeRemoveProxy();
@@ -46,8 +38,8 @@ export const worktreeDiscardBrokerProxy = (): {
       branchName: string;
     }): void => {
       state.worktreePath = worktreePath;
-      removeProxy.setupResult({ worktreePath: String(worktreePath), exitCode: 0, output: '' });
-      deleteProxy.setupResult({ branchName: String(branchName), exitCode: 0, output: '' });
+      removeProxy.setupResult({ worktreePath: worktreePath, exitCode: 0, output: '' });
+      deleteProxy.setupResult({ branchName: branchName, exitCode: 0, output: '' });
     },
 
     setupRemoveFails: ({
@@ -58,7 +50,7 @@ export const worktreeDiscardBrokerProxy = (): {
       output: string;
     }): void => {
       state.worktreePath = worktreePath;
-      removeProxy.setupResult({ worktreePath: String(worktreePath), exitCode: 128, output });
+      removeProxy.setupResult({ worktreePath: worktreePath, exitCode: 128, output });
     },
 
     setupDeleteFails: ({
@@ -71,8 +63,8 @@ export const worktreeDiscardBrokerProxy = (): {
       output: string;
     }): void => {
       state.worktreePath = worktreePath;
-      removeProxy.setupResult({ worktreePath: String(worktreePath), exitCode: 0, output: '' });
-      deleteProxy.setupResult({ branchName: String(branchName), exitCode: 128, output });
+      removeProxy.setupResult({ worktreePath: worktreePath, exitCode: 0, output: '' });
+      deleteProxy.setupResult({ branchName: branchName, exitCode: 128, output });
     },
 
     getSpawnedArgsList: (): readonly unknown[] => {
@@ -85,7 +77,7 @@ export const worktreeDiscardBrokerProxy = (): {
       }
 
       const removeCalls = removeProxy
-        .getCallsFor({ worktreePath: String(state.worktreePath) })
+        .getCallsFor({ worktreePath: state.worktreePath })
         .map(extractArgs);
       return [...removeCalls, ...deleteCalls];
     },

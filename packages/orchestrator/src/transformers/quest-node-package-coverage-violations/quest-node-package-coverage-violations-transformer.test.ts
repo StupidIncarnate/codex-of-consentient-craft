@@ -71,7 +71,7 @@ describe('questNodePackageCoverageViolationsTransformer', () => {
         quest,
       });
 
-      expect(offenders.map((offender) => String(offender))).toStrictEqual([
+      expect(offenders.map((offender) => offender)).toStrictEqual([
         "Node 'press-warp' in flow 'warpgate-merge' tags no package. Every node names at least one package it lands in — the tag is what routes the node's terminal and branch units, which carry no observable to read a package from. Tag it with a name from quest.packagesAffected, or with two when it spans a seam.",
       ]);
     });
@@ -88,7 +88,7 @@ describe('questNodePackageCoverageViolationsTransformer', () => {
         quest: QuestStub({ flows: [flow], packagesAffected: [WEB_ENTRY] }),
       });
 
-      expect(offenders.map((offender) => String(offender))).toStrictEqual([
+      expect(offenders.map((offender) => offender)).toStrictEqual([
         "Node 'press-warp' in flow 'warpgate-merge' tags package 'cli', which is not in quest.packagesAffected. Add an entry { name, location, changeType: 'edit' | 'new', packageType } — and for a 'new' package, usedBy[] naming its consumers — in the same modify-quest call, or retag the node.",
       ]);
     });
@@ -103,7 +103,7 @@ describe('questNodePackageCoverageViolationsTransformer', () => {
         quest: QuestStub({ flows: [flow], packagesAffected: [WEB_ENTRY] }),
       });
 
-      expect(offenders.map((offender) => String(offender))).toStrictEqual([
+      expect(offenders.map((offender) => offender)).toStrictEqual([
         "Node 'press-warp' in flow 'warpgate-merge' tags package 'cli', which is not in quest.packagesAffected. Add an entry { name, location, changeType: 'edit' | 'new', packageType } — and for a 'new' package, usedBy[] naming its consumers — in the same modify-quest call, or retag the node.",
       ]);
     });
@@ -118,7 +118,7 @@ describe('questNodePackageCoverageViolationsTransformer', () => {
         quest: QuestStub({ flows: [flow], packagesAffected: [] }),
       });
 
-      expect(offenders.map((offender) => String(offender))).toStrictEqual([
+      expect(offenders.map((offender) => offender)).toStrictEqual([
         "Node 'merge-status-ok' in flow 'warpgate-merge' tags package 'server', which is not in quest.packagesAffected. Add an entry { name, location, changeType: 'edit' | 'new', packageType } — and for a 'new' package, usedBy[] naming its consumers — in the same modify-quest call, or retag the node.",
       ]);
     });
@@ -140,7 +140,7 @@ describe('questNodePackageCoverageViolationsTransformer', () => {
         }),
       });
 
-      expect(offenders.map((offender) => String(offender))).toStrictEqual([
+      expect(offenders.map((offender) => offender)).toStrictEqual([
         "Node 'press-warp' in flow 'warpgate-merge' tags package 'cli', which is not in quest.packagesAffected. Add an entry { name, location, changeType: 'edit' | 'new', packageType } — and for a 'new' package, usedBy[] naming its consumers — in the same modify-quest call, or retag the node.",
         "Node 'merge-status-ok' in flow 'followup-chat' tags package 'tooling', which is not in quest.packagesAffected. Add an entry { name, location, changeType: 'edit' | 'new', packageType } — and for a 'new' package, usedBy[] naming its consumers — in the same modify-quest call, or retag the node.",
       ]);

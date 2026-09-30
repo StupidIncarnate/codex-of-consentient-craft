@@ -12,11 +12,7 @@
 
 import { readFileSync } from '#gateway/node/fs';
 
-export const readFileLayerBroker = ({
-  filePath,
-}: {
-  filePath: string;
-}): string | undefined => {
+export const readFileLayerBroker = ({ filePath }: { filePath: string }): string | undefined => {
   try {
     return readFileSync(filePath);
   } catch {

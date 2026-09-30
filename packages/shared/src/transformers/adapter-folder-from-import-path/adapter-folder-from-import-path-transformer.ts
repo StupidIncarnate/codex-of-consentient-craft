@@ -12,13 +12,12 @@
  * WHEN-NOT-TO-USE: When the import path does not contain an `adapters/` segment (returns empty)
  */
 
-
 export const adapterFolderFromImportPathTransformer = ({
   importPath,
 }: {
   importPath: string;
 }): string => {
-  const ipStr = String(importPath);
+  const ipStr = importPath;
   const adpIdx = ipStr.indexOf('adapters/');
   if (adpIdx === -1) {
     return '';

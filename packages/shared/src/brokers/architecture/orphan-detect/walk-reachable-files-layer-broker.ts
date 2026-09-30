@@ -39,7 +39,7 @@ export const walkReachableFilesLayerBroker = ({
     }
   }
 
-  const srcPrefix = `${String(packageSrcPath)}/`;
+  const srcPrefix = `${packageSrcPath}/`;
 
   while (queue.length > 0) {
     const current = queue.shift();
@@ -56,7 +56,7 @@ export const walkReachableFilesLayerBroker = ({
       });
       if (resolved === null) continue;
 
-      const resolvedStr = String(resolved);
+      const resolvedStr = resolved;
       const tsxCandidate = resolvedStr.endsWith(TS_SUFFIX)
         ? `${resolvedStr.slice(0, -TS_SUFFIX.length)}${TSX_SUFFIX}`
         : null;
@@ -69,7 +69,7 @@ export const walkReachableFilesLayerBroker = ({
             : resolved;
 
       // Restrict the walk to in-package source files.
-      if (!String(onDisk).startsWith(srcPrefix)) continue;
+      if (!onDisk.startsWith(srcPrefix)) continue;
       if (reachable.has(onDisk)) continue;
 
       reachable.add(onDisk);

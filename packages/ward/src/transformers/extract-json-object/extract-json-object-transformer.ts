@@ -9,14 +9,9 @@
  * // Returns '{"numTotalTestSuites":5,"testResults":[]}'
  */
 
-
 const JEST_SUMMARY_KEY = '"numTotalTestSuites"';
 
-export const extractJsonObjectTransformer = ({
-  output,
-}: {
-  output: string;
-}): string => {
+export const extractJsonObjectTransformer = ({ output }: { output: string }): string => {
   let depth = 0;
   let inString = false;
   let escaped = false;
@@ -54,7 +49,7 @@ export const extractJsonObjectTransformer = ({
       if (depth === 0 && currentStart >= 0) {
         const candidate = output.slice(currentStart, i + 1);
         if (candidate.includes(JEST_SUMMARY_KEY)) {
-          return candidate as string;
+          return candidate;
         }
         currentStart = -1;
       }

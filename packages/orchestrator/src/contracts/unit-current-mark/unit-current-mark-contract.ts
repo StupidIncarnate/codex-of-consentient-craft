@@ -17,24 +17,30 @@
  * // Returns: UnitCurrentMark
  */
 
-import { unitMarkContract, workItemContract, qaChecklistItemContract } from '@dungeonmaster/shared/contracts';
+import {
+  unitMarkContract,
+  workItemContract,
+  qaChecklistItemContract,
+} from '@dungeonmaster/shared/contracts';
 import { z } from '#gateway/npm/zod';
 
-export const unitCurrentMarkContract = z.object({
-  unitId: qaChecklistItemContract.shape.id,
-  mark: unitMarkContract,
-  // The three branded strings below are re-declared under the literals `unitObservationContract`
-  // already uses rather than imported. A zod brand is structural on the literal, so a re-declaration
-  // under the same literal is assignable both ways, and a typo in one is a nominal type nothing
-  // satisfies — it fails at the first assignment rather than silently here.
-  evidence: z.string().min(1).brand<'UnitCurrentMarkEvidence'>(),
-  toSettle: z.string().min(1).brand<'UnitCurrentMarkToSettle'>().optional(),
-  workItemId: workItemContract.shape.id,
-  // `.optional()` — a chat-role work item runs no step of a family graph and carries none.
-  step: z.string().min(1).brand<'UnitCurrentMarkStep'>().optional(),
-  // The moment the unit was SETTLED, taken verbatim off the observation — not the moment the
-  // session that settled it ended.
-  at: z.iso.datetime().brand<'UnitCurrentMarkAt'>(),
-}).brand<'UnitCurrentMark'>();
+export const unitCurrentMarkContract = z
+  .object({
+    unitId: qaChecklistItemContract.shape.id,
+    mark: unitMarkContract,
+    // The three branded strings below are re-declared under the literals `unitObservationContract`
+    // already uses rather than imported. A zod brand is structural on the literal, so a re-declaration
+    // under the same literal is assignable both ways, and a typo in one is a nominal type nothing
+    // satisfies — it fails at the first assignment rather than silently here.
+    evidence: z.string().min(1).brand<'UnitCurrentMarkEvidence'>(),
+    toSettle: z.string().min(1).brand<'UnitCurrentMarkToSettle'>().optional(),
+    workItemId: workItemContract.shape.id,
+    // `.optional()` — a chat-role work item runs no step of a family graph and carries none.
+    step: z.string().min(1).brand<'UnitCurrentMarkStep'>().optional(),
+    // The moment the unit was SETTLED, taken verbatim off the observation — not the moment the
+    // session that settled it ended.
+    at: z.iso.datetime().brand<'UnitCurrentMarkAt'>(),
+  })
+  .brand<'UnitCurrentMark'>();
 
 export type UnitCurrentMark = z.infer<typeof unitCurrentMarkContract>;

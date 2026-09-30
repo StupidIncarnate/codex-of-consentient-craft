@@ -55,7 +55,7 @@ describe('worktreePrepareBroker (integration) — real git worktree creation', (
       absolutePath: `${worktreePath}/packages`,
     });
     const worktreeListOutput = await git.gitWorktreeListOutput({ repoPath });
-    const worktreeListMentionsPath = worktreeListOutput.includes(String(worktreePath));
+    const worktreeListMentionsPath = worktreeListOutput.includes(worktreePath);
     // `dist` is gitignored in the fixture, so the checkout above cannot have produced it — its
     // presence here is the seed and nothing else.
     const seededDistContents = git.readTextFile({

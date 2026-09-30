@@ -24,34 +24,46 @@
 
 import { z } from '#gateway/npm/zod';
 
-
 import { attrPairContract } from '../attr-pair/attr-pair-contract';
 import { elementFlagContract } from '../element-flag/element-flag-contract';
 
-export const rawKeyReadingContract = z.object({
-  rows: z
-    .array(
-      z.object({
-        ref: z.number().int().positive().brand<'RawKeyReadingRowsRef'>(),
-        depth: z.number().int().nonnegative().brand<'RawKeyReadingRowsDepth'>(),
-        parentRef: z.number().int().positive().brand<'RawKeyReadingRowsParentRef'>().nullable(),
-        testId: z.string().brand<'RawKeyReadingRowsTestId'>().nullable(),
-        tag: z.string().brand<'RawKeyReadingRowsTag'>(),
-        role: z.string().brand<'RawKeyReadingRowsRole'>().nullable(),
-        domId: z.string().brand<'RawKeyReadingRowsDomId'>().nullable(),
-        text: z.string().brand<'RawKeyReadingRowsText'>().nullable(),
-        value: z.string().brand<'RawKeyReadingRowsValue'>().nullable(),
-        placeholder: z.string().brand<'RawKeyReadingRowsPlaceholder'>().nullable(),
-        attributes: z.array(attrPairContract).readonly(),
-        flags: z.array(elementFlagContract).readonly(),
-        flagDetail: z.record(z.string(), z.string().brand<'RawKeyReadingRowsFlagDetail'>()).readonly(),
-      }).brand<'RawKeyReadingRows'>(),
-    )
-    .readonly(),
-  highestRef: z.number().int().nonnegative().brand<'RawKeyReadingHighestRef'>(),
-  skipped: z
-    .array(z.object({ under: z.string().brand<'RawKeyReadingSkippedUnder'>(), count: z.number().int().nonnegative().brand<'RawKeyReadingSkippedCount'>() }).brand<'RawKeyReadingSkipped'>())
-    .readonly(),
-}).brand<'RawKeyReading'>();
+export const rawKeyReadingContract = z
+  .object({
+    rows: z
+      .array(
+        z
+          .object({
+            ref: z.number().int().positive().brand<'RawKeyReadingRowsRef'>(),
+            depth: z.number().int().nonnegative().brand<'RawKeyReadingRowsDepth'>(),
+            parentRef: z.number().int().positive().brand<'RawKeyReadingRowsParentRef'>().nullable(),
+            testId: z.string().brand<'RawKeyReadingRowsTestId'>().nullable(),
+            tag: z.string().brand<'RawKeyReadingRowsTag'>(),
+            role: z.string().brand<'RawKeyReadingRowsRole'>().nullable(),
+            domId: z.string().brand<'RawKeyReadingRowsDomId'>().nullable(),
+            text: z.string().brand<'RawKeyReadingRowsText'>().nullable(),
+            value: z.string().brand<'RawKeyReadingRowsValue'>().nullable(),
+            placeholder: z.string().brand<'RawKeyReadingRowsPlaceholder'>().nullable(),
+            attributes: z.array(attrPairContract).readonly(),
+            flags: z.array(elementFlagContract).readonly(),
+            flagDetail: z
+              .record(z.string(), z.string().brand<'RawKeyReadingRowsFlagDetail'>())
+              .readonly(),
+          })
+          .brand<'RawKeyReadingRows'>(),
+      )
+      .readonly(),
+    highestRef: z.number().int().nonnegative().brand<'RawKeyReadingHighestRef'>(),
+    skipped: z
+      .array(
+        z
+          .object({
+            under: z.string().brand<'RawKeyReadingSkippedUnder'>(),
+            count: z.number().int().nonnegative().brand<'RawKeyReadingSkippedCount'>(),
+          })
+          .brand<'RawKeyReadingSkipped'>(),
+      )
+      .readonly(),
+  })
+  .brand<'RawKeyReading'>();
 
 export type RawKeyReading = z.infer<typeof rawKeyReadingContract>;

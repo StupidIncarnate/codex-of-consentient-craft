@@ -101,10 +101,7 @@ describe('resolvePackageGroupsLayerBroker', () => {
 
       expect(result).toStrictEqual({
         httpBackendRoots: [],
-        frontendRoots: [
-          '/repo/packages/web',
-          '/repo/packages/tui',
-        ],
+        frontendRoots: ['/repo/packages/web', '/repo/packages/tui'],
       });
     });
   });

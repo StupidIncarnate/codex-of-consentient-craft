@@ -19,16 +19,19 @@
 import { z } from '#gateway/npm/zod';
 import { fieldValuesContract } from '../field-values/field-values-contract';
 
-export const opSetContract = z.object({
-  op: z.literal('set'),
-  ref: z.string().min(1).brand<'OpSetRef'>(),
-  written: fieldValuesContract,
-  transition: z
-    .object({
-      field: z.string().min(1).brand<'OpSetTransitionField'>(),
-      to: z.json(),
-    }).brand<'OpSetTransition'>()
-    .optional(),
-}).brand<'OpSet'>();
+export const opSetContract = z
+  .object({
+    op: z.literal('set'),
+    ref: z.string().min(1).brand<'OpSetRef'>(),
+    written: fieldValuesContract,
+    transition: z
+      .object({
+        field: z.string().min(1).brand<'OpSetTransitionField'>(),
+        to: z.json(),
+      })
+      .brand<'OpSetTransition'>()
+      .optional(),
+  })
+  .brand<'OpSet'>();
 
 export type OpSet = z.infer<typeof opSetContract>;

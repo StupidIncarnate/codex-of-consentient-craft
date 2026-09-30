@@ -95,10 +95,7 @@ export const workspacePackageImportResolveMiddlewareProxy = (): {
     }): void => {
       const packagesDirPath = join(workspaceRootPath, packagesBaseDir ?? DEFAULT_PACKAGES_BASE_DIR);
       const existingFolderNames = folderNamesByPackagesDir.get(packagesDirPath);
-      const folderNames: FileName[] = [
-        ...(existingFolderNames ?? []),
-        packageFolderName,
-      ];
+      const folderNames: FileName[] = [...(existingFolderNames ?? []), packageFolderName];
       folderNamesByPackagesDir.set(packagesDirPath, folderNames);
       readdirProxy.returns({ path: packagesDirPath, names: folderNames });
 

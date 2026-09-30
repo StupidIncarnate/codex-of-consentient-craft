@@ -35,7 +35,7 @@ export const workspaceManifestEntriesVerifyBroker = async ({
   const verified = await Promise.all(
     declarations.map(async (declaration) => {
       const absolutePath = `${packagePath}/${declaration.declaredPath}`;
-      const stats = await statIfExists(String(absolutePath));
+      const stats = await statIfExists(absolutePath);
       return stats === null ? declaration : null;
     }),
   );

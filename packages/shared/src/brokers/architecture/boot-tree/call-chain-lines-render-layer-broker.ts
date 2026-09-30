@@ -29,7 +29,7 @@ import { importPathToPackagePrefixTransformer } from '../../../transformers/impo
 import { architectureExportNameResolveBroker } from '../export-name-resolve/architecture-export-name-resolve-broker';
 import { importsInFolderTypeFindLayerBroker } from './imports-in-folder-type-find-layer-broker';
 
-const BASE_INDENT_DEFAULT: string = '      ';
+const BASE_INDENT_DEFAULT = '      ';
 const DEPTH_INDENT_UNIT = '  ';
 
 export const callChainLinesRenderLayerBroker = ({
@@ -49,7 +49,7 @@ export const callChainLinesRenderLayerBroker = ({
 }): string[] => {
   const lines: string[] = [];
   const effectiveBase = baseIndent ?? BASE_INDENT_DEFAULT;
-  const indent = `${String(effectiveBase)}${DEPTH_INDENT_UNIT.repeat(depth)}`;
+  const indent = `${effectiveBase}${DEPTH_INDENT_UNIT.repeat(depth)}`;
 
   const excluded = projectMapCallGraphStatics.excludedFolderTypes;
   const structural = projectMapCallGraphStatics.structuralFolderTypes;
@@ -74,13 +74,13 @@ export const callChainLinesRenderLayerBroker = ({
         display = importPathToPackagePrefixTransformer({
           renderingFilePath,
           referencedFilePath: importedFile,
-          symbolName: String(importedSymbol),
+          symbolName: importedSymbol,
         });
       } catch {
         // Cross-package qualification unavailable — keep the bare export name.
       }
 
-      lines.push(`${indent}→ ${String(display)}`);
+      lines.push(`${indent}→ ${display}`);
 
       const recurseArgs =
         baseIndent === undefined
@@ -115,13 +115,13 @@ export const callChainLinesRenderLayerBroker = ({
         layerDisplay = importPathToPackagePrefixTransformer({
           renderingFilePath,
           referencedFilePath: layerFile,
-          symbolName: String(layerSymbol),
+          symbolName: layerSymbol,
         });
       } catch {
         // Cross-package qualification unavailable — keep the bare export name.
       }
 
-      lines.push(`${indent}→ ${String(layerDisplay)}`);
+      lines.push(`${indent}→ ${layerDisplay}`);
 
       const layerRecurseArgs =
         baseIndent === undefined

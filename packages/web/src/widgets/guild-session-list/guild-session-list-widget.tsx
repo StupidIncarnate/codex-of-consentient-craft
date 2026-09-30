@@ -12,7 +12,13 @@
 
 import { Group, Loader, SegmentedControl, Stack, Text } from '#gateway/npm/mantine__core';
 
-import type { QuestListItem, SessionListItem, SkippedQuestFile, Quest, Session } from '@dungeonmaster/shared/contracts';
+import type {
+  QuestListItem,
+  SessionListItem,
+  SkippedQuestFile,
+  Quest,
+  Session,
+} from '@dungeonmaster/shared/contracts';
 
 import type { SessionFilter } from '../../contracts/session-filter/session-filter-contract';
 import { sessionFilterContract } from '../../contracts/session-filter/session-filter-contract';

@@ -12,10 +12,7 @@ import { tsconfigJsonContract } from '../../contracts/tsconfig-json/tsconfig-jso
 import { checkCommandsStatics } from '../../statics/check-commands/check-commands-statics';
 import { expandToTsGlobsTransformer } from '../expand-to-ts-globs/expand-to-ts-globs-transformer';
 
-const DEFAULT_EXCLUDE: string[] = [
-  'node_modules',
-  'dist',
-];
+const DEFAULT_EXCLUDE: string[] = ['node_modules', 'dist'];
 
 export const tsconfigDiscoverPatternsTransformer = ({
   tsconfigData,
@@ -23,9 +20,7 @@ export const tsconfigDiscoverPatternsTransformer = ({
   tsconfigData: unknown;
 }): TsconfigDiscoverPatterns => {
   const fallback = {
-    patterns: checkCommandsStatics.typecheck.discoverPatterns.map((p) =>
-      p,
-    ),
+    patterns: checkCommandsStatics.typecheck.discoverPatterns.map((p) => p),
     exclude: [...DEFAULT_EXCLUDE],
   };
 

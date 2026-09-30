@@ -15,9 +15,7 @@ describe('locationsHookConfigPathFindBroker', () => {
         startPath: '/project',
       });
 
-      expect(result).toBe(
-        '/project/.dungeonmaster-hooks.config.ts',
-      );
+      expect(result).toBe('/project/.dungeonmaster-hooks.config.ts');
     });
 
     it('VALID: {startPath: "/project", first variant missing} => returns later matching variant', async () => {
@@ -32,9 +30,7 @@ describe('locationsHookConfigPathFindBroker', () => {
         startPath: '/project',
       });
 
-      expect(result).toBe(
-        '/project/.dungeonmaster-hooks.config.mjs',
-      );
+      expect(result).toBe('/project/.dungeonmaster-hooks.config.mjs');
     });
 
     it('VALID: {startPath: "/project/src/nested", config in ancestor} => walks up and returns ancestor path', async () => {
@@ -49,9 +45,7 @@ describe('locationsHookConfigPathFindBroker', () => {
         startPath: '/project/src/nested',
       });
 
-      expect(result).toBe(
-        '/project/src/.dungeonmaster-hooks.config.ts',
-      );
+      expect(result).toBe('/project/src/.dungeonmaster-hooks.config.ts');
     });
   });
 

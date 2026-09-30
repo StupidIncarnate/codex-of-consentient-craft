@@ -12,7 +12,6 @@
  * // Returns the `delta` off the last row that carried a non-null one, or null when none did
  */
 
-
 import type { ElementDelta } from '../../../contracts/element-delta/element-delta-contract';
 import { stepReadingContract } from '../../../contracts/step-reading/step-reading-contract';
 

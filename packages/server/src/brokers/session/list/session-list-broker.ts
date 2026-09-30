@@ -44,7 +44,7 @@ export const sessionListBroker = async ({
     projectPath: guildPath,
     sessionId: dummySessionId,
   });
-  const claudeProjectDir = String(probePath).slice(0, String(probePath).lastIndexOf('/'));
+  const claudeProjectDir = probePath.slice(0, probePath.lastIndexOf('/'));
 
   const directFiles = (
     await glob('*.jsonl', {
@@ -74,7 +74,7 @@ export const sessionListBroker = async ({
   }
 
   const directSessionIds = new Set(
-    directFiles.map((p) => String(p).split('/').pop()?.replace('.jsonl', '') ?? ''),
+    directFiles.map((p) => p.split('/').pop()?.replace('.jsonl', '') ?? ''),
   );
   const crossProjectRoot = `${homeDir}/.claude/projects`;
 
@@ -120,7 +120,7 @@ export const sessionListBroker = async ({
 
   const diskResults = await Promise.all(
     dedupedFiles.map(async (filePath) => {
-      const fileName = String(filePath).split('/').pop() ?? '';
+      const fileName = filePath.split('/').pop() ?? '';
       const diskSessionId = sessionContract.shape.id.parse(fileName.replace('.jsonl', ''));
 
       try {
@@ -137,7 +137,7 @@ export const sessionListBroker = async ({
             }
 
             try {
-              const rawContent = (await readFile(filePath));
+              const rawContent = await readFile(filePath);
               const summary = extractSessionFileSummaryTransformer({
                 fileContent: rawContent,
               });

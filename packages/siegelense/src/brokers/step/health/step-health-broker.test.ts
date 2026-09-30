@@ -1,4 +1,3 @@
-
 import { BrowserSessionStub } from '../../../contracts/browser-session/browser-session.stub';
 import { LaneSessionStub } from '../../../contracts/lane-session/lane-session.stub';
 import { stepHealthBroker } from './step-health-broker';
@@ -156,9 +155,7 @@ describe('stepHealthBroker', () => {
     const lane = LaneSessionStub();
     const session = BrowserSessionStub({
       checkRootPresent: jest.fn().mockResolvedValue(true),
-      readNetworkSince: () => [
-        '{"at":1,"method":"GET","url":"/api/guilds","status":500}',
-      ],
+      readNetworkSince: () => ['{"at":1,"method":"GET","url":"/api/guilds","status":500}'],
     });
 
     const result = await stepHealthBroker({

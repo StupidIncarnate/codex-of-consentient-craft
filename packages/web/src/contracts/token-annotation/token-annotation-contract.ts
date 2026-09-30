@@ -8,13 +8,23 @@
 
 import { z } from '#gateway/npm/zod';
 
-
-export const tokenAnnotationContract = z.object({
-  tokenBadgeLabel: z.string().min(1).brand<'TokenAnnotationTokenBadgeLabel'>().nullable(),
-  resultTokenBadgeLabel: z.string().min(1).brand<'TokenAnnotationResultTokenBadgeLabel'>().nullable(),
-  cumulativeContext: z.number().int().nonnegative().brand<'TokenAnnotationCumulativeContext'>().nullable(),
-  contextDelta: z.number().int().brand<'TokenAnnotationContextDelta'>().nullable(),
-  source: z.enum(['session', 'subagent']),
-}).brand<'TokenAnnotation'>();
+export const tokenAnnotationContract = z
+  .object({
+    tokenBadgeLabel: z.string().min(1).brand<'TokenAnnotationTokenBadgeLabel'>().nullable(),
+    resultTokenBadgeLabel: z
+      .string()
+      .min(1)
+      .brand<'TokenAnnotationResultTokenBadgeLabel'>()
+      .nullable(),
+    cumulativeContext: z
+      .number()
+      .int()
+      .nonnegative()
+      .brand<'TokenAnnotationCumulativeContext'>()
+      .nullable(),
+    contextDelta: z.number().int().brand<'TokenAnnotationContextDelta'>().nullable(),
+    source: z.enum(['session', 'subagent']),
+  })
+  .brand<'TokenAnnotation'>();
 
 export type TokenAnnotation = z.infer<typeof tokenAnnotationContract>;

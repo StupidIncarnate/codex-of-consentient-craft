@@ -20,7 +20,7 @@ export const binWalkUpLayerBroker = ({
   binName: string;
   dir: string;
 }): string => {
-  const candidate = join(dir, 'node_modules', '.bin', String(binName));
+  const candidate = join(dir, 'node_modules', '.bin', binName);
   if (existsSync(candidate)) {
     return candidate;
   }

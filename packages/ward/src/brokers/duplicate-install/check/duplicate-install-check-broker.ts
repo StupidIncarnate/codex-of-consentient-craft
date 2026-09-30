@@ -13,7 +13,6 @@
  * // Returns: readonly DuplicateInstallViolation[] — empty when every candidate resolves to one copy
  */
 
-
 import {
   duplicateInstallViolationContract,
   type DuplicateInstallViolation,
@@ -34,7 +33,7 @@ export const duplicateInstallCheckBroker = async ({
   rootPath: string;
 }): Promise<readonly DuplicateInstallViolation[]> => {
   const rootAbsolute = rootPath;
-  const rootAbsoluteString = String(rootAbsolute);
+  const rootAbsoluteString = rootAbsolute;
   const folders = (await workspaceDiscoverBroker({ rootPath: rootAbsolute })) ?? [];
 
   const gatewayFolders = folders.filter((folder) =>
@@ -46,7 +45,7 @@ export const duplicateInstallCheckBroker = async ({
 
   const candidateNames = await gatewayDependencyNamesReadLayerBroker({ gatewayFolders });
   const workspacePackageNames = new Set(folders.map((folder) => String(folder.name)));
-  const namesToCheck = candidateNames.filter((name) => !workspacePackageNames.has(String(name)));
+  const namesToCheck = candidateNames.filter((name) => !workspacePackageNames.has(name));
 
   const locationDirs = [rootAbsoluteString, ...folders.map((folder) => String(folder.path))];
   const rootPrefix = `${rootAbsoluteString}/`;

@@ -28,7 +28,7 @@ export const packageSectionBuildLayerBroker = ({
 }): string => {
   const packageParts: string[] = [];
 
-  packageParts.push(`# ${String(packageName)} [${packageType}]`);
+  packageParts.push(`# ${packageName} [${packageType}]`);
 
   const { responderAnnotations, startupAnnotations } = architectureResponderAnnotationsBroker({
     packageType,
@@ -46,9 +46,9 @@ export const packageSectionBuildLayerBroker = ({
     }),
   );
 
-  const packageSrcPath = `${String(packageRoot)}/src`;
+  const packageSrcPath = `${packageRoot}/src`;
   const orphanSection = architectureOrphanDetectBroker({ packageSrcPath });
-  if (String(orphanSection).length > 0) {
+  if (orphanSection.length > 0) {
     packageParts.push(orphanSection);
   }
 

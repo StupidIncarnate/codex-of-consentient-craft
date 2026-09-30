@@ -77,9 +77,11 @@ const projectedStepCountContract = z
 
 const questProjectionStepContract = z
   .object({
-    step: z.string().min(1).brand<'QuestProjectionStepStep'>().describe(
-      'A real key into `agentFlowStatics[family].steps` — never a display label.',
-    ),
+    step: z
+      .string()
+      .min(1)
+      .brand<'QuestProjectionStepStep'>()
+      .describe('A real key into `agentFlowStatics[family].steps` — never a display label.'),
     kind: z
       .enum(['actual', 'planned'])
       .describe(
@@ -97,7 +99,8 @@ const questProjectionStepContract = z
         'Copied straight off `WorkItem.mintedBy` — the back-edge badge reads this without re-deriving it.',
       ),
   })
-  .strict().brand<'QuestProjectionStep'>();
+  .strict()
+  .brand<'QuestProjectionStep'>();
 
 const questProjectionScopeContract = z
   .object({
@@ -112,7 +115,8 @@ const questProjectionScopeContract = z
         'Every `actual` row, in `quest.workItems` array order, followed by the `planned` tail.',
       ),
   })
-  .strict().brand<'QuestProjectionScope'>();
+  .strict()
+  .brand<'QuestProjectionScope'>();
 
 export const questProjectionContract = z
   .object({
@@ -131,6 +135,7 @@ export const questProjectionContract = z
         'actual rows that totalPlannedSteps already includes.',
     ),
   })
-  .strict().brand<'QuestProjection'>();
+  .strict()
+  .brand<'QuestProjection'>();
 
 export type QuestProjection = z.infer<typeof questProjectionContract>;

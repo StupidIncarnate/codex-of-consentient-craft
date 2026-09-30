@@ -6,7 +6,7 @@ describe('flowGroupFromFilePathTransformer', () => {
       filePath: '/repo/packages/server/src/flows/quest/quest-flow.ts',
     });
 
-    expect(String(result)).toBe('quest');
+    expect(result).toBe('quest');
   });
 
   it('VALID: {flows/health/health-flow.ts} => returns health', () => {
@@ -14,7 +14,7 @@ describe('flowGroupFromFilePathTransformer', () => {
       filePath: '/repo/packages/server/src/flows/health/health-flow.ts',
     });
 
-    expect(String(result)).toBe('health');
+    expect(result).toBe('health');
   });
 
   it('VALID: {flows/guild/guild-flow.ts} => returns guild', () => {
@@ -22,7 +22,7 @@ describe('flowGroupFromFilePathTransformer', () => {
       filePath: '/repo/packages/server/src/flows/guild/guild-flow.ts',
     });
 
-    expect(String(result)).toBe('guild');
+    expect(result).toBe('guild');
   });
 
   it('EDGE: {path with no flows segment} => returns empty string', () => {
@@ -30,6 +30,6 @@ describe('flowGroupFromFilePathTransformer', () => {
       filePath: '/repo/packages/server/src/responders/quest/start/quest-start-responder.ts',
     });
 
-    expect(String(result)).toBe('');
+    expect(result).toBe('');
   });
 });

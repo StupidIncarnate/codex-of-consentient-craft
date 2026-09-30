@@ -25,34 +25,40 @@
  * worked out what the unit means.
  */
 
-import { outcomeTypeContract, qaChecklistKindContract, qaChecklistItemContract } from '@dungeonmaster/shared/contracts';
+import {
+  outcomeTypeContract,
+  qaChecklistKindContract,
+  qaChecklistItemContract,
+} from '@dungeonmaster/shared/contracts';
 import { z } from '#gateway/npm/zod';
 
-export const workPlanCodeweaverUnitContract = z.object({
-  unitId: qaChecklistItemContract.shape.id,
-  kind: qaChecklistKindContract.exclude(['off-map']),
-  observableType: outcomeTypeContract
-    .optional()
-    .describe("Present on kind: 'observable' only — the outcome type the spec gave it."),
-  verifyByReading: z
-    .boolean()
-    .optional()
-    .describe('True on a unit settled by opening a source file rather than by running a test.'),
-  text: z
-    .string()
-    .min(1)
-    .brand<'WorkPlanCodeweaverUnitText'>()
-    .describe('Verbatim from the spec, never a paraphrase.'),
-  assert: z
-    .string()
-    .min(1)
-    .brand<'WorkPlanCodeweaverUnitAssert'>()
-    .describe('What the test reads, and off which surface.'),
-  failsIf: z
-    .string()
-    .min(1)
-    .brand<'WorkPlanCodeweaverUnitFailsIf'>()
-    .describe('The wrong value that turns that assertion red.'),
-}).brand<'WorkPlanCodeweaverUnit'>();
+export const workPlanCodeweaverUnitContract = z
+  .object({
+    unitId: qaChecklistItemContract.shape.id,
+    kind: qaChecklistKindContract.exclude(['off-map']),
+    observableType: outcomeTypeContract
+      .optional()
+      .describe("Present on kind: 'observable' only — the outcome type the spec gave it."),
+    verifyByReading: z
+      .boolean()
+      .optional()
+      .describe('True on a unit settled by opening a source file rather than by running a test.'),
+    text: z
+      .string()
+      .min(1)
+      .brand<'WorkPlanCodeweaverUnitText'>()
+      .describe('Verbatim from the spec, never a paraphrase.'),
+    assert: z
+      .string()
+      .min(1)
+      .brand<'WorkPlanCodeweaverUnitAssert'>()
+      .describe('What the test reads, and off which surface.'),
+    failsIf: z
+      .string()
+      .min(1)
+      .brand<'WorkPlanCodeweaverUnitFailsIf'>()
+      .describe('The wrong value that turns that assertion red.'),
+  })
+  .brand<'WorkPlanCodeweaverUnit'>();
 
 export type WorkPlanCodeweaverUnit = z.infer<typeof workPlanCodeweaverUnitContract>;

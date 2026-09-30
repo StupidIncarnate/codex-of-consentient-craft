@@ -7,10 +7,7 @@ describe('parseDiffOutputTransformer', () => {
         output: 'src/file1.ts\nsrc/file2.ts\n',
       });
 
-      expect(result).toStrictEqual([
-        'src/file1.ts',
-        'src/file2.ts',
-      ]);
+      expect(result).toStrictEqual(['src/file1.ts', 'src/file2.ts']);
     });
 
     it('VALID: {output with single file} => returns single-element array', () => {

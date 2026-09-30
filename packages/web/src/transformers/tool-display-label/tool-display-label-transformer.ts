@@ -68,5 +68,5 @@ export const toolDisplayLabelTransformer = ({
 
   const withoutMcpPrefix = toolName.replace(MCP_PREFIX, '');
 
-  return (withoutMcpPrefix === '' ? toolName : withoutMcpPrefix);
+  return withoutMcpPrefix === '' ? toolName : withoutMcpPrefix;
 };

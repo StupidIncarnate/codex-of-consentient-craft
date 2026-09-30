@@ -57,15 +57,15 @@ export const useAutoScrollBinding = (): {
   const onScroll = useCallback((event: React.UIEvent<HTMLDivElement>): void => {
     const target = event.currentTarget;
     const { isCapturing } = computeScrollCaptureTransformer({
-      currentTop: target.scrollTop as number,
+      currentTop: target.scrollTop,
       lastTop: lastScrollTopRef.current,
-      scrollHeight: target.scrollHeight as number,
-      clientHeight: target.clientHeight as number,
+      scrollHeight: target.scrollHeight,
+      clientHeight: target.clientHeight,
       threshold,
       wasCapturing: isUserCapturingScroll.current,
     });
     isUserCapturingScroll.current = isCapturing;
-    lastScrollTopRef.current = target.scrollTop as number;
+    lastScrollTopRef.current = target.scrollTop;
   }, []);
 
   return {

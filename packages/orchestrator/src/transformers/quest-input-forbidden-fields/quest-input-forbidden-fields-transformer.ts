@@ -84,9 +84,7 @@ export const questInputForbiddenFieldsTransformer = ({
       continue;
     }
     if (!allowedSet.has(field)) {
-      offenders.push(
-        `Field '${field}' not allowed in status '${currentStatus}'`,
-      );
+      offenders.push(`Field '${field}' not allowed in status '${currentStatus}'`);
     }
   }
 

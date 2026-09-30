@@ -18,7 +18,6 @@ import { ensureDir, utimes, writeFile } from '#gateway/node/fs__promises';
 import { now } from '#gateway/node/Date';
 import { join } from '#gateway/node/path';
 
-
 const DAY_SECONDS = 86_400;
 
 export const e2eArtifactsHarness = (): {
@@ -41,8 +40,7 @@ export const e2eArtifactsHarness = (): {
   }: {
     packageRoot: string;
     relativePath: string;
-  }): string =>
-    join(String(packageRoot), relativePath);
+  }): string => join(packageRoot, relativePath);
 
   // utimes takes SECONDS since the epoch, not milliseconds. Handing it now() dates everything
   // ~55,000 years into the future, which reads as newer than every TTL and turns every deletion
@@ -54,7 +52,7 @@ export const e2eArtifactsHarness = (): {
 
   return {
     seedDir: async ({ packageRoot, relativePath, daysOld }): Promise<void> => {
-      const path = String(absolute({ packageRoot, relativePath }));
+      const path = absolute({ packageRoot, relativePath });
       await ensureDir(path);
       await writeFile(join(path, 'seed'), 'x');
       // Age the directory AFTER writing into it. A write bumps the parent's mtime, which would
@@ -62,14 +60,14 @@ export const e2eArtifactsHarness = (): {
       await backdate({ path, daysOld });
     },
     seedFile: async ({ packageRoot, relativePath, daysOld }): Promise<void> => {
-      const path = String(absolute({ packageRoot, relativePath }));
+      const path = absolute({ packageRoot, relativePath });
       await writeFile(path, '{}');
       await backdate({ path, daysOld });
     },
     exists: ({ packageRoot, relativePath }): boolean =>
-      existsSync(String(absolute({ packageRoot, relativePath }))),
+      existsSync(absolute({ packageRoot, relativePath })),
     listRoot: ({ packageRoot }): string[] =>
-      readdirSync(String(packageRoot))
+      readdirSync(packageRoot)
         .sort()
         .map((name) => name),
   };

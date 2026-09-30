@@ -45,7 +45,7 @@ export const matchCandidatesLayerBroker = async ({
 
         if (identity.success && identity.data.id === questId) {
           return {
-            questPath: candidate.questFolderPath as string,
+            questPath: candidate.questFolderPath,
             guildId: guildContract.shape.id.parse(candidate.guildDirName),
           };
         }

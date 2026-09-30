@@ -52,40 +52,50 @@
 import { pieceIdContract, qaChecklistItemContract } from '@dungeonmaster/shared/contracts';
 import { z } from '#gateway/npm/zod';
 
-
-export const workPlanPieceContract = z.object({
-  id: pieceIdContract,
-  pieceName: z
-    .string()
-    .min(1)
-    .brand<'WorkPlanPiecePieceName'>()
-    .describe(
-      'A short human name for this piece, in the planner’s own words — what a reader calls it, ' +
-        'never what it proves or which files it touches. Renders on the execution panel as ' +
-        '`step - pieceName` once a scope holds more than one piece at that step.',
-    ),
-  step: z.string().min(1).brand<'WorkPlanPieceStep'>().describe(
-    "Which step of this family's graph the piece runs — resolved against that graph by the plan validator, not here.",
-  ),
-  assignedUnitIds: z
-    .array(qaChecklistItemContract.shape.id)
-    .default([])
-    .describe('The units this piece must MARK. May be empty on a contracts-only piece.'),
-  contextUnitIds: z
-    .array(qaChecklistItemContract.shape.id)
-    .default([])
-    .describe('The units this piece must READ and build against, and may NOT mark.'),
-  recipeId: z.string().min(1).regex(/^[a-z][a-z0-9]*(-[a-z0-9]+)*$/u).brand<'WorkPlanPieceRecipeId'>().optional(),
-  baselineFor: pieceIdContract
-    .optional()
-    .describe('Adversarial pieces only — the happy-walk piece this attack measures against.'),
-  context: z
-    .string()
-    .min(1)
-    .brand<'WorkPlanPieceContext'>()
-    .describe('What a session needs to know before it starts, in the planner’s own words.'),
-  notes: z.array(z.string().min(1).brand<'WorkPlanPieceNotes'>()).default([]),
-  payload: z.json(),
-}).brand<'WorkPlanPiece'>();
+export const workPlanPieceContract = z
+  .object({
+    id: pieceIdContract,
+    pieceName: z
+      .string()
+      .min(1)
+      .brand<'WorkPlanPiecePieceName'>()
+      .describe(
+        'A short human name for this piece, in the planner’s own words — what a reader calls it, ' +
+          'never what it proves or which files it touches. Renders on the execution panel as ' +
+          '`step - pieceName` once a scope holds more than one piece at that step.',
+      ),
+    step: z
+      .string()
+      .min(1)
+      .brand<'WorkPlanPieceStep'>()
+      .describe(
+        "Which step of this family's graph the piece runs — resolved against that graph by the plan validator, not here.",
+      ),
+    assignedUnitIds: z
+      .array(qaChecklistItemContract.shape.id)
+      .default([])
+      .describe('The units this piece must MARK. May be empty on a contracts-only piece.'),
+    contextUnitIds: z
+      .array(qaChecklistItemContract.shape.id)
+      .default([])
+      .describe('The units this piece must READ and build against, and may NOT mark.'),
+    recipeId: z
+      .string()
+      .min(1)
+      .regex(/^[a-z][a-z0-9]*(-[a-z0-9]+)*$/u)
+      .brand<'WorkPlanPieceRecipeId'>()
+      .optional(),
+    baselineFor: pieceIdContract
+      .optional()
+      .describe('Adversarial pieces only — the happy-walk piece this attack measures against.'),
+    context: z
+      .string()
+      .min(1)
+      .brand<'WorkPlanPieceContext'>()
+      .describe('What a session needs to know before it starts, in the planner’s own words.'),
+    notes: z.array(z.string().min(1).brand<'WorkPlanPieceNotes'>()).default([]),
+    payload: z.json(),
+  })
+  .brand<'WorkPlanPiece'>();
 
 export type WorkPlanPiece = z.infer<typeof workPlanPieceContract>;

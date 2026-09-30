@@ -14,12 +14,8 @@
 
 import { urlSegmentsExtractStatics } from '../../statics/url-segments-extract/url-segments-extract-statics';
 
-export const urlSegmentsExtractTransformer = ({
-  urlPattern,
-}: {
-  urlPattern: string;
-}): string[] =>
-  String(urlPattern)
+export const urlSegmentsExtractTransformer = ({ urlPattern }: { urlPattern: string }): string[] =>
+  urlPattern
     .split('/')
     .filter((seg) => {
       if (seg === '') return false;

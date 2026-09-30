@@ -6,7 +6,6 @@
  * // Returns "GET  /api/guilds -> 200 (12ms) [mock]\n  -> body\n  <- body"
  */
 
-
 import type { NetworkLogEntry } from '../../contracts/network-log-entry/network-log-entry-contract';
 import { networkLogStatics } from '../../statics/network-log/network-log-statics';
 import { truncateNetworkBodyTransformer } from '../truncate-network-body/truncate-network-body-transformer';
@@ -28,11 +27,11 @@ export const formatHttpEntryTransformer = ({ entry }: { entry: NetworkLogEntry }
   const header = `${method} ${normalizedUrl} \u2192 ${status}${duration}${source}`;
 
   const requestLine = entry.requestBody
-    ? `  \u2192 ${String(truncateNetworkBodyTransformer({ body: entry.requestBody }))}`
+    ? `  \u2192 ${truncateNetworkBodyTransformer({ body: entry.requestBody })}`
     : `  \u2192 ${networkLogStatics.formatting.noBodyPlaceholder}`;
 
   const responseLine = entry.responseBody
-    ? `  \u2190 ${String(truncateNetworkBodyTransformer({ body: entry.responseBody }))}`
+    ? `  \u2190 ${truncateNetworkBodyTransformer({ body: entry.responseBody })}`
     : `  \u2190 ${networkLogStatics.formatting.noBodyPlaceholder}`;
 
   return [header, requestLine, responseLine].join('\n');

@@ -198,7 +198,7 @@ describe('snapshotCaptureBroker', () => {
   describe('a copy that fails', () => {
     it('ERROR: {fs.cp rejects} => propagates the failure', async () => {
       const proxy = snapshotCaptureBrokerProxy();
-      const error = FsErrorStub({ code: 'ENOSPC', path: String(HOME_PATH) });
+      const error = FsErrorStub({ code: 'ENOSPC', path: HOME_PATH });
       proxy.setupCopyFails({ homePath: HOME_PATH, error });
 
       await expect(
@@ -212,7 +212,7 @@ describe('snapshotCaptureBroker', () => {
 
     it('ERROR: {fs.cp rejects} => appends NO index line, so the list never advertises a restore point that is not on disk', async () => {
       const proxy = snapshotCaptureBrokerProxy();
-      const error = FsErrorStub({ code: 'ENOSPC', path: String(HOME_PATH) });
+      const error = FsErrorStub({ code: 'ENOSPC', path: HOME_PATH });
       proxy.setupCopyFails({ homePath: HOME_PATH, error });
 
       await expect(

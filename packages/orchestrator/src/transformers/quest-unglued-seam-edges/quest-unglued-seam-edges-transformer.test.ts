@@ -78,7 +78,7 @@ describe('questUngluedSeamEdgesTransformer', () => {
 
       const offenders = questUngluedSeamEdgesTransformer({ flows: [flow] });
 
-      expect(offenders.map((offender) => String(offender))).toStrictEqual([
+      expect(offenders.map((offender) => offender)).toStrictEqual([
         "Edge 'press-to-status' in flow 'warpgate-merge' joins node 'press-warp' (packages: web) to node 'merge-status-ok' (packages: server), which share no package. An edge whose endpoints share no package is a boundary crossed with nothing spanning it — widen one endpoint to carry both packages (that endpoint IS the glue node), or insert a node between them that does.",
       ]);
     });
@@ -102,7 +102,7 @@ describe('questUngluedSeamEdgesTransformer', () => {
 
       const offenders = questUngluedSeamEdgesTransformer({ flows: [uiFlow, apiFlow] });
 
-      expect(offenders.map((offender) => String(offender))).toStrictEqual([
+      expect(offenders.map((offender) => offender)).toStrictEqual([
         "Edge 'press-to-other-flow' in flow 'warpgate-merge' joins node 'press-warp' (packages: web) to node 'merge-status-ok' (packages: server), which share no package. An edge whose endpoints share no package is a boundary crossed with nothing spanning it — widen one endpoint to carry both packages (that endpoint IS the glue node), or insert a node between them that does.",
       ]);
     });
@@ -119,7 +119,7 @@ describe('questUngluedSeamEdgesTransformer', () => {
 
       const offenders = questUngluedSeamEdgesTransformer({ flows: [flow] });
 
-      expect(offenders.map((offender) => String(offender))).toStrictEqual([
+      expect(offenders.map((offender) => offender)).toStrictEqual([
         "Edge 'press-to-status' in flow 'warpgate-merge' joins node 'press-warp' (packages: web, shared) to node 'merge-status-ok' (packages: server, mcp), which share no package. An edge whose endpoints share no package is a boundary crossed with nothing spanning it — widen one endpoint to carry both packages (that endpoint IS the glue node), or insert a node between them that does.",
       ]);
     });

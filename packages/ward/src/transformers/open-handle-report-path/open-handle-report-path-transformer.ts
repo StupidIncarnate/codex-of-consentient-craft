@@ -23,4 +23,4 @@ export const openHandleReportPathTransformer = ({
   checkType: CheckType;
   processId: number;
 }): string =>
-  `${String(tmpdir)}/${openHandleReportStatics.file.prefix}${String(processId)}-${checkType}${openHandleReportStatics.file.suffix}`;
+  `${tmpdir}/${openHandleReportStatics.file.prefix}${String(processId)}-${checkType}${openHandleReportStatics.file.suffix}`;

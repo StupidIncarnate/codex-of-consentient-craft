@@ -12,7 +12,6 @@
  * WHEN-NOT-TO-USE: When full AST parsing is needed — this is a v1 regex heuristic
  */
 
-
 // Matches <UppercaseNamespace>.<camelCaseMethod>(
 // Capture group 1 = method name
 const NAMESPACE_METHOD_PATTERN = /\b[A-Z][A-Za-z0-9]*\.([a-z][A-Za-z0-9]*)\s*\(/gu;
@@ -24,17 +23,17 @@ export const namespaceMethodCallsExtractTransformer = ({
 }): string[] => {
   const found: string[] = [];
   NAMESPACE_METHOD_PATTERN.lastIndex = 0;
-  let match = NAMESPACE_METHOD_PATTERN.exec(String(source));
+  let match = NAMESPACE_METHOD_PATTERN.exec(source);
   while (match !== null) {
     const [, methodName] = match;
     if (methodName !== undefined) {
       const parsed = methodName;
-      const alreadySeen = found.some((m) => String(m) === String(parsed));
+      const alreadySeen = found.some((m) => m === parsed);
       if (!alreadySeen) {
         found.push(parsed);
       }
     }
-    match = NAMESPACE_METHOD_PATTERN.exec(String(source));
+    match = NAMESPACE_METHOD_PATTERN.exec(source);
   }
   NAMESPACE_METHOD_PATTERN.lastIndex = 0;
   return found;

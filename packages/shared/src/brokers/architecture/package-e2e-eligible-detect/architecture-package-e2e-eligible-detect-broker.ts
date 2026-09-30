@@ -32,7 +32,7 @@ export const architecturePackageE2eEligibleDetectBroker = async ({
   const packageJson =
     packageJsonRaw === undefined
       ? packageJsonContract.parse({})
-      : packageJsonContract.parse(JSON.parse(String(packageJsonRaw)));
+      : packageJsonContract.parse(JSON.parse(packageJsonRaw));
 
   const srcPath = `${packageRoot}/src`;
   const srcEntries = safeReaddirLayerBroker({ dirPath: srcPath });

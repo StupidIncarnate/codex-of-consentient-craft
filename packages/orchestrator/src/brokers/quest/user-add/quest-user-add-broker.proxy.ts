@@ -6,7 +6,8 @@ import { questCreateBrokerProxy } from '../create/quest-create-broker.proxy';
 
 registerModuleMock({ module: '../create/quest-create-broker' });
 
-const DEFAULT_QUEST_FILE_PATH = '/home/testuser/.dungeonmaster/guilds/test-guild/quests/default/quest.json';
+const DEFAULT_QUEST_FILE_PATH =
+  '/home/testuser/.dungeonmaster/guilds/test-guild/quests/default/quest.json';
 const DEFAULT_QUEST_FOLDER_PATH = '/home/testuser/.dungeonmaster/guilds/test-guild/quests/default';
 
 export const questUserAddBrokerProxy = (): {

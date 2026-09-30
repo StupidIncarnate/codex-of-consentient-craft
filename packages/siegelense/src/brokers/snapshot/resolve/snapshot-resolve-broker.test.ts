@@ -1,4 +1,3 @@
-
 import { snapshotResolveBroker } from './snapshot-resolve-broker';
 import { snapshotResolveBrokerProxy } from './snapshot-resolve-broker.proxy';
 import { SnapshotRecordStub } from '../../../contracts/snapshot-record/snapshot-record.stub';

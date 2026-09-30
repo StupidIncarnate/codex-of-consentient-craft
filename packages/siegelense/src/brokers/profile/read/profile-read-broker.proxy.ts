@@ -29,7 +29,7 @@ import { locationsProfileDirsFindBrokerProxy } from '../../locations/profile-dir
 const HOME_DIR = '/home/user';
 const HOME_PATH = '/home/user/.dungeonmaster';
 const ROOT_PATH = '/home/user/.dungeonmaster/siegelense';
-const PROFILES_ROOT_VALUE = `${String(ROOT_PATH)}/${locationsStatics.siegelense.profilesDir}/`;
+const PROFILES_ROOT_VALUE = `${ROOT_PATH}/${locationsStatics.siegelense.profilesDir}/`;
 // laneSpecHashBroker's real sha256 digest of laneSpecFindBrokerProxy's sticky default spec (one
 // headless api process, spec name `api`); the profile directory a scenario for that spec reads.
 const DEFAULT_SPEC_HASH_VALUE = 'd710f23b94181fa9168a01db4dfc9a25bd0a4dd95887c301d34ca3bb51931583';
@@ -99,16 +99,16 @@ export const profileReadBrokerProxy = (): {
         profilesPath: DEFAULT_PROFILES_PATH,
       });
       readdirProxy.returns({
-        path: `${String(DEFAULT_PROFILES_PATH)}/${profileStatics.dirs.samples}`,
+        path: `${DEFAULT_PROFILES_PATH}/${profileStatics.dirs.samples}`,
         names: records.map(({ fileName }) => fileName),
       });
       readdirProxy.returns({
-        path: `${String(DEFAULT_PROFILES_PATH)}/${profileStatics.dirs.boots}`,
+        path: `${DEFAULT_PROFILES_PATH}/${profileStatics.dirs.boots}`,
         names: [],
       });
       records.forEach(({ fileName, instanceId, poolSize, peakMB, steadyMB }) => {
         readProxy.returns({
-          path: `${String(DEFAULT_PROFILES_PATH)}/${profileStatics.dirs.samples}/${fileName}`,
+          path: `${DEFAULT_PROFILES_PATH}/${profileStatics.dirs.samples}/${fileName}`,
           contents: JSON.stringify(
             ProfileObservationStub({
               instanceId,
@@ -154,11 +154,11 @@ export const profileReadBrokerProxy = (): {
       });
 
       readdirProxy.returns({
-        path: `${String(profilesPath)}/${profileStatics.dirs.samples}`,
+        path: `${profilesPath}/${profileStatics.dirs.samples}`,
         names: [...sampleFileNames],
       });
       readdirProxy.returns({
-        path: `${String(profilesPath)}/${profileStatics.dirs.boots}`,
+        path: `${profilesPath}/${profileStatics.dirs.boots}`,
         names: [...bootFileNames],
       });
     },
@@ -173,7 +173,7 @@ export const profileReadBrokerProxy = (): {
       json: string;
     }): void => {
       readProxy.returns({
-        path: `${String(profilesPath)}/${profileStatics.dirs.samples}/${fileName}`,
+        path: `${profilesPath}/${profileStatics.dirs.samples}/${fileName}`,
         contents: json,
       });
     },
@@ -188,7 +188,7 @@ export const profileReadBrokerProxy = (): {
       json: string;
     }): void => {
       readProxy.returns({
-        path: `${String(profilesPath)}/${profileStatics.dirs.boots}/${fileName}`,
+        path: `${profilesPath}/${profileStatics.dirs.boots}/${fileName}`,
         contents: json,
       });
     },
@@ -197,7 +197,6 @@ export const profileReadBrokerProxy = (): {
       laneSpecProxy.setupConfiguredProcesses({ processes });
     },
 
-    getStderrMessages: (): readonly string[] =>
-      stderr.getWrites().map((chunk) => String(chunk)),
+    getStderrMessages: (): readonly string[] => stderr.getWrites().map((chunk) => String(chunk)),
   };
 };

@@ -8,31 +8,37 @@
 import { z } from '#gateway/npm/zod';
 import { grepHitContract } from '../grep-hit/grep-hit-contract';
 
-const signatureParameterContract = z.object({
-  name: z.string().brand<'SignatureParameterName'>(),
-  type: z.union([
-    z.record(z.string(), z.string().brand<'SignatureParameterType'>()),
-    z.string().brand<'SignatureParameterType'>(),
-  ]),
-}).brand<'SignatureParameter'>();
+const signatureParameterContract = z
+  .object({
+    name: z.string().brand<'SignatureParameterName'>(),
+    type: z.union([
+      z.record(z.string(), z.string().brand<'SignatureParameterType'>()),
+      z.string().brand<'SignatureParameterType'>(),
+    ]),
+  })
+  .brand<'SignatureParameter'>();
 
-const functionSignatureContract = z.object({
-  raw: z.string().brand<'FunctionSignatureRaw'>(),
-  parameters: z.array(signatureParameterContract),
-  returnType: z.string().brand<'FunctionSignatureReturnType'>(),
-}).brand<'FunctionSignature'>();
+const functionSignatureContract = z
+  .object({
+    raw: z.string().brand<'FunctionSignatureRaw'>(),
+    parameters: z.array(signatureParameterContract),
+    returnType: z.string().brand<'FunctionSignatureReturnType'>(),
+  })
+  .brand<'FunctionSignature'>();
 
-export const fileMetadataContract = z.object({
-  name: z.string().brand<'FileMetadataName'>(),
-  path: z.string().brand<'FileMetadataPath'>(),
-  fileType: z.string().brand<'FileMetadataFileType'>(),
-  purpose: z.string().brand<'FileMetadataPurpose'>().optional(),
-  signature: functionSignatureContract.optional(),
-  usage: z.string().brand<'FileMetadataUsage'>().optional(),
-  metadata: z.record(z.string(), z.json()).optional(),
-  relatedFiles: z.array(z.string().brand<'FileMetadataRelatedFiles'>()),
-  hits: z.array(grepHitContract).optional(),
-}).brand<'FileMetadata'>();
+export const fileMetadataContract = z
+  .object({
+    name: z.string().brand<'FileMetadataName'>(),
+    path: z.string().brand<'FileMetadataPath'>(),
+    fileType: z.string().brand<'FileMetadataFileType'>(),
+    purpose: z.string().brand<'FileMetadataPurpose'>().optional(),
+    signature: functionSignatureContract.optional(),
+    usage: z.string().brand<'FileMetadataUsage'>().optional(),
+    metadata: z.record(z.string(), z.json()).optional(),
+    relatedFiles: z.array(z.string().brand<'FileMetadataRelatedFiles'>()),
+    hits: z.array(grepHitContract).optional(),
+  })
+  .brand<'FileMetadata'>();
 
 export type FileMetadata = z.infer<typeof fileMetadataContract>;
 export type FunctionSignature = z.infer<typeof functionSignatureContract>;

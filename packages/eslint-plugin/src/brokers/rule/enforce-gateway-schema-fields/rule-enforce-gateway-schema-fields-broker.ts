@@ -98,9 +98,7 @@ export const ruleEnforceGatewaySchemaFieldsBroker =
             return;
           }
 
-          const importSource = importSourceByLocalName.get(
-            checkedTypeName,
-          );
+          const importSource = importSourceByLocalName.get(checkedTypeName);
 
           // Unresolved (a language global like Error/Uint8Array, never imported), a relative import
           // (our own type) or a workspace package (@dungeonmaster/*) — none of these is what BR C9

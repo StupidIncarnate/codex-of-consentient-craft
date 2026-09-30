@@ -11,17 +11,17 @@ describe('architectureBootTreeBroker', () => {
       proxy.setupFileContentsMap({
         map: {
           'start-server.ts': [
-              `import { serverFlow } from '../flows/server/server-flow';`,
-              `export const startServer = () => {};`,
-            ].join('\n'),
+            `import { serverFlow } from '../flows/server/server-flow';`,
+            `export const startServer = () => {};`,
+          ].join('\n'),
           'server-flow.ts': [
-              `import { serverInitResponder } from '../../responders/server/init/server-init-responder';`,
-              `export const serverFlow = () => {};`,
-            ].join('\n'),
+            `import { serverInitResponder } from '../../responders/server/init/server-init-responder';`,
+            `export const serverFlow = () => {};`,
+          ].join('\n'),
           'server-init-responder.ts': [
-              `import { serverInitBroker } from '../../../brokers/server/init/server-init-broker';`,
-              `export const serverInitResponder = () => {};`,
-            ].join('\n'),
+            `import { serverInitBroker } from '../../../brokers/server/init/server-init-broker';`,
+            `export const serverInitResponder = () => {};`,
+          ].join('\n'),
           'server-init-broker.ts': `export const serverInitBroker = () => {};`,
         },
       });
@@ -30,17 +30,17 @@ describe('architectureBootTreeBroker', () => {
 
       expect(result).toBe(
         [
-            '## Boot',
-            '',
-            '```',
-            'startServer',
-            '  ↳ flows/{serverFlow}',
-            '',
-            'serverFlow',
-            '  ↳ serverInitResponder',
-            '      → serverInitBroker',
-            '```',
-          ].join('\n'),
+          '## Boot',
+          '',
+          '```',
+          'startServer',
+          '  ↳ flows/{serverFlow}',
+          '',
+          'serverFlow',
+          '  ↳ serverInitResponder',
+          '      → serverInitBroker',
+          '```',
+        ].join('\n'),
       );
     });
   });
@@ -54,11 +54,11 @@ describe('architectureBootTreeBroker', () => {
       proxy.setupFileContentsMap({
         map: {
           'start-server.ts': [
-              `import { questFlow } from '../flows/quest/quest-flow';`,
-              `import { guildFlow } from '../flows/guild/guild-flow';`,
-              `import { healthFlow } from '../flows/health/health-flow';`,
-              `export const startServer = () => {};`,
-            ].join('\n'),
+            `import { questFlow } from '../flows/quest/quest-flow';`,
+            `import { guildFlow } from '../flows/guild/guild-flow';`,
+            `import { healthFlow } from '../flows/health/health-flow';`,
+            `export const startServer = () => {};`,
+          ].join('\n'),
           'quest-flow.ts': `export const questFlow = () => {};`,
           'guild-flow.ts': `export const guildFlow = () => {};`,
           'health-flow.ts': `export const healthFlow = () => {};`,
@@ -69,19 +69,19 @@ describe('architectureBootTreeBroker', () => {
 
       expect(result).toBe(
         [
-            '## Boot',
-            '',
-            '```',
-            'startServer',
-            '  ↳ flows/{questFlow, guildFlow, healthFlow}',
-            '',
-            'questFlow',
-            '',
-            'guildFlow',
-            '',
-            'healthFlow',
-            '```',
-          ].join('\n'),
+          '## Boot',
+          '',
+          '```',
+          'startServer',
+          '  ↳ flows/{questFlow, guildFlow, healthFlow}',
+          '',
+          'questFlow',
+          '',
+          'guildFlow',
+          '',
+          'healthFlow',
+          '```',
+        ].join('\n'),
       );
     });
   });
@@ -95,14 +95,14 @@ describe('architectureBootTreeBroker', () => {
       proxy.setupFileContentsMap({
         map: {
           'start-server.ts': [
-              `import { serverFlow } from '../flows/server/server-flow';`,
-              `export const startServer = () => {};`,
-            ].join('\n'),
+            `import { serverFlow } from '../flows/server/server-flow';`,
+            `export const startServer = () => {};`,
+          ].join('\n'),
           'server-flow.ts': [
-              `import { serverInitResponder } from '../../responders/server/init/server-init-responder';`,
-              `import { serverValidateLayerResponder } from '../../responders/server/init/server-validate-layer-responder';`,
-              `export const serverFlow = () => {};`,
-            ].join('\n'),
+            `import { serverInitResponder } from '../../responders/server/init/server-init-responder';`,
+            `import { serverValidateLayerResponder } from '../../responders/server/init/server-validate-layer-responder';`,
+            `export const serverFlow = () => {};`,
+          ].join('\n'),
           'server-init-responder.ts': `export const serverInitResponder = () => {};`,
         },
       });
@@ -111,16 +111,16 @@ describe('architectureBootTreeBroker', () => {
 
       expect(result).toBe(
         [
-            '## Boot',
-            '',
-            '```',
-            'startServer',
-            '  ↳ flows/{serverFlow}',
-            '',
-            'serverFlow',
-            '  ↳ serverInitResponder',
-            '```',
-          ].join('\n'),
+          '## Boot',
+          '',
+          '```',
+          'startServer',
+          '  ↳ flows/{serverFlow}',
+          '',
+          'serverFlow',
+          '  ↳ serverInitResponder',
+          '```',
+        ].join('\n'),
       );
     });
   });
@@ -134,17 +134,17 @@ describe('architectureBootTreeBroker', () => {
       proxy.setupFileContentsMap({
         map: {
           'start-server.ts': [
-              `import { serverFlow } from '../flows/server/server-flow';`,
-              `export const startServer = () => {};`,
-            ].join('\n'),
+            `import { serverFlow } from '../flows/server/server-flow';`,
+            `export const startServer = () => {};`,
+          ].join('\n'),
           'server-flow.ts': [
-              `import { serverInitResponder } from '../../responders/server/init/server-init-responder';`,
-              `export const serverFlow = () => {};`,
-            ].join('\n'),
+            `import { serverInitResponder } from '../../responders/server/init/server-init-responder';`,
+            `export const serverFlow = () => {};`,
+          ].join('\n'),
           'server-init-responder.ts': [
-              `import { orchestratorEventsOnBroker } from '../../../brokers/orchestrator/events-on/orchestrator-events-on-broker';`,
-              `export const serverInitResponder = () => {};`,
-            ].join('\n'),
+            `import { orchestratorEventsOnBroker } from '../../../brokers/orchestrator/events-on/orchestrator-events-on-broker';`,
+            `export const serverInitResponder = () => {};`,
+          ].join('\n'),
           'orchestrator-events-on-broker.ts': `export const orchestratorEventsOnBroker = () => {};`,
         },
       });
@@ -153,17 +153,17 @@ describe('architectureBootTreeBroker', () => {
 
       expect(result).toBe(
         [
-            '## Boot',
-            '',
-            '```',
-            'startServer',
-            '  ↳ flows/{serverFlow}',
-            '',
-            'serverFlow',
-            '  ↳ serverInitResponder',
-            '      → orchestratorEventsOnBroker',
-            '```',
-          ].join('\n'),
+          '## Boot',
+          '',
+          '```',
+          'startServer',
+          '  ↳ flows/{serverFlow}',
+          '',
+          'serverFlow',
+          '  ↳ serverInitResponder',
+          '      → orchestratorEventsOnBroker',
+          '```',
+        ].join('\n'),
       );
     });
   });
@@ -177,9 +177,7 @@ describe('architectureBootTreeBroker', () => {
 
       const result = architectureBootTreeBroker({ packageRoot });
 
-      expect(result).toBe(
-        '## Boot\n\n```\n(no startup files found)\n```',
-      );
+      expect(result).toBe('## Boot\n\n```\n(no startup files found)\n```');
     });
   });
 
@@ -200,9 +198,7 @@ describe('architectureBootTreeBroker', () => {
 
       const result = architectureBootTreeBroker({ packageRoot });
 
-      expect(result).toBe(
-        ['## Boot', '', '```', 'startServer', '```'].join('\n'),
-      );
+      expect(result).toBe(['## Boot', '', '```', 'startServer', '```'].join('\n'));
     });
   });
 });

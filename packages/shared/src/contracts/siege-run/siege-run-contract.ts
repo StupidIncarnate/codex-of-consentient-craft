@@ -10,7 +10,13 @@ import { z } from '#gateway/npm/zod';
 
 export const siegeRunContract = z
   .object({
-    id: z.string().regex(/^run_[1-9][0-9]*$/u, 'Siege run id must look like "run_" followed by a positive integer with no leading zero, e.g. "run_2"',).brand<'SiegeRunId'>(),
+    id: z
+      .string()
+      .regex(
+        /^run_[1-9][0-9]*$/u,
+        'Siege run id must look like "run_" followed by a positive integer with no leading zero, e.g. "run_2"',
+      )
+      .brand<'SiegeRunId'>(),
   })
   .brand<'SiegeRun'>();
 

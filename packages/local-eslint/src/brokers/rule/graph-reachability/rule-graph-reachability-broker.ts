@@ -70,7 +70,7 @@ export const ruleGraphReachabilityBroker = (): TSESLint.RuleModule<'graphViolati
           ctx.report({
             node,
             messageId: 'graphViolation',
-            data: { violation: String(violation) },
+            data: { violation: violation },
           });
         }
       },

@@ -19,11 +19,11 @@ export const agentsPluginCreateBroker = async ({
   targetProjectRoot: string;
 }): Promise<void> => {
   const pluginDir = join(
-      targetProjectRoot,
-      locationsStatics.repoRoot.agents.dir,
-      locationsStatics.repoRoot.agents.pluginsDir,
-      mcpToolsStatics.server.name,
-    );
+    targetProjectRoot,
+    locationsStatics.repoRoot.agents.dir,
+    locationsStatics.repoRoot.agents.pluginsDir,
+    mcpToolsStatics.server.name,
+  );
 
   await ensureDir(pluginDir);
 

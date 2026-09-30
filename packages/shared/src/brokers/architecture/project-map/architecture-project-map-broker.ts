@@ -57,8 +57,8 @@ export const architectureProjectMapBroker = async ({
     });
   }
 
-  const discoveredNames = scanTargets.map(({ packageName }) => String(packageName));
-  const requestedNames = packages.map((name) => String(name));
+  const discoveredNames = scanTargets.map(({ packageName }) => packageName);
+  const requestedNames = packages.map((name) => name);
   // '#gateway' is never a real directory under packages/ — discoverPackagesLayerBroker only ever
   // sees the four real gateway packages (npm, node, browser, bin) as separate entries — so it is
   // excluded from the "must be discoverable" check below and rendered as its own grouped section
@@ -82,7 +82,7 @@ export const architectureProjectMapBroker = async ({
   );
 
   const requestedTargets = targetsWithType.filter(({ packageName }) =>
-    requestedNames.includes(String(packageName)),
+    requestedNames.includes(packageName),
   );
 
   // A library package has no startup tree to walk, so it gets a header and a pointer instead of a
@@ -90,7 +90,7 @@ export const architectureProjectMapBroker = async ({
   // for it by name is owed an answer rather than silence.
   const packageSections = requestedTargets.map(({ packageName, packageRoot, packageType }) =>
     packageType === 'library'
-      ? `# ${String(packageName)} [${packageType}]\n\n${projectMapStatics.libraryNoFlowNotice}`
+      ? `# ${packageName} [${packageType}]\n\n${projectMapStatics.libraryNoFlowNotice}`
       : packageSectionBuildLayerBroker({
           packageName,
           packageRoot,

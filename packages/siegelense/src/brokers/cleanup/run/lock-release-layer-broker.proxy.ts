@@ -1,4 +1,3 @@
-
 import { readFileIfExistsProxy } from '#gateway/node/fs__promises/read-file-if-exists/read-file-if-exists.proxy';
 import type { FsError } from '#gateway/node/fs';
 import { unlinkProxy } from '#gateway/node/fs__promises/unlink/unlink.proxy';

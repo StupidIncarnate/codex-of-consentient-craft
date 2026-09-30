@@ -19,6 +19,7 @@ export const recipesAnswerContract = z
   .object({
     recipes: recipesListingContract,
   })
-  .strict().brand<'RecipesAnswer'>();
+  .strict()
+  .brand<'RecipesAnswer'>();
 
 export type RecipesAnswer = z.infer<typeof recipesAnswerContract>;

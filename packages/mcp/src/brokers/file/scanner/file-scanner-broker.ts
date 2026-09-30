@@ -59,14 +59,12 @@ export const fileScannerBroker = async ({
   // and a repo living under a directory an ignore rule names would disable that rule for every
   // search it ever ran.
   const ignore = globIgnoreFilterTransformer({
-    patterns:
-      ignorePatterns ??
-      fileDiscoveryStatics.globIgnorePatterns.map((value) => value),
+    patterns: ignorePatterns ?? fileDiscoveryStatics.globIgnorePatterns.map((value) => value),
     glob: globSuffix,
   });
 
-  const projectFiles = (await globFind(pattern, { cwd: cwdPath, ignore })).map((foundPath) =>
-    foundPath,
+  const projectFiles = (await globFind(pattern, { cwd: cwdPath, ignore })).map(
+    (foundPath) => foundPath,
   );
 
   // Also scan @dungeonmaster/shared for broad (unscoped) globs starting with **
@@ -100,7 +98,7 @@ export const fileScannerBroker = async ({
 
   // 2. Extract metadata from each file (parallel for performance)
   const metadataPromises = allFilePaths.map(async (filepath) => {
-    const contents = (await readFile(filepath));
+    const contents = await readFile(filepath);
 
     // Grep integration: if grep provided, record whether content matches
     const hits: FileMetadata['hits'] = grep

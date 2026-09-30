@@ -8,10 +8,12 @@ describe('InstallCommandsCreateResponder', () => {
       const proxy = InstallCommandsCreateResponderProxy();
 
       const result = await proxy.callResponder({
-        context: InstallContextStub({ value: {
-          targetProjectRoot: '/project',
-          dungeonmasterRoot: '/dm-root',
-        } }),
+        context: InstallContextStub({
+          value: {
+            targetProjectRoot: '/project',
+            dungeonmasterRoot: '/dm-root',
+          },
+        }),
       });
 
       expect(result).toStrictEqual({
@@ -29,10 +31,12 @@ describe('InstallCommandsCreateResponder', () => {
       const proxy = InstallCommandsCreateResponderProxy();
 
       await proxy.callResponder({
-        context: InstallContextStub({ value: {
-          targetProjectRoot: '/project',
-          dungeonmasterRoot: '/dm-root',
-        } }),
+        context: InstallContextStub({
+          value: {
+            targetProjectRoot: '/project',
+            dungeonmasterRoot: '/dm-root',
+          },
+        }),
       });
 
       expect(proxy.getCreatedDirs()).toStrictEqual(['/project/.claude/commands']);
@@ -44,10 +48,12 @@ describe('InstallCommandsCreateResponder', () => {
       const proxy = InstallCommandsCreateResponderProxy();
 
       await proxy.callResponder({
-        context: InstallContextStub({ value: {
-          targetProjectRoot: '/project',
-          dungeonmasterRoot: '/dm-root',
-        } }),
+        context: InstallContextStub({
+          value: {
+            targetProjectRoot: '/project',
+            dungeonmasterRoot: '/dm-root',
+          },
+        }),
       });
 
       expect(proxy.getAllWrittenFiles()).toStrictEqual([

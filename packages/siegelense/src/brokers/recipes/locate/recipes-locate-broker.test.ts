@@ -1,4 +1,3 @@
-
 import { recipesLocateBroker } from './recipes-locate-broker';
 import { recipesLocateBrokerProxy } from './recipes-locate-broker.proxy';
 import { RecipesPackageMissingError } from '../../../errors/recipes-package-missing/recipes-package-missing-error';
@@ -17,9 +16,7 @@ describe('recipesLocateBroker', () => {
 
       const result = await recipesLocateBroker();
 
-      expect(result).toStrictEqual(
-        '/repo/packages/hydration-recipes/dist/index.js',
-      );
+      expect(result).toStrictEqual('/repo/packages/hydration-recipes/dist/index.js');
     });
   });
 

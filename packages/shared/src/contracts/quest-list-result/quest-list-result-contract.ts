@@ -11,9 +11,11 @@ import { z } from '#gateway/npm/zod';
 import { questListItemContract } from '../quest-list-item/quest-list-item-contract';
 import { skippedQuestFileContract } from '../skipped-quest-file/skipped-quest-file-contract';
 
-export const questListResultContract = z.object({
-  quests: questListItemContract.array(),
-  skipped: skippedQuestFileContract.array().default([]),
-}).brand<'QuestListResult'>();
+export const questListResultContract = z
+  .object({
+    quests: questListItemContract.array(),
+    skipped: skippedQuestFileContract.array().default([]),
+  })
+  .brand<'QuestListResult'>();
 
 export type QuestListResult = z.infer<typeof questListResultContract>;

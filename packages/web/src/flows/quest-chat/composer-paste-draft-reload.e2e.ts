@@ -70,7 +70,7 @@ test.describe('Composer paste — draft persists across reload and restores into
     await sessions.createSessionFile({ sessionId, userMessage: 'Build feature' });
 
     const created = await quests.createQuest({
-      guildId: guildId,
+      guildId,
       title: 'Draft Reload State Quest',
       userRequest: 'Build feature',
     });
@@ -152,7 +152,7 @@ test.describe('Composer paste — draft persists across reload and restores into
     await sessions.createSessionFile({ sessionId, userMessage: 'Build feature' });
 
     const created = await quests.createQuest({
-      guildId: guildId,
+      guildId,
       title: 'Draft Reload Send Quest',
       userRequest: 'Build feature',
     });
@@ -224,7 +224,7 @@ test.describe('Composer paste — draft persists across reload and restores into
     await sessions.createSessionFile({ sessionId, userMessage: 'Build feature' });
 
     const created = await quests.createQuest({
-      guildId: guildId,
+      guildId,
       title: 'Draft Reload Tokens Quest',
       userRequest: 'Build feature',
     });
@@ -277,7 +277,7 @@ test.describe('Composer paste — draft persists across reload and restores into
     await sessions.createSessionFile({ sessionId, userMessage: 'Build feature' });
 
     const created = await quests.createQuest({
-      guildId: guildId,
+      guildId,
       title: 'Draft Reload Bytes Quest',
       userRequest: 'Build feature',
     });
@@ -333,7 +333,7 @@ test.describe('Composer paste — draft persists across reload and restores into
     await sessions.createSessionFile({ sessionId, userMessage: 'Build feature' });
 
     const created = await quests.createQuest({
-      guildId: guildId,
+      guildId,
       title: 'Draft Reload Count Quest',
       userRequest: 'Build feature',
     });
@@ -408,7 +408,7 @@ test.describe('Composer paste — draft persists across reload and restores into
     await sessions.createSessionFile({ sessionId, userMessage: 'Build feature' });
 
     const created = await quests.createQuest({
-      guildId: guildId,
+      guildId,
       title: 'Draft Reload Order Quest',
       userRequest: 'Build feature',
     });
@@ -484,7 +484,7 @@ test.describe('Composer paste — draft persists across reload and restores into
     await sessions.createSessionFile({ sessionId, userMessage: 'Build feature' });
 
     const created = await quests.createQuest({
-      guildId: guildId,
+      guildId,
       title: 'Draft Reload Renders Quest',
       userRequest: 'Build feature',
     });
@@ -562,7 +562,7 @@ test.describe('Composer paste — draft persists across reload and restores into
     await sessions.createSessionFile({ sessionId, userMessage: 'Build feature' });
 
     const created = await quests.createQuest({
-      guildId: guildId,
+      guildId,
       title: 'Draft Reload Bounded Quest',
       userRequest: 'Build feature',
     });
@@ -642,7 +642,7 @@ test.describe('Composer paste — draft persists across reload and restores into
     await sessions.createSessionFile({ sessionId, userMessage: 'Build feature' });
 
     const created = await quests.createQuest({
-      guildId: guildId,
+      guildId,
       title: 'Draft Reload Serialize Quest',
       userRequest: 'Build feature',
     });
@@ -720,7 +720,7 @@ test.describe('Composer paste — draft persists across reload and restores into
     await sessions.createSessionFile({ sessionId, userMessage: 'Build feature' });
 
     const created = await quests.createQuest({
-      guildId: guildId,
+      guildId,
       title: 'Draft Reload Sends Bytes Quest',
       userRequest: 'Build feature',
     });
@@ -812,7 +812,7 @@ test.describe('Composer paste — draft persists across reload and restores into
     const sessionIdA = `e2e-draft-reload-writes-a-${Date.now()}`;
     await sessions.createSessionFile({ sessionId: sessionIdA, userMessage: 'Build feature' });
     const createdA = await quests.createQuest({
-      guildId: guildId,
+      guildId,
       title: 'Draft Reload Writes A Quest',
       userRequest: 'Build feature',
     });
@@ -872,7 +872,7 @@ test.describe('Composer paste — draft persists across reload and restores into
     const sessionIdB = `e2e-draft-reload-writes-b-${Date.now()}`;
     await sessions.createSessionFile({ sessionId: sessionIdB, userMessage: 'Build feature' });
     const createdB = await quests.createQuest({
-      guildId: guildId,
+      guildId,
       title: 'Draft Reload Writes B Quest',
       userRequest: 'Build feature',
     });
@@ -974,7 +974,7 @@ test.describe('Composer paste — a draft database missing its store heals itsel
     await sessions.createSessionFile({ sessionId, userMessage: 'Build feature' });
 
     const created = await quests.createQuest({
-      guildId: guildId,
+      guildId,
       title: 'Draft Store Heals Quest',
       userRequest: 'Build feature',
     });

@@ -241,8 +241,8 @@ describe('draftImagesReadBroker', () => {
     const proxy = draftImagesReadBrokerProxy();
     proxy.openFails({ error: new Error('blocked') });
 
-    await expect(
-      draftImagesReadBroker({ scopeKey: 'quest-a' }),
-    ).rejects.toThrow(/openStore: failed to open/u);
+    await expect(draftImagesReadBroker({ scopeKey: 'quest-a' })).rejects.toThrow(
+      /openStore: failed to open/u,
+    );
   });
 });

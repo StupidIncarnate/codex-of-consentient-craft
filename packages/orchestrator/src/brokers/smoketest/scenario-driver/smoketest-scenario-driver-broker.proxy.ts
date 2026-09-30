@@ -8,10 +8,7 @@ import { smoketestSweepPendingWorkItemsLayerBrokerProxy } from './smoketest-swee
 
 type Quest = ReturnType<typeof QuestStub>;
 
-type QuestModifiedHandler = (event: {
-  processId: string;
-  payload: { questId?: unknown };
-}) => void;
+type QuestModifiedHandler = (event: { processId: string; payload: { questId?: unknown } }) => void;
 
 export const smoketestScenarioDriverBrokerProxy = (): {
   setupQuestFound: (params: { quest: Quest }) => void;

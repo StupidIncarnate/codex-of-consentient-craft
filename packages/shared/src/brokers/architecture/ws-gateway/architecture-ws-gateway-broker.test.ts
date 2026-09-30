@@ -2,7 +2,8 @@ import { architectureWsGatewayBroker } from './architecture-ws-gateway-broker';
 import { architectureWsGatewayBrokerProxy } from './architecture-ws-gateway-broker.proxy';
 
 const PROJECT_ROOT = '/repo';
-const WS_ADAPTER = '/repo/packages/server/src/adapters/hono/create-node-web-socket/hono-create-node-web-socket-adapter.ts';
+const WS_ADAPTER =
+  '/repo/packages/server/src/adapters/hono/create-node-web-socket/hono-create-node-web-socket-adapter.ts';
 const GATEWAY_FILE = '/repo/packages/server/src/responders/server/init/server-init-responder.ts';
 
 describe('architectureWsGatewayBroker', () => {
@@ -28,7 +29,8 @@ describe('architectureWsGatewayBroker', () => {
           },
           {
             path: GATEWAY_FILE,
-            source: "import { honoCreateNodeWebSocketAdapter } from '../../../adapters/hono/create-node-web-socket/hono-create-node-web-socket-adapter';",
+            source:
+              "import { honoCreateNodeWebSocketAdapter } from '../../../adapters/hono/create-node-web-socket/hono-create-node-web-socket-adapter';",
           },
         ],
       });
@@ -50,7 +52,8 @@ describe('architectureWsGatewayBroker', () => {
           },
           {
             path: GATEWAY_FILE,
-            source: "import { honoServeAdapter } from '../../../adapters/hono/serve/hono-serve-adapter';",
+            source:
+              "import { honoServeAdapter } from '../../../adapters/hono/serve/hono-serve-adapter';",
           },
         ],
       });

@@ -12,9 +12,11 @@
 import { z } from '#gateway/npm/zod';
 import { questContract } from '@dungeonmaster/shared/contracts';
 
-export const questRiftcarverDetailParamsContract = z.object({
-  questId: questContract.shape.id,
-  riftcarverResultId: z.uuid().brand<'QuestRiftcarverDetailParamsRiftcarverResultId'>(),
-}).brand<'QuestRiftcarverDetailParams'>();
+export const questRiftcarverDetailParamsContract = z
+  .object({
+    questId: questContract.shape.id,
+    riftcarverResultId: z.uuid().brand<'QuestRiftcarverDetailParamsRiftcarverResultId'>(),
+  })
+  .brand<'QuestRiftcarverDetailParams'>();
 
 export type QuestRiftcarverDetailParams = z.infer<typeof questRiftcarverDetailParamsContract>;

@@ -13,7 +13,6 @@
  * // Returns 'INSTANCE: inst_7f3a9c21 (dungeonmaster-stack)\n...SEEDED: none\n'
  */
 
-
 import type { InstanceManifest } from '../../contracts/instance-manifest/instance-manifest-contract';
 import { seedRowSummaryStatics } from '../../statics/seed-row-summary/seed-row-summary-statics';
 
@@ -78,13 +77,13 @@ export const startAnswerRenderTransformer = ({
           ];
 
   return [
-      `INSTANCE: ${manifest.instanceId} (${manifest.specName})`,
-      `URL: ${url}`,
-      `API: ${apiUrl}`,
-      `HOME: ${home}`,
-      `EVIDENCE: ${evidenceDir}`,
-      `BOOT: ${manifest.bootMs}ms`,
-      ...seededLines,
-      '',
-    ].join('\n');
+    `INSTANCE: ${manifest.instanceId} (${manifest.specName})`,
+    `URL: ${url}`,
+    `API: ${apiUrl}`,
+    `HOME: ${home}`,
+    `EVIDENCE: ${evidenceDir}`,
+    `BOOT: ${manifest.bootMs}ms`,
+    ...seededLines,
+    '',
+  ].join('\n');
 };

@@ -176,7 +176,7 @@ export const webSocketChannelState = {
     }
     if (envelope.data.type === 'quest-modified') {
       const payload = questModifiedPayloadContract.safeParse(envelope.data.payload);
-      if (payload.success) internalState.questUpdatedSubject.next(payload.data.quest as Quest);
+      if (payload.success) internalState.questUpdatedSubject.next(payload.data.quest);
       return;
     }
     if (envelope.data.type === 'quest-load-failed') {

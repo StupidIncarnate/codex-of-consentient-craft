@@ -141,7 +141,7 @@ export const ruleEnforceStubUsageBroker = (): TSESLint.RuleModule<
         ctx.report({
           node: actualInit ?? node,
           messageId: 'useStubInsteadOfTypedLiteral',
-          data: { typeName: String(finalTypeName) },
+          data: { typeName: finalTypeName },
         });
       },
     };

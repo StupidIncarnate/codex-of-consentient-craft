@@ -293,7 +293,9 @@ describe('ReconcileWatchersLayerResponder', () => {
 
         const questId = QuestIdStub({ value: 'spec-phase-quest' });
         const intakeSessionId = '35fd5b8f-551b-8baf-b8fb-a5c4702e7b71';
-        const intakeWorkItemId = QuestWorkItemIdStub({ value: '97241aaa-ae56-6f58-b9ec-a952ee85b407' });
+        const intakeWorkItemId = QuestWorkItemIdStub({
+          value: '97241aaa-ae56-6f58-b9ec-a952ee85b407',
+        });
 
         const guild = GuildListItemStub();
         proxy.guildsProxy.returns({ guilds: [guild] });
@@ -380,7 +382,9 @@ describe('ReconcileWatchersLayerResponder', () => {
 
         const questId = QuestIdStub({ value: 'terminal-quest-with-followup' });
         const followupSessionId = '9f7abf0d-ce8a-518c-9781-61bfa3057384';
-        const followupWorkItemId = QuestWorkItemIdStub({ value: '88888888-8888-8888-8888-888888888888' });
+        const followupWorkItemId = QuestWorkItemIdStub({
+          value: '88888888-8888-8888-8888-888888888888',
+        });
 
         const guild = GuildListItemStub();
         proxy.guildsProxy.returns({ guilds: [guild] });

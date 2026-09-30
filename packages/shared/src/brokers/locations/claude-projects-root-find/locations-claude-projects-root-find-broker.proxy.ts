@@ -16,7 +16,7 @@ export const locationsClaudeProjectsRootFindBrokerProxy = (): {
 
   return {
     setupProjectsRoot: ({ homeDir }: { homeDir: string }): void => {
-      homedirHandle.onceFor([]).returns(String(homeDir));
+      homedirHandle.onceFor([]).returns(homeDir);
     },
   };
 };

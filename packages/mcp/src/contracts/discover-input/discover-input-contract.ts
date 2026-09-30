@@ -11,7 +11,11 @@ import { coercedBooleanInputContract } from '../coerced-boolean-input/coerced-bo
 
 export const discoverInputContract = z
   .object({
-    glob: z.string().brand<'DiscoverInputGlob'>().describe('File path pattern (glob syntax)').optional(),
+    glob: z
+      .string()
+      .brand<'DiscoverInputGlob'>()
+      .describe('File path pattern (glob syntax)')
+      .optional(),
     grep: z
       .string()
       .brand<'DiscoverInputGrep'>()
@@ -37,6 +41,7 @@ export const discoverInputContract = z
       )
       .optional(),
   })
-  .strict().brand<'DiscoverInput'>();
+  .strict()
+  .brand<'DiscoverInput'>();
 
 export type DiscoverInput = z.infer<typeof discoverInputContract>;

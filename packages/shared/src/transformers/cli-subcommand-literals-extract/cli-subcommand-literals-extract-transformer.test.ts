@@ -12,9 +12,9 @@ describe('cliSubcommandLiteralsExtractTransformer', () => {
 
     it("VALID: {args[0] === 'run' and args[0] === 'detail'} => returns ['run', 'detail']", () => {
       const source = [
-          `if (args[0] === 'run') { await WardRunResponder(); }`,
-          `if (args[0] === 'detail') { await WardDetailResponder(); }`,
-        ].join('\n');
+        `if (args[0] === 'run') { await WardRunResponder(); }`,
+        `if (args[0] === 'detail') { await WardDetailResponder(); }`,
+      ].join('\n');
 
       const result = cliSubcommandLiteralsExtractTransformer({ source });
 
@@ -43,9 +43,9 @@ describe('cliSubcommandLiteralsExtractTransformer', () => {
   describe('deduplication', () => {
     it('VALID: {same subcommand appears twice} => returns it only once', () => {
       const source = [
-          `if (args[0] === 'run') { return run(); }`,
-          `if (args[0] === 'run') { break; }`,
-        ].join('\n');
+        `if (args[0] === 'run') { return run(); }`,
+        `if (args[0] === 'run') { break; }`,
+      ].join('\n');
 
       const result = cliSubcommandLiteralsExtractTransformer({ source });
 

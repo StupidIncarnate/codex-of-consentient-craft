@@ -8,9 +8,6 @@ export const ResetReadingStub = ({ ...props }: StubArgument<ResetReading> = {}):
   resetReadingContract.parse({
     restored: 'clean',
     undid: ResetUndidStub(),
-    NOT_cleared: [
-      'server memory',
-      'open websockets',
-    ],
+    NOT_cleared: ['server memory', 'open websockets'],
     ...props,
   });

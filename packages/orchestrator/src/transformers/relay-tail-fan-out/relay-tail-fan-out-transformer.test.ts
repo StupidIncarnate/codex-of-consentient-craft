@@ -424,13 +424,11 @@ describe('relayTailFanOutTransformer', () => {
         entry: CODEWEAVER_ENTRY,
         quest,
       }).flatMap((slice) =>
-        String(
-          questFlowSliceTransformer({
+        questFlowSliceTransformer({
             quest,
             flowId: FlowIdStub({ value: String(slice.flowIds[0]) }),
             packageName: String(slice.packageNames[0]),
-          }),
-        )
+          })
           .split('\n')
           .filter((line) => !SLICE_LEGEND_LINES.some((legend) => legend === line))
           .filter((line) => /^\s+● #/u.test(line))

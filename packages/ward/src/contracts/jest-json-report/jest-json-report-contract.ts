@@ -14,7 +14,8 @@ const jestAssertionResultContract = z
     fullName: z.string().brand<'JestAssertionResultFullName'>().optional(),
     failureMessages: z.array(z.string().brand<'JestAssertionResultFailureMessages'>()).optional(),
     duration: z.number().brand<'JestAssertionResultDuration'>().nullable().optional(),
-  }).brand<'JestAssertionResult'>()
+  })
+  .brand<'JestAssertionResult'>()
   .loose();
 
 const jestSuiteResultContract = z
@@ -25,7 +26,8 @@ const jestSuiteResultContract = z
     assertionResults: z.array(jestAssertionResultContract).optional(),
     startTime: z.number().brand<'JestSuiteResultStartTime'>().optional(),
     endTime: z.number().brand<'JestSuiteResultEndTime'>().optional(),
-  }).brand<'JestSuiteResult'>()
+  })
+  .brand<'JestSuiteResult'>()
   .loose();
 
 // Jest serializes each open handle as an Error through its own `serializeToJSON`, which keeps only
@@ -35,7 +37,8 @@ const jestOpenHandleContract = z
     name: z.string().brand<'JestOpenHandleName'>().optional(),
     message: z.string().brand<'JestOpenHandleMessage'>().optional(),
     stack: z.string().brand<'JestOpenHandleStack'>().optional(),
-  }).brand<'JestOpenHandle'>()
+  })
+  .brand<'JestOpenHandle'>()
   .loose();
 
 export const jestJsonReportContract = z
@@ -45,6 +48,7 @@ export const jestJsonReportContract = z
     testResults: z.array(jestSuiteResultContract).optional(),
     openHandles: z.array(jestOpenHandleContract).optional(),
   })
-  .loose().brand<'JestJsonReport'>();
+  .loose()
+  .brand<'JestJsonReport'>();
 
 export type JestJsonReport = z.infer<typeof jestJsonReportContract>;

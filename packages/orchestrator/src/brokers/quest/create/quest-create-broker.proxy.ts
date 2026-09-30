@@ -39,7 +39,7 @@ export const questCreateBrokerProxy = (): {
       });
 
       mkdirProxy.succeeds({ path: questsFolderPath });
-      const folderSegment = String(questFolderPath).split('/').filter(Boolean).pop();
+      const folderSegment = questFolderPath.split('/').filter(Boolean).pop();
       joinHandle.calledWith([questsFolderPath, folderSegment]).returns(questFolderPath);
       mkdirProxy.succeeds({ path: questFolderPath });
       joinHandle

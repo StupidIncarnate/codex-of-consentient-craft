@@ -14,7 +14,8 @@ describe('locationsInstanceEvidencePathFindBroker', () => {
         homeDir: '/home/user',
         homePath: '/home/user/.dungeonmaster',
         rootPath: '/home/user/.dungeonmaster/siegelense',
-        evidencePath: '/home/user/.dungeonmaster/siegelense/guilds/f47ac10b-58cc-4372-a567-0e02b2c3d479/instances/inst_7f3a9c21',
+        evidencePath:
+          '/home/user/.dungeonmaster/siegelense/guilds/f47ac10b-58cc-4372-a567-0e02b2c3d479/instances/inst_7f3a9c21',
       });
 
       const result = locationsInstanceEvidencePathFindBroker({ instanceId, guildId });
@@ -39,9 +40,7 @@ describe('locationsInstanceEvidencePathFindBroker', () => {
 
       const result = locationsInstanceEvidencePathFindBroker({ instanceId, guildId: null });
 
-      expect(result).toBe(
-        '/home/user/.dungeonmaster/siegelense/unowned/instances/inst_7f3a9c21',
-      );
+      expect(result).toBe('/home/user/.dungeonmaster/siegelense/unowned/instances/inst_7f3a9c21');
     });
   });
 });

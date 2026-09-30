@@ -14,15 +14,10 @@
  * matches the first `export const|function <name>` statement in source order
  */
 
-
 const EXPORT_PATTERN = /export\s+(?:const|function)\s+([A-Za-z_$][A-Za-z0-9_$]*)/u;
 
-export const exportNameExtractTransformer = ({
-  source,
-}: {
-  source: string;
-}): string | null => {
-  const match = EXPORT_PATTERN.exec(String(source));
+export const exportNameExtractTransformer = ({ source }: { source: string }): string | null => {
+  const match = EXPORT_PATTERN.exec(source);
   if (match === null) {
     return null;
   }

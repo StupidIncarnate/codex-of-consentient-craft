@@ -37,11 +37,13 @@ export const verificationUnitContract = z
       .enum(['spec', 'chaoswhisperer', 'codeweaver', 'flowrider', 'siegemaster', 'operator'])
       .optional(),
     verificationMethod: z.enum(['test', 'reading', 'human-check']).default('test'),
-    trackMarks: z.object({
-      codeweaver: unitMarkContract.optional(),
-      flowrider: unitMarkContract.optional(),
-      siegemaster: unitMarkContract.optional(),
-    }).brand<'VerificationUnitTrackMarks'>(),
+    trackMarks: z
+      .object({
+        codeweaver: unitMarkContract.optional(),
+        flowrider: unitMarkContract.optional(),
+        siegemaster: unitMarkContract.optional(),
+      })
+      .brand<'VerificationUnitTrackMarks'>(),
   })
   .brand<'VerificationUnit'>();
 

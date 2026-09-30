@@ -35,7 +35,6 @@
  * // less 512MB headroom; 1 siege instance already up'
  */
 
-
 import type { CapacityMeasured } from '../../contracts/capacity-measured/capacity-measured-contract';
 import type { CapacityProfile } from '../../contracts/capacity-profile/capacity-profile-contract';
 import type { CapacitySuggestion } from '../../contracts/capacity-suggestion/capacity-suggestion-contract';
@@ -112,10 +111,10 @@ export const capacityWhyRenderTransformer = ({
   const limitClause = limitClauses.find((candidate) => candidate !== null) ?? null;
 
   return [
-      profileClause,
-      ...(poolMismatchClause === null ? [] : [poolMismatchClause]),
-      memoryClause,
-      instancesClause,
-      ...(limitClause === null ? [] : [limitClause]),
-    ].join(CLAUSE_SEPARATOR);
+    profileClause,
+    ...(poolMismatchClause === null ? [] : [poolMismatchClause]),
+    memoryClause,
+    instancesClause,
+    ...(limitClause === null ? [] : [limitClause]),
+  ].join(CLAUSE_SEPARATOR);
 };

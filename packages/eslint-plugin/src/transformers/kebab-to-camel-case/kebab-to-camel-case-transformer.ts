@@ -8,6 +8,6 @@
 
 export const kebabToCamelCaseTransformer = ({ str }: { str: string }): string =>
   str.replace(/-([a-z])/gu, (match) => {
-      const [, letter] = match.split('');
-      return (letter ?? '').toUpperCase();
-    });
+    const [, letter] = match.split('');
+    return (letter ?? '').toUpperCase();
+  });

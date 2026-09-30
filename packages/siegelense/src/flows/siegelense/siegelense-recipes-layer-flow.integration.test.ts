@@ -102,9 +102,7 @@ describe('SiegelenseRecipesLayerFlow', () => {
 
       await SiegelenseRecipesLayerFlow({ callArgs: [] });
 
-      const writes = stdoutSpy
-        .callsMatching([])
-        .map((call) => String(call[0]));
+      const writes = stdoutSpy.callsMatching([]).map((call) => String(call[0]));
 
       const [wholeOutput] = writes;
 
@@ -119,9 +117,7 @@ describe('SiegelenseRecipesLayerFlow', () => {
 
       await SiegelenseRecipesLayerFlow({ callArgs: ['--json'] });
 
-      const writes = stdoutSpy
-        .callsMatching([])
-        .map((call) => String(call[0]));
+      const writes = stdoutSpy.callsMatching([]).map((call) => String(call[0]));
 
       const [wholeOutput] = writes;
 

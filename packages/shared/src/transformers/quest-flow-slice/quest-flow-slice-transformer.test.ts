@@ -301,7 +301,7 @@ describe('questFlowSliceTransformer', () => {
         packageName: 'web' as never,
       });
 
-      expect(String(result).split('\n')).toStrictEqual([
+      expect(result.split('\n')).toStrictEqual([
         ...HEADER_LINES,
         '',
         '## Other flows on this quest — ids and names only, NOT your scope',
@@ -351,20 +351,16 @@ describe('questFlowSliceTransformer', () => {
     // send; the web half is the render server's bytes have to satisfy. A cell handed a digit
     // instead of that sentence builds against a guess.
     it('VALID: {flowId, packageName} => a seam node reads whole from BOTH sides, each tag intact', () => {
-      const webLines = String(
-        questFlowSliceTransformer({
+      const webLines = questFlowSliceTransformer({
           quest: QUEST,
           flowId: 'login-flow' as never,
           packageName: 'web' as never,
-        }),
-      ).split('\n');
-      const serverLines = String(
-        questFlowSliceTransformer({
+        }).split('\n');
+      const serverLines = questFlowSliceTransformer({
           quest: QUEST,
           flowId: 'login-flow' as never,
           packageName: 'server' as never,
-        }),
-      ).split('\n');
+        }).split('\n');
 
       expect({
         web: webLines
@@ -390,13 +386,11 @@ describe('questFlowSliceTransformer', () => {
     // and no line under it — that count is the only signal web gets that anything is expected
     // there, and it is what the whole graph outside a package's own nodes now costs.
     it('VALID: {flowId, packageName: web} => a node web does not tag keeps its observables as a count', () => {
-      const lines = String(
-        questFlowSliceTransformer({
+      const lines = questFlowSliceTransformer({
           quest: QUEST,
           flowId: 'login-flow' as never,
           packageName: 'web' as never,
-        }),
-      ).split('\n');
+        }).split('\n');
 
       expect({
         theNodeLine: lines.filter((line) => line.trimStart().startsWith('[#auth-check]')),
@@ -415,7 +409,7 @@ describe('questFlowSliceTransformer', () => {
       });
 
       expect(
-        String(result)
+        result
           .split('\n')
           .filter((line) => CONTRACT_HEADER_PREFIXES.some((prefix) => line.startsWith(prefix))),
       ).toStrictEqual([
@@ -431,7 +425,7 @@ describe('questFlowSliceTransformer', () => {
       });
 
       expect(
-        String(result)
+        result
           .split('\n')
           .filter((line) => line.startsWith('  attemptsLeft')),
       ).toStrictEqual([
@@ -447,7 +441,7 @@ describe('questFlowSliceTransformer', () => {
       });
 
       expect(
-        String(result)
+        result
           .split('\n')
           .filter((line) => line.startsWith('#no-third-party-auth')),
       ).toStrictEqual(['#no-third-party-auth: "No third-party identity provider"']);
@@ -461,7 +455,7 @@ describe('questFlowSliceTransformer', () => {
       });
 
       expect(
-        String(result)
+        result
           .split('\n')
           .filter((line) => OFF_MAP_LINES.includes(line)),
       ).toStrictEqual([]);
@@ -473,7 +467,7 @@ describe('questFlowSliceTransformer', () => {
       const result = questFlowSliceTransformer({ quest: QUEST, flowId: 'login-flow' as never });
 
       expect(
-        String(result)
+        result
           .split('\n')
           .filter((line) => !LEGEND_LINES.some((legend) => legend === line))
           .filter((line) =>
@@ -498,9 +492,7 @@ describe('questFlowSliceTransformer', () => {
     // that has not run yet — roughly 1,200 characters of its render belonging to nobody in its
     // chain. Asserted as the render's LAST lines, so a section re-appended anywhere below reds this.
     it('VALID: {flowId, no packageName} => renders no off-map probe family at all', () => {
-      const lines = String(
-        questFlowSliceTransformer({ quest: QUEST, flowId: 'login-flow' as never }),
-      ).split('\n');
+      const lines = questFlowSliceTransformer({ quest: QUEST, flowId: 'login-flow' as never }).split('\n');
 
       expect({
         offMapLines: lines.filter((line) => OFF_MAP_LINES.includes(line)),
@@ -515,7 +507,7 @@ describe('questFlowSliceTransformer', () => {
       const result = questFlowSliceTransformer({ quest: QUEST, flowId: 'login-flow' as never });
 
       expect(
-        String(result)
+        result
           .split('\n')
           .filter((line) => OWNERSHIP_LINE_PREFIXES.some((prefix) => line.startsWith(prefix))),
       ).toStrictEqual(['The WHOLE flow is yours — every node, whatever package it lands in.']);
@@ -528,9 +520,7 @@ describe('questFlowSliceTransformer', () => {
     // ownership line directly under it says the whole flow is theirs, and the one it is likelier to
     // act on is the one that is wrong.
     it('VALID: {flowId, no packageName} => the KEY is the whole-flow one, naming no owned-node mark and no per-node gate', () => {
-      const lines = String(
-        questFlowSliceTransformer({ quest: QUEST, flowId: 'login-flow' as never }),
-      ).split('\n');
+      const lines = questFlowSliceTransformer({ quest: QUEST, flowId: 'login-flow' as never }).split('\n');
 
       expect({
         ownedNodeLines: lines.filter((line) => line.includes(textDisplaySymbolsStatics.ownedNode)),
@@ -550,9 +540,7 @@ describe('questFlowSliceTransformer', () => {
     // every contract the first heading printed was printed again underneath a heading saying no flow
     // anchors it. Measured on a real three-flow quest: 7,195 of 42,925 characters.
     it('VALID: {flowId, no packageName} => each contract is rendered ONCE, under the on-this-flow heading alone', () => {
-      const lines = String(
-        questFlowSliceTransformer({ quest: QUEST, flowId: 'login-flow' as never }),
-      ).split('\n');
+      const lines = questFlowSliceTransformer({ quest: QUEST, flowId: 'login-flow' as never }).split('\n');
 
       expect({
         headings: lines.filter((line) => line.startsWith('## Contracts')),
@@ -570,7 +558,7 @@ describe('questFlowSliceTransformer', () => {
     it('VALID: {packageName only} => every contract that package owns, and which flows it tags nodes in', () => {
       const result = questFlowSliceTransformer({ quest: QUEST, packageName: 'web' as never });
 
-      expect(String(result).split('\n')).toStrictEqual([
+      expect(result.split('\n')).toStrictEqual([
         ...HEADER_LINES,
         '',
         '## Flows on this quest — fetch each one you own with get-quest({ questId, flowId })',
@@ -601,7 +589,7 @@ describe('questFlowSliceTransformer', () => {
     it('INVALID: {flowId: "checkout-flow"} => names the flows that DO exist rather than only the miss', () => {
       const result = questFlowSliceTransformer({ quest: QUEST, flowId: 'checkout-flow' as never });
 
-      expect(String(result).split('\n')).toStrictEqual([
+      expect(result.split('\n')).toStrictEqual([
         ...HEADER_LINES,
         '',
         '## No flow #checkout-flow on this quest. Its flows are: #login-flow, #signup-flow',
@@ -642,13 +630,11 @@ describe('questFlowSliceTransformer', () => {
     });
 
     it('VALID: {server on login-flow, owning a contract anchored on signup-flow} => renders it under its own heading', () => {
-      const lines = String(
-        questFlowSliceTransformer({
+      const lines = questFlowSliceTransformer({
           quest: QUEST_WITH_ORPHAN,
           flowId: 'login-flow' as never,
           packageName: 'server' as never,
-        }),
-      ).split('\n');
+        }).split('\n');
 
       const headingIndex = lines.indexOf(
         '## Contracts you own that NO flow of yours anchors — honour them; no sibling session sees them',
@@ -670,13 +656,11 @@ describe('questFlowSliceTransformer', () => {
     // here would be the duplication this rule exists to prevent. Asserted as the EXACT heading and
     // contract-id sets rather than an absence, so a render that broke entirely cannot pass.
     it('VALID: {web on login-flow, owning a contract on signup-flow it TAGS} => one heading, and the sibling cell keeps that contract', () => {
-      const lines = String(
-        questFlowSliceTransformer({
+      const lines = questFlowSliceTransformer({
           quest: QUEST_WITH_ORPHAN,
           flowId: 'login-flow' as never,
           packageName: 'web' as never,
-        }),
-      ).split('\n');
+        }).split('\n');
 
       expect({
         contractHeadings: lines.filter((line) => line.startsWith('## Contracts')),
@@ -694,13 +678,11 @@ describe('questFlowSliceTransformer', () => {
     // The orphan's anchoring node must not drag its design decisions in either — the session was
     // never shown #signup-page, so a decision explaining it would name a node it cannot find.
     it('VALID: {web on login-flow} => only decisions naming a node it was shown', () => {
-      const lines = String(
-        questFlowSliceTransformer({
+      const lines = questFlowSliceTransformer({
           quest: QUEST_WITH_ORPHAN,
           flowId: 'login-flow' as never,
           packageName: 'web' as never,
-        }),
-      ).split('\n');
+        }).split('\n');
 
       expect(
         lines
@@ -723,7 +705,7 @@ describe('questFlowSliceTransformer', () => {
         packageName: 'orchastrator' as never,
       });
 
-      expect(String(result).split('\n')).toStrictEqual([
+      expect(result.split('\n')).toStrictEqual([
         ...HEADER_LINES,
         '',
         '## No package "orchastrator" on this quest. Its packages are: web, server',
@@ -746,8 +728,8 @@ describe('questFlowSliceTransformer', () => {
       });
 
       expect({
-        refused: String(result).includes('## No package'),
-        marksItsOwnNodes: String(result).includes(
+        refused: result.includes('## No package'),
+        marksItsOwnNodes: result.includes(
           `[#auth-check] {server ● 1} Credentials checked (decision) ${textDisplaySymbolsStatics.ownedNode}`,
         ),
       }).toStrictEqual({ refused: false, marksItsOwnNodes: true });
@@ -761,7 +743,7 @@ describe('questFlowSliceTransformer', () => {
         flowId: 'send-message-with-images' as never,
       });
 
-      expect(String(result).length).toBeLessThan(mcpToolResultStatics.maxVerbatimChars);
+      expect(result.length).toBeLessThan(mcpToolResultStatics.maxVerbatimChars);
     });
   });
 
@@ -771,10 +753,10 @@ describe('questFlowSliceTransformer', () => {
         quest: OVERSIZED_QUEST,
         flowId: 'login-flow' as never,
       });
-      const lines = String(result).split('\n');
+      const lines = result.split('\n');
 
       expect([
-        String(result).length < mcpToolResultStatics.maxVerbatimChars,
+        result.length < mcpToolResultStatics.maxVerbatimChars,
         lines.slice(-1).map((line) => line.startsWith(TRUNCATION_PREFIX)),
       ]).toStrictEqual([true, [true]]);
     });

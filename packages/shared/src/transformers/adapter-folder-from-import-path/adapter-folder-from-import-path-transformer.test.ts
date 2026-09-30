@@ -6,7 +6,7 @@ describe('adapterFolderFromImportPathTransformer', () => {
       importPath: '../../../adapters/orchestrator/start-quest/orchestrator-start-quest-adapter',
     });
 
-    expect(String(result)).toBe('adapters/orchestrator/start-quest');
+    expect(result).toBe('adapters/orchestrator/start-quest');
   });
 
   it('VALID: {adapter import with two levels} => strips filename', () => {
@@ -14,7 +14,7 @@ describe('adapterFolderFromImportPathTransformer', () => {
       importPath: '../adapters/fs/write-file',
     });
 
-    expect(String(result)).toBe('adapters/fs');
+    expect(result).toBe('adapters/fs');
   });
 
   it('VALID: {adapters/ with single segment} => returns adapters/segment', () => {
@@ -22,7 +22,7 @@ describe('adapterFolderFromImportPathTransformer', () => {
       importPath: '../adapters/hono',
     });
 
-    expect(String(result)).toBe('adapters/hono');
+    expect(result).toBe('adapters/hono');
   });
 
   it('EMPTY: {import path without adapters/ segment} => returns empty string', () => {
@@ -30,6 +30,6 @@ describe('adapterFolderFromImportPathTransformer', () => {
       importPath: '../../responders/quest/start/quest-start-responder',
     });
 
-    expect(String(result)).toBe('');
+    expect(result).toBe('');
   });
 });

@@ -431,7 +431,7 @@ export const flowDiagramHarness = ({
       await quests.writeQuestFile({
         questId: created.questId,
         questFolder: created.questFolder,
-        questFilePath: String(created.filePath),
+        questFilePath: created.filePath,
         status: 'approved',
         workItems: [
           {

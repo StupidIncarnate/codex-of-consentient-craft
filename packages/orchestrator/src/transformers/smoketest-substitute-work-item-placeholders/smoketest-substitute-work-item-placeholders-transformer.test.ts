@@ -139,7 +139,7 @@ describe('smoketestSubstituteWorkItemPlaceholdersTransformer', () => {
     });
 
     expect(updated?.smoketestPromptOverride).toBe(
-      `get-quest-status {"processId":"${String(PROCESS_ID)}"}`,
+      `get-quest-status {"processId":"${PROCESS_ID}"}`,
     );
   });
 
@@ -156,7 +156,7 @@ describe('smoketestSubstituteWorkItemPlaceholdersTransformer', () => {
     });
 
     expect(updated?.smoketestPromptOverride).toBe(
-      `q=${String(QUEST_ID)} g=${String(GUILD_ID)} p=${String(PROCESS_ID)}`,
+      `q=${String(QUEST_ID)} g=${String(GUILD_ID)} p=${PROCESS_ID}`,
     );
   });
 

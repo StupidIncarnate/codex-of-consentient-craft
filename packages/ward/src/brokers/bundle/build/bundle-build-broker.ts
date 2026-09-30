@@ -33,9 +33,7 @@ export const bundleBuildBroker = async ({
 }: {
   packageRoot: string;
 }): Promise<BundleBuildResult> => {
-  const manifestRaw = await readFile(
-    `${String(packageRoot)}/package.json`,
-  ).catch(() => null);
+  const manifestRaw = await readFile(`${packageRoot}/package.json`).catch(() => null);
 
   const scripts =
     manifestRaw === null
@@ -59,10 +57,10 @@ export const bundleBuildBroker = async ({
   const { repoRoot, relativePaths } = await collectInputsLayerBroker({ packageRoot });
   const hash = bundleHashFilesBroker({ rootPath: repoRoot, relativePaths });
 
-  const bundleParent = `${String(packageRoot)}/${bundleStatics.parentDir}`;
+  const bundleParent = `${packageRoot}/${bundleStatics.parentDir}`;
   const bundleDir = `${bundleParent}/${String(hash)}`;
 
-  if (existsSync(String(bundleDir))) {
+  if (existsSync(bundleDir)) {
     return bundleBuildResultContract.parse({ bundleDir, error: null });
   }
 
@@ -72,7 +70,7 @@ export const bundleBuildBroker = async ({
   // at once never share a write target. A pid recurs across reboots, so any leftover of the same
   // name is a dead run's and is taken first — building into it would ship both runs' output.
   const tempDir = `${bundleParent}/${bundleStatics.tempPrefix}${String(pid)}`;
-  await rm(String(tempDir), { recursive: true, force: true });
+  await rm(tempDir, { recursive: true, force: true });
 
   // A missing npm rejects `runScript` with NpmNotInstalledError rather than resolving a result —
   // caught here and folded into the same failed-run shape the old spawn-capture adapter resolved
@@ -81,9 +79,9 @@ export const bundleBuildBroker = async ({
   // runScript's own).
   const [, script, ...forwardedArgs] = bundleStatics.buildArgs;
   const result = await runScript({
-    cwd: String(packageRoot),
+    cwd: packageRoot,
     script,
-    args: [...forwardedArgs, String(tempDir)],
+    args: [...forwardedArgs, tempDir],
   }).catch((error: unknown) => {
     if (!(error instanceof NpmNotInstalledError)) {
       throw error;
@@ -92,21 +90,21 @@ export const bundleBuildBroker = async ({
   });
 
   if (result.exitCode !== 0) {
-    await rm(String(tempDir), { recursive: true, force: true });
+    await rm(tempDir, { recursive: true, force: true });
 
     return bundleBuildResultContract.parse({
       bundleDir: null,
-      error: `bundle build failed in ${String(packageRoot)}:\n${result.output}`,
+      error: `bundle build failed in ${packageRoot}:\n${result.output}`,
     });
   }
 
   try {
-    await rename(String(tempDir), String(bundleDir));
+    await rename(tempDir, bundleDir);
   } catch {
     // A sibling run published this hash first. Its bundle was built from the same inputs as ours,
     // and it may already be serving requests out of it, so ours is discarded rather than merged
     // over the top of it.
-    await rm(String(tempDir), { recursive: true, force: true });
+    await rm(tempDir, { recursive: true, force: true });
   }
 
   return bundleBuildResultContract.parse({ bundleDir, error: null });

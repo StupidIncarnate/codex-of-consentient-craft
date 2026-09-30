@@ -44,10 +44,7 @@ export const astLocalIdConstsTransformer = ({
         property.value.type === AST_NODE_TYPES.Identifier &&
         localNames.has(property.value.name)
       ) {
-        idConsts.set(
-          property.value.name,
-          ownerName,
-        );
+        idConsts.set(property.value.name, ownerName);
       }
     }
   }

@@ -15,12 +15,14 @@ import { z } from '#gateway/npm/zod';
 
 import { packageTypeContract } from '@dungeonmaster/shared/contracts';
 
-export const reactFlowPackageChipContract = z.object({
-  name: z.string().min(1).brand<'ReactFlowPackageChipName'>(),
-  // Absent when the name the node tags has no matching entry in the quest's packagesAffected. That
-  // is the coverage rule's own failure case, so the card paints it as unresolved rather than
-  // guessing a kind — a wrong colour would report a defect as a legitimate boundary.
-  packageType: packageTypeContract.optional(),
-}).brand<'ReactFlowPackageChip'>();
+export const reactFlowPackageChipContract = z
+  .object({
+    name: z.string().min(1).brand<'ReactFlowPackageChipName'>(),
+    // Absent when the name the node tags has no matching entry in the quest's packagesAffected. That
+    // is the coverage rule's own failure case, so the card paints it as unresolved rather than
+    // guessing a kind — a wrong colour would report a defect as a legitimate boundary.
+    packageType: packageTypeContract.optional(),
+  })
+  .brand<'ReactFlowPackageChip'>();
 
 export type ReactFlowPackageChip = z.infer<typeof reactFlowPackageChipContract>;

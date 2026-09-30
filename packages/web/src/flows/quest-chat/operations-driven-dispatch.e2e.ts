@@ -101,7 +101,7 @@ test.describe('Operations-driven dispatch', () => {
       firstWorkItemId: CW1_WORK_ITEM_ID,
     });
 
-    await nav.navigateToQuest({ urlSlug, questId: questId });
+    await nav.navigateToQuest({ urlSlug, questId });
 
     const executionPanel = page.getByTestId('execution-panel-widget');
     await expect(executionPanel).toBeVisible({ timeout: PANEL_TIMEOUT });
@@ -132,7 +132,7 @@ test.describe('Operations-driven dispatch', () => {
     // Drive the relay: codeweaver -> done, codeweaver -> done, flowrider -> done, ward -> green.
     // Nothing is appended between them — the standards review runs inside each session's own turn.
     await dispatch.playAndDrive({
-      questId: questId,
+      questId,
       script: [
         { role: 'codeweaver', outcome: 'done' },
         { role: 'codeweaver', outcome: 'done' },
@@ -145,7 +145,7 @@ test.describe('Operations-driven dispatch', () => {
     // complete, and exactly four work items exist and are all complete (strict 1:1, no
     // duplicates) — one per seeded ledger row, with nothing appended beside them.
     const finalQuest = await dispatch.waitForQuest({
-      questId: questId,
+      questId,
       timeoutMs: RELAY_TIMEOUT,
       predicate: ({ quest }) =>
         quest.status === 'complete' &&

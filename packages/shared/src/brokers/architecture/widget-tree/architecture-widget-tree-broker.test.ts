@@ -55,12 +55,8 @@ describe('architectureWidgetTreeBroker', () => {
           // content-layer-widget source: no widget imports (layer file, not a root)
           `import React from 'react';`,
         ],
-        responderFilePaths: [
-          '/repo/packages/web/src/responders/app-responder.ts',
-        ],
-        responderContents: [
-          `import { AppWidget } from '../widgets/app-widget';`,
-        ],
+        responderFilePaths: ['/repo/packages/web/src/responders/app-responder.ts'],
+        responderContents: [`import { AppWidget } from '../widgets/app-widget';`],
         flowFilePaths: [],
         flowContents: [],
       });
@@ -88,16 +84,10 @@ describe('architectureWidgetTreeBroker', () => {
       const packageRoot = '/repo/packages/web';
       proxy.setupPackage({
         packageRoot,
-        widgetFilePaths: [
-          '/repo/packages/web/src/widgets/app-widget.tsx',
-        ],
+        widgetFilePaths: ['/repo/packages/web/src/widgets/app-widget.tsx'],
         widgetSources: [`import React from 'react';`],
-        responderFilePaths: [
-          '/repo/packages/web/src/responders/app-responder.ts',
-        ],
-        responderContents: [
-          `import { AppWidget } from '../widgets/app-widget';`,
-        ],
+        responderFilePaths: ['/repo/packages/web/src/responders/app-responder.ts'],
+        responderContents: [`import { AppWidget } from '../widgets/app-widget';`],
         flowFilePaths: [],
         flowContents: [],
       });
@@ -124,18 +114,10 @@ describe('architectureWidgetTreeBroker', () => {
       const packageRoot = '/repo/packages/web';
       proxy.setupPackage({
         packageRoot,
-        widgetFilePaths: [
-          '/repo/packages/web/src/widgets/data-widget.tsx',
-        ],
-        widgetSources: [
-          `import { useQuestBinding } from '../bindings/quest/use-quest-binding';`,
-        ],
-        responderFilePaths: [
-          '/repo/packages/web/src/responders/app-responder.ts',
-        ],
-        responderContents: [
-          `import { DataWidget } from '../widgets/data-widget';`,
-        ],
+        widgetFilePaths: ['/repo/packages/web/src/widgets/data-widget.tsx'],
+        widgetSources: [`import { useQuestBinding } from '../bindings/quest/use-quest-binding';`],
+        responderFilePaths: ['/repo/packages/web/src/responders/app-responder.ts'],
+        responderContents: [`import { DataWidget } from '../widgets/data-widget';`],
         flowFilePaths: [],
         flowContents: [],
       });
@@ -188,12 +170,8 @@ describe('architectureWidgetTreeBroker', () => {
           // shared-widget: no imports
           `import React from 'react';`,
         ],
-        responderFilePaths: [
-          '/repo/packages/web/src/responders/app-responder.ts',
-        ],
-        responderContents: [
-          `import { AppWidget } from '../widgets/app-widget';`,
-        ],
+        responderFilePaths: ['/repo/packages/web/src/responders/app-responder.ts'],
+        responderContents: [`import { AppWidget } from '../widgets/app-widget';`],
         flowFilePaths: [],
         flowContents: [],
       });

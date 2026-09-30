@@ -27,7 +27,7 @@ export const routeMetadataExtractTransformer = ({
 }: {
   source: string;
 }): RouteMetadata[] => {
-  const sourceStr = String(source)
+  const sourceStr = source
     .replace(BLOCK_COMMENT_PATTERN, '')
     .replace(LINE_COMMENT_PATTERN, '');
   if (!sourceStr.includes('<Route')) {

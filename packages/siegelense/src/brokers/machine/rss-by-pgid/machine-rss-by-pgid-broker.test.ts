@@ -1,4 +1,3 @@
-
 import { machineRssByPgidBroker } from './machine-rss-by-pgid-broker';
 import { machineRssByPgidBrokerProxy } from './machine-rss-by-pgid-broker.proxy';
 
@@ -109,8 +108,8 @@ describe('machineRssByPgidBroker', () => {
       error: Object.assign(new Error('EACCES: permission denied'), { code: 'EACCES' }),
     });
 
-    await expect(
-      machineRssByPgidBroker({ pgids: [300] }),
-    ).rejects.toThrow('EACCES: permission denied');
+    await expect(machineRssByPgidBroker({ pgids: [300] })).rejects.toThrow(
+      'EACCES: permission denied',
+    );
   });
 });

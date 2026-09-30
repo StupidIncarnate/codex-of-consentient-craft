@@ -15,8 +15,8 @@ import { projectMapStatics } from '../../../statics/project-map/project-map-stat
 const cwd = getCwd();
 const projectRoot = cwd.slice(0, cwd.lastIndexOf('/packages/'));
 const packagesPath = `${projectRoot}/packages`;
-const allPackages = discoverPackagesLayerBroker({ dirPath: packagesPath }).map((entry) =>
-  entry.name,
+const allPackages = discoverPackagesLayerBroker({ dirPath: packagesPath }).map(
+  (entry) => entry.name,
 );
 
 // One whole-monorepo scan, awaited by every all-packages test below. The scan walks each
@@ -28,7 +28,7 @@ const allPackagesMap = architectureProjectMapBroker({ projectRoot, packages: all
 
 describe('architectureProjectMapBroker (integration with real monorepo)', () => {
   it('VALID: {real monorepo, packages: [all]} => classifies every package by its architecture role', async () => {
-    const lines = String(await allPackagesMap).split('\n');
+    const lines = (await allPackagesMap).split('\n');
 
     const expectedHeaders = [
       '# server [http-backend]',
@@ -48,7 +48,7 @@ describe('architectureProjectMapBroker (integration with real monorepo)', () => 
   });
 
   it('VALID: {real monorepo, packages: [all]} => each library package renders a header then the inventory pointer', async () => {
-    const lines = String(await allPackagesMap).split('\n');
+    const lines = (await allPackagesMap).split('\n');
     const libraryHeaders = ['# shared [library]', '# config [library]', '# testing [library]'];
 
     const rendered = libraryHeaders.map((header) => {
@@ -62,13 +62,13 @@ describe('architectureProjectMapBroker (integration with real monorepo)', () => 
   });
 
   it('VALID: {real monorepo, packages: [all]} => emits Boot header', async () => {
-    const lines = String(await allPackagesMap).split('\n');
+    const lines = (await allPackagesMap).split('\n');
 
     expect(lines.some((l) => l === '## Boot')).toBe(true);
   });
 
   it('VALID: {real monorepo, packages: [all]} => renders adapter chain entries by their export name', async () => {
-    const lines = String(await allPackagesMap).split('\n');
+    const lines = (await allPackagesMap).split('\n');
 
     // A gateway call (`verifyRef`, `worktreePrune`, `worktreeAdd` from `#gateway/bin/git`) is not a
     // chain node: worktreePrepareBroker renders its child brokers only, so the git steps that moved
@@ -91,7 +91,7 @@ describe('architectureProjectMapBroker (integration with real monorepo)', () => 
   });
 
   it('VALID: {real monorepo, packages: [all]} => emits exactly one --- separator after URL pairing block before first package', async () => {
-    const lines = String(await allPackagesMap).split('\n');
+    const lines = (await allPackagesMap).split('\n');
     const urlBlockIdx = lines.findIndex((l) => l.startsWith('**URL pairing convention**'));
     const after = lines.slice(urlBlockIdx + 1, urlBlockIdx + 5);
 
@@ -101,7 +101,7 @@ describe('architectureProjectMapBroker (integration with real monorepo)', () => 
   });
 
   it('VALID: {real monorepo, packages: [all]} => discovers every gateway package by its bare name, and never lists @gateway itself', async () => {
-    const lines = String(await allPackagesMap).split('\n');
+    const lines = (await allPackagesMap).split('\n');
 
     expect(lines.some((l) => l.startsWith('# bin ['))).toBe(true);
     expect(lines.some((l) => l.startsWith('# browser ['))).toBe(true);
@@ -111,7 +111,7 @@ describe('architectureProjectMapBroker (integration with real monorepo)', () => 
   });
 
   it('VALID: {real monorepo, packages: [all]} => emits pointer footer at the end with no EDGES section', async () => {
-    const lines = String(await allPackagesMap).split('\n');
+    const lines = (await allPackagesMap).split('\n');
 
     expect(lines.some((l) => l === '## EDGES')).toBe(false);
     expect(lines[lines.length - 1]).toBe(
@@ -124,7 +124,7 @@ describe('architectureProjectMapBroker (integration with real monorepo)', () => 
       projectRoot,
       packages: ['cli'],
     });
-    const lines = String(result).split('\n');
+    const lines = result.split('\n');
 
     expect(lines.some((l) => l === '# cli [cli-tool]')).toBe(true);
     expect(lines.some((l) => l === '# mcp [mcp-server]')).toBe(false);
@@ -137,26 +137,26 @@ describe('architectureProjectMapBroker (integration with real monorepo)', () => 
     // packageType, projectRoot) alone — identical whether reached via a single-package request or
     // via allPackagesMap's all-packages request — so this reads orchestrator's slice out of the
     // module-scope scan instead of paying for a second full walk of it.
-    const lines = String(await allPackagesMap).split('\n');
+    const lines = (await allPackagesMap).split('\n');
 
     expect(lines.some((l) => l.endsWith('→ runChatLayerBroker'))).toBe(true);
   });
 
   it('VALID: {real monorepo} => mcp section does NOT include phantom from-string imports inside testing-patterns markdown', async () => {
-    const lines = String(await allPackagesMap).split('\n');
+    const lines = (await allPackagesMap).split('\n');
 
     expect(lines.some((l) => /→ contracts\/?user/u.test(l))).toBe(false);
     expect(lines.some((l) => /→ statics\/?exit-code/u.test(l))).toBe(false);
   });
 
   it('VALID: {real monorepo, packages: [all]} => at least one package emits an Unreferenced section', async () => {
-    const lines = String(await allPackagesMap).split('\n');
+    const lines = (await allPackagesMap).split('\n');
 
     expect(lines.some((l) => l === '## Unreferenced')).toBe(true);
   });
 
   it('VALID: {real monorepo} => web section renders binding broker chain by export name (questQueueBroker)', async () => {
-    const lines = String(await allPackagesMap).split('\n');
+    const lines = (await allPackagesMap).split('\n');
 
     expect(lines.some((l) => l.endsWith('→ questQueueBroker'))).toBe(true);
   });

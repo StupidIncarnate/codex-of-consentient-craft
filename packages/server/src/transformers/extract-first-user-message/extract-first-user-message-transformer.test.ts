@@ -4,7 +4,8 @@ describe('extractFirstUserMessageTransformer', () => {
   describe('valid user message', () => {
     it('VALID: {fileContent: user message} => returns first user message content as summary', () => {
       const result = extractFirstUserMessageTransformer({
-        fileContent: '{"type":"user","message":{"role":"user","content":"Help me build a login page"}}',
+        fileContent:
+          '{"type":"user","message":{"role":"user","content":"Help me build a login page"}}',
       });
 
       expect(result).toBe('Help me build a login page');
@@ -15,9 +16,9 @@ describe('extractFirstUserMessageTransformer', () => {
     it('VALID: {fileContent: meta user line then real user line} => skips isMeta and returns next user message', () => {
       const result = extractFirstUserMessageTransformer({
         fileContent: [
-            '{"type":"user","isMeta":true,"message":{"role":"user","content":"meta content"}}',
-            '{"type":"user","message":{"role":"user","content":"real question"}}',
-          ].join('\n'),
+          '{"type":"user","isMeta":true,"message":{"role":"user","content":"meta content"}}',
+          '{"type":"user","message":{"role":"user","content":"real question"}}',
+        ].join('\n'),
       });
 
       expect(result).toBe('real question');
@@ -28,10 +29,10 @@ describe('extractFirstUserMessageTransformer', () => {
     it('VALID: {fileContent: command prefixed content} => skips command lines', () => {
       const result = extractFirstUserMessageTransformer({
         fileContent: [
-            '{"type":"user","message":{"role":"user","content":"<local-command-caveat>some caveat"}}',
-            '{"type":"user","message":{"role":"user","content":"<command-name>init"}}',
-            '{"type":"user","message":{"role":"user","content":"actual question here"}}',
-          ].join('\n'),
+          '{"type":"user","message":{"role":"user","content":"<local-command-caveat>some caveat"}}',
+          '{"type":"user","message":{"role":"user","content":"<command-name>init"}}',
+          '{"type":"user","message":{"role":"user","content":"actual question here"}}',
+        ].join('\n'),
       });
 
       expect(result).toBe('actual question here');
@@ -40,9 +41,9 @@ describe('extractFirstUserMessageTransformer', () => {
     it('VALID: {fileContent: command prefix content} => skips lines starting with <command', () => {
       const result = extractFirstUserMessageTransformer({
         fileContent: [
-            '{"type":"user","message":{"role":"user","content":"<command>do something"}}',
-            '{"type":"user","message":{"role":"user","content":"my real message"}}',
-          ].join('\n'),
+          '{"type":"user","message":{"role":"user","content":"<command>do something"}}',
+          '{"type":"user","message":{"role":"user","content":"my real message"}}',
+        ].join('\n'),
       });
 
       expect(result).toBe('my real message');
@@ -53,11 +54,11 @@ describe('extractFirstUserMessageTransformer', () => {
     it('VALID: {fileContent: assistant and system lines before user} => skips non-user types', () => {
       const result = extractFirstUserMessageTransformer({
         fileContent: [
-            '{"type":"assistant","message":{"role":"assistant","content":"hello"}}',
-            '{"type":"system","message":{"role":"system","content":"you are helpful"}}',
-            '{"type":"progress","message":"working"}',
-            '{"type":"user","message":{"role":"user","content":"first real question"}}',
-          ].join('\n'),
+          '{"type":"assistant","message":{"role":"assistant","content":"hello"}}',
+          '{"type":"system","message":{"role":"system","content":"you are helpful"}}',
+          '{"type":"progress","message":"working"}',
+          '{"type":"user","message":{"role":"user","content":"first real question"}}',
+        ].join('\n'),
       });
 
       expect(result).toBe('first real question');
@@ -90,9 +91,9 @@ describe('extractFirstUserMessageTransformer', () => {
     it('EDGE: {fileContent: invalid JSON before valid user line} => skips invalid JSON and returns user message', () => {
       const result = extractFirstUserMessageTransformer({
         fileContent: [
-            'not valid json at all',
-            '{"type":"user","message":{"role":"user","content":"after invalid"}}',
-          ].join('\n'),
+          'not valid json at all',
+          '{"type":"user","message":{"role":"user","content":"after invalid"}}',
+        ].join('\n'),
       });
 
       expect(result).toBe('after invalid');
@@ -102,9 +103,10 @@ describe('extractFirstUserMessageTransformer', () => {
   describe('non-object parsed lines', () => {
     it('EDGE: {fileContent: JSON number before valid user line} => skips non-object parsed values', () => {
       const result = extractFirstUserMessageTransformer({
-        fileContent: ['42', '{"type":"user","message":{"role":"user","content":"after number"}}'].join(
-            '\n',
-          ),
+        fileContent: [
+          '42',
+          '{"type":"user","message":{"role":"user","content":"after number"}}',
+        ].join('\n'),
       });
 
       expect(result).toBe('after number');
@@ -115,9 +117,9 @@ describe('extractFirstUserMessageTransformer', () => {
     it('EDGE: {fileContent: user line with string message} => skips lines where message is not an object', () => {
       const result = extractFirstUserMessageTransformer({
         fileContent: [
-            '{"type":"user","message":"just a string"}',
-            '{"type":"user","message":{"role":"user","content":"valid message"}}',
-          ].join('\n'),
+          '{"type":"user","message":"just a string"}',
+          '{"type":"user","message":{"role":"user","content":"valid message"}}',
+        ].join('\n'),
       });
 
       expect(result).toBe('valid message');
@@ -128,9 +130,9 @@ describe('extractFirstUserMessageTransformer', () => {
     it('EDGE: {fileContent: empty lines between valid lines} => skips empty lines', () => {
       const result = extractFirstUserMessageTransformer({
         fileContent: [
-            '',
-            '{"type":"user","message":{"role":"user","content":"after empty lines"}}',
-          ].join('\n'),
+          '',
+          '{"type":"user","message":{"role":"user","content":"after empty lines"}}',
+        ].join('\n'),
       });
 
       expect(result).toBe('after empty lines');
@@ -141,9 +143,9 @@ describe('extractFirstUserMessageTransformer', () => {
     it('VALID: {fileContent: only assistant lines} => returns undefined', () => {
       const result = extractFirstUserMessageTransformer({
         fileContent: [
-            '{"type":"assistant","message":{"role":"assistant","content":"hello"}}',
-            '{"type":"assistant","message":{"role":"assistant","content":"how can I help"}}',
-          ].join('\n'),
+          '{"type":"assistant","message":{"role":"assistant","content":"hello"}}',
+          '{"type":"assistant","message":{"role":"assistant","content":"how can I help"}}',
+        ].join('\n'),
       });
 
       expect(result).toBe(undefined);
@@ -154,8 +156,8 @@ describe('extractFirstUserMessageTransformer', () => {
     it('VALID: {fileContent: command with args only} => extracts command name with args as fallback', () => {
       const result = extractFirstUserMessageTransformer({
         fileContent: [
-            '{"type":"user","message":{"role":"user","content":"<command-name>/start</command-name><command-message>start</command-message><command-args>plan/flow-changes.md</command-args>"}}',
-          ].join('\n'),
+          '{"type":"user","message":{"role":"user","content":"<command-name>/start</command-name><command-message>start</command-message><command-args>plan/flow-changes.md</command-args>"}}',
+        ].join('\n'),
       });
 
       expect(result).toBe('/start plan/flow-changes.md');
@@ -164,8 +166,8 @@ describe('extractFirstUserMessageTransformer', () => {
     it('VALID: {fileContent: command without args} => extracts command name only', () => {
       const result = extractFirstUserMessageTransformer({
         fileContent: [
-            '{"type":"user","message":{"role":"user","content":"<command-name>/sandbox</command-name><command-message>sandbox</command-message>"}}',
-          ].join('\n'),
+          '{"type":"user","message":{"role":"user","content":"<command-name>/sandbox</command-name><command-message>sandbox</command-message>"}}',
+        ].join('\n'),
       });
 
       expect(result).toBe('/sandbox');
@@ -174,9 +176,9 @@ describe('extractFirstUserMessageTransformer', () => {
     it('VALID: {fileContent: real user message before command} => prefers real user message over command', () => {
       const result = extractFirstUserMessageTransformer({
         fileContent: [
-            '{"type":"user","message":{"role":"user","content":"Help me refactor this code"}}',
-            '{"type":"user","message":{"role":"user","content":"<command-name>/start</command-name><command-message>start</command-message><command-args>plan/flow-changes.md</command-args>"}}',
-          ].join('\n'),
+          '{"type":"user","message":{"role":"user","content":"Help me refactor this code"}}',
+          '{"type":"user","message":{"role":"user","content":"<command-name>/start</command-name><command-message>start</command-message><command-args>plan/flow-changes.md</command-args>"}}',
+        ].join('\n'),
       });
 
       expect(result).toBe('Help me refactor this code');
@@ -187,9 +189,9 @@ describe('extractFirstUserMessageTransformer', () => {
     it('VALID: {fileContent: user message with array content} => skips array content lines', () => {
       const result = extractFirstUserMessageTransformer({
         fileContent: [
-            '{"type":"user","message":{"role":"user","content":[{"type":"tool_result","content":"result"}]}}',
-            '{"type":"user","message":{"role":"user","content":"actual question"}}',
-          ].join('\n'),
+          '{"type":"user","message":{"role":"user","content":[{"type":"tool_result","content":"result"}]}}',
+          '{"type":"user","message":{"role":"user","content":"actual question"}}',
+        ].join('\n'),
       });
 
       expect(result).toBe('actual question');

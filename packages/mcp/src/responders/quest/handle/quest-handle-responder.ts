@@ -97,7 +97,7 @@ export const QuestHandleResponder = async ({
         content: [
           {
             type: 'text',
-            text: text,
+            text,
           },
         ],
         ...(!result.success && { isError: true }),
@@ -320,5 +320,5 @@ export const QuestHandleResponder = async ({
     }
   }
 
-  throw new Error(`Unknown quest tool: ${String(tool)}`);
+  throw new Error(`Unknown quest tool: ${tool}`);
 };

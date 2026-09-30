@@ -20,16 +20,21 @@
 
 import { z } from '#gateway/npm/zod';
 
-
 import { stepCandidateContract } from '../step-candidate/step-candidate-contract';
 import { stepVerbContract } from '../step-verb/step-verb-contract';
 import { instanceLifecycleStatics } from '../../statics/instance-lifecycle/instance-lifecycle-statics';
 
-export const stoppedAtContract = z.object({
-  step: z.number().int().min(instanceLifecycleStatics.numbering.firstStep).brand<'StoppedAtStep'>(),
-  verb: stepVerbContract,
-  error: z.string().brand<'StoppedAtError'>(),
-  candidates: z.array(stepCandidateContract).readonly(),
-}).brand<'StoppedAt'>();
+export const stoppedAtContract = z
+  .object({
+    step: z
+      .number()
+      .int()
+      .min(instanceLifecycleStatics.numbering.firstStep)
+      .brand<'StoppedAtStep'>(),
+    verb: stepVerbContract,
+    error: z.string().brand<'StoppedAtError'>(),
+    candidates: z.array(stepCandidateContract).readonly(),
+  })
+  .brand<'StoppedAt'>();
 
 export type StoppedAt = z.infer<typeof stoppedAtContract>;

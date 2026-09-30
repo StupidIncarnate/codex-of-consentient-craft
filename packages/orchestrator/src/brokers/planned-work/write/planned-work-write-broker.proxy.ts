@@ -28,8 +28,7 @@ const filePathFor = ({
 }: {
   questFolderPath: string;
   operationItemId: OperationItem['id'];
-}): string =>
-  `${dirPathFor({ questFolderPath })}/${String(operationItemId)}${JSON_EXTENSION}`;
+}): string => `${dirPathFor({ questFolderPath })}/${String(operationItemId)}${JSON_EXTENSION}`;
 
 export const plannedWorkWriteBrokerProxy = (): {
   setupWriteSucceeds: (params: {

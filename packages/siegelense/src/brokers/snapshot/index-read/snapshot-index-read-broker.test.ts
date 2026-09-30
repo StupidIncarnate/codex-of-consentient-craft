@@ -1,4 +1,3 @@
-
 import { snapshotIndexReadBroker } from './snapshot-index-read-broker';
 import { snapshotIndexReadBrokerProxy } from './snapshot-index-read-broker.proxy';
 import { SnapshotRecordStub } from '../../../contracts/snapshot-record/snapshot-record.stub';

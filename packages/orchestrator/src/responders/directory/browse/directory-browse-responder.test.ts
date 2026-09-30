@@ -1,4 +1,3 @@
-
 import { DirectoryBrowseResponderProxy } from './directory-browse-responder.proxy';
 
 describe('DirectoryBrowseResponder', () => {
@@ -7,9 +6,7 @@ describe('DirectoryBrowseResponder', () => {
       const proxy = DirectoryBrowseResponderProxy();
       proxy.setupDirectories({
         targetPath: '/home/user/projects',
-        directories: [
-          { name: 'app', joinedPath: '/home/user/projects/app' },
-        ],
+        directories: [{ name: 'app', joinedPath: '/home/user/projects/app' }],
         files: [],
         hiddenDirectories: [],
       });

@@ -14,9 +14,7 @@ describe('locationsClaudeSessionFilePathFindBroker', () => {
         sessionId: SessionIdStub({ value: 'abc-123' }),
       });
 
-      expect(result).toBe(
-        '/home/user/.claude/projects/-home-user-my-project/abc-123.jsonl',
-      );
+      expect(result).toBe('/home/user/.claude/projects/-home-user-my-project/abc-123.jsonl');
     });
   });
 });

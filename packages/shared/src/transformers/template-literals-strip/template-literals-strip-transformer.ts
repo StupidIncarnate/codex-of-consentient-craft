@@ -21,20 +21,14 @@
  *   literals are scrubbed.
  */
 
-
 const TWO_CHAR_STEP = 2;
-const BRACE_MARKER: string = '';
+const BRACE_MARKER = '';
 
 type StripContext =
-  | { kind: 'template' }
-  | { kind: 'interp'; openBraces: string[]; stringQuote: null | "'" | '"' };
+  { kind: 'template' } | { kind: 'interp'; openBraces: string[]; stringQuote: null | "'" | '"' };
 
-export const templateLiteralsStripTransformer = ({
-  source,
-}: {
-  source: string;
-}): string => {
-  const text = String(source);
+export const templateLiteralsStripTransformer = ({ source }: { source: string }): string => {
+  const text = source;
   const len = text.length;
   const stack: StripContext[] = [];
   let out = '';

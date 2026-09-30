@@ -8,10 +8,12 @@
 
 import { z } from '#gateway/npm/zod';
 
-export const wsLogEntryContract = z.object({
-  direction: z.enum(['sent', 'received']),
-  data: z.string().brand<'WsLogEntryData'>(),
-  elapsedMs: z.number().nonnegative().brand<'WsLogEntryElapsedMs'>(),
-}).brand<'WsLogEntry'>();
+export const wsLogEntryContract = z
+  .object({
+    direction: z.enum(['sent', 'received']),
+    data: z.string().brand<'WsLogEntryData'>(),
+    elapsedMs: z.number().nonnegative().brand<'WsLogEntryElapsedMs'>(),
+  })
+  .brand<'WsLogEntry'>();
 
 export type WsLogEntry = z.infer<typeof wsLogEntryContract>;

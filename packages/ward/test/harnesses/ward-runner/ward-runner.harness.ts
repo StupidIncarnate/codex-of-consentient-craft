@@ -18,16 +18,15 @@
 import { existsSync } from '#gateway/node/fs';
 import { resolve } from '#gateway/node/path';
 
-
 const REPO_ROOT = resolve(__dirname, '../../../../..');
-const WARD_BIN = resolve(String(REPO_ROOT), 'packages/ward/dist/src/startup/start-ward.js');
+const WARD_BIN = resolve(REPO_ROOT, 'packages/ward/dist/src/startup/start-ward.js');
 
 export const wardRunnerHarness = (): {
   wardBinExists: () => boolean;
   repoRoot: string;
   wardBin: string;
 } => ({
-  wardBinExists: (): boolean => existsSync(String(WARD_BIN)),
+  wardBinExists: (): boolean => existsSync(WARD_BIN),
   repoRoot: REPO_ROOT,
   wardBin: WARD_BIN,
 });

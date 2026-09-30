@@ -23,7 +23,7 @@ export const CliServeResponder = async (): Promise<void> => {
   // Published single-port launch: no separate vite server exists, so the HTTP server serves the
   // built @dungeonmaster/web bundle itself for non-API routes.
   serverModule.StartServer({ serveWebBundle: true });
-  const port = Number(portResolveBroker());
+  const port = portResolveBroker();
   const serverUrl = `http://${environmentStatics.hostname}:${port}`;
   stdout.write(`Dungeonmaster server running at ${serverUrl}\n`);
 

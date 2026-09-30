@@ -26,5 +26,5 @@ export const importInsertTextTransformer = ({
   }
 
   const statement = `import ${importKind === 'type' ? 'type ' : ''}{ ${name} } from '${source}';`;
-  return (anchor === null ? `${statement}\n` : `\n${statement}`);
+  return anchor === null ? `${statement}\n` : `\n${statement}`;
 };

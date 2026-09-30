@@ -14,7 +14,7 @@
  * // Returns void; the tail handle lands in `subagentHandles`
  */
 
-import { type ChatEntry } from '@dungeonmaster/shared/contracts';
+import type { ChatEntry } from '@dungeonmaster/shared/contracts';
 import { claudeLineNormalizeBroker } from '@dungeonmaster/shared/brokers';
 import { tailFile } from '#gateway/node/fs';
 import type { TailFileHandle } from '#gateway/node/fs';
@@ -65,10 +65,10 @@ export const startSubagentTailLayerBroker = ({
     return;
   }
 
-  const sessionFilePathAbsolute = String(sessionFilePath);
+  const sessionFilePathAbsolute = sessionFilePath;
   const subagentJsonlPath = `${stripJsonlSuffixTransformer({ filePath: sessionFilePathAbsolute })}/subagents/agent-${String(
-      agentId,
-    )}.jsonl`;
+    agentId,
+  )}.jsonl`;
   const subagentSource = chatLineSourceContract.parse('subagent');
 
   const handle = tailFile({

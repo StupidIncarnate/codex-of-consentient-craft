@@ -20,6 +20,7 @@ export const ruleConfigContract = z
     displayName: z.string().brand<'RuleConfigDisplayName'>().optional(),
     message: z.union([z.string().brand<'RuleConfigMessage'>(), messageFnContract]).optional(),
   })
-  .loose().brand<'RuleConfig'>();
+  .loose()
+  .brand<'RuleConfig'>();
 
 export type RuleConfig = z.infer<typeof ruleConfigContract>;

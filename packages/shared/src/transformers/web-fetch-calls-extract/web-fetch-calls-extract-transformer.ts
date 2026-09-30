@@ -38,11 +38,11 @@ export const webFetchCallsExtractTransformer = ({
   const results: WebFetchCallSite[] = [];
   FETCH_PATTERN.lastIndex = 0;
 
-  let match = FETCH_PATTERN.exec(String(source));
+  let match = FETCH_PATTERN.exec(source);
   while (match !== null) {
     const [, adapterName, fullArg, singleQuoted, doubleQuoted] = match;
     if (adapterName === undefined || fullArg === undefined) {
-      match = FETCH_PATTERN.exec(String(source));
+      match = FETCH_PATTERN.exec(source);
       continue;
     }
 
@@ -60,7 +60,7 @@ export const webFetchCallsExtractTransformer = ({
       }),
     );
 
-    match = FETCH_PATTERN.exec(String(source));
+    match = FETCH_PATTERN.exec(source);
   }
 
   return results;

@@ -11,7 +11,6 @@
  * // Returns '2026-01-01T00:00:03.000Z' as a branded ContentText
  */
 
-
 import { seedFixtureStatics } from '../../statics/seed-fixture/seed-fixture-statics';
 import { transcriptTimeStatics } from '../../statics/transcript-time/transcript-time-statics';
 
@@ -21,5 +20,7 @@ export const transcriptTimestampTransformer = ({
   offsetSeconds: number;
 }): string => {
   const baseMs = Date.parse(seedFixtureStatics.session.baseTimestamp);
-  return new Date(baseMs + offsetSeconds * transcriptTimeStatics.conversion.msPerSecond).toISOString();
+  return new Date(
+    baseMs + offsetSeconds * transcriptTimeStatics.conversion.msPerSecond,
+  ).toISOString();
 };

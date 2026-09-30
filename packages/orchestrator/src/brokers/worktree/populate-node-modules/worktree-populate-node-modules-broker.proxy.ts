@@ -149,11 +149,7 @@ export const worktreePopulateNodeModulesBrokerProxy = (): {
 
     // The worktree's OWN root node_modules is already mirrored — the shape a `pt N` attempt finds
     // after an earlier attempt got the root done and died partway through the packages.
-    setupRootTargetAlreadyPopulated: ({
-      worktreePath,
-    }: {
-      worktreePath: string;
-    }): void => {
+    setupRootTargetAlreadyPopulated: ({ worktreePath }: { worktreePath: string }): void => {
       layerProxy.setupTargetNodeModulesOnDisk({
         targetRoot: worktreePath,
         entries: [

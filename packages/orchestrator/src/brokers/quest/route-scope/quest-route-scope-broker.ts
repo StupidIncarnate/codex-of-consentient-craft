@@ -184,7 +184,7 @@ export const questRouteScopeBroker = async ({
         }
 
         const routes = Object.entries(questFlowStatics[quest.questType].families).find(
-          ([name]) => name === String(family),
+          ([name]) => name === family,
         )?.[1].routes;
         const target =
           routes === undefined

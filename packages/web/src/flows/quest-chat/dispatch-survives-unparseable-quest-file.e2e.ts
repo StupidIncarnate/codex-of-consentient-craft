@@ -89,7 +89,7 @@ test.describe('Dispatch with an unparseable sibling quest file', () => {
       })),
     ).toStrictEqual([{ questId: String(questId), questTitle: 'Dispatchable Quest' }]);
 
-    await nav.navigateToQuest({ urlSlug, questId: questId });
+    await nav.navigateToQuest({ urlSlug, questId });
 
     const executionPanel = page.getByTestId('execution-panel-widget');
     await expect(executionPanel).toBeVisible({ timeout: PANEL_TIMEOUT });
@@ -112,7 +112,7 @@ test.describe('Dispatch with an unparseable sibling quest file', () => {
     // family's scopes the moment it completes, so the FIFO script carries one outcome per family
     // the router mints behind codeweaver.
     await dispatch.playAndDrive({
-      questId: questId,
+      questId,
       script: [
         { role: 'codeweaver', outcome: 'done' },
         { role: 'codeweaver', outcome: 'done' },
@@ -126,7 +126,7 @@ test.describe('Dispatch with an unparseable sibling quest file', () => {
     // unparseable sibling on every pass, so this also proves it stays survivable across dispatches
     // rather than only on the first one.
     const finalQuest = await dispatch.waitForQuest({
-      questId: questId,
+      questId,
       timeoutMs: RELAY_TIMEOUT,
       predicate: ({ quest }) =>
         quest.status === 'complete' &&

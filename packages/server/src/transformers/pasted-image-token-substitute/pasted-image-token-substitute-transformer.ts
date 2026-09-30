@@ -13,7 +13,6 @@
 
 import { pastedImageStatics } from '@dungeonmaster/shared/statics';
 
-
 export const pastedImageTokenSubstituteTransformer = ({
   message,
   imagePaths,
@@ -22,9 +21,9 @@ export const pastedImageTokenSubstituteTransformer = ({
   imagePaths: readonly string[];
 }): string =>
   message.replace(
-      new RegExp(`(?<!!)${pastedImageStatics.placeholderPattern}`, 'gu'),
-      (match: string, ordinal: string) => {
-        const imagePath = imagePaths[Number(ordinal) - 1];
-        return imagePath === undefined ? match : `![Pasted Image ${ordinal}](${imagePath})`;
-      },
-    );
+    new RegExp(`(?<!!)${pastedImageStatics.placeholderPattern}`, 'gu'),
+    (match: string, ordinal: string) => {
+      const imagePath = imagePaths[Number(ordinal) - 1];
+      return imagePath === undefined ? match : `![Pasted Image ${ordinal}](${imagePath})`;
+    },
+  );

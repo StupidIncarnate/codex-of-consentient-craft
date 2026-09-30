@@ -88,7 +88,7 @@ export const OperationRowLayerWidget = ({
           >
             [
             {operationFlowLabelsTransformer({ flowIds: operation.flowIds, flows })
-              .map((label) => String(label))
+              .map((label) => label)
               .join(', ')}
             ]
           </Text>

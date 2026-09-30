@@ -140,7 +140,7 @@ export const scaffoldedPlaywrightConfigRunHarness = (): {
           return;
         }
         promiseResolve({
-          exitCode: (code ?? 1),
+          exitCode: code ?? 1,
           stdout: text.stdout,
           stderr: text.stderr,
         });

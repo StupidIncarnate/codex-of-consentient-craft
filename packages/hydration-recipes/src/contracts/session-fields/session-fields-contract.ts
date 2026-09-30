@@ -27,18 +27,19 @@ import { z } from '#gateway/npm/zod';
 
 import { sessionContract } from '@dungeonmaster/shared/contracts';
 
-export const sessionFieldsShape = z.object({
-  sessionId: sessionContract.shape.id,
-  cwd: z
-    .string()
-    .min(1)
-    .refine(
-      (path) => path.startsWith('/') || /^[A-Za-z]:\\/u.test(path),
-      { message: 'Path must be absolute (start with / or C:\\ on Windows)' },
-    )
-    .brand<'SessionFieldsShapeCwd'>(),
-  lines: z.array(z.string().min(1).brand<'SessionFieldsShapeLines'>()),
-}).brand<'SessionFieldsShape'>();
+export const sessionFieldsShape = z
+  .object({
+    sessionId: sessionContract.shape.id,
+    cwd: z
+      .string()
+      .min(1)
+      .refine((path) => path.startsWith('/') || /^[A-Za-z]:\\/u.test(path), {
+        message: 'Path must be absolute (start with / or C:\\ on Windows)',
+      })
+      .brand<'SessionFieldsShapeCwd'>(),
+    lines: z.array(z.string().min(1).brand<'SessionFieldsShapeLines'>()),
+  })
+  .brand<'SessionFieldsShape'>();
 
 export type SessionFields = z.infer<typeof sessionFieldsShape>;
 

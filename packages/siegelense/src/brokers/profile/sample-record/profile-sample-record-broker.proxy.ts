@@ -71,7 +71,7 @@ export const profileSampleRecordBrokerProxy = (): {
   const stderr = stderrProxy();
 
   const samplesDirFor = ({ profilesPath }: { profilesPath: string }): string =>
-    `${String(profilesPath)}/${profileStatics.dirs.samples}`;
+    `${profilesPath}/${profileStatics.dirs.samples}`;
 
   const recordPathFor = ({
     profilesPath,
@@ -80,7 +80,7 @@ export const profileSampleRecordBrokerProxy = (): {
     profilesPath: string;
     instanceId: InstanceId;
   }): string =>
-    `${String(samplesDirFor({ profilesPath }))}/${instanceId}${profileStatics.extensions.record}`;
+    `${samplesDirFor({ profilesPath })}/${instanceId}${profileStatics.extensions.record}`;
 
   const stageChain = ({
     profilesPath,
@@ -104,7 +104,7 @@ export const profileSampleRecordBrokerProxy = (): {
 
     mkdirProxy.succeeds({ path: samplesDirFor({ profilesPath }) });
     writeProxy.succeeds({
-      path: String(recordPathFor({ profilesPath, instanceId })),
+      path: recordPathFor({ profilesPath, instanceId }),
     });
   };
 
@@ -124,17 +124,16 @@ export const profileSampleRecordBrokerProxy = (): {
         exists: true,
       });
       readProxy.returns({
-        path: String(recordPathFor({ profilesPath, instanceId })),
+        path: recordPathFor({ profilesPath, instanceId }),
         contents: existingRecordJson,
       });
     },
 
     getWrittenRecord: ({ profilesPath, instanceId }): unknown =>
       writeProxy.writtenContentsFor({
-        path: String(recordPathFor({ profilesPath, instanceId })),
+        path: recordPathFor({ profilesPath, instanceId }),
       }),
 
-    getStderrMessages: (): readonly string[] =>
-      stderr.getWrites().map((chunk) => String(chunk)),
+    getStderrMessages: (): readonly string[] => stderr.getWrites().map((chunk) => String(chunk)),
   };
 };

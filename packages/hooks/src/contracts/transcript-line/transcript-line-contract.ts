@@ -7,13 +7,13 @@
  */
 import { z } from '#gateway/npm/zod';
 
-
 const transcriptContentItemContract = z
   .object({
     type: z.string().brand<'TranscriptContentItemType'>(),
     name: z.string().min(1).brand<'TranscriptContentItemName'>().optional(),
     input: z.record(z.string(), z.unknown()).optional(),
-  }).brand<'TranscriptContentItem'>()
+  })
+  .brand<'TranscriptContentItem'>()
   .loose();
 
 export const transcriptLineContract = z
@@ -24,9 +24,11 @@ export const transcriptLineContract = z
           z.string().brand<'TranscriptLineMessageContent'>(),
           z.array(transcriptContentItemContract),
         ]),
-      }).brand<'TranscriptLineMessage'>()
+      })
+      .brand<'TranscriptLineMessage'>()
       .loose(),
   })
-  .loose().brand<'TranscriptLine'>();
+  .loose()
+  .brand<'TranscriptLine'>();
 
 export type TranscriptLine = z.infer<typeof transcriptLineContract>;

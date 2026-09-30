@@ -26,11 +26,17 @@ export const installCheckBroker = ({
   const claudeDirPath = join(projectRoot, locationsStatics.repoRoot.claude.dir);
 
   if (!existsSync(packageJsonPath)) {
-    return installCheckResultContract.parse({ valid: false, error: 'No package.json found.' as string });
+    return installCheckResultContract.parse({
+      valid: false,
+      error: 'No package.json found.' as string,
+    });
   }
 
   if (!existsSync(claudeDirPath)) {
-    return installCheckResultContract.parse({ valid: false, error: 'No .claude directory found.' as string });
+    return installCheckResultContract.parse({
+      valid: false,
+      error: 'No .claude directory found.' as string,
+    });
   }
 
   return installCheckResultContract.parse({ valid: true });

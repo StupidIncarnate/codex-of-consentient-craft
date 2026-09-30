@@ -43,7 +43,7 @@ export const architectureBootTreeBroker = ({
   responderAnnotations?: ResponderAnnotationMap;
   startupAnnotations?: ResponderAnnotationMap;
 }): string => {
-  const packageSrcPath = `${String(packageRoot)}/src`;
+  const packageSrcPath = `${packageRoot}/src`;
   const startupFiles = startupFilesFindLayerBroker({ packageSrcPath });
 
   if (startupFiles.length === 0) {
@@ -78,13 +78,13 @@ export const architectureBootTreeBroker = ({
     });
 
     const flowNames = flowFiles.map((ff) =>
-      String(architectureExportNameResolveBroker({ filePath: ff })),
+      architectureExportNameResolveBroker({ filePath: ff }),
     );
 
     const startupAnnotation = startupAnnotations?.get(startupFile);
     const startupSuffixSource = startupAnnotation?.suffix ?? null;
     const startupSuffix = startupSuffixSource === null ? '' : `  ${String(startupSuffixSource)}`;
-    const annotatedStartupLine = `${String(startupDisplay)}${startupSuffix}`;
+    const annotatedStartupLine = `${startupDisplay}${startupSuffix}`;
     const startupBlockLines: string[] = [annotatedStartupLine];
     if (startupAnnotation !== undefined) {
       const childIndent = '      ';

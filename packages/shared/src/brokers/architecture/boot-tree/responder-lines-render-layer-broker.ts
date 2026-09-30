@@ -118,7 +118,7 @@ export const responderLinesRenderLayerBroker = ({
       renderName = importPathToPackagePrefixTransformer({
         renderingFilePath,
         referencedFilePath: responderFile,
-        symbolName: String(exportName),
+        symbolName: exportName,
       });
     } catch {
       // Cross-package qualification unavailable — keep the bare export name.
@@ -127,7 +127,7 @@ export const responderLinesRenderLayerBroker = ({
     const annotation = responderAnnotations?.get(responderFile);
     const annotationSuffixSource = annotation?.suffix ?? null;
     const suffixStr = annotationSuffixSource === null ? '' : `  ${String(annotationSuffixSource)}`;
-    lines.push(`${indent}  ↳ ${String(renderName)}${suffixStr}`);
+    lines.push(`${indent}  ↳ ${renderName}${suffixStr}`);
     if (annotation !== undefined) {
       const childIndent = `${indent}      `;
       for (const cl of annotation.childLines) {
@@ -141,7 +141,7 @@ export const responderLinesRenderLayerBroker = ({
       renderingFilePath,
     });
     for (const al of callChainLines) {
-      lines.push(`${indent}${String(al)}`);
+      lines.push(`${indent}${al}`);
     }
 
     if (eventBusContext !== undefined) {
@@ -153,7 +153,7 @@ export const responderLinesRenderLayerBroker = ({
       // sit at the same visual depth as the responder's adapter calls.
       const busIndent = `${indent}      `;
       for (const bl of busLines) {
-        lines.push(`${busIndent}${String(bl)}`);
+        lines.push(`${busIndent}${bl}`);
       }
     }
 
@@ -187,7 +187,7 @@ export const responderLinesRenderLayerBroker = ({
     visited.add(childAbsPath);
 
     const childDisplay = architectureExportNameResolveBroker({ filePath: childFlow });
-    lines.push(`${indent}  ↳ ${String(childDisplay)}`);
+    lines.push(`${indent}  ↳ ${childDisplay}`);
 
     // exactOptionalPropertyTypes forbids passing `eventBusContext: undefined` to an
     // optional field — only include it when defined.

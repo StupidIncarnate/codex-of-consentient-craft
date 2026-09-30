@@ -232,8 +232,7 @@ export const compareReadBroker = async ({
           currentPath: shotB.path,
         });
 
-  const pixels =
-    pixelChange === null ? null : `last capture differs ${pixelChange}`;
+  const pixels = pixelChange === null ? null : `last capture differs ${pixelChange}`;
 
   // Network has no query-level lever for status (see the header comment), so both runs' FULL row
   // sets are narrowed here, after the read, to what `network.errors` counts and `network.new` lists:

@@ -13,7 +13,12 @@ import { basename, dirname, join } from '#gateway/node/path';
 
 import type { APIRequestContext } from '#gateway/npm/playwright__test';
 
-import { questContract, type Quest, type WorkItemRole, guildContract } from '@dungeonmaster/shared/contracts';
+import {
+  questContract,
+  type Quest,
+  type WorkItemRole,
+  guildContract,
+} from '@dungeonmaster/shared/contracts';
 import { dungeonmasterHomeStatics, environmentStatics } from '@dungeonmaster/shared/statics';
 import { isCommandWorkItemRoleGuard } from '@dungeonmaster/shared/guards';
 
@@ -358,13 +363,15 @@ export const questHarness = ({
     success: boolean;
   }> => {
     const plan = recipe({ name: 'seed-quest', description: 'seed one quest via api route' }, () => [
-      dmRegistryBroker.quests.under({ guildId: guildContract.shape.id.parse(guildId) }).add(1, (q) => [
-        q[0].set({
-          title: questContract.shape.title.parse(title),
-          userRequest: questContract.shape.userRequest.parse(userRequest),
-        }),
-        q[0].saveRecordAs({ name: QUEST_SAVE_NAME }),
-      ]),
+      dmRegistryBroker.quests
+        .under({ guildId: guildContract.shape.id.parse(guildId) })
+        .add(1, (q) => [
+          q[0].set({
+            title: questContract.shape.title.parse(title),
+            userRequest: questContract.shape.userRequest.parse(userRequest),
+          }),
+          q[0].saveRecordAs({ name: QUEST_SAVE_NAME }),
+        ]),
     ])();
     const result = await dmRegistryBroker.run(plan, dmTarget.apiTarget());
     const quest = (result as Record<PropertyKey, unknown>)[QUEST_SAVE_NAME] as Quest;
@@ -393,13 +400,15 @@ export const questHarness = ({
     const plan = recipe(
       { name: 'seed-quest-write', description: 'seed one quest via write route' },
       () => [
-        dmRegistryBroker.quests.under({ guildId: guildContract.shape.id.parse(guildId) }).add(1, (q) => [
-          q[0].set({
-            title: questContract.shape.title.parse(title),
-            userRequest: questContract.shape.userRequest.parse(userRequest),
-          }),
-          q[0].saveRecordAs({ name: QUEST_SAVE_NAME }),
-        ]),
+        dmRegistryBroker.quests
+          .under({ guildId: guildContract.shape.id.parse(guildId) })
+          .add(1, (q) => [
+            q[0].set({
+              title: questContract.shape.title.parse(title),
+              userRequest: questContract.shape.userRequest.parse(userRequest),
+            }),
+            q[0].saveRecordAs({ name: QUEST_SAVE_NAME }),
+          ]),
       ],
     )();
     const result = await dmRegistryBroker.run(plan, dmTarget.writeTarget());
@@ -967,7 +976,11 @@ export const questHarness = ({
   // hydration-recipes' own `questOwningGuildFindBroker` exists to close — internal to that
   // package, unreachable from here). This mirrors that broker's own algorithm — scan every guild's
   // quest list for the id — over the one surface this harness can reach: the real HTTP API.
-  const resolveQuestOwningGuildId = async ({ questId }: { questId: string }): Promise<Guild['id']> => {
+  const resolveQuestOwningGuildId = async ({
+    questId,
+  }: {
+    questId: string;
+  }): Promise<Guild['id']> => {
     const guildsResponse = await request.get('/api/guilds');
     const guildsBody = (await guildsResponse.json()) as ApiListRecord[];
     const guilds = Array.isArray(guildsBody) ? guildsBody : [];

@@ -13,8 +13,10 @@ import { z } from '#gateway/npm/zod';
 
 import { registryEntryContract } from '../registry-entry/registry-entry-contract';
 
-export const registryContract = z.object({
-  instances: z.array(registryEntryContract).readonly(),
-}).brand<'Registry'>();
+export const registryContract = z
+  .object({
+    instances: z.array(registryEntryContract).readonly(),
+  })
+  .brand<'Registry'>();
 
 export type Registry = z.infer<typeof registryContract>;

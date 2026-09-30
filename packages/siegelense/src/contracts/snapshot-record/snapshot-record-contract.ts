@@ -20,15 +20,35 @@ import { z } from '#gateway/npm/zod';
 
 import { snapshotStatics } from '../../statics/snapshot/snapshot-statics';
 
-
 export const snapshotRecordContract = z
   .object({
-    name: z.string().min(1).max(snapshotStatics.limits.maxNameLength).regex(/^[A-Za-z0-9._:-]+$/u).brand<'SnapshotRecordName'>(),
+    name: z
+      .string()
+      .min(1)
+      .max(snapshotStatics.limits.maxNameLength)
+      .regex(/^[A-Za-z0-9._:-]+$/u)
+      .brand<'SnapshotRecordName'>(),
     atMs: z.number().int().nonnegative().brand<'SnapshotRecordAtMs'>(),
     manual: z.boolean(),
-    path: z.string().min(1).refine((path) => { if (path.startsWith('/')) { return true; } if (/^[A-Za-z]:\\/u.test(path)) { return true; } return false; }, { message: 'Path must be absolute (start with / or C:\\ on Windows)', },).brand<'SnapshotRecordPath'>(),
+    path: z
+      .string()
+      .min(1)
+      .refine(
+        (path) => {
+          if (path.startsWith('/')) {
+            return true;
+          }
+          if (/^[A-Za-z]:\\/u.test(path)) {
+            return true;
+          }
+          return false;
+        },
+        { message: 'Path must be absolute (start with / or C:\\ on Windows)' },
+      )
+      .brand<'SnapshotRecordPath'>(),
     age: z.string().brand<'SnapshotRecordAge'>().optional(),
   })
-  .strict().brand<'SnapshotRecord'>();
+  .strict()
+  .brand<'SnapshotRecord'>();
 
 export type SnapshotRecord = z.infer<typeof snapshotRecordContract>;

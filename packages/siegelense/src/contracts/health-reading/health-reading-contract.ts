@@ -28,7 +28,11 @@ export const healthReadingContract = z
     verdict: healthVerdictContract,
     rootPresent: z.boolean(),
     blank: z.boolean(),
-    blankColour: z.string().regex(/^#[0-9a-f]{6}$/u).brand<'HealthReadingBlankColour'>().nullable(),
+    blankColour: z
+      .string()
+      .regex(/^#[0-9a-f]{6}$/u)
+      .brand<'HealthReadingBlankColour'>()
+      .nullable(),
     consoleErrors: z.number().int().nonnegative().brand<'HealthReadingConsoleErrors'>(),
     firstConsoleError: z.string().brand<'HealthReadingFirstConsoleError'>().nullable(),
     network5xxCount: z.number().int().nonnegative().brand<'HealthReadingNetwork5xxCount'>(),
@@ -37,6 +41,7 @@ export const healthReadingContract = z
     firstServerError: z.string().brand<'HealthReadingFirstServerError'>().nullable(),
     rendered: z.string().brand<'HealthReadingRendered'>(),
   })
-  .strict().brand<'HealthReading'>();
+  .strict()
+  .brand<'HealthReading'>();
 
 export type HealthReading = z.infer<typeof healthReadingContract>;

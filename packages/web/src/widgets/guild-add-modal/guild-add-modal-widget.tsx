@@ -10,7 +10,6 @@ import { useState } from '#gateway/npm/react';
 
 import { Button, Group, Modal, Stack, TextInput } from '#gateway/npm/mantine__core';
 
-
 import { DirectoryBrowserModalWidget } from '../directory-browser-modal/directory-browser-modal-widget';
 
 export interface GuildAddModalWidgetProps {
@@ -108,7 +107,7 @@ export const GuildAddModalWidget = ({
           setBrowserOpened(false);
         }}
         onSelect={({ path: selectedPath }) => {
-          setPath(String(selectedPath));
+          setPath(selectedPath);
           setBrowserOpened(false);
         }}
       />

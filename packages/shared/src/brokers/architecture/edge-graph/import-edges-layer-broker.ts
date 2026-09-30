@@ -26,12 +26,8 @@ import { safeReaddirLayerBroker } from './safe-readdir-layer-broker';
 const PACKAGES_REL = 'packages';
 const DUNGEONMASTER_SCOPE = '@dungeonmaster/';
 
-export const importEdgesLayerBroker = ({
-  projectRoot,
-}: {
-  projectRoot: string;
-}): ImportEdge[] => {
-  const root = String(projectRoot);
+export const importEdgesLayerBroker = ({ projectRoot }: { projectRoot: string }): ImportEdge[] => {
+  const root = projectRoot;
   const packagesDir = `${root}/${PACKAGES_REL}`;
 
   // Step 1: collect known package names
@@ -53,7 +49,7 @@ export const importEdgesLayerBroker = ({
 
   // Step 2: for each consumer package, list all TS source files and parse imports
   for (const consumerPkg of knownPackageNames) {
-    const consumerPkgName = String(consumerPkg);
+    const consumerPkgName = consumerPkg;
     const pkgSrcDir = `${root}/${PACKAGES_REL}/${consumerPkgName}/src`;
 
     const allFiles = listTsFilesLayerBroker({ dirPath: pkgSrcDir });
@@ -67,7 +63,7 @@ export const importEdgesLayerBroker = ({
       const importPaths = importStatementsExtractTransformer({ source });
 
       for (const importPath of importPaths) {
-        const importStr = String(importPath);
+        const importStr = importPath;
 
         // Only process @dungeonmaster/* imports
         if (!importStr.startsWith(DUNGEONMASTER_SCOPE)) {
@@ -81,7 +77,7 @@ export const importEdgesLayerBroker = ({
 
         // Only process imports from known monorepo packages
         const sourcePackage = sourcePackageName;
-        const isKnownPackage = [...knownPackageNames].some((p) => String(p) === sourcePackageName);
+        const isKnownPackage = [...knownPackageNames].some((p) => p === sourcePackageName);
         if (!isKnownPackage) {
           continue;
         }
@@ -94,14 +90,14 @@ export const importEdgesLayerBroker = ({
         // Skip adapter-wrapper files (covered by direct-call-edges-layer-broker).
         // Heuristic: packages/<consumer>/src/adapters/<sourcePkg>/...
         const adapterWrapperPrefix = `${root}/${PACKAGES_REL}/${consumerPkgName}/src/adapters/${sourcePackageName}/`;
-        if (String(filePath).startsWith(adapterWrapperPrefix)) {
+        if (filePath.startsWith(adapterWrapperPrefix)) {
           continue;
         }
 
         // Extract barrel subpath: '@dungeonmaster/shared/contracts' → 'contracts', '@dungeonmaster/shared' → ''
-        const barrel = (slashIndex === -1 ? '' : afterScope.slice(slashIndex + 1));
+        const barrel = slashIndex === -1 ? '' : afterScope.slice(slashIndex + 1);
 
-        const edgeKey = `${consumerPkgName}|${sourcePackageName}|${String(barrel)}`;
+        const edgeKey = `${consumerPkgName}|${sourcePackageName}|${barrel}`;
 
         if (!edgeFileMap.has(edgeKey)) {
           edgeFileMap.set(edgeKey, new Set<string>());

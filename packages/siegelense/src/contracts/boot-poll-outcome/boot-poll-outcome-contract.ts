@@ -17,11 +17,19 @@
 
 import { z } from '#gateway/npm/zod';
 
-
 export const bootPollOutcomeContract = z.discriminatedUnion('status', [
-  z.object({ status: z.literal('ready') }).strict().brand<'BootPollOutcome'>(),
-  z.object({ status: z.literal('timeout') }).strict().brand<'BootPollOutcome'>(),
-  z.object({ status: z.literal('failed'), message: z.string().brand<'BootPollOutcomeMessage'>() }).strict().brand<'BootPollOutcome'>(),
+  z
+    .object({ status: z.literal('ready') })
+    .strict()
+    .brand<'BootPollOutcome'>(),
+  z
+    .object({ status: z.literal('timeout') })
+    .strict()
+    .brand<'BootPollOutcome'>(),
+  z
+    .object({ status: z.literal('failed'), message: z.string().brand<'BootPollOutcomeMessage'>() })
+    .strict()
+    .brand<'BootPollOutcome'>(),
 ]);
 
 export type BootPollOutcome = z.infer<typeof bootPollOutcomeContract>;

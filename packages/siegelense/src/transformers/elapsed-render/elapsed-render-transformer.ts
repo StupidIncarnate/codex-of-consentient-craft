@@ -9,7 +9,6 @@
  * // Returns '14m' as branded ElapsedText
  */
 
-
 const MS_PER_SECOND = 1000;
 const SECONDS_PER_MINUTE = 60;
 const MINUTES_PER_HOUR = 60;

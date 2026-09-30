@@ -1,19 +1,18 @@
-
 import { eslintStatsStripTransformer } from './eslint-stats-strip-transformer';
 
 describe('eslintStatsStripTransformer', () => {
   describe('entries carrying stats', () => {
     it('VALID: {two entries with stats and usedDeprecatedRules} => keeps every other key, in order', () => {
       const output = JSON.stringify([
-          {
-            filePath: '/p/a.ts',
-            messages: [{ ruleId: 'no-console', severity: 2, message: 'No console', line: 3 }],
-            errorCount: 1,
-            stats: { times: { passes: [{ parse: { total: 2.5 }, rules: {} }] } },
-            usedDeprecatedRules: [],
-          },
-          { filePath: '/p/b.ts', messages: [], errorCount: 0, stats: { times: { passes: [] } } },
-        ]);
+        {
+          filePath: '/p/a.ts',
+          messages: [{ ruleId: 'no-console', severity: 2, message: 'No console', line: 3 }],
+          errorCount: 1,
+          stats: { times: { passes: [{ parse: { total: 2.5 }, rules: {} }] } },
+          usedDeprecatedRules: [],
+        },
+        { filePath: '/p/b.ts', messages: [], errorCount: 0, stats: { times: { passes: [] } } },
+      ]);
 
       const result = eslintStatsStripTransformer({ output });
 
@@ -23,7 +22,8 @@ describe('eslintStatsStripTransformer', () => {
     });
 
     it('VALID: {text before and after the array} => rewrites only the array', () => {
-      const output = 'warn: slow\n[{"filePath":"a.ts","messages":[],"stats":{"times":{}}}]\ntrailing';
+      const output =
+        'warn: slow\n[{"filePath":"a.ts","messages":[],"stats":{"times":{}}}]\ntrailing';
 
       const result = eslintStatsStripTransformer({ output });
 

@@ -7,7 +7,6 @@
  * // Returns '{"ref":26,"x":607,"y":472,"width":66,"height":27,"viewport":{"width":1280,"height":720},"visible":true,"inViewport":true}'
  */
 
-
 import type { BoxReading } from '../../contracts/box-reading/box-reading-contract';
 
 export const boxReadingRenderTransformer = ({ reading }: { reading: BoxReading }): string =>

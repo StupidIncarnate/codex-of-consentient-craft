@@ -37,7 +37,6 @@
 
 import { z } from '#gateway/npm/zod';
 
-
 import { elementDeltaContract } from '../element-delta/element-delta-contract';
 import { keyListingContract } from '../key-listing/key-listing-contract';
 import { serverLogWindowContract } from '../server-log-window/server-log-window-contract';
@@ -45,22 +44,52 @@ import { stepExpectationContract } from '../step-expectation/step-expectation-co
 import { stepVerbContract } from '../step-verb/step-verb-contract';
 import { instanceLifecycleStatics } from '../../statics/instance-lifecycle/instance-lifecycle-statics';
 
-export const stepReadingContract = z.object({
-  step: z.number().int().min(instanceLifecycleStatics.numbering.firstStep).brand<'StepReadingStep'>(),
-  verb: stepVerbContract,
-  node: z.string().min(1).brand<'StepReadingNode'>().nullable(),
-  ok: z.boolean(),
-  expected: stepExpectationContract,
-  reading: z.string().brand<'StepReadingReading'>(),
-  shot: z.string().min(1).refine((path) => { if (path.startsWith('/')) { return true; } if (/^[A-Za-z]:\\/u.test(path)) { return true; } return false; }, { message: 'Path must be absolute (start with / or C:\\ on Windows)', },).brand<'StepReadingShot'>().nullable(),
-  pixelChange: z.string().regex(/^\d{1,3}%$/u).brand<'StepReadingPixelChange'>().nullable(),
-  blank: z.boolean().nullable(),
-  blankColour: z.string().regex(/^#[0-9a-f]{6}$/u).brand<'StepReadingBlankColour'>().nullable(),
-  previousReading: keyListingContract.nullable().default(null),
-  delta: elementDeltaContract.nullable().default(null),
-  serverWindow: serverLogWindowContract,
-  startedAtMs: z.number().int().nonnegative().brand<'StepReadingStartedAtMs'>(),
-  endedAtMs: z.number().int().nonnegative().brand<'StepReadingEndedAtMs'>(),
-}).brand<'StepReading'>();
+export const stepReadingContract = z
+  .object({
+    step: z
+      .number()
+      .int()
+      .min(instanceLifecycleStatics.numbering.firstStep)
+      .brand<'StepReadingStep'>(),
+    verb: stepVerbContract,
+    node: z.string().min(1).brand<'StepReadingNode'>().nullable(),
+    ok: z.boolean(),
+    expected: stepExpectationContract,
+    reading: z.string().brand<'StepReadingReading'>(),
+    shot: z
+      .string()
+      .min(1)
+      .refine(
+        (path) => {
+          if (path.startsWith('/')) {
+            return true;
+          }
+          if (/^[A-Za-z]:\\/u.test(path)) {
+            return true;
+          }
+          return false;
+        },
+        { message: 'Path must be absolute (start with / or C:\\ on Windows)' },
+      )
+      .brand<'StepReadingShot'>()
+      .nullable(),
+    pixelChange: z
+      .string()
+      .regex(/^\d{1,3}%$/u)
+      .brand<'StepReadingPixelChange'>()
+      .nullable(),
+    blank: z.boolean().nullable(),
+    blankColour: z
+      .string()
+      .regex(/^#[0-9a-f]{6}$/u)
+      .brand<'StepReadingBlankColour'>()
+      .nullable(),
+    previousReading: keyListingContract.nullable().default(null),
+    delta: elementDeltaContract.nullable().default(null),
+    serverWindow: serverLogWindowContract,
+    startedAtMs: z.number().int().nonnegative().brand<'StepReadingStartedAtMs'>(),
+    endedAtMs: z.number().int().nonnegative().brand<'StepReadingEndedAtMs'>(),
+  })
+  .brand<'StepReading'>();
 
 export type StepReading = z.infer<typeof stepReadingContract>;

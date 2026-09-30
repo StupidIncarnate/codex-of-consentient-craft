@@ -10,10 +10,7 @@ describe('namedImportValueNamesTransformer', () => {
   it('VALID: {namedImports: several plain names} => returns every name', () => {
     const result = namedImportValueNamesTransformer({ namedImports: 'httpAdapter, dbAdapter' });
 
-    expect(result).toStrictEqual([
-      'httpAdapter',
-      'dbAdapter',
-    ]);
+    expect(result).toStrictEqual(['httpAdapter', 'dbAdapter']);
   });
 
   it('VALID: {namedImports: a name with an "as" alias} => returns the SOURCE name, not the local alias', () => {

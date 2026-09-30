@@ -36,7 +36,7 @@ export const questRepoRootBroker = async ({
     // one check that catches an ancestor belonging to a DIFFERENT project entirely (mirrors the
     // catch below, which already falls back to guild.path on an outright rejection).
     const guildPathValue = String(startPath);
-    const resolvedRepoRootValue = String(resolved);
+    const resolvedRepoRootValue = resolved;
     const resolvedOwnsGuildPath =
       guildPathValue === resolvedRepoRootValue ||
       guildPathValue.startsWith(`${resolvedRepoRootValue}/`);

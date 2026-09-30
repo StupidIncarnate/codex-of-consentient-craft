@@ -57,11 +57,13 @@ type QuestContractPropertySelf = z.infer<typeof questContractPropertyFields> & {
 // A getter, not `z.lazy` + a cast — the getter's return type wraps `z.core.$ZodType`, which is
 // the only self-reference form `contracts/` allows (zod v4 dropped the old `z.ZodTypeDef` type
 // param `z.lazy` needed here).
-export const questContractPropertyContract = z.object({
-  ...questContractPropertyFields.shape,
-  get properties(): z.ZodOptional<z.ZodArray<z.core.$ZodType<QuestContractPropertySelf>>> {
-    return z.array(questContractPropertyContract).optional();
-  },
-}).brand<'QuestContractProperty'>();
+export const questContractPropertyContract = z
+  .object({
+    ...questContractPropertyFields.shape,
+    get properties(): z.ZodOptional<z.ZodArray<z.core.$ZodType<QuestContractPropertySelf>>> {
+      return z.array(questContractPropertyContract).optional();
+    },
+  })
+  .brand<'QuestContractProperty'>();
 
 export type QuestContractProperty = z.infer<typeof questContractPropertyContract>;

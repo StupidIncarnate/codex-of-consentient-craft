@@ -39,7 +39,7 @@ export const extractWidgetEdgesLayerBroker = ({
   const importPaths = importStatementsExtractTransformer({ source: content });
   const childWidgetPaths: string[] = [];
   const bindingNames: string[] = [];
-  const bindingsFolder = `${String(packageSrcPath)}/${widgetTreeStatics.bindingsFolderName}/`;
+  const bindingsFolder = `${packageSrcPath}/${widgetTreeStatics.bindingsFolderName}/`;
 
   for (const importPath of importPaths) {
     const resolved = relativeImportResolveTransformer({ sourceFile: widgetFilePath, importPath });
@@ -51,7 +51,7 @@ export const extractWidgetEdgesLayerBroker = ({
       continue;
     }
     if (resolved.endsWith(widgetTreeStatics.tsSuffix)) {
-      const withTsx = `${String(resolved).slice(0, -widgetTreeStatics.tsSuffix.length)}${widgetTreeStatics.tsxSuffix}`;
+      const withTsx = `${resolved.slice(0, -widgetTreeStatics.tsSuffix.length)}${widgetTreeStatics.tsxSuffix}`;
       if (widgetFileSet.has(withTsx)) {
         childWidgetPaths.push(withTsx);
         continue;
@@ -59,8 +59,8 @@ export const extractWidgetEdgesLayerBroker = ({
     }
 
     // Check if resolved is a binding
-    if (String(resolved).startsWith(bindingsFolder)) {
-      const parts = String(importPath).split('/');
+    if (resolved.startsWith(bindingsFolder)) {
+      const parts = importPath.split('/');
       const lastName = parts[parts.length - 1];
       if (lastName !== undefined) {
         bindingNames.push(lastName);

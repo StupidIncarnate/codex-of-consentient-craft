@@ -36,13 +36,7 @@ export const driverSocketRequestBrokerProxy = (): {
       socketProxy.respondsWith({ socketPath, line: JSON.stringify(response) });
     },
 
-    respondsWithRawLine: ({
-      socketPath,
-      line,
-    }: {
-      socketPath: string;
-      line: string;
-    }): void => {
+    respondsWithRawLine: ({ socketPath, line }: { socketPath: string; line: string }): void => {
       socketProxy.respondsWith({ socketPath, line });
     },
 
@@ -64,14 +58,8 @@ export const driverSocketRequestBrokerProxy = (): {
       socketProxy.neverResponds({ socketPath });
     },
 
-    getRequestLinesFor: ({
-      socketPath,
-    }: {
-      socketPath: string;
-    }): readonly ContentText[] =>
-      socketProxy
-        .getRequestLinesFor({ socketPath })
-        .map((requestLine) => requestLine),
+    getRequestLinesFor: ({ socketPath }: { socketPath: string }): readonly ContentText[] =>
+      socketProxy.getRequestLinesFor({ socketPath }).map((requestLine) => requestLine),
 
     getConnectionCountFor: ({ socketPath }: { socketPath: string }): ReadingCount =>
       socketProxy.getConnectionCountFor({ socketPath }),

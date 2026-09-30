@@ -8,18 +8,16 @@
 
 import type { ChatEntry } from '@dungeonmaster/shared/contracts';
 
-export const computeEntryContextTransformer = ({
-  entry,
-}: {
-  entry: ChatEntry;
-}): number | null => {
+export const computeEntryContextTransformer = ({ entry }: { entry: ChatEntry }): number | null => {
   if (!('usage' in entry) || entry.usage === undefined) {
     return null;
   }
 
   const { usage } = entry;
 
-  return (Number(usage.inputTokens) +
-      Number(usage.cacheCreationInputTokens) +
-      Number(usage.cacheReadInputTokens));
+  return (
+    Number(usage.inputTokens) +
+    Number(usage.cacheCreationInputTokens) +
+    Number(usage.cacheReadInputTokens)
+  );
 };

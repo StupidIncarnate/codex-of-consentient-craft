@@ -8,14 +8,8 @@ describe('namedImportEntriesTransformer', () => {
     });
 
     expect(result).toStrictEqual([
-      [
-        'httpAdapter',
-        '../../adapters/shared-adapter',
-      ],
-      [
-        'dbAdapter',
-        '../../adapters/shared-adapter',
-      ],
+      ['httpAdapter', '../../adapters/shared-adapter'],
+      ['dbAdapter', '../../adapters/shared-adapter'],
     ]);
   });
 
@@ -25,12 +19,7 @@ describe('namedImportEntriesTransformer', () => {
       importPath: '../../brokers/walk/walk-broker',
     });
 
-    expect(result).toStrictEqual([
-      [
-        'walkBroker',
-        '../../brokers/walk/walk-broker',
-      ],
-    ]);
+    expect(result).toStrictEqual([['walkBroker', '../../brokers/walk/walk-broker']]);
   });
 
   it('EMPTY: {namedImports: undefined} => returns an empty array', () => {

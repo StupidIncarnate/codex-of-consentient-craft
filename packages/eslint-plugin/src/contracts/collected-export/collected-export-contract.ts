@@ -8,10 +8,12 @@
  */
 import { z } from '#gateway/npm/zod';
 
-export const collectedExportContract = z.object({
-  type: z.string().brand<'CollectedExportType'>(),
-  name: z.string().brand<'CollectedExportName'>().optional(),
-  isTypeOnly: z.boolean(),
-}).brand<'CollectedExport'>();
+export const collectedExportContract = z
+  .object({
+    type: z.string().brand<'CollectedExportType'>(),
+    name: z.string().brand<'CollectedExportName'>().optional(),
+    isTypeOnly: z.boolean(),
+  })
+  .brand<'CollectedExport'>();
 
 export type CollectedExport = z.infer<typeof collectedExportContract>;

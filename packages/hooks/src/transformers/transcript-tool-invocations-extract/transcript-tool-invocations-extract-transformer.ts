@@ -43,7 +43,7 @@ export const transcriptToolInvocationsExtractTransformer = ({
         return [];
       }
 
-      const rawWorkItemId = item.input?.['workItemId'];
+      const rawWorkItemId = item.input?.workItemId;
       const workItemId =
         typeof rawWorkItemId === 'string' && rawWorkItemId.length > 0 ? rawWorkItemId : null;
 

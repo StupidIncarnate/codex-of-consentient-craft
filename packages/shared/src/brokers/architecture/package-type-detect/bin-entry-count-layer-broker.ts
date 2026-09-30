@@ -10,11 +10,7 @@
 
 import type { PackageJson } from '../../../contracts/package-json/package-json-contract';
 
-export const binEntryCountLayerBroker = ({
-  packageJson,
-}: {
-  packageJson: PackageJson;
-}): number => {
+export const binEntryCountLayerBroker = ({ packageJson }: { packageJson: PackageJson }): number => {
   const { bin } = packageJson;
   if (bin === undefined) {
     return 0;

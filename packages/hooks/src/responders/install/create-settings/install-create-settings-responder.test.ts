@@ -10,10 +10,12 @@ describe('InstallCreateSettingsResponder', () => {
       proxy.setupNoExistingSettings();
 
       const result = await proxy.callResponder({
-        context: InstallContextStub({ value: {
-          targetProjectRoot: '/project',
-          dungeonmasterRoot: '/dm-root',
-        } }),
+        context: InstallContextStub({
+          value: {
+            targetProjectRoot: '/project',
+            dungeonmasterRoot: '/dm-root',
+          },
+        }),
       });
 
       expect(result).toStrictEqual({
@@ -259,17 +261,19 @@ describe('InstallCreateSettingsResponder', () => {
 
       proxy.setupExistingSettings({
         content: JSON.stringify({
-            promptCacheTtl: '24h',
-            subagentPromptCacheTtl: '6h',
-            crossSessionInbound: 'quarantine',
-          }),
+          promptCacheTtl: '24h',
+          subagentPromptCacheTtl: '6h',
+          crossSessionInbound: 'quarantine',
+        }),
       });
 
       const result = await proxy.callResponder({
-        context: InstallContextStub({ value: {
-          targetProjectRoot: '/project',
-          dungeonmasterRoot: '/dm-root',
-        } }),
+        context: InstallContextStub({
+          value: {
+            targetProjectRoot: '/project',
+            dungeonmasterRoot: '/dm-root',
+          },
+        }),
       });
 
       const written = JSON.parse(String(proxy.getWrittenContent())) as Record<PropertyKey, unknown>;
@@ -302,10 +306,12 @@ describe('InstallCreateSettingsResponder', () => {
       });
 
       const result = await proxy.callResponder({
-        context: InstallContextStub({ value: {
-          targetProjectRoot: '/project',
-          dungeonmasterRoot: '/dm-root',
-        } }),
+        context: InstallContextStub({
+          value: {
+            targetProjectRoot: '/project',
+            dungeonmasterRoot: '/dm-root',
+          },
+        }),
       });
 
       expect(result).toStrictEqual({
@@ -552,23 +558,25 @@ describe('InstallCreateSettingsResponder', () => {
 
       proxy.setupExistingSettings({
         content: JSON.stringify(
-            {
-              hooks: {
-                PreToolUse: [
-                  { hooks: [{ type: 'command', command: 'dungeonmaster-pre-edit-lint' }] },
-                ],
-              },
+          {
+            hooks: {
+              PreToolUse: [
+                { hooks: [{ type: 'command', command: 'dungeonmaster-pre-edit-lint' }] },
+              ],
             },
-            null,
-            2,
-          ),
+          },
+          null,
+          2,
+        ),
       });
 
       const result = await proxy.callResponder({
-        context: InstallContextStub({ value: {
-          targetProjectRoot: '/project',
-          dungeonmasterRoot: '/dm-root',
-        } }),
+        context: InstallContextStub({
+          value: {
+            targetProjectRoot: '/project',
+            dungeonmasterRoot: '/dm-root',
+          },
+        }),
       });
 
       expect(result).toStrictEqual({
@@ -789,22 +797,24 @@ describe('InstallCreateSettingsResponder', () => {
 
       proxy.setupExistingSettings({
         content: JSON.stringify(
-            {
-              hooks: {
-                PreToolUse: [{ hooks: [{ type: 'command', command: 'existing-hook' }] }],
-                SessionStart: [{ hooks: [{ type: 'command', command: 'existing-session-hook' }] }],
-              },
+          {
+            hooks: {
+              PreToolUse: [{ hooks: [{ type: 'command', command: 'existing-hook' }] }],
+              SessionStart: [{ hooks: [{ type: 'command', command: 'existing-session-hook' }] }],
             },
-            null,
-            2,
-          ),
+          },
+          null,
+          2,
+        ),
       });
 
       const result = await proxy.callResponder({
-        context: InstallContextStub({ value: {
-          targetProjectRoot: '/project',
-          dungeonmasterRoot: '/dm-root',
-        } }),
+        context: InstallContextStub({
+          value: {
+            targetProjectRoot: '/project',
+            dungeonmasterRoot: '/dm-root',
+          },
+        }),
       });
 
       expect(result).toStrictEqual({
@@ -1046,22 +1056,24 @@ describe('InstallCreateSettingsResponder', () => {
 
       proxy.setupExistingSettings({
         content: JSON.stringify(
-            {
-              crossSessionInbound: 'accept',
-              promptCacheTtl: '5m',
-              promptSuggestionEnabled: true,
-              env: { EXISTING_VAR: 'kept' },
-            },
-            null,
-            2,
-          ),
+          {
+            crossSessionInbound: 'accept',
+            promptCacheTtl: '5m',
+            promptSuggestionEnabled: true,
+            env: { EXISTING_VAR: 'kept' },
+          },
+          null,
+          2,
+        ),
       });
 
       const result = await proxy.callResponder({
-        context: InstallContextStub({ value: {
-          targetProjectRoot: '/project',
-          dungeonmasterRoot: '/dm-root',
-        } }),
+        context: InstallContextStub({
+          value: {
+            targetProjectRoot: '/project',
+            dungeonmasterRoot: '/dm-root',
+          },
+        }),
       });
 
       expect(result).toStrictEqual({
@@ -1285,10 +1297,12 @@ describe('InstallCreateSettingsResponder', () => {
 
       await expect(
         proxy.callResponder({
-          context: InstallContextStub({ value: {
-            targetProjectRoot: '/project',
-            dungeonmasterRoot: '/dm-root',
-          } }),
+          context: InstallContextStub({
+            value: {
+              targetProjectRoot: '/project',
+              dungeonmasterRoot: '/dm-root',
+            },
+          }),
         }),
       ).rejects.toStrictEqual(new SyntaxError('Invalid JSON in /project/.claude/settings.json'));
 
@@ -1302,10 +1316,12 @@ describe('InstallCreateSettingsResponder', () => {
 
       await expect(
         proxy.callResponder({
-          context: InstallContextStub({ value: {
-            targetProjectRoot: '/project',
-            dungeonmasterRoot: '/dm-root',
-          } }),
+          context: InstallContextStub({
+            value: {
+              targetProjectRoot: '/project',
+              dungeonmasterRoot: '/dm-root',
+            },
+          }),
         }),
       ).rejects.toStrictEqual(
         FsErrorStub({
@@ -1325,26 +1341,28 @@ describe('InstallCreateSettingsResponder', () => {
 
       proxy.setupExistingSettings({
         content: JSON.stringify({
-            model: 'opus',
-            permissions: { allow: ['Bash(ls)'], defaultMode: 'plan' },
-            hooks: {
-              Stop: [{ hooks: [{ type: 'command', command: 'their-stop', timeout: 30 }] }],
-              PreToolUse: [
-                {
-                  matcher: 'Foo',
-                  hooks: [{ type: 'command', command: 'my-other-tool', timeout: 5 }],
-                },
-                { hooks: [{ type: 'http', url: 'https://example.test/hook' }] },
-              ],
-            },
-          }),
+          model: 'opus',
+          permissions: { allow: ['Bash(ls)'], defaultMode: 'plan' },
+          hooks: {
+            Stop: [{ hooks: [{ type: 'command', command: 'their-stop', timeout: 30 }] }],
+            PreToolUse: [
+              {
+                matcher: 'Foo',
+                hooks: [{ type: 'command', command: 'my-other-tool', timeout: 5 }],
+              },
+              { hooks: [{ type: 'http', url: 'https://example.test/hook' }] },
+            ],
+          },
+        }),
       });
 
       await proxy.callResponder({
-        context: InstallContextStub({ value: {
-          targetProjectRoot: '/project',
-          dungeonmasterRoot: '/dm-root',
-        } }),
+        context: InstallContextStub({
+          value: {
+            targetProjectRoot: '/project',
+            dungeonmasterRoot: '/dm-root',
+          },
+        }),
       });
 
       const written = JSON.parse(String(proxy.getWrittenContent())) as Record<PropertyKey, unknown>;
@@ -1375,10 +1393,12 @@ describe('InstallCreateSettingsResponder', () => {
 
       await expect(
         proxy.callResponder({
-          context: InstallContextStub({ value: {
-            targetProjectRoot: '/project',
-            dungeonmasterRoot: '/dm-root',
-          } }),
+          context: InstallContextStub({
+            value: {
+              targetProjectRoot: '/project',
+              dungeonmasterRoot: '/dm-root',
+            },
+          }),
         }),
       ).rejects.toThrow(/"hooks"/u);
 
@@ -1394,10 +1414,12 @@ describe('InstallCreateSettingsResponder', () => {
 
       await expect(
         proxy.callResponder({
-          context: InstallContextStub({ value: {
-            targetProjectRoot: '/project',
-            dungeonmasterRoot: '/dm-root',
-          } }),
+          context: InstallContextStub({
+            value: {
+              targetProjectRoot: '/project',
+              dungeonmasterRoot: '/dm-root',
+            },
+          }),
         }),
       ).rejects.toThrow(/PreToolUse/u);
 

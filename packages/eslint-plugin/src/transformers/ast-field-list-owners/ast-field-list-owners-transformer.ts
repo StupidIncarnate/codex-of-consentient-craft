@@ -44,10 +44,7 @@ export const astFieldListOwnersTransformer = ({
         spread.argument.property.name === 'shape' &&
         localNames.has(spread.argument.object.name)
       ) {
-        owners.set(
-          spread.argument.object.name,
-          ownerName,
-        );
+        owners.set(spread.argument.object.name, ownerName);
       }
     }
   }

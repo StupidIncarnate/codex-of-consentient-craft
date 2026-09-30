@@ -3,13 +3,7 @@ import { readFileSyncProxy } from '#gateway/node/fs/read-file-sync/read-file-syn
 
 export const gatewayLintConfigReadBrokerProxy = (): {
   setupMissingConfig: ({ configPath }: { configPath: string }) => void;
-  setupConfig: ({
-    configPath,
-    fileContent,
-  }: {
-    configPath: string;
-    fileContent: string;
-  }) => void;
+  setupConfig: ({ configPath, fileContent }: { configPath: string; fileContent: string }) => void;
 } => {
   const existsProxy = existsSyncProxy();
   const readProxy = readFileSyncProxy();

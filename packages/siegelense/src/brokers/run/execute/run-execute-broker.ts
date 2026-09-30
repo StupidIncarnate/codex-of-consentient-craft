@@ -241,7 +241,7 @@ export const runExecuteBroker = async ({
       return;
     }
 
-    const index = (position + instanceLifecycleStatics.numbering.firstStep);
+    const index = position + instanceLifecycleStatics.numbering.firstStep;
     // `verbs.capturing`, not `verbs.acting`: `look` captures without acting, because it "returns
     // the KEY inline and writes the SHOT" (siegelense-tooling.md line 2587) while changing nothing
     // on the page.
@@ -260,13 +260,7 @@ export const runExecuteBroker = async ({
       lastShotPath,
       setLastShotPath,
       outputs: () => outputsState.values,
-      recordOutput: ({
-        name,
-        result,
-      }: {
-        name: string;
-        result: Record<PropertyKey, unknown>;
-      }) => {
+      recordOutput: ({ name, result }: { name: string; result: Record<PropertyKey, unknown> }) => {
         outputsState.values = { ...outputsState.values, [name]: result };
       },
     });

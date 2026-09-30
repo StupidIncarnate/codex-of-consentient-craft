@@ -158,8 +158,8 @@ export const instanceKillBroker = async ({
           reason:
             reason ??
             `reaped ${candidatePgids.length} orphaned process group${
-                candidatePgids.length === 1 ? '' : 's'
-              } outside the idle timeout`,
+              candidatePgids.length === 1 ? '' : 's'
+            } outside the idle timeout`,
         });
       }
 

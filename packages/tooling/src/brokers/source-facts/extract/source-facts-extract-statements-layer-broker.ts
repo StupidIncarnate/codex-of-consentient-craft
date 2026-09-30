@@ -54,10 +54,7 @@ export const sourceFactsExtractStatementsLayerBroker = ({
       ) {
         reExports.push({
           specifier: statement.moduleSpecifier.text,
-          names:
-            clause !== undefined && ts.isNamespaceExport(clause)
-              ? [clause.name.text]
-              : names,
+          names: clause !== undefined && ts.isNamespaceExport(clause) ? [clause.name.text] : names,
           isStar: clause === undefined,
         });
       } else {
@@ -85,6 +82,8 @@ export const sourceFactsExtractStatementsLayerBroker = ({
   }
 
   return sourceFactsContract.omit({ catchAllSites: true }).parse({
-    imports, reExports, exportNames: [...new Set(exportNames)],
+    imports,
+    reExports,
+    exportNames: [...new Set(exportNames)],
   });
 };

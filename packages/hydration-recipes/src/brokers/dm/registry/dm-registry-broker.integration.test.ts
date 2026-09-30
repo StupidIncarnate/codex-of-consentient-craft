@@ -36,11 +36,15 @@ describe('dmRegistryBroker — composing recipes against one target (DEF-78, int
     const secondGuild = (secondGuildResult as Record<PropertyKey, unknown>)[GUILD_NAME] as Guild;
 
     const singleTurnResult = await run(
-      recipesSessionSingleTurnBroker(SessionWithNestedChainInputsStub({ guildPath: firstGuild.path })),
+      recipesSessionSingleTurnBroker(
+        SessionWithNestedChainInputsStub({ guildPath: firstGuild.path }),
+      ),
       target,
     );
     const nestedChainResult = await run(
-      recipesSessionWithNestedChainBroker(SessionWithNestedChainInputsStub({ guildPath: firstGuild.path })),
+      recipesSessionWithNestedChainBroker(
+        SessionWithNestedChainInputsStub({ guildPath: firstGuild.path }),
+      ),
       target,
     );
     const singleTurnSession = (singleTurnResult as Record<PropertyKey, unknown>)[

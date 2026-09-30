@@ -208,9 +208,7 @@ describe('SiegelenseStatusLayerFlow', () => {
 
       await SiegelenseStatusLayerFlow({ callArgs: [] });
 
-      const writes = stdoutSpy
-        .callsMatching([])
-        .map((call) => String(call[0]));
+      const writes = stdoutSpy.callsMatching([]).map((call) => String(call[0]));
 
       const [wholeOutput] = writes;
 
@@ -227,9 +225,7 @@ describe('SiegelenseStatusLayerFlow', () => {
 
         await SiegelenseStatusLayerFlow({ callArgs: ['--since', since] });
 
-        const writes = stdoutSpy
-          .callsMatching([])
-          .map((call) => String(call[0]));
+        const writes = stdoutSpy.callsMatching([]).map((call) => String(call[0]));
 
         const [wholeOutput] = writes;
 
@@ -245,9 +241,7 @@ describe('SiegelenseStatusLayerFlow', () => {
 
       await SiegelenseStatusLayerFlow({ callArgs: ['--branch', 'main', '--since', 'beginning'] });
 
-      const writes = stdoutSpy
-        .callsMatching([])
-        .map((call) => String(call[0]));
+      const writes = stdoutSpy.callsMatching([]).map((call) => String(call[0]));
 
       const [wholeOutput] = writes;
 
@@ -260,9 +254,7 @@ describe('SiegelenseStatusLayerFlow', () => {
 
       await SiegelenseStatusLayerFlow({ callArgs: ['--branch', 'beta', '--since', 'beginning'] });
 
-      const writes = stdoutSpy
-        .callsMatching([])
-        .map((call) => String(call[0]));
+      const writes = stdoutSpy.callsMatching([]).map((call) => String(call[0]));
 
       const [wholeOutput] = writes;
 
@@ -277,9 +269,7 @@ describe('SiegelenseStatusLayerFlow', () => {
 
       await SiegelenseStatusLayerFlow({ callArgs: ['--branch', 'nonexistent-branch'] });
 
-      const writes = stdoutSpy
-        .callsMatching([])
-        .map((call) => String(call[0]));
+      const writes = stdoutSpy.callsMatching([]).map((call) => String(call[0]));
 
       const [wholeOutput] = writes;
 
@@ -295,9 +285,7 @@ describe('SiegelenseStatusLayerFlow', () => {
 
       await SiegelenseStatusLayerFlow({ callArgs: ['--branch', 'nonexistent-branch', '--json'] });
 
-      const writes = stdoutSpy
-        .callsMatching([])
-        .map((call) => String(call[0]));
+      const writes = stdoutSpy.callsMatching([]).map((call) => String(call[0]));
 
       const [wholeOutput] = writes;
       const withoutLiveMachineBlock = wholeOutput!.replace(MACHINE_BLOCK_PATTERN, '');
@@ -313,9 +301,7 @@ describe('SiegelenseStatusLayerFlow', () => {
 
       await SiegelenseStatusLayerFlow({ callArgs: ['--instance', MAIN_RECENT_ID] });
 
-      const writes = stdoutSpy
-        .callsMatching([])
-        .map((call) => String(call[0]));
+      const writes = stdoutSpy.callsMatching([]).map((call) => String(call[0]));
 
       // The table's VALUE column pads to the widest cell — the live evidence-dir path under
       // `testbed.guildPath` — so rows are parsed into a plain field/value object instead of
@@ -365,9 +351,7 @@ describe('SiegelenseStatusLayerFlow', () => {
         SiegelenseStatusLayerFlow({ callArgs: ['--instance', UNKNOWN_INSTANCE_ID] }),
       ).rejects.toStrictEqual(new InstanceUnknownError({ instanceId: UNKNOWN_INSTANCE_ID }));
 
-      const writes = stdoutSpy
-        .callsMatching([])
-        .map((call) => String(call[0]));
+      const writes = stdoutSpy.callsMatching([]).map((call) => String(call[0]));
 
       expect(writes).toStrictEqual([]);
     });
@@ -380,9 +364,7 @@ describe('SiegelenseStatusLayerFlow', () => {
         SiegelenseStatusLayerFlow({ callArgs: ['--instance', UNKNOWN_INSTANCE_ID, '--json'] }),
       ).rejects.toStrictEqual(new InstanceUnknownError({ instanceId: UNKNOWN_INSTANCE_ID }));
 
-      const writes = stdoutSpy
-        .callsMatching([])
-        .map((call) => String(call[0]));
+      const writes = stdoutSpy.callsMatching([]).map((call) => String(call[0]));
 
       expect(writes).toStrictEqual([]);
     });

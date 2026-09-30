@@ -8,9 +8,11 @@
 
 import { z } from '#gateway/npm/zod';
 
-export const guildUpdateBodyContract = z.object({
-  name: z.string().min(1).max(100).brand<'GuildUpdateBodyName'>().optional(),
-  path: z.string().min(1).brand<'GuildUpdateBodyPath'>().optional(),
-}).brand<'GuildUpdateBody'>();
+export const guildUpdateBodyContract = z
+  .object({
+    name: z.string().min(1).max(100).brand<'GuildUpdateBodyName'>().optional(),
+    path: z.string().min(1).brand<'GuildUpdateBodyPath'>().optional(),
+  })
+  .brand<'GuildUpdateBody'>();
 
 export type GuildUpdateBody = z.infer<typeof guildUpdateBodyContract>;

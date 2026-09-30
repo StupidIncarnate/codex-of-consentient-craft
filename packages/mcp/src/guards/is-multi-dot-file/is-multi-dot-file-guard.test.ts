@@ -81,7 +81,8 @@ describe('isMultiDotFileGuard', () => {
     });
 
     it('VALID: {filepath: .harness.integration.test.ts} => returns true (companion of harness)', () => {
-      const filepath = '/test/harnesses/lifecycle-verify/lifecycle-verify.harness.integration.test.ts';
+      const filepath =
+        '/test/harnesses/lifecycle-verify/lifecycle-verify.harness.integration.test.ts';
 
       const result = isMultiDotFileGuard({ filepath });
 

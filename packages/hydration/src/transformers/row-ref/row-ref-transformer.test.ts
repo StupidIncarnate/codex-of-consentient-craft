@@ -42,10 +42,7 @@ describe('rowRefTransformer', () => {
 
   it('VALID: {ancestors: [guild[0:0], guild[0:0]/quest[0:0]], ingredient: operation} => returns "guild[0:0]/quest[0:0]/operation[0:0]", not a doubled path', () => {
     const result = rowRefTransformer({
-      ancestors: [
-        'guild[0:0]',
-        'guild[0:0]/quest[0:0]',
-      ],
+      ancestors: ['guild[0:0]', 'guild[0:0]/quest[0:0]'],
       ingredient: 'operation',
       callIndex: 0,
       index: 0,

@@ -95,13 +95,13 @@ export const instanceEntryLayerBroker = async ({
 
   const uptime =
     state === 'alive' && entry.bootedAtMs !== null
-      ? elapsedRenderTransformer({ elapsedMs: (nowMs - entry.bootedAtMs) })
+      ? elapsedRenderTransformer({ elapsedMs: nowMs - entry.bootedAtMs })
       : null;
 
   const lastBeat =
     entry.lastBeatMs === null
       ? null
-      : elapsedRenderTransformer({ elapsedMs: (nowMs - entry.lastBeatMs) });
+      : elapsedRenderTransformer({ elapsedMs: nowMs - entry.lastBeatMs });
 
   const rssAtLastBeat = state === 'alive' ? null : (heartbeat?.rssMB ?? null);
 
@@ -142,15 +142,9 @@ export const instanceEntryLayerBroker = async ({
   }
 
   const [apiLogStat, webLogStat, driverLogStat, repoLocalDir] = await Promise.all([
-    statIfExists(
-      join(evidenceDir, locationsStatics.siegelense.apiLog),
-    ),
-    statIfExists(
-      join(evidenceDir, locationsStatics.siegelense.webLog),
-    ),
-    statIfExists(
-      join(evidenceDir, locationsStatics.siegelense.driverLog),
-    ),
+    statIfExists(join(evidenceDir, locationsStatics.siegelense.apiLog)),
+    statIfExists(join(evidenceDir, locationsStatics.siegelense.webLog)),
+    statIfExists(join(evidenceDir, locationsStatics.siegelense.driverLog)),
     locationsRepoLinkPathFindBroker({ homePath: evidenceDir }),
   ]);
 
@@ -160,12 +154,8 @@ export const instanceEntryLayerBroker = async ({
   // `instanceEvidenceListingContract.logs` element type to something path-shaped — is what keeps
   // this a broker-only change.
   const logs = [
-    ...(apiLogStat === null
-      ? []
-      : [join(repoLocalDir.path, locationsStatics.siegelense.apiLog)]),
-    ...(webLogStat === null
-      ? []
-      : [join(repoLocalDir.path, locationsStatics.siegelense.webLog)]),
+    ...(apiLogStat === null ? [] : [join(repoLocalDir.path, locationsStatics.siegelense.apiLog)]),
+    ...(webLogStat === null ? [] : [join(repoLocalDir.path, locationsStatics.siegelense.webLog)]),
     ...(driverLogStat === null
       ? []
       : [join(repoLocalDir.path, locationsStatics.siegelense.driverLog)]),
@@ -195,7 +185,10 @@ export const instanceEntryLayerBroker = async ({
     });
   }
 
-  const transcriptPath = join(runsDirPath, `${lastRunId}${evidenceFileStatics.extensions.transcript}`);
+  const transcriptPath = join(
+    runsDirPath,
+    `${lastRunId}${evidenceFileStatics.extensions.transcript}`,
+  );
   const transcriptContent = await readFile(transcriptPath);
   const transcriptLines = transcriptContent.split('\n').filter((line) => line.length > 0);
   const lastLine = transcriptLines[transcriptLines.length - 1];

@@ -11,7 +11,6 @@
 
 import type { Flow } from '@dungeonmaster/shared/contracts';
 
-
 export const operationFlowLabelsTransformer = ({
   flowIds,
   flows,
@@ -21,7 +20,5 @@ export const operationFlowLabelsTransformer = ({
 }): string[] => {
   const namesById = new Map(flows.map((flow) => [String(flow.id), String(flow.name)]));
 
-  return flowIds.map((flowId) =>
-    (namesById.get(String(flowId)) ?? String(flowId)),
-  );
+  return flowIds.map((flowId) => namesById.get(String(flowId)) ?? String(flowId));
 };

@@ -8,7 +8,14 @@
 
 import { stderr } from '#gateway/node/process';
 import { getQuestInputContract, workItemRoleContract } from '@dungeonmaster/shared/contracts';
-import type { ChatEntry, QuestType, Quest, WorkItem, Guild, Session } from '@dungeonmaster/shared/contracts';
+import type {
+  ChatEntry,
+  QuestType,
+  Quest,
+  WorkItem,
+  Guild,
+  Session,
+} from '@dungeonmaster/shared/contracts';
 import { questFlowStatics } from '@dungeonmaster/shared/statics';
 
 import { chatSpawnBroker } from '../../../brokers/chat/spawn/chat-spawn-broker';

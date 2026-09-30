@@ -89,8 +89,7 @@ export const ruleBanFlattenedContractParamsBroker =
 
           const property = source.getText(node.indexType);
 
-          const hostsInBlock =
-            blocks.get(block) ?? new Map<string, Map<string, TSESTree.Node>>();
+          const hostsInBlock = blocks.get(block) ?? new Map<string, Map<string, TSESTree.Node>>();
           const propertiesForHost = hostsInBlock.get(host) ?? new Map<string, TSESTree.Node>();
           // First occurrence wins the report position, so the message points at the top of the run.
           if (!propertiesForHost.has(property)) {

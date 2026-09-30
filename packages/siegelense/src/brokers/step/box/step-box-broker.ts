@@ -12,7 +12,6 @@
  * // Reads the geometry of ref 26 from the session and renders it
  */
 
-
 import type { BrowserSession } from '../../../contracts/browser-session/browser-session-contract';
 import { boxReadingRenderTransformer } from '../../../transformers/box-reading-render/box-reading-render-transformer';
 

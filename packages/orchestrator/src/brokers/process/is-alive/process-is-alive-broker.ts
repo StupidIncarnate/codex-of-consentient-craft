@@ -13,7 +13,6 @@
 import { isFsError } from '#gateway/node/fs';
 import { kill } from '#gateway/node/process';
 
-
 const PROBE_SIGNAL = 0;
 
 export const processIsAliveBroker = ({ pid }: { pid: number }): boolean => {

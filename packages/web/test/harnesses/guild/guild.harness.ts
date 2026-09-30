@@ -112,8 +112,7 @@ export const guildHarness = ({
 
   const extractGuildId = ({ guild }: { guild: GuildRecord }): string => String(guild.id);
 
-  const extractUrlSlug = ({ guild }: { guild: GuildRecord }): string =>
-    String(guild.urlSlug) as string;
+  const extractUrlSlug = ({ guild }: { guild: GuildRecord }): string => String(guild.urlSlug);
 
   return {
     beforeEach: cleanGuilds,

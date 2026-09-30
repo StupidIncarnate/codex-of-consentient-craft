@@ -34,9 +34,7 @@ describe('architectureStateWritesBroker', () => {
       proxy.setupSourceFiles({
         packageRoot,
         filePaths: [srcFile],
-        contents: [
-          `import { otherBroker } from '../../brokers/other/other-broker';`,
-        ],
+        contents: [`import { otherBroker } from '../../brokers/other/other-broker';`],
         stateDirNames: ['orphaned-store'],
       });
 
@@ -130,11 +128,11 @@ describe('architectureStateWritesBroker', () => {
         filePaths: [srcFile],
         contents: [
           [
-              "import { appendFile, writeFile } from '#gateway/node/fs__promises';",
-              `await writeFile('/z-quest.json', content);`,
-              `await appendFile('/a-outbox.jsonl', data);`,
-              `await writeFile('/z-quest.json', content);`,
-            ].join('\n'),
+            "import { appendFile, writeFile } from '#gateway/node/fs__promises';",
+            `await writeFile('/z-quest.json', content);`,
+            `await appendFile('/a-outbox.jsonl', data);`,
+            `await writeFile('/z-quest.json', content);`,
+          ].join('\n'),
         ],
         stateDirNames: [],
       });
@@ -158,9 +156,7 @@ describe('architectureStateWritesBroker', () => {
       proxy.setupSourceFiles({
         packageRoot,
         filePaths: [srcFile],
-        contents: [
-          `localStorage.setItem('session-id', value);`,
-        ],
+        contents: [`localStorage.setItem('session-id', value);`],
         stateDirNames: [],
       });
 

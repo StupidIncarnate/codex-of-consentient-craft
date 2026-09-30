@@ -57,20 +57,16 @@ export const architectureWidgetNodeRenderBroker = ({
   const lines: string[] = [];
 
   const widgetDisplayName = architectureExportNameResolveBroker({ filePath: node.filePath });
-  lines.push(
-    `${String(prefix)}${connector} ${String(widgetDisplayName)}`,
-  );
+  lines.push(`${prefix}${connector} ${widgetDisplayName}`);
 
-  const childIndentStr = isLast ? `${String(prefix)}${indent}` : `${String(prefix)}${pipe}  `;
+  const childIndentStr = isLast ? `${prefix}${indent}` : `${prefix}${pipe}  `;
   const flowIndent = `${childIndentStr}${bindingFlowLineSubIndent}`;
   const chainBaseIndent = flowIndent;
 
   for (const bindingName of node.bindingsAttached) {
     const bindingFile = bindingNameToFilePathTransformer({ bindingName, packageRoot });
     const bindingDisplayName = architectureExportNameResolveBroker({ filePath: bindingFile });
-    lines.push(
-      `${childIndentStr}bindings: ${String(bindingDisplayName)}`,
-    );
+    lines.push(`${childIndentStr}bindings: ${bindingDisplayName}`);
 
     if (callChainFn !== undefined && packageSrcPath !== undefined) {
       const chainLines = callChainFn({
@@ -98,16 +94,12 @@ export const architectureWidgetNodeRenderBroker = ({
         flow.serverRef === null
           ? ''
           : `  ──► ${String(flow.serverRef)}${flow.orchestratorMethod === null ? '' : ` → ${String(flow.orchestratorMethod)}`}`;
-      lines.push(
-        `${flowIndent}→ ${method} ${String(flow.urlPattern)}${flowSuffix}`,
-      );
+      lines.push(`${flowIndent}→ ${method} ${String(flow.urlPattern)}${flowSuffix}`);
     }
 
     for (const ws of wsEvents) {
       const emitterSuffix = ws.emitterRef === null ? '' : `  ←─ ${String(ws.emitterRef)}`;
-      lines.push(
-        `${flowIndent}ws← ${String(ws.eventType)}${emitterSuffix}`,
-      );
+      lines.push(`${flowIndent}ws← ${String(ws.eventType)}${emitterSuffix}`);
     }
   }
 

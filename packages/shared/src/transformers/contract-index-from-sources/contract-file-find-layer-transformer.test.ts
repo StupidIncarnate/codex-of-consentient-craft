@@ -18,9 +18,7 @@ describe('contractFileFindLayerTransformer', () => {
         fromFile: importer,
         name: 'thingContract',
         contractFiles: new Set([contractFile]),
-        exportedNamesByFile: new Map([
-          [contractFile, ['thingContract']],
-        ]),
+        exportedNamesByFile: new Map([[contractFile, ['thingContract']]]),
         reExportsByFile: new Map(),
         knownFiles: new Set([contractFile]),
         packages: [sharedPackage],
@@ -35,9 +33,7 @@ describe('contractFileFindLayerTransformer', () => {
         fromFile: importer,
         name: 'z',
         contractFiles: new Set([contractFile]),
-        exportedNamesByFile: new Map([
-          [contractFile, ['thingContract']],
-        ]),
+        exportedNamesByFile: new Map([[contractFile, ['thingContract']]]),
         reExportsByFile: new Map(),
         knownFiles: new Set([contractFile]),
         packages: [sharedPackage],
@@ -54,9 +50,7 @@ describe('contractFileFindLayerTransformer', () => {
         fromFile: importer,
         name: 'renamedContract',
         contractFiles: new Set([contractFile]),
-        exportedNamesByFile: new Map([
-          [contractFile, ['thingContract']],
-        ]),
+        exportedNamesByFile: new Map([[contractFile, ['thingContract']]]),
         reExportsByFile: new Map([
           [
             barrelFile,
@@ -83,9 +77,7 @@ describe('contractFileFindLayerTransformer', () => {
         fromFile: importer,
         name: 'thingContract',
         contractFiles: new Set([contractFile]),
-        exportedNamesByFile: new Map([
-          [contractFile, ['thingContract']],
-        ]),
+        exportedNamesByFile: new Map([[contractFile, ['thingContract']]]),
         reExportsByFile: new Map([
           [
             barrelFile,
@@ -150,9 +142,7 @@ describe('contractFileFindLayerTransformer', () => {
         fromFile: importer,
         name: 'otherContract',
         contractFiles: new Set([contractFile]),
-        exportedNamesByFile: new Map([
-          [contractFile, ['thingContract']],
-        ]),
+        exportedNamesByFile: new Map([[contractFile, ['thingContract']]]),
         reExportsByFile: new Map(),
         knownFiles: new Set([contractFile]),
         packages: [sharedPackage],
@@ -167,9 +157,7 @@ describe('contractFileFindLayerTransformer', () => {
         fromFile: importer,
         name: 'wantedContract',
         contractFiles: new Set([contractFile]),
-        exportedNamesByFile: new Map([
-          [contractFile, ['thingContract']],
-        ]),
+        exportedNamesByFile: new Map([[contractFile, ['thingContract']]]),
         reExportsByFile: new Map([
           [
             barrelFile,
@@ -196,9 +184,7 @@ describe('contractFileFindLayerTransformer', () => {
         fromFile: importer,
         name: 'thingContract',
         contractFiles: new Set([contractFile]),
-        exportedNamesByFile: new Map([
-          [contractFile, ['thingContract']],
-        ]),
+        exportedNamesByFile: new Map([[contractFile, ['thingContract']]]),
         reExportsByFile: new Map([
           [
             barrelFile,

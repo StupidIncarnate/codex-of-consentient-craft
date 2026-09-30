@@ -22,7 +22,8 @@ describe('packageDiscoverBroker', () => {
           {
             name: 'shared',
             standardPath: '/home/user/dungeonmaster/packages/shared/dist/startup/start-install.js',
-            alternatePath: '/home/user/dungeonmaster/packages/shared/dist/src/startup/start-install.js',
+            alternatePath:
+              '/home/user/dungeonmaster/packages/shared/dist/src/startup/start-install.js',
             installerLocation: 'none',
           },
           {
@@ -108,12 +109,14 @@ describe('packageDiscoverBroker', () => {
             children: [
               {
                 name: 'npm',
-                standardPath: '/home/user/dungeonmaster/packages/@gateway/npm/dist/startup/start-install.js',
+                standardPath:
+                  '/home/user/dungeonmaster/packages/@gateway/npm/dist/startup/start-install.js',
                 installerLocation: 'standard',
               },
               {
                 name: 'node',
-                standardPath: '/home/user/dungeonmaster/packages/@gateway/node/dist/startup/start-install.js',
+                standardPath:
+                  '/home/user/dungeonmaster/packages/@gateway/node/dist/startup/start-install.js',
                 installerLocation: 'none',
               },
             ],
@@ -131,7 +134,8 @@ describe('packageDiscoverBroker', () => {
         },
         {
           packageName: '@dungeonmaster/npm',
-          installPath: '/home/user/dungeonmaster/packages/@gateway/npm/dist/startup/start-install.js',
+          installPath:
+            '/home/user/dungeonmaster/packages/@gateway/npm/dist/startup/start-install.js',
           finalizeInstallPath: null,
         },
       ]);
@@ -151,17 +155,20 @@ describe('packageDiscoverBroker', () => {
             children: [
               {
                 name: 'cli',
-                standardPath: '/consumer/node_modules/@dungeonmaster/cli/dist/startup/start-install.js',
+                standardPath:
+                  '/consumer/node_modules/@dungeonmaster/cli/dist/startup/start-install.js',
                 installerLocation: 'standard',
               },
               {
                 name: 'orchestrator',
-                standardPath: '/consumer/node_modules/@dungeonmaster/orchestrator/dist/startup/start-install.js',
+                standardPath:
+                  '/consumer/node_modules/@dungeonmaster/orchestrator/dist/startup/start-install.js',
                 installerLocation: 'standard',
               },
               {
                 name: 'shared',
-                standardPath: '/consumer/node_modules/@dungeonmaster/shared/dist/startup/start-install.js',
+                standardPath:
+                  '/consumer/node_modules/@dungeonmaster/shared/dist/startup/start-install.js',
                 installerLocation: 'none',
               },
             ],
@@ -184,7 +191,8 @@ describe('packageDiscoverBroker', () => {
         },
         {
           packageName: '@dungeonmaster/orchestrator',
-          installPath: '/consumer/node_modules/@dungeonmaster/orchestrator/dist/startup/start-install.js',
+          installPath:
+            '/consumer/node_modules/@dungeonmaster/orchestrator/dist/startup/start-install.js',
           finalizeInstallPath: null,
         },
       ]);

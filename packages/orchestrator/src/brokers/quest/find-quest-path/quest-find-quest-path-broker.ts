@@ -67,7 +67,12 @@ export const questFindQuestPathBroker = async ({
   // probe rather than being joined into a path that resolves somewhere else.
   const probeCandidates = isSafePathSegmentGuard({ segment: String(questId) })
     ? guildDirs.map((guildDir) => {
-        const questFolderPath = join(guildsDir, guildDir.name, dungeonmasterHomeStatics.paths.questsDir, String(questId));
+        const questFolderPath = join(
+          guildsDir,
+          guildDir.name,
+          dungeonmasterHomeStatics.paths.questsDir,
+          String(questId),
+        );
 
         return {
           questFilePath: join(questFolderPath, locationsStatics.quest.questFile),
@@ -89,9 +94,7 @@ export const questFindQuestPathBroker = async ({
     probeHit === undefined
       ? null
       : await matchCandidatesLayerBroker({
-          candidates: [
-            { ...probeHit, guildDirName: probeHit.guildDirName },
-          ],
+          candidates: [{ ...probeHit, guildDirName: probeHit.guildDirName }],
           questId,
         });
 

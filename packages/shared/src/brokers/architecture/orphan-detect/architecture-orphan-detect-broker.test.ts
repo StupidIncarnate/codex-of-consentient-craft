@@ -22,7 +22,7 @@ const dispatchByPath =
 const dispatchSourceByPath =
   ({ sources }: { sources: ReadonlyMap<string, string> }) =>
   (filePath: string): string => {
-    const text = sources.get(String(filePath));
+    const text = sources.get(filePath);
     return text === undefined ? throwEnoent() : text;
   };
 
@@ -78,7 +78,7 @@ describe('architectureOrphanDetectBroker', () => {
 
     const result = architectureOrphanDetectBroker({ packageSrcPath });
 
-    expect(String(result)).toBe('## Unreferenced\n\n```\nbrokers/orphan/orphan-broker\n```');
+    expect(result).toBe('## Unreferenced\n\n```\nbrokers/orphan/orphan-broker\n```');
   });
 
   it('VALID: {multiple orphans across folder types} => sorts orphans alphabetically by display path', () => {
@@ -118,7 +118,7 @@ describe('architectureOrphanDetectBroker', () => {
 
     const result = architectureOrphanDetectBroker({ packageSrcPath });
 
-    expect(String(result)).toBe(
+    expect(result).toBe(
       '## Unreferenced\n\n```\nbrokers/alpha/get/alpha-get-broker\nresponders/zeta/zeta-responder\nstate/middle/middle-state\n```',
     );
   });
@@ -158,7 +158,7 @@ describe('architectureOrphanDetectBroker', () => {
 
     const result = architectureOrphanDetectBroker({ packageSrcPath });
 
-    expect(String(result)).toBe('');
+    expect(result).toBe('');
   });
 
   it('EMPTY: {package with no walked folders} => returns empty string', () => {
@@ -177,6 +177,6 @@ describe('architectureOrphanDetectBroker', () => {
 
     const result = architectureOrphanDetectBroker({ packageSrcPath });
 
-    expect(String(result)).toBe('');
+    expect(result).toBe('');
   });
 });

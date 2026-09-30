@@ -1,6 +1,5 @@
 import { setTimeoutProxy } from '#gateway/node/setTimeout/set-timeout/set-timeout.proxy';
 
-
 type TimeoutMs = number;
 
 export const timerSleepBrokerProxy = (): {

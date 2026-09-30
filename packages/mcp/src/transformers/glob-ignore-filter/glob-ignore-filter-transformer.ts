@@ -13,7 +13,6 @@
  * // Returns patterns without the tmp rule
  */
 
-
 const PATH_SEPARATOR = '/';
 const WILDCARD_PATTERN = /[*?[\]]/u;
 
@@ -25,14 +24,14 @@ export const globIgnoreFilterTransformer = ({
   glob: string;
 }): readonly string[] => {
   const globSegments = new Set(
-    String(glob)
+    glob
       .split(PATH_SEPARATOR)
       .filter((segment) => segment !== '' && !WILDCARD_PATTERN.test(segment)),
   );
 
   return patterns
     .filter((rule) => {
-      const ruleSegments = String(rule)
+      const ruleSegments = rule
         .split(PATH_SEPARATOR)
         .filter((segment) => segment !== '' && !WILDCARD_PATTERN.test(segment));
 

@@ -46,7 +46,7 @@ test.describe('Quest Start Pipeline', () => {
     const { questFolder } = created;
 
     await quests.writeQuestFile({
-      questId: questId,
+      questId,
       questFolder,
       questFilePath,
       status: 'approved',
@@ -69,7 +69,7 @@ test.describe('Quest Start Pipeline', () => {
 
     const dispatch = dispatchHarness({ request, guildPath: GUILD_PATH });
     const { status: startStatus, processId } = await dispatch.startQuestViaStartRoute({
-      questId: questId,
+      questId,
     });
 
     expect(startStatus).toBe(HTTP_OK);
@@ -119,7 +119,7 @@ test.describe('Quest Start Pipeline', () => {
     const { questFolder } = created;
 
     await quests.writeQuestFile({
-      questId: questId,
+      questId,
       questFolder,
       questFilePath,
       status: 'approved',
@@ -134,7 +134,7 @@ test.describe('Quest Start Pipeline', () => {
 
     const dispatch = dispatchHarness({ request, guildPath: GUILD_PATH });
     const { status: startStatus, processId } = await dispatch.startQuestViaStartRoute({
-      questId: questId,
+      questId,
     });
 
     expect(startStatus).toBe(HTTP_OK);

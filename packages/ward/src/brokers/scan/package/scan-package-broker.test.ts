@@ -1,4 +1,3 @@
-
 import { ScanConfigFileStub } from '../../../contracts/scan-config-file/scan-config-file.stub';
 import { ProjectFolderStub } from '../../../contracts/project-folder/project-folder.stub';
 import { scanPackageBroker } from './scan-package-broker';

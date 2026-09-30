@@ -22,10 +22,7 @@ import { resetClearStorageLayerBrokerProxy } from './reset-clear-storage-layer-b
 import { snapshotRestoreLayerBrokerProxy } from './snapshot-restore-layer-broker.proxy';
 
 export const stepResetBrokerProxy = (): {
-  setupSnapshots: (params: {
-    homePath: string;
-    records: readonly SnapshotRecord[];
-  }) => void;
+  setupSnapshots: (params: { homePath: string; records: readonly SnapshotRecord[] }) => void;
   setupNoSnapshots: (params: { homePath: string }) => void;
   setupRestoreDirectories: (params: {
     dirs: readonly { dirPath: string; entries: readonly DirEntrySync[] }[];
@@ -41,15 +38,8 @@ export const stepResetBrokerProxy = (): {
     contents: readonly { filePath: string; content: string }[];
   }) => void;
   setupRestoreRmSucceeds: (params: { filePaths: readonly string[] }) => void;
-  setupRestoreCpSucceeds: (params: {
-    sourcePath: string;
-    entries: readonly string[];
-  }) => void;
-  setupReseed: (params: {
-    apiBaseUrl: string;
-    guild: Guild;
-    questIds: readonly string[];
-  }) => void;
+  setupRestoreCpSucceeds: (params: { sourcePath: string; entries: readonly string[] }) => void;
+  setupReseed: (params: { apiBaseUrl: string; guild: Guild; questIds: readonly string[] }) => void;
 } => {
   // Constructed for enforce-proxy-child-creation only (step-reset-broker.ts imports
   // snapshotResolveBroker directly for its `to !== null` path) — its own internals now run through

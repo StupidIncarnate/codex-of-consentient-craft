@@ -14,7 +14,6 @@
  */
 import { z } from '#gateway/npm/zod';
 
-
 export const timeBucketContract = z
   .object({
     windowStart: z.iso.datetime().brand<'TimeBucketWindowStart'>(),
@@ -26,10 +25,12 @@ export const timeBucketContract = z
     toolResultBytes: z.number().int().nonnegative().brand<'TimeBucketToolResultBytes'>(),
     topTools: z
       .array(
-        z.object({
-          name: z.string().brand<'TimeBucketTopToolsName'>(),
-          count: z.number().int().nonnegative().brand<'TimeBucketTopToolsCount'>(),
-        }).brand<'TimeBucketTopTools'>(),
+        z
+          .object({
+            name: z.string().brand<'TimeBucketTopToolsName'>(),
+            count: z.number().int().nonnegative().brand<'TimeBucketTopToolsCount'>(),
+          })
+          .brand<'TimeBucketTopTools'>(),
       )
       .default([]),
   })

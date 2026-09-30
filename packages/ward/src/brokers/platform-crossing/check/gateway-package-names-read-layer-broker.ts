@@ -10,7 +10,6 @@
  * // Returns: { node: '@dungeonmaster/node', bin: '@dungeonmaster/bin', browser: '@dungeonmaster/browser' }
  */
 
-
 import {
   gatewayPackageNamesContract,
   type GatewayPackageNames,

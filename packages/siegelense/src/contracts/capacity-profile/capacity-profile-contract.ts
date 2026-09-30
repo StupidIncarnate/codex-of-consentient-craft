@@ -17,7 +17,6 @@
 
 import { z } from '#gateway/npm/zod';
 
-
 export const capacityProfileContract = z
   .object({
     spec: z.string().min(1).brand<'CapacityProfileSpec'>(),
@@ -26,6 +25,7 @@ export const capacityProfileContract = z
     peakMB: z.number().int().nonnegative().brand<'CapacityProfilePeakMB'>(),
     fromRuns: z.number().int().nonnegative().brand<'CapacityProfileFromRuns'>(),
   })
-  .strict().brand<'CapacityProfile'>();
+  .strict()
+  .brand<'CapacityProfile'>();
 
 export type CapacityProfile = z.infer<typeof capacityProfileContract>;

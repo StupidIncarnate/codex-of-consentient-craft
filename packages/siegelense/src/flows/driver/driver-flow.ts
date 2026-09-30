@@ -15,5 +15,8 @@
 import { SiegelenseDriverResponder } from '../../responders/siegelense/driver/siegelense-driver-responder';
 import type { SiegeInstance } from '@dungeonmaster/shared/contracts';
 
-export const DriverFlow = async ({ instanceId }: { instanceId: SiegeInstance['id'] }): Promise<void> =>
-  SiegelenseDriverResponder({ instanceId });
+export const DriverFlow = async ({
+  instanceId,
+}: {
+  instanceId: SiegeInstance['id'];
+}): Promise<void> => SiegelenseDriverResponder({ instanceId });

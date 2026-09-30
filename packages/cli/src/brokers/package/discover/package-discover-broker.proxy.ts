@@ -77,7 +77,7 @@ export const packageDiscoverBrokerProxy = (): {
       for (const pkg of packages) {
         if ('children' in pkg) {
           fsReaddirProxy.returns({
-            path: `${String(packagesPath)}/${String(pkg.name)}`,
+            path: `${packagesPath}/${pkg.name}`,
             names: pkg.children.map((child) => child.name),
           });
           leafEntries.push(...pkg.children);
@@ -128,7 +128,7 @@ export const packageDiscoverBrokerProxy = (): {
     // no `packages` segment in between. This stages that non-existence and scans
     // `dungeonmasterRoot` directly, reusing the same leaf/group staging as the monorepo case.
     setupInstalledConsumerPackageDiscovery: ({ dungeonmasterRoot, packages }) => {
-      const monorepoPackagesPath = `${String(dungeonmasterRoot)}/packages`;
+      const monorepoPackagesPath = `${dungeonmasterRoot}/packages`;
       fsExistsSyncProxy.returns({ path: monorepoPackagesPath, exists: false });
       fsReaddirProxy.returns({
         path: dungeonmasterRoot,
@@ -146,7 +146,7 @@ export const packageDiscoverBrokerProxy = (): {
       for (const pkg of packages) {
         if ('children' in pkg) {
           fsReaddirProxy.returns({
-            path: `${String(dungeonmasterRoot)}/${String(pkg.name)}`,
+            path: `${dungeonmasterRoot}/${pkg.name}`,
             names: pkg.children.map((child) => child.name),
           });
           leafEntries.push(...pkg.children);

@@ -26,7 +26,7 @@ export const discoverPackagesLayerBroker = ({
 }): DiscoverPackagesLayerResult => {
   let topLevelEntries: DirEntrySync[] = [];
   try {
-    topLevelEntries = readdirEntriesSync(String(dirPath));
+    topLevelEntries = readdirEntriesSync(dirPath);
   } catch {
     // Single-root mode (no packages/ directory): the empty initialization above already signals it.
   }
@@ -43,10 +43,10 @@ export const discoverPackagesLayerBroker = ({
   const groupPackages = directoryEntries
     .filter((entry) => entry.name.startsWith(GROUP_FOLDER_PREFIX))
     .flatMap((group) => {
-      const groupPath = `${String(dirPath)}/${group.name}`;
+      const groupPath = `${dirPath}/${group.name}`;
       let groupEntries: DirEntrySync[] = [];
       try {
-        groupEntries = readdirEntriesSync(String(groupPath));
+        groupEntries = readdirEntriesSync(groupPath);
       } catch {
         // A group folder that vanished between the two reads is treated the same as an empty one.
       }

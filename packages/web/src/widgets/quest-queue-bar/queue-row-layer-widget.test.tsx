@@ -20,12 +20,7 @@ describe('QueueRowLayerWidget', () => {
       mantineRenderMiddleware({
         ui: (
           <MemoryRouter>
-            <QueueRowLayerWidget
-              entry={entry}
-              index={0}
-              total={2}
-              isActive={false}
-            />
+            <QueueRowLayerWidget entry={entry} index={0} total={2} isActive={false} />
           </MemoryRouter>
         ),
       });
@@ -47,12 +42,7 @@ describe('QueueRowLayerWidget', () => {
       mantineRenderMiddleware({
         ui: (
           <MemoryRouter>
-            <QueueRowLayerWidget
-              entry={entry}
-              index={1}
-              total={2}
-              isActive={false}
-            />
+            <QueueRowLayerWidget entry={entry} index={1} total={2} isActive={false} />
           </MemoryRouter>
         ),
       });
@@ -71,12 +61,7 @@ describe('QueueRowLayerWidget', () => {
       mantineRenderMiddleware({
         ui: (
           <MemoryRouter>
-            <QueueRowLayerWidget
-              entry={entry}
-              index={0}
-              total={1}
-              isActive={true}
-            />
+            <QueueRowLayerWidget entry={entry} index={0} total={1} isActive={true} />
           </MemoryRouter>
         ),
       });
@@ -101,12 +86,7 @@ describe('QueueRowLayerWidget', () => {
       mantineRenderMiddleware({
         ui: (
           <MemoryRouter>
-            <QueueRowLayerWidget
-              entry={entry}
-              index={0}
-              total={1}
-              isActive={false}
-            />
+            <QueueRowLayerWidget entry={entry} index={0} total={1} isActive={false} />
           </MemoryRouter>
         ),
       });
@@ -137,12 +117,7 @@ describe('QueueRowLayerWidget', () => {
       mantineRenderMiddleware({
         ui: (
           <MemoryRouter>
-            <QueueRowLayerWidget
-              entry={entry}
-              index={0}
-              total={1}
-              isActive={false}
-            />
+            <QueueRowLayerWidget entry={entry} index={0} total={1} isActive={false} />
           </MemoryRouter>
         ),
       });
@@ -159,12 +134,7 @@ describe('QueueRowLayerWidget', () => {
       mantineRenderMiddleware({
         ui: (
           <MemoryRouter>
-            <QueueRowLayerWidget
-              entry={entry}
-              index={0}
-              total={1}
-              isActive={false}
-            />
+            <QueueRowLayerWidget entry={entry} index={0} total={1} isActive={false} />
           </MemoryRouter>
         ),
       });

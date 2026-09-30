@@ -13,10 +13,7 @@ describe('importStatementsExtractTransformer', () => {
       const source = `import { a } from './a';\nimport { b } from './b';`;
       const result = importStatementsExtractTransformer({ source });
 
-      expect(result).toStrictEqual([
-        './a',
-        './b',
-      ]);
+      expect(result).toStrictEqual(['./a', './b']);
     });
   });
 
@@ -59,10 +56,7 @@ describe('importStatementsExtractTransformer', () => {
       const source = `import { a } from './a';\nexport const b = 2;\nimport type { C } from './c';`;
       const result = importStatementsExtractTransformer({ source });
 
-      expect(result).toStrictEqual([
-        './a',
-        './c',
-      ]);
+      expect(result).toStrictEqual(['./a', './c']);
     });
 
     it('VALID: {source: multi-line destructured import} => returns path', () => {
@@ -74,12 +68,12 @@ describe('importStatementsExtractTransformer', () => {
 
     it('VALID: {source: import inside JSDoc block} => skipped', () => {
       const source = [
-          '/**',
-          ' * USAGE:',
-          " * import { foo } from './fake-from-jsdoc';",
-          ' */',
-          "import { real } from './real';",
-        ].join('\n');
+        '/**',
+        ' * USAGE:',
+        " * import { foo } from './fake-from-jsdoc';",
+        ' */',
+        "import { real } from './real';",
+      ].join('\n');
       const result = importStatementsExtractTransformer({ source });
 
       expect(result).toStrictEqual(['./real']);

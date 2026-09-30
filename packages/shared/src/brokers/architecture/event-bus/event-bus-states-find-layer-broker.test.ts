@@ -25,7 +25,8 @@ describe('eventBusStatesFindLayerBroker', () => {
         sourceFiles: [
           {
             path: BUS_STATE_FILE,
-            source: 'export const myBus = {\n  emit: ({ type }) => {},\n  on: ({ type, handler }) => {},\n};',
+            source:
+              'export const myBus = {\n  emit: ({ type }) => {},\n  on: ({ type, handler }) => {},\n};',
           },
         ],
       });

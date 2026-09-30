@@ -13,7 +13,11 @@
  * // present, or target isn't e2e-eligible)
  */
 
-import { type InstallContext, type InstallResult, installResultContract } from '@dungeonmaster/shared/contracts';
+import {
+  type InstallContext,
+  type InstallResult,
+  installResultContract,
+} from '@dungeonmaster/shared/contracts';
 import { architecturePackageE2eEligibleDetectBroker } from '@dungeonmaster/shared/brokers';
 import { existsSync } from '#gateway/node/fs';
 import { join, dirname } from '#gateway/node/path';
@@ -40,7 +44,8 @@ export const InstallCreatePlaywrightResponder = async ({
       packageName: PACKAGE_NAME,
       success: true,
       action: 'skipped',
-      message: 'target project is not e2e-eligible (packageType is not frontend-react or frontend-ink)',
+      message:
+        'target project is not e2e-eligible (packageType is not frontend-react or frontend-ink)',
     });
   }
 
@@ -59,8 +64,14 @@ export const InstallCreatePlaywrightResponder = async ({
 
   await writeFile(configPath, contents);
 
-  const unresolvableTokenStaticsPath = join(context.targetProjectRoot, UNRESOLVABLE_TOKEN_STATICS_RELATIVE_PATH);
-  const unresolvableTokenStaticsTestPath = join(context.targetProjectRoot, UNRESOLVABLE_TOKEN_STATICS_TEST_RELATIVE_PATH);
+  const unresolvableTokenStaticsPath = join(
+    context.targetProjectRoot,
+    UNRESOLVABLE_TOKEN_STATICS_RELATIVE_PATH,
+  );
+  const unresolvableTokenStaticsTestPath = join(
+    context.targetProjectRoot,
+    UNRESOLVABLE_TOKEN_STATICS_TEST_RELATIVE_PATH,
+  );
 
   // Same write shape packageScaffoldWriteBroker uses for any nested scaffold file: ensure the
   // parent directory first, since a fresh target has no src/statics/e2e-unresolvable-token/

@@ -72,7 +72,7 @@ export const rowHandleChainTransformer = <
       [
         opExtraTransformer({
           ref,
-          verb: verb,
+          verb,
           args: fieldValuesContract.parse(args),
         }),
       ] as unknown as Op,
@@ -119,9 +119,7 @@ export const rowHandleChainTransformer = <
     setRaw: (values: Record<string, unknown>): Op =>
       [opSetRawTransformer({ ref, values: fieldValuesContract.parse(values) })] as unknown as Op,
     saveRecordAs: ({ name }: { name: string }): Op =>
-      [
-        opSaveRecordTransformer({ ref, name: name }),
-      ] as unknown as Op,
+      [opSaveRecordTransformer({ ref, name })] as unknown as Op,
     remove: (): Op => [opRemoveTransformer({ ref })] as unknown as Op,
     ...Object.fromEntries(extraEntries),
     ...Object.fromEntries(childEntries),

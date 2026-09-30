@@ -9,7 +9,6 @@
  */
 import * as ts from '#gateway/npm/typescript';
 
-
 export const phantomInterfaceDetectLayerTransformer = ({
   declaration,
   uniqueSymbolNames,
@@ -24,6 +23,6 @@ export const phantomInterfaceDetectLayerTransformer = ({
       ts.isPropertySignature(member) &&
       member.name.kind === ts.SyntaxKind.ComputedPropertyName &&
       uniqueSymbolNames.some(
-        (symbolName) => member.name.getText().replace(/[\s[\]]/gu, '') === String(symbolName),
+        (symbolName) => member.name.getText().replace(/[\s[\]]/gu, '') === symbolName,
       ),
   );

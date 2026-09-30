@@ -16,7 +16,6 @@ import { GuildIdStub } from '@dungeonmaster/shared/contracts/guild-id/guild-id.s
 import { QuestIdStub } from '@dungeonmaster/shared/contracts/quest-id/quest-id.stub';
 import type { APIRequestContext, Locator, Page } from '#gateway/npm/playwright__test';
 
-
 import { navigationHarness } from '../navigation/navigation.harness';
 import { guildHarness } from '../guild/guild.harness';
 import { questHarness } from '../quest/quest.harness';
@@ -498,7 +497,7 @@ export const commentBoxHarness = ({
         title: 'E2E Comment Box Quest',
         userRequest: 'Build the feature',
       });
-      seeded.questId = String(created.questId);
+      seeded.questId = created.questId;
 
       // withSession false drops the sessionId from the chaoswhisperer work item — the role stays,
       // so the ONLY difference between the two seeds is the sessionId itself, which is what makes
@@ -506,7 +505,7 @@ export const commentBoxHarness = ({
       await quests.writeQuestFile({
         questId: QuestIdStub({ value: seeded.questId }),
         questFolder: created.questFolder,
-        questFilePath: String(created.filePath),
+        questFilePath: created.filePath,
         status,
         workItems: [
           {

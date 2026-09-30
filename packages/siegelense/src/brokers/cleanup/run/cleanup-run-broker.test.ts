@@ -1,4 +1,3 @@
-
 import { InstanceIdStub } from '../../../contracts/instance-id/instance-id.stub';
 import { RegistryEntryStub } from '../../../contracts/registry-entry/registry-entry.stub';
 import { RegistryStub } from '../../../contracts/registry/registry.stub';
@@ -34,8 +33,8 @@ describe('cleanupRunBroker', () => {
 
       const liveEntry = RegistryEntryStub({
         id: LIVE_ID,
-        bootedAtMs: (NOW_MS - 900_000),
-        lastBeatMs: (NOW_MS - 2000),
+        bootedAtMs: NOW_MS - 900_000,
+        lastBeatMs: NOW_MS - 2000,
       });
       const pgidOne = 33_812;
       const pgidTwo = 33_840;
@@ -43,14 +42,14 @@ describe('cleanupRunBroker', () => {
         id: STALE_ID,
         socketPath: STALE_SOCKET_PATH,
         pgids: [pgidOne, pgidTwo],
-        bootedAtMs: (NOW_MS - 32_400_000),
-        lastBeatMs: (NOW_MS - 32_400_000),
+        bootedAtMs: NOW_MS - 32_400_000,
+        lastBeatMs: NOW_MS - 32_400_000,
       });
       const reservedEntry = RegistryEntryStub({
         id: RESERVED_ID,
         bootedAtMs: null,
         lastBeatMs: null,
-        reservedAtMs: (NOW_MS - 5000),
+        reservedAtMs: NOW_MS - 5000,
       });
       proxy.setupRegistry({
         registry: RegistryStub({ instances: [liveEntry, staleEntry, reservedEntry] }),
@@ -101,7 +100,7 @@ describe('cleanupRunBroker', () => {
         lastBeatMs: null,
         // 10 minutes ago — past instanceLifecycleStatics.reservation.staleAfterMs (300_000ms / 5m),
         // the ceiling built from bootLock.waitCeilingMs + driverStatics.boot.defaultTimeoutMs.
-        reservedAtMs: (NOW_MS - 600_000),
+        reservedAtMs: NOW_MS - 600_000,
       });
       proxy.setupRegistry({ registry: RegistryStub({ instances: [abandonedEntry] }) });
       proxy.setupDriverUnreachableNoPgids({
@@ -142,7 +141,7 @@ describe('cleanupRunBroker', () => {
         lastBeatMs: null,
         // Seconds old — nowhere near instanceLifecycleStatics.reservation.staleAfterMs (5m). A
         // real boot in flight looks exactly like this, and reaping it here would kill it.
-        reservedAtMs: (NOW_MS - 5000),
+        reservedAtMs: NOW_MS - 5000,
       });
       proxy.setupRegistry({ registry: RegistryStub({ instances: [freshReservation] }) });
       proxy.setupNoLocks();
@@ -170,8 +169,8 @@ describe('cleanupRunBroker', () => {
         id: STALE_ID,
         socketPath: STALE_SOCKET_PATH,
         pgids: [pgidOne],
-        bootedAtMs: (NOW_MS - 32_400_000),
-        lastBeatMs: (NOW_MS - 32_400_000),
+        bootedAtMs: NOW_MS - 32_400_000,
+        lastBeatMs: NOW_MS - 32_400_000,
       });
       proxy.setupRegistry({ registry: RegistryStub({ instances: [staleEntry] }) });
 
@@ -215,8 +214,8 @@ describe('cleanupRunBroker', () => {
 
       const liveEntry = RegistryEntryStub({
         id: LIVE_ID,
-        bootedAtMs: (NOW_MS - 900_000),
-        lastBeatMs: (NOW_MS - 2000),
+        bootedAtMs: NOW_MS - 900_000,
+        lastBeatMs: NOW_MS - 2000,
       });
       proxy.setupRegistry({ registry: RegistryStub({ instances: [liveEntry] }) });
       proxy.setupNoLocks();
@@ -261,7 +260,7 @@ describe('cleanupRunBroker', () => {
       const proxy = cleanupRunBrokerProxy();
 
       proxy.setupRegistry({ registry: RegistryStub({ instances: [] }) });
-      proxy.setupBootLockStale({ acquiredAtMs: (NOW_MS - 46_000) });
+      proxy.setupBootLockStale({ acquiredAtMs: NOW_MS - 46_000 });
 
       const result = await cleanupRunBroker();
 

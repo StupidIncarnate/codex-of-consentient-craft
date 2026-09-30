@@ -7,13 +7,13 @@ describe('questIndexToTextTransformer', () => {
     it("EMPTY: {rows: [], userRequest: undefined} => returns ''", () => {
       const result = questIndexToTextTransformer({ rows: [] });
 
-      expect(String(result)).toBe('');
+      expect(result).toBe('');
     });
 
     it('EMPTY: {rows: [], userRequest set} => prints only the user request line', () => {
       const result = questIndexToTextTransformer({ userRequest: 'Add auth', rows: [] });
 
-      expect(String(result)).toBe('User request: Add auth');
+      expect(result).toBe('User request: Add auth');
     });
   });
 
@@ -32,7 +32,7 @@ describe('questIndexToTextTransformer', () => {
 
       const result = questIndexToTextTransformer({ userRequest: 'Add notifications', rows: [row] });
 
-      expect(String(result)).toBe(
+      expect(result).toBe(
         [
           'User request: Add notifications',
           '',
@@ -57,7 +57,7 @@ describe('questIndexToTextTransformer', () => {
 
       const result = questIndexToTextTransformer({ userRequest: 'Add auth', rows: [row] });
 
-      expect(String(result)).toBe(
+      expect(result).toBe(
         [
           'User request: Add auth',
           '',
@@ -88,7 +88,7 @@ describe('questIndexToTextTransformer', () => {
         rows: [rowOne, rowTwo],
       });
 
-      expect(String(result)).toBe(
+      expect(result).toBe(
         [
           'User request: Add auth',
           '',

@@ -14,7 +14,6 @@ import { freePortPair, isPortFree } from '#gateway/node/net';
 import { cwd as getCwd } from '#gateway/node/process';
 import { setTimeout as delay } from '#gateway/node/setTimeout';
 
-
 const POLL_MS = 50;
 const MAX_ATTEMPTS = parseInt('200', 10);
 

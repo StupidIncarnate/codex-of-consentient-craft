@@ -68,20 +68,20 @@ describe('SiegelenseCapacityLayerFlow', () => {
     testbed.writeFile({
       relativePath: '.dungeonmaster.json',
       content: JSON.stringify(
-          DungeonmasterConfigStub({
-            framework: 'monorepo',
-            devServer: {
-              devCommand: 'npm run dev',
-              port: configDefaultsStatics.devServer.port.default,
-              e2e: {
-                processes: [
-                  DevServerE2eProcessStub(),
-                  DevServerE2eProcessStub({ name: 'web', portRole: 'web', readyPath: '/' }),
-                ],
-              },
+        DungeonmasterConfigStub({
+          framework: 'monorepo',
+          devServer: {
+            devCommand: 'npm run dev',
+            port: configDefaultsStatics.devServer.port.default,
+            e2e: {
+              processes: [
+                DevServerE2eProcessStub(),
+                DevServerE2eProcessStub({ name: 'web', portRole: 'web', readyPath: '/' }),
+              ],
             },
-          }),
-        ),
+          },
+        }),
+      ),
     });
     chdir(testbed.guildPath);
   });
@@ -107,9 +107,7 @@ describe('SiegelenseCapacityLayerFlow', () => {
         }),
       ).resolves.toBe(undefined);
 
-      const writes = stdoutSpy
-        .callsMatching([])
-        .map((call) => String(call[0]));
+      const writes = stdoutSpy.callsMatching([]).map((call) => String(call[0]));
 
       const [wholeOutput] = writes;
       const normalized = wholeOutput!
@@ -140,9 +138,7 @@ describe('SiegelenseCapacityLayerFlow', () => {
         }),
       ).resolves.toBe(undefined);
 
-      const writes = stdoutSpy
-        .callsMatching([])
-        .map((call) => String(call[0]));
+      const writes = stdoutSpy.callsMatching([]).map((call) => String(call[0]));
 
       const [wholeOutput] = writes;
       const normalized = wholeOutput!

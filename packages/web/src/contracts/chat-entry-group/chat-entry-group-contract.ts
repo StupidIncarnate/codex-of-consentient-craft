@@ -11,10 +11,12 @@ import { z } from '#gateway/npm/zod';
 
 import { chatEntryContract } from '@dungeonmaster/shared/contracts';
 
-const singleGroupContract = z.object({
-  kind: z.literal('single'),
-  entry: chatEntryContract,
-}).brand<'SingleGroup'>();
+const singleGroupContract = z
+  .object({
+    kind: z.literal('single'),
+    entry: chatEntryContract,
+  })
+  .brand<'SingleGroup'>();
 
 const baseSubagentChainGroupContract = z.object({
   kind: z.literal('subagent-chain'),
@@ -33,7 +35,12 @@ const baseSubagentChainGroupContract = z.object({
     .brand<'SubagentChainGroupCompletionDurationMs'>()
     .optional(),
   entryCount: z.number().int().nonnegative().brand<'SubagentChainGroupEntryCount'>(),
-  contextTokens: z.number().int().nonnegative().brand<'SubagentChainGroupContextTokens'>().nullable(),
+  contextTokens: z
+    .number()
+    .int()
+    .nonnegative()
+    .brand<'SubagentChainGroupContextTokens'>()
+    .nullable(),
 });
 
 export type SingleGroup = z.infer<typeof singleGroupContract>;
@@ -49,12 +56,14 @@ type ChatEntryGroupSelf = SingleGroup | SubagentChainGroupSelf;
 // `chatEntryGroupContract` below — referencing a binding declared later triggers
 // `no-use-before-define` even though the getter defers evaluation until after module init;
 // self-reference to `subagentChainGroupContract` (this same const) is the exempted case.
-const subagentChainGroupContract = z.object({
-  ...baseSubagentChainGroupContract.shape,
-  get innerGroups(): z.ZodArray<z.core.$ZodType<ChatEntryGroupSelf>> {
-    return z.array(z.union([singleGroupContract, subagentChainGroupContract]));
-  },
-}).brand<'SubagentChainGroup'>();
+const subagentChainGroupContract = z
+  .object({
+    ...baseSubagentChainGroupContract.shape,
+    get innerGroups(): z.ZodArray<z.core.$ZodType<ChatEntryGroupSelf>> {
+      return z.array(z.union([singleGroupContract, subagentChainGroupContract]));
+    },
+  })
+  .brand<'SubagentChainGroup'>();
 
 export const chatEntryGroupContract = z.union([singleGroupContract, subagentChainGroupContract]);
 

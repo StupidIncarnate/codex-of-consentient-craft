@@ -30,13 +30,7 @@ export const InstallWriteScriptsResponderProxy = (): {
       existsProxy.returns({ path: packageJsonPath, exists: false });
     },
 
-    setupReadFileContent: ({
-      filePath,
-      content,
-    }: {
-      filePath: string;
-      content: string;
-    }): void => {
+    setupReadFileContent: ({ filePath, content }: { filePath: string; content: string }): void => {
       readProxy.returns({ path: filePath, contents: content });
       writeProxy.succeeds({ path: filePath });
     },

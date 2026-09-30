@@ -16,7 +16,6 @@
  * // Returns null
  */
 
-
 import { pruneAssetKindContract } from '../../contracts/prune-asset-kind/prune-asset-kind-contract';
 import type { PruneAssetKind } from '../../contracts/prune-asset-kind/prune-asset-kind-contract';
 import { evidenceFileStatics } from '../../statics/evidence-file/evidence-file-statics';
@@ -27,7 +26,7 @@ export const pruneAssetClassifyTransformer = ({
 }: {
   fileName: string;
 }): PruneAssetKind | null => {
-  const name = String(fileName);
+  const name = fileName;
 
   if (name.endsWith(pruneStatics.assets.videoExtension)) {
     return pruneAssetKindContract.parse('video');

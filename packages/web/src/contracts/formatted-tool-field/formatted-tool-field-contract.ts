@@ -11,10 +11,12 @@
 
 import { z } from '#gateway/npm/zod';
 
-export const formattedToolFieldContract = z.object({
-  key: z.string().min(1).brand<'FormattedToolFieldKey'>(),
-  value: z.string().brand<'FormattedToolFieldValue'>(),
-  isLong: z.boolean(),
-}).brand<'FormattedToolField'>();
+export const formattedToolFieldContract = z
+  .object({
+    key: z.string().min(1).brand<'FormattedToolFieldKey'>(),
+    value: z.string().brand<'FormattedToolFieldValue'>(),
+    isLong: z.boolean(),
+  })
+  .brand<'FormattedToolField'>();
 
 export type FormattedToolField = z.infer<typeof formattedToolFieldContract>;

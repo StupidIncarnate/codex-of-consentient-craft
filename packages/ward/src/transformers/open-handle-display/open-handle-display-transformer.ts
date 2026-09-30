@@ -21,7 +21,7 @@ export const openHandleDisplayTransformer = ({
   handle: OpenHandle;
   cwd: string;
 }): string => {
-  const prefix = `${String(cwd)}/`;
+  const prefix = `${cwd}/`;
   const frames = String(handle.stack)
     .split('\n')
     .map((line) => line.trim())

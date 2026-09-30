@@ -1,4 +1,3 @@
-
 import { LaneSessionStub } from '../../../contracts/lane-session/lane-session.stub';
 import { StepStub } from '../../../contracts/step/step.stub';
 
@@ -31,7 +30,11 @@ describe('runVerbLayerBroker', () => {
     it('VALID: {type, one match} => calls countMatches before fillMatch', async () => {
       const proxy = runVerbLayerBrokerProxy();
       const { lane, callOrder } = proxy.sessionWithOneMatch();
-      const step = StepStub({ step: 'type', target: '[data-testid="GUILD_ADD"]', value: 'Result text' });
+      const step = StepStub({
+        step: 'type',
+        target: '[data-testid="GUILD_ADD"]',
+        value: 'Result text',
+      });
 
       await runVerbLayerBroker({
         lane,
@@ -48,7 +51,11 @@ describe('runVerbLayerBroker', () => {
     it('VALID: {paste, one match} => calls countMatches before pasteMatch', async () => {
       const proxy = runVerbLayerBrokerProxy();
       const { lane, callOrder } = proxy.sessionWithOneMatch();
-      const step = StepStub({ step: 'paste', target: '[data-testid="GUILD_ADD"]', value: 'Result text' });
+      const step = StepStub({
+        step: 'paste',
+        target: '[data-testid="GUILD_ADD"]',
+        value: 'Result text',
+      });
 
       await runVerbLayerBroker({
         lane,

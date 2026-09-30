@@ -13,10 +13,12 @@ import { z } from '#gateway/npm/zod';
 
 import { usageBucketContract } from '@dungeonmaster/shared/contracts';
 
-export const usageSampleContract = z.object({
-  // The start of the hour this message landed in, epoch milliseconds.
-  bucketStartMs: z.number().int().min(0).brand<'UsageSampleBucketStartMs'>(),
-  tokens: usageBucketContract,
-}).brand<'UsageSample'>();
+export const usageSampleContract = z
+  .object({
+    // The start of the hour this message landed in, epoch milliseconds.
+    bucketStartMs: z.number().int().min(0).brand<'UsageSampleBucketStartMs'>(),
+    tokens: usageBucketContract,
+  })
+  .brand<'UsageSample'>();
 
 export type UsageSample = z.infer<typeof usageSampleContract>;

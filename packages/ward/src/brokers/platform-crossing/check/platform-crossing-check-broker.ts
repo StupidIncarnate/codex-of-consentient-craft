@@ -75,10 +75,7 @@ export const platformCrossingCheckBroker = async ({
         return [];
       }
 
-      const memo: Map<
-        string,
-        Promise<readonly string[][]>
-      > = chainMemoByPlatform.get(platform) ??
+      const memo: Map<string, Promise<readonly string[][]>> = chainMemoByPlatform.get(platform) ??
       new Map<string, Promise<readonly string[][]>>();
       if (!chainMemoByPlatform.has(platform)) {
         chainMemoByPlatform.set(platform, memo);
@@ -104,7 +101,7 @@ export const platformCrossingCheckBroker = async ({
             return [];
           }
 
-          const content = (await readFile(absoluteFile));
+          const content = await readFile(absoluteFile);
 
           const chains = await walkGatewayCrossingsLayerBroker({
             filePath: absoluteFile,

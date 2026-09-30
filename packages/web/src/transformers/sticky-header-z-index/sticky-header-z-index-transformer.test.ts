@@ -1,4 +1,3 @@
-
 import { stickyHeaderZIndexTransformer } from './sticky-header-z-index-transformer';
 import { stickyHeaderStatics } from '../../statics/sticky-header/sticky-header-statics';
 

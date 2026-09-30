@@ -12,7 +12,6 @@
  * WHEN-NOT-TO-USE: When full AST parsing is needed — this is a v1 regex heuristic
  */
 
-
 const FS_WRITE_CALL_PATTERN =
   /\b(?:writeFileSync|appendFileSync|writeFile|appendFile|fsWriteFileAdapter|fsAppendFileAdapter|fsMkdirAdapter)\s*\(/u;
 const QUOTED_PATH_AFTER_CALL_PATTERN =
@@ -23,10 +22,10 @@ export const hookFsWritePathExtractTransformer = ({
 }: {
   source: string;
 }): string | undefined => {
-  const src = String(source);
+  const src = source;
   const withLiteralMatch = QUOTED_PATH_AFTER_CALL_PATTERN.exec(src);
   if (withLiteralMatch !== null) {
-    return (withLiteralMatch[1] ?? '(file)');
+    return withLiteralMatch[1] ?? '(file)';
   }
   if (FS_WRITE_CALL_PATTERN.test(src)) {
     return '(file)';

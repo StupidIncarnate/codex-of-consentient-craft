@@ -23,10 +23,7 @@ describe('linkValuesTransformer', () => {
           LinkSpecStub({ of: 'quest', as: 'questId' }),
           LinkSpecStub({ of: 'guild', as: 'guildId' }),
         ],
-        ancestors: [
-          'guild[0:0]',
-          'guild[0:0]/quest[0:0]',
-        ],
+        ancestors: ['guild[0:0]', 'guild[0:0]/quest[0:0]'],
         ownFields: {},
         records: new Map<string, unknown>([
           ['guild[0:0]', { id: 'g1' }],

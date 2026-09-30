@@ -99,7 +99,13 @@ export const QuestFollowupResponderProxy = (): {
     }): void => {
       orchestrator.startFollowupChatReturns({ questId, chatProcessId });
     },
-    setupStartFollowupChatError: ({ questId, error }: { questId: Quest['id']; error: Error }): void => {
+    setupStartFollowupChatError: ({
+      questId,
+      error,
+    }: {
+      questId: Quest['id'];
+      error: Error;
+    }): void => {
       orchestrator.startFollowupChatThrows({ questId, error });
     },
     // Every call the adapter received, so a rejected-status test can prove it received NONE —

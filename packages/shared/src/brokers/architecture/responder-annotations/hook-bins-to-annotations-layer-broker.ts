@@ -45,7 +45,7 @@ export const hookBinsToAnnotationsLayerBroker = ({
     });
     if (startupPath === undefined) continue;
 
-    const suffix: string = `[hook: ${binName}]`;
+    const suffix = `[hook: ${binName}]`;
     result.set(startupPath, responderAnnotationContract.parse({ suffix, childLines: [] }));
   }
 

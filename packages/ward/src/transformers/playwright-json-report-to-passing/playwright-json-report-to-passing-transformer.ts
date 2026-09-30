@@ -6,7 +6,6 @@
  * // Returns PassingTest[] containing passed test specs with suitePath, testName, durationMs
  */
 
-
 import {
   passingTestContract,
   type PassingTest,
@@ -23,12 +22,12 @@ export const playwrightJsonReportToPassingTransformer = ({
 }: {
   jsonContent: string;
 }): PassingTest[] => {
-  if (String(jsonContent).length === 0) {
+  if (jsonContent.length === 0) {
     return [];
   }
 
   try {
-    const parsed = playwrightJsonReportContract.parse(JSON.parse(String(jsonContent)));
+    const parsed = playwrightJsonReportContract.parse(JSON.parse(jsonContent));
 
     const rootSuites = parsed.suites;
     if (rootSuites === undefined) {

@@ -33,7 +33,7 @@ export const httpEdgesToAnnotationsLayerBroker = ({
   packageRoot: string;
 }): ResponderAnnotationMap => {
   const allEdges = architectureEdgeGraphBroker({ projectRoot });
-  const packageRootStr = String(packageRoot);
+  const packageRootStr = packageRoot;
 
   // Collect edges that have a server responder file under this package.
   const grouped = new Map<string, HttpEdge[]>();
@@ -55,27 +55,25 @@ export const httpEdgesToAnnotationsLayerBroker = ({
     const routeKeys: string[] = [];
     for (const edge of edges) {
       const routeKey = `${String(edge.method)} ${String(edge.urlPattern)}`;
-      const alreadyAdded = routeKeys.some((k) => String(k) === String(routeKey));
+      const alreadyAdded = routeKeys.some((k) => k === routeKey);
       if (!alreadyAdded) {
         routeKeys.push(routeKey);
       }
     }
     const suffix: string | null =
-      routeKeys.length === 0
-        ? null
-        : `[${routeKeys.map(String).join('; ')}]`;
+      routeKeys.length === 0 ? null : `[${routeKeys.map(String).join('; ')}]`;
 
     // Build childLines: deduplicate webBrokerFile entries, render each as ← packages/<pkg> (Symbol).
     const childLines: string[] = [];
     const seenConsumerPaths: string[] = [];
     for (const edge of edges) {
       if (edge.webBrokerFile === null) continue;
-      const alreadySeen = seenConsumerPaths.some((p) => String(p) === String(edge.webBrokerFile));
+      const alreadySeen = seenConsumerPaths.some((p) => p === String(edge.webBrokerFile));
       if (alreadySeen) continue;
       seenConsumerPaths.push(edge.webBrokerFile);
       const ref = architectureBackRefBroker({ filePath: edge.webBrokerFile, projectRoot });
       if (ref === null) continue;
-      childLines.push(`← ${String(ref)}`);
+      childLines.push(`← ${ref}`);
     }
 
     result.set(responderFile, responderAnnotationContract.parse({ suffix, childLines }));

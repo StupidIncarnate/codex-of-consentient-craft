@@ -125,11 +125,7 @@ describe('smoketestClearPriorQuestsBroker', () => {
 
       primeGuildAndQuestsPath({ proxy });
       proxy.setupQuestFolderListing({
-        files: [
-          questA.folder,
-          questB.folder,
-          questC.folder,
-        ],
+        files: [questA.folder, questB.folder, questC.folder],
       });
       proxy.setupQuestFile({ questJson: JSON.stringify(questA) });
       proxy.setupQuestFile({ questJson: JSON.stringify(questB) });

@@ -29,25 +29,30 @@
 
 import { z } from '#gateway/npm/zod';
 
-
-
-export const specProfileContract = z.object({
-  specName: z.string().min(1).brand<'SpecProfileSpecName'>(),
-  processes: z.number().int().nonnegative().brand<'SpecProfileProcesses'>(),
-  hash: z.string().regex(/^[0-9a-f]{8,64}$/u).brand<'SpecProfileHash'>(),
-  measuredAt: z.string().brand<'SpecProfileMeasuredAt'>().nullable(),
-  fromRuns: z.number().int().nonnegative().brand<'SpecProfileFromRuns'>(),
-  bootMs: z.number().int().nonnegative().brand<'SpecProfileBootMs'>().nullable(),
-  samples: z
-    .array(
-      z.object({
-        poolSize: z.number().int().positive().brand<'SpecProfileSamplesPoolSize'>(),
-        steadyMB: z.number().int().nonnegative().brand<'SpecProfileSamplesSteadyMB'>(),
-        peakMB: z.number().int().nonnegative().brand<'SpecProfileSamplesPeakMB'>(),
-        runs: z.number().int().nonnegative().brand<'SpecProfileSamplesRuns'>(),
-      }).brand<'SpecProfileSamples'>(),
-    )
-    .readonly(),
-}).brand<'SpecProfile'>();
+export const specProfileContract = z
+  .object({
+    specName: z.string().min(1).brand<'SpecProfileSpecName'>(),
+    processes: z.number().int().nonnegative().brand<'SpecProfileProcesses'>(),
+    hash: z
+      .string()
+      .regex(/^[0-9a-f]{8,64}$/u)
+      .brand<'SpecProfileHash'>(),
+    measuredAt: z.string().brand<'SpecProfileMeasuredAt'>().nullable(),
+    fromRuns: z.number().int().nonnegative().brand<'SpecProfileFromRuns'>(),
+    bootMs: z.number().int().nonnegative().brand<'SpecProfileBootMs'>().nullable(),
+    samples: z
+      .array(
+        z
+          .object({
+            poolSize: z.number().int().positive().brand<'SpecProfileSamplesPoolSize'>(),
+            steadyMB: z.number().int().nonnegative().brand<'SpecProfileSamplesSteadyMB'>(),
+            peakMB: z.number().int().nonnegative().brand<'SpecProfileSamplesPeakMB'>(),
+            runs: z.number().int().nonnegative().brand<'SpecProfileSamplesRuns'>(),
+          })
+          .brand<'SpecProfileSamples'>(),
+      )
+      .readonly(),
+  })
+  .brand<'SpecProfile'>();
 
 export type SpecProfile = z.infer<typeof specProfileContract>;

@@ -6,7 +6,6 @@
  * proxy.setupPackagesAndResults({ packages, results });
  */
 
-
 import { packageDiscoverBrokerProxy } from '../../package/discover/package-discover-broker.proxy';
 import { installFinalizeOrchestrateBrokerProxy } from '../finalize-orchestrate/install-finalize-orchestrate-broker.proxy';
 import { installOrchestrateBrokerProxy } from '../orchestrate/install-orchestrate-broker.proxy';

@@ -4,10 +4,10 @@ describe('filePathArgResolveTransformer', () => {
   it('VALID: {variable built from locationsStatics} => returns the statics reference', () => {
     const result = filePathArgResolveTransformer({
       source: [
-          'const outboxPath = filePathContract.parse(',
-          '  join(homePath, locationsStatics.dungeonmasterHome.eventOutbox),',
-          ');',
-        ].join('\n'),
+        'const outboxPath = filePathContract.parse(',
+        '  join(homePath, locationsStatics.dungeonmasterHome.eventOutbox),',
+        ');',
+      ].join('\n'),
       variableName: 'outboxPath',
     });
 
@@ -17,9 +17,9 @@ describe('filePathArgResolveTransformer', () => {
   it('VALID: {two variables, one statics-backed} => resolves only the named one', () => {
     const result = filePathArgResolveTransformer({
       source: [
-          'const a = join(root, locationsStatics.repoRoot.questsDir);',
-          'const b = join(root, "plain");',
-        ].join('\n'),
+        'const a = join(root, locationsStatics.repoRoot.questsDir);',
+        'const b = join(root, "plain");',
+      ].join('\n'),
       variableName: 'b',
     });
 

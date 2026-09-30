@@ -56,8 +56,8 @@ test.describe('Quest reload replays per-work-item entries onto execution rows', 
     const codeweaverWorkItemId = 'e2e00000-0000-4000-8000-000000000011';
     const codeweaverOpId = '00000000-0000-4000-8000-0000000000c5';
     await quests.writeQuestFile({
-      questId: questId,
-      questFolder: questFolder,
+      questId,
+      questFolder,
       questFilePath: String(questFilePath),
       status: 'in_progress',
       operations: [
@@ -86,7 +86,7 @@ test.describe('Quest reload replays per-work-item entries onto execution rows', 
     });
 
     const urlSlug = guilds.extractUrlSlug({ guild });
-    await nav.navigateToQuest({ urlSlug, questId: questId });
+    await nav.navigateToQuest({ urlSlug, questId });
 
     const executionPanel = page.getByTestId('execution-panel-widget');
 

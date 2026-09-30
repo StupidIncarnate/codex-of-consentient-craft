@@ -34,7 +34,7 @@ describe('questInputForbiddenFieldsTransformer', () => {
         currentStatus: 'explore_flows',
       });
 
-      expect(offenders.map((o) => String(o))).toStrictEqual([
+      expect(offenders.map((o) => o)).toStrictEqual([
         "Field 'operations' not allowed in status 'explore_flows'",
       ]);
     });
@@ -49,7 +49,7 @@ describe('questInputForbiddenFieldsTransformer', () => {
         currentStatus: 'complete',
       });
 
-      expect(offenders.map((o) => String(o))).toStrictEqual([
+      expect(offenders.map((o) => o)).toStrictEqual([
         "Field 'title' not allowed in status 'complete'",
       ]);
     });
@@ -81,7 +81,7 @@ describe('questInputForbiddenFieldsTransformer', () => {
         currentStatus: 'review_flows',
       });
 
-      expect(offenders.map((o) => String(o))).toStrictEqual([
+      expect(offenders.map((o) => o)).toStrictEqual([
         "Field 'flows' not allowed in status 'review_flows'",
       ]);
     });
@@ -98,7 +98,7 @@ describe('questInputForbiddenFieldsTransformer', () => {
         currentStatus: 'created',
       });
 
-      expect(offenders.map((o) => String(o))).toStrictEqual([
+      expect(offenders.map((o) => o)).toStrictEqual([
         "Field 'flows' not allowed in status 'created'",
       ]);
     });
@@ -282,7 +282,7 @@ describe('questInputForbiddenFieldsTransformer', () => {
         currentStatus: 'explore_observables',
       });
 
-      expect(offenders.map((o) => String(o))).toStrictEqual([
+      expect(offenders.map((o) => o)).toStrictEqual([
         "Field 'operations' not allowed in status 'explore_observables'",
       ]);
     });
@@ -297,7 +297,7 @@ describe('questInputForbiddenFieldsTransformer', () => {
         currentStatus: 'flows_approved',
       });
 
-      expect(offenders.map((o) => String(o))).toStrictEqual([
+      expect(offenders.map((o) => o)).toStrictEqual([
         "Field 'operations' not allowed in status 'flows_approved'",
       ]);
     });
@@ -312,7 +312,7 @@ describe('questInputForbiddenFieldsTransformer', () => {
         currentStatus: 'in_progress',
       });
 
-      expect(offenders.map((o) => String(o))).toStrictEqual([
+      expect(offenders.map((o) => o)).toStrictEqual([
         "Field 'operations' not allowed in status 'in_progress'",
       ]);
     });
@@ -329,7 +329,7 @@ describe('questInputForbiddenFieldsTransformer', () => {
         nextStatus: 'explore_observables',
       });
 
-      expect(offenders.map((o) => String(o))).toStrictEqual([
+      expect(offenders.map((o) => o)).toStrictEqual([
         "Field 'operations' not allowed in status 'review_observables'",
       ]);
     });
@@ -344,7 +344,7 @@ describe('questInputForbiddenFieldsTransformer', () => {
         currentStatus: 'review_observables',
       });
 
-      expect(offenders.map((o) => String(o))).toStrictEqual([
+      expect(offenders.map((o) => o)).toStrictEqual([
         "Field 'operations' not allowed in status 'review_observables'",
       ]);
     });
@@ -436,7 +436,7 @@ describe('questInputForbiddenFieldsTransformer', () => {
         currentStatus: 'review_flows',
       });
 
-      expect(offenders.map((o) => String(o))).toStrictEqual([
+      expect(offenders.map((o) => o)).toStrictEqual([
         "Field 'packagesAffected' not allowed in status 'review_flows'",
       ]);
     });

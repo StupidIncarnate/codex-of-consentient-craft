@@ -39,7 +39,6 @@
  * // Returns: readonly PlatformCrossingChainHop[][] — the first chain reached to each forbidden import
  */
 
-
 import type { ProjectFolder } from '../../../contracts/project-folder/project-folder-contract';
 import type { TypescriptModuleShape } from '../../../contracts/typescript-module-shape/typescript-module-shape-contract';
 import { isImplementationSourceFileGuard } from '../../../guards/is-implementation-source-file/is-implementation-source-file-guard';
@@ -53,10 +52,7 @@ import {
   type ResolveSpecifierCache,
 } from './resolve-specifier-cached-layer-broker';
 
-export type WalkGatewayCrossingsMemo = Map<
-  string,
-  Promise<readonly string[][]>
->;
+export type WalkGatewayCrossingsMemo = Map<string, Promise<readonly string[][]>>;
 export type ModuleShapeCache = Map<string, TypescriptModuleShape>;
 export type { ResolveSpecifierCache };
 
@@ -100,67 +96,24 @@ export const walkGatewayCrossingsLayerBroker = async ({
   const effectiveRequestedNames = moduleShape.localExportNames.length > 0 ? 'all' : requestedNames;
 
   const perDependencyChains = await Promise.all(
-    moduleShape.dependencies.map(
-      async (dependency): Promise<readonly string[][]> => {
-        const canonicalSpecifier = gatewaySpecifierCanonicalizeTransformer({
-          specifier: dependency.specifier,
-          knownPackages,
+    moduleShape.dependencies.map(async (dependency): Promise<readonly string[][]> => {
+      const canonicalSpecifier = gatewaySpecifierCanonicalizeTransformer({
+        specifier: dependency.specifier,
+        knownPackages,
+      });
+      const specifierHop = canonicalSpecifier;
+      const isCrossing = forbiddenPackageNames.some((packageName) =>
+        specifierMatchesPackageGuard({ specifier: canonicalSpecifier, packageName }),
+      );
+
+      if (dependency.kind === 'named') {
+        const relevantNames = intersectImportedNamesTransformer({
+          names: dependency.importedNames,
+          requestedNames: effectiveRequestedNames,
         });
-        const specifierHop = canonicalSpecifier;
-        const isCrossing = forbiddenPackageNames.some((packageName) =>
-          specifierMatchesPackageGuard({ specifier: canonicalSpecifier, packageName }),
-        );
-
-        if (dependency.kind === 'named') {
-          const relevantNames = intersectImportedNamesTransformer({
-            names: dependency.importedNames,
-            requestedNames: effectiveRequestedNames,
-          });
-          if (relevantNames.length === 0) {
-            return [];
-          }
-          if (isCrossing) {
-            return [[specifierHop]];
-          }
-
-          const resolved = await resolveSpecifierCachedLayerBroker({
-            specifier: canonicalSpecifier,
-            containingFilePath: filePath,
-            knownPackages,
-            resolveCache,
-          });
-          if (
-            resolved === undefined ||
-            !isImplementationSourceFileGuard({ filePath: resolved.filePath }) ||
-            pathHistory.includes(resolved.filePath)
-          ) {
-            return [];
-          }
-
-          const namesKey = [...new Set(relevantNames)].sort().join('\u0001');
-          const memoKey = `${resolved.filePath}\u0000${namesKey}`;
-          const cachedWalk = memo.get(memoKey);
-          const childChainsPromise =
-            cachedWalk ??
-            walkGatewayCrossingsLayerBroker({
-              filePath: resolved.filePath,
-              content: resolved.content,
-              requestedNames: relevantNames,
-              pathHistory: [...pathHistory, filePath],
-              chainLabels: [],
-              knownPackages,
-              forbiddenPackageNames,
-              memo,
-              moduleShapeCache,
-              resolveCache,
-            });
-          if (cachedWalk === undefined) {
-            memo.set(memoKey, childChainsPromise);
-          }
-          const childChains = await childChainsPromise;
-          return childChains.map((chain) => [specifierHop, ...chain]);
+        if (relevantNames.length === 0) {
+          return [];
         }
-
         if (isCrossing) {
           return [[specifierHop]];
         }
@@ -179,58 +132,7 @@ export const walkGatewayCrossingsLayerBroker = async ({
           return [];
         }
 
-        if (dependency.kind === 'opaque') {
-          const memoKey = `${resolved.filePath}\u0000all`;
-          const cachedWalk = memo.get(memoKey);
-          const childChainsPromise =
-            cachedWalk ??
-            walkGatewayCrossingsLayerBroker({
-              filePath: resolved.filePath,
-              content: resolved.content,
-              requestedNames: 'all',
-              pathHistory: [...pathHistory, filePath],
-              chainLabels: [],
-              knownPackages,
-              forbiddenPackageNames,
-              memo,
-              moduleShapeCache,
-              resolveCache,
-            });
-          if (cachedWalk === undefined) {
-            memo.set(memoKey, childChainsPromise);
-          }
-          const childChains = await childChainsPromise;
-          return childChains.map((chain) => [specifierHop, ...chain]);
-        }
-
-        // `dependency.kind === 'star'`: narrow to the requested names the target can still provide.
-        const cachedTargetShape = moduleShapeCache.get(resolved.filePath);
-        const targetShape =
-          cachedTargetShape ??
-          typescriptModuleShapeTransformer({
-            sourceText: resolved.content,
-            fileName: resolved.filePath,
-          });
-        if (cachedTargetShape === undefined) {
-          moduleShapeCache.set(resolved.filePath, targetShape);
-        }
-
-        const childRequestedNames =
-          effectiveRequestedNames === 'all'
-            ? 'all'
-            : effectiveRequestedNames.filter(
-                (name) =>
-                  barrelProvidesNameTransformer({ moduleShape: targetShape, name }) !== 'no',
-              );
-
-        if (childRequestedNames !== 'all' && childRequestedNames.length === 0) {
-          return [];
-        }
-
-        const namesKey =
-          childRequestedNames === 'all'
-            ? 'all'
-            : [...new Set(childRequestedNames)].sort().join('\u0001');
+        const namesKey = [...new Set(relevantNames)].sort().join('\u0001');
         const memoKey = `${resolved.filePath}\u0000${namesKey}`;
         const cachedWalk = memo.get(memoKey);
         const childChainsPromise =
@@ -238,7 +140,7 @@ export const walkGatewayCrossingsLayerBroker = async ({
           walkGatewayCrossingsLayerBroker({
             filePath: resolved.filePath,
             content: resolved.content,
-            requestedNames: childRequestedNames,
+            requestedNames: relevantNames,
             pathHistory: [...pathHistory, filePath],
             chainLabels: [],
             knownPackages,
@@ -252,8 +154,99 @@ export const walkGatewayCrossingsLayerBroker = async ({
         }
         const childChains = await childChainsPromise;
         return childChains.map((chain) => [specifierHop, ...chain]);
-      },
-    ),
+      }
+
+      if (isCrossing) {
+        return [[specifierHop]];
+      }
+
+      const resolved = await resolveSpecifierCachedLayerBroker({
+        specifier: canonicalSpecifier,
+        containingFilePath: filePath,
+        knownPackages,
+        resolveCache,
+      });
+      if (
+        resolved === undefined ||
+        !isImplementationSourceFileGuard({ filePath: resolved.filePath }) ||
+        pathHistory.includes(resolved.filePath)
+      ) {
+        return [];
+      }
+
+      if (dependency.kind === 'opaque') {
+        const memoKey = `${resolved.filePath}\u0000all`;
+        const cachedWalk = memo.get(memoKey);
+        const childChainsPromise =
+          cachedWalk ??
+          walkGatewayCrossingsLayerBroker({
+            filePath: resolved.filePath,
+            content: resolved.content,
+            requestedNames: 'all',
+            pathHistory: [...pathHistory, filePath],
+            chainLabels: [],
+            knownPackages,
+            forbiddenPackageNames,
+            memo,
+            moduleShapeCache,
+            resolveCache,
+          });
+        if (cachedWalk === undefined) {
+          memo.set(memoKey, childChainsPromise);
+        }
+        const childChains = await childChainsPromise;
+        return childChains.map((chain) => [specifierHop, ...chain]);
+      }
+
+      // `dependency.kind === 'star'`: narrow to the requested names the target can still provide.
+      const cachedTargetShape = moduleShapeCache.get(resolved.filePath);
+      const targetShape =
+        cachedTargetShape ??
+        typescriptModuleShapeTransformer({
+          sourceText: resolved.content,
+          fileName: resolved.filePath,
+        });
+      if (cachedTargetShape === undefined) {
+        moduleShapeCache.set(resolved.filePath, targetShape);
+      }
+
+      const childRequestedNames =
+        effectiveRequestedNames === 'all'
+          ? 'all'
+          : effectiveRequestedNames.filter(
+              (name) => barrelProvidesNameTransformer({ moduleShape: targetShape, name }) !== 'no',
+            );
+
+      if (childRequestedNames !== 'all' && childRequestedNames.length === 0) {
+        return [];
+      }
+
+      const namesKey =
+        childRequestedNames === 'all'
+          ? 'all'
+          : [...new Set(childRequestedNames)].sort().join('\u0001');
+      const memoKey = `${resolved.filePath}\u0000${namesKey}`;
+      const cachedWalk = memo.get(memoKey);
+      const childChainsPromise =
+        cachedWalk ??
+        walkGatewayCrossingsLayerBroker({
+          filePath: resolved.filePath,
+          content: resolved.content,
+          requestedNames: childRequestedNames,
+          pathHistory: [...pathHistory, filePath],
+          chainLabels: [],
+          knownPackages,
+          forbiddenPackageNames,
+          memo,
+          moduleShapeCache,
+          resolveCache,
+        });
+      if (cachedWalk === undefined) {
+        memo.set(memoKey, childChainsPromise);
+      }
+      const childChains = await childChainsPromise;
+      return childChains.map((chain) => [specifierHop, ...chain]);
+    }),
   );
 
   const localChains = perDependencyChains.flat();

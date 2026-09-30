@@ -16,9 +16,9 @@ describe('routeMetadataExtractTransformer', () => {
 
     it('VALID: {multiple Routes with paths} => returns one entry per Route', () => {
       const source = [
-          `<Route path="/:guildSlug/quest" element={<AppQuestChatResponder />} />`,
-          `<Route path="/:guildSlug/quest/:questId" element={<AppQuestChatResponder />} />`,
-        ].join('\n');
+        `<Route path="/:guildSlug/quest" element={<AppQuestChatResponder />} />`,
+        `<Route path="/:guildSlug/quest/:questId" element={<AppQuestChatResponder />} />`,
+      ].join('\n');
       const result = routeMetadataExtractTransformer({ source });
 
       expect(result).toStrictEqual([
@@ -47,12 +47,12 @@ describe('routeMetadataExtractTransformer', () => {
 
     it('VALID: {layout Route plus child Route in same source} => returns both entries in order', () => {
       const source = [
-          `<Routes>`,
-          `  <Route element={<AppLayoutResponder />}>`,
-          `    <Route path="/" element={<AppHomeResponder />} />`,
-          `  </Route>`,
-          `</Routes>`,
-        ].join('\n');
+        `<Routes>`,
+        `  <Route element={<AppLayoutResponder />}>`,
+        `    <Route path="/" element={<AppHomeResponder />} />`,
+        `  </Route>`,
+        `</Routes>`,
+      ].join('\n');
       const result = routeMetadataExtractTransformer({ source });
 
       expect(result).toStrictEqual([
@@ -80,12 +80,12 @@ describe('routeMetadataExtractTransformer', () => {
   describe('strips comments before matching', () => {
     it('VALID: {JSDoc USAGE example contains <Route>} => only counts the actual JSX', () => {
       const source = [
-          `/**`,
-          ` * USAGE:`,
-          ` * // Returns <Route path="/" element={<AppHomeResponder />} />`,
-          ` */`,
-          `<Route path="/" element={<AppHomeResponder />} />`,
-        ].join('\n');
+        `/**`,
+        ` * USAGE:`,
+        ` * // Returns <Route path="/" element={<AppHomeResponder />} />`,
+        ` */`,
+        `<Route path="/" element={<AppHomeResponder />} />`,
+      ].join('\n');
       const result = routeMetadataExtractTransformer({ source });
 
       expect(result).toStrictEqual([
@@ -98,9 +98,9 @@ describe('routeMetadataExtractTransformer', () => {
 
     it('VALID: {single-line // comment with <Route>} => skips the comment', () => {
       const source = [
-          `// <Route path="/disabled" element={<DisabledResponder />} />`,
-          `<Route path="/active" element={<ActiveResponder />} />`,
-        ].join('\n');
+        `// <Route path="/disabled" element={<DisabledResponder />} />`,
+        `<Route path="/active" element={<ActiveResponder />} />`,
+      ].join('\n');
       const result = routeMetadataExtractTransformer({ source });
 
       expect(result).toStrictEqual([

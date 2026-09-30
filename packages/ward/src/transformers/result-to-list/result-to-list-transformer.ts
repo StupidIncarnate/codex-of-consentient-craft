@@ -10,11 +10,7 @@ import type { ErrorEntry } from '../../contracts/error-entry/error-entry-contrac
 import type { TestFailure } from '../../contracts/test-failure/test-failure-contract';
 import type { WardRunResult } from '../../contracts/ward-result/ward-result-contract';
 
-export const resultToListTransformer = ({
-  wardResult,
-}: {
-  wardResult: WardRunResult;
-}): string => {
+export const resultToListTransformer = ({ wardResult }: { wardResult: WardRunResult }): string => {
   const fileMap = new Map<
     ErrorEntry['filePath'] | TestFailure['suitePath'],
     ErrorEntry['message'][]

@@ -50,7 +50,7 @@ test.describe('Home content list — quest rows vs session rows by filter', () =
     // invariant: "Quests Only" mode is one-to-one with quest files on disk — so
     // having three sessions tied to this quest must NOT cause three rows to render.
     const created = await quests.createQuest({
-      guildId: guildId,
+      guildId,
       title: questTitle,
       userRequest: 'Same quest userRequest used across sessions',
     });

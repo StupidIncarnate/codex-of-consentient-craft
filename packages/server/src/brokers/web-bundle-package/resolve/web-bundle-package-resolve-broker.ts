@@ -24,9 +24,7 @@ export const webBundlePackageResolveBroker = async (): Promise<string> => {
     kind: 'project-root',
   });
   const ownPackageJson = packageJsonContract.parse(
-    JSON.parse(
-      readFileSync(`${projectRoot}/package.json`),
-    ) as unknown,
+    JSON.parse(readFileSync(`${projectRoot}/package.json`)) as unknown,
   );
 
   const candidateNames = Object.keys(ownPackageJson.dependencies ?? {})
@@ -36,11 +34,7 @@ export const webBundlePackageResolveBroker = async (): Promise<string> => {
   const matches = candidateNames.filter((candidateName) => {
     try {
       const candidatePackageJson = packageJsonContract.parse(
-        JSON.parse(
-          readFileSync(
-              require.resolve(`${candidateName}/package.json`),
-            ),
-        ) as unknown,
+        JSON.parse(readFileSync(require.resolve(`${candidateName}/package.json`))) as unknown,
       );
       return Object.keys(candidatePackageJson.dependencies ?? {}).includes(
         WEB_BUNDLE_DEPENDENCY_SIGNAL,

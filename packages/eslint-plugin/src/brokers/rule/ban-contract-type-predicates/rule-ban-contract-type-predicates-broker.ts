@@ -98,9 +98,7 @@ export const ruleBanContractTypePredicatesBroker = (): TSESLint.RuleModule<
           return;
         }
 
-        const importSource = importSourceByLocalName.get(
-          rootIdentifierName,
-        );
+        const importSource = importSourceByLocalName.get(rootIdentifierName);
 
         // Unresolved (a language global like Error, never imported), or an import whose source is
         // not a contracts/ path (a library, a workspace package's non-contracts export, our own

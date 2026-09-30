@@ -6,7 +6,7 @@ describe('responderFolderFromImportPathTransformer', () => {
       importPath: '../../responders/quest/start/quest-start-responder',
     });
 
-    expect(String(result)).toBe('responders/quest/start');
+    expect(result).toBe('responders/quest/start');
   });
 
   it('VALID: {responder import with two levels} => strips filename', () => {
@@ -14,7 +14,7 @@ describe('responderFolderFromImportPathTransformer', () => {
       importPath: '../responders/guild/list',
     });
 
-    expect(String(result)).toBe('responders/guild');
+    expect(result).toBe('responders/guild');
   });
 
   it('VALID: {responders/ with single segment} => returns responders/segment', () => {
@@ -22,7 +22,7 @@ describe('responderFolderFromImportPathTransformer', () => {
       importPath: '../../responders/health',
     });
 
-    expect(String(result)).toBe('responders/health');
+    expect(result).toBe('responders/health');
   });
 
   it('EMPTY: {import path without responders/ segment} => returns empty string', () => {
@@ -30,6 +30,6 @@ describe('responderFolderFromImportPathTransformer', () => {
       importPath: '../../adapters/orchestrator/list-quests/orchestrator-list-quests-adapter',
     });
 
-    expect(String(result)).toBe('');
+    expect(result).toBe('');
   });
 });

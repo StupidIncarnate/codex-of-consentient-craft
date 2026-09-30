@@ -20,12 +20,22 @@
  *   unserialized writers would also collide on that one `quest.json.tmp`.
  */
 
-import { questContract, modifyQuestInputContract, modifyQuestResultContract, verifyQuestCheckContract } from '@dungeonmaster/shared/contracts';
+import {
+  questContract,
+  modifyQuestInputContract,
+  modifyQuestResultContract,
+  verifyQuestCheckContract,
+} from '@dungeonmaster/shared/contracts';
 import { locationsStatics } from '@dungeonmaster/shared/statics';
 import { join, resolve } from '#gateway/node/path';
 
 import { questPersistBroker } from '../persist/quest-persist-broker';
-import type { ModifyQuestInput, UnitObservation, ModifyQuestResult, VerifyQuestCheck } from '@dungeonmaster/shared/contracts';
+import type {
+  ModifyQuestInput,
+  UnitObservation,
+  ModifyQuestResult,
+  VerifyQuestCheck,
+} from '@dungeonmaster/shared/contracts';
 import {
   hasQuestGateContentGuard,
   isQuestBlockedQuestStatusGuard,
@@ -101,7 +111,7 @@ export const questModifyBroker = async ({
             verifyQuestCheckContract.parse({
               name: 'Input Allowlist',
               passed: false,
-              details: String(offender),
+              details: offender,
             }),
           );
           return modifyQuestResultContract.parse({
@@ -189,7 +199,7 @@ export const questModifyBroker = async ({
                 verifyQuestCheckContract.parse({
                   name: 'Observable Package Resolution',
                   passed: false,
-                  details: String(message),
+                  details: message,
                 }),
               );
             return modifyQuestResultContract.parse({
@@ -375,7 +385,7 @@ export const questModifyBroker = async ({
             const sourceExistenceChecks = await Promise.all(
               writtenContracts.map(async (entry) => {
                 const sourceStr = String(entry.source);
-                const exists = await pathExists(resolve(String(projectRoot), sourceStr));
+                const exists = await pathExists(resolve(projectRoot, sourceStr));
                 return { source: sourceStr, exists };
               }),
             );
@@ -392,7 +402,7 @@ export const questModifyBroker = async ({
                   verifyQuestCheckContract.parse({
                     name: 'Contract Source Resolution',
                     passed: false,
-                    details: String(message),
+                    details: message,
                   }),
               );
               return modifyQuestResultContract.parse({
@@ -431,7 +441,7 @@ export const questModifyBroker = async ({
                 verifyQuestCheckContract.parse({
                   name: 'Package Entry Resolution',
                   passed: false,
-                  details: String(message),
+                  details: message,
                 }),
               );
               return modifyQuestResultContract.parse({

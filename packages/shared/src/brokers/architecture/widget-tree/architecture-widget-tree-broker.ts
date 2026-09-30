@@ -28,8 +28,8 @@ export const architectureWidgetTreeBroker = ({
 }: {
   packageRoot: string;
 }): WidgetTreeResult => {
-  const packageSrcPath = `${String(packageRoot)}/src`;
-  const widgetsDirPath = `${String(packageSrcPath)}/${widgetTreeStatics.widgetsFolderName}`;
+  const packageSrcPath = `${packageRoot}/src`;
+  const widgetsDirPath = `${packageSrcPath}/${widgetTreeStatics.widgetsFolderName}`;
 
   // Step 1: Collect all widget files (non-test)
   const allWidgetFiles = listWidgetFilesLayerBroker({ widgetsDirPath });
@@ -73,7 +73,7 @@ export const architectureWidgetTreeBroker = ({
     const edges = edgesMap.get(widgetFile);
     if (edges === undefined) continue;
     for (const childPath of edges.childWidgetPaths) {
-      inDegree.set(childPath, ((inDegree.get(childPath) ?? 0) + 1));
+      inDegree.set(childPath, (inDegree.get(childPath) ?? 0) + 1);
     }
   }
 

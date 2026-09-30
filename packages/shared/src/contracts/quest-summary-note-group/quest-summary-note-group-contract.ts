@@ -28,14 +28,16 @@ import { z } from '#gateway/npm/zod';
 import { questNoteContract } from '../quest-note/quest-note-contract';
 import { questNoteKindContract } from '../quest-note-kind/quest-note-kind-contract';
 
-export const questSummaryNoteGroupContract = z.object({
-  id: questNoteKindContract,
-  notes: z
-    .array(questNoteContract)
-    .default([])
-    .describe(
-      'Every note of this kind, in the order the quest file carries them. Empty means the quest recorded none of this kind.',
-    ),
-}).brand<'QuestSummaryNoteGroup'>();
+export const questSummaryNoteGroupContract = z
+  .object({
+    id: questNoteKindContract,
+    notes: z
+      .array(questNoteContract)
+      .default([])
+      .describe(
+        'Every note of this kind, in the order the quest file carries them. Empty means the quest recorded none of this kind.',
+      ),
+  })
+  .brand<'QuestSummaryNoteGroup'>();
 
 export type QuestSummaryNoteGroup = z.infer<typeof questSummaryNoteGroupContract>;

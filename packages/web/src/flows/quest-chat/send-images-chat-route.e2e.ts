@@ -1,7 +1,10 @@
 import { QuestIdStub } from '@dungeonmaster/shared/contracts/quest-id/quest-id.stub';
 import { test, expect, wireHarnessLifecycle } from '../../../test/harnesses/e2e-fixtures';
 import { claudeMockHarness } from '../../../test/harnesses/claude-mock/claude-mock.harness';
-import { SimpleTextResponseStub, ClaudeQueueResponseStub } from '@dungeonmaster/shared/contracts/claude-queue-response/claude-queue-response.stub';
+import {
+  SimpleTextResponseStub,
+  ClaudeQueueResponseStub,
+} from '@dungeonmaster/shared/contracts/claude-queue-response/claude-queue-response.stub';
 import { environmentHarness } from '../../../test/harnesses/environment/environment.harness';
 import { sessionHarness } from '../../../test/harnesses/session/session.harness';
 import { navigationHarness } from '../../../test/harnesses/navigation/navigation.harness';
@@ -83,7 +86,7 @@ test.describe('Composer send — images ride the chat route', () => {
     await sessions.createSessionFile({ sessionId, userMessage: 'Build feature' });
 
     const created = await quests.createQuest({
-      guildId: guildId,
+      guildId,
       title: 'Send Plain Enter Quest',
       userRequest: 'Build feature',
     });
@@ -165,7 +168,7 @@ test.describe('Composer send — images ride the chat route', () => {
     await sessions.createSessionFile({ sessionId, userMessage: 'Build feature' });
 
     const created = await quests.createQuest({
-      guildId: guildId,
+      guildId,
       title: 'Send Token Order Quest',
       userRequest: 'Build feature',
     });
@@ -249,7 +252,7 @@ test.describe('Composer send — images ride the chat route', () => {
     await sessions.createSessionFile({ sessionId, userMessage: 'Build feature' });
 
     const created = await quests.createQuest({
-      guildId: guildId,
+      guildId,
       title: 'Send One Enter Quest',
       userRequest: 'Build feature',
     });
@@ -325,7 +328,7 @@ test.describe('Composer send — images ride the chat route', () => {
     await sessions.createSessionFile({ sessionId, userMessage: 'Build feature' });
 
     const created = await quests.createQuest({
-      guildId: guildId,
+      guildId,
       title: 'Send Double Click Quest',
       userRequest: 'Build feature',
     });
@@ -401,7 +404,7 @@ test.describe('Composer send — images ride the chat route', () => {
     await sessions.createSessionFile({ sessionId, userMessage: 'Build feature' });
 
     const created = await quests.createQuest({
-      guildId: guildId,
+      guildId,
       title: 'Send Race Survivor Quest',
       userRequest: 'Build feature',
     });
@@ -521,7 +524,7 @@ test.describe('Composer send — images ride the chat route', () => {
     await sessions.createSessionFile({ sessionId, userMessage: 'Build feature' });
 
     const created = await quests.createQuest({
-      guildId: guildId,
+      guildId,
       title: 'Send Locked Quest',
       userRequest: 'Build feature',
     });
@@ -627,7 +630,7 @@ test.describe('Composer send — images ride the chat route', () => {
     await sessions.createSessionFile({ sessionId, userMessage: 'Build feature' });
 
     const created = await quests.createQuest({
-      guildId: guildId,
+      guildId,
       title: 'Send Editable Quest',
       userRequest: 'Build feature',
     });
@@ -736,7 +739,7 @@ test.describe('Composer send — images ride the chat route', () => {
     await sessions.createSessionFile({ sessionId, userMessage: 'Build feature' });
 
     const created = await quests.createQuest({
-      guildId: guildId,
+      guildId,
       title: 'Send Aborted Xhr Quest',
       userRequest: 'Build feature',
     });
@@ -818,7 +821,7 @@ test.describe('Composer send — images ride the chat route', () => {
     await sessions.createSessionFile({ sessionId, userMessage: 'Build feature' });
 
     const created = await quests.createQuest({
-      guildId: guildId,
+      guildId,
       title: 'Send Progress Bar Quest',
       userRequest: 'Build feature',
     });
@@ -955,7 +958,7 @@ test.describe('Composer send — images ride the chat route', () => {
     await sessions.createSessionFile({ sessionId, userMessage: 'Build feature' });
 
     const created = await quests.createQuest({
-      guildId: guildId,
+      guildId,
       title: 'Send Forward Accepted Quest',
       userRequest: 'Build feature',
     });
@@ -1046,7 +1049,7 @@ test.describe('Composer send — images ride the chat route', () => {
     await sessions.createSessionFile({ sessionId, userMessage: 'Build feature' });
 
     const created = await quests.createQuest({
-      guildId: guildId,
+      guildId,
       title: 'Send Terminal State Quest',
       userRequest: 'Build feature',
     });

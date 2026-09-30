@@ -58,7 +58,7 @@ export const questFlowSliceTransformer = ({
     flowId === undefined
       ? undefined
       : quest.flows.find((candidate) => String(candidate.id) === String(flowId));
-  const packageNameText = packageName === undefined ? undefined : String(packageName);
+  const packageNameText = packageName === undefined ? undefined : packageName;
 
   const parts: string[] = [
     `# Quest: ${String(quest.title)}`,
@@ -67,15 +67,11 @@ export const questFlowSliceTransformer = ({
 
   if (quest.packagesAffected.length > 0) {
     parts.push(
-      `Packages affected (whole quest): ${String(questPackageEntriesToTextTransformer({ entries: quest.packagesAffected }))}`,
+      `Packages affected (whole quest): ${questPackageEntriesToTextTransformer({ entries: quest.packagesAffected })}`,
     );
   }
 
-  parts.push(
-    '',
-    'Original user request (the intent behind the flows):',
-    String(quest.userRequest),
-  );
+  parts.push('', 'Original user request (the intent behind the flows):', String(quest.userRequest));
 
   if (flowId !== undefined && flow === undefined) {
     // Naming the flows that DO exist rather than only the miss: the caller reached here from a
@@ -84,10 +80,10 @@ export const questFlowSliceTransformer = ({
     parts.push(
       '',
       `## No flow #${String(flowId)} on this quest. Its flows are: ${
-          quest.flows.length === 0
-            ? SYM.none
-            : quest.flows.map((candidate) => `#${String(candidate.id)}`).join(', ')
-        }`,
+        quest.flows.length === 0
+          ? SYM.none
+          : quest.flows.map((candidate) => `#${String(candidate.id)}`).join(', ')
+      }`,
     );
     return parts.join('\n');
   }
@@ -118,8 +114,8 @@ export const questFlowSliceTransformer = ({
     parts.push(
       '',
       `## No package "${packageNameText}" on this quest. Its packages are: ${
-          knownPackages.length === 0 ? SYM.none : knownPackages.join(', ')
-        }`,
+        knownPackages.length === 0 ? SYM.none : knownPackages.join(', ')
+      }`,
     );
     return parts.join('\n');
   }
@@ -130,9 +126,9 @@ export const questFlowSliceTransformer = ({
   if (otherFlows.length > 0) {
     parts.push(
       '',
-      (flow === undefined
-          ? '## Flows on this quest — fetch each one you own with get-quest({ questId, flowId })'
-          : '## Other flows on this quest — ids and names only, NOT your scope'),
+      flow === undefined
+        ? '## Flows on this quest — fetch each one you own with get-quest({ questId, flowId })'
+        : '## Other flows on this quest — ids and names only, NOT your scope',
       ...otherFlows.map((candidate) => {
         const taggedHere =
           packageNameText !== undefined &&
@@ -140,8 +136,8 @@ export const questFlowSliceTransformer = ({
             node.packages.some((name) => String(name) === packageNameText),
           );
         return `#${String(candidate.id)} ${SYM.emDash} "${String(candidate.name)}" (${candidate.flowType})${
-            taggedHere ? ` ${SYM.emDash} you tag nodes here` : ''
-          }`;
+          taggedHere ? ` ${SYM.emDash} you tag nodes here` : ''
+        }`;
       }),
     );
   }
@@ -150,21 +146,17 @@ export const questFlowSliceTransformer = ({
     parts.push(
       '',
       (packageNameText === undefined
-          ? SYM.flowSliceWholeFlowLegendLines
-          : SYM.flowSliceLegendLines
-        ).join('\n'),
+        ? SYM.flowSliceWholeFlowLegendLines
+        : SYM.flowSliceLegendLines
+      ).join('\n'),
       '',
       `## Flow: #${String(flow.id)} ${SYM.emDash} "${String(flow.name)}"`,
       `Type: ${flow.flowType}`,
-      ...(flow.scope === undefined
-        ? []
-        : [`Scope: ${String(flow.scope)}`]),
+      ...(flow.scope === undefined ? [] : [`Scope: ${String(flow.scope)}`]),
       `Entry: ${String(flow.entryPoint)}`,
       `Exits: ${flow.exitPoints.map((exitPoint) => String(exitPoint)).join(' | ')}`,
       ...(packageNameText === undefined
-        ? [
-            'The WHOLE flow is yours — every node, whatever package it lands in.',
-          ]
+        ? ['The WHOLE flow is yours — every node, whatever package it lands in.']
         : [
             `Your package: ${packageNameText}. Its nodes carry ${SYM.ownedNode}, and so does every labelled edge LEAVING one of them — a branch belongs to the node it leaves, and its id is the ${SYM.edgeIdOpen}…${SYM.edgeIdClose} at the head of the line. On a marked node EVERY observable is listed whatever package owns it, and each node's tag set counts them per package (${SYM.observable}). The graph is NOT filtered — the nodes between yours are how yours connect.`,
           ]),

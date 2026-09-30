@@ -29,23 +29,23 @@ export const agentsPluginCreateBrokerProxy = (): {
 
   const pluginDirFor = ({ targetProjectRoot }: { targetProjectRoot: FilePath }): FilePath =>
     actualPath.join(
-        targetProjectRoot,
-        locationsStatics.repoRoot.agents.dir,
-        locationsStatics.repoRoot.agents.pluginsDir,
-        mcpToolsStatics.server.name,
-      );
+      targetProjectRoot,
+      locationsStatics.repoRoot.agents.dir,
+      locationsStatics.repoRoot.agents.pluginsDir,
+      mcpToolsStatics.server.name,
+    );
 
   const pluginJsonPathFor = ({ targetProjectRoot }: { targetProjectRoot: FilePath }): FilePath =>
     actualPath.join(
-        pluginDirFor({ targetProjectRoot }),
-        locationsStatics.repoRoot.agents.pluginJson,
-      );
+      pluginDirFor({ targetProjectRoot }),
+      locationsStatics.repoRoot.agents.pluginJson,
+    );
 
   const mcpConfigJsonPathFor = ({ targetProjectRoot }: { targetProjectRoot: FilePath }): FilePath =>
     actualPath.join(
-        pluginDirFor({ targetProjectRoot }),
-        locationsStatics.repoRoot.agents.mcpConfigJson,
-      );
+      pluginDirFor({ targetProjectRoot }),
+      locationsStatics.repoRoot.agents.mcpConfigJson,
+    );
 
   return {
     callBroker: agentsPluginCreateBroker,

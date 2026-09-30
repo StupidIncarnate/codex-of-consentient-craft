@@ -23,7 +23,7 @@ export const listWidgetFilesLayerBroker = ({
   const results: string[] = [];
 
   for (const entry of entries) {
-    const entryPath = `${String(widgetsDirPath)}/${entry.name}`;
+    const entryPath = `${widgetsDirPath}/${entry.name}`;
 
     if (entry.kind === 'directory') {
       const children = listWidgetFilesLayerBroker({ widgetsDirPath: entryPath });

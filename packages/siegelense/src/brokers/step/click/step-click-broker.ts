@@ -32,7 +32,6 @@
  * // (still moving: network)'
  */
 
-
 import type { BrowserSession } from '../../../contracts/browser-session/browser-session-contract';
 import { driverStatics } from '../../../statics/driver/driver-statics';
 import { settleReadingRenderTransformer } from '../../../transformers/settle-reading-render/settle-reading-render-transformer';
@@ -84,7 +83,7 @@ export const stepClickBroker = async ({
   });
 
   return settleReadingRenderTransformer({
-    baseMessage: (within === null ? `clicked ${target}` : `clicked ${target} within ${within}`),
+    baseMessage: within === null ? `clicked ${target}` : `clicked ${target} within ${within}`,
     settleReading,
   });
 };

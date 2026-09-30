@@ -1,4 +1,3 @@
-
 import { ClipboardPayloadStub } from '../../../contracts/clipboard-payload/clipboard-payload.stub';
 import { pastePayloadLayerBroker } from './paste-payload-layer-broker';
 import { pastePayloadLayerBrokerProxy } from './paste-payload-layer-broker.proxy';

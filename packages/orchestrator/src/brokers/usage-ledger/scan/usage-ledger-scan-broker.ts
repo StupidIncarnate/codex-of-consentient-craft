@@ -85,7 +85,9 @@ export const usageLedgerScanBroker = async ({ nowMs }: { nowMs: number }): Promi
 
   const pending = files.flatMap((file) => {
     const fromByte = needsRebuild ? 0 : (ledger.cursors[file.path]?.size ?? 0);
-    return fromByte < file.size ? [transcriptReadContract.parse({ path: file.path, fromByte })] : [];
+    return fromByte < file.size
+      ? [transcriptReadContract.parse({ path: file.path, fromByte })]
+      : [];
   });
 
   const folded = await foldBatchLayerBroker({

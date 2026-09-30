@@ -11,7 +11,6 @@
  * // Returns '/siege-guild' as ContentText
  */
 
-
 import { stepRefResolveTransformer } from '../step-ref-resolve/step-ref-resolve-transformer';
 
 export const stepRefSubstituteTransformer = ({

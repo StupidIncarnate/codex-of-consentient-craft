@@ -48,7 +48,9 @@ export const computeAllowedImportsTransformer = ({
   // Handle routing library for frameworks that need it
   if (config.routing && result.flows) {
     // Parse routing string as PackageName through Zod contract
-    const routingPackage = allowedExternalImportsContract.shape.flows.unwrap().element.parse(config.routing);
+    const routingPackage = allowedExternalImportsContract.shape.flows
+      .unwrap()
+      .element.parse(config.routing);
 
     // For frontend frameworks, add routing library to flows
     if (!result.flows.includes(routingPackage)) {

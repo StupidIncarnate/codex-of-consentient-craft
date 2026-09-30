@@ -10,7 +10,6 @@
  * // Captures the page to filePath and returns it as the reading
  */
 
-
 import type { BrowserSession } from '../../../contracts/browser-session/browser-session-contract';
 
 export const stepScreenshotBroker = async ({

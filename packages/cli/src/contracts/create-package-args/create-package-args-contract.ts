@@ -12,12 +12,14 @@ import { z } from '#gateway/npm/zod';
 
 import { packageTypeContract } from '@dungeonmaster/shared/contracts';
 
-export const createPackageArgsContract = z.object({
-  name: z.string().min(1).brand<'CreatePackageArgsName'>().optional(),
-  packageType: packageTypeContract.optional(),
-  description: z.string().brand<'CreatePackageArgsDescription'>().optional(),
-  packagesDir: z.string().brand<'CreatePackageArgsPackagesDir'>().optional(),
-  dryRun: z.boolean().default(false),
-}).brand<'CreatePackageArgs'>();
+export const createPackageArgsContract = z
+  .object({
+    name: z.string().min(1).brand<'CreatePackageArgsName'>().optional(),
+    packageType: packageTypeContract.optional(),
+    description: z.string().brand<'CreatePackageArgsDescription'>().optional(),
+    packagesDir: z.string().brand<'CreatePackageArgsPackagesDir'>().optional(),
+    dryRun: z.boolean().default(false),
+  })
+  .brand<'CreatePackageArgs'>();
 
 export type CreatePackageArgs = z.infer<typeof createPackageArgsContract>;

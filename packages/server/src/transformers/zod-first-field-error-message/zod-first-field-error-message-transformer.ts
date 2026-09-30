@@ -19,7 +19,7 @@ export const zodFirstFieldErrorMessageTransformer = ({
   // `path[0]` is a PropertyKey and `field` a branded ContentText, so TS refuses `===` between them;
   // String() strips both down to the primitive the comparison actually means.
   const matchingIssue = error.issues.find(
-    (issue) => issue.path[0] !== undefined && String(issue.path[0]) === String(field),
+    (issue) => issue.path[0] !== undefined && String(issue.path[0]) === field,
   );
 
   return matchingIssue === undefined ? undefined : matchingIssue.message;

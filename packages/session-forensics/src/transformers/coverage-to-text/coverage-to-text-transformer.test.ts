@@ -35,7 +35,7 @@ describe('coverageToTextTransformer', () => {
 
       const result = coverageToTextTransformer({ coverage });
 
-      expect(String(result)).toBe(
+      expect(result).toBe(
         [
           'Flow flow-one',
           HEADER_LINE,
@@ -112,7 +112,7 @@ describe('coverageToTextTransformer', () => {
 
       const result = coverageToTextTransformer({ coverage });
 
-      expect(String(result)).toBe(
+      expect(result).toBe(
         [
           'Flow flow-alpha',
           HEADER_LINE,
@@ -138,7 +138,7 @@ describe('coverageToTextTransformer', () => {
     it("EMPTY: {coverage: []} => returns ''", () => {
       const result = coverageToTextTransformer({ coverage: [] });
 
-      expect(String(result)).toBe('');
+      expect(result).toBe('');
     });
   });
 
@@ -158,7 +158,7 @@ describe('coverageToTextTransformer', () => {
 
       const result = coverageToTextTransformer({ coverage });
 
-      expect(String(result)).toBe(
+      expect(result).toBe(
         [
           'Flow flow-never-ran',
           HEADER_LINE,
@@ -178,7 +178,7 @@ describe('coverageToTextTransformer', () => {
 
       const result = coverageToTextTransformer({ coverage });
 
-      expect(String(result)).toBe(
+      expect(result).toBe(
         [
           'Flow flow-cant-meet',
           HEADER_LINE,
@@ -208,7 +208,7 @@ describe('coverageToTextTransformer', () => {
 
       const result = coverageToTextTransformer({ coverage });
 
-      expect(String(result)).toBe(
+      expect(result).toBe(
         [
           'Flow flow-unmet',
           HEADER_LINE,

@@ -15,7 +15,6 @@
 
 import { z } from '#gateway/npm/zod';
 
-
 import { citationGapContract } from '../citation-gap/citation-gap-contract';
 import { citationReferenceContract } from '../citation-reference/citation-reference-contract';
 
@@ -25,6 +24,7 @@ export const citationResolutionContract = z
     gaps: z.array(citationGapContract).readonly(),
     blocked: z.string().brand<'CitationResolutionBlocked'>().nullable(),
   })
-  .strict().brand<'CitationResolution'>();
+  .strict()
+  .brand<'CitationResolution'>();
 
 export type CitationResolution = z.infer<typeof citationResolutionContract>;

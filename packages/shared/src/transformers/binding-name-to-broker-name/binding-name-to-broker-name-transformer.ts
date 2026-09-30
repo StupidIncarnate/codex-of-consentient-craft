@@ -10,7 +10,6 @@
  * WHEN-NOT-TO-USE: When you need a real import-resolved broker name (this is a display heuristic)
  */
 
-
 const USE_PREFIX = 'use-';
 const BINDING_SUFFIX = '-binding';
 const BROKER_SUFFIX = '-broker';
@@ -20,7 +19,7 @@ export const bindingNameToBrokerNameTransformer = ({
 }: {
   bindingName: string;
 }): string => {
-  let name = String(bindingName);
+  let name = bindingName;
 
   if (name.startsWith(USE_PREFIX)) {
     name = name.slice(USE_PREFIX.length);

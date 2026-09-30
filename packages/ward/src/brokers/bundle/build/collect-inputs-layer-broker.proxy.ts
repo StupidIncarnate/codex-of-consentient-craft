@@ -48,7 +48,7 @@ export const collectInputsLayerBrokerProxy = (): {
     // Overrides the name-only manifest setupWorkspaceRoot staged for this package: the closure walk
     // needs the `dependencies` map, and the build-script check needs `scripts`.
     readProxy.returns({
-      path: `${String(packageRoot)}/package.json`,
+      path: `${packageRoot}/package.json`,
       contents: JSON.stringify({
         name,
         scripts: { build: 'vite build' },
@@ -74,12 +74,12 @@ export const collectInputsLayerBrokerProxy = (): {
       // The walk up from a package passes through the directory the workspaces live in, which has
       // no manifest of its own.
       rootProxy.hasNoManifest({
-        dirPath: `${String(REPO_ROOT)}/packages`,
+        dirPath: `${REPO_ROOT}/packages`,
       });
     },
 
     setupNoWorkspaceAbove: ({ packageRoot }: { packageRoot: string }): void => {
-      const segments = String(packageRoot)
+      const segments = packageRoot
         .split('/')
         .filter((segment) => segment.length > 0);
 
@@ -106,11 +106,11 @@ export const collectInputsLayerBrokerProxy = (): {
       stageManifest({ packageRoot, name, dependencies });
 
       for (const pattern of bundleInputsTransformer({ isBundledPackage: isBundled })) {
-        const sourceMatches = String(pattern) === SOURCE_PATTERN ? sourceFiles : [];
-        const shellMatches = String(pattern) === SHELL_PATTERN ? [SHELL_PATTERN] : [];
+        const sourceMatches = pattern === SOURCE_PATTERN ? sourceFiles : [];
+        const shellMatches = pattern === SHELL_PATTERN ? [SHELL_PATTERN] : [];
 
         globProxy.returnsForPatternInDir({
-          pattern: String(pattern),
+          pattern: pattern,
           cwd: packageRoot,
           files: [...sourceMatches, ...shellMatches],
         });

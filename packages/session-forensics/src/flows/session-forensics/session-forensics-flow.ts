@@ -27,11 +27,11 @@ const MINUTES_FLAG = '--minutes';
 const FLOOR_SECONDS_FLAG = '--floor-seconds';
 
 const USAGE_BLOCK = [
-    'usage: session-forensics <command> <target>',
-    ...digestCommandContract.options,
-    'buckets --minutes <n>',
-    'gaps --floor-seconds <n>',
-  ].join('\n');
+  'usage: session-forensics <command> <target>',
+  ...digestCommandContract.options,
+  'buckets --minutes <n>',
+  'gaps --floor-seconds <n>',
+].join('\n');
 
 export const SessionForensicsFlow = ({ argv }: { argv: readonly string[] }): string => {
   const parsedCommand = digestCommandContract.safeParse(argv[0]);

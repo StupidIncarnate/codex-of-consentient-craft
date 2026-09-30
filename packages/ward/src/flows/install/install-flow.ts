@@ -7,7 +7,11 @@
  * // Adds .ward/ to .gitignore and ward scripts to package.json
  */
 
-import { type InstallContext, type InstallResult, installResultContract } from '@dungeonmaster/shared/contracts';
+import {
+  type InstallContext,
+  type InstallResult,
+  installResultContract,
+} from '@dungeonmaster/shared/contracts';
 import { InstallWriteGitignoreResponder } from '../../responders/install/write-gitignore/install-write-gitignore-responder';
 import { InstallWriteScriptsResponder } from '../../responders/install/write-scripts/install-write-scripts-responder';
 

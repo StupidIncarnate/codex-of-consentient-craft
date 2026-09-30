@@ -25,7 +25,7 @@ describe('questRepoRootBroker', () => {
 
     const result = await questRepoRootBroker({ questId: QuestIdStub({ value: quest.id }) });
 
-    expect(result).toBe(String(proxy.getGuildPath()));
+    expect(result).toBe(proxy.getGuildPath());
   });
 
   // A guild directory that carries no `.dungeonmaster.json` of its own (never carved a worktree,
@@ -49,6 +49,6 @@ describe('questRepoRootBroker', () => {
 
     const result = await questRepoRootBroker({ questId: QuestIdStub({ value: quest.id }) });
 
-    expect(result).toBe(String(guildPath));
+    expect(result).toBe(guildPath);
   });
 });

@@ -10,7 +10,8 @@ import { eventBusContract, type EventBus } from './event-bus-contract';
 
 export const EventBusStub = ({ ...props }: StubArgument<EventBus> = {}): EventBus =>
   eventBusContract.parse({
-    stateFile: '/repo/packages/orchestrator/src/state/orchestration-events/orchestration-events-state.ts',
+    stateFile:
+      '/repo/packages/orchestrator/src/state/orchestration-events/orchestration-events-state.ts',
     exportName: 'orchestrationEventsState',
     ...props,
   });

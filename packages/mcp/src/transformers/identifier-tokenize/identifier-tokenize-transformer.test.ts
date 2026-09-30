@@ -4,87 +4,55 @@ describe('identifierTokenizeTransformer', () => {
   it('VALID: {OrchestrationEventType} => splits PascalCase on case boundaries', () => {
     const result = identifierTokenizeTransformer({ identifier: 'OrchestrationEventType' });
 
-    expect(result).toStrictEqual([
-      'Orchestration',
-      'Event',
-      'Type',
-    ]);
+    expect(result).toStrictEqual(['Orchestration', 'Event', 'Type']);
   });
 
   it('VALID: {orchestrationEventType} => splits camelCase on case boundaries', () => {
     const result = identifierTokenizeTransformer({ identifier: 'orchestrationEventType' });
 
-    expect(result).toStrictEqual([
-      'orchestration',
-      'Event',
-      'Type',
-    ]);
+    expect(result).toStrictEqual(['orchestration', 'Event', 'Type']);
   });
 
   it('VALID: {orchestration-event-type} => splits kebab-case on hyphens', () => {
     const result = identifierTokenizeTransformer({ identifier: 'orchestration-event-type' });
 
-    expect(result).toStrictEqual([
-      'orchestration',
-      'event',
-      'type',
-    ]);
+    expect(result).toStrictEqual(['orchestration', 'event', 'type']);
   });
 
   it('VALID: {orchestration_event_type} => splits snake_case on underscores', () => {
     const result = identifierTokenizeTransformer({ identifier: 'orchestration_event_type' });
 
-    expect(result).toStrictEqual([
-      'orchestration',
-      'event',
-      'type',
-    ]);
+    expect(result).toStrictEqual(['orchestration', 'event', 'type']);
   });
 
   it('VALID: {ORCHESTRATION_EVENT_TYPE} => splits SCREAMING_SNAKE_CASE on underscores', () => {
     const result = identifierTokenizeTransformer({ identifier: 'ORCHESTRATION_EVENT_TYPE' });
 
-    expect(result).toStrictEqual([
-      'ORCHESTRATION',
-      'EVENT',
-      'TYPE',
-    ]);
+    expect(result).toStrictEqual(['ORCHESTRATION', 'EVENT', 'TYPE']);
   });
 
   it('VALID: {URLParser} => splits caps-run + cap+lower as URL Parser', () => {
     const result = identifierTokenizeTransformer({ identifier: 'URLParser' });
 
-    expect(result).toStrictEqual([
-      'URL',
-      'Parser',
-    ]);
+    expect(result).toStrictEqual(['URL', 'Parser']);
   });
 
   it('VALID: {IOError} => splits two-letter caps run + cap+lower as IO Error', () => {
     const result = identifierTokenizeTransformer({ identifier: 'IOError' });
 
-    expect(result).toStrictEqual([
-      'IO',
-      'Error',
-    ]);
+    expect(result).toStrictEqual(['IO', 'Error']);
   });
 
   it('VALID: {getURL} => splits trailing caps run from preceding lower as get URL', () => {
     const result = identifierTokenizeTransformer({ identifier: 'getURL' });
 
-    expect(result).toStrictEqual([
-      'get',
-      'URL',
-    ]);
+    expect(result).toStrictEqual(['get', 'URL']);
   });
 
   it('VALID: {version1Beta} => splits digit-to-upper boundary', () => {
     const result = identifierTokenizeTransformer({ identifier: 'version1Beta' });
 
-    expect(result).toStrictEqual([
-      'version1',
-      'Beta',
-    ]);
+    expect(result).toStrictEqual(['version1', 'Beta']);
   });
 
   it('VALID: {single} => single-token identifier returns one token', () => {
@@ -102,22 +70,13 @@ describe('identifierTokenizeTransformer', () => {
   it('VALID: {orchestration event type} => splits on whitespace', () => {
     const result = identifierTokenizeTransformer({ identifier: 'orchestration event type' });
 
-    expect(result).toStrictEqual([
-      'orchestration',
-      'event',
-      'type',
-    ]);
+    expect(result).toStrictEqual(['orchestration', 'event', 'type']);
   });
 
   it('VALID: {mixed-case_With Spaces} => collapses all separator runs into single split', () => {
     const result = identifierTokenizeTransformer({ identifier: 'mixed-case_With Spaces' });
 
-    expect(result).toStrictEqual([
-      'mixed',
-      'case',
-      'With',
-      'Spaces',
-    ]);
+    expect(result).toStrictEqual(['mixed', 'case', 'With', 'Spaces']);
   });
 
   it('EMPTY: {empty string} => returns empty array', () => {
@@ -135,9 +94,6 @@ describe('identifierTokenizeTransformer', () => {
   it('VALID: {leading and trailing separators} => trims and splits content', () => {
     const result = identifierTokenizeTransformer({ identifier: '-event-type-' });
 
-    expect(result).toStrictEqual([
-      'event',
-      'type',
-    ]);
+    expect(result).toStrictEqual(['event', 'type']);
   });
 });

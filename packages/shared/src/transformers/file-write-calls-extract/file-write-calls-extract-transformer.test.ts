@@ -27,12 +27,12 @@ describe('fileWriteCallsExtractTransformer', () => {
 
     it('VALID: {variable built from locationsStatics} => returns the statics reference', () => {
       const source = [
-          PROMISES_IMPORT,
-          'const outboxFilePath = filePathContract.parse(',
-          '  join(homePath, locationsStatics.dungeonmasterHome.eventOutbox),',
-          ');',
-          'await appendFile(outboxFilePath, line);',
-        ].join('\n');
+        PROMISES_IMPORT,
+        'const outboxFilePath = filePathContract.parse(',
+        '  join(homePath, locationsStatics.dungeonmasterHome.eventOutbox),',
+        ');',
+        'await appendFile(outboxFilePath, line);',
+      ].join('\n');
 
       const result = fileWriteCallsExtractTransformer({ source });
 
@@ -78,10 +78,10 @@ describe('fileWriteCallsExtractTransformer', () => {
   describe('multiple calls', () => {
     it('VALID: {two different gateway calls} => returns both', () => {
       const source = [
-          PROMISES_IMPORT,
-          `await appendFile('/outbox.jsonl', data);`,
-          `await writeFile('/quest.json', content);`,
-        ].join('\n');
+        PROMISES_IMPORT,
+        `await appendFile('/outbox.jsonl', data);`,
+        `await writeFile('/quest.json', content);`,
+      ].join('\n');
 
       const result = fileWriteCallsExtractTransformer({ source });
 
@@ -92,7 +92,8 @@ describe('fileWriteCallsExtractTransformer', () => {
     });
 
     it('VALID: {aliased import} => matches the alias and reports the gateway name', () => {
-      const source = "import { appendFile as append } from '#gateway/node/fs__promises';\nawait append('/a.jsonl', data);";
+      const source =
+        "import { appendFile as append } from '#gateway/node/fs__promises';\nawait append('/a.jsonl', data);";
 
       const result = fileWriteCallsExtractTransformer({ source });
 

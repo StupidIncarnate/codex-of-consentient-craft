@@ -11,11 +11,13 @@ import type { TestbedConfig } from '../testbed-config/testbed-config-contract';
 import type { PackageJson } from '../package-json/package-json-contract';
 import type { ExecResult } from '@dungeonmaster/shared/contracts';
 
-export const testGuildContract = z.object({
-  guildPath: z.string().brand<'TestGuildGuildPath'>(),
-  guildName: z.string().brand<'TestGuildGuildName'>(),
-  rootDir: z.string().brand<'TestGuildRootDir'>(),
-}).brand<'TestGuild'>();
+export const testGuildContract = z
+  .object({
+    guildPath: z.string().brand<'TestGuildGuildPath'>(),
+    guildName: z.string().brand<'TestGuildGuildName'>(),
+    rootDir: z.string().brand<'TestGuildRootDir'>(),
+  })
+  .brand<'TestGuild'>();
 
 export type TestGuildData = z.infer<typeof testGuildContract>;
 

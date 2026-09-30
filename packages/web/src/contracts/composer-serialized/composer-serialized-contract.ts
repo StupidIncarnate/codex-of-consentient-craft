@@ -11,17 +11,18 @@
 
 import { z } from '#gateway/npm/zod';
 
-
 import { composerAttachmentContract } from '../composer-attachment/composer-attachment-contract';
 
-export const composerSerializedContract = z.object({
-  // Carries a `[Pasted Image N]` placeholder at each image's position, N being a one-based ordinal
-  // counted left to right across THIS message. Two byte-identical pastes therefore still get
-  // distinct ordinals, because the ordinal is a position and not a content hash.
-  text: z.string().brand<'ComposerSerializedText'>(),
-  // In the same left-to-right order as the placeholders, so index i of this array is the
-  // attachment the placeholder N = i + 1 stands for.
-  attachmentIds: z.array(composerAttachmentContract.shape.attachmentId),
-}).brand<'ComposerSerialized'>();
+export const composerSerializedContract = z
+  .object({
+    // Carries a `[Pasted Image N]` placeholder at each image's position, N being a one-based ordinal
+    // counted left to right across THIS message. Two byte-identical pastes therefore still get
+    // distinct ordinals, because the ordinal is a position and not a content hash.
+    text: z.string().brand<'ComposerSerializedText'>(),
+    // In the same left-to-right order as the placeholders, so index i of this array is the
+    // attachment the placeholder N = i + 1 stands for.
+    attachmentIds: z.array(composerAttachmentContract.shape.attachmentId),
+  })
+  .brand<'ComposerSerialized'>();
 
 export type ComposerSerialized = z.infer<typeof composerSerializedContract>;

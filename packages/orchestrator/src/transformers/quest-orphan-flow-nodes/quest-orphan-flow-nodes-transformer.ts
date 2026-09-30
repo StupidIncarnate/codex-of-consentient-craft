@@ -23,9 +23,7 @@ export const questOrphanFlowNodesTransformer = ({ flows }: { flows?: Flow[] }): 
 
     for (const node of flow.nodes) {
       if (!connectedNodeIds.has(String(node.id))) {
-        offenders.push(
-          `flow '${String(flow.id)}' has orphan node '${String(node.id)}'`,
-        );
+        offenders.push(`flow '${String(flow.id)}' has orphan node '${String(node.id)}'`);
       }
     }
   }

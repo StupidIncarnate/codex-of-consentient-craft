@@ -6,7 +6,12 @@
  * // Use as function parameter types in orchestration brokers
  */
 
-import type { ChatEntry, StreamSignalKind, WorkItem, Session } from '@dungeonmaster/shared/contracts';
+import type {
+  ChatEntry,
+  StreamSignalKind,
+  WorkItem,
+  Session,
+} from '@dungeonmaster/shared/contracts';
 
 import type { AgentRole } from '../agent-role/agent-role-contract';
 

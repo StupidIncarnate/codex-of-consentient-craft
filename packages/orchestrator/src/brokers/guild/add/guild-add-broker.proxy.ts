@@ -110,7 +110,7 @@ export const guildAddBrokerProxy = (): {
       // above, or a one-shot from stageGeneratedId) — read back off the caller's own
       // guildDirPath/guildsPath rather than guessed, so the join address matches the real call
       // whichever id is in play.
-      const guildId = String(guildDirPath).slice(String(guildsPath).length + 1);
+      const guildId = guildDirPath.slice(guildsPath.length + 1);
       joinHandle.calledWith([guildsPath, guildId]).returns(guildDirPath);
       joinHandle
         .calledWith([guildDirPath, dungeonmasterHomeStatics.paths.questsDir])
@@ -137,7 +137,7 @@ export const guildAddBrokerProxy = (): {
       configReadProxy.setupConfigAt({ configFilePath, config: existingConfig });
       configWriteProxy.setupSuccessAt({ configFilePath });
 
-      const home = String(configFilePath).replace(
+      const home = configFilePath.replace(
         `/${dungeonmasterHomeStatics.paths.configFile}`,
         '',
       );

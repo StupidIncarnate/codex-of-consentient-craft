@@ -14,7 +14,11 @@
  * configGatewayLintConfigBroker({ startDir: filePathContract.parse(__dirname) });
  * // Returns {} when no `.dungeonmaster.json` exists yet, or the parsed `gateway` key otherwise
  */
-import { gatewayLintConfigFileContract, type GatewayLintConfig, gatewayLintConfigContract } from '@dungeonmaster/shared/contracts';
+import {
+  gatewayLintConfigFileContract,
+  type GatewayLintConfig,
+  gatewayLintConfigContract,
+} from '@dungeonmaster/shared/contracts';
 import { locationsStatics } from '@dungeonmaster/shared/statics';
 import { existsSync, readFileSync } from '#gateway/node/fs';
 import { dirname, join } from '#gateway/node/path';
@@ -30,7 +34,9 @@ export const configGatewayLintConfigBroker = ({
     try {
       const contents = readFileSync(configPath);
       const validated = gatewayLintConfigFileContract.safeParse(JSON.parse(contents));
-      return validated.success ? (validated.data.gateway ?? gatewayLintConfigContract.parse({})) : gatewayLintConfigContract.parse({});
+      return validated.success
+        ? (validated.data.gateway ?? gatewayLintConfigContract.parse({}))
+        : gatewayLintConfigContract.parse({});
     } catch {
       return gatewayLintConfigContract.parse({});
     }

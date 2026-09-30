@@ -48,7 +48,6 @@
  * // memory/profile/OOM reading never enters the sentence
  */
 
-
 import type { CapacityProfile } from '../../../contracts/capacity-profile/capacity-profile-contract';
 import type { InstanceState } from '../../../contracts/instance-state/instance-state-contract';
 

@@ -1,4 +1,3 @@
-
 import { WardRunResultStub } from '../../../contracts/ward-result/ward-result.stub';
 import { CheckResultStub } from '../../../contracts/check-result/check-result.stub';
 import { ProjectResultStub } from '../../../contracts/project-result/project-result.stub';

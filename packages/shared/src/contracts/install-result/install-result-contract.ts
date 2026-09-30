@@ -18,12 +18,14 @@ import { installActionContract } from '../install-action/install-action-contract
  * Represents the result of an install operation
  * Contains package name, success status, action taken, and optional message/error details
  */
-export const installResultContract = z.object({
-  packageName: z.string().min(1).brand<'InstallResultPackageName'>(),
-  success: z.boolean(),
-  action: installActionContract,
-  message: z.string().min(1).brand<'InstallResultMessage'>().optional(),
-  error: z.string().brand<'InstallResultError'>().optional(),
-}).brand<'InstallResult'>();
+export const installResultContract = z
+  .object({
+    packageName: z.string().min(1).brand<'InstallResultPackageName'>(),
+    success: z.boolean(),
+    action: installActionContract,
+    message: z.string().min(1).brand<'InstallResultMessage'>().optional(),
+    error: z.string().brand<'InstallResultError'>().optional(),
+  })
+  .brand<'InstallResult'>();
 
 export type InstallResult = z.infer<typeof installResultContract>;

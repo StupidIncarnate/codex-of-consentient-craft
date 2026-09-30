@@ -8,7 +8,6 @@
  * // Returns 'installed init script (15 chars)' as ContentText
  */
 
-
 import { beforeStatics } from '../../statics/before/before-statics';
 
 export const beforeReadingRenderTransformer = ({ source }: { source: string }): string =>

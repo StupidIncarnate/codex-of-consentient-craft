@@ -51,10 +51,7 @@ export const populateOneRootLayerBrokerProxy = (): {
   // Stages the ROOT `ensureDir(targetRoot/node_modules)` call every "not already populated" pass
   // makes, plus one per named npm scope directory beneath it — the exact set this layer computes,
   // addressed by their real values rather than an unaddressed catch-all.
-  setupTargetReady: (params: {
-    targetRoot: string;
-    scopeNames?: readonly string[];
-  }) => void;
+  setupTargetReady: (params: { targetRoot: string; scopeNames?: readonly string[] }) => void;
   setupMkdirThrows: (params: { filepath: string; error: FsError }) => void;
   setupSymlinkSucceeds: (params: { target: string; path: string }) => void;
   setupCopySucceeds: () => void;

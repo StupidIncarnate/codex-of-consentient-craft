@@ -28,46 +28,42 @@ export const localImageCopyBroker = async ({
   imagesDirPath: string;
 }): Promise<ReadonlyMap<number, string>> => {
   const copied = await Promise.all(
-    matches.map(
-      async (match): Promise<readonly [number, string] | undefined> => {
-        if (imageContentTypeTransformer({ filePath: match.path }) === null) {
-          stderr.write(
-            `[local-image-copy-broker] skipped ${match.path}: not a served image type\n`,
-          );
-          return undefined;
-        }
+    matches.map(async (match): Promise<readonly [number, string] | undefined> => {
+      if (imageContentTypeTransformer({ filePath: match.path }) === null) {
+        stderr.write(`[local-image-copy-broker] skipped ${match.path}: not a served image type\n`);
+        return undefined;
+      }
 
-        // Minted synchronously, before the read below's await — so the mint order always matches
-        // match order rather than whichever match's read happens to resolve first.
-        //
-        // Lowercased: the scan folds case, so a `Shot.PNG` is admitted here, and naming the copy
-        // `<uuid>.PNG` would put a capitalised extension into a filename nothing but this line ever
-        // chooses. The serve route lowercases before reading its content-type map either way, so
-        // this changes no behaviour there — it keeps the quest's images directory uniform.
-        const extension = match.path.slice(match.path.lastIndexOf('.') + 1).toLowerCase();
-        const destination = join(imagesDirPath, `${randomUUID()}.${extension}`);
+      // Minted synchronously, before the read below's await — so the mint order always matches
+      // match order rather than whichever match's read happens to resolve first.
+      //
+      // Lowercased: the scan folds case, so a `Shot.PNG` is admitted here, and naming the copy
+      // `<uuid>.PNG` would put a capitalised extension into a filename nothing but this line ever
+      // chooses. The serve route lowercases before reading its content-type map either way, so
+      // this changes no behaviour there — it keeps the quest's images directory uniform.
+      const extension = match.path.slice(match.path.lastIndexOf('.') + 1).toLowerCase();
+      const destination = join(imagesDirPath, `${randomUUID()}.${extension}`);
+
+      try {
+        const bytes = await readFileBytes(match.path);
 
         try {
-          const bytes = await readFileBytes(match.path);
-
-          try {
-            await writeFileBytes(destination, bytes);
-          } catch (writeError: unknown) {
-            stderr.write(
-              `[local-image-copy-broker] failed to write ${destination}: ${String(writeError)}\n`,
-            );
-            return undefined;
-          }
-
-          return [match.ordinal, destination] as const;
-        } catch (readError: unknown) {
+          await writeFileBytes(destination, bytes);
+        } catch (writeError: unknown) {
           stderr.write(
-            `[local-image-copy-broker] failed to read ${match.path}: ${String(readError)}\n`,
+            `[local-image-copy-broker] failed to write ${destination}: ${String(writeError)}\n`,
           );
           return undefined;
         }
-      },
-    ),
+
+        return [match.ordinal, destination] as const;
+      } catch (readError: unknown) {
+        stderr.write(
+          `[local-image-copy-broker] failed to read ${match.path}: ${String(readError)}\n`,
+        );
+        return undefined;
+      }
+    }),
   );
 
   return new Map(copied.filter((entry) => entry !== undefined));

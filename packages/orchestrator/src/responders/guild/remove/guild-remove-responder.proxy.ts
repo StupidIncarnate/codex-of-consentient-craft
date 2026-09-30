@@ -28,7 +28,13 @@ export const GuildRemoveResponderProxy = (): {
       brokerProxy.setupConfig({ config });
     },
 
-    setupQuestList: ({ guildId, quests }: { guildId: Guild['id']; quests: readonly Quest[] }): void => {
+    setupQuestList: ({
+      guildId,
+      quests,
+    }: {
+      guildId: Guild['id'];
+      quests: readonly Quest[];
+    }): void => {
       listProxy.setupDirectList({ guildId, quests });
     },
   };

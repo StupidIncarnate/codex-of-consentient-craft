@@ -11,11 +11,7 @@ import { join } from '#gateway/node/path';
 import { locationsStatics } from '../../../statics/locations/locations-statics';
 import type { Guild } from '../../../contracts/guild/guild-contract';
 
-export const locationsGuildPathFindBroker = ({
-  guildId,
-}: {
-  guildId: Guild['id'];
-}): string => {
+export const locationsGuildPathFindBroker = ({ guildId }: { guildId: Guild['id'] }): string => {
   const { homePath } = dungeonmasterHomeFindBroker();
 
   const joined = join(homePath, locationsStatics.dungeonmasterHome.guildsDir, guildId);

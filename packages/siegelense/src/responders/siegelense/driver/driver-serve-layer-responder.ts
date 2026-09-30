@@ -75,7 +75,6 @@ import { driverStatics } from '../../../statics/driver/driver-statics';
 import { instanceLifecycleStatics } from '../../../statics/instance-lifecycle/instance-lifecycle-statics';
 import { DriverIdleWaitLayerResponder } from './driver-idle-wait-layer-responder';
 
-
 const MS_PER_SECOND = 1_000;
 
 export const DriverServeLayerResponder = async ({

@@ -34,7 +34,7 @@ export const FormDropdownWidget = ({
       data-testid="FORM_DROPDOWN"
       value={value}
       onChange={(event) => {
-        onChange(event.target.value as string);
+        onChange(event.target.value);
       }}
       style={{
         fontFamily: 'monospace',

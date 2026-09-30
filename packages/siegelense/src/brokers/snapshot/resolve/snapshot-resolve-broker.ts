@@ -19,7 +19,6 @@
  * // Throws SnapshotMissingError naming "clen" and listing every snapshot that does exist
  */
 
-
 import type { SnapshotRecord } from '../../../contracts/snapshot-record/snapshot-record-contract';
 import { SnapshotMissingError } from '../../../errors/snapshot-missing/snapshot-missing-error';
 import { snapshotIndexCollapseTransformer } from '../../../transformers/snapshot-index-collapse/snapshot-index-collapse-transformer';

@@ -11,27 +11,37 @@
 import { z } from '#gateway/npm/zod';
 
 export const markdownSpanContract = z.discriminatedUnion('kind', [
-  z.object({
-    kind: z.literal('text'),
-    text: z.string().brand<'MarkdownSpanText'>(),
-  }).brand<'MarkdownSpan'>(),
-  z.object({
-    kind: z.literal('bold'),
-    text: z.string().brand<'MarkdownSpanText'>(),
-  }).brand<'MarkdownSpan'>(),
-  z.object({
-    kind: z.literal('italic'),
-    text: z.string().brand<'MarkdownSpanText'>(),
-  }).brand<'MarkdownSpan'>(),
-  z.object({
-    kind: z.literal('code'),
-    text: z.string().brand<'MarkdownSpanText'>(),
-  }).brand<'MarkdownSpan'>(),
-  z.object({
-    kind: z.literal('link'),
-    text: z.string().brand<'MarkdownSpanText'>(),
-    href: z.string().brand<'MarkdownSpanHref'>(),
-  }).brand<'MarkdownSpan'>(),
+  z
+    .object({
+      kind: z.literal('text'),
+      text: z.string().brand<'MarkdownSpanText'>(),
+    })
+    .brand<'MarkdownSpan'>(),
+  z
+    .object({
+      kind: z.literal('bold'),
+      text: z.string().brand<'MarkdownSpanText'>(),
+    })
+    .brand<'MarkdownSpan'>(),
+  z
+    .object({
+      kind: z.literal('italic'),
+      text: z.string().brand<'MarkdownSpanText'>(),
+    })
+    .brand<'MarkdownSpan'>(),
+  z
+    .object({
+      kind: z.literal('code'),
+      text: z.string().brand<'MarkdownSpanText'>(),
+    })
+    .brand<'MarkdownSpan'>(),
+  z
+    .object({
+      kind: z.literal('link'),
+      text: z.string().brand<'MarkdownSpanText'>(),
+      href: z.string().brand<'MarkdownSpanHref'>(),
+    })
+    .brand<'MarkdownSpan'>(),
 ]);
 
 export type MarkdownSpan = z.infer<typeof markdownSpanContract>;

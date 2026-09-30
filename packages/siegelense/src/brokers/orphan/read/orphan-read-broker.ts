@@ -78,7 +78,7 @@ export const orphanReadBroker = async ({
       const alive = processIsAliveBroker({ pgid });
       // .find() naturally returns the FIRST array entry that matches — readdir order — so this
       // is "the first matching /proc/<pid>/cmdline" without any extra bookkeeping.
-      const match = statResults.find((result) => result !== null && result.pgrp === Number(pgid));
+      const match = statResults.find((result) => result !== null && result.pgrp === pgid);
 
       if (match === undefined || match === null) {
         return orphanReadingContract.parse({ pgid, cmd: null, alive });
@@ -107,9 +107,9 @@ export const orphanReadBroker = async ({
         cmdlineContent === null
           ? null
           : cmdlineContent
-                .split('\u0000')
-                .filter((token) => token !== '')
-                .join(' ');
+              .split('\u0000')
+              .filter((token) => token !== '')
+              .join(' ');
 
       return orphanReadingContract.parse({ pgid, cmd, alive });
     }),

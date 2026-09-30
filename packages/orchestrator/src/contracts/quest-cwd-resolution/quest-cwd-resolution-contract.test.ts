@@ -1,4 +1,3 @@
-
 import { questCwdResolutionContract } from './quest-cwd-resolution-contract';
 import { QuestCwdResolutionStub } from './quest-cwd-resolution.stub';
 

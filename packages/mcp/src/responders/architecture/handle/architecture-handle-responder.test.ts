@@ -7,7 +7,8 @@ describe('ArchitectureHandleResponder', () => {
     it('VALID: {tool: discover, glob pattern} => returns JSON-stringified discover result', async () => {
       const proxy = ArchitectureHandleResponderProxy();
       proxy.setupFileDiscovery({
-        filepath: 'packages/mcp/src/responders/architecture/handle/architecture-handle-responder.ts',
+        filepath:
+          'packages/mcp/src/responders/architecture/handle/architecture-handle-responder.ts',
         contents: 'export const ArchitectureHandleResponder = () => {};',
         pattern: 'packages/mcp/src/responders/**',
       });
@@ -25,7 +26,8 @@ describe('ArchitectureHandleResponder', () => {
     it('VALID: {tool: discover, verbose: true, strict: true} => accepts JSON booleans without coercion', async () => {
       const proxy = ArchitectureHandleResponderProxy();
       proxy.setupFileDiscovery({
-        filepath: 'packages/mcp/src/responders/architecture/handle/architecture-handle-responder.ts',
+        filepath:
+          'packages/mcp/src/responders/architecture/handle/architecture-handle-responder.ts',
         contents: 'export const ArchitectureHandleResponder = () => {};',
         pattern: 'packages/mcp/src/responders/**',
       });
@@ -48,7 +50,8 @@ describe('ArchitectureHandleResponder', () => {
     it('VALID: {tool: discover, verbose: "true", strict: "true"} => coerces stringified booleans from MCP transport', async () => {
       const proxy = ArchitectureHandleResponderProxy();
       proxy.setupFileDiscovery({
-        filepath: 'packages/mcp/src/responders/architecture/handle/architecture-handle-responder.ts',
+        filepath:
+          'packages/mcp/src/responders/architecture/handle/architecture-handle-responder.ts',
         contents: 'export const ArchitectureHandleResponder = () => {};',
         pattern: 'packages/mcp/src/responders/**',
       });
@@ -245,9 +248,9 @@ describe('ArchitectureHandleResponder', () => {
         folder: 'node',
         subpathName: 'fs',
         barrelContent: [
-            "export * from 'fs';",
-            "export { existsSync } from './exists-sync/exists-sync';",
-          ].join('\n'),
+          "export * from 'fs';",
+          "export { existsSync } from './exists-sync/exists-sync';",
+        ].join('\n'),
       });
 
       const result = await proxy.callResponder({

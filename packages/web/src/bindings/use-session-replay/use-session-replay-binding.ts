@@ -37,7 +37,7 @@ export const useSessionReplayBinding = ({
   );
 
   const replayProcessId = useMemo<string | null>(
-    () => (sessionId ? (`replay-${sessionId}` as string) : null),
+    () => (sessionId ? `replay-${sessionId}` : null),
     [sessionId],
   );
 

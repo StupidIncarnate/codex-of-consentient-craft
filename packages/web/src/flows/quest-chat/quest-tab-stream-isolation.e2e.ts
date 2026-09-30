@@ -57,12 +57,12 @@ test.describe('Two tabs on one guild each see only their own quest stream', () =
     await sessions.createSessionFile({ sessionId: sessionB, userMessage: 'Beta request' });
 
     const createdA = await quests.createQuest({
-      guildId: guildId,
+      guildId,
       title: 'Alpha quest',
       userRequest: 'Alpha request',
     });
     const createdB = await quests.createQuest({
-      guildId: guildId,
+      guildId,
       title: 'Beta quest',
       userRequest: 'Beta request',
     });

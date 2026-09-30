@@ -16,9 +16,11 @@
 
 import { z } from '#gateway/npm/zod';
 
-export const responderAnnotationContract = z.object({
-  suffix: z.string().brand<'ResponderAnnotationSuffix'>().nullable(),
-  childLines: z.array(z.string().brand<'ResponderAnnotationChildLines'>()),
-}).brand<'ResponderAnnotation'>();
+export const responderAnnotationContract = z
+  .object({
+    suffix: z.string().brand<'ResponderAnnotationSuffix'>().nullable(),
+    childLines: z.array(z.string().brand<'ResponderAnnotationChildLines'>()),
+  })
+  .brand<'ResponderAnnotation'>();
 
 export type ResponderAnnotation = z.infer<typeof responderAnnotationContract>;

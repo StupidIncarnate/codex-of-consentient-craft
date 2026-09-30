@@ -8,7 +8,6 @@
  * // Returns: [{ file: 'a.ts', line: 3, message: 'No.' }]
  */
 
-
 import { eslintJsonReportContract } from '../../contracts/eslint-json-report/eslint-json-report-contract';
 import {
   scanViolationContract,
@@ -40,12 +39,12 @@ export const eslintJsonToScanViolationsTransformer = ({
     }
   })();
 
-  const rootPrefix = `${String(rootPath)}/`;
+  const rootPrefix = `${rootPath}/`;
 
   return report
     .flatMap((entry) =>
       (entry.messages ?? [])
-        .filter((message) => String(message.ruleId) === String(rule))
+        .filter((message) => String(message.ruleId) === rule)
         .map((message) => {
           const absolute = String(entry.filePath);
           return scanViolationContract.parse({

@@ -11,7 +11,6 @@
 import { readFileSync } from '#gateway/node/fs';
 import { join } from '#gateway/node/path';
 
-
 const INTERACTION_FLOW_RELATIVE_PATH = '../../../src/flows/interaction/interaction-flow.ts';
 
 export const readInteractionFlowSource = (): string => {

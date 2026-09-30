@@ -73,8 +73,8 @@ describe('stepResetBroker', () => {
       });
 
       const fileName = 'db.json';
-      const homeFile = `${String(lane.homePath)}/${String(fileName)}`;
-      const payloadFile = `${String(payloadPath)}/${String(fileName)}`;
+      const homeFile = `${String(lane.homePath)}/${fileName}`;
+      const payloadFile = `${payloadPath}/${fileName}`;
 
       proxy.setupRestoreDirectories({
         dirs: [
@@ -274,7 +274,7 @@ describe('stepResetBroker', () => {
       });
 
       const seededFileName = 'guild-1.json';
-      const seededFilePath = `${String(lane.homePath)}/${String(seededFileName)}`;
+      const seededFilePath = `${String(lane.homePath)}/${seededFileName}`;
 
       proxy.setupRestoreDirectories({
         dirs: [

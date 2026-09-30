@@ -56,12 +56,16 @@ export const spawnBatchLayerBrokerProxy = (): {
     // the batch share it), so questId is the real, meaningful address — keying on it is what lets
     // a multi-quest batch test stage a DIFFERENT resolution per quest correctly, rather than
     // trusting the resolution order to match staging order.
-    setupQuestContext: ({ questId, guildPath }: { questId: Quest['id']; guildPath: string }): void => {
+    setupQuestContext: ({
+      questId,
+      guildPath,
+    }: {
+      questId: Quest['id'];
+      guildPath: string;
+    }): void => {
       cwdMock
         .calledWith([{ questId }])
-        .resolves(
-          QuestCwdResolutionStub({ kind: 'repo-root', cwd: guildPath }),
-        );
+        .resolves(QuestCwdResolutionStub({ kind: 'repo-root', cwd: guildPath }));
     },
 
     setupQuestWorktree: ({
@@ -89,7 +93,7 @@ export const spawnBatchLayerBrokerProxy = (): {
       cwdMock.calledWith([{ questId }]).resolves(
         QuestCwdResolutionStub({
           kind: 'missing-worktree',
-          worktreePath: worktreePath,
+          worktreePath,
         }),
       );
     },

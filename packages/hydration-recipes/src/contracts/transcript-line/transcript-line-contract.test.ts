@@ -44,9 +44,9 @@ describe('transcriptLineContract', () => {
     });
 
     it('INVALID: {no timestamp} => throws', () => {
-      expect(() => recipeTranscriptLineContract.parse({ uuid: 'u', message: { content: 'x' } })).toThrow(
-        /received undefined/u,
-      );
+      expect(() =>
+        recipeTranscriptLineContract.parse({ uuid: 'u', message: { content: 'x' } }),
+      ).toThrow(/received undefined/u);
     });
   });
 });

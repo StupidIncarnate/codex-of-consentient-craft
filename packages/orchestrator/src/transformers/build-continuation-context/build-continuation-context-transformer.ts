@@ -6,7 +6,6 @@
  * // Returns ContinuationContext with continuation point and trimmed agent output, or null if both are empty
  */
 
-
 const OUTPUT_TAIL_LINE_COUNT = 50;
 
 export const buildContinuationContextTransformer = ({

@@ -73,7 +73,7 @@ export const questMonitorWatcherStartBrokerProxy = (): {
     parentSessionId: string;
   }): string =>
     claudeProjectPathEncoderTransformer({
-      homeDir: homeDir,
+      homeDir,
       projectPath: projectDir,
       sessionId: sessionContract.shape.id.parse(parentSessionId),
     });
@@ -98,7 +98,7 @@ export const questMonitorWatcherStartBrokerProxy = (): {
       files: readonly string[];
     }): void => {
       const sessionFilePath = claudeProjectPathEncoderTransformer({
-        homeDir: homeDir,
+        homeDir,
         projectPath: projectDir,
         sessionId: sessionContract.shape.id.parse(parentSessionId),
       });
@@ -150,7 +150,7 @@ export const questMonitorWatcherStartBrokerProxy = (): {
       jsonlWatcherProxy.setupLines({
         path: `${stripJsonlSuffixTransformer({
           filePath: sessionFilePathOf({ homeDir, projectDir, parentSessionId }),
-        })}/subagents/${String(fileName)}`,
+        })}/subagents/${fileName}`,
         lines,
       });
     },

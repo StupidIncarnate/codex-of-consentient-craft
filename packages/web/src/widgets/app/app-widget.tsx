@@ -8,7 +8,6 @@
 
 import { Link, Outlet, useLocation } from '#gateway/npm/react-router-dom';
 
-
 import { emberDepthsThemeStatics } from '../../statics/ember-depths-theme/ember-depths-theme-statics';
 import { isWorkspaceRouteGuard } from '../../guards/is-workspace-route/is-workspace-route-guard';
 import { mapFrameStatics } from '../../statics/map-frame/map-frame-statics';
@@ -21,8 +20,8 @@ const TRANSITION_DURATION = '0.4s';
 const TRANSITION_EASING = 'ease-out';
 const QUEST_TOP_PADDING = 40;
 
-const defaultMaxWidth = mapFrameStatics.defaultMaxWidth;
-const unrestrictedMaxWidth = mapFrameStatics.unrestrictedMaxWidth;
+const { defaultMaxWidth } = mapFrameStatics;
+const { unrestrictedMaxWidth } = mapFrameStatics;
 
 export const AppWidget = (): React.JSX.Element => {
   const location = useLocation();

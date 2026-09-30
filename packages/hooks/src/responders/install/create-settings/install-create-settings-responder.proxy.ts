@@ -20,10 +20,10 @@ export const InstallCreateSettingsResponderProxy = (): {
   const agentsBrokerProxy = installAgentsSetupBrokerProxy();
 
   const settingsPath = path.join(
-      TARGET_PROJECT_ROOT,
-      locationsStatics.repoRoot.claude.dir,
-      locationsStatics.repoRoot.claude.settings,
-    );
+    TARGET_PROJECT_ROOT,
+    locationsStatics.repoRoot.claude.dir,
+    locationsStatics.repoRoot.claude.settings,
+  );
 
   const readProxy = readJsonFileIfExistsProxy();
   const writeProxy = writeFileCreatingParentProxy();
@@ -40,11 +40,7 @@ export const InstallCreateSettingsResponderProxy = (): {
       readProxy.missing({ path: settingsPath });
     },
 
-    setupExistingSettings: ({
-      content,
-    }: {
-      content: string;
-    }): void => {
+    setupExistingSettings: ({ content }: { content: string }): void => {
       readProxy.returnsRaw({ path: settingsPath, rawContents: content });
     },
 

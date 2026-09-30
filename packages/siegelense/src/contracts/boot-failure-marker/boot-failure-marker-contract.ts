@@ -17,11 +17,11 @@
 
 import { z } from '#gateway/npm/zod';
 
-
-
-export const bootFailureMarkerContract = z.object({
-  message: z.string().brand<'BootFailureMarkerMessage'>(),
-  atMs: z.number().int().nonnegative().brand<'BootFailureMarkerAtMs'>(),
-}).brand<'BootFailureMarker'>();
+export const bootFailureMarkerContract = z
+  .object({
+    message: z.string().brand<'BootFailureMarkerMessage'>(),
+    atMs: z.number().int().nonnegative().brand<'BootFailureMarkerAtMs'>(),
+  })
+  .brand<'BootFailureMarker'>();
 
 export type BootFailureMarker = z.infer<typeof bootFailureMarkerContract>;

@@ -45,7 +45,7 @@ export const resolvePackageEntryFactsLayerBroker = async ({
   // run on one value and describe one directory.
   const locationChecks = await Promise.all(
     entries.map(async (entry) => {
-      const packageRoot = resolve(String(projectRoot), String(entry.location));
+      const packageRoot = resolve(projectRoot, String(entry.location));
       const filePath = packageRoot;
       return {
         location: String(entry.location),
@@ -123,7 +123,7 @@ export const resolvePackageEntryFactsLayerBroker = async ({
   // Anchored on the RESOLVED location, not the declared one: a delete in a foreign repo would
   // otherwise scan a same-named directory under whichever repo this process happens to sit in.
   const workspaceRoots = new Set<unknown>(
-    locationChecks.map((check) => String(dirname(check.filePath))),
+    locationChecks.map((check) => dirname(check.filePath)),
   );
 
   const siblingDirs: { root: unknown; dirName: unknown }[] = [];

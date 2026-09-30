@@ -8,17 +8,19 @@
 
 import { z } from '#gateway/npm/zod';
 
+const portFreeCheckContract = z
+  .object({
+    kind: z.literal('port-free'),
+    port: z.number().int().min(1).max(65_535).brand<'PortFreeCheckPort'>(),
+  })
+  .brand<'PortFreeCheck'>();
 
-
-const portFreeCheckContract = z.object({
-  kind: z.literal('port-free'),
-  port: z.number().int().min(1).max(65_535).brand<'PortFreeCheckPort'>(),
-}).brand<'PortFreeCheck'>();
-
-const processGoneCheckContract = z.object({
-  kind: z.literal('process-gone'),
-  pid: z.number().int().positive().brand<'ProcessGoneCheckPid'>(),
-}).brand<'ProcessGoneCheck'>();
+const processGoneCheckContract = z
+  .object({
+    kind: z.literal('process-gone'),
+    pid: z.number().int().positive().brand<'ProcessGoneCheckPid'>(),
+  })
+  .brand<'ProcessGoneCheck'>();
 
 export const smoketestTeardownCheckContract = z.discriminatedUnion('kind', [
   portFreeCheckContract,

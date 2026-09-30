@@ -11,9 +11,11 @@ import { z } from '#gateway/npm/zod';
 export const agentsSkillsConfigContract = z
   .object({
     entries: z.array(
-      z.object({
-        path: z.string().brand<'AgentsSkillsConfigEntriesPath'>(),
-      }).brand<'AgentsSkillsConfigEntries'>(),
+      z
+        .object({
+          path: z.string().brand<'AgentsSkillsConfigEntriesPath'>(),
+        })
+        .brand<'AgentsSkillsConfigEntries'>(),
     ),
   })
   .brand<'AgentsSkillsConfig'>();

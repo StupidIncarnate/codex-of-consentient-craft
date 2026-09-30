@@ -19,13 +19,12 @@
 
 import { askUserQuestionContract } from '@dungeonmaster/shared/contracts';
 
-
 export const askUserQuestionBroker = ({ input }: { input: unknown }): string => {
   askUserQuestionContract.parse(input);
 
   return [
-      'Questions sent to the user.',
-      "If you are an INTERACTIVE session (you were started by a slash command or a chat, and you have no work item): their answers arrive as your next user message. Do NOT continue generating — stop here and wait for the session to resume with the user's response.",
-      'If you are a DISPATCHED WORK-ITEM agent (you fetched your prompt with get-agent-prompt and a workItemId): nothing will resume you, so do NOT wait. Record the question and the fact that it is outstanding in your handoff, keep working through the rest of your prompt, and finish your turn with signal-back as normal.',
-    ].join(' ');
+    'Questions sent to the user.',
+    "If you are an INTERACTIVE session (you were started by a slash command or a chat, and you have no work item): their answers arrive as your next user message. Do NOT continue generating — stop here and wait for the session to resume with the user's response.",
+    'If you are a DISPATCHED WORK-ITEM agent (you fetched your prompt with get-agent-prompt and a workItemId): nothing will resume you, so do NOT wait. Record the question and the fact that it is outstanding in your handoff, keep working through the rest of your prompt, and finish your turn with signal-back as normal.',
+  ].join(' ');
 };

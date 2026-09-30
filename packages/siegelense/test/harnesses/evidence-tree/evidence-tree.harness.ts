@@ -96,50 +96,85 @@ const STALE_LAST_BEAT_MS_AGO = 10 * 60 * 1000;
 // listenerLinesTransformer's own console/network line shapes — the exact substrings
 // resultsStatics.patterns matches against, so these fixture lines classify the same way a real
 // browser capture would.
-const CONSOLE_STEP1_LOG = JSON.stringify({ at: 1, kind: 'console', type: 'log', text: 'navigating' });
-const CONSOLE_STEP2_ERROR = JSON.stringify({ at: 2, kind: 'console', type: 'error', text: 'modal failed to open' });
-const CONSOLE_STEP2_WARNING = JSON.stringify({ at: 3, kind: 'console', type: 'warning', text: 'slow modal' });
-const CONSOLE_STEP3_ERROR = JSON.stringify({ at: 4, kind: 'console', type: 'error', text: 'eval issue' });
-const CONSOLE_RUN2_ERROR_A = JSON.stringify({ at: 5, kind: 'console', type: 'error', text: 'new bug A' });
-const CONSOLE_RUN2_ERROR_B = JSON.stringify({ at: 6, kind: 'console', type: 'error', text: 'new bug B' });
-const CONSOLE_RUN2_ERROR_C = JSON.stringify({ at: 7, kind: 'console', type: 'error', text: 'new bug C' });
+const CONSOLE_STEP1_LOG = JSON.stringify({
+  at: 1,
+  kind: 'console',
+  type: 'log',
+  text: 'navigating',
+});
+const CONSOLE_STEP2_ERROR = JSON.stringify({
+  at: 2,
+  kind: 'console',
+  type: 'error',
+  text: 'modal failed to open',
+});
+const CONSOLE_STEP2_WARNING = JSON.stringify({
+  at: 3,
+  kind: 'console',
+  type: 'warning',
+  text: 'slow modal',
+});
+const CONSOLE_STEP3_ERROR = JSON.stringify({
+  at: 4,
+  kind: 'console',
+  type: 'error',
+  text: 'eval issue',
+});
+const CONSOLE_RUN2_ERROR_A = JSON.stringify({
+  at: 5,
+  kind: 'console',
+  type: 'error',
+  text: 'new bug A',
+});
+const CONSOLE_RUN2_ERROR_B = JSON.stringify({
+  at: 6,
+  kind: 'console',
+  type: 'error',
+  text: 'new bug B',
+});
+const CONSOLE_RUN2_ERROR_C = JSON.stringify({
+  at: 7,
+  kind: 'console',
+  type: 'error',
+  text: 'new bug C',
+});
 
 const NETWORK_RUN1_OK = JSON.stringify({
-    at: 1,
-    method: 'GET',
-    url: '/api/guilds',
-    resourceType: 'fetch',
-    status: 200,
-    requestBody: null,
-    responseBody: 'ok',
-  });
+  at: 1,
+  method: 'GET',
+  url: '/api/guilds',
+  resourceType: 'fetch',
+  status: 200,
+  requestBody: null,
+  responseBody: 'ok',
+});
 const NETWORK_RUN1_BAD = JSON.stringify({
-    at: 2,
-    method: 'POST',
-    url: '/api/guilds',
-    resourceType: 'fetch',
-    status: 500,
-    requestBody: null,
-    responseBody: 'boom',
-  });
+  at: 2,
+  method: 'POST',
+  url: '/api/guilds',
+  resourceType: 'fetch',
+  status: 500,
+  requestBody: null,
+  responseBody: 'boom',
+});
 const NETWORK_RUN2_BAD_A = JSON.stringify({
-    at: 3,
-    method: 'POST',
-    url: '/api/x',
-    resourceType: 'fetch',
-    status: 500,
-    requestBody: null,
-    responseBody: 'bad',
-  });
+  at: 3,
+  method: 'POST',
+  url: '/api/x',
+  resourceType: 'fetch',
+  status: 500,
+  requestBody: null,
+  responseBody: 'bad',
+});
 const NETWORK_RUN2_BAD_B = JSON.stringify({
-    at: 4,
-    method: 'GET',
-    url: '/api/y',
-    resourceType: 'fetch',
-    status: 502,
-    requestBody: null,
-    responseBody: 'bad',
-  });
+  at: 4,
+  method: 'GET',
+  url: '/api/y',
+  resourceType: 'fetch',
+  status: 502,
+  requestBody: null,
+  responseBody: 'bad',
+});
 
 const SERVER_LINE_STEP1 = 'startup ok';
 const SERVER_LINE_STEP2 = '[ERROR] inside window';
@@ -229,11 +264,7 @@ export const evidenceTreeHarness = (): {
     await writeFileBytes(filePath, PNG.sync.write(png));
   };
 
-  const writeHalfDifferentPng = async ({
-    filePath,
-  }: {
-    filePath: string;
-  }): Promise<void> => {
+  const writeHalfDifferentPng = async ({ filePath }: { filePath: string }): Promise<void> => {
     const png = new PNG({ width: IMAGE_SIDE, height: IMAGE_SIDE });
     for (let row = 0; row < IMAGE_SIDE; row += 1) {
       for (let col = 0; col < IMAGE_SIDE; col += 1) {
@@ -262,15 +293,23 @@ export const evidenceTreeHarness = (): {
     const afterStep3 = `${afterStep2}${SERVER_LINE_STEP3}\n`;
     const afterRun2 = `${afterStep3}${SERVER_LINE_RUN2}\n`;
 
-    const byteCount = (text: string): number =>
-      Buffer.byteLength(text, 'utf8');
+    const byteCount = (text: string): number => Buffer.byteLength(text, 'utf8');
 
     return {
       content: afterRun2,
       step1Window: ServerLogWindowStub({ fromByte: byteCount(''), toByte: byteCount(afterStep1) }),
-      step2Window: ServerLogWindowStub({ fromByte: byteCount(afterStep1), toByte: byteCount(afterStep2) }),
-      step3Window: ServerLogWindowStub({ fromByte: byteCount(afterStep2), toByte: byteCount(afterStep3) }),
-      run2Window: ServerLogWindowStub({ fromByte: byteCount(afterStep3), toByte: byteCount(afterRun2) }),
+      step2Window: ServerLogWindowStub({
+        fromByte: byteCount(afterStep1),
+        toByte: byteCount(afterStep2),
+      }),
+      step3Window: ServerLogWindowStub({
+        fromByte: byteCount(afterStep2),
+        toByte: byteCount(afterStep3),
+      }),
+      run2Window: ServerLogWindowStub({
+        fromByte: byteCount(afterStep3),
+        toByte: byteCount(afterRun2),
+      }),
     };
   };
 
@@ -282,27 +321,26 @@ export const evidenceTreeHarness = (): {
     runId: SiegeRun['id'];
     step: number;
     text: string;
-  }): string =>
-    `${JSON.stringify({ runId, step, atMs: 1_700_000_000_000, text })}\n`;
+  }): string => `${JSON.stringify({ runId, step, atMs: 1_700_000_000_000, text })}\n`;
 
   const consoleJsonl = (): string =>
     [
-        bufferLine({ runId: RUN_1, step: 1, text: CONSOLE_STEP1_LOG }),
-        bufferLine({ runId: RUN_1, step: 2, text: CONSOLE_STEP2_ERROR }),
-        bufferLine({ runId: RUN_1, step: 2, text: CONSOLE_STEP2_WARNING }),
-        bufferLine({ runId: RUN_1, step: 3, text: CONSOLE_STEP3_ERROR }),
-        bufferLine({ runId: RUN_2, step: 1, text: CONSOLE_RUN2_ERROR_A }),
-        bufferLine({ runId: RUN_2, step: 1, text: CONSOLE_RUN2_ERROR_B }),
-        bufferLine({ runId: RUN_2, step: 1, text: CONSOLE_RUN2_ERROR_C }),
-      ].join('');
+      bufferLine({ runId: RUN_1, step: 1, text: CONSOLE_STEP1_LOG }),
+      bufferLine({ runId: RUN_1, step: 2, text: CONSOLE_STEP2_ERROR }),
+      bufferLine({ runId: RUN_1, step: 2, text: CONSOLE_STEP2_WARNING }),
+      bufferLine({ runId: RUN_1, step: 3, text: CONSOLE_STEP3_ERROR }),
+      bufferLine({ runId: RUN_2, step: 1, text: CONSOLE_RUN2_ERROR_A }),
+      bufferLine({ runId: RUN_2, step: 1, text: CONSOLE_RUN2_ERROR_B }),
+      bufferLine({ runId: RUN_2, step: 1, text: CONSOLE_RUN2_ERROR_C }),
+    ].join('');
 
   const networkJsonl = (): string =>
     [
-        bufferLine({ runId: RUN_1, step: 1, text: NETWORK_RUN1_OK }),
-        bufferLine({ runId: RUN_1, step: 2, text: NETWORK_RUN1_BAD }),
-        bufferLine({ runId: RUN_2, step: 1, text: NETWORK_RUN2_BAD_A }),
-        bufferLine({ runId: RUN_2, step: 1, text: NETWORK_RUN2_BAD_B }),
-      ].join('');
+      bufferLine({ runId: RUN_1, step: 1, text: NETWORK_RUN1_OK }),
+      bufferLine({ runId: RUN_1, step: 2, text: NETWORK_RUN1_BAD }),
+      bufferLine({ runId: RUN_2, step: 1, text: NETWORK_RUN2_BAD_A }),
+      bufferLine({ runId: RUN_2, step: 1, text: NETWORK_RUN2_BAD_B }),
+    ].join('');
 
   const run1Steps = (): readonly StepReading[] => {
     const serverLog = buildServerLog();
@@ -439,7 +477,7 @@ export const evidenceTreeHarness = (): {
       socketPath: null,
       ports: PortPairStub({ api: 40_001, web: 40_002 }),
       state: 'killed',
-      reservedAtMs: (Date.now() - 600_000),
+      reservedAtMs: Date.now() - 600_000,
       bootedAtMs: null,
       lastBeatMs: null,
       prunedAtMs: null,
@@ -465,7 +503,9 @@ export const evidenceTreeHarness = (): {
     });
 
   const buildTree = async (): Promise<void> => {
-    await registryWriteBroker({ registry: RegistryStub({ instances: [killedEntry(), liveEntry()] }) });
+    await registryWriteBroker({
+      registry: RegistryStub({ instances: [killedEntry(), liveEntry()] }),
+    });
 
     const evidenceDir = killedInstanceEvidenceDir();
     const runOnePaths = run1Paths();
@@ -530,7 +570,7 @@ export const evidenceTreeHarness = (): {
     // guards against, so no `sleep 300` from a broken test run lingers on the machine.
     if (staleChildPgid !== null) {
       try {
-        kill(-Number(staleChildPgid), 'SIGKILL');
+        kill(-staleChildPgid, 'SIGKILL');
       } catch (killError: unknown) {
         if (
           killError === null ||
@@ -653,8 +693,11 @@ export const evidenceTreeHarness = (): {
     networkRun2NonSuccessRows: () => [NETWORK_RUN2_BAD_A, NETWORK_RUN2_BAD_B],
     readResults: async ({ query }: { query: ResultsQuery }): Promise<ResultsAnswer> =>
       resultsReadBroker({ query }),
-    readStatus: async ({ instanceId }: { instanceId: SiegeInstance['id'] | null }): Promise<StatusAnswer> =>
-      statusReadBroker({ instanceId }),
+    readStatus: async ({
+      instanceId,
+    }: {
+      instanceId: SiegeInstance['id'] | null;
+    }): Promise<StatusAnswer> => statusReadBroker({ instanceId }),
     readCompare: async ({ query }: { query: CompareQuery }): Promise<CompareAnswer> =>
       compareReadBroker({ query }),
     runCleanup: async (): Promise<CleanupAnswer> => cleanupRunBroker(),

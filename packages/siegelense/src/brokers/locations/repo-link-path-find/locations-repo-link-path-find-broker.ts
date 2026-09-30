@@ -34,10 +34,10 @@ export const locationsRepoLinkPathFindBroker = async ({
   const repoRoot = await cwdResolveBroker({ startPath: cwdPath, kind: 'repo-root' });
 
   const linkPath = join(
-      repoRoot,
-      locationsStatics.repoRoot.dungeonmasterAssets,
-      locationsStatics.repoRoot.siegelenseLink,
-    );
+    repoRoot,
+    locationsStatics.repoRoot.dungeonmasterAssets,
+    locationsStatics.repoRoot.siegelenseLink,
+  );
 
   const linkExists = existsSync(linkPath);
 

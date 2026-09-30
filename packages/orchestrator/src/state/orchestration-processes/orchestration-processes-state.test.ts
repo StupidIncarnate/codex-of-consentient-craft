@@ -33,10 +33,18 @@ describe('orchestrationProcessesState', () => {
       const questId2 = QuestIdStub({ value: 'quest-new' });
 
       orchestrationProcessesState.register({
-        orchestrationProcess: OrchestrationProcessStub({ processId, questId: questId1, kill: jest.fn() }),
+        orchestrationProcess: OrchestrationProcessStub({
+          processId,
+          questId: questId1,
+          kill: jest.fn(),
+        }),
       });
       orchestrationProcessesState.register({
-        orchestrationProcess: OrchestrationProcessStub({ processId, questId: questId2, kill: jest.fn() }),
+        orchestrationProcess: OrchestrationProcessStub({
+          processId,
+          questId: questId2,
+          kill: jest.fn(),
+        }),
       });
 
       const result = orchestrationProcessesState.get({ processId });
@@ -112,10 +120,18 @@ describe('orchestrationProcessesState', () => {
       const questId2 = QuestIdStub({ value: 'quest-2' });
 
       orchestrationProcessesState.register({
-        orchestrationProcess: OrchestrationProcessStub({ processId: processId1, questId: questId1, kill: kill1 }),
+        orchestrationProcess: OrchestrationProcessStub({
+          processId: processId1,
+          questId: questId1,
+          kill: kill1,
+        }),
       });
       orchestrationProcessesState.register({
-        orchestrationProcess: OrchestrationProcessStub({ processId: processId2, questId: questId2, kill: kill2 }),
+        orchestrationProcess: OrchestrationProcessStub({
+          processId: processId2,
+          questId: questId2,
+          kill: kill2,
+        }),
       });
 
       orchestrationProcessesState.killAll();
@@ -200,7 +216,12 @@ describe('orchestrationProcessesState', () => {
       const kill = jest.fn();
 
       orchestrationProcessesState.register({
-        orchestrationProcess: OrchestrationProcessStub({ processId, questId, questWorkItemId, kill }),
+        orchestrationProcess: OrchestrationProcessStub({
+          processId,
+          questId,
+          questWorkItemId,
+          kill,
+        }),
       });
 
       const result = orchestrationProcessesState.findByQuestWorkItemId({ questWorkItemId });
@@ -350,7 +371,11 @@ describe('orchestrationProcessesState', () => {
 
       expect(() => {
         orchestrationProcessesState.register({
-          orchestrationProcess: OrchestrationProcessStub({ processId, questId: 123 as never, kill: jest.fn() }),
+          orchestrationProcess: OrchestrationProcessStub({
+            processId,
+            questId: 123 as never,
+            kill: jest.fn(),
+          }),
         });
       }).toThrow(/questId/u);
       expect(orchestrationProcessesState.getAll()).toStrictEqual([]);
@@ -363,7 +388,9 @@ describe('orchestrationProcessesState', () => {
       const questId = QuestIdStub({ value: 'quest-kill-kept' });
       const kill = jest.fn();
 
-      orchestrationProcessesState.register({ orchestrationProcess: OrchestrationProcessStub({ processId, questId, kill }) });
+      orchestrationProcessesState.register({
+        orchestrationProcess: OrchestrationProcessStub({ processId, questId, kill }),
+      });
       orchestrationProcessesState.get({ processId })?.kill();
 
       expect(kill).toHaveBeenCalledTimes(1);

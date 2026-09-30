@@ -37,10 +37,12 @@ export const elementDeltaContract = z
             before: keyRowContract,
             after: keyRowContract,
           })
-          .strict().brand<'ElementDeltaChanged'>(),
+          .strict()
+          .brand<'ElementDeltaChanged'>(),
       )
       .readonly(),
   })
-  .strict().brand<'ElementDelta'>();
+  .strict()
+  .brand<'ElementDelta'>();
 
 export type ElementDelta = z.infer<typeof elementDeltaContract>;

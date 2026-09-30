@@ -287,7 +287,7 @@ test.describe('FOLLOW-UP tab bar structure', () => {
 
     // Precondition write only — the quest's status is not the control under test here (that is
     // the title bar's ABANDON control); this merely sets up the state the tab must survive.
-    await quests.patchQuestStatus({ questId: questId, status: 'abandoned' });
+    await quests.patchQuestStatus({ questId, status: 'abandoned' });
 
     // Read the bar's DISAPPEARANCE from the EXECUTION tab too. Asserting its absence while the
     // FOLLOW-UP tab is active would pass even with the bar fully intact, since the execution

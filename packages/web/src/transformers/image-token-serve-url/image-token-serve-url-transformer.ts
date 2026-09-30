@@ -21,26 +21,18 @@
 
 import { pastedImageStatics } from '@dungeonmaster/shared/statics';
 
-
 // A URI scheme opening the target — `http:`, `https:`, `data:`, `blob:`. Anchored, so a path that
 // merely CONTAINS a colon is not mistaken for one.
 const URI_SCHEME_PATTERN = /^[a-z][a-z0-9+.-]*:/iu;
 
-export const imageTokenServeUrlTransformer = ({
-  content,
-}: {
-  content: string;
-}): string =>
+export const imageTokenServeUrlTransformer = ({ content }: { content: string }): string =>
   content.replace(
-      new RegExp(pastedImageStatics.imageTokenPattern, 'gu'),
-      (match: string, ordinal: string, target: string) => {
-        if (
-          URI_SCHEME_PATTERN.test(target) ||
-          target.startsWith(pastedImageStatics.serveRoutePath)
-        ) {
-          return match;
-        }
+    new RegExp(pastedImageStatics.imageTokenPattern, 'gu'),
+    (match: string, ordinal: string, target: string) => {
+      if (URI_SCHEME_PATTERN.test(target) || target.startsWith(pastedImageStatics.serveRoutePath)) {
+        return match;
+      }
 
-        return `![Pasted Image ${ordinal}](${pastedImageStatics.serveRoutePath}?path=${encodeURIComponent(target)})`;
-      },
-    );
+      return `![Pasted Image ${ordinal}](${pastedImageStatics.serveRoutePath}?path=${encodeURIComponent(target)})`;
+    },
+  );

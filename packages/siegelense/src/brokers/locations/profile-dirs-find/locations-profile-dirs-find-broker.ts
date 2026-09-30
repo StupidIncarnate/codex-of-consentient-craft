@@ -29,7 +29,7 @@ export const locationsProfileDirsFindBroker = ({
   const bootsDir = join(profilePath, profileStatics.dirs.boots);
 
   return locationsProfileDirsFindResultContract.parse({
-    samplesDir: samplesDir,
-    bootsDir: bootsDir,
+    samplesDir,
+    bootsDir,
   });
 };

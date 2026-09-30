@@ -14,9 +14,9 @@ describe('busEmitCallsExtractTransformer', () => {
     it('VALID: {multiple emits with different types} => returns all types in order', () => {
       const result = busEmitCallsExtractTransformer({
         source: [
-            "myBus.emit({ type: 'chat-output', payload });",
-            "myBus.emit({ type: 'chat-complete', payload });",
-          ].join('\n'),
+          "myBus.emit({ type: 'chat-output', payload });",
+          "myBus.emit({ type: 'chat-complete', payload });",
+        ].join('\n'),
         busExportName: 'myBus',
       });
 

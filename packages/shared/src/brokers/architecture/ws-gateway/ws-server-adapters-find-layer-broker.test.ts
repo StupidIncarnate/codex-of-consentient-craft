@@ -2,7 +2,8 @@ import { wsServerAdaptersFindLayerBroker } from './ws-server-adapters-find-layer
 import { wsServerAdaptersFindLayerBrokerProxy } from './ws-server-adapters-find-layer-broker.proxy';
 
 const PROJECT_ROOT = '/repo';
-const HONO_WS_ADAPTER = '/repo/packages/server/src/adapters/hono/create-node-web-socket/hono-create-node-web-socket-adapter.ts';
+const HONO_WS_ADAPTER =
+  '/repo/packages/server/src/adapters/hono/create-node-web-socket/hono-create-node-web-socket-adapter.ts';
 const HTTP_ADAPTER = '/repo/packages/server/src/adapters/hono/serve/hono-serve-adapter.ts';
 
 describe('wsServerAdaptersFindLayerBroker', () => {

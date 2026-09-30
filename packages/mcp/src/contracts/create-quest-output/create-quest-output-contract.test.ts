@@ -23,9 +23,9 @@ describe('createQuestOutputContract', () => {
   });
 
   it('INVALID: {missing questId} => throws Required', () => {
-    expect(() =>
-      createQuestOutputContract.parse({ guildSlug: 'g' }),
-    ).toThrow(/received undefined/u);
+    expect(() => createQuestOutputContract.parse({ guildSlug: 'g' })).toThrow(
+      /received undefined/u,
+    );
   });
 
   it('INVALID: {missing guildSlug} => throws Required', () => {

@@ -49,7 +49,7 @@ export const parseUserStreamEntryTransformer = ({
   const resolvedTimestamp =
     typeof timestamp === 'string' && timestamp.length > 0
       ? timestamp
-      : String(extractTimestampFromJsonlLineTransformer({ parsed }));
+      : extractTimestampFromJsonlLineTransformer({ parsed });
 
   const rawSource = line.source === undefined ? undefined : String(line.source);
   const validSource: 'session' | 'subagent' | undefined =
@@ -111,7 +111,7 @@ export const parseUserStreamEntryTransformer = ({
     const resolvedContent =
       serverBaseUrl === undefined
         ? contentArray
-        : String(imagePathToUrlTransformer({ content: contentArray, serverBaseUrl }));
+        : imagePathToUrlTransformer({ content: contentArray, serverBaseUrl });
     const userEntry = chatEntryContract.safeParse({
       role: 'user',
       content: resolvedContent,

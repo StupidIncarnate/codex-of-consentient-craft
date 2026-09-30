@@ -17,10 +17,7 @@
  * // Returns '[data-testid="SUBAGENT_CHAIN_HEADER"]'
  */
 
-
 const BARE_TESTID_PATTERN = /^[A-Za-z0-9_-]+$/u;
 
 export const withinSelectorNormaliseTransformer = ({ within }: { within: string }): string =>
-  BARE_TESTID_PATTERN.test(within)
-    ? `[data-testid="${within}"]`
-    : within;
+  BARE_TESTID_PATTERN.test(within) ? `[data-testid="${within}"]` : within;

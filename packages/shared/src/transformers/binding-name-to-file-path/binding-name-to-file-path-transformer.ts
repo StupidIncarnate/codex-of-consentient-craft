@@ -15,7 +15,6 @@
  * the convention here keeps the two callers in lockstep.
  */
 
-
 const BINDING_SUFFIX = '-binding';
 const BINDINGS_PATH = '/src/bindings/';
 
@@ -26,7 +25,7 @@ export const bindingNameToFilePathTransformer = ({
   bindingName: string;
   packageRoot: string;
 }): string => {
-  const bindingNameStr = String(bindingName);
+  const bindingNameStr = bindingName;
   const folderName = bindingNameStr.endsWith(BINDING_SUFFIX)
     ? bindingNameStr.slice(0, -BINDING_SUFFIX.length)
     : bindingNameStr;
@@ -34,5 +33,5 @@ export const bindingNameToFilePathTransformer = ({
     ? bindingNameStr
     : `${bindingNameStr}${BINDING_SUFFIX}`;
 
-  return `${String(packageRoot)}${BINDINGS_PATH}${folderName}/${fileBaseName}.ts`;
+  return `${packageRoot}${BINDINGS_PATH}${folderName}/${fileBaseName}.ts`;
 };

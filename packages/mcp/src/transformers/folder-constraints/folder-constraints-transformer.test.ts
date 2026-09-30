@@ -128,7 +128,8 @@ describe('folderConstraintsTransformer', () => {
     });
 
     it('VALID: {supplementalConstraints: with examples} => includes example code', () => {
-      const supplementalConstraints = '\n**EXAMPLES:**\n```typescript\nexport const example = () => {};\n```';
+      const supplementalConstraints =
+        '\n**EXAMPLES:**\n```typescript\nexport const example = () => {};\n```';
 
       const constraints = folderConstraintsTransformer({
         folderType: 'transformers',

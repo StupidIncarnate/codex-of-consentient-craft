@@ -1,4 +1,3 @@
-
 import { ProjectFolderStub } from '../../../contracts/project-folder/project-folder.stub';
 import { isCrashedProjectResultGuard } from '../../../guards/is-crashed-project-result/is-crashed-project-result-guard';
 

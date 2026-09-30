@@ -50,7 +50,7 @@ test.describe('Quest WS Update', () => {
     // Seed at 'explore_flows' so the subsequent PATCH that adds flows passes the
     // per-status input allowlist (created status only permits title + status).
     await quests.writeQuestFile({
-      questId: questId,
+      questId,
       questFolder,
       questFilePath,
       status: 'explore_flows',
@@ -67,14 +67,14 @@ test.describe('Quest WS Update', () => {
       .toLowerCase()
       .replace(/\s+/gu, '-');
 
-    await nav.navigateToQuest({ urlSlug, questId: questId });
+    await nav.navigateToQuest({ urlSlug, questId });
 
     // Quest exists but has no content — spec panel shows immediately with empty quest data
     await expect(page.getByTestId('QUEST_SPEC_PANEL')).toBeVisible();
 
     // PATCH the quest to add a flow — this triggers quest-modified WS broadcast
     await quests.patchQuestFlows({
-      questId: questId,
+      questId,
       flows: [
         {
           id: 'ws-live-flow',
@@ -122,7 +122,7 @@ test.describe('Quest WS Update', () => {
     // Seed at 'flows_approved' so the subsequent PATCH that adds another flow
     // passes the per-status input allowlist (approved status only permits status).
     await quests.writeQuestFile({
-      questId: questId,
+      questId,
       questFolder,
       questFilePath,
       status: 'flows_approved',
@@ -138,7 +138,7 @@ test.describe('Quest WS Update', () => {
     const urlSlug = String(guild.urlSlug ?? guild.name)
       .toLowerCase()
       .replace(/\s+/gu, '-');
-    await nav.navigateToQuest({ urlSlug, questId: questId });
+    await nav.navigateToQuest({ urlSlug, questId });
 
     // Spec panel should be visible with the initial flow
     await expect(page.getByTestId('QUEST_SPEC_PANEL')).toBeVisible({ timeout: PANEL_TIMEOUT });
@@ -146,7 +146,7 @@ test.describe('Quest WS Update', () => {
 
     // PATCH the quest to add a second flow via WS broadcast
     await quests.patchQuestFlows({
-      questId: questId,
+      questId,
       flows: [
         {
           id: 'live-ws-flow',

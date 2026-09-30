@@ -22,12 +22,14 @@ import { z } from '#gateway/npm/zod';
 
 import { questContract, sessionContract } from '@dungeonmaster/shared/contracts';
 
-export const chatStreamEndedPayloadContract = z.object({
-  reason: z.enum(['turn-ended', 'history-replayed']),
-  chatProcessId: z.string().min(1).brand<'ChatStreamEndedPayloadChatProcessId'>().optional(),
-  sessionId: sessionContract.shape.id.optional(),
-  questId: questContract.shape.id.optional(),
-  retained: z.boolean().optional(),
-}).brand<'ChatStreamEndedPayload'>();
+export const chatStreamEndedPayloadContract = z
+  .object({
+    reason: z.enum(['turn-ended', 'history-replayed']),
+    chatProcessId: z.string().min(1).brand<'ChatStreamEndedPayloadChatProcessId'>().optional(),
+    sessionId: sessionContract.shape.id.optional(),
+    questId: questContract.shape.id.optional(),
+    retained: z.boolean().optional(),
+  })
+  .brand<'ChatStreamEndedPayload'>();
 
 export type ChatStreamEndedPayload = z.infer<typeof chatStreamEndedPayloadContract>;

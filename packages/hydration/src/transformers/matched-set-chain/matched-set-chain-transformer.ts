@@ -70,7 +70,7 @@ export const matchedSetChainTransformer = <I>({
           ops: [
             opExtraTransformer({
               ref: matchedRef,
-              verb: verb,
+              verb,
               args: fieldValuesContract.parse(args),
             }),
           ],
@@ -108,9 +108,7 @@ export const matchedSetChainTransformer = <I>({
       [
         opFilterTransformer({
           ...filterArgs,
-          ops: [
-            opSaveRecordTransformer({ ref: matchedRef, name: name }),
-          ],
+          ops: [opSaveRecordTransformer({ ref: matchedRef, name })],
         }),
       ] as unknown as Op,
     remove: (): Op =>

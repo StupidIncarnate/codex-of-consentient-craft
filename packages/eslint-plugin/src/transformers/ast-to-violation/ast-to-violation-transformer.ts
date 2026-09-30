@@ -21,9 +21,10 @@ export const astToViolationTransformer = ({
 }: {
   node: AstNode;
   violation: RuleViolation;
-}): RuleViolation => ruleViolationContract.parse({
-  node,
-  message: violation.message,
-  messageId: violation.messageId,
-  data: violation.data,
-});
+}): RuleViolation =>
+  ruleViolationContract.parse({
+    node,
+    message: violation.message,
+    messageId: violation.messageId,
+    data: violation.data,
+  });

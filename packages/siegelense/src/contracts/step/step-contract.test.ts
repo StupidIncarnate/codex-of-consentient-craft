@@ -1,4 +1,3 @@
-
 import { LocatorStateStub } from '../locator-state/locator-state.stub';
 import { stepContract } from './step-contract';
 import { StepStub } from './step.stub';

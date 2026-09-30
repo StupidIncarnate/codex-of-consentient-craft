@@ -18,12 +18,6 @@ import { typescriptContentDiagnosticsBroker } from '../../../src/brokers/typescr
 export const scaffoldedTemplateTypecheckHarness = (): {
   typecheck: (params: { content: string; dirPath?: string }) => readonly string[];
 } => ({
-  typecheck: ({
-    content,
-    dirPath,
-  }: {
-    content: string;
-    dirPath?: string;
-  }): readonly string[] =>
+  typecheck: ({ content, dirPath }: { content: string; dirPath?: string }): readonly string[] =>
     typescriptContentDiagnosticsBroker(dirPath === undefined ? { content } : { content, dirPath }),
 });

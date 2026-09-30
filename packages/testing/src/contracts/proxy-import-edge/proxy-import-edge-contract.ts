@@ -14,10 +14,12 @@
 
 import { z } from '#gateway/npm/zod';
 
-export const proxyImportEdgeContract = z.object({
-  kind: z.enum(['import', 'reexport']),
-  importPath: z.string().brand<'ProxyImportEdgeImportPath'>(),
-  names: z.array(z.string().min(1).brand<'ProxyImportEdgeNames'>()).nullable(),
-}).brand<'ProxyImportEdge'>();
+export const proxyImportEdgeContract = z
+  .object({
+    kind: z.enum(['import', 'reexport']),
+    importPath: z.string().brand<'ProxyImportEdgeImportPath'>(),
+    names: z.array(z.string().min(1).brand<'ProxyImportEdgeNames'>()).nullable(),
+  })
+  .brand<'ProxyImportEdge'>();
 
 export type ProxyImportEdge = z.infer<typeof proxyImportEdgeContract>;

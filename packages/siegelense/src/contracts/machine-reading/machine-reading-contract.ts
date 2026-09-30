@@ -17,17 +17,23 @@
 
 import { z } from '#gateway/npm/zod';
 
-
 import { loadAverageContract } from '../load-average/load-average-contract';
 
-export const machineReadingContract = z.object({
-  freeMemMB: z.number().int().nonnegative().brand<'MachineReadingFreeMemMB'>(),
-  totalMemMB: z.number().int().nonnegative().brand<'MachineReadingTotalMemMB'>(),
-  freeDiskMB: z.number().int().nonnegative().brand<'MachineReadingFreeDiskMB'>().nullable(),
-  cores: z.number().int().nonnegative().brand<'MachineReadingCores'>(),
-  loadAvg: loadAverageContract,
-  oomKillsSinceBoot: z.number().int().nonnegative().brand<'MachineReadingOomKillsSinceBoot'>().nullable(),
-  lastOomAt: z.string().brand<'MachineReadingLastOomAt'>().nullable(),
-}).brand<'MachineReading'>();
+export const machineReadingContract = z
+  .object({
+    freeMemMB: z.number().int().nonnegative().brand<'MachineReadingFreeMemMB'>(),
+    totalMemMB: z.number().int().nonnegative().brand<'MachineReadingTotalMemMB'>(),
+    freeDiskMB: z.number().int().nonnegative().brand<'MachineReadingFreeDiskMB'>().nullable(),
+    cores: z.number().int().nonnegative().brand<'MachineReadingCores'>(),
+    loadAvg: loadAverageContract,
+    oomKillsSinceBoot: z
+      .number()
+      .int()
+      .nonnegative()
+      .brand<'MachineReadingOomKillsSinceBoot'>()
+      .nullable(),
+    lastOomAt: z.string().brand<'MachineReadingLastOomAt'>().nullable(),
+  })
+  .brand<'MachineReading'>();
 
 export type MachineReading = z.infer<typeof machineReadingContract>;

@@ -28,14 +28,14 @@
 
 import { z } from '#gateway/npm/zod';
 
-
-
-export const stepCandidateContract = z.object({
-  index: z.number().int().nonnegative().brand<'StepCandidateIndex'>(),
-  ref: z.number().int().positive().brand<'StepCandidateRef'>().nullable().default(null),
-  within: z.string().min(1).brand<'StepCandidateWithin'>().nullable(),
-  text: z.string().brand<'StepCandidateText'>(),
-  rect: z.string().brand<'StepCandidateRect'>(),
-}).brand<'StepCandidate'>();
+export const stepCandidateContract = z
+  .object({
+    index: z.number().int().nonnegative().brand<'StepCandidateIndex'>(),
+    ref: z.number().int().positive().brand<'StepCandidateRef'>().nullable().default(null),
+    within: z.string().min(1).brand<'StepCandidateWithin'>().nullable(),
+    text: z.string().brand<'StepCandidateText'>(),
+    rect: z.string().brand<'StepCandidateRect'>(),
+  })
+  .brand<'StepCandidate'>();
 
 export type StepCandidate = z.infer<typeof stepCandidateContract>;

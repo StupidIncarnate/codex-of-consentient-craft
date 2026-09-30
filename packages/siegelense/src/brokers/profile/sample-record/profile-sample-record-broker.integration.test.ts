@@ -51,29 +51,30 @@ describe('the profile sample-write path, against a real tree', () => {
     testbed.writeFile({
       relativePath: '.dungeonmaster.json',
       content: JSON.stringify(
-          DungeonmasterConfigStub({
-            framework: 'monorepo',
-            devServer: {
-              devCommand: 'npm run dev',
-              port: configDefaultsStatics.devServer.port.default,
-              e2e: { processes: [DevServerE2eProcessStub()] },
-            },
-          }),
-        ),
+        DungeonmasterConfigStub({
+          framework: 'monorepo',
+          devServer: {
+            devCommand: 'npm run dev',
+            port: configDefaultsStatics.devServer.port.default,
+            e2e: { processes: [DevServerE2eProcessStub()] },
+          },
+        }),
+      ),
     });
     chdir(testbed.guildPath);
 
     // One booted instance: every beat below is taken at pool size 1.
     await registryUpdateBroker({
-      mutate: () => RegistryStub({
-        instances: [
-          RegistryEntryStub({
-            id: SUBJECT_ID,
-            state: 'alive',
-            bootedAtMs: (FIRST_BEAT_MS - 20_000),
-          }),
-        ],
-      }),
+      mutate: () =>
+        RegistryStub({
+          instances: [
+            RegistryEntryStub({
+              id: SUBJECT_ID,
+              state: 'alive',
+              bootedAtMs: FIRST_BEAT_MS - 20_000,
+            }),
+          ],
+        }),
     });
 
     // Beat 1 — inside the settle window: peak only.
@@ -88,40 +89,41 @@ describe('the profile sample-write path, against a real tree', () => {
       instanceId: SUBJECT_ID,
       specName: HEADLESS_SPEC,
       rssMB: 1800,
-      beatAtMs: (FIRST_BEAT_MS + SETTLE_MS),
+      beatAtMs: FIRST_BEAT_MS + SETTLE_MS,
     });
     // Beat 3 — a failed measurement: recorded nowhere, so it cannot drag steady down.
     nullReadingRecord = await profileSampleRecordBroker({
       instanceId: SUBJECT_ID,
       specName: HEADLESS_SPEC,
       rssMB: null,
-      beatAtMs: (FIRST_BEAT_MS + SETTLE_MS + 5000),
+      beatAtMs: FIRST_BEAT_MS + SETTLE_MS + 5000,
     });
     // Beat 4 — a second steady reading, still solo.
     soloRecord = await profileSampleRecordBroker({
       instanceId: SUBJECT_ID,
       specName: HEADLESS_SPEC,
       rssMB: 1900,
-      beatAtMs: (FIRST_BEAT_MS + SETTLE_MS + 10_000),
+      beatAtMs: FIRST_BEAT_MS + SETTLE_MS + 10_000,
     });
 
     // Two more instances boot: the pool this instance is running in is now three.
     await registryUpdateBroker({
-      mutate: (current) => RegistryStub({
-        instances: [
-          ...current.instances,
-          RegistryEntryStub({
-            id: SECOND_ID,
-            state: 'alive',
-            bootedAtMs: FIRST_BEAT_MS,
-          }),
-          RegistryEntryStub({
-            id: THIRD_ID,
-            state: 'alive',
-            bootedAtMs: FIRST_BEAT_MS,
-          }),
-        ],
-      }),
+      mutate: (current) =>
+        RegistryStub({
+          instances: [
+            ...current.instances,
+            RegistryEntryStub({
+              id: SECOND_ID,
+              state: 'alive',
+              bootedAtMs: FIRST_BEAT_MS,
+            }),
+            RegistryEntryStub({
+              id: THIRD_ID,
+              state: 'alive',
+              bootedAtMs: FIRST_BEAT_MS,
+            }),
+          ],
+        }),
     });
 
     // Beats 5 and 6 — contended, and markedly more expensive.
@@ -129,13 +131,13 @@ describe('the profile sample-write path, against a real tree', () => {
       instanceId: SUBJECT_ID,
       specName: HEADLESS_SPEC,
       rssMB: 2810,
-      beatAtMs: (FIRST_BEAT_MS + SETTLE_MS + 20_000),
+      beatAtMs: FIRST_BEAT_MS + SETTLE_MS + 20_000,
     });
     contendedRecord = await profileSampleRecordBroker({
       instanceId: SUBJECT_ID,
       specName: HEADLESS_SPEC,
       rssMB: 2000,
-      beatAtMs: (FIRST_BEAT_MS + SETTLE_MS + 30_000),
+      beatAtMs: FIRST_BEAT_MS + SETTLE_MS + 30_000,
     });
 
     await profileBootRecordBroker({
@@ -172,9 +174,7 @@ describe('the profile sample-write path, against a real tree', () => {
     it('VALID: {three solo readings, one of them inside the settle window} => one bucket at pool size 1, peak from the boot reading and steady from the two later ones', async () => {
       expect(soloRecord).toStrictEqual({
         instanceId: 'inst_aaaa1111',
-        specHash: String(
-          laneSpecHashBroker({ spec: await laneSpecFindBroker({ specName: HEADLESS_SPEC }) }),
-        ),
+        specHash: laneSpecHashBroker({ spec: await laneSpecFindBroker({ specName: HEADLESS_SPEC }) }),
         firstBeatAtMs: FIRST_BEAT_MS,
         measuredAtMs: FIRST_BEAT_MS + SETTLE_MS + 10_000,
         pools: [{ poolSize: 1, peakMB: 2600, steadySumMB: 3700, steadyBeats: 2 }],
@@ -186,9 +186,7 @@ describe('the profile sample-write path, against a real tree', () => {
     it('VALID: {two contended readings} => a SECOND bucket at pool size 3, the solo bucket untouched', async () => {
       expect(contendedRecord).toStrictEqual({
         instanceId: 'inst_aaaa1111',
-        specHash: String(
-          laneSpecHashBroker({ spec: await laneSpecFindBroker({ specName: HEADLESS_SPEC }) }),
-        ),
+        specHash: laneSpecHashBroker({ spec: await laneSpecFindBroker({ specName: HEADLESS_SPEC }) }),
         firstBeatAtMs: FIRST_BEAT_MS,
         measuredAtMs: FIRST_BEAT_MS + SETTLE_MS + 30_000,
         pools: [
@@ -204,9 +202,7 @@ describe('the profile sample-write path, against a real tree', () => {
       expect(profile).toStrictEqual({
         specName: 'api',
         processes: 1,
-        hash: String(
-          laneSpecHashBroker({ spec: await laneSpecFindBroker({ specName: HEADLESS_SPEC }) }),
-        ),
+        hash: laneSpecHashBroker({ spec: await laneSpecFindBroker({ specName: HEADLESS_SPEC }) }),
         measuredAt: '2025-09-14',
         fromRuns: 1,
         bootMs: 21_000,

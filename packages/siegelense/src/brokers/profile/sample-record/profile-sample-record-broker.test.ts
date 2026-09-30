@@ -1,4 +1,3 @@
-
 import { InstanceIdStub } from '../../../contracts/instance-id/instance-id.stub';
 import { RegistryEntryStub } from '../../../contracts/registry-entry/registry-entry.stub';
 import { RegistryStub } from '../../../contracts/registry/registry.stub';
@@ -45,7 +44,7 @@ describe('profileSampleRecordBroker', () => {
           RegistryEntryStub({
             id: INSTANCE_ID,
             state: 'alive',
-            bootedAtMs: (FIRST_BEAT_MS - 20_000),
+            bootedAtMs: FIRST_BEAT_MS - 20_000,
           }),
         ],
       });
@@ -60,7 +59,7 @@ describe('profileSampleRecordBroker', () => {
 
       expect(result).toStrictEqual({
         instanceId: 'inst_7f3a9c21',
-        specHash: String(profilesPath).split('/').at(-1),
+        specHash: profilesPath.split('/').at(-1),
         firstBeatAtMs: FIRST_BEAT_MS,
         measuredAtMs: FIRST_BEAT_MS,
         pools: [{ poolSize: 1, peakMB: 2600, steadySumMB: 0, steadyBeats: 0 }],
@@ -80,17 +79,17 @@ describe('profileSampleRecordBroker', () => {
           RegistryEntryStub({
             id: INSTANCE_ID,
             state: 'alive',
-            bootedAtMs: (FIRST_BEAT_MS - 20_000),
+            bootedAtMs: FIRST_BEAT_MS - 20_000,
           }),
           RegistryEntryStub({
             id: InstanceIdStub({ value: 'inst_aaaa1111' }),
             state: 'alive',
-            bootedAtMs: (FIRST_BEAT_MS - 30_000),
+            bootedAtMs: FIRST_BEAT_MS - 30_000,
           }),
           RegistryEntryStub({
             id: InstanceIdStub({ value: 'inst_bbbb2222' }),
             state: 'alive',
-            bootedAtMs: (FIRST_BEAT_MS - 40_000),
+            bootedAtMs: FIRST_BEAT_MS - 40_000,
           }),
         ],
       });
@@ -116,7 +115,7 @@ describe('profileSampleRecordBroker', () => {
           RegistryEntryStub({
             id: INSTANCE_ID,
             state: 'alive',
-            bootedAtMs: (FIRST_BEAT_MS - 20_000),
+            bootedAtMs: FIRST_BEAT_MS - 20_000,
           }),
           // A reservation: alive, but nothing has booted behind it yet.
           RegistryEntryStub({
@@ -128,7 +127,7 @@ describe('profileSampleRecordBroker', () => {
           RegistryEntryStub({
             id: InstanceIdStub({ value: 'inst_bbbb2222' }),
             state: 'killed',
-            bootedAtMs: (FIRST_BEAT_MS - 90_000),
+            bootedAtMs: FIRST_BEAT_MS - 90_000,
           }),
         ],
       });
@@ -151,13 +150,13 @@ describe('profileSampleRecordBroker', () => {
     it('VALID: {a settled beat} => merges into the existing bucket rather than replacing it', async () => {
       const proxy = profileSampleRecordBrokerProxy();
       const profilesPath = await headlessProfilesPath();
-      const specHash = String(profilesPath).split('/').at(-1);
+      const specHash = profilesPath.split('/').at(-1);
       const registry = RegistryStub({
         instances: [
           RegistryEntryStub({
             id: INSTANCE_ID,
             state: 'alive',
-            bootedAtMs: (FIRST_BEAT_MS - 20_000),
+            bootedAtMs: FIRST_BEAT_MS - 20_000,
           }),
         ],
       });
@@ -178,7 +177,7 @@ describe('profileSampleRecordBroker', () => {
         instanceId: INSTANCE_ID,
         specName: HEADLESS_SPEC,
         rssMB: 1800,
-        beatAtMs: (FIRST_BEAT_MS + profileStatics.settle.afterMs),
+        beatAtMs: FIRST_BEAT_MS + profileStatics.settle.afterMs,
       });
 
       expect(result).toStrictEqual({
@@ -198,7 +197,7 @@ describe('profileSampleRecordBroker', () => {
           RegistryEntryStub({
             id: INSTANCE_ID,
             state: 'alive',
-            bootedAtMs: (FIRST_BEAT_MS - 20_000),
+            bootedAtMs: FIRST_BEAT_MS - 20_000,
           }),
         ],
       });
@@ -213,7 +212,7 @@ describe('profileSampleRecordBroker', () => {
         instanceId: INSTANCE_ID,
         specName: HEADLESS_SPEC,
         rssMB: 1800,
-        beatAtMs: (FIRST_BEAT_MS + profileStatics.settle.afterMs),
+        beatAtMs: FIRST_BEAT_MS + profileStatics.settle.afterMs,
       });
 
       expect(result?.pools).toStrictEqual([
@@ -222,7 +221,7 @@ describe('profileSampleRecordBroker', () => {
       // Split rather than matched whole: V8's own JSON parse message is worded differently between
       // Node majors, so the assertion names the path and the error CLASS, both of which are ours.
       expect(proxy.getStderrMessages().map((message) => message.split(': ')[0])).toStrictEqual([
-        `[profile-sample-record] discarding an unreadable profile record at ${String(profilesPath)}/${profileStatics.dirs.samples}/inst_7f3a9c21${profileStatics.extensions.record}`,
+        `[profile-sample-record] discarding an unreadable profile record at ${profilesPath}/${profileStatics.dirs.samples}/inst_7f3a9c21${profileStatics.extensions.record}`,
       ]);
       expect(proxy.getStderrMessages().map((message) => message.split(': ')[1])).toStrictEqual([
         'SyntaxError',

@@ -1505,10 +1505,10 @@ describe('questModifyBroker', () => {
 
       proxy.setupQuestFound({ quest });
       proxy.setupPackageLocationResolves({
-        location: `${String(proxy.getProjectRoot())}/packages/orchestrator`,
+        location: `${proxy.getProjectRoot()}/packages/orchestrator`,
       });
       proxy.setupPackageLocationResolves({
-        location: `${String(proxy.getProjectRoot())}/packages/mcp`,
+        location: `${proxy.getProjectRoot()}/packages/mcp`,
       });
 
       const replacement = [
@@ -1602,7 +1602,7 @@ describe('questModifyBroker', () => {
 
       proxy.setupQuestFound({ quest });
       proxy.setupPackageLocationResolves({
-        location: `${String(proxy.getProjectRoot())}/packages/core`,
+        location: `${proxy.getProjectRoot()}/packages/core`,
       });
 
       const input = ModifyQuestInputStub({
@@ -1646,7 +1646,7 @@ describe('questModifyBroker', () => {
       // The only address fs.access answers true for. Anchored on the process cwd instead, the
       // broker probes '<cwd>/packages/core', which answers false and fails the write.
       proxy.setupPackageLocationResolves({
-        location: `${String(proxy.getProjectRoot())}/packages/core`,
+        location: `${proxy.getProjectRoot()}/packages/core`,
       });
 
       const entry = QuestPackageEntryStub({
@@ -2107,7 +2107,7 @@ describe('questModifyBroker', () => {
       // repo-relative source anchored on the quest's own project root — so the validator sees
       // the new contract's source as "already exists on disk", which is the rejection path.
       proxy.setupContractSourceResolvesOnce({
-        source: `${String(proxy.getProjectRoot())}/packages/shared/src/contracts/login-credentials/login-credentials-contract.ts`,
+        source: `${proxy.getProjectRoot()}/packages/shared/src/contracts/login-credentials/login-credentials-contract.ts`,
       });
 
       const input = ModifyQuestInputStub({
@@ -2279,7 +2279,7 @@ describe('questModifyBroker', () => {
 
       proxy.setupQuestFound({ quest });
       proxy.setupContractSourceResolvesOnce({
-        source: `${String(proxy.getProjectRoot())}/packages/shared/src/contracts/email-address/email-address-contract.ts`,
+        source: `${proxy.getProjectRoot()}/packages/shared/src/contracts/email-address/email-address-contract.ts`,
       });
 
       const input = ModifyQuestInputStub({

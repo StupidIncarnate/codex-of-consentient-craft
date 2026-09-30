@@ -57,7 +57,7 @@ export const ruleNoBareLocationLiteralsBroker = (): TSESLint.RuleModule<'bareLoc
         ctx.report({
           node,
           messageId: 'bareLocationLiteral',
-          data: { literal: value, keyPath: String(keyPath) },
+          data: { literal: value, keyPath: keyPath },
         });
       },
     };

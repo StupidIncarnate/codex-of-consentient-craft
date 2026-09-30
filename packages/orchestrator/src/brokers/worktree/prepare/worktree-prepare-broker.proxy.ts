@@ -1,4 +1,4 @@
-import { type BaseBranchName } from '@dungeonmaster/shared/contracts';
+import type { BaseBranchName } from '@dungeonmaster/shared/contracts';
 
 import { headShaProxy } from '#gateway/bin/git/head-sha/head-sha.proxy';
 import { verifyRefProxy } from '#gateway/bin/git/verify-ref/verify-ref.proxy';
@@ -90,7 +90,7 @@ export const worktreePrepareBrokerProxy = (): {
   // The create-vs-attach mode probe, staged per scenario because the ref it names is only known
   // once a setup method hands its branchName over.
   const stageBranchMissing = ({ branchName }: { branchName: string }): void => {
-    verifyProxy.setupResult({ ref: String(branchName), exitCode: 128 });
+    verifyProxy.setupResult({ ref: branchName, exitCode: 128 });
   };
 
   const stageAddSucceeds = ({
@@ -104,8 +104,8 @@ export const worktreePrepareBrokerProxy = (): {
   }): void => {
     stageBranchMissing({ branchName });
     addProxy.setupCreateBranch({
-      worktreePath: String(worktreePath),
-      branchName: String(branchName),
+      worktreePath: worktreePath,
+      branchName: branchName,
       baseBranch,
       exitCode: 0,
       output: '',
@@ -119,11 +119,11 @@ export const worktreePrepareBrokerProxy = (): {
     worktreePath: string;
     branchName: string;
   }): void => {
-    verifyProxy.setupResult({ ref: String(branchName), exitCode: 0 });
+    verifyProxy.setupResult({ ref: branchName, exitCode: 0 });
     pruneProxy.setupResult({ exitCode: 0, output: '' });
     addProxy.setupAttachExisting({
-      worktreePath: String(worktreePath),
-      branchName: String(branchName),
+      worktreePath: worktreePath,
+      branchName: branchName,
       exitCode: 0,
       output: '',
     });
@@ -167,8 +167,8 @@ export const worktreePrepareBrokerProxy = (): {
     setupWorktreeAddFails: ({ worktreePath, branchName, baseBranch, output }): void => {
       stageBranchMissing({ branchName });
       addProxy.setupCreateBranch({
-        worktreePath: String(worktreePath),
-        branchName: String(branchName),
+        worktreePath: worktreePath,
+        branchName: branchName,
         baseBranch,
         exitCode: 128,
         output,
@@ -212,11 +212,11 @@ export const worktreePrepareBrokerProxy = (): {
     setupLeakingLink: ({ worktreePath, entryName, storedTarget }): void => {
       linksProxy.setupNodeModulesPresent({ worktreePath });
       linksProxy.setupDirectoryEntries({
-        dirPath: `${String(worktreePath)}/node_modules`,
+        dirPath: `${worktreePath}/node_modules`,
         entries: [{ name: entryName, isDir: false, isSymlink: true }],
       });
       linksProxy.setupReadlinkTarget({
-        linkPath: `${String(worktreePath)}/node_modules/${entryName}`,
+        linkPath: `${worktreePath}/node_modules/${entryName}`,
         target: storedTarget,
       });
     },

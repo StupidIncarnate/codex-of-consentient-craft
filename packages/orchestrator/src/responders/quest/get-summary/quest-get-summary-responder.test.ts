@@ -93,9 +93,9 @@ describe('QuestGetSummaryResponder', () => {
       const proxy = QuestGetSummaryResponderProxy();
       proxy.setupQuestNotFound();
 
-      await expect(proxy.callResponder({ questId: QuestIdStub({ value: 'no-such-quest' }) })).rejects.toThrow(
-        /no-such-quest/u,
-      );
+      await expect(
+        proxy.callResponder({ questId: QuestIdStub({ value: 'no-such-quest' }) }),
+      ).rejects.toThrow(/no-such-quest/u);
     });
   });
 });

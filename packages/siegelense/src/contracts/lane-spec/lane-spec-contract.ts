@@ -24,7 +24,6 @@
 
 import { z } from '#gateway/npm/zod';
 
-
 import { laneProcessContract } from '../lane-process/lane-process-contract';
 
 export const laneSpecContract = z
@@ -50,6 +49,7 @@ export const laneSpecContract = z
       message: 'two processes cannot claim the same portRole',
       path: ['processes'],
     },
-  ).brand<'LaneSpec'>();
+  )
+  .brand<'LaneSpec'>();
 
 export type LaneSpec = z.infer<typeof laneSpecContract>;

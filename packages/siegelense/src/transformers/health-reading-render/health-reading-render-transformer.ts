@@ -20,7 +20,6 @@
  * // 'HEALTHY   root present · not blank · console clean · no 5xx · server log clean'
  */
 
-
 import { healthReadingContract } from '../../contracts/health-reading/health-reading-contract';
 import type { HealthReading } from '../../contracts/health-reading/health-reading-contract';
 import { healthVerdictContract } from '../../contracts/health-verdict/health-verdict-contract';

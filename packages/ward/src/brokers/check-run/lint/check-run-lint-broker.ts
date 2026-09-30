@@ -36,7 +36,7 @@ export const checkRunLintBroker = async ({
   const { bin, args } = checkCommandsStatics.lint;
   const cwd = projectFolder.path;
   const finalArgs = fileList.length > 0 ? [...args.slice(0, -1), ...fileList] : [...args];
-  const command = String(binResolveBroker({ binName: bin, cwd }));
+  const command = binResolveBroker({ binName: bin, cwd });
 
   // A missing `eslint` binary rejects `run` with RunNotFoundError rather than resolving a result —
   // caught here and folded into the same failed-run shape the old spawn-capture adapter resolved
@@ -49,7 +49,7 @@ export const checkRunLintBroker = async ({
     return { exitCode: 1, output: '', signal: null, timedOut: false };
   });
 
-  const exitCode = result.exitCode;
+  const { exitCode } = result;
   const status = exitCode === 0 ? 'pass' : 'fail';
 
   // A scoped path holding no lintable file (a JSON fixture folder) aborts ESLint for the WHOLE run, real

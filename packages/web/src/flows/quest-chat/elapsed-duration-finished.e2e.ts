@@ -65,8 +65,8 @@ test.describe('Live elapsed duration on in-progress execution rows: completion f
     const questFilePath = String(created.filePath);
 
     await quests.writeQuestFile({
-      questId: questId,
-      questFolder: questFolder,
+      questId,
+      questFolder,
       questFilePath,
       status: 'in_progress',
       operations: [
@@ -136,7 +136,7 @@ test.describe('Live elapsed duration on in-progress execution rows: completion f
     await page.clock.setFixedTime(FIXED_NOW);
 
     const urlSlug = guilds.extractUrlSlug({ guild });
-    await nav.navigateToQuest({ urlSlug, questId: questId });
+    await nav.navigateToQuest({ urlSlug, questId });
 
     const executionPanel = page.getByTestId('execution-panel-widget');
     await expect(executionPanel).toBeVisible({ timeout: PANEL_TIMEOUT });
@@ -187,8 +187,8 @@ test.describe('Live elapsed duration on in-progress execution rows: completion f
     const questFilePath = String(created.filePath);
 
     await quests.writeQuestFile({
-      questId: questId,
-      questFolder: questFolder,
+      questId,
+      questFolder,
       questFilePath,
       status: 'in_progress',
       operations: [
@@ -212,7 +212,7 @@ test.describe('Live elapsed duration on in-progress execution rows: completion f
     await page.clock.setFixedTime(FIXED_NOW);
 
     const urlSlug = guilds.extractUrlSlug({ guild });
-    await nav.navigateToQuest({ urlSlug, questId: questId });
+    await nav.navigateToQuest({ urlSlug, questId });
 
     const executionPanel = page.getByTestId('execution-panel-widget');
     await expect(executionPanel).toBeVisible({ timeout: PANEL_TIMEOUT });
@@ -234,7 +234,7 @@ test.describe('Live elapsed duration on in-progress execution rows: completion f
       questFilePath,
       items: [{ id: RUNNING_WI, status: 'complete', completedAt: COMPLETED_AT }],
     });
-    await quests.forceStatusRebroadcast({ questId: questId, status: 'in_progress' });
+    await quests.forceStatusRebroadcast({ questId, status: 'in_progress' });
 
     // The clock is never advanced anywhere in this test (no fastForward, no re-freeze) — so with
     // Date frozen, a 60-second tick firing could not have produced this change even if one fired.
@@ -274,8 +274,8 @@ test.describe('Live elapsed duration on in-progress execution rows: completion f
     const questFilePath = String(created.filePath);
 
     await quests.writeQuestFile({
-      questId: questId,
-      questFolder: questFolder,
+      questId,
+      questFolder,
       questFilePath,
       status: 'in_progress',
       operations: [
@@ -300,7 +300,7 @@ test.describe('Live elapsed duration on in-progress execution rows: completion f
     await elapsed.installIntervalCounter();
 
     const urlSlug = guilds.extractUrlSlug({ guild });
-    await nav.navigateToQuest({ urlSlug, questId: questId });
+    await nav.navigateToQuest({ urlSlug, questId });
 
     const executionPanel = page.getByTestId('execution-panel-widget');
     await expect(executionPanel).toBeVisible({ timeout: PANEL_TIMEOUT });
@@ -352,8 +352,8 @@ test.describe('Live elapsed duration on in-progress execution rows: completion f
     const questFilePath = String(created.filePath);
 
     await quests.writeQuestFile({
-      questId: questId,
-      questFolder: questFolder,
+      questId,
+      questFolder,
       questFilePath,
       status: 'in_progress',
       operations: [
@@ -389,7 +389,7 @@ test.describe('Live elapsed duration on in-progress execution rows: completion f
     await page.clock.setFixedTime(FIXED_NOW);
 
     const urlSlug = guilds.extractUrlSlug({ guild });
-    await nav.navigateToQuest({ urlSlug, questId: questId });
+    await nav.navigateToQuest({ urlSlug, questId });
 
     const executionPanel = page.getByTestId('execution-panel-widget');
     await expect(executionPanel).toBeVisible({ timeout: PANEL_TIMEOUT });
@@ -435,8 +435,8 @@ test.describe('Live elapsed duration on in-progress execution rows: completion f
     const questFilePath = String(created.filePath);
 
     await quests.writeQuestFile({
-      questId: questId,
-      questFolder: questFolder,
+      questId,
+      questFolder,
       questFilePath,
       status: 'in_progress',
       operations: [{ id: ROW_OP, role: 'codeweaver', text: ROW_TEXT, status: 'in_progress' }],
@@ -458,7 +458,7 @@ test.describe('Live elapsed duration on in-progress execution rows: completion f
     await page.clock.setFixedTime(FIXED_NOW);
 
     const urlSlug = guilds.extractUrlSlug({ guild });
-    await nav.navigateToQuest({ urlSlug, questId: questId });
+    await nav.navigateToQuest({ urlSlug, questId });
 
     const executionPanel = page.getByTestId('execution-panel-widget');
     await expect(executionPanel).toBeVisible({ timeout: PANEL_TIMEOUT });
@@ -480,7 +480,7 @@ test.describe('Live elapsed duration on in-progress execution rows: completion f
       questFilePath,
       items: [{ id: ROW_WI, status: 'complete', completedAt: COMPLETED_AT }],
     });
-    await quests.forceStatusRebroadcast({ questId: questId, status: 'in_progress' });
+    await quests.forceStatusRebroadcast({ questId, status: 'in_progress' });
 
     // Rule out the sibling "quest paused" -> paused-no-figure branch, where the figure would be
     // GONE rather than changed: the element must still be PRESENT, carrying the new value.
@@ -518,8 +518,8 @@ test.describe('Live elapsed duration on in-progress execution rows: completion f
     const questFilePath = String(created.filePath);
 
     await quests.writeQuestFile({
-      questId: questId,
-      questFolder: questFolder,
+      questId,
+      questFolder,
       questFilePath,
       status: 'in_progress',
       operations: [{ id: ROW_OP, role: 'codeweaver', text: ROW_TEXT, status: 'in_progress' }],
@@ -541,7 +541,7 @@ test.describe('Live elapsed duration on in-progress execution rows: completion f
     await page.clock.setFixedTime(FIXED_NOW);
 
     const urlSlug = guilds.extractUrlSlug({ guild });
-    await nav.navigateToQuest({ urlSlug, questId: questId });
+    await nav.navigateToQuest({ urlSlug, questId });
 
     const executionPanel = page.getByTestId('execution-panel-widget');
     await expect(executionPanel).toBeVisible({ timeout: PANEL_TIMEOUT });
@@ -563,7 +563,7 @@ test.describe('Live elapsed duration on in-progress execution rows: completion f
       questFilePath,
       items: [{ id: ROW_WI, status: 'complete', completedAt: COMPLETED_AT }],
     });
-    await quests.forceStatusRebroadcast({ questId: questId, status: 'in_progress' });
+    await quests.forceStatusRebroadcast({ questId, status: 'in_progress' });
 
     // Rule out the sibling "quest paused" -> paused-no-figure branch, where the figure would be
     // GONE rather than changed: the element must still be PRESENT, carrying the new value.
@@ -601,8 +601,8 @@ test.describe('Live elapsed duration on in-progress execution rows: completion f
     const questFilePath = String(created.filePath);
 
     await quests.writeQuestFile({
-      questId: questId,
-      questFolder: questFolder,
+      questId,
+      questFolder,
       questFilePath,
       status: 'in_progress',
       operations: [{ id: ROW_OP, role: 'codeweaver', text: ROW_TEXT, status: 'in_progress' }],
@@ -624,7 +624,7 @@ test.describe('Live elapsed duration on in-progress execution rows: completion f
     await page.clock.setFixedTime(FIXED_NOW);
 
     const urlSlug = guilds.extractUrlSlug({ guild });
-    await nav.navigateToQuest({ urlSlug, questId: questId });
+    await nav.navigateToQuest({ urlSlug, questId });
 
     const executionPanel = page.getByTestId('execution-panel-widget');
     await expect(executionPanel).toBeVisible({ timeout: PANEL_TIMEOUT });
@@ -646,7 +646,7 @@ test.describe('Live elapsed duration on in-progress execution rows: completion f
       questFilePath,
       items: [{ id: ROW_WI, status: 'complete', completedAt: COMPLETED_AT }],
     });
-    await quests.forceStatusRebroadcast({ questId: questId, status: 'in_progress' });
+    await quests.forceStatusRebroadcast({ questId, status: 'in_progress' });
 
     // Rule out the sibling "quest paused" -> paused-no-figure branch, where the figure would be
     // GONE rather than changed: the element must still be PRESENT, carrying the new value.

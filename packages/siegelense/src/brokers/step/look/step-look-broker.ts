@@ -26,7 +26,6 @@
  * // The same reading, scoped to one region — rung 2
  */
 
-
 import type { BrowserSession } from '../../../contracts/browser-session/browser-session-contract';
 import { withinSelectorNormaliseTransformer } from '../../../transformers/within-selector-normalise/within-selector-normalise-transformer';
 
@@ -37,10 +36,7 @@ export const stepLookBroker = async ({
   session: BrowserSession;
   within: string | null;
 }): Promise<string> => {
-  const scope =
-    within === null
-      ? null
-      : withinSelectorNormaliseTransformer({ within: within });
+  const scope = within === null ? null : withinSelectorNormaliseTransformer({ within });
 
   const listing = await session.look({ within: scope });
 

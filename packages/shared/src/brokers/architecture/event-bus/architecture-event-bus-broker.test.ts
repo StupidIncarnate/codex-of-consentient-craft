@@ -30,7 +30,8 @@ describe('architectureEventBusBroker', () => {
         sourceFiles: [
           {
             path: STATE_FILE,
-            source: 'export const myBus = { emit: ({ type }) => {}, on: ({ type, handler }) => {} };',
+            source:
+              'export const myBus = { emit: ({ type }) => {}, on: ({ type, handler }) => {} };',
           },
           {
             path: EMITTER_FILE,
@@ -42,7 +43,8 @@ describe('architectureEventBusBroker', () => {
           },
           {
             path: GATEWAY_RESPONDER,
-            source: "import { fooEventsOnAdapter } from '../../../adapters/foo/events-on/foo-events-on-adapter';",
+            source:
+              "import { fooEventsOnAdapter } from '../../../adapters/foo/events-on/foo-events-on-adapter';",
           },
         ],
       });

@@ -38,9 +38,7 @@ describe('validateExportLayerBroker', () => {
       const context = RuleContextStub({ report: mockReport });
       const node = ProgramStub({ code: '' });
       const firstFolder = 'contracts';
-      const collectedExports = [
-        CollectedExportStub({ name: 'userContract', isTypeOnly: false }),
-      ];
+      const collectedExports = [CollectedExportStub({ name: 'userContract', isTypeOnly: false })];
 
       validateExportLayerBroker({
         node,
@@ -86,9 +84,7 @@ describe('validateExportLayerBroker', () => {
       const context = RuleContextStub({ report: mockReport });
       const node = ProgramStub({ code: '' });
       const firstFolder = 'widgets';
-      const collectedExports = [
-        CollectedExportStub({ name: 'ButtonWidget', isTypeOnly: false }),
-      ];
+      const collectedExports = [CollectedExportStub({ name: 'ButtonWidget', isTypeOnly: false })];
 
       validateExportLayerBroker({
         node,
@@ -108,9 +104,7 @@ describe('validateExportLayerBroker', () => {
       const context = RuleContextStub({ report: mockReport });
       const node = ProgramStub({ code: '' });
       const firstFolder = 'startup';
-      const collectedExports = [
-        CollectedExportStub({ name: 'StartApp', isTypeOnly: false }),
-      ];
+      const collectedExports = [CollectedExportStub({ name: 'StartApp', isTypeOnly: false })];
 
       validateExportLayerBroker({
         node,
@@ -202,9 +196,7 @@ describe('validateExportLayerBroker', () => {
       const context = RuleContextStub({ report: mockReport });
       const node = ProgramStub({ code: '' });
       const firstFolder = 'brokers';
-      const collectedExports = [
-        CollectedExportStub({ name: 'userFetch', isTypeOnly: false }),
-      ];
+      const collectedExports = [CollectedExportStub({ name: 'userFetch', isTypeOnly: false })];
 
       validateExportLayerBroker({
         node,
@@ -234,9 +226,7 @@ describe('validateExportLayerBroker', () => {
       const context = RuleContextStub({ report: mockReport });
       const node = ProgramStub({ code: '' });
       const firstFolder = 'contracts';
-      const collectedExports = [
-        CollectedExportStub({ name: 'user', isTypeOnly: false }),
-      ];
+      const collectedExports = [CollectedExportStub({ name: 'user', isTypeOnly: false })];
 
       validateExportLayerBroker({
         node,
@@ -303,9 +293,7 @@ describe('validateExportLayerBroker', () => {
       const context = RuleContextStub({ report: mockReport });
       const node = ProgramStub({ code: '' });
       const firstFolder = 'contracts';
-      const collectedExports = [
-        CollectedExportStub({ name: 'UserContract', isTypeOnly: false }),
-      ];
+      const collectedExports = [CollectedExportStub({ name: 'UserContract', isTypeOnly: false })];
 
       validateExportLayerBroker({
         node,
@@ -371,9 +359,7 @@ describe('validateExportLayerBroker', () => {
       const context = RuleContextStub({ report: mockReport });
       const node = ProgramStub({ code: '' });
       const firstFolder = 'widgets';
-      const collectedExports = [
-        CollectedExportStub({ name: 'buttonWidget', isTypeOnly: false }),
-      ];
+      const collectedExports = [CollectedExportStub({ name: 'buttonWidget', isTypeOnly: false })];
 
       validateExportLayerBroker({
         node,
@@ -435,9 +421,7 @@ describe('validateExportLayerBroker', () => {
       const context = RuleContextStub({ report: mockReport });
       const node = ProgramStub({ code: '' });
       const firstFolder = 'widgets';
-      const collectedExports = [
-        CollectedExportStub({ name: 'InputWidget', isTypeOnly: false }),
-      ];
+      const collectedExports = [CollectedExportStub({ name: 'InputWidget', isTypeOnly: false })];
 
       validateExportLayerBroker({
         node,
@@ -642,9 +626,7 @@ describe('validateExportLayerBroker', () => {
       const context = RuleContextStub({ report: mockReport });
       const node = ProgramStub({ code: '' });
       const firstFolder = 'contracts';
-      const collectedExports = [
-        CollectedExportStub({ name: 'User', isTypeOnly: true }),
-      ];
+      const collectedExports = [CollectedExportStub({ name: 'User', isTypeOnly: true })];
 
       validateExportLayerBroker({
         node,
@@ -688,9 +670,7 @@ describe('validateExportLayerBroker', () => {
       const context = RuleContextStub({ report: mockReport });
       const node = ProgramStub({ code: '' });
       const firstFolder = 'contracts';
-      const collectedExports = [
-        CollectedExportStub({ name: 'User', isTypeOnly: true }),
-      ];
+      const collectedExports = [CollectedExportStub({ name: 'User', isTypeOnly: true })];
 
       validateExportLayerBroker({
         node,
@@ -715,9 +695,7 @@ describe('validateExportLayerBroker', () => {
       const context = RuleContextStub({ report: mockReport });
       const node = ProgramStub({ code: '' });
       const firstFolder = 'statics';
-      const collectedExports = [
-        CollectedExportStub({ name: 'Config', isTypeOnly: true }),
-      ];
+      const collectedExports = [CollectedExportStub({ name: 'Config', isTypeOnly: true })];
 
       validateExportLayerBroker({
         node,
@@ -742,9 +720,7 @@ describe('validateExportLayerBroker', () => {
       const context = RuleContextStub({ report: mockReport });
       const node = ProgramStub({ code: '' });
       const firstFolder = 'brokers';
-      const collectedExports = [
-        CollectedExportStub({ name: 'Rule', isTypeOnly: true }),
-      ];
+      const collectedExports = [CollectedExportStub({ name: 'Rule', isTypeOnly: true })];
 
       validateExportLayerBroker({
         node,
@@ -876,9 +852,7 @@ describe('validateExportLayerBroker', () => {
       const context = RuleContextStub({ report: mockReport });
       const node = ProgramStub({ code: '' });
       const firstFolder = 'startup';
-      const collectedExports = [
-        CollectedExportStub({ name: 'startApp', isTypeOnly: false }),
-      ];
+      const collectedExports = [CollectedExportStub({ name: 'startApp', isTypeOnly: false })];
 
       validateExportLayerBroker({
         node,
@@ -908,9 +882,7 @@ describe('validateExportLayerBroker', () => {
       const context = RuleContextStub({ report: mockReport });
       const node = ProgramStub({ code: '' });
       const firstFolder = 'startup';
-      const collectedExports = [
-        CollectedExportStub({ name: 'StartServer', isTypeOnly: false }),
-      ];
+      const collectedExports = [CollectedExportStub({ name: 'StartServer', isTypeOnly: false })];
 
       validateExportLayerBroker({
         node,
@@ -1004,9 +976,7 @@ describe('validateExportLayerBroker', () => {
       const context = RuleContextStub({ report: mockReport });
       const node = ProgramStub({ code: '' });
       const firstFolder = 'bindings';
-      const collectedExports = [
-        CollectedExportStub({ name: 'useQuest', isTypeOnly: false }),
-      ];
+      const collectedExports = [CollectedExportStub({ name: 'useQuest', isTypeOnly: false })];
 
       validateExportLayerBroker({
         node,

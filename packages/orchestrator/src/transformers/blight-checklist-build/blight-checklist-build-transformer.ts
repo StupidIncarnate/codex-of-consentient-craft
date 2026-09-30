@@ -60,8 +60,16 @@
  * the ABSENCE of a disposition, never whether the unit's path resolves.
  */
 
-import { blightChecklistContract, blightChecklistItemContract, blightConcernContract } from '@dungeonmaster/shared/contracts';
-import type { BlightChecklist, QuestBlightLedgerEntry, QuestPackageEntry } from '@dungeonmaster/shared/contracts';
+import {
+  blightChecklistContract,
+  blightChecklistItemContract,
+  blightConcernContract,
+} from '@dungeonmaster/shared/contracts';
+import type {
+  BlightChecklist,
+  QuestBlightLedgerEntry,
+  QuestPackageEntry,
+} from '@dungeonmaster/shared/contracts';
 
 import { blightConcernGatingStatics } from '../../statics/blight-concern-gating/blight-concern-gating-statics';
 
@@ -103,7 +111,7 @@ export const blightChecklistBuildTransformer = ({
   const groups = new Map<string, string[]>();
 
   for (const file of changedFiles) {
-    const filePath = String(file);
+    const filePath = file;
 
     const isExcluded =
       filePath.endsWith('.json') ||
@@ -180,11 +188,10 @@ export const blightChecklistBuildTransformer = ({
       // present impl file is told apart from a group made only of its test/proxy/stub companions,
       // without tracking a separate flag through the loop above.
       const markerlessFile =
-        files.find((groupFile) => String(groupFile) === `${base}.ts`) ??
-        files.find((groupFile) => String(groupFile) === `${base}.tsx`);
-      const hasTsxFile = files.some((groupFile) => String(groupFile).endsWith('.tsx'));
-      const implPath =
-        markerlessFile ?? `${base}${hasTsxFile ? '.tsx' : '.ts'}`;
+        files.find((groupFile) => groupFile === `${base}.ts`) ??
+        files.find((groupFile) => groupFile === `${base}.tsx`);
+      const hasTsxFile = files.some((groupFile) => groupFile.endsWith('.tsx'));
+      const implPath = markerlessFile ?? `${base}${hasTsxFile ? '.tsx' : '.ts'}`;
       return {
         implPath,
         pairedFiles: files.filter((groupFile) => groupFile !== implPath).sort(),
@@ -199,7 +206,7 @@ export const blightChecklistBuildTransformer = ({
   // its leading slash and therefore matches nothing, which routes its files to the residual group
   // rather than to a package this transformer cannot prove they belong to.
   const projectRootPrefix =
-    projectRoot === undefined ? '' : `${String(projectRoot).replace(/\/+$/u, '')}/`;
+    projectRoot === undefined ? '' : `${projectRoot.replace(/\/+$/u, '')}/`;
 
   // Longest prefix first, so a package declared inside another package's tree claims its own files
   // instead of losing them to the enclosing declaration.
@@ -216,7 +223,7 @@ export const blightChecklistBuildTransformer = ({
     .sort((a, b) => b.prefix.length - a.prefix.length);
 
   const items = resolvedGroups.flatMap(({ implPath, pairedFiles }) => {
-    const implPathText = String(implPath);
+    const implPathText = implPath;
     const basename = implPathText.split('/').pop() ?? implPathText;
     const owningPackage = declaredPackages.find(
       (declared) =>

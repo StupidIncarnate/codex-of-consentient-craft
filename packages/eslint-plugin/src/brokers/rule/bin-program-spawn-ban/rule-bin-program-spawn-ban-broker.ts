@@ -151,10 +151,7 @@ export const ruleBinProgramSpawnBanBroker = (): TSESLint.RuleModule<'binProgramS
         const { callee } = node;
         const args = node.arguments.flatMap((argument) => [argument]);
 
-        if (
-          callee.type === AST_NODE_TYPES.Identifier &&
-          gatewayLocalNames.has(callee.name)
-        ) {
+        if (callee.type === AST_NODE_TYPES.Identifier && gatewayLocalNames.has(callee.name)) {
           const [optionsArg] = args;
           if (optionsArg?.type !== AST_NODE_TYPES.ObjectExpression) {
             return;

@@ -18,7 +18,7 @@
 import { worktreeEnsureQuestBranchResultContract } from '../../../contracts/worktree-ensure-quest-branch-result/worktree-ensure-quest-branch-result-contract';
 import type { WorktreeEnsureQuestBranchResult } from '../../../contracts/worktree-ensure-quest-branch-result/worktree-ensure-quest-branch-result-contract';
 import { stderr } from '#gateway/node/process';
-import { type Quest } from '@dungeonmaster/shared/contracts';
+import type { Quest } from '@dungeonmaster/shared/contracts';
 
 import type { QuestCwdResolution } from '../../../contracts/quest-cwd-resolution/quest-cwd-resolution-contract';
 import type { QuestResumeTrigger } from '../../../contracts/quest-resume-trigger/quest-resume-trigger-contract';

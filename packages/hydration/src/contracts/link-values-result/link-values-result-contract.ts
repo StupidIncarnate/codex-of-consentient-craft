@@ -16,7 +16,19 @@ import { fieldValuesContract } from '../field-values/field-values-contract';
 
 export const linkValuesResultContract = z.discriminatedUnion('ok', [
   z.object({ ok: z.literal(true), values: fieldValuesContract }).brand<'LinkValuesResult'>(),
-  z.object({ ok: z.literal(false), missingParentName: z.string().min(1).regex( /^[A-Za-z][A-Za-z0-9-]*$/u, 'must start with a letter and hold only letters, digits and hyphens — the character set a RowRef segment can encode', ).brand<'LinkValuesResultMissingParentName'>() }).brand<'LinkValuesResult'>(),
+  z
+    .object({
+      ok: z.literal(false),
+      missingParentName: z
+        .string()
+        .min(1)
+        .regex(
+          /^[A-Za-z][A-Za-z0-9-]*$/u,
+          'must start with a letter and hold only letters, digits and hyphens — the character set a RowRef segment can encode',
+        )
+        .brand<'LinkValuesResultMissingParentName'>(),
+    })
+    .brand<'LinkValuesResult'>(),
 ]);
 
 export type LinkValuesResult = z.infer<typeof linkValuesResultContract>;

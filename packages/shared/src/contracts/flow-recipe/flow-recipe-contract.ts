@@ -19,10 +19,15 @@ import { z } from '#gateway/npm/zod';
 import { siegeInstanceContract } from '../siege-instance/siege-instance-contract';
 import { siegeRunContract } from '../siege-run/siege-run-contract';
 
-export const flowRecipeContract = z.object({
-  id: z.string().regex(/^[a-z0-9]+(?:-[a-z0-9]+)*$/u, 'Recipe name must be kebab-case …').brand<'FlowRecipeId'>(),
-  instanceId: siegeInstanceContract.shape.id,
-  runId: siegeRunContract.shape.id,
-}).brand<'FlowRecipe'>();
+export const flowRecipeContract = z
+  .object({
+    id: z
+      .string()
+      .regex(/^[a-z0-9]+(?:-[a-z0-9]+)*$/u, 'Recipe name must be kebab-case …')
+      .brand<'FlowRecipeId'>(),
+    instanceId: siegeInstanceContract.shape.id,
+    runId: siegeRunContract.shape.id,
+  })
+  .brand<'FlowRecipe'>();
 
 export type FlowRecipe = z.infer<typeof flowRecipeContract>;

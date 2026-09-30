@@ -15,9 +15,7 @@ export const rateLimitsHistoryAppendBrokerProxy = (): {
 
   const historyPath = '/home/test/.dungeonmaster/rate-limits-history.jsonl';
 
-  dirnameHandle
-    .calledWith([historyPath])
-    .returns('/home/test/.dungeonmaster');
+  dirnameHandle.calledWith([historyPath]).returns('/home/test/.dungeonmaster');
   historyPathProxy.setupHistoryPath({
     homeDir: '/home/test',
     homePath: '/home/test/.dungeonmaster',

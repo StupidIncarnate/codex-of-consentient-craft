@@ -28,12 +28,7 @@ describe('discoverIgnoreInitBroker', () => {
 
     const result = await discoverIgnoreInitBroker();
 
-    expect(result).toStrictEqual([
-      '**/node_modules/**',
-      '**/dist/**',
-      '**/build/**',
-      '**/.git/**',
-    ]);
+    expect(result).toStrictEqual(['**/node_modules/**', '**/dist/**', '**/build/**', '**/.git/**']);
   });
 
   it('EMPTY: {.gitignore holding only comments} => returns the static rules alone', async () => {
@@ -45,11 +40,6 @@ describe('discoverIgnoreInitBroker', () => {
 
     const result = await discoverIgnoreInitBroker();
 
-    expect(result).toStrictEqual([
-      '**/node_modules/**',
-      '**/dist/**',
-      '**/build/**',
-      '**/.git/**',
-    ]);
+    expect(result).toStrictEqual(['**/node_modules/**', '**/dist/**', '**/build/**', '**/.git/**']);
   });
 });

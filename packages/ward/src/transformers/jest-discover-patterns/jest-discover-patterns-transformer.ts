@@ -23,20 +23,18 @@ export const jestDiscoverPatternsTransformer = ({
   const statics = checkCommandsStatics[checkType];
   const fallbackPatterns = statics.discoverPatterns.map((p) => p);
   const fallbackExclude =
-    'excludePatterns' in statics
-      ? statics.excludePatterns.map((p: string) => p)
-      : [];
+    'excludePatterns' in statics ? statics.excludePatterns.map((p: string) => p) : [];
 
   if (!hasPackageJestConfig) {
-    return jestDiscoverPatternsContract.parse({ patterns: fallbackPatterns, excludePatterns: fallbackExclude });
+    return jestDiscoverPatternsContract.parse({
+      patterns: fallbackPatterns,
+      excludePatterns: fallbackExclude,
+    });
   }
 
   if (checkType === 'unit') {
     return jestDiscoverPatternsContract.parse({
-      patterns: exts.flatMap((ext) => [
-        `src/**/*.test.${ext}`,
-        `test/**/*.test.${ext}`,
-      ]),
+      patterns: exts.flatMap((ext) => [`src/**/*.test.${ext}`, `test/**/*.test.${ext}`]),
       // `bin/**` and `tests/**` integration/e2e excludes mirror the integration-branch
       // discovery roots so a `bin/` integration test or a `tests/integration/` test is
       // never collected as a unit test. `.e2e.test` is retained defensively — e2e is

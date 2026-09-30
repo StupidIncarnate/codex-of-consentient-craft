@@ -18,16 +18,18 @@ import { z } from '#gateway/npm/zod';
 import { agentContract } from '@dungeonmaster/shared/contracts';
 import { transcriptRecordContentBlockContract } from '../transcript-record-content-block/transcript-record-content-block-contract';
 
-const transcriptRecordMessageContract = z.object({
-  model: z.string().brand<'TranscriptRecordMessageModel'>().optional(),
-  content: z
-    .union([
-      z.string().brand<'TranscriptRecordMessageContent'>(),
-      z.array(transcriptRecordContentBlockContract),
-    ])
-    .optional(),
-  usage: z.record(z.string(), z.unknown()).optional(),
-}).brand<'TranscriptRecordMessage'>();
+const transcriptRecordMessageContract = z
+  .object({
+    model: z.string().brand<'TranscriptRecordMessageModel'>().optional(),
+    content: z
+      .union([
+        z.string().brand<'TranscriptRecordMessageContent'>(),
+        z.array(transcriptRecordContentBlockContract),
+      ])
+      .optional(),
+    usage: z.record(z.string(), z.unknown()).optional(),
+  })
+  .brand<'TranscriptRecordMessage'>();
 
 export const transcriptRecordContract = z
   .object({

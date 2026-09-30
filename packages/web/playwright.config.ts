@@ -124,9 +124,9 @@ const UNRESOLVABLE_TOKENS = e2eUnresolvableTokenStatics.tokens.all;
 
 const substituteTokens = (value: string): string =>
   Object.entries(RESOLVABLE_TOKENS).reduce(
-      (result, [token, replacement]) => result.split(token).join(replacement),
-      value,
-    );
+    (result, [token, replacement]) => result.split(token).join(replacement),
+    value,
+  );
 
 const refuseUnresolvableToken = ({ value, field }: { value: string; field: string }): void => {
   const token = UNRESOLVABLE_TOKENS.find((candidate) => value.includes(candidate));
@@ -147,9 +147,7 @@ const isRelativePathEnvValue = (value: string): boolean =>
 
 const resolveEnvValue = (value: string): string => {
   const substituted = substituteTokens(value);
-  return isRelativePathEnvValue(substituted)
-    ? join(REPO_ROOT, substituted)
-    : substituted;
+  return isRelativePathEnvValue(substituted) ? join(REPO_ROOT, substituted) : substituted;
 };
 
 // `dev:no-watch`, never `dev`, for every configured process — see root CLAUDE.md's "Test isolation".
@@ -162,9 +160,9 @@ const resolveEnvValue = (value: string): string => {
 // under that condition reads `.ts` barrels and dies on `SyntaxError: Unexpected token 'export'`. The
 // API server picks source itself (`tsx --conditions=source`), so stripping loses it nothing.
 const SERVER_NODE_OPTIONS = (getEnv('NODE_OPTIONS') ?? '')
-    .split(' ')
-    .filter((token) => token !== '' && token !== '--conditions=source')
-    .join(' ');
+  .split(' ')
+  .filter((token) => token !== '' && token !== '--conditions=source')
+  .join(' ');
 
 const webServer = processes.map((entry) => {
   const port = PORT_BY_ROLE[entry.portRole];

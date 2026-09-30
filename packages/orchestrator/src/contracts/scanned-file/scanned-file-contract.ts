@@ -17,16 +17,18 @@ import { usageLedgerContract } from '@dungeonmaster/shared/contracts';
 // the scan compares a file's reading against its cursor for equality.
 const cursorShape = usageLedgerContract.shape.cursors.valueType.shape;
 
-export const scannedFileContract = z.object({
-  path: z
-    .string()
-    .min(1)
-    .refine((path) => path.startsWith('/') || /^[A-Za-z]:\\/u.test(path), {
-      message: 'Path must be absolute (start with / or C:\\ on Windows)',
-    })
-    .brand<'ScannedFilePath'>(),
-  mtimeMs: cursorShape.mtimeMs,
-  size: cursorShape.size,
-}).brand<'ScannedFile'>();
+export const scannedFileContract = z
+  .object({
+    path: z
+      .string()
+      .min(1)
+      .refine((path) => path.startsWith('/') || /^[A-Za-z]:\\/u.test(path), {
+        message: 'Path must be absolute (start with / or C:\\ on Windows)',
+      })
+      .brand<'ScannedFilePath'>(),
+    mtimeMs: cursorShape.mtimeMs,
+    size: cursorShape.size,
+  })
+  .brand<'ScannedFile'>();
 
 export type ScannedFile = z.infer<typeof scannedFileContract>;

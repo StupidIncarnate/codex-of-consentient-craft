@@ -31,7 +31,5 @@ export const pathCheckLayerBroker = ({
     return [];
   }
 
-  return passthrough.filter(
-    (arg) => !existsSync(`${String(rootPath)}/${String(arg)}`),
-  );
+  return passthrough.filter((arg) => !existsSync(`${rootPath}/${String(arg)}`));
 };

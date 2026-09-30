@@ -78,7 +78,13 @@ export const QuestCommentBatchResponderProxy = (): {
     }): void => {
       orchestrator.commentBatchReturns({ questId, chatProcessId, message: deliveredMessage });
     },
-    setupCommentBatchError: ({ questId, message }: { questId: Quest['id']; message: string }): void => {
+    setupCommentBatchError: ({
+      questId,
+      message,
+    }: {
+      questId: Quest['id'];
+      message: string;
+    }): void => {
       orchestrator.commentBatchThrows({ questId, error: new Error(message) });
     },
     getDeliveredBatch: ({ questId }: { questId: Quest['id'] }): unknown =>

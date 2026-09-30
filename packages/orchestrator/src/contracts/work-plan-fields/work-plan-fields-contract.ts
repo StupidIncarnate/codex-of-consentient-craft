@@ -47,31 +47,41 @@
  * needs `.omit()`/`.shape` on a mark, so the reason that split exists does not apply at this field.
  */
 
-import { unitObservationContract, workItemContract, operationItemContract, flowContract } from '@dungeonmaster/shared/contracts';
+import {
+  unitObservationContract,
+  workItemContract,
+  operationItemContract,
+  flowContract,
+} from '@dungeonmaster/shared/contracts';
 import { z } from '#gateway/npm/zod';
 
 import { workPlanBatchContract } from '../work-plan-batch/work-plan-batch-contract';
 
-export const workPlanFieldsContract = z.object({
-  operationItemId: operationItemContract.shape.id,
-  family: z
-    .enum(['codeweaver', 'flowrider', 'siegemaster'])
-    .describe('Which step graph this plan’s pieces resolve their `step` against.'),
-  flowId: flowContract.shape.id
-    .nullable()
-    .describe('The one flow this plan covers, or null for a contracts-only cell.'),
-  packageNames: z.array(z.string().min(1).brand<'WorkPlanFieldsPackageNames'>()).default([]),
-  writtenBy: workItemContract.shape.id.describe(
-    'Server-stamped — the work item whose session submitted this plan.',
-  ),
-  writtenAt: z.iso.datetime().brand<'WorkPlanFieldsWrittenAt'>().describe('Server-stamped, from the server’s own clock.'),
-  batches: z.array(workPlanBatchContract).default([]),
-  plannerMarks: z
-    .array(unitObservationContract)
-    .default([])
-    .describe(
-      "The planner's ONE mark authority — `cant-meet` only, and only for a unit it is simultaneously putting on no piece.",
+export const workPlanFieldsContract = z
+  .object({
+    operationItemId: operationItemContract.shape.id,
+    family: z
+      .enum(['codeweaver', 'flowrider', 'siegemaster'])
+      .describe('Which step graph this plan’s pieces resolve their `step` against.'),
+    flowId: flowContract.shape.id
+      .nullable()
+      .describe('The one flow this plan covers, or null for a contracts-only cell.'),
+    packageNames: z.array(z.string().min(1).brand<'WorkPlanFieldsPackageNames'>()).default([]),
+    writtenBy: workItemContract.shape.id.describe(
+      'Server-stamped — the work item whose session submitted this plan.',
     ),
-}).brand<'WorkPlanFields'>();
+    writtenAt: z.iso
+      .datetime()
+      .brand<'WorkPlanFieldsWrittenAt'>()
+      .describe('Server-stamped, from the server’s own clock.'),
+    batches: z.array(workPlanBatchContract).default([]),
+    plannerMarks: z
+      .array(unitObservationContract)
+      .default([])
+      .describe(
+        "The planner's ONE mark authority — `cant-meet` only, and only for a unit it is simultaneously putting on no piece.",
+      ),
+  })
+  .brand<'WorkPlanFields'>();
 
 export type WorkPlanFields = z.infer<typeof workPlanFieldsContract>;

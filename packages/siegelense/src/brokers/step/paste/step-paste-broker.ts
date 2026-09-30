@@ -38,7 +38,6 @@
  * // after 5000ms (still moving: network)'
  */
 
-
 import type { BrowserSession } from '../../../contracts/browser-session/browser-session-contract';
 import { driverStatics } from '../../../statics/driver/driver-statics';
 import { pasteStatics } from '../../../statics/paste/paste-statics';

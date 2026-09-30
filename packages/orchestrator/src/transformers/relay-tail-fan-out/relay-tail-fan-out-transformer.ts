@@ -203,7 +203,7 @@ export const relayTailFanOutTransformer = ({
       ];
       for (const owner of owners) {
         if (owner !== undefined) {
-          const key = String(owner);
+          const key = owner;
           packageNamesByKey.set(key, owner);
           if (!flowsByPackage.has(key)) {
             flowsByPackage.set(key, []);
@@ -223,18 +223,18 @@ export const relayTailFanOutTransformer = ({
         return name === undefined ? [] : [{ name, flowIds }];
       })
       .sort((left, right) => {
-        const leftRank = rankByPackage.get(String(left.name)) ?? unrankedTier;
-        const rightRank = rankByPackage.get(String(right.name)) ?? unrankedTier;
+        const leftRank = rankByPackage.get(left.name) ?? unrankedTier;
+        const rightRank = rankByPackage.get(right.name) ?? unrankedTier;
         if (leftRank !== rightRank) {
           return leftRank - rightRank;
         }
         const depthDelta =
-          (depthByPackage.get(String(left.name)) ?? 0) -
-          (depthByPackage.get(String(right.name)) ?? 0);
+          (depthByPackage.get(left.name) ?? 0) -
+          (depthByPackage.get(right.name) ?? 0);
         if (depthDelta !== 0) {
           return depthDelta;
         }
-        return String(left.name).localeCompare(String(right.name));
+        return left.name.localeCompare(right.name);
       });
 
     // The text is a LABEL, not the scope. What the session must satisfy — the nodes, the verbatim
@@ -248,14 +248,14 @@ export const relayTailFanOutTransformer = ({
         slice.flowIds.length === 0
           ? [
               {
-                text: textContract.parse(`${entry.text} — package: ${String(slice.name)}`),
+                text: textContract.parse(`${entry.text} — package: ${slice.name}`),
                 flowIds: [],
                 packageNames: operationItemContract.shape.packageNames.parse([slice.name]),
               },
             ]
           : slice.flowIds.map((flowId) => ({
               text: textContract.parse(
-                `${entry.text} — package: ${String(slice.name)} · flow: ${String(flowId)}`,
+                `${entry.text} — package: ${slice.name} · flow: ${String(flowId)}`,
               ),
               flowIds: [flowId],
               packageNames: operationItemContract.shape.packageNames.parse([slice.name]),

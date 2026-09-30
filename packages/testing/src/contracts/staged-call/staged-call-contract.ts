@@ -16,7 +16,8 @@ export const stagedCallContract = z
     once: z.boolean(),
     consumed: z.boolean(),
   })
-  .loose().brand<'StagedCall'>();
+  .loose()
+  .brand<'StagedCall'>();
 
 export type StagedCall = z.infer<typeof stagedCallContract> & {
   impl: (...args: unknown[]) => unknown;

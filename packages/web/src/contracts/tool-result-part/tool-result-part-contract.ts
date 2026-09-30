@@ -13,18 +13,21 @@
 
 import { z } from '#gateway/npm/zod';
 
-
 export const toolResultPartContract = z.discriminatedUnion('kind', [
-  z.object({
-    kind: z.literal('markdown'),
-    label: z.string().brand<'ToolResultPartLabel'>().optional(),
-    source: z.string().brand<'ToolResultPartSource'>(),
-  }).brand<'ToolResultPart'>(),
-  z.object({
-    kind: z.literal('text'),
-    label: z.string().brand<'ToolResultPartLabel'>().optional(),
-    text: z.string().brand<'ToolResultPartText'>(),
-  }).brand<'ToolResultPart'>(),
+  z
+    .object({
+      kind: z.literal('markdown'),
+      label: z.string().brand<'ToolResultPartLabel'>().optional(),
+      source: z.string().brand<'ToolResultPartSource'>(),
+    })
+    .brand<'ToolResultPart'>(),
+  z
+    .object({
+      kind: z.literal('text'),
+      label: z.string().brand<'ToolResultPartLabel'>().optional(),
+      text: z.string().brand<'ToolResultPartText'>(),
+    })
+    .brand<'ToolResultPart'>(),
 ]);
 
 export type ToolResultPart = z.infer<typeof toolResultPartContract>;

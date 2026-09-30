@@ -15,26 +15,21 @@
  * WHEN-NOT-TO-USE: When full AST parsing is needed — this is a v1 regex heuristic
  */
 
-
 // Matches: handler: async ({ args }) => SomeName({
 // Capture group 1 = the responder function name (PascalCase identifier)
 const HANDLER_RESPONDER_PATTERN =
   /handler:\s*async\s*\(\s*\{\s*args\s*\}\s*\)\s*=>\s*([A-Z][A-Za-z0-9]*)\s*\(/gu;
 
-export const mcpHandlerResponderExtractTransformer = ({
-  source,
-}: {
-  source: string;
-}): string[] => {
+export const mcpHandlerResponderExtractTransformer = ({ source }: { source: string }): string[] => {
   const responders: string[] = [];
   HANDLER_RESPONDER_PATTERN.lastIndex = 0;
-  let match = HANDLER_RESPONDER_PATTERN.exec(String(source));
+  let match = HANDLER_RESPONDER_PATTERN.exec(source);
   while (match !== null) {
     const [, responderName] = match;
     if (responderName !== undefined) {
       responders.push(responderName);
     }
-    match = HANDLER_RESPONDER_PATTERN.exec(String(source));
+    match = HANDLER_RESPONDER_PATTERN.exec(source);
   }
   return responders;
 };

@@ -41,11 +41,11 @@ export const e2eArtifactsPruneBroker = async ({
 
   await Promise.all(
     e2eArtifactsStatics.artifacts.map(async (artifact) => {
-      const parentPath = `${String(packageRoot)}/${artifact.parentDir}`;
+      const parentPath = `${packageRoot}/${artifact.parentDir}`;
 
       // Per PREFIX, not per sweep. A package with no test-results/ must not stop the vite cache
       // under node_modules/ being swept.
-      const entries = (await readdirIfExists(String(parentPath)).catch(() => null)) ?? [];
+      const entries = (await readdirIfExists(parentPath).catch(() => null)) ?? [];
 
       const candidates = entries.filter(
         (entry) =>
@@ -60,24 +60,26 @@ export const e2eArtifactsPruneBroker = async ({
       await Promise.all(
         candidates.map(async (entry) => {
           const name = entry;
-          const entryPath = `${String(parentPath)}/${name}`;
+          const entryPath = `${parentPath}/${name}`;
 
           try {
-            const stats = await statIfExists(String(entryPath));
+            const stats = await statIfExists(entryPath);
 
             if (stats === null || now - stats.modifiedAtMs <= artifact.ttlMs) {
               return;
             }
 
             if (artifact.portKeyed) {
-              const port = Number(name.slice(artifact.prefix.length, name.length - artifact.suffix.length));
+              const port = Number(
+                name.slice(artifact.prefix.length, name.length - artifact.suffix.length),
+              );
 
               if ((await listeningPids({ port })).length > 0) {
                 return;
               }
             }
 
-            await rm(String(entryPath), { recursive: true, force: true });
+            await rm(entryPath, { recursive: true, force: true });
           } catch {
             // This entry is somebody else's problem now — a concurrent sweep took it, or the
             // filesystem said no. Every other candidate still gets its turn.

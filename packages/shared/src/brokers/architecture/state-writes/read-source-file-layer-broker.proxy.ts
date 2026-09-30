@@ -2,32 +2,20 @@ import { readFileSyncProxy } from '#gateway/node/fs/read-file-sync/read-file-syn
 import { FileMissingErrorStub } from '#gateway/node/fs/file-missing-error/file-missing-error.stub';
 
 export const readSourceFileLayerBrokerProxy = (): {
-  setupReturns: ({
-    filePath,
-    content,
-  }: {
-    filePath: string;
-    content: string;
-  }) => void;
+  setupReturns: ({ filePath, content }: { filePath: string; content: string }) => void;
   setupMissing: ({ filePath }: { filePath: string }) => void;
 } => {
   const gatewayProxy = readFileSyncProxy();
 
   return {
-    setupReturns: ({
-      filePath,
-      content,
-    }: {
-      filePath: string;
-      content: string;
-    }): void => {
-      gatewayProxy.returns({ path: String(filePath), contents: content });
+    setupReturns: ({ filePath, content }: { filePath: string; content: string }): void => {
+      gatewayProxy.returns({ path: filePath, contents: content });
     },
 
     setupMissing: ({ filePath }: { filePath: string }): void => {
       gatewayProxy.throws({
-        path: String(filePath),
-        error: FileMissingErrorStub({ path: String(filePath) }),
+        path: filePath,
+        error: FileMissingErrorStub({ path: filePath }),
       });
     },
   };

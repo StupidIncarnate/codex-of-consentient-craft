@@ -1,4 +1,3 @@
-
 import { locationsSnapshotPathsFindBroker } from './locations-snapshot-paths-find-broker';
 import { locationsSnapshotPathsFindBrokerProxy } from './locations-snapshot-paths-find-broker.proxy';
 import { SnapshotOrdinalStub } from '../../../contracts/snapshot-ordinal/snapshot-ordinal.stub';

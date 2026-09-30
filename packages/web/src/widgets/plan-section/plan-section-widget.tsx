@@ -23,7 +23,7 @@ export const PlanSectionWidget = <T,>({
 }: PlanSectionWidgetProps<T>): React.JSX.Element => (
   <Box mb="sm" data-testid="PLAN_SECTION">
     <Box mb={4}>
-      <SectionHeaderWidget label={title} count={items.length as number} />
+      <SectionHeaderWidget label={title} count={items.length} />
     </Box>
     <Stack gap={4}>
       {items.map((item, index) => (

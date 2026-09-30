@@ -280,10 +280,7 @@ describe('mockCallsToStatementsTransformer', () => {
         moduleName: 'fs/promises',
         factory: null,
         sourceFile: 'test.proxy.ts',
-        identifierNames: [
-          'readFile',
-          'writeFile',
-        ],
+        identifierNames: ['readFile', 'writeFile'],
       });
 
       const nodeFactory = ts.factory;

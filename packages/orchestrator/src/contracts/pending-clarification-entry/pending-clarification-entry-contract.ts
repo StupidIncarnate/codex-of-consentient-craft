@@ -12,9 +12,11 @@ import { questContract } from '@dungeonmaster/shared/contracts';
 
 import { clarificationQuestionContract } from '../clarification-question/clarification-question-contract';
 
-export const pendingClarificationEntryContract = z.object({
-  questId: questContract.shape.id,
-  questions: z.array(clarificationQuestionContract).min(1),
-}).brand<'PendingClarificationEntry'>();
+export const pendingClarificationEntryContract = z
+  .object({
+    questId: questContract.shape.id,
+    questions: z.array(clarificationQuestionContract).min(1),
+  })
+  .brand<'PendingClarificationEntry'>();
 
 export type PendingClarificationEntry = z.infer<typeof pendingClarificationEntryContract>;

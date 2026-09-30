@@ -19,7 +19,6 @@
  */
 import type { Page } from '#gateway/npm/playwright__test';
 
-
 export const executionRowStatusHarness = ({
   page,
 }: {
@@ -60,7 +59,7 @@ export const executionRowStatusHarness = ({
           }
           const seen = byRowIndex[index] ?? [];
           if (seen[seen.length - 1] !== label) {
-            seen.push(label as string);
+            seen.push(label);
           }
         });
       };
@@ -87,7 +86,7 @@ export const executionRowStatusHarness = ({
         __executionRowTexts?: string[];
         __executionRowStatuses?: string[][];
       };
-      const index = (store.__executionRowTexts ?? []).indexOf(text as string);
+      const index = (store.__executionRowTexts ?? []).indexOf(text);
       return index === -1 ? [] : (store.__executionRowStatuses?.[index] ?? []);
     }, rowText),
 });

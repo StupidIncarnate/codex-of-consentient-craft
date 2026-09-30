@@ -10,11 +10,13 @@
 import { z } from '#gateway/npm/zod';
 import { proxyCatchAllContract } from '../proxy-catch-all/proxy-catch-all-contract';
 
-export const adapterCallerContract = z.object({
-  file: z.string().min(1).brand<'AdapterCallerFile'>(),
-  proxyFile: z.string().min(1).brand<'AdapterCallerProxyFile'>().nullable(),
-  composedBy: z.array(z.string().min(1).brand<'AdapterCallerComposedBy'>()),
-  catchAll: z.array(proxyCatchAllContract),
-}).brand<'AdapterCaller'>();
+export const adapterCallerContract = z
+  .object({
+    file: z.string().min(1).brand<'AdapterCallerFile'>(),
+    proxyFile: z.string().min(1).brand<'AdapterCallerProxyFile'>().nullable(),
+    composedBy: z.array(z.string().min(1).brand<'AdapterCallerComposedBy'>()),
+    catchAll: z.array(proxyCatchAllContract),
+  })
+  .brand<'AdapterCaller'>();
 
 export type AdapterCaller = z.infer<typeof adapterCallerContract>;

@@ -1,4 +1,3 @@
-
 import { SettleReadingStub } from '../../contracts/settle-reading/settle-reading.stub';
 import { settleReadingRenderTransformer } from './settle-reading-render-transformer';
 

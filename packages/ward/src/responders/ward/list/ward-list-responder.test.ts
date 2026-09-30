@@ -1,4 +1,3 @@
-
 import { WardRunResultStub } from '../../../contracts/ward-result/ward-result.stub';
 import { WardListResponderProxy } from './ward-list-responder.proxy';
 

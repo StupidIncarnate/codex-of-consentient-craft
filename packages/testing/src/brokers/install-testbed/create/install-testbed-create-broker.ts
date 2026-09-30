@@ -89,13 +89,7 @@ export const installTestbedCreateBroker = ({
       }
     },
 
-    writeFile: ({
-      relativePath,
-      content,
-    }: {
-      relativePath: string;
-      content: string;
-    }): void => {
+    writeFile: ({ relativePath, content }: { relativePath: string; content: string }): void => {
       const fullPath = join(projectPath, relativePath);
       const dir = dirname(fullPath);
       if (!existsSync(dir)) {
@@ -187,16 +181,16 @@ export const installTestbedCreateBroker = ({
         });
         // runSync folds stderr into `output`, so a failed run reports it whole as stderr.
         return {
-          exitCode: exitCode,
-          stdout: (exitCode === 0 ? output : ''),
-          stderr: (exitCode === 0 ? '' : output),
+          exitCode,
+          stdout: exitCode === 0 ? output : '',
+          stderr: exitCode === 0 ? '' : output,
         };
       } catch (error) {
         const stderr = error instanceof Error ? error.message : 'Unknown error';
         return {
           exitCode: 1,
           stdout: '',
-          stderr: stderr,
+          stderr,
         };
       }
     },

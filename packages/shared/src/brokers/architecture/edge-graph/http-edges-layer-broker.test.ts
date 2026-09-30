@@ -204,7 +204,8 @@ describe('httpEdgesLayerBroker', () => {
         brokerFiles: [
           {
             path: QUEST_START_BROKER_PATH,
-            source: "fetchPostAdapter({ url: webConfigStatics.api.routes.questStart.replace(':questId', questId), body: {} });",
+            source:
+              "fetchPostAdapter({ url: webConfigStatics.api.routes.questStart.replace(':questId', questId), body: {} });",
           },
         ],
       });

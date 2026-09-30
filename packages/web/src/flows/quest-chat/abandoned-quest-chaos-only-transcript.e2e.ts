@@ -51,8 +51,8 @@ test.describe('Abandoned quest with only a chaoswhisperer work item still shows 
     // during the chaoswhisperer phase therefore lands with EXACTLY this shape on
     // disk: one chaoswhisperer work item, status `skipped`, sessionId stamped.
     await quests.writeQuestFile({
-      questId: questId,
-      questFolder: questFolder,
+      questId,
+      questFolder,
       questFilePath: String(questFilePath),
       status: 'abandoned',
       workItems: [
@@ -66,7 +66,7 @@ test.describe('Abandoned quest with only a chaoswhisperer work item still shows 
     });
 
     const urlSlug = guilds.extractUrlSlug({ guild });
-    await nav.navigateToQuest({ urlSlug, questId: questId });
+    await nav.navigateToQuest({ urlSlug, questId });
 
     const executionPanel = page.getByTestId('execution-panel-widget');
 

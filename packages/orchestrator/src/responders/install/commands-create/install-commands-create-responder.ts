@@ -9,7 +9,11 @@
  * // Returns InstallResult — action 'created'; the two command files are written to disk
  */
 
-import { type InstallContext, type InstallResult, installResultContract } from '@dungeonmaster/shared/contracts';
+import {
+  type InstallContext,
+  type InstallResult,
+  installResultContract,
+} from '@dungeonmaster/shared/contracts';
 import { locationsStatics } from '@dungeonmaster/shared/statics';
 import { ensureDir, writeFile } from '#gateway/node/fs__promises';
 import { join } from '#gateway/node/path';
@@ -23,7 +27,11 @@ export const InstallCommandsCreateResponder = async ({
 }: {
   context: InstallContext;
 }): Promise<InstallResult> => {
-  const commandsDir = join(context.targetProjectRoot, locationsStatics.repoRoot.claude.dir, COMMANDS_DIR_NAME);
+  const commandsDir = join(
+    context.targetProjectRoot,
+    locationsStatics.repoRoot.claude.dir,
+    COMMANDS_DIR_NAME,
+  );
 
   await ensureDir(commandsDir);
 

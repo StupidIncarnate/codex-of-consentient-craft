@@ -23,7 +23,7 @@ const resolveFrom = ({
         typeAliases,
         visitedNames: visited.map((value) => value),
       });
-      return found === undefined ? [] : [{ name: String(found.name), kind: found.node.kind }];
+      return found === undefined ? [] : [{ name: found.name, kind: found.node.kind }];
     });
 };
 

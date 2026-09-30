@@ -9,7 +9,11 @@
  * // Creates .mcp.json with dungeonmaster config, adds MCP permissions to .claude/settings.json
  */
 
-import { type InstallContext, type InstallResult, installResultContract } from '@dungeonmaster/shared/contracts';
+import {
+  type InstallContext,
+  type InstallResult,
+  installResultContract,
+} from '@dungeonmaster/shared/contracts';
 import { jsonFileContentsTransformer } from '@dungeonmaster/shared/transformers';
 import { join } from '#gateway/node/path';
 import { readJsonFileIfExists, writeFile } from '#gateway/node/fs__promises';
@@ -37,7 +41,7 @@ export const InstallConfigCreateResponder = async ({
     existingContents === null ? null : mcpConfigContract.parse(existingContents);
 
   // Add MCP permissions to .claude/settings.json (always, regardless of MCP config state)
-  const targetProjectRoot = context.targetProjectRoot;
+  const { targetProjectRoot } = context;
   await settingsPermissionsAddBroker({ targetProjectRoot });
   await agentsPluginCreateBroker({ targetProjectRoot });
 

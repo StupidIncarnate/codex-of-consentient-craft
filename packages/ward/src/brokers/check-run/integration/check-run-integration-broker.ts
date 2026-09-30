@@ -79,7 +79,7 @@ export const checkRunIntegrationBroker = async ({
     });
   }
 
-  const relevantFiles = fileList.filter((f) => !isNonIntegrationTestGuard({ filePath: String(f) }));
+  const relevantFiles = fileList.filter((f) => !isNonIntegrationTestGuard({ filePath: f }));
 
   if (fileList.length > 0 && relevantFiles.length === 0) {
     return projectResultContract.parse({
@@ -97,14 +97,14 @@ export const checkRunIntegrationBroker = async ({
     });
   }
 
-  const dirs = relevantFiles.filter((f) => !String(f).includes('.'));
-  const fileEntries = relevantFiles.filter((f) => String(f).includes('.'));
+  const dirs = relevantFiles.filter((f) => !f.includes('.'));
+  const fileEntries = relevantFiles.filter((f) => f.includes('.'));
   const hasFiles = fileEntries.length > 0;
   const hasDirs = dirs.length > 0;
 
   if (!hasFiles && hasDirs) {
     const hasMatchingDiscovered = discoveredFiles.some((discovered) =>
-      dirs.some((dir) => discovered.includes(String(dir))),
+      dirs.some((dir) => discovered.includes(dir)),
     );
     if (!hasMatchingDiscovered) {
       return projectResultContract.parse({
@@ -164,7 +164,7 @@ export const checkRunIntegrationBroker = async ({
   if (testNamePattern !== undefined) {
     finalArgs.push('--testNamePattern', testNamePattern);
   }
-  const command = String(binResolveBroker({ binName: bin, cwd }));
+  const command = binResolveBroker({ binName: bin, cwd });
 
   // `--detectOpenHandles` above only reports from the MAIN thread, so the worker branch would
   // otherwise report no leaks at all. `@dungeonmaster/testing`'s jest setup watches the timer
@@ -195,7 +195,7 @@ export const checkRunIntegrationBroker = async ({
     env: {
       ...(sourceConditionSupportedBroker({ cwd }) ? { NODE_OPTIONS: '--conditions=source' } : {}),
       ...(wantsTimerWatch
-        ? { [openHandleReportStatics.env.pathVar]: String(handleReportPath) }
+        ? { [openHandleReportStatics.env.pathVar]: handleReportPath }
         : {}),
     },
   }).catch((error: unknown) => {
@@ -205,7 +205,7 @@ export const checkRunIntegrationBroker = async ({
     return { exitCode: 1, output: '', signal: null, timedOut: false };
   });
 
-  const exitCode = result.exitCode;
+  const { exitCode } = result;
   const status = exitCode === 0 ? 'pass' : 'fail';
 
   // In file scope (--committed / --uncommitted / passthrough), jest's "no tests found" banner means none of the

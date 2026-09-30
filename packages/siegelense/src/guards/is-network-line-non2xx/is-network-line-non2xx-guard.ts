@@ -17,7 +17,6 @@
  * // Returns true
  */
 
-
 import { resultsStatics } from '../../statics/results/results-statics';
 
 const NON2XX_FLOOR = 200;

@@ -53,7 +53,6 @@
  * // Returns { settled: true, reason: 'quiet', waitedMs: 300, unsettled: [], ... }
  */
 
-
 import type { SettleReading } from '../../../contracts/settle-reading/settle-reading-contract';
 import { settleRequestShapeTransformer } from '../../../transformers/settle-request-shape/settle-request-shape-transformer';
 import { settlePollLayerBroker } from './settle-poll-layer-broker';
@@ -125,11 +124,7 @@ export const settleWaitLayerBroker = ({
 }): {
   initScriptSource: () => string;
   probeSource: () => string;
-  noteRequestStarted: (params: {
-    method: string;
-    url: string;
-    resourceType: string;
-  }) => string;
+  noteRequestStarted: (params: { method: string; url: string; resourceType: string }) => string;
   noteRequestSettled: (params: { method: string; url: string }) => string;
   waitForSettle: (params: {
     quietWindowMs?: number | undefined;
@@ -158,14 +153,14 @@ export const settleWaitLayerBroker = ({
         return shape;
       }
 
-      const seen = ((startCounts.get(shape) ?? 0) + 1);
+      const seen = (startCounts.get(shape) ?? 0) + 1;
       startCounts.set(shape, seen);
 
       if (seen >= pollerRepeatThreshold) {
         return shape;
       }
 
-      pendingByShape.set(shape, ((pendingByShape.get(shape) ?? 0) + 1));
+      pendingByShape.set(shape, (pendingByShape.get(shape) ?? 0) + 1);
       networkState.lastActivityAtMs = Date.now();
       return shape;
     },
@@ -176,7 +171,7 @@ export const settleWaitLayerBroker = ({
       const shape = settleRequestShapeTransformer({ method, url });
       const pending = pendingByShape.get(shape) ?? 0;
       if (pending > 0) {
-        pendingByShape.set(shape, (pending - 1));
+        pendingByShape.set(shape, pending - 1);
         networkState.lastActivityAtMs = Date.now();
       }
       return shape;
@@ -200,7 +195,10 @@ export const settleWaitLayerBroker = ({
           Math.ceil(ceilingMs / Math.max(1, pollMs)) + POLL_ATTEMPT_HEADROOM,
         ),
         networkSnapshot: () => ({
-          pendingRequests: Array.from(pendingByShape.values()).reduce((total, count) => total + count, 0),
+          pendingRequests: Array.from(pendingByShape.values()).reduce(
+            (total, count) => total + count,
+            0,
+          ),
           lastActivityAtMs: networkState.lastActivityAtMs,
           pollersDiscounted: Array.from(startCounts.entries())
             .filter(([, count]) => count >= pollerRepeatThreshold)

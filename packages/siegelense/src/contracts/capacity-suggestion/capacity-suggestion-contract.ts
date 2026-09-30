@@ -22,7 +22,6 @@
 
 import { z } from '#gateway/npm/zod';
 
-
 export const capacitySuggestionContract = z
   .object({
     suggested: z.number().int().nonnegative().brand<'CapacitySuggestionSuggested'>(),
@@ -32,6 +31,7 @@ export const capacitySuggestionContract = z
     ceilingLeft: z.number().int().nonnegative().brand<'CapacitySuggestionCeilingLeft'>(),
     availableMB: z.number().int().nonnegative().brand<'CapacitySuggestionAvailableMB'>(),
   })
-  .strict().brand<'CapacitySuggestion'>();
+  .strict()
+  .brand<'CapacitySuggestion'>();
 
 export type CapacitySuggestion = z.infer<typeof capacitySuggestionContract>;

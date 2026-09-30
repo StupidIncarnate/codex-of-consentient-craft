@@ -21,21 +21,27 @@ import { flowOffMapSignoffContract } from '../flow-off-map-signoff/flow-off-map-
 import { flowRecipeContract } from '../flow-recipe/flow-recipe-contract';
 import { flowTypeContract } from '../flow-type/flow-type-contract';
 
-export const flowContract = z.object({
-  id: z.string().min(1).regex(/^[a-z][a-z0-9]*(-[a-z0-9]+)*$/u).brand<'FlowId'>(),
-  name: z.string().min(1).brand<'FlowName'>(),
-  flowType: flowTypeContract,
-  scope: z.string().brand<'FlowScope'>().optional(),
-  entryPoint: z.string().min(1).brand<'FlowEntryPoint'>(),
-  exitPoints: z.array(z.string().min(1).brand<'FlowExitPoints'>()).min(1),
-  nodes: z.array(flowNodeContract).default([]),
-  edges: z.array(flowEdgeContract).default([]),
-  offMapSignoffs: z.array(flowOffMapSignoffContract).default([]),
-  // Seed recipes a planner proved for this flow — an ID-BEARING ARRAY exactly like
-  // `offMapSignoffs` above, for the same merge-upsert reason. Nothing in phase A–C of this
-  // change creates an entry here; story 08 validates it, story 18 serves it, story 27 renders
-  // it.
-  recipes: z.array(flowRecipeContract).default([]),
-}).brand<'Flow'>();
+export const flowContract = z
+  .object({
+    id: z
+      .string()
+      .min(1)
+      .regex(/^[a-z][a-z0-9]*(-[a-z0-9]+)*$/u)
+      .brand<'FlowId'>(),
+    name: z.string().min(1).brand<'FlowName'>(),
+    flowType: flowTypeContract,
+    scope: z.string().brand<'FlowScope'>().optional(),
+    entryPoint: z.string().min(1).brand<'FlowEntryPoint'>(),
+    exitPoints: z.array(z.string().min(1).brand<'FlowExitPoints'>()).min(1),
+    nodes: z.array(flowNodeContract).default([]),
+    edges: z.array(flowEdgeContract).default([]),
+    offMapSignoffs: z.array(flowOffMapSignoffContract).default([]),
+    // Seed recipes a planner proved for this flow — an ID-BEARING ARRAY exactly like
+    // `offMapSignoffs` above, for the same merge-upsert reason. Nothing in phase A–C of this
+    // change creates an entry here; story 08 validates it, story 18 serves it, story 27 renders
+    // it.
+    recipes: z.array(flowRecipeContract).default([]),
+  })
+  .brand<'Flow'>();
 
 export type Flow = z.infer<typeof flowContract>;

@@ -7,7 +7,6 @@
  * // Returns FileContents with all required metadata sections
  */
 
-
 export const hasMetadataCommentGuardProxy = (): {
   setupValidMetadata: () => string;
   setupMissingPurpose: () => string;

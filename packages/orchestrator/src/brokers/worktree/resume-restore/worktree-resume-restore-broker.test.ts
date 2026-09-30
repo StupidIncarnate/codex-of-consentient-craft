@@ -1,4 +1,3 @@
-
 import { worktreeResumeRestoreBroker } from './worktree-resume-restore-broker';
 import { worktreeResumeRestoreBrokerProxy } from './worktree-resume-restore-broker.proxy';
 

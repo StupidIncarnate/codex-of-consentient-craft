@@ -27,7 +27,6 @@ export const createPackageResolveRequestBrokerProxy = (): {
       }
     },
 
-    getPromptsAsked: (): readonly string[] =>
-      question.getPromptsAsked().map((prompt) => prompt),
+    getPromptsAsked: (): readonly string[] => question.getPromptsAsked().map((prompt) => prompt),
   };
 };

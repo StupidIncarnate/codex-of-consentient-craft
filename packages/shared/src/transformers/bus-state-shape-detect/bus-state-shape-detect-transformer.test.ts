@@ -20,7 +20,8 @@ describe('busStateShapeDetectTransformer', () => {
 
     it('VALID: {arrow-fn property values across multiple lines} => returns export name', () => {
       const result = busStateShapeDetectTransformer({
-        source: 'export const orchestrationEventsState = {\n  emit: ({ type }) => {},\n  on: ({ type, handler }) => {},\n};',
+        source:
+          'export const orchestrationEventsState = {\n  emit: ({ type }) => {},\n  on: ({ type, handler }) => {},\n};',
       });
 
       expect(String(result)).toBe('orchestrationEventsState');

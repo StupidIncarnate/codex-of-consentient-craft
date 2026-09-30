@@ -5,12 +5,12 @@ describe('schemaObjectEntriesReadTransformer', () => {
     it('VALID: {keys, a quoted key and a getter behind a brand call} => lists key and value text in written order', () => {
       const result = schemaObjectEntriesReadTransformer({
         text: [
-            'z.object({',
-            "  id: z.string().brand<'ThingId'>(),",
-            "  'other-key': z.number(),",
-            '  get parent() { return thingContract.shape.id; },',
-            "}).brand<'Thing'>()",
-          ].join('\n'),
+          'z.object({',
+          "  id: z.string().brand<'ThingId'>(),",
+          "  'other-key': z.number(),",
+          '  get parent() { return thingContract.shape.id; },',
+          "}).brand<'Thing'>()",
+        ].join('\n'),
       });
 
       expect(result).toStrictEqual([
@@ -33,9 +33,7 @@ describe('schemaObjectEntriesReadTransformer', () => {
     it.each(['z.enum(["a"])', 'someContract', 'z.object(shape)', 'z.string().min(1)'])(
       'EMPTY: {%s} => returns no entries',
       (value) => {
-        expect(
-          schemaObjectEntriesReadTransformer({ text: value }),
-        ).toStrictEqual([]);
+        expect(schemaObjectEntriesReadTransformer({ text: value })).toStrictEqual([]);
       },
     );
 

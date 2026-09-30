@@ -12,11 +12,7 @@ import { censusLayoutStatics } from '../../statics/census-layout/census-layout-s
 
 const BARREL_PATTERN = /^([^/]+)\/src\/([^/]+)\/\2\.ts$/u;
 
-export const gatewayBarrelImportPathTransformer = ({
-  file,
-}: {
-  file: string;
-}): string | null => {
+export const gatewayBarrelImportPathTransformer = ({ file }: { file: string }): string | null => {
   const prefix = `${censusLayoutStatics.gatewayRoot}/`;
   if (!file.startsWith(prefix)) {
     return null;

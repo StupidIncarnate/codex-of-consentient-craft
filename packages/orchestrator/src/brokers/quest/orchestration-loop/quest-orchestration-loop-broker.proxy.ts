@@ -1,5 +1,10 @@
 import { stderrProxy } from '#gateway/node/process/stderr/stderr.proxy';
-import { questContract, type Quest, type WorkItem, type WorkItemStatus } from '@dungeonmaster/shared/contracts';
+import {
+  questContract,
+  type Quest,
+  type WorkItem,
+  type WorkItemStatus,
+} from '@dungeonmaster/shared/contracts';
 import type { QuestStub } from '@dungeonmaster/shared/contracts/quest/quest.stub';
 import { registerSpyOn } from '@dungeonmaster/testing/register-mock';
 import { DungeonmasterConfigStub } from '@dungeonmaster/config/contracts/dungeonmaster-config/dungeonmaster-config.stub';

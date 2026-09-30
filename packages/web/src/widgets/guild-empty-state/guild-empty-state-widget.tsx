@@ -10,7 +10,6 @@ import { useState } from '#gateway/npm/react';
 
 import { Group, Stack, Text, TextInput } from '#gateway/npm/mantine__core';
 
-
 import { buttonLabelContract } from '../../contracts/button-label/button-label-contract';
 import { buttonVariantContract } from '../../contracts/button-variant/button-variant-contract';
 import { emberDepthsThemeStatics } from '../../statics/ember-depths-theme/ember-depths-theme-statics';
@@ -99,8 +98,8 @@ export const GuildEmptyStateWidget = ({
             label={createLabel}
             onClick={() => {
               onAddGuild({
-                name: name,
-                path: path,
+                name,
+                path,
               });
             }}
           />
@@ -115,7 +114,7 @@ export const GuildEmptyStateWidget = ({
           setBrowserOpened(false);
         }}
         onSelect={({ path: selectedPath }) => {
-          setPath(String(selectedPath));
+          setPath(selectedPath);
           setBrowserOpened(false);
         }}
       />

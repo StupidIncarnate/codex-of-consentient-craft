@@ -23,7 +23,7 @@ export const PrimitiveDuplicateDetectionRunResponderProxy = (): {
     callResponder: PrimitiveDuplicateDetectionRunResponder,
 
     setupNoDuplicates: ({ pattern = '**/*.ts' }: { pattern?: string } = {}): void => {
-      cwdStage.setupCwd({ value: String(DEFAULT_CWD) });
+      cwdStage.setupCwd({ value: DEFAULT_CWD });
       brokerProxy.setupFiles({ pattern, files: [] });
     },
 
@@ -34,7 +34,7 @@ export const PrimitiveDuplicateDetectionRunResponderProxy = (): {
       sourceCode: string;
       pattern?: string;
     }): void => {
-      cwdStage.setupCwd({ value: String(DEFAULT_CWD) });
+      cwdStage.setupCwd({ value: DEFAULT_CWD });
       brokerProxy.setupFiles({
         pattern,
         files: [{ filePath: '/home/user/project/src/file.ts', sourceCode }],

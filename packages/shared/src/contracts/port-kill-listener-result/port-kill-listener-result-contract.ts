@@ -9,11 +9,12 @@
 
 import { z } from '#gateway/npm/zod';
 
-
-export const portKillListenerResultContract = z.object({
-  pid: z.number().int().positive().brand<'PortKillListenerResultPid'>(),
-  exitCode: z.number().int().min(0).max(255).brand<'PortKillListenerResultExitCode'>(),
-  output: z.string().brand<'PortKillListenerResultOutput'>(),
-}).brand<'PortKillListenerResult'>();
+export const portKillListenerResultContract = z
+  .object({
+    pid: z.number().int().positive().brand<'PortKillListenerResultPid'>(),
+    exitCode: z.number().int().min(0).max(255).brand<'PortKillListenerResultExitCode'>(),
+    output: z.string().brand<'PortKillListenerResultOutput'>(),
+  })
+  .brand<'PortKillListenerResult'>();
 
 export type PortKillListenerResult = z.infer<typeof portKillListenerResultContract>;

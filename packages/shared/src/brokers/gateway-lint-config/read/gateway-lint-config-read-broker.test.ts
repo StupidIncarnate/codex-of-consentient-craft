@@ -40,17 +40,17 @@ describe('gatewayLintConfigReadBroker', () => {
       proxy.setupConfig({
         configPath,
         fileContent: JSON.stringify({
-            gateway: {
-              bannedExports: [
-                {
-                  subpath: '#gateway/node/fs',
-                  name: 'readFileSync',
-                  use: 'readFile',
-                  reason: 'blocks the loop',
-                },
-              ],
-            },
-          }),
+          gateway: {
+            bannedExports: [
+              {
+                subpath: '#gateway/node/fs',
+                name: 'readFileSync',
+                use: 'readFile',
+                reason: 'blocks the loop',
+              },
+            ],
+          },
+        }),
       });
 
       const result = gatewayLintConfigReadBroker({ repoRoot });
@@ -89,10 +89,10 @@ describe('gatewayLintConfigReadBroker', () => {
       proxy.setupConfig({
         configPath,
         fileContent: JSON.stringify({
-            gateway: {
-              bannedExports: [{ subpath: '#gateway/node/fs', name: 'readFileSync' }],
-            },
-          }),
+          gateway: {
+            bannedExports: [{ subpath: '#gateway/node/fs', name: 'readFileSync' }],
+          },
+        }),
       });
 
       const result = gatewayLintConfigReadBroker({ repoRoot });

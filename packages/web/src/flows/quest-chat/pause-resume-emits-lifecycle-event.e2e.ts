@@ -63,7 +63,10 @@ test.describe('Pause/Resume emits lifecycle events', () => {
     });
 
     const expectedQuestId = String(questId);
-    const wsCapture = wsQuestLifecycleHarness({ page, questId: QuestIdStub({ value: expectedQuestId }) });
+    const wsCapture = wsQuestLifecycleHarness({
+      page,
+      questId: QuestIdStub({ value: expectedQuestId }),
+    });
     wsCapture.beforeEach();
 
     const urlSlug = guilds.extractUrlSlug({ guild });
@@ -135,10 +138,13 @@ test.describe('Pause/Resume emits lifecycle events', () => {
       ],
     });
 
-    await quests.seedPausedAtStatus({ questId: questId, pausedAtStatus: 'in_progress' });
+    await quests.seedPausedAtStatus({ questId, pausedAtStatus: 'in_progress' });
 
     const expectedQuestId = String(questId);
-    const wsCapture = wsQuestLifecycleHarness({ page, questId: QuestIdStub({ value: expectedQuestId }) });
+    const wsCapture = wsQuestLifecycleHarness({
+      page,
+      questId: QuestIdStub({ value: expectedQuestId }),
+    });
     wsCapture.beforeEach();
 
     const urlSlug = guilds.extractUrlSlug({ guild });

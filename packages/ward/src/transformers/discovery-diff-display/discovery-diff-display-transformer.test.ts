@@ -1,4 +1,3 @@
-
 import { discoveryDiffDisplayTransformer } from './discovery-diff-display-transformer';
 
 describe('discoveryDiffDisplayTransformer', () => {
@@ -56,9 +55,7 @@ describe('discoveryDiffDisplayTransformer', () => {
 
   describe('truncation', () => {
     it('VALID: {more files than maxDisplay} => truncates with count', () => {
-      const files = Array.from({ length: 5 }, (_, i) =>
-        `file-${String(i)}.ts`,
-      );
+      const files = Array.from({ length: 5 }, (_, i) => `file-${String(i)}.ts`);
 
       const result = discoveryDiffDisplayTransformer({
         hasMismatch: true,

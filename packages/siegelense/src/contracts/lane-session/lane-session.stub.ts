@@ -29,30 +29,19 @@ export const LaneSessionStub = ({
 
   return {
     ...laneSessionContract.parse({
-      specName:
-        dataProps.specName === undefined
-          ? 'dungeonmaster-stack'
-          : dataProps.specName,
+      specName: dataProps.specName === undefined ? 'dungeonmaster-stack' : dataProps.specName,
       ports: PortPairStub(dataProps.ports),
-      homePath: (dataProps.homePath ?? '/tmp/dm-siege-stub'),
-      evidencePath: (dataProps.evidencePath ?? '/tmp/dm-siege-stub-evidence'),
-      baseUrl: (dataProps.baseUrl ?? 'http://127.0.0.1:0'),
-      apiBaseUrl: (dataProps.apiBaseUrl ?? dataProps.baseUrl ?? 'http://127.0.0.1:0'),
-      pgids:
-        dataProps.pgids === undefined
-          ? [12345]
-          : dataProps.pgids.map((value) => value),
+      homePath: dataProps.homePath ?? '/tmp/dm-siege-stub',
+      evidencePath: dataProps.evidencePath ?? '/tmp/dm-siege-stub-evidence',
+      baseUrl: dataProps.baseUrl ?? 'http://127.0.0.1:0',
+      apiBaseUrl: dataProps.apiBaseUrl ?? dataProps.baseUrl ?? 'http://127.0.0.1:0',
+      pgids: dataProps.pgids === undefined ? [12345] : dataProps.pgids.map((value) => value),
       browser: dataProps.browser === null ? null : BrowserSessionStub(dataProps.browser),
-      logFds:
-        dataProps.logFds === undefined
-          ? []
-          : dataProps.logFds.map((value) => value),
+      logFds: dataProps.logFds === undefined ? [] : dataProps.logFds.map((value) => value),
     }),
     readServerLogSince: readServerLogSince ?? ((): readonly string[] => []),
     serverLogLength:
       serverLogLength ??
-      (serverLogLengthSequence === undefined
-        ? (): number => 0
-        : readOneFromSequence),
+      (serverLogLengthSequence === undefined ? (): number => 0 : readOneFromSequence),
   };
 };

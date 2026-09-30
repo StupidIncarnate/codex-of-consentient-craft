@@ -13,6 +13,8 @@ import type { z } from '#gateway/npm/zod';
 
 import { guildContract } from '@dungeonmaster/shared/contracts';
 
-export const guildFieldsContract = guildContract.pick({ name: true, path: true }).brand<'GuildFields'>();
+export const guildFieldsContract = guildContract
+  .pick({ name: true, path: true })
+  .brand<'GuildFields'>();
 
 export type GuildFields = z.infer<typeof guildFieldsContract>;

@@ -5,7 +5,8 @@ describe('architectureBackRefBroker', () => {
   describe('responder file with PascalCase export', () => {
     it('VALID: {orchestrator responder} => returns packages/orchestrator (ChatReplayResponder)', () => {
       const proxy = architectureBackRefBrokerProxy();
-      const filePath = '/repo/packages/orchestrator/src/responders/chat/replay/chat-replay-responder.ts';
+      const filePath =
+        '/repo/packages/orchestrator/src/responders/chat/replay/chat-replay-responder.ts';
       proxy.setupSource({
         filePath,
         content: 'export const ChatReplayResponder = (input: Input) => {};',

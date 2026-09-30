@@ -17,7 +17,14 @@ import { useEffect, useMemo, useState } from '#gateway/npm/react';
 
 import { Box, Group, Stack, UnstyledButton } from '#gateway/npm/mantine__core';
 
-import type { Quest, QuestStatus, WorkItem, ChatEntry, PastedImageUpload, Session } from '@dungeonmaster/shared/contracts';
+import type {
+  Quest,
+  QuestStatus,
+  WorkItem,
+  ChatEntry,
+  PastedImageUpload,
+  Session,
+} from '@dungeonmaster/shared/contracts';
 
 import { useElapsedTickBinding } from '../../bindings/use-elapsed-tick/use-elapsed-tick-binding';
 import { useQuestProjectionBinding } from '../../bindings/use-quest-projection/use-quest-projection-binding';
@@ -207,9 +214,8 @@ export const ExecutionPanelWidget = ({
   });
   const { now } = useElapsedTickBinding({ enabled: hasRunningWorkItem });
 
-  const totalOperations = quest.operations.length as number;
-  const completedOperations = quest.operations.filter((op) => op.status === 'complete')
-    .length as number;
+  const totalOperations = quest.operations.length;
+  const completedOperations = quest.operations.filter((op) => op.status === 'complete').length;
 
   // The status bar prefers the PROJECTION's own step walk (27d) — it counts every family's actual
   // and planned STEPS, not merely operations, so it advances even mid-scope. `data` stays null both
@@ -223,10 +229,10 @@ export const ExecutionPanelWidget = ({
   const projectionCompletedSteps = projection?.completedSteps;
   const projectionUsable = projectionTotalSteps !== undefined && projectionError === null;
   const progressSource: 'projection' | 'ledger' = projectionUsable ? 'projection' : 'ledger';
-  const rawTotalSteps = projectionUsable ? Number(projectionTotalSteps) : Number(totalOperations);
+  const rawTotalSteps = projectionUsable ? Number(projectionTotalSteps) : totalOperations;
   const rawCompletedSteps = projectionUsable
     ? Number(projectionCompletedSteps ?? 0)
-    : Number(completedOperations);
+    : completedOperations;
   // 27d's own ASSERT: the ratio must never exceed 1. `questProjectionContract`'s doc says
   // completedSteps <= totalPlannedSteps "by construction", but this bar clamps anyway rather than
   // trust a producer it cannot see fail — a stale or malformed projection must never read past 100%.
@@ -274,7 +280,7 @@ export const ExecutionPanelWidget = ({
     const rawOperationId = operationRef?.slice(OPERATIONS_PREFIX_LENGTH) as
       (typeof quest.operations)[0]['id'] | undefined;
     const operation = rawOperationId === undefined ? undefined : operationsById.get(rawOperationId);
-    const scopeKey = (operation ? `op:${operation.id}` : `role:${wi.role}`);
+    const scopeKey = operation ? `op:${operation.id}` : `role:${wi.role}`;
     workItemScopeKey.set(wi.id, scopeKey);
     const existing = scopeGroups.get(scopeKey);
     if (existing) {
@@ -329,7 +335,7 @@ export const ExecutionPanelWidget = ({
     // Tier 2/3/4: group by STEP first, then by PIECE within a shared step.
     const stepGroups = new Map<string, WorkItem[]>();
     group.forEach((wi) => {
-      const stepKey = (wi.step ?? `${wi.role} role`);
+      const stepKey = wi.step ?? `${wi.role} role`;
       const stepGroup = stepGroups.get(stepKey);
       if (stepGroup) {
         stepGroup.push(wi);
@@ -355,15 +361,16 @@ export const ExecutionPanelWidget = ({
       // under the sentinel.
       const pieceGroups = new Map<string, WorkItem[]>();
       stepGroup.forEach((wi) => {
-        const payloadPieceName = Object.entries(wi.payload ?? {}).find(([key]) => key === 'pieceName')?.[1];
+        const payloadPieceName = Object.entries(wi.payload ?? {}).find(
+          ([key]) => key === 'pieceName',
+        )?.[1];
         const pieceLabel =
           wi.pieceId === undefined
             ? undefined
             : typeof payloadPieceName === 'string' && payloadPieceName.length > 0
               ? payloadPieceName
               : wi.pieceId;
-        const pieceKey =
-          pieceLabel === undefined ? NO_PIECE_GROUP_KEY : pieceLabel;
+        const pieceKey = pieceLabel === undefined ? NO_PIECE_GROUP_KEY : pieceLabel;
         const pieceGroup = pieceGroups.get(pieceKey);
         if (pieceGroup) {
           pieceGroup.push(wi);
@@ -383,10 +390,7 @@ export const ExecutionPanelWidget = ({
         if (pieceGroup.length >= SCOPE_HOLDS_MULTIPLE_SESSIONS) {
           // Tier 4 — same step AND same piece: a true duplicate, numbered in array order.
           pieceGroup.forEach((wi, idx) => {
-            stepLabelByWorkItemId.set(
-              wi.id,
-              `${stepKey} pt: ${idx + 1}`,
-            );
+            stepLabelByWorkItemId.set(wi.id, `${stepKey} pt: ${idx + 1}`);
           });
           return;
         }
@@ -398,10 +402,7 @@ export const ExecutionPanelWidget = ({
           pieceKey === NO_PIECE_GROUP_KEY
             ? (solePieceItem.sessionId ?? solePieceItem.id)
             : pieceKey;
-        stepLabelByWorkItemId.set(
-          solePieceItem.id,
-          `${stepKey} - ${resolvedPieceLabel}`,
-        );
+        stepLabelByWorkItemId.set(solePieceItem.id, `${stepKey} - ${resolvedPieceLabel}`);
       });
     });
   });
@@ -475,13 +476,13 @@ export const ExecutionPanelWidget = ({
         renderRows.push({
           kind: 'workItem',
           workItem: soleItem,
-          order: nextRowOrder++ as number,
+          order: nextRowOrder++,
           ...(soleItemMintedByLabel === undefined ? {} : { mintedByLabel: soleItemMintedByLabel }),
         });
       }
       return;
     }
-    renderRows.push({ kind: 'header', scopeKey, order: nextRowOrder++ as number });
+    renderRows.push({ kind: 'header', scopeKey, order: nextRowOrder++ });
     group.forEach((child) => {
       const childStepLabel = stepLabelByWorkItemId.get(child.id);
       const childMintedByLabel =
@@ -496,7 +497,7 @@ export const ExecutionPanelWidget = ({
     });
   });
   unclaimedOperations.forEach((op) => {
-    renderRows.push({ kind: 'unclaimed', operation: op, order: nextRowOrder++ as number });
+    renderRows.push({ kind: 'unclaimed', operation: op, order: nextRowOrder++ });
   });
 
   // The running-row auto-expand "focus" (T2-9a) hands to exactly one work item — the FIRST one, in

@@ -43,13 +43,11 @@ export const scanPackageBroker = async ({
   targets: string[];
   configFile: ScanConfigFile;
 }): Promise<ScanPackageResult> => {
-  const command = String(
-    binResolveBroker({
+  const command = binResolveBroker({
       binName: scanStatics.eslint.bin,
       cwd: projectFolder.path,
-    }),
-  );
-  const folderRelative = String(projectFolder.path).slice(String(rootPath).length + 1);
+    });
+  const folderRelative = String(projectFolder.path).slice(rootPath.length + 1);
   const args = [
     scanStatics.eslint.configFlag,
     String(configFile.path),
@@ -59,7 +57,7 @@ export const scanPackageBroker = async ({
       : [folderRelative]),
   ];
 
-  const result = await run({ command, args, cwd: String(rootPath) }).catch((error: unknown) => {
+  const result = await run({ command, args, cwd: rootPath }).catch((error: unknown) => {
     throw new Error(`Scan of ${projectFolder.name} could not start ${command}: ${String(error)}`, {
       cause: error,
     });

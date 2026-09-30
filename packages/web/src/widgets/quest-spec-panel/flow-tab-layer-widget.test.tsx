@@ -28,14 +28,7 @@ describe('FlowTabLayerWidget', () => {
     const flow = FlowStub({ name: 'Login Flow' });
 
     mantineRenderMiddleware({
-      ui: (
-        <FlowTabLayerWidget
-          flow={flow}
-          index={0}
-          isActive={false}
-          onSelect={() => undefined}
-        />
-      ),
+      ui: <FlowTabLayerWidget flow={flow} index={0} isActive={false} onSelect={() => undefined} />,
     });
 
     expect(screen.getByTestId('FLOW_TAB_LABEL').textContent).toBe('Login Flow');
@@ -46,14 +39,7 @@ describe('FlowTabLayerWidget', () => {
     const flow = EmptyNameFlowStub({ id: 'flow-c' });
 
     mantineRenderMiddleware({
-      ui: (
-        <FlowTabLayerWidget
-          flow={flow}
-          index={2}
-          isActive={false}
-          onSelect={() => undefined}
-        />
-      ),
+      ui: <FlowTabLayerWidget flow={flow} index={2} isActive={false} onSelect={() => undefined} />,
     });
 
     expect(screen.getByTestId('FLOW_TAB_LABEL').textContent).toBe('Flow 3');
@@ -64,14 +50,7 @@ describe('FlowTabLayerWidget', () => {
     const flow = FlowStub({ name: 'A'.repeat(30) });
 
     mantineRenderMiddleware({
-      ui: (
-        <FlowTabLayerWidget
-          flow={flow}
-          index={0}
-          isActive={false}
-          onSelect={() => undefined}
-        />
-      ),
+      ui: <FlowTabLayerWidget flow={flow} index={0} isActive={false} onSelect={() => undefined} />,
     });
 
     expect(screen.getByTestId('FLOW_TAB_LABEL').textContent).toBe(`${'A'.repeat(27)}…`);
@@ -83,14 +62,7 @@ describe('FlowTabLayerWidget', () => {
     const flow = FlowStub({ name: longName });
 
     mantineRenderMiddleware({
-      ui: (
-        <FlowTabLayerWidget
-          flow={flow}
-          index={0}
-          isActive={false}
-          onSelect={() => undefined}
-        />
-      ),
+      ui: <FlowTabLayerWidget flow={flow} index={0} isActive={false} onSelect={() => undefined} />,
     });
 
     expect(screen.getByTestId('FLOW_TAB').getAttribute('title')).toBe(longName);
@@ -101,14 +73,7 @@ describe('FlowTabLayerWidget', () => {
     const flow = FlowStub();
 
     mantineRenderMiddleware({
-      ui: (
-        <FlowTabLayerWidget
-          flow={flow}
-          index={0}
-          isActive={true}
-          onSelect={() => undefined}
-        />
-      ),
+      ui: <FlowTabLayerWidget flow={flow} index={0} isActive={true} onSelect={() => undefined} />,
     });
 
     expect(screen.getByTestId('FLOW_TAB').getAttribute('data-active')).toBe('true');
@@ -119,14 +84,7 @@ describe('FlowTabLayerWidget', () => {
     const flow = FlowStub();
 
     mantineRenderMiddleware({
-      ui: (
-        <FlowTabLayerWidget
-          flow={flow}
-          index={0}
-          isActive={false}
-          onSelect={() => undefined}
-        />
-      ),
+      ui: <FlowTabLayerWidget flow={flow} index={0} isActive={false} onSelect={() => undefined} />,
     });
 
     expect(screen.getByTestId('FLOW_TAB').getAttribute('data-active')).toBe(null);
@@ -138,14 +96,7 @@ describe('FlowTabLayerWidget', () => {
     const onSelect = jest.fn();
 
     mantineRenderMiddleware({
-      ui: (
-        <FlowTabLayerWidget
-          flow={flow}
-          index={0}
-          isActive={false}
-          onSelect={onSelect}
-        />
-      ),
+      ui: <FlowTabLayerWidget flow={flow} index={0} isActive={false} onSelect={onSelect} />,
     });
     await proxy.clickTab();
 
@@ -189,12 +140,7 @@ describe('FlowTabLayerWidget', () => {
 
       mantineRenderMiddleware({
         ui: (
-          <FlowTabLayerWidget
-            flow={flow}
-            index={0}
-            isActive={false}
-            onSelect={() => undefined}
-          />
+          <FlowTabLayerWidget flow={flow} index={0} isActive={false} onSelect={() => undefined} />
         ),
       });
 

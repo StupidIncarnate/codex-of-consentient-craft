@@ -105,7 +105,7 @@ export const flowGraphToTextTransformer = ({
         ),
       ),
   );
-  const ownPackageText = ownPackage === undefined ? undefined : String(ownPackage);
+  const ownPackageText = ownPackage === undefined ? undefined : ownPackage;
 
   const visited = new Set<FlowNode['id']>();
   const lines: string[] = [];
@@ -135,9 +135,7 @@ export const flowGraphToTextTransformer = ({
       const node = nodeMap.get(nodeId);
 
       if (!node) {
-        lines.push(
-          `${indent}${SYM.rightArrow} ${String(nodeId)} ${SYM.crossFlow}`,
-        );
+        lines.push(`${indent}${SYM.rightArrow} ${String(nodeId)} ${SYM.crossFlow}`);
         continue;
       }
 
@@ -237,9 +235,7 @@ export const flowGraphToTextTransformer = ({
             lines.push(
               `${indent}${SYM.indent}${SYM.indent}target: [#${String(target.node.id)}] {${target.node.packages.map((name) => String(name)).join(', ')}} ${String(target.node.label)} (${target.node.type}) in flow #${String(target.flow.id)} "${String(target.flow.name)}"`,
             );
-            lines.push(
-              `${indent}${SYM.indent}${SYM.indent}${CROSS_FLOW_HANDOFF_NOTE}`,
-            );
+            lines.push(`${indent}${SYM.indent}${SYM.indent}${CROSS_FLOW_HANDOFF_NOTE}`);
           }
           continue;
         }

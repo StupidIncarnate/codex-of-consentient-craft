@@ -20,9 +20,7 @@ describe('importsInFolderTypeFindLayerBroker', () => {
       });
 
       expect(result).toStrictEqual({
-        entries: [
-          '/repo/packages/server/src/flows/quest/quest-flow.ts',
-        ],
+        entries: ['/repo/packages/server/src/flows/quest/quest-flow.ts'],
         layers: [],
       });
     });
@@ -35,9 +33,9 @@ describe('importsInFolderTypeFindLayerBroker', () => {
       proxy.setupSource({
         sourceFile,
         content: [
-            `import { questFlow } from '../flows/quest/quest-flow';`,
-            `import { guildFlow } from '../flows/guild/guild-flow';`,
-          ].join('\n'),
+          `import { questFlow } from '../flows/quest/quest-flow';`,
+          `import { guildFlow } from '../flows/guild/guild-flow';`,
+        ].join('\n'),
       });
 
       const result = importsInFolderTypeFindLayerBroker({
@@ -65,9 +63,9 @@ describe('importsInFolderTypeFindLayerBroker', () => {
       proxy.setupSource({
         sourceFile,
         content: [
-            `import { questFlow } from '../flows/quest/quest-flow';`,
-            `import { someContract } from '@dungeonmaster/shared/contracts';`,
-          ].join('\n'),
+          `import { questFlow } from '../flows/quest/quest-flow';`,
+          `import { someContract } from '@dungeonmaster/shared/contracts';`,
+        ].join('\n'),
       });
 
       const result = importsInFolderTypeFindLayerBroker({
@@ -77,9 +75,7 @@ describe('importsInFolderTypeFindLayerBroker', () => {
       });
 
       expect(result).toStrictEqual({
-        entries: [
-          '/repo/packages/server/src/flows/quest/quest-flow.ts',
-        ],
+        entries: ['/repo/packages/server/src/flows/quest/quest-flow.ts'],
         layers: [],
       });
     });
@@ -107,7 +103,8 @@ describe('importsInFolderTypeFindLayerBroker', () => {
   describe('layer file partitioning', () => {
     it('VALID: {parent broker importing a layer broker} => returns the layer file in layers, not entries', () => {
       const proxy = importsInFolderTypeFindLayerBrokerProxy();
-      const sourceFile = '/repo/packages/orch/src/brokers/quest/orchestration-loop/quest-orchestration-loop-broker.ts';
+      const sourceFile =
+        '/repo/packages/orch/src/brokers/quest/orchestration-loop/quest-orchestration-loop-broker.ts';
       const packageSrcPath = '/repo/packages/orch/src';
 
       proxy.setupSource({
@@ -131,15 +128,16 @@ describe('importsInFolderTypeFindLayerBroker', () => {
 
     it('VALID: {parent broker importing both entry sibling and layer sibling} => partitions into entries and layers', () => {
       const proxy = importsInFolderTypeFindLayerBrokerProxy();
-      const sourceFile = '/repo/packages/orch/src/brokers/quest/orchestration-loop/quest-orchestration-loop-broker.ts';
+      const sourceFile =
+        '/repo/packages/orch/src/brokers/quest/orchestration-loop/quest-orchestration-loop-broker.ts';
       const packageSrcPath = '/repo/packages/orch/src';
 
       proxy.setupSource({
         sourceFile,
         content: [
-            `import { questGetBroker } from '../get/quest-get-broker';`,
-            `import { runSiegemasterLayerBroker } from './run-siegemaster-layer-broker';`,
-          ].join('\n'),
+          `import { questGetBroker } from '../get/quest-get-broker';`,
+          `import { runSiegemasterLayerBroker } from './run-siegemaster-layer-broker';`,
+        ].join('\n'),
       });
 
       const result = importsInFolderTypeFindLayerBroker({
@@ -149,9 +147,7 @@ describe('importsInFolderTypeFindLayerBroker', () => {
       });
 
       expect(result).toStrictEqual({
-        entries: [
-          '/repo/packages/orch/src/brokers/quest/get/quest-get-broker.ts',
-        ],
+        entries: ['/repo/packages/orch/src/brokers/quest/get/quest-get-broker.ts'],
         layers: [
           '/repo/packages/orch/src/brokers/quest/orchestration-loop/run-siegemaster-layer-broker.ts',
         ],

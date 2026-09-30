@@ -20,22 +20,24 @@
 import { unitMarkContract, workItemContract } from '@dungeonmaster/shared/contracts';
 import { z } from '#gateway/npm/zod';
 
-export const unitMarkChurnEntryContract = z.object({
-  workItemId: workItemContract.shape.id,
-  // `.nullable()` throughout, not `.optional()` — a work item assigned this unit that never marked
-  // it is exactly the row this walk exists to show, so the entry is emitted with an explicit null
-  // rather than dropped.
-  step: z.string().min(1).brand<'UnitMarkChurnEntryStep'>().nullable(),
-  mark: unitMarkContract.nullable(),
-  // The three branded strings here are re-declared under the literals `unitObservationContract`
-  // already uses rather than imported. A zod brand is structural on the literal, so a
-  // re-declaration under the same literal is assignable both ways, and a typo in one is a nominal
-  // type nothing satisfies — it fails at the first assignment rather than silently here.
-  evidence: z.string().min(1).brand<'UnitMarkChurnEntryEvidence'>().nullable(),
-  // `toSettle` rides on the entry because a `cant-meet` without its instruction renders as a dead
-  // end with no owner, and this walk is the surface a human reads it off.
-  toSettle: z.string().min(1).brand<'UnitMarkChurnEntryToSettle'>().nullish(),
-  at: z.iso.datetime().brand<'UnitMarkChurnEntryAt'>(),
-}).brand<'UnitMarkChurnEntry'>();
+export const unitMarkChurnEntryContract = z
+  .object({
+    workItemId: workItemContract.shape.id,
+    // `.nullable()` throughout, not `.optional()` — a work item assigned this unit that never marked
+    // it is exactly the row this walk exists to show, so the entry is emitted with an explicit null
+    // rather than dropped.
+    step: z.string().min(1).brand<'UnitMarkChurnEntryStep'>().nullable(),
+    mark: unitMarkContract.nullable(),
+    // The three branded strings here are re-declared under the literals `unitObservationContract`
+    // already uses rather than imported. A zod brand is structural on the literal, so a
+    // re-declaration under the same literal is assignable both ways, and a typo in one is a nominal
+    // type nothing satisfies — it fails at the first assignment rather than silently here.
+    evidence: z.string().min(1).brand<'UnitMarkChurnEntryEvidence'>().nullable(),
+    // `toSettle` rides on the entry because a `cant-meet` without its instruction renders as a dead
+    // end with no owner, and this walk is the surface a human reads it off.
+    toSettle: z.string().min(1).brand<'UnitMarkChurnEntryToSettle'>().nullish(),
+    at: z.iso.datetime().brand<'UnitMarkChurnEntryAt'>(),
+  })
+  .brand<'UnitMarkChurnEntry'>();
 
 export type UnitMarkChurnEntry = z.infer<typeof unitMarkChurnEntryContract>;

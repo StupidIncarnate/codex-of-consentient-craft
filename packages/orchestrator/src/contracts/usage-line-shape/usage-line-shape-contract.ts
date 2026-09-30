@@ -14,19 +14,25 @@ import { z } from '#gateway/npm/zod';
 
 const rawTokenCountContract = z.number().int().min(0).brand<'TokenCount'>();
 
-export const usageLineShapeContract = z.object({
-  timestamp: z.string().min(1).brand<'UsageLineShapeTimestamp'>(),
-  message: z.object({
-    // Every field is optional because the CLI omits a count rather than sending zero, and the set
-    // has grown across releases. A line whose `usage` object is present but empty is still a real
-    // assistant turn that happened to spend nothing measurable.
-    usage: z.object({
-      input_tokens: rawTokenCountContract.nullish(),
-      cache_creation_input_tokens: rawTokenCountContract.nullish(),
-      cache_read_input_tokens: rawTokenCountContract.nullish(),
-      output_tokens: rawTokenCountContract.nullish(),
-    }).brand<'UsageLineShapeMessageUsage'>(),
-  }).brand<'UsageLineShapeMessage'>(),
-}).brand<'UsageLineShape'>();
+export const usageLineShapeContract = z
+  .object({
+    timestamp: z.string().min(1).brand<'UsageLineShapeTimestamp'>(),
+    message: z
+      .object({
+        // Every field is optional because the CLI omits a count rather than sending zero, and the set
+        // has grown across releases. A line whose `usage` object is present but empty is still a real
+        // assistant turn that happened to spend nothing measurable.
+        usage: z
+          .object({
+            input_tokens: rawTokenCountContract.nullish(),
+            cache_creation_input_tokens: rawTokenCountContract.nullish(),
+            cache_read_input_tokens: rawTokenCountContract.nullish(),
+            output_tokens: rawTokenCountContract.nullish(),
+          })
+          .brand<'UsageLineShapeMessageUsage'>(),
+      })
+      .brand<'UsageLineShapeMessage'>(),
+  })
+  .brand<'UsageLineShape'>();
 
 export type UsageLineShape = z.infer<typeof usageLineShapeContract>;

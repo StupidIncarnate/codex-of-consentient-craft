@@ -191,7 +191,7 @@ export const questGetBlightChecklistBrokerProxy = (): {
       cwdMock.onceFor([{ questId: quest.id }]).resolves(
         QuestCwdResolutionStub({
           kind: 'missing-worktree',
-          worktreePath: worktreePath,
+          worktreePath,
         }),
       );
     },

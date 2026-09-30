@@ -9,7 +9,7 @@ export const folderResolveLayerBrokerProxy = (): {
 
   // Every caller of this proxy (folder-resolve-layer-broker.test.ts and
   // command-run-broker.proxy.ts) resolves the package.json for rootPath '/project'.
-  const path = `${'/project'}/package.json`;
+  const path = `/project/package.json`;
 
   return {
     setupReturnsPackage: ({ name }: { name: string }): void => {

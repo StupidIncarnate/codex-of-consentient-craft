@@ -41,9 +41,10 @@ export const GetQuestWorkLayerResponder = async ({
       content: [
         {
           type: 'text',
-          text: (result.planText === null
+          text:
+            result.planText === null
               ? JSON.stringify(result.view, null, JSON_INDENT_SPACES)
-              : String(result.planText)),
+              : result.planText,
         },
       ],
     };

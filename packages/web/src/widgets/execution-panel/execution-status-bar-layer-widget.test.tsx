@@ -10,13 +10,7 @@ describe('ExecutionStatusBarLayerWidget', () => {
       ExecutionStatusBarLayerWidgetProxy();
 
       mantineRenderMiddleware({
-        ui: (
-          <ExecutionStatusBarLayerWidget
-            completedCount={0}
-            totalCount={0}
-            source="ledger"
-          />
-        ),
+        ui: <ExecutionStatusBarLayerWidget completedCount={0} totalCount={0} source="ledger" />,
       });
 
       const bar = screen.getByTestId('execution-status-bar-layer-widget');
@@ -28,13 +22,7 @@ describe('ExecutionStatusBarLayerWidget', () => {
       ExecutionStatusBarLayerWidgetProxy();
 
       mantineRenderMiddleware({
-        ui: (
-          <ExecutionStatusBarLayerWidget
-            completedCount={0}
-            totalCount={0}
-            source="projection"
-          />
-        ),
+        ui: <ExecutionStatusBarLayerWidget completedCount={0} totalCount={0} source="projection" />,
       });
 
       const bar = screen.getByTestId('execution-status-bar-layer-widget');
@@ -48,13 +36,7 @@ describe('ExecutionStatusBarLayerWidget', () => {
       ExecutionStatusBarLayerWidgetProxy();
 
       mantineRenderMiddleware({
-        ui: (
-          <ExecutionStatusBarLayerWidget
-            completedCount={3}
-            totalCount={8}
-            source="ledger"
-          />
-        ),
+        ui: <ExecutionStatusBarLayerWidget completedCount={3} totalCount={8} source="ledger" />,
       });
 
       const bar = screen.getByTestId('execution-status-bar-layer-widget');
@@ -66,13 +48,7 @@ describe('ExecutionStatusBarLayerWidget', () => {
       ExecutionStatusBarLayerWidgetProxy();
 
       mantineRenderMiddleware({
-        ui: (
-          <ExecutionStatusBarLayerWidget
-            completedCount={0}
-            totalCount={5}
-            source="ledger"
-          />
-        ),
+        ui: <ExecutionStatusBarLayerWidget completedCount={0} totalCount={5} source="ledger" />,
       });
 
       const bar = screen.getByTestId('execution-status-bar-layer-widget');
@@ -86,13 +62,7 @@ describe('ExecutionStatusBarLayerWidget', () => {
       ExecutionStatusBarLayerWidgetProxy();
 
       mantineRenderMiddleware({
-        ui: (
-          <ExecutionStatusBarLayerWidget
-            completedCount={1}
-            totalCount={4}
-            source="projection"
-          />
-        ),
+        ui: <ExecutionStatusBarLayerWidget completedCount={1} totalCount={4} source="projection" />,
       });
 
       const bar = screen.getByTestId('execution-status-bar-layer-widget');
@@ -106,13 +76,7 @@ describe('ExecutionStatusBarLayerWidget', () => {
       ExecutionStatusBarLayerWidgetProxy();
 
       mantineRenderMiddleware({
-        ui: (
-          <ExecutionStatusBarLayerWidget
-            completedCount={0}
-            totalCount={8}
-            source="ledger"
-          />
-        ),
+        ui: <ExecutionStatusBarLayerWidget completedCount={0} totalCount={8} source="ledger" />,
       });
 
       const bar = screen.getByTestId('execution-status-bar-layer-widget');

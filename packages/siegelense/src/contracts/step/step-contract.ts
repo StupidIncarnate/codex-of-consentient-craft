@@ -33,7 +33,6 @@
 
 import { z } from '#gateway/npm/zod';
 
-
 import { domFieldContract } from '../dom-field/dom-field-contract';
 import { domTextModeContract } from '../dom-text-mode/dom-text-mode-contract';
 import { httpMethodContract } from '../http-method/http-method-contract';
@@ -115,7 +114,8 @@ export const stepContract = z
           stepExpectationContract.parse(stepStatics.defaults.expect),
         ),
       })
-      .strict().brand<'Step'>(),
+      .strict()
+      .brand<'Step'>(),
     z
       .object({
         step: z.literal('waitFor'),
@@ -128,7 +128,8 @@ export const stepContract = z
           stepExpectationContract.parse(stepStatics.defaults.expect),
         ),
       })
-      .strict().brand<'Step'>(),
+      .strict()
+      .brand<'Step'>(),
     z
       .object({
         step: z.literal('click'),
@@ -141,7 +142,8 @@ export const stepContract = z
           stepExpectationContract.parse(stepStatics.defaults.expect),
         ),
       })
-      .strict().brand<'Step'>(),
+      .strict()
+      .brand<'Step'>(),
     z
       .object({
         step: z.literal('type'),
@@ -155,7 +157,8 @@ export const stepContract = z
           stepExpectationContract.parse(stepStatics.defaults.expect),
         ),
       })
-      .strict().brand<'Step'>(),
+      .strict()
+      .brand<'Step'>(),
     z
       .object({
         step: z.literal('screenshot'),
@@ -165,18 +168,19 @@ export const stepContract = z
         // preference: every reader of this tree decodes PNG (`shotBlankReadBroker`,
         // `shotChangeReadBroker`, and `compare`'s pixel path), so refusing here is what keeps a
         // capture readable by the calls that exist to read it.
-        name: z.string().brand<'StepName'>().refine(
-          (candidate) => candidate.endsWith(evidenceFileStatics.extensions.shot),
-          {
+        name: z
+          .string()
+          .brand<'StepName'>()
+          .refine((candidate) => candidate.endsWith(evidenceFileStatics.extensions.shot), {
             message: `a screenshot name must end in "${evidenceFileStatics.extensions.shot}" — the capture is a PNG and every call that reads one decodes it as such. Try { "step": "screenshot", "name": "after-create${evidenceFileStatics.extensions.shot}" }`,
-          },
-        ),
+          }),
         node: z.string().min(1).brand<'StepNode'>().nullable().default(null),
         expect: stepExpectationContract.default(
           stepExpectationContract.parse(stepStatics.defaults.expect),
         ),
       })
-      .strict().brand<'Step'>(),
+      .strict()
+      .brand<'Step'>(),
     z
       .object({
         step: z.literal('eval'),
@@ -186,7 +190,8 @@ export const stepContract = z
           stepExpectationContract.parse(stepStatics.defaults.expect),
         ),
       })
-      .strict().brand<'Step'>(),
+      .strict()
+      .brand<'Step'>(),
     z
       .object({
         step: z.literal('look'),
@@ -202,7 +207,8 @@ export const stepContract = z
           stepExpectationContract.parse(stepStatics.defaults.expect),
         ),
       })
-      .strict().brand<'Step'>(),
+      .strict()
+      .brand<'Step'>(),
     z
       .object({
         step: z.literal('box'),
@@ -212,7 +218,8 @@ export const stepContract = z
           stepExpectationContract.parse(stepStatics.defaults.expect),
         ),
       })
-      .strict().brand<'Step'>(),
+      .strict()
+      .brand<'Step'>(),
     z
       .object({
         step: z.literal('dom'),
@@ -224,11 +231,19 @@ export const stepContract = z
           stepExpectationContract.parse(stepStatics.defaults.expect),
         ),
       })
-      .strict().brand<'Step'>(),
+      .strict()
+      .brand<'Step'>(),
     z
       .object({
         step: z.literal('seed'),
-        recipe: z.string().min(1).regex( /^[a-z0-9]+(?:-[a-z0-9]+)*$/u, 'Recipe name must be kebab-case — lower-case letters, digits and single hyphens, such as "guild-with-three-quests"', ).brand<'StepRecipe'>(),
+        recipe: z
+          .string()
+          .min(1)
+          .regex(
+            /^[a-z0-9]+(?:-[a-z0-9]+)*$/u,
+            'Recipe name must be kebab-case — lower-case letters, digits and single hyphens, such as "guild-with-three-quests"',
+          )
+          .brand<'StepRecipe'>(),
         // Its own object, never flattened onto the step — a recipe input named `as`, `step` or
         // `recipe` would shadow the step's own keys, and the collision would be silent
         // (siegelense-tooling.md lines 882-883).
@@ -239,7 +254,8 @@ export const stepContract = z
           stepExpectationContract.parse(stepStatics.defaults.expect),
         ),
       })
-      .strict().brand<'Step'>(),
+      .strict()
+      .brand<'Step'>(),
     z
       .object({
         step: z.literal('until'),
@@ -248,16 +264,50 @@ export const stepContract = z
         // ZodEffects and `z.discriminatedUnion` accepts only ZodObjects.
         visible: z.string().min(1).brand<'StepVisible'>().nullable().default(null),
         response: untilResponseContract.nullable().default(null),
-        file: z.string().min(1).refine((candidate) => !candidate.startsWith('/'), { message: 'an `until { file }` path is resolved against the lane\'s own throwaway home and must not start with "/" — a leading slash would silently wait on a file outside the lane the walk is driving. Try { "step": "until", "file": "guilds/<id>/quests/<id>/quest.json" }', }).brand<'StepFile'>().nullable().default(null),
+        file: z
+          .string()
+          .min(1)
+          .refine((candidate) => !candidate.startsWith('/'), {
+            message:
+              'an `until { file }` path is resolved against the lane\'s own throwaway home and must not start with "/" — a leading slash would silently wait on a file outside the lane the walk is driving. Try { "step": "until", "file": "guilds/<id>/quests/<id>/quest.json" }',
+          })
+          .brand<'StepFile'>()
+          .nullable()
+          .default(null),
         predicate: z.string().brand<'StepPredicate'>().nullable().default(null),
-        console: z.string().min(1).refine((candidate) => !(candidate.length >= 2 && candidate.startsWith('/') && candidate.endsWith('/')), { message: 'a console pattern is a regex SOURCE string, not a regex literal — JSON carries no /pattern/ syntax. Drop the surrounding slashes: { "step": "until", "console": "hydrated" }', },).refine((candidate) => { try { const compiled = new RegExp(candidate, 'u'); return typeof compiled.source === 'string'; } catch { return false; } }, { message: 'a console pattern must be a compilable regular expression source' },).brand<'StepConsole'>().nullable().default(null),
+        console: z
+          .string()
+          .min(1)
+          .refine(
+            (candidate) =>
+              !(candidate.length >= 2 && candidate.startsWith('/') && candidate.endsWith('/')),
+            {
+              message:
+                'a console pattern is a regex SOURCE string, not a regex literal — JSON carries no /pattern/ syntax. Drop the surrounding slashes: { "step": "until", "console": "hydrated" }',
+            },
+          )
+          .refine(
+            (candidate) => {
+              try {
+                const compiled = new RegExp(candidate, 'u');
+                return typeof compiled.source === 'string';
+              } catch {
+                return false;
+              }
+            },
+            { message: 'a console pattern must be a compilable regular expression source' },
+          )
+          .brand<'StepConsole'>()
+          .nullable()
+          .default(null),
         timeoutMs: z.number().int().min(0).brand<'StepTimeoutMs'>().nullable().default(null),
         node: z.string().min(1).brand<'StepNode'>().nullable().default(null),
         expect: stepExpectationContract.default(
           stepExpectationContract.parse(stepStatics.defaults.expect),
         ),
       })
-      .strict().brand<'Step'>(),
+      .strict()
+      .brand<'Step'>(),
     z
       .object({
         step: z.literal('key'),
@@ -267,7 +317,8 @@ export const stepContract = z
           stepExpectationContract.parse(stepStatics.defaults.expect),
         ),
       })
-      .strict().brand<'Step'>(),
+      .strict()
+      .brand<'Step'>(),
     z
       .object({
         step: z.literal('health'),
@@ -276,7 +327,8 @@ export const stepContract = z
           stepExpectationContract.parse(stepStatics.defaults.expect),
         ),
       })
-      .strict().brand<'Step'>(),
+      .strict()
+      .brand<'Step'>(),
     z
       .object({
         step: z.literal('resize'),
@@ -287,22 +339,22 @@ export const stepContract = z
           stepExpectationContract.parse(stepStatics.defaults.expect),
         ),
       })
-      .strict().brand<'Step'>(),
+      .strict()
+      .brand<'Step'>(),
     z
       .object({
         step: z.literal('request'),
         method: httpMethodContract.default(httpMethodContract.parse('GET')),
         path: z.string().brand<'StepPath'>(),
         body: z.json().optional(),
-        headers: z
-          .record(z.string(), z.string().brand<'StepHeaders'>())
-          .optional(),
+        headers: z.record(z.string(), z.string().brand<'StepHeaders'>()).optional(),
         node: z.string().min(1).brand<'StepNode'>().nullable().default(null),
         expect: stepExpectationContract.default(
           stepExpectationContract.parse(stepStatics.defaults.expect),
         ),
       })
-      .strict().brand<'Step'>(),
+      .strict()
+      .brand<'Step'>(),
     z
       .object({
         step: z.literal('before'),
@@ -312,17 +364,28 @@ export const stepContract = z
           stepExpectationContract.parse(stepStatics.defaults.expect),
         ),
       })
-      .strict().brand<'Step'>(),
+      .strict()
+      .brand<'Step'>(),
     z
       .object({
         step: z.literal('file'),
-        path: z.string().min(1).refine((candidate) => !candidate.startsWith('/'), { message: fileStatics.errors.leadingSlash, }).refine((candidate) => !candidate.split('/').includes('..'), { message: fileStatics.errors.traversal, }).brand<'StepPath'>(),
+        path: z
+          .string()
+          .min(1)
+          .refine((candidate) => !candidate.startsWith('/'), {
+            message: fileStatics.errors.leadingSlash,
+          })
+          .refine((candidate) => !candidate.split('/').includes('..'), {
+            message: fileStatics.errors.traversal,
+          })
+          .brand<'StepPath'>(),
         node: z.string().min(1).brand<'StepNode'>().nullable().default(null),
         expect: stepExpectationContract.default(
           stepExpectationContract.parse(stepStatics.defaults.expect),
         ),
       })
-      .strict().brand<'Step'>(),
+      .strict()
+      .brand<'Step'>(),
     z
       .object({
         step: z.literal('storage'),
@@ -334,7 +397,8 @@ export const stepContract = z
           stepExpectationContract.parse(stepStatics.defaults.expect),
         ),
       })
-      .strict().brand<'Step'>(),
+      .strict()
+      .brand<'Step'>(),
     z
       .object({
         step: z.literal('paste'),
@@ -349,7 +413,8 @@ export const stepContract = z
           stepExpectationContract.parse(stepStatics.defaults.expect),
         ),
       })
-      .strict().brand<'Step'>(),
+      .strict()
+      .brand<'Step'>(),
     z
       .object({
         step: z.literal('hold'),
@@ -372,7 +437,8 @@ export const stepContract = z
           stepExpectationContract.parse(stepStatics.defaults.expect),
         ),
       })
-      .strict().brand<'Step'>(),
+      .strict()
+      .brand<'Step'>(),
     z
       .object({
         step: z.literal('video'),
@@ -382,29 +448,44 @@ export const stepContract = z
           stepExpectationContract.parse(stepStatics.defaults.expect),
         ),
       })
-      .strict().brand<'Step'>(),
+      .strict()
+      .brand<'Step'>(),
     z
       .object({
         step: z.literal('snapshot'),
-        as: z.string().min(1).max(snapshotStatics.limits.maxNameLength).regex(/^[A-Za-z0-9._:-]+$/u).brand<'StepAs'>(),
+        as: z
+          .string()
+          .min(1)
+          .max(snapshotStatics.limits.maxNameLength)
+          .regex(/^[A-Za-z0-9._:-]+$/u)
+          .brand<'StepAs'>(),
         node: z.string().min(1).brand<'StepNode'>().nullable().default(null),
         expect: stepExpectationContract.default(
           stepExpectationContract.parse(stepStatics.defaults.expect),
         ),
       })
-      .strict().brand<'Step'>(),
+      .strict()
+      .brand<'Step'>(),
     z
       .object({
         step: z.literal('reset'),
         level: resetLevelContract.default(resetLevelContract.parse('state')),
-        to: z.string().min(1).max(snapshotStatics.limits.maxNameLength).regex(/^[A-Za-z0-9._:-]+$/u).brand<'StepTo'>().nullable().default(null),
+        to: z
+          .string()
+          .min(1)
+          .max(snapshotStatics.limits.maxNameLength)
+          .regex(/^[A-Za-z0-9._:-]+$/u)
+          .brand<'StepTo'>()
+          .nullable()
+          .default(null),
         reseed: z.string().brand<'StepReseed'>().nullable().default(null),
         node: z.string().min(1).brand<'StepNode'>().nullable().default(null),
         expect: stepExpectationContract.default(
           stepExpectationContract.parse(stepStatics.defaults.expect),
         ),
       })
-      .strict().brand<'Step'>(),
+      .strict()
+      .brand<'Step'>(),
   ])
   // `.refine()` returns a ZodEffects and `z.discriminatedUnion` accepts only ZodObjects, so the
   // cross-field handle rule rides the UNION rather than the two members it governs. It reads the

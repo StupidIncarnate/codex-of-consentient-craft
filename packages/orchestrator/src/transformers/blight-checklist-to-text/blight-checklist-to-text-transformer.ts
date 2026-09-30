@@ -161,10 +161,10 @@ export const blightChecklistToTextTransformer = ({
     .join('\n');
 
   return [
-      header,
-      concernLegend,
-      '',
-      `## UNITS — [ ] no disposition yet, [x] already dispositioned in quest.planningNotes.blightLedger${truncationNotice}`,
-      unitBlock,
-    ].join('\n');
+    header,
+    concernLegend,
+    '',
+    `## UNITS — [ ] no disposition yet, [x] already dispositioned in quest.planningNotes.blightLedger${truncationNotice}`,
+    unitBlock,
+  ].join('\n');
 };

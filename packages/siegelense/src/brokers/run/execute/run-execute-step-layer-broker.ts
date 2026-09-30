@@ -49,7 +49,6 @@
  * // { reading, stoppedAt, timedOut } once ok is false
  */
 
-
 import { runExecuteStepLayerResultContract } from '../../../contracts/run-execute-step-layer-result/run-execute-step-layer-result-contract';
 import type { RunExecuteStepLayerResult } from '../../../contracts/run-execute-step-layer-result/run-execute-step-layer-result-contract';
 import { isNativeError } from '#gateway/node/util__types';
@@ -186,12 +185,13 @@ export const runExecuteStepLayerBroker = async ({
     // whichever realm constructed the value, our own error classes included, since `isNativeError`
     // inspects the V8 error slot rather than the prototype chain. The `'message' in error` check is
     // what lets the property access typecheck.
-    const message = (underlyingError !== null &&
-        typeof underlyingError === 'object' &&
-        isNativeError(underlyingError) &&
-        'message' in underlyingError
+    const message =
+      underlyingError !== null &&
+      typeof underlyingError === 'object' &&
+      isNativeError(underlyingError) &&
+      'message' in underlyingError
         ? underlyingError.message
-        : String(underlyingError));
+        : String(underlyingError);
     // The STRUCTURED half of an ambiguity. The message already carries every candidate, but a
     // session parsing the JSON got an empty array — `StoppedAt.candidates` was hardcoded `[]` on
     // every failure, so the one failure with a machine-readable recovery reported none of it

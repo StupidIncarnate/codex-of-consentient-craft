@@ -15,7 +15,6 @@
  * cross-package display tokens in the project-map output
  */
 
-
 const PACKAGES_SEGMENT = '/packages/';
 const SRC_PREFIX = 'src/';
 const TS_EXT = '.ts';
@@ -27,8 +26,8 @@ export const filePathToProjectRelativeTransformer = ({
   filePath: string;
   projectRoot: string;
 }): string => {
-  const raw = String(filePath);
-  const packagesPrefix = `${String(projectRoot)}${PACKAGES_SEGMENT}`;
+  const raw = filePath;
+  const packagesPrefix = `${projectRoot}${PACKAGES_SEGMENT}`;
 
   if (!raw.startsWith(packagesPrefix)) {
     return raw;

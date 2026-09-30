@@ -18,13 +18,7 @@ describe('ToolRowFieldLayerWidget', () => {
       const holdAnchor = jest.fn();
 
       mantineRenderMiddleware({
-        ui: (
-          <ToolRowFieldLayerWidget
-            field={field}
-            toolName={'Read'}
-            holdAnchor={holdAnchor}
-          />
-        ),
+        ui: <ToolRowFieldLayerWidget field={field} toolName={'Read'} holdAnchor={holdAnchor} />,
       });
 
       expect(screen.getByTestId('TOOL_ROW_FIELD_INLINE').textContent).toBe(
@@ -41,13 +35,7 @@ describe('ToolRowFieldLayerWidget', () => {
       const holdAnchor = jest.fn();
 
       mantineRenderMiddleware({
-        ui: (
-          <ToolRowFieldLayerWidget
-            field={field}
-            toolName={'Write'}
-            holdAnchor={holdAnchor}
-          />
-        ),
+        ui: <ToolRowFieldLayerWidget field={field} toolName={'Write'} holdAnchor={holdAnchor} />,
       });
 
       expect(screen.getByTestId('TOOL_ROW_FIELD_INLINE').textContent).toBe(
@@ -63,13 +51,7 @@ describe('ToolRowFieldLayerWidget', () => {
       const holdAnchor = jest.fn();
 
       mantineRenderMiddleware({
-        ui: (
-          <ToolRowFieldLayerWidget
-            field={field}
-            toolName={'Write'}
-            holdAnchor={holdAnchor}
-          />
-        ),
+        ui: <ToolRowFieldLayerWidget field={field} toolName={'Write'} holdAnchor={holdAnchor} />,
       });
 
       await userEvent.click(screen.getByTestId('TOOL_ROW_FIELD_TOGGLE'));
@@ -92,13 +74,7 @@ describe('ToolRowFieldLayerWidget', () => {
       const holdAnchor = jest.fn();
 
       mantineRenderMiddleware({
-        ui: (
-          <ToolRowFieldLayerWidget
-            field={field}
-            toolName={'Write'}
-            holdAnchor={holdAnchor}
-          />
-        ),
+        ui: <ToolRowFieldLayerWidget field={field} toolName={'Write'} holdAnchor={holdAnchor} />,
       });
 
       expect(screen.getByTestId('TOOL_ROW_FIELD_LABEL').textContent).toBe('content');
@@ -119,13 +95,7 @@ describe('ToolRowFieldLayerWidget', () => {
       const holdAnchor = jest.fn();
 
       mantineRenderMiddleware({
-        ui: (
-          <ToolRowFieldLayerWidget
-            field={field}
-            toolName={'Write'}
-            holdAnchor={holdAnchor}
-          />
-        ),
+        ui: <ToolRowFieldLayerWidget field={field} toolName={'Write'} holdAnchor={holdAnchor} />,
       });
 
       expect(screen.getByTestId('TOOL_RESULT_VERBATIM').textContent).toBe(
@@ -150,13 +120,7 @@ describe('ToolRowFieldLayerWidget', () => {
       const holdAnchor = jest.fn();
 
       mantineRenderMiddleware({
-        ui: (
-          <ToolRowFieldLayerWidget
-            field={field}
-            toolName={'Bash'}
-            holdAnchor={holdAnchor}
-          />
-        ),
+        ui: <ToolRowFieldLayerWidget field={field} toolName={'Bash'} holdAnchor={holdAnchor} />,
       });
 
       expect(screen.getByTestId('TOOL_ROW_BLOCK_FIELD').textContent).toBe('npm run ward');
@@ -173,13 +137,7 @@ describe('ToolRowFieldLayerWidget', () => {
       const holdAnchor = jest.fn();
 
       mantineRenderMiddleware({
-        ui: (
-          <ToolRowFieldLayerWidget
-            field={field}
-            toolName={'Read'}
-            holdAnchor={holdAnchor}
-          />
-        ),
+        ui: <ToolRowFieldLayerWidget field={field} toolName={'Read'} holdAnchor={holdAnchor} />,
       });
 
       expect(screen.queryByTestId('TOOL_ROW_BLOCK_FIELD')).toBe(null);

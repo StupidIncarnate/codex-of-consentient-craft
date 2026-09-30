@@ -19,7 +19,7 @@ const fillLeafDirectories = (pathMap: Map<string, Dirent[]>): void => {
   for (const [parentPath, entries] of pathMap) {
     for (const entry of entries) {
       if (entry.isDirectory()) {
-        const childPath = `${String(parentPath)}/${entry.name}`;
+        const childPath = `${parentPath}/${entry.name}`;
         if (!registeredPaths.has(childPath)) {
           leafEntries.push([
             childPath,
@@ -73,13 +73,7 @@ const buildPackagePathMap = ({
 };
 
 export const architecturePackageInventoryBrokerProxy = (): {
-  setupEmpty: ({
-    srcPath,
-    packageJsonPath,
-  }: {
-    srcPath: string;
-    packageJsonPath: string;
-  }) => void;
+  setupEmpty: ({ srcPath, packageJsonPath }: { srcPath: string; packageJsonPath: string }) => void;
   setupPackage: ({
     packageName,
     description,
@@ -156,7 +150,7 @@ export const architecturePackageInventoryBrokerProxy = (): {
       safeProxy.setupImplementation({
         fn: (dirPath: string): Dirent[] => {
           for (const [suffix, entries] of pathMap) {
-            if (dirPath.endsWith(String(suffix))) {
+            if (dirPath.endsWith(suffix)) {
               return entries;
             }
           }
@@ -168,11 +162,11 @@ export const architecturePackageInventoryBrokerProxy = (): {
         fn: (filePath: string): string => {
           if (
             description !== undefined &&
-            String(filePath).endsWith(`packages/${packageName}/package.json`)
+            filePath.endsWith(`packages/${packageName}/package.json`)
           ) {
             return JSON.stringify({ description });
           }
-          throw FileMissingErrorStub({ path: String(filePath) });
+          throw FileMissingErrorStub({ path: filePath });
         },
       });
     },
@@ -196,10 +190,7 @@ export const architecturePackageInventoryBrokerProxy = (): {
       for (const pkg of packages) {
         buildPackagePathMap({ packageName: pkg.name, folders: pkg.folders, pathMap });
         if (pkg.description !== undefined) {
-          descriptions.set(
-            `packages/${pkg.name}/package.json`,
-            pkg.description,
-          );
+          descriptions.set(`packages/${pkg.name}/package.json`, pkg.description);
         }
       }
 
@@ -208,7 +199,7 @@ export const architecturePackageInventoryBrokerProxy = (): {
       safeProxy.setupImplementation({
         fn: (dirPath: string): Dirent[] => {
           for (const [suffix, entries] of pathMap) {
-            if (dirPath.endsWith(String(suffix))) {
+            if (dirPath.endsWith(suffix)) {
               return entries;
             }
           }
@@ -219,11 +210,11 @@ export const architecturePackageInventoryBrokerProxy = (): {
       descriptionProxy.setupImplementation({
         fn: (filePath: string): string => {
           for (const [suffix, desc] of descriptions) {
-            if (String(filePath).endsWith(String(suffix))) {
+            if (filePath.endsWith(suffix)) {
               return JSON.stringify({ description: desc });
             }
           }
-          throw FileMissingErrorStub({ path: String(filePath) });
+          throw FileMissingErrorStub({ path: filePath });
         },
       });
     },
@@ -267,7 +258,7 @@ export const architecturePackageInventoryBrokerProxy = (): {
       safeProxy.setupImplementation({
         fn: (dirPath: string): Dirent[] => {
           for (const [suffix, entries] of pathMap) {
-            if (dirPath.endsWith(String(suffix))) {
+            if (dirPath.endsWith(suffix)) {
               return entries;
             }
           }
@@ -277,10 +268,10 @@ export const architecturePackageInventoryBrokerProxy = (): {
 
       descriptionProxy.setupImplementation({
         fn: (filePath: string): string => {
-          if (description !== undefined && String(filePath).endsWith('package.json')) {
+          if (description !== undefined && filePath.endsWith('package.json')) {
             return JSON.stringify({ description });
           }
-          throw FileMissingErrorStub({ path: String(filePath) });
+          throw FileMissingErrorStub({ path: filePath });
         },
       });
     },

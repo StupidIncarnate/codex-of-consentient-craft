@@ -42,9 +42,7 @@ describe('SiegelenseCleanupLayerFlow', () => {
 
       await SiegelenseCleanupLayerFlow({ callArgs: [] });
 
-      const writes = stdoutSpy
-        .callsMatching([])
-        .map((call) => String(call[0]));
+      const writes = stdoutSpy.callsMatching([]).map((call) => String(call[0]));
 
       const [wholeOutput] = writes;
 
@@ -70,9 +68,7 @@ describe('SiegelenseCleanupLayerFlow', () => {
 
       await SiegelenseCleanupLayerFlow({ callArgs: ['--json'] });
 
-      const writes = stdoutSpy
-        .callsMatching([])
-        .map((call) => String(call[0]));
+      const writes = stdoutSpy.callsMatching([]).map((call) => String(call[0]));
 
       const [wholeOutput] = writes;
 
@@ -120,8 +116,8 @@ describe('SiegelenseCleanupLayerFlow', () => {
 
       const videoMtimeAfterBackdate = await age.mtimeMs({ filePath: videoPath });
       const shotMtimeAfterBackdate = await age.mtimeMs({ filePath: shotPath });
-      const videoAgeMs = Date.now() - Number(videoMtimeAfterBackdate);
-      const shotAgeMs = Date.now() - Number(shotMtimeAfterBackdate);
+      const videoAgeMs = Date.now() - videoMtimeAfterBackdate;
+      const shotAgeMs = Date.now() - shotMtimeAfterBackdate;
 
       await SiegelenseCleanupLayerFlow({ callArgs: [] });
 

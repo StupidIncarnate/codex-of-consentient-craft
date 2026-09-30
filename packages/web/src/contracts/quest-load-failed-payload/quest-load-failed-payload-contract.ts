@@ -15,9 +15,11 @@ import { questContract } from '@dungeonmaster/shared/contracts';
 
 import { errorBodyContract } from '../error-body/error-body-contract';
 
-export const questLoadFailedPayloadContract = z.object({
-  questId: questContract.shape.id,
-  error: errorBodyContract.shape.error,
-}).brand<'QuestLoadFailedPayload'>();
+export const questLoadFailedPayloadContract = z
+  .object({
+    questId: questContract.shape.id,
+    error: errorBodyContract.shape.error,
+  })
+  .brand<'QuestLoadFailedPayload'>();
 
 export type QuestLoadFailedPayload = z.infer<typeof questLoadFailedPayloadContract>;

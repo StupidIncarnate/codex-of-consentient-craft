@@ -40,11 +40,14 @@ export const networkRecordCaptureBroker = ({
         const clonedRequest = request.clone();
         const parsedRequestId = requestId;
 
-        pendingRequests.set(parsedRequestId, pendingRequestContract.parse({
-          method: networkLogEntryContract.shape.method.parse(request.method),
-          url: networkLogEntryContract.shape.url.parse(request.url),
-          timestampMs: Date.now(),
-        }));
+        pendingRequests.set(
+          parsedRequestId,
+          pendingRequestContract.parse({
+            method: networkLogEntryContract.shape.method.parse(request.method),
+            url: networkLogEntryContract.shape.url.parse(request.url),
+            timestampMs: Date.now(),
+          }),
+        );
 
         pendingBodies.push(
           clonedRequest

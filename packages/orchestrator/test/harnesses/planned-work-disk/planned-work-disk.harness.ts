@@ -23,7 +23,7 @@ const finalPathFor = ({
   questFolderPath: string;
   operationItemId: OperationItem['id'];
 }): string =>
-  `${String(questFolderPath)}/${locationsStatics.quest.plannedWorkDir}/${String(operationItemId)}${JSON_EXTENSION}`;
+  `${questFolderPath}/${locationsStatics.quest.plannedWorkDir}/${String(operationItemId)}${JSON_EXTENSION}`;
 
 export const plannedWorkDiskHarness = (): {
   dirExists: (params: { questFolderPath: string }) => boolean;
@@ -41,9 +41,7 @@ export const plannedWorkDiskHarness = (): {
   }) => unknown;
 } => ({
   dirExists: ({ questFolderPath }: { questFolderPath: string }): boolean =>
-    existsSync(
-      `${String(questFolderPath)}/${locationsStatics.quest.plannedWorkDir}`,
-    ),
+    existsSync(`${questFolderPath}/${locationsStatics.quest.plannedWorkDir}`),
 
   finalFileExists: ({
     questFolderPath,
@@ -59,10 +57,7 @@ export const plannedWorkDiskHarness = (): {
   }: {
     questFolderPath: string;
     operationItemId: OperationItem['id'];
-  }): boolean =>
-    existsSync(
-      `${finalPathFor({ questFolderPath, operationItemId })}${TMP_SUFFIX}`,
-    ),
+  }): boolean => existsSync(`${finalPathFor({ questFolderPath, operationItemId })}${TMP_SUFFIX}`),
 
   readFinalFileRaw: ({
     questFolderPath,

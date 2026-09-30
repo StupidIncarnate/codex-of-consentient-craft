@@ -24,7 +24,6 @@
  * // Returns { settled: false, reason: 'ceiling', waitedMs: 5000, unsettled: ['network'], ... }
  */
 
-
 import { rawSettleProbeContract } from '../../../contracts/raw-settle-probe/raw-settle-probe-contract';
 import { settleReadingContract } from '../../../contracts/settle-reading/settle-reading-contract';
 import type { SettleReading } from '../../../contracts/settle-reading/settle-reading-contract';

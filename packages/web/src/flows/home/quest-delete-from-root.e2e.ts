@@ -43,7 +43,7 @@ test.describe('Delete quest from root page — skull → Banish', () => {
 
     const questTitle = 'Quest To Banish';
     const created = await quests.createQuest({
-      guildId: guildId,
+      guildId,
       title: questTitle,
       userRequest: 'Build the deletable quest',
     });
@@ -119,7 +119,7 @@ test.describe('Delete quest from root page — skull → Banish', () => {
 
     const questTitle = 'Quest To Spare';
     const created = await quests.createQuest({
-      guildId: guildId,
+      guildId,
       title: questTitle,
       userRequest: 'Build the spareable quest',
     });
@@ -180,7 +180,7 @@ test.describe('Delete quest from root page — skull → Banish', () => {
 
     const questTitle = 'Quest That Goes Active';
     const created = await quests.createQuest({
-      guildId: guildId,
+      guildId,
       title: questTitle,
       userRequest: 'Build the rejected quest',
     });

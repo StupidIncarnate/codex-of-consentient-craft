@@ -17,5 +17,5 @@ export const firstMeaningfulLineTransformer = ({
   const lines = message.split('\n');
   const meaningful = lines.find((line) => !isUselessErrorLineGuard({ line }));
 
-  return (meaningful ?? lines[0] ?? '(no error message)');
+  return meaningful ?? lines[0] ?? '(no error message)';
 };

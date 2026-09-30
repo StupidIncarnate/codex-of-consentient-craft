@@ -27,7 +27,15 @@
 
 import { join } from '#gateway/node/path';
 import { questContract } from '@dungeonmaster/shared/contracts';
-import type { BaseBranchName, OperationItem, PackageGraphEntry, Quest, QuestSession, RiftcarverResult, WorkItem } from '@dungeonmaster/shared/contracts';
+import type {
+  BaseBranchName,
+  OperationItem,
+  PackageGraphEntry,
+  Quest,
+  QuestSession,
+  RiftcarverResult,
+  WorkItem,
+} from '@dungeonmaster/shared/contracts';
 import { locationsStatics } from '@dungeonmaster/shared/statics';
 
 import { workItemsToQuestStatusTransformer } from '../../../transformers/work-items-to-quest-status/work-items-to-quest-status-transformer';

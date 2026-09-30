@@ -20,6 +20,7 @@ export const devLogToolInputContract = z
     questId: z.string().min(1).brand<'DevLogToolInputQuestId'>().optional(),
     guildId: z.string().min(1).brand<'DevLogToolInputGuildId'>().optional(),
   })
-  .loose().brand<'DevLogToolInput'>();
+  .loose()
+  .brand<'DevLogToolInput'>();
 
 export type DevLogToolInput = z.infer<typeof devLogToolInputContract>;

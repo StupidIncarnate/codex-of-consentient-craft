@@ -40,10 +40,7 @@ export const machineReadBroker = async (): Promise<MachineReading> => {
     machineOomCountBroker(),
   ]);
 
-  const freeDiskMB =
-    freeDiskBytes === null
-      ? null
-      : Math.floor(freeDiskBytes / bytesPerMegabyte);
+  const freeDiskMB = freeDiskBytes === null ? null : Math.floor(freeDiskBytes / bytesPerMegabyte);
 
   return machineReadingContract.parse({
     freeMemMB,

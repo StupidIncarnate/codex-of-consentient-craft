@@ -1,5 +1,3 @@
-
-
 import { binWalkUpLayerBroker } from './bin-walk-up-layer-broker';
 import { binWalkUpLayerBrokerProxy } from './bin-walk-up-layer-broker.proxy';
 
@@ -13,7 +11,7 @@ describe('binWalkUpLayerBroker', () => {
 
       const result = binWalkUpLayerBroker({ binName, dir });
 
-      expect(String(result)).toBe('/repo/packages/ward/node_modules/.bin/jest');
+      expect(result).toBe('/repo/packages/ward/node_modules/.bin/jest');
     });
   });
 
@@ -27,7 +25,7 @@ describe('binWalkUpLayerBroker', () => {
 
       const result = binWalkUpLayerBroker({ binName, dir });
 
-      expect(String(result)).toBe('/repo/node_modules/.bin/jest');
+      expect(result).toBe('/repo/node_modules/.bin/jest');
     });
 
     it('VALID: {jest in the package and the root} => the package copy wins', () => {
@@ -39,7 +37,7 @@ describe('binWalkUpLayerBroker', () => {
 
       const result = binWalkUpLayerBroker({ binName, dir });
 
-      expect(String(result)).toBe('/repo/packages/ward/node_modules/.bin/jest');
+      expect(result).toBe('/repo/packages/ward/node_modules/.bin/jest');
     });
 
     it('VALID: {jest in an intermediate directory below the root} => returns the intermediate path', () => {
@@ -52,7 +50,7 @@ describe('binWalkUpLayerBroker', () => {
 
       const result = binWalkUpLayerBroker({ binName, dir });
 
-      expect(String(result)).toBe('/repo/packages/node_modules/.bin/jest');
+      expect(result).toBe('/repo/packages/node_modules/.bin/jest');
     });
   });
 
@@ -66,7 +64,7 @@ describe('binWalkUpLayerBroker', () => {
 
       const result = binWalkUpLayerBroker({ binName, dir });
 
-      expect(String(result)).toBe('jest');
+      expect(result).toBe('jest');
     });
 
     it('VALID: {no .bin up to the workspace root} => stops at the root without reading above it, and returns the bare name', () => {
@@ -78,7 +76,7 @@ describe('binWalkUpLayerBroker', () => {
 
       const result = binWalkUpLayerBroker({ binName, dir });
 
-      expect(String(result)).toBe('jest');
+      expect(result).toBe('jest');
     });
 
     it('EDGE: {no workspaces anywhere and no .bin} => walks to the filesystem root and returns the bare name', () => {
@@ -89,7 +87,7 @@ describe('binWalkUpLayerBroker', () => {
 
       const result = binWalkUpLayerBroker({ binName, dir });
 
-      expect(String(result)).toBe('tsc');
+      expect(result).toBe('tsc');
     });
 
     it('EDGE: {no workspaces anywhere, .bin at the filesystem root} => returns the root path', () => {
@@ -101,7 +99,7 @@ describe('binWalkUpLayerBroker', () => {
 
       const result = binWalkUpLayerBroker({ binName, dir });
 
-      expect(String(result)).toBe('/node_modules/.bin/tsc');
+      expect(result).toBe('/node_modules/.bin/tsc');
     });
   });
 });

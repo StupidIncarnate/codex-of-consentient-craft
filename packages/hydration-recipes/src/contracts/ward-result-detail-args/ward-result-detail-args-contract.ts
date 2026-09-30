@@ -17,9 +17,11 @@ import { z } from '#gateway/npm/zod';
 
 import { wardResultContract } from '@dungeonmaster/shared/contracts';
 
-export const wardResultDetailArgsContract = z.object({
-  wardResultId: wardResultContract.shape.id,
-  detail: z.record(z.string(), z.json()),
-}).brand<'WardResultDetailArgs'>();
+export const wardResultDetailArgsContract = z
+  .object({
+    wardResultId: wardResultContract.shape.id,
+    detail: z.record(z.string(), z.json()),
+  })
+  .brand<'WardResultDetailArgs'>();
 
 export type WardResultDetailArgs = z.infer<typeof wardResultDetailArgsContract>;

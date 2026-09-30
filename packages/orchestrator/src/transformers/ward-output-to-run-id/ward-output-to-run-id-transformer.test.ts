@@ -1,4 +1,3 @@
-
 import { wardOutputToRunIdTransformer } from './ward-output-to-run-id-transformer';
 
 describe('wardOutputToRunIdTransformer', () => {

@@ -19,10 +19,22 @@ export const QuestAbandonResponderProxy = (): {
         result: { success: true, quest } as never,
       });
     },
-    setupAbandonQuest: ({ questId, abandoned }: { questId: Quest['id']; abandoned: boolean }): void => {
+    setupAbandonQuest: ({
+      questId,
+      abandoned,
+    }: {
+      questId: Quest['id'];
+      abandoned: boolean;
+    }): void => {
       orchestrator.abandonQuestReturns({ questId, abandoned });
     },
-    setupAbandonQuestError: ({ questId, message }: { questId: Quest['id']; message: string }): void => {
+    setupAbandonQuestError: ({
+      questId,
+      message,
+    }: {
+      questId: Quest['id'];
+      message: string;
+    }): void => {
       orchestrator.abandonQuestThrows({ questId, error: new Error(message) });
     },
     callResponder: QuestAbandonResponder,

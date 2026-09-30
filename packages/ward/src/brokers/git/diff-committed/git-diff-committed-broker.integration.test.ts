@@ -57,10 +57,7 @@ describe('gitDiffCommittedBroker (integration) — real git worktree isolation',
     // toStrictEqual on the COMPLETE list — not an absence check on repo-root-only.txt alone, which
     // would be vacuous unless this same assertion also shows the worktree files present. Order
     // matches git's own tree-order output (lexicographic on this fixture's flat + one-level shape).
-    expect(result).toStrictEqual([
-      'folder with space/file name.ts',
-      'worktree-file.txt',
-    ]);
+    expect(result).toStrictEqual(['folder with space/file name.ts', 'worktree-file.txt']);
   }, 30_000);
 
   // The ref this broker measures from is the half a mocked spawn cannot see: an origin/main and a

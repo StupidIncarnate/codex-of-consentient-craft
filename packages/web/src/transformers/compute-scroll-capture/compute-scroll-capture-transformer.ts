@@ -6,7 +6,6 @@
  * // Returns { isCapturing: true } — user scrolled upward away from bottom
  */
 
-
 export const computeScrollCaptureTransformer = ({
   currentTop,
   lastTop,

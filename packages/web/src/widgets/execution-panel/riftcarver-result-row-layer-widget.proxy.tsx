@@ -1,4 +1,3 @@
-
 import { RiftcarverResultDetailLayerWidgetProxy } from './riftcarver-result-detail-layer-widget.proxy';
 
 export const RiftcarverResultRowLayerWidgetProxy = (): {

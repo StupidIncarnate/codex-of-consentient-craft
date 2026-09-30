@@ -204,9 +204,7 @@ describe('SiegelenseSnapshotsLayerFlow', () => {
         SiegelenseSnapshotsLayerFlow({ callArgs: ['--instance', UNKNOWN_ID] }),
       ).rejects.toStrictEqual(new InstanceUnknownError({ instanceId: UNKNOWN_ID }));
 
-      const writes = stdoutSpy
-        .callsMatching([])
-        .map((call) => String(call[0]));
+      const writes = stdoutSpy.callsMatching([]).map((call) => String(call[0]));
 
       expect(writes).toStrictEqual([]);
     });
@@ -219,9 +217,7 @@ describe('SiegelenseSnapshotsLayerFlow', () => {
         SiegelenseSnapshotsLayerFlow({ callArgs: ['--instance', UNKNOWN_ID, '--json'] }),
       ).rejects.toStrictEqual(new InstanceUnknownError({ instanceId: UNKNOWN_ID }));
 
-      const writes = stdoutSpy
-        .callsMatching([])
-        .map((call) => String(call[0]));
+      const writes = stdoutSpy.callsMatching([]).map((call) => String(call[0]));
 
       expect(writes).toStrictEqual([]);
     });
@@ -234,9 +230,7 @@ describe('SiegelenseSnapshotsLayerFlow', () => {
 
       await SiegelenseSnapshotsLayerFlow({ callArgs: ['--instance', KILLED_ID] });
 
-      const writes = stdoutSpy
-        .callsMatching([])
-        .map((call) => String(call[0]));
+      const writes = stdoutSpy.callsMatching([]).map((call) => String(call[0]));
 
       expect(writes).toStrictEqual([
         `INSTANCE: ${KILLED_ID} (killed)\nSNAPSHOTS: none — the throwaway home died with the instance at kill\n`,
@@ -249,9 +243,7 @@ describe('SiegelenseSnapshotsLayerFlow', () => {
 
       await SiegelenseSnapshotsLayerFlow({ callArgs: ['--instance', KILLED_ID, '--json'] });
 
-      const writes = stdoutSpy
-        .callsMatching([])
-        .map((call) => String(call[0]));
+      const writes = stdoutSpy.callsMatching([]).map((call) => String(call[0]));
 
       const [wholeOutput] = writes;
 
@@ -270,9 +262,7 @@ describe('SiegelenseSnapshotsLayerFlow', () => {
 
       await SiegelenseSnapshotsLayerFlow({ callArgs: ['--instance', PRUNED_ID] });
 
-      const writes = stdoutSpy
-        .callsMatching([])
-        .map((call) => String(call[0]));
+      const writes = stdoutSpy.callsMatching([]).map((call) => String(call[0]));
 
       expect(writes).toStrictEqual([
         `INSTANCE: ${PRUNED_ID} (pruned)\nSNAPSHOTS: none recorded yet\n`,
@@ -285,9 +275,7 @@ describe('SiegelenseSnapshotsLayerFlow', () => {
 
       await SiegelenseSnapshotsLayerFlow({ callArgs: ['--instance', PRUNED_ID, '--json'] });
 
-      const writes = stdoutSpy
-        .callsMatching([])
-        .map((call) => String(call[0]));
+      const writes = stdoutSpy.callsMatching([]).map((call) => String(call[0]));
 
       const [wholeOutput] = writes;
 
@@ -306,9 +294,7 @@ describe('SiegelenseSnapshotsLayerFlow', () => {
 
       await SiegelenseSnapshotsLayerFlow({ callArgs: ['--instance', ALIVE_EMPTY_ID] });
 
-      const writes = stdoutSpy
-        .callsMatching([])
-        .map((call) => String(call[0]));
+      const writes = stdoutSpy.callsMatching([]).map((call) => String(call[0]));
 
       expect(writes).toStrictEqual([
         `INSTANCE: ${ALIVE_EMPTY_ID} (alive)\nSNAPSHOTS: none recorded yet\n`,
@@ -321,9 +307,7 @@ describe('SiegelenseSnapshotsLayerFlow', () => {
 
       await SiegelenseSnapshotsLayerFlow({ callArgs: ['--instance', ALIVE_EMPTY_ID, '--json'] });
 
-      const writes = stdoutSpy
-        .callsMatching([])
-        .map((call) => String(call[0]));
+      const writes = stdoutSpy.callsMatching([]).map((call) => String(call[0]));
 
       const [wholeOutput] = writes;
 
@@ -342,9 +326,7 @@ describe('SiegelenseSnapshotsLayerFlow', () => {
 
       await SiegelenseSnapshotsLayerFlow({ callArgs: ['--instance', ALIVE_POPULATED_ID] });
 
-      const writes = stdoutSpy
-        .callsMatching([])
-        .map((call) => String(call[0]));
+      const writes = stdoutSpy.callsMatching([]).map((call) => String(call[0]));
 
       const [wholeOutput] = writes;
 
@@ -369,9 +351,7 @@ describe('SiegelenseSnapshotsLayerFlow', () => {
         callArgs: ['--instance', ALIVE_POPULATED_ID, '--json'],
       });
 
-      const writes = stdoutSpy
-        .callsMatching([])
-        .map((call) => String(call[0]));
+      const writes = stdoutSpy.callsMatching([]).map((call) => String(call[0]));
 
       const [wholeOutput] = writes;
 

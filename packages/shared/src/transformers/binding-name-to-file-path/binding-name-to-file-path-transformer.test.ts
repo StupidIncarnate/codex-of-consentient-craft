@@ -8,9 +8,7 @@ describe('bindingNameToFilePathTransformer', () => {
         packageRoot: '/repo/packages/web',
       });
 
-      expect(result).toBe(
-        '/repo/packages/web/src/bindings/use-quests/use-quests-binding.ts',
-      );
+      expect(result).toBe('/repo/packages/web/src/bindings/use-quests/use-quests-binding.ts');
     });
 
     it('VALID: {bindingName: use-quest-queue} => resolves to use-quest-queue/use-quest-queue-binding.ts', () => {
@@ -32,9 +30,7 @@ describe('bindingNameToFilePathTransformer', () => {
         packageRoot: '/repo/packages/web',
       });
 
-      expect(result).toBe(
-        '/repo/packages/web/src/bindings/use-quests/use-quests-binding.ts',
-      );
+      expect(result).toBe('/repo/packages/web/src/bindings/use-quests/use-quests-binding.ts');
     });
   });
 });

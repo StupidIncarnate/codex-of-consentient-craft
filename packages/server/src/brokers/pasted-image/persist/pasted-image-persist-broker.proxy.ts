@@ -112,7 +112,7 @@ export const pastedImagePersistBrokerProxy = (): {
     // broker actually wrote to disk, upload and copy alike, in that order.
     writtenImagePaths: (): unknown[] => [
       ...writeFileChild.getCallsFor({ path: uploadPathPredicate }).map((call) => String(call[0])),
-      ...copyProxy.writtenDestinations().map((path) => String(path)),
+      ...copyProxy.writtenDestinations().map((path) => path),
     ],
     sourceReadAttemptedPaths: (): unknown[] => copyProxy.sourceReadAttemptedPaths(),
     stageCopyIds: ({ ids }: { ids: readonly string[] }): void => {

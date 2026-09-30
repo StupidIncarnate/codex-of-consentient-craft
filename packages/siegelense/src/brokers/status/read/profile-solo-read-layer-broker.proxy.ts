@@ -39,7 +39,6 @@ export const profileSoloReadLayerBrokerProxy = (): {
       profileHandle.calledWith([{ specName }]).rejects(error);
     },
 
-    getStderrMessages: (): readonly string[] =>
-      stderr.getWrites().map((chunk) => String(chunk)),
+    getStderrMessages: (): readonly string[] => stderr.getWrites().map((chunk) => String(chunk)),
   };
 };

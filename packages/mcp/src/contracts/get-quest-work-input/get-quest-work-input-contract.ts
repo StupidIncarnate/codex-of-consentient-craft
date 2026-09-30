@@ -18,15 +18,17 @@
  */
 
 import { z } from '#gateway/npm/zod';
-import { questContract, workItemContract, operationItemContract } from '@dungeonmaster/shared/contracts';
+import {
+  questContract,
+  workItemContract,
+  operationItemContract,
+} from '@dungeonmaster/shared/contracts';
 
 export const getQuestWorkInputContract = z
   .object({
     questId: questContract.shape.id,
-    workItemId: workItemContract.shape.id
-      .optional(),
-    operationItemId: operationItemContract.shape.id
-      .optional(),
+    workItemId: workItemContract.shape.id.optional(),
+    operationItemId: operationItemContract.shape.id.optional(),
   })
   .strict()
   .superRefine((value, ctx) => {

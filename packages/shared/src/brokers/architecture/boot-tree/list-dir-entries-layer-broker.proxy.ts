@@ -5,13 +5,7 @@ const isAbsolutePath = (value: unknown): boolean =>
   typeof value === 'string' && value.startsWith('/');
 
 export const listDirEntriesLayerBrokerProxy = (): {
-  setupFiles: ({
-    dirPath,
-    names,
-  }: {
-    dirPath: string;
-    names: string[];
-  }) => DirEntrySync[];
+  setupFiles: ({ dirPath, names }: { dirPath: string; names: string[] }) => DirEntrySync[];
   setupEmpty: ({ dirPath }: { dirPath: string }) => void;
   setupError: ({ dirPath, error }: { dirPath: string; error: Error }) => void;
   setupImplementation: ({ fn }: { fn: (dirPath: string) => Dirent[] }) => void;
@@ -19,13 +13,7 @@ export const listDirEntriesLayerBrokerProxy = (): {
   const gatewayProxy = readdirEntriesSyncProxy();
 
   return {
-    setupFiles: ({
-      dirPath,
-      names,
-    }: {
-      dirPath: string;
-      names: string[];
-    }): DirEntrySync[] => {
+    setupFiles: ({ dirPath, names }: { dirPath: string; names: string[] }): DirEntrySync[] => {
       const entries = names.map((name) => ({ name, kind: 'file' as const }));
       gatewayProxy.returns({ path: dirPath, entries });
       return entries;

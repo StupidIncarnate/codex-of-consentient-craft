@@ -36,7 +36,7 @@ test.describe('Quest Approved Modal', () => {
     });
 
     const nav = navigationHarness({ page });
-    await nav.navigateToQuest({ urlSlug, questId: questId });
+    await nav.navigateToQuest({ urlSlug, questId });
 
     await expect(page.getByTestId('QUEST_SPEC_PANEL')).toBeVisible({ timeout: PANEL_TIMEOUT });
 
@@ -67,7 +67,7 @@ test.describe('Quest Approved Modal', () => {
     });
 
     const nav = navigationHarness({ page });
-    await nav.navigateToQuest({ urlSlug, questId: questId });
+    await nav.navigateToQuest({ urlSlug, questId });
 
     await expect(page.getByTestId('QUEST_SPEC_PANEL')).toBeVisible({ timeout: PANEL_TIMEOUT });
 
@@ -108,7 +108,7 @@ test.describe('Quest Approved Modal', () => {
     });
 
     const nav = navigationHarness({ page });
-    await nav.navigateToQuest({ urlSlug, questId: questId });
+    await nav.navigateToQuest({ urlSlug, questId });
 
     await expect(page.getByTestId('QUEST_SPEC_PANEL')).toBeVisible({ timeout: PANEL_TIMEOUT });
 
@@ -153,7 +153,7 @@ test.describe('Quest Approved Modal', () => {
     });
 
     const nav = navigationHarness({ page });
-    await nav.navigateToQuest({ urlSlug, questId: questId });
+    await nav.navigateToQuest({ urlSlug, questId });
 
     await expect(page.getByTestId('QUEST_SPEC_PANEL')).toBeVisible({ timeout: PANEL_TIMEOUT });
 
@@ -179,7 +179,7 @@ test.describe('Quest Approved Modal', () => {
     });
 
     const nav = navigationHarness({ page });
-    await nav.navigateToQuest({ urlSlug, questId: questId });
+    await nav.navigateToQuest({ urlSlug, questId });
 
     await expect(page.getByTestId('QUEST_SPEC_PANEL')).toBeVisible({ timeout: PANEL_TIMEOUT });
 

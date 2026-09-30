@@ -7,9 +7,7 @@ describe('matchesStatusHolderIdentifierGuard', () => {
     });
 
     it('EMPTY: {identifierName: ""} => returns false', () => {
-      expect(
-        matchesStatusHolderIdentifierGuard({ identifierName: '' }),
-      ).toBe(false);
+      expect(matchesStatusHolderIdentifierGuard({ identifierName: '' })).toBe(false);
     });
   });
 

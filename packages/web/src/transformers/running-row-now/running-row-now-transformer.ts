@@ -12,7 +12,6 @@
  * // Returns undefined — the row stopped, so its transcript gets no clock
  */
 
-
 export const runningRowNowTransformer = ({
   isRunning,
   now,

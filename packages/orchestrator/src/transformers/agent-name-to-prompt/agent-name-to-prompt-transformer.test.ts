@@ -141,9 +141,7 @@ describe('agentNameToPromptTransformer', () => {
     it.each(EVERY_PROMPT_CASE)(
       'VALID: {agent: %s} => returns that name own template, on that name own model',
       (name, model, prompt) => {
-        expect(
-          agentNameToPromptTransformer({ agent: name }),
-        ).toStrictEqual({
+        expect(agentNameToPromptTransformer({ agent: name })).toStrictEqual({
           name,
           model,
           prompt,

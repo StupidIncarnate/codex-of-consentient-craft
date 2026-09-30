@@ -16,7 +16,6 @@ import {
   portKillListenersBroker,
 } from '@dungeonmaster/shared/brokers';
 
-
 import { rawOutputContract } from '../../../contracts/raw-output/raw-output-contract';
 import type { ProjectFolder } from '../../../contracts/project-folder/project-folder-contract';
 import {
@@ -96,7 +95,7 @@ export const checkRunE2eBroker = async ({
     cwd,
   });
 
-  const e2eFiles = fileList.filter((f) => isE2eTestPathGuard({ filePath: String(f) }));
+  const e2eFiles = fileList.filter((f) => isE2eTestPathGuard({ filePath: f }));
 
   if (fileList.length > 0 && e2eFiles.length === 0) {
     // Scope (changed/passthrough) holds no e2e files, so nothing was in scope to
@@ -123,7 +122,7 @@ export const checkRunE2eBroker = async ({
     testNamePattern === undefined
       ? [...args, ...e2eFiles]
       : [...args, '--grep', testNamePattern, '--pass-with-no-tests', ...e2eFiles];
-  const command = String(binResolveBroker({ binName: bin, cwd }));
+  const command = binResolveBroker({ binName: bin, cwd });
 
   // The prebuilt UI bundle `vite preview` serves, keyed by a hash of every source in this package's
   // `dependencies` closure — so a run whose inputs have not changed reuses the build instead of
@@ -184,10 +183,10 @@ export const checkRunE2eBroker = async ({
     args: finalArgs,
     cwd,
     env: {
-      [openHandleReportStatics.env.pathVar]: String(handleReportPath),
+      [openHandleReportStatics.env.pathVar]: handleReportPath,
       DUNGEONMASTER_PORT: String(serverPort),
       DUNGEONMASTER_WEB_PORT: String(webPort),
-      PLAYWRIGHT_JSON_OUTPUT_NAME: String(jsonReportPath),
+      PLAYWRIGHT_JSON_OUTPUT_NAME: jsonReportPath,
       ...(sourceConditionSupportedBroker({ cwd }) ? { NODE_OPTIONS: '--conditions=source' } : {}),
       // Absent when the package has no build script to make a bundle with. The consumer's
       // playwright config decides what to serve then; ward states what it has rather than
@@ -208,7 +207,7 @@ export const checkRunE2eBroker = async ({
     portKillListenersBroker({ port: webPort }),
   ]);
 
-  const exitCode = result.exitCode;
+  const { exitCode } = result;
   const status = exitCode === 0 ? 'pass' : 'fail';
 
   let testFailures: ReturnType<typeof parsePlaywrightCrashOutputTransformer> = [];
@@ -227,7 +226,7 @@ export const checkRunE2eBroker = async ({
     ReturnType<typeof playwrightJsonReportToPassingTransformer>
   > => {
     try {
-      const jsonContent = (await readFile(jsonReportPath));
+      const jsonContent = await readFile(jsonReportPath);
       return playwrightJsonReportToPassingTransformer({ jsonContent });
     } catch {
       return [];

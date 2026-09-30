@@ -167,7 +167,7 @@ test.describe('A sub-agent chain whose completion notification has landed freeze
     });
 
     const created = await quests.createQuest({
-      guildId: guildId,
+      guildId,
       title: 'Subagent Duration Frozen Figure Band Quest',
       userRequest: 'Build the feature',
     });
@@ -372,7 +372,7 @@ test.describe('A sub-agent chain whose completion notification has landed freeze
     });
 
     const created = await quests.createQuest({
-      guildId: guildId,
+      guildId,
       title: 'Subagent Duration Frozen Figure Notification Branch Quest',
       userRequest: 'Build the feature',
     });
@@ -480,7 +480,7 @@ test.describe('A sub-agent chain whose completion notification has landed freeze
     });
 
     const created = await quests.createQuest({
-      guildId: guildId,
+      guildId,
       title: 'Subagent Duration Frozen Figure Duration-Ms Branch Quest',
       userRequest: 'Build the feature',
     });

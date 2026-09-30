@@ -12,6 +12,7 @@ import { z } from '#gateway/npm/zod';
 
 export const installedPackageManifestContract = z
   .object({ version: z.string().min(1).brand<'InstalledPackageManifestVersion'>().optional() })
-  .loose().brand<'InstalledPackageManifest'>();
+  .loose()
+  .brand<'InstalledPackageManifest'>();
 
 export type InstalledPackageManifest = z.infer<typeof installedPackageManifestContract>;

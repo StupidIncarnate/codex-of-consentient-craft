@@ -16,10 +16,12 @@
 import { z } from '#gateway/npm/zod';
 import { openHandleStatics } from '../../statics/open-handle/open-handle-statics';
 
-export const armedTimerContract = z.object({
-  kind: z.enum(openHandleStatics.timers.arm),
-  stack: z.string().brand<'ArmedTimerStack'>(),
-}).brand<'ArmedTimer'>();
+export const armedTimerContract = z
+  .object({
+    kind: z.enum(openHandleStatics.timers.arm),
+    stack: z.string().brand<'ArmedTimerStack'>(),
+  })
+  .brand<'ArmedTimer'>();
 
 export type ArmedTimer = z.infer<typeof armedTimerContract> & {
   isPending: () => boolean;

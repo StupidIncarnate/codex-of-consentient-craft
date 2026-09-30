@@ -8,17 +8,11 @@
 
 import { tokenFormatConfigStatics } from '../../statics/token-format-config/token-format-config-statics';
 
-export const formatContextTokensTransformer = ({
-  count,
-}: {
-  count: number;
-}): string => {
-  const raw =
-    count >= tokenFormatConfigStatics.abbreviationThreshold;
+export const formatContextTokensTransformer = ({ count }: { count: number }): string => {
+  const raw = count >= tokenFormatConfigStatics.abbreviationThreshold;
 
   if (raw) {
-    const abbreviated =
-      count / tokenFormatConfigStatics.abbreviationDivisor;
+    const abbreviated = count / tokenFormatConfigStatics.abbreviationDivisor;
 
     return `${abbreviated.toFixed(1)}k`;
   }

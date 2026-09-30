@@ -69,73 +69,75 @@ import { flowContract } from '../flow/flow-contract';
 import { siegeInstanceContract } from '../siege-instance/siege-instance-contract';
 import { siegeRunContract } from '../siege-run/siege-run-contract';
 
-export const questNoteContract = z.object({
-  id: z.string().min(1).brand<'QuestNoteId'>(),
-  kind: questNoteKindContract,
-  role: z
-    .string()
-    .min(1)
-    .brand<'QuestNoteRole'>()
-    .describe('The role that appended this note — who a reader follows up with.'),
-  workItemId: workItemContract.shape.id
-    .nullish()
-    .describe(
-      'The work item that appended this note. Required on every kind but `human-verdict`, whose ' +
-        "note records a person's judgment from the browser — nobody's work item. `.nullish()` " +
-        'because this contract also parses `quest.json` straight off disk, not only a fresh write.',
-    ),
-  flowId: flowContract.shape.id
-    .optional()
-    .describe('Present when the note is scoped to one flow. Absent means quest-wide.'),
-  unitId: z
-    .string()
-    .min(1)
-    .brand<'QuestNoteUnitId'>()
-    .optional()
-    .describe(
-      'Present when the note is scoped to one verification unit within the flow. Required on a ' +
-        '`human-verdict` note, where it names the `verifyByHuman` observable the person judged.',
-    ),
-  instanceId: siegeInstanceContract.shape.id
-    .nullish()
-    .describe(
-      'The siegelense driver instance that walked this path. Present on a `walked` note; absent on ' +
-        'every other kind. `.nullish()` because this contract also parses `quest.json` straight off ' +
-        'disk, not only a fresh write.',
-    ),
-  runId: siegeRunContract.shape.id
-    .nullish()
-    .describe(
-      'The run, within `instanceId`, that walked this path. Present exactly when `instanceId` is — ' +
-        'together they are what `prune` and `cleanup` resolve a `WALKED` citation against.',
-    ),
-  summary: z
-    .string()
-    .min(1)
-    .brand<'QuestNoteSummary'>()
-    .describe('The one line a reader scans in a list of notes.'),
-  detail: z
-    .string()
-    .min(1)
-    .brand<'QuestNoteDetail'>()
-    .describe('What the next session needs in order to act on the note without re-deriving it.'),
-  at: z.iso
-    .datetime()
-    .brand<'QuestNoteAt'>()
-    .describe(
-      'STAMPED SERVER-SIDE — any client-supplied value is ignored and overwritten at write time. ' +
-        'An LLM has no reliable clock: agents writing this field have been observed emitting one ' +
-        'identical fabricated timestamp across every note on a quest, and timestamps set in a ' +
-        'future that never happened. Required here because a persisted note always carries one; ' +
-        'the modify-quest input shape drops the requirement, since the write path supplies it.',
-    ),
-  outcome: z
-    .enum(['met', 'not-met'])
-    .optional()
-    .describe(
-      "A person's outcome on the `verifyByHuman` criterion named by `unitId`. Present on a " +
-        '`human-verdict` note; absent on every other kind, which settle nothing.',
-    ),
-}).brand<'QuestNote'>();
+export const questNoteContract = z
+  .object({
+    id: z.string().min(1).brand<'QuestNoteId'>(),
+    kind: questNoteKindContract,
+    role: z
+      .string()
+      .min(1)
+      .brand<'QuestNoteRole'>()
+      .describe('The role that appended this note — who a reader follows up with.'),
+    workItemId: workItemContract.shape.id
+      .nullish()
+      .describe(
+        'The work item that appended this note. Required on every kind but `human-verdict`, whose ' +
+          "note records a person's judgment from the browser — nobody's work item. `.nullish()` " +
+          'because this contract also parses `quest.json` straight off disk, not only a fresh write.',
+      ),
+    flowId: flowContract.shape.id
+      .optional()
+      .describe('Present when the note is scoped to one flow. Absent means quest-wide.'),
+    unitId: z
+      .string()
+      .min(1)
+      .brand<'QuestNoteUnitId'>()
+      .optional()
+      .describe(
+        'Present when the note is scoped to one verification unit within the flow. Required on a ' +
+          '`human-verdict` note, where it names the `verifyByHuman` observable the person judged.',
+      ),
+    instanceId: siegeInstanceContract.shape.id
+      .nullish()
+      .describe(
+        'The siegelense driver instance that walked this path. Present on a `walked` note; absent on ' +
+          'every other kind. `.nullish()` because this contract also parses `quest.json` straight off ' +
+          'disk, not only a fresh write.',
+      ),
+    runId: siegeRunContract.shape.id
+      .nullish()
+      .describe(
+        'The run, within `instanceId`, that walked this path. Present exactly when `instanceId` is — ' +
+          'together they are what `prune` and `cleanup` resolve a `WALKED` citation against.',
+      ),
+    summary: z
+      .string()
+      .min(1)
+      .brand<'QuestNoteSummary'>()
+      .describe('The one line a reader scans in a list of notes.'),
+    detail: z
+      .string()
+      .min(1)
+      .brand<'QuestNoteDetail'>()
+      .describe('What the next session needs in order to act on the note without re-deriving it.'),
+    at: z.iso
+      .datetime()
+      .brand<'QuestNoteAt'>()
+      .describe(
+        'STAMPED SERVER-SIDE — any client-supplied value is ignored and overwritten at write time. ' +
+          'An LLM has no reliable clock: agents writing this field have been observed emitting one ' +
+          'identical fabricated timestamp across every note on a quest, and timestamps set in a ' +
+          'future that never happened. Required here because a persisted note always carries one; ' +
+          'the modify-quest input shape drops the requirement, since the write path supplies it.',
+      ),
+    outcome: z
+      .enum(['met', 'not-met'])
+      .optional()
+      .describe(
+        "A person's outcome on the `verifyByHuman` criterion named by `unitId`. Present on a " +
+          '`human-verdict` note; absent on every other kind, which settle nothing.',
+      ),
+  })
+  .brand<'QuestNote'>();
 
 export type QuestNote = z.infer<typeof questNoteContract>;

@@ -64,7 +64,9 @@ export const sessionNestedChainBroker = async ({
     await previous;
 
     const previousLevel = level - 1;
-    const agentId = agentContract.shape.id.parse(`seed-agent-1${NESTING_SUFFIX.repeat(previousLevel)}`);
+    const agentId = agentContract.shape.id.parse(
+      `seed-agent-1${NESTING_SUFFIX.repeat(previousLevel)}`,
+    );
     const toolUseId = toolUseIdContract.parse(`toolu_seed_nested_${level}`);
     const parentFilePath =
       level === 1

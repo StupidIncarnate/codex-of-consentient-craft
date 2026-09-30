@@ -1,13 +1,12 @@
-
 import { annotateTimeoutFailureTransformer } from './annotate-timeout-failure-transformer';
 
 const EXPECTED_ANNOTATION = [
-    'TIMEOUT: Test killed before reaching any expect() calls.',
-    'This is NOT a missing assertion — something upstream hung.',
-    'Do NOT rerun. Trace the code path from the test entry point.',
-    'Common causes: poll loop waiting for unreachable state, swallowed',
-    'error in catch handler, contract validation failure in async pipeline.',
-  ].join('\n');
+  'TIMEOUT: Test killed before reaching any expect() calls.',
+  'This is NOT a missing assertion — something upstream hung.',
+  'Do NOT rerun. Trace the code path from the test entry point.',
+  'Common causes: poll loop waiting for unreachable state, swallowed',
+  'error in catch handler, contract validation failure in async pipeline.',
+].join('\n');
 
 describe('annotateTimeoutFailureTransformer', () => {
   describe('timeout + no assertions combo', () => {

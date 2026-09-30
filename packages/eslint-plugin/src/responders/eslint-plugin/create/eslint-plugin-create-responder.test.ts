@@ -342,11 +342,9 @@ describe('EslintPluginCreateResponder', () => {
       const proxy = EslintPluginCreateResponderProxy();
       const plugin = proxy.callResponder();
 
-      expect(
-        plugin.configs.dungeonmaster.test.rules?.[
-          '@typescript-eslint/no-unsafe-call'
-        ],
-      ).toBe('off');
+      expect(plugin.configs.dungeonmaster.test.rules?.['@typescript-eslint/no-unsafe-call']).toBe(
+        'off',
+      );
     });
   });
 });

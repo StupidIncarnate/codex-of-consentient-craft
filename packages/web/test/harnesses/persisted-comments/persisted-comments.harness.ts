@@ -392,7 +392,7 @@ export const persistedCommentsHarness = ({
       title: 'E2E Persisted Comments Quest',
       userRequest: 'Build the feature',
     });
-    seeded.questId = String(created.questId);
+    seeded.questId = created.questId;
     seeded.urlSlug = String(guild.urlSlug ?? guild.name)
       .toLowerCase()
       .replace(/\s+/gu, '-');
@@ -400,7 +400,7 @@ export const persistedCommentsHarness = ({
     await quests.writeQuestFile({
       questId: QuestIdStub({ value: seeded.questId }),
       questFolder: created.questFolder,
-      questFilePath: String(created.filePath),
+      questFilePath: created.filePath,
       status,
       // withSession false drops the sessionId from the chaoswhisperer work item — the role stays,
       // so the ONLY difference between the two seeds is the sessionId itself, which is what makes

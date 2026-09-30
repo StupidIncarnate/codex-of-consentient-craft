@@ -1,6 +1,5 @@
 import { SessionIdStub } from '@dungeonmaster/shared/contracts/session-id/session-id.stub';
 
-
 import { sessionSummaryCacheState } from './session-summary-cache-state';
 import { sessionSummaryCacheStateProxy } from './session-summary-cache-state.proxy';
 

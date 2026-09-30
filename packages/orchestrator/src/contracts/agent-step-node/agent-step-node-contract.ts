@@ -40,6 +40,7 @@ export const agentStepNodeContract = z
     prompt: z.string().min(1).brand<'AgentStepNodePrompt'>().optional(),
     model: claudeModelContract.optional(),
   })
-  .loose().brand<'AgentStepNode'>();
+  .loose()
+  .brand<'AgentStepNode'>();
 
 export type AgentStepNode = z.infer<typeof agentStepNodeContract>;

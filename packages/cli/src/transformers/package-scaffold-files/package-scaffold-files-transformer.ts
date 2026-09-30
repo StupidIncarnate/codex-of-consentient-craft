@@ -74,9 +74,7 @@ export const packageScaffoldFilesTransformer = ({
   // when the caller has it. Without it the scope comes off the package name, and an unscoped name
   // becomes its own scope (`foo` gives `@foo`), the rule `packageScopeFromNameTransformer` applies to
   // an unscoped root. It is never an empty string, which would turn '__SCOPE__/node' into '/node'.
-  const scope = String(
-    workspaceScope ?? packageScopeFromNameTransformer({ rootPackageName: request.packageName }),
-  );
+  const scope = (workspaceScope ?? packageScopeFromNameTransformer({ rootPackageName: request.packageName }));
   // No explicit tuple-array type here: `String(...)` unbrands every value up front so every pair
   // is a plain [string, string] and TypeScript infers the array shape on its own — an explicit
   // annotation would have to spell the word "string", which `@dungeonmaster/ban-primitives` bans
@@ -152,7 +150,7 @@ export const packageScaffoldFilesTransformer = ({
     ]),
   );
   const gatewayImports = gatewayImportsFieldTransformer({
-    scope: scope,
+    scope,
   });
 
   const scriptsField = {
@@ -276,7 +274,8 @@ ${seed.barrel.exportPaths
             contents: playwrightConfigTemplateStatics.unresolvableTokenStaticsContent,
           }),
           scaffoldFileContract.parse({
-            relativePath: 'src/statics/e2e-unresolvable-token/e2e-unresolvable-token-statics.test.ts',
+            relativePath:
+              'src/statics/e2e-unresolvable-token/e2e-unresolvable-token-statics.test.ts',
             contents: playwrightConfigTemplateStatics.unresolvableTokenStaticsTestContent,
           }),
         ]
@@ -292,13 +291,13 @@ ${seed.barrel.exportPaths
     ...seed.files.map(({ path, contents }) =>
       scaffoldFileContract.parse({
         relativePath: PLACEHOLDER_PAIRS.reduce(
-            (acc, [placeholder, sub]) => acc.replaceAll(placeholder, sub),
-            String(path),
-          ),
+          (acc, [placeholder, sub]) => acc.replaceAll(placeholder, sub),
+          String(path),
+        ),
         contents: PLACEHOLDER_PAIRS.reduce(
-            (acc, [placeholder, sub]) => acc.replaceAll(placeholder, sub),
-            String(contents),
-          ),
+          (acc, [placeholder, sub]) => acc.replaceAll(placeholder, sub),
+          String(contents),
+        ),
       }),
     ),
   ];

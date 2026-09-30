@@ -51,7 +51,7 @@ export const streamJsonToChatEntryTransformer = ({
   const rawUuid = line.uuid;
   const lineUuid =
     typeof rawUuid === 'string' && String(rawUuid).length > 0 ? String(rawUuid) : randomUUID();
-  const timestamp = String(extractTimestampFromJsonlLineTransformer({ parsed }));
+  const timestamp = extractTimestampFromJsonlLineTransformer({ parsed });
 
   if (type === 'assistant') {
     const entries = parseAssistantStreamEntryTransformer({ parsed, lineUuid, timestamp });

@@ -9,13 +9,15 @@ import { z } from '#gateway/npm/zod';
 
 import { rateLimitStatics } from '../../statics/rate-limit/rate-limit-statics';
 
-export const rateLimitWindowContract = z.object({
-  usedPercentage: z
-    .number()
-    .min(rateLimitStatics.percent.min)
-    .max(rateLimitStatics.percent.max)
-    .brand<'RateLimitWindowUsedPercentage'>(),
-  resetsAt: z.iso.datetime().brand<'RateLimitWindowResetsAt'>(),
-}).brand<'RateLimitWindow'>();
+export const rateLimitWindowContract = z
+  .object({
+    usedPercentage: z
+      .number()
+      .min(rateLimitStatics.percent.min)
+      .max(rateLimitStatics.percent.max)
+      .brand<'RateLimitWindowUsedPercentage'>(),
+    resetsAt: z.iso.datetime().brand<'RateLimitWindowResetsAt'>(),
+  })
+  .brand<'RateLimitWindow'>();
 
 export type RateLimitWindow = z.infer<typeof rateLimitWindowContract>;

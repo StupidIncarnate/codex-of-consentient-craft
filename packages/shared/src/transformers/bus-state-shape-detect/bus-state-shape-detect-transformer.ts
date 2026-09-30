@@ -17,17 +17,12 @@
  * that ignores imports/exports outside the first `export const NAME = {…}`.
  */
 
-
 const EXPORT_CONST_PATTERN = /export\s+const\s+(\w+)\s*=\s*\{/u;
 const EMIT_KEY_PATTERN = /\bemit\s*[:(]/u;
 const ON_KEY_PATTERN = /\bon\s*[:(]/u;
 
-export const busStateShapeDetectTransformer = ({
-  source,
-}: {
-  source: string;
-}): string | null => {
-  const sourceStr = String(source);
+export const busStateShapeDetectTransformer = ({ source }: { source: string }): string | null => {
+  const sourceStr = source;
   if (!EMIT_KEY_PATTERN.test(sourceStr)) return null;
   if (!ON_KEY_PATTERN.test(sourceStr)) return null;
   const match = EXPORT_CONST_PATTERN.exec(sourceStr);

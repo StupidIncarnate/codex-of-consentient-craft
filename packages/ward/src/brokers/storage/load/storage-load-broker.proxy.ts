@@ -4,7 +4,11 @@ import { readFileProxy } from '#gateway/node/fs__promises/read-file/read-file.pr
 import type { WardRunResult } from '../../../contracts/ward-result/ward-result-contract';
 
 export const storageLoadBrokerProxy = (): {
-  setupRunById: (params: { rootPath: string; runId: WardRunResult['runId']; content: string }) => void;
+  setupRunById: (params: {
+    rootPath: string;
+    runId: WardRunResult['runId'];
+    content: string;
+  }) => void;
   setupLatestRun: (params: {
     rootPath: string;
     entries: string[];
@@ -23,8 +27,7 @@ export const storageLoadBrokerProxy = (): {
   const readProxy = readFileProxy();
   const readdirProxy = readdirIfExistsProxy();
 
-  const wardDirFor = ({ rootPath }: { rootPath: string }): string =>
-    `${rootPath}/.ward`;
+  const wardDirFor = ({ rootPath }: { rootPath: string }): string => `${rootPath}/.ward`;
 
   return {
     setupRunById: ({
@@ -52,7 +55,7 @@ export const storageLoadBrokerProxy = (): {
       content: string;
     }): void => {
       const dirPath = wardDirFor({ rootPath });
-      readdirProxy.returns({ path: String(dirPath), names: entries });
+      readdirProxy.returns({ path: dirPath, names: entries });
       const path = `${dirPath}/${latestEntry}`;
       readProxy.returns({ path, contents: content });
     },
@@ -67,23 +70,29 @@ export const storageLoadBrokerProxy = (): {
       contents: Record<string, string>;
     }): void => {
       const dirPath = wardDirFor({ rootPath });
-      readdirProxy.returns({ path: String(dirPath), names: entries });
+      readdirProxy.returns({ path: dirPath, names: entries });
       for (const [filePath, content] of Object.entries(contents)) {
         readProxy.returns({ path: filePath, contents: content });
       }
     },
 
     setupEmptyDir: ({ rootPath }: { rootPath: string }): void => {
-      readdirProxy.returns({ path: String(wardDirFor({ rootPath })), names: [] });
+      readdirProxy.returns({ path: wardDirFor({ rootPath }), names: [] });
     },
 
-    setupReadFail: ({ rootPath, runId }: { rootPath: string; runId: WardRunResult['runId'] }): void => {
+    setupReadFail: ({
+      rootPath,
+      runId,
+    }: {
+      rootPath: string;
+      runId: WardRunResult['runId'];
+    }): void => {
       const path = `${wardDirFor({ rootPath })}/run-${runId}.json`;
       readProxy.missing({ path });
     },
 
     setupReaddirFail: ({ rootPath }: { rootPath: string }): void => {
-      readdirProxy.missing({ path: String(wardDirFor({ rootPath })) });
+      readdirProxy.missing({ path: wardDirFor({ rootPath }) });
     },
   };
 };

@@ -164,7 +164,8 @@ describe('driverSessionState', () => {
     it('VALID: {setLastShotPath} => lastShotPath reads that same path', () => {
       const proxy = driverSessionStateProxy();
       proxy.setupEmpty();
-      const path = '/repo/.dungeonmaster-assets/siegelense-assets/guilds/g1/instances/inst_1/runs/run_2/step4.png';
+      const path =
+        '/repo/.dungeonmaster-assets/siegelense-assets/guilds/g1/instances/inst_1/runs/run_2/step4.png';
 
       driverSessionState.setLastShotPath({ path });
 

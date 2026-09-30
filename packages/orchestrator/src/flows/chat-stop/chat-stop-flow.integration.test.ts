@@ -1,4 +1,3 @@
-
 import { ChatStopFlow } from './chat-stop-flow';
 
 describe('ChatStopFlow', () => {

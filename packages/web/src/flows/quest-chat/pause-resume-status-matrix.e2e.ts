@@ -84,7 +84,7 @@ test.describe('Pause/Resume Status Matrix (server-side roundtrip)', () => {
       await sessions.createSessionFile({ sessionId, userMessage: 'Build feature' });
 
       const created = await quests.createQuest({
-        guildId: guildId,
+        guildId,
         title: `Matrix ${status}`,
         userRequest: 'Build feature',
       });
@@ -92,8 +92,8 @@ test.describe('Pause/Resume Status Matrix (server-side roundtrip)', () => {
       const questFilePath = created.filePath;
 
       await quests.writeQuestFile({
-        questId: questId,
-        questFolder: questFolder,
+        questId,
+        questFolder,
         questFilePath: String(questFilePath),
         status,
         operations,
@@ -108,7 +108,7 @@ test.describe('Pause/Resume Status Matrix (server-side roundtrip)', () => {
       });
 
       // Act: pause via server endpoint
-      const pauseResult = await quests.pauseQuestResponse({ questId: questId });
+      const pauseResult = await quests.pauseQuestResponse({ questId });
 
       expect(pauseResult).toStrictEqual({ status: HTTP_OK, body: { paused: true } });
 
@@ -125,7 +125,7 @@ test.describe('Pause/Resume Status Matrix (server-side roundtrip)', () => {
       }).toStrictEqual({ status: 'paused', pausedAtStatus: status });
 
       // Act: resume via server endpoint
-      const resumeResult = await quests.resumeQuestResponse({ questId: questId });
+      const resumeResult = await quests.resumeQuestResponse({ questId });
 
       // Every fixture here carries a drained ledger and no work item the dispatcher would pick up
       // (a chat-role item never counts — see `hasIncompleteQuestWorkGuard`), so resume leaves the

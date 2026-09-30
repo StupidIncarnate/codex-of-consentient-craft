@@ -6,7 +6,13 @@
  * // Returns { questId, guildSlug }.
  */
 
-import type { QuestQueueEntry, QuestSource, WorkItemRole, Quest, Guild } from '@dungeonmaster/shared/contracts';
+import type {
+  QuestQueueEntry,
+  QuestSource,
+  WorkItemRole,
+  Quest,
+  Guild,
+} from '@dungeonmaster/shared/contracts';
 import { questQueueEntryContract } from '@dungeonmaster/shared/contracts';
 
 import { smoketestListenerEntryContract } from '../../../contracts/smoketest-listener-entry/smoketest-listener-entry-contract';
@@ -22,10 +28,7 @@ import { smoketestScenarioMetaState } from '../../../state/smoketest-scenario-me
 import { smoketestScenarioState } from '../../../state/smoketest-scenario/smoketest-scenario-state';
 import { LoadQuestLayerResponder } from './load-quest-layer-responder';
 
-type QuestModifiedHandler = (event: {
-  processId: string;
-  payload: { questId?: unknown };
-}) => void;
+type QuestModifiedHandler = (event: { processId: string; payload: { questId?: unknown } }) => void;
 
 export const EnqueueOrchestrationScenarioLayerResponder = async ({
   scenario,

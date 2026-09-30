@@ -1,4 +1,3 @@
-
 import { LocalImagePathMatchStub } from '../../contracts/local-image-path-match/local-image-path-match.stub';
 import { localImageTokenSubstituteTransformer } from './local-image-token-substitute-transformer';
 

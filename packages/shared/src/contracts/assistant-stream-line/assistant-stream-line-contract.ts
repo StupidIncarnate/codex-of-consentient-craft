@@ -13,20 +13,25 @@ import { assistantContentBlockParamContract } from '../assistant-content-block-p
 // `stop_reason` and `model` use `.nullish()` because Claude CLI emits explicit `null`
 // for these fields on streamed assistant deltas before a turn completes — `.optional()`
 // alone rejects null and silently drops every assistant line.
-export const assistantStreamLineContract = z.object({
-  type: z.literal('assistant'),
-  message: z.object({
-    role: z.literal('assistant'),
-    content: z.array(assistantContentBlockParamContract),
-    usage: z
+export const assistantStreamLineContract = z
+  .object({
+    type: z.literal('assistant'),
+    message: z
       .object({
-        input_tokens: z.number().brand<'AssistantStreamLineMessageUsageInputTokens'>(),
-        output_tokens: z.number().brand<'AssistantStreamLineMessageUsageOutputTokens'>(),
-      }).brand<'AssistantStreamLineMessageUsage'>()
-      .optional(),
-    stop_reason: z.string().brand<'AssistantStreamLineMessageStopReason'>().nullish(),
-    model: z.string().brand<'AssistantStreamLineMessageModel'>().nullish(),
-  }).brand<'AssistantStreamLineMessage'>(),
-}).brand<'AssistantStreamLine'>();
+        role: z.literal('assistant'),
+        content: z.array(assistantContentBlockParamContract),
+        usage: z
+          .object({
+            input_tokens: z.number().brand<'AssistantStreamLineMessageUsageInputTokens'>(),
+            output_tokens: z.number().brand<'AssistantStreamLineMessageUsageOutputTokens'>(),
+          })
+          .brand<'AssistantStreamLineMessageUsage'>()
+          .optional(),
+        stop_reason: z.string().brand<'AssistantStreamLineMessageStopReason'>().nullish(),
+        model: z.string().brand<'AssistantStreamLineMessageModel'>().nullish(),
+      })
+      .brand<'AssistantStreamLineMessage'>(),
+  })
+  .brand<'AssistantStreamLine'>();
 
 export type AssistantStreamLine = z.infer<typeof assistantStreamLineContract>;

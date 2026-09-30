@@ -37,7 +37,7 @@ export const serverRouteCallsExtractTransformer = ({
 }: {
   source: string;
 }): ServerRouteCallSite[] => {
-  const sourceStr = String(source);
+  const sourceStr = source;
   const callStarts = [];
 
   ROUTE_PATTERN.lastIndex = 0;
@@ -63,8 +63,7 @@ export const serverRouteCallsExtractTransformer = ({
     const sliceEnd = next === undefined ? sourceStr.length : next.bodyStart;
     const sliceText = sourceStr.slice(current.bodyStart, sliceEnd);
     const responderMatch = RESPONDER_REF_PATTERN.exec(sliceText);
-    const responderName =
-      responderMatch?.[1] === undefined ? null : responderMatch[1];
+    const responderName = responderMatch?.[1] === undefined ? null : responderMatch[1];
     results.push(
       serverRouteCallSiteContract.parse({
         method: current.method,

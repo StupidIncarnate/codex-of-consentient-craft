@@ -53,7 +53,11 @@ describe('questContractPropertiesToTextTransformer', () => {
     it('VALID: {properties: with description, depth: 1} => appends em-dash description', () => {
       const result = questContractPropertiesToTextTransformer({
         properties: [
-          QuestContractPropertyStub({ name: 'age' as never, type: 'Age' as never, description: 'User age' as never }),
+          QuestContractPropertyStub({
+            name: 'age' as never,
+            type: 'Age' as never,
+            description: 'User age' as never,
+          }),
         ],
         depth: 1,
       });
@@ -103,7 +107,11 @@ describe('questContractPropertiesToTextTransformer', () => {
     it('VALID: {depth: 0} => no indentation', () => {
       const result = questContractPropertiesToTextTransformer({
         properties: [
-          QuestContractPropertyStub({ name: 'id' as never, type: 'UserId' as never, description: 'User ID' as never }),
+          QuestContractPropertyStub({
+            name: 'id' as never,
+            type: 'UserId' as never,
+            description: 'User ID' as never,
+          }),
         ],
         depth: 0,
       });
@@ -114,7 +122,11 @@ describe('questContractPropertiesToTextTransformer', () => {
     it('VALID: {depth: 2} => double indentation', () => {
       const result = questContractPropertiesToTextTransformer({
         properties: [
-          QuestContractPropertyStub({ name: 'id' as never, type: 'UserId' as never, description: 'User ID' as never }),
+          QuestContractPropertyStub({
+            name: 'id' as never,
+            type: 'UserId' as never,
+            description: 'User ID' as never,
+          }),
         ],
         depth: 2,
       });
@@ -176,7 +188,11 @@ describe('questContractPropertiesToTextTransformer', () => {
             type: 'EmailAddress' as never,
             description: 'User email' as never,
           }),
-          QuestContractPropertyStub({ name: 'name' as never, type: 'UserName' as never, description: 'User name' as never }),
+          QuestContractPropertyStub({
+            name: 'name' as never,
+            type: 'UserName' as never,
+            description: 'User name' as never,
+          }),
         ],
         depth: 1,
       });

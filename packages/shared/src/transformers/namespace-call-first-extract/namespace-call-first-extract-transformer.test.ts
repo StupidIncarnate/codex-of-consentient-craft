@@ -3,7 +3,8 @@ import { namespaceCallFirstExtractTransformer } from './namespace-call-first-ext
 describe('namespaceCallFirstExtractTransformer', () => {
   describe('source with namespace call', () => {
     it('VALID: {StartOrchestrator.startQuest call} => returns namespace.method token', () => {
-      const source = 'export const adapter = async ({ questId }) => StartOrchestrator.startQuest({ questId });';
+      const source =
+        'export const adapter = async ({ questId }) => StartOrchestrator.startQuest({ questId });';
 
       const result = namespaceCallFirstExtractTransformer({ source });
 
@@ -21,7 +22,8 @@ describe('namespaceCallFirstExtractTransformer', () => {
 
   describe('source with multiple namespace calls', () => {
     it('VALID: {two namespace calls} => returns first call token', () => {
-      const source = 'StartOrchestrator.getQuest({ questId }); StartOrchestrator.startQuest({ questId });';
+      const source =
+        'StartOrchestrator.getQuest({ questId }); StartOrchestrator.startQuest({ questId });';
 
       const result = namespaceCallFirstExtractTransformer({ source });
 

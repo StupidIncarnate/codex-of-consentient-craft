@@ -7,9 +7,11 @@
  */
 import { z } from '#gateway/npm/zod';
 
-export const writeToolInputContract = z.object({
-  file_path: z.string().min(1).brand<'WriteToolInputFilePath'>(),
-  content: z.string().brand<'WriteToolInputContent'>(),
-}).brand<'WriteToolInput'>();
+export const writeToolInputContract = z
+  .object({
+    file_path: z.string().min(1).brand<'WriteToolInputFilePath'>(),
+    content: z.string().brand<'WriteToolInputContent'>(),
+  })
+  .brand<'WriteToolInput'>();
 
 export type WriteToolInput = z.infer<typeof writeToolInputContract>;

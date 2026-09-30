@@ -11,7 +11,6 @@
 import * as path from '#gateway/node/path';
 import { execFileSync } from '#gateway/node/child_process';
 
-
 import type { InstallTestbed } from '@dungeonmaster/testing';
 import { cwd } from '#gateway/node/process';
 
@@ -47,11 +46,11 @@ export const adapterCensusHarness = (): {
     try {
       const stdout = execFileSync(
         'npx',
-        ['tsx', '--conditions=source', String(ENTRY_PATH), ...args],
+        ['tsx', '--conditions=source', ENTRY_PATH, ...args],
         {
           encoding: 'utf8',
           stdio: ['pipe', 'pipe', 'pipe'],
-          cwd: String(PACKAGE_DIR),
+          cwd: PACKAGE_DIR,
           maxBuffer: MAX_OUTPUT_BYTES,
         },
       );
@@ -136,8 +135,8 @@ export const adapterCensusHarness = (): {
 
     for (const [relativePath, content] of Object.entries(files)) {
       testbed.writeFile({
-        relativePath: relativePath,
-        content: content,
+        relativePath,
+        content,
       });
     }
   };

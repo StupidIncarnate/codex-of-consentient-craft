@@ -1,4 +1,3 @@
-
 import { OrchestrationProcessStub } from '../../../contracts/orchestration-process/orchestration-process.stub';
 import { OrchestrationGetStatusResponderProxy } from './orchestration-get-status-responder.proxy';
 

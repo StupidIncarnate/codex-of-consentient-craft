@@ -1,4 +1,3 @@
-
 import { profileMeasuredDateRenderTransformer } from './profile-measured-date-render-transformer';
 
 describe('profileMeasuredDateRenderTransformer', () => {

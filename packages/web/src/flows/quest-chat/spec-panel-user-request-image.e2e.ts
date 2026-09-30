@@ -62,7 +62,7 @@ test.describe('The quest spec panel renders the pinned user request through User
     await sessions.createSessionFile({ sessionId, userMessage: 'Build the feature' });
 
     const created = await quests.createQuest({
-      guildId: guildId,
+      guildId,
       title: 'Spec Panel User Request Image Quest',
       userRequest,
     });
@@ -166,7 +166,7 @@ test.describe('The quest spec panel renders the pinned user request through User
     await sessions.createSessionFile({ sessionId, userMessage: 'Build the feature' });
 
     const created = await quests.createQuest({
-      guildId: guildId,
+      guildId,
       title: 'Spec Panel Plain Request Quest',
       userRequest,
     });

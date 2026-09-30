@@ -15,7 +15,12 @@
  */
 
 import { randomUUID } from '#gateway/node/crypto';
-import { getQuestInputContract, modifyQuestInputContract, operationItemContract, workItemContract } from '@dungeonmaster/shared/contracts';
+import {
+  getQuestInputContract,
+  modifyQuestInputContract,
+  operationItemContract,
+  workItemContract,
+} from '@dungeonmaster/shared/contracts';
 import type { Quest } from '@dungeonmaster/shared/contracts';
 import {
   isMergeableQuestStatusGuard,

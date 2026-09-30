@@ -28,7 +28,11 @@ import { z } from '#gateway/npm/zod';
 
 import { StartOrchestrator } from '@dungeonmaster/orchestrator';
 import type { Base64ImageData, Guild, Quest } from '@dungeonmaster/shared/contracts';
-import { pastedImageUploadContract, questContract, guildContract } from '@dungeonmaster/shared/contracts';
+import {
+  pastedImageUploadContract,
+  questContract,
+  guildContract,
+} from '@dungeonmaster/shared/contracts';
 import { locationsStatics, pastedImageStatics } from '@dungeonmaster/shared/statics';
 import { dmRegistryBroker, recipesHydrationCreateBroker } from '@dungeonmaster/hydration-recipes';
 import { dmTargetContract, guildFieldsContract } from '@dungeonmaster/hydration-recipes/contracts';
@@ -198,7 +202,11 @@ export const serverAppHarness = (): {
   // existence, inode (for the not-recreated-on-a-second-send proof) and the raw file name list
   // into one real fs read, so an absent directory reads as `exists: false` rather than a thrown
   // ENOENT a caller has to guess the meaning of.
-  readImagesDir: (params: { dungeonmasterHome: string; guildId: Guild['id']; questId: Quest['id'] }) => {
+  readImagesDir: (params: {
+    dungeonmasterHome: string;
+    guildId: Guild['id'];
+    questId: Quest['id'];
+  }) => {
     exists: boolean;
     dirPath: string;
     ino: unknown;
@@ -383,8 +391,8 @@ export const serverAppHarness = (): {
     await writeFileBytes(imagePath, bytes);
 
     return {
-      imagePath: imagePath,
-      dirPath: dirPath,
+      imagePath,
+      dirPath,
       cleanup: (): void => {
         rmSync(rootPath, { recursive: true, force: true });
       },
@@ -444,9 +452,9 @@ export const serverAppHarness = (): {
     await writeFileBytes(siblingPath, siblingBytes);
 
     return {
-      symlinkPath: symlinkPath,
-      targetPath: targetPath,
-      siblingPath: siblingPath,
+      symlinkPath,
+      targetPath,
+      siblingPath,
       cleanup: (): void => {
         rmSync(rootPath, { recursive: true, force: true });
       },
@@ -509,8 +517,8 @@ export const serverAppHarness = (): {
     path: string;
   }): ReturnType<typeof StartOrchestrator.addGuild> =>
     StartOrchestrator.addGuild({
-      name: name,
-      path: path,
+      name,
+      path,
     });
 
   const configureFakeClaudeCli = (): { claudeQueueDir: string; restore: () => void } => {
@@ -522,7 +530,7 @@ export const serverAppHarness = (): {
     setEnv('FAKE_CLAUDE_QUEUE_DIR', claudeQueueDir);
 
     return {
-      claudeQueueDir: claudeQueueDir,
+      claudeQueueDir,
       restore: (): void => {
         if (savedCliPath === undefined) {
           deleteEnv('CLAUDE_CLI_PATH');
@@ -588,7 +596,7 @@ export const serverAppHarness = (): {
     timeoutMs: number;
   }): Promise<unknown> => {
     const invocationsPath = join(
-      String(claudeQueueDir),
+      claudeQueueDir,
       '__by_cwd__',
       encodeCwdForFakeCli(cwd),
       'invocations.jsonl',
@@ -609,7 +617,7 @@ export const serverAppHarness = (): {
     const exists = existsSync(dirPath);
     return {
       exists,
-      dirPath: dirPath,
+      dirPath,
       ino: exists ? lstatSync(dirPath).ino : null,
       fileNames: exists ? readdirSync(dirPath).map((name) => name) : [],
     };
@@ -654,7 +662,7 @@ export const serverAppHarness = (): {
   }): Promise<readonly string[]> => {
     const { prompt } = claudeInvocationPromptContract.parse(await waitForClaudeInvocation(params));
     const matches = [...prompt.matchAll(new RegExp(pastedImageStatics.imageTokenPattern, 'gu'))];
-    return matches.map((match) => (match[2] ?? ''));
+    return matches.map((match) => match[2] ?? '');
   };
 
   const waitForClaudeInvocationPrompt = async (params: {

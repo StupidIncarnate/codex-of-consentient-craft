@@ -10,7 +10,6 @@
  * WHEN-NOT-TO-USE: When full AST parsing is needed — this is a v1 regex heuristic
  */
 
-
 const FLOW_IMPORT_PATTERN =
   /import\s+(?:type\s+)?(?:\{[^}]+\}|\*\s+as\s+\w+|\w+)\s+from\s+['"]([^'"]*(?:flows|responders)[^'"]*)['"]/u;
 
@@ -19,7 +18,7 @@ export const hookFlowImportExtractTransformer = ({
 }: {
   source: string;
 }): string | undefined => {
-  const match = FLOW_IMPORT_PATTERN.exec(String(source));
+  const match = FLOW_IMPORT_PATTERN.exec(source);
   if (match === null) {
     return undefined;
   }

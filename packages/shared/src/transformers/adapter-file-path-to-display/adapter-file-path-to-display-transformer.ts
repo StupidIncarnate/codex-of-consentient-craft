@@ -19,7 +19,6 @@
  * tmp/server-map.md expects (e.g. `adapters/orchestrator/get-quest` not the kebab basename)
  */
 
-
 const PACKAGE_PATH_PATTERN = /\/packages\/([^/]+)\/src\//u;
 const OUT_OF_BOUNDS_MESSAGE =
   'adapterFilePathToDisplayTransformer: file path is not under any packages/<pkg>/src/';
@@ -31,24 +30,24 @@ export const adapterFilePathToDisplayTransformer = ({
   filePath: string;
   renderingFilePath: string;
 }): string => {
-  const referencedMatch = PACKAGE_PATH_PATTERN.exec(String(filePath));
+  const referencedMatch = PACKAGE_PATH_PATTERN.exec(filePath);
   if (referencedMatch === null) {
-    throw new Error(`${OUT_OF_BOUNDS_MESSAGE} — got "${String(filePath)}"`);
+    throw new Error(`${OUT_OF_BOUNDS_MESSAGE} — got "${filePath}"`);
   }
-  const renderingMatch = PACKAGE_PATH_PATTERN.exec(String(renderingFilePath));
+  const renderingMatch = PACKAGE_PATH_PATTERN.exec(renderingFilePath);
   if (renderingMatch === null) {
-    throw new Error(`${OUT_OF_BOUNDS_MESSAGE} — got "${String(renderingFilePath)}"`);
+    throw new Error(`${OUT_OF_BOUNDS_MESSAGE} — got "${renderingFilePath}"`);
   }
 
   const [, referencedPackage] = referencedMatch;
   const [, renderingPackage] = renderingMatch;
   if (referencedPackage === undefined || renderingPackage === undefined) {
     throw new Error(
-      `${OUT_OF_BOUNDS_MESSAGE} — got rendering="${String(renderingFilePath)}" referenced="${String(filePath)}"`,
+      `${OUT_OF_BOUNDS_MESSAGE} — got rendering="${renderingFilePath}" referenced="${filePath}"`,
     );
   }
 
-  const filePathStr = String(filePath);
+  const filePathStr = filePath;
   const afterSrc = filePathStr.slice(referencedMatch.index + referencedMatch[0].length);
   const lastSlashInRelative = afterSrc.lastIndexOf('/');
   const parentRelative =

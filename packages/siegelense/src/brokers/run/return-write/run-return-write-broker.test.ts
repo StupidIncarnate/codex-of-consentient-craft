@@ -1,4 +1,3 @@
-
 import { RunResultStub } from '../../../contracts/run-result/run-result.stub';
 
 import { runReturnWriteBroker } from './run-return-write-broker';
@@ -8,7 +7,8 @@ describe('runReturnWriteBroker', () => {
   describe('a run result', () => {
     it('VALID: {result} => writes the JSON return and resolves with nothing', async () => {
       const proxy = runReturnWriteBrokerProxy();
-      const storedReturnPath = '/repo/.dungeonmaster-assets/siegelense-assets/guilds/g1/instances/inst_1/runs/run_2.json';
+      const storedReturnPath =
+        '/repo/.dungeonmaster-assets/siegelense-assets/guilds/g1/instances/inst_1/runs/run_2.json';
       const result = RunResultStub();
       proxy.succeeds({ storedReturnPath });
 
@@ -17,7 +17,8 @@ describe('runReturnWriteBroker', () => {
 
     it('VALID: {result} => the written content is the whole result as one JSON line', async () => {
       const proxy = runReturnWriteBrokerProxy();
-      const storedReturnPath = '/repo/.dungeonmaster-assets/siegelense-assets/guilds/g1/instances/inst_1/runs/run_2.json';
+      const storedReturnPath =
+        '/repo/.dungeonmaster-assets/siegelense-assets/guilds/g1/instances/inst_1/runs/run_2.json';
       const result = RunResultStub();
       proxy.succeeds({ storedReturnPath });
 
@@ -30,7 +31,8 @@ describe('runReturnWriteBroker', () => {
   describe('the write rejects', () => {
     it('ERROR: {disk write fails} => the return-write broker rejects with the same error', async () => {
       const proxy = runReturnWriteBrokerProxy();
-      const storedReturnPath = '/repo/.dungeonmaster-assets/siegelense-assets/guilds/g1/instances/inst_1/runs/run_2.json';
+      const storedReturnPath =
+        '/repo/.dungeonmaster-assets/siegelense-assets/guilds/g1/instances/inst_1/runs/run_2.json';
       proxy.throws({ storedReturnPath, code: 'ENOSPC' });
 
       await expect(

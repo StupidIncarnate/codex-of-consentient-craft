@@ -100,10 +100,7 @@ export const laneProvisionBatchBroker = async ({
     bounded.map(async (agent) => {
       const workItem = quest.workItems.find((item) => item.id === agent.workItemId);
 
-      if (
-        workItem === undefined ||
-        workItem.payload?.['instance'] !== undefined
-      ) {
+      if (workItem === undefined || workItem.payload?.instance !== undefined) {
         return;
       }
 
@@ -112,7 +109,7 @@ export const laneProvisionBatchBroker = async ({
         questId: quest.id,
         // questFindQuestPathBroker always resolves a guildId for an existing quest — every guild
         // owns its quests, so there is no quest this router dispatches for that has none.
-        guildId: guildId,
+        guildId,
         seed: null,
       });
       const manifest = laneManifestReadingContract.parse(rawManifest);

@@ -12,7 +12,11 @@
  * // Creates worktrees/ if absent and appends whichever ignore lines are still missing
  */
 
-import { type InstallContext, type InstallResult, installResultContract } from '@dungeonmaster/shared/contracts';
+import {
+  type InstallContext,
+  type InstallResult,
+  installResultContract,
+} from '@dungeonmaster/shared/contracts';
 import { locationsStatics } from '@dungeonmaster/shared/statics';
 import { ensureDir, pathExists, readFileIfExists, writeFile } from '#gateway/node/fs__promises';
 import { join } from '#gateway/node/path';

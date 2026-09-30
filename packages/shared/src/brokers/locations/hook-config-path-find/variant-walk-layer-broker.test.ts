@@ -16,9 +16,7 @@ describe('variantWalkLayerBroker', () => {
         variants: ['.dungeonmaster-hooks.config.ts', '.dungeonmaster-hooks.config.js'],
       });
 
-      expect(result).toBe(
-        '/project/.dungeonmaster-hooks.config.ts',
-      );
+      expect(result).toBe('/project/.dungeonmaster-hooks.config.ts');
     });
 
     it('VALID: {first variant missing, second variant exists} => returns second AbsoluteFilePath', async () => {
@@ -35,9 +33,7 @@ describe('variantWalkLayerBroker', () => {
         variants: ['.dungeonmaster-hooks.config.ts', '.dungeonmaster-hooks.config.js'],
       });
 
-      expect(result).toBe(
-        '/project/.dungeonmaster-hooks.config.js',
-      );
+      expect(result).toBe('/project/.dungeonmaster-hooks.config.js');
     });
   });
 

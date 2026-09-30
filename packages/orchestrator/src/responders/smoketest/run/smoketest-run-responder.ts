@@ -47,7 +47,7 @@ export const SmoketestRunResponder = async ({
   try {
     const { guildId } = await smoketestEnsureGuildBroker();
     const guild = await guildGetBroker({ guildId });
-    const guildSlug = (guild.urlSlug ?? nameToUrlSlugTransformer({ name: guild.name }));
+    const guildSlug = guild.urlSlug ?? nameToUrlSlugTransformer({ name: guild.name });
 
     const enqueued: { questId: Quest['id']; guildSlug: string }[] = [];
 
@@ -103,7 +103,11 @@ export const SmoketestRunResponder = async ({
       enqueued.push(...orchRecords);
     }
 
-    return smoketestRunResultContract.parse({ runId, enqueued, results: [] as readonly SmoketestCaseResult[] });
+    return smoketestRunResultContract.parse({
+      runId,
+      enqueued,
+      results: [] as readonly SmoketestCaseResult[],
+    });
   } catch (error: unknown) {
     // Only clear the active flag on enqueue failure. On success the flag remains set
     // until the post-terminal listener drains the last registered smoketest quest —

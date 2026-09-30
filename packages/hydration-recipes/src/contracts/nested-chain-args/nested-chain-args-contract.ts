@@ -15,8 +15,10 @@ const chainDepthContract = z.number().int().positive().brand<'ChainDepth'>();
 
 export type ChainDepth = z.infer<typeof chainDepthContract>;
 
-export const nestedChainArgsContract = z.object({
-  depth: chainDepthContract,
-}).brand<'NestedChainArgs'>();
+export const nestedChainArgsContract = z
+  .object({
+    depth: chainDepthContract,
+  })
+  .brand<'NestedChainArgs'>();
 
 export type NestedChainArgs = z.infer<typeof nestedChainArgsContract>;

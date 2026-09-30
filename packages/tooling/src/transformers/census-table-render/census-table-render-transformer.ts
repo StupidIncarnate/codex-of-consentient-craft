@@ -13,11 +13,7 @@ import { censusLayoutStatics } from '../../statics/census-layout/census-layout-s
 import type { AdapterCensus } from '../../contracts/adapter-census/adapter-census-contract';
 import type { AdapterRecord } from '../../contracts/adapter-record/adapter-record-contract';
 
-export const censusTableRenderTransformer = ({
-  census,
-}: {
-  census: AdapterCensus;
-}): string => {
+export const censusTableRenderTransformer = ({ census }: { census: AdapterCensus }): string => {
   const heading = `Adapter census (scope ${census.scope ?? 'none'})`;
   if (census.packages.length === 0) {
     return `${heading}\nNo adapters found under ${censusLayoutStatics.adaptersSegment.slice(1)}.\n`;

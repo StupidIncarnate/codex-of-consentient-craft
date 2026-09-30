@@ -20,7 +20,8 @@ const docsSectionContract = z
     heading: z.string().brand<'DocsSectionHeading'>(),
     lines: z.array(z.string().brand<'DocsSectionLines'>()),
   })
-  .strict().brand<'DocsSection'>();
+  .strict()
+  .brand<'DocsSection'>();
 
 const docsScopeDocumentContract = z
   .object({
@@ -29,7 +30,8 @@ const docsScopeDocumentContract = z
     summary: z.string().brand<'DocsScopeDocumentSummary'>(),
     sections: z.array(docsSectionContract),
   })
-  .strict().brand<'DocsScopeDocument'>();
+  .strict()
+  .brand<'DocsScopeDocument'>();
 
 export const docsAnswerContract = z
   .object({
@@ -37,6 +39,7 @@ export const docsAnswerContract = z
     about: z.array(z.string().brand<'DocsAnswerAbout'>()),
     scopes: z.array(docsScopeDocumentContract),
   })
-  .strict().brand<'DocsAnswer'>();
+  .strict()
+  .brand<'DocsAnswer'>();
 
 export type DocsAnswer = z.infer<typeof docsAnswerContract>;

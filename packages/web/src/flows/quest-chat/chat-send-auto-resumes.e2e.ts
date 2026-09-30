@@ -42,7 +42,7 @@ test.describe('Chat send auto-resumes paused quest', () => {
     await sessions.createSessionFile({ sessionId, userMessage: 'Build feature' });
 
     const created = await quests.createQuest({
-      guildId: guildId,
+      guildId,
       title: 'Chat Auto Resume Quest',
       userRequest: 'Build feature',
     });
@@ -53,8 +53,8 @@ test.describe('Chat send auto-resumes paused quest', () => {
     // explore_flows, call the pause endpoint once to set the pausedAtStatus snapshot,
     // then let the test exercise the auto-resume-on-send flow.
     await quests.writeQuestFile({
-      questId: questId,
-      questFolder: questFolder,
+      questId,
+      questFolder,
       questFilePath: String(questFilePath),
       status: 'explore_flows',
       workItems: [
@@ -67,7 +67,7 @@ test.describe('Chat send auto-resumes paused quest', () => {
       ],
     });
 
-    await quests.pauseQuest({ questId: questId });
+    await quests.pauseQuest({ questId });
 
     const afterPauseResponse = await request.get(`/api/quests/${questId}`);
     const afterPauseBody = await afterPauseResponse.json();
@@ -83,7 +83,7 @@ test.describe('Chat send auto-resumes paused quest', () => {
     });
 
     const urlSlug = guilds.extractUrlSlug({ guild });
-    await nav.navigateToQuest({ urlSlug, questId: questId });
+    await nav.navigateToQuest({ urlSlug, questId });
 
     await expect(page.getByTestId('QUEST_SPEC_PANEL')).toBeVisible({ timeout: PANEL_TIMEOUT });
 

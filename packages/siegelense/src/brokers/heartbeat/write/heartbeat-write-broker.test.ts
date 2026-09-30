@@ -21,7 +21,8 @@ describe('heartbeatWriteBroker', () => {
       const pgids = [4821];
       const guildId = GuildIdStub({ value: 'f47ac10b-58cc-4372-a567-0e02b2c3d479' });
       const nowMs = 1_700_000_500_000;
-      const evidencePath = '/home/user/.dungeonmaster/siegelense/guilds/f47ac10b-58cc-4372-a567-0e02b2c3d479/instances/inst_7f3a9c21';
+      const evidencePath =
+        '/home/user/.dungeonmaster/siegelense/guilds/f47ac10b-58cc-4372-a567-0e02b2c3d479/instances/inst_7f3a9c21';
       const row = RegistryEntryStub({ id: instanceId });
       const registry = RegistryStub({ instances: [row] });
 
@@ -92,14 +93,11 @@ describe('heartbeatWriteBroker', () => {
       const proxy = heartbeatWriteBrokerProxy();
       const instanceId = InstanceIdStub({ value: 'inst_7f3a9c21' });
       const pid = 'proc-12345';
-      const pgids = [
-        4821,
-        4822,
-        4823,
-      ];
+      const pgids = [4821, 4822, 4823];
       const guildId = GuildIdStub({ value: 'f47ac10b-58cc-4372-a567-0e02b2c3d479' });
       const nowMs = 1_700_000_500_000;
-      const evidencePath = '/home/user/.dungeonmaster/siegelense/guilds/f47ac10b-58cc-4372-a567-0e02b2c3d479/instances/inst_7f3a9c21';
+      const evidencePath =
+        '/home/user/.dungeonmaster/siegelense/guilds/f47ac10b-58cc-4372-a567-0e02b2c3d479/instances/inst_7f3a9c21';
       const row = RegistryEntryStub({ id: instanceId });
       const registry = RegistryStub({ instances: [row] });
 
@@ -135,7 +133,8 @@ describe('heartbeatWriteBroker', () => {
       const pgids = [4821];
       const guildId = GuildIdStub({ value: 'f47ac10b-58cc-4372-a567-0e02b2c3d479' });
       const nowMs = 1_700_000_500_000;
-      const evidencePath = '/home/user/.dungeonmaster/siegelense/guilds/f47ac10b-58cc-4372-a567-0e02b2c3d479/instances/inst_7f3a9c21';
+      const evidencePath =
+        '/home/user/.dungeonmaster/siegelense/guilds/f47ac10b-58cc-4372-a567-0e02b2c3d479/instances/inst_7f3a9c21';
       const row = RegistryEntryStub({ id: instanceId });
       const registry = RegistryStub({ instances: [row] });
 
@@ -177,7 +176,8 @@ describe('heartbeatWriteBroker', () => {
       const pgids = [4821];
       const guildId = GuildIdStub({ value: 'f47ac10b-58cc-4372-a567-0e02b2c3d479' });
       const nowMs = 1_700_000_500_000;
-      const evidencePath = '/home/user/.dungeonmaster/siegelense/guilds/f47ac10b-58cc-4372-a567-0e02b2c3d479/instances/inst_7f3a9c21';
+      const evidencePath =
+        '/home/user/.dungeonmaster/siegelense/guilds/f47ac10b-58cc-4372-a567-0e02b2c3d479/instances/inst_7f3a9c21';
       const row = RegistryEntryStub({ id: instanceId });
       const registry = RegistryStub({ instances: [row] });
 
@@ -224,7 +224,8 @@ describe('heartbeatWriteBroker', () => {
       const pgids = [4821];
       const guildId = GuildIdStub({ value: 'f47ac10b-58cc-4372-a567-0e02b2c3d479' });
       const nowMs = 1_700_000_500_000;
-      const evidencePath = '/home/user/.dungeonmaster/siegelense/guilds/f47ac10b-58cc-4372-a567-0e02b2c3d479/instances/inst_7f3a9c21';
+      const evidencePath =
+        '/home/user/.dungeonmaster/siegelense/guilds/f47ac10b-58cc-4372-a567-0e02b2c3d479/instances/inst_7f3a9c21';
       const unrelatedRow = RegistryEntryStub({ id: otherInstanceId });
       const registry = RegistryStub({ instances: [unrelatedRow] });
 

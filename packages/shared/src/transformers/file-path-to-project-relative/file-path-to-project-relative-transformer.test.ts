@@ -5,23 +5,21 @@ const PROJECT_ROOT = '/repo';
 describe('filePathToProjectRelativeTransformer', () => {
   describe('path within packages/', () => {
     it('VALID: {orchestrator state file} => returns pkgName/folder/file without extension', () => {
-      const filePath = '/repo/packages/orchestrator/src/state/orchestration-events/orchestration-events-state.ts';
+      const filePath =
+        '/repo/packages/orchestrator/src/state/orchestration-events/orchestration-events-state.ts';
 
       const result = filePathToProjectRelativeTransformer({ filePath, projectRoot: PROJECT_ROOT });
 
-      expect(result).toBe(
-        'orchestrator/state/orchestration-events/orchestration-events-state',
-      );
+      expect(result).toBe('orchestrator/state/orchestration-events/orchestration-events-state');
     });
 
     it('VALID: {server adapter file} => returns pkgName/adapters/... without extension', () => {
-      const filePath = '/repo/packages/server/src/adapters/orchestrator/events-on/events-on-adapter.ts';
+      const filePath =
+        '/repo/packages/server/src/adapters/orchestrator/events-on/events-on-adapter.ts';
 
       const result = filePathToProjectRelativeTransformer({ filePath, projectRoot: PROJECT_ROOT });
 
-      expect(result).toBe(
-        'server/adapters/orchestrator/events-on/events-on-adapter',
-      );
+      expect(result).toBe('server/adapters/orchestrator/events-on/events-on-adapter');
     });
 
     it('VALID: {file without src/ segment} => returns pkgName/rest without extension', () => {

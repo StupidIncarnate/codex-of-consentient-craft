@@ -37,7 +37,6 @@
  * // Returns a KeyListing whose `rendered` is the text tree a session reads
  */
 
-
 import { keyListingContract } from '../../contracts/key-listing/key-listing-contract';
 import type { KeyListing } from '../../contracts/key-listing/key-listing-contract';
 import { keyRowContract } from '../../contracts/key-row/key-row-contract';
@@ -296,8 +295,7 @@ export const keyReadTransformer = (): {
     return `(${READ_SOURCE_BODY})(${params})`;
   },
 
-  highestRefOf: ({ raw }: { raw: unknown }): number =>
-    rawKeyReadingContract.parse(raw).highestRef,
+  highestRefOf: ({ raw }: { raw: unknown }): number => rawKeyReadingContract.parse(raw).highestRef,
 
   toListing: ({ raw, within }: { raw: unknown; within: string | null }): KeyListing => {
     const reading = rawKeyReadingContract.parse(raw);
@@ -358,7 +356,9 @@ export const keyReadTransformer = (): {
             reading.rows
               .filter((row) => row.testId === testId)
               .map((row) => {
-                const parent = reading.rows.find((candidate) => Number(candidate.ref) === row.parentRef);
+                const parent = reading.rows.find(
+                  (candidate) => Number(candidate.ref) === row.parentRef,
+                );
                 return parent === undefined
                   ? DOCUMENT_ROOT_LABEL
                   : (parent.testId ?? `(${parent.tag})`);
@@ -367,12 +367,13 @@ export const keyReadTransformer = (): {
         ),
       }))
       .filter((entry) => entry.parents.length > 1)
-      .map((entry) =>
-        `… ${entry.testId} appears ${String(entry.parents.length)}× — under ${entry.parents.join(' and under ')}`,
+      .map(
+        (entry) =>
+          `… ${entry.testId} appears ${String(entry.parents.length)}× — under ${entry.parents.join(' and under ')}`,
       );
 
-    const truncated = reading.skipped.map((entry) =>
-      `… ${String(entry.count)} more under ${entry.under}`,
+    const truncated = reading.skipped.map(
+      (entry) => `… ${String(entry.count)} more under ${entry.under}`,
     );
 
     const unrendered = keyListingContract.parse({

@@ -1,4 +1,3 @@
-
 import { createDefaultInstallContextTransformer } from './create-default-install-context-transformer';
 
 describe('createDefaultInstallContextTransformer', () => {

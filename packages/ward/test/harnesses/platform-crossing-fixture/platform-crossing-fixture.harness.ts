@@ -31,8 +31,8 @@ export const platformCrossingFixtureHarness = (): {
   }): Promise<void> => {
     await Promise.resolve();
     testbed.writeFile({
-      relativePath: relativePath,
-      content: content,
+      relativePath,
+      content,
     });
   },
 
@@ -49,15 +49,15 @@ export const platformCrossingFixtureHarness = (): {
     testbed.writeFile({
       relativePath: 'packages/web/package.json',
       content: JSON.stringify({
-          name: 'web',
-          dependencies: { react: '18.2.0' },
-          imports: {
-            '#gateway/npm/*': '@dungeonmaster/npm/*',
-            '#gateway/node/*': '@dungeonmaster/node/*',
-            '#gateway/browser/*': '@dungeonmaster/browser/*',
-            '#gateway/bin/*': '@dungeonmaster/bin/*',
-          },
-        }),
+        name: 'web',
+        dependencies: { react: '18.2.0' },
+        imports: {
+          '#gateway/npm/*': '@dungeonmaster/npm/*',
+          '#gateway/node/*': '@dungeonmaster/node/*',
+          '#gateway/browser/*': '@dungeonmaster/browser/*',
+          '#gateway/bin/*': '@dungeonmaster/bin/*',
+        },
+      }),
     });
     testbed.writeFile({
       relativePath: 'packages/web/src/widgets/.gitkeep',

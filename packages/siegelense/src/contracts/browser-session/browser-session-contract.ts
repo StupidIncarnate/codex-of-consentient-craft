@@ -16,7 +16,6 @@
  * // touches a Playwright Page
  */
 
-
 import type { BoxReading } from '../box-reading/box-reading-contract';
 import type { BufferLengths } from '../buffer-lengths/buffer-lengths-contract';
 import type { DomField } from '../dom-field/dom-field-contract';

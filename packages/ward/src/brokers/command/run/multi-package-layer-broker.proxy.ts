@@ -26,10 +26,7 @@ export const multiPackageLayerBrokerProxy = (): {
     rootPath: string;
     packages: { projectFolder: ProjectFolder; subResultContent: string }[];
   }) => void;
-  setupSpawnWithNullLoad: (params: {
-    rootPath: string;
-    projectFolder: ProjectFolder;
-  }) => void;
+  setupSpawnWithNullLoad: (params: { rootPath: string; projectFolder: ProjectFolder }) => void;
   setupCrashedChildOverStaleResult: (params: {
     rootPath: string;
     projectFolder: ProjectFolder;
@@ -72,7 +69,7 @@ export const multiPackageLayerBrokerProxy = (): {
     config: ReturnType<typeof DungeonmasterConfigStub>;
   }): void => {
     configProxy.setupResolves({
-      filePath: `${String(rootPath)}/package.json`,
+      filePath: `${rootPath}/package.json`,
       config,
     });
   };
@@ -108,7 +105,7 @@ export const multiPackageLayerBrokerProxy = (): {
       // Addressed by COMMAND ONLY (no args/cwd): one child is spawned per folder, each with its
       // own args, and every one of them gets the SAME success output regardless — the folder is
       // what tells the loaded sub-results apart, via `loadProxy.setupRunById` below, not the spawn.
-      const command = String(resolveWardBin({ rootPath }));
+      const command = resolveWardBin({ rootPath });
       stream.setupSuccess({ command, exitCode: 0, stdout: childSummaryLine, stderr: '' });
       for (const folder of projectFolders) {
         loadProxy.setupRunById({
@@ -128,7 +125,7 @@ export const multiPackageLayerBrokerProxy = (): {
       rootPath: string;
       packages: { projectFolder: ProjectFolder; subResultContent: string }[];
     }): void => {
-      const command = String(resolveWardBin({ rootPath }));
+      const command = resolveWardBin({ rootPath });
       stream.setupSuccess({ command, exitCode: 0, stdout: childSummaryLine, stderr: '' });
       for (const pkg of packages) {
         loadProxy.setupRunById({
@@ -148,7 +145,7 @@ export const multiPackageLayerBrokerProxy = (): {
       rootPath: string;
       projectFolder: ProjectFolder;
     }): void => {
-      const command = String(resolveWardBin({ rootPath }));
+      const command = resolveWardBin({ rootPath });
       stream.setupSuccess({ command, exitCode: 1, stdout: childSummaryLine, stderr: '' });
       loadProxy.setupReadFail({
         rootPath: projectFolder.path,
@@ -172,7 +169,7 @@ export const multiPackageLayerBrokerProxy = (): {
       childStdout: string;
       staleResultContent: string;
     }): void => {
-      const command = String(resolveWardBin({ rootPath }));
+      const command = resolveWardBin({ rootPath });
       stream.setupSuccess({ command, exitCode: 1, stdout: childStdout, stderr: '' });
       const staleRunId = RunIdStub({ value: '1739000000000-01de' });
       loadProxy.setupLatestRun({
@@ -205,7 +202,7 @@ export const multiPackageLayerBrokerProxy = (): {
 
     getStderrCalls: (): unknown[] => [...stderr.getWrites()],
     getAllSpawnedArgs: (): unknown[] => [
-      ...stream.getCallsFor({ command: String(resolvedCommandRef.value) }),
+      ...stream.getCallsFor({ command: resolvedCommandRef.value }),
     ],
   };
 };

@@ -6,7 +6,6 @@
  * // Returns PassingTest[] containing only passed assertionResults entries
  */
 
-
 import { jestJsonReportContract } from '../../contracts/jest-json-report/jest-json-report-contract';
 import {
   passingTestContract,

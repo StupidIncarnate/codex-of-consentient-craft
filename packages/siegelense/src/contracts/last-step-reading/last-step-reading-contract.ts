@@ -16,10 +16,16 @@ import { stepVerbContract } from '../step-verb/step-verb-contract';
 import { siegeRunContract } from '@dungeonmaster/shared/contracts';
 import { instanceLifecycleStatics } from '../../statics/instance-lifecycle/instance-lifecycle-statics';
 
-export const lastStepReadingContract = z.object({
-  run: siegeRunContract.shape.id,
-  step: z.number().int().min(instanceLifecycleStatics.numbering.firstStep).brand<'LastStepReadingStep'>(),
-  verb: stepVerbContract,
-}).brand<'LastStepReading'>();
+export const lastStepReadingContract = z
+  .object({
+    run: siegeRunContract.shape.id,
+    step: z
+      .number()
+      .int()
+      .min(instanceLifecycleStatics.numbering.firstStep)
+      .brand<'LastStepReadingStep'>(),
+    verb: stepVerbContract,
+  })
+  .brand<'LastStepReading'>();
 
 export type LastStepReading = z.infer<typeof lastStepReadingContract>;

@@ -205,7 +205,9 @@ describe('resultsArgsParseTransformer', () => {
     it("INVALID: {--run bogus} => throws naming --run and runIdContract's own message", () => {
       expect(() =>
         resultsArgsParseTransformer({ args: ['--instance', 'inst_7f3a9c21', '--run', 'bogus'] }),
-      ).toThrow(/^--run: Siege run id must look like "run_" followed by a positive integer with no leading zero, e\.g\. "run_2"$/u);
+      ).toThrow(
+        /^--run: Siege run id must look like "run_" followed by a positive integer with no leading zero, e\.g\. "run_2"$/u,
+      );
     });
   });
 

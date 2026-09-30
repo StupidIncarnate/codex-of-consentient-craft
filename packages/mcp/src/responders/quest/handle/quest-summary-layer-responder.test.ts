@@ -123,7 +123,9 @@ describe('QuestSummaryLayerResponder', () => {
 
       await QuestSummaryLayerResponder({ args: { questId: 'add-auth' } });
 
-      expect(proxy.getLastCalledInputFor({ questId: QuestIdStub({ value: 'add-auth' }) })).toStrictEqual({
+      expect(
+        proxy.getLastCalledInputFor({ questId: QuestIdStub({ value: 'add-auth' }) }),
+      ).toStrictEqual({
         questId: 'add-auth',
       });
     });
@@ -132,7 +134,10 @@ describe('QuestSummaryLayerResponder', () => {
   describe('adapter failures', () => {
     it('ERROR: {orchestrator throws} => returns the JSON error shape with isError', async () => {
       const proxy = QuestSummaryLayerResponderProxy();
-      proxy.setupThrows({ questId: QuestIdStub({ value: 'add-auth' }), error: new Error('Quest not found: add-auth') });
+      proxy.setupThrows({
+        questId: QuestIdStub({ value: 'add-auth' }),
+        error: new Error('Quest not found: add-auth'),
+      });
 
       const result = await QuestSummaryLayerResponder({ args: { questId: 'add-auth' } });
 

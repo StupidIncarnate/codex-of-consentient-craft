@@ -223,26 +223,14 @@ export const orchestrationQuestHarness = (): {
   // Real git is expected on the machine running these integration tests, so a missing binary
   // (GitNotInstalledError) is left to throw rather than folded into a fake result — the same choice
   // gitWorktreeFixtureHarness's own runGit makes for the identical wrapper.
-  const runGit = async ({
-    args,
-    cwd,
-  }: {
-    args: readonly string[];
-    cwd: string;
-  }): Promise<void> => {
+  const runGit = async ({ args, cwd }: { args: readonly string[]; cwd: string }): Promise<void> => {
     await gitRun({ args: [...args], cwd });
   };
 
   // Real committer identity + disabled GPG signing, as `-c` flags on the commit itself: they apply
   // to that one git process only, so these throwaway test-fixture commits never depend on, or
   // mutate, the developer's real global git config.
-  const commitAll = async ({
-    message,
-    cwd,
-  }: {
-    message: string;
-    cwd: string;
-  }): Promise<void> => {
+  const commitAll = async ({ message, cwd }: { message: string; cwd: string }): Promise<void> => {
     await runGit({ args: ['add', '-A'], cwd });
     await runGit({
       args: [
@@ -265,14 +253,14 @@ export const orchestrationQuestHarness = (): {
   }: {
     repoPath: string;
   }): Promise<{ baseRef: GitBaseRef }> => {
-    const cwd = String(repoPath);
+    const cwd = repoPath;
     await runGit({ args: ['init'], cwd });
-    writeFileSync(join(String(repoPath), 'BASE_MARKER.md'), '# base commit\n');
+    writeFileSync(join(repoPath, 'BASE_MARKER.md'), '# base commit\n');
     await commitAll({ message: 'base', cwd });
     const rawSha = await headSha({ cwd });
     if (rawSha === null) {
       throw new Error(
-        `headSha returned null for a freshly-committed test repo at ${String(repoPath)}`,
+        `headSha returned null for a freshly-committed test repo at ${repoPath}`,
       );
     }
     const baseRef = questContract.shape.baseRef.unwrap().parse(rawSha);
@@ -286,11 +274,11 @@ export const orchestrationQuestHarness = (): {
     repoPath: string;
     files: readonly { relativePath: string; content: string }[];
   }): Promise<void> => {
-    const cwd = String(repoPath);
+    const cwd = repoPath;
     for (const file of files) {
-      const fullPath = join(String(repoPath), String(file.relativePath));
+      const fullPath = join(repoPath, file.relativePath);
       mkdirSync(dirname(fullPath), { recursive: true });
-      writeFileSync(fullPath, String(file.content));
+      writeFileSync(fullPath, file.content);
     }
     await commitAll({ message: 'changed files', cwd });
   };
@@ -317,7 +305,7 @@ export const orchestrationQuestHarness = (): {
     setEnv('FAKE_CLAUDE_QUEUE_DIR', claudeQueueDir);
 
     return {
-      claudeQueueDir: claudeQueueDir,
+      claudeQueueDir,
       restore: (): void => {
         if (savedCliPath === undefined) {
           deleteEnv('CLAUDE_CLI_PATH');
@@ -372,7 +360,7 @@ export const orchestrationQuestHarness = (): {
     timeoutMs: number;
   }): Promise<unknown> => {
     const invocationsPath = join(
-      String(claudeQueueDir),
+      claudeQueueDir,
       '__by_cwd__',
       encodeCwdForFakeCli(cwd),
       'invocations.jsonl',

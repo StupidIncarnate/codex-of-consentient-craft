@@ -23,6 +23,6 @@ const HASH_ALGORITHM = 'sha256';
 
 export const laneSpecHashBroker = ({ spec }: { spec: LaneSpec }): string => {
   const canonicalJson = laneSpecCanonicalJsonTransformer({ spec });
-  const digest = createHash(HASH_ALGORITHM).update(String(canonicalJson)).digest('hex');
+  const digest = createHash(HASH_ALGORITHM).update(canonicalJson).digest('hex');
   return digest;
 };

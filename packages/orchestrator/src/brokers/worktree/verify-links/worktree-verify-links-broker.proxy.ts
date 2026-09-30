@@ -20,11 +20,11 @@ export const worktreeVerifyLinksBrokerProxy = (): {
 
   return {
     setupNodeModulesAbsent: ({ worktreePath }: { worktreePath: string }): void => {
-      isAccessibleProxy.missing({ path: `${String(worktreePath)}/node_modules` });
+      isAccessibleProxy.missing({ path: `${worktreePath}/node_modules` });
     },
 
     setupNodeModulesPresent: ({ worktreePath }: { worktreePath: string }): void => {
-      isAccessibleProxy.present({ path: `${String(worktreePath)}/node_modules` });
+      isAccessibleProxy.present({ path: `${worktreePath}/node_modules` });
     },
 
     setupDirectoryEntries: ({

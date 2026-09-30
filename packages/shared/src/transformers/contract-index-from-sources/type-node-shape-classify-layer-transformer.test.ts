@@ -15,7 +15,7 @@ const classifyThing = ({ text }: { text: string }): string[] => {
     },
   );
   return typeAliases
-    .filter((alias) => String(alias.name) === 'Thing')
+    .filter((alias) => alias.name === 'Thing')
     .map((alias) =>
       typeNodeShapeClassifyLayerTransformer({
         node: alias.node,

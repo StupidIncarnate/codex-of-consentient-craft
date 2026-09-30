@@ -50,7 +50,13 @@ export const commentQueueStateProxy = (): {
       commentQueueState.resetSubscribers();
     },
 
-    seedQueue: ({ questId, entries }: { questId: Quest['id']; entries: CommentQueueEntry[] }): void => {
+    seedQueue: ({
+      questId,
+      entries,
+    }: {
+      questId: Quest['id'];
+      entries: CommentQueueEntry[];
+    }): void => {
       writeItem({
         key: `${commentQueueStatics.storage.keyPrefix}${questId}`,
         value: JSON.stringify(entries),

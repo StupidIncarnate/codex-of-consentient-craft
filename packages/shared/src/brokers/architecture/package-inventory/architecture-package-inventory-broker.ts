@@ -42,9 +42,7 @@ export const architecturePackageInventoryBroker = ({
     return `## ${packageName} (${String(totalFiles)} files)${descriptionSuffix}\n  ${projectMapStatics.emptyLabel}`;
   }
 
-  const lines: string[] = [
-    `## ${packageName} (${String(totalFiles)} files)${descriptionSuffix}`,
-  ];
+  const lines: string[] = [`## ${packageName} (${String(totalFiles)} files)${descriptionSuffix}`];
 
   for (const folder of folderEntries) {
     const folderPath = `${srcPath}/${folder.name}`;
@@ -58,9 +56,7 @@ export const architecturePackageInventoryBroker = ({
     const content = formatFolderContentLayerBroker({ dirPath: folderPath, folderDepth });
 
     if (content.length > 0) {
-      lines.push(
-        `  ${folder.name}/ (${String(fileCount)}) — ${content}`,
-      );
+      lines.push(`  ${folder.name}/ (${String(fileCount)}) — ${content}`);
     } else {
       lines.push(`  ${folder.name}/ (${String(fileCount)})`);
     }

@@ -17,5 +17,7 @@ export const isPathSuffixMatchGuard = ({
     return false;
   }
 
-  return storedPath === queryPath || storedPath.endsWith(queryPath) || queryPath.endsWith(storedPath);
+  return (
+    storedPath === queryPath || storedPath.endsWith(queryPath) || queryPath.endsWith(storedPath)
+  );
 };

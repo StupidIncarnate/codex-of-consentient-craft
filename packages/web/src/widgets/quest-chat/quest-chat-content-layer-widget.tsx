@@ -15,7 +15,14 @@ import { useLocation, useNavigate } from '#gateway/npm/react-router-dom';
 
 import { Box, Stack, Text } from '#gateway/npm/mantine__core';
 
-import type { ChatEntry, PastedImageUpload, QuestStatus, QuestType, Quest, Guild } from '@dungeonmaster/shared/contracts';
+import type {
+  ChatEntry,
+  PastedImageUpload,
+  QuestStatus,
+  QuestType,
+  Quest,
+  Guild,
+} from '@dungeonmaster/shared/contracts';
 import { chatEntryContract } from '@dungeonmaster/shared/contracts';
 import {
   isAbandonableQuestStatusGuard,
@@ -51,7 +58,8 @@ import { QuestLoadErrorWidget } from '../quest-load-error/quest-load-error-widge
 import { QuestSpecPanelWidget } from '../quest-spec-panel/quest-spec-panel-widget';
 import { QuestSummaryWidget } from '../quest-summary/quest-summary-widget';
 
-const NO_QUEST_BANNER_MESSAGE = 'Quests are created in your Claude session. Run this slash command to start a spec conversation:';
+const NO_QUEST_BANNER_MESSAGE =
+  'Quests are created in your Claude session. Run this slash command to start a spec conversation:';
 const DUMPSTER_CREATE_COMMAND = '/dumpster-create';
 
 const FLOWS_APPROVED_FOLLOWUP_MESSAGE =
@@ -126,7 +134,7 @@ export const QuestChatContentLayerWidget = ({
     questTypeOptionsStatics.defaultLabel,
   );
   const selectedQuestType: QuestType =
-    questTypeOptionsStatics.options.find((option) => option.label === String(questTypeLabel))
+    questTypeOptionsStatics.options.find((option) => option.label === questTypeLabel)
       ?.questType ?? 'feature';
 
   const flattenedEntries = useMemo<ChatEntry[]>(() => {
@@ -391,9 +399,7 @@ export const QuestChatContentLayerWidget = ({
                   </Text>
                   <FormDropdownWidget
                     value={questTypeLabel}
-                    options={questTypeOptionsStatics.options.map((option) =>
-                      option.label,
-                    )}
+                    options={questTypeOptionsStatics.options.map((option) => option.label)}
                     onChange={setQuestTypeLabel}
                   />
                 </Box>

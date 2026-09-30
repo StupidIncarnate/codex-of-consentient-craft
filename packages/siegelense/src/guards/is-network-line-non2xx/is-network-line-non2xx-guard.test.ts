@@ -1,4 +1,3 @@
-
 import { isNetworkLineNon2xxGuard } from './is-network-line-non2xx-guard';
 
 describe('isNetworkLineNon2xxGuard', () => {

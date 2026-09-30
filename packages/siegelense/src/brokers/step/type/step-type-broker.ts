@@ -29,7 +29,6 @@
  * // 5000ms (still moving: network)'
  */
 
-
 import type { BrowserSession } from '../../../contracts/browser-session/browser-session-contract';
 import { driverStatics } from '../../../statics/driver/driver-statics';
 import { settleReadingRenderTransformer } from '../../../transformers/settle-reading-render/settle-reading-render-transformer';
@@ -83,9 +82,10 @@ export const stepTypeBroker = async ({
   });
 
   return settleReadingRenderTransformer({
-    baseMessage: (within === null
+    baseMessage:
+      within === null
         ? `typed "${value}" into ${target}`
-        : `typed "${value}" into ${target} within ${within}`),
+        : `typed "${value}" into ${target} within ${within}`,
     settleReading,
   });
 };

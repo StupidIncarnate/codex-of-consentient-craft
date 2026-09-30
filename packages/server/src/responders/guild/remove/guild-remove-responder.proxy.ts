@@ -13,7 +13,13 @@ export const GuildRemoveResponderProxy = (): {
     setupRemoveGuildSuccess: ({ guildId }: { guildId: Guild['id'] }): void => {
       orchestrator.removeGuildResolves({ guildId });
     },
-    setupRemoveGuildError: ({ guildId, message }: { guildId: Guild['id']; message: string }): void => {
+    setupRemoveGuildError: ({
+      guildId,
+      message,
+    }: {
+      guildId: Guild['id'];
+      message: string;
+    }): void => {
       orchestrator.removeGuildThrows({ guildId, error: new Error(message) });
     },
     callResponder: GuildRemoveResponder,

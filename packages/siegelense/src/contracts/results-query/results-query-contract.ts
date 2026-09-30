@@ -29,12 +29,18 @@ export const resultsQueryContract = z
   .object({
     instanceId: siegeInstanceContract.shape.id,
     runId: siegeRunContract.shape.id.nullable(),
-    step: z.number().int().min(instanceLifecycleStatics.numbering.firstStep).brand<'ResultsQueryStep'>().nullable(),
+    step: z
+      .number()
+      .int()
+      .min(instanceLifecycleStatics.numbering.firstStep)
+      .brand<'ResultsQueryStep'>()
+      .nullable(),
     kind: resultKindContract.nullable(),
     where: resultWhereContract.nullable(),
     fields: z.array(z.string().min(1).brand<'ResultsQueryFields'>()).readonly().nullable(),
     since: sinceMarkerContract.nullable(),
   })
-  .strict().brand<'ResultsQuery'>();
+  .strict()
+  .brand<'ResultsQuery'>();
 
 export type ResultsQuery = z.infer<typeof resultsQueryContract>;

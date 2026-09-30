@@ -19,5 +19,5 @@ export const getFileExtensionTransformer = ({
   const isTsx = filename.endsWith('.tsx');
   const extension = isTsx ? 'tsx' : 'ts';
 
-  return (includesDot ? `.${extension}` : extension);
+  return includesDot ? `.${extension}` : extension;
 };

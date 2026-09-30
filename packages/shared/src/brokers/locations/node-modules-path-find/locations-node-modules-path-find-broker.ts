@@ -11,11 +11,7 @@
 import { join } from '#gateway/node/path';
 import { locationsStatics } from '../../../statics/locations/locations-statics';
 
-export const locationsNodeModulesPathFindBroker = ({
-  rootPath,
-}: {
-  rootPath: string;
-}): string => {
+export const locationsNodeModulesPathFindBroker = ({ rootPath }: { rootPath: string }): string => {
   const joined = join(rootPath, locationsStatics.repoRoot.nodeModules);
 
   return joined;

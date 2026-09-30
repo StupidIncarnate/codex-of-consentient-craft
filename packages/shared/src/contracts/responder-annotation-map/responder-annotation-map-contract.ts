@@ -15,9 +15,6 @@
 import { z } from '#gateway/npm/zod';
 import { responderAnnotationContract } from '../responder-annotation/responder-annotation-contract';
 
-export const responderAnnotationMapContract = z.map(
-  z.string(),
-  responderAnnotationContract,
-);
+export const responderAnnotationMapContract = z.map(z.string(), responderAnnotationContract);
 
 export type ResponderAnnotationMap = z.infer<typeof responderAnnotationMapContract>;

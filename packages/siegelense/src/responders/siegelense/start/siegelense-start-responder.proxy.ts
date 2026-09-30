@@ -18,7 +18,6 @@ import { stdoutProxy } from '#gateway/node/process/stdout/stdout.proxy';
 import { registerMock } from '@dungeonmaster/testing/register-mock';
 import type { Quest, Guild } from '@dungeonmaster/shared/contracts';
 
-
 import { instanceStartBroker } from '../../../brokers/instance/start/instance-start-broker';
 import { instanceStartBrokerProxy } from '../../../brokers/instance/start/instance-start-broker.proxy';
 import { questOwningGuildFindBroker } from '../../../brokers/quest/owning-guild-find/quest-owning-guild-find-broker';

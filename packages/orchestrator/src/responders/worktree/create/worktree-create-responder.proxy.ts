@@ -37,8 +37,8 @@ export const WorktreeCreateResponderProxy = (): {
   locationsWorktreePathFindBrokerProxy();
 
   const stageRepoRoot = ({ repoRoot }: { repoRoot: string }): void => {
-    cwdSetup.setupCwd({ value: String(repoRoot) });
-    cwdResolveProxy.setupRepoRootFoundAtStart({ startPath: String(repoRoot) });
+    cwdSetup.setupCwd({ value: repoRoot });
+    cwdResolveProxy.setupRepoRootFoundAtStart({ startPath: repoRoot });
   };
 
   return {

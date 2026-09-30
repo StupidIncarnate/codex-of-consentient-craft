@@ -28,7 +28,7 @@ describe('DigestRunResponder', () => {
         target,
       });
 
-      expect(String(result)).toBe(
+      expect(result).toBe(
         [
           'Lines in the transcript  1',
           'Times the model replied  1 (one reply covers several lines of the transcript)',
@@ -63,7 +63,7 @@ describe('DigestRunResponder', () => {
         target: SessionIdStub({ value: 'session-ghost' }),
       });
 
-      expect(String(result)).toBe(
+      expect(result).toBe(
         [
           'Lines in the transcript  0',
           'Times the model replied  0 (one reply covers several lines of the transcript)',
@@ -106,7 +106,7 @@ describe('DigestRunResponder', () => {
         target,
       });
 
-      expect(String(result)).toBe(
+      expect(result).toBe(
         [
           'Lines in the transcript  1',
           'Times the model replied  1 (one reply covers several lines of the transcript)',
@@ -145,7 +145,7 @@ describe('DigestRunResponder', () => {
         target,
       });
 
-      expect(String(result)).toBe(
+      expect(result).toBe(
         [
           'Window (UTC)        Replies  Tool calls   Tokens out     Tokens in  Bytes from tools  Busiest tools',
           '19:09-19:24               1           0            0             0                 0  ',
@@ -157,9 +157,9 @@ describe('DigestRunResponder', () => {
       const proxy = DigestRunResponderProxy();
       const target = SessionIdStub({ value: 'session-buckets-default-width' });
       const contents = [
-          JSON.stringify(TranscriptRecordStub({ timestamp: '2026-09-01T19:00:00.000Z' })),
-          JSON.stringify(TranscriptRecordStub({ timestamp: '2026-09-01T19:10:00.000Z' })),
-        ].join('\n');
+        JSON.stringify(TranscriptRecordStub({ timestamp: '2026-09-01T19:00:00.000Z' })),
+        JSON.stringify(TranscriptRecordStub({ timestamp: '2026-09-01T19:10:00.000Z' })),
+      ].join('\n');
       proxy.setupSession({ target, contents });
 
       const result = DigestRunResponder({
@@ -167,7 +167,7 @@ describe('DigestRunResponder', () => {
         target,
       });
 
-      expect(String(result)).toBe(
+      expect(result).toBe(
         [
           'Window (UTC)        Replies  Tool calls   Tokens out     Tokens in  Bytes from tools  Busiest tools',
           '19:00-19:15               2           0            0             0                 0  ',
@@ -179,9 +179,9 @@ describe('DigestRunResponder', () => {
       const proxy = DigestRunResponderProxy();
       const target = SessionIdStub({ value: 'session-buckets-minutes-flag' });
       const contents = [
-          JSON.stringify(TranscriptRecordStub({ timestamp: '2026-09-01T19:00:00.000Z' })),
-          JSON.stringify(TranscriptRecordStub({ timestamp: '2026-09-01T19:10:00.000Z' })),
-        ].join('\n');
+        JSON.stringify(TranscriptRecordStub({ timestamp: '2026-09-01T19:00:00.000Z' })),
+        JSON.stringify(TranscriptRecordStub({ timestamp: '2026-09-01T19:10:00.000Z' })),
+      ].join('\n');
       proxy.setupSession({ target, contents });
 
       const result = DigestRunResponder({
@@ -190,7 +190,7 @@ describe('DigestRunResponder', () => {
         bucketMinutes: BucketMinutesStub({ value: 5 }),
       });
 
-      expect(String(result)).toBe(
+      expect(result).toBe(
         [
           'Window (UTC)        Replies  Tool calls   Tokens out     Tokens in  Bytes from tools  Busiest tools',
           '19:00-19:05               1           0            0             0                 0  ',
@@ -205,9 +205,9 @@ describe('DigestRunResponder', () => {
       const proxy = DigestRunResponderProxy();
       const target = SessionIdStub({ value: 'session-gaps-valid' });
       const contents = [
-          JSON.stringify(TranscriptRecordStub({ timestamp: '2026-09-01T19:00:00.000Z' })),
-          JSON.stringify(TranscriptRecordStub({ timestamp: '2026-09-01T19:05:00.000Z' })),
-        ].join('\n');
+        JSON.stringify(TranscriptRecordStub({ timestamp: '2026-09-01T19:00:00.000Z' })),
+        JSON.stringify(TranscriptRecordStub({ timestamp: '2026-09-01T19:05:00.000Z' })),
+      ].join('\n');
       proxy.setupSession({ target, contents });
 
       const result = DigestRunResponder({
@@ -215,7 +215,7 @@ describe('DigestRunResponder', () => {
         target,
       });
 
-      expect(String(result)).toBe(
+      expect(result).toBe(
         [
           'Gaps of 120 seconds or more between one model reply and the next.',
           'A gap that names sub-agents is time the session spent waiting on a helper.',
@@ -235,10 +235,10 @@ describe('DigestRunResponder', () => {
       const proxy = DigestRunResponderProxy();
       const target = SessionIdStub({ value: 'session-gaps-edge' });
       const contents = [
-          JSON.stringify(TranscriptRecordStub({ timestamp: '2026-09-01T19:00:00.000Z' })),
-          JSON.stringify(TranscriptRecordStub({ timestamp: '2026-09-01T19:05:00.000Z' })),
-          JSON.stringify(TranscriptRecordStub({ timestamp: '2026-09-01T19:10:00.000Z' })),
-        ].join('\n');
+        JSON.stringify(TranscriptRecordStub({ timestamp: '2026-09-01T19:00:00.000Z' })),
+        JSON.stringify(TranscriptRecordStub({ timestamp: '2026-09-01T19:05:00.000Z' })),
+        JSON.stringify(TranscriptRecordStub({ timestamp: '2026-09-01T19:10:00.000Z' })),
+      ].join('\n');
       // subagentRosterLoadBroker only ever reports startedAt/endedAt as a matched pair, derived
       // together from a sub-agent's own transcript timestamps — a real row can never carry
       // exactly one of the two. A sub-agent with no readable transcript at all is the real-world
@@ -251,8 +251,8 @@ describe('DigestRunResponder', () => {
           {
             agentId: AgentIdStub({ value: 'agent-alpha' }),
             transcriptContents: JSON.stringify(
-                TranscriptRecordStub({ timestamp: '2026-09-01T19:02:00.000Z' }),
-              ),
+              TranscriptRecordStub({ timestamp: '2026-09-01T19:02:00.000Z' }),
+            ),
           },
           { agentId: AgentIdStub({ value: 'agent-beta' }) },
         ],
@@ -263,7 +263,7 @@ describe('DigestRunResponder', () => {
         target,
       });
 
-      expect(String(result)).toBe(
+      expect(result).toBe(
         [
           'Gaps of 120 seconds or more between one model reply and the next.',
           'A gap that names sub-agents is time the session spent waiting on a helper.',
@@ -284,9 +284,9 @@ describe('DigestRunResponder', () => {
       const proxy = DigestRunResponderProxy();
       const target = SessionIdStub({ value: 'session-gaps-default-floor' });
       const contents = [
-          JSON.stringify(TranscriptRecordStub({ timestamp: '2026-09-01T19:00:00.000Z' })),
-          JSON.stringify(TranscriptRecordStub({ timestamp: '2026-09-01T19:01:30.000Z' })),
-        ].join('\n');
+        JSON.stringify(TranscriptRecordStub({ timestamp: '2026-09-01T19:00:00.000Z' })),
+        JSON.stringify(TranscriptRecordStub({ timestamp: '2026-09-01T19:01:30.000Z' })),
+      ].join('\n');
       proxy.setupSession({ target, contents });
 
       const result = DigestRunResponder({
@@ -294,7 +294,7 @@ describe('DigestRunResponder', () => {
         target,
       });
 
-      expect(String(result)).toBe(
+      expect(result).toBe(
         [
           'Gaps of 120 seconds or more between one model reply and the next.',
           'A gap that names sub-agents is time the session spent waiting on a helper.',
@@ -313,9 +313,9 @@ describe('DigestRunResponder', () => {
       const proxy = DigestRunResponderProxy();
       const target = SessionIdStub({ value: 'session-gaps-floor-flag' });
       const contents = [
-          JSON.stringify(TranscriptRecordStub({ timestamp: '2026-09-01T19:00:00.000Z' })),
-          JSON.stringify(TranscriptRecordStub({ timestamp: '2026-09-01T19:01:30.000Z' })),
-        ].join('\n');
+        JSON.stringify(TranscriptRecordStub({ timestamp: '2026-09-01T19:00:00.000Z' })),
+        JSON.stringify(TranscriptRecordStub({ timestamp: '2026-09-01T19:01:30.000Z' })),
+      ].join('\n');
       proxy.setupSession({ target, contents });
 
       const result = DigestRunResponder({
@@ -324,7 +324,7 @@ describe('DigestRunResponder', () => {
         gapFloorSeconds: GapFloorSecondsStub({ value: 30 }),
       });
 
-      expect(String(result)).toBe(
+      expect(result).toBe(
         [
           'Gaps of 30 seconds or more between one model reply and the next.',
           'A gap that names sub-agents is time the session spent waiting on a helper.',
@@ -353,7 +353,7 @@ describe('DigestRunResponder', () => {
         target: questId,
       });
 
-      expect(String(result)).toBe(
+      expect(result).toBe(
         [
           'Flow bare-flow',
           "  sign-off track         REQUIRED  marked        met     can't meet    unmet    unmarked",
@@ -377,7 +377,7 @@ describe('DigestRunResponder', () => {
         target: QuestIdStub({ value: 'ghost-quest' }),
       });
 
-      expect(String(result)).toBe('');
+      expect(result).toBe('');
     });
 
     it('VALID: {quest carries a codeweaver work item that marked an observable met} => the rendered row reflects it, end to end', () => {
@@ -409,7 +409,7 @@ describe('DigestRunResponder', () => {
         target: questId,
       });
 
-      expect(String(result)).toBe(
+      expect(result).toBe(
         [
           'Flow marked-flow',
           "  sign-off track         REQUIRED  marked        met     can't meet    unmet    unmarked",
@@ -475,7 +475,7 @@ describe('DigestRunResponder', () => {
         target: questId,
       });
 
-      expect(String(result)).toBe(
+      expect(result).toBe(
         [
           'User request: Add real-time notifications',
           '',
@@ -504,7 +504,7 @@ describe('DigestRunResponder', () => {
         target: QuestIdStub({ value: 'ghost-quest' }),
       });
 
-      expect(String(result)).toBe('');
+      expect(result).toBe('');
     });
 
     it('EMPTY: {quest found with no work items} => prints only the user request line', () => {
@@ -517,7 +517,7 @@ describe('DigestRunResponder', () => {
         target: questId,
       });
 
-      expect(String(result)).toBe('User request: Fix the bug');
+      expect(result).toBe('User request: Fix the bug');
     });
   });
 });

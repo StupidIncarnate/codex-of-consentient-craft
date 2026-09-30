@@ -420,10 +420,7 @@ describe('checkRunUnitBroker', () => {
 
       await checkRunUnitBroker({
         projectFolder,
-        fileList: [
-          'src/brokers/quest',
-          'src/transformers',
-        ],
+        fileList: ['src/brokers/quest', 'src/transformers'],
       });
 
       const spawnedArgs: unknown = proxy.getSpawnedArgs();
@@ -449,9 +446,7 @@ describe('checkRunUnitBroker', () => {
 
       const result = await checkRunUnitBroker({
         projectFolder,
-        fileList: [
-          'src/flows/chat-replay/chat-replay-flow.integration.test.ts',
-        ],
+        fileList: ['src/flows/chat-replay/chat-replay-flow.integration.test.ts'],
       });
 
       expect(result).toStrictEqual(
@@ -827,10 +822,7 @@ describe('checkRunUnitBroker', () => {
 
       await checkRunUnitBroker({
         projectFolder,
-        fileList: [
-          'src/a/a.ts',
-          'src/b/b.ts',
-        ],
+        fileList: ['src/a/a.ts', 'src/b/b.ts'],
       });
 
       const spawnedArgs: unknown = proxy.getSpawnedArgs();
@@ -1292,10 +1284,7 @@ describe('checkRunUnitBroker', () => {
       mixedScopeProxy.setupPass({ projectFolder });
       await checkRunUnitBroker({
         projectFolder,
-        fileList: [
-          'src/index.ts',
-          'src/brokers/quest',
-        ],
+        fileList: ['src/index.ts', 'src/brokers/quest'],
       });
       const mixedScopeArgs = String(mixedScopeProxy.getSpawnedArgs()).split(',');
 

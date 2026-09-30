@@ -38,7 +38,7 @@ export const FormInputWidget = ({
       data-testid="FORM_INPUT"
       value={value}
       onChange={(event) => {
-        onChange(event.target.value as string);
+        onChange(event.target.value);
       }}
       placeholder={placeholder}
       autoFocus={autoFocus}

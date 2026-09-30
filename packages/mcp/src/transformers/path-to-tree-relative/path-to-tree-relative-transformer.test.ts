@@ -3,7 +3,8 @@ import { pathToTreeRelativeTransformer } from './path-to-tree-relative-transform
 describe('pathToTreeRelativeTransformer', () => {
   describe('monorepo paths', () => {
     it('VALID: {absolute monorepo path} => prepends package name, strips through src/', () => {
-      const filepath = '/home/user/repo/packages/hooks/src/adapters/fs/write-file/fs-write-file-adapter.ts';
+      const filepath =
+        '/home/user/repo/packages/hooks/src/adapters/fs/write-file/fs-write-file-adapter.ts';
 
       const result = pathToTreeRelativeTransformer({ filepath });
 

@@ -11,7 +11,7 @@ describe('recordToFlatTextTransformer', () => {
 
       const result = recordToFlatTextTransformer({ record });
 
-      expect(String(result)).toBe('Reading the file now.');
+      expect(result).toBe('Reading the file now.');
     });
   });
 
@@ -28,7 +28,7 @@ describe('recordToFlatTextTransformer', () => {
 
       const result = recordToFlatTextTransformer({ record });
 
-      expect(String(result)).toBe('Reading the file now.\n[thinking] Considering the approach.');
+      expect(result).toBe('Reading the file now.\n[thinking] Considering the approach.');
     });
 
     it('VALID: {content: thinking then text} => both joined by newline, thinking first', () => {
@@ -43,7 +43,7 @@ describe('recordToFlatTextTransformer', () => {
 
       const result = recordToFlatTextTransformer({ record });
 
-      expect(String(result)).toBe('[thinking] Considering the approach.\nReading the file now.');
+      expect(result).toBe('[thinking] Considering the approach.\nReading the file now.');
     });
 
     it('VALID: {content: text, tool_use, text} => tool_use ignored, texts joined', () => {
@@ -59,7 +59,7 @@ describe('recordToFlatTextTransformer', () => {
 
       const result = recordToFlatTextTransformer({ record });
 
-      expect(String(result)).toBe('First half.\nSecond half.');
+      expect(result).toBe('First half.\nSecond half.');
     });
   });
 
@@ -72,7 +72,7 @@ describe('recordToFlatTextTransformer', () => {
 
       const result = recordToFlatTextTransformer({ record });
 
-      expect(String(result)).toBe(
+      expect(result).toBe(
         `[thinking] ${'a'.repeat(digestDefaultStatics.thinkingExcerptChars)}`,
       );
     });
@@ -86,7 +86,7 @@ describe('recordToFlatTextTransformer', () => {
 
       const result = recordToFlatTextTransformer({ record, thinkingChars: 5 });
 
-      expect(String(result)).toBe('[thinking] Consi');
+      expect(result).toBe('[thinking] Consi');
     });
   });
 
@@ -100,7 +100,7 @@ describe('recordToFlatTextTransformer', () => {
 
       const result = recordToFlatTextTransformer({ record });
 
-      expect(String(result)).toBe('Only this survives.');
+      expect(result).toBe('Only this survives.');
     });
 
     it('EDGE: {content: thinking block with no thinking field, then a text block} => the empty one is skipped', () => {
@@ -112,7 +112,7 @@ describe('recordToFlatTextTransformer', () => {
 
       const result = recordToFlatTextTransformer({ record });
 
-      expect(String(result)).toBe('Only this survives.');
+      expect(result).toBe('Only this survives.');
     });
   });
 
@@ -122,7 +122,7 @@ describe('recordToFlatTextTransformer', () => {
 
       const result = recordToFlatTextTransformer({ record });
 
-      expect(String(result)).toBe('');
+      expect(result).toBe('');
     });
 
     it("EMPTY: {content: only tool_use blocks} => returns ''", () => {
@@ -137,7 +137,7 @@ describe('recordToFlatTextTransformer', () => {
 
       const result = recordToFlatTextTransformer({ record });
 
-      expect(String(result)).toBe('');
+      expect(result).toBe('');
     });
   });
 
@@ -150,7 +150,7 @@ describe('recordToFlatTextTransformer', () => {
 
       const result = recordToFlatTextTransformer({ record });
 
-      expect(String(result)).toBe('What does this function return?');
+      expect(result).toBe('What does this function return?');
     });
   });
 });

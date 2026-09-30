@@ -61,16 +61,15 @@ export const evidenceAgeHarness = (): {
     daysOld: number;
   }): Promise<void> => {
     const when = Date.now() / 1000 - daysOld * DAY_SECONDS;
-    await utimes(String(filePath), when, when);
+    await utimes(filePath, when, when);
   };
 
   const mtimeMs = async ({ filePath }: { filePath: string }): Promise<number> => {
-    const fileStat = await stat(String(filePath));
+    const fileStat = await stat(filePath);
     return fileStat.modifiedAtMs;
   };
 
-  const exists = ({ filePath }: { filePath: string }): boolean =>
-    existsSync(String(filePath));
+  const exists = ({ filePath }: { filePath: string }): boolean => existsSync(filePath);
 
   const seedAgingInstance = async ({
     daysOld,
@@ -90,8 +89,8 @@ export const evidenceAgeHarness = (): {
     const videoPath = `${runDir}/${VIDEO_FILE_NAME}`;
     const shotPath = `${runDir}/${SHOT_FILE_NAME}`;
 
-    await writeFile(String(videoPath), VIDEO_BODY);
-    await writeFile(String(shotPath), SHOT_BODY);
+    await writeFile(videoPath, VIDEO_BODY);
+    await writeFile(shotPath, SHOT_BODY);
 
     await backdateFile({ filePath: videoPath, daysOld });
     await backdateFile({ filePath: shotPath, daysOld });
@@ -99,29 +98,30 @@ export const evidenceAgeHarness = (): {
     const portBase = PORT_BASE + mintedCount * PORT_STRIDE;
 
     await registryUpdateBroker({
-      mutate: (current) => RegistryStub({
-        instances: [
-          ...current.instances,
-          RegistryEntryStub({
-            id: instanceId,
-            owner: '42781',
-            specName: 'dungeonmaster-stack',
-            specHash: 'a3f9c2e1',
-            pid: null,
-            pgids: [],
-            socketPath: null,
-            ports: PortPairStub({ api: portBase + 1, web: portBase + 2 }),
-            state: 'killed',
-            questId: null,
-            guildId: null,
-            reservedAtMs: (Date.now() - DAY_SECONDS * 1000 * (daysOld + 1)),
-            bootedAtMs: null,
-            lastBeatMs: null,
-            prunedAtMs: null,
-            prunedByRule: null,
-          }),
-        ],
-      }),
+      mutate: (current) =>
+        RegistryStub({
+          instances: [
+            ...current.instances,
+            RegistryEntryStub({
+              id: instanceId,
+              owner: '42781',
+              specName: 'dungeonmaster-stack',
+              specHash: 'a3f9c2e1',
+              pid: null,
+              pgids: [],
+              socketPath: null,
+              ports: PortPairStub({ api: portBase + 1, web: portBase + 2 }),
+              state: 'killed',
+              questId: null,
+              guildId: null,
+              reservedAtMs: Date.now() - DAY_SECONDS * 1000 * (daysOld + 1),
+              bootedAtMs: null,
+              lastBeatMs: null,
+              prunedAtMs: null,
+              prunedByRule: null,
+            }),
+          ],
+        }),
     });
 
     return { instanceId, videoPath, shotPath };

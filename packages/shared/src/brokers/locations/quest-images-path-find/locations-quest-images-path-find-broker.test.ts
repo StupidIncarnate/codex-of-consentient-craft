@@ -16,9 +16,7 @@ describe('locationsQuestImagesPathFindBroker', () => {
         questFolderPath: '/quest',
       });
 
-      expect(result).toBe(
-        `/quest/${locationsStatics.quest.imagesDir}`,
-      );
+      expect(result).toBe(`/quest/${locationsStatics.quest.imagesDir}`);
     });
   });
 });

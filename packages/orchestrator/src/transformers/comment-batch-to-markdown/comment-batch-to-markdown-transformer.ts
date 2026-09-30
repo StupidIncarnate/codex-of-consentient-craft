@@ -14,7 +14,6 @@
 import { z } from '#gateway/npm/zod';
 import type { Flow, FlowNode, FlowObservable, QuestComment } from '@dungeonmaster/shared/contracts';
 
-
 // The rule line that separates one comment's block from the next, and the full sequence the
 // blocks are joined on.
 const DIVIDER_RULE = '---';
@@ -44,7 +43,10 @@ export const commentBatchToMarkdownTransformer = ({
     flowsById.set(flow.id, flow);
 
     const nodesById = new Map<FlowNode['id'], FlowNode>();
-    const observablesByNodeId = new Map<FlowNode['id'], Map<FlowObservable['id'], FlowObservable>>();
+    const observablesByNodeId = new Map<
+      FlowNode['id'],
+      Map<FlowObservable['id'], FlowObservable>
+    >();
 
     for (const node of flow.nodes) {
       nodesById.set(node.id, node);

@@ -16,7 +16,11 @@ describe('ChatStopAllResponder', () => {
       const questId2 = QuestIdStub({ value: 'quest-2' });
       proxy.setupWithProcess({ processId: processId1, questId: questId1, kill: kill1 });
       orchestrationProcessesState.register({
-        orchestrationProcess: OrchestrationProcessStub({ processId: processId2, questId: questId2, kill: kill2 }),
+        orchestrationProcess: OrchestrationProcessStub({
+          processId: processId2,
+          questId: questId2,
+          kill: kill2,
+        }),
       });
 
       proxy.callResponder();

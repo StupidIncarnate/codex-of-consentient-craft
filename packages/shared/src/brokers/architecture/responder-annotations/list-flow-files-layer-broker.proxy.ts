@@ -7,14 +7,8 @@ export const listFlowFilesLayerBrokerProxy = (): {
   const gatewayProxy = readdirEntriesSyncProxy();
 
   return {
-    returns: ({
-      dirPath,
-      entries,
-    }: {
-      dirPath: string;
-      entries: DirEntrySync[];
-    }): void => {
-      gatewayProxy.returns({ path: String(dirPath), entries });
+    returns: ({ dirPath, entries }: { dirPath: string; entries: DirEntrySync[] }): void => {
+      gatewayProxy.returns({ path: dirPath, entries });
     },
   };
 };

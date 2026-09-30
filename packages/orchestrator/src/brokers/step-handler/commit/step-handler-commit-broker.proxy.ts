@@ -96,7 +96,7 @@ export const stepHandlerCommitBrokerProxy = (): {
       cwdMock.calledWith([{ questId }]).resolves(
         QuestCwdResolutionStub({
           kind: 'missing-worktree',
-          worktreePath: worktreePath,
+          worktreePath,
         }),
       );
     },

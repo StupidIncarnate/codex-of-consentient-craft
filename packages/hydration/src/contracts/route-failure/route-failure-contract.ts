@@ -26,10 +26,12 @@ const httpStatusContract = z
   .brand<'HttpStatus'>();
 const responseBodyContract = z.string().brand<'ResponseBody'>();
 
-export const routeFailureContract = z.object({
-  url: urlLikeContract.nullable(),
-  status: httpStatusContract.nullable(),
-  responseBody: responseBodyContract.nullable(),
-}).brand<'RouteFailure'>();
+export const routeFailureContract = z
+  .object({
+    url: urlLikeContract.nullable(),
+    status: httpStatusContract.nullable(),
+    responseBody: responseBodyContract.nullable(),
+  })
+  .brand<'RouteFailure'>();
 
 export type RouteFailure = z.infer<typeof routeFailureContract>;

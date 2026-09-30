@@ -1,4 +1,3 @@
-
 import { truncateNetworkBodyTransformer } from './truncate-network-body-transformer';
 
 describe('truncateNetworkBodyTransformer', () => {

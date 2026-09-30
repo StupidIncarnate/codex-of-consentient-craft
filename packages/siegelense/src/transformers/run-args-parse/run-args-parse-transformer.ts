@@ -22,7 +22,6 @@
  * // Returns { instanceId: 'inst_7f3a9c21', steps: [{ step: 'goto', path: '/', node: null, expect: 'ok' }], stopOn: 'error', isJson: false }
  */
 
-
 import { runArgsContract } from '../../contracts/run-args/run-args-contract';
 import type { RunArgs } from '../../contracts/run-args/run-args-contract';
 import { stopOnContract } from '../../contracts/stop-on/stop-on-contract';

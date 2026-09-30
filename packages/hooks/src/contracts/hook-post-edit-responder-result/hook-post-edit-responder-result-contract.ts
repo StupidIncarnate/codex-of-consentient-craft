@@ -8,9 +8,11 @@
 import { z } from '#gateway/npm/zod';
 import { lintResultContract } from '../lint-result/lint-result-contract';
 
-export const hookPostEditResponderResultContract = z.object({
-  violations: z.array(lintResultContract),
-  message: z.string().brand<'HookPostEditResponderResultMessage'>(),
-}).brand<'HookPostEditResponderResult'>();
+export const hookPostEditResponderResultContract = z
+  .object({
+    violations: z.array(lintResultContract),
+    message: z.string().brand<'HookPostEditResponderResultMessage'>(),
+  })
+  .brand<'HookPostEditResponderResult'>();
 
 export type HookPostEditResponderResult = z.infer<typeof hookPostEditResponderResultContract>;

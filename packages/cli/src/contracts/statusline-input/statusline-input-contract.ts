@@ -11,7 +11,8 @@ const rateLimitWindowShape = z
   .object({
     used_percentage: z.number().brand<'RateLimitWindowShapeUsedPercentage'>().optional(),
     resets_at: z.string().brand<'RateLimitWindowShapeResetsAt'>().optional(),
-  }).brand<'RateLimitWindowShape'>()
+  })
+  .brand<'RateLimitWindowShape'>()
   .optional();
 
 export const statuslineInputContract = z
@@ -20,9 +21,11 @@ export const statuslineInputContract = z
       .object({
         five_hour: rateLimitWindowShape,
         seven_day: rateLimitWindowShape,
-      }).brand<'StatuslineInputRateLimits'>()
+      })
+      .brand<'StatuslineInputRateLimits'>()
       .optional(),
   })
-  .loose().brand<'StatuslineInput'>();
+  .loose()
+  .brand<'StatuslineInput'>();
 
 export type StatuslineInput = z.infer<typeof statuslineInputContract>;

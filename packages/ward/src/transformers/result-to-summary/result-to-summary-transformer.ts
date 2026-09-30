@@ -6,7 +6,6 @@
  * // Returns: WardSummary like "run: 1739625600000-a3f1\nlint:      PASS  10 packages"
  */
 
-
 import { errorEntryContract } from '../../contracts/error-entry/error-entry-contract';
 import type { WardRunResult } from '../../contracts/ward-result/ward-result-contract';
 import { openHandleStackStatics } from '../../statics/open-handle-stack/open-handle-stack-statics';
@@ -180,7 +179,7 @@ export const resultToSummaryTransformer = ({
             })
           : firstMeaningfulLineTransformer({ message: failure.message });
 
-        const indented = String(summaryLine).split('\n').join('\n    ');
+        const indented = summaryLine.split('\n').join('\n    ');
         return `${displayPath}\n  FAIL "${failure.testName}"\n    ${indented}`;
       });
 
@@ -285,7 +284,7 @@ export const resultToSummaryTransformer = ({
     // taken from the first report in each group.
     const keyed = rendered.map((display) => ({
       display,
-      key: String(display).split('\n').slice(0, openHandleStackStatics.summary.keyLines).join('\n'),
+      key: display.split('\n').slice(0, openHandleStackStatics.summary.keyLines).join('\n'),
     }));
     const distinct = [...new Set(keyed.map((entry) => entry.key))]
       .map((key) => ({
@@ -324,12 +323,10 @@ export const resultToSummaryTransformer = ({
     }
 
     const reportLines = died.map((projectResult) =>
-      String(
-        outOfMemoryReportTransformer({
+      outOfMemoryReportTransformer({
           projectFolder: projectResult.projectFolder,
           rawOutput: projectResult.rawOutput,
         }),
-      ),
     );
 
     return [
@@ -340,10 +337,10 @@ export const resultToSummaryTransformer = ({
   const summaryLines = [runLine, ...checkLines];
 
   return [
-      ...summaryLines,
-      ...outOfMemoryLines,
-      ...slowFileLines,
-      ...openHandleLines,
-      ...detailLines,
-    ].join('\n');
+    ...summaryLines,
+    ...outOfMemoryLines,
+    ...slowFileLines,
+    ...openHandleLines,
+    ...detailLines,
+  ].join('\n');
 };

@@ -28,7 +28,7 @@ export const contentGrepTransformer = ({
   strict?: StrictGrep;
 }): GrepHit[] => {
   const regex = compileGrepRegexTransformer({ pattern, ...(strict !== undefined && { strict }) });
-  const contentsStr = String(contents);
+  const contentsStr = contents;
   const lines = contentsStr.split('\n');
 
   // Scan full file contents so multi-line regex patterns work, then project each

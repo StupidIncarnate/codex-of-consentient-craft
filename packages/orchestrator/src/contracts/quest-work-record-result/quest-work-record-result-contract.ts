@@ -15,24 +15,32 @@ import { z } from '#gateway/npm/zod';
 import { stepOutcomeContract } from '../step-outcome/step-outcome-contract';
 
 export const questWorkRecordResultContract = z.discriminatedUnion('kind', [
-  z.object({
-    kind: z.literal('observations'),
-    count: z.number().int().nonnegative().brand<'QuestWorkRecordResultCount'>(),
-  }).brand<'QuestWorkRecordResult'>(),
-  z.object({
-    kind: z.literal('outcome'),
-    word: stepOutcomeContract,
-  }).brand<'QuestWorkRecordResult'>(),
-  z.object({
-    kind: z.literal('invalidation'),
-    flowId: flowContract.shape.id,
-    noteId: questNoteContract.shape.id,
-    clearedCount: z.number().int().nonnegative().brand<'QuestWorkRecordResultClearedCount'>(),
-  }).brand<'QuestWorkRecordResult'>(),
-  z.object({
-    kind: z.literal('request'),
-    step: z.string().min(1).brand<'QuestWorkRecordResultStep'>(),
-  }).brand<'QuestWorkRecordResult'>(),
+  z
+    .object({
+      kind: z.literal('observations'),
+      count: z.number().int().nonnegative().brand<'QuestWorkRecordResultCount'>(),
+    })
+    .brand<'QuestWorkRecordResult'>(),
+  z
+    .object({
+      kind: z.literal('outcome'),
+      word: stepOutcomeContract,
+    })
+    .brand<'QuestWorkRecordResult'>(),
+  z
+    .object({
+      kind: z.literal('invalidation'),
+      flowId: flowContract.shape.id,
+      noteId: questNoteContract.shape.id,
+      clearedCount: z.number().int().nonnegative().brand<'QuestWorkRecordResultClearedCount'>(),
+    })
+    .brand<'QuestWorkRecordResult'>(),
+  z
+    .object({
+      kind: z.literal('request'),
+      step: z.string().min(1).brand<'QuestWorkRecordResultStep'>(),
+    })
+    .brand<'QuestWorkRecordResult'>(),
 ]);
 
 export type QuestWorkRecordResult = z.infer<typeof questWorkRecordResultContract>;

@@ -25,7 +25,7 @@ export const busEventLinesRenderLayerBroker = ({
   eventBusContext: EventBusContext;
 }): string[] => {
   const lines: string[] = [];
-  const responderPath = String(responderFile);
+  const responderPath = responderFile;
 
   // A responder may emit the same event type multiple times — show one bus→ line
   // per distinct event type, in first-seen order.
@@ -33,28 +33,28 @@ export const busEventLinesRenderLayerBroker = ({
   for (const site of eventBusContext.emitterSites) {
     if (String(site.emitterFile) !== responderPath) continue;
     const alreadyAdded = emittedTypes.some(
-      (existing) => String(existing) === String(site.eventType),
+      (existing) => existing === String(site.eventType),
     );
     if (!alreadyAdded) {
       emittedTypes.push(site.eventType);
     }
   }
   for (const eventType of emittedTypes) {
-    lines.push(`bus→ ${String(eventType)}`);
+    lines.push(`bus→ ${eventType}`);
   }
 
   const subscribedBusNames: string[] = [];
   for (const sub of eventBusContext.subscriberFiles) {
     if (String(sub.subscriberFile) !== responderPath) continue;
     const alreadyAdded = subscribedBusNames.some(
-      (existing) => String(existing) === String(sub.busExportName),
+      (existing) => existing === String(sub.busExportName),
     );
     if (!alreadyAdded) {
       subscribedBusNames.push(sub.busExportName);
     }
   }
   for (const busName of subscribedBusNames) {
-    lines.push(`bus← ${String(busName)} (subscribes all event types)`);
+    lines.push(`bus← ${busName} (subscribes all event types)`);
   }
 
   return lines;

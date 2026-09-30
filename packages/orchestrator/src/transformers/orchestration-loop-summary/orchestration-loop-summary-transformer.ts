@@ -16,7 +16,6 @@ import {
   satisfiesDependencyWorkItemStatusGuard,
 } from '@dungeonmaster/shared/guards';
 
-
 const LINE_INDENT = '    ';
 const NUM_PAD = 3;
 const TAG_PAD = 5;

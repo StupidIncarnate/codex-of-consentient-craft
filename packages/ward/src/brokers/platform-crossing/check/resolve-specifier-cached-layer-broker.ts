@@ -16,7 +16,6 @@
  * // Returns: { filePath, content } or undefined, same shape as resolveSpecifierLayerBroker
  */
 
-
 import type { ProjectFolder } from '../../../contracts/project-folder/project-folder-contract';
 import { resolveSpecifierLayerBroker } from './resolve-specifier-layer-broker';
 

@@ -1,4 +1,3 @@
-
 import { WardRunResultStub } from '../../contracts/ward-result/ward-result.stub';
 import { CheckResultStub } from '../../contracts/check-result/check-result.stub';
 import { ProjectResultStub } from '../../contracts/project-result/project-result.stub';
@@ -79,9 +78,7 @@ describe('resultToSummaryTransformer', () => {
         cwd: '/p',
       });
 
-      expect(result).toBe(
-        'run: 1739625600000-a3f1\nlint:      WARN  0 files run',
-      );
+      expect(result).toBe('run: 1739625600000-a3f1\nlint:      WARN  0 files run');
     });
   });
 
@@ -346,7 +343,7 @@ describe('resultToSummaryTransformer', () => {
         cwd: '/p',
       });
 
-      expect(String(result)).toBe(
+      expect(result).toBe(
         [
           'run: 1739625600000-a3f1',
           'typecheck: FAIL  1 packages (18 files passed/2 files failed)  ward (2)',
@@ -397,7 +394,7 @@ describe('resultToSummaryTransformer', () => {
         cwd: '/p',
       });
 
-      expect(String(result)).toBe(
+      expect(result).toBe(
         [
           'run: 1739625600000-a3f1',
           'typecheck: FAIL  1 packages (19 files passed/1 files failed)  ward (1)',
@@ -494,9 +491,7 @@ describe('resultToSummaryTransformer', () => {
         cwd: '/p/standards',
       });
 
-      expect(result).toBe(
-        'run: 1739625600000-a3f1',
-      );
+      expect(result).toBe('run: 1739625600000-a3f1');
     });
   });
 
@@ -1346,7 +1341,7 @@ describe('resultToSummaryTransformer', () => {
         cwd: '/p',
       });
 
-      expect(String(result)).toBe(
+      expect(result).toBe(
         [
           'run: 1739625600000-a3f1',
           'unit:      FAIL  1 packages (0 files passed/1 files failed)  web (1)',
@@ -1376,7 +1371,7 @@ describe('resultToSummaryTransformer', () => {
         cwd: '/p',
       });
 
-      expect(String(result)).toBe(
+      expect(result).toBe(
         [
           'run: 1739625600000-a3f1',
           'unit:      FAIL  1 packages (0 files passed/1 files failed)  web (1)',
@@ -1395,7 +1390,7 @@ describe('resultToSummaryTransformer', () => {
         cwd: '/p',
       });
 
-      expect(String(result)).toBe(
+      expect(result).toBe(
         [
           'run: 1739625600000-a3f1',
           'unit:      FAIL  1 packages (0 files passed/1 files failed)  web (1)',

@@ -138,7 +138,7 @@ export const parseMarkdownBlocksTransformer = ({
     if (trimmed !== '') {
       // Untrimmed under preserveLineBreaks: the leading whitespace is what says this line is a
       // continuation of the one above it, and trimming it flattens a nested ledger into a list.
-      paragraph.push((preserveLineBreaks ? line : trimmed));
+      paragraph.push(preserveLineBreaks ? line : trimmed);
     }
   }
 

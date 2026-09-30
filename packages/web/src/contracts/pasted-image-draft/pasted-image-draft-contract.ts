@@ -22,15 +22,17 @@ import {
 
 import { composerAttachmentContract } from '../composer-attachment/composer-attachment-contract';
 
-export const pastedImageDraftContract = z.object({
-  // Matches the attachment named by a [Pasted Image N] placeholder in the localStorage text
-  // draft, so a reload rebuilds each thumbnail in the position its placeholder marks.
-  attachmentId: composerAttachmentContract.shape.attachmentId,
-  // What rebuilds the data URL on restore.
-  mediaType: pastedImageMediaTypeContract,
-  dataBase64: pastedImageUploadContract.shape.dataBase64,
-  // Which composer this record belongs to — see the PURPOSE note above.
-  scopeKey: z.string().min(1).brand<'PastedImageDraftScopeKey'>(),
-}).brand<'PastedImageDraft'>();
+export const pastedImageDraftContract = z
+  .object({
+    // Matches the attachment named by a [Pasted Image N] placeholder in the localStorage text
+    // draft, so a reload rebuilds each thumbnail in the position its placeholder marks.
+    attachmentId: composerAttachmentContract.shape.attachmentId,
+    // What rebuilds the data URL on restore.
+    mediaType: pastedImageMediaTypeContract,
+    dataBase64: pastedImageUploadContract.shape.dataBase64,
+    // Which composer this record belongs to — see the PURPOSE note above.
+    scopeKey: z.string().min(1).brand<'PastedImageDraftScopeKey'>(),
+  })
+  .brand<'PastedImageDraft'>();
 
 export type PastedImageDraft = z.infer<typeof pastedImageDraftContract>;

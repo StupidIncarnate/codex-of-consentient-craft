@@ -1,5 +1,3 @@
-import { arrayEntryLineParseLayerResultContract } from '../../../contracts/array-entry-line-parse-layer-result/array-entry-line-parse-layer-result-contract';
-import type { ArrayEntryLineParseLayerResult } from '../../../contracts/array-entry-line-parse-layer-result/array-entry-line-parse-layer-result-contract';
 /**
  * PURPOSE: Scans one line of a config file for quoted string literals that sit in ARRAY-ENTRY
  * position — preceded, ignoring whitespace, by `[` or `,` (or nothing else on the line), and
@@ -17,7 +15,8 @@ import type { ArrayEntryLineParseLayerResult } from '../../../contracts/array-en
  * //   { value: 'worktrees', start: 31, end: 42, quoteChar: '"' },
  * // ] } — "exclude" itself is dropped: it is followed by `:`, not `,`/`]`.
  */
-
+import { arrayEntryLineParseLayerResultContract } from '../../../contracts/array-entry-line-parse-layer-result/array-entry-line-parse-layer-result-contract';
+import type { ArrayEntryLineParseLayerResult } from '../../../contracts/array-entry-line-parse-layer-result/array-entry-line-parse-layer-result-contract';
 
 export const ArrayEntryLineParseLayerResponder = ({
   line,
@@ -47,13 +46,13 @@ export const ArrayEntryLineParseLayerResponder = ({
         candidates.push({
           value: openQuote.content,
           start: openQuote.start,
-          end: (i + 1),
+          end: i + 1,
           quoteChar: openQuote.char,
         });
         openQuote.char = undefined;
         openQuote.content = '';
       } else {
-        openQuote.content = (openQuote.content + char);
+        openQuote.content += char;
       }
       continue;
     }

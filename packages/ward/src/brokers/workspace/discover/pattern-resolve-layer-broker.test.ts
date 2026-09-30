@@ -1,4 +1,3 @@
-
 import { patternResolveLayerBroker } from './pattern-resolve-layer-broker';
 import { patternResolveLayerBrokerProxy } from './pattern-resolve-layer-broker.proxy';
 

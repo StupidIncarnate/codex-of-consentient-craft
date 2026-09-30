@@ -27,7 +27,7 @@ export const scanConfigWriteBroker = ({
   rootPath: string;
 }): ScanConfigFile => {
   const directory = mkdtempSync(
-    `${String(tmpdirFindBroker())}/${scanStatics.config.tempDirPrefix}`,
+    `${tmpdirFindBroker()}/${scanStatics.config.tempDirPrefix}`,
   );
   const path = `${directory}/${scanStatics.config.wrapperName}`;
 
@@ -35,7 +35,7 @@ export const scanConfigWriteBroker = ({
     path,
     scanEslintConfigSourceTransformer({
       rule,
-      rootConfigPath: `${String(rootPath)}/${locationsStatics.repoRoot.eslintConfig[1]}`,
+      rootConfigPath: `${rootPath}/${locationsStatics.repoRoot.eslintConfig[1]}`,
     }),
   );
 

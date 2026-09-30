@@ -9,7 +9,6 @@
  * // Returns 'KILLED: inst_7f3a9c21\nPROCESSES REAPED: 0 (none)\nHOME: removed\n'
  */
 
-
 import type { KillResult } from '../../contracts/kill-result/kill-result-contract';
 
 export const killAnswerRenderTransformer = ({ result }: { result: KillResult }): string => {
@@ -18,9 +17,9 @@ export const killAnswerRenderTransformer = ({ result }: { result: KillResult }):
   const homeStatus = result.homeRemoved ? 'removed' : 'preserved';
 
   return [
-      `KILLED: ${result.instanceId}`,
-      `PROCESSES REAPED: ${killed.length} (${killedList})`,
-      `HOME: ${homeStatus}`,
-      '',
-    ].join('\n');
+    `KILLED: ${result.instanceId}`,
+    `PROCESSES REAPED: ${killed.length} (${killedList})`,
+    `HOME: ${homeStatus}`,
+    '',
+  ].join('\n');
 };

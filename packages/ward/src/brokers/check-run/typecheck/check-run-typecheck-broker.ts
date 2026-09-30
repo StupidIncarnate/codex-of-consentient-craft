@@ -70,7 +70,7 @@ export const checkRunTypecheckBroker = async ({
 
   let tsconfigData: unknown = {};
   try {
-    tsconfigData = readJsonFileSyncIfExists(String(tsconfigPath)) ?? {};
+    tsconfigData = readJsonFileSyncIfExists(tsconfigPath) ?? {};
   } catch {
     // read failed, tsconfigData stays as empty object (transformer will use fallback)
   }
@@ -81,7 +81,7 @@ export const checkRunTypecheckBroker = async ({
     cwd,
     exclude,
   });
-  const command = String(binResolveBroker({ binName: bin, cwd }));
+  const command = binResolveBroker({ binName: bin, cwd });
 
   // The build config's `-p` target is per-package, so only `--noEmit` is a static arg; the path is
   // appended here. Run alongside the checking pass, never after it — a sequential second `tsc`
@@ -103,7 +103,7 @@ export const checkRunTypecheckBroker = async ({
     hasBuildConfig
       ? run({
           command,
-          args: [...buildArgs, '-p', String(buildTsconfigPath)],
+          args: [...buildArgs, '-p', buildTsconfigPath],
           cwd,
         }).catch((error: unknown) => {
           if (!(error instanceof RunNotFoundError)) {
@@ -114,7 +114,7 @@ export const checkRunTypecheckBroker = async ({
       : Promise.resolve(null),
   ]);
 
-  const exitCode = result.exitCode;
+  const { exitCode } = result;
   const status = exitCode === 0 ? 'pass' : 'fail';
 
   let mainErrors: ReturnType<typeof tscOutputParseTransformer> = [];
@@ -178,8 +178,8 @@ export const checkRunTypecheckBroker = async ({
   // (`packages/ward`) never reaches here as a passthrough entry at all — `multiPackageLayerBroker`
   // slices it to an empty string and sends the child no `--` scope — so `fileList` is empty and
   // every branch below is a no-op for that case.
-  const fileEntries = fileList.filter((entry) => isFilePathGuard({ path: String(entry) }));
-  const directoryEntries = fileList.filter((entry) => !isFilePathGuard({ path: String(entry) }));
+  const fileEntries = fileList.filter((entry) => isFilePathGuard({ path: entry }));
+  const directoryEntries = fileList.filter((entry) => !isFilePathGuard({ path: entry }));
   const fileEntrySet = new Set(fileEntries.map(String));
 
   // A directory entry matches by PATH PREFIX WITH THE TRAILING SEPARATOR
@@ -193,7 +193,7 @@ export const checkRunTypecheckBroker = async ({
             directoryEntries.some((directory) =>
               isPathUnderDirectoryGuard({
                 path: String(entry.filePath),
-                directory: String(directory),
+                directory: directory,
               }),
             ),
         )
@@ -206,7 +206,7 @@ export const checkRunTypecheckBroker = async ({
             !directoryEntries.some((directory) =>
               isPathUnderDirectoryGuard({
                 path: String(entry.filePath),
-                directory: String(directory),
+                directory: directory,
               }),
             ),
         )

@@ -21,13 +21,7 @@ export const orchestratorGetQuestStatusBrokerProxy = (): {
   return {
     // Keyed on the URL the broker actually fetches: hostname + the fixed mocked port +
     // /api/process/<processId>. processId is the only part of that URL a caller can vary.
-    returns: ({
-      processId,
-      status,
-    }: {
-      processId: string;
-      status: OrchestrationStatus;
-    }): void => {
+    returns: ({ processId, status }: { processId: string; status: OrchestrationStatus }): void => {
       const url = `http://${environmentStatics.hostname}:${PORT}/api/process/${processId}`;
       fetchProxy.setupSuccess({ url, body: status });
     },

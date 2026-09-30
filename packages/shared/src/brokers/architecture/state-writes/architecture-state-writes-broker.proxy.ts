@@ -32,7 +32,7 @@ export const architectureStateWritesBrokerProxy = (): {
       contents: string[];
       stateDirNames: string[];
     }): void => {
-      const srcPath = `${String(packageRoot)}/src`;
+      const srcPath = `${packageRoot}/src`;
       sourceFilesProxy.setupFlatDirectory({ dirPath: srcPath, filePaths });
       stateDirsProxy.setupStateDirs({ packageRoot, names: stateDirNames });
       contents.forEach((content, index) => {
@@ -43,7 +43,7 @@ export const architectureStateWritesBrokerProxy = (): {
     },
 
     setupEmpty: ({ packageRoot }: { packageRoot: string }): void => {
-      const srcPath = `${String(packageRoot)}/src`;
+      const srcPath = `${packageRoot}/src`;
       sourceFilesProxy.setupEmpty({ dirPath: srcPath });
       stateDirsProxy.setupEmpty({ packageRoot });
     },

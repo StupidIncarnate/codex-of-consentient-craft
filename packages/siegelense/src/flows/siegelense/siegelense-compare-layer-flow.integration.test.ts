@@ -56,9 +56,7 @@ describe('SiegelenseCompareLayerFlow', () => {
         ],
       });
 
-      const writes = stdoutSpy
-        .callsMatching([])
-        .map((call) => String(call[0]));
+      const writes = stdoutSpy.callsMatching([]).map((call) => String(call[0]));
 
       const [wholeOutput] = writes;
 
@@ -89,9 +87,7 @@ describe('SiegelenseCompareLayerFlow', () => {
         ],
       });
 
-      const writes = stdoutSpy
-        .callsMatching([])
-        .map((call) => String(call[0]));
+      const writes = stdoutSpy.callsMatching([]).map((call) => String(call[0]));
 
       const [wholeOutput] = writes;
 

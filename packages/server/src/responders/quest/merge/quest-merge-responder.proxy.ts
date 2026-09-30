@@ -30,7 +30,13 @@ export const QuestMergeResponderProxy = (): {
     setupMergeQuest: ({ questId, merging }: { questId: Quest['id']; merging: boolean }): void => {
       orchestrator.mergeQuestReturns({ questId, merging });
     },
-    setupMergeQuestError: ({ questId, message }: { questId: Quest['id']; message: string }): void => {
+    setupMergeQuestError: ({
+      questId,
+      message,
+    }: {
+      questId: Quest['id'];
+      message: string;
+    }): void => {
       orchestrator.mergeQuestThrows({ questId, error: new Error(message) });
     },
     // Every call StartOrchestrator.mergeQuest received, so a rejected-status test can prove it

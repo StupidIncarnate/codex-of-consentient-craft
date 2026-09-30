@@ -1,4 +1,3 @@
-
 import { workspaceManifestEntriesVerifyBroker } from './workspace-manifest-entries-verify-broker';
 import { workspaceManifestEntriesVerifyBrokerProxy } from './workspace-manifest-entries-verify-broker.proxy';
 

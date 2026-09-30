@@ -186,7 +186,7 @@ describe('DirectoryFlow', () => {
         expect(entry.name.startsWith('.')).toBe(false);
       }
 
-      const matched = result.find((entry) => String(entry.name) === String(name));
+      const matched = result.find((entry) => String(entry.name) === name);
 
       expect(matched).toStrictEqual({ name, path, isDirectory: true });
     });

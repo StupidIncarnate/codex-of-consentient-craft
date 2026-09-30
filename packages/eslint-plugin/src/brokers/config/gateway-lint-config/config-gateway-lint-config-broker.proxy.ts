@@ -18,9 +18,9 @@ export const configGatewayLintConfigBrokerProxy = (): {
       contents: string;
     }): void => {
       // Mirrors real path.join's own normalization (the broker joins via the real path.join): a root configDir ('/') must not double the leading slash.
-      const configPath = (configDir.endsWith('/')
-          ? `${configDir}${locationsStatics.repoRoot.config}`
-          : `${configDir}/${locationsStatics.repoRoot.config}`);
+      const configPath = configDir.endsWith('/')
+        ? `${configDir}${locationsStatics.repoRoot.config}`
+        : `${configDir}/${locationsStatics.repoRoot.config}`;
       existsProxy.returns({ path: configPath, exists: true });
       readProxy.returns({ path: configPath, contents });
     },
@@ -28,9 +28,9 @@ export const configGatewayLintConfigBrokerProxy = (): {
     // existsSyncProxy ships no address-less catch-all by design: a walk-to-root "nothing found"
     // test stages every ancestor level false, one explicit call per level.
     setupNoDungeonmasterConfigAt: ({ configDir }: { configDir: string }): void => {
-      const configPath = (configDir.endsWith('/')
-          ? `${configDir}${locationsStatics.repoRoot.config}`
-          : `${configDir}/${locationsStatics.repoRoot.config}`);
+      const configPath = configDir.endsWith('/')
+        ? `${configDir}${locationsStatics.repoRoot.config}`
+        : `${configDir}/${locationsStatics.repoRoot.config}`;
       existsProxy.returns({ path: configPath, exists: false });
     },
   };

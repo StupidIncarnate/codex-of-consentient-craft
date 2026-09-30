@@ -13,6 +13,7 @@ export const mcpConfigContract = z
   .object({
     mcpServers: z.record(z.string(), z.unknown()).optional(),
   })
-  .loose().brand<'McpConfig'>();
+  .loose()
+  .brand<'McpConfig'>();
 
 export type McpConfig = z.infer<typeof mcpConfigContract>;

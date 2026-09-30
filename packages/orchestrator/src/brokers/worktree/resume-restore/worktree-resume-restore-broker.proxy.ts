@@ -16,10 +16,7 @@ export const worktreeResumeRestoreBrokerProxy = (): {
   setupRevParseFails: (params: { output: string }) => void;
   setupCheckoutSucceeds: (params: { branchName: string }) => void;
   setupCheckoutFails: (params: { branchName: string; output: string }) => void;
-  setupBranchWithTrailingWarning: (params: {
-    branchName: string;
-    warning: string;
-  }) => void;
+  setupBranchWithTrailingWarning: (params: { branchName: string; warning: string }) => void;
   getSpawnedArgsList: () => readonly unknown[];
 } => {
   const currentBranch = currentBranchProxy();
@@ -27,7 +24,7 @@ export const worktreeResumeRestoreBrokerProxy = (): {
 
   return {
     setupOnBranch: ({ branchName }: { branchName: string }): void => {
-      currentBranch.setupBranch({ branch: String(branchName) });
+      currentBranch.setupBranch({ branch: branchName });
     },
 
     setupDrifted: ({ currentBranchName }: { currentBranchName: string }): void => {
@@ -43,17 +40,11 @@ export const worktreeResumeRestoreBrokerProxy = (): {
     },
 
     setupCheckoutSucceeds: ({ branchName }: { branchName: string }): void => {
-      checkout.setupResult({ branchName: String(branchName), exitCode: 0, output: '' });
+      checkout.setupResult({ branchName: branchName, exitCode: 0, output: '' });
     },
 
-    setupCheckoutFails: ({
-      branchName,
-      output,
-    }: {
-      branchName: string;
-      output: string;
-    }): void => {
-      checkout.setupResult({ branchName: String(branchName), exitCode: 128, output });
+    setupCheckoutFails: ({ branchName, output }: { branchName: string; output: string }): void => {
+      checkout.setupResult({ branchName: branchName, exitCode: 128, output });
     },
 
     setupBranchWithTrailingWarning: ({
@@ -63,7 +54,7 @@ export const worktreeResumeRestoreBrokerProxy = (): {
       branchName: string;
       warning: string;
     }): void => {
-      currentBranch.setupBranch({ branch: `${String(branchName)}\n${warning}` });
+      currentBranch.setupBranch({ branch: `${branchName}\n${warning}` });
     },
 
     getSpawnedArgsList: (): readonly unknown[] => [

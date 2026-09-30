@@ -1,4 +1,3 @@
-
 import { OrchestrationProcessStub } from '../../../contracts/orchestration-process/orchestration-process.stub';
 import { ProcessStaleWatchBootstrapResponder } from './process-stale-watch-bootstrap-responder';
 import { ProcessStaleWatchBootstrapResponderProxy } from './process-stale-watch-bootstrap-responder.proxy';

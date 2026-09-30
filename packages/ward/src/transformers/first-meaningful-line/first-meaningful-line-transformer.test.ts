@@ -41,9 +41,7 @@ describe('firstMeaningfulLineTransformer', () => {
 
       const result = firstMeaningfulLineTransformer({ message });
 
-      expect(result).toBe(
-        'TIMEOUT: Test killed before reaching any expect() calls.',
-      );
+      expect(result).toBe('TIMEOUT: Test killed before reaching any expect() calls.');
     });
 
     it('VALID: {message: jest suggestion before real content} => skips suggestion', () => {

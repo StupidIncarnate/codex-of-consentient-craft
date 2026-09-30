@@ -9,10 +9,12 @@
 import { z } from '#gateway/npm/zod';
 import { guildContract } from '@dungeonmaster/shared/contracts';
 
-export const questUserAddBodyContract = z.object({
-  title: z.string().min(1).brand<'QuestUserAddBodyTitle'>(),
-  userRequest: z.string().min(1).brand<'QuestUserAddBodyUserRequest'>(),
-  guildId: guildContract.shape.id,
-}).brand<'QuestUserAddBody'>();
+export const questUserAddBodyContract = z
+  .object({
+    title: z.string().min(1).brand<'QuestUserAddBodyTitle'>(),
+    userRequest: z.string().min(1).brand<'QuestUserAddBodyUserRequest'>(),
+    guildId: guildContract.shape.id,
+  })
+  .brand<'QuestUserAddBody'>();
 
 export type QuestUserAddBody = z.infer<typeof questUserAddBodyContract>;

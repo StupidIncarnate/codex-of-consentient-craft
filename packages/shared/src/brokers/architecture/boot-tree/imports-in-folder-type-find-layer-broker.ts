@@ -49,7 +49,7 @@ export const importsInFolderTypeFindLayerBroker = ({
 
     // The transformer hardcodes .ts; if the file is actually .tsx (web flows/responders),
     // swap the extension so downstream reads find the real file on disk.
-    const resolvedStr = String(resolved);
+    const resolvedStr = resolved;
     const tsSuffix = '.ts';
     const tsxSuffix = '.tsx';
     const tsxCandidate = resolvedStr.endsWith(tsSuffix)

@@ -8,7 +8,6 @@
 
 import { z } from '#gateway/npm/zod';
 
-
 export const packageJsonContract = z
   .object({
     name: z.string().brand<'PackageJsonName'>(),
@@ -20,6 +19,7 @@ export const packageJsonContract = z
     eslintConfig: z.json().optional(),
     jest: z.json().optional(),
   })
-  .loose().brand<'PackageJson'>();
+  .loose()
+  .brand<'PackageJson'>();
 
 export type PackageJson = z.infer<typeof packageJsonContract>;

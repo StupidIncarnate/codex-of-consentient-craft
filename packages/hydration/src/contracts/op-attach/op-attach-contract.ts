@@ -20,12 +20,21 @@
 import { z } from '#gateway/npm/zod';
 import { fieldValuesContract } from '../field-values/field-values-contract';
 
-export const opAttachContract = z.object({
-  op: z.literal('attach'),
-  ingredient: z.string().min(1).regex( /^[A-Za-z][A-Za-z0-9-]*$/u, 'must start with a letter and hold only letters, digits and hyphens — the character set a RowRef segment can encode', ).brand<'OpAttachIngredient'>(),
-  ref: z.string().min(1).brand<'OpAttachRef'>(),
-  ancestors: z.array(z.string().min(1).brand<'OpAttachAncestor'>()),
-  where: fieldValuesContract,
-}).brand<'OpAttach'>();
+export const opAttachContract = z
+  .object({
+    op: z.literal('attach'),
+    ingredient: z
+      .string()
+      .min(1)
+      .regex(
+        /^[A-Za-z][A-Za-z0-9-]*$/u,
+        'must start with a letter and hold only letters, digits and hyphens — the character set a RowRef segment can encode',
+      )
+      .brand<'OpAttachIngredient'>(),
+    ref: z.string().min(1).brand<'OpAttachRef'>(),
+    ancestors: z.array(z.string().min(1).brand<'OpAttachAncestor'>()),
+    where: fieldValuesContract,
+  })
+  .brand<'OpAttach'>();
 
 export type OpAttach = z.infer<typeof opAttachContract>;

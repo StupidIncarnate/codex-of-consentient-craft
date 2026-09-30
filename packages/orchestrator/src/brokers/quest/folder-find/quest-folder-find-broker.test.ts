@@ -39,10 +39,7 @@ describe('questFolderFindBroker', () => {
 
       proxy.setupQuestFolders({
         questsPath,
-        questFolders: [
-          '001-add-auth',
-          '002-fix-bug',
-        ],
+        questFolders: ['001-add-auth', '002-fix-bug'],
         questFiles: [
           {
             folderPath: '/project/.dungeonmaster-quests/001-add-auth',
@@ -121,10 +118,7 @@ describe('questFolderFindBroker', () => {
 
       proxy.setupQuestFoldersWithMissingFile({
         questsPath,
-        questFolders: [
-          '001-invalid',
-          '002-add-auth',
-        ],
+        questFolders: ['001-invalid', '002-add-auth'],
         missingFileFolder: '/project/.dungeonmaster-quests/001-invalid/quest.json',
         validQuestFile: {
           folderPath: '/project/.dungeonmaster-quests/002-add-auth',

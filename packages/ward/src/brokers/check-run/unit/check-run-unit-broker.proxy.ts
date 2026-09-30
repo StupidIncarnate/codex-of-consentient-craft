@@ -136,7 +136,7 @@ export const checkRunUnitBrokerProxy = (): {
       sourceConditionProxy.setupSupported({ cwd });
     }
     stageJestConfigPresent({ projectFolder });
-    const command = String(resolveCommand({ projectFolder }));
+    const command = resolveCommand({ projectFolder });
     run.setupSuccess({ command, exitCode, stdout, stderr });
   };
 
@@ -245,14 +245,14 @@ export const checkRunUnitBrokerProxy = (): {
     },
 
     getSpawnedHandleReportPath: (): unknown =>
-      run.getOptionsFor({ command: String(resolvedCommandRef.value) }).at(-1)?.env[
+      run.getOptionsFor({ command: resolvedCommandRef.value }).at(-1)?.env[
         openHandleReportStatics.env.pathVar
       ],
 
     getSpawnedArgs: (): unknown =>
-      run.getCallsFor({ command: String(resolvedCommandRef.value) }).at(-1),
+      run.getCallsFor({ command: resolvedCommandRef.value }).at(-1),
 
     getSpawnedNodeOptions: (): unknown =>
-      run.getOptionsFor({ command: String(resolvedCommandRef.value) }).at(-1)?.env.NODE_OPTIONS,
+      run.getOptionsFor({ command: resolvedCommandRef.value }).at(-1)?.env.NODE_OPTIONS,
   };
 };

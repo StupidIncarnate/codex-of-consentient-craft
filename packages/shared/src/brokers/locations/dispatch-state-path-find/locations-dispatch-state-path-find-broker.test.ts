@@ -14,9 +14,7 @@ describe('locationsDispatchStatePathFindBroker', () => {
 
       const result = locationsDispatchStatePathFindBroker();
 
-      expect(result).toBe(
-        '/home/user/.dungeonmaster/dispatch-state.json',
-      );
+      expect(result).toBe('/home/user/.dungeonmaster/dispatch-state.json');
     });
   });
 });

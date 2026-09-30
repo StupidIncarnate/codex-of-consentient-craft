@@ -6,10 +6,7 @@ describe('gatewayWrapperAnnotateTransformer', () => {
     it('VALID: {empty gatewayLintConfig} => every wrapper name is unchanged', () => {
       const result = gatewayWrapperAnnotateTransformer({
         subpath: '#gateway/node/fs',
-        wrapperNames: [
-          'existsSync',
-          'readFileSync',
-        ],
+        wrapperNames: ['existsSync', 'readFileSync'],
         gatewayLintConfig: GatewayLintConfigStub(),
       });
 
@@ -32,10 +29,7 @@ describe('gatewayWrapperAnnotateTransformer', () => {
 
       const result = gatewayWrapperAnnotateTransformer({
         subpath: '#gateway/node/fs__promises',
-        wrapperNames: [
-          'readFile',
-          'writeFile',
-        ],
+        wrapperNames: ['readFile', 'writeFile'],
         gatewayLintConfig,
       });
 
@@ -79,10 +73,7 @@ describe('gatewayWrapperAnnotateTransformer', () => {
 
       const result = gatewayWrapperAnnotateTransformer({
         subpath: '#gateway/bin/claude',
-        wrapperNames: [
-          'resolveClaudeCliPath',
-          'spawnStreamJson',
-        ],
+        wrapperNames: ['resolveClaudeCliPath', 'spawnStreamJson'],
         gatewayLintConfig,
       });
 
@@ -122,10 +113,7 @@ describe('gatewayWrapperAnnotateTransformer', () => {
 
       const result = gatewayWrapperAnnotateTransformer({
         subpath: '#gateway/bin/spawn',
-        wrapperNames: [
-          'run',
-          'runDetached',
-        ],
+        wrapperNames: ['run', 'runDetached'],
         gatewayLintConfig,
       });
 

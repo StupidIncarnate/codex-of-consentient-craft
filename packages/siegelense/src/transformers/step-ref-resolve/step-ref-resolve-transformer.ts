@@ -16,7 +16,6 @@
  * // Returns 'g_1' as ContentText
  */
 
-
 import { stepContract } from '../../contracts/step/step-contract';
 import { StepRefUnresolvedError } from '../../errors/step-ref-unresolved/step-ref-unresolved-error';
 import { stepRefStatics } from '../../statics/step-ref/step-ref-statics';

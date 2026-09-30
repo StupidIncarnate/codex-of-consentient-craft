@@ -1,4 +1,3 @@
-
 import { BootFailureMarkerStub } from '../../../contracts/boot-failure-marker/boot-failure-marker.stub';
 
 import { bootFailureMarkerReadBroker } from './boot-failure-marker-read-broker';

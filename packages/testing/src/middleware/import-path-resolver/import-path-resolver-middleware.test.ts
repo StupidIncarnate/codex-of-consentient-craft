@@ -76,7 +76,8 @@ describe('importPathResolverMiddleware', () => {
         },
       });
       proxy.setupSourceFileExists({ filePath: '/repo/packages/bin/testing.ts' });
-      const sourceFilePath = '/repo/packages/siegelense/src/brokers/instance/reserve/instance-reserve-broker.proxy.ts';
+      const sourceFilePath =
+        '/repo/packages/siegelense/src/brokers/instance/reserve/instance-reserve-broker.proxy.ts';
       const importPath = '@dungeonmaster/bin/testing';
 
       const result = importPathResolverMiddleware({ sourceFilePath, importPath });
@@ -101,9 +102,7 @@ describe('importPathResolverMiddleware', () => {
 
       const result = importPathResolverMiddleware({ sourceFilePath, importPath });
 
-      expect(result).toStrictEqual(
-        '/repo/packages/node/src/testing/testing.ts',
-      );
+      expect(result).toStrictEqual('/repo/packages/node/src/testing/testing.ts');
     });
 
     it('VALID: {matching package, resolved source file missing on disk} => returns null', () => {
@@ -198,8 +197,10 @@ describe('importPathResolverMiddleware', () => {
         filePath:
           '/repo/packages/@gateway/node/src/fs__promises/read-file-if-exists/read-file-if-exists.proxy.ts',
       });
-      const sourceFilePath = '/repo/packages/mcp/src/brokers/file/scanner/file-scanner-broker.proxy.ts';
-      const importPath = '@dungeonmaster/node/fs__promises/read-file-if-exists/read-file-if-exists.proxy';
+      const sourceFilePath =
+        '/repo/packages/mcp/src/brokers/file/scanner/file-scanner-broker.proxy.ts';
+      const importPath =
+        '@dungeonmaster/node/fs__promises/read-file-if-exists/read-file-if-exists.proxy';
 
       const result = importPathResolverMiddleware({ sourceFilePath, importPath });
 
@@ -235,14 +236,13 @@ describe('importPathResolverMiddleware', () => {
       proxy.setupSourceFileExists({
         filePath: '/repo/packages/@gateway/npm/src/glob/glob/glob.proxy.ts',
       });
-      const sourceFilePath = '/repo/packages/mcp/src/brokers/file/scanner/file-scanner-broker.proxy.ts';
+      const sourceFilePath =
+        '/repo/packages/mcp/src/brokers/file/scanner/file-scanner-broker.proxy.ts';
       const importPath = '#gateway/npm/glob/glob/glob.proxy';
 
       const result = importPathResolverMiddleware({ sourceFilePath, importPath });
 
-      expect(result).toStrictEqual(
-        '/repo/packages/@gateway/npm/src/glob/glob/glob.proxy.ts',
-      );
+      expect(result).toStrictEqual('/repo/packages/@gateway/npm/src/glob/glob/glob.proxy.ts');
     });
 
     it('INVALID: {#foo, unmapped specifier} => returns null', () => {
@@ -272,9 +272,7 @@ describe('importPathResolverMiddleware', () => {
 
       const result = importPathResolverMiddleware({ sourceFilePath, importPath });
 
-      expect(result).toStrictEqual(
-        '/repo/src/widgets/btn/btn-widget.proxy.tsx',
-      );
+      expect(result).toStrictEqual('/repo/src/widgets/btn/btn-widget.proxy.tsx');
     });
   });
 

@@ -1,4 +1,3 @@
-
 import { worktreeFailureDetailTransformer } from './worktree-failure-detail-transformer';
 
 describe('worktreeFailureDetailTransformer', () => {

@@ -1,4 +1,3 @@
-
 import { isTargetingStepGuard } from './is-targeting-step-guard';
 import { LocatorStateStub } from '../../contracts/locator-state/locator-state.stub';
 import { stepStatics } from '../../statics/step/step-statics';

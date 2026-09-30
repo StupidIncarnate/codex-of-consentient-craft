@@ -17,11 +17,7 @@ import { dungeonmasterHomeFindBroker } from '@dungeonmaster/shared/brokers';
 import { locationsStatics } from '@dungeonmaster/shared/statics';
 import type { Quest } from '@dungeonmaster/shared/contracts';
 
-export const questFindBroker = ({
-  questId,
-}: {
-  questId: Quest['id'];
-}): string | undefined => {
+export const questFindBroker = ({ questId }: { questId: Quest['id'] }): string | undefined => {
   const { homePath: fallbackHomePath } = dungeonmasterHomeFindBroker();
   const currentDir = cwd();
 

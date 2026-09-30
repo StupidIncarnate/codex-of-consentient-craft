@@ -14,20 +14,22 @@ import { z } from '#gateway/npm/zod';
 
 import { elapsedDisplayConfigStatics } from '../../statics/elapsed-display-config/elapsed-display-config-statics';
 
-export const elapsedPartsContract = z.object({
-  hours: z.number().int().min(0).brand<'ElapsedPartsHours'>(),
-  minutes: z
-    .number()
-    .int()
-    .min(0)
-    .max(elapsedDisplayConfigStatics.thresholds.hourThresholdMinutes - 1)
-    .brand<'ElapsedPartsMinutes'>(),
-  seconds: z
-    .number()
-    .int()
-    .min(0)
-    .max(elapsedDisplayConfigStatics.thresholds.minuteThresholdSeconds - 1)
-    .brand<'ElapsedPartsSeconds'>(),
-}).brand<'ElapsedParts'>();
+export const elapsedPartsContract = z
+  .object({
+    hours: z.number().int().min(0).brand<'ElapsedPartsHours'>(),
+    minutes: z
+      .number()
+      .int()
+      .min(0)
+      .max(elapsedDisplayConfigStatics.thresholds.hourThresholdMinutes - 1)
+      .brand<'ElapsedPartsMinutes'>(),
+    seconds: z
+      .number()
+      .int()
+      .min(0)
+      .max(elapsedDisplayConfigStatics.thresholds.minuteThresholdSeconds - 1)
+      .brand<'ElapsedPartsSeconds'>(),
+  })
+  .brand<'ElapsedParts'>();
 
 export type ElapsedParts = z.infer<typeof elapsedPartsContract>;

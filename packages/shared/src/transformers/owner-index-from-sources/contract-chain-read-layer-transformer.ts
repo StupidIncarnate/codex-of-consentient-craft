@@ -77,10 +77,7 @@ export const contractChainReadLayerTransformer = ({
       callee.name.text === 'brand'
         ? /^['"](?<text>.+)['"]$/u.exec(typeArgument?.getText() ?? '')
         : null;
-    const ownBrand =
-      quotedText?.groups?.text === undefined
-        ? undefined
-        : quotedText.groups.text;
+    const ownBrand = quotedText?.groups?.text === undefined ? undefined : quotedText.groups.text;
     return { ...inner, brandText: ownBrand ?? inner.brandText };
   }
 

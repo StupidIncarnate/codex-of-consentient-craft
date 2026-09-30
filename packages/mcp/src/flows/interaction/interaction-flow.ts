@@ -29,8 +29,7 @@ export const InteractionFlow = (): ToolRegistration[] => [
   {
     ...toolRegistrationContract.parse({
       name: 'signal-back',
-      description:
-        'Signals the CLI with step completion status, progress, or blocking conditions',
+      description: 'Signals the CLI with step completion status, progress, or blocking conditions',
       inputSchema: signalBackSchema,
     }),
     handler: async ({ args, meta }): Promise<CallToolResult> =>

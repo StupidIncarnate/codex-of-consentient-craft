@@ -21,6 +21,7 @@ import { questContract, guildContract } from '@dungeonmaster/shared/contracts';
 
 export const questFieldsContract = questContract
   .omit({ id: true, folder: true, createdAt: true, updatedAt: true })
-  .extend({ guildId: guildContract.shape.id }).brand<'QuestFields'>();
+  .extend({ guildId: guildContract.shape.id })
+  .brand<'QuestFields'>();
 
 export type QuestFields = z.infer<typeof questFieldsContract>;

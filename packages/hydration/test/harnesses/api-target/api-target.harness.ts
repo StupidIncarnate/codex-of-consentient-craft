@@ -54,10 +54,7 @@ export const apiTargetHarness = (): ApiTargetHarness => {
         created.listen(0, '127.0.0.1', () => {
           server = created;
           const address = created.address();
-          listeningPort =
-            typeof address === 'object' && address !== null
-              ? address.port
-              : null;
+          listeningPort = typeof address === 'object' && address !== null ? address.port : null;
 
           // A second server, opened then immediately closed, hands back a port the OS just proved
           // free — the one honest way to get a real ECONNREFUSED rather than guessing a number. A

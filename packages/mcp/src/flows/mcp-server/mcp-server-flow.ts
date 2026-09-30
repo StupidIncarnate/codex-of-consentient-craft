@@ -40,7 +40,9 @@ export const McpServerFlow = async ({
   );
 
   // Keyed by plain string: the lookup key is the raw wire `request.params.name`.
-  const handlerMap = new Map<string, ToolRegistration['handler']>(registrations.map((reg) => [reg.name, reg.handler]));
+  const handlerMap = new Map<string, ToolRegistration['handler']>(
+    registrations.map((reg) => [reg.name, reg.handler]),
+  );
 
   server.setRequestHandler(ListToolsRequestSchema, () => ({
     tools: registrations.map((reg) => toolRegistrationContract.parse(reg)),

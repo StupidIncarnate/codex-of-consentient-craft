@@ -13,7 +13,6 @@
 
 import { z } from '#gateway/npm/zod';
 
-
 import { httpMethodContract } from '../http-method/http-method-contract';
 import { logLevelContract } from '../log-level/log-level-contract';
 
@@ -23,8 +22,13 @@ export const resultWhereContract = z
     method: httpMethodContract.nullable(),
     nth: z.number().int().nonnegative().brand<'ResultWhereNth'>().nullable(),
     level: logLevelContract.nullable(),
-    steps: z.string().regex(/^\d+-\d+$/u).brand<'ResultWhereSteps'>().nullable(),
+    steps: z
+      .string()
+      .regex(/^\d+-\d+$/u)
+      .brand<'ResultWhereSteps'>()
+      .nullable(),
   })
-  .strict().brand<'ResultWhere'>();
+  .strict()
+  .brand<'ResultWhere'>();
 
 export type ResultWhere = z.infer<typeof resultWhereContract>;

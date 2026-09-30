@@ -20,7 +20,6 @@
 
 import { z } from '#gateway/npm/zod';
 
-
 export const capacityMeasuredContract = z
   .object({
     freeMemMB: z.number().int().nonnegative().brand<'CapacityMeasuredFreeMemMB'>(),
@@ -29,6 +28,7 @@ export const capacityMeasuredContract = z
     siegeInstances: z.number().int().nonnegative().brand<'CapacityMeasuredSiegeInstances'>(),
     diskFreeMB: z.number().int().nonnegative().brand<'CapacityMeasuredDiskFreeMB'>().nullable(),
   })
-  .strict().brand<'CapacityMeasured'>();
+  .strict()
+  .brand<'CapacityMeasured'>();
 
 export type CapacityMeasured = z.infer<typeof capacityMeasuredContract>;

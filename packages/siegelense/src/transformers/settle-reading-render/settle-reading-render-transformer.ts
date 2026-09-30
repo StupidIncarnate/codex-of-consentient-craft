@@ -20,7 +20,6 @@
  * // Returns 'clicked [data-testid="SLOW_BTN"]; did not settle after 5000ms (still moving: network)'
  */
 
-
 import type { SettleReading } from '../../contracts/settle-reading/settle-reading-contract';
 
 export const settleReadingRenderTransformer = ({

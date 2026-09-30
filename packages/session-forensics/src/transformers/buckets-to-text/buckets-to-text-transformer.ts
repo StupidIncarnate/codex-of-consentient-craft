@@ -31,38 +31,34 @@ const RESULT_BYTES_GAP = 2;
 const ISO_CLOCK_START = 11;
 const ISO_CLOCK_END = 16;
 
-export const bucketsToTextTransformer = ({
-  buckets,
-}: {
-  buckets: readonly TimeBucket[];
-}): string =>
+export const bucketsToTextTransformer = ({ buckets }: { buckets: readonly TimeBucket[] }): string =>
   [
-      HEADER,
-      ...buckets.map((bucket) => {
-        const windowStartClock = new Date(bucket.windowStart)
-          .toISOString()
-          .slice(ISO_CLOCK_START, ISO_CLOCK_END);
-        const windowEndClock = new Date(bucket.windowEnd)
-          .toISOString()
-          .slice(ISO_CLOCK_START, ISO_CLOCK_END);
+    HEADER,
+    ...buckets.map((bucket) => {
+      const windowStartClock = new Date(bucket.windowStart)
+        .toISOString()
+        .slice(ISO_CLOCK_START, ISO_CLOCK_END);
+      const windowEndClock = new Date(bucket.windowEnd)
+        .toISOString()
+        .slice(ISO_CLOCK_START, ISO_CLOCK_END);
 
-        const topTools = bucket.topTools
-          .map(({ name, count }) => `${name}x${count.toLocaleString('en-US')}`)
-          .join(', ');
+      const topTools = bucket.topTools
+        .map(({ name, count }) => `${name}x${count.toLocaleString('en-US')}`)
+        .join(', ');
 
-        return (
-          `${windowStartClock}-${windowEndClock}`.padEnd(WINDOW_WIDTH) +
-          bucket.apiResponseCount.toLocaleString('en-US').padStart(APIS_WIDTH) +
-          ' '.repeat(APIS_GAP) +
-          bucket.toolCallCount.toLocaleString('en-US').padStart(CALLS_WIDTH) +
-          ' '.repeat(CALLS_GAP) +
-          bucket.outputTokens.toLocaleString('en-US').padStart(OUT_TOK_WIDTH) +
-          ' '.repeat(OUT_TOK_GAP) +
-          bucket.contextInTokens.toLocaleString('en-US').padStart(CTX_IN_WIDTH) +
-          ' '.repeat(CTX_IN_GAP) +
-          bucket.toolResultBytes.toLocaleString('en-US').padStart(RESULT_BYTES_WIDTH) +
-          ' '.repeat(RESULT_BYTES_GAP) +
-          topTools
-        );
-      }),
-    ].join('\n');
+      return (
+        `${windowStartClock}-${windowEndClock}`.padEnd(WINDOW_WIDTH) +
+        bucket.apiResponseCount.toLocaleString('en-US').padStart(APIS_WIDTH) +
+        ' '.repeat(APIS_GAP) +
+        bucket.toolCallCount.toLocaleString('en-US').padStart(CALLS_WIDTH) +
+        ' '.repeat(CALLS_GAP) +
+        bucket.outputTokens.toLocaleString('en-US').padStart(OUT_TOK_WIDTH) +
+        ' '.repeat(OUT_TOK_GAP) +
+        bucket.contextInTokens.toLocaleString('en-US').padStart(CTX_IN_WIDTH) +
+        ' '.repeat(CTX_IN_GAP) +
+        bucket.toolResultBytes.toLocaleString('en-US').padStart(RESULT_BYTES_WIDTH) +
+        ' '.repeat(RESULT_BYTES_GAP) +
+        topTools
+      );
+    }),
+  ].join('\n');

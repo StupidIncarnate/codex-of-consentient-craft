@@ -11,12 +11,8 @@
  * // Returns '2025-09-14' as branded ContentText
  */
 
-
-
 export const profileMeasuredDateRenderTransformer = ({
   measuredAtMs,
 }: {
   measuredAtMs: number;
-}): string => {
-  return new Date(measuredAtMs).toISOString().slice(0, 'YYYY-MM-DD'.length);
-};
+}): string => new Date(measuredAtMs).toISOString().slice(0, 'YYYY-MM-DD'.length);

@@ -7,7 +7,6 @@
  */
 import type { BashToolInput } from '../../contracts/bash-tool-input/bash-tool-input-contract';
 
-
 const NPX_WARD_PATTERN = /npx\s+dungeonmaster-ward(?:\s|$)/u;
 const JEST_PATTERN = /(?:npx\s+)?jest(?:\s|$)/u;
 const ESLINT_PATTERN = /(?:npx\s+)?eslint(?:\s|$)/u;

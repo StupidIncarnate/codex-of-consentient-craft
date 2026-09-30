@@ -19,114 +19,130 @@ import { sessionContract } from '../session/session-contract';
 
 const workItemId = z.uuid().brand<'WorkItemId'>();
 
-export const workItemContract = z.object({
-  id: workItemId,
-  role: workItemRoleContract,
-  status: workItemStatusContract,
-  spawnerType: spawnerTypeContract,
-  sessionId: sessionContract.shape.id.optional(),
-  // INVARIANT (behavioral, enforced by every seeding path — quest-create, the relay graph
-  // builder, and questAdvanceBroker): every work item carries exactly ONE `operations/<id>`
-  // ref, linking it to the operation item on the ledger whose SCOPE it works. That link is
-  // never re-pointed at a second operation item and a work item's status is never reverted.
-  // One operation item carries MANY work items over its life — one per step the router mints
-  // on that scope, and one per piece inside a parallel step — so the ref is many-to-one and
-  // `step` is what separates them. Ward items may additionally carry a `wardResults/<id>` ref.
-  relatedDataItems: z.array(z.string().regex( /^(operations|wardResults|riftcarverResults|flows)\/[a-z0-9-]+$/u, 'Must be {collection}/{id}', ).brand<'WorkItemRelatedDataItems'>()).default([]),
-  dependsOn: z.array(workItemId).default([]),
-  // `.default()` before `.brand()` — zod v4 checks a `.default()` literal against the schema's
-  // OWN output type, and a bare number can never satisfy a branded type; putting the brand last
-  // keeps the literal checked against plain `number` while the branded type still flows through.
-  attempt: z.number().int().nonnegative().default(0).brand<'WorkItemAttempt'>(),
-  maxAttempts: z.number().int().positive().default(1).brand<'WorkItemMaxAttempts'>(),
-  retryCount: z.number().int().nonnegative().default(0).brand<'WorkItemRetryCount'>(),
-  lastWardRunId: z.string().brand<'WorkItemLastWardRunId'>().optional(),
-  createdAt: z.iso.datetime().brand<'WorkItemCreatedAt'>(),
-  // `.nullish()`, not `.optional()` — a quest.json written before this field existed, or a
-  // producer that stamps `null` instead of omitting the key, sends an explicit `null` here.
-  // `.optional()` accepts an omitted key but rejects `null` outright, and this field sits inside
-  // `questContract`'s `workItems` array, so that rejection fails the WHOLE quest.json parse, not
-  // just this one row.
-  startedAt: z.iso.datetime().brand<'WorkItemStartedAt'>().nullish(),
-  startRef: z
-    .string()
-    .min(1)
-    .brand<'WorkItemStartRef'>()
-    .optional()
-    .describe(
-      "The quest worktree's HEAD sha at the moment this work item was FIRST served its prompt. `<startRef>..HEAD` is the range `get-blight-checklist`'s `since-ref` scope rebuilds its checklist over, and it is the only range that measures what THIS item produced: every minion commits its own work as it goes, so at signal time the tree is clean (a working-tree reading is empty by construction), HEAD~1 sees one piece, and a plan-scoped reading sees one round. Written ONCE and never rewritten — a resumed or re-served session keeps its ORIGINAL start, because re-stamping after a crash would shrink the reviewed range to whatever landed afterwards. Deliberately `.optional()` with NO default, so a work item that never resolved a worktree, a hydrated quest, and every item seeded before this field simply carry none, and that scope reports null for them rather than measuring something they could never satisfy.",
-    ),
-  // Same reasoning as `startedAt` above — `.nullish()` so an explicit `null` doesn't fail the
-  // whole quest.json parse.
-  completedAt: z.iso.datetime().brand<'WorkItemCompletedAt'>().nullish(),
-  errorMessage: z.string().brand<'WorkItemErrorMessage'>().optional(),
-  summary: z.string().brand<'WorkItemSummary'>().optional(),
-  insertedBy: workItemId.optional(),
-  resume: z
-    .boolean()
-    .optional()
-    .describe(
-      'Set by orphan recovery when it flips a crashed in_progress item back to pending while KEEPING sessionId: dispatch must resume that Claude session (claude --resume) instead of fresh-spawning, so work in the orphaned session is preserved',
-    ),
-  packageNames: z
-    .array(z.string().min(1).brand<'WorkItemPackageNames'>())
-    .optional()
-    .describe(
-      'Copied from the linked operation item when advance creates this item, so the dispatched session is handed its package slice with the rest of its identity rather than having to resolve the operations ref to find it. Optional and omitted when empty: work items are the most numerous array on a quest, and a `.default([])` would materialise an empty array onto every one of them on every re-parse. The operation item is the authority — this is a copy taken at dispatch.',
-    ),
-  smoketestPromptOverride: z.string().min(1).brand<'WorkItemSmoketestPromptOverride'>().optional(),
-  smoketestExpectedSignal: streamSignalKindContract.optional(),
-  actualSignal: streamSignalKindContract.optional(),
-  step: z.string().min(1).brand<'WorkItemStep'>().optional(),
-  // One entry per unit this work item was ASSIGNED — not a shared log sessions append to. Each
-  // session gets a fresh, complete set that freezes when the step signals; a re-mint writes its
-  // own set of the same units from scratch rather than amending its predecessor's.
-  observations: z.array(unitObservationContract).default([]),
-  pieceId: pieceIdContract.optional(),
-  // What this work item was ASSIGNED, as distinct from what it MARKED (`observations`). The
-  // router (story 15) WRITES this on every work item it mints; story 14's signal gate READS it
-  // and refuses to let a session signal while any id here has no matching
-  // `observations[].unitId`. Cannot be derived from the piece's own `assignedUnitIds` (that is
-  // INTENT, re-filtered at dispatch) or from `payload.units[]` (not every family's payload has
-  // one) — see story 02's own text for the full reasoning.
-  assignedUnitIds: z.array(qaChecklistItemContract.shape.id).default([]),
-  // The return edge: which work item's `unmet` marks or `request` caused this one to exist.
-  // Deliberately NOT `insertedBy` — that field already means "supersedes a failed item" for the
-  // `pt N` continuation chain, and `work-items-to-quest-status-transformer` reads it to derive
-  // quest completion; reusing it here would make an ordinary mark-minted rework loop read as a
-  // resolved failure.
-  mintedBy: workItemId.optional(),
-  // The typed, per-family half of a brief — deliberately `z.record(workItemPayloadKeyContract,
-  // z.unknown())`: the per-family shapes live on the plan-file contract (story 07), and
-  // duplicating them here would make `shared` depend on a shape only the orchestrator cares
-  // about. The router copies the originating piece's payload onto what it mints, so a later plan
-  // amendment cannot rewrite what a session already ran against. A reader of a known key (e.g.
-  // `'instance'`) re-parses it through the exported `workItemPayloadKeyContract` to index this
-  // branded Record — see that contract's own header.
-  payload: z.record(z.string(), z.unknown()).optional(),
-  // Set by `quest-work`'s `outcome` payload — legal ONLY on a work item holding no assigned units,
-  // where there is nothing for the record to derive an outcome FROM. `nextActionTransformer` takes
-  // this as its `declaredWord`/`hitWall` arguments rather than deriving them, because it is pure and
-  // synchronous and cannot read a live call — "the work tool writes them and this reads them, and a
-  // pure function cannot go and look" (`next-action-transformer.ts`'s own header). Inlined as a
-  // literal tuple rather than importing `@dungeonmaster/orchestrator`'s `stepOutcomeContract`:
-  // `shared` is the base package and may not depend on anything above it, the same reason every
-  // package keeps its own local `isoTimestampContract` instead of importing one.
-  declaredWord: z.enum(['done', 'unmet', 'empty', 'wall']).optional(),
-  declaredReason: z.string().min(1).brand<'WorkItemDeclaredReason'>().optional(),
-  // Set by `quest-work`'s `request` payload — the step this work item is blocked on, and why.
-  // `nextActionTransformer` takes this as its `request` argument for the identical reason
-  // `declaredWord` is an argument rather than a derivation: it is pure and cannot read a live call.
-  requestedStep: z.string().min(1).brand<'WorkItemRequestedStep'>().optional(),
-  requestedReason: z.string().min(1).brand<'WorkItemRequestedReason'>().optional(),
-  // Copied off the minting step's config (`agentFlowStatics.<family>.steps.<step>.needsLane`) by
-  // `questRouteScopeBroker` at mint time. `true` means the ROUTER starts a siegelense instance
-  // before this item dispatches and kills it when the item records — the session never owns that
-  // lifecycle. `.optional()` rather than `.default(false)`, matching `packageNames`: work items are
-  // the most numerous array on a quest, and a step that never needs a lane (nearly every one) must
-  // not materialise `needsLane: false` onto every row on every re-parse. Read as
-  // `workItem.needsLane === true`, never as a falsy check.
-  needsLane: z.boolean().optional(),
-}).brand<'WorkItem'>();
+export const workItemContract = z
+  .object({
+    id: workItemId,
+    role: workItemRoleContract,
+    status: workItemStatusContract,
+    spawnerType: spawnerTypeContract,
+    sessionId: sessionContract.shape.id.optional(),
+    // INVARIANT (behavioral, enforced by every seeding path — quest-create, the relay graph
+    // builder, and questAdvanceBroker): every work item carries exactly ONE `operations/<id>`
+    // ref, linking it to the operation item on the ledger whose SCOPE it works. That link is
+    // never re-pointed at a second operation item and a work item's status is never reverted.
+    // One operation item carries MANY work items over its life — one per step the router mints
+    // on that scope, and one per piece inside a parallel step — so the ref is many-to-one and
+    // `step` is what separates them. Ward items may additionally carry a `wardResults/<id>` ref.
+    relatedDataItems: z
+      .array(
+        z
+          .string()
+          .regex(
+            /^(operations|wardResults|riftcarverResults|flows)\/[a-z0-9-]+$/u,
+            'Must be {collection}/{id}',
+          )
+          .brand<'WorkItemRelatedDataItems'>(),
+      )
+      .default([]),
+    dependsOn: z.array(workItemId).default([]),
+    // `.default()` before `.brand()` — zod v4 checks a `.default()` literal against the schema's
+    // OWN output type, and a bare number can never satisfy a branded type; putting the brand last
+    // keeps the literal checked against plain `number` while the branded type still flows through.
+    attempt: z.number().int().nonnegative().default(0).brand<'WorkItemAttempt'>(),
+    maxAttempts: z.number().int().positive().default(1).brand<'WorkItemMaxAttempts'>(),
+    retryCount: z.number().int().nonnegative().default(0).brand<'WorkItemRetryCount'>(),
+    lastWardRunId: z.string().brand<'WorkItemLastWardRunId'>().optional(),
+    createdAt: z.iso.datetime().brand<'WorkItemCreatedAt'>(),
+    // `.nullish()`, not `.optional()` — a quest.json written before this field existed, or a
+    // producer that stamps `null` instead of omitting the key, sends an explicit `null` here.
+    // `.optional()` accepts an omitted key but rejects `null` outright, and this field sits inside
+    // `questContract`'s `workItems` array, so that rejection fails the WHOLE quest.json parse, not
+    // just this one row.
+    startedAt: z.iso.datetime().brand<'WorkItemStartedAt'>().nullish(),
+    startRef: z
+      .string()
+      .min(1)
+      .brand<'WorkItemStartRef'>()
+      .optional()
+      .describe(
+        "The quest worktree's HEAD sha at the moment this work item was FIRST served its prompt. `<startRef>..HEAD` is the range `get-blight-checklist`'s `since-ref` scope rebuilds its checklist over, and it is the only range that measures what THIS item produced: every minion commits its own work as it goes, so at signal time the tree is clean (a working-tree reading is empty by construction), HEAD~1 sees one piece, and a plan-scoped reading sees one round. Written ONCE and never rewritten — a resumed or re-served session keeps its ORIGINAL start, because re-stamping after a crash would shrink the reviewed range to whatever landed afterwards. Deliberately `.optional()` with NO default, so a work item that never resolved a worktree, a hydrated quest, and every item seeded before this field simply carry none, and that scope reports null for them rather than measuring something they could never satisfy.",
+      ),
+    // Same reasoning as `startedAt` above — `.nullish()` so an explicit `null` doesn't fail the
+    // whole quest.json parse.
+    completedAt: z.iso.datetime().brand<'WorkItemCompletedAt'>().nullish(),
+    errorMessage: z.string().brand<'WorkItemErrorMessage'>().optional(),
+    summary: z.string().brand<'WorkItemSummary'>().optional(),
+    insertedBy: workItemId.optional(),
+    resume: z
+      .boolean()
+      .optional()
+      .describe(
+        'Set by orphan recovery when it flips a crashed in_progress item back to pending while KEEPING sessionId: dispatch must resume that Claude session (claude --resume) instead of fresh-spawning, so work in the orphaned session is preserved',
+      ),
+    packageNames: z
+      .array(z.string().min(1).brand<'WorkItemPackageNames'>())
+      .optional()
+      .describe(
+        'Copied from the linked operation item when advance creates this item, so the dispatched session is handed its package slice with the rest of its identity rather than having to resolve the operations ref to find it. Optional and omitted when empty: work items are the most numerous array on a quest, and a `.default([])` would materialise an empty array onto every one of them on every re-parse. The operation item is the authority — this is a copy taken at dispatch.',
+      ),
+    smoketestPromptOverride: z
+      .string()
+      .min(1)
+      .brand<'WorkItemSmoketestPromptOverride'>()
+      .optional(),
+    smoketestExpectedSignal: streamSignalKindContract.optional(),
+    actualSignal: streamSignalKindContract.optional(),
+    step: z.string().min(1).brand<'WorkItemStep'>().optional(),
+    // One entry per unit this work item was ASSIGNED — not a shared log sessions append to. Each
+    // session gets a fresh, complete set that freezes when the step signals; a re-mint writes its
+    // own set of the same units from scratch rather than amending its predecessor's.
+    observations: z.array(unitObservationContract).default([]),
+    pieceId: pieceIdContract.optional(),
+    // What this work item was ASSIGNED, as distinct from what it MARKED (`observations`). The
+    // router (story 15) WRITES this on every work item it mints; story 14's signal gate READS it
+    // and refuses to let a session signal while any id here has no matching
+    // `observations[].unitId`. Cannot be derived from the piece's own `assignedUnitIds` (that is
+    // INTENT, re-filtered at dispatch) or from `payload.units[]` (not every family's payload has
+    // one) — see story 02's own text for the full reasoning.
+    assignedUnitIds: z.array(qaChecklistItemContract.shape.id).default([]),
+    // The return edge: which work item's `unmet` marks or `request` caused this one to exist.
+    // Deliberately NOT `insertedBy` — that field already means "supersedes a failed item" for the
+    // `pt N` continuation chain, and `work-items-to-quest-status-transformer` reads it to derive
+    // quest completion; reusing it here would make an ordinary mark-minted rework loop read as a
+    // resolved failure.
+    mintedBy: workItemId.optional(),
+    // The typed, per-family half of a brief — deliberately `z.record(workItemPayloadKeyContract,
+    // z.unknown())`: the per-family shapes live on the plan-file contract (story 07), and
+    // duplicating them here would make `shared` depend on a shape only the orchestrator cares
+    // about. The router copies the originating piece's payload onto what it mints, so a later plan
+    // amendment cannot rewrite what a session already ran against. A reader of a known key (e.g.
+    // `'instance'`) re-parses it through the exported `workItemPayloadKeyContract` to index this
+    // branded Record — see that contract's own header.
+    payload: z.record(z.string(), z.unknown()).optional(),
+    // Set by `quest-work`'s `outcome` payload — legal ONLY on a work item holding no assigned units,
+    // where there is nothing for the record to derive an outcome FROM. `nextActionTransformer` takes
+    // this as its `declaredWord`/`hitWall` arguments rather than deriving them, because it is pure and
+    // synchronous and cannot read a live call — "the work tool writes them and this reads them, and a
+    // pure function cannot go and look" (`next-action-transformer.ts`'s own header). Inlined as a
+    // literal tuple rather than importing `@dungeonmaster/orchestrator`'s `stepOutcomeContract`:
+    // `shared` is the base package and may not depend on anything above it, the same reason every
+    // package keeps its own local `isoTimestampContract` instead of importing one.
+    declaredWord: z.enum(['done', 'unmet', 'empty', 'wall']).optional(),
+    declaredReason: z.string().min(1).brand<'WorkItemDeclaredReason'>().optional(),
+    // Set by `quest-work`'s `request` payload — the step this work item is blocked on, and why.
+    // `nextActionTransformer` takes this as its `request` argument for the identical reason
+    // `declaredWord` is an argument rather than a derivation: it is pure and cannot read a live call.
+    requestedStep: z.string().min(1).brand<'WorkItemRequestedStep'>().optional(),
+    requestedReason: z.string().min(1).brand<'WorkItemRequestedReason'>().optional(),
+    // Copied off the minting step's config (`agentFlowStatics.<family>.steps.<step>.needsLane`) by
+    // `questRouteScopeBroker` at mint time. `true` means the ROUTER starts a siegelense instance
+    // before this item dispatches and kills it when the item records — the session never owns that
+    // lifecycle. `.optional()` rather than `.default(false)`, matching `packageNames`: work items are
+    // the most numerous array on a quest, and a step that never needs a lane (nearly every one) must
+    // not materialise `needsLane: false` onto every row on every re-parse. Read as
+    // `workItem.needsLane === true`, never as a falsy check.
+    needsLane: z.boolean().optional(),
+  })
+  .brand<'WorkItem'>();
 
 export type WorkItem = z.infer<typeof workItemContract>;

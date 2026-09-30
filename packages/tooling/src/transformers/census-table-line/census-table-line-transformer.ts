@@ -16,6 +16,6 @@ export const censusTableLineTransformer = ({
   widths: readonly number[];
 }): string =>
   cells
-      .map((cell, column) => cell.padEnd(widths[column] ?? 0))
-      .join(censusLayoutStatics.tableColumnGap)
-      .trimEnd();
+    .map((cell, column) => cell.padEnd(widths[column] ?? 0))
+    .join(censusLayoutStatics.tableColumnGap)
+    .trimEnd();

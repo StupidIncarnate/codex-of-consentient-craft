@@ -7,10 +7,7 @@ type DrivingOddity = ReturnType<typeof DrivingOddityStub>;
 
 export const drivingOddityAppendBrokerProxy = (): {
   setupEmptyFile: (params: { filePath: string }) => void;
-  setupExistingEntries: (params: {
-    filePath: string;
-    entries: readonly DrivingOddity[];
-  }) => void;
+  setupExistingEntries: (params: { filePath: string; entries: readonly DrivingOddity[] }) => void;
   appendedLinesFor: (params: { filePath: string }) => readonly unknown[];
 } => {
   const readProxy = drivingOddityReadBrokerProxy();

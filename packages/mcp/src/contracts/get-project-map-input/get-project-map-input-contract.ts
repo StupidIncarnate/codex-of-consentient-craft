@@ -14,6 +14,7 @@ export const getProjectMapInputContract = z
       .min(1)
       .describe('Names of packages to include in the project-map slice (one or more). Required.'),
   })
-  .strict().brand<'GetProjectMapInput'>();
+  .strict()
+  .brand<'GetProjectMapInput'>();
 
 export type GetProjectMapInput = z.infer<typeof getProjectMapInputContract>;

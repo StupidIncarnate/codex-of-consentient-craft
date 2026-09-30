@@ -10,8 +10,10 @@ import { z } from '#gateway/npm/zod';
 import { censusPackageContract } from '../census-package/census-package-contract';
 import { adapterRecordContract } from '../adapter-record/adapter-record-contract';
 
-export const packageCensusContract = censusPackageContract.extend({
-  adapters: z.array(adapterRecordContract),
-}).brand<'PackageCensus'>();
+export const packageCensusContract = censusPackageContract
+  .extend({
+    adapters: z.array(adapterRecordContract),
+  })
+  .brand<'PackageCensus'>();
 
 export type PackageCensus = z.infer<typeof packageCensusContract>;

@@ -147,11 +147,7 @@ export const DriverServeLayerResponderProxy = (): {
   const stderr = stderrProxy();
 
   return {
-    sendSocketLine: ({
-      line,
-    }: {
-      line: string;
-    }): { getWrittenLines: () => readonly string[] } => {
+    sendSocketLine: ({ line }: { line: string }): { getWrittenLines: () => readonly string[] } => {
       const client = socketProxy.connectClient({ socketPath: SOCKET_PATH_VALUE });
       client.sendLine({ line });
       return {

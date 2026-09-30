@@ -96,10 +96,12 @@ export const adapterAnalysisAnalyzeCallsLayerBroker = ({
         }
       } else {
         const isNamed = binding.name !== 'default' && binding.name !== '*';
-        outsideCalls.push(outsideCallContract.parse({
-          module: binding.module,
-          name: isNamed ? binding.name : (props.join('.') || binding.name),
-        }));
+        outsideCalls.push(
+          outsideCallContract.parse({
+            module: binding.module,
+            name: isNamed ? binding.name : props.join('.') || binding.name,
+          }),
+        );
       }
     } else if (declared.has(rootName)) {
       reasons.add(
@@ -112,10 +114,12 @@ export const adapterAnalysisAnalyzeCallsLayerBroker = ({
         reasons.add(adapterLogicReasonContract.parse('promise-construction'));
       }
     } else {
-      outsideCalls.push(outsideCallContract.parse({
-        module: rootName,
-        name: firstProp ?? rootName,
-      }));
+      outsideCalls.push(
+        outsideCallContract.parse({
+          module: rootName,
+          name: firstProp ?? rootName,
+        }),
+      );
     }
   }
 

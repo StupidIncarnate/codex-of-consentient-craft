@@ -16,7 +16,6 @@
 
 import { Box, Group, Stack, Text } from '#gateway/npm/mantine__core';
 
-
 import { useQuestQueueBinding } from '../../bindings/use-quest-queue/use-quest-queue-binding';
 import { emberDepthsThemeStatics } from '../../statics/ember-depths-theme/ember-depths-theme-statics';
 import { DispatchToggleWidget } from '../dispatch-toggle/dispatch-toggle-widget';

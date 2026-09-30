@@ -15,7 +15,6 @@ import { z } from '#gateway/npm/zod';
 
 import { siegeInstanceContract } from '@dungeonmaster/shared/contracts';
 
-
 export const statusArgsContract = z
   .object({
     instanceId: siegeInstanceContract.shape.id.nullable(),
@@ -23,6 +22,7 @@ export const statusArgsContract = z
     since: z.enum(['1h', '6h', '1d', 'beginning']).nullable().optional(),
     isJson: z.boolean(),
   })
-  .strict().brand<'StatusArgs'>();
+  .strict()
+  .brand<'StatusArgs'>();
 
 export type StatusArgs = z.infer<typeof statusArgsContract>;

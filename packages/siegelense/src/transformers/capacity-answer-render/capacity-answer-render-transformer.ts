@@ -8,14 +8,9 @@
  * // Returns 'SUGGESTED: 2 instances (ceiling: 3)\nSPEC: dungeonmaster-stack\n...'
  */
 
-
 import type { CapacityAnswer } from '../../contracts/capacity-answer/capacity-answer-contract';
 
-export const capacityAnswerRenderTransformer = ({
-  answer,
-}: {
-  answer: CapacityAnswer;
-}): string => {
+export const capacityAnswerRenderTransformer = ({ answer }: { answer: CapacityAnswer }): string => {
   const spec =
     answer.profile?.spec ?? /no measured profile for ([^,]+)/u.exec(answer.why)?.[1] ?? '-';
 
@@ -24,11 +19,11 @@ export const capacityAnswerRenderTransformer = ({
     : 'no profile samples recorded';
 
   return [
-      `SUGGESTED: ${answer.suggested} instances (ceiling: ${answer.ceiling})`,
-      `SPEC: ${spec}`,
-      `WHY: ${answer.why}`,
-      `HOST: free ${answer.measured.freeMemMB}MB mem, ${answer.measured.cores} cores, load ${answer.measured.loadAvg1}, free disk ${answer.measured.diskFreeMB ?? '-'}MB`,
-      `PROFILE: ${profileLine}`,
-      '',
-    ].join('\n');
+    `SUGGESTED: ${answer.suggested} instances (ceiling: ${answer.ceiling})`,
+    `SPEC: ${spec}`,
+    `WHY: ${answer.why}`,
+    `HOST: free ${answer.measured.freeMemMB}MB mem, ${answer.measured.cores} cores, load ${answer.measured.loadAvg1}, free disk ${answer.measured.diskFreeMB ?? '-'}MB`,
+    `PROFILE: ${profileLine}`,
+    '',
+  ].join('\n');
 };

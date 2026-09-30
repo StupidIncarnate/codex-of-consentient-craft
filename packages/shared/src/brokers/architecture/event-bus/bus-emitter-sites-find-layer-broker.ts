@@ -35,7 +35,7 @@ export const busEmitterSitesFindLayerBroker = ({
 }): BusEmitterSite[] => {
   if (buses.length === 0) return [];
 
-  const root = String(projectRoot);
+  const root = projectRoot;
   const packagesDir = `${root}/${PACKAGES_REL}`;
   const allFiles = listTsFilesLayerBroker({ dirPath: packagesDir });
 

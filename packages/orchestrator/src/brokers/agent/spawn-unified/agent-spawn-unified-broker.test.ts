@@ -1,7 +1,6 @@
 import { setImmediate } from '#gateway/node/setImmediate';
 import { SessionIdStub } from '@dungeonmaster/shared/contracts/session-id/session-id.stub';
 
-
 import { agentSpawnUnifiedBroker } from './agent-spawn-unified-broker';
 import { agentSpawnUnifiedBrokerProxy } from './agent-spawn-unified-broker.proxy';
 

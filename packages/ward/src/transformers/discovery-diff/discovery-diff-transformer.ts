@@ -6,7 +6,6 @@
  * // Returns: { onlyDiscovered: ['src/a.ts'], onlyProcessed: ['src/b.ts'] }
  */
 
-
 import { discoveryDiffContract } from '../../contracts/discovery-diff/discovery-diff-contract';
 import type { DiscoveryDiff } from '../../contracts/discovery-diff/discovery-diff-contract';
 import { normalizeToRelativeTransformer } from '../normalize-to-relative/normalize-to-relative-transformer';
@@ -21,10 +20,10 @@ export const discoveryDiffTransformer = ({
   cwd: string;
 }): DiscoveryDiff => {
   const normalizedDiscovered = new Set(
-    discoveredFiles.map((file) => String(normalizeToRelativeTransformer({ filePath: file, cwd }))),
+    discoveredFiles.map((file) => normalizeToRelativeTransformer({ filePath: file, cwd })),
   );
   const normalizedProcessed = new Set(
-    processedFiles.map((file) => String(normalizeToRelativeTransformer({ filePath: file, cwd }))),
+    processedFiles.map((file) => normalizeToRelativeTransformer({ filePath: file, cwd })),
   );
 
   const onlyDiscovered = [...normalizedDiscovered]

@@ -45,8 +45,8 @@ export const questChatBroker = async ({
     body: post.body,
     onProgress: ({ bytesSent, bytesTotal }): void => {
       post.onProgress({
-        bytesSent: bytesSent,
-        bytesTotal: bytesTotal,
+        bytesSent,
+        bytesTotal,
       });
     },
   });

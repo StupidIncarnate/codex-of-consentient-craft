@@ -27,7 +27,11 @@ import { upstreamShaProxy } from '#gateway/bin/git/upstream-sha/upstream-sha.pro
 import { verifyRefProxy } from '#gateway/bin/git/verify-ref/verify-ref.proxy';
 
 import { locationsWorktreePathFindBrokerProxy } from '@dungeonmaster/shared/brokers/locations/worktree-path-find/locations-worktree-path-find-broker.proxy';
-import { baseBranchNameContract, riftcarverResultContract, type Quest } from '@dungeonmaster/shared/contracts';
+import {
+  baseBranchNameContract,
+  riftcarverResultContract,
+  type Quest,
+} from '@dungeonmaster/shared/contracts';
 import { GuildIdStub } from '@dungeonmaster/shared/contracts/guild-id/guild-id.stub';
 import type { QuestStub } from '@dungeonmaster/shared/contracts/quest/quest.stub';
 import { registerMock, registerSpyOn } from '@dungeonmaster/testing/register-mock';
@@ -152,7 +156,7 @@ export const stepHandlerRiftcarverBrokerProxy = (): {
         worktreePath,
         branchName,
         baseBranch,
-        output: String(questBranch.addFailureOutput),
+        output: questBranch.addFailureOutput,
       });
       return;
     }
@@ -179,8 +183,8 @@ export const stepHandlerRiftcarverBrokerProxy = (): {
   const stageTypecheckSpawn = (): void => {
     typecheckSpawn.setupSuccess({
       command: TYPECHECK_COMMAND,
-      exitCode: Number(typecheckOutcome.exitCode),
-      stdoutLines: typecheckOutcome.lines.map((line) => String(line)),
+      exitCode: typecheckOutcome.exitCode,
+      stdoutLines: typecheckOutcome.lines.map((line) => line),
     });
   };
 

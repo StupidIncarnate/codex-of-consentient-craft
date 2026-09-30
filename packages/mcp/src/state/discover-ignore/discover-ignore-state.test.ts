@@ -5,10 +5,7 @@ describe('discoverIgnoreState', () => {
   it('VALID: {patterns} => stores and retrieves the merged list', () => {
     discoverIgnoreState.clear();
 
-    const patterns = [
-      '**/node_modules/**',
-      '**/worktrees/**',
-    ];
+    const patterns = ['**/node_modules/**', '**/worktrees/**'];
 
     discoverIgnoreState.set({ patterns });
 

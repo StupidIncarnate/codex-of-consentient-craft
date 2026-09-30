@@ -10,13 +10,13 @@ describe('inlineEnumsReadLayerTransformer', () => {
         filePath: '/repo/packages/alpha/src/contracts/work-item/work-item-contract.ts',
         packageName: '@repo/alpha',
         schemaText: [
-            'z.object({',
-            "  role: z.enum(['worker', 'admin']),",
-            '  title: z.string(),',
-            "  state: z.enum(['open', 'done']).brand<'State'>(),",
-            '  kind: z.enum(kinds),',
-            '})',
-          ].join('\n'),
+          'z.object({',
+          "  role: z.enum(['worker', 'admin']),",
+          '  title: z.string(),',
+          "  state: z.enum(['open', 'done']).brand<'State'>(),",
+          '  kind: z.enum(kinds),',
+          '})',
+        ].join('\n'),
       });
 
       expect(inlineEnumsReadLayerTransformer({ owner })).toStrictEqual([

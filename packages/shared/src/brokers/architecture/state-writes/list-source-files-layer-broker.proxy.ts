@@ -8,13 +8,7 @@ const buildDirent = ({ name, isDir }: { name: string; isDir: boolean }): DirEntr
 });
 
 export const listSourceFilesLayerBrokerProxy = (): {
-  setupFlatDirectory: ({
-    dirPath,
-    filePaths,
-  }: {
-    dirPath: string;
-    filePaths: string[];
-  }) => void;
+  setupFlatDirectory: ({ dirPath, filePaths }: { dirPath: string; filePaths: string[] }) => void;
   setupEmpty: ({ dirPath }: { dirPath: string }) => void;
   setupImplementation: ({ fn }: { fn: (dirPath: string) => Dirent[] }) => void;
 } => {
@@ -29,7 +23,7 @@ export const listSourceFilesLayerBrokerProxy = (): {
       filePaths: string[];
     }): void => {
       const entries = filePaths.map((fp) => {
-        const name = String(fp).split('/').pop() ?? String(fp);
+        const name = fp.split('/').pop() ?? fp;
         return buildDirent({ name, isDir: false });
       });
       readdirProxy.setupDirectory({ dirPath, entries });

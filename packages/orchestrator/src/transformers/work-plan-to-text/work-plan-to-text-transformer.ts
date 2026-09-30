@@ -45,11 +45,11 @@ export const workPlanToTextTransformer = ({
 
   if (plan === null) {
     return [
-        ...header,
-        'No planner has run against this item yet, so there is no plan to review. That is a real',
-        'state, not an error — the scope is waiting on its `plan` step.',
-        '',
-      ].join('\n');
+      ...header,
+      'No planner has run against this item yet, so there is no plan to review. That is a real',
+      'state, not an error — the scope is waiting on its `plan` step.',
+      '',
+    ].join('\n');
   }
 
   // The claim index is built ONCE and read by both halves below, so the piece rows and the coverage
@@ -122,18 +122,18 @@ export const workPlanToTextTransformer = ({
   const flowText = plan.flowId === null ? 'none (contracts-only cell)' : String(plan.flowId);
 
   return [
-      ...header,
-      `Family: ${plan.family} · flow: ${flowText}`,
-      `Written by work item ${String(plan.writtenBy)} at ${String(plan.writtenAt)}`,
-      '',
-      ...batchBlocks,
-      '## Coverage',
-      '',
-      `${String(unclaimedCount)} of ${String(inScopeUnits.length)} in-scope units are claimed by no piece.`,
-      '',
-      '| unit | mark | claimed by |',
-      '| --- | --- | --- |',
-      ...coverageRows,
-      '',
-    ].join('\n');
+    ...header,
+    `Family: ${plan.family} · flow: ${flowText}`,
+    `Written by work item ${String(plan.writtenBy)} at ${String(plan.writtenAt)}`,
+    '',
+    ...batchBlocks,
+    '## Coverage',
+    '',
+    `${String(unclaimedCount)} of ${String(inScopeUnits.length)} in-scope units are claimed by no piece.`,
+    '',
+    '| unit | mark | claimed by |',
+    '| --- | --- | --- |',
+    ...coverageRows,
+    '',
+  ].join('\n');
 };

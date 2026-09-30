@@ -88,7 +88,11 @@ describe('draftImagesLoadBroker', () => {
         scopeKey: 'quest-b',
       });
       proxy.storeHolds({ drafts: [questA, questB] });
-      proxy.measures({ dataUrl: 'data:image/png;base64,iVBORw0KGgo=', widthPx: 800, heightPx: 600 });
+      proxy.measures({
+        dataUrl: 'data:image/png;base64,iVBORw0KGgo=',
+        widthPx: 800,
+        heightPx: 600,
+      });
 
       const result = await draftImagesLoadBroker({ scopeKey: QUEST_A_SCOPE });
 

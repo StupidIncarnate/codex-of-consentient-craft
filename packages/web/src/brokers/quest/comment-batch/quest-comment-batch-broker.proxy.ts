@@ -9,7 +9,6 @@
  * await getRequestBody() to assert the posted body.
  */
 
-
 import { fetchWithStatusProxy } from '#gateway/browser/fetch/fetch-with-status/fetch-with-status.proxy';
 
 import { httpStatusStatics } from '../../../statics/http-status/http-status-statics';

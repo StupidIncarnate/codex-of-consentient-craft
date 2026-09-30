@@ -61,7 +61,7 @@ export const worktreeResumeRestoreBroker = async ({
           .map((line) => line.trim())
           .find((line) => line.length > 0) ?? null);
 
-  if (branch !== null && branch === String(branchName)) {
+  if (branch !== null && branch === branchName) {
     return worktreeResumeRestoreResultContract.parse({
       restored: true,
       currentBranch: branch,
@@ -73,7 +73,7 @@ export const worktreeResumeRestoreBroker = async ({
 
   return worktreeResumeRestoreResultContract.parse({
     restored: checkoutResult.exitCode === 0,
-    currentBranch: (branch ?? 'HEAD'),
+    currentBranch: branch ?? 'HEAD',
     output: checkoutResult.output,
   });
 };

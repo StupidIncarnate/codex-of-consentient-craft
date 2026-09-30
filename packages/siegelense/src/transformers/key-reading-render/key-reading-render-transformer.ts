@@ -10,7 +10,6 @@
  * // Returns 'pressed "Enter" — nothing focused'
  */
 
-
 import type { KeyReading } from '../../contracts/key-reading/key-reading-contract';
 
 export const keyReadingRenderTransformer = ({ reading }: { reading: KeyReading }): string => {

@@ -8,8 +8,7 @@
  * // Returns 'snapshot "clean" recorded' as ContentText
  */
 
-
 import { snapshotStatics } from '../../statics/snapshot/snapshot-statics';
 
 export const snapshotReadingRenderTransformer = ({ name }: { name: string }): string =>
-  snapshotStatics.template.replace('{name}', String(name));
+  snapshotStatics.template.replace('{name}', name);

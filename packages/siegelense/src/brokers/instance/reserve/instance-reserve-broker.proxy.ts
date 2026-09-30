@@ -89,7 +89,7 @@ export const instanceReserveBrokerProxy = (): {
       evidencePath: string;
     }): void => {
       evidenceProxy.setupInstanceEvidencePath({ homeDir, homePath, rootPath, evidencePath });
-      mkdirProxy.succeeds({ path: String(evidencePath) });
+      mkdirProxy.succeeds({ path: evidencePath });
       capturedDirsState.rootPath = rootPath;
       capturedDirsState.evidencePath = evidencePath;
     },
@@ -145,8 +145,8 @@ export const instanceReserveBrokerProxy = (): {
         return [];
       }
       return [
-        ...mkdirProxy.getCallsFor({ path: String(rootPath) }).map(() => rootPath),
-        ...mkdirProxy.getCallsFor({ path: String(evidencePath) }).map(() => evidencePath),
+        ...mkdirProxy.getCallsFor({ path: rootPath }).map(() => rootPath),
+        ...mkdirProxy.getCallsFor({ path: evidencePath }).map(() => evidencePath),
       ];
     },
   };

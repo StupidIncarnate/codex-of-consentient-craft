@@ -50,5 +50,5 @@ export const expectedExportNameTransformer = ({
       ? kebabToPascalCaseTransformer({ str: baseName })
       : kebabToCamelCaseTransformer({ str: baseName });
 
-  return (convertedName + exportSuffix);
+  return convertedName + exportSuffix;
 };

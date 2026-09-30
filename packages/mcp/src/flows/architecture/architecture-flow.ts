@@ -80,8 +80,7 @@ export const ArchitectureFlow = (): ToolRegistration[] => [
   {
     ...toolRegistrationContract.parse({
       name: 'get-project-inventory',
-      description:
-        'Returns the per-package folder/file inventory section for a single package',
+      description: 'Returns the per-package folder/file inventory section for a single package',
       inputSchema: getProjectInventorySchema,
     }),
     handler: async ({ args, meta }) =>

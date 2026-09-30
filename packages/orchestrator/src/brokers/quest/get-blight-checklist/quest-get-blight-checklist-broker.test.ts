@@ -21,9 +21,7 @@ describe('questGetBlightChecklistBroker', () => {
 
       expect(result).toStrictEqual(
         blightChecklistBuildTransformer({
-          changedFiles: [
-            'packages/web/src/widgets/foo/foo-widget.tsx',
-          ],
+          changedFiles: ['packages/web/src/widgets/foo/foo-widget.tsx'],
           ledger: quest.planningNotes.blightLedger,
           baseRef: quest.baseRef!,
         }),
@@ -31,9 +29,7 @@ describe('questGetBlightChecklistBroker', () => {
     });
 
     it('VALID: {ledger entry for a unit} => remainingItemIds reflects the persisted blightLedger', async () => {
-      const changedFiles = [
-        'packages/web/src/widgets/foo/foo-widget.tsx',
-      ];
+      const changedFiles = ['packages/web/src/widgets/foo/foo-widget.tsx'];
       const baseline = blightChecklistBuildTransformer({
         changedFiles,
         ledger: [],
@@ -47,7 +43,7 @@ describe('questGetBlightChecklistBroker', () => {
         planningNotes: { blightLedger: [ledgerEntry] },
       });
       proxy.setupQuestFound({ quest });
-      proxy.setupDiff({ files: changedFiles.map((file) => String(file)) });
+      proxy.setupDiff({ files: changedFiles.map((file) => file) });
 
       const result = await questGetBlightChecklistBroker({
         questId: QuestIdStub({ value: quest.id }),

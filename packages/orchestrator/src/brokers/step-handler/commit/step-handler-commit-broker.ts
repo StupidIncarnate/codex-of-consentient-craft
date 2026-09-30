@@ -70,7 +70,7 @@ export const stepHandlerCommitBroker = async ({
       `Cannot commit for quest ${questId}: worktree not found: ${resolution.worktreePath}`,
     );
   }
-  const cwd = resolution.cwd;
+  const { cwd } = resolution;
 
   // Measured BEFORE staging: after `git add -A` the tree always reads clean, so "was this a
   // review-only pass" can only be answered by looking first.
@@ -154,6 +154,6 @@ export const stepHandlerCommitBroker = async ({
 
   return stepHandlerResultContract.parse({
     outcome: isEmpty ? 'empty' : 'done',
-    detail: detail,
+    detail,
   });
 };

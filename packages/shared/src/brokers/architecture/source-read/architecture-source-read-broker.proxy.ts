@@ -5,33 +5,21 @@ const isAbsolutePath = (value: unknown): boolean =>
   typeof value === 'string' && value.startsWith('/');
 
 export const architectureSourceReadBrokerProxy = (): {
-  setupReturns: ({
-    filePath,
-    content,
-  }: {
-    filePath: string;
-    content: string;
-  }) => void;
+  setupReturns: ({ filePath, content }: { filePath: string; content: string }) => void;
   setupMissing: ({ filePath }: { filePath: string }) => void;
   setupImplementation: ({ fn }: { fn: (filePath: string) => string }) => void;
 } => {
   const gatewayProxy = readFileSyncProxy();
 
   return {
-    setupReturns: ({
-      filePath,
-      content,
-    }: {
-      filePath: string;
-      content: string;
-    }): void => {
-      gatewayProxy.returns({ path: String(filePath), contents: content });
+    setupReturns: ({ filePath, content }: { filePath: string; content: string }): void => {
+      gatewayProxy.returns({ path: filePath, contents: content });
     },
 
     setupMissing: ({ filePath }: { filePath: string }): void => {
       gatewayProxy.throws({
-        path: String(filePath),
-        error: FileMissingErrorStub({ path: String(filePath) }),
+        path: filePath,
+        error: FileMissingErrorStub({ path: filePath }),
       });
     },
 

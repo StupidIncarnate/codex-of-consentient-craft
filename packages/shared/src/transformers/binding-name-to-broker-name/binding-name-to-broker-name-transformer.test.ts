@@ -7,7 +7,7 @@ describe('bindingNameToBrokerNameTransformer', () => {
         bindingName: 'use-quest-chat',
       });
 
-      expect(String(result)).toBe('quest-chat-broker');
+      expect(result).toBe('quest-chat-broker');
     });
 
     it('VALID: {bindingName: use-quests} => returns quests-broker', () => {
@@ -15,7 +15,7 @@ describe('bindingNameToBrokerNameTransformer', () => {
         bindingName: 'use-quests',
       });
 
-      expect(String(result)).toBe('quests-broker');
+      expect(result).toBe('quests-broker');
     });
 
     it('VALID: {bindingName: use-guild-detail} => returns guild-detail-broker', () => {
@@ -23,7 +23,7 @@ describe('bindingNameToBrokerNameTransformer', () => {
         bindingName: 'use-guild-detail',
       });
 
-      expect(String(result)).toBe('guild-detail-broker');
+      expect(result).toBe('guild-detail-broker');
     });
   });
 
@@ -33,7 +33,7 @@ describe('bindingNameToBrokerNameTransformer', () => {
         bindingName: 'use-quest-chat-binding',
       });
 
-      expect(String(result)).toBe('quest-chat-broker');
+      expect(result).toBe('quest-chat-broker');
     });
   });
 
@@ -43,7 +43,7 @@ describe('bindingNameToBrokerNameTransformer', () => {
         bindingName: 'quest-list',
       });
 
-      expect(String(result)).toBe('quest-list-broker');
+      expect(result).toBe('quest-list-broker');
     });
   });
 });

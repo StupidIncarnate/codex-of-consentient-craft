@@ -15,15 +15,11 @@ import { isNonTestFileGuard } from '../../../guards/is-non-test-file/is-non-test
 import { isSourceFileGuard } from '../../../guards/is-source-file/is-source-file-guard';
 import { safeReaddirLayerBroker } from './safe-readdir-layer-broker';
 
-export const listSourceFilesLayerBroker = ({
-  dirPath,
-}: {
-  dirPath: string;
-}): string[] => {
+export const listSourceFilesLayerBroker = ({ dirPath }: { dirPath: string }): string[] => {
   const entries = safeReaddirLayerBroker({ dirPath });
   const results: string[] = [];
   for (const entry of entries) {
-    const entryPath = `${String(dirPath)}/${entry.name}`;
+    const entryPath = `${dirPath}/${entry.name}`;
     if (entry.kind === 'directory') {
       const children = listSourceFilesLayerBroker({ dirPath: entryPath });
       for (const child of children) {

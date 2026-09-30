@@ -87,11 +87,5 @@ export interface ChatLineProcessor {
   // same prompt pairs to a different Task. Lets the live watcher start tailing a nested sub-agent
   // BEFORE its completion tool_result lands instead of waiting for it to finish. Returns true if
   // `agentId` is now (or was already) paired, false if no outstanding Task matched.
-  pairSubagentByPrompt: ({
-    agentId,
-    prompt,
-  }: {
-    agentId: Agent['id'];
-    prompt: string;
-  }) => boolean;
+  pairSubagentByPrompt: ({ agentId, prompt }: { agentId: Agent['id']; prompt: string }) => boolean;
 }

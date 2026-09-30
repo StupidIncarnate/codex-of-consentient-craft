@@ -10,7 +10,6 @@
 
 import { z } from '#gateway/npm/zod';
 
-
 import { focusedElementContract } from '../focused-element/focused-element-contract';
 
 export const keyReadingContract = z
@@ -18,6 +17,7 @@ export const keyReadingContract = z
     press: z.string().brand<'KeyReadingPress'>(),
     focused: focusedElementContract.nullable(),
   })
-  .strict().brand<'KeyReading'>();
+  .strict()
+  .brand<'KeyReading'>();
 
 export type KeyReading = z.infer<typeof keyReadingContract>;

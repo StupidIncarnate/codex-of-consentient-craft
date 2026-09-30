@@ -78,7 +78,7 @@ test.describe('Execution row back-edge badge: codeweaver ward red -> repair -> f
       worktreePath: GUILD_PATH,
     });
 
-    await nav.navigateToQuest({ urlSlug, questId: questId });
+    await nav.navigateToQuest({ urlSlug, questId });
 
     const executionPanel = page.getByTestId('execution-panel-widget');
     await expect(executionPanel).toBeVisible({ timeout: PANEL_TIMEOUT });
@@ -110,7 +110,7 @@ test.describe('Execution row back-edge badge: codeweaver ward red -> repair -> f
     // drives): `flowrider` -> done, `siegemaster` -> done, the wardFull family's own `gate` -> green,
     // completing the quest.
     await dispatch.playAndDrive({
-      questId: questId,
+      questId,
       script: [
         { role: 'ward', outcome: 'red' },
         { role: 'spiritmender', outcome: 'done' },
@@ -122,7 +122,7 @@ test.describe('Execution row back-edge badge: codeweaver ward red -> repair -> f
     });
 
     const finalQuest = await dispatch.waitForQuest({
-      questId: questId,
+      questId,
       timeoutMs: RELAY_TIMEOUT,
       predicate: ({ quest }) =>
         quest.status === 'complete' &&

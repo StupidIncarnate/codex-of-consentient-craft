@@ -12,7 +12,6 @@ import { writeFile } from '#gateway/node/fs__promises';
 import { tmpdir } from '#gateway/node/os';
 import { join } from '#gateway/node/path';
 
-
 export const transcriptHarness = (): {
   write: (params: { contents: string }) => Promise<string>;
   missingPath: () => string;

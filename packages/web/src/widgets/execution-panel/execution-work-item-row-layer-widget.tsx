@@ -28,7 +28,15 @@
  * />
  */
 
-import type { ChatEntry, OperationItem, RiftcarverResult, WardResult, WorkItem, Quest, Session } from '@dungeonmaster/shared/contracts';
+import type {
+  ChatEntry,
+  OperationItem,
+  RiftcarverResult,
+  WardResult,
+  WorkItem,
+  Quest,
+  Session,
+} from '@dungeonmaster/shared/contracts';
 import { riftcarverResultContract } from '@dungeonmaster/shared/contracts';
 
 import type { ExecutionRole } from '../../contracts/execution-role/execution-role-contract';
@@ -148,7 +156,7 @@ export const ExecutionWorkItemRowLayerWidget = ({
   const scopeLabel = operation
     ? operation.text
     : `${workItem.role.charAt(0).toUpperCase()}${workItem.role.slice(1)}`;
-  const name = (stepLabel ?? scopeLabel);
+  const name = stepLabel ?? scopeLabel;
   // Session identity for a dependency (T2-9a): the dependency's OWN row label, prefixed with its
   // scope only when that scope differs from BOTH this row's own scope (same-scope dependencies need
   // no prefix) and the dependency's row label (a bare dependency's row label already IS its scope,

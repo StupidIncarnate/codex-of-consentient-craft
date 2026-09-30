@@ -14,7 +14,6 @@
  * WHEN-NOT-TO-USE: When AST-level accuracy is required — this is a regex v1 heuristic.
  */
 
-
 const ESCAPE_REGEX_PATTERN = /[.*+?^${}()|[\]\\]/gu;
 
 export const busOnCallDetectTransformer = ({
@@ -24,7 +23,7 @@ export const busOnCallDetectTransformer = ({
   source: string;
   busExportName: string;
 }): boolean => {
-  const escaped = String(busExportName).replace(ESCAPE_REGEX_PATTERN, '\\$&');
+  const escaped = busExportName.replace(ESCAPE_REGEX_PATTERN, '\\$&');
   const pattern = new RegExp(`${escaped}\\.on\\s*\\(`, 'u');
-  return pattern.test(String(source));
+  return pattern.test(source);
 };

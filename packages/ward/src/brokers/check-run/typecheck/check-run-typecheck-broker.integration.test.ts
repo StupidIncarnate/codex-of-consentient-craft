@@ -21,27 +21,27 @@ describe('checkRunTypecheckBroker (integration) — real tsc, tsconfig.json vs t
     testbed.writeFile({
       relativePath: 'tsconfig.json',
       content: JSON.stringify({
-          compilerOptions: {
-            noEmit: true,
-            strict: false,
-            module: 'commonjs',
-            target: 'es2020',
-          },
-          include: ['src/**/*.ts', 'outside.ts'],
-        }),
+        compilerOptions: {
+          noEmit: true,
+          strict: false,
+          module: 'commonjs',
+          target: 'es2020',
+        },
+        include: ['src/**/*.ts', 'outside.ts'],
+      }),
     });
     testbed.writeFile({
       relativePath: 'tsconfig.build.json',
       content: JSON.stringify({
-          compilerOptions: {
-            noEmit: true,
-            strict: false,
-            module: 'commonjs',
-            target: 'es2020',
-            rootDir: './src',
-          },
-          include: ['src/**/*.ts', 'outside.ts'],
-        }),
+        compilerOptions: {
+          noEmit: true,
+          strict: false,
+          module: 'commonjs',
+          target: 'es2020',
+          rootDir: './src',
+        },
+        include: ['src/**/*.ts', 'outside.ts'],
+      }),
     });
     testbed.writeFile({
       relativePath: 'outside.ts',
@@ -49,7 +49,8 @@ describe('checkRunTypecheckBroker (integration) — real tsc, tsconfig.json vs t
     });
     testbed.writeFile({
       relativePath: 'src/a.ts',
-      content: "import { outsideValue } from '../outside';\n\nexport const usesOutside = outsideValue;\n",
+      content:
+        "import { outsideValue } from '../outside';\n\nexport const usesOutside = outsideValue;\n",
     });
 
     const projectFolder = ProjectFolderStub({
@@ -127,7 +128,8 @@ describe('checkRunTypecheckBroker (integration) — real tsc, tsconfig.json vs t
     });
     testbed.writeFile({
       relativePath: 'src/a.ts',
-      content: "import { outsideValue } from '../outside';\n\nexport const usesOutside = outsideValue;\n",
+      content:
+        "import { outsideValue } from '../outside';\n\nexport const usesOutside = outsideValue;\n",
     });
 
     const projectFolder = ProjectFolderStub({

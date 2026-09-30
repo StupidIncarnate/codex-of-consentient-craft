@@ -59,7 +59,7 @@ export const worktreeVerifyLinksBroker = async ({
     .slice(0, worktreeVerifyLinksStatics.maxReportedLinks)
     .map(
       (audit) =>
-        `${String(audit.linkPath)} -> ${String(audit.storedTarget)} (lands at ${String(audit.resolvedTarget)})`,
+        `${audit.linkPath} -> ${audit.storedTarget} (lands at ${audit.resolvedTarget})`,
     )
     .join('; ');
   const elided =

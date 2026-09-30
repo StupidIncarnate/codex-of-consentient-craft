@@ -1,4 +1,3 @@
-
 import { ShutdownReasonStub } from '../../../contracts/shutdown-reason/shutdown-reason.stub';
 
 import { shutdownReasonReadBroker } from './shutdown-reason-read-broker';

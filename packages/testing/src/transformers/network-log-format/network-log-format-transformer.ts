@@ -6,7 +6,6 @@
  * // Returns formatted string like "--- Network Log (1 requests) ---\nGET /api/guilds -> 200 (12ms) [mock]\n---"
  */
 
-
 import type { NetworkLogEntry } from '../../contracts/network-log-entry/network-log-entry-contract';
 import type { WsLogEntry } from '../../contracts/ws-log-entry/ws-log-entry-contract';
 import { formatHttpEntryTransformer } from '../format-http-entry/format-http-entry-transformer';
@@ -22,18 +21,14 @@ export const networkLogFormatTransformer = ({
   const lines: string[] = [];
 
   if (entries.length > 0) {
-    lines.push(
-      `--- Network Log (${String(entries.length)} requests) ---`,
-    );
+    lines.push(`--- Network Log (${String(entries.length)} requests) ---`);
     for (const entry of entries) {
       lines.push(formatHttpEntryTransformer({ entry }));
     }
   }
 
   if (wsEntries.length > 0) {
-    lines.push(
-      `--- WebSocket (${String(wsEntries.length)} messages) ---`,
-    );
+    lines.push(`--- WebSocket (${String(wsEntries.length)} messages) ---`);
     for (const wsEntry of wsEntries) {
       lines.push(formatWsEntryTransformer({ wsEntry }));
     }

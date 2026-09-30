@@ -35,7 +35,7 @@ export const scanRunBroker = async ({
   const projectFolders = await workspaceDiscoverBroker({ rootPath });
 
   if (projectFolders === null) {
-    throw new Error(`scan needs an npm-workspaces root; ${String(rootPath)} declares none`);
+    throw new Error(`scan needs an npm-workspaces root; ${rootPath} declares none`);
   }
 
   const scoped = projectFolders

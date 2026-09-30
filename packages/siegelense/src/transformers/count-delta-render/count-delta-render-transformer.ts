@@ -9,7 +9,6 @@
  * // Returns '+2' as branded CountDelta
  */
 
-
 export const countDeltaRenderTransformer = ({
   before,
   after,

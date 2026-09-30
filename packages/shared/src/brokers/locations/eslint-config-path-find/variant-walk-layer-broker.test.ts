@@ -54,10 +54,7 @@ describe('variantWalkLayerBroker', () => {
 
       proxy.setupAllVariantsMissing({
         searchPath: '/project',
-        missingPaths: [
-          '/project/eslint.config.ts',
-          '/project/eslint.config.js',
-        ],
+        missingPaths: ['/project/eslint.config.ts', '/project/eslint.config.js'],
       });
 
       const result = await variantWalkLayerBroker({

@@ -14,7 +14,11 @@ import { join } from '#gateway/node/path';
 
 import { questOutboxLineContract } from '../../../contracts/quest-outbox-line/quest-outbox-line-contract';
 
-export const questOutboxAppendBroker = async ({ questId }: { questId: Quest['id'] }): Promise<void> => {
+export const questOutboxAppendBroker = async ({
+  questId,
+}: {
+  questId: Quest['id'];
+}): Promise<void> => {
   const { homePath } = dungeonmasterHomeFindBroker();
 
   const outboxFilePath = join(homePath, locationsStatics.dungeonmasterHome.eventOutbox);

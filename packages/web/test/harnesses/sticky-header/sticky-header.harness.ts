@@ -239,7 +239,7 @@ export const stickyHeaderHarness = ({
       await quests.writeQuestFile({
         questId: created.questId,
         questFolder: created.questFolder,
-        questFilePath: String(created.filePath),
+        questFilePath: created.filePath,
         status: 'in_progress',
         workItems: [
           {

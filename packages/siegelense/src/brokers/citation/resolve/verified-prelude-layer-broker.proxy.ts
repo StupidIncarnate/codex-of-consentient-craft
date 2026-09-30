@@ -41,13 +41,7 @@ export const verifiedPreludeLayerBrokerProxy = (): {
       readdirProxy.notADirectory({ path: dirPath });
     },
 
-    setupPlanFile: ({
-      filePath,
-      contents,
-    }: {
-      filePath: string;
-      contents: string;
-    }): void => {
+    setupPlanFile: ({ filePath, contents }: { filePath: string; contents: string }): void => {
       readFileMock.returns({ path: filePath, contents });
     },
   };

@@ -20,11 +20,13 @@ const zodSchemaContract = z.custom((value) => value instanceof z.ZodType, {
   message: 'Expected a zod schema',
 });
 
-export const recipeDefContract = z.object({
-  recipeName: z.string().min(1).brand<'RecipeDefRecipeName'>(),
-  description: recipeDescriptionContract,
-  inputs: zodSchemaContract.optional(),
-}).brand<'RecipeDef'>();
+export const recipeDefContract = z
+  .object({
+    recipeName: z.string().min(1).brand<'RecipeDefRecipeName'>(),
+    description: recipeDescriptionContract,
+    inputs: zodSchemaContract.optional(),
+  })
+  .brand<'RecipeDef'>();
 
 export type RecipeDefData = z.infer<typeof recipeDefContract>;
 

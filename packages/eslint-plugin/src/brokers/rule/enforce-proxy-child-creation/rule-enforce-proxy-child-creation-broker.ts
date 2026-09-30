@@ -347,7 +347,7 @@ export const ruleEnforceProxyChildCreationBroker = (): TSESLint.RuleModule<
               }
 
               const [scopeSegment, packageFolder, subpath] = importPathSegments;
-              return `${scopeSegment}/${packageFolder}/${subpath}/${relativeWrapperPath}.proxy` as string;
+              return `${scopeSegment}/${packageFolder}/${subpath}/${relativeWrapperPath}.proxy`;
             }
             if (isWorkspacePackageRootImport) {
               // TS narrows gatewayFolderSegment to `string` here via aliased-condition analysis —
@@ -417,11 +417,9 @@ export const ruleEnforceProxyChildCreationBroker = (): TSESLint.RuleModule<
             const tsExtension = fileExtensionsStatics.source.typescript.find((ext) =>
               importPath.endsWith(ext),
             );
-            return (
-              tsExtension === undefined
-                ? `${importPath}.proxy`
-                : importPath.replace(tsExtension, '.proxy')
-            ) as string;
+            return tsExtension === undefined
+              ? `${importPath}.proxy`
+              : importPath.replace(tsExtension, '.proxy');
           })();
 
           if (expectedProxyPath === null) {

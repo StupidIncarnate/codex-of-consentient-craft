@@ -18,7 +18,11 @@ type QuestWorkResult = Awaited<ReturnType<typeof StartOrchestrator.questWork>>;
 type QuestWorkParams = Parameters<typeof StartOrchestrator.questWork>[0];
 
 export const QuestWorkLayerResponderProxy = (): {
-  setupReturns: (params: { questId: Quest['id']; workItemId: WorkItem['id']; result: QuestWorkResult }) => void;
+  setupReturns: (params: {
+    questId: Quest['id'];
+    workItemId: WorkItem['id'];
+    result: QuestWorkResult;
+  }) => void;
   setupThrows: (params: { questId: Quest['id']; workItemId: WorkItem['id']; error: Error }) => void;
   getLastCalledInputFor: (params: { questId: Quest['id']; workItemId: WorkItem['id'] }) => unknown;
 } => {

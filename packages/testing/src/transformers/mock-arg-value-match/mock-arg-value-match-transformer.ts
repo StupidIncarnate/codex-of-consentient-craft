@@ -10,7 +10,6 @@
  * Returns null when the values do not match.
  */
 
-
 export const mockArgValueMatchTransformer = ({
   staged,
   actual,
@@ -45,15 +44,11 @@ export const mockArgValueMatchTransformer = ({
   }
 
   if (staged instanceof Date) {
-    return actual instanceof Date && staged.getTime() === actual.getTime()
-      ? 1
-      : null;
+    return actual instanceof Date && staged.getTime() === actual.getTime() ? 1 : null;
   }
 
   if (staged instanceof RegExp) {
-    return typeof actual === 'string' && staged.test(actual)
-      ? 1
-      : null;
+    return typeof actual === 'string' && staged.test(actual) ? 1 : null;
   }
 
   if (typeof staged === 'object' && staged !== null) {

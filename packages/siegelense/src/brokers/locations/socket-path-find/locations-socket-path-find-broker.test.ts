@@ -16,9 +16,7 @@ describe('locationsSocketPathFindBroker', () => {
 
       const result = locationsSocketPathFindBroker({ instanceId });
 
-      expect(result).toBe(
-        '/tmp/dm-siege-sockets/inst_7f3a9c21.sock',
-      );
+      expect(result).toBe('/tmp/dm-siege-sockets/inst_7f3a9c21.sock');
     });
 
     it('VALID: {tmpDir: a per-user macOS scratch dir} => returns that base joined with the socket dir and instance id', () => {

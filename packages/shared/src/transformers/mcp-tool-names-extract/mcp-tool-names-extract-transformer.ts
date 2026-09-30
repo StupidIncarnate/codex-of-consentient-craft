@@ -14,24 +14,19 @@
  * WHEN-NOT-TO-USE: When full AST parsing is needed — this is a v1 regex heuristic
  */
 
-
 // Matches: name: 'discover' as never  OR  name: "discover" as never
 const TOOL_NAME_PATTERN = /name:\s*['"]([^'"]+)['"]\s*as\s+never/gu;
 
-export const mcpToolNamesExtractTransformer = ({
-  source,
-}: {
-  source: string;
-}): string[] => {
+export const mcpToolNamesExtractTransformer = ({ source }: { source: string }): string[] => {
   const names: string[] = [];
   TOOL_NAME_PATTERN.lastIndex = 0;
-  let match = TOOL_NAME_PATTERN.exec(String(source));
+  let match = TOOL_NAME_PATTERN.exec(source);
   while (match !== null) {
     const [, name] = match;
     if (name !== undefined) {
       names.push(name);
     }
-    match = TOOL_NAME_PATTERN.exec(String(source));
+    match = TOOL_NAME_PATTERN.exec(source);
   }
   return names;
 };

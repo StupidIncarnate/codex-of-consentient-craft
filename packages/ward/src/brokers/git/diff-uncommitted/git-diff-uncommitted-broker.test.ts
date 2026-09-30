@@ -1,5 +1,3 @@
-
-
 import { gitDiffUncommittedBroker } from './git-diff-uncommitted-broker';
 import { gitDiffUncommittedBrokerProxy } from './git-diff-uncommitted-broker.proxy';
 
@@ -37,11 +35,7 @@ describe('gitDiffUncommittedBroker', () => {
         cwd: '/project',
       });
 
-      expect(result).toStrictEqual([
-        'a/one.ts',
-        'a/two.ts',
-        'b/three.ts',
-      ]);
+      expect(result).toStrictEqual(['a/one.ts', 'a/two.ts', 'b/three.ts']);
     });
   });
 
@@ -92,11 +86,7 @@ describe('gitDiffUncommittedBroker', () => {
         cwd: '/project',
       });
 
-      expect(result).toStrictEqual([
-        'shared.ts',
-        'edited.ts',
-        'new.ts',
-      ]);
+      expect(result).toStrictEqual(['shared.ts', 'edited.ts', 'new.ts']);
     });
   });
 

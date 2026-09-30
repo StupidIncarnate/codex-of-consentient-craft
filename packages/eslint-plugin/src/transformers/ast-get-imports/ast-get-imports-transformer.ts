@@ -19,7 +19,7 @@ export const astGetImportsTransformer = ({
     return imports;
   }
 
-  const modulePath = node.source.value as string;
+  const modulePath = node.source.value;
 
   // Track all imported names: named, default and namespace imports alike
   for (const spec of node.specifiers) {

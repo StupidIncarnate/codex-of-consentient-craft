@@ -12,7 +12,6 @@
  * for further inspection. Returns null when importPath is not relative (e.g. npm packages).
  */
 
-
 export const relativeImportResolveTransformer = ({
   sourceFile,
   importPath,
@@ -20,13 +19,13 @@ export const relativeImportResolveTransformer = ({
   sourceFile: string;
   importPath: string;
 }): string | null => {
-  const importPathStr = String(importPath);
+  const importPathStr = importPath;
   if (!importPathStr.startsWith('.')) {
     return null;
   }
 
-  const lastSlash = String(sourceFile).lastIndexOf('/');
-  const dir = lastSlash === -1 ? '' : String(sourceFile).slice(0, lastSlash);
+  const lastSlash = sourceFile.lastIndexOf('/');
+  const dir = lastSlash === -1 ? '' : sourceFile.slice(0, lastSlash);
 
   const parts = dir.split('/');
   const segments = importPathStr.split('/');

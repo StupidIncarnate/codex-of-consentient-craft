@@ -8,7 +8,6 @@
 
 import { z } from '#gateway/npm/zod';
 
-
 export const packageJsonContract = z
   .object({
     name: z.string().brand<'PackageJsonName'>().optional(),
@@ -19,11 +18,10 @@ export const packageJsonContract = z
         z.string().brand<'PackageJsonBin'>(),
       ])
       .optional(),
-    dependencies: z
-      .record(z.string(), z.string().brand<'PackageJsonDependencies'>())
-      .optional(),
+    dependencies: z.record(z.string(), z.string().brand<'PackageJsonDependencies'>()).optional(),
     exports: z.record(z.string(), z.json()).optional(),
   })
-  .loose().brand<'PackageJson'>();
+  .loose()
+  .brand<'PackageJson'>();
 
 export type PackageJson = z.infer<typeof packageJsonContract>;

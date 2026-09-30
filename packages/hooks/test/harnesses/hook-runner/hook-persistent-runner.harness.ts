@@ -26,7 +26,6 @@ import { envSnapshot } from '#gateway/node/process';
 import { setTimeout } from '#gateway/node/setTimeout';
 import { tsxCliPath } from '#gateway/npm/tsx';
 
-
 import { ExecResultStub } from '@dungeonmaster/shared/contracts/exec-result/exec-result.stub';
 
 type HookName =
@@ -115,7 +114,7 @@ export const hookPersistentRunnerHarness = (): {
     // not whatever `dist/` was last built.
     const child = spawnPiped({
       command: 'node',
-      args: [tsxCliPath(), '--conditions=source', WORKER_PATH, String(flowPath)],
+      args: [tsxCliPath(), '--conditions=source', WORKER_PATH, flowPath],
       cwd: PACKAGE_DIR,
       // Specimens live under the globally-ignored `.test-tmp` sandbox; opt the hook into linting
       // ESLint-ignored paths so violation detection is still exercised.

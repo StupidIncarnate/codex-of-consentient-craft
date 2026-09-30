@@ -19,7 +19,7 @@ export const readSourceFileLayerBroker = ({
   filePath: string;
 }): string | undefined => {
   try {
-    return readFileSync(String(filePath));
+    return readFileSync(filePath);
   } catch {
     return undefined;
   }

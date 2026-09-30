@@ -21,14 +21,24 @@ import { URL } from '#gateway/node/url';
 import { createNodeWebSocket } from '#gateway/npm/hono__node-ws';
 import { serve } from '#gateway/npm/hono__node-server';
 
-import { StartOrchestrator, orchestrationEventsState, questFindQuestPathBroker, questOutboxWatchBroker } from '@dungeonmaster/orchestrator';
+import {
+  StartOrchestrator,
+  orchestrationEventsState,
+  questFindQuestPathBroker,
+  questOutboxWatchBroker,
+} from '@dungeonmaster/orchestrator';
 import { processDevLogBroker } from '../../../brokers/process/dev-log/process-dev-log-broker';
 import { questWaitForSessionStampBroker } from '../../../brokers/quest/wait-for-session-stamp/quest-wait-for-session-stamp-broker';
 import { webBundleResponseBroker } from '../../../brokers/web-bundle/response/web-bundle-response-broker';
 import { wsEventRelayBroadcastBroker } from '../../../brokers/ws-event-relay/broadcast/ws-event-relay-broadcast-broker';
 import { devLogEventFormatTransformer } from '../../../transformers/dev-log-event-format/dev-log-event-format-transformer';
 import { errorFormatReasonTransformer } from '../../../transformers/error-format-reason/error-format-reason-transformer';
-import type { OrchestrationEventType, WsMessage, Quest, WorkItem } from '@dungeonmaster/shared/contracts';
+import type {
+  OrchestrationEventType,
+  WsMessage,
+  Quest,
+  WorkItem,
+} from '@dungeonmaster/shared/contracts';
 
 import { chatOutputRoutingContract } from '../../../contracts/chat-output-payload/chat-output-payload-contract';
 import { wsEventDataContract } from '../../../contracts/ws-event-data/ws-event-data-contract';
@@ -102,7 +112,10 @@ export const ServerInitResponder = ({
   // WorkItemIds for which replay's direct-send delivered at least one chat-output
   // frame, per (client, questId). Used by the subscribe-quest .finally to decide
   // which workItem buffers to drain.
-  const replayDeliveredWorkItems = new Map<WSContext, Map<Quest['id'], Set<WorkItem['id'] | null>>>();
+  const replayDeliveredWorkItems = new Map<
+    WSContext,
+    Map<Quest['id'], Set<WorkItem['id'] | null>>
+  >();
   // Readonly-replay routing: when a client sends `replay-history` (SessionViewWidget
   // mounted on `/:guildSlug/session/:sessionId`), we track its chatProcessId here so
   // chat-output / chat-history-complete events stamped with that chatProcessId can be
@@ -228,7 +241,8 @@ export const ServerInitResponder = ({
             // this client during the replay window — without this gate, the
             // orchestrator's live emission AND the JSONL replay would deliver
             // the same chat line to the client twice.
-            const replayingForClient = replayInProgressByClient.get(subWs) ?? new Set<Quest['id']>();
+            const replayingForClient =
+              replayInProgressByClient.get(subWs) ?? new Set<Quest['id']>();
             replayingForClient.add(subQuestId);
             replayInProgressByClient.set(subWs, replayingForClient);
             // Track every chatProcessId we use for this replay so chat-output
@@ -515,7 +529,7 @@ export const ServerInitResponder = ({
   //    /assets/*, index.html (SPA fallback) for every other route.
   // /api and /ws are owned by the mounted sub-apps and the WS upgrade route, so they fall through
   // to their own handlers (or a real 404) in both modes.
-  const webUiPort = Number(serverPort) + 1;
+  const webUiPort = serverPort + 1;
   app.get('*', async (c) => {
     const { pathname, search } = new URL(c.req.url);
     if (pathname === '/ws' || pathname === '/api' || pathname.startsWith('/api/')) {
@@ -531,7 +545,7 @@ export const ServerInitResponder = ({
   const server = serve(
     {
       fetch: app.fetch,
-      port: Number(serverPort),
+      port: serverPort,
       hostname: serverHost,
     },
     (info) => {

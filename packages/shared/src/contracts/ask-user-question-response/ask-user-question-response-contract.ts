@@ -18,12 +18,14 @@ const answerValueContract = z.union([
   z.array(z.string().brand<'AnswerValue'>()),
 ]);
 
-export const askUserQuestionResponseContract = askUserQuestionContract.extend({
-  answers: z.record(
-    askUserQuestionContract.shape.questions.element.shape.question,
-    answerValueContract,
-  ),
-}).brand<'AskUserQuestionResponse'>();
+export const askUserQuestionResponseContract = askUserQuestionContract
+  .extend({
+    answers: z.record(
+      askUserQuestionContract.shape.questions.element.shape.question,
+      answerValueContract,
+    ),
+  })
+  .brand<'AskUserQuestionResponse'>();
 
 export type AskUserQuestionResponse = z.infer<typeof askUserQuestionResponseContract>;
 export type AnswerValue = z.infer<typeof answerValueContract>;

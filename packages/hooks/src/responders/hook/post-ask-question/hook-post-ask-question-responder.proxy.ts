@@ -89,7 +89,13 @@ export const HookPostAskQuestionResponderProxy = (): {
         bodyText: JSON.stringify({ wrongField: 'no questId here' }),
       });
     },
-    setupPatchFails: ({ sessionId, questId }: { sessionId: string; questId: Quest['id'] }): void => {
+    setupPatchFails: ({
+      sessionId,
+      questId,
+    }: {
+      sessionId: string;
+      questId: Quest['id'];
+    }): void => {
       fetchWithStatus.setupResponse({
         url: `${MOCK_BASE_URL}/api/quests/by-session/${sessionId}`,
         status: 200,

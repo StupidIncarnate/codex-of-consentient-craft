@@ -23,8 +23,7 @@ const DEFAULT_SESSION_ID = SessionIdStub({
   value: 'e2e-session-00000000-0000-0000-0000-000000000000',
 });
 
-const toLine = (obj: object): string =>
-  JSON.stringify(obj);
+const toLine = (obj: object): string => JSON.stringify(obj);
 
 const initLine = toLine(SystemInitStreamLineStub({ session_id: DEFAULT_SESSION_ID }));
 

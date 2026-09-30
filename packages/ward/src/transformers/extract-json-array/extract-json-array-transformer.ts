@@ -6,7 +6,6 @@
  * // Returns '[{"key":"val"}]'
  */
 
-
 export const extractJsonArrayTransformer = ({ output }: { output: string }): string => {
   const start = output.indexOf('[');
   if (start < 0) {
@@ -44,7 +43,7 @@ export const extractJsonArrayTransformer = ({ output }: { output: string }): str
     } else if (char === ']') {
       depth--;
       if (depth === 0) {
-        return output.slice(start, i + 1) as string;
+        return output.slice(start, i + 1);
       }
     }
   }

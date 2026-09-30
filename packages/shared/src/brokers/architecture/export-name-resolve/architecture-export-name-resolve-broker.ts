@@ -18,11 +18,7 @@ import { readFileSync } from '#gateway/node/fs';
 import { exportNameExtractTransformer } from '../../../transformers/export-name-extract/export-name-extract-transformer';
 import { filePathToSymbolNameTransformer } from '../../../transformers/file-path-to-symbol-name/file-path-to-symbol-name-transformer';
 
-export const architectureExportNameResolveBroker = ({
-  filePath,
-}: {
-  filePath: string;
-}): string => {
+export const architectureExportNameResolveBroker = ({ filePath }: { filePath: string }): string => {
   const fallback = filePathToSymbolNameTransformer({ filePath });
   try {
     const source = readFileSync(filePath);

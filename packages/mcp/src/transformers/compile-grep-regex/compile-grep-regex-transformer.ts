@@ -47,7 +47,7 @@ export const compileGrepRegexTransformer = ({
     const tokens = identifierTokenizeTransformer({ identifier: patternStr });
     if (tokens.length >= contentGrepStatics.minCrossConventionTokens) {
       const crossConventionSource = tokens
-        .map((token) => String(token))
+        .map((token) => token)
         .join(contentGrepStatics.crossConventionSeparatorPattern);
       return new RegExp(crossConventionSource, contentGrepStatics.crossConventionFlags);
     }

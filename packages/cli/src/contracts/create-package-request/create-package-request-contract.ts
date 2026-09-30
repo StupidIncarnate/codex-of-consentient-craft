@@ -18,12 +18,14 @@
 import { z } from '#gateway/npm/zod';
 import { packageTypeContract } from '@dungeonmaster/shared/contracts';
 
-export const createPackageRequestContract = z.object({
-  packageName: z.string().min(1).brand<'CreatePackageRequestPackageName'>(),
-  directoryName: z.string().brand<'CreatePackageRequestDirectoryName'>(),
-  packageType: packageTypeContract,
-  description: z.string().brand<'CreatePackageRequestDescription'>(),
-  packagesDir: z.string().brand<'CreatePackageRequestPackagesDir'>(),
-}).brand<'CreatePackageRequest'>();
+export const createPackageRequestContract = z
+  .object({
+    packageName: z.string().min(1).brand<'CreatePackageRequestPackageName'>(),
+    directoryName: z.string().brand<'CreatePackageRequestDirectoryName'>(),
+    packageType: packageTypeContract,
+    description: z.string().brand<'CreatePackageRequestDescription'>(),
+    packagesDir: z.string().brand<'CreatePackageRequestPackagesDir'>(),
+  })
+  .brand<'CreatePackageRequest'>();
 
 export type CreatePackageRequest = z.infer<typeof createPackageRequestContract>;

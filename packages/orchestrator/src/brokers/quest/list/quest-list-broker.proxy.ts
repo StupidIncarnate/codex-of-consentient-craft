@@ -71,18 +71,12 @@ export const questListBrokerProxy = (): {
       });
     },
     setupQuestDirectories: ({ files }: { files: string[] }): void => {
-      readdirProxy.returns({ path: String(questsPathRef.value), names: files });
+      readdirProxy.returns({ path: questsPathRef.value, names: files });
     },
     setupQuestDirectoriesFailure: ({ error }: { error: Error }): void => {
-      readdirProxy.throws({ path: String(questsPathRef.value), error });
+      readdirProxy.throws({ path: questsPathRef.value, error });
     },
-    setupQuestFilePath: ({
-      folderName,
-      result,
-    }: {
-      folderName: string;
-      result: string;
-    }): void => {
+    setupQuestFilePath: ({ folderName, result }: { folderName: string; result: string }): void => {
       // questListBroker's own per-folder join(questsPath, folderName, quest.json) -> result,
       // addressed by the exact tuple rather than an address-less FIFO slot, so a second folder's
       // join call in the same test can never answer this one.

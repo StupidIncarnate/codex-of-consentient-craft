@@ -6,7 +6,6 @@
  * // Returns 'Timed out (see network log below)' as ErrorMessage
  */
 
-
 const TIMEOUT_PATTERNS = [
   // Jest: primary timeout message (test and hook variants)
   /thrown: "Exceeded timeout of \d+\s*(?:ms|s) for a (?:test|hook)(?:\s+while waiting for `done\(\)` to be called)?\."/gu,
@@ -40,15 +39,11 @@ const TIMEOUT_PATTERNS = [
 
 const FALLBACK_MESSAGE = 'Timed out (see network log below)';
 
-export const stripTimeoutNoiseTransformer = ({
-  message,
-}: {
-  message: string;
-}): string => {
+export const stripTimeoutNoiseTransformer = ({ message }: { message: string }): string => {
   let result = message;
 
   for (const pattern of TIMEOUT_PATTERNS) {
-    result = result.replace(pattern, '') as string;
+    result = result.replace(pattern, '');
   }
 
   const trimmed = result.trim();
@@ -57,5 +52,5 @@ export const stripTimeoutNoiseTransformer = ({
     return FALLBACK_MESSAGE as string;
   }
 
-  return trimmed as string;
+  return trimmed;
 };

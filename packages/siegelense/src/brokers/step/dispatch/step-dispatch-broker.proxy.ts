@@ -86,10 +86,7 @@ export const stepDispatchBrokerProxy = (): {
     pixels: Uint8Array;
   }) => void;
   stagesShotReadError: (params: { shotPath: string; error: Error }) => void;
-  stagesHoldCopy: (params: {
-    sourcePath: string;
-    destinationPath: string;
-  }) => void;
+  stagesHoldCopy: (params: { sourcePath: string; destinationPath: string }) => void;
   getStderrText: () => string;
 } => {
   // This proxy builds its own BrowserSession scenarios directly, so only the SEED half of the verb
@@ -279,13 +276,7 @@ export const stepDispatchBrokerProxy = (): {
       blankReadProxy.stagesShot({ shotPath, width, height, pixels });
       changeReadProxy.stagesShot({ path: shotPath, width, height, pixels });
     },
-    stagesShotReadError: ({
-      shotPath,
-      error,
-    }: {
-      shotPath: string;
-      error: Error;
-    }): void => {
+    stagesShotReadError: ({ shotPath, error }: { shotPath: string; error: Error }): void => {
       blankReadProxy.stagesShotReadError({ shotPath, error });
     },
     stagesHoldCopy: ({

@@ -24,12 +24,29 @@ import { siegeInstanceContract, siegeRunContract } from '@dungeonmaster/shared/c
 
 import { citationKindContract } from '../citation-kind/citation-kind-contract';
 
-export const citationReferenceContract = z.object({
-  kind: citationKindContract,
-  instanceId: siegeInstanceContract.shape.id,
-  runId: siegeRunContract.shape.id.nullable(),
-  citingFile: z.string().min(1).refine((path) => { if (path.startsWith('/')) { return true; } if (/^[A-Za-z]:\\/u.test(path)) { return true; } return false; }, { message: 'Path must be absolute (start with / or C:\\ on Windows)', },).brand<'CitationReferenceCitingFile'>(),
-  why: z.string().brand<'CitationReferenceWhy'>(),
-}).brand<'CitationReference'>();
+export const citationReferenceContract = z
+  .object({
+    kind: citationKindContract,
+    instanceId: siegeInstanceContract.shape.id,
+    runId: siegeRunContract.shape.id.nullable(),
+    citingFile: z
+      .string()
+      .min(1)
+      .refine(
+        (path) => {
+          if (path.startsWith('/')) {
+            return true;
+          }
+          if (/^[A-Za-z]:\\/u.test(path)) {
+            return true;
+          }
+          return false;
+        },
+        { message: 'Path must be absolute (start with / or C:\\ on Windows)' },
+      )
+      .brand<'CitationReferenceCitingFile'>(),
+    why: z.string().brand<'CitationReferenceWhy'>(),
+  })
+  .brand<'CitationReference'>();
 
 export type CitationReference = z.infer<typeof citationReferenceContract>;

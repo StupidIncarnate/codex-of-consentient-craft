@@ -1,4 +1,3 @@
-
 import { DomRectStub } from '../../contracts/dom-rect/dom-rect.stub';
 import { RawDomReadingStub } from '../../contracts/raw-dom-reading/raw-dom-reading.stub';
 import { domReadTransformer } from './dom-read-transformer';

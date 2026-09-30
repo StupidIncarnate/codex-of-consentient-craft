@@ -35,9 +35,7 @@ describe('Tmp Environment Integration', () => {
       });
 
       expect(env.fileExists({ fileName: 'test.txt' })).toBe(true);
-      expect(env.readFile({ fileName: 'test.txt' })).toBe(
-        'Hello from /tmp!',
-      );
+      expect(env.readFile({ fileName: 'test.txt' })).toBe('Hello from /tmp!');
     });
 
     it('VALID: can create nested directory structure', () => {
@@ -55,12 +53,8 @@ describe('Tmp Environment Integration', () => {
         content: 'export const helper = () => {};',
       });
 
-      expect(
-        env.fileExists({ fileName: 'src/components/Button.tsx' }),
-      ).toBe(true);
-      expect(env.fileExists({ fileName: 'src/utils/helpers.ts' })).toBe(
-        true,
-      );
+      expect(env.fileExists({ fileName: 'src/components/Button.tsx' })).toBe(true);
+      expect(env.fileExists({ fileName: 'src/utils/helpers.ts' })).toBe(true);
     });
   });
 
@@ -193,9 +187,7 @@ console.log(add(2, 3));`,
         },
       });
 
-      const tsconfig = JSON.parse(
-        env.readFile({ fileName: 'tsconfig.json' }),
-      );
+      const tsconfig = JSON.parse(env.readFile({ fileName: 'tsconfig.json' }));
 
       expect(tsconfig).toStrictEqual({
         compilerOptions: {

@@ -98,7 +98,7 @@ export const HomeContentWidget = (): React.JSX.Element => {
         <Center style={{ height: 250 }}>
           <GuildEmptyStateWidget
             onAddGuild={({ name, path }) => {
-              guildCreateBroker({ name: String(name), path: String(path) })
+              guildCreateBroker({ name: name, path: path })
                 .then(async ({ id }) => {
                   await refreshGuilds();
                   setSelectedGuildId(id);
@@ -247,7 +247,7 @@ export const HomeContentWidget = (): React.JSX.Element => {
           setAddGuildModalOpened(false);
         }}
         onSubmit={({ name, path }: { name: string; path: string }) => {
-          guildCreateBroker({ name: String(name), path: String(path) })
+          guildCreateBroker({ name: name, path: path })
             .then(async ({ id }) => {
               setAddGuildModalOpened(false);
               await refreshGuilds();

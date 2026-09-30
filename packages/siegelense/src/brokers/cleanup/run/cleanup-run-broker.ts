@@ -64,7 +64,7 @@ export const cleanupRunBroker = async (): Promise<CleanupAnswer> => {
           entry.lastBeatMs === null
             ? 'reserved — booting, no beat yet'
             : `live — last beat ${elapsedRenderTransformer({
-                elapsedMs: (nowMs - entry.lastBeatMs),
+                elapsedMs: nowMs - entry.lastBeatMs,
               })} ago`,
       }),
     );

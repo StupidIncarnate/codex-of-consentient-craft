@@ -22,16 +22,10 @@ export const storagePruneBrokerProxy = (): {
   const statProxy = statIfExistsProxy();
   const unlink = unlinkProxy();
 
-  const wardDirFor = ({ rootPath }: { rootPath: string }): string =>
-    `${rootPath}/.ward`;
+  const wardDirFor = ({ rootPath }: { rootPath: string }): string => `${rootPath}/.ward`;
 
-  const runFilePathFor = ({
-    rootPath,
-    name,
-  }: {
-    rootPath: string;
-    name: string;
-  }): string => `${wardDirFor({ rootPath })}/${name}`;
+  const runFilePathFor = ({ rootPath, name }: { rootPath: string; name: string }): string =>
+    `${wardDirFor({ rootPath })}/${name}`;
 
   return {
     setupWithFiles: ({
@@ -50,30 +44,30 @@ export const storagePruneBrokerProxy = (): {
       statNullFor?: string[];
     }): void => {
       registerSpyOn({ object: Date, method: 'now' }).calledWith([]).returns(now);
-      readdirProxy.returns({ path: String(wardDirFor({ rootPath })), names: entries });
+      readdirProxy.returns({ path: wardDirFor({ rootPath }), names: entries });
 
       // Every run file is stat'd for its size once it survives the TTL, so each entry gets a stat:
       // its staged mtime and size, else `now` and TINY_FILE_BYTES.
       for (const name of entries) {
         if (statNullFor.includes(name)) {
-          statProxy.missing({ path: String(runFilePathFor({ rootPath, name })) });
+          statProxy.missing({ path: runFilePathFor({ rootPath, name }) });
         } else {
           statProxy.returnsFile({
-            path: String(runFilePathFor({ rootPath, name })),
+            path: runFilePathFor({ rootPath, name }),
             sizeBytes: sizes[name] ?? TINY_FILE_BYTES,
             modifiedAtMs: mtimes[name] ?? now,
           });
         }
       }
       for (const name of entries) {
-        unlink.succeeds({ path: String(runFilePathFor({ rootPath, name })) });
+        unlink.succeeds({ path: runFilePathFor({ rootPath, name }) });
       }
     },
     setupEmpty: ({ rootPath }: { rootPath: string }): void => {
-      readdirProxy.returns({ path: String(wardDirFor({ rootPath })), names: [] });
+      readdirProxy.returns({ path: wardDirFor({ rootPath }), names: [] });
     },
     setupReaddirFail: ({ rootPath }: { rootPath: string }): void => {
-      readdirProxy.missing({ path: String(wardDirFor({ rootPath })) });
+      readdirProxy.missing({ path: wardDirFor({ rootPath }) });
     },
     getDeletedPaths: (): unknown[] =>
       unlink.getCallsFor({ path: () => true }).map((call) => call[0]),

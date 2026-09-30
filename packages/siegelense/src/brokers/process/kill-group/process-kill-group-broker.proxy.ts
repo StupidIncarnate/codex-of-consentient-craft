@@ -1,7 +1,6 @@
 import { isFsErrorProxy } from '#gateway/node/fs/is-fs-error/is-fs-error.proxy';
 import { killProxy } from '#gateway/node/process/kill/kill.proxy';
 
-
 type ProcessGroupId = number;
 
 const PROBE_SIGNAL = 0;
@@ -37,7 +36,7 @@ export const processKillGroupBrokerProxy = (): {
       onSent?: () => void;
     }): void => {
       kill.setupSent({
-        pid: -Number(pgid),
+        pid: -pgid,
         signal,
         ...(onSent === undefined ? {} : { onSent }),
       });
@@ -50,7 +49,7 @@ export const processKillGroupBrokerProxy = (): {
       pgid: ProcessGroupId;
       signal: NodeJS.Signals;
     }): void => {
-      kill.setupNotFound({ pid: -Number(pgid), signal });
+      kill.setupNotFound({ pid: -pgid, signal });
     },
 
     setupPermissionDenied: ({
@@ -60,12 +59,12 @@ export const processKillGroupBrokerProxy = (): {
       pgid: ProcessGroupId;
       signal: NodeJS.Signals;
     }): void => {
-      kill.setupPermissionDenied({ pid: -Number(pgid), signal });
+      kill.setupPermissionDenied({ pid: -pgid, signal });
     },
 
     getCallsFor: ({ pgid }: { pgid: ProcessGroupId }): unknown[] =>
       kill
-        .getCallsFor({ pid: -Number(pgid) })
+        .getCallsFor({ pid: -pgid })
         .map((call) => call[1])
         .filter((signal) => signal !== PROBE_SIGNAL),
   };

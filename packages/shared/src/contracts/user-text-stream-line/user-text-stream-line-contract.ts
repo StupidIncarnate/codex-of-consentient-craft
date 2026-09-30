@@ -9,12 +9,19 @@ import { z } from '#gateway/npm/zod';
 
 import { textBlockParamContract } from '../text-block-param/text-block-param-contract';
 
-export const userTextStreamLineContract = z.object({
-  type: z.literal('user'),
-  message: z.object({
-    role: z.literal('user'),
-    content: z.union([z.string().brand<'UserTextStreamLineMessageContent'>(), z.array(textBlockParamContract)]),
-  }).brand<'UserTextStreamLineMessage'>(),
-}).brand<'UserTextStreamLine'>();
+export const userTextStreamLineContract = z
+  .object({
+    type: z.literal('user'),
+    message: z
+      .object({
+        role: z.literal('user'),
+        content: z.union([
+          z.string().brand<'UserTextStreamLineMessageContent'>(),
+          z.array(textBlockParamContract),
+        ]),
+      })
+      .brand<'UserTextStreamLineMessage'>(),
+  })
+  .brand<'UserTextStreamLine'>();
 
 export type UserTextStreamLine = z.infer<typeof userTextStreamLineContract>;

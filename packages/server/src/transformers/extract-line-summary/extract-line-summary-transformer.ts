@@ -8,7 +8,6 @@
 
 import { summaryStreamLineContract } from '@dungeonmaster/shared/contracts';
 
-
 export const extractLineSummaryTransformer = ({
   parsed,
 }: {

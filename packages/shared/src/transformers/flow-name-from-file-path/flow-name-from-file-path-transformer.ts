@@ -9,13 +9,12 @@
  * where the canonical flow identifier is the domain segment without the -flow suffix
  */
 
-
 export const flowNameFromFilePathTransformer = ({
   displayName,
 }: {
   displayName: string;
 }): string => {
-  const displayStr = String(displayName);
+  const displayStr = displayName;
   const lastSlash = displayStr.lastIndexOf('/');
   const stem = lastSlash === -1 ? displayStr : displayStr.slice(lastSlash + 1);
   const withoutFlowSuffix = stem.endsWith('-flow')

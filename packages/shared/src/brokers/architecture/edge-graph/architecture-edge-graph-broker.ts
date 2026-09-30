@@ -15,8 +15,5 @@
 import type { HttpEdge } from '../../../contracts/http-edge/http-edge-contract';
 import { httpEdgesLayerBroker } from './http-edges-layer-broker';
 
-export const architectureEdgeGraphBroker = ({
-  projectRoot,
-}: {
-  projectRoot: string;
-}): HttpEdge[] => httpEdgesLayerBroker({ projectRoot });
+export const architectureEdgeGraphBroker = ({ projectRoot }: { projectRoot: string }): HttpEdge[] =>
+  httpEdgesLayerBroker({ projectRoot });

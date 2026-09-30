@@ -2,7 +2,8 @@ import { namedImportsToPathMapTransformer } from './named-imports-to-path-map-tr
 
 describe('namedImportsToPathMapTransformer', () => {
   it('VALID: {single named import} => maps name to from-path', () => {
-    const source = "import { QuestStartResponder } from '../../responders/quest/start/quest-start-responder';";
+    const source =
+      "import { QuestStartResponder } from '../../responders/quest/start/quest-start-responder';";
 
     const result = namedImportsToPathMapTransformer({ source });
 
@@ -25,9 +26,7 @@ describe('namedImportsToPathMapTransformer', () => {
 
     const result = namedImportsToPathMapTransformer({ source });
 
-    expect(result.get('Aliased')).toBe(
-      './source',
-    );
+    expect(result.get('Aliased')).toBe('./source');
     expect(result.get('Original')).toBe(undefined);
   });
 
@@ -36,9 +35,7 @@ describe('namedImportsToPathMapTransformer', () => {
 
     const result = namedImportsToPathMapTransformer({ source });
 
-    expect(result.get('MyType')).toBe(
-      './type-source',
-    );
+    expect(result.get('MyType')).toBe('./type-source');
   });
 
   it('VALID: {default + namespace imports} => skipped (only named imports tracked)', () => {

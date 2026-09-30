@@ -22,9 +22,9 @@ describe('namespaceMethodCallsExtractTransformer', () => {
   describe('multiple distinct calls', () => {
     it('VALID: {two different namespace method calls} => returns both method names', () => {
       const source = [
-          'const q = await StartOrchestrator.getQuest({ questId });',
-          'await StartOrchestrator.addQuest({ data });',
-        ].join('\n');
+        'const q = await StartOrchestrator.getQuest({ questId });',
+        'await StartOrchestrator.addQuest({ data });',
+      ].join('\n');
 
       const result = namespaceMethodCallsExtractTransformer({ source });
 
@@ -35,9 +35,9 @@ describe('namespaceMethodCallsExtractTransformer', () => {
   describe('deduplication', () => {
     it('VALID: {same method called twice} => returns method name once', () => {
       const source = [
-          'const q1 = await StartOrchestrator.getQuest({ questId: id1 });',
-          'const q2 = await StartOrchestrator.getQuest({ questId: id2 });',
-        ].join('\n');
+        'const q1 = await StartOrchestrator.getQuest({ questId: id1 });',
+        'const q2 = await StartOrchestrator.getQuest({ questId: id2 });',
+      ].join('\n');
 
       const result = namespaceMethodCallsExtractTransformer({ source });
 

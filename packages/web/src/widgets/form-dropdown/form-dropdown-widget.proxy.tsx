@@ -1,7 +1,6 @@
 import { screen } from '#gateway/npm/testing-library__react';
 import userEvent from '#gateway/npm/testing-library__user-event';
 
-
 import { userEventStatics } from '../../statics/user-event/user-event-statics';
 
 export const FormDropdownWidgetProxy = (): {
@@ -14,6 +13,6 @@ export const FormDropdownWidgetProxy = (): {
   },
   getValue: (): string => {
     const select = screen.getByTestId<HTMLSelectElement>('FORM_DROPDOWN');
-    return select.value as string;
+    return select.value;
   },
 });

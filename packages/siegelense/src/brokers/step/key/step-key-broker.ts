@@ -7,7 +7,6 @@
  * // Returns 'pressed "Enter" — nothing focused'
  */
 
-
 import type { BrowserSession } from '../../../contracts/browser-session/browser-session-contract';
 import { keyReadingRenderTransformer } from '../../../transformers/key-reading-render/key-reading-render-transformer';
 

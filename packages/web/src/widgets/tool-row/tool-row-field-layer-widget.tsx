@@ -84,7 +84,7 @@ export const ToolRowFieldLayerWidget = ({
           }}
         >
           <ToolResultContentWidget
-            content={(isFieldExpanded ? field.value : preview)}
+            content={isFieldExpanded ? field.value : preview}
             color={colors['text-dim']}
             fontSize={RESULT_FONT_SIZE}
           />
@@ -122,12 +122,10 @@ export const ToolRowFieldLayerWidget = ({
     >
       {field.key}:{' '}
       {field.isLong && !isFieldExpanded
-        ? String(
-            elideMiddleTransformer({
+        ? elideMiddleTransformer({
               text: field.value,
               limit: contentTruncationConfigStatics.longFieldLimit,
-            }),
-          )
+            })
         : field.value}
       {field.isLong ? (
         <Text

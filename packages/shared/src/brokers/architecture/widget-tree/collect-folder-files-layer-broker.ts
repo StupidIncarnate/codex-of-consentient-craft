@@ -13,16 +13,12 @@
 import { isNonTestFileGuard } from '../../../guards/is-non-test-file/is-non-test-file-guard';
 import { safeReaddirLayerBroker } from './safe-readdir-layer-broker';
 
-export const collectFolderFilesLayerBroker = ({
-  dirPath,
-}: {
-  dirPath: string;
-}): string[] => {
+export const collectFolderFilesLayerBroker = ({ dirPath }: { dirPath: string }): string[] => {
   const entries = safeReaddirLayerBroker({ dirPath });
   const results: string[] = [];
 
   for (const entry of entries) {
-    const entryPath = `${String(dirPath)}/${entry.name}`;
+    const entryPath = `${dirPath}/${entry.name}`;
     if (entry.kind === 'directory') {
       const children = collectFolderFilesLayerBroker({ dirPath: entryPath });
       for (const child of children) {

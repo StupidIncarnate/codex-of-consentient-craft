@@ -68,8 +68,8 @@ test.describe('Live elapsed duration on in-progress execution rows: pause and re
     const questFilePath = String(created.filePath);
 
     await quests.writeQuestFile({
-      questId: questId,
-      questFolder: questFolder,
+      questId,
+      questFolder,
       questFilePath,
       status: 'in_progress',
       operations: [
@@ -105,7 +105,7 @@ test.describe('Live elapsed duration on in-progress execution rows: pause and re
     });
 
     const urlSlug = guilds.extractUrlSlug({ guild });
-    await nav.navigateToQuest({ urlSlug, questId: questId });
+    await nav.navigateToQuest({ urlSlug, questId });
 
     const executionPanel = page.getByTestId('execution-panel-widget');
     await expect(executionPanel).toBeVisible({ timeout: PANEL_TIMEOUT });
@@ -174,8 +174,8 @@ test.describe('Live elapsed duration on in-progress execution rows: pause and re
     const questFilePath = String(created.filePath);
 
     await quests.writeQuestFile({
-      questId: questId,
-      questFolder: questFolder,
+      questId,
+      questFolder,
       questFilePath,
       status: 'in_progress',
       operations: [{ id: HOUR_OP, role: 'codeweaver', text: HOUR_TEXT, status: 'in_progress' }],
@@ -203,7 +203,7 @@ test.describe('Live elapsed duration on in-progress execution rows: pause and re
       agentLineDelayMs: RUNNING_WINDOW_LINE_DELAY_MS,
     });
 
-    await nav.navigateToQuest({ urlSlug, questId: questId });
+    await nav.navigateToQuest({ urlSlug, questId });
 
     const executionPanel = page.getByTestId('execution-panel-widget');
     await expect(executionPanel).toBeVisible({ timeout: PANEL_TIMEOUT });
@@ -252,7 +252,7 @@ test.describe('Live elapsed duration on in-progress execution rows: pause and re
     // actually flipped status AND stamped a fresh timestamp, not merely that the row eventually
     // finished with some newer value.
     const runningQuest = await dispatch.waitForQuest({
-      questId: questId,
+      questId,
       timeoutMs: RELAY_TIMEOUT,
       predicate: ({ quest }) =>
         quest.workItems.some(
@@ -283,7 +283,7 @@ test.describe('Live elapsed duration on in-progress execution rows: pause and re
     // Let the queued outcome land so the run finishes cleanly rather than leaving a live child
     // process behind at test teardown.
     const finalQuest = await dispatch.waitForQuest({
-      questId: questId,
+      questId,
       timeoutMs: RELAY_TIMEOUT,
       predicate: ({ quest }) => quest.workItems.every((wi) => wi.status === 'complete'),
     });

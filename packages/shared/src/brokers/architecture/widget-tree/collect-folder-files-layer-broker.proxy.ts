@@ -2,13 +2,7 @@ import type { Dirent } from '#gateway/node/fs';
 import { safeReaddirLayerBrokerProxy } from './safe-readdir-layer-broker.proxy';
 
 export const collectFolderFilesLayerBrokerProxy = (): {
-  setupFlatDirectory: ({
-    dirPath,
-    filePaths,
-  }: {
-    dirPath: string;
-    filePaths: string[];
-  }) => void;
+  setupFlatDirectory: ({ dirPath, filePaths }: { dirPath: string; filePaths: string[] }) => void;
   setupEmpty: ({ dirPath }: { dirPath: string }) => void;
   setupImplementation: ({ fn }: { fn: (dirPath: string) => Dirent[] }) => void;
 } => {
@@ -23,8 +17,8 @@ export const collectFolderFilesLayerBrokerProxy = (): {
       filePaths: string[];
     }): void => {
       const names = filePaths.map((fp) => {
-        const parts = String(fp).split('/');
-        return parts[parts.length - 1] ?? String(fp);
+        const parts = fp.split('/');
+        return parts[parts.length - 1] ?? fp;
       });
       readdirProxy.setupFiles({ dirPath, names });
     },

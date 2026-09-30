@@ -64,9 +64,6 @@ describe('agentTranscriptPathTransformer', () => {
   it('EMPTY: {transcriptPath: "", agentId: ""} => returns the two hardcoded-slash candidates without throwing', () => {
     const result = agentTranscriptPathTransformer({ transcriptPath: '', agentId: '' });
 
-    expect(result).toStrictEqual([
-      '/subagents/agent-.jsonl',
-      '/agent-.jsonl',
-    ]);
+    expect(result).toStrictEqual(['/subagents/agent-.jsonl', '/agent-.jsonl']);
   });
 });

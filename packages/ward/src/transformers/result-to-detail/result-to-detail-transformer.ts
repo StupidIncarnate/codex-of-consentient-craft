@@ -6,7 +6,6 @@
  * // Returns: WardFileDetail with failure details and passing-test blocks per project
  */
 
-
 import type { WardRunResult } from '../../contracts/ward-result/ward-result-contract';
 import { isCallerFileScopeGuard } from '../../guards/is-caller-file-scope/is-caller-file-scope-guard';
 import { isPathSuffixMatchGuard } from '../../guards/is-path-suffix-match/is-path-suffix-match-guard';
@@ -62,7 +61,7 @@ export const resultToDetailTransformer = ({
       }
     }
 
-    const raw = entries.length > 0 ? `${filePath}\n${entries.join('\n')}` : String(filePath);
+    const raw = entries.length > 0 ? `${filePath}\n${entries.join('\n')}` : filePath;
     const output = stripAnsiCodesTransformer({ text: raw });
 
     return output;

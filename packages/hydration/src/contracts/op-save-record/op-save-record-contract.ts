@@ -9,10 +9,12 @@
  */
 import { z } from '#gateway/npm/zod';
 
-export const opSaveRecordContract = z.object({
-  op: z.literal('saveRecord'),
-  ref: z.string().min(1).brand<'OpSaveRecordRef'>(),
-  name: z.string().min(1).brand<'OpSaveRecordName'>(),
-}).brand<'OpSaveRecord'>();
+export const opSaveRecordContract = z
+  .object({
+    op: z.literal('saveRecord'),
+    ref: z.string().min(1).brand<'OpSaveRecordRef'>(),
+    name: z.string().min(1).brand<'OpSaveRecordName'>(),
+  })
+  .brand<'OpSaveRecord'>();
 
 export type OpSaveRecord = z.infer<typeof opSaveRecordContract>;

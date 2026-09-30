@@ -7,10 +7,12 @@
  */
 import { z } from '#gateway/npm/zod';
 
-export const discoverListItemContract = z.object({
-  name: z.string().brand<'DiscoverListItemName'>(),
-  type: z.string().brand<'DiscoverListItemType'>(),
-  purpose: z.string().brand<'DiscoverListItemPurpose'>().optional(),
-}).brand<'DiscoverListItem'>();
+export const discoverListItemContract = z
+  .object({
+    name: z.string().brand<'DiscoverListItemName'>(),
+    type: z.string().brand<'DiscoverListItemType'>(),
+    purpose: z.string().brand<'DiscoverListItemPurpose'>().optional(),
+  })
+  .brand<'DiscoverListItem'>();
 
 export type DiscoverListItem = z.infer<typeof discoverListItemContract>;

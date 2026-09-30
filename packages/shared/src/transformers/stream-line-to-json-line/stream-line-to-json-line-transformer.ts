@@ -7,8 +7,5 @@
  * // Returns StreamJsonLine branded string ready for ClaudeQueueResponse.lines
  */
 
-export const streamLineToJsonLineTransformer = ({
-  streamLine,
-}: {
-  streamLine: object;
-}): string => JSON.stringify(streamLine);
+export const streamLineToJsonLineTransformer = ({ streamLine }: { streamLine: object }): string =>
+  JSON.stringify(streamLine);

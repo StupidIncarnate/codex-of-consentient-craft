@@ -6,7 +6,6 @@
  * // Returns annotated message explaining the timeout, or null if not a timeout combo
  */
 
-
 const TIMEOUT_INDICATORS = [
   /Exceeded timeout of \d+/u,
   /Test timeout of \d+ms exceeded/u,

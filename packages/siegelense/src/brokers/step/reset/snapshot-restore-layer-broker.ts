@@ -40,7 +40,7 @@ export const snapshotRestoreLayerBroker = async ({
   const homeFiles = new Map<RelativeFilePath, FileStat>();
   const homeQueue: string[] = [homePath];
   const homeFilePaths: string[] = [];
-  const homePrefixLen = String(homePath).length + 1;
+  const homePrefixLen = homePath.length + 1;
 
   while (homeQueue.length > 0) {
     const currentDir = homeQueue.shift();
@@ -52,7 +52,7 @@ export const snapshotRestoreLayerBroker = async ({
       if (currentDir === homePath && entry.name === snapshotStatics.store.dirName) {
         continue;
       }
-      const entryPath = `${String(currentDir)}/${entry.name}`;
+      const entryPath = `${currentDir}/${entry.name}`;
       if (entry.kind === 'directory') {
         homeQueue.push(entryPath);
       } else {
@@ -75,7 +75,7 @@ export const snapshotRestoreLayerBroker = async ({
   homeFilePaths.forEach((filePath, index) => {
     const stat = homeStats[index];
     if (stat !== null && stat !== undefined) {
-      const rel = `./${String(filePath).slice(homePrefixLen)}`;
+      const rel = `./${filePath.slice(homePrefixLen)}`;
       const relPath = relativeFilePathContract.parse(rel);
       homeFiles.set(relPath, stat);
     }
@@ -84,7 +84,7 @@ export const snapshotRestoreLayerBroker = async ({
   const payloadFiles = new Map<RelativeFilePath, FileStat>();
   const payloadQueue: string[] = [payloadPath];
   const payloadFilePaths: string[] = [];
-  const payloadPrefixLen = String(payloadPath).length + 1;
+  const payloadPrefixLen = payloadPath.length + 1;
 
   while (payloadQueue.length > 0) {
     const currentDir = payloadQueue.shift();
@@ -93,7 +93,7 @@ export const snapshotRestoreLayerBroker = async ({
     }
     const entries = readdirEntriesSync(currentDir);
     for (const entry of entries) {
-      const entryPath = `${String(currentDir)}/${entry.name}`;
+      const entryPath = `${currentDir}/${entry.name}`;
       if (entry.kind === 'directory') {
         payloadQueue.push(entryPath);
       } else {
@@ -116,14 +116,14 @@ export const snapshotRestoreLayerBroker = async ({
   payloadFilePaths.forEach((filePath, index) => {
     const stat = payloadStats[index];
     if (stat !== null && stat !== undefined) {
-      const rel = `./${String(filePath).slice(payloadPrefixLen)}`;
+      const rel = `./${filePath.slice(payloadPrefixLen)}`;
       const relPath = relativeFilePathContract.parse(rel);
       payloadFiles.set(relPath, stat);
     }
   });
 
   const addedPaths = homeFilePaths.filter((filePath) => {
-    const rel = `./${String(filePath).slice(homePrefixLen)}`;
+    const rel = `./${filePath.slice(homePrefixLen)}`;
     const relPath = relativeFilePathContract.parse(rel);
     return !payloadFiles.has(relPath);
   });
@@ -150,12 +150,8 @@ export const snapshotRestoreLayerBroker = async ({
   // never decided by mtime, which a capture-then-restore cycle always changes (DEF-81).
   const contentDiffers = await Promise.all(
     sameSizeCandidates.map(async (relPath) => {
-      const homeContent = await readFile(
-        `${String(homePath)}${String(relPath).slice(1)}`,
-      );
-      const payloadContent = await readFile(
-        `${String(payloadPath)}${String(relPath).slice(1)}`,
-      );
+      const homeContent = await readFile(`${homePath}${String(relPath).slice(1)}`);
+      const payloadContent = await readFile(`${payloadPath}${String(relPath).slice(1)}`);
       const homeHash = createHash('sha256').update(homeContent).digest('hex');
       const payloadHash = createHash('sha256').update(payloadContent).digest('hex');
       return homeHash !== payloadHash;

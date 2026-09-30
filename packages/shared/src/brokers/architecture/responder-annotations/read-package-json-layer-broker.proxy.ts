@@ -10,13 +10,13 @@ export const readPackageJsonLayerBrokerProxy = (): {
   return {
     setupJson: ({ packageRoot, json }: { packageRoot: string; json: unknown }): void => {
       gatewayProxy.returns({
-        path: String(`${String(packageRoot)}/package.json`),
+        path: (`${packageRoot}/package.json`),
         contents: JSON.stringify(json),
       });
     },
 
     setupMissing: ({ packageRoot }: { packageRoot: string }): void => {
-      const path = String(`${String(packageRoot)}/package.json`);
+      const path = (`${packageRoot}/package.json`);
       gatewayProxy.throws({ path, error: FileMissingErrorStub({ path }) });
     },
   };

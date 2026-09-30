@@ -8,13 +8,8 @@
  * // Returns '.tsx'
  */
 
-
-export const fileSuffixExtensionTransformer = ({
-  suffix,
-}: {
-  suffix: string;
-}): string => {
+export const fileSuffixExtensionTransformer = ({ suffix }: { suffix: string }): string => {
   const matched = /\.tsx?$/u.exec(suffix);
 
-  return (matched === null ? '' : matched[0]);
+  return matched === null ? '' : matched[0];
 };

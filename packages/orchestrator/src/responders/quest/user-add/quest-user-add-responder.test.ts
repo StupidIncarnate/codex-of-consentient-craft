@@ -7,7 +7,8 @@ describe('QuestUserAddResponder', () => {
     it('VALID: {title, userRequest, guildId} => returns success result from broker', async () => {
       const guildId = GuildIdStub();
       const questFolderPath = '/home/testuser/.dungeonmaster/guilds/guild-1/quests/quest-1';
-      const questFilePath = '/home/testuser/.dungeonmaster/guilds/guild-1/quests/quest-1/quest.json';
+      const questFilePath =
+        '/home/testuser/.dungeonmaster/guilds/guild-1/quests/quest-1/quest.json';
       const proxy = QuestUserAddResponderProxy();
       proxy.setupQuestCreation({ questFolderPath, questFilePath });
 

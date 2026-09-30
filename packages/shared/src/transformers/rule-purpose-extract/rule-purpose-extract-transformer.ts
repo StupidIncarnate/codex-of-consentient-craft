@@ -11,7 +11,6 @@
  * WHEN-TO-USE: eslint-plugin headline broker extracting rule purpose for the exemplar section
  */
 
-
 const PURPOSE_LINE_PATTERN = /\*\s*PURPOSE:\s*([^\n]+)/u;
 
 export const rulePurposeExtractTransformer = ({
@@ -19,7 +18,7 @@ export const rulePurposeExtractTransformer = ({
 }: {
   source: string;
 }): string | undefined => {
-  const match = PURPOSE_LINE_PATTERN.exec(String(source));
+  const match = PURPOSE_LINE_PATTERN.exec(source);
   if (match === null) {
     return undefined;
   }

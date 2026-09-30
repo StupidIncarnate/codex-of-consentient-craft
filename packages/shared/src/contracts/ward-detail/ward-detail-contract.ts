@@ -26,7 +26,8 @@ const errorEntry = z
     message: z.string().brand<'ErrorEntryMessage'>().optional(),
     line: z.number().brand<'ErrorEntryLine'>().optional(),
     rule: z.string().brand<'ErrorEntryRule'>().optional(),
-  }).brand<'ErrorEntry'>()
+  })
+  .brand<'ErrorEntry'>()
   .loose();
 
 const testFailure = z
@@ -34,14 +35,16 @@ const testFailure = z
     suitePath: z.string().brand<'TestFailureSuitePath'>().optional(),
     testName: z.string().brand<'TestFailureTestName'>().optional(),
     message: z.string().brand<'TestFailureMessage'>().optional(),
-  }).brand<'TestFailure'>()
+  })
+  .brand<'TestFailure'>()
   .loose();
 
 const projectFolder = z
   .object({
     name: z.string().brand<'ProjectFolderName'>().optional(),
     path: z.string().brand<'ProjectFolderPath'>().optional(),
-  }).brand<'ProjectFolder'>()
+  })
+  .brand<'ProjectFolder'>()
   .loose();
 
 const rawOutput = z
@@ -49,7 +52,8 @@ const rawOutput = z
     stdout: z.string().brand<'RawOutputStdout'>().optional(),
     stderr: z.string().brand<'RawOutputStderr'>().optional(),
     exitCode: z.number().brand<'RawOutputExitCode'>().optional(),
-  }).brand<'RawOutput'>()
+  })
+  .brand<'RawOutput'>()
   .loose();
 
 const projectResult = z
@@ -63,7 +67,8 @@ const projectResult = z
     discoveredCount: z.number().brand<'ProjectResultDiscoveredCount'>().optional(),
     onlyDiscovered: z.array(z.string().brand<'ProjectResultOnlyDiscovered'>()).optional(),
     onlyProcessed: z.array(z.string().brand<'ProjectResultOnlyProcessed'>()).optional(),
-  }).brand<'ProjectResult'>()
+  })
+  .brand<'ProjectResult'>()
   .loose();
 
 const checkResult = z
@@ -72,13 +77,15 @@ const checkResult = z
     status: z.enum(['pass', 'fail', 'skip']).optional(),
     discoveryMismatch: z.boolean().optional(),
     projectResults: z.array(projectResult).optional(),
-  }).brand<'CheckResult'>()
+  })
+  .brand<'CheckResult'>()
   .loose();
 
 export const wardDetailContract = z
   .object({
     checks: z.array(checkResult).optional(),
   })
-  .loose().brand<'WardDetail'>();
+  .loose()
+  .brand<'WardDetail'>();
 
 export type WardDetail = z.infer<typeof wardDetailContract>;

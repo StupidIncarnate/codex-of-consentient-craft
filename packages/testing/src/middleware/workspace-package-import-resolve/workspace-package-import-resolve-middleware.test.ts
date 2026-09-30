@@ -37,14 +37,13 @@ describe('workspacePackageImportResolveMiddleware', () => {
         },
       });
       proxy.setupSourceFileExists({ filePath: '/repo/packages/bin/src/testing/testing.ts' });
-      const sourceFilePath = '/repo/packages/siegelense/src/brokers/instance/reserve/instance-reserve-broker.proxy.ts';
+      const sourceFilePath =
+        '/repo/packages/siegelense/src/brokers/instance/reserve/instance-reserve-broker.proxy.ts';
       const importPath = '@dungeonmaster/bin/testing';
 
       const result = workspacePackageImportResolveMiddleware({ sourceFilePath, importPath });
 
-      expect(result).toStrictEqual(
-        '/repo/packages/bin/src/testing/testing.ts',
-      );
+      expect(result).toStrictEqual('/repo/packages/bin/src/testing/testing.ts');
     });
 
     it('VALID: {two sibling packages registered, second one matches} => scans past the first', () => {
@@ -72,9 +71,7 @@ describe('workspacePackageImportResolveMiddleware', () => {
 
       const result = workspacePackageImportResolveMiddleware({ sourceFilePath, importPath });
 
-      expect(result).toStrictEqual(
-        '/repo/packages/node/src/testing/testing.ts',
-      );
+      expect(result).toStrictEqual('/repo/packages/node/src/testing/testing.ts');
     });
   });
 
@@ -102,9 +99,7 @@ describe('workspacePackageImportResolveMiddleware', () => {
 
       const result = workspacePackageImportResolveMiddleware({ sourceFilePath, importPath });
 
-      expect(result).toStrictEqual(
-        '/repo/packages/@gateway/npm/src/glob/glob/glob.proxy.ts',
-      );
+      expect(result).toStrictEqual('/repo/packages/@gateway/npm/src/glob/glob/glob.proxy.ts');
     });
 
     it('VALID: {no match in packages/*, match in packages/@gateway/*} => scans past the first base dir', () => {
@@ -138,9 +133,7 @@ describe('workspacePackageImportResolveMiddleware', () => {
 
       const result = workspacePackageImportResolveMiddleware({ sourceFilePath, importPath });
 
-      expect(result).toStrictEqual(
-        '/repo/packages/@gateway/bin/src/git/git/git.proxy.ts',
-      );
+      expect(result).toStrictEqual('/repo/packages/@gateway/bin/src/git/git/git.proxy.ts');
     });
 
     it('VALID: {root workspaces only declares "packages/*"} => never scans packages/@gateway', () => {
@@ -189,7 +182,8 @@ describe('workspacePackageImportResolveMiddleware', () => {
           '/repo/packages/@gateway/node/src/fs__promises/read-file-if-exists/read-file-if-exists.proxy.ts',
       });
       const sourceFilePath = '/repo/packages/mcp/src/a.proxy.ts';
-      const importPath = '@dungeonmaster/node/fs__promises/read-file-if-exists/read-file-if-exists.proxy';
+      const importPath =
+        '@dungeonmaster/node/fs__promises/read-file-if-exists/read-file-if-exists.proxy';
 
       const result = workspacePackageImportResolveMiddleware({ sourceFilePath, importPath });
 
@@ -222,7 +216,8 @@ describe('workspacePackageImportResolveMiddleware', () => {
           '/repo/packages/@gateway/node/src/fs__promises/read-file-if-exists/read-file-if-exists.proxy.ts',
       });
       const sourceFilePath = '/repo/packages/mcp/src/a.proxy.ts';
-      const importPath = '@dungeonmaster/node/fs__promises/read-file-if-exists/read-file-if-exists.proxy';
+      const importPath =
+        '@dungeonmaster/node/fs__promises/read-file-if-exists/read-file-if-exists.proxy';
 
       const result = workspacePackageImportResolveMiddleware({ sourceFilePath, importPath });
 

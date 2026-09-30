@@ -8,10 +8,7 @@ describe('pastedImageMemoryState', () => {
     it('VALID: {uuid, dataUrls} => recall returns the exact array', () => {
       pastedImageMemoryStateProxy().setupEmpty();
       const { uuid } = ChatEntryStub();
-      const dataUrls = [
-        'data:image/png;base64,AAAA',
-        'data:image/png;base64,BBBB',
-      ];
+      const dataUrls = ['data:image/png;base64,AAAA', 'data:image/png;base64,BBBB'];
 
       pastedImageMemoryState.remember({ uuid, dataUrls });
 

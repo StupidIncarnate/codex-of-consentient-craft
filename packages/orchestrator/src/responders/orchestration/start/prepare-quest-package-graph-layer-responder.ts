@@ -94,8 +94,8 @@ export const PrepareQuestPackageGraphLayerResponder = async ({
       if (dependencyDirName === undefined || dependencyDirName === manifest.name) {
         continue;
       }
-      if (!own.some((existing) => String(existing) === String(dependencyDirName))) {
-        own.push(String(dependencyDirName));
+      if (!own.some((existing) => String(existing) === dependencyDirName)) {
+        own.push(dependencyDirName);
       }
     }
   }

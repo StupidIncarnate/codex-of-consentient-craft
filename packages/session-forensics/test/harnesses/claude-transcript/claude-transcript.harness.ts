@@ -58,9 +58,9 @@ export const claudeTranscriptHarness = (): {
       subagentIds?: readonly AgentId[];
     }): Promise<void> => {
       const projectDir = join(
-          locationsClaudeProjectsRootFindBroker(),
-          `${PROJECT_DIR_PREFIX}${String(pid)}-${String(Date.now())}-${Math.random().toString(36).slice(2)}`,
-        );
+        locationsClaudeProjectsRootFindBroker(),
+        `${PROJECT_DIR_PREFIX}${String(pid)}-${String(Date.now())}-${Math.random().toString(36).slice(2)}`,
+      );
       ensureDirSync(projectDir);
       writeFileSync(join(projectDir, `${sessionId}${JSONL_SUFFIX}`), content);
 

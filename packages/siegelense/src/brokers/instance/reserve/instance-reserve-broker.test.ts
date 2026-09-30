@@ -14,7 +14,8 @@ import { instanceLifecycleStatics } from '../../../statics/instance-lifecycle/in
 const HOME_DIR = '/home/user';
 const HOME_PATH = '/home/user/.dungeonmaster';
 const ROOT_PATH = '/home/user/.dungeonmaster/siegelense';
-const UNOWNED_EVIDENCE_PATH = '/home/user/.dungeonmaster/siegelense/unowned/instances/inst_7f3a9c2158cc4372a5670e02b2c3d479';
+const UNOWNED_EVIDENCE_PATH =
+  '/home/user/.dungeonmaster/siegelense/unowned/instances/inst_7f3a9c2158cc4372a5670e02b2c3d479';
 
 const FREE_PAIR = PortPairStub({ api: 40_000, web: 40_001 });
 const CLAIMED_PAIR = PortPairStub({ api: 34_173, web: 34_174 });

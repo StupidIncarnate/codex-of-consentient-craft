@@ -7,13 +7,7 @@ const TS_SUFFIX = '.ts';
 const TSX_SUFFIX = '.tsx';
 
 export const importsInFolderTypeFindLayerBrokerProxy = (): {
-  setupSource: ({
-    sourceFile,
-    content,
-  }: {
-    sourceFile: string;
-    content: string;
-  }) => void;
+  setupSource: ({ sourceFile, content }: { sourceFile: string; content: string }) => void;
   setupMissing: ({ sourceFile }: { sourceFile: string }) => void;
   setupImplementation: (params: {
     fn: (filePath: string) => string;
@@ -33,13 +27,7 @@ export const importsInFolderTypeFindLayerBrokerProxy = (): {
   const candidates: { tsPath: string; tsxPath: string }[] = [];
 
   return {
-    setupSource: ({
-      sourceFile,
-      content,
-    }: {
-      sourceFile: string;
-      content: string;
-    }): void => {
+    setupSource: ({ sourceFile, content }: { sourceFile: string; content: string }): void => {
       fileProxy.setupReturns({ filePath: sourceFile, content });
 
       const importPaths = importStatementsExtractTransformer({ source: content });
@@ -47,10 +35,10 @@ export const importsInFolderTypeFindLayerBrokerProxy = (): {
         const resolved = relativeImportResolveTransformer({ sourceFile, importPath });
         if (resolved === null) continue;
 
-        const resolvedStr = String(resolved);
-        const tsxPath = (resolvedStr.endsWith(TS_SUFFIX)
-            ? `${resolvedStr.slice(0, -TS_SUFFIX.length)}${TSX_SUFFIX}`
-            : `${resolvedStr}${TSX_SUFFIX}`);
+        const resolvedStr = resolved;
+        const tsxPath = resolvedStr.endsWith(TS_SUFFIX)
+          ? `${resolvedStr.slice(0, -TS_SUFFIX.length)}${TSX_SUFFIX}`
+          : `${resolvedStr}${TSX_SUFFIX}`;
 
         candidates.push({ tsPath: resolved, tsxPath });
         existsProxy.returns({ path: resolved, exists: true });

@@ -71,7 +71,7 @@ test.describe('Begin Quest starts the dispatch queue', () => {
 
     // The state Begin Quest is offered from: the observables gate passed, nothing dispatched yet.
     await quests.writeQuestFile({
-      questId: questId,
+      questId,
       questFolder,
       questFilePath: created.filePath,
       status: 'approved',
@@ -93,7 +93,7 @@ test.describe('Begin Quest starts the dispatch queue', () => {
     // Precondition: the dispatcher is explicitly NOT playing (beforeEach paused it).
     expect(await dispatch.isDispatchPlaying()).toBe(false);
 
-    await nav.navigateToQuest({ urlSlug, questId: questId });
+    await nav.navigateToQuest({ urlSlug, questId });
 
     const beginQuestButton = page.getByTestId('PIXEL_BTN').filter({ hasText: 'Begin Quest' });
 
@@ -121,7 +121,7 @@ test.describe('Begin Quest starts the dispatch queue', () => {
     // is the whole point of coupling the two switches. Asserting the ledger rather than the status
     // alone — `in_progress` is reached by the start itself and says nothing about the dispatcher.
     const finalQuest = await dispatch.waitForQuest({
-      questId: questId,
+      questId,
       timeoutMs: RELAY_TIMEOUT,
       predicate: ({ quest }) =>
         quest.operations.some((op) => op.role === 'codeweaver' && op.status === 'complete'),

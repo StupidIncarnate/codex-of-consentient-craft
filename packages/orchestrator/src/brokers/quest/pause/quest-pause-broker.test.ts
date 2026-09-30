@@ -173,10 +173,7 @@ describe('questPauseBroker', () => {
       const processControls = buildProcessControls({
         questIdMatch: questId,
         kill,
-        processIds: [
-          'proc-start-noop',
-          'proc-warpgate-child',
-        ],
+        processIds: ['proc-start-noop', 'proc-warpgate-child'],
       });
 
       const result = await questPauseBroker({

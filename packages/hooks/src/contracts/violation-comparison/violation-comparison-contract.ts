@@ -8,10 +8,12 @@
 import { z } from '#gateway/npm/zod';
 import { violationCountContract } from '../violation-count/violation-count-contract';
 
-export const violationComparisonContract = z.object({
-  hasNewViolations: z.boolean(),
-  newViolations: z.array(violationCountContract),
-  message: z.string().brand<'ViolationComparisonMessage'>().optional(),
-}).brand<'ViolationComparison'>();
+export const violationComparisonContract = z
+  .object({
+    hasNewViolations: z.boolean(),
+    newViolations: z.array(violationCountContract),
+    message: z.string().brand<'ViolationComparisonMessage'>().optional(),
+  })
+  .brand<'ViolationComparison'>();
 
 export type ViolationComparison = z.infer<typeof violationComparisonContract>;

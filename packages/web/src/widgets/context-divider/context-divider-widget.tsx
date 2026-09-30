@@ -40,14 +40,14 @@ export const ContextDividerWidget = ({
     delta === null
       ? null
       : formatContextTokensTransformer({
-          count: Math.abs(Number(delta)),
+          count: Math.abs(delta),
         });
 
   const deltaColor =
-    delta === null ? colors.warning : Number(delta) >= 0 ? colors.success : colors.warning;
+    delta === null ? colors.warning : delta >= 0 ? colors.success : colors.warning;
 
   const deltaLabel =
-    delta === null ? '' : Number(delta) >= 0 ? ` (+${deltaText ?? ''})` : ` (-${deltaText ?? ''})`;
+    delta === null ? '' : delta >= 0 ? ` (+${deltaText ?? ''})` : ` (-${deltaText ?? ''})`;
 
   const formattedSubagentTotal =
     subagentTotalTokens === undefined

@@ -8,11 +8,5 @@
  * // Returns ['parent', 'quest', 'id']
  */
 
-export const identifierCamelWordsTransformer = ({
-  identifier,
-}: {
-  identifier: string;
-}): string[] =>
-  (identifier.match(/[A-Z]+(?![a-z])|[A-Z]?[a-z0-9]+/gu) ?? []).map((word) =>
-    word.toLowerCase(),
-  );
+export const identifierCamelWordsTransformer = ({ identifier }: { identifier: string }): string[] =>
+  (identifier.match(/[A-Z]+(?![a-z])|[A-Z]?[a-z0-9]+/gu) ?? []).map((word) => word.toLowerCase());

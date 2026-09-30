@@ -1,5 +1,3 @@
-
-
 import { gitDetectOriginDefaultBranchBroker } from './git-detect-origin-default-branch-broker';
 import { gitDetectOriginDefaultBranchBrokerProxy } from './git-detect-origin-default-branch-broker.proxy';
 

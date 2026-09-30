@@ -28,7 +28,13 @@ const state: {
 };
 
 export const smoketestRunState = {
-  start: ({ runId, suite }: { runId: ActiveSmoketestRun['runId']; suite: SmoketestSuite }): void => {
+  start: ({
+    runId,
+    suite,
+  }: {
+    runId: ActiveSmoketestRun['runId'];
+    suite: SmoketestSuite;
+  }): void => {
     state.active = activeSmoketestRunContract.parse({
       runId,
       suite,

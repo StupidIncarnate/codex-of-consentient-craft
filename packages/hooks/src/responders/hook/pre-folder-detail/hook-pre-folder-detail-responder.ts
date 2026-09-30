@@ -52,7 +52,7 @@ export const HookPreFolderDetailResponder = async ({
   }
 
   const lookup = await folderDetailWasCalledBroker({
-    transcriptFilePath: String(resolvedTranscript),
+    transcriptFilePath: resolvedTranscript,
     folderType,
   });
 

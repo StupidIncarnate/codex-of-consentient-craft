@@ -101,7 +101,7 @@ export const collectionChainTransformer = <
           ancestors,
           ingredient: ingredientConfig.name,
           callIndex,
-          index: index,
+          index,
         }),
       );
 
@@ -109,7 +109,7 @@ export const collectionChainTransformer = <
         opCreateTransformer({
           ingredient: ingredientConfig.name,
           callIndex,
-          index: index,
+          index,
           ancestors,
           fields: fieldValuesContract.parse({
             ...(underValues ?? {}),
@@ -135,7 +135,7 @@ export const collectionChainTransformer = <
           refs.map((ref) =>
             opExtraTransformer({
               ref,
-              verb: verb,
+              verb,
               args: fieldValuesContract.parse(args),
             }),
           ) as unknown as Op,
@@ -158,9 +158,7 @@ export const collectionChainTransformer = <
             opSetRawTransformer({ ref, values: fieldValuesContract.parse(values) }),
           ) as unknown as Op,
         saveRecordAs: ({ name }: { name: string }): Op =>
-          refs.map((ref) =>
-            opSaveRecordTransformer({ ref, name: name }),
-          ) as unknown as Op,
+          refs.map((ref) => opSaveRecordTransformer({ ref, name })) as unknown as Op,
         remove: (): Op => refs.map((ref) => opRemoveTransformer({ ref })) as unknown as Op,
         ...Object.fromEntries(extraEntries),
       } as unknown as Handle<R, I, Anc>;

@@ -28,7 +28,7 @@ export const listWalkedFolderFilesLayerBroker = ({
 }): string[] => {
   const stack: string[] = [];
   for (const folderType of architectureOrphanDetectStatics.walkedFolderTypes) {
-    stack.push(`${String(packageSrcPath)}/${folderType}`);
+    stack.push(`${packageSrcPath}/${folderType}`);
   }
 
   const results: string[] = [];
@@ -39,7 +39,7 @@ export const listWalkedFolderFilesLayerBroker = ({
 
     const entries = safeReaddirLayerBroker({ dirPath: current });
     for (const entry of entries) {
-      const entryPath = `${String(current)}/${entry.name}`;
+      const entryPath = `${current}/${entry.name}`;
       if (entry.kind === 'directory') {
         stack.push(entryPath);
         continue;

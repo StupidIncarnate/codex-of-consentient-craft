@@ -392,10 +392,9 @@ describe('FollowupChatStartResponder', () => {
 
       expect({
         processId: emitted?.processId,
-        chatProcessId:
-          emitted?.payload['chatProcessId'],
-        questId: emitted?.payload['questId'],
-        workItemId: emitted?.payload['workItemId'],
+        chatProcessId: emitted?.payload.chatProcessId,
+        questId: emitted?.payload.questId,
+        workItemId: emitted?.payload.workItemId,
       }).toStrictEqual({
         processId: MINTED_CHAT_PROCESS_ID,
         chatProcessId: MINTED_CHAT_PROCESS_ID,
@@ -435,11 +434,10 @@ describe('FollowupChatStartResponder', () => {
       const [emitted] = capture;
 
       expect({
-        chatProcessId:
-          emitted?.payload['chatProcessId'],
-        exitCode: emitted?.payload['exitCode'],
-        questId: emitted?.payload['questId'],
-        workItemId: emitted?.payload['workItemId'],
+        chatProcessId: emitted?.payload.chatProcessId,
+        exitCode: emitted?.payload.exitCode,
+        questId: emitted?.payload.questId,
+        workItemId: emitted?.payload.workItemId,
       }).toStrictEqual({
         chatProcessId: MINTED_CHAT_PROCESS_ID,
         exitCode: 0,

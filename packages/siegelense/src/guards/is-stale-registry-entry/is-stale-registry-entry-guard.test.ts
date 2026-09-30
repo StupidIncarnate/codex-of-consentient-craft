@@ -10,7 +10,7 @@ describe('isStaleRegistryEntryGuard', () => {
     it('VALID: {lastBeatMs older than the threshold} => returns true', () => {
       const nowMs = 1_700_000_000_000;
       const entry = RegistryEntryStub({
-        lastBeatMs: (nowMs - STALENESS_THRESHOLD_MS - 1),
+        lastBeatMs: nowMs - STALENESS_THRESHOLD_MS - 1,
       });
 
       const result = isStaleRegistryEntryGuard({ entry, nowMs });
@@ -23,7 +23,7 @@ describe('isStaleRegistryEntryGuard', () => {
     it('INVALID: {lastBeatMs within the threshold} => returns false', () => {
       const nowMs = 1_700_000_000_000;
       const entry = RegistryEntryStub({
-        lastBeatMs: (nowMs - STALENESS_THRESHOLD_MS + 1),
+        lastBeatMs: nowMs - STALENESS_THRESHOLD_MS + 1,
       });
 
       const result = isStaleRegistryEntryGuard({ entry, nowMs });

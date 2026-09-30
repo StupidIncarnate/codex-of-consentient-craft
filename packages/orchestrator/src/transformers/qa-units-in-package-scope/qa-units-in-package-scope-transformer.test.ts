@@ -188,8 +188,8 @@ describe('qaUnitsInPackageScopeTransformer', () => {
           track: 'siegemaster',
           packageNames: [API_PACKAGE],
           packageGraph: [
-            PackageGraphEntryStub({ id: String(UI_PACKAGE), depth: 0 }),
-            PackageGraphEntryStub({ id: String(API_PACKAGE), depth: 1 }),
+            PackageGraphEntryStub({ id: UI_PACKAGE, depth: 0 }),
+            PackageGraphEntryStub({ id: API_PACKAGE, depth: 1 }),
           ],
         }).map((unit) => String(unit.id)),
       ).toStrictEqual([

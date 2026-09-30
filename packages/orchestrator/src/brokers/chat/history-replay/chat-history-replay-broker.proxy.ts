@@ -38,7 +38,11 @@ export const chatHistoryReplayBrokerProxy = (): {
   setupSubagentDirMissing: (params?: { sessionId?: Session['id'] }) => void;
   setupCwdResolveSuccess: (params: { cwd: string }) => void;
   setupCwdResolveReject: () => void;
-  setupQuestSession: (params: { questId: Quest['id']; sessionId: Session['id']; cwd: string }) => void;
+  setupQuestSession: (params: {
+    questId: Quest['id'];
+    sessionId: Session['id'];
+    cwd: string;
+  }) => void;
   setupQuestWorktree: (params: { questId: Quest['id']; worktreePath: string }) => void;
   setupQuestRepoRoot: (params: { questId: Quest['id']; repoRoot: string }) => void;
   setupQuestWorktreeMissing: (params: { questId: Quest['id']; worktreePath: string }) => void;
@@ -105,7 +109,7 @@ export const chatHistoryReplayBrokerProxy = (): {
       return projectPathOverrideRef.value;
     }
     const guildPath = guildStartPathsRef.value.at(0);
-    return String(guildPath ?? '/unset');
+    return (guildPath ?? '/unset');
   };
 
   const resolveJsonlPath = ({ sessionId }: { sessionId: Session['id'] }): string =>
@@ -144,7 +148,7 @@ export const chatHistoryReplayBrokerProxy = (): {
 
       guildStartPathsRef.value = config.guilds.map((guild) => guild.path);
       for (const startPath of guildStartPathsRef.value) {
-        cwdProxy.setupRepoRootFoundAtStart({ startPath: String(startPath) });
+        cwdProxy.setupRepoRootFoundAtStart({ startPath: startPath });
       }
     },
     setupMainSession: ({
@@ -155,7 +159,7 @@ export const chatHistoryReplayBrokerProxy = (): {
       sessionId?: Session['id'];
     }): void => {
       readLinesProxy.returnsRaw({
-        path: String(resolveJsonlPath({ sessionId: sessionId ?? sessionIdRef.value })),
+        path: resolveJsonlPath({ sessionId: sessionId ?? sessionIdRef.value }),
         rawContents: content,
       });
     },
@@ -163,7 +167,7 @@ export const chatHistoryReplayBrokerProxy = (): {
     // the broker retries briefly, then treats it as no main content rather than throwing.
     setupMainSessionMissing: ({ sessionId }: { sessionId?: Session['id'] } = {}): void => {
       readLinesProxy.missing({
-        path: String(resolveJsonlPath({ sessionId: sessionId ?? sessionIdRef.value })),
+        path: resolveJsonlPath({ sessionId: sessionId ?? sessionIdRef.value }),
       });
     },
     setupSubagentDir: ({
@@ -175,7 +179,7 @@ export const chatHistoryReplayBrokerProxy = (): {
     }): void => {
       const targetSessionId = sessionId ?? sessionIdRef.value;
       readdirProxy.returns({
-        path: String(resolveSubagentsDir({ sessionId: targetSessionId })),
+        path: resolveSubagentsDir({ sessionId: targetSessionId }),
         names: files,
       });
       subagentFileQueuesRef.set(targetSessionId, [...files]);
@@ -190,10 +194,10 @@ export const chatHistoryReplayBrokerProxy = (): {
       const targetSessionId = sessionId ?? sessionIdRef.value;
       const fileName = (subagentFileQueuesRef.get(targetSessionId) ?? []).shift();
       const filePath = `${resolveSubagentsDir({ sessionId: targetSessionId })}/${String(fileName)}`;
-      readLinesProxy.returnsRaw({ path: String(filePath), rawContents: content });
+      readLinesProxy.returnsRaw({ path: filePath, rawContents: content });
     },
     setupSubagentDirMissing: ({ sessionId }: { sessionId?: Session['id'] } = {}): void => {
-      const dirPath = String(resolveSubagentsDir({ sessionId: sessionId ?? sessionIdRef.value }));
+      const dirPath = resolveSubagentsDir({ sessionId: sessionId ?? sessionIdRef.value });
       readdirProxy.throws({
         path: dirPath,
         error: FsErrorStub({ code: 'ENOENT', path: dirPath }),
@@ -202,12 +206,12 @@ export const chatHistoryReplayBrokerProxy = (): {
     setupCwdResolveSuccess: ({ cwd }: { cwd: string }): void => {
       projectPathOverrideRef.value = cwd;
       for (const startPath of guildStartPathsRef.value) {
-        cwdProxy.setupRepoRootFoundInParent({ startPath: String(startPath), repoRoot: cwd });
+        cwdProxy.setupRepoRootFoundInParent({ startPath: startPath, repoRoot: cwd });
       }
     },
     setupCwdResolveReject: (): void => {
       for (const startPath of guildStartPathsRef.value) {
-        cwdProxy.setupRepoRootNotFound({ startPath: String(startPath) });
+        cwdProxy.setupRepoRootNotFound({ startPath: startPath });
       }
     },
     // Each questCwdResolveBroker scenario below records the cwd it resolves, so a read staged
@@ -232,7 +236,7 @@ export const chatHistoryReplayBrokerProxy = (): {
       questCwdMock.calledWith([{ questId, sessionId }]).resolves(
         QuestCwdResolutionStub({
           kind: 'session',
-          cwd: cwd,
+          cwd,
         }),
       );
       sessionPathOverridesRef.set(sessionId, cwd);
@@ -252,7 +256,13 @@ export const chatHistoryReplayBrokerProxy = (): {
       );
       projectPathOverrideRef.value = worktreePath;
     },
-    setupQuestRepoRoot: ({ questId, repoRoot }: { questId: Quest['id']; repoRoot: string }): void => {
+    setupQuestRepoRoot: ({
+      questId,
+      repoRoot,
+    }: {
+      questId: Quest['id'];
+      repoRoot: string;
+    }): void => {
       questCwdMock.calledWith([{ questId }]).resolves(
         QuestCwdResolutionStub({
           kind: 'repo-root',
@@ -273,7 +283,7 @@ export const chatHistoryReplayBrokerProxy = (): {
       questCwdMock.calledWith([{ questId }]).resolves(
         QuestCwdResolutionStub({
           kind: 'missing-worktree',
-          worktreePath: worktreePath,
+          worktreePath,
         }),
       );
     },

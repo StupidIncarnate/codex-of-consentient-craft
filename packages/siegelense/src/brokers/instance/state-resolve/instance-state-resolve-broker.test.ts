@@ -99,7 +99,7 @@ describe('instanceStateResolveBroker', () => {
       state: 'alive',
       bootedAtMs: null,
       lastBeatMs: null,
-      reservedAtMs: reservedAtMs,
+      reservedAtMs,
     });
     proxy.setupRegistry({ registry: RegistryStub({ instances: [entry] }) });
     // 5000ms since the reservation was written — a boot still comfortably in flight, nowhere
@@ -119,7 +119,7 @@ describe('instanceStateResolveBroker', () => {
       state: 'alive',
       bootedAtMs: null,
       lastBeatMs: null,
-      reservedAtMs: reservedAtMs,
+      reservedAtMs,
     });
     proxy.setupRegistry({ registry: RegistryStub({ instances: [entry] }) });
     // 600_000ms (10m) since the reservation was written — past the 300_000ms (5m) ceiling, so a

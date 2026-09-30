@@ -9,11 +9,11 @@ describe('sourceFactsExtractBroker', () => {
       const result = sourceFactsExtractBroker({
         file: 'packages/a/src/brokers/x/x-broker.ts',
         text: [
-            "import { fsReadFileAdapter } from '../../adapters/fs/read-file/fs-read-file-adapter';",
-            "import type { Thing } from '../../contracts/thing/thing-contract';",
-            "import * as ts from '#gateway/npm/typescript';",
-            'export const xBroker = async (): Promise<void> => { await fsReadFileAdapter(); };',
-          ].join('\n'),
+          "import { fsReadFileAdapter } from '../../adapters/fs/read-file/fs-read-file-adapter';",
+          "import type { Thing } from '../../contracts/thing/thing-contract';",
+          "import * as ts from '#gateway/npm/typescript';",
+          'export const xBroker = async (): Promise<void> => { await fsReadFileAdapter(); };',
+        ].join('\n'),
       });
 
       expect(result).toStrictEqual({
@@ -38,10 +38,10 @@ describe('sourceFactsExtractBroker', () => {
       const result = sourceFactsExtractBroker({
         file: 'packages/a/adapters.ts',
         text: [
-            "export * from './src/adapters/a/a-adapter';",
-            "export { bAdapter } from './src/adapters/b/b-adapter';",
-            "export type { CType } from './src/adapters/c/c-adapter';",
-          ].join('\n'),
+          "export * from './src/adapters/a/a-adapter';",
+          "export { bAdapter } from './src/adapters/b/b-adapter';",
+          "export type { CType } from './src/adapters/c/c-adapter';",
+        ].join('\n'),
       });
 
       expect(result).toStrictEqual({
@@ -63,15 +63,15 @@ describe('sourceFactsExtractBroker', () => {
       const result = sourceFactsExtractBroker({
         file: 'packages/a/src/adapters/x/x-adapter.proxy.ts',
         text: [
-            "import { registerMock } from '@acme/testing/register-mock';",
-            'export const xAdapterProxy = () => {',
-            '  const handle = registerMock({ fn: run });',
-            '  handle.calledWith([]).returns(1);',
-            "  handle.calledWith(['/a']).returns(2);",
-            '  handle.onceFor([() => true]).returns(3);',
-            '  return handle.callsMatching([]);',
-            '};',
-          ].join('\n'),
+          "import { registerMock } from '@acme/testing/register-mock';",
+          'export const xAdapterProxy = () => {',
+          '  const handle = registerMock({ fn: run });',
+          '  handle.calledWith([]).returns(1);',
+          "  handle.calledWith(['/a']).returns(2);",
+          '  handle.onceFor([() => true]).returns(3);',
+          '  return handle.callsMatching([]);',
+          '};',
+        ].join('\n'),
       });
 
       expect(result.catchAllSites).toStrictEqual([

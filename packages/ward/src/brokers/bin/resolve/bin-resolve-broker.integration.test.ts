@@ -39,7 +39,7 @@ describe('binResolveBroker (integration)', () => {
 
     testbed.cleanup();
 
-    expect({ result: String(result), firstPathDir: String(firstPathDir) }).toStrictEqual({
+    expect({ result: result, firstPathDir: firstPathDir }).toStrictEqual({
       result: `${testbed.guildPath}/node_modules/.bin/jest`,
       firstPathDir: `${testbed.guildPath}/decoy-path`,
     });
@@ -71,7 +71,7 @@ describe('binResolveBroker (integration)', () => {
 
     testbed.cleanup();
 
-    expect(String(result)).toBe(`${testbed.guildPath}/packages/app/node_modules/.bin/jest`);
+    expect(result).toBe(`${testbed.guildPath}/packages/app/node_modules/.bin/jest`);
   });
 
   it('VALID: {no .bin anywhere in the tree, decoy on PATH} => returns the bare name', async () => {
@@ -96,6 +96,6 @@ describe('binResolveBroker (integration)', () => {
 
     testbed.cleanup();
 
-    expect(String(result)).toBe('jest');
+    expect(result).toBe('jest');
   });
 });

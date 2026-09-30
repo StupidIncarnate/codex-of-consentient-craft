@@ -10,8 +10,10 @@ import { z } from '#gateway/npm/zod';
 
 import { formattedToolFieldContract } from '../formatted-tool-field/formatted-tool-field-contract';
 
-export const formattedToolInputContract = z.object({
-  fields: z.array(formattedToolFieldContract),
-}).brand<'FormattedToolInput'>();
+export const formattedToolInputContract = z
+  .object({
+    fields: z.array(formattedToolFieldContract),
+  })
+  .brand<'FormattedToolInput'>();
 
 export type FormattedToolInput = z.infer<typeof formattedToolInputContract>;

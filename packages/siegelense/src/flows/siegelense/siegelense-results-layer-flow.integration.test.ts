@@ -57,9 +57,7 @@ describe('SiegelenseResultsLayerFlow', () => {
         }),
       ).resolves.toBe(undefined);
 
-      const writes = stdoutSpy
-        .callsMatching([])
-        .map((call) => String(call[0]));
+      const writes = stdoutSpy.callsMatching([]).map((call) => String(call[0]));
 
       const [wholeOutput] = writes;
 
@@ -78,9 +76,7 @@ describe('SiegelenseResultsLayerFlow', () => {
         callArgs: ['--instance', tree.killedInstanceId(), '--run', tree.runOne(), '--json'],
       });
 
-      const writes = stdoutSpy
-        .callsMatching([])
-        .map((call) => String(call[0]));
+      const writes = stdoutSpy.callsMatching([]).map((call) => String(call[0]));
 
       const [wholeOutput] = writes;
 
@@ -116,9 +112,7 @@ describe('SiegelenseResultsLayerFlow', () => {
         ],
       });
 
-      const writes = stdoutSpy
-        .callsMatching([])
-        .map((call) => String(call[0]));
+      const writes = stdoutSpy.callsMatching([]).map((call) => String(call[0]));
 
       const [wholeOutput] = writes;
 
@@ -152,9 +146,7 @@ describe('SiegelenseResultsLayerFlow', () => {
         ],
       });
 
-      const writes = stdoutSpy
-        .callsMatching([])
-        .map((call) => String(call[0]));
+      const writes = stdoutSpy.callsMatching([]).map((call) => String(call[0]));
 
       const [wholeOutput] = writes;
 
@@ -202,9 +194,7 @@ describe('SiegelenseResultsLayerFlow', () => {
         ],
       });
 
-      const writes = stdoutSpy
-        .callsMatching([])
-        .map((call) => String(call[0]));
+      const writes = stdoutSpy.callsMatching([]).map((call) => String(call[0]));
 
       const [wholeOutput] = writes;
 
@@ -249,9 +239,7 @@ describe('SiegelenseResultsLayerFlow', () => {
         ],
       });
 
-      const writes = stdoutSpy
-        .callsMatching([])
-        .map((call) => String(call[0]));
+      const writes = stdoutSpy.callsMatching([]).map((call) => String(call[0]));
 
       const [wholeOutput] = writes;
 
@@ -288,9 +276,7 @@ describe('SiegelenseResultsLayerFlow', () => {
         ],
       });
 
-      const writes = stdoutSpy
-        .callsMatching([])
-        .map((call) => String(call[0]));
+      const writes = stdoutSpy.callsMatching([]).map((call) => String(call[0]));
 
       const [wholeOutput] = writes;
 
@@ -330,9 +316,7 @@ describe('SiegelenseResultsLayerFlow', () => {
         ],
       });
 
-      const writes = stdoutSpy
-        .callsMatching([])
-        .map((call) => String(call[0]));
+      const writes = stdoutSpy.callsMatching([]).map((call) => String(call[0]));
 
       const [wholeOutput] = writes;
 
@@ -369,9 +353,7 @@ describe('SiegelenseResultsLayerFlow', () => {
         ],
       });
 
-      const writes = stdoutSpy
-        .callsMatching([])
-        .map((call) => String(call[0]));
+      const writes = stdoutSpy.callsMatching([]).map((call) => String(call[0]));
 
       const [wholeOutput] = writes;
 
@@ -411,9 +393,7 @@ describe('SiegelenseResultsLayerFlow', () => {
         ],
       });
 
-      const writes = stdoutSpy
-        .callsMatching([])
-        .map((call) => String(call[0]));
+      const writes = stdoutSpy.callsMatching([]).map((call) => String(call[0]));
 
       const [wholeOutput] = writes;
 
@@ -450,9 +430,7 @@ describe('SiegelenseResultsLayerFlow', () => {
         ],
       });
 
-      const writes = stdoutSpy
-        .callsMatching([])
-        .map((call) => String(call[0]));
+      const writes = stdoutSpy.callsMatching([]).map((call) => String(call[0]));
 
       const [wholeOutput] = writes;
 
@@ -489,9 +467,7 @@ describe('SiegelenseResultsLayerFlow', () => {
         ],
       });
 
-      const writes = stdoutSpy
-        .callsMatching([])
-        .map((call) => String(call[0]));
+      const writes = stdoutSpy.callsMatching([]).map((call) => String(call[0]));
 
       const [wholeOutput] = writes;
 
@@ -506,10 +482,7 @@ describe('SiegelenseResultsLayerFlow', () => {
   describe('the --fields flag, projecting a network row', () => {
     it('VALID: {callArgs: [..., --where-method, POST, --fields, status,method, --json]} => the row reduced to exactly those two keys', async () => {
       const [unprojectedRow] = tree.networkRun1NonSuccessRows();
-      const projectFields = [
-        'status',
-        'method',
-      ];
+      const projectFields = ['status', 'method'];
       const expectedProjectedRow = resultRowProjectTransformer({
         row: unprojectedRow!,
         fields: projectFields,
@@ -543,9 +516,7 @@ describe('SiegelenseResultsLayerFlow', () => {
         ],
       });
 
-      const writes = stdoutSpy
-        .callsMatching([])
-        .map((call) => String(call[0]));
+      const writes = stdoutSpy.callsMatching([]).map((call) => String(call[0]));
 
       const [wholeOutput] = writes;
 
@@ -579,9 +550,7 @@ describe('SiegelenseResultsLayerFlow', () => {
         ],
       });
 
-      const writes = stdoutSpy
-        .callsMatching([])
-        .map((call) => String(call[0]));
+      const writes = stdoutSpy.callsMatching([]).map((call) => String(call[0]));
 
       const [wholeOutput] = writes;
 
@@ -609,9 +578,7 @@ describe('SiegelenseResultsLayerFlow', () => {
         ),
       );
 
-      const writes = stdoutSpy
-        .callsMatching([])
-        .map((call) => String(call[0]));
+      const writes = stdoutSpy.callsMatching([]).map((call) => String(call[0]));
 
       expect(writes).toStrictEqual([]);
     });
@@ -671,9 +638,7 @@ describe('SiegelenseResultsLayerFlow', () => {
         }),
       );
 
-      const writes = stdoutSpy
-        .callsMatching([])
-        .map((call) => String(call[0]));
+      const writes = stdoutSpy.callsMatching([]).map((call) => String(call[0]));
 
       expect(writes).toStrictEqual([]);
     });

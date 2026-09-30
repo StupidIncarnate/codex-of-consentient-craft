@@ -17,11 +17,7 @@ export const recipesLocateBrokerProxy = (): {
   }) => void;
   setupPresentAndBuiltAt: (params: { packagePath: string; entryPath: string }) => void;
   setupPackageMissing: (params: { cwdPath: string; packagePath: string }) => void;
-  setupBuildMissing: (params: {
-    cwdPath: string;
-    packagePath: string;
-    entryPath: string;
-  }) => void;
+  setupBuildMissing: (params: { cwdPath: string; packagePath: string; entryPath: string }) => void;
 } => {
   // cwd() takes no arguments, so the one staged value answers every read until the next setupCwd
   // replaces it: a default here, replaced by each scenario method below.

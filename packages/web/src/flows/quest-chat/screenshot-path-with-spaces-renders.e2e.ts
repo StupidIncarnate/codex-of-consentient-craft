@@ -65,7 +65,7 @@ test.describe('A screenshot path whose filename holds spaces renders like any ot
     const sessionId = `e2e-screenshot-spaces-escaped-${Date.now()}`;
 
     const created = await quests.createQuest({
-      guildId: guildId,
+      guildId,
       title: 'Screenshot Path Spaces Escaped Quest',
       userRequest: 'Build feature',
     });
@@ -166,7 +166,7 @@ test.describe('A screenshot path whose filename holds spaces renders like any ot
     const sessionId = `e2e-screenshot-spaces-quoted-${Date.now()}`;
 
     const created = await quests.createQuest({
-      guildId: guildId,
+      guildId,
       title: 'Screenshot Path Spaces Quoted Quest',
       userRequest: 'Build feature',
     });
@@ -260,7 +260,7 @@ test.describe('A screenshot path whose filename holds spaces renders like any ot
     const sessionId = `e2e-screenshot-spaces-uppercase-${Date.now()}`;
 
     const created = await quests.createQuest({
-      guildId: guildId,
+      guildId,
       title: 'Screenshot Path Uppercase Extension Quest',
       userRequest: 'Build feature',
     });
@@ -355,7 +355,7 @@ test.describe('A screenshot path whose filename holds spaces renders like any ot
     const sessionId = `e2e-screenshot-spaces-bare-${Date.now()}`;
 
     const created = await quests.createQuest({
-      guildId: guildId,
+      guildId,
       title: 'Screenshot Path Bare Unescaped Spaces Quest',
       userRequest: 'Build feature',
     });

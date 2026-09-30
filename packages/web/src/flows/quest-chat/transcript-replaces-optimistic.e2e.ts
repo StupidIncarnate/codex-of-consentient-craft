@@ -73,7 +73,7 @@ test.describe('Transcript entry replaces the optimistic bubble it matches', () =
     await sessions.createSessionFile({ sessionId, userMessage: 'Build feature' });
 
     const created = await quests.createQuest({
-      guildId: guildId,
+      guildId,
       title: 'Transcript Replaces Optimistic Quest',
       userRequest: 'Build feature',
     });

@@ -1,4 +1,3 @@
-
 import { workspaceDiscoverBroker } from './workspace-discover-broker';
 import { workspaceDiscoverBrokerProxy } from './workspace-discover-broker.proxy';
 

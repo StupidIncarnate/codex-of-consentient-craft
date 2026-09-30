@@ -7,7 +7,11 @@
  */
 import { z } from '#gateway/npm/zod';
 
-import { questContract, workItemContract, operationItemContract } from '@dungeonmaster/shared/contracts';
+import {
+  questContract,
+  workItemContract,
+  operationItemContract,
+} from '@dungeonmaster/shared/contracts';
 
 // NOTE: MCP requires inputSchema to have type: "object" at root level.
 // `complete` is the sole signal kind (session-terminal marker). questId + workItemId are required
@@ -23,12 +27,16 @@ export const signalBackInputContract = z
     operationItemId: operationItemContract.shape.id
       .describe('The operation item this session worked (from the operations ledger)')
       .optional(),
-    blockedReason: z.string().min(1).brand<'SignalBackInputBlockedReason'>()
+    blockedReason: z
+      .string()
+      .min(1)
+      .brand<'SignalBackInputBlockedReason'>()
       .describe(
         'Why this role cannot proceed without the user. Names the wall and what the user must change (e.g. a denied command, a missing credential, an unreachable service)',
       )
       .optional(),
   })
-  .strict().brand<'SignalBackInput'>();
+  .strict()
+  .brand<'SignalBackInput'>();
 
 export type SignalBackInput = z.infer<typeof signalBackInputContract>;

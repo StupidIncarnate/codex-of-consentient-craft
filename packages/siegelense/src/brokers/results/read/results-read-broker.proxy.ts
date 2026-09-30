@@ -50,11 +50,7 @@ export const resultsReadBrokerProxy = (): {
     result: RunResult;
   }) => void;
   setupMissingStoredReturn: (params: { evidencePath: string; runId: SiegeRun['id'] }) => void;
-  setupBuffer: (params: {
-    evidencePath: string;
-    kind: BufferKind;
-    content: string;
-  }) => void;
+  setupBuffer: (params: { evidencePath: string; kind: BufferKind; content: string }) => void;
   setupServerLog: (params: { evidencePath: string; content: string }) => void;
 } => {
   const instanceStateProxy = instanceStateResolveBrokerProxy();

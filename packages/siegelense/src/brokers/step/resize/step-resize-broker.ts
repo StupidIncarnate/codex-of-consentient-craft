@@ -7,7 +7,6 @@
  * // Returns 'resized to 1280x720' as ContentText
  */
 
-
 import type { BrowserSession } from '../../../contracts/browser-session/browser-session-contract';
 import { resizeReadingRenderTransformer } from '../../../transformers/resize-reading-render/resize-reading-render-transformer';
 

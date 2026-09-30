@@ -32,9 +32,9 @@ const SCOPE_KIND_BY_FIELD = {
   passthrough: 'fileScope',
 } as const satisfies Record<Exclude<keyof WardConfig, symbol>, WardScopeKind>;
 
-const FILE_SCOPE_FIELDS = (Object.keys(SCOPE_KIND_BY_FIELD) as Exclude<keyof WardConfig, symbol>[]).filter(
-  (field) => SCOPE_KIND_BY_FIELD[field] === 'fileScope',
-);
+const FILE_SCOPE_FIELDS = (
+  Object.keys(SCOPE_KIND_BY_FIELD) as Exclude<keyof WardConfig, symbol>[]
+).filter((field) => SCOPE_KIND_BY_FIELD[field] === 'fileScope');
 
 export const isFileScopeRequestedGuard = ({ config }: { config?: WardConfig }): boolean => {
   if (config === undefined) {

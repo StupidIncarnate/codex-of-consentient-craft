@@ -9,7 +9,6 @@
  * // Returns [1, 2, 3] — message anchor + both chains visible, tool hidden.
  */
 
-
 export const computeTailVisibleIndicesTransformer = ({
   isAnchorFlags,
   isSubagentChainFlags,

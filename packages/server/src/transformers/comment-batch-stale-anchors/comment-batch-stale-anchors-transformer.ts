@@ -8,7 +8,12 @@
  * // Returns CommentStaleAnchor[] — only entries that FAIL to resolve, in `comments` order.
  * // Entries whose anchor still resolves are omitted entirely; an all-resolving batch => [].
  */
-import type { CommentBatchEntry, Flow, FlowNode, FlowObservable } from '@dungeonmaster/shared/contracts';
+import type {
+  CommentBatchEntry,
+  Flow,
+  FlowNode,
+  FlowObservable,
+} from '@dungeonmaster/shared/contracts';
 
 import { commentStaleAnchorContract } from '../../contracts/comment-stale-anchor/comment-stale-anchor-contract';
 import type { CommentStaleAnchor } from '../../contracts/comment-stale-anchor/comment-stale-anchor-contract';

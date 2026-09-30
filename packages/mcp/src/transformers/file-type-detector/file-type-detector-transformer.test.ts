@@ -27,7 +27,8 @@ describe('fileTypeDetectorTransformer', () => {
 
   it('VALID: {harness filepath under test/} => returns "harness"', () => {
     const result = fileTypeDetectorTransformer({
-      filepath: '/packages/orchestrator/test/harnesses/orchestration-queue/orchestration-queue.harness.ts',
+      filepath:
+        '/packages/orchestrator/test/harnesses/orchestration-queue/orchestration-queue.harness.ts',
     });
 
     expect(result).toBe('harness');

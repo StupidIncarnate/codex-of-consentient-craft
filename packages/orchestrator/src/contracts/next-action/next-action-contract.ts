@@ -33,36 +33,57 @@ import { mintedWorkItemContract } from '../minted-work-item/minted-work-item-con
 import { stepOutcomeContract } from '../step-outcome/step-outcome-contract';
 
 export const nextActionContract = z.discriminatedUnion('kind', [
-  z.object({
-    kind: z.literal('mint'),
-    operationItemId: operationItemContract.shape.id,
-    step: z.string().min(1).brand<'NextActionStep'>().describe(
-      'Every item in `batch` sits at THIS step — the outcome fold is per step.',
-    ),
-    cause: z.enum(['request', 'unmet', 'plan-batch', 'return-to-minter', 'invalidation', 'capped']),
-    batch: z.array(mintedWorkItemContract),
-  }).brand<'NextAction'>(),
-  z.object({
-    kind: z.literal('route'),
-    operationItemId: operationItemContract.shape.id,
-    from: z.string().min(1).brand<'NextActionFrom'>(),
-    outcome: stepOutcomeContract,
-    step: z.string().min(1).brand<'NextActionStep'>().describe('The ROUTE TARGET. `batch` sits here.'),
-    batch: z.array(mintedWorkItemContract).min(1),
-  }).brand<'NextAction'>(),
-  z.object({
-    kind: z.literal('complete'),
-    operationItemId: operationItemContract.shape.id,
-    outcome: stepOutcomeContract.describe('`done` or `empty` — the word that reached `@done`.'),
-  }).brand<'NextAction'>(),
-  z.object({
-    kind: z.literal('block'),
-    operationItemId: operationItemContract.shape.id,
-    family: z.string().min(1).brand<'NextActionFamily'>(),
-    step: z.string().min(1).brand<'NextActionStep'>(),
-    reason: z.enum(['wall', 'max-visits', 'unknown-step', 'unknown-route-target', 'no-minter']),
-    message: z.string().min(1).brand<'NextActionMessage'>(),
-  }).brand<'NextAction'>(),
+  z
+    .object({
+      kind: z.literal('mint'),
+      operationItemId: operationItemContract.shape.id,
+      step: z
+        .string()
+        .min(1)
+        .brand<'NextActionStep'>()
+        .describe('Every item in `batch` sits at THIS step — the outcome fold is per step.'),
+      cause: z.enum([
+        'request',
+        'unmet',
+        'plan-batch',
+        'return-to-minter',
+        'invalidation',
+        'capped',
+      ]),
+      batch: z.array(mintedWorkItemContract),
+    })
+    .brand<'NextAction'>(),
+  z
+    .object({
+      kind: z.literal('route'),
+      operationItemId: operationItemContract.shape.id,
+      from: z.string().min(1).brand<'NextActionFrom'>(),
+      outcome: stepOutcomeContract,
+      step: z
+        .string()
+        .min(1)
+        .brand<'NextActionStep'>()
+        .describe('The ROUTE TARGET. `batch` sits here.'),
+      batch: z.array(mintedWorkItemContract).min(1),
+    })
+    .brand<'NextAction'>(),
+  z
+    .object({
+      kind: z.literal('complete'),
+      operationItemId: operationItemContract.shape.id,
+      outcome: stepOutcomeContract.describe('`done` or `empty` — the word that reached `@done`.'),
+    })
+    .brand<'NextAction'>(),
+  z
+    .object({
+      kind: z.literal('block'),
+      operationItemId: operationItemContract.shape.id,
+      family: z.string().min(1).brand<'NextActionFamily'>(),
+      step: z.string().min(1).brand<'NextActionStep'>(),
+      reason: z.enum(['wall', 'max-visits', 'unknown-step', 'unknown-route-target', 'no-minter']),
+      message: z.string().min(1).brand<'NextActionMessage'>(),
+    })
+    .brand<'NextAction'>(),
 ]);
 
 export type NextAction = z.infer<typeof nextActionContract>;

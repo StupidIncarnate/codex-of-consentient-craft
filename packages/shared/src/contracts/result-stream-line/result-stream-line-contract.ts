@@ -8,12 +8,14 @@
 import { z } from '#gateway/npm/zod';
 import { sessionContract } from '../session/session-contract';
 
-export const resultStreamLineContract = z.object({
-  type: z.literal('result'),
-  session_id: sessionContract.shape.id,
-  cost_usd: z.number().brand<'ResultStreamLineCostUsd'>().optional(),
-  duration_ms: z.number().brand<'ResultStreamLineDurationMs'>().optional(),
-  num_turns: z.number().brand<'ResultStreamLineNumTurns'>().optional(),
-}).brand<'ResultStreamLine'>();
+export const resultStreamLineContract = z
+  .object({
+    type: z.literal('result'),
+    session_id: sessionContract.shape.id,
+    cost_usd: z.number().brand<'ResultStreamLineCostUsd'>().optional(),
+    duration_ms: z.number().brand<'ResultStreamLineDurationMs'>().optional(),
+    num_turns: z.number().brand<'ResultStreamLineNumTurns'>().optional(),
+  })
+  .brand<'ResultStreamLine'>();
 
 export type ResultStreamLine = z.infer<typeof resultStreamLineContract>;

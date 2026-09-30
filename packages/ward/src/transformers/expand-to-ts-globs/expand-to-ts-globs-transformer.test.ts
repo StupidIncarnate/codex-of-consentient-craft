@@ -1,4 +1,3 @@
-
 import { expandToTsGlobsTransformer } from './expand-to-ts-globs-transformer';
 
 describe('expandToTsGlobsTransformer', () => {

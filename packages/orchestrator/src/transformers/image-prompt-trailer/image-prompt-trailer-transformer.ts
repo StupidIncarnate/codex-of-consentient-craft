@@ -11,12 +11,7 @@
 
 import { pastedImageStatics } from '@dungeonmaster/shared/statics';
 
-
-export const imagePromptTrailerTransformer = ({
-  promptText,
-}: {
-  promptText: string;
-}): string => {
+export const imagePromptTrailerTransformer = ({ promptText }: { promptText: string }): string => {
   const carriesImageToken = new RegExp(pastedImageStatics.imageTokenPattern, 'u').test(promptText);
   const alreadyTrailed = promptText.includes(pastedImageStatics.promptSentinel);
   if (!carriesImageToken || alreadyTrailed) return promptText;

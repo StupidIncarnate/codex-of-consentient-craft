@@ -94,12 +94,8 @@ export const questRunStepBroker = async ({
                 status: result.outcome === 'wall' ? 'failed' : 'complete',
                 completedAt: new Date().toISOString(),
                 declaredWord: result.outcome,
-                ...(detail.length === 0
-                  ? {}
-                  : { declaredReason: detail }),
-                ...(result.outcome === 'wall' && detail.length > 0
-                  ? { errorMessage: detail }
-                  : {}),
+                ...(detail.length === 0 ? {} : { declaredReason: detail }),
+                ...(result.outcome === 'wall' && detail.length > 0 ? { errorMessage: detail } : {}),
                 // The back-link the execution panel resolves a row's detail through —
                 // `wardResults/<id>`, `riftcarverResults/<id>`.
                 ...(result.resultRef === undefined

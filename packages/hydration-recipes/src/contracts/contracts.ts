@@ -12,7 +12,6 @@ export * from './dm-quest-outbox-line/dm-quest-outbox-line-contract';
 
 export * from './dm-target/dm-target-contract';
 
-
 export * from './guild-fields/guild-fields-contract';
 
 export * from './nested-chain-args/nested-chain-args-contract';
@@ -33,7 +32,6 @@ export * from './subagent-fields/subagent-fields-contract';
 
 export * from './subagent-record/subagent-record-contract';
 
-
 export * from './tool-use-id/tool-use-id-contract';
 
 export * from './ward-result-detail-args/ward-result-detail-args-contract';
@@ -45,4 +43,3 @@ export * from './guild-listing/guild-listing-contract';
 export * from './transcript-line/transcript-line-contract';
 
 export * from './recipe-catalog-entry/recipe-catalog-entry-contract';
-

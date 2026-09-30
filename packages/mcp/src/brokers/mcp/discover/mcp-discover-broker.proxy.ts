@@ -26,11 +26,7 @@ import { cwdProxy } from '#gateway/node/process/cwd/cwd.proxy';
 const NON_GREP_MATCHING_CONTENTS = 'export const placeholder = true;';
 
 export const mcpDiscoverBrokerProxy = (): {
-  setupFileDiscovery: (params: {
-    filepath: string;
-    contents: string;
-    pattern: string;
-  }) => void;
+  setupFileDiscovery: (params: { filepath: string; contents: string; pattern: string }) => void;
   setupMultipleFileDiscovery: (params: {
     files: readonly { filepath: string; contents: string }[];
     pattern: string;
@@ -39,10 +35,7 @@ export const mcpDiscoverBrokerProxy = (): {
     directoryPaths: readonly string[];
     pattern: string;
   }) => void;
-  setupGrepFilteredEmpty: (params: {
-    filePaths: readonly string[];
-    pattern: string;
-  }) => void;
+  setupGrepFilteredEmpty: (params: { filePaths: readonly string[]; pattern: string }) => void;
   setupFileDiscoveryAtRoot: (params: {
     rootPath: string;
     filepath: string;

@@ -33,21 +33,23 @@ import { instanceStateContract } from '../instance-state/instance-state-contract
 import { lastStepReadingContract } from '../last-step-reading/last-step-reading-contract';
 import { orphanReadingContract } from '../orphan-reading/orphan-reading-contract';
 
-export const instanceStatusContract = z.object({
-  id: siegeInstanceContract.shape.id,
-  state: instanceStateContract,
-  specName: z.string().min(1).brand<'InstanceStatusSpecName'>(),
-  uptime: z.string().min(1).brand<'InstanceStatusUptime'>().nullable(),
-  lastBeat: z.string().min(1).brand<'InstanceStatusLastBeat'>().nullable(),
-  runs: z.number().int().nonnegative().brand<'InstanceStatusRuns'>(),
-  rssMB: z.number().int().nonnegative().brand<'InstanceStatusRssMB'>().nullable(),
-  rssAtLastBeat: z.number().int().nonnegative().brand<'InstanceStatusRssAtLastBeat'>().nullable(),
-  lastStep: lastStepReadingContract.nullable(),
-  orphans: z.array(orphanReadingContract).readonly(),
-  evidence: instanceEvidenceListingContract.nullable(),
-  likelyCause: z.string().brand<'InstanceStatusLikelyCause'>().nullable(),
-  branch: z.string().brand<'InstanceStatusBranch'>().nullable(),
-  evidenceComplete: z.boolean(),
-}).brand<'InstanceStatus'>();
+export const instanceStatusContract = z
+  .object({
+    id: siegeInstanceContract.shape.id,
+    state: instanceStateContract,
+    specName: z.string().min(1).brand<'InstanceStatusSpecName'>(),
+    uptime: z.string().min(1).brand<'InstanceStatusUptime'>().nullable(),
+    lastBeat: z.string().min(1).brand<'InstanceStatusLastBeat'>().nullable(),
+    runs: z.number().int().nonnegative().brand<'InstanceStatusRuns'>(),
+    rssMB: z.number().int().nonnegative().brand<'InstanceStatusRssMB'>().nullable(),
+    rssAtLastBeat: z.number().int().nonnegative().brand<'InstanceStatusRssAtLastBeat'>().nullable(),
+    lastStep: lastStepReadingContract.nullable(),
+    orphans: z.array(orphanReadingContract).readonly(),
+    evidence: instanceEvidenceListingContract.nullable(),
+    likelyCause: z.string().brand<'InstanceStatusLikelyCause'>().nullable(),
+    branch: z.string().brand<'InstanceStatusBranch'>().nullable(),
+    evidenceComplete: z.boolean(),
+  })
+  .brand<'InstanceStatus'>();
 
 export type InstanceStatus = z.infer<typeof instanceStatusContract>;

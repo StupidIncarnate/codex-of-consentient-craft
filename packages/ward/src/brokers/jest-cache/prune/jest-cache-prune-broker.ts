@@ -36,10 +36,10 @@ const UID_RADIX = 36;
 export const jestCachePruneBroker = async (): Promise<void> => {
   try {
     const { uid } = userInfo();
-    const realTmp = await realpath(String(tmpdirFindBroker()));
-    const cacheDir = (uid < 0 ? `${realTmp}/jest` : `${realTmp}/jest_${uid.toString(UID_RADIX)}`);
+    const realTmp = await realpath(tmpdirFindBroker());
+    const cacheDir = uid < 0 ? `${realTmp}/jest` : `${realTmp}/jest_${uid.toString(UID_RADIX)}`;
 
-    const entries = await readdirIfExists(String(cacheDir));
+    const entries = await readdirIfExists(cacheDir);
     if (entries === null) {
       return;
     }
@@ -47,19 +47,19 @@ export const jestCachePruneBroker = async (): Promise<void> => {
 
     await Promise.all(
       entries.map(async (name) => {
-        const entryPath = `${String(cacheDir)}/${name}`;
+        const entryPath = `${cacheDir}/${name}`;
 
         try {
-          const stats = await statIfExists(String(entryPath));
+          const stats = await statIfExists(entryPath);
 
           if (stats === null || now - stats.modifiedAtMs <= jestCacheStatics.prune.maxAgeMs) {
             return;
           }
 
-          await rm(String(entryPath), { recursive: true, force: true });
+          await rm(entryPath, { recursive: true, force: true });
         } catch (error: unknown) {
           stderr.write(
-            `ward: could not prune Jest cache entry ${String(entryPath)}: ${String(error)}\n`,
+            `ward: could not prune Jest cache entry ${entryPath}: ${String(error)}\n`,
           );
         }
       }),

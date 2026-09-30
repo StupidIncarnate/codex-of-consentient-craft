@@ -8,8 +8,10 @@
 
 import { z } from '#gateway/npm/zod';
 
-export const directoryBrowseBodyContract = z.object({
-  path: z.string().min(1).brand<'DirectoryBrowseBodyPath'>().optional(),
-}).brand<'DirectoryBrowseBody'>();
+export const directoryBrowseBodyContract = z
+  .object({
+    path: z.string().min(1).brand<'DirectoryBrowseBodyPath'>().optional(),
+  })
+  .brand<'DirectoryBrowseBody'>();
 
 export type DirectoryBrowseBody = z.infer<typeof directoryBrowseBodyContract>;

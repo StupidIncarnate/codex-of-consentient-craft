@@ -22,6 +22,7 @@ export const siegelenseModuleContract = z
   .object({
     StartSiegelense: startSiegelenseFnContract,
   })
-  .loose().brand<'SiegelenseModule'>();
+  .loose()
+  .brand<'SiegelenseModule'>();
 
 export type SiegelenseModule = z.infer<typeof siegelenseModuleContract>;

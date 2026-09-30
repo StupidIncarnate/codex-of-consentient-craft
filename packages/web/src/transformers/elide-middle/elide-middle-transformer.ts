@@ -54,8 +54,8 @@ export const elideMiddleTransformer = ({
 
   if (head.length > 0) {
     return [head.join(pathShorteningStatics.separator), pathShorteningStatics.ellipsis, tail].join(
-        pathShorteningStatics.separator,
-      );
+      pathShorteningStatics.separator,
+    );
   }
 
   // No separator to cut on, or a tail already wider than the budget. Take the same bite out of the

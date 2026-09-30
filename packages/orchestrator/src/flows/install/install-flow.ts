@@ -10,7 +10,11 @@
  * // Returns install result for the orchestrator package after commands and scaffold are written
  */
 
-import { type InstallContext, type InstallResult, installResultContract } from '@dungeonmaster/shared/contracts';
+import {
+  type InstallContext,
+  type InstallResult,
+  installResultContract,
+} from '@dungeonmaster/shared/contracts';
 import { InstallCommandsCreateResponder } from '../../responders/install/commands-create/install-commands-create-responder';
 import { InstallRepoScaffoldResponder } from '../../responders/install/repo-scaffold/install-repo-scaffold-responder';
 

@@ -1,5 +1,3 @@
-
-
 import { normalizeToRelativeTransformer } from './normalize-to-relative-transformer';
 
 describe('normalizeToRelativeTransformer', () => {

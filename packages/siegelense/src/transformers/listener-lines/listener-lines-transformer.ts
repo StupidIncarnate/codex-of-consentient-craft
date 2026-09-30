@@ -11,8 +11,6 @@
  * // Returns a ContentText JSON line, ready to push onto the console buffer
  */
 
-
-
 // Reading a response body costs a round trip to the browser, and a bundle's body answers no
 // question a siege asks. Matches `siege-lane.ts`'s own BODY_SKIP_RESOURCE_TYPES.
 const BODY_SKIP_RESOURCE_TYPES = new Set(['script', 'stylesheet', 'image', 'font', 'media']);
@@ -70,14 +68,11 @@ export const listenerLinesTransformer = (): {
 
   skippedBodyPlaceholder: (): string => SKIPPED_BODY_TEXT,
 
-  unavailableBodyPlaceholder: ({ error }): string =>
-    `<body unavailable: ${String(error)}>`,
+  unavailableBodyPlaceholder: ({ error }): string => `<body unavailable: ${String(error)}>`,
 
-  truncatedBody: ({ text }): string =>
-    text.slice(0, MAX_BODY_CHARS),
+  truncatedBody: ({ text }): string => text.slice(0, MAX_BODY_CHARS),
 
-  truncatePayload: ({ text }): string =>
-    text.slice(0, MAX_BODY_CHARS),
+  truncatePayload: ({ text }): string => text.slice(0, MAX_BODY_CHARS),
 
   consoleLine: ({ at, type, text, url, line }): string =>
     JSON.stringify({ at, kind: 'console', type, text, url, line }),
@@ -85,27 +80,19 @@ export const listenerLinesTransformer = (): {
   pageErrorLine: ({ at, type, text, stack }): string =>
     JSON.stringify({ at, kind: 'pageerror', type, text, stack }),
 
-  networkLine: ({
-    at,
-    method,
-    url,
-    resourceType,
-    status,
-    requestBody,
-    responseBody,
-  }): string =>
+  networkLine: ({ at, method, url, resourceType, status, requestBody, responseBody }): string =>
     JSON.stringify({ at, method, url, resourceType, status, requestBody, responseBody }),
 
   requestFailedLine: ({ at, method, url, resourceType, requestBody, errorText }): string =>
     JSON.stringify({
-        at,
-        method,
-        url,
-        resourceType,
-        status: null,
-        requestBody,
-        responseBody: `<request failed: ${errorText}>`,
-      }),
+      at,
+      method,
+      url,
+      resourceType,
+      status: null,
+      requestBody,
+      responseBody: `<request failed: ${errorText}>`,
+    }),
 
   websocketFrameLine: ({ at, url, direction, payload }): string =>
     JSON.stringify({ at, url, direction, payload }),

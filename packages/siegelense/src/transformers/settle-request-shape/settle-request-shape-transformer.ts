@@ -14,12 +14,10 @@
  * // Returns 'GET http://x/api/quests'
  */
 
-
 export const settleRequestShapeTransformer = ({
   method,
   url,
 }: {
   method: string;
   url: string;
-}): string =>
-  `${method.toUpperCase()} ${(url.split('#')[0] ?? '').split('?')[0] ?? ''}`;
+}): string => `${method.toUpperCase()} ${(url.split('#')[0] ?? '').split('?')[0] ?? ''}`;

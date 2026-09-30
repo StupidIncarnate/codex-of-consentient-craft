@@ -14,7 +14,11 @@
  */
 import { z } from '#gateway/npm/zod';
 
-import { workItemRoleContract, workItemStatusContract, sessionContract } from '@dungeonmaster/shared/contracts';
+import {
+  workItemRoleContract,
+  workItemStatusContract,
+  sessionContract,
+} from '@dungeonmaster/shared/contracts';
 
 export const workItemIndexRowContract = z
   .object({
@@ -28,8 +32,18 @@ export const workItemIndexRowContract = z
     operationText: z.string().brand<'WorkItemIndexRowOperationText'>().optional(),
     flowIds: z.array(z.string().brand<'WorkItemIndexRowFlowIds'>()).default([]),
     packageNames: z.array(z.string().brand<'WorkItemIndexRowPackageNames'>()).default([]),
-    transcriptSizeBytes: z.number().int().nonnegative().default(0).brand<'WorkItemIndexRowTranscriptSizeBytes'>(),
-    subagentCount: z.number().int().nonnegative().default(0).brand<'WorkItemIndexRowSubagentCount'>(),
+    transcriptSizeBytes: z
+      .number()
+      .int()
+      .nonnegative()
+      .default(0)
+      .brand<'WorkItemIndexRowTranscriptSizeBytes'>(),
+    subagentCount: z
+      .number()
+      .int()
+      .nonnegative()
+      .default(0)
+      .brand<'WorkItemIndexRowSubagentCount'>(),
     wardRiftcarverSummary: z.string().brand<'WorkItemIndexRowWardRiftcarverSummary'>().optional(),
   })
   .brand<'WorkItemIndexRow'>();

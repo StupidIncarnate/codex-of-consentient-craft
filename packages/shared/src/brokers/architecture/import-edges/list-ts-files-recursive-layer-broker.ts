@@ -15,16 +15,12 @@ import { isNonTestFileGuard } from '../../../guards/is-non-test-file/is-non-test
 import { listTsFilesSkipDirsStatics } from '../../../statics/list-ts-files-skip-dirs/list-ts-files-skip-dirs-statics';
 import { safeReaddirLayerBroker } from './safe-readdir-layer-broker';
 
-export const listTsFilesRecursiveLayerBroker = ({
-  dirPath,
-}: {
-  dirPath: string;
-}): string[] => {
+export const listTsFilesRecursiveLayerBroker = ({ dirPath }: { dirPath: string }): string[] => {
   const entries = safeReaddirLayerBroker({ dirPath });
 
   const results: string[] = [];
   for (const entry of entries) {
-    const entryPath = `${String(dirPath)}/${entry.name}`;
+    const entryPath = `${dirPath}/${entry.name}`;
     if (entry.kind === 'directory') {
       if (listTsFilesSkipDirsStatics.skipDirNames.some((n) => n === entry.name)) continue;
       const children = listTsFilesRecursiveLayerBroker({ dirPath: entryPath });

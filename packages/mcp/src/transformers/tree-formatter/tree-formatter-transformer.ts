@@ -92,7 +92,7 @@ export const treeFormatterTransformer = ({
 
   // Format each root folder separately with blank lines between
   const rootFolders = Array.from(root.children.entries())
-    .sort(([a], [b]) => String(a).localeCompare(String(b)))
+    .sort(([a], [b]) => a.localeCompare(b))
     .map(
       ([folderName, folderNode]) =>
         `${folderName}/\n${formatTreeNodeTransformer({ node: folderNode, indent: 1, hitRenders })}`,

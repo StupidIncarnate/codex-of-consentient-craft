@@ -25,7 +25,6 @@ import { PixelSpriteWidget } from '../pixel-sprite/pixel-sprite-widget';
 import { ChatInputWidget } from '../chat-input/chat-input-widget';
 import type { ComposerSurface } from '../../transformers/composer-scope-key/composer-scope-key-transformer';
 
-
 export interface ChatPanelWidgetProps {
   entries: ChatEntry[];
   isStreaming: boolean;

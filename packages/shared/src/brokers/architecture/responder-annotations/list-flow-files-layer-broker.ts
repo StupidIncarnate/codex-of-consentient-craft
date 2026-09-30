@@ -14,12 +14,8 @@
 import { isNonTestFileGuard } from '../../../guards/is-non-test-file/is-non-test-file-guard';
 import { readdirEntriesSync } from '#gateway/node/fs';
 
-export const listFlowFilesLayerBroker = ({
-  packageRoot,
-}: {
-  packageRoot: string;
-}): string[] => {
-  const flowsDir = `${String(packageRoot)}/src/flows`;
+export const listFlowFilesLayerBroker = ({ packageRoot }: { packageRoot: string }): string[] => {
+  const flowsDir = `${packageRoot}/src/flows`;
   const stack: string[] = [flowsDir];
   const results: string[] = [];
 
@@ -28,9 +24,9 @@ export const listFlowFilesLayerBroker = ({
     if (current === undefined) break;
 
     try {
-      const entries = readdirEntriesSync(String(current));
+      const entries = readdirEntriesSync(current);
       for (const entry of entries) {
-        const entryPath = `${String(current)}/${entry.name}`;
+        const entryPath = `${current}/${entry.name}`;
         if (entry.kind === 'directory') {
           stack.push(entryPath);
         } else if (entry.name.endsWith('-flow.ts') && isNonTestFileGuard({ filePath: entryPath })) {

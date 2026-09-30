@@ -8,8 +8,10 @@
 import { z } from '#gateway/npm/zod';
 import { preEditLintConfigContract } from '../pre-edit-lint-config/pre-edit-lint-config-contract';
 
-export const dungeonmasterHooksConfigContract = z.object({
-  preEditLint: preEditLintConfigContract.optional(),
-}).brand<'DungeonmasterHooksConfig'>();
+export const dungeonmasterHooksConfigContract = z
+  .object({
+    preEditLint: preEditLintConfigContract.optional(),
+  })
+  .brand<'DungeonmasterHooksConfig'>();
 
 export type DungeonmasterHooksConfig = z.infer<typeof dungeonmasterHooksConfigContract>;

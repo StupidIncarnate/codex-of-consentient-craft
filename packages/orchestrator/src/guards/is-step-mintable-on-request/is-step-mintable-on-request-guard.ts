@@ -10,7 +10,6 @@
  * // Returns true
  */
 
-
 import { agentFlowStatics } from '../../statics/agent-flow/agent-flow-statics';
 
 const agentFlowGraphs: Readonly<
@@ -32,8 +31,8 @@ export const isStepMintableOnRequestGuard = ({
     return false;
   }
 
-  const graph = agentFlowGraphs[String(family)];
-  const node = graph?.steps[String(step)];
+  const graph = agentFlowGraphs[family];
+  const node = graph?.steps[step];
 
   return node?.mintableOnRequest === true;
 };

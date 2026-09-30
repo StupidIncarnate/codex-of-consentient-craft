@@ -82,9 +82,9 @@ export const checkRunUnitBroker = async ({
   }
 
   const unitFiles = fileList
-    .filter((f) => isUnitTestPathGuard({ filePath: String(f) }))
+    .filter((f) => isUnitTestPathGuard({ filePath: f }))
     .filter((f) => {
-      const relativePath = String(f);
+      const relativePath = f;
       // Directory paths (no extension) handled by the discoveredFiles check below
       if (!relativePath.includes('.')) {
         return true;
@@ -123,13 +123,13 @@ export const checkRunUnitBroker = async ({
     });
   }
 
-  const allFiles = unitFiles.length > 0 && unitFiles.every((f) => String(f).includes('.'));
-  const dirEntries = unitFiles.filter((f) => !String(f).includes('.'));
-  const fileEntries = unitFiles.filter((f) => String(f).includes('.'));
+  const allFiles = unitFiles.length > 0 && unitFiles.every((f) => f.includes('.'));
+  const dirEntries = unitFiles.filter((f) => !f.includes('.'));
+  const fileEntries = unitFiles.filter((f) => f.includes('.'));
 
   if (fileEntries.length === 0 && dirEntries.length > 0) {
     const hasMatchingDiscovered = discoveredFiles.some((discovered) =>
-      dirEntries.some((dir) => discovered.includes(String(dir))),
+      dirEntries.some((dir) => discovered.includes(dir)),
     );
     if (!hasMatchingDiscovered) {
       return projectResultContract.parse({
@@ -173,7 +173,7 @@ export const checkRunUnitBroker = async ({
   if (testNamePattern !== undefined) {
     finalArgs.push('--testNamePattern', testNamePattern);
   }
-  const command = String(binResolveBroker({ binName: bin, cwd }));
+  const command = binResolveBroker({ binName: bin, cwd });
 
   // `--detectOpenHandles` above only reports from the MAIN thread, so the worker branch would
   // otherwise report no leaks at all. `@dungeonmaster/testing`'s jest setup watches the timer
@@ -206,7 +206,7 @@ export const checkRunUnitBroker = async ({
     env: {
       ...(sourceConditionSupportedBroker({ cwd }) ? { NODE_OPTIONS: '--conditions=source' } : {}),
       ...(wantsTimerWatch
-        ? { [openHandleReportStatics.env.pathVar]: String(handleReportPath) }
+        ? { [openHandleReportStatics.env.pathVar]: handleReportPath }
         : {}),
     },
   }).catch((error: unknown) => {
@@ -216,7 +216,7 @@ export const checkRunUnitBroker = async ({
     return { exitCode: 1, output: '', signal: null, timedOut: false };
   });
 
-  const exitCode = result.exitCode;
+  const { exitCode } = result;
   const status = exitCode === 0 ? 'pass' : 'fail';
 
   // In file scope (--committed / --uncommitted / passthrough), jest's "no tests found" banner means none of the

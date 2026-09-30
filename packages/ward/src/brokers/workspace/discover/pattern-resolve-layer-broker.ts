@@ -26,7 +26,7 @@ export const patternResolveLayerBroker = async ({
     const baseDir = pattern.slice(0, pattern.length - workspaceGlobStatics.wildcardSuffixLength);
     const basePath = `${rootPath}/${baseDir}`;
 
-    const entries = await readdirEntries(String(basePath)).catch(() => null);
+    const entries = await readdirEntries(basePath).catch(() => null);
     if (entries === null) {
       return [];
     }

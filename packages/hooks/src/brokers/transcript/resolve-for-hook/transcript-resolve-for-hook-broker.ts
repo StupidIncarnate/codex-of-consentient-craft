@@ -27,7 +27,7 @@ export const transcriptResolveForHookBroker = ({
   // CLAUDE.md documents the same trap for SubagentStop). Returning null instead makes the caller
   // fail open rather than judge a sub-agent by a conversation it never wrote to.
   const found = agentTranscriptPathTransformer({ transcriptPath, agentId }).find((candidate) =>
-    existsSync(String(candidate)),
+    existsSync(candidate),
   );
   return found === undefined ? null : found;
 };

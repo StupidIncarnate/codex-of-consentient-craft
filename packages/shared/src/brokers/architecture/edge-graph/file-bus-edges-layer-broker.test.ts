@@ -3,9 +3,12 @@ import { fileBusEdgesLayerBrokerProxy } from './file-bus-edges-layer-broker.prox
 
 const PROJECT_ROOT = '/repo';
 
-const WRITER_FILE = '/repo/packages/orchestrator/src/brokers/quest/outbox-append/quest-outbox-append-broker.ts';
-const READER_FILE = '/repo/packages/orchestrator/src/brokers/quest/outbox-watch/quest-outbox-watch-broker.ts';
-const TEST_FILE = '/repo/packages/orchestrator/src/brokers/quest/outbox-append/quest-outbox-append-broker.test.ts';
+const WRITER_FILE =
+  '/repo/packages/orchestrator/src/brokers/quest/outbox-append/quest-outbox-append-broker.ts';
+const READER_FILE =
+  '/repo/packages/orchestrator/src/brokers/quest/outbox-watch/quest-outbox-watch-broker.ts';
+const TEST_FILE =
+  '/repo/packages/orchestrator/src/brokers/quest/outbox-append/quest-outbox-append-broker.test.ts';
 
 const PROMISES_IMPORT = "import { appendFile } from '#gateway/node/fs__promises';";
 const TAIL_IMPORT = "import { tailFile } from '#gateway/node/fs';";
@@ -19,18 +22,18 @@ describe('fileBusEdgesLayerBroker', () => {
           {
             path: WRITER_FILE,
             source: [
-                PROMISES_IMPORT,
-                'const outboxFilePath = join(homePath, locationsStatics.dungeonmasterHome.eventOutbox);',
-                'await appendFile(outboxFilePath, line);',
-              ].join('\n'),
+              PROMISES_IMPORT,
+              'const outboxFilePath = join(homePath, locationsStatics.dungeonmasterHome.eventOutbox);',
+              'await appendFile(outboxFilePath, line);',
+            ].join('\n'),
           },
           {
             path: READER_FILE,
             source: [
-                TAIL_IMPORT,
-                'const outboxPath = join(homePath, locationsStatics.dungeonmasterHome.eventOutbox);',
-                "tailFile({ path: outboxPath, startPosition: 'end', onLine });",
-              ].join('\n'),
+              TAIL_IMPORT,
+              'const outboxPath = join(homePath, locationsStatics.dungeonmasterHome.eventOutbox);',
+              "tailFile({ path: outboxPath, startPosition: 'end', onLine });",
+            ].join('\n'),
           },
         ],
       });
@@ -77,7 +80,8 @@ describe('fileBusEdgesLayerBroker', () => {
 
   describe('several writers', () => {
     it('VALID: {two writers, one reader on the same path} => one paired edge per writer', () => {
-      const otherWriter = '/repo/packages/hydration-recipes/src/brokers/quest/persist-direct/persist.ts';
+      const otherWriter =
+        '/repo/packages/hydration-recipes/src/brokers/quest/persist-direct/persist.ts';
       const proxy = fileBusEdgesLayerBrokerProxy();
       proxy.setup({
         sourceFiles: [
@@ -123,11 +127,11 @@ describe('fileBusEdgesLayerBroker', () => {
           {
             path: READER_FILE,
             source: [
-                PROMISES_IMPORT,
-                TAIL_IMPORT,
-                "await appendFile('/data/bus.jsonl', '');",
-                "tailFile({ path: '/data/bus.jsonl', onLine });",
-              ].join('\n'),
+              PROMISES_IMPORT,
+              TAIL_IMPORT,
+              "await appendFile('/data/bus.jsonl', '');",
+              "tailFile({ path: '/data/bus.jsonl', onLine });",
+            ].join('\n'),
           },
           {
             path: WRITER_FILE,
@@ -155,11 +159,11 @@ describe('fileBusEdgesLayerBroker', () => {
           {
             path: READER_FILE,
             source: [
-                PROMISES_IMPORT,
-                TAIL_IMPORT,
-                "await appendFile('/data/bus.jsonl', '');",
-                "tailFile({ path: '/data/bus.jsonl', onLine });",
-              ].join('\n'),
+              PROMISES_IMPORT,
+              TAIL_IMPORT,
+              "await appendFile('/data/bus.jsonl', '');",
+              "tailFile({ path: '/data/bus.jsonl', onLine });",
+            ].join('\n'),
           },
         ],
       });
@@ -207,7 +211,8 @@ describe('fileBusEdgesLayerBroker', () => {
         sourceFiles: [
           {
             path: WRITER_FILE,
-            source: "import { ensureDir } from '#gateway/node/fs__promises';\nawait ensureDir('/data/dir');",
+            source:
+              "import { ensureDir } from '#gateway/node/fs__promises';\nawait ensureDir('/data/dir');",
           },
         ],
       });

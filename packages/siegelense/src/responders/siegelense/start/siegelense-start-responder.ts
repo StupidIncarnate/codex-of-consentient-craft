@@ -42,7 +42,6 @@
 import { stdout } from '#gateway/node/process';
 import type { Quest, Guild } from '@dungeonmaster/shared/contracts';
 
-
 import { instanceStartBroker } from '../../../brokers/instance/start/instance-start-broker';
 import { questOwningGuildFindBroker } from '../../../brokers/quest/owning-guild-find/quest-owning-guild-find-broker';
 import { recipesReadBroker } from '../../../brokers/recipes/read/recipes-read-broker';

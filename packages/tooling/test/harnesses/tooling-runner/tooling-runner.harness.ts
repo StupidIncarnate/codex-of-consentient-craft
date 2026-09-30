@@ -9,7 +9,6 @@
 import * as path from '#gateway/node/path';
 import { execSync } from '#gateway/node/child_process';
 
-
 import { cwd } from '#gateway/node/process';
 
 interface RunResult {
@@ -42,7 +41,7 @@ export const toolingRunnerHarness = (): {
   entryPath: string;
 } => {
   const runStartup = ({ args }: { args: readonly string[] }): RunResult => {
-    const command = `npx tsx ${String(ENTRY_PATH)} ${args.join(' ')}`;
+    const command = `npx tsx ${ENTRY_PATH} ${args.join(' ')}`;
 
     try {
       const stdout = execSync(command, {

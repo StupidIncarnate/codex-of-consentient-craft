@@ -45,28 +45,63 @@ import { siegeInstanceContract } from '@dungeonmaster/shared/contracts';
 import { repoLocalPathContract } from '../repo-local-path/repo-local-path-contract';
 import { seedResultContract } from '../seed-result/seed-result-contract';
 
-export const instanceManifestContract = z.object({
-  instanceId: siegeInstanceContract.shape.id,
-  specName: z.string().min(1).brand<'InstanceManifestSpecName'>(),
-  baseUrl: z.string().brand<'InstanceManifestBaseUrl'>().nullable(),
-  url: z.string().brand<'InstanceManifestUrl'>().optional(),
-  apiUrl: z.string().brand<'InstanceManifestApiUrl'>().optional(),
-  home: z.string().min(1).refine((path) => { if (path.startsWith('/')) { return true; } if (/^[A-Za-z]:\\/u.test(path)) { return true; } return false; }, { message: 'Path must be absolute (start with / or C:\\ on Windows)', },).brand<'InstanceManifestHome'>(),
-  evidence: repoLocalPathContract,
-  paths: z
-    .object({
-      home: z.string().min(1).refine((path) => { if (path.startsWith('/')) { return true; } if (/^[A-Za-z]:\\/u.test(path)) { return true; } return false; }, { message: 'Path must be absolute (start with / or C:\\ on Windows)', },).brand<'InstanceManifestPathsHome'>(),
-      evidenceDir: z.string().brand<'InstanceManifestPathsEvidenceDir'>(),
-    }).brand<'InstanceManifestPaths'>()
-    .optional(),
-  logs: z.object({
-    api: repoLocalPathContract,
-    web: repoLocalPathContract,
-  }).brand<'InstanceManifestLogs'>(),
-  seeded: seedResultContract.nullable(),
-  queuedMs: z.number().int().nonnegative().brand<'InstanceManifestQueuedMs'>(),
-  aheadOfMe: z.number().int().nonnegative().brand<'InstanceManifestAheadOfMe'>(),
-  bootMs: z.number().int().nonnegative().brand<'InstanceManifestBootMs'>(),
-}).brand<'InstanceManifest'>();
+export const instanceManifestContract = z
+  .object({
+    instanceId: siegeInstanceContract.shape.id,
+    specName: z.string().min(1).brand<'InstanceManifestSpecName'>(),
+    baseUrl: z.string().brand<'InstanceManifestBaseUrl'>().nullable(),
+    url: z.string().brand<'InstanceManifestUrl'>().optional(),
+    apiUrl: z.string().brand<'InstanceManifestApiUrl'>().optional(),
+    home: z
+      .string()
+      .min(1)
+      .refine(
+        (path) => {
+          if (path.startsWith('/')) {
+            return true;
+          }
+          if (/^[A-Za-z]:\\/u.test(path)) {
+            return true;
+          }
+          return false;
+        },
+        { message: 'Path must be absolute (start with / or C:\\ on Windows)' },
+      )
+      .brand<'InstanceManifestHome'>(),
+    evidence: repoLocalPathContract,
+    paths: z
+      .object({
+        home: z
+          .string()
+          .min(1)
+          .refine(
+            (path) => {
+              if (path.startsWith('/')) {
+                return true;
+              }
+              if (/^[A-Za-z]:\\/u.test(path)) {
+                return true;
+              }
+              return false;
+            },
+            { message: 'Path must be absolute (start with / or C:\\ on Windows)' },
+          )
+          .brand<'InstanceManifestPathsHome'>(),
+        evidenceDir: z.string().brand<'InstanceManifestPathsEvidenceDir'>(),
+      })
+      .brand<'InstanceManifestPaths'>()
+      .optional(),
+    logs: z
+      .object({
+        api: repoLocalPathContract,
+        web: repoLocalPathContract,
+      })
+      .brand<'InstanceManifestLogs'>(),
+    seeded: seedResultContract.nullable(),
+    queuedMs: z.number().int().nonnegative().brand<'InstanceManifestQueuedMs'>(),
+    aheadOfMe: z.number().int().nonnegative().brand<'InstanceManifestAheadOfMe'>(),
+    bootMs: z.number().int().nonnegative().brand<'InstanceManifestBootMs'>(),
+  })
+  .brand<'InstanceManifest'>();
 
 export type InstanceManifest = z.infer<typeof instanceManifestContract>;

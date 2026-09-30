@@ -48,10 +48,10 @@ export const webBundleResponseBroker = async ({
   // route, never a read outside dist.
   const isRootStatic = webBundleRootStaticPathsStatics.paths.some((path) => path === pathname);
   const isStatic = (pathname.startsWith('/assets/') || isRootStatic) && !pathname.includes('..');
-  const relativePath = (isStatic ? pathname : INDEX_HTML_PATH);
+  const relativePath = isStatic ? pathname : INDEX_HTML_PATH;
 
   const filepath = join(distPath, relativePath);
-  const body = (await readFile(filepath));
+  const body = await readFile(filepath);
 
   return {
     body,

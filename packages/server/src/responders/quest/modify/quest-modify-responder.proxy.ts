@@ -11,12 +11,22 @@ export const QuestModifyResponderProxy = (): {
   const orchestrator = StartOrchestratorProxy();
 
   return {
-    setupModifyQuest: ({ questId }: { questId: Quest['id'] }): { expectedData: { success: true } } => {
+    setupModifyQuest: ({
+      questId,
+    }: {
+      questId: Quest['id'];
+    }): { expectedData: { success: true } } => {
       const result = { success: true as const };
       orchestrator.modifyQuestReturns({ questId, result: ModifyQuestResultStub(result) });
       return { expectedData: result };
     },
-    setupModifyQuestError: ({ questId, message }: { questId: Quest['id']; message: string }): void => {
+    setupModifyQuestError: ({
+      questId,
+      message,
+    }: {
+      questId: Quest['id'];
+      message: string;
+    }): void => {
       orchestrator.modifyQuestThrows({ questId, error: new Error(message) });
     },
     callResponder: QuestModifyResponder,

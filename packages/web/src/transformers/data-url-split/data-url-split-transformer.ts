@@ -14,15 +14,10 @@
 import { pastedImageUploadContract } from '@dungeonmaster/shared/contracts';
 import type { PastedImageUpload } from '@dungeonmaster/shared/contracts';
 
-
 const DATA_URL_PREFIX = 'data:';
 const BASE64_MARKER = ';base64,';
 
-export const dataUrlSplitTransformer = ({
-  dataUrl,
-}: {
-  dataUrl: string;
-}): PastedImageUpload => {
+export const dataUrlSplitTransformer = ({ dataUrl }: { dataUrl: string }): PastedImageUpload => {
   const markerIndex = dataUrl.indexOf(BASE64_MARKER);
   const mediaType = dataUrl.slice(DATA_URL_PREFIX.length, markerIndex);
   const dataBase64 = dataUrl.slice(markerIndex + BASE64_MARKER.length);

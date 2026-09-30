@@ -25,7 +25,7 @@ import { existsSync } from '#gateway/node/fs';
 const SOURCE_BARREL_SUFFIX = '/node_modules/@dungeonmaster/shared/statics.ts';
 
 export const sourceConditionSupportedBroker = ({ cwd }: { cwd: string }): boolean => {
-  const segments = String(cwd).split('/');
+  const segments = cwd.split('/');
 
   // Node resolves a bare specifier by walking `node_modules` up from the importer, and ward's cwd
   // is a package folder inside a workspace root — so the barrel usually sits several levels above.
@@ -33,7 +33,5 @@ export const sourceConditionSupportedBroker = ({ cwd }: { cwd: string }): boolea
     .map((index) => segments.slice(0, segments.length - index).join('/'))
     .filter((ancestor) => ancestor !== '');
 
-  return ancestors.some((ancestor) =>
-    existsSync(`${ancestor}${SOURCE_BARREL_SUFFIX}`),
-  );
+  return ancestors.some((ancestor) => existsSync(`${ancestor}${SOURCE_BARREL_SUFFIX}`));
 };

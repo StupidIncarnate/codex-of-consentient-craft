@@ -12,17 +12,12 @@
  * WHEN-TO-USE: eslint-plugin headline broker rendering the config presets section
  */
 
-
 // Matches the opening "configs: {" position; we then scan forward manually
 const CONFIGS_OPEN_PATTERN = /configs\s*:\s*\{/u;
 const TOP_LEVEL_KEY_PATTERN = /(?:^|,)\s*['"]?([\w-]+)['"]?\s*:/gu;
 
-export const eslintConfigPresetsExtractTransformer = ({
-  source,
-}: {
-  source: string;
-}): string[] => {
-  const sourceStr = String(source);
+export const eslintConfigPresetsExtractTransformer = ({ source }: { source: string }): string[] => {
+  const sourceStr = source;
 
   const openMatch = CONFIGS_OPEN_PATTERN.exec(sourceStr);
   if (openMatch === null) {

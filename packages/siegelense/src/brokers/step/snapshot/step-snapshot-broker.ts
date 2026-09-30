@@ -11,7 +11,6 @@
  * // Captures snapshot "clean" and returns 'snapshot "clean" recorded' as ContentText
  */
 
-
 import type { LaneSession } from '../../../contracts/lane-session/lane-session-contract';
 import { snapshotReadingRenderTransformer } from '../../../transformers/snapshot-reading-render/snapshot-reading-render-transformer';
 import { snapshotCaptureBroker } from '../../snapshot/capture/snapshot-capture-broker';

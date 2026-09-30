@@ -5,11 +5,7 @@ export const globDiscoverFilesBrokerProxy = (): {
   // The bundle hash globs the SAME patterns in several package directories at once, so the pattern
   // alone is not an address there — keying on it would answer one package's file list for every
   // package in the closure.
-  returnsForPatternInDir: (params: {
-    pattern: string;
-    cwd: string;
-    files: string[];
-  }) => void;
+  returnsForPatternInDir: (params: { pattern: string; cwd: string; files: string[] }) => void;
   // The broker calls globSync once PER discovery pattern — often a dozen calls per check type
   // (one per extension x root combination). A caller that only cares about the aggregated
   // discoveredFiles union, not which specific pattern produced which file, stages every pattern in
@@ -33,7 +29,7 @@ export const globDiscoverFilesBrokerProxy = (): {
       cwd: string;
       files: string[];
     }): void => {
-      glob.returns({ patterns: pattern, cwd: String(cwd), matches: files });
+      glob.returns({ patterns: pattern, cwd: cwd, matches: files });
     },
     returnsForPatterns: ({
       patterns,

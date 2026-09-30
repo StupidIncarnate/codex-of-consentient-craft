@@ -1,13 +1,9 @@
-
 import { worktreePopulateNodeModulesBrokerProxy } from '../populate-node-modules/worktree-populate-node-modules-broker.proxy';
 import { worktreeSeedDistBrokerProxy } from '../seed-dist/worktree-seed-dist-broker.proxy';
 import { worktreeVerifyLinksBrokerProxy } from '../verify-links/worktree-verify-links-broker.proxy';
 
 export const worktreeProvisionBrokerProxy = (): {
-  setupBareWorktree: (params: {
-    repoRoot: string;
-    worktreePath: string;
-  }) => void;
+  setupBareWorktree: (params: { repoRoot: string; worktreePath: string }) => void;
   setupUnbuiltSourcePackage: (params: {
     repoRoot: string;
     worktreePath: string;
@@ -71,11 +67,11 @@ export const worktreeProvisionBrokerProxy = (): {
     }): void => {
       verifyProxy.setupNodeModulesPresent({ worktreePath });
       verifyProxy.setupDirectoryEntries({
-        dirPath: `${String(worktreePath)}/node_modules`,
+        dirPath: `${worktreePath}/node_modules`,
         entries: [{ name: linkName, isDir: false, isSymlink: true }],
       });
       verifyProxy.setupReadlinkTarget({
-        linkPath: `${String(worktreePath)}/node_modules/${linkName}`,
+        linkPath: `${worktreePath}/node_modules/${linkName}`,
         target: absoluteTarget,
       });
     },

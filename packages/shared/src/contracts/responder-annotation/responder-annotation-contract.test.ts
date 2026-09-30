@@ -37,10 +37,7 @@ describe('responderAnnotationContract', () => {
     it('VALID: {suffix + childLines} => parses with both populated', () => {
       const result = ResponderAnnotationStub({
         suffix: '[GET /api/x]',
-        childLines: [
-          '← packages/web (a)',
-          '← packages/web (b)',
-        ],
+        childLines: ['← packages/web (a)', '← packages/web (b)'],
       });
 
       expect(result).toStrictEqual({

@@ -13,7 +13,6 @@
  * WHEN-NOT-TO-USE: When the input path is not a `-layer-` file (returns null instead of throwing — caller decides)
  */
 
-
 const LAYER_BASENAME_PATTERN = /^(.+)-[^-]+-layer-([^-]+)(\.[^.]+)$/u;
 
 export const layerFileParentResolveTransformer = ({

@@ -8,16 +8,11 @@
  * Logic mirrors statusline-command.sh:54-62 (`fmt_duration` bash function).
  */
 
-
 const MINUTE_SECONDS = 60;
 const HOUR_SECONDS = 3600;
 const DAY_SECONDS = 86_400;
 
-export const formatResetDurationTransformer = ({
-  seconds,
-}: {
-  seconds: number;
-}): string => {
+export const formatResetDurationTransformer = ({ seconds }: { seconds: number }): string => {
   if (seconds <= 0) {
     return '0m';
   }

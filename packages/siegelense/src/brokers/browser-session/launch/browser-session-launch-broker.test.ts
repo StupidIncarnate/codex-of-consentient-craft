@@ -1,4 +1,3 @@
-
 import { ClipboardPayloadStub } from '../../../contracts/clipboard-payload/clipboard-payload.stub';
 import { DomReadingStub } from '../../../contracts/dom-reading/dom-reading.stub';
 import { FocusedElementStub } from '../../../contracts/focused-element/focused-element.stub';

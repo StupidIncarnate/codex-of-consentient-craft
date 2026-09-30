@@ -20,5 +20,4 @@ export const locationsCitationQuestPlansPathFindBroker = ({
   worktreePath,
 }: {
   worktreePath: string;
-}): string =>
-  join(worktreePath, citationStatics.questPlans.dirName);
+}): string => join(worktreePath, citationStatics.questPlans.dirName);

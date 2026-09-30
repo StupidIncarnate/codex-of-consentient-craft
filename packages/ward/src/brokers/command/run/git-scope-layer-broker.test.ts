@@ -1,4 +1,3 @@
-
 import { WardConfigStub } from '../../../contracts/ward-config/ward-config.stub';
 
 import { gitScopeLayerBroker } from './git-scope-layer-broker';

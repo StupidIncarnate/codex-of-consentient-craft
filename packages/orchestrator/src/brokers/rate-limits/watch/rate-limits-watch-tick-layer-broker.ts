@@ -6,7 +6,10 @@
  * // Returns { outcome, lastJson } so the watch broker can thread state to the next tick without mutation.
  */
 
-import { rateLimitsSnapshotContract, type RateLimitsSnapshot } from '@dungeonmaster/shared/contracts';
+import {
+  rateLimitsSnapshotContract,
+  type RateLimitsSnapshot,
+} from '@dungeonmaster/shared/contracts';
 import { locationsRateLimitsSnapshotPathFindBroker } from '@dungeonmaster/shared/brokers';
 import { readFileIfExists } from '#gateway/node/fs__promises';
 

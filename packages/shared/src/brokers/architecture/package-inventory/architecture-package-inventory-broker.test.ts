@@ -27,9 +27,7 @@ describe('architecturePackageInventoryBroker', () => {
       });
 
       expect(result).toStrictEqual(
-        ['## web (6 files) — Web UI', '  contracts/ (6) — chat-entry/, quest-id/'].join(
-            '\n',
-          ),
+        ['## web (6 files) — Web UI', '  contracts/ (6) — chat-entry/, quest-id/'].join('\n'),
       );
     });
 
@@ -52,9 +50,7 @@ describe('architecturePackageInventoryBroker', () => {
         packageJsonPath: '/repo/packages/tools/package.json',
       });
 
-      expect(result).toStrictEqual(
-        ['## tools (3 files)', '  contracts/ (3) — config/'].join('\n'),
-      );
+      expect(result).toStrictEqual(['## tools (3 files)', '  contracts/ (3) — config/'].join('\n'));
     });
   });
 
@@ -71,9 +67,7 @@ describe('architecturePackageInventoryBroker', () => {
         packageJsonPath,
       });
 
-      expect(result).toStrictEqual(
-        ['## web (0 files)', '  (empty)'].join('\n'),
-      );
+      expect(result).toStrictEqual(['## web (0 files)', '  (empty)'].join('\n'));
     });
   });
 
@@ -102,10 +96,7 @@ describe('architecturePackageInventoryBroker', () => {
       });
 
       expect(result).toStrictEqual(
-        [
-            '## app (9 files)',
-            '  contracts/ (9) — chat-entry/, quest-id/, user-input/',
-          ].join('\n'),
+        ['## app (9 files)', '  contracts/ (9) — chat-entry/, quest-id/, user-input/'].join('\n'),
       );
     });
 
@@ -143,9 +134,9 @@ describe('architecturePackageInventoryBroker', () => {
 
       expect(result).toStrictEqual(
         [
-            '## app (12 files)',
-            '  brokers/ (12) — guild/ (create/, list/), quest/ (modify/, start/)',
-          ].join('\n'),
+          '## app (12 files)',
+          '  brokers/ (12) — guild/ (create/, list/), quest/ (modify/, start/)',
+        ].join('\n'),
       );
     });
 
@@ -208,11 +199,7 @@ describe('architecturePackageInventoryBroker', () => {
       });
 
       expect(result).toStrictEqual(
-        [
-            '## cli (6 files)',
-            '  bin/ (0)',
-            '  brokers/ (6) — guild/ (create/, list/)',
-          ].join('\n'),
+        ['## cli (6 files)', '  bin/ (0)', '  brokers/ (6) — guild/ (create/, list/)'].join('\n'),
       );
     });
 
@@ -299,9 +286,7 @@ describe('architecturePackageInventoryBroker', () => {
         packageJsonPath: '/repo/packages/app/package.json',
       });
 
-      expect(result).toStrictEqual(
-        ['## app (2 files)', '  guards/ (2)'].join('\n'),
-      );
+      expect(result).toStrictEqual(['## app (2 files)', '  guards/ (2)'].join('\n'));
     });
   });
 
@@ -330,9 +315,7 @@ describe('architecturePackageInventoryBroker', () => {
       });
 
       expect(result).toStrictEqual(
-        ['## zeta (6 files)', '  contracts/ (3) — user/', '  widgets/ (3) — app/'].join(
-            '\n',
-          ),
+        ['## zeta (6 files)', '  contracts/ (3) — user/', '  widgets/ (3) — app/'].join('\n'),
       );
     });
   });

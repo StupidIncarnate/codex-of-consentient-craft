@@ -17,12 +17,18 @@ import { z } from '#gateway/npm/zod';
 import { siegeRunContract } from '@dungeonmaster/shared/contracts';
 import { instanceLifecycleStatics } from '../../statics/instance-lifecycle/instance-lifecycle-statics';
 
-
-export const bufferEntryContract = z.object({
-  runId: siegeRunContract.shape.id.nullable(),
-  step: z.number().int().min(instanceLifecycleStatics.numbering.firstStep).brand<'BufferEntryStep'>().nullable(),
-  atMs: z.number().int().nonnegative().brand<'BufferEntryAtMs'>(),
-  text: z.string().brand<'BufferEntryText'>(),
-}).brand<'BufferEntry'>();
+export const bufferEntryContract = z
+  .object({
+    runId: siegeRunContract.shape.id.nullable(),
+    step: z
+      .number()
+      .int()
+      .min(instanceLifecycleStatics.numbering.firstStep)
+      .brand<'BufferEntryStep'>()
+      .nullable(),
+    atMs: z.number().int().nonnegative().brand<'BufferEntryAtMs'>(),
+    text: z.string().brand<'BufferEntryText'>(),
+  })
+  .brand<'BufferEntry'>();
 
 export type BufferEntry = z.infer<typeof bufferEntryContract>;

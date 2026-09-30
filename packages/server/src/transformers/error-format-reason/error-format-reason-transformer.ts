@@ -8,7 +8,6 @@
  * // Non-Error thrown value: String(error)
  */
 
-
 export const errorFormatReasonTransformer = ({ error }: { error: unknown }): string => {
   if (!(error instanceof Error)) {
     return String(error);

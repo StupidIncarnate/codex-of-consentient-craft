@@ -78,7 +78,7 @@ test.describe('Ward as an operation (advance on green, step-graph repair loop on
       firstWorkItemId: FLOW_WORK_ITEM_ID,
     });
 
-    await nav.navigateToQuest({ urlSlug, questId: questId });
+    await nav.navigateToQuest({ urlSlug, questId });
 
     const executionPanel = page.getByTestId('execution-panel-widget');
     await expect(executionPanel).toBeVisible({ timeout: PANEL_TIMEOUT });
@@ -103,7 +103,7 @@ test.describe('Ward as an operation (advance on green, step-graph repair loop on
     await expect(rows.filter({ hasText: 'Ward gate (full monorepo)' })).toHaveCount(1);
 
     await dispatch.playAndDrive({
-      questId: questId,
+      questId,
       script: [
         { role: 'flowrider', outcome: 'done' },
         { role: 'ward', outcome: 'green' },
@@ -115,7 +115,7 @@ test.describe('Ward as an operation (advance on green, step-graph repair loop on
     // edge only) and no spiritmender operation is spliced — the ledger ends at exactly the two
     // seeded rows.
     const finalQuest = await dispatch.waitForQuest({
-      questId: questId,
+      questId,
       timeoutMs: RELAY_TIMEOUT,
       predicate: ({ quest }) =>
         quest.status === 'complete' &&
@@ -193,7 +193,7 @@ test.describe('Ward as an operation (advance on green, step-graph repair loop on
       worktreePath: GUILD_PATH,
     });
 
-    await nav.navigateToQuest({ urlSlug, questId: questId });
+    await nav.navigateToQuest({ urlSlug, questId });
 
     const executionPanel = page.getByTestId('execution-panel-widget');
     await expect(executionPanel).toBeVisible({ timeout: PANEL_TIMEOUT });
@@ -216,7 +216,7 @@ test.describe('Ward as an operation (advance on green, step-graph repair loop on
     //   repair    -> done   (routes `done` to `commit`, which routes `done` back to `gate`)
     //   gate#2    -> green
     await dispatch.playAndDrive({
-      questId: questId,
+      questId,
       script: [
         { role: 'flowrider', outcome: 'done' },
         { role: 'ward', outcome: 'red' },
@@ -228,7 +228,7 @@ test.describe('Ward as an operation (advance on green, step-graph repair loop on
     // The recovery left the LEDGER untouched: still exactly the two seeded operation items, both
     // complete. Everything the red produced is a work item on the ward scope.
     const finalQuest = await dispatch.waitForQuest({
-      questId: questId,
+      questId,
       timeoutMs: RELAY_TIMEOUT,
       predicate: ({ quest }) =>
         quest.status === 'complete' &&

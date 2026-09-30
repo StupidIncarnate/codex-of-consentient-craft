@@ -21,11 +21,17 @@ import { pieceIdContract } from '@dungeonmaster/shared/contracts';
 import { z } from '#gateway/npm/zod';
 import { workPlanValidationCheckStatics } from '../../statics/work-plan-validation-check/work-plan-validation-check-statics';
 
-
-export const workPlanValidationFailureContract = z.object({
-  pieceId: pieceIdContract,
-  check: z.number().int().min(1).max(workPlanValidationCheckStatics.limits.max).brand<'WorkPlanValidationFailureCheck'>(),
-  message: z.string().min(1).brand<'WorkPlanValidationFailureMessage'>(),
-}).brand<'WorkPlanValidationFailure'>();
+export const workPlanValidationFailureContract = z
+  .object({
+    pieceId: pieceIdContract,
+    check: z
+      .number()
+      .int()
+      .min(1)
+      .max(workPlanValidationCheckStatics.limits.max)
+      .brand<'WorkPlanValidationFailureCheck'>(),
+    message: z.string().min(1).brand<'WorkPlanValidationFailureMessage'>(),
+  })
+  .brand<'WorkPlanValidationFailure'>();
 
 export type WorkPlanValidationFailure = z.infer<typeof workPlanValidationFailureContract>;

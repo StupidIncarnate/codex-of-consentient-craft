@@ -101,9 +101,7 @@ export const HumanCheckRowLayerWidget = ({
                     setSubmitting(false);
                   })
                   .catch((thrown: unknown) => {
-                    setError(
-                      (thrown instanceof Error ? thrown.message : String(thrown)),
-                    );
+                    setError(thrown instanceof Error ? thrown.message : String(thrown));
                     setSubmitting(false);
                   });
               }}
@@ -125,9 +123,7 @@ export const HumanCheckRowLayerWidget = ({
                     setSubmitting(false);
                   })
                   .catch((thrown: unknown) => {
-                    setError(
-                      (thrown instanceof Error ? thrown.message : String(thrown)),
-                    );
+                    setError(thrown instanceof Error ? thrown.message : String(thrown));
                     setSubmitting(false);
                   });
               }}

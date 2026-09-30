@@ -168,9 +168,7 @@ describe('resultToDetailTransformer', () => {
 
       const result = resultToDetailTransformer({ wardResult, filePath: suitePath });
 
-      expect(result).toBe(
-        `src/app.test.tsx\n  FAIL  "should render"\n    ${fullMessage}`,
-      );
+      expect(result).toBe(`src/app.test.tsx\n  FAIL  "should render"\n    ${fullMessage}`);
     });
 
     it('VALID: {wardResult: test failure with framework lines in message} => shows full message including framework lines', () => {
@@ -205,9 +203,7 @@ describe('resultToDetailTransformer', () => {
 
       const result = resultToDetailTransformer({ wardResult, filePath: suitePath });
 
-      expect(result).toBe(
-        `src/app.test.tsx\n  FAIL  "should render"\n    ${message}`,
-      );
+      expect(result).toBe(`src/app.test.tsx\n  FAIL  "should render"\n    ${message}`);
     });
   });
 
@@ -239,9 +235,7 @@ describe('resultToDetailTransformer', () => {
 
       const result = resultToDetailTransformer({ wardResult, filePath });
 
-      expect(result).toBe(
-        'src/broken.ts\n  lint\n    Parsing error: Unexpected token',
-      );
+      expect(result).toBe('src/broken.ts\n  lint\n    Parsing error: Unexpected token');
     });
   });
 
@@ -500,14 +494,14 @@ describe('resultToDetailTransformer', () => {
 
       expect(result).toBe(
         [
-            'packages/web/src/flows/quest-chat/quest.e2e.ts',
-            '  FAIL  "Quest › fails"',
-            '    Error: timeout exceeded',
-            '    at /project/packages/web/src/flows/quest-chat/quest.e2e.ts:25:10',
-            '',
-            'not run (1 files):',
-            '  packages/web/src/flows/app/visual.e2e.ts',
-          ].join('\n'),
+          'packages/web/src/flows/quest-chat/quest.e2e.ts',
+          '  FAIL  "Quest › fails"',
+          '    Error: timeout exceeded',
+          '    at /project/packages/web/src/flows/quest-chat/quest.e2e.ts:25:10',
+          '',
+          'not run (1 files):',
+          '  packages/web/src/flows/app/visual.e2e.ts',
+        ].join('\n'),
       );
     });
 
@@ -531,9 +525,7 @@ describe('resultToDetailTransformer', () => {
 
       const result = resultToDetailTransformer({ wardResult });
 
-      expect(result).toBe(
-        'ward\n  (crash) e2e\n    no output captured',
-      );
+      expect(result).toBe('ward\n  (crash) e2e\n    no output captured');
     });
   });
 
@@ -612,11 +604,11 @@ describe('resultToDetailTransformer', () => {
 
       expect(result).toBe(
         [
-            'ward',
-            '  unit  PASS  (1 files, 2 tests)',
-            '    ✓ src/foo.test.ts › VALID: {a} => b (15ms)',
-            '    ✓ src/foo.test.ts › VALID: {c} => d (7ms)',
-          ].join('\n'),
+          'ward',
+          '  unit  PASS  (1 files, 2 tests)',
+          '    ✓ src/foo.test.ts › VALID: {a} => b (15ms)',
+          '    ✓ src/foo.test.ts › VALID: {c} => d (7ms)',
+        ].join('\n'),
       );
     });
 
@@ -675,11 +667,11 @@ describe('resultToDetailTransformer', () => {
 
       expect(result).toBe(
         [
-            'testing',
-            '  e2e  PASS  (1 files, 2 tests, 7.0s)',
-            '    ✓ packages/web/src/flows/app/echo-badge.e2e.ts › Echo Badge › renders (6000ms)',
-            '    ✓ packages/web/src/flows/app/echo-badge.e2e.ts › Echo Badge › does something else (1000ms)',
-          ].join('\n'),
+          'testing',
+          '  e2e  PASS  (1 files, 2 tests, 7.0s)',
+          '    ✓ packages/web/src/flows/app/echo-badge.e2e.ts › Echo Badge › renders (6000ms)',
+          '    ✓ packages/web/src/flows/app/echo-badge.e2e.ts › Echo Badge › does something else (1000ms)',
+        ].join('\n'),
       );
     });
 
@@ -715,9 +707,7 @@ describe('resultToDetailTransformer', () => {
 
       const result = resultToDetailTransformer({ wardResult });
 
-      expect(result).toBe(
-        'src/app.test.ts\n  FAIL  "fails"\n    boom',
-      );
+      expect(result).toBe('src/app.test.ts\n  FAIL  "fails"\n    boom');
     });
   });
 
@@ -747,9 +737,7 @@ describe('resultToDetailTransformer', () => {
 
       const result = resultToDetailTransformer({ wardResult, filePath });
 
-      expect(result).toBe(
-        'src/foo.test.ts\n  PASS  "VALID: {a} => b" (15ms)',
-      );
+      expect(result).toBe('src/foo.test.ts\n  PASS  "VALID: {a} => b" (15ms)');
     });
 
     it('VALID: {passingTests in different file} => file path only', () => {
@@ -826,11 +814,7 @@ describe('resultToDetailTransformer', () => {
       });
 
       expect(result).toBe(
-        [
-            'packages/ward/src/mine.test.ts',
-            '  FAIL  "mine › fails"',
-            '    Error: boom',
-          ].join('\n'),
+        ['packages/ward/src/mine.test.ts', '  FAIL  "mine › fails"', '    Error: boom'].join('\n'),
       );
     });
 
@@ -842,14 +826,14 @@ describe('resultToDetailTransformer', () => {
 
       expect(result).toBe(
         [
-            'packages/ward/src/mine.test.ts',
-            '  FAIL  "mine › fails"',
-            '    Error: boom',
-            '',
-            'not run (2 files):',
-            '  src/transformers/a/a-transformer.test.ts',
-            '  src/transformers/b/b-transformer.test.ts',
-          ].join('\n'),
+          'packages/ward/src/mine.test.ts',
+          '  FAIL  "mine › fails"',
+          '    Error: boom',
+          '',
+          'not run (2 files):',
+          '  src/transformers/a/a-transformer.test.ts',
+          '  src/transformers/b/b-transformer.test.ts',
+        ].join('\n'),
       );
     });
 
@@ -863,14 +847,14 @@ describe('resultToDetailTransformer', () => {
 
       expect(result).toBe(
         [
-            'packages/ward/src/mine.test.ts',
-            '  FAIL  "mine › fails"',
-            '    Error: boom',
-            '',
-            'not run (2 files):',
-            '  src/transformers/a/a-transformer.test.ts',
-            '  src/transformers/b/b-transformer.test.ts',
-          ].join('\n'),
+          'packages/ward/src/mine.test.ts',
+          '  FAIL  "mine › fails"',
+          '    Error: boom',
+          '',
+          'not run (2 files):',
+          '  src/transformers/a/a-transformer.test.ts',
+          '  src/transformers/b/b-transformer.test.ts',
+        ].join('\n'),
       );
     });
   });

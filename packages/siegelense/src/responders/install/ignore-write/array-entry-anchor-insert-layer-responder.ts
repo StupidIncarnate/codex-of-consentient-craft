@@ -76,13 +76,10 @@ export const ArrayEntryAnchorInsertLayerResponder = ({
 
   if (anchorMatch === undefined || alreadyPresent) {
     return arrayEntryAnchorInsertLayerResultContract.parse({
-      content: content,
+      content,
       inserted: false,
       alreadyPresent,
-      matchedEntryValue:
-        presentMatch === undefined
-          ? undefined
-          : presentMatch.entry.value,
+      matchedEntryValue: presentMatch === undefined ? undefined : presentMatch.entry.value,
     });
   }
 

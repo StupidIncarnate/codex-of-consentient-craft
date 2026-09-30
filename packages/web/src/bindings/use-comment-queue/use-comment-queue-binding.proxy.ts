@@ -38,7 +38,8 @@ export const useCommentQueueBindingProxy = (): {
     },
     queuedAt: (): QueuedEntry['createdAt'] =>
       CommentQueueEntryStub({ createdAt: DEFAULT_QUEUED_AT }).createdAt,
-    hasStoredQueue: ({ questId }: { questId: Quest['id'] }): boolean => stateProxy.hasKey({ questId }),
+    hasStoredQueue: ({ questId }: { questId: Quest['id'] }): boolean =>
+      stateProxy.hasKey({ questId }),
     getStoredValue: ({ questId }: { questId: Quest['id'] }): unknown =>
       stateProxy.readRawValue({ questId }),
   };

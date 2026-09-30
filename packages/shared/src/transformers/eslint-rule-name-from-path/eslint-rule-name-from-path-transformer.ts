@@ -13,12 +13,8 @@
 
 import { projectMapHeadlineEslintPluginStatics } from '../../statics/project-map-headline-eslint-plugin/project-map-headline-eslint-plugin-statics';
 
-export const eslintRuleNameFromPathTransformer = ({
-  filePath,
-}: {
-  filePath: string;
-}): string => {
-  const parts = String(filePath).split('/');
+export const eslintRuleNameFromPathTransformer = ({ filePath }: { filePath: string }): string => {
+  const parts = filePath.split('/');
   // Parent directory name is the rule domain folder (e.g. 'ban-primitives')
   const parentDir =
     parts[parts.length - projectMapHeadlineEslintPluginStatics.ruleNameParentDirDepth] ?? '';

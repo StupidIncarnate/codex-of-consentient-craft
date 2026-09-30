@@ -22,7 +22,6 @@
  * // Returns { reaped: ReapedInstance, portsReleased: readonly NetworkPort[] }
  */
 
-
 import { staleReapLayerResultContract } from '../../../contracts/stale-reap-layer-result/stale-reap-layer-result-contract';
 import type { StaleReapLayerResult } from '../../../contracts/stale-reap-layer-result/stale-reap-layer-result-contract';
 import { reapedInstanceContract } from '../../../contracts/reaped-instance/reaped-instance-contract';
@@ -45,7 +44,7 @@ export const staleReapLayerBroker = async ({
   });
 
   const staleFor = elapsedRenderTransformer({
-    elapsedMs: (nowMs - staleSinceMs),
+    elapsedMs: nowMs - staleSinceMs,
   });
 
   return staleReapLayerResultContract.parse({

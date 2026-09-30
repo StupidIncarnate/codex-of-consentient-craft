@@ -10,7 +10,6 @@
  * const isPresent = rootCheck.toResult({ raw });
  */
 
-
 import { healthStatics } from '../../statics/health/health-statics';
 
 export const rootCheckTransformer = (): {

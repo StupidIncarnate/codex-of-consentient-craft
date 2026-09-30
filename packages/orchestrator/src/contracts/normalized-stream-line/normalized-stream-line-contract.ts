@@ -30,7 +30,8 @@ const _contentItem = z
     isError: z.boolean().optional(),
     source: z.string().brand<'ContentItemSource'>().optional(),
     agentId: z.string().brand<'ContentItemAgentId'>().optional(),
-  }).brand<'ContentItem'>()
+  })
+  .brand<'ContentItem'>()
   .loose();
 
 // Optional fields use `.nullish()` (= nullable + optional) because Claude CLI emits
@@ -61,7 +62,8 @@ const message = z
       .nullish(),
     stopReason: z.string().brand<'MessageStopReason'>().nullish(),
     model: z.string().brand<'MessageModel'>().nullish(),
-  }).brand<'Message'>()
+  })
+  .brand<'Message'>()
   .loose();
 
 const taskNotification = z
@@ -89,7 +91,8 @@ const taskNotification = z
       ])
       .optional(),
     toolUseId: z.string().brand<'TaskNotificationToolUseId'>().optional(),
-  }).brand<'TaskNotification'>()
+  })
+  .brand<'TaskNotification'>()
   .loose();
 
 // Claude CLI emits `toolUseResult` in three distinct shapes — Task / sub-agent object form
@@ -104,7 +107,8 @@ const toolUseResult = z.union([
       // Present on a BLOCKING Task/Agent completion only — the CLI's own measurement of that
       // sub-agent run. An async launch's result object carries no such field.
       totalDurationMs: z.number().brand<'ToolUseResultTotalDurationMs'>().nullish(),
-    }).brand<'ToolUseResult'>()
+    })
+    .brand<'ToolUseResult'>()
     .loose(),
   z.array(z.json()),
   z.string().brand<'NormalizedToolUseResultErrorMessage'>(),
@@ -128,7 +132,8 @@ export const normalizedStreamLineContract = z
     timestamp: z.string().brand<'NormalizedStreamLineTimestamp'>().optional(),
     uuid: z.string().brand<'NormalizedStreamLineUuid'>().optional(),
   })
-  .loose().brand<'NormalizedStreamLine'>();
+  .loose()
+  .brand<'NormalizedStreamLine'>();
 
 export type NormalizedStreamLine = z.infer<typeof normalizedStreamLineContract>;
 export type NormalizedStreamLineContentItem = z.infer<typeof _contentItem>;

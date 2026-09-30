@@ -10,7 +10,6 @@
  * WHEN-NOT-TO-USE: In full runs, where a missing-tests banner signals a real misconfiguration to surface
  */
 
-
 import { stripAnsiCodesTransformer } from '../../transformers/strip-ansi-codes/strip-ansi-codes-transformer';
 
 export const isNoTestsFoundGuard = ({ output }: { output?: string }): boolean => {
@@ -27,5 +26,5 @@ export const isNoTestsFoundGuard = ({ output }: { output?: string }): boolean =>
   // one case this guard exists to tell apart.
   const clean = stripAnsiCodesTransformer({ text: output });
 
-  return /^No tests found/mu.test(String(clean));
+  return /^No tests found/mu.test(clean);
 };

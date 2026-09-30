@@ -28,9 +28,7 @@ describe('locationsNodeModulesPathFindBroker', () => {
         rootPath: '/repo/worktrees/add-auth-7bc217a1',
       });
 
-      expect(result).toBe(
-        '/repo/worktrees/add-auth-7bc217a1/node_modules',
-      );
+      expect(result).toBe('/repo/worktrees/add-auth-7bc217a1/node_modules');
     });
   });
 });

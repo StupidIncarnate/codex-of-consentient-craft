@@ -60,13 +60,7 @@ export const configResolveBrokerProxy = (): {
     },
     // Real shape configFileLoadBroker throws for invalid JSON, a failed zod parse, or any other
     // read failure — see brokers/config-file/load/config-file-load-broker.ts's catch-all wrap.
-    setupConfigMalformed: ({
-      filePath,
-      message,
-    }: {
-      filePath: string;
-      message: string;
-    }): void => {
+    setupConfigMalformed: ({ filePath, message }: { filePath: string; message: string }): void => {
       handle
         .calledWith([{ filePath }])
         .rejects(new InvalidConfigError({ message, configPath: filePath }));

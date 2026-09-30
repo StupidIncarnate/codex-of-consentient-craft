@@ -10,12 +10,8 @@ describe('parseImplementationImportsTransformer', () => {
     const result = parseImplementationImportsTransformer({ content });
 
     expect(result.size).toBe(2);
-    expect(result.get('httpBroker')).toStrictEqual(
-      '../../brokers/http/http-broker',
-    );
-    expect(result.get('dbBroker')).toStrictEqual(
-      '../../brokers/db/db-broker',
-    );
+    expect(result.get('httpBroker')).toStrictEqual('../../brokers/http/http-broker');
+    expect(result.get('dbBroker')).toStrictEqual('../../brokers/db/db-broker');
   });
 
   it('VALID: {content: default import from broker} => parses default import', () => {
@@ -26,9 +22,7 @@ describe('parseImplementationImportsTransformer', () => {
     const result = parseImplementationImportsTransformer({ content });
 
     expect(result.size).toBe(1);
-    expect(result.get('httpBroker')).toStrictEqual(
-      '../../brokers/http/http-broker',
-    );
+    expect(result.get('httpBroker')).toStrictEqual('../../brokers/http/http-broker');
   });
 
   it('EDGE: {content: npm package + broker import} => skips npm package import', () => {
@@ -40,9 +34,7 @@ describe('parseImplementationImportsTransformer', () => {
     const result = parseImplementationImportsTransformer({ content });
 
     expect(result.size).toBe(1);
-    expect(result.get('httpBroker')).toStrictEqual(
-      '../../brokers/http/http-broker',
-    );
+    expect(result.get('httpBroker')).toStrictEqual('../../brokers/http/http-broker');
   });
 
   it('EDGE: {content: contract import + broker import} => skips contract import', () => {
@@ -54,9 +46,7 @@ describe('parseImplementationImportsTransformer', () => {
     const result = parseImplementationImportsTransformer({ content });
 
     expect(result.size).toBe(1);
-    expect(result.get('httpBroker')).toStrictEqual(
-      '../../brokers/http/http-broker',
-    );
+    expect(result.get('httpBroker')).toStrictEqual('../../brokers/http/http-broker');
   });
 
   it('EDGE: {content: statics import + broker import} => skips statics import', () => {
@@ -68,9 +58,7 @@ describe('parseImplementationImportsTransformer', () => {
     const result = parseImplementationImportsTransformer({ content });
 
     expect(result.size).toBe(1);
-    expect(result.get('httpBroker')).toStrictEqual(
-      '../../brokers/http/http-broker',
-    );
+    expect(result.get('httpBroker')).toStrictEqual('../../brokers/http/http-broker');
   });
 
   it('EDGE: {content: stub import + broker import} => skips stub import', () => {
@@ -82,9 +70,7 @@ describe('parseImplementationImportsTransformer', () => {
     const result = parseImplementationImportsTransformer({ content });
 
     expect(result.size).toBe(1);
-    expect(result.get('httpBroker')).toStrictEqual(
-      '../../brokers/http/http-broker',
-    );
+    expect(result.get('httpBroker')).toStrictEqual('../../brokers/http/http-broker');
   });
 
   it('EDGE: {content: .test import + broker import} => skips multi-dot files except .proxy', () => {
@@ -96,9 +82,7 @@ describe('parseImplementationImportsTransformer', () => {
     const result = parseImplementationImportsTransformer({ content });
 
     expect(result.size).toBe(1);
-    expect(result.get('httpBroker')).toStrictEqual(
-      '../../brokers/http/http-broker',
-    );
+    expect(result.get('httpBroker')).toStrictEqual('../../brokers/http/http-broker');
   });
 
   it('VALID: {content: .proxy import} => includes .proxy imports', () => {
@@ -109,9 +93,7 @@ describe('parseImplementationImportsTransformer', () => {
     const result = parseImplementationImportsTransformer({ content });
 
     expect(result.size).toBe(1);
-    expect(result.get('httpBrokerProxy')).toStrictEqual(
-      '../../brokers/http/http-broker.proxy',
-    );
+    expect(result.get('httpBrokerProxy')).toStrictEqual('../../brokers/http/http-broker.proxy');
   });
 
   it('VALID: {content: .tsx extension import} => includes tsx imports', () => {
@@ -122,9 +104,7 @@ describe('parseImplementationImportsTransformer', () => {
     const result = parseImplementationImportsTransformer({ content });
 
     expect(result.size).toBe(1);
-    expect(result.get('inkBoxBroker')).toStrictEqual(
-      '../../brokers/ink/box/ink-box-broker.tsx',
-    );
+    expect(result.get('inkBoxBroker')).toStrictEqual('../../brokers/ink/box/ink-box-broker.tsx');
   });
 
   it('VALID: {content: .jsx extension import} => includes jsx imports', () => {
@@ -135,9 +115,7 @@ describe('parseImplementationImportsTransformer', () => {
     const result = parseImplementationImportsTransformer({ content });
 
     expect(result.size).toBe(1);
-    expect(result.get('reactBroker')).toStrictEqual(
-      '../../brokers/react/react-broker.jsx',
-    );
+    expect(result.get('reactBroker')).toStrictEqual('../../brokers/react/react-broker.jsx');
   });
 
   it('EDGE: {content: transformer import + broker import} => skips non-proxy folders', () => {
@@ -149,9 +127,7 @@ describe('parseImplementationImportsTransformer', () => {
     const result = parseImplementationImportsTransformer({ content });
 
     expect(result.size).toBe(1);
-    expect(result.get('httpBroker')).toStrictEqual(
-      '../../brokers/http/http-broker',
-    );
+    expect(result.get('httpBroker')).toStrictEqual('../../brokers/http/http-broker');
   });
 
   it('EDGE: {content: commented imports + real import} => strips comments before parsing', () => {
@@ -164,9 +140,7 @@ describe('parseImplementationImportsTransformer', () => {
     const result = parseImplementationImportsTransformer({ content });
 
     expect(result.size).toBe(1);
-    expect(result.get('httpBroker')).toStrictEqual(
-      '../../brokers/http/http-broker',
-    );
+    expect(result.get('httpBroker')).toStrictEqual('../../brokers/http/http-broker');
   });
 
   it('VALID: {content: multiple named imports on same line} => parses all identifiers', () => {
@@ -177,12 +151,8 @@ describe('parseImplementationImportsTransformer', () => {
     const result = parseImplementationImportsTransformer({ content });
 
     expect(result.size).toBe(2);
-    expect(result.get('httpBroker')).toStrictEqual(
-      '../../brokers/data/data-broker',
-    );
-    expect(result.get('dbBroker')).toStrictEqual(
-      '../../brokers/data/data-broker',
-    );
+    expect(result.get('httpBroker')).toStrictEqual('../../brokers/data/data-broker');
+    expect(result.get('dbBroker')).toStrictEqual('../../brokers/data/data-broker');
   });
 
   it('EDGE: {content: import with "as" alias} => uses original identifier name', () => {
@@ -193,9 +163,7 @@ describe('parseImplementationImportsTransformer', () => {
     const result = parseImplementationImportsTransformer({ content });
 
     expect(result.size).toBe(1);
-    expect(result.get('httpBroker')).toStrictEqual(
-      '../../brokers/http/http-broker',
-    );
+    expect(result.get('httpBroker')).toStrictEqual('../../brokers/http/http-broker');
   });
 
   it('VALID: {content: mixed named import with per-name type prefix} => keeps the value, excludes the type', () => {
@@ -206,9 +174,7 @@ describe('parseImplementationImportsTransformer', () => {
     const result = parseImplementationImportsTransformer({ content });
 
     expect(result.size).toBe(1);
-    expect(result.get('walkBroker')).toStrictEqual(
-      '../../brokers/walk/walk-broker',
-    );
+    expect(result.get('walkBroker')).toStrictEqual('../../brokers/walk/walk-broker');
     expect(result.get('WalkMemo')).toBe(undefined);
   });
 
@@ -221,9 +187,7 @@ describe('parseImplementationImportsTransformer', () => {
     const result = parseImplementationImportsTransformer({ content });
 
     expect(result.size).toBe(1);
-    expect(result.get('httpBroker')).toStrictEqual(
-      '../../brokers/http/http-broker',
-    );
+    expect(result.get('httpBroker')).toStrictEqual('../../brokers/http/http-broker');
     expect(result.get('WalkMemo')).toBe(undefined);
   });
 
@@ -247,12 +211,8 @@ describe('parseImplementationImportsTransformer', () => {
     const result = parseImplementationImportsTransformer({ content });
 
     expect(result.size).toBe(2);
-    expect(result.get('userBroker')).toStrictEqual(
-      '@dungeonmaster/shared/brokers',
-    );
-    expect(result.get('httpBroker')).toStrictEqual(
-      '@dungeonmaster/shared/brokers',
-    );
+    expect(result.get('userBroker')).toStrictEqual('@dungeonmaster/shared/brokers');
+    expect(result.get('httpBroker')).toStrictEqual('@dungeonmaster/shared/brokers');
   });
 
   it('EDGE: {content: scoped package non-proxy subpath + proxy subpath} => skips non-proxy subpath', () => {
@@ -265,9 +225,7 @@ describe('parseImplementationImportsTransformer', () => {
     const result = parseImplementationImportsTransformer({ content });
 
     expect(result.size).toBe(1);
-    expect(result.get('httpBroker')).toStrictEqual(
-      '@dungeonmaster/shared/brokers',
-    );
+    expect(result.get('httpBroker')).toStrictEqual('@dungeonmaster/shared/brokers');
   });
 
   it('EDGE: {content: a bare workspace-package ROOT import, no subpath at all, workspaceScope given} => records it, since enforce-proxy-child-creation decides per name whether it needs a proxy', () => {
@@ -282,12 +240,8 @@ describe('parseImplementationImportsTransformer', () => {
     });
 
     expect(result.size).toBe(2);
-    expect(result.get('something')).toStrictEqual(
-      '@dungeonmaster/shared',
-    );
-    expect(result.get('httpBroker')).toStrictEqual(
-      '../../brokers/http/http-broker',
-    );
+    expect(result.get('something')).toStrictEqual('@dungeonmaster/shared');
+    expect(result.get('httpBroker')).toStrictEqual('../../brokers/http/http-broker');
   });
 
   it("EDGE: {content: a bare root import, workspaceScope: '@acme'} => records it under a CONSUMER's own scope, never '@dungeonmaster'", () => {
@@ -299,12 +253,8 @@ describe('parseImplementationImportsTransformer', () => {
     const result = parseImplementationImportsTransformer({ content, workspaceScope: '@acme' });
 
     expect(result.size).toBe(2);
-    expect(result.get('OrdersBroker')).toStrictEqual(
-      '@acme/orders',
-    );
-    expect(result.get('httpBroker')).toStrictEqual(
-      '../../brokers/http/http-broker',
-    );
+    expect(result.get('OrdersBroker')).toStrictEqual('@acme/orders');
+    expect(result.get('httpBroker')).toStrictEqual('../../brokers/http/http-broker');
   });
 
   it('EMPTY: {content: a bare workspace-package ROOT import, no workspaceScope given at all} => skips it — a repo with no discoverable workspace scope has no bare-root form to recognize', () => {
@@ -316,9 +266,7 @@ describe('parseImplementationImportsTransformer', () => {
     const result = parseImplementationImportsTransformer({ content });
 
     expect(result.size).toBe(1);
-    expect(result.get('httpBroker')).toStrictEqual(
-      '../../brokers/http/http-broker',
-    );
+    expect(result.get('httpBroker')).toStrictEqual('../../brokers/http/http-broker');
   });
 
   it('EDGE: {content: a bare root import to one of the four gateway packages} => still records it via the gateway branch, unaffected by the new workspace-package-root branch added after it', () => {
@@ -330,12 +278,8 @@ describe('parseImplementationImportsTransformer', () => {
     const result = parseImplementationImportsTransformer({ content });
 
     expect(result.size).toBe(2);
-    expect(result.get('z')).toStrictEqual(
-      '@dungeonmaster/npm',
-    );
-    expect(result.get('httpBroker')).toStrictEqual(
-      '../../brokers/http/http-broker',
-    );
+    expect(result.get('z')).toStrictEqual('@dungeonmaster/npm');
+    expect(result.get('httpBroker')).toStrictEqual('../../brokers/http/http-broker');
   });
 
   it('VALID: {content: multiple imports from scoped package brokers subpath} => parses all', () => {
@@ -346,12 +290,8 @@ describe('parseImplementationImportsTransformer', () => {
     const result = parseImplementationImportsTransformer({ content });
 
     expect(result.size).toBe(2);
-    expect(result.get('userBroker')).toStrictEqual(
-      '@dungeonmaster/shared/brokers',
-    );
-    expect(result.get('authBroker')).toStrictEqual(
-      '@dungeonmaster/shared/brokers',
-    );
+    expect(result.get('userBroker')).toStrictEqual('@dungeonmaster/shared/brokers');
+    expect(result.get('authBroker')).toStrictEqual('@dungeonmaster/shared/brokers');
   });
 
   it('EDGE: {content: default import from scoped package with subpath} => skips default import', () => {
@@ -363,9 +303,7 @@ describe('parseImplementationImportsTransformer', () => {
     const result = parseImplementationImportsTransformer({ content });
 
     expect(result.size).toBe(1);
-    expect(result.get('httpBroker')).toStrictEqual(
-      '../../brokers/http/http-broker',
-    );
+    expect(result.get('httpBroker')).toStrictEqual('../../brokers/http/http-broker');
   });
 
   it('VALID: {content: scoped imports from different package names} => parses proxy-requiring imports', () => {
@@ -377,12 +315,8 @@ describe('parseImplementationImportsTransformer', () => {
     const result = parseImplementationImportsTransformer({ content });
 
     expect(result.size).toBe(2);
-    expect(result.get('userBroker')).toStrictEqual(
-      '@acme/core/brokers',
-    );
-    expect(result.get('httpBroker')).toStrictEqual(
-      '@myorg/utils/brokers',
-    );
+    expect(result.get('userBroker')).toStrictEqual('@acme/core/brokers');
+    expect(result.get('httpBroker')).toStrictEqual('@myorg/utils/brokers');
   });
 
   it('EDGE: {content: scoped non-proxy imports from different packages} => skips non-proxy subpaths', () => {
@@ -395,9 +329,7 @@ describe('parseImplementationImportsTransformer', () => {
     const result = parseImplementationImportsTransformer({ content });
 
     expect(result.size).toBe(1);
-    expect(result.get('httpBroker')).toStrictEqual(
-      '@acme/core/brokers',
-    );
+    expect(result.get('httpBroker')).toStrictEqual('@acme/core/brokers');
   });
 
   it('VALID: {content: gateway import at a deep subpath} => parses imports regardless of depth', () => {
@@ -408,12 +340,8 @@ describe('parseImplementationImportsTransformer', () => {
     const result = parseImplementationImportsTransformer({ content });
 
     expect(result.size).toBe(2);
-    expect(result.get('readJsonFileIfExists')).toStrictEqual(
-      '@dungeonmaster/node/fs/promises',
-    );
-    expect(result.get('writeFile')).toStrictEqual(
-      '@dungeonmaster/node/fs/promises',
-    );
+    expect(result.get('readJsonFileIfExists')).toStrictEqual('@dungeonmaster/node/fs/promises');
+    expect(result.get('writeFile')).toStrictEqual('@dungeonmaster/node/fs/promises');
   });
 
   it('VALID: {content: gateway pass-through import} => parses the import even though it needs no proxy', () => {
@@ -424,9 +352,7 @@ describe('parseImplementationImportsTransformer', () => {
     const result = parseImplementationImportsTransformer({ content });
 
     expect(result.size).toBe(1);
-    expect(result.get('z')).toStrictEqual(
-      '@dungeonmaster/npm/zod',
-    );
+    expect(result.get('z')).toStrictEqual('@dungeonmaster/npm/zod');
   });
 
   it('VALID: {content: #gateway import at a deep subpath} => parses imports regardless of depth', () => {
@@ -437,12 +363,8 @@ describe('parseImplementationImportsTransformer', () => {
     const result = parseImplementationImportsTransformer({ content });
 
     expect(result.size).toBe(2);
-    expect(result.get('readJsonFileIfExists')).toStrictEqual(
-      '#gateway/node/fs/promises',
-    );
-    expect(result.get('writeFile')).toStrictEqual(
-      '#gateway/node/fs/promises',
-    );
+    expect(result.get('readJsonFileIfExists')).toStrictEqual('#gateway/node/fs/promises');
+    expect(result.get('writeFile')).toStrictEqual('#gateway/node/fs/promises');
   });
 
   it('VALID: {content: #gateway pass-through import} => parses the import even though it needs no proxy', () => {
@@ -453,9 +375,7 @@ describe('parseImplementationImportsTransformer', () => {
     const result = parseImplementationImportsTransformer({ content });
 
     expect(result.size).toBe(1);
-    expect(result.get('z')).toStrictEqual(
-      '#gateway/npm/zod',
-    );
+    expect(result.get('z')).toStrictEqual('#gateway/npm/zod');
   });
 
   it('VALID: {content: multiple imports from different scoped packages} => parses all proxy-requiring', () => {
@@ -467,14 +387,8 @@ describe('parseImplementationImportsTransformer', () => {
     const result = parseImplementationImportsTransformer({ content });
 
     expect(result.size).toBe(3);
-    expect(result.get('userBroker')).toStrictEqual(
-      '@acme/core/brokers',
-    );
-    expect(result.get('authBroker')).toStrictEqual(
-      '@acme/core/brokers',
-    );
-    expect(result.get('logBroker')).toStrictEqual(
-      '@myorg/utils/brokers',
-    );
+    expect(result.get('userBroker')).toStrictEqual('@acme/core/brokers');
+    expect(result.get('authBroker')).toStrictEqual('@acme/core/brokers');
+    expect(result.get('logBroker')).toStrictEqual('@myorg/utils/brokers');
   });
 });

@@ -5,10 +5,9 @@ describe('wsEdgeContract', () => {
     it('VALID: {full paired edge with gateway} => parses successfully', () => {
       const result = wsEdgeContract.parse({
         eventType: 'chat-output',
-        emitterFile: '/repo/packages/orchestrator/src/responders/chat/start/chat-start-responder.ts',
-        consumerFiles: [
-          '/repo/packages/web/src/bindings/use-quest-chat/use-quest-chat-binding.ts',
-        ],
+        emitterFile:
+          '/repo/packages/orchestrator/src/responders/chat/start/chat-start-responder.ts',
+        consumerFiles: ['/repo/packages/web/src/bindings/use-quest-chat/use-quest-chat-binding.ts'],
         wsGatewayFile: '/repo/packages/server/src/responders/server/init/server-init-responder.ts',
         paired: true,
       });
@@ -27,9 +26,7 @@ describe('wsEdgeContract', () => {
       const result = wsEdgeContract.parse({
         eventType: 'chat-output',
         emitterFile: null,
-        consumerFiles: [
-          '/repo/packages/web/src/bindings/use-quest-chat/use-quest-chat-binding.ts',
-        ],
+        consumerFiles: ['/repo/packages/web/src/bindings/use-quest-chat/use-quest-chat-binding.ts'],
         wsGatewayFile: null,
         paired: false,
       });
@@ -46,7 +43,8 @@ describe('wsEdgeContract', () => {
     it('VALID: {empty consumerFiles, gateway present} => parses successfully', () => {
       const result = wsEdgeContract.parse({
         eventType: 'chat-complete',
-        emitterFile: '/repo/packages/orchestrator/src/responders/chat/start/chat-start-responder.ts',
+        emitterFile:
+          '/repo/packages/orchestrator/src/responders/chat/start/chat-start-responder.ts',
         consumerFiles: [],
         wsGatewayFile: '/repo/packages/server/src/responders/server/init/server-init-responder.ts',
         paired: false,

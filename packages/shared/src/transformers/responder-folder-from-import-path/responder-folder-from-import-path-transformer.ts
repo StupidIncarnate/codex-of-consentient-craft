@@ -12,13 +12,12 @@
  * WHEN-NOT-TO-USE: When the import path does not contain a `responders/` segment (returns empty)
  */
 
-
 export const responderFolderFromImportPathTransformer = ({
   importPath,
 }: {
   importPath: string;
 }): string => {
-  const ipStr = String(importPath);
+  const ipStr = importPath;
   const respIdx = ipStr.indexOf('responders/');
   if (respIdx === -1) {
     return '';

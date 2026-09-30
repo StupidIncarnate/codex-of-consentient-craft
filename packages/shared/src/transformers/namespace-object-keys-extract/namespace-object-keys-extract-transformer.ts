@@ -15,19 +15,14 @@
  * WHEN-NOT-TO-USE: When full AST accuracy is required — this is a v1 regex heuristic
  */
 
-
 // Matches the exported namespace object literal header
 const NAMESPACE_OBJECT_HEADER_PATTERN = /export\s+const\s+\w+\s*=\s*\{/u;
 
 // Matches a camelCase property key at the start of a line (after leading whitespace)
 const TOP_LEVEL_KEY_PATTERN = /^(\s+)([a-z][A-Za-z0-9]*):/u;
 
-export const namespaceObjectKeysExtractTransformer = ({
-  source,
-}: {
-  source: string;
-}): string[] => {
-  const src = String(source);
+export const namespaceObjectKeysExtractTransformer = ({ source }: { source: string }): string[] => {
+  const src = source;
 
   const namespaceMatch = NAMESPACE_OBJECT_HEADER_PATTERN.exec(src);
   if (namespaceMatch === null) {
@@ -70,7 +65,7 @@ export const namespaceObjectKeysExtractTransformer = ({
     const [whole, , methodName] = match;
     if (methodName !== undefined) {
       const parsed = methodName;
-      const alreadySeen = found.some((m) => String(m) === String(parsed));
+      const alreadySeen = found.some((m) => m === parsed);
       if (!alreadySeen) {
         found.push(parsed);
       }

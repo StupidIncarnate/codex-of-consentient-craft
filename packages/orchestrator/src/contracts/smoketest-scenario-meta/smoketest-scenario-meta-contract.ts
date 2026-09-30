@@ -8,10 +8,12 @@
 
 import { z } from '#gateway/npm/zod';
 
-export const smoketestScenarioMetaContract = z.object({
-  caseId: z.string().min(1).brand<'SmoketestScenarioMetaCaseId'>(),
-  name: z.string().min(1).brand<'SmoketestScenarioMetaName'>(),
-  startedAt: z.number().int().nonnegative().brand<'SmoketestScenarioMetaStartedAt'>(),
-}).brand<'SmoketestScenarioMeta'>();
+export const smoketestScenarioMetaContract = z
+  .object({
+    caseId: z.string().min(1).brand<'SmoketestScenarioMetaCaseId'>(),
+    name: z.string().min(1).brand<'SmoketestScenarioMetaName'>(),
+    startedAt: z.number().int().nonnegative().brand<'SmoketestScenarioMetaStartedAt'>(),
+  })
+  .brand<'SmoketestScenarioMeta'>();
 
 export type SmoketestScenarioMeta = z.infer<typeof smoketestScenarioMetaContract>;

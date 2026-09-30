@@ -34,7 +34,8 @@ describe('busSubscriberFilesFindLayerBroker', () => {
           },
           {
             path: GATEWAY_RESPONDER,
-            source: "import { fooEventsOnAdapter } from '../../../adapters/foo/events-on/foo-events-on-adapter';",
+            source:
+              "import { fooEventsOnAdapter } from '../../../adapters/foo/events-on/foo-events-on-adapter';",
           },
         ],
       });

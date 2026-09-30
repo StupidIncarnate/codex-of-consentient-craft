@@ -11,10 +11,11 @@
 
 import { z } from '#gateway/npm/zod';
 
-
-export const fileStatContract = z.object({
-  sizeBytes: z.number().int().nonnegative().brand<'FileStatSizeBytes'>(),
-  modifiedAtMs: z.number().int().nonnegative().brand<'FileStatModifiedAtMs'>(),
-}).brand<'FileStat'>();
+export const fileStatContract = z
+  .object({
+    sizeBytes: z.number().int().nonnegative().brand<'FileStatSizeBytes'>(),
+    modifiedAtMs: z.number().int().nonnegative().brand<'FileStatModifiedAtMs'>(),
+  })
+  .brand<'FileStat'>();
 
 export type FileStat = z.infer<typeof fileStatContract>;

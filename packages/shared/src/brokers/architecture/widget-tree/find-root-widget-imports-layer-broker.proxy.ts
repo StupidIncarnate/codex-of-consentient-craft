@@ -39,12 +39,12 @@ export const findRootWidgetImportsLayerBrokerProxy = (): {
     }): void => {
       // readdir call for responders dir
       folderFilesProxy.setupFlatDirectory({
-        dirPath: `${String(packageSrcPath)}/${respondersFolder}`,
+        dirPath: `${packageSrcPath}/${respondersFolder}`,
         filePaths: responderFilePaths,
       });
       // readdir call for flows dir
       folderFilesProxy.setupFlatDirectory({
-        dirPath: `${String(packageSrcPath)}/${flowsFolder}`,
+        dirPath: `${packageSrcPath}/${flowsFolder}`,
         filePaths: flowFilePaths,
       });
       // readFile calls: responder sources then flow sources
@@ -62,10 +62,10 @@ export const findRootWidgetImportsLayerBrokerProxy = (): {
 
     setupEmpty: ({ packageSrcPath }: { packageSrcPath: string }): void => {
       folderFilesProxy.setupEmpty({
-        dirPath: `${String(packageSrcPath)}/${respondersFolder}`,
+        dirPath: `${packageSrcPath}/${respondersFolder}`,
       });
       folderFilesProxy.setupEmpty({
-        dirPath: `${String(packageSrcPath)}/${flowsFolder}`,
+        dirPath: `${packageSrcPath}/${flowsFolder}`,
       });
     },
   };

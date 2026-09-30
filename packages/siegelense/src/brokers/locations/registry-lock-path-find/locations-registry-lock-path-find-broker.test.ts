@@ -15,9 +15,7 @@ describe('locationsRegistryLockPathFindBroker', () => {
 
       const result = locationsRegistryLockPathFindBroker();
 
-      expect(result).toBe(
-        '/home/user/.dungeonmaster/siegelense/registry.lock',
-      );
+      expect(result).toBe('/home/user/.dungeonmaster/siegelense/registry.lock');
     });
 
     it('EDGE: {rootPath with trailing separator} => returns registry.lock joined without a double slash', () => {
@@ -32,9 +30,7 @@ describe('locationsRegistryLockPathFindBroker', () => {
 
       const result = locationsRegistryLockPathFindBroker();
 
-      expect(result).toBe(
-        '/home/user/.dungeonmaster/siegelense/registry.lock',
-      );
+      expect(result).toBe('/home/user/.dungeonmaster/siegelense/registry.lock');
     });
 
     it('EDGE: {homePath nested several levels deep} => returns registry.lock appended to the full nested path', () => {
@@ -49,9 +45,7 @@ describe('locationsRegistryLockPathFindBroker', () => {
 
       const result = locationsRegistryLockPathFindBroker();
 
-      expect(result).toBe(
-        '/srv/agents/worker-3/state/.dungeonmaster/siegelense/registry.lock',
-      );
+      expect(result).toBe('/srv/agents/worker-3/state/.dungeonmaster/siegelense/registry.lock');
     });
   });
 });

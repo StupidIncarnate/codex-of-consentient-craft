@@ -58,8 +58,8 @@ export const architectureGatewayInventoryBrokerProxy = (): {
       subpathName: string;
       barrelContent?: string;
     }): void => {
-      const folderSrcPath = `${String(projectRoot)}/packages/@gateway/${folder}/src`;
-      const folderSrcPathKey = String(folderSrcPath);
+      const folderSrcPath = `${projectRoot}/packages/@gateway/${folder}/src`;
+      const folderSrcPathKey = folderSrcPath;
 
       const existingEntries = entriesByFolderSrcPath.get(folderSrcPathKey) ?? [];
       const entries = [...existingEntries, makeDirEntry({ name: subpathName })];
@@ -70,7 +70,7 @@ export const architectureGatewayInventoryBrokerProxy = (): {
       // calls, which do), so every subpath this proxy describes stages an exact true-or-false
       // answer for its own barrel path — "directory exists, barrel file does not" is exists: false,
       // never an unstaged call.
-      const barrelPath = `${String(folderSrcPath)}/${subpathName}/${subpathName}.ts`;
+      const barrelPath = `${folderSrcPath}/${subpathName}/${subpathName}.ts`;
       existsProxy.returns({ path: barrelPath, exists: barrelContent !== undefined });
       if (barrelContent !== undefined) {
         readProxy.returns({ path: barrelPath, contents: barrelContent });
@@ -85,7 +85,7 @@ export const architectureGatewayInventoryBrokerProxy = (): {
       fileContent: string;
     }): void => {
       lintConfigProxy.setupConfig({
-        configPath: `${String(repoRoot)}/.dungeonmaster.json`,
+        configPath: `${repoRoot}/.dungeonmaster.json`,
         fileContent,
       });
     },

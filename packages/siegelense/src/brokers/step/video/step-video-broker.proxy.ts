@@ -6,7 +6,6 @@
 // link segments, so sibling verb proxies' own `join` calls are unaffected.
 // USAGE: const proxy = stepVideoBrokerProxy(); const { session, getVideoActionCalls } = proxy.session();
 
-
 import { BrowserSessionStub } from '../../../contracts/browser-session/browser-session.stub';
 import { VideoResultStub } from '../../../contracts/video-result/video-result.stub';
 import { locationsRepoLinkPathFindBrokerProxy } from '../../locations/repo-link-path-find/locations-repo-link-path-find-broker.proxy';

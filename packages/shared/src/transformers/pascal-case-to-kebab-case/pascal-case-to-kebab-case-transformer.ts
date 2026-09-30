@@ -9,16 +9,11 @@
  * cross-referencing route metadata against responder file imports
  */
 
-
 const PASCAL_BOUNDARY_PATTERN = /([A-Z])/gu;
 const LEADING_DASH_PATTERN = /^-/u;
 
-export const pascalCaseToKebabCaseTransformer = ({
-  pascal,
-}: {
-  pascal: string;
-}): string => {
-  const kebab = String(pascal)
+export const pascalCaseToKebabCaseTransformer = ({ pascal }: { pascal: string }): string => {
+  const kebab = pascal
     .replace(PASCAL_BOUNDARY_PATTERN, '-$1')
     .toLowerCase()
     .replace(LEADING_DASH_PATTERN, '');

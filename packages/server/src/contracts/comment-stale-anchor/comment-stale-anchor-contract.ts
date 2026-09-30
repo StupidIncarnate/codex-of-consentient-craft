@@ -9,12 +9,18 @@
 
 import { z } from '#gateway/npm/zod';
 
-import { flowNodeContract, flowContract, flowObservableContract } from '@dungeonmaster/shared/contracts';
+import {
+  flowNodeContract,
+  flowContract,
+  flowObservableContract,
+} from '@dungeonmaster/shared/contracts';
 
-export const commentStaleAnchorContract = z.object({
-  flowId: flowContract.shape.id,
-  nodeId: flowNodeContract.shape.id,
-  observableId: flowObservableContract.shape.id.optional(),
-}).brand<'CommentStaleAnchor'>();
+export const commentStaleAnchorContract = z
+  .object({
+    flowId: flowContract.shape.id,
+    nodeId: flowNodeContract.shape.id,
+    observableId: flowObservableContract.shape.id.optional(),
+  })
+  .brand<'CommentStaleAnchor'>();
 
 export type CommentStaleAnchor = z.infer<typeof commentStaleAnchorContract>;

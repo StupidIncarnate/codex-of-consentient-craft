@@ -49,27 +49,22 @@ export const folderDependencyTreeTransformer = ({
     if (normalizedImports.length === 0) {
       hierarchyLines.push(`${label}# Can import: nothing (leaf node)`);
     } else {
-      hierarchyLines.push(
-        `${label}# Can import: ${normalizedImports.join(', ')}`,
-      );
+      hierarchyLines.push(`${label}# Can import: ${normalizedImports.join(', ')}`);
     }
   }
 
   const hierarchy = hierarchyLines.map((line) => line).join('\n');
 
   // Build graph
-  const graph: Record<FolderType, readonly string[]> = {} as Record<
-    FolderType,
-    readonly string[]
-  >;
+  const graph: Record<FolderType, readonly string[]> = {} as Record<FolderType, readonly string[]>;
   for (const folder of Object.keys(folderConfigs)) {
     const config = folderConfigs[folder];
     if (!config) {
       continue;
     }
 
-    const normalizedImports: readonly string[] = config.allowedImports.map(
-      (imp) => imp.replace(/\/$/u, '') as string,
+    const normalizedImports: readonly string[] = config.allowedImports.map((imp) =>
+      imp.replace(/\/$/u, ''),
     );
 
     const folderType = folderTypeContract.parse(folder);

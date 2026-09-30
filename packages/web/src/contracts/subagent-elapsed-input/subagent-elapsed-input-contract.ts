@@ -12,7 +12,6 @@
 
 import { z } from '#gateway/npm/zod';
 
-
 const taskNotificationDurationMsContract = z
   .number()
   .int()
@@ -21,15 +20,17 @@ const taskNotificationDurationMsContract = z
 
 const completionDurationMsContract = z.number().int().nonnegative().brand<'CompletionDurationMs'>();
 
-export const subagentElapsedInputContract = z.object({
-  startedAt: z.iso.datetime().brand<'SubagentElapsedInputStartedAt'>(),
-  endedAt: z.iso.datetime().brand<'SubagentElapsedInputEndedAt'>().optional(),
-  reportedDurationMs: taskNotificationDurationMsContract.optional(),
-  // What the Task's own completion tool_result reported. Its own brand rather than
-  // `reportedDurationMs`' — the two come from different wire shapes and rank differently, so a
-  // value that slid between them would change which figure wins with nothing to catch it.
-  completionDurationMs: completionDurationMsContract.optional(),
-  clockReading: z.iso.datetime().brand<'SubagentElapsedInputClockReading'>().optional(),
-}).brand<'SubagentElapsedInput'>();
+export const subagentElapsedInputContract = z
+  .object({
+    startedAt: z.iso.datetime().brand<'SubagentElapsedInputStartedAt'>(),
+    endedAt: z.iso.datetime().brand<'SubagentElapsedInputEndedAt'>().optional(),
+    reportedDurationMs: taskNotificationDurationMsContract.optional(),
+    // What the Task's own completion tool_result reported. Its own brand rather than
+    // `reportedDurationMs`' — the two come from different wire shapes and rank differently, so a
+    // value that slid between them would change which figure wins with nothing to catch it.
+    completionDurationMs: completionDurationMsContract.optional(),
+    clockReading: z.iso.datetime().brand<'SubagentElapsedInputClockReading'>().optional(),
+  })
+  .brand<'SubagentElapsedInput'>();
 
 export type SubagentElapsedInput = z.infer<typeof subagentElapsedInputContract>;

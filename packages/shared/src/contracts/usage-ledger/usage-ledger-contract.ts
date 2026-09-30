@@ -14,30 +14,36 @@ import { z } from '#gateway/npm/zod';
 
 import { usageBucketContract } from '../usage-bucket/usage-bucket-contract';
 
-export const usageLedgerContract = z.object({
-  // Keyed by the bucket's start time in epoch MILLISECONDS, as a string because JSON object keys
-  // are strings. Buckets older than the seven-day window are dropped on every write.
-  buckets: z.record(z.string(), usageBucketContract),
-  // One entry per transcript file already counted, keyed by absolute path. A file is re-read only
-  // when its size or mtime moved, which is what keeps a 600 MB tree to a few MB of reads per scan.
-  cursors: z.record(
-    z.string(),
-    z.object({
-      mtimeMs: z.number().min(0).brand<'UsageLedgerCursorsMtimeMs'>(),
-      size: z.number().int().min(0).brand<'UsageLedgerCursorsSize'>(),
-    }).brand<'UsageLedgerCursors'>(),
-  ),
-  // Learned, never configured. A 429 names the window it refused, and the weighted total standing
-  // at that moment IS that window's ceiling — so the percentage has a real denominator without the
-  // user being asked for a number nobody publishes. Null until a refusal has been seen for that
-  // window, and a null OR zero ceiling raises no percentage hold at all: an uncalibrated guess
-  // would stop the queue on a number that means nothing, and zero would make every reading
-  // infinite.
-  ceilings: z.object({
-    fiveHour: z.number().min(0).brand<'UsageLedgerCeilingsFiveHour'>().nullable(),
-    sevenDay: z.number().min(0).brand<'UsageLedgerCeilingsSevenDay'>().nullable(),
-  }).brand<'UsageLedgerCeilings'>(),
-  updatedAt: z.iso.datetime().brand<'UsageLedgerUpdatedAt'>(),
-}).brand<'UsageLedger'>();
+export const usageLedgerContract = z
+  .object({
+    // Keyed by the bucket's start time in epoch MILLISECONDS, as a string because JSON object keys
+    // are strings. Buckets older than the seven-day window are dropped on every write.
+    buckets: z.record(z.string(), usageBucketContract),
+    // One entry per transcript file already counted, keyed by absolute path. A file is re-read only
+    // when its size or mtime moved, which is what keeps a 600 MB tree to a few MB of reads per scan.
+    cursors: z.record(
+      z.string(),
+      z
+        .object({
+          mtimeMs: z.number().min(0).brand<'UsageLedgerCursorsMtimeMs'>(),
+          size: z.number().int().min(0).brand<'UsageLedgerCursorsSize'>(),
+        })
+        .brand<'UsageLedgerCursors'>(),
+    ),
+    // Learned, never configured. A 429 names the window it refused, and the weighted total standing
+    // at that moment IS that window's ceiling — so the percentage has a real denominator without the
+    // user being asked for a number nobody publishes. Null until a refusal has been seen for that
+    // window, and a null OR zero ceiling raises no percentage hold at all: an uncalibrated guess
+    // would stop the queue on a number that means nothing, and zero would make every reading
+    // infinite.
+    ceilings: z
+      .object({
+        fiveHour: z.number().min(0).brand<'UsageLedgerCeilingsFiveHour'>().nullable(),
+        sevenDay: z.number().min(0).brand<'UsageLedgerCeilingsSevenDay'>().nullable(),
+      })
+      .brand<'UsageLedgerCeilings'>(),
+    updatedAt: z.iso.datetime().brand<'UsageLedgerUpdatedAt'>(),
+  })
+  .brand<'UsageLedger'>();
 
 export type UsageLedger = z.infer<typeof usageLedgerContract>;

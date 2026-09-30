@@ -199,9 +199,12 @@ export const hasPermissionGuard = ({ user }: { user?: User }): boolean => true;`
       const proxy = fileScannerBrokerProxy();
       const pattern = '**/*';
 
-      const implPath = '/project/src/brokers/rule/explicit-return-types/rule-explicit-return-types-broker.ts';
-      const proxyPath = '/project/src/brokers/rule/explicit-return-types/rule-explicit-return-types-broker.proxy.ts';
-      const testPath = '/project/src/brokers/rule/explicit-return-types/rule-explicit-return-types-broker.test.ts';
+      const implPath =
+        '/project/src/brokers/rule/explicit-return-types/rule-explicit-return-types-broker.ts';
+      const proxyPath =
+        '/project/src/brokers/rule/explicit-return-types/rule-explicit-return-types-broker.proxy.ts';
+      const testPath =
+        '/project/src/brokers/rule/explicit-return-types/rule-explicit-return-types-broker.test.ts';
 
       // Impl file uses camelCase name only — the kebab "explicit-return-types" never appears
       const implContents = `/**
@@ -772,11 +775,7 @@ export const orphanGuard = (): boolean => true;`;
     it('VALID: {ignorePatterns} => hands that list to glob in place of the static rules', async () => {
       const proxy = fileScannerBrokerProxy();
       const pattern = '**/*';
-      const ignorePatterns = [
-        '**/node_modules/**',
-        '**/tmp/**',
-        '**/worktrees/**',
-      ];
+      const ignorePatterns = ['**/node_modules/**', '**/tmp/**', '**/worktrees/**'];
       const filepath = '/project/src/guards/sentinel-guard.ts';
       const contents = `export const sentinelGuard = (): boolean => true;`;
 
@@ -791,10 +790,7 @@ export const orphanGuard = (): boolean => true;`;
       const proxy = fileScannerBrokerProxy();
       const pattern = 'tmp/**/*';
       const { glob } = DiscoverInputStub({ glob: 'tmp' });
-      const ignorePatterns = [
-        '**/node_modules/**',
-        '**/tmp/**',
-      ];
+      const ignorePatterns = ['**/node_modules/**', '**/tmp/**'];
       const filepath = '/project/tmp/src/guards/sentinel-guard.ts';
       const contents = `export const sentinelGuard = (): boolean => true;`;
 

@@ -14,7 +14,32 @@
  * const bySession = await StartOrchestrator.findQuestBySessionId({ sessionId });
  */
 
-import type { Flow, WorkItem, OperationItem, AddQuestInput, AddQuestResult, AgentPromptResult, CommentBatchEntry, DirectoryEntry, DispatchState, GetQuestResult, Guild, GuildListItem, ModifyQuestInput, ModifyQuestResult, OrchestrationMode, OrchestrationStatus, Quest, QuestListItem, QuestListResult, QuestQueueEntry, QuestStatus, QuestType, RateLimitsSnapshot, Session } from '@dungeonmaster/shared/contracts';
+import type {
+  Flow,
+  WorkItem,
+  OperationItem,
+  AddQuestInput,
+  AddQuestResult,
+  AgentPromptResult,
+  CommentBatchEntry,
+  DirectoryEntry,
+  DispatchState,
+  GetQuestResult,
+  Guild,
+  GuildListItem,
+  ModifyQuestInput,
+  ModifyQuestResult,
+  OrchestrationMode,
+  OrchestrationStatus,
+  Quest,
+  QuestListItem,
+  QuestListResult,
+  QuestQueueEntry,
+  QuestStatus,
+  QuestType,
+  RateLimitsSnapshot,
+  Session,
+} from '@dungeonmaster/shared/contracts';
 
 import type { QuestGetServerConfigResult } from '../contracts/quest-get-server-config-result/quest-get-server-config-result-contract';
 
@@ -65,7 +90,8 @@ export const StartOrchestrator = {
   // Guild methods
   listGuilds: async (): Promise<GuildListItem[]> => GuildFlow.list(),
 
-  getGuild: async ({ guildId }: { guildId: Guild['id'] }): Promise<Guild> => GuildFlow.get({ guildId }),
+  getGuild: async ({ guildId }: { guildId: Guild['id'] }): Promise<Guild> =>
+    GuildFlow.get({ guildId }),
 
   addGuild: async ({ name, path }: { name: string; path: string }): Promise<Guild> =>
     GuildFlow.add({ name, path }),
@@ -449,8 +475,11 @@ export const StartOrchestrator = {
   // Reverse lookup: sessionId -> QuestId (or null when no quest's chaoswhisperer workItem
   // has this sessionId). Used by the HTTP server's GET /api/quests/by-session/:sessionId
   // endpoint so the PostToolUse hook can find the quest to PATCH design decisions onto.
-  findQuestBySessionId: async ({ sessionId }: { sessionId: Session['id'] }): Promise<Quest['id'] | null> =>
-    QuestFlow.findBySessionId({ sessionId }),
+  findQuestBySessionId: async ({
+    sessionId,
+  }: {
+    sessionId: Session['id'];
+  }): Promise<Quest['id'] | null> => QuestFlow.findBySessionId({ sessionId }),
 
   // Reverse lookup: workItemId -> QuestId (or null when no quest owns it). Used by the
   // HTTP server's chat-output broadcaster to stamp questId on outgoing WS payloads.

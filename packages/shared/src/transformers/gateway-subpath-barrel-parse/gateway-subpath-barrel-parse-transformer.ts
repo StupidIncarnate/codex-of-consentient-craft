@@ -1,5 +1,3 @@
-import { gatewaySubpathBarrelParseContract } from '../../contracts/gateway-subpath-barrel-parse/gateway-subpath-barrel-parse-contract';
-import type { GatewaySubpathBarrelParse } from '../../contracts/gateway-subpath-barrel-parse/gateway-subpath-barrel-parse-contract';
 /**
  * PURPOSE: Reads one gateway subpath's own entry-point barrel (e.g. `fs/fs.ts`) and recovers, from
  * its TEXT, the two facts the discovery tools need to describe it: the real module it passes
@@ -18,7 +16,8 @@ import type { GatewaySubpathBarrelParse } from '../../contracts/gateway-subpath-
  * gatewaySubpathBarrelParseTransformer({ barrelContent: ContentTextStub({ value: "export * from 'fs';\nexport { existsSync } from './exists-sync/exists-sync';" }) });
  * // Returns { realModule: 'fs', wrapperNames: ['existsSync'] }
  */
-
+import { gatewaySubpathBarrelParseContract } from '../../contracts/gateway-subpath-barrel-parse/gateway-subpath-barrel-parse-contract';
+import type { GatewaySubpathBarrelParse } from '../../contracts/gateway-subpath-barrel-parse/gateway-subpath-barrel-parse-contract';
 
 const STAR_EXPORT_PATTERN = /^export \* from ['"]([^'"]+)['"];?\s*$/u;
 const NAMED_EXPORT_PATTERN = /^export \{\s*([^}]+?)\s*\} from ['"](\.[^'"]+)['"];?\s*$/u;
@@ -30,7 +29,7 @@ export const gatewaySubpathBarrelParseTransformer = ({
 }: {
   barrelContent: string;
 }): GatewaySubpathBarrelParse => {
-  const lines = String(barrelContent)
+  const lines = barrelContent
     .split('\n')
     .map((line) => line.trim());
 

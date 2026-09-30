@@ -16,7 +16,7 @@ export const workspaceDiscoverBrokerProxy = (): {
 
   // Every caller (workspace-discover-broker.test.ts, command-run-broker.proxy.ts) resolves the
   // root package.json for rootPath '/project'.
-  const path = `${'/project'}/package.json`;
+  const path = `/project/package.json`;
 
   return {
     setupMultiPackage: ({

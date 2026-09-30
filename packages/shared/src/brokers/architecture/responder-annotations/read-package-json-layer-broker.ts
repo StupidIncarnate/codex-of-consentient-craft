@@ -22,9 +22,9 @@ export const readPackageJsonLayerBroker = ({
 }: {
   packageRoot: string;
 }): PackageJson | undefined => {
-  const filePath = `${String(packageRoot)}/package.json`;
+  const filePath = `${packageRoot}/package.json`;
   try {
-    const content = readFileSync(String(filePath));
+    const content = readFileSync(filePath);
     return packageJsonContract.parse(JSON.parse(content));
   } catch {
     return undefined;

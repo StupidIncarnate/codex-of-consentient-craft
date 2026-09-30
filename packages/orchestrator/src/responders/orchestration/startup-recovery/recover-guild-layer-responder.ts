@@ -16,7 +16,12 @@ import { stderr } from '#gateway/node/process';
 import { AbortController } from '#gateway/node/AbortController';
 import { randomUUID } from '#gateway/node/crypto';
 import { modifyQuestInputContract } from '@dungeonmaster/shared/contracts';
-import type { GuildListItem, ModifyQuestInput, Quest, Session } from '@dungeonmaster/shared/contracts';
+import type {
+  GuildListItem,
+  ModifyQuestInput,
+  Quest,
+  Session,
+} from '@dungeonmaster/shared/contracts';
 
 import { buildOrchestrationLoopOnAgentEntryTransformer } from '../../../transformers/build-orchestration-loop-on-agent-entry/build-orchestration-loop-on-agent-entry-transformer';
 import { guildGetBroker } from '../../../brokers/guild/get/guild-get-broker';

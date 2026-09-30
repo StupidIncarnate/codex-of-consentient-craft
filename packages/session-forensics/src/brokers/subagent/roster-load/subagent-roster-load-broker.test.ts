@@ -17,8 +17,12 @@ describe('subagentRosterLoadBroker', () => {
       const proxy = subagentRosterLoadBrokerProxy();
       const metaA = SubagentMetaStub();
       const metaB = SubagentMetaStub();
-      const transcriptA = JSON.stringify(TranscriptRecordStub({ timestamp: '2026-09-01T19:00:00.000Z' }));
-      const transcriptB = JSON.stringify(TranscriptRecordStub({ timestamp: '2026-09-01T19:05:00.000Z' }));
+      const transcriptA = JSON.stringify(
+        TranscriptRecordStub({ timestamp: '2026-09-01T19:00:00.000Z' }),
+      );
+      const transcriptB = JSON.stringify(
+        TranscriptRecordStub({ timestamp: '2026-09-01T19:05:00.000Z' }),
+      );
 
       proxy.setupRoster({
         sessionFilePath: SESSION_FILE_PATH,
@@ -75,7 +79,9 @@ describe('subagentRosterLoadBroker', () => {
     it('EDGE: {one meta.json is malformed JSON} => that agent is skipped, the other still returned', () => {
       const proxy = subagentRosterLoadBrokerProxy();
       const meta = SubagentMetaStub();
-      const transcript = JSON.stringify(TranscriptRecordStub({ timestamp: '2026-09-01T19:00:00.000Z' }));
+      const transcript = JSON.stringify(
+        TranscriptRecordStub({ timestamp: '2026-09-01T19:00:00.000Z' }),
+      );
 
       proxy.setupRoster({
         sessionFilePath: SESSION_FILE_PATH,
@@ -106,7 +112,9 @@ describe('subagentRosterLoadBroker', () => {
     it('EDGE: {one meta.json parses as JSON but fails the contract} => that agent is skipped, the other still returned', () => {
       const proxy = subagentRosterLoadBrokerProxy();
       const meta = SubagentMetaStub();
-      const transcript = JSON.stringify(TranscriptRecordStub({ timestamp: '2026-09-01T19:00:00.000Z' }));
+      const transcript = JSON.stringify(
+        TranscriptRecordStub({ timestamp: '2026-09-01T19:00:00.000Z' }),
+      );
 
       proxy.setupRoster({
         sessionFilePath: SESSION_FILE_PATH,
@@ -211,7 +219,9 @@ describe('subagentRosterLoadBroker', () => {
     it('EDGE: {a stray non-meta file in the directory} => ignored', () => {
       const proxy = subagentRosterLoadBrokerProxy();
       const meta = SubagentMetaStub();
-      const transcript = JSON.stringify(TranscriptRecordStub({ timestamp: '2026-09-01T19:00:00.000Z' }));
+      const transcript = JSON.stringify(
+        TranscriptRecordStub({ timestamp: '2026-09-01T19:00:00.000Z' }),
+      );
 
       proxy.setupRoster({
         sessionFilePath: SESSION_FILE_PATH,

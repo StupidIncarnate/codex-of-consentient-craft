@@ -1,4 +1,3 @@
-
 import { ResultWhereStub } from '../../../contracts/result-where/result-where.stub';
 import { ServerLogWindowStub } from '../../../contracts/server-log-window/server-log-window.stub';
 import { StepReadingStub } from '../../../contracts/step-reading/step-reading.stub';

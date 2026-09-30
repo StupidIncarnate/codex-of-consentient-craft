@@ -45,8 +45,10 @@ export const InstallCreatePlaywrightResponderProxy = (): {
       writeProxy.succeeds({ path: filePath });
       writtenPaths.push(filePath);
       ensureDirHandle.succeeds({ path: '/project/src/statics/e2e-unresolvable-token' });
-      const staticsPath = '/project/src/statics/e2e-unresolvable-token/e2e-unresolvable-token-statics.ts';
-      const staticsTestPath = '/project/src/statics/e2e-unresolvable-token/e2e-unresolvable-token-statics.test.ts';
+      const staticsPath =
+        '/project/src/statics/e2e-unresolvable-token/e2e-unresolvable-token-statics.ts';
+      const staticsTestPath =
+        '/project/src/statics/e2e-unresolvable-token/e2e-unresolvable-token-statics.test.ts';
       writeProxy.succeeds({ path: staticsPath });
       writtenPaths.push(staticsPath);
       writeProxy.succeeds({ path: staticsTestPath });

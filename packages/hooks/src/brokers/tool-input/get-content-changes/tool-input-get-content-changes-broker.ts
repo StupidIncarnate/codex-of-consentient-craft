@@ -25,7 +25,7 @@ export const toolInputGetContentChangesBroker = async ({
   // Handle Write tool
   if ('content' in toolInput) {
     const oldContent = await fileReadOrEmptyBroker({
-      filePath: filePath,
+      filePath,
     });
 
     return [
@@ -39,7 +39,7 @@ export const toolInputGetContentChangesBroker = async ({
   // Handle Edit tool
   if ('new_string' in toolInput && 'old_string' in toolInput && !('edits' in toolInput)) {
     const oldContent = await fileReadOrEmptyBroker({
-      filePath: filePath,
+      filePath,
     });
 
     const newContent = await toolInputGetFullContentBroker({ toolInput });
@@ -51,7 +51,7 @@ export const toolInputGetContentChangesBroker = async ({
     return [
       contentChangeContract.parse({
         oldContent,
-        newContent: newContent,
+        newContent,
       }),
     ];
   }
@@ -59,7 +59,7 @@ export const toolInputGetContentChangesBroker = async ({
   // Handle MultiEdit tool
   if ('edits' in toolInput) {
     const oldContent = await fileReadOrEmptyBroker({
-      filePath: filePath,
+      filePath,
     });
 
     const newContent = await toolInputGetFullContentBroker({ toolInput });
@@ -71,7 +71,7 @@ export const toolInputGetContentChangesBroker = async ({
     return [
       contentChangeContract.parse({
         oldContent,
-        newContent: newContent,
+        newContent,
       }),
     ];
   }

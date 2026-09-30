@@ -19,7 +19,8 @@ describe('listTsFilesLayerBroker', () => {
     it('VALID: {two ts files} => returns both paths', () => {
       const proxy = listTsFilesLayerBrokerProxy();
       const file1 = '/repo/packages/orchestrator/src/state/orchestration-events-state.ts';
-      const file2 = '/repo/packages/server/src/adapters/orchestrator/events-on/events-on-adapter.ts';
+      const file2 =
+        '/repo/packages/server/src/adapters/orchestrator/events-on/events-on-adapter.ts';
       proxy.setupVirtualTree({ filePaths: [file1, file2] });
 
       const result = listTsFilesLayerBroker({ dirPath: DIR });

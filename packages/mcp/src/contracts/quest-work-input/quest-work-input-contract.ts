@@ -18,7 +18,12 @@
  */
 
 import { z } from '#gateway/npm/zod';
-import { questContract, workItemContract, qaChecklistItemContract, flowContract } from '@dungeonmaster/shared/contracts';
+import {
+  questContract,
+  workItemContract,
+  qaChecklistItemContract,
+  flowContract,
+} from '@dungeonmaster/shared/contracts';
 
 const planPayloadContract = z
   .object({
@@ -29,7 +34,8 @@ const planPayloadContract = z
         "The pieces and their batches, plus plannerMarks — story 07's whole-plan envelope, minus writtenBy/writtenAt (stamped server-side).",
       ),
   })
-  .strict().brand<'PlanPayload'>();
+  .strict()
+  .brand<'PlanPayload'>();
 
 const observationsPayloadContract = z
   .object({
@@ -41,16 +47,22 @@ const observationsPayloadContract = z
             unitId: qaChecklistItemContract.shape.id,
             mark: z.enum(['met', 'cant-meet', 'unmet']),
             evidence: z.string().min(1).brand<'ObservationsPayloadObservationsEvidence'>(),
-            toSettle: z.string().min(1).brand<'ObservationsPayloadObservationsToSettle'>().optional(),
+            toSettle: z
+              .string()
+              .min(1)
+              .brand<'ObservationsPayloadObservationsToSettle'>()
+              .optional(),
           })
-          .strict().brand<'ObservationsPayloadObservations'>(),
+          .strict()
+          .brand<'ObservationsPayloadObservations'>(),
       )
       .min(1)
       .describe(
         'Per unit, one of met / cant-meet / unmet, with evidence. toSettle is required on cant-meet and refused elsewhere.',
       ),
   })
-  .strict().brand<'ObservationsPayload'>();
+  .strict()
+  .brand<'ObservationsPayload'>();
 
 const amendmentPayloadContract = z
   .object({
@@ -66,15 +78,21 @@ const amendmentPayloadContract = z
         'The WHOLE replacement plan, in the same shape as the plan payload — never a patch.',
       ),
   })
-  .strict().brand<'AmendmentPayload'>();
+  .strict()
+  .brand<'AmendmentPayload'>();
 
 const outcomePayloadContract = z
   .object({
     kind: z.literal('outcome'),
     word: z.enum(['done', 'unmet', 'empty', 'wall']),
-    reason: z.string().min(1).brand<'OutcomePayloadReason'>().describe('Required on all four words.'),
+    reason: z
+      .string()
+      .min(1)
+      .brand<'OutcomePayloadReason'>()
+      .describe('Required on all four words.'),
   })
-  .strict().brand<'OutcomePayload'>();
+  .strict()
+  .brand<'OutcomePayload'>();
 
 const invalidationPayloadContract = z
   .object({
@@ -88,7 +106,8 @@ const invalidationPayloadContract = z
         "What changed underneath the flow's already-recorded marks. Recorded as the walk-reset note detail.",
       ),
   })
-  .strict().brand<'InvalidationPayload'>();
+  .strict()
+  .brand<'InvalidationPayload'>();
 
 const requestPayloadContract = z
   .object({
@@ -104,16 +123,15 @@ const requestPayloadContract = z
       .brand<'RequestPayloadReason'>()
       .describe('Why this step is blocked without it.'),
   })
-  .strict().brand<'RequestPayload'>();
+  .strict()
+  .brand<'RequestPayload'>();
 
 export const mcpQuestWorkInputContract = z
   .object({
-    questId: questContract.shape.id
-      .describe('The ID of the quest this call is against.'),
-    workItemId: workItemContract.shape.id
-      .describe(
-        'The work item you were dispatched against. There is no ambient caller identity over MCP stdio.',
-      ),
+    questId: questContract.shape.id.describe('The ID of the quest this call is against.'),
+    workItemId: workItemContract.shape.id.describe(
+      'The work item you were dispatched against. There is no ambient caller identity over MCP stdio.',
+    ),
     payload: z.discriminatedUnion('kind', [
       planPayloadContract,
       observationsPayloadContract,
@@ -123,6 +141,7 @@ export const mcpQuestWorkInputContract = z
       requestPayloadContract,
     ]),
   })
-  .strict().brand<'McpQuestWorkInput'>();
+  .strict()
+  .brand<'McpQuestWorkInput'>();
 
 export type McpQuestWorkInput = z.infer<typeof mcpQuestWorkInputContract>;

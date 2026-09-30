@@ -45,6 +45,6 @@ export const readPackageCliContentLayerBroker = ({
   }
 
   if (collected.length === 0) return undefined;
-  const joined = collected.map((c) => String(c)).join('\n\n');
-  return joined as string;
+  const joined = collected.map((c) => c).join('\n\n');
+  return joined;
 };

@@ -63,7 +63,7 @@ export const guildWriteRouteBrokerProxy = (): {
       directoryProxy.setupDirectoryCreation({ path });
       uniquePathProxy.setupFree({ absolutePaths: [path] });
       addGuildProxy.setupResolves({
-        input: { name: name, path: path, home },
+        input: { name, path, home },
         guild,
       });
     },
@@ -86,8 +86,8 @@ export const guildWriteRouteBrokerProxy = (): {
       uniquePathProxy.setupFree({ absolutePaths: [path] });
       addGuildProxy.setupResolves({
         input: {
-          name: name,
-          path: path,
+          name,
+          path,
           home,
           id,
         },

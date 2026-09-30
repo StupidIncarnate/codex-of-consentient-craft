@@ -13,7 +13,11 @@ import { questListBroker } from '../../../brokers/quest/list/quest-list-broker';
 import { orchestrationProcessesState } from '../../../state/orchestration-processes/orchestration-processes-state';
 import { questExecutionQueueState } from '../../../state/quest-execution-queue/quest-execution-queue-state';
 
-export const GuildRemoveResponder = async ({ guildId }: { guildId: Guild['id'] }): Promise<void> => {
+export const GuildRemoveResponder = async ({
+  guildId,
+}: {
+  guildId: Guild['id'];
+}): Promise<void> => {
   // Walk every quest folder under the guild and kill any registered process whose questId
   // matches. The queue-based sweep below only sees quests still on the execution queue —
   // chat-post-exit tail handles re-register on `orchestrationProcessesState` keyed by the

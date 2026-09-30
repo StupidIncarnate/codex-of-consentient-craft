@@ -48,7 +48,7 @@ export const signatureExtractorTransformer = ({
 
     if (functionName) {
       const camelCaseName = kebabToCamelTransformer({ kebabCase: functionName });
-      if (extractedName !== String(camelCaseName)) {
+      if (extractedName !== camelCaseName) {
         return null;
       }
     }
@@ -125,7 +125,7 @@ export const signatureExtractorTransformer = ({
 
     if (functionName) {
       const camelCaseName = kebabToCamelTransformer({ kebabCase: functionName });
-      if (extractedName !== String(camelCaseName)) {
+      if (extractedName !== camelCaseName) {
         return null;
       }
     }

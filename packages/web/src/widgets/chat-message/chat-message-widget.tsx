@@ -416,10 +416,7 @@ export const ChatMessageWidget = ({
       ) : needsToolResultTruncation && expanded ? (
         <Box>
           <Box style={{ maxHeight: RESULT_EXPANDED_MAX_HEIGHT, overflowY: 'auto' }}>
-            <ToolResultContentWidget
-              content={entry.content}
-              color={toolResultColor}
-            />
+            <ToolResultContentWidget content={entry.content} color={toolResultColor} />
           </Box>
           <Text
             ref={anchorRef}
@@ -435,10 +432,7 @@ export const ChatMessageWidget = ({
           </Text>
         </Box>
       ) : (
-        <ToolResultContentWidget
-          content={entry.content}
-          color={toolResultColor}
-        />
+        <ToolResultContentWidget content={entry.content} color={toolResultColor} />
       )}
     </Box>
   );

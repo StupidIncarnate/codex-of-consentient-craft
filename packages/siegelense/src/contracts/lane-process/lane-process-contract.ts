@@ -22,17 +22,18 @@
 
 import { z } from '#gateway/npm/zod';
 
-
 import { portRoleContract } from '../port-role/port-role-contract';
 
-export const laneProcessContract = z.object({
-  name: z.string().min(1).brand<'LaneProcessName'>(),
-  command: z.string().brand<'LaneProcessCommand'>(),
-  args: z.array(z.string().brand<'LaneProcessArgs'>()).readonly(),
-  portRole: portRoleContract.nullable(),
-  readyPath: z.string().startsWith('/').brand<'LaneProcessReadyPath'>().nullable(),
-  logFileName: z.string().brand<'LaneProcessLogFileName'>(),
-  env: z.record(z.string(), z.string().brand<'LaneProcessEnv'>()),
-}).brand<'LaneProcess'>();
+export const laneProcessContract = z
+  .object({
+    name: z.string().min(1).brand<'LaneProcessName'>(),
+    command: z.string().brand<'LaneProcessCommand'>(),
+    args: z.array(z.string().brand<'LaneProcessArgs'>()).readonly(),
+    portRole: portRoleContract.nullable(),
+    readyPath: z.string().startsWith('/').brand<'LaneProcessReadyPath'>().nullable(),
+    logFileName: z.string().brand<'LaneProcessLogFileName'>(),
+    env: z.record(z.string(), z.string().brand<'LaneProcessEnv'>()),
+  })
+  .brand<'LaneProcess'>();
 
 export type LaneProcess = z.infer<typeof laneProcessContract>;

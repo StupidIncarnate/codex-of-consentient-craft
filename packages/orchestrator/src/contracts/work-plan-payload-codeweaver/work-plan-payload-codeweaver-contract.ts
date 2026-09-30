@@ -25,25 +25,27 @@ import { z } from '#gateway/npm/zod';
 import { workPlanCodeweaverUnitContract } from '../work-plan-codeweaver-unit/work-plan-codeweaver-unit-contract';
 import { workPlanFileEntryContract } from '../work-plan-file-entry/work-plan-file-entry-contract';
 
-export const workPlanPayloadCodeweaverContract = z.object({
-  files: z.array(workPlanFileEntryContract).default([]),
-  facts: z
-    .array(z.string().min(1).brand<'WorkPlanPayloadCodeweaverFacts'>())
-    .default([])
-    .describe('What is already true in this tree that a sub-agent would otherwise re-derive.'),
-  fences: z
-    .array(z.string().min(1).brand<'WorkPlanPayloadCodeweaverFences'>())
-    .default([])
-    .describe('The rules this piece must stay inside.'),
-  traps: z
-    .array(z.string().min(1).brand<'WorkPlanPayloadCodeweaverTraps'>())
-    .default([])
-    .describe('The mistakes this piece is known to invite, stated before they are made.'),
-  doNotTouch: z
-    .array(z.string().min(1).brand<'WorkPlanPayloadCodeweaverDoNotTouch'>())
-    .default([])
-    .describe('What belongs to another piece or another mechanism entirely.'),
-  units: z.array(workPlanCodeweaverUnitContract).default([]),
-}).brand<'WorkPlanPayloadCodeweaver'>();
+export const workPlanPayloadCodeweaverContract = z
+  .object({
+    files: z.array(workPlanFileEntryContract).default([]),
+    facts: z
+      .array(z.string().min(1).brand<'WorkPlanPayloadCodeweaverFacts'>())
+      .default([])
+      .describe('What is already true in this tree that a sub-agent would otherwise re-derive.'),
+    fences: z
+      .array(z.string().min(1).brand<'WorkPlanPayloadCodeweaverFences'>())
+      .default([])
+      .describe('The rules this piece must stay inside.'),
+    traps: z
+      .array(z.string().min(1).brand<'WorkPlanPayloadCodeweaverTraps'>())
+      .default([])
+      .describe('The mistakes this piece is known to invite, stated before they are made.'),
+    doNotTouch: z
+      .array(z.string().min(1).brand<'WorkPlanPayloadCodeweaverDoNotTouch'>())
+      .default([])
+      .describe('What belongs to another piece or another mechanism entirely.'),
+    units: z.array(workPlanCodeweaverUnitContract).default([]),
+  })
+  .brand<'WorkPlanPayloadCodeweaver'>();
 
 export type WorkPlanPayloadCodeweaver = z.infer<typeof workPlanPayloadCodeweaverContract>;

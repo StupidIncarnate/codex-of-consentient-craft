@@ -13,7 +13,6 @@
  * // Returns the two parsed TranscriptLines
  */
 
-
 import { recipeTranscriptLineContract } from '../../contracts/transcript-line/transcript-line-contract';
 import type { RecipeTranscriptLine } from '../../contracts/transcript-line/transcript-line-contract';
 

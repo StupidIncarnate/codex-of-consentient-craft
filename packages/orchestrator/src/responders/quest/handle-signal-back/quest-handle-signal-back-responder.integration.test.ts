@@ -507,10 +507,10 @@ describe('QuestHandleSignalBackResponder (integration) — a dirty worktree no l
     // succeeds, so the precondition is asserted rather than assumed.
     expect({
       seededWorktreePath: String(seeded.worktreePath),
-      porcelain: String(await git.gitStatusPorcelain({ repoPath: worktreePath })),
+      porcelain: (await git.gitStatusPorcelain({ repoPath: worktreePath })),
     }).toStrictEqual({
-      seededWorktreePath: String(worktreePath),
-      porcelain: `?? ${String(strayPath)}`,
+      seededWorktreePath: worktreePath,
+      porcelain: `?? ${strayPath}`,
     });
 
     await expect(
@@ -949,7 +949,7 @@ describe('QuestHandleSignalBackResponder (integration) — warpgate merge comple
     const worktreeExistedBefore = git.pathExists({ absolutePath: worktreePath });
     const branchShaBefore = await git.gitRevParseOrNull({
       repoPath,
-      ref: String(branchName),
+      ref: branchName,
     });
 
     await expect(
@@ -967,7 +967,7 @@ describe('QuestHandleSignalBackResponder (integration) — warpgate merge comple
     const worktreeExistsAfter = git.pathExists({ absolutePath: worktreePath });
     const branchShaAfter = await git.gitRevParseOrNull({
       repoPath,
-      ref: String(branchName),
+      ref: branchName,
     });
 
     testbed.cleanup();

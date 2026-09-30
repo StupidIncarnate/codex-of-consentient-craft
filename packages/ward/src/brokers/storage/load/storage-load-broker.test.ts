@@ -1,4 +1,3 @@
-
 import { WardRunResultStub } from '../../../contracts/ward-result/ward-result.stub';
 import { RunIdStub } from '../../../contracts/run-id/run-id.stub';
 
@@ -60,10 +59,8 @@ describe('storageLoadBroker', () => {
           'run-e2e-dispatch-ward-5.json',
         ],
         contents: {
-          ['/home/user/project/.ward/run-1739625700000-b4e2.json']:
-            JSON.stringify(wardResult),
-          ['/home/user/project/.ward/run-e2e-dispatch-ward-5.json']:
-            JSON.stringify({ checks: [] }),
+          '/home/user/project/.ward/run-1739625700000-b4e2.json': JSON.stringify(wardResult),
+          '/home/user/project/.ward/run-e2e-dispatch-ward-5.json': JSON.stringify({ checks: [] }),
         },
       });
 
@@ -79,7 +76,7 @@ describe('storageLoadBroker', () => {
         rootPath,
         entries: ['run-e2e-dispatch-ward-5.json'],
         contents: {
-          ['/home/user/project/.ward/run-e2e-dispatch-ward-5.json']:
+          '/home/user/project/.ward/run-e2e-dispatch-ward-5.json':
             JSON.stringify(WardRunResultStub()),
         },
       });

@@ -24,22 +24,57 @@ export const questCwdResolutionContract = z.discriminatedUnion('kind', [
   // outranks both derived kinds because it is measured rather than inferred, and it is served
   // WITHOUT the worktree accessibility probe the `worktree` kind pays for: a transcript lives under
   // `~/.claude/projects/`, so it outlives the directory it was written from.
-  z.object({
-    kind: z.literal('session'),
-    cwd: z.string().min(1).refine((path) => ABSOLUTE_PATH_PATTERN.test(path), { message: ABSOLUTE_PATH_MESSAGE }).brand<'QuestCwdResolutionCwd'>(),
-  }).brand<'QuestCwdResolution'>(),
-  z.object({
-    kind: z.literal('worktree'),
-    cwd: z.string().min(1).refine((path) => ABSOLUTE_PATH_PATTERN.test(path), { message: ABSOLUTE_PATH_MESSAGE }).brand<'QuestCwdResolutionCwd'>(),
-  }).brand<'QuestCwdResolution'>(),
-  z.object({
-    kind: z.literal('repo-root'),
-    cwd: z.string().min(1).refine((path) => ABSOLUTE_PATH_PATTERN.test(path), { message: ABSOLUTE_PATH_MESSAGE }).brand<'QuestCwdResolutionCwd'>(),
-  }).brand<'QuestCwdResolution'>(),
-  z.object({
-    kind: z.literal('missing-worktree'),
-    worktreePath: z.string().min(1).refine((path) => { if (path.startsWith('/')) { return true; } if (/^[A-Za-z]:\\/u.test(path)) { return true; } return false; }, { message: 'Path must be absolute (start with / or C:\\ on Windows)', },).brand<'QuestCwdResolutionWorktreePath'>(),
-  }).brand<'QuestCwdResolution'>(),
+  z
+    .object({
+      kind: z.literal('session'),
+      cwd: z
+        .string()
+        .min(1)
+        .refine((path) => ABSOLUTE_PATH_PATTERN.test(path), { message: ABSOLUTE_PATH_MESSAGE })
+        .brand<'QuestCwdResolutionCwd'>(),
+    })
+    .brand<'QuestCwdResolution'>(),
+  z
+    .object({
+      kind: z.literal('worktree'),
+      cwd: z
+        .string()
+        .min(1)
+        .refine((path) => ABSOLUTE_PATH_PATTERN.test(path), { message: ABSOLUTE_PATH_MESSAGE })
+        .brand<'QuestCwdResolutionCwd'>(),
+    })
+    .brand<'QuestCwdResolution'>(),
+  z
+    .object({
+      kind: z.literal('repo-root'),
+      cwd: z
+        .string()
+        .min(1)
+        .refine((path) => ABSOLUTE_PATH_PATTERN.test(path), { message: ABSOLUTE_PATH_MESSAGE })
+        .brand<'QuestCwdResolutionCwd'>(),
+    })
+    .brand<'QuestCwdResolution'>(),
+  z
+    .object({
+      kind: z.literal('missing-worktree'),
+      worktreePath: z
+        .string()
+        .min(1)
+        .refine(
+          (path) => {
+            if (path.startsWith('/')) {
+              return true;
+            }
+            if (/^[A-Za-z]:\\/u.test(path)) {
+              return true;
+            }
+            return false;
+          },
+          { message: 'Path must be absolute (start with / or C:\\ on Windows)' },
+        )
+        .brand<'QuestCwdResolutionWorktreePath'>(),
+    })
+    .brand<'QuestCwdResolution'>(),
 ]);
 
 export type QuestCwdResolution = z.infer<typeof questCwdResolutionContract>;

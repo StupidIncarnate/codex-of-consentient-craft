@@ -1,4 +1,3 @@
-
 import { resultRowProjectTransformer } from './result-row-project-transformer';
 
 describe('resultRowProjectTransformer', () => {

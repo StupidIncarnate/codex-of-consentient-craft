@@ -14,8 +14,20 @@
  */
 import { useCallback, useEffect, useMemo, useRef, useState } from '#gateway/npm/react';
 
-import type { AskUserQuestionItem, ChatEntry, ChatEntryUuid, PastedImageUpload, Quest, WorkItem, Session } from '@dungeonmaster/shared/contracts';
-import { askUserQuestionContract, chatEntryContract, questContract } from '@dungeonmaster/shared/contracts';
+import type {
+  AskUserQuestionItem,
+  ChatEntry,
+  ChatEntryUuid,
+  PastedImageUpload,
+  Quest,
+  WorkItem,
+  Session,
+} from '@dungeonmaster/shared/contracts';
+import {
+  askUserQuestionContract,
+  chatEntryContract,
+  questContract,
+} from '@dungeonmaster/shared/contracts';
 import {
   isPostQuestChatWorkItemRoleGuard,
   isUserPausedQuestStatusGuard,

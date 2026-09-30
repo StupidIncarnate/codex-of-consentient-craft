@@ -1,4 +1,3 @@
-
 import { HealthVerdictStub } from '../health-verdict/health-verdict.stub';
 import { healthReadingContract } from './health-reading-contract';
 import { HealthReadingStub } from './health-reading.stub';
@@ -21,7 +20,8 @@ describe('healthReadingContract', () => {
         network5xxCount: 0,
         serverErrors: 2,
         firstServerError: 'Internal server exception',
-        rendered: 'DEGRADED  root present · not blank · console: 1 error "Cannot read properties of null" · no 5xx · server log: 2 errors',
+        rendered:
+          'DEGRADED  root present · not blank · console: 1 error "Cannot read properties of null" · no 5xx · server log: 2 errors',
       });
 
       const result = healthReadingContract.parse(fixture);
@@ -35,7 +35,8 @@ describe('healthReadingContract', () => {
         rootPresent: false,
         blank: true,
         blankColour: '#0d0907',
-        rendered: 'DOWN      root absent · page blank (#0d0907) · console clean · no 5xx · server log clean',
+        rendered:
+          'DOWN      root absent · page blank (#0d0907) · console clean · no 5xx · server log clean',
       });
 
       const result = healthReadingContract.parse(fixture);

@@ -41,9 +41,9 @@ describe('questChatBroker', () => {
       const questId = QuestIdStub({ value: 'quest-1' });
       proxy.setupInvalidResponse({ chatProcessId: '' });
 
-      await expect(
-        questChatBroker({ questId, message: 'Hi' }),
-      ).rejects.toThrow(/^POST \/api\/quests\/quest-1\/chat returned 200 with no chatProcessId$/u);
+      await expect(questChatBroker({ questId, message: 'Hi' })).rejects.toThrow(
+        /^POST \/api\/quests\/quest-1\/chat returned 200 with no chatProcessId$/u,
+      );
     });
 
     it('INVALID: {chatProcessId: number} => throws naming the missing field', async () => {
@@ -51,9 +51,9 @@ describe('questChatBroker', () => {
       const questId = QuestIdStub({ value: 'quest-1' });
       proxy.setupInvalidResponse({ chatProcessId: 12345 });
 
-      await expect(
-        questChatBroker({ questId, message: 'Hi' }),
-      ).rejects.toThrow(/^POST \/api\/quests\/quest-1\/chat returned 200 with no chatProcessId$/u);
+      await expect(questChatBroker({ questId, message: 'Hi' })).rejects.toThrow(
+        /^POST \/api\/quests\/quest-1\/chat returned 200 with no chatProcessId$/u,
+      );
     });
   });
 
@@ -77,9 +77,9 @@ describe('questChatBroker', () => {
       const questId = QuestIdStub({ value: 'quest-1' });
       proxy.setupRejected({ status: 400, error: 'Quest is not accepting messages right now' });
 
-      await expect(
-        questChatBroker({ questId, message: 'Hi' }),
-      ).rejects.toThrow(/^Quest is not accepting messages right now$/u);
+      await expect(questChatBroker({ questId, message: 'Hi' })).rejects.toThrow(
+        /^Quest is not accepting messages right now$/u,
+      );
     });
 
     it('EDGE: {400 with an empty error string} => throws a generic status message', async () => {
@@ -87,9 +87,9 @@ describe('questChatBroker', () => {
       const questId = QuestIdStub({ value: 'quest-1' });
       proxy.setupRejected({ status: 400, error: '' });
 
-      await expect(
-        questChatBroker({ questId, message: 'Hi' }),
-      ).rejects.toThrow(/^POST \/api\/quests\/quest-1\/chat failed with status 400$/u);
+      await expect(questChatBroker({ questId, message: 'Hi' })).rejects.toThrow(
+        /^POST \/api\/quests\/quest-1\/chat failed with status 400$/u,
+      );
     });
   });
 

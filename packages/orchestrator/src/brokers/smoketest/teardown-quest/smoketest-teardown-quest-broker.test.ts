@@ -6,7 +6,8 @@ import { smoketestTeardownQuestBroker } from './smoketest-teardown-quest-broker'
 import { smoketestTeardownQuestBrokerProxy } from './smoketest-teardown-quest-broker.proxy';
 
 const QUEST_ID = QuestIdStub({ value: 'teardown-quest' });
-const QUEST_PATH = '/home/testuser/.dungeonmaster/guilds/38c6cbd2-8bf1-6507-8d07-0980dd1fb595/quests/teardown-quest';
+const QUEST_PATH =
+  '/home/testuser/.dungeonmaster/guilds/38c6cbd2-8bf1-6507-8d07-0980dd1fb595/quests/teardown-quest';
 const GUILD_ID = GuildIdStub({ value: '38c6cbd2-8bf1-6507-8d07-0980dd1fb595' });
 
 describe('smoketestTeardownQuestBroker', () => {

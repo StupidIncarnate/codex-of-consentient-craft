@@ -28,7 +28,8 @@ export const normalizedStreamLineContentItemContract = z
     source: z.string().brand<'NormalizedStreamLineContentItemSource'>().optional(),
     agentId: z.string().brand<'NormalizedStreamLineContentItemAgentId'>().optional(),
   })
-  .loose().brand<'NormalizedStreamLineContentItem'>();
+  .loose()
+  .brand<'NormalizedStreamLineContentItem'>();
 
 export type NormalizedStreamLineContentItem = z.infer<
   typeof normalizedStreamLineContentItemContract

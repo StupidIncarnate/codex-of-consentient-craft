@@ -1,4 +1,3 @@
-
 import { InstanceIdStub } from '../../contracts/instance-id/instance-id.stub';
 import { ResultsAnswerStub } from '../../contracts/results-answer/results-answer.stub';
 import { RunResultStub } from '../../contracts/run-result/run-result.stub';
@@ -42,9 +41,7 @@ describe('resultsAnswerRenderTransformer', () => {
       const answer = ResultsAnswerStub({
         instanceId: InstanceIdStub({ value: 'inst_7f3a9c21' }),
         instanceState: 'alive',
-        rows: [
-          JSON.stringify({ step: 1, verb: 'goto', reading: 'navigated to /' }),
-        ],
+        rows: [JSON.stringify({ step: 1, verb: 'goto', reading: 'navigated to /' })],
       });
 
       const result = resultsAnswerRenderTransformer({ answer });
@@ -99,21 +96,21 @@ describe('resultsAnswerRenderTransformer', () => {
         kind: 'console',
         rows: [
           JSON.stringify({
-              at: 1,
-              kind: 'console',
-              type: 'error',
-              text: 'boom-from-eval',
-              url: '',
-              line: 0,
-            }),
+            at: 1,
+            kind: 'console',
+            type: 'error',
+            text: 'boom-from-eval',
+            url: '',
+            line: 0,
+          }),
           JSON.stringify({
-              at: 2,
-              kind: 'console',
-              type: 'warning',
-              text: 'warn-from-eval',
-              url: '',
-              line: 0,
-            }),
+            at: 2,
+            kind: 'console',
+            type: 'warning',
+            text: 'warn-from-eval',
+            url: '',
+            line: 0,
+          }),
         ],
       });
 
@@ -133,14 +130,14 @@ describe('resultsAnswerRenderTransformer', () => {
         kind: 'network',
         rows: [
           JSON.stringify({
-              at: 1,
-              method: 'POST',
-              url: '/api/guilds',
-              resourceType: 'fetch',
-              status: 500,
-              requestBody: '{"name":"x"}',
-              responseBody: '{"error":"database unavailable"}',
-            }),
+            at: 1,
+            method: 'POST',
+            url: '/api/guilds',
+            resourceType: 'fetch',
+            status: 500,
+            requestBody: '{"name":"x"}',
+            responseBody: '{"error":"database unavailable"}',
+          }),
         ],
       });
 
@@ -158,14 +155,14 @@ describe('resultsAnswerRenderTransformer', () => {
         kind: 'network',
         rows: [
           JSON.stringify({
-              at: 1,
-              method: 'GET',
-              url: '/api/quests',
-              resourceType: 'fetch',
-              status: null,
-              requestBody: null,
-              responseBody: '<request failed: timeout>',
-            }),
+            at: 1,
+            method: 'GET',
+            url: '/api/quests',
+            resourceType: 'fetch',
+            status: null,
+            requestBody: null,
+            responseBody: '<request failed: timeout>',
+          }),
         ],
       });
 
@@ -184,14 +181,14 @@ describe('resultsAnswerRenderTransformer', () => {
         kind: 'network',
         rows: [
           JSON.stringify({
-              at: 1,
-              method: 'GET',
-              url: '/api/x',
-              resourceType: 'fetch',
-              status: 200,
-              requestBody: null,
-              responseBody: longBody,
-            }),
+            at: 1,
+            method: 'GET',
+            url: '/api/x',
+            resourceType: 'fetch',
+            status: 200,
+            requestBody: null,
+            responseBody: longBody,
+          }),
         ],
       });
 
@@ -209,14 +206,14 @@ describe('resultsAnswerRenderTransformer', () => {
         kind: 'network',
         rows: [
           JSON.stringify({
-              at: 1,
-              method: 'GET',
-              url: '/@vite/client',
-              resourceType: 'script',
-              status: 304,
-              requestBody: null,
-              responseBody: null,
-            }),
+            at: 1,
+            method: 'GET',
+            url: '/@vite/client',
+            resourceType: 'script',
+            status: 304,
+            requestBody: null,
+            responseBody: null,
+          }),
         ],
       });
 

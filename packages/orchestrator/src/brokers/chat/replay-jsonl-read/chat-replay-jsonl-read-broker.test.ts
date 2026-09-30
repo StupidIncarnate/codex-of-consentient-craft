@@ -23,7 +23,7 @@ describe('chatReplayJsonlReadBroker', () => {
       // second read (which lands on the sticky `returns`) succeed.
       proxy.throwsOnce({
         filePath,
-        error: FsErrorStub({ code: 'ENOENT', path: String(filePath) }),
+        error: FsErrorStub({ code: 'ENOENT', path: filePath }),
       });
       proxy.returns({ filePath, content: '{"type":"system"}\n' });
 
@@ -35,7 +35,7 @@ describe('chatReplayJsonlReadBroker', () => {
     it('ERROR: {ENOENT past deadline} => throws ENOENT', async () => {
       const proxy = chatReplayJsonlReadBrokerProxy();
       const filePath = '/tmp/session.jsonl';
-      proxy.throws({ filePath, error: FsErrorStub({ code: 'ENOENT', path: String(filePath) }) });
+      proxy.throws({ filePath, error: FsErrorStub({ code: 'ENOENT', path: filePath }) });
 
       await expect(
         chatReplayJsonlReadBroker({
@@ -48,7 +48,7 @@ describe('chatReplayJsonlReadBroker', () => {
     it('ERROR: {non-ENOENT error} => throws immediately without retry', async () => {
       const proxy = chatReplayJsonlReadBrokerProxy();
       const filePath = '/tmp/session.jsonl';
-      proxy.throws({ filePath, error: FsErrorStub({ code: 'EACCES', path: String(filePath) }) });
+      proxy.throws({ filePath, error: FsErrorStub({ code: 'EACCES', path: filePath }) });
 
       await expect(chatReplayJsonlReadBroker({ filePath })).rejects.toThrow(/EACCES/u);
     });

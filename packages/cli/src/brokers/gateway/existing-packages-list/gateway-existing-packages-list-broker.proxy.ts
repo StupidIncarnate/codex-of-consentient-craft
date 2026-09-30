@@ -27,7 +27,7 @@ export const gatewayExistingPackagesListBrokerProxy = (): {
       for (const pkg of packages) {
         if ('children' in pkg) {
           fsReaddirProxy.returns({
-            path: `${String(packagesDir)}/${String(pkg.name)}`,
+            path: `${packagesDir}/${pkg.name}`,
             names: pkg.children.map((child) => child.name),
           });
         }
@@ -37,14 +37,14 @@ export const gatewayExistingPackagesListBrokerProxy = (): {
         if ('children' in pkg) {
           for (const child of pkg.children) {
             fsExistsSyncProxy.returns({
-              path: `${String(packagesDir)}/${String(pkg.name)}/${String(child.name)}/package.json`,
+              path: `${packagesDir}/${pkg.name}/${child.name}/package.json`,
               exists: child.hasPackageJson,
             });
           }
           continue;
         }
         fsExistsSyncProxy.returns({
-          path: `${String(packagesDir)}/${String(pkg.name)}/package.json`,
+          path: `${packagesDir}/${pkg.name}/package.json`,
           exists: pkg.hasPackageJson,
         });
       }

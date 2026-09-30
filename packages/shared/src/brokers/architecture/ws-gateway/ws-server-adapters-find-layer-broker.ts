@@ -28,7 +28,7 @@ export const wsServerAdaptersFindLayerBroker = ({
 }: {
   projectRoot: string;
 }): string[] => {
-  const root = String(projectRoot);
+  const root = projectRoot;
   const packagesDir = `${root}/${PACKAGES_REL}`;
   const allFiles = listTsFilesLayerBroker({ dirPath: packagesDir });
 
@@ -37,12 +37,12 @@ export const wsServerAdaptersFindLayerBroker = ({
 
   for (const filePath of allFiles) {
     if (!isNonTestFileGuard({ filePath })) continue;
-    if (!String(filePath).includes(ADAPTERS_PATH_SEGMENT)) continue;
+    if (!filePath.includes(ADAPTERS_PATH_SEGMENT)) continue;
     const source = readFileLayerBroker({ filePath });
     if (source === undefined) continue;
     const imports = importStatementsExtractTransformer({ source });
     for (const importPath of imports) {
-      if (knownPackages.some((pkg) => String(importPath) === pkg)) {
+      if (knownPackages.some((pkg) => importPath === pkg)) {
         adapters.push(filePath);
         break;
       }

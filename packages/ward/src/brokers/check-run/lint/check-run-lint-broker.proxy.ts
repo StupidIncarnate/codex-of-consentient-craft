@@ -46,7 +46,7 @@ export const checkRunLintBrokerProxy = (): {
     stderr: string;
   }): void => {
     run.setupSuccess({
-      command: String(resolveCommand({ projectFolder })),
+      command: resolveCommand({ projectFolder }),
       cwd: String(projectFolder.path),
       exitCode,
       stdout,
@@ -116,7 +116,7 @@ export const checkRunLintBrokerProxy = (): {
     }): void => {
       const expected = [...checkCommandsStatics.lint.args.slice(0, -1), ...files];
       run.setupSuccess({
-        command: String(resolveCommand({ projectFolder })),
+        command: resolveCommand({ projectFolder }),
         cwd: String(projectFolder.path),
         args: (actual: readonly unknown[]): boolean =>
           actual.length === expected.length &&

@@ -37,12 +37,23 @@ export const dungeonmasterConfigContract = z
         overrides: z
           .record(
             z.string(),
-            z.object({ add: z.array(z.string().brand<'DungeonmasterConfigArchitectureOverridesAdd'>()).optional() }).brand<'DungeonmasterConfigArchitectureOverrides'>(),
+            z
+              .object({
+                add: z
+                  .array(z.string().brand<'DungeonmasterConfigArchitectureOverridesAdd'>())
+                  .optional(),
+              })
+              .brand<'DungeonmasterConfigArchitectureOverrides'>(),
           )
           .optional(),
-        allowedRootFiles: z.array(z.string().brand<'DungeonmasterConfigArchitectureAllowedRootFiles'>()).optional(),
-        booleanFunctionPrefixes: z.array(z.string().brand<'DungeonmasterConfigArchitectureBooleanFunctionPrefixes'>()).optional(),
-      }).brand<'DungeonmasterConfigArchitecture'>()
+        allowedRootFiles: z
+          .array(z.string().brand<'DungeonmasterConfigArchitectureAllowedRootFiles'>())
+          .optional(),
+        booleanFunctionPrefixes: z
+          .array(z.string().brand<'DungeonmasterConfigArchitectureBooleanFunctionPrefixes'>())
+          .optional(),
+      })
+      .brand<'DungeonmasterConfigArchitecture'>()
       .optional(),
     orchestration: z
       .object({
@@ -59,7 +70,8 @@ export const dungeonmasterConfigContract = z
           .min(configDefaultsStatics.orchestration.timeoutMs.min)
           .default(configDefaultsStatics.orchestration.timeoutMs.default)
           .brand<'DungeonmasterConfigOrchestrationTimeoutMs'>(),
-      }).brand<'DungeonmasterConfigOrchestration'>()
+      })
+      .brand<'DungeonmasterConfigOrchestration'>()
       .optional(),
     ward: z
       .object({
@@ -70,12 +82,20 @@ export const dungeonmasterConfigContract = z
           .max(configDefaultsStatics.ward.concurrency.max)
           .default(configDefaultsStatics.ward.concurrency.default)
           .brand<'DungeonmasterConfigWardConcurrency'>(),
-      }).brand<'DungeonmasterConfigWard'>()
+      })
+      .brand<'DungeonmasterConfigWard'>()
       .optional(),
     dungeonmaster: z
       .object({
-        port: z.number().int().min(1).max(65_535).brand<'DungeonmasterConfigDungeonmasterPort'>().optional(),
-      }).brand<'DungeonmasterConfigDungeonmaster'>()
+        port: z
+          .number()
+          .int()
+          .min(1)
+          .max(65_535)
+          .brand<'DungeonmasterConfigDungeonmasterPort'>()
+          .optional(),
+      })
+      .brand<'DungeonmasterConfigDungeonmaster'>()
       .optional(),
     devServer: z
       .object({
@@ -118,9 +138,11 @@ export const dungeonmasterConfigContract = z
         e2e: z
           .object({
             processes: z.array(devServerE2eProcessContract).min(1),
-          }).brand<'DungeonmasterConfigDevServerE2e'>()
+          })
+          .brand<'DungeonmasterConfigDevServerE2e'>()
           .optional(),
-      }).brand<'DungeonmasterConfigDevServer'>()
+      })
+      .brand<'DungeonmasterConfigDevServer'>()
       .optional(),
     gateway: gatewayLintConfigContract.optional(),
   })
@@ -136,6 +158,7 @@ export const dungeonmasterConfigContract = z
         'dungeonmaster.port and devServer.port must differ — siege will kill the parent server otherwise',
       path: ['dungeonmaster', 'port'],
     },
-  ).brand<'DungeonmasterConfig'>();
+  )
+  .brand<'DungeonmasterConfig'>();
 
 export type DungeonmasterConfig = z.infer<typeof dungeonmasterConfigContract>;

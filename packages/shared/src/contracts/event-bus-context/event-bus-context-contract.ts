@@ -15,10 +15,12 @@ import { eventBusContract } from '../event-bus/event-bus-contract';
 import { busEmitterSiteContract } from '../bus-emitter-site/bus-emitter-site-contract';
 import { busSubscriberFileContract } from '../bus-subscriber-file/bus-subscriber-file-contract';
 
-export const eventBusContextContract = z.object({
-  buses: z.array(eventBusContract),
-  emitterSites: z.array(busEmitterSiteContract),
-  subscriberFiles: z.array(busSubscriberFileContract),
-}).brand<'EventBusContext'>();
+export const eventBusContextContract = z
+  .object({
+    buses: z.array(eventBusContract),
+    emitterSites: z.array(busEmitterSiteContract),
+    subscriberFiles: z.array(busSubscriberFileContract),
+  })
+  .brand<'EventBusContext'>();
 
 export type EventBusContext = z.infer<typeof eventBusContextContract>;

@@ -8,7 +8,7 @@ describe('isStaleReservationRegistryEntryGuard', () => {
       const nowMs = 1_700_000_000_000;
       const entry = RegistryEntryStub({
         bootedAtMs: null,
-        reservedAtMs: (nowMs - instanceLifecycleStatics.reservation.staleAfterMs - 1),
+        reservedAtMs: nowMs - instanceLifecycleStatics.reservation.staleAfterMs - 1,
       });
 
       const result = isStaleReservationRegistryEntryGuard({ entry, nowMs });
@@ -22,7 +22,7 @@ describe('isStaleReservationRegistryEntryGuard', () => {
       const nowMs = 1_700_000_000_000;
       const entry = RegistryEntryStub({
         bootedAtMs: null,
-        reservedAtMs: (nowMs - 5000),
+        reservedAtMs: nowMs - 5000,
       });
 
       const result = isStaleReservationRegistryEntryGuard({ entry, nowMs });
@@ -35,8 +35,8 @@ describe('isStaleReservationRegistryEntryGuard', () => {
     it('INVALID: {bootedAtMs set, reservedAtMs older than staleAfterMs} => returns false — not a reservation any more', () => {
       const nowMs = 1_700_000_000_000;
       const entry = RegistryEntryStub({
-        bootedAtMs: (nowMs - 1000),
-        reservedAtMs: (nowMs - instanceLifecycleStatics.reservation.staleAfterMs - 1),
+        bootedAtMs: nowMs - 1000,
+        reservedAtMs: nowMs - instanceLifecycleStatics.reservation.staleAfterMs - 1,
       });
 
       const result = isStaleReservationRegistryEntryGuard({ entry, nowMs });

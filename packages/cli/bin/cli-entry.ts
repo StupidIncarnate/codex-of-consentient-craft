@@ -35,11 +35,13 @@ if (require.main === module) {
   const dungeonmasterRoot = resolve(__dirname, DIRNAME_TO_ROOT_DEPTH);
   const targetProjectRoot = cwd();
 
-  StartCli({ command, args, context: installContextContract.parse({ dungeonmasterRoot, targetProjectRoot }) }).catch(
-    (error: unknown) => {
-      const errorMessage = error instanceof Error ? error.message : String(error);
-      stderr.write(`Error: ${errorMessage}\n`);
-      exit(1);
-    },
-  );
+  StartCli({
+    command,
+    args,
+    context: installContextContract.parse({ dungeonmasterRoot, targetProjectRoot }),
+  }).catch((error: unknown) => {
+    const errorMessage = error instanceof Error ? error.message : String(error);
+    stderr.write(`Error: ${errorMessage}\n`);
+    exit(1);
+  });
 }

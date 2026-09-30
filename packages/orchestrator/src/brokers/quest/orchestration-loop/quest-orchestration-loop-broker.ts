@@ -8,7 +8,13 @@
 
 import { stderr } from '#gateway/node/process';
 import { ConfigNotFoundError, configResolveBroker } from '@dungeonmaster/config';
-import type { WorkItem, WorkItemRole, ModifyQuestInput, Quest, Guild } from '@dungeonmaster/shared/contracts';
+import type {
+  WorkItem,
+  WorkItemRole,
+  ModifyQuestInput,
+  Quest,
+  Guild,
+} from '@dungeonmaster/shared/contracts';
 
 import type { OnAgentEntryCallback } from '../../../contracts/orchestration-callbacks/orchestration-callbacks-contract';
 import { getQuestInputContract } from '@dungeonmaster/shared/contracts';

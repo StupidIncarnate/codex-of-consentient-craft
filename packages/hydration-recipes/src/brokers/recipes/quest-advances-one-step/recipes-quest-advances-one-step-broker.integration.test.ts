@@ -43,7 +43,10 @@ describe('recipesQuestAdvancesOneStepBroker', () => {
       const earlierStep = await run(recipesGuildMidExecutionBroker(), target);
       const guild = earlierStep[GUILD_NAME] as unknown as Guild;
 
-      const result = await run(recipesQuestAdvancesOneStepBroker(QuestAdvancesOneStepInputsStub({ guildId: guild.id })), target);
+      const result = await run(
+        recipesQuestAdvancesOneStepBroker(QuestAdvancesOneStepInputsStub({ guildId: guild.id })),
+        target,
+      );
 
       expect(Object.keys(result).sort()).toStrictEqual(['quest']);
     });
@@ -53,7 +56,10 @@ describe('recipesQuestAdvancesOneStepBroker', () => {
       const earlierStep = await run(recipesGuildMidExecutionBroker(), target);
       const guild = earlierStep[GUILD_NAME] as unknown as Guild;
 
-      const result = await run(recipesQuestAdvancesOneStepBroker(QuestAdvancesOneStepInputsStub({ guildId: guild.id })), target);
+      const result = await run(
+        recipesQuestAdvancesOneStepBroker(QuestAdvancesOneStepInputsStub({ guildId: guild.id })),
+        target,
+      );
       const quest = (result as Record<PropertyKey, unknown>)[QUEST_NAME] as Quest;
 
       expect({ status: quest.status, title: quest.title }).toStrictEqual({
@@ -67,7 +73,10 @@ describe('recipesQuestAdvancesOneStepBroker', () => {
       const earlierStep = await run(recipesGuildMidExecutionBroker(), target);
       const guild = earlierStep[GUILD_NAME] as unknown as Guild;
 
-      const result = await run(recipesQuestAdvancesOneStepBroker(QuestAdvancesOneStepInputsStub({ guildId: guild.id })), target);
+      const result = await run(
+        recipesQuestAdvancesOneStepBroker(QuestAdvancesOneStepInputsStub({ guildId: guild.id })),
+        target,
+      );
       const quest = (result as Record<PropertyKey, unknown>)[QUEST_NAME] as Quest;
 
       const operationsOnDisk = fileTarget.readQuestFileOperations({
@@ -89,7 +98,10 @@ describe('recipesQuestAdvancesOneStepBroker', () => {
       const earlierStep = await run(recipesGuildMidExecutionBroker(), target);
       const guild = earlierStep[GUILD_NAME] as unknown as Guild;
 
-      await run(recipesQuestAdvancesOneStepBroker(QuestAdvancesOneStepInputsStub({ guildId: guild.id })), target);
+      await run(
+        recipesQuestAdvancesOneStepBroker(QuestAdvancesOneStepInputsStub({ guildId: guild.id })),
+        target,
+      );
       const quest = fileTarget.readQuestByTitle({ title: QUEST_TITLE });
 
       const operationIds = quest.operations.map((operation) => operation.id);
@@ -118,7 +130,10 @@ describe('recipesQuestAdvancesOneStepBroker', () => {
       const guild = earlierStep[GUILD_NAME] as Guild;
 
       await expect(
-        run(recipesQuestAdvancesOneStepBroker(QuestAdvancesOneStepInputsStub({ guildId: guild.id })), target),
+        run(
+          recipesQuestAdvancesOneStepBroker(QuestAdvancesOneStepInputsStub({ guildId: guild.id })),
+          target,
+        ),
       ).rejects.toThrow(
         /^recipe "quest-advances-one-step": ingredient "quest"'s "api" route at http:\/\/live-quest-target\.test\/api\/quests\/[0-9a-f-]+\/start refused the connection: .*no in-process dispatch for POST \/api\/quests\/[0-9a-f-]+\/start/u,
       );

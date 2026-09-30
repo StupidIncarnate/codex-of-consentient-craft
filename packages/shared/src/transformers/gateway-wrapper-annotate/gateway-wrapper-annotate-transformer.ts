@@ -35,7 +35,7 @@ export const gatewayWrapperAnnotateTransformer = ({
   wrapperNames.map((wrapperName) => {
     const bannedEntry = gatewayLintConfig.bannedExports?.find(
       (entry) =>
-        String(entry.subpath) === String(subpath) && String(entry.name) === String(wrapperName),
+        String(entry.subpath) === subpath && String(entry.name) === wrapperName,
     );
     if (bannedEntry !== undefined) {
       return `${wrapperName} ✗ banned, use ${bannedEntry.use}`;
@@ -43,8 +43,8 @@ export const gatewayWrapperAnnotateTransformer = ({
 
     const restrictedEntry = gatewayLintConfig.restrictedTo?.find(
       (entry) =>
-        String(entry.subpath) === String(subpath) &&
-        (entry.name === undefined || String(entry.name) === String(wrapperName)),
+        String(entry.subpath) === subpath &&
+        (entry.name === undefined || String(entry.name) === wrapperName),
     );
     if (restrictedEntry !== undefined) {
       const packageList = restrictedEntry.packages
@@ -56,5 +56,5 @@ export const gatewayWrapperAnnotateTransformer = ({
       return `${wrapperName} (${packageList} only)`;
     }
 
-    return String(wrapperName);
+    return wrapperName;
   });

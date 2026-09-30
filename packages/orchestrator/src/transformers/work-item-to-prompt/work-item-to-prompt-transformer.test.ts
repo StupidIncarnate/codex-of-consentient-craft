@@ -477,9 +477,7 @@ describe('workItemToPromptTransformer', () => {
           id: workItemId,
           role: 'codeweaver',
           step: 'plan',
-          relatedDataItems: [
-            `operations/${String(ownOperationId)}`,
-          ],
+          relatedDataItems: [`operations/${String(ownOperationId)}`],
         });
         const longLedger = [
           ...Array.from({ length: PATHOLOGICAL_COMPLETE_COUNT }, (_unused, index) =>
@@ -1057,9 +1055,7 @@ describe('workItemToPromptTransformer', () => {
       it('ERROR: {role: codeweaver, relatedDataItems references an operation absent from quest.operations} => throws no-resolvable-operations-ref error', () => {
         const workItem = WorkItemStub({
           role: 'codeweaver',
-          relatedDataItems: [
-            'operations/aaaaaaaa-1313-4222-9333-444444444444',
-          ],
+          relatedDataItems: ['operations/aaaaaaaa-1313-4222-9333-444444444444'],
         });
         const quest = QuestStub({ operations: [], workItems: [workItem] });
 
@@ -1146,9 +1142,7 @@ describe('workItemToPromptTransformer', () => {
         const workItem = WorkItemStub({
           id: QuestWorkItemIdStub({ value: 'bbbbbbbb-2222-4222-9333-444444444444' }),
           role: agentName,
-          relatedDataItems: [
-            `operations/${String(operations[0]?.id)}`,
-          ],
+          relatedDataItems: [`operations/${String(operations[0]?.id)}`],
         });
         const quest = QuestStub({
           operations,
@@ -1227,9 +1221,7 @@ describe('workItemToPromptTransformer', () => {
         const workItem = WorkItemStub({
           id: QuestWorkItemIdStub({ value: 'dddddddd-3333-4222-9333-444444444444' }),
           role: agentName,
-          relatedDataItems: [
-            `operations/${String(ownOperationId)}`,
-          ],
+          relatedDataItems: [`operations/${String(ownOperationId)}`],
         });
         const quest = QuestStub({
           operations,

@@ -14,16 +14,14 @@
 
 import { z } from '#gateway/npm/zod';
 
+export type UploadProgressHandler = (params: { bytesSent: number; bytesTotal: number }) => void;
 
-export type UploadProgressHandler = (params: {
-  bytesSent: number;
-  bytesTotal: number;
-}) => void;
-
-export const uploadProgressPostContract = z.object({
-  url: z.string().min(1).brand<'UploadProgressPostUrl'>(),
-  body: z.json(),
-  onProgress: z.custom<UploadProgressHandler>((value) => typeof value === 'function'),
-}).brand<'UploadProgressPost'>();
+export const uploadProgressPostContract = z
+  .object({
+    url: z.string().min(1).brand<'UploadProgressPostUrl'>(),
+    body: z.json(),
+    onProgress: z.custom<UploadProgressHandler>((value) => typeof value === 'function'),
+  })
+  .brand<'UploadProgressPost'>();
 
 export type UploadProgressPost = z.infer<typeof uploadProgressPostContract>;

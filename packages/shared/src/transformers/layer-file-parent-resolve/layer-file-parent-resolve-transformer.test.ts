@@ -4,7 +4,8 @@ describe('layerFileParentResolveTransformer', () => {
   describe('layer files with -layer- infix', () => {
     it('VALID: {layerFilePath: "/repo/packages/web/src/widgets/quest-chat/quest-chat-content-layer-widget.tsx"} => returns parent widget path', () => {
       const result = layerFileParentResolveTransformer({
-        layerFilePath: '/repo/packages/web/src/widgets/quest-chat/quest-chat-content-layer-widget.tsx',
+        layerFilePath:
+          '/repo/packages/web/src/widgets/quest-chat/quest-chat-content-layer-widget.tsx',
       });
 
       expect(result).toBe('/repo/packages/web/src/widgets/quest-chat/quest-chat-widget.tsx');
@@ -12,7 +13,8 @@ describe('layerFileParentResolveTransformer', () => {
 
     it('VALID: {layerFilePath: "/repo/packages/web/src/widgets/quest-chat/quest-chat-header-layer-widget.tsx"} => returns parent widget path', () => {
       const result = layerFileParentResolveTransformer({
-        layerFilePath: '/repo/packages/web/src/widgets/quest-chat/quest-chat-header-layer-widget.tsx',
+        layerFilePath:
+          '/repo/packages/web/src/widgets/quest-chat/quest-chat-header-layer-widget.tsx',
       });
 
       expect(result).toBe('/repo/packages/web/src/widgets/quest-chat/quest-chat-widget.tsx');

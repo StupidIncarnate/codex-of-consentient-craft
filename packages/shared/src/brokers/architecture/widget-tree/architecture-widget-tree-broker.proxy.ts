@@ -47,8 +47,8 @@ export const architectureWidgetTreeBrokerProxy = (): {
       flowFilePaths: string[];
       flowContents: string[];
     }): void => {
-      const packageSrcPath = `${String(packageRoot)}/src`;
-      const widgetsDirPath = `${String(packageSrcPath)}/${widgetTreeStatics.widgetsFolderName}`;
+      const packageSrcPath = `${packageRoot}/src`;
+      const widgetsDirPath = `${packageSrcPath}/${widgetTreeStatics.widgetsFolderName}`;
 
       // readdir call 1: widgets dir
       listWidgetsProxy.setupFlatWidgetsDir({ widgetsDirPath, filePaths: widgetFilePaths });
@@ -72,8 +72,8 @@ export const architectureWidgetTreeBrokerProxy = (): {
     },
 
     setupEmpty: ({ packageRoot }: { packageRoot: string }): void => {
-      const packageSrcPath = `${String(packageRoot)}/src`;
-      const widgetsDirPath = `${String(packageSrcPath)}/${widgetTreeStatics.widgetsFolderName}`;
+      const packageSrcPath = `${packageRoot}/src`;
+      const widgetsDirPath = `${packageSrcPath}/${widgetTreeStatics.widgetsFolderName}`;
       listWidgetsProxy.setupEmpty({ widgetsDirPath });
     },
   };

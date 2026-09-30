@@ -15,13 +15,7 @@ export const ProcessStatusResponderProxy = (): {
     setupGetStatus: ({ status }: { status: OrchestrationStatus }): void => {
       orchestrator.getQuestStatusReturns({ processId: status.processId, status });
     },
-    setupGetStatusError: ({
-      processId,
-      message,
-    }: {
-      processId: string;
-      message: string;
-    }): void => {
+    setupGetStatusError: ({ processId, message }: { processId: string; message: string }): void => {
       orchestrator.getQuestStatusThrows({ processId, error: new Error(message) });
     },
     callResponder: ProcessStatusResponder,

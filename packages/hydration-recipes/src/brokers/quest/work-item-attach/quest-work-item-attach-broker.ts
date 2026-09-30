@@ -26,7 +26,12 @@
 import { randomUUID } from '#gateway/node/crypto';
 import { questGetBroker } from '@dungeonmaster/orchestrator/brokers';
 import { locationsStatics } from '@dungeonmaster/shared/statics';
-import { getQuestInputContract, workItemContract, questContract, operationItemContract } from '@dungeonmaster/shared/contracts';
+import {
+  getQuestInputContract,
+  workItemContract,
+  questContract,
+  operationItemContract,
+} from '@dungeonmaster/shared/contracts';
 import type { WorkItem } from '@dungeonmaster/shared/contracts';
 
 import { questFolderPathResolveBroker } from '../folder-path-resolve/quest-folder-path-resolve-broker';

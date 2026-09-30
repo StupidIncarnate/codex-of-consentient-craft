@@ -23,12 +23,8 @@ import { readFileLayerBroker } from './read-file-layer-broker';
 
 const PACKAGES_REL = 'packages';
 
-export const architectureWsEdgesBroker = ({
-  projectRoot,
-}: {
-  projectRoot: string;
-}): WsEdge[] => {
-  const root = String(projectRoot);
+export const architectureWsEdgesBroker = ({ projectRoot }: { projectRoot: string }): WsEdge[] => {
+  const root = projectRoot;
   const packagesDir = `${root}/${PACKAGES_REL}`;
   const allFiles = listTsFilesLayerBroker({ dirPath: packagesDir });
 
@@ -43,7 +39,7 @@ export const architectureWsEdgesBroker = ({
     // (e.g. shared/transformers/ws-emit-calls-extract-transformer.ts itself contains the
     // emitter pattern). Per the brief, transformers/guards/contracts/statics never move data
     // at runtime, so any "match" inside them is a false positive.
-    const filePathStr = String(filePath);
+    const filePathStr = filePath;
     if (
       filePathStr.includes('/transformers/') ||
       filePathStr.includes('/guards/') ||
@@ -71,7 +67,7 @@ export const architectureWsEdgesBroker = ({
     seenTypes.add(eventType);
   }
   for (const { eventType } of consumerEntries) {
-    const alreadySeen = [...seenTypes].some((t) => String(t) === String(eventType));
+    const alreadySeen = [...seenTypes].some((t) => t === eventType);
     if (!alreadySeen) {
       seenTypes.add(eventType);
     }
@@ -87,11 +83,11 @@ export const architectureWsEdgesBroker = ({
   const edges: WsEdge[] = [];
 
   for (const eventType of seenTypes) {
-    const matchingEmitter = emitterEntries.find((e) => String(e.eventType) === String(eventType));
+    const matchingEmitter = emitterEntries.find((e) => e.eventType === eventType);
     const emitterFile = matchingEmitter?.emitterFile ?? null;
 
     const consumerFiles: string[] = consumerEntries
-      .filter((e) => String(e.eventType) === String(eventType))
+      .filter((e) => e.eventType === eventType)
       .map((e) => e.consumerFile);
 
     const paired = emitterFile !== null && consumerFiles.length > 0;

@@ -28,11 +28,13 @@
 import { qaOffMapFamilyContract, qaWalkPathContract } from '@dungeonmaster/shared/contracts';
 import { z } from '#gateway/npm/zod';
 
-export const workPlanPayloadSiegemasterContract = z.object({
-  path: qaWalkPathContract,
-  offMapFamily: qaOffMapFamilyContract
-    .nullable()
-    .describe('The one probe family this round attacks, or null when the round attacks none.'),
-}).brand<'WorkPlanPayloadSiegemaster'>();
+export const workPlanPayloadSiegemasterContract = z
+  .object({
+    path: qaWalkPathContract,
+    offMapFamily: qaOffMapFamilyContract
+      .nullable()
+      .describe('The one probe family this round attacks, or null when the round attacks none.'),
+  })
+  .brand<'WorkPlanPayloadSiegemaster'>();
 
 export type WorkPlanPayloadSiegemaster = z.infer<typeof workPlanPayloadSiegemasterContract>;

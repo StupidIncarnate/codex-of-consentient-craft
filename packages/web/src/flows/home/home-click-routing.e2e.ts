@@ -39,7 +39,7 @@ test.describe('Home page session click routing', () => {
     await sessions.createSessionFile({ sessionId, userMessage: 'Build the quest feature' });
 
     const created = await quests.createQuest({
-      guildId: guildId,
+      guildId,
       title: 'Routing Quest',
       userRequest: 'Build the quest feature',
     });

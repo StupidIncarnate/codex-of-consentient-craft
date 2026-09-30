@@ -26,9 +26,7 @@ describe('locationLiteralKeyPathsTransformer', () => {
         minRetainedLength: 8,
       });
 
-      expect(result.get('settings.json')).toBe(
-        'locationsStatics.repoRoot.claude.settings',
-      );
+      expect(result.get('settings.json')).toBe('locationsStatics.repoRoot.claude.settings');
     });
   });
 
@@ -42,12 +40,8 @@ describe('locationLiteralKeyPathsTransformer', () => {
         minRetainedLength: 8,
       });
 
-      expect(result.get('eslint.config.ts')).toBe(
-        'locationsStatics.repoRoot.eslintConfig[0]',
-      );
-      expect(result.get('eslint.config.js')).toBe(
-        'locationsStatics.repoRoot.eslintConfig[1]',
-      );
+      expect(result.get('eslint.config.ts')).toBe('locationsStatics.repoRoot.eslintConfig[0]');
+      expect(result.get('eslint.config.js')).toBe('locationsStatics.repoRoot.eslintConfig[1]');
     });
   });
 
@@ -79,9 +73,7 @@ describe('locationLiteralKeyPathsTransformer', () => {
         minRetainedLength: 8,
       });
 
-      expect(result.get('subagents')).toBe(
-        'locationsStatics.userHome.claude.subagentsDir',
-      );
+      expect(result.get('subagents')).toBe('locationsStatics.userHome.claude.subagentsDir');
     });
   });
 
@@ -106,10 +98,7 @@ describe('locationLiteralKeyPathsTransformer', () => {
       });
 
       expect(Array.from(result.entries())).toStrictEqual([
-        [
-          'node_modules/.bin',
-          'locationsStatics.repoRoot.nodeModulesBin',
-        ],
+        ['node_modules/.bin', 'locationsStatics.repoRoot.nodeModulesBin'],
       ]);
     });
 
@@ -120,9 +109,7 @@ describe('locationLiteralKeyPathsTransformer', () => {
         minRetainedLength: 8,
       });
 
-      expect(result.get('node_modules')).toBe(
-        'locationsStatics.repoRoot.nodeModules',
-      );
+      expect(result.get('node_modules')).toBe('locationsStatics.repoRoot.nodeModules');
     });
   });
 
@@ -134,9 +121,7 @@ describe('locationLiteralKeyPathsTransformer', () => {
         minRetainedLength: 100,
       });
 
-      expect(result.get('guild.json')).toBe(
-        'locationsStatics.dungeonmasterHome.guildConfigFile',
-      );
+      expect(result.get('guild.json')).toBe('locationsStatics.dungeonmasterHome.guildConfigFile');
     });
 
     it('EDGE: "node_modules/.bin" (contains slash) is retained', () => {
@@ -146,9 +131,7 @@ describe('locationLiteralKeyPathsTransformer', () => {
         minRetainedLength: 100,
       });
 
-      expect(result.get('node_modules/.bin')).toBe(
-        'locationsStatics.repoRoot.nodeModulesBin',
-      );
+      expect(result.get('node_modules/.bin')).toBe('locationsStatics.repoRoot.nodeModulesBin');
     });
   });
 

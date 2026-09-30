@@ -43,7 +43,7 @@ export const transcriptHarness = (): {
     relativePath: string;
   }): readonly unknown[] =>
     transcriptLinesReadTransformer({
-      contents: (testbed.readFile({ relativePath: relativePath }) ?? ''),
+      contents: testbed.readFile({ relativePath }) ?? '',
     }).map((line) => line.uuid),
 
   completionAgentIdsIn: ({
@@ -54,7 +54,7 @@ export const transcriptHarness = (): {
     relativePath: string;
   }): readonly unknown[] =>
     transcriptLinesReadTransformer({
-      contents: (testbed.readFile({ relativePath: relativePath }) ?? ''),
+      contents: testbed.readFile({ relativePath }) ?? '',
     }).map((line) => line.toolUseResult?.agentId ?? null),
 
   assistantTextsIn: ({
@@ -65,7 +65,7 @@ export const transcriptHarness = (): {
     relativePath: string;
   }): readonly unknown[] =>
     transcriptLinesReadTransformer({
-      contents: (testbed.readFile({ relativePath: relativePath }) ?? ''),
+      contents: testbed.readFile({ relativePath }) ?? '',
     }).flatMap((line): readonly unknown[] =>
       typeof line.message.content === 'string'
         ? [line.message.content]
@@ -79,5 +79,5 @@ export const transcriptHarness = (): {
     testbed: ReturnType<typeof installTestbedCreateBroker>;
     relativePath: string;
   }): ReturnType<ReturnType<typeof installTestbedCreateBroker>['readFile']> =>
-    testbed.readFile({ relativePath: relativePath }),
+    testbed.readFile({ relativePath }),
 });

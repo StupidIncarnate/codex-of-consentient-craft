@@ -41,9 +41,7 @@ export const contractIndexBuildBroker = ({
   const packages = packageDirs.flatMap((dir) => {
     const parsed = packageJsonContract.safeParse(readJsonFileSyncIfExists(`${dir}/package.json`));
     const name = parsed.success ? parsed.data.name : undefined;
-    return name === undefined
-      ? []
-      : [contractIndexPackageContract.parse({ name: name, dir })];
+    return name === undefined ? [] : [contractIndexPackageContract.parse({ name, dir })];
   });
 
   const sources = packages

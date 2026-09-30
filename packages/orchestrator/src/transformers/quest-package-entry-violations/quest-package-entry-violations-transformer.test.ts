@@ -47,7 +47,7 @@ describe('questPackageEntryViolationsTransformer', () => {
         dependentsByPackage: new Map<unknown, unknown[]>(),
       });
 
-      expect(offenders.map((offender) => String(offender))).toStrictEqual([
+      expect(offenders.map((offender) => offender)).toStrictEqual([
         "Package entry 'web' declares changeType 'edit' but its location './packages/web' does not resolve on disk. An 'edit' or 'delete' entry names a package that already exists — correct the location, or set changeType to 'new' if this quest is what creates it.",
       ]);
     });
@@ -61,7 +61,7 @@ describe('questPackageEntryViolationsTransformer', () => {
         dependentsByPackage: new Map<unknown, unknown[]>(),
       });
 
-      expect(offenders.map((offender) => String(offender))).toStrictEqual([
+      expect(offenders.map((offender) => offender)).toStrictEqual([
         "Package entry 'web' declares changeType 'delete' but its location './packages/web' does not resolve on disk. An 'edit' or 'delete' entry names a package that already exists — correct the location, or set changeType to 'new' if this quest is what creates it.",
       ]);
     });
@@ -97,7 +97,7 @@ describe('questPackageEntryViolationsTransformer', () => {
         dependentsByPackage: new Map<unknown, unknown[]>(),
       });
 
-      expect(offenders.map((offender) => String(offender))).toStrictEqual([
+      expect(offenders.map((offender) => offender)).toStrictEqual([
         "Package entry 'web' declares changeType 'new' but its location './packages/web' already resolves on disk. A 'new' package is one this quest creates — set changeType to 'edit', or point location at the path the new package will actually live at.",
       ]);
     });
@@ -117,7 +117,7 @@ describe('questPackageEntryViolationsTransformer', () => {
         dependentsByPackage: new Map<unknown, unknown[]>(),
       });
 
-      expect(offenders.map((offender) => String(offender))).toStrictEqual([
+      expect(offenders.map((offender) => offender)).toStrictEqual([
         "Package entry 'queue-runner' declares changeType 'new' but names no usedBy[] consumers. A package with no package.json on disk yet has no other source of reverse edges, so the post-quest dependency graph cannot place it — list every package that will depend on 'queue-runner'.",
       ]);
     });
@@ -136,7 +136,7 @@ describe('questPackageEntryViolationsTransformer', () => {
         dependentsByPackage: new Map<unknown, unknown[]>(),
       });
 
-      expect(offenders.map((offender) => String(offender))).toStrictEqual([
+      expect(offenders.map((offender) => offender)).toStrictEqual([
         "Package entry 'queue-runner' declares changeType 'new' but names no usedBy[] consumers. A package with no package.json on disk yet has no other source of reverse edges, so the post-quest dependency graph cannot place it — list every package that will depend on 'queue-runner'.",
       ]);
     });
@@ -150,7 +150,7 @@ describe('questPackageEntryViolationsTransformer', () => {
         dependentsByPackage: new Map<unknown, unknown[]>(),
       });
 
-      expect(offenders.map((offender) => String(offender))).toStrictEqual([
+      expect(offenders.map((offender) => offender)).toStrictEqual([
         "Package entry 'web' declares changeType 'new' but its location './packages/web' already resolves on disk. A 'new' package is one this quest creates — set changeType to 'edit', or point location at the path the new package will actually live at.",
         "Package entry 'web' declares changeType 'new' but names no usedBy[] consumers. A package with no package.json on disk yet has no other source of reverse edges, so the post-quest dependency graph cannot place it — list every package that will depend on 'web'.",
       ]);
@@ -209,7 +209,7 @@ describe('questPackageEntryViolationsTransformer', () => {
         dependentsByPackage: new Map<unknown, unknown[]>([['shared', ['cli', 'server']]]),
       });
 
-      expect(offenders.map((offender) => String(offender))).toStrictEqual([
+      expect(offenders.map((offender) => offender)).toStrictEqual([
         "Package entry 'shared' declares changeType 'delete' but these packages still depend on it and are not declared as 'edit' or 'delete': cli, server. Removing 'shared' would leave the post-quest dependency graph with a dangling edge — add an entry for each of them (usually 'edit', for the import removal), or keep 'shared'.",
       ]);
     });
@@ -233,7 +233,7 @@ describe('questPackageEntryViolationsTransformer', () => {
         dependentsByPackage: new Map<unknown, unknown[]>([['shared', ['cli']]]),
       });
 
-      expect(offenders.map((offender) => String(offender))).toStrictEqual([
+      expect(offenders.map((offender) => offender)).toStrictEqual([
         "Package entry 'shared' declares changeType 'delete' but these packages still depend on it and are not declared as 'edit' or 'delete': cli. Removing 'shared' would leave the post-quest dependency graph with a dangling edge — add an entry for each of them (usually 'edit', for the import removal), or keep 'shared'.",
       ]);
     });
@@ -251,7 +251,7 @@ describe('questPackageEntryViolationsTransformer', () => {
         dependentsByPackage: new Map<unknown, unknown[]>([['shared', ['cli']]]),
       });
 
-      expect(offenders.map((offender) => String(offender))).toStrictEqual([
+      expect(offenders.map((offender) => offender)).toStrictEqual([
         "Package entry 'shared' declares changeType 'delete' but its location './packages/shared' does not resolve on disk. An 'edit' or 'delete' entry names a package that already exists — correct the location, or set changeType to 'new' if this quest is what creates it.",
         "Package entry 'shared' declares changeType 'delete' but these packages still depend on it and are not declared as 'edit' or 'delete': cli. Removing 'shared' would leave the post-quest dependency graph with a dangling edge — add an entry for each of them (usually 'edit', for the import removal), or keep 'shared'.",
       ]);

@@ -72,7 +72,8 @@ export const hydrationRoutesContract = z
   })
   .refine((routes) => hydrationRouteContract.options.some((route) => routes[route] !== undefined), {
     message: 'an ingredient must declare at least one route',
-  }).brand<'HydrationRoutes'>();
+  })
+  .brand<'HydrationRoutes'>();
 
 export type HydrationRoutes = z.infer<typeof hydrationRoutesContract>;
 

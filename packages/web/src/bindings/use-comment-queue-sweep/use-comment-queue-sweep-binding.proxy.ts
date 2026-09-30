@@ -29,7 +29,8 @@ export const useCommentQueueSweepBindingProxy = (): {
     setupPrefixOnlyKey: ({ value }: { value: string }): void => {
       stateProxy.seedPrefixOnlyKey({ value });
     },
-    hasStoredQueue: ({ questId }: { questId: Quest['id'] }): boolean => stateProxy.hasKey({ questId }),
+    hasStoredQueue: ({ questId }: { questId: Quest['id'] }): boolean =>
+      stateProxy.hasKey({ questId }),
     getStoredValue: ({ questId }: { questId: Quest['id'] }): unknown =>
       stateProxy.readRawValue({ questId }),
     getPrefixOnlyValue: (): unknown => stateProxy.readPrefixOnlyValue(),

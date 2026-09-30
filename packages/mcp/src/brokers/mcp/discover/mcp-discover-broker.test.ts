@@ -38,7 +38,8 @@ describe('mcpDiscoverBroker', () => {
     it('VALID: {glob: "**/*.ts"} => returns tree format with matched files', async () => {
       const brokerProxy = mcpDiscoverBrokerProxy();
       const filepath = '/default/cwd/src/guards/standalone-guard.ts';
-      const contents = '/**\n * PURPOSE: standalone guard\n *\n * USAGE:\n * example\n */\nexport const standaloneGuard = () => {};';
+      const contents =
+        '/**\n * PURPOSE: standalone guard\n *\n * USAGE:\n * example\n */\nexport const standaloneGuard = () => {};';
       const pattern = '**/*.ts';
 
       brokerProxy.setupFileDiscovery({ filepath, contents, pattern });
@@ -55,7 +56,8 @@ describe('mcpDiscoverBroker', () => {
     it('VALID: {grep: "ENOENT"} => returns tree format with grep hits rendered', async () => {
       const brokerProxy = mcpDiscoverBrokerProxy();
       const filepath = '/default/cwd/src/adapters/fs-access-adapter.ts';
-      const contents = "/**\n * PURPOSE: Checks file access\n */\nexport const fsAccessAdapter = () => {};\nif (error.code === 'ENOENT') {\n  throw error;\n}";
+      const contents =
+        "/**\n * PURPOSE: Checks file access\n */\nexport const fsAccessAdapter = () => {};\nif (error.code === 'ENOENT') {\n  throw error;\n}";
       const pattern = '**/*';
 
       brokerProxy.setupFileDiscovery({ filepath, contents, pattern });
@@ -73,7 +75,8 @@ describe('mcpDiscoverBroker', () => {
     it('VALID: {glob: "**/*.ts", grep: "guard"} => passes both glob and grep to scanner', async () => {
       const brokerProxy = mcpDiscoverBrokerProxy();
       const filepath = '/default/cwd/src/guards/standalone-guard.ts';
-      const contents = '/**\n * PURPOSE: standalone guard\n *\n * USAGE:\n * example\n */\nexport const standaloneGuard = () => {};';
+      const contents =
+        '/**\n * PURPOSE: standalone guard\n *\n * USAGE:\n * example\n */\nexport const standaloneGuard = () => {};';
       const pattern = '**/*.ts';
 
       brokerProxy.setupFileDiscovery({ filepath, contents, pattern });
@@ -90,7 +93,8 @@ describe('mcpDiscoverBroker', () => {
     it('VALID: {grep: "guard", context: 2} => passes context to scanner', async () => {
       const brokerProxy = mcpDiscoverBrokerProxy();
       const filepath = '/default/cwd/src/guards/standalone-guard.ts';
-      const contents = '/**\n * PURPOSE: standalone guard\n *\n * USAGE:\n * example\n */\nexport const standaloneGuard = () => {};';
+      const contents =
+        '/**\n * PURPOSE: standalone guard\n *\n * USAGE:\n * example\n */\nexport const standaloneGuard = () => {};';
       const pattern = '**/*';
 
       brokerProxy.setupFileDiscovery({ filepath, contents, pattern });
@@ -107,7 +111,8 @@ describe('mcpDiscoverBroker', () => {
     it('VALID: {grep: "NOMATCH"} => returns empty tree when no files match', async () => {
       const brokerProxy = mcpDiscoverBrokerProxy();
       const filepath = '/default/cwd/src/guards/standalone-guard.ts';
-      const contents = '/**\n * PURPOSE: standalone guard\n */\nexport const standaloneGuard = () => {};';
+      const contents =
+        '/**\n * PURPOSE: standalone guard\n */\nexport const standaloneGuard = () => {};';
       const pattern = '**/*';
 
       brokerProxy.setupFileDiscovery({ filepath, contents, pattern });
@@ -126,7 +131,8 @@ describe('mcpDiscoverBroker', () => {
     it('VALID: {verbose: true} => returns full DiscoverResultItem array', async () => {
       const brokerProxy = mcpDiscoverBrokerProxy();
       const filepath = '/default/cwd/src/guards/has-permission-guard.ts';
-      const contents = '/**\n * PURPOSE: Validates permission\n * USAGE: hasPermissionGuard({ user })\n */\nexport const hasPermissionGuard = ({ user }: { user?: User }): boolean => true;';
+      const contents =
+        '/**\n * PURPOSE: Validates permission\n * USAGE: hasPermissionGuard({ user })\n */\nexport const hasPermissionGuard = ({ user }: { user?: User }): boolean => true;';
       const pattern = '**/*';
 
       brokerProxy.setupFileDiscovery({ filepath, contents, pattern });
@@ -153,7 +159,8 @@ describe('mcpDiscoverBroker', () => {
     it('VALID: {grep: "ENOENT", verbose: true} => returns full items with hits', async () => {
       const brokerProxy = mcpDiscoverBrokerProxy();
       const filepath = '/default/cwd/src/adapters/fs-access-adapter.ts';
-      const contents = "/**\n * PURPOSE: Checks file access\n *\n * USAGE:\n * fsAccessAdapter({ filepath })\n */\nexport const fsAccessAdapter = () => {};\nif (error.code === 'ENOENT') {\n  throw error;\n}";
+      const contents =
+        "/**\n * PURPOSE: Checks file access\n *\n * USAGE:\n * fsAccessAdapter({ filepath })\n */\nexport const fsAccessAdapter = () => {};\nif (error.code === 'ENOENT') {\n  throw error;\n}";
       const pattern = '**/*';
 
       brokerProxy.setupFileDiscovery({ filepath, contents, pattern });
@@ -205,7 +212,8 @@ describe('mcpDiscoverBroker', () => {
       // that matches a directory but no files (classic nodir:true miss). Already wildcarded, so
       // globResolveTransformer leaves it unchanged — this IS the real suffix the scan uses.
       const pattern = 'packages/eslint-plugin/src/brokers/rule/explicit-return-types*';
-      const directoryPath = '/default/cwd/packages/eslint-plugin/src/brokers/rule/explicit-return-types';
+      const directoryPath =
+        '/default/cwd/packages/eslint-plugin/src/brokers/rule/explicit-return-types';
 
       brokerProxy.setupEmptyWithDirectoryHits({
         directoryPaths: [directoryPath],
@@ -290,9 +298,12 @@ describe('mcpDiscoverBroker', () => {
       const testPath = '/default/cwd/src/brokers/user-fetch-broker.test.ts';
       const proxyPath = '/default/cwd/src/brokers/user-fetch-broker.proxy.ts';
 
-      const implContents = '/**\n * PURPOSE: Fetches user data\n *\n * USAGE:\n * userFetchBroker()\n */\nexport const userFetchBroker = () => {};';
-      const testContents = '/**\n * PURPOSE: Test user fetch broker\n *\n * USAGE:\n * testUserFetchBroker()\n */\nexport const testUserFetchBroker = () => {};';
-      const proxyContents = '/**\n * PURPOSE: Proxy for user fetch broker\n *\n * USAGE:\n * userFetchBrokerProxy()\n */\nexport const userFetchBrokerProxy = () => {};';
+      const implContents =
+        '/**\n * PURPOSE: Fetches user data\n *\n * USAGE:\n * userFetchBroker()\n */\nexport const userFetchBroker = () => {};';
+      const testContents =
+        '/**\n * PURPOSE: Test user fetch broker\n *\n * USAGE:\n * testUserFetchBroker()\n */\nexport const testUserFetchBroker = () => {};';
+      const proxyContents =
+        '/**\n * PURPOSE: Proxy for user fetch broker\n *\n * USAGE:\n * userFetchBrokerProxy()\n */\nexport const userFetchBrokerProxy = () => {};';
 
       const pattern = '**/*';
 
@@ -347,7 +358,8 @@ describe('mcpDiscoverBroker', () => {
   describe('strict propagation', () => {
     it('VALID: {grep PascalCase, no strict} => cross-convention matches kebab content via tree output', async () => {
       const brokerProxy = mcpDiscoverBrokerProxy();
-      const filepath = '/default/cwd/packages/mcp/src/contracts/orchestration-event-type-contract.ts';
+      const filepath =
+        '/default/cwd/packages/mcp/src/contracts/orchestration-event-type-contract.ts';
       const contents = `export const orchestrationEventTypeContract = z.enum(['x', 'y']);`;
       const pattern = '**/*.ts';
 

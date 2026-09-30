@@ -1,4 +1,3 @@
-
 import { directoryBrowseBroker } from './directory-browse-broker';
 import { directoryBrowseBrokerProxy } from './directory-browse-broker.proxy';
 
@@ -48,9 +47,7 @@ describe('directoryBrowseBroker', () => {
 
       proxy.setupDirectories({
         targetPath: '/home/user',
-        directories: [
-          { name: 'projects', joinedPath: '/home/user/projects' },
-        ],
+        directories: [{ name: 'projects', joinedPath: '/home/user/projects' }],
         files: [],
         hiddenDirectories: ['.config', '.ssh'],
       });

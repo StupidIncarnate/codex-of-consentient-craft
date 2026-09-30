@@ -4,14 +4,14 @@ describe('gatewaySubpathBarrelParseTransformer', () => {
   describe('a Node module subpath', () => {
     it('VALID: {#gateway/node/fs barrel} => realModule "fs" and every value wrapper, no type-only re-exports', () => {
       const barrelContent = [
-          "export * from 'fs';",
-          "export { appendFileSync } from './append-file-sync/append-file-sync';",
-          "export { existsSync } from './exists-sync/exists-sync';",
-          "export { isFsError } from './is-fs-error/is-fs-error';",
-          "export type { FsError } from './is-fs-error/fs-error';",
-          "export { walkFilesSync } from './walk-files-sync/walk-files-sync';",
-          "export type { WalkedFile } from './walk-files-sync/walked-file';",
-        ].join('\n');
+        "export * from 'fs';",
+        "export { appendFileSync } from './append-file-sync/append-file-sync';",
+        "export { existsSync } from './exists-sync/exists-sync';",
+        "export { isFsError } from './is-fs-error/is-fs-error';",
+        "export type { FsError } from './is-fs-error/fs-error';",
+        "export { walkFilesSync } from './walk-files-sync/walk-files-sync';",
+        "export type { WalkedFile } from './walk-files-sync/walked-file';",
+      ].join('\n');
 
       const result = gatewaySubpathBarrelParseTransformer({ barrelContent });
 
@@ -35,10 +35,10 @@ describe('gatewaySubpathBarrelParseTransformer', () => {
   describe('a bin subpath (no real module to pass through)', () => {
     it('VALID: {#gateway/bin/claude barrel} => no realModule, every export is a wrapper name', () => {
       const barrelContent = [
-          "export { ClaudeNotInstalledError } from './claude-not-installed-error/claude-not-installed-error';",
-          "export { resolveClaudeCliPath } from './resolve-claude-cli-path/resolve-claude-cli-path';",
-          "export { spawnStreamJson } from './spawn-stream-json/spawn-stream-json';",
-        ].join('\n');
+        "export { ClaudeNotInstalledError } from './claude-not-installed-error/claude-not-installed-error';",
+        "export { resolveClaudeCliPath } from './resolve-claude-cli-path/resolve-claude-cli-path';",
+        "export { spawnStreamJson } from './spawn-stream-json/spawn-stream-json';",
+      ].join('\n');
 
       const result = gatewaySubpathBarrelParseTransformer({ barrelContent });
 

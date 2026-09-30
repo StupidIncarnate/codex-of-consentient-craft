@@ -1,7 +1,6 @@
 import { isFsErrorProxy } from '#gateway/node/fs/is-fs-error/is-fs-error.proxy';
 import { killProxy } from '#gateway/node/process/kill/kill.proxy';
 
-
 type ProcessGroupId = number;
 
 const PROBE_SIGNAL = 0;
@@ -22,24 +21,24 @@ export const processIsAliveBrokerProxy = (): {
 
   return {
     setupAlive: ({ pgid }: { pgid: ProcessGroupId }): void => {
-      kill.setupSent({ pid: -Number(pgid), signal: PROBE_SIGNAL });
+      kill.setupSent({ pid: -pgid, signal: PROBE_SIGNAL });
     },
 
     setupGone: ({ pgid }: { pgid: ProcessGroupId }): void => {
-      kill.setupNotFound({ pid: -Number(pgid), signal: PROBE_SIGNAL });
+      kill.setupNotFound({ pid: -pgid, signal: PROBE_SIGNAL });
     },
 
     setupAliveThenGone: ({ pgid }: { pgid: ProcessGroupId }): void => {
-      kill.setupSentThenNotFound({ pid: -Number(pgid), signal: PROBE_SIGNAL });
+      kill.setupSentThenNotFound({ pid: -pgid, signal: PROBE_SIGNAL });
     },
 
     setupPermissionDenied: ({ pgid }: { pgid: ProcessGroupId }): void => {
-      kill.setupPermissionDenied({ pid: -Number(pgid), signal: PROBE_SIGNAL });
+      kill.setupPermissionDenied({ pid: -pgid, signal: PROBE_SIGNAL });
     },
 
     getCallFor: ({ pgid }: { pgid: ProcessGroupId }): unknown =>
       kill
-        .getCallsFor({ pid: -Number(pgid) })
+        .getCallsFor({ pid: -pgid })
         .filter((call) => call[1] === PROBE_SIGNAL)
         .at(-1),
   };

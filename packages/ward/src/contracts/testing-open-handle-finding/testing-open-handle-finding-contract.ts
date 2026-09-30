@@ -13,10 +13,12 @@
 
 import { z } from '#gateway/npm/zod';
 
-export const testingOpenHandleFindingContract = z.object({
-  kind: z.string().min(1).brand<'TestingOpenHandleFindingKind'>(),
-  testPath: z.string().min(1).brand<'TestingOpenHandleFindingTestPath'>(),
-  stack: z.string().brand<'TestingOpenHandleFindingStack'>(),
-}).brand<'TestingOpenHandleFinding'>();
+export const testingOpenHandleFindingContract = z
+  .object({
+    kind: z.string().min(1).brand<'TestingOpenHandleFindingKind'>(),
+    testPath: z.string().min(1).brand<'TestingOpenHandleFindingTestPath'>(),
+    stack: z.string().brand<'TestingOpenHandleFindingStack'>(),
+  })
+  .brand<'TestingOpenHandleFinding'>();
 
 export type TestingOpenHandleFinding = z.infer<typeof testingOpenHandleFindingContract>;

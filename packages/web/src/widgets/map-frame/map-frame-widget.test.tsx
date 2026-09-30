@@ -1,6 +1,5 @@
 import { screen } from '#gateway/npm/testing-library__react';
 
-
 import { mantineRenderMiddleware } from '@dungeonmaster/testing/middleware/mantine-render';
 import { MapFrameWidget } from './map-frame-widget';
 import { MapFrameWidgetProxy } from './map-frame-widget.proxy';

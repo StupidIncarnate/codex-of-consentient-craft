@@ -28,16 +28,18 @@ import { flowContract } from '../flow/flow-contract';
 import { flowTypeContract } from '../flow-type/flow-type-contract';
 import { questSummaryTrackCountsContract } from '../quest-summary-track-counts/quest-summary-track-counts-contract';
 
-export const questSummaryFlowContract = z.object({
-  id: flowContract.shape.id,
-  name: flowContract.shape.name,
-  flowType: flowTypeContract,
-  tracks: z
-    .array(questSummaryTrackCountsContract)
-    .default([])
-    .describe(
-      'One row per verification track whose denominator includes this flow. A track absent from the list does not measure this flow at all, which is a different statement from measuring it and finding nothing.',
-    ),
-}).brand<'QuestSummaryFlow'>();
+export const questSummaryFlowContract = z
+  .object({
+    id: flowContract.shape.id,
+    name: flowContract.shape.name,
+    flowType: flowTypeContract,
+    tracks: z
+      .array(questSummaryTrackCountsContract)
+      .default([])
+      .describe(
+        'One row per verification track whose denominator includes this flow. A track absent from the list does not measure this flow at all, which is a different statement from measuring it and finding nothing.',
+      ),
+  })
+  .brand<'QuestSummaryFlow'>();
 
 export type QuestSummaryFlow = z.infer<typeof questSummaryFlowContract>;

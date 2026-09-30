@@ -13,27 +13,15 @@ const HELD_PORT_PID = 88_888;
 const DAY_MS = 86_400_000;
 
 export const e2eArtifactsPruneBrokerProxy = (): {
-  setupEntries: (params: {
-    packageRoot: string;
-    parentDir: string;
-    entries: string[];
-  }) => void;
+  setupEntries: (params: { packageRoot: string; parentDir: string; entries: string[] }) => void;
   setupAge: (params: {
     packageRoot: string;
     parentDir: string;
     name: string;
     daysOld: number;
   }) => void;
-  setupRemovable: (params: {
-    packageRoot: string;
-    parentDir: string;
-    name: string;
-  }) => void;
-  setupRemoveFails: (params: {
-    packageRoot: string;
-    parentDir: string;
-    name: string;
-  }) => void;
+  setupRemovable: (params: { packageRoot: string; parentDir: string; name: string }) => void;
+  setupRemoveFails: (params: { packageRoot: string; parentDir: string; name: string }) => void;
   setupPortHeld: (params: { port: number }) => void;
   setupPortFree: (params: { port: number }) => void;
   getRemovedPaths: (params: {
@@ -58,8 +46,7 @@ export const e2eArtifactsPruneBrokerProxy = (): {
   }: {
     packageRoot: string;
     parentDir: string;
-  }): string =>
-    `${String(packageRoot)}/${parentDir}`;
+  }): string => `${packageRoot}/${parentDir}`;
 
   const entryPathFor = ({
     packageRoot,
@@ -69,8 +56,7 @@ export const e2eArtifactsPruneBrokerProxy = (): {
     packageRoot: string;
     parentDir: string;
     name: string;
-  }): string =>
-    `${String(packageRoot)}/${parentDir}/${name}`;
+  }): string => `${packageRoot}/${parentDir}/${name}`;
 
   return {
     setupEntries: ({ packageRoot, parentDir, entries }): void => {
@@ -80,23 +66,23 @@ export const e2eArtifactsPruneBrokerProxy = (): {
       // nothing.
       for (const dir of e2eArtifactsStatics.artifacts.map((artifact) => artifact.parentDir)) {
         readdirProxy.returns({
-          path: String(parentPathFor({ packageRoot, parentDir: dir })),
+          path: parentPathFor({ packageRoot, parentDir: dir }),
           names: dir === parentDir ? entries : [],
         });
       }
     },
     setupAge: ({ packageRoot, parentDir, name, daysOld }): void => {
       statProxy.returnsFile({
-        path: String(entryPathFor({ packageRoot, parentDir, name })),
+        path: entryPathFor({ packageRoot, parentDir, name }),
         sizeBytes: 1024,
         modifiedAtMs: NOW - daysOld * DAY_MS,
       });
     },
     setupRemovable: ({ packageRoot, parentDir, name }): void => {
-      rm.succeeds({ path: String(entryPathFor({ packageRoot, parentDir, name })) });
+      rm.succeeds({ path: entryPathFor({ packageRoot, parentDir, name }) });
     },
     setupRemoveFails: ({ packageRoot, parentDir, name }): void => {
-      const path = String(entryPathFor({ packageRoot, parentDir, name }));
+      const path = entryPathFor({ packageRoot, parentDir, name });
       rm.rejects({
         path,
         error: FsErrorStub({
@@ -113,6 +99,6 @@ export const e2eArtifactsPruneBrokerProxy = (): {
       lsofProxy.setupNoneListening({ port });
     },
     getRemovedPaths: ({ packageRoot, parentDir, name }): readonly unknown[][] =>
-      rm.getCallsFor({ path: String(entryPathFor({ packageRoot, parentDir, name })) }),
+      rm.getCallsFor({ path: entryPathFor({ packageRoot, parentDir, name }) }),
   };
 };

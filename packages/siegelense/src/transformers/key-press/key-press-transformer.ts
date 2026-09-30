@@ -11,7 +11,6 @@
  * const reading = keyPress.toReading({ press: 'Enter', rawFocused: raw });
  */
 
-
 import { focusedElementContract } from '../../contracts/focused-element/focused-element-contract';
 import { keyReadingContract } from '../../contracts/key-reading/key-reading-contract';
 import type { KeyReading } from '../../contracts/key-reading/key-reading-contract';

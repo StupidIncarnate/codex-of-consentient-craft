@@ -14,7 +14,8 @@ describe('guildAddBroker', () => {
       const homePath = '/home/user/.dungeonmaster';
       const guildsPath = '/home/user/.dungeonmaster/guilds';
       const guildDirPath = '/home/user/.dungeonmaster/guilds/f47ac10b-58cc-4372-a567-0e02b2c3d479';
-      const questsDirPath = '/home/user/.dungeonmaster/guilds/f47ac10b-58cc-4372-a567-0e02b2c3d479/quests';
+      const questsDirPath =
+        '/home/user/.dungeonmaster/guilds/f47ac10b-58cc-4372-a567-0e02b2c3d479/quests';
 
       proxy.setupAddGuild({
         existingConfig: GuildConfigStub({ guilds: [] }),
@@ -43,7 +44,8 @@ describe('guildAddBroker', () => {
       const homePath = '/home/user/.dungeonmaster';
       const guildsPath = '/home/user/.dungeonmaster/guilds';
       const guildDirPath = '/home/user/.dungeonmaster/guilds/f47ac10b-58cc-4372-a567-0e02b2c3d479';
-      const questsDirPath = '/home/user/.dungeonmaster/guilds/f47ac10b-58cc-4372-a567-0e02b2c3d479/quests';
+      const questsDirPath =
+        '/home/user/.dungeonmaster/guilds/f47ac10b-58cc-4372-a567-0e02b2c3d479/quests';
 
       const existingGuild = GuildStub({
         id: 'a99ef0d8-6ae0-1972-9617-694d449a8242',
@@ -266,7 +268,8 @@ describe('guildAddBroker', () => {
       const proxy = guildAddBrokerProxy();
       const homePath = '/home/user/.dungeonmaster';
       const guildsPath = '/home/user/.dungeonmaster/guilds';
-      const questsDirPath = '/home/user/.dungeonmaster/guilds/f47ac10b-58cc-4372-a567-0e02b2c3d479/quests';
+      const questsDirPath =
+        '/home/user/.dungeonmaster/guilds/f47ac10b-58cc-4372-a567-0e02b2c3d479/quests';
 
       proxy.setupAddGuild({
         existingConfig: GuildConfigStub({ guilds: [] }),
@@ -298,7 +301,8 @@ describe('guildAddBroker', () => {
         homePath: '/home/user/.dungeonmaster',
         guildsPath: '/home/user/.dungeonmaster/guilds',
         guildDirPath: '/home/user/.dungeonmaster/guilds/f47ac10b-58cc-4372-a567-0e02b2c3d479',
-        questsDirPath: '/home/user/.dungeonmaster/guilds/f47ac10b-58cc-4372-a567-0e02b2c3d479/quests',
+        questsDirPath:
+          '/home/user/.dungeonmaster/guilds/f47ac10b-58cc-4372-a567-0e02b2c3d479/quests',
       });
 
       await guildAddBroker({

@@ -1,4 +1,3 @@
-
 import { isQuestUpdateStaleGuard } from './is-quest-update-stale-guard';
 
 describe('isQuestUpdateStaleGuard', () => {

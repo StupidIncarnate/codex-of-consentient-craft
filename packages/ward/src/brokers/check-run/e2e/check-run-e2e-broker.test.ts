@@ -224,10 +224,7 @@ describe('checkRunE2eBroker', () => {
 
       const result = await checkRunE2eBroker({
         projectFolder,
-        fileList: [
-          'src/brokers/user/user-broker.ts',
-          'src/guards/is-admin/is-admin-guard.test.ts',
-        ],
+        fileList: ['src/brokers/user/user-broker.ts', 'src/guards/is-admin/is-admin-guard.test.ts'],
       });
 
       expect(result).toStrictEqual(
@@ -253,10 +250,7 @@ describe('checkRunE2eBroker', () => {
 
       await checkRunE2eBroker({
         projectFolder,
-        fileList: [
-          'src/brokers/user/user-broker.ts',
-          'packages/web/src/flows/app/smoke.e2e.ts',
-        ],
+        fileList: ['src/brokers/user/user-broker.ts', 'packages/web/src/flows/app/smoke.e2e.ts'],
       });
 
       const spawnedArgs: unknown = proxy.getSpawnedArgs();
@@ -448,7 +442,7 @@ describe('checkRunE2eBroker', () => {
       await checkRunE2eBroker({ projectFolder, fileList: [] });
 
       expect(proxy.getSpawnedEnvValue({ key: 'DUNGEONMASTER_WEB_BUNDLE_DIR' })).toBe(
-        String(proxy.getBundleDir({ projectFolder })),
+        proxy.getBundleDir({ projectFolder }),
       );
     });
 

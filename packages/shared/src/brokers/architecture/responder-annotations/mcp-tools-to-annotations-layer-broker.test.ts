@@ -4,7 +4,8 @@ import { mcpToolsToAnnotationsLayerBrokerProxy } from './mcp-tools-to-annotation
 
 const PACKAGE_ROOT = '/repo/packages/mcp';
 
-const QUEST_HANDLE_RESPONDER_PATH = '/repo/packages/mcp/src/responders/quest/handle/quest-handle-responder.ts';
+const QUEST_HANDLE_RESPONDER_PATH =
+  '/repo/packages/mcp/src/responders/quest/handle/quest-handle-responder.ts';
 
 const makeFileDirent = ({ name }: { name: string }): DirEntrySync => ({ name, kind: 'file' });
 

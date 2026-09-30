@@ -84,9 +84,7 @@ export const ReconcileWatchersLayerResponder = async ({
     // while every role after the carve writes under the worktree's. Live and replay disagreeing
     // about where a session lives is the whole defect the ledger below closes.
     const questProjectDir =
-      quest.worktreePath === undefined
-        ? guildPathByQuestId.get(quest.id)
-        : quest.worktreePath;
+      quest.worktreePath === undefined ? guildPathByQuestId.get(quest.id) : quest.worktreePath;
     for (const wi of quest.workItems) {
       if (wi.sessionId === undefined) continue;
       if (!isActiveWorkItemStatusGuard({ status: wi.status })) continue;
@@ -149,8 +147,8 @@ export const ReconcileWatchersLayerResponder = async ({
         const handle = await StartOrchestrator.startMonitorWatcher({
           parentSessionId: String(sessionId),
           projectDir: resolvedProjectDir,
-          workerWorkItemId: workerWorkItemId,
-          workerQuestId: workerQuestId,
+          workerWorkItemId,
+          workerQuestId,
         });
         return { sessionId, handle };
       } catch (error: unknown) {

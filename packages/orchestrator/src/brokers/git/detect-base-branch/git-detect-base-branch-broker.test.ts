@@ -1,4 +1,3 @@
-
 import { gitDetectBaseBranchBroker } from './git-detect-base-branch-broker';
 import { gitDetectBaseBranchBrokerProxy } from './git-detect-base-branch-broker.proxy';
 

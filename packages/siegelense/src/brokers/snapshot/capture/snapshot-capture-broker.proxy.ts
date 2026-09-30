@@ -26,10 +26,7 @@ const FAILING_HOME_ENTRIES = ['guilds', 'claude-queue'] as const;
 export const snapshotCaptureBrokerProxy = (): {
   setupClock: (params: { nowMs: number }) => void;
   setupEmptyStore: (params: { homePath: string }) => void;
-  setupStoreHolding: (params: {
-    homePath: string;
-    records: readonly SnapshotRecord[];
-  }) => void;
+  setupStoreHolding: (params: { homePath: string; records: readonly SnapshotRecord[] }) => void;
   setupCopyFails: (params: { homePath: string; error: FsError }) => void;
   payloadPathFor: (params: { homePath: string; ordinal: number }) => string;
   storeDirFor: (params: { homePath: string }) => string;
@@ -64,8 +61,8 @@ export const snapshotCaptureBrokerProxy = (): {
       nowHandle.calledWith([]).returns(CAPTURE_AT_MS);
       indexReadProxy.setupNoIndex({ homePath });
       appendProxy.succeeds({ path: indexReadProxy.indexPathFor({ homePath }) });
-      const payloadValue = `${String(homePath)}/${STORE_DIR_NAME}/${String(snapshotStatics.numbering.firstPayload)}`;
-      mkdirProxy.succeeds({ path: `${String(homePath)}/${STORE_DIR_NAME}` });
+      const payloadValue = `${homePath}/${STORE_DIR_NAME}/${String(snapshotStatics.numbering.firstPayload)}`;
+      mkdirProxy.succeeds({ path: `${homePath}/${STORE_DIR_NAME}` });
       mkdirProxy.succeeds({ path: payloadValue });
       cpProxy.succeeds({ from: homePath, entries: HOME_ENTRIES });
     },
@@ -81,8 +78,8 @@ export const snapshotCaptureBrokerProxy = (): {
       nowHandle.calledWith([]).returns(CAPTURE_AT_MS);
       indexReadProxy.setupIndex({ homePath, records });
       appendProxy.succeeds({ path: indexReadProxy.indexPathFor({ homePath }) });
-      const payloadValue = `${String(homePath)}/${STORE_DIR_NAME}/${String(records.length + snapshotStatics.numbering.firstPayload)}`;
-      mkdirProxy.succeeds({ path: `${String(homePath)}/${STORE_DIR_NAME}` });
+      const payloadValue = `${homePath}/${STORE_DIR_NAME}/${String(records.length + snapshotStatics.numbering.firstPayload)}`;
+      mkdirProxy.succeeds({ path: `${homePath}/${STORE_DIR_NAME}` });
       mkdirProxy.succeeds({ path: payloadValue });
       cpProxy.succeeds({ from: homePath, entries: HOME_ENTRIES });
     },
@@ -92,8 +89,8 @@ export const snapshotCaptureBrokerProxy = (): {
       nowHandle.calledWith([]).returns(CAPTURE_AT_MS);
       indexReadProxy.setupNoIndex({ homePath });
       appendProxy.succeeds({ path: indexReadProxy.indexPathFor({ homePath }) });
-      const payloadValue = `${String(homePath)}/${STORE_DIR_NAME}/${String(snapshotStatics.numbering.firstPayload)}`;
-      mkdirProxy.succeeds({ path: `${String(homePath)}/${STORE_DIR_NAME}` });
+      const payloadValue = `${homePath}/${STORE_DIR_NAME}/${String(snapshotStatics.numbering.firstPayload)}`;
+      mkdirProxy.succeeds({ path: `${homePath}/${STORE_DIR_NAME}` });
       mkdirProxy.succeeds({ path: payloadValue });
       cpProxy.secondEntryFails({
         from: homePath,
@@ -103,17 +100,11 @@ export const snapshotCaptureBrokerProxy = (): {
       });
     },
 
-    payloadPathFor: ({
-      homePath,
-      ordinal,
-    }: {
-      homePath: string;
-      ordinal: number;
-    }): string =>
-      `${String(homePath)}/${STORE_DIR_NAME}/${String(ordinal)}`,
+    payloadPathFor: ({ homePath, ordinal }: { homePath: string; ordinal: number }): string =>
+      `${homePath}/${STORE_DIR_NAME}/${String(ordinal)}`,
 
     storeDirFor: ({ homePath }: { homePath: string }): string =>
-      `${String(homePath)}/${STORE_DIR_NAME}`,
+      `${homePath}/${STORE_DIR_NAME}`,
 
     indexPathFor: ({ homePath }: { homePath: string }): string =>
       indexReadProxy.indexPathFor({ homePath }),
@@ -127,6 +118,6 @@ export const snapshotCaptureBrokerProxy = (): {
 
     // Every cp of one child of the home, in call order, as [source, destination, options].
     copiedFor: ({ homePath, entry }: { homePath: string; entry: string }): unknown =>
-      cpProxy.cpCallsFor({ source: `${String(homePath)}/${entry}` }),
+      cpProxy.cpCallsFor({ source: `${homePath}/${entry}` }),
   };
 };

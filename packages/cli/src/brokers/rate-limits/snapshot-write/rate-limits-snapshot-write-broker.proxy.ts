@@ -24,9 +24,7 @@ export const rateLimitsSnapshotWriteBrokerProxy = (): {
   const snapshotPath = '/home/test/.dungeonmaster/rate-limits.json';
   const tmpPath = '/home/test/.dungeonmaster/rate-limits.json.tmp';
 
-  dirnameHandle
-    .calledWith([snapshotPath])
-    .returns('/home/test/.dungeonmaster');
+  dirnameHandle.calledWith([snapshotPath]).returns('/home/test/.dungeonmaster');
   snapshotPathProxy.setupSnapshotPath({
     homeDir: '/home/test',
     homePath: '/home/test/.dungeonmaster',

@@ -9,11 +9,7 @@ describe('ExecutionRowMintedByBadgeLayerWidget', () => {
     ExecutionRowMintedByBadgeLayerWidgetProxy();
 
     mantineRenderMiddleware({
-      ui: (
-        <ExecutionRowMintedByBadgeLayerWidget
-          mintedByLabel={'walk pt: 1'}
-        />
-      ),
+      ui: <ExecutionRowMintedByBadgeLayerWidget mintedByLabel={'walk pt: 1'} />,
     });
 
     const badge = screen.getByTestId('execution-row-minted-by-badge');

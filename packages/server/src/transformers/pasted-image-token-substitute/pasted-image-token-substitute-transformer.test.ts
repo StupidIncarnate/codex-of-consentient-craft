@@ -1,4 +1,3 @@
-
 import { pastedImageTokenSubstituteTransformer } from './pasted-image-token-substitute-transformer';
 
 describe('pastedImageTokenSubstituteTransformer', () => {

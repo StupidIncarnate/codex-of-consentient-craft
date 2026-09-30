@@ -102,8 +102,9 @@ export const codeweaverScopeBlockTransformer = ({
       : [
           '',
           'Seams — each line is a node you share with another package, and where that package’s half of it stands:',
-          ...seams.map(({ node, other, disposition }) =>
-            `  - #${String(node.id)} with ${other} — ${disposition}`,
+          ...seams.map(
+            ({ node, other, disposition }) =>
+              `  - #${String(node.id)} with ${other} — ${disposition}`,
           ),
         ];
 
@@ -154,8 +155,9 @@ export const codeweaverScopeBlockTransformer = ({
       : [
           '',
           `Shared homes — the ${SHARED_HOME_KIND}-kind packages this quest declares. Code your package and another BOTH need moves into one of these, rather than being copied into yours or reached across for:`,
-          ...orderedSharedHomes.map(({ name, reachable }) =>
-            `  - ${name} — ${
+          ...orderedSharedHomes.map(
+            ({ name, reachable }) =>
+              `  - ${name} — ${
                 reachable
                   ? `${ownPackageText} already depends on it`
                   : `${ownPackageText} does not depend on it yet, so the move adds that dependency too`

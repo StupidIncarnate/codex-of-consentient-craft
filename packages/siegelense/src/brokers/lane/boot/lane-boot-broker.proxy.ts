@@ -225,8 +225,7 @@ export const laneBootBrokerProxy = (): {
         })
         .map((call) => call[0]),
 
-    getBrowserLaunchCallCount: (): ReadingCount =>
-      browserProxy.getLaunchCalls().length,
+    getBrowserLaunchCallCount: (): ReadingCount => browserProxy.getLaunchCalls().length,
 
     getInheritedEnvSnapshot: (): Record<string, string> =>
       Object.fromEntries(

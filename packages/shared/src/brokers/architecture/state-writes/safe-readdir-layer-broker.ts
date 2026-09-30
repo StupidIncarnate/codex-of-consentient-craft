@@ -10,13 +10,9 @@
 
 import { readdirEntriesSync, type DirEntrySync } from '#gateway/node/fs';
 
-export const safeReaddirLayerBroker = ({
-  dirPath,
-}: {
-  dirPath: string;
-}): DirEntrySync[] => {
+export const safeReaddirLayerBroker = ({ dirPath }: { dirPath: string }): DirEntrySync[] => {
   try {
-    return readdirEntriesSync(String(dirPath));
+    return readdirEntriesSync(dirPath);
   } catch {
     return [];
   }

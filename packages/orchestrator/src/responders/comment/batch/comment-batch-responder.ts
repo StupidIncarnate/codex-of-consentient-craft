@@ -59,5 +59,8 @@ export const CommentBatchResponder = async ({
     );
   }
 
-  return commentBatchResponderResultContract.parse({ comments: minted, flows: getResult.quest.flows });
+  return commentBatchResponderResultContract.parse({
+    comments: minted,
+    flows: getResult.quest.flows,
+  });
 };

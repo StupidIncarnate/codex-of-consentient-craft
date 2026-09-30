@@ -24,7 +24,6 @@
 
 import { z } from '#gateway/npm/zod';
 
-
 import { capacityMeasuredContract } from '../capacity-measured/capacity-measured-contract';
 import { capacityProfileContract } from '../capacity-profile/capacity-profile-contract';
 
@@ -36,6 +35,7 @@ export const capacityAnswerContract = z
     measured: capacityMeasuredContract,
     profile: capacityProfileContract.nullable(),
   })
-  .strict().brand<'CapacityAnswer'>();
+  .strict()
+  .brand<'CapacityAnswer'>();
 
 export type CapacityAnswer = z.infer<typeof capacityAnswerContract>;

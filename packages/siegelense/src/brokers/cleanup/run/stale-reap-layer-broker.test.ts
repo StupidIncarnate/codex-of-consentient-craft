@@ -1,4 +1,3 @@
-
 import { InstanceIdStub } from '../../../contracts/instance-id/instance-id.stub';
 import { RegistryEntryStub } from '../../../contracts/registry-entry/registry-entry.stub';
 import { RegistryStub } from '../../../contracts/registry/registry.stub';
@@ -21,7 +20,7 @@ describe('staleReapLayerBroker', () => {
         id: INSTANCE_ID,
         socketPath: SOCKET_PATH,
         pgids: [pgidOne, pgidTwo],
-        lastBeatMs: (NOW_MS - 9 * 60 * 60 * 1000),
+        lastBeatMs: NOW_MS - 9 * 60 * 60 * 1000,
       });
       proxy.setupRegistry({ registry: RegistryStub({ instances: [entry] }) });
       proxy.setupDriverUnreachableReapsLivePgids({
@@ -58,7 +57,7 @@ describe('staleReapLayerBroker', () => {
         id: INSTANCE_ID,
         socketPath: SOCKET_PATH,
         pgids: [],
-        lastBeatMs: (NOW_MS - 60_000),
+        lastBeatMs: NOW_MS - 60_000,
       });
       proxy.setupRegistry({ registry: RegistryStub({ instances: [entry] }) });
       proxy.setupDriverUnreachableNoPgids({
@@ -84,7 +83,7 @@ describe('staleReapLayerBroker', () => {
         pid: null,
         pgids: [],
         lastBeatMs: null,
-        reservedAtMs: (NOW_MS - 9 * 60 * 60 * 1000),
+        reservedAtMs: NOW_MS - 9 * 60 * 60 * 1000,
       });
       proxy.setupRegistry({ registry: RegistryStub({ instances: [entry] }) });
       proxy.setupDriverUnreachableNoPgids({

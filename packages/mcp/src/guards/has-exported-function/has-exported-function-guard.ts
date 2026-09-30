@@ -6,14 +6,9 @@
  * // Returns true if file has export const
  */
 
-
 const EXPORT_PATTERN = /export\s+const\s+\w+/u;
 
-export const hasExportedFunctionGuard = ({
-  fileContents,
-}: {
-  fileContents?: string;
-}): boolean => {
+export const hasExportedFunctionGuard = ({ fileContents }: { fileContents?: string }): boolean => {
   if (!fileContents) {
     return false;
   }

@@ -24,7 +24,6 @@ import { envSnapshot, execPath } from '#gateway/node/process';
 import { setTimeout } from '#gateway/node/setTimeout';
 import { tsxCliPath } from '#gateway/npm/tsx';
 
-
 // binExists/binIsExecutable/readBinContent back the "file structure" assertions in
 // cli-entry.integration.test.ts, which must keep grading the built esbuild bundle — see that
 // file's comment. requireWithoutAutorun also stays on this path deliberately: it proves the
@@ -126,7 +125,7 @@ export const cliBinHarness = (): {
           return;
         }
         promiseResolve({
-          exitCode: (code ?? 1),
+          exitCode: code ?? 1,
           stdout: text.stdout,
           stderr: text.stderr,
         });
@@ -244,7 +243,7 @@ export const cliBinHarness = (): {
         const tempDir = mkdtempSync(join(tmpdir(), 'dungeonmaster-import-'));
         const child = spawnPiped({
           command: execPath,
-          args: ['-e', `require(${JSON.stringify(String(BIN_PATH))})`],
+          args: ['-e', `require(${JSON.stringify(BIN_PATH)})`],
           cwd: tempDir,
           env: {
             ...envSnapshot(),

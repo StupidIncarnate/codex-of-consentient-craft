@@ -12,11 +12,17 @@
 
 import { z } from '#gateway/npm/zod';
 
-
-export const rawSettleProbeContract = z.object({
-  nowMs: z.number().int().nonnegative().brand<'RawSettleProbeNowMs'>(),
-  lastMutationAtMs: z.number().int().nonnegative().brand<'RawSettleProbeLastMutationAtMs'>().nullable(),
-  runningAnimations: z.number().int().nonnegative().brand<'RawSettleProbeRunningAnimations'>(),
-}).brand<'RawSettleProbe'>();
+export const rawSettleProbeContract = z
+  .object({
+    nowMs: z.number().int().nonnegative().brand<'RawSettleProbeNowMs'>(),
+    lastMutationAtMs: z
+      .number()
+      .int()
+      .nonnegative()
+      .brand<'RawSettleProbeLastMutationAtMs'>()
+      .nullable(),
+    runningAnimations: z.number().int().nonnegative().brand<'RawSettleProbeRunningAnimations'>(),
+  })
+  .brand<'RawSettleProbe'>();
 
 export type RawSettleProbe = z.infer<typeof rawSettleProbeContract>;

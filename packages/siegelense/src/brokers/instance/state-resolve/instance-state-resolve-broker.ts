@@ -38,19 +38,31 @@ export const instanceStateResolveBroker = async ({
   const entry = registry.instances.find((candidate) => candidate.id === instanceId) ?? null;
 
   if (entry === null) {
-    return instanceStateResolveResultContract.parse({ state: instanceStateContract.parse('unknown'), entry: null });
+    return instanceStateResolveResultContract.parse({
+      state: instanceStateContract.parse('unknown'),
+      entry: null,
+    });
   }
 
   if (entry.state === 'pruned') {
-    return instanceStateResolveResultContract.parse({ state: instanceStateContract.parse('pruned'), entry });
+    return instanceStateResolveResultContract.parse({
+      state: instanceStateContract.parse('pruned'),
+      entry,
+    });
   }
 
   if (entry.state === 'killed') {
-    return instanceStateResolveResultContract.parse({ state: instanceStateContract.parse('killed'), entry });
+    return instanceStateResolveResultContract.parse({
+      state: instanceStateContract.parse('killed'),
+      entry,
+    });
   }
 
   if (entry.state === 'unusable') {
-    return instanceStateResolveResultContract.parse({ state: instanceStateContract.parse('unusable'), entry });
+    return instanceStateResolveResultContract.parse({
+      state: instanceStateContract.parse('unusable'),
+      entry,
+    });
   }
 
   const nowMs = Date.now();
@@ -59,5 +71,8 @@ export const instanceStateResolveBroker = async ({
     (isReservedRegistryEntryGuard({ entry }) &&
       nowMs - entry.reservedAtMs > instanceLifecycleStatics.reservation.staleAfterMs);
 
-  return instanceStateResolveResultContract.parse({ state: instanceStateContract.parse(isStale ? 'dead' : 'alive'), entry });
+  return instanceStateResolveResultContract.parse({
+    state: instanceStateContract.parse(isStale ? 'dead' : 'alive'),
+    entry,
+  });
 };

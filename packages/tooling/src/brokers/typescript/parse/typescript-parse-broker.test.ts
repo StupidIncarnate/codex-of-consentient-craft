@@ -146,7 +146,8 @@ const type = "error";`;
 
     it('VALID: {nested objects} => parses string literals in objects', () => {
       typescriptParseBrokerProxy();
-      const sourceCode = 'const obj = { nested: { value: "deep" } }; const obj2 = { value: "deep" };';
+      const sourceCode =
+        'const obj = { nested: { value: "deep" } }; const obj2 = { value: "deep" };';
       const filePath = '/file.ts';
 
       const result = typescriptParseBroker({ sourceCode, filePath });
@@ -192,7 +193,8 @@ const type = "error";`;
 
     it('VALID: {JSX elements} => parses string literals in JSX', () => {
       typescriptParseBrokerProxy();
-      const sourceCode = 'const el = <div title="title">{"text"}</div>; const el2 = <span>{"text"}</span>;';
+      const sourceCode =
+        'const el = <div title="title">{"text"}</div>; const el2 = <span>{"text"}</span>;';
       const filePath = '/file.tsx';
 
       const result = typescriptParseBroker({ sourceCode, filePath });
@@ -455,14 +457,13 @@ const type = "error";`;
 
     it('VALID: {complex regex patterns} => handles complex patterns', () => {
       typescriptParseBrokerProxy();
-      const sourceCode = 'const email = /^[a-zA-Z0-9]+@[a-zA-Z0-9]+\\.[a-z]{2,}$/; const email2 = /^[a-zA-Z0-9]+@[a-zA-Z0-9]+\\.[a-z]{2,}$/;';
+      const sourceCode =
+        'const email = /^[a-zA-Z0-9]+@[a-zA-Z0-9]+\\.[a-z]{2,}$/; const email2 = /^[a-zA-Z0-9]+@[a-zA-Z0-9]+\\.[a-z]{2,}$/;';
       const filePath = '/file.ts';
 
       const result = typescriptParseBroker({ sourceCode, filePath });
 
-      const emailOccurrences = result.get(
-        '/^[a-zA-Z0-9]+@[a-zA-Z0-9]+\\.[a-z]{2,}$/',
-      );
+      const emailOccurrences = result.get('/^[a-zA-Z0-9]+@[a-zA-Z0-9]+\\.[a-z]{2,}$/');
 
       expect(emailOccurrences).toStrictEqual([
         { filePath: '/file.ts', line: 1, column: 71 },
@@ -472,7 +473,8 @@ const type = "error";`;
 
     it('VALID: {duplicate regex patterns} => tracks regex duplicates', () => {
       typescriptParseBrokerProxy();
-      const sourceCode = 'const p1 = /\\d+/; const p2 = /\\d+/; const p3 = /\\d+/; const p4 = /\\d+/;';
+      const sourceCode =
+        'const p1 = /\\d+/; const p2 = /\\d+/; const p3 = /\\d+/; const p4 = /\\d+/;';
       const filePath = '/file.ts';
 
       const result = typescriptParseBroker({ sourceCode, filePath });
@@ -489,7 +491,8 @@ const type = "error";`;
 
     it('VALID: {escaped characters in regex} => handles escaped chars', () => {
       typescriptParseBrokerProxy();
-      const sourceCode = 'const p1 = /\\d+\\.\\d+/; const p2 = /\\d+\\.\\d+/; const p3 = /\\d+\\.\\d+/;';
+      const sourceCode =
+        'const p1 = /\\d+\\.\\d+/; const p2 = /\\d+\\.\\d+/; const p3 = /\\d+\\.\\d+/;';
       const filePath = '/file.ts';
 
       const result = typescriptParseBroker({ sourceCode, filePath });

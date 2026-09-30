@@ -9,7 +9,6 @@
 import { ensureDirSync, writeFileSync } from '#gateway/node/fs';
 import * as path from '#gateway/node/path';
 
-
 export const orchestrationQueueHarness = (): {
   beforeEach: () => void;
   afterEach: () => void;
@@ -42,8 +41,8 @@ export const orchestrationQueueHarness = (): {
       ensureDirSync(claudeQueueDir);
       ensureDirSync(wardQueueDir);
       return {
-        claudeQueueDir: claudeQueueDir,
-        wardQueueDir: wardQueueDir,
+        claudeQueueDir,
+        wardQueueDir,
       };
     },
 
@@ -52,7 +51,7 @@ export const orchestrationQueueHarness = (): {
       const counter = counters.get(key) ?? 0;
       const filePath = path.join(queueDir, `${String(counter).padStart(4, '0')}.json`);
       writeFileSync(filePath, JSON.stringify(response));
-      counters.set(key, (Number(counter) + 1));
+      counters.set(key, counter + 1);
     },
 
     resetCounters: (): void => {

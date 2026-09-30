@@ -9,11 +9,7 @@ const buildDirDirent = ({ name }: { name: string }): Dirent =>
 
 const buildFileDirent = ({ name }: { name: string }): Dirent => DirentStub({ name, kind: 'file' });
 
-const addToTree = (
-  tree: Map<string, Dirent[]>,
-  dirPath: string,
-  entry: Dirent,
-): void => {
+const addToTree = (tree: Map<string, Dirent[]>, dirPath: string, entry: Dirent): void => {
   const existing = tree.get(dirPath) ?? [];
   const alreadyListed = existing.some((e) => e.name === entry.name);
   if (!alreadyListed) {
@@ -30,7 +26,7 @@ const addFilePathPartsToTree = (
   if (depth >= parts.length) {
     return;
   }
-  const parentDir = (parts.slice(0, depth).join('/') || '/');
+  const parentDir = parts.slice(0, depth).join('/') || '/';
   const childName = parts[depth] ?? '';
   if (childName === '') {
     return;
@@ -44,11 +40,8 @@ const addFilePathPartsToTree = (
   addFilePathPartsToTree(tree, parts, depth + 1);
 };
 
-const addFilePathToTree = (
-  tree: Map<string, Dirent[]>,
-  filePath: string,
-): void => {
-  const parts = String(filePath).split('/');
+const addFilePathToTree = (tree: Map<string, Dirent[]>, filePath: string): void => {
+  const parts = filePath.split('/');
   addFilePathPartsToTree(tree, parts, 1);
 };
 
@@ -79,7 +72,7 @@ export const importEdgesLayerBrokerProxy = (): {
       packages: string[];
       sourceFiles: { path: string; source: string }[];
     }): void => {
-      const root = String(projectRoot);
+      const root = projectRoot;
 
       // Build a unified virtual directory tree covering:
       // - packages/ (one dir entry per package)
@@ -88,7 +81,7 @@ export const importEdgesLayerBrokerProxy = (): {
 
       const packagesDir = `${root}/packages`;
       for (const pkg of packages) {
-        addToTree(tree, packagesDir, buildDirDirent({ name: String(pkg) }));
+        addToTree(tree, packagesDir, buildDirDirent({ name: pkg }));
       }
 
       for (const file of sourceFiles) {
@@ -110,7 +103,7 @@ export const importEdgesLayerBrokerProxy = (): {
       readFileProxy.setupImplementation({
         fn: (filePath: string): string => {
           for (const [key, content] of fileMap) {
-            if (String(key) === String(filePath)) {
+            if (key === filePath) {
               return content;
             }
           }

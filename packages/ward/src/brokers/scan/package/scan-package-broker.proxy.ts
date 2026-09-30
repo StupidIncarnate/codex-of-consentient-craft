@@ -40,8 +40,8 @@ export const scanPackageBrokerProxy = (): {
   return {
     setupExit: ({ projectFolder, rootPath, exitCode, stdout, stderr }): void => {
       run.setupSuccess({
-        command: String(resolveCommand({ projectFolder })),
-        cwd: String(rootPath),
+        command: resolveCommand({ projectFolder }),
+        cwd: rootPath,
         exitCode,
         stdout,
         stderr,
@@ -50,8 +50,8 @@ export const scanPackageBrokerProxy = (): {
 
     setupSignalKill: ({ projectFolder, rootPath, stdout }): void => {
       run.setupSignalKill({
-        command: String(resolveCommand({ projectFolder })),
-        cwd: String(rootPath),
+        command: resolveCommand({ projectFolder }),
+        cwd: rootPath,
         signal: 'SIGKILL',
         stdout,
         stderr: '',
@@ -60,13 +60,13 @@ export const scanPackageBrokerProxy = (): {
 
     setupSpawnError: ({ projectFolder, rootPath, error }): void => {
       run.setupError({
-        command: String(resolveCommand({ projectFolder })),
-        cwd: String(rootPath),
+        command: resolveCommand({ projectFolder }),
+        cwd: rootPath,
         error,
       });
     },
 
     getEslintArgs: ({ projectFolder }): ReturnType<ReturnType<typeof runProxy>['getCallsFor']> =>
-      run.getCallsFor({ command: String(resolveCommand({ projectFolder })) }),
+      run.getCallsFor({ command: resolveCommand({ projectFolder }) }),
   };
 };

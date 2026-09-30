@@ -32,13 +32,7 @@ export const resolveWorkspaceGlobLayerBrokerProxy = (): {
       existsProxy.returns({ path: basePath, exists: false });
     },
 
-    setupMemberPackageJson: ({
-      memberDir,
-      name,
-    }: {
-      memberDir: string;
-      name: string;
-    }): void => {
+    setupMemberPackageJson: ({ memberDir, name }: { memberDir: string; name: string }): void => {
       const packageJsonPath = `${memberDir}/package.json`;
       existsProxy.returns({ path: packageJsonPath, exists: true });
       readProxy.returns({

@@ -12,8 +12,10 @@
 
 import { z } from '#gateway/npm/zod';
 
-export const laneKillResultContract = z.object({
-  stopped: z.boolean(),
-}).brand<'LaneKillResult'>();
+export const laneKillResultContract = z
+  .object({
+    stopped: z.boolean(),
+  })
+  .brand<'LaneKillResult'>();
 
 export type LaneKillResult = z.infer<typeof laneKillResultContract>;

@@ -36,8 +36,8 @@ export const urlBestResponderImportPickTransformer = ({
   let bestScore = -1;
 
   for (const ip of responderImports) {
-    const ipStr = String(ip);
-    const score = keywords.filter((kw) => ipStr.includes(String(kw))).length;
+    const ipStr = ip;
+    const score = keywords.filter((kw) => ipStr.includes(kw)).length;
     if (score > bestScore) {
       bestScore = score;
       bestImport = ip;

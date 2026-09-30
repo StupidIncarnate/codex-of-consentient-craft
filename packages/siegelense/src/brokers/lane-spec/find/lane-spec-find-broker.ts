@@ -24,11 +24,7 @@ import { laneSpecConventionStatics } from '../../../statics/lane-spec-convention
 import { driverStatics } from '../../../statics/driver/driver-statics';
 import { E2eNotConfiguredError } from '../../../errors/e2e-not-configured/e2e-not-configured-error';
 
-export const laneSpecFindBroker = async ({
-  specName,
-}: {
-  specName: string;
-}): Promise<LaneSpec> => {
+export const laneSpecFindBroker = async ({ specName }: { specName: string }): Promise<LaneSpec> => {
   const browser =
     specName === laneSpecConventionStatics.browsered
       ? true

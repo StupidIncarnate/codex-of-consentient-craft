@@ -18,7 +18,12 @@
 
 import { z } from '#gateway/npm/zod';
 
-import { questContract, questStatusContract, workItemRoleContract, workItemContract } from '@dungeonmaster/shared/contracts';
+import {
+  questContract,
+  questStatusContract,
+  workItemRoleContract,
+  workItemContract,
+} from '@dungeonmaster/shared/contracts';
 
 export const questBlueprintContract = questContract
   .pick({
@@ -39,8 +44,12 @@ export const questBlueprintContract = questContract
     // `z.partialRecord`, not `z.record` — zod v4 made an enum-keyed `z.record` exhaustive (every
     // role required), and a real caller overrides at most a few roles' prompts.
     rolePromptOverrides: z
-      .partialRecord(workItemRoleContract, z.string().min(1).brand<'QuestBlueprintRolePromptOverrides'>())
+      .partialRecord(
+        workItemRoleContract,
+        z.string().min(1).brand<'QuestBlueprintRolePromptOverrides'>(),
+      )
       .default({}),
-  }).brand<'QuestBlueprint'>();
+  })
+  .brand<'QuestBlueprint'>();
 
 export type QuestBlueprint = z.infer<typeof questBlueprintContract>;

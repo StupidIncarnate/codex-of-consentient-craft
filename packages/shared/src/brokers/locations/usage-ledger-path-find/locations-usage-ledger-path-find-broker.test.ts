@@ -13,8 +13,6 @@ describe('locationsUsageLedgerPathFindBroker', () => {
 
     const result = locationsUsageLedgerPathFindBroker();
 
-    expect(result).toBe(
-      '/home/user/.dungeonmaster/usage-ledger.json',
-    );
+    expect(result).toBe('/home/user/.dungeonmaster/usage-ledger.json');
   });
 });

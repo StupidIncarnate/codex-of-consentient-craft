@@ -14,8 +14,10 @@ describe('locationsQuestFolderPathFindBroker', () => {
         homeDir: '/home/user',
         homePath: '/home/user/.dungeonmaster',
         guildPath: '/home/user/.dungeonmaster/guilds/f47ac10b-58cc-4372-a567-0e02b2c3d479',
-        guildQuestsPath: '/home/user/.dungeonmaster/guilds/f47ac10b-58cc-4372-a567-0e02b2c3d479/quests',
-        questFolderPath: '/home/user/.dungeonmaster/guilds/f47ac10b-58cc-4372-a567-0e02b2c3d479/quests/add-auth',
+        guildQuestsPath:
+          '/home/user/.dungeonmaster/guilds/f47ac10b-58cc-4372-a567-0e02b2c3d479/quests',
+        questFolderPath:
+          '/home/user/.dungeonmaster/guilds/f47ac10b-58cc-4372-a567-0e02b2c3d479/quests/add-auth',
       });
 
       const result = locationsQuestFolderPathFindBroker({ guildId, questId });

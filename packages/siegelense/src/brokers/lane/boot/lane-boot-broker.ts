@@ -112,8 +112,8 @@ export const laneBootBroker = async ({
         })
       : Promise.resolve(undefined),
   ]);
-  const apiWorkspace = (resolvedApiWorkspace ?? '');
-  const webWorkspace = (resolvedWebWorkspace ?? '');
+  const apiWorkspace = resolvedApiWorkspace ?? '';
+  const webWorkspace = resolvedWebWorkspace ?? '';
 
   const substitutedSpecEnv = laneEnvSubstituteTransformer({
     env: spec.env,
@@ -199,7 +199,7 @@ export const laneBootBroker = async ({
     return {
       name: laneProcess.name,
       fd,
-      pgid: pgid,
+      pgid,
       logPath,
       readyUrl,
     };

@@ -31,7 +31,7 @@ describe('gapReportToTextTransformer', () => {
 
       const result = gapReportToTextTransformer({ report });
 
-      expect(String(result)).toBe(
+      expect(result).toBe(
         [
           'Gaps of 120 seconds or more between one model reply and the next.',
           WAITING_LINE,
@@ -60,7 +60,7 @@ describe('gapReportToTextTransformer', () => {
 
       const result = gapReportToTextTransformer({ report });
 
-      expect(String(result)).toBe(
+      expect(result).toBe(
         [
           'Gaps of 120 seconds or more between one model reply and the next.',
           WAITING_LINE,
@@ -100,7 +100,7 @@ describe('gapReportToTextTransformer', () => {
 
       const result = gapReportToTextTransformer({ report });
 
-      expect(String(result)).toBe(
+      expect(result).toBe(
         [
           'Gaps of 120 seconds or more between one model reply and the next.',
           WAITING_LINE,
@@ -129,7 +129,7 @@ describe('gapReportToTextTransformer', () => {
 
       const result = gapReportToTextTransformer({ report });
 
-      expect(String(result)).toBe(
+      expect(result).toBe(
         [
           'Gaps of 120 seconds or more between one model reply and the next.',
           WAITING_LINE,
@@ -163,7 +163,7 @@ describe('gapReportToTextTransformer', () => {
 
       const result = gapReportToTextTransformer({ report, floorSeconds: 60 });
 
-      expect(String(result)).toBe(
+      expect(result).toBe(
         [
           'Gaps of 60 seconds or more between one model reply and the next.',
           WAITING_LINE,
@@ -198,7 +198,7 @@ describe('gapReportToTextTransformer', () => {
 
       const result = gapReportToTextTransformer({ report });
 
-      expect(String(result)).toBe(
+      expect(result).toBe(
         [
           'Gaps of 120 seconds or more between one model reply and the next.',
           WAITING_LINE,

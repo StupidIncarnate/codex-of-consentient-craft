@@ -21,7 +21,6 @@
 
 import { z } from '#gateway/npm/zod';
 
-
 const recipeDescriptionContract = z.string().min(1).brand<'RecipeDescription'>();
 
 const ingredientNameContract = z.string().min(1).brand<'IngredientName'>();
@@ -30,22 +29,34 @@ const makesCountContract = z.number().int().positive().brand<'MakesCount'>();
 
 const recipeRunsContract = z.discriminatedUnion('serverless', [
   z.object({ serverless: z.literal(true) }).brand<'RecipeRuns'>(),
-  z.object({ serverless: z.literal(false), needsServerFor: ingredientNameContract }).brand<'RecipeRuns'>(),
+  z
+    .object({ serverless: z.literal(false), needsServerFor: ingredientNameContract })
+    .brand<'RecipeRuns'>(),
 ]);
 
-const recipeMakesEntryContract = z.object({
-  ingredient: ingredientNameContract,
-  count: z.union([makesCountContract, z.literal('varies')]),
-}).brand<'RecipeMakesEntry'>();
+const recipeMakesEntryContract = z
+  .object({
+    ingredient: ingredientNameContract,
+    count: z.union([makesCountContract, z.literal('varies')]),
+  })
+  .brand<'RecipeMakesEntry'>();
 
 export const recipeListingEntryContract = z
   .object({
-    recipeName: z.string().min(1).regex( /^[a-z0-9]+(?:-[a-z0-9]+)*$/u, 'Recipe name must be kebab-case — lower-case letters, digits and single hyphens, such as "guild-with-three-quests"', ).brand<'RecipeListingEntryRecipeName'>(),
+    recipeName: z
+      .string()
+      .min(1)
+      .regex(
+        /^[a-z0-9]+(?:-[a-z0-9]+)*$/u,
+        'Recipe name must be kebab-case — lower-case letters, digits and single hyphens, such as "guild-with-three-quests"',
+      )
+      .brand<'RecipeListingEntryRecipeName'>(),
     description: recipeDescriptionContract,
     inputKeys: z.array(z.string().min(1).brand<'RecipeListingEntryInputKeys'>()),
     runs: recipeRunsContract,
     makes: z.array(recipeMakesEntryContract),
   })
-  .strict().brand<'RecipeListingEntry'>();
+  .strict()
+  .brand<'RecipeListingEntry'>();
 
 export type RecipeListingEntry = z.infer<typeof recipeListingEntryContract>;

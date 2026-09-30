@@ -10,5 +10,4 @@
 
 import { projectMapStatics } from '../../../statics/project-map/project-map-statics';
 
-export const pointerFooterRenderLayerBroker = (): string =>
-  projectMapStatics.pointerFooter;
+export const pointerFooterRenderLayerBroker = (): string => projectMapStatics.pointerFooter;

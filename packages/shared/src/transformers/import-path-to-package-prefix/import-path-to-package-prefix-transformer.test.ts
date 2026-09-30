@@ -4,8 +4,10 @@ describe('importPathToPackagePrefixTransformer', () => {
   describe('same-package', () => {
     it('VALID: {rendering and referenced in server} => returns bare symbol name', () => {
       const result = importPathToPackagePrefixTransformer({
-        renderingFilePath: '/repo/packages/server/src/responders/quest/start/quest-start-responder.ts',
-        referencedFilePath: '/repo/packages/server/src/adapters/orchestrator/get-quest/server-orchestrator-get-quest-adapter.ts',
+        renderingFilePath:
+          '/repo/packages/server/src/responders/quest/start/quest-start-responder.ts',
+        referencedFilePath:
+          '/repo/packages/server/src/adapters/orchestrator/get-quest/server-orchestrator-get-quest-adapter.ts',
         symbolName: 'serverOrchestratorGetQuestAdapter',
       });
 
@@ -14,8 +16,10 @@ describe('importPathToPackagePrefixTransformer', () => {
 
     it('VALID: {rendering and referenced both in shared, different folders} => returns bare symbol name', () => {
       const result = importPathToPackagePrefixTransformer({
-        renderingFilePath: '/repo/packages/shared/src/brokers/architecture/project-map/architecture-project-map-broker.ts',
-        referencedFilePath: '/repo/packages/shared/src/transformers/name-to-url-slug/name-to-url-slug-transformer.ts',
+        renderingFilePath:
+          '/repo/packages/shared/src/brokers/architecture/project-map/architecture-project-map-broker.ts',
+        referencedFilePath:
+          '/repo/packages/shared/src/transformers/name-to-url-slug/name-to-url-slug-transformer.ts',
         symbolName: 'nameToUrlSlugTransformer',
       });
 
@@ -26,7 +30,8 @@ describe('importPathToPackagePrefixTransformer', () => {
   describe('cross-package', () => {
     it('VALID: {server rendering shared/brokers symbol} => returns "shared/brokers/<name>"', () => {
       const result = importPathToPackagePrefixTransformer({
-        renderingFilePath: '/repo/packages/server/src/responders/quest/start/quest-start-responder.ts',
+        renderingFilePath:
+          '/repo/packages/server/src/responders/quest/start/quest-start-responder.ts',
         referencedFilePath: '/repo/packages/shared/src/brokers/port-resolve/port-resolve-broker.ts',
         symbolName: 'portResolveBroker',
       });
@@ -47,7 +52,8 @@ describe('importPathToPackagePrefixTransformer', () => {
     it('VALID: {server rendering shared/adapters symbol} => returns "shared/adapters/<name>"', () => {
       const result = importPathToPackagePrefixTransformer({
         renderingFilePath: '/repo/packages/server/src/responders/health/health-responder.ts',
-        referencedFilePath: '/repo/packages/shared/src/adapters/fs/read-file/fs-read-file-adapter.ts',
+        referencedFilePath:
+          '/repo/packages/shared/src/adapters/fs/read-file/fs-read-file-adapter.ts',
         symbolName: 'fsReadFileAdapter',
       });
 
@@ -57,7 +63,8 @@ describe('importPathToPackagePrefixTransformer', () => {
     it('VALID: {server rendering shared/transformers symbol} => returns "shared/transformers/<name>"', () => {
       const result = importPathToPackagePrefixTransformer({
         renderingFilePath: '/repo/packages/server/src/responders/health/health-responder.ts',
-        referencedFilePath: '/repo/packages/shared/src/transformers/name-to-url-slug/name-to-url-slug-transformer.ts',
+        referencedFilePath:
+          '/repo/packages/shared/src/transformers/name-to-url-slug/name-to-url-slug-transformer.ts',
         symbolName: 'nameToUrlSlugTransformer',
       });
 
@@ -100,7 +107,8 @@ describe('importPathToPackagePrefixTransformer', () => {
       expect(() =>
         importPathToPackagePrefixTransformer({
           renderingFilePath: '/repo/scripts/check.ts',
-          referencedFilePath: '/repo/packages/shared/src/brokers/port-resolve/port-resolve-broker.ts',
+          referencedFilePath:
+            '/repo/packages/shared/src/brokers/port-resolve/port-resolve-broker.ts',
           symbolName: 'portResolveBroker',
         }),
       ).toThrow(/file path is not under any packages\/<pkg>\/src\//u);

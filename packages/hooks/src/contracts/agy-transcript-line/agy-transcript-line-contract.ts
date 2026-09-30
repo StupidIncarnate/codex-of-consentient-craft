@@ -12,10 +12,12 @@ export const agyTranscriptLineContract = z
   .object({
     tool_calls: z
       .array(
-        z.object({
-          name: z.string().brand<'AgyTranscriptLineToolCallsName'>().optional(),
-          args: z.record(z.string(), z.json()).optional(),
-        }).brand<'AgyTranscriptLineToolCalls'>(),
+        z
+          .object({
+            name: z.string().brand<'AgyTranscriptLineToolCallsName'>().optional(),
+            args: z.record(z.string(), z.json()).optional(),
+          })
+          .brand<'AgyTranscriptLineToolCalls'>(),
       )
       .optional(),
   })

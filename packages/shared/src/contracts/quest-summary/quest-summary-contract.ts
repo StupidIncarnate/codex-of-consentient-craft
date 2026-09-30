@@ -92,6 +92,7 @@ export const questSummaryContract = z
         'The durable side-channel notes grouped by kind — one group per kind, empty groups included, so "none recorded" and "nobody looked" do not render the same.',
       ),
   })
-  .strict().brand<'QuestSummary'>();
+  .strict()
+  .brand<'QuestSummary'>();
 
 export type QuestSummary = z.infer<typeof questSummaryContract>;

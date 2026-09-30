@@ -28,8 +28,8 @@ export const architectureBackRefBroker = ({
   filePath: string;
   projectRoot: string;
 }): string | null => {
-  const raw = String(filePath);
-  const packagesPrefix = `${String(projectRoot)}${PACKAGES_SEGMENT}`;
+  const raw = filePath;
+  const packagesPrefix = `${projectRoot}${PACKAGES_SEGMENT}`;
   if (!raw.startsWith(packagesPrefix)) {
     return null;
   }
@@ -49,5 +49,5 @@ export const architectureBackRefBroker = ({
     return null;
   }
 
-  return `packages/${packageName} (${String(exportName)})`;
+  return `packages/${packageName} (${exportName})`;
 };

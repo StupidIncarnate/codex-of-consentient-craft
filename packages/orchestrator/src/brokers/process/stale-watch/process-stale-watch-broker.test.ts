@@ -1,4 +1,3 @@
-
 import { processStaleWatchBroker } from './process-stale-watch-broker';
 import { processStaleWatchBrokerProxy } from './process-stale-watch-broker.proxy';
 import { ProcessActivityStub } from '../../../contracts/process-activity/process-activity.stub';

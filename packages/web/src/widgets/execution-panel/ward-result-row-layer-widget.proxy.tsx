@@ -1,4 +1,3 @@
-
 import { WardResultDetailLayerWidgetProxy } from './ward-result-detail-layer-widget.proxy';
 
 export const WardResultRowLayerWidgetProxy = (): {

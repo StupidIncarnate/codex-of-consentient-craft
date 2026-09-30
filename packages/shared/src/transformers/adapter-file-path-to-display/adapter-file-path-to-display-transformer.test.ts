@@ -3,7 +3,8 @@ import { adapterFilePathToDisplayTransformer } from './adapter-file-path-to-disp
 describe('adapterFilePathToDisplayTransformer', () => {
   it('VALID: {same package} => returns bare adapters/<vendor>/<sub> slash-path', () => {
     const result = adapterFilePathToDisplayTransformer({
-      filePath: '/repo/packages/server/src/adapters/orchestrator/get-quest/orchestrator-get-quest-adapter.ts',
+      filePath:
+        '/repo/packages/server/src/adapters/orchestrator/get-quest/orchestrator-get-quest-adapter.ts',
       renderingFilePath: '/repo/packages/server/src/startup/start-server.ts',
     });
 

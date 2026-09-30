@@ -18,10 +18,12 @@ describe('InstallConfigCreateResponder', () => {
       proxy.setupFileMissing({ targetProjectRoot });
 
       const result = await proxy.callResponder({
-        context: InstallContextStub({ value: {
-          targetProjectRoot,
-          dungeonmasterRoot: '/dm-root',
-        } }),
+        context: InstallContextStub({
+          value: {
+            targetProjectRoot,
+            dungeonmasterRoot: '/dm-root',
+          },
+        }),
       });
 
       expect(result).toStrictEqual({
@@ -65,10 +67,12 @@ describe('InstallConfigCreateResponder', () => {
       });
 
       const result = await proxy.callResponder({
-        context: InstallContextStub({ value: {
-          targetProjectRoot,
-          dungeonmasterRoot: '/dm-root',
-        } }),
+        context: InstallContextStub({
+          value: {
+            targetProjectRoot,
+            dungeonmasterRoot: '/dm-root',
+          },
+        }),
       });
 
       expect(result).toStrictEqual({
@@ -99,10 +103,12 @@ describe('InstallConfigCreateResponder', () => {
       });
 
       const result = await proxy.callResponder({
-        context: InstallContextStub({ value: {
-          targetProjectRoot,
-          dungeonmasterRoot: '/dm-root',
-        } }),
+        context: InstallContextStub({
+          value: {
+            targetProjectRoot,
+            dungeonmasterRoot: '/dm-root',
+          },
+        }),
       });
 
       expect(result).toStrictEqual({
@@ -148,10 +154,12 @@ describe('InstallConfigCreateResponder', () => {
       });
 
       await proxy.callResponder({
-        context: InstallContextStub({ value: {
-          targetProjectRoot,
-          dungeonmasterRoot: '/dm-root',
-        } }),
+        context: InstallContextStub({
+          value: {
+            targetProjectRoot,
+            dungeonmasterRoot: '/dm-root',
+          },
+        }),
       });
 
       expect(JSON.parse(String(proxy.getWrittenConfig({ targetProjectRoot })))).toStrictEqual({
@@ -174,10 +182,12 @@ describe('InstallConfigCreateResponder', () => {
 
       await expect(
         proxy.callResponder({
-          context: InstallContextStub({ value: {
-            targetProjectRoot,
-            dungeonmasterRoot: '/dm-root',
-          } }),
+          context: InstallContextStub({
+            value: {
+              targetProjectRoot,
+              dungeonmasterRoot: '/dm-root',
+            },
+          }),
         }),
       ).rejects.toThrow(/expected record/u);
 
@@ -194,10 +204,12 @@ describe('InstallConfigCreateResponder', () => {
 
       await expect(
         proxy.callResponder({
-          context: InstallContextStub({ value: {
-            targetProjectRoot,
-            dungeonmasterRoot: '/dm-root',
-          } }),
+          context: InstallContextStub({
+            value: {
+              targetProjectRoot,
+              dungeonmasterRoot: '/dm-root',
+            },
+          }),
         }),
       ).rejects.toThrow(/Invalid JSON in .*\.mcp\.json/u);
 
@@ -214,10 +226,12 @@ describe('InstallConfigCreateResponder', () => {
 
       await expect(
         proxy.callResponder({
-          context: InstallContextStub({ value: {
-            targetProjectRoot,
-            dungeonmasterRoot: '/dm-root',
-          } }),
+          context: InstallContextStub({
+            value: {
+              targetProjectRoot,
+              dungeonmasterRoot: '/dm-root',
+            },
+          }),
         }),
       ).rejects.toThrow(/EACCES.*\.mcp\.json/u);
 

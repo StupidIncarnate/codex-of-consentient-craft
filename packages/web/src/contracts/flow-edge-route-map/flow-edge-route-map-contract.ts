@@ -11,10 +11,12 @@
 
 import { z } from '#gateway/npm/zod';
 
-const routePointContract = z.object({
-  x: z.number().brand<'RoutePointX'>(),
-  y: z.number().brand<'RoutePointY'>(),
-}).brand<'RoutePoint'>();
+const routePointContract = z
+  .object({
+    x: z.number().brand<'RoutePointX'>(),
+    y: z.number().brand<'RoutePointY'>(),
+  })
+  .brand<'RoutePoint'>();
 
 export const flowEdgeRouteMapContract = z
   .record(z.string(), z.array(routePointContract))

@@ -14,7 +14,7 @@ describe('architectureProjectMapBroker', () => {
         packages: ['shared'],
       });
 
-      expect(String(result).startsWith(projectMapStatics.symbolLegend)).toBe(true);
+      expect(result.startsWith(projectMapStatics.symbolLegend)).toBe(true);
     });
   });
 
@@ -30,7 +30,7 @@ describe('architectureProjectMapBroker', () => {
       });
 
       expect(
-        String(result)
+        result
           .split('\n')
           .some((l) => l === '# shared [library]'),
       ).toBe(true);
@@ -46,7 +46,7 @@ describe('architectureProjectMapBroker', () => {
         packages: ['shared'],
       });
 
-      const lines = String(result).split('\n');
+      const lines = result.split('\n');
       const headerIndex = lines.indexOf('# shared [library]');
 
       expect(lines.slice(headerIndex, headerIndex + 3)).toStrictEqual([
@@ -67,7 +67,7 @@ describe('architectureProjectMapBroker', () => {
       });
 
       expect(
-        String(result)
+        result
           .split('\n')
           .some((l) => l === '## Boot'),
       ).toBe(false);
@@ -85,7 +85,7 @@ describe('architectureProjectMapBroker', () => {
         packages: ['shared'],
       });
 
-      const lines = String(result).split('\n');
+      const lines = result.split('\n');
 
       expect(lines[lines.length - 1]).toStrictEqual(projectMapStatics.pointerFooter);
     });
@@ -103,7 +103,7 @@ describe('architectureProjectMapBroker', () => {
       });
 
       expect(
-        String(result)
+        result
           .split('\n')
           .some((l) => l === '# root [library]'),
       ).toBe(true);
@@ -122,7 +122,7 @@ describe('architectureProjectMapBroker', () => {
       });
 
       expect(
-        String(result)
+        result
           .split('\n')
           .some((l) => l === '# ink-cli [frontend-ink]'),
       ).toBe(true);
@@ -141,7 +141,7 @@ describe('architectureProjectMapBroker', () => {
       });
 
       expect(
-        String(result)
+        result
           .split('\n')
           .some((l) => l === '# mcp [programmatic-service]'),
       ).toBe(true);
@@ -160,7 +160,7 @@ describe('architectureProjectMapBroker', () => {
       });
 
       expect(
-        String(result)
+        result
           .split('\n')
           .some((l) => l === '# npm [library]'),
       ).toBe(true);
@@ -192,7 +192,7 @@ describe('architectureProjectMapBroker', () => {
       });
 
       expect(
-        String(result)
+        result
           .split('\n')
           .some((l) =>
             l.startsWith(
@@ -211,9 +211,9 @@ describe('architectureProjectMapBroker', () => {
         folder: 'node',
         subpathName: 'fs',
         barrelContent: [
-            "export * from 'fs';",
-            "export { existsSync } from './exists-sync/exists-sync';",
-          ].join('\n'),
+          "export * from 'fs';",
+          "export { existsSync } from './exists-sync/exists-sync';",
+        ].join('\n'),
       });
 
       const result = await architectureProjectMapBroker({
@@ -221,7 +221,7 @@ describe('architectureProjectMapBroker', () => {
         packages: ['#gateway'],
       });
 
-      const lines = String(result).split('\n');
+      const lines = result.split('\n');
 
       expect(lines.some((l) => l === "  #gateway/node/fs  passes through 'fs'")).toBe(true);
       expect(lines.some((l) => l === '      ours: existsSync')).toBe(true);
@@ -237,7 +237,7 @@ describe('architectureProjectMapBroker', () => {
         packages: ['#gateway', 'root'],
       });
 
-      const lines = String(result).split('\n');
+      const lines = result.split('\n');
 
       expect(lines.some((l) => l.startsWith('# #gateway [gateway]'))).toBe(true);
       expect(lines.some((l) => l === '# root [library]')).toBe(true);

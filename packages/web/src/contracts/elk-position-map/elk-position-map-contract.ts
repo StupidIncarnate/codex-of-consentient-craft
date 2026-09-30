@@ -11,10 +11,12 @@ import { z } from '#gateway/npm/zod';
 const elkPositionXContract = z.number().brand<'ElkPositionX'>();
 const elkPositionYContract = z.number().brand<'ElkPositionY'>();
 
-const elkPositionEntryContract = z.object({
-  x: elkPositionXContract,
-  y: elkPositionYContract,
-}).brand<'ElkPositionEntry'>();
+const elkPositionEntryContract = z
+  .object({
+    x: elkPositionXContract,
+    y: elkPositionYContract,
+  })
+  .brand<'ElkPositionEntry'>();
 
 export const elkPositionMapContract = z
   .record(z.string(), elkPositionEntryContract)

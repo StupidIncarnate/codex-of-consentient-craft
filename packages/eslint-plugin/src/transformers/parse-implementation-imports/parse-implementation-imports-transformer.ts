@@ -218,10 +218,7 @@ export const parseImplementationImportsTransformer = ({
           }
 
           if (defaultImport !== undefined) {
-            imports.set(
-              defaultImport,
-              importPath,
-            );
+            imports.set(defaultImport, importPath);
           }
         }
       }

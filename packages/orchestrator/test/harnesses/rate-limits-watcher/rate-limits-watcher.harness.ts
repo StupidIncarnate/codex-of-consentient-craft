@@ -111,13 +111,7 @@ export const rateLimitsWatcherHarness = (): {
       await writeFile(path.join(tempDir, SNAPSHOT_FILENAME), JSON.stringify(snapshot));
     },
 
-    writeRaw: async ({
-      tempDir,
-      content,
-    }: {
-      tempDir: string;
-      content: string;
-    }): Promise<void> => {
+    writeRaw: async ({ tempDir, content }: { tempDir: string; content: string }): Promise<void> => {
       await writeFile(path.join(tempDir, SNAPSHOT_FILENAME), content);
     },
 

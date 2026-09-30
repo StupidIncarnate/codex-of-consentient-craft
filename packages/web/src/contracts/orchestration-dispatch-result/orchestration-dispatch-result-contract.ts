@@ -11,8 +11,10 @@
 import { dispatchStateContract } from '@dungeonmaster/shared/contracts';
 import { z } from '#gateway/npm/zod';
 
-export const orchestrationDispatchResultContract = z.object({
-  state: dispatchStateContract,
-}).brand<'OrchestrationDispatchResult'>();
+export const orchestrationDispatchResultContract = z
+  .object({
+    state: dispatchStateContract,
+  })
+  .brand<'OrchestrationDispatchResult'>();
 
 export type OrchestrationDispatchResult = z.infer<typeof orchestrationDispatchResultContract>;

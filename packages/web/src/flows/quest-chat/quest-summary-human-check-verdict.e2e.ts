@@ -119,7 +119,10 @@ test.describe('A verifyByHuman criterion is judged from the summary panel', () =
       { timeout: SUMMARY_REQUEST_TIMEOUT },
     );
 
-    await nav.navigateToQuest({ urlSlug: String(guilds.extractUrlSlug({ guild })), questId: QuestIdStub({ value: questId }) });
+    await nav.navigateToQuest({
+      urlSlug: String(guilds.extractUrlSlug({ guild })),
+      questId: QuestIdStub({ value: questId }),
+    });
 
     await summaryRequestPromise;
 

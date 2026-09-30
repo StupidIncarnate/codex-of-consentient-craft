@@ -10,7 +10,6 @@
 
 import type { PastedImageMediaType, Base64ImageData } from '@dungeonmaster/shared/contracts';
 
-
 export const dataUrlBuildTransformer = ({
   mediaType,
   dataBase64,

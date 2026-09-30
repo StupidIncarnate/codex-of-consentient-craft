@@ -49,7 +49,7 @@ test.describe('Quest Spec Panel', () => {
 
     // Overwrite quest.json with desired test data
     await quests.writeQuestFile({
-      questId: questId,
+      questId,
       questFolder,
       questFilePath,
       status: 'approved',
@@ -66,7 +66,7 @@ test.describe('Quest Spec Panel', () => {
     const urlSlug = String(guild.urlSlug ?? guild.name)
       .toLowerCase()
       .replace(/\s+/gu, '-');
-    await nav.navigateToQuest({ urlSlug, questId: questId });
+    await nav.navigateToQuest({ urlSlug, questId });
 
     await expect(page.getByTestId('QUEST_CHAT')).toBeVisible();
 

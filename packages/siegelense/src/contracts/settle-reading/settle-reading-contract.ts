@@ -24,7 +24,6 @@
 
 import { z } from '#gateway/npm/zod';
 
-
 export const settleReadingContract = z
   .object({
     settled: z.boolean(),
@@ -37,6 +36,7 @@ export const settleReadingContract = z
     pendingRequests: z.number().int().nonnegative().brand<'SettleReadingPendingRequests'>(),
     pollersDiscounted: z.array(z.string().brand<'SettleReadingPollersDiscounted'>()).readonly(),
   })
-  .strict().brand<'SettleReading'>();
+  .strict()
+  .brand<'SettleReading'>();
 
 export type SettleReading = z.infer<typeof settleReadingContract>;

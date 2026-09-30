@@ -120,7 +120,7 @@ export const ruleNoMultiplePropertyAssertionsBroker =
           // Track this assertion
           const assertions = assertionsByItBlock.get(currentItBlock);
           if (assertions !== undefined) {
-            assertions.push({ rootObject: rootObject, node });
+            assertions.push({ rootObject, node });
           }
         },
       };

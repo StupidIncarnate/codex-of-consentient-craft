@@ -10,7 +10,7 @@ describe('handlerNameToResponderPathTransformer', () => {
         packageSrcPath: PKG_SRC,
       });
 
-      expect(String(result)).toBe(
+      expect(result).toBe(
         '/repo/packages/mcp/src/responders/architecture/handle/architecture-handle-responder.ts',
       );
     });
@@ -23,7 +23,7 @@ describe('handlerNameToResponderPathTransformer', () => {
         packageSrcPath: PKG_SRC,
       });
 
-      expect(String(result)).toBe(
+      expect(result).toBe(
         '/repo/packages/mcp/src/responders/quest/handle/quest-handle-responder.ts',
       );
     });
@@ -36,7 +36,7 @@ describe('handlerNameToResponderPathTransformer', () => {
         packageSrcPath: PKG_SRC,
       });
 
-      expect(String(result)).toBe(
+      expect(result).toBe(
         '/repo/packages/mcp/src/responders/interaction/handle/interaction-handle-responder.ts',
       );
     });

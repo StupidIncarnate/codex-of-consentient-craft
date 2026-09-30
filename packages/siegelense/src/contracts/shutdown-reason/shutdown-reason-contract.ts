@@ -19,11 +19,11 @@
 
 import { z } from '#gateway/npm/zod';
 
-
-
-export const shutdownReasonContract = z.object({
-  reason: z.string().brand<'ShutdownReasonReason'>(),
-  atMs: z.number().int().nonnegative().brand<'ShutdownReasonAtMs'>(),
-}).brand<'ShutdownReason'>();
+export const shutdownReasonContract = z
+  .object({
+    reason: z.string().brand<'ShutdownReasonReason'>(),
+    atMs: z.number().int().nonnegative().brand<'ShutdownReasonAtMs'>(),
+  })
+  .brand<'ShutdownReason'>();
 
 export type ShutdownReason = z.infer<typeof shutdownReasonContract>;

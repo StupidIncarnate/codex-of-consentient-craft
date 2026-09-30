@@ -1,4 +1,3 @@
-
 import { workspaceManifestEntriesVerifyBroker } from './workspace-manifest-entries-verify-broker';
 
 // The unit tests beside this one all mock fs, so every one of them stays green against a

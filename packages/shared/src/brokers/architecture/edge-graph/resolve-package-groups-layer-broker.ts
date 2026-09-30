@@ -36,8 +36,8 @@ export const resolvePackageGroupsLayerBroker = ({
   );
   const candidateRoots =
     packageEntries.length > 0
-      ? packageEntries.map((entry) =>
-          `${projectRoot}/${projectMapStatics.packagesDirName}/${entry.name}`,
+      ? packageEntries.map(
+          (entry) => `${projectRoot}/${projectMapStatics.packagesDirName}/${entry.name}`,
         )
       : [projectRoot];
 
@@ -55,7 +55,7 @@ export const resolvePackageGroupsLayerBroker = ({
     let packageJson = packageJsonContract.parse({});
     if (packageJsonRaw !== undefined) {
       try {
-        packageJson = packageJsonContract.parse(JSON.parse(String(packageJsonRaw)) as unknown);
+        packageJson = packageJsonContract.parse(JSON.parse(packageJsonRaw) as unknown);
       } catch {
         // Malformed package.json — treat this candidate as carrying no dependency signals
         // rather than crashing the whole scan over one bad file.
@@ -72,7 +72,7 @@ export const resolvePackageGroupsLayerBroker = ({
         (flowPath) =>
           matchesFlowFileNameGuard({ name: flowPath }) &&
           flowCreatesHonoOrExpressAppGuard({
-            flowFileContent: String(readFileLayerBroker({ filePath: flowPath }) ?? ''),
+            flowFileContent: (readFileLayerBroker({ filePath: flowPath }) ?? ''),
           }),
       )
     ) {

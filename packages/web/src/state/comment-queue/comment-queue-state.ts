@@ -145,7 +145,13 @@ export const commentQueueState = {
     });
   },
 
-  subscribe: ({ questId, listener }: { questId: Quest['id']; listener: () => void }): (() => void) => {
+  subscribe: ({
+    questId,
+    listener,
+  }: {
+    questId: Quest['id'];
+    listener: () => void;
+  }): (() => void) => {
     const listeners = state.subscribers.get(questId) ?? new Set<() => void>();
     listeners.add(listener);
     state.subscribers.set(questId, listeners);

@@ -40,16 +40,33 @@ const taskPromptContract = z.string().min(1).brand<'TaskPrompt'>();
 
 export type TaskPrompt = z.infer<typeof taskPromptContract>;
 
-export const subagentFieldsShape = z.object({
-  agentId: agentContract.shape.id,
-  toolUseId: toolUseIdContract,
-  taskDescription: z.string().min(1).brand<'SubagentFieldsShapeTaskDescription'>(),
-  taskPrompt: taskPromptContract,
-  lines: z.array(z.string().min(1).brand<'SubagentFieldsShapeLines'>()),
-  completed: z.boolean(),
-  sessionId: sessionContract.shape.id,
-  cwd: z.string().min(1).refine((path) => { if (path.startsWith('/')) { return true; } if (/^[A-Za-z]:\\/u.test(path)) { return true; } return false; }, { message: 'Path must be absolute (start with / or C:\\ on Windows)', },).brand<'SubagentFieldsCwd'>(),
-}).brand<'SubagentFieldsShape'>();
+export const subagentFieldsShape = z
+  .object({
+    agentId: agentContract.shape.id,
+    toolUseId: toolUseIdContract,
+    taskDescription: z.string().min(1).brand<'SubagentFieldsShapeTaskDescription'>(),
+    taskPrompt: taskPromptContract,
+    lines: z.array(z.string().min(1).brand<'SubagentFieldsShapeLines'>()),
+    completed: z.boolean(),
+    sessionId: sessionContract.shape.id,
+    cwd: z
+      .string()
+      .min(1)
+      .refine(
+        (path) => {
+          if (path.startsWith('/')) {
+            return true;
+          }
+          if (/^[A-Za-z]:\\/u.test(path)) {
+            return true;
+          }
+          return false;
+        },
+        { message: 'Path must be absolute (start with / or C:\\ on Windows)' },
+      )
+      .brand<'SubagentFieldsCwd'>(),
+  })
+  .brand<'SubagentFieldsShape'>();
 
 export type SubagentFields = z.infer<typeof subagentFieldsShape>;
 

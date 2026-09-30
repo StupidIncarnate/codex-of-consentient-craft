@@ -9,12 +9,13 @@
  */
 import { z } from '#gateway/npm/zod';
 
-export const gatewayModuleDirTransformer = ({
-  specifier,
-}: {
-  specifier: string;
-}): string =>
+export const gatewayModuleDirTransformer = ({ specifier }: { specifier: string }): string =>
   z
     .string()
     .min(1)
-    .parse(specifier.replace(/^node:/u, '').replace(/^@/u, '').replaceAll('/', '__'));
+    .parse(
+      specifier
+        .replace(/^node:/u, '')
+        .replace(/^@/u, '')
+        .replaceAll('/', '__'),
+    );

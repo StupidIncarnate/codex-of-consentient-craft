@@ -235,11 +235,7 @@ export const orchestrationEnvironmentHarness = (): {
         : { id: undefined };
       return { exists, questIdInFile: parsed.id === questId };
     },
-    seedRepoRootGuild: async ({
-      tempDir,
-    }: {
-      tempDir: string;
-    }): Promise<{ guildPath: string }> => {
+    seedRepoRootGuild: async ({ tempDir }: { tempDir: string }): Promise<{ guildPath: string }> => {
       // Drop a `.dungeonmaster.json` at the testbed dir so cwdResolveBroker({ kind: 'repo-root' })
       // walks up from the home AND from the registered guild.path to the SAME repo root —
       // that's the equality smoketestEnsureGuildBroker requires before returning a guildId.
@@ -274,8 +270,8 @@ export const orchestrationEnvironmentHarness = (): {
       const savedWardCliPath = getEnv('WARD_CLI_PATH');
 
       setEnv('CLAUDE_CLI_PATH', FAKE_CLAUDE_CLI);
-      setEnv('FAKE_CLAUDE_QUEUE_DIR', String(claudeQueueDir));
-      setEnv('FAKE_WARD_QUEUE_DIR', String(wardQueueDir));
+      setEnv('FAKE_CLAUDE_QUEUE_DIR', claudeQueueDir);
+      setEnv('FAKE_WARD_QUEUE_DIR', wardQueueDir);
       setEnv('PATH', `${FAKE_WARD_BIN_DIR}:${getEnv('PATH') ?? ''}`);
       setEnv('WARD_CLI_PATH', FAKE_WARD_CLI);
       setEnv('DUNGEONMASTER_HOME', tempDir);

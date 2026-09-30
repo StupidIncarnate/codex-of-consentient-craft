@@ -6,7 +6,6 @@
  * // Returns TestFailure[] with suitePath, testName, message, and stackTrace
  */
 
-
 import type { TestFailure } from '../../contracts/test-failure/test-failure-contract';
 import { testFailureContract } from '../../contracts/test-failure/test-failure-contract';
 import { stripAnsiCodesTransformer } from '../strip-ansi-codes/strip-ansi-codes-transformer';
@@ -37,7 +36,7 @@ export const parsePlaywrightCrashOutputTransformer = ({
     }
 
     const [, filePath, , testNameRaw] = headerMatch;
-    const suitePath = (filePath ?? '');
+    const suitePath = filePath ?? '';
     const testName = (testNameRaw ?? '').trim();
 
     i++;

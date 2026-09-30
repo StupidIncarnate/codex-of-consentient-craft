@@ -18,7 +18,13 @@
  */
 
 import { randomUUID } from '#gateway/node/crypto';
-import { getQuestInputContract, modifyQuestInputContract, questContract, questQueueEntryContract, workItemContract } from '@dungeonmaster/shared/contracts';
+import {
+  getQuestInputContract,
+  modifyQuestInputContract,
+  questContract,
+  questQueueEntryContract,
+  workItemContract,
+} from '@dungeonmaster/shared/contracts';
 import type { Quest } from '@dungeonmaster/shared/contracts';
 import { questFlowStatics, questStatusMetadataStatics } from '@dungeonmaster/shared/statics';
 import { nameToUrlSlugTransformer } from '@dungeonmaster/shared/transformers';

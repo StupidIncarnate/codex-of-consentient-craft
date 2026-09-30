@@ -14,7 +14,6 @@ import { existsSync } from '#gateway/node/fs';
 import { resolvePackageRoot } from '#gateway/node/module';
 import { join } from '#gateway/node/path';
 
-
 const PACKAGE_JSON_FILENAME = 'package.json';
 const DIST_DIRNAME = 'dist';
 

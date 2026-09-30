@@ -53,9 +53,9 @@ export const toolRowSummaryTransformer = ({
 
   // Shorten before truncating: the elision is what buys the room, so a path-heavy summary shows
   // several arguments where the raw form would have been cut off inside the first one.
-  const shortened = String(shortenPathsTransformer({ text: raw }));
+  const shortened = shortenPathsTransformer({ text: raw });
 
-  return (shortened.length > toolRowSummaryStatics.inlineSummaryLimit
-      ? `${shortened.slice(0, toolRowSummaryStatics.inlineSummaryLimit)}${toolRowSummaryStatics.truncationSuffix}`
-      : shortened);
+  return shortened.length > toolRowSummaryStatics.inlineSummaryLimit
+    ? `${shortened.slice(0, toolRowSummaryStatics.inlineSummaryLimit)}${toolRowSummaryStatics.truncationSuffix}`
+    : shortened;
 };

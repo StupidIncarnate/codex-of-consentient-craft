@@ -81,7 +81,8 @@ describe('architecturePackageTypeDetectBroker', () => {
           dependencies: { '@modelcontextprotocol/sdk': '^1.0.0' },
         }),
         flowFilePath: `${PACKAGE_ROOT}/src/flows/tools/tools-flow.ts`,
-        flowFileContent: "import { toolStatics } from '../../statics/tool/tool-statics';\n\nexport const ToolsFlow = (): typeof toolStatics.tools => toolStatics.tools;\n",
+        flowFileContent:
+          "import { toolStatics } from '../../statics/tool/tool-statics';\n\nexport const ToolsFlow = (): typeof toolStatics.tools => toolStatics.tools;\n",
       });
 
       const result = await architecturePackageTypeDetectBroker({
@@ -117,7 +118,8 @@ describe('architecturePackageTypeDetectBroker', () => {
         srcDirNames: ['flows', 'responders', 'startup', 'state'],
         packageJsonContent: JSON.stringify({ exports: { './package.json': './package.json' } }),
         startupFileName: 'start-jobs.ts',
-        startupFileContent: "import { JobsFlow } from '../flows/jobs/jobs-flow';\n\nexport const StartJobs = {\n  run: async ({ input }: { input: string }): Promise<{ handled: boolean }> => {\n    const result = await JobsFlow({ input });\n    return result;\n  },\n};\n",
+        startupFileContent:
+          "import { JobsFlow } from '../flows/jobs/jobs-flow';\n\nexport const StartJobs = {\n  run: async ({ input }: { input: string }): Promise<{ handled: boolean }> => {\n    const result = await JobsFlow({ input });\n    return result;\n  },\n};\n",
       });
 
       const result = await architecturePackageTypeDetectBroker({
@@ -184,9 +186,11 @@ describe('architecturePackageTypeDetectBroker', () => {
           bin: { runner: './dist/bin/runner-entry.js' },
         }),
         startupFileName: 'start-runner.ts',
-        startupFileContent: 'export const StartRunner = ({ command }: { command: string | undefined }): Promise<{ handled: boolean }> => Promise.resolve({ handled: command !== undefined });\n',
+        startupFileContent:
+          'export const StartRunner = ({ command }: { command: string | undefined }): Promise<{ handled: boolean }> => Promise.resolve({ handled: command !== undefined });\n',
         binFileName: 'runner-entry.ts',
-        binFileContent: "import { argv, exit, stderr } from '#gateway/node/process';\nimport { StartRunner } from '../src/startup/start-runner';\n",
+        binFileContent:
+          "import { argv, exit, stderr } from '#gateway/node/process';\nimport { StartRunner } from '../src/startup/start-runner';\n",
       });
 
       const result = await architecturePackageTypeDetectBroker({
@@ -298,7 +302,8 @@ describe('architecturePackageTypeDetectBroker', () => {
         packageRoot: PACKAGE_ROOT,
         srcDirNames: ['flows', 'responders', 'state', 'startup'],
         startupFileName: 'start-orchestrator.ts',
-        startupFileContent: 'export const StartOrchestrator = { runQuest: async ({ questId }) => {} };',
+        startupFileContent:
+          'export const StartOrchestrator = { runQuest: async ({ questId }) => {} };',
       });
 
       const result = await architecturePackageTypeDetectBroker({
@@ -464,7 +469,8 @@ describe('architecturePackageTypeDetectBroker', () => {
         packageRoot: PACKAGE_ROOT,
         srcDirNames: ['brokers', 'flows', 'responders', 'state', 'startup'],
         startupFileName: 'start-orchestrator.ts',
-        startupFileContent: 'export const StartOrchestrator = { runQuest: async ({ questId }) => {} };',
+        startupFileContent:
+          'export const StartOrchestrator = { runQuest: async ({ questId }) => {} };',
       });
 
       const result = await architecturePackageTypeDetectBroker({

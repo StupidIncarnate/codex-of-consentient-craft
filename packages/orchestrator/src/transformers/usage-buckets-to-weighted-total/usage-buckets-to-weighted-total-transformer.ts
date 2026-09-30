@@ -13,7 +13,7 @@
  * // Returns: WeightedTokens for that window
  */
 
-import { type UsageLedger } from '@dungeonmaster/shared/contracts';
+import type { UsageLedger } from '@dungeonmaster/shared/contracts';
 
 import { usageBucketToWeightedTransformer } from '../usage-bucket-to-weighted/usage-bucket-to-weighted-transformer';
 

@@ -56,9 +56,7 @@ describe('SiegelenseKillLayerFlow', () => {
         }),
       ).resolves.toBe(undefined);
 
-      const writes = stdoutSpy
-        .callsMatching([])
-        .map((call) => String(call[0]));
+      const writes = stdoutSpy.callsMatching([]).map((call) => String(call[0]));
 
       const expectedResult = KillResultStub({
         instanceId: tree.killedInstanceId(),
@@ -82,9 +80,7 @@ describe('SiegelenseKillLayerFlow', () => {
 
       await SiegelenseKillLayerFlow({ callArgs: ['--instance', tree.killedInstanceId()] });
 
-      const writes = stdoutSpy
-        .callsMatching([])
-        .map((call) => String(call[0]));
+      const writes = stdoutSpy.callsMatching([]).map((call) => String(call[0]));
 
       const expectedResult = KillResultStub({
         instanceId: tree.killedInstanceId(),

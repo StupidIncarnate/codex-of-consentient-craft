@@ -1,7 +1,6 @@
 import { screen } from '#gateway/npm/testing-library__react';
 import userEvent from '#gateway/npm/testing-library__user-event';
 
-
 import { userEventStatics } from '../../statics/user-event/user-event-statics';
 
 export const FormInputWidgetProxy = (): {
@@ -15,6 +14,6 @@ export const FormInputWidgetProxy = (): {
   },
   getValue: (): string => {
     const input = screen.getByTestId<HTMLInputElement>('FORM_INPUT');
-    return input.value as string;
+    return input.value;
   },
 });

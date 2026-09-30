@@ -68,7 +68,7 @@ test.describe('Composer send — a page reload racing an accepted response must 
     await sessions.createSessionFile({ sessionId, userMessage: 'Build feature' });
 
     const created = await quests.createQuest({
-      guildId: guildId,
+      guildId,
       title: 'Composer Send Reload Race Quest',
       userRequest: 'Build feature',
     });

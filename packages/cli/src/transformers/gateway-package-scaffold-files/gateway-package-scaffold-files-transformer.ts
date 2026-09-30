@@ -42,7 +42,7 @@ export const gatewayPackageScaffoldFilesTransformer = ({
   scope: string;
   folder: GatewayFolder;
 }): readonly ScaffoldFile[] => {
-  const packageName = `${String(scope)}/${folder}`;
+  const packageName = `${scope}/${folder}`;
   const receivesCopiedSource = Object.hasOwn(gatewaySourceCopyStatics.sources, folder);
   const ownSourceCondition = `${folder}-own-source`;
 
@@ -85,7 +85,7 @@ export const gatewayPackageScaffoldFilesTransformer = ({
     // realistic connection-refused error fetch can reject with) — `gateway-dependency-declared`
     // requires the importing package.json to list the real target package name in `dependencies`,
     // exactly as this repo's OWN packages/@gateway/browser/package.json already does.
-    ...(folder === 'browser' ? { dependencies: { [`${String(scope)}/node`]: '*' } } : {}),
+    ...(folder === 'browser' ? { dependencies: { [`${scope}/node`]: '*' } } : {}),
     devDependencies:
       folder === 'browser'
         ? {
@@ -138,9 +138,10 @@ export const gatewayPackageScaffoldFilesTransformer = ({
     }),
     scaffoldFileContract.parse({
       relativePath: 'jest.config.js',
-      contents: (folder === 'browser'
+      contents:
+        folder === 'browser'
           ? gatewayPackageTemplateStatics.browserJestConfigContent
-          : gatewayPackageTemplateStatics.jestConfigContent),
+          : gatewayPackageTemplateStatics.jestConfigContent,
     }),
     ...(receivesCopiedSource
       ? []

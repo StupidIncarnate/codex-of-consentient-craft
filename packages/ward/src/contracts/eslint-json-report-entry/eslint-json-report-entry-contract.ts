@@ -17,13 +17,15 @@ const eslintMessageContract = z
     message: z.string().brand<'EslintMessageMessage'>().optional(),
     line: z.number().brand<'EslintMessageLine'>().nullable().optional(),
     column: z.number().brand<'EslintMessageColumn'>().nullable().optional(),
-  }).brand<'EslintMessage'>()
+  })
+  .brand<'EslintMessage'>()
   .loose();
 
 const eslintTimeContract = z
   .object({
     total: z.number().brand<'EslintTimeTotal'>().optional().catch(undefined),
-  }).brand<'EslintTime'>()
+  })
+  .brand<'EslintTime'>()
   .loose();
 
 const eslintPassContract = z
@@ -36,7 +38,8 @@ const eslintPassContract = z
     rules: z.record(z.string(), eslintTimeContract).optional(),
     fix: eslintTimeContract.optional(),
     total: z.number().brand<'EslintPassTotal'>().optional().catch(undefined),
-  }).brand<'EslintPass'>()
+  })
+  .brand<'EslintPass'>()
   .loose();
 
 const eslintStatsContract = z
@@ -44,10 +47,12 @@ const eslintStatsContract = z
     times: z
       .object({
         passes: z.array(eslintPassContract).optional(),
-      }).brand<'EslintStatsTimes'>()
+      })
+      .brand<'EslintStatsTimes'>()
       .loose()
       .optional(),
-  }).brand<'EslintStats'>()
+  })
+  .brand<'EslintStats'>()
   .loose();
 
 export const eslintJsonReportEntryContract = z
@@ -56,6 +61,7 @@ export const eslintJsonReportEntryContract = z
     messages: z.array(eslintMessageContract).optional(),
     stats: eslintStatsContract.optional(),
   })
-  .loose().brand<'EslintJsonReportEntry'>();
+  .loose()
+  .brand<'EslintJsonReportEntry'>();
 
 export type EslintJsonReportEntry = z.infer<typeof eslintJsonReportEntryContract>;

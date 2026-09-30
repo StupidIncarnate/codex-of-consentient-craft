@@ -7,7 +7,6 @@
  * // Reads localStorage and sessionStorage matching prefix 'dm-' and renders as ContentText JSON
  */
 
-
 import type { BrowserSession } from '../../../contracts/browser-session/browser-session-contract';
 import { storageReadingRenderTransformer } from '../../../transformers/storage-reading-render/storage-reading-render-transformer';
 

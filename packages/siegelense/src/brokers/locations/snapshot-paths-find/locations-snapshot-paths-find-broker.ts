@@ -49,8 +49,8 @@ export const locationsSnapshotPathsFindBroker = ({
   const payload = join(storeDir, String(ordinal));
 
   return locationsSnapshotPathsFindResultContract.parse({
-    storeDir: storeDir,
-    index: index,
-    payload: payload,
+    storeDir,
+    index,
+    payload,
   });
 };

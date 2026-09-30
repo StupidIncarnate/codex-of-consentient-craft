@@ -1,4 +1,3 @@
-
 import { WorktreeCreateResponder } from './worktree-create-responder';
 import { WorktreeCreateResponderProxy } from './worktree-create-responder.proxy';
 

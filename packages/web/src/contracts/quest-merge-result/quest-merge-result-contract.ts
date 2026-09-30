@@ -9,8 +9,10 @@
 
 import { z } from '#gateway/npm/zod';
 
-export const questMergeResultContract = z.object({
-  merging: z.boolean(),
-}).brand<'QuestMergeResult'>();
+export const questMergeResultContract = z
+  .object({
+    merging: z.boolean(),
+  })
+  .brand<'QuestMergeResult'>();
 
 export type QuestMergeResult = z.infer<typeof questMergeResultContract>;

@@ -23,7 +23,13 @@ import { randomUUID } from '#gateway/node/crypto';
 import { ensureDir } from '#gateway/node/fs__promises';
 import { join } from '#gateway/node/path';
 import { operationItemContract, questContract } from '@dungeonmaster/shared/contracts';
-import type { AddQuestInput, OperationItem, WorkItem, Quest, Guild } from '@dungeonmaster/shared/contracts';
+import type {
+  AddQuestInput,
+  OperationItem,
+  WorkItem,
+  Quest,
+  Guild,
+} from '@dungeonmaster/shared/contracts';
 import { locationsStatics, questFlowStatics } from '@dungeonmaster/shared/statics';
 
 import { questPersistBroker } from '../persist/quest-persist-broker';

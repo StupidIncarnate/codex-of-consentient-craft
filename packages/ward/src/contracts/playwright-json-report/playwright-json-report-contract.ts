@@ -12,13 +12,15 @@ const playwrightTestResultContract = z
   .object({
     status: z.string().brand<'PlaywrightTestResultStatus'>().optional(),
     duration: z.number().brand<'PlaywrightTestResultDuration'>().optional(),
-  }).brand<'PlaywrightTestResult'>()
+  })
+  .brand<'PlaywrightTestResult'>()
   .loose();
 
 const playwrightTestNodeContract = z
   .object({
     results: z.array(playwrightTestResultContract).optional(),
-  }).brand<'PlaywrightTestNode'>()
+  })
+  .brand<'PlaywrightTestNode'>()
   .loose();
 
 const playwrightSpecContract = z
@@ -26,7 +28,8 @@ const playwrightSpecContract = z
     title: z.string().brand<'PlaywrightSpecTitle'>().optional(),
     file: z.string().brand<'PlaywrightSpecFile'>().optional(),
     tests: z.array(playwrightTestNodeContract).optional(),
-  }).brand<'PlaywrightSpec'>()
+  })
+  .brand<'PlaywrightSpec'>()
   .loose();
 
 const playwrightSuiteFields = z.object({
@@ -47,7 +50,8 @@ const playwrightSuiteContract = z
     get suites(): z.ZodOptional<z.ZodArray<z.core.$ZodType<PlaywrightSuiteSelf>>> {
       return z.array(playwrightSuiteContract).optional();
     },
-  }).brand<'PlaywrightSuite'>()
+  })
+  .brand<'PlaywrightSuite'>()
   .loose();
 
 export type PlaywrightSuite = z.infer<typeof playwrightSuiteContract>;
@@ -56,6 +60,7 @@ export const playwrightJsonReportContract = z
   .object({
     suites: z.array(playwrightSuiteContract).optional(),
   })
-  .loose().brand<'PlaywrightJsonReport'>();
+  .loose()
+  .brand<'PlaywrightJsonReport'>();
 
 export type PlaywrightJsonReport = z.infer<typeof playwrightJsonReportContract>;

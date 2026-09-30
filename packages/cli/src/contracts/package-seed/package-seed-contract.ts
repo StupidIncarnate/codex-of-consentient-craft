@@ -18,41 +18,45 @@
 
 import { z } from '#gateway/npm/zod';
 
-
 import { dependencyMapContract } from '../dependency-map/dependency-map-contract';
 
-export const packageSeedContract = z.object({
-  barrel: z
-    .object({
-      fileName: z.string().brand<'PackageSeedBarrelFileName'>(),
-      exportPaths: z.array(z.string().brand<'PackageSeedBarrelExportPaths'>()),
-    }).brand<'PackageSeedBarrel'>()
-    .nullable(),
-  dependencies: dependencyMapContract,
-  // Extra devDependencies this seed's own files need beyond packageScaffoldConfigStatics'
-  // fixed base (e.g. the jsdom polyfill file frontend-react ships needs `undici` and
-  // `jest-environment-jsdom` present at install time, not merely hoisted from a sibling
-  // workspace package) — see package-scaffold-files-transformer.ts's merge.
-  devDependencies: dependencyMapContract,
-  bin: dependencyMapContract,
-  compilerOptions: z.record(z.string(), z.json()),
-  extraInclude: z.array(z.string().brand<'PackageSeedExtraInclude'>()),
-  buildRootDir: z.string().brand<'PackageSeedBuildRootDir'>().nullable(),
-  jestKind: z.enum(['node', 'tsx-node', 'tsx-jsdom']),
-  e2eEligible: z.boolean(),
-  exportsDot: z.boolean(),
-  // True picks `jestConfigNodeIntegration` over `jestConfigNode` in
-  // packageScaffoldConfigStatics — the variant carrying the transformIgnorePatterns +
-  // transform pair `@dungeonmaster/testing`'s root barrel needs (its `installTestbedCreateBroker`
-  // pulls in msw's ESM). Only a type whose seed ships a `flows/`/`startup/` file needs it, since
-  // integration tests are the only place a scaffolded package writes today.
-  needsMswTransform: z.boolean(),
-  files: z.array(
-    z.object({
-      path: z.string().brand<'PackageSeedFilesPath'>(),
-      contents: z.string().brand<'PackageSeedFilesContents'>(),
-    }).brand<'PackageSeedFiles'>(),
-  ),
-}).brand<'PackageSeed'>();
+export const packageSeedContract = z
+  .object({
+    barrel: z
+      .object({
+        fileName: z.string().brand<'PackageSeedBarrelFileName'>(),
+        exportPaths: z.array(z.string().brand<'PackageSeedBarrelExportPaths'>()),
+      })
+      .brand<'PackageSeedBarrel'>()
+      .nullable(),
+    dependencies: dependencyMapContract,
+    // Extra devDependencies this seed's own files need beyond packageScaffoldConfigStatics'
+    // fixed base (e.g. the jsdom polyfill file frontend-react ships needs `undici` and
+    // `jest-environment-jsdom` present at install time, not merely hoisted from a sibling
+    // workspace package) — see package-scaffold-files-transformer.ts's merge.
+    devDependencies: dependencyMapContract,
+    bin: dependencyMapContract,
+    compilerOptions: z.record(z.string(), z.json()),
+    extraInclude: z.array(z.string().brand<'PackageSeedExtraInclude'>()),
+    buildRootDir: z.string().brand<'PackageSeedBuildRootDir'>().nullable(),
+    jestKind: z.enum(['node', 'tsx-node', 'tsx-jsdom']),
+    e2eEligible: z.boolean(),
+    exportsDot: z.boolean(),
+    // True picks `jestConfigNodeIntegration` over `jestConfigNode` in
+    // packageScaffoldConfigStatics — the variant carrying the transformIgnorePatterns +
+    // transform pair `@dungeonmaster/testing`'s root barrel needs (its `installTestbedCreateBroker`
+    // pulls in msw's ESM). Only a type whose seed ships a `flows/`/`startup/` file needs it, since
+    // integration tests are the only place a scaffolded package writes today.
+    needsMswTransform: z.boolean(),
+    files: z.array(
+      z
+        .object({
+          path: z.string().brand<'PackageSeedFilesPath'>(),
+          contents: z.string().brand<'PackageSeedFilesContents'>(),
+        })
+        .brand<'PackageSeedFiles'>(),
+    ),
+  })
+  .brand<'PackageSeed'>();
 
 export type PackageSeed = z.infer<typeof packageSeedContract>;

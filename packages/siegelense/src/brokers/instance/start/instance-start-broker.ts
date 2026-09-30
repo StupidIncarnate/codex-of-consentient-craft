@@ -81,7 +81,6 @@ import { cwd, envSnapshot, execPath, stderr } from '#gateway/node/process';
 import { environmentStatics, locationsStatics } from '@dungeonmaster/shared/statics';
 import { cwdResolveBroker } from '@dungeonmaster/shared/brokers';
 
-
 import { tmpdir } from '#gateway/node/os';
 import { cliPackageBinResolveBroker } from '../../cli-package/bin-resolve/cli-package-bin-resolve-broker';
 import { instanceStartBootPollLayerBroker } from './instance-start-boot-poll-layer-broker';
@@ -147,11 +146,11 @@ export const instanceStartBroker = async ({
   // mock queue to account for.
   const nowMsForStaleness = now();
   const aheadOfMe = registryBeforeReserve.instances.filter(
-      (candidate) =>
-        candidate.state === 'alive' &&
-        isReservedRegistryEntryGuard({ entry: candidate }) &&
-        !isStaleReservationRegistryEntryGuard({ entry: candidate, nowMs: nowMsForStaleness }),
-    ).length;
+    (candidate) =>
+      candidate.state === 'alive' &&
+      isReservedRegistryEntryGuard({ entry: candidate }) &&
+      !isStaleReservationRegistryEntryGuard({ entry: candidate, nowMs: nowMsForStaleness }),
+  ).length;
 
   // Opportunistic reap: any instance whose heartbeat has gone cold is presumed dead (spec line
   // 1673) — there is no other recovery path, so a caught-but-unreported reap is indistinguishable
@@ -212,7 +211,7 @@ export const instanceStartBroker = async ({
     throw lockAcquireError;
   }
   const lockWaitEndedAtMs = now();
-  const queuedMs = (lockWaitEndedAtMs - lockWaitStartedAtMs);
+  const queuedMs = lockWaitEndedAtMs - lockWaitStartedAtMs;
 
   // An object property, never a bare `let` — a `let` reassigned only inside the `.catch()` closure
   // below narrows to its OWN initializer (`null`) at the point the outer catch block reads it,
@@ -249,8 +248,9 @@ export const instanceStartBroker = async ({
     // for its own spawns; this is that pattern, applied here so the driver — spawned with no other
     // env override — is never the one call site still relying on Node's default.
     const inheritedEnv = Object.fromEntries(
-      Object.entries(envSnapshot())
-        .flatMap(([key, value]): [string, string][] => (value === undefined ? [] : [[key, value]])),
+      Object.entries(envSnapshot()).flatMap(([key, value]): [string, string][] =>
+        value === undefined ? [] : [[key, value]],
+      ),
     );
 
     spawnDetached({
@@ -273,7 +273,7 @@ export const instanceStartBroker = async ({
 
     const socketPath = locationsSocketPathFindBroker({ instanceId: reservedEntry.id });
     const bootStartedAtMs = now();
-    const bootDeadlineMs = (bootStartedAtMs + driverStatics.boot.defaultTimeoutMs);
+    const bootDeadlineMs = bootStartedAtMs + driverStatics.boot.defaultTimeoutMs;
 
     const pollOutcome = await instanceStartBootPollLayerBroker({
       socketPath,
@@ -339,7 +339,7 @@ export const instanceStartBroker = async ({
     }
 
     const bootEndedAtMs = now();
-    const bootMs = (bootEndedAtMs - bootStartedAtMs);
+    const bootMs = bootEndedAtMs - bootStartedAtMs;
 
     // This is the only side that sees a boot begin, so it is the only side that can measure one —
     // `bootMs` is the one figure in a profile that is genuinely measured rather than illustrative

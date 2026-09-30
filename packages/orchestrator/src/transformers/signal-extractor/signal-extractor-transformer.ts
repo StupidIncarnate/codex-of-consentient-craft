@@ -10,11 +10,7 @@ import { signalExtractorContract } from '../../contracts/signal-extractor/signal
 import type { SignalExtractor } from '../../contracts/signal-extractor/signal-extractor-contract';
 import { signalFromStreamTransformer } from '../signal-from-stream/signal-from-stream-transformer';
 
-export const signalExtractorTransformer = ({
-  parsed,
-}: {
-  parsed: unknown;
-}): SignalExtractor => {
+export const signalExtractorTransformer = ({ parsed }: { parsed: unknown }): SignalExtractor => {
   const signal = signalFromStreamTransformer({ parsed });
   return signalExtractorContract.parse({ signal });
 };

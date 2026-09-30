@@ -9,7 +9,6 @@
  * // Returns ContentText '/guilds' once the page has navigated there
  */
 
-
 import type { BrowserSession } from '../../../contracts/browser-session/browser-session-contract';
 
 export const stepGotoBroker = async ({

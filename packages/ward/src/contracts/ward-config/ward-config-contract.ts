@@ -14,12 +14,14 @@
 import { z } from '#gateway/npm/zod';
 import { checkTypeContract } from '../check-type/check-type-contract';
 
-export const wardConfigContract = z.object({
-  only: z.array(checkTypeContract).optional(),
-  onlyTests: z.string().brand<'WardConfigOnlyTests'>().optional(),
-  committed: z.boolean().optional(),
-  uncommitted: z.boolean().optional(),
-  passthrough: z.array(z.string().brand<'WardConfigPassthrough'>()).optional(),
-}).brand<'WardConfig'>();
+export const wardConfigContract = z
+  .object({
+    only: z.array(checkTypeContract).optional(),
+    onlyTests: z.string().brand<'WardConfigOnlyTests'>().optional(),
+    committed: z.boolean().optional(),
+    uncommitted: z.boolean().optional(),
+    passthrough: z.array(z.string().brand<'WardConfigPassthrough'>()).optional(),
+  })
+  .brand<'WardConfig'>();
 
 export type WardConfig = z.infer<typeof wardConfigContract>;

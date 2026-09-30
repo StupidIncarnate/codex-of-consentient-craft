@@ -11,16 +11,20 @@ import { z } from '#gateway/npm/zod';
 
 import { chatEntryContract } from '@dungeonmaster/shared/contracts';
 
-const entryItemContract = z.object({
-  kind: z.literal('entry'),
-  entry: chatEntryContract,
-}).brand<'EntryItem'>();
+const entryItemContract = z
+  .object({
+    kind: z.literal('entry'),
+    entry: chatEntryContract,
+  })
+  .brand<'EntryItem'>();
 
-const toolPairItemContract = z.object({
-  kind: z.literal('tool-pair'),
-  toolUse: chatEntryContract,
-  toolResult: chatEntryContract.nullable(),
-}).brand<'ToolPairItem'>();
+const toolPairItemContract = z
+  .object({
+    kind: z.literal('tool-pair'),
+    toolUse: chatEntryContract,
+    toolResult: chatEntryContract.nullable(),
+  })
+  .brand<'ToolPairItem'>();
 
 export const mergedChatItemContract = z.discriminatedUnion('kind', [
   entryItemContract,

@@ -6,7 +6,11 @@
  * // Creates eslint.config.js with dungeonmaster config or skips if already exists
  */
 
-import { type InstallContext, type InstallResult, installResultContract } from '@dungeonmaster/shared/contracts';
+import {
+  type InstallContext,
+  type InstallResult,
+  installResultContract,
+} from '@dungeonmaster/shared/contracts';
 import { locationsStatics } from '@dungeonmaster/shared/statics';
 import { existsSync, readFileSync, writeFileSync } from '#gateway/node/fs';
 import { join } from '#gateway/node/path';

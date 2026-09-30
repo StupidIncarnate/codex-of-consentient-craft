@@ -16,9 +16,14 @@
  * questExecutionQueueState.updateEntryActiveSession({ questId, activeSessionId });
  */
 
-import type { QuestQueueEntry, QuestSource, QuestStatus, Quest, Session } from '@dungeonmaster/shared/contracts';
+import type {
+  QuestQueueEntry,
+  QuestSource,
+  QuestStatus,
+  Quest,
+  Session,
+} from '@dungeonmaster/shared/contracts';
 import { questQueueEntryContract } from '@dungeonmaster/shared/contracts';
-
 
 type ChangeHandler = () => void;
 
@@ -132,7 +137,13 @@ export const questExecutionQueueState = {
     return removed;
   },
 
-  updateEntryStatus: ({ questId, status }: { questId: Quest['id']; status: QuestStatus }): boolean => {
+  updateEntryStatus: ({
+    questId,
+    status,
+  }: {
+    questId: Quest['id'];
+    status: QuestStatus;
+  }): boolean => {
     const index = state.entries.findIndex((entry) => entry.questId === questId);
     if (index === -1) {
       return false;

@@ -13,7 +13,6 @@
  * display names for the rendered output
  */
 
-
 export const filePathToDisplayNameTransformer = ({
   filePath,
   packageSrcPath,
@@ -21,10 +20,10 @@ export const filePathToDisplayNameTransformer = ({
   filePath: string;
   packageSrcPath: string;
 }): string => {
-  const prefix = `${String(packageSrcPath)}/`;
-  const relative = String(filePath).startsWith(prefix)
-    ? String(filePath).slice(prefix.length)
-    : String(filePath);
+  const prefix = `${packageSrcPath}/`;
+  const relative = filePath.startsWith(prefix)
+    ? filePath.slice(prefix.length)
+    : filePath;
 
   const withoutExt = relative.endsWith('.tsx')
     ? relative.slice(0, relative.length - '.tsx'.length)

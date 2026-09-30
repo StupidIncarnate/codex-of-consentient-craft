@@ -13,6 +13,7 @@ export const hookToolResponseContract = z
     success: z.boolean().optional(),
     // Additional fields depend on the specific tool
   })
-  .loose().brand<'HookToolResponse'>();
+  .loose()
+  .brand<'HookToolResponse'>();
 
 export type HookToolResponse = z.infer<typeof hookToolResponseContract>;

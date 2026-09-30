@@ -16,14 +16,9 @@
  * // Returns 'INSTANCE: inst_7f3a9c21\nCOMPARING: run_4 -> run_5\nCONSOLE ERRORS: +2\nSERVER ERRORS: +0\nNETWORK NON-2XX: +1\nPIXEL DELTA: last capture differs 12%\nELEMENTS WITHIN RUN A: +0 -0 ~0\nELEMENTS WITHIN RUN B: +0 -0 ~0\n'
  */
 
-
 import type { CompareAnswer } from '../../contracts/compare-answer/compare-answer-contract';
 
-export const compareAnswerRenderTransformer = ({
-  answer,
-}: {
-  answer: CompareAnswer;
-}): string => {
+export const compareAnswerRenderTransformer = ({ answer }: { answer: CompareAnswer }): string => {
   const consoleDelta =
     answer.consoleErrorDelta === undefined
       ? answer.console.errors
@@ -55,14 +50,14 @@ export const compareAnswerRenderTransformer = ({
       : `+${String(answer.elements.runB.appeared.length)} -${String(answer.elements.runB.disappeared.length)} ~${String(answer.elements.runB.changed.length)}`;
 
   return [
-      `INSTANCE: ${answer.instanceId}`,
-      `COMPARING: ${answer.runA} -> ${answer.runB}`,
-      `CONSOLE ERRORS: ${consoleDelta}`,
-      `SERVER ERRORS: ${serverDelta}`,
-      `NETWORK NON-2XX: ${networkDelta}`,
-      `PIXEL DELTA: ${pixelDelta}`,
-      `ELEMENTS WITHIN RUN A: ${elementsRunA}`,
-      `ELEMENTS WITHIN RUN B: ${elementsRunB}`,
-      '',
-    ].join('\n');
+    `INSTANCE: ${answer.instanceId}`,
+    `COMPARING: ${answer.runA} -> ${answer.runB}`,
+    `CONSOLE ERRORS: ${consoleDelta}`,
+    `SERVER ERRORS: ${serverDelta}`,
+    `NETWORK NON-2XX: ${networkDelta}`,
+    `PIXEL DELTA: ${pixelDelta}`,
+    `ELEMENTS WITHIN RUN A: ${elementsRunA}`,
+    `ELEMENTS WITHIN RUN B: ${elementsRunB}`,
+    '',
+  ].join('\n');
 };

@@ -8,7 +8,6 @@
 
 import { Button, Group, Loader, Modal, NavLink, Stack, Text } from '#gateway/npm/mantine__core';
 
-
 import { useDirectoryBrowserBinding } from '../../bindings/use-directory-browser/use-directory-browser-binding';
 
 export interface DirectoryBrowserModalWidgetProps {

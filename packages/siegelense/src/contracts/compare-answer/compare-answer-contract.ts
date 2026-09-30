@@ -41,30 +41,52 @@ export const compareAnswerContract = z
     instanceId: siegeInstanceContract.shape.id,
     runA: siegeRunContract.shape.id,
     runB: siegeRunContract.shape.id,
-    console: z.object({
-      errors: z.string().regex(/^[+-]\d+$/u).brand<'CompareAnswerConsoleErrors'>(),
-      new: z.array(z.string().brand<'CompareAnswerConsoleNew'>()).readonly(),
-    }).brand<'CompareAnswerConsole'>(),
-    server: z.object({
-      errors: z.string().regex(/^[+-]\d+$/u).brand<'CompareAnswerServerErrors'>(),
-      new: z.array(z.string().brand<'CompareAnswerServerNew'>()).readonly(),
-    }).brand<'CompareAnswerServer'>(),
-    network: z.object({
-      errors: z.string().regex(/^[+-]\d+$/u).brand<'CompareAnswerNetworkErrors'>(),
-      new: z.array(z.string().brand<'CompareAnswerNetworkNew'>()).readonly(),
-    }).brand<'CompareAnswerNetwork'>(),
+    console: z
+      .object({
+        errors: z
+          .string()
+          .regex(/^[+-]\d+$/u)
+          .brand<'CompareAnswerConsoleErrors'>(),
+        new: z.array(z.string().brand<'CompareAnswerConsoleNew'>()).readonly(),
+      })
+      .brand<'CompareAnswerConsole'>(),
+    server: z
+      .object({
+        errors: z
+          .string()
+          .regex(/^[+-]\d+$/u)
+          .brand<'CompareAnswerServerErrors'>(),
+        new: z.array(z.string().brand<'CompareAnswerServerNew'>()).readonly(),
+      })
+      .brand<'CompareAnswerServer'>(),
+    network: z
+      .object({
+        errors: z
+          .string()
+          .regex(/^[+-]\d+$/u)
+          .brand<'CompareAnswerNetworkErrors'>(),
+        new: z.array(z.string().brand<'CompareAnswerNetworkNew'>()).readonly(),
+      })
+      .brand<'CompareAnswerNetwork'>(),
     pixels: z.string().brand<'CompareAnswerPixels'>().nullable(),
     elements: z
       .object({
         runA: elementDeltaContract.nullable(),
         runB: elementDeltaContract.nullable(),
       })
-      .strict().brand<'CompareAnswerElements'>(),
+      .strict()
+      .brand<'CompareAnswerElements'>(),
     consoleErrorDelta: z.number().int().brand<'CompareAnswerConsoleErrorDelta'>().optional(),
     serverErrorDelta: z.number().int().brand<'CompareAnswerServerErrorDelta'>().optional(),
     networkNon2xxDelta: z.number().int().brand<'CompareAnswerNetworkNon2xxDelta'>().optional(),
-    pixelDiffCount: z.number().int().nonnegative().brand<'CompareAnswerPixelDiffCount'>().optional(),
+    pixelDiffCount: z
+      .number()
+      .int()
+      .nonnegative()
+      .brand<'CompareAnswerPixelDiffCount'>()
+      .optional(),
   })
-  .strict().brand<'CompareAnswer'>();
+  .strict()
+  .brand<'CompareAnswer'>();
 
 export type CompareAnswer = z.infer<typeof compareAnswerContract>;

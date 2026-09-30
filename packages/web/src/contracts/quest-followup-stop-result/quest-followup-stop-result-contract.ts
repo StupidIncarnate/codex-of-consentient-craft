@@ -9,8 +9,10 @@
 
 import { z } from '#gateway/npm/zod';
 
-export const questFollowupStopResultContract = z.object({
-  stopped: z.boolean(),
-}).brand<'QuestFollowupStopResult'>();
+export const questFollowupStopResultContract = z
+  .object({
+    stopped: z.boolean(),
+  })
+  .brand<'QuestFollowupStopResult'>();
 
 export type QuestFollowupStopResult = z.infer<typeof questFollowupStopResultContract>;

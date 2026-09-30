@@ -95,8 +95,8 @@ describe('prune, against a real evidence tree', () => {
             state: 'killed',
             questId: QUEST,
             guildId: GUILD,
-            reservedAtMs: (nowMs - DAY_MS * 40),
-            bootedAtMs: (nowMs - DAY_MS * 40),
+            reservedAtMs: nowMs - DAY_MS * 40,
+            bootedAtMs: nowMs - DAY_MS * 40,
             lastBeatMs: null,
             prunedAtMs: null,
             prunedByRule: null,
@@ -113,8 +113,8 @@ describe('prune, against a real evidence tree', () => {
             state: 'killed',
             questId: null,
             guildId: null,
-            reservedAtMs: (nowMs - DAY_MS * 40),
-            bootedAtMs: (nowMs - DAY_MS * 40),
+            reservedAtMs: nowMs - DAY_MS * 40,
+            bootedAtMs: nowMs - DAY_MS * 40,
             lastBeatMs: null,
             prunedAtMs: null,
             prunedByRule: null,
@@ -131,8 +131,8 @@ describe('prune, against a real evidence tree', () => {
             state: 'killed',
             questId: null,
             guildId: null,
-            reservedAtMs: (nowMs - DAY_MS * 40),
-            bootedAtMs: (nowMs - DAY_MS * 40),
+            reservedAtMs: nowMs - DAY_MS * 40,
+            bootedAtMs: nowMs - DAY_MS * 40,
             lastBeatMs: null,
             prunedAtMs: null,
             prunedByRule: null,
@@ -149,9 +149,9 @@ describe('prune, against a real evidence tree', () => {
             state: 'alive',
             questId: null,
             guildId: null,
-            reservedAtMs: (nowMs - 120_000),
-            bootedAtMs: (nowMs - 120_000),
-            lastBeatMs: (nowMs - 2000),
+            reservedAtMs: nowMs - 120_000,
+            bootedAtMs: nowMs - 120_000,
+            lastBeatMs: nowMs - 2000,
             prunedAtMs: null,
             prunedByRule: null,
           }),
@@ -167,8 +167,8 @@ describe('prune, against a real evidence tree', () => {
             state: 'killed',
             questId: null,
             guildId: null,
-            reservedAtMs: (nowMs - DAY_MS * 40),
-            bootedAtMs: (nowMs - DAY_MS * 40),
+            reservedAtMs: nowMs - DAY_MS * 40,
+            bootedAtMs: nowMs - DAY_MS * 40,
             lastBeatMs: null,
             prunedAtMs: null,
             prunedByRule: null,
@@ -202,14 +202,8 @@ describe('prune, against a real evidence tree', () => {
         async (evidenceDir) => {
           await ensureDir(`${evidenceDir}/runs/run_2`);
           await writeFile(`${evidenceDir}/api-server.log`, body);
-          await writeFile(
-            `${evidenceDir}/runs/run_2.jsonl`,
-            TRANSCRIPT_TEXT,
-          );
-          await writeFile(
-            `${evidenceDir}/runs/run_2/step1.png`,
-            SHOT_TEXT,
-          );
+          await writeFile(`${evidenceDir}/runs/run_2.jsonl`, TRANSCRIPT_TEXT);
+          await writeFile(`${evidenceDir}/runs/run_2/step1.png`, SHOT_TEXT);
         },
       ),
     );
@@ -221,24 +215,24 @@ describe('prune, against a real evidence tree', () => {
     await writeFile(
       questFile,
       JSON.stringify(
-          QuestStub({
-            id: QUEST,
-            status: 'in_progress',
-            worktreePath: worktreePath,
-            planningNotes: {
-              blightLedger: [],
-              operationPlans: [],
-              questNotes: [
-                QuestNoteStub({
-                  id: 'walked-path-3',
-                  kind: 'walked',
-                  instanceId: SiegeInstanceIdStub({ value: String(CITED_ID) }),
-                  runId: SiegeRunIdStub({ value: 'run_2' }),
-                }),
-              ],
-            },
-          }),
-        ),
+        QuestStub({
+          id: QUEST,
+          status: 'in_progress',
+          worktreePath,
+          planningNotes: {
+            blightLedger: [],
+            operationPlans: [],
+            questNotes: [
+              QuestNoteStub({
+                id: 'walked-path-3',
+                kind: 'walked',
+                instanceId: SiegeInstanceIdStub({ value: String(CITED_ID) }),
+                runId: SiegeRunIdStub({ value: 'run_2' }),
+              }),
+            ],
+          },
+        }),
+      ),
     );
     await writeFile(
       preludeFile,

@@ -7,13 +7,7 @@ export const bufferReadLayerBrokerProxy = (): {
   const readFileProxy = readFileIfExistsProxy();
 
   return {
-    setupBuffer: ({
-      bufferPath,
-      content,
-    }: {
-      bufferPath: string;
-      content: string;
-    }): void => {
+    setupBuffer: ({ bufferPath, content }: { bufferPath: string; content: string }): void => {
       readFileProxy.returns({ path: bufferPath, contents: content });
     },
 

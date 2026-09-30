@@ -8,12 +8,7 @@
  */
 import { readdirEntriesSync } from '#gateway/node/fs';
 
-
-export const subfolderPathsListLayerBroker = ({
-  dirPath,
-}: {
-  dirPath: string;
-}): string[] =>
+export const subfolderPathsListLayerBroker = ({ dirPath }: { dirPath: string }): string[] =>
   readdirEntriesSync(dirPath)
     .filter((entry) => entry.kind === 'directory')
     .map((entry) => `${dirPath}/${entry.name}`);

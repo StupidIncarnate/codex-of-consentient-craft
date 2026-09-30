@@ -7,11 +7,7 @@ import { locationsRunPathsFindBrokerProxy } from '../../locations/run-paths-find
 
 export const runShotsLayerBrokerProxy = (): {
   setupShotsDir: (params: { shotsDir: string; entries: readonly string[] }) => void;
-  setupShotFile: (params: {
-    filePath: string;
-    sizeBytes: number;
-    modifiedAtMs: number;
-  }) => void;
+  setupShotFile: (params: { filePath: string; sizeBytes: number; modifiedAtMs: number }) => void;
   setupShotFileMissing: (params: { filePath: string }) => void;
 } => {
   const readdirProxy = readdirIfExistsProxy();

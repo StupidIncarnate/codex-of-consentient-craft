@@ -20,10 +20,11 @@ import { z } from '#gateway/npm/zod';
 
 import { siegeInstanceContract } from '@dungeonmaster/shared/contracts';
 
-
-export const pruneRefusalContract = z.object({
-  id: siegeInstanceContract.shape.id,
-  why: z.string().brand<'PruneRefusalWhy'>(),
-}).brand<'PruneRefusal'>();
+export const pruneRefusalContract = z
+  .object({
+    id: siegeInstanceContract.shape.id,
+    why: z.string().brand<'PruneRefusalWhy'>(),
+  })
+  .brand<'PruneRefusal'>();
 
 export type PruneRefusal = z.infer<typeof pruneRefusalContract>;

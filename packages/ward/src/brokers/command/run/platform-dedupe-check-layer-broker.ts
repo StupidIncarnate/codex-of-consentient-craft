@@ -15,7 +15,6 @@
  * // file) or ran clean
  */
 
-
 import type { CheckType } from '../../../contracts/check-type/check-type-contract';
 import type { WardConfig } from '../../../contracts/ward-config/ward-config-contract';
 import {
@@ -91,7 +90,7 @@ export const platformDedupeCheckLayerBroker = async ({
   }
 
   return projectResultContract.parse({
-    projectFolder: { name: REPO_CHECK_PROJECT_NAME, path: String(rootPath) },
+    projectFolder: { name: REPO_CHECK_PROJECT_NAME, path: rootPath },
     status: 'fail',
     errors,
     testFailures: [],

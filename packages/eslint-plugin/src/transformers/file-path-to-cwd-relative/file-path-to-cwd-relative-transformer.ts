@@ -19,5 +19,5 @@ export const filePathToCwdRelativeTransformer = ({
     return filename;
   }
   const sliced = filename.slice(cwd.length);
-  return (sliced.startsWith('/') ? sliced.slice(1) : sliced);
+  return sliced.startsWith('/') ? sliced.slice(1) : sliced;
 };

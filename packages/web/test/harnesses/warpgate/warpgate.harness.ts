@@ -85,7 +85,7 @@ export const warpgateHarness = ({
     const guildId = guilds.extractGuildId({ guild });
     const urlSlug = guilds.extractUrlSlug({ guild });
     const created = await quests.createQuest({
-      guildId: guildId,
+      guildId,
       title,
       userRequest: 'Build the feature',
     });
@@ -115,7 +115,7 @@ export const warpgateHarness = ({
     questFilePath: string;
   }> => {
     const created = await quests.createQuest({
-      guildId: guildId,
+      guildId,
       title,
       userRequest: 'Build the feature',
     });

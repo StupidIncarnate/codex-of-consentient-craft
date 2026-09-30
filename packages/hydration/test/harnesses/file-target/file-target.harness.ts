@@ -91,14 +91,14 @@ export const fileTargetHarness = (): FileTargetHarness => {
       if (testbed === null) {
         throw new Error('fileTargetHarness.read: called before beforeEach ran');
       }
-      return testbed.readFile({ relativePath: relativePath });
+      return testbed.readFile({ relativePath });
     },
 
     readJson: ({ relativePath }: { relativePath: string }): unknown => {
       if (testbed === null) {
         throw new Error('fileTargetHarness.readJson: called before beforeEach ran');
       }
-      const content = testbed.readFile({ relativePath: relativePath });
+      const content = testbed.readFile({ relativePath });
       return content === null ? null : (JSON.parse(content) as unknown);
     },
 

@@ -28,14 +28,13 @@ describe('packageImportsSpecifierResolveMiddleware', () => {
       proxy.setupSourceFileExists({
         filePath: '/repo/packages/@gateway/npm/src/glob/glob/glob.proxy.ts',
       });
-      const sourceFilePath = '/repo/packages/mcp/src/brokers/file/scanner/file-scanner-broker.proxy.ts';
+      const sourceFilePath =
+        '/repo/packages/mcp/src/brokers/file/scanner/file-scanner-broker.proxy.ts';
       const importPath = '#gateway/npm/glob/glob/glob.proxy';
 
       const result = packageImportsSpecifierResolveMiddleware({ sourceFilePath, importPath });
 
-      expect(result).toStrictEqual(
-        '/repo/packages/@gateway/npm/src/glob/glob/glob.proxy.ts',
-      );
+      expect(result).toStrictEqual('/repo/packages/@gateway/npm/src/glob/glob/glob.proxy.ts');
     });
   });
 
@@ -70,7 +69,8 @@ describe('packageImportsSpecifierResolveMiddleware', () => {
         filePath:
           '/repo/packages/@gateway/node/src/fs__promises/read-file-if-exists/read-file-if-exists.proxy.ts',
       });
-      const sourceFilePath = '/repo/packages/mcp/src/brokers/file/scanner/file-scanner-broker.proxy.ts';
+      const sourceFilePath =
+        '/repo/packages/mcp/src/brokers/file/scanner/file-scanner-broker.proxy.ts';
       const importPath = '#gateway/node/fs__promises/read-file-if-exists/read-file-if-exists.proxy';
 
       const result = packageImportsSpecifierResolveMiddleware({ sourceFilePath, importPath });
@@ -110,7 +110,8 @@ describe('packageImportsSpecifierResolveMiddleware', () => {
         filePath:
           '/repo/packages/@gateway/node/src/fs__promises/read-file-if-exists/read-file-if-exists.proxy.ts',
       });
-      const sourceFilePath = '/repo/packages/mcp/src/brokers/file/scanner/file-scanner-broker.proxy.ts';
+      const sourceFilePath =
+        '/repo/packages/mcp/src/brokers/file/scanner/file-scanner-broker.proxy.ts';
       const importPath = '#gateway/node/fs__promises/read-file-if-exists/read-file-if-exists.proxy';
 
       const result = packageImportsSpecifierResolveMiddleware({ sourceFilePath, importPath });

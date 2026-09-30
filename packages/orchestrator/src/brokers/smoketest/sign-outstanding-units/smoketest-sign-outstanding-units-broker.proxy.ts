@@ -73,7 +73,7 @@ export const smoketestSignOutstandingUnitsBrokerProxy = (): {
     getPersistedQuests: (): readonly Quest[] =>
       persistMock.callsMatching([]).map((call) => {
         const [params] = call as [Parameters<typeof questPersistBroker>[0]];
-        return questContract.parse(JSON.parse(String(params.contents)));
+        return questContract.parse(JSON.parse(params.contents));
       }),
   };
 };

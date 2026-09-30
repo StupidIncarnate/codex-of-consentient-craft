@@ -17,7 +17,7 @@ describe('packageSectionBuildLayerBroker', () => {
         projectRoot: PROJECT_ROOT,
       });
 
-      expect(String(result).split('\n')[0]).toStrictEqual('# orchestrator [programmatic-service]');
+      expect(result.split('\n')[0]).toStrictEqual('# orchestrator [programmatic-service]');
     });
 
     it('VALID: {any package type} => emits ## Boot header (no per-type headline section)', () => {
@@ -31,7 +31,7 @@ describe('packageSectionBuildLayerBroker', () => {
       });
 
       expect(
-        String(result)
+        result
           .split('\n')
           .some((l) => l === '## Boot'),
       ).toBe(true);
@@ -47,7 +47,7 @@ describe('packageSectionBuildLayerBroker', () => {
         projectRoot: PROJECT_ROOT,
       });
 
-      const lines = String(result).split('\n');
+      const lines = result.split('\n');
       const headlineHeaders = [
         '## Routes',
         '## Tools',

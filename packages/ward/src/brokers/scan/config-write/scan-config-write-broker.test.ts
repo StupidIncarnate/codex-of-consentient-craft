@@ -1,4 +1,3 @@
-
 import { scanConfigWriteBroker } from './scan-config-write-broker';
 import { scanConfigWriteBrokerProxy } from './scan-config-write-broker.proxy';
 

@@ -1,4 +1,3 @@
-
 import { identifierCamelWordsTransformer } from './identifier-camel-words-transformer';
 
 describe('identifierCamelWordsTransformer', () => {

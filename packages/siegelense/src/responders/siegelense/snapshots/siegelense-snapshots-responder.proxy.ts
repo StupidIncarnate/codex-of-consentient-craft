@@ -52,7 +52,13 @@ export const SiegelenseSnapshotsResponderProxy = (): {
       listHandle.calledWith([{ instanceId: answer.instanceId }]).resolves(answer);
     },
 
-    stageError: ({ error, instanceId }: { error: Error; instanceId: SiegeInstance['id'] }): void => {
+    stageError: ({
+      error,
+      instanceId,
+    }: {
+      error: Error;
+      instanceId: SiegeInstance['id'];
+    }): void => {
       listHandle.calledWith([{ instanceId }]).rejects(error);
     },
 

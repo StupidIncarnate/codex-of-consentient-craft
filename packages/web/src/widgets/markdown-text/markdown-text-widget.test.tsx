@@ -34,11 +34,7 @@ describe('MarkdownTextWidget', () => {
       MarkdownTextWidgetProxy();
 
       mantineRenderMiddleware({
-        ui: (
-          <MarkdownTextWidget
-            content={'both import `navigationHarness` now'}
-          />
-        ),
+        ui: <MarkdownTextWidget content={'both import `navigationHarness` now'} />,
       });
 
       expect(
@@ -62,11 +58,7 @@ describe('MarkdownTextWidget', () => {
       MarkdownTextWidgetProxy();
 
       mantineRenderMiddleware({
-        ui: (
-          <MarkdownTextWidget
-            content={'the `nav` const is **shared**'}
-          />
-        ),
+        ui: <MarkdownTextWidget content={'the `nav` const is **shared**'} />,
       });
 
       expect(screen.getByTestId('MARKDOWN_TEXT').textContent).toBe('the nav const is shared');
@@ -80,7 +72,9 @@ describe('MarkdownTextWidget', () => {
       mantineRenderMiddleware({
         ui: (
           <MarkdownTextWidget
-            content={'## Gate 5\n\nAll claims verified.\n\n- first\n- second\n\n```sh\nnpm run ward\n```'}
+            content={
+              '## Gate 5\n\nAll claims verified.\n\n- first\n- second\n\n```sh\nnpm run ward\n```'
+            }
           />
         ),
       });
@@ -102,11 +96,7 @@ describe('MarkdownTextWidget', () => {
       MarkdownTextWidgetProxy();
 
       mantineRenderMiddleware({
-        ui: (
-          <MarkdownTextWidget
-            content={'# Title\n\nProse.\n\n## Section'}
-          />
-        ),
+        ui: <MarkdownTextWidget content={'# Title\n\nProse.\n\n## Section'} />,
       });
 
       expect(
@@ -118,11 +108,7 @@ describe('MarkdownTextWidget', () => {
       MarkdownTextWidgetProxy();
 
       mantineRenderMiddleware({
-        ui: (
-          <MarkdownTextWidget
-            content={'```\n# not a heading\n```'}
-          />
-        ),
+        ui: <MarkdownTextWidget content={'```\n# not a heading\n```'} />,
       });
 
       expect({

@@ -6,11 +6,7 @@ import { dungeonmasterHomeFindBrokerProxy } from '../find/dungeonmaster-home-fin
 import { dungeonmasterHomeStatics } from '../../../statics/dungeonmaster-home/dungeonmaster-home-statics';
 
 export const dungeonmasterHomeEnsureBrokerProxy = (): {
-  setupEnsureSuccess: (params: {
-    homeDir: string;
-    homePath: string;
-    guildsPath: string;
-  }) => void;
+  setupEnsureSuccess: (params: { homeDir: string; homePath: string; guildsPath: string }) => void;
   setupMkdirFails: (params: { homeDir: string; homePath: string; error: FsError }) => void;
 } => {
   const findProxy = dungeonmasterHomeFindBrokerProxy();

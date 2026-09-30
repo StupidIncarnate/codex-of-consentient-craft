@@ -24,27 +24,23 @@ import { gatewayImportLocalNameFindTransformer } from '../gateway-import-local-n
 // Capture groups: 1=single-quoted 2=double-quoted 3=backtick-content 4=broker-name (has paren) 5=bare var
 const backtickSegment = '`([^`]*)`';
 
-export const tailFileCallsExtractTransformer = ({
-  source,
-}: {
-  source: string;
-}): TailFileCall[] => {
+export const tailFileCallsExtractTransformer = ({ source }: { source: string }): TailFileCall[] => {
   const { importSource, importedName } = projectMapStatics.fsTailGatewayCall;
   const localName = gatewayImportLocalNameFindTransformer({
     source,
-    importSource: importSource,
-    importedName: importedName,
+    importSource,
+    importedName,
   });
   if (localName === undefined) {
     return [];
   }
 
   const pattern = new RegExp(
-    `\\b${String(localName)}\\s*\\(\\s*\\{[^}]*?\\bpath\\s*:\\s*(?:'([^']*)'|"([^"]*)"|${backtickSegment}|(\\w+)\\s*\\(|(\\w+)\\b)`,
+    `\\b${localName}\\s*\\(\\s*\\{[^}]*?\\bpath\\s*:\\s*(?:'([^']*)'|"([^"]*)"|${backtickSegment}|(\\w+)\\s*\\(|(\\w+)\\b)`,
     'gu',
   );
   const results: TailFileCall[] = [];
-  for (const match of String(source).matchAll(pattern)) {
+  for (const match of source.matchAll(pattern)) {
     const [, singleQuoted, doubleQuoted, backticked, brokerName, bareVar] = match;
     const literal = singleQuoted ?? doubleQuoted ?? backticked;
 

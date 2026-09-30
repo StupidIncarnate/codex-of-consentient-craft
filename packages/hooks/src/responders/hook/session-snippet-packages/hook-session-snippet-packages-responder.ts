@@ -38,7 +38,7 @@ export const HookSessionSnippetPackagesResponder = ({
   projectRoot?: string;
 } = {}): string => {
   const resolvedProjectRoot = projectRoot ?? cwd();
-  const packagesDir = `${String(resolvedProjectRoot)}/packages`;
+  const packagesDir = `${resolvedProjectRoot}/packages`;
 
   let packages: string[] = [SINGLE_ROOT_FALLBACK_PACKAGE_NAME];
   try {
@@ -53,7 +53,7 @@ export const HookSessionSnippetPackagesResponder = ({
           return [gatewayLocationsStatics.importPrefix];
         }
 
-        return readdirEntriesSync(`${String(packagesDir)}/${group.name}`)
+        return readdirEntriesSync(`${packagesDir}/${group.name}`)
           .filter((child) => child.kind === 'directory')
           .map((child) => child.name);
       });
@@ -64,9 +64,7 @@ export const HookSessionSnippetPackagesResponder = ({
       .concat(groupChildNames);
 
     // readdir order is filesystem-dependent, so sort here or the snippet reshuffles between machines.
-    const dirs = names
-      .map((name) => name)
-      .sort((a, b) => String(a).localeCompare(String(b)));
+    const dirs = names.map((name) => name).sort((a, b) => a.localeCompare(b));
     if (dirs.length > 0) {
       packages = dirs;
     }
@@ -74,7 +72,7 @@ export const HookSessionSnippetPackagesResponder = ({
     // Single-root mode (no packages/ directory): keep the fallback initialization above.
   }
 
-  const bullets = packages.map((name) => `- **${String(name)}**`).join('\n');
+  const bullets = packages.map((name) => `- **${name}**`).join('\n');
 
   return `## Packages\n\n${bullets}`;
 };

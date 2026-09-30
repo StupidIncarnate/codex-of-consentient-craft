@@ -25,6 +25,8 @@ export const adapterCensusTotalsTransformer = ({
     logic: adapters.filter((adapter) => adapter.shape === 'logic').length,
     productionCallers: callers.length,
     composingProxies: new Set(callers.flatMap((caller) => caller.composedBy)).size,
-    catchAllProxies: new Set(callers.flatMap((caller) => caller.catchAll.map((proxy) => proxy.file))).size,
+    catchAllProxies: new Set(
+      callers.flatMap((caller) => caller.catchAll.map((proxy) => proxy.file)),
+    ).size,
   });
 };

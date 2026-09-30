@@ -10,9 +10,6 @@
 
 import { z } from '#gateway/npm/zod';
 
-export const packageJsonRawContract = z.record(
-  z.string(),
-  z.json(),
-);
+export const packageJsonRawContract = z.record(z.string(), z.json());
 
 export type PackageJsonRaw = z.infer<typeof packageJsonRawContract>;

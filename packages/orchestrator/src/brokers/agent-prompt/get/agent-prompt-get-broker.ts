@@ -35,7 +35,11 @@
  * // Returns AgentPromptResult whose `prompt` has $ARGUMENTS substituted with operation context
  */
 
-import { agentPromptResultContract, workItemContract, type AgentPromptResult } from '@dungeonmaster/shared/contracts';
+import {
+  agentPromptResultContract,
+  workItemContract,
+  type AgentPromptResult,
+} from '@dungeonmaster/shared/contracts';
 import { locationsStatics } from '@dungeonmaster/shared/statics';
 import { join } from '#gateway/node/path';
 import { stderr } from '#gateway/node/process';

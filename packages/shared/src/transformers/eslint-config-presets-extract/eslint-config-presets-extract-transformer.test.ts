@@ -22,13 +22,11 @@ describe('eslintConfigPresetsExtractTransformer', () => {
 
     it('VALID: {source with two presets} => returns both preset names', () => {
       const result = eslintConfigPresetsExtractTransformer({
-        source: 'return { rules: {}, configs: { dungeonmaster: configDungeonmasterBroker(), dungeonmasterTest: configDungeonmasterBroker({ forTesting: true }) } };',
+        source:
+          'return { rules: {}, configs: { dungeonmaster: configDungeonmasterBroker(), dungeonmasterTest: configDungeonmasterBroker({ forTesting: true }) } };',
       });
 
-      expect(result).toStrictEqual([
-        'dungeonmaster',
-        'dungeonmasterTest',
-      ]);
+      expect(result).toStrictEqual(['dungeonmaster', 'dungeonmasterTest']);
     });
 
     it('VALID: {source with quoted preset key} => returns preset name without quotes', () => {

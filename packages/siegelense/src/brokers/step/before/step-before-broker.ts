@@ -7,7 +7,6 @@
  * // Returns 'installed init script (25 chars)' as ContentText
  */
 
-
 import type { BrowserSession } from '../../../contracts/browser-session/browser-session-contract';
 import { beforeReadingRenderTransformer } from '../../../transformers/before-reading-render/before-reading-render-transformer';
 

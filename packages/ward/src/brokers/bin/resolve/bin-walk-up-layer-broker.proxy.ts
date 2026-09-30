@@ -33,7 +33,7 @@ export const binWalkUpLayerBrokerProxy = (): {
       binDir: string | null;
       workspaceRoot: string | null;
     }): string => {
-      const segments = String(dir)
+      const segments = dir
         .split('/')
         .filter((segment) => segment !== '');
       const deepestFirst = [
@@ -41,23 +41,23 @@ export const binWalkUpLayerBrokerProxy = (): {
         ...segments.map((_segment, index) => `/${segments.slice(0, index + 1).join('/')}`),
       ].reverse();
       const holdsBinary = (ancestor: string): boolean =>
-        binDir !== null && String(binDir) === ancestor;
+        binDir !== null && binDir === ancestor;
       const stopIndex = deepestFirst.findIndex(
         (ancestor) =>
-          holdsBinary(ancestor) || (workspaceRoot !== null && String(workspaceRoot) === ancestor),
+          holdsBinary(ancestor) || (workspaceRoot !== null && workspaceRoot === ancestor),
       );
       const visited = stopIndex === -1 ? deepestFirst : deepestFirst.slice(0, stopIndex + 1);
 
       visited.forEach((ancestor) => {
         const ancestorDir = ancestor;
         existsProxy.returns({
-          path: join(ancestorDir, 'node_modules', '.bin', String(binName)),
+          path: join(ancestorDir, 'node_modules', '.bin', binName),
           exists: holdsBinary(ancestor),
         });
         if (holdsBinary(ancestor)) {
           return;
         }
-        if (workspaceRoot !== null && String(workspaceRoot) === ancestor) {
+        if (workspaceRoot !== null && workspaceRoot === ancestor) {
           rootProxy.setupWorkspaceRoot({ dir: ancestorDir });
         } else {
           rootProxy.setupNoPackageJson({ dir: ancestorDir });
@@ -65,7 +65,7 @@ export const binWalkUpLayerBrokerProxy = (): {
       });
 
       return stopIndex !== -1 && binDir !== null && holdsBinary(deepestFirst[stopIndex] ?? '')
-        ? join(binDir, 'node_modules', '.bin', String(binName))
+        ? join(binDir, 'node_modules', '.bin', binName)
         : binName;
     },
   };

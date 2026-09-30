@@ -20,7 +20,13 @@ import type { Quest, QaChecklistItem } from '@dungeonmaster/shared/contracts';
 
 import { qaUnitEnumerateTransformer } from '../qa-unit-enumerate/qa-unit-enumerate-transformer';
 
-export const workPlanQuestUnitIdsTransformer = ({ quest }: { quest: Quest }): QaChecklistItem['id'][] =>
+export const workPlanQuestUnitIdsTransformer = ({
+  quest,
+}: {
+  quest: Quest;
+}): QaChecklistItem['id'][] =>
   quest.flows.flatMap((flow) =>
-    qaUnitEnumerateTransformer({ flow }).map((unit) => qaChecklistItemContract.shape.id.parse(String(unit.id))),
+    qaUnitEnumerateTransformer({ flow }).map((unit) =>
+      qaChecklistItemContract.shape.id.parse(String(unit.id)),
+    ),
   );

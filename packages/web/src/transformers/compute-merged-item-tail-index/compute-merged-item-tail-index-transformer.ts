@@ -27,5 +27,5 @@ export const computeMergedItemTailIndexTransformer = ({
     }
   }
 
-  return (items.length - 1);
+  return items.length - 1;
 };

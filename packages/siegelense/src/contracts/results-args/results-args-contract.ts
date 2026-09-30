@@ -28,13 +28,19 @@ export const resultsArgsContract = z
   .object({
     instanceId: siegeInstanceContract.shape.id,
     runId: siegeRunContract.shape.id.nullable(),
-    step: z.number().int().min(instanceLifecycleStatics.numbering.firstStep).brand<'ResultsArgsStep'>().nullable(),
+    step: z
+      .number()
+      .int()
+      .min(instanceLifecycleStatics.numbering.firstStep)
+      .brand<'ResultsArgsStep'>()
+      .nullable(),
     kind: resultKindContract.nullable(),
     where: resultWhereContract.nullable(),
     fields: z.array(z.string().min(1).brand<'ResultsArgsFields'>()).readonly().nullable(),
     since: sinceMarkerContract.nullable(),
     isJson: z.boolean(),
   })
-  .strict().brand<'ResultsArgs'>();
+  .strict()
+  .brand<'ResultsArgs'>();
 
 export type ResultsArgs = z.infer<typeof resultsArgsContract>;

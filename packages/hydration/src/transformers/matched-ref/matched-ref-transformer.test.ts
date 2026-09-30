@@ -22,10 +22,7 @@ describe('matchedRefTransformer', () => {
 
   it('VALID: {ancestors: [guild[0:0], guild[0:0]/quest[0:0]], ingredient: operation} => returns "guild[0:0]/quest[0:0]/operation[match]", not a doubled path', () => {
     const result = matchedRefTransformer({
-      ancestors: [
-        'guild[0:0]',
-        'guild[0:0]/quest[0:0]',
-      ],
+      ancestors: ['guild[0:0]', 'guild[0:0]/quest[0:0]'],
       ingredient: 'operation',
     });
 

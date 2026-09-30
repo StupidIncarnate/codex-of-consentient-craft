@@ -15,10 +15,15 @@
 
 import { z } from '#gateway/npm/zod';
 
-
-export const blankReadingContract = z.object({
-  blank: z.boolean(),
-  colour: z.string().regex(/^#[0-9a-f]{6}$/u).brand<'BlankReadingColour'>().nullable(),
-}).brand<'BlankReading'>();
+export const blankReadingContract = z
+  .object({
+    blank: z.boolean(),
+    colour: z
+      .string()
+      .regex(/^#[0-9a-f]{6}$/u)
+      .brand<'BlankReadingColour'>()
+      .nullable(),
+  })
+  .brand<'BlankReading'>();
 
 export type BlankReading = z.infer<typeof blankReadingContract>;

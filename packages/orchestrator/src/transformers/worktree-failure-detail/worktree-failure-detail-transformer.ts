@@ -12,7 +12,6 @@
  * // Returns '/repo/worktrees/quest-slug-a1b2c3d4: ward typecheck exited with code 1'
  */
 
-
 export const worktreeFailureDetailTransformer = ({
   worktreePath,
   cause,

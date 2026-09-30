@@ -1,9 +1,7 @@
 import { globIgnoreFilterTransformer } from './glob-ignore-filter-transformer';
 import { fileDiscoveryStatics } from '../../statics/file-discovery/file-discovery-statics';
 
-const STATIC_PATTERNS = fileDiscoveryStatics.globIgnorePatterns.map((value) =>
-  value,
-);
+const STATIC_PATTERNS = fileDiscoveryStatics.globIgnorePatterns.map((value) => value);
 
 describe('globIgnoreFilterTransformer', () => {
   it('VALID: {glob: "src/..."} => returns all ignore rules (no targeted dir)', () => {
@@ -12,12 +10,7 @@ describe('globIgnoreFilterTransformer', () => {
       glob: 'src/**',
     });
 
-    expect(result).toStrictEqual([
-      '**/node_modules/**',
-      '**/dist/**',
-      '**/build/**',
-      '**/.git/**',
-    ]);
+    expect(result).toStrictEqual(['**/node_modules/**', '**/dist/**', '**/build/**', '**/.git/**']);
   });
 
   it('VALID: {glob: "node_modules/zod/..."} => removes node_modules rule', () => {
@@ -26,11 +19,7 @@ describe('globIgnoreFilterTransformer', () => {
       glob: 'node_modules/zod/**',
     });
 
-    expect(result).toStrictEqual([
-      '**/dist/**',
-      '**/build/**',
-      '**/.git/**',
-    ]);
+    expect(result).toStrictEqual(['**/dist/**', '**/build/**', '**/.git/**']);
   });
 
   it('VALID: {glob: "packages/mcp/dist/..."} => removes dist rule', () => {
@@ -39,11 +28,7 @@ describe('globIgnoreFilterTransformer', () => {
       glob: 'packages/mcp/dist/**',
     });
 
-    expect(result).toStrictEqual([
-      '**/node_modules/**',
-      '**/build/**',
-      '**/.git/**',
-    ]);
+    expect(result).toStrictEqual(['**/node_modules/**', '**/build/**', '**/.git/**']);
   });
 
   it('VALID: {glob: "node_modules/.../dist/..."} => removes both node_modules and dist rules', () => {
@@ -52,10 +37,7 @@ describe('globIgnoreFilterTransformer', () => {
       glob: 'node_modules/@hono/node-server/dist/**',
     });
 
-    expect(result).toStrictEqual([
-      '**/build/**',
-      '**/.git/**',
-    ]);
+    expect(result).toStrictEqual(['**/build/**', '**/.git/**']);
   });
 
   it('VALID: {glob: "build/output/..."} => removes build rule', () => {
@@ -64,11 +46,7 @@ describe('globIgnoreFilterTransformer', () => {
       glob: 'build/output/**',
     });
 
-    expect(result).toStrictEqual([
-      '**/node_modules/**',
-      '**/dist/**',
-      '**/.git/**',
-    ]);
+    expect(result).toStrictEqual(['**/node_modules/**', '**/dist/**', '**/.git/**']);
   });
 
   it('EMPTY: {glob: ""} => returns all ignore rules', () => {
@@ -77,20 +55,12 @@ describe('globIgnoreFilterTransformer', () => {
       glob: '',
     });
 
-    expect(result).toStrictEqual([
-      '**/node_modules/**',
-      '**/dist/**',
-      '**/build/**',
-      '**/.git/**',
-    ]);
+    expect(result).toStrictEqual(['**/node_modules/**', '**/dist/**', '**/build/**', '**/.git/**']);
   });
 
   it('VALID: {glob: "tmp/..."} => removes the tmp rule so an agent can search scratch on purpose', () => {
     const result = globIgnoreFilterTransformer({
-      patterns: [
-        '**/node_modules/**',
-        '**/tmp/**',
-      ],
+      patterns: ['**/node_modules/**', '**/tmp/**'],
       glob: 'tmp/**/*',
     });
 
@@ -101,17 +71,11 @@ describe('globIgnoreFilterTransformer', () => {
     // The caller's glob is what opts out of a rule. A project that merely LIVES under /tmp — this
     // repo's own testbeds and e2e harness do — must not have its tmp rule silently disabled.
     const result = globIgnoreFilterTransformer({
-      patterns: [
-        '**/node_modules/**',
-        '**/tmp/**',
-      ],
+      patterns: ['**/node_modules/**', '**/tmp/**'],
       glob: '**/*',
     });
 
-    expect(result).toStrictEqual([
-      '**/node_modules/**',
-      '**/tmp/**',
-    ]);
+    expect(result).toStrictEqual(['**/node_modules/**', '**/tmp/**']);
   });
 
   it('EDGE: {glob: "packages/web/src/coverage-report/..."} => keeps the coverage rule (segment, not substring)', () => {

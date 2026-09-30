@@ -7,7 +7,7 @@ const SOURCE_BARREL_SUFFIX = '/node_modules/@dungeonmaster/shared/statics.ts';
 // several composing proxies (check-run's `implementation({ fn: () => true })`) register one of
 // their own on the SAME underlying fs.existsSync mock, so an unstaged path there answers true.
 const barrelCandidatesOf = ({ cwd }: { cwd: string }): string[] => {
-  const segments = String(cwd).split('/');
+  const segments = cwd.split('/');
   return [...segments.keys()]
     .map((index) => segments.slice(0, segments.length - index).join('/'))
     .filter((ancestor) => ancestor !== '')

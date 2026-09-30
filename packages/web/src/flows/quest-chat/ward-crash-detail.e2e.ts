@@ -58,8 +58,8 @@ test.describe('Failed ward row shows crash detail (no structured errors)', () =>
     const crashStdout = 'FATAL: jest failed to run @dungeonmaster/shared integration suite';
 
     await quests.writeQuestFile({
-      questId: questId,
-      questFolder: questFolder,
+      questId,
+      questFolder,
       questFilePath: String(questFilePath),
       status: 'blocked',
       // The operations ledger holds the ward run as one locked ward operation. The failed ward
@@ -127,7 +127,7 @@ test.describe('Failed ward row shows crash detail (no structured errors)', () =>
     });
 
     const urlSlug = guilds.extractUrlSlug({ guild });
-    await nav.navigateToQuest({ urlSlug, questId: questId });
+    await nav.navigateToQuest({ urlSlug, questId });
 
     const executionPanel = page.getByTestId('execution-panel-widget');
 

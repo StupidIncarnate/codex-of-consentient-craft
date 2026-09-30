@@ -26,11 +26,7 @@ import { readFileLayerBroker } from './read-file-layer-broker';
 import { resolvePackageGroupsLayerBroker } from './resolve-package-groups-layer-broker';
 import { resolveStaticsFirstMatchLayerBroker } from './resolve-statics-first-match-layer-broker';
 
-export const httpEdgesLayerBroker = ({
-  projectRoot,
-}: {
-  projectRoot: string;
-}): HttpEdge[] => {
+export const httpEdgesLayerBroker = ({ projectRoot }: { projectRoot: string }): HttpEdge[] => {
   const { httpBackendRoots, frontendRoots } = resolvePackageGroupsLayerBroker({ projectRoot });
 
   // Load every http-backend package's api-routes statics source and every frontend package's
@@ -97,7 +93,7 @@ export const httpEdgesLayerBroker = ({
           // we iterate to compare by string value).
           let importPath: string | null = null;
           for (const [name, path] of importMap) {
-            if (String(name) === String(site.responderName)) {
+            if (name === String(site.responderName)) {
               importPath = path;
               break;
             }
@@ -162,8 +158,8 @@ export const httpEdgesLayerBroker = ({
   for (const server of serverEntries) {
     const web = webEntries.find(
       (w) =>
-        String(w.method) === String(server.method) &&
-        String(w.urlPattern) === String(server.urlPattern),
+        w.method === server.method &&
+        w.urlPattern === server.urlPattern,
     );
     if (web === undefined) {
       edges.push(

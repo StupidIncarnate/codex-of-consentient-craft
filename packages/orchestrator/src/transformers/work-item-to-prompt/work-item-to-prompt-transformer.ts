@@ -68,7 +68,12 @@
 
 import { workItemToPromptContract } from '../../contracts/work-item-to-prompt/work-item-to-prompt-contract';
 import type { WorkItemToPrompt } from '../../contracts/work-item-to-prompt/work-item-to-prompt-contract';
-import { agentPromptResultContract, workItemRoleContract, type Quest, type WorkItem } from '@dungeonmaster/shared/contracts';
+import {
+  agentPromptResultContract,
+  workItemRoleContract,
+  type Quest,
+  type WorkItem,
+} from '@dungeonmaster/shared/contracts';
 import { isChatWorkItemRoleGuard, isCommandWorkItemRoleGuard } from '@dungeonmaster/shared/guards';
 
 import { questWorkInstanceContract } from '../../contracts/quest-work-instance/quest-work-instance-contract';
@@ -97,7 +102,7 @@ export const workItemToPromptTransformer = ({
 
   const isWorkItemRole = workItemRoleContract.safeParse(promptName).success;
   const isMinionName = agentPromptClassificationStatics.minionNames.some(
-    (name) => name === String(promptName),
+    (name) => name === promptName,
   );
 
   // Minion path: NARROWED to the true minion roster, never "any name that fails
@@ -122,7 +127,7 @@ export const workItemToPromptTransformer = ({
   // agent prompt name" throw, which would blame the name instead of the missing step.
   if (!hasStepPrompt && !isWorkItemRole) {
     throw new Error(
-      `workItemToPromptTransformer: '${String(promptName)}' names a step prompt, but work item ${String(workItem.id)} carries no step to serve it at. Only ${agentPromptClassificationStatics.minionNames.join(', ')} may be fetched with no step at all.`,
+      `workItemToPromptTransformer: '${promptName}' names a step prompt, but work item ${String(workItem.id)} carries no step to serve it at. Only ${agentPromptClassificationStatics.minionNames.join(', ')} may be fetched with no step at all.`,
     );
   }
 
@@ -186,10 +191,7 @@ export const workItemToPromptTransformer = ({
   // reachable for every warpgate dispatch there is.
   const isWarpgate = node?.kind === 'prompt' && node.prompt === 'warpgate';
   if (isWarpgate && quest.baseBranch !== undefined) {
-    parts.push(
-      '',
-      `Base branch: ${quest.baseBranch}`,
-    );
+    parts.push('', `Base branch: ${quest.baseBranch}`);
   }
 
   // Keyed on the step prompt or role. The first clause is how a `repair` step inside another
@@ -231,10 +233,7 @@ export const workItemToPromptTransformer = ({
       Object.entries(workItem.payload ?? {}).find(([key]) => key === 'instance')?.[1],
     );
     if (parsedInstance.success) {
-      parts.push(
-        '',
-        `Instance ID: ${String(parsedInstance.data.instanceId)}`,
-      );
+      parts.push('', `Instance ID: ${String(parsedInstance.data.instanceId)}`);
     }
   }
 

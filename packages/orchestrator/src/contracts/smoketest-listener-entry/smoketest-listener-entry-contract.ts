@@ -20,7 +20,8 @@ export const smoketestListenerEntryContract = z
     postTeardownChecks: z.array(smoketestTeardownCheckContract).readonly().optional(),
     isOrchestration: z.boolean(),
   })
-  .loose().brand<'SmoketestListenerEntry'>();
+  .loose()
+  .brand<'SmoketestListenerEntry'>();
 
 export type SmoketestListenerEntry = z.infer<typeof smoketestListenerEntryContract> & {
   stopDriver?: () => void;

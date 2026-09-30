@@ -29,7 +29,13 @@ export const GetQuestWorkLayerResponderProxy = (): {
   return {
     // `questId` alone is the address: the two call shapes differ by which SECOND id they carry, and
     // describing one of them here would leave the other unstaged and throwing.
-    setupReturns: ({ questId, result }: { questId: Quest['id']; result: GetQuestWorkResult }): void => {
+    setupReturns: ({
+      questId,
+      result,
+    }: {
+      questId: Quest['id'];
+      result: GetQuestWorkResult;
+    }): void => {
       orchestrator.getQuestWorkReturns({ questId, result });
     },
     setupThrows: ({ questId, error }: { questId: Quest['id']; error: Error }): void => {

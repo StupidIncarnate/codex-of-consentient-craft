@@ -53,8 +53,8 @@ test.describe('Execution row rework readout: unit marks, unmet list, scope churn
     const questFilePath = created.filePath;
 
     await quests.writeQuestFile({
-      questId: questId,
-      questFolder: questFolder,
+      questId,
+      questFolder,
       questFilePath: String(questFilePath),
       status: 'in_progress',
       flows: [
@@ -152,7 +152,7 @@ test.describe('Execution row rework readout: unit marks, unmet list, scope churn
       ],
     });
 
-    await nav.navigateToQuest({ urlSlug, questId: questId });
+    await nav.navigateToQuest({ urlSlug, questId });
 
     const executionPanel = page.getByTestId('execution-panel-widget');
     await expect(executionPanel).toBeVisible({ timeout: PANEL_TIMEOUT });

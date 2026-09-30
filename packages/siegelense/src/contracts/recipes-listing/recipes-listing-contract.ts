@@ -15,7 +15,6 @@
 
 import { z } from '#gateway/npm/zod';
 
-
 import { recipeListingEntryContract } from '../recipe-listing-entry/recipe-listing-entry-contract';
 
 export const recipesListingContract = z

@@ -143,7 +143,7 @@ export const stepHandlerWardBrokerProxy = (): {
       cwdMock.calledWith([{ questId }]).resolves(
         QuestCwdResolutionStub({
           kind: 'missing-worktree',
-          worktreePath: worktreePath,
+          worktreePath,
         }),
       );
     },
@@ -163,10 +163,10 @@ export const stepHandlerWardBrokerProxy = (): {
       wardSpawn.setupSuccess({
         command: WARD_COMMAND,
         args: isRunSubcommand,
-        exitCode: Number(exitCode),
-        stdoutLines: [`run: ${String(runId)}`, 'lint: PASS'],
+        exitCode: exitCode,
+        stdoutLines: [`run: ${runId}`, 'lint: PASS'],
       });
-      detailProxy.setupSuccess({ output: String(detailJson) });
+      detailProxy.setupSuccess({ output: detailJson });
     },
 
     wardExitsWithoutRunId: ({
@@ -180,7 +180,7 @@ export const stepHandlerWardBrokerProxy = (): {
       wardSpawn.setupSuccess({
         command: WARD_COMMAND,
         args: isRunSubcommand,
-        exitCode: Number(exitCode),
+        exitCode: exitCode,
         stdoutLines: ['ward: the file scope resolved to 0 source files, so NO checks ran'],
       });
     },

@@ -1,4 +1,3 @@
-
 import { DomRectStub } from '../dom-rect/dom-rect.stub';
 import { domNodeContract } from './dom-node-contract';
 import { DomNodeStub } from './dom-node.stub';

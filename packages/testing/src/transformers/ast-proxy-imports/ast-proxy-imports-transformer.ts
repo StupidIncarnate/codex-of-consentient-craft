@@ -41,14 +41,12 @@ export const astProxyImportsTransformer = ({
           namedBindings && ts.isNamedImports(namedBindings)
             ? namedBindings.elements
                 .filter((element) => !element.isTypeOnly)
-                .map((element) =>
-                  (element.propertyName ?? element.name).text,
-                )
+                .map((element) => (element.propertyName ?? element.name).text)
             : null;
         edges.push(
           proxyImportEdgeContract.parse({
             kind: 'import',
-            importPath: importPath,
+            importPath,
             names,
           }),
         );
@@ -67,14 +65,12 @@ export const astProxyImportsTransformer = ({
           exportClause && ts.isNamedExports(exportClause)
             ? exportClause.elements
                 .filter((element) => !element.isTypeOnly)
-                .map((element) =>
-                  (element.propertyName ?? element.name).text,
-                )
+                .map((element) => (element.propertyName ?? element.name).text)
             : null;
         edges.push(
           proxyImportEdgeContract.parse({
             kind: 'reexport',
-            importPath: importPath,
+            importPath,
             names,
           }),
         );

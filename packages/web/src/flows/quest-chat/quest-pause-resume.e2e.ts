@@ -41,7 +41,7 @@ test.describe('Quest Pause and Resume', () => {
     const { questFolder } = created;
 
     await quests.writeQuestFile({
-      questId: questId,
+      questId,
       questFolder,
       questFilePath,
       status: 'in_progress',
@@ -61,7 +61,7 @@ test.describe('Quest Pause and Resume', () => {
     });
 
     const { status: pauseStatus, body: pauseBody } = await quests.pauseQuestResponse({
-      questId: questId,
+      questId,
     });
 
     expect(pauseStatus).toBe(HTTP_OK);
@@ -103,7 +103,7 @@ test.describe('Quest Pause and Resume', () => {
     const { questFolder } = created;
 
     await quests.writeQuestFile({
-      questId: questId,
+      questId,
       questFolder,
       questFilePath,
       status: 'in_progress',
@@ -116,7 +116,7 @@ test.describe('Quest Pause and Resume', () => {
       ],
     });
 
-    const pauseResult = await quests.pauseQuestResponse({ questId: questId });
+    const pauseResult = await quests.pauseQuestResponse({ questId });
 
     expect(pauseResult.status).toBe(HTTP_OK);
 
@@ -126,7 +126,7 @@ test.describe('Quest Pause and Resume', () => {
     expect(pausedData.quest.status).toBe('paused');
 
     const resumeResult = await quests.patchQuestStatusResponse({
-      questId: questId,
+      questId,
       status: 'in_progress',
     });
 

@@ -74,7 +74,8 @@ export const useDisclosureAnchorBinding = (): {
     }
 
     scrollportRef.current = scrollport;
-    heldOffsetRef.current = (anchor.getBoundingClientRect().top - scrollport.getBoundingClientRect().top);
+    heldOffsetRef.current =
+      anchor.getBoundingClientRect().top - scrollport.getBoundingClientRect().top;
   }, []);
 
   // Deliberately a LAYOUT effect and deliberately un-deped: it has to run after React commits the
@@ -93,14 +94,12 @@ export const useDisclosureAnchorBinding = (): {
 
     if (scrollport === null || heldOffset === null || anchor === null) return;
 
-    scrollport.scrollTop = Number(
-      computeAnchorScrollTopTransformer({
+    scrollport.scrollTop = computeAnchorScrollTopTransformer({
         currentScrollTop: Math.max(scrollport.scrollTop, 0),
         anchorOffset: anchor.getBoundingClientRect().top - scrollport.getBoundingClientRect().top,
         heldOffset,
         maxScrollTop: Math.max(scrollport.scrollHeight - scrollport.clientHeight, 0),
-      }),
-    );
+      });
   });
 
   return { anchorRef, holdAnchor };

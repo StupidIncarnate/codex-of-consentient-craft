@@ -10,11 +10,7 @@ import { normalizedStreamLineContentItemContract } from '../../contracts/normali
 import { normalizedStreamLineContract } from '../../contracts/normalized-stream-line/normalized-stream-line-contract';
 import { toolInputToDisplayTransformer } from '../tool-input-to-display/tool-input-to-display-transformer';
 
-export const streamJsonToToolUseTransformer = ({
-  parsed,
-}: {
-  parsed: unknown;
-}): string | null => {
+export const streamJsonToToolUseTransformer = ({ parsed }: { parsed: unknown }): string | null => {
   const lineParse = normalizedStreamLineContract.safeParse(parsed);
   if (!lineParse.success) {
     return null;

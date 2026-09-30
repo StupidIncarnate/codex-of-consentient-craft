@@ -12,7 +12,8 @@ describe('locationsGuildConfigPathFindBroker', () => {
         homeDir: '/home/user',
         homePath: '/home/user/.dungeonmaster',
         guildPath: '/home/user/.dungeonmaster/guilds/f47ac10b-58cc-4372-a567-0e02b2c3d479',
-        guildConfigPath: '/home/user/.dungeonmaster/guilds/f47ac10b-58cc-4372-a567-0e02b2c3d479/guild.json',
+        guildConfigPath:
+          '/home/user/.dungeonmaster/guilds/f47ac10b-58cc-4372-a567-0e02b2c3d479/guild.json',
       });
 
       const result = locationsGuildConfigPathFindBroker({ guildId });

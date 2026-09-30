@@ -17,11 +17,16 @@
 import { z } from '#gateway/npm/zod';
 import { platformContract } from '../platform/platform-contract';
 
-export const platformCrossingViolationContract = z.object({
-  packageName: z.string().min(1).brand<'PlatformCrossingViolationPackageName'>(),
-  platform: platformContract,
-  chain: z.array(z.string().min(1).brand<'PlatformCrossingViolationChain'>()).min(1),
-  crossedGatewayPackage: z.string().min(1).brand<'PlatformCrossingViolationCrossedGatewayPackage'>(),
-}).brand<'PlatformCrossingViolation'>();
+export const platformCrossingViolationContract = z
+  .object({
+    packageName: z.string().min(1).brand<'PlatformCrossingViolationPackageName'>(),
+    platform: platformContract,
+    chain: z.array(z.string().min(1).brand<'PlatformCrossingViolationChain'>()).min(1),
+    crossedGatewayPackage: z
+      .string()
+      .min(1)
+      .brand<'PlatformCrossingViolationCrossedGatewayPackage'>(),
+  })
+  .brand<'PlatformCrossingViolation'>();
 
 export type PlatformCrossingViolation = z.infer<typeof platformCrossingViolationContract>;

@@ -17,7 +17,6 @@
  * read as a clean package.
  */
 
-
 import { scanStatics } from '../../statics/scan/scan-statics';
 
 export const scanEslintConfigSourceTransformer = ({
@@ -28,25 +27,25 @@ export const scanEslintConfigSourceTransformer = ({
   rootConfigPath: string;
 }): string =>
   [
-      `const base = require(${JSON.stringify(String(rootConfigPath))});`,
-      'const configs = Array.isArray(base) ? base : base.default;',
-      `const rule = ${JSON.stringify(String(rule))};`,
-      `const forced = { [rule]: ${JSON.stringify(scanStatics.eslint.severity)} };`,
-      "const slash = rule.lastIndexOf('/');",
-      'const pluginName = slash === -1 ? null : rule.slice(0, slash);',
-      'const registering = pluginName === null ? [] : configs.filter((entry) => entry && entry.plugins && Object.prototype.hasOwnProperty.call(entry.plugins, pluginName));',
-      'if (pluginName !== null && registering.length === 0) {',
-      `  throw new Error('No config object in ' + ${JSON.stringify(
-        String(rootConfigPath),
-      )} + ' registers plugin "' + pluginName + '" for rule "' + rule + '"');`,
-      '}',
-      'const forcing = pluginName === null',
-      '  ? [{ rules: forced }]',
-      '  : registering.map((entry) => ({',
-      '      ...(entry.files ? { files: entry.files } : {}),',
-      '      ...(entry.ignores ? { ignores: entry.ignores } : {}),',
-      '      rules: forced,',
-      '    }));',
-      'module.exports = [...configs, ...forcing];',
-      '',
-    ].join('\n');
+    `const base = require(${JSON.stringify(rootConfigPath)});`,
+    'const configs = Array.isArray(base) ? base : base.default;',
+    `const rule = ${JSON.stringify(rule)};`,
+    `const forced = { [rule]: ${JSON.stringify(scanStatics.eslint.severity)} };`,
+    "const slash = rule.lastIndexOf('/');",
+    'const pluginName = slash === -1 ? null : rule.slice(0, slash);',
+    'const registering = pluginName === null ? [] : configs.filter((entry) => entry && entry.plugins && Object.prototype.hasOwnProperty.call(entry.plugins, pluginName));',
+    'if (pluginName !== null && registering.length === 0) {',
+    `  throw new Error('No config object in ' + ${JSON.stringify(
+      rootConfigPath,
+    )} + ' registers plugin "' + pluginName + '" for rule "' + rule + '"');`,
+    '}',
+    'const forcing = pluginName === null',
+    '  ? [{ rules: forced }]',
+    '  : registering.map((entry) => ({',
+    '      ...(entry.files ? { files: entry.files } : {}),',
+    '      ...(entry.ignores ? { ignores: entry.ignores } : {}),',
+    '      rules: forced,',
+    '    }));',
+    'module.exports = [...configs, ...forcing];',
+    '',
+  ].join('\n');

@@ -138,12 +138,12 @@ export const fileTargetHarness = (): {
         );
       }
       const relativePath = [
-          dungeonmasterHomeStatics.paths.guildsDir,
-          guildId,
-          dungeonmasterHomeStatics.paths.questsDir,
-          questFolder,
-          dungeonmasterHomeStatics.paths.questFile,
-        ].join('/');
+        dungeonmasterHomeStatics.paths.guildsDir,
+        guildId,
+        dungeonmasterHomeStatics.paths.questsDir,
+        questFolder,
+        dungeonmasterHomeStatics.paths.questFile,
+      ].join('/');
       const contents = testbed.readFile({ relativePath });
       const parsedJson = JSON.parse(String(contents)) as StubArgument<ReturnType<typeof QuestStub>>;
       const parsed = QuestStub(parsedJson);
@@ -163,24 +163,24 @@ export const fileTargetHarness = (): {
         const questFolders =
           testbed.listDir({
             relativePath: [
-                dungeonmasterHomeStatics.paths.guildsDir,
-                guildId,
-                dungeonmasterHomeStatics.paths.questsDir,
-              ].join('/'),
-          }) ?? [];
-        for (const questFolder of questFolders) {
-          const relativePath = [
               dungeonmasterHomeStatics.paths.guildsDir,
               guildId,
               dungeonmasterHomeStatics.paths.questsDir,
-              questFolder,
-              dungeonmasterHomeStatics.paths.questFile,
-            ].join('/');
+            ].join('/'),
+          }) ?? [];
+        for (const questFolder of questFolders) {
+          const relativePath = [
+            dungeonmasterHomeStatics.paths.guildsDir,
+            guildId,
+            dungeonmasterHomeStatics.paths.questsDir,
+            questFolder,
+            dungeonmasterHomeStatics.paths.questFile,
+          ].join('/');
           const contents = testbed.readFile({ relativePath });
           if (contents === null) {
             continue;
           }
-          const parsedJson = JSON.parse(String(contents)) as StubArgument<
+          const parsedJson = JSON.parse(contents) as StubArgument<
             ReturnType<typeof QuestStub>
           >;
           const parsed = QuestStub(parsedJson);
@@ -204,18 +204,14 @@ export const fileTargetHarness = (): {
         );
       }
       const relativePath = [
-          dungeonmasterHomeStatics.paths.guildsDir,
-          guildId,
-          dungeonmasterHomeStatics.paths.questsDir,
-          questFolder,
-        ].join('/');
+        dungeonmasterHomeStatics.paths.guildsDir,
+        guildId,
+        dungeonmasterHomeStatics.paths.questsDir,
+        questFolder,
+      ].join('/');
       return testbed.listDir({ relativePath }) !== null;
     },
-    readAbsoluteFileLines: ({
-      filePath,
-    }: {
-      filePath: string;
-    }): readonly string[] => {
+    readAbsoluteFileLines: ({ filePath }: { filePath: string }): readonly string[] => {
       if (testbed === undefined) {
         throw new Error(
           'fileTargetHarness: readAbsoluteFileLines() called outside beforeEach/afterEach',

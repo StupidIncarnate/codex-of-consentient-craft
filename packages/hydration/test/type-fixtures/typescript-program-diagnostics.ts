@@ -69,7 +69,7 @@ export const typescriptProgramDiagnostics = ({
 
     results.push({
       file: repoRelativeFileName,
-      line: (line + 1),
+      line: line + 1,
       code: diagnostic.code,
       message: ts.flattenDiagnosticMessageText(diagnostic.messageText, ' '),
     });

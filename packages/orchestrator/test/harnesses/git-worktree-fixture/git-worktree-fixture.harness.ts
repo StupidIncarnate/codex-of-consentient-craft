@@ -75,11 +75,7 @@ export const gitWorktreeFixtureHarness = (): {
     content: string;
     message: string;
   }) => Promise<{ sha: string }>;
-  dirtyTrackedFile: (params: {
-    repoPath: string;
-    relativePath: string;
-    content: string;
-  }) => void;
+  dirtyTrackedFile: (params: { repoPath: string; relativePath: string; content: string }) => void;
   readTextFile: (params: { absolutePath: string }) => string | null;
   pathExists: (params: { absolutePath: string }) => boolean;
   readSymlinkTarget: (params: { absolutePath: string }) => string | null;
@@ -90,10 +86,7 @@ export const gitWorktreeFixtureHarness = (): {
   realpathOf: (params: { absolutePath: string }) => string | null;
   isExecutableFile: (params: { absolutePath: string }) => boolean;
   gitStatusPorcelain: (params: { repoPath: string }) => Promise<string>;
-  gitRevParseOrNull: (params: {
-    repoPath: string;
-    ref: string;
-  }) => Promise<string | null>;
+  gitRevParseOrNull: (params: { repoPath: string; ref: string }) => Promise<string | null>;
   // `git rev-parse --abbrev-ref HEAD` needs its own method (not gitRevParseOrNull) because that
   // command takes TWO argv tokens after `rev-parse`, and gitRevParseOrNull's single `ref` param
   // maps to exactly one spawn argument — passing '--abbrev-ref HEAD' as one string would hand git
@@ -110,10 +103,7 @@ export const gitWorktreeFixtureHarness = (): {
   // the real workspacePackages — so a suite can prove one dangling workspace link doesn't stop the
   // other, valid links from populating. Must run AFTER writeWorkspaceNodeModulesFixture, which is
   // what creates the @dungeonmaster scope directory this reaches into.
-  writeBrokenWorkspaceLink: (params: {
-    repoPath: string;
-    packageName: string;
-  }) => Promise<void>;
+  writeBrokenWorkspaceLink: (params: { repoPath: string; packageName: string }) => Promise<void>;
   captureGitArgv: (params: {
     captureDir: string;
   }) => Promise<{ restore: () => void; readArgvLog: () => readonly string[] }>;
@@ -132,13 +122,7 @@ export const gitWorktreeFixtureHarness = (): {
   // A commit needs the fixture identity in the child's environment, which gitRun does not take.
   // gitRunSync's env REPLACES the whole environment, so the current one is spread in first; it
   // throws on a non-zero exit, which stops a fixture step that failed right there.
-  const commitGit = ({
-    repoPath,
-    message,
-  }: {
-    repoPath: string;
-    message: string;
-  }): void => {
+  const commitGit = ({ repoPath, message }: { repoPath: string; message: string }): void => {
     gitRunSync({
       args: ['commit', '-m', message],
       cwd: repoPath,
@@ -271,13 +255,8 @@ export const gitWorktreeFixtureHarness = (): {
     },
     readTextFile: ({ absolutePath }: { absolutePath: string }): string | null =>
       existsSync(absolutePath) ? readFileSync(absolutePath) : null,
-    pathExists: ({ absolutePath }: { absolutePath: string }): boolean =>
-      existsSync(absolutePath),
-    readSymlinkTarget: ({
-      absolutePath,
-    }: {
-      absolutePath: string;
-    }): string | null => {
+    pathExists: ({ absolutePath }: { absolutePath: string }): boolean => existsSync(absolutePath),
+    readSymlinkTarget: ({ absolutePath }: { absolutePath: string }): string | null => {
       try {
         return readlinkSync(absolutePath);
       } catch {
@@ -303,20 +282,12 @@ export const gitWorktreeFixtureHarness = (): {
         return false;
       }
     },
-    gitStatusPorcelain: async ({
-      repoPath,
-    }: {
-      repoPath: string;
-    }): Promise<string> => {
+    gitStatusPorcelain: async ({ repoPath }: { repoPath: string }): Promise<string> => {
       const { output } = await runGit({ repoPath, args: ['status', '--porcelain'] });
       return output.trim();
     },
     gitRevParseOrNull,
-    gitWorktreeListOutput: async ({
-      repoPath,
-    }: {
-      repoPath: string;
-    }): Promise<string> => {
+    gitWorktreeListOutput: async ({ repoPath }: { repoPath: string }): Promise<string> => {
       const { output } = await runGit({ repoPath, args: ['worktree', 'list'] });
       return output;
     },

@@ -15,12 +15,8 @@ import { pruneStatics } from '../../statics/prune/prune-statics';
 
 const WINDOW_PATTERN = /^([0-9]+)([a-z])$/u;
 
-export const pruneOlderThanParseTransformer = ({
-  olderThan,
-}: {
-  olderThan: string;
-}): number => {
-  const match = WINDOW_PATTERN.exec(String(olderThan));
+export const pruneOlderThanParseTransformer = ({ olderThan }: { olderThan: string }): number => {
+  const match = WINDOW_PATTERN.exec(olderThan);
 
   if (match === null) {
     throw new Error(
@@ -40,5 +36,5 @@ export const pruneOlderThanParseTransformer = ({
     );
   }
 
-  return (Number(amountText) * unitMs);
+  return Number(amountText) * unitMs;
 };

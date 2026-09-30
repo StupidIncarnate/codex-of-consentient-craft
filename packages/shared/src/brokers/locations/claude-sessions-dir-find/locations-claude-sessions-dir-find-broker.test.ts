@@ -14,9 +14,7 @@ describe('locationsClaudeSessionsDirFindBroker', () => {
         guildPath: '/home/user/my-project',
       });
 
-      expect(result).toBe(
-        '/home/user/.claude/projects/-home-user-my-project',
-      );
+      expect(result).toBe('/home/user/.claude/projects/-home-user-my-project');
     });
   });
 });

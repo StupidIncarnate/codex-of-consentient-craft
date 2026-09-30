@@ -45,7 +45,7 @@ export const readPackageCliContentLayerBrokerProxy = (): {
 
       readFileProxy.setupImplementation({
         fn: (filePath) => {
-          const filePathStr = String(filePath);
+          const filePathStr = filePath;
           for (const [name, content] of Object.entries(startupFiles)) {
             if (filePathStr === `${packageRoot}/src/startup/${name}`) {
               return content;

@@ -208,9 +208,7 @@ export const ChatEntryListWidget = ({
       annotation !== undefined
     ) {
       const subagentTotalProp =
-        runningSubagentTotal > 0
-          ? { subagentTotalTokens: runningSubagentTotal }
-          : {};
+        runningSubagentTotal > 0 ? { subagentTotalTokens: runningSubagentTotal } : {};
       renderUnits.push({
         element: (
           <ContextDividerWidget
@@ -239,7 +237,7 @@ export const ChatEntryListWidget = ({
       })
     : [];
   const collapsedUnits = collapsedIndices
-    .map((idx) => renderUnits[Number(idx)])
+    .map((idx) => renderUnits[idx])
     .filter((u) => u !== undefined);
 
   // Collapsed minimum-visible bound — at least 1 unit visible when no message anchor, at

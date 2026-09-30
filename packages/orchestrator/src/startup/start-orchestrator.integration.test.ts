@@ -54,7 +54,9 @@ describe('StartOrchestrator', () => {
       });
       const { restore } = envHarness.setupHome({ tempDir: testbed.guildPath });
 
-      const result = await StartOrchestrator.getQuest({ questId: QuestIdStub({ value: 'nonexistent-quest-id' }) });
+      const result = await StartOrchestrator.getQuest({
+        questId: QuestIdStub({ value: 'nonexistent-quest-id' }),
+      });
 
       restore();
 

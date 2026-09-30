@@ -16,6 +16,7 @@ export const testbedConfigContract = z
     questFolder: z.string().brand<'TestbedConfigQuestFolder'>(),
     wardCommands: z.record(z.string(), z.json()),
   })
-  .loose().brand<'TestbedConfig'>();
+  .loose()
+  .brand<'TestbedConfig'>();
 
 export type TestbedConfig = z.infer<typeof testbedConfigContract>;

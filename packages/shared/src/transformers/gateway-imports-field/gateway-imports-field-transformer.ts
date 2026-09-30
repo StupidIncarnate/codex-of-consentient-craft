@@ -19,16 +19,12 @@ import {
 } from '../../contracts/gateway-imports-map/gateway-imports-map-contract';
 import { gatewayLocationsStatics } from '../../statics/gateway-locations/gateway-locations-statics';
 
-export const gatewayImportsFieldTransformer = ({
-  scope,
-}: {
-  scope: string;
-}): GatewayImportsMap =>
+export const gatewayImportsFieldTransformer = ({ scope }: { scope: string }): GatewayImportsMap =>
   gatewayImportsMapContract.parse(
     Object.fromEntries(
       Object.values(gatewayLocationsStatics.folders).map((folder) => [
         `${gatewayLocationsStatics.importPrefix}/${folder}/*`,
-        `${String(scope)}/${folder}/*`,
+        `${scope}/${folder}/*`,
       ]),
     ),
   );

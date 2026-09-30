@@ -19,12 +19,13 @@
 
 import { z } from '#gateway/npm/zod';
 
-
 import { driverRequestKindContract } from '../driver-request-kind/driver-request-kind-contract';
 
-export const driverRequestContract = z.object({
-  kind: driverRequestKindContract,
-  payload: z.string().brand<'DriverRequestPayload'>(),
-}).brand<'DriverRequest'>();
+export const driverRequestContract = z
+  .object({
+    kind: driverRequestKindContract,
+    payload: z.string().brand<'DriverRequestPayload'>(),
+  })
+  .brand<'DriverRequest'>();
 
 export type DriverRequest = z.infer<typeof driverRequestContract>;

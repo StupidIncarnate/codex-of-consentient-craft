@@ -14,10 +14,10 @@ describe('cliResponderImportsExtractTransformer', () => {
   describe('multiple responder imports', () => {
     it('VALID: {multiple Responder imports} => returns all names in order', () => {
       const source = [
-          `import { WardRunResponder } from '../../responders/ward/run/ward-run-responder';`,
-          `import { WardDetailResponder } from '../../responders/ward/detail/ward-detail-responder';`,
-          `import { WardRawResponder } from '../../responders/ward/raw/ward-raw-responder';`,
-        ].join('\n');
+        `import { WardRunResponder } from '../../responders/ward/run/ward-run-responder';`,
+        `import { WardDetailResponder } from '../../responders/ward/detail/ward-detail-responder';`,
+        `import { WardRawResponder } from '../../responders/ward/raw/ward-raw-responder';`,
+      ].join('\n');
 
       const result = cliResponderImportsExtractTransformer({ source });
 
@@ -32,9 +32,9 @@ describe('cliResponderImportsExtractTransformer', () => {
   describe('deduplication', () => {
     it('EDGE: {same responder imported twice} => returns it only once', () => {
       const source = [
-          `import { WardRunResponder } from '../../responders/ward/run/ward-run-responder';`,
-          `import { WardRunResponder } from '../../responders/ward/run/ward-run-responder';`,
-        ].join('\n');
+        `import { WardRunResponder } from '../../responders/ward/run/ward-run-responder';`,
+        `import { WardRunResponder } from '../../responders/ward/run/ward-run-responder';`,
+      ].join('\n');
 
       const result = cliResponderImportsExtractTransformer({ source });
 

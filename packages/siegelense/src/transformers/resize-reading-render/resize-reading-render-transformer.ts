@@ -8,7 +8,6 @@
  * // Returns 'resized to 1280x720' as ContentText
  */
 
-
 import { resizeStatics } from '../../statics/resize/resize-statics';
 
 export const resizeReadingRenderTransformer = ({

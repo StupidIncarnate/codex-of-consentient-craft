@@ -53,16 +53,13 @@ export const mcpToolsToAnnotationsLayerBroker = ({
     for (const importPath of importPaths) {
       const resolved = relativeImportResolveTransformer({ sourceFile: flowFile, importPath });
       if (resolved === null) continue;
-      const resolvedStr = String(resolved);
+      const resolvedStr = resolved;
       if (!resolvedStr.includes('/responders/')) continue;
       const lastSlash = resolvedStr.lastIndexOf('/');
       const basename = resolvedStr.slice(lastSlash + 1);
       const dot = basename.lastIndexOf('.');
       const stem = dot === -1 ? basename : basename.slice(0, dot);
-      importedResponderFiles.set(
-        stem,
-        resolvedStr,
-      );
+      importedResponderFiles.set(stem, resolvedStr);
     }
 
     for (let i = 0; i < toolNames.length; i++) {
@@ -73,7 +70,7 @@ export const mcpToolsToAnnotationsLayerBroker = ({
       const handlerKebab = pascalCaseToKebabCaseTransformer({ pascal: handlerPascal });
       // Find responder file via stringified key match (Map.get on branded keys can be flaky)
       const matched = [...importedResponderFiles.entries()].find(
-        ([k]) => String(k) === String(handlerKebab),
+        ([k]) => k === handlerKebab,
       );
       if (matched === undefined) continue;
       const [, responderFile] = matched;

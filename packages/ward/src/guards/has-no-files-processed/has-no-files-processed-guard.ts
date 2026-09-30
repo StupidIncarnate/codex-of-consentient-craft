@@ -50,7 +50,11 @@ const HONORS_FILE_SCOPE_BY_CHECK_TYPE = {
   e2e: true,
 } as const satisfies Record<CheckType, boolean>;
 
-export const hasNoFilesProcessedGuard = ({ wardResult }: { wardResult?: WardRunResult }): boolean => {
+export const hasNoFilesProcessedGuard = ({
+  wardResult,
+}: {
+  wardResult?: WardRunResult;
+}): boolean => {
   if (wardResult === undefined) {
     return false;
   }

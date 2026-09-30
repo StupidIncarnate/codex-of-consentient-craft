@@ -45,7 +45,7 @@ describe('bucketsToTextTransformer', () => {
 
       const result = bucketsToTextTransformer({ buckets });
 
-      expect(String(result)).toBe(
+      expect(result).toBe(
         [
           HEADER_LINE,
           '10:00-10:05              12           8        4,500       120,000            34,000  Readx5',
@@ -60,7 +60,7 @@ describe('bucketsToTextTransformer', () => {
     it('EMPTY: {buckets: []} => returns the header row alone', () => {
       const result = bucketsToTextTransformer({ buckets: [] });
 
-      expect(String(result)).toBe(HEADER_LINE);
+      expect(result).toBe(HEADER_LINE);
     });
   });
 
@@ -81,7 +81,7 @@ describe('bucketsToTextTransformer', () => {
 
       const result = bucketsToTextTransformer({ buckets });
 
-      expect(String(result)).toBe(
+      expect(result).toBe(
         [
           HEADER_LINE,
           '10:10-10:15               1           0            0             0                 0  ',
@@ -107,7 +107,7 @@ describe('bucketsToTextTransformer', () => {
 
       const result = bucketsToTextTransformer({ buckets });
 
-      expect(String(result)).toBe(
+      expect(result).toBe(
         [
           HEADER_LINE,
           '14:00-14:05              66         120      850,000     7,200,000           452,000  Readx40',
@@ -136,7 +136,7 @@ describe('bucketsToTextTransformer', () => {
 
       const result = bucketsToTextTransformer({ buckets });
 
-      expect(String(result)).toBe(
+      expect(result).toBe(
         [
           HEADER_LINE,
           '10:00-10:05               2           2            0             0                 0  Alphax1, Zetax1',

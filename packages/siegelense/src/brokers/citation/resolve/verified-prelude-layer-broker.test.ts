@@ -1,4 +1,3 @@
-
 import { InstanceIdStub } from '../../../contracts/instance-id/instance-id.stub';
 import { RunIdStub } from '../../../contracts/run-id/run-id.stub';
 import { verifiedPreludeLayerBroker } from './verified-prelude-layer-broker';

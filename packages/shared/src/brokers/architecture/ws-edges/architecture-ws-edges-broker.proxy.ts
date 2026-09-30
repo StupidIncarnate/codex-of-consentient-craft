@@ -3,11 +3,7 @@ import { readFileLayerBrokerProxy } from './read-file-layer-broker.proxy';
 import { architectureWsGatewayBrokerProxy } from '../ws-gateway/architecture-ws-gateway-broker.proxy';
 
 export const architectureWsEdgesBrokerProxy = (): {
-  setup: ({
-    sourceFiles,
-  }: {
-    sourceFiles: { path: string; source: string }[];
-  }) => void;
+  setup: ({ sourceFiles }: { sourceFiles: { path: string; source: string }[] }) => void;
 } => {
   const listFilesProxy = listTsFilesLayerBrokerProxy();
   const readFileProxy = readFileLayerBrokerProxy();
@@ -17,11 +13,7 @@ export const architectureWsEdgesBrokerProxy = (): {
   architectureWsGatewayBrokerProxy();
 
   return {
-    setup: ({
-      sourceFiles,
-    }: {
-      sourceFiles: { path: string; source: string }[];
-    }): void => {
+    setup: ({ sourceFiles }: { sourceFiles: { path: string; source: string }[] }): void => {
       listFilesProxy.setupVirtualTree({ filePaths: sourceFiles.map((f) => f.path) });
 
       const fileMap = new Map<string, string>();
@@ -32,7 +24,7 @@ export const architectureWsEdgesBrokerProxy = (): {
       readFileProxy.setupImplementation({
         fn: (filePath: string): string => {
           for (const [key, source] of fileMap) {
-            if (String(key) === String(filePath)) {
+            if (key === filePath) {
               return source;
             }
           }

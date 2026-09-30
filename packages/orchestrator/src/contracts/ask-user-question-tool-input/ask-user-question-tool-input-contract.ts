@@ -20,6 +20,7 @@ export const askUserQuestionToolInputContract = z
       ])
       .optional(),
   })
-  .loose().brand<'AskUserQuestionToolInput'>();
+  .loose()
+  .brand<'AskUserQuestionToolInput'>();
 
 export type AskUserQuestionToolInput = z.infer<typeof askUserQuestionToolInputContract>;

@@ -1,4 +1,3 @@
-
 import { getServerConfigOutputContract } from './get-server-config-output-contract';
 import { GetServerConfigOutputStub } from './get-server-config-output.stub';
 
@@ -45,9 +44,9 @@ describe('getServerConfigOutputContract', () => {
   });
 
   it('INVALID: {missing baseUrl} => throws Required', () => {
-    expect(() =>
-      getServerConfigOutputContract.parse({ port: 3737 }),
-    ).toThrow(/received undefined/u);
+    expect(() => getServerConfigOutputContract.parse({ port: 3737 })).toThrow(
+      /received undefined/u,
+    );
   });
 
   it('INVALID: {missing port} => throws Required', () => {

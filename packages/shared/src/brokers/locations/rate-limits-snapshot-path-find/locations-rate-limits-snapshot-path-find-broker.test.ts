@@ -13,8 +13,6 @@ describe('locationsRateLimitsSnapshotPathFindBroker', () => {
 
     const result = locationsRateLimitsSnapshotPathFindBroker();
 
-    expect(result).toBe(
-      '/home/user/.dungeonmaster/rate-limits.json',
-    );
+    expect(result).toBe('/home/user/.dungeonmaster/rate-limits.json');
   });
 });

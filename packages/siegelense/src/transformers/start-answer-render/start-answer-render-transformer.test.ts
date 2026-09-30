@@ -1,4 +1,3 @@
-
 import { InstanceManifestStub } from '../../contracts/instance-manifest/instance-manifest.stub';
 import { SeedResultStub } from '../../contracts/seed-result/seed-result.stub';
 import { startAnswerRenderTransformer } from './start-answer-render-transformer';

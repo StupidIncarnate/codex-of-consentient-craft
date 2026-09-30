@@ -67,12 +67,10 @@ export const BrowserSessionStub = ({
     look: look ?? (async (): Promise<KeyListing> => Promise.resolve(KeyListingStub())),
     refState:
       refState ?? (async (): Promise<RefResolution> => Promise.resolve(RefResolutionStub())),
-    countMatches:
-      countMatches ?? (async (): Promise<number> => Promise.resolve(0)),
+    countMatches: countMatches ?? (async (): Promise<number> => Promise.resolve(0)),
     describeMatches:
       describeMatches ?? (async (): Promise<readonly StepCandidate[]> => Promise.resolve([])),
-    nearestNames:
-      nearestNames ?? (async (): Promise<readonly string[]> => Promise.resolve([])),
+    nearestNames: nearestNames ?? (async (): Promise<readonly string[]> => Promise.resolve([])),
     clickMatch: clickMatch ?? (async (): Promise<void> => Promise.resolve()),
     clickRef: clickRef ?? (async (): Promise<void> => Promise.resolve()),
     fillRef: fillRef ?? (async (): Promise<void> => Promise.resolve()),
@@ -87,9 +85,7 @@ export const BrowserSessionStub = ({
       waitForSettle ?? (async (): Promise<SettleReading> => Promise.resolve(SettleReadingStub())),
     capture: capture ?? (async (): Promise<void> => Promise.resolve()),
     captureLive: captureLive ?? (async (): Promise<void> => Promise.resolve()),
-    evaluateSource:
-      evaluateSource ??
-      (async (): Promise<string> => Promise.resolve('')),
+    evaluateSource: evaluateSource ?? (async (): Promise<string> => Promise.resolve('')),
     readConsoleSince: readConsoleSince ?? ((): readonly string[] => []),
     readNetworkSince: readNetworkSince ?? ((): readonly string[] => []),
     readWebsocketSince: readWebsocketSince ?? ((): readonly string[] => []),

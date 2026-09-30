@@ -13,7 +13,6 @@
  * // Returns 'INSTANCE: inst_7f3a9c21 (alive)\nSNAPSHOTS: none recorded yet\n'
  */
 
-
 import type { SnapshotsAnswer } from '../../contracts/snapshots-answer/snapshots-answer-contract';
 import { snapshotsTableStatics } from '../../statics/snapshots-table/snapshots-table-statics';
 import { elapsedRenderTransformer } from '../elapsed-render/elapsed-render-transformer';
@@ -28,9 +27,9 @@ export const snapshotsAnswerRenderTransformer = ({
   const instanceLine = `INSTANCE: ${answer.instanceId} (${answer.instanceState})`;
 
   if (answer.snapshots.length === 0) {
-    return (answer.instanceState === 'killed'
-        ? `${instanceLine}\nSNAPSHOTS: none — the throwaway home died with the instance at kill\n`
-        : `${instanceLine}\nSNAPSHOTS: none recorded yet\n`);
+    return answer.instanceState === 'killed'
+      ? `${instanceLine}\nSNAPSHOTS: none — the throwaway home died with the instance at kill\n`
+      : `${instanceLine}\nSNAPSHOTS: none recorded yet\n`;
   }
 
   const { headers, cellPadding } = snapshotsTableStatics.table;

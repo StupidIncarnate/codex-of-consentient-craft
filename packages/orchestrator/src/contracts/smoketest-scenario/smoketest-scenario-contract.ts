@@ -30,15 +30,17 @@ const smoketestPromptNames = Object.keys(smoketestPromptsStatics) as [
 
 const smoketestPromptNameContract = z.enum(smoketestPromptNames);
 
-export const smoketestScenarioContract = z.object({
-  caseId: z.string().min(1).brand<'SmoketestScenarioCaseId'>(),
-  name: z.string().min(1).brand<'SmoketestScenarioName'>(),
-  blueprint: questBlueprintContract,
-  // `z.partialRecord`, not `z.record` — zod v4 made an enum-keyed `z.record` exhaustive (every
-  // role required), and a real scenario only ever scripts the roles it dispatches.
-  scripts: z.partialRecord(workItemRoleContract, z.array(smoketestPromptNameContract).readonly()),
-  assertions: z.array(smoketestAssertionContract),
-  postTeardownChecks: z.array(smoketestTeardownCheckContract).optional(),
-}).brand<'SmoketestScenario'>();
+export const smoketestScenarioContract = z
+  .object({
+    caseId: z.string().min(1).brand<'SmoketestScenarioCaseId'>(),
+    name: z.string().min(1).brand<'SmoketestScenarioName'>(),
+    blueprint: questBlueprintContract,
+    // `z.partialRecord`, not `z.record` — zod v4 made an enum-keyed `z.record` exhaustive (every
+    // role required), and a real scenario only ever scripts the roles it dispatches.
+    scripts: z.partialRecord(workItemRoleContract, z.array(smoketestPromptNameContract).readonly()),
+    assertions: z.array(smoketestAssertionContract),
+    postTeardownChecks: z.array(smoketestTeardownCheckContract).optional(),
+  })
+  .brand<'SmoketestScenario'>();
 
 export type SmoketestScenario = z.infer<typeof smoketestScenarioContract>;

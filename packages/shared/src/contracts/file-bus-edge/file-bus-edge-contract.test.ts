@@ -5,8 +5,10 @@ describe('fileBusEdgeContract', () => {
     it('VALID: {full paired edge} => parses successfully', () => {
       const result = fileBusEdgeContract.parse({
         filePath: '/repo/.dungeonmaster/quests/quest.jsonl',
-        writerFile: '/repo/packages/orchestrator/src/brokers/chat/subagent-tail/chat-subagent-tail-broker.ts',
-        watcherFile: '/repo/packages/server/src/brokers/quest/outbox-watch/quest-outbox-watch-broker.ts',
+        writerFile:
+          '/repo/packages/orchestrator/src/brokers/chat/subagent-tail/chat-subagent-tail-broker.ts',
+        watcherFile:
+          '/repo/packages/server/src/brokers/quest/outbox-watch/quest-outbox-watch-broker.ts',
         paired: true,
       });
 
@@ -23,7 +25,8 @@ describe('fileBusEdgeContract', () => {
     it('VALID: {null watcherFile, paired=false} => parses successfully', () => {
       const result = fileBusEdgeContract.parse({
         filePath: '/repo/.dungeonmaster/quests/quest.jsonl',
-        writerFile: '/repo/packages/orchestrator/src/brokers/chat/subagent-tail/chat-subagent-tail-broker.ts',
+        writerFile:
+          '/repo/packages/orchestrator/src/brokers/chat/subagent-tail/chat-subagent-tail-broker.ts',
         watcherFile: null,
         paired: false,
       });
@@ -41,7 +44,8 @@ describe('fileBusEdgeContract', () => {
       const result = fileBusEdgeContract.parse({
         filePath: '/repo/.dungeonmaster/quests/quest.jsonl',
         writerFile: null,
-        watcherFile: '/repo/packages/server/src/brokers/quest/outbox-watch/quest-outbox-watch-broker.ts',
+        watcherFile:
+          '/repo/packages/server/src/brokers/quest/outbox-watch/quest-outbox-watch-broker.ts',
         paired: false,
       });
 
@@ -57,7 +61,8 @@ describe('fileBusEdgeContract', () => {
     it('VALID: {computed path reference} => parses successfully', () => {
       const result = fileBusEdgeContract.parse({
         filePath: '<computed: questPathBroker>',
-        writerFile: '/repo/packages/orchestrator/src/brokers/chat/subagent-tail/chat-subagent-tail-broker.ts',
+        writerFile:
+          '/repo/packages/orchestrator/src/brokers/chat/subagent-tail/chat-subagent-tail-broker.ts',
         watcherFile: null,
         paired: false,
       });

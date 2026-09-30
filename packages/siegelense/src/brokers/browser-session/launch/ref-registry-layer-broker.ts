@@ -40,7 +40,6 @@
  * // Drives ref 23 through the strict locator path, then removes the mark it made
  */
 
-
 import { rawRefStateContract } from '../../../contracts/raw-ref-state/raw-ref-state-contract';
 import { refResolutionContract } from '../../../contracts/ref-resolution/ref-resolution-contract';
 import type { RefResolution } from '../../../contracts/ref-resolution/ref-resolution-contract';

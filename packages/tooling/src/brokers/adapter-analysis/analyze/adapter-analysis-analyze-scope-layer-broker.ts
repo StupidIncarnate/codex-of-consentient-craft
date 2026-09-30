@@ -34,24 +34,33 @@ export const adapterAnalysisAnalyzeScopeLayerBroker = ({
     }
     const module = statement.moduleSpecifier.text;
     if (clause.name !== undefined) {
-      bindings.set(clause.name.text, outsideCallContract.parse({
-        module,
-        name: 'default',
-      }));
+      bindings.set(
+        clause.name.text,
+        outsideCallContract.parse({
+          module,
+          name: 'default',
+        }),
+      );
     }
     const named = clause.namedBindings;
     if (named !== undefined && ts.isNamespaceImport(named)) {
-      bindings.set(named.name.text, outsideCallContract.parse({
-        module,
-        name: '*',
-      }));
+      bindings.set(
+        named.name.text,
+        outsideCallContract.parse({
+          module,
+          name: '*',
+        }),
+      );
     }
     if (named !== undefined && ts.isNamedImports(named)) {
       for (const element of named.elements.filter((candidate) => !candidate.isTypeOnly)) {
-        bindings.set(element.name.text, outsideCallContract.parse({
-          module,
-          name: (element.propertyName ?? element.name).text,
-        }));
+        bindings.set(
+          element.name.text,
+          outsideCallContract.parse({
+            module,
+            name: (element.propertyName ?? element.name).text,
+          }),
+        );
       }
     }
   }

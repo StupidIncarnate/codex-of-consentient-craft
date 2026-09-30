@@ -8,7 +8,6 @@
  * WHEN-TO-USE: When building a discover tree so the same relative path under two different packages renders as distinct roots
  */
 
-
 // The optional `(?:@[^/]+\/)?` skips a scope/group folder directly under `packages/` (mirrors
 // `node_modules/@scope/name`) — `packages/@gateway/npm/src/...` captures `npm`, the real package,
 // never the group.
@@ -16,12 +15,8 @@ const PACKAGES_SRC_PATTERN = /(?:^|\/)packages\/(?:@[^/]+\/)?([^/]+)\/src\//u;
 const SCOPED_ALIAS_SRC_PATTERN = /(?:^|\/)(@[^/]+\/[^/]+)\/src\//u;
 const SRC_SEGMENT = '/src/';
 
-export const pathToTreeRelativeTransformer = ({
-  filepath,
-}: {
-  filepath: string;
-}): string => {
-  const pathStr = String(filepath);
+export const pathToTreeRelativeTransformer = ({ filepath }: { filepath: string }): string => {
+  const pathStr = filepath;
 
   // Monorepo: /.../packages/<pkg>/src/... → <pkg>/...
   const pkgMatch = PACKAGES_SRC_PATTERN.exec(pathStr);

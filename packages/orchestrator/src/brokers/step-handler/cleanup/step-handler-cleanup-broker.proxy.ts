@@ -30,7 +30,11 @@ registerModuleMock({ module: '../../quest/repo-root/quest-repo-root-broker' });
 const CLEANUP_COMMAND = cleanupCliCallStatics.call.bin;
 
 export const stepHandlerCleanupBrokerProxy = (): {
-  cleanupExits: (params: { questId: Quest['id']; exitCode: number; answer: CleanupCliAnswer }) => void;
+  cleanupExits: (params: {
+    questId: Quest['id'];
+    exitCode: number;
+    answer: CleanupCliAnswer;
+  }) => void;
   cleanupFails: (params: { questId: Quest['id']; exitCode: number; output: string }) => void;
   cleanupPrintsInvalidJson: (params: { questId: Quest['id'] }) => void;
   getSpawnedCommand: () => unknown;
@@ -52,8 +56,8 @@ export const stepHandlerCleanupBrokerProxy = (): {
   const stageCleanupSpawn = (): void => {
     cleanupSpawn.setupSuccess({
       command: CLEANUP_COMMAND,
-      exitCode: Number(runResult.exitCode),
-      stdoutLines: String(runResult.output)
+      exitCode: runResult.exitCode,
+      stdoutLines: runResult.output
         .split('\n')
         .filter((entry) => entry.length > 0),
     });

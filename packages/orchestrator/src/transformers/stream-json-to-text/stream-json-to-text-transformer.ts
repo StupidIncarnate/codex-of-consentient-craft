@@ -32,7 +32,7 @@ export const streamJsonToTextTransformer = ({ parsed }: { parsed: unknown }): st
       return acc;
     }
     const current = acc === null ? '' : acc;
-    return (current + String(item.text));
+    return current + String(item.text);
   }, null);
 
   return result;

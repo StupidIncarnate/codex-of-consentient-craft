@@ -6,7 +6,6 @@
  * // Returns: ContentText('Hello World')
  */
 
-
 export const promptTemplateAssembleTransformer = ({
   template,
   placeholder,

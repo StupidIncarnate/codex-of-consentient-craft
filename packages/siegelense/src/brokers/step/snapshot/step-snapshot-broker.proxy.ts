@@ -1,4 +1,3 @@
-
 import { snapshotCaptureBrokerProxy } from '../../snapshot/capture/snapshot-capture-broker.proxy';
 
 export const stepSnapshotBrokerProxy = (): {

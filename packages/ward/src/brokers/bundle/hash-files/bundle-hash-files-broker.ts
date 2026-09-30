@@ -42,7 +42,7 @@ export const bundleHashFilesBroker = ({
 
   for (const relativePath of [...relativePaths].map(String).sort()) {
     try {
-      const contents = readFileBytesSync(`${String(rootPath)}/${relativePath}`);
+      const contents = readFileBytesSync(`${rootPath}/${relativePath}`);
 
       hash.update(relativePath);
       hash.update(FIELD_SEPARATOR);

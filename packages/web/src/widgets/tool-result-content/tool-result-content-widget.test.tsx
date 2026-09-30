@@ -13,12 +13,7 @@ describe('ToolResultContentWidget', () => {
       ToolResultContentWidgetProxy();
 
       mantineRenderMiddleware({
-        ui: (
-          <ToolResultContentWidget
-            content={'file contents here'}
-            color={DIM}
-          />
-        ),
+        ui: <ToolResultContentWidget content={'file contents here'} color={DIM} />,
       });
 
       expect(screen.getByTestId('TOOL_RESULT_VERBATIM').textContent).toBe('file contents here');
@@ -47,12 +42,7 @@ describe('ToolResultContentWidget', () => {
       ToolResultContentWidgetProxy();
 
       mantineRenderMiddleware({
-        ui: (
-          <ToolResultContentWidget
-            content={'short'}
-            color={DIM}
-          />
-        ),
+        ui: <ToolResultContentWidget content={'short'} color={DIM} />,
       });
 
       expect(screen.getByTestId('TOOL_RESULT_VERBATIM').style.fontSize).toBe('12px');
@@ -67,10 +57,10 @@ describe('ToolResultContentWidget', () => {
         ui: (
           <ToolResultContentWidget
             content={JSON.stringify({
-                name: 'codeweaver',
-                model: 'sonnet',
-                prompt: '# Operator\n\nYou own ONE operation item.',
-              })}
+              name: 'codeweaver',
+              model: 'sonnet',
+              prompt: '# Operator\n\nYou own ONE operation item.',
+            })}
             color={DIM}
           />
         ),
@@ -133,7 +123,9 @@ describe('ToolResultContentWidget', () => {
       mantineRenderMiddleware({
         ui: (
           <ToolResultContentWidget
-            content={'## Contracts\n\n#health-snapshot — HealthSnapshot (data, new)\n  status: HealthStatus — Literal health marker.\n  uptimeSeconds: UptimeSeconds — Non-negative integer.'}
+            content={
+              '## Contracts\n\n#health-snapshot — HealthSnapshot (data, new)\n  status: HealthStatus — Literal health marker.\n  uptimeSeconds: UptimeSeconds — Non-negative integer.'
+            }
             color={DIM}
           />
         ),
@@ -154,10 +146,7 @@ describe('ToolResultContentWidget', () => {
 
       mantineRenderMiddleware({
         ui: (
-          <ToolResultContentWidget
-            content={'## Contracts\n\n#a — one\n  prop: two'}
-            color={DIM}
-          />
+          <ToolResultContentWidget content={'## Contracts\n\n#a — one\n  prop: two'} color={DIM} />
         ),
       });
 

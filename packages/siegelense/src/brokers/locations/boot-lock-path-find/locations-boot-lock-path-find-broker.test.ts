@@ -15,9 +15,7 @@ describe('locationsBootLockPathFindBroker', () => {
 
       const result = locationsBootLockPathFindBroker();
 
-      expect(result).toBe(
-        '/home/user/.dungeonmaster/siegelense/boot.lock',
-      );
+      expect(result).toBe('/home/user/.dungeonmaster/siegelense/boot.lock');
     });
 
     it('EDGE: {rootPath with trailing separator} => returns boot.lock joined without a double slash', () => {
@@ -32,9 +30,7 @@ describe('locationsBootLockPathFindBroker', () => {
 
       const result = locationsBootLockPathFindBroker();
 
-      expect(result).toBe(
-        '/home/user/.dungeonmaster/siegelense/boot.lock',
-      );
+      expect(result).toBe('/home/user/.dungeonmaster/siegelense/boot.lock');
     });
 
     it('EDGE: {homePath nested several levels deep} => returns boot.lock appended to the full nested path', () => {
@@ -49,9 +45,7 @@ describe('locationsBootLockPathFindBroker', () => {
 
       const result = locationsBootLockPathFindBroker();
 
-      expect(result).toBe(
-        '/srv/agents/worker-3/state/.dungeonmaster/siegelense/boot.lock',
-      );
+      expect(result).toBe('/srv/agents/worker-3/state/.dungeonmaster/siegelense/boot.lock');
     });
   });
 });

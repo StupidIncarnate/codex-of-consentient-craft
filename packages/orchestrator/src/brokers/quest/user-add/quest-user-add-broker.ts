@@ -17,8 +17,19 @@
  */
 
 import { randomUUID } from '#gateway/node/crypto';
-import { addQuestResultContract, workItemContract, questContract } from '@dungeonmaster/shared/contracts';
-import type { AddQuestInput, AddQuestResult, WorkItem, Quest, Guild, Session } from '@dungeonmaster/shared/contracts';
+import {
+  addQuestResultContract,
+  workItemContract,
+  questContract,
+} from '@dungeonmaster/shared/contracts';
+import type {
+  AddQuestInput,
+  AddQuestResult,
+  WorkItem,
+  Quest,
+  Guild,
+  Session,
+} from '@dungeonmaster/shared/contracts';
 import { questFlowStatics } from '@dungeonmaster/shared/statics';
 
 import { questCreateBroker } from '../create/quest-create-broker';

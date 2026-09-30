@@ -9,10 +9,11 @@
 
 import { z } from '#gateway/npm/zod';
 
-
-export const scaffoldFileContract = z.object({
-  relativePath: z.string().brand<'ScaffoldFileRelativePath'>(),
-  contents: z.string().brand<'ScaffoldFileContents'>(),
-}).brand<'ScaffoldFile'>();
+export const scaffoldFileContract = z
+  .object({
+    relativePath: z.string().brand<'ScaffoldFileRelativePath'>(),
+    contents: z.string().brand<'ScaffoldFileContents'>(),
+  })
+  .brand<'ScaffoldFile'>();
 
 export type ScaffoldFile = z.infer<typeof scaffoldFileContract>;

@@ -22,7 +22,8 @@ const errorEntry = z
     line: z.number().brand<'ErrorEntryLine'>().optional(),
     column: z.number().brand<'ErrorEntryColumn'>().optional(),
     rule: z.string().brand<'ErrorEntryRule'>().optional(),
-  }).brand<'ErrorEntry'>()
+  })
+  .brand<'ErrorEntry'>()
   .loose();
 
 const testFailure = z
@@ -31,14 +32,16 @@ const testFailure = z
     testName: z.string().brand<'TestFailureTestName'>().optional(),
     message: z.string().brand<'TestFailureMessage'>().optional(),
     stackTrace: z.string().brand<'TestFailureStackTrace'>().optional(),
-  }).brand<'TestFailure'>()
+  })
+  .brand<'TestFailure'>()
   .loose();
 
 const projectFolder = z
   .object({
     name: z.string().brand<'ProjectFolderName'>().optional(),
     path: z.string().brand<'ProjectFolderPath'>().optional(),
-  }).brand<'ProjectFolder'>()
+  })
+  .brand<'ProjectFolder'>()
   .loose();
 
 const rawOutput = z
@@ -46,7 +49,8 @@ const rawOutput = z
     stdout: z.string().brand<'RawOutputStdout'>().optional(),
     stderr: z.string().brand<'RawOutputStderr'>().optional(),
     exitCode: z.number().brand<'RawOutputExitCode'>().optional(),
-  }).brand<'RawOutput'>()
+  })
+  .brand<'RawOutput'>()
   .loose();
 
 const projectResult = z
@@ -56,7 +60,8 @@ const projectResult = z
     errors: z.array(errorEntry).optional(),
     testFailures: z.array(testFailure).optional(),
     rawOutput: rawOutput.optional(),
-  }).brand<'ProjectResult'>()
+  })
+  .brand<'ProjectResult'>()
   .loose();
 
 const checkResult = z
@@ -64,13 +69,15 @@ const checkResult = z
     checkType: z.string().brand<'CheckResultCheckType'>().optional(),
     status: z.enum(['pass', 'fail', 'skip']).optional(),
     projectResults: z.array(projectResult).optional(),
-  }).brand<'CheckResult'>()
+  })
+  .brand<'CheckResult'>()
   .loose();
 
 export const wardDetailJsonContract = z
   .object({
     checks: z.array(checkResult).optional(),
   })
-  .loose().brand<'WardDetailJson'>();
+  .loose()
+  .brand<'WardDetailJson'>();
 
 export type WardDetailJson = z.infer<typeof wardDetailJsonContract>;

@@ -52,7 +52,7 @@ test.describe('Composer send — text-only sends and Shift+Enter newline', () =>
     await sessions.createSessionFile({ sessionId, userMessage: 'Build feature' });
 
     const created = await quests.createQuest({
-      guildId: guildId,
+      guildId,
       title: 'Send Text Only Newline Shift Quest',
       userRequest: 'Build feature',
     });
@@ -126,7 +126,7 @@ test.describe('Composer send — text-only sends and Shift+Enter newline', () =>
     await sessions.createSessionFile({ sessionId, userMessage: 'Build feature' });
 
     const created = await quests.createQuest({
-      guildId: guildId,
+      guildId,
       title: 'Send Text Only Newline Adds Newline Quest',
       userRequest: 'Build feature',
     });
@@ -180,7 +180,7 @@ test.describe('Composer send — text-only sends and Shift+Enter newline', () =>
     await sessions.createSessionFile({ sessionId, userMessage: 'Build feature' });
 
     const created = await quests.createQuest({
-      guildId: guildId,
+      guildId,
       title: 'Send Text Only Newline End Of Content Quest',
       userRequest: 'Build feature',
     });
@@ -241,7 +241,7 @@ test.describe('Composer send — text-only sends and Shift+Enter newline', () =>
     await sessions.createSessionFile({ sessionId, userMessage: 'Build feature' });
 
     const created = await quests.createQuest({
-      guildId: guildId,
+      guildId,
       title: 'Send Text Only Newline Restore Quest',
       userRequest: 'Build feature',
     });
@@ -316,7 +316,7 @@ test.describe('Composer send — text-only sends and Shift+Enter newline', () =>
     await sessions.createSessionFile({ sessionId, userMessage: 'Build feature' });
 
     const created = await quests.createQuest({
-      guildId: guildId,
+      guildId,
       title: 'Send Text Only Newline Caret Quest',
       userRequest: 'Build feature',
     });
@@ -399,7 +399,7 @@ test.describe('Composer send — text-only sends and Shift+Enter newline', () =>
     await sessions.createSessionFile({ sessionId, userMessage: 'Build feature' });
 
     const created = await quests.createQuest({
-      guildId: guildId,
+      guildId,
       title: 'Send Text Only Newline Plain Quest',
       userRequest: 'Build feature',
     });

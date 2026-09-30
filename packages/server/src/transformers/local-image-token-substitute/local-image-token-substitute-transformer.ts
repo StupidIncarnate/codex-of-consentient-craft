@@ -22,7 +22,6 @@
  * // Returns branded UserMessage with the source path replaced by '![Pasted Image 1](<copiedPath>)'
  */
 
-
 import type { LocalImagePathMatch } from '../../contracts/local-image-path-match/local-image-path-match-contract';
 
 // The two characters immediately before an occurrence, mirroring
@@ -75,5 +74,5 @@ export const localImageTokenSubstituteTransformer = ({
     cursor = occurrenceEnd;
   }
 
-  return (rebuilt + message.slice(cursor));
+  return rebuilt + message.slice(cursor);
 };

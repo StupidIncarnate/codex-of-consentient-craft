@@ -40,11 +40,7 @@ describe('computeTailVisibleIndicesTransformer', () => {
         isAnchorFlags: [false, false, true, true, true],
         isSubagentChainFlags: [false, false, false, true, true],
       }),
-    ).toStrictEqual([
-      2,
-      3,
-      4,
-    ]);
+    ).toStrictEqual([2, 3, 4]);
   });
 
   it('VALID: {no anchor + 2 chains separated by tool} => returns [0, 2] (both chains visible, tool hidden)', () => {

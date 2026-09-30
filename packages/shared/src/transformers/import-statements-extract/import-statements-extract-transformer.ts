@@ -15,16 +15,12 @@ const IMPORT_FROM_PATTERN =
   /import\s+(?:type\s+)?(?:\{[^}]+\}|\*\s+as\s+\w+|\w+)\s+from\s+['"]([^'"]+)['"]/gu;
 const BLOCK_COMMENT_PATTERN = /\/\*[\s\S]*?\*\//gu;
 
-export const importStatementsExtractTransformer = ({
-  source,
-}: {
-  source: string;
-}): string[] => {
-  const blockCommentsRemoved = String(source).replace(BLOCK_COMMENT_PATTERN, '');
+export const importStatementsExtractTransformer = ({ source }: { source: string }): string[] => {
+  const blockCommentsRemoved = source.replace(BLOCK_COMMENT_PATTERN, '');
   const stripped = templateLiteralsStripTransformer({
     source: blockCommentsRemoved,
   });
-  const cleanedSource = String(stripped);
+  const cleanedSource = stripped;
   const paths: string[] = [];
   IMPORT_FROM_PATTERN.lastIndex = 0;
   let match = IMPORT_FROM_PATTERN.exec(cleanedSource);

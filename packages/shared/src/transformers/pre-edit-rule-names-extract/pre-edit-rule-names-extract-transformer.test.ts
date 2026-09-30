@@ -12,10 +12,7 @@ describe('preEditRuleNamesExtractTransformer', () => {
         },
       });
 
-      expect(result).toStrictEqual([
-        'rule-alpha',
-        'rule-gamma',
-      ]);
+      expect(result).toStrictEqual(['rule-alpha', 'rule-gamma']);
     });
 
     it('VALID: {enforceOn with real dungeonmasterRuleEnforceOnStatics} => returns pre-edit rules matching statics', () => {

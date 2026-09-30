@@ -35,7 +35,11 @@
  */
 
 import type { Quest, WorkItem, OperationItem } from '@dungeonmaster/shared/contracts';
-import { getQuestInputContract, operationItemContract, workItemContract } from '@dungeonmaster/shared/contracts';
+import {
+  getQuestInputContract,
+  operationItemContract,
+  workItemContract,
+} from '@dungeonmaster/shared/contracts';
 import { isTerminalWorkItemStatusGuard } from '@dungeonmaster/shared/guards';
 
 import { questAdvanceBroker } from '../../../brokers/quest/advance/quest-advance-broker';
@@ -119,9 +123,7 @@ export const QuestHandleSignalBackResponder = async ({
               status: 'complete',
               completedAt,
               actualSignal: 'complete',
-              ...(blockedReason === undefined
-                ? {}
-                : { errorMessage: String(blockedReason) }),
+              ...(blockedReason === undefined ? {} : { errorMessage: blockedReason }),
             })
           : wi,
       );

@@ -1,4 +1,3 @@
-
 import { WardConfigStub } from '../../../contracts/ward-config/ward-config.stub';
 import { PlatformCrossingViolationStub } from '../../../contracts/platform-crossing-violation/platform-crossing-violation.stub';
 import { DuplicateInstallViolationStub } from '../../../contracts/duplicate-install-violation/duplicate-install-violation.stub';

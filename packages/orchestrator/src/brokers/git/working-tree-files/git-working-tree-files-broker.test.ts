@@ -1,4 +1,3 @@
-
 import { gitWorkingTreeFilesBroker } from './git-working-tree-files-broker';
 import { gitWorkingTreeFilesBrokerProxy } from './git-working-tree-files-broker.proxy';
 

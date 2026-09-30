@@ -58,8 +58,7 @@ export const capacityReadBroker = async ({
   // The pool a caller has not named is the largest one policy allows, so the group read is the most
   // CONTENDED the profile holds. Spec lines 1504-1507: a peak measured solo is optimistic for a pool
   // of three, and computing against the optimistic figure is the expensive mistake.
-  const resolvedPoolSize =
-    poolSize ?? capacityStatics.policy.ceiling;
+  const resolvedPoolSize = poolSize ?? capacityStatics.policy.ceiling;
 
   const registry = await registryReadBroker();
   const machine = await machineReadBroker();
@@ -73,7 +72,9 @@ export const capacityReadBroker = async ({
       !isStaleReservationRegistryEntryGuard({ entry, nowMs }),
   );
   const siegeInstances = liveEntries.length;
-  const reservedInstances = liveEntries.filter((entry) => isReservedRegistryEntryGuard({ entry })).length;
+  const reservedInstances = liveEntries.filter((entry) =>
+    isReservedRegistryEntryGuard({ entry }),
+  ).length;
 
   const loadAvg1 = capacityMeasuredContract.shape.loadAvg1.parse(
     machine.loadAvg[LOAD_AVERAGE_ONE_MINUTE],

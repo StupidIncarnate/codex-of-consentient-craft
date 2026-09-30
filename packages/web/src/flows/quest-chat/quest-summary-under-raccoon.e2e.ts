@@ -212,7 +212,10 @@ test.describe('Quest summary joins the raccoon in the execution activity column'
       { timeout: SUMMARY_REQUEST_TIMEOUT },
     );
 
-    await nav.navigateToQuest({ urlSlug: String(guilds.extractUrlSlug({ guild })), questId: QuestIdStub({ value: questId }) });
+    await nav.navigateToQuest({
+      urlSlug: String(guilds.extractUrlSlug({ guild })),
+      questId: QuestIdStub({ value: questId }),
+    });
 
     await summaryRequestPromise;
 

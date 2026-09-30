@@ -12,15 +12,17 @@ import { z } from '#gateway/npm/zod';
 
 import { pastedImageUploadListContract } from '../pasted-image-upload-list/pasted-image-upload-list-contract';
 
-export const messageBodyContract = z.object({
-  message: z.string().min(1).brand<'MessageBodyMessage'>(),
-  images: pastedImageUploadListContract
-    .optional()
-    .describe(
-      'The pasted images in paste order, at most maxImagesPerMessage of them. The Nth entry ' +
-        'is the one the Nth [Pasted Image N] placeholder in message refers to. Absent on a ' +
-        'text-only send.',
-    ),
-}).brand<'MessageBody'>();
+export const messageBodyContract = z
+  .object({
+    message: z.string().min(1).brand<'MessageBodyMessage'>(),
+    images: pastedImageUploadListContract
+      .optional()
+      .describe(
+        'The pasted images in paste order, at most maxImagesPerMessage of them. The Nth entry ' +
+          'is the one the Nth [Pasted Image N] placeholder in message refers to. Absent on a ' +
+          'text-only send.',
+      ),
+  })
+  .brand<'MessageBody'>();
 
 export type MessageBody = z.infer<typeof messageBodyContract>;

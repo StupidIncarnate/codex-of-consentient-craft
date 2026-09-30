@@ -10,9 +10,7 @@ describe('startupFilesFindLayerBroker', () => {
 
       const result = startupFilesFindLayerBroker({ packageSrcPath });
 
-      expect(result).toStrictEqual([
-        '/repo/packages/server/src/startup/start-server.ts',
-      ]);
+      expect(result).toStrictEqual(['/repo/packages/server/src/startup/start-server.ts']);
     });
 
     it('VALID: {multiple start-*.ts files} => returns all startup file paths', () => {
@@ -37,9 +35,7 @@ describe('startupFilesFindLayerBroker', () => {
 
       const result = startupFilesFindLayerBroker({ packageSrcPath });
 
-      expect(result).toStrictEqual([
-        '/repo/packages/server/src/startup/start-server.ts',
-      ]);
+      expect(result).toStrictEqual(['/repo/packages/server/src/startup/start-server.ts']);
     });
 
     it('VALID: {non-startup file in startup/} => filters out non-matching files', () => {
@@ -49,9 +45,7 @@ describe('startupFilesFindLayerBroker', () => {
 
       const result = startupFilesFindLayerBroker({ packageSrcPath });
 
-      expect(result).toStrictEqual([
-        '/repo/packages/server/src/startup/start-server.ts',
-      ]);
+      expect(result).toStrictEqual(['/repo/packages/server/src/startup/start-server.ts']);
     });
   });
 

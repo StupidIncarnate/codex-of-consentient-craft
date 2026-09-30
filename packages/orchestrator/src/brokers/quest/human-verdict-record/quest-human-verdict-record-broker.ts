@@ -57,65 +57,67 @@ export const questHumanVerdictRecordBroker = async ({
   outcome: 'met' | 'not-met';
   reason: string;
 }): Promise<QuestHumanVerdictRecordResult> =>
-  questHumanVerdictRecordResultContract.parse(await questWithModifyLockBroker({
-    questId: questContract.shape.id.parse(questId),
-    run: async (): Promise<{ quest: Quest }> => {
-      const { questPath } = await questFindQuestPathBroker({
-        questId: questContract.shape.id.parse(questId),
-      });
-      const questFilePath = join(questPath, locationsStatics.quest.questFile);
-      const quest = await questLoadBroker({ questFilePath });
+  questHumanVerdictRecordResultContract.parse(
+    await questWithModifyLockBroker({
+      questId: questContract.shape.id.parse(questId),
+      run: async (): Promise<{ quest: Quest }> => {
+        const { questPath } = await questFindQuestPathBroker({
+          questId: questContract.shape.id.parse(questId),
+        });
+        const questFilePath = join(questPath, locationsStatics.quest.questFile);
+        const quest = await questLoadBroker({ questFilePath });
 
-      // A branded observable id is a plain string at runtime, so `String()` on both sides is what
-      // lets this compare against the raw `unitId` the browser sent.
-      const [match] = quest.flows
-        .flatMap((flow) => flow.nodes.map((node) => ({ flow, node })))
-        .flatMap(({ flow, node }) =>
-          node.observables
-            .filter((observable) => String(observable.id) === unitId)
-            .map((observable) => ({ flow, observable })),
-        );
+        // A branded observable id is a plain string at runtime, so `String()` on both sides is what
+        // lets this compare against the raw `unitId` the browser sent.
+        const [match] = quest.flows
+          .flatMap((flow) => flow.nodes.map((node) => ({ flow, node })))
+          .flatMap(({ flow, node }) =>
+            node.observables
+              .filter((observable) => String(observable.id) === unitId)
+              .map((observable) => ({ flow, observable })),
+          );
 
-      if (match === undefined) {
-        throw new Error(`Quest ${questId} has no observable named "${unitId}".`);
-      }
+        if (match === undefined) {
+          throw new Error(`Quest ${questId} has no observable named "${unitId}".`);
+        }
 
-      if (match.observable.verifyByHuman !== true) {
-        throw new Error(
-          `Observable "${unitId}" on quest ${questId} is not flagged verifyByHuman — a human ` +
-            'verdict can only be recorded against a verifyByHuman: true observable.',
-        );
-      }
+        if (match.observable.verifyByHuman !== true) {
+          throw new Error(
+            `Observable "${unitId}" on quest ${questId} is not flagged verifyByHuman — a human ` +
+              'verdict can only be recorded against a verifyByHuman: true observable.',
+          );
+        }
 
-      const at = new Date().toISOString();
-      const note: QuestNote = questNoteContract.parse({
-        id: questNoteContract.shape.id.parse(`human-verdict-${unitId}`),
-        kind: questNoteContract.shape.kind.parse('human-verdict'),
-        role: questNoteContract.shape.role.parse('operator'),
-        flowId: questNoteContract.shape.flowId.parse(match.flow.id),
-        unitId: questNoteContract.shape.unitId.parse(unitId),
-        outcome: questNoteContract.shape.outcome.parse(outcome),
-        summary: questNoteContract.shape.summary.parse(
-          `${match.observable.description}: ${outcome === 'met' ? 'confirmed' : 'rejected'}`,
-        ),
-        detail: questNoteContract.shape.detail.parse(reason),
-        at: questNoteContract.shape.at.parse(at),
-      });
+        const at = new Date().toISOString();
+        const note: QuestNote = questNoteContract.parse({
+          id: questNoteContract.shape.id.parse(`human-verdict-${unitId}`),
+          kind: questNoteContract.shape.kind.parse('human-verdict'),
+          role: questNoteContract.shape.role.parse('operator'),
+          flowId: questNoteContract.shape.flowId.parse(match.flow.id),
+          unitId: questNoteContract.shape.unitId.parse(unitId),
+          outcome: questNoteContract.shape.outcome.parse(outcome),
+          summary: questNoteContract.shape.summary.parse(
+            `${match.observable.description}: ${outcome === 'met' ? 'confirmed' : 'rejected'}`,
+          ),
+          detail: questNoteContract.shape.detail.parse(reason),
+          at: questNoteContract.shape.at.parse(at),
+        });
 
-      const nextQuestNotes = [
-        ...quest.planningNotes.questNotes.filter((existing) => existing.id !== note.id),
-        note,
-      ];
+        const nextQuestNotes = [
+          ...quest.planningNotes.questNotes.filter((existing) => existing.id !== note.id),
+          note,
+        ];
 
-      const mutated = questContract.parse({
-        ...quest,
-        planningNotes: { ...quest.planningNotes, questNotes: nextQuestNotes },
-        updatedAt: at,
-      });
+        const mutated = questContract.parse({
+          ...quest,
+          planningNotes: { ...quest.planningNotes, questNotes: nextQuestNotes },
+          updatedAt: at,
+        });
 
-      const contents = JSON.stringify(mutated, null, JSON_INDENT_SPACES);
-      await questPersistBroker({ questFilePath, contents, questId: mutated.id });
+        const contents = JSON.stringify(mutated, null, JSON_INDENT_SPACES);
+        await questPersistBroker({ questFilePath, contents, questId: mutated.id });
 
-      return { quest: mutated };
-    },
-  }));
+        return { quest: mutated };
+      },
+    }),
+  );

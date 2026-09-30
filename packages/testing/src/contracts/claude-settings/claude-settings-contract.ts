@@ -16,10 +16,12 @@ export const claudeSettingsContract = z
     permissions: z
       .object({
         allow: z.array(z.string().brand<'ClaudeSettingsPermissionsAllow'>()).optional(),
-      }).brand<'ClaudeSettingsPermissions'>()
+      })
+      .brand<'ClaudeSettingsPermissions'>()
       .loose()
       .optional(),
   })
-  .loose().brand<'ClaudeSettings'>();
+  .loose()
+  .brand<'ClaudeSettings'>();
 
 export type ClaudeSettings = z.infer<typeof claudeSettingsContract>;

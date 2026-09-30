@@ -17,11 +17,7 @@
 import { wsServerAdaptersFindLayerBroker } from './ws-server-adapters-find-layer-broker';
 import { wsGatewayFilesFindLayerBroker } from './ws-gateway-files-find-layer-broker';
 
-export const architectureWsGatewayBroker = ({
-  projectRoot,
-}: {
-  projectRoot: string;
-}): string[] => {
+export const architectureWsGatewayBroker = ({ projectRoot }: { projectRoot: string }): string[] => {
   const wsServerAdapters = wsServerAdaptersFindLayerBroker({ projectRoot });
   return wsGatewayFilesFindLayerBroker({ projectRoot, wsServerAdapters });
 };

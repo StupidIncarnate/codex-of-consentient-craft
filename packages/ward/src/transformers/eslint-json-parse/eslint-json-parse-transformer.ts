@@ -6,7 +6,6 @@
  * // Returns ErrorEntry[] with severity mapped from ESLint numeric codes
  */
 
-
 import {
   errorEntryContract,
   type ErrorEntry,

@@ -69,7 +69,7 @@ test.describe('Live sub-agent chain duration ticks with the execution panel cloc
     });
 
     const created = await quests.createQuest({
-      guildId: guildId,
+      guildId,
       title: 'Subagent Duration Live First Render Quest',
       userRequest: 'Build the feature',
     });
@@ -154,7 +154,7 @@ test.describe('Live sub-agent chain duration ticks with the execution panel cloc
     });
 
     const created = await quests.createQuest({
-      guildId: guildId,
+      guildId,
       title: 'Subagent Duration Live Tick Advance Quest',
       userRequest: 'Build the feature',
     });
@@ -287,7 +287,7 @@ test.describe('Live sub-agent chain duration ticks with the execution panel cloc
     });
 
     const created = await quests.createQuest({
-      guildId: guildId,
+      guildId,
       title: 'Subagent Duration Frozen Beside Live Quest',
       userRequest: 'Build the feature',
     });
@@ -408,7 +408,7 @@ test.describe('Live sub-agent chain duration ticks with the execution panel cloc
     });
 
     const created = await quests.createQuest({
-      guildId: guildId,
+      guildId,
       title: 'Subagent Duration Single Interval Quest',
       userRequest: 'Build the feature',
     });

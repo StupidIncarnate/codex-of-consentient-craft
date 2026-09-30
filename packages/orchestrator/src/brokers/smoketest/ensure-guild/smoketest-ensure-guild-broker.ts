@@ -63,5 +63,7 @@ export const smoketestEnsureGuildBroker = async (): Promise<SmoketestEnsureGuild
     );
   }
 
-  return smoketestEnsureGuildResultContract.parse({ guildId: guildContract.shape.id.parse(matched.id) });
+  return smoketestEnsureGuildResultContract.parse({
+    guildId: guildContract.shape.id.parse(matched.id),
+  });
 };

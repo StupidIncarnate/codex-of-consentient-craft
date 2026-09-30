@@ -1,4 +1,3 @@
-
 import { instanceKillBroker } from './instance-kill-broker';
 import { instanceKillBrokerProxy } from './instance-kill-broker.proxy';
 import { InstanceIdStub } from '../../../contracts/instance-id/instance-id.stub';

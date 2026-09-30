@@ -36,7 +36,11 @@ export const CliStatuslineTapResponder = async (): Promise<void> => {
 
     if (writeResult.written) {
       await rateLimitsHistoryAppendBroker({
-        line: rateLimitsHistoryLineContract.parse({ at: snapshot.updatedAt, fiveHour: snapshot.fiveHour, sevenDay: snapshot.sevenDay }),
+        line: rateLimitsHistoryLineContract.parse({
+          at: snapshot.updatedAt,
+          fiveHour: snapshot.fiveHour,
+          sevenDay: snapshot.sevenDay,
+        }),
       });
     }
   } catch (error: unknown) {

@@ -14,7 +14,6 @@
  * WHEN-NOT-TO-USE: For non-statics dotted expressions, or when full AST parsing is needed
  */
 
-
 // Matches: key: 'value' or key: "value" — for direct string property extraction
 const STRING_PROP_PATTERN =
   /['"]?([a-zA-Z0-9_]+)['"]?\s*:\s*'([^']*)'|['"]?([a-zA-Z0-9_]+)['"]?\s*:\s*"([^"]*)"/gu;
@@ -26,7 +25,7 @@ export const staticsPathResolveTransformer = ({
   source: string;
   dotPath: string;
 }): string | null => {
-  const parts = String(dotPath).split('.');
+  const parts = dotPath.split('.');
   // parts[0] is the statics object name (e.g. 'apiRoutesStatics'), skip it
   const propertyKeys = parts.slice(1);
 
@@ -35,7 +34,7 @@ export const staticsPathResolveTransformer = ({
   }
 
   // Find the top-level `as const` object — everything between the first `{` and its matching `}`
-  const sourceText = String(source);
+  const sourceText = source;
   const firstBrace = sourceText.indexOf('{');
   if (firstBrace === -1) {
     return null;

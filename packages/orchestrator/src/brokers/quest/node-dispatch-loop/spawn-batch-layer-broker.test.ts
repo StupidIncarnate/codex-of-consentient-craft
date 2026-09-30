@@ -155,7 +155,8 @@ describe('spawnBatchLayerBroker', () => {
     it('VALID: {instruction with resumeSessionId + resumePrompt} => spawns with the resume prompt and --resume <sessionId>', async () => {
       const proxy = spawnBatchLayerBrokerProxy();
       const resumeSessionId = SessionIdStub({ value: '1a2b3c4d-3e38-48c9-bdec-22b61883b473' });
-      const resumePrompt = 'Your previous session for this work item was interrupted — finish and signal back.';
+      const resumePrompt =
+        'Your previous session for this work item was interrupted — finish and signal back.';
       const instruction = SpawnInstructionStub({ resumeSessionId, resumePrompt });
       proxy.setupQuestContext({
         questId: instruction.questId,

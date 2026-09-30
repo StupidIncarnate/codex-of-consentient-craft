@@ -70,7 +70,7 @@ export const tsconfigCompilerOptionsSetTextTransformer = ({
   const edits = [...replacements, ...insertions].sort((left, right) => right.start - left.start);
 
   return edits.reduce(
-      (text, edit) => text.slice(0, edit.start) + edit.text + text.slice(edit.end),
-      tsconfigText,
-    );
+    (text, edit) => text.slice(0, edit.start) + edit.text + text.slice(edit.end),
+    tsconfigText,
+  );
 };

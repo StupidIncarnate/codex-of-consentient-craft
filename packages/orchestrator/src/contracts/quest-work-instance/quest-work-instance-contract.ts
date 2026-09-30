@@ -26,12 +26,74 @@ import { z } from '#gateway/npm/zod';
 
 import { siegeInstanceContract, relativeFilePathContract } from '@dungeonmaster/shared/contracts';
 
-export const questWorkInstanceContract = z.object({
-  instanceId: siegeInstanceContract.shape.id,
-  baseUrl: z.string().min(1).brand<'QuestWorkInstanceBaseUrl'>().nullable(),
-  apiUrl: z.string().min(1).brand<'QuestWorkInstanceApiUrl'>().nullable(),
-  home: z.string().min(1).refine((path) => { if (path.startsWith('/')) { return true; } if (/^[A-Za-z]:\\/u.test(path)) { return true; } return false; }, { message: 'Path must be absolute (start with / or C:\\ on Windows)', },).brand<'QuestWorkInstanceHome'>(),
-  logs: z.object({ api: z.union([z.string().min(1).refine((path) => { if (path.startsWith('/')) { return true; } if (/^[A-Za-z]:\\/u.test(path)) { return true; } return false; }, { message: 'Path must be absolute (start with / or C:\\ on Windows)', },).brand<'QuestWorkInstanceLogsApi'>(), relativeFilePathContract]).brand<'QuestWorkInstanceLogsApi'>(), web: z.union([z.string().min(1).refine((path) => { if (path.startsWith('/')) { return true; } if (/^[A-Za-z]:\\/u.test(path)) { return true; } return false; }, { message: 'Path must be absolute (start with / or C:\\ on Windows)', },).brand<'QuestWorkInstanceLogsWeb'>(), relativeFilePathContract]).brand<'QuestWorkInstanceLogsWeb'>() }).brand<'QuestWorkInstanceLogs'>(),
-}).brand<'QuestWorkInstance'>();
+export const questWorkInstanceContract = z
+  .object({
+    instanceId: siegeInstanceContract.shape.id,
+    baseUrl: z.string().min(1).brand<'QuestWorkInstanceBaseUrl'>().nullable(),
+    apiUrl: z.string().min(1).brand<'QuestWorkInstanceApiUrl'>().nullable(),
+    home: z
+      .string()
+      .min(1)
+      .refine(
+        (path) => {
+          if (path.startsWith('/')) {
+            return true;
+          }
+          if (/^[A-Za-z]:\\/u.test(path)) {
+            return true;
+          }
+          return false;
+        },
+        { message: 'Path must be absolute (start with / or C:\\ on Windows)' },
+      )
+      .brand<'QuestWorkInstanceHome'>(),
+    logs: z
+      .object({
+        api: z
+          .union([
+            z
+              .string()
+              .min(1)
+              .refine(
+                (path) => {
+                  if (path.startsWith('/')) {
+                    return true;
+                  }
+                  if (/^[A-Za-z]:\\/u.test(path)) {
+                    return true;
+                  }
+                  return false;
+                },
+                { message: 'Path must be absolute (start with / or C:\\ on Windows)' },
+              )
+              .brand<'QuestWorkInstanceLogsApi'>(),
+            relativeFilePathContract,
+          ])
+          .brand<'QuestWorkInstanceLogsApi'>(),
+        web: z
+          .union([
+            z
+              .string()
+              .min(1)
+              .refine(
+                (path) => {
+                  if (path.startsWith('/')) {
+                    return true;
+                  }
+                  if (/^[A-Za-z]:\\/u.test(path)) {
+                    return true;
+                  }
+                  return false;
+                },
+                { message: 'Path must be absolute (start with / or C:\\ on Windows)' },
+              )
+              .brand<'QuestWorkInstanceLogsWeb'>(),
+            relativeFilePathContract,
+          ])
+          .brand<'QuestWorkInstanceLogsWeb'>(),
+      })
+      .brand<'QuestWorkInstanceLogs'>(),
+  })
+  .brand<'QuestWorkInstance'>();
 
 export type QuestWorkInstance = z.infer<typeof questWorkInstanceContract>;

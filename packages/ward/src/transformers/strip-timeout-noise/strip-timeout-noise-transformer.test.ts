@@ -1,4 +1,3 @@
-
 import { stripTimeoutNoiseTransformer } from './strip-timeout-noise-transformer';
 
 describe('stripTimeoutNoiseTransformer', () => {
@@ -28,7 +27,8 @@ describe('stripTimeoutNoiseTransformer', () => {
     });
 
     it('VALID: {message: done() callback test timeout} => returns fallback message', () => {
-      const message = 'Exceeded timeout of 5000 ms for a test while waiting for `done()` to be called.';
+      const message =
+        'Exceeded timeout of 5000 ms for a test while waiting for `done()` to be called.';
 
       const result = stripTimeoutNoiseTransformer({ message });
 
@@ -36,7 +36,8 @@ describe('stripTimeoutNoiseTransformer', () => {
     });
 
     it('VALID: {message: done() callback hook timeout} => returns fallback message', () => {
-      const message = 'Exceeded timeout of 5000 ms for a hook while waiting for `done()` to be called.';
+      const message =
+        'Exceeded timeout of 5000 ms for a hook while waiting for `done()` to be called.';
 
       const result = stripTimeoutNoiseTransformer({ message });
 
@@ -52,7 +53,8 @@ describe('stripTimeoutNoiseTransformer', () => {
     });
 
     it('VALID: {message: jest suggestion suffix} => strips suggestion text', () => {
-      const message = 'Some error\nAdd a timeout value to this test to increase the timeout, if this is a long-running test. See https://jestjs.io/docs/api#testname-fn-timeout.';
+      const message =
+        'Some error\nAdd a timeout value to this test to increase the timeout, if this is a long-running test. See https://jestjs.io/docs/api#testname-fn-timeout.';
 
       const result = stripTimeoutNoiseTransformer({ message });
 
@@ -60,7 +62,8 @@ describe('stripTimeoutNoiseTransformer', () => {
     });
 
     it('VALID: {message: full jest timeout with suggestion} => returns fallback message', () => {
-      const message = 'Exceeded timeout of 30000 ms for a test.\nAdd a timeout value to this test to increase the timeout, if this is a long-running test. See https://jestjs.io/docs/api#testname-fn-timeout.';
+      const message =
+        'Exceeded timeout of 30000 ms for a test.\nAdd a timeout value to this test to increase the timeout, if this is a long-running test. See https://jestjs.io/docs/api#testname-fn-timeout.';
 
       const result = stripTimeoutNoiseTransformer({ message });
 
@@ -184,23 +187,21 @@ describe('stripTimeoutNoiseTransformer', () => {
 
   describe('mixed content', () => {
     it('VALID: {message: timeout mixed with call log} => strips timeout, keeps call log', () => {
-      const message = 'Error: page.waitForResponse: Test timeout of 10000ms exceeded.\nCall log: waiting for response';
+      const message =
+        'Error: page.waitForResponse: Test timeout of 10000ms exceeded.\nCall log: waiting for response';
 
       const result = stripTimeoutNoiseTransformer({ message });
 
-      expect(result).toBe(
-        'Error: page.waitForResponse: \nCall log: waiting for response',
-      );
+      expect(result).toBe('Error: page.waitForResponse: \nCall log: waiting for response');
     });
 
     it('VALID: {message: playwright timeout with call log context} => strips timeout, keeps context', () => {
-      const message = 'Error: locator.click: Timeout 5000ms exceeded.\nCall log:\n  - waiting for locator("#submit")';
+      const message =
+        'Error: locator.click: Timeout 5000ms exceeded.\nCall log:\n  - waiting for locator("#submit")';
 
       const result = stripTimeoutNoiseTransformer({ message });
 
-      expect(result).toBe(
-        'Error: locator.click: \nCall log:\n  - waiting for locator("#submit")',
-      );
+      expect(result).toBe('Error: locator.click: \nCall log:\n  - waiting for locator("#submit")');
     });
   });
 

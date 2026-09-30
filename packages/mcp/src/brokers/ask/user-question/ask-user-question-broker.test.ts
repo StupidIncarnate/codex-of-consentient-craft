@@ -27,9 +27,9 @@ describe('askUserQuestionBroker', () => {
       const result = askUserQuestionBroker({ input });
 
       expect({
-        namesDispatchedCaller: String(result).includes('DISPATCHED WORK-ITEM agent'),
-        tellsItNotToWait: String(result).includes('nothing will resume you, so do NOT wait'),
-        tellsItToSignalBack: String(result).includes('finish your turn with signal-back'),
+        namesDispatchedCaller: result.includes('DISPATCHED WORK-ITEM agent'),
+        tellsItNotToWait: result.includes('nothing will resume you, so do NOT wait'),
+        tellsItToSignalBack: result.includes('finish your turn with signal-back'),
       }).toStrictEqual({
         namesDispatchedCaller: true,
         tellsItNotToWait: true,

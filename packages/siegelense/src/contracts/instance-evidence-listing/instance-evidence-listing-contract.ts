@@ -18,14 +18,15 @@
 
 import { z } from '#gateway/npm/zod';
 
-
 import { repoLocalPathContract } from '../repo-local-path/repo-local-path-contract';
 
-export const instanceEvidenceListingContract = z.object({
-  dir: repoLocalPathContract,
-  transcript: z.string().brand<'InstanceEvidenceListingTranscript'>().nullable(),
-  logs: z.array(z.string().brand<'InstanceEvidenceListingLogs'>()).readonly(),
-  lastShot: z.string().brand<'InstanceEvidenceListingLastShot'>().nullable(),
-}).brand<'InstanceEvidenceListing'>();
+export const instanceEvidenceListingContract = z
+  .object({
+    dir: repoLocalPathContract,
+    transcript: z.string().brand<'InstanceEvidenceListingTranscript'>().nullable(),
+    logs: z.array(z.string().brand<'InstanceEvidenceListingLogs'>()).readonly(),
+    lastShot: z.string().brand<'InstanceEvidenceListingLastShot'>().nullable(),
+  })
+  .brand<'InstanceEvidenceListing'>();
 
 export type InstanceEvidenceListing = z.infer<typeof instanceEvidenceListingContract>;

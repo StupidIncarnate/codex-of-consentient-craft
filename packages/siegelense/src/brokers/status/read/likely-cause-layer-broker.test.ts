@@ -1,4 +1,3 @@
-
 import { CapacityProfileStub } from '../../../contracts/capacity-profile/capacity-profile.stub';
 
 import { likelyCauseLayerBroker } from './likely-cause-layer-broker';

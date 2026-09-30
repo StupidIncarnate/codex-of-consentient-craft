@@ -13,7 +13,7 @@ describe('outOfMemoryReportTransformer', () => {
         }),
       });
 
-      expect(String(result)).toBe(
+      expect(result).toBe(
         '  web  exit 134  V8 heap limit — the check printed "JavaScript heap out of memory" and aborted',
       );
     });
@@ -24,7 +24,7 @@ describe('outOfMemoryReportTransformer', () => {
         rawOutput: RawOutputStub({ exitCode: 1, stdout: 'JavaScript heap out of memory' }),
       });
 
-      expect(String(result)).toBe(
+      expect(result).toBe(
         '  mcp  exit 1  V8 heap limit — the check printed "JavaScript heap out of memory" and aborted',
       );
     });
@@ -37,7 +37,7 @@ describe('outOfMemoryReportTransformer', () => {
         rawOutput: RawOutputStub({ exitCode: 134 }),
       });
 
-      expect(String(result)).toBe(
+      expect(result).toBe(
         '  shared  exit 134  the process aborted (SIGABRT), which is how V8 ends a run it cannot allocate for',
       );
     });
@@ -51,7 +51,7 @@ describe('outOfMemoryReportTransformer', () => {
         }),
       });
 
-      expect(String(result)).toBe(
+      expect(result).toBe(
         '  shared  SIGABRT  the process aborted (SIGABRT), which is how V8 ends a run it cannot allocate for',
       );
     });
@@ -67,7 +67,7 @@ describe('outOfMemoryReportTransformer', () => {
         }),
       });
 
-      expect(String(result)).toBe(
+      expect(result).toBe(
         '  orchestrator  SIGKILL  the process was killed from outside (SIGKILL) — on a machine running checks that is the kernel out-of-memory reaper',
       );
     });

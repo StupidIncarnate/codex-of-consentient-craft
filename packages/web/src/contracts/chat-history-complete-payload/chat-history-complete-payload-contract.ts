@@ -15,9 +15,11 @@ import { z } from '#gateway/npm/zod';
 
 import { questContract } from '@dungeonmaster/shared/contracts';
 
-export const chatHistoryCompletePayloadContract = z.object({
-  chatProcessId: z.string().min(1).brand<'ChatHistoryCompletePayloadChatProcessId'>().optional(),
-  questId: questContract.shape.id.optional(),
-}).brand<'ChatHistoryCompletePayload'>();
+export const chatHistoryCompletePayloadContract = z
+  .object({
+    chatProcessId: z.string().min(1).brand<'ChatHistoryCompletePayloadChatProcessId'>().optional(),
+    questId: questContract.shape.id.optional(),
+  })
+  .brand<'ChatHistoryCompletePayload'>();
 
 export type ChatHistoryCompletePayload = z.infer<typeof chatHistoryCompletePayloadContract>;

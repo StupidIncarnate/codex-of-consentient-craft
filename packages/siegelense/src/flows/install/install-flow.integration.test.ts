@@ -24,10 +24,12 @@ describe('InstallFlow', () => {
       setEnv('DUNGEONMASTER_HOME', dungeonmasterHomePath);
 
       const result = await InstallFlow({
-        context: InstallContextStub({ value: {
-          targetProjectRoot: testbed.guildPath,
-          dungeonmasterRoot: `${testbed.guildPath}/.wrong-cli-root`,
-        } }),
+        context: InstallContextStub({
+          value: {
+            targetProjectRoot: testbed.guildPath,
+            dungeonmasterRoot: `${testbed.guildPath}/.wrong-cli-root`,
+          },
+        }),
       });
 
       deleteEnv('DUNGEONMASTER_HOME');
@@ -80,17 +82,21 @@ describe('InstallFlow', () => {
       setEnv('DUNGEONMASTER_HOME', dungeonmasterHomePath);
 
       await InstallFlow({
-        context: InstallContextStub({ value: {
-          targetProjectRoot: testbed.guildPath,
-          dungeonmasterRoot: `${testbed.guildPath}/.wrong-cli-root`,
-        } }),
+        context: InstallContextStub({
+          value: {
+            targetProjectRoot: testbed.guildPath,
+            dungeonmasterRoot: `${testbed.guildPath}/.wrong-cli-root`,
+          },
+        }),
       });
 
       const secondResult = await InstallFlow({
-        context: InstallContextStub({ value: {
-          targetProjectRoot: testbed.guildPath,
-          dungeonmasterRoot: `${testbed.guildPath}/.wrong-cli-root`,
-        } }),
+        context: InstallContextStub({
+          value: {
+            targetProjectRoot: testbed.guildPath,
+            dungeonmasterRoot: `${testbed.guildPath}/.wrong-cli-root`,
+          },
+        }),
       });
 
       deleteEnv('DUNGEONMASTER_HOME');
@@ -146,10 +152,12 @@ describe('InstallFlow', () => {
       });
 
       const result = await InstallFlow({
-        context: InstallContextStub({ value: {
-          targetProjectRoot: testbed.guildPath,
-          dungeonmasterRoot: `${testbed.guildPath}/.wrong-cli-root`,
-        } }),
+        context: InstallContextStub({
+          value: {
+            targetProjectRoot: testbed.guildPath,
+            dungeonmasterRoot: `${testbed.guildPath}/.wrong-cli-root`,
+          },
+        }),
       });
 
       deleteEnv('DUNGEONMASTER_HOME');

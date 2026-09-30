@@ -37,7 +37,7 @@ export const architecturePackageTypeDetectBroker = async ({
   const packageJson =
     packageJsonRaw === undefined
       ? packageJsonContract.parse({})
-      : packageJsonContract.parse(JSON.parse(String(packageJsonRaw)));
+      : packageJsonContract.parse(JSON.parse(packageJsonRaw));
 
   // List top-level dirs in src/
   const srcPath = `${packageRoot}/src`;
@@ -84,8 +84,8 @@ export const architecturePackageTypeDetectBroker = async ({
   const packageType = detectPackageTypeLayerBroker({
     srcDirNames,
     packageJson,
-    startupFileContent: startupFileContent === undefined ? undefined : String(startupFileContent),
-    flowFileContent: flowFileContent === undefined ? undefined : String(flowFileContent),
+    startupFileContent: startupFileContent === undefined ? undefined : startupFileContent,
+    flowFileContent: flowFileContent === undefined ? undefined : flowFileContent,
     hasResponderHook,
     hasBrokersRule,
     hasFlowsDir,

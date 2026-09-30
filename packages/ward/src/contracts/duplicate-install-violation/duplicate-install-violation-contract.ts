@@ -21,11 +21,13 @@ import { z } from '#gateway/npm/zod';
 import { duplicateInstallLocationContract } from '../duplicate-install-location/duplicate-install-location-contract';
 import { duplicateInstallThresholdsStatics } from '../../statics/duplicate-install-thresholds/duplicate-install-thresholds-statics';
 
-export const duplicateInstallViolationContract = z.object({
-  packageName: z.string().min(1).brand<'DuplicateInstallViolationPackageName'>(),
-  locations: z
-    .array(duplicateInstallLocationContract)
-    .min(duplicateInstallThresholdsStatics.counts.minimumLocationsForViolation),
-}).brand<'DuplicateInstallViolation'>();
+export const duplicateInstallViolationContract = z
+  .object({
+    packageName: z.string().min(1).brand<'DuplicateInstallViolationPackageName'>(),
+    locations: z
+      .array(duplicateInstallLocationContract)
+      .min(duplicateInstallThresholdsStatics.counts.minimumLocationsForViolation),
+  })
+  .brand<'DuplicateInstallViolation'>();
 
 export type DuplicateInstallViolation = z.infer<typeof duplicateInstallViolationContract>;

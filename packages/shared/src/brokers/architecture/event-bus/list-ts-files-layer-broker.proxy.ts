@@ -8,15 +8,11 @@ const buildFileDirent = ({ name }: { name: string }): Dirent => DirentStub({ nam
 const buildDirDirent = ({ name }: { name: string }): Dirent =>
   DirentStub({ name, kind: 'directory' });
 
-const populateVirtualTree = (
-  tree: Map<string, Dirent[]>,
-  parts: string[],
-  depth: number,
-): void => {
+const populateVirtualTree = (tree: Map<string, Dirent[]>, parts: string[], depth: number): void => {
   if (depth >= parts.length) {
     return;
   }
-  const parentDir = (parts.slice(0, depth).join('/') || '/');
+  const parentDir = parts.slice(0, depth).join('/') || '/';
   const childName = parts[depth] ?? '';
   if (childName === '') {
     return;
@@ -37,19 +33,13 @@ const populateVirtualTree = (
 const buildVirtualTree = (filePaths: string[]): Map<string, Dirent[]> => {
   const tree = new Map<string, Dirent[]>();
   for (const fp of filePaths) {
-    populateVirtualTree(tree, String(fp).split('/'), 1);
+    populateVirtualTree(tree, fp.split('/'), 1);
   }
   return tree;
 };
 
 export const listTsFilesLayerBrokerProxy = (): {
-  setupFlatDirectory: ({
-    dirPath,
-    filePaths,
-  }: {
-    dirPath: string;
-    filePaths: string[];
-  }) => void;
+  setupFlatDirectory: ({ dirPath, filePaths }: { dirPath: string; filePaths: string[] }) => void;
   setupEmpty: ({ dirPath }: { dirPath: string }) => void;
   setupVirtualTree: ({ filePaths }: { filePaths: string[] }) => void;
 } => {
@@ -64,8 +54,8 @@ export const listTsFilesLayerBrokerProxy = (): {
       filePaths: string[];
     }): void => {
       const entries: DirEntrySync[] = filePaths.map((fp) => {
-        const parts = String(fp).split('/');
-        const name = parts[parts.length - 1] ?? String(fp);
+        const parts = fp.split('/');
+        const name = parts[parts.length - 1] ?? fp;
         return { name, kind: 'file' as const };
       });
       readdirProxy.setupDirectory({ dirPath, entries });

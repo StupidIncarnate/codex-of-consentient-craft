@@ -17,40 +17,47 @@ import { passingTestContract } from '../passing-test/passing-test-contract';
 import { openHandleContract } from '../open-handle/open-handle-contract';
 import { testNamePatternMatchContract } from '../test-name-pattern-match/test-name-pattern-match-contract';
 
-export const projectResultContract = z.object({
-  projectFolder: projectFolderContract,
-  status: checkStatusContract,
-  errors: z.array(errorEntryContract),
-  // A SUBSET of `errors`, never additional to it — populated only by a genuinely file-scoped
-  // typecheck run (see checkRunTypecheckBroker), naming which of `errors` sit in a file the
-  // caller did NOT name. Every other check, and every non-file-scoped run, leaves this empty and
-  // `errors` carries the full truthful list either way, so every existing consumer of `errors`
-  // (crash detection, failing-file counts) stays correct without knowing this field exists.
-  elsewhereErrors: z.array(errorEntryContract).default([]),
-  testFailures: z.array(testFailureContract),
-  rawOutput: rawOutputContract.default(
-    rawOutputContract.parse({ stdout: '', stderr: '', exitCode: 0 }),
-  ),
-  // `.default()` before `.brand()` on both — zod v4 checks a `.default()` literal against the
-  // schema's own output type, and a bare number can never satisfy a branded type.
-  filesCount: z.number().int().nonnegative().default(0).brand<'ProjectResultFilesCount'>(),
-  discoveredCount: z.number().int().nonnegative().default(0).brand<'ProjectResultDiscoveredCount'>(),
-  onlyDiscovered: z.array(z.string().min(1).brand<'ProjectResultOnlyDiscovered'>()).default([]),
-  onlyProcessed: z.array(z.string().min(1).brand<'ProjectResultOnlyProcessed'>()).default([]),
-  fileTimings: z.array(fileTimingContract).default([]),
-  passingTests: z.array(passingTestContract).default([]),
-  // Async resources still open when the suite finished. Jest can only collect these while running
-  // in band, so this is populated on a FILE-scoped run and empty on a worker run — an empty array
-  // means "nobody looked", never "nothing leaked".
-  openHandles: z.array(openHandleContract).default([]),
-  // Absent unless the check applied a --onlyTests pattern, which lets the run distinguish a check
-  // that never filtered by name (lint, typecheck) from one that filtered and found nothing.
-  testNamePatternMatch: testNamePatternMatchContract.optional(),
-  // This package's own wall clock for the check, distinct from checkResultContract's durationMs —
-  // that one is the whole check across every package (see multi-package-layer-broker). Defaults
-  // to 0 so parses that predate this field (saved .ward/ results, precomputed typecheck results with
-  // no per-package split) keep working.
-  durationMs: z.number().nonnegative().default(0).brand<'ProjectResultDurationMs'>(),
-}).brand<'ProjectResult'>();
+export const projectResultContract = z
+  .object({
+    projectFolder: projectFolderContract,
+    status: checkStatusContract,
+    errors: z.array(errorEntryContract),
+    // A SUBSET of `errors`, never additional to it — populated only by a genuinely file-scoped
+    // typecheck run (see checkRunTypecheckBroker), naming which of `errors` sit in a file the
+    // caller did NOT name. Every other check, and every non-file-scoped run, leaves this empty and
+    // `errors` carries the full truthful list either way, so every existing consumer of `errors`
+    // (crash detection, failing-file counts) stays correct without knowing this field exists.
+    elsewhereErrors: z.array(errorEntryContract).default([]),
+    testFailures: z.array(testFailureContract),
+    rawOutput: rawOutputContract.default(
+      rawOutputContract.parse({ stdout: '', stderr: '', exitCode: 0 }),
+    ),
+    // `.default()` before `.brand()` on both — zod v4 checks a `.default()` literal against the
+    // schema's own output type, and a bare number can never satisfy a branded type.
+    filesCount: z.number().int().nonnegative().default(0).brand<'ProjectResultFilesCount'>(),
+    discoveredCount: z
+      .number()
+      .int()
+      .nonnegative()
+      .default(0)
+      .brand<'ProjectResultDiscoveredCount'>(),
+    onlyDiscovered: z.array(z.string().min(1).brand<'ProjectResultOnlyDiscovered'>()).default([]),
+    onlyProcessed: z.array(z.string().min(1).brand<'ProjectResultOnlyProcessed'>()).default([]),
+    fileTimings: z.array(fileTimingContract).default([]),
+    passingTests: z.array(passingTestContract).default([]),
+    // Async resources still open when the suite finished. Jest can only collect these while running
+    // in band, so this is populated on a FILE-scoped run and empty on a worker run — an empty array
+    // means "nobody looked", never "nothing leaked".
+    openHandles: z.array(openHandleContract).default([]),
+    // Absent unless the check applied a --onlyTests pattern, which lets the run distinguish a check
+    // that never filtered by name (lint, typecheck) from one that filtered and found nothing.
+    testNamePatternMatch: testNamePatternMatchContract.optional(),
+    // This package's own wall clock for the check, distinct from checkResultContract's durationMs —
+    // that one is the whole check across every package (see multi-package-layer-broker). Defaults
+    // to 0 so parses that predate this field (saved .ward/ results, precomputed typecheck results with
+    // no per-package split) keep working.
+    durationMs: z.number().nonnegative().default(0).brand<'ProjectResultDurationMs'>(),
+  })
+  .brand<'ProjectResult'>();
 
 export type ProjectResult = z.infer<typeof projectResultContract>;

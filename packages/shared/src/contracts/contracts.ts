@@ -10,10 +10,7 @@
 
 // File Path Contracts
 
-
 export * from './relative-file-path/relative-file-path-contract';
-
-
 
 // File Contents Contracts
 
@@ -49,14 +46,11 @@ export * from './exec-result/exec-result-contract';
 // Port Kill Listener Result Contracts
 export * from './port-kill-listener-result/port-kill-listener-result-contract';
 
-
 // Quest Contracts
 
 export * from './quest-status/quest-status-contract';
 
-
 export * from './base-branch-name/base-branch-name-contract';
-
 
 export * from './quest-list-item/quest-list-item-contract';
 export * from './skipped-quest-file/skipped-quest-file-contract';
@@ -77,7 +71,6 @@ export * from './quest-type/quest-type-contract';
 
 // Install Contracts
 
-
 export * from './install-action/install-action-contract';
 
 export * from './install-result/install-result-contract';
@@ -85,13 +78,6 @@ export * from './install-result/install-result-contract';
 export * from './install-context/install-context-contract';
 
 // ID Contracts (Wave 1)
-
-
-
-
-
-
-
 
 export * from './flow-recipe/flow-recipe-contract';
 
@@ -109,15 +95,11 @@ export * from './flow-node-type/flow-node-type-contract';
 
 export * from './flow-observable/flow-observable-contract';
 
-
-
 export * from './quest-comment/quest-comment-contract';
 
 export * from './comment-batch-entry/comment-batch-entry-contract';
 
 export * from './flow-node/flow-node-contract';
-
-
 
 export * from './flow-edge/flow-edge-contract';
 
@@ -131,10 +113,7 @@ export * from './operation-item/operation-item-contract';
 
 export * from './orchestration-slot/orchestration-slot-contract';
 
-
-
 // Execution Progress Count Contracts
-
 
 export * from './orchestration-status/orchestration-status-contract';
 
@@ -145,7 +124,6 @@ export * from './quest-contract-kind/quest-contract-kind-contract';
 export * from './quest-contract-status/quest-contract-status-contract';
 
 export * from './quest-contract-property/quest-contract-property-contract';
-
 
 export * from './quest-contract-entry/quest-contract-entry-contract';
 
@@ -158,8 +136,6 @@ export * from './ws-message/ws-message-contract';
 // URL Slug Contracts
 
 // Guild Contracts
-
-
 
 export * from './guild/guild-contract';
 
@@ -174,8 +150,6 @@ export * from './session-list-item/session-list-item-contract';
 
 // CSS & Display Contracts
 export * from './hex-color/hex-color-contract';
-
-
 
 // File Count Contracts
 
@@ -202,9 +176,7 @@ export * from './work-item-status/work-item-status-contract';
 
 export * from './work-item-role/work-item-role-contract';
 
-
 export * from './spawner-type/spawner-type-contract';
-
 
 export * from './ward-result/ward-result-contract';
 export * from './ward-detail/ward-detail-contract';
@@ -212,7 +184,6 @@ export * from './ward-detail/ward-detail-contract';
 export * from './riftcarver-result/riftcarver-result-contract';
 
 export * from './quest-session/quest-session-contract';
-
 
 export * from './piece-id/piece-id-contract';
 
@@ -277,7 +248,6 @@ export * from './qa-checklist-kind/qa-checklist-kind-contract';
 
 export * from './qa-off-map-family/qa-off-map-family-contract';
 
-
 export * from './qa-checklist-item/qa-checklist-item-contract';
 
 export * from './qa-walk-path/qa-walk-path-contract';
@@ -289,7 +259,6 @@ export * from './qa-checklist/qa-checklist-contract';
 export * from './blight-concern/blight-concern-contract';
 
 export * from './blight-disposition/blight-disposition-contract';
-
 
 export * from './blight-checklist-item/blight-checklist-item-contract';
 
@@ -319,8 +288,6 @@ export * from './unit-observation/unit-observation-contract';
 // Quest Note Contracts (the durable side channel on quest.planningNotes.questNotes — open
 // questions, tooling failures, out-of-scope observations, walk resets and walked-path records,
 // none of which close a unit)
-
-
 
 export * from './quest-note-kind/quest-note-kind-contract';
 
@@ -380,9 +347,6 @@ export * from './dispatch-state/dispatch-state-contract';
 export * from './orchestration-mode/orchestration-mode-contract';
 
 // Typed CWD Brand Contracts (Layer 3 — Stroustrup locations)
-
-
-
 
 // Normalized Line Contracts
 export * from './normalized-line/normalized-line-contract';
@@ -482,7 +446,6 @@ export * from './quest-section/quest-section-contract';
 // orchestrator session that dispatched the planner, without holding the plan in context)
 
 export * from './operation-plan-piece/operation-plan-piece-contract';
-
 
 export * from './operation-plan/operation-plan-contract';
 

@@ -35,5 +35,5 @@ export const pathDepthTransformer = ({ filePath }: { filePath: string }): number
   const parts = pathAfterFolderType.split('/');
 
   // Depth is number of directories (total parts - 1 for the filename)
-  return (parts.length - 1);
+  return parts.length - 1;
 };

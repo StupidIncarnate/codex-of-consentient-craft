@@ -1,4 +1,3 @@
-
 import { uploadPercentTransformer } from './upload-percent-transformer';
 
 describe('uploadPercentTransformer', () => {

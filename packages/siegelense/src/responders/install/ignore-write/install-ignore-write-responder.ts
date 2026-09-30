@@ -37,7 +37,11 @@
 import { existsSync } from '#gateway/node/fs';
 import { readFile, writeFile } from '#gateway/node/fs__promises';
 import { resolve } from '#gateway/node/path';
-import { type InstallContext, type InstallResult, installResultContract } from '@dungeonmaster/shared/contracts';
+import {
+  type InstallContext,
+  type InstallResult,
+  installResultContract,
+} from '@dungeonmaster/shared/contracts';
 import { locationsStatics } from '@dungeonmaster/shared/statics';
 import { ArrayEntryAnchorInsertLayerResponder } from './array-entry-anchor-insert-layer-responder';
 
@@ -141,9 +145,7 @@ export const InstallIgnoreWriteResponder = async ({
   // A repo may name its eslint config any of these four ways; the first one found on disk is the
   // one this repo actually uses.
   const eslintConfigPath = locationsStatics.repoRoot.eslintConfig
-    .map((candidateName) =>
-      resolve(context.targetProjectRoot, candidateName),
-    )
+    .map((candidateName) => resolve(context.targetProjectRoot, candidateName))
     .find((candidatePath) => existsSync(candidatePath));
 
   if (eslintConfigPath !== undefined) {
@@ -189,9 +191,7 @@ export const InstallIgnoreWriteResponder = async ({
   }
 
   const jestConfigPath = [JEST_CONFIG_JS_FILENAME, JEST_CONFIG_CJS_FILENAME]
-    .map((candidateName) =>
-      resolve(context.targetProjectRoot, candidateName),
-    )
+    .map((candidateName) => resolve(context.targetProjectRoot, candidateName))
     .find((candidatePath) => existsSync(candidatePath));
 
   if (jestConfigPath !== undefined) {

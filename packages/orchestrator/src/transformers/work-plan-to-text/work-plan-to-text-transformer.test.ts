@@ -55,7 +55,7 @@ describe('workPlanToTextTransformer', () => {
         inScopeUnits: IN_SCOPE_UNITS,
       });
 
-      const row = String(result)
+      const row = result
         .split('\n')
         .find((line) => line.startsWith('| `send-flow:terminal:batch-sent`'));
 
@@ -69,7 +69,7 @@ describe('workPlanToTextTransformer', () => {
         inScopeUnits: IN_SCOPE_UNITS,
       });
 
-      const row = String(result)
+      const row = result
         .split('\n')
         .find((line) => line.startsWith('| `send-flow:observable:check-badge-count-text`'));
 
@@ -85,7 +85,7 @@ describe('workPlanToTextTransformer', () => {
         inScopeUnits: IN_SCOPE_UNITS,
       });
 
-      const line = String(result)
+      const line = result
         .split('\n')
         .find((entry) => entry.endsWith('in-scope units are claimed by no piece.'));
 
@@ -109,7 +109,7 @@ describe('workPlanToTextTransformer', () => {
         inScopeUnits: IN_SCOPE_UNITS,
       });
 
-      const row = String(result)
+      const row = result
         .split('\n')
         .find((line) => line.startsWith('| `send-flow:terminal:batch-sent`'));
 
@@ -135,7 +135,7 @@ describe('workPlanToTextTransformer', () => {
         inScopeUnits: IN_SCOPE_UNITS,
       });
 
-      const headings = String(result)
+      const headings = result
         .split('\n')
         .filter((line) => line.startsWith('## Batch'));
 
@@ -149,7 +149,7 @@ describe('workPlanToTextTransformer', () => {
         inScopeUnits: IN_SCOPE_UNITS,
       });
 
-      const lines = String(result).split('\n');
+      const lines = result.split('\n');
       const headingIndex = lines.indexOf('## Batch 1 — parallel');
 
       expect(lines[headingIndex + 1]).toBe(
@@ -166,7 +166,7 @@ describe('workPlanToTextTransformer', () => {
         inScopeUnits: IN_SCOPE_UNITS,
       });
 
-      const heading = String(result)
+      const heading = result
         .split('\n')
         .find((line) => line.startsWith('### '));
 
@@ -180,7 +180,7 @@ describe('workPlanToTextTransformer', () => {
         inScopeUnits: IN_SCOPE_UNITS,
       });
 
-      const row = String(result)
+      const row = result
         .split('\n')
         .find((line) => line.startsWith('- [outstanding]'));
 
@@ -208,7 +208,7 @@ describe('workPlanToTextTransformer', () => {
         inScopeUnits: [],
       });
 
-      const line = String(result)
+      const line = result
         .split('\n')
         .find((entry) => entry.startsWith('Claims no unit'));
 
@@ -224,7 +224,7 @@ describe('workPlanToTextTransformer', () => {
         inScopeUnits: IN_SCOPE_UNITS,
       });
 
-      const line = String(result)
+      const line = result
         .split('\n')
         .find((entry) => entry.startsWith('No planner has run'));
 
@@ -240,7 +240,7 @@ describe('workPlanToTextTransformer', () => {
         inScopeUnits: [],
       });
 
-      const lines = String(result).split('\n');
+      const lines = result.split('\n');
 
       expect([lines[0], lines[2]]).toStrictEqual([
         '# Plan for operation item a1b2c3d4-58cc-4372-a567-0e02b2c3d479',

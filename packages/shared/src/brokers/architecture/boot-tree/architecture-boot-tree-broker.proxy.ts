@@ -9,13 +9,7 @@ import { architectureEventBusBrokerProxy } from '../event-bus/architecture-event
 import { FileMissingErrorStub } from '#gateway/node/fs/file-missing-error/file-missing-error.stub';
 
 export const architectureBootTreeBrokerProxy = (): {
-  setupStartupFiles: ({
-    packageRoot,
-    names,
-  }: {
-    packageRoot: string;
-    names: string[];
-  }) => void;
+  setupStartupFiles: ({ packageRoot, names }: { packageRoot: string; names: string[] }) => void;
   setupNoStartupFiles: ({ packageRoot }: { packageRoot: string }) => void;
   setupFileContentsMap: ({ map }: { map: Record<string, string> }) => void;
 } => {
@@ -37,7 +31,7 @@ export const architectureBootTreeBrokerProxy = (): {
   const buildImpl =
     (map: Record<string, string>) =>
     (filePath: string): string => {
-      const fp = String(filePath);
+      const fp = filePath;
       for (const [suffix, content] of Object.entries(map)) {
         if (fp.endsWith(suffix)) {
           return content;
@@ -47,19 +41,13 @@ export const architectureBootTreeBrokerProxy = (): {
     };
 
   return {
-    setupStartupFiles: ({
-      packageRoot,
-      names,
-    }: {
-      packageRoot: string;
-      names: string[];
-    }): void => {
-      const packageSrcPath = `${String(packageRoot)}/src`;
+    setupStartupFiles: ({ packageRoot, names }: { packageRoot: string; names: string[] }): void => {
+      const packageSrcPath = `${packageRoot}/src`;
       startupProxy.setupFiles({ packageSrcPath, names });
     },
 
     setupNoStartupFiles: ({ packageRoot }: { packageRoot: string }): void => {
-      const packageSrcPath = `${String(packageRoot)}/src`;
+      const packageSrcPath = `${packageRoot}/src`;
       startupProxy.setupEmpty({ packageSrcPath });
     },
 

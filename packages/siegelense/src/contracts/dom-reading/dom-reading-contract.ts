@@ -12,7 +12,6 @@
 
 import { z } from '#gateway/npm/zod';
 
-
 import { domNodeContract } from '../dom-node/dom-node-contract';
 
 export const domReadingContract = z
@@ -23,6 +22,7 @@ export const domReadingContract = z
     note: z.string().brand<'DomReadingNote'>().nullable().optional(),
     nodes: z.array(domNodeContract).readonly().optional(),
   })
-  .strict().brand<'DomReading'>();
+  .strict()
+  .brand<'DomReading'>();
 
 export type DomReading = z.infer<typeof domReadingContract>;

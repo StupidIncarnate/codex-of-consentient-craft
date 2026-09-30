@@ -16,8 +16,12 @@ import { z } from '#gateway/npm/zod';
 import { questWorkRecordResultContract } from '../quest-work-record-result/quest-work-record-result-contract';
 
 export const questWorkResultContract = z.discriminatedUnion('kind', [
-  z.object({ kind: z.literal('plan'), operationItemId: operationItemContract.shape.id }).brand<'QuestWorkResult'>(),
-  z.object({ kind: z.literal('amendment'), operationItemId: operationItemContract.shape.id }).brand<'QuestWorkResult'>(),
+  z
+    .object({ kind: z.literal('plan'), operationItemId: operationItemContract.shape.id })
+    .brand<'QuestWorkResult'>(),
+  z
+    .object({ kind: z.literal('amendment'), operationItemId: operationItemContract.shape.id })
+    .brand<'QuestWorkResult'>(),
   ...questWorkRecordResultContract.options,
 ]);
 

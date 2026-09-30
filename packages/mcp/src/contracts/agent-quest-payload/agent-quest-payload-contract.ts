@@ -18,10 +18,12 @@ import { questContract } from '@dungeonmaster/shared/contracts';
 // already handled several turns ago. `.omit` drops `comments` from the schema's shape, so zod's
 // default "strip unknown keys" parse behavior removes it from whatever the orchestrator hands
 // back — see quest-strip-comments-transformer.ts for where this contract is actually applied.
-export const agentQuestPayloadContract = z.object({
-  success: z.boolean(),
-  quest: questContract.omit({ comments: true }).brand<'AgentQuestPayloadQuest'>().optional(),
-  error: z.string().brand<'AgentQuestPayloadError'>().optional(),
-}).brand<'AgentQuestPayload'>();
+export const agentQuestPayloadContract = z
+  .object({
+    success: z.boolean(),
+    quest: questContract.omit({ comments: true }).brand<'AgentQuestPayloadQuest'>().optional(),
+    error: z.string().brand<'AgentQuestPayloadError'>().optional(),
+  })
+  .brand<'AgentQuestPayload'>();
 
 export type AgentQuestPayload = z.infer<typeof agentQuestPayloadContract>;

@@ -10,9 +10,11 @@
  */
 import { z } from '#gateway/npm/zod';
 
-export const opRemoveContract = z.object({
-  op: z.literal('remove'),
-  ref: z.string().min(1).brand<'OpRemoveRef'>(),
-}).brand<'OpRemove'>();
+export const opRemoveContract = z
+  .object({
+    op: z.literal('remove'),
+    ref: z.string().min(1).brand<'OpRemoveRef'>(),
+  })
+  .brand<'OpRemove'>();
 
 export type OpRemove = z.infer<typeof opRemoveContract>;

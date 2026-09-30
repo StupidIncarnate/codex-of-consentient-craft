@@ -162,7 +162,7 @@ export const checkRunE2eBrokerProxy = (): {
       queueFreePorts();
       stageCacheRemoval({ projectFolder });
       run.setupSuccess({
-        command: String(resolveCommand({ projectFolder })),
+        command: resolveCommand({ projectFolder }),
         exitCode: 0,
         stdout: '',
         stderr: '',
@@ -175,7 +175,7 @@ export const checkRunE2eBrokerProxy = (): {
       stageCacheRemoval({ projectFolder });
       stageCachedBundle({ projectFolder });
       run.setupSuccess({
-        command: String(resolveCommand({ projectFolder })),
+        command: resolveCommand({ projectFolder }),
         exitCode: 0,
         stdout: '',
         stderr: '',
@@ -196,7 +196,7 @@ export const checkRunE2eBrokerProxy = (): {
       queueFreePorts();
       stageCacheRemoval({ projectFolder });
       run.setupSuccess({
-        command: String(resolveCommand({ projectFolder })),
+        command: resolveCommand({ projectFolder }),
         exitCode: 0,
         stdout,
         stderr: '',
@@ -214,7 +214,7 @@ export const checkRunE2eBrokerProxy = (): {
       queueFreePorts();
       stageCacheRemoval({ projectFolder });
       run.setupSuccess({
-        command: String(resolveCommand({ projectFolder })),
+        command: resolveCommand({ projectFolder }),
         exitCode: 0,
         stdout: '',
         stderr: '',
@@ -236,7 +236,7 @@ export const checkRunE2eBrokerProxy = (): {
       queueFreePorts();
       stageCacheRemoval({ projectFolder });
       run.setupSuccess({
-        command: String(resolveCommand({ projectFolder })),
+        command: resolveCommand({ projectFolder }),
         exitCode: 1,
         stdout,
         stderr: '',
@@ -248,7 +248,7 @@ export const checkRunE2eBrokerProxy = (): {
       queueFreePorts();
       stageCacheRemoval({ projectFolder });
       run.setupSuccess({
-        command: String(resolveCommand({ projectFolder })),
+        command: resolveCommand({ projectFolder }),
         exitCode: 1,
         stdout: '',
         stderr: '',
@@ -294,10 +294,10 @@ export const checkRunE2eBrokerProxy = (): {
         port: STAGED_SERVER_PORT,
       }),
     getSpawnedArgs: (): unknown =>
-      run.getCallsFor({ command: String(resolvedCommandRef.value) }).at(-1),
+      run.getCallsFor({ command: resolvedCommandRef.value }).at(-1),
     getSpawnedEnvValue: ({ key }: { key: string }): unknown =>
-      run.getOptionsFor({ command: String(resolvedCommandRef.value) }).at(-1)?.env[key],
+      run.getOptionsFor({ command: resolvedCommandRef.value }).at(-1)?.env[key],
     getSpawnedOptions: (): unknown =>
-      run.getOptionsFor({ command: String(resolvedCommandRef.value) }).at(-1),
+      run.getOptionsFor({ command: resolvedCommandRef.value }).at(-1),
   };
 };

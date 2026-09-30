@@ -6,7 +6,6 @@
  * // Returns "+12ms <- {"type":"quest-modified"}"
  */
 
-
 import type { WsLogEntry } from '../../contracts/ws-log-entry/ws-log-entry-contract';
 import { truncateNetworkBodyTransformer } from '../truncate-network-body/truncate-network-body-transformer';
 
@@ -15,5 +14,5 @@ export const formatWsEntryTransformer = ({ wsEntry }: { wsEntry: WsLogEntry }): 
   const truncatedData = truncateNetworkBodyTransformer({
     body: wsEntry.data,
   });
-  return `+${String(wsEntry.elapsedMs)}ms ${arrow} ${String(truncatedData)}`;
+  return `+${String(wsEntry.elapsedMs)}ms ${arrow} ${truncatedData}`;
 };

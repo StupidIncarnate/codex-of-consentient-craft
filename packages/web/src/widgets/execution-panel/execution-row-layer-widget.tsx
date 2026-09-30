@@ -17,7 +17,13 @@
 import { Box, Text, UnstyledButton } from '#gateway/npm/mantine__core';
 import { useEffect, useMemo, useRef, useState } from '#gateway/npm/react';
 
-import type { RiftcarverResult, WardResult, WorkItem, ChatEntry, Quest } from '@dungeonmaster/shared/contracts';
+import type {
+  RiftcarverResult,
+  WardResult,
+  WorkItem,
+  ChatEntry,
+  Quest,
+} from '@dungeonmaster/shared/contracts';
 
 import { isCommandWorkItemRoleGuard } from '@dungeonmaster/shared/guards';
 import type { ExecutionRole } from '../../contracts/execution-role/execution-role-contract';
@@ -283,7 +289,7 @@ export const ExecutionRowLayerWidget = ({
             ? {
                 backgroundColor: colors['bg-raised'],
                 position: 'sticky' as const,
-                top: Number(STICKY_TOP_ROOT),
+                top: STICKY_TOP_ROOT,
                 zIndex: Number(stickyHeaderZIndexTransformer({ stickyTop: STICKY_TOP_ROOT })),
                 height: stickyHeaderStatics.heights.executionRow,
                 boxSizing: 'border-box' as const,

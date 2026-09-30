@@ -5,19 +5,19 @@ describe('jestJsonParseTransformer', () => {
   describe('valid output', () => {
     it('VALID: {single failed test with stack trace} => returns single TestFailure with stackTrace', () => {
       const jsonOutput = JSON.stringify({
-          testResults: [
-            {
-              name: '/path/file.test.ts',
-              assertionResults: [
-                {
-                  fullName: 'should work',
-                  status: 'failed',
-                  failureMessages: ['Error: expected true\n    at Object.<anonymous> (/path:10:5)'],
-                },
-              ],
-            },
-          ],
-        });
+        testResults: [
+          {
+            name: '/path/file.test.ts',
+            assertionResults: [
+              {
+                fullName: 'should work',
+                status: 'failed',
+                failureMessages: ['Error: expected true\n    at Object.<anonymous> (/path:10:5)'],
+              },
+            ],
+          },
+        ],
+      });
 
       const result = jestJsonParseTransformer({ jsonOutput });
 
@@ -33,19 +33,19 @@ describe('jestJsonParseTransformer', () => {
 
     it('VALID: {failed test without stack trace} => returns TestFailure without stackTrace', () => {
       const jsonOutput = JSON.stringify({
-          testResults: [
-            {
-              name: '/path/file.test.ts',
-              assertionResults: [
-                {
-                  fullName: 'should fail',
-                  status: 'failed',
-                  failureMessages: ['Expected true to be false'],
-                },
-              ],
-            },
-          ],
-        });
+        testResults: [
+          {
+            name: '/path/file.test.ts',
+            assertionResults: [
+              {
+                fullName: 'should fail',
+                status: 'failed',
+                failureMessages: ['Expected true to be false'],
+              },
+            ],
+          },
+        ],
+      });
 
       const result = jestJsonParseTransformer({ jsonOutput });
 
@@ -60,20 +60,20 @@ describe('jestJsonParseTransformer', () => {
 
     it('VALID: {mixed passed and failed tests} => returns only failed tests', () => {
       const jsonOutput = JSON.stringify({
-          testResults: [
-            {
-              name: '/path/file.test.ts',
-              assertionResults: [
-                { fullName: 'passes', status: 'passed', failureMessages: [] },
-                {
-                  fullName: 'fails',
-                  status: 'failed',
-                  failureMessages: ['Assertion error'],
-                },
-              ],
-            },
-          ],
-        });
+        testResults: [
+          {
+            name: '/path/file.test.ts',
+            assertionResults: [
+              { fullName: 'passes', status: 'passed', failureMessages: [] },
+              {
+                fullName: 'fails',
+                status: 'failed',
+                failureMessages: ['Assertion error'],
+              },
+            ],
+          },
+        ],
+      });
 
       const result = jestJsonParseTransformer({ jsonOutput });
 
@@ -88,21 +88,21 @@ describe('jestJsonParseTransformer', () => {
 
     it('VALID: {multiple suites with failures} => returns failures from all suites', () => {
       const jsonOutput = JSON.stringify({
-          testResults: [
-            {
-              name: '/path/a.test.ts',
-              assertionResults: [
-                { fullName: 'test a', status: 'failed', failureMessages: ['Error a'] },
-              ],
-            },
-            {
-              name: '/path/b.test.ts',
-              assertionResults: [
-                { fullName: 'test b', status: 'failed', failureMessages: ['Error b'] },
-              ],
-            },
-          ],
-        });
+        testResults: [
+          {
+            name: '/path/a.test.ts',
+            assertionResults: [
+              { fullName: 'test a', status: 'failed', failureMessages: ['Error a'] },
+            ],
+          },
+          {
+            name: '/path/b.test.ts',
+            assertionResults: [
+              { fullName: 'test b', status: 'failed', failureMessages: ['Error b'] },
+            ],
+          },
+        ],
+      });
 
       const result = jestJsonParseTransformer({ jsonOutput });
 
@@ -124,15 +124,15 @@ describe('jestJsonParseTransformer', () => {
   describe('suite-level failures', () => {
     it('VALID: {suite failed to run with compilation error} => returns suite-level TestFailure', () => {
       const jsonOutput = JSON.stringify({
-          testResults: [
-            {
-              name: '/path/file.test.ts',
-              status: 'failed',
-              message: 'src/file.ts:10:5 - error TS2552: Cannot find name...',
-              assertionResults: [],
-            },
-          ],
-        });
+        testResults: [
+          {
+            name: '/path/file.test.ts',
+            status: 'failed',
+            message: 'src/file.ts:10:5 - error TS2552: Cannot find name...',
+            assertionResults: [],
+          },
+        ],
+      });
 
       const result = jestJsonParseTransformer({ jsonOutput });
 
@@ -147,21 +147,21 @@ describe('jestJsonParseTransformer', () => {
 
     it('VALID: {suite with both assertion failures and suite message} => returns only assertion failures', () => {
       const jsonOutput = JSON.stringify({
-          testResults: [
-            {
-              name: '/path/file.test.ts',
-              status: 'failed',
-              message: 'some suite message',
-              assertionResults: [
-                {
-                  fullName: 'test fails',
-                  status: 'failed',
-                  failureMessages: ['Assertion error'],
-                },
-              ],
-            },
-          ],
-        });
+        testResults: [
+          {
+            name: '/path/file.test.ts',
+            status: 'failed',
+            message: 'some suite message',
+            assertionResults: [
+              {
+                fullName: 'test fails',
+                status: 'failed',
+                failureMessages: ['Assertion error'],
+              },
+            ],
+          },
+        ],
+      });
 
       const result = jestJsonParseTransformer({ jsonOutput });
 
@@ -178,15 +178,15 @@ describe('jestJsonParseTransformer', () => {
       const esc = String.fromCharCode(27);
       const suiteMessage = `  \u25cf Test suite failed to run\n\n    ${esc}[96msrc/file.ts${esc}[0m:${esc}[93m33${esc}[0m:${esc}[93m17${esc}[0m - ${esc}[91merror${esc}[0m${esc}[90m TS2552: ${esc}[0mCannot find name 'Foo'.\n\n    ${esc}[7m33${esc}[0m   const x: Foo = 1;`;
       const jsonOutput = JSON.stringify({
-          testResults: [
-            {
-              name: '/path/file.test.ts',
-              status: 'failed',
-              message: suiteMessage,
-              assertionResults: [],
-            },
-          ],
-        });
+        testResults: [
+          {
+            name: '/path/file.test.ts',
+            status: 'failed',
+            message: suiteMessage,
+            assertionResults: [],
+          },
+        ],
+      });
 
       const result = jestJsonParseTransformer({ jsonOutput });
 
@@ -201,15 +201,15 @@ describe('jestJsonParseTransformer', () => {
 
     it('VALID: {suite failed with empty message} => returns empty array', () => {
       const jsonOutput = JSON.stringify({
-          testResults: [
-            {
-              name: '/path/file.test.ts',
-              status: 'failed',
-              message: '',
-              assertionResults: [],
-            },
-          ],
-        });
+        testResults: [
+          {
+            name: '/path/file.test.ts',
+            status: 'failed',
+            message: '',
+            assertionResults: [],
+          },
+        ],
+      });
 
       const result = jestJsonParseTransformer({ jsonOutput });
 
@@ -228,13 +228,13 @@ describe('jestJsonParseTransformer', () => {
 
     it('EMPTY: {all tests passed} => returns empty array', () => {
       const jsonOutput = JSON.stringify({
-          testResults: [
-            {
-              name: '/path/file.test.ts',
-              assertionResults: [{ fullName: 'passes', status: 'passed', failureMessages: [] }],
-            },
-          ],
-        });
+        testResults: [
+          {
+            name: '/path/file.test.ts',
+            assertionResults: [{ fullName: 'passes', status: 'passed', failureMessages: [] }],
+          },
+        ],
+      });
 
       const result = jestJsonParseTransformer({ jsonOutput });
 
@@ -309,22 +309,22 @@ describe('jestJsonParseTransformer', () => {
   describe('timeout annotation', () => {
     it('VALID: {timeout + no assertions combo} => returns annotated message instead of raw timeout noise', () => {
       const jsonOutput = JSON.stringify({
-          testResults: [
-            {
-              name: '/path/file.test.ts',
-              assertionResults: [
-                {
-                  fullName: 'my integration test',
-                  status: 'failed',
-                  failureMessages: [
-                    'thrown: "Exceeded timeout of 30000 ms for a test.\nAdd a timeout value to this test to increase the timeout, if this is a long-running test. See https://jestjs.io/docs/api#testname-fn-timeout."',
-                    'Error: Test "my integration test" has no assertions. Add expect() calls or remove the test.',
-                  ],
-                },
-              ],
-            },
-          ],
-        });
+        testResults: [
+          {
+            name: '/path/file.test.ts',
+            assertionResults: [
+              {
+                fullName: 'my integration test',
+                status: 'failed',
+                failureMessages: [
+                  'thrown: "Exceeded timeout of 30000 ms for a test.\nAdd a timeout value to this test to increase the timeout, if this is a long-running test. See https://jestjs.io/docs/api#testname-fn-timeout."',
+                  'Error: Test "my integration test" has no assertions. Add expect() calls or remove the test.',
+                ],
+              },
+            ],
+          },
+        ],
+      });
 
       const result = jestJsonParseTransformer({ jsonOutput });
 
@@ -345,22 +345,22 @@ describe('jestJsonParseTransformer', () => {
 
     it('VALID: {timeout + no assertions combo} => strips stack trace from annotated failure', () => {
       const jsonOutput = JSON.stringify({
-          testResults: [
-            {
-              name: '/path/file.test.ts',
-              assertionResults: [
-                {
-                  fullName: 'poll test',
-                  status: 'failed',
-                  failureMessages: [
-                    'thrown: "Exceeded timeout of 30000 ms for a test."\n    at Object.<anonymous> (/path/file.test.ts:10:5)',
-                    'Error: Test "poll test" has no assertions. Add expect() calls or remove the test.\n    at Object.<anonymous> (/path/setup.js:73:11)',
-                  ],
-                },
-              ],
-            },
-          ],
-        });
+        testResults: [
+          {
+            name: '/path/file.test.ts',
+            assertionResults: [
+              {
+                fullName: 'poll test',
+                status: 'failed',
+                failureMessages: [
+                  'thrown: "Exceeded timeout of 30000 ms for a test."\n    at Object.<anonymous> (/path/file.test.ts:10:5)',
+                  'Error: Test "poll test" has no assertions. Add expect() calls or remove the test.\n    at Object.<anonymous> (/path/setup.js:73:11)',
+                ],
+              },
+            ],
+          },
+        ],
+      });
 
       const result = jestJsonParseTransformer({ jsonOutput });
 
@@ -381,19 +381,19 @@ describe('jestJsonParseTransformer', () => {
 
     it('VALID: {timeout without no-assertions} => uses normal stripping, not annotation', () => {
       const jsonOutput = JSON.stringify({
-          testResults: [
-            {
-              name: '/path/file.test.ts',
-              assertionResults: [
-                {
-                  fullName: 'slow test',
-                  status: 'failed',
-                  failureMessages: ['Exceeded timeout of 5000 ms for a test.'],
-                },
-              ],
-            },
-          ],
-        });
+        testResults: [
+          {
+            name: '/path/file.test.ts',
+            assertionResults: [
+              {
+                fullName: 'slow test',
+                status: 'failed',
+                failureMessages: ['Exceeded timeout of 5000 ms for a test.'],
+              },
+            ],
+          },
+        ],
+      });
 
       const result = jestJsonParseTransformer({ jsonOutput });
 

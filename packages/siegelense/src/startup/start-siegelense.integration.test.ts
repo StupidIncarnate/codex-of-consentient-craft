@@ -23,9 +23,7 @@ describe('StartSiegelense', () => {
 
       await StartSiegelense({ args: [] });
 
-      const writes = stdoutSpy
-        .callsMatching([])
-        .map((call) => String(call[0]));
+      const writes = stdoutSpy.callsMatching([]).map((call) => String(call[0]));
 
       // MACHINE reads live statfs/loadavg, stripped the same way siegelense-flow.integration.test.ts
       // strips it from the equivalent assertion, so this stays deterministic.

@@ -8,12 +8,14 @@
 
 import { z } from '#gateway/npm/zod';
 
-export const wardQueueResponseContract = z.object({
-  exitCode: z.number().int().min(0).max(255).brand<'WardQueueResponseExitCode'>().optional(),
-  runId: z.string().min(1).brand<'WardQueueResponseRunId'>().optional(),
-  wardResultJson: z.json().optional(),
-  outputLines: z.array(z.string().brand<'WardQueueResponseOutputLines'>()).optional(),
-  delayMs: z.number().int().min(0).brand<'WardQueueResponseDelayMs'>().optional(),
-}).brand<'WardQueueResponse'>();
+export const wardQueueResponseContract = z
+  .object({
+    exitCode: z.number().int().min(0).max(255).brand<'WardQueueResponseExitCode'>().optional(),
+    runId: z.string().min(1).brand<'WardQueueResponseRunId'>().optional(),
+    wardResultJson: z.json().optional(),
+    outputLines: z.array(z.string().brand<'WardQueueResponseOutputLines'>()).optional(),
+    delayMs: z.number().int().min(0).brand<'WardQueueResponseDelayMs'>().optional(),
+  })
+  .brand<'WardQueueResponse'>();
 
 export type WardQueueResponse = z.infer<typeof wardQueueResponseContract>;

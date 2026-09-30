@@ -79,10 +79,7 @@ describe('smoketestEnsureGuildBroker', () => {
           },
         ],
         homeRepoRoot: CODEX_REPO_ROOT,
-        guildRepoRoots: [
-          CODEX_REPO_ROOT,
-          OTHER_REPO_ROOT,
-        ],
+        guildRepoRoots: [CODEX_REPO_ROOT, OTHER_REPO_ROOT],
       });
 
       const result = await smoketestEnsureGuildBroker();
@@ -126,10 +123,7 @@ describe('smoketestEnsureGuildBroker', () => {
           },
         ],
         homeRepoRoot: CODEX_REPO_ROOT,
-        guildRepoRoots: [
-          CODEX_REPO_ROOT,
-          CODEX_REPO_ROOT,
-        ],
+        guildRepoRoots: [CODEX_REPO_ROOT, CODEX_REPO_ROOT],
       });
 
       const result = await smoketestEnsureGuildBroker();

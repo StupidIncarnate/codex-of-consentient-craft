@@ -19,7 +19,6 @@
 import type { OperationItem, Quest } from '@dungeonmaster/shared/contracts';
 import { questFlowStatics } from '@dungeonmaster/shared/statics';
 
-
 export const workItemFamilyResolveTransformer = ({
   quest,
   operationItem,

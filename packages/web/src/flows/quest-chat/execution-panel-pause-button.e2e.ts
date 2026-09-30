@@ -59,7 +59,7 @@ test.describe('Execution Panel Pause/Resume Button', () => {
     });
 
     const urlSlug = guilds.extractUrlSlug({ guild });
-    await nav.navigateToQuest({ urlSlug, questId: questId });
+    await nav.navigateToQuest({ urlSlug, questId });
 
     await expect(page.getByTestId('execution-panel-widget')).toBeVisible({
       timeout: PANEL_TIMEOUT,
@@ -110,7 +110,7 @@ test.describe('Execution Panel Pause/Resume Button', () => {
     });
 
     const urlSlug = guilds.extractUrlSlug({ guild });
-    await nav.navigateToQuest({ urlSlug, questId: questId });
+    await nav.navigateToQuest({ urlSlug, questId });
 
     await expect(page.getByTestId('execution-panel-widget')).toBeVisible({
       timeout: PANEL_TIMEOUT,
@@ -161,7 +161,7 @@ test.describe('Execution Panel Pause/Resume Button', () => {
     });
 
     const urlSlug = guilds.extractUrlSlug({ guild });
-    await nav.navigateToQuest({ urlSlug, questId: questId });
+    await nav.navigateToQuest({ urlSlug, questId });
 
     await expect(page.getByTestId('execution-panel-widget')).toBeVisible({
       timeout: PANEL_TIMEOUT,
@@ -212,7 +212,7 @@ test.describe('Execution Panel Pause/Resume Button', () => {
     });
 
     const urlSlug = guilds.extractUrlSlug({ guild });
-    await nav.navigateToQuest({ urlSlug, questId: questId });
+    await nav.navigateToQuest({ urlSlug, questId });
 
     await expect(page.getByTestId('execution-panel-widget')).toBeVisible({
       timeout: PANEL_TIMEOUT,
@@ -273,10 +273,10 @@ test.describe('Execution Panel Pause/Resume Button', () => {
     });
 
     // Seed pausedAtStatus as a precondition so the resume responder can restore to in_progress.
-    await quests.seedPausedAtStatus({ questId: questId, pausedAtStatus: 'in_progress' });
+    await quests.seedPausedAtStatus({ questId, pausedAtStatus: 'in_progress' });
 
     const urlSlug = guilds.extractUrlSlug({ guild });
-    await nav.navigateToQuest({ urlSlug, questId: questId });
+    await nav.navigateToQuest({ urlSlug, questId });
 
     await expect(page.getByTestId('execution-panel-widget')).toBeVisible({
       timeout: PANEL_TIMEOUT,

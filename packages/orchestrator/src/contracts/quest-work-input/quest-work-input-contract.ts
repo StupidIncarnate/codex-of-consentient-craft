@@ -30,7 +30,14 @@
 
 import { z } from '#gateway/npm/zod';
 
-import { questNoteContract, unitObservationContract, unitObservationFieldsContract, questContract, workItemContract, flowContract } from '@dungeonmaster/shared/contracts';
+import {
+  questNoteContract,
+  unitObservationContract,
+  unitObservationFieldsContract,
+  questContract,
+  workItemContract,
+  flowContract,
+} from '@dungeonmaster/shared/contracts';
 
 import { stepOutcomeContract } from '../step-outcome/step-outcome-contract';
 import { workPlanContract } from '../work-plan/work-plan-contract';
@@ -46,25 +53,31 @@ const planEnvelopeFieldsContract = workPlanFieldsContract
     writtenBy: true,
     writtenAt: true,
   })
-  .strict().brand<'PlanEnvelopeFields'>();
+  .strict()
+  .brand<'PlanEnvelopeFields'>();
 
 // Same reasoning as `planEnvelopeFieldsContract` above — `.strict()` is what turns a
 // caller-supplied `at` into a refusal instead of a silent strip.
-const observationFieldsContract = unitObservationFieldsContract.omit({ at: true }).strict().brand<'ObservationFields'>();
+const observationFieldsContract = unitObservationFieldsContract
+  .omit({ at: true })
+  .strict()
+  .brand<'ObservationFields'>();
 
 const planPayloadContract = z
   .object({
     kind: z.literal('plan'),
     plan: planEnvelopeFieldsContract,
   })
-  .strict().brand<'PlanPayload'>();
+  .strict()
+  .brand<'PlanPayload'>();
 
 const observationsPayloadContract = z
   .object({
     kind: z.literal('observations'),
     observations: z.array(observationFieldsContract).min(1),
   })
-  .strict().brand<'ObservationsPayload'>();
+  .strict()
+  .brand<'ObservationsPayload'>();
 
 const amendmentPayloadContract = z
   .object({
@@ -72,7 +85,8 @@ const amendmentPayloadContract = z
     reason: z.string().min(1).brand<'AmendmentPayloadReason'>(),
     plan: planEnvelopeFieldsContract,
   })
-  .strict().brand<'AmendmentPayload'>();
+  .strict()
+  .brand<'AmendmentPayload'>();
 
 const outcomePayloadContract = z
   .object({
@@ -80,7 +94,8 @@ const outcomePayloadContract = z
     word: stepOutcomeContract,
     reason: z.string().min(1).brand<'OutcomePayloadReason'>(),
   })
-  .strict().brand<'OutcomePayload'>();
+  .strict()
+  .brand<'OutcomePayload'>();
 
 const invalidationPayloadContract = z
   .object({
@@ -88,7 +103,8 @@ const invalidationPayloadContract = z
     flowId: flowContract.shape.id,
     reason: questNoteContract.shape.detail,
   })
-  .strict().brand<'InvalidationPayload'>();
+  .strict()
+  .brand<'InvalidationPayload'>();
 
 const requestPayloadContract = z
   .object({
@@ -96,7 +112,8 @@ const requestPayloadContract = z
     step: z.string().min(1).brand<'RequestPayloadStep'>(),
     reason: z.string().min(1).brand<'RequestPayloadReason'>(),
   })
-  .strict().brand<'RequestPayload'>();
+  .strict()
+  .brand<'RequestPayload'>();
 
 export const questWorkInputContract = z
   .object({
@@ -151,6 +168,7 @@ export const questWorkInputContract = z
         }
       });
     }
-  }).brand<'QuestWorkInput'>();
+  })
+  .brand<'QuestWorkInput'>();
 
 export type QuestWorkInput = z.infer<typeof questWorkInputContract>;

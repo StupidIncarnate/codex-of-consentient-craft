@@ -51,11 +51,7 @@ export const DigestRunResponderProxy = (): {
   // digest-run-responder.ts imports directly.
   readFileSyncProxy();
 
-  const sessionFilePathFor = ({
-    target,
-  }: {
-    target: SessionId;
-  }): string =>
+  const sessionFilePathFor = ({ target }: { target: SessionId }): string =>
     `${PROJECTS_ROOT}/${PROJECT_DIR}/${target}.jsonl`;
 
   return {

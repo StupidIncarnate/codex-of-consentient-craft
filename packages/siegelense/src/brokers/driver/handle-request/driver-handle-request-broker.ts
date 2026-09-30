@@ -35,7 +35,6 @@ import { instanceReleaseBroker } from '../../instance/release/instance-release-b
 import { laneTeardownBroker } from '../../lane/teardown/lane-teardown-broker';
 import { runExecuteBroker } from '../../run/execute/run-execute-broker';
 
-
 export const driverHandleRequestBroker = async ({
   request,
   instanceId,

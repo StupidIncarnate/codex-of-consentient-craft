@@ -10,8 +10,8 @@ export const architectureOrchestratorMethodExtractBrokerProxy = (): {
     setupFiles: (fileMap: Record<string, string>): void => {
       readProxy.setupImplementation({
         fn: (filePath) => {
-          const content = fileMap[String(filePath)];
-          if (content === undefined) throw FileMissingErrorStub({ path: String(filePath) });
+          const content = fileMap[filePath];
+          if (content === undefined) throw FileMissingErrorStub({ path: filePath });
           return content;
         },
       });

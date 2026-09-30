@@ -46,11 +46,7 @@ export const cliPackageBinResolveBrokerProxy = (): {
       layerProxy.setupNoPackageJsonFrom({ startDir: entryDir });
     },
 
-    getExpectedBinPath: ({
-      binRelative,
-    }: {
-      binRelative: string;
-    }): string =>
+    getExpectedBinPath: ({ binRelative }: { binRelative: string }): string =>
       realPath.join(entryDir, binRelative),
   };
 };

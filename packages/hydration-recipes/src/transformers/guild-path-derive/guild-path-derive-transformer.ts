@@ -21,5 +21,4 @@ export const guildPathDeriveTransformer = ({
 }: {
   target: DmTarget;
   path: string;
-}): string =>
-  (isAbsoluteGuildPathGuard({ path }) ? path : `${target.home}/${path}`);
+}): string => (isAbsoluteGuildPathGuard({ path }) ? path : `${target.home}/${path}`);

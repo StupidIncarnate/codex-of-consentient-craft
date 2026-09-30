@@ -1,4 +1,4 @@
-import { type GuildConfig } from '@dungeonmaster/shared/contracts';
+import type { GuildConfig } from '@dungeonmaster/shared/contracts';
 import type { GuildIdStub } from '@dungeonmaster/shared/contracts/guild-id/guild-id.stub';
 import { cwdResolveBrokerProxy } from '@dungeonmaster/shared/brokers/cwd/resolve/cwd-resolve-broker.proxy';
 import { dungeonmasterHomeFindBrokerProxy } from '@dungeonmaster/shared/brokers/dungeonmaster-home/find/dungeonmaster-home-find-broker.proxy';
@@ -52,11 +52,11 @@ export const smoketestEnsureGuildBrokerProxy = (): {
       cwdProxy.setupRepoRootNotFound({ startPath });
       return;
     }
-    if (String(repoRoot) === startPath) {
+    if (repoRoot === startPath) {
       cwdProxy.setupRepoRootFoundAtStart({ startPath });
       return;
     }
-    cwdProxy.setupRepoRootFoundInParent({ startPath, repoRoot: String(repoRoot) });
+    cwdProxy.setupRepoRootFoundInParent({ startPath, repoRoot: repoRoot });
   };
 
   const mocked = registerMock({ fn: smoketestEnsureGuildBroker });
@@ -113,11 +113,9 @@ export const smoketestEnsureGuildBrokerProxy = (): {
       // `guildRepoRoots` (null entries simulate the walk finding no `.dungeonmaster.json` for that
       // guild). A repo root is an ancestor-or-self of the start path it answers for.
       const homeAnchor = homeRepoRoot ?? '/';
-      const perGuild =
-        guildRepoRoots ??
-        (config.guilds.map(() => '/') as readonly string[]);
+      const perGuild = guildRepoRoots ?? (config.guilds.map(() => '/') as readonly string[]);
 
-      stageRepoRoot({ startPath: String(homePath), repoRoot: homeAnchor });
+      stageRepoRoot({ startPath: homePath, repoRoot: homeAnchor });
 
       config.guilds.forEach((guild, index) => {
         stageRepoRoot({ startPath: String(guild.path), repoRoot: perGuild[index] ?? null });

@@ -162,7 +162,7 @@ export const QuestHandleResponderProxy = (): {
       processId: string;
       status: OrchestrationStatus;
     }): void => {
-      getQuestStatusProxy.returns({ processId: processId, status });
+      getQuestStatusProxy.returns({ processId, status });
     },
 
     setupGetQuestStatusServerError: ({
@@ -173,7 +173,7 @@ export const QuestHandleResponderProxy = (): {
       message: string;
     }): void => {
       getQuestStatusProxy.setupServerError({
-        processId: processId,
+        processId,
         message,
       });
     },
@@ -206,7 +206,13 @@ export const QuestHandleResponderProxy = (): {
       orchestrator.getPlanningNotesReturns({ questId, result });
     },
 
-    setupGetPlanningNotesThrows: ({ questId, error }: { questId: Quest['id']; error: Error }): void => {
+    setupGetPlanningNotesThrows: ({
+      questId,
+      error,
+    }: {
+      questId: Quest['id'];
+      error: Error;
+    }): void => {
       orchestrator.getPlanningNotesThrows({ questId, error });
     },
 
@@ -243,7 +249,13 @@ export const QuestHandleResponderProxy = (): {
       questSummaryProxy.setupReturns({ questId, summary });
     },
 
-    setupGetQuestSummaryThrows: ({ questId, error }: { questId: Quest['id']; error: Error }): void => {
+    setupGetQuestSummaryThrows: ({
+      questId,
+      error,
+    }: {
+      questId: Quest['id'];
+      error: Error;
+    }): void => {
       questSummaryProxy.setupThrows({ questId, error });
     },
 

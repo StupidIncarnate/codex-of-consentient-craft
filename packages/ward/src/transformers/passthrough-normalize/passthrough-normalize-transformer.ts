@@ -31,7 +31,6 @@
  * silently rewritten path is the failure this transformer exists to end.
  */
 
-
 import {
   wardConfigContract,
   type WardConfig,
@@ -48,7 +47,7 @@ export const passthroughNormalizeTransformer = ({
     return undefined;
   }
 
-  const rootPrefix = `${String(rootPath)}/`;
+  const rootPrefix = `${rootPath}/`;
   const dotSlash = './';
 
   return passthrough.map((arg) => {

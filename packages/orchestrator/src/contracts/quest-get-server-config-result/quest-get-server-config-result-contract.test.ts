@@ -1,4 +1,3 @@
-
 import { questGetServerConfigResultContract } from './quest-get-server-config-result-contract';
 import { QuestGetServerConfigResultStub } from './quest-get-server-config-result.stub';
 

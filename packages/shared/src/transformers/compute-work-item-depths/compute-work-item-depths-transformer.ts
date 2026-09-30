@@ -8,7 +8,6 @@
 
 import type { WorkItem } from '../../contracts/work-item/work-item-contract';
 
-
 export const computeWorkItemDepthsTransformer = ({
   items,
   itemMap,

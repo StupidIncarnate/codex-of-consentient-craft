@@ -7,11 +7,7 @@
  */
 import type { Flow } from '@dungeonmaster/shared/contracts';
 
-export const questUnresolvedFlowRefsTransformer = ({
-  flows,
-}: {
-  flows?: Flow[];
-}): string[] => {
+export const questUnresolvedFlowRefsTransformer = ({ flows }: { flows?: Flow[] }): string[] => {
   if (!flows) {
     return [];
   }

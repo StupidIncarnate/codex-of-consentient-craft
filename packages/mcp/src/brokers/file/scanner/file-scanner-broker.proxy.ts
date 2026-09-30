@@ -57,8 +57,7 @@ export const fileScannerBrokerProxy = (): {
   // real `package.json` checks) — computing the exact root the broker will independently resolve
   // for a broad glob's second scan.
   const resolvedSharedRoot = resolvePackageRoot({ specifier: '@dungeonmaster/shared/contracts' });
-  const sharedRoot =
-    resolvedSharedRoot === null ? null : resolvedSharedRoot;
+  const sharedRoot = resolvedSharedRoot === null ? null : resolvedSharedRoot;
   const globGateway = globProxy();
 
   // Reproduces the broker's own ignore computation (fileScannerBroker, "1. Resolve glob pattern"
@@ -73,9 +72,7 @@ export const fileScannerBrokerProxy = (): {
     ignorePatterns?: readonly string[];
   }): readonly string[] =>
     globIgnoreFilterTransformer({
-      patterns:
-        ignorePatterns ??
-        fileDiscoveryStatics.globIgnorePatterns.map((value) => value),
+      patterns: ignorePatterns ?? fileDiscoveryStatics.globIgnorePatterns.map((value) => value),
       glob: pattern,
     });
 
@@ -112,7 +109,7 @@ export const fileScannerBrokerProxy = (): {
     matches: readonly string[];
   }): void => {
     stageScan({ root, pattern, ignore, matches });
-    if (String(pattern).startsWith(BROAD_GLOB_PREFIX) && sharedRoot !== null) {
+    if (pattern.startsWith(BROAD_GLOB_PREFIX) && sharedRoot !== null) {
       stageScan({ root: sharedRoot, pattern, ignore, matches: [] });
     }
   };

@@ -15,7 +15,11 @@
  * // package are all in place
  */
 
-import { type InstallContext, type InstallResult, installResultContract } from '@dungeonmaster/shared/contracts';
+import {
+  type InstallContext,
+  type InstallResult,
+  installResultContract,
+} from '@dungeonmaster/shared/contracts';
 import { InstallLinkCreateResponder } from '../../responders/install/link-create/install-link-create-responder';
 import { InstallIgnoreWriteResponder } from '../../responders/install/ignore-write/install-ignore-write-responder';
 import { InstallRecipesScaffoldResponder } from '../../responders/install/recipes-scaffold/install-recipes-scaffold-responder';

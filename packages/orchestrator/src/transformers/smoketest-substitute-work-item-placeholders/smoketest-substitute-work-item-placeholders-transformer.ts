@@ -52,7 +52,7 @@ export const smoketestSubstituteWorkItemPlaceholdersTransformer = ({
       .split(GUILD_ID_PLACEHOLDER)
       .join(String(guildId))
       .split(PROCESS_ID_PLACEHOLDER)
-      .join(String(processId))
+      .join(processId)
       .split(WORK_ITEM_ID_PLACEHOLDER)
       .join(String(wi.id));
     if (substituted === original) {

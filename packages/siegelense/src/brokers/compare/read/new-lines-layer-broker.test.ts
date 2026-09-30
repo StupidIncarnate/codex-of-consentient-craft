@@ -1,4 +1,3 @@
-
 import { resultsStatics } from '../../../statics/results/results-statics';
 
 import { newLinesLayerBroker } from './new-lines-layer-broker';
@@ -61,8 +60,9 @@ describe('newLinesLayerBroker', () => {
       const result = newLinesLayerBroker({ linesA: [], linesB });
 
       expect(result).toStrictEqual(
-        Array.from({ length: resultsStatics.limits.maxRows }, (_unused, index) =>
-          `line-${String(index)}`,
+        Array.from(
+          { length: resultsStatics.limits.maxRows },
+          (_unused, index) => `line-${String(index)}`,
         ),
       );
     });

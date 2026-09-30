@@ -1,4 +1,3 @@
-
 import { isComposerScopeMatchGuard } from './is-composer-scope-match-guard';
 
 describe('isComposerScopeMatchGuard', () => {

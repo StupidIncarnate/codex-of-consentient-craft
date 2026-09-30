@@ -1,4 +1,3 @@
-
 import { registryReadBrokerProxy } from '../../registry/read/registry-read-broker.proxy';
 import { registryUpdateBrokerProxy } from '../../registry/update/registry-update-broker.proxy';
 import { locationsSocketPathFindBrokerProxy } from '../../locations/socket-path-find/locations-socket-path-find-broker.proxy';
@@ -16,18 +15,10 @@ type RunResult = ReturnType<typeof RunResultStub>;
 // order.
 export const instanceRunBrokerProxy = (): {
   setupRegistry: (params: { registry: Registry }) => void;
-  setupDriverAnswers: (params: {
-    socketPath: string;
-    runResult: RunResult;
-  }) => void;
+  setupDriverAnswers: (params: { socketPath: string; runResult: RunResult }) => void;
   setupDriverUnreachable: (params: { socketPath: string }) => void;
-  setupDriverReportsFailure: (params: {
-    socketPath: string;
-    errorMessage: string;
-  }) => void;
-  getRunRequestWritten: (params: {
-    socketPath: string;
-  }) => unknown;
+  setupDriverReportsFailure: (params: { socketPath: string; errorMessage: string }) => void;
+  getRunRequestWritten: (params: { socketPath: string }) => unknown;
   getWrittenRegistry: () => unknown;
 } => {
   const registryProxy = registryReadBrokerProxy();
@@ -55,11 +46,7 @@ export const instanceRunBrokerProxy = (): {
       });
     },
 
-    setupDriverUnreachable: ({
-      socketPath,
-    }: {
-      socketPath: string;
-    }): void => {
+    setupDriverUnreachable: ({ socketPath }: { socketPath: string }): void => {
       socketProxy.connectFailsRefused({ socketPath });
     },
 
@@ -76,11 +63,8 @@ export const instanceRunBrokerProxy = (): {
       });
     },
 
-    getRunRequestWritten: ({
-      socketPath,
-    }: {
-      socketPath: string;
-    }): unknown => socketProxy.getRequestLinesFor({ socketPath }).at(-1),
+    getRunRequestWritten: ({ socketPath }: { socketPath: string }): unknown =>
+      socketProxy.getRequestLinesFor({ socketPath }).at(-1),
 
     getWrittenRegistry: (): unknown => {
       const written = updateProxy.getWrittenContent();

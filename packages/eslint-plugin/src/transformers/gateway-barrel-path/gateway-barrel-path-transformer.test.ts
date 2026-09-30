@@ -13,7 +13,8 @@ describe('gatewayBarrelPathTransformer', () => {
 
   it('VALID: {callerFilePath: nested worktree path, gatewayFolder: node} => anchors on the last /packages/ segment', () => {
     const result = gatewayBarrelPathTransformer({
-      callerFilePath: '/repo/worktrees/gateway-pivot/packages/mcp/src/responders/x/x-responder.proxy.ts',
+      callerFilePath:
+        '/repo/worktrees/gateway-pivot/packages/mcp/src/responders/x/x-responder.proxy.ts',
       gatewayFolder: 'node',
       subpath: 'fs__promises',
     });

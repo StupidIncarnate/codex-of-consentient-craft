@@ -12,7 +12,6 @@
  * quotes a path can never read as this crash.
  */
 
-
 const IGNORED_SENTENCE =
   /You are linting "(?<linted>[^"]+)", but all of the files matching the glob pattern "(?<glob>[^"]+)" are ignored\./u;
 

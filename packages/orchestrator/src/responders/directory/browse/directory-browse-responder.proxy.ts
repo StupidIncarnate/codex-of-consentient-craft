@@ -1,4 +1,3 @@
-
 import { directoryBrowseBrokerProxy } from '../../../brokers/directory/browse/directory-browse-broker.proxy';
 import { DirectoryBrowseResponder } from './directory-browse-responder';
 

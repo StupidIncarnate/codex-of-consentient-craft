@@ -60,7 +60,9 @@ export const questIndexLoadBroker = ({
   }
 
   const userRequestResult =
-    'userRequest' in questJson ? questContract.shape.userRequest.safeParse(questJson.userRequest) : undefined;
+    'userRequest' in questJson
+      ? questContract.shape.userRequest.safeParse(questJson.userRequest)
+      : undefined;
   const workItemsResult =
     'workItems' in questJson ? workItemContract.array().safeParse(questJson.workItems) : undefined;
   const operationsResult =

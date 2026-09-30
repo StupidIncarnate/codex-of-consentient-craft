@@ -6,7 +6,6 @@
  * // Returns PlaywrightLineResults with passed/failed test titles and total count
  */
 
-
 import {
   playwrightLineResultsContract,
   type PlaywrightLineResults,
@@ -20,7 +19,7 @@ export const playwrightLineToResultsTransformer = ({
 }: {
   output: string;
 }): PlaywrightLineResults => {
-  const lines = String(output).split('\n');
+  const lines = output.split('\n');
   const passed: unknown[] = [];
   const failed: unknown[] = [];
 

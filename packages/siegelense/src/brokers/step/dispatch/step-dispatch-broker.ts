@@ -56,7 +56,6 @@
  * // Resolves the target, clicks it, captures to shotPath, measures it, and returns the stamped StepReading
  */
 
-
 import { isNativeError } from '#gateway/node/util__types';
 import { stderr } from '#gateway/node/process';
 import type { BlankReading } from '../../../contracts/blank-reading/blank-reading-contract';
@@ -285,9 +284,10 @@ export const stepDispatchBroker = async ({
     // `isNativeError` checks the V8-internal error slot instead, answering correctly
     // whichever realm constructed the value; the `'message' in error` check is what lets the
     // property access typecheck.
-    const reading: string = (error !== null && typeof error === 'object' && isNativeError(error) && 'message' in error
+    const reading: string =
+      error !== null && typeof error === 'object' && isNativeError(error) && 'message' in error
         ? error.message
-        : String(error));
+        : String(error);
 
     if (
       shotPath !== null &&

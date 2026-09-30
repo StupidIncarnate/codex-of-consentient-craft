@@ -80,9 +80,7 @@ export const packageDiscoverBroker = ({
     if (installDir) {
       const packageName = `@dungeonmaster/${packageDirName}`;
       const finalizeCandidatePath = join(installDir, INSTALL_FINALIZE_FILENAME);
-      const finalizeInstallPath = existsSync(finalizeCandidatePath)
-        ? finalizeCandidatePath
-        : null;
+      const finalizeInstallPath = existsSync(finalizeCandidatePath) ? finalizeCandidatePath : null;
 
       packagesWithInstallers.push({
         packageName,

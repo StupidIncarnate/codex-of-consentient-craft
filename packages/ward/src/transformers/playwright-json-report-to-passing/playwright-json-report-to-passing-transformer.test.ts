@@ -1,29 +1,28 @@
-
 import { playwrightJsonReportToPassingTransformer } from './playwright-json-report-to-passing-transformer';
 
 describe('playwrightJsonReportToPassingTransformer', () => {
   describe('valid inputs', () => {
     it('VALID: {single passing spec with describe trail} => returns one PassingTest with title joined by ›', () => {
       const jsonContent = JSON.stringify({
-          suites: [
-            {
-              title: 'packages/web/src/flows/app/smoke.e2e.ts',
-              file: 'packages/web/src/flows/app/smoke.e2e.ts',
-              suites: [
-                {
-                  title: 'Smoke',
-                  specs: [
-                    {
-                      title: 'loads the page',
-                      file: 'packages/web/src/flows/app/smoke.e2e.ts',
-                      tests: [{ results: [{ status: 'passed', duration: 1234 }] }],
-                    },
-                  ],
-                },
-              ],
-            },
-          ],
-        });
+        suites: [
+          {
+            title: 'packages/web/src/flows/app/smoke.e2e.ts',
+            file: 'packages/web/src/flows/app/smoke.e2e.ts',
+            suites: [
+              {
+                title: 'Smoke',
+                specs: [
+                  {
+                    title: 'loads the page',
+                    file: 'packages/web/src/flows/app/smoke.e2e.ts',
+                    tests: [{ results: [{ status: 'passed', duration: 1234 }] }],
+                  },
+                ],
+              },
+            ],
+          },
+        ],
+      });
 
       const result = playwrightJsonReportToPassingTransformer({ jsonContent });
 
@@ -38,29 +37,29 @@ describe('playwrightJsonReportToPassingTransformer', () => {
 
     it('VALID: {multiple passing specs across suites} => returns entries for each passed spec', () => {
       const jsonContent = JSON.stringify({
-          suites: [
-            {
-              title: 'packages/web/src/flows/home/a.e2e.ts',
-              specs: [
-                {
-                  title: 'first',
-                  file: 'packages/web/src/flows/home/a.e2e.ts',
-                  tests: [{ results: [{ status: 'passed', duration: 10 }] }],
-                },
-              ],
-            },
-            {
-              title: 'packages/web/src/flows/home/b.e2e.ts',
-              specs: [
-                {
-                  title: 'second',
-                  file: 'packages/web/src/flows/home/b.e2e.ts',
-                  tests: [{ results: [{ status: 'passed', duration: 20 }] }],
-                },
-              ],
-            },
-          ],
-        });
+        suites: [
+          {
+            title: 'packages/web/src/flows/home/a.e2e.ts',
+            specs: [
+              {
+                title: 'first',
+                file: 'packages/web/src/flows/home/a.e2e.ts',
+                tests: [{ results: [{ status: 'passed', duration: 10 }] }],
+              },
+            ],
+          },
+          {
+            title: 'packages/web/src/flows/home/b.e2e.ts',
+            specs: [
+              {
+                title: 'second',
+                file: 'packages/web/src/flows/home/b.e2e.ts',
+                tests: [{ results: [{ status: 'passed', duration: 20 }] }],
+              },
+            ],
+          },
+        ],
+      });
 
       const result = playwrightJsonReportToPassingTransformer({ jsonContent });
 
@@ -80,24 +79,24 @@ describe('playwrightJsonReportToPassingTransformer', () => {
 
     it('VALID: {spec with failed test} => skips failed spec entries', () => {
       const jsonContent = JSON.stringify({
-          suites: [
-            {
-              title: 'mix.e2e.ts',
-              specs: [
-                {
-                  title: 'passes',
-                  file: 'mix.e2e.ts',
-                  tests: [{ results: [{ status: 'passed', duration: 1 }] }],
-                },
-                {
-                  title: 'fails',
-                  file: 'mix.e2e.ts',
-                  tests: [{ results: [{ status: 'failed', duration: 2 }] }],
-                },
-              ],
-            },
-          ],
-        });
+        suites: [
+          {
+            title: 'mix.e2e.ts',
+            specs: [
+              {
+                title: 'passes',
+                file: 'mix.e2e.ts',
+                tests: [{ results: [{ status: 'passed', duration: 1 }] }],
+              },
+              {
+                title: 'fails',
+                file: 'mix.e2e.ts',
+                tests: [{ results: [{ status: 'failed', duration: 2 }] }],
+              },
+            ],
+          },
+        ],
+      });
 
       const result = playwrightJsonReportToPassingTransformer({ jsonContent });
 
@@ -112,19 +111,19 @@ describe('playwrightJsonReportToPassingTransformer', () => {
 
     it('VALID: {test with missing duration} => defaults durationMs to 0', () => {
       const jsonContent = JSON.stringify({
-          suites: [
-            {
-              title: 'a.e2e.ts',
-              specs: [
-                {
-                  title: 'no duration',
-                  file: 'a.e2e.ts',
-                  tests: [{ results: [{ status: 'passed' }] }],
-                },
-              ],
-            },
-          ],
-        });
+        suites: [
+          {
+            title: 'a.e2e.ts',
+            specs: [
+              {
+                title: 'no duration',
+                file: 'a.e2e.ts',
+                tests: [{ results: [{ status: 'passed' }] }],
+              },
+            ],
+          },
+        ],
+      });
 
       const result = playwrightJsonReportToPassingTransformer({ jsonContent });
 
@@ -139,26 +138,26 @@ describe('playwrightJsonReportToPassingTransformer', () => {
 
     it('VALID: {test with multiple result attempts} => uses latest result status', () => {
       const jsonContent = JSON.stringify({
-          suites: [
-            {
-              title: 'a.e2e.ts',
-              specs: [
-                {
-                  title: 'retried then passed',
-                  file: 'a.e2e.ts',
-                  tests: [
-                    {
-                      results: [
-                        { status: 'failed', duration: 100 },
-                        { status: 'passed', duration: 50 },
-                      ],
-                    },
-                  ],
-                },
-              ],
-            },
-          ],
-        });
+        suites: [
+          {
+            title: 'a.e2e.ts',
+            specs: [
+              {
+                title: 'retried then passed',
+                file: 'a.e2e.ts',
+                tests: [
+                  {
+                    results: [
+                      { status: 'failed', duration: 100 },
+                      { status: 'passed', duration: 50 },
+                    ],
+                  },
+                ],
+              },
+            ],
+          },
+        ],
+      });
 
       const result = playwrightJsonReportToPassingTransformer({ jsonContent });
 

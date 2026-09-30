@@ -11,21 +11,25 @@ import { z } from '#gateway/npm/zod';
 import { chatEntryContract, agentContract } from '@dungeonmaster/shared/contracts';
 import { toolUseIdContract } from '../tool-use-id/tool-use-id-contract';
 
-const chatLineEntriesContract = z.object({
-  type: z.literal('entries'),
-  entries: z.array(chatEntryContract),
-}).brand<'ChatLineEntries'>();
+const chatLineEntriesContract = z
+  .object({
+    type: z.literal('entries'),
+    entries: z.array(chatEntryContract),
+  })
+  .brand<'ChatLineEntries'>();
 
 // Emitted when the processor learns the "real" internal agentId Claude CLI assigned to a
 // sub-agent — via `tool_use_result.agentId` on the parent stream's user tool_result line.
 // Consumers (chat-spawn-broker) use this to start tailing the sub-agent's JSONL file so
 // background activity also reaches the web. Not broadcast to the web — the web's chain
 // grouping keys on `toolUseId`, not on the real internal agentId.
-const chatLineAgentDetectedContract = z.object({
-  type: z.literal('agent-detected'),
-  toolUseId: toolUseIdContract,
-  agentId: agentContract.shape.id,
-}).brand<'ChatLineAgentDetected'>();
+const chatLineAgentDetectedContract = z
+  .object({
+    type: z.literal('agent-detected'),
+    toolUseId: toolUseIdContract,
+    agentId: agentContract.shape.id,
+  })
+  .brand<'ChatLineAgentDetected'>();
 
 export const chatLineOutputContract = z.discriminatedUnion('type', [
   chatLineEntriesContract,

@@ -85,8 +85,8 @@ test.describe('Resuming a quest shows the previously in_progress execution row r
     // quest-pause-broker leaves on disk for a work item that WAS `in_progress` when the quest was
     // paused (pause resets in_progress -> pending immediately, keeping sessionId).
     await quests.writeQuestFile({
-      questId: questId,
-      questFolder: questFolder,
+      questId,
+      questFolder,
       questFilePath: String(questFilePath),
       status: 'paused',
       operations: [
@@ -113,7 +113,7 @@ test.describe('Resuming a quest shows the previously in_progress execution row r
 
     // Precondition-only write: this PATCH sets the snapshot resume restores TO, not the mutation
     // under test — the mutation is the RESUME button click below.
-    await quests.seedPausedAtStatus({ questId: questId, pausedAtStatus: 'in_progress' });
+    await quests.seedPausedAtStatus({ questId, pausedAtStatus: 'in_progress' });
 
     // The agent RESUME is about to spawn needs a queued outcome, or it exits red-on-empty.
     dispatch.queueScript({
@@ -126,7 +126,7 @@ test.describe('Resuming a quest shows the previously in_progress execution row r
     // the time anything is watching.
     await rowStatus.recordStatuses({ rowTexts: [DONE_OP_TEXT, RUNNING_ROW_IDENTITY] });
 
-    await nav.navigateToQuest({ urlSlug, questId: questId });
+    await nav.navigateToQuest({ urlSlug, questId });
 
     const executionPanel = page.getByTestId('execution-panel-widget');
     await expect(executionPanel).toBeVisible({ timeout: PANEL_TIMEOUT });
@@ -205,7 +205,7 @@ test.describe('Resuming a quest shows the previously in_progress execution row r
     // Let the queued outcome land so the run finishes cleanly rather than leaving a live child
     // process behind at test teardown.
     const finalQuest = await dispatch.waitForQuest({
-      questId: questId,
+      questId,
       timeoutMs: RELAY_TIMEOUT,
       predicate: ({ quest }) =>
         quest.workItems.length === 2 && quest.workItems.every((wi) => wi.status === 'complete'),

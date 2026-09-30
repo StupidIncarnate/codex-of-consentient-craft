@@ -18,7 +18,7 @@ describe('PrimitiveDuplicateDetectionRunResponder', () => {
       // No `--cwd=` arg: the responder falls back to the gateway's `cwd()`, mocked here to a fixed
       // value (see the proxy) instead of the real OS directory — this pins that fallback, not just
       // the parser branch that reads an explicit `--cwd=`.
-      expect(output).toMatch(new RegExp(`^ {2}Directory: ${String(proxy.getDefaultCwd())}$`, 'mu'));
+      expect(output).toMatch(new RegExp(`^ {2}Directory: ${proxy.getDefaultCwd()}$`, 'mu'));
     });
   });
 

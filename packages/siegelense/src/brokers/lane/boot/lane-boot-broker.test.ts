@@ -8,9 +8,12 @@ import { PortPairStub } from '../../../contracts/port-pair/port-pair.stub';
 
 const INSTANCE_ID = InstanceIdStub();
 const HOME_PATH = '/tmp/dm-siege-inst_7f3a9c21';
-const EVIDENCE_PATH = '/repo/.dungeonmaster-assets/siegelense-assets/unowned/instances/inst_7f3a9c21';
-const API_LOG_PATH = '/repo/.dungeonmaster-assets/siegelense-assets/unowned/instances/inst_7f3a9c21/api-server.log';
-const WEB_LOG_PATH = '/repo/.dungeonmaster-assets/siegelense-assets/unowned/instances/inst_7f3a9c21/web-server.log';
+const EVIDENCE_PATH =
+  '/repo/.dungeonmaster-assets/siegelense-assets/unowned/instances/inst_7f3a9c21';
+const API_LOG_PATH =
+  '/repo/.dungeonmaster-assets/siegelense-assets/unowned/instances/inst_7f3a9c21/api-server.log';
+const WEB_LOG_PATH =
+  '/repo/.dungeonmaster-assets/siegelense-assets/unowned/instances/inst_7f3a9c21/web-server.log';
 
 describe('laneBootBroker', () => {
   describe('a browsered two-process spec', () => {
@@ -858,10 +861,7 @@ describe('laneBootBroker', () => {
         evidencePath: EVIDENCE_PATH,
       });
 
-      expect(lane.pgids).toStrictEqual([
-        1_001,
-        1_002,
-      ]);
+      expect(lane.pgids).toStrictEqual([1_001, 1_002]);
     });
   });
 
@@ -905,7 +905,8 @@ describe('laneBootBroker', () => {
         browser: false,
         env: {},
       });
-      const workerLogPath = '/repo/.dungeonmaster-assets/siegelense-assets/unowned/instances/inst_7f3a9c21/worker.log';
+      const workerLogPath =
+        '/repo/.dungeonmaster-assets/siegelense-assets/unowned/instances/inst_7f3a9c21/worker.log';
       proxy.setupProcessBoot({
         logPath: API_LOG_PATH,
         fd: apiFd,
@@ -939,11 +940,7 @@ describe('laneBootBroker', () => {
         evidencePath: EVIDENCE_PATH,
       });
 
-      expect(lane.pgids).toStrictEqual([
-        1_001,
-        1_002,
-        1_003,
-      ]);
+      expect(lane.pgids).toStrictEqual([1_001, 1_002, 1_003]);
       expect(proxy.getSpawnOptionsFor({ command: 'node', args: ['worker.js'] })).toStrictEqual({
         cwd: repoRoot,
         env: { ...inheritedEnvSnapshot },

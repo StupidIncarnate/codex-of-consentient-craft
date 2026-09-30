@@ -138,7 +138,7 @@ export const questOperationsUpdateBrokerProxy = (): {
             questsDirPath,
             questFolders: [
               {
-                folderName: folderName,
+                folderName,
                 questFilePath,
                 questFolderPath,
                 contents: JSON.stringify(quest),

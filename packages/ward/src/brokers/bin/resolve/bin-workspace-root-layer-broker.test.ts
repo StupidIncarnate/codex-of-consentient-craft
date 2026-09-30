@@ -1,4 +1,3 @@
-
 import { binWorkspaceRootLayerBroker } from './bin-workspace-root-layer-broker';
 import { binWorkspaceRootLayerBrokerProxy } from './bin-workspace-root-layer-broker.proxy';
 

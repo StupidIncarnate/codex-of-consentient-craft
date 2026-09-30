@@ -50,7 +50,7 @@ export const checkRunTypecheckBrokerProxy = (): {
     existsProxy.returns({ path: tsconfigPath, exists: true });
     existsProxy.returns({ path: buildTsconfigPath, exists: false });
     jsonProxy.returns({
-      path: String(tsconfigPath),
+      path: tsconfigPath,
       json: '{"include":["src/**/*"]}',
     });
     globProxy.returnsForPatterns({ patterns: discoverPatterns, files: ['discovered.ts'] });
@@ -69,7 +69,7 @@ export const checkRunTypecheckBrokerProxy = (): {
     exitCode: number;
     stdout: string;
   }): void => {
-    const command = String(setupDiscovery({ projectFolder }));
+    const command = setupDiscovery({ projectFolder });
     const cwd = String(projectFolder.path);
     lastChecking.command = command;
     lastChecking.cwd = cwd;
@@ -129,7 +129,7 @@ export const checkRunTypecheckBrokerProxy = (): {
       run.setupSuccess({
         command: lastChecking.command,
         cwd: lastChecking.cwd,
-        args: [...checkCommandsStatics.typecheck.buildArgs, '-p', String(buildTsconfigPath)],
+        args: [...checkCommandsStatics.typecheck.buildArgs, '-p', buildTsconfigPath],
         exitCode: lastChecking.exitCode,
         stdout: lastChecking.stdout,
         stderr: '',

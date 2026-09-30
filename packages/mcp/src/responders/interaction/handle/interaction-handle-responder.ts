@@ -93,5 +93,5 @@ export const InteractionHandleResponder = async ({
     };
   }
 
-  throw new Error(`Unknown interaction tool: ${String(tool)}`);
+  throw new Error(`Unknown interaction tool: ${tool}`);
 };

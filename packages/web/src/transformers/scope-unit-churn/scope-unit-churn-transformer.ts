@@ -27,7 +27,7 @@ export const scopeUnitChurnTransformer = ({
   const unitIdOrder: QaChecklistItem['id'][] = [];
 
   workItems.forEach((workItem) => {
-    const workItemLabel = (workItem.step ?? workItem.role);
+    const workItemLabel = workItem.step ?? workItem.role;
     workItem.observations.forEach((observation) => {
       const step = unitChurnStepContract.parse({ mark: observation.mark, workItemLabel });
       const existing = stepsByUnitId.get(observation.unitId);

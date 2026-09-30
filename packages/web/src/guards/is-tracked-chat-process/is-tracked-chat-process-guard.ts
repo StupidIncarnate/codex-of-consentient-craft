@@ -19,7 +19,6 @@
  * isTrackedChatProcessGuard({ chatProcessId: payload.chatProcessId, trackedChatProcessId: ref.current, retained: payload.retained });
  */
 
-
 export const isTrackedChatProcessGuard = ({
   chatProcessId,
   trackedChatProcessId,

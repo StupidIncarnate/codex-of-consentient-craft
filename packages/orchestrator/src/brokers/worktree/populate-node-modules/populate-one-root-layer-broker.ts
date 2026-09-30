@@ -63,7 +63,6 @@ const COPY_GREEN_EXIT_CODE = 0;
 // result to report.
 const RUN_NOT_FOUND_RESULT = { exitCode: 1, output: '', signal: null, timedOut: false } as const;
 
-
 export const populateOneRootLayerBroker = async ({
   sourceRoot,
   targetRoot,
@@ -119,7 +118,7 @@ export const populateOneRootLayerBroker = async ({
       args: [
         COPY_HARDLINK_FLAGS,
         ...plainEntries.map((entry) => join(sourceNodeModules, entry.name)),
-        String(targetNodeModules),
+        targetNodeModules,
       ],
       cwd: sourceRoot,
     }).catch((error: unknown) => {
@@ -133,7 +132,7 @@ export const populateOneRootLayerBroker = async ({
       // `cp -al` cannot cross filesystems, so a worktree placed on another mount fails here rather
       // than degrading into a mechanism nobody chose.
       throw new Error(
-        `node_modules hardlink populate failed for ${String(targetRoot)}: ${copied.output}`,
+        `node_modules hardlink populate failed for ${targetRoot}: ${copied.output}`,
       );
     }
   }

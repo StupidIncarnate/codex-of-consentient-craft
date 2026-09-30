@@ -8,11 +8,7 @@
  * // Returns: FunctionName('user-fetch-broker')
  */
 
-export const functionNameExtractorTransformer = ({
-  filepath,
-}: {
-  filepath: string;
-}): string => {
+export const functionNameExtractorTransformer = ({ filepath }: { filepath: string }): string => {
   const filename = filepath.split('/').pop() ?? '';
   const nameWithoutExtension = filename.replace(/\.(ts|tsx|js|jsx)$/u, '');
   return nameWithoutExtension;

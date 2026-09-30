@@ -26,45 +26,52 @@ const hookEntryContract = z
   .object({
     type: hookTypeContract,
     command: hookCommandContract.optional(),
-  }).brand<'HookEntry'>()
+  })
+  .brand<'HookEntry'>()
   .loose();
 
 const preToolUseHookContract = z
   .object({
     matcher: hookMatcherContract.optional(),
     hooks: z.array(hookEntryContract),
-  }).brand<'PreToolUseHook'>()
+  })
+  .brand<'PreToolUseHook'>()
   .loose();
 
 const sessionStartHookContract = z
   .object({
     hooks: z.array(hookEntryContract),
-  }).brand<'SessionStartHook'>()
+  })
+  .brand<'SessionStartHook'>()
   .loose();
 
 const postToolUseHookContract = z
   .object({
     matcher: hookMatcherContract.optional(),
     hooks: z.array(hookEntryContract),
-  }).brand<'PostToolUseHook'>()
+  })
+  .brand<'PostToolUseHook'>()
   .loose();
 
 const worktreeCreateHookContract = z
   .object({
     hooks: z.array(hookEntryContract),
-  }).brand<'WorktreeCreateHook'>()
+  })
+  .brand<'WorktreeCreateHook'>()
   .loose();
 
 const subagentStartHookContract = z
   .object({
     hooks: z.array(hookEntryContract),
-  }).brand<'SubagentStartHook'>()
+  })
+  .brand<'SubagentStartHook'>()
   .loose();
 
 const subagentStopHookContract = z
   .object({
     hooks: z.array(hookEntryContract),
-  }).brand<'SubagentStopHook'>()
+  })
+  .brand<'SubagentStopHook'>()
   .loose();
 
 const hooksConfigContract = z
@@ -75,7 +82,8 @@ const hooksConfigContract = z
     SubagentStart: z.array(subagentStartHookContract).optional(),
     SubagentStop: z.array(subagentStopHookContract).optional(),
     WorktreeCreate: z.array(worktreeCreateHookContract).optional(),
-  }).brand<'HooksConfig'>()
+  })
+  .brand<'HooksConfig'>()
   .loose();
 
 const permissionStringContract = z.string().brand<'PermissionString'>();
@@ -84,7 +92,8 @@ const permissionsConfigContract = z
   .object({
     allow: z.array(permissionStringContract).optional(),
     deny: z.array(permissionStringContract).optional(),
-  }).brand<'PermissionsConfig'>()
+  })
+  .brand<'PermissionsConfig'>()
   .loose();
 
 const envValueContract = z.string().brand<'EnvValue'>();
@@ -108,7 +117,8 @@ export const claudeSettingsContract = z
     subagentPromptCacheTtl: promptCacheTtlContract.optional(),
     promptSuggestionEnabled: z.boolean().optional(),
   })
-  .loose().brand<'ClaudeSettings'>();
+  .loose()
+  .brand<'ClaudeSettings'>();
 
 export type ClaudeSettings = z.infer<typeof claudeSettingsContract>;
 export type HooksConfig = z.infer<typeof hooksConfigContract>;

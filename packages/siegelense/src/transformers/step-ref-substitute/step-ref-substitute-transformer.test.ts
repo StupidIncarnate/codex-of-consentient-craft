@@ -1,4 +1,3 @@
-
 import { stepRefSubstituteTransformer } from './step-ref-substitute-transformer';
 
 describe('stepRefSubstituteTransformer', () => {

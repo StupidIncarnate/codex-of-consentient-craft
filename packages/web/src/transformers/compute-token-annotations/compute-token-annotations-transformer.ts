@@ -51,10 +51,7 @@ export const computeTokenAnnotationsTransformer = ({
       if (totalContext !== null && !isMidToolRun) {
         const prevContext = source === 'subagent' ? prevSubagentContext : prevSessionContext;
         cumulativeContext = totalContext;
-        contextDelta =
-          prevContext === null
-            ? null
-            : (Number(totalContext) - Number(prevContext));
+        contextDelta = prevContext === null ? null : totalContext - prevContext;
 
         if (source === 'subagent') {
           prevSubagentContext = totalContext;
@@ -73,7 +70,7 @@ export const computeTokenAnnotationsTransformer = ({
       ) {
         const estimated = estimateContentTokensTransformer({ content: toolResult.content });
         resultTokenBadgeLabel =
-          Number(estimated) === 0
+          estimated === 0
             ? null
             : `~${formatContextTokensTransformer({ count: estimated })} est`;
       }
@@ -97,15 +94,12 @@ export const computeTokenAnnotationsTransformer = ({
 
     if (totalContext !== null) {
       const prevContext = source === 'subagent' ? prevSubagentContext : prevSessionContext;
-      const contextDelta =
-        prevContext === null
-          ? null
-          : (Number(totalContext) - Number(prevContext));
+      const contextDelta = prevContext === null ? null : totalContext - prevContext;
 
       const tokenBadgeLabel =
-        contextDelta === null || Number(contextDelta) <= 0
+        contextDelta === null || contextDelta <= 0
           ? null
-          : `+${formatContextTokensTransformer({ count: Number(contextDelta) })} context`;
+          : `+${formatContextTokensTransformer({ count: contextDelta })} context`;
 
       if (source === 'subagent') {
         prevSubagentContext = totalContext;
@@ -132,7 +126,7 @@ export const computeTokenAnnotationsTransformer = ({
     ) {
       const estimated = estimateContentTokensTransformer({ content: entry.content });
       const tokenBadgeLabel =
-        Number(estimated) === 0
+        estimated === 0
           ? null
           : `~${formatContextTokensTransformer({ count: estimated })} est`;
 

@@ -11,10 +11,11 @@
 
 import { z } from '#gateway/npm/zod';
 
-
-export const flowPortalNodeDataContract = z.object({
-  reference: z.string().min(1).brand<'FlowPortalNodeDataReference'>(),
-  label: z.string().min(1).brand<'FlowPortalNodeDataLabel'>(),
-}).brand<'FlowPortalNodeData'>();
+export const flowPortalNodeDataContract = z
+  .object({
+    reference: z.string().min(1).brand<'FlowPortalNodeDataReference'>(),
+    label: z.string().min(1).brand<'FlowPortalNodeDataLabel'>(),
+  })
+  .brand<'FlowPortalNodeData'>();
 
 export type FlowPortalNodeData = z.infer<typeof flowPortalNodeDataContract>;

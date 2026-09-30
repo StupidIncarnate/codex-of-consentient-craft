@@ -45,14 +45,14 @@ export const SiegelenseRunResponder = async ({
   const stepsFileContent =
     stepsFilePath === null
       ? null
-      : (await readFile(resolve(stepsFilePath)).catch((error: unknown) => {
-            throw new Error(
-              `${STEPS_FILE_FLAG}'s file could not be read: ${
-                error instanceof Error ? error.message : String(error)
-              }`,
-              { cause: error },
-            );
-          }));
+      : await readFile(resolve(stepsFilePath)).catch((error: unknown) => {
+          throw new Error(
+            `${STEPS_FILE_FLAG}'s file could not be read: ${
+              error instanceof Error ? error.message : String(error)
+            }`,
+            { cause: error },
+          );
+        });
 
   const { instanceId, steps, stopOn, isJson } = runArgsParseTransformer({
     args,

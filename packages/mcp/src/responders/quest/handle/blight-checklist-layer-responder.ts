@@ -37,13 +37,9 @@ export const BlightChecklistLayerResponder = async ({
       content: [
         {
           type: 'text',
-          text: (checklist.success
-              ? checklist.data
-              : JSON.stringify(
-                  { success: false, error: checklist.error },
-                  null,
-                  JSON_INDENT_SPACES,
-                )),
+          text: checklist.success
+            ? checklist.data
+            : JSON.stringify({ success: false, error: checklist.error }, null, JSON_INDENT_SPACES),
         },
       ],
       ...(!checklist.success && { isError: true }),

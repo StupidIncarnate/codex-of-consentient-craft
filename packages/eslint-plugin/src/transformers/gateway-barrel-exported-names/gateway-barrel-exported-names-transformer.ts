@@ -1,5 +1,3 @@
-import { gatewayBarrelExportedNamesContract } from '../../contracts/gateway-barrel-exported-names/gateway-barrel-exported-names-contract';
-import type { GatewayBarrelExportedNames } from '../../contracts/gateway-barrel-exported-names/gateway-barrel-exported-names-contract';
 /**
  * PURPOSE: Reads a gateway barrel file's own source text and answers which names it exports directly
  * (`export { readFile } from './read-file/read-file'`, `export const x = ...`, `export * as ns from
@@ -12,6 +10,8 @@ import type { GatewayBarrelExportedNames } from '../../contracts/gateway-barrel-
  * gatewayBarrelExportedNamesTransformer({ sourceText: "export { readFile } from './read-file/read-file';\nexport * from 'fs/promises';\n" });
  * // Returns { directNames: [Identifier('readFile')], reexportTargets: [ImportPath('fs/promises')] }
  */
+import { gatewayBarrelExportedNamesContract } from '../../contracts/gateway-barrel-exported-names/gateway-barrel-exported-names-contract';
+import type { GatewayBarrelExportedNames } from '../../contracts/gateway-barrel-exported-names/gateway-barrel-exported-names-contract';
 
 const NAMED_EXPORT_LIST = /export\s*\{([^}]+)\}(?:\s*from\s*['"][^'"]+['"])?/gu;
 const NAMED_DECLARATION = /export\s+(?:const|function|class)\s+([A-Za-z0-9_$]+)/gu;

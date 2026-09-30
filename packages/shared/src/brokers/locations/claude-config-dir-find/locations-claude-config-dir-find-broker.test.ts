@@ -51,9 +51,7 @@ describe('locationsClaudeConfigDirFindBroker', () => {
 
       proxy.setupUnset({ homeDir: '/home/user' });
 
-      expect(locationsClaudeConfigDirFindBroker()).toBe(
-        '/home/user/.claude',
-      );
+      expect(locationsClaudeConfigDirFindBroker()).toBe('/home/user/.claude');
     });
   });
 });

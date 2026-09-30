@@ -12,16 +12,11 @@
  * WHEN-NOT-TO-USE: When the path may not contain a `flows/` segment
  */
 
-
-export const flowGroupFromFilePathTransformer = ({
-  filePath,
-}: {
-  filePath: string;
-}): string => {
-  const parts = String(filePath).split('/');
+export const flowGroupFromFilePathTransformer = ({ filePath }: { filePath: string }): string => {
+  const parts = filePath.split('/');
   const flowsIdx = parts.lastIndexOf('flows');
   if (flowsIdx !== -1 && parts[flowsIdx + 1] !== undefined) {
-    return (parts[flowsIdx + 1] ?? '');
+    return parts[flowsIdx + 1] ?? '';
   }
   return '';
 };

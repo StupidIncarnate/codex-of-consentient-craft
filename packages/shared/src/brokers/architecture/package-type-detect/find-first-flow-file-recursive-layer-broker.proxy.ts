@@ -4,13 +4,7 @@ import type { DirEntrySync } from '#gateway/node/fs';
 import { DirentStub } from '#gateway/node/fs/readdir-entries-sync/dirent.stub';
 
 export const findFirstFlowFileRecursiveLayerBrokerProxy = (): {
-  setupFlat: ({
-    dirPath,
-    fileNames,
-  }: {
-    dirPath: string;
-    fileNames: readonly string[];
-  }) => void;
+  setupFlat: ({ dirPath, fileNames }: { dirPath: string; fileNames: readonly string[] }) => void;
   setupNested: ({
     subDirName,
     fileNames,

@@ -19,7 +19,8 @@ type FileDescriptor = number;
 // so a test's `session.evidencePath` has to sit under this exact `rootPath` for the mapping to mean
 // anything — these two getters are what a test reads to build a LaneSessionStub that matches.
 const EVIDENCE_PATH = '/home/user/.dungeonmaster/siegelense/guilds/g1/instances/inst_1';
-const REPO_LOCAL_EVIDENCE_PATH = '/repo/.dungeonmaster-assets/siegelense-assets/guilds/g1/instances/inst_1';
+const REPO_LOCAL_EVIDENCE_PATH =
+  '/repo/.dungeonmaster-assets/siegelense-assets/guilds/g1/instances/inst_1';
 
 export const laneTeardownBrokerProxy = (): {
   getEvidencePath: () => string;
@@ -142,6 +143,6 @@ export const laneTeardownBrokerProxy = (): {
     assertFdCloseHappensAfterKillSignals: (): boolean =>
       closedCountAtEachSignal.length > 0 &&
       readClosedFds().length > 0 &&
-      closedCountAtEachSignal.every((closedCount) => Number(closedCount) === 0),
+      closedCountAtEachSignal.every((closedCount) => closedCount === 0),
   };
 };

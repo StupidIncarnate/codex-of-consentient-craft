@@ -47,15 +47,13 @@ export const collectInputsLayerBroker = async ({
   // A single-package repo declares no workspaces, and a package can also be excluded from the
   // patterns that DO exist. Either way its own sources are what the bundle is built from, so the
   // bundled package is in the list whether or not the workspace walk reported it.
-  const packagePaths = folderPaths.some((path) => String(path) === String(packageRoot))
+  const packagePaths = folderPaths.some((path) => path === packageRoot)
     ? folderPaths
     : [...folderPaths, packageRoot];
 
   const manifests = await Promise.all(
     packagePaths.map(async (packagePath) => {
-      const raw = await readFile(
-        `${String(packagePath)}/package.json`,
-      ).catch(() => null);
+      const raw = await readFile(`${packagePath}/package.json`).catch(() => null);
 
       const parsed =
         raw === null
@@ -70,7 +68,7 @@ export const collectInputsLayerBroker = async ({
               }
             })();
 
-      const dirName = String(packagePath).slice(String(packagePath).lastIndexOf('/') + 1);
+      const dirName = packagePath.slice(packagePath.lastIndexOf('/') + 1);
 
       return {
         path: packagePath,
@@ -83,7 +81,7 @@ export const collectInputsLayerBroker = async ({
   );
 
   const bundledManifest = manifests.find(
-    (manifest) => String(manifest.path) === String(packageRoot),
+    (manifest) => manifest.path === packageRoot,
   );
 
   const adjacency = dependencyGraphAdjacencyBuildTransformer({ packages: manifests });
@@ -97,7 +95,7 @@ export const collectInputsLayerBroker = async ({
   // repo has no workspaces at all, and its own sources are still what the bundle is built from.
   const closureFolders = manifests.filter(
     (manifest) =>
-      String(manifest.path) === String(packageRoot) ||
+      manifest.path === packageRoot ||
       closure.some((name) => String(name) === String(manifest.name)),
   );
 
@@ -111,16 +109,16 @@ export const collectInputsLayerBroker = async ({
   relativePaths.push(lockfile);
 
   for (const folder of closureFolders) {
-    const isBundledPackage = String(folder.path) === String(packageRoot);
+    const isBundledPackage = folder.path === packageRoot;
     const { discoveredFiles } = globDiscoverFilesBroker({
       patterns: bundleInputsTransformer({ isBundledPackage }),
       cwd: folder.path,
     });
 
     const prefix =
-      String(folder.path) === String(repoRoot)
+      folder.path === repoRoot
         ? ''
-        : `${String(folder.path).slice(String(repoRoot).length + 1)}/`;
+        : `${folder.path.slice(repoRoot.length + 1)}/`;
 
     for (const file of discoveredFiles) {
       const repoRelative = `${prefix}${String(file)}`;

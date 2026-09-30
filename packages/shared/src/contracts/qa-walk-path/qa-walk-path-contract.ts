@@ -23,25 +23,27 @@ import { z } from '#gateway/npm/zod';
 
 import { flowNodeContract } from '../flow-node/flow-node-contract';
 
-export const qaWalkPathContract = z.object({
-  nodeIds: z
-    .array(flowNodeContract.shape.id)
-    .min(1)
-    .describe(
-      'Nodes in drive order, entry first. The last entry is the terminal this path ends at.',
-    ),
-  branchLabels: z
-    .array(z.string().min(1).brand<'QaWalkPathBranchLabels'>())
-    .default([])
-    .describe(
-      'The labelled decision branches taken along this path, in order — each one a condition the walker must FORCE for real rather than happen upon.',
-    ),
-  exitsFlow: z
-    .boolean()
-    .default(false)
-    .describe(
-      'True when the path ends by crossing into another flow (a `flowId:nodeId` edge target) rather than at a terminal node of this flow.',
-    ),
-}).brand<'QaWalkPath'>();
+export const qaWalkPathContract = z
+  .object({
+    nodeIds: z
+      .array(flowNodeContract.shape.id)
+      .min(1)
+      .describe(
+        'Nodes in drive order, entry first. The last entry is the terminal this path ends at.',
+      ),
+    branchLabels: z
+      .array(z.string().min(1).brand<'QaWalkPathBranchLabels'>())
+      .default([])
+      .describe(
+        'The labelled decision branches taken along this path, in order — each one a condition the walker must FORCE for real rather than happen upon.',
+      ),
+    exitsFlow: z
+      .boolean()
+      .default(false)
+      .describe(
+        'True when the path ends by crossing into another flow (a `flowId:nodeId` edge target) rather than at a terminal node of this flow.',
+      ),
+  })
+  .brand<'QaWalkPath'>();
 
 export type QaWalkPath = z.infer<typeof qaWalkPathContract>;

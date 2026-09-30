@@ -16,7 +16,16 @@
 
 import { stderr } from '#gateway/node/process';
 import { workItemRoleContract, sessionContract } from '@dungeonmaster/shared/contracts';
-import type { ChatEntry, ModifyQuestInput, QuestType, WorkItemRole, Quest, WorkItem, Guild, Session } from '@dungeonmaster/shared/contracts';
+import type {
+  ChatEntry,
+  ModifyQuestInput,
+  QuestType,
+  WorkItemRole,
+  Quest,
+  WorkItem,
+  Guild,
+  Session,
+} from '@dungeonmaster/shared/contracts';
 import {
   locationsQuestFolderPathFindBroker,
   locationsQuestImagesPathFindBroker,
@@ -175,7 +184,9 @@ export const chatSpawnBroker = async ({
       questModifyBroker({
         input: {
           questId: resolvedQuestId,
-          workItems: [{ id: chatWorkItemId, sessionId: sessionContract.shape.id.parse(extractedSid) }],
+          workItems: [
+            { id: chatWorkItemId, sessionId: sessionContract.shape.id.parse(extractedSid) },
+          ],
         } as ModifyQuestInput,
       }).catch((error: unknown) => {
         stderr.write(`[chat-spawn] session-id quest link failed: ${String(error)}\n`);

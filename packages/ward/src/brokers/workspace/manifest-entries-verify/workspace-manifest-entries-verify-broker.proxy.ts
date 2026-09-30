@@ -20,10 +20,10 @@ export const workspaceManifestEntriesVerifyBrokerProxy = (): {
       readProxy.returns({ path: manifestPath, contents: manifestJson });
     },
     setupFileExists: ({ filePath }: { filePath: string }): void => {
-      statProxy.returnsFile({ path: String(filePath), sizeBytes: 1024, modifiedAtMs: 0 });
+      statProxy.returnsFile({ path: filePath, sizeBytes: 1024, modifiedAtMs: 0 });
     },
     setupFileMissing: ({ filePath }: { filePath: string }): void => {
-      statProxy.missing({ path: String(filePath) });
+      statProxy.missing({ path: filePath });
     },
   };
 };

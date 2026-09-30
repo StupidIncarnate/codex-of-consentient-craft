@@ -7,7 +7,11 @@
  * // Merges missing ward scripts into package.json, or skips if all present / no package.json
  */
 
-import { type InstallContext, type InstallResult, installResultContract } from '@dungeonmaster/shared/contracts';
+import {
+  type InstallContext,
+  type InstallResult,
+  installResultContract,
+} from '@dungeonmaster/shared/contracts';
 import { existsSync } from '#gateway/node/fs';
 import { readFile, writeFile } from '#gateway/node/fs__promises';
 import { jsonFileContentsTransformer } from '@dungeonmaster/shared/transformers';

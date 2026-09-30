@@ -8,7 +8,6 @@
  */
 import * as ts from '#gateway/npm/typescript';
 
-
 export const moduleLinksReadLayerTransformer = ({
   sourceFile,
 }: {

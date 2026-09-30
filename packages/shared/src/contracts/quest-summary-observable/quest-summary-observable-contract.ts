@@ -41,18 +41,20 @@ import { flowNodeContract } from '../flow-node/flow-node-contract';
 import { qaChecklistItemContract } from '../qa-checklist-item/qa-checklist-item-contract';
 import { flowContract } from '../flow/flow-contract';
 
-export const questSummaryObservableContract = z.object({
-  id: qaChecklistItemContract.shape.id,
-  flowId: flowContract.shape.id,
-  nodeId: flowNodeContract.shape.id,
-  observableId: flowObservableContract.shape.id,
-  addedBy: observableOriginContract.describe(
-    'Who wrote this observable in. On `midQuestObservables`, never `spec` — that slice is scope drift, filtered to post-approval additions. On `humanChecks`, `spec` is a legitimate value — a spec-authored verifyByHuman observable is still a human check.',
-  ),
-  observableType: outcomeTypeContract,
-  description: flowObservableContract.shape.description.describe(
-    'The observable text exactly as its author wrote it. Carried verbatim, and allowed to be blank, because a blank description is a spec hole the reader must see rather than a reason to drop the row.',
-  ),
-}).brand<'QuestSummaryObservable'>();
+export const questSummaryObservableContract = z
+  .object({
+    id: qaChecklistItemContract.shape.id,
+    flowId: flowContract.shape.id,
+    nodeId: flowNodeContract.shape.id,
+    observableId: flowObservableContract.shape.id,
+    addedBy: observableOriginContract.describe(
+      'Who wrote this observable in. On `midQuestObservables`, never `spec` — that slice is scope drift, filtered to post-approval additions. On `humanChecks`, `spec` is a legitimate value — a spec-authored verifyByHuman observable is still a human check.',
+    ),
+    observableType: outcomeTypeContract,
+    description: flowObservableContract.shape.description.describe(
+      'The observable text exactly as its author wrote it. Carried verbatim, and allowed to be blank, because a blank description is a spec hole the reader must see rather than a reason to drop the row.',
+    ),
+  })
+  .brand<'QuestSummaryObservable'>();
 
 export type QuestSummaryObservable = z.infer<typeof questSummaryObservableContract>;

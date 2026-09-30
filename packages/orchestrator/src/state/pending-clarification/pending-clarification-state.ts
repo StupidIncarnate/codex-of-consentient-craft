@@ -48,8 +48,11 @@ export const pendingClarificationState = {
     return true;
   },
 
-  getForSession: ({ sessionId }: { sessionId: Session['id'] }): PendingClarificationEntry | undefined =>
-    sessionQuestions.get(sessionId),
+  getForSession: ({
+    sessionId,
+  }: {
+    sessionId: Session['id'];
+  }): PendingClarificationEntry | undefined => sessionQuestions.get(sessionId),
 
   removeForSession: ({ sessionId }: { sessionId: Session['id'] }): boolean =>
     sessionQuestions.delete(sessionId),

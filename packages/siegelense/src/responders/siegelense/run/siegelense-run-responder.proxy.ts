@@ -66,30 +66,24 @@ export const SiegelenseRunResponderProxy = (): {
       instanceRunHandle.calledWith([{ instanceId: result.instanceId }]).resolves(result);
     },
 
-    stageRunThrows: ({ error, instanceId }: { error: Error; instanceId: SiegeInstance['id'] }): void => {
+    stageRunThrows: ({
+      error,
+      instanceId,
+    }: {
+      error: Error;
+      instanceId: SiegeInstance['id'];
+    }): void => {
       instanceRunHandle.calledWith([{ instanceId }]).rejects(error);
     },
 
-    stageStepsFileContent: ({
-      filePath,
-      content,
-    }: {
-      filePath: string;
-      content: string;
-    }): void => {
+    stageStepsFileContent: ({ filePath, content }: { filePath: string; content: string }): void => {
       resolveHandle
         .calledWith([filePath])
         .implement((...segments: never[]) => realPath.resolve(...segments));
       readFileMock.returns({ path: filePath, contents: content });
     },
 
-    stageStepsFileMissing: ({
-      filePath,
-      error,
-    }: {
-      filePath: string;
-      error: Error;
-    }): void => {
+    stageStepsFileMissing: ({ filePath, error }: { filePath: string; error: Error }): void => {
       const fsError: FsError = Object.assign(error, {
         code: 'code' in error && typeof error.code === 'string' ? error.code : 'ENOENT',
       });

@@ -37,12 +37,12 @@ export const configResolveBrokerProxy = (): {
     // setupConfigFound call just described - callers pass that same value here.
     setupValidConfig: (params: { configPath: string; config: Record<string, unknown> }): void => {
       loadProxy.setupValidConfig({
-        configPath: params.configPath as string,
+        configPath: params.configPath,
         config: params.config,
       });
     },
     setupFileNotFound: (params: { configPath: string }): void => {
-      loadProxy.setupFileNotFound({ configPath: params.configPath as string });
+      loadProxy.setupFileNotFound({ configPath: params.configPath });
     },
   };
 };

@@ -32,7 +32,13 @@
 
 import type { WorkItem, Quest, Session } from '@dungeonmaster/shared/contracts';
 import { homedir } from '#gateway/node/os';
-import { type ChatEntry, type OrchestrationEventType, questContract, workItemContract, sessionContract } from '@dungeonmaster/shared/contracts';
+import {
+  type ChatEntry,
+  type OrchestrationEventType,
+  questContract,
+  workItemContract,
+  sessionContract,
+} from '@dungeonmaster/shared/contracts';
 import { claudeProjectPathEncoderTransformer } from '@dungeonmaster/shared/transformers';
 
 import { questMonitorJsonlWatcherBroker } from '../monitor-jsonl-watcher/quest-monitor-jsonl-watcher-broker';
@@ -95,14 +101,14 @@ export const questMonitorWatcherStartBroker = async ({
     sessionId,
   });
 
-  const chatProcessId: string = `proc-worker-${parentSessionId}`;
+  const chatProcessId = `proc-worker-${parentSessionId}`;
   // Sized 0 (running) or 1 (stopped). The terminal emit below must fire exactly once: the
   // reactor stops a watcher when its work item leaves the active set, and the server-wide
   // teardown stops every watcher it still holds, so both can reach the same handle.
   const stoppedStateSet = new Set<'stopped'>();
 
   const watcherHandle = questMonitorJsonlWatcherBroker({
-    sessionFilePath: String(sessionFilePath),
+    sessionFilePath: sessionFilePath,
     activeQuestIdGetter: (): Quest['id'] | null => null,
     chatProcessId,
     // A sub-agent that carries no work item of its own — a parent-summoned minion, or a

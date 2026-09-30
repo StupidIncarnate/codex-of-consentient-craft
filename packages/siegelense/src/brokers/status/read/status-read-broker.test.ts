@@ -29,10 +29,10 @@ describe('statusReadBroker', () => {
           id,
           guildId: null,
           specName: 'dungeonmaster-stack',
-          pgids: [(4_143_212 + index)],
+          pgids: [4_143_212 + index],
           state: 'alive',
-          bootedAtMs: (nowMs - 60_000),
-          lastBeatMs: (nowMs - 1000),
+          bootedAtMs: nowMs - 60_000,
+          lastBeatMs: nowMs - 1000,
         }),
       );
       const registry = RegistryStub({ instances: entries });
@@ -164,7 +164,7 @@ describe('statusReadBroker', () => {
         specName: 'dungeonmaster-stack',
         pgids: [pgid],
         state: 'alive',
-        lastBeatMs: (nowMs - 240_000),
+        lastBeatMs: nowMs - 240_000,
       });
       const registry = RegistryStub({ instances: [entry] });
       const heartbeat = InstanceHeartbeatStub({ instanceId, pgids: [pgid], rssMB: 2980 });
@@ -338,16 +338,16 @@ describe('statusReadBroker', () => {
         branch: 'feat/branch-a',
         specName: 'dungeonmaster-stack',
         state: 'alive',
-        bootedAtMs: (nowMs - 60_000),
-        lastBeatMs: (nowMs - 1000),
+        bootedAtMs: nowMs - 60_000,
+        lastBeatMs: nowMs - 1000,
       });
       const entry2 = RegistryEntryStub({
         id: id2,
         branch: 'main',
         specName: 'dungeonmaster-stack',
         state: 'alive',
-        bootedAtMs: (nowMs - 60_000),
-        lastBeatMs: (nowMs - 1000),
+        bootedAtMs: nowMs - 60_000,
+        lastBeatMs: nowMs - 1000,
       });
       const registry = RegistryStub({ instances: [entry1, entry2] });
 
@@ -414,16 +414,16 @@ describe('statusReadBroker', () => {
         branch: 'main',
         specName: 'dungeonmaster-stack',
         state: 'alive',
-        bootedAtMs: (nowMs - 60_000),
-        lastBeatMs: (nowMs - 1000),
+        bootedAtMs: nowMs - 60_000,
+        lastBeatMs: nowMs - 1000,
       });
       const entryOld = RegistryEntryStub({
         id: idOld,
         branch: 'main',
         specName: 'dungeonmaster-stack',
         state: 'alive',
-        bootedAtMs: (nowMs - 7_200_000),
-        lastBeatMs: (nowMs - 7_200_000),
+        bootedAtMs: nowMs - 7_200_000,
+        lastBeatMs: nowMs - 7_200_000,
       });
       const registry = RegistryStub({ instances: [entryRecent, entryOld] });
 
@@ -495,7 +495,7 @@ describe('statusReadBroker', () => {
         // instanceLifecycleStatics.reservation.staleAfterMs (300_000ms/5m), so this resolves as
         // 'dead' via instanceStateResolveBroker — the exact shape a reservation abandoned before
         // boot.lock or the driver's own ping ever fired takes.
-        reservedAtMs: (nowMs - 7_200_000),
+        reservedAtMs: nowMs - 7_200_000,
       });
       const registry = RegistryStub({ instances: [entryReservation] });
 
@@ -565,16 +565,16 @@ describe('statusReadBroker', () => {
         branch: 'main',
         specName: 'dungeonmaster-stack',
         state: 'alive',
-        bootedAtMs: (nowMs - 60_000),
-        lastBeatMs: (nowMs - 1000),
+        bootedAtMs: nowMs - 60_000,
+        lastBeatMs: nowMs - 1000,
       });
       const entryOld = RegistryEntryStub({
         id: idOld,
         branch: 'main',
         specName: 'dungeonmaster-stack',
         state: 'alive',
-        bootedAtMs: (nowMs - 25_200_000),
-        lastBeatMs: (nowMs - 25_200_000),
+        bootedAtMs: nowMs - 25_200_000,
+        lastBeatMs: nowMs - 25_200_000,
       });
       const registry = RegistryStub({ instances: [entryRecent, entryOld] });
 
@@ -677,16 +677,16 @@ describe('statusReadBroker', () => {
         branch: 'main',
         specName: 'dungeonmaster-stack',
         state: 'alive',
-        bootedAtMs: (nowMs - 60_000),
-        lastBeatMs: (nowMs - 1000),
+        bootedAtMs: nowMs - 60_000,
+        lastBeatMs: nowMs - 1000,
       });
       const entryOld = RegistryEntryStub({
         id: idOld,
         branch: 'main',
         specName: 'dungeonmaster-stack',
         state: 'alive',
-        bootedAtMs: (nowMs - 25_200_000),
-        lastBeatMs: (nowMs - 25_200_000),
+        bootedAtMs: nowMs - 25_200_000,
+        lastBeatMs: nowMs - 25_200_000,
       });
       const registry = RegistryStub({ instances: [entryRecent, entryOld] });
 

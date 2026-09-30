@@ -48,7 +48,10 @@ describe('GetQuestLayerResponder', () => {
     it('VALID: {questId, no format} => renders the whole quest as text', async () => {
       const proxy = GetQuestLayerResponderProxy();
       const quest = QuestStub();
-      proxy.setupReturns({ questId: QuestIdStub({ value: 'add-auth' }), result: GetQuestResultStub({ quest }) });
+      proxy.setupReturns({
+        questId: QuestIdStub({ value: 'add-auth' }),
+        result: GetQuestResultStub({ quest }),
+      });
 
       const result = await GetQuestLayerResponder({ args: { questId: 'add-auth' } });
 
@@ -84,7 +87,10 @@ describe('GetQuestLayerResponder', () => {
   describe('the orchestrator throws', () => {
     it('ERROR: {adapter rejects} => returns isError with the message', async () => {
       const proxy = GetQuestLayerResponderProxy();
-      proxy.setupThrows({ questId: QuestIdStub({ value: 'add-auth' }), error: new Error('Quest not found') });
+      proxy.setupThrows({
+        questId: QuestIdStub({ value: 'add-auth' }),
+        error: new Error('Quest not found'),
+      });
 
       const result = await GetQuestLayerResponder({ args: { questId: 'add-auth' } });
 

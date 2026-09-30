@@ -12,10 +12,11 @@
 
 import { z } from '#gateway/npm/zod';
 
-
-export const questStartResponseContract = z.object({
-  processId: z.string().min(1).brand<'QuestStartResponseProcessId'>().optional(),
-  error: z.string().min(1).brand<'QuestStartResponseError'>().optional(),
-}).brand<'QuestStartResponse'>();
+export const questStartResponseContract = z
+  .object({
+    processId: z.string().min(1).brand<'QuestStartResponseProcessId'>().optional(),
+    error: z.string().min(1).brand<'QuestStartResponseError'>().optional(),
+  })
+  .brand<'QuestStartResponse'>();
 
 export type QuestStartResponse = z.infer<typeof questStartResponseContract>;

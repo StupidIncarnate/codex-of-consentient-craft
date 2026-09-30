@@ -52,17 +52,11 @@ export const bundleBuildBrokerProxy = (): {
   NpmNotInstalledErrorProxy();
   const readProxy = readFileProxy();
 
-  const bundleParent = `${String(WEB_ROOT)}/${bundleStatics.parentDir}`;
+  const bundleParent = `${WEB_ROOT}/${bundleStatics.parentDir}`;
   const tempPath = `${bundleParent}/${bundleStatics.tempPrefix}${String(pid)}`;
 
-  const hashDirFor = ({
-    packageRoot,
-    hash,
-  }: {
-    packageRoot: string;
-    hash: string;
-  }): string =>
-    `${String(packageRoot)}/${bundleStatics.parentDir}/${hash}`;
+  const hashDirFor = ({ packageRoot, hash }: { packageRoot: string; hash: string }): string =>
+    `${packageRoot}/${bundleStatics.parentDir}/${hash}`;
 
   return {
     setupWorkspace: (): void => {
@@ -107,26 +101,26 @@ export const bundleBuildBrokerProxy = (): {
       });
 
       mkdirProxy.succeeds({ path: bundleParent });
-      rm.succeeds({ path: String(tempPath) });
+      rm.succeeds({ path: tempPath });
     },
 
     setupNoBuildScript: (): void => {
       readProxy.returns({
-        path: `${String(WEB_ROOT)}/package.json`,
+        path: `${WEB_ROOT}/package.json`,
         contents: JSON.stringify({ name: '@dm/web', scripts: { test: 'jest' } }),
       });
     },
 
     setupCachedBundle: ({ hash }: { hash: string }): void => {
       existsProxy.returns({
-        path: String(hashDirFor({ packageRoot: WEB_ROOT, hash })),
+        path: hashDirFor({ packageRoot: WEB_ROOT, hash }),
         exists: true,
       });
     },
 
     setupNoCachedBundle: ({ hash }: { hash: string }): void => {
       existsProxy.returns({
-        path: String(hashDirFor({ packageRoot: WEB_ROOT, hash })),
+        path: hashDirFor({ packageRoot: WEB_ROOT, hash }),
         exists: false,
       });
     },
@@ -137,7 +131,7 @@ export const bundleBuildBrokerProxy = (): {
     setupBuildSucceeds: (): void => {
       run.setupResult({
         script: 'build',
-        args: ['--', '--outDir', String(tempPath)],
+        args: ['--', '--outDir', tempPath],
         exitCode: 0,
         output: 'built in 9.7s',
       });
@@ -146,26 +140,26 @@ export const bundleBuildBrokerProxy = (): {
     setupBuildFails: ({ output }: { output: string }): void => {
       run.setupResult({
         script: 'build',
-        args: ['--', '--outDir', String(tempPath)],
+        args: ['--', '--outDir', tempPath],
         exitCode: 1,
         output,
       });
     },
 
     setupNpmMissing: (): void => {
-      run.setupNotFound({ script: 'build', args: ['--', '--outDir', String(tempPath)] });
+      run.setupNotFound({ script: 'build', args: ['--', '--outDir', tempPath] });
     },
 
     setupPublishWins: ({ hash }: { hash: string }): void => {
       rename.succeeds({
-        from: String(tempPath),
-        to: String(hashDirFor({ packageRoot: WEB_ROOT, hash })),
+        from: tempPath,
+        to: hashDirFor({ packageRoot: WEB_ROOT, hash }),
       });
     },
 
     setupPublishLoses: ({ hash }: { hash: string }): void => {
-      const from = String(tempPath);
-      const to = String(hashDirFor({ packageRoot: WEB_ROOT, hash }));
+      const from = tempPath;
+      const to = hashDirFor({ packageRoot: WEB_ROOT, hash });
       rename.rejects({
         from,
         to,
@@ -212,27 +206,22 @@ export const bundleBuildBrokerProxy = (): {
       });
 
       existsProxy.returns({
-        path: String(hashDirFor({ packageRoot, hash })),
+        path: hashDirFor({ packageRoot, hash }),
         exists: true,
       });
     },
 
-    bundleDirFor: ({
-      packageRoot,
-      hash,
-    }: {
-      packageRoot: string;
-      hash: string;
-    }): string => hashDirFor({ packageRoot, hash }),
+    bundleDirFor: ({ packageRoot, hash }: { packageRoot: string; hash: string }): string =>
+      hashDirFor({ packageRoot, hash }),
 
     getBuildCalls: (): readonly unknown[][] =>
-      run.getCallsFor({ script: 'build', args: ['--', '--outDir', String(tempPath)] }),
+      run.getCallsFor({ script: 'build', args: ['--', '--outDir', tempPath] }),
 
-    getRemovedTempPaths: (): readonly unknown[][] => rm.getCallsFor({ path: String(tempPath) }),
+    getRemovedTempPaths: (): readonly unknown[][] => rm.getCallsFor({ path: tempPath }),
 
     getPublishCalls: (): readonly unknown[][] =>
       rename.getCallsFor({
-        from: String(tempPath),
+        from: tempPath,
         to: (p: unknown): boolean => typeof p === 'string',
       }),
   };

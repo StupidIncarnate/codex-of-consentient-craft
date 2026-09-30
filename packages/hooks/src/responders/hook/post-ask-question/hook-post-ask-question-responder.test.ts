@@ -21,7 +21,10 @@ describe('HookPostAskQuestionResponder', () => {
     it('VALID: {AskUserQuestion, single answer, header present} => PATCHes design decision with header-derived id', async () => {
       const proxy = HookPostAskQuestionResponderProxy();
       proxy.setNowMs({ value: 999 });
-      proxy.setupHappyPath({ sessionId: 'session-xyz', questId: QuestIdStub({ value: 'quest-abc-123' }) });
+      proxy.setupHappyPath({
+        sessionId: 'session-xyz',
+        questId: QuestIdStub({ value: 'quest-abc-123' }),
+      });
 
       const questionInput = AskUserQuestionStub({
         questions: [
@@ -50,7 +53,9 @@ describe('HookPostAskQuestionResponder', () => {
       expect(proxy.getPatchUrl({ questId: QuestIdStub({ value: 'quest-abc-123' }) })).toBe(
         'http://dungeonmaster.localhost:3737/api/quests/quest-abc-123',
       );
-      expect(proxy.getPatchedBody({ questId: QuestIdStub({ value: 'quest-abc-123' }) })).toStrictEqual({
+      expect(
+        proxy.getPatchedBody({ questId: QuestIdStub({ value: 'quest-abc-123' }) }),
+      ).toStrictEqual({
         designDecisions: [
           {
             id: 'naming-style-999',
@@ -67,7 +72,10 @@ describe('HookPostAskQuestionResponder', () => {
     it('VALID: {AskUserQuestion, multi-select answers} => joins answers with ", "', async () => {
       const proxy = HookPostAskQuestionResponderProxy();
       proxy.setNowMs({ value: 42 });
-      proxy.setupHappyPath({ sessionId: 'session-multi', questId: QuestIdStub({ value: 'quest-multi' }) });
+      proxy.setupHappyPath({
+        sessionId: 'session-multi',
+        questId: QuestIdStub({ value: 'quest-multi' }),
+      });
 
       const questionInput = AskUserQuestionStub({
         questions: [
@@ -96,7 +104,9 @@ describe('HookPostAskQuestionResponder', () => {
       const result = await HookPostAskQuestionResponder({ inputData: JSON.stringify(stub) });
 
       expect(result).toStrictEqual({ stdout: '', stderr: '', exitCode: 0 });
-      expect(proxy.getPatchedBody({ questId: QuestIdStub({ value: 'quest-multi' }) })).toStrictEqual({
+      expect(
+        proxy.getPatchedBody({ questId: QuestIdStub({ value: 'quest-multi' }) }),
+      ).toStrictEqual({
         designDecisions: [
           {
             id: 'packages-42',
@@ -113,7 +123,10 @@ describe('HookPostAskQuestionResponder', () => {
     it('VALID: {AskUserQuestion, empty header} => uses question text for id slug', async () => {
       const proxy = HookPostAskQuestionResponderProxy();
       proxy.setNowMs({ value: 7 });
-      proxy.setupHappyPath({ sessionId: 'session-noheader', questId: QuestIdStub({ value: 'quest-noheader' }) });
+      proxy.setupHappyPath({
+        sessionId: 'session-noheader',
+        questId: QuestIdStub({ value: 'quest-noheader' }),
+      });
 
       const questionInput = AskUserQuestionStub({
         questions: [
@@ -139,7 +152,9 @@ describe('HookPostAskQuestionResponder', () => {
       const result = await HookPostAskQuestionResponder({ inputData: JSON.stringify(stub) });
 
       expect(result).toStrictEqual({ stdout: '', stderr: '', exitCode: 0 });
-      expect(proxy.getPatchedBody({ questId: QuestIdStub({ value: 'quest-noheader' }) })).toStrictEqual({
+      expect(
+        proxy.getPatchedBody({ questId: QuestIdStub({ value: 'quest-noheader' }) }),
+      ).toStrictEqual({
         designDecisions: [
           {
             id: 'what-is-the-primary-goal-7',
@@ -156,7 +171,10 @@ describe('HookPostAskQuestionResponder', () => {
     it('VALID: {AskUserQuestion, verbatim free-form answer} => persists literal answer in rationale', async () => {
       const proxy = HookPostAskQuestionResponderProxy();
       proxy.setNowMs({ value: 1 });
-      proxy.setupHappyPath({ sessionId: 'session-other', questId: QuestIdStub({ value: 'quest-other' }) });
+      proxy.setupHappyPath({
+        sessionId: 'session-other',
+        questId: QuestIdStub({ value: 'quest-other' }),
+      });
 
       const questionInput = AskUserQuestionStub({
         questions: [
@@ -184,7 +202,9 @@ describe('HookPostAskQuestionResponder', () => {
       const result = await HookPostAskQuestionResponder({ inputData: JSON.stringify(stub) });
 
       expect(result).toStrictEqual({ stdout: '', stderr: '', exitCode: 0 });
-      expect(proxy.getPatchedBody({ questId: QuestIdStub({ value: 'quest-other' }) })).toStrictEqual({
+      expect(
+        proxy.getPatchedBody({ questId: QuestIdStub({ value: 'quest-other' }) }),
+      ).toStrictEqual({
         designDecisions: [
           {
             id: 'naming-style-1',
@@ -323,7 +343,10 @@ describe('HookPostAskQuestionResponder', () => {
     it('ERROR: {PATCH network error} => returns exitCode 2 with PATCH failure message', async () => {
       const proxy = HookPostAskQuestionResponderProxy();
       proxy.setNowMs({ value: 5 });
-      proxy.setupPatchFails({ sessionId: 'session-patch-fail', questId: QuestIdStub({ value: 'q-1' }) });
+      proxy.setupPatchFails({
+        sessionId: 'session-patch-fail',
+        questId: QuestIdStub({ value: 'q-1' }),
+      });
 
       const questionInput = AskUserQuestionStub();
 

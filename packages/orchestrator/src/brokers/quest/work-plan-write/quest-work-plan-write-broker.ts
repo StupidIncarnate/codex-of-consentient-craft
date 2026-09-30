@@ -42,51 +42,51 @@ export const questWorkPlanWriteBroker = async ({
 }): Promise<QuestWorkPlanWriteResult> =>
   questWorkPlanWriteResultContract.parse(
     await questWithModifyLockBroker({
-    questId,
-    run: async (): Promise<{ operationItemId: OperationItem['id'] }> => {
-      const { questPath } = await questFindQuestPathBroker({ questId });
-      const questFilePath = join(questPath, locationsStatics.quest.questFile);
-      const quest = await questLoadBroker({ questFilePath });
+      questId,
+      run: async (): Promise<{ operationItemId: OperationItem['id'] }> => {
+        const { questPath } = await questFindQuestPathBroker({ questId });
+        const questFilePath = join(questPath, locationsStatics.quest.questFile);
+        const quest = await questLoadBroker({ questFilePath });
 
-      const workItem = quest.workItems.find((item) => item.id === workItemId);
-      if (workItem === undefined) {
-        throw new Error(
-          `quest-work: work item ${workItemId} is not on quest ${questId} — nothing was written`,
-        );
-      }
+        const workItem = quest.workItems.find((item) => item.id === workItemId);
+        if (workItem === undefined) {
+          throw new Error(
+            `quest-work: work item ${workItemId} is not on quest ${questId} — nothing was written`,
+          );
+        }
 
-      const stamped = {
-        ...plan,
-        writtenBy: workItemId,
-        writtenAt: new Date().toISOString(),
-      };
+        const stamped = {
+          ...plan,
+          writtenBy: workItemId,
+          writtenAt: new Date().toISOString(),
+        };
 
-      const failures = workPlanValidateTransformer({ quest, workItem, plan: stamped });
+        const failures = workPlanValidateTransformer({ quest, workItem, plan: stamped });
 
-      if (failures.length > 0) {
-        const totalPieces = stamped.batches.flatMap((batch) => batch.pieces).length;
-        const failedPieceIds = new Set(failures.map((failure) => String(failure.pieceId)));
+        if (failures.length > 0) {
+          const totalPieces = stamped.batches.flatMap((batch) => batch.pieces).length;
+          const failedPieceIds = new Set(failures.map((failure) => String(failure.pieceId)));
 
-        throw new Error(
-          [
-            `quest-work: plan refused — ${String(failedPieceIds.size)} of ${String(totalPieces)} pieces failed validation. Nothing was written.`,
-            '',
-            ...failures.map((failure) => `  ${String(failure.pieceId)}   ${failure.message}`),
-            '',
-            'Fix each and resubmit the whole plan in this turn.',
-          ].join('\n'),
-        );
-      }
+          throw new Error(
+            [
+              `quest-work: plan refused — ${String(failedPieceIds.size)} of ${String(totalPieces)} pieces failed validation. Nothing was written.`,
+              '',
+              ...failures.map((failure) => `  ${String(failure.pieceId)}   ${failure.message}`),
+              '',
+              'Fix each and resubmit the whole plan in this turn.',
+            ].join('\n'),
+          );
+        }
 
-      const validatedPlan = workPlanContract.parse(stamped);
+        const validatedPlan = workPlanContract.parse(stamped);
 
-      await plannedWorkWriteBroker({
-        questFolderPath: questPath,
-        operationItemId: validatedPlan.operationItemId,
-        plan: validatedPlan,
-      });
+        await plannedWorkWriteBroker({
+          questFolderPath: questPath,
+          operationItemId: validatedPlan.operationItemId,
+          plan: validatedPlan,
+        });
 
-      return { operationItemId: validatedPlan.operationItemId };
-    },
+        return { operationItemId: validatedPlan.operationItemId };
+      },
     }),
   );

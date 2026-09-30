@@ -35,7 +35,7 @@ export const fileWriteCallsExtractTransformer = ({
     const imported = importedName;
     const localName = gatewayImportLocalNameFindTransformer({
       source,
-      importSource: importSource,
+      importSource,
       importedName: imported,
     });
     if (localName !== undefined) {
@@ -52,7 +52,7 @@ export const fileWriteCallsExtractTransformer = ({
     'gu',
   );
   const results: FileWriteCall[] = [];
-  for (const match of String(source).matchAll(pattern)) {
+  for (const match of source.matchAll(pattern)) {
     const [, matchedLocal = '', singleQuoted, doubleQuoted, backticked, brokerName, bareVar] =
       match;
     const adapter = importedByLocal.get(matchedLocal);
@@ -60,9 +60,7 @@ export const fileWriteCallsExtractTransformer = ({
 
     if (adapter !== undefined) {
       if (literal !== undefined) {
-        results.push(
-          fileWriteCallContract.parse({ adapter, filePathArg: literal }),
-        );
+        results.push(fileWriteCallContract.parse({ adapter, filePathArg: literal }));
       } else if (brokerName !== undefined) {
         results.push(
           fileWriteCallContract.parse({

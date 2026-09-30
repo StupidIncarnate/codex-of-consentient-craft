@@ -10,10 +10,7 @@ import { processDevLogBrokerProxy } from '../../process/dev-log/process-dev-log-
 
 export const imageServeBrokerProxy = (): {
   setupFileBytes: (params: { filePath: string; bytes: Uint8Array }) => void;
-  setupFileBytesWithoutQuestFile: (params: {
-    filePath: string;
-    bytes: Uint8Array;
-  }) => void;
+  setupFileBytesWithoutQuestFile: (params: { filePath: string; bytes: Uint8Array }) => void;
   setupReadFailure: (params: { filePath: string; error: Error }) => void;
 } => {
   const readProxy = readFileBytesProxy();

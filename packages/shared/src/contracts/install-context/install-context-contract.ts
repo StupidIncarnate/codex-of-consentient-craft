@@ -16,9 +16,51 @@ import { relativeFilePathContract } from '../relative-file-path/relative-file-pa
  * Represents the context for an install operation
  * Contains the target project root and dungeonmaster installation root
  */
-export const installContextContract = z.object({
-  targetProjectRoot: z.union([z.string().min(1).refine((path) => { if (path.startsWith('/')) { return true; } if (/^[A-Za-z]:\\/u.test(path)) { return true; } return false; }, { message: 'Path must be absolute (start with / or C:\\ on Windows)', },).brand<'InstallContextTargetProjectRoot'>(), relativeFilePathContract]).brand<'InstallContextTargetProjectRoot'>(),
-  dungeonmasterRoot: z.union([z.string().min(1).refine((path) => { if (path.startsWith('/')) { return true; } if (/^[A-Za-z]:\\/u.test(path)) { return true; } return false; }, { message: 'Path must be absolute (start with / or C:\\ on Windows)', },).brand<'InstallContextDungeonmasterRoot'>(), relativeFilePathContract]).brand<'InstallContextDungeonmasterRoot'>(),
-}).brand<'InstallContext'>();
+export const installContextContract = z
+  .object({
+    targetProjectRoot: z
+      .union([
+        z
+          .string()
+          .min(1)
+          .refine(
+            (path) => {
+              if (path.startsWith('/')) {
+                return true;
+              }
+              if (/^[A-Za-z]:\\/u.test(path)) {
+                return true;
+              }
+              return false;
+            },
+            { message: 'Path must be absolute (start with / or C:\\ on Windows)' },
+          )
+          .brand<'InstallContextTargetProjectRoot'>(),
+        relativeFilePathContract,
+      ])
+      .brand<'InstallContextTargetProjectRoot'>(),
+    dungeonmasterRoot: z
+      .union([
+        z
+          .string()
+          .min(1)
+          .refine(
+            (path) => {
+              if (path.startsWith('/')) {
+                return true;
+              }
+              if (/^[A-Za-z]:\\/u.test(path)) {
+                return true;
+              }
+              return false;
+            },
+            { message: 'Path must be absolute (start with / or C:\\ on Windows)' },
+          )
+          .brand<'InstallContextDungeonmasterRoot'>(),
+        relativeFilePathContract,
+      ])
+      .brand<'InstallContextDungeonmasterRoot'>(),
+  })
+  .brand<'InstallContext'>();
 
 export type InstallContext = z.infer<typeof installContextContract>;

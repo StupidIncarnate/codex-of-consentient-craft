@@ -9,7 +9,6 @@
  * // Returns: [ImportedNameStub()]
  */
 
-
 export const intersectImportedNamesTransformer = ({
   names,
   requestedNames,

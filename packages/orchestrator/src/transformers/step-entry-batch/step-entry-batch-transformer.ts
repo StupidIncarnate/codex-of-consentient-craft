@@ -68,7 +68,7 @@ export const stepEntryBatchTransformer = ({
 
   const batch = (plan?.batches ?? []).find((candidate) =>
     candidate.pieces.some(
-      (piece) => String(piece.step) === String(step) && !startedPieceIds.has(String(piece.id)),
+      (piece) => String(piece.step) === step && !startedPieceIds.has(String(piece.id)),
     ),
   );
 
@@ -96,7 +96,7 @@ export const stepEntryBatchTransformer = ({
 
   return batch.pieces
     .filter(
-      (piece) => String(piece.step) === String(step) && !startedPieceIds.has(String(piece.id)),
+      (piece) => String(piece.step) === step && !startedPieceIds.has(String(piece.id)),
     )
     .map((piece) => {
       const assignedUnitIds = piece.assignedUnitIds.filter((unitId) => {

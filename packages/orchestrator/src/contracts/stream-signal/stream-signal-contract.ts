@@ -17,11 +17,13 @@ import { operationItemContract } from '@dungeonmaster/shared/contracts';
 // The only other failure concept is a ward exit-code red, classified by whichever ward handler ran
 // it — `stepHandlerWardBroker` for a normal quest's deterministic step, `questRunWardBroker` for a
 // step-less item.
-export const streamSignalContract = z.object({
-  signal: z.literal('complete'),
-  operationItemId: operationItemContract.shape.id.optional(),
-  operationStatus: z.enum(['done', 'partial', 'blocked']).optional(),
-  blockedReason: z.string().min(1).brand<'StreamSignalBlockedReason'>().optional(),
-}).brand<'StreamSignal'>();
+export const streamSignalContract = z
+  .object({
+    signal: z.literal('complete'),
+    operationItemId: operationItemContract.shape.id.optional(),
+    operationStatus: z.enum(['done', 'partial', 'blocked']).optional(),
+    blockedReason: z.string().min(1).brand<'StreamSignalBlockedReason'>().optional(),
+  })
+  .brand<'StreamSignal'>();
 
 export type StreamSignal = z.infer<typeof streamSignalContract>;

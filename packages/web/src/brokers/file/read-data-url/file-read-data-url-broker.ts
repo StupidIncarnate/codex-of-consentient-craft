@@ -13,7 +13,11 @@ import { FileReader } from '#gateway/browser/FileReader';
 import { composerAttachmentContract } from '../../../contracts/composer-attachment/composer-attachment-contract';
 import type { ComposerAttachment } from '../../../contracts/composer-attachment/composer-attachment-contract';
 
-export const fileReadDataUrlBroker = async ({ blob }: { blob: Blob }): Promise<ComposerAttachment['dataUrl']> => {
+export const fileReadDataUrlBroker = async ({
+  blob,
+}: {
+  blob: Blob;
+}): Promise<ComposerAttachment['dataUrl']> => {
   const result = await new Promise<InstanceType<typeof FileReader>['result']>((resolve, reject) => {
     const reader = new FileReader();
 

@@ -74,9 +74,7 @@ describe('questNewBroker', () => {
 
       proxy.setupRejected({ status: 500, error: '' });
 
-      await expect(
-        questNewBroker({ guildId, message: 'Hi' }),
-      ).rejects.toThrow(
+      await expect(questNewBroker({ guildId, message: 'Hi' })).rejects.toThrow(
         /^POST \/api\/guilds\/38c6cbd2-8bf1-6507-8d07-0980dd1fb595\/quests failed with status 500$/u,
       );
     });
@@ -89,9 +87,7 @@ describe('questNewBroker', () => {
 
       proxy.setupError();
 
-      await expect(
-        questNewBroker({ guildId, message: 'Hi' }),
-      ).rejects.toThrow(
+      await expect(questNewBroker({ guildId, message: 'Hi' })).rejects.toThrow(
         /^POST \/api\/guilds\/1c27ba90-c110-14f0-94be-250818fd3443\/quests failed: network error$/u,
       );
     });

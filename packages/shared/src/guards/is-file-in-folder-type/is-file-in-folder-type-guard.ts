@@ -12,7 +12,6 @@
  * WHEN-TO-USE: Boot-tree broker filtering resolved import paths by folder type (flows, responders, adapters)
  */
 
-
 export const isFileInFolderTypeGuard = ({
   filePath,
   packageSrcPath,
@@ -25,6 +24,6 @@ export const isFileInFolderTypeGuard = ({
   if (filePath === undefined || packageSrcPath === undefined || folderType === undefined) {
     return false;
   }
-  const prefix = `${String(packageSrcPath)}/${folderType}/`;
-  return String(filePath).startsWith(prefix);
+  const prefix = `${packageSrcPath}/${folderType}/`;
+  return filePath.startsWith(prefix);
 };

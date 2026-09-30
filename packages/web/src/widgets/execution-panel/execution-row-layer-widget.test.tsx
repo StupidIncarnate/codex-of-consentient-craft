@@ -324,12 +324,7 @@ describe('ExecutionRowLayerWidget', () => {
       ExecutionRowLayerWidgetProxy();
 
       mantineRenderMiddleware({
-        ui: (
-          <ExecutionRowLayerWidget
-            {...defaultProps()}
-            dependsOn={['step-1']}
-          />
-        ),
+        ui: <ExecutionRowLayerWidget {...defaultProps()} dependsOn={['step-1']} />,
       });
 
       const subtitle = screen.getByTestId('execution-row-subtitle');
@@ -341,13 +336,7 @@ describe('ExecutionRowLayerWidget', () => {
       ExecutionRowLayerWidgetProxy();
 
       mantineRenderMiddleware({
-        ui: (
-          <ExecutionRowLayerWidget
-            {...defaultProps()}
-            status="queued"
-            dependsOn={['step-1']}
-          />
-        ),
+        ui: <ExecutionRowLayerWidget {...defaultProps()} status="queued" dependsOn={['step-1']} />,
       });
 
       const subtitle = screen.getByTestId('execution-row-subtitle');
@@ -689,10 +678,7 @@ describe('ExecutionRowLayerWidget', () => {
           <ExecutionRowLayerWidget
             {...defaultProps()}
             status="in_progress"
-            files={[
-              'src/auth.ts',
-              'src/users.ts',
-            ]}
+            files={['src/auth.ts', 'src/users.ts']}
           />
         ),
       });
@@ -1429,10 +1415,7 @@ describe('ExecutionRowLayerWidget', () => {
           <ExecutionRowLayerWidget
             {...defaultProps()}
             status="complete"
-            outputContracts={[
-              'AuthToken',
-              'UserProfile',
-            ]}
+            outputContracts={['AuthToken', 'UserProfile']}
           />
         ),
       });
@@ -1487,12 +1470,7 @@ describe('ExecutionRowLayerWidget', () => {
       ExecutionRowLayerWidgetProxy();
 
       mantineRenderMiddleware({
-        ui: (
-          <ExecutionRowLayerWidget
-            {...defaultProps()}
-            mintedByLabel={'walk pt: 1'}
-          />
-        ),
+        ui: <ExecutionRowLayerWidget {...defaultProps()} mintedByLabel={'walk pt: 1'} />,
       });
 
       const badge = screen.getByTestId('execution-row-minted-by-badge');

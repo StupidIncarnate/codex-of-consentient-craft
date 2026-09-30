@@ -25,7 +25,7 @@ export const patternResolveLayerBrokerProxy = (): {
       packageNames: string[];
     }): void => {
       readdirProxy.returns({
-        path: String(PACKAGES_DIR),
+        path: PACKAGES_DIR,
         entries: dirs.map((name) => ({ name, kind: 'directory' as const })),
       });
       dirs.forEach((dir, index) => {
@@ -42,7 +42,7 @@ export const patternResolveLayerBrokerProxy = (): {
     },
 
     setupGlobPatternDirFails: (): void => {
-      readdirProxy.missing({ path: String(PACKAGES_DIR) });
+      readdirProxy.missing({ path: PACKAGES_DIR });
     },
   };
 };

@@ -20,20 +20,22 @@ import { z } from '#gateway/npm/zod';
 
 import { questContract, workItemContract } from '@dungeonmaster/shared/contracts';
 
-export const getAgentPromptInputContract = z.object({
-  agent: z
-    .string()
-    .min(1)
-    .brand<'GetAgentPromptInputAgent'>()
-    .describe(
-      'Agent name. A relay role (codeweaver, flowrider, siegemaster, spiritmender, warpgate) or a minion named for the role that summons it (e.g. codeweaver-reviewer, siegemaster-walker).',
-    ),
-  workItemId: workItemContract.shape.id
-    .optional()
-    .describe(
-      "Work item the calling sub-agent was dispatched against. Supplied by a relay role; OMITTED by a summoned minion, which has no work item of its own and is refused if it passes its parent's.",
-    ),
-  questId: questContract.shape.id.describe('Quest the calling sub-agent is working on'),
-}).brand<'GetAgentPromptInput'>();
+export const getAgentPromptInputContract = z
+  .object({
+    agent: z
+      .string()
+      .min(1)
+      .brand<'GetAgentPromptInputAgent'>()
+      .describe(
+        'Agent name. A relay role (codeweaver, flowrider, siegemaster, spiritmender, warpgate) or a minion named for the role that summons it (e.g. codeweaver-reviewer, siegemaster-walker).',
+      ),
+    workItemId: workItemContract.shape.id
+      .optional()
+      .describe(
+        "Work item the calling sub-agent was dispatched against. Supplied by a relay role; OMITTED by a summoned minion, which has no work item of its own and is refused if it passes its parent's.",
+      ),
+    questId: questContract.shape.id.describe('Quest the calling sub-agent is working on'),
+  })
+  .brand<'GetAgentPromptInput'>();
 
 export type GetAgentPromptInput = z.infer<typeof getAgentPromptInputContract>;

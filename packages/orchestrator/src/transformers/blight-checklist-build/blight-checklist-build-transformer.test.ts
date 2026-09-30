@@ -102,7 +102,8 @@ describe('blightChecklistBuildTransformer', () => {
   describe('pairing: .stub.ts resolves to its -contract.ts implementation', () => {
     it('VALID: {contract + its test + its stub} => group is headed by the -contract.ts and the stub is a paired file', () => {
       const contractPath = 'packages/server/src/contracts/torch-fuel/torch-fuel-contract.ts';
-      const contractTestPath = 'packages/server/src/contracts/torch-fuel/torch-fuel-contract.test.ts';
+      const contractTestPath =
+        'packages/server/src/contracts/torch-fuel/torch-fuel-contract.test.ts';
       const stubPath = 'packages/server/src/contracts/torch-fuel/torch-fuel.stub.ts';
       const { baseRef } = BlightChecklistStub();
 
@@ -123,7 +124,8 @@ describe('blightChecklistBuildTransformer', () => {
 
     it('VALID: {contract + its test + its stub} => ONE group, not two, and only the concerns a contract can answer', () => {
       const contractPath = 'packages/server/src/contracts/torch-fuel/torch-fuel-contract.ts';
-      const contractTestPath = 'packages/server/src/contracts/torch-fuel/torch-fuel-contract.test.ts';
+      const contractTestPath =
+        'packages/server/src/contracts/torch-fuel/torch-fuel-contract.test.ts';
       const stubPath = 'packages/server/src/contracts/torch-fuel/torch-fuel.stub.ts';
       const { baseRef } = BlightChecklistStub();
 

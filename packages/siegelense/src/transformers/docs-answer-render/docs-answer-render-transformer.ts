@@ -14,7 +14,6 @@
  * // Returns the whole manual as formatted Markdown, one trailing newline
  */
 
-
 import type { DocsAnswer } from '../../contracts/docs-answer/docs-answer-contract';
 
 const BLOCK_GAP = '\n\n';

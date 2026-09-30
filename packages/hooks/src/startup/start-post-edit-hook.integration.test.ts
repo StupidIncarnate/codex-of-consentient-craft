@@ -79,7 +79,7 @@ describe('post-edit-hook', () => {
       },
     ])('$scenario', async ({ baseName, fileContent, stderrPattern }) => {
       const testbed = installTestbedCreateBroker({
-        baseName: baseName,
+        baseName,
         baseDir: BASE_DIR,
       });
 
@@ -126,7 +126,7 @@ describe('post-edit-hook', () => {
       },
     ])('$scenario', async ({ baseName, initialContent, newContent, stderrPattern }) => {
       const testbed = installTestbedCreateBroker({
-        baseName: baseName,
+        baseName,
         baseDir: BASE_DIR,
       });
 

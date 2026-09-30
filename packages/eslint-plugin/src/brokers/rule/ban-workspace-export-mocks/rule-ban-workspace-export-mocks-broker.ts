@@ -102,8 +102,8 @@ export const ruleBanWorkspaceExportMocksBroker = (): TSESLint.RuleModule<'compos
 
             const workspacePackage = workspacePackageNames.find(
               (pkg) =>
-                String(importedFrom) === String(pkg) ||
-                String(importedFrom).startsWith(`${String(pkg)}/`),
+                importedFrom === pkg ||
+                importedFrom.startsWith(`${pkg}/`),
             );
             if (workspacePackage === undefined) {
               continue;

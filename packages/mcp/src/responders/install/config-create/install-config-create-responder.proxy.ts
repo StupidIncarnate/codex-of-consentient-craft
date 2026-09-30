@@ -54,10 +54,10 @@ export const InstallConfigCreateResponderProxy = (): {
     targetProjectRoot: FilePath;
   }): PathSegment =>
     join(
-        targetProjectRoot,
-        locationsStatics.repoRoot.claude.dir,
-        locationsStatics.repoRoot.claude.settings,
-      );
+      targetProjectRoot,
+      locationsStatics.repoRoot.claude.dir,
+      locationsStatics.repoRoot.claude.settings,
+    );
 
   return {
     callResponder: InstallConfigCreateResponder,
@@ -72,11 +72,11 @@ export const InstallConfigCreateResponderProxy = (): {
       readProxy.returnsRaw({ path: configPathFor({ targetProjectRoot }), rawContents: content });
       writeProxy.succeeds({ path: configPathFor({ targetProjectRoot }) });
       settingsProxy.setupNoExistingSettings({
-        targetProjectRoot: targetProjectRoot,
+        targetProjectRoot,
         settingsPath: claudeSettingsPathFor({ targetProjectRoot }),
       });
       agentsProxy.setupSuccess({
-        targetProjectRoot: targetProjectRoot,
+        targetProjectRoot,
       });
     },
 
@@ -84,11 +84,11 @@ export const InstallConfigCreateResponderProxy = (): {
       readProxy.missing({ path: configPathFor({ targetProjectRoot }) });
       writeProxy.succeeds({ path: configPathFor({ targetProjectRoot }) });
       settingsProxy.setupNoExistingSettings({
-        targetProjectRoot: targetProjectRoot,
+        targetProjectRoot,
         settingsPath: claudeSettingsPathFor({ targetProjectRoot }),
       });
       agentsProxy.setupSuccess({
-        targetProjectRoot: targetProjectRoot,
+        targetProjectRoot,
       });
     },
 

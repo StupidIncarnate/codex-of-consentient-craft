@@ -8,9 +8,11 @@
 
 import { z } from '#gateway/npm/zod';
 
-export const reconcileWatchersResultContract = z.object({
-  started: z.number().int().nonnegative().brand<'ReconcileWatchersResultStarted'>(),
-  stopped: z.number().int().nonnegative().brand<'ReconcileWatchersResultStopped'>(),
-}).brand<'ReconcileWatchersResult'>();
+export const reconcileWatchersResultContract = z
+  .object({
+    started: z.number().int().nonnegative().brand<'ReconcileWatchersResultStarted'>(),
+    stopped: z.number().int().nonnegative().brand<'ReconcileWatchersResultStopped'>(),
+  })
+  .brand<'ReconcileWatchersResult'>();
 
 export type ReconcileWatchersResult = z.infer<typeof reconcileWatchersResultContract>;

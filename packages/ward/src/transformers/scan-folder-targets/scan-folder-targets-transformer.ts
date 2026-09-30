@@ -8,7 +8,6 @@
  * // Returns: { inScope: true, targets: ['src/a.ts'] } for a package at packages/ward
  */
 
-
 import type { ProjectFolder } from '../../contracts/project-folder/project-folder-contract';
 import {
   scanFolderTargetsContract,
@@ -32,14 +31,14 @@ export const scanFolderTargetsTransformer = ({
     return scanFolderTargetsContract.parse({ inScope: true, targets: [] });
   }
 
-  const rootPrefix = `${String(rootPath)}/`;
+  const rootPrefix = `${rootPath}/`;
   const folderPath = String(projectFolder.path).slice(rootPrefix.length);
 
   const reaching = paths
     .map((path) => {
-      const relative = String(path).startsWith(rootPrefix)
-        ? String(path).slice(rootPrefix.length)
-        : String(path);
+      const relative = path.startsWith(rootPrefix)
+        ? path.slice(rootPrefix.length)
+        : path;
       return relative.replace(CURRENT_DIRECTORY_PREFIX, '').replace(TRAILING_SLASHES, '');
     })
     .filter((path) => isPathUnderDirectoryGuard({ path, directory: folderPath }));

@@ -17,43 +17,55 @@ import { markdownSpanContract } from '../markdown-span/markdown-span-contract';
 const spansContract = z.array(markdownSpanContract);
 
 export const markdownBlockContract = z.discriminatedUnion('kind', [
-  z.object({
-    kind: z.literal('heading'),
-    level: z
-      .number()
-      .int()
-      .min(markdownSyntaxStatics.minHeadingLevel)
-      .max(markdownSyntaxStatics.maxHeadingLevel)
-      .brand<'MarkdownBlockLevel'>(),
-    spans: spansContract,
-  }).brand<'MarkdownBlock'>(),
-  z.object({
-    kind: z.literal('paragraph'),
-    spans: spansContract,
-  }).brand<'MarkdownBlock'>(),
-  z.object({
-    kind: z.literal('list-item'),
-    marker: z.string().min(1).brand<'MarkdownBlockMarker'>(),
-    depth: z
-      .number()
-      .int()
-      .min(0)
-      .max(markdownSyntaxStatics.maxListDepth)
-      .brand<'MarkdownBlockDepth'>(),
-    spans: spansContract,
-  }).brand<'MarkdownBlock'>(),
-  z.object({
-    kind: z.literal('quote'),
-    spans: spansContract,
-  }).brand<'MarkdownBlock'>(),
-  z.object({
-    kind: z.literal('code-block'),
-    language: z.string().brand<'MarkdownBlockLanguage'>(),
-    content: z.string().brand<'MarkdownBlockContent'>(),
-  }).brand<'MarkdownBlock'>(),
-  z.object({
-    kind: z.literal('rule'),
-  }).brand<'MarkdownBlock'>(),
+  z
+    .object({
+      kind: z.literal('heading'),
+      level: z
+        .number()
+        .int()
+        .min(markdownSyntaxStatics.minHeadingLevel)
+        .max(markdownSyntaxStatics.maxHeadingLevel)
+        .brand<'MarkdownBlockLevel'>(),
+      spans: spansContract,
+    })
+    .brand<'MarkdownBlock'>(),
+  z
+    .object({
+      kind: z.literal('paragraph'),
+      spans: spansContract,
+    })
+    .brand<'MarkdownBlock'>(),
+  z
+    .object({
+      kind: z.literal('list-item'),
+      marker: z.string().min(1).brand<'MarkdownBlockMarker'>(),
+      depth: z
+        .number()
+        .int()
+        .min(0)
+        .max(markdownSyntaxStatics.maxListDepth)
+        .brand<'MarkdownBlockDepth'>(),
+      spans: spansContract,
+    })
+    .brand<'MarkdownBlock'>(),
+  z
+    .object({
+      kind: z.literal('quote'),
+      spans: spansContract,
+    })
+    .brand<'MarkdownBlock'>(),
+  z
+    .object({
+      kind: z.literal('code-block'),
+      language: z.string().brand<'MarkdownBlockLanguage'>(),
+      content: z.string().brand<'MarkdownBlockContent'>(),
+    })
+    .brand<'MarkdownBlock'>(),
+  z
+    .object({
+      kind: z.literal('rule'),
+    })
+    .brand<'MarkdownBlock'>(),
 ]);
 
 export type MarkdownBlock = z.infer<typeof markdownBlockContract>;

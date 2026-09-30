@@ -1,5 +1,3 @@
-
-
 import { gitDetectDefaultBranchBroker } from './git-detect-default-branch-broker';
 import { gitDetectDefaultBranchBrokerProxy } from './git-detect-default-branch-broker.proxy';
 

@@ -6,15 +6,19 @@ describe('locationsRunPathsFindBroker', () => {
   describe('run path resolution', () => {
     it('VALID: {evidencePath, runId: run_2} => returns the transcript, stored return and shots dir paths', () => {
       locationsRunPathsFindBrokerProxy();
-      const evidencePath = '/repo/.dungeonmaster-assets/siegelense-assets/guilds/g1/instances/inst_7f3a9c21';
+      const evidencePath =
+        '/repo/.dungeonmaster-assets/siegelense-assets/guilds/g1/instances/inst_7f3a9c21';
       const runId = RunIdStub({ value: 'run_2' });
 
       const result = locationsRunPathsFindBroker({ evidencePath, runId });
 
       expect(result).toStrictEqual({
-        transcript: '/repo/.dungeonmaster-assets/siegelense-assets/guilds/g1/instances/inst_7f3a9c21/runs/run_2.jsonl',
-        storedReturn: '/repo/.dungeonmaster-assets/siegelense-assets/guilds/g1/instances/inst_7f3a9c21/runs/run_2.json',
-        shotsDir: '/repo/.dungeonmaster-assets/siegelense-assets/guilds/g1/instances/inst_7f3a9c21/runs/run_2',
+        transcript:
+          '/repo/.dungeonmaster-assets/siegelense-assets/guilds/g1/instances/inst_7f3a9c21/runs/run_2.jsonl',
+        storedReturn:
+          '/repo/.dungeonmaster-assets/siegelense-assets/guilds/g1/instances/inst_7f3a9c21/runs/run_2.json',
+        shotsDir:
+          '/repo/.dungeonmaster-assets/siegelense-assets/guilds/g1/instances/inst_7f3a9c21/runs/run_2',
       });
     });
   });
@@ -22,7 +26,8 @@ describe('locationsRunPathsFindBroker', () => {
   describe('two different runs never share a shots directory', () => {
     it('VALID: {runId: run_1} vs {runId: run_2} => shotsDir differs between the two runs', () => {
       locationsRunPathsFindBrokerProxy();
-      const evidencePath = '/repo/.dungeonmaster-assets/siegelense-assets/guilds/g1/instances/inst_7f3a9c21';
+      const evidencePath =
+        '/repo/.dungeonmaster-assets/siegelense-assets/guilds/g1/instances/inst_7f3a9c21';
 
       const firstRun = locationsRunPathsFindBroker({
         evidencePath,

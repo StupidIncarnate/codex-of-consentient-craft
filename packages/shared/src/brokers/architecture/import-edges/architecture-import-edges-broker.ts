@@ -31,7 +31,7 @@ export const architectureImportEdgesBroker = ({
 }: {
   projectRoot: string;
 }): ImportEdge[] => {
-  const root = String(projectRoot);
+  const root = projectRoot;
   const packagesDir = `${root}/${PACKAGES_REL}`;
 
   const packageEntries = safeReaddirLayerBroker({ dirPath: packagesDir });
@@ -53,7 +53,7 @@ export const architectureImportEdgesBroker = ({
   >();
 
   for (const consumerPkg of knownPackageNames) {
-    const consumerPkgName = String(consumerPkg);
+    const consumerPkgName = consumerPkg;
     const pkgSrcDir = `${root}/${PACKAGES_REL}/${consumerPkgName}/src`;
 
     const allFiles = listTsFilesRecursiveLayerBroker({ dirPath: pkgSrcDir });
@@ -67,7 +67,7 @@ export const architectureImportEdgesBroker = ({
       const importPaths = importStatementsExtractTransformer({ source });
 
       for (const importPath of importPaths) {
-        const importStr = String(importPath);
+        const importStr = importPath;
 
         if (!importStr.startsWith(DUNGEONMASTER_SCOPE)) {
           continue;
@@ -77,7 +77,7 @@ export const architectureImportEdgesBroker = ({
         const slashIndex = afterScope.indexOf('/');
         const sourcePackageName = slashIndex === -1 ? afterScope : afterScope.slice(0, slashIndex);
 
-        const isKnownPackage = [...knownPackageNames].some((p) => String(p) === sourcePackageName);
+        const isKnownPackage = [...knownPackageNames].some((p) => p === sourcePackageName);
         if (!isKnownPackage) {
           continue;
         }
@@ -87,14 +87,14 @@ export const architectureImportEdgesBroker = ({
         }
 
         const adapterWrapperPrefix = `${root}/${PACKAGES_REL}/${consumerPkgName}/src/adapters/${sourcePackageName}/`;
-        if (String(filePath).startsWith(adapterWrapperPrefix)) {
+        if (filePath.startsWith(adapterWrapperPrefix)) {
           continue;
         }
 
         const sourcePackage = sourcePackageName;
-        const barrel = (slashIndex === -1 ? '' : afterScope.slice(slashIndex + 1));
+        const barrel = slashIndex === -1 ? '' : afterScope.slice(slashIndex + 1);
 
-        const edgeKey = `${consumerPkgName}|${sourcePackageName}|${String(barrel)}`;
+        const edgeKey = `${consumerPkgName}|${sourcePackageName}|${barrel}`;
 
         if (!edgeFileMap.has(edgeKey)) {
           edgeFileMap.set(edgeKey, new Set<string>());

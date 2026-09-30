@@ -141,7 +141,8 @@ describe('runExecuteStepLayerBroker', () => {
         error: new Error('page.goto: Timeout 30000ms exceeded.'),
       });
       const step = StepStub({ step: 'goto', path: '/guilds' });
-      const shotPath = '/repo/.dungeonmaster-assets/siegelense-assets/guilds/g1/instances/inst_1/runs/run_1/step3.png';
+      const shotPath =
+        '/repo/.dungeonmaster-assets/siegelense-assets/guilds/g1/instances/inst_1/runs/run_1/step3.png';
 
       const outcome = await runExecuteStepLayerBroker({
         lane,
@@ -192,7 +193,8 @@ describe('runExecuteStepLayerBroker', () => {
         captureError: FsErrorStub({ code: 'ENOSPC', syscall: 'write', path: '/shots/step3.png' }),
       });
       const step = StepStub({ step: 'goto', path: '/guilds' });
-      const shotPath = '/repo/.dungeonmaster-assets/siegelense-assets/guilds/g1/instances/inst_1/runs/run_1/step3.png';
+      const shotPath =
+        '/repo/.dungeonmaster-assets/siegelense-assets/guilds/g1/instances/inst_1/runs/run_1/step3.png';
 
       const outcome = await runExecuteStepLayerBroker({
         lane,

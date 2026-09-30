@@ -12,7 +12,6 @@
  * // Returns 'no recipes declared yet\n'
  */
 
-
 import type { RecipesAnswer } from '../../contracts/recipes-answer/recipes-answer-contract';
 
 const NO_RECIPES = 'no recipes declared yet\n';
@@ -20,11 +19,7 @@ const NO_RECIPES = 'no recipes declared yet\n';
 // their values in one column — the alignment siegelense-recipes.md's own listing example shows.
 const LABEL_WIDTH = 9;
 
-export const recipesAnswerRenderTransformer = ({
-  answer,
-}: {
-  answer: RecipesAnswer;
-}): string => {
+export const recipesAnswerRenderTransformer = ({ answer }: { answer: RecipesAnswer }): string => {
   if (answer.recipes.length === 0) {
     return NO_RECIPES;
   }

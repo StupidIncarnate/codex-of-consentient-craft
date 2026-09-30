@@ -288,9 +288,9 @@ export const commentQueueSendHarness = ({
       // require-atomic-updates otherwise flags each as a possible race against `seeded` being read
       // mid-await elsewhere.
       Object.assign(seeded, {
-        questId: String(created.questId),
-        questFolder: String(created.questFolder),
-        questFilePath: String(created.filePath),
+        questId: created.questId,
+        questFolder: created.questFolder,
+        questFilePath: created.filePath,
       });
 
       await quests.writeQuestFile({

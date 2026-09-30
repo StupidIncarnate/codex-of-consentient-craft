@@ -16,7 +16,6 @@
  * WHEN-TO-USE: Edge-graph aggregators grouping edges by source/destination package
  */
 
-
 const PACKAGES_DIR_PATTERN = /\/packages\/([^/]+)\//u;
 
 export const packageOfAbsoluteFilePathTransformer = ({
@@ -24,7 +23,7 @@ export const packageOfAbsoluteFilePathTransformer = ({
 }: {
   filePath: string;
 }): string | null => {
-  const match = PACKAGES_DIR_PATTERN.exec(String(filePath));
+  const match = PACKAGES_DIR_PATTERN.exec(filePath);
   if (match === null) return null;
   const [, pkg] = match;
   if (pkg === undefined) return null;

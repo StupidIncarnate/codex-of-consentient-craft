@@ -15,10 +15,27 @@ import { z } from '#gateway/npm/zod';
 import { agentContract } from '../agent/agent-contract';
 import { sessionContract } from '../session/session-contract';
 
-export const mcpCallerContextContract = z.object({
-  cwd: z.string().min(1).refine((path) => { if (path.startsWith('/')) { return true; } if (/^[A-Za-z]:\\/u.test(path)) { return true; } return false; }, { message: 'Path must be absolute (start with / or C:\\ on Windows)', },).brand<'McpCallerContextCwd'>(),
-  sessionId: sessionContract.shape.id,
-  agentId: agentContract.shape.id.optional(),
-}).brand<'McpCallerContext'>();
+export const mcpCallerContextContract = z
+  .object({
+    cwd: z
+      .string()
+      .min(1)
+      .refine(
+        (path) => {
+          if (path.startsWith('/')) {
+            return true;
+          }
+          if (/^[A-Za-z]:\\/u.test(path)) {
+            return true;
+          }
+          return false;
+        },
+        { message: 'Path must be absolute (start with / or C:\\ on Windows)' },
+      )
+      .brand<'McpCallerContextCwd'>(),
+    sessionId: sessionContract.shape.id,
+    agentId: agentContract.shape.id.optional(),
+  })
+  .brand<'McpCallerContext'>();
 
 export type McpCallerContext = z.infer<typeof mcpCallerContextContract>;

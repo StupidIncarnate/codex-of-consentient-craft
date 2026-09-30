@@ -100,7 +100,7 @@ describe('wardRowsLayerBroker', () => {
       }).toStrictEqual({
         wardResultId: WARD_RESULT_ID,
         runId: null,
-        blobPath: String(proxy.blobPathFor({ questPath: QUEST_PATH, wardResultId })),
+        blobPath: proxy.blobPathFor({ questPath: QUEST_PATH, wardResultId }),
       });
     });
 
@@ -171,7 +171,7 @@ describe('wardRowsLayerBroker', () => {
 
       expect({ ward: rows.ward, riftcarverLogPath: String(rows.riftcarverLogPath) }).toStrictEqual({
         ward: null,
-        riftcarverLogPath: `${String(QUEST_PATH)}/riftcarver-results/${CARVE_ID}.log`,
+        riftcarverLogPath: `${QUEST_PATH}/riftcarver-results/${CARVE_ID}.log`,
       });
     });
 

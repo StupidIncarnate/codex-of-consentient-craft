@@ -26,25 +26,47 @@
 import { qaChecklistItemContract, relativeFilePathContract } from '@dungeonmaster/shared/contracts';
 import { z } from '#gateway/npm/zod';
 
-export const workPlanFileEntryContract = z.object({
-  path: z.union([z.string().min(1).refine((path) => { if (path.startsWith('/')) { return true; } if (/^[A-Za-z]:\\/u.test(path)) { return true; } return false; }, { message: 'Path must be absolute (start with / or C:\\ on Windows)', },).brand<'WorkPlanFileEntryPath'>(), relativeFilePathContract]).brand<'WorkPlanFileEntryPath'>(),
-  change: z.enum(['new', 'edit']),
-  in: z
-    .string()
-    .min(1)
-    .brand<'WorkPlanFileEntryIn'>()
-    .describe(
-      'What this file takes, as a free-form sketch — e.g. `{ path: string; ordinal: number }`.',
-    ),
-  out: z
-    .string()
-    .min(1)
-    .brand<'WorkPlanFileEntryOut'>()
-    .describe('What this file gives back, as a free-form sketch.'),
-  proves: z
-    .array(qaChecklistItemContract.shape.id)
-    .optional()
-    .describe('Present on a TEST file only — the units this file is written to settle.'),
-}).brand<'WorkPlanFileEntry'>();
+export const workPlanFileEntryContract = z
+  .object({
+    path: z
+      .union([
+        z
+          .string()
+          .min(1)
+          .refine(
+            (path) => {
+              if (path.startsWith('/')) {
+                return true;
+              }
+              if (/^[A-Za-z]:\\/u.test(path)) {
+                return true;
+              }
+              return false;
+            },
+            { message: 'Path must be absolute (start with / or C:\\ on Windows)' },
+          )
+          .brand<'WorkPlanFileEntryPath'>(),
+        relativeFilePathContract,
+      ])
+      .brand<'WorkPlanFileEntryPath'>(),
+    change: z.enum(['new', 'edit']),
+    in: z
+      .string()
+      .min(1)
+      .brand<'WorkPlanFileEntryIn'>()
+      .describe(
+        'What this file takes, as a free-form sketch — e.g. `{ path: string; ordinal: number }`.',
+      ),
+    out: z
+      .string()
+      .min(1)
+      .brand<'WorkPlanFileEntryOut'>()
+      .describe('What this file gives back, as a free-form sketch.'),
+    proves: z
+      .array(qaChecklistItemContract.shape.id)
+      .optional()
+      .describe('Present on a TEST file only — the units this file is written to settle.'),
+  })
+  .brand<'WorkPlanFileEntry'>();
 
 export type WorkPlanFileEntry = z.infer<typeof workPlanFileEntryContract>;

@@ -18,7 +18,6 @@ import {
   type NormalizedStreamLine,
 } from '../../contracts/normalized-stream-line/normalized-stream-line-contract';
 
-
 export const contentItemAgentIdSetAtIndexTransformer = ({
   entry,
   index,

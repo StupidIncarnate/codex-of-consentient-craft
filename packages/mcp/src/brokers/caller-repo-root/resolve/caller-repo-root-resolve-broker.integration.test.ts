@@ -52,7 +52,7 @@ describe('cwdResolveBroker + architecturePackageInventoryBroker (integration: re
       packageJsonPath: `${repoRoot}/packages/inner-pkg/package.json`,
     });
 
-    expect(String(innerInventory).split('\n')[0]).toBe('## inner-pkg (1 files)');
+    expect(innerInventory.split('\n')[0]).toBe('## inner-pkg (1 files)');
 
     const outerOnlyInventory = architecturePackageInventoryBroker({
       packageName: 'outer-only-pkg',

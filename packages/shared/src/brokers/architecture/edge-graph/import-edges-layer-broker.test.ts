@@ -78,7 +78,8 @@ describe('importEdgesLayerBroker', () => {
     it('VALID: {file in packages/server/src/adapters/orchestrator/... importing @dungeonmaster/orchestrator} => excluded', () => {
       const proxy = importEdgesLayerBrokerProxy();
 
-      const adapterFile = '/repo/packages/server/src/adapters/orchestrator/get-quest/orchestrator-get-quest-adapter.ts';
+      const adapterFile =
+        '/repo/packages/server/src/adapters/orchestrator/get-quest/orchestrator-get-quest-adapter.ts';
 
       proxy.setup({
         projectRoot: PROJECT_ROOT,
@@ -140,10 +141,10 @@ describe('importEdgesLayerBroker', () => {
           {
             path: consumerFile,
             source: [
-                `import React from 'react';`,
-                `import { z } from 'zod';`,
-                `import { useState } from 'react';`,
-              ].join('\n'),
+              `import React from 'react';`,
+              `import { z } from 'zod';`,
+              `import { useState } from 'react';`,
+            ].join('\n'),
           },
         ],
       });

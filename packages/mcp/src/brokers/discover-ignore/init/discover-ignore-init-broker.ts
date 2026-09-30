@@ -32,9 +32,7 @@ import { gitignoreToGlobTransformer } from '../../../transformers/gitignore-to-g
 const GITIGNORE_FILENAME = '.gitignore';
 
 export const discoverIgnoreInitBroker = async (): Promise<readonly string[]> => {
-  const staticPatterns = fileDiscoveryStatics.globIgnorePatterns.map((pattern) =>
-    pattern,
-  );
+  const staticPatterns = fileDiscoveryStatics.globIgnorePatterns.map((pattern) => pattern);
 
   const contents = await readFileIfExists(GITIGNORE_FILENAME);
 
@@ -44,10 +42,5 @@ export const discoverIgnoreInitBroker = async (): Promise<readonly string[]> => 
 
   // A branded pattern is a plain string at runtime, so the Set dedups by pattern text — which is
   // what keeps a rule both lists carry (`dist` is routinely in both) from compiling twice in glob.
-  return [
-    ...new Set([
-      ...staticPatterns,
-      ...gitignoreToGlobTransformer({ contents: contents }),
-    ]),
-  ];
+  return [...new Set([...staticPatterns, ...gitignoreToGlobTransformer({ contents })])];
 };

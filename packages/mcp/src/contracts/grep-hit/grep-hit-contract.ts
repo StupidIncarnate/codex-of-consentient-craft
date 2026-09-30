@@ -7,9 +7,11 @@
  */
 import { z } from '#gateway/npm/zod';
 
-export const grepHitContract = z.object({
-  line: z.number().int().positive().brand<'GrepHitLine'>(),
-  text: z.string().brand<'GrepHitText'>(),
-}).brand<'GrepHit'>();
+export const grepHitContract = z
+  .object({
+    line: z.number().int().positive().brand<'GrepHitLine'>(),
+    text: z.string().brand<'GrepHitText'>(),
+  })
+  .brand<'GrepHit'>();
 
 export type GrepHit = z.infer<typeof grepHitContract>;

@@ -90,7 +90,7 @@ export const SubagentChainWidget = ({
   // Everything inside this chain pins below this chain's own header. Passing the running total down
   // rather than a depth count is what lets a level stack correctly without knowing what it is nested
   // in — a tool row adds nothing of its own, a nested chain adds another header's worth.
-  const innerStickyTop = Number(stickyTop) + stickyHeaderStatics.heights.subagentChain;
+  const innerStickyTop = stickyTop + stickyHeaderStatics.heights.subagentChain;
 
   const formattedTokens =
     group.contextTokens === null
@@ -129,7 +129,7 @@ export const SubagentChainWidget = ({
           ...(expanded
             ? {
                 position: 'sticky' as const,
-                top: Number(stickyTop),
+                top: stickyTop,
                 zIndex: Number(stickyHeaderZIndexTransformer({ stickyTop })),
                 height: stickyHeaderStatics.heights.subagentChain,
                 boxSizing: 'border-box' as const,
@@ -193,9 +193,7 @@ export const SubagentChainWidget = ({
             );
             const mergedItems = mergeToolEntriesTransformer({ entries: singleEntries });
             const annotations = computeTokenAnnotationsTransformer({ items: mergedItems });
-            const tailStartIndex = Number(
-              computeMergedItemTailIndexTransformer({ items: mergedItems }),
-            );
+            const tailStartIndex = computeMergedItemTailIndexTransformer({ items: mergedItems });
 
             // Tail window: keep the most recent message anchor + the most recent item overall.
             // Everything between collapses out so chains don't blow past a single screen

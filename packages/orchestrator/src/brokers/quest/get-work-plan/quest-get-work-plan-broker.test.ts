@@ -88,7 +88,7 @@ describe('questGetWorkPlanBroker', () => {
         operationItemId: OPERATION_ITEM_ID as never,
       });
 
-      const row = String(text)
+      const row = text
         .split('\n')
         .find((line) => line.startsWith(`| \`${UNIT_B}\``));
 
@@ -108,7 +108,7 @@ describe('questGetWorkPlanBroker', () => {
         operationItemId: OPERATION_ITEM_ID as never,
       });
 
-      const row = String(text)
+      const row = text
         .split('\n')
         .find((line) => line.startsWith(`| \`${UNIT_A}\``));
 
@@ -126,7 +126,7 @@ describe('questGetWorkPlanBroker', () => {
         operationItemId: OPERATION_ITEM_ID as never,
       });
 
-      const line = String(text)
+      const line = text
         .split('\n')
         .find((entry) => entry.startsWith('No planner has run'));
 

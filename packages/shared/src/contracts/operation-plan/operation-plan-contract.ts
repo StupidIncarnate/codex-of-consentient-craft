@@ -21,68 +21,73 @@ import { operationPlanPieceContract } from '../operation-plan-piece/operation-pl
 import { workItemContract } from '../work-item/work-item-contract';
 import { operationItemContract } from '../operation-item/operation-item-contract';
 
-export const operationPlanContract = z.object({
-  id: z.uuid().brand<'OperationPlanId'>().describe(
-    'Identity for this plan. The operator reads a plan back by this id after the planner ' +
-      'sub-agent that wrote it has returned, without holding the plan body in its own context.',
-  ),
-  operationItemId: operationItemContract.shape.id.describe(
-    'The ledger item this plan was produced for — the operation-item whose dispatch prompted the ' +
-      'planner sub-agent to spike this plan.',
-  ),
-  workItemId: workItemContract.shape.id.describe(
-    'The work item that ran the planner sub-agent and produced this plan — the session whose ' +
-      'output this is.',
-  ),
-  // `.default()` before `.brand()` — zod v4 checks a `.default()` literal against the schema's
-  // own output type, and a bare number can never satisfy a branded type.
-  round: z
-    .number()
-    .int()
-    .positive()
-    .default(1)
-    .brand<'OperationPlanRound'>()
-    .describe(
-      'Which plan/work/review round produced this plan. Starts at 1; a rejected round (see ' +
-        'operationPlanPieceContract status) that gets re-planned bumps this, so two plans for the ' +
-        'same operationItemId are distinguishable by round rather than overwriting each other.',
+export const operationPlanContract = z
+  .object({
+    id: z
+      .uuid()
+      .brand<'OperationPlanId'>()
+      .describe(
+        'Identity for this plan. The operator reads a plan back by this id after the planner ' +
+          'sub-agent that wrote it has returned, without holding the plan body in its own context.',
+      ),
+    operationItemId: operationItemContract.shape.id.describe(
+      'The ledger item this plan was produced for — the operation-item whose dispatch prompted the ' +
+        'planner sub-agent to spike this plan.',
     ),
-  discipline: z
-    .string()
-    .min(1)
-    .brand<'OperationPlanDiscipline'>()
-    .describe(
-      'One of implementation | bug-repro | below-browser | browser-e2e | manual-qa. A plain ' +
-        'branded string here because the enum itself is owned by the orchestrator package, which ' +
-        'shared must not depend on — validate against the real enum at the orchestrator boundary, ' +
-        'not here.',
+    workItemId: workItemContract.shape.id.describe(
+      'The work item that ran the planner sub-agent and produced this plan — the session whose ' +
+        'output this is.',
     ),
-  summary: z
-    .string()
-    .min(1)
-    .brand<'OperationPlanSummary'>()
-    .describe(
-      "What the planner found — the spike's conclusion in prose, read by the operator (or a " +
-        'human) without opening any of the pieces. Should stand alone: a reader who never looks at ' +
-        'pieces[] should still know what is about to happen and why.',
-    ),
-  pieces: z
-    .array(operationPlanPieceContract)
-    .default([])
-    .describe(
-      'The ordered units of work this plan breaks into. Empty is valid for a plan whose spike ' +
-        'concluded no further work is needed — see summary for why.',
-    ),
-  at: z.iso
-    .datetime()
-    .brand<'OperationPlanAt'>()
-    .describe(
-      'STAMPED SERVER-SIDE — any client-supplied value is ignored and overwritten at write time. ' +
-        'An LLM has no reliable clock: agents writing this field have been observed emitting ' +
-        'identical fabricated timestamps across unrelated calls, and timestamps set in the future. ' +
-        'Never trust or read this field as agent-authored; it exists only so a reader can order ' +
-        'plans without asking the filesystem.',
-    ),
-}).brand<'OperationPlan'>();
+    // `.default()` before `.brand()` — zod v4 checks a `.default()` literal against the schema's
+    // own output type, and a bare number can never satisfy a branded type.
+    round: z
+      .number()
+      .int()
+      .positive()
+      .default(1)
+      .brand<'OperationPlanRound'>()
+      .describe(
+        'Which plan/work/review round produced this plan. Starts at 1; a rejected round (see ' +
+          'operationPlanPieceContract status) that gets re-planned bumps this, so two plans for the ' +
+          'same operationItemId are distinguishable by round rather than overwriting each other.',
+      ),
+    discipline: z
+      .string()
+      .min(1)
+      .brand<'OperationPlanDiscipline'>()
+      .describe(
+        'One of implementation | bug-repro | below-browser | browser-e2e | manual-qa. A plain ' +
+          'branded string here because the enum itself is owned by the orchestrator package, which ' +
+          'shared must not depend on — validate against the real enum at the orchestrator boundary, ' +
+          'not here.',
+      ),
+    summary: z
+      .string()
+      .min(1)
+      .brand<'OperationPlanSummary'>()
+      .describe(
+        "What the planner found — the spike's conclusion in prose, read by the operator (or a " +
+          'human) without opening any of the pieces. Should stand alone: a reader who never looks at ' +
+          'pieces[] should still know what is about to happen and why.',
+      ),
+    pieces: z
+      .array(operationPlanPieceContract)
+      .default([])
+      .describe(
+        'The ordered units of work this plan breaks into. Empty is valid for a plan whose spike ' +
+          'concluded no further work is needed — see summary for why.',
+      ),
+    at: z.iso
+      .datetime()
+      .brand<'OperationPlanAt'>()
+      .describe(
+        'STAMPED SERVER-SIDE — any client-supplied value is ignored and overwritten at write time. ' +
+          'An LLM has no reliable clock: agents writing this field have been observed emitting ' +
+          'identical fabricated timestamps across unrelated calls, and timestamps set in the future. ' +
+          'Never trust or read this field as agent-authored; it exists only so a reader can order ' +
+          'plans without asking the filesystem.',
+      ),
+  })
+  .brand<'OperationPlan'>();
 
 export type OperationPlan = z.infer<typeof operationPlanContract>;

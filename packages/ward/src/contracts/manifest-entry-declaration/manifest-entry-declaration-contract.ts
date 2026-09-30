@@ -13,9 +13,11 @@
 
 import { z } from '#gateway/npm/zod';
 
-export const manifestEntryDeclarationContract = z.object({
-  field: z.string().min(1).brand<'ManifestEntryDeclarationField'>(),
-  declaredPath: z.string().min(1).brand<'ManifestEntryDeclarationDeclaredPath'>(),
-}).brand<'ManifestEntryDeclaration'>();
+export const manifestEntryDeclarationContract = z
+  .object({
+    field: z.string().min(1).brand<'ManifestEntryDeclarationField'>(),
+    declaredPath: z.string().min(1).brand<'ManifestEntryDeclarationDeclaredPath'>(),
+  })
+  .brand<'ManifestEntryDeclaration'>();
 
 export type ManifestEntryDeclaration = z.infer<typeof manifestEntryDeclarationContract>;

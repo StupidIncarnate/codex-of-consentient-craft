@@ -51,11 +51,10 @@ export const sessionListBrokerProxy = (): {
   // cross-project scan's cwd is the flat `.claude/projects` root. Recomputing them here — instead
   // of accepting a caller-given cwd — is what makes a broker that computes the WRONG cwd (a
   // mutated homedir, a bad encoding) call glob with an address nothing here answers.
-  const staged: { homeDir: string | undefined; guildPath: string | undefined } =
-    {
-      homeDir: undefined,
-      guildPath: undefined,
-    };
+  const staged: { homeDir: string | undefined; guildPath: string | undefined } = {
+    homeDir: undefined,
+    guildPath: undefined,
+  };
 
   const directProjectDirFor = (): FilePath => {
     if (staged.homeDir === undefined || staged.guildPath === undefined) {
@@ -68,14 +67,14 @@ export const sessionListBrokerProxy = (): {
       projectPath: staged.guildPath,
       sessionId: sessionContract.shape.id.parse('_probe'),
     });
-    return String(probePath).slice(0, String(probePath).lastIndexOf('/')) as FilePath;
+    return probePath.slice(0, probePath.lastIndexOf('/'));
   };
 
   const crossProjectRootFor = (): FilePath => {
     if (staged.homeDir === undefined) {
       throw new Error('sessionListBrokerProxy: setupGlobFiles needs setupHomeDir staged first');
     }
-    return `${staged.homeDir}/.claude/projects` as FilePath;
+    return `${staged.homeDir}/.claude/projects`;
   };
 
   return {
@@ -88,13 +87,13 @@ export const sessionListBrokerProxy = (): {
       homedirHandle.calledWith([]).returns(path);
     },
     setupGlobFiles: ({ files, pattern }: { files: string[]; pattern?: string }): void => {
-      const filePaths = files.map((f) => f as FilePath);
+      const filePaths = files.map((f) => f);
       // No explicit pattern => the broker's direct scan (default '*.jsonl', encoded-project cwd);
       // an explicit pattern => the cross-project scan (`*/<sessionId>.jsonl`, flat-root cwd) — the
       // same split the broker's own two glob call sites use.
       const cwd = pattern === undefined ? directProjectDirFor() : crossProjectRootFor();
       globHandle.returns({
-        pattern: (pattern ?? '*.jsonl') as GlobPattern,
+        pattern: pattern ?? '*.jsonl',
         options: { cwd, nodir: false, ignore: globIgnoreStatics.defaults },
         matches: [...filePaths],
       });

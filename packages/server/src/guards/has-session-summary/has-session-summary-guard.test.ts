@@ -3,7 +3,9 @@ import { hasSessionSummaryGuard } from './has-session-summary-guard';
 describe('hasSessionSummaryGuard', () => {
   describe('with summary', () => {
     it('VALID: {session with summary} => returns true', () => {
-      const result = hasSessionSummaryGuard({ session: { summary: 'Built login page with OAuth' } });
+      const result = hasSessionSummaryGuard({
+        session: { summary: 'Built login page with OAuth' },
+      });
 
       expect(result).toBe(true);
     });

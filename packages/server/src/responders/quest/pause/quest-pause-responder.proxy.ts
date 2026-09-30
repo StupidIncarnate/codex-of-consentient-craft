@@ -23,7 +23,13 @@ export const QuestPauseResponderProxy = (): {
     setupPauseQuest: ({ questId, paused }: { questId: Quest['id']; paused: boolean }): void => {
       orchestrator.pauseQuestReturns({ questId, paused });
     },
-    setupPauseQuestError: ({ questId, message }: { questId: Quest['id']; message: string }): void => {
+    setupPauseQuestError: ({
+      questId,
+      message,
+    }: {
+      questId: Quest['id'];
+      message: string;
+    }): void => {
       orchestrator.pauseQuestThrows({ questId, error: new Error(message) });
     },
     callResponder: QuestPauseResponder,

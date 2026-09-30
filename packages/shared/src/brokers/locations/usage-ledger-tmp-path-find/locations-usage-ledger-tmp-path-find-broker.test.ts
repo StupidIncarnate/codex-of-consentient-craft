@@ -14,9 +14,7 @@ describe('locationsUsageLedgerTmpPathFindBroker', () => {
 
     const result = locationsUsageLedgerTmpPathFindBroker({ token: '4821-1789337123234' });
 
-    expect(result).toBe(
-      '/home/user/.dungeonmaster/usage-ledger.json.tmp.4821-1789337123234',
-    );
+    expect(result).toBe('/home/user/.dungeonmaster/usage-ledger.json.tmp.4821-1789337123234');
   });
 
   describe('the token is what keeps two writers apart', () => {
@@ -30,9 +28,7 @@ describe('locationsUsageLedgerTmpPathFindBroker', () => {
 
       const result = locationsUsageLedgerTmpPathFindBroker({ token: '4821-1789337123234' });
 
-      expect(result).toBe(
-        '/home/user/.dungeonmaster/usage-ledger.json.tmp.4821-1789337123234',
-      );
+      expect(result).toBe('/home/user/.dungeonmaster/usage-ledger.json.tmp.4821-1789337123234');
     });
 
     it('VALID: {two different tokens} => yields two different staging paths', () => {
@@ -52,12 +48,8 @@ describe('locationsUsageLedgerTmpPathFindBroker', () => {
 
       const second = locationsUsageLedgerTmpPathFindBroker({ token: '4822-1789337123234' });
 
-      expect(first).toBe(
-        '/home/user/.dungeonmaster/usage-ledger.json.tmp.4821-1789337123234',
-      );
-      expect(second).toBe(
-        '/home/user/.dungeonmaster/usage-ledger.json.tmp.4822-1789337123234',
-      );
+      expect(first).toBe('/home/user/.dungeonmaster/usage-ledger.json.tmp.4821-1789337123234');
+      expect(second).toBe('/home/user/.dungeonmaster/usage-ledger.json.tmp.4822-1789337123234');
     });
   });
 });

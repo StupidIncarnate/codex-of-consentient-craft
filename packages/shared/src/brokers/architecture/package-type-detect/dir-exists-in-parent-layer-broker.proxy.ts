@@ -2,13 +2,7 @@ import type { DirEntrySync } from '#gateway/node/fs';
 import { safeReaddirLayerBrokerProxy } from './safe-readdir-layer-broker.proxy';
 
 export const dirExistsInParentLayerBrokerProxy = (): {
-  setupWithDir: ({
-    parentDirPath,
-    dirName,
-  }: {
-    parentDirPath: string;
-    dirName: string;
-  }) => void;
+  setupWithDir: ({ parentDirPath, dirName }: { parentDirPath: string; dirName: string }) => void;
   setupEmpty: ({ parentDirPath }: { parentDirPath: string }) => void;
 } => {
   const readdirProxy = safeReaddirLayerBrokerProxy();

@@ -41,7 +41,6 @@ export const xhrPostWithProgressProxy = (): {
     },
     getRequestBodies: async ({ url }: { url: string }): Promise<unknown[]> =>
       endpointFor({ url }).getRequestBodies(),
-    getRequestCount: ({ url }: { url: string }): number =>
-      endpointFor({ url }).getRequestCount(),
+    getRequestCount: ({ url }: { url: string }): number => endpointFor({ url }).getRequestCount(),
   };
 };

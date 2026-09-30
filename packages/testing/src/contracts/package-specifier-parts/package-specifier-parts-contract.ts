@@ -9,9 +9,11 @@
 
 import { z } from '#gateway/npm/zod';
 
-export const packageSpecifierPartsContract = z.object({
-  packageName: z.string().brand<'PackageSpecifierPartsPackageName'>(),
-  subpath: z.string().brand<'PackageSpecifierPartsSubpath'>(),
-}).brand<'PackageSpecifierParts'>();
+export const packageSpecifierPartsContract = z
+  .object({
+    packageName: z.string().brand<'PackageSpecifierPartsPackageName'>(),
+    subpath: z.string().brand<'PackageSpecifierPartsSubpath'>(),
+  })
+  .brand<'PackageSpecifierParts'>();
 
 export type PackageSpecifierParts = z.infer<typeof packageSpecifierPartsContract>;

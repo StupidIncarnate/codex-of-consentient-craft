@@ -16,9 +16,7 @@ describe('locationsGuildPathFindBroker', () => {
 
       const result = locationsGuildPathFindBroker({ guildId });
 
-      expect(result).toBe(
-        '/home/user/.dungeonmaster/guilds/f47ac10b-58cc-4372-a567-0e02b2c3d479',
-      );
+      expect(result).toBe('/home/user/.dungeonmaster/guilds/f47ac10b-58cc-4372-a567-0e02b2c3d479');
     });
   });
 });

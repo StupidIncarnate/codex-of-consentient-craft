@@ -11,7 +11,6 @@
  * // record with no scopeKey field at all)
  */
 
-
 export const isComposerScopeMatchGuard = ({
   record,
   scopeKey,

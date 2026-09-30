@@ -14,7 +14,6 @@
  * // Returns ['b'] — the one line unique to linesB
  */
 
-
 import { resultsStatics } from '../../../statics/results/results-statics';
 
 export const newLinesLayerBroker = ({

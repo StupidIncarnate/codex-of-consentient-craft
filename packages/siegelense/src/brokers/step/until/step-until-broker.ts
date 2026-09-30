@@ -24,7 +24,6 @@
  * // throws UntilCeilingHitError once the ceiling passes
  */
 
-
 import type { BufferLengths } from '../../../contracts/buffer-lengths/buffer-lengths-contract';
 import type { LaneSession } from '../../../contracts/lane-session/lane-session-contract';
 import type { UntilResponse } from '../../../contracts/until-response/until-response-contract';

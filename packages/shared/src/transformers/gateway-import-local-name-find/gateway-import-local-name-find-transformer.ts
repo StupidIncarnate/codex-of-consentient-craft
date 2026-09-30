@@ -12,7 +12,6 @@
  * // Returns 'tail'; undefined when the source does not import it from that specifier
  */
 
-
 const REGEX_SPECIALS = /[.*+?^${}()|[\]\\/]/gu;
 
 export const gatewayImportLocalNameFindTransformer = ({
@@ -24,19 +23,19 @@ export const gatewayImportLocalNameFindTransformer = ({
   importSource: string;
   importedName: string;
 }): string | undefined => {
-  const escapedSource = String(importSource).replace(REGEX_SPECIALS, '\\$&');
+  const escapedSource = importSource.replace(REGEX_SPECIALS, '\\$&');
   const importPattern = new RegExp(
     `import\\s+(?!type\\s)\\{([^}]*)\\}\\s+from\\s+['"]${escapedSource}['"]`,
     'gu',
   );
-  const wanted = String(importedName);
+  const wanted = importedName;
 
-  for (const match of String(source).matchAll(importPattern)) {
+  for (const match of source.matchAll(importPattern)) {
     const [, specifierList = ''] = match;
     for (const specifier of specifierList.split(',')) {
       const [imported = '', local] = specifier.trim().split(/\s+as\s+/u);
       if (imported === wanted) {
-        return (local ?? imported);
+        return local ?? imported;
       }
     }
   }

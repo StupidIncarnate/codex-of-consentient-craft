@@ -115,11 +115,7 @@ const AGENT_PROMPTS = {
   },
 } as const;
 
-export const agentNameToPromptTransformer = ({
-  agent,
-}: {
-  agent: string;
-}): AgentPromptResult => {
+export const agentNameToPromptTransformer = ({ agent }: { agent: string }): AgentPromptResult => {
   if (!(agent in AGENT_PROMPTS)) {
     throw new Error(
       `Unknown agent prompt name: '${agent}'. No prompt is registered for it in AGENT_PROMPTS — ` +

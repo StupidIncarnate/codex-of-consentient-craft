@@ -31,25 +31,26 @@
 
 import { z } from '#gateway/npm/zod';
 
-
 import { attrPairContract } from '../attr-pair/attr-pair-contract';
 import { elementFlagContract } from '../element-flag/element-flag-contract';
 
-export const keyRowContract = z.object({
-  ref: z.number().int().positive().brand<'KeyRowRef'>(),
-  depth: z.number().int().nonnegative().brand<'KeyRowDepth'>(),
-  testId: z.string().brand<'KeyRowTestId'>().nullable(),
-  tag: z.string().brand<'KeyRowTag'>(),
-  role: z.string().brand<'KeyRowRole'>().nullable(),
-  domId: z.string().brand<'KeyRowDomId'>().nullable(),
-  sibling: z.string().brand<'KeyRowSibling'>().nullable(),
-  text: z.string().brand<'KeyRowText'>().nullable(),
-  value: z.string().brand<'KeyRowValue'>().nullable(),
-  placeholder: z.string().brand<'KeyRowPlaceholder'>().nullable(),
-  attrs: z.array(attrPairContract).readonly(),
-  attrsDropped: z.number().int().nonnegative().brand<'KeyRowAttrsDropped'>(),
-  flags: z.array(elementFlagContract).readonly(),
-  flagDetail: z.record(z.string(), z.string().brand<'KeyRowFlagDetail'>()).readonly(),
-}).brand<'KeyRow'>();
+export const keyRowContract = z
+  .object({
+    ref: z.number().int().positive().brand<'KeyRowRef'>(),
+    depth: z.number().int().nonnegative().brand<'KeyRowDepth'>(),
+    testId: z.string().brand<'KeyRowTestId'>().nullable(),
+    tag: z.string().brand<'KeyRowTag'>(),
+    role: z.string().brand<'KeyRowRole'>().nullable(),
+    domId: z.string().brand<'KeyRowDomId'>().nullable(),
+    sibling: z.string().brand<'KeyRowSibling'>().nullable(),
+    text: z.string().brand<'KeyRowText'>().nullable(),
+    value: z.string().brand<'KeyRowValue'>().nullable(),
+    placeholder: z.string().brand<'KeyRowPlaceholder'>().nullable(),
+    attrs: z.array(attrPairContract).readonly(),
+    attrsDropped: z.number().int().nonnegative().brand<'KeyRowAttrsDropped'>(),
+    flags: z.array(elementFlagContract).readonly(),
+    flagDetail: z.record(z.string(), z.string().brand<'KeyRowFlagDetail'>()).readonly(),
+  })
+  .brand<'KeyRow'>();
 
 export type KeyRow = z.infer<typeof keyRowContract>;

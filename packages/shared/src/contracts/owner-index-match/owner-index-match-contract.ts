@@ -13,9 +13,11 @@ import { z } from '#gateway/npm/zod';
 import { ownerIndexFieldContract } from '../owner-index-field/owner-index-field-contract';
 import { ownerIndexOwnerContract } from '../owner-index-owner/owner-index-owner-contract';
 
-export const ownerIndexMatchContract = z.object({
-  owner: ownerIndexOwnerContract,
-  field: ownerIndexFieldContract,
-}).brand<'OwnerIndexMatch'>();
+export const ownerIndexMatchContract = z
+  .object({
+    owner: ownerIndexOwnerContract,
+    field: ownerIndexFieldContract,
+  })
+  .brand<'OwnerIndexMatch'>();
 
 export type OwnerIndexMatch = z.infer<typeof ownerIndexMatchContract>;

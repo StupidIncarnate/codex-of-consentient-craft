@@ -90,17 +90,17 @@ export const questGetQuestWorkBroker = async ({
   // brands an OPEN string (families are data), and indexing a union of six differently-shaped
   // `steps` objects with one collapses its key set to `never`.
   const familyGraphs = Object.entries(agentFlowStatics).filter(
-    (entry) => entry[0] === String(family),
+    (entry) => entry[0] === family,
   );
   const entryStep = familyGraphs.map((entry) => entry[1].entry).at(0);
 
   if (entryStep === undefined) {
     throw new Error(
-      `get-quest-work: agentFlowStatics declares no '${String(family)}' step graph — it holds: ${Object.keys(agentFlowStatics).join(', ')}`,
+      `get-quest-work: agentFlowStatics declares no '${family}' step graph — it holds: ${Object.keys(agentFlowStatics).join(', ')}`,
     );
   }
 
-  const step = (workItem.step ?? entryStep);
+  const step = workItem.step ?? entryStep;
   const stepNodes = familyGraphs.flatMap((entry) => Object.entries(entry[1].steps));
   // `agentStepNodeContract` rather than a member read: `Object.entries` over a union of six
   // differently-shaped `steps` maps widens the value to `any`, and an `any` walked into the return
@@ -116,7 +116,7 @@ export const questGetQuestWorkBroker = async ({
 
   if (role === undefined) {
     throw new Error(
-      `get-quest-work: step \`${String(step)}\` is not declared in family \`${String(family)}\` — agentFlowStatics.${String(family)}.steps holds: ${stepNodes.map((entry) => entry[0]).join(', ')}`,
+      `get-quest-work: step \`${String(step)}\` is not declared in family \`${family}\` — agentFlowStatics.${family}.steps holds: ${stepNodes.map((entry) => entry[0]).join(', ')}`,
     );
   }
 
@@ -205,7 +205,7 @@ export const questGetQuestWorkBroker = async ({
   // The ROUTER records the instance it started on the work item's payload and this serves what is
   // recorded — it starts nothing. `null` on every step that does not declare `needsLane`.
   const recordedInstance = questWorkViewContract.shape.instance.safeParse(
-    workItem.payload?.['instance'] ?? null,
+    workItem.payload?.instance ?? null,
   );
 
   // A baseline is the happy walk's own run, resolved from the attacking piece's `baselineFor`

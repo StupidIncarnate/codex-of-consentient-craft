@@ -18,7 +18,7 @@ describe('summaryToTextTransformer', () => {
 
       const result = summaryToTextTransformer({ summary });
 
-      expect(String(result)).toBe(
+      expect(result).toBe(
         [
           'Lines in the transcript  412',
           'Times the model replied  96 (one reply covers several lines of the transcript)',
@@ -70,7 +70,7 @@ describe('summaryToTextTransformer', () => {
 
       const result = summaryToTextTransformer({ summary });
 
-      expect(String(result)).toBe(
+      expect(result).toBe(
         [
           'Lines in the transcript  50',
           'Times the model replied  20 (one reply covers several lines of the transcript)',
@@ -119,7 +119,7 @@ describe('summaryToTextTransformer', () => {
 
       const result = summaryToTextTransformer({ summary });
 
-      expect(String(result)).toBe(
+      expect(result).toBe(
         [
           'Lines in the transcript  10',
           'Times the model replied  4 (one reply covers several lines of the transcript)',
@@ -169,7 +169,7 @@ describe('summaryToTextTransformer', () => {
 
       const result = summaryToTextTransformer({ summary });
 
-      expect(String(result)).toBe(
+      expect(result).toBe(
         [
           'Lines in the transcript  30',
           'Times the model replied  10 (one reply covers several lines of the transcript)',
@@ -223,7 +223,7 @@ describe('summaryToTextTransformer', () => {
 
       const result = summaryToTextTransformer({ summary });
 
-      expect(String(result)).toBe(
+      expect(result).toBe(
         [
           'Lines in the transcript  20',
           'Times the model replied  8 (one reply covers several lines of the transcript)',

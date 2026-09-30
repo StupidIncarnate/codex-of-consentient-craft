@@ -24,11 +24,16 @@ import { z } from '#gateway/npm/zod';
 
 import { siegeInstanceContract } from '@dungeonmaster/shared/contracts';
 
-export const profileBootContract = z.object({
-  instanceId: siegeInstanceContract.shape.id,
-  specHash: z.string().regex(/^[0-9a-f]{8,64}$/u).brand<'ProfileBootSpecHash'>(),
-  bootMs: z.number().int().nonnegative().brand<'ProfileBootBootMs'>(),
-  recordedAtMs: z.number().int().nonnegative().brand<'ProfileBootRecordedAtMs'>(),
-}).brand<'ProfileBoot'>();
+export const profileBootContract = z
+  .object({
+    instanceId: siegeInstanceContract.shape.id,
+    specHash: z
+      .string()
+      .regex(/^[0-9a-f]{8,64}$/u)
+      .brand<'ProfileBootSpecHash'>(),
+    bootMs: z.number().int().nonnegative().brand<'ProfileBootBootMs'>(),
+    recordedAtMs: z.number().int().nonnegative().brand<'ProfileBootRecordedAtMs'>(),
+  })
+  .brand<'ProfileBoot'>();
 
 export type ProfileBoot = z.infer<typeof profileBootContract>;

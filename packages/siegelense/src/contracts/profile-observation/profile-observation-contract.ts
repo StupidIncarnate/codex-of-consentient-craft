@@ -29,21 +29,36 @@ import { z } from '#gateway/npm/zod';
 
 import { siegeInstanceContract } from '@dungeonmaster/shared/contracts';
 
-export const profileObservationContract = z.object({
-  instanceId: siegeInstanceContract.shape.id,
-  specHash: z.string().regex(/^[0-9a-f]{8,64}$/u).brand<'ProfileObservationSpecHash'>(),
-  firstBeatAtMs: z.number().int().nonnegative().brand<'ProfileObservationFirstBeatAtMs'>(),
-  measuredAtMs: z.number().int().nonnegative().brand<'ProfileObservationMeasuredAtMs'>(),
-  pools: z
-    .array(
-      z.object({
-        poolSize: z.number().int().positive().brand<'ProfileObservationPoolsPoolSize'>(),
-        peakMB: z.number().int().nonnegative().brand<'ProfileObservationPoolsPeakMB'>(),
-        steadySumMB: z.number().int().nonnegative().brand<'ProfileObservationPoolsSteadySumMB'>(),
-        steadyBeats: z.number().int().nonnegative().brand<'ProfileObservationPoolsSteadyBeats'>(),
-      }).brand<'ProfileObservationPools'>(),
-    )
-    .readonly(),
-}).brand<'ProfileObservation'>();
+export const profileObservationContract = z
+  .object({
+    instanceId: siegeInstanceContract.shape.id,
+    specHash: z
+      .string()
+      .regex(/^[0-9a-f]{8,64}$/u)
+      .brand<'ProfileObservationSpecHash'>(),
+    firstBeatAtMs: z.number().int().nonnegative().brand<'ProfileObservationFirstBeatAtMs'>(),
+    measuredAtMs: z.number().int().nonnegative().brand<'ProfileObservationMeasuredAtMs'>(),
+    pools: z
+      .array(
+        z
+          .object({
+            poolSize: z.number().int().positive().brand<'ProfileObservationPoolsPoolSize'>(),
+            peakMB: z.number().int().nonnegative().brand<'ProfileObservationPoolsPeakMB'>(),
+            steadySumMB: z
+              .number()
+              .int()
+              .nonnegative()
+              .brand<'ProfileObservationPoolsSteadySumMB'>(),
+            steadyBeats: z
+              .number()
+              .int()
+              .nonnegative()
+              .brand<'ProfileObservationPoolsSteadyBeats'>(),
+          })
+          .brand<'ProfileObservationPools'>(),
+      )
+      .readonly(),
+  })
+  .brand<'ProfileObservation'>();
 
 export type ProfileObservation = z.infer<typeof profileObservationContract>;

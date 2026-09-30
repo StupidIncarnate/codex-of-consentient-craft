@@ -30,13 +30,13 @@ export const signalFromSessionJsonlBrokerProxy = (): {
 
   return {
     setupFileContent: ({ content }: { content: string }): void => {
-      readLinesProxy.returnsRaw({ path: String(filePath), rawContents: content });
+      readLinesProxy.returnsRaw({ path: filePath, rawContents: content });
     },
     setupFileNotFound: (): void => {
-      readLinesProxy.missing({ path: String(filePath) });
+      readLinesProxy.missing({ path: filePath });
     },
     setupReadError: ({ error }: { error: FsError }): void => {
-      readLinesProxy.throwsMatchingPath({ path: String(filePath), error });
+      readLinesProxy.throwsMatchingPath({ path: filePath, error });
     },
   };
 };

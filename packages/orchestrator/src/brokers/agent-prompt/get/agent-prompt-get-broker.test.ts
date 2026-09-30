@@ -332,9 +332,7 @@ describe('agentPromptGetBroker', () => {
       const proxy = agentPromptGetBrokerProxy();
       const workItemId = QuestWorkItemIdStub({ value: 'aaaaaaaa-5050-4222-9333-444444444444' });
       const operationId = OperationItemIdStub({ value: 'bbbbbbbb-5050-4222-9333-444444444444' });
-      const relatedDataItems = [
-        `operations/${String(operationId)}`,
-      ];
+      const relatedDataItems = [`operations/${String(operationId)}`];
       const quest = QuestStub({
         id: QuestIdStub({ value: 'add-auth' }),
         operations: [OperationItemStub({ id: operationId, role: 'codeweaver' })],
@@ -417,9 +415,7 @@ describe('agentPromptGetBroker', () => {
       const proxy = agentPromptGetBrokerProxy();
       const workItemId = QuestWorkItemIdStub({ value: 'aaaaaaaa-5252-4222-9333-444444444444' });
       const operationId = OperationItemIdStub({ value: 'bbbbbbbb-5252-4222-9333-444444444444' });
-      const relatedDataItems = [
-        `operations/${String(operationId)}`,
-      ];
+      const relatedDataItems = [`operations/${String(operationId)}`];
       const questAtFetch = QuestStub({
         id: QuestIdStub({ value: 'add-auth' }),
         operations: [OperationItemStub({ id: operationId, role: 'codeweaver' })],

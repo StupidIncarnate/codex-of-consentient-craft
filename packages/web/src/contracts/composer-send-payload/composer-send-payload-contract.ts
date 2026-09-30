@@ -16,14 +16,15 @@
 
 import { z } from '#gateway/npm/zod';
 
-
 import { composerAttachmentContract } from '../composer-attachment/composer-attachment-contract';
 
-export const composerSendPayloadContract = z.object({
-  message: z.string().brand<'ComposerSendPayloadMessage'>(),
-  // In paste order — the server pairs the Nth `[Pasted Image N]` token in `message` with the Nth
-  // entry here by position, not by attachmentId.
-  attachments: z.array(composerAttachmentContract),
-}).brand<'ComposerSendPayload'>();
+export const composerSendPayloadContract = z
+  .object({
+    message: z.string().brand<'ComposerSendPayloadMessage'>(),
+    // In paste order — the server pairs the Nth `[Pasted Image N]` token in `message` with the Nth
+    // entry here by position, not by attachmentId.
+    attachments: z.array(composerAttachmentContract),
+  })
+  .brand<'ComposerSendPayload'>();
 
 export type ComposerSendPayload = z.infer<typeof composerSendPayloadContract>;

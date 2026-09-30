@@ -16,13 +16,17 @@ import { z } from '#gateway/npm/zod';
 
 import { questStatusContract } from '@dungeonmaster/shared/contracts';
 
-export const questResumeOutcomeContract = z.object({
-  resumed: z.boolean(),
-  restoredStatus: questStatusContract,
-  dispatch: z.object({
-    started: z.boolean(),
-    reason: z.string().brand<'QuestResumeOutcomeDispatchReason'>().optional(),
-  }).brand<'QuestResumeOutcomeDispatch'>(),
-}).brand<'QuestResumeOutcome'>();
+export const questResumeOutcomeContract = z
+  .object({
+    resumed: z.boolean(),
+    restoredStatus: questStatusContract,
+    dispatch: z
+      .object({
+        started: z.boolean(),
+        reason: z.string().brand<'QuestResumeOutcomeDispatchReason'>().optional(),
+      })
+      .brand<'QuestResumeOutcomeDispatch'>(),
+  })
+  .brand<'QuestResumeOutcome'>();
 
 export type QuestResumeOutcome = z.infer<typeof questResumeOutcomeContract>;

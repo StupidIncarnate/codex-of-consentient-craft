@@ -17,7 +17,6 @@
  * importStatementsExtractTransformer instead
  */
 
-
 const NAMED_IMPORTS_PATTERN = /import\s+(?:type\s+)?\{([^}]+)\}\s+from\s+['"]([^'"]+)['"]/gu;
 
 export const namedImportsToPathMapTransformer = ({
@@ -27,7 +26,7 @@ export const namedImportsToPathMapTransformer = ({
 }): Map<string, string> => {
   const result = new Map<string, string>();
   NAMED_IMPORTS_PATTERN.lastIndex = 0;
-  let match = NAMED_IMPORTS_PATTERN.exec(String(source));
+  let match = NAMED_IMPORTS_PATTERN.exec(source);
   while (match !== null) {
     const [, namesBlock, fromPath] = match;
     if (namesBlock !== undefined && fromPath !== undefined) {
@@ -43,7 +42,7 @@ export const namedImportsToPathMapTransformer = ({
         result.set(cleaned, fromPath);
       }
     }
-    match = NAMED_IMPORTS_PATTERN.exec(String(source));
+    match = NAMED_IMPORTS_PATTERN.exec(source);
   }
   return result;
 };

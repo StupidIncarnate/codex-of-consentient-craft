@@ -7,13 +7,7 @@ const makeDirent = ({ name, isDir }: { name: string; isDir: boolean }): DirEntry
 });
 
 export const countFilesRecursiveLayerBrokerProxy = (): {
-  setupFlatDirectory: ({
-    dirPath,
-    fileNames,
-  }: {
-    dirPath: string;
-    fileNames: string[];
-  }) => void;
+  setupFlatDirectory: ({ dirPath, fileNames }: { dirPath: string; fileNames: string[] }) => void;
   setupNestedDirectory: ({
     dirPath,
     files,
@@ -59,7 +53,7 @@ export const countFilesRecursiveLayerBrokerProxy = (): {
 
       for (const sub of subdirs) {
         safeProxy.setupDirectory({
-          dirPath: `${String(dirPath)}/${sub.name}`,
+          dirPath: `${dirPath}/${sub.name}`,
           entries: sub.files.map((name) => makeDirent({ name, isDir: false })),
         });
       }

@@ -13,7 +13,6 @@
  * // Writes the whole RunResult as JSON, then resolves with nothing
  */
 
-
 import { writeFile } from '#gateway/node/fs__promises';
 import type { RunResult } from '../../../contracts/run-result/run-result-contract';
 
@@ -23,5 +22,4 @@ export const runReturnWriteBroker = async ({
 }: {
   storedReturnPath: string;
   result: RunResult;
-}): Promise<void> =>
-  writeFile(storedReturnPath, `${JSON.stringify(result)}\n`);
+}): Promise<void> => writeFile(storedReturnPath, `${JSON.stringify(result)}\n`);

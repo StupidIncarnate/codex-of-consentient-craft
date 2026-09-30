@@ -63,7 +63,10 @@ export const taskPromptIdsExtractorTransformer = ({
     const workParse = workItemContract.shape.id.safeParse(workMatch[1]);
     const questParse = questContract.shape.id.safeParse(questMatch[1]);
     if (workParse.success && questParse.success) {
-      return taskPromptIdsExtractorContract.parse({ questId: questParse.data, workItemId: workParse.data });
+      return taskPromptIdsExtractorContract.parse({
+        questId: questParse.data,
+        workItemId: workParse.data,
+      });
     }
   }
   return null;

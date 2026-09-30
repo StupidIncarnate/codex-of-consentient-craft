@@ -1,4 +1,3 @@
-
 import { parentPathTransformer } from './parent-path-transformer';
 
 describe('parentPathTransformer', () => {

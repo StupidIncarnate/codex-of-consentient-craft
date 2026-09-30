@@ -1,4 +1,3 @@
-
 import { ResetReadingStub } from '../../contracts/reset-reading/reset-reading.stub';
 import { ResetUndidStub } from '../../contracts/reset-undid/reset-undid.stub';
 import { resetReadingRenderTransformer } from './reset-reading-render-transformer';
@@ -18,10 +17,7 @@ describe('resetReadingRenderTransformer', () => {
     const reading = ResetReadingStub({
       restored: 'page storage',
       undid: ResetUndidStub({ files: 3, added: 1, modified: 2, removed: 0 }),
-      NOT_cleared: [
-        'disk',
-        'server memory',
-      ],
+      NOT_cleared: ['disk', 'server memory'],
     });
 
     const result = resetReadingRenderTransformer({ reading });

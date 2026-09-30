@@ -41,7 +41,7 @@ export const parseToolResultDisplayTransformer = ({
   const parsed = parsedResult.data;
 
   const fields = Object.keys(parsed).map((key) => {
-    const rawValue = parsed[key as keyof typeof parsed];
+    const rawValue = parsed[key];
 
     return {
       key,

@@ -16,7 +16,8 @@ describe('heartbeatReadBroker', () => {
       const proxy = heartbeatReadBrokerProxy();
       const instanceId = InstanceIdStub({ value: 'inst_9b2c0000' });
       const guildId = GuildIdStub({ value: 'f47ac10b-58cc-4372-a567-0e02b2c3d479' });
-      const evidencePath = '/home/user/.dungeonmaster/siegelense/guilds/f47ac10b-58cc-4372-a567-0e02b2c3d479/instances/inst_9b2c0000';
+      const evidencePath =
+        '/home/user/.dungeonmaster/siegelense/guilds/f47ac10b-58cc-4372-a567-0e02b2c3d479/instances/inst_9b2c0000';
       const heartbeat = InstanceHeartbeatStub({
         instanceId,
         pgids: [33_812],

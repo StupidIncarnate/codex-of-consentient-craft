@@ -22,9 +22,9 @@ describe('hookFlowImportExtractTransformer', () => {
   describe('source with multiple imports', () => {
     it('VALID: {shared import then flow import} => returns the first flow import', () => {
       const source = [
-          `import type { FilePath } from '@dungeonmaster/shared/contracts';`,
-          `import { HookPreBashFlow } from '../flows/hook-pre-bash/hook-pre-bash-flow';`,
-        ].join('\n');
+        `import type { FilePath } from '@dungeonmaster/shared/contracts';`,
+        `import { HookPreBashFlow } from '../flows/hook-pre-bash/hook-pre-bash-flow';`,
+      ].join('\n');
 
       const result = hookFlowImportExtractTransformer({ source });
 

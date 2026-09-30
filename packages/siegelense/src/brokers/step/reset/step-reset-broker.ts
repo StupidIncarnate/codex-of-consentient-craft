@@ -36,8 +36,6 @@
  * // Rewinds disk, clears storage, and returns formatted ResetReading as ContentText
  */
 
-
-
 import type { LaneSession } from '../../../contracts/lane-session/lane-session-contract';
 import type { ResetLevel } from '../../../contracts/reset-level/reset-level-contract';
 import { resetReadingContract } from '../../../contracts/reset-reading/reset-reading-contract';
@@ -90,9 +88,7 @@ export const stepResetBroker = async ({
     const reading = resetReadingContract.parse({
       restored: 'page',
       undid: zeroUndid,
-      NOT_cleared: cleared
-        ? notCleared
-        : [...notCleared, resetStatics.storageSkipped.noOrigin],
+      NOT_cleared: cleared ? notCleared : [...notCleared, resetStatics.storageSkipped.noOrigin],
     });
     return resetReadingRenderTransformer({ reading });
   }
@@ -157,7 +153,7 @@ export const stepResetBroker = async ({
     });
   }
 
-  let restored: string = 'instance';
+  let restored = 'instance';
   if (to !== null) {
     restored = to;
   } else if (reseed !== null) {

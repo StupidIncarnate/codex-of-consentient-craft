@@ -46,7 +46,9 @@ describe('recipesSessionWithNestedChainBroker', () => {
       const guild = earlierStep[GUILD_NAME] as unknown as Guild;
 
       const result = await run(
-        recipesSessionWithNestedChainBroker(SessionWithNestedChainInputsStub({ guildPath: guild.path })),
+        recipesSessionWithNestedChainBroker(
+          SessionWithNestedChainInputsStub({ guildPath: guild.path }),
+        ),
         target,
       );
 
@@ -59,7 +61,9 @@ describe('recipesSessionWithNestedChainBroker', () => {
       const guild = earlierStep[GUILD_NAME] as unknown as Guild;
 
       const result = await run(
-        recipesSessionWithNestedChainBroker(SessionWithNestedChainInputsStub({ guildPath: guild.path })),
+        recipesSessionWithNestedChainBroker(
+          SessionWithNestedChainInputsStub({ guildPath: guild.path }),
+        ),
         target,
       );
       const nested = (result as Record<PropertyKey, unknown>)[NESTED_NAME] as SessionRecord;
@@ -76,7 +80,9 @@ describe('recipesSessionWithNestedChainBroker', () => {
       const guild = earlierStep[GUILD_NAME] as unknown as Guild;
 
       const result = await run(
-        recipesSessionWithNestedChainBroker(SessionWithNestedChainInputsStub({ guildPath: guild.path })),
+        recipesSessionWithNestedChainBroker(
+          SessionWithNestedChainInputsStub({ guildPath: guild.path }),
+        ),
         target,
       );
       const nested = (result as Record<PropertyKey, unknown>)[NESTED_NAME] as SessionRecord;
@@ -107,7 +113,9 @@ describe('recipesSessionWithNestedChainBroker', () => {
       const guild = earlierStep[GUILD_NAME] as unknown as Guild;
 
       const result = await run(
-        recipesSessionWithNestedChainBroker(SessionWithNestedChainInputsStub({ guildPath: guild.path })),
+        recipesSessionWithNestedChainBroker(
+          SessionWithNestedChainInputsStub({ guildPath: guild.path }),
+        ),
         target,
       );
       const nested = (result as Record<PropertyKey, unknown>)[NESTED_NAME] as SessionRecord;

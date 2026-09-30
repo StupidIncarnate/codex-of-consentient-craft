@@ -8,10 +8,12 @@
 
 import { z } from '#gateway/npm/zod';
 
-export const passingTestContract = z.object({
-  suitePath: z.string().brand<'PassingTestSuitePath'>(),
-  testName: z.string().brand<'PassingTestTestName'>(),
-  durationMs: z.number().nonnegative().default(0).brand<'PassingTestDurationMs'>(),
-}).brand<'PassingTest'>();
+export const passingTestContract = z
+  .object({
+    suitePath: z.string().brand<'PassingTestSuitePath'>(),
+    testName: z.string().brand<'PassingTestTestName'>(),
+    durationMs: z.number().nonnegative().default(0).brand<'PassingTestDurationMs'>(),
+  })
+  .brand<'PassingTest'>();
 
 export type PassingTest = z.infer<typeof passingTestContract>;

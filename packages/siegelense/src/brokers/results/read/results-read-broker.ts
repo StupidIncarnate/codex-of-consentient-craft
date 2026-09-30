@@ -34,7 +34,6 @@
  * // Returns the step 7 reading from run_2's transcript, with instanceState and verb attached
  */
 
-
 import { resultKindContract } from '../../../contracts/result-kind/result-kind-contract';
 import { resultsAnswerContract } from '../../../contracts/results-answer/results-answer-contract';
 import type { ResultsAnswer } from '../../../contracts/results-answer/results-answer-contract';
@@ -277,7 +276,9 @@ export const resultsReadBroker = async ({
   if (query.kind === null || query.kind === 'steps') {
     const readings = await transcriptReadLayerBroker({ transcriptPath: transcript });
     const stepFiltered =
-      query.step === null ? readings : readings.filter((reading) => Number(reading.step) === Number(query.step));
+      query.step === null
+        ? readings
+        : readings.filter((reading) => Number(reading.step) === Number(query.step));
     const stepRange = query.where?.steps ?? null;
     const filtered =
       stepRange === null

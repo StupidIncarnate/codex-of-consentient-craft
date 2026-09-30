@@ -7,13 +7,7 @@ import { busEventLinesRenderLayerBrokerProxy } from './bus-event-lines-render-la
 import { FileMissingErrorStub } from '#gateway/node/fs/file-missing-error/file-missing-error.stub';
 
 export const responderLinesRenderLayerBrokerProxy = (): {
-  setupFlowSource: ({
-    sourceFile,
-    content,
-  }: {
-    sourceFile: string;
-    content: string;
-  }) => void;
+  setupFlowSource: ({ sourceFile, content }: { sourceFile: string; content: string }) => void;
   setupFlowMissing: ({ sourceFile }: { sourceFile: string }) => void;
   setupFlowImplementation: ({ fn }: { fn: (filePath: string) => string }) => void;
   setupFileContentsMap: ({ map }: { map: Record<string, string> }) => void;
@@ -31,7 +25,7 @@ export const responderLinesRenderLayerBrokerProxy = (): {
   const buildImpl =
     (map: Record<string, string>) =>
     (filePath: string): string => {
-      const fp = String(filePath);
+      const fp = filePath;
       for (const [suffix, content] of Object.entries(map)) {
         if (fp.endsWith(suffix)) {
           return content;
@@ -41,13 +35,7 @@ export const responderLinesRenderLayerBrokerProxy = (): {
     };
 
   return {
-    setupFlowSource: ({
-      sourceFile,
-      content,
-    }: {
-      sourceFile: string;
-      content: string;
-    }): void => {
+    setupFlowSource: ({ sourceFile, content }: { sourceFile: string; content: string }): void => {
       flowImportsProxy.setupSource({ sourceFile, content });
     },
 

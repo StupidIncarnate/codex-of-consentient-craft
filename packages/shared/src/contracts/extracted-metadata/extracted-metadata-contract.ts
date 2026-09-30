@@ -7,10 +7,12 @@
  */
 import { z } from '#gateway/npm/zod';
 
-export const extractedMetadataContract = z.object({
-  purpose: z.string().brand<'ExtractedMetadataPurpose'>(),
-  usage: z.string().brand<'ExtractedMetadataUsage'>(),
-  metadata: z.record(z.string(), z.json()),
-}).brand<'ExtractedMetadata'>();
+export const extractedMetadataContract = z
+  .object({
+    purpose: z.string().brand<'ExtractedMetadataPurpose'>(),
+    usage: z.string().brand<'ExtractedMetadataUsage'>(),
+    metadata: z.record(z.string(), z.json()),
+  })
+  .brand<'ExtractedMetadata'>();
 
 export type ExtractedMetadata = z.infer<typeof extractedMetadataContract>;

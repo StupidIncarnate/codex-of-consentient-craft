@@ -45,7 +45,7 @@ export const machineRssByPgidBroker = async ({
   const pidEntries = entries.filter(
     (entry) => Number.isInteger(Number(entry)) && Number(entry) >= 1,
   );
-  const targetPgids = new Set(pgids.map((pgid) => Number(pgid)));
+  const targetPgids = new Set(pgids.map((pgid) => pgid));
 
   const residentPagesPerPid = await Promise.all(
     pidEntries.map(async (pidEntry) => {

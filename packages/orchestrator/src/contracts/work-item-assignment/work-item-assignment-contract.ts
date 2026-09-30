@@ -13,13 +13,22 @@
 import { qaChecklistItemContract } from '@dungeonmaster/shared/contracts';
 import { z } from '#gateway/npm/zod';
 
-export const workItemAssignmentContract = z.object({
-  // `.loose()`, because each family's entry carries more than the id — `layer`, `surface`,
-  // `assert`, `failsIf` — and stripping them here would make this contract a description of the
-  // payload rather than an assertion about one key of it.
-  // `.default([])` so a payload carrying no `units` key parses and contributes nothing, rather than
-  // throwing and sending the caller down its absent-payload branch.
-  units: z.array(z.object({ unitId: qaChecklistItemContract.shape.id }).brand<'WorkItemAssignmentUnits'>().loose()).default([]),
-}).brand<'WorkItemAssignment'>();
+export const workItemAssignmentContract = z
+  .object({
+    // `.loose()`, because each family's entry carries more than the id — `layer`, `surface`,
+    // `assert`, `failsIf` — and stripping them here would make this contract a description of the
+    // payload rather than an assertion about one key of it.
+    // `.default([])` so a payload carrying no `units` key parses and contributes nothing, rather than
+    // throwing and sending the caller down its absent-payload branch.
+    units: z
+      .array(
+        z
+          .object({ unitId: qaChecklistItemContract.shape.id })
+          .brand<'WorkItemAssignmentUnits'>()
+          .loose(),
+      )
+      .default([]),
+  })
+  .brand<'WorkItemAssignment'>();
 
 export type WorkItemAssignment = z.infer<typeof workItemAssignmentContract>;

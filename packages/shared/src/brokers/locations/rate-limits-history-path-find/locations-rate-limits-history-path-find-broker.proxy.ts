@@ -4,11 +4,7 @@ import { dungeonmasterHomeFindBrokerProxy } from '../../dungeonmaster-home/find/
 import { locationsStatics } from '../../../statics/locations/locations-statics';
 
 export const locationsRateLimitsHistoryPathFindBrokerProxy = (): {
-  setupHistoryPath: (params: {
-    homeDir: string;
-    homePath: string;
-    historyPath: string;
-  }) => void;
+  setupHistoryPath: (params: { homeDir: string; homePath: string; historyPath: string }) => void;
 } => {
   const dmHomeProxy = dungeonmasterHomeFindBrokerProxy();
   // #gateway/node/path is a raw passthrough of the Node 'path' module (no per-function wrapper,

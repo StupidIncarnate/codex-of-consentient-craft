@@ -9,11 +9,7 @@
  * // Returns: './user-widget'
  */
 
-export const normalizeImportPathTransformer = ({
-  importPath,
-}: {
-  importPath: string;
-}): string => {
+export const normalizeImportPathTransformer = ({ importPath }: { importPath: string }): string => {
   let normalized = importPath;
 
   // Remove .proxy.ts or .proxy.tsx extensions

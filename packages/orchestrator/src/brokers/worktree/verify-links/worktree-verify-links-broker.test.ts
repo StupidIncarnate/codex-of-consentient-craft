@@ -1,4 +1,3 @@
-
 import { worktreeVerifyLinksBroker } from './worktree-verify-links-broker';
 import { worktreeVerifyLinksBrokerProxy } from './worktree-verify-links-broker.proxy';
 

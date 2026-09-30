@@ -10,15 +10,17 @@ import { literalTypeContract } from '../literal-type/literal-type-contract';
 import { literalOccurrenceContract } from '../literal-occurrence/literal-occurrence-contract';
 import { occurrenceCountStatics } from '../../statics/occurrence-count/occurrence-count-statics';
 
-export const duplicateLiteralReportContract = z.object({
-  value: z.string().brand<'DuplicateLiteralReportValue'>(),
-  type: literalTypeContract,
-  occurrences: z.array(literalOccurrenceContract),
-  count: z
-    .number()
-    .int()
-    .min(occurrenceCountStatics.minimumForDuplicate)
-    .brand<'DuplicateLiteralReportCount'>(),
-}).brand<'DuplicateLiteralReport'>();
+export const duplicateLiteralReportContract = z
+  .object({
+    value: z.string().brand<'DuplicateLiteralReportValue'>(),
+    type: literalTypeContract,
+    occurrences: z.array(literalOccurrenceContract),
+    count: z
+      .number()
+      .int()
+      .min(occurrenceCountStatics.minimumForDuplicate)
+      .brand<'DuplicateLiteralReportCount'>(),
+  })
+  .brand<'DuplicateLiteralReport'>();
 
 export type DuplicateLiteralReport = z.infer<typeof duplicateLiteralReportContract>;

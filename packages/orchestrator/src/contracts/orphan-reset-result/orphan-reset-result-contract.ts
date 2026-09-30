@@ -8,8 +8,10 @@
 
 import { z } from '#gateway/npm/zod';
 
-export const orphanResetResultContract = z.object({
-  orphansReset: z.number().int().nonnegative().brand<'OrphanResetResultOrphansReset'>(),
-}).brand<'OrphanResetResult'>();
+export const orphanResetResultContract = z
+  .object({
+    orphansReset: z.number().int().nonnegative().brand<'OrphanResetResultOrphansReset'>(),
+  })
+  .brand<'OrphanResetResult'>();
 
 export type OrphanResetResult = z.infer<typeof orphanResetResultContract>;

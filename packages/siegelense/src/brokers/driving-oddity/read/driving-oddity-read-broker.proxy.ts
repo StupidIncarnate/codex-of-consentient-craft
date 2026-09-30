@@ -1,4 +1,3 @@
-
 import { readFileProxy } from '#gateway/node/fs__promises/read-file/read-file.proxy';
 import { statIfExistsProxy } from '#gateway/node/fs__promises/stat-if-exists/stat-if-exists.proxy';
 import type { DrivingOddityStub } from '../../../contracts/driving-oddity/driving-oddity.stub';
@@ -41,13 +40,7 @@ export const drivingOddityReadBrokerProxy = (): {
 
     // The same staging as setupFile, but with the file body written by hand — for the malformed-line
     // case, which no array of valid entries can express.
-    setupRawFile: ({
-      filePath,
-      contents,
-    }: {
-      filePath: string;
-      contents: string;
-    }): void => {
+    setupRawFile: ({ filePath, contents }: { filePath: string; contents: string }): void => {
       statProxy.returnsFile({
         path: filePath,
         sizeBytes: FILE_SIZE_BYTES,

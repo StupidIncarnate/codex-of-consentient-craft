@@ -38,7 +38,28 @@
  * off-map families — three of the four kinds, silently.
  */
 
-import { operationItemContract, outcomeTypeContract, pieceIdContract, qaChecklistItemContract, qaChecklistKindContract, qaWalkPathContract, questContract, questNoteContract, unitMarkContract, unitObservationContract, unitObservationFieldsContract, wardResultContract, workItemContract, flowNodeContract, flowContract, flowEdgeContract, flowRecipeContract, siegeInstanceContract, siegeRunContract, relativeFilePathContract } from '@dungeonmaster/shared/contracts';
+import {
+  operationItemContract,
+  outcomeTypeContract,
+  pieceIdContract,
+  qaChecklistItemContract,
+  qaChecklistKindContract,
+  qaWalkPathContract,
+  questContract,
+  questNoteContract,
+  unitMarkContract,
+  unitObservationContract,
+  unitObservationFieldsContract,
+  wardResultContract,
+  workItemContract,
+  flowNodeContract,
+  flowContract,
+  flowEdgeContract,
+  flowRecipeContract,
+  siegeInstanceContract,
+  siegeRunContract,
+  relativeFilePathContract,
+} from '@dungeonmaster/shared/contracts';
 import { z } from '#gateway/npm/zod';
 
 import { questWorkInstanceContract } from '../quest-work-instance/quest-work-instance-contract';
@@ -49,75 +70,116 @@ import { workPlanPieceContract } from '../work-plan-piece/work-plan-piece-contra
 // an item carries exactly one. The `null` case is exactly one item and it is real: the codeweaver
 // contracts cell, belonging to a package that owns a contract by `source` and tags no node
 // anywhere. A non-nullable `flowId` drops the only session those contracts have.
-const questWorkScope = z.object({
-  flowId: flowContract.shape.id.nullable(),
-  packageNames: z.array(z.string().min(1).brand<'QuestWorkScopePackageNames'>()).default([]),
-  operationItemId: operationItemContract.shape.id,
-  operationItemText: operationItemContract.shape.text,
-}).brand<'QuestWorkScope'>();
+const questWorkScope = z
+  .object({
+    flowId: flowContract.shape.id.nullable(),
+    packageNames: z.array(z.string().min(1).brand<'QuestWorkScopePackageNames'>()).default([]),
+    operationItemId: operationItemContract.shape.id,
+    operationItemText: operationItemContract.shape.text,
+  })
+  .brand<'QuestWorkScope'>();
 
 // `unitObservationFieldsContract`, not `unitObservationContract` — the latter ends in a
 // `.superRefine`, and a `ZodEffects` in zod 3 carries no `.shape`.
-const questWorkUnit = z.object({
-  unitId: qaChecklistItemContract.shape.id,
-  kind: qaChecklistKindContract,
-  text: qaChecklistItemContract.shape.label,
-  surface: qaChecklistItemContract.shape.checkSurface,
-  nodeId: flowNodeContract.shape.id.nullable(),
-  edgeId: flowEdgeContract.shape.id.nullable(),
-  observableType: outcomeTypeContract.nullable(),
-  verifyByReading: z.boolean().default(false),
-  mark: unitMarkContract.nullable(),
-  evidence: unitObservationFieldsContract.shape.evidence.nullable(),
-  toSettle: unitObservationFieldsContract.shape.toSettle.unwrap().nullable(),
-  markedBy: workItemContract.shape.id.nullable(),
-  markedAt: unitObservationFieldsContract.shape.at.nullable(),
-}).brand<'QuestWorkUnit'>();
+const questWorkUnit = z
+  .object({
+    unitId: qaChecklistItemContract.shape.id,
+    kind: qaChecklistKindContract,
+    text: qaChecklistItemContract.shape.label,
+    surface: qaChecklistItemContract.shape.checkSurface,
+    nodeId: flowNodeContract.shape.id.nullable(),
+    edgeId: flowEdgeContract.shape.id.nullable(),
+    observableType: outcomeTypeContract.nullable(),
+    verifyByReading: z.boolean().default(false),
+    mark: unitMarkContract.nullable(),
+    evidence: unitObservationFieldsContract.shape.evidence.nullable(),
+    toSettle: unitObservationFieldsContract.shape.toSettle.unwrap().nullable(),
+    markedBy: workItemContract.shape.id.nullable(),
+    markedAt: unitObservationFieldsContract.shape.at.nullable(),
+  })
+  .brand<'QuestWorkUnit'>();
 
 // `flowId` is nullable for the one flow-less scope there is: the codeweaver contracts cell, whose
 // render is `questFlowSliceTransformer`'s foundation view — every contract that package owns and
 // which flows it tags nodes in. Without the null that session gets no render at all.
-const questWorkFlow = z.object({
-  flowId: flowContract.shape.id.nullable(),
-  rendered: z.string().brand<'QuestWorkFlowRendered'>(),
-}).brand<'QuestWorkFlow'>();
+const questWorkFlow = z
+  .object({
+    flowId: flowContract.shape.id.nullable(),
+    rendered: z.string().brand<'QuestWorkFlowRendered'>(),
+  })
+  .brand<'QuestWorkFlow'>();
 
-const questWorkPiece = z.object({
-  pieceId: pieceIdContract,
-  step: z.string().min(1).brand<'QuestWorkPieceStep'>(),
-  context: workPlanPieceContract.shape.context,
-  recipeId: z.string().min(1).regex(/^[a-z][a-z0-9]*(-[a-z0-9]+)*$/u).brand<'QuestWorkPieceRecipeId'>().nullable(),
-  baselineFor: pieceIdContract.nullable(),
-  contextUnitIds: z.array(qaChecklistItemContract.shape.id).default([]),
-  payload: z.record(z.string(), z.unknown()),
-}).brand<'QuestWorkPiece'>();
+const questWorkPiece = z
+  .object({
+    pieceId: pieceIdContract,
+    step: z.string().min(1).brand<'QuestWorkPieceStep'>(),
+    context: workPlanPieceContract.shape.context,
+    recipeId: z
+      .string()
+      .min(1)
+      .regex(/^[a-z][a-z0-9]*(-[a-z0-9]+)*$/u)
+      .brand<'QuestWorkPieceRecipeId'>()
+      .nullable(),
+    baselineFor: pieceIdContract.nullable(),
+    contextUnitIds: z.array(qaChecklistItemContract.shape.id).default([]),
+    payload: z.record(z.string(), z.unknown()),
+  })
+  .brand<'QuestWorkPiece'>();
 
 // A seed with no proving run is a path no walk may be sent down — an unproven recipe does not fail
 // loudly, it manufactures a defect that does not exist. Serve the `null` rather than omitting the
 // row, so a walker can see the gap.
-const questWorkRecipe = z.object({
-  name: flowRecipeContract.shape.id,
-  provenRunId: siegeRunContract.shape.id.nullable(),
-}).brand<'QuestWorkRecipe'>();
+const questWorkRecipe = z
+  .object({
+    name: flowRecipeContract.shape.id,
+    provenRunId: siegeRunContract.shape.id.nullable(),
+  })
+  .brand<'QuestWorkRecipe'>();
 
 // `scope` is read off the commit BODY's structured `work items: <ids>` line and is `null` when the
 // body carries none. Parsing a prose subject is a guess, and a wrong guess mislabels which pass
 // produced a file — both grammars sit on one branch while the deterministic `commit` handler is
 // rolling out.
-const questWorkCommit = z.object({
-  sha: z.string().regex(/^[0-9a-f]{7,40}$/u).brand<'QuestWorkCommitSha'>(),
-  scope: z.string().min(1).brand<'QuestWorkCommitScope'>().nullable(),
-  subject: z.string().min(1).brand<'QuestWorkCommitSubject'>(),
-  paths: z.array(z.string().min(1).refine((path) => { if (path.startsWith('/')) { return false; } if (/^[A-Za-z]:\\/u.test(path)) { return false; } return true; }, { message: 'Path must be repo-relative (not absolute)', },).brand<'QuestWorkCommitPaths'>()).default([]),
-}).brand<'QuestWorkCommit'>();
+const questWorkCommit = z
+  .object({
+    sha: z
+      .string()
+      .regex(/^[0-9a-f]{7,40}$/u)
+      .brand<'QuestWorkCommitSha'>(),
+    scope: z.string().min(1).brand<'QuestWorkCommitScope'>().nullable(),
+    subject: z.string().min(1).brand<'QuestWorkCommitSubject'>(),
+    paths: z
+      .array(
+        z
+          .string()
+          .min(1)
+          .refine(
+            (path) => {
+              if (path.startsWith('/')) {
+                return false;
+              }
+              if (/^[A-Za-z]:\\/u.test(path)) {
+                return false;
+              }
+              return true;
+            },
+            { message: 'Path must be repo-relative (not absolute)' },
+          )
+          .brand<'QuestWorkCommitPaths'>(),
+      )
+      .default([]),
+  })
+  .brand<'QuestWorkCommit'>();
 
 // `.unwrap().nullable()` rather than re-declaring the branch types — the pattern
 // `gitWorkingTreeFilesBroker` already uses on this same contract.
-const questWorkGit = z.object({
-  baseBranch: questContract.shape.baseBranch.unwrap().nullable(),
-  worktreePath: questContract.shape.worktreePath.unwrap().nullable(),
-  baseRef: questContract.shape.baseRef.unwrap().nullable(),
-}).brand<'QuestWorkGit'>();
+const questWorkGit = z
+  .object({
+    baseBranch: questContract.shape.baseBranch.unwrap().nullable(),
+    worktreePath: questContract.shape.worktreePath.unwrap().nullable(),
+    baseRef: questContract.shape.baseRef.unwrap().nullable(),
+  })
+  .brand<'QuestWorkGit'>();
 
 // A repair builds `--only <checks>` from `failingCheckTypes`. Handed files alone it guesses the
 // check set, and a guess that omits the failing check reports green over the red it was sent to fix.
@@ -127,55 +189,149 @@ const questWorkGit = z.object({
 // parses that same field through `absoluteFilePathContract` — so a repo-relative brand would refuse
 // every real reading. Serving them as ward wrote them is lossless and is what the reader's `Read`
 // takes; rebasing them onto a worktree root would drop any path outside it.
-const questWorkWard = z.object({
-  wardResultId: wardResultContract.shape.id,
-  runId: wardResultContract.shape.runId.unwrap().nullable(),
-  blobPath: z.union([z.string().min(1).refine((path) => { if (path.startsWith('/')) { return true; } if (/^[A-Za-z]:\\/u.test(path)) { return true; } return false; }, { message: 'Path must be absolute (start with / or C:\\ on Windows)', },).brand<'QuestWorkWardBlobPath'>(), relativeFilePathContract]).brand<'QuestWorkWardBlobPath'>(),
-  failingCheckTypes: z.array(z.string().min(1).brand<'QuestWorkWardFailingCheckTypes'>()).default([]),
-  failingPaths: z.array(z.union([z.string().min(1).refine((path) => { if (path.startsWith('/')) { return true; } if (/^[A-Za-z]:\\/u.test(path)) { return true; } return false; }, { message: 'Path must be absolute (start with / or C:\\ on Windows)', },).brand<'QuestWorkWardFailingPaths'>(), relativeFilePathContract]).brand<'QuestWorkWardFailingPaths'>()).default([]),
-}).brand<'QuestWorkWard'>();
+const questWorkWard = z
+  .object({
+    wardResultId: wardResultContract.shape.id,
+    runId: wardResultContract.shape.runId.unwrap().nullable(),
+    blobPath: z
+      .union([
+        z
+          .string()
+          .min(1)
+          .refine(
+            (path) => {
+              if (path.startsWith('/')) {
+                return true;
+              }
+              if (/^[A-Za-z]:\\/u.test(path)) {
+                return true;
+              }
+              return false;
+            },
+            { message: 'Path must be absolute (start with / or C:\\ on Windows)' },
+          )
+          .brand<'QuestWorkWardBlobPath'>(),
+        relativeFilePathContract,
+      ])
+      .brand<'QuestWorkWardBlobPath'>(),
+    failingCheckTypes: z
+      .array(z.string().min(1).brand<'QuestWorkWardFailingCheckTypes'>())
+      .default([]),
+    failingPaths: z
+      .array(
+        z
+          .union([
+            z
+              .string()
+              .min(1)
+              .refine(
+                (path) => {
+                  if (path.startsWith('/')) {
+                    return true;
+                  }
+                  if (/^[A-Za-z]:\\/u.test(path)) {
+                    return true;
+                  }
+                  return false;
+                },
+                { message: 'Path must be absolute (start with / or C:\\ on Windows)' },
+              )
+              .brand<'QuestWorkWardFailingPaths'>(),
+            relativeFilePathContract,
+          ])
+          .brand<'QuestWorkWardFailingPaths'>(),
+      )
+      .default([]),
+  })
+  .brand<'QuestWorkWard'>();
 
 // An attack is an ABSENCE claim, and an absence is only evidence against a known-good reading taken
 // first — so an antagonist is served the happy walk's own run, resolved from its piece's
 // `baselineFor`.
-const questWorkBaseline = z.object({
-  pieceId: pieceIdContract,
-  workItemId: workItemContract.shape.id,
-  instanceId: siegeInstanceContract.shape.id,
-  runId: siegeRunContract.shape.id,
-}).brand<'QuestWorkBaseline'>();
+const questWorkBaseline = z
+  .object({
+    pieceId: pieceIdContract,
+    workItemId: workItemContract.shape.id,
+    instanceId: siegeInstanceContract.shape.id,
+    runId: siegeRunContract.shape.id,
+  })
+  .brand<'QuestWorkBaseline'>();
 
-const questWorkTruncation = z.object({
-  section: z.enum(['flows', 'committedPaths', 'sessionNotes', 'walkPaths']),
-  dropped: z.number().int().nonnegative().brand<'QuestWorkTruncationDropped'>(),
-}).brand<'QuestWorkTruncation'>();
+const questWorkTruncation = z
+  .object({
+    section: z.enum(['flows', 'committedPaths', 'sessionNotes', 'walkPaths']),
+    dropped: z.number().int().nonnegative().brand<'QuestWorkTruncationDropped'>(),
+  })
+  .brand<'QuestWorkTruncation'>();
 
-export const questWorkViewContract = z.object({
-  questId: questContract.shape.id,
-  workItemId: workItemContract.shape.id,
-  family: z.string().min(1).brand<'QuestWorkViewFamily'>(),
-  step: z.string().min(1).brand<'QuestWorkViewStep'>(),
-  role: z.enum(['planner', 'worker', 'reviewer']),
-  scope: questWorkScope,
-  assignedUnits: z.array(questWorkUnit).default([]),
-  inScopeUnits: z.array(questWorkUnit).default([]),
-  flows: z.array(questWorkFlow).default([]),
-  walkPaths: z.array(qaWalkPathContract).default([]),
-  pathsTruncated: z.boolean().default(false),
-  piece: questWorkPiece.nullable(),
-  plannerNotes: workPlanPieceContract.shape.notes,
-  sessionNotes: z.array(questNoteContract).default([]),
-  mintingObservation: unitObservationContract.nullable(),
-  recipes: z.array(questWorkRecipe).default([]),
-  uncommittedPaths: z.array(z.string().min(1).refine((path) => { if (path.startsWith('/')) { return false; } if (/^[A-Za-z]:\\/u.test(path)) { return false; } return true; }, { message: 'Path must be repo-relative (not absolute)', },).brand<'QuestWorkViewUncommittedPaths'>()).default([]),
-  committedPaths: z.array(questWorkCommit).default([]),
-  ward: questWorkWard.nullable(),
-  riftcarverLogPath: z.union([z.string().min(1).refine((path) => { if (path.startsWith('/')) { return true; } if (/^[A-Za-z]:\\/u.test(path)) { return true; } return false; }, { message: 'Path must be absolute (start with / or C:\\ on Windows)', },).brand<'QuestWorkViewRiftcarverLogPath'>(), relativeFilePathContract]).brand<'QuestWorkViewRiftcarverLogPath'>().nullable(),
-  git: questWorkGit,
-  instance: questWorkInstanceContract.nullable(),
-  baseline: questWorkBaseline.nullable(),
-  truncated: z.array(questWorkTruncation).default([]),
-}).brand<'QuestWorkView'>();
+export const questWorkViewContract = z
+  .object({
+    questId: questContract.shape.id,
+    workItemId: workItemContract.shape.id,
+    family: z.string().min(1).brand<'QuestWorkViewFamily'>(),
+    step: z.string().min(1).brand<'QuestWorkViewStep'>(),
+    role: z.enum(['planner', 'worker', 'reviewer']),
+    scope: questWorkScope,
+    assignedUnits: z.array(questWorkUnit).default([]),
+    inScopeUnits: z.array(questWorkUnit).default([]),
+    flows: z.array(questWorkFlow).default([]),
+    walkPaths: z.array(qaWalkPathContract).default([]),
+    pathsTruncated: z.boolean().default(false),
+    piece: questWorkPiece.nullable(),
+    plannerNotes: workPlanPieceContract.shape.notes,
+    sessionNotes: z.array(questNoteContract).default([]),
+    mintingObservation: unitObservationContract.nullable(),
+    recipes: z.array(questWorkRecipe).default([]),
+    uncommittedPaths: z
+      .array(
+        z
+          .string()
+          .min(1)
+          .refine(
+            (path) => {
+              if (path.startsWith('/')) {
+                return false;
+              }
+              if (/^[A-Za-z]:\\/u.test(path)) {
+                return false;
+              }
+              return true;
+            },
+            { message: 'Path must be repo-relative (not absolute)' },
+          )
+          .brand<'QuestWorkViewUncommittedPaths'>(),
+      )
+      .default([]),
+    committedPaths: z.array(questWorkCommit).default([]),
+    ward: questWorkWard.nullable(),
+    riftcarverLogPath: z
+      .union([
+        z
+          .string()
+          .min(1)
+          .refine(
+            (path) => {
+              if (path.startsWith('/')) {
+                return true;
+              }
+              if (/^[A-Za-z]:\\/u.test(path)) {
+                return true;
+              }
+              return false;
+            },
+            { message: 'Path must be absolute (start with / or C:\\ on Windows)' },
+          )
+          .brand<'QuestWorkViewRiftcarverLogPath'>(),
+        relativeFilePathContract,
+      ])
+      .brand<'QuestWorkViewRiftcarverLogPath'>()
+      .nullable(),
+    git: questWorkGit,
+    instance: questWorkInstanceContract.nullable(),
+    baseline: questWorkBaseline.nullable(),
+    truncated: z.array(questWorkTruncation).default([]),
+  })
+  .brand<'QuestWorkView'>();
 
 export type QuestWorkView = z.infer<typeof questWorkViewContract>;
 export type QuestWorkScope = z.infer<typeof questWorkScope>;

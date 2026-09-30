@@ -8,7 +8,7 @@
 
 import { dirname } from '#gateway/node/path';
 import { ensureDir, rename, statIfExists, writeFile } from '#gateway/node/fs__promises';
-import { type RateLimitsSnapshot } from '@dungeonmaster/shared/contracts';
+import type { RateLimitsSnapshot } from '@dungeonmaster/shared/contracts';
 import {
   locationsRateLimitsSnapshotPathFindBroker,
   locationsRateLimitsSnapshotTmpPathFindBroker,

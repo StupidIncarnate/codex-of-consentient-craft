@@ -73,14 +73,14 @@ test.describe('Ward Execution Streaming', () => {
       firstWorkItemId: CW_WORK_ITEM_ID,
     });
 
-    await nav.navigateToQuest({ urlSlug, questId: questId });
+    await nav.navigateToQuest({ urlSlug, questId });
 
     const executionPanel = page.getByTestId('execution-panel-widget');
     await expect(executionPanel).toBeVisible({ timeout: PANEL_TIMEOUT });
 
     // Drive the relay: codeweaver -> done, then the ward gate -> green with real stdout lines.
     await dispatch.playAndDrive({
-      questId: questId,
+      questId,
       script: [
         { role: 'codeweaver', outcome: 'done' },
         {
@@ -96,7 +96,7 @@ test.describe('Ward Execution Streaming', () => {
     });
 
     await dispatch.waitForQuest({
-      questId: questId,
+      questId,
       timeoutMs: RELAY_TIMEOUT,
       predicate: ({ quest }) => quest.status === 'complete',
     });
@@ -175,13 +175,13 @@ test.describe('Ward Execution Streaming', () => {
       firstWorkItemId: FLOW_CW_WORK_ITEM_ID,
     });
 
-    await nav.navigateToQuest({ urlSlug, questId: questId });
+    await nav.navigateToQuest({ urlSlug, questId });
 
     const executionPanel = page.getByTestId('execution-panel-widget');
     await expect(executionPanel).toBeVisible({ timeout: PANEL_TIMEOUT });
 
     await dispatch.playAndDrive({
-      questId: questId,
+      questId,
       script: [
         { role: 'codeweaver', outcome: 'done' },
         { role: 'flowrider', outcome: 'done' },
@@ -199,7 +199,7 @@ test.describe('Ward Execution Streaming', () => {
     });
 
     await dispatch.waitForQuest({
-      questId: questId,
+      questId,
       timeoutMs: RELAY_TIMEOUT,
       predicate: ({ quest }) => quest.status === 'complete',
     });
