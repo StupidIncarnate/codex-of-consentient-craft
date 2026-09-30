@@ -18,6 +18,14 @@ export const contractUsesScanLayerContract = z
         })
         .brand<'ContractUsesScanLayerParseSites'>(),
     ),
+    wholeParseSites: z.array(
+      z
+        .object({
+          targetFile: z.string().brand<'ContractUsesScanLayerWholeParseSitesTargetFile'>(),
+          site: contractParseSiteContract,
+        })
+        .brand<'ContractUsesScanLayerWholeParseSites'>(),
+    ),
     valueTargets: z.array(z.string().brand<'ContractUsesScanLayerValueTargets'>()),
   })
   .brand<'ContractUsesScanLayer'>();

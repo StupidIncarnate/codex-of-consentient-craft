@@ -10,10 +10,34 @@ describe('contractUsesScanLayerContract', () => {
     });
   });
 
+  describe('whole parse sites', () => {
+    it('VALID: {wholeParseSites: one site} => keeps the target file and line', () => {
+      const result = contractUsesScanLayerContract.parse({
+        ...ContractUsesScanLayerStub(),
+        wholeParseSites: [
+          { targetFile: '/repo/a-contract.ts', site: { filePath: '/repo/b.ts', line: 3 } },
+        ],
+      });
+
+      expect(result.wholeParseSites).toStrictEqual([
+        { targetFile: '/repo/a-contract.ts', site: { filePath: '/repo/b.ts', line: 3 } },
+      ]);
+    });
+  });
+
   describe('invalid inputs', () => {
     it('INVALID: {parseSites: wrong type} => throws', () => {
       expect(() =>
         contractUsesScanLayerContract.parse({ ...ContractUsesScanLayerStub(), parseSites: 123 }),
+      ).toThrow(/expected|invalid/iu);
+    });
+
+    it('INVALID: {wholeParseSites: wrong type} => throws', () => {
+      expect(() =>
+        contractUsesScanLayerContract.parse({
+          ...ContractUsesScanLayerStub(),
+          wholeParseSites: 123,
+        }),
       ).toThrow(/expected|invalid/iu);
     });
   });

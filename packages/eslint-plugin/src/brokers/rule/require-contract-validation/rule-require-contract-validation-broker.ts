@@ -1,12 +1,12 @@
 /**
- * PURPOSE: Creates ESLint rule that requires contract.parse() validation for require() and import() calls with dynamic paths
+ * PURPOSE: Creates ESLint rule that limits require() and import() to file path literals; a dynamic path goes through the gateway dynamicImport wrapper
  *
  * USAGE:
  * const rule = ruleRequireContractValidationBroker();
- * // Returns RuleModule that enforces require(filePathContract.parse(path)) pattern for dynamic imports
+ * // Returns RuleModule that reports require(variable) and import(variable) and names dynamicImport from #gateway/node/module
  *
- * WHEN-TO-USE: When registering ESLint rules to ensure dynamic module paths are validated
- * WHEN-NOT-TO-USE: String literals with valid file paths (./, ../, /) are automatically allowed
+ * WHEN-TO-USE: When registering ESLint rules to keep dynamic module loading inside the gateway
+ * WHEN-NOT-TO-USE: String literals with valid file paths (./, ../, /, C:\) are automatically allowed
  */
 import { AST_NODE_TYPES } from '#gateway/npm/typescript-eslint__utils';
 import type { TSESLint, TSESTree } from '#gateway/npm/typescript-eslint__utils';
@@ -18,15 +18,16 @@ export const ruleRequireContractValidationBroker = (): TSESLint.RuleModule<
   meta: {
     type: 'problem',
     docs: {
-      description: 'Require contract.parse() validation for require() and import() calls',
+      description:
+        'Limit require() and import() to file path literals; dynamic paths use the gateway dynamicImport',
     },
     messages: {
       requireNeedsContract:
-        'require() must use path contract validation or file path literals. Valid: require("./file.ts") OR require(filePathContract.parse(path)). Import contract: import { filePathContract } from "@dungeonmaster/shared/contracts"',
+        'require() takes a file path literal only. Valid: require("./file.ts"). For a dynamic path, call dynamicImport({ path }) from "#gateway/node/module" and parse the returned namespace with a contract.',
       importNeedsContract:
-        'import() must use path contract validation or file path literals. Valid: import("./file.ts") OR import(filePathContract.parse(path)). Import contract: import { filePathContract } from "@dungeonmaster/shared/contracts"',
+        'import() takes a file path literal only. Valid: import("./file.ts"). For a dynamic path, call dynamicImport({ path }) from "#gateway/node/module" and parse the returned namespace with a contract.',
       stringLiteralAllowed:
-        'require/import string literals must be file paths (./, ../, /), not npm modules. Invalid: require("lodash"). Valid: require("./local-file.ts") OR require(filePathContract.parse(dynamicPath)). Import contract: import { filePathContract } from "@dungeonmaster/shared/contracts"',
+        'require/import string literals must be file paths (./, ../, /, C:\\), not npm modules. Invalid: require("lodash"). Valid: require("./local-file.ts"). For a dynamic path, call dynamicImport({ path }) from "#gateway/node/module".',
     },
     schema: [],
   },
@@ -35,16 +36,10 @@ export const ruleRequireContractValidationBroker = (): TSESLint.RuleModule<
     const ctx = context;
     const { filename } = ctx;
 
-    // Allow raw import() in @dungeonmaster/shared's dynamic-import adapter - it IS the foundation wrapper
-    const isSharedDynamicImportAdapter =
-      (filename.includes('@dungeonmaster/shared') || filename.includes('packages/shared')) &&
-      filename.includes('/adapters/runtime/dynamic-import/');
-
-    // A gateway file can never import our own workspace contracts (brief item 7: no
-    // contracts for outside packages), so it has no way to satisfy this rule's
-    // filePathContract.parse() requirement. Exempt it by the same shared guard every
-    // other gateway carve-out uses, rather than a hardcoded path.
-    const isExempt = isSharedDynamicImportAdapter || isGatewayFileGuard({ filename });
+    // A gateway file is where dynamicImport itself lives, and it can never import our own
+    // workspace contracts (brief item 7: no contracts for outside packages). Exempt it by the
+    // same shared guard every other gateway carve-out uses, rather than a hardcoded path.
+    const isExempt = isGatewayFileGuard({ filename });
 
     return {
       // Handle require() calls
@@ -62,10 +57,15 @@ export const ruleRequireContractValidationBroker = (): TSESLint.RuleModule<
           return;
         }
 
-        // Allow string literals that are valid file paths (not npm modules)
+        // Allow string literals that are valid file paths (not npm modules). A drive letter is
+        // a cased character, so lower and upper case differ; brokers may not hold a regex.
         if (arg.type === AST_NODE_TYPES.Literal && typeof arg.value === 'string') {
           const isFilePath =
-            arg.value.startsWith('/') || arg.value.startsWith('./') || arg.value.startsWith('../');
+            arg.value.startsWith('/') ||
+            arg.value.startsWith('./') ||
+            arg.value.startsWith('../') ||
+            (arg.value.charAt(0).toLowerCase() !== arg.value.charAt(0).toUpperCase() &&
+              arg.value.startsWith(':\\', 1));
 
           if (!isFilePath) {
             // Not a valid file path (npm module or invalid)
@@ -80,29 +80,10 @@ export const ruleRequireContractValidationBroker = (): TSESLint.RuleModule<
           return;
         }
 
-        // Require contract.parse() wrapping
-        const objectName =
-          arg.type === AST_NODE_TYPES.CallExpression &&
-          arg.callee.type === AST_NODE_TYPES.MemberExpression &&
-          arg.callee.object.type === AST_NODE_TYPES.Identifier
-            ? arg.callee.object.name
-            : undefined;
-        const isValidContractCall =
-          arg.type === AST_NODE_TYPES.CallExpression &&
-          arg.callee.type === AST_NODE_TYPES.MemberExpression &&
-          arg.callee.property.type === AST_NODE_TYPES.Identifier &&
-          arg.callee.property.name === 'parse' &&
-          objectName !== undefined &&
-          (objectName === 'filePathContract' ||
-            objectName === 'absoluteFilePathContract' ||
-            objectName === 'relativeFilePathContract');
-
-        if (!isValidContractCall) {
-          ctx.report({
-            node,
-            messageId: 'requireNeedsContract',
-          });
-        }
+        ctx.report({
+          node,
+          messageId: 'requireNeedsContract',
+        });
       },
 
       // Handle dynamic import() calls
@@ -117,7 +98,9 @@ export const ruleRequireContractValidationBroker = (): TSESLint.RuleModule<
           const isFilePath =
             source.value.startsWith('/') ||
             source.value.startsWith('./') ||
-            source.value.startsWith('../');
+            source.value.startsWith('../') ||
+            (source.value.charAt(0).toLowerCase() !== source.value.charAt(0).toUpperCase() &&
+              source.value.startsWith(':\\', 1));
 
           if (!isFilePath) {
             // Not a valid file path (npm module or invalid)
@@ -132,29 +115,10 @@ export const ruleRequireContractValidationBroker = (): TSESLint.RuleModule<
           return;
         }
 
-        // Require contract.parse() wrapping
-        const objectName =
-          source.type === AST_NODE_TYPES.CallExpression &&
-          source.callee.type === AST_NODE_TYPES.MemberExpression &&
-          source.callee.object.type === AST_NODE_TYPES.Identifier
-            ? source.callee.object.name
-            : undefined;
-        const isValidContractCall =
-          source.type === AST_NODE_TYPES.CallExpression &&
-          source.callee.type === AST_NODE_TYPES.MemberExpression &&
-          source.callee.property.type === AST_NODE_TYPES.Identifier &&
-          source.callee.property.name === 'parse' &&
-          objectName !== undefined &&
-          (objectName === 'filePathContract' ||
-            objectName === 'absoluteFilePathContract' ||
-            objectName === 'relativeFilePathContract');
-
-        if (!isValidContractCall) {
-          ctx.report({
-            node,
-            messageId: 'importNeedsContract',
-          });
-        }
+        ctx.report({
+          node,
+          messageId: 'importNeedsContract',
+        });
       },
     };
   },

@@ -9,8 +9,6 @@ export { StartEslintPlugin } from './startup/start-eslint-plugin';
 
 // Export contracts for advanced usage
 export type { TsconfigOptions } from './contracts/tsconfig-options/tsconfig-options-contract';
-export type { AstNode } from './contracts/ast-node/ast-node-contract';
-export type { RuleViolation } from './contracts/rule-violation/rule-violation-contract';
 
 // Export adapters for writing custom rule tests
 
@@ -28,7 +26,6 @@ export { configTsconfigBroker } from './brokers/config/tsconfig/config-tsconfig-
 
 // Export transformers for advanced usage
 export { mergeConfigsTransformer } from './transformers/merge-configs/merge-configs-transformer';
-export { astToViolationTransformer } from './transformers/ast-to-violation/ast-to-violation-transformer';
 
 import { StartEslintPlugin } from './startup/start-eslint-plugin';
 

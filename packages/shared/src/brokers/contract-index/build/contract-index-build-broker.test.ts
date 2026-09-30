@@ -95,8 +95,10 @@ describe('contractIndexBuildBroker', () => {
           exportedContractNames: ['thingContract'],
           typeExports: [{ typeName: 'Thing', isSchemaInferred: true, isExempt: false }],
           parseSites: [{ filePath: useFile, line: 2 }],
+          wholeParseSites: [{ filePath: useFile, line: 2 }],
           nestedInFiles: [],
           isParsed: true,
+          isWholeParsed: true,
         },
         {
           filePath: otherFile,
@@ -105,8 +107,10 @@ describe('contractIndexBuildBroker', () => {
           exportedContractNames: ['otherContract'],
           typeExports: [{ typeName: 'Other', isSchemaInferred: true, isExempt: false }],
           parseSites: [],
+          wholeParseSites: [],
           nestedInFiles: [],
           isParsed: false,
+          isWholeParsed: false,
         },
       ]);
     });

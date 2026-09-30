@@ -66,8 +66,10 @@ describe('contractIndexFromSourcesTransformer', () => {
           exportedContractNames: ['oneContract'],
           typeExports: [{ typeName: 'one', isSchemaInferred: true, isExempt: false }],
           parseSites: [{ filePath: brokerFile, line: 2 }],
+          wholeParseSites: [{ filePath: brokerFile, line: 2 }],
           nestedInFiles: [],
           isParsed: true,
+          isWholeParsed: true,
         },
         {
           filePath: lonelyFile,
@@ -76,8 +78,10 @@ describe('contractIndexFromSourcesTransformer', () => {
           exportedContractNames: ['twoContract'],
           typeExports: [{ typeName: 'two', isSchemaInferred: true, isExempt: false }],
           parseSites: [],
+          wholeParseSites: [],
           nestedInFiles: [],
           isParsed: false,
+          isWholeParsed: false,
         },
       ]);
     });
@@ -105,9 +109,84 @@ describe('contractIndexFromSourcesTransformer', () => {
           exportedContractNames: ['oneContract'],
           typeExports: [{ typeName: 'one', isSchemaInferred: true, isExempt: false }],
           parseSites: [],
+          wholeParseSites: [],
           nestedInFiles: [],
           isParsed: false,
+          isWholeParsed: false,
         },
+      ]);
+    });
+  });
+
+  describe('whole versus field parses', () => {
+    it('VALID: {a broker parses only a field of the contract, another nests it in a parsed contract} => parsed but never whole', () => {
+      const fieldFile = '/repo/packages/alpha/src/contracts/one/one-contract.ts';
+      const brokerFile = '/repo/packages/alpha/src/brokers/use/use-broker.ts';
+
+      const result = contractIndexFromSourcesTransformer({
+        rootDir,
+        packages: [alphaPackage, betaPackage],
+        sources: [
+          { filePath: fieldFile, text: ONE_CONTRACT_TEXT },
+          {
+            filePath: brokerFile,
+            text: "import { oneContract } from '../../contracts/one/one-contract';\nexport const useBroker = (v: unknown) => oneContract.shape.id.parse(v);",
+          },
+        ],
+      });
+
+      expect(result).toStrictEqual([
+        {
+          filePath: fieldFile,
+          packageName: '@repo/alpha',
+          isLayer: false,
+          exportedContractNames: ['oneContract'],
+          typeExports: [{ typeName: 'one', isSchemaInferred: true, isExempt: false }],
+          parseSites: [{ filePath: brokerFile, line: 2 }],
+          wholeParseSites: [],
+          nestedInFiles: [],
+          isParsed: true,
+          isWholeParsed: false,
+        },
+      ]);
+    });
+
+    it('VALID: {a parent is parsed only through a field, its nested child} => neither is whole, both are parsed', () => {
+      const innerFile = '/repo/packages/alpha/src/contracts/inner/inner-contract.ts';
+      const outerFile = '/repo/packages/alpha/src/contracts/outer/outer-contract.ts';
+      const brokerFile = '/repo/packages/alpha/src/brokers/use/use-broker.ts';
+
+      const result = contractIndexFromSourcesTransformer({
+        rootDir,
+        packages: [alphaPackage, betaPackage],
+        sources: [
+          { filePath: innerFile, text: INNER_CONTRACT_TEXT },
+          {
+            filePath: outerFile,
+            text: [
+              "import { z } from 'zod';",
+              "import { innerContract } from '../inner/inner-contract';",
+              'export const outerContract = z.object({ inner: innerContract });',
+              'export type Outer = z.infer<typeof outerContract>;',
+              '',
+            ].join('\n'),
+          },
+          {
+            filePath: brokerFile,
+            text: "import { outerContract } from '../../contracts/outer/outer-contract';\nexport const useBroker = (v: unknown) => outerContract.shape.inner.parse(v);",
+          },
+        ],
+      });
+
+      expect(
+        result.map(({ filePath, isParsed, isWholeParsed }) => ({
+          filePath,
+          isParsed,
+          isWholeParsed,
+        })),
+      ).toStrictEqual([
+        { filePath: innerFile, isParsed: true, isWholeParsed: false },
+        { filePath: outerFile, isParsed: true, isWholeParsed: false },
       ]);
     });
   });
@@ -141,8 +220,10 @@ describe('contractIndexFromSourcesTransformer', () => {
           exportedContractNames: ['oneContract'],
           typeExports: [{ typeName: 'one', isSchemaInferred: true, isExempt: false }],
           parseSites: [{ filePath: harnessFile, line: 2 }],
+          wholeParseSites: [{ filePath: harnessFile, line: 2 }],
           nestedInFiles: [],
           isParsed: true,
+          isWholeParsed: true,
         },
       ]);
     });
@@ -184,8 +265,10 @@ describe('contractIndexFromSourcesTransformer', () => {
           exportedContractNames: ['oneContract'],
           typeExports: [{ typeName: 'one', isSchemaInferred: true, isExempt: false }],
           parseSites: [],
+          wholeParseSites: [],
           nestedInFiles: [],
           isParsed: false,
+          isWholeParsed: false,
         },
       ]);
     });
@@ -229,8 +312,10 @@ describe('contractIndexFromSourcesTransformer', () => {
             { typeName: 'RecordedCalls', isSchemaInferred: false, isExempt: true },
           ],
           parseSites: [],
+          wholeParseSites: [],
           nestedInFiles: [],
           isParsed: false,
+          isWholeParsed: false,
         },
       ]);
     });
@@ -272,8 +357,10 @@ describe('contractIndexFromSourcesTransformer', () => {
           exportedContractNames: ['innerContract'],
           typeExports: [{ typeName: 'inner', isSchemaInferred: true, isExempt: false }],
           parseSites: [],
+          wholeParseSites: [],
           nestedInFiles: [outerFile],
           isParsed: true,
+          isWholeParsed: true,
         },
         {
           filePath: outerFile,
@@ -282,8 +369,10 @@ describe('contractIndexFromSourcesTransformer', () => {
           exportedContractNames: ['outerContract'],
           typeExports: [{ typeName: 'Outer', isSchemaInferred: true, isExempt: false }],
           parseSites: [{ filePath: brokerFile, line: 2 }],
+          wholeParseSites: [{ filePath: brokerFile, line: 2 }],
           nestedInFiles: [],
           isParsed: true,
+          isWholeParsed: true,
         },
       ]);
     });
@@ -320,8 +409,10 @@ describe('contractIndexFromSourcesTransformer', () => {
           exportedContractNames: ['oneContract'],
           typeExports: [{ typeName: 'one', isSchemaInferred: true, isExempt: false }],
           parseSites: [{ filePath: brokerFile, line: 2 }],
+          wholeParseSites: [{ filePath: brokerFile, line: 2 }],
           nestedInFiles: [],
           isParsed: true,
+          isWholeParsed: true,
         },
         {
           filePath: layerFile,
@@ -330,8 +421,10 @@ describe('contractIndexFromSourcesTransformer', () => {
           exportedContractNames: ['detailContract'],
           typeExports: [{ typeName: 'detail', isSchemaInferred: true, isExempt: false }],
           parseSites: [],
+          wholeParseSites: [],
           nestedInFiles: [],
           isParsed: false,
+          isWholeParsed: false,
         },
       ]);
     });
@@ -363,8 +456,10 @@ describe('contractIndexFromSourcesTransformer', () => {
           exportedContractNames: ['oneContract'],
           typeExports: [{ typeName: 'one', isSchemaInferred: true, isExempt: false }],
           parseSites: [],
+          wholeParseSites: [],
           nestedInFiles: [],
           isParsed: false,
+          isWholeParsed: false,
         },
       ]);
     });

@@ -13,4 +13,9 @@ import type { ContractUsesScanLayer } from './contract-uses-scan-layer-contract'
 export const ContractUsesScanLayerStub = ({
   ...props
 }: StubArgument<ContractUsesScanLayer> = {}): ContractUsesScanLayer =>
-  contractUsesScanLayerContract.parse({ parseSites: [], valueTargets: [], ...props });
+  contractUsesScanLayerContract.parse({
+    parseSites: [],
+    wholeParseSites: [],
+    valueTargets: [],
+    ...props,
+  });

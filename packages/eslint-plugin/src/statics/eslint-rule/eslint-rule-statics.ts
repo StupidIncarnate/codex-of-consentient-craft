@@ -732,7 +732,7 @@ export const eslintRuleStatics = {
      * This conflicts with the following scenario in contracts where we're trying to define
      * as type of a function type.
      * const reportDescriptorDataContract = z.object({
-     *   node: z.custom<AstNode>().optional(),
+     *   node: z.custom<TSESTree.Node>().optional(),
      *   messageId: z.custom<Identifier>().optional(),
      *   message: z.string().brand<'ErrorMessage'>().optional(),
      *   data: z.record(z.custom<Identifier>(), z.unknown()).optional(),

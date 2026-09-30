@@ -26,6 +26,9 @@ describe('contractUsesScanLayerTransformer', () => {
 
         expect(result).toStrictEqual({
           parseSites: [{ targetFile, site: { filePath: '/repo/packages/a/src/x.ts', line: 2 } }],
+          wholeParseSites: [
+            { targetFile, site: { filePath: '/repo/packages/a/src/x.ts', line: 2 } },
+          ],
           valueTargets: [targetFile],
         });
       },
@@ -43,11 +46,12 @@ describe('contractUsesScanLayerTransformer', () => {
 
       expect(result).toStrictEqual({
         parseSites: [{ targetFile, site: { filePath: '/repo/packages/a/src/x.ts', line: 1 } }],
+        wholeParseSites: [{ targetFile, site: { filePath: '/repo/packages/a/src/x.ts', line: 1 } }],
         valueTargets: [targetFile],
       });
     });
 
-    it('VALID: {thingContract.shape.id.parse(value)} => counts a parse of a field', () => {
+    it('VALID: {thingContract.shape.id.parse(value)} => a parse site, but not a whole one', () => {
       const sourceFile = ts.createSourceFile(
         '/repo/packages/a/src/x.ts',
         'thingContract.shape.id.parse(value);',
@@ -59,6 +63,7 @@ describe('contractUsesScanLayerTransformer', () => {
 
       expect(result).toStrictEqual({
         parseSites: [{ targetFile, site: { filePath: '/repo/packages/a/src/x.ts', line: 1 } }],
+        wholeParseSites: [],
         valueTargets: [targetFile],
       });
     });
@@ -73,7 +78,64 @@ describe('contractUsesScanLayerTransformer', () => {
 
       const result = contractUsesScanLayerTransformer({ sourceFile, bindings: [thingBinding] });
 
-      expect(result).toStrictEqual({ parseSites: [], valueTargets: [targetFile] });
+      expect(result).toStrictEqual({
+        parseSites: [],
+        wholeParseSites: [],
+        valueTargets: [targetFile],
+      });
+    });
+  });
+
+  describe('whole versus field parses', () => {
+    it('VALID: {z.array(thingContract.shape.id).parse(value)} => a field reach inside an array is not whole', () => {
+      const sourceFile = ts.createSourceFile(
+        '/repo/packages/a/src/x.ts',
+        'z.array(thingContract.shape.id).parse(value);',
+        ts.ScriptTarget.Latest,
+        true,
+      );
+
+      const result = contractUsesScanLayerTransformer({ sourceFile, bindings: [thingBinding] });
+
+      expect(result).toStrictEqual({
+        parseSites: [{ targetFile, site: { filePath: '/repo/packages/a/src/x.ts', line: 1 } }],
+        wholeParseSites: [],
+        valueTargets: [targetFile],
+      });
+    });
+
+    it('VALID: {one parse naming the contract whole and through a field} => is whole', () => {
+      const sourceFile = ts.createSourceFile(
+        '/repo/packages/a/src/x.ts',
+        'z.union([thingContract, thingContract.shape.id]).parse(value);',
+        ts.ScriptTarget.Latest,
+        true,
+      );
+
+      const result = contractUsesScanLayerTransformer({ sourceFile, bindings: [thingBinding] });
+
+      expect(result).toStrictEqual({
+        parseSites: [{ targetFile, site: { filePath: '/repo/packages/a/src/x.ts', line: 1 } }],
+        wholeParseSites: [{ targetFile, site: { filePath: '/repo/packages/a/src/x.ts', line: 1 } }],
+        valueTargets: [targetFile],
+      });
+    });
+
+    it('VALID: {thingContract.extend({}).parse(value)} => a derived schema counts as whole', () => {
+      const sourceFile = ts.createSourceFile(
+        '/repo/packages/a/src/x.ts',
+        'thingContract.extend({}).parse(value);',
+        ts.ScriptTarget.Latest,
+        true,
+      );
+
+      const result = contractUsesScanLayerTransformer({ sourceFile, bindings: [thingBinding] });
+
+      expect(result).toStrictEqual({
+        parseSites: [{ targetFile, site: { filePath: '/repo/packages/a/src/x.ts', line: 1 } }],
+        wholeParseSites: [{ targetFile, site: { filePath: '/repo/packages/a/src/x.ts', line: 1 } }],
+        valueTargets: [targetFile],
+      });
     });
   });
 
@@ -88,7 +150,11 @@ describe('contractUsesScanLayerTransformer', () => {
 
       const result = contractUsesScanLayerTransformer({ sourceFile, bindings: [thingBinding] });
 
-      expect(result).toStrictEqual({ parseSites: [], valueTargets: [targetFile] });
+      expect(result).toStrictEqual({
+        parseSites: [],
+        wholeParseSites: [],
+        valueTargets: [targetFile],
+      });
     });
 
     it('VALID: {a property named like the binding} => is not a use', () => {
@@ -101,7 +167,7 @@ describe('contractUsesScanLayerTransformer', () => {
 
       const result = contractUsesScanLayerTransformer({ sourceFile, bindings: [thingBinding] });
 
-      expect(result).toStrictEqual({ parseSites: [], valueTargets: [] });
+      expect(result).toStrictEqual({ parseSites: [], wholeParseSites: [], valueTargets: [] });
     });
 
     it('VALID: {typeof thingContract in a type position} => is not a use', () => {
@@ -114,7 +180,7 @@ describe('contractUsesScanLayerTransformer', () => {
 
       const result = contractUsesScanLayerTransformer({ sourceFile, bindings: [thingBinding] });
 
-      expect(result).toStrictEqual({ parseSites: [], valueTargets: [] });
+      expect(result).toStrictEqual({ parseSites: [], wholeParseSites: [], valueTargets: [] });
     });
 
     it('VALID: {the import declaration itself} => is not a use', () => {
@@ -127,7 +193,7 @@ describe('contractUsesScanLayerTransformer', () => {
 
       const result = contractUsesScanLayerTransformer({ sourceFile, bindings: [thingBinding] });
 
-      expect(result).toStrictEqual({ parseSites: [], valueTargets: [] });
+      expect(result).toStrictEqual({ parseSites: [], wholeParseSites: [], valueTargets: [] });
     });
   });
 
@@ -142,7 +208,7 @@ describe('contractUsesScanLayerTransformer', () => {
 
       const result = contractUsesScanLayerTransformer({ sourceFile, bindings: [] });
 
-      expect(result).toStrictEqual({ parseSites: [], valueTargets: [] });
+      expect(result).toStrictEqual({ parseSites: [], wholeParseSites: [], valueTargets: [] });
     });
 
     it('VALID: {type-only binding} => is ignored', () => {
@@ -158,7 +224,7 @@ describe('contractUsesScanLayerTransformer', () => {
         bindings: [ContractUsesBindingStub({ targetFile, isTypeOnly: true })],
       });
 
-      expect(result).toStrictEqual({ parseSites: [], valueTargets: [] });
+      expect(result).toStrictEqual({ parseSites: [], wholeParseSites: [], valueTargets: [] });
     });
   });
 });

@@ -5,42 +5,6 @@ const ruleTester = ruleTesterHarness();
 
 ruleTester.run('require-contract-validation', ruleRequireContractValidationBroker(), {
   valid: [
-    // ✅ require() with filePathContract.parse()
-    {
-      code: `
-        import { filePathContract } from '@dungeonmaster/shared/contracts';
-        const config = require(filePathContract.parse(configPath));
-      `,
-      filename: '/test/file.ts',
-    },
-
-    // ✅ require() with absoluteFilePathContract.parse()
-    {
-      code: `
-        import { absoluteFilePathContract } from '@dungeonmaster/shared/contracts';
-        const config = require(absoluteFilePathContract.parse(absolutePath));
-      `,
-      filename: '/test/file.ts',
-    },
-
-    // ✅ require() with relativeFilePathContract.parse()
-    {
-      code: `
-        import { relativeFilePathContract } from '@dungeonmaster/shared/contracts';
-        const config = require(relativeFilePathContract.parse(relativePath));
-      `,
-      filename: '/test/file.ts',
-    },
-
-    // ✅ import() with filePathContract.parse()
-    {
-      code: `
-        import { filePathContract } from '@dungeonmaster/shared/contracts';
-        const module = await import(filePathContract.parse(modulePath));
-      `,
-      filename: '/test/file.ts',
-    },
-
     // ✅ String literal relative path (./)
     {
       code: `const config = require('./config.json');`,
@@ -59,6 +23,18 @@ ruleTester.run('require-contract-validation', ruleRequireContractValidationBroke
       filename: '/test/file.ts',
     },
 
+    // ✅ String literal Windows drive path
+    {
+      code: `const config = require('C:\\\\configs\\\\app.json');`,
+      filename: '/test/file.ts',
+    },
+
+    // ✅ import() with string literal Windows drive path
+    {
+      code: `const module = await import('d:\\\\modules\\\\mod.js');`,
+      filename: '/test/file.ts',
+    },
+
     // ✅ import() with string literal relative path
     {
       code: `const module = await import('./dynamic-module');`,
@@ -72,7 +48,7 @@ ruleTester.run('require-contract-validation', ruleRequireContractValidationBroke
     },
 
     // ✅ require() with a bare variable, inside a gateway package (exempt: gateway files
-    // never import our own contracts, so they cannot satisfy filePathContract.parse())
+    // never import our own contracts, and dynamicImport itself lives there)
     {
       code: `const config = require(configPath);`,
       filename: '/repo/packages/@gateway/node/src/module/dynamic-import.ts',
@@ -86,6 +62,60 @@ ruleTester.run('require-contract-validation', ruleRequireContractValidationBroke
   ],
 
   invalid: [
+    // ❌ require() with filePathContract.parse() (the contract is gone)
+    {
+      code: `
+        import { filePathContract } from '@dungeonmaster/shared/contracts';
+        const config = require(filePathContract.parse(configPath));
+      `,
+      errors: [{ messageId: 'requireNeedsContract' }],
+      filename: '/test/file.ts',
+    },
+
+    // ❌ require() with absoluteFilePathContract.parse()
+    {
+      code: `
+        import { absoluteFilePathContract } from '@dungeonmaster/shared/contracts';
+        const config = require(absoluteFilePathContract.parse(absolutePath));
+      `,
+      errors: [{ messageId: 'requireNeedsContract' }],
+      filename: '/test/file.ts',
+    },
+
+    // ❌ require() with relativeFilePathContract.parse()
+    {
+      code: `
+        import { relativeFilePathContract } from '@dungeonmaster/shared/contracts';
+        const config = require(relativeFilePathContract.parse(relativePath));
+      `,
+      errors: [{ messageId: 'requireNeedsContract' }],
+      filename: '/test/file.ts',
+    },
+
+    // ❌ import() with filePathContract.parse()
+    {
+      code: `
+        import { filePathContract } from '@dungeonmaster/shared/contracts';
+        const module = await import(filePathContract.parse(modulePath));
+      `,
+      errors: [{ messageId: 'importNeedsContract' }],
+      filename: '/test/file.ts',
+    },
+
+    // ❌ require() with a non-path literal that only looks like a drive
+    {
+      code: `const config = require('C:config');`,
+      errors: [{ messageId: 'stringLiteralAllowed' }],
+      filename: '/test/file.ts',
+    },
+
+    // ❌ import() with a digit before the colon
+    {
+      code: `const module = await import('1:\\\\module');`,
+      errors: [{ messageId: 'stringLiteralAllowed' }],
+      filename: '/test/file.ts',
+    },
+
     // ❌ require() without contract.parse()
     {
       code: `const config = require(configPath);`,

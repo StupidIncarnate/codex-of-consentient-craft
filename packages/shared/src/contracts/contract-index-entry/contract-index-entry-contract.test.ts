@@ -13,8 +13,10 @@ describe('contractIndexEntryContract', () => {
         exportedContractNames: ['thingContract'],
         typeExports: [{ typeName: 'Thing', isSchemaInferred: true, isExempt: false }],
         parseSites: [],
+        wholeParseSites: [],
         nestedInFiles: [],
         isParsed: false,
+        isWholeParsed: false,
       });
     });
 
@@ -26,6 +28,23 @@ describe('contractIndexEntryContract', () => {
       });
 
       expect(result.parseSites).toStrictEqual([{ filePath: '/repo/a.ts', line: 7 }]);
+    });
+  });
+
+  describe('whole parse', () => {
+    it('VALID: {one whole parse site} => keeps the site and the whole-parsed flag', () => {
+      const result = contractIndexEntryContract.parse({
+        ...ContractIndexEntryStub(),
+        parseSites: [{ filePath: '/repo/a.ts', line: 7 }],
+        wholeParseSites: [{ filePath: '/repo/a.ts', line: 7 }],
+        isParsed: true,
+        isWholeParsed: true,
+      });
+
+      expect({ sites: result.wholeParseSites, whole: result.isWholeParsed }).toStrictEqual({
+        sites: [{ filePath: '/repo/a.ts', line: 7 }],
+        whole: true,
+      });
     });
   });
 

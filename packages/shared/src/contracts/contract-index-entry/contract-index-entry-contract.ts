@@ -4,7 +4,7 @@
  * files one at a time when a rule must know what OTHER files do with a contract.
  *
  * USAGE:
- * contractIndexEntryContract.parse({ filePath: '/repo/packages/a/src/contracts/x/x-contract.ts', packageName: '@repo/a', isLayer: false, exportedContractNames: ['xContract'], typeExports: [], parseSites: [], nestedInFiles: [], isParsed: false });
+ * contractIndexEntryContract.parse({ filePath: '/repo/packages/a/src/contracts/x/x-contract.ts', packageName: '@repo/a', isLayer: false, exportedContractNames: ['xContract'], typeExports: [], parseSites: [], wholeParseSites: [], nestedInFiles: [], isParsed: false, isWholeParsed: false });
  * // Returns: ContractIndexEntry validated object
  */
 
@@ -43,6 +43,7 @@ export const contractIndexEntryContract = z
         .brand<'ContractIndexEntryTypeExports'>(),
     ),
     parseSites: z.array(contractParseSiteContract),
+    wholeParseSites: z.array(contractParseSiteContract),
     nestedInFiles: z.array(
       z
         .string()
@@ -62,6 +63,7 @@ export const contractIndexEntryContract = z
         .brand<'ContractIndexEntryNestedInFiles'>(),
     ),
     isParsed: z.boolean(),
+    isWholeParsed: z.boolean(),
   })
   .brand<'ContractIndexEntry'>();
 

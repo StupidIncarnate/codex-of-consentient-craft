@@ -2,11 +2,12 @@
  * PURPOSE: Finds, in one production file, every call that parses a contract and every contract the
  * file uses as a value. A parse is `.parse`, `.safeParse`, `.parseAsync` or `.safeParseAsync` called
  * on an expression built from the contract (`xContract.shape.id.parse`, `z.array(xContract).parse`);
- * a value use is any mention outside a type position.
+ * a value use is any mention outside a type position. A parse is also WHOLE unless the contract is
+ * reached only through `.shape` (`xContract.shape.id.parse` parses one field, never the object).
  *
  * USAGE:
  * contractUsesScanLayerTransformer({ sourceFile, bindings });
- * // Returns { parseSites: [{ targetFile, line }], valueTargets: AbsoluteFilePath[] }
+ * // Returns { parseSites, wholeParseSites: [{ targetFile, site }], valueTargets: AbsoluteFilePath[] }
  */
 import { contractUsesScanLayerContract } from '../../contracts/contract-uses-scan-layer/contract-uses-scan-layer-contract';
 import type { ContractUsesScanLayer } from '../../contracts/contract-uses-scan-layer/contract-uses-scan-layer-contract';
@@ -32,10 +33,11 @@ export const contractUsesScanLayerTransformer = ({
       .map((binding) => [String(binding.localName), binding.targetFile] as const),
   );
   const parseSites: { targetFile: string; site: ContractParseSite }[] = [];
+  const wholeParseSites: { targetFile: string; site: ContractParseSite }[] = [];
   const valueTargets = new Set<string>();
 
   if (targetByLocalName.size === 0) {
-    return contractUsesScanLayerContract.parse({ parseSites, valueTargets: [] });
+    return contractUsesScanLayerContract.parse({ parseSites, wholeParseSites, valueTargets: [] });
   }
 
   const pending: { node: ts.Node; inType: boolean }[] = [{ node: sourceFile, inType: false }];
@@ -75,6 +77,7 @@ export const contractUsesScanLayerTransformer = ({
       const { line } = sourceFile.getLineAndCharacterOfPosition(node.getStart(sourceFile));
       const receiverPending: ts.Node[] = [parseCallee.expression];
       const parsedTargets = new Set<string>();
+      const wholeTargets = new Set<string>();
       while (receiverPending.length > 0) {
         const receiverNode = receiverPending.pop();
         if (receiverNode === undefined) {
@@ -87,17 +90,28 @@ export const contractUsesScanLayerTransformer = ({
           const target = targetByLocalName.get(receiverNode.text);
           if (target !== undefined) {
             parsedTargets.add(target);
+            const isFieldReach =
+              ts.isPropertyAccessExpression(receiverNode.parent) &&
+              receiverNode.parent.expression === receiverNode &&
+              receiverNode.parent.name.text === 'shape';
+            if (!isFieldReach) {
+              wholeTargets.add(target);
+            }
           }
         }
         ts.forEachChild(receiverNode, (child) => {
           receiverPending.push(child);
         });
       }
+      const site = contractParseSiteContract.parse({
+        filePath: sourceFile.fileName,
+        line: line + 1,
+      });
       for (const targetFile of parsedTargets) {
-        parseSites.push({
-          targetFile,
-          site: contractParseSiteContract.parse({ filePath: sourceFile.fileName, line: line + 1 }),
-        });
+        parseSites.push({ targetFile, site });
+      }
+      for (const targetFile of wholeTargets) {
+        wholeParseSites.push({ targetFile, site });
       }
     }
 
@@ -106,5 +120,9 @@ export const contractUsesScanLayerTransformer = ({
     });
   }
 
-  return contractUsesScanLayerContract.parse({ parseSites, valueTargets: [...valueTargets] });
+  return contractUsesScanLayerContract.parse({
+    parseSites,
+    wholeParseSites,
+    valueTargets: [...valueTargets],
+  });
 };

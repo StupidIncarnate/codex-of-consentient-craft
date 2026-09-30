@@ -13,7 +13,9 @@ export const ContractIndexEntryStub = ({
     exportedContractNames: ['thingContract'],
     typeExports: [{ typeName: 'Thing', isSchemaInferred: true, isExempt: false }],
     parseSites: [],
+    wholeParseSites: [],
     nestedInFiles: [],
     isParsed: false,
+    isWholeParsed: false,
     ...props,
   });

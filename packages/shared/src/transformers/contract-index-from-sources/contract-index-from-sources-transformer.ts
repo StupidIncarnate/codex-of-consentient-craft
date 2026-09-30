@@ -2,8 +2,9 @@
  * PURPOSE: Builds the contract index from source text already read: for every `-contract.ts` file,
  * what it exports, which production lines parse it, and whether it counts as parsed. A contract
  * counts as parsed when production code parses it, or a field of it, or when a contract that counts
- * as parsed uses it as a value (a nested schema). Reach for this over a text search for `.parse(`,
- * which counts every JSDoc example.
+ * as parsed uses it as a value (a nested schema). It counts as WHOLE parsed on the same terms minus
+ * the field parse: a parse of the object itself, or nesting inside a contract that is whole parsed.
+ * Reach for this over a text search for `.parse(`, which counts every JSDoc example.
  *
  * USAGE:
  * contractIndexFromSourcesTransformer({ rootDir, packages, sources });
@@ -84,6 +85,7 @@ export const contractIndexFromSourcesTransformer = ({
   );
 
   const parseSitesByContract = new Map<string, ContractParseSite[]>();
+  const wholeParseSitesByContract = new Map<string, ContractParseSite[]>();
   const nestedInByContract = new Map<string, Set<string>>();
 
   for (const { filePath, sourceFile, links } of parsedFiles) {
@@ -115,6 +117,13 @@ export const contractIndexFromSourcesTransformer = ({
       parseSitesByContract.set(targetFile, [...(parseSitesByContract.get(targetFile) ?? []), site]);
     }
 
+    for (const { targetFile, site } of uses.wholeParseSites) {
+      wholeParseSitesByContract.set(targetFile, [
+        ...(wholeParseSitesByContract.get(targetFile) ?? []),
+        site,
+      ]);
+    }
+
     if (contractFiles.has(filePath)) {
       for (const targetFile of uses.valueTargets) {
         nestedInByContract.set(
@@ -126,15 +135,15 @@ export const contractIndexFromSourcesTransformer = ({
   }
 
   const parsedContracts = new Set(parseSitesByContract.keys());
-  for (let changed = true; changed;) {
-    changed = false;
-    for (const [contractFile, parents] of nestedInByContract) {
-      if (
-        !parsedContracts.has(contractFile) &&
-        [...parents].some((parent) => parsedContracts.has(parent))
-      ) {
-        parsedContracts.add(contractFile);
-        changed = true;
+  const wholeParsedContracts = new Set(wholeParseSitesByContract.keys());
+  for (const reached of [parsedContracts, wholeParsedContracts]) {
+    for (let changed = true; changed;) {
+      changed = false;
+      for (const [contractFile, parents] of nestedInByContract) {
+        if (!reached.has(contractFile) && [...parents].some((parent) => reached.has(parent))) {
+          reached.add(contractFile);
+          changed = true;
+        }
       }
     }
   }
@@ -155,8 +164,10 @@ export const contractIndexFromSourcesTransformer = ({
         exportedContractNames: exportedConstNames,
         typeExports,
         parseSites: parseSitesByContract.get(filePath) ?? [],
+        wholeParseSites: wholeParseSitesByContract.get(filePath) ?? [],
         nestedInFiles: [...(nestedInByContract.get(filePath) ?? [])],
         isParsed: parsedContracts.has(filePath),
+        isWholeParsed: wholeParsedContracts.has(filePath),
       });
     });
 };
