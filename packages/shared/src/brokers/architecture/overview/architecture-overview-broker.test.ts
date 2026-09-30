@@ -240,6 +240,16 @@ describe('architectureOverviewBroker', () => {
       );
     });
 
+    it('VALID: {} => names the two conventions no lint rule checks yet', () => {
+      architectureOverviewBrokerProxy();
+
+      const result = architectureOverviewBroker();
+
+      expect(result).toMatch(
+        /^Nearly every rule below is enforced by ESLint, and a violation is a failed build, not a style note\. Two are conventions no rule checks yet: never parse one id into another brand, and an object type that leaves a function belongs in `contracts\/`\.$/mu,
+      );
+    });
+
     it('VALID: {} => brands object contracts and lets an owner-id parameter take the owner field type', () => {
       architectureOverviewBrokerProxy();
 

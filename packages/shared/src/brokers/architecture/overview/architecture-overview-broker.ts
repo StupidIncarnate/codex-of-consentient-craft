@@ -232,7 +232,7 @@ Those three steps and the status code are the whole job. A responder that branch
 
 ## Writing a File
 
-Every rule below is enforced by ESLint. A violation is a failed build, not a style note.
+Nearly every rule below is enforced by ESLint, and a violation is a failed build, not a style note. Two are conventions no rule checks yet: never parse one id into another brand, and an object type that leaves a function belongs in \`contracts/\`.
 
 ### Naming and exports
 
