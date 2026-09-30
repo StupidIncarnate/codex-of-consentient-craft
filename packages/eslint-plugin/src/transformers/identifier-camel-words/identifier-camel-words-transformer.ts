@@ -7,14 +7,12 @@
  * identifierCamelWordsTransformer({ identifier: identifierContract.parse('parentQuestId') });
  * // Returns ['parent', 'quest', 'id']
  */
-import { identifierContract } from '@dungeonmaster/shared/contracts';
-import type { Identifier } from '@dungeonmaster/shared/contracts';
 
 export const identifierCamelWordsTransformer = ({
   identifier,
 }: {
-  identifier: Identifier;
-}): Identifier[] =>
+  identifier: string;
+}): string[] =>
   (identifier.match(/[A-Z]+(?![a-z])|[A-Z]?[a-z0-9]+/gu) ?? []).map((word) =>
-    identifierContract.parse(word.toLowerCase()),
+    word.toLowerCase(),
   );

@@ -1,5 +1,4 @@
 import { CallExpressionStub } from '#gateway/npm/typescript-eslint__utils/call-expression/call-expression.stub';
-import { IdentifierStub } from '@dungeonmaster/shared/contracts/identifier/identifier.stub';
 
 import { astExpectedBrandTextTransformer } from './ast-expected-brand-text-transformer';
 
@@ -17,8 +16,8 @@ describe('astExpectedBrandTextTransformer', () => {
       const node = CallExpressionStub({ code: 'const treeNodeFields = { name: brand() };' });
       const fieldListOwners = new Map([
         [
-          IdentifierStub({ value: 'treeNodeFields' }),
-          IdentifierStub({ value: 'treeNodeContract' }),
+          'treeNodeFields',
+          'treeNodeContract',
         ],
       ]);
 

@@ -9,7 +9,6 @@
  */
 import { AST_NODE_TYPES } from '#gateway/npm/typescript-eslint__utils';
 import type { TSESTree } from '#gateway/npm/typescript-eslint__utils';
-import type { Identifier } from '@dungeonmaster/shared/contracts';
 import { astCastTargetRootNameTransformer } from '../../transformers/ast-cast-target-root-name/ast-cast-target-root-name-transformer';
 import { isAstObjectStubSpreadGuard } from '../is-ast-object-stub-spread/is-ast-object-stub-spread-guard';
 import { isNpmPackageImportGuard } from '../is-npm-package-import/is-npm-package-import-guard';
@@ -19,7 +18,7 @@ export const isAstOutsideTypeCastGuard = ({
   imports,
 }: {
   node?: TSESTree.Node | null | undefined;
-  imports?: Map<Identifier, string> | undefined;
+  imports?: Map<string, string> | undefined;
 }): boolean => {
   if (
     imports === undefined ||

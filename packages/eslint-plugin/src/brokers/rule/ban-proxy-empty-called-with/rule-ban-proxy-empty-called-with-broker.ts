@@ -19,7 +19,7 @@
 import { AST_NODE_TYPES } from '#gateway/npm/typescript-eslint__utils';
 import type { TSESLint, TSESTree } from '#gateway/npm/typescript-eslint__utils';
 import { voidSinkSpyLayerBroker } from './void-sink-spy-layer-broker';
-import { identifierContract, type Identifier } from '@dungeonmaster/shared/contracts';
+import { type Identifier } from '@dungeonmaster/shared/contracts';
 import { hasFileSuffixGuard } from '../../../guards/has-file-suffix/has-file-suffix-guard';
 import { typedFunctionTakesNoArgsTransformer } from '../../../transformers/typed-function-takes-no-args/typed-function-takes-no-args-transformer';
 import { typedSpyMethodTakesNoArgsLayerBroker } from './typed-spy-method-takes-no-args-layer-broker';
@@ -50,16 +50,16 @@ export const ruleBanProxyEmptyCalledWithBroker =
       // Each node is handed straight to the type-checker helpers, whose own parameters are `unknown`
       // and narrow via the real TSESTree.Node cast. A handle maps to a thunk so the type checker runs
       // only when a `calledWith([])` on it is actually found.
-      const takesNoArgsByHandleName = new Map<Identifier, () => boolean | undefined>();
+      const takesNoArgsByHandleName = new Map<string, () => boolean | undefined>();
       // A spy on a void sink (`process.stdout|stderr` `write`, `process` `on`, `stdout|stderr` imported from `#gateway/node/process`) is a recorder, not a
       // catch-all, when the proxy reads its calls back — so its report waits for Program:exit, by
       // which point every read-back in the file has been seen.
-      const voidSinkHandleNames = new Set<Identifier>();
+      const voidSinkHandleNames = new Set<string>();
       // Local names of `stderr`/`stdout` imported from `#gateway/node/process` (an `as` alias records
       // the alias) — matched by import, so a local variable named `stderr` is not exempt.
-      const gatewaySinkNames = new Set<Identifier>();
-      const readBackHandleNames = new Set<Identifier>();
-      const deferredReports: { node: TSESTree.Node; handleName: Identifier }[] = [];
+      const gatewaySinkNames = new Set<string>();
+      const readBackHandleNames = new Set<string>();
+      const deferredReports: { node: TSESTree.Node; handleName: string }[] = [];
 
       return {
         ImportDeclaration: (node: TSESTree.ImportDeclaration): void => {
@@ -73,7 +73,7 @@ export const ruleBanProxyEmptyCalledWithBroker =
               specifier.imported.type === AST_NODE_TYPES.Identifier &&
               (specifier.imported.name === 'stderr' || specifier.imported.name === 'stdout')
             ) {
-              gatewaySinkNames.add(identifierContract.parse(specifier.local.name));
+              gatewaySinkNames.add(specifier.local.name);
             }
           }
         },
@@ -104,7 +104,7 @@ export const ruleBanProxyEmptyCalledWithBroker =
           const properties = optionsArgument.properties.filter(
             (property) => property.type === AST_NODE_TYPES.Property,
           );
-          const handleName = identifierContract.parse(id.name);
+          const handleName = id.name;
 
           if (registerName === 'registerMock') {
             const fnNode = properties.find(
@@ -162,7 +162,7 @@ export const ruleBanProxyEmptyCalledWithBroker =
                 node.property.type === AST_NODE_TYPES.PrivateIdentifier) &&
                 node.property.name === 'mock'))
           ) {
-            readBackHandleNames.add(identifierContract.parse(node.object.name));
+            readBackHandleNames.add(node.object.name);
           }
         },
 
@@ -193,7 +193,7 @@ export const ruleBanProxyEmptyCalledWithBroker =
           }
 
           const takesNoArgsOf = takesNoArgsByHandleName.get(
-            identifierContract.parse(callee.object.name),
+            callee.object.name,
           );
 
           if (!takesNoArgsOf) {
@@ -209,7 +209,7 @@ export const ruleBanProxyEmptyCalledWithBroker =
             return;
           }
 
-          const handleName = identifierContract.parse(callee.object.name);
+          const handleName = callee.object.name;
 
           if (voidSinkHandleNames.has(handleName)) {
             deferredReports.push({ node, handleName });

@@ -1,5 +1,4 @@
 import { ContentTextStub } from '../../contracts/content-text/content-text.stub';
-import { IdentifierStub } from '../../contracts/identifier/identifier.stub';
 import { OwnerIndexOwnerStub } from '../../contracts/owner-index-owner/owner-index-owner.stub';
 import { OwnerIndexPackageStub } from '../../contracts/owner-index-package/owner-index-package.stub';
 import { OwnerIndexStub } from '../../contracts/owner-index/owner-index.stub';
@@ -30,7 +29,7 @@ const ownerIndex = OwnerIndexStub({
     OwnerIndexPackageStub({ name: stranger }),
   ],
 });
-const contractName = IdentifierStub({ value: 'personContract' });
+const contractName = 'personContract';
 
 describe('ownerIndexObjectCopyMatchTransformer', () => {
   describe('copies', () => {

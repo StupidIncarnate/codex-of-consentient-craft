@@ -13,7 +13,7 @@ const resolveFrom = ({
   const sourceFile = ts.createSourceFile('/repo/a-contract.ts', text, ts.ScriptTarget.Latest, true);
   const declarations = sourceFile.statements.filter(ts.isTypeAliasDeclaration);
   const typeAliases = declarations.map((declaration) => ({
-    name: IdentifierStub({ value: declaration.name.text }),
+    name: declaration.name.text,
     node: declaration.type,
   }));
   return declarations

@@ -1,4 +1,3 @@
-import { IdentifierStub } from '@dungeonmaster/shared/contracts/identifier/identifier.stub';
 import { gatewayBarrelWrapperPathsTransformer } from './gateway-barrel-wrapper-paths-transformer';
 
 describe('gatewayBarrelWrapperPathsTransformer', () => {
@@ -14,14 +13,14 @@ describe('gatewayBarrelWrapperPathsTransformer', () => {
     expect(result).toStrictEqual(
       new Map([
         [
-          IdentifierStub({ value: 'readJsonFileIfExists' }),
+          'readJsonFileIfExists',
           'read-json-file-if-exists/read-json-file-if-exists',
         ],
         [
-          IdentifierStub({ value: 'writeFile' }),
+          'writeFile',
           'write-file/write-file',
         ],
-        [IdentifierStub({ value: 'glob' }), 'glob/glob'],
+        ['glob', 'glob/glob'],
       ]),
     );
   });
@@ -36,7 +35,7 @@ describe('gatewayBarrelWrapperPathsTransformer', () => {
 
     expect(result).toStrictEqual(
       new Map([
-        [IdentifierStub({ value: 'readFile' }), 'read-file/read-file'],
+        ['readFile', 'read-file/read-file'],
       ]),
     );
   });
@@ -50,7 +49,7 @@ describe('gatewayBarrelWrapperPathsTransformer', () => {
     const result = gatewayBarrelWrapperPathsTransformer({ content });
 
     expect(result).toStrictEqual(
-      new Map([[IdentifierStub({ value: 'glob' }), 'glob/glob']]),
+      new Map([['glob', 'glob/glob']]),
     );
   });
 
@@ -65,7 +64,7 @@ describe('gatewayBarrelWrapperPathsTransformer', () => {
     expect(result).toStrictEqual(
       new Map([
         [
-          IdentifierStub({ value: 'readdirEntries' }),
+          'readdirEntries',
           'readdir-entries/readdir-entries',
         ],
       ]),
@@ -85,7 +84,7 @@ describe('gatewayBarrelWrapperPathsTransformer', () => {
 
     expect(result).toStrictEqual(
       new Map([
-        [IdentifierStub({ value: 'readFile' }), 'read-file/read-file'],
+        ['readFile', 'read-file/read-file'],
       ]),
     );
   });

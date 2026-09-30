@@ -14,7 +14,6 @@
  * });
  * // Mutates and returns `index`, e.g. Map { 'WalkedFile' => ['/repo/.../walked-file.ts'] }
  */
-import type { Identifier } from '@dungeonmaster/shared/contracts';
 import { gatewayTestSupportSuffixStatics } from '../../../statics/gateway-test-support-suffix/gateway-test-support-suffix-statics';
 import { readFileSync, readdirEntriesSync } from '#gateway/node/fs';
 import { gatewayTypeDeclarationNamesTransformer } from '../../../transformers/gateway-type-declaration-names/gateway-type-declaration-names-transformer';
@@ -24,8 +23,8 @@ export const collectGatewayTypeDeclarationNamesLayerBroker = ({
   index,
 }: {
   dirPath: string;
-  index: Map<Identifier, string[]>;
-}): Map<Identifier, string[]> => {
+  index: Map<string, string[]>;
+}): Map<string, string[]> => {
   readdirEntriesSync(dirPath).forEach((entry) => {
     const isDirectory = entry.kind === 'directory';
     const entryPath = `${dirPath}${entry.name}${isDirectory ? '/' : ''}`;

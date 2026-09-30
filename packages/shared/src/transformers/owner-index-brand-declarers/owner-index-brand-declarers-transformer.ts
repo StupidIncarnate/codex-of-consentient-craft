@@ -8,7 +8,6 @@
  * ownerIndexBrandDeclarersTransformer({ ownerIndex, brandText: 'QuestId' });
  * // Returns OwnerIndexMatch[] — one per owner key whose own-brand or brand-ref text is QuestId
  */
-import type { Identifier } from '../../contracts/identifier/identifier-contract';
 import { ownerIndexMatchContract } from '../../contracts/owner-index-match/owner-index-match-contract';
 import type { OwnerIndexMatch } from '../../contracts/owner-index-match/owner-index-match-contract';
 import type { OwnerIndex } from '../../contracts/owner-index/owner-index-contract';
@@ -18,7 +17,7 @@ export const ownerIndexBrandDeclarersTransformer = ({
   brandText,
 }: {
   ownerIndex: OwnerIndex;
-  brandText: Identifier;
+  brandText: string;
 }): OwnerIndexMatch[] =>
   ownerIndex.owners.flatMap((owner) =>
     owner.fields

@@ -9,7 +9,6 @@
  */
 import * as ts from '#gateway/npm/typescript';
 
-import type { Identifier } from '../../contracts/identifier/identifier-contract';
 import { typeAliasResolveLayerTransformer } from './type-alias-resolve-layer-transformer';
 
 export const typeMemberKindsLayerTransformer = ({
@@ -18,8 +17,8 @@ export const typeMemberKindsLayerTransformer = ({
   visitedNames,
 }: {
   members: readonly ts.Node[];
-  typeAliases: readonly { name: Identifier; node: ts.Node }[];
-  visitedNames: readonly Identifier[];
+  typeAliases: readonly { name: string; node: ts.Node }[];
+  visitedNames: readonly string[];
 }): ('function' | 'length' | 'data')[] =>
   members.map((member) => {
     if (ts.isMethodSignature(member)) {

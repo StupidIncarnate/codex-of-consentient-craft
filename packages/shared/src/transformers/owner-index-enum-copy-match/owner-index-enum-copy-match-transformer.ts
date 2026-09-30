@@ -9,7 +9,6 @@
  * ownerIndexEnumCopyMatchTransformer({ ownerIndex, packageName, enumText, contractName });
  * // Returns the matching OwnerIndexEnum — a standalone one has no key, an inline one carries its key — or undefined
  */
-import type { Identifier } from '../../contracts/identifier/identifier-contract';
 import type { OwnerIndexEnum } from '../../contracts/owner-index-enum/owner-index-enum-contract';
 import type { OwnerIndex } from '../../contracts/owner-index/owner-index-contract';
 import type { PackageName } from '../../contracts/package-name/package-name-contract';
@@ -26,7 +25,7 @@ export const ownerIndexEnumCopyMatchTransformer = ({
   ownerIndex: OwnerIndex;
   packageName: PackageName;
   enumText: string;
-  contractName: Identifier;
+  contractName: string;
 }): OwnerIndexEnum | undefined => {
   const wanted = enumValuesReadTransformer({ text: enumText })?.join('\u0000');
   if (wanted === undefined) {

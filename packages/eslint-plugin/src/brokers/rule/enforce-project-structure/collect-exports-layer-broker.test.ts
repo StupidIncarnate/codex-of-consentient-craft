@@ -2,7 +2,6 @@ import { RuleContextStub } from '#gateway/npm/typescript-eslint__utils/rule-cont
 import { ProgramStub } from '#gateway/npm/typescript-eslint__utils/program/program.stub';
 import { collectExportsLayerBroker } from './collect-exports-layer-broker';
 import { collectExportsLayerBrokerProxy } from './collect-exports-layer-broker.proxy';
-import { IdentifierStub } from '@dungeonmaster/shared/contracts/identifier/identifier.stub';
 
 describe('collectExportsLayerBroker', () => {
   describe('valid named exports', () => {
@@ -10,9 +9,9 @@ describe('collectExportsLayerBroker', () => {
       collectExportsLayerBrokerProxy();
       const mockReport = jest.fn();
       const context = RuleContextStub({ report: mockReport });
-      const exportName = IdentifierStub({ value: 'userFetchBroker' });
+      const exportName = 'userFetchBroker';
       const node = ProgramStub({ code: 'export const userFetchBroker = () => {};' });
-      const firstFolder = IdentifierStub({ value: 'brokers' });
+      const firstFolder = 'brokers';
 
       const result = collectExportsLayerBroker({
         node,
@@ -31,9 +30,9 @@ describe('collectExportsLayerBroker', () => {
       collectExportsLayerBrokerProxy();
       const mockReport = jest.fn();
       const context = RuleContextStub({ report: mockReport });
-      const exportName = IdentifierStub({ value: 'ValidationError' });
+      const exportName = 'ValidationError';
       const node = ProgramStub({ code: 'export class ValidationError {}' });
-      const firstFolder = IdentifierStub({ value: 'errors' });
+      const firstFolder = 'errors';
 
       const result = collectExportsLayerBroker({
         node,
@@ -52,9 +51,9 @@ describe('collectExportsLayerBroker', () => {
       collectExportsLayerBrokerProxy();
       const mockReport = jest.fn();
       const context = RuleContextStub({ report: mockReport });
-      const exportName = IdentifierStub({ value: 'apiClientBroker' });
+      const exportName = 'apiClientBroker';
       const node = ProgramStub({ code: 'export function apiClientBroker() {}' });
-      const firstFolder = IdentifierStub({ value: 'brokers' });
+      const firstFolder = 'brokers';
 
       const result = collectExportsLayerBroker({
         node,
@@ -74,7 +73,7 @@ describe('collectExportsLayerBroker', () => {
       const mockReport = jest.fn();
       const context = RuleContextStub({ report: mockReport });
       const node = ProgramStub({ code: 'export type UserId = string;' });
-      const firstFolder = IdentifierStub({ value: 'contracts' });
+      const firstFolder = 'contracts';
 
       const result = collectExportsLayerBroker({
         node,
@@ -86,7 +85,7 @@ describe('collectExportsLayerBroker', () => {
       expect(result).toStrictEqual([
         {
           type: 'TSTypeAliasDeclaration',
-          name: IdentifierStub({ value: 'UserId' }),
+          name: 'UserId',
           isTypeOnly: true,
         },
       ]);
@@ -98,7 +97,7 @@ describe('collectExportsLayerBroker', () => {
       const mockReport = jest.fn();
       const context = RuleContextStub({ report: mockReport });
       const node = ProgramStub({ code: 'export interface UserApi { load: () => void }' });
-      const firstFolder = IdentifierStub({ value: 'contracts' });
+      const firstFolder = 'contracts';
 
       const result = collectExportsLayerBroker({
         node,
@@ -110,7 +109,7 @@ describe('collectExportsLayerBroker', () => {
       expect(result).toStrictEqual([
         {
           type: 'TSInterfaceDeclaration',
-          name: IdentifierStub({ value: 'UserApi' }),
+          name: 'UserApi',
           isTypeOnly: true,
         },
       ]);
@@ -122,7 +121,7 @@ describe('collectExportsLayerBroker', () => {
       const mockReport = jest.fn();
       const context = RuleContextStub({ report: mockReport });
       const node = ProgramStub({ code: 'type UserId = string;\nexport type { UserId };' });
-      const firstFolder = IdentifierStub({ value: 'contracts' });
+      const firstFolder = 'contracts';
 
       const result = collectExportsLayerBroker({
         node,
@@ -140,7 +139,7 @@ describe('collectExportsLayerBroker', () => {
       const mockReport = jest.fn();
       const context = RuleContextStub({ report: mockReport });
       const node = ProgramStub({ code: "export type { UserId } from './user-id';" });
-      const firstFolder = IdentifierStub({ value: 'contracts' });
+      const firstFolder = 'contracts';
 
       const result = collectExportsLayerBroker({
         node,
@@ -158,7 +157,7 @@ describe('collectExportsLayerBroker', () => {
       const mockReport = jest.fn();
       const context = RuleContextStub({ report: mockReport });
       const node = ProgramStub({ code: 'const x;' });
-      const firstFolder = IdentifierStub({ value: 'brokers' });
+      const firstFolder = 'brokers';
 
       const result = collectExportsLayerBroker({
         node,
@@ -178,7 +177,7 @@ describe('collectExportsLayerBroker', () => {
       const mockReport = jest.fn();
       const context = RuleContextStub({ report: mockReport });
       const node = ProgramStub({ code: 'export default x;' });
-      const firstFolder = IdentifierStub({ value: 'brokers' });
+      const firstFolder = 'brokers';
 
       const result = collectExportsLayerBroker({
         node,
@@ -197,7 +196,7 @@ describe('collectExportsLayerBroker', () => {
       const mockReport = jest.fn();
       const context = RuleContextStub({ report: mockReport });
       const node = ProgramStub({ code: "export * from 'x';" });
-      const firstFolder = IdentifierStub({ value: 'brokers' });
+      const firstFolder = 'brokers';
 
       const result = collectExportsLayerBroker({
         node,
@@ -215,7 +214,7 @@ describe('collectExportsLayerBroker', () => {
       collectExportsLayerBrokerProxy();
       const mockReport = jest.fn();
       const context = RuleContextStub({ report: mockReport });
-      const firstFolder = IdentifierStub({ value: 'brokers' });
+      const firstFolder = 'brokers';
       const node = ProgramStub({ code: "export { userFetchBroker } from './user-fetch-broker';" });
 
       const result = collectExportsLayerBroker({
@@ -238,7 +237,7 @@ describe('collectExportsLayerBroker', () => {
       collectExportsLayerBrokerProxy();
       const mockReport = jest.fn();
       const context = RuleContextStub({ report: mockReport });
-      const firstFolder = IdentifierStub({ value: 'contracts' });
+      const firstFolder = 'contracts';
       const node = ProgramStub({ code: 'export {  };' });
 
       const result = collectExportsLayerBroker({
@@ -263,7 +262,7 @@ describe('collectExportsLayerBroker', () => {
       collectExportsLayerBrokerProxy();
       const mockReport = jest.fn();
       const context = RuleContextStub({ report: mockReport });
-      const firstFolder = IdentifierStub({ value: 'brokers' });
+      const firstFolder = 'brokers';
       const node = ProgramStub({ code: 'export function httpGetBrokerProxy() {}' });
 
       const result = collectExportsLayerBroker({
@@ -286,7 +285,7 @@ describe('collectExportsLayerBroker', () => {
       collectExportsLayerBrokerProxy();
       const mockReport = jest.fn();
       const context = RuleContextStub({ report: mockReport });
-      const firstFolder = IdentifierStub({ value: 'brokers' });
+      const firstFolder = 'brokers';
       const node = ProgramStub({ code: 'export class HttpGetBrokerProxy {}' });
 
       const result = collectExportsLayerBroker({
@@ -309,7 +308,7 @@ describe('collectExportsLayerBroker', () => {
       collectExportsLayerBrokerProxy();
       const mockReport = jest.fn();
       const context = RuleContextStub({ report: mockReport });
-      const firstFolder = IdentifierStub({ value: 'brokers' });
+      const firstFolder = 'brokers';
       const node = ProgramStub({ code: 'export const userFetchBrokerProxy = function () {};' });
 
       const result = collectExportsLayerBroker({
@@ -334,8 +333,8 @@ describe('collectExportsLayerBroker', () => {
       collectExportsLayerBrokerProxy();
       const mockReport = jest.fn();
       const context = RuleContextStub({ report: mockReport });
-      const exportName = IdentifierStub({ value: 'axiosGetBroker' });
-      const firstFolder = IdentifierStub({ value: 'brokers' });
+      const exportName = 'axiosGetBroker';
+      const firstFolder = 'brokers';
       const node = ProgramStub({ code: 'export const axiosGetBroker = () => {};' });
 
       const result = collectExportsLayerBroker({
@@ -355,8 +354,8 @@ describe('collectExportsLayerBroker', () => {
       collectExportsLayerBrokerProxy();
       const mockReport = jest.fn();
       const context = RuleContextStub({ report: mockReport });
-      const exportName = IdentifierStub({ value: 'httpGetBrokerProxy' });
-      const firstFolder = IdentifierStub({ value: 'brokers' });
+      const exportName = 'httpGetBrokerProxy';
+      const firstFolder = 'brokers';
       const node = ProgramStub({ code: 'export const httpGetBrokerProxy = () => {};' });
 
       const result = collectExportsLayerBroker({

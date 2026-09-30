@@ -8,20 +8,19 @@
  */
 import { AST_NODE_TYPES } from '#gateway/npm/typescript-eslint__utils';
 import type { TSESTree } from '#gateway/npm/typescript-eslint__utils';
-import { identifierContract } from '@dungeonmaster/shared/contracts';
 import type { Identifier } from '@dungeonmaster/shared/contracts';
 
 export const astCastTargetRootNameTransformer = ({
   node,
 }: {
   node?: TSESTree.Node | undefined;
-}): Identifier | null => {
+}): string | null => {
   if (node === undefined) {
     return null;
   }
 
   if (node.type === AST_NODE_TYPES.Identifier) {
-    return identifierContract.parse(node.name);
+    return node.name;
   }
 
   if (node.type === AST_NODE_TYPES.TSQualifiedName) {

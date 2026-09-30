@@ -1,4 +1,3 @@
-import { IdentifierStub } from '../../contracts/identifier/identifier.stub';
 import { OwnerIndexEnumStub } from '../../contracts/owner-index-enum/owner-index-enum.stub';
 import { OwnerIndexOwnerStub } from '../../contracts/owner-index-owner/owner-index-owner.stub';
 import { OwnerIndexPackageStub } from '../../contracts/owner-index-package/owner-index-package.stub';
@@ -38,7 +37,7 @@ const ownerIndex = OwnerIndexStub({
   enums: [strangerEnum, statusEnum],
   packages,
 });
-const contractName = IdentifierStub({ value: 'personContract' });
+const contractName = 'personContract';
 
 describe('ownerIndexEnumCopyMatchTransformer', () => {
   describe('standalone enum contracts', () => {

@@ -11,8 +11,6 @@
  */
 import * as ts from '#gateway/npm/typescript';
 
-import { identifierContract } from '../../contracts/identifier/identifier-contract';
-import type { Identifier } from '../../contracts/identifier/identifier-contract';
 import { typeNodeShapeClassifyLayerTransformer } from './type-node-shape-classify-layer-transformer';
 
 export const contractFileExportsReadLayerTransformer = ({
@@ -20,8 +18,8 @@ export const contractFileExportsReadLayerTransformer = ({
 }: {
   sourceFile: ts.SourceFile;
 }): {
-  exportedConstNames: Identifier[];
-  typeExports: { typeName: Identifier; isSchemaInferred: boolean; isExempt: boolean }[];
+  exportedConstNames: string[];
+  typeExports: { typeName: string; isSchemaInferred: boolean; isExempt: boolean }[];
 } => {
   const exportedStatements = sourceFile.statements.filter(
     (statement) =>
@@ -35,7 +33,7 @@ export const contractFileExportsReadLayerTransformer = ({
     .filter((statement): statement is ts.VariableStatement => ts.isVariableStatement(statement))
     .flatMap((statement) => statement.declarationList.declarations)
     .flatMap((declaration) =>
-      ts.isIdentifier(declaration.name) ? [identifierContract.parse(declaration.name.text)] : [],
+      ts.isIdentifier(declaration.name) ? [declaration.name.text] : [],
     );
 
   const uniqueSymbolNames = sourceFile.statements
@@ -46,7 +44,7 @@ export const contractFileExportsReadLayerTransformer = ({
       declaration.type !== undefined &&
       declaration.type.kind === ts.SyntaxKind.TypeOperator &&
       declaration.type.getText() === 'unique symbol'
-        ? [identifierContract.parse(declaration.name.text)]
+        ? [declaration.name.text]
         : [],
     );
 
@@ -57,7 +55,7 @@ export const contractFileExportsReadLayerTransformer = ({
         statement.typeParameters === undefined,
     )
     .map((statement) => ({
-      name: identifierContract.parse(statement.name.text),
+      name: statement.name.text,
       node: ts.isTypeAliasDeclaration(statement) ? statement.type : statement,
     }));
 
@@ -65,7 +63,7 @@ export const contractFileExportsReadLayerTransformer = ({
     .filter((statement): statement is ts.VariableStatement => ts.isVariableStatement(statement))
     .flatMap((statement) => statement.declarationList.declarations)
     .flatMap((declaration) =>
-      ts.isIdentifier(declaration.name) ? [identifierContract.parse(declaration.name.text)] : [],
+      ts.isIdentifier(declaration.name) ? [declaration.name.text] : [],
     );
 
   const typeExports = exportedStatements
@@ -79,10 +77,10 @@ export const contractFileExportsReadLayerTransformer = ({
         schemaNames,
         typeAliases,
         uniqueSymbolNames,
-        visitedNames: [identifierContract.parse(declaration.name.text)],
+        visitedNames: [declaration.name.text],
       });
       return {
-        typeName: identifierContract.parse(declaration.name.text),
+        typeName: declaration.name.text,
         isSchemaInferred: shape === 'inferred',
         isExempt:
           shape === 'functions' ||

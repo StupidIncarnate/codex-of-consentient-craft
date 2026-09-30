@@ -17,7 +17,6 @@
  * // imports from a contracts/ path, and `(value): value is Quest['id'] => …` unconditionally;
  * // leaves `(node: TSESTree.Node): node is TSESTree.CallExpression => …` alone (a library type).
  */
-import { identifierContract } from '@dungeonmaster/shared/contracts';
 
 import { AST_NODE_TYPES } from '#gateway/npm/typescript-eslint__utils';
 import type { TSESLint, TSESTree } from '#gateway/npm/typescript-eslint__utils';
@@ -100,7 +99,7 @@ export const ruleBanContractTypePredicatesBroker = (): TSESLint.RuleModule<
         }
 
         const importSource = importSourceByLocalName.get(
-          identifierContract.parse(rootIdentifierName),
+          rootIdentifierName,
         );
 
         // Unresolved (a language global like Error, never imported), or an import whose source is

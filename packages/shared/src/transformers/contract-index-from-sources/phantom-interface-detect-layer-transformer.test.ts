@@ -1,6 +1,5 @@
 import * as ts from '#gateway/npm/typescript';
 
-import { IdentifierStub } from '../../contracts/identifier/identifier.stub';
 import { phantomInterfaceDetectLayerTransformer } from './phantom-interface-detect-layer-transformer';
 
 describe('phantomInterfaceDetectLayerTransformer', () => {
@@ -24,7 +23,7 @@ describe('phantomInterfaceDetectLayerTransformer', () => {
       const result = sourceFile.statements.filter(ts.isInterfaceDeclaration).map((declaration) =>
         phantomInterfaceDetectLayerTransformer({
           declaration,
-          uniqueSymbolNames: [IdentifierStub({ value: 'ING' }), IdentifierStub({ value: 'OTHER' })],
+          uniqueSymbolNames: ['ING', 'OTHER'],
         }),
       );
 

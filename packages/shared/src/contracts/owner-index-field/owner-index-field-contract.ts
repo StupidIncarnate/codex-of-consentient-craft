@@ -11,14 +11,13 @@
 
 import { z } from '#gateway/npm/zod';
 
-import { identifierContract } from '../identifier/identifier-contract';
 
 export const ownerIndexFieldContract = z.object({
-  key: identifierContract,
+  key: z.string().brand<'OwnerIndexFieldKey'>(),
   kind: z.enum(['own-brand', 'owner-reuse', 'brand-ref', 'contract-ref', 'plain']),
-  brandText: identifierContract.optional(),
-  refContractName: identifierContract.optional(),
-  refKey: identifierContract.optional(),
+  brandText: z.string().brand<'OwnerIndexFieldBrandText'>().optional(),
+  refContractName: z.string().brand<'OwnerIndexFieldRefContractName'>().optional(),
+  refKey: z.string().brand<'OwnerIndexFieldRefKey'>().optional(),
 });
 
 export type OwnerIndexField = z.infer<typeof ownerIndexFieldContract>;

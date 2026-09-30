@@ -9,7 +9,6 @@
  */
 import * as ts from '#gateway/npm/typescript';
 
-import type { Identifier } from '../../contracts/identifier/identifier-contract';
 
 export const typeAliasResolveLayerTransformer = ({
   typeNode,
@@ -17,9 +16,9 @@ export const typeAliasResolveLayerTransformer = ({
   visitedNames,
 }: {
   typeNode: ts.Node;
-  typeAliases: readonly { name: Identifier; node: ts.Node }[];
-  visitedNames: readonly Identifier[];
-}): { name: Identifier; node: ts.Node } | undefined => {
+  typeAliases: readonly { name: string; node: ts.Node }[];
+  visitedNames: readonly string[];
+}): { name: string; node: ts.Node } | undefined => {
   if (
     !ts.isTypeReferenceNode(typeNode) ||
     !ts.isIdentifier(typeNode.typeName) ||

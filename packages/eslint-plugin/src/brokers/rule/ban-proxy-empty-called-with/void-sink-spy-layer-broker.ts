@@ -11,7 +11,7 @@
  */
 import { AST_NODE_TYPES } from '#gateway/npm/typescript-eslint__utils';
 import type { TSESTree } from '#gateway/npm/typescript-eslint__utils';
-import { identifierContract, type Identifier } from '@dungeonmaster/shared/contracts';
+import { type Identifier } from '@dungeonmaster/shared/contracts';
 
 export const voidSinkSpyLayerBroker = ({
   objectNode,
@@ -20,7 +20,7 @@ export const voidSinkSpyLayerBroker = ({
 }: {
   objectNode: unknown;
   method: string;
-  gatewaySinkNames: ReadonlySet<Identifier>;
+  gatewaySinkNames: ReadonlySet<string>;
 }): boolean => {
   // `parent` makes a real node cyclic, so it is read structurally
   const node = objectNode as TSESTree.Node;
@@ -28,7 +28,7 @@ export const voidSinkSpyLayerBroker = ({
   if (node.type === AST_NODE_TYPES.Identifier) {
     return (
       (node.name === 'process' && method === 'on') ||
-      (method === 'write' && gatewaySinkNames.has(identifierContract.parse(node.name)))
+      (method === 'write' && gatewaySinkNames.has(node.name))
     );
   }
 

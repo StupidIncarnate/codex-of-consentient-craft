@@ -1,13 +1,12 @@
 import * as ts from '#gateway/npm/typescript';
 
-import { IdentifierStub } from '../../contracts/identifier/identifier.stub';
 import { typeMemberKindsLayerTransformer } from './type-member-kinds-layer-transformer';
 
 const kindsOf = ({ text }: { text: string }): string[][] => {
   const sourceFile = ts.createSourceFile('/repo/a-contract.ts', text, ts.ScriptTarget.Latest, true);
   const declarations = sourceFile.statements.filter(ts.isTypeAliasDeclaration);
   const typeAliases = declarations.map((declaration) => ({
-    name: IdentifierStub({ value: declaration.name.text }),
+    name: declaration.name.text,
     node: declaration.type,
   }));
   return declarations
@@ -18,7 +17,7 @@ const kindsOf = ({ text }: { text: string }): string[][] => {
             typeMemberKindsLayerTransformer({
               members: declaration.type.members,
               typeAliases,
-              visitedNames: [IdentifierStub({ value: 'Thing' })],
+              visitedNames: ['Thing'],
             }),
           ]
         : [],

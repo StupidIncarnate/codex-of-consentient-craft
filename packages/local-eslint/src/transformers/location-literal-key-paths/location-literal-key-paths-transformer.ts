@@ -16,8 +16,8 @@
  * simply walks the stale tree — caller is responsible for `npm run build --workspace=@dungeonmaster/shared` before
  * lint runs.
  */
-import type { PathSegment, Identifier } from '@dungeonmaster/shared/contracts';
-import { pathSegmentContract, identifierContract } from '@dungeonmaster/shared/contracts';
+import type { PathSegment } from '@dungeonmaster/shared/contracts';
+import { pathSegmentContract } from '@dungeonmaster/shared/contracts';
 import { shouldRetainLocationLiteralGuard } from '../../guards/should-retain-location-literal/should-retain-location-literal-guard';
 
 export const locationLiteralKeyPathsTransformer = ({
@@ -31,9 +31,9 @@ export const locationLiteralKeyPathsTransformer = ({
   rootName: string;
   minRetainedLength: number;
   excludedLiterals?: readonly string[] | undefined;
-  accumulator?: Map<PathSegment, Identifier>;
-}): ReadonlyMap<PathSegment, Identifier> => {
-  const out = accumulator ?? new Map<PathSegment, Identifier>();
+  accumulator?: Map<PathSegment, string>;
+}): ReadonlyMap<PathSegment, string> => {
+  const out = accumulator ?? new Map<PathSegment, string>();
 
   if (typeof source === 'string') {
     if (
@@ -41,7 +41,7 @@ export const locationLiteralKeyPathsTransformer = ({
     ) {
       const keyParsed = pathSegmentContract.parse(source);
       if (!out.has(keyParsed)) {
-        out.set(keyParsed, identifierContract.parse(rootName));
+        out.set(keyParsed, rootName);
       }
     }
     return out;

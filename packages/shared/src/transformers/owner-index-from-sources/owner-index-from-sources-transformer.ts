@@ -19,10 +19,10 @@ import type { OwnerIndexPackage } from '../../contracts/owner-index-package/owne
 import type { OwnerIndexStandaloneBrand } from '../../contracts/owner-index-standalone-brand/owner-index-standalone-brand-contract';
 import { ownerIndexContract } from '../../contracts/owner-index/owner-index-contract';
 import type { OwnerIndex } from '../../contracts/owner-index/owner-index-contract';
-import { identifierContract } from '../../contracts/identifier/identifier-contract';
 import { packageNameContract } from '../../contracts/package-name/package-name-contract';
 import { isProductionSourceFileGuard } from '../../guards/is-production-source-file/is-production-source-file-guard';
 import { contractFileOwnersReadLayerTransformer } from './contract-file-owners-read-layer-transformer';
+import { ownerIndexFieldContract } from '../../contracts/owner-index-field/owner-index-field-contract';
 
 const CONTRACT_FILE_PATTERN = /\/contracts\/(?:.*\/)?[^/]+-contract\.ts$/u;
 const LAYER_FILE_SUFFIX = '-layer-contract.ts';
@@ -68,7 +68,7 @@ export const ownerIndexFromSourcesTransformer = ({
     );
   }
 
-  const owners: OwnerIndexOwner[] = reads
+  const ownerIndexFieldContract.shape.key.parse(owners): OwnerIndexOwner[] = reads
     .flatMap((read) => read.owners)
     .map((owner) => ({
       ...owner,
@@ -79,7 +79,7 @@ export const ownerIndexFromSourcesTransformer = ({
             : [];
         const [onlyText] = texts;
         return texts.length === 1 && onlyText !== undefined
-          ? { ...field, kind: 'brand-ref' as const, brandText: identifierContract.parse(onlyText) }
+          ? { ...field, kind: 'brand-ref' as const, brandText: onlyText }
           : field;
       }),
     }));

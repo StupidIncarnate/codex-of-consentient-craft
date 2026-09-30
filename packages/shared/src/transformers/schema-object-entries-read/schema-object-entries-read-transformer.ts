@@ -10,7 +10,6 @@
  */
 import * as ts from '#gateway/npm/typescript';
 
-import { identifierContract } from '../../contracts/identifier/identifier-contract';
 import { schemaObjectEntryContract } from '../../contracts/schema-object-entry/schema-object-entry-contract';
 import type { SchemaObjectEntry } from '../../contracts/schema-object-entry/schema-object-entry-contract';
 import { ownerIndexStatics } from '../../statics/owner-index/owner-index-statics';
@@ -80,7 +79,7 @@ export const schemaObjectEntriesReadTransformer = ({
       ? []
       : [
           schemaObjectEntryContract.parse({
-            key: identifierContract.parse(keyNode.text),
+            key: keyNode.text,
             valueText: valueNode.getText(),
           }),
         ];

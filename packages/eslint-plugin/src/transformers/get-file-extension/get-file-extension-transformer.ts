@@ -8,8 +8,6 @@
  * const extWithoutDot = getFileExtensionTransformer({ filename: 'user-broker.ts', includesDot: false });
  * // Returns: 'ts'
  */
-import { identifierContract } from '@dungeonmaster/shared/contracts';
-import type { Identifier } from '@dungeonmaster/shared/contracts';
 
 export const getFileExtensionTransformer = ({
   filename,
@@ -17,9 +15,9 @@ export const getFileExtensionTransformer = ({
 }: {
   filename: string;
   includesDot?: boolean;
-}): Identifier => {
+}): string => {
   const isTsx = filename.endsWith('.tsx');
   const extension = isTsx ? 'tsx' : 'ts';
 
-  return identifierContract.parse(includesDot ? `.${extension}` : extension);
+  return (includesDot ? `.${extension}` : extension);
 };

@@ -1,4 +1,3 @@
-import { IdentifierStub } from '@dungeonmaster/shared/contracts/identifier/identifier.stub';
 import { namedImportEntriesTransformer } from './named-import-entries-transformer';
 
 describe('namedImportEntriesTransformer', () => {
@@ -10,11 +9,11 @@ describe('namedImportEntriesTransformer', () => {
 
     expect(result).toStrictEqual([
       [
-        IdentifierStub({ value: 'httpAdapter' }),
+        'httpAdapter',
         '../../adapters/shared-adapter',
       ],
       [
-        IdentifierStub({ value: 'dbAdapter' }),
+        'dbAdapter',
         '../../adapters/shared-adapter',
       ],
     ]);
@@ -28,7 +27,7 @@ describe('namedImportEntriesTransformer', () => {
 
     expect(result).toStrictEqual([
       [
-        IdentifierStub({ value: 'walkBroker' }),
+        'walkBroker',
         '../../brokers/walk/walk-broker',
       ],
     ]);

@@ -8,7 +8,6 @@
  * astZodRootMethodTransformer({ node: callNodeForZStringMinBrand });
  * // Returns 'string'
  */
-import { identifierContract } from '@dungeonmaster/shared/contracts';
 
 import { AST_NODE_TYPES } from '#gateway/npm/typescript-eslint__utils';
 import type { TSESTree } from '#gateway/npm/typescript-eslint__utils';
@@ -27,7 +26,7 @@ export const astZodRootMethodTransformer = ({ node }: { node: TSESTree.Node }): 
     const method = property.type === AST_NODE_TYPES.Identifier ? property.name : undefined;
 
     if (receiver.type === AST_NODE_TYPES.Identifier && receiver.name === 'z') {
-      return derived || method === undefined ? identifierContract.parse('derive') : method;
+      return derived || method === undefined ? 'derive' : method;
     }
 
     if (zodObjectBrandStatics.deriveMethods.some((derive) => derive === method)) {
@@ -37,5 +36,5 @@ export const astZodRootMethodTransformer = ({ node }: { node: TSESTree.Node }): 
     current = receiver;
   }
 
-  return derived ? identifierContract.parse('derive') : null;
+  return derived ? 'derive' : null;
 };

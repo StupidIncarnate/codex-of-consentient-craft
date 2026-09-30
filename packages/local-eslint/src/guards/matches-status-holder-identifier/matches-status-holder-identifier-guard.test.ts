@@ -1,4 +1,3 @@
-import { IdentifierStub } from '@dungeonmaster/shared/contracts/identifier/identifier.stub';
 import { matchesStatusHolderIdentifierGuard } from './matches-status-holder-identifier-guard';
 
 describe('matchesStatusHolderIdentifierGuard', () => {
@@ -9,7 +8,7 @@ describe('matchesStatusHolderIdentifierGuard', () => {
 
     it('EMPTY: {identifierName: ""} => returns false', () => {
       expect(
-        matchesStatusHolderIdentifierGuard({ identifierName: IdentifierStub({ value: '' }) }),
+        matchesStatusHolderIdentifierGuard({ identifierName: '' }),
       ).toBe(false);
     });
   });
@@ -20,7 +19,7 @@ describe('matchesStatusHolderIdentifierGuard', () => {
       (name) => {
         expect(
           matchesStatusHolderIdentifierGuard({
-            identifierName: IdentifierStub({ value: name }),
+            identifierName: name,
           }),
         ).toBe(true);
       },
@@ -33,7 +32,7 @@ describe('matchesStatusHolderIdentifierGuard', () => {
       (name) => {
         expect(
           matchesStatusHolderIdentifierGuard({
-            identifierName: IdentifierStub({ value: name }),
+            identifierName: name,
           }),
         ).toBe(true);
       },
@@ -44,8 +43,8 @@ describe('matchesStatusHolderIdentifierGuard', () => {
     it('VALID: {identifierName: "record", extraAllowlist: ["record"]} => returns true', () => {
       expect(
         matchesStatusHolderIdentifierGuard({
-          identifierName: IdentifierStub({ value: 'record' }),
-          extraAllowlist: [IdentifierStub({ value: 'record' })],
+          identifierName: 'record',
+          extraAllowlist: ['record'],
         }),
       ).toBe(true);
     });
@@ -57,7 +56,7 @@ describe('matchesStatusHolderIdentifierGuard', () => {
       (name) => {
         expect(
           matchesStatusHolderIdentifierGuard({
-            identifierName: IdentifierStub({ value: name }),
+            identifierName: name,
           }),
         ).toBe(false);
       },

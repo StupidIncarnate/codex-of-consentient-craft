@@ -5,7 +5,6 @@
  * validateExportLayerBroker({node, context, filename, firstFolder, folderConfig, collectedExports});
  * // Reports all export naming violations found; no return value (terminal layer)
  */
-import type { Identifier } from '@dungeonmaster/shared/contracts';
 import type { CollectedExport } from '../../../contracts/collected-export/collected-export-contract';
 import type { TSESLint, TSESTree } from '#gateway/npm/typescript-eslint__utils';
 import type { folderConfigStatics } from '@dungeonmaster/shared/statics';
@@ -26,7 +25,7 @@ export const validateExportLayerBroker = ({
   node: TSESTree.Node;
   context: TSESLint.RuleContext<string, unknown[]>;
   filename: string;
-  firstFolder: Identifier;
+  firstFolder: string;
   folderConfig: (typeof folderConfigStatics)[keyof typeof folderConfigStatics];
   collectedExports: CollectedExport[];
 }): void => {

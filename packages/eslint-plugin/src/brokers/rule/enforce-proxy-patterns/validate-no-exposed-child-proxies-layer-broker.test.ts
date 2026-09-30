@@ -2,9 +2,8 @@ import { RuleContextStub } from '#gateway/npm/typescript-eslint__utils/rule-cont
 import { ObjectExpressionStub } from '#gateway/npm/typescript-eslint__utils/object-expression/object-expression.stub';
 import { validateNoExposedChildProxiesLayerBroker } from './validate-no-exposed-child-proxies-layer-broker';
 import { validateNoExposedChildProxiesLayerBrokerProxy } from './validate-no-exposed-child-proxies-layer-broker.proxy';
-import { IdentifierStub } from '@dungeonmaster/shared/contracts/identifier/identifier.stub';
 
-type Identifier = ReturnType<typeof IdentifierStub>;
+type Identifier = string;
 
 describe('validateNoExposedChildProxiesLayerBroker', () => {
   describe('object with no properties', () => {
@@ -31,8 +30,8 @@ describe('validateNoExposedChildProxiesLayerBroker', () => {
       const mockReport = jest.fn();
       const mockContext = RuleContextStub({ report: mockReport });
       const objectNode = ObjectExpressionStub({ code: 'const o = { setupQuestFile: () => {} };' });
-      const childProxyId = IdentifierStub({ value: 'childProxy' });
-      const childBrokerProxyId = IdentifierStub({ value: 'childBrokerProxy' });
+      const childProxyId = 'childProxy';
+      const childBrokerProxyId = 'childBrokerProxy';
       const proxyVariables = new Map<Identifier, Identifier>([[childProxyId, childBrokerProxyId]]);
 
       validateNoExposedChildProxiesLayerBroker({
@@ -49,8 +48,8 @@ describe('validateNoExposedChildProxiesLayerBroker', () => {
       const mockReport = jest.fn();
       const mockContext = RuleContextStub({ report: mockReport });
       const objectNode = ObjectExpressionStub({ code: 'const o = { myConfig };' });
-      const childProxyId = IdentifierStub({ value: 'childProxy' });
-      const childBrokerProxyId = IdentifierStub({ value: 'childBrokerProxy' });
+      const childProxyId = 'childProxy';
+      const childBrokerProxyId = 'childBrokerProxy';
       const proxyVariables = new Map<Identifier, Identifier>([[childProxyId, childBrokerProxyId]]);
 
       validateNoExposedChildProxiesLayerBroker({
@@ -67,8 +66,8 @@ describe('validateNoExposedChildProxiesLayerBroker', () => {
       const mockReport = jest.fn();
       const mockContext = RuleContextStub({ report: mockReport });
       const objectNode = ObjectExpressionStub({ code: 'const o = { config: myConfig };' });
-      const childProxyId = IdentifierStub({ value: 'childProxy' });
-      const childBrokerProxyId = IdentifierStub({ value: 'childBrokerProxy' });
+      const childProxyId = 'childProxy';
+      const childBrokerProxyId = 'childBrokerProxy';
       const proxyVariables = new Map<Identifier, Identifier>([[childProxyId, childBrokerProxyId]]);
 
       validateNoExposedChildProxiesLayerBroker({
@@ -85,8 +84,8 @@ describe('validateNoExposedChildProxiesLayerBroker', () => {
       const mockReport = jest.fn();
       const mockContext = RuleContextStub({ report: mockReport });
       const objectNode = ObjectExpressionStub({ code: 'const o = { count: 42 };' });
-      const childProxyId = IdentifierStub({ value: 'childProxy' });
-      const childBrokerProxyId = IdentifierStub({ value: 'childBrokerProxy' });
+      const childProxyId = 'childProxy';
+      const childBrokerProxyId = 'childBrokerProxy';
       const proxyVariables = new Map<Identifier, Identifier>([[childProxyId, childBrokerProxyId]]);
 
       validateNoExposedChildProxiesLayerBroker({
@@ -104,10 +103,10 @@ describe('validateNoExposedChildProxiesLayerBroker', () => {
       validateNoExposedChildProxiesLayerBrokerProxy();
       const mockReport = jest.fn();
       const mockContext = RuleContextStub({ report: mockReport });
-      const childProxyId = IdentifierStub({ value: 'childProxy' });
+      const childProxyId = 'childProxy';
       const objectNode = ObjectExpressionStub({ code: 'const o = { childProxy };' });
       const [property] = objectNode.properties;
-      const childBrokerProxyId = IdentifierStub({ value: 'childBrokerProxy' });
+      const childBrokerProxyId = 'childBrokerProxy';
       const proxyVariables = new Map<Identifier, Identifier>([[childProxyId, childBrokerProxyId]]);
 
       validateNoExposedChildProxiesLayerBroker({
@@ -128,12 +127,10 @@ describe('validateNoExposedChildProxiesLayerBroker', () => {
       validateNoExposedChildProxiesLayerBrokerProxy();
       const mockReport = jest.fn();
       const mockContext = RuleContextStub({ report: mockReport });
-      const slotManagerProxyId = IdentifierStub({ value: 'slotManagerProxy' });
+      const slotManagerProxyId = 'slotManagerProxy';
       const objectNode = ObjectExpressionStub({ code: 'const o = { slotManagerProxy };' });
       const [property] = objectNode.properties;
-      const slotManagerOrchestrateBrokerProxyId = IdentifierStub({
-        value: 'slotManagerOrchestrateBrokerProxy',
-      });
+      const slotManagerOrchestrateBrokerProxyId = 'slotManagerOrchestrateBrokerProxy';
       const proxyVariables = new Map<Identifier, Identifier>([
         [slotManagerProxyId, slotManagerOrchestrateBrokerProxyId],
       ]);
@@ -158,10 +155,10 @@ describe('validateNoExposedChildProxiesLayerBroker', () => {
       validateNoExposedChildProxiesLayerBrokerProxy();
       const mockReport = jest.fn();
       const mockContext = RuleContextStub({ report: mockReport });
-      const childProxyId = IdentifierStub({ value: 'childProxy' });
+      const childProxyId = 'childProxy';
       const objectNode = ObjectExpressionStub({ code: 'const o = { child: childProxy };' });
       const [property] = objectNode.properties;
-      const childBrokerProxyId = IdentifierStub({ value: 'childBrokerProxy' });
+      const childBrokerProxyId = 'childBrokerProxy';
       const proxyVariables = new Map<Identifier, Identifier>([[childProxyId, childBrokerProxyId]]);
 
       validateNoExposedChildProxiesLayerBroker({
@@ -182,10 +179,10 @@ describe('validateNoExposedChildProxiesLayerBroker', () => {
       validateNoExposedChildProxiesLayerBrokerProxy();
       const mockReport = jest.fn();
       const mockContext = RuleContextStub({ report: mockReport });
-      const childProxyId = IdentifierStub({ value: 'childProxy' });
+      const childProxyId = 'childProxy';
       const objectNode = ObjectExpressionStub({ code: 'const o = { childProxy: childProxy };' });
       const [property] = objectNode.properties;
-      const childBrokerProxyId = IdentifierStub({ value: 'childBrokerProxy' });
+      const childBrokerProxyId = 'childBrokerProxy';
       const proxyVariables = new Map<Identifier, Identifier>([[childProxyId, childBrokerProxyId]]);
 
       validateNoExposedChildProxiesLayerBroker({
@@ -208,12 +205,12 @@ describe('validateNoExposedChildProxiesLayerBroker', () => {
       validateNoExposedChildProxiesLayerBrokerProxy();
       const mockReport = jest.fn();
       const mockContext = RuleContextStub({ report: mockReport });
-      const childProxyId = IdentifierStub({ value: 'childProxy' });
-      const otherProxyId = IdentifierStub({ value: 'otherProxy' });
+      const childProxyId = 'childProxy';
+      const otherProxyId = 'otherProxy';
       const objectNode = ObjectExpressionStub({ code: 'const o = { childProxy, otherProxy };' });
       const [property1, property2] = objectNode.properties;
-      const childBrokerProxyId = IdentifierStub({ value: 'childBrokerProxy' });
-      const otherBrokerProxyId = IdentifierStub({ value: 'otherBrokerProxy' });
+      const childBrokerProxyId = 'childBrokerProxy';
+      const otherBrokerProxyId = 'otherBrokerProxy';
       const proxyVariables = new Map<Identifier, Identifier>([
         [childProxyId, childBrokerProxyId],
         [otherProxyId, otherBrokerProxyId],
@@ -242,14 +239,14 @@ describe('validateNoExposedChildProxiesLayerBroker', () => {
       validateNoExposedChildProxiesLayerBrokerProxy();
       const mockReport = jest.fn();
       const mockContext = RuleContextStub({ report: mockReport });
-      const childProxyId = IdentifierStub({ value: 'childProxy' });
-      const otherProxyId = IdentifierStub({ value: 'otherProxy' });
+      const childProxyId = 'childProxy';
+      const otherProxyId = 'otherProxy';
       const objectNode = ObjectExpressionStub({
         code: 'const o = { childProxy, other: otherProxy };',
       });
       const [property1, property2] = objectNode.properties;
-      const childBrokerProxyId = IdentifierStub({ value: 'childBrokerProxy' });
-      const otherBrokerProxyId = IdentifierStub({ value: 'otherBrokerProxy' });
+      const childBrokerProxyId = 'childBrokerProxy';
+      const otherBrokerProxyId = 'otherBrokerProxy';
       const proxyVariables = new Map<Identifier, Identifier>([
         [childProxyId, childBrokerProxyId],
         [otherProxyId, otherBrokerProxyId],
@@ -281,8 +278,8 @@ describe('validateNoExposedChildProxiesLayerBroker', () => {
       const mockReport = jest.fn();
       const mockContext = RuleContextStub({ report: mockReport });
       const objectNode = ObjectExpressionStub({ code: 'const o = { ...x };' });
-      const childProxyId = IdentifierStub({ value: 'childProxy' });
-      const childBrokerProxyId = IdentifierStub({ value: 'childBrokerProxy' });
+      const childProxyId = 'childProxy';
+      const childBrokerProxyId = 'childBrokerProxy';
       const proxyVariables = new Map<Identifier, Identifier>([[childProxyId, childBrokerProxyId]]);
 
       validateNoExposedChildProxiesLayerBroker({

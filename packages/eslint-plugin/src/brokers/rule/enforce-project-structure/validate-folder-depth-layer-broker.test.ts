@@ -2,7 +2,6 @@ import { RuleContextStub } from '#gateway/npm/typescript-eslint__utils/rule-cont
 import { ProgramStub } from '#gateway/npm/typescript-eslint__utils/program/program.stub';
 import { validateFolderDepthLayerBroker } from './validate-folder-depth-layer-broker';
 import { validateFolderDepthLayerBrokerProxy } from './validate-folder-depth-layer-broker.proxy';
-import { IdentifierStub } from '@dungeonmaster/shared/contracts/identifier/identifier.stub';
 import { folderConfigStatics } from '@dungeonmaster/shared/statics';
 
 describe('validateFolderDepthLayerBroker', () => {
@@ -12,7 +11,7 @@ describe('validateFolderDepthLayerBroker', () => {
       const mockReport = jest.fn();
       const context = RuleContextStub({ report: mockReport });
       const node = ProgramStub({ code: '' });
-      const firstFolder = IdentifierStub({ value: 'brokers' });
+      const firstFolder = 'brokers';
 
       const result = validateFolderDepthLayerBroker({
         node,
@@ -31,7 +30,7 @@ describe('validateFolderDepthLayerBroker', () => {
       const mockReport = jest.fn();
       const context = RuleContextStub({ report: mockReport });
       const node = ProgramStub({ code: '' });
-      const firstFolder = IdentifierStub({ value: 'contracts' });
+      const firstFolder = 'contracts';
 
       const result = validateFolderDepthLayerBroker({
         node,
@@ -50,7 +49,7 @@ describe('validateFolderDepthLayerBroker', () => {
       const mockReport = jest.fn();
       const context = RuleContextStub({ report: mockReport });
       const node = ProgramStub({ code: '' });
-      const firstFolder = IdentifierStub({ value: 'startup' });
+      const firstFolder = 'startup';
 
       const result = validateFolderDepthLayerBroker({
         node,
@@ -69,7 +68,7 @@ describe('validateFolderDepthLayerBroker', () => {
       const mockReport = jest.fn();
       const context = RuleContextStub({ report: mockReport });
       const node = ProgramStub({ code: '' });
-      const firstFolder = IdentifierStub({ value: 'responders' });
+      const firstFolder = 'responders';
 
       const result = validateFolderDepthLayerBroker({
         node,
@@ -90,7 +89,7 @@ describe('validateFolderDepthLayerBroker', () => {
       const mockReport = jest.fn();
       const context = RuleContextStub({ report: mockReport });
       const node = ProgramStub({ code: '' });
-      const firstFolder = IdentifierStub({ value: 'responders' });
+      const firstFolder = 'responders';
 
       const result = validateFolderDepthLayerBroker({
         node,
@@ -119,7 +118,7 @@ describe('validateFolderDepthLayerBroker', () => {
       const mockReport = jest.fn();
       const context = RuleContextStub({ report: mockReport });
       const node = ProgramStub({ code: '' });
-      const firstFolder = IdentifierStub({ value: 'responders' });
+      const firstFolder = 'responders';
 
       const result = validateFolderDepthLayerBroker({
         node,
@@ -148,7 +147,7 @@ describe('validateFolderDepthLayerBroker', () => {
       const mockReport = jest.fn();
       const context = RuleContextStub({ report: mockReport });
       const node = ProgramStub({ code: '' });
-      const firstFolder = IdentifierStub({ value: 'guards' });
+      const firstFolder = 'guards';
 
       const result = validateFolderDepthLayerBroker({
         node,
@@ -177,7 +176,7 @@ describe('validateFolderDepthLayerBroker', () => {
       const mockReport = jest.fn();
       const context = RuleContextStub({ report: mockReport });
       const node = ProgramStub({ code: '' });
-      const firstFolder = IdentifierStub({ value: 'contracts' });
+      const firstFolder = 'contracts';
 
       const result = validateFolderDepthLayerBroker({
         node,
@@ -206,7 +205,7 @@ describe('validateFolderDepthLayerBroker', () => {
       const mockReport = jest.fn();
       const context = RuleContextStub({ report: mockReport });
       const node = ProgramStub({ code: '' });
-      const firstFolder = IdentifierStub({ value: 'startup' });
+      const firstFolder = 'startup';
 
       const result = validateFolderDepthLayerBroker({
         node,
@@ -235,7 +234,7 @@ describe('validateFolderDepthLayerBroker', () => {
       const mockReport = jest.fn();
       const context = RuleContextStub({ report: mockReport });
       const node = ProgramStub({ code: '' });
-      const firstFolder = IdentifierStub({ value: 'brokers' });
+      const firstFolder = 'brokers';
 
       const result = validateFolderDepthLayerBroker({
         node,
@@ -266,7 +265,7 @@ describe('validateFolderDepthLayerBroker', () => {
       const mockReport = jest.fn();
       const context = RuleContextStub({ report: mockReport });
       const node = ProgramStub({ code: '' });
-      const firstFolder = IdentifierStub({ value: 'brokers' });
+      const firstFolder = 'brokers';
 
       const result = validateFolderDepthLayerBroker({
         node,
@@ -294,7 +293,7 @@ describe('validateFolderDepthLayerBroker', () => {
       const mockReport = jest.fn();
       const context = RuleContextStub({ report: mockReport });
       const node = ProgramStub({ code: '' });
-      const firstFolder = IdentifierStub({ value: 'brokers' });
+      const firstFolder = 'brokers';
 
       const result = validateFolderDepthLayerBroker({
         node,

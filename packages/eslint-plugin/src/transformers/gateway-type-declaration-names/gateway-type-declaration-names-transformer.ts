@@ -11,8 +11,6 @@
  * gatewayTypeDeclarationNamesTransformer({ sourceText: 'export interface WalkedFile {\n  path: unknown;\n}\n' });
  * // Returns ['WalkedFile']
  */
-import { identifierContract } from '@dungeonmaster/shared/contracts';
-import type { Identifier } from '@dungeonmaster/shared/contracts';
 
 const TYPE_DECLARATION = /export\s+(?:interface|type)\s+([A-Za-z0-9_$]+)/gu;
 
@@ -20,8 +18,8 @@ export const gatewayTypeDeclarationNamesTransformer = ({
   sourceText,
 }: {
   sourceText: string;
-}): Identifier[] =>
+}): string[] =>
   Array.from(sourceText.matchAll(TYPE_DECLARATION))
     .map((match) => match[1])
     .filter((name) => name !== undefined)
-    .map((name) => identifierContract.parse(name));
+    .map((name) => name);

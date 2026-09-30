@@ -11,10 +11,9 @@
 import { z } from '#gateway/npm/zod';
 
 import { absoluteFilePathContract } from '../absolute-file-path/absolute-file-path-contract';
-import { identifierContract } from '../identifier/identifier-contract';
 
 export const contractUsesBindingContract = z.object({
-  localName: identifierContract,
+  localName: z.string().brand<'ContractUsesBindingLocalName'>(),
   targetFile: absoluteFilePathContract,
   isTypeOnly: z.boolean(),
 });

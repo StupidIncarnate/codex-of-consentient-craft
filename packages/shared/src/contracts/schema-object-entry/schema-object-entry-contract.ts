@@ -11,10 +11,9 @@
 
 import { z } from '#gateway/npm/zod';
 
-import { identifierContract } from '../identifier/identifier-contract';
 
 export const schemaObjectEntryContract = z.object({
-  key: identifierContract,
+  key: z.string().brand<'SchemaObjectEntryKey'>(),
   valueText: z.string().brand<'SchemaObjectEntryValueText'>(),
 });
 

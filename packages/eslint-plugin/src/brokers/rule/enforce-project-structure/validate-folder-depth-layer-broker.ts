@@ -6,7 +6,6 @@
  * // Returns true if depth and folder names are valid, false if validation failed (error reported)
  */
 import type { TSESLint, TSESTree } from '#gateway/npm/typescript-eslint__utils';
-import type { Identifier } from '@dungeonmaster/shared/contracts';
 import type { folderConfigStatics } from '@dungeonmaster/shared/statics';
 import { isKebabCaseGuard } from '../../../guards/is-kebab-case/is-kebab-case-guard';
 import { pathDepthTransformer } from '../../../transformers/path-depth/path-depth-transformer';
@@ -24,7 +23,7 @@ export const validateFolderDepthLayerBroker = ({
   node: TSESTree.Node;
   context: TSESLint.RuleContext<string, unknown[]>;
   filename: string;
-  firstFolder: Identifier;
+  firstFolder: string;
   folderConfig: (typeof folderConfigStatics)[keyof typeof folderConfigStatics];
 }): boolean => {
   const actualDepth = pathDepthTransformer({ filePath: filename });

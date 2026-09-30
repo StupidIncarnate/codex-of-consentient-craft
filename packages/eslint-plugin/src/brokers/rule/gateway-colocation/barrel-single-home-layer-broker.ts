@@ -16,7 +16,7 @@
  * });
  * // Reports 'reexportOutsideOwnSubpath' once, returns false
  */
-import type { Identifier, ImportPath } from '@dungeonmaster/shared/contracts';
+import type { ImportPath } from '@dungeonmaster/shared/contracts';
 import type { TSESLint, TSESTree } from '#gateway/npm/typescript-eslint__utils';
 
 export const barrelSingleHomeLayerBroker = ({
@@ -28,7 +28,7 @@ export const barrelSingleHomeLayerBroker = ({
   node: TSESTree.Node;
   context: TSESLint.RuleContext<string, unknown[]>;
   fileName: string;
-  reexports: { name: Identifier; source: ImportPath }[];
+  reexports: { name: string; source: ImportPath }[];
 }): boolean => {
   let stayedHome = true;
 

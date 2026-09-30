@@ -13,8 +13,6 @@
  * gatewayWrapperExportedNamesTransformer({ sourceText: 'export const readFileSync = () => "";' });
  * // Returns { valueNames: ['readFileSync'], typeNames: [] }
  */
-import { identifierContract } from '@dungeonmaster/shared/contracts';
-import type { Identifier } from '@dungeonmaster/shared/contracts';
 
 const VALUE_DECLARATION = /export\s+(?:const|function|class)\s+([A-Za-z0-9_$]+)/gu;
 const DESTRUCTURED_CAPTURE = /export\s+const\s+\{\s*([A-Za-z0-9_$]+)\s*\}\s*=/gu;
@@ -24,27 +22,27 @@ export const gatewayWrapperExportedNamesTransformer = ({
   sourceText,
 }: {
   sourceText: string;
-}): { valueNames: Identifier[]; typeNames: Identifier[] } => {
-  const valueNames = new Set<Identifier>();
+}): { valueNames: string[]; typeNames: string[] } => {
+  const valueNames = new Set<string>();
   for (const match of sourceText.matchAll(VALUE_DECLARATION)) {
     const [, name] = match;
     if (name !== undefined) {
-      valueNames.add(identifierContract.parse(name));
+      valueNames.add(name);
     }
   }
 
   for (const match of sourceText.matchAll(DESTRUCTURED_CAPTURE)) {
     const [, name] = match;
     if (name !== undefined) {
-      valueNames.add(identifierContract.parse(name));
+      valueNames.add(name);
     }
   }
 
-  const typeNames = new Set<Identifier>();
+  const typeNames = new Set<string>();
   for (const match of sourceText.matchAll(TYPE_DECLARATION)) {
     const [, name] = match;
     if (name !== undefined) {
-      typeNames.add(identifierContract.parse(name));
+      typeNames.add(name);
     }
   }
 

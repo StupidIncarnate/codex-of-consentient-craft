@@ -9,15 +9,14 @@
  * astBrandPathTransformer({ node: brandCallInsideQuestContractId });
  * // Returns ['questContract', 'id']
  */
-import { identifierContract } from '@dungeonmaster/shared/contracts';
 import type { Identifier } from '@dungeonmaster/shared/contracts';
 
 import { AST_NODE_TYPES } from '#gateway/npm/typescript-eslint__utils';
 import type { TSESTree } from '#gateway/npm/typescript-eslint__utils';
 import { isAstMethodCallGuard } from '../../guards/is-ast-method-call/is-ast-method-call-guard';
 
-export const astBrandPathTransformer = ({ node }: { node: TSESTree.Node }): Identifier[] => {
-  const path: Identifier[] = [];
+export const astBrandPathTransformer = ({ node }: { node: TSESTree.Node }): string[] => {
+  const path: string[] = [];
   let current: TSESTree.Node = node;
   let { parent } = current;
 
@@ -31,7 +30,7 @@ export const astBrandPathTransformer = ({ node }: { node: TSESTree.Node }): Iden
             ? key.value
             : undefined;
       if (typeof keyText === 'string') {
-        path.unshift(identifierContract.parse(keyText));
+        path.unshift(keyText);
       }
     }
 
@@ -44,7 +43,7 @@ export const astBrandPathTransformer = ({ node }: { node: TSESTree.Node }): Iden
         ? parent.arguments[0]
         : undefined) === current
     ) {
-      path.unshift(identifierContract.parse('Key'));
+      path.unshift('Key');
     }
 
     const tupleCall = parent.parent ?? null;
@@ -56,13 +55,13 @@ export const astBrandPathTransformer = ({ node }: { node: TSESTree.Node }): Iden
       const child = current;
       const index = parent.elements.findIndex((element) => element === child);
       if (index >= 0) {
-        path.unshift(identifierContract.parse(String(index)));
+        path.unshift(String(index));
       }
     }
 
     if (parent.type === AST_NODE_TYPES.VariableDeclarator) {
       if (parent.id.type === AST_NODE_TYPES.Identifier) {
-        path.unshift(identifierContract.parse(parent.id.name));
+        path.unshift(parent.id.name);
       }
       return path;
     }

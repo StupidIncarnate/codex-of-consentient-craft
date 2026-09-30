@@ -44,7 +44,6 @@ import { dirname } from '#gateway/node/path';
 import { hasFileSuffixGuard } from '../../../guards/has-file-suffix/has-file-suffix-guard';
 import { astGetImportsTransformer } from '../../../transformers/ast-get-imports/ast-get-imports-transformer';
 import { parseImplementationImportsTransformer } from '../../../transformers/parse-implementation-imports/parse-implementation-imports-transformer';
-import { identifierContract } from '@dungeonmaster/shared/contracts';
 import { proxyNameToImplementationNameTransformer } from '../../../transformers/proxy-name-to-implementation-name/proxy-name-to-implementation-name-transformer';
 import { isAstNodeDirectlyInFunctionGuard } from '../../../guards/is-ast-node-directly-in-function/is-ast-node-directly-in-function-guard';
 import { proxyPathToImplementationPathTransformer } from '../../../transformers/proxy-path-to-implementation-path/proxy-path-to-implementation-path-transformer';
@@ -156,7 +155,7 @@ export const ruleEnforceProxyChildCreationBroker = (): TSESLint.RuleModule<
               subpath,
             }),
           });
-          if (wrapperPaths.has(identifierContract.parse(mockedName))) {
+          if (wrapperPaths.has(mockedName)) {
             ctx.report({
               node: prop,
               messageId: 'composeWrapperProxy',
@@ -288,7 +287,7 @@ export const ruleEnforceProxyChildCreationBroker = (): TSESLint.RuleModule<
         for (const [importedName, importPath] of implementationImports) {
           // Derive expected proxy name and path
           const expectedProxyNameString = `${importedName}Proxy`;
-          const expectedProxyName = identifierContract.parse(expectedProxyNameString);
+          const expectedProxyName = expectedProxyNameString;
 
           // A scoped or gateway import's proxy sits beside the file its name comes from (below).
           // For relative imports, proxy is at path.proxy

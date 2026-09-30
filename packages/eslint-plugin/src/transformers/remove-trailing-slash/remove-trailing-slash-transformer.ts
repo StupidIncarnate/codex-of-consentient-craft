@@ -8,11 +8,9 @@
  * const alreadyClean = removeTrailingSlashTransformer({ str: 'brokers' });
  * // Returns: 'brokers'
  */
-import { identifierContract } from '@dungeonmaster/shared/contracts';
-import type { Identifier } from '@dungeonmaster/shared/contracts';
 
-export const removeTrailingSlashTransformer = ({ str }: { str: string }): Identifier => {
+export const removeTrailingSlashTransformer = ({ str }: { str: string }): string => {
   const withoutSlash = str.replace(/\/$/u, '');
 
-  return identifierContract.parse(withoutSlash);
+  return withoutSlash;
 };

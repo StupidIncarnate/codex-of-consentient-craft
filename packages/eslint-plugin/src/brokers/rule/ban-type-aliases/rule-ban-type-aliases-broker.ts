@@ -16,7 +16,6 @@ import type { TSESLint, TSESTree } from '#gateway/npm/typescript-eslint__utils';
 import { astGetImportsTransformer } from '../../../transformers/ast-get-imports/ast-get-imports-transformer';
 import { isGatewayFileGuard } from '../../../guards/is-gateway-file/is-gateway-file-guard';
 import { isNpmPackageGuard } from '../../../guards/is-npm-package/is-npm-package-guard';
-import { identifierContract } from '@dungeonmaster/shared/contracts';
 import type { Identifier } from '@dungeonmaster/shared/contracts';
 
 export const ruleBanTypeAliasesBroker = (): TSESLint.RuleModule<
@@ -45,7 +44,7 @@ export const ruleBanTypeAliasesBroker = (): TSESLint.RuleModule<
       return {};
     }
 
-    const imports = new Map<Identifier, string>();
+    const imports = new Map<string, string>();
 
     return {
       Program: (node: TSESTree.Program): void => {
@@ -97,7 +96,7 @@ export const ruleBanTypeAliasesBroker = (): TSESLint.RuleModule<
 
         if (
           isNpmPackageGuard({
-            importSource: imports.get(identifierContract.parse(libraryName)) ?? '',
+            importSource: imports.get(libraryName) ?? '',
           })
         ) {
           ctx.report({

@@ -1,4 +1,3 @@
-import { IdentifierStub } from '@dungeonmaster/shared/contracts/identifier/identifier.stub';
 import { FileNameStub } from '../../../contracts/file-name/file-name.stub';
 import { buildGatewayTypeDeclarationIndexLayerBroker } from './build-gateway-type-declaration-index-layer-broker';
 import { buildGatewayTypeDeclarationIndexLayerBrokerProxy } from './build-gateway-type-declaration-index-layer-broker.proxy';
@@ -29,7 +28,7 @@ describe('buildGatewayTypeDeclarationIndexLayerBroker', () => {
 
       const index = buildGatewayTypeDeclarationIndexLayerBroker({ rootDir });
 
-      expect(index.get(IdentifierStub({ value: 'WalkedFile' }))).toStrictEqual([filePath]);
+      expect(index.get('WalkedFile')).toStrictEqual([filePath]);
     });
   });
 

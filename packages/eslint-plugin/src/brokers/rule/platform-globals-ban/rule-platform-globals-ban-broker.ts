@@ -26,7 +26,7 @@
  */
 import { gatewayLocationsStatics } from '@dungeonmaster/shared/statics';
 import { builtinModules } from '#gateway/node/module';
-import { identifierContract, type Identifier } from '@dungeonmaster/shared/contracts';
+import { type Identifier } from '@dungeonmaster/shared/contracts';
 import { AST_NODE_TYPES } from '#gateway/npm/typescript-eslint__utils';
 import type { TSESLint, TSESTree } from '#gateway/npm/typescript-eslint__utils';
 import { typedParserServicesTransformer } from '../../../transformers/typed-parser-services/typed-parser-services-transformer';
@@ -72,8 +72,8 @@ export const rulePlatformGlobalsBanBroker = (): TSESLint.RuleModule<'platformGlo
     // Names passed as the first argument of a browser-side Playwright call, and the reports held
     // back because their identifier sits inside a named function — both settled at Program:exit,
     // since a function is usually declared above the call that ships it to the browser.
-    const browserFunctionNames = new Set<Identifier>();
-    const heldReportNames = new Map<TSESTree.Node, Identifier[]>();
+    const browserFunctionNames = new Set<string>();
+    const heldReportNames = new Map<TSESTree.Node, string[]>();
     const heldReportData = new Map<TSESTree.Node, Record<PropertyKey, unknown>>();
 
     return {
@@ -83,7 +83,7 @@ export const rulePlatformGlobalsBanBroker = (): TSESLint.RuleModule<'platformGlo
           firstArgument?.type === AST_NODE_TYPES.Identifier &&
           isPageCallbackCallLayerBroker({ node })
         ) {
-          browserFunctionNames.add(identifierContract.parse(firstArgument.name));
+          browserFunctionNames.add(firstArgument.name);
         }
       },
       'Program:exit': (): void => {

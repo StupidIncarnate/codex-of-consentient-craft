@@ -20,7 +20,6 @@ export * from './path-segment/path-segment-contract';
 // File Contents Contracts
 
 // Identifier Contracts
-export * from './identifier/identifier-contract';
 
 // Module Path Contracts
 

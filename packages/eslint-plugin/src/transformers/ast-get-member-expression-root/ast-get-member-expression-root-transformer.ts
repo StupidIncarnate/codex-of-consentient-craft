@@ -7,13 +7,13 @@
  */
 import { AST_NODE_TYPES } from '#gateway/npm/typescript-eslint__utils';
 import type { TSESTree } from '#gateway/npm/typescript-eslint__utils';
-import { identifierContract, type Identifier } from '@dungeonmaster/shared/contracts';
+import { type Identifier } from '@dungeonmaster/shared/contracts';
 
 export const astGetMemberExpressionRootTransformer = ({
   expr,
 }: {
   expr?: TSESTree.Node;
-}): Identifier | null => {
+}): string | null => {
   let current: TSESTree.Node | undefined = expr;
 
   // Traverse up the member expression chain
@@ -23,7 +23,7 @@ export const astGetMemberExpressionRootTransformer = ({
 
   // At the root, should be an Identifier
   if (current?.type === AST_NODE_TYPES.Identifier) {
-    return identifierContract.parse(current.name);
+    return current.name;
   }
 
   return null;

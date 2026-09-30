@@ -9,14 +9,12 @@
  * kebabCaseVariantsTransformer({ kebab: 'foo-bar' });
  * // Returns { camel: 'fooBar', pascal: 'FooBar', testId: 'FOO_BAR' }
  */
-import type { Identifier } from '@dungeonmaster/shared/contracts';
-import { identifierContract } from '@dungeonmaster/shared/contracts';
 
 export const kebabCaseVariantsTransformer = ({
   kebab,
 }: {
   kebab: string;
-}): { camel: Identifier; pascal: Identifier; testId: Identifier } => {
+}): { camel: string; pascal: string; testId: string } => {
   const camel = kebab.replace(/-([a-z0-9])/gu, (match) => {
     const [, letter] = match.split('');
     return (letter ?? '').toUpperCase();
@@ -25,8 +23,8 @@ export const kebabCaseVariantsTransformer = ({
   const testId = kebab.replaceAll('-', '_').toUpperCase();
 
   return {
-    camel: identifierContract.parse(camel),
-    pascal: identifierContract.parse(pascal),
-    testId: identifierContract.parse(testId),
+    camel: camel,
+    pascal: pascal,
+    testId: testId,
   };
 };

@@ -2,7 +2,6 @@ import { RuleContextStub } from '#gateway/npm/typescript-eslint__utils/rule-cont
 import { ProgramStub } from '#gateway/npm/typescript-eslint__utils/program/program.stub';
 import { validateFilenameLayerBroker } from './validate-filename-layer-broker';
 import { validateFilenameLayerBrokerProxy } from './validate-filename-layer-broker.proxy';
-import { IdentifierStub } from '@dungeonmaster/shared/contracts/identifier/identifier.stub';
 import { folderConfigStatics } from '@dungeonmaster/shared/statics';
 
 describe('validateFilenameLayerBroker', () => {
@@ -12,7 +11,7 @@ describe('validateFilenameLayerBroker', () => {
       const mockReport = jest.fn();
       const context = RuleContextStub({ report: mockReport });
       const node = ProgramStub({ code: '' });
-      const firstFolder = IdentifierStub({ value: 'brokers' });
+      const firstFolder = 'brokers';
 
       const result = validateFilenameLayerBroker({
         node,
@@ -32,7 +31,7 @@ describe('validateFilenameLayerBroker', () => {
       const mockReport = jest.fn();
       const context = RuleContextStub({ report: mockReport });
       const node = ProgramStub({ code: '' });
-      const firstFolder = IdentifierStub({ value: 'contracts' });
+      const firstFolder = 'contracts';
 
       const result = validateFilenameLayerBroker({
         node,
@@ -52,7 +51,7 @@ describe('validateFilenameLayerBroker', () => {
       const mockReport = jest.fn();
       const context = RuleContextStub({ report: mockReport });
       const node = ProgramStub({ code: '' });
-      const firstFolder = IdentifierStub({ value: 'transformers' });
+      const firstFolder = 'transformers';
 
       const result = validateFilenameLayerBroker({
         node,
@@ -72,7 +71,7 @@ describe('validateFilenameLayerBroker', () => {
       const mockReport = jest.fn();
       const context = RuleContextStub({ report: mockReport });
       const node = ProgramStub({ code: '' });
-      const firstFolder = IdentifierStub({ value: 'guards' });
+      const firstFolder = 'guards';
 
       const result = validateFilenameLayerBroker({
         node,
@@ -92,7 +91,7 @@ describe('validateFilenameLayerBroker', () => {
       const mockReport = jest.fn();
       const context = RuleContextStub({ report: mockReport });
       const node = ProgramStub({ code: '' });
-      const firstFolder = IdentifierStub({ value: 'errors' });
+      const firstFolder = 'errors';
 
       const result = validateFilenameLayerBroker({
         node,
@@ -112,7 +111,7 @@ describe('validateFilenameLayerBroker', () => {
       const mockReport = jest.fn();
       const context = RuleContextStub({ report: mockReport });
       const node = ProgramStub({ code: '' });
-      const firstFolder = IdentifierStub({ value: 'widgets' });
+      const firstFolder = 'widgets';
 
       const result = validateFilenameLayerBroker({
         node,
@@ -132,7 +131,7 @@ describe('validateFilenameLayerBroker', () => {
       const mockReport = jest.fn();
       const context = RuleContextStub({ report: mockReport });
       const node = ProgramStub({ code: '' });
-      const firstFolder = IdentifierStub({ value: 'flows' });
+      const firstFolder = 'flows';
 
       const result = validateFilenameLayerBroker({
         node,
@@ -152,7 +151,7 @@ describe('validateFilenameLayerBroker', () => {
       const mockReport = jest.fn();
       const context = RuleContextStub({ report: mockReport });
       const node = ProgramStub({ code: '' });
-      const firstFolder = IdentifierStub({ value: 'startup' });
+      const firstFolder = 'startup';
 
       const result = validateFilenameLayerBroker({
         node,
@@ -174,7 +173,7 @@ describe('validateFilenameLayerBroker', () => {
       const mockReport = jest.fn();
       const context = RuleContextStub({ report: mockReport });
       const node = ProgramStub({ code: '' });
-      const firstFolder = IdentifierStub({ value: 'brokers' });
+      const firstFolder = 'brokers';
 
       const result = validateFilenameLayerBroker({
         node,
@@ -194,7 +193,7 @@ describe('validateFilenameLayerBroker', () => {
       const mockReport = jest.fn();
       const context = RuleContextStub({ report: mockReport });
       const node = ProgramStub({ code: '' });
-      const firstFolder = IdentifierStub({ value: 'widgets' });
+      const firstFolder = 'widgets';
 
       const result = validateFilenameLayerBroker({
         node,
@@ -216,7 +215,7 @@ describe('validateFilenameLayerBroker', () => {
       const mockReport = jest.fn();
       const context = RuleContextStub({ report: mockReport });
       const node = ProgramStub({ code: '' });
-      const firstFolder = IdentifierStub({ value: 'brokers' });
+      const firstFolder = 'brokers';
 
       const result = validateFilenameLayerBroker({
         node,
@@ -237,7 +236,7 @@ describe('validateFilenameLayerBroker', () => {
       const mockReport = jest.fn();
       const context = RuleContextStub({ report: mockReport });
       const node = ProgramStub({ code: '' });
-      const firstFolder = IdentifierStub({ value: 'widgets' });
+      const firstFolder = 'widgets';
 
       const result = validateFilenameLayerBroker({
         node,
@@ -259,7 +258,7 @@ describe('validateFilenameLayerBroker', () => {
       const mockReport = jest.fn();
       const context = RuleContextStub({ report: mockReport });
       const node = ProgramStub({ code: '' });
-      const firstFolder = IdentifierStub({ value: 'brokers' });
+      const firstFolder = 'brokers';
 
       const result = validateFilenameLayerBroker({
         node,
@@ -283,7 +282,7 @@ describe('validateFilenameLayerBroker', () => {
       const mockReport = jest.fn();
       const context = RuleContextStub({ report: mockReport });
       const node = ProgramStub({ code: '' });
-      const firstFolder = IdentifierStub({ value: 'contracts' });
+      const firstFolder = 'contracts';
 
       const result = validateFilenameLayerBroker({
         node,
@@ -307,7 +306,7 @@ describe('validateFilenameLayerBroker', () => {
       const mockReport = jest.fn();
       const context = RuleContextStub({ report: mockReport });
       const node = ProgramStub({ code: '' });
-      const firstFolder = IdentifierStub({ value: 'transformers' });
+      const firstFolder = 'transformers';
 
       const result = validateFilenameLayerBroker({
         node,
@@ -331,7 +330,7 @@ describe('validateFilenameLayerBroker', () => {
       const mockReport = jest.fn();
       const context = RuleContextStub({ report: mockReport });
       const node = ProgramStub({ code: '' });
-      const firstFolder = IdentifierStub({ value: 'guards' });
+      const firstFolder = 'guards';
 
       const result = validateFilenameLayerBroker({
         node,
@@ -355,7 +354,7 @@ describe('validateFilenameLayerBroker', () => {
       const mockReport = jest.fn();
       const context = RuleContextStub({ report: mockReport });
       const node = ProgramStub({ code: '' });
-      const firstFolder = IdentifierStub({ value: 'errors' });
+      const firstFolder = 'errors';
 
       const result = validateFilenameLayerBroker({
         node,
@@ -379,7 +378,7 @@ describe('validateFilenameLayerBroker', () => {
       const mockReport = jest.fn();
       const context = RuleContextStub({ report: mockReport });
       const node = ProgramStub({ code: '' });
-      const firstFolder = IdentifierStub({ value: 'widgets' });
+      const firstFolder = 'widgets';
 
       const result = validateFilenameLayerBroker({
         node,
@@ -403,7 +402,7 @@ describe('validateFilenameLayerBroker', () => {
       const mockReport = jest.fn();
       const context = RuleContextStub({ report: mockReport });
       const node = ProgramStub({ code: '' });
-      const firstFolder = IdentifierStub({ value: 'flows' });
+      const firstFolder = 'flows';
 
       const result = validateFilenameLayerBroker({
         node,
@@ -427,7 +426,7 @@ describe('validateFilenameLayerBroker', () => {
       const mockReport = jest.fn();
       const context = RuleContextStub({ report: mockReport });
       const node = ProgramStub({ code: '' });
-      const firstFolder = IdentifierStub({ value: 'responders' });
+      const firstFolder = 'responders';
 
       const result = validateFilenameLayerBroker({
         node,
@@ -453,7 +452,7 @@ describe('validateFilenameLayerBroker', () => {
       const mockReport = jest.fn();
       const context = RuleContextStub({ report: mockReport });
       const node = ProgramStub({ code: '' });
-      const firstFolder = IdentifierStub({ value: 'brokers' });
+      const firstFolder = 'brokers';
 
       const result = validateFilenameLayerBroker({
         node,
@@ -477,7 +476,7 @@ describe('validateFilenameLayerBroker', () => {
       const mockReport = jest.fn();
       const context = RuleContextStub({ report: mockReport });
       const node = ProgramStub({ code: '' });
-      const firstFolder = IdentifierStub({ value: 'brokers' });
+      const firstFolder = 'brokers';
 
       const result = validateFilenameLayerBroker({
         node,
@@ -503,7 +502,7 @@ describe('validateFilenameLayerBroker', () => {
       const mockReport = jest.fn();
       const context = RuleContextStub({ report: mockReport });
       const node = ProgramStub({ code: '' });
-      const firstFolder = IdentifierStub({ value: 'responders' });
+      const firstFolder = 'responders';
 
       const result = validateFilenameLayerBroker({
         node,
@@ -537,7 +536,7 @@ describe('validateFilenameLayerBroker', () => {
       const mockReport = jest.fn();
       const context = RuleContextStub({ report: mockReport });
       const node = ProgramStub({ code: '' });
-      const firstFolder = IdentifierStub({ value: 'brokers' });
+      const firstFolder = 'brokers';
 
       const result = validateFilenameLayerBroker({
         node,
@@ -569,7 +568,7 @@ describe('validateFilenameLayerBroker', () => {
       const mockReport = jest.fn();
       const context = RuleContextStub({ report: mockReport });
       const node = ProgramStub({ code: '' });
-      const firstFolder = IdentifierStub({ value: 'responders' });
+      const firstFolder = 'responders';
 
       const result = validateFilenameLayerBroker({
         node,
@@ -596,7 +595,7 @@ describe('validateFilenameLayerBroker', () => {
       const mockReport = jest.fn();
       const context = RuleContextStub({ report: mockReport });
       const node = ProgramStub({ code: '' });
-      const firstFolder = IdentifierStub({ value: 'assets' });
+      const firstFolder = 'assets';
 
       const result = validateFilenameLayerBroker({
         node,

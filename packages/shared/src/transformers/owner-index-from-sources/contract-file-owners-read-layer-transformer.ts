@@ -11,7 +11,6 @@
  */
 import * as ts from '#gateway/npm/typescript';
 
-import { identifierContract } from '../../contracts/identifier/identifier-contract';
 import { ownerIndexEnumContract } from '../../contracts/owner-index-enum/owner-index-enum-contract';
 import type { OwnerIndexEnum } from '../../contracts/owner-index-enum/owner-index-enum-contract';
 import type { OwnerIndexField } from '../../contracts/owner-index-field/owner-index-field-contract';
@@ -112,7 +111,7 @@ export const contractFileOwnersReadLayerTransformer = ({
         return [];
       }
       const read = contractChainReadLayerTransformer({ node: valueNode });
-      const key = identifierContract.parse(keyNode.text);
+      const key = keyNode.text;
       if (read.shapeContractName !== undefined && read.shapeKey !== undefined) {
         return [
           ownerIndexFieldContract.parse({

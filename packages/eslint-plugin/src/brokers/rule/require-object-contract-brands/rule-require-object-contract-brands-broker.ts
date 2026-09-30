@@ -14,7 +14,6 @@
  * // Reports `z.object({ id: idContract })` in quest-contract.ts and fixes it to
  * // `z.object({ id: idContract }).brand<'Quest'>()`
  */
-import { identifierContract } from '@dungeonmaster/shared/contracts';
 import type { Identifier } from '@dungeonmaster/shared/contracts';
 import { AST_NODE_TYPES } from '#gateway/npm/typescript-eslint__utils';
 import type { TSESLint, TSESTree } from '#gateway/npm/typescript-eslint__utils';
@@ -99,8 +98,8 @@ export const ruleRequireObjectContractBrandsBroker = (): TSESLint.RuleModule<
     });
     // A layer's owner is the file that imports it, so its texts belong to the indexed rule.
     const isLayer = baseName.includes('-layer-contract');
-    const fieldListOwners = new Map<Identifier, Identifier>();
-    const localIdConsts = new Map<Identifier, Identifier>();
+    const fieldListOwners = new Map<string, string>();
+    const localIdConsts = new Map<string, string>();
 
     return {
       Program: (node: TSESTree.Program): void => {
@@ -241,7 +240,7 @@ export const ruleRequireObjectContractBrandsBroker = (): TSESLint.RuleModule<
             }
 
             const expected = brandTextDeriveTransformer({
-              path: [idOwner, identifierContract.parse('id')],
+              path: [idOwner, 'id'],
             });
             if (actual !== expected) {
               ctx.report({

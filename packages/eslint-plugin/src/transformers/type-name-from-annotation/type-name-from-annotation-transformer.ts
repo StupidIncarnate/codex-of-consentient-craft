@@ -7,13 +7,13 @@
  */
 import { AST_NODE_TYPES } from '#gateway/npm/typescript-eslint__utils';
 import type { TSESTree } from '#gateway/npm/typescript-eslint__utils';
-import { identifierContract, type Identifier } from '@dungeonmaster/shared/contracts';
+import { type Identifier } from '@dungeonmaster/shared/contracts';
 
 export const typeNameFromAnnotationTransformer = ({
   typeAnnotation,
 }: {
   typeAnnotation?: TSESTree.Node | null;
-}): Identifier | null => {
+}): string | null => {
   if (!typeAnnotation) {
     return null;
   }
@@ -33,7 +33,7 @@ export const typeNameFromAnnotationTransformer = ({
       typeAnnotation.typeName.type === AST_NODE_TYPES.Identifier &&
       typeAnnotation.typeName.name
     ) {
-      return identifierContract.parse(typeAnnotation.typeName.name);
+      return typeAnnotation.typeName.name;
     }
   }
 
@@ -52,7 +52,7 @@ export const typeNameFromAnnotationTransformer = ({
     typeAnnotation.typeName.type === AST_NODE_TYPES.Identifier &&
     typeAnnotation.typeName.name
   ) {
-    return identifierContract.parse(typeAnnotation.typeName.name);
+    return typeAnnotation.typeName.name;
   }
 
   return null;

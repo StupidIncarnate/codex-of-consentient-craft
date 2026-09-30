@@ -11,12 +11,11 @@
 import { z } from '#gateway/npm/zod';
 
 import { absoluteFilePathContract } from '../absolute-file-path/absolute-file-path-contract';
-import { identifierContract } from '../identifier/identifier-contract';
 
 export const ownerIndexUsageContract = z.object({
   filePath: absoluteFilePathContract,
-  contractName: identifierContract,
-  key: identifierContract,
+  contractName: z.string().brand<'OwnerIndexUsageContractName'>(),
+  key: z.string().brand<'OwnerIndexUsageKey'>(),
   kind: z.enum(['owner-reuse', 'brand-ref', 'inline-copy']),
 });
 

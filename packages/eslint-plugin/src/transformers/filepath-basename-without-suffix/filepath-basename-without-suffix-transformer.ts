@@ -15,7 +15,6 @@
  *
  * WHEN-TO-USE: When extracting base names for folder structure validation
  */
-import { identifierContract, type Identifier } from '@dungeonmaster/shared/contracts';
 
 export const filepathBasenameWithoutSuffixTransformer = ({
   filePath,
@@ -23,7 +22,7 @@ export const filepathBasenameWithoutSuffixTransformer = ({
 }: {
   filePath: string;
   suffix: string | readonly string[];
-}): Identifier => {
+}): string => {
   const parts = filePath.split('/');
   const fullFilename = parts[parts.length - 1] ?? '';
 
@@ -35,7 +34,7 @@ export const filepathBasenameWithoutSuffixTransformer = ({
   for (const candidate of suffixes) {
     if (suffixIncludesExtension.test(candidate)) {
       if (fullFilename.endsWith(candidate)) {
-        return identifierContract.parse(fullFilename.slice(0, -candidate.length));
+        return fullFilename.slice(0, -candidate.length);
       }
 
       // Extension differs but the stem still marks where the base ends. Callers append
@@ -43,13 +42,13 @@ export const filepathBasenameWithoutSuffixTransformer = ({
       // double it — 'user-profile-responder' + '-responder'.
       const stem = candidate.replace(/\.[^.]+$/u, '');
       if (withoutExt.endsWith(stem)) {
-        return identifierContract.parse(withoutExt.slice(0, -stem.length));
+        return withoutExt.slice(0, -stem.length);
       }
     } else if (withoutExt.endsWith(candidate)) {
-      return identifierContract.parse(withoutExt.slice(0, -candidate.length));
+      return withoutExt.slice(0, -candidate.length);
     }
   }
 
   // Fallback: just remove extension
-  return identifierContract.parse(withoutExt);
+  return withoutExt;
 };

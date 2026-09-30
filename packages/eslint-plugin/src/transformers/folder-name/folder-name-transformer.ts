@@ -8,10 +8,8 @@
  * const noFolder = folderNameTransformer({ filePath: 'file.ts' });
  * // Returns: null
  */
-import type { Identifier } from '@dungeonmaster/shared/contracts';
-import { identifierContract } from '@dungeonmaster/shared/contracts';
 
-export const folderNameTransformer = ({ filePath }: { filePath: string }): Identifier | null => {
+export const folderNameTransformer = ({ filePath }: { filePath: string }): string | null => {
   const parts = filePath.split('/');
 
   const MINIMUM_PARTS_FOR_FOLDER = 2;
@@ -31,5 +29,5 @@ export const folderNameTransformer = ({ filePath }: { filePath: string }): Ident
     return null;
   }
 
-  return identifierContract.parse(folderName);
+  return folderName;
 };

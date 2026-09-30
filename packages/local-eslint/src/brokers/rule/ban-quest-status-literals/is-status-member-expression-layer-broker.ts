@@ -8,7 +8,6 @@
  * WHEN-TO-USE: Only the ban-quest-status-literals rule should call this.
  */
 import type { Identifier } from '@dungeonmaster/shared/contracts';
-import { identifierContract } from '@dungeonmaster/shared/contracts';
 import { AST_NODE_TYPES } from '#gateway/npm/typescript-eslint__utils';
 import type { TSESTree } from '#gateway/npm/typescript-eslint__utils';
 import { matchesStatusHolderIdentifierGuard } from '../../../guards/matches-status-holder-identifier/matches-status-holder-identifier-guard';
@@ -18,7 +17,7 @@ export const isStatusMemberExpressionLayerBroker = ({
   extraAllowlist,
 }: {
   node?: TSESTree.Node | null;
-  extraAllowlist?: readonly Identifier[];
+  extraAllowlist?: readonly string[];
 }): boolean => {
   if (node === null || node === undefined || node.type !== AST_NODE_TYPES.MemberExpression) {
     return false;
@@ -37,9 +36,9 @@ export const isStatusMemberExpressionLayerBroker = ({
   if (object.type === AST_NODE_TYPES.Identifier) {
     return matchesStatusHolderIdentifierGuard(
       extraAllowlist === undefined
-        ? { identifierName: identifierContract.parse(object.name) }
+        ? { identifierName: object.name }
         : {
-            identifierName: identifierContract.parse(object.name),
+            identifierName: object.name,
             extraAllowlist,
           },
     );
@@ -53,9 +52,9 @@ export const isStatusMemberExpressionLayerBroker = ({
     }
     return matchesStatusHolderIdentifierGuard(
       extraAllowlist === undefined
-        ? { identifierName: identifierContract.parse(innerProperty.name) }
+        ? { identifierName: innerProperty.name }
         : {
-            identifierName: identifierContract.parse(innerProperty.name),
+            identifierName: innerProperty.name,
             extraAllowlist,
           },
     );

@@ -3,7 +3,6 @@ import { ProgramStub } from '#gateway/npm/typescript-eslint__utils/program/progr
 import { validateExportLayerBroker } from './validate-export-layer-broker';
 import { validateExportLayerBrokerProxy } from './validate-export-layer-broker.proxy';
 import { CollectedExportStub } from '../../../contracts/collected-export/collected-export.stub';
-import { IdentifierStub } from '@dungeonmaster/shared/contracts/identifier/identifier.stub';
 import { folderConfigStatics } from '@dungeonmaster/shared/statics';
 
 describe('validateExportLayerBroker', () => {
@@ -13,10 +12,10 @@ describe('validateExportLayerBroker', () => {
       const mockReport = jest.fn();
       const context = RuleContextStub({ report: mockReport });
       const node = ProgramStub({ code: '' });
-      const firstFolder = IdentifierStub({ value: 'brokers' });
+      const firstFolder = 'brokers';
       const collectedExports = [
         CollectedExportStub({
-          name: IdentifierStub({ value: 'userFetchBroker' }),
+          name: 'userFetchBroker',
           isTypeOnly: false,
         }),
       ];
@@ -38,9 +37,9 @@ describe('validateExportLayerBroker', () => {
       const mockReport = jest.fn();
       const context = RuleContextStub({ report: mockReport });
       const node = ProgramStub({ code: '' });
-      const firstFolder = IdentifierStub({ value: 'contracts' });
+      const firstFolder = 'contracts';
       const collectedExports = [
-        CollectedExportStub({ name: IdentifierStub({ value: 'userContract' }), isTypeOnly: false }),
+        CollectedExportStub({ name: 'userContract', isTypeOnly: false }),
       ];
 
       validateExportLayerBroker({
@@ -60,11 +59,11 @@ describe('validateExportLayerBroker', () => {
       const mockReport = jest.fn();
       const context = RuleContextStub({ report: mockReport });
       const node = ProgramStub({ code: '' });
-      const firstFolder = IdentifierStub({ value: 'errors' });
+      const firstFolder = 'errors';
       const collectedExports = [
         CollectedExportStub({
           type: 'ClassDeclaration',
-          name: IdentifierStub({ value: 'ValidationError' }),
+          name: 'ValidationError',
           isTypeOnly: false,
         }),
       ];
@@ -86,9 +85,9 @@ describe('validateExportLayerBroker', () => {
       const mockReport = jest.fn();
       const context = RuleContextStub({ report: mockReport });
       const node = ProgramStub({ code: '' });
-      const firstFolder = IdentifierStub({ value: 'widgets' });
+      const firstFolder = 'widgets';
       const collectedExports = [
-        CollectedExportStub({ name: IdentifierStub({ value: 'ButtonWidget' }), isTypeOnly: false }),
+        CollectedExportStub({ name: 'ButtonWidget', isTypeOnly: false }),
       ];
 
       validateExportLayerBroker({
@@ -108,9 +107,9 @@ describe('validateExportLayerBroker', () => {
       const mockReport = jest.fn();
       const context = RuleContextStub({ report: mockReport });
       const node = ProgramStub({ code: '' });
-      const firstFolder = IdentifierStub({ value: 'startup' });
+      const firstFolder = 'startup';
       const collectedExports = [
-        CollectedExportStub({ name: IdentifierStub({ value: 'StartApp' }), isTypeOnly: false }),
+        CollectedExportStub({ name: 'StartApp', isTypeOnly: false }),
       ];
 
       validateExportLayerBroker({
@@ -130,7 +129,7 @@ describe('validateExportLayerBroker', () => {
       const mockReport = jest.fn();
       const context = RuleContextStub({ report: mockReport });
       const node = ProgramStub({ code: '' });
-      const firstFolder = IdentifierStub({ value: 'startup' });
+      const firstFolder = 'startup';
 
       validateExportLayerBroker({
         node,
@@ -149,13 +148,13 @@ describe('validateExportLayerBroker', () => {
       const mockReport = jest.fn();
       const context = RuleContextStub({ report: mockReport });
       const node = ProgramStub({ code: '' });
-      const firstFolder = IdentifierStub({ value: 'brokers' });
+      const firstFolder = 'brokers';
       const collectedExports = [
         CollectedExportStub({
-          name: IdentifierStub({ value: 'userFetchBroker' }),
+          name: 'userFetchBroker',
           isTypeOnly: false,
         }),
-        CollectedExportStub({ name: IdentifierStub({ value: 'HelperType' }), isTypeOnly: true }),
+        CollectedExportStub({ name: 'HelperType', isTypeOnly: true }),
       ];
 
       validateExportLayerBroker({
@@ -175,10 +174,10 @@ describe('validateExportLayerBroker', () => {
       const mockReport = jest.fn();
       const context = RuleContextStub({ report: mockReport });
       const node = ProgramStub({ code: '' });
-      const firstFolder = IdentifierStub({ value: 'brokers' });
+      const firstFolder = 'brokers';
       const collectedExports = [
         CollectedExportStub({
-          name: IdentifierStub({ value: 'httpGetBrokerProxy' }),
+          name: 'httpGetBrokerProxy',
           isTypeOnly: false,
         }),
       ];
@@ -202,9 +201,9 @@ describe('validateExportLayerBroker', () => {
       const mockReport = jest.fn();
       const context = RuleContextStub({ report: mockReport });
       const node = ProgramStub({ code: '' });
-      const firstFolder = IdentifierStub({ value: 'brokers' });
+      const firstFolder = 'brokers';
       const collectedExports = [
-        CollectedExportStub({ name: IdentifierStub({ value: 'userFetch' }), isTypeOnly: false }),
+        CollectedExportStub({ name: 'userFetch', isTypeOnly: false }),
       ];
 
       validateExportLayerBroker({
@@ -234,9 +233,9 @@ describe('validateExportLayerBroker', () => {
       const mockReport = jest.fn();
       const context = RuleContextStub({ report: mockReport });
       const node = ProgramStub({ code: '' });
-      const firstFolder = IdentifierStub({ value: 'contracts' });
+      const firstFolder = 'contracts';
       const collectedExports = [
-        CollectedExportStub({ name: IdentifierStub({ value: 'user' }), isTypeOnly: false }),
+        CollectedExportStub({ name: 'user', isTypeOnly: false }),
       ];
 
       validateExportLayerBroker({
@@ -268,10 +267,10 @@ describe('validateExportLayerBroker', () => {
       const mockReport = jest.fn();
       const context = RuleContextStub({ report: mockReport });
       const node = ProgramStub({ code: '' });
-      const firstFolder = IdentifierStub({ value: 'brokers' });
+      const firstFolder = 'brokers';
       const collectedExports = [
         CollectedExportStub({
-          name: IdentifierStub({ value: 'UserFetchBroker' }),
+          name: 'UserFetchBroker',
           isTypeOnly: false,
         }),
       ];
@@ -303,9 +302,9 @@ describe('validateExportLayerBroker', () => {
       const mockReport = jest.fn();
       const context = RuleContextStub({ report: mockReport });
       const node = ProgramStub({ code: '' });
-      const firstFolder = IdentifierStub({ value: 'contracts' });
+      const firstFolder = 'contracts';
       const collectedExports = [
-        CollectedExportStub({ name: IdentifierStub({ value: 'UserContract' }), isTypeOnly: false }),
+        CollectedExportStub({ name: 'UserContract', isTypeOnly: false }),
       ];
 
       validateExportLayerBroker({
@@ -335,11 +334,11 @@ describe('validateExportLayerBroker', () => {
       const mockReport = jest.fn();
       const context = RuleContextStub({ report: mockReport });
       const node = ProgramStub({ code: '' });
-      const firstFolder = IdentifierStub({ value: 'errors' });
+      const firstFolder = 'errors';
       const collectedExports = [
         CollectedExportStub({
           type: 'ClassDeclaration',
-          name: IdentifierStub({ value: 'validationError' }),
+          name: 'validationError',
           isTypeOnly: false,
         }),
       ];
@@ -371,9 +370,9 @@ describe('validateExportLayerBroker', () => {
       const mockReport = jest.fn();
       const context = RuleContextStub({ report: mockReport });
       const node = ProgramStub({ code: '' });
-      const firstFolder = IdentifierStub({ value: 'widgets' });
+      const firstFolder = 'widgets';
       const collectedExports = [
-        CollectedExportStub({ name: IdentifierStub({ value: 'buttonWidget' }), isTypeOnly: false }),
+        CollectedExportStub({ name: 'buttonWidget', isTypeOnly: false }),
       ];
 
       validateExportLayerBroker({
@@ -405,10 +404,10 @@ describe('validateExportLayerBroker', () => {
       const mockReport = jest.fn();
       const context = RuleContextStub({ report: mockReport });
       const node = ProgramStub({ code: '' });
-      const firstFolder = IdentifierStub({ value: 'brokers' });
+      const firstFolder = 'brokers';
       const collectedExports = [
         CollectedExportStub({
-          name: IdentifierStub({ value: 'dataSyncBroker' }),
+          name: 'dataSyncBroker',
           isTypeOnly: false,
         }),
       ];
@@ -435,9 +434,9 @@ describe('validateExportLayerBroker', () => {
       const mockReport = jest.fn();
       const context = RuleContextStub({ report: mockReport });
       const node = ProgramStub({ code: '' });
-      const firstFolder = IdentifierStub({ value: 'widgets' });
+      const firstFolder = 'widgets';
       const collectedExports = [
-        CollectedExportStub({ name: IdentifierStub({ value: 'InputWidget' }), isTypeOnly: false }),
+        CollectedExportStub({ name: 'InputWidget', isTypeOnly: false }),
       ];
 
       validateExportLayerBroker({
@@ -464,10 +463,10 @@ describe('validateExportLayerBroker', () => {
       const mockReport = jest.fn();
       const context = RuleContextStub({ report: mockReport });
       const node = ProgramStub({ code: '' });
-      const firstFolder = IdentifierStub({ value: 'brokers' });
+      const firstFolder = 'brokers';
       const collectedExports = [
         CollectedExportStub({
-          name: IdentifierStub({ value: 'userFetchTransformer' }),
+          name: 'userFetchTransformer',
           isTypeOnly: false,
         }),
       ];
@@ -499,10 +498,10 @@ describe('validateExportLayerBroker', () => {
       const mockReport = jest.fn();
       const context = RuleContextStub({ report: mockReport });
       const node = ProgramStub({ code: '' });
-      const firstFolder = IdentifierStub({ value: 'transformers' });
+      const firstFolder = 'transformers';
       const collectedExports = [
         CollectedExportStub({
-          name: IdentifierStub({ value: 'formatDateBroker' }),
+          name: 'formatDateBroker',
           isTypeOnly: false,
         }),
       ];
@@ -536,10 +535,10 @@ describe('validateExportLayerBroker', () => {
       const mockReport = jest.fn();
       const context = RuleContextStub({ report: mockReport });
       const node = ProgramStub({ code: '' });
-      const firstFolder = IdentifierStub({ value: 'brokers' });
+      const firstFolder = 'brokers';
       const collectedExports = [
         CollectedExportStub({
-          name: IdentifierStub({ value: 'WrongNameTransformer' }),
+          name: 'WrongNameTransformer',
           isTypeOnly: false,
         }),
       ];
@@ -576,10 +575,10 @@ describe('validateExportLayerBroker', () => {
       const mockReport = jest.fn();
       const context = RuleContextStub({ report: mockReport });
       const node = ProgramStub({ code: '' });
-      const firstFolder = IdentifierStub({ value: 'errors' });
+      const firstFolder = 'errors';
       const collectedExports = [
         CollectedExportStub({
-          name: IdentifierStub({ value: 'wrongNameBroker' }),
+          name: 'wrongNameBroker',
           isTypeOnly: false,
         }),
       ];
@@ -618,7 +617,7 @@ describe('validateExportLayerBroker', () => {
       const mockReport = jest.fn();
       const context = RuleContextStub({ report: mockReport });
       const node = ProgramStub({ code: '' });
-      const firstFolder = IdentifierStub({ value: 'brokers' });
+      const firstFolder = 'brokers';
 
       validateExportLayerBroker({
         node,
@@ -642,9 +641,9 @@ describe('validateExportLayerBroker', () => {
       const mockReport = jest.fn();
       const context = RuleContextStub({ report: mockReport });
       const node = ProgramStub({ code: '' });
-      const firstFolder = IdentifierStub({ value: 'contracts' });
+      const firstFolder = 'contracts';
       const collectedExports = [
-        CollectedExportStub({ name: IdentifierStub({ value: 'User' }), isTypeOnly: true }),
+        CollectedExportStub({ name: 'User', isTypeOnly: true }),
       ];
 
       validateExportLayerBroker({
@@ -664,7 +663,7 @@ describe('validateExportLayerBroker', () => {
       const mockReport = jest.fn();
       const context = RuleContextStub({ report: mockReport });
       const node = ProgramStub({ code: '' });
-      const firstFolder = IdentifierStub({ value: 'contracts' });
+      const firstFolder = 'contracts';
 
       validateExportLayerBroker({
         node,
@@ -688,9 +687,9 @@ describe('validateExportLayerBroker', () => {
       const mockReport = jest.fn();
       const context = RuleContextStub({ report: mockReport });
       const node = ProgramStub({ code: '' });
-      const firstFolder = IdentifierStub({ value: 'contracts' });
+      const firstFolder = 'contracts';
       const collectedExports = [
-        CollectedExportStub({ name: IdentifierStub({ value: 'User' }), isTypeOnly: true }),
+        CollectedExportStub({ name: 'User', isTypeOnly: true }),
       ];
 
       validateExportLayerBroker({
@@ -715,9 +714,9 @@ describe('validateExportLayerBroker', () => {
       const mockReport = jest.fn();
       const context = RuleContextStub({ report: mockReport });
       const node = ProgramStub({ code: '' });
-      const firstFolder = IdentifierStub({ value: 'statics' });
+      const firstFolder = 'statics';
       const collectedExports = [
-        CollectedExportStub({ name: IdentifierStub({ value: 'Config' }), isTypeOnly: true }),
+        CollectedExportStub({ name: 'Config', isTypeOnly: true }),
       ];
 
       validateExportLayerBroker({
@@ -742,9 +741,9 @@ describe('validateExportLayerBroker', () => {
       const mockReport = jest.fn();
       const context = RuleContextStub({ report: mockReport });
       const node = ProgramStub({ code: '' });
-      const firstFolder = IdentifierStub({ value: 'brokers' });
+      const firstFolder = 'brokers';
       const collectedExports = [
-        CollectedExportStub({ name: IdentifierStub({ value: 'Rule' }), isTypeOnly: true }),
+        CollectedExportStub({ name: 'Rule', isTypeOnly: true }),
       ];
 
       validateExportLayerBroker({
@@ -771,13 +770,13 @@ describe('validateExportLayerBroker', () => {
       const mockReport = jest.fn();
       const context = RuleContextStub({ report: mockReport });
       const node = ProgramStub({ code: '' });
-      const firstFolder = IdentifierStub({ value: 'brokers' });
+      const firstFolder = 'brokers';
       const collectedExports = [
         CollectedExportStub({
-          name: IdentifierStub({ value: 'userFetchBroker' }),
+          name: 'userFetchBroker',
           isTypeOnly: false,
         }),
-        CollectedExportStub({ name: IdentifierStub({ value: 'helper' }), isTypeOnly: false }),
+        CollectedExportStub({ name: 'helper', isTypeOnly: false }),
       ];
 
       validateExportLayerBroker({
@@ -806,16 +805,16 @@ describe('validateExportLayerBroker', () => {
       const mockReport = jest.fn();
       const context = RuleContextStub({ report: mockReport });
       const node = ProgramStub({ code: '' });
-      const firstFolder = IdentifierStub({ value: 'errors' });
+      const firstFolder = 'errors';
       const collectedExports = [
         CollectedExportStub({
           type: 'ClassDeclaration',
-          name: IdentifierStub({ value: 'ValidationError' }),
+          name: 'ValidationError',
           isTypeOnly: false,
         }),
         CollectedExportStub({
           type: 'ClassDeclaration',
-          name: IdentifierStub({ value: 'OtherError' }),
+          name: 'OtherError',
           isTypeOnly: false,
         }),
       ];
@@ -846,10 +845,10 @@ describe('validateExportLayerBroker', () => {
       const mockReport = jest.fn();
       const context = RuleContextStub({ report: mockReport });
       const node = ProgramStub({ code: '' });
-      const firstFolder = IdentifierStub({ value: 'startup' });
+      const firstFolder = 'startup';
       const collectedExports = [
-        CollectedExportStub({ name: IdentifierStub({ value: 'StartApp' }), isTypeOnly: false }),
-        CollectedExportStub({ name: IdentifierStub({ value: 'StartServer' }), isTypeOnly: false }),
+        CollectedExportStub({ name: 'StartApp', isTypeOnly: false }),
+        CollectedExportStub({ name: 'StartServer', isTypeOnly: false }),
       ];
 
       validateExportLayerBroker({
@@ -876,9 +875,9 @@ describe('validateExportLayerBroker', () => {
       const mockReport = jest.fn();
       const context = RuleContextStub({ report: mockReport });
       const node = ProgramStub({ code: '' });
-      const firstFolder = IdentifierStub({ value: 'startup' });
+      const firstFolder = 'startup';
       const collectedExports = [
-        CollectedExportStub({ name: IdentifierStub({ value: 'startApp' }), isTypeOnly: false }),
+        CollectedExportStub({ name: 'startApp', isTypeOnly: false }),
       ];
 
       validateExportLayerBroker({
@@ -908,9 +907,9 @@ describe('validateExportLayerBroker', () => {
       const mockReport = jest.fn();
       const context = RuleContextStub({ report: mockReport });
       const node = ProgramStub({ code: '' });
-      const firstFolder = IdentifierStub({ value: 'startup' });
+      const firstFolder = 'startup';
       const collectedExports = [
-        CollectedExportStub({ name: IdentifierStub({ value: 'StartServer' }), isTypeOnly: false }),
+        CollectedExportStub({ name: 'StartServer', isTypeOnly: false }),
       ];
 
       validateExportLayerBroker({
@@ -937,10 +936,10 @@ describe('validateExportLayerBroker', () => {
       const mockReport = jest.fn();
       const context = RuleContextStub({ report: mockReport });
       const node = ProgramStub({ code: '' });
-      const firstFolder = IdentifierStub({ value: 'brokers' });
+      const firstFolder = 'brokers';
       const collectedExports = [
         CollectedExportStub({
-          name: IdentifierStub({ value: 'httpGetBroker' }),
+          name: 'httpGetBroker',
           isTypeOnly: false,
         }),
       ];
@@ -972,10 +971,10 @@ describe('validateExportLayerBroker', () => {
       const mockReport = jest.fn();
       const context = RuleContextStub({ report: mockReport });
       const node = ProgramStub({ code: '' });
-      const firstFolder = IdentifierStub({ value: 'transformers' });
+      const firstFolder = 'transformers';
       const collectedExports = [
         CollectedExportStub({
-          name: IdentifierStub({ value: 'wrongNameProxy' }),
+          name: 'wrongNameProxy',
           isTypeOnly: false,
         }),
       ];
@@ -1004,9 +1003,9 @@ describe('validateExportLayerBroker', () => {
       const mockReport = jest.fn();
       const context = RuleContextStub({ report: mockReport });
       const node = ProgramStub({ code: '' });
-      const firstFolder = IdentifierStub({ value: 'bindings' });
+      const firstFolder = 'bindings';
       const collectedExports = [
-        CollectedExportStub({ name: IdentifierStub({ value: 'useQuest' }), isTypeOnly: false }),
+        CollectedExportStub({ name: 'useQuest', isTypeOnly: false }),
       ];
 
       validateExportLayerBroker({
@@ -1036,10 +1035,10 @@ describe('validateExportLayerBroker', () => {
       const mockReport = jest.fn();
       const context = RuleContextStub({ report: mockReport });
       const node = ProgramStub({ code: '' });
-      const firstFolder = IdentifierStub({ value: 'bindings' });
+      const firstFolder = 'bindings';
       const collectedExports = [
         CollectedExportStub({
-          name: IdentifierStub({ value: 'UseQuestBinding' }),
+          name: 'UseQuestBinding',
           isTypeOnly: false,
         }),
       ];
@@ -1071,10 +1070,10 @@ describe('validateExportLayerBroker', () => {
       const mockReport = jest.fn();
       const context = RuleContextStub({ report: mockReport });
       const node = ProgramStub({ code: '' });
-      const firstFolder = IdentifierStub({ value: 'bindings' });
+      const firstFolder = 'bindings';
       const collectedExports = [
         CollectedExportStub({
-          name: IdentifierStub({ value: 'fetchDataBinding' }),
+          name: 'fetchDataBinding',
           isTypeOnly: false,
         }),
       ];

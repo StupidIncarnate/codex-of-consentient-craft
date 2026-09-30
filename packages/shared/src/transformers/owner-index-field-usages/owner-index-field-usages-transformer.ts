@@ -8,7 +8,6 @@
  * ownerIndexFieldUsagesTransformer({ ownerIndex, contractName: 'questContract', key: 'id' });
  * // Returns OwnerIndexUsage[] — kind owner-reuse, brand-ref or inline-copy, in index order
  */
-import type { Identifier } from '../../contracts/identifier/identifier-contract';
 import { ownerIndexUsageContract } from '../../contracts/owner-index-usage/owner-index-usage-contract';
 import type { OwnerIndexUsage } from '../../contracts/owner-index-usage/owner-index-usage-contract';
 import type { OwnerIndex } from '../../contracts/owner-index/owner-index-contract';
@@ -19,8 +18,8 @@ export const ownerIndexFieldUsagesTransformer = ({
   key,
 }: {
   ownerIndex: OwnerIndex;
-  contractName: Identifier;
-  key: Identifier;
+  contractName: string;
+  key: string;
 }): OwnerIndexUsage[] => {
   const targetTexts = new Set(
     ownerIndex.owners

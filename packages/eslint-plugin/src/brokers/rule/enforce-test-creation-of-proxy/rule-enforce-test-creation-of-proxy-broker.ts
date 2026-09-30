@@ -17,7 +17,6 @@ import { isE2eTestFileGuard } from '../../../guards/is-e2e-test-file/is-e2e-test
 import { isSpecFileGuard } from '../../../guards/is-spec-file/is-spec-file-guard';
 import { isProxyImportGuard } from '../../../guards/is-proxy-import/is-proxy-import-guard';
 import { isHarnessImportGuard } from '../../../guards/is-harness-import/is-harness-import-guard';
-import { identifierContract } from '@dungeonmaster/shared/contracts';
 import { folderConfigStatics } from '@dungeonmaster/shared/statics';
 import type { Identifier } from '@dungeonmaster/shared/contracts';
 import { singularizeFolderTypeTransformer } from '../../../transformers/singularize-folder-type/singularize-folder-type-transformer';
@@ -208,7 +207,7 @@ export const ruleEnforceTestCreationOfProxyBroker = (): TSESLint.RuleModule<
     const exportedProxyDeclarations = new Set<TSESTree.Node>();
 
     // Track proxies created in current test block (reset for each test)
-    const proxiesCreatedInCurrentTest = new Set<Identifier>();
+    const proxiesCreatedInCurrentTest = new Set<string>();
 
     // Track if we've seen any proxy creation in current test
     let hasCreatedProxyInTest = false;
@@ -343,7 +342,7 @@ export const ruleEnforceTestCreationOfProxyBroker = (): TSESLint.RuleModule<
                     hasCreatedProxyInTest = true;
                     const variableNameRaw =
                       (id.type === AST_NODE_TYPES.Identifier ? id.name : undefined) ?? name;
-                    const variableName = identifierContract.parse(variableNameRaw);
+                    const variableName = variableNameRaw;
                     proxiesCreatedInCurrentTest.add(variableName);
                   }
                 }

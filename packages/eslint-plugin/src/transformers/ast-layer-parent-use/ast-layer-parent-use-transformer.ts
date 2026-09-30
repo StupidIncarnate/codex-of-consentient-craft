@@ -9,8 +9,6 @@
  * astLayerParentUseTransformer({ source: questContractText, layerName: 'ownerLayerContract' });
  * // Returns ['questContract', 'owner'] for `owner: ownerLayerContract` inside `questContract`
  */
-import { identifierContract } from '@dungeonmaster/shared/contracts';
-import type { Identifier } from '@dungeonmaster/shared/contracts';
 import * as ts from '#gateway/npm/typescript';
 
 export const astLayerParentUseTransformer = ({
@@ -19,7 +17,7 @@ export const astLayerParentUseTransformer = ({
 }: {
   source: string;
   layerName: string;
-}): Identifier[] | null => {
+}): string[] | null => {
   const file = ts.createSourceFile(
     'parent-contract.ts',
     source,
@@ -27,8 +25,8 @@ export const astLayerParentUseTransformer = ({
     true,
     ts.ScriptKind.TS,
   );
-  const uses: { pos: number; path: Identifier[] }[] = [];
-  const pending: { node: ts.Node; path: Identifier[] }[] = [{ node: file, path: [] }];
+  const uses: { pos: number; path: string[] }[] = [];
+  const pending: { node: ts.Node; path: string[] }[] = [{ node: file, path: [] }];
 
   for (let next = pending.pop(); next !== undefined; next = pending.pop()) {
     const { node, path } = next;
@@ -41,11 +39,11 @@ export const astLayerParentUseTransformer = ({
 
     const childPath =
       ts.isVariableDeclaration(node) && ts.isIdentifier(node.name)
-        ? [identifierContract.parse(node.name.text)]
+        ? [node.name.text]
         : ts.isPropertyAssignment(node) &&
             path.length > 0 &&
             (ts.isIdentifier(node.name) || ts.isStringLiteral(node.name))
-          ? [...path, identifierContract.parse(node.name.text)]
+          ? [...path, node.name.text]
           : path;
     ts.forEachChild(node, (child) => {
       pending.push({ node: child, path: childPath });

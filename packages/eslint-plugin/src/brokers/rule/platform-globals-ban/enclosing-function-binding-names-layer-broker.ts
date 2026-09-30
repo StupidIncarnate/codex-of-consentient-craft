@@ -10,7 +10,7 @@
  * enclosingFunctionBindingNamesLayerBroker({ node: documentIdentifierInsideReadFn });
  * // Returns ['READ_FN'] as Identifier[]
  */
-import { identifierContract, type Identifier } from '@dungeonmaster/shared/contracts';
+import { type Identifier } from '@dungeonmaster/shared/contracts';
 import { AST_NODE_TYPES } from '#gateway/npm/typescript-eslint__utils';
 import type { TSESTree } from '#gateway/npm/typescript-eslint__utils';
 
@@ -18,7 +18,7 @@ export const enclosingFunctionBindingNamesLayerBroker = ({
   node,
 }: {
   node?: TSESTree.Node | null | undefined;
-}): Identifier[] => {
+}): string[] => {
   if (node === null || node === undefined) {
     return [];
   }
@@ -26,7 +26,7 @@ export const enclosingFunctionBindingNamesLayerBroker = ({
   const { parent } = node;
 
   if (node.type === AST_NODE_TYPES.FunctionDeclaration && node.id?.name !== undefined) {
-    return [identifierContract.parse(node.id.name), ...outerNames];
+    return [node.id.name, ...outerNames];
   }
 
   const isFunctionLiteral =
@@ -38,7 +38,7 @@ export const enclosingFunctionBindingNamesLayerBroker = ({
     parent.init === node &&
     parent.id.type === AST_NODE_TYPES.Identifier
   ) {
-    return [identifierContract.parse(parent.id.name), ...outerNames];
+    return [parent.id.name, ...outerNames];
   }
 
   return outerNames;

@@ -1,17 +1,16 @@
 import * as ts from '#gateway/npm/typescript';
 
-import { IdentifierStub } from '../../contracts/identifier/identifier.stub';
 import { typeNodeShapeClassifyLayerTransformer } from './type-node-shape-classify-layer-transformer';
 
 const classifyThing = ({ text }: { text: string }): string[] => {
   const sourceFile = ts.createSourceFile('/repo/a-contract.ts', text, ts.ScriptTarget.Latest, true);
   const typeAliases = sourceFile.statements.flatMap(
-    (statement): { name: ReturnType<typeof IdentifierStub>; node: ts.Node }[] => {
+    (statement): { name: string; node: ts.Node }[] => {
       if (ts.isTypeAliasDeclaration(statement)) {
-        return [{ name: IdentifierStub({ value: statement.name.text }), node: statement.type }];
+        return [{ name: statement.name.text, node: statement.type }];
       }
       return ts.isInterfaceDeclaration(statement)
-        ? [{ name: IdentifierStub({ value: statement.name.text }), node: statement }]
+        ? [{ name: statement.name.text, node: statement }]
         : [];
     },
   );
@@ -22,8 +21,8 @@ const classifyThing = ({ text }: { text: string }): string[] => {
         node: alias.node,
         schemaNames: [],
         typeAliases,
-        uniqueSymbolNames: [IdentifierStub({ value: 'ING' })],
-        visitedNames: [IdentifierStub({ value: 'Thing' })],
+        uniqueSymbolNames: ['ING'],
+        visitedNames: ['Thing'],
       }),
     );
 };
@@ -72,7 +71,7 @@ describe('typeNodeShapeClassifyLayerTransformer', () => {
       const shapes = sourceFile.statements.filter(ts.isTypeAliasDeclaration).map((alias) =>
         typeNodeShapeClassifyLayerTransformer({
           node: alias.type,
-          schemaNames: [IdentifierStub({ value: 'thingContract' })],
+          schemaNames: ['thingContract'],
         }),
       );
 
@@ -141,7 +140,7 @@ describe('typeNodeShapeClassifyLayerTransformer', () => {
       );
       const declarations = sourceFile.statements.filter(ts.isTypeAliasDeclaration);
       const typeAliases = declarations.map((declaration) => ({
-        name: IdentifierStub({ value: declaration.name.text }),
+        name: declaration.name.text,
         node: declaration.type,
       }));
 
@@ -150,9 +149,9 @@ describe('typeNodeShapeClassifyLayerTransformer', () => {
         .map((declaration) =>
           typeNodeShapeClassifyLayerTransformer({
             node: declaration.type,
-            schemaNames: [IdentifierStub({ value: 'thingContract' })],
+            schemaNames: ['thingContract'],
             typeAliases,
-            visitedNames: [IdentifierStub({ value: 'Thing' })],
+            visitedNames: ['Thing'],
           }),
         );
 
@@ -192,7 +191,7 @@ describe('typeNodeShapeClassifyLayerTransformer', () => {
         typeNodeShapeClassifyLayerTransformer({
           node: declaration,
           schemaNames: [],
-          uniqueSymbolNames: [IdentifierStub({ value: 'ING' })],
+          uniqueSymbolNames: ['ING'],
         }),
       );
 

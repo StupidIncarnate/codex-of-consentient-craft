@@ -9,7 +9,6 @@
  * quest/work-item status-literal comparisons; callers use the shared status guards instead.
  */
 import type { Identifier } from '@dungeonmaster/shared/contracts';
-import { identifierContract } from '@dungeonmaster/shared/contracts';
 import { AST_NODE_TYPES } from '#gateway/npm/typescript-eslint__utils';
 import type { TSESLint, TSESTree } from '#gateway/npm/typescript-eslint__utils';
 import { isStatusComparisonAllowlistedGuard } from '../../../guards/is-status-comparison-allowlisted/is-status-comparison-allowlisted-guard';
@@ -75,8 +74,8 @@ export const ruleBanQuestStatusLiteralsBroker = (): TSESLint.RuleModule<
 
     const [optionZero] = ctx.options;
     const rawExtras = optionZero?.extraStatusHolders;
-    const extraAllowlist: readonly Identifier[] = Array.isArray(rawExtras)
-      ? rawExtras.map((name) => identifierContract.parse(String(name)))
+    const extraAllowlist: readonly string[] = Array.isArray(rawExtras)
+      ? rawExtras.map((name) => String(name))
       : [];
 
     const bannedPrefixes = statusLiteralStatics.bannedStartsWithPrefixes;

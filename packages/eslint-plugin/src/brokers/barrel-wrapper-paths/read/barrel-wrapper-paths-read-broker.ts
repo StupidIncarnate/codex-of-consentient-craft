@@ -12,16 +12,15 @@
  * // Returns a Map of 'writeFile' -> 'write-file/write-file', or an empty Map
  */
 import { readFileSyncIfExists } from '#gateway/node/fs';
-import type { Identifier } from '@dungeonmaster/shared/contracts';
 import { gatewayBarrelWrapperPathsTransformer } from '../../../transformers/gateway-barrel-wrapper-paths/gateway-barrel-wrapper-paths-transformer';
 
 export const barrelWrapperPathsReadBroker = ({
   barrelPath,
 }: {
   barrelPath: string | null;
-}): Map<Identifier, string> => {
+}): Map<string, string> => {
   if (barrelPath === null) {
-    return new Map<Identifier, string>();
+    return new Map<string, string>();
   }
 
   const barrelContent = ((): string | null => {
@@ -34,6 +33,6 @@ export const barrelWrapperPathsReadBroker = ({
   })();
 
   return barrelContent === null
-    ? new Map<Identifier, string>()
+    ? new Map<string, string>()
     : gatewayBarrelWrapperPathsTransformer({ content: barrelContent });
 };

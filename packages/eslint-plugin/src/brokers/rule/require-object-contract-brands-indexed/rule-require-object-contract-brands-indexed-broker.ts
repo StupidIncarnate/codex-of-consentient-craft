@@ -14,7 +14,6 @@
  * // `title: z.string().min(1).brand<'QuestTitle'>()`
  */
 import { ownerIndexBuildBroker } from '@dungeonmaster/shared/brokers';
-import type { Identifier } from '@dungeonmaster/shared/contracts';
 import {
   ownerIndexNameMatchTransformer,
   repoRootFromSourcePathTransformer,
@@ -72,7 +71,7 @@ export const ruleRequireObjectContractBrandsIndexedBroker = (): TSESLint.RuleMod
     // A layer's owner is the file that nests it, so its texts and its importers are the layer
     // broker's; a leaf in it never takes the layer's own const name.
     const isLayer = baseName.includes('-layer-contract');
-    const fieldListOwners = new Map<Identifier, Identifier>();
+    const fieldListOwners = new Map<string, string>();
 
     return {
       Program: (node: TSESTree.Program): void => {

@@ -1,4 +1,3 @@
-import { IdentifierStub } from '../../contracts/identifier/identifier.stub';
 import { OwnerIndexFieldStub } from '../../contracts/owner-index-field/owner-index-field.stub';
 import { OwnerIndexOwnerStub } from '../../contracts/owner-index-owner/owner-index-owner.stub';
 import { OwnerIndexStub } from '../../contracts/owner-index/owner-index.stub';
@@ -27,7 +26,7 @@ describe('ownerIndexBrandDeclarersTransformer', () => {
 
       const result = ownerIndexBrandDeclarersTransformer({
         ownerIndex,
-        brandText: IdentifierStub({ value: 'QuestId' }),
+        brandText: 'QuestId',
       });
 
       expect(
@@ -46,7 +45,7 @@ describe('ownerIndexBrandDeclarersTransformer', () => {
       expect(
         ownerIndexBrandDeclarersTransformer({
           ownerIndex,
-          brandText: IdentifierStub({ value: 'NobodyId' }),
+          brandText: 'NobodyId',
         }),
       ).toStrictEqual([]);
     });

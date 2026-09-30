@@ -1,4 +1,3 @@
-import { IdentifierStub } from '../../contracts/identifier/identifier.stub';
 import { OwnerIndexFieldStub } from '../../contracts/owner-index-field/owner-index-field.stub';
 import { OwnerIndexOwnerStub } from '../../contracts/owner-index-owner/owner-index-owner.stub';
 import { OwnerIndexStub } from '../../contracts/owner-index/owner-index.stub';
@@ -50,8 +49,8 @@ describe('ownerIndexFieldUsagesTransformer', () => {
 
       const result = ownerIndexFieldUsagesTransformer({
         ownerIndex,
-        contractName: IdentifierStub({ value: 'questContract' }),
-        key: IdentifierStub({ value: 'id' }),
+        contractName: 'questContract',
+        key: 'id',
       });
 
       expect(result).toStrictEqual([
@@ -84,8 +83,8 @@ describe('ownerIndexFieldUsagesTransformer', () => {
       expect(
         ownerIndexFieldUsagesTransformer({
           ownerIndex,
-          contractName: IdentifierStub({ value: 'thingContract' }),
-          key: IdentifierStub({ value: 'id' }),
+          contractName: 'thingContract',
+          key: 'id',
         }),
       ).toStrictEqual([]);
     });

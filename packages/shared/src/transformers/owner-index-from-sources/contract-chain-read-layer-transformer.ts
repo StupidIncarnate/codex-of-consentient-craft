@@ -9,8 +9,6 @@
  */
 import * as ts from '#gateway/npm/typescript';
 
-import { identifierContract } from '../../contracts/identifier/identifier-contract';
-import type { Identifier } from '../../contracts/identifier/identifier-contract';
 import { ownerIndexStatics } from '../../statics/owner-index/owner-index-statics';
 
 export const contractChainReadLayerTransformer = ({
@@ -18,10 +16,10 @@ export const contractChainReadLayerTransformer = ({
 }: {
   node: ts.Node;
 }): {
-  brandText: Identifier | undefined;
-  shapeContractName: Identifier | undefined;
-  shapeKey: Identifier | undefined;
-  rootName: Identifier | undefined;
+  brandText: string | undefined;
+  shapeContractName: string | undefined;
+  shapeKey: string | undefined;
+  rootName: string | undefined;
   objectLiteral: ts.Node | undefined;
 } => {
   const empty = {
@@ -37,7 +35,7 @@ export const contractChainReadLayerTransformer = ({
   }
 
   if (ts.isIdentifier(node)) {
-    return { ...empty, rootName: identifierContract.parse(node.text) };
+    return { ...empty, rootName: node.text };
   }
 
   if (ts.isPropertyAccessExpression(node)) {
@@ -49,9 +47,9 @@ export const contractChainReadLayerTransformer = ({
     ) {
       return {
         ...empty,
-        shapeContractName: identifierContract.parse(inner.expression.text),
-        shapeKey: identifierContract.parse(node.name.text),
-        rootName: identifierContract.parse(inner.expression.text),
+        shapeContractName: inner.expression.text,
+        shapeKey: node.name.text,
+        rootName: inner.expression.text,
       };
     }
     return contractChainReadLayerTransformer({ node: inner });
@@ -67,7 +65,7 @@ export const contractChainReadLayerTransformer = ({
       const [argument] = node.arguments;
       return {
         ...empty,
-        rootName: identifierContract.parse('z'),
+        rootName: 'z',
         objectLiteral:
           argument !== undefined && ts.isObjectLiteralExpression(argument) ? argument : undefined,
       };
@@ -82,7 +80,7 @@ export const contractChainReadLayerTransformer = ({
     const ownBrand =
       quotedText?.groups?.text === undefined
         ? undefined
-        : identifierContract.parse(quotedText.groups.text);
+        : quotedText.groups.text;
     return { ...inner, brandText: ownBrand ?? inner.brandText };
   }
 

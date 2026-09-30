@@ -13,15 +13,14 @@
 import { z } from '#gateway/npm/zod';
 
 import { absoluteFilePathContract } from '../absolute-file-path/absolute-file-path-contract';
-import { identifierContract } from '../identifier/identifier-contract';
 import { packageNameContract } from '../package-name/package-name-contract';
 
 export const ownerIndexEnumContract = z.object({
-  ownerName: identifierContract,
-  contractName: identifierContract,
+  ownerName: z.string().brand<'OwnerIndexEnumOwnerName'>(),
+  contractName: z.string().brand<'OwnerIndexEnumContractName'>(),
   filePath: absoluteFilePathContract,
   packageName: packageNameContract,
-  key: identifierContract.optional(),
+  key: z.string().brand<'OwnerIndexEnumKey'>().optional(),
   values: z.array(z.string().brand<'OwnerIndexEnumValues'>()),
 });
 

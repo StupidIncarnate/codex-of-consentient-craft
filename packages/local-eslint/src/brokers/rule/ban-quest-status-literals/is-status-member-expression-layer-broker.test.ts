@@ -1,6 +1,5 @@
 import { IdentifierStub as IdentifierNodeStub } from '#gateway/npm/typescript-eslint__utils/identifier/identifier.stub';
 import { MemberExpressionStub } from '#gateway/npm/typescript-eslint__utils/member-expression/member-expression.stub';
-import { IdentifierStub } from '@dungeonmaster/shared/contracts/identifier/identifier.stub';
 import { isStatusMemberExpressionLayerBrokerProxy } from './is-status-member-expression-layer-broker.proxy';
 
 describe('isStatusMemberExpressionLayerBroker', () => {
@@ -100,7 +99,7 @@ describe('isStatusMemberExpressionLayerBroker', () => {
       expect(
         proxy.isStatusMemberExpressionLayerBroker({
           node,
-          extraAllowlist: [IdentifierStub({ value: 'user' })],
+          extraAllowlist: ['user'],
         }),
       ).toBe(true);
     });

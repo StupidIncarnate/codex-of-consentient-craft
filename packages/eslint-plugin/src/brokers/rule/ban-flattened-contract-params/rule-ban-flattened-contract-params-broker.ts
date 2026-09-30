@@ -11,8 +11,6 @@
  */
 import { AST_NODE_TYPES } from '#gateway/npm/typescript-eslint__utils';
 import type { TSESLint, TSESTree } from '#gateway/npm/typescript-eslint__utils';
-import { identifierContract } from '@dungeonmaster/shared/contracts';
-import type { Identifier } from '@dungeonmaster/shared/contracts';
 import { flattenedContractParamsStatics } from '../../../statics/flattened-contract-params/flattened-contract-params-statics';
 import { shouldExcludeFileFromProjectStructureRulesGuard } from '../../../guards/should-exclude-file-from-project-structure-rules/should-exclude-file-from-project-structure-rules-guard';
 import { hasFileSuffixGuard } from '../../../guards/has-file-suffix/has-file-suffix-guard';
@@ -51,13 +49,13 @@ export const ruleBanFlattenedContractParamsBroker =
       // block node -> host type text -> property text -> the node to report at.
       // Accumulated across visits and drained at Program:exit, because a block is only a violation
       // once every one of its members has been seen.
-      const blocks = new Map<TSESTree.Node, Map<Identifier, Map<Identifier, TSESTree.Node>>>();
+      const blocks = new Map<TSESTree.Node, Map<string, Map<string, TSESTree.Node>>>();
 
       return {
         TSIndexedAccessType: (node: TSESTree.TSIndexedAccessType): void => {
           const source = ctx.sourceCode;
 
-          const host = identifierContract.parse(source.getText(node.objectType));
+          const host = source.getText(node.objectType);
 
           // The exemption is decided on the BASE name, never the rendered text. `ReturnType<typeof
           // fooProxy>` is a ReturnType and must stay exempt, and `React.AriaAttributes` is a React
@@ -89,11 +87,11 @@ export const ruleBanFlattenedContractParamsBroker =
             return;
           }
 
-          const property = identifierContract.parse(source.getText(node.indexType));
+          const property = source.getText(node.indexType);
 
           const hostsInBlock =
-            blocks.get(block) ?? new Map<Identifier, Map<Identifier, TSESTree.Node>>();
-          const propertiesForHost = hostsInBlock.get(host) ?? new Map<Identifier, TSESTree.Node>();
+            blocks.get(block) ?? new Map<string, Map<string, TSESTree.Node>>();
+          const propertiesForHost = hostsInBlock.get(host) ?? new Map<string, TSESTree.Node>();
           // First occurrence wins the report position, so the message points at the top of the run.
           if (!propertiesForHost.has(property)) {
             propertiesForHost.set(property, node);

@@ -14,7 +14,6 @@
  */
 import * as ts from '#gateway/npm/typescript';
 
-import type { Identifier } from '../../contracts/identifier/identifier-contract';
 import { lengthPickDetectLayerTransformer } from './length-pick-detect-layer-transformer';
 import { phantomInterfaceDetectLayerTransformer } from './phantom-interface-detect-layer-transformer';
 import { typeAliasResolveLayerTransformer } from './type-alias-resolve-layer-transformer';
@@ -32,10 +31,10 @@ export const typeNodeShapeClassifyLayerTransformer = ({
   visitedNames = [],
 }: {
   node: ts.Node;
-  schemaNames: readonly Identifier[];
-  typeAliases?: readonly { name: Identifier; node: ts.Node }[];
-  uniqueSymbolNames?: readonly Identifier[];
-  visitedNames?: readonly Identifier[];
+  schemaNames: readonly string[];
+  typeAliases?: readonly { name: string; node: ts.Node }[];
+  uniqueSymbolNames?: readonly string[];
+  visitedNames?: readonly string[];
 }): 'inferred' | 'functions' | 'data-plus-functions' | 'phantom' | 'other' => {
   if (ts.isParenthesizedTypeNode(node)) {
     return typeNodeShapeClassifyLayerTransformer({

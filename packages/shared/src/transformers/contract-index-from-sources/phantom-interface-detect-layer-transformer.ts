@@ -9,14 +9,13 @@
  */
 import * as ts from '#gateway/npm/typescript';
 
-import type { Identifier } from '../../contracts/identifier/identifier-contract';
 
 export const phantomInterfaceDetectLayerTransformer = ({
   declaration,
   uniqueSymbolNames,
 }: {
   declaration: ts.InterfaceDeclaration;
-  uniqueSymbolNames: readonly Identifier[];
+  uniqueSymbolNames: readonly string[];
 }): boolean =>
   declaration.heritageClauses === undefined &&
   declaration.members.length > 0 &&

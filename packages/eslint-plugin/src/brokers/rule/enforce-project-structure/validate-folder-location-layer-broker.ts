@@ -6,7 +6,6 @@
  * // Returns true if folder location is valid, false if validation failed (error reported)
  */
 import type { TSESLint, TSESTree } from '#gateway/npm/typescript-eslint__utils';
-import type { Identifier } from '@dungeonmaster/shared/contracts';
 import { folderConfigStatics } from '@dungeonmaster/shared/statics';
 import { forbiddenFolderStatics } from '../../../statics/forbidden-folder/forbidden-folder-statics';
 import { forbiddenFolderSuggestionTransformer } from '../../../transformers/forbidden-folder-suggestion/forbidden-folder-suggestion-transformer';
@@ -22,7 +21,7 @@ export const validateFolderLocationLayerBroker = ({
 }: {
   node: TSESTree.Node;
   context: TSESLint.RuleContext<string, unknown[]>;
-  firstFolder: Identifier;
+  firstFolder: string;
   folderConfig: (typeof folderConfigStatics)[keyof typeof folderConfigStatics];
   isLayerFile: boolean;
 }): boolean => {

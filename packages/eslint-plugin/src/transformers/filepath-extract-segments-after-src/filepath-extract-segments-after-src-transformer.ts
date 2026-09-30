@@ -13,16 +13,15 @@
  *
  * WHEN-TO-USE: When validating folder depth or structure after src directory
  */
-import { identifierContract, type Identifier } from '@dungeonmaster/shared/contracts';
 
 export const filepathExtractSegmentsAfterSrcTransformer = ({
   filePath,
 }: {
   filePath: string;
-}): Identifier[] => {
+}): string[] => {
   const [, afterSrc] = filePath.split('/src/');
   if (!afterSrc) return [];
   const parts = afterSrc.split('/');
   const folders = parts.slice(0, -1); // Remove filename, keep folders
-  return folders.map((folder) => identifierContract.parse(folder));
+  return folders.map((folder) => folder);
 };

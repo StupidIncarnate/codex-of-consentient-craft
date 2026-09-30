@@ -12,16 +12,15 @@
 import { z } from '#gateway/npm/zod';
 
 import { absoluteFilePathContract } from '../absolute-file-path/absolute-file-path-contract';
-import { identifierContract } from '../identifier/identifier-contract';
 import { ownerIndexFieldContract } from '../owner-index-field/owner-index-field-contract';
 import { packageNameContract } from '../package-name/package-name-contract';
 
 export const ownerIndexOwnerContract = z.object({
-  ownerName: identifierContract,
-  contractName: identifierContract,
+  ownerName: z.string().brand<'OwnerIndexOwnerOwnerName'>(),
+  contractName: z.string().brand<'OwnerIndexOwnerContractName'>(),
   filePath: absoluteFilePathContract,
   packageName: packageNameContract,
-  typeName: identifierContract.optional(),
+  typeName: z.string().brand<'OwnerIndexOwnerTypeName'>().optional(),
   schemaText: z.string().brand<'OwnerIndexOwnerSchemaText'>(),
   fields: z.array(ownerIndexFieldContract),
 });

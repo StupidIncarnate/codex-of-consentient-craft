@@ -9,7 +9,6 @@
  * // Returns Map { 'workItemId' => 'workItemContract' } for `id: workItemId` in workItemContract
  */
 
-import { identifierContract } from '@dungeonmaster/shared/contracts';
 import type { Identifier } from '@dungeonmaster/shared/contracts';
 import { AST_NODE_TYPES } from '#gateway/npm/typescript-eslint__utils';
 import type { TSESTree } from '#gateway/npm/typescript-eslint__utils';
@@ -20,13 +19,13 @@ export const astLocalIdConstsTransformer = ({
   program,
 }: {
   program: TSESTree.Program;
-}): Map<Identifier, Identifier> => {
+}): Map<string, string> => {
   const localNames = new Set(
     astProgramDeclaratorsTransformer({ program, localOnly: true }).map((declarator) =>
       declarator.id.type === AST_NODE_TYPES.Identifier ? declarator.id.name : undefined,
     ),
   );
-  const idConsts = new Map<Identifier, Identifier>();
+  const idConsts = new Map<string, string>();
 
   for (const declarator of astProgramDeclaratorsTransformer({ program, localOnly: false })) {
     const ownerName =
@@ -47,8 +46,8 @@ export const astLocalIdConstsTransformer = ({
         localNames.has(property.value.name)
       ) {
         idConsts.set(
-          identifierContract.parse(property.value.name),
-          identifierContract.parse(ownerName),
+          property.value.name,
+          ownerName,
         );
       }
     }

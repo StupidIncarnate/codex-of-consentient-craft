@@ -7,7 +7,6 @@
  * // Returns 'questId' for `{ questId: 1 }`, null for `{ [key]: 1 }`
  */
 
-import { identifierContract } from '@dungeonmaster/shared/contracts';
 import type { Identifier } from '@dungeonmaster/shared/contracts';
 import { AST_NODE_TYPES } from '#gateway/npm/typescript-eslint__utils';
 import type { TSESTree } from '#gateway/npm/typescript-eslint__utils';
@@ -16,9 +15,9 @@ export const astPropertyKeyNameTransformer = ({
   property,
 }: {
   property: TSESTree.Property;
-}): Identifier | null => {
+}): string | null => {
   if (property.computed || property.key.type !== AST_NODE_TYPES.Identifier) {
     return null;
   }
-  return identifierContract.parse(property.key.name);
+  return property.key.name;
 };

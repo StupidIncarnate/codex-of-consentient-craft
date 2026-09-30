@@ -5,11 +5,9 @@
  * const proxyName = implementationNameToProxyNameTransformer({ implementationName: 'userBroker' });
  * // Returns 'userBrokerProxy'
  */
-import type { Identifier } from '@dungeonmaster/shared/contracts';
-import { identifierContract } from '@dungeonmaster/shared/contracts';
 
 export const implementationNameToProxyNameTransformer = ({
   implementationName,
 }: {
   implementationName: string;
-}): Identifier => identifierContract.parse(`${implementationName}Proxy`);
+}): string => `${implementationName}Proxy`;

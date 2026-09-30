@@ -6,7 +6,6 @@
  * // Reports error if return object exposes child proxy via shorthand { childProxy } or explicit { child: childProxy }
  */
 import type { Identifier } from '@dungeonmaster/shared/contracts';
-import { identifierContract } from '@dungeonmaster/shared/contracts';
 import { AST_NODE_TYPES } from '#gateway/npm/typescript-eslint__utils';
 import type { TSESLint, TSESTree } from '#gateway/npm/typescript-eslint__utils';
 
@@ -16,7 +15,7 @@ export const validateNoExposedChildProxiesLayerBroker = ({
   context,
 }: {
   objectNode: TSESTree.ObjectExpression;
-  proxyVariables: Map<Identifier, Identifier>;
+  proxyVariables: Map<string, string>;
   context: TSESLint.RuleContext<string, unknown[]>;
 }): void => {
   for (const property of objectNode.properties) {
@@ -26,7 +25,7 @@ export const validateNoExposedChildProxiesLayerBroker = ({
 
     // Check shorthand: { fooProxy }
     if (shorthand && key.type === AST_NODE_TYPES.Identifier) {
-      const proxyName = identifierContract.parse(key.name);
+      const proxyName = key.name;
       if (proxyVariables.has(proxyName)) {
         context.report({
           node: property,
@@ -38,7 +37,7 @@ export const validateNoExposedChildProxiesLayerBroker = ({
 
     // Check explicit: { child: fooProxy }
     if (!shorthand && value.type === AST_NODE_TYPES.Identifier) {
-      const valueName = identifierContract.parse(value.name);
+      const valueName = value.name;
       if (proxyVariables.has(valueName)) {
         context.report({
           node: property,

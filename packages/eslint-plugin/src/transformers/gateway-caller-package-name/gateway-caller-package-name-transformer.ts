@@ -14,8 +14,6 @@
  * gatewayCallerPackageNameTransformer({ filename: '/repo/packages/@gateway/node/src/fs/fs.ts' });
  * // Returns 'node' as branded Identifier
  */
-import { identifierContract } from '@dungeonmaster/shared/contracts';
-import type { Identifier } from '@dungeonmaster/shared/contracts';
 
 const GATEWAY_SEGMENT = '@gateway';
 const PACKAGES_SEGMENT = 'packages';
@@ -26,7 +24,7 @@ export const gatewayCallerPackageNameTransformer = ({
   filename,
 }: {
   filename: string;
-}): Identifier | undefined => {
+}): string | undefined => {
   const segments = filename.split('/');
   const packagesIndex = segments.lastIndexOf(PACKAGES_SEGMENT);
 
@@ -41,5 +39,5 @@ export const gatewayCallerPackageNameTransformer = ({
 
   const folderName =
     next === GATEWAY_SEGMENT ? segments[packagesIndex + GATEWAY_FOLDER_OFFSET] : next;
-  return folderName === undefined ? undefined : identifierContract.parse(folderName);
+  return folderName === undefined ? undefined : folderName;
 };

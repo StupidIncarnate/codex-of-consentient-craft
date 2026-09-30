@@ -1,4 +1,3 @@
-import { IdentifierStub } from '@dungeonmaster/shared/contracts/identifier/identifier.stub';
 import { collectGatewayTypeDeclarationNamesLayerBroker } from './collect-gateway-type-declaration-names-layer-broker';
 import { collectGatewayTypeDeclarationNamesLayerBrokerProxy } from './collect-gateway-type-declaration-names-layer-broker.proxy';
 
@@ -31,7 +30,7 @@ describe('collectGatewayTypeDeclarationNamesLayerBroker', () => {
         index: new Map(),
       });
 
-      expect(index.get(IdentifierStub({ value: 'WalkedFile' }))).toStrictEqual([walkedFilePath]);
+      expect(index.get('WalkedFile')).toStrictEqual([walkedFilePath]);
     });
   });
 
@@ -63,7 +62,7 @@ describe('collectGatewayTypeDeclarationNamesLayerBroker', () => {
         index: new Map(),
       });
 
-      expect(index.get(IdentifierStub({ value: 'Stats' }))).toStrictEqual([firstFile, secondFile]);
+      expect(index.get('Stats')).toStrictEqual([firstFile, secondFile]);
     });
   });
 

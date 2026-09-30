@@ -2,7 +2,6 @@ import { RuleContextStub } from '#gateway/npm/typescript-eslint__utils/rule-cont
 import { ProgramStub } from '#gateway/npm/typescript-eslint__utils/program/program.stub';
 import { validateFolderLocationLayerBroker } from './validate-folder-location-layer-broker';
 import { validateFolderLocationLayerBrokerProxy } from './validate-folder-location-layer-broker.proxy';
-import { IdentifierStub } from '@dungeonmaster/shared/contracts/identifier/identifier.stub';
 import { folderConfigStatics } from '@dungeonmaster/shared/statics';
 
 const allowedFolders = Object.keys(folderConfigStatics);
@@ -14,7 +13,7 @@ describe('validateFolderLocationLayerBroker', () => {
       const mockReport = jest.fn();
       const context = RuleContextStub({ report: mockReport });
       const node = ProgramStub({ code: '' });
-      const firstFolder = IdentifierStub({ value: 'brokers' });
+      const firstFolder = 'brokers';
 
       const result = validateFolderLocationLayerBroker({
         node,
@@ -33,7 +32,7 @@ describe('validateFolderLocationLayerBroker', () => {
       const mockReport = jest.fn();
       const context = RuleContextStub({ report: mockReport });
       const node = ProgramStub({ code: '' });
-      const firstFolder = IdentifierStub({ value: 'contracts' });
+      const firstFolder = 'contracts';
 
       const result = validateFolderLocationLayerBroker({
         node,
@@ -52,7 +51,7 @@ describe('validateFolderLocationLayerBroker', () => {
       const mockReport = jest.fn();
       const context = RuleContextStub({ report: mockReport });
       const node = ProgramStub({ code: '' });
-      const firstFolder = IdentifierStub({ value: 'transformers' });
+      const firstFolder = 'transformers';
 
       const result = validateFolderLocationLayerBroker({
         node,
@@ -73,7 +72,7 @@ describe('validateFolderLocationLayerBroker', () => {
       const mockReport = jest.fn();
       const context = RuleContextStub({ report: mockReport });
       const node = ProgramStub({ code: '' });
-      const firstFolder = IdentifierStub({ value: 'brokers' });
+      const firstFolder = 'brokers';
 
       const result = validateFolderLocationLayerBroker({
         node,
@@ -92,7 +91,7 @@ describe('validateFolderLocationLayerBroker', () => {
       const mockReport = jest.fn();
       const context = RuleContextStub({ report: mockReport });
       const node = ProgramStub({ code: '' });
-      const firstFolder = IdentifierStub({ value: 'widgets' });
+      const firstFolder = 'widgets';
 
       const result = validateFolderLocationLayerBroker({
         node,
@@ -111,7 +110,7 @@ describe('validateFolderLocationLayerBroker', () => {
       const mockReport = jest.fn();
       const context = RuleContextStub({ report: mockReport });
       const node = ProgramStub({ code: '' });
-      const firstFolder = IdentifierStub({ value: 'responders' });
+      const firstFolder = 'responders';
 
       const result = validateFolderLocationLayerBroker({
         node,
@@ -130,7 +129,7 @@ describe('validateFolderLocationLayerBroker', () => {
       const mockReport = jest.fn();
       const context = RuleContextStub({ report: mockReport });
       const node = ProgramStub({ code: '' });
-      const firstFolder = IdentifierStub({ value: 'bindings' });
+      const firstFolder = 'bindings';
 
       const result = validateFolderLocationLayerBroker({
         node,
@@ -149,7 +148,7 @@ describe('validateFolderLocationLayerBroker', () => {
       const mockReport = jest.fn();
       const context = RuleContextStub({ report: mockReport });
       const node = ProgramStub({ code: '' });
-      const firstFolder = IdentifierStub({ value: 'contracts' });
+      const firstFolder = 'contracts';
 
       const result = validateFolderLocationLayerBroker({
         node,
@@ -168,7 +167,7 @@ describe('validateFolderLocationLayerBroker', () => {
       const mockReport = jest.fn();
       const context = RuleContextStub({ report: mockReport });
       const node = ProgramStub({ code: '' });
-      const firstFolder = IdentifierStub({ value: 'transformers' });
+      const firstFolder = 'transformers';
 
       const result = validateFolderLocationLayerBroker({
         node,
@@ -187,7 +186,7 @@ describe('validateFolderLocationLayerBroker', () => {
       const mockReport = jest.fn();
       const context = RuleContextStub({ report: mockReport });
       const node = ProgramStub({ code: '' });
-      const firstFolder = IdentifierStub({ value: 'statics' });
+      const firstFolder = 'statics';
 
       const result = validateFolderLocationLayerBroker({
         node,
@@ -208,7 +207,7 @@ describe('validateFolderLocationLayerBroker', () => {
       const mockReport = jest.fn();
       const context = RuleContextStub({ report: mockReport });
       const node = ProgramStub({ code: '' });
-      const firstFolder = IdentifierStub({ value: 'utils' });
+      const firstFolder = 'utils';
 
       const result = validateFolderLocationLayerBroker({
         node,
@@ -232,7 +231,7 @@ describe('validateFolderLocationLayerBroker', () => {
       const mockReport = jest.fn();
       const context = RuleContextStub({ report: mockReport });
       const node = ProgramStub({ code: '' });
-      const firstFolder = IdentifierStub({ value: 'lib' });
+      const firstFolder = 'lib';
 
       const result = validateFolderLocationLayerBroker({
         node,
@@ -256,7 +255,7 @@ describe('validateFolderLocationLayerBroker', () => {
       const mockReport = jest.fn();
       const context = RuleContextStub({ report: mockReport });
       const node = ProgramStub({ code: '' });
-      const firstFolder = IdentifierStub({ value: 'helpers' });
+      const firstFolder = 'helpers';
 
       const result = validateFolderLocationLayerBroker({
         node,
@@ -280,7 +279,7 @@ describe('validateFolderLocationLayerBroker', () => {
       const mockReport = jest.fn();
       const context = RuleContextStub({ report: mockReport });
       const node = ProgramStub({ code: '' });
-      const firstFolder = IdentifierStub({ value: 'services' });
+      const firstFolder = 'services';
 
       const result = validateFolderLocationLayerBroker({
         node,
@@ -304,7 +303,7 @@ describe('validateFolderLocationLayerBroker', () => {
       const mockReport = jest.fn();
       const context = RuleContextStub({ report: mockReport });
       const node = ProgramStub({ code: '' });
-      const firstFolder = IdentifierStub({ value: 'types' });
+      const firstFolder = 'types';
 
       const result = validateFolderLocationLayerBroker({
         node,
@@ -330,7 +329,7 @@ describe('validateFolderLocationLayerBroker', () => {
       const mockReport = jest.fn();
       const context = RuleContextStub({ report: mockReport });
       const node = ProgramStub({ code: '' });
-      const firstFolder = IdentifierStub({ value: 'unknown-folder' });
+      const firstFolder = 'unknown-folder';
 
       const result = validateFolderLocationLayerBroker({
         node,
@@ -356,7 +355,7 @@ describe('validateFolderLocationLayerBroker', () => {
       const mockReport = jest.fn();
       const context = RuleContextStub({ report: mockReport });
       const node = ProgramStub({ code: '' });
-      const firstFolder = IdentifierStub({ value: 'guards' });
+      const firstFolder = 'guards';
 
       const result = validateFolderLocationLayerBroker({
         node,
@@ -380,7 +379,7 @@ describe('validateFolderLocationLayerBroker', () => {
       const mockReport = jest.fn();
       const context = RuleContextStub({ report: mockReport });
       const node = ProgramStub({ code: '' });
-      const firstFolder = IdentifierStub({ value: 'state' });
+      const firstFolder = 'state';
 
       const result = validateFolderLocationLayerBroker({
         node,
@@ -404,7 +403,7 @@ describe('validateFolderLocationLayerBroker', () => {
       const mockReport = jest.fn();
       const context = RuleContextStub({ report: mockReport });
       const node = ProgramStub({ code: '' });
-      const firstFolder = IdentifierStub({ value: 'middleware' });
+      const firstFolder = 'middleware';
 
       const result = validateFolderLocationLayerBroker({
         node,

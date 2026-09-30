@@ -1,6 +1,5 @@
 import { RuleContextStub } from '#gateway/npm/typescript-eslint__utils/rule-context/rule-context.stub';
 import { ProgramStub } from '#gateway/npm/typescript-eslint__utils/program/program.stub';
-import { IdentifierStub } from '@dungeonmaster/shared/contracts/identifier/identifier.stub';
 import { ImportPathStub } from '@dungeonmaster/shared/contracts/import-path/import-path.stub';
 import { barrelCompletenessLayerBroker } from './barrel-completeness-layer-broker';
 import { barrelCompletenessLayerBrokerProxy } from './barrel-completeness-layer-broker.proxy';
@@ -54,11 +53,11 @@ describe('barrelCompletenessLayerBroker', () => {
       subpathDirectory,
       reexports: [
         {
-          name: IdentifierStub({ value: 'isFsError' }),
+          name: 'isFsError',
           source: ImportPathStub({ value: './is-fs-error/is-fs-error' }),
         },
         {
-          name: IdentifierStub({ value: 'FsError' }),
+          name: 'FsError',
           source: ImportPathStub({ value: './is-fs-error/fs-error' }),
         },
       ],
@@ -117,7 +116,7 @@ describe('barrelCompletenessLayerBroker', () => {
 
     proxy.fsReaddirSync.returns({ path: subpathDirectory, entries: [] });
 
-    const name = IdentifierStub({ value: 'createSocket' });
+    const name = 'createSocket';
     const source = ImportPathStub({ value: './create-socket/create-socket' });
 
     proxy.fsExistsSync.returns({
@@ -159,7 +158,7 @@ describe('barrelCompletenessLayerBroker', () => {
       contents: 'export const startServer = (): void => {};\n',
     });
 
-    const name = IdentifierStub({ value: 'createServer' });
+    const name = 'createServer';
     const source = ImportPathStub({ value: './create-server/create-server' });
 
     const result = barrelCompletenessLayerBroker({
@@ -195,7 +194,7 @@ describe('barrelCompletenessLayerBroker', () => {
       subpathDirectory,
       reexports: [
         {
-          name: IdentifierStub({ value: 'isFsError' }),
+          name: 'isFsError',
           source: ImportPathStub({ value: '../fs/is-fs-error/is-fs-error' }),
         },
       ],
@@ -221,7 +220,7 @@ describe('barrelCompletenessLayerBroker', () => {
       subpathDirectory,
       reexports: [
         {
-          name: IdentifierStub({ value: 'readFileSyncProxy' }),
+          name: 'readFileSyncProxy',
           source: ImportPathStub({ value: './read-file-sync/read-file-sync.proxy' }),
         },
       ],

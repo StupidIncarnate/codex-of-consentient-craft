@@ -8,15 +8,13 @@
  * const anotherName = proxyNameToImplementationNameTransformer({ proxyName: 'httpAdapterProxy' });
  * // Returns: 'httpAdapter'
  */
-import { identifierContract } from '@dungeonmaster/shared/contracts';
-import type { Identifier } from '@dungeonmaster/shared/contracts';
 
 export const proxyNameToImplementationNameTransformer = ({
   proxyName,
 }: {
   proxyName: string;
-}): Identifier => {
+}): string => {
   const implementationName = proxyName.replace(/Proxy$/u, '');
 
-  return identifierContract.parse(implementationName);
+  return implementationName;
 };

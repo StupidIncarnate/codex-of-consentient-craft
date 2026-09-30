@@ -1,5 +1,4 @@
 import { ContractIndexPackageStub } from '../../contracts/contract-index-package/contract-index-package.stub';
-import { IdentifierStub } from '../../contracts/identifier/identifier.stub';
 import { ImportPathStub } from '../../contracts/import-path/import-path.stub';
 import { PackageNameStub } from '../../contracts/package-name/package-name.stub';
 import { contractFileFindLayerTransformer } from './contract-file-find-layer-transformer';
@@ -19,10 +18,10 @@ describe('contractFileFindLayerTransformer', () => {
       const result = contractFileFindLayerTransformer({
         specifier: ImportPathStub({ value: '@repo/shared/src/thing/thing-contract' }),
         fromFile: importer,
-        name: IdentifierStub({ value: 'thingContract' }),
+        name: 'thingContract',
         contractFiles: new Set([contractFile]),
         exportedNamesByFile: new Map([
-          [contractFile, [IdentifierStub({ value: 'thingContract' })]],
+          [contractFile, ['thingContract']],
         ]),
         reExportsByFile: new Map(),
         knownFiles: new Set([contractFile]),
@@ -36,10 +35,10 @@ describe('contractFileFindLayerTransformer', () => {
       const result = contractFileFindLayerTransformer({
         specifier: ImportPathStub({ value: 'zod' }),
         fromFile: importer,
-        name: IdentifierStub({ value: 'z' }),
+        name: 'z',
         contractFiles: new Set([contractFile]),
         exportedNamesByFile: new Map([
-          [contractFile, [IdentifierStub({ value: 'thingContract' })]],
+          [contractFile, ['thingContract']],
         ]),
         reExportsByFile: new Map(),
         knownFiles: new Set([contractFile]),
@@ -55,10 +54,10 @@ describe('contractFileFindLayerTransformer', () => {
       const result = contractFileFindLayerTransformer({
         specifier: ImportPathStub({ value: '@repo/shared/contracts' }),
         fromFile: importer,
-        name: IdentifierStub({ value: 'renamedContract' }),
+        name: 'renamedContract',
         contractFiles: new Set([contractFile]),
         exportedNamesByFile: new Map([
-          [contractFile, [IdentifierStub({ value: 'thingContract' })]],
+          [contractFile, ['thingContract']],
         ]),
         reExportsByFile: new Map([
           [
@@ -66,8 +65,8 @@ describe('contractFileFindLayerTransformer', () => {
             [
               {
                 kind: 'named' as const,
-                exportedName: IdentifierStub({ value: 'renamedContract' }),
-                sourceName: IdentifierStub({ value: 'thingContract' }),
+                exportedName: 'renamedContract',
+                sourceName: 'thingContract',
                 specifier: ImportPathStub({ value: './src/thing/thing-contract' }),
               },
             ],
@@ -84,10 +83,10 @@ describe('contractFileFindLayerTransformer', () => {
       const result = contractFileFindLayerTransformer({
         specifier: ImportPathStub({ value: '@repo/shared/contracts' }),
         fromFile: importer,
-        name: IdentifierStub({ value: 'thingContract' }),
+        name: 'thingContract',
         contractFiles: new Set([contractFile]),
         exportedNamesByFile: new Map([
-          [contractFile, [IdentifierStub({ value: 'thingContract' })]],
+          [contractFile, ['thingContract']],
         ]),
         reExportsByFile: new Map([
           [
@@ -95,8 +94,8 @@ describe('contractFileFindLayerTransformer', () => {
             [
               {
                 kind: 'star' as const,
-                exportedName: IdentifierStub({ value: '*' }),
-                sourceName: IdentifierStub({ value: '*' }),
+                exportedName: '*',
+                sourceName: '*',
                 specifier: ImportPathStub({ value: './src/thing/thing-contract' }),
               },
             ],
@@ -115,11 +114,11 @@ describe('contractFileFindLayerTransformer', () => {
       const result = contractFileFindLayerTransformer({
         specifier: ImportPathStub({ value: '@repo/shared/contracts' }),
         fromFile: importer,
-        name: IdentifierStub({ value: 'thingContract' }),
+        name: 'thingContract',
         contractFiles: new Set([firstContractFile, contractFile]),
         exportedNamesByFile: new Map([
-          [firstContractFile, [IdentifierStub({ value: 'firstContract' })]],
-          [contractFile, [IdentifierStub({ value: 'thingContract' })]],
+          [firstContractFile, ['firstContract']],
+          [contractFile, ['thingContract']],
         ]),
         reExportsByFile: new Map([
           [
@@ -127,14 +126,14 @@ describe('contractFileFindLayerTransformer', () => {
             [
               {
                 kind: 'star' as const,
-                exportedName: IdentifierStub({ value: '*' }),
-                sourceName: IdentifierStub({ value: '*' }),
+                exportedName: '*',
+                sourceName: '*',
                 specifier: ImportPathStub({ value: './src/first/first-contract' }),
               },
               {
                 kind: 'star' as const,
-                exportedName: IdentifierStub({ value: '*' }),
-                sourceName: IdentifierStub({ value: '*' }),
+                exportedName: '*',
+                sourceName: '*',
                 specifier: ImportPathStub({ value: './src/thing/thing-contract' }),
               },
             ],
@@ -151,10 +150,10 @@ describe('contractFileFindLayerTransformer', () => {
       const result = contractFileFindLayerTransformer({
         specifier: ImportPathStub({ value: '@repo/shared/src/thing/thing-contract' }),
         fromFile: importer,
-        name: IdentifierStub({ value: 'otherContract' }),
+        name: 'otherContract',
         contractFiles: new Set([contractFile]),
         exportedNamesByFile: new Map([
-          [contractFile, [IdentifierStub({ value: 'thingContract' })]],
+          [contractFile, ['thingContract']],
         ]),
         reExportsByFile: new Map(),
         knownFiles: new Set([contractFile]),
@@ -168,10 +167,10 @@ describe('contractFileFindLayerTransformer', () => {
       const result = contractFileFindLayerTransformer({
         specifier: ImportPathStub({ value: '@repo/shared/contracts' }),
         fromFile: importer,
-        name: IdentifierStub({ value: 'wantedContract' }),
+        name: 'wantedContract',
         contractFiles: new Set([contractFile]),
         exportedNamesByFile: new Map([
-          [contractFile, [IdentifierStub({ value: 'thingContract' })]],
+          [contractFile, ['thingContract']],
         ]),
         reExportsByFile: new Map([
           [
@@ -179,8 +178,8 @@ describe('contractFileFindLayerTransformer', () => {
             [
               {
                 kind: 'named' as const,
-                exportedName: IdentifierStub({ value: 'thingContract' }),
-                sourceName: IdentifierStub({ value: 'thingContract' }),
+                exportedName: 'thingContract',
+                sourceName: 'thingContract',
                 specifier: ImportPathStub({ value: './src/thing/thing-contract' }),
               },
             ],
@@ -197,10 +196,10 @@ describe('contractFileFindLayerTransformer', () => {
       const result = contractFileFindLayerTransformer({
         specifier: ImportPathStub({ value: '@repo/shared/contracts' }),
         fromFile: importer,
-        name: IdentifierStub({ value: 'thingContract' }),
+        name: 'thingContract',
         contractFiles: new Set([contractFile]),
         exportedNamesByFile: new Map([
-          [contractFile, [IdentifierStub({ value: 'thingContract' })]],
+          [contractFile, ['thingContract']],
         ]),
         reExportsByFile: new Map([
           [
@@ -208,8 +207,8 @@ describe('contractFileFindLayerTransformer', () => {
             [
               {
                 kind: 'star' as const,
-                exportedName: IdentifierStub({ value: '*' }),
-                sourceName: IdentifierStub({ value: '*' }),
+                exportedName: '*',
+                sourceName: '*',
                 specifier: ImportPathStub({ value: './more' }),
               },
             ],
@@ -219,8 +218,8 @@ describe('contractFileFindLayerTransformer', () => {
             [
               {
                 kind: 'star' as const,
-                exportedName: IdentifierStub({ value: '*' }),
-                sourceName: IdentifierStub({ value: '*' }),
+                exportedName: '*',
+                sourceName: '*',
                 specifier: ImportPathStub({ value: './contracts' }),
               },
             ],

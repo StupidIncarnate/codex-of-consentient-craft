@@ -21,7 +21,7 @@ export const collectExportsLayerBroker = ({
   node: TSESTree.Program;
   context: TSESLint.RuleContext<string, unknown[]>;
   filename: string;
-  firstFolder: Identifier;
+  firstFolder: string;
 }): CollectedExport[] | null => {
   const exports: CollectedExport[] = [];
 

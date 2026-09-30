@@ -8,15 +8,13 @@
  * const adapter = singularizeFolderTypeTransformer({ folderType: 'adapters' });
  * // Returns: 'adapter'
  */
-import { identifierContract } from '@dungeonmaster/shared/contracts';
-import type { Identifier } from '@dungeonmaster/shared/contracts';
 
 export const singularizeFolderTypeTransformer = ({
   folderType,
 }: {
   folderType: string;
-}): Identifier => {
+}): string => {
   const singular = folderType.replace(/s$/u, '');
 
-  return identifierContract.parse(singular);
+  return singular;
 };

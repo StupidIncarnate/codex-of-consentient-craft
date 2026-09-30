@@ -8,7 +8,6 @@
 import { AST_NODE_TYPES } from '#gateway/npm/typescript-eslint__utils';
 import type { TSESLint, TSESTree } from '#gateway/npm/typescript-eslint__utils';
 import { existsSync } from '#gateway/node/fs';
-import { identifierContract } from '@dungeonmaster/shared/contracts';
 import type { Identifier } from '@dungeonmaster/shared/contracts';
 import { hasFileSuffixGuard } from '../../../guards/has-file-suffix/has-file-suffix-guard';
 import { isIoBoundaryProxyGuard } from '../../../guards/is-io-boundary-proxy/is-io-boundary-proxy-guard';
@@ -81,14 +80,14 @@ export const ruleEnforceProxyPatternsBroker = (): TSESLint.RuleModule<
     // Track child proxy creations for validation
     const childProxyCreations: {
       node: TSESTree.Node;
-      name: Identifier;
+      name: string;
       isInsideProxyFunction: boolean;
       isBeforeReturn: boolean;
     }[] = [];
 
     // Track proxy variable assignments: const foo = barProxy()
     // Maps variable name -> callee name (both as Identifiers)
-    const proxyVariableAssignments = new Map<Identifier, Identifier>();
+    const proxyVariableAssignments = new Map<string, string>();
 
     let currentProxyFunction: TSESTree.Node | null = null;
     let foundReturnStatement = false;
@@ -171,7 +170,7 @@ export const ruleEnforceProxyPatternsBroker = (): TSESLint.RuleModule<
 
             childProxyCreations.push({
               node,
-              name: identifierContract.parse(calleeName),
+              name: calleeName,
               isInsideProxyFunction,
               isBeforeReturn,
             });
@@ -300,8 +299,8 @@ export const ruleEnforceProxyPatternsBroker = (): TSESLint.RuleModule<
           const calleeName = init.callee.name;
           if (calleeName.endsWith('Proxy')) {
             proxyVariableAssignments.set(
-              identifierContract.parse(id.name),
-              identifierContract.parse(calleeName),
+              id.name,
+              calleeName,
             );
           }
         }

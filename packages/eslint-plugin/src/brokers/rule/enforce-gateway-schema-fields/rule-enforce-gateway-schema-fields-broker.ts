@@ -20,7 +20,6 @@
  * // call), `proc: z.instanceof(Error)` (a global) and a relative- or `@dungeonmaster/*`-imported
  * // type alone.
  */
-import { identifierContract } from '@dungeonmaster/shared/contracts';
 
 import { AST_NODE_TYPES } from '#gateway/npm/typescript-eslint__utils';
 import type { TSESLint, TSESTree } from '#gateway/npm/typescript-eslint__utils';
@@ -100,7 +99,7 @@ export const ruleEnforceGatewaySchemaFieldsBroker =
           }
 
           const importSource = importSourceByLocalName.get(
-            identifierContract.parse(checkedTypeName),
+            checkedTypeName,
           );
 
           // Unresolved (a language global like Error/Uint8Array, never imported), a relative import

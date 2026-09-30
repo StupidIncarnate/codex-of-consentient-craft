@@ -15,7 +15,6 @@
 import { ESLintUtils } from '#gateway/npm/typescript-eslint__utils';
 import type { TSESLint, TSESTree } from '#gateway/npm/typescript-eslint__utils';
 import * as ts from '#gateway/npm/typescript';
-import { identifierContract, type Identifier } from '@dungeonmaster/shared/contracts';
 
 export const typedTypeParameterNameTransformer = ({
   context,
@@ -23,7 +22,7 @@ export const typedTypeParameterNameTransformer = ({
 }: {
   context: unknown;
   node: unknown;
-}): Identifier | undefined => {
+}): string | undefined => {
   const services = ESLintUtils.getParserServices(
     context as Readonly<TSESLint.RuleContext<never, never[]>>,
   );
@@ -31,6 +30,6 @@ export const typedTypeParameterNameTransformer = ({
   const declaration = symbol?.getDeclarations()?.[0];
 
   return declaration !== undefined && ts.isTypeParameterDeclaration(declaration)
-    ? identifierContract.parse(declaration.name.text)
+    ? declaration.name.text
     : undefined;
 };

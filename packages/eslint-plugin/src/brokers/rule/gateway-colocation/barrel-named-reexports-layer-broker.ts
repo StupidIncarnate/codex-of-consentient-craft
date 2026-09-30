@@ -10,7 +10,7 @@
  * barrelNamedReexportsLayerBroker({ node: barrelProgramNode });
  * // Returns [{ name: 'readFileSync', source: './read-file-sync/read-file-sync' }, ...]
  */
-import { identifierContract, importPathContract } from '@dungeonmaster/shared/contracts';
+import { importPathContract } from '@dungeonmaster/shared/contracts';
 import type { Identifier, ImportPath } from '@dungeonmaster/shared/contracts';
 import { AST_NODE_TYPES } from '#gateway/npm/typescript-eslint__utils';
 import type { TSESTree } from '#gateway/npm/typescript-eslint__utils';
@@ -19,8 +19,8 @@ export const barrelNamedReexportsLayerBroker = ({
   node,
 }: {
   node: TSESTree.Program;
-}): { name: Identifier; source: ImportPath }[] => {
-  const reexports: { name: Identifier; source: ImportPath }[] = [];
+}): { name: string; source: ImportPath }[] => {
+  const reexports: { name: string; source: ImportPath }[] = [];
 
   for (const statement of node.body) {
     if (statement.type !== AST_NODE_TYPES.ExportNamedDeclaration || statement.source === null) {
@@ -30,7 +30,7 @@ export const barrelNamedReexportsLayerBroker = ({
     const source = importPathContract.parse(statement.source.value);
     for (const specifier of statement.specifiers) {
       if (specifier.exported.type === AST_NODE_TYPES.Identifier) {
-        reexports.push({ name: identifierContract.parse(specifier.exported.name), source });
+        reexports.push({ name: specifier.exported.name, source });
       }
     }
   }

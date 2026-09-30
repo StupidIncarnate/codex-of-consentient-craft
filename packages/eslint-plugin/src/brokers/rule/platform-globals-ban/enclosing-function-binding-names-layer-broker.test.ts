@@ -2,7 +2,6 @@ import { ExpressionStatementStub } from '#gateway/npm/typescript-eslint__utils/e
 import { IdentifierStub as IdentifierNodeStub } from '#gateway/npm/typescript-eslint__utils/identifier/identifier.stub';
 import { enclosingFunctionBindingNamesLayerBroker } from './enclosing-function-binding-names-layer-broker';
 import { enclosingFunctionBindingNamesLayerBrokerProxy } from './enclosing-function-binding-names-layer-broker.proxy';
-import { IdentifierStub } from '@dungeonmaster/shared/contracts/identifier/identifier.stub';
 
 describe('enclosingFunctionBindingNamesLayerBroker', () => {
   describe('named function declarations', () => {
@@ -12,7 +11,7 @@ describe('enclosingFunctionBindingNamesLayerBroker', () => {
 
       const result = enclosingFunctionBindingNamesLayerBroker({ node });
 
-      expect(result).toStrictEqual([IdentifierStub({ value: 'readFn' })]);
+      expect(result).toStrictEqual(['readFn']);
     });
 
     it('VALID: {identifier inside inner, declared inside outer} => returns [inner, outer]', () => {
@@ -24,8 +23,8 @@ describe('enclosingFunctionBindingNamesLayerBroker', () => {
       const result = enclosingFunctionBindingNamesLayerBroker({ node });
 
       expect(result).toStrictEqual([
-        IdentifierStub({ value: 'inner' }),
-        IdentifierStub({ value: 'outer' }),
+        'inner',
+        'outer',
       ]);
     });
   });
@@ -37,7 +36,7 @@ describe('enclosingFunctionBindingNamesLayerBroker', () => {
 
       const result = enclosingFunctionBindingNamesLayerBroker({ node });
 
-      expect(result).toStrictEqual([IdentifierStub({ value: 'readFn' })]);
+      expect(result).toStrictEqual(['readFn']);
     });
   });
 

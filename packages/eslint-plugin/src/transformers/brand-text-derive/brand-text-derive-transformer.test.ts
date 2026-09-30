@@ -1,4 +1,3 @@
-import { IdentifierStub } from '@dungeonmaster/shared/contracts/identifier/identifier.stub';
 
 import { brandTextDeriveTransformer } from './brand-text-derive-transformer';
 
@@ -6,7 +5,7 @@ describe('brandTextDeriveTransformer', () => {
   describe('owner only', () => {
     it("VALID: {path: ['questContract']} => returns 'Quest'", () => {
       const result = brandTextDeriveTransformer({
-        path: [IdentifierStub({ value: 'questContract' })],
+        path: ['questContract'],
       });
 
       expect(result).toBe('Quest');
@@ -14,7 +13,7 @@ describe('brandTextDeriveTransformer', () => {
 
     it("VALID: {path: ['workItemContract']} => returns 'WorkItem'", () => {
       const result = brandTextDeriveTransformer({
-        path: [IdentifierStub({ value: 'workItemContract' })],
+        path: ['workItemContract'],
       });
 
       expect(result).toBe('WorkItem');
@@ -22,7 +21,7 @@ describe('brandTextDeriveTransformer', () => {
 
     it("EDGE: {path: ['questFields']} => keeps a name with no Contract suffix, capitalised", () => {
       const result = brandTextDeriveTransformer({
-        path: [IdentifierStub({ value: 'questFields' })],
+        path: ['questFields'],
       });
 
       expect(result).toBe('QuestFields');
@@ -32,7 +31,7 @@ describe('brandTextDeriveTransformer', () => {
   describe('owner plus keys', () => {
     it("VALID: {path: ['questContract', 'id']} => returns 'QuestId'", () => {
       const result = brandTextDeriveTransformer({
-        path: [IdentifierStub({ value: 'questContract' }), IdentifierStub({ value: 'id' })],
+        path: ['questContract', 'id'],
       });
 
       expect(result).toBe('QuestId');
@@ -41,8 +40,8 @@ describe('brandTextDeriveTransformer', () => {
     it("VALID: {path: ['workItemContract', 'retryCount']} => returns 'WorkItemRetryCount'", () => {
       const result = brandTextDeriveTransformer({
         path: [
-          IdentifierStub({ value: 'workItemContract' }),
-          IdentifierStub({ value: 'retryCount' }),
+          'workItemContract',
+          'retryCount',
         ],
       });
 
@@ -52,9 +51,9 @@ describe('brandTextDeriveTransformer', () => {
     it("VALID: {path: ['questContract', 'owner', 'name']} => nested keys add in order", () => {
       const result = brandTextDeriveTransformer({
         path: [
-          IdentifierStub({ value: 'questContract' }),
-          IdentifierStub({ value: 'owner' }),
-          IdentifierStub({ value: 'name' }),
+          'questContract',
+          'owner',
+          'name',
         ],
       });
 
@@ -64,8 +63,8 @@ describe('brandTextDeriveTransformer', () => {
     it("VALID: {path: ['ctxContract', 'used_percentage']} => snake_case key becomes PascalCase", () => {
       const result = brandTextDeriveTransformer({
         path: [
-          IdentifierStub({ value: 'ctxContract' }),
-          IdentifierStub({ value: 'used_percentage' }),
+          'ctxContract',
+          'used_percentage',
         ],
       });
 
@@ -75,9 +74,9 @@ describe('brandTextDeriveTransformer', () => {
     it("VALID: {path: ['questContract', 'counts', 'Key']} => record key segment appends", () => {
       const result = brandTextDeriveTransformer({
         path: [
-          IdentifierStub({ value: 'questContract' }),
-          IdentifierStub({ value: 'counts' }),
-          IdentifierStub({ value: 'Key' }),
+          'questContract',
+          'counts',
+          'Key',
         ],
       });
 
@@ -87,9 +86,9 @@ describe('brandTextDeriveTransformer', () => {
     it("VALID: {path: ['questContract', 'span', '0']} => tuple index appends", () => {
       const result = brandTextDeriveTransformer({
         path: [
-          IdentifierStub({ value: 'questContract' }),
-          IdentifierStub({ value: 'span' }),
-          IdentifierStub({ value: '0' }),
+          'questContract',
+          'span',
+          '0',
         ],
       });
 
@@ -98,7 +97,7 @@ describe('brandTextDeriveTransformer', () => {
 
     it("VALID: {path: ['questContract', 'kebab-key']} => kebab-case key becomes PascalCase", () => {
       const result = brandTextDeriveTransformer({
-        path: [IdentifierStub({ value: 'questContract' }), IdentifierStub({ value: 'kebab-key' })],
+        path: ['questContract', 'kebab-key'],
       });
 
       expect(result).toBe('QuestKebabKey');

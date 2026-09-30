@@ -1,4 +1,3 @@
-import { IdentifierStub } from '@dungeonmaster/shared/contracts/identifier/identifier.stub';
 
 import { identifierCamelWordsTransformer } from './identifier-camel-words-transformer';
 
@@ -6,7 +5,7 @@ describe('identifierCamelWordsTransformer', () => {
   describe('camelCase names', () => {
     it("VALID: {identifier: 'questId'} => returns ['quest', 'id']", () => {
       const result = identifierCamelWordsTransformer({
-        identifier: IdentifierStub({ value: 'questId' }),
+        identifier: 'questId',
       });
 
       expect(result).toStrictEqual(['quest', 'id']);
@@ -14,7 +13,7 @@ describe('identifierCamelWordsTransformer', () => {
 
     it("VALID: {identifier: 'parentWorkItemId'} => returns ['parent', 'work', 'item', 'id']", () => {
       const result = identifierCamelWordsTransformer({
-        identifier: IdentifierStub({ value: 'parentWorkItemId' }),
+        identifier: 'parentWorkItemId',
       });
 
       expect(result).toStrictEqual(['parent', 'work', 'item', 'id']);
@@ -22,7 +21,7 @@ describe('identifierCamelWordsTransformer', () => {
 
     it("VALID: {identifier: 'requestId'} => returns ['request', 'id']", () => {
       const result = identifierCamelWordsTransformer({
-        identifier: IdentifierStub({ value: 'requestId' }),
+        identifier: 'requestId',
       });
 
       expect(result).toStrictEqual(['request', 'id']);
@@ -32,7 +31,7 @@ describe('identifierCamelWordsTransformer', () => {
   describe('single words and acronyms', () => {
     it("EDGE: {identifier: 'id'} => returns ['id']", () => {
       const result = identifierCamelWordsTransformer({
-        identifier: IdentifierStub({ value: 'id' }),
+        identifier: 'id',
       });
 
       expect(result).toStrictEqual(['id']);
@@ -40,7 +39,7 @@ describe('identifierCamelWordsTransformer', () => {
 
     it("EDGE: {identifier: 'httpServerId'} => returns ['http', 'server', 'id']", () => {
       const result = identifierCamelWordsTransformer({
-        identifier: IdentifierStub({ value: 'httpServerId' }),
+        identifier: 'httpServerId',
       });
 
       expect(result).toStrictEqual(['http', 'server', 'id']);

@@ -6,8 +6,6 @@
  * // Returns true if filename is valid, false if validation failed (errors reported)
  */
 import type { TSESLint, TSESTree } from '#gateway/npm/typescript-eslint__utils';
-import type { Identifier } from '@dungeonmaster/shared/contracts';
-import { identifierContract } from '@dungeonmaster/shared/contracts';
 import type { folderConfigStatics } from '@dungeonmaster/shared/statics';
 import { hasFileSuffixGuard } from '../../../guards/has-file-suffix/has-file-suffix-guard';
 import { isKebabCaseGuard } from '../../../guards/is-kebab-case/is-kebab-case-guard';
@@ -28,7 +26,7 @@ export const validateFilenameLayerBroker = ({
   node: TSESTree.Node;
   context: TSESLint.RuleContext<string, unknown[]>;
   filename: string;
-  firstFolder: Identifier;
+  firstFolder: string;
   folderConfig: (typeof folderConfigStatics)[keyof typeof folderConfigStatics];
   isLayerFile: boolean;
 }): boolean => {
@@ -73,9 +71,7 @@ export const validateFilenameLayerBroker = ({
       const baseSuffixToRemove = removeFileExtensionTransformer({
         filename: baseSuffixStr,
       });
-      actualFilenamePrefix = identifierContract.parse(
-        filenameBase.replace(new RegExp(`${baseSuffixToRemove}$`, 'u'), ''),
-      );
+      actualFilenamePrefix = filenameBase.replace(new RegExp(`${baseSuffixToRemove}$`, 'u'), '');
     }
 
     if (actualFilenamePrefix !== expectedFilenamePrefix) {

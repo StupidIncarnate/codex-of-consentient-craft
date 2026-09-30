@@ -9,12 +9,10 @@
  *
  * WHEN-TO-USE: When extracting domain names from kebab-case file names
  */
-import { identifierContract } from '@dungeonmaster/shared/contracts';
-import type { Identifier } from '@dungeonmaster/shared/contracts';
 
-export const extractFirstSegmentTransformer = ({ str }: { str: string }): Identifier => {
+export const extractFirstSegmentTransformer = ({ str }: { str: string }): string => {
   const match = /^([^-]+)/u.exec(str);
   const segment = match ? match[1] : '';
 
-  return identifierContract.parse(segment);
+  return segment;
 };

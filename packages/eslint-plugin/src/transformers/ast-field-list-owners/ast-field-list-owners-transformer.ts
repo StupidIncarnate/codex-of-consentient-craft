@@ -8,7 +8,6 @@
  * astFieldListOwnersTransformer({ program: programNode });
  * // Returns Map { 'treeNodeFields' => 'treeNodeContract' }
  */
-import { identifierContract } from '@dungeonmaster/shared/contracts';
 import type { Identifier } from '@dungeonmaster/shared/contracts';
 import { AST_NODE_TYPES } from '#gateway/npm/typescript-eslint__utils';
 import type { TSESTree } from '#gateway/npm/typescript-eslint__utils';
@@ -19,13 +18,13 @@ export const astFieldListOwnersTransformer = ({
   program,
 }: {
   program: TSESTree.Program;
-}): Map<Identifier, Identifier> => {
+}): Map<string, string> => {
   const localNames = new Set(
     astProgramDeclaratorsTransformer({ program, localOnly: true }).map((declarator) =>
       declarator.id.type === AST_NODE_TYPES.Identifier ? declarator.id.name : undefined,
     ),
   );
-  const owners = new Map<Identifier, Identifier>();
+  const owners = new Map<string, string>();
 
   for (const declarator of astProgramDeclaratorsTransformer({ program, localOnly: false })) {
     const ownerName =
@@ -47,8 +46,8 @@ export const astFieldListOwnersTransformer = ({
         localNames.has(spread.argument.object.name)
       ) {
         owners.set(
-          identifierContract.parse(spread.argument.object.name),
-          identifierContract.parse(ownerName),
+          spread.argument.object.name,
+          ownerName,
         );
       }
     }

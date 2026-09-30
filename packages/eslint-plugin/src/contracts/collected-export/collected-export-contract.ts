@@ -7,11 +7,10 @@
  * // Used by collect-exports-layer-broker and validate-export-layer-broker
  */
 import { z } from '#gateway/npm/zod';
-import { identifierContract } from '@dungeonmaster/shared/contracts';
 
 export const collectedExportContract = z.object({
   type: z.string().brand<'TsestreeNodeType'>(),
-  name: identifierContract.optional(),
+  name: z.string().brand<'CollectedExportName'>().optional(),
   isTypeOnly: z.boolean(),
 });
 

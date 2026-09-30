@@ -1,6 +1,5 @@
 import { Linter } from '#gateway/npm/eslint';
 import * as tsParser from '#gateway/npm/typescript-eslint__parser';
-import { IdentifierStub } from '@dungeonmaster/shared/contracts/identifier/identifier.stub';
 import { voidSinkSpyLayerBroker } from './void-sink-spy-layer-broker';
 
 describe('voidSinkSpyLayerBroker', () => {
@@ -19,7 +18,7 @@ describe('voidSinkSpyLayerBroker', () => {
     ['INVALID: {stderr not imported, write} => false', 'stderr', 'write', false, ['stdout']],
     ['INVALID: {imported stderr, on} => false', 'stderr', 'on', false, ['stderr']],
   ])('%s', (_name, objectCode, method, expected, sinkNames: string[] = []) => {
-    const gatewaySinkNames = new Set(sinkNames.map((name) => IdentifierStub({ value: name })));
+    const gatewaySinkNames = new Set(sinkNames.map((name) => name));
     const found: boolean[] = [];
     const linter = new Linter({ configType: 'flat' });
 

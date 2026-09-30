@@ -5,14 +5,12 @@
  * const folderType = projectFolderTypeFromFilePathTransformer({ filename: '/project/src/brokers/user/fetch.ts' });
  * // Returns 'brokers'
  */
-import type { Identifier } from '@dungeonmaster/shared/contracts';
-import { identifierContract } from '@dungeonmaster/shared/contracts';
 
 export const projectFolderTypeFromFilePathTransformer = ({
   filename,
 }: {
   filename: string;
-}): Identifier | null => {
+}): string | null => {
   const [, pathAfterSrc] = filename.split('/src/');
 
   if (pathAfterSrc === undefined || pathAfterSrc === '' || !pathAfterSrc.includes('/')) {
@@ -25,5 +23,5 @@ export const projectFolderTypeFromFilePathTransformer = ({
     return null;
   }
 
-  return identifierContract.parse(firstFolder);
+  return firstFolder;
 };

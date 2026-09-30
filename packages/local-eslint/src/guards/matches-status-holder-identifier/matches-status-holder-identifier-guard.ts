@@ -13,19 +13,18 @@
  *
  * WHEN-TO-USE: Only the ban-quest-status-literals rule / its helpers should call this.
  */
-import { identifierContract, type Identifier } from '@dungeonmaster/shared/contracts';
 import { statusLiteralStatics } from '../../statics/status-literal/status-literal-statics';
 
-const defaultHolderNames: readonly Identifier[] =
-  statusLiteralStatics.defaultStatusHolderIdentifiers.map((name) => identifierContract.parse(name));
+const defaultHolderNames: readonly string[] =
+  statusLiteralStatics.defaultStatusHolderIdentifiers.map((name) => name);
 const holderSuffixRegex = new RegExp(statusLiteralStatics.statusHolderIdentifierSuffixPattern, 'u');
 
 export const matchesStatusHolderIdentifierGuard = ({
   identifierName,
   extraAllowlist,
 }: {
-  identifierName?: Identifier;
-  extraAllowlist?: readonly Identifier[];
+  identifierName?: string;
+  extraAllowlist?: readonly string[];
 }): boolean => {
   if (identifierName === undefined || identifierName.length === 0) {
     return false;

@@ -12,8 +12,6 @@
  * const rule = ruleBanJoinIdBesideChildBroker();
  * // Flags `questId` in `z.object({ quest: questContract, questId: questContract.shape.id })`
  */
-import { identifierContract } from '@dungeonmaster/shared/contracts';
-import type { Identifier } from '@dungeonmaster/shared/contracts';
 import { AST_NODE_TYPES } from '#gateway/npm/typescript-eslint__utils';
 import type { TSESLint, TSESTree } from '#gateway/npm/typescript-eslint__utils';
 import { isFileInFolderTypeGuard } from '../../../guards/is-file-in-folder-type/is-file-in-folder-type-guard';
@@ -72,7 +70,7 @@ export const ruleBanJoinIdBesideChildBroker = (): TSESLint.RuleModule<'joinIdBes
           }));
 
         // A key that holds a contract whole: a bare identifier, so not optional, nullable or defaulted.
-        const children: { key: Identifier; contract: Identifier; words: Identifier[] }[] = [];
+        const children: { key: string; contract: string; words: string[] }[] = [];
         for (const { key, text } of properties) {
           const contract = propertyChildContractTransformer({ text });
           if (key !== null && contract !== null) {
@@ -80,7 +78,7 @@ export const ruleBanJoinIdBesideChildBroker = (): TSESLint.RuleModule<'joinIdBes
               key,
               contract,
               words: identifierCamelWordsTransformer({
-                identifier: identifierContract.parse(contract.slice(0, -CONTRACT_SUFFIX.length)),
+                identifier: contract.slice(0, -CONTRACT_SUFFIX.length),
               }),
             });
           }

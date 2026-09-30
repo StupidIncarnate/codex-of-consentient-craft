@@ -10,8 +10,8 @@
  * gatewayBarrelExportedNamesTransformer({ sourceText: "export { readFile } from './read-file/read-file';\nexport * from 'fs/promises';\n" });
  * // Returns { directNames: [Identifier('readFile')], reexportTargets: [ImportPath('fs/promises')] }
  */
-import { identifierContract, importPathContract } from '@dungeonmaster/shared/contracts';
-import type { Identifier, ImportPath } from '@dungeonmaster/shared/contracts';
+import { importPathContract } from '@dungeonmaster/shared/contracts';
+import type { ImportPath } from '@dungeonmaster/shared/contracts';
 
 const NAMED_EXPORT_LIST = /export\s*\{([^}]+)\}(?:\s*from\s*['"][^'"]+['"])?/gu;
 const NAMED_DECLARATION = /export\s+(?:const|function|class)\s+([A-Za-z0-9_$]+)/gu;
@@ -22,8 +22,8 @@ export const gatewayBarrelExportedNamesTransformer = ({
   sourceText,
 }: {
   sourceText: string;
-}): { directNames: Identifier[]; reexportTargets: ImportPath[] } => {
-  const directNames = new Set<Identifier>();
+}): { directNames: string[]; reexportTargets: ImportPath[] } => {
+  const directNames = new Set<string>();
 
   for (const match of sourceText.matchAll(NAMED_EXPORT_LIST)) {
     const [, list] = match;
@@ -35,7 +35,7 @@ export const gatewayBarrelExportedNamesTransformer = ({
       const parts = specifier.split(/\s+as\s+/u);
       const exportedName = parts[parts.length - 1]?.trim();
       if (exportedName !== undefined && exportedName.length > 0) {
-        directNames.add(identifierContract.parse(exportedName));
+        directNames.add(exportedName);
       }
     }
   }
@@ -43,14 +43,14 @@ export const gatewayBarrelExportedNamesTransformer = ({
   for (const match of sourceText.matchAll(NAMED_DECLARATION)) {
     const [, name] = match;
     if (name !== undefined) {
-      directNames.add(identifierContract.parse(name));
+      directNames.add(name);
     }
   }
 
   for (const match of sourceText.matchAll(NAMESPACE_REEXPORT)) {
     const [, name] = match;
     if (name !== undefined) {
-      directNames.add(identifierContract.parse(name));
+      directNames.add(name);
     }
   }
 

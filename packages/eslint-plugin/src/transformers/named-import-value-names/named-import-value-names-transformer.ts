@@ -14,14 +14,12 @@
  * namedImportValueNamesTransformer({ namedImports: 'walkBroker, type WalkMemo' });
  * // Returns [IdentifierStub({ value: 'walkBroker' })] — a branded Identifier[]
  */
-import type { Identifier } from '@dungeonmaster/shared/contracts';
-import { identifierContract } from '@dungeonmaster/shared/contracts';
 
 export const namedImportValueNamesTransformer = ({
   namedImports,
 }: {
   namedImports: string;
-}): Identifier[] =>
+}): string[] =>
   namedImports
     .split(',')
     .map((specifierRaw) => {
@@ -36,4 +34,4 @@ export const namedImportValueNamesTransformer = ({
       return trimmed;
     })
     .filter((name): name is Exclude<typeof name, undefined> => Boolean(name))
-    .map((name) => identifierContract.parse(name));
+    .map((name) => name);

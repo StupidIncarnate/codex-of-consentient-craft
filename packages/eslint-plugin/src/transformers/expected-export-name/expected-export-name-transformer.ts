@@ -15,7 +15,6 @@
 import { fileBasenameTransformer } from '../file-basename/file-basename-transformer';
 import { kebabToCamelCaseTransformer } from '../kebab-to-camel-case/kebab-to-camel-case-transformer';
 import { kebabToPascalCaseTransformer } from '../kebab-to-pascal-case/kebab-to-pascal-case-transformer';
-import { identifierContract, type Identifier } from '@dungeonmaster/shared/contracts';
 
 export const expectedExportNameTransformer = ({
   filename,
@@ -27,7 +26,7 @@ export const expectedExportNameTransformer = ({
   fileSuffix: string | readonly string[];
   exportSuffix: string;
   exportCase: 'camelCase' | 'PascalCase';
-}): Identifier => {
+}): string => {
   const basename = fileBasenameTransformer({ filename });
 
   // Remove the file suffix to get the base name
@@ -51,5 +50,5 @@ export const expectedExportNameTransformer = ({
       ? kebabToPascalCaseTransformer({ str: baseName })
       : kebabToCamelCaseTransformer({ str: baseName });
 
-  return identifierContract.parse(convertedName + exportSuffix);
+  return (convertedName + exportSuffix);
 };
