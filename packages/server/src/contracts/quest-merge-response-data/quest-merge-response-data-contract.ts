@@ -8,6 +8,8 @@
 
 import { z } from '#gateway/npm/zod';
 
-export const questMergeResponseDataContract = z.strictObject({ merging: z.boolean() }).brand<'QuestMergeResponseData'>();
+export const questMergeResponseDataContract = z
+  .strictObject({ merging: z.boolean() })
+  .brand<'QuestMergeResponseData'>();
 
 export type QuestMergeResponseData = z.infer<typeof questMergeResponseDataContract>;

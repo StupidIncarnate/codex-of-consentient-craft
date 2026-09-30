@@ -8,6 +8,8 @@
 
 import { z } from '#gateway/npm/zod';
 
-export const questDeleteResponseDataContract = z.strictObject({ deleted: z.boolean() }).brand<'QuestDeleteResponseData'>();
+export const questDeleteResponseDataContract = z
+  .strictObject({ deleted: z.boolean() })
+  .brand<'QuestDeleteResponseData'>();
 
 export type QuestDeleteResponseData = z.infer<typeof questDeleteResponseDataContract>;

@@ -8,6 +8,10 @@
 
 import { z } from '#gateway/npm/zod';
 
-export const questRiftcarverDetailResponseDataContract = z.strictObject({ log: z.string() }).brand<'QuestRiftcarverDetailResponseData'>();
+export const questRiftcarverDetailResponseDataContract = z
+  .strictObject({ log: z.string() })
+  .brand<'QuestRiftcarverDetailResponseData'>();
 
-export type QuestRiftcarverDetailResponseData = z.infer<typeof questRiftcarverDetailResponseDataContract>;
+export type QuestRiftcarverDetailResponseData = z.infer<
+  typeof questRiftcarverDetailResponseDataContract
+>;

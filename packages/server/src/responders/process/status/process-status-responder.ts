@@ -31,7 +31,10 @@ export const ProcessStatusResponder = ({ params }: { params: unknown }): Respond
     }
     const { processId } = parsedParams.data;
     const status = StartOrchestrator.getQuestStatus({ processId });
-    return responderResultContract.parse({ status: httpStatusStatics.success.ok, data: orchestrationStatusContract.parse(status) });
+    return responderResultContract.parse({
+      status: httpStatusStatics.success.ok,
+      data: orchestrationStatusContract.parse(status),
+    });
   } catch (error: unknown) {
     const message = error instanceof Error ? error.message : 'Failed to get process status';
     return responderResultContract.parse({

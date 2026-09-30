@@ -11,6 +11,7 @@ import { responderResultContract } from '../../../contracts/responder-result/res
 import type { ResponderResult } from '../../../contracts/responder-result/responder-result-contract';
 import { httpStatusStatics } from '../../../statics/http-status/http-status-statics';
 import { responderErrorDataContract } from '../../../contracts/responder-error-data/responder-error-data-contract';
+import { processOutputResponseDataContract } from '../../../contracts/process-output-response-data/process-output-response-data-contract';
 
 export const ProcessOutputResponder = ({ params }: { params: unknown }): ResponderResult => {
   try {
@@ -30,7 +31,7 @@ export const ProcessOutputResponder = ({ params }: { params: unknown }): Respond
 
     return responderResultContract.parse({
       status: httpStatusStatics.success.ok,
-      data: { slots: {} },
+      data: processOutputResponseDataContract.parse({ slots: {} }),
     });
   } catch (error: unknown) {
     const message = error instanceof Error ? error.message : 'Failed to get process output';

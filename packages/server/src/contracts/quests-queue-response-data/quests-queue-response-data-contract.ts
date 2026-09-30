@@ -9,6 +9,8 @@
 import { z } from '#gateway/npm/zod';
 import { questQueueEntryContract } from '@dungeonmaster/shared/contracts';
 
-export const questsQueueResponseDataContract = z.strictObject({ entries: z.array(questQueueEntryContract) }).brand<'QuestsQueueResponseData'>();
+export const questsQueueResponseDataContract = z
+  .strictObject({ entries: z.array(questQueueEntryContract) })
+  .brand<'QuestsQueueResponseData'>();
 
 export type QuestsQueueResponseData = z.infer<typeof questsQueueResponseDataContract>;

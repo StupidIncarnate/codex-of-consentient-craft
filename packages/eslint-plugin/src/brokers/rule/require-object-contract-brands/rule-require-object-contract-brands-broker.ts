@@ -3,7 +3,8 @@
  * carries `.brand<'Owner…'>()`, every brand text is the owner's name plus the field key, and a brand
  * sits only on an object or one of its fields. It also holds a self-referencing contract to the
  * getter form (no `z.lazy`, no `z.ZodType` getter, a `Self` type that ends in `z.$brand<'Owner'>`),
- * refuses `z.unknown()` and `z.any()`, and takes a brand off an enum, a literal or a boolean.
+ * refuses `z.unknown()` and `z.any()`, and takes a brand off an enum, a literal or a boolean. A
+ * `z.record` key and anything inside a `z.function` schema are not fields, so it grades no brand there.
  * Reach for this over `require-zod-on-primitives`, which asked the model to pick each text: here the
  * fixer writes the derived one. A leaf with no brand, and a layer contract's texts, need another
  * file to tell a reuse from a new value, so `require-object-contract-brands-indexed` owns those.
@@ -19,6 +20,7 @@ import type { TSESLint, TSESTree } from '#gateway/npm/typescript-eslint__utils';
 import { isFileInFolderTypeGuard } from '../../../guards/is-file-in-folder-type/is-file-in-folder-type-guard';
 import { isAstGetterReturnTypeGuard } from '../../../guards/is-ast-getter-return-type/is-ast-getter-return-type-guard';
 import { isAstMethodCallGuard } from '../../../guards/is-ast-method-call/is-ast-method-call-guard';
+import { isAstBrandExemptGuard } from '../../../guards/is-ast-brand-exempt/is-ast-brand-exempt-guard';
 import { isAstObjectSchemaGuard } from '../../../guards/is-ast-object-schema/is-ast-object-schema-guard';
 import { isAstShapeReuseCheckGuard } from '../../../guards/is-ast-shape-reuse-check/is-ast-shape-reuse-check-guard';
 import { zodObjectBrandStatics } from '../../../statics/zod-object-brand/zod-object-brand-statics';
@@ -199,6 +201,12 @@ export const ruleRequireObjectContractBrandsBroker = (): TSESLint.RuleModule<
               source: ctx.sourceCode.getText(reused ?? undefined),
             },
           });
+          return;
+        }
+
+        // A record key stays plain and a function schema's parts are not fields of the contract, so
+        // no brand is demanded or graded there.
+        if (isAstBrandExemptGuard({ node })) {
           return;
         }
 

@@ -92,7 +92,10 @@ export const QuestCommentBatchResponder = async ({
     if (staleAnchors.length > 0) {
       return responderResultContract.parse({
         status: httpStatusStatics.clientError.conflict,
-        data: questCommentBatchResponseDataContract.parse({ error: 'Comment anchor no longer exists on the quest', staleAnchors }),
+        data: questCommentBatchResponseDataContract.parse({
+          error: 'Comment anchor no longer exists on the quest',
+          staleAnchors,
+        }),
       });
     }
 
@@ -110,7 +113,9 @@ export const QuestCommentBatchResponder = async ({
       // `deliveredMessage` is the markdown the agent actually received. The browser renders it as
       // the user's own chat entry; Claude's --resume stream never echoes the prompt, so without
       // this the sent batch is invisible until a reload replays the session from disk.
-      data: questCommentBatchResponseDataContract.parse(commentBatchResponseContract.parse({ chatProcessId, deliveredMessage: message })),
+      data: questCommentBatchResponseDataContract.parse(
+        commentBatchResponseContract.parse({ chatProcessId, deliveredMessage: message }),
+      ),
     });
   } catch (error: unknown) {
     // Persist gates delivery: the orchestrator flow throws when the quest write fails, so a 500

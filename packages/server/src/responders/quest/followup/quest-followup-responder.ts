@@ -87,7 +87,9 @@ export const QuestFollowupResponder = async ({
     if (!isFollowupChatableQuestStatusGuard({ status: quest.status })) {
       return responderResultContract.parse({
         status: httpStatusStatics.clientError.badRequest,
-        data: responderErrorDataContract.parse({ error: 'Quest must be blocked, complete or merged for follow-up' }),
+        data: responderErrorDataContract.parse({
+          error: 'Quest must be blocked, complete or merged for follow-up',
+        }),
       });
     }
 

@@ -8,6 +8,10 @@
 
 import { z } from '#gateway/npm/zod';
 
-export const orchestrationModeGetResponseDataContract = z.strictObject({ mode: z.enum(["claude", "node"]) }).brand<'OrchestrationModeGetResponseData'>();
+export const orchestrationModeGetResponseDataContract = z
+  .strictObject({ mode: z.enum(['claude', 'node']) })
+  .brand<'OrchestrationModeGetResponseData'>();
 
-export type OrchestrationModeGetResponseData = z.infer<typeof orchestrationModeGetResponseDataContract>;
+export type OrchestrationModeGetResponseData = z.infer<
+  typeof orchestrationModeGetResponseDataContract
+>;

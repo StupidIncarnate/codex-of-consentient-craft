@@ -8,6 +8,14 @@
 
 import { z } from '#gateway/npm/zod';
 
-export const questStartResponseDataContract = z.strictObject({ processId: z.string(), dispatch: z.union([z.strictObject({ started: z.boolean() }), z.strictObject({ started: z.boolean(), reason: z.string() })]) }).brand<'QuestStartResponseData'>();
+export const questStartResponseDataContract = z
+  .strictObject({
+    processId: z.string(),
+    dispatch: z.union([
+      z.strictObject({ started: z.boolean() }),
+      z.strictObject({ started: z.boolean(), reason: z.string() }),
+    ]),
+  })
+  .brand<'QuestStartResponseData'>();
 
 export type QuestStartResponseData = z.infer<typeof questStartResponseDataContract>;

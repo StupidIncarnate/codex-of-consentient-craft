@@ -42,7 +42,9 @@ export const QuestUserAddResponder = async ({
       if (titleError !== undefined || userRequestError !== undefined) {
         return responderResultContract.parse({
           status: httpStatusStatics.clientError.badRequest,
-          data: responderErrorDataContract.parse({ error: 'title and userRequest are required strings' }),
+          data: responderErrorDataContract.parse({
+            error: 'title and userRequest are required strings',
+          }),
         });
       }
       return responderResultContract.parse({

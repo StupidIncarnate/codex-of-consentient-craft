@@ -11,11 +11,12 @@ import { StartOrchestrator } from '@dungeonmaster/orchestrator';
 import { responderResultContract } from '../../../contracts/responder-result/responder-result-contract';
 import type { ResponderResult } from '../../../contracts/responder-result/responder-result-contract';
 import { httpStatusStatics } from '../../../statics/http-status/http-status-statics';
+import { toolingSmoketestStateResponseDataContract } from '../../../contracts/tooling-smoketest-state-response-data/tooling-smoketest-state-response-data-contract';
 
 export const ToolingSmoketestStateResponder = (): ResponderResult => {
   const state = StartOrchestrator.getSmoketestState();
   return responderResultContract.parse({
     status: httpStatusStatics.success.ok,
-    data: state,
+    data: toolingSmoketestStateResponseDataContract.parse(state),
   });
 };

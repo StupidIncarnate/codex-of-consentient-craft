@@ -8,7 +8,10 @@
  */
 
 import { StartOrchestrator } from '@dungeonmaster/orchestrator';
-import { modifyQuestInputContract, modifyQuestResultContract } from '@dungeonmaster/shared/contracts';
+import {
+  modifyQuestInputContract,
+  modifyQuestResultContract,
+} from '@dungeonmaster/shared/contracts';
 
 import { questIdParamsContract } from '../../../contracts/quest-id-params/quest-id-params-contract';
 import { responderResultContract } from '../../../contracts/responder-result/responder-result-contract';
@@ -52,7 +55,9 @@ export const QuestModifyResponder = async ({
     if (!parsedInput.success) {
       return responderResultContract.parse({
         status: httpStatusStatics.clientError.badRequest,
-        data: responderErrorDataContract.parse({ error: parsedInput.error.issues[0]?.message ?? 'Invalid modify-quest input' }),
+        data: responderErrorDataContract.parse({
+          error: parsedInput.error.issues[0]?.message ?? 'Invalid modify-quest input',
+        }),
       });
     }
 
@@ -60,7 +65,10 @@ export const QuestModifyResponder = async ({
       questId,
       input: parsedInput.data,
     });
-    return responderResultContract.parse({ status: httpStatusStatics.success.ok, data: modifyQuestResultContract.parse(result) });
+    return responderResultContract.parse({
+      status: httpStatusStatics.success.ok,
+      data: modifyQuestResultContract.parse(result),
+    });
   } catch (error: unknown) {
     const message = error instanceof Error ? error.message : 'Failed to modify quest';
     return responderResultContract.parse({

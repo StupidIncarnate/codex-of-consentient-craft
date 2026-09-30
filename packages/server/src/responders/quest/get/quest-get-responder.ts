@@ -56,7 +56,10 @@ export const QuestGetResponder = async ({
         data: responderErrorDataContract.parse({ error: quest.error ?? 'Quest not found' }),
       });
     }
-    return responderResultContract.parse({ status: httpStatusStatics.success.ok, data: getQuestResultContract.parse(quest) });
+    return responderResultContract.parse({
+      status: httpStatusStatics.success.ok,
+      data: getQuestResultContract.parse(quest),
+    });
   } catch (error: unknown) {
     const message = error instanceof Error ? error.message : 'Failed to get quest';
     return responderResultContract.parse({

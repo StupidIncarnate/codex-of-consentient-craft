@@ -8,6 +8,8 @@
 
 import { z } from '#gateway/npm/zod';
 
-export const questAbandonResponseDataContract = z.strictObject({ abandoned: z.boolean() }).brand<'QuestAbandonResponseData'>();
+export const questAbandonResponseDataContract = z
+  .strictObject({ abandoned: z.boolean() })
+  .brand<'QuestAbandonResponseData'>();
 
 export type QuestAbandonResponseData = z.infer<typeof questAbandonResponseDataContract>;

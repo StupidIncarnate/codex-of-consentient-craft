@@ -8,6 +8,8 @@
 
 import { z } from '#gateway/npm/zod';
 
-export const questPauseResponseDataContract = z.strictObject({ paused: z.boolean() }).brand<'QuestPauseResponseData'>();
+export const questPauseResponseDataContract = z
+  .strictObject({ paused: z.boolean() })
+  .brand<'QuestPauseResponseData'>();
 
 export type QuestPauseResponseData = z.infer<typeof questPauseResponseDataContract>;

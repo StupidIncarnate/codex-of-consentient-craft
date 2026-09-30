@@ -8,6 +8,8 @@
 
 import { z } from '#gateway/npm/zod';
 
-export const questSignalBackResponseDataContract = z.strictObject({ ok: z.boolean() }).brand<'QuestSignalBackResponseData'>();
+export const questSignalBackResponseDataContract = z
+  .strictObject({ ok: z.boolean() })
+  .brand<'QuestSignalBackResponseData'>();
 
 export type QuestSignalBackResponseData = z.infer<typeof questSignalBackResponseDataContract>;

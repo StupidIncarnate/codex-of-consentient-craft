@@ -56,7 +56,10 @@ export const GuildUpdateResponder = async ({
       ...(name !== undefined && { name }),
       ...(path !== undefined && { path }),
     });
-    return responderResultContract.parse({ status: httpStatusStatics.success.ok, data: guildContract.parse(guild) });
+    return responderResultContract.parse({
+      status: httpStatusStatics.success.ok,
+      data: guildContract.parse(guild),
+    });
   } catch (error: unknown) {
     const message = error instanceof Error ? error.message : 'Failed to update guild';
     const isConflict = message.startsWith('A guild with path');

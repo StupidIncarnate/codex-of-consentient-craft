@@ -9,7 +9,16 @@
 import { z } from '#gateway/npm/zod';
 import { responderErrorDataContract } from '../responder-error-data/responder-error-data-contract';
 import { directoryBrowseResponseDataContract } from '../directory-browse-response-data/directory-browse-response-data-contract';
-import { addQuestResultContract, getQuestResultContract, guildContract, modifyQuestResultContract, orchestrationStatusContract, questProjectionContract, questSummaryContract } from '@dungeonmaster/shared/contracts';
+import {
+  addQuestResultContract,
+  getQuestResultContract,
+  guildContract,
+  modifyQuestResultContract,
+  orchestrationStatusContract,
+  questProjectionContract,
+  questSummaryContract,
+  wardDetailContract,
+} from '@dungeonmaster/shared/contracts';
 import { guildListResponseDataContract } from '../guild-list-response-data/guild-list-response-data-contract';
 import { guildRemoveResponseDataContract } from '../guild-remove-response-data/guild-remove-response-data-contract';
 import { orchestrationDispatchGetResponseDataContract } from '../orchestration-dispatch-get-response-data/orchestration-dispatch-get-response-data-contract';
@@ -35,11 +44,60 @@ import { questSignalBackResponseDataContract } from '../quest-signal-back-respon
 import { questStartResponseDataContract } from '../quest-start-response-data/quest-start-response-data-contract';
 import { questsQueueResponseDataContract } from '../quests-queue-response-data/quests-queue-response-data-contract';
 import { rateLimitsGetResponseDataContract } from '../rate-limits-get-response-data/rate-limits-get-response-data-contract';
+import { processOutputResponseDataContract } from '../process-output-response-data/process-output-response-data-contract';
+import { sessionListResponseDataContract } from '../session-list-response-data/session-list-response-data-contract';
+import { toolingSmoketestRunResponseDataContract } from '../tooling-smoketest-run-response-data/tooling-smoketest-run-response-data-contract';
+import { toolingSmoketestStateResponseDataContract } from '../tooling-smoketest-state-response-data/tooling-smoketest-state-response-data-contract';
 
+// Zod's union returns the FIRST member that parses, and a non-strict object strips the keys it does
+// not list. `getQuestResult`, `modifyQuestResult` and `addQuestResult` share `success` with every
+// other field optional, so each shared object member is `.strict()` here: a looser member earlier in
+// the union would otherwise swallow another responder's data and drop its keys. `wardDetailContract`
+// is loose by design (it relays ward's whole detail blob), so it stays last.
 export const responderResultContract = z
   .object({
     status: z.number().int().brand<'ResponderResultStatus'>(),
-    data: z.union([responderErrorDataContract, directoryBrowseResponseDataContract, guildContract, guildListResponseDataContract, guildRemoveResponseDataContract, orchestrationDispatchGetResponseDataContract, orchestrationDispatchPauseResponseDataContract, orchestrationDispatchPlayResponseDataContract, orchestrationModeGetResponseDataContract, orchestrationStatusContract, questAbandonResponseDataContract, questChatResponseDataContract, questClarifyResponseDataContract, questCommentBatchResponseDataContract, questDeleteResponseDataContract, questFindBySessionResponseDataContract, questFollowupResponseDataContract, questFollowupStopResponseDataContract, getQuestResultContract, questHumanVerdictResponseDataContract, questListResponseDataContract, questMergeResponseDataContract, modifyQuestResultContract, questNewResponseDataContract, questPauseResponseDataContract, questProjectionContract, questResumeResponseDataContract, questRiftcarverDetailResponseDataContract, questSignalBackResponseDataContract, questStartResponseDataContract, questSummaryContract, addQuestResultContract, questsQueueResponseDataContract, rateLimitsGetResponseDataContract]),
+    data: z.union([
+      responderErrorDataContract,
+      directoryBrowseResponseDataContract,
+      guildContract.strict().brand<'Guild'>(),
+      guildListResponseDataContract,
+      guildRemoveResponseDataContract,
+      orchestrationDispatchGetResponseDataContract,
+      orchestrationDispatchPauseResponseDataContract,
+      orchestrationDispatchPlayResponseDataContract,
+      orchestrationModeGetResponseDataContract,
+      orchestrationStatusContract.strict().brand<'OrchestrationStatus'>(),
+      questAbandonResponseDataContract,
+      questChatResponseDataContract,
+      questClarifyResponseDataContract,
+      questCommentBatchResponseDataContract,
+      questDeleteResponseDataContract,
+      questFindBySessionResponseDataContract,
+      questFollowupResponseDataContract,
+      questFollowupStopResponseDataContract,
+      getQuestResultContract.strict().brand<'GetQuestResult'>(),
+      questHumanVerdictResponseDataContract,
+      questListResponseDataContract,
+      questMergeResponseDataContract,
+      modifyQuestResultContract.strict().brand<'ModifyQuestResult'>(),
+      questNewResponseDataContract,
+      questPauseResponseDataContract,
+      questProjectionContract,
+      questResumeResponseDataContract,
+      questRiftcarverDetailResponseDataContract,
+      questSignalBackResponseDataContract,
+      questStartResponseDataContract,
+      questSummaryContract,
+      addQuestResultContract.strict().brand<'AddQuestResult'>(),
+      questsQueueResponseDataContract,
+      rateLimitsGetResponseDataContract,
+      processOutputResponseDataContract,
+      sessionListResponseDataContract,
+      toolingSmoketestRunResponseDataContract,
+      toolingSmoketestStateResponseDataContract,
+      wardDetailContract,
+    ]),
   })
   .brand<'ResponderResult'>();
 

@@ -36,7 +36,10 @@ export const QuestSummaryResponder = async ({
     const summary = await StartOrchestrator.getQuestSummary({
       questId: parsedParams.data.questId,
     });
-    return responderResultContract.parse({ status: httpStatusStatics.success.ok, data: questSummaryContract.parse(summary) });
+    return responderResultContract.parse({
+      status: httpStatusStatics.success.ok,
+      data: questSummaryContract.parse(summary),
+    });
   } catch (error: unknown) {
     // Every other failure (an unreadable or invalid quest file, a permission error) is a server
     // fault, not a missing quest.

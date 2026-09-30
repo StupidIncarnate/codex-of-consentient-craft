@@ -9,6 +9,10 @@
 import { z } from '#gateway/npm/zod';
 import { dispatchStateContract } from '@dungeonmaster/shared/contracts';
 
-export const orchestrationDispatchGetResponseDataContract = z.strictObject({ state: dispatchStateContract }).brand<'OrchestrationDispatchGetResponseData'>();
+export const orchestrationDispatchGetResponseDataContract = z
+  .strictObject({ state: dispatchStateContract })
+  .brand<'OrchestrationDispatchGetResponseData'>();
 
-export type OrchestrationDispatchGetResponseData = z.infer<typeof orchestrationDispatchGetResponseDataContract>;
+export type OrchestrationDispatchGetResponseData = z.infer<
+  typeof orchestrationDispatchGetResponseDataContract
+>;

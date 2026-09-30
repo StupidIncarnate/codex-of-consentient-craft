@@ -35,14 +35,32 @@ ruleTester.run('require-object-contract-brands', ruleRequireObjectContractBrands
       code: "export const ctxContract = z.object({ used_percentage: z.number().brand<'CtxUsedPercentage'>() }).brand<'Ctx'>();",
       filename: CONTRACT,
     },
-    // --- Arrays, records and tuples carry the field's key ---
+    // --- Arrays, record values and tuples carry the field's key ---
     {
       code: `export const questContract = z.object({
         tags: z.array(z.string().brand<'QuestTags'>()),
-        counts: z.record(z.string().brand<'QuestCountsKey'>(), z.number().brand<'QuestCounts'>()),
+        counts: z.record(z.string(), z.number().brand<'QuestCounts'>()),
         span: z.tuple([z.number().brand<'QuestSpan0'>(), z.number().brand<'QuestSpan1'>()]),
         items: z.array(z.object({ n: z.number().brand<'QuestItemsN'>() }).brand<'QuestItems'>()),
       }).brand<'Quest'>();`,
+      filename: CONTRACT,
+    },
+    // --- A record key stays plain, or reuses its owner's id field ---
+    {
+      code: "export const questContract = z.object({ counts: z.record(z.string(), z.number().brand<'QuestCounts'>()) }).brand<'Quest'>();",
+      filename: CONTRACT,
+    },
+    {
+      code: "export const guildContract = z.object({ byQuest: z.record(questContract.shape.id, z.number().brand<'GuildByQuest'>()) }).brand<'Guild'>();",
+      filename: CONTRACT,
+    },
+    // --- A function-valued field is not graded inside ---
+    {
+      code: `export const toolContract = z.object({
+        name: z.string().brand<'ToolName'>(),
+        handler: z.function({ input: [z.object({ args: z.string().brand<'Anything'>() })], output: z.void() }),
+        cleanup: z.custom<(reason: string) => void>(),
+      }).brand<'Tool'>();`,
       filename: CONTRACT,
     },
     // --- Enums, literals and booleans take no brand ---
@@ -191,7 +209,7 @@ ruleTester.run('require-object-contract-brands', ruleRequireObjectContractBrands
       output:
         "export const questContract = z.object({ owner: z.object({ n: idContract }).brand<'QuestOwner'>() }).brand<'Quest'>();",
     },
-    // --- A wrong text on an object, a leaf and a record key ---
+    // --- A wrong text on an object and a leaf ---
     {
       code: "export const questContract = z.object({ id: z.string().brand<'QuestId'>() }).brand<'QuestContract'>();",
       filename: CONTRACT,
@@ -212,15 +230,6 @@ ruleTester.run('require-object-contract-brands', ruleRequireObjectContractBrands
       ],
       output:
         "export const workItemContract = z.object({ retryCount: z.number().brand<'WorkItemRetryCount'>() }).brand<'WorkItem'>();",
-    },
-    {
-      code: "export const questContract = z.object({ counts: z.record(z.string().brand<'Counts'>(), z.number()) }).brand<'Quest'>();",
-      filename: CONTRACT,
-      errors: [
-        { messageId: 'wrongBrandText', data: { actual: 'Counts', expected: 'QuestCountsKey' } },
-      ],
-      output:
-        "export const questContract = z.object({ counts: z.record(z.string().brand<'QuestCountsKey'>(), z.number()) }).brand<'Quest'>();",
     },
     // --- A brand on an enum, a literal or a boolean comes off ---
     {

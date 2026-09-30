@@ -8,6 +8,8 @@
 
 import { z } from '#gateway/npm/zod';
 
-export const questFollowupResponseDataContract = z.strictObject({ chatProcessId: z.string() }).brand<'QuestFollowupResponseData'>();
+export const questFollowupResponseDataContract = z
+  .strictObject({ chatProcessId: z.string() })
+  .brand<'QuestFollowupResponseData'>();
 
 export type QuestFollowupResponseData = z.infer<typeof questFollowupResponseDataContract>;

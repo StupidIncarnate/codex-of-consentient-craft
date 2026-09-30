@@ -16,7 +16,10 @@ import { guildListResponseDataContract } from '../../../contracts/guild-list-res
 export const GuildListResponder = async (): Promise<ResponderResult> => {
   try {
     const guilds = await StartOrchestrator.listGuilds();
-    return responderResultContract.parse({ status: httpStatusStatics.success.ok, data: guildListResponseDataContract.parse(guilds) });
+    return responderResultContract.parse({
+      status: httpStatusStatics.success.ok,
+      data: guildListResponseDataContract.parse(guilds),
+    });
   } catch (error: unknown) {
     const message = error instanceof Error ? error.message : 'Failed to list guilds';
     return responderResultContract.parse({

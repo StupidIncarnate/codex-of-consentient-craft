@@ -8,6 +8,8 @@
 
 import { z } from '#gateway/npm/zod';
 
-export const guildRemoveResponseDataContract = z.strictObject({ success: z.boolean() }).brand<'GuildRemoveResponseData'>();
+export const guildRemoveResponseDataContract = z
+  .strictObject({ success: z.boolean() })
+  .brand<'GuildRemoveResponseData'>();
 
 export type GuildRemoveResponseData = z.infer<typeof guildRemoveResponseDataContract>;

@@ -33,7 +33,9 @@ export const QuestRiftcarverDetailResponder = async ({
   if (!parsedParams.success) {
     return responderResultContract.parse({
       status: httpStatusStatics.clientError.badRequest,
-      data: responderErrorDataContract.parse({ error: 'questId and riftcarverResultId are required' }),
+      data: responderErrorDataContract.parse({
+        error: 'questId and riftcarverResultId are required',
+      }),
     });
   }
 

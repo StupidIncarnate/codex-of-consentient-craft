@@ -2,7 +2,8 @@
  * PURPOSE: The half of the brand rules that needs another file to tell a new value from a reuse: a
  * `z.string()` or `z.number()` leaf in a contract that carries no brand gets `.brand<'Owner…Key'>()`,
  * unless the owner index says `enforce-owner-field-reuse` claims that key, in which case the key
- * reuses another owner's field and takes no brand of its own. It shares one matcher with that rule so
+ * reuses another owner's field and takes no brand of its own. A `z.record` key and a leaf inside a
+ * `z.function` schema are not fields, so they take none either. It shares one matcher with that rule so
  * the two can never disagree about a key. Reach for this over `require-object-contract-brands`,
  * which grades only the file it lints and so cannot know `questId` is a reuse. Reads every workspace
  * package once per process, so it runs in ward's lint pass only and is registered `off` until the
@@ -20,6 +21,7 @@ import {
 } from '@dungeonmaster/shared/transformers';
 import { AST_NODE_TYPES } from '#gateway/npm/typescript-eslint__utils';
 import type { TSESLint, TSESTree } from '#gateway/npm/typescript-eslint__utils';
+import { isAstBrandExemptGuard } from '../../../guards/is-ast-brand-exempt/is-ast-brand-exempt-guard';
 import { isAstUnbrandedLeafGuard } from '../../../guards/is-ast-unbranded-leaf/is-ast-unbranded-leaf-guard';
 import { isFileInFolderTypeGuard } from '../../../guards/is-file-in-folder-type/is-file-in-folder-type-guard';
 import { isInTestDirGuard } from '../../../guards/is-in-test-dir/is-in-test-dir-guard';
@@ -85,7 +87,8 @@ export const ruleRequireObjectContractBrandsIndexedBroker = (): TSESLint.RuleMod
       },
 
       CallExpression: (node: TSESTree.CallExpression): void => {
-        if (isLayer || !isAstUnbrandedLeafGuard({ node })) {
+        // A record key stays plain and a function schema's parts are not fields of the contract.
+        if (isLayer || !isAstUnbrandedLeafGuard({ node }) || isAstBrandExemptGuard({ node })) {
           return;
         }
 

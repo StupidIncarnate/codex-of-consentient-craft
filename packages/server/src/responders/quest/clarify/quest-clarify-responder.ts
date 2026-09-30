@@ -60,7 +60,9 @@ export const QuestClarifyResponder = async ({
       if (answersError !== undefined) {
         return responderResultContract.parse({
           status: httpStatusStatics.clientError.badRequest,
-          data: responderErrorDataContract.parse({ error: 'answers array is required and must not be empty' }),
+          data: responderErrorDataContract.parse({
+            error: 'answers array is required and must not be empty',
+          }),
         });
       }
       return responderResultContract.parse({

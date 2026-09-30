@@ -93,6 +93,21 @@ ruleTester.run(
         filename: CONTRACT,
       },
       {
+        // A record's key stays plain.
+        code: "export const thingContract = z.object({ counts: z.record(z.string(), z.number().brand<'ThingCounts'>()) }).brand<'Thing'>();",
+        filename: CONTRACT,
+      },
+      {
+        // A record keyed by an owner's id reuses that owner's field.
+        code: "export const thingContract = z.object({ byQuest: z.record(questContract.shape.id, z.number().brand<'ThingByQuest'>()) }).brand<'Thing'>();",
+        filename: CONTRACT,
+      },
+      {
+        // A function-valued field is not a field of the contract's data, so nothing inside it takes a brand.
+        code: "export const thingContract = z.object({ handler: z.function(z.tuple([z.string()]), z.object({ n: z.number() })), done: z.function({ input: [z.object({ id: z.string() })], output: z.void() }) }).brand<'Thing'>();",
+        filename: CONTRACT,
+      },
+      {
         // A string that is not a field of an object contract stays plain.
         code: 'export const timeoutMs = z.number();',
         filename: CONTRACT,
@@ -157,12 +172,9 @@ ruleTester.run(
       {
         code: "export const thingContract = z.object({ counts: z.record(z.string(), z.number()) }).brand<'Thing'>();",
         filename: CONTRACT,
-        errors: [
-          { messageId: 'leafNoBrand', data: { key: 'counts', expected: 'ThingCountsKey' } },
-          { messageId: 'leafNoBrand', data: { key: 'counts', expected: 'ThingCounts' } },
-        ],
+        errors: [{ messageId: 'leafNoBrand', data: { key: 'counts', expected: 'ThingCounts' } }],
         output:
-          "export const thingContract = z.object({ counts: z.record(z.string().brand<'ThingCountsKey'>(), z.number().brand<'ThingCounts'>()) }).brand<'Thing'>();",
+          "export const thingContract = z.object({ counts: z.record(z.string(), z.number().brand<'ThingCounts'>()) }).brand<'Thing'>();",
       },
       {
         code: "export const thingContract = z.object({ span: z.tuple([z.number(), z.number()]) }).brand<'Thing'>();",

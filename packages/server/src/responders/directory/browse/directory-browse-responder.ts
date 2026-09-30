@@ -23,7 +23,10 @@ export const DirectoryBrowseResponder = ({ body }: { body: unknown }): Responder
     const path = parsedBody?.success ? parsedBody.data.path : undefined;
 
     const entries = StartOrchestrator.browseDirectories(path === undefined ? {} : { path });
-    return responderResultContract.parse({ status: httpStatusStatics.success.ok, data: directoryBrowseResponseDataContract.parse(entries) });
+    return responderResultContract.parse({
+      status: httpStatusStatics.success.ok,
+      data: directoryBrowseResponseDataContract.parse(entries),
+    });
   } catch (error: unknown) {
     const message = error instanceof Error ? error.message : 'Failed to browse directories';
     return responderResultContract.parse({

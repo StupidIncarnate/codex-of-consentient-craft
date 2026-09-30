@@ -36,7 +36,10 @@ export const GuildGetResponder = async ({
     }
     const { guildId } = parsedParams.data;
     const guild = await StartOrchestrator.getGuild({ guildId });
-    return responderResultContract.parse({ status: httpStatusStatics.success.ok, data: guildContract.parse(guild) });
+    return responderResultContract.parse({
+      status: httpStatusStatics.success.ok,
+      data: guildContract.parse(guild),
+    });
   } catch (error: unknown) {
     const message = error instanceof Error ? error.message : 'Failed to get guild';
     const isNotFound = message.startsWith('Guild not found');

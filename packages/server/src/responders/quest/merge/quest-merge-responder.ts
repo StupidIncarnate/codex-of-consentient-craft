@@ -55,7 +55,9 @@ export const QuestMergeResponder = async ({
     if (!isMergeableQuestStatusGuard({ status: quest.status })) {
       return responderResultContract.parse({
         status: httpStatusStatics.clientError.badRequest,
-        data: responderErrorDataContract.parse({ error: 'Quest must be blocked or complete to merge' }),
+        data: responderErrorDataContract.parse({
+          error: 'Quest must be blocked or complete to merge',
+        }),
       });
     }
 

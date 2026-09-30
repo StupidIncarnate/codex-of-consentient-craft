@@ -8,6 +8,8 @@
 
 import { z } from '#gateway/npm/zod';
 
-export const questHumanVerdictResponseDataContract = z.strictObject({ ok: z.boolean() }).brand<'QuestHumanVerdictResponseData'>();
+export const questHumanVerdictResponseDataContract = z
+  .strictObject({ ok: z.boolean() })
+  .brand<'QuestHumanVerdictResponseData'>();
 
 export type QuestHumanVerdictResponseData = z.infer<typeof questHumanVerdictResponseDataContract>;

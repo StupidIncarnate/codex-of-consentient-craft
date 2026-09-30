@@ -8,6 +8,8 @@
 
 import { z } from '#gateway/npm/zod';
 
-export const questFollowupStopResponseDataContract = z.strictObject({ stopped: z.boolean() }).brand<'QuestFollowupStopResponseData'>();
+export const questFollowupStopResponseDataContract = z
+  .strictObject({ stopped: z.boolean() })
+  .brand<'QuestFollowupStopResponseData'>();
 
 export type QuestFollowupStopResponseData = z.infer<typeof questFollowupStopResponseDataContract>;

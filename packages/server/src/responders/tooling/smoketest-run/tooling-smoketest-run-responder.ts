@@ -15,6 +15,7 @@ import type { ResponderResult } from '../../../contracts/responder-result/respon
 import { toolingSmoketestRunBodyContract } from '../../../contracts/tooling-smoketest-run-body/tooling-smoketest-run-body-contract';
 import { httpStatusStatics } from '../../../statics/http-status/http-status-statics';
 import { responderErrorDataContract } from '../../../contracts/responder-error-data/responder-error-data-contract';
+import { toolingSmoketestRunResponseDataContract } from '../../../contracts/tooling-smoketest-run-response-data/tooling-smoketest-run-response-data-contract';
 
 export const ToolingSmoketestRunResponder = async ({
   body,
@@ -37,7 +38,7 @@ export const ToolingSmoketestRunResponder = async ({
 
     return responderResultContract.parse({
       status: httpStatusStatics.success.ok,
-      data: result,
+      data: toolingSmoketestRunResponseDataContract.parse(result),
     });
   } catch (error: unknown) {
     const message = error instanceof Error ? error.message : 'Failed to run smoketest';

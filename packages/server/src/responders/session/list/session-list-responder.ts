@@ -13,6 +13,7 @@ import { responderResultContract } from '../../../contracts/responder-result/res
 import type { ResponderResult } from '../../../contracts/responder-result/responder-result-contract';
 import { httpStatusStatics } from '../../../statics/http-status/http-status-statics';
 import { responderErrorDataContract } from '../../../contracts/responder-error-data/responder-error-data-contract';
+import { sessionListResponseDataContract } from '../../../contracts/session-list-response-data/session-list-response-data-contract';
 
 export const SessionListResponder = async ({
   params,
@@ -43,7 +44,7 @@ export const SessionListResponder = async ({
 
     return responderResultContract.parse({
       status: httpStatusStatics.success.ok,
-      data: sessions,
+      data: sessionListResponseDataContract.parse(sessions),
     });
   } catch (error: unknown) {
     const message = error instanceof Error ? error.message : 'Failed to list sessions';

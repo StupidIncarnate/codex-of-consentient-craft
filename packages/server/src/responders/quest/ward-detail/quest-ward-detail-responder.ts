@@ -13,6 +13,7 @@ import { questFindQuestPathBroker } from '@dungeonmaster/orchestrator';
 import { readFile } from '#gateway/node/fs__promises';
 import { join } from '#gateway/node/path';
 import { locationsWardResultsPathFindBroker } from '@dungeonmaster/shared/brokers';
+import { wardDetailContract } from '@dungeonmaster/shared/contracts';
 
 import { questWardDetailParamsContract } from '../../../contracts/quest-ward-detail-params/quest-ward-detail-params-contract';
 import { responderResultContract } from '../../../contracts/responder-result/responder-result-contract';
@@ -43,7 +44,10 @@ export const QuestWardDetailResponder = async ({
     );
     const contents = await readFile(detailFilePath);
     const detail: unknown = JSON.parse(contents);
-    return responderResultContract.parse({ status: httpStatusStatics.success.ok, data: detail });
+    return responderResultContract.parse({
+      status: httpStatusStatics.success.ok,
+      data: wardDetailContract.parse(detail),
+    });
   } catch (error: unknown) {
     const message = error instanceof Error ? error.message : 'Ward detail not available';
     return responderResultContract.parse({
