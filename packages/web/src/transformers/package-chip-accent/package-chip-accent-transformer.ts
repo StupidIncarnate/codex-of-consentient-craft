@@ -14,15 +14,13 @@
 
 import type { PackageType } from '@dungeonmaster/shared/contracts';
 
-import { cssColorOverrideContract } from '../../contracts/css-color-override/css-color-override-contract';
-import type { CssColorOverride } from '../../contracts/css-color-override/css-color-override-contract';
 import { packageTypeStyleStatics } from '../../statics/package-type-style/package-type-style-statics';
 
 export const packageChipAccentTransformer = ({
   packageType,
 }: {
   packageType?: PackageType;
-}): CssColorOverride => {
+}): string => {
   // Matched over the map's entries rather than indexed by the branded value: `PackageType` carries
   // zod's phantom brand, which TypeScript refuses as an index into the literal-keyed statics. The
   // unresolved token is also the answer for a kind that reaches here with no colour of its own, so a
@@ -30,5 +28,5 @@ export const packageChipAccentTransformer = ({
   const matched = Object.entries(packageTypeStyleStatics.accent).find(
     ([kind]) => kind === String(packageType),
   );
-  return cssColorOverrideContract.parse(matched?.[1] ?? packageTypeStyleStatics.unresolved);
+  return (matched?.[1] ?? packageTypeStyleStatics.unresolved);
 };

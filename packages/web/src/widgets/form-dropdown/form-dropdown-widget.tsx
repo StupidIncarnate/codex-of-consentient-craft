@@ -6,7 +6,6 @@
  * // Renders a styled select element with bg-deep background and border
  */
 
-import type { CssColorOverride } from '../../contracts/css-color-override/css-color-override-contract';
 import type { CssDimension } from '../../contracts/css-dimension/css-dimension-contract';
 import { emberDepthsThemeStatics } from '../../statics/ember-depths-theme/ember-depths-theme-statics';
 
@@ -19,7 +18,7 @@ export interface FormDropdownWidgetProps {
   options: string[];
   onChange: (value: string) => void;
   width?: CssDimension;
-  color?: CssColorOverride;
+  color?: string;
 }
 
 export const FormDropdownWidget = ({
