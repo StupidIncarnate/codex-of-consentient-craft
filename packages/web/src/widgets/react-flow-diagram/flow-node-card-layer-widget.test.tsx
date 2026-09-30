@@ -3,7 +3,6 @@ import { screen } from '#gateway/npm/testing-library__react';
 import { FlowNodeIdStub } from '@dungeonmaster/shared/contracts/flow-node-id/flow-node-id.stub';
 
 import { mantineRenderMiddleware } from '@dungeonmaster/testing/middleware/mantine-render';
-import { CommentCountStub } from '../../contracts/comment-count/comment-count.stub';
 import { ReactFlowNodeDataStub } from '../../contracts/react-flow-node-data/react-flow-node-data.stub';
 import { flowNodeStyleStatics } from '../../statics/flow-node-style/flow-node-style-statics';
 import { packageTypeStyleStatics } from '../../statics/package-type-style/package-type-style-statics';
@@ -354,7 +353,7 @@ describe('FlowNodeCardLayerWidget', () => {
         label: 'Login Page',
         nodeType: 'state',
         contractCount: 0,
-        commentCount: CommentCountStub({ value: 2 }),
+        commentCount: 2,
       });
 
       mantineRenderMiddleware({
@@ -371,7 +370,7 @@ describe('FlowNodeCardLayerWidget', () => {
         label: 'Login Page',
         nodeType: 'state',
         contractCount: 3,
-        commentCount: CommentCountStub({ value: 2 }),
+        commentCount: 2,
       });
 
       mantineRenderMiddleware({
@@ -389,7 +388,7 @@ describe('FlowNodeCardLayerWidget', () => {
         label: 'Login Page',
         nodeType: 'state',
         contractCount: 0,
-        commentCount: CommentCountStub({ value: 0 }),
+        commentCount: 0,
       });
 
       mantineRenderMiddleware({
@@ -407,7 +406,7 @@ describe('FlowNodeCardLayerWidget', () => {
         label: 'Login Page',
         nodeType: 'state',
         contractCount: 0,
-        commentCount: CommentCountStub({ value: 2 }),
+        commentCount: 2,
       });
 
       mantineRenderMiddleware({
@@ -426,7 +425,7 @@ describe('FlowNodeCardLayerWidget', () => {
         label: 'Login Page',
         nodeType: 'state',
         contractCount: 0,
-        commentCount: CommentCountStub({ value: 2 }),
+        commentCount: 2,
         questId: 'quest-a',
         flowId: 'login-flow',
       });

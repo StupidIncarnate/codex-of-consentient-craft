@@ -10,7 +10,6 @@ import { z } from '#gateway/npm/zod';
 
 import { flowNodeTypeContract, questContract, flowNodeContract, flowContract } from '@dungeonmaster/shared/contracts';
 
-import { commentCountContract } from '../comment-count/comment-count-contract';
 import { reactFlowPackageChipContract } from '../react-flow-package-chip/react-flow-package-chip-contract';
 
 export const reactFlowNodeDataContract = z.object({
@@ -30,7 +29,7 @@ export const reactFlowNodeDataContract = z.object({
   // including approved, complete and the read-only execution panel, while questId/flowId gate only
   // the compose affordance — sharing one visibility flag would hide the badge exactly when the
   // review it captures becomes most worth reading.
-  commentCount: commentCountContract,
+  commentCount: z.number().int().min(0).brand<'ReactFlowNodeDataCommentCount'>(),
   // Anchor context for the comment affordance on this card. Both are present only when the
   // comment compose controls are allowed for this quest (status precedes approved AND the quest
   // has a resumable chat session); their absence is what makes the card render no comment button.

@@ -13,7 +13,6 @@ import { z } from '#gateway/npm/zod';
 
 import { outcomeTypeContract, questContract, flowNodeContract, flowContract, flowObservableContract } from '@dungeonmaster/shared/contracts';
 
-import { commentCountContract } from '../comment-count/comment-count-contract';
 import { reactFlowPackageChipContract } from '../react-flow-package-chip/react-flow-package-chip-contract';
 
 export const flowObservableNodeDataContract = z.object({
@@ -33,7 +32,7 @@ export const flowObservableNodeDataContract = z.object({
   // How many comments this card already carries. Gated INDEPENDENTLY of questId/flowId below — see
   // reactFlowNodeDataContract's commentCount field for the full rationale: the compose affordance
   // and the existing-comment record must never share one visibility flag.
-  commentCount: commentCountContract,
+  commentCount: z.number().int().min(0).brand<'FlowObservableNodeDataCommentCount'>(),
   // The parent flow node this observable branches off, always set by the diagram widget (unlike
   // questId/flowId below, it is NOT part of the compose gate) so a comment on this card — or a click
   // on it in an approved, compose-disallowed quest — still resolves through its parent node.

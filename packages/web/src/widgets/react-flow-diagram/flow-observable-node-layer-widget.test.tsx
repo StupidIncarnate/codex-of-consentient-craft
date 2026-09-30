@@ -1,5 +1,4 @@
 import { mantineRenderMiddleware } from '@dungeonmaster/testing/middleware/mantine-render';
-import { CommentCountStub } from '../../contracts/comment-count/comment-count.stub';
 import { FlowObservableNodeDataStub } from '../../contracts/flow-observable-node-data/flow-observable-node-data.stub';
 import { packageTypeStyleStatics } from '../../statics/package-type-style/package-type-style-statics';
 import { FlowObservableNodeLayerWidget } from './flow-observable-node-layer-widget';
@@ -150,7 +149,7 @@ describe('FlowObservableNodeLayerWidget', () => {
   describe('comment count badge', () => {
     it('VALID: {commentCount: 1} => a FLOW_OBSERVABLE_NODE carrying one comment renders a COMMENT_COUNT_BADGE reading 1 (#check-observable-badge)', () => {
       const proxy = FlowObservableNodeLayerWidgetProxy();
-      const data = FlowObservableNodeDataStub({ commentCount: CommentCountStub({ value: 1 }) });
+      const data = FlowObservableNodeDataStub({ commentCount: 1 });
 
       mantineRenderMiddleware({ ui: <FlowObservableNodeLayerWidget data={data} /> });
 
@@ -159,7 +158,7 @@ describe('FlowObservableNodeLayerWidget', () => {
 
     it('EMPTY: {commentCount: 0} => a box with zero persisted comments renders no COMMENT_COUNT_BADGE (#check-no-badge-zero-comments)', () => {
       const proxy = FlowObservableNodeLayerWidgetProxy();
-      const data = FlowObservableNodeDataStub({ commentCount: CommentCountStub({ value: 0 }) });
+      const data = FlowObservableNodeDataStub({ commentCount: 0 });
 
       mantineRenderMiddleware({ ui: <FlowObservableNodeLayerWidget data={data} /> });
 
@@ -169,7 +168,7 @@ describe('FlowObservableNodeLayerWidget', () => {
     it('VALID: {commentCount: 2, no questId or flowId} => a quest with status approved renders COMMENT_COUNT_BADGE on a commented box while rendering zero COMMENT_BUTTON elements on that same box (#check-badge-without-button-when-approved)', () => {
       const proxy = FlowObservableNodeLayerWidgetProxy();
       proxy.setupEmptyQueue();
-      const data = FlowObservableNodeDataStub({ commentCount: CommentCountStub({ value: 2 }) });
+      const data = FlowObservableNodeDataStub({ commentCount: 2 });
 
       mantineRenderMiddleware({ ui: <FlowObservableNodeLayerWidget data={data} /> });
 
@@ -184,7 +183,7 @@ describe('FlowObservableNodeLayerWidget', () => {
         questId: 'quest-a',
         flowId: 'login-flow',
         nodeId: 'login-page',
-        commentCount: CommentCountStub({ value: 2 }),
+        commentCount: 2,
       });
 
       mantineRenderMiddleware({ ui: <FlowObservableNodeLayerWidget data={data} /> });

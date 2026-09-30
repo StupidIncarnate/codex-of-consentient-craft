@@ -24,8 +24,6 @@ import { elkLayoutBroker } from '../../brokers/elk/layout/elk-layout-broker';
 import { FlowEdgeWidget } from '../flow-edge/flow-edge-widget';
 import { ReactFlowWidget } from '../react-flow/react-flow-widget';
 import type { CommentAnchor } from '../../contracts/comment-anchor/comment-anchor-contract';
-import { commentCountContract } from '../../contracts/comment-count/comment-count-contract';
-import type { CommentCount } from '../../contracts/comment-count/comment-count-contract';
 import type { ElkPositionMap } from '../../contracts/elk-position-map/elk-position-map-contract';
 import type { FlowEdgeRouteMap } from '../../contracts/flow-edge-route-map/flow-edge-route-map-contract';
 import { flowObservableNodeDataContract } from '../../contracts/flow-observable-node-data/flow-observable-node-data-contract';
@@ -225,8 +223,8 @@ export const ReactFlowDiagramWidget = ({
     // re-scan the full array once per node AND once per observable below — that repeated full-array
     // filter, multiplied by every box the canvas draws, is exactly the nested-scan shape a Map
     // lookup replaces with a single O(comments) pass plus O(1) reads.
-    const nodeCommentCounts = new Map<FlowNode['id'], CommentCount>();
-    const observableCommentCounts = new Map<FlowNode['id'], Map<FlowObservable['id'], CommentCount>>();
+    const nodeCommentCounts = new Map<FlowNode['id'], number>();
+    const observableCommentCounts = new Map<FlowNode['id'], Map<FlowObservable['id'], number>>();
     comments
       .filter((c) => c.flowId === laidOutFlow.id)
       .forEach((c) => {
@@ -234,20 +232,20 @@ export const ReactFlowDiagramWidget = ({
           const priorCount = nodeCommentCounts.get(c.nodeId);
           nodeCommentCounts.set(
             c.nodeId,
-            commentCountContract.parse((priorCount === undefined ? 0 : Number(priorCount)) + 1),
+            ((priorCount === undefined ? 0 : Number(priorCount)) + 1),
           );
           return;
         }
         const perObservable =
-          observableCommentCounts.get(c.nodeId) ?? new Map<FlowObservable['id'], CommentCount>();
+          observableCommentCounts.get(c.nodeId) ?? new Map<FlowObservable['id'], number>();
         const priorCount = perObservable.get(c.observableId);
         perObservable.set(
           c.observableId,
-          commentCountContract.parse((priorCount === undefined ? 0 : Number(priorCount)) + 1),
+          ((priorCount === undefined ? 0 : Number(priorCount)) + 1),
         );
         observableCommentCounts.set(c.nodeId, perObservable);
       });
-    const zeroCommentCount = commentCountContract.parse(0);
+    const zeroCommentCount = 0;
 
     // A tag's KIND is only knowable from the quest's own declaration, so it is resolved here once
     // per layout rather than by each card. Nothing keys off the package NAME: this same diagram
