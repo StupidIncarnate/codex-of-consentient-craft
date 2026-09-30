@@ -69,13 +69,16 @@ describe('PrepareQuestPackageGraphLayerResponder', () => {
       ]);
     });
 
-    it('VALID: {a devDependency edge} => counted the same as a runtime one, so a dev-only consumer is no leaf', async () => {
+    it('VALID: {a devDependency edge} => no edge, so a test-only dependency orders no work and forms no cycle', async () => {
       const proxy = PrepareQuestPackageGraphLayerResponderProxy();
       proxy.setupManifest({
         location: './packages/shared',
         packageJson: { name: '@dm/shared', devDependencies: { '@dm/server': '*' } },
       });
-      proxy.setupManifest({ location: './packages/server', packageJson: { name: '@dm/server' } });
+      proxy.setupManifest({
+        location: './packages/server',
+        packageJson: { name: '@dm/server', dependencies: { '@dm/shared': '*' } },
+      });
       const quest = QuestStub({ packagesAffected: [SHARED_ENTRY, SERVER_ENTRY] });
 
       const result = await PrepareQuestPackageGraphLayerResponder({ quest });
@@ -83,15 +86,15 @@ describe('PrepareQuestPackageGraphLayerResponder', () => {
       expect(result).toStrictEqual([
         PackageGraphEntryStub({
           id: 'shared',
-          dependsOn: ['server'],
-          depth: 1,
+          dependsOn: [],
+          depth: 0,
           packageType: 'library',
           changeType: 'edit',
         }),
         PackageGraphEntryStub({
           id: 'server',
-          dependsOn: [],
-          depth: 0,
+          dependsOn: ['shared'],
+          depth: 1,
           packageType: 'http-backend',
           changeType: 'edit',
         }),
@@ -242,23 +245,23 @@ describe('PrepareQuestPackageGraphLayerResponder', () => {
       // changes one or more of the numbers below. Re-derive this array from a real ward run's failure
       // output rather than hand-computing it; that output is the ground truth this array pins.
       expect(result?.map((entry) => `${String(entry.id)}=${String(entry.depth)}`)).toStrictEqual([
-        'cli=7',
-        'config=2',
-        'eslint-plugin=2',
-        'hooks=2',
-        'hydration=2',
-        'hydration-recipes=4',
-        'local-eslint=3',
-        'mcp=4',
-        'orchestrator=3',
-        'server=6',
-        'session-forensics=2',
-        'shared=1',
-        'siegelense=8',
-        'testing=0',
-        'tooling=2',
-        'ward=3',
-        'web=5',
+        'cli=4',
+        'config=1',
+        'eslint-plugin=1',
+        'hooks=1',
+        'hydration=1',
+        'hydration-recipes=3',
+        'local-eslint=2',
+        'mcp=3',
+        'orchestrator=2',
+        'server=3',
+        'session-forensics=1',
+        'shared=0',
+        'siegelense=5',
+        'testing=1',
+        'tooling=1',
+        'ward=2',
+        'web=1',
       ]);
     });
   });

@@ -60,9 +60,15 @@ export const PrepareQuestPackageGraphLayerResponder = async ({
         return {
           name: node.name,
           npmName: packageJson.name === undefined ? undefined : String(packageJson.name),
-          dependencyNames: packageJsonDependencyNamesTransformer({ packageJson }).map((name) =>
-            String(name),
-          ),
+          // `devDependencies` is left out on purpose: a test-only edge orders no work and matches
+          // the build order, and two packages that each list the other (one as a dev edge) are no
+          // cycle.
+          dependencyNames: packageJsonDependencyNamesTransformer({
+            packageJson: {
+              dependencies: packageJson.dependencies,
+              peerDependencies: packageJson.peerDependencies,
+            },
+          }).map((name) => String(name)),
         };
       } catch {
         // An unreadable or malformed manifest contributes no edges. Start must still seed a
