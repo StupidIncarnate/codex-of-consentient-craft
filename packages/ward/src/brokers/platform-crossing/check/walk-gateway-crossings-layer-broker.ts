@@ -41,7 +41,6 @@
 
 
 import type { ProjectFolder } from '../../../contracts/project-folder/project-folder-contract';
-import type { GatewayPackageName } from '../../../contracts/gateway-package-name/gateway-package-name-contract';
 import type { ImportedName } from '../../../contracts/imported-name/imported-name-contract';
 import {
   platformCrossingChainHopContract,
@@ -84,7 +83,7 @@ export const walkGatewayCrossingsLayerBroker = async ({
   pathHistory: readonly string[];
   chainLabels: readonly PlatformCrossingChainHop[];
   knownPackages: readonly ProjectFolder[];
-  forbiddenPackageNames: readonly GatewayPackageName[];
+  forbiddenPackageNames: readonly string[];
   memo?: WalkGatewayCrossingsMemo;
   moduleShapeCache?: ModuleShapeCache;
   resolveCache?: ResolveSpecifierCache;

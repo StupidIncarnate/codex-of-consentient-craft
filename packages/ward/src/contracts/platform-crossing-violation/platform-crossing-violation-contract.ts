@@ -17,13 +17,12 @@
 import { z } from '#gateway/npm/zod';
 import { platformContract } from '../platform/platform-contract';
 import { platformCrossingChainHopContract } from '../platform-crossing-chain-hop/platform-crossing-chain-hop-contract';
-import { gatewayPackageNameContract } from '../gateway-package-name/gateway-package-name-contract';
 
 export const platformCrossingViolationContract = z.object({
   packageName: z.string().min(1).brand<'PlatformCrossingPackageName'>(),
   platform: platformContract,
   chain: z.array(platformCrossingChainHopContract).min(1),
-  crossedGatewayPackage: gatewayPackageNameContract,
+  crossedGatewayPackage: z.string().min(1).brand<'PlatformCrossingViolationCrossedGatewayPackage'>(),
 });
 
 export type PlatformCrossingViolation = z.infer<typeof platformCrossingViolationContract>;

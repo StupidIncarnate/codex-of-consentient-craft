@@ -19,8 +19,6 @@ import {
   platformCrossingViolationContract,
   type PlatformCrossingViolation,
 } from '../../../contracts/platform-crossing-violation/platform-crossing-violation-contract';
-import { gatewayPackageNameContract } from '../../../contracts/gateway-package-name/gateway-package-name-contract';
-import type { GatewayPackageName } from '../../../contracts/gateway-package-name/gateway-package-name-contract';
 import type { PlatformCrossingChainHop } from '../../../contracts/platform-crossing-chain-hop/platform-crossing-chain-hop-contract';
 import type { PlatformCrossingWalkMemoKey } from '../../../contracts/platform-crossing-walk-memo-key/platform-crossing-walk-memo-key-contract';
 import { workspaceDiscoverBroker } from '../../workspace/discover/workspace-discover-broker';
@@ -88,7 +86,7 @@ export const platformCrossingCheckBroker = async ({
         chainMemoByPlatform.set(platform, memo);
       }
 
-      const forbiddenPackageNames: readonly GatewayPackageName[] = (
+      const forbiddenPackageNames: readonly string[] = (
         platform === 'browser' ? [gatewayNames.node, gatewayNames.bin] : [gatewayNames.browser]
       ).filter((name) => name !== undefined);
       if (forbiddenPackageNames.length === 0) {
@@ -131,7 +129,7 @@ export const platformCrossingCheckBroker = async ({
             const crossedGatewayPackage =
               forbiddenPackageNames.find((name) =>
                 specifierMatchesPackageGuard({ specifier: lastHop, packageName: name }),
-              ) ?? gatewayPackageNameContract.parse(lastHop);
+              ) ?? lastHop;
 
             return platformCrossingViolationContract.parse({
               packageName: folder.name,

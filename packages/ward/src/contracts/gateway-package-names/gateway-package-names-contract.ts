@@ -11,12 +11,11 @@
  */
 
 import { z } from '#gateway/npm/zod';
-import { gatewayPackageNameContract } from '../gateway-package-name/gateway-package-name-contract';
 
 export const gatewayPackageNamesContract = z.object({
-  node: gatewayPackageNameContract.optional(),
-  bin: gatewayPackageNameContract.optional(),
-  browser: gatewayPackageNameContract.optional(),
+  node: z.string().min(1).brand<'GatewayPackageNamesNode'>().optional(),
+  bin: z.string().min(1).brand<'GatewayPackageNamesBin'>().optional(),
+  browser: z.string().min(1).brand<'GatewayPackageNamesBrowser'>().optional(),
 });
 
 export type GatewayPackageNames = z.infer<typeof gatewayPackageNamesContract>;

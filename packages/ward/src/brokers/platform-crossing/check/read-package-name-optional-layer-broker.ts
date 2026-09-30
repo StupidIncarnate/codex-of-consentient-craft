@@ -11,8 +11,6 @@
 
 import { readFile } from '#gateway/node/fs__promises';
 
-import { gatewayPackageNameContract } from '../../../contracts/gateway-package-name/gateway-package-name-contract';
-import type { GatewayPackageName } from '../../../contracts/gateway-package-name/gateway-package-name-contract';
 import { packageJsonContract } from '../../../contracts/package-json/package-json-contract';
 import { isNodeErrorWithCodeGuard } from '../../../guards/is-node-error-with-code/is-node-error-with-code-guard';
 
@@ -20,7 +18,7 @@ export const readPackageNameOptionalLayerBroker = async ({
   packageJsonPath,
 }: {
   packageJsonPath: string;
-}): Promise<GatewayPackageName | undefined> => {
+}): Promise<string | undefined> => {
   const raw = await readFile(packageJsonPath).catch((error: unknown) => {
     if (isNodeErrorWithCodeGuard({ error, code: 'ENOENT' })) {
       return undefined;
@@ -33,5 +31,5 @@ export const readPackageNameOptionalLayerBroker = async ({
   }
 
   const { name } = packageJsonContract.parse(JSON.parse(raw));
-  return name === undefined ? undefined : gatewayPackageNameContract.parse(name);
+  return name === undefined ? undefined : name;
 };
