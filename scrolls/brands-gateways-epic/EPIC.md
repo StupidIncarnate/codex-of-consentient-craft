@@ -129,7 +129,7 @@ More rules for the operator:
 
 ## START HERE — where the epic stands and what to do next
 
-### Now (updated at every event; last 2026-09-30 12:48, machine clock)
+### Now (updated at every event; last 2026-09-30 12:54, machine clock)
 
 | Running | Where |
 |---|---|
