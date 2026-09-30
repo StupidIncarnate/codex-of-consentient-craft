@@ -18,21 +18,19 @@
 
 import { wardDetailContract } from '@dungeonmaster/shared/contracts';
 
-import { wardDetailLineContract } from '../../contracts/ward-detail-line/ward-detail-line-contract';
-import type { WardDetailLine } from '../../contracts/ward-detail-line/ward-detail-line-contract';
 
 export const wardDetailToDisplayLinesTransformer = ({
   detail,
 }: {
   detail: unknown;
-}): WardDetailLine[] => {
+}): string[] => {
   const parsed = wardDetailContract.safeParse(detail);
 
   if (!parsed.success) {
     return [];
   }
 
-  const lines: WardDetailLine[] = [];
+  const lines: string[] = [];
 
   for (const check of parsed.data.checks ?? []) {
     const label = check.checkType === undefined ? 'check' : String(check.checkType);
@@ -45,17 +43,15 @@ export const wardDetailToDisplayLinesTransformer = ({
       );
       const totalProcessed = projects.reduce((sum, pr) => sum + Number(pr.filesCount ?? 0), 0);
       lines.push(
-        wardDetailLineContract.parse(
-          `${label}: DISCOVERY MISMATCH — ${String(totalDiscovered)} discovered, ${String(totalProcessed)} processed`,
-        ),
+        `${label}: DISCOVERY MISMATCH — ${String(totalDiscovered)} discovered, ${String(totalProcessed)} processed`,
       );
 
       for (const projectResult of projects) {
         for (const file of projectResult.onlyDiscovered ?? []) {
-          lines.push(wardDetailLineContract.parse(`${label}: only discovered — ${String(file)}`));
+          lines.push(`${label}: only discovered — ${String(file)}`);
         }
         for (const file of projectResult.onlyProcessed ?? []) {
-          lines.push(wardDetailLineContract.parse(`${label}: only processed — ${String(file)}`));
+          lines.push(`${label}: only processed — ${String(file)}`);
         }
       }
     }
@@ -67,7 +63,7 @@ export const wardDetailToDisplayLinesTransformer = ({
         const message = error.message === undefined ? '' : String(error.message);
         const rule = error.rule === undefined ? '' : ` [${String(error.rule)}]`;
         lines.push(
-          wardDetailLineContract.parse(`${label}: ${file}${location} — ${message}${rule}`),
+          `${label}: ${file}${location} — ${message}${rule}`,
         );
       }
 
@@ -75,7 +71,7 @@ export const wardDetailToDisplayLinesTransformer = ({
         const suite = failure.suitePath === undefined ? '' : String(failure.suitePath);
         const name = failure.testName === undefined ? '' : ` › ${String(failure.testName)}`;
         const message = failure.message === undefined ? '' : ` — ${String(failure.message)}`;
-        lines.push(wardDetailLineContract.parse(`${label}: ${suite}${name}${message}`));
+        lines.push(`${label}: ${suite}${name}${message}`);
       }
 
       // Crash project: failed with no structured errors and no test failures (a suite that
@@ -91,16 +87,16 @@ export const wardDetailToDisplayLinesTransformer = ({
           projectResult.projectFolder?.name === undefined
             ? 'unknown'
             : String(projectResult.projectFolder.name);
-        lines.push(wardDetailLineContract.parse(`${label}: ${projectName} — FAILED`));
+        lines.push(`${label}: ${projectName} — FAILED`);
 
         const stdout = projectResult.rawOutput?.stdout;
         if (typeof stdout === 'string' && stdout.trim().length > 0) {
-          lines.push(wardDetailLineContract.parse(String(stdout)));
+          lines.push(String(stdout));
         }
 
         const stderr = projectResult.rawOutput?.stderr;
         if (typeof stderr === 'string' && stderr.trim().length > 0) {
-          lines.push(wardDetailLineContract.parse(String(stderr)));
+          lines.push(String(stderr));
         }
       }
     }
