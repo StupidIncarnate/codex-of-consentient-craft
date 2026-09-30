@@ -26,7 +26,7 @@
  * const dm = registry({ guilds: guildIngredientBroker, sessions: sessionIngredientBroker });
  * dm.guilds.add(1, (g) => [g[0].sessions.add(1, (s) => [s[0].set({ lines: ['...'] })])]);
  */
-import { sessionIdContract } from '@dungeonmaster/shared/contracts';
+import { sessionContract } from '@dungeonmaster/shared/contracts';
 
 import { recipesHydrationCreateBroker } from '../../recipes-hydration/create/recipes-hydration-create-broker';
 import { nestedChainArgsContract } from '../../../contracts/nested-chain-args/nested-chain-args-contract';
@@ -48,7 +48,7 @@ export const sessionIngredientBroker = ingredient({
   record: sessionRecordContract,
   links: [{ of: 'guild', as: 'cwd', from: 'path' }],
   defaults: (index: number): Partial<SessionFields> => ({
-    sessionId: sessionIdContract.parse(`seed-session-${index + 1}`),
+    sessionId: sessionContract.shape.id.parse(`seed-session-${index + 1}`),
   }),
   routes: {
     write: sessionWriteRouteBroker,

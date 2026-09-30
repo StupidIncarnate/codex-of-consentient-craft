@@ -1,7 +1,6 @@
 import type { StubArgument } from '../../@types/stub-argument.type';
 
 import type { AssistantStreamLine } from '../assistant-stream-line/assistant-stream-line-contract';
-import type { SessionId } from '../session-id/session-id-contract';
 import {
   AssistantTextStreamLineStub,
   AssistantToolUseStreamLineStub,
@@ -22,6 +21,7 @@ import { SystemInitStreamLineStub } from '../system-init-stream-line/system-init
 
 import { claudeQueueResponseContract } from './claude-queue-response-contract';
 import type { ClaudeQueueResponse } from './claude-queue-response-contract';
+import type { Session } from '../session/session-contract';
 
 // ── Branded type aliases ───────────────────────────────────────────────────────
 
@@ -48,7 +48,7 @@ const sessionOrDefault = ({
   value,
 }: {
   value: ReturnType<typeof SessionIdStub> | ReturnType<typeof String> | undefined;
-}): SessionId =>
+}): Session['id'] =>
   value === undefined ? DEFAULT_SESSION_ID : SessionIdStub({ value: String(value) });
 
 const initLine = ({ sessionId = DEFAULT_SESSION_ID } = {}): StreamJsonLine =>

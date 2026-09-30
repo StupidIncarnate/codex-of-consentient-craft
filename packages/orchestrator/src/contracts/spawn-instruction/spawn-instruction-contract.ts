@@ -8,7 +8,7 @@
 
 import { z } from '#gateway/npm/zod';
 
-import { sessionIdContract, questContract, workItemContract } from '@dungeonmaster/shared/contracts';
+import { questContract, workItemContract, sessionContract } from '@dungeonmaster/shared/contracts';
 
 import { agentRoleContract } from '../agent-role/agent-role-contract';
 import { claudeModelContract } from '../claude-model/claude-model-contract';
@@ -24,7 +24,7 @@ export const spawnInstructionContract = z.object({
   // session (`claude --resume`) with the resumePrompt instead of fresh-spawning. The MCP/Task
   // dispatcher cannot resume by construction and ignores both, falling back to the fresh
   // taskPrompt — which is why taskPrompt always stays the fresh variant.
-  resumeSessionId: sessionIdContract.optional(),
+  resumeSessionId: sessionContract.shape.id.optional(),
   resumePrompt: promptTextContract.optional(),
 });
 

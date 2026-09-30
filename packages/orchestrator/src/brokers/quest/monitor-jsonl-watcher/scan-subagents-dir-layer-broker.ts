@@ -18,7 +18,7 @@
 import { isFsError, readdirSync } from '#gateway/node/fs';
 import type { TailFileHandle } from '#gateway/node/fs';
 import { readNonEmptyLines } from '#gateway/node/fs__promises';
-import { absoluteFilePathContract, fileNameContract, type ChatEntry, type FileName, type FilePath, type ProcessId, type SessionId } from '@dungeonmaster/shared/contracts';
+import { absoluteFilePathContract, fileNameContract, type ChatEntry, type FileName, type FilePath, type ProcessId } from '@dungeonmaster/shared/contracts';
 import { claudeLineNormalizeBroker } from '@dungeonmaster/shared/brokers';
 
 import type { ChatLineProcessor } from '../../../contracts/chat-line-processor/chat-line-processor-contract';
@@ -28,7 +28,7 @@ import { streamJsonLinesFromRawTransformer } from '../../../transformers/stream-
 import { stripAgentFilenamePrefixTransformer } from '../../../transformers/strip-agent-filename-prefix/strip-agent-filename-prefix-transformer';
 
 import { startSubagentTailLayerBroker } from './start-subagent-tail-layer-broker';
-import type { Quest, WorkItem, Agent } from '@dungeonmaster/shared/contracts';
+import type { Quest, WorkItem, Agent, Session } from '@dungeonmaster/shared/contracts';
 
 export const scanSubagentsDirLayerBroker = async ({
   subagentsDir,
@@ -43,7 +43,7 @@ export const scanSubagentsDirLayerBroker = async ({
 }: {
   subagentsDir: string;
   sessionFilePath: FilePath;
-  parentSessionId: SessionId;
+  parentSessionId: Session['id'];
   processor: ChatLineProcessor;
   chatProcessId: ProcessId;
   activeQuestIdGetter: () => Quest['id'] | null;
@@ -54,7 +54,7 @@ export const scanSubagentsDirLayerBroker = async ({
     chatProcessId: ProcessId;
     entries: ChatEntry[];
     questId: Quest['id'] | null;
-    sessionId: SessionId;
+    sessionId: Session['id'];
     workItemId?: WorkItem['id'];
   }) => void;
   subagentHandles: Map<Agent['id'], TailFileHandle>;

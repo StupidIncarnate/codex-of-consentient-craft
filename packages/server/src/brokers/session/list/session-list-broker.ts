@@ -6,8 +6,8 @@
  * // Returns session entries sorted most-recently-active-first (by JSONL mtime) with optional quest correlation
  */
 
-import { absoluteFilePathContract, fileContentsContract, sessionIdContract } from '@dungeonmaster/shared/contracts';
-import type { SessionId, Guild } from '@dungeonmaster/shared/contracts';
+import { absoluteFilePathContract, fileContentsContract, sessionContract } from '@dungeonmaster/shared/contracts';
+import type { Guild, Session } from '@dungeonmaster/shared/contracts';
 import { readFile, stat } from '#gateway/node/fs__promises';
 import { homedir } from '#gateway/node/os';
 import { glob } from '#gateway/npm/glob';
@@ -28,11 +28,11 @@ export const sessionListBroker = async ({
 }: {
   guildId: Guild['id'];
   getCache: (params: {
-    sessionId: SessionId;
+    sessionId: Session['id'];
     mtimeMs: number;
   }) => { hit: true; summary: SessionSummary | undefined } | { hit: false };
   setCache: (params: {
-    sessionId: SessionId;
+    sessionId: Session['id'];
     mtimeMs: number;
     summary: SessionSummary | undefined;
   }) => void;
@@ -41,7 +41,7 @@ export const sessionListBroker = async ({
 
   const homeDir = absoluteFilePathContract.parse(homedir());
   const guildPath = absoluteFilePathContract.parse(guild.path);
-  const dummySessionId = sessionIdContract.parse('_probe');
+  const dummySessionId = sessionContract.shape.id.parse('_probe');
   const probePath = claudeProjectPathEncoderTransformer({
     homeDir,
     projectPath: guildPath,
@@ -68,7 +68,7 @@ export const sessionListBroker = async ({
     quests.map(async (q) => StartOrchestrator.loadQuest({ questId: q.id }).catch(() => null)),
   );
 
-  const workItemSessionIds = new Set<SessionId>();
+  const workItemSessionIds = new Set<Session['id']>();
   for (const fullQuest of fullQuests) {
     if (!fullQuest) continue;
     for (const wi of fullQuest.workItems) {
@@ -85,7 +85,7 @@ export const sessionListBroker = async ({
 
   // Collect sessionIds that need cross-project lookup: any sessionId attached to a quest
   // (active or via a work item) that's not already in the direct project dir.
-  const candidateSessionIds = new Set<SessionId>();
+  const candidateSessionIds = new Set<Session['id']>();
   for (const q of quests) {
     if (q.activeSessionId !== undefined) {
       candidateSessionIds.add(q.activeSessionId);
@@ -121,12 +121,12 @@ export const sessionListBroker = async ({
 
   // Sort key for the home Sessions list: last-activity time (JSONL mtime), captured per
   // session below so the most-recently-active sessions sort to the top.
-  const mtimeBySessionId = new Map<SessionId, number>();
+  const mtimeBySessionId = new Map<Session['id'], number>();
 
   const diskResults = await Promise.all(
     dedupedFiles.map(async (filePath) => {
       const fileName = String(filePath).split('/').pop() ?? '';
-      const diskSessionId = sessionIdContract.parse(fileName.replace('.jsonl', ''));
+      const diskSessionId = sessionContract.shape.id.parse(fileName.replace('.jsonl', ''));
 
       try {
         const stats = await stat(filePath);

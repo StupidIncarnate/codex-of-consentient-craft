@@ -11,12 +11,7 @@
  */
 import { claudePathSlugEncoderTransformer } from '@dungeonmaster/shared/transformers';
 import { readFileSync, readdirEntriesSync } from '#gateway/node/fs';
-import {
-  absoluteFilePathContract,
-  contentTextContract,
-  lineCountContract,
-  sessionIdContract,
-} from '@dungeonmaster/shared/contracts';
+import { absoluteFilePathContract, contentTextContract, lineCountContract, sessionContract } from '@dungeonmaster/shared/contracts';
 
 import { isJsonlFileGuard } from '../../../guards/is-jsonl-file/is-jsonl-file-guard';
 import { matchesWhereClauseGuard } from '../../../guards/matches-where-clause/matches-where-clause-guard';
@@ -45,7 +40,7 @@ export const sessionQueryRouteBroker = ({
   );
 
   const records = sessionFiles.map((entry) => {
-    const sessionId = sessionIdContract.parse(
+    const sessionId = sessionContract.shape.id.parse(
       stripJsonlExtensionTransformer({ filename: entry.name }),
     );
     const filePath = absoluteFilePathContract.parse(`${sessionsDir}/${entry.name}`);

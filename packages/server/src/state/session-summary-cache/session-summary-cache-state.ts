@@ -7,16 +7,16 @@
  * sessionSummaryCacheState.clear(); // Clears all cached summaries
  */
 
-import type { SessionId } from '@dungeonmaster/shared/contracts';
+import type { Session } from '@dungeonmaster/shared/contracts';
 
-const cache = new Map<SessionId, { mtimeMs: number; summary: string | undefined }>();
+const cache = new Map<Session['id'], { mtimeMs: number; summary: string | undefined }>();
 
 export const sessionSummaryCacheState = {
   get: ({
     sessionId,
     mtimeMs,
   }: {
-    sessionId: SessionId;
+    sessionId: Session['id'];
     mtimeMs: number;
   }): { hit: true; summary: string | undefined } | { hit: false } => {
     const entry = cache.get(sessionId);
@@ -31,7 +31,7 @@ export const sessionSummaryCacheState = {
     mtimeMs,
     summary,
   }: {
-    sessionId: SessionId;
+    sessionId: Session['id'];
     mtimeMs: number;
     summary: string | undefined;
   }): void => {

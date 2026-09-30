@@ -15,11 +15,9 @@
 import { stderr } from '#gateway/node/process';
 import { AbortController } from '#gateway/node/AbortController';
 import { randomUUID } from '#gateway/node/crypto';
-import { filePathContract, processIdContract } from '@dungeonmaster/shared/contracts';
-import type { GuildListItem, ModifyQuestInput, Quest, SessionId } from '@dungeonmaster/shared/contracts';
-import { errorMessageContract } from '@dungeonmaster/shared/contracts';
+import { filePathContract, processIdContract, errorMessageContract, modifyQuestInputContract } from '@dungeonmaster/shared/contracts';
+import type { GuildListItem, ModifyQuestInput, Quest, SlotIndex, Session } from '@dungeonmaster/shared/contracts';
 
-import type { SlotIndex } from '@dungeonmaster/shared/contracts';
 import { buildOrchestrationLoopOnAgentEntryTransformer } from '../../../transformers/build-orchestration-loop-on-agent-entry/build-orchestration-loop-on-agent-entry-transformer';
 import { guildGetBroker } from '../../../brokers/guild/get/guild-get-broker';
 import { questBlockOnFailureBroker } from '../../../brokers/quest/block-on-failure/quest-block-on-failure-broker';
@@ -27,7 +25,6 @@ import { questCwdResolveBroker } from '../../../brokers/quest/cwd-resolve/quest-
 import { questListBroker } from '../../../brokers/quest/list/quest-list-broker';
 import { questModifyBroker } from '../../../brokers/quest/modify/quest-modify-broker';
 import { questOrchestrationLoopBroker } from '../../../brokers/quest/orchestration-loop/quest-orchestration-loop-broker';
-import { modifyQuestInputContract } from '@dungeonmaster/shared/contracts';
 import { worktreeEnsureQuestBranchBroker } from '../../../brokers/worktree/ensure-quest-branch/worktree-ensure-quest-branch-broker';
 import { questResumeTriggerContract } from '../../../contracts/quest-resume-trigger/quest-resume-trigger-contract';
 import { orchestrationEventsState } from '../../../state/orchestration-events/orchestration-events-state';
@@ -176,7 +173,7 @@ export const RecoverGuildLayerResponder = async ({
       });
 
       // Per-slot sessionId memo — sessionId arrives on a later emission than the first entries, so memo the latest per slot.
-      const slotIndexToSessionId = new Map<SlotIndex, SessionId>();
+      const slotIndexToSessionId = new Map<SlotIndex, Session['id']>();
 
       questOrchestrationLoopBroker({
         processId,

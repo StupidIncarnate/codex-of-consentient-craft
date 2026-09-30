@@ -14,7 +14,7 @@
  * // Returns void; the tail handle lands in `subagentHandles`
  */
 
-import { absoluteFilePathContract, type ChatEntry, type FilePath, type ProcessId, type SessionId } from '@dungeonmaster/shared/contracts';
+import { absoluteFilePathContract, type ChatEntry, type FilePath, type ProcessId } from '@dungeonmaster/shared/contracts';
 import { claudeLineNormalizeBroker } from '@dungeonmaster/shared/brokers';
 import { tailFile } from '#gateway/node/fs';
 import type { TailFileHandle } from '#gateway/node/fs';
@@ -22,7 +22,7 @@ import { stripJsonlSuffixTransformer } from '@dungeonmaster/shared/transformers'
 
 import type { ChatLineProcessor } from '../../../contracts/chat-line-processor/chat-line-processor-contract';
 import { chatLineSourceContract } from '../../../contracts/chat-line-source/chat-line-source-contract';
-import type { Quest, WorkItem, Agent } from '@dungeonmaster/shared/contracts';
+import type { Quest, WorkItem, Agent, Session } from '@dungeonmaster/shared/contracts';
 
 export const startSubagentTailLayerBroker = ({
   agentId,
@@ -43,7 +43,7 @@ export const startSubagentTailLayerBroker = ({
   // `wi.sessionId`). Without it, live frames land in
   // the binding's SYNTHETIC_SESSION_KEY bucket and the execution row's
   // `sessionEntries.get(wi.sessionId)` lookup returns [] until the user refreshes.
-  parentSessionId: SessionId;
+  parentSessionId: Session['id'];
   processor: ChatLineProcessor;
   chatProcessId: ProcessId;
   activeQuestIdGetter: () => Quest['id'] | null;
@@ -56,7 +56,7 @@ export const startSubagentTailLayerBroker = ({
     chatProcessId: ProcessId;
     entries: ChatEntry[];
     questId: Quest['id'] | null;
-    sessionId: SessionId;
+    sessionId: Session['id'];
     workItemId?: WorkItem['id'];
   }) => void;
   subagentHandles: Map<Agent['id'], TailFileHandle>;

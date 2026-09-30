@@ -18,7 +18,7 @@
 import { clearInterval } from '#gateway/node/clearInterval';
 import { cwd } from '#gateway/node/process';
 import { setInterval } from '#gateway/node/setInterval';
-import type { SessionId } from '@dungeonmaster/shared/contracts';
+import type { Session } from '@dungeonmaster/shared/contracts';
 import { questOutboxWatchBroker } from '@dungeonmaster/orchestrator';
 
 import { processDevLogBroker } from '../../../brokers/process/dev-log/process-dev-log-broker';
@@ -29,7 +29,7 @@ const FALLBACK_RECONCILE_INTERVAL_MS = 3000;
 export const QuestDrivenWatchersBootstrapResponder = async (): Promise<{
   stop: () => void;
 }> => {
-  const watchers = new Map<SessionId, { stop: () => void }>();
+  const watchers = new Map<Session['id'], { stop: () => void }>();
   const projectDir = cwd();
   // Mutable container so the outbox callback and the interval timer below can append to
   // the same chain without declaring a nested function that captures a `let` binding.

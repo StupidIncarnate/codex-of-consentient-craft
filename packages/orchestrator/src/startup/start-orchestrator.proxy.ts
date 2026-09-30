@@ -30,7 +30,7 @@
  * orchestrator.getQuestNotFound({ questId });
  */
 
-import type { WorkItem, GuildName, GuildPath, ProcessId, QuestStatus, SessionId, SmoketestSuite, UrlSlug } from '@dungeonmaster/shared/contracts';
+import type { WorkItem, GuildName, GuildPath, ProcessId, QuestStatus, SmoketestSuite, UrlSlug, Session } from '@dungeonmaster/shared/contracts';
 import { registerMock } from '@dungeonmaster/testing/register-mock';
 import type { RecordedCalls } from '@dungeonmaster/testing/register-mock';
 import { DispatchStateStub } from '@dungeonmaster/shared/contracts/dispatch-state/dispatch-state.stub';
@@ -302,8 +302,8 @@ export const StartOrchestratorProxy = (): {
   // /reads this array itself.
   questWorkGetCalls: () => readonly unknown[];
   // Reverse lookups — QuestFlow.findBySessionId / findByWorkItemId.
-  findQuestBySessionIdReturns: (params: { sessionId: SessionId; questId: Quest['id'] | null }) => void;
-  findQuestBySessionIdThrows: (params: { sessionId: SessionId; error: Error }) => void;
+  findQuestBySessionIdReturns: (params: { sessionId: Session['id']; questId: Quest['id'] | null }) => void;
+  findQuestBySessionIdThrows: (params: { sessionId: Session['id']; error: Error }) => void;
   findQuestByWorkItemIdReturns: (params: {
     workItemId: WorkItem['id'];
     questId: Quest['id'] | null;
@@ -975,7 +975,7 @@ export const StartOrchestratorProxy = (): {
       sessionId,
       questId,
     }: {
-      sessionId: SessionId;
+      sessionId: Session['id'];
       questId: Quest['id'] | null;
     }): void => {
       findQuestBySessionIdHandle.calledWith([{ sessionId }]).resolves(questId);
@@ -984,7 +984,7 @@ export const StartOrchestratorProxy = (): {
       sessionId,
       error,
     }: {
-      sessionId: SessionId;
+      sessionId: Session['id'];
       error: Error;
     }): void => {
       findQuestBySessionIdHandle.calledWith([{ sessionId }]).rejects(error);

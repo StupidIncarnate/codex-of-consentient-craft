@@ -33,7 +33,7 @@
  * unreachable.
  */
 
-import type { AbsoluteFilePath, SessionId } from '@dungeonmaster/shared/contracts';
+import type { AbsoluteFilePath, Session } from '@dungeonmaster/shared/contracts';
 
 import type { ClaudeModel } from '../../contracts/claude-model/claude-model-contract';
 import { claudeSpawnCommandContract } from '../../contracts/claude-spawn-command/claude-spawn-command-contract';
@@ -57,7 +57,7 @@ export const claudeSpawnCommandBuildTransformer = ({
   settingsJson: string;
   disableToolSearch: boolean;
   baseEnv: Readonly<Record<string, string | undefined>>;
-  resumeSessionId?: SessionId;
+  resumeSessionId?: Session['id'];
   addDir?: AbsoluteFilePath;
 }): ClaudeSpawnCommand => {
   const args = ['-p', prompt, '--output-format', 'stream-json', '--verbose', '--model', model];

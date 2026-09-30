@@ -29,7 +29,7 @@ import { getEnv, stderr } from '#gateway/node/process';
 import { homedir } from '#gateway/node/os';
 import { claudeLineNormalizeBroker } from '@dungeonmaster/shared/brokers';
 import { absoluteFilePathContract } from '@dungeonmaster/shared/contracts';
-import type { ChatEntry, RepoRootCwd, SessionId, ProcessId, Agent } from '@dungeonmaster/shared/contracts';
+import type { ChatEntry, RepoRootCwd, ProcessId, Agent, Session } from '@dungeonmaster/shared/contracts';
 import {
   claudeProjectPathEncoderTransformer,
   stripJsonlSuffixTransformer,
@@ -46,7 +46,7 @@ export const chatSubagentTailBroker = async ({
   onEntries,
   chatProcessId,
 }: {
-  sessionId: SessionId;
+  sessionId: Session['id'];
   cwd: RepoRootCwd;
   agentId: Agent['id'];
   processor: ChatLineProcessor;

@@ -14,7 +14,7 @@
  * const bySession = await StartOrchestrator.findQuestBySessionId({ sessionId });
  */
 
-import type { Flow, WorkItem, OperationItem, AddQuestInput, AddQuestResult, AgentPromptResult, BlockedReason, CommentBatchEntry, DirectoryEntry, DispatchState, GetQuestResult, Guild, GuildListItem, GuildName, GuildPath, ModifyQuestInput, ModifyQuestResult, OrchestrationMode, OrchestrationStatus, ProcessId, Quest, QuestListItem, QuestListResult, QuestQueueEntry, QuestStatus, QuestType, RateLimitsSnapshot, SessionId, UrlSlug } from '@dungeonmaster/shared/contracts';
+import type { Flow, WorkItem, OperationItem, AddQuestInput, AddQuestResult, AgentPromptResult, BlockedReason, CommentBatchEntry, DirectoryEntry, DispatchState, GetQuestResult, Guild, GuildListItem, GuildName, GuildPath, ModifyQuestInput, ModifyQuestResult, OrchestrationMode, OrchestrationStatus, ProcessId, Quest, QuestListItem, QuestListResult, QuestQueueEntry, QuestStatus, QuestType, RateLimitsSnapshot, UrlSlug, Session } from '@dungeonmaster/shared/contracts';
 
 import type { PromptText } from '../contracts/prompt-text/prompt-text-contract';
 import type { QuestGetServerConfigResult } from '../contracts/quest-get-server-config-result/quest-get-server-config-result-contract';
@@ -260,7 +260,7 @@ export const StartOrchestrator = {
     // this quest exists — see resolveChatQuestLayerBroker's header for the full three-channel
     // rationale (`questId` / `mintedQuestId` / `existingQuestId`).
     existingQuestId?: Quest['id'];
-    sessionId?: SessionId;
+    sessionId?: Session['id'];
   }): Promise<{ chatProcessId: ProcessId; questId?: Quest['id'] }> =>
     ChatStartFlow({
       guildId,
@@ -279,7 +279,7 @@ export const StartOrchestrator = {
     questions,
   }: {
     guildId: Guild['id'];
-    sessionId: SessionId;
+    sessionId: Session['id'];
     questId: Quest['id'];
     answers: { header: string; label: string }[];
     questions: ClarificationQuestion[];
@@ -293,7 +293,7 @@ export const StartOrchestrator = {
     comments,
   }: {
     guildId: Guild['id'];
-    sessionId: SessionId;
+    sessionId: Session['id'];
     questId: Quest['id'];
     comments: CommentBatchEntry[];
   }): Promise<{ chatProcessId: ProcessId; message: PromptText }> =>
@@ -311,7 +311,7 @@ export const StartOrchestrator = {
     guildId,
     chatProcessId,
   }: {
-    sessionId: SessionId;
+    sessionId: Session['id'];
     guildId: Guild['id'];
     chatProcessId?: ProcessId;
   }): Promise<void> =>
@@ -407,7 +407,7 @@ export const StartOrchestrator = {
   }: {
     userRequest: AddQuestInput['userRequest'];
     questType?: QuestType;
-    sessionId?: SessionId;
+    sessionId?: Session['id'];
   }): Promise<{ questId: Quest['id']; guildSlug: UrlSlug }> =>
     QuestFlow.mcpCreate({
       userRequest,
@@ -450,7 +450,7 @@ export const StartOrchestrator = {
   // Reverse lookup: sessionId -> QuestId (or null when no quest's chaoswhisperer workItem
   // has this sessionId). Used by the HTTP server's GET /api/quests/by-session/:sessionId
   // endpoint so the PostToolUse hook can find the quest to PATCH design decisions onto.
-  findQuestBySessionId: async ({ sessionId }: { sessionId: SessionId }): Promise<Quest['id'] | null> =>
+  findQuestBySessionId: async ({ sessionId }: { sessionId: Session['id'] }): Promise<Quest['id'] | null> =>
     QuestFlow.findBySessionId({ sessionId }),
 
   // Reverse lookup: workItemId -> QuestId (or null when no quest owns it). Used by the

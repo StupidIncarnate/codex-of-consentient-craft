@@ -26,7 +26,7 @@
  * every quest-persist line, which is what this listener needs.
  */
 
-import type { Quest, QuestStatus, SessionId } from '@dungeonmaster/shared/contracts';
+import type { Quest, QuestStatus, Session } from '@dungeonmaster/shared/contracts';
 
 import { createSyncHandlerLayerBroker } from './create-sync-handler-layer-broker';
 
@@ -48,7 +48,7 @@ export const questQueueSyncListenerBroker = async ({
     activeSessionId,
   }: {
     questId: Quest['id'];
-    activeSessionId: SessionId | undefined;
+    activeSessionId: Session['id'] | undefined;
   }) => void;
 }): Promise<{ stop: () => void }> => {
   const handler = createSyncHandlerLayerBroker({

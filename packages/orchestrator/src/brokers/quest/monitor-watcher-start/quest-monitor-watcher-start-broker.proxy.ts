@@ -1,10 +1,5 @@
 import { homedir } from '#gateway/node/os';
-import {
-  absoluteFilePathContract,
-  sessionIdContract,
-  type AbsoluteFilePath,
-  type FileName,
-} from '@dungeonmaster/shared/contracts';
+import { absoluteFilePathContract, type AbsoluteFilePath, type FileName, sessionContract } from '@dungeonmaster/shared/contracts';
 import {
   claudeProjectPathEncoderTransformer,
   stripJsonlSuffixTransformer,
@@ -80,7 +75,7 @@ export const questMonitorWatcherStartBrokerProxy = (): {
     claudeProjectPathEncoderTransformer({
       homeDir: absoluteFilePathContract.parse(homeDir),
       projectPath: absoluteFilePathContract.parse(projectDir),
-      sessionId: sessionIdContract.parse(parentSessionId),
+      sessionId: sessionContract.shape.id.parse(parentSessionId),
     });
   // No pre-queued subagent-dir state — the underlying readdir mock defaults to `[]`
   // so the watcher scans no subagent files unless a test calls
@@ -105,7 +100,7 @@ export const questMonitorWatcherStartBrokerProxy = (): {
       const sessionFilePath = claudeProjectPathEncoderTransformer({
         homeDir: absoluteFilePathContract.parse(homeDir),
         projectPath: absoluteFilePathContract.parse(projectDir),
-        sessionId: sessionIdContract.parse(parentSessionId),
+        sessionId: sessionContract.shape.id.parse(parentSessionId),
       });
       const subagentsDir = absoluteFilePathContract.parse(
         `${stripJsonlSuffixTransformer({ filePath: sessionFilePath })}/subagents`,

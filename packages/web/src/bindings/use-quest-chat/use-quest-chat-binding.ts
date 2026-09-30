@@ -14,7 +14,7 @@
  */
 import { useCallback, useEffect, useMemo, useRef, useState } from '#gateway/npm/react';
 
-import type { AskUserQuestionItem, ChatEntry, ChatEntryUuid, PastedImageUpload, ProcessId, Quest, SessionId, UserInput, SlotIndex, WorkItem } from '@dungeonmaster/shared/contracts';
+import type { AskUserQuestionItem, ChatEntry, ChatEntryUuid, PastedImageUpload, ProcessId, Quest, UserInput, SlotIndex, WorkItem, Session } from '@dungeonmaster/shared/contracts';
 import { askUserQuestionContract, chatEntryContract, questContract, slotIndexContract } from '@dungeonmaster/shared/contracts';
 import {
   isPostQuestChatWorkItemRoleGuard,
@@ -49,14 +49,14 @@ import { replaceEpochChatEntryTimestampTransformer } from '../../transformers/re
 import { sortChatEntriesByTimestampTransformer } from '../../transformers/sort-chat-entries-by-timestamp/sort-chat-entries-by-timestamp-transformer';
 import { upsertChatEntriesByUuidTransformer } from '../../transformers/upsert-chat-entries-by-uuid/upsert-chat-entries-by-uuid-transformer';
 
-const SYNTHETIC_SESSION_KEY = '__no_session__' as SessionId;
+const SYNTHETIC_SESSION_KEY = '__no_session__' as Session['id'];
 
 export const useQuestChatBinding = ({
   questId,
 }: {
   questId: Quest['id'] | null;
 }): {
-  entriesBySession: Map<SessionId, ChatEntry[]>;
+  entriesBySession: Map<Session['id'], ChatEntry[]>;
   entriesByWorkItem: Map<WorkItem['id'], ChatEntry[]>;
   slotEntries: Map<SlotIndex, ChatEntry[]>;
   followupEntries: ChatEntry[];
@@ -89,7 +89,7 @@ export const useQuestChatBinding = ({
   stopFollowupChat: () => void;
 } => {
   const [entriesBySessionInternal, setEntriesBySessionInternal] = useState<
-    Map<SessionId, Map<ChatEntryUuid, ChatEntry>>
+    Map<Session['id'], Map<ChatEntryUuid, ChatEntry>>
   >(new Map());
   // Parallel bucket keyed by workItemId. Sibling Task-dispatched sub-agents share one
   // parent sessionId, so the sessionId bucket alone can't tell two codeweaver rows apart;

@@ -27,7 +27,7 @@
  * to the active agent's chat.
  */
 
-import type { Quest, QuestStatus, SessionId } from '@dungeonmaster/shared/contracts';
+import type { Quest, QuestStatus, Session } from '@dungeonmaster/shared/contracts';
 
 import { isSmoketestPollTerminalStatusGuard } from '../../../guards/is-smoketest-poll-terminal-status/is-smoketest-poll-terminal-status-guard';
 import { questActiveSessionTransformer } from '../../../transformers/quest-active-session/quest-active-session-transformer';
@@ -48,7 +48,7 @@ export const processSyncEventLayerBroker = async ({
     activeSessionId,
   }: {
     questId: Quest['id'];
-    activeSessionId: SessionId | undefined;
+    activeSessionId: Session['id'] | undefined;
   }) => void;
 }): Promise<void> => {
   const quest = await loadQuest({ questId });

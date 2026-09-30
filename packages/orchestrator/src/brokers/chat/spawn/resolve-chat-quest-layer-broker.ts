@@ -32,7 +32,7 @@
  */
 
 import { addQuestInputContract, getQuestInputContract } from '@dungeonmaster/shared/contracts';
-import type { QuestType, SessionId, WorkItemRole, Quest, WorkItem, Guild } from '@dungeonmaster/shared/contracts';
+import type { QuestType, WorkItemRole, Quest, WorkItem, Guild, Session } from '@dungeonmaster/shared/contracts';
 
 import { questGetBroker } from '../../quest/get/quest-get-broker';
 import { questUserAddBroker } from '../../quest/user-add/quest-user-add-broker';
@@ -57,7 +57,7 @@ export const resolveChatQuestLayerBroker = async ({
   // The main quest-chat route's own URL questId — see the file header for why this is a separate,
   // unconditional-existence channel rather than an overload of `questId`.
   existingQuestId?: Quest['id'];
-  sessionId?: SessionId;
+  sessionId?: Session['id'];
   message: string;
 }): Promise<{ questId: Quest['id']; workItemId: WorkItem['id']; createdQuest: boolean }> => {
   if (role === 'tavernkeeper') {

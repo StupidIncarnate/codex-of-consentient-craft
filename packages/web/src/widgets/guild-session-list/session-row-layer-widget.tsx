@@ -9,12 +9,12 @@
 
 import { Badge, Group, UnstyledButton } from '#gateway/npm/mantine__core';
 
-import type { QuestStatus, SessionId, SessionListItem } from '@dungeonmaster/shared/contracts';
+import type { QuestStatus, SessionListItem, Session } from '@dungeonmaster/shared/contracts';
 import { emberDepthsThemeStatics } from '../../statics/ember-depths-theme/ember-depths-theme-statics';
 
 export interface SessionRowLayerWidgetProps {
   session: SessionListItem;
-  onSelect: (params: { sessionId: SessionId }) => void;
+  onSelect: (params: { sessionId: Session['id'] }) => void;
 }
 
 const { colors } = emberDepthsThemeStatics;

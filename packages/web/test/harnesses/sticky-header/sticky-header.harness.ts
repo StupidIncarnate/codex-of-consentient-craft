@@ -14,7 +14,7 @@
  * expect(await sticky.pinnedStackIs({ testIds: 'execution-row-header|SUBAGENT_CHAIN_HEADER' })).toBe(true);
  */
 import { GuildIdStub } from '@dungeonmaster/shared/contracts/guild-id/guild-id.stub';
-import type { Guild, SessionId } from '@dungeonmaster/shared/contracts';
+import type { Guild, Session } from '@dungeonmaster/shared/contracts';
 import type { APIRequestContext, Page } from '#gateway/npm/playwright__test';
 
 import { AssistantReadToolUseStreamLineStub } from '@dungeonmaster/shared/contracts/assistant-stream-line/assistant-stream-line.stub';
@@ -154,7 +154,7 @@ export const stickyHeaderHarness = ({
   // Both surfaces read the same seeded session, so the chain shape is built once. Chain A holds a
   // tall report, a CLOSED tool call, and the nested chain B — so one fixture exercises the outer
   // pin, the recursive pin, and the closed-row negative together.
-  const seedNestedChainSession = async (): Promise<SessionId> => {
+  const seedNestedChainSession = async (): Promise<Session['id']> => {
     const sessionId = SessionIdStub({ value: `e2e-sticky-${Date.now()}` });
     const parentRealAgentId = `stickyparent${Date.now()}`;
     const nestedRealAgentId = `stickynested${Date.now()}`;

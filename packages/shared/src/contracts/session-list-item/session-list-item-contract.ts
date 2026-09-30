@@ -8,11 +8,11 @@
 
 import { z } from '#gateway/npm/zod';
 
-import { sessionIdContract } from '../session-id/session-id-contract';
 import { questContract } from '../quest/quest-contract';
+import { sessionContract } from '../session/session-contract';
 
 export const sessionListItemContract = z.object({
-  sessionId: sessionIdContract,
+  sessionId: sessionContract.shape.id,
   summary: z.string().brand<'SessionSummary'>().optional(),
   startedAt: z.iso.datetime().brand<'IsoTimestamp'>(),
   questId: questContract.shape.id.optional(),

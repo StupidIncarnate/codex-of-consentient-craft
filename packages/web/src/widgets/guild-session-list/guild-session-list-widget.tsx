@@ -12,7 +12,7 @@
 
 import { Group, Loader, SegmentedControl, Stack, Text } from '#gateway/npm/mantine__core';
 
-import type { QuestListItem, SessionId, SessionListItem, SkippedQuestFile, Quest } from '@dungeonmaster/shared/contracts';
+import type { QuestListItem, SessionListItem, SkippedQuestFile, Quest, Session } from '@dungeonmaster/shared/contracts';
 
 import type { SessionFilter } from '../../contracts/session-filter/session-filter-contract';
 import { sessionFilterContract } from '../../contracts/session-filter/session-filter-contract';
@@ -32,7 +32,7 @@ export interface GuildSessionListWidgetProps {
   loading: boolean;
   filter: SessionFilter;
   onFilterChange: (params: { filter: SessionFilter }) => void;
-  onSelect: (params: { sessionId: SessionId }) => void;
+  onSelect: (params: { sessionId: Session['id'] }) => void;
   onSelectQuest: (params: { questId: Quest['id'] }) => void;
   onAdd: () => void;
   confirmingQuestId: Quest['id'] | null;

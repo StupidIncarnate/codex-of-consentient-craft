@@ -8,13 +8,13 @@
  * // Returns pending questions for a session after promotion from process-level tracking
  */
 
-import type { ProcessId, SessionId } from '@dungeonmaster/shared/contracts';
+import type { ProcessId, Session } from '@dungeonmaster/shared/contracts';
 
 import { pendingClarificationEntryContract } from '../../contracts/pending-clarification-entry/pending-clarification-entry-contract';
 import type { PendingClarificationEntry } from '../../contracts/pending-clarification-entry/pending-clarification-entry-contract';
 
 const processQuestions = new Map<ProcessId, PendingClarificationEntry>();
-const sessionQuestions = new Map<SessionId, PendingClarificationEntry>();
+const sessionQuestions = new Map<Session['id'], PendingClarificationEntry>();
 
 export const pendingClarificationState = {
   setForProcess: ({
@@ -35,7 +35,7 @@ export const pendingClarificationState = {
     sessionId,
   }: {
     processId: ProcessId;
-    sessionId: SessionId;
+    sessionId: Session['id'];
   }): boolean => {
     const entry = processQuestions.get(processId);
     if (!entry) {
@@ -46,10 +46,10 @@ export const pendingClarificationState = {
     return true;
   },
 
-  getForSession: ({ sessionId }: { sessionId: SessionId }): PendingClarificationEntry | undefined =>
+  getForSession: ({ sessionId }: { sessionId: Session['id'] }): PendingClarificationEntry | undefined =>
     sessionQuestions.get(sessionId),
 
-  removeForSession: ({ sessionId }: { sessionId: SessionId }): boolean =>
+  removeForSession: ({ sessionId }: { sessionId: Session['id'] }): boolean =>
     sessionQuestions.delete(sessionId),
 
   clear: (): void => {

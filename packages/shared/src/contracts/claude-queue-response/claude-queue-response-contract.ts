@@ -9,12 +9,12 @@
 import { z } from '#gateway/npm/zod';
 
 import { exitCodeContract } from '../exit-code/exit-code-contract';
-import { sessionIdContract } from '../session-id/session-id-contract';
 import { streamJsonLineContract } from '../stream-json-line/stream-json-line-contract';
 import { timeoutMsContract } from '../timeout-ms/timeout-ms-contract';
+import { sessionContract } from '../session/session-contract';
 
 export const claudeQueueResponseContract = z.object({
-  sessionId: sessionIdContract,
+  sessionId: sessionContract.shape.id,
   lines: z.array(streamJsonLineContract),
   exitCode: exitCodeContract.optional(),
   delayMs: timeoutMsContract.optional(),

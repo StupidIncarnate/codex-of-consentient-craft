@@ -6,10 +6,11 @@
  * // Validates result messages carrying session cost, duration, and turn count
  */
 import { z } from '#gateway/npm/zod';
+import { sessionContract } from '../session/session-contract';
 
 export const resultStreamLineContract = z.object({
   type: z.literal('result'),
-  session_id: z.string().brand<'SessionId'>(),
+  session_id: sessionContract.shape.id,
   cost_usd: z.number().brand<'CostUsd'>().optional(),
   duration_ms: z.number().brand<'DurationMs'>().optional(),
   num_turns: z.number().brand<'NumTurns'>().optional(),

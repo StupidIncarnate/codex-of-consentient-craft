@@ -6,7 +6,7 @@
  * // Returns SessionId[] for the replay-history messages, in order
  */
 
-import type { SessionId } from '@dungeonmaster/shared/contracts';
+import type { Session } from '@dungeonmaster/shared/contracts';
 
 import { replayHistoryMessageContract } from '../../contracts/replay-history-message/replay-history-message-contract';
 
@@ -14,7 +14,7 @@ export const extractReplaySessionIdsTransformer = ({
   messages,
 }: {
   messages: readonly unknown[];
-}): SessionId[] =>
+}): Session['id'][] =>
   messages.flatMap((msg) => {
     const parsed = replayHistoryMessageContract.safeParse(msg);
     return parsed.success ? [parsed.data.sessionId] : [];

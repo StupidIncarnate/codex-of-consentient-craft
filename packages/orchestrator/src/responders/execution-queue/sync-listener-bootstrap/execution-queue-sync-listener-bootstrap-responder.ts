@@ -17,7 +17,7 @@
  */
 
 import { stderr } from '#gateway/node/process';
-import type { Quest, QuestStatus, SessionId } from '@dungeonmaster/shared/contracts';
+import type { Quest, QuestStatus, Session } from '@dungeonmaster/shared/contracts';
 import { getQuestInputContract } from '@dungeonmaster/shared/contracts';
 
 import { questGetBroker } from '../../../brokers/quest/get/quest-get-broker';
@@ -67,7 +67,7 @@ export const ExecutionQueueSyncListenerBootstrapResponder = (): void => {
       activeSessionId,
     }: {
       questId: Quest['id'];
-      activeSessionId: SessionId | undefined;
+      activeSessionId: Session['id'] | undefined;
     }): void => {
       questExecutionQueueState.updateEntryActiveSession({ questId, activeSessionId });
     },

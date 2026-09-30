@@ -25,14 +25,10 @@
  */
 import { z } from '#gateway/npm/zod';
 
-import {
-  absoluteFilePathContract,
-  sessionIdContract,
-  streamJsonLineContract,
-} from '@dungeonmaster/shared/contracts';
+import { absoluteFilePathContract, streamJsonLineContract, sessionContract } from '@dungeonmaster/shared/contracts';
 
 const sessionFieldsShape = z.object({
-  sessionId: sessionIdContract,
+  sessionId: sessionContract.shape.id,
   cwd: absoluteFilePathContract,
   lines: z.array(streamJsonLineContract),
 });

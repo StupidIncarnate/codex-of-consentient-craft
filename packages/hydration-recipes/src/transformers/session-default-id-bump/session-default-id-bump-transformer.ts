@@ -13,8 +13,8 @@
  * sessionDefaultIdBumpTransformer({ id: sessionIdContract.parse('my-custom-session'), by: 1 });
  * // Returns 'my-custom-session' unchanged
  */
-import { sessionIdContract } from '@dungeonmaster/shared/contracts';
-import type { SessionId } from '@dungeonmaster/shared/contracts';
+import { sessionContract } from '@dungeonmaster/shared/contracts';
+import type { Session } from '@dungeonmaster/shared/contracts';
 
 const DEFAULT_ID_PATTERN = /^(seed-session-)(\d+)$/u;
 
@@ -22,14 +22,14 @@ export const sessionDefaultIdBumpTransformer = ({
   id,
   by,
 }: {
-  id: SessionId;
+  id: Session['id'];
   by: number;
-}): SessionId => {
+}): Session['id'] => {
   const match = DEFAULT_ID_PATTERN.exec(id);
   if (match === null) {
     return id;
   }
 
   const [, prefix, digits] = match;
-  return sessionIdContract.parse(`${prefix ?? ''}${Number(digits) + by}`);
+  return sessionContract.shape.id.parse(`${prefix ?? ''}${Number(digits) + by}`);
 };

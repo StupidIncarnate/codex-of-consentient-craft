@@ -16,12 +16,12 @@
 
 import { z } from '#gateway/npm/zod';
 
-import { sessionIdContract } from '../session-id/session-id-contract';
 import { workItemContract } from '../work-item/work-item-contract';
+import { sessionContract } from '../session/session-contract';
 
 export const workItemForUpsertContract = workItemContract.partial().extend({
   id: workItemContract.shape.id,
-  sessionId: sessionIdContract.nullable().optional(),
+  sessionId: sessionContract.shape.id.nullable().optional(),
   startedAt: z.iso.datetime().brand<'IsoTimestamp'>().nullable().optional(),
 });
 

@@ -1,4 +1,4 @@
-import { absoluteFilePathContract, sessionIdContract } from '@dungeonmaster/shared/contracts';
+import { absoluteFilePathContract, sessionContract } from '@dungeonmaster/shared/contracts';
 import type { AbsoluteFilePath } from '@dungeonmaster/shared/contracts';
 import type { GuildStub } from '@dungeonmaster/shared/contracts/guild/guild.stub';
 import type { QuestListItemStub } from '@dungeonmaster/shared/contracts/quest-list-item/quest-list-item.stub';
@@ -69,7 +69,7 @@ export const sessionListBrokerProxy = (): {
     const probePath = claudeProjectPathEncoderTransformer({
       homeDir: staged.homeDir,
       projectPath: staged.guildPath,
-      sessionId: sessionIdContract.parse('_probe'),
+      sessionId: sessionContract.shape.id.parse('_probe'),
     });
     return String(probePath).slice(0, String(probePath).lastIndexOf('/')) as FilePath;
   };

@@ -9,8 +9,8 @@
 import { z } from '#gateway/npm/zod';
 
 import { questStatusContract } from '../quest-status/quest-status-contract';
-import { sessionIdContract } from '../session-id/session-id-contract';
 import { questContract } from '../quest/quest-contract';
+import { sessionContract } from '../session/session-contract';
 
 export const questListItemContract = z.object({
   id: questContract.shape.id,
@@ -19,7 +19,7 @@ export const questListItemContract = z.object({
   status: questStatusContract,
   createdAt: z.iso.datetime().brand<'IsoTimestamp'>(),
   stepProgress: z.string().brand<'StepProgress'>().optional(),
-  activeSessionId: sessionIdContract.optional(),
+  activeSessionId: sessionContract.shape.id.optional(),
   userRequest: z.string().brand<'UserRequest'>().optional(),
 });
 

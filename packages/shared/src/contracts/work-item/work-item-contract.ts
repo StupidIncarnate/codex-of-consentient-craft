@@ -12,7 +12,6 @@ import { fileNameContract } from '../file-name/file-name-contract';
 import { packageNameContract } from '../package-name/package-name-contract';
 import { pieceIdContract } from '../piece-id/piece-id-contract';
 import { relatedDataItemContract } from '../related-data-item/related-data-item-contract';
-import { sessionIdContract } from '../session-id/session-id-contract';
 import { spawnerTypeContract } from '../spawner-type/spawner-type-contract';
 import { stepNameContract } from '../step-name/step-name-contract';
 import { streamSignalKindContract } from '../stream-signal-kind/stream-signal-kind-contract';
@@ -21,6 +20,7 @@ import { workItemPayloadKeyContract } from '../work-item-payload-key/work-item-p
 import { workItemRoleContract } from '../work-item-role/work-item-role-contract';
 import { workItemStatusContract } from '../work-item-status/work-item-status-contract';
 import { qaChecklistItemContract } from '../qa-checklist-item/qa-checklist-item-contract';
+import { sessionContract } from '../session/session-contract';
 
 const workItemId = z.uuid().brand<'WorkItemId'>();
 
@@ -29,7 +29,7 @@ export const workItemContract = z.object({
   role: workItemRoleContract,
   status: workItemStatusContract,
   spawnerType: spawnerTypeContract,
-  sessionId: sessionIdContract.optional(),
+  sessionId: sessionContract.shape.id.optional(),
   // INVARIANT (behavioral, enforced by every seeding path — quest-create, the relay graph
   // builder, and questAdvanceBroker): every work item carries exactly ONE `operations/<id>`
   // ref, linking it to the operation item on the ledger whose SCOPE it works. That link is

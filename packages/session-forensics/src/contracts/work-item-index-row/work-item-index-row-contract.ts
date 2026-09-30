@@ -14,18 +14,14 @@
  */
 import { z } from '#gateway/npm/zod';
 
-import {
-  workItemRoleContract,
-  workItemStatusContract,
-  sessionIdContract,
-} from '@dungeonmaster/shared/contracts';
+import { workItemRoleContract, workItemStatusContract, sessionContract } from '@dungeonmaster/shared/contracts';
 
 export const workItemIndexRowContract = z
   .object({
     workItemId: z.string(),
     role: workItemRoleContract,
     status: workItemStatusContract,
-    sessionId: sessionIdContract.optional(),
+    sessionId: sessionContract.shape.id.optional(),
     // Undefined when the item never completed — `completedAt - startedAt` (or `createdAt` when
     // `startedAt` is absent) needs both ends of the range to exist.
     wallClockSeconds: z.number().optional(),

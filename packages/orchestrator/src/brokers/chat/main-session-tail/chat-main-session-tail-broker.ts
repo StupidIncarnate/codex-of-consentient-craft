@@ -29,8 +29,7 @@ import { tailFile } from '#gateway/node/fs';
 import { homedir } from '#gateway/node/os';
 import { claudeLineNormalizeBroker } from '@dungeonmaster/shared/brokers';
 import { absoluteFilePathContract } from '@dungeonmaster/shared/contracts';
-import type { ChatEntry, RepoRootCwd, SessionId } from '@dungeonmaster/shared/contracts';
-import type { ProcessId } from '@dungeonmaster/shared/contracts';
+import type { ChatEntry, RepoRootCwd, ProcessId, Session } from '@dungeonmaster/shared/contracts';
 import { claudeProjectPathEncoderTransformer } from '@dungeonmaster/shared/transformers';
 
 import type { ChatLineProcessor } from '../../../contracts/chat-line-processor/chat-line-processor-contract';
@@ -43,7 +42,7 @@ export const chatMainSessionTailBroker = ({
   onEntries,
   chatProcessId,
 }: {
-  sessionId: SessionId;
+  sessionId: Session['id'];
   cwd: RepoRootCwd;
   processor: ChatLineProcessor;
   onEntries: (params: { chatProcessId: ProcessId; entries: ChatEntry[] }) => void;

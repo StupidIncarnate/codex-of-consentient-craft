@@ -105,7 +105,6 @@ export * from './install-context/install-context-contract';
 
 
 
-export * from './session-id/session-id-contract';
 
 
 
@@ -560,3 +559,4 @@ export * from './schema-object-entry/schema-object-entry-contract';
 export * from './agent/agent-contract';
 export * from './siege-instance/siege-instance-contract';
 export * from './siege-run/siege-run-contract';
+export * from './session/session-contract';

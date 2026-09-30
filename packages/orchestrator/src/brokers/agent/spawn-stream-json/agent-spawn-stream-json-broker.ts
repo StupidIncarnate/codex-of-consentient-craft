@@ -23,7 +23,7 @@ import { readFileSyncIfExists } from '#gateway/node/fs';
 import { join } from '#gateway/node/path';
 import { envSnapshot, stderr } from '#gateway/node/process';
 import { lineReader } from '#gateway/node/readline';
-import type { AbsoluteFilePath, RepoRootCwd, SessionId } from '@dungeonmaster/shared/contracts';
+import type { AbsoluteFilePath, RepoRootCwd, Session } from '@dungeonmaster/shared/contracts';
 import { locationsStatics } from '@dungeonmaster/shared/statics';
 
 import type { ClaudeModel } from '../../../contracts/claude-model/claude-model-contract';
@@ -41,7 +41,7 @@ export const agentSpawnStreamJsonBroker = ({
   addDir,
 }: {
   prompt: PromptText;
-  resumeSessionId?: SessionId;
+  resumeSessionId?: Session['id'];
   cwd?: RepoRootCwd;
   stdinMode?: 'inherit' | 'ignore';
   model: ClaudeModel;

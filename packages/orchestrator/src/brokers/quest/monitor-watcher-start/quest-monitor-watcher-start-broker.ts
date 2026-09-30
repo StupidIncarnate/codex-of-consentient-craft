@@ -30,9 +30,9 @@
  * terminal event can be routed per-quest.
  */
 
-import type { WorkItem, Quest } from '@dungeonmaster/shared/contracts';
+import type { WorkItem, Quest, Session } from '@dungeonmaster/shared/contracts';
 import { homedir } from '#gateway/node/os';
-import { absoluteFilePathContract, filePathContract, processIdContract, sessionIdContract, type ChatEntry, type OrchestrationEventType, type ProcessId, type SessionId, questContract, workItemContract } from '@dungeonmaster/shared/contracts';
+import { absoluteFilePathContract, filePathContract, processIdContract, type ChatEntry, type OrchestrationEventType, type ProcessId, questContract, workItemContract, sessionContract } from '@dungeonmaster/shared/contracts';
 import { claudeProjectPathEncoderTransformer } from '@dungeonmaster/shared/transformers';
 
 import { questMonitorJsonlWatcherBroker } from '../monitor-jsonl-watcher/quest-monitor-jsonl-watcher-broker';
@@ -62,7 +62,7 @@ export const questMonitorWatcherStartBroker = async ({
 }): Promise<{ stop: () => void }> => {
   const homeDir = absoluteFilePathContract.parse(homedir());
   const projectPath = absoluteFilePathContract.parse(projectDir);
-  const sessionId = sessionIdContract.parse(parentSessionId);
+  const sessionId = sessionContract.shape.id.parse(parentSessionId);
 
   // Resolved BEFORE the orphan reset below, which needs it as an exclusion key.
   const mainSessionWorkItemId: WorkItem['id'] = workItemContract.shape.id.parse(workerWorkItemId);
@@ -121,7 +121,7 @@ export const questMonitorWatcherStartBroker = async ({
       chatProcessId: ProcessId;
       entries: ChatEntry[];
       questId: Quest['id'] | null;
-      sessionId?: SessionId;
+      sessionId?: Session['id'];
       workItemId?: WorkItem['id'];
     }): void => {
       emit({

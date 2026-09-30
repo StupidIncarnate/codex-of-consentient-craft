@@ -6,15 +6,16 @@
  * // Returns SessionId if found, null otherwise
  */
 
-import { sessionIdContract, type SessionId } from '@dungeonmaster/shared/contracts';
+import { sessionContract } from '@dungeonmaster/shared/contracts';
 
 import { normalizedStreamLineContract } from '../../contracts/normalized-stream-line/normalized-stream-line-contract';
+import type { Session } from '@dungeonmaster/shared/contracts';
 
 export const sessionIdExtractorTransformer = ({
   parsed,
 }: {
   parsed: unknown;
-}): SessionId | null => {
+}): Session['id'] | null => {
   const lineParse = normalizedStreamLineContract.safeParse(parsed);
   if (!lineParse.success) {
     return null;
@@ -27,7 +28,7 @@ export const sessionIdExtractorTransformer = ({
   }
 
   if (typeof line.sessionId === 'string') {
-    const parseResult = sessionIdContract.safeParse(String(line.sessionId));
+    const parseResult = sessionContract.shape.id.safeParse(String(line.sessionId));
     if (parseResult.success) {
       return parseResult.data;
     }

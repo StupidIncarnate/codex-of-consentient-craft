@@ -15,12 +15,12 @@
 
 import { z } from '#gateway/npm/zod';
 
-import { processIdContract, sessionIdContract, questContract, workItemContract } from '@dungeonmaster/shared/contracts';
+import { processIdContract, questContract, workItemContract, sessionContract } from '@dungeonmaster/shared/contracts';
 
 export const chatOutputPayloadContract = z.object({
   chatProcessId: processIdContract.optional(),
   entries: z.unknown(),
-  sessionId: sessionIdContract.optional(),
+  sessionId: sessionContract.shape.id.optional(),
   questId: questContract.shape.id.optional(),
   workItemId: workItemContract.shape.id.optional(),
   replay: z.boolean().optional(),

@@ -21,7 +21,7 @@
  */
 import { claudePathSlugEncoderTransformer } from '@dungeonmaster/shared/transformers';
 import { readFileSync, readdirEntriesSync } from '#gateway/node/fs';
-import { absoluteFilePathContract, contentTextContract, lineCountContract, sessionIdContract, agentContract } from '@dungeonmaster/shared/contracts';
+import { absoluteFilePathContract, contentTextContract, lineCountContract, agentContract, sessionContract } from '@dungeonmaster/shared/contracts';
 
 import { isJsonlFileGuard } from '../../../guards/is-jsonl-file/is-jsonl-file-guard';
 import { matchesWhereClauseGuard } from '../../../guards/matches-where-clause/matches-where-clause-guard';
@@ -42,7 +42,7 @@ export const subagentQueryRouteBroker = ({
 }): SubagentRecord[] => {
   const { cwd: cwdValue, sessionId: sessionIdValue, ...rest } = where;
   const cwd = absoluteFilePathContract.parse(cwdValue);
-  const sessionId = sessionIdContract.parse(sessionIdValue);
+  const sessionId = sessionContract.shape.id.parse(sessionIdValue);
   const sessionsDir = claudePathSlugEncoderTransformer({
     homeDir: target.claudeHome,
     projectPath: cwd,

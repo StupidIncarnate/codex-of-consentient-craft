@@ -28,7 +28,7 @@
  * />
  */
 
-import type { ChatEntry, OperationItem, RiftcarverResult, SessionId, UrlSlug, WardResult, WorkItem, Quest } from '@dungeonmaster/shared/contracts';
+import type { ChatEntry, OperationItem, RiftcarverResult, UrlSlug, WardResult, WorkItem, Quest, Session } from '@dungeonmaster/shared/contracts';
 import { riftcarverResultContract } from '@dungeonmaster/shared/contracts';
 
 import type { DisplayLabel } from '../../contracts/display-label/display-label-contract';
@@ -61,7 +61,7 @@ export interface ExecutionWorkItemRowLayerWidgetProps {
   includeSkipped: boolean;
   guildSlug?: UrlSlug;
   workItemEntries: Map<WorkItem['id'], ChatEntry[]>;
-  sessionEntries: Map<SessionId, ChatEntry[]>;
+  sessionEntries: Map<Session['id'], ChatEntry[]>;
   // Built once for the whole quest, above the row list — rebuilding it per row would be
   // O(work items × dependencies) instead of O(work items). The dependency's OWN row label: its tier
   // label (T2-1) when it renders nested, else its scope label — the SAME map the back-edge badge

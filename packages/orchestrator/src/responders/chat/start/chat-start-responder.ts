@@ -8,7 +8,7 @@
 
 import { stderr } from '#gateway/node/process';
 import { getQuestInputContract, workItemRoleContract } from '@dungeonmaster/shared/contracts';
-import type { ChatEntry, ProcessId, QuestType, SessionId, Quest, WorkItem, Guild } from '@dungeonmaster/shared/contracts';
+import type { ChatEntry, ProcessId, QuestType, Quest, WorkItem, Guild, Session } from '@dungeonmaster/shared/contracts';
 import { questFlowStatics } from '@dungeonmaster/shared/statics';
 
 import { chatSpawnBroker } from '../../../brokers/chat/spawn/chat-spawn-broker';
@@ -45,7 +45,7 @@ export const ChatStartResponder = async ({
   // turn may not have landed) — never "mint a different quest". See resolveChatQuestLayerBroker's
   // header for the full three-channel rationale (`questId` / `mintedQuestId` / `existingQuestId`).
   existingQuestId?: Quest['id'];
-  sessionId?: SessionId;
+  sessionId?: Session['id'];
 }): Promise<{ chatProcessId: ProcessId; questId?: Quest['id'] }> => {
   if (sessionId) {
     stderr.write(`[CLARIFICATION-DEBUG] startChat called with sessionId=${sessionId}\n`);

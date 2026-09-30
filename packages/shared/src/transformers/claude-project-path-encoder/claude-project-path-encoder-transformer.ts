@@ -22,7 +22,7 @@ import {
   absoluteFilePathContract,
   type AbsoluteFilePath,
 } from '../../contracts/absolute-file-path/absolute-file-path-contract';
-import type { SessionId } from '../../contracts/session-id/session-id-contract';
+import type { Session } from '../../contracts/session/session-contract';
 
 export const claudeProjectPathEncoderTransformer = ({
   homeDir,
@@ -31,7 +31,7 @@ export const claudeProjectPathEncoderTransformer = ({
 }: {
   homeDir: AbsoluteFilePath;
   projectPath: AbsoluteFilePath;
-  sessionId: SessionId;
+  sessionId: Session['id'];
 }): AbsoluteFilePath => {
   const encoded = projectPath.replace(/[^a-zA-Z0-9]/gu, '-');
   return absoluteFilePathContract.parse(

@@ -19,7 +19,7 @@
  */
 
 import { stderr } from '#gateway/node/process';
-import { absoluteFilePathContract, sessionIdContract, type ChatEntry, type FilePath, type ProcessId, type SessionId } from '@dungeonmaster/shared/contracts';
+import { absoluteFilePathContract, type ChatEntry, type FilePath, type ProcessId, sessionContract } from '@dungeonmaster/shared/contracts';
 import { claudeLineNormalizeBroker } from '@dungeonmaster/shared/brokers';
 import { tailFile } from '#gateway/node/fs';
 import type { TailFileHandle } from '#gateway/node/fs';
@@ -32,7 +32,7 @@ import { timerIntervalStartBroker } from '../../timer/interval-start/timer-inter
 import { questGetServerConfigBroker } from '../get-server-config/quest-get-server-config-broker';
 import { scanSubagentsDirLayerBroker } from './scan-subagents-dir-layer-broker';
 import { startSubagentTailLayerBroker } from './start-subagent-tail-layer-broker';
-import type { Quest, WorkItem, Agent } from '@dungeonmaster/shared/contracts';
+import type { Quest, WorkItem, Agent, Session } from '@dungeonmaster/shared/contracts';
 
 // How often the broker re-scans `<sessionFilePath without .jsonl>/subagents/` for newly-
 // created `agent-*.jsonl` files. The `agent-detected` signal from the processor only fires
@@ -66,7 +66,7 @@ export const questMonitorJsonlWatcherBroker = ({
     chatProcessId: ProcessId;
     entries: ChatEntry[];
     questId: Quest['id'] | null;
-    sessionId?: SessionId;
+    sessionId?: Session['id'];
     workItemId?: WorkItem['id'];
   }) => void;
   // Set when the tailed session is a Node-dispatch worker's own session: its agent writes
@@ -121,7 +121,7 @@ export const questMonitorJsonlWatcherBroker = ({
   // matching what `wi.sessionId` holds and what chat-replay-responder emits on the replay
   // path. Keeps the web binding's bucket key in lockstep across streaming + replay.
   const lastSlash = sessionFileNoSuffix.lastIndexOf('/');
-  const parentSessionId = sessionIdContract.parse(
+  const parentSessionId = sessionContract.shape.id.parse(
     lastSlash === -1 ? sessionFileNoSuffix : sessionFileNoSuffix.slice(lastSlash + 1),
   );
   const scanArgs = {

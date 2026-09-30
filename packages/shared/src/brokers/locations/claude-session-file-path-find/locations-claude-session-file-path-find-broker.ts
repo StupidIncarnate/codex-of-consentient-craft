@@ -15,14 +15,14 @@ import {
   absoluteFilePathContract,
   type AbsoluteFilePath,
 } from '../../../contracts/absolute-file-path/absolute-file-path-contract';
-import type { SessionId } from '../../../contracts/session-id/session-id-contract';
+import type { Session } from '../../../contracts/session/session-contract';
 
 export const locationsClaudeSessionFilePathFindBroker = ({
   guildPath,
   sessionId,
 }: {
   guildPath: AbsoluteFilePath;
-  sessionId: SessionId;
+  sessionId: Session['id'];
 }): AbsoluteFilePath => {
   const sessionsDir = locationsClaudeSessionsDirFindBroker({ guildPath });
 

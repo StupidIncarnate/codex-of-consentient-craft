@@ -8,9 +8,10 @@
  */
 import { z } from '#gateway/npm/zod';
 import { hookBackgroundTaskContract } from '../hook-background-task/hook-background-task-contract';
+import { sessionContract } from '@dungeonmaster/shared/contracts';
 
 export const subagentStopHookDataContract = z.object({
-  session_id: z.string().min(1).brand<'SessionId'>(),
+  session_id: sessionContract.shape.id,
   transcript_path: z.string().min(1).brand<'TranscriptPath'>(),
   agent_transcript_path: z.string().min(1).brand<'TranscriptPath'>().optional(),
   cwd: z.string().min(1).brand<'Cwd'>(),

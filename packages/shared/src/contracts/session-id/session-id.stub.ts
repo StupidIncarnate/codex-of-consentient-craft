@@ -1,6 +1,6 @@
-import { sessionIdContract } from './session-id-contract';
-import type { SessionId } from './session-id-contract';
+import type { Session } from '../session/session-contract';
+import { sessionContract } from '../session/session-contract';
 
 export const SessionIdStub = (
   { value }: { value: string } = { value: '9c4d8f1c-3e38-48c9-bdec-22b61883b473' },
-): SessionId => sessionIdContract.parse(value);
+): Session['id'] => sessionContract.shape.id.parse(value);

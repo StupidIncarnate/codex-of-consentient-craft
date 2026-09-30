@@ -17,15 +17,12 @@ import { useEffect, useMemo, useState } from '#gateway/npm/react';
 
 import { Box, Group, Stack, UnstyledButton } from '#gateway/npm/mantine__core';
 
-import type { Quest, QuestStatus, SessionId, UrlSlug, UserInput, WorkItem } from '@dungeonmaster/shared/contracts';
+import type { Quest, QuestStatus, UrlSlug, UserInput, WorkItem, ChatEntry, CompletedCount, PastedImageUpload, TotalCount, Session } from '@dungeonmaster/shared/contracts';
 
 import { useElapsedTickBinding } from '../../bindings/use-elapsed-tick/use-elapsed-tick-binding';
 import { useQuestProjectionBinding } from '../../bindings/use-quest-projection/use-quest-projection-binding';
 import type { ButtonLabel } from '../../contracts/button-label/button-label-contract';
-import type { ChatEntry } from '@dungeonmaster/shared/contracts';
-import { completedCountContract } from '@dungeonmaster/shared/contracts';
-import type { CompletedCount } from '@dungeonmaster/shared/contracts';
-import { workItemPayloadKeyContract } from '@dungeonmaster/shared/contracts';
+import { completedCountContract, workItemPayloadKeyContract, totalCountContract } from '@dungeonmaster/shared/contracts';
 import type { DependencyLabel } from '../../contracts/dependency-label/dependency-label-contract';
 import type { DisplayFilePath } from '../../contracts/display-file-path/display-file-path-contract';
 import type { DisplayLabel } from '../../contracts/display-label/display-label-contract';
@@ -34,10 +31,7 @@ import { executionRoleContract } from '../../contracts/execution-role/execution-
 import type { ExecutionRole } from '../../contracts/execution-role/execution-role-contract';
 import { executionStepStatusContract } from '../../contracts/execution-step-status/execution-step-status-contract';
 import type { ExecutionStepStatus } from '../../contracts/execution-step-status/execution-step-status-contract';
-import type { PastedImageUpload } from '@dungeonmaster/shared/contracts';
 import type { RowOrder } from '../../contracts/row-order/row-order-contract';
-import { totalCountContract } from '@dungeonmaster/shared/contracts';
-import type { TotalCount } from '@dungeonmaster/shared/contracts';
 import type { UploadProgressHandler } from '../../contracts/upload-progress-post/upload-progress-post-contract';
 import {
   isActiveWorkItemStatusGuard,
@@ -71,7 +65,7 @@ const FOLLOWUP_ROLE_LABEL = executionRoleContract.parse('tavernkeeper');
 
 export interface ExecutionPanelWidgetProps {
   quest: Quest;
-  sessionEntries?: Map<SessionId, ChatEntry[]>;
+  sessionEntries?: Map<Session['id'], ChatEntry[]>;
   // Transcript entries keyed by workItemId. Preferred over sessionEntries for scoping a
   // row: sibling Task-dispatched sub-agents share one parent sessionId, so sessionEntries
   // alone hands every row the merged union. Falls back to the sessionId bucket for rows

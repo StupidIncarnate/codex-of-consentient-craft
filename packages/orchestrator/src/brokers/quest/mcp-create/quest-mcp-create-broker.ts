@@ -21,7 +21,7 @@ import {
   nameToUrlSlugTransformer,
 } from '@dungeonmaster/shared/transformers';
 import { ProjectRootNotFoundError } from '@dungeonmaster/shared/errors';
-import type { AddQuestInput, Guild, GuildListItem, QuestType, RepoRootCwd, SessionId, UrlSlug, Quest } from '@dungeonmaster/shared/contracts';
+import type { AddQuestInput, Guild, GuildListItem, QuestType, RepoRootCwd, UrlSlug, Quest, Session } from '@dungeonmaster/shared/contracts';
 import {
   addQuestInputContract,
   filePathContract,
@@ -45,7 +45,7 @@ export const questMcpCreateBroker = async ({
 }: {
   userRequest: AddQuestInput['userRequest'];
   questType?: QuestType;
-  sessionId?: SessionId;
+  sessionId?: Session['id'];
 }): Promise<{
   questId: Quest['id'];
   guildSlug: UrlSlug;

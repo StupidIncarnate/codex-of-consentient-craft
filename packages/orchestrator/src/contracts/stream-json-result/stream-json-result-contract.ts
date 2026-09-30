@@ -8,11 +8,11 @@
 
 import { z } from '#gateway/npm/zod';
 
-import { chatEntryContract } from '@dungeonmaster/shared/contracts';
+import { chatEntryContract, sessionContract } from '@dungeonmaster/shared/contracts';
 
 export const streamJsonResultContract = z.object({
   entries: z.array(chatEntryContract),
-  sessionId: z.string().min(1).brand<'SessionId'>().nullable(),
+  sessionId: sessionContract.shape.id.nullable(),
 });
 
 export type StreamJsonResult = z.infer<typeof streamJsonResultContract>;

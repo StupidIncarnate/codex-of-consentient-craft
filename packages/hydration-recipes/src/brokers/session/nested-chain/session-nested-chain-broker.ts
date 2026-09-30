@@ -22,7 +22,7 @@
  * // Appends a Task tool_use + tool_result to the session, writes agent-seed-agent-1.jsonl, then
  * // appends a nested Task tool_use + tool_result to THAT file and writes agent-seed-agent-1-1.jsonl
  */
-import { absoluteFilePathContract, sessionIdContract, agentContract } from '@dungeonmaster/shared/contracts';
+import { absoluteFilePathContract, agentContract, sessionContract } from '@dungeonmaster/shared/contracts';
 import {
   claudePathSlugEncoderTransformer,
   streamLineToJsonLineTransformer,
@@ -50,7 +50,7 @@ export const sessionNestedChainBroker = async ({
   args: Record<string, unknown>;
 }): Promise<void> => {
   const { depth } = nestedChainArgsContract.parse(args);
-  const sessionId = sessionIdContract.parse(record.sessionId);
+  const sessionId = sessionContract.shape.id.parse(record.sessionId);
   const cwd = absoluteFilePathContract.parse(record.cwd);
   const sessionsDir = claudePathSlugEncoderTransformer({
     homeDir: target.claudeHome,

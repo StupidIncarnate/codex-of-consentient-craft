@@ -14,7 +14,7 @@
 
 import { readFileSync } from '#gateway/node/fs';
 import { contentTextContract } from '@dungeonmaster/shared/contracts';
-import type { SessionId } from '@dungeonmaster/shared/contracts';
+import type { Session } from '@dungeonmaster/shared/contracts';
 import { transcriptResolveBroker } from '../resolve/transcript-resolve-broker';
 import { jsonlToRecordsTransformer } from '../../../transformers/jsonl-to-records/jsonl-to-records-transformer';
 import type { TranscriptRecord } from '../../../contracts/transcript-record/transcript-record-contract';
@@ -23,8 +23,8 @@ export const transcriptLoadBroker = ({
   target,
   parentSessionId,
 }: {
-  target: SessionId;
-  parentSessionId?: SessionId;
+  target: Session['id'];
+  parentSessionId?: Session['id'];
 }): readonly TranscriptRecord[] => {
   const transcriptPath = transcriptResolveBroker({
     target,

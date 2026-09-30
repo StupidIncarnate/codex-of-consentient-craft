@@ -13,7 +13,7 @@
  * client other than Claude Code — and the quest's intake work item goes unstamped.
  */
 
-import type { SessionId } from '@dungeonmaster/shared/contracts';
+import type { Session } from '@dungeonmaster/shared/contracts';
 
 import { metaCallerContextTransformer } from '../../../transformers/meta-caller-context/meta-caller-context-transformer';
 
@@ -24,4 +24,4 @@ export const ResolveCallerSessionLayerResponder = ({
   // the caller can then forward its own possibly-absent `meta` as `{ meta }` directly, instead of
   // guarding the property into existence with a conditional spread at the call site.
   meta: Record<string, unknown> | undefined;
-}): SessionId | undefined => metaCallerContextTransformer({ meta })?.sessionId;
+}): Session['id'] | undefined => metaCallerContextTransformer({ meta })?.sessionId;

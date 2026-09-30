@@ -13,12 +13,7 @@
 
 import { lineReader } from '#gateway/node/readline';
 import { stderr } from '#gateway/node/process';
-import type {
-  AbsoluteFilePath,
-  ExitCode,
-  RepoRootCwd,
-  SessionId,
-} from '@dungeonmaster/shared/contracts';
+import type { AbsoluteFilePath, ExitCode, RepoRootCwd, Session } from '@dungeonmaster/shared/contracts';
 import { exitCodeContract } from '@dungeonmaster/shared/contracts';
 import { claudeLineNormalizeBroker } from '@dungeonmaster/shared/brokers';
 
@@ -43,12 +38,12 @@ export const agentSpawnUnifiedBroker = ({
 }: {
   prompt: PromptText;
   cwd: RepoRootCwd;
-  resumeSessionId?: SessionId;
+  resumeSessionId?: Session['id'];
   model: ClaudeModel;
   disableToolSearch?: boolean;
   onLine: (params: { line: string }) => void;
   onError?: (params: { error: Error }) => void;
-  onComplete: (params: { exitCode: ExitCode | null; sessionId: SessionId | null }) => void;
+  onComplete: (params: { exitCode: ExitCode | null; sessionId: Session['id'] | null }) => void;
   // Forwarded to the spawn broker. Default behavior (undefined) inherits stderr to the
   // parent terminal. The launcher always passes a tagging callback so each subprocess's
   // stderr gets `proc:<id>` attribution in the dev log.
@@ -57,7 +52,7 @@ export const agentSpawnUnifiedBroker = ({
   // for why a chat spawn needs this — the quest's images directory sits outside the spawn's
   // cwd, so a pasted-image Read is denied without it.
   addDir?: AbsoluteFilePath;
-}): { kill: () => void; sessionId$: Promise<SessionId | null>; pid: ProcessPid | undefined } => {
+}): { kill: () => void; sessionId$: Promise<Session['id'] | null>; pid: ProcessPid | undefined } => {
   const spawnParams: Parameters<typeof agentSpawnStreamJsonBroker>[0] = {
     prompt,
     cwd,
@@ -84,13 +79,13 @@ export const agentSpawnUnifiedBroker = ({
 
   const rl = lineReader({ input: stdout });
 
-  let trackedSessionId: SessionId | null = null;
+  let trackedSessionId: Session['id'] | null = null;
   const deferred = {
-    resolve: (_value: SessionId | null): void => {
+    resolve: (_value: Session['id'] | null): void => {
       // placeholder replaced by promise constructor
     },
   };
-  const sessionId$ = new Promise<SessionId | null>((resolve) => {
+  const sessionId$ = new Promise<Session['id'] | null>((resolve) => {
     deferred.resolve = resolve;
   });
 

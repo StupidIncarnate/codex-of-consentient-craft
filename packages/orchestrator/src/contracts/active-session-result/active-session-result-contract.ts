@@ -8,10 +8,10 @@
 
 import { z } from '#gateway/npm/zod';
 
-import { sessionIdContract, workItemRoleContract } from '@dungeonmaster/shared/contracts';
+import { workItemRoleContract, sessionContract } from '@dungeonmaster/shared/contracts';
 
 export const activeSessionResultContract = z.object({
-  sessionId: sessionIdContract.optional(),
+  sessionId: sessionContract.shape.id.optional(),
   role: workItemRoleContract.optional(),
 });
 

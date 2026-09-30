@@ -15,12 +15,8 @@
  */
 
 import { stderr } from '#gateway/node/process';
-import {
-  absoluteFilePathContract,
-  sessionIdContract,
-  workItemRoleContract,
-} from '@dungeonmaster/shared/contracts';
-import type { ChatEntry, ModifyQuestInput, ProcessId, QuestType, SessionId, WorkItemRole, Quest, WorkItem, Guild } from '@dungeonmaster/shared/contracts';
+import { absoluteFilePathContract, workItemRoleContract, sessionContract } from '@dungeonmaster/shared/contracts';
+import type { ChatEntry, ModifyQuestInput, ProcessId, QuestType, WorkItemRole, Quest, WorkItem, Guild, Session } from '@dungeonmaster/shared/contracts';
 import {
   locationsQuestFolderPathFindBroker,
   locationsQuestImagesPathFindBroker,
@@ -68,11 +64,11 @@ export const chatSpawnBroker = async ({
   // alongside it must resolve into THIS quest rather than fall through to minting a fresh one.
   existingQuestId?: Quest['id'];
   message: string;
-  sessionId?: SessionId;
+  sessionId?: Session['id'];
   onEntries: (params: {
     chatProcessId: ProcessId;
     entries: ChatEntry[];
-    sessionId: SessionId | undefined;
+    sessionId: Session['id'] | undefined;
   }) => void;
   // onComplete may return a Promise; chat-spawn-broker fires it without awaiting (the
   // spawn-side teardown is already done at this point). chat-start-responder.onComplete
@@ -81,10 +77,10 @@ export const chatSpawnBroker = async ({
   onComplete: (params: {
     chatProcessId: ProcessId;
     exitCode: number | null;
-    sessionId: SessionId | null;
+    sessionId: Session['id'] | null;
   }) => void | Promise<void>;
   onQuestCreated?: (params: { questId: Quest['id']; chatProcessId: ProcessId }) => void;
-  onSessionIdExtracted?: (params: { chatProcessId: ProcessId; sessionId: SessionId }) => void;
+  onSessionIdExtracted?: (params: { chatProcessId: ProcessId; sessionId: Session['id'] }) => void;
   registerProcess: (params: {
     processId: ProcessId;
     questId: Quest['id'];
@@ -180,7 +176,7 @@ export const chatSpawnBroker = async ({
       questModifyBroker({
         input: {
           questId: resolvedQuestId,
-          workItems: [{ id: chatWorkItemId, sessionId: sessionIdContract.parse(extractedSid) }],
+          workItems: [{ id: chatWorkItemId, sessionId: sessionContract.shape.id.parse(extractedSid) }],
         } as ModifyQuestInput,
       }).catch((error: unknown) => {
         stderr.write(`[chat-spawn] session-id quest link failed: ${String(error)}\n`);
@@ -190,7 +186,7 @@ export const chatSpawnBroker = async ({
       // the repo root and stays that way once the quest's own `worktreePath` moves on.
       questSessionRecordBroker({
         questId: resolvedQuestId,
-        sessionId: sessionIdContract.parse(extractedSid),
+        sessionId: sessionContract.shape.id.parse(extractedSid),
         cwd: absoluteFilePathContract.parse(repoRootCwd),
         role: workItemRoleContract.parse(role),
         workItemId: chatWorkItemId,

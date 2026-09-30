@@ -19,7 +19,7 @@
  * });
  */
 
-import type { AbsoluteFilePath, ChatEntry, ExitCode, ProcessId, RepoRootCwd, SessionId, Quest, WorkItem } from '@dungeonmaster/shared/contracts';
+import type { AbsoluteFilePath, ChatEntry, ExitCode, ProcessId, RepoRootCwd, Quest, WorkItem, Session } from '@dungeonmaster/shared/contracts';
 import { processIdContract } from '@dungeonmaster/shared/contracts';
 import { randomUUID } from '#gateway/node/crypto';
 import { stderr } from '#gateway/node/process';
@@ -65,21 +65,21 @@ export const agentLaunchBroker = ({
   prompt: PromptText;
   cwd: RepoRootCwd;
   model: ClaudeModel;
-  resumeSessionId?: SessionId;
+  resumeSessionId?: Session['id'];
   disableToolSearch?: boolean;
 
   onEntries: (params: {
     chatProcessId: ProcessId;
     entries: ChatEntry[];
-    sessionId: SessionId | undefined;
+    sessionId: Session['id'] | undefined;
   }) => void;
   onText: (params: { chatProcessId: ProcessId; text: StreamText }) => void;
   onSignal: (params: { chatProcessId: ProcessId; signal: StreamSignal }) => void;
-  onSessionId: (params: { chatProcessId: ProcessId; sessionId: SessionId }) => void;
+  onSessionId: (params: { chatProcessId: ProcessId; sessionId: Session['id'] }) => void;
   onComplete: (params: {
     chatProcessId: ProcessId;
     exitCode: ExitCode | null;
-    sessionId: SessionId | null;
+    sessionId: Session['id'] | null;
   }) => void;
 
   // Caller (responder) registers the process in `orchestrationProcessesState` with
@@ -114,7 +114,7 @@ export const agentLaunchBroker = ({
   processId: ProcessId;
   handle: ReturnType<typeof chatStreamProcessHandleBroker>;
   kill: () => void;
-  sessionId$: Promise<SessionId | null>;
+  sessionId$: Promise<Session['id'] | null>;
 } => {
   const processId = processIdContract.parse(`${processIdPrefix}-${randomUUID()}`);
 

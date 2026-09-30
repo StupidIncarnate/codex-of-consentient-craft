@@ -16,14 +16,14 @@
 
 import type { Quest } from '../../contracts/quest/quest-contract';
 import type { AbsoluteFilePath } from '../../contracts/absolute-file-path/absolute-file-path-contract';
-import type { SessionId } from '../../contracts/session-id/session-id-contract';
+import type { Session } from '../../contracts/session/session-contract';
 
 export const questSessionCwdTransformer = ({
   quest,
   sessionId,
 }: {
   quest: Quest;
-  sessionId: SessionId;
+  sessionId: Session['id'];
 }): AbsoluteFilePath | null => {
   const row = quest.sessions.find((session) => session.sessionId === sessionId);
 

@@ -6,9 +6,9 @@
  */
 
 import { stderr } from '#gateway/node/process';
-import { absoluteFilePathContract, sessionIdContract, workItemRoleContract, type ExitCode, type SessionId, type UserInput, type WorkItem, slotIndexContract } from '@dungeonmaster/shared/contracts';
+import { absoluteFilePathContract, workItemRoleContract, type ExitCode, type UserInput, type WorkItem, slotIndexContract, sessionContract } from '@dungeonmaster/shared/contracts';
 
-import type { ModifyQuestInput, Quest } from '@dungeonmaster/shared/contracts';
+import type { ModifyQuestInput, Quest, Session } from '@dungeonmaster/shared/contracts';
 import { isCommandWorkItemRoleGuard } from '@dungeonmaster/shared/guards';
 import type { OnAgentEntryCallback } from '../../../contracts/orchestration-callbacks/orchestration-callbacks-contract';
 import { processIdPrefixContract } from '../../../contracts/process-id-prefix/process-id-prefix-contract';
@@ -63,10 +63,10 @@ export const runChatLayerBroker = async ({
     const resolvedCwd = resolution.cwd;
 
     const { sessionId, exitCode } = await new Promise<{
-      sessionId: SessionId | null;
+      sessionId: Session['id'] | null;
       exitCode: ExitCode | null;
     }>((resolve) => {
-      let trackedSessionId: SessionId | null = null;
+      let trackedSessionId: Session['id'] | null = null;
       agentLaunchBroker({
         processIdPrefix,
         prompt,
@@ -113,7 +113,7 @@ export const runChatLayerBroker = async ({
       await questModifyBroker({
         input: {
           questId,
-          workItems: [{ id: workItem.id, sessionId: sessionIdContract.parse(sessionId) }],
+          workItems: [{ id: workItem.id, sessionId: sessionContract.shape.id.parse(sessionId) }],
         } as ModifyQuestInput,
       });
       // `resolvedCwd` is the cwd this child was launched with a few lines above, so the row records
@@ -121,7 +121,7 @@ export const runChatLayerBroker = async ({
       // bookkeeping row must not fail a turn that succeeded.
       await questSessionRecordBroker({
         questId,
-        sessionId: sessionIdContract.parse(sessionId),
+        sessionId: sessionContract.shape.id.parse(sessionId),
         cwd: absoluteFilePathContract.parse(resolvedCwd),
         role: workItemRoleContract.parse(workItem.role),
         workItemId: workItem.id,

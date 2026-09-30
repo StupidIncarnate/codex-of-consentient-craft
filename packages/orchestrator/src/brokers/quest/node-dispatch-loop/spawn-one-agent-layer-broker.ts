@@ -28,15 +28,8 @@
 
 import { stderr } from '#gateway/node/process';
 import { randomUUID } from '#gateway/node/crypto';
-import type { ExitCode, ProcessId, RepoRootCwd, SessionId, Quest, WorkItem } from '@dungeonmaster/shared/contracts';
-import {
-  absoluteFilePathContract,
-  getQuestInputContract,
-  modifyQuestInputContract,
-  processIdContract,
-  sessionIdContract,
-  workItemRoleContract,
-} from '@dungeonmaster/shared/contracts';
+import type { ExitCode, ProcessId, RepoRootCwd, Quest, WorkItem, Session } from '@dungeonmaster/shared/contracts';
+import { absoluteFilePathContract, getQuestInputContract, modifyQuestInputContract, processIdContract, workItemRoleContract, sessionContract } from '@dungeonmaster/shared/contracts';
 import { isTerminalWorkItemStatusGuard } from '@dungeonmaster/shared/guards';
 
 import type { SpawnInstruction } from '../../../contracts/spawn-instruction/spawn-instruction-contract';
@@ -78,7 +71,7 @@ export const spawnOneAgentLayerBroker = async ({
   // Recursion state: how many overload retries have already been spent, and the sessionId a prior
   // attempt captured (so this attempt resumes it rather than starting over).
   overloadAttempt?: number;
-  carriedSessionId?: SessionId;
+  carriedSessionId?: Session['id'];
 }): Promise<void> => {
   const model = instruction.model ?? roleToModelTransformer({ role: instruction.role });
   const processId = processIdContract.parse(
@@ -108,7 +101,7 @@ export const spawnOneAgentLayerBroker = async ({
   // 529 is waited out by respawning this child, a 429 means every child would die the same way.
   const rejection = { seen: false, line: '' };
   const sessionStamps: Promise<void>[] = [];
-  const capturedSession: { id: SessionId | undefined } = { id: undefined };
+  const capturedSession: { id: Session['id'] | undefined } = { id: undefined };
 
   const { exitCode } = await new Promise<{ exitCode: ExitCode | null }>((resolve) => {
     const { kill, sessionId$ } = agentSpawnUnifiedBroker({
@@ -156,7 +149,7 @@ export const spawnOneAgentLayerBroker = async ({
           if (sessionId === null) {
             return;
           }
-          const parsed = sessionIdContract.parse(sessionId);
+          const parsed = sessionContract.shape.id.parse(sessionId);
           capturedSession.id = parsed;
           await questModifyBroker({
             input: modifyQuestInputContract.parse({

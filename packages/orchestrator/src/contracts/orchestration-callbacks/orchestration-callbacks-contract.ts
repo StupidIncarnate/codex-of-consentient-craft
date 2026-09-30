@@ -6,7 +6,7 @@
  * // Use as function parameter types in orchestration brokers
  */
 
-import type { ChatEntry, SessionId, SlotIndex, StreamSignalKind, WorkItem } from '@dungeonmaster/shared/contracts';
+import type { ChatEntry, SlotIndex, StreamSignalKind, WorkItem, Session } from '@dungeonmaster/shared/contracts';
 
 import type { AgentRole } from '../agent-role/agent-role-contract';
 
@@ -14,7 +14,7 @@ export type OnAgentEntryCallback = (params: {
   slotIndex: SlotIndex;
   entries: ChatEntry[];
   questWorkItemId: WorkItem['id'];
-  sessionId?: SessionId;
+  sessionId?: Session['id'];
 }) => void;
 
 // Slot-manager-internal variant of OnAgentEntryCallback. The slot manager only knows its
@@ -25,12 +25,12 @@ export type OnSlotAgentEntryCallback = (params: {
   slotIndex: SlotIndex;
   entries: ChatEntry[];
   workItemId: WorkItem['id'];
-  sessionId?: SessionId;
+  sessionId?: Session['id'];
 }) => void;
 
 export type OnWorkItemSessionIdCallback = (params: {
   workItemId: WorkItem['id'];
-  sessionId: SessionId;
+  sessionId: Session['id'];
 }) => void;
 
 export type OnFollowupCreatedCallback = (params: {

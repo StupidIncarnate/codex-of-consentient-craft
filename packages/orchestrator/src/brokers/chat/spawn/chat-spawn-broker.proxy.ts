@@ -2,7 +2,7 @@ import { randomUUID } from '#gateway/node/crypto';
 import { homedir } from '#gateway/node/os';
 import { join } from '#gateway/node/path';
 import { stderrProxy } from '#gateway/node/process/stderr/stderr.proxy';
-import type { AbsoluteFilePath, RepoRootCwd, SessionId } from '@dungeonmaster/shared/contracts';
+import type { AbsoluteFilePath, RepoRootCwd, Session } from '@dungeonmaster/shared/contracts';
 import type { QuestStub as QuestStubType } from '@dungeonmaster/shared/contracts/quest/quest.stub';
 import { ExitCodeStub } from '@dungeonmaster/shared/contracts/exit-code/exit-code.stub';
 import { QuestStub } from '@dungeonmaster/shared/contracts/quest/quest.stub';
@@ -79,7 +79,7 @@ export const chatSpawnBrokerProxy = (): {
   setupResumeSession: (params: {
     exitCode: ExitCode;
     stdoutLines?: readonly string[];
-    sessionId?: SessionId;
+    sessionId?: Session['id'];
     questId?: Quest['id'];
   }) => void;
   setupQuestCreationFailure: () => void;
@@ -88,17 +88,17 @@ export const chatSpawnBrokerProxy = (): {
   setupStderrCapture: () => StderrRecorder;
   setupResumeWithWorktree: (params: {
     questId: Quest['id'];
-    sessionId: SessionId;
+    sessionId: Session['id'];
     worktreePath: AbsoluteFilePath;
   }) => void;
   setupResumeWithMissingWorktree: (params: {
     questId: Quest['id'];
-    sessionId: SessionId;
+    sessionId: Session['id'];
     worktreePath: AbsoluteFilePath;
   }) => void;
   setupResumeWithRepoRoot: (params: {
     questId: Quest['id'];
-    sessionId: SessionId;
+    sessionId: Session['id'];
     repoRoot: RepoRootCwd;
   }) => void;
   getSpawnedOptions: () => unknown;
@@ -186,7 +186,7 @@ export const chatSpawnBrokerProxy = (): {
     }: {
       exitCode: ExitCode;
       stdoutLines?: readonly string[];
-      sessionId?: SessionId;
+      sessionId?: Session['id'];
       questId?: Quest['id'];
     }): void => {
       // Seed a chaoswhisperer work item so resolveChatQuestLayerBroker's questGetBroker
@@ -245,7 +245,7 @@ export const chatSpawnBrokerProxy = (): {
       worktreePath,
     }: {
       questId: Quest['id'];
-      sessionId: SessionId;
+      sessionId: Session['id'];
       worktreePath: AbsoluteFilePath;
     }): void => {
       const chaosItem = WorkItemStub({ role: 'chaoswhisperer', sessionId });
@@ -266,7 +266,7 @@ export const chatSpawnBrokerProxy = (): {
       worktreePath,
     }: {
       questId: Quest['id'];
-      sessionId: SessionId;
+      sessionId: Session['id'];
       worktreePath: AbsoluteFilePath;
     }): void => {
       const chaosItem = WorkItemStub({ role: 'chaoswhisperer', sessionId });
@@ -286,7 +286,7 @@ export const chatSpawnBrokerProxy = (): {
       repoRoot,
     }: {
       questId: Quest['id'];
-      sessionId: SessionId;
+      sessionId: Session['id'];
       repoRoot: RepoRootCwd;
     }): void => {
       const chaosItem = WorkItemStub({ role: 'chaoswhisperer', sessionId });

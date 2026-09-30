@@ -9,12 +9,12 @@
  *   GET /api/quests/by-session/:sessionId endpoint can resolve the hook's sessionId to a questId.
  */
 
-import type { SessionId, Quest } from '@dungeonmaster/shared/contracts';
+import type { Quest, Session } from '@dungeonmaster/shared/contracts';
 
 import { questFindBySessionIdBroker } from '../../../brokers/quest/find-by-session-id/quest-find-by-session-id-broker';
 
 export const QuestFindBySessionIdResponder = async ({
   sessionId,
 }: {
-  sessionId: SessionId;
+  sessionId: Session['id'];
 }): Promise<Quest['id'] | null> => questFindBySessionIdBroker({ sessionId });

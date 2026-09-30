@@ -1,13 +1,6 @@
 import { cwdProxy } from '#gateway/node/process/cwd/cwd.proxy';
 import { join } from '#gateway/node/path';
-import type {
-  AddQuestInput,
-  Guild,
-  GuildListItem,
-  GuildName,
-  GuildPath,
-  SessionId,
-} from '@dungeonmaster/shared/contracts';
+import type { AddQuestInput, Guild, GuildListItem, GuildName, GuildPath, Session } from '@dungeonmaster/shared/contracts';
 import { AddQuestResultStub } from '@dungeonmaster/shared/contracts/add-quest-result/add-quest-result.stub';
 import { GuildStub } from '@dungeonmaster/shared/contracts/guild/guild.stub';
 import { QuestIdStub } from '@dungeonmaster/shared/contracts/quest-id/quest-id.stub';
@@ -44,7 +37,7 @@ export const questMcpCreateBrokerProxy = (): {
   getGuildAddCalls: () => readonly { name: GuildName; path: GuildPath }[];
   getLastQuestAddCall: () => {
     questType: AddQuestInput['questType'];
-    sessionId: SessionId | undefined;
+    sessionId: Session['id'] | undefined;
   };
 } => {
   const listProxy = guildListBrokerProxy();
@@ -165,7 +158,7 @@ export const questMcpCreateBrokerProxy = (): {
     // picks a value already computed from every recorded call, not a raw unaddressed peek.
     getLastQuestAddCall: (): {
       questType: AddQuestInput['questType'];
-      sessionId: SessionId | undefined;
+      sessionId: Session['id'] | undefined;
     } => {
       const calls = addQuestMock.callsMatching([]).map((call) => {
         const [params] = call as [Parameters<typeof questUserAddBroker>[0]];

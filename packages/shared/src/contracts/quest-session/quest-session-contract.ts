@@ -23,12 +23,12 @@
 import { z } from '#gateway/npm/zod';
 
 import { absoluteFilePathContract } from '../absolute-file-path/absolute-file-path-contract';
-import { sessionIdContract } from '../session-id/session-id-contract';
 import { workItemRoleContract } from '../work-item-role/work-item-role-contract';
 import { workItemContract } from '../work-item/work-item-contract';
+import { sessionContract } from '../session/session-contract';
 
 export const questSessionContract = z.object({
-  sessionId: sessionIdContract,
+  sessionId: sessionContract.shape.id,
   cwd: absoluteFilePathContract,
   role: workItemRoleContract,
   workItemId: workItemContract.shape.id.optional(),

@@ -27,7 +27,7 @@ import {
   type ReconcileWatchersResult,
 } from '../../../contracts/reconcile-watchers-result/reconcile-watchers-result-contract';
 import { guildPathContract } from '@dungeonmaster/shared/contracts';
-import type { GuildPath, SessionId, Quest, WorkItem } from '@dungeonmaster/shared/contracts';
+import type { GuildPath, Quest, WorkItem, Session } from '@dungeonmaster/shared/contracts';
 import { isActiveWorkItemStatusGuard } from '@dungeonmaster/shared/guards';
 import { questSessionCwdTransformer } from '@dungeonmaster/shared/transformers';
 import { StartOrchestrator, questListBroker } from '@dungeonmaster/orchestrator';
@@ -38,7 +38,7 @@ export const ReconcileWatchersLayerResponder = async ({
   watchers,
   projectDir,
 }: {
-  watchers: Map<SessionId, { stop: () => void }>;
+  watchers: Map<Session['id'], { stop: () => void }>;
   projectDir: string;
 }): Promise<ReconcileWatchersResult> => {
   const guilds = await StartOrchestrator.listGuilds();
@@ -62,21 +62,21 @@ export const ReconcileWatchersLayerResponder = async ({
   );
   const loadedQuests = questsByGuild.flat();
 
-  const target = new Set<SessionId>();
-  const projectDirBySessionId = new Map<SessionId, GuildPath>();
+  const target = new Set<Session['id']>();
+  const projectDirBySessionId = new Map<Session['id'], GuildPath>();
   // Which entries came from a quest's own `sessions` ledger rather than from the per-quest guess.
   // Tracked separately so "measured beats inferred" holds regardless of the order guilds are walked
   // in — see the comment at the assignment below.
-  const recordedProjectDirSessions = new Set<SessionId>();
+  const recordedProjectDirSessions = new Set<Session['id']>();
   // Every active work item's session is a Node-dispatch worker's own dedicated session:
   // its agent (codeweaver/flowrider/…) writes the MAIN session JSONL, so the watcher must
   // route that content to the work item's row rather than treat it as chatter. Keyed
   // sessionId → owning workItemId.
-  const workerWorkItemIdBySessionId = new Map<SessionId, WorkItem['id']>();
+  const workerWorkItemIdBySessionId = new Map<Session['id'], WorkItem['id']>();
   // The quest each worker session's owning work item belongs to, captured in lockstep with the
   // map above. The tail emits its own terminal event when it stops, and `chat-complete` is a
   // per-quest event — a frame with no questId reaches no subscriber at all.
-  const workerQuestIdBySessionId = new Map<SessionId, Quest['id']>();
+  const workerQuestIdBySessionId = new Map<Session['id'], Quest['id']>();
   for (const quest of loadedQuests) {
     // The FALLBACK, for a session the quest recorded no row for. Claude CLI encodes the JSONL
     // directory from the child's own cwd, so this per-quest guess is right only while every

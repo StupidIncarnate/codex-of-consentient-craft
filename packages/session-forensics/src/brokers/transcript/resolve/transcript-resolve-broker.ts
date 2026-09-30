@@ -16,7 +16,7 @@ import { homedir } from '#gateway/node/os';
 import { join } from '#gateway/node/path';
 import { locationsStatics } from '@dungeonmaster/shared/statics';
 import { absoluteFilePathContract } from '@dungeonmaster/shared/contracts';
-import type { AbsoluteFilePath, SessionId } from '@dungeonmaster/shared/contracts';
+import type { AbsoluteFilePath, Session } from '@dungeonmaster/shared/contracts';
 
 const SUBAGENT_TARGET_PREFIX = 'agent-';
 
@@ -24,8 +24,8 @@ export const transcriptResolveBroker = ({
   target,
   parentSessionId,
 }: {
-  target: SessionId;
-  parentSessionId?: SessionId;
+  target: Session['id'];
+  parentSessionId?: Session['id'];
 }): AbsoluteFilePath | undefined => {
   const projectsRoot = join(
     homedir(),

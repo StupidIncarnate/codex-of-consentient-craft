@@ -12,10 +12,10 @@ import { z } from '#gateway/npm/zod';
 
 import { questSourceContract } from '../quest-source/quest-source-contract';
 import { questStatusContract } from '../quest-status/quest-status-contract';
-import { sessionIdContract } from '../session-id/session-id-contract';
 import { urlSlugContract } from '../url-slug/url-slug-contract';
 import { questContract } from '../quest/quest-contract';
 import { guildContract } from '../guild/guild-contract';
+import { sessionContract } from '../session/session-contract';
 
 export const questQueueEntryContract = z.object({
   questId: questContract.shape.id,
@@ -24,7 +24,7 @@ export const questQueueEntryContract = z.object({
   questTitle: z.string().min(1).brand<'QuestTitle'>(),
   status: questStatusContract,
   questSource: questSourceContract.optional(),
-  activeSessionId: sessionIdContract.optional(),
+  activeSessionId: sessionContract.shape.id.optional(),
   enqueuedAt: z.iso.datetime().brand<'IsoTimestamp'>(),
   startedAt: z.iso.datetime().brand<'IsoTimestamp'>().optional(),
   error: z

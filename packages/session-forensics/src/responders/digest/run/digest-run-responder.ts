@@ -16,7 +16,7 @@
  * // Returns the rendered ContentText for the `summary` command
  */
 import { readFileSync } from '#gateway/node/fs';
-import { contentTextContract, sessionIdContract, questContract } from '@dungeonmaster/shared/contracts';
+import { contentTextContract, questContract, sessionContract } from '@dungeonmaster/shared/contracts';
 import type { ContentText } from '@dungeonmaster/shared/contracts';
 
 import { transcriptLoadBroker } from '../../../brokers/transcript/load/transcript-load-broker';
@@ -98,7 +98,7 @@ export const DigestRunResponder = ({
     });
   }
 
-  const sessionId = sessionIdContract.parse(target);
+  const sessionId = sessionContract.shape.id.parse(target);
   const records = transcriptLoadBroker({ target: sessionId });
 
   if (command === 'buckets') {

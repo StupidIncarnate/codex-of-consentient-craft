@@ -8,7 +8,7 @@
  */
 
 import { stderr } from '#gateway/node/process';
-import type { Quest, QuestStatus, SessionId } from '@dungeonmaster/shared/contracts';
+import type { Quest, QuestStatus, Session } from '@dungeonmaster/shared/contracts';
 
 import { processSyncEventLayerBroker } from './process-sync-event-layer-broker';
 
@@ -27,7 +27,7 @@ export const createSyncHandlerLayerBroker =
       activeSessionId,
     }: {
       questId: Quest['id'];
-      activeSessionId: SessionId | undefined;
+      activeSessionId: Session['id'] | undefined;
     }) => void;
   }): (({ questId }: { questId: Quest['id'] }) => void) =>
   ({ questId }): void => {

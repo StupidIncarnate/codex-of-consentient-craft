@@ -10,7 +10,7 @@ import { useParams } from '#gateway/npm/react-router-dom';
 
 import { Box, Text } from '#gateway/npm/mantine__core';
 
-import type { SessionId } from '@dungeonmaster/shared/contracts';
+import type { Session } from '@dungeonmaster/shared/contracts';
 
 import { useGuildsBinding } from '../../bindings/use-guilds/use-guilds-binding';
 import { useSessionReplayBinding } from '../../bindings/use-session-replay/use-session-replay-binding';
@@ -20,7 +20,7 @@ import { DumpsterRaccoonWidget } from '../dumpster-raccoon/dumpster-raccoon-widg
 
 export const SessionViewWidget = (): React.JSX.Element => {
   const params = useParams();
-  const sessionId = (params.sessionId as SessionId | undefined) ?? null;
+  const sessionId = (params.sessionId as Session['id'] | undefined) ?? null;
   const { guildSlug } = params;
 
   const { guilds, loading: guildsLoading } = useGuildsBinding();

@@ -34,7 +34,7 @@ import { readNonEmptyLines } from '#gateway/node/fs__promises';
 import { homedir } from '#gateway/node/os';
 import { claudeLineNormalizeBroker, cwdResolveBroker } from '@dungeonmaster/shared/brokers';
 import { absoluteFilePathContract, arrayIndexContract, fileNameContract, filePathContract, agentContract } from '@dungeonmaster/shared/contracts';
-import type { ArrayIndex, ChatEntry, SessionId, StreamJsonLine, Quest, Guild } from '@dungeonmaster/shared/contracts';
+import type { ArrayIndex, ChatEntry, StreamJsonLine, Quest, Guild, Session } from '@dungeonmaster/shared/contracts';
 import {
   claudeProjectPathEncoderTransformer,
   stripJsonlSuffixTransformer,
@@ -62,7 +62,7 @@ export const chatHistoryReplayBroker = async ({
   questId,
   onEntries,
 }: {
-  sessionId: SessionId;
+  sessionId: Session['id'];
   guildId: Guild['id'];
   // When set, the JSONL directory is resolved through the quest rather than by walking up from the
   // guild path — and resolved FOR THIS SESSION, since `sessionId` rides along to

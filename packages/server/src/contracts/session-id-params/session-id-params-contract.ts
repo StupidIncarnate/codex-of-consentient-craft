@@ -7,10 +7,10 @@
  */
 
 import { z } from '#gateway/npm/zod';
-import { sessionIdContract } from '@dungeonmaster/shared/contracts';
+import { sessionContract } from '@dungeonmaster/shared/contracts';
 
 export const sessionIdParamsContract = z.object({
-  sessionId: sessionIdContract,
+  sessionId: sessionContract.shape.id,
 });
 
 export type SessionIdParams = z.infer<typeof sessionIdParamsContract>;

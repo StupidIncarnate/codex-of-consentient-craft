@@ -24,8 +24,8 @@
 
 import { stderr } from '#gateway/node/process';
 import { randomUUID } from '#gateway/node/crypto';
-import { chatEntryContract, sessionIdContract } from '@dungeonmaster/shared/contracts';
-import type { ChatEntry, ProcessId, RepoRootCwd, SessionId, Agent } from '@dungeonmaster/shared/contracts';
+import { chatEntryContract, sessionContract } from '@dungeonmaster/shared/contracts';
+import type { ChatEntry, ProcessId, RepoRootCwd, Agent, Session } from '@dungeonmaster/shared/contracts';
 import { claudeLineNormalizeBroker } from '@dungeonmaster/shared/brokers';
 
 import { questGetServerConfigBroker } from '../../quest/get-server-config/quest-get-server-config-broker';
@@ -52,11 +52,11 @@ export const chatStreamProcessHandleBroker = ({
 }: {
   chatProcessId: ProcessId;
   cwd: RepoRootCwd;
-  sessionId?: SessionId;
+  sessionId?: Session['id'];
   onEntries: (params: {
     chatProcessId: ProcessId;
     entries: ChatEntry[];
-    sessionId: SessionId | undefined;
+    sessionId: Session['id'] | undefined;
   }) => void;
   // Required — every agent emits text and may signal-back; the harness invariant is uniform
   // observation across roles. Callers with no consumer wire a no-op explicitly so the lack
@@ -81,7 +81,7 @@ export const chatStreamProcessHandleBroker = ({
   // `agent-detected` handler below requires a sessionId to resolve the sub-agent JSONL
   // path before starting `chatSubagentTailBroker`; if the broker fires before init is
   // observed, the dispatch is silently skipped and the chain renders `(0 entries)`.
-  let runtimeSessionId: SessionId | undefined = initialSessionId;
+  let runtimeSessionId: Session['id'] | undefined = initialSessionId;
 
   const subagentHandles: { stop: () => void; initialDrain: Promise<void> }[] = [];
   // Fire-and-forget setups for sub-agent tails. `chatSubagentTailBroker` is async
@@ -125,7 +125,7 @@ export const chatStreamProcessHandleBroker = ({
       if (sidParse.success) {
         const sid = sidParse.data.sessionId;
         if (typeof sid === 'string' && sid.length > 0) {
-          runtimeSessionId = sessionIdContract.parse(sid);
+          runtimeSessionId = sessionContract.shape.id.parse(sid);
         }
       }
 
@@ -160,7 +160,7 @@ export const chatStreamProcessHandleBroker = ({
           // continue above narrowed `output` to `agent-detected`. Capture sid into a const
           // so the onEntries closure below doesn't reach back to `runtimeSessionId` (which
           // would trip no-loop-func).
-          const sid: SessionId = runtimeSessionId;
+          const sid: Session['id'] = runtimeSessionId;
           const realAgentId: Agent['id'] = output.agentId;
           const setup = chatSubagentTailBroker({
             sessionId: sid,
