@@ -1,7 +1,6 @@
 import { screen } from '#gateway/npm/testing-library__react';
 
 import { mantineRenderMiddleware } from '@dungeonmaster/testing/middleware/mantine-render';
-import { ContextTokenDeltaStub } from '../../contracts/context-token-delta/context-token-delta.stub';
 import { ContextDividerWidget } from './context-divider-widget';
 import { ContextDividerWidgetProxy } from './context-divider-widget.proxy';
 
@@ -34,7 +33,7 @@ describe('ContextDividerWidget', () => {
         ui: (
           <ContextDividerWidget
             contextTokens={25500}
-            delta={ContextTokenDeltaStub({ value: 2100 })}
+            delta={2100}
             source="session"
           />
         ),
@@ -52,7 +51,7 @@ describe('ContextDividerWidget', () => {
         ui: (
           <ContextDividerWidget
             contextTokens={26116}
-            delta={ContextTokenDeltaStub({ value: -3682 })}
+            delta={-3682}
             source="session"
           />
         ),
@@ -112,7 +111,7 @@ describe('ContextDividerWidget', () => {
         ui: (
           <ContextDividerWidget
             contextTokens={118800}
-            delta={ContextTokenDeltaStub({ value: 9000 })}
+            delta={9000}
             source="session"
             subagentTotalTokens={12000}
           />

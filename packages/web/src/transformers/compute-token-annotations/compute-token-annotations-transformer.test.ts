@@ -13,7 +13,6 @@ import {
   MergedToolPairItemStub,
 } from '../../contracts/merged-chat-item/merged-chat-item.stub';
 import { TokenAnnotationStub } from '../../contracts/token-annotation/token-annotation.stub';
-import { ContextTokenDeltaStub } from '../../contracts/context-token-delta/context-token-delta.stub';
 
 describe('computeTokenAnnotationsTransformer', () => {
   describe('entries without usage', () => {
@@ -97,7 +96,7 @@ describe('computeTokenAnnotationsTransformer', () => {
         TokenAnnotationStub({
           tokenBadgeLabel: '+700 context',
           cumulativeContext: 1200,
-          contextDelta: ContextTokenDeltaStub({ value: 700 }),
+          contextDelta: 700,
           source: 'session',
         }),
       ]);
@@ -139,7 +138,7 @@ describe('computeTokenAnnotationsTransformer', () => {
         TokenAnnotationStub({
           tokenBadgeLabel: null,
           cumulativeContext: 500,
-          contextDelta: ContextTokenDeltaStub({ value: 0 }),
+          contextDelta: 0,
           source: 'session',
         }),
       ]);
@@ -338,7 +337,7 @@ describe('computeTokenAnnotationsTransformer', () => {
         TokenAnnotationStub({
           tokenBadgeLabel: '+700 context',
           cumulativeContext: 1200,
-          contextDelta: ContextTokenDeltaStub({ value: 700 }),
+          contextDelta: 700,
           source: 'session',
         }),
       ]);
@@ -382,7 +381,7 @@ describe('computeTokenAnnotationsTransformer', () => {
         TokenAnnotationStub({
           tokenBadgeLabel: null,
           cumulativeContext: 500,
-          contextDelta: ContextTokenDeltaStub({ value: -700 }),
+          contextDelta: -700,
           source: 'session',
         }),
       ]);
@@ -587,13 +586,13 @@ describe('computeTokenAnnotationsTransformer', () => {
           tokenBadgeLabel: null,
           resultTokenBadgeLabel: null,
           cumulativeContext: 1200,
-          contextDelta: ContextTokenDeltaStub({ value: 700 }),
+          contextDelta: 700,
           source: 'session',
         }),
         TokenAnnotationStub({
           tokenBadgeLabel: '+100 context',
           cumulativeContext: 1300,
-          contextDelta: ContextTokenDeltaStub({ value: 100 }),
+          contextDelta: 100,
           source: 'session',
         }),
       ]);
@@ -651,7 +650,7 @@ describe('computeTokenAnnotationsTransformer', () => {
           tokenBadgeLabel: null,
           resultTokenBadgeLabel: null,
           cumulativeContext: 500,
-          contextDelta: ContextTokenDeltaStub({ value: 0 }),
+          contextDelta: 0,
           source: 'session',
         }),
       ]);
@@ -757,7 +756,7 @@ describe('computeTokenAnnotationsTransformer', () => {
           tokenBadgeLabel: null,
           resultTokenBadgeLabel: null,
           cumulativeContext: 1200,
-          contextDelta: ContextTokenDeltaStub({ value: 700 }),
+          contextDelta: 700,
           source: 'session',
         }),
       ]);

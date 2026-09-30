@@ -1,6 +1,5 @@
 import { tokenAnnotationContract } from './token-annotation-contract';
 import { TokenAnnotationStub } from './token-annotation.stub';
-import { ContextTokenDeltaStub } from '../context-token-delta/context-token-delta.stub';
 
 describe('tokenAnnotationContract', () => {
   describe('valid annotations', () => {
@@ -40,7 +39,7 @@ describe('tokenAnnotationContract', () => {
         tokenBadgeLabel: '29.4k context',
         resultTokenBadgeLabel: '~150 est',
         cumulativeContext: 29448,
-        contextDelta: ContextTokenDeltaStub({ value: 2100 }),
+        contextDelta: 2100,
         source: 'subagent',
       });
 

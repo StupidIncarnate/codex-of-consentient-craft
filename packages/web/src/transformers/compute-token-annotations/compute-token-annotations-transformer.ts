@@ -9,7 +9,6 @@
  * // Returns TokenAnnotation[] with one annotation per item
  */
 
-import { contextTokenDeltaContract } from '../../contracts/context-token-delta/context-token-delta-contract';
 import type { MergedChatItem } from '../../contracts/merged-chat-item/merged-chat-item-contract';
 import { tokenAnnotationContract } from '../../contracts/token-annotation/token-annotation-contract';
 import type { TokenAnnotation } from '../../contracts/token-annotation/token-annotation-contract';
@@ -53,9 +52,9 @@ export const computeTokenAnnotationsTransformer = ({
         const prevContext = source === 'subagent' ? prevSubagentContext : prevSessionContext;
         cumulativeContext = totalContext;
         contextDelta =
-          prevContext === null
+          tokenAnnotationContract.shape.contextDelta.parse(prevContext === null
             ? null
-            : contextTokenDeltaContract.parse(Number(totalContext) - Number(prevContext));
+            : (Number(totalContext) - Number(prevContext)));
 
         if (source === 'subagent') {
           prevSubagentContext = totalContext;
@@ -101,7 +100,7 @@ export const computeTokenAnnotationsTransformer = ({
       const contextDelta =
         prevContext === null
           ? null
-          : contextTokenDeltaContract.parse(Number(totalContext) - Number(prevContext));
+          : (Number(totalContext) - Number(prevContext));
 
       const tokenBadgeLabel =
         contextDelta === null || Number(contextDelta) <= 0
