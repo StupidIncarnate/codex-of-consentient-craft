@@ -26,8 +26,6 @@ import {
   locationsStatics,
   mcpToolsStatics,
 } from '@dungeonmaster/shared/statics';
-import { claudePermissionContract } from '../../../contracts/claude-permission/claude-permission-contract';
-import type { ClaudePermission } from '../../../contracts/claude-permission/claude-permission-contract';
 
 const DUNGEONMASTER_PERMISSION_PREFIX = `mcp__${mcpToolsStatics.server.name}__`;
 
@@ -59,26 +57,26 @@ export const settingsPermissionsAddBroker = async ({
   // Claude-in-Chrome grant Siegemaster needs to drive a real browser, then the HTTP-probe grant
   // its non-UI walks read a real status and body with (a headless child has no interactive
   // approver, so an ungranted command is denied outright rather than prompted).
-  const managedPermissions: ClaudePermission[] = [
+  const managedPermissions: string[] = [
     ...mcpPermissionsCreatorTransformer().map((permission) =>
-      claudePermissionContract.parse(permission),
+      permission,
     ),
     ...agentGitPermissionsStatics.allow.map((permission) =>
-      claudePermissionContract.parse(permission),
+      permission,
     ),
     ...agentBrowserPermissionsStatics.allow.map((permission) =>
-      claudePermissionContract.parse(permission),
+      permission,
     ),
     ...agentQaPermissionsStatics.allow.map((permission) =>
-      claudePermissionContract.parse(permission),
+      permission,
     ),
   ];
-  const managedPermissionsSet = new Set<ClaudePermission>(managedPermissions);
+  const managedPermissionsSet = new Set<string>(managedPermissions);
 
   // Get existing permissions
   const existingPermissions = existingSettings.permissions as
     Record<PropertyKey, unknown> | undefined;
-  const existingAllow = (existingPermissions?.allow ?? []) as ClaudePermission[];
+  const existingAllow = (existingPermissions?.allow ?? []) as string[];
 
   // Prune stale dungeonmaster MCP permissions (tools no longer in mcpToolsStatics.tools.names),
   // leave all other permissions untouched, then union with the current managed set.
@@ -88,7 +86,7 @@ export const settingsPermissionsAddBroker = async ({
     }
     return managedPermissionsSet.has(permission);
   });
-  const mergedAllow = [...new Set<ClaudePermission>([...prunedExisting, ...managedPermissions])];
+  const mergedAllow = [...new Set<string>([...prunedExisting, ...managedPermissions])];
 
   // Update settings with merged permissions
   const updatedSettings = {
