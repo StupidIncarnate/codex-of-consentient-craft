@@ -16,7 +16,7 @@ import { stderr } from '#gateway/node/process';
 import { AbortController } from '#gateway/node/AbortController';
 import { randomUUID } from '#gateway/node/crypto';
 import { processIdContract, modifyQuestInputContract } from '@dungeonmaster/shared/contracts';
-import type { GuildListItem, ModifyQuestInput, Quest, SlotIndex, Session } from '@dungeonmaster/shared/contracts';
+import type { GuildListItem, ModifyQuestInput, Quest, Session } from '@dungeonmaster/shared/contracts';
 
 import { buildOrchestrationLoopOnAgentEntryTransformer } from '../../../transformers/build-orchestration-loop-on-agent-entry/build-orchestration-loop-on-agent-entry-transformer';
 import { guildGetBroker } from '../../../brokers/guild/get/guild-get-broker';
@@ -171,7 +171,7 @@ export const RecoverGuildLayerResponder = async ({
       });
 
       // Per-slot sessionId memo — sessionId arrives on a later emission than the first entries, so memo the latest per slot.
-      const slotIndexToSessionId = new Map<SlotIndex, Session['id']>();
+      const slotIndexToSessionId = new Map<number, Session['id']>();
 
       questOrchestrationLoopBroker({
         processId,

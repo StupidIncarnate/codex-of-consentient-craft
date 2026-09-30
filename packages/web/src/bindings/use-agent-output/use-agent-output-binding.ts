@@ -8,18 +8,17 @@
 import { useCallback, useState } from '#gateway/npm/react';
 
 import type { ChatEntry } from '@dungeonmaster/shared/contracts';
-import type { SlotIndex } from '@dungeonmaster/shared/contracts';
 import { agentOutputState } from '../../state/agent-output/agent-output-state';
 
 export const useAgentOutputBinding = (): {
-  slotEntries: Map<SlotIndex, ChatEntry[]>;
-  handleAgentOutput: (params: { slotIndex: SlotIndex; entries: ChatEntry[] }) => void;
+  slotEntries: Map<number, ChatEntry[]>;
+  handleAgentOutput: (params: { slotIndex: number; entries: ChatEntry[] }) => void;
   clearOutput: () => void;
 } => {
-  const [slotEntries, setSlotEntries] = useState<Map<SlotIndex, ChatEntry[]>>(new Map());
+  const [slotEntries, setSlotEntries] = useState<Map<number, ChatEntry[]>>(new Map());
 
   const handleAgentOutput = useCallback(
-    ({ slotIndex, entries }: { slotIndex: SlotIndex; entries: ChatEntry[] }): void => {
+    ({ slotIndex, entries }: { slotIndex: number; entries: ChatEntry[] }): void => {
       if (entries.length === 0) return;
 
       agentOutputState.append({ slotIndex, entries });

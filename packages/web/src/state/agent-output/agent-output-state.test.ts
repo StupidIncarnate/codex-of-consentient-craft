@@ -1,5 +1,4 @@
 import { AssistantTextChatEntryStub } from '@dungeonmaster/shared/contracts/chat-entry/chat-entry.stub';
-import { SlotIndexStub } from '@dungeonmaster/shared/contracts/slot-index/slot-index.stub';
 
 import { agentOutputState } from './agent-output-state';
 import { agentOutputStateProxy } from './agent-output-state.proxy';
@@ -9,7 +8,7 @@ describe('agentOutputState', () => {
     it('VALID: {append entries to slot} => get returns entries for slot', () => {
       const proxy = agentOutputStateProxy();
       proxy.setupEmptyOutput();
-      const slotIndex = SlotIndexStub({ value: 0 });
+      const slotIndex = 0;
       const entry1 = AssistantTextChatEntryStub({ content: 'Building project...' });
       const entry2 = AssistantTextChatEntryStub({ content: 'Done.' });
 
@@ -22,7 +21,7 @@ describe('agentOutputState', () => {
     it('VALID: {append enforces max entries limit} => keeps latest 500 entries', () => {
       const proxy = agentOutputStateProxy();
       proxy.setupEmptyOutput();
-      const slotIndex = SlotIndexStub({ value: 0 });
+      const slotIndex = 0;
       const initialEntries = Array.from({ length: 498 }, (_, i) =>
         AssistantTextChatEntryStub({ content: `line-${String(i)}` }),
       );
@@ -46,8 +45,8 @@ describe('agentOutputState', () => {
     it('VALID: {clear after append} => removes all output', () => {
       const proxy = agentOutputStateProxy();
       proxy.setupEmptyOutput();
-      const slotIndex0 = SlotIndexStub({ value: 0 });
-      const slotIndex1 = SlotIndexStub({ value: 1 });
+      const slotIndex0 = 0;
+      const slotIndex1 = 1;
 
       agentOutputState.append({
         slotIndex: slotIndex0,
@@ -69,8 +68,8 @@ describe('agentOutputState', () => {
     it('VALID: {clearSlot} => removes only specific slot', () => {
       const proxy = agentOutputStateProxy();
       proxy.setupEmptyOutput();
-      const slotIndex0 = SlotIndexStub({ value: 0 });
-      const slotIndex1 = SlotIndexStub({ value: 1 });
+      const slotIndex0 = 0;
+      const slotIndex1 = 1;
       const entry0 = AssistantTextChatEntryStub({ content: 'slot-0-entry' });
       const entry1 = AssistantTextChatEntryStub({ content: 'slot-1-entry' });
 
@@ -88,7 +87,7 @@ describe('agentOutputState', () => {
     it('EMPTY: {get on empty slot} => returns empty array', () => {
       const proxy = agentOutputStateProxy();
       proxy.setupEmptyOutput();
-      const slotIndex = SlotIndexStub({ value: 99 });
+      const slotIndex = 99;
 
       const result = agentOutputState.get({ slotIndex });
 
@@ -100,8 +99,8 @@ describe('agentOutputState', () => {
     it('VALID: {two slots with output} => returns correct slot count', () => {
       const proxy = agentOutputStateProxy();
       proxy.setupEmptyOutput();
-      const slotIndex0 = SlotIndexStub({ value: 0 });
-      const slotIndex1 = SlotIndexStub({ value: 1 });
+      const slotIndex0 = 0;
+      const slotIndex1 = 1;
 
       agentOutputState.append({
         slotIndex: slotIndex0,

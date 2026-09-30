@@ -4,10 +4,9 @@ import { QuestIdStub } from '@dungeonmaster/shared/contracts/quest-id/quest-id.s
 import { QuestWorkItemIdStub } from '@dungeonmaster/shared/contracts/quest-work-item-id/quest-work-item-id.stub';
 import { SessionIdStub } from '@dungeonmaster/shared/contracts/session-id/session-id.stub';
 
-import { SlotIndexStub } from '@dungeonmaster/shared/contracts/slot-index/slot-index.stub';
 import { buildOrchestrationLoopOnAgentEntryTransformer } from './build-orchestration-loop-on-agent-entry-transformer';
 
-type SlotIndex = ReturnType<typeof SlotIndexStub>;
+type SlotIndex = number;
 type SessionId = ReturnType<typeof SessionIdStub>;
 
 describe('buildOrchestrationLoopOnAgentEntryTransformer', () => {
@@ -16,7 +15,7 @@ describe('buildOrchestrationLoopOnAgentEntryTransformer', () => {
       const processId = ProcessIdStub({
         value: 'proc-queue-aaaaaaaa-1111-4222-9333-444444444444',
       });
-      const slotIndex = SlotIndexStub({ value: 0 });
+      const slotIndex = 0;
       const entries = [ChatEntryStub({ role: 'assistant', type: 'text', content: 'first-line' })];
       const questId = QuestIdStub({ value: 'aaaaaaaa-1111-4222-9333-444444444444' });
       const workItemId = QuestWorkItemIdStub({ value: 'bbbbbbbb-1111-4222-9333-444444444444' });
@@ -40,7 +39,7 @@ describe('buildOrchestrationLoopOnAgentEntryTransformer', () => {
       const processId = ProcessIdStub({
         value: 'proc-queue-aaaaaaaa-1111-4222-9333-444444444444',
       });
-      const slotIndex = SlotIndexStub({ value: 0 });
+      const slotIndex = 0;
       const entries = [
         ChatEntryStub({ role: 'assistant', type: 'text', content: 'second-line-with-session' }),
       ];
@@ -77,7 +76,7 @@ describe('buildOrchestrationLoopOnAgentEntryTransformer', () => {
       const processId = ProcessIdStub({
         value: 'proc-queue-aaaaaaaa-1111-4222-9333-444444444444',
       });
-      const slotIndex = SlotIndexStub({ value: 0 });
+      const slotIndex = 0;
       const entries = [
         ChatEntryStub({ role: 'assistant', type: 'text', content: 'third-line-defensive' }),
       ];
@@ -112,8 +111,8 @@ describe('buildOrchestrationLoopOnAgentEntryTransformer', () => {
       const processId = ProcessIdStub({
         value: 'proc-queue-eeeeeeee-1111-4222-9333-444444444444',
       });
-      const slot0 = SlotIndexStub({ value: 0 });
-      const slot1 = SlotIndexStub({ value: 1 });
+      const slot0 = 0;
+      const slot1 = 1;
       const slot0SessionId = SessionIdStub({ value: '11111111-918c-4408-aeb1-f8f4ce8400cb' });
       const questId = QuestIdStub({ value: 'aaaaaaaa-1111-4222-9333-444444444444' });
       const workItemId0 = QuestWorkItemIdStub({ value: 'bbbbbbbb-1111-4222-9333-444444444444' });

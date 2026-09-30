@@ -6,12 +6,12 @@
  * // Use as function parameter types in orchestration brokers
  */
 
-import type { ChatEntry, SlotIndex, StreamSignalKind, WorkItem, Session } from '@dungeonmaster/shared/contracts';
+import type { ChatEntry, StreamSignalKind, WorkItem, Session } from '@dungeonmaster/shared/contracts';
 
 import type { AgentRole } from '../agent-role/agent-role-contract';
 
 export type OnAgentEntryCallback = (params: {
-  slotIndex: SlotIndex;
+  slotIndex: number;
   entries: ChatEntry[];
   questWorkItemId: WorkItem['id'];
   sessionId?: Session['id'];
@@ -22,7 +22,7 @@ export type OnAgentEntryCallback = (params: {
 // this, translating slot-internal WorkItemId -> QuestWorkItemId via its slotToQuestMap
 // before invoking the responder-facing OnAgentEntryCallback.
 export type OnSlotAgentEntryCallback = (params: {
-  slotIndex: SlotIndex;
+  slotIndex: number;
   entries: ChatEntry[];
   workItemId: WorkItem['id'];
   sessionId?: Session['id'];

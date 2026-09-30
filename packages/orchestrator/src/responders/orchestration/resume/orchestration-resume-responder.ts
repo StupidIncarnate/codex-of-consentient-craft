@@ -26,7 +26,7 @@
 
 import { AbortController } from '#gateway/node/AbortController';
 import { randomUUID } from '#gateway/node/crypto';
-import type { QuestStatus, ModifyQuestInput, SlotIndex, Quest, Session } from '@dungeonmaster/shared/contracts';
+import type { QuestStatus, ModifyQuestInput, Quest, Session } from '@dungeonmaster/shared/contracts';
 
 import { getQuestInputContract, modifyQuestInputContract, processIdContract } from '@dungeonmaster/shared/contracts';
 
@@ -214,7 +214,7 @@ export const OrchestrationResumeResponder = async ({
   });
 
   // Per-slot sessionId memo — sessionId arrives on a later emission than the first entries, so memo the latest per slot.
-  const slotIndexToSessionId = new Map<SlotIndex, Session['id']>();
+  const slotIndexToSessionId = new Map<number, Session['id']>();
 
   questOrchestrationLoopBroker({
     processId,

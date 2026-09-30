@@ -8,12 +8,12 @@
 
 import { z } from '#gateway/npm/zod';
 
-import { chatEntryContract, processIdContract, slotIndexContract, questContract, workItemContract, sessionContract } from '@dungeonmaster/shared/contracts';
+import { chatEntryContract, processIdContract, questContract, workItemContract, sessionContract } from '@dungeonmaster/shared/contracts';
 
 
 export const chatOutputEmitPayloadContract = z.object({
   processId: processIdContract,
-  slotIndex: slotIndexContract,
+  slotIndex: z.number().int().nonnegative().brand<'ChatOutputEmitPayloadSlotIndex'>(),
   entries: z.array(chatEntryContract),
   questId: questContract.shape.id,
   workItemId: workItemContract.shape.id,

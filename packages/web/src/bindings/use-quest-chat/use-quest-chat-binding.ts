@@ -14,7 +14,7 @@
  */
 import { useCallback, useEffect, useMemo, useRef, useState } from '#gateway/npm/react';
 
-import type { AskUserQuestionItem, ChatEntry, ChatEntryUuid, PastedImageUpload, ProcessId, Quest, SlotIndex, WorkItem, Session } from '@dungeonmaster/shared/contracts';
+import type { AskUserQuestionItem, ChatEntry, ChatEntryUuid, PastedImageUpload, ProcessId, Quest, WorkItem, Session } from '@dungeonmaster/shared/contracts';
 import { askUserQuestionContract, chatEntryContract, questContract, slotIndexContract } from '@dungeonmaster/shared/contracts';
 import {
   isPostQuestChatWorkItemRoleGuard,
@@ -58,7 +58,7 @@ export const useQuestChatBinding = ({
 }): {
   entriesBySession: Map<Session['id'], ChatEntry[]>;
   entriesByWorkItem: Map<WorkItem['id'], ChatEntry[]>;
-  slotEntries: Map<SlotIndex, ChatEntry[]>;
+  slotEntries: Map<number, ChatEntry[]>;
   followupEntries: ChatEntry[];
   quest: Quest | null;
   loadError: QuestLoadFailedPayload['error'] | null;
@@ -99,7 +99,7 @@ export const useQuestChatBinding = ({
     Map<WorkItem['id'], Map<ChatEntryUuid, ChatEntry>>
   >(new Map());
   const [slotEntriesInternal, setSlotEntriesInternal] = useState<
-    Map<SlotIndex, Map<ChatEntryUuid, ChatEntry>>
+    Map<number, Map<ChatEntryUuid, ChatEntry>>
   >(new Map());
   const [quest, setQuest] = useState<Quest | null>(null);
   // The server's field-level reason when this quest's read failed. Held alongside `quest` rather

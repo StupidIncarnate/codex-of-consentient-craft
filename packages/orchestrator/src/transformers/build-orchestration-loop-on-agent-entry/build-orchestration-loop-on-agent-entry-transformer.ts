@@ -21,7 +21,7 @@
  * the slot manager (e.g. chat-replay-responder, where chatProcessId is the replay key).
  */
 
-import type { ChatEntry, ProcessId, SlotIndex, Quest, WorkItem, Session } from '@dungeonmaster/shared/contracts';
+import type { ChatEntry, ProcessId, Quest, WorkItem, Session } from '@dungeonmaster/shared/contracts';
 
 import {
   chatOutputEmitPayloadContract,
@@ -38,8 +38,8 @@ export const buildOrchestrationLoopOnAgentEntryTransformer = ({
   sessionId,
 }: {
   processId: ProcessId;
-  slotIndexToSessionId: Map<SlotIndex, Session['id']>;
-  slotIndex: SlotIndex;
+  slotIndexToSessionId: Map<number, Session['id']>;
+  slotIndex: number;
   entries: ChatEntry[];
   questId: Quest['id'];
   workItemId: WorkItem['id'];

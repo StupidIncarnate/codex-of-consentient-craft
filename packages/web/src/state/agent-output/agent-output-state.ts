@@ -8,18 +8,17 @@
  */
 
 import type { ChatEntry } from '@dungeonmaster/shared/contracts';
-import type { SlotIndex } from '@dungeonmaster/shared/contracts';
 import { agentOutputConfigStatics } from '../../statics/agent-output-config/agent-output-config-statics';
 
 const state = {
-  slots: new Map<SlotIndex, ChatEntry[]>(),
+  slots: new Map<number, ChatEntry[]>(),
 };
 
 export const agentOutputState = {
-  get: ({ slotIndex }: { slotIndex: SlotIndex }): ChatEntry[] =>
+  get: ({ slotIndex }: { slotIndex: number }): ChatEntry[] =>
     state.slots.get(slotIndex) ?? ([] as ChatEntry[]),
 
-  append: ({ slotIndex, entries }: { slotIndex: SlotIndex; entries: ChatEntry[] }): void => {
+  append: ({ slotIndex, entries }: { slotIndex: number; entries: ChatEntry[] }): void => {
     const existing = state.slots.get(slotIndex) ?? ([] as ChatEntry[]);
     const combined = [...existing, ...entries];
     const maxLines = agentOutputConfigStatics.limits.maxLinesPerSlot;
@@ -35,11 +34,11 @@ export const agentOutputState = {
     state.slots.clear();
   },
 
-  clearSlot: ({ slotIndex }: { slotIndex: SlotIndex }): void => {
+  clearSlot: ({ slotIndex }: { slotIndex: number }): void => {
     state.slots.delete(slotIndex);
   },
 
-  getAll: (): Map<SlotIndex, ChatEntry[]> => new Map(state.slots),
+  getAll: (): Map<number, ChatEntry[]> => new Map(state.slots),
 
   size: (): number => state.slots.size,
 } as const;

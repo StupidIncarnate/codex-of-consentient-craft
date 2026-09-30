@@ -6,7 +6,7 @@
  */
 
 import { stderr } from '#gateway/node/process';
-import { workItemRoleContract, type WorkItem, slotIndexContract, sessionContract } from '@dungeonmaster/shared/contracts';
+import { workItemRoleContract, type WorkItem, sessionContract } from '@dungeonmaster/shared/contracts';
 
 import type { ModifyQuestInput, Quest, Session } from '@dungeonmaster/shared/contracts';
 import { isCommandWorkItemRoleGuard } from '@dungeonmaster/shared/guards';
@@ -30,7 +30,7 @@ export const runChatLayerBroker = async ({
   userMessage?: string;
   onAgentEntry: OnAgentEntryCallback;
 }): Promise<void> => {
-  const slotIndex = slotIndexContract.parse(0);
+  const slotIndex = 0;
 
   // Refused before the prompt is built, so the caller gets this specific diagnosis rather than
   // the generic "no template for role" the prompt builder raises for any non-chat role.

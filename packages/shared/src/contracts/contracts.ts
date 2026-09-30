@@ -137,7 +137,6 @@ export * from './process-id/process-id-contract';
 
 export * from './orchestration-slot/orchestration-slot-contract';
 
-export * from './slot-index/slot-index-contract';
 
 
 // Execution Progress Count Contracts

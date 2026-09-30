@@ -6,7 +6,7 @@
  * // Returns ModifyQuestResult with success status
  */
 
-import type { Quest, SlotIndex, ModifyQuestInput, ModifyQuestResult, Session } from '@dungeonmaster/shared/contracts';
+import type { Quest, ModifyQuestInput, ModifyQuestResult, Session } from '@dungeonmaster/shared/contracts';
 import { stderr } from '#gateway/node/process';
 import { AbortController } from '#gateway/node/AbortController';
 import { randomUUID } from '#gateway/node/crypto';
@@ -53,7 +53,7 @@ export const QuestModifyResponder = async ({
         });
 
         // Per-slot sessionId memo — sessionId arrives on a later emission than the first entries, so memo the latest per slot.
-        const slotIndexToSessionId = new Map<SlotIndex, Session['id']>();
+        const slotIndexToSessionId = new Map<number, Session['id']>();
 
         questFindQuestPathBroker({ questId: typedQuestId })
           .then(async ({ guildId }) => {

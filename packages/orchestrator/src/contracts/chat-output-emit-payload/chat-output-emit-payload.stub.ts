@@ -4,7 +4,6 @@ import { ProcessIdStub } from '@dungeonmaster/shared/contracts/process-id/proces
 import { QuestIdStub } from '@dungeonmaster/shared/contracts/quest-id/quest-id.stub';
 import { QuestWorkItemIdStub } from '@dungeonmaster/shared/contracts/quest-work-item-id/quest-work-item-id.stub';
 
-import { SlotIndexStub } from '@dungeonmaster/shared/contracts/slot-index/slot-index.stub';
 import {
   chatOutputEmitPayloadContract,
   type ChatOutputEmitPayload,
@@ -15,7 +14,7 @@ export const ChatOutputEmitPayloadStub = ({
 }: StubArgument<ChatOutputEmitPayload> = {}): ChatOutputEmitPayload =>
   chatOutputEmitPayloadContract.parse({
     processId: ProcessIdStub({ value: 'proc-queue-aaaaaaaa-1111-4222-9333-444444444444' }),
-    slotIndex: SlotIndexStub({ value: 0 }),
+    slotIndex: 0,
     entries: [ChatEntryStub({ role: 'assistant', type: 'text', content: 'stub entry' })],
     questId: QuestIdStub({ value: 'aaaaaaaa-1111-4222-9333-444444444444' }),
     workItemId: QuestWorkItemIdStub({ value: 'bbbbbbbb-1111-4222-9333-444444444444' }),
