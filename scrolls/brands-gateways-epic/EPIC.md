@@ -129,7 +129,7 @@ More rules for the operator:
 
 ## START HERE — where the epic stands and what to do next
 
-### Now (updated at every event; last 2026-09-30 11:45)
+### Now (updated at every event; last 2026-09-30 11:50)
 
 | Running | Where | What |
 |---|---|---|
@@ -999,12 +999,16 @@ longer dispatched as whole items: their rules are chunks R1 to R9, and the B15 m
 | T06 | [A proxy composes the proxy beside each wrapper it calls](items/t06-proxy-child-creation.md) | B03 | any | done (the switch-on commit) | The switch-on commit; `banWrapperMocks` is on, scan 0 in all 21 packages, lint all 1790726369173-d851. |
 | T07 | [Consumers get the Jest home sandbox](items/t07-home-sandbox-for-consumers.md) | P0-1 | any | done | 9844987fa; a comment at `web/test/harnesses/claude-mock/bin/claude:232` still names the deleted rule (Z06). |
 | T08 | [Read every catch-everything implementation](items/t08-catch-everything-implementations.md) | T05 | any | done (the T08-Z1 commit) | The T08-Z1 commit; concession 24. |
-| T09 | [A generated catalog of the test infrastructure](items/t09-test-infrastructure-catalog.md) | B03, T05, T06 | any | todo, moved to Phase 6 with Z03 | Blocks nothing. Do it with Z03, which rewrites the same `get-testing-patterns` tool. The catalog cannot list every proxy and stub (thousands; an MCP result over 50,000 characters spills to a file): scope it to `testing` and the gateway packages, or make it searchable. |
+| T09 | [A generated catalog of the test infrastructure](items/t09-test-infrastructure-catalog.md) | B03, T05, T06 | any | todo (P3, after the merge), moved to Phase 6 with Z03 | Blocks nothing. Do it with Z03, which rewrites the same `get-testing-patterns` tool. The catalog cannot list every proxy and stub (thousands; an MCP result over 50,000 characters spills to a file): scope it to `testing` and the gateway packages, or make it searchable. |
 | T10 | [JSX only in `widgets/` and `flows/`](items/t10-jsx-only-in-widgets-and-flows.md) | A17 | any | done (the T10 commit) | The T10 commit; `ban-jsx-outside-widgets-and-flows` is at `error`, tagged `pre-edit`, gate 1790680759524-5312. |
 
 ### Phase 6 — docs and the finish line
 
 Do this phase last. Every code item above may still change the layout the docs describe.
+
+**Phase 6 status (2026-09-30):** not done. Z02 and Z03 are done (pulled forward as P1 for the defect swarm). Z10 is P1
+and runs in the merge worktree. Z09 is P2; Z01, Z04, Z05, Z06 and T09 are P3; Z08 and Z07 run last. All of those run after
+master has the merge.
 
 **Who runs it (user, 2026-09-30):** the operator hands the whole of Phase 6 (Z01 to Z06, with T09) to ONE opus agent.
 That agent may dispatch sub-agents of its own, overriding `agent-brief.md` rule 6 for this phase only. It uses them
@@ -1014,14 +1018,14 @@ briefs, never forks. It still never builds or commits, and the operator's agent 
 
 | ID | Item | Needs | Runs with | Status | Notes |
 |---|---|---|---|---|---|
-| Z01 | [The `gateway` folder-type doc](items/z01-gateway-folder-type-doc.md) | every A, B, G, T item | Z02–Z06 | todo | |
-| Z02 | [`get-architecture` and the session snippets](items/z02-architecture-and-snippet-text.md) | every A, B, G, T item | Z01, Z03–Z06 | todo | |
-| Z03 | [`get-folder-detail` and `get-testing-patterns`](items/z03-folder-type-and-testing-docs.md) | every A, B, G, T item | Z01, Z02, Z04–Z06 | todo | `get-testing-patterns` calls `Reflect.set` sanctioned in proxies, but the pre-edit hook allows it only in guards and contracts. Make the doc and the rule agree. |
-| Z04 | [Every `CLAUDE.md` and `AGENTS.md`](items/z04-claude-md-and-agents-md.md) | every A, B, G, T item | Z01–Z03, Z05, Z06 | todo | operator splits |
-| Z05 | [Every `PURPOSE` header in `packages/@gateway`](items/z05-gateway-purpose-headers.md) | every A, B, G, T item | Z01–Z04, Z06 | todo | operator splits per subpath |
-| Z06 | [Pointers in the older scrolls](items/z06-scrolls-pointers.md) | every A, B, G, T item | Z01–Z05 | todo | |
-| Z09 | Codeweaver prompts learn scripted work (user, 2026-09-30). **Planner:** when a quest holds operational flows (mainly local operations: setup, migrations, bulk file changes; also cloud configuration), the planner scopes which parts can be scripted, and for each flow names the terminal command that proves the work is done. **Worker:** a worker that builds a script always dry-runs it first, checks the result, and probes the edge cases it can before the real run, so it knows what result to expect. A script meant to run after the feature is complete gets the worker's best effort, plus written instructions on what to look for and what result to expect. | every A, B, G, T item | Z01–Z06 | todo | Find the codeweaver planner and worker prompt sources (the `get-agent-prompt` MCP tool serves them) and name each file in the item's plan. |
-| Z10 | [USAGE comments naming deleted contracts](items/z10-usage-comment-sweep.md) | the master merge | — | todo (P1, after the merge) | Script `z10-scripts/usage-sweep.py` (dry run 573 lines in 450 files, 71 files to a hand queue); `usage-verify.py` fails on any changed non-comment line. |
+| Z01 | [The `gateway` folder-type doc](items/z01-gateway-folder-type-doc.md) | every A, B, G, T item | Z02–Z06 | todo (P3, after the merge) | |
+| Z02 | [`get-architecture` and the session snippets](items/z02-architecture-and-snippet-text.md) | every A, B, G, T item | Z01, Z03–Z06 | done (P1) | Z02-A 7d1cd2ad5, 30ab79298; Z02-C/D (F129) 6ab196341; Z02-B (session snippet, `searchStrategy`) done in the merge worktree, lands with the merge. |
+| Z03 | [`get-folder-detail` and `get-testing-patterns`](items/z03-folder-type-and-testing-docs.md) | every A, B, G, T item | Z01, Z02, Z04–Z06 | done (P1) | Z03-A to C 9a626d6fe; D/E1 fd897c4c1; E2/E3 8dd3b96aa; E4/E5 5520dbe3b; G d445d9367; T1/T2 b4a7f192c; T3 had nothing outside Z04's section. The `Reflect.set` conflict is settled: statics proxies are empty (D2). |
+| Z04 | [Every `CLAUDE.md` and `AGENTS.md`](items/z04-claude-md-and-agents-md.md) | every A, B, G, T item | Z01–Z03, Z05, Z06 | todo (P3, after the merge) | operator splits |
+| Z05 | [Every `PURPOSE` header in `packages/@gateway`](items/z05-gateway-purpose-headers.md) | every A, B, G, T item | Z01–Z04, Z06 | todo (P3, after the merge) | operator splits per subpath |
+| Z06 | [Pointers in the older scrolls](items/z06-scrolls-pointers.md) | every A, B, G, T item | Z01–Z05 | todo (P3, after the merge) | |
+| Z09 | Codeweaver prompts learn scripted work (user, 2026-09-30). **Planner:** when a quest holds operational flows (mainly local operations: setup, migrations, bulk file changes; also cloud configuration), the planner scopes which parts can be scripted, and for each flow names the terminal command that proves the work is done. **Worker:** a worker that builds a script always dry-runs it first, checks the result, and probes the edge cases it can before the real run, so it knows what result to expect. A script meant to run after the feature is complete gets the worker's best effort, plus written instructions on what to look for and what result to expect. | every A, B, G, T item | Z01–Z06 | todo (P2, after the merge) | Find the codeweaver planner and worker prompt sources (the `get-agent-prompt` MCP tool serves them) and name each file in the item's plan. |
+| Z10 | [USAGE comments naming deleted contracts](items/z10-usage-comment-sweep.md) | the master merge | — | todo (P1: runs in the merge worktree once it is green, before master) | Script `z10-scripts/usage-sweep.py` (dry run 573 lines in 450 files, 71 files to a hand queue); `usage-verify.py` fails on any changed non-comment line. |
 | Z08 | Slow tests: investigate every slow-file flag and load timeout recorded in F106 (and any found since), on a quiet machine | Z01–Z06 | before Z07 | todo | Tabled here by the user (2026-09-29): the refactor runs memory-heavy work in parallel, so slow tests are not chased before this. |
 | Z07 | [The finish line](items/z07-finish-line.md) | Z01–Z06, G27 | — | todo | runs alone |
 
