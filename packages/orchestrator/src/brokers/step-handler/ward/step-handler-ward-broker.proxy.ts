@@ -27,7 +27,7 @@ import { RunNotFoundErrorProxy } from '#gateway/node/child_process/run-not-found
 import { ensureDirProxy } from '#gateway/node/fs__promises/ensure-dir/ensure-dir.proxy';
 import { writeFileProxy } from '#gateway/node/fs__promises/write-file/write-file.proxy';
 import { join } from '#gateway/node/path';
-import type { ExitCode, FileContents, FileName, Quest } from '@dungeonmaster/shared/contracts';
+import type { ExitCode, FileName, Quest } from '@dungeonmaster/shared/contracts';
 import { AbsoluteFilePathStub } from '@dungeonmaster/shared/contracts/absolute-file-path/absolute-file-path.stub';
 import { GuildIdStub } from '@dungeonmaster/shared/contracts/guild-id/guild-id.stub';
 import { ModifyQuestResultStub } from '@dungeonmaster/shared/contracts/modify-quest-result/modify-quest-result.stub';
@@ -67,7 +67,7 @@ export const stepHandlerWardBrokerProxy = (): {
     questId: Quest['id'];
     exitCode: ExitCode;
     runId: FileName;
-    detailJson: FileContents;
+    detailJson: string;
   }) => void;
   wardExitsWithoutRunId: (params: { questId: Quest['id']; exitCode: ExitCode }) => void;
   getSpawnedWardArgs: () => unknown;
@@ -159,7 +159,7 @@ export const stepHandlerWardBrokerProxy = (): {
       questId: Quest['id'];
       exitCode: ExitCode;
       runId: FileName;
-      detailJson: FileContents;
+      detailJson: string;
     }): void => {
       stageQuest({ questId });
       wardSpawn.setupSuccess({

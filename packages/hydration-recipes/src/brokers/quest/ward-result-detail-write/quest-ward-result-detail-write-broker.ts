@@ -11,7 +11,6 @@
  */
 import { ensureDir, writeFile } from '#gateway/node/fs__promises';
 import { locationsStatics } from '@dungeonmaster/shared/statics';
-import { fileContentsContract } from '@dungeonmaster/shared/contracts';
 
 import { questFolderPathResolveBroker } from '../folder-path-resolve/quest-folder-path-resolve-broker';
 import { wardResultDetailArgsContract } from '../../../contracts/ward-result-detail-args/ward-result-detail-args-contract';
@@ -34,6 +33,6 @@ export const questWardResultDetailWriteBroker = async ({
 
   await writeFile(
     `${wardResultsDirPath}/${parsedArgs.wardResultId}.json`,
-    fileContentsContract.parse(JSON.stringify(parsedArgs.detail)),
+    JSON.stringify(parsedArgs.detail),
   );
 };

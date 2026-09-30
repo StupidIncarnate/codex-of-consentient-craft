@@ -1,6 +1,5 @@
 import { installTestbedCreateBroker } from '@dungeonmaster/testing';
 import { AbsoluteFilePathStub } from '@dungeonmaster/shared/contracts/absolute-file-path/absolute-file-path.stub';
-import { FileContentsStub } from '@dungeonmaster/shared/contracts/file-contents/file-contents.stub';
 import { FileNameStub } from '@dungeonmaster/shared/contracts/file-name/file-name.stub';
 import { QuestBranchNameStub } from '@dungeonmaster/shared/contracts/quest-branch-name/quest-branch-name.stub';
 import { RepoRelativePathStub } from '@dungeonmaster/shared/contracts/repo-relative-path/repo-relative-path.stub';
@@ -89,9 +88,7 @@ describe('worktreeResumeRestoreBroker (integration) — real drift restore + unc
       mode: 'create-branch',
     });
 
-    const dirtyContent = FileContentsStub({
-      value: '# fixture repo\nuncommitted edit from a killed agent session\n',
-    });
+    const dirtyContent = '# fixture repo\nuncommitted edit from a killed agent session\n';
     git.dirtyTrackedFile({
       repoPath: worktreePath,
       relativePath: RepoRelativePathStub({ value: 'README.md' }),

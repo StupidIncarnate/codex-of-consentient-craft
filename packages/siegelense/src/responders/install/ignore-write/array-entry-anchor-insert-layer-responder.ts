@@ -42,7 +42,6 @@
  * //   alreadyPresent: false, matchedEntryValue: '.siegelense' } — inserted INLINE, no new line
  */
 
-import { fileContentsContract, type FileContents } from '@dungeonmaster/shared/contracts';
 import { ArrayEntryLineParseLayerResponder } from './array-entry-line-parse-layer-responder';
 
 const DEFAULT_INLINE_SEPARATOR = ', ';
@@ -56,10 +55,10 @@ export const ArrayEntryAnchorInsertLayerResponder = ({
   anchorValueCandidates: readonly string[];
   entryValueCandidates: readonly string[];
 }): {
-  content: FileContents;
+  content: string;
   inserted: boolean;
   alreadyPresent: boolean;
-  matchedEntryValue: FileContents | undefined;
+  matchedEntryValue: string | undefined;
 } => {
   const lines = content.split('\n');
   const perLineEntries = lines.map((line) => ArrayEntryLineParseLayerResponder({ line }).entries);
@@ -80,13 +79,13 @@ export const ArrayEntryAnchorInsertLayerResponder = ({
 
   if (anchorMatch === undefined || alreadyPresent) {
     return {
-      content: fileContentsContract.parse(content),
+      content: content,
       inserted: false,
       alreadyPresent,
       matchedEntryValue:
         presentMatch === undefined
           ? undefined
-          : fileContentsContract.parse(presentMatch.entry.value),
+          : presentMatch.entry.value,
     };
   }
 
@@ -130,10 +129,10 @@ export const ArrayEntryAnchorInsertLayerResponder = ({
     ];
 
     return {
-      content: fileContentsContract.parse(newLines.join('\n')),
+      content: newLines.join('\n'),
       inserted: true,
       alreadyPresent: false,
-      matchedEntryValue: fileContentsContract.parse(newEntryValue),
+      matchedEntryValue: newEntryValue,
     };
   }
 
@@ -161,9 +160,9 @@ export const ArrayEntryAnchorInsertLayerResponder = ({
   ];
 
   return {
-    content: fileContentsContract.parse(newLines.join('\n')),
+    content: newLines.join('\n'),
     inserted: true,
     alreadyPresent: false,
-    matchedEntryValue: fileContentsContract.parse(newEntryValue),
+    matchedEntryValue: newEntryValue,
   };
 };

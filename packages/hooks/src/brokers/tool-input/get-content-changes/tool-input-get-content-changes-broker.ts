@@ -9,7 +9,6 @@ import type { ToolInput } from '../../../contracts/tool-input/tool-input-contrac
 import type { ContentChange } from '../../../contracts/content-change/content-change-contract';
 import { contentChangeContract } from '../../../contracts/content-change/content-change-contract';
 import { toolInputGetFullContentBroker } from '../get-full-content/tool-input-get-full-content-broker';
-import { fileContentsContract } from '../../../contracts/file-contents/file-contents-contract';
 import { fileReadOrEmptyBroker } from '../../file/read-or-empty/file-read-or-empty-broker';
 
 export const toolInputGetContentChangesBroker = async ({
@@ -32,7 +31,7 @@ export const toolInputGetContentChangesBroker = async ({
     return [
       contentChangeContract.parse({
         oldContent,
-        newContent: fileContentsContract.parse(toolInput.content),
+        newContent: toolInput.content,
       }),
     ];
   }
@@ -52,7 +51,7 @@ export const toolInputGetContentChangesBroker = async ({
     return [
       contentChangeContract.parse({
         oldContent,
-        newContent: fileContentsContract.parse(newContent),
+        newContent: newContent,
       }),
     ];
   }
@@ -72,7 +71,7 @@ export const toolInputGetContentChangesBroker = async ({
     return [
       contentChangeContract.parse({
         oldContent,
-        newContent: fileContentsContract.parse(newContent),
+        newContent: newContent,
       }),
     ];
   }

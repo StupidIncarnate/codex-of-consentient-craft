@@ -9,11 +9,7 @@
  * // Persists the quest and returns the patched WorkItem
  */
 
-import {
-  fileContentsContract,
-  questContract,
-  workItemContract,
-} from '@dungeonmaster/shared/contracts';
+import { questContract, workItemContract } from '@dungeonmaster/shared/contracts';
 import type { Quest, WorkItem } from '@dungeonmaster/shared/contracts';
 
 import type { IsoTimestamp } from '../../../contracts/iso-timestamp/iso-timestamp-contract';
@@ -55,9 +51,7 @@ export const workItemPatchLayerBroker = async ({
     updatedAt: nowAt,
   });
 
-  const questJson = fileContentsContract.parse(
-    JSON.stringify(updatedQuest, null, JSON_INDENT_SPACES),
-  );
+  const questJson = JSON.stringify(updatedQuest, null, JSON_INDENT_SPACES);
 
   await questPersistBroker({ questFilePath, contents: questJson, questId });
 

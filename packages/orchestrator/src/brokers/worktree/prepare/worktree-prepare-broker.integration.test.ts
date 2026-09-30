@@ -1,6 +1,5 @@
 import { installTestbedCreateBroker } from '@dungeonmaster/testing';
 import { AbsoluteFilePathStub } from '@dungeonmaster/shared/contracts/absolute-file-path/absolute-file-path.stub';
-import { FileContentsStub } from '@dungeonmaster/shared/contracts/file-contents/file-contents.stub';
 import { FileNameStub } from '@dungeonmaster/shared/contracts/file-name/file-name.stub';
 import { QuestBranchNameStub } from '@dungeonmaster/shared/contracts/quest-branch-name/quest-branch-name.stub';
 import { RepoRelativePathStub } from '@dungeonmaster/shared/contracts/repo-relative-path/repo-relative-path.stub';
@@ -35,7 +34,7 @@ describe('worktreePrepareBroker (integration) — real git worktree creation', (
     const { sha: mainTipSha } = await git.commitFile({
       repoPath,
       relativePath: RepoRelativePathStub({ value: 'README.md' }),
-      content: FileContentsStub({ value: '# fixture repo\nsecond commit on main, past develop\n' }),
+      content: '# fixture repo\nsecond commit on main, past develop\n',
       message: 'advance main past develop',
     });
 
@@ -114,9 +113,7 @@ describe('worktreePrepareBroker (integration) — real git worktree creation', (
     git.dirtyTrackedFile({
       repoPath,
       relativePath: RepoRelativePathStub({ value: 'README.md' }),
-      content: FileContentsStub({
-        value: '# fixture repo\nUNCOMMITTED — must never reach the worktree\n',
-      }),
+      content: '# fixture repo\nUNCOMMITTED — must never reach the worktree\n',
     });
 
     const worktreePath = AbsoluteFilePathStub({
@@ -172,7 +169,7 @@ describe('worktreePrepareBroker (integration) — real git worktree creation', (
     await git.commitFile({
       repoPath,
       relativePath: RepoRelativePathStub({ value: 'README.md' }),
-      content: FileContentsStub({ value: '# fixture repo\nmain advanced past the quest branch\n' }),
+      content: '# fixture repo\nmain advanced past the quest branch\n',
       message: 'advance main past the quest branch',
     });
     const existingBranchShaBefore = await git.gitRevParseOrNull({

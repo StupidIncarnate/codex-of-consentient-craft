@@ -1,7 +1,6 @@
 import { TextContentSchema } from '#gateway/npm/modelcontextprotocol__sdk__types';
 import { ToolNameStub } from '../../../contracts/tool-name/tool-name.stub';
 import { ContentTextStub } from '@dungeonmaster/shared/contracts/content-text/content-text.stub';
-import { FileContentsStub } from '@dungeonmaster/shared/contracts/file-contents/file-contents.stub';
 import { GlobPatternStub } from '@dungeonmaster/shared/contracts/glob-pattern/glob-pattern.stub';
 import { PathSegmentStub as FilePathStub } from '@dungeonmaster/shared/contracts/path-segment/path-segment.stub';
 import { projectMapStatics } from '@dungeonmaster/shared/statics';
@@ -15,9 +14,7 @@ describe('ArchitectureHandleResponder', () => {
         filepath: FilePathStub({
           value: 'packages/mcp/src/responders/architecture/handle/architecture-handle-responder.ts',
         }),
-        contents: FileContentsStub({
-          value: 'export const ArchitectureHandleResponder = () => {};',
-        }),
+        contents: 'export const ArchitectureHandleResponder = () => {};',
         pattern: GlobPatternStub({ value: 'packages/mcp/src/responders/**' }),
       });
 
@@ -37,9 +34,7 @@ describe('ArchitectureHandleResponder', () => {
         filepath: FilePathStub({
           value: 'packages/mcp/src/responders/architecture/handle/architecture-handle-responder.ts',
         }),
-        contents: FileContentsStub({
-          value: 'export const ArchitectureHandleResponder = () => {};',
-        }),
+        contents: 'export const ArchitectureHandleResponder = () => {};',
         pattern: GlobPatternStub({ value: 'packages/mcp/src/responders/**' }),
       });
 
@@ -64,9 +59,7 @@ describe('ArchitectureHandleResponder', () => {
         filepath: FilePathStub({
           value: 'packages/mcp/src/responders/architecture/handle/architecture-handle-responder.ts',
         }),
-        contents: FileContentsStub({
-          value: 'export const ArchitectureHandleResponder = () => {};',
-        }),
+        contents: 'export const ArchitectureHandleResponder = () => {};',
         pattern: GlobPatternStub({ value: 'packages/mcp/src/responders/**' }),
       });
 

@@ -6,7 +6,7 @@
  * // Returns session entries sorted most-recently-active-first (by JSONL mtime) with optional quest correlation
  */
 
-import { absoluteFilePathContract, fileContentsContract, sessionContract } from '@dungeonmaster/shared/contracts';
+import { absoluteFilePathContract, sessionContract } from '@dungeonmaster/shared/contracts';
 import type { Guild, Session } from '@dungeonmaster/shared/contracts';
 import { readFile, stat } from '#gateway/node/fs__promises';
 import { homedir } from '#gateway/node/os';
@@ -138,7 +138,7 @@ export const sessionListBroker = async ({
             }
 
             try {
-              const rawContent = fileContentsContract.parse(await readFile(filePath));
+              const rawContent = (await readFile(filePath));
               const summary = extractSessionFileSummaryTransformer({
                 fileContent: rawContent,
               });

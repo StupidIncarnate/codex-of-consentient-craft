@@ -19,7 +19,6 @@ export * from './repo-relative-path/repo-relative-path-contract';
 export * from './path-segment/path-segment-contract';
 
 // File Contents Contracts
-export * from './file-contents/file-contents-contract';
 
 // Identifier Contracts
 export * from './identifier/identifier-contract';

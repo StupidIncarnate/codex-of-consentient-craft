@@ -18,8 +18,7 @@ import { join } from '#gateway/node/path';
 import { deleteEnv, getEnv, setEnv, setStdin, stderr, stdout } from '#gateway/node/process';
 import { Readable } from '#gateway/node/stream';
 
-import { fileContentsContract } from '@dungeonmaster/shared/contracts';
-import type { FileContents, GuildPath } from '@dungeonmaster/shared/contracts';
+import type { GuildPath } from '@dungeonmaster/shared/contracts';
 
 const SNAPSHOT_FILENAME = 'rate-limits.json';
 const HISTORY_FILENAME = 'rate-limits-history.jsonl';
@@ -58,7 +57,7 @@ const captureWrites = ({
 
 export const cliStatuslineHarness = (): {
   setupHome: ({ tempDir }: { tempDir: GuildPath }) => { restore: () => void };
-  setupStdin: ({ data }: { data: FileContents }) => { restore: () => void };
+  setupStdin: ({ data }: { data: string }) => { restore: () => void };
   captureStdout: () => {
     getOutput: () => readonly unknown[];
     restore: () => void;
@@ -67,8 +66,8 @@ export const cliStatuslineHarness = (): {
     getOutput: () => readonly unknown[];
     restore: () => void;
   };
-  readSnapshot: ({ tempDir }: { tempDir: GuildPath }) => FileContents | null;
-  readHistory: ({ tempDir }: { tempDir: GuildPath }) => FileContents | null;
+  readSnapshot: ({ tempDir }: { tempDir: GuildPath }) => string | null;
+  readHistory: ({ tempDir }: { tempDir: GuildPath }) => string | null;
   snapshotExists: ({ tempDir }: { tempDir: GuildPath }) => boolean;
 } => ({
   setupHome: ({ tempDir }: { tempDir: GuildPath }): { restore: () => void } => {
@@ -100,7 +99,7 @@ export const cliStatuslineHarness = (): {
     };
   },
 
-  setupStdin: ({ data }: { data: FileContents }): { restore: () => void } =>
+  setupStdin: ({ data }: { data: string }): { restore: () => void } =>
     setStdin({ stream: Readable.from(Buffer.from(data, 'utf8')) }),
 
   captureStdout: (): {
@@ -113,20 +112,20 @@ export const cliStatuslineHarness = (): {
     restore: () => void;
   } => captureWrites({ stream: stderr }),
 
-  readSnapshot: ({ tempDir }: { tempDir: GuildPath }): FileContents | null => {
+  readSnapshot: ({ tempDir }: { tempDir: GuildPath }): string | null => {
     const snapshotPath = join(tempDir, SNAPSHOT_FILENAME);
     if (!existsSync(snapshotPath)) {
       return null;
     }
-    return fileContentsContract.parse(readFileSync(snapshotPath));
+    return readFileSync(snapshotPath);
   },
 
-  readHistory: ({ tempDir }: { tempDir: GuildPath }): FileContents | null => {
+  readHistory: ({ tempDir }: { tempDir: GuildPath }): string | null => {
     const historyPath = join(tempDir, HISTORY_FILENAME);
     if (!existsSync(historyPath)) {
       return null;
     }
-    return fileContentsContract.parse(readFileSync(historyPath));
+    return readFileSync(historyPath);
   },
 
   snapshotExists: ({ tempDir }: { tempDir: GuildPath }): boolean =>

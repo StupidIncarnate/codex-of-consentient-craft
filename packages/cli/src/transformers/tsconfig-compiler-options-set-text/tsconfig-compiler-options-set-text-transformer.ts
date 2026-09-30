@@ -11,7 +11,6 @@
  * // Returns the text with "module" set to "node16"
  */
 
-import { fileContentsContract, type FileContents } from '@dungeonmaster/shared/contracts';
 import type { TsconfigCompilerOptionsLocateResult } from '../../contracts/tsconfig-compiler-options-locate-result/tsconfig-compiler-options-locate-result-contract';
 import type { TsconfigCompilerOptions } from '../../contracts/tsconfig-compiler-options/tsconfig-compiler-options-contract';
 
@@ -25,9 +24,9 @@ export const tsconfigCompilerOptionsSetTextTransformer = ({
   tsconfigText: string;
   descriptor: TsconfigCompilerOptionsLocateResult;
   options: TsconfigCompilerOptions;
-}): FileContents => {
+}): string => {
   if (descriptor.situation === 'missingCompilerOptions') {
-    return fileContentsContract.parse(tsconfigText);
+    return tsconfigText;
   }
 
   const entries = Object.entries(options).map(([key, value]) => ({
@@ -70,10 +69,8 @@ export const tsconfigCompilerOptionsSetTextTransformer = ({
 
   const edits = [...replacements, ...insertions].sort((left, right) => right.start - left.start);
 
-  return fileContentsContract.parse(
-    edits.reduce(
+  return edits.reduce(
       (text, edit) => text.slice(0, edit.start) + edit.text + text.slice(edit.end),
       tsconfigText,
-    ),
-  );
+    );
 };

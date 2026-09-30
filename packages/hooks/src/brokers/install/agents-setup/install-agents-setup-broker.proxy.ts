@@ -3,9 +3,8 @@ import { writeFileCreatingParentProxy } from '#gateway/node/fs__promises/write-f
 import { existsSyncProxy } from '#gateway/node/fs/exists-sync/exists-sync.proxy';
 import { registerMock, requireActual } from '@dungeonmaster/testing/register-mock';
 import { locationsStatics, mcpToolsStatics } from '@dungeonmaster/shared/statics';
-import type { FileContentsStub } from '../../../contracts/file-contents/file-contents.stub';
 
-type FileContents = ReturnType<typeof FileContentsStub>;
+type FileContents = string;
 type FilePath = string;
 
 export const installAgentsSetupBrokerProxy = (): {

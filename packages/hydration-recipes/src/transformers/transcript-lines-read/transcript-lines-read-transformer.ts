@@ -13,7 +13,6 @@
  * // Returns the two parsed TranscriptLines
  */
 
-import type { FileContents } from '@dungeonmaster/shared/contracts';
 
 import { recipeTranscriptLineContract } from '../../contracts/transcript-line/transcript-line-contract';
 import type { RecipeTranscriptLine } from '../../contracts/transcript-line/transcript-line-contract';
@@ -21,7 +20,7 @@ import type { RecipeTranscriptLine } from '../../contracts/transcript-line/trans
 export const transcriptLinesReadTransformer = ({
   contents,
 }: {
-  contents: FileContents;
+  contents: string;
 }): readonly RecipeTranscriptLine[] =>
   contents
     .split('\n')

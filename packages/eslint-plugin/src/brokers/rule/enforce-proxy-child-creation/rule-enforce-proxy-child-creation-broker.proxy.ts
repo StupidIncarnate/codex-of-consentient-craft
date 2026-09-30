@@ -2,10 +2,9 @@ import { readFileSyncIfExistsProxy } from '#gateway/node/fs/read-file-sync-if-ex
 import { existsSyncProxy } from '#gateway/node/fs/exists-sync/exists-sync.proxy';
 import { barrelWrapperPathsReadBrokerProxy } from '../../barrel-wrapper-paths/read/barrel-wrapper-paths-read-broker.proxy';
 import { workspaceRootFindBrokerProxy } from '../../workspace-root/find/workspace-root-find-broker.proxy';
-import type { FileContents } from '@dungeonmaster/shared/contracts';
 
 export const ruleEnforceProxyChildCreationBrokerProxy = (): {
-  setupFileSystem: (args: { getContents: (filePath: string) => FileContents | null }) => void;
+  setupFileSystem: (args: { getContents: (filePath: string) => string | null }) => void;
 } => {
   // One predicate answers many candidate paths, so the read side stages through
   // implementsMatchingPath, whose `null` is the wrapper's own ENOENT.
@@ -26,7 +25,7 @@ export const ruleEnforceProxyChildCreationBrokerProxy = (): {
     setupFileSystem: ({
       getContents,
     }: {
-      getContents: (filePath: string) => FileContents | null;
+      getContents: (filePath: string) => string | null;
     }): void => {
       // existsSyncProxy ships no address-less catch-all: the caller's own getContents decision is
       // staged as two complementary predicates, so exactly one ever answers a given call.

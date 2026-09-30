@@ -9,15 +9,13 @@ import { readFile } from '#gateway/node/fs__promises';
 import type { ToolInput } from '../../../contracts/tool-input/tool-input-contract';
 import { regexEscapeTransformer } from '../../../transformers/regex-escape/regex-escape-transformer';
 import { isFsError } from '#gateway/node/fs';
-import { fileContentsContract } from '../../../contracts/file-contents/file-contents-contract';
-import type { FileContents } from '../../../contracts/file-contents/file-contents-contract';
 import { multiEditToolInputContract } from '../../../contracts/multi-edit-tool-input/multi-edit-tool-input-contract';
 
 export const toolInputGetFullContentBroker = async ({
   toolInput,
 }: {
   toolInput: ToolInput;
-}): Promise<FileContents | null> => {
+}): Promise<string | null> => {
   const filePath = 'file_path' in toolInput ? toolInput.file_path : '';
 
   if (filePath === '') {
@@ -26,12 +24,12 @@ export const toolInputGetFullContentBroker = async ({
 
   // For Write tool, we already have the full content
   if ('content' in toolInput) {
-    return fileContentsContract.parse(toolInput.content);
+    return toolInput.content;
   }
 
   // Read file content - return null if file doesn't exist
   const readResult = await readFile(filePath)
-    .then((contents) => fileContentsContract.parse(contents))
+    .then((contents) => contents)
     .catch((error: unknown) => {
       if (isFsError({ error, code: 'ENOENT' })) {
         return null;
@@ -50,12 +48,10 @@ export const toolInputGetFullContentBroker = async ({
     if (toolInput.replace_all === true) {
       const escapedPattern = regexEscapeTransformer({ str: toolInput.old_string });
       const regex = new RegExp(String(escapedPattern), 'gu');
-      return fileContentsContract.parse(existingContent.replace(regex, toolInput.new_string));
+      return existingContent.replace(regex, toolInput.new_string);
     }
 
-    return fileContentsContract.parse(
-      existingContent.replace(toolInput.old_string, toolInput.new_string),
-    );
+    return existingContent.replace(toolInput.old_string, toolInput.new_string);
   }
 
   // For MultiEdit tool, apply all edits sequentially
@@ -71,9 +67,9 @@ export const toolInputGetFullContentBroker = async ({
       if (replaceAll === true) {
         const escapedPattern = regexEscapeTransformer({ str: oldStringStr });
         const regex = new RegExp(String(escapedPattern), 'gu');
-        result = fileContentsContract.parse(result.replace(regex, newStringStr));
+        result = result.replace(regex, newStringStr);
       } else {
-        result = fileContentsContract.parse(result.replace(oldStringStr, newStringStr));
+        result = result.replace(oldStringStr, newStringStr);
       }
     }
 

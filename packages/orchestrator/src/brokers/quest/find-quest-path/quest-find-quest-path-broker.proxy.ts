@@ -4,8 +4,7 @@ import { join } from '#gateway/node/path';
 
 import { dungeonmasterHomeFindBrokerProxy } from '@dungeonmaster/shared/brokers/dungeonmaster-home/find/dungeonmaster-home-find-broker.proxy';
 import { fileNameContract } from '@dungeonmaster/shared/contracts';
-import { FileContentsStub } from '@dungeonmaster/shared/contracts/file-contents/file-contents.stub';
-import type { AbsoluteFilePath, FileContents, FileName, Quest, Guild } from '@dungeonmaster/shared/contracts';
+import type { AbsoluteFilePath, FileName, Quest, Guild } from '@dungeonmaster/shared/contracts';
 import { dungeonmasterHomeStatics, locationsStatics } from '@dungeonmaster/shared/statics';
 import {
   registerMock,
@@ -57,13 +56,13 @@ const setupProbeEntries = ({
       questFolderPath: string;
       questFilePath: string;
       exists: boolean;
-      contents?: FileContents;
+      contents?: string;
     };
     questFolders: {
       folderName: FileName;
       questFilePath: string;
       questFolderPath: string;
-      contents: FileContents;
+      contents: string;
     }[];
   }[];
   guildsDir: string;
@@ -117,7 +116,7 @@ const setupScanEntries = ({
       folderName: FileName;
       questFilePath: string;
       questFolderPath: string;
-      contents: FileContents;
+      contents: string;
     }[];
   }[];
   guildsDir: string;
@@ -176,13 +175,13 @@ export const questFindQuestPathBrokerProxy = (): {
         questFolderPath: string;
         questFilePath: string;
         exists: boolean;
-        contents?: FileContents;
+        contents?: string;
       };
       questFolders: {
         folderName: FileName;
         questFilePath: string;
         questFolderPath: string;
-        contents: FileContents;
+        contents: string;
       }[];
     }[];
   }) => void;
@@ -204,13 +203,13 @@ export const questFindQuestPathBrokerProxy = (): {
         questFolderPath: string;
         questFilePath: string;
         exists: boolean;
-        contents?: FileContents;
+        contents?: string;
       };
       questFolders: {
         folderName: FileName;
         questFilePath: string;
         questFolderPath: string;
-        contents: FileContents;
+        contents: string;
       }[];
     }[];
   }) => void;
@@ -320,13 +319,13 @@ export const questFindQuestPathBrokerProxy = (): {
           questFolderPath: string;
           questFilePath: string;
           exists: boolean;
-          contents?: FileContents;
+          contents?: string;
         };
         questFolders: {
           folderName: FileName;
           questFilePath: string;
           questFolderPath: string;
-          contents: FileContents;
+          contents: string;
         }[];
       }[];
     }): void => {
@@ -391,13 +390,13 @@ export const questFindQuestPathBrokerProxy = (): {
           questFolderPath: string;
           questFilePath: string;
           exists: boolean;
-          contents?: FileContents;
+          contents?: string;
         };
         questFolders: {
           folderName: FileName;
           questFilePath: string;
           questFolderPath: string;
-          contents: FileContents;
+          contents: string;
         }[];
       }[];
     }): void => {
@@ -478,7 +477,7 @@ export const questFindQuestPathBrokerProxy = (): {
             exists: true,
             // matchCandidatesLayerBroker checks `id` alone (questContract.pick({ id: true })), so
             // a minimal object carries everything the real broker's match needs.
-            contents: FileContentsStub({ value: JSON.stringify({ id: String(questId) }) }),
+            contents: JSON.stringify({ id: String(questId) }),
           },
           questFolders: [],
         },

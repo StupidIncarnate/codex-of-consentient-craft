@@ -42,7 +42,7 @@
 
 import { stderr } from '#gateway/node/process';
 import type { ProcessId, QuestStatus, Quest, Guild } from '@dungeonmaster/shared/contracts';
-import { fileContentsContract, questContract, workItemContract } from '@dungeonmaster/shared/contracts';
+import { questContract, workItemContract } from '@dungeonmaster/shared/contracts';
 import {
   isActiveWorkItemStatusGuard,
   isUserPausedQuestStatusGuard,
@@ -130,9 +130,7 @@ export const questPauseBroker = async ({
           updatedAt: new Date().toISOString(),
         });
 
-        const questJson = fileContentsContract.parse(
-          JSON.stringify(mutated, null, JSON_INDENT_SPACES),
-        );
+        const questJson = JSON.stringify(mutated, null, JSON_INDENT_SPACES);
         await questPersistBroker({ questFilePath, contents: questJson, questId });
 
         return { paused: true };

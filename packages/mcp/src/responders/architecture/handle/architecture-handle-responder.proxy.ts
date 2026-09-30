@@ -13,12 +13,7 @@ import { architectureGatewayInventoryBrokerProxy } from '@dungeonmaster/shared/b
 import { existsSyncProxy } from '#gateway/node/fs/exists-sync/exists-sync.proxy';
 import { readdirEntriesSyncProxy } from '#gateway/node/fs/readdir-entries-sync/readdir-entries-sync.proxy';
 import { AbsoluteFilePathStub } from '@dungeonmaster/shared/contracts/absolute-file-path/absolute-file-path.stub';
-import type {
-  ContentText,
-  FileContents,
-  GlobPattern,
-  PathSegment,
-} from '@dungeonmaster/shared/contracts';
+import type { ContentText, GlobPattern, PathSegment } from '@dungeonmaster/shared/contracts';
 import { ContentTextStub } from '../../../contracts/content-text/content-text.stub';
 import type { ToolName } from '../../../contracts/tool-name/tool-name-contract';
 import { mcpDiscoverBrokerProxy } from '../../../brokers/mcp/discover/mcp-discover-broker.proxy';
@@ -45,7 +40,7 @@ export const ArchitectureHandleResponderProxy = (): {
   }) => ReturnType<typeof ArchitectureHandleResponder>;
   setupFileDiscovery: (params: {
     filepath: PathSegment;
-    contents: FileContents;
+    contents: string;
     pattern: GlobPattern;
   }) => void;
   setupDiscoverIgnore: (params: { patterns: readonly GlobPattern[] }) => void;
@@ -99,7 +94,7 @@ export const ArchitectureHandleResponderProxy = (): {
       pattern,
     }: {
       filepath: PathSegment;
-      contents: FileContents;
+      contents: string;
       pattern: GlobPattern;
     }): void => {
       discoverProxy.setupFileDiscovery({ filepath, contents, pattern });

@@ -28,7 +28,7 @@ import { packageSeedServiceStatics } from '../../statics/package-seed-service/pa
 import { packageSeedFrontendStatics } from '../../statics/package-seed-frontend/package-seed-frontend-statics';
 import { packageScaffoldConfigStatics } from '../../statics/package-scaffold-config/package-scaffold-config-statics';
 import { playwrightConfigTemplateStatics } from '../../statics/playwright-config-template/playwright-config-template-statics';
-import { pathSegmentContract, fileContentsContract } from '@dungeonmaster/shared/contracts';
+import { pathSegmentContract } from '@dungeonmaster/shared/contracts';
 import type { PathSegment } from '@dungeonmaster/shared/contracts';
 import { locationsStatics } from '@dungeonmaster/shared/statics';
 import {
@@ -249,25 +249,19 @@ ${seed.barrel.exportPaths
   return [
     scaffoldFileContract.parse({
       relativePath: pathSegmentContract.parse('package.json'),
-      contents: fileContentsContract.parse(
-        `${JSON.stringify(packageJsonObject, null, packageScaffoldConfigStatics.jsonIndentSpaces)}\n`,
-      ),
+      contents: `${JSON.stringify(packageJsonObject, null, packageScaffoldConfigStatics.jsonIndentSpaces)}\n`,
     }),
     scaffoldFileContract.parse({
       relativePath: pathSegmentContract.parse(locationsStatics.repoRoot.tsconfig),
-      contents: fileContentsContract.parse(
-        `${JSON.stringify(tsconfigObject, null, packageScaffoldConfigStatics.jsonIndentSpaces)}\n`,
-      ),
+      contents: `${JSON.stringify(tsconfigObject, null, packageScaffoldConfigStatics.jsonIndentSpaces)}\n`,
     }),
     scaffoldFileContract.parse({
       relativePath: pathSegmentContract.parse(packageScaffoldConfigStatics.buildTsconfigFileName),
-      contents: fileContentsContract.parse(
-        `${JSON.stringify(tsconfigBuildObject, null, packageScaffoldConfigStatics.jsonIndentSpaces)}\n`,
-      ),
+      contents: `${JSON.stringify(tsconfigBuildObject, null, packageScaffoldConfigStatics.jsonIndentSpaces)}\n`,
     }),
     scaffoldFileContract.parse({
       relativePath: pathSegmentContract.parse(packageScaffoldConfigStatics.jestConfigFileName),
-      contents: fileContentsContract.parse(jestConfigContents),
+      contents: jestConfigContents,
     }),
     ...(seed.e2eEligible
       ? [
@@ -275,7 +269,7 @@ ${seed.barrel.exportPaths
             relativePath: pathSegmentContract.parse(
               packageScaffoldConfigStatics.playwrightConfigFileName,
             ),
-            contents: fileContentsContract.parse(playwrightConfigTemplateStatics.content),
+            contents: playwrightConfigTemplateStatics.content,
           }),
           // The scaffolded playwright.config.ts imports this companion statics file for its
           // UNRESOLVABLE_TOKENS list — enforce-magic-arrays refuses an inline array of string
@@ -285,17 +279,13 @@ ${seed.barrel.exportPaths
             relativePath: pathSegmentContract.parse(
               'src/statics/e2e-unresolvable-token/e2e-unresolvable-token-statics.ts',
             ),
-            contents: fileContentsContract.parse(
-              playwrightConfigTemplateStatics.unresolvableTokenStaticsContent,
-            ),
+            contents: playwrightConfigTemplateStatics.unresolvableTokenStaticsContent,
           }),
           scaffoldFileContract.parse({
             relativePath: pathSegmentContract.parse(
               'src/statics/e2e-unresolvable-token/e2e-unresolvable-token-statics.test.ts',
             ),
-            contents: fileContentsContract.parse(
-              playwrightConfigTemplateStatics.unresolvableTokenStaticsTestContent,
-            ),
+            contents: playwrightConfigTemplateStatics.unresolvableTokenStaticsTestContent,
           }),
         ]
       : []),
@@ -303,7 +293,7 @@ ${seed.barrel.exportPaths
       ? [
           scaffoldFileContract.parse({
             relativePath: pathSegmentContract.parse(barrelSourcePath),
-            contents: fileContentsContract.parse(barrelContents),
+            contents: barrelContents,
           }),
         ]
       : []),
@@ -315,12 +305,10 @@ ${seed.barrel.exportPaths
             String(path),
           ),
         ),
-        contents: fileContentsContract.parse(
-          PLACEHOLDER_PAIRS.reduce(
+        contents: PLACEHOLDER_PAIRS.reduce(
             (acc, [placeholder, sub]) => acc.replaceAll(placeholder, sub),
             String(contents),
           ),
-        ),
       }),
     ),
   ];

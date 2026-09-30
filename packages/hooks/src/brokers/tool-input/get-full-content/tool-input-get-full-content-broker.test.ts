@@ -3,7 +3,6 @@ import { toolInputGetFullContentBrokerProxy } from './tool-input-get-full-conten
 import { EditToolInputStub } from '../../../contracts/edit-tool-input/edit-tool-input.stub';
 import { MultiEditToolInputStub } from '../../../contracts/multi-edit-tool-input/multi-edit-tool-input.stub';
 import { WriteToolInputStub } from '../../../contracts/write-tool-input/write-tool-input.stub';
-import { FileContentsStub } from '../../../contracts/file-contents/file-contents.stub';
 
 describe('toolInputGetFullContentBroker', () => {
   describe('Write tool', () => {
@@ -45,7 +44,7 @@ describe('toolInputGetFullContentBroker', () => {
         new_string: 'Hi',
       });
 
-      const contents = FileContentsStub({ value: 'Hello world' });
+      const contents = 'Hello world';
       proxy.setupReadFileSuccess({ filePath, contents });
 
       const result = await toolInputGetFullContentBroker({ toolInput });
@@ -65,7 +64,7 @@ describe('toolInputGetFullContentBroker', () => {
 
       proxy.setupReadFileSuccess({
         filePath,
-        contents: FileContentsStub({ value: 'test file with test content and test data' }),
+        contents: 'test file with test content and test data',
       });
 
       const result = await toolInputGetFullContentBroker({ toolInput });
@@ -119,7 +118,7 @@ describe('toolInputGetFullContentBroker', () => {
 
       proxy.setupReadFileSuccess({
         filePath,
-        contents: FileContentsStub({ value: 'Hello world' }),
+        contents: 'Hello world',
       });
 
       const result = await toolInputGetFullContentBroker({ toolInput });
@@ -140,7 +139,7 @@ describe('toolInputGetFullContentBroker', () => {
 
       proxy.setupReadFileSuccess({
         filePath,
-        contents: FileContentsStub({ value: 'Hello world' }),
+        contents: 'Hello world',
       });
 
       const result = await toolInputGetFullContentBroker({ toolInput });
@@ -161,7 +160,7 @@ describe('toolInputGetFullContentBroker', () => {
 
       proxy.setupReadFileSuccess({
         filePath,
-        contents: FileContentsStub({ value: 'test file with test content in test file' }),
+        contents: 'test file with test content in test file',
       });
 
       const result = await toolInputGetFullContentBroker({ toolInput });

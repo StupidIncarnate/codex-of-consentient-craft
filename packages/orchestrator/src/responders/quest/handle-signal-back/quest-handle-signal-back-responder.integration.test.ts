@@ -1,7 +1,6 @@
 import { randomUUID } from '#gateway/node/crypto';
 import { installTestbedCreateBroker } from '@dungeonmaster/testing';
 import { AbsoluteFilePathStub } from '@dungeonmaster/shared/contracts/absolute-file-path/absolute-file-path.stub';
-import { FileContentsStub } from '@dungeonmaster/shared/contracts/file-contents/file-contents.stub';
 import { FileNameStub } from '@dungeonmaster/shared/contracts/file-name/file-name.stub';
 import { FlowNodeStub } from '@dungeonmaster/shared/contracts/flow-node/flow-node.stub';
 import { FlowOffMapSignoffStub } from '@dungeonmaster/shared/contracts/flow-off-map-signoff/flow-off-map-signoff.stub';
@@ -91,13 +90,13 @@ describe('QuestHandleSignalBackResponder (integration) — review coverage no lo
     await git.commitFile({
       repoPath: worktreePath,
       relativePath: ALPHA_FILE,
-      content: FileContentsStub({ value: 'export const alphaBroker = (): number => 1;\n' }),
+      content: 'export const alphaBroker = (): number => 1;\n',
       message: 'round 1',
     });
     await git.commitFile({
       repoPath: worktreePath,
       relativePath: BETA_FILE,
-      content: FileContentsStub({ value: 'export const betaBroker = (): number => 2;\n' }),
+      content: 'export const betaBroker = (): number => 2;\n',
       message: 'round 2',
     });
 
@@ -215,7 +214,7 @@ describe('QuestHandleSignalBackResponder (integration) — review coverage no lo
       await git.commitFile({
         repoPath: worktreePath,
         relativePath: ALPHA_FILE,
-        content: FileContentsStub({ value: 'export const alphaBroker = (): number => 1;\n' }),
+        content: 'export const alphaBroker = (): number => 1;\n',
         message: 'round 1',
       });
 
@@ -482,7 +481,7 @@ describe('QuestHandleSignalBackResponder (integration) — a dirty worktree no l
     git.dirtyTrackedFile({
       repoPath: worktreePath,
       relativePath: strayPath,
-      content: FileContentsStub({ value: 'export const strayBroker = (): number => 1;\n' }),
+      content: 'export const strayBroker = (): number => 1;\n',
     });
 
     const cwOpId = OperationItemIdStub({ value: '00000000-0000-4000-8000-0000000000d3' });

@@ -32,7 +32,7 @@
  * the honest shape: a reader checks presence instead.
  */
 
-import { fileContentsContract, questContract, questNoteContract } from '@dungeonmaster/shared/contracts';
+import { questContract, questNoteContract } from '@dungeonmaster/shared/contracts';
 import type { Quest, QuestNote } from '@dungeonmaster/shared/contracts';
 import { locationsStatics } from '@dungeonmaster/shared/statics';
 import { join } from '#gateway/node/path';
@@ -111,9 +111,7 @@ export const questHumanVerdictRecordBroker = async ({
         updatedAt: at,
       });
 
-      const contents = fileContentsContract.parse(
-        JSON.stringify(mutated, null, JSON_INDENT_SPACES),
-      );
+      const contents = JSON.stringify(mutated, null, JSON_INDENT_SPACES);
       await questPersistBroker({ questFilePath, contents, questId: mutated.id });
 
       return { quest: mutated };

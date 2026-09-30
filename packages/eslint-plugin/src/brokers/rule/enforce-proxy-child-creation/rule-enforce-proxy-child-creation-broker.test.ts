@@ -1,9 +1,8 @@
 import { ruleTesterHarness } from '../../../../test/harnesses/rule-tester/rule-tester.harness';
 import { ruleEnforceProxyChildCreationBroker } from './rule-enforce-proxy-child-creation-broker';
 import { ruleEnforceProxyChildCreationBrokerProxy } from './rule-enforce-proxy-child-creation-broker.proxy';
-import { FileContentsStub } from '@dungeonmaster/shared/contracts/file-contents/file-contents.stub';
 
-type FileContents = ReturnType<typeof FileContentsStub>;
+type FileContents = string;
 type FilePath = string;
 
 const ruleTester = ruleTesterHarness();
@@ -38,20 +37,16 @@ beforeEach(() => {
       // walk climbs past it exactly like a real ordinary package.json with no `workspaces` field
       // would.
       if (filePath === '/repo/package.json') {
-        return FileContentsStub({
-          value: JSON.stringify({
+        return JSON.stringify({
             name: 'dungeonmaster',
             workspaces: ['packages/*'],
-          }),
-        });
+          });
       }
       if (filePath === '/acme-repo/package.json') {
-        return FileContentsStub({
-          value: JSON.stringify({
+        return JSON.stringify({
             name: '@acme/repo',
             workspaces: ['packages/*'],
-          }),
-        });
+          });
       }
       // F13 regression: a fresh consumer's root `dependencies` holds NOTHING yet (no workspace
       // package has ever been registered there — `create-package`'s "register" step is what adds
@@ -59,13 +54,11 @@ beforeEach(() => {
       // either), while `devDependencies` already carries the `@dungeonmaster/*` tooling `dungeonmaster
       // init` installed. The scope must still come out '@acme', from the root `name` alone.
       if (filePath === '/acme-devdeps-repo/package.json') {
-        return FileContentsStub({
-          value: JSON.stringify({
+        return JSON.stringify({
             name: '@acme/repo',
             workspaces: ['packages/*'],
             devDependencies: { '@dungeonmaster/cli': '*', '@dungeonmaster/testing': '*' },
-          }),
-        });
+          });
       }
       if (filePath.endsWith('/package.json')) {
         return null;
@@ -78,26 +71,22 @@ beforeEach(() => {
         filePath.includes('brokers/user/after-return-broker.ts') ||
         filePath.includes('brokers/user/phantom-proxy-broker.ts')
       ) {
-        return FileContentsStub({
-          value: `
+        return `
         import { httpBroker } from '../../brokers/http/http-broker';
 
         export const userBroker = () => {
           return httpBroker.get();
         };
-      `,
-        });
+      `;
       }
 
       // Empty broker with no imports
       if (filePath.includes('brokers/empty/empty-broker.ts')) {
-        return FileContentsStub({
-          value: `
+        return `
         export const emptyBroker = () => {
           return { data: 'test' };
         };
-      `,
-        });
+      `;
       }
 
       // user-broker.ts with multiple brokers
@@ -106,8 +95,7 @@ beforeEach(() => {
         filePath.includes('brokers/user-multi/missing-db-broker.ts') ||
         filePath.includes('brokers/user-multi/no-proxies-broker.ts')
       ) {
-        return FileContentsStub({
-          value: `
+        return `
         import { httpBroker } from '../../brokers/http/http-broker';
         import { dbBroker } from '../../brokers/db/db-broker';
 
@@ -116,99 +104,84 @@ beforeEach(() => {
           const db = dbBroker.query();
           return { http, db };
         };
-      `,
-        });
+      `;
       }
 
       // user-transformer.ts - no dependencies
       if (filePath.includes('transformers/user/user-transformer.ts')) {
-        return FileContentsStub({
-          value: `
+        return `
         export const userTransformer = (data: unknown) => {
           return { name: 'John' };
         };
-      `,
-        });
+      `;
       }
 
       // user-guard.ts - only contracts
       if (filePath.includes('guards/user/user-guard.ts')) {
-        return FileContentsStub({
-          value: `
+        return `
         import type { User } from '../../contracts/user/user-contract';
 
         export const userGuard = (user: User): boolean => {
           return user.isActive;
         };
-      `,
-        });
+      `;
       }
 
       // Broker that imports transformer (requireProxy: false)
       if (filePath.includes('brokers/user-with-transformer/user-broker.ts')) {
-        return FileContentsStub({
-          value: `
+        return `
         import { formatDateTransformer } from '../../transformers/format-date/format-date-transformer';
 
         export const userBroker = () => {
           return { data: 'test' };
         };
-      `,
-        });
+      `;
       }
 
       // Broker that imports guard (requireProxy: false)
       if (filePath.includes('brokers/user-with-guard/user-broker.ts')) {
-        return FileContentsStub({
-          value: `
+        return `
         import { hasPermissionGuard } from '../../guards/has-permission/has-permission-guard';
 
         export const userBroker = () => {
           return { data: 'test' };
         };
-      `,
-        });
+      `;
       }
 
       // Broker that imports statics (requireProxy: false)
       if (filePath.includes('brokers/user-with-statics/user-broker.ts')) {
-        return FileContentsStub({
-          value: `
+        return `
         import { userStatics } from '../../statics/user/user-statics';
 
         export const userBroker = () => {
           return { data: 'test' };
         };
-      `,
-        });
+      `;
       }
 
       // Broker that imports error (requireProxy: false)
       if (filePath.includes('brokers/user-with-error/user-broker.ts')) {
-        return FileContentsStub({
-          value: `
+        return `
         import { ValidationError } from '../../errors/validation/validation-error';
 
         export const userBroker = () => {
           return { data: 'test' };
         };
-      `,
-        });
+      `;
       }
 
       // Broker that imports a mixed named import: a real value alongside a per-name
       // type-only specifier ('{ walkBroker, type WalkMemo }') — the exact G06 regression
       // case, where WalkMemo must never be treated as a value needing its own proxy.
       if (filePath.includes('brokers/walk-consumer/walk-consumer-broker.ts')) {
-        return FileContentsStub({
-          value: `
+        return `
         import { walkBroker, type WalkMemo } from '../../brokers/walk/walk-broker';
 
         export const walkConsumerBroker = () => {
           return walkBroker();
         };
-      `,
-        });
+      `;
       }
 
       // Broker that imports another broker (requireProxy: true) - same folder type
@@ -217,8 +190,7 @@ beforeEach(() => {
           'brokers/user-orchestration/orchestrate/user-orchestration-orchestrate-broker.ts',
         )
       ) {
-        return FileContentsStub({
-          value: `
+        return `
         import { userFetchBroker } from '../../user/fetch/user-fetch-broker';
         import { emailSendBroker } from '../../email/send/email-send-broker';
 
@@ -226,14 +198,12 @@ beforeEach(() => {
           const user = userFetchBroker();
           emailSendBroker({ to: user.email });
         };
-      `,
-        });
+      `;
       }
 
       // eslint-rule-tester-broker.ts - has example code in comments
       if (filePath.includes('brokers/eslint/rule-tester/eslint-rule-tester-broker.ts')) {
-        return FileContentsStub({
-          value: `
+        return `
         /**
          * @example
          * \`\`\`typescript
@@ -246,21 +216,18 @@ beforeEach(() => {
         export const eslintRuleTesterBroker = (): RuleTester => {
           return new RuleTester();
         };
-      `,
-        });
+      `;
       }
 
       // http-broker.ts - only npm packages
       if (filePath.includes('brokers/http/http-broker.ts')) {
-        return FileContentsStub({
-          value: `
+        return `
         import axios from 'axios';
 
         export const httpBroker = {
           get: async () => axios.get('/api')
         };
-      `,
-        });
+      `;
       }
 
       // test-file-path-variants-transformer.ts - imports statics
@@ -269,35 +236,30 @@ beforeEach(() => {
           'transformers/test-file-path-variants/test-file-path-variants-transformer.ts',
         )
       ) {
-        return FileContentsStub({
-          value: `
+        return `
         import { testFilePatternStatics } from '../../statics/test-file-pattern/test-file-pattern-statics';
 
         export const testFilePathVariantsTransformer = ({ sourceFilePath }) => {
           return testFilePatternStatics.suffixes.map((suffix) => \`\${sourceFilePath}\${suffix}\`);
         };
-      `,
-        });
+      `;
       }
 
       // Folder-type barrels of the packages the scoped fixtures import from: each maps a name to the
       // file it re-exports, and that file's own proxy is what a caller's proxy imports.
       if (filePath.includes('packages/shared/src/brokers/brokers.ts')) {
-        return FileContentsStub({
-          value: `export { projectRootFindBroker } from './project-root/find/project-root-find-broker';`,
-        });
+        return `export { projectRootFindBroker } from './project-root/find/project-root-find-broker';`;
       }
       if (filePath.includes('packages/core/src/brokers/brokers.ts')) {
-        return FileContentsStub({ value: `export { userBroker } from './user/user-broker';` });
+        return `export { userBroker } from './user/user-broker';`;
       }
       if (filePath.includes('packages/utils/src/brokers/brokers.ts')) {
-        return FileContentsStub({ value: `export { logBroker } from './log/log-broker';` });
+        return `export { logBroker } from './log/log-broker';`;
       }
 
       // Broker that imports from scoped package with folder type subpath
       if (filePath.includes('brokers/scoped-import/scoped-broker.ts')) {
-        return FileContentsStub({
-          value: `
+        return `
         import { projectRootFindBroker } from '@dungeonmaster/shared/brokers';
         import { httpBroker } from '../../brokers/http/http-broker';
 
@@ -305,42 +267,36 @@ beforeEach(() => {
           const root = projectRootFindBroker();
           return { root };
         };
-      `,
-        });
+      `;
       }
 
       // Broker that imports only from scoped package (no relative imports)
       if (filePath.includes('brokers/scoped-only/scoped-only-broker.ts')) {
-        return FileContentsStub({
-          value: `
+        return `
         import { projectRootFindBroker } from '@dungeonmaster/shared/brokers';
 
         export const scopedOnlyBroker = () => {
           const root = projectRootFindBroker();
           return { root };
         };
-      `,
-        });
+      `;
       }
 
       // Broker that imports from scoped package with non-proxy folder type
       if (filePath.includes('brokers/scoped-contracts/scoped-contracts-broker.ts')) {
-        return FileContentsStub({
-          value: `
+        return `
         import { userContract } from '@dungeonmaster/shared/contracts';
         import { httpBroker } from '../../brokers/http/http-broker';
 
         export const scopedContractsBroker = () => {
           return { data: 'test' };
         };
-      `,
-        });
+      `;
       }
 
       // Broker that imports from different scoped package (@acme/core)
       if (filePath.includes('brokers/acme-import/acme-broker.ts')) {
-        return FileContentsStub({
-          value: `
+        return `
         import { userBroker } from '@acme/core/brokers';
         import { httpBroker } from '../../brokers/http/http-broker';
 
@@ -348,62 +304,53 @@ beforeEach(() => {
           const user = userBroker();
           return { user };
         };
-      `,
-        });
+      `;
       }
 
       // Broker that imports from different scoped package (@myorg/utils)
       if (filePath.includes('brokers/myorg-import/myorg-broker.ts')) {
-        return FileContentsStub({
-          value: `
+        return `
         import { logBroker } from '@myorg/utils/brokers';
 
         export const myorgBroker = () => {
           const log = logBroker();
           return { log };
         };
-      `,
-        });
+      `;
       }
 
       // Broker that imports from different scoped package with non-proxy folder type
       if (filePath.includes('brokers/acme-contracts/acme-contracts-broker.ts')) {
-        return FileContentsStub({
-          value: `
+        return `
         import { userContract } from '@acme/core/contracts';
         import { httpBroker } from '../../brokers/http/http-broker';
 
         export const acmeContractsBroker = () => {
           return { data: 'test' };
         };
-      `,
-        });
+      `;
       }
 
       // Widget implementation that imports layer widgets (tsx)
       if (filePath.includes('widgets/button/button-widget.tsx')) {
-        return FileContentsStub({
-          value: `
+        return `
         import { inkBoxBroker } from '../../brokers/ink/box/ink-box-broker';
 
         export const ButtonWidget = () => {
           return inkBoxBroker();
         };
-      `,
-        });
+      `;
       }
 
       // Broker that imports with .tsx extension in import path
       if (filePath.includes('brokers/tsx-import/tsx-import-broker.ts')) {
-        return FileContentsStub({
-          value: `
+        return `
         import { inkBoxBroker } from '../../brokers/ink/box/ink-box-broker.tsx';
 
         export const tsxImportBroker = () => {
           return inkBoxBroker();
         };
-      `,
-        });
+      `;
       }
 
       // Gateway implementation (node): imports two wrapped fs/promises exports at a deep
@@ -413,8 +360,7 @@ beforeEach(() => {
         filePath.includes('install-config-create-no-proxy-responder.ts') ||
         filePath.includes('install-config-create-per-file-responder.ts')
       ) {
-        return FileContentsStub({
-          value: `
+        return `
         import { join } from '@dungeonmaster/node/path';
         import { readJsonFileIfExists, writeFile } from '@dungeonmaster/node/fs__promises';
 
@@ -423,8 +369,7 @@ beforeEach(() => {
           const existing = await readJsonFileIfExists(configPath);
           await writeFile(configPath, JSON.stringify(existing));
         };
-      `,
-        });
+      `;
       }
 
       // Gateway implementation (node), imported through the '#gateway/...' import-alias form:
@@ -435,8 +380,7 @@ beforeEach(() => {
         filePath.includes('install-config-create-gateway-alias-no-proxy-responder.ts') ||
         filePath.includes('install-config-create-gateway-alias-per-file-responder.ts')
       ) {
-        return FileContentsStub({
-          value: `
+        return `
         import { join } from '#gateway/node/path';
         import { readJsonFileIfExists, writeFile } from '#gateway/node/fs__promises';
 
@@ -445,22 +389,19 @@ beforeEach(() => {
           const existing = await readJsonFileIfExists(configPath);
           await writeFile(configPath, JSON.stringify(existing));
         };
-      `,
-        });
+      `;
       }
 
       // Gateway implementation (npm pass-through): imports zod's own `z`, which is never
       // wrapped, so it needs no proxy at all.
       if (filePath.includes('zod-import-broker.ts')) {
-        return FileContentsStub({
-          value: `
+        return `
         import { z } from '@dungeonmaster/npm/zod';
 
         export const zodImportBroker = () => {
           return z.string();
         };
-      `,
-        });
+      `;
       }
 
       // The node fs__promises subpath's own PRODUCTION barrel: names the wrapper folder behind every
@@ -468,31 +409,27 @@ beforeEach(() => {
       // here — path does no I/O and is a pure pass-through — unlike fs__promises's
       // readJsonFileIfExists and writeFile, each re-exported from its own folder one level down.
       if (filePath.includes('packages/@gateway/node/src/fs__promises/fs__promises.ts')) {
-        return FileContentsStub({
-          value: `
+        return `
         export * from 'fs/promises';
         export { readJsonFileIfExists } from './read-json-file-if-exists/read-json-file-if-exists';
         export { writeFile } from './write-file/write-file';
-      `,
-        });
+      `;
       }
 
       // Orchestrator's own root barrel (packages/orchestrator/src/index.ts): a bare
       // '@dungeonmaster/orchestrator' import's proxy is resolved from THIS file, exactly the way
       // a gateway subpath's own production barrel resolves a gateway import's proxy.
       if (filePath.includes('packages/orchestrator/src/index.ts')) {
-        return FileContentsStub({
-          value: `
+        return `
         export { StartOrchestrator } from './startup/start-orchestrator';
         export { agentRoleContract } from './contracts/agent-role/agent-role-contract';
-      `,
-        });
+      `;
       }
 
       // StartOrchestrator's own colocated cross-package composing proxy exists on disk (A00) —
       // this is what tells enforce-proxy-child-creation the name is WRAPPED, not a pass-through.
       if (filePath.includes('packages/orchestrator/src/startup/start-orchestrator.proxy.ts')) {
-        return FileContentsStub({ value: `export const StartOrchestratorProxy = () => ({});` });
+        return `export const StartOrchestratorProxy = () => ({});`;
       }
 
       // Broker that imports StartOrchestrator bare-root, per-file, and uses it — the real A00
@@ -500,120 +437,102 @@ beforeEach(() => {
       if (
         filePath.includes('brokers/orchestrator/get-next-step/orchestrator-get-next-step-broker.ts')
       ) {
-        return FileContentsStub({
-          value: `
+        return `
         import { StartOrchestrator } from '@dungeonmaster/orchestrator';
 
         export const orchestratorGetNextStepBroker = () => {
           return StartOrchestrator.getNextStep();
         };
-      `,
-        });
+      `;
       }
 
       // Broker that imports ONLY agentRoleContract bare-root (a pass-through — contracts use
       // stubs, never a proxy) — proves recording every bare-root name costs nothing extra.
       if (filePath.includes('brokers/orchestrator/agent-role/orchestrator-agent-role-broker.ts')) {
-        return FileContentsStub({
-          value: `
+        return `
         import { agentRoleContract } from '@dungeonmaster/orchestrator';
 
         export const orchestratorAgentRoleBroker = () => {
           return agentRoleContract;
         };
-      `,
-        });
+      `;
       }
 
       // Broker that imports NOTHING from '@dungeonmaster/orchestrator' at all — for the
       // still-flagged phantom-creation case: a proxy composing StartOrchestratorProxy() here has
       // nothing real behind it.
       if (filePath.includes('brokers/orchestrator/phantom/orchestrator-phantom-broker.ts')) {
-        return FileContentsStub({
-          value: `
+        return `
         export const orchestratorPhantomBroker = () => {
           return { data: 'test' };
         };
-      `,
-        });
+      `;
       }
 
       // A SECOND, differently-named workspace package — proves the mapping is not hardcoded to
       // orchestrator. Its own root barrel wraps DemoWidget from a widgets/ file.
       if (filePath.includes('packages/demo/src/index.ts')) {
-        return FileContentsStub({
-          value: `export { DemoWidget } from './widgets/demo/demo-widget';`,
-        });
+        return `export { DemoWidget } from './widgets/demo/demo-widget';`;
       }
       if (filePath.includes('packages/demo/src/widgets/demo/demo-widget.proxy.ts')) {
-        return FileContentsStub({ value: `export const DemoWidgetProxy = () => ({});` });
+        return `export const DemoWidgetProxy = () => ({});`;
       }
       if (filePath.includes('brokers/demo/demo-broker.ts')) {
-        return FileContentsStub({
-          value: `
+        return `
         import { DemoWidget } from '@dungeonmaster/demo';
 
         export const demoBroker = () => {
           return DemoWidget;
         };
-      `,
-        });
+      `;
       }
 
       // A CONSUMER repo's own workspace package, scoped '@acme' — not '@dungeonmaster' — proving
       // the workspace scope is read off the real workspace root (staged above at
       // '/acme-repo/package.json') rather than hardcoded to this repo's own scope.
       if (filePath.includes('acme-repo/packages/orders/src/index.ts')) {
-        return FileContentsStub({
-          value: `export { OrdersBroker } from './brokers/orders/orders-broker';`,
-        });
+        return `export { OrdersBroker } from './brokers/orders/orders-broker';`;
       }
       if (
         filePath.includes('acme-repo/packages/orders/src/brokers/orders/orders-broker.proxy.ts')
       ) {
-        return FileContentsStub({ value: `export const OrdersBrokerProxy = () => ({});` });
+        return `export const OrdersBrokerProxy = () => ({});`;
       }
       if (filePath.includes('acme-repo/packages/mcp/src/brokers/orders/orders-broker.ts')) {
-        return FileContentsStub({
-          value: `
+        return `
         import { OrdersBroker } from '@acme/orders';
 
         export const ordersBroker = () => {
           return OrdersBroker.list();
         };
-      `,
-        });
+      `;
       }
 
       // F13 regression fixture: same shape as the '/acme-repo' case above, under the root staged
       // at '/acme-devdeps-repo/package.json' (root `devDependencies` hold '@dungeonmaster/*'
       // tooling, no root `dependencies` at all).
       if (filePath.includes('acme-devdeps-repo/packages/orders/src/index.ts')) {
-        return FileContentsStub({
-          value: `export { OrdersBroker } from './brokers/orders/orders-broker';`,
-        });
+        return `export { OrdersBroker } from './brokers/orders/orders-broker';`;
       }
       if (
         filePath.includes(
           'acme-devdeps-repo/packages/orders/src/brokers/orders/orders-broker.proxy.ts',
         )
       ) {
-        return FileContentsStub({ value: `export const OrdersBrokerProxy = () => ({});` });
+        return `export const OrdersBrokerProxy = () => ({});`;
       }
       if (filePath.includes('acme-devdeps-repo/packages/mcp/src/brokers/orders/orders-broker.ts')) {
-        return FileContentsStub({
-          value: `
+        return `
         import { OrdersBroker } from '@acme/orders';
 
         export const ordersBroker = () => {
           return OrdersBroker.list();
         };
-      `,
-        });
+      `;
       }
 
       // Default empty implementation
-      return FileContentsStub({ value: `export const placeholder = () => {};` });
+      return `export const placeholder = () => {};`;
     },
   });
 });

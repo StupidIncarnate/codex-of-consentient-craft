@@ -14,7 +14,7 @@
  * pruned, because this broker cannot tell which of them the user added themselves.
  */
 
-import type { FileContents, PathSegment } from '@dungeonmaster/shared/contracts';
+import type { PathSegment } from '@dungeonmaster/shared/contracts';
 import { join } from '#gateway/node/path';
 import { readJsonFileIfExists, writeFile, ensureDir } from '#gateway/node/fs__promises';
 import { jsonFileContentsTransformer } from '@dungeonmaster/shared/transformers';
@@ -33,7 +33,7 @@ export const settingsPermissionsAddBroker = async ({
   targetProjectRoot,
 }: {
   targetProjectRoot: PathSegment;
-}): Promise<FileContents> => {
+}): Promise<string> => {
   const settingsDir = join(targetProjectRoot, locationsStatics.repoRoot.claude.dir);
   const settingsPath = join(
     targetProjectRoot,

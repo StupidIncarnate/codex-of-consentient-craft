@@ -6,7 +6,6 @@
  * // Returns SessionSummary 'Built login' or undefined if no summary found
  */
 
-import type { FileContents } from '@dungeonmaster/shared/contracts';
 import { jsonlSessionLineContract } from '../../contracts/jsonl-session-line/jsonl-session-line-contract';
 import { extractFirstUserMessageTransformer } from '../extract-first-user-message/extract-first-user-message-transformer';
 import { extractLineSummaryTransformer } from '../extract-line-summary/extract-line-summary-transformer';
@@ -16,7 +15,7 @@ const SLUG_SCAN_LIMIT = 5;
 export const extractSessionFileSummaryTransformer = ({
   fileContent,
 }: {
-  fileContent: FileContents;
+  fileContent: string;
 }): string | undefined => {
   if (!fileContent) {
     return undefined;

@@ -7,13 +7,12 @@
  */
 import { z } from '#gateway/npm/zod';
 
-import { fileContentsContract } from '@dungeonmaster/shared/contracts';
 
 import { rateLimitsWatchTickOutcomeContract } from '../rate-limits-watch-tick-outcome/rate-limits-watch-tick-outcome-contract';
 
 export const rateLimitsWatchTickResultContract = z.object({
   outcome: rateLimitsWatchTickOutcomeContract,
-  lastJson: fileContentsContract.nullable(),
+  lastJson: z.string().brand<'RateLimitsWatchTickResultLastJson'>().nullable(),
 });
 
 export type RateLimitsWatchTickResult = z.infer<typeof rateLimitsWatchTickResultContract>;

@@ -16,7 +16,6 @@ import { installTestbedCreateBroker } from '@dungeonmaster/testing';
 import { deleteEnv, getEnv, setEnv } from '#gateway/node/process';
 import { ensureDir, statIfExists, writeFile } from '#gateway/node/fs__promises';
 import { AbsoluteFilePathStub } from '@dungeonmaster/shared/contracts/absolute-file-path/absolute-file-path.stub';
-import { FileContentsStub } from '@dungeonmaster/shared/contracts/file-contents/file-contents.stub';
 import { GuildIdStub } from '@dungeonmaster/shared/contracts/guild-id/guild-id.stub';
 import { QuestIdStub } from '@dungeonmaster/shared/contracts/quest-id/quest-id.stub';
 import { QuestNoteStub } from '@dungeonmaster/shared/contracts/quest-note/quest-note.stub';
@@ -200,7 +199,7 @@ describe('prune, against a real evidence tree', () => {
       guildId: null,
     });
 
-    const body = FileContentsStub({ value: 'x'.repeat(LOG_BYTES) });
+    const body = 'x'.repeat(LOG_BYTES);
 
     await Promise.all(
       [citedEvidence, uncitedEvidence, neighbourEvidence, liveEvidence, dryRunEvidence].map(
@@ -209,11 +208,11 @@ describe('prune, against a real evidence tree', () => {
           await writeFile(`${evidenceDir}/api-server.log`, body);
           await writeFile(
             `${evidenceDir}/runs/run_2.jsonl`,
-            FileContentsStub({ value: TRANSCRIPT_TEXT }),
+            TRANSCRIPT_TEXT,
           );
           await writeFile(
             `${evidenceDir}/runs/run_2/step1.png`,
-            FileContentsStub({ value: SHOT_TEXT }),
+            SHOT_TEXT,
           );
         },
       ),
@@ -225,8 +224,7 @@ describe('prune, against a real evidence tree', () => {
     await ensureDir(plansDir);
     await writeFile(
       questFile,
-      FileContentsStub({
-        value: JSON.stringify(
+      JSON.stringify(
           QuestStub({
             id: QUEST,
             status: 'in_progress',
@@ -245,13 +243,10 @@ describe('prune, against a real evidence tree', () => {
             },
           }),
         ),
-      }),
     );
     await writeFile(
       preludeFile,
-      FileContentsStub({
-        value: '# PATH 3\n  VERIFIED  run_2 · 2026-09-14 · prelude reached the entry\n',
-      }),
+      '# PATH 3\n  VERIFIED  run_2 · 2026-09-14 · prelude reached the entry\n',
     );
 
     // Sweep 1 — the default window over files the suite wrote seconds ago.

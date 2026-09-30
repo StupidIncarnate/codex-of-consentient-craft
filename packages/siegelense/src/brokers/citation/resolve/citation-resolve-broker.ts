@@ -23,7 +23,7 @@
  * `gaps: []` for, which reads as "nothing cites this" for a question this package never asked.
  */
 
-import { contentTextContract, fileContentsContract } from '@dungeonmaster/shared/contracts';
+import { contentTextContract } from '@dungeonmaster/shared/contracts';
 
 import { readFileIfExists } from '#gateway/node/fs__promises';
 import { citationGapContract } from '../../../contracts/citation-gap/citation-gap-contract';
@@ -103,7 +103,7 @@ export const citationResolveBroker = async ({
   }
 
   const { quest, blocked } = questRecordParseLayerBroker({
-    contents: fileContentsContract.parse(contents),
+    contents: contents,
     questFilePath,
     instanceId: entry.id,
   });

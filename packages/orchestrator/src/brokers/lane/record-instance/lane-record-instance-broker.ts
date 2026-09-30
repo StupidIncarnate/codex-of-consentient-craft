@@ -22,7 +22,7 @@
  * // Persists workItem.payload = { ...workItem.payload, instance } and returns that instance
  */
 
-import { fileContentsContract, questContract, workItemContract } from '@dungeonmaster/shared/contracts';
+import { questContract, workItemContract } from '@dungeonmaster/shared/contracts';
 import type { AbsoluteFilePath, Quest, WorkItem } from '@dungeonmaster/shared/contracts';
 import { locationsStatics } from '@dungeonmaster/shared/statics';
 import { join } from '#gateway/node/path';
@@ -66,9 +66,7 @@ export const laneRecordInstanceBroker = async ({
         updatedAt: new Date().toISOString(),
       });
 
-      const questJson = fileContentsContract.parse(
-        JSON.stringify(mutated, null, JSON_INDENT_SPACES),
-      );
+      const questJson = JSON.stringify(mutated, null, JSON_INDENT_SPACES);
       await questPersistBroker({ questFilePath, contents: questJson, questId });
 
       return instance;

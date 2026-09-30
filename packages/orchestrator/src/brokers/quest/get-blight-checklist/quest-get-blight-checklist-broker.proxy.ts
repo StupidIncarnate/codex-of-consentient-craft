@@ -13,7 +13,6 @@
  */
 
 import { AbsoluteFilePathStub } from '@dungeonmaster/shared/contracts/absolute-file-path/absolute-file-path.stub';
-import { FileContentsStub } from '@dungeonmaster/shared/contracts/file-contents/file-contents.stub';
 import { FileNameStub } from '@dungeonmaster/shared/contracts/file-name/file-name.stub';
 import { GuildIdStub } from '@dungeonmaster/shared/contracts/guild-id/guild-id.stub';
 import { RepoRootCwdStub } from '@dungeonmaster/shared/contracts/repo-root-cwd/repo-root-cwd.stub';
@@ -121,7 +120,7 @@ export const questGetBlightChecklistBrokerProxy = (): {
                 folderName: FileNameStub({ value: quest.folder }),
                 questFilePath,
                 questFolderPath,
-                contents: FileContentsStub({ value: JSON.stringify(quest) }),
+                contents: JSON.stringify(quest),
               },
             ],
           },

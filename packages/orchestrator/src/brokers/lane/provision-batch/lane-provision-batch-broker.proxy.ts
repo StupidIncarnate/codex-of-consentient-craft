@@ -17,7 +17,6 @@
 
 import { dynamicImportProxy } from '#gateway/node/module/dynamic-import/dynamic-import.proxy';
 import { absoluteFilePathContract } from '@dungeonmaster/shared/contracts';
-import { FileContentsStub } from '@dungeonmaster/shared/contracts/file-contents/file-contents.stub';
 import { FileNameStub } from '@dungeonmaster/shared/contracts/file-name/file-name.stub';
 import { GuildIdStub } from '@dungeonmaster/shared/contracts/guild-id/guild-id.stub';
 import type { questContract } from '@dungeonmaster/shared/contracts';
@@ -72,7 +71,7 @@ export const laneProvisionBatchBrokerProxy = (): {
                 folderName: FileNameStub({ value: quest.folder }),
                 questFilePath,
                 questFolderPath,
-                contents: FileContentsStub({ value: JSON.stringify(quest) }),
+                contents: JSON.stringify(quest),
               },
             ],
           },

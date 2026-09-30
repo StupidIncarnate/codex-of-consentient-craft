@@ -1,7 +1,6 @@
 import { readFileProxy } from '#gateway/node/fs__promises/read-file/read-file.proxy';
 import { join } from '#gateway/node/path';
 import { PackageNameStub } from '@dungeonmaster/shared/contracts/package-name/package-name.stub';
-import type { FileContents } from '@dungeonmaster/shared/contracts';
 import { registerMock, requireActual } from '@dungeonmaster/testing/register-mock';
 
 import { webBundleDistPathBroker } from '../dist-path/web-bundle-dist-path-broker';
@@ -11,7 +10,7 @@ import { webBundlePackageResolveBrokerProxy } from '../../web-bundle-package/res
 const WEB_PACKAGE_NAME = '@dungeonmaster/web';
 
 export const webBundleResponseBrokerProxy = (): {
-  setupFileContents: (params: { contents: FileContents; expectedRelativePath: string }) => void;
+  setupFileContents: (params: { contents: string; expectedRelativePath: string }) => void;
   setupMissingBundle: () => void;
 } => {
   const packageResolveProxy = webBundlePackageResolveBrokerProxy();
@@ -33,7 +32,7 @@ export const webBundleResponseBrokerProxy = (): {
       contents,
       expectedRelativePath,
     }: {
-      contents: FileContents;
+      contents: string;
       expectedRelativePath: string;
     }): void => {
       distPathProxy.bundleExists();

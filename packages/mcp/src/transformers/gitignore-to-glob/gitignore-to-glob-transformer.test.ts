@@ -1,5 +1,4 @@
 import { gitignoreToGlobTransformer } from './gitignore-to-glob-transformer';
-import { FileContentsStub } from '@dungeonmaster/shared/contracts/file-contents/file-contents.stub';
 import { GlobPatternStub } from '@dungeonmaster/shared/contracts/glob-pattern/glob-pattern.stub';
 
 describe('gitignoreToGlobTransformer', () => {
@@ -19,7 +18,7 @@ describe('gitignoreToGlobTransformer', () => {
       ['  dist  ', ['**/dist', '**/dist/**']],
     ])('VALID: {line: "%s"} => translates to glob patterns', (line, expected) => {
       const result = gitignoreToGlobTransformer({
-        contents: FileContentsStub({ value: line }),
+        contents: line,
       });
 
       expect(result).toStrictEqual(expected.map((value) => GlobPatternStub({ value })));
@@ -31,7 +30,7 @@ describe('gitignoreToGlobTransformer', () => {
       'EMPTY: {line: "%s"} => produces no patterns',
       (line) => {
         const result = gitignoreToGlobTransformer({
-          contents: FileContentsStub({ value: line }),
+          contents: line,
         });
 
         expect(result).toStrictEqual([]);
@@ -42,9 +41,7 @@ describe('gitignoreToGlobTransformer', () => {
   describe('whole file', () => {
     it('VALID: {multi-line .gitignore} => translates every live line in order', () => {
       const result = gitignoreToGlobTransformer({
-        contents: FileContentsStub({
-          value: '# compiled output\ndist\ntmp\n\n!keep-me\nworktrees/\n',
-        }),
+        contents: '# compiled output\ndist\ntmp\n\n!keep-me\nworktrees/\n',
       });
 
       expect(result).toStrictEqual([
@@ -58,7 +55,7 @@ describe('gitignoreToGlobTransformer', () => {
 
     it('EMPTY: {contents: ""} => produces no patterns', () => {
       const result = gitignoreToGlobTransformer({
-        contents: FileContentsStub({ value: '' }),
+        contents: '',
       });
 
       expect(result).toStrictEqual([]);

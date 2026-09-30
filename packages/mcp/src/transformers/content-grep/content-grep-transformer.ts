@@ -7,7 +7,6 @@
  *
  * WHEN-TO-USE: Default is regex (like grep). Invalid regex falls back to escaped literal. Use `re:<pattern>` prefix or `(?i)foo` inline flags to make intent explicit.
  */
-import type { FileContents } from '@dungeonmaster/shared/contracts';
 import type { GrepHit } from '../../contracts/grep-hit/grep-hit-contract';
 import { grepHitContract } from '../../contracts/grep-hit/grep-hit-contract';
 import type { DiscoverInput } from '../../contracts/discover-input/discover-input-contract';
@@ -23,7 +22,7 @@ export const contentGrepTransformer = ({
   context,
   strict,
 }: {
-  contents: FileContents;
+  contents: string;
   pattern: GrepPattern;
   context?: ContextLines;
   strict?: StrictGrep;

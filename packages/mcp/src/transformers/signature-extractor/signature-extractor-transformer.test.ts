@@ -1,12 +1,8 @@
 import { signatureExtractorTransformer } from './signature-extractor-transformer';
-import { FileContentsStub } from '@dungeonmaster/shared/contracts/file-contents/file-contents.stub';
 
 describe('signatureExtractorTransformer', () => {
   it('VALID: {export const with object destructuring} => extracts signature', () => {
-    const fileContents = FileContentsStub({
-      value:
-        'export const userFetchBroker = async ({ userId }: { userId: UserId }): Promise<User> => {};',
-    });
+    const fileContents = 'export const userFetchBroker = async ({ userId }: { userId: UserId }): Promise<User> => {};';
 
     const result = signatureExtractorTransformer({ fileContents });
 
@@ -20,9 +16,7 @@ describe('signatureExtractorTransformer', () => {
   });
 
   it('VALID: {export const with no parameters} => extracts signature', () => {
-    const fileContents = FileContentsStub({
-      value: 'export const typescriptEslintEslintPluginLoadAdapter = (): EslintPlugin => {};',
-    });
+    const fileContents = 'export const typescriptEslintEslintPluginLoadAdapter = (): EslintPlugin => {};';
 
     const result = signatureExtractorTransformer({ fileContents });
 
@@ -31,9 +25,7 @@ describe('signatureExtractorTransformer', () => {
   });
 
   it('VALID: {export const async with no parameters} => extracts signature', () => {
-    const fileContents = FileContentsStub({
-      value: 'export const fetchDataBroker = async (): Promise<Data> => {};',
-    });
+    const fileContents = 'export const fetchDataBroker = async (): Promise<Data> => {};';
 
     const result = signatureExtractorTransformer({ fileContents });
 
@@ -42,9 +34,7 @@ describe('signatureExtractorTransformer', () => {
   });
 
   it('EMPTY: {no export const} => returns null', () => {
-    const fileContents = FileContentsStub({
-      value: 'const internal = () => {};',
-    });
+    const fileContents = 'const internal = () => {};';
 
     const result = signatureExtractorTransformer({ fileContents });
 
@@ -53,9 +43,7 @@ describe('signatureExtractorTransformer', () => {
 
   describe('generics', () => {
     it('VALID: {generic function with destructured params} => extracts signature with return type', () => {
-      const fileContents = FileContentsStub({
-        value: 'export const identityBroker = <T>({ value }: { value: T }): T => value;',
-      });
+      const fileContents = 'export const identityBroker = <T>({ value }: { value: T }): T => value;';
 
       const result = signatureExtractorTransformer({ fileContents });
 
@@ -63,9 +51,7 @@ describe('signatureExtractorTransformer', () => {
     });
 
     it('VALID: {generic function with destructured params} => extracts parameter type', () => {
-      const fileContents = FileContentsStub({
-        value: 'export const identityBroker = <T>({ value }: { value: T }): T => value;',
-      });
+      const fileContents = 'export const identityBroker = <T>({ value }: { value: T }): T => value;';
 
       const result = signatureExtractorTransformer({ fileContents });
 
@@ -78,10 +64,7 @@ describe('signatureExtractorTransformer', () => {
     });
 
     it('VALID: {generic with constraint} => extracts return type', () => {
-      const fileContents = FileContentsStub({
-        value:
-          'export const wrapBroker = <T extends object>({ item }: { item: T }): { wrapped: T } => ({ wrapped: item });',
-      });
+      const fileContents = 'export const wrapBroker = <T extends object>({ item }: { item: T }): { wrapped: T } => ({ wrapped: item });';
 
       const result = signatureExtractorTransformer({ fileContents });
 
@@ -89,9 +72,7 @@ describe('signatureExtractorTransformer', () => {
     });
 
     it('VALID: {generic with no params} => extracts signature', () => {
-      const fileContents = FileContentsStub({
-        value: 'export const emptyBroker = <T>(): T[] => [];',
-      });
+      const fileContents = 'export const emptyBroker = <T>(): T[] => [];';
 
       const result = signatureExtractorTransformer({ fileContents });
 
@@ -101,10 +82,7 @@ describe('signatureExtractorTransformer', () => {
 
   describe('nested braces in parameter types', () => {
     it('VALID: {one-level nested object type} => extracts the nested parameter', () => {
-      const fileContents = FileContentsStub({
-        value:
-          'export const nestedBroker = ({ config }: { config: { apiKey: ApiKey; timeout: Milliseconds } }): void => {};',
-      });
+      const fileContents = 'export const nestedBroker = ({ config }: { config: { apiKey: ApiKey; timeout: Milliseconds } }): void => {};';
 
       const result = signatureExtractorTransformer({ fileContents });
 
@@ -117,10 +95,7 @@ describe('signatureExtractorTransformer', () => {
     });
 
     it('VALID: {one-level nested object type} => extracts the return type', () => {
-      const fileContents = FileContentsStub({
-        value:
-          'export const nestedBroker = ({ config }: { config: { apiKey: ApiKey; timeout: Milliseconds } }): void => {};',
-      });
+      const fileContents = 'export const nestedBroker = ({ config }: { config: { apiKey: ApiKey; timeout: Milliseconds } }): void => {};';
 
       const result = signatureExtractorTransformer({ fileContents });
 
@@ -128,10 +103,7 @@ describe('signatureExtractorTransformer', () => {
     });
 
     it('VALID: {two params with one nested type} => extracts both params', () => {
-      const fileContents = FileContentsStub({
-        value:
-          'export const multiBroker = ({ user, opts }: { user: User; opts: { timeout: Ms } }): Promise<Result> => Promise.resolve({} as Result);',
-      });
+      const fileContents = 'export const multiBroker = ({ user, opts }: { user: User; opts: { timeout: Ms } }): Promise<Result> => Promise.resolve({} as Result);';
 
       const result = signatureExtractorTransformer({ fileContents });
 
@@ -146,10 +118,7 @@ describe('signatureExtractorTransformer', () => {
 
   describe('return type with nested generics', () => {
     it('VALID: {Record<string, T[]> return type} => extracts full return type', () => {
-      const fileContents = FileContentsStub({
-        value:
-          'export const mapBroker = ({ keys }: { keys: string[] }): Record<string, number[]> => ({});',
-      });
+      const fileContents = 'export const mapBroker = ({ keys }: { keys: string[] }): Record<string, number[]> => ({});';
 
       const result = signatureExtractorTransformer({ fileContents });
 

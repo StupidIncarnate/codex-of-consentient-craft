@@ -1,6 +1,5 @@
 import type { FsError } from '#gateway/node/fs';
 import { rmProxy } from '#gateway/node/fs__promises/rm/rm.proxy';
-import { FileContentsStub } from '@dungeonmaster/shared/contracts/file-contents/file-contents.stub';
 import { FileNameStub } from '@dungeonmaster/shared/contracts/file-name/file-name.stub';
 import { QuestStub } from '@dungeonmaster/shared/contracts/quest/quest.stub';
 import type { AbsoluteFilePath, Guild } from '@dungeonmaster/shared/contracts';
@@ -55,7 +54,7 @@ export const smoketestTeardownQuestBrokerProxy = (): {
                 folderName: FileNameStub({ value: quest.folder }),
                 questFilePath,
                 questFolderPath,
-                contents: FileContentsStub({ value: JSON.stringify(quest) }),
+                contents: JSON.stringify(quest),
               },
             ],
           },

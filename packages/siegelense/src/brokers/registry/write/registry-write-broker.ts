@@ -12,7 +12,7 @@
 
 import { ensureDir, rename, writeFile } from '#gateway/node/fs__promises';
 import { join } from '#gateway/node/path';
-import { absoluteFilePathContract, fileContentsContract } from '@dungeonmaster/shared/contracts';
+import { absoluteFilePathContract } from '@dungeonmaster/shared/contracts';
 import { locationsStatics } from '@dungeonmaster/shared/statics';
 
 import type { Registry } from '../../../contracts/registry/registry-contract';
@@ -28,7 +28,7 @@ export const registryWriteBroker = async ({ registry }: { registry: Registry }):
 
   await ensureDir(rootPath);
 
-  const contents = fileContentsContract.parse(`${JSON.stringify(registry)}\n`);
+  const contents = `${JSON.stringify(registry)}\n`;
   await writeFile(tmpPath, contents);
 
   await rename(tmpPath, registryPath);

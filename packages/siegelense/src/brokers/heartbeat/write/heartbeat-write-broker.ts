@@ -37,7 +37,7 @@
 import { now } from '#gateway/node/Date';
 import { join } from '#gateway/node/path';
 import { stderr } from '#gateway/node/process';
-import { absoluteFilePathContract, fileContentsContract } from '@dungeonmaster/shared/contracts';
+import { absoluteFilePathContract } from '@dungeonmaster/shared/contracts';
 import type { ProcessId, Guild, SiegeInstance } from '@dungeonmaster/shared/contracts';
 import { locationsStatics } from '@dungeonmaster/shared/statics';
 
@@ -84,7 +84,7 @@ export const heartbeatWriteBroker = async ({
     rssMB,
   });
 
-  const contents = fileContentsContract.parse(`${JSON.stringify(heartbeat)}\n`);
+  const contents = `${JSON.stringify(heartbeat)}\n`;
 
   // The file lands BEFORE the row is stamped. A crash between the two steps then leaves a row whose
   // beat is one tick stale (a staleness sweep reaps it correctly) and a file that already names the

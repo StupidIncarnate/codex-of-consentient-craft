@@ -8,8 +8,6 @@
  * const { body, contentType, status } = await webBundleResponseBroker({ pathname: '/codex/quest/x' });
  * // → index.html at 200 (SPA fallback). '/assets/index-abc.js' → that file at 200.
  */
-import { fileContentsContract } from '@dungeonmaster/shared/contracts';
-import type { FileContents } from '@dungeonmaster/shared/contracts';
 import { readFile } from '#gateway/node/fs__promises';
 import { join } from '#gateway/node/path';
 
@@ -29,7 +27,7 @@ export const webBundleResponseBroker = async ({
 }: {
   pathname: string;
 }): Promise<{
-  body: FileContents;
+  body: string;
   contentType: WebBundleContentType;
   status: typeof httpStatusStatics.success.ok | typeof httpStatusStatics.serverError.internal;
 }> => {
@@ -38,9 +36,7 @@ export const webBundleResponseBroker = async ({
 
   if (distPath === null) {
     return {
-      body: fileContentsContract.parse(
-        'Dungeonmaster web bundle not found. Build it with `npm run build` before starting the server.',
-      ),
+      body: 'Dungeonmaster web bundle not found. Build it with `npm run build` before starting the server.',
       contentType: 'text/plain; charset=utf-8',
       status: httpStatusStatics.serverError.internal,
     };
@@ -55,7 +51,7 @@ export const webBundleResponseBroker = async ({
   const relativePath = (isStatic ? pathname : INDEX_HTML_PATH);
 
   const filepath = join(distPath, relativePath);
-  const body = fileContentsContract.parse(await readFile(filepath));
+  const body = (await readFile(filepath));
 
   return {
     body,

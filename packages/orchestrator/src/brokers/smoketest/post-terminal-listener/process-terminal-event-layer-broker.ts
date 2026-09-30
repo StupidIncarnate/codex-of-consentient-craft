@@ -9,7 +9,7 @@
  * WHEN-NOT-TO-USE: Anywhere outside the smoketest flow.
  */
 
-import { fileContentsContract, questContract, smoketestCaseResultContract } from '@dungeonmaster/shared/contracts';
+import { questContract, smoketestCaseResultContract } from '@dungeonmaster/shared/contracts';
 import { locationsStatics } from '@dungeonmaster/shared/statics';
 import type { AbsoluteFilePath, Quest, SmoketestCaseResult } from '@dungeonmaster/shared/contracts';
 import { isTerminalQuestStatusGuard } from '@dungeonmaster/shared/guards';
@@ -100,9 +100,7 @@ export const processTerminalEventLayerBroker = async ({
         smoketestResults: [...existingResults, caseResult],
         updatedAt: new Date().toISOString(),
       });
-      const json = fileContentsContract.parse(
-        JSON.stringify(updatedQuest, null, JSON_INDENT_SPACES),
-      );
+      const json = JSON.stringify(updatedQuest, null, JSON_INDENT_SPACES);
       await questPersistBroker({ questFilePath, contents: json, questId });
     },
   });

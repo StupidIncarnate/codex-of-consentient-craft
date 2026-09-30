@@ -11,7 +11,6 @@ import { signatureRawContract } from '../../contracts/signature-raw/signature-ra
 import { parameterNameContract } from '../../contracts/parameter-name/parameter-name-contract';
 import { returnTypeContract } from '../../contracts/return-type/return-type-contract';
 import { typeNameContract } from '../../contracts/type-name/type-name-contract';
-import type { FileContents } from '@dungeonmaster/shared/contracts';
 import type { FunctionSignature } from '../../contracts/file-metadata/file-metadata-contract';
 import type { TypeName } from '../../contracts/type-name/type-name-contract';
 import { kebabToCamelTransformer } from '../kebab-to-camel/kebab-to-camel-transformer';
@@ -25,7 +24,7 @@ export const signatureExtractorTransformer = ({
   fileContents,
   functionName,
 }: {
-  fileContents: FileContents;
+  fileContents: string;
   functionName?: string;
 }): FunctionSignature | null => {
   // Pattern 1: destructured params `({ names }: { types })`.

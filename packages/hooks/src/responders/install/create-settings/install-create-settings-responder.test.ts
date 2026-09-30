@@ -1,5 +1,4 @@
 import { FsErrorStub } from '#gateway/node/fs/is-fs-error/fs-error.stub';
-import { FileContentsStub } from '../../../contracts/file-contents/file-contents.stub';
 import { InstallCreateSettingsResponderProxy } from './install-create-settings-responder.proxy';
 import { InstallContextStub } from '@dungeonmaster/shared/contracts/install-context/install-context.stub';
 
@@ -259,13 +258,11 @@ describe('InstallCreateSettingsResponder', () => {
       const proxy = InstallCreateSettingsResponderProxy();
 
       proxy.setupExistingSettings({
-        content: FileContentsStub({
-          value: JSON.stringify({
+        content: JSON.stringify({
             promptCacheTtl: '24h',
             subagentPromptCacheTtl: '6h',
             crossSessionInbound: 'quarantine',
           }),
-        }),
       });
 
       const result = await proxy.callResponder({
@@ -301,9 +298,7 @@ describe('InstallCreateSettingsResponder', () => {
       const proxy = InstallCreateSettingsResponderProxy();
 
       proxy.setupExistingSettings({
-        content: FileContentsStub({
-          value: JSON.stringify({ tools: { Write: { enabled: true } } }, null, 2),
-        }),
+        content: JSON.stringify({ tools: { Write: { enabled: true } } }, null, 2),
       });
 
       const result = await proxy.callResponder({
@@ -556,8 +551,7 @@ describe('InstallCreateSettingsResponder', () => {
       const proxy = InstallCreateSettingsResponderProxy();
 
       proxy.setupExistingSettings({
-        content: FileContentsStub({
-          value: JSON.stringify(
+        content: JSON.stringify(
             {
               hooks: {
                 PreToolUse: [
@@ -568,7 +562,6 @@ describe('InstallCreateSettingsResponder', () => {
             null,
             2,
           ),
-        }),
       });
 
       const result = await proxy.callResponder({
@@ -795,8 +788,7 @@ describe('InstallCreateSettingsResponder', () => {
       const proxy = InstallCreateSettingsResponderProxy();
 
       proxy.setupExistingSettings({
-        content: FileContentsStub({
-          value: JSON.stringify(
+        content: JSON.stringify(
             {
               hooks: {
                 PreToolUse: [{ hooks: [{ type: 'command', command: 'existing-hook' }] }],
@@ -806,7 +798,6 @@ describe('InstallCreateSettingsResponder', () => {
             null,
             2,
           ),
-        }),
       });
 
       const result = await proxy.callResponder({
@@ -1054,8 +1045,7 @@ describe('InstallCreateSettingsResponder', () => {
       const proxy = InstallCreateSettingsResponderProxy();
 
       proxy.setupExistingSettings({
-        content: FileContentsStub({
-          value: JSON.stringify(
+        content: JSON.stringify(
             {
               crossSessionInbound: 'accept',
               promptCacheTtl: '5m',
@@ -1065,7 +1055,6 @@ describe('InstallCreateSettingsResponder', () => {
             null,
             2,
           ),
-        }),
       });
 
       const result = await proxy.callResponder({
@@ -1335,8 +1324,7 @@ describe('InstallCreateSettingsResponder', () => {
       const proxy = InstallCreateSettingsResponderProxy();
 
       proxy.setupExistingSettings({
-        content: FileContentsStub({
-          value: JSON.stringify({
+        content: JSON.stringify({
             model: 'opus',
             permissions: { allow: ['Bash(ls)'], defaultMode: 'plan' },
             hooks: {
@@ -1350,7 +1338,6 @@ describe('InstallCreateSettingsResponder', () => {
               ],
             },
           }),
-        }),
       });
 
       await proxy.callResponder({
@@ -1383,7 +1370,7 @@ describe('InstallCreateSettingsResponder', () => {
       const proxy = InstallCreateSettingsResponderProxy();
 
       proxy.setupExistingSettings({
-        content: FileContentsStub({ value: JSON.stringify({ hooks: 'not-an-object' }) }),
+        content: JSON.stringify({ hooks: 'not-an-object' }),
       });
 
       await expect(
@@ -1402,7 +1389,7 @@ describe('InstallCreateSettingsResponder', () => {
       const proxy = InstallCreateSettingsResponderProxy();
 
       proxy.setupExistingSettings({
-        content: FileContentsStub({ value: JSON.stringify({ hooks: { PreToolUse: {} } }) }),
+        content: JSON.stringify({ hooks: { PreToolUse: {} } }),
       });
 
       await expect(

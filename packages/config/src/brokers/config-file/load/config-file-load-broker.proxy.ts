@@ -1,5 +1,4 @@
 import { readFileProxy } from '#gateway/node/fs__promises/read-file/read-file.proxy';
-import { FileContentsStub } from '@dungeonmaster/shared/contracts/file-contents/file-contents.stub';
 
 export const configFileLoadBrokerProxy = (): {
   setupValidConfig: (params: { configPath: string; config: Record<string, unknown> }) => void;
@@ -18,14 +17,14 @@ export const configFileLoadBrokerProxy = (): {
     }) => {
       readFileHandle.returns({
         path: configPath,
-        contents: FileContentsStub({ value: JSON.stringify(config) }),
+        contents: JSON.stringify(config),
       });
     },
 
     setupInvalidJson: ({ configPath }: { configPath: string }) => {
       readFileHandle.returns({
         path: configPath,
-        contents: FileContentsStub({ value: '{ invalid json }' }),
+        contents: '{ invalid json }',
       });
     },
 

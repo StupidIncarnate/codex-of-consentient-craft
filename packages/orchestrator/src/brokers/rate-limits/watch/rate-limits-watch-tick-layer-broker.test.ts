@@ -1,4 +1,3 @@
-import { FileContentsStub } from '@dungeonmaster/shared/contracts/file-contents/file-contents.stub';
 import { RateLimitsSnapshotStub } from '@dungeonmaster/shared/contracts/rate-limits-snapshot/rate-limits-snapshot.stub';
 import { FsErrorStub } from '#gateway/node/fs/is-fs-error/fs-error.stub';
 
@@ -34,7 +33,7 @@ describe('rateLimitsWatchTickLayerBroker', () => {
     const onError = jest.fn();
 
     const result = await rateLimitsWatchTickLayerBroker({
-      lastJson: FileContentsStub({ value: json }),
+      lastJson: json,
       onSnapshot,
       onError,
     });
@@ -51,7 +50,7 @@ describe('rateLimitsWatchTickLayerBroker', () => {
     const onError = jest.fn();
 
     const result = await rateLimitsWatchTickLayerBroker({
-      lastJson: FileContentsStub({ value: '{"old":1}' }),
+      lastJson: '{"old":1}',
       onSnapshot,
       onError,
     });
@@ -104,7 +103,7 @@ describe('rateLimitsWatchTickLayerBroker', () => {
     const onSnapshot = jest.fn();
     const onError = jest.fn();
 
-    const prior = FileContentsStub({ value: '{"prior":1}' });
+    const prior = '{"prior":1}';
     const result = await rateLimitsWatchTickLayerBroker({
       lastJson: prior,
       onSnapshot,

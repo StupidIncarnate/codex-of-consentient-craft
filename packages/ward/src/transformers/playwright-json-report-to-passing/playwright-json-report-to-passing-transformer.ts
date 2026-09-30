@@ -6,7 +6,6 @@
  * // Returns PassingTest[] containing passed test specs with suitePath, testName, durationMs
  */
 
-import type { FileContents } from '@dungeonmaster/shared/contracts';
 
 import {
   passingTestContract,
@@ -22,7 +21,7 @@ const TITLE_SEPARATOR = ' › ';
 export const playwrightJsonReportToPassingTransformer = ({
   jsonContent,
 }: {
-  jsonContent: FileContents;
+  jsonContent: string;
 }): PassingTest[] => {
   if (String(jsonContent).length === 0) {
     return [];

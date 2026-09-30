@@ -9,11 +9,11 @@
 
 import { z } from '#gateway/npm/zod';
 
-import { pathSegmentContract, fileContentsContract } from '@dungeonmaster/shared/contracts';
+import { pathSegmentContract } from '@dungeonmaster/shared/contracts';
 
 export const scaffoldFileContract = z.object({
   relativePath: pathSegmentContract,
-  contents: fileContentsContract,
+  contents: z.string().brand<'ScaffoldFileContents'>(),
 });
 
 export type ScaffoldFile = z.infer<typeof scaffoldFileContract>;

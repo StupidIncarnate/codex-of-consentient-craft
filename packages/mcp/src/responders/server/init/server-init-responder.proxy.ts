@@ -6,7 +6,6 @@
  * await proxy.callResponder();
  */
 
-import type { FileContents } from '@dungeonmaster/shared/contracts';
 import { discoverIgnoreInitBrokerProxy } from '../../../brokers/discover-ignore/init/discover-ignore-init-broker.proxy';
 import { folderConstraintsInitBrokerProxy } from '../../../brokers/folder-constraints/init/folder-constraints-init-broker.proxy';
 import { discoverIgnoreStateProxy } from '../../../state/discover-ignore/discover-ignore-state.proxy';
@@ -15,7 +14,7 @@ import { ServerInitResponder } from './server-init-responder';
 
 export const ServerInitResponderProxy = (): {
   callResponder: typeof ServerInitResponder;
-  setupGitignore: (params: { contents: FileContents }) => void;
+  setupGitignore: (params: { contents: string }) => void;
   setupNoGitignore: () => void;
 } => {
   folderConstraintsInitBrokerProxy();
@@ -27,7 +26,7 @@ export const ServerInitResponderProxy = (): {
 
   return {
     callResponder: ServerInitResponder,
-    setupGitignore: ({ contents }: { contents: FileContents }): void => {
+    setupGitignore: ({ contents }: { contents: string }): void => {
       ignoreProxy.setupGitignore({ contents });
     },
     setupNoGitignore: (): void => {

@@ -1,12 +1,10 @@
-import { FileContentsStub } from '@dungeonmaster/shared/contracts/file-contents/file-contents.stub';
 
 import { wardOutputToFilePathsTransformer } from './ward-output-to-file-paths-transformer';
 
 describe('wardOutputToFilePathsTransformer', () => {
   describe('ward result with error file paths', () => {
     it('VALID: {single error with filePath} => returns array with one path', () => {
-      const wardResultJson = FileContentsStub({
-        value: JSON.stringify({
+      const wardResultJson = JSON.stringify({
           checks: [
             {
               checkType: 'lint',
@@ -30,8 +28,7 @@ describe('wardOutputToFilePathsTransformer', () => {
               ],
             },
           ],
-        }),
-      });
+        });
 
       const result = wardOutputToFilePathsTransformer({ wardResultJson });
 
@@ -39,8 +36,7 @@ describe('wardOutputToFilePathsTransformer', () => {
     });
 
     it('VALID: {multiple errors across checks} => returns deduplicated array', () => {
-      const wardResultJson = FileContentsStub({
-        value: JSON.stringify({
+      const wardResultJson = JSON.stringify({
           checks: [
             {
               checkType: 'lint',
@@ -92,8 +88,7 @@ describe('wardOutputToFilePathsTransformer', () => {
               ],
             },
           ],
-        }),
-      });
+        });
 
       const result = wardOutputToFilePathsTransformer({ wardResultJson });
 
@@ -106,8 +101,7 @@ describe('wardOutputToFilePathsTransformer', () => {
 
   describe('ward result with test failure paths', () => {
     it('VALID: {test failure with suitePath} => returns suite path', () => {
-      const wardResultJson = FileContentsStub({
-        value: JSON.stringify({
+      const wardResultJson = JSON.stringify({
           checks: [
             {
               checkType: 'test',
@@ -129,8 +123,7 @@ describe('wardOutputToFilePathsTransformer', () => {
               ],
             },
           ],
-        }),
-      });
+        });
 
       const result = wardOutputToFilePathsTransformer({ wardResultJson });
 
@@ -138,8 +131,7 @@ describe('wardOutputToFilePathsTransformer', () => {
     });
 
     it('VALID: {errors and test failures mixed} => returns all unique paths', () => {
-      const wardResultJson = FileContentsStub({
-        value: JSON.stringify({
+      const wardResultJson = JSON.stringify({
           checks: [
             {
               checkType: 'test',
@@ -165,8 +157,7 @@ describe('wardOutputToFilePathsTransformer', () => {
               ],
             },
           ],
-        }),
-      });
+        });
 
       const result = wardOutputToFilePathsTransformer({ wardResultJson });
 
@@ -176,8 +167,7 @@ describe('wardOutputToFilePathsTransformer', () => {
 
   describe('ward result with no failing paths', () => {
     it('EMPTY: {all checks pass with empty errors} => returns empty array', () => {
-      const wardResultJson = FileContentsStub({
-        value: JSON.stringify({
+      const wardResultJson = JSON.stringify({
           checks: [
             {
               checkType: 'lint',
@@ -193,8 +183,7 @@ describe('wardOutputToFilePathsTransformer', () => {
               ],
             },
           ],
-        }),
-      });
+        });
 
       const result = wardOutputToFilePathsTransformer({ wardResultJson });
 
@@ -202,9 +191,7 @@ describe('wardOutputToFilePathsTransformer', () => {
     });
 
     it('EMPTY: {empty checks array} => returns empty array', () => {
-      const wardResultJson = FileContentsStub({
-        value: JSON.stringify({ checks: [] }),
-      });
+      const wardResultJson = JSON.stringify({ checks: [] });
 
       const result = wardOutputToFilePathsTransformer({ wardResultJson });
 
@@ -214,9 +201,7 @@ describe('wardOutputToFilePathsTransformer', () => {
 
   describe('edge cases', () => {
     it('EDGE: {no checks key in JSON} => returns empty array', () => {
-      const wardResultJson = FileContentsStub({
-        value: JSON.stringify({ runId: '123', timestamp: 0 }),
-      });
+      const wardResultJson = JSON.stringify({ runId: '123', timestamp: 0 });
 
       const result = wardOutputToFilePathsTransformer({ wardResultJson });
 
@@ -224,8 +209,7 @@ describe('wardOutputToFilePathsTransformer', () => {
     });
 
     it('EDGE: {non-absolute filePath in error} => skips invalid path', () => {
-      const wardResultJson = FileContentsStub({
-        value: JSON.stringify({
+      const wardResultJson = JSON.stringify({
           checks: [
             {
               checkType: 'lint',
@@ -249,8 +233,7 @@ describe('wardOutputToFilePathsTransformer', () => {
               ],
             },
           ],
-        }),
-      });
+        });
 
       const result = wardOutputToFilePathsTransformer({ wardResultJson });
 

@@ -1,6 +1,5 @@
 import { settingsPermissionsAddBroker } from './settings-permissions-add-broker';
 import { settingsPermissionsAddBrokerProxy } from './settings-permissions-add-broker.proxy';
-import { FileContentsStub } from '@dungeonmaster/shared/contracts/file-contents/file-contents.stub';
 import { PathSegmentStub } from '@dungeonmaster/shared/contracts/path-segment/path-segment.stub';
 import { FsErrorStub } from '#gateway/node/fs/is-fs-error/fs-error.stub';
 
@@ -16,9 +15,7 @@ describe('settingsPermissionsAddBroker', () => {
       const result = await settingsPermissionsAddBroker({ targetProjectRoot });
 
       expect(result).toStrictEqual(
-        FileContentsStub({
-          // String-exact: proves the write ends in one trailing newline.
-          value: `${JSON.stringify(
+        `${JSON.stringify(
             {
               permissions: {
                 allow: [
@@ -71,7 +68,6 @@ describe('settingsPermissionsAddBroker', () => {
             null,
             2,
           )}\n`,
-        }),
       );
     });
   });
@@ -81,18 +77,14 @@ describe('settingsPermissionsAddBroker', () => {
       const proxy = settingsPermissionsAddBrokerProxy();
       const targetProjectRoot = PathSegmentStub({ value: '/project' });
       const settingsPath = PathSegmentStub({ value: '/project/.claude/settings.json' });
-      const existingContents = FileContentsStub({
-        value: JSON.stringify({ hooks: { PreToolUse: [] } }),
-      });
+      const existingContents = JSON.stringify({ hooks: { PreToolUse: [] } });
 
       proxy.setupExistingSettings({ targetProjectRoot, settingsPath, contents: existingContents });
 
       const result = await settingsPermissionsAddBroker({ targetProjectRoot });
 
       expect(result).toStrictEqual(
-        FileContentsStub({
-          // String-exact: proves the write ends in one trailing newline.
-          value: `${JSON.stringify(
+        `${JSON.stringify(
             {
               hooks: { PreToolUse: [] },
               permissions: {
@@ -146,7 +138,6 @@ describe('settingsPermissionsAddBroker', () => {
             null,
             2,
           )}\n`,
-        }),
       );
     });
   });
@@ -156,22 +147,18 @@ describe('settingsPermissionsAddBroker', () => {
       const proxy = settingsPermissionsAddBrokerProxy();
       const targetProjectRoot = PathSegmentStub({ value: '/project' });
       const settingsPath = PathSegmentStub({ value: '/project/.claude/settings.json' });
-      const existingContents = FileContentsStub({
-        value: JSON.stringify({
+      const existingContents = JSON.stringify({
           permissions: {
             allow: ['Bash(npm:*)', 'mcp__dungeonmaster__discover'],
           },
-        }),
-      });
+        });
 
       proxy.setupExistingSettings({ targetProjectRoot, settingsPath, contents: existingContents });
 
       const result = await settingsPermissionsAddBroker({ targetProjectRoot });
 
       expect(result).toStrictEqual(
-        FileContentsStub({
-          // String-exact: proves the write ends in one trailing newline.
-          value: `${JSON.stringify(
+        `${JSON.stringify(
             {
               permissions: {
                 allow: [
@@ -225,7 +212,6 @@ describe('settingsPermissionsAddBroker', () => {
             null,
             2,
           )}\n`,
-        }),
       );
     });
   });
@@ -235,22 +221,18 @@ describe('settingsPermissionsAddBroker', () => {
       const proxy = settingsPermissionsAddBrokerProxy();
       const targetProjectRoot = PathSegmentStub({ value: '/project' });
       const settingsPath = PathSegmentStub({ value: '/project/.claude/settings.json' });
-      const existingContents = FileContentsStub({
-        value: JSON.stringify({
+      const existingContents = JSON.stringify({
           permissions: {
             allow: ['Bash(git add:*)', 'Bash(git commit:*)'],
           },
-        }),
-      });
+        });
 
       proxy.setupExistingSettings({ targetProjectRoot, settingsPath, contents: existingContents });
 
       const result = await settingsPermissionsAddBroker({ targetProjectRoot });
 
       expect(result).toStrictEqual(
-        FileContentsStub({
-          // String-exact: proves the write ends in one trailing newline.
-          value: `${JSON.stringify(
+        `${JSON.stringify(
             {
               permissions: {
                 allow: [
@@ -303,7 +285,6 @@ describe('settingsPermissionsAddBroker', () => {
             null,
             2,
           )}\n`,
-        }),
       );
     });
   });
@@ -313,8 +294,7 @@ describe('settingsPermissionsAddBroker', () => {
       const proxy = settingsPermissionsAddBrokerProxy();
       const targetProjectRoot = PathSegmentStub({ value: '/project' });
       const settingsPath = PathSegmentStub({ value: '/project/.claude/settings.json' });
-      const existingContents = FileContentsStub({
-        value: JSON.stringify({
+      const existingContents = JSON.stringify({
           permissions: {
             allow: [
               'mcp__dungeonmaster__verify-quest',
@@ -322,17 +302,14 @@ describe('settingsPermissionsAddBroker', () => {
               'Bash(npm:*)',
             ],
           },
-        }),
-      });
+        });
 
       proxy.setupExistingSettings({ targetProjectRoot, settingsPath, contents: existingContents });
 
       const result = await settingsPermissionsAddBroker({ targetProjectRoot });
 
       expect(result).toStrictEqual(
-        FileContentsStub({
-          // String-exact: proves the write ends in one trailing newline.
-          value: `${JSON.stringify(
+        `${JSON.stringify(
             {
               permissions: {
                 allow: [
@@ -386,7 +363,6 @@ describe('settingsPermissionsAddBroker', () => {
             null,
             2,
           )}\n`,
-        }),
       );
     });
 
@@ -394,22 +370,18 @@ describe('settingsPermissionsAddBroker', () => {
       const proxy = settingsPermissionsAddBrokerProxy();
       const targetProjectRoot = PathSegmentStub({ value: '/project' });
       const settingsPath = PathSegmentStub({ value: '/project/.claude/settings.json' });
-      const existingContents = FileContentsStub({
-        value: JSON.stringify({
+      const existingContents = JSON.stringify({
           permissions: {
             allow: ['Bash(npm:*)', 'Bash(git:*)', 'mcp__otherserver__sometool'],
           },
-        }),
-      });
+        });
 
       proxy.setupExistingSettings({ targetProjectRoot, settingsPath, contents: existingContents });
 
       const result = await settingsPermissionsAddBroker({ targetProjectRoot });
 
       expect(result).toStrictEqual(
-        FileContentsStub({
-          // String-exact: proves the write ends in one trailing newline.
-          value: `${JSON.stringify(
+        `${JSON.stringify(
             {
               permissions: {
                 allow: [
@@ -465,7 +437,6 @@ describe('settingsPermissionsAddBroker', () => {
             null,
             2,
           )}\n`,
-        }),
       );
     });
 
@@ -473,8 +444,7 @@ describe('settingsPermissionsAddBroker', () => {
       const proxy = settingsPermissionsAddBrokerProxy();
       const targetProjectRoot = PathSegmentStub({ value: '/project' });
       const settingsPath = PathSegmentStub({ value: '/project/.claude/settings.json' });
-      const existingContents = FileContentsStub({
-        value: JSON.stringify({
+      const existingContents = JSON.stringify({
           permissions: {
             allow: [
               'mcp__dungeonmaster__verify-quest',
@@ -483,17 +453,14 @@ describe('settingsPermissionsAddBroker', () => {
               'mcp__dungeonmaster__get-quest',
             ],
           },
-        }),
-      });
+        });
 
       proxy.setupExistingSettings({ targetProjectRoot, settingsPath, contents: existingContents });
 
       const result = await settingsPermissionsAddBroker({ targetProjectRoot });
 
       expect(result).toStrictEqual(
-        FileContentsStub({
-          // String-exact: proves the write ends in one trailing newline.
-          value: `${JSON.stringify(
+        `${JSON.stringify(
             {
               permissions: {
                 allow: [
@@ -546,7 +513,6 @@ describe('settingsPermissionsAddBroker', () => {
             null,
             2,
           )}\n`,
-        }),
       );
     });
   });

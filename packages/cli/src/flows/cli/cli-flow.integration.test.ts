@@ -1,5 +1,4 @@
 import { installTestbedCreateBroker } from '@dungeonmaster/testing';
-import { FileContentsStub } from '@dungeonmaster/shared/contracts/file-contents/file-contents.stub';
 import { machineStatics, siegelenseHelpStatics } from '@dungeonmaster/siegelense/statics';
 
 import { cliStatuslineHarness } from '../../../test/harnesses/cli-statusline/cli-statusline.harness';
@@ -92,14 +91,12 @@ describe('CliFlow', () => {
         baseName: 'cli-flow-statusline-tap-write',
       });
       const env = harness.setupHome({ tempDir: testbed.guildPath });
-      const inputData = FileContentsStub({
-        value: JSON.stringify({
+      const inputData = JSON.stringify({
           rate_limits: {
             five_hour: { used_percentage: 42, resets_at: '2026-05-05T15:00:00.000Z' },
             seven_day: { used_percentage: 20, resets_at: '2026-05-05T15:00:00.000Z' },
           },
-        }),
-      });
+        });
       const stdin = harness.setupStdin({ data: inputData });
       const stdout = harness.captureStdout();
       const stderr = harness.captureStderr();
@@ -139,13 +136,11 @@ describe('CliFlow', () => {
         baseName: 'cli-flow-statusline-tap-throttle',
       });
       const env = harness.setupHome({ tempDir: testbed.guildPath });
-      const inputData = FileContentsStub({
-        value: JSON.stringify({
+      const inputData = JSON.stringify({
           rate_limits: {
             five_hour: { used_percentage: 42, resets_at: '2026-05-05T15:00:00.000Z' },
           },
-        }),
-      });
+        });
 
       const firstStdin = harness.setupStdin({ data: inputData });
       const firstStdout = harness.captureStdout();
@@ -188,7 +183,7 @@ describe('CliFlow', () => {
         baseName: 'cli-flow-statusline-tap-malformed',
       });
       const env = harness.setupHome({ tempDir: testbed.guildPath });
-      const inputData = FileContentsStub({ value: 'not json at all' });
+      const inputData = 'not json at all';
       const stdin = harness.setupStdin({ data: inputData });
       const stdout = harness.captureStdout();
 

@@ -1,4 +1,3 @@
-import { FileContentsStub } from '@dungeonmaster/shared/contracts/file-contents/file-contents.stub';
 import { walkGatewayCrossingsLayerBroker } from './walk-gateway-crossings-layer-broker';
 import { walkGatewayCrossingsLayerBrokerProxy } from './walk-gateway-crossings-layer-broker.proxy';
 import { GatewayPackageNameStub } from '../../../contracts/gateway-package-name/gateway-package-name.stub';
@@ -12,7 +11,7 @@ describe('walkGatewayCrossingsLayerBroker', () => {
 
       const result = await walkGatewayCrossingsLayerBroker({
         filePath: entryPath,
-        content: FileContentsStub({ value: "import { readFile } from '@dungeonmaster/node/fs';" }),
+        content: "import { readFile } from '@dungeonmaster/node/fs';",
         requestedNames: 'all',
         pathHistory: [entryPath],
         chainLabels: [],
@@ -29,7 +28,7 @@ describe('walkGatewayCrossingsLayerBroker', () => {
 
       const result = await walkGatewayCrossingsLayerBroker({
         filePath: entryPath,
-        content: FileContentsStub({ value: "import { readFile } from '#gateway/node/fs';" }),
+        content: "import { readFile } from '#gateway/node/fs';",
         requestedNames: 'all',
         pathHistory: [entryPath],
         chainLabels: [],
@@ -53,9 +52,7 @@ describe('walkGatewayCrossingsLayerBroker', () => {
 
       const result = await walkGatewayCrossingsLayerBroker({
         filePath: entryPath,
-        content: FileContentsStub({
-          value: "import { getItem } from '#gateway/browser/localStorage';",
-        }),
+        content: "import { getItem } from '#gateway/browser/localStorage';",
         requestedNames: 'all',
         pathHistory: [entryPath],
         chainLabels: [],
@@ -77,7 +74,7 @@ describe('walkGatewayCrossingsLayerBroker', () => {
 
       const result = await walkGatewayCrossingsLayerBroker({
         filePath: entryPath,
-        content: FileContentsStub({ value: "import { z } from 'zod';" }),
+        content: "import { z } from 'zod';",
         requestedNames: 'all',
         pathHistory: [entryPath],
         chainLabels: [],
@@ -101,7 +98,7 @@ describe('walkGatewayCrossingsLayerBroker', () => {
 
       const result = await walkGatewayCrossingsLayerBroker({
         filePath: entryPath,
-        content: FileContentsStub({ value: "import { helper } from './helper';" }),
+        content: "import { helper } from './helper';",
         requestedNames: 'all',
         pathHistory: [entryPath],
         chainLabels: [],
@@ -134,7 +131,7 @@ describe('walkGatewayCrossingsLayerBroker', () => {
 
       const result = await walkGatewayCrossingsLayerBroker({
         filePath: entryPath,
-        content: FileContentsStub({ value: "import { userFetchBroker } from './brokers';" }),
+        content: "import { userFetchBroker } from './brokers';",
         requestedNames: 'all',
         pathHistory: [entryPath],
         chainLabels: [],
@@ -164,7 +161,7 @@ describe('walkGatewayCrossingsLayerBroker', () => {
 
       const result = await walkGatewayCrossingsLayerBroker({
         filePath: entryPath,
-        content: FileContentsStub({ value: entryContent }),
+        content: entryContent,
         requestedNames: 'all',
         pathHistory: [entryPath],
         chainLabels: [],
@@ -196,9 +193,7 @@ describe('walkGatewayCrossingsLayerBroker', () => {
 
       const result = await walkGatewayCrossingsLayerBroker({
         filePath: entryPath,
-        content: FileContentsStub({
-          value: "import { a } from './a';\nimport { b } from './b';",
-        }),
+        content: "import { a } from './a';\nimport { b } from './b';",
         requestedNames: 'all',
         pathHistory: [entryPath],
         chainLabels: [],

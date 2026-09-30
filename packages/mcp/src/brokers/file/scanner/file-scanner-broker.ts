@@ -21,11 +21,7 @@ import { globResolveTransformer } from '../../../transformers/glob-resolve/glob-
 import { isMultiDotFileGuard } from '../../../guards/is-multi-dot-file/is-multi-dot-file-guard';
 import { globIgnoreFilterTransformer } from '../../../transformers/glob-ignore-filter/glob-ignore-filter-transformer';
 import { fileDiscoveryStatics } from '../../../statics/file-discovery/file-discovery-statics';
-import {
-  fileContentsContract,
-  globPatternContract,
-  pathSegmentContract,
-} from '@dungeonmaster/shared/contracts';
+import { globPatternContract, pathSegmentContract } from '@dungeonmaster/shared/contracts';
 import type { GlobPattern as IgnorePattern, PathSegment } from '@dungeonmaster/shared/contracts';
 import { cwd } from '#gateway/node/process';
 import { fileMetadataContract } from '../../../contracts/file-metadata/file-metadata-contract';
@@ -108,7 +104,7 @@ export const fileScannerBroker = async ({
 
   // 2. Extract metadata from each file (parallel for performance)
   const metadataPromises = allFilePaths.map(async (filepath) => {
-    const contents = fileContentsContract.parse(await readFile(filepath));
+    const contents = (await readFile(filepath));
 
     // Grep integration: if grep provided, record whether content matches
     const hits: FileMetadata['hits'] = grep

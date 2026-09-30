@@ -10,7 +10,6 @@
  */
 
 import * as ts from '#gateway/npm/typescript';
-import type { FileContents } from '@dungeonmaster/shared/contracts';
 
 import {
   typescriptModuleShapeContract,
@@ -26,7 +25,7 @@ export const typescriptModuleShapeTransformer = ({
   sourceText,
   fileName,
 }: {
-  sourceText: FileContents;
+  sourceText: string;
   fileName: string;
 }): TypescriptModuleShape => {
   const sourceFile = ts.createSourceFile(

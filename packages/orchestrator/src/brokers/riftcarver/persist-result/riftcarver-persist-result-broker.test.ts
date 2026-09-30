@@ -1,4 +1,3 @@
-import { FileContentsStub } from '@dungeonmaster/shared/contracts/file-contents/file-contents.stub';
 import { RiftcarverResultStub } from '@dungeonmaster/shared/contracts/riftcarver-result/riftcarver-result.stub';
 
 import { riftcarverPersistResultBroker } from './riftcarver-persist-result-broker';
@@ -10,7 +9,7 @@ describe('riftcarverPersistResultBroker', () => {
       const proxy = riftcarverPersistResultBrokerProxy();
       const questFolderPath = '/quests/001-add-auth';
       const { id: riftcarverResultId } = RiftcarverResultStub();
-      const logContents = FileContentsStub({ value: '— build pass 1/3 —\n' });
+      const logContents = '— build pass 1/3 —\n';
 
       proxy.setupSuccess({ questFolderPath, riftcarverResultId });
 
@@ -23,9 +22,7 @@ describe('riftcarverPersistResultBroker', () => {
       const proxy = riftcarverPersistResultBrokerProxy();
       const questFolderPath = '/quests/002-add-auth';
       const { id: riftcarverResultId } = RiftcarverResultStub();
-      const logContents = FileContentsStub({
-        value: '— base branch: main —\n— build pass 1/3 —\n',
-      });
+      const logContents = '— base branch: main —\n— build pass 1/3 —\n';
 
       proxy.setupSuccess({ questFolderPath, riftcarverResultId });
 
@@ -42,7 +39,7 @@ describe('riftcarverPersistResultBroker', () => {
       const proxy = riftcarverPersistResultBrokerProxy();
       const questFolderPath = '/quests/003-add-auth';
       const { id: riftcarverResultId } = RiftcarverResultStub();
-      const logContents = FileContentsStub({ value: 'carved\n' });
+      const logContents = 'carved\n';
 
       proxy.setupSuccess({ questFolderPath, riftcarverResultId });
 
@@ -60,7 +57,7 @@ describe('riftcarverPersistResultBroker', () => {
       const proxy = riftcarverPersistResultBrokerProxy();
       const questFolderPath = '/quests/004-add-auth';
       const { id: riftcarverResultId } = RiftcarverResultStub();
-      const logContents = FileContentsStub({ value: 'carved\n' });
+      const logContents = 'carved\n';
 
       proxy.setupWriteFailure({
         questFolderPath,

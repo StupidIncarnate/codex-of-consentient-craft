@@ -22,7 +22,7 @@
 import { randomUUID } from '#gateway/node/crypto';
 import { ensureDir } from '#gateway/node/fs__promises';
 import { join } from '#gateway/node/path';
-import { fileContentsContract, operationItemContract, questContract } from '@dungeonmaster/shared/contracts';
+import { operationItemContract, questContract } from '@dungeonmaster/shared/contracts';
 import type { AddQuestInput, OperationItem, WorkItem, Quest, Guild } from '@dungeonmaster/shared/contracts';
 import { locationsStatics, questFlowStatics } from '@dungeonmaster/shared/statics';
 
@@ -91,9 +91,7 @@ export const questCreateBroker = async ({
   });
 
   const questFilePath = join(questFolderPath, locationsStatics.quest.questFile);
-  const contents = fileContentsContract.parse(
-    JSON.stringify(initialQuest, null, JSON_INDENT_SPACES),
-  );
+  const contents = JSON.stringify(initialQuest, null, JSON_INDENT_SPACES);
   await questPersistBroker({ questFilePath, contents, questId });
 
   return { questFilePath, questFolderPath };

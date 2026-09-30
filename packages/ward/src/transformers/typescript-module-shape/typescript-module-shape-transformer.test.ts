@@ -1,13 +1,10 @@
-import { FileContentsStub } from '@dungeonmaster/shared/contracts/file-contents/file-contents.stub';
 import { typescriptModuleShapeTransformer } from './typescript-module-shape-transformer';
 
 describe('typescriptModuleShapeTransformer', () => {
   describe('import declarations', () => {
     it('VALID: {named import} => records a named dependency', () => {
       const result = typescriptModuleShapeTransformer({
-        sourceText: FileContentsStub({
-          value: "import { readFile } from '@dungeonmaster/node/fs';",
-        }),
+        sourceText: "import { readFile } from '@dungeonmaster/node/fs';",
         fileName: 'a.ts',
       });
 
@@ -21,7 +18,7 @@ describe('typescriptModuleShapeTransformer', () => {
 
     it('VALID: {type-only named import} => still records a named dependency', () => {
       const result = typescriptModuleShapeTransformer({
-        sourceText: FileContentsStub({ value: "import type { Page } from '@playwright/test';" }),
+        sourceText: "import type { Page } from '@playwright/test';",
         fileName: 'a.ts',
       });
 
@@ -33,7 +30,7 @@ describe('typescriptModuleShapeTransformer', () => {
 
     it('VALID: {default import} => records an opaque dependency', () => {
       const result = typescriptModuleShapeTransformer({
-        sourceText: FileContentsStub({ value: "import ts from 'typescript';" }),
+        sourceText: "import ts from 'typescript';",
         fileName: 'a.ts',
       });
 
@@ -45,7 +42,7 @@ describe('typescriptModuleShapeTransformer', () => {
 
     it('VALID: {namespace import} => records an opaque dependency', () => {
       const result = typescriptModuleShapeTransformer({
-        sourceText: FileContentsStub({ value: "import * as ts from 'typescript';" }),
+        sourceText: "import * as ts from 'typescript';",
         fileName: 'a.ts',
       });
 
@@ -57,7 +54,7 @@ describe('typescriptModuleShapeTransformer', () => {
 
     it('VALID: {side-effect import} => records an opaque dependency', () => {
       const result = typescriptModuleShapeTransformer({
-        sourceText: FileContentsStub({ value: "import './side-effect';" }),
+        sourceText: "import './side-effect';",
         fileName: 'a.ts',
       });
 
@@ -71,9 +68,7 @@ describe('typescriptModuleShapeTransformer', () => {
   describe('re-export declarations', () => {
     it('VALID: {export * from} => records a star dependency', () => {
       const result = typescriptModuleShapeTransformer({
-        sourceText: FileContentsStub({
-          value: "export * from './cwd-resolve/cwd-resolve-broker';",
-        }),
+        sourceText: "export * from './cwd-resolve/cwd-resolve-broker';",
         fileName: 'brokers.ts',
       });
 
@@ -87,9 +82,7 @@ describe('typescriptModuleShapeTransformer', () => {
 
     it('VALID: {export {a} from} => records a named dependency', () => {
       const result = typescriptModuleShapeTransformer({
-        sourceText: FileContentsStub({
-          value: "export { cwdResolveBroker } from './cwd-resolve/cwd-resolve-broker';",
-        }),
+        sourceText: "export { cwdResolveBroker } from './cwd-resolve/cwd-resolve-broker';",
         fileName: 'brokers.ts',
       });
 
@@ -107,7 +100,7 @@ describe('typescriptModuleShapeTransformer', () => {
 
     it('EDGE: {export * as ns from} => records an opaque dependency', () => {
       const result = typescriptModuleShapeTransformer({
-        sourceText: FileContentsStub({ value: "export * as brokers from './brokers';" }),
+        sourceText: "export * as brokers from './brokers';",
         fileName: 'a.ts',
       });
 
@@ -121,7 +114,7 @@ describe('typescriptModuleShapeTransformer', () => {
   describe('local exports', () => {
     it('VALID: {export const} => records the local export name', () => {
       const result = typescriptModuleShapeTransformer({
-        sourceText: FileContentsStub({ value: 'export const userFetchBroker = async () => {};' }),
+        sourceText: 'export const userFetchBroker = async () => {};',
         fileName: 'user-fetch-broker.ts',
       });
 
@@ -130,7 +123,7 @@ describe('typescriptModuleShapeTransformer', () => {
 
     it('VALID: {export function} => records the local export name', () => {
       const result = typescriptModuleShapeTransformer({
-        sourceText: FileContentsStub({ value: 'export function userFetchBroker() {}' }),
+        sourceText: 'export function userFetchBroker() {}',
         fileName: 'user-fetch-broker.ts',
       });
 
@@ -139,7 +132,7 @@ describe('typescriptModuleShapeTransformer', () => {
 
     it('VALID: {export class} => records the local export name', () => {
       const result = typescriptModuleShapeTransformer({
-        sourceText: FileContentsStub({ value: 'export class SomeError extends Error {}' }),
+        sourceText: 'export class SomeError extends Error {}',
         fileName: 'some-error.ts',
       });
 
@@ -148,7 +141,7 @@ describe('typescriptModuleShapeTransformer', () => {
 
     it('VALID: {export type} => records the local export name', () => {
       const result = typescriptModuleShapeTransformer({
-        sourceText: FileContentsStub({ value: 'export type FsError = { code: string };' }),
+        sourceText: 'export type FsError = { code: string };',
         fileName: 'fs-error.ts',
       });
 
@@ -157,7 +150,7 @@ describe('typescriptModuleShapeTransformer', () => {
 
     it('VALID: {export interface} => records the local export name', () => {
       const result = typescriptModuleShapeTransformer({
-        sourceText: FileContentsStub({ value: 'export interface FsError { code: string; }' }),
+        sourceText: 'export interface FsError { code: string; }',
         fileName: 'fs-error.ts',
       });
 
@@ -166,9 +159,7 @@ describe('typescriptModuleShapeTransformer', () => {
 
     it('EDGE: {local export list} => records each named local re-export', () => {
       const result = typescriptModuleShapeTransformer({
-        sourceText: FileContentsStub({
-          value: 'const userFetchBroker = async () => {};\nexport { userFetchBroker };',
-        }),
+        sourceText: 'const userFetchBroker = async () => {};\nexport { userFetchBroker };',
         fileName: 'a.ts',
       });
 
@@ -179,7 +170,7 @@ describe('typescriptModuleShapeTransformer', () => {
   describe('empty input', () => {
     it('EMPTY: {no statements} => returns empty dependencies and exports', () => {
       const result = typescriptModuleShapeTransformer({
-        sourceText: FileContentsStub({ value: '' }),
+        sourceText: '',
         fileName: 'a.ts',
       });
 

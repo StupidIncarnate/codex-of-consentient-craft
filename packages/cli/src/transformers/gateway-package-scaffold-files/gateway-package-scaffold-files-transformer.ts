@@ -22,7 +22,7 @@
  * // Returns the ScaffoldFile entries for packages/@gateway/npm, relative to that package's own root
  */
 
-import { pathSegmentContract, fileContentsContract } from '@dungeonmaster/shared/contracts';
+import { pathSegmentContract } from '@dungeonmaster/shared/contracts';
 import type { PathSegment } from '@dungeonmaster/shared/contracts';
 import { locationsStatics } from '@dungeonmaster/shared/statics';
 import { gatewayImportsFieldTransformer } from '@dungeonmaster/shared/transformers';
@@ -128,36 +128,28 @@ export const gatewayPackageScaffoldFilesTransformer = ({
   return [
     scaffoldFileContract.parse({
       relativePath: pathSegmentContract.parse('package.json'),
-      contents: fileContentsContract.parse(
-        `${JSON.stringify(packageJsonObject, null, JSON_INDENT)}\n`,
-      ),
+      contents: `${JSON.stringify(packageJsonObject, null, JSON_INDENT)}\n`,
     }),
     scaffoldFileContract.parse({
       relativePath: pathSegmentContract.parse(locationsStatics.repoRoot.tsconfig),
-      contents: fileContentsContract.parse(
-        `${JSON.stringify(tsconfigObject, null, JSON_INDENT)}\n`,
-      ),
+      contents: `${JSON.stringify(tsconfigObject, null, JSON_INDENT)}\n`,
     }),
     scaffoldFileContract.parse({
       relativePath: pathSegmentContract.parse('tsconfig.build.json'),
-      contents: fileContentsContract.parse(
-        `${JSON.stringify(tsconfigBuildObject, null, JSON_INDENT)}\n`,
-      ),
+      contents: `${JSON.stringify(tsconfigBuildObject, null, JSON_INDENT)}\n`,
     }),
     scaffoldFileContract.parse({
       relativePath: pathSegmentContract.parse('jest.config.js'),
-      contents: fileContentsContract.parse(
-        folder === 'browser'
+      contents: (folder === 'browser'
           ? gatewayPackageTemplateStatics.browserJestConfigContent
-          : gatewayPackageTemplateStatics.jestConfigContent,
-      ),
+          : gatewayPackageTemplateStatics.jestConfigContent),
     }),
     ...(receivesCopiedSource
       ? []
       : [
           scaffoldFileContract.parse({
             relativePath: pathSegmentContract.parse(gatewayPackageTemplateStatics.placeholderPath),
-            contents: fileContentsContract.parse(gatewayPackageTemplateStatics.placeholderContent),
+            contents: gatewayPackageTemplateStatics.placeholderContent,
           }),
         ]),
   ];

@@ -1,11 +1,10 @@
 import { webBundleResponseBroker } from './web-bundle-response-broker';
 import { webBundleResponseBrokerProxy } from './web-bundle-response-broker.proxy';
-import { FileContentsStub } from '@dungeonmaster/shared/contracts/file-contents/file-contents.stub';
 
 describe('webBundleResponseBroker', () => {
   it('VALID: {pathname: "/"} => serves index.html as text/html at 200', async () => {
     const proxy = webBundleResponseBrokerProxy();
-    const contents = FileContentsStub({ value: '<!doctype html><title>DM</title>' });
+    const contents = '<!doctype html><title>DM</title>';
     proxy.setupFileContents({ contents, expectedRelativePath: '/index.html' });
 
     const result = await webBundleResponseBroker({ pathname: '/' });
@@ -19,7 +18,7 @@ describe('webBundleResponseBroker', () => {
 
   it('VALID: {pathname: "/codex/quest/abc-123"} => SPA fallback to index.html (text/html, 200)', async () => {
     const proxy = webBundleResponseBrokerProxy();
-    const contents = FileContentsStub({ value: '<!doctype html>' });
+    const contents = '<!doctype html>';
     proxy.setupFileContents({ contents, expectedRelativePath: '/index.html' });
 
     const result = await webBundleResponseBroker({ pathname: '/codex/quest/abc-123' });
@@ -33,7 +32,7 @@ describe('webBundleResponseBroker', () => {
 
   it('VALID: {pathname: "/assets/index-abc.js"} => serves the JS asset as text/javascript at 200', async () => {
     const proxy = webBundleResponseBrokerProxy();
-    const contents = FileContentsStub({ value: 'console.log(1)' });
+    const contents = 'console.log(1)';
     proxy.setupFileContents({ contents, expectedRelativePath: '/assets/index-abc.js' });
 
     const result = await webBundleResponseBroker({ pathname: '/assets/index-abc.js' });
@@ -47,7 +46,7 @@ describe('webBundleResponseBroker', () => {
 
   it('VALID: {pathname: "/favicon.svg"} => serves the root static file as image/svg+xml at 200', async () => {
     const proxy = webBundleResponseBrokerProxy();
-    const contents = FileContentsStub({ value: '<svg viewBox="0 0 16 16"></svg>' });
+    const contents = '<svg viewBox="0 0 16 16"></svg>';
     proxy.setupFileContents({ contents, expectedRelativePath: '/favicon.svg' });
 
     const result = await webBundleResponseBroker({ pathname: '/favicon.svg' });
@@ -61,7 +60,7 @@ describe('webBundleResponseBroker', () => {
 
   it('EDGE: {pathname: "/logo.svg" not a named root file} => SPA fallback to index.html', async () => {
     const proxy = webBundleResponseBrokerProxy();
-    const contents = FileContentsStub({ value: '<!doctype html>' });
+    const contents = '<!doctype html>';
     proxy.setupFileContents({ contents, expectedRelativePath: '/index.html' });
 
     const result = await webBundleResponseBroker({ pathname: '/logo.svg' });
@@ -75,7 +74,7 @@ describe('webBundleResponseBroker', () => {
 
   it('EDGE: {pathname: "/assets/../secret" traversal} => treated as SPA route (index.html)', async () => {
     const proxy = webBundleResponseBrokerProxy();
-    const contents = FileContentsStub({ value: '<!doctype html>' });
+    const contents = '<!doctype html>';
     proxy.setupFileContents({ contents, expectedRelativePath: '/index.html' });
 
     const result = await webBundleResponseBroker({ pathname: '/assets/../secret' });
@@ -94,10 +93,7 @@ describe('webBundleResponseBroker', () => {
     const result = await webBundleResponseBroker({ pathname: '/' });
 
     expect(result).toStrictEqual({
-      body: FileContentsStub({
-        value:
-          'Dungeonmaster web bundle not found. Build it with `npm run build` before starting the server.',
-      }),
+      body: 'Dungeonmaster web bundle not found. Build it with `npm run build` before starting the server.',
       contentType: 'text/plain; charset=utf-8',
       status: 500,
     });
@@ -105,7 +101,7 @@ describe('webBundleResponseBroker', () => {
 
   it('VALID: {pathname: "/assets/app.js"} => reads from distPath joined with relativePath', async () => {
     const proxy = webBundleResponseBrokerProxy();
-    const contents = FileContentsStub({ value: 'console.log("app")' });
+    const contents = 'console.log("app")';
     proxy.setupFileContents({ contents, expectedRelativePath: '/assets/app.js' });
 
     const result = await webBundleResponseBroker({ pathname: '/assets/app.js' });

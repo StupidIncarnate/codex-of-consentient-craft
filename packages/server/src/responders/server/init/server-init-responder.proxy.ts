@@ -1,4 +1,4 @@
-import type { WardResult, AbsoluteFilePath, FileContents, OrchestrationEventType, ProcessId, Guild } from '@dungeonmaster/shared/contracts';
+import type { WardResult, AbsoluteFilePath, OrchestrationEventType, ProcessId, Guild } from '@dungeonmaster/shared/contracts';
 import { Hono } from '#gateway/npm/hono';
 import type { QuestStub } from '@dungeonmaster/shared/contracts/quest/quest.stub';
 
@@ -62,7 +62,7 @@ export const ServerInitResponderProxy = (): {
   callResponder: (params?: { serveWebBundle?: boolean }) => void;
   dispatchRequest: (params: { url: string; method?: string }) => Promise<Response>;
   setServerPort: (params: { value: string }) => void;
-  setupWebBundleFile: (params: { contents: FileContents; expectedRelativePath: string }) => void;
+  setupWebBundleFile: (params: { contents: string; expectedRelativePath: string }) => void;
   simulateConnection: (params: { client: WSContext }) => void;
   simulateMessage: (params: { data: string; ws: WSContext }) => void;
   simulateDisconnect: (params: { ws: WSContext }) => void;
@@ -101,7 +101,7 @@ export const ServerInitResponderProxy = (): {
     wardResultId: WardResult['id'];
     wardResultsPath: string;
     detailFilePath: string;
-    contents: FileContents;
+    contents: string;
   }) => void;
   getCapturedWebSocketAppIsHono: () => boolean;
   firePipelineFlush: () => void;
@@ -174,7 +174,7 @@ export const ServerInitResponderProxy = (): {
       contents,
       expectedRelativePath,
     }: {
-      contents: FileContents;
+      contents: string;
       expectedRelativePath: string;
     }): void => {
       webBundleProxy.setupFileContents({ contents, expectedRelativePath });
@@ -277,7 +277,7 @@ export const ServerInitResponderProxy = (): {
       wardResultId: WardResult['id'];
       wardResultsPath: string;
       detailFilePath: string;
-      contents: FileContents;
+      contents: string;
     }): void => {
       findQuestPathProxy.setupResolves({ questId, questPath, guildId });
       wardResultsPathProxy.setupWardResultsPath({ questFolderPath: questPath, wardResultsPath });

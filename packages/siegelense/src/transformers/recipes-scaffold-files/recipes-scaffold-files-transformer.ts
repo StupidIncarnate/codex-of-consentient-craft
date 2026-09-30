@@ -30,7 +30,7 @@
  * // a proxy and a unit test)
  */
 
-import { fileContentsContract, pathSegmentContract } from '@dungeonmaster/shared/contracts';
+import { pathSegmentContract } from '@dungeonmaster/shared/contracts';
 import type { PackageName, PathSegment } from '@dungeonmaster/shared/contracts';
 import { locationsStatics, recipesConventionStatics } from '@dungeonmaster/shared/statics';
 import { gatewayImportsFieldTransformer } from '@dungeonmaster/shared/transformers';
@@ -382,7 +382,7 @@ describe('hydration-recipes starter index', () => {
   return plannedFiles.map((file) =>
     recipesScaffoldFileContract.parse({
       relativePath: pathSegmentContract.parse(file.relativePath),
-      contents: fileContentsContract.parse(file.contents),
+      contents: file.contents,
     }),
   );
 };

@@ -1,9 +1,8 @@
-import type { FileContents } from '@dungeonmaster/shared/contracts';
 import { readFileProxy } from '#gateway/node/fs__promises/read-file/read-file.proxy';
 
 export const matchCandidatesLayerBrokerProxy = (): {
-  setupCandidateFile: (params: { questFilePath: string; contents: FileContents }) => void;
-  setupCandidateFileOnce: (params: { questFilePath: string; contents: FileContents }) => void;
+  setupCandidateFile: (params: { questFilePath: string; contents: string }) => void;
+  setupCandidateFileOnce: (params: { questFilePath: string; contents: string }) => void;
   setupUnreadableCandidateFile: (params: { questFilePath: string }) => void;
 } => {
   const readFileChild = readFileProxy();
@@ -14,7 +13,7 @@ export const matchCandidatesLayerBrokerProxy = (): {
       contents,
     }: {
       questFilePath: string;
-      contents: FileContents;
+      contents: string;
     }): void => {
       readFileChild.returns({ path: questFilePath, contents });
     },
@@ -27,7 +26,7 @@ export const matchCandidatesLayerBrokerProxy = (): {
       contents,
     }: {
       questFilePath: string;
-      contents: FileContents;
+      contents: string;
     }): void => {
       readFileChild.returnsOnce({ path: questFilePath, contents });
     },

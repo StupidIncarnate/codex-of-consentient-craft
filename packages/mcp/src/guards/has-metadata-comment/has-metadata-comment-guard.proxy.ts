@@ -7,20 +7,17 @@
  * // Returns FileContents with all required metadata sections
  */
 
-import { FileContentsStub } from '@dungeonmaster/shared/contracts/file-contents/file-contents.stub';
-import type { FileContents } from '@dungeonmaster/shared/contracts';
 
 export const hasMetadataCommentGuardProxy = (): {
-  setupValidMetadata: () => FileContents;
-  setupMissingPurpose: () => FileContents;
-  setupMissingUsage: () => FileContents;
+  setupValidMetadata: () => string;
+  setupMissingPurpose: () => string;
+  setupMissingUsage: () => string;
 } =>
   // Guard runs real, proxy just builds test data
 
   ({
-    setupValidMetadata: (): FileContents =>
-      FileContentsStub({
-        value: `/**
+    setupValidMetadata: (): string =>
+      `/**
  * PURPOSE: Test function
  *
  * USAGE:
@@ -28,24 +25,19 @@ export const hasMetadataCommentGuardProxy = (): {
  */
 export const testFunction = () => {};
 `,
-      }),
 
-    setupMissingPurpose: (): FileContents =>
-      FileContentsStub({
-        value: `/**
+    setupMissingPurpose: (): string =>
+      `/**
  * USAGE:
  * testFunction();
  */
 export const testFunction = () => {};
 `,
-      }),
 
-    setupMissingUsage: (): FileContents =>
-      FileContentsStub({
-        value: `/**
+    setupMissingUsage: (): string =>
+      `/**
  * PURPOSE: Test function
  */
 export const testFunction = () => {};
 `,
-      }),
   });

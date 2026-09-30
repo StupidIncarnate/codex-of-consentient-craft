@@ -18,7 +18,7 @@
 
 import { z } from '#gateway/npm/zod';
 
-import { pathSegmentContract, fileContentsContract } from '@dungeonmaster/shared/contracts';
+import { pathSegmentContract } from '@dungeonmaster/shared/contracts';
 
 import { dependencyMapContract } from '../dependency-map/dependency-map-contract';
 
@@ -51,7 +51,7 @@ export const packageSeedContract = z.object({
   files: z.array(
     z.object({
       path: pathSegmentContract,
-      contents: fileContentsContract,
+      contents: z.string().brand<'PackageSeedFilesContents'>(),
     }),
   ),
 });

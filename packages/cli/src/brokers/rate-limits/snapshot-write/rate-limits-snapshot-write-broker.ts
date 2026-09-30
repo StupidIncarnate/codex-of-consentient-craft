@@ -8,7 +8,7 @@
 
 import { dirname } from '#gateway/node/path';
 import { ensureDir, rename, statIfExists, writeFile } from '#gateway/node/fs__promises';
-import { fileContentsContract, type RateLimitsSnapshot } from '@dungeonmaster/shared/contracts';
+import { type RateLimitsSnapshot } from '@dungeonmaster/shared/contracts';
 import {
   locationsRateLimitsSnapshotPathFindBroker,
   locationsRateLimitsSnapshotTmpPathFindBroker,
@@ -34,7 +34,7 @@ export const rateLimitsSnapshotWriteBroker = async ({
   const homeDir = dirname(snapshotPath);
   await ensureDir(homeDir);
 
-  const contents = fileContentsContract.parse(`${JSON.stringify(snapshot)}\n`);
+  const contents = `${JSON.stringify(snapshot)}\n`;
   await writeFile(tmpPath, contents);
   await rename(tmpPath, snapshotPath);
 

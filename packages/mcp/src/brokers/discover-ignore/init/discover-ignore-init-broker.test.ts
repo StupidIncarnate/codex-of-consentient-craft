@@ -1,13 +1,12 @@
 import { discoverIgnoreInitBroker } from './discover-ignore-init-broker';
 import { discoverIgnoreInitBrokerProxy } from './discover-ignore-init-broker.proxy';
-import { FileContentsStub } from '@dungeonmaster/shared/contracts/file-contents/file-contents.stub';
 
 describe('discoverIgnoreInitBroker', () => {
   it('VALID: {.gitignore with dist and worktrees} => merges gitignore over the static rules, deduped', async () => {
     const brokerProxy = discoverIgnoreInitBrokerProxy();
 
     brokerProxy.setupGitignore({
-      contents: FileContentsStub({ value: '# compiled output\ndist\nworktrees/\n' }),
+      contents: '# compiled output\ndist\nworktrees/\n',
     });
 
     const result = await discoverIgnoreInitBroker();
@@ -41,7 +40,7 @@ describe('discoverIgnoreInitBroker', () => {
     const brokerProxy = discoverIgnoreInitBrokerProxy();
 
     brokerProxy.setupGitignore({
-      contents: FileContentsStub({ value: '# nothing but a comment\n\n' }),
+      contents: '# nothing but a comment\n\n',
     });
 
     const result = await discoverIgnoreInitBroker();

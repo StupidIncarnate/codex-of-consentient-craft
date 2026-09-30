@@ -1,4 +1,3 @@
-import { FileContentsStub } from '@dungeonmaster/shared/contracts/file-contents/file-contents.stub';
 import { FileNameStub } from '@dungeonmaster/shared/contracts/file-name/file-name.stub';
 import { GuildIdStub } from '@dungeonmaster/shared/contracts/guild-id/guild-id.stub';
 import { QuestStub } from '@dungeonmaster/shared/contracts/quest/quest.stub';
@@ -30,7 +29,7 @@ describe('QuestLoadResponder', () => {
                 folderName: FileNameStub({ value: quest.folder }),
                 questFilePath,
                 questFolderPath,
-                contents: FileContentsStub({ value: JSON.stringify(quest) }),
+                contents: JSON.stringify(quest),
               },
             ],
           },

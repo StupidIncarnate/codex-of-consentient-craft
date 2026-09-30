@@ -17,7 +17,7 @@
  * // Returns { stop } — call stop() to clearInterval. Tracks last-seen JSON to avoid no-op fires.
  */
 
-import type { FileContents, RateLimitsSnapshot } from '@dungeonmaster/shared/contracts';
+import type { RateLimitsSnapshot } from '@dungeonmaster/shared/contracts';
 
 import { timerIntervalStartBroker } from '../../timer/interval-start/timer-interval-start-broker';
 import { rateLimitsWatchTickLayerBroker } from './rate-limits-watch-tick-layer-broker';
@@ -35,7 +35,7 @@ export const rateLimitsWatchBroker = ({
 }): { stop: () => void } => {
   // Per WATCHER, not per module. Two watchers in one process would otherwise read and write one
   // another's last-seen JSON, and each one's `stop()` would leave the other's state behind.
-  const tickState: { lastJson: FileContents | null; isReading: boolean } = {
+  const tickState: { lastJson: string | null; isReading: boolean } = {
     lastJson: null,
     isReading: false,
   };

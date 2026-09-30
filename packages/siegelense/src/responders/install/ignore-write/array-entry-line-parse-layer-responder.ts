@@ -16,12 +16,7 @@
  * // ] } — "exclude" itself is dropped: it is followed by `:`, not `,`/`]`.
  */
 
-import {
-  arrayIndexContract,
-  fileContentsContract,
-  type ArrayIndex,
-  type FileContents,
-} from '@dungeonmaster/shared/contracts';
+import { arrayIndexContract, type ArrayIndex } from '@dungeonmaster/shared/contracts';
 
 export const ArrayEntryLineParseLayerResponder = ({
   line,
@@ -29,26 +24,26 @@ export const ArrayEntryLineParseLayerResponder = ({
   line: string;
 }): {
   entries: readonly {
-    value: FileContents;
+    value: string;
     start: ArrayIndex;
     end: ArrayIndex;
-    quoteChar: FileContents;
+    quoteChar: string;
   }[];
 } => {
   const candidates: {
-    value: FileContents;
+    value: string;
     start: ArrayIndex;
     end: ArrayIndex;
-    quoteChar: FileContents;
+    quoteChar: string;
   }[] = [];
   // One object, not three `let`s: `@typescript-eslint/init-declarations` demands a nullable `let`
   // carry an initializer and `no-undef-init` then strips an `= undefined` one straight back off,
   // an oscillation ward's --fix pass cannot resolve on its own. A property on an object literal is
   // a plain assignment, not a variable declaration, so neither rule reaches it.
-  const openQuote: { char: FileContents | undefined; start: ArrayIndex; content: FileContents } = {
+  const openQuote: { char: string | undefined; start: ArrayIndex; content: string } = {
     char: undefined,
     start: arrayIndexContract.parse(0),
-    content: fileContentsContract.parse(''),
+    content: '',
   };
 
   for (let i = 0; i < line.length; i += 1) {
@@ -62,9 +57,9 @@ export const ArrayEntryLineParseLayerResponder = ({
           quoteChar: openQuote.char,
         });
         openQuote.char = undefined;
-        openQuote.content = fileContentsContract.parse('');
+        openQuote.content = '';
       } else {
-        openQuote.content = fileContentsContract.parse(openQuote.content + char);
+        openQuote.content = (openQuote.content + char);
       }
       continue;
     }
@@ -74,9 +69,9 @@ export const ArrayEntryLineParseLayerResponder = ({
       break;
     }
     if (char === "'" || char === '"') {
-      openQuote.char = fileContentsContract.parse(char);
+      openQuote.char = char;
       openQuote.start = arrayIndexContract.parse(i);
-      openQuote.content = fileContentsContract.parse('');
+      openQuote.content = '';
     }
   }
 

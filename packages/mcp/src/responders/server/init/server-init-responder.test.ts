@@ -1,6 +1,5 @@
 import { ServerInitResponderProxy } from './server-init-responder.proxy';
 import { discoverIgnoreState } from '../../../state/discover-ignore/discover-ignore-state';
-import { FileContentsStub } from '@dungeonmaster/shared/contracts/file-contents/file-contents.stub';
 
 describe('ServerInitResponder', () => {
   describe('successful initialization', () => {
@@ -17,7 +16,7 @@ describe('ServerInitResponder', () => {
     it('VALID: {.gitignore naming tmp and worktrees} => state carries the merged list', async () => {
       const proxy = ServerInitResponderProxy();
 
-      proxy.setupGitignore({ contents: FileContentsStub({ value: 'tmp\nworktrees/\n' }) });
+      proxy.setupGitignore({ contents: 'tmp\nworktrees/\n' });
 
       await proxy.callResponder();
 

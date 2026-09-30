@@ -16,7 +16,7 @@ import {
   portKillListenersBroker,
 } from '@dungeonmaster/shared/brokers';
 
-import { absoluteFilePathContract, exitCodeContract, fileContentsContract, networkPortContract } from '@dungeonmaster/shared/contracts';
+import { absoluteFilePathContract, exitCodeContract, networkPortContract } from '@dungeonmaster/shared/contracts';
 
 import { binCommandContract } from '../../../contracts/bin-command/bin-command-contract';
 import { rawOutputContract } from '../../../contracts/raw-output/raw-output-contract';
@@ -230,7 +230,7 @@ export const checkRunE2eBroker = async ({
     ReturnType<typeof playwrightJsonReportToPassingTransformer>
   > => {
     try {
-      const jsonContent = fileContentsContract.parse(await readFile(jsonReportPath));
+      const jsonContent = (await readFile(jsonReportPath));
       return playwrightJsonReportToPassingTransformer({ jsonContent });
     } catch {
       return [];

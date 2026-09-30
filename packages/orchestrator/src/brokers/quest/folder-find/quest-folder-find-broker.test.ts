@@ -1,4 +1,3 @@
-import { FileContentsStub } from '@dungeonmaster/shared/contracts/file-contents/file-contents.stub';
 import { QuestStub } from '@dungeonmaster/shared/contracts/quest/quest.stub';
 
 import { FileNameStub } from '@dungeonmaster/shared/contracts/file-name/file-name.stub';
@@ -19,7 +18,7 @@ describe('questFolderFindBroker', () => {
           {
             folderPath: '/project/.dungeonmaster-quests/001-add-auth',
             questFilePath: '/project/.dungeonmaster-quests/001-add-auth/quest.json',
-            contents: FileContentsStub({ value: JSON.stringify(quest) }),
+            contents: JSON.stringify(quest),
           },
         ],
       });
@@ -49,12 +48,12 @@ describe('questFolderFindBroker', () => {
           {
             folderPath: '/project/.dungeonmaster-quests/001-add-auth',
             questFilePath: '/project/.dungeonmaster-quests/001-add-auth/quest.json',
-            contents: FileContentsStub({ value: JSON.stringify(quest1) }),
+            contents: JSON.stringify(quest1),
           },
           {
             folderPath: '/project/.dungeonmaster-quests/002-fix-bug',
             questFilePath: '/project/.dungeonmaster-quests/002-fix-bug/quest.json',
-            contents: FileContentsStub({ value: JSON.stringify(quest2) }),
+            contents: JSON.stringify(quest2),
           },
         ],
       });
@@ -82,7 +81,7 @@ describe('questFolderFindBroker', () => {
           {
             folderPath: '/project/.dungeonmaster-quests/001-add-auth',
             questFilePath: '/project/.dungeonmaster-quests/001-add-auth/quest.json',
-            contents: FileContentsStub({ value: JSON.stringify(quest) }),
+            contents: JSON.stringify(quest),
           },
         ],
       });
@@ -131,7 +130,7 @@ describe('questFolderFindBroker', () => {
         validQuestFile: {
           folderPath: '/project/.dungeonmaster-quests/002-add-auth',
           questFilePath: '/project/.dungeonmaster-quests/002-add-auth/quest.json',
-          contents: FileContentsStub({ value: JSON.stringify(quest) }),
+          contents: JSON.stringify(quest),
         },
       });
 

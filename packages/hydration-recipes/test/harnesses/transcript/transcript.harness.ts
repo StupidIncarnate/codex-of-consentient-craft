@@ -13,7 +13,6 @@
  * transcripts.completionAgentIdsIn({ testbed, relativePath: 'projects/x/sess.jsonl' });
  */
 
-import { FileContentsStub } from '@dungeonmaster/shared/contracts/file-contents/file-contents.stub';
 import type { installTestbedCreateBroker } from '@dungeonmaster/testing';
 
 import { transcriptLinesReadTransformer } from '../../../src/transformers/transcript-lines-read/transcript-lines-read-transformer';
@@ -44,9 +43,7 @@ export const transcriptHarness = (): {
     relativePath: string;
   }): readonly unknown[] =>
     transcriptLinesReadTransformer({
-      contents: FileContentsStub({
-        value: testbed.readFile({ relativePath: relativePath }) ?? '',
-      }),
+      contents: (testbed.readFile({ relativePath: relativePath }) ?? ''),
     }).map((line) => line.uuid),
 
   completionAgentIdsIn: ({
@@ -57,9 +54,7 @@ export const transcriptHarness = (): {
     relativePath: string;
   }): readonly unknown[] =>
     transcriptLinesReadTransformer({
-      contents: FileContentsStub({
-        value: testbed.readFile({ relativePath: relativePath }) ?? '',
-      }),
+      contents: (testbed.readFile({ relativePath: relativePath }) ?? ''),
     }).map((line) => line.toolUseResult?.agentId ?? null),
 
   assistantTextsIn: ({
@@ -70,9 +65,7 @@ export const transcriptHarness = (): {
     relativePath: string;
   }): readonly unknown[] =>
     transcriptLinesReadTransformer({
-      contents: FileContentsStub({
-        value: testbed.readFile({ relativePath: relativePath }) ?? '',
-      }),
+      contents: (testbed.readFile({ relativePath: relativePath }) ?? ''),
     }).flatMap((line): readonly unknown[] =>
       typeof line.message.content === 'string'
         ? [line.message.content]

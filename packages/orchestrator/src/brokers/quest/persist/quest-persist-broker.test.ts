@@ -1,4 +1,3 @@
-import { FileContentsStub } from '@dungeonmaster/shared/contracts/file-contents/file-contents.stub';
 import { QuestIdStub } from '@dungeonmaster/shared/contracts/quest-id/quest-id.stub';
 
 import { questPersistBroker } from './quest-persist-broker';
@@ -9,7 +8,7 @@ describe('questPersistBroker', () => {
     it('VALID: {questFilePath, contents, questId} => writes contents to tmp file', async () => {
       const proxy = questPersistBrokerProxy();
       const questFilePath = '/quests/add-auth/quest.json';
-      const contents = FileContentsStub({ value: '{"name":"add-auth"}' });
+      const contents = '{"name":"add-auth"}';
       const questId = QuestIdStub({ value: 'add-auth' });
       const homePath = '/home/testuser/.dungeonmaster';
       const outboxFilePath = '/home/testuser/.dungeonmaster/event-outbox.jsonl';
@@ -24,7 +23,7 @@ describe('questPersistBroker', () => {
     it('VALID: {questFilePath, contents, questId} => writes to tmp path (atomic write pattern)', async () => {
       const proxy = questPersistBrokerProxy();
       const questFilePath = '/quests/fix-bug/quest.json';
-      const contents = FileContentsStub({ value: '{"name":"fix-bug"}' });
+      const contents = '{"name":"fix-bug"}';
       const questId = QuestIdStub({ value: 'fix-bug' });
       const homePath = '/home/testuser/.dungeonmaster';
       const outboxFilePath = '/home/testuser/.dungeonmaster/event-outbox.jsonl';
@@ -39,7 +38,7 @@ describe('questPersistBroker', () => {
     it('VALID: {questFilePath, contents, questId} => renames tmp to final after write', async () => {
       const proxy = questPersistBrokerProxy();
       const questFilePath = '/quests/add-auth/quest.json';
-      const contents = FileContentsStub({ value: '{"name":"add-auth"}' });
+      const contents = '{"name":"add-auth"}';
       const questId = QuestIdStub({ value: 'add-auth' });
       const homePath = '/home/testuser/.dungeonmaster';
       const outboxFilePath = '/home/testuser/.dungeonmaster/event-outbox.jsonl';
@@ -61,7 +60,7 @@ describe('questPersistBroker', () => {
     it('ERROR: {write fails} => throws write error', async () => {
       const proxy = questPersistBrokerProxy();
       const questFilePath = '/quests/add-auth/quest.json';
-      const contents = FileContentsStub({ value: '{"name":"add-auth"}' });
+      const contents = '{"name":"add-auth"}';
       const questId = QuestIdStub({ value: 'add-auth' });
 
       proxy.setupWriteFailure({
@@ -77,7 +76,7 @@ describe('questPersistBroker', () => {
     it('ERROR: {rename fails} => throws rename error (outbox not appended)', async () => {
       const proxy = questPersistBrokerProxy();
       const questFilePath = '/quests/add-auth/quest.json';
-      const contents = FileContentsStub({ value: '{"name":"add-auth"}' });
+      const contents = '{"name":"add-auth"}';
       const questId = QuestIdStub({ value: 'add-auth' });
 
       proxy.setupRenameFailure({
@@ -101,7 +100,7 @@ describe('questPersistBroker', () => {
     it('ERROR: {rename fails, simulating a kill before rename lands} => the real questFilePath is never a write target — only the tmp path is', async () => {
       const proxy = questPersistBrokerProxy();
       const questFilePath = '/quests/kill-mid-persist/quest.json';
-      const contents = FileContentsStub({ value: '{"status":"paused"}' });
+      const contents = '{"status":"paused"}';
       const questId = QuestIdStub({ value: 'kill-mid-persist' });
 
       proxy.setupRenameFailure({
@@ -121,7 +120,7 @@ describe('questPersistBroker', () => {
     it('ERROR: {outbox append fails} => throws outbox error', async () => {
       const proxy = questPersistBrokerProxy();
       const questFilePath = '/quests/add-auth/quest.json';
-      const contents = FileContentsStub({ value: '{"name":"add-auth"}' });
+      const contents = '{"name":"add-auth"}';
       const questId = QuestIdStub({ value: 'add-auth' });
       const homePath = '/home/testuser/.dungeonmaster';
       const outboxFilePath = '/home/testuser/.dungeonmaster/event-outbox.jsonl';
@@ -149,7 +148,7 @@ describe('questPersistBroker', () => {
     it('ERROR: {outbox append rejects} => quest file is already written+renamed on disk before the notification failure surfaces', async () => {
       const proxy = questPersistBrokerProxy();
       const questFilePath = '/quests/pause-disconnect/quest.json';
-      const contents = FileContentsStub({ value: '{"status":"paused"}' });
+      const contents = '{"status":"paused"}';
       const questId = QuestIdStub({ value: 'pause-disconnect' });
       const homePath = '/home/testuser/.dungeonmaster';
       const outboxFilePath = '/home/testuser/.dungeonmaster/event-outbox.jsonl';

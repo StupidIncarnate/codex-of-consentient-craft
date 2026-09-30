@@ -1,4 +1,3 @@
-import { fileContentsContract } from '@dungeonmaster/shared/contracts';
 import type { AbsoluteFilePath, ContentText } from '@dungeonmaster/shared/contracts';
 
 import { fetchJsonProxy } from '#gateway/node/fetch/fetch-json/fetch-json.proxy';
@@ -48,30 +47,22 @@ export const recipesSessionWithNestedSubagentBrokerProxy = (): {
 
     uuidsIn: ({ filePath }: { filePath: AbsoluteFilePath }): readonly unknown[] =>
       transcriptLinesReadTransformer({
-        contents: fileContentsContract.parse(
-          String(writeProxy.writtenContentsFor({ path: filePath })),
-        ),
+        contents: String(writeProxy.writtenContentsFor({ path: filePath })),
       }).map((line) => line.uuid),
 
     timestampsIn: ({ filePath }: { filePath: AbsoluteFilePath }): readonly unknown[] =>
       transcriptLinesReadTransformer({
-        contents: fileContentsContract.parse(
-          String(writeProxy.writtenContentsFor({ path: filePath })),
-        ),
+        contents: String(writeProxy.writtenContentsFor({ path: filePath })),
       }).map((line) => line.timestamp),
 
     completionAgentIdsIn: ({ filePath }: { filePath: AbsoluteFilePath }): readonly unknown[] =>
       transcriptLinesReadTransformer({
-        contents: fileContentsContract.parse(
-          String(writeProxy.writtenContentsFor({ path: filePath })),
-        ),
+        contents: String(writeProxy.writtenContentsFor({ path: filePath })),
       }).map((line) => line.toolUseResult?.agentId ?? null),
 
     assistantTextsIn: ({ filePath }: { filePath: AbsoluteFilePath }): readonly unknown[] =>
       transcriptLinesReadTransformer({
-        contents: fileContentsContract.parse(
-          String(writeProxy.writtenContentsFor({ path: filePath })),
-        ),
+        contents: String(writeProxy.writtenContentsFor({ path: filePath })),
       }).flatMap((line): readonly unknown[] =>
         typeof line.message.content === 'string'
           ? [line.message.content]
@@ -80,9 +71,7 @@ export const recipesSessionWithNestedSubagentBrokerProxy = (): {
 
     toolUseIdsIn: ({ filePath }: { filePath: AbsoluteFilePath }): readonly unknown[] =>
       transcriptLinesReadTransformer({
-        contents: fileContentsContract.parse(
-          String(writeProxy.writtenContentsFor({ path: filePath })),
-        ),
+        contents: String(writeProxy.writtenContentsFor({ path: filePath })),
       }).flatMap((line): readonly unknown[] =>
         typeof line.message.content === 'string'
           ? [null]

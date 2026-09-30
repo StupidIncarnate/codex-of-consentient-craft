@@ -15,7 +15,7 @@
  */
 
 import { contentTextContract, questContract } from '@dungeonmaster/shared/contracts';
-import type { AbsoluteFilePath, ContentText, FileContents, Quest, SiegeInstance } from '@dungeonmaster/shared/contracts';
+import type { AbsoluteFilePath, ContentText, Quest, SiegeInstance } from '@dungeonmaster/shared/contracts';
 
 
 export const questRecordParseLayerBroker = ({
@@ -23,7 +23,7 @@ export const questRecordParseLayerBroker = ({
   questFilePath,
   instanceId,
 }: {
-  contents: FileContents;
+  contents: string;
   questFilePath: AbsoluteFilePath;
   instanceId: SiegeInstance['id'];
 }): { quest: Quest | null; blocked: ContentText | null } => {

@@ -1,6 +1,5 @@
 import { questFindQuestPathBrokerProxy } from '@dungeonmaster/orchestrator/brokers/quest/find-quest-path/quest-find-quest-path-broker.proxy';
 import { AbsoluteFilePathStub } from '@dungeonmaster/shared/contracts/absolute-file-path/absolute-file-path.stub';
-import { FileContentsStub } from '@dungeonmaster/shared/contracts/file-contents/file-contents.stub';
 import { GuildIdStub } from '@dungeonmaster/shared/contracts/guild-id/guild-id.stub';
 import { QuestIdStub } from '@dungeonmaster/shared/contracts/quest-id/quest-id.stub';
 import { readFileProxy } from '#gateway/node/fs__promises/read-file/read-file.proxy';
@@ -48,7 +47,7 @@ export const QuestRiftcarverDetailResponderProxy = (): {
       setupPaths();
       readProxy.returns({
         path: LOG_FILE_PATH,
-        contents: FileContentsStub({ value: FIXED_LOG }),
+        contents: FIXED_LOG,
       });
       return { expectedLog: FIXED_LOG };
     },

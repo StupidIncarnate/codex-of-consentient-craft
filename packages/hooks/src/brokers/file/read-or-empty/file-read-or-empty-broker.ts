@@ -7,21 +7,19 @@
  */
 import { readFile } from '#gateway/node/fs__promises';
 import { isFsError } from '#gateway/node/fs';
-import { fileContentsContract } from '../../../contracts/file-contents/file-contents-contract';
-import type { FileContents } from '../../../contracts/file-contents/file-contents-contract';
 
 export const fileReadOrEmptyBroker = async ({
   filePath,
 }: {
   filePath: string;
-}): Promise<FileContents> => {
+}): Promise<string> => {
   try {
     const contents = await readFile(filePath);
-    return fileContentsContract.parse(contents);
+    return contents;
   } catch (error: unknown) {
     if (!isFsError({ error, code: 'ENOENT' })) {
       throw error;
     }
-    return fileContentsContract.parse('');
+    return '';
   }
 };

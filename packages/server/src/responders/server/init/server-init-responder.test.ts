@@ -1,6 +1,5 @@
 import { setTimeout } from '#gateway/node/setTimeout';
 import { AbsoluteFilePathStub } from '@dungeonmaster/shared/contracts/absolute-file-path/absolute-file-path.stub';
-import { FileContentsStub } from '@dungeonmaster/shared/contracts/file-contents/file-contents.stub';
 import { GuildIdStub } from '@dungeonmaster/shared/contracts/guild-id/guild-id.stub';
 import { ProcessIdStub } from '@dungeonmaster/shared/contracts/process-id/process-id.stub';
 import { QuestCommentStub } from '@dungeonmaster/shared/contracts/quest-comment/quest-comment.stub';
@@ -193,7 +192,7 @@ describe('ServerInitResponder', () => {
         wardResultId,
         wardResultsPath,
         detailFilePath,
-        contents: FileContentsStub({ value: JSON.stringify(detail) }),
+        contents: JSON.stringify(detail),
       });
       proxy.callResponder();
 
@@ -1649,7 +1648,7 @@ describe('ServerInitResponder', () => {
     it('VALID: {GET /} => 200 serving index.html from the built web bundle (no redirect)', async () => {
       const proxy = ServerInitResponderProxy();
       proxy.setupWebBundleFile({
-        contents: FileContentsStub({ value: '<!doctype html><title>DM</title>' }),
+        contents: '<!doctype html><title>DM</title>',
         expectedRelativePath: '/index.html',
       });
       proxy.callResponder({ serveWebBundle: true });
@@ -1675,7 +1674,7 @@ describe('ServerInitResponder', () => {
     it('VALID: {GET /codex/quest/<id>?chat=hidden} => 200 index.html SPA fallback (not redirected)', async () => {
       const proxy = ServerInitResponderProxy();
       proxy.setupWebBundleFile({
-        contents: FileContentsStub({ value: '<!doctype html>' }),
+        contents: '<!doctype html>',
         expectedRelativePath: '/index.html',
       });
       proxy.callResponder({ serveWebBundle: true });
@@ -1698,7 +1697,7 @@ describe('ServerInitResponder', () => {
     it('VALID: {GET /assets/index-abc.js} => 200 serving the JS asset', async () => {
       const proxy = ServerInitResponderProxy();
       proxy.setupWebBundleFile({
-        contents: FileContentsStub({ value: 'console.log(1)' }),
+        contents: 'console.log(1)',
         expectedRelativePath: '/assets/index-abc.js',
       });
       proxy.callResponder({ serveWebBundle: true });

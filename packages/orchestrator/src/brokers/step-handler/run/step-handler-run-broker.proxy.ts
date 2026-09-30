@@ -15,7 +15,6 @@
 
 import type { Quest } from '@dungeonmaster/shared/contracts';
 import { ExitCodeStub } from '@dungeonmaster/shared/contracts/exit-code/exit-code.stub';
-import { FileContentsStub } from '@dungeonmaster/shared/contracts/file-contents/file-contents.stub';
 import { FileNameStub } from '@dungeonmaster/shared/contracts/file-name/file-name.stub';
 import { wardExitCodeStatics } from '@dungeonmaster/shared/statics';
 
@@ -45,7 +44,7 @@ export const stepHandlerRunBrokerProxy = (): {
         questId,
         exitCode: ExitCodeStub({ value: wardExitCodeStatics.exitCodes.pass }),
         runId: FileNameStub({ value: '1780108054226-a080' }),
-        detailJson: FileContentsStub({ value: '{"checks":[]}' }),
+        detailJson: '{"checks":[]}',
       });
     },
 

@@ -9,15 +9,14 @@
  * CONTRACTS: Output: FileContents (branded string)
  */
 
-import { fileContentsContract, type FileContents } from '@dungeonmaster/shared/contracts';
 import { sessionSnippetStatics } from '@dungeonmaster/shared/statics';
 
-export const agentsRulesCreatorTransformer = (): FileContents => {
+export const agentsRulesCreatorTransformer = (): string => {
   const activeSnippets = Object.values(sessionSnippetStatics).filter(
     (snippet): snippet is NonNullable<typeof snippet> => snippet !== null,
   );
 
   const markdown = `# Dungeonmaster Operating Rules\n\n${activeSnippets.join('\n\n---\n\n')}\n`;
 
-  return fileContentsContract.parse(markdown);
+  return markdown;
 };

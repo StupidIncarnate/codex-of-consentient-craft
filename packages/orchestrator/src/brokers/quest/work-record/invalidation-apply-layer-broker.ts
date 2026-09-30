@@ -13,11 +13,7 @@
  * // Returns { kind: 'invalidation', flowId, noteId, clearedCount } once persisted
  */
 
-import {
-  fileContentsContract,
-  questContract,
-  questNoteContract,
-} from '@dungeonmaster/shared/contracts';
+import { questContract, questNoteContract } from '@dungeonmaster/shared/contracts';
 import type { Quest, QuestNote, WorkItem, Flow } from '@dungeonmaster/shared/contracts';
 
 import type { IsoTimestamp } from '../../../contracts/iso-timestamp/iso-timestamp-contract';
@@ -106,9 +102,7 @@ export const invalidationApplyLayerBroker = async ({
     updatedAt: nowAt,
   });
 
-  const questJson = fileContentsContract.parse(
-    JSON.stringify(updatedQuest, null, JSON_INDENT_SPACES),
-  );
+  const questJson = JSON.stringify(updatedQuest, null, JSON_INDENT_SPACES);
 
   await questPersistBroker({ questFilePath, contents: questJson, questId });
 

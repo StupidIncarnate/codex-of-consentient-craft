@@ -24,7 +24,6 @@ import { envSnapshot, execPath } from '#gateway/node/process';
 import { setTimeout } from '#gateway/node/setTimeout';
 import { tsxCliPath } from '#gateway/npm/tsx';
 
-import { fileContentsContract, type FileContents } from '@dungeonmaster/shared/contracts';
 import { ExitCodeStub } from '@dungeonmaster/shared/contracts/exit-code/exit-code.stub';
 
 // binExists/binIsExecutable/readBinContent back the "file structure" assertions in
@@ -60,7 +59,7 @@ export const cliBinHarness = (): {
   binPath: string;
   binExists: () => boolean;
   binIsExecutable: () => boolean;
-  readBinContent: () => FileContents;
+  readBinContent: () => string;
   runCommand: ({ args }: { args: readonly string[] }) => Promise<{
     exitCode: ReturnType<typeof ExitCodeStub>;
     stdout: string;
@@ -223,7 +222,7 @@ export const cliBinHarness = (): {
       }
     },
 
-    readBinContent: (): FileContents => fileContentsContract.parse(readFileSync(BIN_PATH)),
+    readBinContent: (): string => readFileSync(BIN_PATH),
 
     runCommand,
 

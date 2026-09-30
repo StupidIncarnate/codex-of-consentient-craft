@@ -37,14 +37,7 @@
 import { existsSync } from '#gateway/node/fs';
 import { readFile, writeFile } from '#gateway/node/fs__promises';
 import { resolve } from '#gateway/node/path';
-import {
-  type InstallContext,
-  type InstallResult,
-  absoluteFilePathContract,
-  fileContentsContract,
-  installMessageContract,
-  packageNameContract,
-} from '@dungeonmaster/shared/contracts';
+import { type InstallContext, type InstallResult, absoluteFilePathContract, installMessageContract, packageNameContract } from '@dungeonmaster/shared/contracts';
 import { locationsStatics } from '@dungeonmaster/shared/statics';
 import { ArrayEntryAnchorInsertLayerResponder } from './array-entry-anchor-insert-layer-responder';
 
@@ -133,7 +126,7 @@ export const InstallIgnoreWriteResponder = async ({
               index === staleEntryLineIndex ? SIEGELENSE_GITIGNORE_ENTRY : line,
             )
             .join('\n');
-    await writeFile(gitignorePath, fileContentsContract.parse(newGitignore));
+    await writeFile(gitignorePath, newGitignore);
   }
 
   const gitignoreClause = gitignoreHasEntry

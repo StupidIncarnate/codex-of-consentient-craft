@@ -18,7 +18,7 @@
 
 import { ensureDir, writeFile } from '#gateway/node/fs__promises';
 import { join } from '#gateway/node/path';
-import { absoluteFilePathContract, fileContentsContract } from '@dungeonmaster/shared/contracts';
+import { absoluteFilePathContract } from '@dungeonmaster/shared/contracts';
 
 import { epochMsContract } from '../../../contracts/epoch-ms/epoch-ms-contract';
 import type { EpochMs } from '../../../contracts/epoch-ms/epoch-ms-contract';
@@ -52,7 +52,7 @@ export const profileBootRecordBroker = async ({
   });
 
   await ensureDir(bootsDir);
-  await writeFile(recordPath, fileContentsContract.parse(`${JSON.stringify(record)}\n`));
+  await writeFile(recordPath, `${JSON.stringify(record)}\n`);
 
   return record;
 };

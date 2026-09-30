@@ -3,7 +3,7 @@ import { readFileProxy } from '#gateway/node/fs__promises/read-file/read-file.pr
 import { join } from '#gateway/node/path';
 import { stdinIsTtyProxy } from '#gateway/node/process/stdin-is-tty/stdin-is-tty.proxy';
 import { stdoutProxy } from '#gateway/node/process/stdout/stdout.proxy';
-import { type FileContents, type PathSegment } from '@dungeonmaster/shared/contracts';
+import { type PathSegment } from '@dungeonmaster/shared/contracts';
 
 import { createPackageResolveRequestBrokerProxy } from '../../../brokers/create-package/resolve-request/create-package-resolve-request-broker.proxy';
 import { packageRegisterBrokerProxy } from '../../../brokers/package/register/package-register-broker.proxy';
@@ -15,7 +15,7 @@ export const CliCreatePackageResponderProxy = (): {
   setupRootPackageJson: (params: { projectRoot: string; contents: string }) => void;
   setupTargetMissing: (params: {
     packageRoot: string;
-    files: readonly { relativePath: PathSegment; contents: FileContents }[];
+    files: readonly { relativePath: PathSegment; contents: string }[];
   }) => void;
   // Stages the repo-root build config file as PRESENT, the shape of THIS checkout's own
   // packages — setupRootPackageJson stages it absent by default, which is the shape of a
@@ -58,7 +58,7 @@ export const CliCreatePackageResponderProxy = (): {
       files,
     }: {
       packageRoot: string;
-      files: readonly { relativePath: PathSegment; contents: FileContents }[];
+      files: readonly { relativePath: PathSegment; contents: string }[];
     }): void => {
       scaffoldWriteProxy.setupTargetMissing({ packageRoot, files });
     },

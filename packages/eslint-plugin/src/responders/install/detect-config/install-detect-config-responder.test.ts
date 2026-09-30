@@ -1,4 +1,3 @@
-import { FileContentsStub } from '@dungeonmaster/shared/contracts/file-contents/file-contents.stub';
 import { InstallDetectConfigResponderProxy } from './install-detect-config-responder.proxy';
 import { InstallContextStub } from '@dungeonmaster/shared/contracts/install-context/install-context.stub';
 
@@ -123,9 +122,7 @@ module.exports = [
       proxy.setupConfigExists({
         targetProjectRoot: '/test/project',
         configFileName: 'eslint.config.js',
-        contents: FileContentsStub({
-          value: "const dungeonmaster = require('@dungeonmaster/eslint-plugin');",
-        }),
+        contents: "const dungeonmaster = require('@dungeonmaster/eslint-plugin');",
       });
 
       const result = proxy.callResponder({
@@ -150,7 +147,7 @@ module.exports = [
       proxy.setupConfigExists({
         targetProjectRoot: '/test/project',
         configFileName: 'eslint.config.js',
-        contents: FileContentsStub({ value: 'module.exports = { rules: {} };' }),
+        contents: 'module.exports = { rules: {} };',
       });
 
       const result = proxy.callResponder({
@@ -173,7 +170,7 @@ module.exports = [
       proxy.setupConfigExists({
         targetProjectRoot: '/test/project',
         configFileName: 'eslint.config.mjs',
-        contents: FileContentsStub({ value: 'export default { rules: {} };' }),
+        contents: 'export default { rules: {} };',
       });
 
       const result = proxy.callResponder({

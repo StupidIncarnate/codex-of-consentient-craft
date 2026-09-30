@@ -1,7 +1,6 @@
 import { mcpDiscoverBroker } from './mcp-discover-broker';
 import { mcpDiscoverBrokerProxy } from './mcp-discover-broker.proxy';
 import { DiscoverInputStub } from '../../../contracts/discover-input/discover-input.stub';
-import { FileContentsStub } from '@dungeonmaster/shared/contracts/file-contents/file-contents.stub';
 import { GlobPatternStub } from '@dungeonmaster/shared/contracts/glob-pattern/glob-pattern.stub';
 import { PathSegmentStub as FilePathStub } from '@dungeonmaster/shared/contracts/path-segment/path-segment.stub';
 
@@ -41,10 +40,7 @@ describe('mcpDiscoverBroker', () => {
     it('VALID: {glob: "**/*.ts"} => returns tree format with matched files', async () => {
       const brokerProxy = mcpDiscoverBrokerProxy();
       const filepath = FilePathStub({ value: '/default/cwd/src/guards/standalone-guard.ts' });
-      const contents = FileContentsStub({
-        value:
-          '/**\n * PURPOSE: standalone guard\n *\n * USAGE:\n * example\n */\nexport const standaloneGuard = () => {};',
-      });
+      const contents = '/**\n * PURPOSE: standalone guard\n *\n * USAGE:\n * example\n */\nexport const standaloneGuard = () => {};';
       const pattern = GlobPatternStub({ value: '**/*.ts' });
 
       brokerProxy.setupFileDiscovery({ filepath, contents, pattern });
@@ -63,10 +59,7 @@ describe('mcpDiscoverBroker', () => {
       const filepath = FilePathStub({
         value: '/default/cwd/src/adapters/fs-access-adapter.ts',
       });
-      const contents = FileContentsStub({
-        value:
-          "/**\n * PURPOSE: Checks file access\n */\nexport const fsAccessAdapter = () => {};\nif (error.code === 'ENOENT') {\n  throw error;\n}",
-      });
+      const contents = "/**\n * PURPOSE: Checks file access\n */\nexport const fsAccessAdapter = () => {};\nif (error.code === 'ENOENT') {\n  throw error;\n}";
       const pattern = GlobPatternStub({ value: '**/*' });
 
       brokerProxy.setupFileDiscovery({ filepath, contents, pattern });
@@ -84,10 +77,7 @@ describe('mcpDiscoverBroker', () => {
     it('VALID: {glob: "**/*.ts", grep: "guard"} => passes both glob and grep to scanner', async () => {
       const brokerProxy = mcpDiscoverBrokerProxy();
       const filepath = FilePathStub({ value: '/default/cwd/src/guards/standalone-guard.ts' });
-      const contents = FileContentsStub({
-        value:
-          '/**\n * PURPOSE: standalone guard\n *\n * USAGE:\n * example\n */\nexport const standaloneGuard = () => {};',
-      });
+      const contents = '/**\n * PURPOSE: standalone guard\n *\n * USAGE:\n * example\n */\nexport const standaloneGuard = () => {};';
       const pattern = GlobPatternStub({ value: '**/*.ts' });
 
       brokerProxy.setupFileDiscovery({ filepath, contents, pattern });
@@ -104,10 +94,7 @@ describe('mcpDiscoverBroker', () => {
     it('VALID: {grep: "guard", context: 2} => passes context to scanner', async () => {
       const brokerProxy = mcpDiscoverBrokerProxy();
       const filepath = FilePathStub({ value: '/default/cwd/src/guards/standalone-guard.ts' });
-      const contents = FileContentsStub({
-        value:
-          '/**\n * PURPOSE: standalone guard\n *\n * USAGE:\n * example\n */\nexport const standaloneGuard = () => {};',
-      });
+      const contents = '/**\n * PURPOSE: standalone guard\n *\n * USAGE:\n * example\n */\nexport const standaloneGuard = () => {};';
       const pattern = GlobPatternStub({ value: '**/*' });
 
       brokerProxy.setupFileDiscovery({ filepath, contents, pattern });
@@ -124,9 +111,7 @@ describe('mcpDiscoverBroker', () => {
     it('VALID: {grep: "NOMATCH"} => returns empty tree when no files match', async () => {
       const brokerProxy = mcpDiscoverBrokerProxy();
       const filepath = FilePathStub({ value: '/default/cwd/src/guards/standalone-guard.ts' });
-      const contents = FileContentsStub({
-        value: '/**\n * PURPOSE: standalone guard\n */\nexport const standaloneGuard = () => {};',
-      });
+      const contents = '/**\n * PURPOSE: standalone guard\n */\nexport const standaloneGuard = () => {};';
       const pattern = GlobPatternStub({ value: '**/*' });
 
       brokerProxy.setupFileDiscovery({ filepath, contents, pattern });
@@ -147,10 +132,7 @@ describe('mcpDiscoverBroker', () => {
       const filepath = FilePathStub({
         value: '/default/cwd/src/guards/has-permission-guard.ts',
       });
-      const contents = FileContentsStub({
-        value:
-          '/**\n * PURPOSE: Validates permission\n * USAGE: hasPermissionGuard({ user })\n */\nexport const hasPermissionGuard = ({ user }: { user?: User }): boolean => true;',
-      });
+      const contents = '/**\n * PURPOSE: Validates permission\n * USAGE: hasPermissionGuard({ user })\n */\nexport const hasPermissionGuard = ({ user }: { user?: User }): boolean => true;';
       const pattern = GlobPatternStub({ value: '**/*' });
 
       brokerProxy.setupFileDiscovery({ filepath, contents, pattern });
@@ -179,10 +161,7 @@ describe('mcpDiscoverBroker', () => {
       const filepath = FilePathStub({
         value: '/default/cwd/src/adapters/fs-access-adapter.ts',
       });
-      const contents = FileContentsStub({
-        value:
-          "/**\n * PURPOSE: Checks file access\n *\n * USAGE:\n * fsAccessAdapter({ filepath })\n */\nexport const fsAccessAdapter = () => {};\nif (error.code === 'ENOENT') {\n  throw error;\n}",
-      });
+      const contents = "/**\n * PURPOSE: Checks file access\n *\n * USAGE:\n * fsAccessAdapter({ filepath })\n */\nexport const fsAccessAdapter = () => {};\nif (error.code === 'ENOENT') {\n  throw error;\n}";
       const pattern = GlobPatternStub({ value: '**/*' });
 
       brokerProxy.setupFileDiscovery({ filepath, contents, pattern });
@@ -333,18 +312,9 @@ describe('mcpDiscoverBroker', () => {
         value: '/default/cwd/src/brokers/user-fetch-broker.proxy.ts',
       });
 
-      const implContents = FileContentsStub({
-        value:
-          '/**\n * PURPOSE: Fetches user data\n *\n * USAGE:\n * userFetchBroker()\n */\nexport const userFetchBroker = () => {};',
-      });
-      const testContents = FileContentsStub({
-        value:
-          '/**\n * PURPOSE: Test user fetch broker\n *\n * USAGE:\n * testUserFetchBroker()\n */\nexport const testUserFetchBroker = () => {};',
-      });
-      const proxyContents = FileContentsStub({
-        value:
-          '/**\n * PURPOSE: Proxy for user fetch broker\n *\n * USAGE:\n * userFetchBrokerProxy()\n */\nexport const userFetchBrokerProxy = () => {};',
-      });
+      const implContents = '/**\n * PURPOSE: Fetches user data\n *\n * USAGE:\n * userFetchBroker()\n */\nexport const userFetchBroker = () => {};';
+      const testContents = '/**\n * PURPOSE: Test user fetch broker\n *\n * USAGE:\n * testUserFetchBroker()\n */\nexport const testUserFetchBroker = () => {};';
+      const proxyContents = '/**\n * PURPOSE: Proxy for user fetch broker\n *\n * USAGE:\n * userFetchBrokerProxy()\n */\nexport const userFetchBrokerProxy = () => {};';
 
       const pattern = GlobPatternStub({ value: '**/*' });
 
@@ -402,9 +372,7 @@ describe('mcpDiscoverBroker', () => {
       const filepath = FilePathStub({
         value: '/default/cwd/packages/mcp/src/contracts/orchestration-event-type-contract.ts',
       });
-      const contents = FileContentsStub({
-        value: `export const orchestrationEventTypeContract = z.enum(['x', 'y']);`,
-      });
+      const contents = `export const orchestrationEventTypeContract = z.enum(['x', 'y']);`;
       const pattern = GlobPatternStub({ value: '**/*.ts' });
 
       brokerProxy.setupFileDiscovery({ filepath, contents, pattern });
@@ -465,7 +433,7 @@ describe('mcpDiscoverBroker', () => {
       const pattern = GlobPatternStub({
         value: 'packages/siegelense/src/brokers/step/**',
       });
-      const contents = FileContentsStub({ value: 'export const stepRunBroker = () => true;' });
+      const contents = 'export const stepRunBroker = () => true;';
 
       brokerProxy.setupFileDiscoveryAtRoot({ rootPath, filepath, contents, pattern });
 

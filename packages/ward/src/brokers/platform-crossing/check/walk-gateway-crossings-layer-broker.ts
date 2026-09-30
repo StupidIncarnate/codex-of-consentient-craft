@@ -39,7 +39,6 @@
  * // Returns: readonly PlatformCrossingChainHop[][] — the first chain reached to each forbidden import
  */
 
-import type { FileContents } from '@dungeonmaster/shared/contracts';
 
 import type { ProjectFolder } from '../../../contracts/project-folder/project-folder-contract';
 import type { GatewayPackageName } from '../../../contracts/gateway-package-name/gateway-package-name-contract';
@@ -80,7 +79,7 @@ export const walkGatewayCrossingsLayerBroker = async ({
   resolveCache = new Map(),
 }: {
   filePath: string;
-  content: FileContents;
+  content: string;
   requestedNames: 'all' | readonly ImportedName[];
   pathHistory: readonly string[];
   chainLabels: readonly PlatformCrossingChainHop[];

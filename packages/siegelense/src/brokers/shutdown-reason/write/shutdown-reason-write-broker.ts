@@ -17,7 +17,7 @@
  */
 
 import { join } from '#gateway/node/path';
-import { absoluteFilePathContract, fileContentsContract } from '@dungeonmaster/shared/contracts';
+import { absoluteFilePathContract } from '@dungeonmaster/shared/contracts';
 import type { AbsoluteFilePath, ContentText } from '@dungeonmaster/shared/contracts';
 import { locationsStatics } from '@dungeonmaster/shared/statics';
 
@@ -42,7 +42,7 @@ export const shutdownReasonWriteBroker = async ({
     atMs: epochMsContract.parse(Date.now()),
   });
 
-  const contents = fileContentsContract.parse(`${JSON.stringify(marker)}\n`);
+  const contents = `${JSON.stringify(marker)}\n`;
 
   await writeFile(markerPath, contents);
 

@@ -6,7 +6,7 @@
  * proxy.setupQuestFolders({ questFolders, questFiles });
  */
 
-import type { FileContents, FileName } from '@dungeonmaster/shared/contracts';
+import type { FileName } from '@dungeonmaster/shared/contracts';
 import { locationsStatics } from '@dungeonmaster/shared/statics';
 import { registerMock } from '@dungeonmaster/testing/register-mock';
 import type { MockHandle } from '@dungeonmaster/testing/register-mock';
@@ -21,7 +21,7 @@ export const questFolderFindBrokerProxy = (): {
     questFiles: {
       folderPath: string;
       questFilePath: string;
-      contents: FileContents;
+      contents: string;
     }[];
   }) => void;
   setupEmptyFolder: (params: { questsPath: string }) => void;
@@ -32,7 +32,7 @@ export const questFolderFindBrokerProxy = (): {
     validQuestFile: {
       folderPath: string;
       questFilePath: string;
-      contents: FileContents;
+      contents: string;
     };
   }) => void;
 } => {
@@ -51,7 +51,7 @@ export const questFolderFindBrokerProxy = (): {
       questFiles: {
         folderPath: string;
         questFilePath: string;
-        contents: FileContents;
+        contents: string;
       }[];
     }): void => {
       readdirProxy.returns({ path: questsPath, names: questFolders });
@@ -93,7 +93,7 @@ export const questFolderFindBrokerProxy = (): {
       validQuestFile: {
         folderPath: string;
         questFilePath: string;
-        contents: FileContents;
+        contents: string;
       };
     }): void => {
       readdirProxy.returns({ path: questsPath, names: questFolders });

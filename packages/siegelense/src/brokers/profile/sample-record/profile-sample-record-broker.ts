@@ -29,7 +29,7 @@ import { existsSync } from '#gateway/node/fs';
 import { ensureDir, readFile, writeFile } from '#gateway/node/fs__promises';
 import { join } from '#gateway/node/path';
 import { stderr } from '#gateway/node/process';
-import { absoluteFilePathContract, fileContentsContract } from '@dungeonmaster/shared/contracts';
+import { absoluteFilePathContract } from '@dungeonmaster/shared/contracts';
 
 import type { EpochMs } from '../../../contracts/epoch-ms/epoch-ms-contract';
 import type { Megabytes } from '../../../contracts/megabytes/megabytes-contract';
@@ -101,7 +101,7 @@ export const profileSampleRecordBroker = async ({
   });
 
   await ensureDir(samplesDir);
-  await writeFile(recordPath, fileContentsContract.parse(`${JSON.stringify(merged)}\n`));
+  await writeFile(recordPath, `${JSON.stringify(merged)}\n`);
 
   return merged;
 };

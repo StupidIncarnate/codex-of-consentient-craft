@@ -1,6 +1,5 @@
 import { questFindQuestPathBrokerProxy } from '@dungeonmaster/orchestrator/brokers/quest/find-quest-path/quest-find-quest-path-broker.proxy';
 import { AbsoluteFilePathStub } from '@dungeonmaster/shared/contracts/absolute-file-path/absolute-file-path.stub';
-import { FileContentsStub } from '@dungeonmaster/shared/contracts/file-contents/file-contents.stub';
 import { FilePathStub as SharedFilePathStub } from '@dungeonmaster/shared/contracts/file-path/file-path.stub';
 import { GuildIdStub } from '@dungeonmaster/shared/contracts/guild-id/guild-id.stub';
 import { QuestIdStub } from '@dungeonmaster/shared/contracts/quest-id/quest-id.stub';
@@ -61,7 +60,7 @@ export const QuestWardDetailResponderProxy = (): {
       setupPaths();
       readProxy.returns({
         path: DETAIL_FILE_PATH,
-        contents: FileContentsStub({ value: JSON.stringify(FIXED_DETAIL) }),
+        contents: JSON.stringify(FIXED_DETAIL),
       });
       return { expectedDetail: FIXED_DETAIL };
     },

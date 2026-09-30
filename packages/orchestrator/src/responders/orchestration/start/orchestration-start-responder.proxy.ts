@@ -27,7 +27,6 @@
 
 import type { QuestStub } from '@dungeonmaster/shared/contracts/quest/quest.stub';
 import { questContract } from '@dungeonmaster/shared/contracts';
-import { FileContentsStub } from '@dungeonmaster/shared/contracts/file-contents/file-contents.stub';
 import { FileNameStub } from '@dungeonmaster/shared/contracts/file-name/file-name.stub';
 import { GuildConfigStub } from '@dungeonmaster/shared/contracts/guild-config/guild-config.stub';
 import { GuildIdStub } from '@dungeonmaster/shared/contracts/guild-id/guild-id.stub';
@@ -131,7 +130,7 @@ export const OrchestrationStartResponderProxy = (): {
               folderName: FileNameStub({ value: quest.folder }),
               questFilePath,
               questFolderPath,
-              contents: FileContentsStub({ value: JSON.stringify(quest) }),
+              contents: JSON.stringify(quest),
             },
           ],
         },

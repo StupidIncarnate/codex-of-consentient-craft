@@ -1,7 +1,6 @@
 import { questPersistDirectBroker } from './quest-persist-direct-broker';
 import { questPersistDirectBrokerProxy } from './quest-persist-direct-broker.proxy';
 import { DmTargetStub } from '../../../contracts/dm-target/dm-target.stub';
-import { FileContentsStub } from '@dungeonmaster/shared/contracts/file-contents/file-contents.stub';
 import { QuestIdStub } from '@dungeonmaster/shared/contracts/quest-id/quest-id.stub';
 
 describe('questPersistDirectBroker', () => {
@@ -17,7 +16,7 @@ describe('questPersistDirectBroker', () => {
         questPersistDirectBroker({
           target,
           questFilePath,
-          contents: FileContentsStub({ value: '{"id":"add-auth"}' }),
+          contents: '{"id":"add-auth"}',
           questId: QuestIdStub({ value: 'add-auth' }),
         }),
       ).resolves.toBe(undefined);
@@ -35,7 +34,7 @@ describe('questPersistDirectBroker', () => {
       await questPersistDirectBroker({
         target,
         questFilePath,
-        contents: FileContentsStub({ value: '{}' }),
+        contents: '{}',
         questId: QuestIdStub({ value: 'add-auth' }),
       });
 

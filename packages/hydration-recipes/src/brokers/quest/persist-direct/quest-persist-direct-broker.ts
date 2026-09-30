@@ -20,8 +20,7 @@
  */
 import { appendFile, rename, writeFile } from '#gateway/node/fs__promises';
 import { locationsStatics } from '@dungeonmaster/shared/statics';
-import { fileContentsContract } from '@dungeonmaster/shared/contracts';
-import type { FileContents, Quest } from '@dungeonmaster/shared/contracts';
+import type { Quest } from '@dungeonmaster/shared/contracts';
 
 import { dmQuestOutboxLineContract } from '../../../contracts/dm-quest-outbox-line/dm-quest-outbox-line-contract';
 import type { DmTarget } from '../../../contracts/dm-target/dm-target-contract';
@@ -36,7 +35,7 @@ export const questPersistDirectBroker = async ({
 }: {
   target: DmTarget;
   questFilePath: string;
-  contents: FileContents;
+  contents: string;
   questId: Quest['id'];
 }): Promise<void> => {
   const tmpPath = `${questFilePath}${TMP_SUFFIX}`;
@@ -50,5 +49,5 @@ export const questPersistDirectBroker = async ({
     timestamp: new Date().toISOString(),
   });
 
-  await appendFile(outboxPath, fileContentsContract.parse(`${JSON.stringify(outboxLine)}\n`));
+  await appendFile(outboxPath, `${JSON.stringify(outboxLine)}\n`);
 };

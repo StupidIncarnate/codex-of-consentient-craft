@@ -1,6 +1,5 @@
 import { hasMetadataCommentGuard } from './has-metadata-comment-guard';
 import { hasMetadataCommentGuardProxy } from './has-metadata-comment-guard.proxy';
-import { FileContentsStub } from '@dungeonmaster/shared/contracts/file-contents/file-contents.stub';
 
 describe('hasMetadataCommentGuard', () => {
   describe('valid metadata', () => {
@@ -34,7 +33,7 @@ describe('hasMetadataCommentGuard', () => {
     });
 
     it('INVALID: {fileContents: empty string} => returns false', () => {
-      const fileContents = FileContentsStub({ value: '' });
+      const fileContents = '';
 
       const result = hasMetadataCommentGuard({ fileContents });
 
@@ -42,9 +41,7 @@ describe('hasMetadataCommentGuard', () => {
     });
 
     it('INVALID: {fileContents: plain code without metadata} => returns false', () => {
-      const fileContents = FileContentsStub({
-        value: 'export const testFunction = () => {};',
-      });
+      const fileContents = 'export const testFunction = () => {};';
 
       const result = hasMetadataCommentGuard({ fileContents });
 

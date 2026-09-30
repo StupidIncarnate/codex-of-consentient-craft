@@ -6,7 +6,6 @@
  * // Returns SessionSummary 'Help me build a login page' or undefined if no valid user message found
  */
 
-import type { FileContents } from '@dungeonmaster/shared/contracts';
 import { jsonlSessionLineContract } from '../../contracts/jsonl-session-line/jsonl-session-line-contract';
 import { userMessageCommandPrefixesStatics } from '../../statics/user-message-command-prefixes/user-message-command-prefixes-statics';
 
@@ -15,7 +14,7 @@ const MAX_DISPLAY_LENGTH = 80;
 export const extractFirstUserMessageTransformer = ({
   fileContent,
 }: {
-  fileContent: FileContents;
+  fileContent: string;
 }): string | undefined => {
   if (!fileContent) {
     return undefined;

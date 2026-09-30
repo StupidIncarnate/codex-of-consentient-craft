@@ -22,28 +22,28 @@ import { fileDiscoveryStatics } from '../../../statics/file-discovery/file-disco
 import { cwdProxy } from '#gateway/node/process/cwd/cwd.proxy';
 import { globPatternContract, pathSegmentContract } from '@dungeonmaster/shared/contracts';
 import { PathSegmentStub } from '@dungeonmaster/shared/contracts/path-segment/path-segment.stub';
-import type { FileContents, GlobPattern, PathSegment } from '@dungeonmaster/shared/contracts';
+import type { GlobPattern, PathSegment } from '@dungeonmaster/shared/contracts';
 import type { FsError } from '#gateway/node/fs';
 
 const BROAD_GLOB_PREFIX = '**';
 
 export const fileScannerBrokerProxy = (): {
   setupFiles: (params: {
-    files: readonly { filepath: PathSegment; contents: FileContents }[];
+    files: readonly { filepath: PathSegment; contents: string }[];
     pattern: GlobPattern;
     ignorePatterns?: readonly GlobPattern[];
   }) => void;
   setupFilesWithFailingReads: (params: {
     files: readonly {
       filepath: PathSegment;
-      contents?: FileContents;
+      contents?: string;
       error?: FsError;
     }[];
     pattern: GlobPattern;
   }) => void;
   setupFilesAtRoot: (params: {
     rootPath: PathSegment;
-    files: readonly { filepath: PathSegment; contents: FileContents }[];
+    files: readonly { filepath: PathSegment; contents: string }[];
     pattern: GlobPattern;
   }) => void;
   setupGlobFailure: (params: { pattern: GlobPattern; error: Error }) => void;
@@ -126,7 +126,7 @@ export const fileScannerBrokerProxy = (): {
       pattern,
       ignorePatterns,
     }: {
-      files: readonly { filepath: PathSegment; contents: FileContents }[];
+      files: readonly { filepath: PathSegment; contents: string }[];
       pattern: GlobPattern;
       ignorePatterns?: readonly GlobPattern[];
     }): void => {
@@ -147,7 +147,7 @@ export const fileScannerBrokerProxy = (): {
     }: {
       files: readonly {
         filepath: PathSegment;
-        contents?: FileContents;
+        contents?: string;
         error?: FsError;
       }[];
       pattern: GlobPattern;
@@ -177,7 +177,7 @@ export const fileScannerBrokerProxy = (): {
       pattern,
     }: {
       rootPath: PathSegment;
-      files: readonly { filepath: PathSegment; contents: FileContents }[];
+      files: readonly { filepath: PathSegment; contents: string }[];
       pattern: GlobPattern;
     }): void => {
       stageDefaultCwd();

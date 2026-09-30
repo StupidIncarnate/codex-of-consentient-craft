@@ -3,7 +3,6 @@ import { readJsonFileIfExistsProxy } from '#gateway/node/fs__promises/read-json-
 import { writeFileCreatingParentProxy } from '#gateway/node/fs__promises/write-file-creating-parent/write-file-creating-parent.proxy';
 import { locationsStatics } from '@dungeonmaster/shared/statics';
 import { installAgentsSetupBrokerProxy } from '../../../brokers/install/agents-setup/install-agents-setup-broker.proxy';
-import type { FileContentsStub } from '../../../contracts/file-contents/file-contents.stub';
 import { InstallCreateSettingsResponder } from './install-create-settings-responder';
 
 // Every current test supplies this exact targetProjectRoot; the settings path below is derived
@@ -13,7 +12,7 @@ const TARGET_PROJECT_ROOT = '/project';
 export const InstallCreateSettingsResponderProxy = (): {
   callResponder: typeof InstallCreateSettingsResponder;
   setupNoExistingSettings: () => void;
-  setupExistingSettings: (params: { content: ReturnType<typeof FileContentsStub> }) => void;
+  setupExistingSettings: (params: { content: string }) => void;
   setupCorruptSettings: () => void;
   setupUnreadableSettings: () => void;
   getWrittenContent: () => unknown;
@@ -44,7 +43,7 @@ export const InstallCreateSettingsResponderProxy = (): {
     setupExistingSettings: ({
       content,
     }: {
-      content: ReturnType<typeof FileContentsStub>;
+      content: string;
     }): void => {
       readProxy.returnsRaw({ path: settingsPath, rawContents: content });
     },

@@ -11,10 +11,8 @@
  * // Returns branded FileContents: `${JSON.stringify(value, null, 2)}\n`
  */
 
-import { fileContentsContract } from '../../contracts/file-contents/file-contents-contract';
-import type { FileContents } from '../../contracts/file-contents/file-contents-contract';
 
 const JSON_FILE_INDENT_SPACES = 2;
 
-export const jsonFileContentsTransformer = ({ value }: { value: unknown }): FileContents =>
-  fileContentsContract.parse(`${JSON.stringify(value, null, JSON_FILE_INDENT_SPACES)}\n`);
+export const jsonFileContentsTransformer = ({ value }: { value: unknown }): string =>
+  `${JSON.stringify(value, null, JSON_FILE_INDENT_SPACES)}\n`;

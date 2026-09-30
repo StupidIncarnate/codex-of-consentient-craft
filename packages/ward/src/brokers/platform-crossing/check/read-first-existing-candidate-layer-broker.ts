@@ -11,7 +11,6 @@
  */
 
 import { readFile } from '#gateway/node/fs__promises';
-import { fileContentsContract, type FileContents } from '@dungeonmaster/shared/contracts';
 
 import { isNodeErrorWithCodeGuard } from '../../../guards/is-node-error-with-code/is-node-error-with-code-guard';
 
@@ -19,7 +18,7 @@ export const readFirstExistingCandidateLayerBroker = async ({
   candidates,
 }: {
   candidates: readonly string[];
-}): Promise<{ filePath: string; content: FileContents } | undefined> => {
+}): Promise<{ filePath: string; content: string } | undefined> => {
   const [firstCandidate, ...remainingCandidates] = candidates;
   if (firstCandidate === undefined) {
     return undefined;
@@ -32,7 +31,7 @@ export const readFirstExistingCandidateLayerBroker = async ({
     throw error;
   });
   if (raw !== undefined) {
-    return { filePath: firstCandidate, content: fileContentsContract.parse(raw) };
+    return { filePath: firstCandidate, content: raw };
   }
 
   return readFirstExistingCandidateLayerBroker({ candidates: remainingCandidates });

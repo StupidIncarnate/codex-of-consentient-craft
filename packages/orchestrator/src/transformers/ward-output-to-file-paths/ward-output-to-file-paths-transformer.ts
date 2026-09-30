@@ -6,18 +6,14 @@
  * // Returns [AbsoluteFilePath('/src/file.ts')]
  */
 
-import {
-  absoluteFilePathContract,
-  type AbsoluteFilePath,
-  type FileContents,
-} from '@dungeonmaster/shared/contracts';
+import { absoluteFilePathContract, type AbsoluteFilePath } from '@dungeonmaster/shared/contracts';
 
 import { wardDetailJsonContract } from '../../contracts/ward-detail-json/ward-detail-json-contract';
 
 export const wardOutputToFilePathsTransformer = ({
   wardResultJson,
 }: {
-  wardResultJson: FileContents;
+  wardResultJson: string;
 }): AbsoluteFilePath[] => {
   const parseResult = wardDetailJsonContract.safeParse(JSON.parse(wardResultJson));
 

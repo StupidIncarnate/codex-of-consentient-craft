@@ -18,7 +18,6 @@
  */
 
 import { AbsoluteFilePathStub } from '@dungeonmaster/shared/contracts/absolute-file-path/absolute-file-path.stub';
-import { FileContentsStub } from '@dungeonmaster/shared/contracts/file-contents/file-contents.stub';
 import { FileNameStub } from '@dungeonmaster/shared/contracts/file-name/file-name.stub';
 import { GuildIdStub } from '@dungeonmaster/shared/contracts/guild-id/guild-id.stub';
 import type { OperationItem } from '@dungeonmaster/shared/contracts';
@@ -81,7 +80,7 @@ export const questGetQuestWorkBrokerProxy = (): {
               folderName: FileNameStub({ value: quest.folder }),
               questFilePath,
               questFolderPath,
-              contents: FileContentsStub({ value: JSON.stringify(quest) }),
+              contents: JSON.stringify(quest),
             },
           ],
         },

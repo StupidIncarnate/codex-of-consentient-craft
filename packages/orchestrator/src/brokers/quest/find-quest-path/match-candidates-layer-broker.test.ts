@@ -1,4 +1,3 @@
-import { FileContentsStub } from '@dungeonmaster/shared/contracts/file-contents/file-contents.stub';
 import { FileNameStub } from '@dungeonmaster/shared/contracts/file-name/file-name.stub';
 import { QuestIdStub } from '@dungeonmaster/shared/contracts/quest-id/quest-id.stub';
 import { QuestStub } from '@dungeonmaster/shared/contracts/quest/quest.stub';
@@ -18,9 +17,7 @@ describe('matchCandidatesLayerBroker', () => {
 
       proxy.setupCandidateFile({
         questFilePath,
-        contents: FileContentsStub({
-          value: JSON.stringify(QuestStub({ id: 'add-auth', folder: 'q' })),
-        }),
+        contents: JSON.stringify(QuestStub({ id: 'add-auth', folder: 'q' })),
       });
 
       const result = await matchCandidatesLayerBroker({
@@ -48,15 +45,11 @@ describe('matchCandidatesLayerBroker', () => {
 
       proxy.setupCandidateFile({
         questFilePath: firstFilePath,
-        contents: FileContentsStub({
-          value: JSON.stringify(QuestStub({ id: 'add-auth', folder: 'a' })),
-        }),
+        contents: JSON.stringify(QuestStub({ id: 'add-auth', folder: 'a' })),
       });
       proxy.setupCandidateFile({
         questFilePath: secondFilePath,
-        contents: FileContentsStub({
-          value: JSON.stringify(QuestStub({ id: 'fix-bug', folder: 'b' })),
-        }),
+        contents: JSON.stringify(QuestStub({ id: 'fix-bug', folder: 'b' })),
       });
 
       const result = await matchCandidatesLayerBroker({
@@ -95,7 +88,7 @@ describe('matchCandidatesLayerBroker', () => {
 
       proxy.setupCandidateFile({
         questFilePath,
-        contents: FileContentsStub({ value: unloadable }),
+        contents: unloadable,
       });
 
       const result = await matchCandidatesLayerBroker({
@@ -134,9 +127,7 @@ describe('matchCandidatesLayerBroker', () => {
 
       proxy.setupCandidateFile({
         questFilePath,
-        contents: FileContentsStub({
-          value: JSON.stringify(QuestStub({ id: 'add-auth', folder: 'q' })),
-        }),
+        contents: JSON.stringify(QuestStub({ id: 'add-auth', folder: 'q' })),
       });
 
       const result = await matchCandidatesLayerBroker({
@@ -179,7 +170,7 @@ describe('matchCandidatesLayerBroker', () => {
 
       proxy.setupCandidateFile({
         questFilePath,
-        contents: FileContentsStub({ value: '{ not json }' }),
+        contents: '{ not json }',
       });
 
       const result = await matchCandidatesLayerBroker({
@@ -202,7 +193,7 @@ describe('matchCandidatesLayerBroker', () => {
 
       proxy.setupCandidateFile({
         questFilePath,
-        contents: FileContentsStub({ value: '{"title":"no id here"}' }),
+        contents: '{"title":"no id here"}',
       });
 
       const result = await matchCandidatesLayerBroker({

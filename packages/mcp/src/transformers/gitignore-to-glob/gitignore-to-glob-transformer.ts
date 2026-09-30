@@ -13,7 +13,6 @@
  * // Returns ['**\/dist', '**\/dist\/**', '**\/worktrees\/**']
  */
 
-import type { FileContents } from '@dungeonmaster/shared/contracts';
 
 const COMMENT_PREFIX = '#';
 const NEGATION_PREFIX = '!';
@@ -24,7 +23,7 @@ const NO_PATTERNS: readonly string[] = [];
 export const gitignoreToGlobTransformer = ({
   contents,
 }: {
-  contents: FileContents;
+  contents: string;
 }): readonly string[] =>
   String(contents)
     .split('\n')

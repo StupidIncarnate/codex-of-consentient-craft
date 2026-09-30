@@ -44,8 +44,7 @@ import { dirname } from '#gateway/node/path';
 import { hasFileSuffixGuard } from '../../../guards/has-file-suffix/has-file-suffix-guard';
 import { astGetImportsTransformer } from '../../../transformers/ast-get-imports/ast-get-imports-transformer';
 import { parseImplementationImportsTransformer } from '../../../transformers/parse-implementation-imports/parse-implementation-imports-transformer';
-import type { FileContents } from '@dungeonmaster/shared/contracts';
-import { identifierContract, fileContentsContract } from '@dungeonmaster/shared/contracts';
+import { identifierContract } from '@dungeonmaster/shared/contracts';
 import { proxyNameToImplementationNameTransformer } from '../../../transformers/proxy-name-to-implementation-name/proxy-name-to-implementation-name-transformer';
 import { isAstNodeDirectlyInFunctionGuard } from '../../../guards/is-ast-node-directly-in-function/is-ast-node-directly-in-function-guard';
 import { proxyPathToImplementationPathTransformer } from '../../../transformers/proxy-path-to-implementation-path/proxy-path-to-implementation-path-transformer';
@@ -169,10 +168,10 @@ export const ruleEnforceProxyChildCreationBroker = (): TSESLint.RuleModule<
     };
 
     // Read implementation file, treating a missing or unreadable file the same way (skip)
-    const implementationFileResult = ((): FileContents | null => {
+    const implementationFileResult = ((): string | null => {
       try {
         const rawContents = readFileSyncIfExists(implementationPath);
-        return rawContents === null ? null : fileContentsContract.parse(rawContents);
+        return rawContents === null ? null : rawContents;
       } catch {
         return null;
       }

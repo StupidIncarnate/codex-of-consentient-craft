@@ -6,14 +6,13 @@
  * // Returns true if file has export const
  */
 
-import type { FileContents } from '@dungeonmaster/shared/contracts';
 
 const EXPORT_PATTERN = /export\s+const\s+\w+/u;
 
 export const hasExportedFunctionGuard = ({
   fileContents,
 }: {
-  fileContents?: FileContents;
+  fileContents?: string;
 }): boolean => {
   if (!fileContents) {
     return false;

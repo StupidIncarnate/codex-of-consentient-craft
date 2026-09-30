@@ -33,7 +33,7 @@ import {
 import { join } from '#gateway/node/path';
 
 import { run } from '#gateway/node/child_process';
-import { absoluteFilePathContract, type AbsoluteFilePath, type FileContents, type FileName, type RepoRelativePath } from '@dungeonmaster/shared/contracts';
+import { absoluteFilePathContract, type AbsoluteFilePath, type FileName, type RepoRelativePath } from '@dungeonmaster/shared/contracts';
 import { deleteEnv, envSnapshot, getEnv, setEnv } from '#gateway/node/process';
 
 const ARGV_LOG_FILENAME = 'argv.log';
@@ -73,13 +73,13 @@ export const gitWorktreeFixtureHarness = (): {
   commitFile: (params: {
     repoPath: AbsoluteFilePath;
     relativePath: RepoRelativePath;
-    content: FileContents;
+    content: string;
     message: string;
   }) => Promise<{ sha: string }>;
   dirtyTrackedFile: (params: {
     repoPath: AbsoluteFilePath;
     relativePath: RepoRelativePath;
-    content: FileContents;
+    content: string;
   }) => void;
   readTextFile: (params: { absolutePath: AbsoluteFilePath }) => string | null;
   pathExists: (params: { absolutePath: AbsoluteFilePath }) => boolean;
@@ -221,7 +221,7 @@ export const gitWorktreeFixtureHarness = (): {
   }: {
     repoPath: AbsoluteFilePath;
     relativePath: RepoRelativePath;
-    content: FileContents;
+    content: string;
     message: string;
   }): Promise<{ sha: string }> => {
     writeFileSync(join(repoPath, relativePath), content);
@@ -266,7 +266,7 @@ export const gitWorktreeFixtureHarness = (): {
     }: {
       repoPath: AbsoluteFilePath;
       relativePath: RepoRelativePath;
-      content: FileContents;
+      content: string;
     }): void => {
       writeFileSync(join(repoPath, relativePath), content);
     },

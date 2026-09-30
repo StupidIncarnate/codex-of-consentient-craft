@@ -6,12 +6,11 @@
  * // Returns true if all required sections are present
  */
 
-import type { FileContents } from '@dungeonmaster/shared/contracts';
 
 export const hasMetadataCommentGuard = ({
   fileContents,
 }: {
-  fileContents?: FileContents;
+  fileContents?: string;
 }): boolean => {
   if (!fileContents) {
     return false;

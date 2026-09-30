@@ -1,5 +1,4 @@
 import { AbsoluteFilePathStub } from '@dungeonmaster/shared/contracts/absolute-file-path/absolute-file-path.stub';
-import { FileContentsStub } from '@dungeonmaster/shared/contracts/file-contents/file-contents.stub';
 import { FileNameStub } from '@dungeonmaster/shared/contracts/file-name/file-name.stub';
 import { GuildIdStub } from '@dungeonmaster/shared/contracts/guild-id/guild-id.stub';
 import { QuestIdStub } from '@dungeonmaster/shared/contracts/quest-id/quest-id.stub';
@@ -29,7 +28,7 @@ describe('questFindQuestPathBroker', () => {
                 folderName: FileNameStub({ value: '001-add-auth' }),
                 questFilePath: `/home/user/.dungeonmaster/guilds/${guildId}/quests/001-add-auth/quest.json`,
                 questFolderPath: `/home/user/.dungeonmaster/guilds/${guildId}/quests/001-add-auth`,
-                contents: FileContentsStub({ value: JSON.stringify(quest) }),
+                contents: JSON.stringify(quest),
               },
             ],
           },
@@ -65,7 +64,7 @@ describe('questFindQuestPathBroker', () => {
                 folderName: FileNameStub({ value: '001-add-auth' }),
                 questFilePath: `/home/user/.dungeonmaster/guilds/${guildId1}/quests/001-add-auth/quest.json`,
                 questFolderPath: `/home/user/.dungeonmaster/guilds/${guildId1}/quests/001-add-auth`,
-                contents: FileContentsStub({ value: JSON.stringify(quest1) }),
+                contents: JSON.stringify(quest1),
               },
             ],
           },
@@ -77,7 +76,7 @@ describe('questFindQuestPathBroker', () => {
                 folderName: FileNameStub({ value: '001-fix-bug' }),
                 questFilePath: `/home/user/.dungeonmaster/guilds/${guildId2}/quests/001-fix-bug/quest.json`,
                 questFolderPath: `/home/user/.dungeonmaster/guilds/${guildId2}/quests/001-fix-bug`,
-                contents: FileContentsStub({ value: JSON.stringify(quest2) }),
+                contents: JSON.stringify(quest2),
               },
             ],
           },
@@ -143,7 +142,7 @@ describe('questFindQuestPathBroker', () => {
                 folderName: FileNameStub({ value: '001-add-auth' }),
                 questFilePath: `/home/user/.dungeonmaster/guilds/${guildId}/quests/001-add-auth/quest.json`,
                 questFolderPath: `/home/user/.dungeonmaster/guilds/${guildId}/quests/001-add-auth`,
-                contents: FileContentsStub({ value: JSON.stringify(quest) }),
+                contents: JSON.stringify(quest),
               },
             ],
           },
@@ -185,7 +184,7 @@ describe('questFindQuestPathBroker', () => {
                 folderName: FileNameStub({ value: '001-add-auth' }),
                 questFilePath: `/home/user/.dungeonmaster/guilds/${guildId}/quests/001-add-auth/quest.json`,
                 questFolderPath: `/home/user/.dungeonmaster/guilds/${guildId}/quests/001-add-auth`,
-                contents: FileContentsStub({ value: unloadableQuestJson }),
+                contents: unloadableQuestJson,
               },
             ],
           },
@@ -224,7 +223,7 @@ describe('questFindQuestPathBroker', () => {
                 folderName: FileNameStub({ value: '001-add-auth' }),
                 questFilePath: `/home/user/.dungeonmaster/guilds/${guildId}/quests/001-add-auth/quest.json`,
                 questFolderPath: `/home/user/.dungeonmaster/guilds/${guildId}/quests/001-add-auth`,
-                contents: FileContentsStub({ value: unloadableQuestJson }),
+                contents: unloadableQuestJson,
               },
             ],
           },
@@ -254,7 +253,7 @@ describe('questFindQuestPathBroker', () => {
                 folderName: FileNameStub({ value: '001-add-auth' }),
                 questFilePath: `/home/user/.dungeonmaster/guilds/${guildId}/quests/001-add-auth/quest.json`,
                 questFolderPath: `/home/user/.dungeonmaster/guilds/${guildId}/quests/001-add-auth`,
-                contents: FileContentsStub({ value: '{ not json }' }),
+                contents: '{ not json }',
               },
             ],
           },
@@ -289,9 +288,7 @@ describe('questFindQuestPathBroker', () => {
               questFolderPath: `${questsDirPath}/${String(questId)}`,
               questFilePath: `${questsDirPath}/${String(questId)}/quest.json`,
               exists: true,
-              contents: FileContentsStub({
-                value: JSON.stringify(QuestStub({ id: String(questId), folder: String(questId) })),
-              }),
+              contents: JSON.stringify(QuestStub({ id: String(questId), folder: String(questId) })),
             },
             questFolders: [],
           },
@@ -336,9 +333,7 @@ describe('questFindQuestPathBroker', () => {
               questFolderPath: `${questsDir2}/${String(questId)}`,
               questFilePath: `${questsDir2}/${String(questId)}/quest.json`,
               exists: true,
-              contents: FileContentsStub({
-                value: JSON.stringify(QuestStub({ id: String(questId), folder: String(questId) })),
-              }),
+              contents: JSON.stringify(QuestStub({ id: String(questId), folder: String(questId) })),
             },
             questFolders: [],
           },
@@ -373,18 +368,14 @@ describe('questFindQuestPathBroker', () => {
               questFolderPath: `${questsDirPath}/add-auth`,
               questFilePath: `${questsDirPath}/add-auth/quest.json`,
               exists: true,
-              contents: FileContentsStub({
-                value: JSON.stringify(QuestStub({ id: 'someone-else', folder: 'add-auth' })),
-              }),
+              contents: JSON.stringify(QuestStub({ id: 'someone-else', folder: 'add-auth' })),
             },
             questFolders: [
               {
                 folderName: FileNameStub({ value: '001-add-auth' }),
                 questFilePath: `${questsDirPath}/001-add-auth/quest.json`,
                 questFolderPath: `${questsDirPath}/001-add-auth`,
-                contents: FileContentsStub({
-                  value: JSON.stringify(QuestStub({ id: 'add-auth', folder: '001-add-auth' })),
-                }),
+                contents: JSON.stringify(QuestStub({ id: 'add-auth', folder: '001-add-auth' })),
               },
             ],
           },
@@ -421,9 +412,7 @@ describe('questFindQuestPathBroker', () => {
                 folderName: FileNameStub({ value: '001-odd' }),
                 questFilePath: `${questsDirPath}/001-odd/quest.json`,
                 questFolderPath: `${questsDirPath}/001-odd`,
-                contents: FileContentsStub({
-                  value: JSON.stringify(QuestStub({ id: '../../etc/passwd', folder: '001-odd' })),
-                }),
+                contents: JSON.stringify(QuestStub({ id: '../../etc/passwd', folder: '001-odd' })),
               },
             ],
           },

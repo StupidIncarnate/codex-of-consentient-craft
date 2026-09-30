@@ -20,7 +20,7 @@
  *   unserialized writers would also collide on that one `quest.json.tmp`.
  */
 
-import { fileContentsContract, questContract, modifyQuestInputContract, modifyQuestResultContract, verifyQuestCheckContract, questContractEntryContract } from '@dungeonmaster/shared/contracts';
+import { questContract, modifyQuestInputContract, modifyQuestResultContract, verifyQuestCheckContract, questContractEntryContract } from '@dungeonmaster/shared/contracts';
 import { locationsStatics } from '@dungeonmaster/shared/statics';
 import { join, resolve } from '#gateway/node/path';
 
@@ -500,9 +500,7 @@ export const questModifyBroker = async ({
         quest.updatedAt = new Date().toISOString() as typeof quest.updatedAt;
 
         // Write updated quest back to quest.json (atomic temp+rename via questPersistBroker)
-        const questJson = fileContentsContract.parse(
-          JSON.stringify(quest, null, JSON_INDENT_SPACES),
-        );
+        const questJson = JSON.stringify(quest, null, JSON_INDENT_SPACES);
         await questPersistBroker({
           questFilePath,
           contents: questJson,

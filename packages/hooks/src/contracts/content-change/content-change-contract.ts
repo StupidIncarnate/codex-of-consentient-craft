@@ -6,11 +6,10 @@
  * // Returns validated ContentChange with branded FileContents
  */
 import { z } from '#gateway/npm/zod';
-import { fileContentsContract } from '../file-contents/file-contents-contract';
 
 export const contentChangeContract = z.object({
-  oldContent: fileContentsContract,
-  newContent: fileContentsContract,
+  oldContent: z.string().brand<'ContentChangeOldContent'>(),
+  newContent: z.string().brand<'ContentChangeNewContent'>(),
 });
 
 export type ContentChange = z.infer<typeof contentChangeContract>;

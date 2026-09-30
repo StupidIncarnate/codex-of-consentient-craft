@@ -1,6 +1,5 @@
 import { installTestbedCreateBroker } from '@dungeonmaster/testing';
 import { AbsoluteFilePathStub } from '@dungeonmaster/shared/contracts/absolute-file-path/absolute-file-path.stub';
-import { FileContentsStub } from '@dungeonmaster/shared/contracts/file-contents/file-contents.stub';
 import { FileNameStub } from '@dungeonmaster/shared/contracts/file-name/file-name.stub';
 import { OperationItemStub } from '@dungeonmaster/shared/contracts/operation-item/operation-item.stub';
 import { QuestBranchNameStub } from '@dungeonmaster/shared/contracts/quest-branch-name/quest-branch-name.stub';
@@ -163,7 +162,7 @@ describe('OrchestrationStartResponder (integration) — real quest.json + real g
       await git.commitFile({
         repoPath,
         relativePath: RepoRelativePathStub({ value: 'ADVANCE.md' }),
-        content: FileContentsStub({ value: 'advance main past the taken branch\n' }),
+        content: 'advance main past the taken branch\n',
         message: 'advance main',
       });
 

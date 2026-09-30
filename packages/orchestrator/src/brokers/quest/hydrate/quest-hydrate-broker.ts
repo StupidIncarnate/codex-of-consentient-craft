@@ -17,7 +17,7 @@
  */
 
 import { randomUUID } from '#gateway/node/crypto';
-import { addQuestInputContract, fileContentsContract, operationItemContract, questContract, stepNameContract, workItemContract } from '@dungeonmaster/shared/contracts';
+import { addQuestInputContract, operationItemContract, questContract, stepNameContract, workItemContract } from '@dungeonmaster/shared/contracts';
 import type { QuestSource, QuestStatus, WorkItemRole, Quest, Guild } from '@dungeonmaster/shared/contracts';
 import { isCommandWorkItemRoleGuard } from '@dungeonmaster/shared/guards';
 
@@ -178,9 +178,7 @@ export const questHydrateBroker = async ({
       updatedAt: updatedAt ?? now,
     });
 
-    const finalJson = fileContentsContract.parse(
-      JSON.stringify(updatedQuest, null, JSON_INDENT_SPACES),
-    );
+    const finalJson = JSON.stringify(updatedQuest, null, JSON_INDENT_SPACES);
     await questPersistBroker({ questFilePath, contents: finalJson, questId });
   }
 

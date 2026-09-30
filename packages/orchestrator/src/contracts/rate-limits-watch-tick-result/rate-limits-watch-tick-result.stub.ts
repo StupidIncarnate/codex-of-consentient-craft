@@ -1,5 +1,4 @@
 import type { StubArgument } from '@dungeonmaster/shared/@types';
-import { FileContentsStub } from '@dungeonmaster/shared/contracts/file-contents/file-contents.stub';
 
 import { rateLimitsWatchTickResultContract } from './rate-limits-watch-tick-result-contract';
 import type { RateLimitsWatchTickResult } from './rate-limits-watch-tick-result-contract';
@@ -9,6 +8,6 @@ export const RateLimitsWatchTickResultStub = ({
 }: StubArgument<RateLimitsWatchTickResult> = {}): RateLimitsWatchTickResult =>
   rateLimitsWatchTickResultContract.parse({
     outcome: 'changed',
-    lastJson: FileContentsStub({ value: '{"x":1}' }),
+    lastJson: '{"x":1}',
     ...props,
   });

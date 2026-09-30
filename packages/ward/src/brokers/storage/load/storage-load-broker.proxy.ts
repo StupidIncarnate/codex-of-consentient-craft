@@ -1,6 +1,6 @@
 import { readdirIfExistsProxy } from '#gateway/node/fs__promises/readdir-if-exists/readdir-if-exists.proxy';
 import { readFileProxy } from '#gateway/node/fs__promises/read-file/read-file.proxy';
-import { type AbsoluteFilePath, type FileContents } from '@dungeonmaster/shared/contracts';
+import { type AbsoluteFilePath } from '@dungeonmaster/shared/contracts';
 
 import type { WardRunResult } from '../../../contracts/ward-result/ward-result-contract';
 
@@ -15,7 +15,7 @@ export const storageLoadBrokerProxy = (): {
   setupLatestRunByPath: (params: {
     rootPath: AbsoluteFilePath;
     entries: string[];
-    contents: Record<string, FileContents>;
+    contents: Record<string, string>;
   }) => void;
   setupEmptyDir: (params: { rootPath: AbsoluteFilePath }) => void;
   setupReadFail: (params: { rootPath: AbsoluteFilePath; runId: WardRunResult['runId'] }) => void;
@@ -65,7 +65,7 @@ export const storageLoadBrokerProxy = (): {
     }: {
       rootPath: AbsoluteFilePath;
       entries: string[];
-      contents: Record<string, FileContents>;
+      contents: Record<string, string>;
     }): void => {
       const dirPath = wardDirFor({ rootPath });
       readdirProxy.returns({ path: String(dirPath), names: entries });

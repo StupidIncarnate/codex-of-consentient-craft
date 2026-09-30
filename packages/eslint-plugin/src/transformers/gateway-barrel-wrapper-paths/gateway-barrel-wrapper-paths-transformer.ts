@@ -22,7 +22,7 @@
  * // Returns a Map with the branded Identifier 'readFileIfExists' -> the branded ModulePath
  * // 'read-file-if-exists/read-file-if-exists'
  */
-import type { FileContents, Identifier } from '@dungeonmaster/shared/contracts';
+import type { Identifier } from '@dungeonmaster/shared/contracts';
 import { identifierContract } from '@dungeonmaster/shared/contracts';
 
 const LEADING_RELATIVE_SEGMENT = './';
@@ -30,7 +30,7 @@ const LEADING_RELATIVE_SEGMENT = './';
 export const gatewayBarrelWrapperPathsTransformer = ({
   content,
 }: {
-  content: FileContents;
+  content: string;
 }): Map<Identifier, string> => {
   const paths = new Map<Identifier, string>();
   const exportRegex = /export\s*\{\s*([\w$]+)\s*\}\s*from\s*'(\.\/[^']+)'/gu;

@@ -12,7 +12,7 @@
  */
 
 import { readFile } from '#gateway/node/fs__promises';
-import { absoluteFilePathContract, fileContentsContract, packageTypeContract } from '@dungeonmaster/shared/contracts';
+import { absoluteFilePathContract, packageTypeContract } from '@dungeonmaster/shared/contracts';
 import { architecturePackageTypeDetectBroker } from '@dungeonmaster/shared/brokers';
 
 import {
@@ -108,7 +108,7 @@ export const platformCrossingCheckBroker = async ({
             return [];
           }
 
-          const content = fileContentsContract.parse(await readFile(absoluteFile));
+          const content = (await readFile(absoluteFile));
 
           const chains = await walkGatewayCrossingsLayerBroker({
             filePath: absoluteFile,

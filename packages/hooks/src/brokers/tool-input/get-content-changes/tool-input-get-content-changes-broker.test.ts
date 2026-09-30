@@ -3,7 +3,6 @@ import { toolInputGetContentChangesBrokerProxy } from './tool-input-get-content-
 import { EditToolInputStub } from '../../../contracts/edit-tool-input/edit-tool-input.stub';
 import { MultiEditToolInputStub } from '../../../contracts/multi-edit-tool-input/multi-edit-tool-input.stub';
 import { WriteToolInputStub } from '../../../contracts/write-tool-input/write-tool-input.stub';
-import { FileContentsStub } from '../../../contracts/file-contents/file-contents.stub';
 
 describe('toolInputGetContentChangesBroker', () => {
   describe('Write tool', () => {
@@ -15,7 +14,7 @@ describe('toolInputGetContentChangesBroker', () => {
         content: 'New content',
       });
 
-      proxy.setupReadFileSuccess({ filePath, content: FileContentsStub({ value: 'Old content' }) });
+      proxy.setupReadFileSuccess({ filePath, content: 'Old content' });
 
       const result = await toolInputGetContentChangesBroker({ toolInput });
 
@@ -75,7 +74,7 @@ describe('toolInputGetContentChangesBroker', () => {
         new_string: 'Hi',
       });
 
-      const existingContent = FileContentsStub({ value: 'Hello world!' });
+      const existingContent = 'Hello world!';
       proxy.setupReadFileSuccess({ filePath, content: existingContent });
 
       const result = await toolInputGetContentChangesBroker({ toolInput });
@@ -101,7 +100,7 @@ describe('toolInputGetContentChangesBroker', () => {
         new_string: 'function test(param: any): void {',
       });
 
-      const contents = FileContentsStub({ value: existingFileContent });
+      const contents = existingFileContent;
       proxy.setupReadFileSuccess({ filePath, content: contents });
 
       const result = await toolInputGetContentChangesBroker({ toolInput });
@@ -129,7 +128,7 @@ describe('toolInputGetContentChangesBroker', () => {
         ],
       });
 
-      const contents = FileContentsStub({ value: 'Hello world' });
+      const contents = 'Hello world';
       proxy.setupReadFileSuccess({ filePath, content: contents });
 
       const result = await toolInputGetContentChangesBroker({ toolInput });

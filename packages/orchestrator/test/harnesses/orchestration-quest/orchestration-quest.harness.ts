@@ -14,7 +14,7 @@ import { randomUUID } from '#gateway/node/crypto';
 import { existsSync, mkdirSync, readFileSync, rmSync, writeFileSync } from '#gateway/node/fs';
 import { tmpdir } from '#gateway/node/os';
 
-import type { AbsoluteFilePath, FileContents, GuildPath, RepoRelativePath, Guild } from '@dungeonmaster/shared/contracts';
+import type { AbsoluteFilePath, GuildPath, RepoRelativePath, Guild } from '@dungeonmaster/shared/contracts';
 import type { FlowStub } from '@dungeonmaster/shared/contracts/flow/flow.stub';
 import type { OperationItemStub } from '@dungeonmaster/shared/contracts/operation-item/operation-item.stub';
 import type { QuestCommentStub } from '@dungeonmaster/shared/contracts/quest-comment/quest-comment.stub';
@@ -22,7 +22,7 @@ import type { QuestContractEntryStub } from '@dungeonmaster/shared/contracts/que
 import type { QuestPackageEntryStub } from '@dungeonmaster/shared/contracts/quest-package-entry/quest-package-entry.stub';
 import type { QuestStub } from '@dungeonmaster/shared/contracts/quest/quest.stub';
 import type { WorkItemStub } from '@dungeonmaster/shared/contracts/work-item/work-item.stub';
-import { absoluteFilePathContract, fileContentsContract, questContract } from '@dungeonmaster/shared/contracts';
+import { absoluteFilePathContract, questContract } from '@dungeonmaster/shared/contracts';
 import { GuildNameStub } from '@dungeonmaster/shared/contracts/guild-name/guild-name.stub';
 import { GuildPathStub } from '@dungeonmaster/shared/contracts/guild-path/guild-path.stub';
 import type { installTestbedCreateBroker } from '@dungeonmaster/testing';
@@ -128,11 +128,11 @@ export const orchestrationQuestHarness = (): {
   // `git diff baseRef...HEAD --name-only` reports exactly these paths as changed.
   commitChangedFiles: (params: {
     repoPath: GuildPath;
-    files: readonly { relativePath: RepoRelativePath; content: FileContents }[];
+    files: readonly { relativePath: RepoRelativePath; content: string }[];
   }) => Promise<void>;
   // Raw file bytes of quest.json — for asserting a refused gate persisted NOTHING (byte-identical
   // before/after), which a parsed-and-re-compared Quest object cannot prove (parsing normalizes).
-  readQuestFileRaw: (params: { questId: Quest['id'] }) => Promise<FileContents>;
+  readQuestFileRaw: (params: { questId: Quest['id'] }) => Promise<string>;
   // Overwrites flows/workItems/comments directly on disk, leaving every other field (status,
   // title, etc.) as QuestUserAddResponder set it. Bypasses QuestModifyResponder the same way
   // seedInProgressRelay does — the per-status input allowlist is covered by the broker/
@@ -218,9 +218,7 @@ export const orchestrationQuestHarness = (): {
       updatedAt: new Date().toISOString() as typeof loadedQuest.updatedAt,
     };
 
-    const questJson = fileContentsContract.parse(
-      JSON.stringify(seededQuest, null, JSON_INDENT_SPACES),
-    );
+    const questJson = JSON.stringify(seededQuest, null, JSON_INDENT_SPACES);
     await questPersistBroker({ questFilePath, contents: questJson, questId });
   };
 
@@ -288,7 +286,7 @@ export const orchestrationQuestHarness = (): {
     files,
   }: {
     repoPath: GuildPath;
-    files: readonly { relativePath: RepoRelativePath; content: FileContents }[];
+    files: readonly { relativePath: RepoRelativePath; content: string }[];
   }): Promise<void> => {
     const cwd = absoluteFilePathContract.parse(String(repoPath));
     for (const file of files) {
@@ -299,10 +297,10 @@ export const orchestrationQuestHarness = (): {
     await commitAll({ message: 'changed files', cwd });
   };
 
-  const readQuestFileRaw = async ({ questId }: { questId: Quest['id'] }): Promise<FileContents> => {
+  const readQuestFileRaw = async ({ questId }: { questId: Quest['id'] }): Promise<string> => {
     const { questPath } = await questFindQuestPathBroker({ questId });
     const questFilePath = join(questPath, QUEST_FILE_NAME);
-    return fileContentsContract.parse(readFileSync(questFilePath));
+    return readFileSync(questFilePath);
   };
 
   const loadByQuestId = async (params: { questId: Quest['id'] }): Promise<Quest> => {
@@ -456,9 +454,7 @@ export const orchestrationQuestHarness = (): {
         comments: [...comments],
       };
 
-      const questJson = fileContentsContract.parse(
-        JSON.stringify(seededQuest, null, JSON_INDENT_SPACES),
-      );
+      const questJson = JSON.stringify(seededQuest, null, JSON_INDENT_SPACES);
       await questPersistBroker({ questFilePath, contents: questJson, questId });
     },
     reload: loadByQuestId,

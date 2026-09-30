@@ -15,7 +15,6 @@
  * // Returns: { filePath: '/repo/packages/node/fs.ts', content: '...' } or undefined
  */
 
-import { type FileContents } from '@dungeonmaster/shared/contracts';
 
 import type { ModuleSpecifier } from '../../../contracts/module-specifier/module-specifier-contract';
 import type { ProjectFolder } from '../../../contracts/project-folder/project-folder-contract';
@@ -32,7 +31,7 @@ export const resolveSpecifierLayerBroker = async ({
   specifier: ModuleSpecifier;
   containingFilePath: string;
   knownPackages: readonly ProjectFolder[];
-}): Promise<{ filePath: string; content: FileContents } | undefined> => {
+}): Promise<{ filePath: string; content: string } | undefined> => {
   const target = specifier.startsWith('.')
     ? resolveRelativeSpecifierTransformer({
         fromDir: containingFilePath.split('/').slice(0, -1).join('/'),

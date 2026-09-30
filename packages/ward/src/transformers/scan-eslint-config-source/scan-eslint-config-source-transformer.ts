@@ -17,7 +17,6 @@
  * read as a clean package.
  */
 
-import { fileContentsContract, type FileContents } from '@dungeonmaster/shared/contracts';
 import type { AbsoluteFilePath } from '@dungeonmaster/shared/contracts';
 
 import type { ScanRuleName } from '../../contracts/scan-rule-name/scan-rule-name-contract';
@@ -29,9 +28,8 @@ export const scanEslintConfigSourceTransformer = ({
 }: {
   rule: ScanRuleName;
   rootConfigPath: AbsoluteFilePath;
-}): FileContents =>
-  fileContentsContract.parse(
-    [
+}): string =>
+  [
       `const base = require(${JSON.stringify(String(rootConfigPath))});`,
       'const configs = Array.isArray(base) ? base : base.default;',
       `const rule = ${JSON.stringify(String(rule))};`,
@@ -53,5 +51,4 @@ export const scanEslintConfigSourceTransformer = ({
       '    }));',
       'module.exports = [...configs, ...forcing];',
       '',
-    ].join('\n'),
-  );
+    ].join('\n');

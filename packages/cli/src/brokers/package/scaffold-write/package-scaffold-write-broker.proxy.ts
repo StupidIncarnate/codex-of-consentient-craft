@@ -3,12 +3,12 @@ import { existsSyncProxy } from '#gateway/node/fs/exists-sync/exists-sync.proxy'
 import { ensureDirProxy } from '#gateway/node/fs__promises/ensure-dir/ensure-dir.proxy';
 import { writeFileProxy } from '#gateway/node/fs__promises/write-file/write-file.proxy';
 import { registerMock, requireActual } from '@dungeonmaster/testing/register-mock';
-import type { PathSegment, FileContents } from '@dungeonmaster/shared/contracts';
+import type { PathSegment } from '@dungeonmaster/shared/contracts';
 
 export const packageScaffoldWriteBrokerProxy = (): {
   setupTargetMissing: (params: {
     packageRoot: string;
-    files: readonly { relativePath: PathSegment; contents: FileContents }[];
+    files: readonly { relativePath: PathSegment; contents: string }[];
   }) => void;
   setupTargetExists: (params: { packageRoot: string }) => void;
   getWrittenFiles: () => readonly { path: unknown; content: unknown }[];

@@ -1,12 +1,10 @@
-import { FileContentsStub } from '@dungeonmaster/shared/contracts/file-contents/file-contents.stub';
 
 import { playwrightJsonReportToPassingTransformer } from './playwright-json-report-to-passing-transformer';
 
 describe('playwrightJsonReportToPassingTransformer', () => {
   describe('valid inputs', () => {
     it('VALID: {single passing spec with describe trail} => returns one PassingTest with title joined by ›', () => {
-      const jsonContent = FileContentsStub({
-        value: JSON.stringify({
+      const jsonContent = JSON.stringify({
           suites: [
             {
               title: 'packages/web/src/flows/app/smoke.e2e.ts',
@@ -25,8 +23,7 @@ describe('playwrightJsonReportToPassingTransformer', () => {
               ],
             },
           ],
-        }),
-      });
+        });
 
       const result = playwrightJsonReportToPassingTransformer({ jsonContent });
 
@@ -40,8 +37,7 @@ describe('playwrightJsonReportToPassingTransformer', () => {
     });
 
     it('VALID: {multiple passing specs across suites} => returns entries for each passed spec', () => {
-      const jsonContent = FileContentsStub({
-        value: JSON.stringify({
+      const jsonContent = JSON.stringify({
           suites: [
             {
               title: 'packages/web/src/flows/home/a.e2e.ts',
@@ -64,8 +60,7 @@ describe('playwrightJsonReportToPassingTransformer', () => {
               ],
             },
           ],
-        }),
-      });
+        });
 
       const result = playwrightJsonReportToPassingTransformer({ jsonContent });
 
@@ -84,8 +79,7 @@ describe('playwrightJsonReportToPassingTransformer', () => {
     });
 
     it('VALID: {spec with failed test} => skips failed spec entries', () => {
-      const jsonContent = FileContentsStub({
-        value: JSON.stringify({
+      const jsonContent = JSON.stringify({
           suites: [
             {
               title: 'mix.e2e.ts',
@@ -103,8 +97,7 @@ describe('playwrightJsonReportToPassingTransformer', () => {
               ],
             },
           ],
-        }),
-      });
+        });
 
       const result = playwrightJsonReportToPassingTransformer({ jsonContent });
 
@@ -118,8 +111,7 @@ describe('playwrightJsonReportToPassingTransformer', () => {
     });
 
     it('VALID: {test with missing duration} => defaults durationMs to 0', () => {
-      const jsonContent = FileContentsStub({
-        value: JSON.stringify({
+      const jsonContent = JSON.stringify({
           suites: [
             {
               title: 'a.e2e.ts',
@@ -132,8 +124,7 @@ describe('playwrightJsonReportToPassingTransformer', () => {
               ],
             },
           ],
-        }),
-      });
+        });
 
       const result = playwrightJsonReportToPassingTransformer({ jsonContent });
 
@@ -147,8 +138,7 @@ describe('playwrightJsonReportToPassingTransformer', () => {
     });
 
     it('VALID: {test with multiple result attempts} => uses latest result status', () => {
-      const jsonContent = FileContentsStub({
-        value: JSON.stringify({
+      const jsonContent = JSON.stringify({
           suites: [
             {
               title: 'a.e2e.ts',
@@ -168,8 +158,7 @@ describe('playwrightJsonReportToPassingTransformer', () => {
               ],
             },
           ],
-        }),
-      });
+        });
 
       const result = playwrightJsonReportToPassingTransformer({ jsonContent });
 
@@ -185,7 +174,7 @@ describe('playwrightJsonReportToPassingTransformer', () => {
 
   describe('empty or malformed inputs', () => {
     it('EMPTY: {empty string} => returns empty array', () => {
-      const jsonContent = FileContentsStub({ value: '' });
+      const jsonContent = '';
 
       const result = playwrightJsonReportToPassingTransformer({ jsonContent });
 
@@ -193,7 +182,7 @@ describe('playwrightJsonReportToPassingTransformer', () => {
     });
 
     it('EMPTY: {invalid JSON} => returns empty array', () => {
-      const jsonContent = FileContentsStub({ value: 'not json' });
+      const jsonContent = 'not json';
 
       const result = playwrightJsonReportToPassingTransformer({ jsonContent });
 
@@ -201,7 +190,7 @@ describe('playwrightJsonReportToPassingTransformer', () => {
     });
 
     it('EMPTY: {parsed is null} => returns empty array', () => {
-      const jsonContent = FileContentsStub({ value: JSON.stringify(null) });
+      const jsonContent = JSON.stringify(null);
 
       const result = playwrightJsonReportToPassingTransformer({ jsonContent });
 
@@ -209,7 +198,7 @@ describe('playwrightJsonReportToPassingTransformer', () => {
     });
 
     it('EMPTY: {suites missing from report} => returns empty array', () => {
-      const jsonContent = FileContentsStub({ value: JSON.stringify({ config: {} }) });
+      const jsonContent = JSON.stringify({ config: {} });
 
       const result = playwrightJsonReportToPassingTransformer({ jsonContent });
 
@@ -217,7 +206,7 @@ describe('playwrightJsonReportToPassingTransformer', () => {
     });
 
     it('EMPTY: {empty suites array} => returns empty array', () => {
-      const jsonContent = FileContentsStub({ value: JSON.stringify({ suites: [] }) });
+      const jsonContent = JSON.stringify({ suites: [] });
 
       const result = playwrightJsonReportToPassingTransformer({ jsonContent });
 

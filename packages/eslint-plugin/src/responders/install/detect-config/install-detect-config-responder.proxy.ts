@@ -1,4 +1,3 @@
-import type { FileContents } from '@dungeonmaster/shared/contracts';
 import { locationsStatics } from '@dungeonmaster/shared/statics';
 import { existsSyncProxy } from '#gateway/node/fs/exists-sync/exists-sync.proxy';
 import { writeFileSyncProxy } from '#gateway/node/fs/write-file-sync/write-file-sync.proxy';
@@ -12,7 +11,7 @@ export const InstallDetectConfigResponderProxy = (): {
   setupConfigExists: (params: {
     targetProjectRoot: string;
     configFileName: string;
-    contents: FileContents;
+    contents: string;
   }) => void;
   getWrittenConfigContent: (params: { targetProjectRoot: string }) => unknown;
 } => {
@@ -45,7 +44,7 @@ export const InstallDetectConfigResponderProxy = (): {
     }: {
       targetProjectRoot: string;
       configFileName: string;
-      contents: FileContents;
+      contents: string;
     }): void => {
       // The loop probes EVERY candidate filename in order before existence short-circuits on a
       // match, so every candidate ahead of configFileName needs an explicit existsSync answer

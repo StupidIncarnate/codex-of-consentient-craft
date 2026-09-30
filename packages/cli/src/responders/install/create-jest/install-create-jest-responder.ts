@@ -11,7 +11,7 @@
  * // present or the target has npm workspaces
  */
 
-import { type InstallContext, type InstallResult, installMessageContract, packageNameContract, fileContentsContract } from '@dungeonmaster/shared/contracts';
+import { type InstallContext, type InstallResult, installMessageContract, packageNameContract } from '@dungeonmaster/shared/contracts';
 import { existsSync } from '#gateway/node/fs';
 import { readFile, writeFile } from '#gateway/node/fs__promises';
 import { join } from '#gateway/node/path';
@@ -59,7 +59,7 @@ export const InstallCreateJestResponder = async ({
     };
   }
 
-  const contents = fileContentsContract.parse(jestConfigTemplateStatics.content);
+  const contents = jestConfigTemplateStatics.content;
 
   await writeFile(configPath, contents);
 

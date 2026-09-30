@@ -6,13 +6,7 @@
  * // Creates eslint.config.js with dungeonmaster config or skips if already exists
  */
 
-import {
-  type InstallContext,
-  type InstallResult,
-  installMessageContract,
-  packageNameContract,
-  fileContentsContract,
-} from '@dungeonmaster/shared/contracts';
+import { type InstallContext, type InstallResult, installMessageContract, packageNameContract } from '@dungeonmaster/shared/contracts';
 import { locationsStatics } from '@dungeonmaster/shared/statics';
 import { existsSync, readFileSync, writeFileSync } from '#gateway/node/fs';
 import { join } from '#gateway/node/path';
@@ -125,7 +119,7 @@ export const InstallDetectConfigResponder = ({
 
   const newConfigPath = join(context.targetProjectRoot, locationsStatics.repoRoot.eslintConfig[1]);
 
-  const contents = fileContentsContract.parse(NEW_CONFIG_TEMPLATE);
+  const contents = NEW_CONFIG_TEMPLATE;
 
   writeFileSync(newConfigPath, contents);
 

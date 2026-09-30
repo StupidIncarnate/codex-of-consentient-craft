@@ -1,10 +1,9 @@
 import { hasExportedFunctionGuard } from './has-exported-function-guard';
-import { FileContentsStub } from '@dungeonmaster/shared/contracts/file-contents/file-contents.stub';
 
 describe('hasExportedFunctionGuard', () => {
   describe('with export const', () => {
     it('VALID: {fileContents: "export const foo = () => {}"} => returns true', () => {
-      const fileContents = FileContentsStub({ value: 'export const foo = () => {}' });
+      const fileContents = 'export const foo = () => {}';
 
       const result = hasExportedFunctionGuard({ fileContents });
 
@@ -12,9 +11,7 @@ describe('hasExportedFunctionGuard', () => {
     });
 
     it('VALID: {fileContents: "export const myFunction = async () => {}"} => returns true', () => {
-      const fileContents = FileContentsStub({
-        value: 'export const myFunction = async () => {}',
-      });
+      const fileContents = 'export const myFunction = async () => {}';
 
       const result = hasExportedFunctionGuard({ fileContents });
 
@@ -22,9 +19,7 @@ describe('hasExportedFunctionGuard', () => {
     });
 
     it('VALID: {fileContents: "  export const  indented = () => {}"} => returns true', () => {
-      const fileContents = FileContentsStub({
-        value: '  export const  indented = () => {}',
-      });
+      const fileContents = '  export const  indented = () => {}';
 
       const result = hasExportedFunctionGuard({ fileContents });
 
@@ -34,7 +29,7 @@ describe('hasExportedFunctionGuard', () => {
 
   describe('without export const', () => {
     it('EMPTY: {fileContents: "const foo = () => {}"} => returns false', () => {
-      const fileContents = FileContentsStub({ value: 'const foo = () => {}' });
+      const fileContents = 'const foo = () => {}';
 
       const result = hasExportedFunctionGuard({ fileContents });
 
@@ -42,7 +37,7 @@ describe('hasExportedFunctionGuard', () => {
     });
 
     it('EMPTY: {fileContents: "export function bar() {}"} => returns false', () => {
-      const fileContents = FileContentsStub({ value: 'export function bar() {}' });
+      const fileContents = 'export function bar() {}';
 
       const result = hasExportedFunctionGuard({ fileContents });
 
@@ -50,7 +45,7 @@ describe('hasExportedFunctionGuard', () => {
     });
 
     it('EMPTY: {fileContents: "export default foo"} => returns false', () => {
-      const fileContents = FileContentsStub({ value: 'export default foo' });
+      const fileContents = 'export default foo';
 
       const result = hasExportedFunctionGuard({ fileContents });
 
@@ -58,7 +53,7 @@ describe('hasExportedFunctionGuard', () => {
     });
 
     it('EMPTY: {fileContents: ""} => returns false', () => {
-      const fileContents = FileContentsStub({ value: '' });
+      const fileContents = '';
 
       const result = hasExportedFunctionGuard({ fileContents });
 
