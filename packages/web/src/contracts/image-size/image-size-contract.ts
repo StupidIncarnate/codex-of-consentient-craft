@@ -10,11 +10,10 @@
 
 import { z } from '#gateway/npm/zod';
 
-import { pixelLengthContract } from '../pixel-length/pixel-length-contract';
 
 export const imageSizeContract = z.object({
-  widthPx: pixelLengthContract,
-  heightPx: pixelLengthContract,
+  widthPx: z.number().int().positive().brand<'ImageSizeWidthPx'>(),
+  heightPx: z.number().int().positive().brand<'ImageSizeHeightPx'>(),
 });
 
 export type ImageSize = z.infer<typeof imageSizeContract>;

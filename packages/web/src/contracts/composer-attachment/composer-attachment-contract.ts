@@ -21,7 +21,6 @@ import { pastedImageMediaTypeContract } from '@dungeonmaster/shared/contracts';
 import { pastedImageStatics } from '@dungeonmaster/shared/statics';
 
 import { imageDataUrlContract } from '../image-data-url/image-data-url-contract';
-import { pixelLengthContract } from '../pixel-length/pixel-length-contract';
 
 export const composerAttachmentContract = z.object({
   attachmentId: z.uuid().brand<'ComposerAttachmentAttachmentId'>(),
@@ -34,8 +33,8 @@ export const composerAttachmentContract = z.object({
     message: `Decoded image exceeds ${String(pastedImageStatics.maxBytesPerImage)} bytes`,
   }),
   // The pixel size after downscaling.
-  widthPx: pixelLengthContract,
-  heightPx: pixelLengthContract,
+  widthPx: z.number().int().positive().brand<'ComposerAttachmentWidthPx'>(),
+  heightPx: z.number().int().positive().brand<'ComposerAttachmentHeightPx'>(),
 });
 
 export type ComposerAttachment = z.infer<typeof composerAttachmentContract>;
