@@ -11,8 +11,8 @@
 import { z } from '#gateway/npm/zod';
 
 export const scanConfigFileContract = z.object({
-  directory: z.string().min(1).brand<'ScanConfigDirectory'>(),
-  path: z.string().min(1).brand<'ScanConfigPath'>(),
+  directory: z.string().min(1).brand<'ScanConfigFileDirectory'>(),
+  path: z.string().min(1).brand<'ScanConfigFilePath'>(),
 }).brand<'ScanConfigFile'>();
 
 export type ScanConfigFile = z.infer<typeof scanConfigFileContract>;

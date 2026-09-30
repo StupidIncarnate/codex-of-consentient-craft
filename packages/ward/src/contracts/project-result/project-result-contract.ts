@@ -34,8 +34,8 @@ export const projectResultContract = z.object({
   ),
   // `.default()` before `.brand()` on both — zod v4 checks a `.default()` literal against the
   // schema's own output type, and a bare number can never satisfy a branded type.
-  filesCount: z.number().int().nonnegative().default(0).brand<'FilesCount'>(),
-  discoveredCount: z.number().int().nonnegative().default(0).brand<'DiscoveredCount'>(),
+  filesCount: z.number().int().nonnegative().default(0).brand<'ProjectResultFilesCount'>(),
+  discoveredCount: z.number().int().nonnegative().default(0).brand<'ProjectResultDiscoveredCount'>(),
   onlyDiscovered: z.array(z.string().min(1).brand<'ProjectResultOnlyDiscovered'>()).default([]),
   onlyProcessed: z.array(z.string().min(1).brand<'ProjectResultOnlyProcessed'>()).default([]),
   fileTimings: z.array(fileTimingContract).default([]),

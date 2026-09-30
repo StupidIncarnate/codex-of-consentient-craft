@@ -10,8 +10,8 @@ import { z } from '#gateway/npm/zod';
 import { passingTestContract } from './passing-test-contract';
 
 export const passingTestContract = z.object({
-  suitePath: z.string().brand<'SuitePath'>(),
-  testName: z.string().brand<'TestName'>(),
+  suitePath: z.string().brand<'PassingTestSuitePath'>(),
+  testName: z.string().brand<'PassingTestTestName'>(),
   durationMs: z.number().nonnegative().brand<'PassingTestDurationMs'>().default(passingTestContract.shape.durationMs.parse(0)),
 }).brand<'PassingTest'>();
 

@@ -9,11 +9,11 @@
 import { z } from '#gateway/npm/zod';
 
 export const errorEntryContract = z.object({
-  filePath: z.string().brand<'ErrorFilePath'>(),
-  line: z.number().brand<'ErrorLine'>(),
-  column: z.number().brand<'ErrorColumn'>(),
+  filePath: z.string().brand<'ErrorEntryFilePath'>(),
+  line: z.number().brand<'ErrorEntryLine'>(),
+  column: z.number().brand<'ErrorEntryColumn'>(),
   message: z.string().brand<'ErrorEntryMessage'>(),
-  rule: z.string().brand<'ErrorRule'>().optional(),
+  rule: z.string().brand<'ErrorEntryRule'>().optional(),
   severity: z.enum(['error', 'warning']),
 }).brand<'ErrorEntry'>();
 

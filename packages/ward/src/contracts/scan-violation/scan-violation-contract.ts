@@ -11,9 +11,9 @@
 import { z } from '#gateway/npm/zod';
 
 export const scanViolationContract = z.object({
-  file: z.string().min(1).brand<'ScanFilePath'>(),
-  line: z.number().int().min(0).brand<'ScanLine'>(),
-  message: z.string().brand<'ScanMessage'>(),
+  file: z.string().min(1).brand<'ScanViolationFile'>(),
+  line: z.number().int().min(0).brand<'ScanViolationLine'>(),
+  message: z.string().brand<'ScanViolationMessage'>(),
 }).brand<'ScanViolation'>();
 
 export type ScanViolation = z.infer<typeof scanViolationContract>;

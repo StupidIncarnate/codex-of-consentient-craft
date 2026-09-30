@@ -12,7 +12,7 @@
 import { z } from '#gateway/npm/zod';
 
 export const duplicateInstallLocationContract = z.object({
-  location: z.string().min(1).brand<'DuplicateInstallLocationPath'>(),
+  location: z.string().min(1).brand<'DuplicateInstallLocationLocation'>(),
   version: z.string().min(1).brand<'DuplicateInstallLocationVersion'>(),
 }).brand<'DuplicateInstallLocation'>();
 

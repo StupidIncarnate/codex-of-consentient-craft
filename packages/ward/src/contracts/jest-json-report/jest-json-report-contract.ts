@@ -10,22 +10,22 @@ import { z } from '#gateway/npm/zod';
 
 const jestAssertionResultContract = z
   .object({
-    status: z.string().brand<'JestAssertionStatus'>().optional(),
-    fullName: z.string().brand<'JestAssertionFullName'>().optional(),
-    failureMessages: z.array(z.string().brand<'JestFailureMessage'>()).optional(),
-    duration: z.number().brand<'JestAssertionDuration'>().nullable().optional(),
-  })
+    status: z.string().brand<'JestAssertionResultStatus'>().optional(),
+    fullName: z.string().brand<'JestAssertionResultFullName'>().optional(),
+    failureMessages: z.array(z.string().brand<'JestAssertionResultFailureMessages'>()).optional(),
+    duration: z.number().brand<'JestAssertionResultDuration'>().nullable().optional(),
+  }).brand<'JestAssertionResult'>()
   .loose();
 
 const jestSuiteResultContract = z
   .object({
-    name: z.string().brand<'JestSuiteName'>().optional(),
-    status: z.string().brand<'JestSuiteStatus'>().optional(),
-    message: z.string().brand<'JestSuiteMessage'>().optional(),
+    name: z.string().brand<'JestSuiteResultName'>().optional(),
+    status: z.string().brand<'JestSuiteResultStatus'>().optional(),
+    message: z.string().brand<'JestSuiteResultMessage'>().optional(),
     assertionResults: z.array(jestAssertionResultContract).optional(),
-    startTime: z.number().brand<'JestSuiteStartTime'>().optional(),
-    endTime: z.number().brand<'JestSuiteEndTime'>().optional(),
-  })
+    startTime: z.number().brand<'JestSuiteResultStartTime'>().optional(),
+    endTime: z.number().brand<'JestSuiteResultEndTime'>().optional(),
+  }).brand<'JestSuiteResult'>()
   .loose();
 
 // Jest serializes each open handle as an Error through its own `serializeToJSON`, which keeps only
@@ -35,13 +35,13 @@ const jestOpenHandleContract = z
     name: z.string().brand<'JestOpenHandleName'>().optional(),
     message: z.string().brand<'JestOpenHandleMessage'>().optional(),
     stack: z.string().brand<'JestOpenHandleStack'>().optional(),
-  })
+  }).brand<'JestOpenHandle'>()
   .loose();
 
 export const jestJsonReportContract = z
   .object({
-    numTotalTestSuites: z.number().brand<'JestNumTotalTestSuites'>().optional(),
-    numPassedTests: z.number().brand<'JestNumPassedTests'>().optional(),
+    numTotalTestSuites: z.number().brand<'JestJsonReportNumTotalTestSuites'>().optional(),
+    numPassedTests: z.number().brand<'JestJsonReportNumPassedTests'>().optional(),
     testResults: z.array(jestSuiteResultContract).optional(),
     openHandles: z.array(jestOpenHandleContract).optional(),
   })

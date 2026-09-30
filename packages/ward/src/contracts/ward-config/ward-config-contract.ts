@@ -16,10 +16,10 @@ import { checkTypeContract } from '../check-type/check-type-contract';
 
 export const wardConfigContract = z.object({
   only: z.array(checkTypeContract).optional(),
-  onlyTests: z.string().brand<'TestNamePattern'>().optional(),
+  onlyTests: z.string().brand<'WardConfigOnlyTests'>().optional(),
   committed: z.boolean().optional(),
   uncommitted: z.boolean().optional(),
-  passthrough: z.array(z.string().brand<'PassthroughArg'>()).optional(),
+  passthrough: z.array(z.string().brand<'WardConfigPassthrough'>()).optional(),
 }).brand<'WardConfig'>();
 
 export type WardConfig = z.infer<typeof wardConfigContract>;

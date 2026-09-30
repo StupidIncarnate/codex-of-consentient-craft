@@ -9,8 +9,8 @@
 import { z } from '#gateway/npm/zod';
 
 export const rawOutputContract = z.object({
-  stdout: z.string().brand<'Stdout'>(),
-  stderr: z.string().brand<'Stderr'>(),
+  stdout: z.string().brand<'RawOutputStdout'>(),
+  stderr: z.string().brand<'RawOutputStderr'>(),
   exitCode: z.number().brand<'RawOutputExitCode'>(),
   // The signal that killed the process, where one did. `exitCode` cannot carry this: a child killed
   // from outside chose no code of its own and is handed back as 1, which is what an ordinary tool

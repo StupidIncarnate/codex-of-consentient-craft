@@ -9,10 +9,10 @@
 import { z } from '#gateway/npm/zod';
 
 export const testFailureContract = z.object({
-  suitePath: z.string().brand<'SuitePath'>(),
-  testName: z.string().brand<'TestName'>(),
-  message: z.string().brand<'FailureMessage'>(),
-  stackTrace: z.string().brand<'StackTrace'>().optional(),
+  suitePath: z.string().brand<'TestFailureSuitePath'>(),
+  testName: z.string().brand<'TestFailureTestName'>(),
+  message: z.string().brand<'TestFailureMessage'>(),
+  stackTrace: z.string().brand<'TestFailureStackTrace'>().optional(),
 }).brand<'TestFailure'>();
 
 export type TestFailure = z.infer<typeof testFailureContract>;

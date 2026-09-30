@@ -11,16 +11,16 @@ import { z } from '#gateway/npm/zod';
 export const packageJsonContract = z
   .object({
     name: z.string().brand<'PackageJsonName'>().optional(),
-    workspaces: z.array(z.string().brand<'PackageJsonWorkspace'>()).optional(),
-    scripts: z.record(z.string().brand<'PackageJsonScripts'>(), z.unknown()).optional(),
+    workspaces: z.array(z.string().brand<'PackageJsonWorkspaces'>()).optional(),
+    scripts: z.record(z.string().brand<'PackageJsonScriptsKey'>(), z.unknown()).optional(),
     dependencies: z
-      .record(z.string().brand<'DepName'>(), z.string().brand<'DepVersion'>())
+      .record(z.string().brand<'PackageJsonDependenciesKey'>(), z.string().brand<'PackageJsonDependencies'>())
       .optional(),
     devDependencies: z
-      .record(z.string().brand<'DepName'>(), z.string().brand<'DepVersion'>())
+      .record(z.string().brand<'PackageJsonDevDependenciesKey'>(), z.string().brand<'PackageJsonDevDependencies'>())
       .optional(),
     peerDependencies: z
-      .record(z.string().brand<'DepName'>(), z.string().brand<'DepVersion'>())
+      .record(z.string().brand<'PackageJsonPeerDependenciesKey'>(), z.string().brand<'PackageJsonPeerDependencies'>())
       .optional(),
   })
   .loose().brand<'PackageJson'>();

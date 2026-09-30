@@ -13,8 +13,8 @@ import { z } from '#gateway/npm/zod';
 import { scanViolationContract } from '../scan-violation/scan-violation-contract';
 
 export const scanPackageResultContract = z.object({
-  name: z.string().min(1).brand<'ScanPackageName'>(),
-  violations: z.number().int().min(0).brand<'ScanViolationCount'>(),
+  name: z.string().min(1).brand<'ScanPackageResultName'>(),
+  violations: z.number().int().min(0).brand<'ScanPackageResultViolations'>(),
   batches: z.array(z.array(scanViolationContract).min(1)),
 }).brand<'ScanPackageResult'>();
 

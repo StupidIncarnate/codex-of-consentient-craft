@@ -10,8 +10,8 @@ import { z } from '#gateway/npm/zod';
 
 export const tsconfigJsonContract = z
   .object({
-    include: z.array(z.string().brand<'TsconfigInclude'>()).optional(),
-    exclude: z.array(z.string().brand<'TsconfigExclude'>()).optional(),
+    include: z.array(z.string().brand<'TsconfigJsonInclude'>()).optional(),
+    exclude: z.array(z.string().brand<'TsconfigJsonExclude'>()).optional(),
   })
   .loose().brand<'TsconfigJson'>();
 

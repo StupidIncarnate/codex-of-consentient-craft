@@ -13,7 +13,7 @@ export const runFiltersContract = z.object({
   committed: z.boolean().optional(),
   uncommitted: z.boolean().optional(),
   only: z.array(checkTypeContract).optional(),
-  passthrough: z.array(z.string().brand<'PassthroughArg'>()).optional(),
+  passthrough: z.array(z.string().brand<'RunFiltersPassthrough'>()).optional(),
 }).brand<'RunFilters'>();
 
 export type RunFilters = z.infer<typeof runFiltersContract>;
