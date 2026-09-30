@@ -17,7 +17,6 @@
  * // (`const plugin = StartEslintPlugin();`), so any I/O here would run merely from requiring the
  * // package — breaking every other package's tests the moment they import a plugin export.
  */
-import { eslintPluginNameContract } from '../../../contracts/eslint-plugin-name/eslint-plugin-name-contract';
 import { eslintRuleStatics } from '../../../statics/eslint-rule/eslint-rule-statics';
 import { typescriptEslintRuleStatics } from '../../../statics/typescript-eslint-rule/typescript-eslint-rule-statics';
 import { jestRuleStatics } from '../../../statics/jest-rule/jest-rule-statics';
@@ -68,7 +67,7 @@ export const configDungeonmasterBroker = ({
 
   const baseTypescriptConfig: TSESLint.FlatConfig.Config = {
     plugins: {
-      [eslintPluginNameContract.parse('@typescript-eslint')]: typescriptEslintPlugin,
+      ['@typescript-eslint']: typescriptEslintPlugin,
     },
     rules: {
       ...(typescriptEslintRuleStatics.rules as unknown as DeepWritable<
