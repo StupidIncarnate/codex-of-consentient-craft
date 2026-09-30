@@ -43,13 +43,12 @@ import { z } from '#gateway/npm/zod';
 
 import { absoluteFilePathContract, processIdContract, questContract, guildContract, siegeInstanceContract } from '@dungeonmaster/shared/contracts';
 
-import { instanceOwnerContract } from '../instance-owner/instance-owner-contract';
 import { instanceStateContract } from '../instance-state/instance-state-contract';
 import { portPairContract } from '../port-pair/port-pair-contract';
 
 export const registryEntryContract = z.object({
   id: siegeInstanceContract.shape.id,
-  owner: instanceOwnerContract,
+  owner: z.string().min(1).brand<'RegistryEntryOwner'>(),
   questId: questContract.shape.id.nullable(),
   guildId: guildContract.shape.id.nullable(),
   specName: z.string().min(1).brand<'RegistryEntrySpecName'>(),

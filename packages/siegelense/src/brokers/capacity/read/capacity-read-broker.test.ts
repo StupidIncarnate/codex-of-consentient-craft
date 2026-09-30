@@ -1,5 +1,4 @@
 import { InstanceIdStub } from '../../../contracts/instance-id/instance-id.stub';
-import { InstanceOwnerStub } from '../../../contracts/instance-owner/instance-owner.stub';
 import { RegistryStub } from '../../../contracts/registry/registry.stub';
 import { RegistryEntryStub } from '../../../contracts/registry-entry/registry-entry.stub';
 import { SpecProfileStub } from '../../../contracts/spec-profile/spec-profile.stub';
@@ -178,13 +177,13 @@ describe('capacityReadBroker', () => {
           instances: [
             RegistryEntryStub({
               id: InstanceIdStub({ value: 'inst_aaaa1111' }),
-              owner: InstanceOwnerStub({ value: '99999' }),
+              owner: '99999',
               bootedAtMs: (NOW_MS - 60_000),
               lastBeatMs: (NOW_MS - 1000),
             }),
             RegistryEntryStub({
               id: InstanceIdStub({ value: 'inst_bbbb2222' }),
-              owner: InstanceOwnerStub({ value: '88888' }),
+              owner: '88888',
               bootedAtMs: null,
               lastBeatMs: null,
             }),
@@ -245,7 +244,7 @@ describe('capacityReadBroker', () => {
           instances: [
             RegistryEntryStub({
               id: InstanceIdStub({ value: 'inst_cccc3333' }),
-              owner: InstanceOwnerStub({ value: '77777' }),
+              owner: '77777',
               bootedAtMs: (NOW_MS - 600_000),
               lastBeatMs: (NOW_MS - 60_000),
             }),
@@ -304,7 +303,7 @@ describe('capacityReadBroker', () => {
           instances: [
             RegistryEntryStub({
               id: InstanceIdStub({ value: 'inst_a620d5f3' }),
-              owner: InstanceOwnerStub({ value: '55555' }),
+              owner: '55555',
               bootedAtMs: null,
               lastBeatMs: null,
               // 4.5 hours past NOW_MS's reservedAtMs — well past

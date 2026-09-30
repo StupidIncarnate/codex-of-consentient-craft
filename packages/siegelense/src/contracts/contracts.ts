@@ -22,7 +22,6 @@ export * from './registry-entry/registry-entry-contract';
 export * from './port-pair/port-pair-contract';
 
 
-export * from './instance-owner/instance-owner-contract';
 
 export * from './boot-lock/boot-lock-contract';
 

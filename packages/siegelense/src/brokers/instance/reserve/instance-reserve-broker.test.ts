@@ -5,7 +5,6 @@ import { QuestIdStub } from '@dungeonmaster/shared/contracts/quest-id/quest-id.s
 import { instanceReserveBroker } from './instance-reserve-broker';
 import { instanceReserveBrokerProxy } from './instance-reserve-broker.proxy';
 import { InstanceIdStub } from '../../../contracts/instance-id/instance-id.stub';
-import { InstanceOwnerStub } from '../../../contracts/instance-owner/instance-owner.stub';
 import { PortPairStub } from '../../../contracts/port-pair/port-pair.stub';
 import { RegistryEntryStub } from '../../../contracts/registry-entry/registry-entry.stub';
 import { RegistryStub } from '../../../contracts/registry/registry.stub';
@@ -55,7 +54,7 @@ describe('instanceReserveBroker', () => {
         // process.pid is a plain data property, not a function or an accessor, so
         // registerSpyOn (which wraps jest.spyOn) cannot stage it — every assertion in this file
         // compares against the REAL process.pid rather than a staged one.
-        owner: InstanceOwnerStub({ value: String(pid) }),
+        owner: String(pid),
         questId: null,
         guildId: null,
         specName,
@@ -124,7 +123,7 @@ describe('instanceReserveBroker', () => {
       expect(result).toStrictEqual(
         RegistryEntryStub({
           id: proxy.mintedInstanceId(),
-          owner: InstanceOwnerStub({ value: String(pid) }),
+          owner: String(pid),
           questId,
           guildId,
           specName,
@@ -199,7 +198,7 @@ describe('instanceReserveBroker', () => {
       // check — this reads the row back through the registry proxy to close that hole.
       const expectedWrittenEntry = RegistryEntryStub({
         id: proxy.mintedInstanceId(),
-        owner: InstanceOwnerStub({ value: String(pid) }),
+        owner: String(pid),
         questId: null,
         guildId: null,
         specName,

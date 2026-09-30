@@ -23,7 +23,6 @@ import { SiegeInstanceIdStub } from '@dungeonmaster/shared/contracts/siege-insta
 import { SiegeRunIdStub } from '@dungeonmaster/shared/contracts/siege-run-id/siege-run-id.stub';
 
 import { InstanceIdStub } from '../../../contracts/instance-id/instance-id.stub';
-import { InstanceOwnerStub } from '../../../contracts/instance-owner/instance-owner.stub';
 import { PortPairStub } from '../../../contracts/port-pair/port-pair.stub';
 import { PruneQueryStub } from '../../../contracts/prune-query/prune-query.stub';
 import { RegistryEntryStub } from '../../../contracts/registry-entry/registry-entry.stub';
@@ -85,7 +84,7 @@ describe('prune, against a real evidence tree', () => {
         instances: [
           RegistryEntryStub({
             id: CITED_ID,
-            owner: InstanceOwnerStub(),
+            owner: '42781',
             specName: 'dungeonmaster-stack',
             specHash: 'a3f9c2e1',
             pid: null,
@@ -103,7 +102,7 @@ describe('prune, against a real evidence tree', () => {
           }),
           RegistryEntryStub({
             id: UNCITED_ID,
-            owner: InstanceOwnerStub(),
+            owner: '42781',
             specName: 'dungeonmaster-stack',
             specHash: 'a3f9c2e1',
             pid: null,
@@ -121,7 +120,7 @@ describe('prune, against a real evidence tree', () => {
           }),
           RegistryEntryStub({
             id: NEIGHBOUR_ID,
-            owner: InstanceOwnerStub(),
+            owner: '42781',
             specName: 'dungeonmaster-stack',
             specHash: 'a3f9c2e1',
             pid: null,
@@ -139,7 +138,7 @@ describe('prune, against a real evidence tree', () => {
           }),
           RegistryEntryStub({
             id: LIVE_ID,
-            owner: InstanceOwnerStub(),
+            owner: '42781',
             specName: 'dungeonmaster-stack',
             specHash: 'a3f9c2e1',
             pid: null,
@@ -157,7 +156,7 @@ describe('prune, against a real evidence tree', () => {
           }),
           RegistryEntryStub({
             id: DRY_RUN_ID,
-            owner: InstanceOwnerStub(),
+            owner: '42781',
             specName: 'dungeonmaster-stack',
             specHash: 'a3f9c2e1',
             pid: null,

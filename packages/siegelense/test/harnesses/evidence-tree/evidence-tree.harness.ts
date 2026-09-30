@@ -61,7 +61,6 @@ import { shotChangeReadBroker } from '../../../src/brokers/shot/change-read/shot
 import { statusReadBroker } from '../../../src/brokers/status/read/status-read-broker';
 import { InstanceHeartbeatStub } from '../../../src/contracts/instance-heartbeat/instance-heartbeat.stub';
 import { InstanceIdStub } from '../../../src/contracts/instance-id/instance-id.stub';
-import { InstanceOwnerStub } from '../../../src/contracts/instance-owner/instance-owner.stub';
 import { PortPairStub } from '../../../src/contracts/port-pair/port-pair.stub';
 import { RegistryEntryStub } from '../../../src/contracts/registry-entry/registry-entry.stub';
 import { RunIdStub } from '../../../src/contracts/run-id/run-id.stub';
@@ -433,7 +432,7 @@ export const evidenceTreeHarness = (): {
   const killedEntry = (): ReturnType<typeof RegistryEntryStub> =>
     RegistryEntryStub({
       id: KILLED_INSTANCE_ID,
-      owner: InstanceOwnerStub(),
+      owner: '42781',
       specName: 'dungeonmaster-stack',
       specHash: 'a3f9c2e1',
       pid: null,
@@ -451,7 +450,7 @@ export const evidenceTreeHarness = (): {
   const liveEntry = (): ReturnType<typeof RegistryEntryStub> =>
     RegistryEntryStub({
       id: LIVE_INSTANCE_ID,
-      owner: InstanceOwnerStub(),
+      owner: '42781',
       specName: 'dungeonmaster-stack',
       specHash: 'a3f9c2e1',
       pid: ProcessIdStub(),
@@ -595,7 +594,7 @@ export const evidenceTreeHarness = (): {
 
     const staleEntry = RegistryEntryStub({
       id: STALE_INSTANCE_ID,
-      owner: InstanceOwnerStub(),
+      owner: '42781',
       specName: 'dungeonmaster-stack',
       specHash: 'a3f9c2e1',
       pid: ProcessIdStub(),

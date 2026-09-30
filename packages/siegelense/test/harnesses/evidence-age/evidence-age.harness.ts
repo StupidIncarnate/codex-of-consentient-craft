@@ -27,7 +27,6 @@ import type { SiegeInstance } from '@dungeonmaster/shared/contracts';
 import { locationsInstanceEvidencePathFindBroker } from '../../../src/brokers/locations/instance-evidence-path-find/locations-instance-evidence-path-find-broker';
 import { registryUpdateBroker } from '../../../src/brokers/registry/update/registry-update-broker';
 import { InstanceIdStub } from '../../../src/contracts/instance-id/instance-id.stub';
-import { InstanceOwnerStub } from '../../../src/contracts/instance-owner/instance-owner.stub';
 import { PortPairStub } from '../../../src/contracts/port-pair/port-pair.stub';
 import { RegistryEntryStub } from '../../../src/contracts/registry-entry/registry-entry.stub';
 
@@ -104,7 +103,7 @@ export const evidenceAgeHarness = (): {
           ...current.instances,
           RegistryEntryStub({
             id: instanceId,
-            owner: InstanceOwnerStub(),
+            owner: '42781',
             specName: 'dungeonmaster-stack',
             specHash: 'a3f9c2e1',
             pid: null,

@@ -36,7 +36,6 @@ import type { Quest, Guild } from '@dungeonmaster/shared/contracts';
 
 import { locationsInstanceEvidencePathFindBroker } from '../../locations/instance-evidence-path-find/locations-instance-evidence-path-find-broker';
 import { registryUpdateBroker } from '../../registry/update/registry-update-broker';
-import { instanceOwnerContract } from '../../../contracts/instance-owner/instance-owner-contract';
 import { portPairContract } from '../../../contracts/port-pair/port-pair-contract';
 import type { PortPair } from '../../../contracts/port-pair/port-pair-contract';
 import { registryEntryContract } from '../../../contracts/registry-entry/registry-entry-contract';
@@ -64,7 +63,7 @@ export const instanceReserveBroker = async ({
   const resolvedInstanceId = siegeInstanceContract.shape.id.parse(
     `${instanceLifecycleStatics.ids.instancePrefix}${entropyHex}`,
   );
-  const resolvedOwner = instanceOwnerContract.parse(String(pid));
+  const resolvedOwner = String(pid);
   const resolvedReservedAtMs = now();
 
   // Independent calls — the branch read and the port-candidate fan-out share no data — so they
