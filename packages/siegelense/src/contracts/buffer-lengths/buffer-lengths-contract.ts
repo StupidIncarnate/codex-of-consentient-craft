@@ -10,13 +10,12 @@
 
 import { z } from '#gateway/npm/zod';
 
-import { bufferLineCountContract } from '../buffer-line-count/buffer-line-count-contract';
 
 export const bufferLengthsContract = z
   .object({
-    consoleLines: bufferLineCountContract,
-    networkLines: bufferLineCountContract,
-    websocketLines: bufferLineCountContract,
+    consoleLines: z.number().int().nonnegative().brand<'BufferLengthsConsoleLines'>(),
+    networkLines: z.number().int().nonnegative().brand<'BufferLengthsNetworkLines'>(),
+    websocketLines: z.number().int().nonnegative().brand<'BufferLengthsWebsocketLines'>(),
   })
   .strict()
   .brand<'BufferLengths'>();
