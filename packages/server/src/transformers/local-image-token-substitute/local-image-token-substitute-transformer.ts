@@ -26,7 +26,6 @@
 import { userMessageContract } from '../../contracts/user-message/user-message-contract';
 import type { UserMessage } from '../../contracts/user-message/user-message-contract';
 import type { LocalImagePathMatch } from '../../contracts/local-image-path-match/local-image-path-match-contract';
-import type { PastedImageOrdinal } from '../../contracts/pasted-image-ordinal/pasted-image-ordinal-contract';
 
 // The two characters immediately before an occurrence, mirroring
 // localImagePathsFindTransformer's rule: only `](` marks an occurrence as already sitting inside
@@ -40,7 +39,7 @@ export const localImageTokenSubstituteTransformer = ({
 }: {
   message: string;
   matches: readonly LocalImagePathMatch[];
-  copiedPathByOrdinal: ReadonlyMap<PastedImageOrdinal, string>;
+  copiedPathByOrdinal: ReadonlyMap<number, string>;
 }): UserMessage => {
   let rebuilt = '';
   let cursor = 0;

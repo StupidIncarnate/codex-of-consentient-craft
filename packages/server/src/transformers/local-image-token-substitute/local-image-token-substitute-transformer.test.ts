@@ -1,12 +1,11 @@
 
 import { LocalImagePathMatchStub } from '../../contracts/local-image-path-match/local-image-path-match.stub';
-import { PastedImageOrdinalStub } from '../../contracts/pasted-image-ordinal/pasted-image-ordinal.stub';
 import { localImageTokenSubstituteTransformer } from './local-image-token-substitute-transformer';
 
 describe('localImageTokenSubstituteTransformer', () => {
   describe('a copied path is replaced by its token', () => {
     it('VALID: {message: "before /tmp/snip.png after", one match copied} => the copied destination path is wrapped in the pasted-image token, everything else unchanged', () => {
-      const ordinal = PastedImageOrdinalStub({ value: 1 });
+      const ordinal = 1;
       const match = LocalImagePathMatchStub({ path: '/tmp/snip.png', ordinal });
       const copiedPath = '/home/q/images/abc.png';
 
@@ -25,7 +24,7 @@ describe('localImageTokenSubstituteTransformer', () => {
   // and in the quoted one would splice the token between two orphaned quote marks.
   describe('a quoted or escaped path takes its quotes and escapes with it', () => {
     it('VALID: {message holds a double-quoted path with spaces} => the quotes are replaced along with the path', () => {
-      const ordinal = PastedImageOrdinalStub({ value: 1 });
+      const ordinal = 1;
       const match = LocalImagePathMatchStub({
         path: '/tmp/Screen Shot.png',
         matchedText: '"/tmp/Screen Shot.png"',
@@ -43,7 +42,7 @@ describe('localImageTokenSubstituteTransformer', () => {
     });
 
     it('VALID: {message holds a backslash-escaped path} => the escaped run is replaced whole', () => {
-      const ordinal = PastedImageOrdinalStub({ value: 1 });
+      const ordinal = 1;
       const match = LocalImagePathMatchStub({
         path: '/tmp/Screen Shot.png',
         matchedText: '/tmp/Screen\\ Shot.png',
@@ -61,7 +60,7 @@ describe('localImageTokenSubstituteTransformer', () => {
     });
 
     it('VALID: {a quoted path the copy step skipped} => the quotes come back exactly as written', () => {
-      const ordinal = PastedImageOrdinalStub({ value: 1 });
+      const ordinal = 1;
       const match = LocalImagePathMatchStub({
         path: '/tmp/Screen Shot.png',
         matchedText: '"/tmp/Screen Shot.png"',
@@ -80,7 +79,7 @@ describe('localImageTokenSubstituteTransformer', () => {
 
   describe('an unresolved path reaches the agent verbatim', () => {
     it('VALID: {message: "before /tmp/snip.png after", one match, no entry in copiedPathByOrdinal} => the path is untouched, character for character', () => {
-      const ordinal = PastedImageOrdinalStub({ value: 1 });
+      const ordinal = 1;
       const match = LocalImagePathMatchStub({ path: '/tmp/snip.png', ordinal });
 
       const result = localImageTokenSubstituteTransformer({
@@ -95,7 +94,7 @@ describe('localImageTokenSubstituteTransformer', () => {
 
   describe('a path already sitting inside an image token is not matched a second time', () => {
     it('VALID: {message: "![Pasted Image 1](/tmp/a.png) and /tmp/a.png", one match at ordinal 2 (the loose occurrence)} => the existing token is untouched and the loose occurrence becomes its own token', () => {
-      const ordinal = PastedImageOrdinalStub({ value: 2 });
+      const ordinal = 2;
       const match = LocalImagePathMatchStub({ path: '/tmp/a.png', ordinal });
       const copiedPath = '/home/q/images/copy.png';
 
@@ -113,7 +112,7 @@ describe('localImageTokenSubstituteTransformer', () => {
 
   describe('a match whose path cannot be found in the message leaves the message untouched', () => {
     it('VALID: {message: "no images here", one match whose path never occurs} => the message is returned byte-identical', () => {
-      const ordinal = PastedImageOrdinalStub({ value: 1 });
+      const ordinal = 1;
       const match = LocalImagePathMatchStub({ path: '/tmp/missing.png', ordinal });
       const copiedPath = '/home/q/images/copy.png';
 
@@ -129,8 +128,8 @@ describe('localImageTokenSubstituteTransformer', () => {
 
   describe('the same path string occurs twice, both copied under different ordinals', () => {
     it('VALID: {message: two occurrences of the same path, two matches with different ordinals} => each occurrence is replaced by its own token, left to right', () => {
-      const firstOrdinal = PastedImageOrdinalStub({ value: 1 });
-      const secondOrdinal = PastedImageOrdinalStub({ value: 2 });
+      const firstOrdinal = 1;
+      const secondOrdinal = 2;
       const firstMatch = LocalImagePathMatchStub({ path: '/tmp/snip.png', ordinal: firstOrdinal });
       const secondMatch = LocalImagePathMatchStub({
         path: '/tmp/snip.png',

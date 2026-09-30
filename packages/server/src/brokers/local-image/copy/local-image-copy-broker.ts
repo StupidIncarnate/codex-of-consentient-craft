@@ -18,7 +18,6 @@ import { join } from '#gateway/node/path';
 import { stderr } from '#gateway/node/process';
 
 import type { LocalImagePathMatch } from '../../../contracts/local-image-path-match/local-image-path-match-contract';
-import type { PastedImageOrdinal } from '../../../contracts/pasted-image-ordinal/pasted-image-ordinal-contract';
 import { imageContentTypeTransformer } from '../../../transformers/image-content-type/image-content-type-transformer';
 
 export const localImageCopyBroker = async ({
@@ -27,10 +26,10 @@ export const localImageCopyBroker = async ({
 }: {
   matches: readonly LocalImagePathMatch[];
   imagesDirPath: string;
-}): Promise<ReadonlyMap<PastedImageOrdinal, string>> => {
+}): Promise<ReadonlyMap<number, string>> => {
   const copied = await Promise.all(
     matches.map(
-      async (match): Promise<readonly [PastedImageOrdinal, string] | undefined> => {
+      async (match): Promise<readonly [number, string] | undefined> => {
         if (imageContentTypeTransformer({ filePath: match.path }) === null) {
           stderr.write(
             `[local-image-copy-broker] skipped ${match.path}: not a served image type\n`,

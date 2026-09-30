@@ -22,12 +22,11 @@ import { z } from '#gateway/npm/zod';
 
 import { absoluteFilePathContract } from '@dungeonmaster/shared/contracts';
 
-import { pastedImageOrdinalContract } from '../pasted-image-ordinal/pasted-image-ordinal-contract';
 
 export const localImagePathMatchContract = z.object({
   path: absoluteFilePathContract,
   matchedText: z.string().min(1).brand<'LocalImagePathMatchedText'>(),
-  ordinal: pastedImageOrdinalContract,
+  ordinal: z.number().int().positive().brand<'LocalImagePathMatchOrdinal'>(),
 });
 
 export type LocalImagePathMatch = z.infer<typeof localImagePathMatchContract>;
