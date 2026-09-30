@@ -128,6 +128,29 @@ More rules for the operator:
 
 ## START HERE — where the epic stands and what to do next
 
+### Big-bang run (user decision, 2026-09-29 evening) — IN PROGRESS, READ THIS FIRST
+
+The user adopted the open proposal below. Every Phase 4 brand script runs back to back on `gateway-pivot`, and
+each run's output is committed while the tree is red. Only then do fixer agents clear the fallout, in this order:
+typecheck to 0 (leaves first up the import graph), then unit, then lint, then integration (opus fixers), then e2e
+(opus fixers). Rule F's per-wave gate and rule 18's per-commit gate are suspended for the length of this run.
+
+| What | Where |
+|---|---|
+| Run sheet: order, commands, red-tree verdict per script, hand pre-steps | `bigbang/RUNBOOK.md` |
+| Patched scripts (apply modes, per-file stub specifiers, line-free gate key in `lib/repo.cjs`, moves not deletes) | `phase34-scripts/` (committed c2cbc43d4); run copies in `tmp/phase34/`, `tmp/phase34-feasibility/` |
+| Fix-queue tools: `diag.cjs` (whole-repo typecheck, about 60 s), `graph.cjs` (import levels), `queue.cjs` (batches, error clusters) | `bigbang/tools/`; run copies in `tmp/bigbang/tools/` |
+| Segment A driver (W1, SD12, W3, W4, W2), progress log, per-run logs | `tmp/bigbang/run-a.sh`, `tmp/bigbang/logs/A-progress.log`; ends with `tmp/bigbang/A.done` or `A.failed` |
+
+Order: W1 → H1 (done, e1e08c3c3) → SD12 → W3 → W4 → W2 → W5 (first five as trials) → W6 (fallout script, then R2
+and R7 autofix) → W7 → W8 `--only=json,own`. Held until typecheck is green: W8 `--responders` and W9 (both decide
+from checker types and can bake in a wrong type or drop a runtime check), then H2 to H8, then W10.
+
+Machine limits: 62G RAM, 12 cores. Fixer agents only edit; the operator runs `diag.cjs` and the tests centrally
+between rounds. The Workflow tool runs at most 10 agents at once per workflow.
+
+Done so far: prep c2cbc43d4, W1 `functionName` trial 8620299fe, H1 e1e08c3c3; segment A started 18:48.
+
 ### Handoff (2026-09-29, 17:10) — READ THIS FIRST
 
 **State.** Nothing is running and nothing is uncommitted (HEAD after 898ce9e8a). `build:clean` passed at 17:05. The full `npm run ward` was NOT run at the end of this session: the user stopped it to re-plan (see "Open proposal" below). Last full ward: 1790704851764-b386 at 11:01, green, 1,113 s (18.5 minutes; e2e alone 331 s). A full ward of about 20 minutes is therefore the baseline, not a new regression.
