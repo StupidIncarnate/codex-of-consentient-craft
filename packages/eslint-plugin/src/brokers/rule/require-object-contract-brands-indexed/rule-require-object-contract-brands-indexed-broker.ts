@@ -95,8 +95,10 @@ export const ruleRequireObjectContractBrandsIndexedBroker = (): TSESLint.RuleMod
         }
 
         // The field the leaf belongs to: an array element or a record value answers to its array's key.
-        let owningProperty: TSESTree.Node | undefined = node.parent;
-        while (owningProperty !== undefined && owningProperty.type !== AST_NODE_TYPES.Property) {
+        // Truthiness, not `!== undefined`: `Program.parent` is null at runtime, so a leaf under no property (a tuple
+        // element) walked past the Program and crashed on `null.type`.
+        let owningProperty: TSESTree.Node | null | undefined = node.parent;
+        while (owningProperty && owningProperty.type !== AST_NODE_TYPES.Property) {
           owningProperty = owningProperty.parent;
         }
         const key =
