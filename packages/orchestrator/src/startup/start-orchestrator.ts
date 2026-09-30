@@ -499,7 +499,7 @@ export const StartOrchestrator = {
     workerWorkItemId,
     workerQuestId,
   }: {
-    parentSessionId: string;
+    parentSessionId: Session['id'];
     projectDir: string;
     // The work item whose agent writes this session's MAIN JSONL. Routes its
     // main-session output to that work item's execution row.

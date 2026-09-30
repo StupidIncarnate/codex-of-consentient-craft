@@ -10,6 +10,7 @@
  * `.loose()` so unread fields (e.g., MCP-injected metadata) survive validation.
  */
 import { z } from '#gateway/npm/zod';
+import { agentContract } from '@dungeonmaster/shared/contracts';
 
 export const normalizedStreamLineContentItemContract = z
   .object({
@@ -26,7 +27,7 @@ export const normalizedStreamLineContentItemContract = z
     content: z.unknown().optional(),
     isError: z.boolean().optional(),
     source: z.string().brand<'NormalizedStreamLineContentItemSource'>().optional(),
-    agentId: z.string().brand<'NormalizedStreamLineContentItemAgentId'>().optional(),
+    agentId: agentContract.shape.id.optional(),
   })
   .loose()
   .brand<'NormalizedStreamLineContentItem'>();

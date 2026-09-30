@@ -19,7 +19,7 @@ import {
   claudeLineNormalizeBroker,
   locationsClaudeSessionFilePathFindBroker,
 } from '@dungeonmaster/shared/brokers';
-import type { Session } from '@dungeonmaster/shared/contracts';
+import type { Session, Guild } from '@dungeonmaster/shared/contracts';
 
 import type { StreamSignal } from '../../../contracts/stream-signal/stream-signal-contract';
 import { streamJsonLinesFromRawTransformer } from '../../../transformers/stream-json-lines-from-raw/stream-json-lines-from-raw-transformer';
@@ -29,7 +29,7 @@ export const signalFromSessionJsonlBroker = async ({
   guildPath,
   sessionId,
 }: {
-  guildPath: string;
+  guildPath: Guild['path'];
   sessionId: Session['id'];
 }): Promise<StreamSignal | null> => {
   const filePath = locationsClaudeSessionFilePathFindBroker({ guildPath, sessionId });

@@ -9,8 +9,9 @@
  * can `instanceof`-check to distinguish a gone-guild from other load failures.
  * WHEN-NOT-TO-USE: For per-call validation failures or transient I/O errors — those should remain plain Errors.
  */
+import type { Guild } from '@dungeonmaster/shared/contracts';
 export class GuildNotFoundError extends Error {
-  public constructor({ guildId }: { guildId: string }) {
+  public constructor({ guildId }: { guildId: Guild['id'] }) {
     super(`Guild not found: ${guildId}`);
     this.name = 'GuildNotFoundError';
   }

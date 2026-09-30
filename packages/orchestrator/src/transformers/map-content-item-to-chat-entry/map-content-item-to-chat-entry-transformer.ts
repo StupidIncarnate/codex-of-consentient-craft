@@ -7,7 +7,7 @@
  */
 import { randomUUID } from '#gateway/node/crypto';
 import { chatEntryContract } from '@dungeonmaster/shared/contracts';
-import type { ChatEntry, ChatUsage } from '@dungeonmaster/shared/contracts';
+import type { ChatEntry, ChatUsage, Agent } from '@dungeonmaster/shared/contracts';
 
 import { normalizedStreamLineContentItemContract } from '../../contracts/normalized-stream-line-content-item/normalized-stream-line-content-item-contract';
 import { normalizeAskUserQuestionInputTransformer } from '../normalize-ask-user-question-input/normalize-ask-user-question-input-transformer';
@@ -25,7 +25,7 @@ export const mapContentItemToChatEntryTransformer = ({
   item: Record<string, unknown>;
   usage: ChatUsage | undefined;
   source?: 'session' | 'subagent';
-  agentId?: string;
+  agentId?: Agent['id'];
   model?: string;
   uuid?: string;
   timestamp?: string;

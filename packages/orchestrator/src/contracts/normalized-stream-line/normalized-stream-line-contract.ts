@@ -15,6 +15,7 @@
 import { z } from '#gateway/npm/zod';
 import { inflatedTaskNotificationContentContract } from '../inflated-task-notification-content/inflated-task-notification-content-contract';
 import { normalizedStreamLineContentItemContract } from '../normalized-stream-line-content-item/normalized-stream-line-content-item-contract';
+import { agentContract, sessionContract } from '@dungeonmaster/shared/contracts';
 
 const _contentItem = z
   .object({
@@ -29,7 +30,7 @@ const _contentItem = z
     content: z.union([z.string(), z.array(normalizedStreamLineContentItemContract)]).optional(),
     isError: z.boolean().optional(),
     source: z.string().brand<'ContentItemSource'>().optional(),
-    agentId: z.string().brand<'ContentItemAgentId'>().optional(),
+    agentId: agentContract.shape.id.optional(),
   })
   .brand<'ContentItem'>()
   .loose();
@@ -103,7 +104,7 @@ const toolUseResult = z.union([
   z
     .object({
       // unknown: the CLI has emitted a non-string agentId, and the processor narrows to string before use.
-      agentId: z.unknown().optional(),
+      agentId: agentContract.shape.id.optional(),
       // Present on a BLOCKING Task/Agent completion only — the CLI's own measurement of that
       // sub-agent run. An async launch's result object carries no such field.
       totalDurationMs: z.number().brand<'ToolUseResultTotalDurationMs'>().nullish(),
@@ -127,8 +128,8 @@ export const normalizedStreamLineContract = z
     toolUseResult: toolUseResult.optional(),
     taskNotification: taskNotification.optional(),
     source: z.string().brand<'NormalizedStreamLineSource'>().optional(),
-    agentId: z.string().brand<'NormalizedStreamLineAgentId'>().optional(),
-    sessionId: z.string().brand<'NormalizedStreamLineSessionId'>().optional(),
+    agentId: agentContract.shape.id.optional(),
+    sessionId: sessionContract.shape.id.optional(),
     timestamp: z.string().brand<'NormalizedStreamLineTimestamp'>().optional(),
     uuid: z.string().brand<'NormalizedStreamLineUuid'>().optional(),
   })

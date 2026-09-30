@@ -51,7 +51,7 @@ export const questMonitorWatcherStartBroker = async ({
   workerWorkItemId,
   workerQuestId,
 }: {
-  parentSessionId: string;
+  parentSessionId: Session['id'];
   projectDir: string;
   emit: (params: {
     type: OrchestrationEventType;

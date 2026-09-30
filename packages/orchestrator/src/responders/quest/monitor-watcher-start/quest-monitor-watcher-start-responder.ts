@@ -9,7 +9,7 @@
  * // handle.stop() — tears down the tail
  */
 
-import type { WorkItem, Quest } from '@dungeonmaster/shared/contracts';
+import type { WorkItem, Quest, Session } from '@dungeonmaster/shared/contracts';
 import { questMonitorWatcherStartBroker } from '../../../brokers/quest/monitor-watcher-start/quest-monitor-watcher-start-broker';
 import { orchestrationEventsState } from '../../../state/orchestration-events/orchestration-events-state';
 
@@ -19,7 +19,7 @@ export const QuestMonitorWatcherStartResponder = async ({
   workerWorkItemId,
   workerQuestId,
 }: {
-  parentSessionId: string;
+  parentSessionId: Session['id'];
   projectDir: string;
   workerWorkItemId: WorkItem['id'];
   workerQuestId: Quest['id'];
