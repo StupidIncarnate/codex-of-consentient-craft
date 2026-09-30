@@ -2,7 +2,6 @@
 // USAGE: Create proxy in test, use setup methods to configure endpoint behavior
 
 import type { ProcessId } from '@dungeonmaster/shared/contracts';
-import type { RequestCount } from '@dungeonmaster/testing';
 
 import { fetchJsonProxy } from '#gateway/browser/fetch/fetch-json/fetch-json.proxy';
 
@@ -12,7 +11,7 @@ export const questClarifyBrokerProxy = (): {
   setupClarify: (params: { chatProcessId: ProcessId }) => void;
   setupInvalidResponse: (params: { chatProcessId: unknown }) => void;
   setupError: () => void;
-  getRequestCount: () => RequestCount;
+  getRequestCount: () => number;
 } => {
   const jsonFetchProxy = fetchJsonProxy();
   const address = { method: 'post', url: webConfigStatics.api.routes.questClarify } as const;
@@ -27,6 +26,6 @@ export const questClarifyBrokerProxy = (): {
     setupError: () => {
       jsonFetchProxy.setupConnectionRefused(address);
     },
-    getRequestCount: (): RequestCount => jsonFetchProxy.getRequestCount(address),
+    getRequestCount: (): number => jsonFetchProxy.getRequestCount(address),
   };
 };

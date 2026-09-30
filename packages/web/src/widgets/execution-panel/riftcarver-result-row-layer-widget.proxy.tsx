@@ -1,11 +1,10 @@
-import type { RequestCount } from '@dungeonmaster/testing';
 
 import { RiftcarverResultDetailLayerWidgetProxy } from './riftcarver-result-detail-layer-widget.proxy';
 
 export const RiftcarverResultRowLayerWidgetProxy = (): {
   setupDetail: (params: { detail: unknown }) => void;
   setupNotFound: () => void;
-  getDetailRequestCount: () => RequestCount;
+  getDetailRequestCount: () => number;
 } => {
   const detailProxy = RiftcarverResultDetailLayerWidgetProxy();
 
@@ -16,6 +15,6 @@ export const RiftcarverResultRowLayerWidgetProxy = (): {
     setupNotFound: (): void => {
       detailProxy.setupNotFound();
     },
-    getDetailRequestCount: (): RequestCount => detailProxy.getRequestCount(),
+    getDetailRequestCount: (): number => detailProxy.getRequestCount(),
   };
 };

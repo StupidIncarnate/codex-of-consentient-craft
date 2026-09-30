@@ -1,6 +1,5 @@
 import type { StubArgument } from '@dungeonmaster/shared/@types';
 
-import { requestCountContract } from '../request-count/request-count-contract';
 import { endpointControlContract } from './endpoint-control-contract';
 import type { EndpointControl } from './endpoint-control-contract';
 
@@ -31,7 +30,7 @@ export const EndpointControlStub = ({
       ((): ReturnType<EndpointControl['holdsOpen']> => ({ release: (): void => undefined })),
     getRequestCount:
       getRequestCount ??
-      ((): ReturnType<EndpointControl['getRequestCount']> => requestCountContract.parse(0)),
+      ((): ReturnType<EndpointControl['getRequestCount']> => 0),
     getRequestBodies:
       getRequestBodies ??
       (async (): ReturnType<EndpointControl['getRequestBodies']> => Promise.resolve([])),

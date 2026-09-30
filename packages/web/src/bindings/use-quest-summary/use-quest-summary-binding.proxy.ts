@@ -1,6 +1,5 @@
 import { console } from '#gateway/browser/console';
 import { registerSpyOn } from '@dungeonmaster/testing/register-mock';
-import type { RequestCount } from '@dungeonmaster/testing';
 import type { QuestSummaryStub } from '@dungeonmaster/shared/contracts/quest-summary/quest-summary.stub';
 
 import { questSummaryBrokerProxy } from '../../brokers/quest/summary/quest-summary-broker.proxy';
@@ -12,7 +11,7 @@ export const useQuestSummaryBindingProxy = (): {
   setupConnectedChannel: () => void;
   setupSummary: (params: { summary: QuestSummary }) => void;
   setupNotFound: () => void;
-  getSummaryRequestCount: () => RequestCount;
+  getSummaryRequestCount: () => number;
   deliverWsMessage: (params: { data: string }) => void;
 } => {
   const broker = questSummaryBrokerProxy();
@@ -36,7 +35,7 @@ export const useQuestSummaryBindingProxy = (): {
     setupNotFound: (): void => {
       broker.setupNotFound();
     },
-    getSummaryRequestCount: (): RequestCount => broker.getRequestCount(),
+    getSummaryRequestCount: (): number => broker.getRequestCount(),
     deliverWsMessage: ({ data }: { data: string }): void => {
       channel.deliverMessage({ data });
     },

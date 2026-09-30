@@ -9,7 +9,6 @@
  * await getRequestBody() to assert the posted body.
  */
 
-import type { RequestCount } from '@dungeonmaster/testing';
 
 import { fetchWithStatusProxy } from '#gateway/browser/fetch/fetch-with-status/fetch-with-status.proxy';
 
@@ -36,7 +35,7 @@ export const questCommentBatchBrokerProxy = (): {
   setupServerErrorNoBody: () => void;
   setupNetworkError: () => void;
   getRequestBody: () => Promise<unknown>;
-  getRequestCount: () => RequestCount;
+  getRequestCount: () => number;
 } => {
   const statusFetchProxy = fetchWithStatusProxy();
   const url = webConfigStatics.api.routes.questComments;
@@ -132,6 +131,6 @@ export const questCommentBatchBrokerProxy = (): {
       const bodies = await statusFetchProxy.getRequestBodies({ method: 'post', url });
       return bodies.at(-1) ?? null;
     },
-    getRequestCount: (): RequestCount => statusFetchProxy.getRequestCount({ method: 'post', url }),
+    getRequestCount: (): number => statusFetchProxy.getRequestCount({ method: 'post', url }),
   };
 };

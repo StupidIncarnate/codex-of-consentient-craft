@@ -9,7 +9,6 @@
  * await questStartBroker({ questId });
  */
 
-import type { RequestCount } from '@dungeonmaster/testing';
 
 import { fetchWithStatusProxy } from '#gateway/browser/fetch/fetch-with-status/fetch-with-status.proxy';
 
@@ -24,7 +23,7 @@ export const questStartBrokerProxy = (): {
   setupRejected: (params: { error: string }) => void;
   setupRejectedNoBody: () => void;
   setupError: () => void;
-  getRequestCount: () => RequestCount;
+  getRequestCount: () => number;
 } => {
   const statusFetchProxy = fetchWithStatusProxy();
   const url = webConfigStatics.api.routes.questStart;
@@ -60,6 +59,6 @@ export const questStartBrokerProxy = (): {
     setupError: (): void => {
       statusFetchProxy.setupRefused({ method: 'post', url });
     },
-    getRequestCount: (): RequestCount => statusFetchProxy.getRequestCount({ method: 'post', url }),
+    getRequestCount: (): number => statusFetchProxy.getRequestCount({ method: 'post', url }),
   };
 };

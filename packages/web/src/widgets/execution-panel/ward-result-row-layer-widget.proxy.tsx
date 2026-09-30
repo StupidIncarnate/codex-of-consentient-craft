@@ -1,11 +1,10 @@
-import type { RequestCount } from '@dungeonmaster/testing';
 
 import { WardResultDetailLayerWidgetProxy } from './ward-result-detail-layer-widget.proxy';
 
 export const WardResultRowLayerWidgetProxy = (): {
   setupDetail: (params: { detail: unknown }) => void;
   setupNotFound: () => void;
-  getDetailRequestCount: () => RequestCount;
+  getDetailRequestCount: () => number;
 } => {
   const detailProxy = WardResultDetailLayerWidgetProxy();
 
@@ -16,6 +15,6 @@ export const WardResultRowLayerWidgetProxy = (): {
     setupNotFound: (): void => {
       detailProxy.setupNotFound();
     },
-    getDetailRequestCount: (): RequestCount => detailProxy.getRequestCount(),
+    getDetailRequestCount: (): number => detailProxy.getRequestCount(),
   };
 };

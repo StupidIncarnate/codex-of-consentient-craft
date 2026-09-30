@@ -9,7 +9,6 @@
  * await questHumanVerdictBroker({ questId, unitId, outcome, reason });
  */
 
-import type { RequestCount } from '@dungeonmaster/testing';
 
 import { fetchWithStatusProxy } from '#gateway/browser/fetch/fetch-with-status/fetch-with-status.proxy';
 
@@ -26,7 +25,7 @@ export const questHumanVerdictBrokerProxy = (): {
   setupNetworkError: () => void;
   setupHeld: () => { release: () => void };
   getRequestBodies: () => Promise<unknown[]>;
-  getRequestCount: () => RequestCount;
+  getRequestCount: () => number;
 } => {
   const statusFetchProxy = fetchWithStatusProxy();
   const url = webConfigStatics.api.routes.questHumanVerdict;
@@ -79,6 +78,6 @@ export const questHumanVerdictBrokerProxy = (): {
       }),
     getRequestBodies: async (): Promise<unknown[]> =>
       statusFetchProxy.getRequestBodies({ method: 'post', url }),
-    getRequestCount: (): RequestCount => statusFetchProxy.getRequestCount({ method: 'post', url }),
+    getRequestCount: (): number => statusFetchProxy.getRequestCount({ method: 'post', url }),
   };
 };

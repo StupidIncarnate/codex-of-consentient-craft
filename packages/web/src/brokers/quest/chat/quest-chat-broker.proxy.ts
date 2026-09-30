@@ -6,7 +6,6 @@
 // url instead of the route template, so a test proves the questId was substituted into it.
 
 import type { ProcessId } from '@dungeonmaster/shared/contracts';
-import type { RequestCount } from '@dungeonmaster/testing';
 
 import { xhrPostWithProgressProxy } from '#gateway/browser/XMLHttpRequest/xhr-post-with-progress/xhr-post-with-progress.proxy';
 
@@ -21,7 +20,7 @@ export const questChatBrokerProxy = ({
   setupInvalidResponse: (params: { chatProcessId: unknown }) => void;
   setupError: () => void;
   setupRejected: (params: { status: number; error: string }) => void;
-  getRequestCount: () => RequestCount;
+  getRequestCount: () => number;
   getRequestBody: () => Promise<unknown>;
 } => {
   const xhrProxy = xhrPostWithProgressProxy();
@@ -47,7 +46,7 @@ export const questChatBrokerProxy = ({
     setupRejected: ({ status, error }): void => {
       xhrProxy.setupResponse({ url, status, bodyText: JSON.stringify({ error }) });
     },
-    getRequestCount: (): RequestCount => xhrProxy.getRequestCount({ url }),
+    getRequestCount: (): number => xhrProxy.getRequestCount({ url }),
     getRequestBody: async (): Promise<unknown> => {
       const bodies = await xhrProxy.getRequestBodies({ url });
       return bodies.at(-1);

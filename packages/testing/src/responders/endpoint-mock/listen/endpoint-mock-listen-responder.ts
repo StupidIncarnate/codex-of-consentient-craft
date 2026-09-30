@@ -8,8 +8,6 @@
 
 import { http, HttpResponse } from '#gateway/npm/msw';
 import { mswServerState } from '../../../state/msw-server/msw-server-state';
-import { requestCountContract } from '../../../contracts/request-count/request-count-contract';
-import type { RequestCount } from '../../../contracts/request-count/request-count-contract';
 import type {
   EndpointControl,
   EndpointResponseContract,
@@ -163,7 +161,7 @@ export const EndpointMockListenResponder = ({
       };
     },
 
-    getRequestCount: (): RequestCount => requestCountContract.parse(requestLog.length),
+    getRequestCount: (): number => requestLog.length,
 
     getRequestBodies: async (): Promise<unknown[]> => Promise.all(requestLog),
   };

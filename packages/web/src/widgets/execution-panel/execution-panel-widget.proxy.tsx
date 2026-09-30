@@ -2,7 +2,6 @@ import { screen } from '#gateway/npm/testing-library__react';
 import userEvent from '#gateway/npm/testing-library__user-event';
 
 import { registerSpyOn } from '@dungeonmaster/testing/register-mock';
-import type { RequestCount } from '@dungeonmaster/testing';
 import type { QuestProjectionStub } from '@dungeonmaster/shared/contracts/quest-projection/quest-projection.stub';
 
 import { act } from '#gateway/npm/testing-library__react';
@@ -88,7 +87,7 @@ export const ExecutionPanelWidgetProxy = (): {
   getSubagentChainDurations: () => HTMLElement['textContent'][];
   getDurationComputeCount: () => TickCallCount;
   setupProjection: (params: { projection: QuestProjection }) => void;
-  getProjectionRequestCount: () => RequestCount;
+  getProjectionRequestCount: () => number;
   setupWardDetailNotFound: () => void;
   setupRiftcarverDetailNotFound: () => void;
 } => {
@@ -274,7 +273,7 @@ export const ExecutionPanelWidgetProxy = (): {
     setupProjection: ({ projection }: { projection: QuestProjection }): void => {
       projectionProxy.setupProjection({ projection });
     },
-    getProjectionRequestCount: (): RequestCount => projectionProxy.getProjectionRequestCount(),
+    getProjectionRequestCount: (): number => projectionProxy.getProjectionRequestCount(),
     setupWardDetailNotFound: (): void => {
       workItemRowProxy.setupWardDetailNotFound();
     },

@@ -5,7 +5,6 @@
 // instead of the route template, so a test proves the guildId was substituted into it.
 
 import type { ProcessId, QuestId } from '@dungeonmaster/shared/contracts';
-import type { RequestCount } from '@dungeonmaster/testing';
 
 import { xhrPostWithProgressProxy } from '#gateway/browser/XMLHttpRequest/xhr-post-with-progress/xhr-post-with-progress.proxy';
 
@@ -20,7 +19,7 @@ export const questNewBrokerProxy = ({
   setupInvalidResponse: (params: { questId: unknown; chatProcessId: unknown }) => void;
   setupRejected: (params: { status: number; error: string }) => void;
   setupError: () => void;
-  getRequestCount: () => RequestCount;
+  getRequestCount: () => number;
   getRequestBodies: () => Promise<unknown[]>;
 } => {
   const xhrProxy = xhrPostWithProgressProxy();
@@ -46,7 +45,7 @@ export const questNewBrokerProxy = ({
     setupError: (): void => {
       xhrProxy.setupRefused({ url });
     },
-    getRequestCount: (): RequestCount => xhrProxy.getRequestCount({ url }),
+    getRequestCount: (): number => xhrProxy.getRequestCount({ url }),
     // The POSTed bodies, so a test can prove images/questType reached the wire rather than only
     // that a request happened. Callers assert the LAST entry via .at(-1).
     getRequestBodies: async (): Promise<unknown[]> => xhrProxy.getRequestBodies({ url }),

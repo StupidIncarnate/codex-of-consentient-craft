@@ -4,7 +4,6 @@
 // getRequestBody() to assert the posted body. Pass `url` to stage one concrete request url instead
 // of the route template, so a test proves the questId was substituted into it.
 
-import type { RequestCount } from '@dungeonmaster/testing';
 
 import { xhrPostWithProgressProxy } from '#gateway/browser/XMLHttpRequest/xhr-post-with-progress/xhr-post-with-progress.proxy';
 
@@ -22,7 +21,7 @@ export const questFollowupBrokerProxy = ({
   setupRejectedNoBody: () => void;
   setupError: () => void;
   getRequestBody: () => Promise<unknown>;
-  getRequestCount: () => RequestCount;
+  getRequestCount: () => number;
 } => {
   const xhrProxy = xhrPostWithProgressProxy();
 
@@ -54,6 +53,6 @@ export const questFollowupBrokerProxy = ({
       const bodies = await xhrProxy.getRequestBodies({ url });
       return bodies.at(-1);
     },
-    getRequestCount: (): RequestCount => xhrProxy.getRequestCount({ url }),
+    getRequestCount: (): number => xhrProxy.getRequestCount({ url }),
   };
 };

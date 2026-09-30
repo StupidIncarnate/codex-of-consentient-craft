@@ -7,7 +7,6 @@
 
 import { z } from '#gateway/npm/zod';
 
-import type { RequestCount } from '../request-count/request-count-contract';
 
 // `.loose()` keeps `z.infer` of the empty shape from narrowing to `Record<string, never>` (zod
 // v4), which the function-carrying intersection below could never satisfy.
@@ -35,7 +34,7 @@ export type EndpointControl = z.infer<typeof endpointControlContract> & {
   // (a disabled button, a spinner) that a same-tick `resolves()` settles too fast to observe.
   // `data` is JSON-encoded; `rawBody` is released verbatim (text, HTML) and wins when both are given.
   holdsOpen: (params: { data?: unknown; rawBody?: string }) => { release: () => void };
-  getRequestCount: () => RequestCount;
+  getRequestCount: () => number;
   // Parsed JSON bodies of the requests this endpoint received, oldest first. Lets a test assert
   // WHAT the frontend sent, not merely that it sent something — a request-count-only assertion
   // passes just as happily when a field the user selected never reached the wire.

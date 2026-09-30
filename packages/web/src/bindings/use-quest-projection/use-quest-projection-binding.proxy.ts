@@ -1,6 +1,5 @@
 import { console } from '#gateway/browser/console';
 import { registerSpyOn } from '@dungeonmaster/testing/register-mock';
-import type { RequestCount } from '@dungeonmaster/testing';
 import type { QuestProjectionStub } from '@dungeonmaster/shared/contracts/quest-projection/quest-projection.stub';
 
 import { questProjectionBrokerProxy } from '../../brokers/quest/projection/quest-projection-broker.proxy';
@@ -12,7 +11,7 @@ export const useQuestProjectionBindingProxy = (): {
   setupConnectedChannel: () => void;
   setupProjection: (params: { projection: QuestProjection }) => void;
   setupNotFound: () => void;
-  getProjectionRequestCount: () => RequestCount;
+  getProjectionRequestCount: () => number;
   deliverWsMessage: (params: { data: string }) => void;
 } => {
   const broker = questProjectionBrokerProxy();
@@ -36,7 +35,7 @@ export const useQuestProjectionBindingProxy = (): {
     setupNotFound: (): void => {
       broker.setupNotFound();
     },
-    getProjectionRequestCount: (): RequestCount => broker.getRequestCount(),
+    getProjectionRequestCount: (): number => broker.getRequestCount(),
     deliverWsMessage: ({ data }: { data: string }): void => {
       channel.deliverMessage({ data });
     },

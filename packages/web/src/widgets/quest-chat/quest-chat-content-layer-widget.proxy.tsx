@@ -6,7 +6,6 @@ import userEvent from '#gateway/npm/testing-library__user-event';
 
 import type { OrchestrationMode, ProcessId, QuestId } from '@dungeonmaster/shared/contracts';
 import type { QuestSummaryStub } from '@dungeonmaster/shared/contracts/quest-summary/quest-summary.stub';
-import type { RequestCount } from '@dungeonmaster/testing';
 import { registerMock } from '@dungeonmaster/testing/register-mock';
 import type { MockHandle } from '@dungeonmaster/testing/register-mock';
 
@@ -75,25 +74,25 @@ export const QuestChatContentLayerWidgetProxy = (): {
   // useQuestChatBindingProxy's own getChatRequestBody(), which this proxy already constructs (as
   // `binding`) but did not previously surface.
   getChatRequestBody: () => Promise<unknown>;
-  getChatRequestCount: () => RequestCount;
-  getClarifyRequestCount: () => RequestCount;
-  getPauseRequestCount: () => RequestCount;
-  getNewQuestRequestCount: () => RequestCount;
+  getChatRequestCount: () => number;
+  getClarifyRequestCount: () => number;
+  getPauseRequestCount: () => number;
+  getNewQuestRequestCount: () => number;
   getNewQuestRequestBodies: () => Promise<unknown[]>;
   selectQuestType: (params: { label: string }) => Promise<void>;
   setupFollowup: (params: { chatProcessId: ProcessId }) => void;
   setupFollowupRejected: (params: { error: string }) => void;
   setupMerge: (params: { merging: boolean }) => void;
   getFollowupRequestBody: () => Promise<unknown>;
-  getFollowupRequestCount: () => RequestCount;
-  getMergeRequestCount: () => RequestCount;
+  getFollowupRequestCount: () => number;
+  getMergeRequestCount: () => number;
   clickFollowupButton: () => Promise<void>;
   clickMergeButton: () => Promise<void>;
   typeFollowupMessage: (params: { text: string }) => Promise<void>;
   clickFollowupSend: () => Promise<void>;
   clickFollowupStop: () => Promise<void>;
   setupFollowupStop: (params: { stopped: boolean }) => void;
-  getFollowupStopRequestCount: () => RequestCount;
+  getFollowupStopRequestCount: () => number;
   // The execution phase mounts exactly one CHAT_PANEL — the FOLLOW-UP tab's — so an unqualified
   // testid lookup names that composer's control and no other.
   isFollowupStopButtonVisible: () => boolean;
@@ -102,7 +101,7 @@ export const QuestChatContentLayerWidgetProxy = (): {
   setupStart: (params: { processId: string }) => void;
   setupStartRejected: (params: { error: string }) => void;
   clickBeginQuest: () => Promise<void>;
-  getStartRequestCount: () => RequestCount;
+  getStartRequestCount: () => number;
   getShownNotification: () => unknown;
 } => {
   // Created BEFORE the chat binding proxy: this, the summary widget, AND the execution panel's own

@@ -3,7 +3,6 @@ import { registerSpyOn } from '@dungeonmaster/testing/register-mock';
 import type { SpyOnHandle } from '@dungeonmaster/testing/register-mock';
 import type { ProcessId, QuestStatus } from '@dungeonmaster/shared/contracts';
 import type { UserChatEntryStub } from '@dungeonmaster/shared/contracts/chat-entry/chat-entry.stub';
-import type { RequestCount } from '@dungeonmaster/testing';
 
 import { questChatBrokerProxy } from '../../brokers/quest/chat/quest-chat-broker.proxy';
 import { questClarifyBrokerProxy } from '../../brokers/quest/clarify/quest-clarify-broker.proxy';
@@ -36,21 +35,21 @@ export const useQuestChatBindingProxy = (): {
   setupPause: () => void;
   setupFollowupStop: (params: { stopped: boolean }) => void;
   setupFollowupStopError: () => void;
-  getFollowupStopRequestCount: () => RequestCount;
+  getFollowupStopRequestCount: () => number;
   setupResume: (params: { restoredStatus: QuestStatus }) => void;
   setupResumeServerError: () => void;
   setupUuids: (params: {
     uuids: readonly `${string}-${string}-${string}-${string}-${string}`[];
   }) => void;
   setupTimestamps: (params: { timestamps: readonly string[] }) => void;
-  getChatRequestCount: () => RequestCount;
+  getChatRequestCount: () => number;
   getChatRequestBody: () => Promise<unknown>;
-  getClarifyRequestCount: () => RequestCount;
-  getCommentBatchRequestCount: () => RequestCount;
+  getClarifyRequestCount: () => number;
+  getCommentBatchRequestCount: () => number;
   getFollowupRequestBody: () => Promise<unknown>;
-  getFollowupRequestCount: () => RequestCount;
-  getPauseRequestCount: () => RequestCount;
-  getResumeRequestCount: () => RequestCount;
+  getFollowupRequestCount: () => number;
+  getPauseRequestCount: () => number;
+  getResumeRequestCount: () => number;
   deliverWsMessage: (params: { data: string }) => void;
   getSentWsMessages: () => unknown[];
   triggerWsClose: () => void;

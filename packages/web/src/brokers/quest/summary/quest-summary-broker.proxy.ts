@@ -1,7 +1,6 @@
 // PURPOSE: Proxy for quest-summary-broker providing test control over HTTP responses
 // USAGE: Create proxy in test, use setup methods to configure endpoint behavior
 
-import type { RequestCount } from '@dungeonmaster/testing';
 import type { QuestSummaryStub } from '@dungeonmaster/shared/contracts/quest-summary/quest-summary.stub';
 
 import { fetchJsonProxy } from '#gateway/browser/fetch/fetch-json/fetch-json.proxy';
@@ -13,7 +12,7 @@ type QuestSummary = ReturnType<typeof QuestSummaryStub>;
 export const questSummaryBrokerProxy = (): {
   setupSummary: (params: { summary: QuestSummary }) => void;
   setupNotFound: () => void;
-  getRequestCount: () => RequestCount;
+  getRequestCount: () => number;
 } => {
   const jsonFetchProxy = fetchJsonProxy();
   const address = { method: 'get', url: webConfigStatics.api.routes.questSummary } as const;
@@ -29,6 +28,6 @@ export const questSummaryBrokerProxy = (): {
         bodyText: JSON.stringify({ error: 'Quest with id "q-missing" not found in any guild' }),
       });
     },
-    getRequestCount: (): RequestCount => jsonFetchProxy.getRequestCount(address),
+    getRequestCount: (): number => jsonFetchProxy.getRequestCount(address),
   };
 };
