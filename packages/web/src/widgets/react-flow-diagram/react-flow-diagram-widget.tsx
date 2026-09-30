@@ -47,7 +47,6 @@ import { flowObservableNodeDataContract } from '../../contracts/flow-observable-
 import { buttonLabelContract } from '../../contracts/button-label/button-label-contract';
 import { iconButtonSizeContract } from '../../contracts/icon-button-size/icon-button-size-contract';
 import { reactFlowNodeDataContract } from '../../contracts/react-flow-node-data/react-flow-node-data-contract';
-import { testIdContract } from '../../contracts/test-id/test-id-contract';
 import { elkLayoutStatics } from '../../statics/elk-layout/elk-layout-statics';
 import { emberDepthsThemeStatics } from '../../statics/ember-depths-theme/ember-depths-theme-statics';
 import { flowHandleStatics } from '../../statics/flow-handle/flow-handle-statics';
@@ -95,11 +94,11 @@ const MIN_CANVAS_HEIGHT = 420;
 // diagram rather than sitting inside a row of text, so they are sized to be hit without aiming.
 const CONTROL_SIZE = iconButtonSizeContract.parse(iconButtonStatics.sizes.large);
 const ZOOM_IN_LABEL = buttonLabelContract.parse('Zoom in');
-const ZOOM_IN_TEST_ID = testIdContract.parse('ZOOM_IN_BUTTON');
+const ZOOM_IN_TEST_ID = 'ZOOM_IN_BUTTON';
 const ZOOM_OUT_LABEL = buttonLabelContract.parse('Zoom out');
-const ZOOM_OUT_TEST_ID = testIdContract.parse('ZOOM_OUT_BUTTON');
+const ZOOM_OUT_TEST_ID = 'ZOOM_OUT_BUTTON';
 const FIT_VIEW_LABEL = buttonLabelContract.parse('Fit diagram to view');
-const FIT_VIEW_TEST_ID = testIdContract.parse('FIT_VIEW_BUTTON');
+const FIT_VIEW_TEST_ID = 'FIT_VIEW_BUTTON';
 
 const NODE_TYPES = {
   state: FlowNodeCardLayerWidget as React.ComponentType<never>,

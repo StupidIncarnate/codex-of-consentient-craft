@@ -27,7 +27,6 @@ import { AssistantTextStreamLineStub } from '@dungeonmaster/shared/contracts/ass
 import { UserTextStringStreamLineStub } from '@dungeonmaster/shared/contracts/user-text-stream-line/user-text-stream-line.stub';
 import type { ContentText, FilePath, QuestId, UrlSlug } from '@dungeonmaster/shared/contracts';
 
-import type { TestId } from '../../../src/contracts/test-id/test-id-contract';
 import { guildHarness } from '../guild/guild.harness';
 import { navigationHarness } from '../navigation/navigation.harness';
 import { questHarness } from '../quest/quest.harness';
@@ -109,7 +108,7 @@ export const followupHarness = ({
   isTurnInFlight: () => Promise<boolean>;
   switchToExecutionTab: () => Promise<void>;
   switchToFollowupTab: () => Promise<void>;
-  tabOrder: () => Promise<TestId[]>;
+  tabOrder: () => Promise<string[]>;
   hasAnyFollowupTab: () => Promise<boolean>;
   hasExactlyOneFollowupTab: () => Promise<boolean>;
   isTabActive: (params: { testid: string }) => Promise<boolean>;
@@ -378,13 +377,13 @@ export const followupHarness = ({
 
   // Reads every direct child of the tab bar in DOM order — the ONLY way to prove an ORDER claim
   // (membership alone, e.g. three separate .toBeVisible() calls, cannot fail on a shuffled row).
-  const tabOrder = async (): Promise<TestId[]> =>
+  const tabOrder = async (): Promise<string[]> =>
     page
       .getByTestId('execution-panel-tab-bar')
       .locator('> *')
       .evaluateAll((elements) => elements.map((element) => element.getAttribute('data-testid')))
       .then(
-        (testids) => testids.filter((id): id is NonNullable<typeof id> => id !== null) as TestId[],
+        (testids) => testids.filter((id): id is NonNullable<typeof id> => id !== null) as string[],
       );
 
   const hasAnyFollowupTab = async (): Promise<boolean> =>

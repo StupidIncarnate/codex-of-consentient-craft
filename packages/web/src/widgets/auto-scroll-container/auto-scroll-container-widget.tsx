@@ -17,13 +17,12 @@ import type { CSSProperties, ReactNode } from '#gateway/npm/react';
 import { Box } from '#gateway/npm/mantine__core';
 
 import { useAutoScrollBinding } from '../../bindings/use-auto-scroll/use-auto-scroll-binding';
-import type { TestId } from '../../contracts/test-id/test-id-contract';
 
 export interface AutoScrollContainerWidgetProps {
   children: ReactNode;
   style?: CSSProperties;
   contentStyle?: CSSProperties;
-  testId?: TestId;
+  testId?: string;
 }
 
 export const AutoScrollContainerWidget = ({

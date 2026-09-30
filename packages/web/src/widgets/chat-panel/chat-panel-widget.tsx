@@ -17,7 +17,6 @@ import type { ChatEntry, PastedImageUpload } from '@dungeonmaster/shared/contrac
 import type { ExecutionRole } from '../../contracts/execution-role/execution-role-contract';
 import { pixelCoordinateContract } from '../../contracts/pixel-coordinate/pixel-coordinate-contract';
 import type { PixelDimension } from '../../contracts/pixel-dimension/pixel-dimension-contract';
-import { testIdContract } from '../../contracts/test-id/test-id-contract';
 import type { UploadProgressHandler } from '../../contracts/upload-progress-post/upload-progress-post-contract';
 import { raccoonAnimationConfigStatics } from '../../statics/raccoon-animation-config/raccoon-animation-config-statics';
 import { emberDepthsThemeStatics } from '../../statics/ember-depths-theme/ember-depths-theme-statics';
@@ -60,7 +59,7 @@ const raccoonPixels = raccoonWizardPixelsStatics.pixels.map((p) =>
   pixelCoordinateContract.parse(p),
 );
 
-const CHAT_MESSAGES_AREA_TEST_ID = testIdContract.parse('CHAT_MESSAGES_AREA');
+const CHAT_MESSAGES_AREA_TEST_ID = 'CHAT_MESSAGES_AREA';
 const CHAT_INSET = 16;
 
 export const ChatPanelWidget = ({

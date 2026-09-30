@@ -13,7 +13,6 @@
  */
 import type { Page } from '#gateway/npm/playwright__test';
 
-import type { TestId } from '../../../src/contracts/test-id/test-id-contract';
 
 export const chatControlHarness = ({
   page,
@@ -21,11 +20,11 @@ export const chatControlHarness = ({
   page: Page;
 }): {
   recordTransitions: () => Promise<void>;
-  readTransitions: () => Promise<TestId[]>;
+  readTransitions: () => Promise<string[]>;
 } => ({
   recordTransitions: async (): Promise<void> => {
     await page.addInitScript(() => {
-      const seen: TestId[] = [];
+      const seen: string[] = [];
       Object.assign(globalThis, { __chatControlTestIds: seen });
 
       const record = (): void => {
@@ -36,7 +35,7 @@ export const chatControlHarness = ({
         if (stop === null && send === null) {
           return;
         }
-        const next = (stop === null ? 'SEND_BUTTON' : 'STOP_BUTTON') as TestId;
+        const next = (stop === null ? 'SEND_BUTTON' : 'STOP_BUTTON') as string;
         if (seen[seen.length - 1] !== next) {
           seen.push(next);
         }
@@ -56,9 +55,9 @@ export const chatControlHarness = ({
     });
   },
 
-  readTransitions: async (): Promise<TestId[]> =>
+  readTransitions: async (): Promise<string[]> =>
     page.evaluate(
       () =>
-        (globalThis as unknown as { __chatControlTestIds?: TestId[] }).__chatControlTestIds ?? [],
+        (globalThis as unknown as { __chatControlTestIds?: string[] }).__chatControlTestIds ?? [],
     ),
 });

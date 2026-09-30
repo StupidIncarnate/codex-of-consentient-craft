@@ -17,7 +17,6 @@ import type { ButtonLabel } from '../../contracts/button-label/button-label-cont
 import type { ButtonVariant } from '../../contracts/button-variant/button-variant-contract';
 import { iconButtonSizeContract } from '../../contracts/icon-button-size/icon-button-size-contract';
 import type { IconButtonSize } from '../../contracts/icon-button-size/icon-button-size-contract';
-import type { TestId } from '../../contracts/test-id/test-id-contract';
 import { emberDepthsThemeStatics } from '../../statics/ember-depths-theme/ember-depths-theme-statics';
 import { iconButtonStatics } from '../../statics/icon-button/icon-button-statics';
 
@@ -31,7 +30,7 @@ export interface IconButtonWidgetProps {
   /** The glyph component itself, not an element: this widget sizes it from `size`. */
   icon: TablerIcon;
   onClick: (event: React.MouseEvent<HTMLButtonElement>) => void;
-  testId: TestId;
+  testId: string;
   /** Omitted means the default brown treatment — the same ghost fill the ABANDON button carries. */
   variant?: ButtonVariant;
   size?: IconButtonSize;

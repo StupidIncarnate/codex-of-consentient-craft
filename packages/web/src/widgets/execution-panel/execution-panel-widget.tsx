@@ -44,7 +44,6 @@ import { executionStepStatusContract } from '../../contracts/execution-step-stat
 import type { ExecutionStepStatus } from '../../contracts/execution-step-status/execution-step-status-contract';
 import type { PastedImageUpload } from '@dungeonmaster/shared/contracts';
 import type { RowOrder } from '../../contracts/row-order/row-order-contract';
-import { testIdContract } from '../../contracts/test-id/test-id-contract';
 import { totalCountContract } from '@dungeonmaster/shared/contracts';
 import type { TotalCount } from '@dungeonmaster/shared/contracts';
 import type { UploadProgressHandler } from '../../contracts/upload-progress-post/upload-progress-post-contract';
@@ -124,7 +123,7 @@ const ACTION_BAR_PADDING = 12;
 const EXECUTION_FLOOR_MIN_HEIGHT = 160;
 const OPERATIONS_PREFIX = 'operations/';
 const OPERATIONS_PREFIX_LENGTH = OPERATIONS_PREFIX.length;
-const FLOOR_CONTENT_TEST_ID = testIdContract.parse('execution-panel-floor-content');
+const FLOOR_CONTENT_TEST_ID = 'execution-panel-floor-content';
 // ChatPanelWidget's onSendMessage/onStopChat are required props. onSendFollowupMessage is
 // only reachable as undefined for the single render tick between a prop change and the
 // clamp effect below correcting activeTab away from 'followup' — these keep that tick

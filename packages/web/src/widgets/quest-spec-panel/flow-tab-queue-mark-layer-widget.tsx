@@ -15,11 +15,10 @@ import { IconMessageCircleFilled } from '#gateway/npm/tabler__icons-react';
 import type { FlowId, QuestId } from '@dungeonmaster/shared/contracts';
 
 import { useCommentQueueBinding } from '../../bindings/use-comment-queue/use-comment-queue-binding';
-import { testIdContract } from '../../contracts/test-id/test-id-contract';
 import { emberDepthsThemeStatics } from '../../statics/ember-depths-theme/ember-depths-theme-statics';
 
 const { colors } = emberDepthsThemeStatics;
-const MARK_TEST_ID = testIdContract.parse('FLOW_TAB_QUEUE_MARK');
+const MARK_TEST_ID = 'FLOW_TAB_QUEUE_MARK';
 // An em multiple rather than a pixel count, so the glyph tracks whatever font size the tab label
 // carries and cannot drift out of scale with the text it sits after. Over 1em because at the tab's
 // own 11px the bubble's tail stops resolving and the mark reads as a plain dot.
