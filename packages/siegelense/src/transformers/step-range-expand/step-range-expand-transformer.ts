@@ -12,13 +12,12 @@
  * // Returns [6, 7, 8] as readonly StepIndex[]
  */
 
-import type { StepRange } from '../../contracts/step-range/step-range-contract';
 import { resultsStatics } from '../../statics/results/results-statics';
 
 export const stepRangeExpandTransformer = ({
   range,
 }: {
-  range: StepRange;
+  range: string;
 }): readonly number[] => {
   const [startText, endText] = range.split(resultsStatics.stepRange.separator);
   const start = Number(startText);

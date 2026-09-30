@@ -16,7 +16,6 @@ import { z } from '#gateway/npm/zod';
 
 import { httpMethodContract } from '../http-method/http-method-contract';
 import { logLevelContract } from '../log-level/log-level-contract';
-import { stepRangeContract } from '../step-range/step-range-contract';
 
 export const resultWhereContract = z
   .object({
@@ -24,7 +23,7 @@ export const resultWhereContract = z
     method: httpMethodContract.nullable(),
     nth: z.number().int().nonnegative().brand<'ResultWhereNth'>().nullable(),
     level: logLevelContract.nullable(),
-    steps: stepRangeContract.nullable(),
+    steps: z.string().regex(/^\d+-\d+$/u).brand<'ResultWhereSteps'>().nullable(),
   })
   .strict();
 

@@ -42,7 +42,6 @@ import {
   type ResultsArgs,
 } from '../../contracts/results-args/results-args-contract';
 import { sinceMarkerContract } from '../../contracts/since-marker/since-marker-contract';
-import { stepRangeContract } from '../../contracts/step-range/step-range-contract';
 import { resultsStatics } from '../../statics/results/results-statics';
 import { siegelenseOutputStatics } from '../../statics/siegelense-output/siegelense-output-statics';
 import { flagContractParseTransformer } from '../flag-contract-parse/flag-contract-parse-transformer';
@@ -201,7 +200,7 @@ export const resultsArgsParseTransformer = ({ args }: { args: readonly string[] 
               ? null
               : flagContractParseTransformer({
                   flag: WHERE_STEPS_FLAG,
-                  parse: () => stepRangeContract.parse(whereStepsValue),
+                  parse: () => whereStepsValue,
                 }),
         })
       : null,
