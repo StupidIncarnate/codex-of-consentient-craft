@@ -362,7 +362,6 @@ export * from './ask-user-question/ask-user-question-contract';
 export * from './ask-user-question-response/ask-user-question-response-contract';
 
 // Display Header Contracts
-export * from './display-header/display-header-contract';
 
 // Quest Status Metadata Contracts
 
