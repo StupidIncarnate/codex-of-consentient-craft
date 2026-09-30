@@ -253,6 +253,46 @@ You should see symlinks pointing back to the monorepo.
 - **After running `npm install`** in your test project, the links may be removed. Re-run the link command from Step 2.
 - **To unlink**, run `npm unlink <package-name>` or delete the symlinks from `node_modules/`.
 
+## Checking what ships: `check:published` and `check:consumer`
+
+Ward checks this repo's source. These two scripts check what someone who installs `dungeonmaster` actually gets.
+Neither runs inside ward. **Run `npm run build:clean` first, every time**: both read compiled `dist/`, and `tsc`
+never deletes old files from `dist/`, so a stale build hides or invents problems.
+
+```bash
+npm run build:clean
+npm run check:published
+npm run check:consumer
+```
+
+### `npm run check:published`
+
+Grades each package's compiled `dist/`, which is what npm publishes (`scripts/check-published-output.mjs`).
+
+| What it finds in `dist/` | Verdict |
+|---|---|
+| Tests, anything under a `test/` folder, and, in most packages, `.proxy`, `.stub` and `.harness` files | **Fails.** Test support is shipping to every user. Usually a production file imports a stub. |
+| `.proxy`, `.stub`, `.harness` in `@dungeonmaster/testing` and the four `@gateway/*` packages | Reported only. A consumer's own tests import these from `dist/` on purpose. |
+
+### `npm run check:consumer`
+
+Proves a brand-new user repo works end to end (`scripts/consumer-check/run.mjs`):
+
+1. Builds a throwaway repo under the OS `/tmp`, outside this checkout, so nothing can quietly resolve to this repo's
+   own packages.
+2. Packs every published package into a tarball and installs those tarballs.
+3. Runs `dungeonmaster init` for real, and scaffolds two application packages with the consumer's own
+   `create-package`.
+4. Checks that it all works there: typecheck, lint, the copied gateways' tests, the I/O trap, a mocked gateway proxy
+   test, the consumer's build, the MCP server, `dungeonmaster ward`, the pre-edit hook, and that a second `init`
+   changes nothing.
+
+`--mode=local|global|all` picks which install scenario to drive (a local `node_modules`, a global install, or both).
+`--keep` keeps every consumer folder instead of deleting a passing one.
+
+Run both before a release, and after any change to what `init` writes, what a package exports, or which files a
+build emits.
+
 ## Rate-limit telemetry (optional)
 
 The dungeonmaster web UI can display your live Anthropic 5-hour and 7-day rate-limit usage in the top-right of every
