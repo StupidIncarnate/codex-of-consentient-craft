@@ -13,11 +13,11 @@ export const agentsHooksConfigContract = z
     'dungeonmaster-guard': z.object({
       PreToolUse: z.array(
         z.object({
-          matcher: z.string(),
+          matcher: z.string().brand<'AgentsHooksConfigDungeonmasterGuardPreToolUseMatcher'>(),
           hooks: z.array(
             z.object({
               type: z.literal('command'),
-              command: z.string(),
+              command: z.string().brand<'AgentsHooksConfigDungeonmasterGuardPreToolUseHooksCommand'>(),
             }).brand<'AgentsHooksConfigDungeonmasterGuardPreToolUseHooks'>(),
           ),
         }).brand<'AgentsHooksConfigDungeonmasterGuardPreToolUse'>(),
@@ -25,7 +25,7 @@ export const agentsHooksConfigContract = z
       Stop: z.array(
         z.object({
           type: z.literal('command'),
-          command: z.string(),
+          command: z.string().brand<'AgentsHooksConfigDungeonmasterGuardStopCommand'>(),
         }).brand<'AgentsHooksConfigDungeonmasterGuardStop'>(),
       ),
     }).brand<'AgentsHooksConfigDungeonmasterGuard'>(),

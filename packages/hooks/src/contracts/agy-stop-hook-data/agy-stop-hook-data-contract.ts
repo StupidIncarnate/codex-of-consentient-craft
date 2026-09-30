@@ -9,15 +9,15 @@ import { z } from '#gateway/npm/zod';
 
 export const agyStopHookDataContract = z
   .object({
-    executionNum: z.number().optional(),
-    terminationReason: z.string().optional(),
-    error: z.string().optional(),
+    executionNum: z.number().brand<'AgyStopHookDataExecutionNum'>().optional(),
+    terminationReason: z.string().brand<'AgyStopHookDataTerminationReason'>().optional(),
+    error: z.string().brand<'AgyStopHookDataError'>().optional(),
     fullyIdle: z.boolean().optional(),
-    conversationId: z.string().optional(),
-    workspacePaths: z.array(z.string()).optional(),
-    transcriptPath: z.string().optional(),
-    artifactDirectoryPath: z.string().optional(),
-    modelName: z.string().optional(),
+    conversationId: z.string().brand<'AgyStopHookDataConversationId'>().optional(),
+    workspacePaths: z.array(z.string().brand<'AgyStopHookDataWorkspacePaths'>()).optional(),
+    transcriptPath: z.string().brand<'AgyStopHookDataTranscriptPath'>().optional(),
+    artifactDirectoryPath: z.string().brand<'AgyStopHookDataArtifactDirectoryPath'>().optional(),
+    modelName: z.string().brand<'AgyStopHookDataModelName'>().optional(),
   })
   .brand<'AgyStopHookData'>();
 

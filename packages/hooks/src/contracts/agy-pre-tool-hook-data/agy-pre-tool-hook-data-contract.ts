@@ -9,16 +9,16 @@ import { z } from '#gateway/npm/zod';
 
 export const agyPreToolHookDataContract = z
   .object({
-    conversationId: z.string().optional(),
-    workspacePaths: z.array(z.string()).optional(),
-    transcriptPath: z.string().optional(),
-    artifactDirectoryPath: z.string().optional(),
-    modelName: z.string().optional(),
-    stepIdx: z.number().optional(),
+    conversationId: z.string().brand<'AgyPreToolHookDataConversationId'>().optional(),
+    workspacePaths: z.array(z.string().brand<'AgyPreToolHookDataWorkspacePaths'>()).optional(),
+    transcriptPath: z.string().brand<'AgyPreToolHookDataTranscriptPath'>().optional(),
+    artifactDirectoryPath: z.string().brand<'AgyPreToolHookDataArtifactDirectoryPath'>().optional(),
+    modelName: z.string().brand<'AgyPreToolHookDataModelName'>().optional(),
+    stepIdx: z.number().brand<'AgyPreToolHookDataStepIdx'>().optional(),
     toolCall: z
       .object({
-        name: z.string().optional(),
-        args: z.record(z.string(), z.unknown()).optional(),
+        name: z.string().brand<'AgyPreToolHookDataToolCallName'>().optional(),
+        args: z.record(z.string().brand<'AgyPreToolHookDataToolCallArgsKey'>(), z.unknown()).optional(),
       }).brand<'AgyPreToolHookDataToolCall'>()
       .optional(),
   })

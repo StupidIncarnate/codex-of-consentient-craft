@@ -12,7 +12,7 @@ export const agentsSkillsConfigContract = z
   .object({
     entries: z.array(
       z.object({
-        path: z.string(),
+        path: z.string().brand<'AgentsSkillsConfigEntriesPath'>(),
       }).brand<'AgentsSkillsConfigEntries'>(),
     ),
   })

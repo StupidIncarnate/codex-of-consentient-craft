@@ -11,8 +11,8 @@ import { z } from '#gateway/npm/zod';
 export const agyPreToolDecisionContract = z
   .object({
     decision: z.enum(['allow', 'deny', 'ask']),
-    reason: z.string().optional(),
-    overwrite: z.record(z.string(), z.unknown()).optional(),
+    reason: z.string().brand<'AgyPreToolDecisionReason'>().optional(),
+    overwrite: z.record(z.string().brand<'AgyPreToolDecisionOverwriteKey'>(), z.unknown()).optional(),
   })
   .brand<'AgyPreToolDecision'>();
 

@@ -11,7 +11,7 @@ import { z } from '#gateway/npm/zod';
 export const agyStopDecisionContract = z
   .object({
     decision: z.enum(['continue', 'stop']),
-    reason: z.string().optional(),
+    reason: z.string().brand<'AgyStopDecisionReason'>().optional(),
   })
   .brand<'AgyStopDecision'>();
 
