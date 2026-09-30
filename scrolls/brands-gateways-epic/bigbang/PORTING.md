@@ -4,6 +4,51 @@ For an operator who has never seen this repo. The brand rules themselves (B1 to 
 `scrolls/brands-types-tests-rules.md` and `../items/b15-brand-migration.md`; the first run's record is `../EPIC.md`,
 section "Big-bang run". This page is the procedure. All paths below are relative to `scrolls/brands-gateways-epic/`.
 
+## 0. Readiness for assayer (as of 2026-09-30) — read before starting
+
+**Usable, but not as one push-button run.** The tooling ports; the target is not ready yet; and some script bugs from
+the first run are documented here rather than fixed in the scripts.
+
+What works now:
+
+| What | Evidence |
+|---|---|
+| Every script takes `--root=<repo>` and runs in place from `phase34-scripts/` and `bigbang/` | `node --check` on all 82 JS files, `bash -n` on both drivers |
+| The read-only tools run on assayer and leave it untouched | brand census: 154 contract files, 50 standalone brands; `diag.cjs --full`: 0 errors on 5 packages; b12 census: 78 unbranded object contracts; b14 census: 58 ad-hoc shapes; promise-parse scan: 0. Outputs in this repo's `tmp/bigbang/port-trial/`. assayer's `git status` identical before and after |
+
+What assayer needs before any brand step (section 1 has the general list):
+
+| Missing | Why it matters |
+|---|---|
+| zod 4 (it has 3.25.76) | The scripts write `z.json()`, which zod 3 lacks |
+| A build of this branch linked in, then `dungeonmaster init` | Its linked `@dungeonmaster/eslint-plugin` has none of the brand rules yet |
+| Its own decision tables (section 3) | Which brand is an owned id, which a value brand, which goes plain. The census scripts draft them; a person or an opus agent must review them. This is judgment, not a script |
+| `--zod-spec=zod` | assayer has no gateway packages yet |
+| Its `cli` package is named `assayer` (unscoped) | The scripts refer to it by folder name |
+
+What is not proven:
+
+1. **The portable `run-all.sh` has never run end to end.** It commits as it goes; the porting agent could not run
+   git. Run segment A on a scratch branch first and read the first few commits.
+2. **Four script bugs from the first run are documented, not fixed in the scripts.** On a second repo they recur
+   unless someone fixes them first:
+   - W5's build-through-root-parse rewriter (`b15-value-brands`) wraps parses at wrong offsets: `.parse(return)`,
+     triple-nested wraps, a contract referenced inside its own definition. Repair: `strip-w5-wraps.py`.
+   - W6 (`b12-object-brand-fallout`) wraps objects that hold functions in a zod parse, which strips the functions at
+     runtime (MCP handlers, testbed `cleanup`). Repair: FIXER-BRIEF decision 4.
+   - W1 and W5 delete standalone brands and their validation with them; INVALID tests stop throwing. Repair:
+     FIXER-BRIEF "Unit-test stage".
+   - Scripts wrap `contract.parse(...)` around un-awaited Promises. Repair: `promise-parse-scan.cjs`, then add the
+     `await`.
+   Plus W9 (`b15-dead-reparse`) removes parses that a comment calls deliberate, and SD12 over-brands test-harness
+   inputs; both are in section "Traps".
+
+**Recommended order for assayer:** fix the W5 rewriter and W6's function handling in the scripts first (an estimated
+hour of agent work, and it saves the repair passes); meet the prerequisites above; draft and review the decision
+tables; then run the scripts in order with a commit after each, the repair scripts, and fixer rounds, exactly as the
+first run did. assayer is about a seventh the size of this repo (154 contract files against 1,170), so the fixer
+rounds should be short.
+
 ## 1. Prerequisites
 
 1. The target is an npm-workspaces monorepo with its packages under `packages/*`, `node_modules` installed, and
