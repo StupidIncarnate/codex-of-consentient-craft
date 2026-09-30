@@ -129,33 +129,17 @@ More rules for the operator:
 
 ## START HERE — where the epic stands and what to do next
 
-### Now (updated at every event; last 2026-09-30 12:50)
+### Now (updated at every event; last 2026-09-30 13:05)
 
-| Running (2, in merge worktree W) | Owns |
+| Running (in merge worktree W) | Owns |
 |---|---|
 | merge round 2: server and orchestrator (opus) | `StartOrchestratorProxy` addGuild/updateGuild read-backs, DEF-136/137 never-called assertions back, request-log flow on `#gateway/npm/hono` |
-| merge fix: siegelense brokers A (opus) | `brokers/{lane,served-build,instance,browser-session}` |
+| operator | whole-tree `lint,typecheck,unit,integration` ward in W |
 
-Every fixer follows `merge-master/FIXER-BRIEF.md`: keep master's DEF behaviour, restore pivot edits from `lost-ours`,
-fix type errors, port unmapped adapters, gate lint/typecheck/unit from W, and report a DEF CHECK per DEF commit.
-
-**Just landed:** merge fix siegelense transformers, responders, flows, done in W (transformer unit 97 files
-1790793824274-5326, integration 1790793716836-2398): `flag-contract-parse` reads zod 4's `invalid_value` issues off the
-real `ZodError` (no `zodIssueParse`); master's raw-JSON steps preflight kept; flow tests spy the gateway `stdout`;
-the old `is-network-line-non2xx` guard moved out (master renamed it `is-network-line-failed`); DEF-103, DEF-105,
-DEF-130, DEF-146 and the stale-build warning pass. Also: merge fix siegelense brokers B, done in W (lint/typecheck/unit 1790793655536-951c plus fix
-1790793724445-6855, integration 1790793744661-a82d): the rest of siegelense's fs, png, stderr and quest-list calls on
-gateway wrappers; the hold proxy restored; DEF-143, DEF-81, DEF-104/106, DEF-70, DEF-139/140, DEF-163 and DEF-94 tests
-pass; orchestrator's `quest-list-broker.proxy.ts` gained `getListCalls` (additive). Also: merge fix siegelense contracts, done in W (lint and unit 1790793546199-4a24, 480 files; no type
-errors in contracts or harnesses): pivot brands restored around master's new fields (`killedAtMs`, `alreadyKilledAtMs`,
-memory, scroll, served-build-stale, lane-launch); DEF-160's pixel-count format on the owner fields; zod 4 messages in
-tests; `LaneSession` process calls return `void` (relayed to brokers A and transformers). Also: merge fix web, done in W (gate 1790793460396-72df; web typecheck 1,282 files clean):
-`mantineRenderMiddleware` everywhere, plain button labels restored, a web-local `guildCreateInputContract` keeps
-DEF-136's absolute-path check; DEF-136, DEF-128 and DEF-137 tests pass. Also: merge fix server and cli, done in W (gate 1790793390158-d902, integration 1790793425470-44df): guild
-add/update and quest-start call `StartOrchestrator`; new `processRequestLogBroker` replaces master's request-log adapter
-(moved to `<W>/tmp/deletions/merge-server/`); a new `guildAbsolutePathInputContract` keeps DEF-136/137's absolute-path
-400; DEF-78's 409, the web-port fallback and `play: false` pass. Also: merge fix orchestrator and hydration-recipes, done in W (gate 1790793276388-e48e, integration 1790793260092-f220; exit 1 only on two slow-lint flags, rule 21): DEF-133's slug parameter stays `Guild['name']` and `guild-add-broker` parses at its boundary; `urlSlugContract`'s check moved into `guildContract.shape.urlSlug`; `pathExists` with a false-on-throw keeps master's path check; reach-route uses `dmHttpRequestBroker`; DEF-133 and DEF-71 tests pass. Also: merge fix ward and shared, done in W (gate 1790793024213-b2c8): `setupUnitCompanionTestMissing` restored in the single-package layer proxy, DEF-161's crash tests on `WardRunResultStub` and passing; shared needed nothing; DEF-168 was only logged on master, so there is no fix to check. Ward needs a build before DEF-161 is live. Earlier: `plain-brand-residue.cjs` (the script commit): W's type errors 700 to 330 ("Cannot find name" 381 to
-73); 27 validating parse sites left for the fixers. Z02-B done in W (session snippet and `searchStrategy`).
+**Just landed:** **W typechecks at 0 errors in all 21 packages** (`diag.cjs --full`, `<W>/tmp/merge-master/diag-r3.json`;
+700 this morning). All eight merge fixers are done; the last, siegelense brokers A (gate 1790793873663-43da,
+integration 1790793856816-e8b0), kept DEF-110, DEF-144/145/157/158 and the instance-reset restart on gateway calls and
+restored the two dropped parse wraps. Every fixer's LOST-OURS and DEF CHECK is in its report; each DEF test named passed.
 
 **Round-2 list (after the fixers):** `StartOrchestratorProxy` gains `addGuild`/`updateGuild` call read-backs and the
 DEF-136/137 tests assert the orchestrator is never called for a relative path again (the fixer had to stage an error
