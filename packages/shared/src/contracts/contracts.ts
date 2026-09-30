@@ -128,7 +128,6 @@ export * from './flow-node-type/flow-node-type-contract';
 
 export * from './flow-observable/flow-observable-contract';
 
-export * from './quest-comment-id/quest-comment-id-contract';
 
 export * from './comment-text/comment-text-contract';
 
