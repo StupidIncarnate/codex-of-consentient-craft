@@ -1,4 +1,4 @@
-import { installTestbedCreateBroker, FileContentStub } from '@dungeonmaster/testing';
+import { installTestbedCreateBroker } from '@dungeonmaster/testing';
 import { FileContentsStub } from '@dungeonmaster/shared/contracts/file-contents/file-contents.stub';
 import { FilePathStub } from '@dungeonmaster/shared/contracts/file-path/file-path.stub';
 import { machineStatics, siegelenseHelpStatics } from '@dungeonmaster/siegelense/statics';
@@ -223,9 +223,7 @@ describe('CliFlow', () => {
       });
       testbed.writeFile({
         relativePath: 'package.json',
-        content: FileContentStub({
-          value: `{\n  "name": "@probe/root",\n  "version": "0.0.0",\n  "workspaces": ["packages/*"]\n}\n`,
-        }),
+        content: `{\n  "name": "@probe/root",\n  "version": "0.0.0",\n  "workspaces": ["packages/*"]\n}\n`,
       });
       const stdout = harness.captureStdout();
 

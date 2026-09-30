@@ -35,7 +35,6 @@ export { TestGuildStub } from './contracts/test-guild/test-guild.stub';
 export { TestbedConfigStub } from './contracts/testbed-config/testbed-config.stub';
 export { InstallTestbedStub } from './contracts/install-testbed/install-testbed.stub';
 export { FileNameStub } from './contracts/file-name/file-name.stub';
-export { FileContentStub } from './contracts/file-content/file-content.stub';
 
 // Mock dispatch
 export { mockRegisterMiddleware as registerMock } from './middleware/mock-register/mock-register-middleware';

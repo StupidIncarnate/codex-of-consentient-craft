@@ -14,7 +14,6 @@ import { execFileSync } from '#gateway/node/child_process';
 import { FilePathStub } from '@dungeonmaster/shared/contracts/file-path/file-path.stub';
 
 import { CensusCountStub } from '../../../src/contracts/census-count/census-count.stub';
-import { FileContentStub } from '@dungeonmaster/testing';
 import type { InstallTestbed } from '@dungeonmaster/testing';
 import { cwd } from '#gateway/node/process';
 
@@ -140,7 +139,7 @@ export const adapterCensusHarness = (): {
     for (const [relativePath, content] of Object.entries(files)) {
       testbed.writeFile({
         relativePath: relativePath,
-        content: FileContentStub({ value: content }),
+        content: content,
       });
     }
   };

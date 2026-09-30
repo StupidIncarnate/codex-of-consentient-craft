@@ -18,7 +18,7 @@
 
 import { deleteEnv, getEnv, setEnv, stdout } from '#gateway/node/process';
 import { registerSpyOn } from '@dungeonmaster/testing/register-mock';
-import { installTestbedCreateBroker, FileContentStub } from '@dungeonmaster/testing';
+import { installTestbedCreateBroker } from '@dungeonmaster/testing';
 import { ContentTextStub } from '@dungeonmaster/shared/contracts/content-text/content-text.stub';
 
 import { CleanupAnswerStub } from '../../contracts/cleanup-answer/cleanup-answer.stub';
@@ -67,7 +67,7 @@ describe('SiegelenseFlow', () => {
     // a real install would already have made.
     testbed.writeFile({
       relativePath: 'siegelense/.keep',
-      content: FileContentStub({ value: '' }),
+      content: '',
     });
   });
 

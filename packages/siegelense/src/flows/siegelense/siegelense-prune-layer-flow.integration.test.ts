@@ -26,7 +26,7 @@
 
 import { deleteEnv, getEnv, setEnv, stdout } from '#gateway/node/process';
 import { registerSpyOn } from '@dungeonmaster/testing/register-mock';
-import { installTestbedCreateBroker, FileContentStub } from '@dungeonmaster/testing';
+import { installTestbedCreateBroker } from '@dungeonmaster/testing';
 import { AbsoluteFilePathStub } from '@dungeonmaster/shared/contracts/absolute-file-path/absolute-file-path.stub';
 import { ContentTextStub } from '@dungeonmaster/shared/contracts/content-text/content-text.stub';
 import { GuildIdStub } from '@dungeonmaster/shared/contracts/guild-id/guild-id.stub';
@@ -148,8 +148,7 @@ describe('SiegelensePruneLayerFlow', () => {
     setEnv('DUNGEONMASTER_HOME', testbed.guildPath);
     testbed.writeFile({
       relativePath: REGISTRY_PATH,
-      content: FileContentStub({
-        value: JSON.stringify(
+      content: JSON.stringify(
           RegistryStub({
             instances: [
               RegistryEntryStub({ id: LOG_KIND_ID, state: 'killed', questId: null, guildId: null }),
@@ -220,7 +219,6 @@ describe('SiegelensePruneLayerFlow', () => {
             ],
           }),
         ),
-      }),
     });
 
     // Every kind, on one instance apiece, so a sweep scoped to that instance and that kind proves
@@ -228,48 +226,48 @@ describe('SiegelensePruneLayerFlow', () => {
     for (const kindInstanceId of [LOG_KIND_ID, SHOT_KIND_ID, TRANSCRIPT_KIND_ID, VIDEO_KIND_ID]) {
       testbed.writeFile({
         relativePath: `siegelense/unowned/instances/${kindInstanceId}/api-server.log`,
-        content: FileContentStub({ value: KIND_LOG_BODY }),
+        content: KIND_LOG_BODY,
       });
       testbed.writeFile({
         relativePath: `siegelense/unowned/instances/${kindInstanceId}/console.jsonl`,
-        content: FileContentStub({ value: KIND_TRANSCRIPT_BODY }),
+        content: KIND_TRANSCRIPT_BODY,
       });
       // The `run_1` directory itself is what makes `run_1` a real run id — no `run_1.jsonl` needed.
       testbed.writeFile({
         relativePath: `siegelense/unowned/instances/${kindInstanceId}/runs/run_1/step1.png`,
-        content: FileContentStub({ value: KIND_SHOT_BODY }),
+        content: KIND_SHOT_BODY,
       });
       // A bare `.webm` directly under `runs/` — the video path `cleanup`'s own fixed sweep never
       // exercises, since nothing else in this repo writes one yet.
       testbed.writeFile({
         relativePath: `siegelense/unowned/instances/${kindInstanceId}/runs/clip.webm`,
-        content: FileContentStub({ value: KIND_VIDEO_BODY }),
+        content: KIND_VIDEO_BODY,
       });
     }
 
     testbed.writeFile({
       relativePath: SCOPE_TARGET_LOG_PATH,
-      content: FileContentStub({ value: SCOPE_TARGET_LOG_BODY }),
+      content: SCOPE_TARGET_LOG_BODY,
     });
     testbed.writeFile({
       relativePath: SCOPE_NEIGHBOUR_LOG_PATH,
-      content: FileContentStub({ value: SCOPE_NEIGHBOUR_LOG_BODY }),
+      content: SCOPE_NEIGHBOUR_LOG_BODY,
     });
     testbed.writeFile({
       relativePath: LIVE_LOG_PATH,
-      content: FileContentStub({ value: LIVE_LOG_BODY }),
+      content: LIVE_LOG_BODY,
     });
     testbed.writeFile({
       relativePath: BOUNDARY_LOG_PATH,
-      content: FileContentStub({ value: BOUNDARY_LOG_BODY }),
+      content: BOUNDARY_LOG_BODY,
     });
     testbed.writeFile({
       relativePath: NO_CONFIRM_LOG_PATH,
-      content: FileContentStub({ value: NO_CONFIRM_LOG_BODY }),
+      content: NO_CONFIRM_LOG_BODY,
     });
     testbed.writeFile({
       relativePath: CONFIRM_LOG_PATH,
-      content: FileContentStub({ value: CONFIRM_LOG_BODY }),
+      content: CONFIRM_LOG_BODY,
     });
 
     // A real `.webm`, backdated 3 real days through `evidenceAgeHarness` — older than cleanup's 2d
@@ -277,7 +275,7 @@ describe('SiegelensePruneLayerFlow', () => {
     // `prune --kind video` with no `--older-than` actually resolves to.
     testbed.writeFile({
       relativePath: VIDEO_DEFAULT_WINDOW_VIDEO_PATH,
-      content: FileContentStub({ value: VIDEO_DEFAULT_WINDOW_BODY }),
+      content: VIDEO_DEFAULT_WINDOW_BODY,
     });
     const videoDefaultWindowAbsolutePath = AbsoluteFilePathStub({
       value: `${testbed.guildPath}/${VIDEO_DEFAULT_WINDOW_VIDEO_PATH}`,
@@ -291,16 +289,15 @@ describe('SiegelensePruneLayerFlow', () => {
     // id to cite), a real open quest carrying a WALKED note, and a real `.quest-plans/` prelude.
     testbed.writeFile({
       relativePath: CITED_LOG_PATH,
-      content: FileContentStub({ value: CITED_LOG_BODY }),
+      content: CITED_LOG_BODY,
     });
     testbed.writeFile({
       relativePath: CITED_TRANSCRIPT_PATH,
-      content: FileContentStub({ value: CITED_TRANSCRIPT_BODY }),
+      content: CITED_TRANSCRIPT_BODY,
     });
     testbed.writeFile({
       relativePath: CITED_QUEST_FILE_RELATIVE_PATH,
-      content: FileContentStub({
-        value: JSON.stringify(
+      content: JSON.stringify(
           QuestStub({
             id: QUEST,
             status: 'in_progress',
@@ -319,13 +316,10 @@ describe('SiegelensePruneLayerFlow', () => {
             },
           }),
         ),
-      }),
     });
     testbed.writeFile({
       relativePath: CITED_PRELUDE_RELATIVE_PATH,
-      content: FileContentStub({
-        value: '# PATH 1\n  VERIFIED  run_1 · 2026-09-21 · prelude reached the entry\n',
-      }),
+      content: '# PATH 1\n  VERIFIED  run_1 · 2026-09-21 · prelude reached the entry\n',
     });
 
     // Sweep every kind-matrix instance concurrently — each is its own instance, so none depends on

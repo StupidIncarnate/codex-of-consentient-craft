@@ -1,4 +1,4 @@
-import { installTestbedCreateBroker, FileContentStub } from '@dungeonmaster/testing';
+import { installTestbedCreateBroker } from '@dungeonmaster/testing';
 import { FilePathStub } from '@dungeonmaster/shared/contracts/file-path/file-path.stub';
 import { InstallFlow } from './install-flow';
 import { installScriptsStatics } from '../../statics/install-scripts/install-scripts-statics';
@@ -12,9 +12,7 @@ describe('InstallFlow', () => {
 
       testbed.writeFile({
         relativePath: 'package.json',
-        content: FileContentStub({
-          value: JSON.stringify({ name: 'proj', version: '1.0.0' }, null, 2),
-        }),
+        content: JSON.stringify({ name: 'proj', version: '1.0.0' }, null, 2),
       });
 
       const result = await InstallFlow({
@@ -58,15 +56,11 @@ describe('InstallFlow', () => {
 
       testbed.writeFile({
         relativePath: '.gitignore',
-        content: FileContentStub({
-          value: 'node_modules/\n.ward/\ntest-results/\n.ward-playwright-report*.json\n',
-        }),
+        content: 'node_modules/\n.ward/\ntest-results/\n.ward-playwright-report*.json\n',
       });
       testbed.writeFile({
         relativePath: 'package.json',
-        content: FileContentStub({
-          value: JSON.stringify({ name: 'proj', scripts: installScriptsStatics.scripts }, null, 2),
-        }),
+        content: JSON.stringify({ name: 'proj', scripts: installScriptsStatics.scripts }, null, 2),
       });
 
       const result = await InstallFlow({

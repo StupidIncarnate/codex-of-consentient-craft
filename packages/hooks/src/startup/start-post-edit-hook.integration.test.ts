@@ -1,4 +1,4 @@
-import { installTestbedCreateBroker, FileContentStub } from '@dungeonmaster/testing';
+import { installTestbedCreateBroker } from '@dungeonmaster/testing';
 import { FilePathStub } from '@dungeonmaster/shared/contracts/file-path/file-path.stub';
 import { resolve } from '#gateway/node/path';
 import { PostToolUseHookStub } from '../contracts/post-tool-use-hook-data/post-tool-use-hook-data.stub';
@@ -38,7 +38,7 @@ describe('post-edit-hook', () => {
 
     warmupTestbed.writeFile({
       relativePath: 'example.info.ts',
-      content: FileContentStub({ value: warmupContent }),
+      content: warmupContent,
     });
 
     await persistentRunner.start({
@@ -99,7 +99,7 @@ describe('post-edit-hook', () => {
 
       testbed.writeFile({
         relativePath: 'example.info.ts',
-        content: FileContentStub({ value: fileContent }),
+        content: fileContent,
       });
 
       const result = await persistentRunner.runHook({ hookData });
@@ -137,7 +137,7 @@ describe('post-edit-hook', () => {
 
       testbed.writeFile({
         relativePath: 'example.info.ts',
-        content: FileContentStub({ value: initialContent }),
+        content: initialContent,
       });
 
       const hookData = PostToolUseHookStub({
@@ -152,7 +152,7 @@ describe('post-edit-hook', () => {
 
       testbed.writeFile({
         relativePath: 'example.info.ts',
-        content: FileContentStub({ value: newContent }),
+        content: newContent,
       });
 
       const result = await persistentRunner.runHook({ hookData });
@@ -221,7 +221,7 @@ return a&&b;
       // Write the file before running hook
       testbed.writeFile({
         relativePath: 'multi.info.ts',
-        content: FileContentStub({ value: fileContent }),
+        content: fileContent,
       });
 
       // Run the hook
@@ -281,7 +281,7 @@ export const exampleBroker = async ({ data }: { data: string }): Promise<string>
       // Write the file before running hook
       testbed.writeFile({
         relativePath: 'example-broker.ts',
-        content: FileContentStub({ value: fileContent }),
+        content: fileContent,
       });
 
       // Run the hook
@@ -344,7 +344,7 @@ function test(): void {
       // Actually write the file so hook can check it
       testbed.writeFile({
         relativePath: 'README.md',
-        content: FileContentStub({ value: fileContent }),
+        content: fileContent,
       });
 
       const result = await persistentRunner.runHook({ hookData });

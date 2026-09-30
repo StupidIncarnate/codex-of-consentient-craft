@@ -1,4 +1,4 @@
-import { installTestbedCreateBroker, FileContentStub } from '@dungeonmaster/testing';
+import { installTestbedCreateBroker } from '@dungeonmaster/testing';
 import { SessionIdStub } from '@dungeonmaster/shared/contracts/session-id/session-id.stub';
 import { AgentIdStub } from '@dungeonmaster/shared/contracts/agent-id/agent-id.stub';
 import { QuestIdStub } from '@dungeonmaster/shared/contracts/quest-id/quest-id.stub';
@@ -96,7 +96,7 @@ describe('SessionForensicsFlow', () => {
 
       testbed.writeFile({
         relativePath: `.dungeonmaster/guilds/test-guild/quests/${questId}/quest.json`,
-        content: FileContentStub({ value: JSON.stringify({ flows: [flow] }) }),
+        content: JSON.stringify({ flows: [flow] }),
       });
 
       const originalCwd = cwd();
@@ -161,14 +161,12 @@ describe('SessionForensicsFlow', () => {
 
       testbed.writeFile({
         relativePath: `.dungeonmaster/guilds/test-guild/quests/${questId}/quest.json`,
-        content: FileContentStub({
-          value: JSON.stringify({
+        content: JSON.stringify({
             userRequest: 'Add real-time notifications',
             workItems: [workItem],
             operations: [operation],
             wardResults: [wardResult],
           }),
-        }),
       });
 
       const originalCwd = cwd();

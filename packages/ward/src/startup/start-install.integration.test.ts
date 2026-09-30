@@ -1,4 +1,4 @@
-import { installTestbedCreateBroker, FileContentStub } from '@dungeonmaster/testing';
+import { installTestbedCreateBroker } from '@dungeonmaster/testing';
 import { FilePathStub } from '@dungeonmaster/shared/contracts/file-path/file-path.stub';
 
 import { StartInstall } from './start-install';
@@ -12,9 +12,7 @@ describe('start-install integration', () => {
 
       testbed.writeFile({
         relativePath: 'package.json',
-        content: FileContentStub({
-          value: JSON.stringify({ name: 'proj', version: '1.0.0' }, null, 2),
-        }),
+        content: JSON.stringify({ name: 'proj', version: '1.0.0' }, null, 2),
       });
 
       const result = await StartInstall({

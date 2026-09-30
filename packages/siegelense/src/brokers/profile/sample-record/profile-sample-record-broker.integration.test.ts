@@ -5,7 +5,7 @@
  * back as TWO groups with their own numbers, never one blended row.
  */
 
-import { installTestbedCreateBroker, FileContentStub } from '@dungeonmaster/testing';
+import { installTestbedCreateBroker } from '@dungeonmaster/testing';
 import { chdir, cwd, deleteEnv, getEnv, setEnv } from '#gateway/node/process';
 import { configDefaultsStatics } from '@dungeonmaster/config';
 import { DungeonmasterConfigStub } from '@dungeonmaster/config/contracts/dungeonmaster-config/dungeonmaster-config.stub';
@@ -52,8 +52,7 @@ describe('the profile sample-write path, against a real tree', () => {
     // under the OS tmp dir. Nothing here boots anything, so the process's own command is never run.
     testbed.writeFile({
       relativePath: '.dungeonmaster.json',
-      content: FileContentStub({
-        value: JSON.stringify(
+      content: JSON.stringify(
           DungeonmasterConfigStub({
             framework: 'monorepo',
             devServer: {
@@ -63,7 +62,6 @@ describe('the profile sample-write path, against a real tree', () => {
             },
           }),
         ),
-      }),
     });
     chdir(testbed.guildPath);
 

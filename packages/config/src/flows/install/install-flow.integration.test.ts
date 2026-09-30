@@ -1,4 +1,4 @@
-import { installTestbedCreateBroker, FileContentStub } from '@dungeonmaster/testing';
+import { installTestbedCreateBroker } from '@dungeonmaster/testing';
 import { FilePathStub } from '@dungeonmaster/shared/contracts/file-path/file-path.stub';
 import { InstallFlow } from './install-flow';
 
@@ -87,7 +87,7 @@ describe('install-flow integration', () => {
 
       testbed.writeFile({
         relativePath: '.dungeonmaster.json',
-        content: FileContentStub({ value: existingContent }),
+        content: existingContent,
       });
 
       const result = await InstallFlow({
@@ -120,8 +120,7 @@ describe('install-flow integration', () => {
 
       testbed.writeFile({
         relativePath: '.dungeonmaster.json',
-        content: FileContentStub({
-          value: JSON.stringify(
+        content: JSON.stringify(
             {
               framework: 'monorepo',
               schema: 'zod',
@@ -135,7 +134,6 @@ describe('install-flow integration', () => {
             null,
             2,
           ),
-        }),
       });
 
       const result = await InstallFlow({
@@ -197,9 +195,7 @@ describe('install-flow integration', () => {
 
       testbed.writeFile({
         relativePath: '.dungeonmaster.json',
-        content: FileContentStub({
-          value: JSON.stringify({ framework: 'react', schema: 'zod' }, null, 2),
-        }),
+        content: JSON.stringify({ framework: 'react', schema: 'zod' }, null, 2),
       });
 
       const result = await InstallFlow({
@@ -252,7 +248,7 @@ describe('install-flow integration', () => {
 
       testbed.writeFile({
         relativePath: '.dungeonmaster.json',
-        content: FileContentStub({ value: existingContent }),
+        content: existingContent,
       });
 
       const result = await InstallFlow({
@@ -287,7 +283,7 @@ describe('install-flow integration', () => {
 
       testbed.writeFile({
         relativePath: '.dungeonmaster.json',
-        content: FileContentStub({ value: existingContent }),
+        content: existingContent,
       });
 
       const result = await InstallFlow({

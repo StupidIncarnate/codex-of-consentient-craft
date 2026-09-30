@@ -1,5 +1,5 @@
 import { deleteEnv, setEnv } from '#gateway/node/process';
-import { installTestbedCreateBroker, FileContentStub } from '@dungeonmaster/testing';
+import { installTestbedCreateBroker } from '@dungeonmaster/testing';
 import { FilePathStub } from '@dungeonmaster/shared/contracts/file-path/file-path.stub';
 
 import { npmCommandFakeHarness } from '../../../test/harnesses/npm-command-fake/npm-command-fake.harness';
@@ -46,7 +46,7 @@ describe('InstallFinalizeFlow', () => {
       // it — otherwise the scope falls back to the testbed directory's randomised basename.
       testbed.writeFile({
         relativePath: 'package.json',
-        content: FileContentStub({ value: JSON.stringify({ name: 'acme-app' }) }),
+        content: JSON.stringify({ name: 'acme-app' }),
       });
       const dungeonmasterHomePath = `${testbed.guildPath}/.dm-home`;
       setEnv('DUNGEONMASTER_HOME', dungeonmasterHomePath);

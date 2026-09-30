@@ -1,4 +1,4 @@
-import { installTestbedCreateBroker, FileContentStub } from '@dungeonmaster/testing';
+import { installTestbedCreateBroker } from '@dungeonmaster/testing';
 import { FilePathStub } from '@dungeonmaster/shared/contracts/file-path/file-path.stub';
 import { StartInstall } from './start-install';
 
@@ -237,9 +237,7 @@ describe('start-install integration', () => {
 
       testbed.writeFile({
         relativePath: '.claude/settings.json',
-        content: FileContentStub({
-          value: JSON.stringify({ tools: { Write: { enabled: true } } }, null, 2),
-        }),
+        content: JSON.stringify({ tools: { Write: { enabled: true } } }, null, 2),
       });
 
       const result = await StartInstall({
@@ -471,8 +469,7 @@ describe('start-install integration', () => {
 
       testbed.writeFile({
         relativePath: '.claude/settings.json',
-        content: FileContentStub({
-          value: JSON.stringify(
+        content: JSON.stringify(
             {
               hooks: {
                 PreToolUse: [
@@ -483,7 +480,6 @@ describe('start-install integration', () => {
             null,
             2,
           ),
-        }),
       });
 
       const result = await StartInstall({
@@ -716,8 +712,7 @@ describe('start-install integration', () => {
 
       testbed.writeFile({
         relativePath: '.claude/settings.json',
-        content: FileContentStub({
-          value: JSON.stringify(
+        content: JSON.stringify(
             {
               hooks: {
                 PreToolUse: [{ hooks: [{ type: 'command', command: 'existing-hook' }] }],
@@ -727,7 +722,6 @@ describe('start-install integration', () => {
             null,
             2,
           ),
-        }),
       });
 
       const result = await StartInstall({
@@ -961,7 +955,7 @@ describe('start-install integration', () => {
 
         testbed.writeFile({
           relativePath: 'CLAUDE.md',
-          content: FileContentStub({ value: '# Claude guidelines\n' }),
+          content: '# Claude guidelines\n',
         });
 
         const result = await StartInstall({

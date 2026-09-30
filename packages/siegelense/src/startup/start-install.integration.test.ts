@@ -1,5 +1,5 @@
 import { deleteEnv, setEnv } from '#gateway/node/process';
-import { installTestbedCreateBroker, FileContentStub } from '@dungeonmaster/testing';
+import { installTestbedCreateBroker } from '@dungeonmaster/testing';
 import { FilePathStub } from '@dungeonmaster/shared/contracts/file-path/file-path.stub';
 
 import { npmCommandFakeHarness } from '../../test/harnesses/npm-command-fake/npm-command-fake.harness';
@@ -68,7 +68,7 @@ describe('StartInstall', () => {
       // `.dungeonmaster-assets/siegelense-assets` alone.
       testbed.writeFile({
         relativePath: '.dungeonmaster-assets/siegelense-assets/probe.txt',
-        content: FileContentStub({ value: 'siegelense-link-resolves-here\n' }),
+        content: 'siegelense-link-resolves-here\n',
       });
       const readThroughRealPath = testbed.readFile({
         relativePath: '.dm-home/siegelense/probe.txt',
@@ -172,7 +172,7 @@ describe('StartInstall', () => {
 
       testbed.writeFile({
         relativePath: 'packages/hydration-recipes/src/marker.txt',
-        content: FileContentStub({ value: 'do not touch\n' }),
+        content: 'do not touch\n',
       });
 
       await StartInstall({

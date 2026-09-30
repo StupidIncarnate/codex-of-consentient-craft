@@ -1,4 +1,4 @@
-import { installTestbedCreateBroker, FileContentStub } from '@dungeonmaster/testing';
+import { installTestbedCreateBroker } from '@dungeonmaster/testing';
 import { FilePathStub } from '@dungeonmaster/shared/contracts/file-path/file-path.stub';
 import { InstallContextStub } from '@dungeonmaster/shared/contracts/install-context/install-context.stub';
 import { InstallRepoScaffoldResponder } from './install-repo-scaffold-responder';
@@ -53,7 +53,7 @@ describe('InstallRepoScaffoldResponder', () => {
 
       testbed.writeFile({
         relativePath: '.gitignore',
-        content: FileContentStub({ value: 'node_modules/\nworktrees/\n' }),
+        content: 'node_modules/\nworktrees/\n',
       });
 
       const result = await InstallRepoScaffoldResponder({
@@ -133,7 +133,7 @@ describe('InstallRepoScaffoldResponder', () => {
 
       testbed.writeFile({
         relativePath: '.gitignore',
-        content: FileContentStub({ value: 'node_modules/\n   worktrees/\n.quest-plans/\n' }),
+        content: 'node_modules/\n   worktrees/\n.quest-plans/\n',
       });
 
       const result = await InstallRepoScaffoldResponder({

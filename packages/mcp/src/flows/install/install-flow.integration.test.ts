@@ -5,7 +5,7 @@
  * npm run ward -- --only test -- packages/mcp/src/flows/install/install-flow.integration.test.ts
  */
 
-import { installTestbedCreateBroker, FileContentStub } from '@dungeonmaster/testing';
+import { installTestbedCreateBroker } from '@dungeonmaster/testing';
 import { FilePathStub } from '@dungeonmaster/shared/contracts/file-path/file-path.stub';
 import { dungeonmasterConfigCreatorTransformer } from '../../transformers/dungeonmaster-config-creator/dungeonmaster-config-creator-transformer';
 import { InstallFlow } from './install-flow';
@@ -114,8 +114,7 @@ describe('InstallFlow', () => {
 
       testbed.writeFile({
         relativePath: '.mcp.json',
-        content: FileContentStub({
-          value: JSON.stringify({
+        content: JSON.stringify({
             mcpServers: {
               dungeonmaster: {
                 type: 'stdio',
@@ -124,7 +123,6 @@ describe('InstallFlow', () => {
               },
             },
           }),
-        }),
       });
 
       const result = await InstallFlow({

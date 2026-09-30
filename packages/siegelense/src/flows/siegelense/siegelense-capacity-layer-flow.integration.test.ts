@@ -24,7 +24,7 @@
 
 import { chdir, cwd, deleteEnv, getEnv, setEnv, stdout } from '#gateway/node/process';
 import { registerSpyOn } from '@dungeonmaster/testing/register-mock';
-import { installTestbedCreateBroker, FileContentStub } from '@dungeonmaster/testing';
+import { installTestbedCreateBroker } from '@dungeonmaster/testing';
 import { ContentTextStub } from '@dungeonmaster/shared/contracts/content-text/content-text.stub';
 import { configDefaultsStatics } from '@dungeonmaster/config';
 import { DungeonmasterConfigStub } from '@dungeonmaster/config/contracts/dungeonmaster-config/dungeonmaster-config.stub';
@@ -59,7 +59,7 @@ describe('SiegelenseCapacityLayerFlow', () => {
     // real reads this suite drives succeed before the spec check even runs.
     testbed.writeFile({
       relativePath: 'siegelense/.keep',
-      content: FileContentStub({ value: '' }),
+      content: '',
     });
 
     // laneSpecFindBroker resolves devServer.e2e.processes off a real .dungeonmaster.json — this
@@ -68,8 +68,7 @@ describe('SiegelenseCapacityLayerFlow', () => {
     // same shape siegelense-profile-layer-flow.integration.test.ts configures.
     testbed.writeFile({
       relativePath: '.dungeonmaster.json',
-      content: FileContentStub({
-        value: JSON.stringify(
+      content: JSON.stringify(
           DungeonmasterConfigStub({
             framework: 'monorepo',
             devServer: {
@@ -84,7 +83,6 @@ describe('SiegelenseCapacityLayerFlow', () => {
             },
           }),
         ),
-      }),
     });
     chdir(testbed.guildPath);
   });

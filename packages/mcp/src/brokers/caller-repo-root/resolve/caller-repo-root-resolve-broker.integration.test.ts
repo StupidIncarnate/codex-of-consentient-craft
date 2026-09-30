@@ -10,7 +10,7 @@
  */
 
 import { cwdResolveBroker } from '@dungeonmaster/shared/brokers';
-import { installTestbedCreateBroker, FileContentStub } from '@dungeonmaster/testing';
+import { installTestbedCreateBroker } from '@dungeonmaster/testing';
 import { architecturePackageInventoryBroker } from '@dungeonmaster/shared/brokers';
 import { AbsoluteFilePathStub } from '@dungeonmaster/shared/contracts/absolute-file-path/absolute-file-path.stub';
 import { ContentTextStub } from '@dungeonmaster/shared/contracts/content-text/content-text.stub';
@@ -24,19 +24,19 @@ describe('cwdResolveBroker + architecturePackageInventoryBroker (integration: re
 
     testbed.writeFile({
       relativePath: '.dungeonmaster.json',
-      content: FileContentStub({ value: '{}' }),
+      content: '{}',
     });
     testbed.writeFile({
       relativePath: 'packages/outer-only-pkg/src/index.ts',
-      content: FileContentStub({ value: 'export const outerOnly = true;' }),
+      content: 'export const outerOnly = true;',
     });
     testbed.writeFile({
       relativePath: 'worktrees/siegelense-test/.dungeonmaster.json',
-      content: FileContentStub({ value: '{}' }),
+      content: '{}',
     });
     testbed.writeFile({
       relativePath: 'worktrees/siegelense-test/packages/inner-pkg/src/brokers/foo/foo-broker.ts',
-      content: FileContentStub({ value: 'export const fooBroker = () => true;' }),
+      content: 'export const fooBroker = () => true;',
     });
 
     const innerRoot = `${String(testbed.guildPath)}/worktrees/siegelense-test`;
@@ -78,11 +78,11 @@ describe('cwdResolveBroker + architecturePackageInventoryBroker (integration: re
     });
     testbed.writeFile({
       relativePath: '.dungeonmaster.json',
-      content: FileContentStub({ value: '{}' }),
+      content: '{}',
     });
     testbed.writeFile({
       relativePath: 'packages/only-pkg/src/index.ts',
-      content: FileContentStub({ value: 'export const onlyPkg = true;' }),
+      content: 'export const onlyPkg = true;',
     });
 
     const repoRoot = await cwdResolveBroker({

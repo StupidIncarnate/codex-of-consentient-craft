@@ -1,5 +1,5 @@
 import { deleteEnv, getEnv, setEnv } from '#gateway/node/process';
-import { installTestbedCreateBroker, FileContentStub } from '@dungeonmaster/testing';
+import { installTestbedCreateBroker } from '@dungeonmaster/testing';
 import { AbsoluteFilePathStub } from '@dungeonmaster/shared/contracts/absolute-file-path/absolute-file-path.stub';
 
 import { InstanceIdStub } from '../../contracts/instance-id/instance-id.stub';
@@ -59,7 +59,7 @@ describe('SiegelenseRunLayerFlow', () => {
       // and this test would never reach the refusal it means to cover.
       testbed.writeFile({
         relativePath: 'steps/both-flags-batch.json',
-        content: FileContentStub({ value: ONE_STEP_BATCH }),
+        content: ONE_STEP_BATCH,
       });
       const stepsFilePath = `${testbed.guildPath}/steps/both-flags-batch.json`;
 
@@ -98,7 +98,7 @@ describe('SiegelenseRunLayerFlow', () => {
       const instanceId = InstanceIdStub({ value: 'inst_deadbeef' });
       testbed.writeFile({
         relativePath: 'steps/unknown-instance-batch.json',
-        content: FileContentStub({ value: ONE_STEP_BATCH }),
+        content: ONE_STEP_BATCH,
       });
       const stepsFilePath = `${testbed.guildPath}/steps/unknown-instance-batch.json`;
 
@@ -144,7 +144,7 @@ describe('SiegelenseRunLayerFlow', () => {
       });
       testbed.writeFile({
         relativePath: 'siegelense/registry.json',
-        content: FileContentStub({ value: `${JSON.stringify(registry)}\n` }),
+        content: `${JSON.stringify(registry)}\n`,
       });
     });
 

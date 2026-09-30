@@ -1,4 +1,3 @@
-import { FileContentStub } from '@dungeonmaster/testing';
 import type { InstallTestbed } from '@dungeonmaster/testing';
 
 /**
@@ -32,9 +31,7 @@ export const duplicateInstallFixtureHarness = (): {
     await Promise.resolve();
     testbed.writeFile({
       relativePath: 'package.json',
-      content: FileContentStub({
-        value: JSON.stringify({ name: 'root', workspaces: ['packages/*', 'packages/@gateway/*'] }),
-      }),
+      content: JSON.stringify({ name: 'root', workspaces: ['packages/*', 'packages/@gateway/*'] }),
     });
   },
 
@@ -52,14 +49,12 @@ export const duplicateInstallFixtureHarness = (): {
     await Promise.resolve();
     testbed.writeFile({
       relativePath: `packages/@gateway/${folder}/package.json`,
-      content: FileContentStub({
-        value: JSON.stringify({ name: `@dungeonmaster/${folder}`, dependencies, peerDependencies }),
-      }),
+      content: JSON.stringify({ name: `@dungeonmaster/${folder}`, dependencies, peerDependencies }),
     });
     // packageReadLayerBroker only registers a workspace package that has a src/ directory.
     testbed.writeFile({
       relativePath: `packages/@gateway/${folder}/src/.gitkeep`,
-      content: FileContentStub({ value: '' }),
+      content: '',
     });
   },
 
@@ -75,11 +70,11 @@ export const duplicateInstallFixtureHarness = (): {
     await Promise.resolve();
     testbed.writeFile({
       relativePath: `${relativePath}/package.json`,
-      content: FileContentStub({ value: JSON.stringify({ name }) }),
+      content: JSON.stringify({ name }),
     });
     testbed.writeFile({
       relativePath: `${relativePath}/src/.gitkeep`,
-      content: FileContentStub({ value: '' }),
+      content: '',
     });
   },
 
@@ -95,7 +90,7 @@ export const duplicateInstallFixtureHarness = (): {
     await Promise.resolve();
     testbed.writeFile({
       relativePath: `${relativeDir}/package.json`,
-      content: FileContentStub({ value: JSON.stringify({ version }) }),
+      content: JSON.stringify({ version }),
     });
   },
 });

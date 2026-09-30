@@ -1,4 +1,4 @@
-import { integrationEnvironmentCreateBroker, FileNameStub, FileContentStub } from '@dungeonmaster/testing';
+import { integrationEnvironmentCreateBroker, FileNameStub } from '@dungeonmaster/testing';
 
 import { toolingRunnerHarness } from '../../../test/harnesses/tooling-runner/tooling-runner.harness';
 
@@ -16,11 +16,11 @@ describe('StartPrimitiveDuplicateDetection', () => {
 
       env.writeFile({
         fileName: FileNameStub({ value: 'file1.ts' }),
-        content: FileContentStub({ value: `export const message1 = 'unique message one';` }),
+        content: `export const message1 = 'unique message one';`,
       });
       env.writeFile({
         fileName: FileNameStub({ value: 'file2.ts' }),
-        content: FileContentStub({ value: `export const message2 = 'unique message two';` }),
+        content: `export const message2 = 'unique message two';`,
       });
 
       const result = harness.runStartup({
@@ -50,19 +50,15 @@ describe('StartPrimitiveDuplicateDetection', () => {
 
       env.writeFile({
         fileName: FileNameStub({ value: 'file1.ts' }),
-        content: FileContentStub({
-          value: `export const message = 'duplicate string';\nexport const other = 'different';`,
-        }),
+        content: `export const message = 'duplicate string';\nexport const other = 'different';`,
       });
       env.writeFile({
         fileName: FileNameStub({ value: 'file2.ts' }),
-        content: FileContentStub({
-          value: `export const msg = 'duplicate string';\nexport const value = 123;`,
-        }),
+        content: `export const msg = 'duplicate string';\nexport const value = 123;`,
       });
       env.writeFile({
         fileName: FileNameStub({ value: 'file3.ts' }),
-        content: FileContentStub({ value: `export const text = 'duplicate string';` }),
+        content: `export const text = 'duplicate string';`,
       });
 
       const result = harness.runStartup({
@@ -92,11 +88,11 @@ describe('StartPrimitiveDuplicateDetection', () => {
 
       env.writeFile({
         fileName: FileNameStub({ value: 'file1.ts' }),
-        content: FileContentStub({ value: `export const msg = 'twice only';` }),
+        content: `export const msg = 'twice only';`,
       });
       env.writeFile({
         fileName: FileNameStub({ value: 'file2.ts' }),
-        content: FileContentStub({ value: `export const text = 'twice only';` }),
+        content: `export const text = 'twice only';`,
       });
 
       const result = harness.runStartup({
@@ -150,15 +146,15 @@ describe('StartPrimitiveDuplicateDetection', () => {
       const longString = 'This is a very long string that appears multiple times in the codebase';
       env.writeFile({
         fileName: FileNameStub({ value: 'file1.ts' }),
-        content: FileContentStub({ value: `export const msg1 = '${longString}';` }),
+        content: `export const msg1 = '${longString}';`,
       });
       env.writeFile({
         fileName: FileNameStub({ value: 'file2.ts' }),
-        content: FileContentStub({ value: `export const msg2 = '${longString}';` }),
+        content: `export const msg2 = '${longString}';`,
       });
       env.writeFile({
         fileName: FileNameStub({ value: 'file3.ts' }),
-        content: FileContentStub({ value: `export const msg3 = '${longString}';` }),
+        content: `export const msg3 = '${longString}';`,
       });
 
       const result = harness.runStartup({
@@ -188,15 +184,15 @@ describe('StartPrimitiveDuplicateDetection', () => {
 
       env.writeFile({
         fileName: FileNameStub({ value: 'file1.ts' }),
-        content: FileContentStub({ value: `export const pattern1 = /^[a-z]+$/;` }),
+        content: `export const pattern1 = /^[a-z]+$/;`,
       });
       env.writeFile({
         fileName: FileNameStub({ value: 'file2.ts' }),
-        content: FileContentStub({ value: `export const pattern2 = /^[a-z]+$/;` }),
+        content: `export const pattern2 = /^[a-z]+$/;`,
       });
       env.writeFile({
         fileName: FileNameStub({ value: 'file3.ts' }),
-        content: FileContentStub({ value: `export const pattern3 = /^[a-z]+$/;` }),
+        content: `export const pattern3 = /^[a-z]+$/;`,
       });
 
       const result = harness.runStartup({

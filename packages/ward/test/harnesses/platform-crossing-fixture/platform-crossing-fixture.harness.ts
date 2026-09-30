@@ -1,4 +1,3 @@
-import { FileContentStub } from '@dungeonmaster/testing';
 import type { InstallTestbed } from '@dungeonmaster/testing';
 
 /**
@@ -33,7 +32,7 @@ export const platformCrossingFixtureHarness = (): {
     await Promise.resolve();
     testbed.writeFile({
       relativePath: relativePath,
-      content: FileContentStub({ value: content }),
+      content: content,
     });
   },
 
@@ -41,9 +40,7 @@ export const platformCrossingFixtureHarness = (): {
     await Promise.resolve();
     testbed.writeFile({
       relativePath: 'package.json',
-      content: FileContentStub({
-        value: JSON.stringify({ name: 'root', workspaces: ['packages/*', 'packages/@gateway/*'] }),
-      }),
+      content: JSON.stringify({ name: 'root', workspaces: ['packages/*', 'packages/@gateway/*'] }),
     });
   },
 
@@ -51,8 +48,7 @@ export const platformCrossingFixtureHarness = (): {
     await Promise.resolve();
     testbed.writeFile({
       relativePath: 'packages/web/package.json',
-      content: FileContentStub({
-        value: JSON.stringify({
+      content: JSON.stringify({
           name: 'web',
           dependencies: { react: '18.2.0' },
           imports: {
@@ -62,11 +58,10 @@ export const platformCrossingFixtureHarness = (): {
             '#gateway/bin/*': '@dungeonmaster/bin/*',
           },
         }),
-      }),
     });
     testbed.writeFile({
       relativePath: 'packages/web/src/widgets/.gitkeep',
-      content: FileContentStub({ value: '' }),
+      content: '',
     });
   },
 
@@ -74,14 +69,14 @@ export const platformCrossingFixtureHarness = (): {
     await Promise.resolve();
     testbed.writeFile({
       relativePath: 'packages/@gateway/node/package.json',
-      content: FileContentStub({ value: JSON.stringify({ name: '@dungeonmaster/node' }) }),
+      content: JSON.stringify({ name: '@dungeonmaster/node' }),
     });
     // packageReadLayerBroker only registers a workspace package that has a src/ directory — a real
     // node gateway package always does (that is where every wrapped subpath's `index.ts` lives), so
     // the fixture needs the same marker for `workspaceDiscoverBroker` to discover this one too.
     testbed.writeFile({
       relativePath: 'packages/@gateway/node/src/.gitkeep',
-      content: FileContentStub({ value: '' }),
+      content: '',
     });
   },
 
@@ -89,11 +84,11 @@ export const platformCrossingFixtureHarness = (): {
     await Promise.resolve();
     testbed.writeFile({
       relativePath: 'packages/@gateway/browser/package.json',
-      content: FileContentStub({ value: JSON.stringify({ name: '@dungeonmaster/browser' }) }),
+      content: JSON.stringify({ name: '@dungeonmaster/browser' }),
     });
     testbed.writeFile({
       relativePath: 'packages/@gateway/browser/src/.gitkeep',
-      content: FileContentStub({ value: '' }),
+      content: '',
     });
   },
 });

@@ -1,4 +1,4 @@
-import { installTestbedCreateBroker, FileContentStub } from '@dungeonmaster/testing';
+import { installTestbedCreateBroker } from '@dungeonmaster/testing';
 import { registerSpyOn } from '@dungeonmaster/testing/register-mock';
 import { chdir, cwd, stdout } from '#gateway/node/process';
 
@@ -30,7 +30,7 @@ describe('StartWard', () => {
 
       testbed.writeFile({
         relativePath: wardResultRelativePath,
-        content: FileContentStub({ value: JSON.stringify(WardResultStub()) }),
+        content: JSON.stringify(WardResultStub()),
       });
 
       const originalCwd = cwd();
@@ -71,7 +71,7 @@ describe('StartWard', () => {
       const storedResult = WardResultStub();
       testbed.writeFile({
         relativePath: wardResultRelativePath,
-        content: FileContentStub({ value: JSON.stringify(storedResult) }),
+        content: JSON.stringify(storedResult),
       });
 
       const stdoutSpy = registerSpyOn({ object: stdout, method: 'write' });

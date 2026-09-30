@@ -1,4 +1,4 @@
-import { installTestbedCreateBroker, FileContentStub } from '@dungeonmaster/testing';
+import { installTestbedCreateBroker } from '@dungeonmaster/testing';
 import type { ExecResultStub } from '@dungeonmaster/shared/contracts/exec-result/exec-result.stub';
 import { FilePathStub } from '@dungeonmaster/shared/contracts/file-path/file-path.stub';
 import { resolve } from '#gateway/node/path';
@@ -180,7 +180,7 @@ describe('pre-edit-lint', () => {
         // Create file with existing violations
         testbed.writeFile({
           relativePath: 'example.ts',
-          content: FileContentStub({ value: `const bad: any = 'test';` }),
+          content: `const bad: any = 'test';`,
         });
 
         const hookData = WriteToolHookStub({
@@ -336,7 +336,7 @@ export function dirty({ param }: { param: any }): any {
 }`;
         testbed.writeFile({
           relativePath: 'example.ts',
-          content: FileContentStub({ value: initialContent }),
+          content: initialContent,
         });
 
         const hookData = EditToolHookStub({
@@ -375,7 +375,7 @@ export function dirty({ param }: { param: any }): any {
 export function oldFunc(): void {}`;
         testbed.writeFile({
           relativePath: 'example.ts',
-          content: FileContentStub({ value: initialContent }),
+          content: initialContent,
         });
 
         const hookData = EditToolHookStub({
@@ -411,7 +411,7 @@ export function newFunc(): void {}`,
         const initialContent = `const message = 'hello';`;
         testbed.writeFile({
           relativePath: 'example.ts',
-          content: FileContentStub({ value: initialContent }),
+          content: initialContent,
         });
 
         const hookData = EditToolHookStub({
@@ -445,7 +445,7 @@ export function newFunc(): void {}`,
         const initialContent = `function test(){return 'hello';}`;
         testbed.writeFile({
           relativePath: 'example.ts',
-          content: FileContentStub({ value: initialContent }),
+          content: initialContent,
         });
 
         const hookData = EditToolHookStub({
@@ -521,7 +521,7 @@ console.log('test');`,
 
           testbed.writeFile({
             relativePath: 'example.ts',
-            content: FileContentStub({ value: initialContent }),
+            content: initialContent,
           });
 
           const hookData = EditToolHookStub({
@@ -562,7 +562,7 @@ console.log('test');`,
         const initialContent = `const bad: any = 'test';`;
         testbed.writeFile({
           relativePath: 'example.ts',
-          content: FileContentStub({ value: initialContent }),
+          content: initialContent,
         });
 
         const hookData = EditToolHookStub({
@@ -641,7 +641,7 @@ export function test({ param }: { param: any }): void {}`,
 }`;
         testbed.writeFile({
           relativePath: 'example.ts',
-          content: FileContentStub({ value: initialContent }),
+          content: initialContent,
         });
 
         const hookData = MultiEditToolHookStub({
@@ -693,7 +693,7 @@ export class Calculator {
 }`;
         testbed.writeFile({
           relativePath: 'example.ts',
-          content: FileContentStub({ value: initialContent }),
+          content: initialContent,
         });
 
         const hookData = MultiEditToolHookStub({
@@ -745,7 +745,7 @@ export class Calculator {
 }`;
         testbed.writeFile({
           relativePath: 'example.ts',
-          content: FileContentStub({ value: initialContent }),
+          content: initialContent,
         });
 
         const hookData = MultiEditToolHookStub({
@@ -789,7 +789,7 @@ export class Calculator {
 }`;
         testbed.writeFile({
           relativePath: 'example.ts',
-          content: FileContentStub({ value: initialContent }),
+          content: initialContent,
         });
 
         const hookData = MultiEditToolHookStub({
@@ -844,7 +844,7 @@ export function processItems({ items }: { items: string[] }): string[] {
 }`;
         testbed.writeFile({
           relativePath: 'example.ts',
-          content: FileContentStub({ value: initialContent }),
+          content: initialContent,
         });
 
         const hookData = MultiEditToolHookStub({
@@ -1009,7 +1009,7 @@ export const handler: any = processData;`;
 
       testbed.writeFile({
         relativePath: 'empty.ts',
-        content: FileContentStub({ value: '' }),
+        content: '',
       });
 
       const hookData = EditToolHookStub({

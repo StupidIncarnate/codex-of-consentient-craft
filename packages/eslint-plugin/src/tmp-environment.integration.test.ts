@@ -2,7 +2,7 @@ import { existsSync, readFileSync } from '#gateway/node/fs';
 import { join } from '#gateway/node/path';
 import { execSync } from '#gateway/node/child_process';
 import { envSnapshot } from '#gateway/node/process';
-import { integrationEnvironmentCreateBroker, FileNameStub, FileContentStub } from '@dungeonmaster/testing';
+import { integrationEnvironmentCreateBroker, FileNameStub } from '@dungeonmaster/testing';
 
 /**
  * Integration test to prove that integration test environments can work in /tmp
@@ -31,7 +31,7 @@ describe('Tmp Environment Integration', () => {
 
       env.writeFile({
         fileName: FileNameStub({ value: 'test.txt' }),
-        content: FileContentStub({ value: 'Hello from /tmp!' }),
+        content: 'Hello from /tmp!',
       });
 
       expect(env.fileExists({ fileName: FileNameStub({ value: 'test.txt' }) })).toBe(true);
@@ -48,11 +48,11 @@ describe('Tmp Environment Integration', () => {
 
       env.writeFile({
         fileName: FileNameStub({ value: 'src/components/Button.tsx' }),
-        content: FileContentStub({ value: 'export const Button = () => <button />;' }),
+        content: 'export const Button = () => <button />;',
       });
       env.writeFile({
         fileName: FileNameStub({ value: 'src/utils/helpers.ts' }),
-        content: FileContentStub({ value: 'export const helper = () => {};' }),
+        content: 'export const helper = () => {};',
       });
 
       expect(
@@ -73,10 +73,8 @@ describe('Tmp Environment Integration', () => {
 
       env.writeFile({
         fileName: FileNameStub({ value: 'hello.ts' }),
-        content: FileContentStub({
-          value: `const greeting: string = 'Hello from /tmp';
+        content: `const greeting: string = 'Hello from /tmp';
 console.log(greeting);`,
-        }),
       });
 
       const result = execSync(`npx tsx ${join(env.guildPath, 'hello.ts')}`, {
@@ -95,17 +93,13 @@ console.log(greeting);`,
 
       env.writeFile({
         fileName: FileNameStub({ value: 'utils.ts' }),
-        content: FileContentStub({
-          value: `export const add = (a: number, b: number): number => a + b;`,
-        }),
+        content: `export const add = (a: number, b: number): number => a + b;`,
       });
 
       env.writeFile({
         fileName: FileNameStub({ value: 'main.ts' }),
-        content: FileContentStub({
-          value: `import { add } from './utils';
+        content: `import { add } from './utils';
 console.log(add(2, 3));`,
-        }),
       });
 
       const result = execSync(`npx tsx ${join(env.guildPath, 'main.ts')}`, {
@@ -127,7 +121,7 @@ console.log(add(2, 3));`,
       // Create a config file
       env.writeFile({
         fileName: FileNameStub({ value: 'config.json' }),
-        content: FileContentStub({ value: JSON.stringify({ name: 'test-app', version: '1.0.0' }) }),
+        content: JSON.stringify({ name: 'test-app', version: '1.0.0' }),
       });
 
       // Read it back programmatically (simulating what a CLI tool would do)
@@ -146,11 +140,11 @@ console.log(add(2, 3));`,
 
       env.writeFile({
         fileName: FileNameStub({ value: 'package.json' }),
-        content: FileContentStub({ value: '{}' }),
+        content: '{}',
       });
       env.writeFile({
         fileName: FileNameStub({ value: '.gitignore' }),
-        content: FileContentStub({ value: 'node_modules' }),
+        content: 'node_modules',
       });
 
       expect(env.fileExists({ fileName: FileNameStub({ value: 'package.json' }) })).toBe(true);
@@ -168,15 +162,15 @@ console.log(add(2, 3));`,
 
       env.writeFile({
         fileName: FileNameStub({ value: 'test1.txt' }),
-        content: FileContentStub({ value: 'content 1' }),
+        content: 'content 1',
       });
       env.writeFile({
         fileName: FileNameStub({ value: 'test2.txt' }),
-        content: FileContentStub({ value: 'content 2' }),
+        content: 'content 2',
       });
       env.writeFile({
         fileName: FileNameStub({ value: 'subdir/test3.txt' }),
-        content: FileContentStub({ value: 'content 3' }),
+        content: 'content 3',
       });
 
       const { guildPath } = env;

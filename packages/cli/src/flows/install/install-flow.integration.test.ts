@@ -1,4 +1,4 @@
-import { installTestbedCreateBroker, FileContentStub } from '@dungeonmaster/testing';
+import { installTestbedCreateBroker } from '@dungeonmaster/testing';
 import { FilePathStub } from '@dungeonmaster/shared/contracts/file-path/file-path.stub';
 import { InstallFlow } from './install-flow';
 import { devDependenciesStatics } from '../../statics/dev-dependencies/dev-dependencies-statics';
@@ -16,17 +16,15 @@ describe('InstallFlow', () => {
       // signals so the happy path still creates a config, same as before that gate existed.
       testbed.writeFile({
         relativePath: 'package.json',
-        content: FileContentStub({
-          value: JSON.stringify(
+        content: JSON.stringify(
             { name: 'test-project', version: '1.0.0', dependencies: { react: '18.2.0' } },
             null,
             2,
           ),
-        }),
       });
       testbed.writeFile({
         relativePath: 'src/widgets/placeholder.ts',
-        content: FileContentStub({ value: 'export const Placeholder = {};\n' }),
+        content: 'export const Placeholder = {};\n',
       });
 
       const result = await InstallFlow({
@@ -71,8 +69,7 @@ describe('InstallFlow', () => {
       // exists", not the eligibility gate short-circuiting first with a different message.
       testbed.writeFile({
         relativePath: 'package.json',
-        content: FileContentStub({
-          value: JSON.stringify(
+        content: JSON.stringify(
             {
               name: 'test-project',
               version: '1.0.0',
@@ -82,23 +79,22 @@ describe('InstallFlow', () => {
             null,
             2,
           ),
-        }),
       });
       testbed.writeFile({
         relativePath: 'src/widgets/placeholder.ts',
-        content: FileContentStub({ value: 'export const Placeholder = {};\n' }),
+        content: 'export const Placeholder = {};\n',
       });
       testbed.writeFile({
         relativePath: 'playwright.config.ts',
-        content: FileContentStub({ value: '// existing user config\n' }),
+        content: '// existing user config\n',
       });
       testbed.writeFile({
         relativePath: 'tsconfig.json',
-        content: FileContentStub({ value: '{}\n' }),
+        content: '{}\n',
       });
       testbed.writeFile({
         relativePath: 'jest.config.js',
-        content: FileContentStub({ value: '// existing jest config\n' }),
+        content: '// existing jest config\n',
       });
 
       const result = await InstallFlow({
@@ -160,13 +156,11 @@ describe('InstallFlow', () => {
       });
       testbed.writeFile({
         relativePath: 'package.json',
-        content: FileContentStub({
-          value: JSON.stringify(
+        content: JSON.stringify(
             { name: 'monorepo-root', version: '1.0.0', workspaces: ['packages/*'] },
             null,
             2,
           ),
-        }),
       });
 
       const result = await InstallFlow({
@@ -201,24 +195,19 @@ describe('InstallFlow', () => {
 
       testbed.writeFile({
         relativePath: 'package.json',
-        content: FileContentStub({
-          value: JSON.stringify(
+        content: JSON.stringify(
             { name: '@acme/app', version: '1.0.0', workspaces: ['packages/*'] },
             null,
             2,
           ),
-        }),
       });
       testbed.writeFile({
         relativePath: 'packages/pkg-a/package.json',
-        content: FileContentStub({
-          value: JSON.stringify({ name: '@acme/pkg-a', version: '1.0.0' }, null, 2),
-        }),
+        content: JSON.stringify({ name: '@acme/pkg-a', version: '1.0.0' }, null, 2),
       });
       testbed.writeFile({
         relativePath: 'packages/pkg-a/tsconfig.json',
-        content: FileContentStub({
-          value: JSON.stringify(
+        content: JSON.stringify(
             {
               extends: '../../tsconfig.json',
               compilerOptions: { paths: { '#alias/*': ['./src/*'] } },
@@ -226,22 +215,18 @@ describe('InstallFlow', () => {
             null,
             2,
           ),
-        }),
       });
       testbed.writeFile({
         relativePath: 'packages/pkg-a/tsconfig.build.json',
-        content: FileContentStub({
-          value: JSON.stringify(
+        content: JSON.stringify(
             { extends: './tsconfig.json', compilerOptions: { outDir: './dist' } },
             null,
             2,
           ),
-        }),
       });
       testbed.writeFile({
         relativePath: 'packages/pkg-b/package.json',
-        content: FileContentStub({
-          value: JSON.stringify(
+        content: JSON.stringify(
             {
               name: '@acme/pkg-b',
               version: '1.0.0',
@@ -250,13 +235,10 @@ describe('InstallFlow', () => {
             null,
             2,
           ),
-        }),
       });
       testbed.writeFile({
         relativePath: 'packages/pkg-b/tsconfig.json',
-        content: FileContentStub({
-          value: JSON.stringify({ extends: '../../tsconfig.json' }, null, 2),
-        }),
+        content: JSON.stringify({ extends: '../../tsconfig.json' }, null, 2),
       });
 
       const firstRun = await InstallFlow({
@@ -526,9 +508,7 @@ export {};
 
       testbed.writeFile({
         relativePath: 'package.json',
-        content: FileContentStub({
-          value: JSON.stringify({ name: 'my-app', version: '1.0.0' }, null, 2),
-        }),
+        content: JSON.stringify({ name: 'my-app', version: '1.0.0' }, null, 2),
       });
 
       const result = await InstallFlow({

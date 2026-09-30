@@ -1,5 +1,5 @@
 import { getExitCode, setExitCode } from '#gateway/node/process';
-import { installTestbedCreateBroker, FileContentStub } from '@dungeonmaster/testing';
+import { installTestbedCreateBroker } from '@dungeonmaster/testing';
 import { AbsoluteFilePathStub } from '@dungeonmaster/shared/contracts/absolute-file-path/absolute-file-path.stub';
 
 import { WardFlow } from './ward-flow';
@@ -42,7 +42,7 @@ describe('WardFlow', () => {
 
       testbed.writeFile({
         relativePath: wardResultRelativePath,
-        content: FileContentStub({ value: VALID_WARD_RESULT }),
+        content: VALID_WARD_RESULT,
       });
 
       await WardFlow({
@@ -72,7 +72,7 @@ describe('WardFlow', () => {
 
       testbed.writeFile({
         relativePath: wardResultRelativePath,
-        content: FileContentStub({ value: VALID_WARD_RESULT }),
+        content: VALID_WARD_RESULT,
       });
 
       await WardFlow({
@@ -113,7 +113,7 @@ describe('WardFlow', () => {
 
       testbed.writeFile({
         relativePath: wardResultRelativePath,
-        content: FileContentStub({ value: VALID_WARD_RESULT }),
+        content: VALID_WARD_RESULT,
       });
 
       await WardFlow({

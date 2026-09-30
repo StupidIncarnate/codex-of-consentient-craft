@@ -7,7 +7,6 @@
  */
 
 import { z } from '#gateway/npm/zod';
-import type { FileContent } from '../file-content/file-content-contract';
 import type { FilePath } from '../file-path/file-path-contract';
 import type { ExitCode } from '../exit-code/exit-code-contract';
 import type { ProcessOutput } from '../process-output/process-output-contract';
@@ -30,9 +29,9 @@ export type InstallTestbed = InstallTestbedData & {
     content,
   }: {
     relativePath: string;
-    content: FileContent;
+    content: string;
   }) => void;
-  readFile: ({ relativePath }: { relativePath: string }) => FileContent | null;
+  readFile: ({ relativePath }: { relativePath: string }) => string | null;
   createSymlink: ({
     relativePath,
     targetPath,
@@ -44,6 +43,6 @@ export type InstallTestbed = InstallTestbedData & {
   getClaudeSettings: () => ClaudeSettings | null;
   getMcpConfig: () => McpConfig | null;
   getDungeonmasterConfig: () => TestbedConfig | null;
-  getEslintConfig: () => FileContent | null;
+  getEslintConfig: () => string | null;
   runInitCommand: () => { exitCode: ExitCode; stdout: ProcessOutput; stderr: ProcessOutput };
 };

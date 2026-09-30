@@ -1,4 +1,4 @@
-import { installTestbedCreateBroker, FileContentStub } from '@dungeonmaster/testing';
+import { installTestbedCreateBroker } from '@dungeonmaster/testing';
 import { FilePathStub } from '@dungeonmaster/shared/contracts/file-path/file-path.stub';
 import { slashCommandsStatics } from '../../statics/slash-commands/slash-commands-statics';
 import { InstallFlow } from './install-flow';
@@ -78,15 +78,15 @@ describe('InstallFlow', () => {
       // rather than whatever order the filesystem hands readdir back.
       testbed.writeFile({
         relativePath: 'worktrees/quest-zap-cache-9f3c1a20/marker.txt',
-        content: FileContentStub({ value: 'second quest checkout' }),
+        content: 'second quest checkout',
       });
       testbed.writeFile({
         relativePath: 'worktrees/quest-add-auth-7bc217a1/marker.txt',
-        content: FileContentStub({ value: 'quest checkout contents' }),
+        content: 'quest checkout contents',
       });
       testbed.writeFile({
         relativePath: '.gitignore',
-        content: FileContentStub({ value: 'node_modules/\n.claude/worktrees\n' }),
+        content: 'node_modules/\n.claude/worktrees\n',
       });
 
       const result = await InstallFlow({
@@ -128,7 +128,7 @@ describe('InstallFlow', () => {
 
       testbed.writeFile({
         relativePath: '.gitignore',
-        content: FileContentStub({ value: 'node_modules/' }),
+        content: 'node_modules/',
       });
 
       await InstallFlow({

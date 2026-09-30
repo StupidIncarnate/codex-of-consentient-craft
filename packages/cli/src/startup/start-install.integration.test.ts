@@ -1,4 +1,4 @@
-import { installTestbedCreateBroker, FileContentStub } from '@dungeonmaster/testing';
+import { installTestbedCreateBroker } from '@dungeonmaster/testing';
 import { FilePathStub } from '@dungeonmaster/shared/contracts/file-path/file-path.stub';
 import { ExitCodeStub } from '@dungeonmaster/shared/contracts/exit-code/exit-code.stub';
 import { StartInstall } from './start-install';
@@ -60,22 +60,19 @@ describe('StartInstall', () => {
       });
       testbed.writeFile({
         relativePath: 'package.json',
-        content: FileContentStub({
-          value: JSON.stringify({
+        content: JSON.stringify({
             name: 'happy-path',
             version: '0.0.0',
             dependencies: { react: '18.2.0' },
           }),
-        }),
       });
       testbed.writeFile({
         relativePath: 'src/widgets/marker.tsx',
-        content: FileContentStub({ value: 'export {};\n' }),
+        content: 'export {};\n',
       });
       testbed.writeFile({
         relativePath: '.dungeonmaster.json',
-        content: FileContentStub({
-          value: JSON.stringify({
+        content: JSON.stringify({
             devServer: {
               e2e: {
                 processes: [
@@ -96,7 +93,6 @@ describe('StartInstall', () => {
               },
             },
           }),
-        }),
       });
 
       await StartInstall({
@@ -165,22 +161,19 @@ describe('StartInstall', () => {
       });
       testbed.writeFile({
         relativePath: 'package.json',
-        content: FileContentStub({
-          value: JSON.stringify({
+        content: JSON.stringify({
             name: 'placeholder-path',
             version: '0.0.0',
             dependencies: { react: '18.2.0' },
           }),
-        }),
       });
       testbed.writeFile({
         relativePath: 'src/widgets/marker.tsx',
-        content: FileContentStub({ value: 'export {};\n' }),
+        content: 'export {};\n',
       });
       testbed.writeFile({
         relativePath: '.dungeonmaster.json',
-        content: FileContentStub({
-          value: JSON.stringify({
+        content: JSON.stringify({
             devServer: {
               e2e: {
                 processes: [
@@ -195,7 +188,6 @@ describe('StartInstall', () => {
               },
             },
           }),
-        }),
       });
 
       await StartInstall({
@@ -227,21 +219,19 @@ describe('StartInstall', () => {
       });
       testbed.writeFile({
         relativePath: 'package.json',
-        content: FileContentStub({
-          value: JSON.stringify({
+        content: JSON.stringify({
             name: 'missing-config-path',
             version: '0.0.0',
             dependencies: { react: '18.2.0' },
           }),
-        }),
       });
       testbed.writeFile({
         relativePath: 'src/widgets/marker.tsx',
-        content: FileContentStub({ value: 'export {};\n' }),
+        content: 'export {};\n',
       });
       testbed.writeFile({
         relativePath: '.dungeonmaster.json',
-        content: FileContentStub({ value: JSON.stringify({ framework: 'monorepo' }) }),
+        content: JSON.stringify({ framework: 'monorepo' }),
       });
 
       await StartInstall({
@@ -273,22 +263,19 @@ describe('StartInstall', () => {
       });
       testbed.writeFile({
         relativePath: 'package.json',
-        content: FileContentStub({
-          value: JSON.stringify({
+        content: JSON.stringify({
             name: 'unresolvable-token-path',
             version: '0.0.0',
             dependencies: { react: '18.2.0' },
           }),
-        }),
       });
       testbed.writeFile({
         relativePath: 'src/widgets/marker.tsx',
-        content: FileContentStub({ value: 'export {};\n' }),
+        content: 'export {};\n',
       });
       testbed.writeFile({
         relativePath: '.dungeonmaster.json',
-        content: FileContentStub({
-          value: JSON.stringify({
+        content: JSON.stringify({
             devServer: {
               e2e: {
                 processes: [
@@ -302,7 +289,6 @@ describe('StartInstall', () => {
               },
             },
           }),
-        }),
       });
 
       await StartInstall({
@@ -334,22 +320,19 @@ describe('StartInstall', () => {
       });
       testbed.writeFile({
         relativePath: 'package.json',
-        content: FileContentStub({
-          value: JSON.stringify({
+        content: JSON.stringify({
             name: 'bad-port-role-path',
             version: '0.0.0',
             dependencies: { react: '18.2.0' },
           }),
-        }),
       });
       testbed.writeFile({
         relativePath: 'src/widgets/marker.tsx',
-        content: FileContentStub({ value: 'export {};\n' }),
+        content: 'export {};\n',
       });
       testbed.writeFile({
         relativePath: '.dungeonmaster.json',
-        content: FileContentStub({
-          value: JSON.stringify({
+        content: JSON.stringify({
             devServer: {
               e2e: {
                 processes: [
@@ -358,7 +341,6 @@ describe('StartInstall', () => {
               },
             },
           }),
-        }),
       });
 
       await StartInstall({
