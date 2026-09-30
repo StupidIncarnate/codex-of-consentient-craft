@@ -8,23 +8,19 @@
  * censusTableRenderTransformer({ census });
  * // Returns the table text, one block per package, ending in a totals line
  */
-import { processOutputContract } from '../../contracts/process-output/process-output-contract';
 import { censusTableLineTransformer } from '../census-table-line/census-table-line-transformer';
 import { censusLayoutStatics } from '../../statics/census-layout/census-layout-statics';
 import type { AdapterCensus } from '../../contracts/adapter-census/adapter-census-contract';
 import type { AdapterRecord } from '../../contracts/adapter-record/adapter-record-contract';
-import type { ProcessOutput } from '../../contracts/process-output/process-output-contract';
 
 export const censusTableRenderTransformer = ({
   census,
 }: {
   census: AdapterCensus;
-}): ProcessOutput => {
+}): string => {
   const heading = `Adapter census (scope ${census.scope ?? 'none'})`;
   if (census.packages.length === 0) {
-    return processOutputContract.parse(
-      `${heading}\nNo adapters found under ${censusLayoutStatics.adaptersSegment.slice(1)}.\n`,
-    );
+    return `${heading}\nNo adapters found under ${censusLayoutStatics.adaptersSegment.slice(1)}.\n`;
   }
 
   const blocks = census.packages.map((pkg) => {
@@ -63,5 +59,5 @@ export const censusTableRenderTransformer = ({
   const { totals } = census;
   const summary = `Totals: ${totals.adapters} adapters, ${totals.passThrough} pass-through, ${totals.logic} logic; ${totals.productionCallers} production callers; ${totals.composingProxies} composing proxies, ${totals.catchAllProxies} of them staging a catch-all.`;
 
-  return processOutputContract.parse(`${heading}\n\n${blocks.join('\n\n')}\n\n${summary}\n`);
+  return `${heading}\n\n${blocks.join('\n\n')}\n\n${summary}\n`;
 };

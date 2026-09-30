@@ -1,7 +1,6 @@
 import type { StubArgument } from '@dungeonmaster/shared/@types';
 import { testGuildContract } from './test-guild-contract';
 import type { TestGuild } from './test-guild-contract';
-import { processOutputContract } from '../process-output/process-output-contract';
 import { packageJsonContract } from '../package-json/package-json-contract';
 import { execResultContract } from '@dungeonmaster/shared/contracts';
 
@@ -31,7 +30,7 @@ export const TestGuildStub = ({ ...props }: StubArgument<TestGuild> = {}): TestG
     installDungeonmaster:
       installDungeonmaster ??
       (async (): ReturnType<TestGuild['installDungeonmaster']> =>
-        Promise.resolve(processOutputContract.parse('Dungeonmaster installed'))),
+        Promise.resolve('Dungeonmaster installed')),
     hasCommand: hasCommand ?? ((): boolean => false),
     fileExists: fileExists ?? ((): boolean => false),
     readFile: readFile ?? ((): ReturnType<TestGuild['readFile']> => ''),

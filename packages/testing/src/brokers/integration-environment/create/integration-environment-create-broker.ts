@@ -33,14 +33,12 @@ import { runSync } from '#gateway/node/child_process';
 import { runScript } from '#gateway/bin/npm';
 import { randomBytes } from '#gateway/node/crypto';
 import { fileContentContract } from '../../../contracts/file-content/file-content-contract';
-import { processOutputContract } from '../../../contracts/process-output/process-output-contract';
 import { fileNameContract } from '../../../contracts/file-name/file-name-contract';
 import { execResultContract } from '@dungeonmaster/shared/contracts';
 import { testGuildContract } from '../../../contracts/test-guild/test-guild-contract';
 import { integrationEnvironmentTrackingBroker } from '../tracking/integration-environment-tracking-broker';
 import { integrationEnvironmentStatics } from '../../../statics/integration-environment/integration-environment-statics';
 import { locationsStatics } from '@dungeonmaster/shared/statics';
-import type { ProcessOutput } from '../../../contracts/process-output/process-output-contract';
 import type { FileName } from '../../../contracts/file-name/file-name-contract';
 import type { FileContent } from '../../../contracts/file-content/file-content-contract';
 import { scriptNameContract } from '../../../contracts/script-name/script-name-contract';
@@ -112,13 +110,13 @@ export const integrationEnvironmentCreateBroker = ({
     guildName: testGuildContract.shape.guildName.parse(projectName),
     rootDir: testGuildContract.shape.rootDir.parse(projectPath),
 
-    installDungeonmaster: async (): Promise<ProcessOutput> => {
+    installDungeonmaster: async (): Promise<string> => {
       try {
         const { output } = await runScript({ cwd: projectPath, script: 'install-dungeonmaster' });
-        return processOutputContract.parse(output);
+        return output;
       } catch (error) {
         const output = error instanceof Error ? error.message : 'Installation failed';
-        return processOutputContract.parse(output);
+        return output;
       }
     },
 

@@ -6,9 +6,7 @@
  * censusTableLineTransformer({ cells: ['a', 'b'], widths: [4, 4] });
  * // Returns 'a     b'
  */
-import { processOutputContract } from '../../contracts/process-output/process-output-contract';
 import { censusLayoutStatics } from '../../statics/census-layout/census-layout-statics';
-import type { ProcessOutput } from '../../contracts/process-output/process-output-contract';
 
 export const censusTableLineTransformer = ({
   cells,
@@ -16,10 +14,8 @@ export const censusTableLineTransformer = ({
 }: {
   cells: readonly string[];
   widths: readonly number[];
-}): ProcessOutput =>
-  processOutputContract.parse(
-    cells
+}): string =>
+  cells
       .map((cell, column) => cell.padEnd(widths[column] ?? 0))
       .join(censusLayoutStatics.tableColumnGap)
-      .trimEnd(),
-  );
+      .trimEnd();

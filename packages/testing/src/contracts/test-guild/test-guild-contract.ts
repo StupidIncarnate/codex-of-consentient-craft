@@ -7,7 +7,6 @@
  */
 
 import { z } from '#gateway/npm/zod';
-import type { ProcessOutput } from '../process-output/process-output-contract';
 import type { TestbedConfig } from '../testbed-config/testbed-config-contract';
 import type { PackageJson } from '../package-json/package-json-contract';
 import type { ExecResult } from '@dungeonmaster/shared/contracts';
@@ -21,7 +20,7 @@ export const testGuildContract = z.object({
 export type TestGuildData = z.infer<typeof testGuildContract>;
 
 export type TestGuild = TestGuildData & {
-  installDungeonmaster: () => Promise<ProcessOutput>;
+  installDungeonmaster: () => Promise<string>;
   hasCommand: ({ command }: { command: string }) => boolean;
   fileExists: ({ fileName }: { fileName: string }) => boolean;
   readFile: ({ fileName }: { fileName: string }) => string;

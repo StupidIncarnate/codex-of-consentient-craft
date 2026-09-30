@@ -23,7 +23,6 @@ import { dirname, join } from '#gateway/node/path';
 import { runSync } from '#gateway/node/child_process';
 import { randomBytes } from '#gateway/node/crypto';
 import { fileContentContract } from '../../../contracts/file-content/file-content-contract';
-import { processOutputContract } from '../../../contracts/process-output/process-output-contract';
 import { installTestbedContract } from '../../../contracts/install-testbed/install-testbed-contract';
 import { claudeSettingsContract } from '../../../contracts/claude-settings/claude-settings-contract';
 import type { ClaudeSettings } from '../../../contracts/claude-settings/claude-settings-contract';
@@ -191,15 +190,15 @@ export const installTestbedCreateBroker = ({
         // runSync folds stderr into `output`, so a failed run reports it whole as stderr.
         return {
           exitCode: exitCode,
-          stdout: processOutputContract.parse(exitCode === 0 ? output : ''),
-          stderr: processOutputContract.parse(exitCode === 0 ? '' : output),
+          stdout: (exitCode === 0 ? output : ''),
+          stderr: (exitCode === 0 ? '' : output),
         };
       } catch (error) {
         const stderr = error instanceof Error ? error.message : 'Unknown error';
         return {
           exitCode: 1,
-          stdout: processOutputContract.parse(''),
-          stderr: processOutputContract.parse(stderr),
+          stdout: '',
+          stderr: stderr,
         };
       }
     },
