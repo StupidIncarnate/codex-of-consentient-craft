@@ -24,7 +24,6 @@ import { z } from '#gateway/npm/zod';
 
 import { networkPortContract, siegeInstanceContract } from '@dungeonmaster/shared/contracts';
 
-import { processGroupIdContract } from '../process-group-id/process-group-id-contract';
 import { repoLocalPathContract } from '../repo-local-path/repo-local-path-contract';
 
 export const killResultContract = z.object({
@@ -33,8 +32,8 @@ export const killResultContract = z.object({
   portsReleased: z.array(networkPortContract).readonly(),
   homeRemoved: z.boolean(),
   evidenceKept: repoLocalPathContract,
-  reapedPgids: z.array(processGroupIdContract).readonly(),
-  killed: z.array(processGroupIdContract).readonly().optional(),
+  reapedPgids: z.array(z.number().int().positive().brand<'KillResultReapedPgids'>()).readonly(),
+  killed: z.array(z.number().int().positive().brand<'KillResultKilled'>()).readonly().optional(),
 });
 
 export type KillResult = z.infer<typeof killResultContract>;

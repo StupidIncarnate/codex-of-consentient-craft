@@ -28,7 +28,6 @@ import { absoluteFilePathContract } from '@dungeonmaster/shared/contracts';
 import type { BrowserSession } from '../browser-session/browser-session-contract';
 import { fileDescriptorContract } from '../file-descriptor/file-descriptor-contract';
 import { portPairContract } from '../port-pair/port-pair-contract';
-import { processGroupIdContract } from '../process-group-id/process-group-id-contract';
 import type { ServerLogByteCount } from '../server-log-byte-count/server-log-byte-count-contract';
 
 export const laneSessionContract = z
@@ -39,7 +38,7 @@ export const laneSessionContract = z
     evidencePath: absoluteFilePathContract,
     baseUrl: z.string().brand<'LaneSessionBaseUrl'>(),
     apiBaseUrl: z.string().brand<'LaneSessionApiBaseUrl'>(),
-    pgids: z.array(processGroupIdContract).readonly(),
+    pgids: z.array(z.number().int().positive().brand<'LaneSessionPgids'>()).readonly(),
     // `z.custom`, not a nested schema: the value is a live session closed over a browser, and the
     // check passes the same reference through so its functions survive the parse.
     browser: z.custom<BrowserSession | null>(

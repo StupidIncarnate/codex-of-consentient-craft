@@ -4,7 +4,6 @@ import { laneSessionContract } from './lane-session-contract';
 import type { LaneSession } from './lane-session-contract';
 import { BrowserSessionStub } from '../browser-session/browser-session.stub';
 import { PortPairStub } from '../port-pair/port-pair.stub';
-import { processGroupIdContract } from '../process-group-id/process-group-id-contract';
 import { ProcessGroupIdStub } from '../process-group-id/process-group-id.stub';
 import { serverLogByteCountContract } from '../server-log-byte-count/server-log-byte-count-contract';
 import type { ServerLogByteCount } from '../server-log-byte-count/server-log-byte-count-contract';
@@ -45,7 +44,7 @@ export const LaneSessionStub = ({
       pgids:
         dataProps.pgids === undefined
           ? [ProcessGroupIdStub()]
-          : dataProps.pgids.map((value) => processGroupIdContract.parse(value)),
+          : dataProps.pgids.map((value) => value),
       browser: dataProps.browser === null ? null : BrowserSessionStub(dataProps.browser),
       logFds:
         dataProps.logFds === undefined

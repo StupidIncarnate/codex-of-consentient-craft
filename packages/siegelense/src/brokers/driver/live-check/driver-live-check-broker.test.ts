@@ -3,7 +3,6 @@ import { ProcessIdStub } from '@dungeonmaster/shared/contracts/process-id/proces
 
 import { driverLiveCheckBroker } from './driver-live-check-broker';
 import { driverLiveCheckBrokerProxy } from './driver-live-check-broker.proxy';
-import { ProcessGroupIdStub } from '../../../contracts/process-group-id/process-group-id.stub';
 import { RegistryEntryStub } from '../../../contracts/registry-entry/registry-entry.stub';
 
 const DIFFERENT_PID = ProcessIdStub({ value: String(pid + 1) });
@@ -37,7 +36,7 @@ describe('driverLiveCheckBroker', () => {
     it('VALID: {entry.pid: a live different pid} => returns true without ever pinging the socket', async () => {
       const proxy = driverLiveCheckBrokerProxy();
       const entry = RegistryEntryStub({ pid: DIFFERENT_PID, socketPath: SOCKET_PATH });
-      proxy.setupPidAlive({ pgid: ProcessGroupIdStub({ value: Number(DIFFERENT_PID) }) });
+      proxy.setupPidAlive({ pgid: Number(DIFFERENT_PID) });
 
       const result = await driverLiveCheckBroker({ entry });
 
@@ -49,7 +48,7 @@ describe('driverLiveCheckBroker', () => {
     it('VALID: {entry.pid: gone, socket answers ping} => returns true', async () => {
       const proxy = driverLiveCheckBrokerProxy();
       const entry = RegistryEntryStub({ pid: DIFFERENT_PID, socketPath: SOCKET_PATH });
-      proxy.setupPidDead({ pgid: ProcessGroupIdStub({ value: Number(DIFFERENT_PID) }) });
+      proxy.setupPidDead({ pgid: Number(DIFFERENT_PID) });
       proxy.setupSocketAnswers({ socketPath: SOCKET_PATH });
 
       const result = await driverLiveCheckBroker({ entry });
@@ -62,7 +61,7 @@ describe('driverLiveCheckBroker', () => {
     it('VALID: {entry.pid: gone, socketPath: null} => returns false', async () => {
       const proxy = driverLiveCheckBrokerProxy();
       const entry = RegistryEntryStub({ pid: DIFFERENT_PID, socketPath: null });
-      proxy.setupPidDead({ pgid: ProcessGroupIdStub({ value: Number(DIFFERENT_PID) }) });
+      proxy.setupPidDead({ pgid: Number(DIFFERENT_PID) });
 
       const result = await driverLiveCheckBroker({ entry });
 
@@ -74,7 +73,7 @@ describe('driverLiveCheckBroker', () => {
     it('VALID: {entry.pid: gone, socket unreachable} => returns false', async () => {
       const proxy = driverLiveCheckBrokerProxy();
       const entry = RegistryEntryStub({ pid: DIFFERENT_PID, socketPath: SOCKET_PATH });
-      proxy.setupPidDead({ pgid: ProcessGroupIdStub({ value: Number(DIFFERENT_PID) }) });
+      proxy.setupPidDead({ pgid: Number(DIFFERENT_PID) });
       proxy.setupSocketUnreachable({ socketPath: SOCKET_PATH });
 
       const result = await driverLiveCheckBroker({ entry });

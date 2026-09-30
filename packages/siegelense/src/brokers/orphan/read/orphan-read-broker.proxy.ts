@@ -6,9 +6,8 @@ import { isNativeErrorProxy } from '#gateway/node/util__types/is-native-error/is
 import { registerMock, requireActual } from '@dungeonmaster/testing/register-mock';
 
 import { processIsAliveBrokerProxy } from '../../process/is-alive/process-is-alive-broker.proxy';
-import type { ProcessGroupIdStub } from '../../../contracts/process-group-id/process-group-id.stub';
 
-type ProcessGroupId = ReturnType<typeof ProcessGroupIdStub>;
+type ProcessGroupId = number;
 
 const PROC_ROOT = '/proc';
 

@@ -23,13 +23,12 @@ import { isNativeError } from '#gateway/node/util__types';
 import { processIsAliveBroker } from '../../process/is-alive/process-is-alive-broker';
 import { orphanReadingContract } from '../../../contracts/orphan-reading/orphan-reading-contract';
 import type { OrphanReading } from '../../../contracts/orphan-reading/orphan-reading-contract';
-import type { ProcessGroupId } from '../../../contracts/process-group-id/process-group-id-contract';
 import { machineStatics } from '../../../statics/machine/machine-statics';
 
 export const orphanReadBroker = async ({
   pgids,
 }: {
-  pgids: readonly ProcessGroupId[];
+  pgids: readonly number[];
 }): Promise<readonly OrphanReading[]> => {
   const procRoot = machineStatics.procfs.root;
   const entries = (await readdirIfExists(procRoot)) ?? [];

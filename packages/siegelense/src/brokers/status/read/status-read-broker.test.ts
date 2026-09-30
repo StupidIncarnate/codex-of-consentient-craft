@@ -2,7 +2,6 @@ import { GuildIdStub } from '@dungeonmaster/shared/contracts/guild-id/guild-id.s
 
 import { InstanceHeartbeatStub } from '../../../contracts/instance-heartbeat/instance-heartbeat.stub';
 import { InstanceIdStub } from '../../../contracts/instance-id/instance-id.stub';
-import { ProcessGroupIdStub } from '../../../contracts/process-group-id/process-group-id.stub';
 import { RegistryEntryStub } from '../../../contracts/registry-entry/registry-entry.stub';
 import { RegistryStub } from '../../../contracts/registry/registry.stub';
 import { SpecProfileStub } from '../../../contracts/spec-profile/spec-profile.stub';
@@ -30,7 +29,7 @@ describe('statusReadBroker', () => {
           id,
           guildId: null,
           specName: 'dungeonmaster-stack',
-          pgids: [ProcessGroupIdStub({ value: 4_143_212 + index })],
+          pgids: [(4_143_212 + index)],
           state: 'alive',
           bootedAtMs: (nowMs - 60_000),
           lastBeatMs: (nowMs - 1000),
@@ -158,7 +157,7 @@ describe('statusReadBroker', () => {
       const instanceId = InstanceIdStub({ value: 'inst_9b2c0000' });
       const guildId = GuildIdStub({ value: 'f47ac10b-58cc-4372-a567-0e02b2c3d479' });
       const evidencePath = `${ROOT_PATH_VALUE}/guilds/${guildId}/instances/${instanceId}`;
-      const pgid = ProcessGroupIdStub({ value: 33_812 });
+      const pgid = 33_812;
       const entry = RegistryEntryStub({
         id: instanceId,
         guildId,

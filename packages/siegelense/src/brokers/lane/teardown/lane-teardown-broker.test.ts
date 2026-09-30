@@ -6,7 +6,6 @@ import { LaneSessionStub } from '../../../contracts/lane-session/lane-session.st
 import { BrowserSessionStub } from '../../../contracts/browser-session/browser-session.stub';
 import { InstanceIdStub } from '../../../contracts/instance-id/instance-id.stub';
 import { KillResultStub } from '../../../contracts/kill-result/kill-result.stub';
-import { ProcessGroupIdStub } from '../../../contracts/process-group-id/process-group-id.stub';
 import { PortPairStub } from '../../../contracts/port-pair/port-pair.stub';
 import { RepoLocalPathStub } from '../../../contracts/repo-local-path/repo-local-path.stub';
 import { FileDescriptorStub } from '../../../contracts/file-descriptor/file-descriptor.stub';
@@ -16,9 +15,9 @@ describe('laneTeardownBroker', () => {
     it('VALID: {three live groups} => SIGTERM each, then SIGKILL each in that order', async () => {
       const proxy = laneTeardownBrokerProxy();
       const instanceId = InstanceIdStub();
-      const pgidA = ProcessGroupIdStub({ value: 4821 });
-      const pgidB = ProcessGroupIdStub({ value: 4822 });
-      const pgidC = ProcessGroupIdStub({ value: 4823 });
+      const pgidA = 4821;
+      const pgidB = 4822;
+      const pgidC = 4823;
       proxy.setupLiveGroup({ pgid: pgidA });
       proxy.setupLiveGroup({ pgid: pgidB });
       proxy.setupLiveGroup({ pgid: pgidC });
@@ -59,8 +58,8 @@ describe('laneTeardownBroker', () => {
     it('VALID: {one dead group, one live group} => the dead group gets no signal and the live group gets both', async () => {
       const proxy = laneTeardownBrokerProxy();
       const instanceId = InstanceIdStub();
-      const deadPgid = ProcessGroupIdStub({ value: 5001 });
-      const livePgid = ProcessGroupIdStub({ value: 5002 });
+      const deadPgid = 5001;
+      const livePgid = 5002;
       proxy.setupAlreadyGoneGroup({ pgid: deadPgid });
       proxy.setupLiveGroup({ pgid: livePgid });
       proxy.setupGraceElapsesInstantly();
@@ -86,7 +85,7 @@ describe('laneTeardownBroker', () => {
     it('VALID: {group answers alive at the SIGTERM check, gone at the SIGKILL check} => receives SIGTERM but no SIGKILL', async () => {
       const proxy = laneTeardownBrokerProxy();
       const instanceId = InstanceIdStub();
-      const pgid = ProcessGroupIdStub({ value: 5501 });
+      const pgid = 5501;
       proxy.setupGroupThatExitsDuringGrace({ pgid });
       proxy.setupGraceElapsesInstantly();
       const { homePath } = LaneSessionStub();
@@ -135,7 +134,7 @@ describe('laneTeardownBroker', () => {
     it('VALID: {no browser} => headless teardown still kills its group', async () => {
       const proxy = laneTeardownBrokerProxy();
       const instanceId = InstanceIdStub();
-      const pgid = ProcessGroupIdStub({ value: 6001 });
+      const pgid = 6001;
       proxy.setupLiveGroup({ pgid });
       proxy.setupGraceElapsesInstantly();
       const { homePath } = LaneSessionStub();
@@ -158,7 +157,7 @@ describe('laneTeardownBroker', () => {
     it('VALID: {browser and one server both live} => the browser closes AND the server is still signalled', async () => {
       const proxy = laneTeardownBrokerProxy();
       const instanceId = InstanceIdStub();
-      const pgid = ProcessGroupIdStub({ value: 7001 });
+      const pgid = 7001;
       proxy.setupLiveGroup({ pgid });
       proxy.setupGraceElapsesInstantly();
       const { homePath } = LaneSessionStub();
@@ -183,7 +182,7 @@ describe('laneTeardownBroker', () => {
     it('ERROR: {browser.close rejects} => the process groups are still killed and the failure is reported', async () => {
       const proxy = laneTeardownBrokerProxy();
       const instanceId = InstanceIdStub();
-      const pgid = ProcessGroupIdStub({ value: 8001 });
+      const pgid = 8001;
       proxy.setupLiveGroup({ pgid });
       proxy.setupGraceElapsesInstantly();
       const { homePath } = LaneSessionStub();
@@ -233,7 +232,7 @@ describe('laneTeardownBroker', () => {
     it('VALID: {two log fds on the session} => every descriptor is closed', async () => {
       const proxy = laneTeardownBrokerProxy();
       const instanceId = InstanceIdStub();
-      const pgid = ProcessGroupIdStub({ value: 9001 });
+      const pgid = 9001;
       const fdA = FileDescriptorStub({ value: 10 });
       const fdB = FileDescriptorStub({ value: 11 });
       proxy.setupLiveGroup({ pgid });
@@ -259,7 +258,7 @@ describe('laneTeardownBroker', () => {
     it('VALID: {a live process group} => the fd closes happen after the SIGTERM/SIGKILL signals', async () => {
       const proxy = laneTeardownBrokerProxy();
       const instanceId = InstanceIdStub();
-      const pgid = ProcessGroupIdStub({ value: 9002 });
+      const pgid = 9002;
       const fd = FileDescriptorStub({ value: 12 });
       proxy.setupLiveGroup({ pgid });
       proxy.setupGraceElapsesInstantly();
@@ -302,7 +301,7 @@ describe('laneTeardownBroker', () => {
     it('ERROR: {one fd close rejects} => the process groups are still signalled, the other fd still closes, and the home is still removed', async () => {
       const proxy = laneTeardownBrokerProxy();
       const instanceId = InstanceIdStub();
-      const pgid = ProcessGroupIdStub({ value: 9003 });
+      const pgid = 9003;
       const failingFd = FileDescriptorStub({ value: 13 });
       const okFd = FileDescriptorStub({ value: 14 });
       proxy.setupLiveGroup({ pgid });

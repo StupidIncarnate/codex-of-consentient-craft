@@ -21,9 +21,8 @@ import { browserSessionLaunchBrokerProxy } from '../../browser-session/launch/br
 import { laneReadyWaitBrokerProxy } from '../ready-wait/lane-ready-wait-broker.proxy';
 import { laneWorkspaceResolveBrokerProxy } from '../workspace-resolve/lane-workspace-resolve-broker.proxy';
 import { serverLogReaderLayerBrokerProxy } from './server-log-reader-layer-broker.proxy';
-import { ProcessGroupIdStub } from '../../../contracts/process-group-id/process-group-id.stub';
 
-type ProcessGroupId = ReturnType<typeof ProcessGroupIdStub>;
+type ProcessGroupId = number;
 type ReadingCount = number;
 
 // A deadline-exceeded case is staged with two clock readings: the FIRST call answers
@@ -139,7 +138,7 @@ export const laneBootBrokerProxy = (): {
       // A boot-failure path SIGKILLs and closes every group it spawned, regardless of which
       // process(es) triggered the failure — every booted process needs its kill/close pre-staged,
       // not just the ones a given test expects to fail.
-      killProxy.setupSent({ pgid: ProcessGroupIdStub({ value: pid }), signal: 'SIGKILL' });
+      killProxy.setupSent({ pgid: pid, signal: 'SIGKILL' });
       stagedFds.push(fd);
       closeFdProxy.succeeds({ fd });
     },

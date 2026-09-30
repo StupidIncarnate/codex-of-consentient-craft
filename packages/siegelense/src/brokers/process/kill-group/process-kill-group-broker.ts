@@ -17,13 +17,12 @@
 import { isFsError } from '#gateway/node/fs';
 import { kill } from '#gateway/node/process';
 
-import type { ProcessGroupId } from '../../../contracts/process-group-id/process-group-id-contract';
 
 export const processKillGroupBroker = ({
   pgid,
   signal,
 }: {
-  pgid: ProcessGroupId;
+  pgid: number;
   signal: NodeJS.Signals;
 }): { signalSent: boolean } => {
   try {

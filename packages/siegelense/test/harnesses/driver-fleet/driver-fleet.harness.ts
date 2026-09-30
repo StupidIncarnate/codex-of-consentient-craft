@@ -42,8 +42,6 @@ import { processKillGroupBroker } from '../../../src/brokers/process/kill-group/
 import { DriverRequestStub } from '../../../src/contracts/driver-request/driver-request.stub';
 import type { InstanceManifest } from '../../../src/contracts/instance-manifest/instance-manifest-contract';
 import type { KillResult } from '../../../src/contracts/kill-result/kill-result-contract';
-import { ProcessGroupIdStub } from '../../../src/contracts/process-group-id/process-group-id.stub';
-import type { ProcessGroupId } from '../../../src/contracts/process-group-id/process-group-id-contract';
 import type { RegistryEntry } from '../../../src/contracts/registry-entry/registry-entry-contract';
 import { driverStatics } from '../../../src/statics/driver/driver-statics';
 
@@ -104,17 +102,17 @@ export const driverFleetHarness = (): {
   sigkillDriverPid: (params: { pid: ProcessId }) => void;
   registryEntry: (params: { instanceId: SiegeInstance['id'] }) => Promise<RegistryEntry | undefined>;
   pingSocket: (params: { instanceId: SiegeInstance['id'] }) => Promise<boolean>;
-  isGroupAlive: (params: { pgid: ProcessGroupId }) => boolean;
+  isGroupAlive: (params: { pgid: number }) => boolean;
   isPortFree: (params: { port: NetworkPort }) => Promise<boolean>;
-  heartbeatPgids: (params: { instanceId: SiegeInstance['id'] }) => readonly ProcessGroupId[];
+  heartbeatPgids: (params: { instanceId: SiegeInstance['id'] }) => readonly number[];
   heartbeatExists: (params: { instanceId: SiegeInstance['id'] }) => boolean;
   waitForHeartbeatPgids: (params: {
     instanceId: SiegeInstance['id'];
     deadlineMs: number;
-  }) => Promise<readonly ProcessGroupId[]>;
+  }) => Promise<readonly number[]>;
   waitForDriverProcessExit: (params: { pid: ProcessId; deadlineMs: number }) => Promise<boolean>;
   waitForGroupsDead: (params: {
-    pgids: readonly ProcessGroupId[];
+    pgids: readonly number[];
     deadlineMs: number;
   }) => Promise<boolean>;
   waitForShutdownReason: (params: {
@@ -228,7 +226,7 @@ export const driverFleetHarness = (): {
       .catch(() => false);
   };
 
-  const isGroupAlive = ({ pgid }: { pgid: ProcessGroupId }): boolean =>
+  const isGroupAlive = ({ pgid }: { pgid: number }): boolean =>
     processIsAliveBroker({ pgid });
 
   const isPortFree = async ({ port }: { port: NetworkPort }): Promise<boolean> =>
@@ -238,7 +236,7 @@ export const driverFleetHarness = (): {
     instanceId,
   }: {
     instanceId: SiegeInstance['id'];
-  }): readonly ProcessGroupId[] => {
+  }): readonly number[] => {
     const heartbeatPath = join(evidenceDir({ instanceId }), locationsStatics.siegelense.heartbeat);
 
     if (!existsSync(heartbeatPath)) {
@@ -252,7 +250,7 @@ export const driverFleetHarness = (): {
         : [];
 
     return Array.isArray(pgidsField)
-      ? pgidsField.map((value) => ProcessGroupIdStub({ value: Number(value) }))
+      ? pgidsField.map((value) => Number(value))
       : [];
   };
 
@@ -265,7 +263,7 @@ export const driverFleetHarness = (): {
   }: {
     instanceId: SiegeInstance['id'];
     deadlineMs: number;
-  }): Promise<readonly ProcessGroupId[]> => {
+  }): Promise<readonly number[]> => {
     const found = heartbeatPgids({ instanceId });
     if (found.length > 0) {
       return found;
@@ -289,7 +287,7 @@ export const driverFleetHarness = (): {
     pgids,
     deadlineMs,
   }: {
-    pgids: readonly ProcessGroupId[];
+    pgids: readonly number[];
     deadlineMs: number;
   }): Promise<boolean> => {
     if (pgids.every((pgid) => !processIsAliveBroker({ pgid }))) {
@@ -318,7 +316,7 @@ export const driverFleetHarness = (): {
     pid: ProcessId;
     deadlineMs: number;
   }): Promise<boolean> => {
-    if (!processIsAliveBroker({ pgid: ProcessGroupIdStub({ value: Number(pid) }) })) {
+    if (!processIsAliveBroker({ pgid: Number(pid) })) {
       return true;
     }
 

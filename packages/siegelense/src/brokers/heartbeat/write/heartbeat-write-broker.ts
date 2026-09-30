@@ -44,7 +44,6 @@ import { writeFile } from '#gateway/node/fs__promises';
 import { instanceHeartbeatContract } from '../../../contracts/instance-heartbeat/instance-heartbeat-contract';
 import type { InstanceHeartbeat } from '../../../contracts/instance-heartbeat/instance-heartbeat-contract';
 import type { Megabytes } from '../../../contracts/megabytes/megabytes-contract';
-import type { ProcessGroupId } from '../../../contracts/process-group-id/process-group-id-contract';
 import { locationsInstanceEvidencePathFindBroker } from '../../locations/instance-evidence-path-find/locations-instance-evidence-path-find-broker';
 import { machineRssByPgidBroker } from '../../machine/rss-by-pgid/machine-rss-by-pgid-broker';
 import { registryUpdateBroker } from '../../registry/update/registry-update-broker';
@@ -58,7 +57,7 @@ export const heartbeatWriteBroker = async ({
 }: {
   instanceId: SiegeInstance['id'];
   pid: ProcessId;
-  pgids: readonly ProcessGroupId[];
+  pgids: readonly number[];
   guildId: Guild['id'] | null;
 }): Promise<InstanceHeartbeat> => {
   const evidenceDir = locationsInstanceEvidencePathFindBroker({ instanceId, guildId });

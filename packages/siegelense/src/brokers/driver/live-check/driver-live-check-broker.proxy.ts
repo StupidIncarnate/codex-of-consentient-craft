@@ -3,9 +3,8 @@ import { pidProxy } from '#gateway/node/process/pid/pid.proxy';
 import { driverSocketRequestBrokerProxy } from '../socket-request/driver-socket-request-broker.proxy';
 import { processIsAliveBrokerProxy } from '../../process/is-alive/process-is-alive-broker.proxy';
 import { DriverResponseStub } from '../../../contracts/driver-response/driver-response.stub';
-import type { ProcessGroupIdStub } from '../../../contracts/process-group-id/process-group-id.stub';
 
-type ProcessGroupId = ReturnType<typeof ProcessGroupIdStub>;
+type ProcessGroupId = number;
 
 export const driverLiveCheckBrokerProxy = (): {
   setupPidAlive: (params: { pgid: ProcessGroupId }) => void;

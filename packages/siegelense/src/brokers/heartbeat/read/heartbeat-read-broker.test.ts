@@ -2,7 +2,6 @@ import { GuildIdStub } from '@dungeonmaster/shared/contracts/guild-id/guild-id.s
 
 import { InstanceHeartbeatStub } from '../../../contracts/instance-heartbeat/instance-heartbeat.stub';
 import { InstanceIdStub } from '../../../contracts/instance-id/instance-id.stub';
-import { ProcessGroupIdStub } from '../../../contracts/process-group-id/process-group-id.stub';
 
 import { heartbeatReadBroker } from './heartbeat-read-broker';
 import { heartbeatReadBrokerProxy } from './heartbeat-read-broker.proxy';
@@ -20,7 +19,7 @@ describe('heartbeatReadBroker', () => {
       const evidencePath = '/home/user/.dungeonmaster/siegelense/guilds/f47ac10b-58cc-4372-a567-0e02b2c3d479/instances/inst_9b2c0000';
       const heartbeat = InstanceHeartbeatStub({
         instanceId,
-        pgids: [ProcessGroupIdStub({ value: 33_812 })],
+        pgids: [33_812],
         rssMB: 2980,
       });
 

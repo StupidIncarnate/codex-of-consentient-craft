@@ -1,4 +1,3 @@
-import { ProcessGroupIdStub } from '../../../contracts/process-group-id/process-group-id.stub';
 
 import { machineRssByPgidBroker } from './machine-rss-by-pgid-broker';
 import { machineRssByPgidBrokerProxy } from './machine-rss-by-pgid-broker.proxy';
@@ -16,7 +15,7 @@ describe('machineRssByPgidBroker', () => {
     // Outside the target pgid — its statm is never staged, proving the broker never reads it.
     proxy.setupPidStat({ pid: '102', pgrp: 999, comm: 'chrome' });
 
-    const result = await machineRssByPgidBroker({ pgids: [ProcessGroupIdStub({ value: 200 })] });
+    const result = await machineRssByPgidBroker({ pgids: [200] });
 
     // (2560 + 1280) pages * 4096 bytes/page / 1_048_576 bytes/MB = 15 MB exactly.
     expect(result).toBe(15);
@@ -26,7 +25,7 @@ describe('machineRssByPgidBroker', () => {
     const proxy = machineRssByPgidBrokerProxy();
     proxy.setupProcMissing();
 
-    const result = await machineRssByPgidBroker({ pgids: [ProcessGroupIdStub({ value: 200 })] });
+    const result = await machineRssByPgidBroker({ pgids: [200] });
 
     expect(result).toBe(null);
   });
@@ -47,7 +46,7 @@ describe('machineRssByPgidBroker', () => {
     proxy.setupProcListing({ pids: ['105'] });
     proxy.setupPidStatVanished({ pid: '105', code: 'ENOENT' });
 
-    const result = await machineRssByPgidBroker({ pgids: [ProcessGroupIdStub({ value: 300 })] });
+    const result = await machineRssByPgidBroker({ pgids: [300] });
 
     expect(result).toBe(0);
   });
@@ -57,7 +56,7 @@ describe('machineRssByPgidBroker', () => {
     proxy.setupProcListing({ pids: ['106'] });
     proxy.setupPidStatVanished({ pid: '106', code: 'ESRCH' });
 
-    const result = await machineRssByPgidBroker({ pgids: [ProcessGroupIdStub({ value: 300 })] });
+    const result = await machineRssByPgidBroker({ pgids: [300] });
 
     expect(result).toBe(0);
   });
@@ -68,7 +67,7 @@ describe('machineRssByPgidBroker', () => {
     proxy.setupPidStat({ pid: '108', pgrp: 300 });
     proxy.setupPidStatmVanished({ pid: '108', code: 'ENOENT' });
 
-    const result = await machineRssByPgidBroker({ pgids: [ProcessGroupIdStub({ value: 300 })] });
+    const result = await machineRssByPgidBroker({ pgids: [300] });
 
     expect(result).toBe(0);
   });
@@ -79,7 +78,7 @@ describe('machineRssByPgidBroker', () => {
     proxy.setupPidStat({ pid: '109', pgrp: 300 });
     proxy.setupPidStatmVanished({ pid: '109', code: 'ESRCH' });
 
-    const result = await machineRssByPgidBroker({ pgids: [ProcessGroupIdStub({ value: 300 })] });
+    const result = await machineRssByPgidBroker({ pgids: [300] });
 
     expect(result).toBe(0);
   });
@@ -96,7 +95,7 @@ describe('machineRssByPgidBroker', () => {
     proxy.setupPidStat({ pid: '202', pgrp: 500, comm: 'node' });
     proxy.setupPidStatmVanished({ pid: '202', code: 'ENOENT' });
 
-    const result = await machineRssByPgidBroker({ pgids: [ProcessGroupIdStub({ value: 500 })] });
+    const result = await machineRssByPgidBroker({ pgids: [500] });
 
     // 3072 pages * 4096 bytes/page / 1_048_576 bytes/MB = 12 MB exactly — the survivor alone.
     expect(result).toBe(12);
@@ -111,7 +110,7 @@ describe('machineRssByPgidBroker', () => {
     });
 
     await expect(
-      machineRssByPgidBroker({ pgids: [ProcessGroupIdStub({ value: 300 })] }),
+      machineRssByPgidBroker({ pgids: [300] }),
     ).rejects.toThrow('EACCES: permission denied');
   });
 });

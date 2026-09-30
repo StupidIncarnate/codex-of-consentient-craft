@@ -27,13 +27,12 @@ import { isNativeError } from '#gateway/node/util__types';
 
 import { megabytesContract } from '../../../contracts/megabytes/megabytes-contract';
 import type { Megabytes } from '../../../contracts/megabytes/megabytes-contract';
-import type { ProcessGroupId } from '../../../contracts/process-group-id/process-group-id-contract';
 import { machineStatics } from '../../../statics/machine/machine-statics';
 
 export const machineRssByPgidBroker = async ({
   pgids,
 }: {
-  pgids: readonly ProcessGroupId[];
+  pgids: readonly number[];
 }): Promise<Megabytes | null> => {
   const procRoot = machineStatics.procfs.root;
 

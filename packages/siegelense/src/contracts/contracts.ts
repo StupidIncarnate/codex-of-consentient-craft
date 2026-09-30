@@ -22,7 +22,6 @@ export * from './registry-entry/registry-entry-contract';
 
 export * from './port-pair/port-pair-contract';
 
-export * from './process-group-id/process-group-id-contract';
 
 export * from './instance-owner/instance-owner-contract';
 

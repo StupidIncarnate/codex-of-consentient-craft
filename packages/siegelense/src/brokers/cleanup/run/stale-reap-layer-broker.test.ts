@@ -1,6 +1,5 @@
 
 import { InstanceIdStub } from '../../../contracts/instance-id/instance-id.stub';
-import { ProcessGroupIdStub } from '../../../contracts/process-group-id/process-group-id.stub';
 import { RegistryEntryStub } from '../../../contracts/registry-entry/registry-entry.stub';
 import { RegistryStub } from '../../../contracts/registry/registry.stub';
 import { staleReapLayerBroker } from './stale-reap-layer-broker';
@@ -16,8 +15,8 @@ describe('staleReapLayerBroker', () => {
   describe('a stale instance whose driver is already gone', () => {
     it('VALID: {a stale instance whose driver is already gone} => its recorded pgids are signalled anyway', async () => {
       const proxy = staleReapLayerBrokerProxy();
-      const pgidOne = ProcessGroupIdStub({ value: 33_812 });
-      const pgidTwo = ProcessGroupIdStub({ value: 33_840 });
+      const pgidOne = 33_812;
+      const pgidTwo = 33_840;
       const entry = RegistryEntryStub({
         id: INSTANCE_ID,
         socketPath: SOCKET_PATH,

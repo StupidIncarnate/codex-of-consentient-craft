@@ -5,7 +5,6 @@ import { InstanceIdStub } from '../../../contracts/instance-id/instance-id.stub'
 import { LaneProcessStub } from '../../../contracts/lane-process/lane-process.stub';
 import { LaneSpecStub } from '../../../contracts/lane-spec/lane-spec.stub';
 import { PortPairStub } from '../../../contracts/port-pair/port-pair.stub';
-import { ProcessGroupIdStub } from '../../../contracts/process-group-id/process-group-id.stub';
 
 const INSTANCE_ID = InstanceIdStub();
 const HOME_PATH = '/tmp/dm-siege-inst_7f3a9c21';
@@ -586,7 +585,7 @@ describe('laneBootBroker', () => {
       proxy.resolveRepoRoot();
       const ports = PortPairStub({ api: 34_172, web: 34_173 });
       const apiFd = 10;
-      const apiPgid = ProcessGroupIdStub({ value: 1_001 });
+      const apiPgid = 1_001;
       const apiProcess = LaneProcessStub({
         name: 'api',
         command: 'npm',
@@ -681,8 +680,8 @@ describe('laneBootBroker', () => {
       const ports = PortPairStub({ api: 34_172, web: 34_173 });
       const apiFd = 10;
       const webFd = 11;
-      const apiPgid = ProcessGroupIdStub({ value: 1_001 });
-      const webPgid = ProcessGroupIdStub({ value: 1_002 });
+      const apiPgid = 1_001;
+      const webPgid = 1_002;
       const apiProcess = LaneProcessStub({
         name: 'api',
         command: 'npm',
@@ -860,8 +859,8 @@ describe('laneBootBroker', () => {
       });
 
       expect(lane.pgids).toStrictEqual([
-        ProcessGroupIdStub({ value: 1_001 }),
-        ProcessGroupIdStub({ value: 1_002 }),
+        1_001,
+        1_002,
       ]);
     });
   });
@@ -941,9 +940,9 @@ describe('laneBootBroker', () => {
       });
 
       expect(lane.pgids).toStrictEqual([
-        ProcessGroupIdStub({ value: 1_001 }),
-        ProcessGroupIdStub({ value: 1_002 }),
-        ProcessGroupIdStub({ value: 1_003 }),
+        1_001,
+        1_002,
+        1_003,
       ]);
       expect(proxy.getSpawnOptionsFor({ command: 'node', args: ['worker.js'] })).toStrictEqual({
         cwd: repoRoot,

@@ -1,6 +1,5 @@
 
 import { InstanceIdStub } from '../../../contracts/instance-id/instance-id.stub';
-import { ProcessGroupIdStub } from '../../../contracts/process-group-id/process-group-id.stub';
 import { RegistryEntryStub } from '../../../contracts/registry-entry/registry-entry.stub';
 import { RegistryStub } from '../../../contracts/registry/registry.stub';
 import { cleanupRunBroker } from './cleanup-run-broker';
@@ -38,8 +37,8 @@ describe('cleanupRunBroker', () => {
         bootedAtMs: (NOW_MS - 900_000),
         lastBeatMs: (NOW_MS - 2000),
       });
-      const pgidOne = ProcessGroupIdStub({ value: 33_812 });
-      const pgidTwo = ProcessGroupIdStub({ value: 33_840 });
+      const pgidOne = 33_812;
+      const pgidTwo = 33_840;
       const staleEntry = RegistryEntryStub({
         id: STALE_ID,
         socketPath: STALE_SOCKET_PATH,
@@ -165,7 +164,7 @@ describe('cleanupRunBroker', () => {
     it('VALID: {a reaped instance} => its registry row is killed, not deleted', async () => {
       const proxy = cleanupRunBrokerProxy();
 
-      const pgidOne = ProcessGroupIdStub({ value: 33_812 });
+      const pgidOne = 33_812;
       const staleEntry = RegistryEntryStub({
         id: STALE_ID,
         socketPath: STALE_SOCKET_PATH,

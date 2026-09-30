@@ -16,11 +16,10 @@
 import { isFsError } from '#gateway/node/fs';
 import { kill } from '#gateway/node/process';
 
-import type { ProcessGroupId } from '../../../contracts/process-group-id/process-group-id-contract';
 
 const PROBE_SIGNAL = 0;
 
-export const processIsAliveBroker = ({ pgid }: { pgid: ProcessGroupId }): boolean => {
+export const processIsAliveBroker = ({ pgid }: { pgid: number }): boolean => {
   try {
     kill(-Number(pgid), PROBE_SIGNAL);
     return true;

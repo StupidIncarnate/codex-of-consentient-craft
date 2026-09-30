@@ -63,7 +63,6 @@ import { InstanceHeartbeatStub } from '../../../src/contracts/instance-heartbeat
 import { InstanceIdStub } from '../../../src/contracts/instance-id/instance-id.stub';
 import { InstanceOwnerStub } from '../../../src/contracts/instance-owner/instance-owner.stub';
 import { PortPairStub } from '../../../src/contracts/port-pair/port-pair.stub';
-import { ProcessGroupIdStub } from '../../../src/contracts/process-group-id/process-group-id.stub';
 import { RegistryEntryStub } from '../../../src/contracts/registry-entry/registry-entry.stub';
 import { RunIdStub } from '../../../src/contracts/run-id/run-id.stub';
 import { RunResultStub } from '../../../src/contracts/run-result/run-result.stub';
@@ -76,7 +75,6 @@ import type { CleanupAnswer } from '../../../src/contracts/cleanup-answer/cleanu
 import type { CompareAnswer } from '../../../src/contracts/compare-answer/compare-answer-contract';
 import type { CompareQuery } from '../../../src/contracts/compare-query/compare-query-contract';
 import type { PixelChange } from '../../../src/contracts/pixel-change/pixel-change-contract';
-import type { ProcessGroupId } from '../../../src/contracts/process-group-id/process-group-id-contract';
 import type { Registry } from '../../../src/contracts/registry/registry-contract';
 import type { ResultsAnswer } from '../../../src/contracts/results-answer/results-answer-contract';
 import type { ResultsQuery } from '../../../src/contracts/results-query/results-query-contract';
@@ -158,7 +156,7 @@ export const evidenceTreeHarness = (): {
   liveInstanceId: () => SiegeInstance['id'];
   staleInstanceId: () => SiegeInstance['id'];
   unknownInstanceId: () => SiegeInstance['id'];
-  fakePgid: () => ProcessGroupId;
+  fakePgid: () => number;
   runOne: () => SiegeRun['id'];
   runTwo: () => SiegeRun['id'];
   killedInstanceEvidenceDir: () => string;
@@ -197,7 +195,7 @@ export const evidenceTreeHarness = (): {
   let originalHome: ReturnType<typeof getEnv>;
   // A REAL detached child, spawned once addStaleAliveEntry runs — see this file's own PURPOSE for
   // why a bare literal pgid no longer proves anything.
-  let staleChildPgid: ReturnType<typeof ProcessGroupIdStub> | null = null;
+  let staleChildPgid: number | null = null;
 
   const killedInstanceEvidenceDir = (): string =>
     locationsInstanceEvidencePathFindBroker({ instanceId: KILLED_INSTANCE_ID, guildId: null });
@@ -581,7 +579,7 @@ export const evidenceTreeHarness = (): {
       stderrFd: nullFd,
     });
     closeSync(nullFd);
-    const stalePgid = ProcessGroupIdStub({ value: child.pgid });
+    const stalePgid = child.pgid;
     staleChildPgid = stalePgid;
 
     const heartbeat = InstanceHeartbeatStub({

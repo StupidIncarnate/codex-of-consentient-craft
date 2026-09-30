@@ -16,13 +16,12 @@ import { processIsAliveBrokerProxy } from '../../process/is-alive/process-is-ali
 import { processKillGroupBrokerProxy } from '../../process/kill-group/process-kill-group-broker.proxy';
 import { DriverResponseStub } from '../../../contracts/driver-response/driver-response.stub';
 import { KillResultStub } from '../../../contracts/kill-result/kill-result.stub';
-import type { ProcessGroupIdStub } from '../../../contracts/process-group-id/process-group-id.stub';
 import type { RegistryStub } from '../../../contracts/registry/registry.stub';
 import { shutdownReasonWriteBrokerProxy } from '../../shutdown-reason/write/shutdown-reason-write-broker.proxy';
 import { driverStatics } from '../../../statics/driver/driver-statics';
 
 type Registry = ReturnType<typeof RegistryStub>;
-type ProcessGroupId = ReturnType<typeof ProcessGroupIdStub>;
+type ProcessGroupId = number;
 
 // Same convention as instance-start-broker.proxy.ts: every path here is REAL `path.join` output
 // off a sticky os.tmpdir() override, resolved through `#gateway/node/path`'s own `join` mock's

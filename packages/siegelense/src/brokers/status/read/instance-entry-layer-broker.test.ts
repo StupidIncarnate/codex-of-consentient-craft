@@ -3,7 +3,6 @@ import { GuildIdStub } from '@dungeonmaster/shared/contracts/guild-id/guild-id.s
 import { InstanceHeartbeatStub } from '../../../contracts/instance-heartbeat/instance-heartbeat.stub';
 import { InstanceIdStub } from '../../../contracts/instance-id/instance-id.stub';
 import { InstanceStatusStub } from '../../../contracts/instance-status/instance-status.stub';
-import { ProcessGroupIdStub } from '../../../contracts/process-group-id/process-group-id.stub';
 import { RegistryEntryStub } from '../../../contracts/registry-entry/registry-entry.stub';
 import { ShutdownReasonStub } from '../../../contracts/shutdown-reason/shutdown-reason.stub';
 import { SpecProfileStub } from '../../../contracts/spec-profile/spec-profile.stub';
@@ -84,7 +83,7 @@ describe('instanceEntryLayerBroker', () => {
         id: instanceId,
         guildId: null,
         specName: 'dungeonmaster-stack',
-        pgids: [ProcessGroupIdStub({ value: 4_143_212 }), ProcessGroupIdStub({ value: 4_143_213 })],
+        pgids: [4_143_212, 4_143_213],
         bootedAtMs: 1_700_000_160_000,
         lastBeatMs: 1_700_000_998_000,
       });
@@ -374,7 +373,7 @@ describe('instanceEntryLayerBroker', () => {
       const guildId = GuildIdStub({ value: 'f47ac10b-58cc-4372-a567-0e02b2c3d479' });
       const nowMs = 1_700_001_000_000;
       const evidencePath = '/home/user/.dungeonmaster/siegelense/guilds/f47ac10b-58cc-4372-a567-0e02b2c3d479/instances/inst_9b2c0000';
-      const pgid = ProcessGroupIdStub({ value: 33_812 });
+      const pgid = 33_812;
       const entry = RegistryEntryStub({
         id: instanceId,
         guildId,

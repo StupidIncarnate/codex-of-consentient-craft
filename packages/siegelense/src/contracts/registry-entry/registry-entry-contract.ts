@@ -46,7 +46,6 @@ import { absoluteFilePathContract, processIdContract, questContract, guildContra
 import { instanceOwnerContract } from '../instance-owner/instance-owner-contract';
 import { instanceStateContract } from '../instance-state/instance-state-contract';
 import { portPairContract } from '../port-pair/port-pair-contract';
-import { processGroupIdContract } from '../process-group-id/process-group-id-contract';
 import { specHashContract } from '../spec-hash/spec-hash-contract';
 
 export const registryEntryContract = z.object({
@@ -57,7 +56,7 @@ export const registryEntryContract = z.object({
   specName: z.string().min(1).brand<'RegistryEntrySpecName'>(),
   specHash: specHashContract,
   pid: processIdContract.nullable(),
-  pgids: z.array(processGroupIdContract).readonly(),
+  pgids: z.array(z.number().int().positive().brand<'RegistryEntryPgids'>()).readonly(),
   socketPath: absoluteFilePathContract.nullable(),
   ports: portPairContract,
   state: instanceStateContract,

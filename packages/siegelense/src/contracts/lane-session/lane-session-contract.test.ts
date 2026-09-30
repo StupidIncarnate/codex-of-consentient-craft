@@ -1,12 +1,11 @@
 import { laneSessionContract } from './lane-session-contract';
 import { LaneSessionStub } from './lane-session.stub';
 import { BrowserSessionStub } from '../browser-session/browser-session.stub';
-import { ProcessGroupIdStub } from '../process-group-id/process-group-id.stub';
 
 describe('laneSessionContract', () => {
   describe('data half', () => {
     it('VALID: {a browserless lane} => parses to exactly the data members with browser null', () => {
-      const pgid = ProcessGroupIdStub({ value: 4242 });
+      const pgid = 4242;
       const logFd = 7;
 
       const result = laneSessionContract.parse({
@@ -44,7 +43,7 @@ describe('laneSessionContract', () => {
         evidencePath: '/tmp/dm-siege-inst_2-evidence',
         baseUrl: 'http://127.0.0.1:4200',
         apiBaseUrl: 'http://127.0.0.1:4200',
-        pgids: [ProcessGroupIdStub({ value: 4243 }), ProcessGroupIdStub({ value: 4244 })],
+        pgids: [4243, 4244],
         browser: browserSession,
         logFds: [8, 9],
       });
@@ -61,7 +60,7 @@ describe('laneSessionContract', () => {
           evidencePath: '/tmp/dm-siege-inst_1-evidence',
           baseUrl: 'http://127.0.0.1:4100',
           apiBaseUrl: 'http://127.0.0.1:4100',
-          pgids: [ProcessGroupIdStub({ value: 4242 })],
+          pgids: [4242],
           browser: 'chromium',
           logFds: [7],
         }),
@@ -76,7 +75,7 @@ describe('laneSessionContract', () => {
           evidencePath: '/tmp/dm-siege-inst_1-evidence',
           baseUrl: 'http://127.0.0.1:4100',
           apiBaseUrl: 'http://127.0.0.1:4100',
-          pgids: [ProcessGroupIdStub({ value: 4242 })],
+          pgids: [4242],
           browser: null,
           logFds: [7],
         }),

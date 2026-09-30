@@ -1,4 +1,3 @@
-import { ProcessGroupIdStub } from '../../../contracts/process-group-id/process-group-id.stub';
 import { processIsAliveBroker } from './process-is-alive-broker';
 import { processIsAliveBrokerProxy } from './process-is-alive-broker.proxy';
 
@@ -6,7 +5,7 @@ describe('processIsAliveBroker', () => {
   describe('a live group', () => {
     it('VALID: {alive group} => returns true', () => {
       const proxy = processIsAliveBrokerProxy();
-      const pgid = ProcessGroupIdStub({ value: 4821 });
+      const pgid = 4821;
       proxy.setupAlive({ pgid });
 
       const result = processIsAliveBroker({ pgid });
@@ -16,7 +15,7 @@ describe('processIsAliveBroker', () => {
 
     it('VALID: {pgid: 4821} => probes the NEGATED pgid with signal 0, not a real signal', () => {
       const proxy = processIsAliveBrokerProxy();
-      const pgid = ProcessGroupIdStub({ value: 4821 });
+      const pgid = 4821;
       proxy.setupAlive({ pgid });
 
       processIsAliveBroker({ pgid });
@@ -28,7 +27,7 @@ describe('processIsAliveBroker', () => {
   describe('a group that already exited', () => {
     it('ERROR: {ESRCH} => isAlive returns false', () => {
       const proxy = processIsAliveBrokerProxy();
-      const pgid = ProcessGroupIdStub({ value: 99_999 });
+      const pgid = 99_999;
       proxy.setupGone({ pgid });
 
       const result = processIsAliveBroker({ pgid });
@@ -40,7 +39,7 @@ describe('processIsAliveBroker', () => {
   describe('a real failure', () => {
     it('ERROR: {EPERM} => rethrows rather than reporting false', () => {
       const proxy = processIsAliveBrokerProxy();
-      const pgid = ProcessGroupIdStub({ value: 4821 });
+      const pgid = 4821;
       proxy.setupPermissionDenied({ pgid });
 
       expect(() => processIsAliveBroker({ pgid })).toThrow(/^kill EPERM$/u);

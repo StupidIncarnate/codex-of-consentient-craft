@@ -3,7 +3,6 @@ import { ProcessIdStub } from '@dungeonmaster/shared/contracts/process-id/proces
 
 import { InstanceHeartbeatStub } from '../../../contracts/instance-heartbeat/instance-heartbeat.stub';
 import { InstanceIdStub } from '../../../contracts/instance-id/instance-id.stub';
-import { ProcessGroupIdStub } from '../../../contracts/process-group-id/process-group-id.stub';
 import { RegistryEntryStub } from '../../../contracts/registry-entry/registry-entry.stub';
 import { RegistryStub } from '../../../contracts/registry/registry.stub';
 
@@ -20,7 +19,7 @@ describe('heartbeatWriteBroker', () => {
       const proxy = heartbeatWriteBrokerProxy();
       const instanceId = InstanceIdStub({ value: 'inst_7f3a9c21' });
       const pid = ProcessIdStub({ value: 'proc-12345' });
-      const pgids = [ProcessGroupIdStub({ value: 4821 })];
+      const pgids = [4821];
       const guildId = GuildIdStub({ value: 'f47ac10b-58cc-4372-a567-0e02b2c3d479' });
       const nowMs = 1_700_000_500_000;
       const evidencePath = '/home/user/.dungeonmaster/siegelense/guilds/f47ac10b-58cc-4372-a567-0e02b2c3d479/instances/inst_7f3a9c21';
@@ -66,7 +65,7 @@ describe('heartbeatWriteBroker', () => {
       const proxy = heartbeatWriteBrokerProxy();
       const instanceId = InstanceIdStub({ value: 'inst_7f3a9c21' });
       const pid = ProcessIdStub({ value: 'proc-12345' });
-      const pgids = [ProcessGroupIdStub({ value: 4821 })];
+      const pgids = [4821];
       const nowMs = 1_700_000_500_000;
       const evidencePath = '/home/user/.dungeonmaster/siegelense/unowned/instances/inst_7f3a9c21';
       const row = RegistryEntryStub({ id: instanceId });
@@ -95,9 +94,9 @@ describe('heartbeatWriteBroker', () => {
       const instanceId = InstanceIdStub({ value: 'inst_7f3a9c21' });
       const pid = ProcessIdStub({ value: 'proc-12345' });
       const pgids = [
-        ProcessGroupIdStub({ value: 4821 }),
-        ProcessGroupIdStub({ value: 4822 }),
-        ProcessGroupIdStub({ value: 4823 }),
+        4821,
+        4822,
+        4823,
       ];
       const guildId = GuildIdStub({ value: 'f47ac10b-58cc-4372-a567-0e02b2c3d479' });
       const nowMs = 1_700_000_500_000;
@@ -134,7 +133,7 @@ describe('heartbeatWriteBroker', () => {
       const proxy = heartbeatWriteBrokerProxy();
       const instanceId = InstanceIdStub({ value: 'inst_7f3a9c21' });
       const pid = ProcessIdStub({ value: 'proc-12345' });
-      const pgids = [ProcessGroupIdStub({ value: 4821 })];
+      const pgids = [4821];
       const guildId = GuildIdStub({ value: 'f47ac10b-58cc-4372-a567-0e02b2c3d479' });
       const nowMs = 1_700_000_500_000;
       const evidencePath = '/home/user/.dungeonmaster/siegelense/guilds/f47ac10b-58cc-4372-a567-0e02b2c3d479/instances/inst_7f3a9c21';
@@ -176,7 +175,7 @@ describe('heartbeatWriteBroker', () => {
       const proxy = heartbeatWriteBrokerProxy();
       const instanceId = InstanceIdStub({ value: 'inst_7f3a9c21' });
       const pid = ProcessIdStub({ value: 'proc-12345' });
-      const pgids = [ProcessGroupIdStub({ value: 4821 })];
+      const pgids = [4821];
       const guildId = GuildIdStub({ value: 'f47ac10b-58cc-4372-a567-0e02b2c3d479' });
       const nowMs = 1_700_000_500_000;
       const evidencePath = '/home/user/.dungeonmaster/siegelense/guilds/f47ac10b-58cc-4372-a567-0e02b2c3d479/instances/inst_7f3a9c21';
@@ -223,7 +222,7 @@ describe('heartbeatWriteBroker', () => {
       const instanceId = InstanceIdStub({ value: 'inst_7f3a9c21' });
       const otherInstanceId = InstanceIdStub({ value: 'inst_00000000' });
       const pid = ProcessIdStub({ value: 'proc-12345' });
-      const pgids = [ProcessGroupIdStub({ value: 4821 })];
+      const pgids = [4821];
       const guildId = GuildIdStub({ value: 'f47ac10b-58cc-4372-a567-0e02b2c3d479' });
       const nowMs = 1_700_000_500_000;
       const evidencePath = '/home/user/.dungeonmaster/siegelense/guilds/f47ac10b-58cc-4372-a567-0e02b2c3d479/instances/inst_7f3a9c21';

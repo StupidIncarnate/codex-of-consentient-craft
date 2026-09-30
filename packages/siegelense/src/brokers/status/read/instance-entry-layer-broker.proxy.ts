@@ -34,7 +34,6 @@ import { readFileProxy } from '#gateway/node/fs__promises/read-file/read-file.pr
 import { readdirIfExistsProxy } from '#gateway/node/fs__promises/readdir-if-exists/readdir-if-exists.proxy';
 import { statIfExistsProxy } from '#gateway/node/fs__promises/stat-if-exists/stat-if-exists.proxy';
 import type { InstanceHeartbeatStub } from '../../../contracts/instance-heartbeat/instance-heartbeat.stub';
-import type { ProcessGroupIdStub } from '../../../contracts/process-group-id/process-group-id.stub';
 import type { ShutdownReasonStub } from '../../../contracts/shutdown-reason/shutdown-reason.stub';
 import type { SpecProfileStub } from '../../../contracts/spec-profile/spec-profile.stub';
 import { heartbeatReadBrokerProxy } from '../../heartbeat/read/heartbeat-read-broker.proxy';
@@ -47,7 +46,7 @@ import { likelyCauseLayerBrokerProxy } from './likely-cause-layer-broker.proxy';
 import { profileSoloReadLayerBrokerProxy } from './profile-solo-read-layer-broker.proxy';
 
 type InstanceHeartbeat = ReturnType<typeof InstanceHeartbeatStub>;
-type ProcessGroupId = ReturnType<typeof ProcessGroupIdStub>;
+type ProcessGroupId = number;
 type ShutdownReason = ReturnType<typeof ShutdownReasonStub>;
 type SpecProfile = ReturnType<typeof SpecProfileStub>;
 

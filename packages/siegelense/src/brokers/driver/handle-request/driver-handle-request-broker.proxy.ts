@@ -17,14 +17,13 @@ import type { SiegeRun } from '@dungeonmaster/shared/contracts';
 import type { LaneSession } from '../../../contracts/lane-session/lane-session-contract';
 import { LaneSessionStub } from '../../../contracts/lane-session/lane-session.stub';
 import { KillResultStub } from '../../../contracts/kill-result/kill-result.stub';
-import { ProcessGroupIdStub } from '../../../contracts/process-group-id/process-group-id.stub';
 import { RegistryStub } from '../../../contracts/registry/registry.stub';
 import { RunResultStub } from '../../../contracts/run-result/run-result.stub';
 import { instanceReleaseBrokerProxy } from '../../instance/release/instance-release-broker.proxy';
 import { laneTeardownBrokerProxy } from '../../lane/teardown/lane-teardown-broker.proxy';
 import { runExecuteBrokerProxy } from '../../run/execute/run-execute-broker.proxy';
 
-const KILL_LANE_PGID = ProcessGroupIdStub({ value: 4821 });
+const KILL_LANE_PGID = 4821;
 
 export const driverHandleRequestBrokerProxy = (): {
   laneForRun: () => LaneSession;

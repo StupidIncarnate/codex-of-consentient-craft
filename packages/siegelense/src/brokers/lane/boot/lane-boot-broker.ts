@@ -42,7 +42,6 @@ import { environmentStatics, locationsStatics } from '@dungeonmaster/shared/stat
 import { packageTypeContract } from '@dungeonmaster/shared/contracts';
 import type { SiegeInstance } from '@dungeonmaster/shared/contracts';
 
-import { processGroupIdContract } from '../../../contracts/process-group-id/process-group-id-contract';
 import { browserSessionLaunchBroker } from '../../browser-session/launch/browser-session-launch-broker';
 import { processKillGroupBroker } from '../../process/kill-group/process-kill-group-broker';
 import { serverLogReaderLayerBroker } from './server-log-reader-layer-broker';
@@ -200,7 +199,7 @@ export const laneBootBroker = async ({
     return {
       name: laneProcess.name,
       fd,
-      pgid: processGroupIdContract.parse(pgid),
+      pgid: pgid,
       logPath,
       readyUrl,
     };

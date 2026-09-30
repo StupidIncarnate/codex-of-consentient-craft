@@ -2,7 +2,6 @@
 import { instanceKillBroker } from './instance-kill-broker';
 import { instanceKillBrokerProxy } from './instance-kill-broker.proxy';
 import { InstanceIdStub } from '../../../contracts/instance-id/instance-id.stub';
-import { ProcessGroupIdStub } from '../../../contracts/process-group-id/process-group-id.stub';
 import { RegistryEntryStub } from '../../../contracts/registry-entry/registry-entry.stub';
 import { RegistryStub } from '../../../contracts/registry/registry.stub';
 
@@ -44,8 +43,8 @@ describe('instanceKillBroker', () => {
       const proxy = instanceKillBrokerProxy();
       const entry = RegistryEntryStub({ id: INSTANCE_ID, socketPath: SOCKET_PATH });
       proxy.setupRegistry({ registry: RegistryStub({ instances: [entry] }) });
-      const pgidOne = ProcessGroupIdStub({ value: 45_714 });
-      const pgidTwo = ProcessGroupIdStub({ value: 45_716 });
+      const pgidOne = 45_714;
+      const pgidTwo = 45_716;
       proxy.setupDriverStops({ socketPath: SOCKET_PATH, killed: [pgidOne, pgidTwo] });
 
       const result = await instanceKillBroker({ instanceId: INSTANCE_ID });
@@ -74,8 +73,8 @@ describe('instanceKillBroker', () => {
   describe('driver unreachable, row still alive', () => {
     it("VALID: {kill, socket refused} => reaps the registry row's own live pgids and returns them in reapedPgids", async () => {
       const proxy = instanceKillBrokerProxy();
-      const pgidOne = ProcessGroupIdStub({ value: 4821 });
-      const pgidTwo = ProcessGroupIdStub({ value: 4822 });
+      const pgidOne = 4821;
+      const pgidTwo = 4822;
       const entry = RegistryEntryStub({
         id: INSTANCE_ID,
         socketPath: SOCKET_PATH,
@@ -100,8 +99,8 @@ describe('instanceKillBroker', () => {
 
     it('VALID: {kill, socket refused, two live pgids reaped} => overwrites shutdown-reason.json so status shows the explicit kill, not a stale idle-reap reason', async () => {
       const proxy = instanceKillBrokerProxy();
-      const pgidOne = ProcessGroupIdStub({ value: 4821 });
-      const pgidTwo = ProcessGroupIdStub({ value: 4822 });
+      const pgidOne = 4821;
+      const pgidTwo = 4822;
       const entry = RegistryEntryStub({
         id: INSTANCE_ID,
         socketPath: SOCKET_PATH,
@@ -125,8 +124,8 @@ describe('instanceKillBroker', () => {
 
     it('VALID: {kill, socket refused, a caller-supplied reason, two live pgids reaped} => writes the SUPPLIED reason, not the generic wording', async () => {
       const proxy = instanceKillBrokerProxy();
-      const pgidOne = ProcessGroupIdStub({ value: 4821 });
-      const pgidTwo = ProcessGroupIdStub({ value: 4822 });
+      const pgidOne = 4821;
+      const pgidTwo = 4822;
       const entry = RegistryEntryStub({
         id: INSTANCE_ID,
         socketPath: SOCKET_PATH,
@@ -176,8 +175,8 @@ describe('instanceKillBroker', () => {
 
     it('VALID: {kill, socket refused, a recorded pgid already gone} => never signals it, and it is excluded from reapedPgids', async () => {
       const proxy = instanceKillBrokerProxy();
-      const alreadyGonePgid = ProcessGroupIdStub({ value: 5001 });
-      const livePgid = ProcessGroupIdStub({ value: 5002 });
+      const alreadyGonePgid = 5001;
+      const livePgid = 5002;
       const entry = RegistryEntryStub({
         id: INSTANCE_ID,
         socketPath: SOCKET_PATH,
@@ -208,8 +207,8 @@ describe('instanceKillBroker', () => {
       'VALID: {registry state: %s, stale pgids still recorded} => reports nothing reaped rather than re-signalling them',
       async (state) => {
         const proxy = instanceKillBrokerProxy();
-        const pgidOne = ProcessGroupIdStub({ value: 104_541 });
-        const pgidTwo = ProcessGroupIdStub({ value: 104_543 });
+        const pgidOne = 104_541;
+        const pgidTwo = 104_543;
         const entry = RegistryEntryStub({
           id: INSTANCE_ID,
           socketPath: null,

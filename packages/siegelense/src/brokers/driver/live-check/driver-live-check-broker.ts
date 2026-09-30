@@ -29,7 +29,6 @@ import { processIdContract } from '@dungeonmaster/shared/contracts';
 import { driverSocketRequestBroker } from '../socket-request/driver-socket-request-broker';
 import { processIsAliveBroker } from '../../process/is-alive/process-is-alive-broker';
 import { driverRequestContract } from '../../../contracts/driver-request/driver-request-contract';
-import { processGroupIdContract } from '../../../contracts/process-group-id/process-group-id-contract';
 import type { RegistryEntry } from '../../../contracts/registry-entry/registry-entry-contract';
 import { driverStatics } from '../../../statics/driver/driver-statics';
 
@@ -42,7 +41,7 @@ export const driverLiveCheckBroker = async ({
     return false;
   }
 
-  if (processIsAliveBroker({ pgid: processGroupIdContract.parse(Number(entry.pid)) })) {
+  if (processIsAliveBroker({ pgid: Number(entry.pid) })) {
     return true;
   }
 
