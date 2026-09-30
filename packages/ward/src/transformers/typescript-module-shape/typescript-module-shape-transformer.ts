@@ -16,7 +16,6 @@ import {
   type TypescriptModuleShape,
 } from '../../contracts/typescript-module-shape/typescript-module-shape-contract';
 import type { ModuleDependency } from '../../contracts/module-dependency/module-dependency-contract';
-import type { ExportedName } from '../../contracts/exported-name/exported-name-contract';
 import { importDependencyFromDeclarationLayerTransformer } from './import-dependency-from-declaration-layer-transformer';
 import { exportDependencyFromDeclarationLayerTransformer } from './export-dependency-from-declaration-layer-transformer';
 import { localExportNamesFromStatementLayerTransformer } from './local-export-names-from-statement-layer-transformer';
@@ -37,7 +36,7 @@ export const typescriptModuleShapeTransformer = ({
   );
 
   const dependencies: ModuleDependency[] = [];
-  const localExportNames: ExportedName[] = [];
+  const localExportNames: string[] = [];
 
   for (const statement of sourceFile.statements) {
     if (ts.isImportDeclaration(statement)) {

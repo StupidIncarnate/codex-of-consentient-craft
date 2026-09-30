@@ -12,11 +12,10 @@
 
 import { z } from '#gateway/npm/zod';
 import { moduleDependencyContract } from '../module-dependency/module-dependency-contract';
-import { exportedNameContract } from '../exported-name/exported-name-contract';
 
 export const typescriptModuleShapeContract = z.object({
   dependencies: z.array(moduleDependencyContract),
-  localExportNames: z.array(exportedNameContract),
+  localExportNames: z.array(z.string().min(1).brand<'TypescriptModuleShapeLocalExportNames'>()),
 });
 
 export type TypescriptModuleShape = z.infer<typeof typescriptModuleShapeContract>;

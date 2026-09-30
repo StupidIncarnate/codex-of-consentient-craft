@@ -10,17 +10,13 @@
  */
 
 import * as ts from '#gateway/npm/typescript';
-import {
-  exportedNameContract,
-  type ExportedName,
-} from '../../contracts/exported-name/exported-name-contract';
 import { hasExportModifierLayerTransformer } from './has-export-modifier-layer-transformer';
 
 export const localExportNamesFromStatementLayerTransformer = ({
   node,
 }: {
   node: ts.Statement;
-}): readonly ExportedName[] => {
+}): readonly string[] => {
   if (!hasExportModifierLayerTransformer({ node })) {
     if (
       ts.isExportDeclaration(node) &&
@@ -29,7 +25,7 @@ export const localExportNamesFromStatementLayerTransformer = ({
       ts.isNamedExports(node.exportClause)
     ) {
       return node.exportClause.elements.map((element) =>
-        exportedNameContract.parse(element.name.text),
+        element.name.text,
       );
     }
     return [];
@@ -39,7 +35,7 @@ export const localExportNamesFromStatementLayerTransformer = ({
     return node.declarationList.declarations
       .map((declaration) => (ts.isIdentifier(declaration.name) ? declaration.name.text : undefined))
       .filter((name): name is NonNullable<typeof name> => name !== undefined)
-      .map((name) => exportedNameContract.parse(name));
+      .map((name) => name);
   }
 
   if (
@@ -50,7 +46,7 @@ export const localExportNamesFromStatementLayerTransformer = ({
       ts.isEnumDeclaration(node)) &&
     node.name !== undefined
   ) {
-    return [exportedNameContract.parse(node.name.text)];
+    return [node.name.text];
   }
 
   return [];
