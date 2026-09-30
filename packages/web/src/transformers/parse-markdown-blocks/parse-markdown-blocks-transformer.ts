@@ -21,8 +21,6 @@
 
 import { markdownBlockContract } from '../../contracts/markdown-block/markdown-block-contract';
 import type { MarkdownBlock } from '../../contracts/markdown-block/markdown-block-contract';
-import { markdownSourceLineContract } from '../../contracts/markdown-source-line/markdown-source-line-contract';
-import type { MarkdownSourceLine } from '../../contracts/markdown-source-line/markdown-source-line-contract';
 import { markdownSyntaxStatics } from '../../statics/markdown-syntax/markdown-syntax-statics';
 import { parseMarkdownSpansTransformer } from '../parse-markdown-spans/parse-markdown-spans-transformer';
 
@@ -40,10 +38,10 @@ export const parseMarkdownBlocksTransformer = ({
   preserveLineBreaks?: boolean;
 }): MarkdownBlock[] => {
   const blocks: MarkdownBlock[] = [];
-  const paragraph: MarkdownSourceLine[] = [];
-  const fenced: MarkdownSourceLine[] = [];
+  const paragraph: string[] = [];
+  const fenced: string[] = [];
   const paragraphJoiner = preserveLineBreaks ? '\n' : ' ';
-  let fenceLanguage: MarkdownSourceLine | null = null;
+  let fenceLanguage: string | null = null;
 
   for (const line of text.split('\n')) {
     const trimmed = line.trim();
@@ -62,7 +60,7 @@ export const parseMarkdownBlocksTransformer = ({
         continue;
       }
 
-      fenced.push(markdownSourceLineContract.parse(line));
+      fenced.push(line);
       continue;
     }
 
@@ -90,9 +88,7 @@ export const parseMarkdownBlocksTransformer = ({
     }
 
     if (isFenceStart) {
-      fenceLanguage = markdownSourceLineContract.parse(
-        trimmed.slice(markdownSyntaxStatics.codeFence.length).trim(),
-      );
+      fenceLanguage = trimmed.slice(markdownSyntaxStatics.codeFence.length).trim();
       continue;
     }
 
@@ -142,7 +138,7 @@ export const parseMarkdownBlocksTransformer = ({
     if (trimmed !== '') {
       // Untrimmed under preserveLineBreaks: the leading whitespace is what says this line is a
       // continuation of the one above it, and trimming it flattens a nested ledger into a list.
-      paragraph.push(markdownSourceLineContract.parse(preserveLineBreaks ? line : trimmed));
+      paragraph.push((preserveLineBreaks ? line : trimmed));
     }
   }
 
