@@ -8,7 +8,6 @@
 
 import type { CssColorOverride } from '../../contracts/css-color-override/css-color-override-contract';
 import type { CssDimension } from '../../contracts/css-dimension/css-dimension-contract';
-import type { DropdownOption } from '../../contracts/dropdown-option/dropdown-option-contract';
 import { emberDepthsThemeStatics } from '../../statics/ember-depths-theme/ember-depths-theme-statics';
 
 const FONT_SIZE = 11;
@@ -16,9 +15,9 @@ const BORDER_RADIUS = 2;
 const PADDING = '2px 6px';
 
 export interface FormDropdownWidgetProps {
-  value: DropdownOption;
-  options: DropdownOption[];
-  onChange: (value: DropdownOption) => void;
+  value: string;
+  options: string[];
+  onChange: (value: string) => void;
   width?: CssDimension;
   color?: CssColorOverride;
 }
@@ -37,7 +36,7 @@ export const FormDropdownWidget = ({
       data-testid="FORM_DROPDOWN"
       value={value}
       onChange={(event) => {
-        onChange(event.target.value as DropdownOption);
+        onChange(event.target.value as string);
       }}
       style={{
         fontFamily: 'monospace',

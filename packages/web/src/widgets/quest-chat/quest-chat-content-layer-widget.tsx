@@ -47,8 +47,6 @@ import { questPauseBroker } from '../../brokers/quest/pause/quest-pause-broker';
 import { questResumeBroker } from '../../brokers/quest/resume/quest-resume-broker';
 import { questStartBroker } from '../../brokers/quest/start/quest-start-broker';
 import { displayLabelContract } from '../../contracts/display-label/display-label-contract';
-import { dropdownOptionContract } from '../../contracts/dropdown-option/dropdown-option-contract';
-import type { DropdownOption } from '../../contracts/dropdown-option/dropdown-option-contract';
 import type { UploadProgressHandler } from '../../contracts/upload-progress-post/upload-progress-post-contract';
 import { hasEquivalentChatEntryGuard } from '../../guards/has-equivalent-chat-entry/has-equivalent-chat-entry-guard';
 import { emberDepthsThemeStatics } from '../../statics/ember-depths-theme/ember-depths-theme-statics';
@@ -136,8 +134,8 @@ export const QuestChatContentLayerWidget = ({
 
   // Which pipeline the first message creates. Only read on the no-questId create path; once the
   // quest exists its type is settled on disk and the dropdown is gone.
-  const [questTypeLabel, setQuestTypeLabel] = useState<DropdownOption>(
-    dropdownOptionContract.parse(questTypeOptionsStatics.defaultLabel),
+  const [questTypeLabel, setQuestTypeLabel] = useState<string>(
+    questTypeOptionsStatics.defaultLabel,
   );
   const selectedQuestType: QuestType =
     questTypeOptionsStatics.options.find((option) => option.label === String(questTypeLabel))
@@ -406,7 +404,7 @@ export const QuestChatContentLayerWidget = ({
                   <FormDropdownWidget
                     value={questTypeLabel}
                     options={questTypeOptionsStatics.options.map((option) =>
-                      dropdownOptionContract.parse(option.label),
+                      option.label,
                     )}
                     onChange={setQuestTypeLabel}
                   />
