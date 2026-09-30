@@ -128,7 +128,31 @@ More rules for the operator:
 
 ## START HERE — where the epic stands and what to do next
 
-### Big-bang run (user decision, 2026-09-29 evening) — IN PROGRESS, READ THIS FIRST
+### Handoff (2026-09-30, 07:40) — READ THIS FIRST
+
+**State.** Nothing is running, nothing is uncommitted (HEAD after 7e8db9b9f), and `npm run build` passed at 07:40, so
+the live hooks run the fixed code. The big-bang run below is finished: every Phase 4 wave is applied, the five
+W10 brand rules are on at error and scan 0 in every package, and typecheck, unit, lint and integration were green on
+the last six packages the final agent touched (gate 1790776214847-ffce). The last FULL ward was 1790773961007-6f1f,
+before that agent; its only reds are the ones 7e8db9b9f fixed.
+
+**Not run at the end (the user moved sessions):** a final full bare `npm run ward`, `npm run build:clean`,
+`npm run check:consumer`, `npm run check:published`. The big-bang deleted, renamed and lifted hundreds of contracts
+and changed package exports (`signalBackInput` lifted to shared, `packageJson` merged into shared, R9's renames), so
+the two checks are likely to find things. The root `README.md` says what each check does.
+
+**Next, in order:**
+
+| Step | What |
+|---|---|
+| 1 | Full bare `npm run ward` (about 17 minutes; timeout 600000 and wait on it), then `build:clean`, `check:consumer`, `check:published`. Fix every red. |
+| 2 | B16 (`require-real-owner`, `ban-id-rebrand`): build both rules off, scan, fix round. The fixer rounds used `ownerContract.shape.field.parse(value)` thousands of times; B8's scan is what shows which of those re-brand an owner's id, and B7's which generated contracts are owners in name only. |
+| 3 | R1 rescan and switch-on; F100's plugin half (R8 is on without its two checks); F129 (a rule and a concession disagree). |
+| 4 | F124 (the RUNBOOK's deferred hand steps H2 to H8), F120 to F128, then the older follow-ups. |
+| 5 | Before assayer: F125 (fix the W5 rewriter and W6's function stripping in the scripts), then `bigbang/PORTING.md`. |
+| 6 | Phase 6. T09 (the test-infrastructure catalog) moves there, done together with Z03, which rewrites the same `get-testing-patterns` tool; it blocks nothing. |
+
+### Big-bang run (user decision, 2026-09-29 evening) — DONE; the record
 
 The user adopted the open proposal below. Every Phase 4 brand script runs back to back on `gateway-pivot`, and
 each run's output is committed while the tree is red. Only then do fixer agents clear the fallout, in this order:
@@ -220,14 +244,16 @@ process, 16G heap); the R7 rule crashed on a tuple leaf (39101c111, its parent w
   and hooks integration 17 red. Cause: R2 and R7 disagree on brands on record values (R7's fix branded
   `DependencyMapValue` and friends, R2 reports them), hydration's `test/type-fixtures` fall under R2, two orchestrator
   error files break `enforce-import-dependencies`, and hooks' integration expectations follow the rules. One opus
-  agent owns all of it (in flight, 06:50).
+  agent owns all of it. Fixed in 7e8db9b9f (gate 1790776214847-ffce; five rules scan 0): R7 now agrees with R2
+  (concession 27), the fixtures sit on fixture-object fields, `enforce-owner-field-reuse` skips `errors/`
+  parameters (concession 28), and hooks' raw ESLint plugin contract returns the same object: a loose zod object
+  COPIED each ESLint plugin, ESLint refused the duplicate core plugin, and the pre-edit hook stopped reporting.
 - 801340aa0, 11acb5d56: **the scripts are portable** (`--root` plus settings in
   `phase34-scripts/lib/port-config.cjs`; run in place; portable `bigbang/run-all.sh` with segments A to D and W10fix;
   `bigbang/PORTING.md`). Read-only trials on assayer passed. PORTING.md section 0 says what assayer still needs
   (zod 4, a rebuilt and linked eslint-plugin, reviewed decision tables) and what is unproven (the driver end to end;
   the W5 rewriter and W6 function-stripping bugs are documented, not yet fixed in the scripts).
-- Next: the final agent's round; full bare ward to exit 0; `build:clean`, `check:consumer`, `check:published`;
-  then the script fixes PORTING.md recommends before assayer runs.
+- Next: see the Handoff (2026-09-30, 07:40) above.
 
 **After segment C (user, 2026-09-29 20:55): make the scripts portable and commit them.** Done: 801340aa0, 11acb5d56. The user will run the same
 migration on `/home/brutus-home/projects/assayer` (npm workspaces, packages `app`, `cli`, `core`, `desktop`,
@@ -243,12 +269,12 @@ detached with `setsid nohup ... &` so it outlives the session. This run used the
 `tmp/bigbang/` with base c2cbc43d4. Fixer agents get `bigbang/FIXER-BRIEF.md`.
 
 **Still open after the big-bang run** (each is a row below, or an item row):
-- The final fixer agent's round and the checks after it (see "Next" above).
+- The final full ward and the build checks (Handoff 2026-09-30, step 1).
 - R1 switch-on: rescan `require-contract-parse`. Its last rows waited on W1 and W3, both done now.
 - F100's plugin half: W10 switched R8 on without the nested-object and inline-enum checks F100 adds.
 - F124 (the RUNBOOK's deferred hand steps H2 to H8), F125 (script bugs to fix before assayer), F120 to F123,
-  F126 to F128; F107, F115, F116, F119, F30, F63, F105; F106 and Z08 (slow tests).
-- B16, B17's remaining batches, T09, R3's `checkModuleLevelShapes` (scan 213), then Phase 6.
+  F126 to F129; F107, F115, F116, F119, F30, F63, F105; F106 and Z08 (slow tests).
+- B16, B17's remaining batches, R3's `checkModuleLevelShapes` (scan 213), then Phase 6 (with T09).
 
 ### Handoff (2026-09-29, 17:10) — SUPERSEDED by "Big-bang run" above; kept for its open items
 
@@ -434,6 +460,8 @@ was planned. Add a row whenever execution forces another.
 | 23 | Item B03 (3.3-R): extend `enforce-import-dependencies` to refuse stub and proxy imports outside test support; decision (b): the caller-facing proxy lives at `src/startup/start-<pkg>.proxy.ts` beside a startup entry. | A new rule, `ban-test-support-in-production` (pre-edit), refuses `.stub`/`.proxy` imports and `...Stub`/`...Proxy` names from workspace or relative modules in any non-test-support file, production barrels included; `packages/testing/src/index.ts` has a file-scoped `off` (testing publishes its stubs, decision (c)). `enforce-project-structure` accepts a re-export-only `src/startup/start-<pkg>.ts` as a caller-proxy anchor (config's `start-config.ts` re-exports `configResolveBroker`). | A check added inside an already-`error` rule goes live for every agent at once and cannot land off and be scanned first. A real `StartConfig` entry would need a flow and responder nothing calls. (3.3-R part a, 2026-09-29.) |
 | 25 | Brands doc B1: every object contract and every string and number field in it is branded. | Three kinds are not branded: (a) a contract used only as a generic constraint (`ItemWithId`, `HydrationTarget`); (b) a `z.record` key, unless the key is an owner's id, which then reuses that owner's field; (c) the function-valued part of an object: a contract holding functions is parsed for its data only, and the functions sit beside the parse (`{ ...contract.parse(data), handler }`). Parameters, harness inputs and local accumulators stay plain; returns are branded. | Found in the big-bang fixer stage (2026-09-30). (a) A branded constraint rejects every owner type passed to the generic (108 errors in two orchestrator transformers). (b) A branded key fails every lookup by a plain string (45 errors). (c) Zod drops fields a schema does not list, so W6's parses stripped `handler` from every MCP tool registration and `cleanup` from every testbed at runtime. |
 | 26 | Rule F (concession 16): each wave gated green before the next; EPIC rule 18: gate every commit. | The big-bang run (user, 2026-09-29 evening): every Phase 4 script applied back to back on `gateway-pivot` with each run's output committed red, then fixer rounds by check type (typecheck, unit, lint, integration, e2e), then W8 `--responders`, W9 and W10 on a green tree. | Each file is touched once instead of once per wave, and the per-wave integration and e2e runs are paid once. Every script run is its own commit, so a bad script is still revertable alone. Record: "Big-bang run" above. |
+| 27 | Brands doc B1: every leaf in an object contract is branded. | A value of a top-level `z.record` or `z.array` contract takes no brand; only a record or array that is a FIELD of an object contract brands its values (owner + key). R7 skips a leaf with no key between it and its const, matching R2. | The brands doc: a value that is not a field of an object contract gets no brand. R7's fix had branded `DependencyMapValue` and friends and R2 then reported them (7e8db9b9f). |
+| 28 | B4 (R8 `enforce-owner-field-reuse`): a parameter that holds an owner's id is typed as that owner's field. | R8 does not grade parameters in `errors/` files. | `errors/` may import nothing, so R8's autofix broke the import rule in two error classes (7e8db9b9f). F129 covers the wider disagreement. |
 | 18 | EPIC rule 5: agents share one checkout. | Chunk L2 runs in its own worktree and branch, merged back when eslint-plugin and local-eslint are green. | `eslint.config.js` loads the rules from eslint-plugin's source, and L2's script leaves 226 type errors before the hand queue fixes them; in the shared checkout that breaks lint for every agent. |
 
 ## Status key
@@ -863,7 +891,7 @@ longer dispatched as whole items: their rules are chunks R1 to R9, and the B15 m
 | T06 | [A proxy composes the proxy beside each wrapper it calls](items/t06-proxy-child-creation.md) | B03 | any | done (the switch-on commit) | The switch-on commit; `banWrapperMocks` is on, scan 0 in all 21 packages, lint all 1790726369173-d851. |
 | T07 | [Consumers get the Jest home sandbox](items/t07-home-sandbox-for-consumers.md) | P0-1 | any | done | 9844987fa; a comment at `web/test/harnesses/claude-mock/bin/claude:232` still names the deleted rule (Z06). |
 | T08 | [Read every catch-everything implementation](items/t08-catch-everything-implementations.md) | T05 | any | done (the T08-Z1 commit) | The T08-Z1 commit; concession 24. |
-| T09 | [A generated catalog of the test infrastructure](items/t09-test-infrastructure-catalog.md) | B03, T05, T06 | any | todo | |
+| T09 | [A generated catalog of the test infrastructure](items/t09-test-infrastructure-catalog.md) | B03, T05, T06 | any | todo, moved to Phase 6 with Z03 | Blocks nothing. Do it with Z03, which rewrites the same `get-testing-patterns` tool. The catalog cannot list every proxy and stub (thousands; an MCP result over 50,000 characters spills to a file): scope it to `testing` and the gateway packages, or make it searchable. |
 | T10 | [JSX only in `widgets/` and `flows/`](items/t10-jsx-only-in-widgets-and-flows.md) | A17 | any | done (the T10 commit) | The T10 commit; `ban-jsx-outside-widgets-and-flows` is at `error`, tagged `pre-edit`, gate 1790680759524-5312. |
 
 ### Phase 6 — docs and the finish line
@@ -904,6 +932,7 @@ Work that execution found and no item file owns. Each runs like an item.
 | F126 | `processId` / `chatProcessId` fields in server's response-data contracts carry their own owner+key brands, because `orchestrationProcessContract.shape.processId` is not exported from `@dungeonmaster/orchestrator`. Export it and reuse the owner field (B4). | big-bang R7 agent | open | |
 | F127 | Two departures from B11's keeper table in the R9 round (e7530699e): testing's `packageJson` renamed to `testGuildPackageJsonContract` instead of dropped (it keeps its required-field checks, and testing cannot depend on shared's), and the `commentBatch` rename landed on web (`commentBatchReplyContract`) instead of server. Confirm or reverse. | big-bang R9 agent | open | |
 | F128 | Big-bang leftovers files not yet worked: `b14-shape-contracts/out/leftovers.txt` (88 shapes), `b15-unknown-fields/out/leftovers.json` (W8 rows left: 9 refused by the error check, 3 gateway schemas, 2 unknown data), `b15-dead-reparse` kept sites (`tmp/bigbang/logs/w9-kept.tsv`). | big-bang run | open | |
+| F129 | `enforce-owner-field-reuse` (R8, on at error) flags a plain-`string` owner-id parameter everywhere but `errors/`, while concession 25 and FIXER-BRIEF decision 1 say parameters stay plain and returns are branded. The final agent settled only `errors/` (concession 28) and three responders typed `unknown`. Decide which one wins and make the other agree. | big-bang final agent | open | |
 | F119 | R7 grades neither an unbranded leaf inside a `*-layer-contract.ts` file (the syntax rule skips layers; the layer half checks brand text only) nor a non-contract file importing a layer (`contractIndexBuildBroker`'s `nestedInFiles` records contract files only). No layer file exists yet; close both before C7's layers land. | R7 | open | |
 
 ## Blocked items
@@ -930,4 +959,4 @@ One line per session: the date, what landed, and where the next session starts.
 | 2026-09-29 | Phase 2 finish session (operator): A18 finished in code — gateway units GB4, U1 to U3, GN13 to GN15, GBIN1, GNPM-vite; the A18 codemod; hand queues in every package; dependency removals (a1d6abed6 to a86065b08); A19 prep (0ba37e71e); F77, F78 closed; concessions 14, 15. The user stopped before the final ward. The last A18 diff (GN15, `vite` subpath, web's last spots) is uncommitted. Phase 3 and 4 plan merged into this file. Next: START HERE "Phase 2 handoff". |
 | 2026-09-29 | Operator session (day): Phase 2 closed (A18, A19 switch-on, P3-0 gate); waves 3.1 to 3.4 done; 3.3's layout with explicit per-barrel keys (concession 22) and `ban-test-support-in-production` (concession 23); 4.0 decisions; R1, R2, R3, R4, R6, R8, R9, T10, T2, T1, L0, L1; L3 and L4 for hooks, server, mcp; L2 part 1 on branch `gp-l2-tsestree`; every SD script; B17 and B18 in most packages; T05 swept; disk-full incident fixed (F95 to F97); about 60 follow-ups closed. Next: START HERE "Handoff (2026-09-29, evening)". |
 | 2026-09-29 | Operator session (afternoon, 10:58 to 17:10): L2 merged; wave 3.5 done; T05, T06, T08, B18 done with their rules on; R5 built and on; the R1 queue went from 122 to about 31 (all waiting on W1, W3, B06 or testing's quiet wave); F56, F57, F72, the F100 shared half, F108 to F114, F117, F118 closed; R7 a to e built. The user tabled slow tests to Phase 6 (rule 21, Z08) and proposed running every Phase 4 script up front, then fixing file by file. Operator recommendation: do it on a worktree branch (rule W), applying the scripts in wave order with each script's leftovers file as the queue; keep gateway-pivot green and merge the branch when it is green. Next: START HERE "Handoff (2026-09-29, 17:10)". |
-| 2026-09-30 | Big-bang run (operator, 2026-09-29 18:40 to 2026-09-30 07:00): every Phase 4 script applied back to back and committed red (segments A to C, 18:48 to 01:08), then repairs, then fixer rounds (typecheck 1,796 to 0 by 02:10; unit, lint, integration, e2e green by 04:00), W8 `--responders`, W9, W10 (five brand rules on at error), concession 25, the scripts made portable for assayer. Next: START HERE "Big-bang run". |
+| 2026-09-30 | Big-bang run (operator, 2026-09-29 18:40 to 2026-09-30 07:40): every Phase 4 script applied back to back and committed red (segments A to C, 18:48 to 01:08), then repairs, then fixer rounds (typecheck 1,796 to 0 by 02:10; unit, lint, integration, e2e green by 04:00), W8 `--responders`, W9, W10 (five brand rules on at error), concession 25, the scripts made portable for assayer, the final W10 reds fixed (7e8db9b9f), `npm run build`. Not run: the final full ward, `build:clean`, `check:consumer`, `check:published`. Next: START HERE "Handoff (2026-09-30, 07:40)". |
