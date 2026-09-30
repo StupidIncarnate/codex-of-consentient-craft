@@ -129,18 +129,20 @@ More rules for the operator:
 
 ## START HERE — where the epic stands and what to do next
 
-### Now (updated at every event; last 2026-09-30 12:35)
+### Now (updated at every event; last 2026-09-30 12:45)
 
-| Running (3, all in merge worktree W) | Owns |
+| Running (2, all in merge worktree W) | Owns |
 |---|---|
 | merge fix: siegelense brokers A (opus) | `brokers/{lane,served-build,instance,browser-session}` |
-| merge fix: siegelense brokers B (opus) | every other siegelense broker folder |
 | merge fix: siegelense transformers, responders, flows (opus) | incl. the missing `zodIssueParse`, `is-network-line-*` |
 
 Every fixer follows `merge-master/FIXER-BRIEF.md`: keep master's DEF behaviour, restore pivot edits from `lost-ours`,
 fix type errors, port unmapped adapters, gate lint/typecheck/unit from W, and report a DEF CHECK per DEF commit.
 
-**Just landed:** merge fix siegelense contracts, done in W (lint and unit 1790793546199-4a24, 480 files; no type
+**Just landed:** merge fix siegelense brokers B, done in W (lint/typecheck/unit 1790793655536-951c plus fix
+1790793724445-6855, integration 1790793744661-a82d): the rest of siegelense's fs, png, stderr and quest-list calls on
+gateway wrappers; the hold proxy restored; DEF-143, DEF-81, DEF-104/106, DEF-70, DEF-139/140, DEF-163 and DEF-94 tests
+pass; orchestrator's `quest-list-broker.proxy.ts` gained `getListCalls` (additive). Also: merge fix siegelense contracts, done in W (lint and unit 1790793546199-4a24, 480 files; no type
 errors in contracts or harnesses): pivot brands restored around master's new fields (`killedAtMs`, `alreadyKilledAtMs`,
 memory, scroll, served-build-stale, lane-launch); DEF-160's pixel-count format on the owner fields; zod 4 messages in
 tests; `LaneSession` process calls return `void` (relayed to brokers A and transformers). Also: merge fix web, done in W (gate 1790793460396-72df; web typecheck 1,282 files clean):
