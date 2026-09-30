@@ -11,8 +11,6 @@ import { setInterval } from '#gateway/browser/setInterval';
 import { Box } from '#gateway/npm/mantine__core';
 import { useEffect, useRef, useState } from '#gateway/npm/react';
 
-import { bounceOffsetPxContract } from '../../contracts/bounce-offset-px/bounce-offset-px-contract';
-import type { BounceOffsetPx } from '../../contracts/bounce-offset-px/bounce-offset-px-contract';
 import type { ChatEntry, PastedImageUpload } from '@dungeonmaster/shared/contracts';
 import type { ExecutionRole } from '../../contracts/execution-role/execution-role-contract';
 import { pixelCoordinateContract } from '../../contracts/pixel-coordinate/pixel-coordinate-contract';
@@ -52,8 +50,8 @@ export interface ChatPanelWidgetProps {
 }
 
 const RACCOON_SCALE = 8;
-const BOUNCE_UP = bounceOffsetPxContract.parse(raccoonAnimationConfigStatics.bounceOffsetPx);
-const BOUNCE_REST = bounceOffsetPxContract.parse(raccoonAnimationConfigStatics.bounceRestPx);
+const BOUNCE_UP = raccoonAnimationConfigStatics.bounceOffsetPx;
+const BOUNCE_REST = raccoonAnimationConfigStatics.bounceRestPx;
 
 const raccoonPixels = raccoonWizardPixelsStatics.pixels.map((p) =>
   pixelCoordinateContract.parse(p),
@@ -73,8 +71,8 @@ export const ChatPanelWidget = ({
 }: ChatPanelWidgetProps): React.JSX.Element => {
   const { colors } = emberDepthsThemeStatics;
   const [raccoonFlip, setRaccoonFlip] = useState(false);
-  const bounceOffsetRef = useRef<BounceOffsetPx>(BOUNCE_REST);
-  const [bounceOffset, setBounceOffset] = useState<BounceOffsetPx>(BOUNCE_REST);
+  const bounceOffsetRef = useRef<number>(BOUNCE_REST);
+  const [bounceOffset, setBounceOffset] = useState<number>(BOUNCE_REST);
 
   const interval = raccoonAnimationIntervalTransformer({ isStreaming, entries });
   const shouldBounce = isStreaming && entries.length > 0 && entries.at(-1)?.role === 'user';
