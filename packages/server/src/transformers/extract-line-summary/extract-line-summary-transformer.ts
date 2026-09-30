@@ -8,19 +8,15 @@
 
 import { summaryStreamLineContract } from '@dungeonmaster/shared/contracts';
 
-import {
-  sessionSummaryContract,
-  type SessionSummary,
-} from '../../contracts/session-summary/session-summary-contract';
 
 export const extractLineSummaryTransformer = ({
   parsed,
 }: {
   parsed: unknown;
-}): SessionSummary | undefined => {
+}): string | undefined => {
   const parsedLine = summaryStreamLineContract.safeParse(parsed);
   if (!parsedLine.success) {
     return undefined;
   }
-  return sessionSummaryContract.parse(parsedLine.data.summary);
+  return parsedLine.data.summary;
 };

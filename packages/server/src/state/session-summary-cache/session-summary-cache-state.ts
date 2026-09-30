@@ -9,9 +9,8 @@
 
 import type { SessionId } from '@dungeonmaster/shared/contracts';
 import type { MtimeMs } from '../../contracts/mtime-ms/mtime-ms-contract';
-import type { SessionSummary } from '../../contracts/session-summary/session-summary-contract';
 
-const cache = new Map<SessionId, { mtimeMs: MtimeMs; summary: SessionSummary | undefined }>();
+const cache = new Map<SessionId, { mtimeMs: MtimeMs; summary: string | undefined }>();
 
 export const sessionSummaryCacheState = {
   get: ({
@@ -20,7 +19,7 @@ export const sessionSummaryCacheState = {
   }: {
     sessionId: SessionId;
     mtimeMs: MtimeMs;
-  }): { hit: true; summary: SessionSummary | undefined } | { hit: false } => {
+  }): { hit: true; summary: string | undefined } | { hit: false } => {
     const entry = cache.get(sessionId);
     if (entry && entry.mtimeMs === mtimeMs) {
       return { hit: true, summary: entry.summary };
@@ -35,7 +34,7 @@ export const sessionSummaryCacheState = {
   }: {
     sessionId: SessionId;
     mtimeMs: MtimeMs;
-    summary: SessionSummary | undefined;
+    summary: string | undefined;
   }): void => {
     cache.set(sessionId, { mtimeMs, summary });
   },

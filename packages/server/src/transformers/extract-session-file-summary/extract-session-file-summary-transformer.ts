@@ -8,10 +8,6 @@
 
 import type { FileContents } from '@dungeonmaster/shared/contracts';
 import { jsonlSessionLineContract } from '../../contracts/jsonl-session-line/jsonl-session-line-contract';
-import {
-  sessionSummaryContract,
-  type SessionSummary,
-} from '../../contracts/session-summary/session-summary-contract';
 import { extractFirstUserMessageTransformer } from '../extract-first-user-message/extract-first-user-message-transformer';
 import { extractLineSummaryTransformer } from '../extract-line-summary/extract-line-summary-transformer';
 
@@ -21,7 +17,7 @@ export const extractSessionFileSummaryTransformer = ({
   fileContent,
 }: {
   fileContent: FileContents;
-}): SessionSummary | undefined => {
+}): string | undefined => {
   if (!fileContent) {
     return undefined;
   }
@@ -68,7 +64,7 @@ export const extractSessionFileSummaryTransformer = ({
       if (typeof rawParsed === 'object' && rawParsed !== null) {
         const parsedLine = jsonlSessionLineContract.safeParse(rawParsed);
         if (parsedLine.success && parsedLine.data.slug !== undefined) {
-          return sessionSummaryContract.parse(parsedLine.data.slug);
+          return parsedLine.data.slug;
         }
       }
     } catch {

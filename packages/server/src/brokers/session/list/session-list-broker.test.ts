@@ -80,7 +80,7 @@ describe('sessionListBroker', () => {
       const guildId = GuildIdStub();
       const guild = GuildStub({ path: '/home/user/my-guild' });
       const birthtime = new Date('2025-01-15T10:00:00.000Z');
-      const cachedSummary = SessionSummaryStub({ value: 'Cached summary' });
+      const cachedSummary = 'Cached summary';
 
       proxy.setupGuild({ guild });
       proxy.setupHomeDir({ path: '/home/user' });

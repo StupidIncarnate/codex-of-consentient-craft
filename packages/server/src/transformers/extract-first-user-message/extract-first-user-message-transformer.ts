@@ -8,10 +8,6 @@
 
 import type { FileContents } from '@dungeonmaster/shared/contracts';
 import { jsonlSessionLineContract } from '../../contracts/jsonl-session-line/jsonl-session-line-contract';
-import {
-  sessionSummaryContract,
-  type SessionSummary,
-} from '../../contracts/session-summary/session-summary-contract';
 import { userMessageCommandPrefixesStatics } from '../../statics/user-message-command-prefixes/user-message-command-prefixes-statics';
 
 const MAX_DISPLAY_LENGTH = 80;
@@ -20,7 +16,7 @@ export const extractFirstUserMessageTransformer = ({
   fileContent,
 }: {
   fileContent: FileContents;
-}): SessionSummary | undefined => {
+}): string | undefined => {
   if (!fileContent) {
     return undefined;
   }
@@ -73,7 +69,7 @@ export const extractFirstUserMessageTransformer = ({
           ? `${content.substring(0, MAX_DISPLAY_LENGTH)}...`
           : content;
 
-      return sessionSummaryContract.parse(truncated);
+      return truncated;
     } catch {
       // skip unparseable lines
     }
@@ -129,7 +125,7 @@ export const extractFirstUserMessageTransformer = ({
           ? `${summary.substring(0, MAX_DISPLAY_LENGTH)}...`
           : summary;
 
-      return sessionSummaryContract.parse(truncated);
+      return truncated;
     } catch {
       // skip unparseable lines
     }

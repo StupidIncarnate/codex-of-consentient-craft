@@ -6,12 +6,11 @@
  * hasSessionSummaryGuard({ session: {} }); // false
  */
 
-import type { SessionSummary } from '../../contracts/session-summary/session-summary-contract';
 
 export const hasSessionSummaryGuard = ({
   session,
 }: {
-  session?: { summary?: SessionSummary };
+  session?: { summary?: string };
 }): boolean => {
   if (!session) {
     return false;
