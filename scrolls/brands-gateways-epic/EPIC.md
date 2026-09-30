@@ -129,12 +129,19 @@ More rules for the operator:
 
 ## START HERE — where the epic stands and what to do next
 
-### Now (updated at every event; last 2026-09-30 13:18, machine clock)
+### Now (updated at every event; last 2026-09-30 13:22, machine clock)
 
 **gateway-pivot is merged into master** (fast-forward; master had not moved since the 11:00 measurement). Last full ward
 before the merge, run 1790798496503-8a33: **1,013 s (16.9 minutes)**, every check green: lint 11,514 files (103 s),
 typecheck 11,480 (25 s), unit 4,176 (79 s), integration 230 (76 s), e2e 131 (331 s); exit 1 only on slow-lint flags
 (rule 21). The 2026-09-29 baseline was 1,113 s.
+
+**Found after the merge:** `@gateway/npm` wraps `pngjs` and `pixelmatch` but never declared `@types/pngjs` or
+`@types/pixelmatch`. Every build passed only because Node's walk-up escaped the worktree and found a stray
+`@types/pngjs` in the main checkout's `node_modules` (master's old siegelense dependency). `npm install` on master
+pruned it, and the main checkout's `build:clean` then stopped at `@gateway/npm`, leaving master's checkout with no
+`dist` for a few minutes. Fix: both declared as `@gateway/npm` devDependencies (the types commit; gate
+1790799692879-f70a, integration 1790799711860-edca), master fast-forwarded, reinstalled and rebuilt.
 
 **Next:** `build:clean` in the main checkout and settings regeneration there (its hooks otherwise run the old rules);
 remove the `gp-merge-master` worktree and branch; then P2 work bundled with the user's defect swarm, P3 after.
