@@ -19,7 +19,6 @@ import {
   tokenUsageContract,
   type TokenUsage,
 } from '../../contracts/token-usage/token-usage-contract';
-import { transcriptRecordUsageKeyContract } from '../../contracts/transcript-record-usage-key/transcript-record-usage-key-contract';
 import type { TranscriptRecord } from '../../contracts/transcript-record/transcript-record-contract';
 
 export const recordToTokenUsageTransformer = ({
@@ -28,19 +27,19 @@ export const recordToTokenUsageTransformer = ({
   record: TranscriptRecord;
 }): TokenUsage => {
   const usage = record.message?.usage;
-  const details = usage?.[transcriptRecordUsageKeyContract.parse('output_tokens_details')];
+  const details = usage?.['output_tokens_details'];
   const thinkingTokens =
     typeof details === 'object' && details !== null && 'thinking_tokens' in details
       ? details.thinking_tokens
       : undefined;
 
   return tokenUsageContract.parse({
-    inputTokens: usage?.[transcriptRecordUsageKeyContract.parse('input_tokens')] ?? 0,
-    outputTokens: usage?.[transcriptRecordUsageKeyContract.parse('output_tokens')] ?? 0,
+    inputTokens: usage?.['input_tokens'] ?? 0,
+    outputTokens: usage?.['output_tokens'] ?? 0,
     cacheReadTokens:
-      usage?.[transcriptRecordUsageKeyContract.parse('cache_read_input_tokens')] ?? 0,
+      usage?.['cache_read_input_tokens'] ?? 0,
     cacheCreationTokens:
-      usage?.[transcriptRecordUsageKeyContract.parse('cache_creation_input_tokens')] ?? 0,
+      usage?.['cache_creation_input_tokens'] ?? 0,
     thinkingTokens: thinkingTokens ?? 0,
   });
 };
