@@ -6,15 +6,13 @@
  * // Returns multi-line formatted string with generic violation info
  */
 import type { ViolationCount } from '../../contracts/violation-count/violation-count-contract';
-import { violationComparisonMessageContract } from '../../contracts/violation-comparison-message/violation-comparison-message-contract';
-import type { ViolationComparisonMessage } from '../../contracts/violation-comparison-message/violation-comparison-message-contract';
 import { violationMessageStatics } from '../../statics/violation-message/violation-message-statics';
 
 export const violationMessageFormatTransformer = ({
   violations,
 }: {
   violations: ViolationCount[];
-}): ViolationComparisonMessage => {
+}): string => {
   const lines: unknown[] = [violationMessageStatics.header];
 
   for (const violation of violations) {
@@ -30,5 +28,5 @@ export const violationMessageFormatTransformer = ({
   lines.push('');
   lines.push(violationMessageStatics.footerBasic);
 
-  return violationComparisonMessageContract.parse(lines.join('\n'));
+  return lines.join('\n');
 };

@@ -7,8 +7,6 @@
  */
 import type { ViolationCount } from '../../contracts/violation-count/violation-count-contract';
 import type { PreEditLintConfig } from '../../contracts/pre-edit-lint-config/pre-edit-lint-config-contract';
-import { violationComparisonMessageContract } from '../../contracts/violation-comparison-message/violation-comparison-message-contract';
-import type { ViolationComparisonMessage } from '../../contracts/violation-comparison-message/violation-comparison-message-contract';
 import { ruleDisplayConfigExtractTransformer } from '../rule-display-config-extract/rule-display-config-extract-transformer';
 import { violationDisplayNameDefaultTransformer } from '../violation-display-name-default/violation-display-name-default-transformer';
 import { violationMessageExtractTransformer } from '../violation-message-extract/violation-message-extract-transformer';
@@ -36,7 +34,7 @@ export const violationMessageFormatFullTransformer = ({
   violations: ViolationCount[];
   config: PreEditLintConfig;
   hookData: unknown;
-}): ViolationComparisonMessage => {
+}): string => {
   const lines: unknown[] = [violationMessageStatics.header];
 
   for (const violation of violations) {
@@ -73,5 +71,5 @@ export const violationMessageFormatFullTransformer = ({
   lines.push('');
   lines.push(violationMessageStatics.footerFull);
 
-  return violationComparisonMessageContract.parse(lines.join('\n'));
+  return lines.join('\n');
 };
