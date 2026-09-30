@@ -1,6 +1,5 @@
 
 import { LaneSessionStub } from '../../../contracts/lane-session/lane-session.stub';
-import { StepFilePathStub } from '../../../contracts/step-file-path/step-file-path.stub';
 import type { StepFileNotFoundError } from '../../../errors/step-file-not-found/step-file-not-found-error';
 import { stepFileBroker } from './step-file-broker';
 import { stepFileBrokerProxy } from './step-file-broker.proxy';
@@ -13,7 +12,7 @@ describe('stepFileBroker', () => {
         homePath: '/tmp/test-lane-home',
         browser: null,
       });
-      const path = StepFilePathStub({ value: 'usage-ledger.json' });
+      const path = 'usage-ledger.json';
       const filePath = '/tmp/test-lane-home/usage-ledger.json';
 
       proxy.setupFileExists({
@@ -35,7 +34,7 @@ describe('stepFileBroker', () => {
         evidencePath: '/repo/.dungeonmaster-assets/siegelense-assets/guilds/g1/instances/inst_1',
         browser: null,
       });
-      const path = StepFilePathStub({ value: 'api-server.log' });
+      const path = 'api-server.log';
       const homeFilePath = '/tmp/test-lane-home/api-server.log';
       const evidenceFilePath = '/repo/.dungeonmaster-assets/siegelense-assets/guilds/g1/instances/inst_1/api-server.log';
 
@@ -59,7 +58,7 @@ describe('stepFileBroker', () => {
         evidencePath: '/repo/.dungeonmaster-assets/siegelense-assets/guilds/g1/instances/inst_1',
         browser: null,
       });
-      const path = StepFilePathStub({ value: 'missing.log' });
+      const path = 'missing.log';
       const filePath = '/tmp/test-lane-home/missing.log';
       const evidenceFilePath = '/repo/.dungeonmaster-assets/siegelense-assets/guilds/g1/instances/inst_1/missing.log';
 

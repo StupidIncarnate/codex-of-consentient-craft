@@ -1,6 +1,5 @@
 
 import { LaneSessionStub } from '../../../contracts/lane-session/lane-session.stub';
-import { StepFilePathStub } from '../../../contracts/step-file-path/step-file-path.stub';
 import { StepStub } from '../../../contracts/step/step.stub';
 
 import { runVerbLayerBroker } from './run-verb-layer-broker';
@@ -369,7 +368,7 @@ describe('runVerbLayerBroker', () => {
       const { lane } = proxy.browserlessLane();
       const step = StepStub({
         step: 'file',
-        path: StepFilePathStub({ value: 'api-server.log' }),
+        path: 'api-server.log',
       });
       const index = 1;
 

@@ -122,7 +122,6 @@ export * from './health-reading/health-reading-contract';
 
 export * from './http-method/http-method-contract';
 
-export * from './step-file-path/step-file-path-contract';
 
 export * from './storage-reading/storage-reading-contract';
 

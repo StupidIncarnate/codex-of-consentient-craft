@@ -16,7 +16,6 @@ import { join } from '#gateway/node/path';
 
 import { readFile, statIfExists } from '#gateway/node/fs__promises';
 import type { LaneSession } from '../../../contracts/lane-session/lane-session-contract';
-import type { StepFilePath } from '../../../contracts/step-file-path/step-file-path-contract';
 import { StepFileNotFoundError } from '../../../errors/step-file-not-found/step-file-not-found-error';
 
 export const stepFileBroker = async ({
@@ -24,7 +23,7 @@ export const stepFileBroker = async ({
   path,
 }: {
   lane: LaneSession;
-  path: StepFilePath;
+  path: string;
 }): Promise<string> => {
   const homeFilePath = join(lane.homePath, path);
   const homeStat = await statIfExists(homeFilePath);

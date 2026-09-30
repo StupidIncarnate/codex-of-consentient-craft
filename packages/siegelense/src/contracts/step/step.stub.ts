@@ -4,7 +4,6 @@ import { HttpMethodStub } from '../http-method/http-method.stub';
 import { LocatorStateStub } from '../locator-state/locator-state.stub';
 import { ResetLevelStub } from '../reset-level/reset-level.stub';
 import { StepExpectationStub } from '../step-expectation/step-expectation.stub';
-import { StepFilePathStub } from '../step-file-path/step-file-path.stub';
 import { VideoActionStub } from '../video-action/video-action.stub';
 import { stepContract } from './step-contract';
 import type { Step } from './step-contract';
@@ -128,7 +127,7 @@ const STEP_DEFAULTS = {
   },
   file: {
     step: 'file',
-    path: StepFilePathStub(),
+    path: 'guilds/g1/quests/q1/quest.json',
     node: null,
     expect: StepExpectationStub(),
   },
