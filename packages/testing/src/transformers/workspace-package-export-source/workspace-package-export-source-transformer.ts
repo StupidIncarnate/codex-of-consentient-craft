@@ -16,8 +16,6 @@
  * // Returns the matched entry's branded source path, or null
  */
 
-import { workspacePackageExportSourcePathContract } from '../../contracts/workspace-package-export-source-path/workspace-package-export-source-path-contract';
-import type { WorkspacePackageExportSourcePath } from '../../contracts/workspace-package-export-source-path/workspace-package-export-source-path-contract';
 import type { WorkspacePackageJson } from '../../contracts/workspace-package-json/workspace-package-json-contract';
 import type { PackageSpecifierParts } from '../../contracts/package-specifier-parts/package-specifier-parts-contract';
 
@@ -29,7 +27,7 @@ export const workspacePackageExportSourceTransformer = ({
 }: {
   exportsMap: WorkspacePackageJson['exports'];
   subpath: PackageSpecifierParts['subpath'];
-}): WorkspacePackageExportSourcePath | null => {
+}): string | null => {
   if (!exportsMap) {
     return null;
   }
@@ -37,7 +35,7 @@ export const workspacePackageExportSourceTransformer = ({
   // Object.entries always yields plain string keys, even off a branded-key Record, so the literal
   // key comparison below stays a `===` rather than indexing exportsMap by a constructed key.
   const literalKey = `./${subpath}`;
-  let wildcardMatch: WorkspacePackageExportSourcePath | null = null;
+  let wildcardMatch: string | null = null;
   let wildcardPrefixLength = -1;
   let wildcardKeyLength = -1;
 
@@ -76,9 +74,7 @@ export const workspacePackageExportSourceTransformer = ({
     }
 
     const captured = subpath.slice(prefix.length, subpath.length - suffix.length);
-    wildcardMatch = workspacePackageExportSourcePathContract.parse(
-      source.replaceAll('*', captured),
-    );
+    wildcardMatch = source.replaceAll('*', captured);
     wildcardPrefixLength = prefix.length;
     wildcardKeyLength = key.length;
   }

@@ -30,7 +30,7 @@ import { workspacePackageExportSourcePathContract } from '../workspace-package-e
 // and indexed by plain-string subpaths rather than exchanged as a domain value.
 const workspacePackageExportEntryContract = z
   .object({
-    source: workspacePackageExportSourcePathContract.optional(),
+    source: z.string().brand<'WorkspacePackageExportEntrySource'>().optional(),
   })
   .loose();
 
