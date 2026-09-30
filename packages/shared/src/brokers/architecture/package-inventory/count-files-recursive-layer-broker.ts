@@ -11,14 +11,12 @@
 import { safeReaddirLayerBroker } from './safe-readdir-layer-broker';
 import type { AbsoluteFilePath } from '../../../contracts/absolute-file-path/absolute-file-path-contract';
 import { absoluteFilePathContract } from '../../../contracts/absolute-file-path/absolute-file-path-contract';
-import type { FileCount } from '../../../contracts/file-count/file-count-contract';
-import { fileCountContract } from '../../../contracts/file-count/file-count-contract';
 
 export const countFilesRecursiveLayerBroker = ({
   dirPath,
 }: {
   dirPath: AbsoluteFilePath;
-}): FileCount => {
+}): number => {
   const entries = safeReaddirLayerBroker({ dirPath });
   let count = 0;
 
@@ -32,5 +30,5 @@ export const countFilesRecursiveLayerBroker = ({
     }
   }
 
-  return fileCountContract.parse(count);
+  return count;
 };

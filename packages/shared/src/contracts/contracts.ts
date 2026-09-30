@@ -221,7 +221,6 @@ export * from './hex-color/hex-color-contract';
 export * from './line-count/line-count-contract';
 
 // File Count Contracts
-export * from './file-count/file-count-contract';
 
 // Array Index Contracts
 export * from './array-index/array-index-contract';

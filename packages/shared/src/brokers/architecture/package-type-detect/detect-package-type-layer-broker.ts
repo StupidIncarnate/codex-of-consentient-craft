@@ -19,7 +19,6 @@ import { startupReferencesArgvGuard } from '../../../guards/startup-references-a
 import { flowReturnsToolRegistrationGuard } from '../../../guards/flow-returns-tool-registration/flow-returns-tool-registration-guard';
 import { startupExportsAsyncNamespaceGuard } from '../../../guards/startup-exports-async-namespace/startup-exports-async-namespace-guard';
 import { projectMapStatics } from '../../../statics/project-map/project-map-statics';
-import type { FileCount } from '../../../contracts/file-count/file-count-contract';
 
 export const detectPackageTypeLayerBroker = ({
   srcDirNames,
@@ -46,7 +45,7 @@ export const detectPackageTypeLayerBroker = ({
   hasStateDir: boolean;
   hasResponderCreate: boolean;
   exportsHasDot: boolean;
-  binEntryCount: FileCount;
+  binEntryCount: number;
 }): PackageType => {
   if (
     flowCreatesHonoOrExpressAppGuard(flowFileContent === undefined ? {} : { flowFileContent }) ||

@@ -1,7 +1,6 @@
 import { binEntryCountLayerBroker } from './bin-entry-count-layer-broker';
 import { binEntryCountLayerBrokerProxy } from './bin-entry-count-layer-broker.proxy';
 import { PackageJsonStub } from '../../../contracts/package-json/package-json.stub';
-import { FileCountStub } from '../../../contracts/file-count/file-count.stub';
 
 describe('binEntryCountLayerBroker', () => {
   describe('bin as record', () => {
@@ -11,7 +10,7 @@ describe('binEntryCountLayerBroker', () => {
 
       const result = binEntryCountLayerBroker({ packageJson });
 
-      expect(result).toBe(FileCountStub({ value: 0 }));
+      expect(result).toBe(0);
     });
 
     it('VALID: bin record with 1 entry => returns 1', () => {
@@ -20,7 +19,7 @@ describe('binEntryCountLayerBroker', () => {
 
       const result = binEntryCountLayerBroker({ packageJson });
 
-      expect(result).toBe(FileCountStub({ value: 1 }));
+      expect(result).toBe(1);
     });
 
     it('VALID: bin record with 3 entries => returns 3', () => {
@@ -35,7 +34,7 @@ describe('binEntryCountLayerBroker', () => {
 
       const result = binEntryCountLayerBroker({ packageJson });
 
-      expect(result).toBe(FileCountStub({ value: 3 }));
+      expect(result).toBe(3);
     });
   });
 
@@ -46,7 +45,7 @@ describe('binEntryCountLayerBroker', () => {
 
       const result = binEntryCountLayerBroker({ packageJson });
 
-      expect(result).toBe(FileCountStub({ value: 1 }));
+      expect(result).toBe(1);
     });
   });
 });

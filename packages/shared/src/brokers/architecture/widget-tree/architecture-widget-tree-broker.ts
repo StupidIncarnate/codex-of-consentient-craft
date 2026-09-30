@@ -13,7 +13,6 @@
 
 import { absoluteFilePathContract } from '../../../contracts/absolute-file-path/absolute-file-path-contract';
 import type { AbsoluteFilePath } from '../../../contracts/absolute-file-path/absolute-file-path-contract';
-import { fileCountContract } from '../../../contracts/file-count/file-count-contract';
 import { filePathContract } from '../../../contracts/file-path/file-path-contract';
 import {
   widgetTreeResultContract,
@@ -26,7 +25,6 @@ import { listWidgetFilesLayerBroker } from './list-widget-files-layer-broker';
 import { findRootWidgetImportsLayerBroker } from './find-root-widget-imports-layer-broker';
 import { extractWidgetEdgesLayerBroker } from './extract-widget-edges-layer-broker';
 import { buildWidgetNodeLayerBroker } from './build-widget-node-layer-broker';
-import type { FileCount } from '../../../contracts/file-count/file-count-contract';
 
 export const architectureWidgetTreeBroker = ({
   packageRoot,
@@ -72,15 +70,15 @@ export const architectureWidgetTreeBroker = ({
   }
 
   // Step 4: Compute in-degree for each widget
-  const inDegree = new Map<AbsoluteFilePath, FileCount>();
+  const inDegree = new Map<AbsoluteFilePath, number>();
   for (const widgetFile of entryWidgetFiles) {
     if (!inDegree.has(widgetFile)) {
-      inDegree.set(widgetFile, fileCountContract.parse(0));
+      inDegree.set(widgetFile, 0);
     }
     const edges = edgesMap.get(widgetFile);
     if (edges === undefined) continue;
     for (const childPath of edges.childWidgetPaths) {
-      inDegree.set(childPath, fileCountContract.parse((inDegree.get(childPath) ?? 0) + 1));
+      inDegree.set(childPath, ((inDegree.get(childPath) ?? 0) + 1));
     }
   }
 

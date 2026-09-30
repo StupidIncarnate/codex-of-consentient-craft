@@ -1,4 +1,3 @@
-import { fileCountContract, type FileCount } from '@dungeonmaster/shared/contracts';
 import { existsSyncProxy } from '#gateway/node/fs/exists-sync/exists-sync.proxy';
 import { readFileSyncProxy } from '#gateway/node/fs/read-file-sync/read-file-sync.proxy';
 import { findAncestorDirectoryLayerBrokerProxy } from './find-ancestor-directory-layer-broker.proxy';
@@ -14,7 +13,7 @@ export const resolvePackagePlatformLayerBrokerProxy = (): {
     hasWidgetsFolder?: boolean;
   }) => void;
   setupNoPackageRoot: ({ dirs }: { dirs: readonly string[] }) => void;
-  countPackageJsonReads: ({ packageRoot }: { packageRoot: string }) => FileCount;
+  countPackageJsonReads: ({ packageRoot }: { packageRoot: string }) => number;
 } => {
   // Constructed only to satisfy enforce-proxy-child-creation — findAncestorDirectoryLayerBroker's
   // real (unmocked) walk underneath it shares the SAME gateway existsSync mock this proxy's own
@@ -56,9 +55,7 @@ export const resolvePackagePlatformLayerBrokerProxy = (): {
       });
     },
 
-    countPackageJsonReads: ({ packageRoot }: { packageRoot: string }): FileCount =>
-      fileCountContract.parse(
-        readProxy.getCallsFor({ path: `${packageRoot}/package.json` }).length,
-      ),
+    countPackageJsonReads: ({ packageRoot }: { packageRoot: string }): number =>
+      readProxy.getCallsFor({ path: `${packageRoot}/package.json` }).length,
   };
 };

@@ -1,4 +1,3 @@
-import { fileCountContract, type FileCount } from '@dungeonmaster/shared/contracts';
 import { readFileSyncProxy } from '#gateway/node/fs/read-file-sync/read-file-sync.proxy';
 import { findPackageJsonDirLayerBrokerProxy } from './find-package-json-dir-layer-broker.proxy';
 
@@ -8,7 +7,7 @@ export const findNearestPackageJsonLayerBrokerProxy = (): {
     packageJson: Record<PropertyKey, unknown>;
   }) => void;
   setupNoPackageJsonAt: (args: { dirPath: string }) => void;
-  countPackageJsonReads: (args: { packageDir: string }) => FileCount;
+  countPackageJsonReads: (args: { packageDir: string }) => number;
 } => {
   const readProxy = readFileSyncProxy();
   const dirProxy = findPackageJsonDirLayerBrokerProxy();
@@ -38,7 +37,7 @@ export const findNearestPackageJsonLayerBrokerProxy = (): {
       dirProxy.setupNoPackageJsonAt({ dirPath });
     },
 
-    countPackageJsonReads: ({ packageDir }: { packageDir: string }): FileCount =>
-      fileCountContract.parse(readProxy.getCallsFor({ path: `${packageDir}/package.json` }).length),
+    countPackageJsonReads: ({ packageDir }: { packageDir: string }): number =>
+      readProxy.getCallsFor({ path: `${packageDir}/package.json` }).length,
   };
 };

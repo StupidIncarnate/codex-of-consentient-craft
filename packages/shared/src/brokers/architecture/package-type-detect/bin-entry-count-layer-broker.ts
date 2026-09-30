@@ -9,20 +9,18 @@
  */
 
 import type { PackageJson } from '../../../contracts/package-json/package-json-contract';
-import { fileCountContract } from '../../../contracts/file-count/file-count-contract';
-import type { FileCount } from '../../../contracts/file-count/file-count-contract';
 
 export const binEntryCountLayerBroker = ({
   packageJson,
 }: {
   packageJson: PackageJson;
-}): FileCount => {
+}): number => {
   const { bin } = packageJson;
   if (bin === undefined) {
-    return fileCountContract.parse(0);
+    return 0;
   }
   if (typeof bin === 'string') {
-    return fileCountContract.parse(1);
+    return 1;
   }
-  return fileCountContract.parse(Object.keys(bin).length);
+  return Object.keys(bin).length;
 };
