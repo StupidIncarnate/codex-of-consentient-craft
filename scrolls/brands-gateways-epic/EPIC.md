@@ -129,19 +129,28 @@ More rules for the operator:
 
 ## START HERE — where the epic stands and what to do next
 
-### Now (updated at every event; last 2026-09-30 11:50)
+### Now (updated at every event; last 2026-09-30 12:05)
 
-| Running | Where | What |
-|---|---|---|
-| plain-brand residue script (opus) | merge worktree W | `merge-master/plain-brand-residue.cjs`: rewrites master's uses of brands W1 made plain (`ContentText`, `AbsoluteFilePath`, `EpochMs`, ...); about 250 of W's 700 type errors |
+| Running (8, all in merge worktree W) | Owns |
+|---|---|
+| merge fix: siegelense brokers A (opus) | `brokers/{lane,served-build,instance,browser-session}` |
+| merge fix: siegelense brokers B (opus) | every other siegelense broker folder |
+| merge fix: siegelense contracts (opus) | `contracts/`, `test/harnesses/`; the validating brands moved into owner fields |
+| merge fix: siegelense transformers, responders, flows (opus) | incl. the missing `zodIssueParse`, `is-network-line-*` |
+| merge fix: server and cli (opus) | forwarder adapters, `process-request-log` broker |
+| merge fix: web (sonnet) | `mantineRenderAdapter`, widget conflicts |
+| merge fix: orchestrator and hydration-recipes (opus) | DEF-133 `GuildName` parameters, dm-http brokers |
+| merge fix: ward and shared (sonnet) | DEF-161, DEF-168 |
 
-**Just landed:** Z02-B in W (uncommitted there, lands with the merge): the session snippet teaches per-file test imports,
-`#gateway`, branded returns with owner-field parameters (concession 29); `modifyingCodeGuidance` 2037 of 2048 bytes;
-the `consumerGatewayWrapper` snippet the merge script dropped is restored (gate 1790792705267-e87d, 1790792720226-814a). The `searchStrategy` snippet names widgets and bindings, not adapters (1551 bytes, gate 1790792760432-a2c3).
+Every fixer follows `merge-master/FIXER-BRIEF.md`: keep master's DEF behaviour, restore pivot edits from `lost-ours`,
+fix type errors, port unmapped adapters, gate lint/typecheck/unit from W, and report a DEF CHECK per DEF commit.
 
-**Next:** once the residue script reports: re-run `diag.cjs` on W, then up to 8 hand-batch agents per folder, each
-owning its files' type errors, the lost-ours review and unmapped adapter calls. Then lint, unit, integration and e2e
-rounds in W; Z10 (USAGE sweep) in W; merge gateway-pivot into W; the final gate; then master.
+**Just landed:** `plain-brand-residue.cjs` (the script commit): W's type errors 700 to 330 ("Cannot find name" 381 to
+73); 27 validating parse sites left for the fixers. Z02-B done in W (session snippet and `searchStrategy`).
+
+**Next:** when the fixers report: `diag.cjs --full` on W to 0, then W's unit, lint and integration by package, a
+round for what is left, Z10 in W, merge gateway-pivot into W, the final gate (full ward, `build:clean`,
+`check:consumer`, `check:published`, e2e), then master.
 
 **P1 status:** F129, Z02-A, Z02-C/D, Z03 all done on gateway-pivot. Z02-B done in W. Z10 waits for W to be green.
 
