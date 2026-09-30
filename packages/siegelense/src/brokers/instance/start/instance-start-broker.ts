@@ -105,7 +105,6 @@ import { registryReadBroker } from '../../registry/read/registry-read-broker';
 import { shutdownReasonWriteBroker } from '../../shutdown-reason/write/shutdown-reason-write-broker';
 import { instanceManifestContract } from '../../../contracts/instance-manifest/instance-manifest-contract';
 import type { InstanceManifest } from '../../../contracts/instance-manifest/instance-manifest-contract';
-import type { LaneProcessName } from '../../../contracts/lane-process-name/lane-process-name-contract';
 import { laneSpecFindBroker } from '../../lane-spec/find/lane-spec-find-broker';
 import { laneSpecHashBroker } from '../../lane-spec/hash/lane-spec-hash-broker';
 import { driverStatics } from '../../../statics/driver/driver-statics';
@@ -305,7 +304,7 @@ export const instanceStartBroker = async ({
       // driver crashing mid-boot kills every spawned process together, in which case every probe
       // below reports unready together too, which is the honest answer for that case.
       const unreadyNames = await Promise.all(
-        spec.processes.map(async (laneProcess): Promise<LaneProcessName | null> => {
+        spec.processes.map(async (laneProcess): Promise<string | null> => {
           const { portRole, readyPath } = laneProcess;
           if (portRole === null || readyPath === null) {
             return null;

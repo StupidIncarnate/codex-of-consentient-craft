@@ -24,11 +24,10 @@ import { z } from '#gateway/npm/zod';
 
 import { fileNameContract } from '@dungeonmaster/shared/contracts';
 
-import { laneProcessNameContract } from '../lane-process-name/lane-process-name-contract';
 import { portRoleContract } from '../port-role/port-role-contract';
 
 export const laneProcessContract = z.object({
-  name: laneProcessNameContract,
+  name: z.string().min(1).brand<'LaneProcessName'>(),
   command: z.string().brand<'LaneProcessCommand'>(),
   args: z.array(z.string().brand<'LaneProcessArgs'>()).readonly(),
   portRole: portRoleContract.nullable(),

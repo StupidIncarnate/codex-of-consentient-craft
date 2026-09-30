@@ -6,7 +6,6 @@ import { instanceStartBroker } from './instance-start-broker';
 import { instanceStartBrokerProxy } from './instance-start-broker.proxy';
 import { EpochMsStub } from '../../../contracts/epoch-ms/epoch-ms.stub';
 import { InstanceIdStub } from '../../../contracts/instance-id/instance-id.stub';
-import { LaneProcessNameStub } from '../../../contracts/lane-process-name/lane-process-name.stub';
 import { PortPairStub } from '../../../contracts/port-pair/port-pair.stub';
 import { RegistryEntryStub } from '../../../contracts/registry-entry/registry-entry.stub';
 import { RegistryStub } from '../../../contracts/registry/registry.stub';
@@ -275,7 +274,7 @@ describe('instanceStartBroker', () => {
       const instanceId = proxy.mintInstanceId();
       const nowMs = 1_700_000_000_000;
       const specName = 'stack';
-      const webProcessName = LaneProcessNameStub({ value: 'web' });
+      const webProcessName = 'web';
       proxy.stageLaneSpec({
         processes: [
           DevServerE2eProcessStub({
