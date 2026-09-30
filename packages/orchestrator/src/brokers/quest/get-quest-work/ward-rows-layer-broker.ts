@@ -36,7 +36,6 @@ import { join } from '#gateway/node/path';
 
 import { questWorkViewContract } from '../../../contracts/quest-work-view/quest-work-view-contract';
 import type { QuestWorkWard } from '../../../contracts/quest-work-view/quest-work-view-contract';
-import { wardCheckTypeContract } from '../../../contracts/ward-check-type/ward-check-type-contract';
 
 const GREEN_EXIT_CODE = 0;
 const JSON_EXTENSION = '.json';
@@ -89,7 +88,7 @@ export const wardRowsLayerBroker = async ({
       runId: failedWard.runId ?? null,
       blobPath,
       failingCheckTypes: failingChecks.flatMap((check) =>
-        check.checkType === undefined ? [] : [wardCheckTypeContract.parse(String(check.checkType))],
+        check.checkType === undefined ? [] : [String(check.checkType)],
       ),
       // De-duplicated on first appearance: one file routinely carries several errors in one check,
       // and a repair opens a path once however many lines it broke on. A path ward wrote that does

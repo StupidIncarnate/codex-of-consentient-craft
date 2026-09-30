@@ -43,7 +43,6 @@ import { z } from '#gateway/npm/zod';
 
 import { questWorkInstanceContract } from '../quest-work-instance/quest-work-instance-contract';
 import { recipeIdContract } from '../recipe-id/recipe-id-contract';
-import { wardCheckTypeContract } from '../ward-check-type/ward-check-type-contract';
 import { workPlanPieceContract } from '../work-plan-piece/work-plan-piece-contract';
 
 // `flowId` is SINGULAR and nullable, not the operation item's `flowIds` array. Every fan-out mints
@@ -133,7 +132,7 @@ const questWorkWard = z.object({
   wardResultId: wardResultContract.shape.id,
   runId: wardResultContract.shape.runId.unwrap().nullable(),
   blobPath: z.union([absoluteFilePathContract, relativeFilePathContract]).brand<'QuestWorkWardBlobPath'>(),
-  failingCheckTypes: z.array(wardCheckTypeContract).default([]),
+  failingCheckTypes: z.array(z.string().min(1).brand<'QuestWorkWardFailingCheckTypes'>()).default([]),
   failingPaths: z.array(z.union([absoluteFilePathContract, relativeFilePathContract]).brand<'QuestWorkWardFailingPaths'>()).default([]),
 });
 
