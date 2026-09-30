@@ -13,8 +13,6 @@ import type {
   SingleGroup,
   SubagentChainGroup,
 } from '../../contracts/chat-entry-group/chat-entry-group-contract';
-import { contextTokenCountContract } from '../../contracts/context-token-count/context-token-count-contract';
-import type { ContextTokenCount } from '../../contracts/context-token-count/context-token-count-contract';
 import { isTaskToolUseGuard } from '../../guards/is-task-tool-use/is-task-tool-use-guard';
 import { computeEntryContextTransformer } from '../compute-entry-context/compute-entry-context-transformer';
 import { extractTaskDescriptionTransformer } from '../extract-task-description/extract-task-description-transformer';
@@ -134,8 +132,8 @@ export const collectSubagentChainsTransformer = ({
 
       // Compute contextTokens delta from the SingleGroup entries at creation time so
       // nested chains pushed into innerGroups later do not affect the calculation.
-      let firstContext: ContextTokenCount | null = null;
-      let lastContext: ContextTokenCount | null = null;
+      let firstContext: number | null = null;
+      let lastContext: number | null = null;
 
       for (const subEntry of subagentEntries) {
         const ctx = computeEntryContextTransformer({ entry: subEntry });
@@ -151,7 +149,7 @@ export const collectSubagentChainsTransformer = ({
 
       const contextTokens =
         firstContext !== null && lastContext !== null
-          ? contextTokenCountContract.parse(Math.max(0, Number(lastContext) - Number(firstContext)))
+          ? Math.max(0, Number(lastContext) - Number(firstContext))
           : null;
 
       const chain = {

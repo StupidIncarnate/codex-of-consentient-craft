@@ -1,7 +1,6 @@
 import { tokenAnnotationContract } from './token-annotation-contract';
 import { TokenAnnotationStub } from './token-annotation.stub';
 import { FormattedTokenLabelStub } from '../formatted-token-label/formatted-token-label.stub';
-import { ContextTokenCountStub } from '../context-token-count/context-token-count.stub';
 import { ContextTokenDeltaStub } from '../context-token-delta/context-token-delta.stub';
 
 describe('tokenAnnotationContract', () => {
@@ -41,7 +40,7 @@ describe('tokenAnnotationContract', () => {
       const annotation = TokenAnnotationStub({
         tokenBadgeLabel: FormattedTokenLabelStub({ value: '29.4k context' }),
         resultTokenBadgeLabel: FormattedTokenLabelStub({ value: '~150 est' }),
-        cumulativeContext: ContextTokenCountStub({ value: 29448 }),
+        cumulativeContext: 29448,
         contextDelta: ContextTokenDeltaStub({ value: 2100 }),
         source: 'subagent',
       });

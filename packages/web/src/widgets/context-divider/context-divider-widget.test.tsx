@@ -1,7 +1,6 @@
 import { screen } from '#gateway/npm/testing-library__react';
 
 import { mantineRenderMiddleware } from '@dungeonmaster/testing/middleware/mantine-render';
-import { ContextTokenCountStub } from '../../contracts/context-token-count/context-token-count.stub';
 import { ContextTokenDeltaStub } from '../../contracts/context-token-delta/context-token-delta.stub';
 import { ContextDividerWidget } from './context-divider-widget';
 import { ContextDividerWidgetProxy } from './context-divider-widget.proxy';
@@ -14,7 +13,7 @@ describe('ContextDividerWidget', () => {
       mantineRenderMiddleware({
         ui: (
           <ContextDividerWidget
-            contextTokens={ContextTokenCountStub({ value: 25500 })}
+            contextTokens={25500}
             delta={null}
             source="session"
           />
@@ -34,7 +33,7 @@ describe('ContextDividerWidget', () => {
       mantineRenderMiddleware({
         ui: (
           <ContextDividerWidget
-            contextTokens={ContextTokenCountStub({ value: 25500 })}
+            contextTokens={25500}
             delta={ContextTokenDeltaStub({ value: 2100 })}
             source="session"
           />
@@ -52,7 +51,7 @@ describe('ContextDividerWidget', () => {
       mantineRenderMiddleware({
         ui: (
           <ContextDividerWidget
-            contextTokens={ContextTokenCountStub({ value: 26116 })}
+            contextTokens={26116}
             delta={ContextTokenDeltaStub({ value: -3682 })}
             source="session"
           />
@@ -72,7 +71,7 @@ describe('ContextDividerWidget', () => {
       mantineRenderMiddleware({
         ui: (
           <ContextDividerWidget
-            contextTokens={ContextTokenCountStub({ value: 10000 })}
+            contextTokens={10000}
             delta={null}
             source="subagent"
           />
@@ -92,7 +91,7 @@ describe('ContextDividerWidget', () => {
       mantineRenderMiddleware({
         ui: (
           <ContextDividerWidget
-            contextTokens={ContextTokenCountStub({ value: 500 })}
+            contextTokens={500}
             delta={null}
             source="session"
           />
@@ -112,10 +111,10 @@ describe('ContextDividerWidget', () => {
       mantineRenderMiddleware({
         ui: (
           <ContextDividerWidget
-            contextTokens={ContextTokenCountStub({ value: 118800 })}
+            contextTokens={118800}
             delta={ContextTokenDeltaStub({ value: 9000 })}
             source="session"
-            subagentTotalTokens={ContextTokenCountStub({ value: 12000 })}
+            subagentTotalTokens={12000}
           />
         ),
       });
@@ -131,10 +130,10 @@ describe('ContextDividerWidget', () => {
       mantineRenderMiddleware({
         ui: (
           <ContextDividerWidget
-            contextTokens={ContextTokenCountStub({ value: 1000 })}
+            contextTokens={1000}
             delta={null}
             source="session"
-            subagentTotalTokens={ContextTokenCountStub({ value: 0 })}
+            subagentTotalTokens={0}
           />
         ),
       });
@@ -150,7 +149,7 @@ describe('ContextDividerWidget', () => {
       mantineRenderMiddleware({
         ui: (
           <ContextDividerWidget
-            contextTokens={ContextTokenCountStub({ value: 1000 })}
+            contextTokens={1000}
             delta={null}
             source="session"
           />

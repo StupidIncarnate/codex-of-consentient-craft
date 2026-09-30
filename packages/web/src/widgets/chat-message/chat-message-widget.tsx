@@ -11,7 +11,6 @@ import { useState } from '#gateway/npm/react';
 
 import type { ChatEntry } from '@dungeonmaster/shared/contracts';
 import { useDisclosureAnchorBinding } from '../../bindings/use-disclosure-anchor/use-disclosure-anchor-binding';
-import { contextTokenCountContract } from '../../contracts/context-token-count/context-token-count-contract';
 import type { ExecutionRole } from '../../contracts/execution-role/execution-role-contract';
 import type { FormattedTokenLabel } from '../../contracts/formatted-token-label/formatted-token-label-contract';
 import { markdownSourceContract } from '../../contracts/markdown-source/markdown-source-contract';
@@ -90,7 +89,7 @@ export const ChatMessageWidget = ({
       entry.totalTokens === undefined
         ? null
         : formatContextTokensTransformer({
-            count: contextTokenCountContract.parse(Number(entry.totalTokens)),
+            count: Number(entry.totalTokens),
           });
 
     const needsTruncation = entry.result

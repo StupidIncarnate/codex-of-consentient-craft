@@ -14,7 +14,6 @@ import {
 } from '../../contracts/merged-chat-item/merged-chat-item.stub';
 import { TokenAnnotationStub } from '../../contracts/token-annotation/token-annotation.stub';
 import { FormattedTokenLabelStub } from '../../contracts/formatted-token-label/formatted-token-label.stub';
-import { ContextTokenCountStub } from '../../contracts/context-token-count/context-token-count.stub';
 import { ContextTokenDeltaStub } from '../../contracts/context-token-delta/context-token-delta.stub';
 
 describe('computeTokenAnnotationsTransformer', () => {
@@ -56,7 +55,7 @@ describe('computeTokenAnnotationsTransformer', () => {
       expect(result).toStrictEqual([
         TokenAnnotationStub({
           tokenBadgeLabel: null,
-          cumulativeContext: ContextTokenCountStub({ value: 500 }),
+          cumulativeContext: 500,
           contextDelta: null,
           source: 'session',
         }),
@@ -92,13 +91,13 @@ describe('computeTokenAnnotationsTransformer', () => {
       expect(result).toStrictEqual([
         TokenAnnotationStub({
           tokenBadgeLabel: null,
-          cumulativeContext: ContextTokenCountStub({ value: 500 }),
+          cumulativeContext: 500,
           contextDelta: null,
           source: 'session',
         }),
         TokenAnnotationStub({
           tokenBadgeLabel: FormattedTokenLabelStub({ value: '+700 context' }),
-          cumulativeContext: ContextTokenCountStub({ value: 1200 }),
+          cumulativeContext: 1200,
           contextDelta: ContextTokenDeltaStub({ value: 700 }),
           source: 'session',
         }),
@@ -134,13 +133,13 @@ describe('computeTokenAnnotationsTransformer', () => {
       expect(result).toStrictEqual([
         TokenAnnotationStub({
           tokenBadgeLabel: null,
-          cumulativeContext: ContextTokenCountStub({ value: 500 }),
+          cumulativeContext: 500,
           contextDelta: null,
           source: 'session',
         }),
         TokenAnnotationStub({
           tokenBadgeLabel: null,
-          cumulativeContext: ContextTokenCountStub({ value: 500 }),
+          cumulativeContext: 500,
           contextDelta: ContextTokenDeltaStub({ value: 0 }),
           source: 'session',
         }),
@@ -174,7 +173,7 @@ describe('computeTokenAnnotationsTransformer', () => {
         TokenAnnotationStub({
           tokenBadgeLabel: null,
           resultTokenBadgeLabel: null,
-          cumulativeContext: ContextTokenCountStub({ value: 500 }),
+          cumulativeContext: 500,
           contextDelta: null,
           source: 'session',
         }),
@@ -230,7 +229,7 @@ describe('computeTokenAnnotationsTransformer', () => {
         TokenAnnotationStub({
           tokenBadgeLabel: null,
           resultTokenBadgeLabel: FormattedTokenLabelStub({ value: '~100 est' }),
-          cumulativeContext: ContextTokenCountStub({ value: 500 }),
+          cumulativeContext: 500,
           contextDelta: null,
           source: 'session',
         }),
@@ -327,19 +326,19 @@ describe('computeTokenAnnotationsTransformer', () => {
       expect(result).toStrictEqual([
         TokenAnnotationStub({
           tokenBadgeLabel: null,
-          cumulativeContext: ContextTokenCountStub({ value: 500 }),
+          cumulativeContext: 500,
           contextDelta: null,
           source: 'session',
         }),
         TokenAnnotationStub({
           tokenBadgeLabel: null,
-          cumulativeContext: ContextTokenCountStub({ value: 1200 }),
+          cumulativeContext: 1200,
           contextDelta: null,
           source: 'subagent',
         }),
         TokenAnnotationStub({
           tokenBadgeLabel: FormattedTokenLabelStub({ value: '+700 context' }),
-          cumulativeContext: ContextTokenCountStub({ value: 1200 }),
+          cumulativeContext: 1200,
           contextDelta: ContextTokenDeltaStub({ value: 700 }),
           source: 'session',
         }),
@@ -377,13 +376,13 @@ describe('computeTokenAnnotationsTransformer', () => {
       expect(result).toStrictEqual([
         TokenAnnotationStub({
           tokenBadgeLabel: null,
-          cumulativeContext: ContextTokenCountStub({ value: 1200 }),
+          cumulativeContext: 1200,
           contextDelta: null,
           source: 'session',
         }),
         TokenAnnotationStub({
           tokenBadgeLabel: null,
-          cumulativeContext: ContextTokenCountStub({ value: 500 }),
+          cumulativeContext: 500,
           contextDelta: ContextTokenDeltaStub({ value: -700 }),
           source: 'session',
         }),
@@ -439,7 +438,7 @@ describe('computeTokenAnnotationsTransformer', () => {
         TokenAnnotationStub({
           tokenBadgeLabel: null,
           resultTokenBadgeLabel: null,
-          cumulativeContext: ContextTokenCountStub({ value: 500 }),
+          cumulativeContext: 500,
           contextDelta: null,
           source: 'subagent',
         }),
@@ -493,7 +492,7 @@ describe('computeTokenAnnotationsTransformer', () => {
         TokenAnnotationStub({
           tokenBadgeLabel: null,
           resultTokenBadgeLabel: null,
-          cumulativeContext: ContextTokenCountStub({ value: 1200 }),
+          cumulativeContext: 1200,
           contextDelta: null,
           source: 'session',
         }),
@@ -567,7 +566,7 @@ describe('computeTokenAnnotationsTransformer', () => {
       expect(result).toStrictEqual([
         TokenAnnotationStub({
           tokenBadgeLabel: null,
-          cumulativeContext: ContextTokenCountStub({ value: 500 }),
+          cumulativeContext: 500,
           contextDelta: null,
           source: 'session',
         }),
@@ -588,13 +587,13 @@ describe('computeTokenAnnotationsTransformer', () => {
         TokenAnnotationStub({
           tokenBadgeLabel: null,
           resultTokenBadgeLabel: null,
-          cumulativeContext: ContextTokenCountStub({ value: 1200 }),
+          cumulativeContext: 1200,
           contextDelta: ContextTokenDeltaStub({ value: 700 }),
           source: 'session',
         }),
         TokenAnnotationStub({
           tokenBadgeLabel: FormattedTokenLabelStub({ value: '+100 context' }),
-          cumulativeContext: ContextTokenCountStub({ value: 1300 }),
+          cumulativeContext: 1300,
           contextDelta: ContextTokenDeltaStub({ value: 100 }),
           source: 'session',
         }),
@@ -644,7 +643,7 @@ describe('computeTokenAnnotationsTransformer', () => {
         TokenAnnotationStub({
           tokenBadgeLabel: null,
           resultTokenBadgeLabel: null,
-          cumulativeContext: ContextTokenCountStub({ value: 500 }),
+          cumulativeContext: 500,
           contextDelta: null,
           source: 'session',
         }),
@@ -652,7 +651,7 @@ describe('computeTokenAnnotationsTransformer', () => {
         TokenAnnotationStub({
           tokenBadgeLabel: null,
           resultTokenBadgeLabel: null,
-          cumulativeContext: ContextTokenCountStub({ value: 500 }),
+          cumulativeContext: 500,
           contextDelta: ContextTokenDeltaStub({ value: 0 }),
           source: 'session',
         }),
@@ -701,14 +700,14 @@ describe('computeTokenAnnotationsTransformer', () => {
         TokenAnnotationStub({
           tokenBadgeLabel: null,
           resultTokenBadgeLabel: null,
-          cumulativeContext: ContextTokenCountStub({ value: 500 }),
+          cumulativeContext: 500,
           contextDelta: null,
           source: 'session',
         }),
         TokenAnnotationStub({
           tokenBadgeLabel: null,
           resultTokenBadgeLabel: null,
-          cumulativeContext: ContextTokenCountStub({ value: 1200 }),
+          cumulativeContext: 1200,
           contextDelta: null,
           source: 'subagent',
         }),
@@ -751,14 +750,14 @@ describe('computeTokenAnnotationsTransformer', () => {
       expect(result).toStrictEqual([
         TokenAnnotationStub({
           tokenBadgeLabel: null,
-          cumulativeContext: ContextTokenCountStub({ value: 500 }),
+          cumulativeContext: 500,
           contextDelta: null,
           source: 'session',
         }),
         TokenAnnotationStub({
           tokenBadgeLabel: null,
           resultTokenBadgeLabel: null,
-          cumulativeContext: ContextTokenCountStub({ value: 1200 }),
+          cumulativeContext: 1200,
           contextDelta: ContextTokenDeltaStub({ value: 700 }),
           source: 'session',
         }),

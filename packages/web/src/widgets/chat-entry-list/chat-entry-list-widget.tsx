@@ -23,7 +23,6 @@ import { useState } from '#gateway/npm/react';
 import type { ChatEntry, CssPixels } from '@dungeonmaster/shared/contracts';
 import { cssPixelsContract } from '@dungeonmaster/shared/contracts';
 
-import { contextTokenCountContract } from '../../contracts/context-token-count/context-token-count-contract';
 import type { ExecutionRole } from '../../contracts/execution-role/execution-role-contract';
 import { tailStartIndexContract } from '../../contracts/tail-start-index/tail-start-index-contract';
 import { toggleTestIdContract } from '../../contracts/toggle-test-id/toggle-test-id-contract';
@@ -212,7 +211,7 @@ export const ChatEntryListWidget = ({
     ) {
       const subagentTotalProp =
         runningSubagentTotal > 0
-          ? { subagentTotalTokens: contextTokenCountContract.parse(runningSubagentTotal) }
+          ? { subagentTotalTokens: runningSubagentTotal }
           : {};
       renderUnits.push({
         element: (

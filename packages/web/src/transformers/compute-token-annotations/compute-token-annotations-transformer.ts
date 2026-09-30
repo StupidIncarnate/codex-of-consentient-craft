@@ -9,8 +9,6 @@
  * // Returns TokenAnnotation[] with one annotation per item
  */
 
-import { contextTokenCountContract } from '../../contracts/context-token-count/context-token-count-contract';
-import type { ContextTokenCount } from '../../contracts/context-token-count/context-token-count-contract';
 import { contextTokenDeltaContract } from '../../contracts/context-token-delta/context-token-delta-contract';
 import { formattedTokenLabelContract } from '../../contracts/formatted-token-label/formatted-token-label-contract';
 import type { FormattedTokenLabel } from '../../contracts/formatted-token-label/formatted-token-label-contract';
@@ -26,8 +24,8 @@ export const computeTokenAnnotationsTransformer = ({
 }: {
   items: MergedChatItem[];
 }): TokenAnnotation[] => {
-  let prevSessionContext: ContextTokenCount | null = null;
-  let prevSubagentContext: ContextTokenCount | null = null;
+  let prevSessionContext: number | null = null;
+  let prevSubagentContext: number | null = null;
 
   return items.map((item, index): TokenAnnotation => {
     if (item.kind === 'tool-pair') {
@@ -50,7 +48,7 @@ export const computeTokenAnnotationsTransformer = ({
           : 'session';
       const isMidToolRun = nextToolUse !== null && nextSource === source;
 
-      let cumulativeContext: ContextTokenCount | null = null;
+      let cumulativeContext: number | null = null;
       let contextDelta: TokenAnnotation['contextDelta'] = null;
 
       if (totalContext !== null && !isMidToolRun) {
@@ -113,7 +111,7 @@ export const computeTokenAnnotationsTransformer = ({
         contextDelta === null || Number(contextDelta) <= 0
           ? null
           : formattedTokenLabelContract.parse(
-              `+${formatContextTokensTransformer({ count: contextTokenCountContract.parse(Number(contextDelta)) })} context`,
+              `+${formatContextTokensTransformer({ count: Number(contextDelta) })} context`,
             );
 
       if (source === 'subagent') {

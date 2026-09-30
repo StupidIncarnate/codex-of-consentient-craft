@@ -8,14 +8,13 @@
 
 import { z } from '#gateway/npm/zod';
 
-import { contextTokenCountContract } from '../context-token-count/context-token-count-contract';
 import { contextTokenDeltaContract } from '../context-token-delta/context-token-delta-contract';
 import { formattedTokenLabelContract } from '../formatted-token-label/formatted-token-label-contract';
 
 export const tokenAnnotationContract = z.object({
   tokenBadgeLabel: formattedTokenLabelContract.nullable(),
   resultTokenBadgeLabel: formattedTokenLabelContract.nullable(),
-  cumulativeContext: contextTokenCountContract.nullable(),
+  cumulativeContext: z.number().int().nonnegative().brand<'TokenAnnotationCumulativeContext'>().nullable(),
   contextDelta: contextTokenDeltaContract.nullable(),
   source: z.enum(['session', 'subagent']),
 });

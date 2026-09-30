@@ -9,16 +9,14 @@
 import { Box, Text } from '#gateway/npm/mantine__core';
 
 import type { ContextTokenDelta } from '../../contracts/context-token-delta/context-token-delta-contract';
-import type { ContextTokenCount } from '../../contracts/context-token-count/context-token-count-contract';
-import { contextTokenCountContract } from '../../contracts/context-token-count/context-token-count-contract';
 import { emberDepthsThemeStatics } from '../../statics/ember-depths-theme/ember-depths-theme-statics';
 import { formatContextTokensTransformer } from '../../transformers/format-context-tokens/format-context-tokens-transformer';
 
 export interface ContextDividerWidgetProps {
-  contextTokens: ContextTokenCount;
+  contextTokens: number;
   delta: ContextTokenDelta | null;
   source: 'session' | 'subagent';
-  subagentTotalTokens?: ContextTokenCount;
+  subagentTotalTokens?: number;
 }
 
 export const ContextDividerWidget = ({
@@ -34,7 +32,7 @@ export const ContextDividerWidget = ({
   const textColor = isSubagent ? `${colors['loot-rare']}80` : colors['text-dim'];
 
   const formattedTokens = formatContextTokensTransformer({
-    count: contextTokenCountContract.parse(contextTokens),
+    count: contextTokens,
   });
 
   const label = isSubagent ? `${formattedTokens} sub-agent context` : `${formattedTokens} context`;
@@ -43,7 +41,7 @@ export const ContextDividerWidget = ({
     delta === null
       ? null
       : formatContextTokensTransformer({
-          count: contextTokenCountContract.parse(Math.abs(Number(delta))),
+          count: Math.abs(Number(delta)),
         });
 
   const deltaColor =
@@ -56,7 +54,7 @@ export const ContextDividerWidget = ({
     subagentTotalTokens === undefined
       ? null
       : formatContextTokensTransformer({
-          count: contextTokenCountContract.parse(subagentTotalTokens),
+          count: subagentTotalTokens,
         });
 
   return (

@@ -7,23 +7,19 @@
  */
 
 import type { ChatEntry } from '@dungeonmaster/shared/contracts';
-import { contextTokenCountContract } from '../../contracts/context-token-count/context-token-count-contract';
-import type { ContextTokenCount } from '../../contracts/context-token-count/context-token-count-contract';
 
 export const computeEntryContextTransformer = ({
   entry,
 }: {
   entry: ChatEntry;
-}): ContextTokenCount | null => {
+}): number | null => {
   if (!('usage' in entry) || entry.usage === undefined) {
     return null;
   }
 
   const { usage } = entry;
 
-  return contextTokenCountContract.parse(
-    Number(usage.inputTokens) +
+  return (Number(usage.inputTokens) +
       Number(usage.cacheCreationInputTokens) +
-      Number(usage.cacheReadInputTokens),
-  );
+      Number(usage.cacheReadInputTokens));
 };

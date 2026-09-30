@@ -25,7 +25,6 @@ import type { ChatEntry, CssPixels } from '@dungeonmaster/shared/contracts';
 import { cssPixelsContract } from '@dungeonmaster/shared/contracts';
 import { useDisclosureAnchorBinding } from '../../bindings/use-disclosure-anchor/use-disclosure-anchor-binding';
 import type { ChatEntryGroup } from '../../contracts/chat-entry-group/chat-entry-group-contract';
-import { contextTokenCountContract } from '../../contracts/context-token-count/context-token-count-contract';
 import { toggleTestIdContract } from '../../contracts/toggle-test-id/toggle-test-id-contract';
 import { emberDepthsThemeStatics } from '../../statics/ember-depths-theme/ember-depths-theme-statics';
 import { stickyHeaderStatics } from '../../statics/sticky-header/sticky-header-statics';
@@ -100,7 +99,7 @@ export const SubagentChainWidget = ({
     group.contextTokens === null
       ? null
       : formatContextTokensTransformer({
-          count: contextTokenCountContract.parse(group.contextTokens),
+          count: group.contextTokens,
         });
 
   const entrySuffix =

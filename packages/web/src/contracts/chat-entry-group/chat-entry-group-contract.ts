@@ -10,7 +10,6 @@
 import { z } from '#gateway/npm/zod';
 
 import { chatEntryContract } from '@dungeonmaster/shared/contracts';
-import { contextTokenCountContract } from '../context-token-count/context-token-count-contract';
 
 const singleGroupContract = z.object({
   kind: z.literal('single'),
@@ -34,7 +33,7 @@ const baseSubagentChainGroupContract = z.object({
     .brand<'ChainCompletionDurationMs'>()
     .optional(),
   entryCount: z.number().int().nonnegative().brand<'ChainEntryCount'>(),
-  contextTokens: contextTokenCountContract.nullable(),
+  contextTokens: z.number().int().nonnegative().brand<'BaseSubagentChainGroupContextTokens'>().nullable(),
 });
 
 export type SingleGroup = z.infer<typeof singleGroupContract>;
