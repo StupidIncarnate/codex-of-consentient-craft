@@ -8,11 +8,10 @@
  * // Returns a validated CappedGrepHits
  */
 import { z } from '#gateway/npm/zod';
-import { treeOutputContract } from '../tree-output/tree-output-contract';
 
 export const cappedGrepHitsContract = z.object({
   labelSuffix: z.string().brand<'HitLabelSuffix'>(),
-  lines: z.array(treeOutputContract),
+  lines: z.array(z.string().brand<'CappedGrepHitsLines'>()),
 });
 
 export type CappedGrepHits = z.infer<typeof cappedGrepHitsContract>;

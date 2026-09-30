@@ -11,8 +11,6 @@
 import { cappedGrepHitsContract } from '../../contracts/capped-grep-hits/capped-grep-hits-contract';
 import type { CappedGrepHits } from '../../contracts/capped-grep-hits/capped-grep-hits-contract';
 import type { GrepHit } from '../../contracts/grep-hit/grep-hit-contract';
-import { treeOutputContract } from '../../contracts/tree-output/tree-output-contract';
-import type { TreeOutput } from '../../contracts/tree-output/tree-output-contract';
 import { discoverOutputCapStatics } from '../../statics/discover-output-cap/discover-output-cap-statics';
 
 export const grepHitsCapTransformer = ({
@@ -55,10 +53,10 @@ export const grepHitsCapTransformer = ({
     }
   }
 
-  const runLines: TreeOutput[] = [];
+  const runLines: string[] = [];
   for (const run of runs) {
     for (const kept of run.slice(0, maxRunLines)) {
-      runLines.push(treeOutputContract.parse(`:${kept.line}  ${kept.text}`));
+      runLines.push(`:${kept.line}  ${kept.text}`);
     }
 
     const droppedFromRun = run.length - maxRunLines;
@@ -67,9 +65,7 @@ export const grepHitsCapTransformer = ({
 
     if (droppedFromRun > 0 && firstDropped !== undefined && lastDropped !== undefined) {
       runLines.push(
-        treeOutputContract.parse(
-          `… ${droppedFromRun} more lines (:${firstDropped.line}-:${lastDropped.line})`,
-        ),
+        `… ${droppedFromRun} more lines (:${firstDropped.line}-:${lastDropped.line})`,
       );
     }
   }
@@ -87,7 +83,7 @@ export const grepHitsCapTransformer = ({
     labelSuffix: '',
     lines: [
       ...keptLines,
-      treeOutputContract.parse(`… ${hits.length - shownHitLines} more matching lines in this file`),
+      `… ${hits.length - shownHitLines} more matching lines in this file`,
     ],
   });
 };

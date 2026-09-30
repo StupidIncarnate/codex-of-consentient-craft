@@ -14,8 +14,6 @@ import { resultCountContract } from '../../../contracts/result-count/result-coun
 import type { ResultCount } from '../../../contracts/result-count/result-count-contract';
 import { fileScannerBroker } from '../../file/scanner/file-scanner-broker';
 import { treeFormatterTransformer } from '../../../transformers/tree-formatter/tree-formatter-transformer';
-import { treeOutputContract } from '../../../contracts/tree-output/tree-output-contract';
-import type { TreeOutput } from '../../../contracts/tree-output/tree-output-contract';
 import { glob as globFind } from '#gateway/npm/glob';
 import { globPatternContract } from '@dungeonmaster/shared/contracts';
 import type { GlobPattern } from '@dungeonmaster/shared/contracts';
@@ -39,7 +37,7 @@ export const mcpDiscoverBroker = async ({
   // real MCP call site (architectureHandleResponder always passes this explicitly).
   rootPath?: string;
 }): Promise<{
-  results: DiscoverResultItem[] | TreeOutput;
+  results: DiscoverResultItem[] | string;
   count: ResultCount;
 }> => {
   // Validate input
@@ -116,7 +114,7 @@ export const mcpDiscoverBroker = async ({
           `${discoverHintStatics.grepNoMatchExplanation} Glob matched ${fileHits.length} file(s).`,
         ];
         return {
-          results: treeOutputContract.parse(hintLines.join('\n')),
+          results: hintLines.join('\n'),
           count: resultCountContract.parse(0),
         };
       }
@@ -144,7 +142,7 @@ export const mcpDiscoverBroker = async ({
         ...dirRelatives.map((d) => `  ${d}/`),
       ];
       return {
-        results: treeOutputContract.parse(hintLines.join('\n')),
+        results: hintLines.join('\n'),
         count: resultCountContract.parse(0),
       };
     }

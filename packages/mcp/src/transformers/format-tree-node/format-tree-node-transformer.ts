@@ -15,8 +15,6 @@
 import type { CappedGrepHits } from '../../contracts/capped-grep-hits/capped-grep-hits-contract';
 import type { TreeItem } from '../../contracts/tree-item/tree-item-contract';
 import type { TreeNode } from '../../contracts/tree-node/tree-node-contract';
-import { treeOutputContract } from '../../contracts/tree-output/tree-output-contract';
-import type { TreeOutput } from '../../contracts/tree-output/tree-output-contract';
 
 export const formatTreeNodeTransformer = ({
   node,
@@ -26,8 +24,8 @@ export const formatTreeNodeTransformer = ({
   node: TreeNode;
   indent: number;
   hitRenders: ReadonlyMap<TreeItem, CappedGrepHits>;
-}): TreeOutput => {
-  const lines: TreeOutput[] = [];
+}): string => {
+  const lines: string[] = [];
   const indentStr = '  '.repeat(indent);
 
   // Sort children and items alphabetically
@@ -38,7 +36,7 @@ export const formatTreeNodeTransformer = ({
 
   // Render children (folders)
   for (const [childName, childNode] of sortedChildren) {
-    lines.push(treeOutputContract.parse(`${indentStr}${childName}/`));
+    lines.push(`${indentStr}${childName}/`);
     lines.push(formatTreeNodeTransformer({ node: childNode, indent: indent + 1, hitRenders }));
   }
 
@@ -50,13 +48,13 @@ export const formatTreeNodeTransformer = ({
     const labelSuffix = render === undefined ? '' : render.labelSuffix;
 
     lines.push(
-      treeOutputContract.parse(`${indentStr}${item.name}${typePart}${purposePart}${labelSuffix}`),
+      `${indentStr}${item.name}${typePart}${purposePart}${labelSuffix}`,
     );
 
     for (const hitLine of render?.lines ?? []) {
-      lines.push(treeOutputContract.parse(`${indentStr}  ${hitLine}`));
+      lines.push(`${indentStr}  ${hitLine}`);
     }
   }
 
-  return treeOutputContract.parse(lines.join('\n'));
+  return lines.join('\n');
 };

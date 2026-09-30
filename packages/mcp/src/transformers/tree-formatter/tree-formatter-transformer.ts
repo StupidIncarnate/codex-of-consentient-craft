@@ -18,8 +18,6 @@ import type { TreeItem } from '../../contracts/tree-item/tree-item-contract';
 import { treeNodeContract } from '../../contracts/tree-node/tree-node-contract';
 import type { TreeNode } from '../../contracts/tree-node/tree-node-contract';
 import { folderNameContract } from '../../contracts/folder-name/folder-name-contract';
-import { treeOutputContract } from '../../contracts/tree-output/tree-output-contract';
-import type { TreeOutput } from '../../contracts/tree-output/tree-output-contract';
 import { formatTreeNodeTransformer } from '../format-tree-node/format-tree-node-transformer';
 import { grepHitsCapTransformer } from '../grep-hits-cap/grep-hits-cap-transformer';
 import { pathToTreeRelativeTransformer } from '../path-to-tree-relative/path-to-tree-relative-transformer';
@@ -29,9 +27,9 @@ export const treeFormatterTransformer = ({
   items: rawItems,
 }: {
   items: readonly TreeItem[];
-}): TreeOutput => {
+}): string => {
   if (rawItems.length === 0) {
-    return treeOutputContract.parse('');
+    return '';
   }
 
   // Parsed once, up front: the tree and the hit budget below both key on these very objects.
@@ -101,5 +99,5 @@ export const treeFormatterTransformer = ({
         `${folderName}/\n${formatTreeNodeTransformer({ node: folderNode, indent: 1, hitRenders })}`,
     );
 
-  return treeOutputContract.parse(rootFolders.join('\n\n'));
+  return rootFolders.join('\n\n');
 };
