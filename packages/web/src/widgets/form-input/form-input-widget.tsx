@@ -6,7 +6,6 @@
  * // Renders a styled input element with bg-deep background and border
  */
 
-import type { FormPlaceholder } from '../../contracts/form-placeholder/form-placeholder-contract';
 import { emberDepthsThemeStatics } from '../../statics/ember-depths-theme/ember-depths-theme-statics';
 
 const FONT_SIZE = 11;
@@ -16,7 +15,7 @@ const PADDING = '2px 6px';
 export interface FormInputWidgetProps {
   value: string;
   onChange: (value: string) => void;
-  placeholder?: FormPlaceholder;
+  placeholder?: string;
   width?: string;
   mt?: number;
   color?: string;

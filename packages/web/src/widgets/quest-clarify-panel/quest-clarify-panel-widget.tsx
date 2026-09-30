@@ -14,7 +14,6 @@ import { Group, Stack, Text, UnstyledButton } from '#gateway/npm/mantine__core';
 
 import type { AskUserQuestionItem, AskUserQuestionOption } from '@dungeonmaster/shared/contracts';
 import type { ButtonLabel } from '../../contracts/button-label/button-label-contract';
-import type { FormPlaceholder } from '../../contracts/form-placeholder/form-placeholder-contract';
 import { emberDepthsThemeStatics } from '../../statics/ember-depths-theme/ember-depths-theme-statics';
 import { FormInputWidget } from '../form-input/form-input-widget';
 import { PixelBtnWidget } from '../pixel-btn/pixel-btn-widget';
@@ -113,7 +112,7 @@ export const QuestClarifyPanelWidget = ({
                 onChange={(value: string): void => {
                   setFreeformValue(value);
                 }}
-                placeholder={'Type your answer...' as FormPlaceholder}
+                placeholder={'Type your answer...' as string}
                 autoFocus={true}
               />
               <PixelBtnWidget
