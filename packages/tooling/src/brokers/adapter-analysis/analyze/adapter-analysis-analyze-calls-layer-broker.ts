@@ -62,9 +62,7 @@ export const adapterAnalysisAnalyzeCallsLayerBroker = ({
       continue;
     }
     if (!ts.isIdentifier(root)) {
-      reasons.add(
-        props.length > 0 ? 'method-on-held-value' : 'calls-held-value',
-      );
+      reasons.add(props.length > 0 ? 'method-on-held-value' : 'calls-held-value');
       continue;
     }
     if (chained) {
@@ -85,9 +83,7 @@ export const adapterAnalysisAnalyzeCallsLayerBroker = ({
       });
       if (origin === 'repo') {
         if (lastProp !== 'parse' && lastProp !== 'safeParse') {
-          reasons.add(
-            rootName.endsWith('Adapter') ? 'calls-adapter' : 'calls-repo-code',
-          );
+          reasons.add(rootName.endsWith('Adapter') ? 'calls-adapter' : 'calls-repo-code');
         }
       } else {
         const isNamed = binding.name !== 'default' && binding.name !== '*';
@@ -99,9 +95,7 @@ export const adapterAnalysisAnalyzeCallsLayerBroker = ({
         );
       }
     } else if (declared.has(rootName)) {
-      reasons.add(
-        props.length > 0 ? 'method-on-held-value' : 'calls-held-value',
-      );
+      reasons.add(props.length > 0 ? 'method-on-held-value' : 'calls-held-value');
     } else if (censusLanguageGlobalsStatics.names.some((name) => name === rootName)) {
       if (rootName === 'Promise' && ts.isNewExpression(node)) {
         reasons.add('promise-construction');

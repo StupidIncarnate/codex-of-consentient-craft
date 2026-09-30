@@ -7,6 +7,7 @@
  */
 
 import type { ChatEntry } from '@dungeonmaster/shared/contracts';
+import { chatEntryGroupContract } from '../../contracts/chat-entry-group/chat-entry-group-contract';
 import type {
   ChatEntryGroup,
   SingleGroup,
@@ -218,7 +219,7 @@ export const collectSubagentChainsTransformer = ({
   // Validated, then the ORIGINAL groups are returned: the parse copies every entry, and callers key
   // Maps, Sets and in-flight tests on the identity of the ChatEntry objects they passed in.
   for (const group of groups) {
-    group;
+    chatEntryGroupContract.parse(group);
   }
 
   return groups;

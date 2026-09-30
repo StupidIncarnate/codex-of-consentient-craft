@@ -354,10 +354,7 @@ export const runExecuteBroker = async ({
     failedStep: stoppedAt === null ? null : stoppedAt.step,
   });
 
-  const status: RunStatus =
-    firstStop === null
-      ? 'done'
-      : firstStop.timedOut ? 'timeout' : 'failed';
+  const status: RunStatus = firstStop === null ? 'done' : firstStop.timedOut ? 'timeout' : 'failed';
 
   // First step's own start to last step's own end — real wall clock, off the SAME
   // `startedAtMs`/`endedAtMs` pair `stepDispatchBroker` already stamps onto every reading, never a

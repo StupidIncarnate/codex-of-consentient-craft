@@ -104,9 +104,7 @@ export const statusReadBroker = async ({
   // pair. null for a fleet listing: no single id was named, so there is no "state of the id you
   // asked about" to report.
   const queriedInstanceState: InstanceState | null =
-    instanceId === null
-      ? null
-      : (entryStatePairs[0]?.state ?? 'unknown');
+    instanceId === null ? null : (entryStatePairs[0]?.state ?? 'unknown');
 
   const machine = await machineReadBroker();
 

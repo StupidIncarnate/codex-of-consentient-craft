@@ -87,7 +87,7 @@ export const healthReadingRenderTransformer = ({
   const renderedText = `${verdict.padEnd(healthStatics.formatting.verdictPaddedLength, ' ')}${segments.join(healthStatics.formatting.separator)}`;
 
   return healthReadingContract.parse({
-    verdict: verdict,
+    verdict,
     rootPresent,
     blank,
     blankColour,

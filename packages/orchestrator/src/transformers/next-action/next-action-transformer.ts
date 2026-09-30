@@ -410,8 +410,8 @@ export const nextActionTransformer = ({
                   declaredWord:
                     declaredWord ??
                     (node.role === 'planner' && (plan === null || plan.batches.length === 0)
-                        ? 'empty'
-                        : 'done'),
+                      ? 'empty'
+                      : 'done'),
                   hitWall: false,
                 })
               : deriveOutcomeTransformer({
