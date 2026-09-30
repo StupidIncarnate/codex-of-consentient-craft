@@ -14,13 +14,7 @@ import {
   questContract,
   workItemContract,
 } from '@dungeonmaster/shared/contracts';
-import type {
-  FilePath,
-  Quest,
-  QuestId,
-  QuestWorkItemId,
-  WorkItem,
-} from '@dungeonmaster/shared/contracts';
+import type { FilePath, Quest, QuestWorkItemId, WorkItem } from '@dungeonmaster/shared/contracts';
 
 import type { IsoTimestamp } from '../../../contracts/iso-timestamp/iso-timestamp-contract';
 import { questPersistBroker } from '../persist/quest-persist-broker';
@@ -37,7 +31,7 @@ export const workItemPatchLayerBroker = async ({
 }: {
   quest: Quest;
   questFilePath: FilePath;
-  questId: QuestId;
+  questId: Quest['id'];
   workItemId: QuestWorkItemId;
   patch: Partial<WorkItem>;
   nowAt: IsoTimestamp;

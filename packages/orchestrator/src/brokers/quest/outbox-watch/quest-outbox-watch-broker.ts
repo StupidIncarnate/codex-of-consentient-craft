@@ -15,7 +15,7 @@
 
 import { dungeonmasterHomeEnsureBroker } from '@dungeonmaster/shared/brokers';
 import { filePathContract } from '@dungeonmaster/shared/contracts';
-import type { QuestId } from '@dungeonmaster/shared/contracts';
+import type { Quest } from '@dungeonmaster/shared/contracts';
 import { locationsStatics } from '@dungeonmaster/shared/statics';
 import { tailFile } from '#gateway/node/fs';
 import { appendFile, writeFile } from '#gateway/node/fs__promises';
@@ -28,7 +28,7 @@ export const questOutboxWatchBroker = async ({
   onError,
   resetOnStart = false,
 }: {
-  onQuestChanged: (args: { questId: QuestId }) => void;
+  onQuestChanged: (args: { questId: Quest['id'] }) => void;
   onError: (args: { error: unknown }) => void;
   // TRUE on exactly ONE caller — `QuestDrivenWatchersBootstrapResponder`, which `StartServer` runs
   // once per HTTP server boot and which no MCP child ever reaches. Emptying the outbox there is the

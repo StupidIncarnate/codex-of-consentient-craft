@@ -8,7 +8,7 @@
 
 import { dungeonmasterHomeFindBroker } from '@dungeonmaster/shared/brokers';
 import { filePathContract } from '@dungeonmaster/shared/contracts';
-import type { GuildId, QuestId } from '@dungeonmaster/shared/contracts';
+import type { GuildId, Quest } from '@dungeonmaster/shared/contracts';
 import { dungeonmasterHomeStatics } from '@dungeonmaster/shared/statics';
 import { rm } from '#gateway/node/fs__promises';
 import { join } from '#gateway/node/path';
@@ -19,7 +19,7 @@ export const questDeleteBroker = async ({
   questId,
   guildId,
 }: {
-  questId: QuestId;
+  questId: Quest['id'];
   guildId: GuildId;
 }): Promise<void> => {
   const { homePath } = dungeonmasterHomeFindBroker();

@@ -5,14 +5,7 @@ import { join } from '#gateway/node/path';
 import { dungeonmasterHomeFindBrokerProxy } from '@dungeonmaster/shared/brokers/dungeonmaster-home/find/dungeonmaster-home-find-broker.proxy';
 import { fileNameContract, filePathContract } from '@dungeonmaster/shared/contracts';
 import { FileContentsStub } from '@dungeonmaster/shared/contracts/file-contents/file-contents.stub';
-import type {
-  AbsoluteFilePath,
-  FileContents,
-  FileName,
-  FilePath,
-  GuildId,
-  QuestId,
-} from '@dungeonmaster/shared/contracts';
+import type { AbsoluteFilePath, FileContents, FileName, FilePath, GuildId, Quest } from '@dungeonmaster/shared/contracts';
 import { dungeonmasterHomeStatics, locationsStatics } from '@dungeonmaster/shared/statics';
 import {
   registerMock,
@@ -234,7 +227,7 @@ export const questFindQuestPathBrokerProxy = (): {
   // `@dungeonmaster/orchestrator` barrel gets the identical answer — see the barrel-export mock
   // wired below, right where this file's own real, relatively-imported broker is wired too.
   setupQuestPath: (params: {
-    questId: QuestId;
+    questId: Quest['id'];
     guildId: GuildId;
     questPath: AbsoluteFilePath;
     // A real process has one home. Omit this to get a per-questId fixture home this scenario
@@ -243,12 +236,12 @@ export const questFindQuestPathBrokerProxy = (): {
     // resolution also has to run through this one process's homedir().
     homeDir?: string;
   }) => void;
-  setupQuestPathError: (params: { questId: QuestId; homeDir?: string }) => void;
+  setupQuestPathError: (params: { questId: Quest['id']; homeDir?: string }) => void;
   // Answers one questId outright, without running the real lookup or staging any fs — for a caller
   // whose test shares `join` and `homedir` mocks with other real code that setupQuestPath's staging
   // would corrupt. Any other questId runs the real broker.
   setupResolves: (params: {
-    questId: QuestId;
+    questId: Quest['id'];
     questPath: AbsoluteFilePath;
     guildId: GuildId;
   }) => void;
@@ -302,7 +295,7 @@ export const questFindQuestPathBrokerProxy = (): {
       questPath,
       guildId,
     }: {
-      questId: QuestId;
+      questId: Quest['id'];
       questPath: AbsoluteFilePath;
       guildId: GuildId;
     }): void => {
@@ -465,7 +458,7 @@ export const questFindQuestPathBrokerProxy = (): {
       questPath,
       homeDir: givenHomeDir,
     }: {
-      questId: QuestId;
+      questId: Quest['id'];
       guildId: GuildId;
       questPath: AbsoluteFilePath;
       homeDir?: string;
@@ -508,7 +501,7 @@ export const questFindQuestPathBrokerProxy = (): {
       questId,
       homeDir: givenHomeDir,
     }: {
-      questId: QuestId;
+      questId: Quest['id'];
       homeDir?: string;
     }): void => {
       findMock.calledWith([{ questId }]).implement(realMod.questFindQuestPathBroker as never);

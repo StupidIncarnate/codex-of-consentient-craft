@@ -18,7 +18,7 @@
 
 import { now } from '#gateway/node/Date';
 import { setTimeout } from '#gateway/node/setTimeout';
-import type { Quest, QuestId } from '@dungeonmaster/shared/contracts';
+import type { Quest } from '@dungeonmaster/shared/contracts';
 import {
   isChatWorkItemRoleGuard,
   isPendingWorkItemStatusGuard,
@@ -34,7 +34,7 @@ export const questWaitForSessionStampBroker = async ({
   deadline,
   intervalMs,
 }: {
-  questId: QuestId;
+  questId: Quest['id'];
   current?: Quest;
   deadline?: number;
   intervalMs?: number;

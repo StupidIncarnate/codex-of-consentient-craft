@@ -20,7 +20,7 @@
  * placeholder values.
  */
 
-import type { GuildId, ProcessId, QuestId, WorkItem } from '@dungeonmaster/shared/contracts';
+import type { GuildId, ProcessId, WorkItem, Quest } from '@dungeonmaster/shared/contracts';
 import { workItemContract } from '@dungeonmaster/shared/contracts';
 
 import { promptTextContract } from '../../contracts/prompt-text/prompt-text-contract';
@@ -38,7 +38,7 @@ export const smoketestSubstituteWorkItemPlaceholdersTransformer = ({
   processId,
 }: {
   workItems: readonly WorkItem[];
-  questId: QuestId;
+  questId: Quest['id'];
   guildId: GuildId;
   processId: ProcessId;
 }): WorkItem[] =>

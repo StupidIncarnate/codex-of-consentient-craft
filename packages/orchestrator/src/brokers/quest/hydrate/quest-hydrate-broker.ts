@@ -17,23 +17,8 @@
  */
 
 import { randomUUID } from '#gateway/node/crypto';
-import {
-  addQuestInputContract,
-  fileContentsContract,
-  operationItemContract,
-  questContract,
-  questIdContract,
-  questWorkItemIdContract,
-  stepNameContract,
-  workItemContract,
-} from '@dungeonmaster/shared/contracts';
-import type {
-  GuildId,
-  QuestId,
-  QuestSource,
-  QuestStatus,
-  WorkItemRole,
-} from '@dungeonmaster/shared/contracts';
+import { addQuestInputContract, fileContentsContract, operationItemContract, questContract, questWorkItemIdContract, stepNameContract, workItemContract } from '@dungeonmaster/shared/contracts';
+import type { GuildId, QuestSource, QuestStatus, WorkItemRole, Quest } from '@dungeonmaster/shared/contracts';
 import { isCommandWorkItemRoleGuard } from '@dungeonmaster/shared/guards';
 
 import { isoTimestampContract } from '../../../contracts/iso-timestamp/iso-timestamp-contract';
@@ -67,8 +52,8 @@ export const questHydrateBroker = async ({
   questSource?: QuestSource;
   createdAt?: IsoTimestamp;
   updatedAt?: IsoTimestamp;
-}): Promise<{ questId: QuestId }> => {
-  const questId = blueprint.fixedQuestId ?? questIdContract.parse(randomUUID());
+}): Promise<{ questId: Quest['id'] }> => {
+  const questId = blueprint.fixedQuestId ?? questContract.shape.id.parse(randomUUID());
   const targetStatus: QuestStatus = blueprint.targetStatus ?? 'in_progress';
 
   // 1. Create the quest folder + initial quest.json at status 'created'

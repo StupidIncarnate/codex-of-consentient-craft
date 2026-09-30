@@ -23,20 +23,13 @@ import {
   wardResultContract,
   riftcarverResultContract,
 } from '@dungeonmaster/shared/contracts';
-import type {
-  QuestId,
-  ContentText,
-  WorkItem,
-  OperationItem,
-  WardResult,
-  RiftcarverResult,
-} from '@dungeonmaster/shared/contracts';
+import type { ContentText, WorkItem, OperationItem, WardResult, RiftcarverResult, Quest } from '@dungeonmaster/shared/contracts';
 import { questFindBroker } from '../find/quest-find-broker';
 
 export const questIndexLoadBroker = ({
   questId,
 }: {
-  questId: QuestId;
+  questId: Quest['id'];
 }): {
   userRequest: ContentText | undefined;
   workItems: readonly WorkItem[];

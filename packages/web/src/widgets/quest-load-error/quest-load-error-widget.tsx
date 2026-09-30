@@ -11,7 +11,7 @@
 
 import { Box, Group } from '#gateway/npm/mantine__core';
 
-import type { QuestId } from '@dungeonmaster/shared/contracts';
+import type { Quest } from '@dungeonmaster/shared/contracts';
 
 import type { ErrorBody } from '../../contracts/error-body/error-body-contract';
 import { emberDepthsThemeStatics } from '../../statics/ember-depths-theme/ember-depths-theme-statics';
@@ -20,7 +20,7 @@ const ROW_FONT_SIZE = 11;
 const DETAIL_FONT_SIZE = 9;
 
 export interface QuestLoadErrorWidgetProps {
-  questId: QuestId;
+  questId: Quest['id'];
   reason: ErrorBody['error'];
 }
 

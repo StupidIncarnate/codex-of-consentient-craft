@@ -42,11 +42,7 @@
  * // Returns the reloaded Quest record once every hop between "created" and "explore_flows" lands
  */
 import { questGetBroker, questModifyBroker } from '@dungeonmaster/orchestrator/brokers';
-import {
-  getQuestInputContract,
-  questContract,
-  questIdContract,
-} from '@dungeonmaster/shared/contracts';
+import { getQuestInputContract, questContract } from '@dungeonmaster/shared/contracts';
 import type { Quest, QuestStatus } from '@dungeonmaster/shared/contracts';
 
 import { dmHttpRequestBroker } from '../../dm/http-request/dm-http-request-broker';
@@ -73,7 +69,7 @@ export const questReachRouteBroker = async ({
   record: Record<string, unknown>;
   extraFields?: Record<string, unknown>;
 }): Promise<Quest> => {
-  const questId = questIdContract.parse(record.id);
+  const questId = questContract.shape.id.parse(record.id);
   const hops = questStatusWalkPathTransformer({ from, to });
 
   const gateContentFields = Object.fromEntries(

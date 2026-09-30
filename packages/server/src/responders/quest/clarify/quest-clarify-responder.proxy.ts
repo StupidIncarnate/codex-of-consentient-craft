@@ -1,6 +1,5 @@
 import { questFindQuestPathBrokerProxy } from '@dungeonmaster/orchestrator/brokers/quest/find-quest-path/quest-find-quest-path-broker.proxy';
 import { StartOrchestratorProxy } from '@dungeonmaster/orchestrator/startup/start-orchestrator.proxy';
-import type { QuestId } from '@dungeonmaster/shared/contracts';
 import type { AbsoluteFilePathStub } from '@dungeonmaster/shared/contracts/absolute-file-path/absolute-file-path.stub';
 import type { GuildIdStub } from '@dungeonmaster/shared/contracts/guild-id/guild-id.stub';
 import type { ProcessIdStub } from '@dungeonmaster/shared/contracts/process-id/process-id.stub';
@@ -15,14 +14,14 @@ type AbsoluteFilePath = ReturnType<typeof AbsoluteFilePathStub>;
 
 export const QuestClarifyResponderProxy = (): {
   setupQuestLoad: (params: { quest: Quest }) => void;
-  setupQuestLoadError: (params: { questId: QuestId; error: Error }) => void;
+  setupQuestLoadError: (params: { questId: Quest['id']; error: Error }) => void;
   setupFindQuestPath: (params: {
-    questId: QuestId;
+    questId: Quest['id'];
     guildId: GuildId;
     questPath: AbsoluteFilePath;
   }) => void;
-  setupClarify: (params: { questId: QuestId; chatProcessId: ProcessId }) => void;
-  setupClarifyError: (params: { questId: QuestId; message: string }) => void;
+  setupClarify: (params: { questId: Quest['id']; chatProcessId: ProcessId }) => void;
+  setupClarifyError: (params: { questId: Quest['id']; message: string }) => void;
   callResponder: typeof QuestClarifyResponder;
 } => {
   const orchestrator = StartOrchestratorProxy();
@@ -37,7 +36,7 @@ export const QuestClarifyResponderProxy = (): {
     setupQuestLoad: ({ quest }: { quest: Quest }): void => {
       orchestrator.loadQuestReturns({ questId: quest.id, quest });
     },
-    setupQuestLoadError: ({ questId, error }: { questId: QuestId; error: Error }): void => {
+    setupQuestLoadError: ({ questId, error }: { questId: Quest['id']; error: Error }): void => {
       orchestrator.loadQuestThrows({ questId, error });
     },
     setupFindQuestPath: ({
@@ -45,7 +44,7 @@ export const QuestClarifyResponderProxy = (): {
       guildId,
       questPath,
     }: {
-      questId: QuestId;
+      questId: Quest['id'];
       guildId: GuildId;
       questPath: AbsoluteFilePath;
     }): void => {
@@ -55,12 +54,12 @@ export const QuestClarifyResponderProxy = (): {
       questId,
       chatProcessId,
     }: {
-      questId: QuestId;
+      questId: Quest['id'];
       chatProcessId: ProcessId;
     }): void => {
       orchestrator.clarifyAnswerReturns({ questId, chatProcessId });
     },
-    setupClarifyError: ({ questId, message }: { questId: QuestId; message: string }): void => {
+    setupClarifyError: ({ questId, message }: { questId: Quest['id']; message: string }): void => {
       orchestrator.clarifyAnswerThrows({ questId, error: new Error(message) });
     },
     callResponder: QuestClarifyResponder,

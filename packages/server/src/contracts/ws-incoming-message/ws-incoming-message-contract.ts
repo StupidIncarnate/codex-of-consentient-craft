@@ -7,12 +7,7 @@
  */
 
 import { z } from '#gateway/npm/zod';
-import {
-  guildIdContract,
-  processIdContract,
-  questIdContract,
-  sessionIdContract,
-} from '@dungeonmaster/shared/contracts';
+import { guildIdContract, processIdContract, sessionIdContract, questContract } from '@dungeonmaster/shared/contracts';
 
 export const wsIncomingMessageContract = z.discriminatedUnion('type', [
   z.object({
@@ -23,20 +18,20 @@ export const wsIncomingMessageContract = z.discriminatedUnion('type', [
   }),
   z.object({
     type: z.literal('ward-detail-request'),
-    questId: questIdContract,
+    questId: questContract.shape.id,
     wardResultId: z.string().min(1).brand<'WardResultIdRaw'>(),
   }),
   z.object({
     type: z.literal('subscribe-quest'),
-    questId: questIdContract,
+    questId: questContract.shape.id,
   }),
   z.object({
     type: z.literal('unsubscribe-quest'),
-    questId: questIdContract,
+    questId: questContract.shape.id,
   }),
   z.object({
     type: z.literal('replay-quest-history'),
-    questId: questIdContract,
+    questId: questContract.shape.id,
   }),
 ]);
 

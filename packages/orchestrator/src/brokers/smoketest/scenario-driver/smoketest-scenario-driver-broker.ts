@@ -32,7 +32,7 @@
 import { AbortController } from '#gateway/node/AbortController';
 import { clearInterval } from '#gateway/node/clearInterval';
 import { setInterval } from '#gateway/node/setInterval';
-import type { ProcessId, QuestId, WorkItemRole } from '@dungeonmaster/shared/contracts';
+import type { ProcessId, WorkItemRole, Quest } from '@dungeonmaster/shared/contracts';
 
 import { GuildNotFoundError } from '../../../errors/guild-not-found/guild-not-found-error';
 import { QuestNotFoundError } from '../../../errors/quest-not-found/quest-not-found-error';
@@ -63,11 +63,11 @@ export const smoketestScenarioDriverBroker = async ({
   onQuestGone,
   pollIntervalMs,
 }: {
-  questId: QuestId;
+  questId: Quest['id'];
   dispense: Dispense;
   subscribe: (handler: QuestModifiedHandler) => void;
   unsubscribe: (handler: QuestModifiedHandler) => void;
-  onQuestGone?: (params: { questId: QuestId }) => void;
+  onQuestGone?: (params: { questId: Quest['id'] }) => void;
   pollIntervalMs?: number;
 }): Promise<{ stop: () => void }> => {
   const abortController = new AbortController();

@@ -12,10 +12,10 @@
  */
 import { z } from '#gateway/npm/zod';
 
-import { questIdContract } from '@dungeonmaster/shared/contracts';
+import { questContract } from '@dungeonmaster/shared/contracts';
 
 export const dmQuestOutboxLineContract = z.object({
-  questId: questIdContract,
+  questId: questContract.shape.id,
   timestamp: z.iso.datetime().brand<'DmQuestOutboxTimestamp'>(),
 });
 

@@ -14,18 +14,7 @@
  */
 import { useCallback, useEffect, useMemo, useRef, useState } from '#gateway/npm/react';
 
-import type {
-  AskUserQuestionItem,
-  ChatEntry,
-  ChatEntryUuid,
-  PastedImageUpload,
-  ProcessId,
-  Quest,
-  QuestId,
-  QuestWorkItemId,
-  SessionId,
-  UserInput,
-} from '@dungeonmaster/shared/contracts';
+import type { AskUserQuestionItem, ChatEntry, ChatEntryUuid, PastedImageUpload, ProcessId, Quest, QuestWorkItemId, SessionId, UserInput } from '@dungeonmaster/shared/contracts';
 import {
   askUserQuestionContract,
   chatEntryContract,
@@ -71,7 +60,7 @@ const SYNTHETIC_SESSION_KEY = '__no_session__' as SessionId;
 export const useQuestChatBinding = ({
   questId,
 }: {
-  questId: QuestId | null;
+  questId: Quest['id'] | null;
 }): {
   entriesBySession: Map<SessionId, ChatEntry[]>;
   entriesByWorkItem: Map<QuestWorkItemId, ChatEntry[]>;
@@ -263,11 +252,11 @@ export const useQuestChatBinding = ({
     }
   }, [followupEntries, followupLocalEntries]);
 
-  const questIdRef = useRef<QuestId | null>(questId);
+  const questIdRef = useRef<Quest['id'] | null>(questId);
   questIdRef.current = questId;
 
   // Track the questId that was active at subscribe time so cleanup sends the correct id
-  const subscribedQuestIdRef = useRef<QuestId | null>(null);
+  const subscribedQuestIdRef = useRef<Quest['id'] | null>(null);
 
   // The chatProcessId of the turn the running state is tracking, learned from whichever send
   // dispatched it. Every completion frame names the process it belongs to, so a foreign one — a
@@ -311,7 +300,7 @@ export const useQuestChatBinding = ({
   // those are keyed by sessionId, so the next quest's follow-up transcript never reads another
   // quest's bucket, while these optimistic entries carry no key at all and would render the
   // previous quest's question in the new quest's FOLLOW-UP tab.
-  const previousQuestIdRef = useRef<QuestId | null>(questId);
+  const previousQuestIdRef = useRef<Quest['id'] | null>(questId);
   // Mirror of followupLocalEntries for the switch effect below, which must NOT take the array as a
   // dependency: it would then re-run on every follow-up entry and reset the running state mid-turn.
   // Written during render, the same way questIdRef above carries questId into closures set up once.

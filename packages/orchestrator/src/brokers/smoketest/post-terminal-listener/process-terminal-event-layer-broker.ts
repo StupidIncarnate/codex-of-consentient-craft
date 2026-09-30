@@ -16,12 +16,7 @@ import {
   smoketestCaseResultContract,
 } from '@dungeonmaster/shared/contracts';
 import { locationsStatics } from '@dungeonmaster/shared/statics';
-import type {
-  AbsoluteFilePath,
-  Quest,
-  QuestId,
-  SmoketestCaseResult,
-} from '@dungeonmaster/shared/contracts';
+import type { AbsoluteFilePath, Quest, SmoketestCaseResult } from '@dungeonmaster/shared/contracts';
 import { isTerminalQuestStatusGuard } from '@dungeonmaster/shared/guards';
 import { join } from '#gateway/node/path';
 
@@ -44,10 +39,10 @@ export const processTerminalEventLayerBroker = async ({
   scenarioMeta,
   unregisterListener,
 }: {
-  questId: QuestId;
+  questId: Quest['id'];
   entry: SmoketestListenerEntry;
   scenarioMeta: SmoketestScenarioMeta;
-  unregisterListener: ({ questId }: { questId: QuestId }) => void;
+  unregisterListener: ({ questId }: { questId: Quest['id'] }) => void;
 }): Promise<void> => {
   // The quest may have been deleted between the outbox event being appended and this
   // handler running (e.g. the user abandoned + deleted a stuck smoketest quest, or the

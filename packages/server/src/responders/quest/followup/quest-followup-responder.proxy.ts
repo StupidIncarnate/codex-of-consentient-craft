@@ -2,7 +2,6 @@ import { join } from '#gateway/node/path';
 import { questFindQuestPathBrokerProxy } from '@dungeonmaster/orchestrator/brokers/quest/find-quest-path/quest-find-quest-path-broker.proxy';
 import { StartOrchestratorProxy } from '@dungeonmaster/orchestrator/startup/start-orchestrator.proxy';
 import { AbsoluteFilePathStub } from '@dungeonmaster/shared/contracts/absolute-file-path/absolute-file-path.stub';
-import type { QuestId } from '@dungeonmaster/shared/contracts';
 import type { GuildIdStub } from '@dungeonmaster/shared/contracts/guild-id/guild-id.stub';
 import type { ProcessIdStub } from '@dungeonmaster/shared/contracts/process-id/process-id.stub';
 import type { QuestStub } from '@dungeonmaster/shared/contracts/quest/quest.stub';
@@ -19,16 +18,16 @@ type AbsoluteFilePath = ReturnType<typeof AbsoluteFilePathStub>;
 
 export const QuestFollowupResponderProxy = (): {
   setupQuestLoad: (params: { quest: Quest }) => void;
-  setupQuestLoadError: (params: { questId: QuestId; error: Error }) => void;
+  setupQuestLoadError: (params: { questId: Quest['id']; error: Error }) => void;
   setupFindQuestPath: (params: {
-    questId: QuestId;
+    questId: Quest['id'];
     guildId: GuildId;
     // A real process has one home. Pass the SAME homePath given to setupPastedImageHome so both
     // proxies' real chains resolve through the identical dungeonmasterHomeFindBroker() answer.
     homePath?: string;
   }) => void;
-  setupStartFollowupChat: (params: { questId: QuestId; chatProcessId: ProcessId }) => void;
-  setupStartFollowupChatError: (params: { questId: QuestId; error: Error }) => void;
+  setupStartFollowupChat: (params: { questId: Quest['id']; chatProcessId: ProcessId }) => void;
+  setupStartFollowupChatError: (params: { questId: Quest['id']; error: Error }) => void;
   getStartFollowupChatCalls: () => readonly unknown[];
   setupPastedImageHome: (params: { homePath: string }) => void;
   stagePastedImageIds: (params: { ids: readonly string[] }) => void;
@@ -62,7 +61,7 @@ export const QuestFollowupResponderProxy = (): {
     setupQuestLoad: ({ quest }: { quest: Quest }): void => {
       orchestrator.loadQuestReturns({ questId: quest.id, quest });
     },
-    setupQuestLoadError: ({ questId, error }: { questId: QuestId; error: Error }): void => {
+    setupQuestLoadError: ({ questId, error }: { questId: Quest['id']; error: Error }): void => {
       orchestrator.loadQuestThrows({ questId, error });
     },
     setupFindQuestPath: ({
@@ -70,7 +69,7 @@ export const QuestFollowupResponderProxy = (): {
       guildId,
       homePath,
     }: {
-      questId: QuestId;
+      questId: Quest['id'];
       guildId: GuildId;
       homePath?: string;
     }): void => {
@@ -97,12 +96,12 @@ export const QuestFollowupResponderProxy = (): {
       questId,
       chatProcessId,
     }: {
-      questId: QuestId;
+      questId: Quest['id'];
       chatProcessId: ProcessId;
     }): void => {
       orchestrator.startFollowupChatReturns({ questId, chatProcessId });
     },
-    setupStartFollowupChatError: ({ questId, error }: { questId: QuestId; error: Error }): void => {
+    setupStartFollowupChatError: ({ questId, error }: { questId: Quest['id']; error: Error }): void => {
       orchestrator.startFollowupChatThrows({ questId, error });
     },
     // Every call the adapter received, so a rejected-status test can prove it received NONE —

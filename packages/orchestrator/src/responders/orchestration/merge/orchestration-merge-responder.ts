@@ -22,7 +22,7 @@ import {
   questWorkItemIdContract,
   workItemContract,
 } from '@dungeonmaster/shared/contracts';
-import type { QuestId } from '@dungeonmaster/shared/contracts';
+import type { Quest } from '@dungeonmaster/shared/contracts';
 import {
   isMergeableQuestStatusGuard,
   isPostQuestChatWorkItemRoleGuard,
@@ -38,7 +38,7 @@ import { warpgateOperationStatics } from '../../../statics/warpgate-operation/wa
 export const OrchestrationMergeResponder = async ({
   questId,
 }: {
-  questId: QuestId;
+  questId: Quest['id'];
 }): Promise<{ merging: boolean }> => {
   const input = getQuestInputContract.parse({ questId });
   const getResult = await questGetBroker({ input });

@@ -17,8 +17,8 @@
 
 import { console } from '#gateway/browser/console';
 import { keys, readItem, removeItem, writeItem } from '#gateway/browser/localStorage';
-import { questIdContract } from '@dungeonmaster/shared/contracts';
-import type { QuestId } from '@dungeonmaster/shared/contracts';
+import { questContract } from '@dungeonmaster/shared/contracts';
+import type { Quest } from '@dungeonmaster/shared/contracts';
 
 import type { CommentAnchor } from '../../contracts/comment-anchor/comment-anchor-contract';
 import { commentQueueStoredContract } from '../../contracts/comment-queue-stored/comment-queue-stored-contract';
@@ -28,7 +28,7 @@ import { commentQueueStatics } from '../../statics/comment-queue/comment-queue-s
 import { commentQueueSweepTransformer } from '../../transformers/comment-queue-sweep/comment-queue-sweep-transformer';
 
 const state = {
-  subscribers: new Map<QuestId, Set<() => void>>(),
+  subscribers: new Map<Quest['id'], Set<() => void>>(),
 
   readEntries: ({ key }: { key: string }): CommentQueueEntry[] => {
     // readItem already degrades a disabled/unreadable storage (private browsing, a locked-down
@@ -66,7 +66,7 @@ const state = {
     }
   },
 
-  notify: ({ questId }: { questId: QuestId }): void => {
+  notify: ({ questId }: { questId: Quest['id'] }): void => {
     const listeners = state.subscribers.get(questId);
     if (listeners === undefined) return;
     listeners.forEach((listener) => {
@@ -76,10 +76,10 @@ const state = {
 };
 
 export const commentQueueState = {
-  read: ({ questId }: { questId: QuestId }): CommentQueueEntry[] =>
+  read: ({ questId }: { questId: Quest['id'] }): CommentQueueEntry[] =>
     state.readEntries({ key: `${commentQueueStatics.storage.keyPrefix}${questId}` }),
 
-  queue: ({ questId, entry }: { questId: QuestId; entry: CommentQueueEntry }): void => {
+  queue: ({ questId, entry }: { questId: Quest['id']; entry: CommentQueueEntry }): void => {
     const key = `${commentQueueStatics.storage.keyPrefix}${questId}`;
     const existing = state.readEntries({ key });
     const withoutMatch = existing.filter(
@@ -89,7 +89,7 @@ export const commentQueueState = {
     state.notify({ questId });
   },
 
-  remove: ({ questId, anchor }: { questId: QuestId; anchor: CommentAnchor }): void => {
+  remove: ({ questId, anchor }: { questId: Quest['id']; anchor: CommentAnchor }): void => {
     const key = `${commentQueueStatics.storage.keyPrefix}${questId}`;
     const existing = state.readEntries({ key });
     const remaining = existing.filter(
@@ -99,7 +99,7 @@ export const commentQueueState = {
     state.notify({ questId });
   },
 
-  clearQueue: ({ questId }: { questId: QuestId }): void => {
+  clearQueue: ({ questId }: { questId: Quest['id'] }): void => {
     // Through state.write rather than a bare removeItem: an empty array is already its removal
     // case, so this inherits the one guard against a storage that refuses writes.
     state.write({ key: `${commentQueueStatics.storage.keyPrefix}${questId}`, entries: [] });
@@ -132,14 +132,14 @@ export const commentQueueState = {
       const survivors = commentQueueSweepTransformer({ entries: existing, nowMs });
       if (survivors.length === existing.length) return;
       state.write({ key, entries: survivors });
-      const questId = questIdContract.parse(
+      const questId = questContract.shape.id.parse(
         key.slice(commentQueueStatics.storage.keyPrefix.length),
       );
       state.notify({ questId });
     });
   },
 
-  subscribe: ({ questId, listener }: { questId: QuestId; listener: () => void }): (() => void) => {
+  subscribe: ({ questId, listener }: { questId: Quest['id']; listener: () => void }): (() => void) => {
     const listeners = state.subscribers.get(questId) ?? new Set<() => void>();
     listeners.add(listener);
     state.subscribers.set(questId, listeners);

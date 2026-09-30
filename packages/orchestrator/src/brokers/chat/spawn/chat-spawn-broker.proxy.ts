@@ -2,12 +2,7 @@ import { randomUUID } from '#gateway/node/crypto';
 import { homedir } from '#gateway/node/os';
 import { join } from '#gateway/node/path';
 import { stderrProxy } from '#gateway/node/process/stderr/stderr.proxy';
-import type {
-  AbsoluteFilePath,
-  QuestId,
-  RepoRootCwd,
-  SessionId,
-} from '@dungeonmaster/shared/contracts';
+import type { AbsoluteFilePath, RepoRootCwd, SessionId } from '@dungeonmaster/shared/contracts';
 import type { QuestStub as QuestStubType } from '@dungeonmaster/shared/contracts/quest/quest.stub';
 import { ExitCodeStub } from '@dungeonmaster/shared/contracts/exit-code/exit-code.stub';
 import { QuestStub } from '@dungeonmaster/shared/contracts/quest/quest.stub';
@@ -85,24 +80,24 @@ export const chatSpawnBrokerProxy = (): {
     exitCode: ExitCode;
     stdoutLines?: readonly string[];
     sessionId?: SessionId;
-    questId?: QuestId;
+    questId?: Quest['id'];
   }) => void;
   setupQuestCreationFailure: () => void;
   setupSessionLinkQuest: (params: { quest: Quest }) => void;
   setupSessionLinkReject: (params: { error: Error }) => void;
   setupStderrCapture: () => StderrRecorder;
   setupResumeWithWorktree: (params: {
-    questId: QuestId;
+    questId: Quest['id'];
     sessionId: SessionId;
     worktreePath: AbsoluteFilePath;
   }) => void;
   setupResumeWithMissingWorktree: (params: {
-    questId: QuestId;
+    questId: Quest['id'];
     sessionId: SessionId;
     worktreePath: AbsoluteFilePath;
   }) => void;
   setupResumeWithRepoRoot: (params: {
-    questId: QuestId;
+    questId: Quest['id'];
     sessionId: SessionId;
     repoRoot: RepoRootCwd;
   }) => void;
@@ -192,7 +187,7 @@ export const chatSpawnBrokerProxy = (): {
       exitCode: ExitCode;
       stdoutLines?: readonly string[];
       sessionId?: SessionId;
-      questId?: QuestId;
+      questId?: Quest['id'];
     }): void => {
       // Seed a chaoswhisperer work item so resolveChatQuestLayerBroker's questGetBroker
       // lookup finds it. The launcher requires `questWorkItemId` for addressability. The
@@ -249,7 +244,7 @@ export const chatSpawnBrokerProxy = (): {
       sessionId,
       worktreePath,
     }: {
-      questId: QuestId;
+      questId: Quest['id'];
       sessionId: SessionId;
       worktreePath: AbsoluteFilePath;
     }): void => {
@@ -270,7 +265,7 @@ export const chatSpawnBrokerProxy = (): {
       sessionId,
       worktreePath,
     }: {
-      questId: QuestId;
+      questId: Quest['id'];
       sessionId: SessionId;
       worktreePath: AbsoluteFilePath;
     }): void => {
@@ -290,7 +285,7 @@ export const chatSpawnBrokerProxy = (): {
       sessionId,
       repoRoot,
     }: {
-      questId: QuestId;
+      questId: Quest['id'];
       sessionId: SessionId;
       repoRoot: RepoRootCwd;
     }): void => {

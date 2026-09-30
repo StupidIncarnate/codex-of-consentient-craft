@@ -18,13 +18,7 @@ import {
   workItemContract,
   workItemRoleContract,
 } from '@dungeonmaster/shared/contracts';
-import type {
-  GuildId,
-  ModifyQuestInput,
-  ProcessId,
-  QuestId,
-  QuestWorkItemId,
-} from '@dungeonmaster/shared/contracts';
+import type { GuildId, ModifyQuestInput, ProcessId, QuestWorkItemId, Quest } from '@dungeonmaster/shared/contracts';
 
 import { chatSpawnBroker } from '../../../brokers/chat/spawn/chat-spawn-broker';
 import { questGetBroker } from '../../../brokers/quest/get/quest-get-broker';
@@ -38,7 +32,7 @@ export const FollowupChatStartResponder = async ({
   message,
 }: {
   guildId: GuildId;
-  questId: QuestId;
+  questId: Quest['id'];
   message: string;
 }): Promise<{ chatProcessId: ProcessId }> => {
   const questResult = await questGetBroker({ input: getQuestInputContract.parse({ questId }) });

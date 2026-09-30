@@ -31,18 +31,7 @@ import {
   filePathContract,
   questContract,
 } from '@dungeonmaster/shared/contracts';
-import type {
-  AbsoluteFilePath,
-  BaseBranchName,
-  OperationItem,
-  PackageGraphEntry,
-  Quest,
-  QuestBranchName,
-  QuestId,
-  QuestSession,
-  RiftcarverResult,
-  WorkItem,
-} from '@dungeonmaster/shared/contracts';
+import type { AbsoluteFilePath, BaseBranchName, OperationItem, PackageGraphEntry, Quest, QuestBranchName, QuestSession, RiftcarverResult, WorkItem } from '@dungeonmaster/shared/contracts';
 import { locationsStatics } from '@dungeonmaster/shared/statics';
 
 import { workItemsToQuestStatusTransformer } from '../../../transformers/work-items-to-quest-status/work-items-to-quest-status-transformer';
@@ -57,7 +46,7 @@ export const questOperationsUpdateBroker = async ({
   questId,
   update,
 }: {
-  questId: QuestId;
+  questId: Quest['id'];
   update: (params: { quest: Quest }) => {
     operations?: OperationItem[];
     workItems?: WorkItem[];

@@ -28,14 +28,7 @@ import {
   operationItemContract,
   questContract,
 } from '@dungeonmaster/shared/contracts';
-import type {
-  AddQuestInput,
-  FilePath,
-  GuildId,
-  OperationItem,
-  QuestId,
-  WorkItem,
-} from '@dungeonmaster/shared/contracts';
+import type { AddQuestInput, FilePath, GuildId, OperationItem, WorkItem, Quest } from '@dungeonmaster/shared/contracts';
 import { locationsStatics, questFlowStatics } from '@dungeonmaster/shared/statics';
 
 import { questPersistBroker } from '../persist/quest-persist-broker';
@@ -48,7 +41,7 @@ export const questCreateBroker = async ({
   input,
   initialWorkItems,
 }: {
-  questId: QuestId;
+  questId: Quest['id'];
   guildId: GuildId;
   input: AddQuestInput;
   initialWorkItems?: WorkItem[];

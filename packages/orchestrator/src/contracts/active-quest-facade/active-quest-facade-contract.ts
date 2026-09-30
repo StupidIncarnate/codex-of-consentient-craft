@@ -5,9 +5,9 @@
  * const activeQuest: ActiveQuestFacade = { setActive, clear };
  */
 
-import type { QuestId } from '@dungeonmaster/shared/contracts';
+import type { Quest } from '@dungeonmaster/shared/contracts';
 
 export interface ActiveQuestFacade {
-  setActive: ({ questId }: { questId: QuestId | null }) => void;
+  setActive: ({ questId }: { questId: Quest['id'] | null }) => void;
   clear: () => void;
 }

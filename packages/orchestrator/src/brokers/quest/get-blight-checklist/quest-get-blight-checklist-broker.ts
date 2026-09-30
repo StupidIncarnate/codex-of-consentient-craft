@@ -51,7 +51,7 @@ import {
   questContract,
   repoRelativePathContract,
 } from '@dungeonmaster/shared/contracts';
-import type { BlightChecklist, Quest, QuestId } from '@dungeonmaster/shared/contracts';
+import type { BlightChecklist, Quest } from '@dungeonmaster/shared/contracts';
 import { locationsStatics } from '@dungeonmaster/shared/statics';
 import { join } from '#gateway/node/path';
 import { diffFiles, upstreamSha } from '#gateway/bin/git';
@@ -67,7 +67,7 @@ export const questGetBlightChecklistBroker = async ({
   scope = 'quest',
   sinceRef,
 }: {
-  questId: QuestId;
+  questId: Quest['id'];
   // `commit` measures the LAST COMMIT alone — one session's output. `working-tree` measures what is
   // changed but not yet committed. `since-ref` measures from the ref `sinceRef` names. `unpushed`
   // measures ONE PASS — committed here, not yet published. `quest` keeps the original

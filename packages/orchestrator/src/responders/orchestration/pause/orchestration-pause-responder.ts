@@ -7,7 +7,7 @@
  */
 
 import { randomUUID } from '#gateway/node/crypto';
-import type { QuestId } from '@dungeonmaster/shared/contracts';
+import type { Quest } from '@dungeonmaster/shared/contracts';
 import { getQuestInputContract, processIdContract } from '@dungeonmaster/shared/contracts';
 
 import { questGetBroker } from '../../../brokers/quest/get/quest-get-broker';
@@ -18,7 +18,7 @@ import { orchestrationProcessesState } from '../../../state/orchestration-proces
 export const OrchestrationPauseResponder = async ({
   questId,
 }: {
-  questId: QuestId;
+  questId: Quest['id'];
 }): Promise<{ paused: boolean }> => {
   const getResult = await questGetBroker({
     input: getQuestInputContract.parse({ questId }),

@@ -6,14 +6,13 @@
  * const result = proxy.callResponder({ tool: ToolNameStub({ value: 'signal-back' }), args: { signal: 'complete' } });
  */
 
-import type { AgentPromptResult } from '@dungeonmaster/shared/contracts';
+import type { AgentPromptResult, Quest } from '@dungeonmaster/shared/contracts';
 import type { StartOrchestrator } from '@dungeonmaster/orchestrator';
 import { StartOrchestratorProxy } from '@dungeonmaster/orchestrator/startup/start-orchestrator.proxy';
 
 import { askUserQuestionBrokerProxy } from '../../../brokers/ask/user-question/ask-user-question-broker.proxy';
 import { signalBackBrokerProxy } from '../../../brokers/signal/back/signal-back-broker.proxy';
 import { InteractionHandleResponder } from './interaction-handle-responder';
-import type { QuestId } from '@dungeonmaster/shared/contracts';
 
 // Derived from the real StartOrchestrator method signature (never hand-typed) so the elements
 // getAgentPromptGetCalls() hands back can be read by field without an ad-hoc structural cast.
@@ -23,7 +22,7 @@ export const InteractionHandleResponderProxy = (): {
   callResponder: typeof InteractionHandleResponder;
   setupAgentPromptReturns: (params: {
     agent: string;
-    questId: QuestId;
+    questId: Quest['id'];
     result: AgentPromptResult;
   }) => void;
   getLastAgentPromptCallArgs: () => unknown;
@@ -44,7 +43,7 @@ export const InteractionHandleResponderProxy = (): {
       result,
     }: {
       agent: string;
-      questId: QuestId;
+      questId: Quest['id'];
       result: AgentPromptResult;
     }): void => {
       orchestratorProxy.getAgentPromptReturns({ agent, questId, result });

@@ -14,7 +14,7 @@
  * WHEN-NOT-TO-USE: Anywhere needing live workItem state — this only returns the questId.
  */
 
-import type { QuestId, QuestWorkItemId } from '@dungeonmaster/shared/contracts';
+import type { QuestWorkItemId, Quest } from '@dungeonmaster/shared/contracts';
 
 import { guildListBroker } from '../../guild/list/guild-list-broker';
 import { questListBroker } from '../list/quest-list-broker';
@@ -23,7 +23,7 @@ export const questFindByWorkItemIdBroker = async ({
   workItemId,
 }: {
   workItemId: QuestWorkItemId;
-}): Promise<QuestId | null> => {
+}): Promise<Quest['id'] | null> => {
   const guilds = await guildListBroker();
   const validGuilds = guilds.filter((g) => g.valid);
 

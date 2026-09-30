@@ -18,19 +18,7 @@ import React, { useCallback, useEffect, useMemo, useRef, useState } from '#gatew
 import { Group } from '#gateway/npm/mantine__core';
 import { IconFocusCentered, IconZoomIn, IconZoomOut } from '#gateway/npm/tabler__icons-react';
 
-import type {
-  Flow,
-  FlowNode,
-  FlowNodeId,
-  FlowObservable,
-  ObservableId,
-  PackageName,
-  PackageType,
-  QuestComment,
-  QuestContractEntry,
-  QuestId,
-  QuestPackageEntry,
-} from '@dungeonmaster/shared/contracts';
+import type { Flow, FlowNode, FlowNodeId, FlowObservable, ObservableId, PackageName, PackageType, QuestComment, QuestContractEntry, QuestPackageEntry, Quest } from '@dungeonmaster/shared/contracts';
 
 import { elkLayoutBroker } from '../../brokers/elk/layout/elk-layout-broker';
 import { FlowEdgeWidget } from '../flow-edge/flow-edge-widget';
@@ -66,7 +54,7 @@ export interface ReactFlowDiagramWidgetProps {
    * Set only when the comment compose controls are allowed for this quest. Presence is the gate:
    * when it is absent every card renders without a comment button.
    */
-  commentQuestId?: QuestId;
+  commentQuestId?: Quest['id'];
   /**
    * Every persisted comment on the quest, across all flows. Gated INDEPENDENTLY of commentQuestId:
    * the count badge and the detail panel's comment list render in every quest status, including the

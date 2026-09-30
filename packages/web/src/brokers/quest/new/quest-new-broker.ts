@@ -9,15 +9,8 @@
  * // Returns { questId, chatProcessId } on success; throws the server's own rejection text otherwise
  */
 
-import { processIdContract, questIdContract } from '@dungeonmaster/shared/contracts';
-import type {
-  GuildId,
-  PastedImageUpload,
-  ProcessId,
-  QuestId,
-  QuestType,
-  UserInput,
-} from '@dungeonmaster/shared/contracts';
+import { processIdContract, questContract } from '@dungeonmaster/shared/contracts';
+import type { GuildId, PastedImageUpload, ProcessId, QuestType, UserInput, Quest } from '@dungeonmaster/shared/contracts';
 
 import { xhrPostWithProgress } from '#gateway/browser/XMLHttpRequest';
 
@@ -41,7 +34,7 @@ export const questNewBroker = async ({
   questType?: QuestType;
   images?: readonly PastedImageUpload[];
   onProgress?: UploadProgressHandler;
-}): Promise<{ questId: QuestId; chatProcessId: ProcessId }> => {
+}): Promise<{ questId: Quest['id']; chatProcessId: ProcessId }> => {
   const url = webConfigStatics.api.routes.questNew.replace(':guildId', guildId);
 
   const post = uploadProgressPostContract.parse({
@@ -82,7 +75,7 @@ export const questNewBroker = async ({
       parsed.data.chatProcessId !== undefined
     ) {
       return {
-        questId: questIdContract.parse(parsed.data.questId),
+        questId: questContract.shape.id.parse(parsed.data.questId),
         chatProcessId: processIdContract.parse(parsed.data.chatProcessId),
       };
     }

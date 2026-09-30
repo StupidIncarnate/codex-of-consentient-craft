@@ -15,13 +15,7 @@
  */
 
 import { guildIdContract, questContract } from '@dungeonmaster/shared/contracts';
-import type {
-  AbsoluteFilePath,
-  FileName,
-  FilePath,
-  GuildId,
-  QuestId,
-} from '@dungeonmaster/shared/contracts';
+import type { AbsoluteFilePath, FileName, FilePath, GuildId, Quest } from '@dungeonmaster/shared/contracts';
 
 import { readFile } from '#gateway/node/fs__promises';
 
@@ -40,7 +34,7 @@ export const matchCandidatesLayerBroker = async ({
     questFolderPath: FilePath;
     guildDirName: FileName;
   }[];
-  questId: QuestId;
+  questId: Quest['id'];
 }): Promise<{ questPath: AbsoluteFilePath; guildId: GuildId } | null> => {
   const results = await Promise.all(
     candidates.map(async (candidate) => {

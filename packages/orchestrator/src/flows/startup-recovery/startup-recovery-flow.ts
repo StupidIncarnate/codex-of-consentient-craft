@@ -6,12 +6,12 @@
  * // Returns array of quest IDs that were recovered across all guilds
  */
 
-import type { QuestId } from '@dungeonmaster/shared/contracts';
+import type { Quest } from '@dungeonmaster/shared/contracts';
 
 import { GuildListResponder } from '../../responders/guild/list/guild-list-responder';
 import { OrchestrationStartupRecoveryResponder } from '../../responders/orchestration/startup-recovery/orchestration-startup-recovery-responder';
 
-export const StartupRecoveryFlow = async (): Promise<QuestId[]> => {
+export const StartupRecoveryFlow = async (): Promise<Quest['id'][]> => {
   const guilds = await GuildListResponder();
 
   return OrchestrationStartupRecoveryResponder({ guildItems: guilds });

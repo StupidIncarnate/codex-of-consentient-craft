@@ -52,15 +52,15 @@
 
 import { z } from '#gateway/npm/zod';
 
-import { questIdContract } from '../quest-id/quest-id-contract';
 import { questSummaryDebtContract } from '../quest-summary-debt/quest-summary-debt-contract';
 import { questSummaryFlowContract } from '../quest-summary-flow/quest-summary-flow-contract';
 import { questSummaryNoteGroupContract } from '../quest-summary-note-group/quest-summary-note-group-contract';
 import { questSummaryObservableContract } from '../quest-summary-observable/quest-summary-observable-contract';
+import { questContract } from '../quest/quest-contract';
 
 export const questSummaryContract = z
   .object({
-    questId: questIdContract,
+    questId: questContract.shape.id,
     flows: z
       .array(questSummaryFlowContract)
       .default([])

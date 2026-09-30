@@ -24,7 +24,7 @@
  * what keeps one ward invocation out of every call site's ternary.
  */
 
-import { questIdContract, questWorkItemIdContract } from '@dungeonmaster/shared/contracts';
+import { questWorkItemIdContract, questContract } from '@dungeonmaster/shared/contracts';
 import { z } from '#gateway/npm/zod';
 
 import { agentStepNodeContract } from '../agent-step-node/agent-step-node-contract';
@@ -32,7 +32,7 @@ import { stepHandlerNameContract } from '../step-handler-name/step-handler-name-
 
 export const runStepContract = z.object({
   type: z.literal('run-step'),
-  questId: questIdContract,
+  questId: questContract.shape.id,
   workItemId: questWorkItemIdContract,
   handler: stepHandlerNameContract,
   // The step node's OWN array schema, unwrapped from its optional — one declaration of what a

@@ -25,7 +25,7 @@ import { Box, UnstyledButton } from '#gateway/npm/mantine__core';
 import { useCallback, useEffect, useRef, useState } from '#gateway/npm/react';
 import { useParams } from '#gateway/npm/react-router-dom';
 
-import type { PastedImageUpload, QuestId, UserInput } from '@dungeonmaster/shared/contracts';
+import type { PastedImageUpload, UserInput, Quest } from '@dungeonmaster/shared/contracts';
 import { pastedImageMediaTypeContract } from '@dungeonmaster/shared/contracts';
 import { pastedImageStatics } from '@dungeonmaster/shared/statics';
 
@@ -94,7 +94,7 @@ export const ChatInputWidget = ({
   // every existing test) would have to start threading through. See composerScopeKeyTransformer's
   // header for why this, `surface`, and the create-surface sentinel together decide the draft.
   const params = useParams();
-  const questId = (params.questId as QuestId | undefined) ?? null;
+  const questId = (params.questId as Quest['id'] | undefined) ?? null;
   const composerScope = composerScopeKeyTransformer({ questId, surface });
   const editorRef = useRef<HTMLDivElement | null>(null);
   // The bytes for every attachment currently in the composer. A ref rather than state — nothing

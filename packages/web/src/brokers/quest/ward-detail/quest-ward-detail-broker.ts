@@ -8,7 +8,7 @@
  */
 
 import { wardDetailContract } from '@dungeonmaster/shared/contracts';
-import type { QuestId, WardDetail, WardResult } from '@dungeonmaster/shared/contracts';
+import type { WardDetail, WardResult, Quest } from '@dungeonmaster/shared/contracts';
 
 import { fetchJson } from '#gateway/browser/fetch';
 
@@ -18,7 +18,7 @@ export const questWardDetailBroker = async ({
   questId,
   wardResultId,
 }: {
-  questId: QuestId;
+  questId: Quest['id'];
   wardResultId: WardResult['id'];
 }): Promise<WardDetail> => {
   const url = webConfigStatics.api.routes.questWardDetail

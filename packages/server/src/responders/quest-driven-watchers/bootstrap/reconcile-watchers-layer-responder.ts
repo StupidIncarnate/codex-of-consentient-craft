@@ -27,12 +27,7 @@ import {
   type ReconcileWatchersResult,
 } from '../../../contracts/reconcile-watchers-result/reconcile-watchers-result-contract';
 import { guildPathContract } from '@dungeonmaster/shared/contracts';
-import type {
-  GuildPath,
-  QuestId,
-  QuestWorkItemId,
-  SessionId,
-} from '@dungeonmaster/shared/contracts';
+import type { GuildPath, QuestWorkItemId, SessionId, Quest } from '@dungeonmaster/shared/contracts';
 import { isActiveWorkItemStatusGuard } from '@dungeonmaster/shared/guards';
 import { questSessionCwdTransformer } from '@dungeonmaster/shared/transformers';
 import { StartOrchestrator, questListBroker } from '@dungeonmaster/orchestrator';
@@ -53,7 +48,7 @@ export const ReconcileWatchersLayerResponder = async ({
   // the repo-root that's also the guild's path. In e2e tests the dev server's cwd
   // (packages/server) does NOT match the synthetic guildPath (/tmp/dm-e2e-…), so a
   // cwd-encoded path would point at a directory the test never seeds.
-  const guildPathByQuestId = new Map<QuestId, GuildPath>();
+  const guildPathByQuestId = new Map<Quest['id'], GuildPath>();
   const questsByGuild = await Promise.all(
     guilds
       .filter((guild) => guild.valid)
@@ -81,7 +76,7 @@ export const ReconcileWatchersLayerResponder = async ({
   // The quest each worker session's owning work item belongs to, captured in lockstep with the
   // map above. The tail emits its own terminal event when it stops, and `chat-complete` is a
   // per-quest event — a frame with no questId reaches no subscriber at all.
-  const workerQuestIdBySessionId = new Map<SessionId, QuestId>();
+  const workerQuestIdBySessionId = new Map<SessionId, Quest['id']>();
   for (const quest of loadedQuests) {
     // The FALLBACK, for a session the quest recorded no row for. Claude CLI encodes the JSONL
     // directory from the child's own cwd, so this per-quest guess is right only while every

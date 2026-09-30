@@ -28,12 +28,7 @@
  * // { outcome: 'done' | 'empty' | 'wall', detail }
  */
 
-import {
-  absoluteFilePathContract,
-  contentTextContract,
-  type QuestId,
-  type QuestWorkItemId,
-} from '@dungeonmaster/shared/contracts';
+import { absoluteFilePathContract, contentTextContract, type QuestWorkItemId } from '@dungeonmaster/shared/contracts';
 import { streamLines, RunNotFoundError } from '#gateway/node/child_process';
 import { getEnv } from '#gateway/node/process';
 
@@ -43,6 +38,7 @@ import type { StepHandlerResult } from '../../../contracts/step-handler-result/s
 import { cleanupCliCallStatics } from '../../../statics/cleanup-cli-call/cleanup-cli-call-statics';
 import { cleanupOutcomeClassifyTransformer } from '../../../transformers/cleanup-outcome-classify/cleanup-outcome-classify-transformer';
 import { questRepoRootBroker } from '../../quest/repo-root/quest-repo-root-broker';
+import type { Quest } from '@dungeonmaster/shared/contracts';
 
 const CLI_SUCCESS_EXIT_CODE = 0;
 
@@ -53,7 +49,7 @@ export const stepHandlerCleanupBroker = async ({
   onLine,
 }: {
   args: string[];
-  questId: QuestId;
+  questId: Quest['id'];
   workItemId: QuestWorkItemId;
   onLine: (line: string) => void;
 }): Promise<StepHandlerResult> => {

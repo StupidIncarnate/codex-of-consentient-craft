@@ -27,11 +27,7 @@
 
 import { z } from '#gateway/npm/zod';
 
-import {
-  guildIdContract,
-  questIdContract,
-  timeoutMsContract,
-} from '@dungeonmaster/shared/contracts';
+import { guildIdContract, timeoutMsContract, questContract } from '@dungeonmaster/shared/contracts';
 
 import { recipeNameContract } from '../recipe-name/recipe-name-contract';
 import { specNameContract } from '../spec-name/spec-name-contract';
@@ -39,7 +35,7 @@ import { specNameContract } from '../spec-name/spec-name-contract';
 export const startArgsContract = z
   .object({
     specName: specNameContract,
-    questId: questIdContract.nullable(),
+    questId: questContract.shape.id.nullable(),
     guildId: guildIdContract.nullable(),
     // The recipe to run against the new lane once it is up, filling the manifest's `seeded`
     // (siegelense-tooling.md line 2303). `.nullable()` for the same reason questId and guildId

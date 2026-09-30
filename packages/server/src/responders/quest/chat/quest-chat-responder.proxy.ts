@@ -2,7 +2,7 @@ import { join } from '#gateway/node/path';
 import { StartOrchestrator } from '@dungeonmaster/orchestrator';
 import { questFindQuestPathBrokerProxy } from '@dungeonmaster/orchestrator/brokers/quest/find-quest-path/quest-find-quest-path-broker.proxy';
 import { StartOrchestratorProxy } from '@dungeonmaster/orchestrator/startup/start-orchestrator.proxy';
-import type { QuestId, QuestStatus } from '@dungeonmaster/shared/contracts';
+import type { QuestStatus } from '@dungeonmaster/shared/contracts';
 import type { AbsoluteFilePathStub } from '@dungeonmaster/shared/contracts/absolute-file-path/absolute-file-path.stub';
 import type { GuildIdStub } from '@dungeonmaster/shared/contracts/guild-id/guild-id.stub';
 import type { ProcessIdStub } from '@dungeonmaster/shared/contracts/process-id/process-id.stub';
@@ -20,9 +20,9 @@ type AbsoluteFilePath = ReturnType<typeof AbsoluteFilePathStub>;
 
 export const QuestChatResponderProxy = (): {
   setupQuestLoad: (params: { quest: Quest }) => void;
-  setupQuestLoadError: (params: { questId: QuestId; error: Error }) => void;
+  setupQuestLoadError: (params: { questId: Quest['id']; error: Error }) => void;
   setupFindQuestPath: (params: {
-    questId: QuestId;
+    questId: Quest['id'];
     guildId: GuildId;
     questPath: AbsoluteFilePath;
     homePath?: string;
@@ -30,11 +30,11 @@ export const QuestChatResponderProxy = (): {
   setupStartChat: (params: { guildId: GuildId; chatProcessId: ProcessId }) => void;
   setupStartChatError: (params: { guildId: GuildId; message: string }) => void;
   setupResumeQuest: (params: {
-    questId: QuestId;
+    questId: Quest['id'];
     resumed: boolean;
     restoredStatus: QuestStatus;
   }) => void;
-  setupResumeQuestError: (params: { questId: QuestId; message: string }) => void;
+  setupResumeQuestError: (params: { questId: Quest['id']; message: string }) => void;
   getResumeQuestCalls: () => readonly unknown[];
   assertResumeCalledBeforeStartChat: () => boolean;
   getStartChatCallArgs: (params: { guildId: GuildId }) => unknown;
@@ -70,7 +70,7 @@ export const QuestChatResponderProxy = (): {
     setupQuestLoad: ({ quest }: { quest: Quest }): void => {
       orchestrator.loadQuestReturns({ questId: quest.id, quest });
     },
-    setupQuestLoadError: ({ questId, error }: { questId: QuestId; error: Error }): void => {
+    setupQuestLoadError: ({ questId, error }: { questId: Quest['id']; error: Error }): void => {
       orchestrator.loadQuestThrows({ questId, error });
     },
     setupFindQuestPath: ({
@@ -79,7 +79,7 @@ export const QuestChatResponderProxy = (): {
       questPath,
       homePath,
     }: {
-      questId: QuestId;
+      questId: Quest['id'];
       guildId: GuildId;
       questPath: AbsoluteFilePath;
       // A real process has one home. Pass the SAME homePath given to setupPastedImageHome so
@@ -125,13 +125,13 @@ export const QuestChatResponderProxy = (): {
       resumed,
       restoredStatus,
     }: {
-      questId: QuestId;
+      questId: Quest['id'];
       resumed: boolean;
       restoredStatus: QuestStatus;
     }): void => {
       orchestrator.resumeQuestReturns({ questId, resumed, restoredStatus });
     },
-    setupResumeQuestError: ({ questId, message }: { questId: QuestId; message: string }): void => {
+    setupResumeQuestError: ({ questId, message }: { questId: Quest['id']; message: string }): void => {
       orchestrator.resumeQuestThrows({ questId, error: new Error(message) });
     },
     getResumeQuestCalls: (): readonly unknown[] => {

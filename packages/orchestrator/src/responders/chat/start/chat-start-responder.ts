@@ -7,22 +7,13 @@
  */
 
 import { stderr } from '#gateway/node/process';
-import { getQuestInputContract } from '@dungeonmaster/shared/contracts';
-import type {
-  ChatEntry,
-  GuildId,
-  ProcessId,
-  QuestId,
-  QuestType,
-  QuestWorkItemId,
-  SessionId,
-} from '@dungeonmaster/shared/contracts';
+import { getQuestInputContract, workItemRoleContract } from '@dungeonmaster/shared/contracts';
+import type { ChatEntry, GuildId, ProcessId, QuestType, QuestWorkItemId, SessionId, Quest } from '@dungeonmaster/shared/contracts';
 import { questFlowStatics } from '@dungeonmaster/shared/statics';
 
 import { chatSpawnBroker } from '../../../brokers/chat/spawn/chat-spawn-broker';
 import { questGetBroker } from '../../../brokers/quest/get/quest-get-broker';
 import { questListBroker } from '../../../brokers/quest/list/quest-list-broker';
-import { workItemRoleContract } from '@dungeonmaster/shared/contracts';
 import { orchestrationEventsState } from '../../../state/orchestration-events/orchestration-events-state';
 import { orchestrationProcessesState } from '../../../state/orchestration-processes/orchestration-processes-state';
 import { pendingClarificationState } from '../../../state/pending-clarification/pending-clarification-state';
@@ -47,15 +38,15 @@ export const ChatStartResponder = async ({
   // as its own field (never merged into the resume-only `chatQuestId`/`questId` forwarded to
   // chatSpawnBroker below) because `questId` WITHOUT `sessionId` already means something else there
   // (a resume hint that turned out unusable — see resolveChatQuestLayerBroker's header).
-  mintedQuestId?: QuestId;
+  mintedQuestId?: Quest['id'];
   // The main quest-chat HTTP route's own URL questId — that route has already loaded this exact
   // quest off disk before ever calling here, so it is never a guess. A missing `sessionId`
   // alongside it means only "no session captured yet" (the async sessionId write from a prior
   // turn may not have landed) — never "mint a different quest". See resolveChatQuestLayerBroker's
   // header for the full three-channel rationale (`questId` / `mintedQuestId` / `existingQuestId`).
-  existingQuestId?: QuestId;
+  existingQuestId?: Quest['id'];
   sessionId?: SessionId;
-}): Promise<{ chatProcessId: ProcessId; questId?: QuestId }> => {
+}): Promise<{ chatProcessId: ProcessId; questId?: Quest['id'] }> => {
   if (sessionId) {
     stderr.write(`[CLARIFICATION-DEBUG] startChat called with sessionId=${sessionId}\n`);
     const pending = pendingClarificationState.getForSession({ sessionId });
@@ -67,7 +58,7 @@ export const ChatStartResponder = async ({
     }
   }
 
-  let chatQuestId: QuestId | null = null;
+  let chatQuestId: Quest['id'] | null = null;
   let chatWorkItemId: QuestWorkItemId | null = null;
   // The intake role is quest-type derived, never hardcoded: a bug-hunt quest's chat item is a
   // `bughunt` item. On the resume path the type comes from the quest already on disk (the caller's

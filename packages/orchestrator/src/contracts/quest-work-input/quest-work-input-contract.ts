@@ -30,15 +30,7 @@
 
 import { z } from '#gateway/npm/zod';
 
-import {
-  flowIdContract,
-  questIdContract,
-  questNoteContract,
-  questWorkItemIdContract,
-  stepNameContract,
-  unitObservationContract,
-  unitObservationFieldsContract,
-} from '@dungeonmaster/shared/contracts';
+import { flowIdContract, questNoteContract, questWorkItemIdContract, stepNameContract, unitObservationContract, unitObservationFieldsContract, questContract } from '@dungeonmaster/shared/contracts';
 
 import { isoTimestampContract } from '../iso-timestamp/iso-timestamp-contract';
 import { stepOutcomeContract } from '../step-outcome/step-outcome-contract';
@@ -109,7 +101,7 @@ const requestPayloadContract = z
 
 export const questWorkInputContract = z
   .object({
-    questId: questIdContract,
+    questId: questContract.shape.id,
     workItemId: questWorkItemIdContract,
     payload: z.discriminatedUnion('kind', [
       planPayloadContract,

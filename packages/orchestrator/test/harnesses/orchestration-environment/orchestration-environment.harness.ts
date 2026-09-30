@@ -14,14 +14,7 @@ import * as path from '#gateway/node/path';
 
 import { guildPathContract } from '@dungeonmaster/shared/contracts';
 import { GuildNameStub } from '@dungeonmaster/shared/contracts/guild-name/guild-name.stub';
-import type {
-  FilePath,
-  GuildId,
-  GuildName,
-  GuildPath,
-  QuestId,
-  UrlSlug,
-} from '@dungeonmaster/shared/contracts';
+import type { FilePath, GuildId, GuildName, GuildPath, UrlSlug, Quest } from '@dungeonmaster/shared/contracts';
 
 import { guildAddBroker } from '../../../src/brokers/guild/add/guild-add-broker';
 import { OrchestrationFlow } from '../../../src/flows/orchestration/orchestration-flow';
@@ -84,7 +77,7 @@ export const orchestrationEnvironmentHarness = (): {
     tempDir: GuildPath;
   }) => readonly { name: GuildName; path: GuildPath; guildId: GuildId; urlSlug: UrlSlug }[];
   questsDirExists: (params: { tempDir: GuildPath; guildId: GuildId }) => boolean;
-  questFilePersisted: (params: { tempDir: GuildPath; guildId: GuildId; questId: QuestId }) => {
+  questFilePersisted: (params: { tempDir: GuildPath; guildId: GuildId; questId: Quest['id'] }) => {
     exists: boolean;
     questIdInFile: boolean;
   };
@@ -235,12 +228,12 @@ export const orchestrationEnvironmentHarness = (): {
     }: {
       tempDir: GuildPath;
       guildId: GuildId;
-      questId: QuestId;
+      questId: Quest['id'];
     }): { exists: boolean; questIdInFile: boolean } => {
       const questFilePath = path.join(tempDir, 'guilds', guildId, 'quests', questId, 'quest.json');
       const exists = fs.existsSync(questFilePath);
       const parsed = exists
-        ? (JSON.parse(fs.readFileSync(questFilePath)) as { id?: QuestId })
+        ? (JSON.parse(fs.readFileSync(questFilePath)) as { id?: Quest['id'] })
         : { id: undefined };
       return { exists, questIdInFile: parsed.id === questId };
     },

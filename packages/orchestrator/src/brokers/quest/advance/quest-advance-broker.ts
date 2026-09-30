@@ -35,7 +35,7 @@ import {
   stepNameContract,
   workItemContract,
 } from '@dungeonmaster/shared/contracts';
-import type { QuestId, WorkItem } from '@dungeonmaster/shared/contracts';
+import type { WorkItem, Quest } from '@dungeonmaster/shared/contracts';
 import {
   isCommandWorkItemRoleGuard,
   satisfiesDependencyWorkItemStatusGuard,
@@ -49,7 +49,7 @@ import { questOperationsUpdateBroker } from '../operations-update/quest-operatio
 // retired family still loads, and indexing an `as const` object with one gives no key check.
 const GRAPH_BY_FAMILY = new Map(Object.entries(agentFlowStatics));
 
-export const questAdvanceBroker = async ({ questId }: { questId: QuestId }): Promise<boolean> => {
+export const questAdvanceBroker = async ({ questId }: { questId: Quest['id'] }): Promise<boolean> => {
   const result = await questOperationsUpdateBroker({
     questId,
     update: ({ quest }) => {

@@ -13,7 +13,7 @@
  */
 
 import { processIdContract } from '@dungeonmaster/shared/contracts';
-import type { ProcessId, QuestId } from '@dungeonmaster/shared/contracts';
+import type { ProcessId, Quest } from '@dungeonmaster/shared/contracts';
 
 import { fetchWithStatus } from '#gateway/browser/fetch';
 
@@ -23,7 +23,7 @@ import { webConfigStatics } from '../../../statics/web-config/web-config-statics
 export const questStartBroker = async ({
   questId,
 }: {
-  questId: QuestId;
+  questId: Quest['id'];
 }): Promise<{ processId: ProcessId }> => {
   const url = webConfigStatics.api.routes.questStart.replace(':questId', questId);
 

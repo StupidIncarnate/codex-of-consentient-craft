@@ -41,13 +41,7 @@
 
 import { z } from '#gateway/npm/zod';
 
-import {
-  absoluteFilePathContract,
-  contentTextContract,
-  guildIdContract,
-  processIdContract,
-  questIdContract,
-} from '@dungeonmaster/shared/contracts';
+import { absoluteFilePathContract, contentTextContract, guildIdContract, processIdContract, questContract } from '@dungeonmaster/shared/contracts';
 
 import { epochMsContract } from '../epoch-ms/epoch-ms-contract';
 import { instanceIdContract } from '../instance-id/instance-id-contract';
@@ -61,7 +55,7 @@ import { specNameContract } from '../spec-name/spec-name-contract';
 export const registryEntryContract = z.object({
   id: instanceIdContract,
   owner: instanceOwnerContract,
-  questId: questIdContract.nullable(),
+  questId: questContract.shape.id.nullable(),
   guildId: guildIdContract.nullable(),
   specName: specNameContract,
   specHash: specHashContract,

@@ -24,10 +24,11 @@ import { flowIdContract } from '../flow-id/flow-id-contract';
 import { packageNameContract } from '../package-name/package-name-contract';
 import { questStageContract } from '../quest-stage/quest-stage-contract';
 import { getQuestInputConflictsStatics } from '../../statics/get-quest-input-conflicts/get-quest-input-conflicts-statics';
+import { questContract } from '../quest/quest-contract';
 
 export const getQuestInputContract = z
   .object({
-    questId: z.string().min(1).describe('The ID of the quest to retrieve').brand<'QuestId'>(),
+    questId: questContract.shape.id,
     flowId: flowIdContract
       .describe(
         'ONE flow, rendered whole: every node with the packages it lands in, every edge with its OWN id as `<edge:…>` and its branch label, every observable, the contracts and design decisions that govern it, and the cross-flow edges in BOTH directions. This is the call a codeweaver, flowrider or siegemaster makes for the flow it owns — one call per flow, never the whole quest.',

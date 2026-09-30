@@ -23,7 +23,7 @@ import * as path from '#gateway/node/path';
 
 import { installTestbedCreateBroker } from '@dungeonmaster/testing';
 import type { BaseNameStub } from '@dungeonmaster/testing';
-import type { GuildPath, QuestId } from '@dungeonmaster/shared/contracts';
+import type { GuildPath, Quest } from '@dungeonmaster/shared/contracts';
 
 import { QuestOutboxLineStub } from '../../../src/contracts/quest-outbox-line/quest-outbox-line.stub';
 import { TimeoutMsStub } from '@dungeonmaster/shared/contracts/timeout-ms/timeout-ms.stub';
@@ -42,23 +42,23 @@ const QUIET_WINDOW_MS = TimeoutMsStub({ value: 300 });
 
 export const questOutboxHarness = (): {
   begin: ({ name }: { name: BaseName }) => { homeDir: GuildPath; end: () => Promise<void> };
-  appendQuestLine: ({ homeDir, questId }: { homeDir: GuildPath; questId: QuestId }) => void;
-  readOutboxQuestIds: ({ homeDir }: { homeDir: GuildPath }) => readonly QuestId[];
+  appendQuestLine: ({ homeDir, questId }: { homeDir: GuildPath; questId: Quest['id'] }) => void;
+  readOutboxQuestIds: ({ homeDir }: { homeDir: GuildPath }) => readonly Quest['id'][];
   outboxExists: ({ homeDir }: { homeDir: GuildPath }) => boolean;
   removeOutbox: ({ homeDir }: { homeDir: GuildPath }) => void;
   listener: () => {
     callbacks: {
-      onQuestChanged: (args: { questId: QuestId }) => void;
+      onQuestChanged: (args: { questId: Quest['id'] }) => void;
       onError: (args: { error: unknown }) => void;
     };
-    questIds: () => readonly QuestId[];
+    questIds: () => readonly Quest['id'][];
     errors: () => readonly unknown[];
   };
   awaitQuestIds: ({
     listener,
     count,
   }: {
-    listener: { questIds: () => readonly QuestId[] };
+    listener: { questIds: () => readonly Quest['id'][] };
     count: number;
   }) => Promise<void>;
   awaitQuiet: () => Promise<void>;
@@ -92,14 +92,14 @@ export const questOutboxHarness = (): {
 
   // The exact shape questOutboxAppendBroker writes on every quest persist — one JSON object per
   // line, newline-terminated.
-  appendQuestLine: ({ homeDir, questId }: { homeDir: GuildPath; questId: QuestId }): void => {
+  appendQuestLine: ({ homeDir, questId }: { homeDir: GuildPath; questId: Quest['id'] }): void => {
     const line = QuestOutboxLineStub({ questId, timestamp: new Date().toISOString() as never });
     fs.appendFileSync(path.join(homeDir, OUTBOX_FILENAME), `${JSON.stringify(line)}\n`);
   },
 
   // Each line goes back through the outbox-line stub, so a line the contract no longer accepts
   // fails here rather than comparing equal to an expectation as raw text.
-  readOutboxQuestIds: ({ homeDir }: { homeDir: GuildPath }): readonly QuestId[] => {
+  readOutboxQuestIds: ({ homeDir }: { homeDir: GuildPath }): readonly Quest['id'][] => {
     const raw = fs.readFileSync(path.join(homeDir, OUTBOX_FILENAME));
     return raw
       .split('\n')
@@ -122,25 +122,25 @@ export const questOutboxHarness = (): {
   // file may declare no function of its own, so the collecting closures live here.
   listener: (): {
     callbacks: {
-      onQuestChanged: (args: { questId: QuestId }) => void;
+      onQuestChanged: (args: { questId: Quest['id'] }) => void;
       onError: (args: { error: unknown }) => void;
     };
-    questIds: () => readonly QuestId[];
+    questIds: () => readonly Quest['id'][];
     errors: () => readonly unknown[];
   } => {
-    const received: QuestId[] = [];
+    const received: Quest['id'][] = [];
     const seenErrors: unknown[] = [];
 
     return {
       callbacks: {
-        onQuestChanged: ({ questId }: { questId: QuestId }): void => {
+        onQuestChanged: ({ questId }: { questId: Quest['id'] }): void => {
           received.push(questId);
         },
         onError: ({ error }: { error: unknown }): void => {
           seenErrors.push(error);
         },
       },
-      questIds: (): readonly QuestId[] => [...received],
+      questIds: (): readonly Quest['id'][] => [...received],
       errors: (): readonly unknown[] => [...seenErrors],
     };
   },
@@ -149,7 +149,7 @@ export const questOutboxHarness = (): {
     listener,
     count,
   }: {
-    listener: { questIds: () => readonly QuestId[] };
+    listener: { questIds: () => readonly Quest['id'][] };
     count: number;
   }): Promise<void> =>
     new Promise<void>((resolve, reject) => {

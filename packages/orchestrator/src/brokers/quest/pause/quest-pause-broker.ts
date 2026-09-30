@@ -41,7 +41,7 @@
  */
 
 import { stderr } from '#gateway/node/process';
-import type { GuildId, ProcessId, QuestId, QuestStatus } from '@dungeonmaster/shared/contracts';
+import type { GuildId, ProcessId, QuestStatus, Quest } from '@dungeonmaster/shared/contracts';
 import {
   fileContentsContract,
   filePathContract,
@@ -67,7 +67,7 @@ export const questPauseBroker = async ({
   questId,
   processControls,
 }: {
-  questId: QuestId;
+  questId: Quest['id'];
   guildId?: GuildId;
   // Accepted for API stability — the responder reads quest.status before racing anything and hands
   // it back here — but never read below: pausedAtStatus is stamped from the quest as loaded fresh
@@ -75,7 +75,7 @@ export const questPauseBroker = async ({
   // the staleness the "ghost running" fix below closes.
   previousStatus: QuestStatus;
   processControls: {
-    findAllByQuestId: ({ questId }: { questId: QuestId }) => { processId: ProcessId }[];
+    findAllByQuestId: ({ questId }: { questId: Quest['id'] }) => { processId: ProcessId }[];
     kill: ({ processId }: { processId: ProcessId }) => void;
   };
 }): Promise<{ paused: boolean }> => {

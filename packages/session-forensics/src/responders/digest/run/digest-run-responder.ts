@@ -16,11 +16,7 @@
  * // Returns the rendered ContentText for the `summary` command
  */
 import { readFileSync } from '#gateway/node/fs';
-import {
-  contentTextContract,
-  sessionIdContract,
-  questIdContract,
-} from '@dungeonmaster/shared/contracts';
+import { contentTextContract, sessionIdContract, questContract } from '@dungeonmaster/shared/contracts';
 import type { ContentText } from '@dungeonmaster/shared/contracts';
 
 import { transcriptLoadBroker } from '../../../brokers/transcript/load/transcript-load-broker';
@@ -59,14 +55,14 @@ export const DigestRunResponder = ({
   gapFloorSeconds?: GapFloorSeconds;
 }): ContentText => {
   if (command === 'coverage') {
-    const questId = questIdContract.parse(target);
+    const questId = questContract.shape.id.parse(target);
     const { flows, workItems } = questLoadBroker({ questId });
     const coverage = questToCoverageTransformer({ flows, workItems });
     return coverageToTextTransformer({ coverage });
   }
 
   if (command === 'quest') {
-    const questId = questIdContract.parse(target);
+    const questId = questContract.shape.id.parse(target);
     const { userRequest, workItems, operations, wardResults, riftcarverResults } =
       questIndexLoadBroker({ questId });
 

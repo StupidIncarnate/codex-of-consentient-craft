@@ -24,13 +24,7 @@
  */
 
 import { questSessionContract } from '@dungeonmaster/shared/contracts';
-import type {
-  AbsoluteFilePath,
-  QuestId,
-  QuestWorkItemId,
-  SessionId,
-  WorkItemRole,
-} from '@dungeonmaster/shared/contracts';
+import type { AbsoluteFilePath, QuestWorkItemId, SessionId, WorkItemRole, Quest } from '@dungeonmaster/shared/contracts';
 
 import { questOperationsUpdateBroker } from '../operations-update/quest-operations-update-broker';
 
@@ -41,7 +35,7 @@ export const questSessionRecordBroker = async ({
   role,
   workItemId,
 }: {
-  questId: QuestId;
+  questId: Quest['id'];
   sessionId: SessionId;
   cwd: AbsoluteFilePath;
   role: WorkItemRole;

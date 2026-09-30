@@ -26,7 +26,7 @@ import {
   questQueueEntryContract,
   workItemContract,
 } from '@dungeonmaster/shared/contracts';
-import type { ProcessId, QuestId } from '@dungeonmaster/shared/contracts';
+import type { ProcessId, Quest } from '@dungeonmaster/shared/contracts';
 import { questFlowStatics, questStatusMetadataStatics } from '@dungeonmaster/shared/statics';
 import { nameToUrlSlugTransformer } from '@dungeonmaster/shared/transformers';
 import {
@@ -50,7 +50,7 @@ import { PrepareQuestPackageGraphLayerResponder } from './prepare-quest-package-
 export const OrchestrationStartResponder = async ({
   questId,
 }: {
-  questId: QuestId;
+  questId: Quest['id'];
 }): Promise<ProcessId> => {
   const input = getQuestInputContract.parse({ questId });
   const result = await questGetBroker({ input });

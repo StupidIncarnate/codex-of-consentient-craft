@@ -22,7 +22,7 @@
  */
 
 import type { Quest, WorkItem, OperationItem, ContentText } from '@dungeonmaster/shared/contracts';
-import { operationItemIdContract, questIdContract, questWorkItemIdContract } from '@dungeonmaster/shared/contracts';
+import { operationItemIdContract, questWorkItemIdContract, questContract } from '@dungeonmaster/shared/contracts';
 
 import type { QuestWorkView } from '../../../contracts/quest-work-view/quest-work-view-contract';
 import { questGetQuestWorkBroker } from '../../../brokers/quest/get-quest-work/quest-get-quest-work-broker';
@@ -57,7 +57,7 @@ export const QuestGetQuestWorkResponder = async ({
     );
   }
 
-  const parsedQuestId = questIdContract.parse(questId);
+  const parsedQuestId = questContract.shape.id.parse(questId);
 
   if (operationItemId !== undefined) {
     return {

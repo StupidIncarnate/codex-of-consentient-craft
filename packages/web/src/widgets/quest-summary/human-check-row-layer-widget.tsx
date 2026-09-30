@@ -13,9 +13,8 @@ import { useState } from '#gateway/npm/react';
 
 import { Box, Group, Stack, Text } from '#gateway/npm/mantine__core';
 
-import type { QuestId, QuestNote, QuestSummaryObservable } from '@dungeonmaster/shared/contracts';
+import type { QuestNote, QuestSummaryObservable, ErrorMessage, Quest } from '@dungeonmaster/shared/contracts';
 import { errorMessageContract } from '@dungeonmaster/shared/contracts';
-import type { ErrorMessage } from '@dungeonmaster/shared/contracts';
 
 import { questHumanVerdictBroker } from '../../brokers/quest/human-verdict/quest-human-verdict-broker';
 import type { ButtonLabel } from '../../contracts/button-label/button-label-contract';
@@ -31,7 +30,7 @@ const NOT_MET_LABEL = 'NOT MET' as ButtonLabel;
 const DANGER_VARIANT = 'danger' as ButtonVariant;
 
 export interface HumanCheckRowLayerWidgetProps {
-  questId: QuestId;
+  questId: Quest['id'];
   criterion: QuestSummaryObservable;
   note: QuestNote | null;
 }

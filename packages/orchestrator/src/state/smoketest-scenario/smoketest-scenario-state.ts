@@ -13,17 +13,14 @@
  * double-registration bugs surface immediately.
  */
 
-import {
-  arrayIndexContract,
-  type QuestId,
-  type WorkItemRole,
-} from '@dungeonmaster/shared/contracts';
+import { arrayIndexContract, type WorkItemRole } from '@dungeonmaster/shared/contracts';
 
 import { scenarioInstanceContract } from '../../contracts/scenario-instance/scenario-instance-contract';
 import type { ScenarioInstance } from '../../contracts/scenario-instance/scenario-instance-contract';
 import type { SmoketestPromptName } from '../../statics/smoketest-prompts/smoketest-prompts-statics';
+import type { Quest } from '@dungeonmaster/shared/contracts';
 
-const state: { instances: Map<QuestId, ScenarioInstance> } = {
+const state: { instances: Map<Quest['id'], ScenarioInstance> } = {
   instances: new Map(),
 };
 
@@ -32,7 +29,7 @@ export const smoketestScenarioState = {
     questId,
     scripts,
   }: {
-    questId: QuestId;
+    questId: Quest['id'];
     scripts: ScenarioInstance['scripts'];
   }): void => {
     if (state.instances.has(questId)) {
@@ -45,7 +42,7 @@ export const smoketestScenarioState = {
     questId,
     role,
   }: {
-    questId: QuestId;
+    questId: Quest['id'];
     role: WorkItemRole;
   }): SmoketestPromptName | null => {
     const instance = state.instances.get(questId);
@@ -65,10 +62,10 @@ export const smoketestScenarioState = {
     return promptName;
   },
 
-  unregister: ({ questId }: { questId: QuestId }): void => {
+  unregister: ({ questId }: { questId: Quest['id'] }): void => {
     state.instances.delete(questId);
   },
 
-  getActive: ({ questId }: { questId: QuestId }): ScenarioInstance | null =>
+  getActive: ({ questId }: { questId: Quest['id'] }): ScenarioInstance | null =>
     state.instances.get(questId) ?? null,
 };

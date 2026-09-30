@@ -17,19 +17,8 @@
  */
 
 import { randomUUID } from '#gateway/node/crypto';
-import {
-  addQuestResultContract,
-  questIdContract,
-  workItemContract,
-} from '@dungeonmaster/shared/contracts';
-import type {
-  AddQuestInput,
-  AddQuestResult,
-  GuildId,
-  QuestId,
-  SessionId,
-  WorkItem,
-} from '@dungeonmaster/shared/contracts';
+import { addQuestResultContract, workItemContract, questContract } from '@dungeonmaster/shared/contracts';
+import type { AddQuestInput, AddQuestResult, GuildId, SessionId, WorkItem, Quest } from '@dungeonmaster/shared/contracts';
 import { questFlowStatics } from '@dungeonmaster/shared/statics';
 
 import { questCreateBroker } from '../create/quest-create-broker';
@@ -42,11 +31,11 @@ export const questUserAddBroker = async ({
 }: {
   input: AddQuestInput;
   guildId: GuildId;
-  questId?: QuestId;
+  questId?: Quest['id'];
   sessionId?: SessionId;
 }): Promise<AddQuestResult> => {
   try {
-    const questId = providedQuestId ?? questIdContract.parse(randomUUID());
+    const questId = providedQuestId ?? questContract.shape.id.parse(randomUUID());
 
     // The create-time seed role is quest-type specific: feature seeds a chaoswhisperer chat item,
     // bug-hunt a bughunt one. Both are chat roles, so the session that created the quest has a

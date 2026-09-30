@@ -1,6 +1,5 @@
 import { StartOrchestratorProxy } from '@dungeonmaster/orchestrator/startup/start-orchestrator.proxy';
 import { GetQuestResultStub } from '@dungeonmaster/shared/contracts/get-quest-result/get-quest-result.stub';
-import type { QuestId } from '@dungeonmaster/shared/contracts';
 import type { QuestStub } from '@dungeonmaster/shared/contracts/quest/quest.stub';
 import { QuestMergeResponder } from './quest-merge-responder';
 
@@ -8,9 +7,9 @@ type Quest = ReturnType<typeof QuestStub>;
 
 export const QuestMergeResponderProxy = (): {
   setupQuest: (params: { quest: Quest }) => void;
-  setupQuestNotFound: (params: { questId: QuestId }) => void;
-  setupMergeQuest: (params: { questId: QuestId; merging: boolean }) => void;
-  setupMergeQuestError: (params: { questId: QuestId; message: string }) => void;
+  setupQuestNotFound: (params: { questId: Quest['id'] }) => void;
+  setupMergeQuest: (params: { questId: Quest['id']; merging: boolean }) => void;
+  setupMergeQuestError: (params: { questId: Quest['id']; message: string }) => void;
   getMergeQuestCalls: () => readonly unknown[];
   callResponder: typeof QuestMergeResponder;
 } => {
@@ -25,13 +24,13 @@ export const QuestMergeResponderProxy = (): {
     },
     // The real questGetBroker failure shape, traced through QuestNotFoundError — same scenario
     // StartOrchestratorProxy's own getQuestNotFound composes for every other caller.
-    setupQuestNotFound: ({ questId }: { questId: QuestId }): void => {
+    setupQuestNotFound: ({ questId }: { questId: Quest['id'] }): void => {
       orchestrator.getQuestNotFound({ questId });
     },
-    setupMergeQuest: ({ questId, merging }: { questId: QuestId; merging: boolean }): void => {
+    setupMergeQuest: ({ questId, merging }: { questId: Quest['id']; merging: boolean }): void => {
       orchestrator.mergeQuestReturns({ questId, merging });
     },
-    setupMergeQuestError: ({ questId, message }: { questId: QuestId; message: string }): void => {
+    setupMergeQuestError: ({ questId, message }: { questId: Quest['id']; message: string }): void => {
       orchestrator.mergeQuestThrows({ questId, error: new Error(message) });
     },
     // Every call StartOrchestrator.mergeQuest received, so a rejected-status test can prove it

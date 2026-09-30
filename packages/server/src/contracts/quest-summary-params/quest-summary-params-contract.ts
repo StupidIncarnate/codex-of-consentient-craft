@@ -8,10 +8,10 @@
  */
 
 import { z } from '#gateway/npm/zod';
-import { questIdContract } from '@dungeonmaster/shared/contracts';
+import { questContract } from '@dungeonmaster/shared/contracts';
 
 export const questSummaryParamsContract = z.object({
-  questId: questIdContract,
+  questId: questContract.shape.id,
 });
 
 export type QuestSummaryParams = z.infer<typeof questSummaryParamsContract>;

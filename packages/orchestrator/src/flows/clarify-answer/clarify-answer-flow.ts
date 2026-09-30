@@ -6,7 +6,7 @@
  * // Persists design decisions from structured answers, then resumes the agent via ChatStartResponder
  */
 
-import type { GuildId, ProcessId, QuestId, SessionId } from '@dungeonmaster/shared/contracts';
+import type { GuildId, ProcessId, SessionId, Quest } from '@dungeonmaster/shared/contracts';
 
 import type { ClarificationQuestion } from '../../contracts/clarification-question/clarification-question-contract';
 import { ClarifyAnswerResponder } from '../../responders/clarify/answer/clarify-answer-responder';
@@ -21,7 +21,7 @@ export const ClarifyAnswerFlow = async ({
 }: {
   guildId: GuildId;
   sessionId: SessionId;
-  questId: QuestId;
+  questId: Quest['id'];
   answers: { header: string; label: string }[];
   questions: ClarificationQuestion[];
 }): Promise<{ chatProcessId: ProcessId }> => {

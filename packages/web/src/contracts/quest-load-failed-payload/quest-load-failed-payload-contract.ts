@@ -11,12 +11,12 @@
 
 import { z } from '#gateway/npm/zod';
 
-import { questIdContract } from '@dungeonmaster/shared/contracts';
+import { questContract } from '@dungeonmaster/shared/contracts';
 
 import { errorBodyContract } from '../error-body/error-body-contract';
 
 export const questLoadFailedPayloadContract = z.object({
-  questId: questIdContract,
+  questId: questContract.shape.id,
   error: errorBodyContract.shape.error,
 });
 

@@ -78,15 +78,7 @@ import { now } from '#gateway/node/Date';
 import { join } from '#gateway/node/path';
 import { openForAppendSync } from '#gateway/node/fs';
 import { cwd, envSnapshot, execPath, stderr } from '#gateway/node/process';
-import {
-  absoluteFilePathContract,
-  contentTextContract,
-  filePathContract,
-  type ContentText,
-  type GuildId,
-  type QuestId,
-  type TimeoutMs,
-} from '@dungeonmaster/shared/contracts';
+import { absoluteFilePathContract, contentTextContract, filePathContract, type ContentText, type GuildId, type TimeoutMs } from '@dungeonmaster/shared/contracts';
 import { environmentStatics, locationsStatics } from '@dungeonmaster/shared/statics';
 import { cwdResolveBroker } from '@dungeonmaster/shared/brokers';
 
@@ -125,6 +117,7 @@ import { driverStatics } from '../../../statics/driver/driver-statics';
 import { DriverBootFailedError } from '../../../errors/driver-boot-failed/driver-boot-failed-error';
 import { LaneBootFailedError } from '../../../errors/lane-boot-failed/lane-boot-failed-error';
 import { laneProcessPortResolveTransformer } from '../../../transformers/lane-process-port-resolve/lane-process-port-resolve-transformer';
+import type { Quest } from '@dungeonmaster/shared/contracts';
 
 export const instanceStartBroker = async ({
   specName,
@@ -134,7 +127,7 @@ export const instanceStartBroker = async ({
   idleTimeoutMs,
 }: {
   specName: SpecName;
-  questId: QuestId | null;
+  questId: Quest['id'] | null;
   guildId: GuildId | null;
   seed: RecipeName | null;
   idleTimeoutMs?: TimeoutMs;

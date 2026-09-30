@@ -14,7 +14,7 @@
  * const bySession = await StartOrchestrator.findQuestBySessionId({ sessionId });
  */
 
-import type { Flow, WorkItem, OperationItem, AddQuestInput, AddQuestResult, AgentPromptResult, BlockedReason, CommentBatchEntry, DirectoryEntry, DispatchState, GetQuestResult, Guild, GuildId, GuildListItem, GuildName, GuildPath, ModifyQuestInput, ModifyQuestResult, OperationItemId, OrchestrationMode, OrchestrationStatus, ProcessId, Quest, QuestId, QuestListItem, QuestListResult, QuestQueueEntry, QuestStatus, QuestType, QuestWorkItemId, RateLimitsSnapshot, SessionId, UrlSlug } from '@dungeonmaster/shared/contracts';
+import type { Flow, WorkItem, OperationItem, AddQuestInput, AddQuestResult, AgentPromptResult, BlockedReason, CommentBatchEntry, DirectoryEntry, DispatchState, GetQuestResult, Guild, GuildId, GuildListItem, GuildName, GuildPath, ModifyQuestInput, ModifyQuestResult, OperationItemId, OrchestrationMode, OrchestrationStatus, ProcessId, Quest, QuestListItem, QuestListResult, QuestQueueEntry, QuestStatus, QuestType, QuestWorkItemId, RateLimitsSnapshot, SessionId, UrlSlug } from '@dungeonmaster/shared/contracts';
 
 import type { PromptText } from '../contracts/prompt-text/prompt-text-contract';
 import type { QuestGetServerConfigResult } from '../contracts/quest-get-server-config-result/quest-get-server-config-result-contract';
@@ -101,33 +101,33 @@ export const StartOrchestrator = {
   listQuestsWithSkips: async ({ guildId }: { guildId: GuildId }): Promise<QuestListResult> =>
     QuestFlow.listWithSkips({ guildId }),
 
-  loadQuest: async ({ questId }: { questId: QuestId }): Promise<Quest> =>
+  loadQuest: async ({ questId }: { questId: Quest['id'] }): Promise<Quest> =>
     QuestFlow.load({ questId }),
 
-  startQuest: async ({ questId }: { questId: QuestId }): Promise<ProcessId> =>
+  startQuest: async ({ questId }: { questId: Quest['id'] }): Promise<ProcessId> =>
     OrchestrationFlow.start({ questId }),
 
-  pauseQuest: async ({ questId }: { questId: QuestId }): Promise<{ paused: boolean }> =>
+  pauseQuest: async ({ questId }: { questId: Quest['id'] }): Promise<{ paused: boolean }> =>
     OrchestrationFlow.pause({ questId }),
 
   resumeQuest: async ({
     questId,
   }: {
-    questId: QuestId;
+    questId: Quest['id'];
   }): Promise<{ resumed: boolean; restoredStatus: QuestStatus }> =>
     OrchestrationFlow.resume({ questId }),
 
-  mergeQuest: async ({ questId }: { questId: QuestId }): Promise<{ merging: boolean }> =>
+  mergeQuest: async ({ questId }: { questId: Quest['id'] }): Promise<{ merging: boolean }> =>
     OrchestrationFlow.merge({ questId }),
 
-  abandonQuest: async ({ questId }: { questId: QuestId }): Promise<{ abandoned: boolean }> =>
+  abandonQuest: async ({ questId }: { questId: Quest['id'] }): Promise<{ abandoned: boolean }> =>
     OrchestrationFlow.abandon({ questId }),
 
   deleteQuest: async ({
     questId,
     guildId,
   }: {
-    questId: QuestId;
+    questId: Quest['id'];
     guildId: GuildId;
   }): Promise<{ deleted: boolean }> => OrchestrationFlow.delete({ questId, guildId }),
 
@@ -255,13 +255,13 @@ export const StartOrchestrator = {
     // A pre-minted id from the create-surface chat route — see chat-start-responder.ts for why the
     // caller, not this method, has to be the one who mints it, and why it cannot ride in on
     // `questId` (that name is reserved for a resume hint elsewhere in this same call chain).
-    mintedQuestId?: QuestId;
+    mintedQuestId?: Quest['id'];
     // The main quest-chat HTTP route's own URL questId, for a caller that has already confirmed
     // this quest exists — see resolveChatQuestLayerBroker's header for the full three-channel
     // rationale (`questId` / `mintedQuestId` / `existingQuestId`).
-    existingQuestId?: QuestId;
+    existingQuestId?: Quest['id'];
     sessionId?: SessionId;
-  }): Promise<{ chatProcessId: ProcessId; questId?: QuestId }> =>
+  }): Promise<{ chatProcessId: ProcessId; questId?: Quest['id'] }> =>
     ChatStartFlow({
       guildId,
       message,
@@ -280,7 +280,7 @@ export const StartOrchestrator = {
   }: {
     guildId: GuildId;
     sessionId: SessionId;
-    questId: QuestId;
+    questId: Quest['id'];
     answers: { header: string; label: string }[];
     questions: ClarificationQuestion[];
   }): Promise<{ chatProcessId: ProcessId }> =>
@@ -294,7 +294,7 @@ export const StartOrchestrator = {
   }: {
     guildId: GuildId;
     sessionId: SessionId;
-    questId: QuestId;
+    questId: Quest['id'];
     comments: CommentBatchEntry[];
   }): Promise<{ chatProcessId: ProcessId; message: PromptText }> =>
     CommentBatchFlow({ guildId, sessionId, questId, comments }),
@@ -329,7 +329,7 @@ export const StartOrchestrator = {
     guildId,
     message,
   }: {
-    questId: QuestId;
+    questId: Quest['id'];
     guildId: GuildId;
     message: string;
   }): Promise<{ chatProcessId: ProcessId }> => FollowupChatStartFlow({ questId, guildId, message }),
@@ -338,7 +338,7 @@ export const StartOrchestrator = {
   // FOLLOW-UP tab may never have seen the id of the process it wants stopped — the turn can have
   // been spawned before that page load. Kills only the tavernkeeper's own process; the quest's
   // status and the work item are left untouched so the conversation stays resumable.
-  stopFollowupChat: async ({ questId }: { questId: QuestId }): Promise<{ stopped: boolean }> =>
+  stopFollowupChat: async ({ questId }: { questId: Quest['id'] }): Promise<{ stopped: boolean }> =>
     FollowupChatStopFlow({ questId }),
 
   // Agent prompt methods. `discipline` is an explicit param because a parent-summoned sub-agent (a
@@ -351,7 +351,7 @@ export const StartOrchestrator = {
     discipline,
   }: {
     agent: string;
-    questId: QuestId;
+    questId: Quest['id'];
     workItemId?: QuestWorkItemId;
     discipline?: 'implementation' | 'bug-repro' | 'below-browser' | 'browser-e2e' | 'manual-qa';
   }): Promise<AgentPromptResult> =>
@@ -363,7 +363,7 @@ export const StartOrchestrator = {
     }),
 
   // Recovery methods
-  recoverActiveQuests: async (): Promise<QuestId[]> => StartupRecoveryFlow(),
+  recoverActiveQuests: async (): Promise<Quest['id'][]> => StartupRecoveryFlow(),
 
   // Smoketest methods
   runSmoketest: async ({
@@ -408,7 +408,7 @@ export const StartOrchestrator = {
     userRequest: AddQuestInput['userRequest'];
     questType?: QuestType;
     sessionId?: SessionId;
-  }): Promise<{ questId: QuestId; guildSlug: UrlSlug }> =>
+  }): Promise<{ questId: Quest['id']; guildSlug: UrlSlug }> =>
     QuestFlow.mcpCreate({
       userRequest,
       ...(questType !== undefined && { questType }),
@@ -423,7 +423,7 @@ export const StartOrchestrator = {
     signal,
     ...operationOutcome
   }: {
-    questId: QuestId;
+    questId: Quest['id'];
     workItemId: QuestWorkItemId;
     signal: 'complete';
     operationItemId?: OperationItemId;
@@ -450,7 +450,7 @@ export const StartOrchestrator = {
   // Reverse lookup: sessionId -> QuestId (or null when no quest's chaoswhisperer workItem
   // has this sessionId). Used by the HTTP server's GET /api/quests/by-session/:sessionId
   // endpoint so the PostToolUse hook can find the quest to PATCH design decisions onto.
-  findQuestBySessionId: async ({ sessionId }: { sessionId: SessionId }): Promise<QuestId | null> =>
+  findQuestBySessionId: async ({ sessionId }: { sessionId: SessionId }): Promise<Quest['id'] | null> =>
     QuestFlow.findBySessionId({ sessionId }),
 
   // Reverse lookup: workItemId -> QuestId (or null when no quest owns it). Used by the
@@ -459,7 +459,7 @@ export const StartOrchestrator = {
     workItemId,
   }: {
     workItemId: QuestWorkItemId;
-  }): Promise<QuestId | null> => QuestFlow.findByWorkItemId({ workItemId }),
+  }): Promise<Quest['id'] | null> => QuestFlow.findByWorkItemId({ workItemId }),
 
   // Start a JSONL watcher against a Node-dispatch worker's own session, whose id is
   // stamped on an in-progress workItem. Called by the server's quest-driven watcher

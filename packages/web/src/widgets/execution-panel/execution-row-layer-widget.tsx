@@ -17,16 +17,8 @@
 import { Box, Text, UnstyledButton } from '#gateway/npm/mantine__core';
 import { useEffect, useMemo, useRef, useState } from '#gateway/npm/react';
 
-import type {
-  ContractName,
-  ErrorMessage,
-  QuestId,
-  RiftcarverResult,
-  WardResult,
-  WorkItem,
-} from '@dungeonmaster/shared/contracts';
+import type { ContractName, ErrorMessage, RiftcarverResult, WardResult, WorkItem, ChatEntry, CssPixels, Quest } from '@dungeonmaster/shared/contracts';
 
-import type { ChatEntry, CssPixels } from '@dungeonmaster/shared/contracts';
 import { cssPixelsContract } from '@dungeonmaster/shared/contracts';
 import { isCommandWorkItemRoleGuard } from '@dungeonmaster/shared/guards';
 import type { DisplayLabel } from '../../contracts/display-label/display-label-contract';
@@ -87,7 +79,7 @@ export interface ExecutionRowLayerWidgetProps {
   outputContracts?: ContractName[];
   wardResults?: WardResult[];
   riftcarverResults?: RiftcarverResult[];
-  questId?: QuestId;
+  questId?: Quest['id'];
   // Governs the running-row auto-expand alone (T2-9a) — the manual chevron click below is never
   // gated by it. Undefined/true keeps today's behaviour (every in_progress row with a transcript
   // auto-expands on its own); explicit `false` means the panel already gave that focus to some

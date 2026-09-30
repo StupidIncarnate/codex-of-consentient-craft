@@ -31,11 +31,7 @@
  * // Returns StartArgs whose `seed` names the recipe to run once the lane is up
  */
 
-import {
-  guildIdContract,
-  questIdContract,
-  timeoutMsContract,
-} from '@dungeonmaster/shared/contracts';
+import { guildIdContract, timeoutMsContract, questContract } from '@dungeonmaster/shared/contracts';
 
 import { recipeNameContract } from '../../contracts/recipe-name/recipe-name-contract';
 import { specNameContract } from '../../contracts/spec-name/spec-name-contract';
@@ -122,7 +118,7 @@ export const startArgsParseTransformer = ({ args }: { args: readonly string[] })
         ? null
         : flagContractParseTransformer({
             flag: QUEST_FLAG,
-            parse: () => questIdContract.parse(questValue),
+            parse: () => questContract.shape.id.parse(questValue),
           }),
     guildId:
       guildValue === null

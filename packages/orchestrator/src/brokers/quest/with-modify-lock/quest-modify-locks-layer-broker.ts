@@ -14,6 +14,6 @@
  * folder may import it, so any other domain needing the lock must come through the entry broker.
  */
 
-import type { QuestId } from '@dungeonmaster/shared/contracts';
+import type { Quest } from '@dungeonmaster/shared/contracts';
 
-export const questModifyLocksLayerBroker = new Map<QuestId, Promise<void>>();
+export const questModifyLocksLayerBroker = new Map<Quest['id'], Promise<void>>();

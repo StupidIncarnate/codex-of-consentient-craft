@@ -6,7 +6,8 @@
  * // Returns: QuestId of the most recent entry that referenced one, or undefined if none.
  */
 
-import { questIdContract, type ChatEntry, type QuestId } from '@dungeonmaster/shared/contracts';
+import { type ChatEntry, questContract } from '@dungeonmaster/shared/contracts';
+import type { Quest } from '@dungeonmaster/shared/contracts';
 
 const QUEST_ID_REGEX = /"questId"\s*:\s*"([^"]+)"/u;
 
@@ -14,7 +15,7 @@ export const chatEntriesExtractQuestIdTransformer = ({
   entries,
 }: {
   entries: readonly ChatEntry[];
-}): QuestId | undefined => {
+}): Quest['id'] | undefined => {
   for (let i = entries.length - 1; i >= 0; i -= 1) {
     const entry = entries[i];
     if (entry === undefined) continue;
@@ -34,7 +35,7 @@ export const chatEntriesExtractQuestIdTransformer = ({
     const [, candidate] = match;
     if (candidate === undefined) continue;
 
-    const parsed = questIdContract.safeParse(candidate);
+    const parsed = questContract.shape.id.safeParse(candidate);
     if (parsed.success) return parsed.data;
   }
   return undefined;

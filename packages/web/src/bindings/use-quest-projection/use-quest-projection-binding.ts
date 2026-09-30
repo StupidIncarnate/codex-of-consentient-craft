@@ -17,7 +17,7 @@
 
 import { useCallback, useEffect, useState } from '#gateway/npm/react';
 
-import type { QuestId, QuestProjection } from '@dungeonmaster/shared/contracts';
+import type { QuestProjection, Quest } from '@dungeonmaster/shared/contracts';
 
 import { console } from '#gateway/browser/console';
 import { filter } from '#gateway/npm/rxjs__operators';
@@ -27,7 +27,7 @@ import { webSocketChannelState } from '../../state/web-socket-channel/web-socket
 export const useQuestProjectionBinding = ({
   questId,
 }: {
-  questId: QuestId | null;
+  questId: Quest['id'] | null;
 }): {
   data: QuestProjection | null;
   loading: boolean;

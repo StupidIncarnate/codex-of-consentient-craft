@@ -10,7 +10,7 @@
 
 import { Box, Text } from '#gateway/npm/mantine__core';
 
-import type { QuestId, RiftcarverResult } from '@dungeonmaster/shared/contracts';
+import type { RiftcarverResult, Quest } from '@dungeonmaster/shared/contracts';
 
 import { emberDepthsThemeStatics } from '../../statics/ember-depths-theme/ember-depths-theme-statics';
 import { RiftcarverResultDetailLayerWidget } from './riftcarver-result-detail-layer-widget';
@@ -20,7 +20,7 @@ const DETAIL_MARGIN_BOTTOM = 4;
 
 export interface RiftcarverResultRowLayerWidgetProps {
   riftcarverResult: RiftcarverResult;
-  questId?: QuestId;
+  questId?: Quest['id'];
 }
 
 export const RiftcarverResultRowLayerWidget = ({

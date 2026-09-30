@@ -14,7 +14,7 @@
  */
 
 import { GuildIdStub } from '@dungeonmaster/shared/contracts/guild-id/guild-id.stub';
-import type { AbsoluteFilePath, FilePath, QuestId } from '@dungeonmaster/shared/contracts';
+import type { AbsoluteFilePath, FilePath } from '@dungeonmaster/shared/contracts';
 import type { QuestStub } from '@dungeonmaster/shared/contracts/quest/quest.stub';
 import {
   registerMock,
@@ -43,7 +43,7 @@ export const processTerminalEventLayerBrokerProxy = (): {
   setupPassthrough: () => void;
   setupQuestDeleted: (params: { homeDir: string; homePath: FilePath; guildsDir: FilePath }) => void;
   setupQuestFound: (params: {
-    questId: QuestId;
+    questId: Quest['id'];
     questPath: AbsoluteFilePath;
     quest: Quest;
   }) => void;
@@ -107,7 +107,7 @@ export const processTerminalEventLayerBrokerProxy = (): {
       questPath,
       quest,
     }: {
-      questId: QuestId;
+      questId: Quest['id'];
       questPath: AbsoluteFilePath;
       quest: Quest;
     }): void => {

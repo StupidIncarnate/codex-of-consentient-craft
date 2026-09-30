@@ -11,7 +11,7 @@
 
 import { useCallback, useEffect, useState } from '#gateway/npm/react';
 
-import type { CommentText, QuestId } from '@dungeonmaster/shared/contracts';
+import type { CommentText, Quest } from '@dungeonmaster/shared/contracts';
 
 import type { CommentAnchor } from '../../contracts/comment-anchor/comment-anchor-contract';
 import { commentQueueEntryContract } from '../../contracts/comment-queue-entry/comment-queue-entry-contract';
@@ -22,7 +22,7 @@ import { commentQueueState } from '../../state/comment-queue/comment-queue-state
 export const useCommentQueueBinding = ({
   questId,
 }: {
-  questId: QuestId;
+  questId: Quest['id'];
 }): {
   entries: CommentQueueEntry[];
   entryFor: (params: { anchor: CommentAnchor }) => CommentQueueEntry | undefined;

@@ -9,13 +9,7 @@
  * // waiting for a reload — Claude's --resume stream never echoes the prompt back.
  */
 
-import type {
-  CommentBatchEntry,
-  GuildId,
-  ProcessId,
-  QuestId,
-  SessionId,
-} from '@dungeonmaster/shared/contracts';
+import type { CommentBatchEntry, GuildId, ProcessId, SessionId, Quest } from '@dungeonmaster/shared/contracts';
 
 import type { PromptText } from '../../contracts/prompt-text/prompt-text-contract';
 import { ChatStartResponder } from '../../responders/chat/start/chat-start-responder';
@@ -30,7 +24,7 @@ export const CommentBatchFlow = async ({
 }: {
   guildId: GuildId;
   sessionId: SessionId;
-  questId: QuestId;
+  questId: Quest['id'];
   comments: CommentBatchEntry[];
 }): Promise<{ chatProcessId: ProcessId; message: PromptText }> => {
   // Persist gates delivery, mirroring the clarify flow's ordering exactly: the responder throws

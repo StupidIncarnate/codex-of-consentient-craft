@@ -1,6 +1,6 @@
 import { dungeonmasterHomeEnsureBrokerProxy } from '@dungeonmaster/shared/brokers/dungeonmaster-home/ensure/dungeonmaster-home-ensure-broker.proxy';
 import { filePathContract } from '@dungeonmaster/shared/contracts';
-import type { FilePath, QuestId } from '@dungeonmaster/shared/contracts';
+import type { FilePath, Quest } from '@dungeonmaster/shared/contracts';
 import { locationsStatics } from '@dungeonmaster/shared/statics';
 import {
   registerMock,
@@ -17,7 +17,7 @@ import { questOutboxWatchBroker } from './quest-outbox-watch-broker';
 
 registerModuleMock({ module: './quest-outbox-watch-broker' });
 
-type OnQuestChanged = (args: { questId: QuestId }) => void;
+type OnQuestChanged = (args: { questId: Quest['id'] }) => void;
 type OnError = (args: { error: unknown }) => void;
 
 export const questOutboxWatchBrokerProxy = (): {

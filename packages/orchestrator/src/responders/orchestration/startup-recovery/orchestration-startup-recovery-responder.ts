@@ -6,7 +6,7 @@
  * // Returns array of quest IDs that were recovered across all guilds
  */
 
-import type { GuildListItem, QuestId } from '@dungeonmaster/shared/contracts';
+import type { GuildListItem, Quest } from '@dungeonmaster/shared/contracts';
 
 import { RecoverGuildLayerResponder } from './recover-guild-layer-responder';
 
@@ -14,7 +14,7 @@ export const OrchestrationStartupRecoveryResponder = async ({
   guildItems,
 }: {
   guildItems: GuildListItem[];
-}): Promise<QuestId[]> => {
+}): Promise<Quest['id'][]> => {
   const results = await Promise.all(
     guildItems.map(async (guildItem) => RecoverGuildLayerResponder({ guildItem })),
   );

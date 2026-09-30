@@ -1,6 +1,6 @@
 import { screen } from '#gateway/npm/testing-library__react';
 
-import type { QuestId } from '@dungeonmaster/shared/contracts';
+import type { Quest } from '@dungeonmaster/shared/contracts';
 
 import { useCommentQueueBindingProxy } from '../../bindings/use-comment-queue/use-comment-queue-binding.proxy';
 import type { CommentQueueEntryStub } from '../../contracts/comment-queue-entry/comment-queue-entry.stub';
@@ -9,7 +9,7 @@ type QueuedEntry = ReturnType<typeof CommentQueueEntryStub>;
 
 export const FlowTabQueueMarkLayerWidgetProxy = (): {
   setupEmptyQueue: () => void;
-  setupQueuedComments: (params: { questId: QuestId; entries: QueuedEntry[] }) => void;
+  setupQueuedComments: (params: { questId: Quest['id']; entries: QueuedEntry[] }) => void;
   countMarks: () => HTMLElement['childElementCount'];
   markGlyphs: () => HTMLElement['className'][];
   markColor: () => HTMLElement['style']['color'];
@@ -24,7 +24,7 @@ export const FlowTabQueueMarkLayerWidgetProxy = (): {
       questId,
       entries,
     }: {
-      questId: QuestId;
+      questId: Quest['id'];
       entries: QueuedEntry[];
     }): void => {
       queueProxy.setupQueuedComments({ questId, entries });

@@ -15,7 +15,7 @@
  */
 
 import type { Quest, QuestProjection } from '@dungeonmaster/shared/contracts';
-import { questIdContract } from '@dungeonmaster/shared/contracts';
+import { questContract } from '@dungeonmaster/shared/contracts';
 
 import { questGetProjectionBroker } from '../../../brokers/quest/get-projection/quest-get-projection-broker';
 
@@ -24,4 +24,4 @@ export const QuestGetProjectionResponder = async ({
 }: {
   questId: Quest['id'];
 }): Promise<QuestProjection> =>
-  questGetProjectionBroker({ questId: questIdContract.parse(questId) });
+  questGetProjectionBroker({ questId: questContract.shape.id.parse(questId) });

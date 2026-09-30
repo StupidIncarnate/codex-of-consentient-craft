@@ -9,8 +9,8 @@
  * questFieldsToModifyInputTransformer({ questId, fields: { title: 'renamed', guildId: 'g1' } });
  * // Returns { questId, title: 'renamed' } — guildId dropped, questId branded
  */
-import { modifyQuestInputContract, questIdContract } from '@dungeonmaster/shared/contracts';
-import type { ModifyQuestInput, QuestId } from '@dungeonmaster/shared/contracts';
+import { modifyQuestInputContract, questContract } from '@dungeonmaster/shared/contracts';
+import type { ModifyQuestInput, Quest } from '@dungeonmaster/shared/contracts';
 
 import { modifiableQuestFieldsStatics } from '../../statics/modifiable-quest-fields/modifiable-quest-fields-statics';
 
@@ -18,7 +18,7 @@ export const questFieldsToModifyInputTransformer = ({
   questId,
   fields,
 }: {
-  questId: QuestId;
+  questId: Quest['id'];
   fields: Record<string, unknown>;
 }): ModifyQuestInput => {
   // `fields` keys are plain `string` (an arbitrary caller-supplied record), narrower than
@@ -33,6 +33,6 @@ export const questFieldsToModifyInputTransformer = ({
 
   return modifyQuestInputContract.parse({
     ...modifiable,
-    questId: questIdContract.parse(questId),
+    questId: questContract.shape.id.parse(questId),
   });
 };

@@ -18,6 +18,7 @@
  */
 
 import { z } from '#gateway/npm/zod';
+import { questContract } from '@dungeonmaster/shared/contracts';
 
 const planPayloadContract = z
   .object({
@@ -107,10 +108,7 @@ const requestPayloadContract = z
 
 export const questWorkInputContract = z
   .object({
-    questId: z
-      .string()
-      .min(1)
-      .brand<'QuestId'>()
+    questId: questContract.shape.id
       .describe('The ID of the quest this call is against.'),
     workItemId: z
       .string()

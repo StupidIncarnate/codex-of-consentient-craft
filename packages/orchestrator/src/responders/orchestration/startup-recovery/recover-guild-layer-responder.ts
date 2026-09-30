@@ -16,13 +16,7 @@ import { stderr } from '#gateway/node/process';
 import { AbortController } from '#gateway/node/AbortController';
 import { randomUUID } from '#gateway/node/crypto';
 import { filePathContract, processIdContract } from '@dungeonmaster/shared/contracts';
-import type {
-  GuildListItem,
-  ModifyQuestInput,
-  Quest,
-  QuestId,
-  SessionId,
-} from '@dungeonmaster/shared/contracts';
+import type { GuildListItem, ModifyQuestInput, Quest, SessionId } from '@dungeonmaster/shared/contracts';
 import { errorMessageContract } from '@dungeonmaster/shared/contracts';
 
 import type { SlotIndex } from '@dungeonmaster/shared/contracts';
@@ -48,12 +42,12 @@ export const RecoverGuildLayerResponder = async ({
   guildItem,
 }: {
   guildItem: GuildListItem;
-}): Promise<QuestId[]> => {
+}): Promise<Quest['id'][]> => {
   if (!guildItem.valid) {
     return [];
   }
 
-  const recoveredIds: QuestId[] = [];
+  const recoveredIds: Quest['id'][] = [];
 
   try {
     const quests = await questListBroker({ guildId: guildItem.id });

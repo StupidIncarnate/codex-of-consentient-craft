@@ -10,9 +10,10 @@ import { z } from '#gateway/npm/zod';
 
 import { questStatusContract } from '../quest-status/quest-status-contract';
 import { sessionIdContract } from '../session-id/session-id-contract';
+import { questContract } from '../quest/quest-contract';
 
 export const questListItemContract = z.object({
-  id: z.string().min(1).brand<'QuestId'>(),
+  id: questContract.shape.id,
   folder: z.string().min(1).brand<'QuestFolder'>(),
   title: z.string().min(1).brand<'QuestTitle'>(),
   status: questStatusContract,

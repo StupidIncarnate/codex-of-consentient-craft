@@ -6,7 +6,7 @@
  * // Returns {abandoned: true} on success, throws on failure
  */
 
-import type { QuestId } from '@dungeonmaster/shared/contracts';
+import type { Quest } from '@dungeonmaster/shared/contracts';
 
 import { fetchJson } from '#gateway/browser/fetch';
 
@@ -17,7 +17,7 @@ import { webConfigStatics } from '../../../statics/web-config/web-config-statics
 export const questAbandonBroker = async ({
   questId,
 }: {
-  questId: QuestId;
+  questId: Quest['id'];
 }): Promise<QuestAbandonResult> => {
   const response = await fetchJson({
     url: webConfigStatics.api.routes.questAbandon.replace(':questId', questId),

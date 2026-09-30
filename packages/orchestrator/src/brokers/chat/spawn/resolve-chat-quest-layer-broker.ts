@@ -32,14 +32,7 @@
  */
 
 import { addQuestInputContract, getQuestInputContract } from '@dungeonmaster/shared/contracts';
-import type {
-  GuildId,
-  QuestId,
-  QuestType,
-  QuestWorkItemId,
-  SessionId,
-  WorkItemRole,
-} from '@dungeonmaster/shared/contracts';
+import type { GuildId, QuestType, QuestWorkItemId, SessionId, WorkItemRole, Quest } from '@dungeonmaster/shared/contracts';
 
 import { questGetBroker } from '../../quest/get/quest-get-broker';
 import { questUserAddBroker } from '../../quest/user-add/quest-user-add-broker';
@@ -57,16 +50,16 @@ export const resolveChatQuestLayerBroker = async ({
   role: WorkItemRole;
   guildId: GuildId;
   questType?: QuestType;
-  questId?: QuestId;
+  questId?: Quest['id'];
   // The create-surface route's pre-picked id — see the file header for why this cannot reuse
   // `questId`, which already means something else when `sessionId` is absent.
-  mintedQuestId?: QuestId;
+  mintedQuestId?: Quest['id'];
   // The main quest-chat route's own URL questId — see the file header for why this is a separate,
   // unconditional-existence channel rather than an overload of `questId`.
-  existingQuestId?: QuestId;
+  existingQuestId?: Quest['id'];
   sessionId?: SessionId;
   message: string;
-}): Promise<{ questId: QuestId; workItemId: QuestWorkItemId; createdQuest: boolean }> => {
+}): Promise<{ questId: Quest['id']; workItemId: QuestWorkItemId; createdQuest: boolean }> => {
   if (role === 'tavernkeeper') {
     if (!questId) {
       throw new Error('questId is required for tavernkeeper role');

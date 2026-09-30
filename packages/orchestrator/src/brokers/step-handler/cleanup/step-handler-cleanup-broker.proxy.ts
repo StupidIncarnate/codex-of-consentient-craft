@@ -17,7 +17,7 @@
 import { streamLinesProxy } from '#gateway/node/child_process/stream-lines/stream-lines.proxy';
 import { RunNotFoundErrorProxy } from '#gateway/node/child_process/run-not-found.error.proxy';
 import { getEnvProxy } from '#gateway/node/process/get-env/get-env.proxy';
-import type { ErrorMessage, ExitCode, QuestId } from '@dungeonmaster/shared/contracts';
+import type { ErrorMessage, ExitCode, Quest } from '@dungeonmaster/shared/contracts';
 import { ErrorMessageStub } from '@dungeonmaster/shared/contracts/error-message/error-message.stub';
 import { ExitCodeStub } from '@dungeonmaster/shared/contracts/exit-code/exit-code.stub';
 import { RepoRootCwdStub } from '@dungeonmaster/shared/contracts/repo-root-cwd/repo-root-cwd.stub';
@@ -33,9 +33,9 @@ registerModuleMock({ module: '../../quest/repo-root/quest-repo-root-broker' });
 const CLEANUP_COMMAND = cleanupCliCallStatics.call.bin;
 
 export const stepHandlerCleanupBrokerProxy = (): {
-  cleanupExits: (params: { questId: QuestId; exitCode: ExitCode; answer: CleanupAnswer }) => void;
-  cleanupFails: (params: { questId: QuestId; exitCode: ExitCode; output: string }) => void;
-  cleanupPrintsInvalidJson: (params: { questId: QuestId }) => void;
+  cleanupExits: (params: { questId: Quest['id']; exitCode: ExitCode; answer: CleanupAnswer }) => void;
+  cleanupFails: (params: { questId: Quest['id']; exitCode: ExitCode; output: string }) => void;
+  cleanupPrintsInvalidJson: (params: { questId: Quest['id'] }) => void;
   getSpawnedCommand: () => unknown;
   getSpawnedArgs: () => unknown;
   getSpawnedCwd: () => unknown;
@@ -62,7 +62,7 @@ export const stepHandlerCleanupBrokerProxy = (): {
     });
   };
   stageCleanupSpawn();
-  const stageRepoRoot = ({ questId }: { questId: QuestId }): void => {
+  const stageRepoRoot = ({ questId }: { questId: Quest['id'] }): void => {
     repoRootMock.calledWith([{ questId }]).resolves(RepoRootCwdStub({ value: '/repo' }));
   };
 
@@ -72,7 +72,7 @@ export const stepHandlerCleanupBrokerProxy = (): {
       exitCode,
       answer,
     }: {
-      questId: QuestId;
+      questId: Quest['id'];
       exitCode: ExitCode;
       answer: CleanupAnswer;
     }): void => {
@@ -87,7 +87,7 @@ export const stepHandlerCleanupBrokerProxy = (): {
       exitCode,
       output,
     }: {
-      questId: QuestId;
+      questId: Quest['id'];
       exitCode: ExitCode;
       output: string;
     }): void => {
@@ -97,7 +97,7 @@ export const stepHandlerCleanupBrokerProxy = (): {
       stageCleanupSpawn();
     },
 
-    cleanupPrintsInvalidJson: ({ questId }: { questId: QuestId }): void => {
+    cleanupPrintsInvalidJson: ({ questId }: { questId: Quest['id'] }): void => {
       stageRepoRoot({ questId });
       runResult.exitCode = ExitCodeStub({ value: 0 });
       runResult.output = ErrorMessageStub({ value: 'not json' });

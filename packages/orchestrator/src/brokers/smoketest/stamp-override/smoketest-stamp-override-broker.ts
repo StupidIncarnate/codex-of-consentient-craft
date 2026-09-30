@@ -18,7 +18,7 @@ import {
   filePathContract,
   questContract,
 } from '@dungeonmaster/shared/contracts';
-import type { QuestId, QuestWorkItemId } from '@dungeonmaster/shared/contracts';
+import type { QuestWorkItemId, Quest } from '@dungeonmaster/shared/contracts';
 import { locationsStatics } from '@dungeonmaster/shared/statics';
 import { join } from '#gateway/node/path';
 
@@ -35,7 +35,7 @@ export const smoketestStampOverrideBroker = async ({
   workItemId,
   override,
 }: {
-  questId: QuestId;
+  questId: Quest['id'];
   workItemId: QuestWorkItemId;
   override: PromptText;
 }): Promise<void> =>

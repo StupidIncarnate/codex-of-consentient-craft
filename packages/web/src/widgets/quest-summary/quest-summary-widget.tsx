@@ -25,7 +25,7 @@
 
 import { Box, Text } from '#gateway/npm/mantine__core';
 
-import type { QuestId } from '@dungeonmaster/shared/contracts';
+import type { Quest } from '@dungeonmaster/shared/contracts';
 
 import { useQuestSummaryBinding } from '../../bindings/use-quest-summary/use-quest-summary-binding';
 import { emberDepthsThemeStatics } from '../../statics/ember-depths-theme/ember-depths-theme-statics';
@@ -36,7 +36,7 @@ import { NoteGroupLayerWidget } from './note-group-layer-widget';
 import { ObservableRowLayerWidget } from './observable-row-layer-widget';
 
 export interface QuestSummaryWidgetProps {
-  questId: QuestId;
+  questId: Quest['id'];
 }
 
 const TITLE_FONT_SIZE = 11;

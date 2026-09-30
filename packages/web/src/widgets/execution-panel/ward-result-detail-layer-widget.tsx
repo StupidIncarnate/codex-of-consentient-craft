@@ -12,7 +12,7 @@ import { consoleError } from '#gateway/browser/console';
 import { Text } from '#gateway/npm/mantine__core';
 import { useEffect, useState } from '#gateway/npm/react';
 
-import type { QuestId, WardDetail, WardResult } from '@dungeonmaster/shared/contracts';
+import type { WardDetail, WardResult, Quest } from '@dungeonmaster/shared/contracts';
 
 import { questWardDetailBroker } from '../../brokers/quest/ward-detail/quest-ward-detail-broker';
 import { emberDepthsThemeStatics } from '../../statics/ember-depths-theme/ember-depths-theme-statics';
@@ -25,7 +25,7 @@ export const WardResultDetailLayerWidget = ({
   questId,
   wardResult,
 }: {
-  questId: QuestId;
+  questId: Quest['id'];
   wardResult: WardResult;
 }): React.JSX.Element | null => {
   const { colors } = emberDepthsThemeStatics;

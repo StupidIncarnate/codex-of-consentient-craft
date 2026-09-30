@@ -18,7 +18,7 @@
  */
 
 import { stderr } from '#gateway/node/process';
-import type { QuestId } from '@dungeonmaster/shared/contracts';
+import type { Quest } from '@dungeonmaster/shared/contracts';
 
 import { questOutboxWatchBroker } from '../../../brokers/quest/outbox-watch/quest-outbox-watch-broker';
 import { smoketestPostTerminalListenerBroker } from '../../../brokers/smoketest/post-terminal-listener/smoketest-post-terminal-listener-broker';
@@ -38,7 +38,7 @@ export const SmoketestBootstrapListenerResponder = (): void => {
   state.installing = true;
   smoketestPostTerminalListenerBroker({
     install: async (
-      onQuestChanged: (args: { questId: QuestId }) => void,
+      onQuestChanged: (args: { questId: Quest['id'] }) => void,
     ): Promise<{ stop: () => void }> =>
       questOutboxWatchBroker({
         onQuestChanged,

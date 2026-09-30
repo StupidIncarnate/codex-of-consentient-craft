@@ -7,7 +7,7 @@
  */
 
 import { getQuestInputContract } from '@dungeonmaster/shared/contracts';
-import type { GuildId, QuestId } from '@dungeonmaster/shared/contracts';
+import type { GuildId, Quest } from '@dungeonmaster/shared/contracts';
 import {
   isPreExecutionQuestStatusGuard,
   isTerminalQuestStatusGuard,
@@ -21,7 +21,7 @@ export const OrchestrationDeleteResponder = async ({
   questId,
   guildId,
 }: {
-  questId: QuestId;
+  questId: Quest['id'];
   guildId: GuildId;
 }): Promise<{ deleted: boolean }> => {
   const input = getQuestInputContract.parse({ questId });

@@ -13,13 +13,7 @@ import { Link, useNavigate } from '#gateway/npm/react-router-dom';
 
 import { Box, Center, Group, Text } from '#gateway/npm/mantine__core';
 
-import type {
-  GuildId,
-  GuildName,
-  GuildPath,
-  QuestId,
-  SessionId,
-} from '@dungeonmaster/shared/contracts';
+import type { GuildId, GuildName, GuildPath, SessionId, Quest } from '@dungeonmaster/shared/contracts';
 
 import { notifications } from '#gateway/npm/mantine__notifications';
 import { useGuildsBinding } from '../../bindings/use-guilds/use-guilds-binding';
@@ -61,8 +55,8 @@ export const HomeContentWidget = (): React.JSX.Element => {
     guildId: selectedGuildId,
   });
 
-  const [confirmingQuestId, setConfirmingQuestId] = useState<QuestId | null>(null);
-  const [deletingQuestId, setDeletingQuestId] = useState<QuestId | null>(null);
+  const [confirmingQuestId, setConfirmingQuestId] = useState<Quest['id'] | null>(null);
+  const [deletingQuestId, setDeletingQuestId] = useState<Quest['id'] | null>(null);
 
   useEffect(() => {
     const persisted = selectedGuildId
@@ -190,7 +184,7 @@ export const HomeContentWidget = (): React.JSX.Element => {
                     });
                   }
                 }}
-                onSelectQuest={({ questId }: { questId: QuestId }) => {
+                onSelectQuest={({ questId }: { questId: Quest['id'] }) => {
                   const selectedGuild = guilds.find((guild) => guild.id === selectedGuildId);
                   const slug = selectedGuild?.urlSlug ?? selectedGuildId;
                   const result = navigate(`/${slug}/quest/${String(questId)}`, {
@@ -217,7 +211,7 @@ export const HomeContentWidget = (): React.JSX.Element => {
                   setConfirmingQuestId(questId);
                 }}
                 deletingQuestId={deletingQuestId}
-                onDeleteQuest={({ questId }: { questId: QuestId }) => {
+                onDeleteQuest={({ questId }: { questId: Quest['id'] }) => {
                   setDeletingQuestId(questId);
                   questDeleteBroker({ questId, guildId: selectedGuildId })
                     .then(async () => {

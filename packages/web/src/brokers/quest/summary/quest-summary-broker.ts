@@ -8,7 +8,7 @@
  * // debt with their evidence and next action, and the note groups)
  */
 
-import type { QuestId, QuestSummary } from '@dungeonmaster/shared/contracts';
+import type { QuestSummary, Quest } from '@dungeonmaster/shared/contracts';
 import { questSummaryContract } from '@dungeonmaster/shared/contracts';
 
 import { fetchJson } from '#gateway/browser/fetch';
@@ -18,7 +18,7 @@ import { webConfigStatics } from '../../../statics/web-config/web-config-statics
 export const questSummaryBroker = async ({
   questId,
 }: {
-  questId: QuestId;
+  questId: Quest['id'];
 }): Promise<QuestSummary> => {
   const url = webConfigStatics.api.routes.questSummary.replace(':questId', questId);
 

@@ -21,13 +21,13 @@ import {
   flowContract,
   workItemContract,
 } from '@dungeonmaster/shared/contracts';
-import type { QuestId, Flow, WorkItem } from '@dungeonmaster/shared/contracts';
+import type { Flow, WorkItem, Quest } from '@dungeonmaster/shared/contracts';
 import { questFindBroker } from '../find/quest-find-broker';
 
 export const questLoadBroker = ({
   questId,
 }: {
-  questId: QuestId;
+  questId: Quest['id'];
 }): { flows: readonly Flow[]; workItems: readonly WorkItem[] } => {
   const empty = { flows: [], workItems: [] };
   const questPath = questFindBroker({ questId });

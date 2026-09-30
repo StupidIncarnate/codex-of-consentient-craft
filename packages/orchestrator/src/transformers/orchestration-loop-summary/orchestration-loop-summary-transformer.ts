@@ -7,7 +7,7 @@
  * //          with ready items numbered in dispatch order, each line carrying the work-item id and a why-blocked reason.
  */
 
-import type { QuestId, QuestStatus, WorkItem, WorkItemRole } from '@dungeonmaster/shared/contracts';
+import type { QuestStatus, WorkItem, WorkItemRole, Quest } from '@dungeonmaster/shared/contracts';
 import {
   isActiveWorkItemStatusGuard,
   isCompleteWorkItemStatusGuard,
@@ -37,7 +37,7 @@ export const orchestrationLoopSummaryTransformer = ({
   ready,
   chatRoles,
 }: {
-  questId: QuestId;
+  questId: Quest['id'];
   questStatus: QuestStatus;
   workItems: WorkItem[];
   ready: WorkItem[];

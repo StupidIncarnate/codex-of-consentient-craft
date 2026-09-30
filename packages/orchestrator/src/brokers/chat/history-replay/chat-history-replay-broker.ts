@@ -39,14 +39,7 @@ import {
   fileNameContract,
   filePathContract,
 } from '@dungeonmaster/shared/contracts';
-import type {
-  ArrayIndex,
-  ChatEntry,
-  GuildId,
-  QuestId,
-  SessionId,
-  StreamJsonLine,
-} from '@dungeonmaster/shared/contracts';
+import type { ArrayIndex, ChatEntry, GuildId, SessionId, StreamJsonLine, Quest } from '@dungeonmaster/shared/contracts';
 import {
   claudeProjectPathEncoderTransformer,
   stripJsonlSuffixTransformer,
@@ -86,7 +79,7 @@ export const chatHistoryReplayBroker = async ({
   //
   // Left undefined for a session with no linked quest (the raw session-view path replayed by
   // `chat-replay-responder`'s orphan branch), which keeps the guild-path walk-up below.
-  questId?: QuestId;
+  questId?: Quest['id'];
   onEntries: (params: { entries: ChatEntry[] }) => void;
 }): Promise<void> => {
   const resolvedProjectPath = await (async () => {

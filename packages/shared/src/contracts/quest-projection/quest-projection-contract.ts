@@ -61,11 +61,11 @@ import { z } from '#gateway/npm/zod';
 import { operationItemContract } from '../operation-item/operation-item-contract';
 import { operationItemIdContract } from '../operation-item-id/operation-item-id-contract';
 import { pieceIdContract } from '../piece-id/piece-id-contract';
-import { questIdContract } from '../quest-id/quest-id-contract';
 import { questWorkItemIdContract } from '../quest-work-item-id/quest-work-item-id-contract';
 import { stepNameContract } from '../step-name/step-name-contract';
 import { workItemRoleContract } from '../work-item-role/work-item-role-contract';
 import { workItemStatusContract } from '../work-item-status/work-item-status-contract';
+import { questContract } from '../quest/quest-contract';
 
 // `.default()` before `.brand()`, baked in here rather than at each use site below — zod v4
 // checks a `.default()` literal against the schema's own output type, and a bare number can never
@@ -118,7 +118,7 @@ const questProjectionScopeContract = z
 
 export const questProjectionContract = z
   .object({
-    questId: questIdContract,
+    questId: questContract.shape.id,
     scopes: z
       .array(questProjectionScopeContract)
       .default([])

@@ -7,7 +7,7 @@
  */
 
 import { filePathContract } from '@dungeonmaster/shared/contracts';
-import type { FileContents, FilePath, QuestId } from '@dungeonmaster/shared/contracts';
+import type { FileContents, FilePath, Quest } from '@dungeonmaster/shared/contracts';
 import { rename, writeFile } from '#gateway/node/fs__promises';
 
 import { questOutboxAppendBroker } from '../outbox-append/quest-outbox-append-broker';
@@ -21,7 +21,7 @@ export const questPersistBroker = async ({
 }: {
   questFilePath: FilePath;
   contents: FileContents;
-  questId: QuestId;
+  questId: Quest['id'];
 }): Promise<void> => {
   const tmpPath = filePathContract.parse(`${questFilePath}${TMP_SUFFIX}`);
 

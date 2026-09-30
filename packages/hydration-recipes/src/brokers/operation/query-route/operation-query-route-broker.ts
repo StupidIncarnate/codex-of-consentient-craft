@@ -13,7 +13,7 @@
  * // Returns every operation on that quest whose role is 'riftcarver'
  */
 import { questGetBroker } from '@dungeonmaster/orchestrator/brokers';
-import { getQuestInputContract, questIdContract } from '@dungeonmaster/shared/contracts';
+import { getQuestInputContract, questContract } from '@dungeonmaster/shared/contracts';
 import type { OperationItem } from '@dungeonmaster/shared/contracts';
 
 import { matchesWhereClauseGuard } from '../../../guards/matches-where-clause/matches-where-clause-guard';
@@ -27,7 +27,7 @@ export const operationQueryRouteBroker = async ({
 }): Promise<OperationItem[]> => {
   const { questId, ...rest } = where;
   const getResult = await questGetBroker({
-    input: getQuestInputContract.parse({ questId: questIdContract.parse(questId) }),
+    input: getQuestInputContract.parse({ questId: questContract.shape.id.parse(questId) }),
   });
 
   if (!getResult.success || !getResult.quest) {

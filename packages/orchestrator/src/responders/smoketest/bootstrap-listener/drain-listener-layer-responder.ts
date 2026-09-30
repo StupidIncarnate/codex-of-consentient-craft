@@ -9,13 +9,13 @@
  * WHEN-NOT-TO-USE: Anywhere else. Not a general-purpose drain — it's the concrete tie between the listener lifecycle and the active-run flag.
  */
 
-import type { QuestId } from '@dungeonmaster/shared/contracts';
+import type { Quest } from '@dungeonmaster/shared/contracts';
 
 import { smoketestListenerState } from '../../../state/smoketest-listener/smoketest-listener-state';
 import { smoketestRunState } from '../../../state/smoketest-run/smoketest-run-state';
 import { smoketestScenarioMetaState } from '../../../state/smoketest-scenario-meta/smoketest-scenario-meta-state';
 
-export const DrainListenerLayerResponder = ({ questId }: { questId: QuestId }): void => {
+export const DrainListenerLayerResponder = ({ questId }: { questId: Quest['id'] }): void => {
   smoketestListenerState.unregister({ questId });
   smoketestScenarioMetaState.unregister({ questId });
   if (smoketestListenerState.getAllQuestIds().length === 0) {

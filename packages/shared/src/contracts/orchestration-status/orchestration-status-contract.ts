@@ -9,10 +9,11 @@
 import { z } from '#gateway/npm/zod';
 
 import { orchestrationSlotContract } from '../orchestration-slot/orchestration-slot-contract';
+import { questContract } from '../quest/quest-contract';
 
 export const orchestrationStatusContract = z.object({
   processId: z.string().brand<'ProcessId'>(),
-  questId: z.string().brand<'QuestId'>(),
+  questId: questContract.shape.id,
   phase: z.enum([
     'codeweaver',
     'flowrider',

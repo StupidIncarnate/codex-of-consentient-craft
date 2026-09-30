@@ -1,7 +1,7 @@
 import { screen } from '#gateway/npm/testing-library__react';
 import userEvent from '#gateway/npm/testing-library__user-event';
 
-import type { QuestId } from '@dungeonmaster/shared/contracts';
+import type { Quest } from '@dungeonmaster/shared/contracts';
 
 import { useCommentQueueBindingProxy } from '../../bindings/use-comment-queue/use-comment-queue-binding.proxy';
 import type { CommentQueueEntryStub } from '../../contracts/comment-queue-entry/comment-queue-entry.stub';
@@ -14,10 +14,10 @@ type QueueProxy = ReturnType<typeof useCommentQueueBindingProxy>;
 
 export const CommentPopoverWidgetProxy = (): {
   setupEmptyQueue: () => void;
-  setupQueuedComments: (params: { questId: QuestId; entries: QueuedEntry[] }) => void;
+  setupQueuedComments: (params: { questId: Quest['id']; entries: QueuedEntry[] }) => void;
   queuedAt: QueueProxy['queuedAt'];
-  getStoredValue: (params: { questId: QuestId }) => unknown;
-  hasStoredQueue: (params: { questId: QuestId }) => boolean;
+  getStoredValue: (params: { questId: Quest['id'] }) => unknown;
+  hasStoredQueue: (params: { questId: Quest['id'] }) => boolean;
   clickCommentButton: () => Promise<void>;
   clickFirstCommentButton: () => Promise<void>;
   typeIntoTextarea: (params: { text: HTMLTextAreaElement['value'] }) => Promise<void>;
@@ -62,15 +62,15 @@ export const CommentPopoverWidgetProxy = (): {
       questId,
       entries,
     }: {
-      questId: QuestId;
+      questId: Quest['id'];
       entries: QueuedEntry[];
     }): void => {
       queueProxy.setupQueuedComments({ questId, entries });
     },
     queuedAt: queueProxy.queuedAt,
-    getStoredValue: ({ questId }: { questId: QuestId }): unknown =>
+    getStoredValue: ({ questId }: { questId: Quest['id'] }): unknown =>
       queueProxy.getStoredValue({ questId }),
-    hasStoredQueue: ({ questId }: { questId: QuestId }): boolean =>
+    hasStoredQueue: ({ questId }: { questId: Quest['id'] }): boolean =>
       queueProxy.hasStoredQueue({ questId }),
 
     clickCommentButton: async (): Promise<void> => {

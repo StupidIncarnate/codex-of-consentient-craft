@@ -11,13 +11,7 @@
 
 import { z } from '#gateway/npm/zod';
 
-import {
-  flowIdContract,
-  flowNodeIdContract,
-  observableIdContract,
-  outcomeTypeContract,
-  questIdContract,
-} from '@dungeonmaster/shared/contracts';
+import { flowIdContract, flowNodeIdContract, observableIdContract, outcomeTypeContract, questContract } from '@dungeonmaster/shared/contracts';
 
 import { commentCountContract } from '../comment-count/comment-count-contract';
 import { reactFlowPackageChipContract } from '../react-flow-package-chip/react-flow-package-chip-contract';
@@ -47,7 +41,7 @@ export const flowObservableNodeDataContract = z.object({
   // Anchor context for the comment COMPOSE affordance on this assertion card. Present only when the
   // comment compose controls are allowed for this quest; their absence is what makes the card
   // render no comment button.
-  questId: questIdContract.optional(),
+  questId: questContract.shape.id.optional(),
   flowId: flowIdContract.optional(),
 });
 

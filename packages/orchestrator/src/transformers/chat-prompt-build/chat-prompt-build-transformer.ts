@@ -8,7 +8,7 @@
  * // Returns branded PromptText with role-specific template populated
  */
 
-import type { QuestId, SessionId, WorkItemRole } from '@dungeonmaster/shared/contracts';
+import type { SessionId, WorkItemRole, Quest } from '@dungeonmaster/shared/contracts';
 
 import type { PromptText } from '../../contracts/prompt-text/prompt-text-contract';
 import { imagePromptTrailerTransformer } from '../image-prompt-trailer/image-prompt-trailer-transformer';
@@ -24,7 +24,7 @@ export const chatPromptBuildTransformer = ({
 }: {
   role: WorkItemRole;
   message: string;
-  questId: QuestId | null;
+  questId: Quest['id'] | null;
   sessionId?: SessionId;
 }): PromptText => {
   if (sessionId) {

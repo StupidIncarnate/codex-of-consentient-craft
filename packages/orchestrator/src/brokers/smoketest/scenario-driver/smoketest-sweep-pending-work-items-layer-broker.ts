@@ -14,7 +14,7 @@
  */
 
 import { filePathContract } from '@dungeonmaster/shared/contracts';
-import type { QuestId, WorkItemRole } from '@dungeonmaster/shared/contracts';
+import type { WorkItemRole, Quest } from '@dungeonmaster/shared/contracts';
 import { isPendingWorkItemStatusGuard } from '@dungeonmaster/shared/guards';
 import { locationsStatics } from '@dungeonmaster/shared/statics';
 import { join } from '#gateway/node/path';
@@ -37,7 +37,7 @@ export const smoketestSweepPendingWorkItemsLayerBroker = async ({
   abortSignal,
   dispense,
 }: {
-  questId: QuestId;
+  questId: Quest['id'];
   abortSignal: AbortSignal;
   dispense: Dispense;
 }): Promise<void> => {

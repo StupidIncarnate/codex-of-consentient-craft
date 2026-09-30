@@ -6,7 +6,7 @@
  * // Transforms structured answers into design decisions and upserts them to the quest
  */
 
-import type { QuestId } from '@dungeonmaster/shared/contracts';
+import type { Quest } from '@dungeonmaster/shared/contracts';
 
 import type { ClarificationQuestion } from '../../../contracts/clarification-question/clarification-question-contract';
 import { questModifyBroker } from '../../../brokers/quest/modify/quest-modify-broker';
@@ -17,7 +17,7 @@ export const ClarifyAnswerResponder = async ({
   answers,
   questions,
 }: {
-  questId: QuestId;
+  questId: Quest['id'];
   answers: { header: string; label: string }[];
   questions: ClarificationQuestion[];
 }): Promise<void> => {

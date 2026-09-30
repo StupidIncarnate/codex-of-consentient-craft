@@ -16,7 +16,7 @@
 
 import { stdoutProxy } from '#gateway/node/process/stdout/stdout.proxy';
 import { registerMock } from '@dungeonmaster/testing/register-mock';
-import type { GuildId, QuestId } from '@dungeonmaster/shared/contracts';
+import type { GuildId, Quest } from '@dungeonmaster/shared/contracts';
 
 import type { RecipeName } from '../../../contracts/recipe-name/recipe-name-contract';
 
@@ -37,17 +37,17 @@ type RecipeListingEntry = ReturnType<typeof RecipeListingEntryStub>;
 export const SiegelenseStartResponderProxy = (): {
   stageManifest: (params: { manifest: InstanceManifest }) => void;
   stageError: (params: { error: Error; specName: SpecName }) => void;
-  stageQuestResolvesToGuild: (params: { questId: QuestId; guildId: GuildId }) => void;
-  stageQuestUnresolvable: (params: { questId: QuestId; error: Error }) => void;
+  stageQuestResolvesToGuild: (params: { questId: Quest['id']; guildId: GuildId }) => void;
+  stageQuestUnresolvable: (params: { questId: Quest['id']; error: Error }) => void;
   stageRecipeListing: (params: { entries: readonly RecipeListingEntry[] }) => void;
   getStdoutWrites: () => unknown[];
   getStartCallsMatching: (params: {
     specName: SpecName;
-    questId: QuestId | null;
+    questId: Quest['id'] | null;
     guildId: GuildId | null;
     seed: RecipeName | null;
   }) => unknown[][];
-  getOwningGuildFindCallsMatching: (params: { questId: QuestId }) => unknown[][];
+  getOwningGuildFindCallsMatching: (params: { questId: Quest['id'] }) => unknown[][];
 } => {
   // Constructed for enforce-proxy-child-creation only — this proxy stages instanceStartBroker,
   // questOwningGuildFindBroker and recipesReadBroker directly below, never through their own setup
@@ -75,13 +75,13 @@ export const SiegelenseStartResponderProxy = (): {
       questId,
       guildId,
     }: {
-      questId: QuestId;
+      questId: Quest['id'];
       guildId: GuildId;
     }): void => {
       owningGuildFindHandle.calledWith([{ questId }]).resolves(guildId);
     },
 
-    stageQuestUnresolvable: ({ questId, error }: { questId: QuestId; error: Error }): void => {
+    stageQuestUnresolvable: ({ questId, error }: { questId: Quest['id']; error: Error }): void => {
       owningGuildFindHandle.calledWith([{ questId }]).rejects(error);
     },
 
@@ -98,12 +98,12 @@ export const SiegelenseStartResponderProxy = (): {
       seed,
     }: {
       specName: SpecName;
-      questId: QuestId | null;
+      questId: Quest['id'] | null;
       guildId: GuildId | null;
       seed: RecipeName | null;
     }): unknown[][] => instanceStartHandle.callsMatching([{ specName, questId, guildId, seed }]),
 
-    getOwningGuildFindCallsMatching: ({ questId }: { questId: QuestId }): unknown[][] =>
+    getOwningGuildFindCallsMatching: ({ questId }: { questId: Quest['id'] }): unknown[][] =>
       owningGuildFindHandle.callsMatching([{ questId }]),
   };
 };

@@ -8,14 +8,7 @@
  * sub.unsubscribe();
  */
 
-import type {
-  GuildId,
-  ProcessId,
-  Quest,
-  QuestId,
-  SessionId,
-  WardResult,
-} from '@dungeonmaster/shared/contracts';
+import type { GuildId, ProcessId, Quest, SessionId, WardResult } from '@dungeonmaster/shared/contracts';
 import { wsMessageContract } from '@dungeonmaster/shared/contracts';
 
 import { clearTimeout } from '#gateway/browser/clearTimeout';
@@ -234,12 +227,12 @@ export const webSocketChannelState = {
       internalState.opensSubject.asObservable(),
     ),
 
-  sendSubscribeQuest: ({ questId }: { questId: QuestId }): boolean => {
+  sendSubscribeQuest: ({ questId }: { questId: Quest['id'] }): boolean => {
     if (internalState.socket === null) return false;
     return internalState.socket.send({ type: 'subscribe-quest', questId });
   },
 
-  sendUnsubscribeQuest: ({ questId }: { questId: QuestId }): boolean => {
+  sendUnsubscribeQuest: ({ questId }: { questId: Quest['id'] }): boolean => {
     if (internalState.socket === null) return false;
     return internalState.socket.send({ type: 'unsubscribe-quest', questId });
   },
@@ -266,7 +259,7 @@ export const webSocketChannelState = {
     questId,
     wardResultId,
   }: {
-    questId: QuestId;
+    questId: Quest['id'];
     wardResultId: WardResultId;
   }): boolean => {
     if (internalState.socket === null) return false;

@@ -32,13 +32,7 @@
  * the honest shape: a reader checks presence instead.
  */
 
-import {
-  fileContentsContract,
-  filePathContract,
-  questContract,
-  questIdContract,
-  questNoteContract,
-} from '@dungeonmaster/shared/contracts';
+import { fileContentsContract, filePathContract, questContract, questNoteContract } from '@dungeonmaster/shared/contracts';
 import type { Quest, QuestNote } from '@dungeonmaster/shared/contracts';
 import { locationsStatics } from '@dungeonmaster/shared/statics';
 import { join } from '#gateway/node/path';
@@ -62,10 +56,10 @@ export const questHumanVerdictRecordBroker = async ({
   reason: string;
 }): Promise<{ quest: Quest }> =>
   questWithModifyLockBroker({
-    questId: questIdContract.parse(questId),
+    questId: questContract.shape.id.parse(questId),
     run: async (): Promise<{ quest: Quest }> => {
       const { questPath } = await questFindQuestPathBroker({
-        questId: questIdContract.parse(questId),
+        questId: questContract.shape.id.parse(questId),
       });
       const questFilePath = filePathContract.parse(
         join(questPath, locationsStatics.quest.questFile),

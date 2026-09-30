@@ -11,12 +11,7 @@
  */
 
 import { randomUUID } from '#gateway/node/crypto';
-import type {
-  CommentBatchEntry,
-  Flow,
-  QuestComment,
-  QuestId,
-} from '@dungeonmaster/shared/contracts';
+import type { CommentBatchEntry, Flow, QuestComment, Quest } from '@dungeonmaster/shared/contracts';
 import { getQuestInputContract, questCommentContract } from '@dungeonmaster/shared/contracts';
 
 import { questGetBroker } from '../../../brokers/quest/get/quest-get-broker';
@@ -26,7 +21,7 @@ export const CommentBatchResponder = async ({
   questId,
   comments,
 }: {
-  questId: QuestId;
+  questId: Quest['id'];
   comments: CommentBatchEntry[];
 }): Promise<{ comments: QuestComment[]; flows: Flow[] }> => {
   const minted: QuestComment[] = comments.map((entry) =>

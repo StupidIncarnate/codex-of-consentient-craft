@@ -26,7 +26,7 @@
 
 import { AbortController } from '#gateway/node/AbortController';
 import { randomUUID } from '#gateway/node/crypto';
-import type { QuestId, QuestStatus, SessionId } from '@dungeonmaster/shared/contracts';
+import type { QuestStatus, SessionId, ModifyQuestInput, SlotIndex, Quest } from '@dungeonmaster/shared/contracts';
 
 import {
   errorMessageContract,
@@ -35,9 +35,7 @@ import {
   modifyQuestInputContract,
   processIdContract,
 } from '@dungeonmaster/shared/contracts';
-import type { ModifyQuestInput } from '@dungeonmaster/shared/contracts';
 
-import type { SlotIndex } from '@dungeonmaster/shared/contracts';
 import { buildOrchestrationLoopOnAgentEntryTransformer } from '../../../transformers/build-orchestration-loop-on-agent-entry/build-orchestration-loop-on-agent-entry-transformer';
 import { questResumeRearmWorkItemsTransformer } from '../../../transformers/quest-resume-rearm-work-items/quest-resume-rearm-work-items-transformer';
 import {
@@ -66,7 +64,7 @@ import { orchestrationProcessesState } from '../../../state/orchestration-proces
 export const OrchestrationResumeResponder = async ({
   questId,
 }: {
-  questId: QuestId;
+  questId: Quest['id'];
 }): Promise<{ resumed: boolean; restoredStatus: QuestStatus }> => {
   const input = getQuestInputContract.parse({ questId });
   const getResult = await questGetBroker({ input });

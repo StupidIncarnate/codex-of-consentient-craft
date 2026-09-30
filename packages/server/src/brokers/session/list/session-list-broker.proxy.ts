@@ -1,5 +1,5 @@
 import { absoluteFilePathContract, sessionIdContract } from '@dungeonmaster/shared/contracts';
-import type { AbsoluteFilePath, GuildId, QuestId } from '@dungeonmaster/shared/contracts';
+import type { AbsoluteFilePath, GuildId } from '@dungeonmaster/shared/contracts';
 import type { GuildStub } from '@dungeonmaster/shared/contracts/guild/guild.stub';
 import type { QuestListItemStub } from '@dungeonmaster/shared/contracts/quest-list-item/quest-list-item.stub';
 import type { QuestStub } from '@dungeonmaster/shared/contracts/quest/quest.stub';
@@ -30,7 +30,7 @@ export const sessionListBrokerProxy = (): {
   setupFileStatError: (params: { error: Error }) => void;
   setupQuests: (params: { guildId: GuildId; quests: QuestListItem[] }) => void;
   setupLoadQuest: (params: { quest: Quest }) => void;
-  setupLoadQuestError: (params: { questId: QuestId; error: Error }) => void;
+  setupLoadQuestError: (params: { questId: Quest['id']; error: Error }) => void;
   setupGuildNotFound: (params: { guildId: GuildId }) => void;
 } => {
   const orchestrator = StartOrchestratorProxy();
@@ -156,7 +156,7 @@ export const sessionListBrokerProxy = (): {
     setupLoadQuest: ({ quest }: { quest: Quest }): void => {
       orchestrator.loadQuestReturns({ questId: quest.id, quest });
     },
-    setupLoadQuestError: ({ questId, error }: { questId: QuestId; error: Error }): void => {
+    setupLoadQuestError: ({ questId, error }: { questId: Quest['id']; error: Error }): void => {
       orchestrator.loadQuestThrows({ questId, error });
     },
     setupGuildNotFound: ({ guildId }: { guildId: GuildId }): void => {

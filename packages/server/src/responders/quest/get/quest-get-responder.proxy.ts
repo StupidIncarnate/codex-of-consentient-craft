@@ -1,5 +1,4 @@
 import { StartOrchestratorProxy } from '@dungeonmaster/orchestrator/startup/start-orchestrator.proxy';
-import type { QuestId } from '@dungeonmaster/shared/contracts';
 import type { QuestStub } from '@dungeonmaster/shared/contracts/quest/quest.stub';
 import { QuestGetResponder } from './quest-get-responder';
 
@@ -7,8 +6,8 @@ type Quest = ReturnType<typeof QuestStub>;
 
 export const QuestGetResponderProxy = (): {
   setupGetQuest: (params: { quest: Quest }) => { expectedData: { success: true; quest: Quest } };
-  setupGetQuestError: (params: { questId: QuestId; message: string }) => void;
-  setupGetQuestFailure: (params: { questId: QuestId; error: string }) => void;
+  setupGetQuestError: (params: { questId: Quest['id']; message: string }) => void;
+  setupGetQuestFailure: (params: { questId: Quest['id']; error: string }) => void;
   callResponder: typeof QuestGetResponder;
 } => {
   const orchestrator = StartOrchestratorProxy();
@@ -23,13 +22,13 @@ export const QuestGetResponderProxy = (): {
       orchestrator.getQuestReturns({ questId: quest.id, result: result as never });
       return { expectedData: result };
     },
-    setupGetQuestError: ({ questId, message }: { questId: QuestId; message: string }): void => {
+    setupGetQuestError: ({ questId, message }: { questId: Quest['id']; message: string }): void => {
       orchestrator.getQuestThrows({ questId, error: new Error(message) });
     },
     // questGetBroker catches its own failures and RETURNS `{ success: false, error }` rather than
     // throwing, so this — not `setupGetQuestError` — is the shape a missing or unparseable quest
     // actually produces.
-    setupGetQuestFailure: ({ questId, error }: { questId: QuestId; error: string }): void => {
+    setupGetQuestFailure: ({ questId, error }: { questId: Quest['id']; error: string }): void => {
       orchestrator.getQuestReturns({ questId, result: { success: false, error } as never });
     },
     callResponder: QuestGetResponder,

@@ -16,7 +16,7 @@
  * this lock themselves and it is deliberately non-reentrant, so wrapping one deadlocks that questId.
  */
 
-import type { QuestId } from '@dungeonmaster/shared/contracts';
+import type { Quest } from '@dungeonmaster/shared/contracts';
 
 import { questModifyLocksLayerBroker } from './quest-modify-locks-layer-broker';
 
@@ -24,7 +24,7 @@ export const questWithModifyLockBroker = async <T>({
   questId,
   run,
 }: {
-  questId: QuestId;
+  questId: Quest['id'];
   run: () => Promise<T>;
 }): Promise<T> => {
   const prior = questModifyLocksLayerBroker.get(questId) ?? Promise.resolve();

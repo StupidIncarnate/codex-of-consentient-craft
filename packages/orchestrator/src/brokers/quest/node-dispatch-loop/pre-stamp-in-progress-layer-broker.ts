@@ -13,7 +13,7 @@
  * // stamped: false means the quest read `paused` inside the lock — the caller must not spawn.
  */
 
-import type { QuestId, QuestWorkItemId } from '@dungeonmaster/shared/contracts';
+import type { QuestWorkItemId, Quest } from '@dungeonmaster/shared/contracts';
 import {
   fileContentsContract,
   filePathContract,
@@ -35,7 +35,7 @@ export const preStampInProgressLayerBroker = async ({
   questId,
   workItemId,
 }: {
-  questId: QuestId;
+  questId: Quest['id'];
   workItemId: QuestWorkItemId;
 }): Promise<{ stamped: boolean }> =>
   questWithModifyLockBroker({

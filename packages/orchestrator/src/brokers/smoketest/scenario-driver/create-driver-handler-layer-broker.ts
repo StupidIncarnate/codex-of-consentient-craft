@@ -8,7 +8,7 @@
  */
 
 import { stderr } from '#gateway/node/process';
-import type { ProcessId, QuestId, WorkItemRole } from '@dungeonmaster/shared/contracts';
+import type { ProcessId, WorkItemRole, Quest } from '@dungeonmaster/shared/contracts';
 
 import type { SmoketestPromptName } from '../../../statics/smoketest-prompts/smoketest-prompts-statics';
 import { smoketestSweepPendingWorkItemsLayerBroker } from './smoketest-sweep-pending-work-items-layer-broker';
@@ -21,7 +21,7 @@ export const createDriverHandlerLayerBroker =
     abortSignal,
     dispense,
   }: {
-    questId: QuestId;
+    questId: Quest['id'];
     abortSignal: AbortSignal;
     dispense: Dispense;
   }): ((event: { processId: ProcessId; payload: { questId?: unknown } }) => void) =>

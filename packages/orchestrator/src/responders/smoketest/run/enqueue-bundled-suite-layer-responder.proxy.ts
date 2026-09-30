@@ -4,7 +4,7 @@
  * The responder's own test calls setupPassthrough.
  */
 
-import type { QuestId, UrlSlug } from '@dungeonmaster/shared/contracts';
+import type { UrlSlug } from '@dungeonmaster/shared/contracts';
 import type { QuestStub as QuestStubType } from '@dungeonmaster/shared/contracts/quest/quest.stub';
 import { registerModuleMock, requireActual } from '@dungeonmaster/testing/register-mock';
 
@@ -23,12 +23,12 @@ type Quest = ReturnType<typeof QuestStubType>;
 
 export const EnqueueBundledSuiteLayerResponderProxy = (): {
   reset: () => void;
-  setupReturnsRecord: (params: { record: { questId: QuestId; guildSlug: UrlSlug } }) => void;
+  setupReturnsRecord: (params: { record: { questId: Quest['id']; guildSlug: UrlSlug } }) => void;
   setupReturnsNull: () => void;
   setupPassthrough: () => void;
   getCallArgs: () => readonly unknown[][];
   getHydrateBrokerCallArgs: () => readonly unknown[][];
-  setupHydrateReturnsQuestId: (params: { questId: QuestId }) => void;
+  setupHydrateReturnsQuestId: (params: { questId: Quest['id'] }) => void;
   setupLoadQuestReturns: (params: { quest: Quest }) => void;
 } => {
   const hydrateProxy = questHydrateBrokerProxy();
@@ -58,7 +58,7 @@ export const EnqueueBundledSuiteLayerResponderProxy = (): {
     setupReturnsRecord: ({
       record,
     }: {
-      record: { questId: QuestId; guildSlug: UrlSlug };
+      record: { questId: Quest['id']; guildSlug: UrlSlug };
     }): void => {
       mocked.mockResolvedValueOnce(record);
     },
@@ -75,7 +75,7 @@ export const EnqueueBundledSuiteLayerResponderProxy = (): {
     },
     getCallArgs: (): readonly unknown[][] => mocked.mock.calls,
     getHydrateBrokerCallArgs: (): readonly unknown[][] => hydrateProxy.getCallArgs(),
-    setupHydrateReturnsQuestId: ({ questId }: { questId: QuestId }): void => {
+    setupHydrateReturnsQuestId: ({ questId }: { questId: Quest['id'] }): void => {
       hydrateProxy.setupReturnsQuestId({ questId });
     },
     setupLoadQuestReturns: ({ quest }: { quest: Quest }): void => {

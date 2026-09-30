@@ -30,24 +30,7 @@ import { getEnv, stderr } from '#gateway/node/process';
 import { randomUUID } from '#gateway/node/crypto';
 import { locationsWorktreePathFindBroker } from '@dungeonmaster/shared/brokers';
 import { streamLines } from '#gateway/node/child_process';
-import {
-  contentTextContract,
-  errorMessageContract,
-  exitCodeContract,
-  fileContentsContract,
-  filePathContract,
-  getQuestInputContract,
-  questContract,
-  relatedDataItemContract,
-  riftcarverResultContract,
-  type AbsoluteFilePath,
-  type BaseBranchName,
-  type ErrorMessage,
-  type Quest,
-  type QuestBranchName,
-  type QuestId,
-  type QuestWorkItemId,
-} from '@dungeonmaster/shared/contracts';
+import { contentTextContract, errorMessageContract, exitCodeContract, fileContentsContract, filePathContract, getQuestInputContract, questContract, relatedDataItemContract, riftcarverResultContract, type AbsoluteFilePath, type BaseBranchName, type ErrorMessage, type Quest, type QuestBranchName, type QuestWorkItemId } from '@dungeonmaster/shared/contracts';
 
 import { currentBranch, headSha, push, upstreamSha, verifyRef } from '#gateway/bin/git';
 import { pathExists } from '#gateway/node/fs__promises';
@@ -95,7 +78,7 @@ export const stepHandlerRiftcarverBroker = async ({
   onLine,
 }: {
   args: string[];
-  questId: QuestId;
+  questId: Quest['id'];
   workItemId: QuestWorkItemId;
   onLine: (line: string) => void;
 }): Promise<StepHandlerResult> => {

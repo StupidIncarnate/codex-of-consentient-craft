@@ -35,7 +35,7 @@ import {
   stepNameContract,
   workItemPayloadKeyContract,
 } from '@dungeonmaster/shared/contracts';
-import type { Quest, QuestId, QuestWorkItemId } from '@dungeonmaster/shared/contracts';
+import type { Quest, QuestWorkItemId } from '@dungeonmaster/shared/contracts';
 import { locationsStatics } from '@dungeonmaster/shared/statics';
 import { questFlowSliceTransformer } from '@dungeonmaster/shared/transformers';
 import { join } from '#gateway/node/path';
@@ -60,7 +60,7 @@ export const questGetQuestWorkBroker = async ({
   questId,
   workItemId,
 }: {
-  questId: QuestId;
+  questId: Quest['id'];
   workItemId: QuestWorkItemId;
 }): Promise<QuestWorkView> => {
   const { questPath } = await questFindQuestPathBroker({ questId });

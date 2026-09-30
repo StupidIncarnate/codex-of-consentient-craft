@@ -18,7 +18,7 @@ import { StartEndpointMock } from '@dungeonmaster/testing';
 import { registerMock } from '@dungeonmaster/testing/register-mock';
 import type { MockHandle } from '@dungeonmaster/testing/register-mock';
 
-import type { QuestId } from '@dungeonmaster/shared/contracts';
+import type { Quest } from '@dungeonmaster/shared/contracts';
 import { QuestIdStub } from '@dungeonmaster/shared/contracts/quest-id/quest-id.stub';
 
 import { questCommentBatchBroker } from '../../brokers/quest/comment-batch/quest-comment-batch-broker';
@@ -47,7 +47,7 @@ const DELIVERED_MESSAGE = 'Queued comments delivered to the agent.';
 export const CommentQueueBarWidgetProxy = (): {
   onSend: SendHandler;
   setupEmptyQueue: () => void;
-  setupQueuedComments: (params: { questId: QuestId; entries: QueuedEntry[] }) => void;
+  setupQueuedComments: (params: { questId: Quest['id']; entries: QueuedEntry[] }) => void;
   setupSendSucceeds: (params: { chatProcessId: string }) => void;
   setupSendStale: (params: { staleAnchors: StaleAnchor[] }) => void;
   setupSendServerError: (params: { error: string }) => void;
@@ -59,8 +59,8 @@ export const CommentQueueBarWidgetProxy = (): {
   getCountText: () => HTMLElement['textContent'];
   hasClearButton: () => boolean;
   hasSendButton: () => boolean;
-  hasStoredQueue: (params: { questId: QuestId }) => boolean;
-  getStoredValue: (params: { questId: QuestId }) => unknown;
+  hasStoredQueue: (params: { questId: Quest['id'] }) => boolean;
+  getStoredValue: (params: { questId: Quest['id'] }) => unknown;
   getShownToast: () => unknown;
   getRequestCount: () => SendCallCount;
   getRequestBody: () => unknown;
@@ -94,7 +94,7 @@ export const CommentQueueBarWidgetProxy = (): {
       questId,
       entries,
     }: {
-      questId: QuestId;
+      questId: Quest['id'];
       entries: QueuedEntry[];
     }): void => {
       queueProxy.setupQueuedComments({ questId, entries });
@@ -158,9 +158,9 @@ export const CommentQueueBarWidgetProxy = (): {
     hasClearButton: (): boolean => screen.queryByTestId('COMMENT_CLEAR_BUTTON') !== null,
     hasSendButton: (): boolean => screen.queryByTestId('COMMENT_SEND_BUTTON') !== null,
 
-    hasStoredQueue: ({ questId }: { questId: QuestId }): boolean =>
+    hasStoredQueue: ({ questId }: { questId: Quest['id'] }): boolean =>
       queueProxy.hasStoredQueue({ questId }),
-    getStoredValue: ({ questId }: { questId: QuestId }): unknown =>
+    getStoredValue: ({ questId }: { questId: Quest['id'] }): unknown =>
       queueProxy.getStoredValue({ questId }),
     getShownToast: (): unknown =>
       notificationsHandle.callsMatching([isNotificationPayload]).at(-1)?.[0],

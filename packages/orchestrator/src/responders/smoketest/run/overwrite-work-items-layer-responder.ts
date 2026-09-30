@@ -13,7 +13,7 @@ import {
   filePathContract,
   questContract,
 } from '@dungeonmaster/shared/contracts';
-import type { QuestId, WorkItem } from '@dungeonmaster/shared/contracts';
+import type { WorkItem, Quest } from '@dungeonmaster/shared/contracts';
 import { locationsStatics } from '@dungeonmaster/shared/statics';
 import { join } from '#gateway/node/path';
 
@@ -28,7 +28,7 @@ export const OverwriteWorkItemsLayerResponder = async ({
   questId,
   workItems,
 }: {
-  questId: QuestId;
+  questId: Quest['id'];
   workItems: readonly WorkItem[];
 }): Promise<void> =>
   questWithModifyLockBroker({

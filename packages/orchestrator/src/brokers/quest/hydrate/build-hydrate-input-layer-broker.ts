@@ -6,7 +6,7 @@
  * // Returns: ModifyQuestInput ready for questModifyBroker at this transition
  */
 
-import type { ModifyQuestInput, QuestId, QuestStatus } from '@dungeonmaster/shared/contracts';
+import type { ModifyQuestInput, QuestStatus, Quest } from '@dungeonmaster/shared/contracts';
 import { modifyQuestInputContract } from '@dungeonmaster/shared/contracts';
 
 import type { QuestBlueprint } from '../../../contracts/quest-blueprint/quest-blueprint-contract';
@@ -19,7 +19,7 @@ export const buildHydrateInputLayerBroker = ({
 }: {
   blueprint: QuestBlueprint;
   toStatus: QuestStatus;
-  questId: QuestId;
+  questId: Quest['id'];
 }): ModifyQuestInput => {
   const strategyMap = questHydrateStrategyStatics.strategies as Record<
     QuestStatus,

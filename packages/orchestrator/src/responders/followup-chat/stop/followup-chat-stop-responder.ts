@@ -20,7 +20,7 @@
  */
 
 import { getQuestInputContract } from '@dungeonmaster/shared/contracts';
-import type { QuestId } from '@dungeonmaster/shared/contracts';
+import type { Quest } from '@dungeonmaster/shared/contracts';
 import { isPostQuestChatWorkItemRoleGuard } from '@dungeonmaster/shared/guards';
 
 import { questGetBroker } from '../../../brokers/quest/get/quest-get-broker';
@@ -29,7 +29,7 @@ import { orchestrationProcessesState } from '../../../state/orchestration-proces
 export const FollowupChatStopResponder = async ({
   questId,
 }: {
-  questId: QuestId;
+  questId: Quest['id'];
 }): Promise<{ stopped: boolean }> => {
   const questResult = await questGetBroker({ input: getQuestInputContract.parse({ questId }) });
 

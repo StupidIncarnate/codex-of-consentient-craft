@@ -13,12 +13,7 @@
  * orchestrationProcessesState.findByQuestWorkItemId({questWorkItemId});
  */
 
-import type {
-  AbsoluteFilePath,
-  ProcessId,
-  QuestId,
-  QuestWorkItemId,
-} from '@dungeonmaster/shared/contracts';
+import type { AbsoluteFilePath, ProcessId, QuestWorkItemId, Quest } from '@dungeonmaster/shared/contracts';
 
 import { orchestrationProcessContract } from '../../contracts/orchestration-process/orchestration-process-contract';
 import type { OrchestrationProcess } from '../../contracts/orchestration-process/orchestration-process-contract';
@@ -85,7 +80,7 @@ export const orchestrationProcessesState = {
   get: ({ processId }: { processId: ProcessId }): OrchestrationProcess | undefined =>
     state.processes.get(processId),
 
-  findByQuestId: ({ questId }: { questId: QuestId }): OrchestrationProcess | undefined => {
+  findByQuestId: ({ questId }: { questId: Quest['id'] }): OrchestrationProcess | undefined => {
     for (const process of state.processes.values()) {
       if (process.questId === questId) {
         return process;
@@ -107,7 +102,7 @@ export const orchestrationProcessesState = {
     return undefined;
   },
 
-  findAllByQuestId: ({ questId }: { questId: QuestId }): OrchestrationProcess[] => {
+  findAllByQuestId: ({ questId }: { questId: Quest['id'] }): OrchestrationProcess[] => {
     const matches: OrchestrationProcess[] = [];
     for (const process of state.processes.values()) {
       if (process.questId === questId) {

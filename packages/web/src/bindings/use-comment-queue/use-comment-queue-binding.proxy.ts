@@ -1,6 +1,6 @@
 import { registerSpyOn } from '@dungeonmaster/testing/register-mock';
 
-import type { QuestId } from '@dungeonmaster/shared/contracts';
+import type { Quest } from '@dungeonmaster/shared/contracts';
 
 import { CommentQueueEntryStub } from '../../contracts/comment-queue-entry/comment-queue-entry.stub';
 import { commentQueueStateProxy } from '../../state/comment-queue/comment-queue-state.proxy';
@@ -14,10 +14,10 @@ const DEFAULT_QUEUED_AT = '2026-07-28T10:00:00.000Z';
 
 export const useCommentQueueBindingProxy = (): {
   setupEmptyQueue: () => void;
-  setupQueuedComments: (params: { questId: QuestId; entries: QueuedEntry[] }) => void;
+  setupQueuedComments: (params: { questId: Quest['id']; entries: QueuedEntry[] }) => void;
   queuedAt: () => QueuedEntry['createdAt'];
-  hasStoredQueue: (params: { questId: QuestId }) => boolean;
-  getStoredValue: (params: { questId: QuestId }) => unknown;
+  hasStoredQueue: (params: { questId: Quest['id'] }) => boolean;
+  getStoredValue: (params: { questId: Quest['id'] }) => unknown;
 } => {
   const stateProxy = commentQueueStateProxy();
   const isoHandle = registerSpyOn({ object: Date.prototype, method: 'toISOString' });
@@ -31,15 +31,15 @@ export const useCommentQueueBindingProxy = (): {
       questId,
       entries,
     }: {
-      questId: QuestId;
+      questId: Quest['id'];
       entries: QueuedEntry[];
     }): void => {
       stateProxy.seedQueue({ questId, entries });
     },
     queuedAt: (): QueuedEntry['createdAt'] =>
       CommentQueueEntryStub({ createdAt: DEFAULT_QUEUED_AT }).createdAt,
-    hasStoredQueue: ({ questId }: { questId: QuestId }): boolean => stateProxy.hasKey({ questId }),
-    getStoredValue: ({ questId }: { questId: QuestId }): unknown =>
+    hasStoredQueue: ({ questId }: { questId: Quest['id'] }): boolean => stateProxy.hasKey({ questId }),
+    getStoredValue: ({ questId }: { questId: Quest['id'] }): unknown =>
       stateProxy.readRawValue({ questId }),
   };
 };

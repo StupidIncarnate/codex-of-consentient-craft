@@ -10,7 +10,7 @@
  */
 
 import { filePathContract } from '@dungeonmaster/shared/contracts';
-import type { Quest, QuestId } from '@dungeonmaster/shared/contracts';
+import type { Quest } from '@dungeonmaster/shared/contracts';
 import { locationsStatics } from '@dungeonmaster/shared/statics';
 import { join } from '#gateway/node/path';
 
@@ -22,7 +22,7 @@ export type QuestGetPlanningNotesResult = Quest['planningNotes'];
 export const questGetPlanningNotesBroker = async ({
   questId,
 }: {
-  questId: QuestId;
+  questId: Quest['id'];
 }): Promise<QuestGetPlanningNotesResult> => {
   const { questPath } = await questFindQuestPathBroker({ questId });
 

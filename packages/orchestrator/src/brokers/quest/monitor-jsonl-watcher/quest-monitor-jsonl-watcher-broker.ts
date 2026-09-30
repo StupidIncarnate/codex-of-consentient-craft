@@ -19,16 +19,7 @@
  */
 
 import { stderr } from '#gateway/node/process';
-import {
-  absoluteFilePathContract,
-  sessionIdContract,
-  type ChatEntry,
-  type FilePath,
-  type ProcessId,
-  type QuestId,
-  type QuestWorkItemId,
-  type SessionId,
-} from '@dungeonmaster/shared/contracts';
+import { absoluteFilePathContract, sessionIdContract, type ChatEntry, type FilePath, type ProcessId, type QuestWorkItemId, type SessionId } from '@dungeonmaster/shared/contracts';
 import { claudeLineNormalizeBroker } from '@dungeonmaster/shared/brokers';
 import { tailFile } from '#gateway/node/fs';
 import type { TailFileHandle } from '#gateway/node/fs';
@@ -42,6 +33,7 @@ import { timerIntervalStartBroker } from '../../timer/interval-start/timer-inter
 import { questGetServerConfigBroker } from '../get-server-config/quest-get-server-config-broker';
 import { scanSubagentsDirLayerBroker } from './scan-subagents-dir-layer-broker';
 import { startSubagentTailLayerBroker } from './start-subagent-tail-layer-broker';
+import type { Quest } from '@dungeonmaster/shared/contracts';
 
 // How often the broker re-scans `<sessionFilePath without .jsonl>/subagents/` for newly-
 // created `agent-*.jsonl` files. The `agent-detected` signal from the processor only fires
@@ -60,7 +52,7 @@ export const questMonitorJsonlWatcherBroker = ({
   mainSessionWorkItemId,
 }: {
   sessionFilePath: FilePath;
-  activeQuestIdGetter: () => QuestId | null;
+  activeQuestIdGetter: () => Quest['id'] | null;
   // Resolves the owning work item id for a sub-agent's realAgentId. Forwarded to each
   // sub-agent tail so its emits carry `workItemId`, letting the web route the transcript
   // to its own execution row instead of the merged parent-session bucket. Optional:
@@ -74,7 +66,7 @@ export const questMonitorJsonlWatcherBroker = ({
   emit: (params: {
     chatProcessId: ProcessId;
     entries: ChatEntry[];
-    questId: QuestId | null;
+    questId: Quest['id'] | null;
     sessionId?: SessionId;
     workItemId?: QuestWorkItemId;
   }) => void;

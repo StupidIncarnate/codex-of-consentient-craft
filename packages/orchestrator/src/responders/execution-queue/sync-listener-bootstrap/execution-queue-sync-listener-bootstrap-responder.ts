@@ -17,7 +17,7 @@
  */
 
 import { stderr } from '#gateway/node/process';
-import type { Quest, QuestId, QuestStatus, SessionId } from '@dungeonmaster/shared/contracts';
+import type { Quest, QuestStatus, SessionId } from '@dungeonmaster/shared/contracts';
 import { getQuestInputContract } from '@dungeonmaster/shared/contracts';
 
 import { questGetBroker } from '../../../brokers/quest/get/quest-get-broker';
@@ -37,7 +37,7 @@ export const ExecutionQueueSyncListenerBootstrapResponder = (): void => {
   state.installing = true;
   questQueueSyncListenerBroker({
     install: async (
-      onQuestChanged: (args: { questId: QuestId }) => void,
+      onQuestChanged: (args: { questId: Quest['id'] }) => void,
     ): Promise<{ stop: () => void }> =>
       questOutboxWatchBroker({
         onQuestChanged,
@@ -47,7 +47,7 @@ export const ExecutionQueueSyncListenerBootstrapResponder = (): void => {
           );
         },
       }),
-    loadQuest: async ({ questId }: { questId: QuestId }): Promise<Quest | undefined> => {
+    loadQuest: async ({ questId }: { questId: Quest['id'] }): Promise<Quest | undefined> => {
       const result = await questGetBroker({
         input: getQuestInputContract.parse({ questId }),
       });
@@ -56,17 +56,17 @@ export const ExecutionQueueSyncListenerBootstrapResponder = (): void => {
       }
       return result.quest;
     },
-    removeByQuestId: ({ questId }: { questId: QuestId }): void => {
+    removeByQuestId: ({ questId }: { questId: Quest['id'] }): void => {
       questExecutionQueueState.removeByQuestId({ questId });
     },
-    updateEntryStatus: ({ questId, status }: { questId: QuestId; status: QuestStatus }): void => {
+    updateEntryStatus: ({ questId, status }: { questId: Quest['id']; status: QuestStatus }): void => {
       questExecutionQueueState.updateEntryStatus({ questId, status });
     },
     updateEntryActiveSession: ({
       questId,
       activeSessionId,
     }: {
-      questId: QuestId;
+      questId: Quest['id'];
       activeSessionId: SessionId | undefined;
     }): void => {
       questExecutionQueueState.updateEntryActiveSession({ questId, activeSessionId });

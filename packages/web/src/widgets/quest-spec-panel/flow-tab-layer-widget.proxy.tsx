@@ -1,7 +1,7 @@
 import { screen } from '#gateway/npm/testing-library__react';
 import userEvent from '#gateway/npm/testing-library__user-event';
 
-import type { QuestId } from '@dungeonmaster/shared/contracts';
+import type { Quest } from '@dungeonmaster/shared/contracts';
 
 import type { CommentQueueEntryStub } from '../../contracts/comment-queue-entry/comment-queue-entry.stub';
 import { userEventStatics } from '../../statics/user-event/user-event-statics';
@@ -11,7 +11,7 @@ type QueuedEntry = ReturnType<typeof CommentQueueEntryStub>;
 
 export const FlowTabLayerWidgetProxy = (): {
   setupEmptyQueue: () => void;
-  setupQueuedComments: (params: { questId: QuestId; entries: QueuedEntry[] }) => void;
+  setupQueuedComments: (params: { questId: Quest['id']; entries: QueuedEntry[] }) => void;
   clickTab: () => Promise<void>;
   getLabel: () => HTMLElement['textContent'];
   isActive: () => boolean;
@@ -29,7 +29,7 @@ export const FlowTabLayerWidgetProxy = (): {
       questId,
       entries,
     }: {
-      questId: QuestId;
+      questId: Quest['id'];
       entries: QueuedEntry[];
     }): void => {
       queueMarkProxy.setupQueuedComments({ questId, entries });

@@ -7,7 +7,7 @@
  */
 
 import { StartOrchestrator } from '@dungeonmaster/orchestrator';
-import { questIdContract } from '@dungeonmaster/shared/contracts';
+import { questContract } from '@dungeonmaster/shared/contracts';
 import { ResolveCallerSessionLayerResponder } from './resolve-caller-session-layer-responder';
 import { orchestratorGetQuestStatusBroker } from '../../../brokers/orchestrator/get-quest-status/orchestrator-get-quest-status-broker';
 import { BlightChecklistLayerResponder } from './blight-checklist-layer-responder';
@@ -59,7 +59,7 @@ export const QuestHandleResponder = async ({
   meta?: Record<string, unknown>;
 }): Promise<CallToolResult> => {
   if (tool === 'modify-quest') {
-    const questId = questIdContract.parse(args.questId);
+    const questId = questContract.shape.id.parse(args.questId);
 
     // Sanitize: strip fields agents must not set via MCP. workItems/wardResults/
     // pausedAtStatus are server-only fields the orchestrator owns end to end. comments is

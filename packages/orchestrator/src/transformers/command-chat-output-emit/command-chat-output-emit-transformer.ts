@@ -18,12 +18,7 @@ import {
   processIdContract,
   slotIndexContract,
 } from '@dungeonmaster/shared/contracts';
-import type {
-  OrchestrationEventType,
-  ProcessId,
-  QuestId,
-  QuestWorkItemId,
-} from '@dungeonmaster/shared/contracts';
+import type { OrchestrationEventType, ProcessId, QuestWorkItemId, Quest } from '@dungeonmaster/shared/contracts';
 
 import { chatOutputEmitPayloadContract } from '../../contracts/chat-output-emit-payload/chat-output-emit-payload-contract';
 import type { ChatOutputEmitPayload } from '../../contracts/chat-output-emit-payload/chat-output-emit-payload-contract';
@@ -37,7 +32,7 @@ export const commandChatOutputEmitTransformer = ({
   workItemId,
   line,
 }: {
-  questId: QuestId;
+  questId: Quest['id'];
   workItemId: QuestWorkItemId;
   line: string;
 }): {

@@ -15,7 +15,7 @@
  */
 
 import { filePathContract } from '@dungeonmaster/shared/contracts';
-import type { QuestId, QuestProjection } from '@dungeonmaster/shared/contracts';
+import type { QuestProjection, Quest } from '@dungeonmaster/shared/contracts';
 import { locationsStatics } from '@dungeonmaster/shared/statics';
 import { join } from '#gateway/node/path';
 
@@ -26,7 +26,7 @@ import { questLoadBroker } from '../load/quest-load-broker';
 export const questGetProjectionBroker = async ({
   questId,
 }: {
-  questId: QuestId;
+  questId: Quest['id'];
 }): Promise<QuestProjection> => {
   const { questPath } = await questFindQuestPathBroker({ questId });
 

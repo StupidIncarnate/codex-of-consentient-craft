@@ -40,7 +40,7 @@
  */
 
 import { stdout } from '#gateway/node/process';
-import type { GuildId, QuestId, TimeoutMs } from '@dungeonmaster/shared/contracts';
+import type { GuildId, TimeoutMs, Quest } from '@dungeonmaster/shared/contracts';
 
 import type { RecipeName } from '../../../contracts/recipe-name/recipe-name-contract';
 
@@ -62,7 +62,7 @@ export const SiegelenseStartResponder = async ({
   isJson = false,
 }: {
   specName: SpecName;
-  questId: QuestId | null;
+  questId: Quest['id'] | null;
   guildId: GuildId | null;
   seed: RecipeName | null;
   // `| undefined`, not bare `?:`, because this is called with a whole `StartArgs` object —

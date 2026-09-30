@@ -39,13 +39,7 @@ import { webBundleResponseBroker } from '../../../brokers/web-bundle/response/we
 import { wsEventRelayBroadcastBroker } from '../../../brokers/ws-event-relay/broadcast/ws-event-relay-broadcast-broker';
 import { devLogEventFormatTransformer } from '../../../transformers/dev-log-event-format/dev-log-event-format-transformer';
 import { errorFormatReasonTransformer } from '../../../transformers/error-format-reason/error-format-reason-transformer';
-import type {
-  OrchestrationEventType,
-  ProcessId,
-  QuestId,
-  QuestWorkItemId,
-  WsMessage,
-} from '@dungeonmaster/shared/contracts';
+import type { OrchestrationEventType, ProcessId, QuestWorkItemId, WsMessage, Quest } from '@dungeonmaster/shared/contracts';
 
 import { chatOutputPayloadContract } from '../../../contracts/chat-output-payload/chat-output-payload-contract';
 import { wsEventDataContract } from '../../../contracts/ws-event-data/ws-event-data-contract';
@@ -92,7 +86,7 @@ export const ServerInitResponder = ({
   const clients = new Set<WSContext>();
   // Per-quest subscriptions: a client subscribed to questId X receives only the
   // PER_QUEST_EVENT_TYPES events whose payload carries that questId.
-  const clientSubscriptions = new Map<WSContext, Set<QuestId>>();
+  const clientSubscriptions = new Map<WSContext, Set<Quest['id']>>();
   // Per-quest replay-in-progress flags. While a (client, questId) pair is in
   // this map, live PER_QUEST_EVENT_TYPES events for that questId are NOT
   // forwarded to that client through the per-quest path; instead chat-output
@@ -102,7 +96,7 @@ export const ServerInitResponder = ({
   // pure-loss case where live emits during replay are suppressed AND replay
   // reads an empty JSONL — the test sees nothing and times out. Cleared when
   // chat-history-complete fires for the subscribe-quest replay (or replay errors out).
-  const replayInProgressByClient = new Map<WSContext, Set<QuestId>>();
+  const replayInProgressByClient = new Map<WSContext, Set<Quest['id']>>();
   // Live chat-output frames suppressed during a replay window, keyed by
   // (client, questId, workItemId). Drained in the subscribe-quest .finally:
   // for each workItem, deliver buffered frames ONLY IF replay produced no
@@ -114,12 +108,12 @@ export const ServerInitResponder = ({
   // Frames without workItemId go under the null key.
   const bufferedDuringReplay = new Map<
     WSContext,
-    Map<QuestId, Map<QuestWorkItemId | null, WsMessage[]>>
+    Map<Quest['id'], Map<QuestWorkItemId | null, WsMessage[]>>
   >();
   // WorkItemIds for which replay's direct-send delivered at least one chat-output
   // frame, per (client, questId). Used by the subscribe-quest .finally to decide
   // which workItem buffers to drain.
-  const replayDeliveredWorkItems = new Map<WSContext, Map<QuestId, Set<QuestWorkItemId | null>>>();
+  const replayDeliveredWorkItems = new Map<WSContext, Map<Quest['id'], Set<QuestWorkItemId | null>>>();
   // Readonly-replay routing: when a client sends `replay-history` (SessionViewWidget
   // mounted on `/:guildSlug/session/:sessionId`), we track its chatProcessId here so
   // chat-output / chat-history-complete events stamped with that chatProcessId can be
@@ -140,7 +134,7 @@ export const ServerInitResponder = ({
   // is what keeps resolution synchronous — an async lookup per frame would deliver the
   // opening frames of a transcript after later ones. Entries last the process lifetime; a
   // work item's owning quest never changes.
-  const workItemQuestIdCache = new Map<QuestWorkItemId, QuestId>();
+  const workItemQuestIdCache = new Map<QuestWorkItemId, Quest['id']>();
   // The `chat-complete` frames this relay has already shipped, per quest, keyed by the chat process
   // each one names and stamped `retained: true` so the browser can tell a re-delivery from a live
   // frame. Re-sent to a client at the END of its `subscribe-quest`.
@@ -151,7 +145,7 @@ export const ServerInitResponder = ({
   // listening when it fired can never learn the turn ended. That is not a rare window on the
   // first message of a quest, where the browser cannot subscribe until the POST that CREATES the
   // quest returns its id, and the agent can spawn and exit inside that round trip.
-  const retainedChatCompleteByQuest = new Map<QuestId, Map<ProcessId, WsMessage>>();
+  const retainedChatCompleteByQuest = new Map<Quest['id'], Map<ProcessId, WsMessage>>();
   // questOutboxWatchBroker fires onQuestChanged once per outbox line, synchronously, with no
   // debounce — two lines for the SAME questId (e.g. two PATCHes landing back-to-back) fire two
   // independent, unawaited orchestratorLoadQuestAdapter reads that can settle in either order.
@@ -160,7 +154,7 @@ export const ServerInitResponder = ({
   // (questModifyBroker locks per questId; questPersistBroker writes atomically) — so a read for
   // an earlier event can never resolve late enough to overwrite a later one's broadcast. Every
   // firing still gets its own load and its own broadcast; this only reorders when each starts.
-  const outboxLoadChainByQuest = new Map<QuestId, Promise<void>>();
+  const outboxLoadChainByQuest = new Map<Quest['id'], Promise<void>>();
 
   app.get(
     '/ws',
@@ -237,7 +231,7 @@ export const ServerInitResponder = ({
           if (message.type === 'subscribe-quest') {
             const subQuestId = message.questId;
             const subWs = _ws as WSContext;
-            const existing = clientSubscriptions.get(subWs) ?? new Set<QuestId>();
+            const existing = clientSubscriptions.get(subWs) ?? new Set<Quest['id']>();
             existing.add(subQuestId);
             clientSubscriptions.set(subWs, existing);
             // Mark this (client, questId) pair as currently replaying so live
@@ -245,7 +239,7 @@ export const ServerInitResponder = ({
             // this client during the replay window — without this gate, the
             // orchestrator's live emission AND the JSONL replay would deliver
             // the same chat line to the client twice.
-            const replayingForClient = replayInProgressByClient.get(subWs) ?? new Set<QuestId>();
+            const replayingForClient = replayInProgressByClient.get(subWs) ?? new Set<Quest['id']>();
             replayingForClient.add(subQuestId);
             replayInProgressByClient.set(subWs, replayingForClient);
             // Track every chatProcessId we use for this replay so chat-output
@@ -571,7 +565,7 @@ export const ServerInitResponder = ({
   // session, not a Task-dispatched sub-agent. To route those emits to the right per-quest
   // subscriber we scan tool_use inputs / tool_result content for an embedded questId and
   // latch it per chatProcessId so subsequent emits inherit it.
-  const monitorChatQuestIdCache = new Map<ProcessId, QuestId>();
+  const monitorChatQuestIdCache = new Map<ProcessId, Quest['id']>();
 
   const eventTypes = orchestrationEventTypeContract.options;
   for (const type of eventTypes) {
@@ -737,7 +731,7 @@ export const ServerInitResponder = ({
                 if (!isReplayFrame) {
                   let questBuffer = bufferedDuringReplay.get(client);
                   if (!questBuffer) {
-                    questBuffer = new Map<QuestId, Map<QuestWorkItemId | null, WsMessage[]>>();
+                    questBuffer = new Map<Quest['id'], Map<QuestWorkItemId | null, WsMessage[]>>();
                     bufferedDuringReplay.set(client, questBuffer);
                   }
                   let workItemBuffer = questBuffer.get(payloadQuestId);
@@ -788,7 +782,7 @@ export const ServerInitResponder = ({
                 if (type === 'chat-output' && payloadQuestId) {
                   let questDelivered = replayDeliveredWorkItems.get(replayClient);
                   if (!questDelivered) {
-                    questDelivered = new Map<QuestId, Set<QuestWorkItemId | null>>();
+                    questDelivered = new Map<Quest['id'], Set<QuestWorkItemId | null>>();
                     replayDeliveredWorkItems.set(replayClient, questDelivered);
                   }
                   let workItemSet = questDelivered.get(payloadQuestId);

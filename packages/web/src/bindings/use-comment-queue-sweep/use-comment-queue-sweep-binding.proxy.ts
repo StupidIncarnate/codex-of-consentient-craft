@@ -1,14 +1,14 @@
-import type { QuestId } from '@dungeonmaster/shared/contracts';
+import type { Quest } from '@dungeonmaster/shared/contracts';
 
 import type { CommentQueueEntry } from '../../contracts/comment-queue-entry/comment-queue-entry-contract';
 import { commentQueueStateProxy } from '../../state/comment-queue/comment-queue-state.proxy';
 
 export const useCommentQueueSweepBindingProxy = (): {
   setupEmptyQueue: () => void;
-  setupQueuedComments: (params: { questId: QuestId; entries: CommentQueueEntry[] }) => void;
+  setupQueuedComments: (params: { questId: Quest['id']; entries: CommentQueueEntry[] }) => void;
   setupPrefixOnlyKey: (params: { value: string }) => void;
-  hasStoredQueue: (params: { questId: QuestId }) => boolean;
-  getStoredValue: (params: { questId: QuestId }) => unknown;
+  hasStoredQueue: (params: { questId: Quest['id'] }) => boolean;
+  getStoredValue: (params: { questId: Quest['id'] }) => unknown;
   getPrefixOnlyValue: () => unknown;
 } => {
   const stateProxy = commentQueueStateProxy();
@@ -21,7 +21,7 @@ export const useCommentQueueSweepBindingProxy = (): {
       questId,
       entries,
     }: {
-      questId: QuestId;
+      questId: Quest['id'];
       entries: CommentQueueEntry[];
     }): void => {
       stateProxy.seedQueue({ questId, entries });
@@ -29,8 +29,8 @@ export const useCommentQueueSweepBindingProxy = (): {
     setupPrefixOnlyKey: ({ value }: { value: string }): void => {
       stateProxy.seedPrefixOnlyKey({ value });
     },
-    hasStoredQueue: ({ questId }: { questId: QuestId }): boolean => stateProxy.hasKey({ questId }),
-    getStoredValue: ({ questId }: { questId: QuestId }): unknown =>
+    hasStoredQueue: ({ questId }: { questId: Quest['id'] }): boolean => stateProxy.hasKey({ questId }),
+    getStoredValue: ({ questId }: { questId: Quest['id'] }): unknown =>
       stateProxy.readRawValue({ questId }),
     getPrefixOnlyValue: (): unknown => stateProxy.readPrefixOnlyValue(),
   };

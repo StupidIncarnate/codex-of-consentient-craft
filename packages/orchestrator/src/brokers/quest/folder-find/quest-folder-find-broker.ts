@@ -8,7 +8,7 @@
  */
 
 import { fileNameContract, filePathContract, questContract } from '@dungeonmaster/shared/contracts';
-import type { FilePath, QuestId } from '@dungeonmaster/shared/contracts';
+import type { FilePath, Quest } from '@dungeonmaster/shared/contracts';
 import { locationsStatics } from '@dungeonmaster/shared/statics';
 import { readdirSync } from '#gateway/node/fs';
 import { readFile } from '#gateway/node/fs__promises';
@@ -21,7 +21,7 @@ export const questFolderFindBroker = async ({
   questId,
   questsPath,
 }: {
-  questId: QuestId;
+  questId: Quest['id'];
   questsPath: FilePath;
 }): Promise<QuestFolderFindResult> => {
   const folders = readdirSync(questsPath).map((name) => fileNameContract.parse(name));

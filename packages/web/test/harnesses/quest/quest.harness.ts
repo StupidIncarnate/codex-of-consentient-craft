@@ -13,17 +13,7 @@ import { basename, dirname, join } from '#gateway/node/path';
 
 import type { APIRequestContext } from '#gateway/npm/playwright__test';
 
-import {
-  guildIdContract,
-  filePathContract,
-  questContract,
-  questIdContract,
-  type Quest,
-  type QuestId,
-  type GuildId,
-  type FilePath,
-  type WorkItemRole,
-} from '@dungeonmaster/shared/contracts';
+import { guildIdContract, filePathContract, questContract, type Quest, type GuildId, type FilePath, type WorkItemRole } from '@dungeonmaster/shared/contracts';
 import { dungeonmasterHomeStatics, environmentStatics } from '@dungeonmaster/shared/statics';
 import { isCommandWorkItemRoleGuard } from '@dungeonmaster/shared/guards';
 
@@ -109,7 +99,7 @@ export const questHarness = ({
   request: APIRequestContext;
 }): {
   createQuest: (params: { guildId: Guild['id']; title: string; userRequest: string }) => Promise<{
-    questId: QuestId;
+    questId: Quest['id'];
     questFolder: Quest['folder'];
     filePath: FilePath;
     success: boolean;
@@ -120,7 +110,7 @@ export const questHarness = ({
     guildId: Guild['id'];
     title: string;
     userRequest: string;
-  }) => Promise<{ questId: QuestId; questFolder: Quest['folder']; filePath: FilePath }>;
+  }) => Promise<{ questId: Quest['id']; questFolder: Quest['folder']; filePath: FilePath }>;
   writeQuestFile: (params: {
     guildId?: Guild['id'];
     questId: Quest['id'];
@@ -362,7 +352,7 @@ export const questHarness = ({
     title: string;
     userRequest: string;
   }): Promise<{
-    questId: QuestId;
+    questId: Quest['id'];
     questFolder: Quest['folder'];
     filePath: FilePath;
     success: boolean;
@@ -401,7 +391,7 @@ export const questHarness = ({
     guildId: Guild['id'];
     title: string;
     userRequest: string;
-  }): Promise<{ questId: QuestId; questFolder: Quest['folder']; filePath: FilePath }> => {
+  }): Promise<{ questId: Quest['id']; questFolder: Quest['folder']; filePath: FilePath }> => {
     const plan = recipe(
       { name: 'seed-quest-write', description: 'seed one quest via write route' },
       () => [
@@ -780,7 +770,7 @@ export const questHarness = ({
 
     const questPayload = {
       ...parsedQuest.data,
-      id: questIdContract.parse(questId),
+      id: questContract.shape.id.parse(questId),
       folder: questContract.shape.folder.parse(questFolder),
     };
 
@@ -1031,9 +1021,9 @@ export const questHarness = ({
     // allows a raw primitive only directly in a parameter position, never in a type alias's own
     // body) has no bare primitive to flag here either.
     type QuestFilterWhere = Parameters<typeof dmRegistryBroker.quests.filter>[0]['where'] & {
-      id?: QuestId;
+      id?: Quest['id'];
     };
-    const filterWhere: QuestFilterWhere = { guildId, id: questIdContract.parse(questId) };
+    const filterWhere: QuestFilterWhere = { guildId, id: questContract.shape.id.parse(questId) };
 
     const plan = recipe(
       {
@@ -1062,9 +1052,9 @@ export const questHarness = ({
     // widening the target type (never asserting past it) is what lets a branded QuestId sit beside
     // the link-derived `guildId` in one `where` clause.
     type QuestFilterWhere = Parameters<typeof dmRegistryBroker.quests.filter>[0]['where'] & {
-      id?: QuestId;
+      id?: Quest['id'];
     };
-    const filterWhere: QuestFilterWhere = { guildId, id: questIdContract.parse(questId) };
+    const filterWhere: QuestFilterWhere = { guildId, id: questContract.shape.id.parse(questId) };
 
     const plan = recipe(
       {
@@ -1290,9 +1280,9 @@ export const questHarness = ({
     // widening the target type (never asserting past it) is what lets a branded QuestId sit beside
     // the link-derived `guildId` in one `where` clause.
     type QuestFilterWhere = Parameters<typeof dmRegistryBroker.quests.filter>[0]['where'] & {
-      id?: QuestId;
+      id?: Quest['id'];
     };
-    const filterWhere: QuestFilterWhere = { guildId, id: questIdContract.parse(questId) };
+    const filterWhere: QuestFilterWhere = { guildId, id: questContract.shape.id.parse(questId) };
 
     const plan = recipe(
       {

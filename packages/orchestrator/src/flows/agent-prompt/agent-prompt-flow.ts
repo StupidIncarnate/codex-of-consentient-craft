@@ -9,7 +9,7 @@
  * // Returns AgentPromptResult whose prompt has the work-item context block appended
  */
 
-import type { AgentPromptResult, QuestId, QuestWorkItemId } from '@dungeonmaster/shared/contracts';
+import type { AgentPromptResult, QuestWorkItemId, Quest } from '@dungeonmaster/shared/contracts';
 
 import { AgentPromptGetResponder } from '../../responders/agent-prompt/get/agent-prompt-get-responder';
 
@@ -20,7 +20,7 @@ export const AgentPromptFlow = {
     workItemId,
   }: {
     agent: string;
-    questId: QuestId;
+    questId: Quest['id'];
     workItemId?: QuestWorkItemId;
   }): Promise<AgentPromptResult> =>
     AgentPromptGetResponder({

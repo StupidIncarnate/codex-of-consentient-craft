@@ -63,6 +63,7 @@ import { toolingRequirementContract } from '../tooling-requirement/tooling-requi
 import { toolingRequirementIdContract } from '../tooling-requirement-id/tooling-requirement-id-contract';
 import { wardResultContract } from '../ward-result/ward-result-contract';
 import { workItemForUpsertContract } from '../work-item-for-upsert/work-item-for-upsert-contract';
+import { questContract } from '../quest/quest-contract';
 
 const deleteMarker = z.literal(true);
 
@@ -169,7 +170,7 @@ const fullQuestComment = questCommentContract.extend({ _delete: z.boolean().opti
 
 export const modifyQuestInputContract = z
   .object({
-    questId: z.string().min(1).describe('The ID of the quest to modify').brand<'QuestId'>(),
+    questId: questContract.shape.id,
     designDecisions: z
       .array(
         z.union([

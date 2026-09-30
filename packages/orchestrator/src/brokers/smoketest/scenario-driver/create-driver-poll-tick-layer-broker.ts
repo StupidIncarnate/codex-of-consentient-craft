@@ -10,7 +10,7 @@
  */
 
 import { stderr } from '#gateway/node/process';
-import type { QuestId, WorkItemRole } from '@dungeonmaster/shared/contracts';
+import type { WorkItemRole, Quest } from '@dungeonmaster/shared/contracts';
 
 import { GuildNotFoundError } from '../../../errors/guild-not-found/guild-not-found-error';
 import { QuestNotFoundError } from '../../../errors/quest-not-found/quest-not-found-error';
@@ -27,11 +27,11 @@ export const createDriverPollTickLayerBroker =
     stopNow,
     onQuestGone,
   }: {
-    questId: QuestId;
+    questId: Quest['id'];
     abortSignal: AbortSignal;
     dispense: Dispense;
     stopNow: () => void;
-    onQuestGone?: (params: { questId: QuestId }) => void;
+    onQuestGone?: (params: { questId: Quest['id'] }) => void;
   }): (() => void) =>
   (): void => {
     if (abortSignal.aborted) {

@@ -6,7 +6,7 @@
  * // Removes the guild from config; quest files are preserved on disk; queue entries and registered processes for this guild are cleaned up.
  */
 
-import type { GuildId, Quest, QuestId } from '@dungeonmaster/shared/contracts';
+import type { GuildId, Quest } from '@dungeonmaster/shared/contracts';
 
 import { guildRemoveBroker } from '../../../brokers/guild/remove/guild-remove-broker';
 import { questListBroker } from '../../../brokers/quest/list/quest-list-broker';
@@ -21,7 +21,7 @@ export const GuildRemoveResponder = async ({ guildId }: { guildId: GuildId }): P
   // session leaks a fs.watch handle for the lifetime of the server. Across an e2e suite
   // (cleanGuilds → DELETE per spec) those handles pile up and eventually starve resume-flow
   // tests of a working tail.
-  const guildQuestIds = new Set<QuestId>();
+  const guildQuestIds = new Set<Quest['id']>();
   const guildQuests = await questListBroker({ guildId }).catch(() => [] as Quest[]);
   for (const quest of guildQuests) {
     guildQuestIds.add(quest.id);

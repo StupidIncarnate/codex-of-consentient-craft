@@ -8,7 +8,7 @@
  */
 
 import { stderr } from '#gateway/node/process';
-import type { Quest, QuestId, QuestStatus, SessionId } from '@dungeonmaster/shared/contracts';
+import type { Quest, QuestStatus, SessionId } from '@dungeonmaster/shared/contracts';
 
 import { processSyncEventLayerBroker } from './process-sync-event-layer-broker';
 
@@ -19,17 +19,17 @@ export const createSyncHandlerLayerBroker =
     updateEntryStatus,
     updateEntryActiveSession,
   }: {
-    loadQuest: ({ questId }: { questId: QuestId }) => Promise<Quest | undefined>;
-    removeByQuestId: ({ questId }: { questId: QuestId }) => void;
-    updateEntryStatus: ({ questId, status }: { questId: QuestId; status: QuestStatus }) => void;
+    loadQuest: ({ questId }: { questId: Quest['id'] }) => Promise<Quest | undefined>;
+    removeByQuestId: ({ questId }: { questId: Quest['id'] }) => void;
+    updateEntryStatus: ({ questId, status }: { questId: Quest['id']; status: QuestStatus }) => void;
     updateEntryActiveSession: ({
       questId,
       activeSessionId,
     }: {
-      questId: QuestId;
+      questId: Quest['id'];
       activeSessionId: SessionId | undefined;
     }) => void;
-  }): (({ questId }: { questId: QuestId }) => void) =>
+  }): (({ questId }: { questId: Quest['id'] }) => void) =>
   ({ questId }): void => {
     processSyncEventLayerBroker({
       questId,

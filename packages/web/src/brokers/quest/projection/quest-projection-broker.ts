@@ -8,7 +8,7 @@
  * // walked forward through agentFlowStatics's routes.done edge)
  */
 
-import type { QuestId, QuestProjection } from '@dungeonmaster/shared/contracts';
+import type { QuestProjection, Quest } from '@dungeonmaster/shared/contracts';
 import { questProjectionContract } from '@dungeonmaster/shared/contracts';
 
 import { fetchJson } from '#gateway/browser/fetch';
@@ -18,7 +18,7 @@ import { webConfigStatics } from '../../../statics/web-config/web-config-statics
 export const questProjectionBroker = async ({
   questId,
 }: {
-  questId: QuestId;
+  questId: Quest['id'];
 }): Promise<QuestProjection> => {
   const url = webConfigStatics.api.routes.questProjection.replace(':questId', questId);
 

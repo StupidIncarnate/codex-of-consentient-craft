@@ -32,20 +32,7 @@
 
 import type { WorkItem, Quest } from '@dungeonmaster/shared/contracts';
 import { homedir } from '#gateway/node/os';
-import {
-  absoluteFilePathContract,
-  filePathContract,
-  processIdContract,
-  questIdContract,
-  questWorkItemIdContract,
-  sessionIdContract,
-  type ChatEntry,
-  type OrchestrationEventType,
-  type ProcessId,
-  type QuestId,
-  type QuestWorkItemId,
-  type SessionId,
-} from '@dungeonmaster/shared/contracts';
+import { absoluteFilePathContract, filePathContract, processIdContract, questWorkItemIdContract, sessionIdContract, type ChatEntry, type OrchestrationEventType, type ProcessId, type QuestWorkItemId, type SessionId, questContract } from '@dungeonmaster/shared/contracts';
 import { claudeProjectPathEncoderTransformer } from '@dungeonmaster/shared/transformers';
 
 import { questMonitorJsonlWatcherBroker } from '../monitor-jsonl-watcher/quest-monitor-jsonl-watcher-broker';
@@ -79,7 +66,7 @@ export const questMonitorWatcherStartBroker = async ({
 
   // Resolved BEFORE the orphan reset below, which needs it as an exclusion key.
   const mainSessionWorkItemId: QuestWorkItemId = questWorkItemIdContract.parse(workerWorkItemId);
-  const mainSessionQuestId: QuestId = questIdContract.parse(workerQuestId);
+  const mainSessionQuestId: Quest['id'] = questContract.shape.id.parse(workerQuestId);
 
   // Orphan reset re-runs whenever a session is observed — if the prior dispatch died
   // mid-flight, in_progress work items still carry the old session's metadata and
@@ -116,7 +103,7 @@ export const questMonitorWatcherStartBroker = async ({
 
   const watcherHandle = questMonitorJsonlWatcherBroker({
     sessionFilePath: filePathContract.parse(String(sessionFilePath)),
-    activeQuestIdGetter: (): QuestId | null => null,
+    activeQuestIdGetter: (): Quest['id'] | null => null,
     chatProcessId,
     // A sub-agent that carries no work item of its own — a parent-summoned minion, or a
     // Task-dispatched helper — still belongs to the work item whose session spawned it.
@@ -133,7 +120,7 @@ export const questMonitorWatcherStartBroker = async ({
     }: {
       chatProcessId: ProcessId;
       entries: ChatEntry[];
-      questId: QuestId | null;
+      questId: Quest['id'] | null;
       sessionId?: SessionId;
       workItemId?: QuestWorkItemId;
     }): void => {

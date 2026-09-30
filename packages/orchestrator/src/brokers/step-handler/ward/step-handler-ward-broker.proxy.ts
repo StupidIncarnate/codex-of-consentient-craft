@@ -27,7 +27,7 @@ import { RunNotFoundErrorProxy } from '#gateway/node/child_process/run-not-found
 import { ensureDirProxy } from '#gateway/node/fs__promises/ensure-dir/ensure-dir.proxy';
 import { writeFileProxy } from '#gateway/node/fs__promises/write-file/write-file.proxy';
 import { join } from '#gateway/node/path';
-import type { ExitCode, FileContents, FileName, QuestId } from '@dungeonmaster/shared/contracts';
+import type { ExitCode, FileContents, FileName, Quest } from '@dungeonmaster/shared/contracts';
 import { AbsoluteFilePathStub } from '@dungeonmaster/shared/contracts/absolute-file-path/absolute-file-path.stub';
 import { FilePathStub } from '@dungeonmaster/shared/contracts/file-path/file-path.stub';
 import { GuildIdStub } from '@dungeonmaster/shared/contracts/guild-id/guild-id.stub';
@@ -65,14 +65,14 @@ const RUN_SUBCOMMAND = 'run';
 const DEFAULT_WORKTREE_PATH = '/repo/worktrees/add-auth';
 
 export const stepHandlerWardBrokerProxy = (): {
-  setupWorktreeMissing: (params: { questId: QuestId; worktreePath: string }) => void;
+  setupWorktreeMissing: (params: { questId: Quest['id']; worktreePath: string }) => void;
   wardExits: (params: {
-    questId: QuestId;
+    questId: Quest['id'];
     exitCode: ExitCode;
     runId: FileName;
     detailJson: FileContents;
   }) => void;
-  wardExitsWithoutRunId: (params: { questId: QuestId; exitCode: ExitCode }) => void;
+  wardExitsWithoutRunId: (params: { questId: Quest['id']; exitCode: ExitCode }) => void;
   getSpawnedWardArgs: () => unknown;
   getSpawnedWardCwd: () => unknown;
 } => {
@@ -122,7 +122,7 @@ export const stepHandlerWardBrokerProxy = (): {
 
   // The quest-scoped answers every ward run reads: its worktree, its folder, and the write of its
   // ward result, each addressed by the arguments `stepHandlerWardBroker` passes for that quest.
-  const stageQuest = ({ questId }: { questId: QuestId }): void => {
+  const stageQuest = ({ questId }: { questId: Quest['id'] }): void => {
     cwdMock.calledWith([{ questId }]).resolves(
       QuestCwdResolutionStub({
         kind: 'worktree',
@@ -142,7 +142,7 @@ export const stepHandlerWardBrokerProxy = (): {
       questId,
       worktreePath,
     }: {
-      questId: QuestId;
+      questId: Quest['id'];
       worktreePath: string;
     }): void => {
       cwdMock.calledWith([{ questId }]).resolves(
@@ -159,7 +159,7 @@ export const stepHandlerWardBrokerProxy = (): {
       runId,
       detailJson,
     }: {
-      questId: QuestId;
+      questId: Quest['id'];
       exitCode: ExitCode;
       runId: FileName;
       detailJson: FileContents;
@@ -178,7 +178,7 @@ export const stepHandlerWardBrokerProxy = (): {
       questId,
       exitCode,
     }: {
-      questId: QuestId;
+      questId: Quest['id'];
       exitCode: ExitCode;
     }): void => {
       stageQuest({ questId });

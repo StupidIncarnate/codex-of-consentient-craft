@@ -20,7 +20,7 @@ import { useCallback, useEffect, useState } from '#gateway/npm/react';
 
 import { console } from '#gateway/browser/console';
 
-import type { QuestId, QuestSummary } from '@dungeonmaster/shared/contracts';
+import type { QuestSummary, Quest } from '@dungeonmaster/shared/contracts';
 
 import { filter } from '#gateway/npm/rxjs__operators';
 import { questSummaryBroker } from '../../brokers/quest/summary/quest-summary-broker';
@@ -29,7 +29,7 @@ import { webSocketChannelState } from '../../state/web-socket-channel/web-socket
 export const useQuestSummaryBinding = ({
   questId,
 }: {
-  questId: QuestId | null;
+  questId: Quest['id'] | null;
 }): {
   data: QuestSummary | null;
   loading: boolean;

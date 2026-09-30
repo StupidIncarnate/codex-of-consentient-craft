@@ -13,11 +13,11 @@
 
 import { z } from '#gateway/npm/zod';
 
-import { processIdContract, questIdContract } from '@dungeonmaster/shared/contracts';
+import { processIdContract, questContract } from '@dungeonmaster/shared/contracts';
 
 export const chatHistoryCompletePayloadContract = z.object({
   chatProcessId: processIdContract.optional(),
-  questId: questIdContract.optional(),
+  questId: questContract.shape.id.optional(),
 });
 
 export type ChatHistoryCompletePayload = z.infer<typeof chatHistoryCompletePayloadContract>;

@@ -6,7 +6,7 @@
  * const result = await harness.setupTest({ request, guildName, sessionId, status });
  */
 import { GuildIdStub } from '@dungeonmaster/shared/contracts/guild-id/guild-id.stub';
-import type { Guild, QuestId, UrlSlug } from '@dungeonmaster/shared/contracts';
+import type { Guild, UrlSlug, Quest } from '@dungeonmaster/shared/contracts';
 import type { APIRequestContext } from '#gateway/npm/playwright__test';
 
 import { guildHarness } from '../guild/guild.harness';
@@ -47,7 +47,7 @@ export const questApprovedModalHarness = ({
     }[];
   }) => Promise<{
     guild: Record<PropertyKey, unknown>;
-    questId: QuestId;
+    questId: Quest['id'];
     urlSlug: UrlSlug;
     quests: ReturnType<typeof questHarness>;
   }>;
@@ -72,7 +72,7 @@ export const questApprovedModalHarness = ({
     }[];
   }): Promise<{
     guild: Record<PropertyKey, unknown>;
-    questId: QuestId;
+    questId: Quest['id'];
     urlSlug: UrlSlug;
     quests: ReturnType<typeof questHarness>;
   }> => {

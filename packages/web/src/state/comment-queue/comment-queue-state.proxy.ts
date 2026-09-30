@@ -7,7 +7,7 @@ import { removeItemProxy } from '#gateway/browser/localStorage/remove-item/remov
 import { writeItemProxy } from '#gateway/browser/localStorage/write-item/write-item.proxy';
 import { registerSpyOn } from '@dungeonmaster/testing/register-mock';
 
-import type { QuestId } from '@dungeonmaster/shared/contracts';
+import type { Quest } from '@dungeonmaster/shared/contracts';
 
 import type { CommentQueueEntry } from '../../contracts/comment-queue-entry/comment-queue-entry-contract';
 import { commentQueueStatics } from '../../statics/comment-queue/comment-queue-statics';
@@ -19,18 +19,18 @@ const SCAN_FAILURE_LOG_PREFIX = '[comment-queue] failed to scan storage for expi
 
 export const commentQueueStateProxy = (): {
   setupEmptyStorage: () => void;
-  seedQueue: (params: { questId: QuestId; entries: CommentQueueEntry[] }) => void;
-  seedRawValue: (params: { questId: QuestId; value: string }) => void;
+  seedQueue: (params: { questId: Quest['id']; entries: CommentQueueEntry[] }) => void;
+  seedRawValue: (params: { questId: Quest['id']; value: string }) => void;
   seedPrefixOnlyKey: (params: { value: string }) => void;
-  setupReadRejected: (params: { questId: QuestId }) => void;
-  setupWriteRejected: (params: { questId: QuestId; error: Error }) => void;
-  setupRemoveRejected: (params: { questId: QuestId; error: Error }) => void;
+  setupReadRejected: (params: { questId: Quest['id'] }) => void;
+  setupWriteRejected: (params: { questId: Quest['id']; error: Error }) => void;
+  setupRemoveRejected: (params: { questId: Quest['id']; error: Error }) => void;
   setupScanRejected: (params: { error: Error }) => void;
   writeFailureLogs: () => unknown[];
   scanFailureLogs: () => unknown[];
-  readRawValue: (params: { questId: QuestId }) => unknown;
+  readRawValue: (params: { questId: Quest['id'] }) => unknown;
   readPrefixOnlyValue: () => unknown;
-  hasKey: (params: { questId: QuestId }) => boolean;
+  hasKey: (params: { questId: Quest['id'] }) => boolean;
 } => {
   // passthrough: true — console.error is a shared sink; React's own internal warnings also flow
   // through it and must keep printing normally, not throw for being unstaged.
@@ -50,14 +50,14 @@ export const commentQueueStateProxy = (): {
       commentQueueState.resetSubscribers();
     },
 
-    seedQueue: ({ questId, entries }: { questId: QuestId; entries: CommentQueueEntry[] }): void => {
+    seedQueue: ({ questId, entries }: { questId: Quest['id']; entries: CommentQueueEntry[] }): void => {
       writeItem({
         key: `${commentQueueStatics.storage.keyPrefix}${questId}`,
         value: JSON.stringify(entries),
       });
     },
 
-    seedRawValue: ({ questId, value }: { questId: QuestId; value: string }): void => {
+    seedRawValue: ({ questId, value }: { questId: Quest['id']; value: string }): void => {
       writeItem({ key: `${commentQueueStatics.storage.keyPrefix}${questId}`, value });
     },
 
@@ -71,7 +71,7 @@ export const commentQueueStateProxy = (): {
     // A storage that throws reading this quest's key — the shape private browsing / a locked-down
     // embedded webview takes. readItem's own guard is what turns this into a degrade-to-empty-array
     // instead of a crash; this only proves the gateway wrapper is really wired in under the caller.
-    setupReadRejected: ({ questId }: { questId: QuestId }): void => {
+    setupReadRejected: ({ questId }: { questId: Quest['id'] }): void => {
       readProxy.setupReadFails({
         key: `${commentQueueStatics.storage.keyPrefix}${questId}`,
         error: StorageDisabledErrorStub(),
@@ -82,7 +82,7 @@ export const commentQueueStateProxy = (): {
     // private-browsing/embedded-webview storage both take. writeItemProxy addresses by key alone
     // (a prefix match against the real setItem(key, value) call), so the caller supplies only the
     // error it wants thrown back, and the test can assert that exact instance was logged.
-    setupWriteRejected: ({ questId, error }: { questId: QuestId; error: Error }): void => {
+    setupWriteRejected: ({ questId, error }: { questId: Quest['id']; error: Error }): void => {
       writeProxy.setupWriteFails({
         key: `${commentQueueStatics.storage.keyPrefix}${questId}`,
         error,
@@ -91,7 +91,7 @@ export const commentQueueStateProxy = (): {
 
     // A storage that refuses removal — the same disabled-storage environment seen from the
     // clearQueue / emptied-queue side, where the write is a removeItem rather than a setItem.
-    setupRemoveRejected: ({ questId, error }: { questId: QuestId; error: Error }): void => {
+    setupRemoveRejected: ({ questId, error }: { questId: Quest['id']; error: Error }): void => {
       removeProxy.setupRemoveFails({
         key: `${commentQueueStatics.storage.keyPrefix}${questId}`,
         error,
@@ -108,12 +108,12 @@ export const commentQueueStateProxy = (): {
 
     scanFailureLogs: (): unknown[] => consoleErrorHandle.callsMatching([SCAN_FAILURE_LOG_PREFIX]),
 
-    readRawValue: ({ questId }: { questId: QuestId }): unknown =>
+    readRawValue: ({ questId }: { questId: Quest['id'] }): unknown =>
       readItem({ key: `${commentQueueStatics.storage.keyPrefix}${questId}` }),
 
     readPrefixOnlyValue: (): unknown => readItem({ key: commentQueueStatics.storage.keyPrefix }),
 
-    hasKey: ({ questId }: { questId: QuestId }): boolean =>
+    hasKey: ({ questId }: { questId: Quest['id'] }): boolean =>
       readItem({ key: `${commentQueueStatics.storage.keyPrefix}${questId}` }) !== null,
   };
 };

@@ -23,7 +23,7 @@
  */
 
 import { getQuestInputContract, repoRootCwdContract } from '@dungeonmaster/shared/contracts';
-import type { QuestId, SessionId } from '@dungeonmaster/shared/contracts';
+import type { SessionId, Quest } from '@dungeonmaster/shared/contracts';
 import { questSessionCwdTransformer } from '@dungeonmaster/shared/transformers';
 
 import { pathExists } from '#gateway/node/fs__promises';
@@ -36,7 +36,7 @@ export const questCwdResolveBroker = async ({
   questId,
   sessionId,
 }: {
-  questId: QuestId;
+  questId: Quest['id'];
   // Supplied ONLY by the read paths locating an already-finished transcript. See the header.
   sessionId?: SessionId;
 }): Promise<QuestCwdResolution> => {

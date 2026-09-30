@@ -27,13 +27,13 @@
  * transitions and clear the smoketest active-run flag.
  */
 
-import type { QuestId } from '@dungeonmaster/shared/contracts';
+import type { Quest } from '@dungeonmaster/shared/contracts';
 
 import type { SmoketestListenerEntry } from '../../../contracts/smoketest-listener-entry/smoketest-listener-entry-contract';
 import type { SmoketestScenarioMeta } from '../../../contracts/smoketest-scenario-meta/smoketest-scenario-meta-contract';
 import { createTerminalHandlerLayerBroker } from './create-terminal-handler-layer-broker';
 
-type QuestChangedHandler = (args: { questId: QuestId }) => void;
+type QuestChangedHandler = (args: { questId: Quest['id'] }) => void;
 
 export const smoketestPostTerminalListenerBroker = async ({
   install,
@@ -42,9 +42,9 @@ export const smoketestPostTerminalListenerBroker = async ({
   getScenarioMeta,
 }: {
   install: (onQuestChanged: QuestChangedHandler) => Promise<{ stop: () => void }>;
-  getListenerEntry: ({ questId }: { questId: QuestId }) => SmoketestListenerEntry | undefined;
-  unregisterListener: ({ questId }: { questId: QuestId }) => void;
-  getScenarioMeta: ({ questId }: { questId: QuestId }) => SmoketestScenarioMeta | undefined;
+  getListenerEntry: ({ questId }: { questId: Quest['id'] }) => SmoketestListenerEntry | undefined;
+  unregisterListener: ({ questId }: { questId: Quest['id'] }) => void;
+  getScenarioMeta: ({ questId }: { questId: Quest['id'] }) => SmoketestScenarioMeta | undefined;
 }): Promise<{ stop: () => void }> => {
   const handler = createTerminalHandlerLayerBroker({
     getListenerEntry,

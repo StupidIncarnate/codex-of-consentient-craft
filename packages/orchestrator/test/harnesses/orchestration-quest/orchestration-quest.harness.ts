@@ -14,15 +14,7 @@ import { randomUUID } from '#gateway/node/crypto';
 import { existsSync, mkdirSync, readFileSync, rmSync, writeFileSync } from '#gateway/node/fs';
 import { tmpdir } from '#gateway/node/os';
 
-import type {
-  AbsoluteFilePath,
-  FileContents,
-  GuildId,
-  GuildPath,
-  QuestId,
-  FilePath,
-  RepoRelativePath,
-} from '@dungeonmaster/shared/contracts';
+import type { AbsoluteFilePath, FileContents, GuildId, GuildPath, FilePath, RepoRelativePath } from '@dungeonmaster/shared/contracts';
 import type { FlowStub } from '@dungeonmaster/shared/contracts/flow/flow.stub';
 import type { OperationItemStub } from '@dungeonmaster/shared/contracts/operation-item/operation-item.stub';
 import type { QuestCommentStub } from '@dungeonmaster/shared/contracts/quest-comment/quest-comment.stub';
@@ -94,10 +86,10 @@ export const orchestrationQuestHarness = (): {
     userRequest?: string;
   }) => Promise<{
     guild: Awaited<ReturnType<typeof GuildAddResponder>>;
-    questId: QuestId;
+    questId: Quest['id'];
   }>;
   seedInProgressRelay: (params: {
-    questId: QuestId;
+    questId: Quest['id'];
     operations: readonly OperationItem[];
     workItems: readonly WorkItem[];
     // Present only for tests measuring a real review surface from a pinned base — omitted,
@@ -145,20 +137,20 @@ export const orchestrationQuestHarness = (): {
   }) => Promise<void>;
   // Raw file bytes of quest.json — for asserting a refused gate persisted NOTHING (byte-identical
   // before/after), which a parsed-and-re-compared Quest object cannot prove (parsing normalizes).
-  readQuestFileRaw: (params: { questId: QuestId }) => Promise<FileContents>;
+  readQuestFileRaw: (params: { questId: Quest['id'] }) => Promise<FileContents>;
   // Overwrites flows/workItems/comments directly on disk, leaving every other field (status,
   // title, etc.) as QuestUserAddResponder set it. Bypasses QuestModifyResponder the same way
   // seedInProgressRelay does — the per-status input allowlist is covered by the broker/
   // responder unit tests, not by this fixture-building helper.
   seedFlowsAndComments: (params: {
-    questId: QuestId;
+    questId: Quest['id'];
     flows: readonly Flow[];
     workItems: readonly WorkItem[];
     comments: readonly QuestComment[];
   }) => Promise<void>;
   // Reads the quest back off real disk — for asserting what a prior seed or a real broker
   // call actually persisted.
-  reload: (params: { questId: QuestId }) => Promise<Quest>;
+  reload: (params: { questId: Quest['id'] }) => Promise<Quest>;
   removeGuild: (params: { guildId: GuildId }) => Promise<void>;
   // Points CLAUDE_CLI_PATH at the real (working) fake-Claude-CLI binary and FAKE_CLAUDE_QUEUE_DIR
   // at a fresh, empty temp dir, so a caller that reaches a real spawn (chatSpawnBroker →
@@ -198,7 +190,7 @@ export const orchestrationQuestHarness = (): {
     worktreePath,
     branchName,
   }: {
-    questId: QuestId;
+    questId: Quest['id'];
     operations: readonly OperationItem[];
     workItems: readonly WorkItem[];
     baseRef?: GitBaseRef;
@@ -312,13 +304,13 @@ export const orchestrationQuestHarness = (): {
     await commitAll({ message: 'changed files', cwd });
   };
 
-  const readQuestFileRaw = async ({ questId }: { questId: QuestId }): Promise<FileContents> => {
+  const readQuestFileRaw = async ({ questId }: { questId: Quest['id'] }): Promise<FileContents> => {
     const { questPath } = await questFindQuestPathBroker({ questId });
     const questFilePath = filePathContract.parse(join(questPath, QUEST_FILE_NAME));
     return fileContentsContract.parse(readFileSync(questFilePath));
   };
 
-  const loadByQuestId = async (params: { questId: QuestId }): Promise<Quest> => {
+  const loadByQuestId = async (params: { questId: Quest['id'] }): Promise<Quest> => {
     const { questId } = params;
     const { questPath } = await questFindQuestPathBroker({ questId });
     const questFilePath = filePathContract.parse(join(questPath, QUEST_FILE_NAME));
@@ -453,7 +445,7 @@ export const orchestrationQuestHarness = (): {
       workItems,
       comments,
     }: {
-      questId: QuestId;
+      questId: Quest['id'];
       flows: readonly Flow[];
       workItems: readonly WorkItem[];
       comments: readonly QuestComment[];

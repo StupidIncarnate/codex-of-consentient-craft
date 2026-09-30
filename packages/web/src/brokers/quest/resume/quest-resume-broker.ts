@@ -11,7 +11,7 @@
  * threw, or when the quest has no dispatchable work.
  */
 
-import type { QuestId } from '@dungeonmaster/shared/contracts';
+import type { Quest } from '@dungeonmaster/shared/contracts';
 
 import { fetchJson } from '#gateway/browser/fetch';
 
@@ -22,7 +22,7 @@ import { webConfigStatics } from '../../../statics/web-config/web-config-statics
 export const questResumeBroker = async ({
   questId,
 }: {
-  questId: QuestId;
+  questId: Quest['id'];
 }): Promise<QuestResumeOutcome> => {
   const response = await fetchJson({
     url: webConfigStatics.api.routes.questResume.replace(':questId', questId),

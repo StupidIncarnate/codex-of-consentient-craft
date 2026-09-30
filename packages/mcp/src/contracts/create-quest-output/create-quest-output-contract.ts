@@ -7,11 +7,11 @@
  */
 import { z } from '#gateway/npm/zod';
 
-import { questIdContract, urlSlugContract } from '@dungeonmaster/shared/contracts';
+import { urlSlugContract, questContract } from '@dungeonmaster/shared/contracts';
 
 export const createQuestOutputContract = z
   .object({
-    questId: questIdContract.describe('The id of the newly-created quest'),
+    questId: questContract.shape.id.describe('The id of the newly-created quest'),
     guildSlug: urlSlugContract.describe('URL-safe slug of the guild the quest was created in'),
   })
   .strict();

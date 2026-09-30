@@ -13,7 +13,7 @@ import { consoleError } from '#gateway/browser/console';
 import { Text } from '#gateway/npm/mantine__core';
 import { useEffect, useState } from '#gateway/npm/react';
 
-import type { QuestId, RiftcarverResult } from '@dungeonmaster/shared/contracts';
+import type { RiftcarverResult, Quest } from '@dungeonmaster/shared/contracts';
 
 import { questRiftcarverDetailBroker } from '../../brokers/quest/riftcarver-detail/quest-riftcarver-detail-broker';
 import type { RiftcarverDetail } from '../../contracts/riftcarver-detail/riftcarver-detail-contract';
@@ -27,7 +27,7 @@ export const RiftcarverResultDetailLayerWidget = ({
   questId,
   riftcarverResult,
 }: {
-  questId: QuestId;
+  questId: Quest['id'];
   riftcarverResult: RiftcarverResult;
 }): React.JSX.Element | null => {
   const { colors } = emberDepthsThemeStatics;

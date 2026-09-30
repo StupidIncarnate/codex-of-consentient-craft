@@ -27,7 +27,7 @@
  * to the active agent's chat.
  */
 
-import type { Quest, QuestId, QuestStatus, SessionId } from '@dungeonmaster/shared/contracts';
+import type { Quest, QuestStatus, SessionId } from '@dungeonmaster/shared/contracts';
 
 import { isSmoketestPollTerminalStatusGuard } from '../../../guards/is-smoketest-poll-terminal-status/is-smoketest-poll-terminal-status-guard';
 import { questActiveSessionTransformer } from '../../../transformers/quest-active-session/quest-active-session-transformer';
@@ -39,15 +39,15 @@ export const processSyncEventLayerBroker = async ({
   updateEntryStatus,
   updateEntryActiveSession,
 }: {
-  questId: QuestId;
-  loadQuest: ({ questId }: { questId: QuestId }) => Promise<Quest | undefined>;
-  removeByQuestId: ({ questId }: { questId: QuestId }) => void;
-  updateEntryStatus: ({ questId, status }: { questId: QuestId; status: QuestStatus }) => void;
+  questId: Quest['id'];
+  loadQuest: ({ questId }: { questId: Quest['id'] }) => Promise<Quest | undefined>;
+  removeByQuestId: ({ questId }: { questId: Quest['id'] }) => void;
+  updateEntryStatus: ({ questId, status }: { questId: Quest['id']; status: QuestStatus }) => void;
   updateEntryActiveSession: ({
     questId,
     activeSessionId,
   }: {
-    questId: QuestId;
+    questId: Quest['id'];
     activeSessionId: SessionId | undefined;
   }) => void;
 }): Promise<void> => {

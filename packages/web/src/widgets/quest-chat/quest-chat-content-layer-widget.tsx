@@ -15,16 +15,7 @@ import { useLocation, useNavigate } from '#gateway/npm/react-router-dom';
 
 import { Box, Stack, Text } from '#gateway/npm/mantine__core';
 
-import type {
-  ChatEntry,
-  GuildId,
-  PastedImageUpload,
-  QuestId,
-  QuestStatus,
-  QuestType,
-  UrlSlug,
-  UserInput,
-} from '@dungeonmaster/shared/contracts';
+import type { ChatEntry, GuildId, PastedImageUpload, QuestStatus, QuestType, UrlSlug, UserInput, Quest } from '@dungeonmaster/shared/contracts';
 import { chatEntryContract } from '@dungeonmaster/shared/contracts';
 import {
   isAbandonableQuestStatusGuard,
@@ -75,7 +66,7 @@ const BEGIN_QUEST_FAILED_MESSAGE = 'Begin Quest failed — the quest was not sta
 const ERROR_NOTIFICATION_COLOR = 'red';
 
 export interface QuestChatContentLayerWidgetProps {
-  questId: QuestId | null;
+  questId: Quest['id'] | null;
   guildId: GuildId;
   guildSlug: UrlSlug;
 }

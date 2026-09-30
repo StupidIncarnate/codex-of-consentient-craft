@@ -19,7 +19,7 @@
 
 import { Box, Text } from '#gateway/npm/mantine__core';
 
-import type { QuestId, QuestNote, QuestSummaryObservable } from '@dungeonmaster/shared/contracts';
+import type { QuestNote, QuestSummaryObservable, Quest } from '@dungeonmaster/shared/contracts';
 
 import { emberDepthsThemeStatics } from '../../statics/ember-depths-theme/ember-depths-theme-statics';
 import { HumanCheckRowLayerWidget } from './human-check-row-layer-widget';
@@ -27,7 +27,7 @@ import { HumanCheckRowLayerWidget } from './human-check-row-layer-widget';
 const ROW_FONT_SIZE = 10;
 
 export interface HumanCheckPanelLayerWidgetProps {
-  questId: QuestId;
+  questId: Quest['id'];
   criteria: readonly QuestSummaryObservable[];
   notes: readonly QuestNote[];
 }

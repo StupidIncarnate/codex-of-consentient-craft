@@ -34,14 +34,7 @@ import {
   questWorkItemIdContract,
   workItemContract,
 } from '@dungeonmaster/shared/contracts';
-import type {
-  ErrorMessage,
-  OperationItem,
-  Quest,
-  QuestId,
-  QuestWorkItemId,
-  WorkItem,
-} from '@dungeonmaster/shared/contracts';
+import type { ErrorMessage, OperationItem, Quest, QuestWorkItemId, WorkItem } from '@dungeonmaster/shared/contracts';
 import {
   isCommandWorkItemRoleGuard,
   isTerminalWorkItemStatusGuard,
@@ -65,7 +58,7 @@ const OPERATIONS_REF_PREFIX = 'operations/';
 export const questRouteScopeBroker = async ({
   questId,
 }: {
-  questId: QuestId;
+  questId: Quest['id'];
 }): Promise<{ routed: boolean; blocked: boolean }> => {
   // The quest folder and the quest itself come off ONE lookup, not two: `questGetBroker` would walk
   // the guilds again for a path this already holds, and the plan file lives beside `quest.json`.

@@ -1,6 +1,6 @@
-import { questIdContract } from './quest-id-contract';
+import { questContract } from '../quest/quest-contract';
 
-type QuestId = ReturnType<typeof questIdContract.parse>;
+type QuestId = ReturnType<typeof questContract.shape.id.parse>;
 
 export const QuestIdStub = ({ value }: { value: string } = { value: 'add-auth' }): QuestId =>
-  questIdContract.parse(value);
+  questContract.shape.id.parse(value);

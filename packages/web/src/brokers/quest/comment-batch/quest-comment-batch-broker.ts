@@ -10,7 +10,7 @@
  * // result.outcome === 'sent' | 'stale' | 'failed'
  */
 
-import type { QuestId } from '@dungeonmaster/shared/contracts';
+import type { Quest } from '@dungeonmaster/shared/contracts';
 
 import { fetchWithStatus } from '#gateway/browser/fetch';
 
@@ -25,7 +25,7 @@ export const questCommentBatchBroker = async ({
   questId,
   comments,
 }: {
-  questId: QuestId;
+  questId: Quest['id'];
   comments: readonly CommentQueueEntry[];
 }): Promise<CommentBatchSendResult> => {
   const url = webConfigStatics.api.routes.questComments.replace(':questId', questId);

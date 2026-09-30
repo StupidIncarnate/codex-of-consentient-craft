@@ -1,4 +1,4 @@
-import type { Guild, QuestId } from '@dungeonmaster/shared/contracts';
+import type { Guild, Quest } from '@dungeonmaster/shared/contracts';
 import { stderrProxy } from '#gateway/node/process/stderr/stderr.proxy';
 import { AbsoluteFilePathStub } from '@dungeonmaster/shared/contracts/absolute-file-path/absolute-file-path.stub';
 import { RepoRootCwdStub } from '@dungeonmaster/shared/contracts/repo-root-cwd/repo-root-cwd.stub';
@@ -20,9 +20,9 @@ import { spawnOneAgentLayerBrokerProxy } from './spawn-one-agent-layer-broker.pr
 registerModuleMock({ module: '../cwd-resolve/quest-cwd-resolve-broker' });
 
 export const spawnBatchLayerBrokerProxy = (): {
-  setupQuestContext: (params: { questId: QuestId; guildPath: Guild['path'] }) => void;
-  setupQuestWorktree: (params: { questId: QuestId; worktreePath: string }) => void;
-  setupQuestWorktreeMissing: (params: { questId: QuestId; worktreePath: string }) => void;
+  setupQuestContext: (params: { questId: Quest['id']; guildPath: Guild['path'] }) => void;
+  setupQuestWorktree: (params: { questId: Quest['id']; worktreePath: string }) => void;
+  setupQuestWorktreeMissing: (params: { questId: Quest['id']; worktreePath: string }) => void;
   setupModifySucceeds: (params: { times: number }) => void;
   setupModifyRejectsOnce: (params: { error: Error }) => void;
   setupSpawnEmitsSessionThenExits: (params: { sessionId: string; exitCode: number }) => void;
@@ -58,7 +58,7 @@ export const spawnBatchLayerBrokerProxy = (): {
     // the batch share it), so questId is the real, meaningful address — keying on it is what lets
     // a multi-quest batch test stage a DIFFERENT resolution per quest correctly, rather than
     // trusting the resolution order to match staging order.
-    setupQuestContext: ({ questId, guildPath }: { questId: QuestId; guildPath: Guild['path'] }): void => {
+    setupQuestContext: ({ questId, guildPath }: { questId: Quest['id']; guildPath: Guild['path'] }): void => {
       cwdMock
         .calledWith([{ questId }])
         .resolves(
@@ -70,7 +70,7 @@ export const spawnBatchLayerBrokerProxy = (): {
       questId,
       worktreePath,
     }: {
-      questId: QuestId;
+      questId: Quest['id'];
       worktreePath: string;
     }): void => {
       cwdMock.calledWith([{ questId }]).resolves(
@@ -85,7 +85,7 @@ export const spawnBatchLayerBrokerProxy = (): {
       questId,
       worktreePath,
     }: {
-      questId: QuestId;
+      questId: Quest['id'];
       worktreePath: string;
     }): void => {
       cwdMock.calledWith([{ questId }]).resolves(

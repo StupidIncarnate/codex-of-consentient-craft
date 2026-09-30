@@ -1,7 +1,7 @@
 import { StartOrchestratorProxy } from '@dungeonmaster/orchestrator/startup/start-orchestrator.proxy';
 import { DispatchStateStub } from '@dungeonmaster/shared/contracts/dispatch-state/dispatch-state.stub';
 import { GetQuestResultStub } from '@dungeonmaster/shared/contracts/get-quest-result/get-quest-result.stub';
-import type { QuestId, QuestStatus } from '@dungeonmaster/shared/contracts';
+import type { QuestStatus } from '@dungeonmaster/shared/contracts';
 import type { QuestStub } from '@dungeonmaster/shared/contracts/quest/quest.stub';
 import { QuestResumeResponder } from './quest-resume-responder';
 
@@ -10,11 +10,11 @@ type Quest = ReturnType<typeof QuestStub>;
 export const QuestResumeResponderProxy = (): {
   setupQuest: (params: { quest: Quest }) => void;
   setupResumeQuest: (params: {
-    questId: QuestId;
+    questId: Quest['id'];
     resumed: boolean;
     restoredStatus: QuestStatus;
   }) => void;
-  setupResumeQuestError: (params: { questId: QuestId; message: string }) => void;
+  setupResumeQuestError: (params: { questId: Quest['id']; message: string }) => void;
   setupDispatchPlays: () => void;
   setupDispatchError: (params: { message: string }) => void;
   getDispatchPlayCalls: () => readonly unknown[];
@@ -34,13 +34,13 @@ export const QuestResumeResponderProxy = (): {
       resumed,
       restoredStatus,
     }: {
-      questId: QuestId;
+      questId: Quest['id'];
       resumed: boolean;
       restoredStatus: QuestStatus;
     }): void => {
       orchestrator.resumeQuestReturns({ questId, resumed, restoredStatus });
     },
-    setupResumeQuestError: ({ questId, message }: { questId: QuestId; message: string }): void => {
+    setupResumeQuestError: ({ questId, message }: { questId: Quest['id']; message: string }): void => {
       orchestrator.resumeQuestThrows({ questId, error: new Error(message) });
     },
 

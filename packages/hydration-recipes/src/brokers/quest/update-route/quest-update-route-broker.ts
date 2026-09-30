@@ -24,11 +24,7 @@
  * // Returns the reloaded Quest record on success; throws naming the failure otherwise
  */
 import { questGetBroker, questModifyBroker } from '@dungeonmaster/orchestrator/brokers';
-import {
-  getQuestInputContract,
-  questContract,
-  questIdContract,
-} from '@dungeonmaster/shared/contracts';
+import { getQuestInputContract, questContract } from '@dungeonmaster/shared/contracts';
 import type { Quest } from '@dungeonmaster/shared/contracts';
 
 import { questFieldsToModifyInputTransformer } from '../../../transformers/quest-fields-to-modify-input/quest-fields-to-modify-input-transformer';
@@ -42,7 +38,7 @@ export const questUpdateRouteBroker = async ({
   record: Record<string, unknown>;
   fields: Record<string, unknown>;
 }): Promise<Quest> => {
-  const questId = questIdContract.parse(record.id);
+  const questId = questContract.shape.id.parse(record.id);
   const input = questFieldsToModifyInputTransformer({ questId, fields });
 
   const modifyResult = await questModifyBroker({ input });

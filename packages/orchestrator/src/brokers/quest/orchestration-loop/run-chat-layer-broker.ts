@@ -6,22 +6,12 @@
  */
 
 import { stderr } from '#gateway/node/process';
-import {
-  absoluteFilePathContract,
-  sessionIdContract,
-  workItemRoleContract,
-  type ExitCode,
-  type QuestId,
-  type SessionId,
-  type UserInput,
-  type WorkItem,
-} from '@dungeonmaster/shared/contracts';
+import { absoluteFilePathContract, sessionIdContract, workItemRoleContract, type ExitCode, type SessionId, type UserInput, type WorkItem, slotIndexContract } from '@dungeonmaster/shared/contracts';
 
-import type { ModifyQuestInput } from '@dungeonmaster/shared/contracts';
+import type { ModifyQuestInput, Quest } from '@dungeonmaster/shared/contracts';
 import { isCommandWorkItemRoleGuard } from '@dungeonmaster/shared/guards';
 import type { OnAgentEntryCallback } from '../../../contracts/orchestration-callbacks/orchestration-callbacks-contract';
 import { processIdPrefixContract } from '../../../contracts/process-id-prefix/process-id-prefix-contract';
-import { slotIndexContract } from '@dungeonmaster/shared/contracts';
 import { chatPromptBuildTransformer } from '../../../transformers/chat-prompt-build/chat-prompt-build-transformer';
 import { roleToModelTransformer } from '../../../transformers/role-to-model/role-to-model-transformer';
 import { agentLaunchBroker } from '../../agent/launch/agent-launch-broker';
@@ -35,7 +25,7 @@ export const runChatLayerBroker = async ({
   userMessage,
   onAgentEntry,
 }: {
-  questId: QuestId;
+  questId: Quest['id'];
   workItem: WorkItem;
   userMessage?: UserInput;
   onAgentEntry: OnAgentEntryCallback;

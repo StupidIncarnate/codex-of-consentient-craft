@@ -18,7 +18,7 @@
 import { join } from '#gateway/node/path';
 import { locationsQuestFolderPathFindBroker } from '@dungeonmaster/shared/brokers';
 import { absoluteFilePathContract } from '@dungeonmaster/shared/contracts';
-import type { AbsoluteFilePath, GuildId, QuestId } from '@dungeonmaster/shared/contracts';
+import type { AbsoluteFilePath, GuildId, Quest } from '@dungeonmaster/shared/contracts';
 import { locationsStatics } from '@dungeonmaster/shared/statics';
 
 export const locationsCitationQuestFilePathFindBroker = ({
@@ -26,7 +26,7 @@ export const locationsCitationQuestFilePathFindBroker = ({
   questId,
 }: {
   guildId: GuildId;
-  questId: QuestId;
+  questId: Quest['id'];
 }): AbsoluteFilePath => {
   const questFolder = locationsQuestFolderPathFindBroker({ guildId, questId });
 

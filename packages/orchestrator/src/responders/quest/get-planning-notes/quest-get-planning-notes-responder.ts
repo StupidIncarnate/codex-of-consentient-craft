@@ -6,7 +6,7 @@
  * // Returns { success: true, data: planningNotes } or { success: false, error }
  */
 
-import { errorMessageContract, questIdContract } from '@dungeonmaster/shared/contracts';
+import { errorMessageContract, questContract } from '@dungeonmaster/shared/contracts';
 import type { ErrorMessage, Quest } from '@dungeonmaster/shared/contracts';
 
 import { questGetPlanningNotesBroker } from '../../../brokers/quest/get-planning-notes/quest-get-planning-notes-broker';
@@ -23,7 +23,7 @@ export const QuestGetPlanningNotesResponder = async ({
   questId: Quest['id'];
 }): Promise<QuestGetPlanningNotesResponderResult> => {
   try {
-    const parsedQuestId = questIdContract.parse(questId);
+    const parsedQuestId = questContract.shape.id.parse(questId);
     const data = await questGetPlanningNotesBroker({ questId: parsedQuestId });
     return { success: true, data };
   } catch (error) {

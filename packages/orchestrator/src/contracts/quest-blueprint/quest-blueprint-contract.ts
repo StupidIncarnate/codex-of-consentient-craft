@@ -18,13 +18,7 @@
 
 import { z } from '#gateway/npm/zod';
 
-import {
-  questContract,
-  questIdContract,
-  questStatusContract,
-  questWorkItemIdContract,
-  workItemRoleContract,
-} from '@dungeonmaster/shared/contracts';
+import { questContract, questStatusContract, questWorkItemIdContract, workItemRoleContract } from '@dungeonmaster/shared/contracts';
 
 export const questBlueprintContract = questContract
   .pick({
@@ -40,7 +34,7 @@ export const questBlueprintContract = questContract
   .extend({
     targetStatus: questStatusContract.optional(),
     skipRoles: z.array(workItemRoleContract).default([]),
-    fixedQuestId: questIdContract.optional(),
+    fixedQuestId: questContract.shape.id.optional(),
     fixedWorkItemId: questWorkItemIdContract.optional(),
     // `z.partialRecord`, not `z.record` — zod v4 made an enum-keyed `z.record` exhaustive (every
     // role required), and a real caller overrides at most a few roles' prompts.

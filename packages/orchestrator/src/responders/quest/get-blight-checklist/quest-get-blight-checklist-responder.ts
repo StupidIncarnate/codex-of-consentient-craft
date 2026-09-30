@@ -16,11 +16,7 @@
  */
 
 import type { Quest, ContentText, ErrorMessage } from '@dungeonmaster/shared/contracts';
-import {
-  contentTextContract,
-  errorMessageContract,
-  questIdContract,
-} from '@dungeonmaster/shared/contracts';
+import { contentTextContract, errorMessageContract, questContract } from '@dungeonmaster/shared/contracts';
 
 import { questGetBlightChecklistBroker } from '../../../brokers/quest/get-blight-checklist/quest-get-blight-checklist-broker';
 import { blightChecklistToTextTransformer } from '../../../transformers/blight-checklist-to-text/blight-checklist-to-text-transformer';
@@ -37,7 +33,7 @@ export const QuestGetBlightChecklistResponder = async ({
   scope?: 'quest' | 'commit' | 'working-tree' | 'unpushed';
 }): Promise<QuestGetBlightChecklistResponderResult> => {
   try {
-    const parsedQuestId = questIdContract.parse(questId);
+    const parsedQuestId = questContract.shape.id.parse(questId);
     const checklist = await questGetBlightChecklistBroker({
       questId: parsedQuestId,
       ...(scope !== undefined && { scope }),

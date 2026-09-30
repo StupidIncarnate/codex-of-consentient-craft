@@ -33,7 +33,7 @@ import {
   filePathContract,
   questContract,
 } from '@dungeonmaster/shared/contracts';
-import type { Flow, QuestId, QuestWorkItemId } from '@dungeonmaster/shared/contracts';
+import type { Flow, QuestWorkItemId, Quest } from '@dungeonmaster/shared/contracts';
 import { locationsStatics } from '@dungeonmaster/shared/statics';
 import { join } from '#gateway/node/path';
 
@@ -52,7 +52,7 @@ export const smoketestSignOutstandingUnitsBroker = async ({
   questId,
   workItemId,
 }: {
-  questId: QuestId;
+  questId: Quest['id'];
   workItemId: QuestWorkItemId;
 }): Promise<void> =>
   questWithModifyLockBroker({

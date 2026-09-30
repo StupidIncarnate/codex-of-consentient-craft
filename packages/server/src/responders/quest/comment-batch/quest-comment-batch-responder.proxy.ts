@@ -1,6 +1,5 @@
 import { questFindQuestPathBrokerProxy } from '@dungeonmaster/orchestrator/brokers/quest/find-quest-path/quest-find-quest-path-broker.proxy';
 import { StartOrchestratorProxy } from '@dungeonmaster/orchestrator/startup/start-orchestrator.proxy';
-import type { QuestId } from '@dungeonmaster/shared/contracts';
 import type { AbsoluteFilePathStub } from '@dungeonmaster/shared/contracts/absolute-file-path/absolute-file-path.stub';
 import type { GuildIdStub } from '@dungeonmaster/shared/contracts/guild-id/guild-id.stub';
 import type { ProcessIdStub } from '@dungeonmaster/shared/contracts/process-id/process-id.stub';
@@ -21,20 +20,20 @@ type EndpointControl = ReturnType<typeof StartEndpointMock.listen>;
 
 export const QuestCommentBatchResponderProxy = (): {
   setupQuestLoad: (params: { quest: Quest }) => void;
-  setupQuestLoadError: (params: { questId: QuestId; error: Error }) => void;
+  setupQuestLoadError: (params: { questId: Quest['id']; error: Error }) => void;
   setupFindQuestPath: (params: {
-    questId: QuestId;
+    questId: Quest['id'];
     guildId: GuildId;
     questPath: AbsoluteFilePath;
   }) => void;
   setupCommentBatch: (params: {
-    questId: QuestId;
+    questId: Quest['id'];
     chatProcessId: ProcessId;
     deliveredMessage: string;
   }) => void;
-  setupCommentBatchError: (params: { questId: QuestId; message: string }) => void;
-  getDeliveredBatch: (params: { questId: QuestId }) => unknown;
-  getDeliveryAttempts: (params: { questId: QuestId }) => unknown[];
+  setupCommentBatchError: (params: { questId: Quest['id']; message: string }) => void;
+  getDeliveredBatch: (params: { questId: Quest['id'] }) => unknown;
+  getDeliveryAttempts: (params: { questId: Quest['id'] }) => unknown[];
   callResponder: typeof QuestCommentBatchResponder;
   // Reusable MSW handler for this responder's own endpoint, checked against the same
   // commentBatchResponseContract the responder parses its 200 body through (T03). Staged data the
@@ -54,7 +53,7 @@ export const QuestCommentBatchResponderProxy = (): {
     setupQuestLoad: ({ quest }: { quest: Quest }): void => {
       orchestrator.loadQuestReturns({ questId: quest.id, quest });
     },
-    setupQuestLoadError: ({ questId, error }: { questId: QuestId; error: Error }): void => {
+    setupQuestLoadError: ({ questId, error }: { questId: Quest['id']; error: Error }): void => {
       orchestrator.loadQuestThrows({ questId, error });
     },
     setupFindQuestPath: ({
@@ -62,7 +61,7 @@ export const QuestCommentBatchResponderProxy = (): {
       guildId,
       questPath,
     }: {
-      questId: QuestId;
+      questId: Quest['id'];
       guildId: GuildId;
       questPath: AbsoluteFilePath;
     }): void => {
@@ -75,20 +74,20 @@ export const QuestCommentBatchResponderProxy = (): {
       chatProcessId,
       deliveredMessage,
     }: {
-      questId: QuestId;
+      questId: Quest['id'];
       chatProcessId: ProcessId;
       deliveredMessage: string;
     }): void => {
       orchestrator.commentBatchReturns({ questId, chatProcessId, message: deliveredMessage });
     },
-    setupCommentBatchError: ({ questId, message }: { questId: QuestId; message: string }): void => {
+    setupCommentBatchError: ({ questId, message }: { questId: Quest['id']; message: string }): void => {
       orchestrator.commentBatchThrows({ questId, error: new Error(message) });
     },
-    getDeliveredBatch: ({ questId }: { questId: QuestId }): unknown =>
+    getDeliveredBatch: ({ questId }: { questId: Quest['id'] }): unknown =>
       [...orchestrator.commentBatchGetCalls({ questId })].at(-1)?.[0],
     // Empty array proves no chat process was spawned — the guarantee on the 409 and the
     // persist-failure paths.
-    getDeliveryAttempts: ({ questId }: { questId: QuestId }): unknown[] => [
+    getDeliveryAttempts: ({ questId }: { questId: Quest['id'] }): unknown[] => [
       ...orchestrator.commentBatchGetCalls({ questId }),
     ],
     callResponder: QuestCommentBatchResponder,

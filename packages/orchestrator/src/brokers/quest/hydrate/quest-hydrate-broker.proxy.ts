@@ -14,7 +14,7 @@
  */
 
 import type { QuestIdStub } from '@dungeonmaster/shared/contracts/quest-id/quest-id.stub';
-import { questIdContract } from '@dungeonmaster/shared/contracts';
+import { questContract } from '@dungeonmaster/shared/contracts';
 import { registerModuleMock } from '@dungeonmaster/testing/register-mock';
 
 import { questHydrateBroker } from './quest-hydrate-broker';
@@ -29,7 +29,7 @@ registerModuleMock({ module: './quest-hydrate-broker' });
 
 type QuestId = ReturnType<typeof QuestIdStub>;
 
-const DEFAULT_QUEST_ID = questIdContract.parse('hydrated-quest');
+const DEFAULT_QUEST_ID = questContract.shape.id.parse('hydrated-quest');
 
 export const questHydrateBrokerProxy = (): {
   setupReturnsQuestId: (params: { questId: QuestId }) => void;

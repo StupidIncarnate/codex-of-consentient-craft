@@ -20,17 +20,7 @@ import {
   sessionIdContract,
   workItemRoleContract,
 } from '@dungeonmaster/shared/contracts';
-import type {
-  ChatEntry,
-  GuildId,
-  ModifyQuestInput,
-  ProcessId,
-  QuestId,
-  QuestType,
-  QuestWorkItemId,
-  SessionId,
-  WorkItemRole,
-} from '@dungeonmaster/shared/contracts';
+import type { ChatEntry, GuildId, ModifyQuestInput, ProcessId, QuestType, QuestWorkItemId, SessionId, WorkItemRole, Quest } from '@dungeonmaster/shared/contracts';
 import {
   locationsQuestFolderPathFindBroker,
   locationsQuestImagesPathFindBroker,
@@ -69,14 +59,14 @@ export const chatSpawnBroker = async ({
   // Only read on the create path (no questId, no sessionId) — it decides which pipeline the new
   // quest follows, and therefore which intake seed item questUserAddBroker attaches.
   questType?: QuestType;
-  questId?: QuestId;
+  questId?: Quest['id'];
   // The create-surface route's pre-picked id — see resolveChatQuestLayerBroker's header for why
   // this is a separate channel from `questId` rather than an overload of it.
-  mintedQuestId?: QuestId;
+  mintedQuestId?: Quest['id'];
   // The main quest-chat route's own URL questId, for a caller that has already confirmed this
   // quest exists — see resolveChatQuestLayerBroker's header for why a missing `sessionId`
   // alongside it must resolve into THIS quest rather than fall through to minting a fresh one.
-  existingQuestId?: QuestId;
+  existingQuestId?: Quest['id'];
   message: string;
   sessionId?: SessionId;
   onEntries: (params: {
@@ -93,11 +83,11 @@ export const chatSpawnBroker = async ({
     exitCode: number | null;
     sessionId: SessionId | null;
   }) => void | Promise<void>;
-  onQuestCreated?: (params: { questId: QuestId; chatProcessId: ProcessId }) => void;
+  onQuestCreated?: (params: { questId: Quest['id']; chatProcessId: ProcessId }) => void;
   onSessionIdExtracted?: (params: { chatProcessId: ProcessId; sessionId: SessionId }) => void;
   registerProcess: (params: {
     processId: ProcessId;
-    questId: QuestId;
+    questId: Quest['id'];
     questWorkItemId: QuestWorkItemId;
     kill: () => void;
   }) => void;

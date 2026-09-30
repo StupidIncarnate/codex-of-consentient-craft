@@ -7,7 +7,7 @@
  * // Returns {merging} on success, throws on failure
  */
 
-import type { QuestId } from '@dungeonmaster/shared/contracts';
+import type { Quest } from '@dungeonmaster/shared/contracts';
 
 import { fetchJson } from '#gateway/browser/fetch';
 
@@ -18,7 +18,7 @@ import { webConfigStatics } from '../../../statics/web-config/web-config-statics
 export const questMergeBroker = async ({
   questId,
 }: {
-  questId: QuestId;
+  questId: Quest['id'];
 }): Promise<QuestMergeResult> => {
   const response = await fetchJson({
     url: webConfigStatics.api.routes.questMerge.replace(':questId', questId),

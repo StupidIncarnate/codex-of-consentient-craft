@@ -6,7 +6,7 @@
  * // Returns {deleted: true} on success, throws on failure
  */
 
-import type { GuildId, QuestId } from '@dungeonmaster/shared/contracts';
+import type { GuildId, Quest } from '@dungeonmaster/shared/contracts';
 
 import { fetchJson } from '#gateway/browser/fetch';
 
@@ -18,7 +18,7 @@ export const questDeleteBroker = async ({
   questId,
   guildId,
 }: {
-  questId: QuestId;
+  questId: Quest['id'];
   guildId: GuildId;
 }): Promise<QuestDeleteResult> => {
   const url = `${webConfigStatics.api.routes.questById.replace(

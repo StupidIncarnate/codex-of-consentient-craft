@@ -8,18 +8,14 @@
 
 import { z } from '#gateway/npm/zod';
 
-import {
-  questIdContract,
-  questWorkItemIdContract,
-  sessionIdContract,
-} from '@dungeonmaster/shared/contracts';
+import { questWorkItemIdContract, sessionIdContract, questContract } from '@dungeonmaster/shared/contracts';
 
 import { agentRoleContract } from '../agent-role/agent-role-contract';
 import { claudeModelContract } from '../claude-model/claude-model-contract';
 import { promptTextContract } from '../prompt-text/prompt-text-contract';
 
 export const spawnInstructionContract = z.object({
-  questId: questIdContract,
+  questId: questContract.shape.id,
   role: agentRoleContract,
   workItemId: questWorkItemIdContract,
   taskPrompt: promptTextContract,

@@ -12,7 +12,7 @@
 
 import { useCallback, useEffect, useRef, useState } from '#gateway/npm/react';
 
-import type { QuestId, WardResult } from '@dungeonmaster/shared/contracts';
+import type { WardResult, Quest } from '@dungeonmaster/shared/contracts';
 
 import { filter, take, timeout } from '#gateway/npm/rxjs__operators';
 import { timeoutMsContract } from '../../contracts/timeout-ms/timeout-ms-contract';
@@ -29,7 +29,7 @@ const ONE_EMISSION = 1;
 export const useWardDetailBinding = ({
   questId,
 }: {
-  questId: QuestId | null;
+  questId: Quest['id'] | null;
 }): {
   detail: unknown;
   loading: boolean;

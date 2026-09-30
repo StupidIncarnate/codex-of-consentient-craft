@@ -11,14 +11,14 @@
 import { z } from '#gateway/npm/zod';
 
 import { guildIdContract } from '../guild-id/guild-id-contract';
-import { questIdContract } from '../quest-id/quest-id-contract';
 import { questSourceContract } from '../quest-source/quest-source-contract';
 import { questStatusContract } from '../quest-status/quest-status-contract';
 import { sessionIdContract } from '../session-id/session-id-contract';
 import { urlSlugContract } from '../url-slug/url-slug-contract';
+import { questContract } from '../quest/quest-contract';
 
 export const questQueueEntryContract = z.object({
-  questId: questIdContract,
+  questId: questContract.shape.id,
   guildId: guildIdContract,
   guildSlug: urlSlugContract,
   questTitle: z.string().min(1).brand<'QuestTitle'>(),

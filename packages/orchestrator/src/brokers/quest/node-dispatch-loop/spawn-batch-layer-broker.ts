@@ -14,14 +14,7 @@
  */
 
 import { stderr } from '#gateway/node/process';
-import type {
-  AbsoluteFilePath,
-  ModifyQuestInput,
-  ProcessId,
-  QuestId,
-  QuestWorkItemId,
-  RepoRootCwd,
-} from '@dungeonmaster/shared/contracts';
+import type { AbsoluteFilePath, ModifyQuestInput, ProcessId, QuestWorkItemId, RepoRootCwd, Quest } from '@dungeonmaster/shared/contracts';
 
 import type { SpawnInstruction } from '../../../contracts/spawn-instruction/spawn-instruction-contract';
 import { questCwdResolveBroker } from '../cwd-resolve/quest-cwd-resolve-broker';
@@ -37,7 +30,7 @@ export const spawnBatchLayerBroker = async ({
   agents: readonly SpawnInstruction[];
   registerProcess?: (params: {
     processId: ProcessId;
-    questId: QuestId;
+    questId: Quest['id'];
     questWorkItemId: QuestWorkItemId;
     kill: () => void;
   }) => void;
@@ -51,7 +44,7 @@ export const spawnBatchLayerBroker = async ({
   // path — the latter carries no usable cwd, so the per-instruction guard below refuses to spawn.
   const uniqueQuestIds = [...new Set(agents.map((instruction) => instruction.questId))];
   const contextByQuestId = new Map<
-    QuestId,
+    Quest['id'],
     { cwd: RepoRootCwd } | { worktreePath: AbsoluteFilePath }
   >();
   await Promise.all(

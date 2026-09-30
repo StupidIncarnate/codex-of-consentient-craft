@@ -12,7 +12,7 @@
  * // Returns `${questId}:followup` as a ComposerScopeKey — distinct from that quest's main composer
  */
 
-import type { QuestId } from '@dungeonmaster/shared/contracts';
+import type { Quest } from '@dungeonmaster/shared/contracts';
 
 import { composerScopeKeyContract } from '../../contracts/composer-scope-key/composer-scope-key-contract';
 import type { ComposerScopeKey } from '../../contracts/composer-scope-key/composer-scope-key-contract';
@@ -24,7 +24,7 @@ export const composerScopeKeyTransformer = ({
   questId,
   surface,
 }: {
-  questId: QuestId | null;
+  questId: Quest['id'] | null;
   surface: ComposerSurface;
 }): ComposerScopeKey => {
   if (questId === null) {

@@ -7,12 +7,7 @@
  */
 import { z } from '#gateway/npm/zod';
 
-import {
-  blockedReasonContract,
-  operationItemIdContract,
-  questIdContract,
-  questWorkItemIdContract,
-} from '@dungeonmaster/shared/contracts';
+import { blockedReasonContract, operationItemIdContract, questWorkItemIdContract, questContract } from '@dungeonmaster/shared/contracts';
 
 // NOTE: MCP requires inputSchema to have type: "object" at root level.
 // `complete` is the sole signal kind (session-terminal marker). questId + workItemId are required
@@ -20,7 +15,7 @@ import {
 // field — the next-session handoff is the git commit message, not the ledger.
 export const signalBackInputContract = z
   .object({
-    questId: questIdContract.describe('The quest the signalling agent is working on'),
+    questId: questContract.shape.id.describe('The quest the signalling agent is working on'),
     workItemId: questWorkItemIdContract.describe(
       'The work item the signalling agent was dispatched against',
     ),

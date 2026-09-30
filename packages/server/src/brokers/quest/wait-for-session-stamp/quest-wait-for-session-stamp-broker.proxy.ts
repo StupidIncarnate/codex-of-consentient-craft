@@ -1,6 +1,5 @@
 import { nowProxy } from '#gateway/node/Date/now/now.proxy';
 import { setTimeoutProxy } from '#gateway/node/setTimeout/set-timeout/set-timeout.proxy';
-import type { QuestId } from '@dungeonmaster/shared/contracts';
 import type { QuestStub } from '@dungeonmaster/shared/contracts/quest/quest.stub';
 
 import { StartOrchestratorProxy } from '@dungeonmaster/orchestrator/startup/start-orchestrator.proxy';
@@ -12,7 +11,7 @@ export const questWaitForSessionStampBrokerProxy = (): {
   setupNowOnce: (params: { ms: number }) => void;
   setupSeedQuest: (params: { quest: Quest }) => void;
   setupRefreshedQuest: (params: { quest: Quest }) => void;
-  setupLoadFailure: (params: { questId: QuestId; error: Error }) => void;
+  setupLoadFailure: (params: { questId: Quest['id']; error: Error }) => void;
 } => {
   const orchestrator = StartOrchestratorProxy();
   const clock = nowProxy();
@@ -32,7 +31,7 @@ export const questWaitForSessionStampBrokerProxy = (): {
     setupRefreshedQuest: ({ quest }: { quest: Quest }): void => {
       orchestrator.loadQuestReturns({ questId: quest.id, quest });
     },
-    setupLoadFailure: ({ questId, error }: { questId: QuestId; error: Error }): void => {
+    setupLoadFailure: ({ questId, error }: { questId: Quest['id']; error: Error }): void => {
       orchestrator.loadQuestThrows({ questId, error });
     },
   };

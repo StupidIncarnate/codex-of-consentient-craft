@@ -29,14 +29,11 @@
  */
 
 import { z } from '#gateway/npm/zod';
+import { questContract } from '@dungeonmaster/shared/contracts';
 
 export const getBlightChecklistInputContract = z
   .object({
-    questId: z
-      .string()
-      .min(1)
-      .describe('The ID of the quest to enumerate the blight review surface for')
-      .brand<'QuestId'>(),
+    questId: questContract.shape.id,
     scope: z
       .enum(['quest', 'commit', 'working-tree', 'unpushed'])
       .describe(

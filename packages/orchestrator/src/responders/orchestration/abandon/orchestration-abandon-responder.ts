@@ -6,10 +6,9 @@
  * // Returns { abandoned: true } on success. Throws if quest not found or transition rejected.
  */
 
-import type { QuestId } from '@dungeonmaster/shared/contracts';
+import type { ModifyQuestInput, Quest } from '@dungeonmaster/shared/contracts';
 
 import { getQuestInputContract } from '@dungeonmaster/shared/contracts';
-import type { ModifyQuestInput } from '@dungeonmaster/shared/contracts';
 import { isTerminalWorkItemStatusGuard } from '@dungeonmaster/shared/guards';
 import { questGetBroker } from '../../../brokers/quest/get/quest-get-broker';
 import { questModifyBroker } from '../../../brokers/quest/modify/quest-modify-broker';
@@ -18,7 +17,7 @@ import { orchestrationProcessesState } from '../../../state/orchestration-proces
 export const OrchestrationAbandonResponder = async ({
   questId,
 }: {
-  questId: QuestId;
+  questId: Quest['id'];
 }): Promise<{ abandoned: boolean }> => {
   const existingProcess = orchestrationProcessesState.findByQuestId({ questId });
 

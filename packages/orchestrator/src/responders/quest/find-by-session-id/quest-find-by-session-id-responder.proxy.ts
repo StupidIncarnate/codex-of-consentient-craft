@@ -1,4 +1,4 @@
-import type { QuestId } from '@dungeonmaster/shared/contracts';
+import type { Quest } from '@dungeonmaster/shared/contracts';
 import { registerModuleMock } from '@dungeonmaster/testing/register-mock';
 
 import { questFindBySessionIdBroker } from '../../../brokers/quest/find-by-session-id/quest-find-by-session-id-broker';
@@ -11,7 +11,7 @@ registerModuleMock({
 
 export const QuestFindBySessionIdResponderProxy = (): {
   callResponder: typeof QuestFindBySessionIdResponder;
-  setupBrokerReturns: (params: { questId: QuestId | null }) => void;
+  setupBrokerReturns: (params: { questId: Quest['id'] | null }) => void;
 } => {
   questFindBySessionIdBrokerProxy();
   const brokerMock = questFindBySessionIdBroker as jest.MockedFunction<
@@ -20,7 +20,7 @@ export const QuestFindBySessionIdResponderProxy = (): {
 
   return {
     callResponder: QuestFindBySessionIdResponder,
-    setupBrokerReturns: ({ questId }: { questId: QuestId | null }): void => {
+    setupBrokerReturns: ({ questId }: { questId: Quest['id'] | null }): void => {
       brokerMock.mockResolvedValueOnce(questId);
     },
   };

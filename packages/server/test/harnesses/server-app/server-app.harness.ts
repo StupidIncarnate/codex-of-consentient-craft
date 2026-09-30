@@ -28,20 +28,8 @@ import { z } from '#gateway/npm/zod';
 
 import { SavedRecordNameStub } from '@dungeonmaster/hydration/contracts/saved-record-name/saved-record-name.stub';
 import { StartOrchestrator } from '@dungeonmaster/orchestrator';
-import type {
-  Base64ImageData,
-  FileName,
-  FilePath,
-  Guild,
-  Quest,
-  QuestId,
-} from '@dungeonmaster/shared/contracts';
-import {
-  fileNameContract,
-  guildIdContract,
-  pastedImageUploadContract,
-  questIdContract,
-} from '@dungeonmaster/shared/contracts';
+import type { Base64ImageData, FileName, FilePath, Guild, Quest } from '@dungeonmaster/shared/contracts';
+import { fileNameContract, guildIdContract, pastedImageUploadContract, questContract } from '@dungeonmaster/shared/contracts';
 import { FilePathStub } from '@dungeonmaster/shared/contracts/file-path/file-path.stub';
 import { GuildNameStub } from '@dungeonmaster/shared/contracts/guild-name/guild-name.stub';
 import { GuildPathStub } from '@dungeonmaster/shared/contracts/guild-path/guild-path.stub';
@@ -230,12 +218,12 @@ export const serverAppHarness = (): {
   // `unknown` shape by hand (no ad-hoc structural cast) and parsing the found value through
   // questIdContract, since the create route is the one send surface where the caller cannot know
   // the questId in advance (it does not exist until this response names it).
-  readCreatedQuestId: (params: { body: unknown }) => QuestId;
+  readCreatedQuestId: (params: { body: unknown }) => Quest['id'];
   // Reads the `id` off every entry in a GET /api/quests response body — the honest way to prove
   // how many quest directories exist for a guild (and which ones), without hand-building a full
   // QuestListItem shape just to compare it (stepProgress/activeSessionId derivation lives deep in
   // the orchestrator and is not this harness's concern to reconstruct field-for-field).
-  readListedQuestIds: (params: { body: unknown }) => readonly QuestId[];
+  readListedQuestIds: (params: { body: unknown }) => readonly Quest['id'][];
   // waitForClaudeInvocation above hands back `unknown` — honest for a value read off the fake
   // CLI's own JSON ledger rather than a contract. Reach for THIS over that one when a caller needs
   // the absolute paths a resumed chat's rewritten message embedded — the
@@ -640,14 +628,14 @@ export const serverAppHarness = (): {
       dataBase64: readFileBytesSync(filePath).toString('base64'),
     }).dataBase64;
 
-  const readCreatedQuestId = ({ body }: { body: unknown }): QuestId => {
+  const readCreatedQuestId = ({ body }: { body: unknown }): Quest['id'] => {
     if (typeof body !== 'object' || body === null || !('questId' in body)) {
       throw new Error('quest-new response carried no questId');
     }
-    return questIdContract.parse(body.questId);
+    return questContract.shape.id.parse(body.questId);
   };
 
-  const readListedQuestIds = ({ body }: { body: unknown }): readonly QuestId[] => {
+  const readListedQuestIds = ({ body }: { body: unknown }): readonly Quest['id'][] => {
     if (typeof body !== 'object' || body === null || !('quests' in body)) {
       throw new Error('quest-list response carried no quests array');
     }
@@ -659,7 +647,7 @@ export const serverAppHarness = (): {
       if (typeof quest !== 'object' || quest === null || !('id' in quest)) {
         throw new Error('quest-list response entry carried no id');
       }
-      return questIdContract.parse(quest.id);
+      return questContract.shape.id.parse(quest.id);
     });
   };
 

@@ -7,7 +7,7 @@
  * // Returns RiftcarverDetail ({ log } — the full persisted carve log as one string)
  */
 
-import type { QuestId, RiftcarverResult } from '@dungeonmaster/shared/contracts';
+import type { RiftcarverResult, Quest } from '@dungeonmaster/shared/contracts';
 
 import { fetchJson } from '#gateway/browser/fetch';
 
@@ -19,7 +19,7 @@ export const questRiftcarverDetailBroker = async ({
   questId,
   riftcarverResultId,
 }: {
-  questId: QuestId;
+  questId: Quest['id'];
   riftcarverResultId: RiftcarverResult['id'];
 }): Promise<RiftcarverDetail> => {
   const url = webConfigStatics.api.routes.questRiftcarverDetail

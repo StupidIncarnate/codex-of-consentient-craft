@@ -8,12 +8,12 @@
 
 import { z } from '#gateway/npm/zod';
 
-import { questIdContract } from '@dungeonmaster/shared/contracts';
+import { questContract } from '@dungeonmaster/shared/contracts';
 
 import { clarificationQuestionContract } from '../clarification-question/clarification-question-contract';
 
 export const pendingClarificationEntryContract = z.object({
-  questId: questIdContract,
+  questId: questContract.shape.id,
   questions: z.array(clarificationQuestionContract).min(1),
 });
 

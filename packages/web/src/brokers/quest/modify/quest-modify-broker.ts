@@ -6,7 +6,7 @@
  * // Returns void on success, throws on failure
  */
 import { errorMessageContract } from '@dungeonmaster/shared/contracts';
-import type { QuestId } from '@dungeonmaster/shared/contracts';
+import type { Quest } from '@dungeonmaster/shared/contracts';
 
 import { fetchJson } from '#gateway/browser/fetch';
 
@@ -17,7 +17,7 @@ export const questModifyBroker = async ({
   questId,
   modifications,
 }: {
-  questId: QuestId;
+  questId: Quest['id'];
   modifications: Record<string, unknown>;
 }): Promise<void> => {
   const response = await fetchJson({

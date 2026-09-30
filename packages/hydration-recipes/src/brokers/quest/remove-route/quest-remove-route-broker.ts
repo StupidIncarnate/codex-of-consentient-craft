@@ -21,7 +21,7 @@
  * // quest is in_progress, blocked, or merging
  */
 import { questDeleteBroker } from '@dungeonmaster/orchestrator/brokers';
-import { questIdContract, questStatusContract } from '@dungeonmaster/shared/contracts';
+import { questStatusContract, questContract } from '@dungeonmaster/shared/contracts';
 import {
   isPreExecutionQuestStatusGuard,
   isTerminalQuestStatusGuard,
@@ -37,7 +37,7 @@ export const questRemoveRouteBroker = async ({
   target: DmTarget;
   record: Record<string, unknown>;
 }): Promise<void> => {
-  const questId = questIdContract.parse(record.id);
+  const questId = questContract.shape.id.parse(record.id);
   const status = questStatusContract.parse(record.status);
 
   const isDeletable =

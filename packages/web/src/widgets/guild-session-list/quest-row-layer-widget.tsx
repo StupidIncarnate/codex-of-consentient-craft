@@ -17,7 +17,7 @@ import {
   isTerminalQuestStatusGuard,
   isUserPausedQuestStatusGuard,
 } from '@dungeonmaster/shared/guards';
-import type { QuestId, QuestListItem, QuestStatus } from '@dungeonmaster/shared/contracts';
+import type { QuestListItem, QuestStatus, Quest } from '@dungeonmaster/shared/contracts';
 
 import { buttonLabelContract } from '../../contracts/button-label/button-label-contract';
 import { buttonVariantContract } from '../../contracts/button-variant/button-variant-contract';
@@ -27,11 +27,11 @@ import { IconButtonWidget } from '../icon-button/icon-button-widget';
 
 export interface QuestRowLayerWidgetProps {
   quest: QuestListItem;
-  confirmingQuestId: QuestId | null;
-  onConfirmingQuestIdChange: (params: { questId: QuestId | null }) => void;
-  onSelectQuest: (params: { questId: QuestId }) => void;
-  onDeleteQuest: (params: { questId: QuestId }) => void;
-  deletingQuestId: QuestId | null;
+  confirmingQuestId: Quest['id'] | null;
+  onConfirmingQuestIdChange: (params: { questId: Quest['id'] | null }) => void;
+  onSelectQuest: (params: { questId: Quest['id'] }) => void;
+  onDeleteQuest: (params: { questId: Quest['id'] }) => void;
+  deletingQuestId: Quest['id'] | null;
 }
 
 const { colors } = emberDepthsThemeStatics;

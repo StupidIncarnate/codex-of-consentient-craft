@@ -59,17 +59,8 @@ import {
   questGetBroker,
   questModifyBroker,
 } from '@dungeonmaster/orchestrator/brokers';
-import {
-  absoluteFilePathContract,
-  getQuestInputContract,
-  guildIdContract,
-  guildNameContract,
-  guildPathContract,
-  modifyQuestInputContract,
-  operationItemContract,
-  questIdContract,
-} from '@dungeonmaster/shared/contracts';
-import type { GuildId, QuestId } from '@dungeonmaster/shared/contracts';
+import { absoluteFilePathContract, getQuestInputContract, guildIdContract, guildNameContract, guildPathContract, modifyQuestInputContract, operationItemContract, questContract } from '@dungeonmaster/shared/contracts';
+import type { GuildId, Quest } from '@dungeonmaster/shared/contracts';
 import { dungeonmasterHomeStatics, questFlowStatics } from '@dungeonmaster/shared/statics';
 import { installTestbedCreateBroker } from '@dungeonmaster/testing';
 
@@ -135,7 +126,7 @@ export const liveQuestTargetHarness = ({
       // field on the record — `quest-fields-contract.ts`'s own header) so a later `/start` rewrite
       // through `questWriteRouteBroker`, which REQUIRES `guildId`, cannot recover it by spreading a
       // reloaded `Quest`. Recorded here at create time instead, scoped to this one `target()` call.
-      const questGuildIds = new Map<QuestId, GuildId>();
+      const questGuildIds = new Map<Quest['id'], GuildId>();
 
       return DmTargetStub({
         home,
@@ -259,7 +250,7 @@ export const liveQuestTargetHarness = ({
             );
             const result = await questModifyBroker({
               input: modifyQuestInputContract.parse({
-                questId: questIdContract.parse(questId),
+                questId: questContract.shape.id.parse(questId),
                 status: IN_PROGRESS_STATUS,
               }),
             });

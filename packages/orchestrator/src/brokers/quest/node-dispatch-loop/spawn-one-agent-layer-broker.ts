@@ -28,14 +28,7 @@
 
 import { stderr } from '#gateway/node/process';
 import { randomUUID } from '#gateway/node/crypto';
-import type {
-  ExitCode,
-  ProcessId,
-  QuestId,
-  QuestWorkItemId,
-  RepoRootCwd,
-  SessionId,
-} from '@dungeonmaster/shared/contracts';
+import type { ExitCode, ProcessId, QuestWorkItemId, RepoRootCwd, SessionId, Quest } from '@dungeonmaster/shared/contracts';
 import {
   absoluteFilePathContract,
   getQuestInputContract,
@@ -73,7 +66,7 @@ export const spawnOneAgentLayerBroker = async ({
   cwd: RepoRootCwd;
   registerProcess?: (params: {
     processId: ProcessId;
-    questId: QuestId;
+    questId: Quest['id'];
     questWorkItemId: QuestWorkItemId;
     kill: () => void;
   }) => void;

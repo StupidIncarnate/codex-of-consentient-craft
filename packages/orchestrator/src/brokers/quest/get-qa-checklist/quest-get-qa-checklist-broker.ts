@@ -39,13 +39,7 @@
  */
 
 import { filePathContract } from '@dungeonmaster/shared/contracts';
-import type {
-  FlowId,
-  OperationItemId,
-  QaChecklist,
-  QuestId,
-  VerificationTrack,
-} from '@dungeonmaster/shared/contracts';
+import type { FlowId, OperationItemId, QaChecklist, VerificationTrack, Quest } from '@dungeonmaster/shared/contracts';
 import { locationsStatics } from '@dungeonmaster/shared/statics';
 import { join } from '#gateway/node/path';
 
@@ -59,7 +53,7 @@ export const questGetQaChecklistBroker = async ({
   operationItemId,
   flowId,
 }: {
-  questId: QuestId;
+  questId: Quest['id'];
   operationItemId?: OperationItemId;
   flowId?: FlowId;
 }): Promise<{ checklists: QaChecklist[]; track?: VerificationTrack }> => {

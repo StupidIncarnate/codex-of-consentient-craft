@@ -9,7 +9,7 @@
 
 import { Box, Text } from '#gateway/npm/mantine__core';
 
-import type { QuestId, WardResult } from '@dungeonmaster/shared/contracts';
+import type { WardResult, Quest } from '@dungeonmaster/shared/contracts';
 
 import { emberDepthsThemeStatics } from '../../statics/ember-depths-theme/ember-depths-theme-statics';
 import { WardResultDetailLayerWidget } from './ward-result-detail-layer-widget';
@@ -19,7 +19,7 @@ const DETAIL_MARGIN_BOTTOM = 4;
 
 export interface WardResultRowLayerWidgetProps {
   wardResult: WardResult;
-  questId?: QuestId;
+  questId?: Quest['id'];
 }
 
 export const WardResultRowLayerWidget = ({

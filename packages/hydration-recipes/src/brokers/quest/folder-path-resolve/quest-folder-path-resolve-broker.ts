@@ -10,7 +10,7 @@
  * // Returns '<target.home>/guilds/<guildId>/quests/<folder>'
  */
 import { dungeonmasterHomeStatics } from '@dungeonmaster/shared/statics';
-import { filePathContract, questContract, questIdContract } from '@dungeonmaster/shared/contracts';
+import { filePathContract, questContract } from '@dungeonmaster/shared/contracts';
 import type { FilePath } from '@dungeonmaster/shared/contracts';
 
 import { questOwningGuildFindBroker } from '../owning-guild-find/quest-owning-guild-find-broker';
@@ -23,7 +23,7 @@ export const questFolderPathResolveBroker = async ({
   target: DmTarget;
   record: Record<string, unknown>;
 }): Promise<FilePath> => {
-  const questId = questIdContract.parse(record.id);
+  const questId = questContract.shape.id.parse(record.id);
   const folder = questContract.shape.folder.parse(record.folder);
   const guildId = await questOwningGuildFindBroker({ questId });
 

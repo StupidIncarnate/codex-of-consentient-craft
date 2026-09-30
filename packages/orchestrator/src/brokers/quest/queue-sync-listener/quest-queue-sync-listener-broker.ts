@@ -26,11 +26,11 @@
  * every quest-persist line, which is what this listener needs.
  */
 
-import type { Quest, QuestId, QuestStatus, SessionId } from '@dungeonmaster/shared/contracts';
+import type { Quest, QuestStatus, SessionId } from '@dungeonmaster/shared/contracts';
 
 import { createSyncHandlerLayerBroker } from './create-sync-handler-layer-broker';
 
-type QuestChangedHandler = (args: { questId: QuestId }) => void;
+type QuestChangedHandler = (args: { questId: Quest['id'] }) => void;
 
 export const questQueueSyncListenerBroker = async ({
   install,
@@ -40,14 +40,14 @@ export const questQueueSyncListenerBroker = async ({
   updateEntryActiveSession,
 }: {
   install: (onQuestChanged: QuestChangedHandler) => Promise<{ stop: () => void }>;
-  loadQuest: ({ questId }: { questId: QuestId }) => Promise<Quest | undefined>;
-  removeByQuestId: ({ questId }: { questId: QuestId }) => void;
-  updateEntryStatus: ({ questId, status }: { questId: QuestId; status: QuestStatus }) => void;
+  loadQuest: ({ questId }: { questId: Quest['id'] }) => Promise<Quest | undefined>;
+  removeByQuestId: ({ questId }: { questId: Quest['id'] }) => void;
+  updateEntryStatus: ({ questId, status }: { questId: Quest['id']; status: QuestStatus }) => void;
   updateEntryActiveSession: ({
     questId,
     activeSessionId,
   }: {
-    questId: QuestId;
+    questId: Quest['id'];
     activeSessionId: SessionId | undefined;
   }) => void;
 }): Promise<{ stop: () => void }> => {

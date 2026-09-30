@@ -10,12 +10,7 @@
  * // Returns { chatProcessId } on success; throws the server's exact rejection text otherwise
  */
 
-import type {
-  PastedImageUpload,
-  ProcessId,
-  QuestId,
-  UserInput,
-} from '@dungeonmaster/shared/contracts';
+import type { PastedImageUpload, ProcessId, UserInput, Quest } from '@dungeonmaster/shared/contracts';
 
 import { xhrPostWithProgress } from '#gateway/browser/XMLHttpRequest';
 
@@ -31,7 +26,7 @@ export const questChatBroker = async ({
   images,
   onProgress,
 }: {
-  questId: QuestId;
+  questId: Quest['id'];
   message: UserInput;
   images?: readonly PastedImageUpload[];
   onProgress?: UploadProgressHandler;

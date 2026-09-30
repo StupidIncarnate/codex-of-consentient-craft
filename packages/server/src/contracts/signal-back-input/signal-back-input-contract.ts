@@ -8,18 +8,13 @@
  */
 import { z } from '#gateway/npm/zod';
 
-import {
-  blockedReasonContract,
-  operationItemIdContract,
-  questIdContract,
-  questWorkItemIdContract,
-} from '@dungeonmaster/shared/contracts';
+import { blockedReasonContract, operationItemIdContract, questWorkItemIdContract, questContract } from '@dungeonmaster/shared/contracts';
 
 // `complete` is the sole signal kind (session-terminal marker). questId + workItemId are required
 // so the handler routes on explicit ids rather than inferring from process state.
 export const signalBackInputContract = z
   .object({
-    questId: questIdContract.describe('The quest the signalling agent is working on'),
+    questId: questContract.shape.id.describe('The quest the signalling agent is working on'),
     workItemId: questWorkItemIdContract.describe(
       'The work item the signalling agent was dispatched against',
     ),

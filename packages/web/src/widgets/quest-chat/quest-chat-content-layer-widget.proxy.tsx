@@ -4,7 +4,7 @@ import { randomUuidProxy } from '#gateway/browser/crypto/random-uuid/random-uuid
 import { fireEvent, screen } from '#gateway/npm/testing-library__react';
 import userEvent from '#gateway/npm/testing-library__user-event';
 
-import type { OrchestrationMode, ProcessId, QuestId } from '@dungeonmaster/shared/contracts';
+import type { OrchestrationMode, ProcessId, Quest } from '@dungeonmaster/shared/contracts';
 import type { QuestSummaryStub } from '@dungeonmaster/shared/contracts/quest-summary/quest-summary.stub';
 import { registerMock } from '@dungeonmaster/testing/register-mock';
 import type { MockHandle } from '@dungeonmaster/testing/register-mock';
@@ -48,7 +48,7 @@ export const QuestChatContentLayerWidgetProxy = (): {
   setupClarify: (params: { chatProcessId: ProcessId }) => void;
   setupPause: () => void;
   setupMode: (params: { mode: OrchestrationMode }) => void;
-  setupNewQuest: (params: { questId: QuestId; chatProcessId: ProcessId }) => void;
+  setupNewQuest: (params: { questId: Quest['id']; chatProcessId: ProcessId }) => void;
   setupNewQuestError: () => void;
   setupQuestSummary: (params: { summary: ReturnType<typeof QuestSummaryStub> }) => void;
   setupTimestamps: (params: { timestamps: readonly string[] }) => void;

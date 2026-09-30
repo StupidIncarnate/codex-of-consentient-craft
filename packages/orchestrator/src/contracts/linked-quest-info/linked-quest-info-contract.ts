@@ -7,14 +7,10 @@
  */
 import { z } from '#gateway/npm/zod';
 
-import {
-  questIdContract,
-  questWorkItemIdContract,
-  workItemRoleContract,
-} from '@dungeonmaster/shared/contracts';
+import { questWorkItemIdContract, workItemRoleContract, questContract } from '@dungeonmaster/shared/contracts';
 
 export const linkedQuestInfoContract = z.object({
-  questId: questIdContract,
+  questId: questContract.shape.id,
   workItemId: questWorkItemIdContract.optional(),
   role: workItemRoleContract.optional(),
 });

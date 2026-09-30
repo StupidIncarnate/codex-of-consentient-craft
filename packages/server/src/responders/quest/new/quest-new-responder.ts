@@ -21,7 +21,7 @@ import { rm } from '#gateway/node/fs__promises';
 import { stderr } from '#gateway/node/process';
 import { StartOrchestrator } from '@dungeonmaster/orchestrator';
 import { locationsQuestFolderPathFindBroker } from '@dungeonmaster/shared/brokers';
-import { contentTextContract, questIdContract } from '@dungeonmaster/shared/contracts';
+import { contentTextContract, questContract } from '@dungeonmaster/shared/contracts';
 
 import { zodFirstFieldErrorMessageTransformer } from '../../../transformers/zod-first-field-error-message/zod-first-field-error-message-transformer';
 import { pastedImagePersistBroker } from '../../../brokers/pasted-image/persist/pasted-image-persist-broker';
@@ -94,7 +94,7 @@ export const QuestNewResponder = async ({
     const questId =
       (images !== undefined && images.length > 0) ||
       localImagePathsFindTransformer({ message, startOrdinal: 1 }).length > 0
-        ? questIdContract.parse(randomUUID())
+        ? questContract.shape.id.parse(randomUUID())
         : undefined;
 
     try {

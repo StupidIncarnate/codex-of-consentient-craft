@@ -8,7 +8,7 @@
  */
 
 import { stderr } from '#gateway/node/process';
-import type { QuestId } from '@dungeonmaster/shared/contracts';
+import type { Quest } from '@dungeonmaster/shared/contracts';
 
 import type { SmoketestListenerEntry } from '../../../contracts/smoketest-listener-entry/smoketest-listener-entry-contract';
 import type { SmoketestScenarioMeta } from '../../../contracts/smoketest-scenario-meta/smoketest-scenario-meta-contract';
@@ -20,10 +20,10 @@ export const createTerminalHandlerLayerBroker =
     unregisterListener,
     getScenarioMeta,
   }: {
-    getListenerEntry: ({ questId }: { questId: QuestId }) => SmoketestListenerEntry | undefined;
-    unregisterListener: ({ questId }: { questId: QuestId }) => void;
-    getScenarioMeta: ({ questId }: { questId: QuestId }) => SmoketestScenarioMeta | undefined;
-  }): (({ questId }: { questId: QuestId }) => void) =>
+    getListenerEntry: ({ questId }: { questId: Quest['id'] }) => SmoketestListenerEntry | undefined;
+    unregisterListener: ({ questId }: { questId: Quest['id'] }) => void;
+    getScenarioMeta: ({ questId }: { questId: Quest['id'] }) => SmoketestScenarioMeta | undefined;
+  }): (({ questId }: { questId: Quest['id'] }) => void) =>
   ({ questId }): void => {
     const entry = getListenerEntry({ questId });
     if (entry === undefined) return;

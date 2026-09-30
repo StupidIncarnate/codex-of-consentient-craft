@@ -10,7 +10,7 @@ import { useParams } from '#gateway/npm/react-router-dom';
 
 import { Box, Text } from '#gateway/npm/mantine__core';
 
-import type { QuestId } from '@dungeonmaster/shared/contracts';
+import type { Quest } from '@dungeonmaster/shared/contracts';
 
 import { useGuildsBinding } from '../../bindings/use-guilds/use-guilds-binding';
 import { emberDepthsThemeStatics } from '../../statics/ember-depths-theme/ember-depths-theme-statics';
@@ -20,7 +20,7 @@ import { QuestChatContentLayerWidget } from './quest-chat-content-layer-widget';
 export const QuestChatWidget = (): React.JSX.Element => {
   const params = useParams();
   const { guildSlug } = params;
-  const questId = (params.questId as QuestId | undefined) ?? null;
+  const questId = (params.questId as Quest['id'] | undefined) ?? null;
 
   const { guilds, loading: guildsLoading } = useGuildsBinding();
   const matchedGuild = guilds.find(

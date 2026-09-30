@@ -1,12 +1,12 @@
 import { StartOrchestratorProxy } from '@dungeonmaster/orchestrator/startup/start-orchestrator.proxy';
-import type { QuestId, QuestWorkItemId } from '@dungeonmaster/shared/contracts';
+import type { QuestWorkItemId, Quest } from '@dungeonmaster/shared/contracts';
 
 import { QuestSignalBackResponder } from './quest-signal-back-responder';
 
 export const QuestSignalBackResponderProxy = (): {
-  setupSignalBack: (params: { questId: QuestId; workItemId: QuestWorkItemId }) => void;
+  setupSignalBack: (params: { questId: Quest['id']; workItemId: QuestWorkItemId }) => void;
   setupSignalBackError: (params: {
-    questId: QuestId;
+    questId: Quest['id'];
     workItemId: QuestWorkItemId;
     message: string;
   }) => void;
@@ -19,7 +19,7 @@ export const QuestSignalBackResponderProxy = (): {
       questId,
       workItemId,
     }: {
-      questId: QuestId;
+      questId: Quest['id'];
       workItemId: QuestWorkItemId;
     }): void => {
       orchestrator.handleSignalBackResolves({ questId, workItemId });
@@ -29,7 +29,7 @@ export const QuestSignalBackResponderProxy = (): {
       workItemId,
       message,
     }: {
-      questId: QuestId;
+      questId: Quest['id'];
       workItemId: QuestWorkItemId;
       message: string;
     }): void => {

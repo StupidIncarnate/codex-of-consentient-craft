@@ -38,35 +38,7 @@
  * off-map families — three of the four kinds, silently.
  */
 
-import {
-  contentTextContract,
-  filePathContract,
-  flowEdgeIdContract,
-  flowIdContract,
-  flowNodeIdContract,
-  flowRecipeNameContract,
-  operationItemContract,
-  operationItemIdContract,
-  outcomeTypeContract,
-  packageNameContract,
-  pieceIdContract,
-  qaChecklistItemContract,
-  qaChecklistKindContract,
-  qaWalkPathContract,
-  questContract,
-  questIdContract,
-  questNoteContract,
-  questWorkItemIdContract,
-  repoRelativePathContract,
-  siegeInstanceIdContract,
-  siegeRunIdContract,
-  stepNameContract,
-  unitIdContract,
-  unitMarkContract,
-  unitObservationContract,
-  unitObservationFieldsContract,
-  wardResultContract,
-} from '@dungeonmaster/shared/contracts';
+import { contentTextContract, filePathContract, flowEdgeIdContract, flowIdContract, flowNodeIdContract, flowRecipeNameContract, operationItemContract, operationItemIdContract, outcomeTypeContract, packageNameContract, pieceIdContract, qaChecklistItemContract, qaChecklistKindContract, qaWalkPathContract, questContract, questNoteContract, questWorkItemIdContract, repoRelativePathContract, siegeInstanceIdContract, siegeRunIdContract, stepNameContract, unitIdContract, unitMarkContract, unitObservationContract, unitObservationFieldsContract, wardResultContract } from '@dungeonmaster/shared/contracts';
 import { z } from '#gateway/npm/zod';
 
 import { agentFamilyNameContract } from '../agent-family-name/agent-family-name-contract';
@@ -183,7 +155,7 @@ const questWorkTruncation = z.object({
 });
 
 export const questWorkViewContract = z.object({
-  questId: questIdContract,
+  questId: questContract.shape.id,
   workItemId: questWorkItemIdContract,
   family: agentFamilyNameContract,
   step: stepNameContract,

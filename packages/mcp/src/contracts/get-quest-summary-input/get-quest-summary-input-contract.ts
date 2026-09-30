@@ -13,14 +13,11 @@
  */
 
 import { z } from '#gateway/npm/zod';
+import { questContract } from '@dungeonmaster/shared/contracts';
 
 export const getQuestSummaryInputContract = z
   .object({
-    questId: z
-      .string()
-      .min(1)
-      .describe('The ID of the quest to summarize the verification state of')
-      .brand<'QuestId'>(),
+    questId: questContract.shape.id,
   })
   .strict()
   .brand<'GetQuestSummaryInput'>();

@@ -7,7 +7,7 @@
  * // persists, and returns questModifyBroker's own result (success, or success: false plus why)
  */
 
-import type { Quest, QuestId, WorkItem } from '@dungeonmaster/shared/contracts';
+import type { Quest, WorkItem } from '@dungeonmaster/shared/contracts';
 
 import type { ModifyQuestInput, ModifyQuestResult } from '@dungeonmaster/shared/contracts';
 import { replacementEntryContract } from '../../../contracts/replacement-entry/replacement-entry-contract';
@@ -20,7 +20,7 @@ export const questWorkItemInsertBroker = async ({
   newWorkItems,
   replacementMapping,
 }: {
-  questId: QuestId;
+  questId: Quest['id'];
   quest: Quest;
   newWorkItems: WorkItem[];
   replacementMapping?: ReplacementEntry[];

@@ -1,4 +1,4 @@
-import type { WardResult, AbsoluteFilePath, FileContents, FilePath, GuildId, OrchestrationEventType, ProcessId, QuestId } from '@dungeonmaster/shared/contracts';
+import type { WardResult, AbsoluteFilePath, FileContents, FilePath, GuildId, OrchestrationEventType, ProcessId } from '@dungeonmaster/shared/contracts';
 import { Hono } from '#gateway/npm/hono';
 import type { QuestStub } from '@dungeonmaster/shared/contracts/quest/quest.stub';
 
@@ -67,14 +67,14 @@ export const ServerInitResponderProxy = (): {
   simulateMessage: (params: { data: string; ws: WSContext }) => void;
   simulateDisconnect: (params: { ws: WSContext }) => void;
   setupLoadQuestSuccess: (params: { quest: Quest }) => void;
-  setupLoadQuestFailure: (params: { questId: QuestId; error: Error }) => void;
+  setupLoadQuestFailure: (params: { questId: Quest['id']; error: Error }) => void;
   // Stages what TWO overlapping onQuestChanged firings for the SAME questId each resolve with —
   // the shape two outbox lines from two near-simultaneous PATCHes produce. `slowQuest` answers
   // whichever onQuestChanged call fires FIRST but resolves after `slowDelayMs`; `fastQuest`
   // answers the call that fires SECOND but resolves immediately — reproducing a read for an
   // EARLIER event completing AFTER a read for a LATER one.
   setupLoadQuestOutboxRace: (params: {
-    questId: QuestId;
+    questId: Quest['id'];
     slowQuest: Quest;
     slowDelayMs: number;
     fastQuest: Quest;
@@ -85,17 +85,17 @@ export const ServerInitResponderProxy = (): {
   getDevLogOutput: () => RecordedCalls;
   getCapturedEventHandler: (params: { type: OrchestrationEventType }) => EventHandler | undefined;
   getOutboxWatchCallbacks: () => {
-    onQuestChanged: ((args: { questId: QuestId }) => void) | undefined;
+    onQuestChanged: ((args: { questId: Quest['id'] }) => void) | undefined;
     onError: ((args: { error: unknown }) => void) | undefined;
   };
   getReplayChatHistoryCalls: () => unknown[];
   setupFindQuestPathSuccess: (params: {
-    questId: QuestId;
+    questId: Quest['id'];
     questPath: AbsoluteFilePath;
     guildId: GuildId;
   }) => void;
   setupWardDetailSuccess: (params: {
-    questId: QuestId;
+    questId: Quest['id'];
     questPath: AbsoluteFilePath;
     guildId: GuildId;
     wardResultId: WardResult['id'];
@@ -214,7 +214,7 @@ export const ServerInitResponderProxy = (): {
     setupLoadQuestSuccess: ({ quest }: { quest: Quest }): void => {
       orchestrator.loadQuestReturns({ questId: quest.id, quest });
     },
-    setupLoadQuestFailure: ({ questId, error }: { questId: QuestId; error: Error }): void => {
+    setupLoadQuestFailure: ({ questId, error }: { questId: Quest['id']; error: Error }): void => {
       orchestrator.loadQuestThrows({ questId, error });
     },
     setupLoadQuestOutboxRace: ({
@@ -223,7 +223,7 @@ export const ServerInitResponderProxy = (): {
       slowDelayMs,
       fastQuest,
     }: {
-      questId: QuestId;
+      questId: Quest['id'];
       slowQuest: Quest;
       slowDelayMs: number;
       fastQuest: Quest;
@@ -243,7 +243,7 @@ export const ServerInitResponderProxy = (): {
       type: OrchestrationEventType;
     }): EventHandler | undefined => eventsProxy.getCapturedHandler({ type }),
     getOutboxWatchCallbacks: (): {
-      onQuestChanged: ((args: { questId: QuestId }) => void) | undefined;
+      onQuestChanged: ((args: { questId: Quest['id'] }) => void) | undefined;
       onError: ((args: { error: unknown }) => void) | undefined;
     } => outboxWatchProxy.getCapturedCallbacks(),
     enableDevLogs: (): void => {
@@ -256,7 +256,7 @@ export const ServerInitResponderProxy = (): {
       questPath,
       guildId,
     }: {
-      questId: QuestId;
+      questId: Quest['id'];
       questPath: AbsoluteFilePath;
       guildId: GuildId;
     }): void => {
@@ -271,7 +271,7 @@ export const ServerInitResponderProxy = (): {
       detailFilePath,
       contents,
     }: {
-      questId: QuestId;
+      questId: Quest['id'];
       questPath: AbsoluteFilePath;
       guildId: GuildId;
       wardResultId: WardResult['id'];

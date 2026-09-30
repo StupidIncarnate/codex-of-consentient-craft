@@ -3,7 +3,7 @@
  * sibling tests (smoketest-run-responder) can stub the orchestration-scenario path.
  */
 
-import type { QuestId, UrlSlug } from '@dungeonmaster/shared/contracts';
+import type { UrlSlug, Quest } from '@dungeonmaster/shared/contracts';
 import { registerModuleMock, requireActual } from '@dungeonmaster/testing/register-mock';
 
 import { questHydrateBrokerProxy } from '../../../brokers/quest/hydrate/quest-hydrate-broker.proxy';
@@ -20,7 +20,7 @@ registerModuleMock({ module: './enqueue-orchestration-scenario-layer-responder' 
 
 export const EnqueueOrchestrationScenarioLayerResponderProxy = (): {
   reset: () => void;
-  setupReturnsRecord: (params: { record: { questId: QuestId; guildSlug: UrlSlug } }) => void;
+  setupReturnsRecord: (params: { record: { questId: Quest['id']; guildSlug: UrlSlug } }) => void;
   setupRejectsOnce: (params: { error: Error }) => void;
   setupPassthrough: () => void;
   getCallArgs: () => readonly unknown[][];
@@ -53,7 +53,7 @@ export const EnqueueOrchestrationScenarioLayerResponderProxy = (): {
     setupReturnsRecord: ({
       record,
     }: {
-      record: { questId: QuestId; guildSlug: UrlSlug };
+      record: { questId: Quest['id']; guildSlug: UrlSlug };
     }): void => {
       mocked.mockResolvedValueOnce(record);
     },

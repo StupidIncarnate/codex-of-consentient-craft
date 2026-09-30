@@ -23,7 +23,7 @@ import { useState } from '#gateway/npm/react';
 import { Box, Group, Text } from '#gateway/npm/mantine__core';
 import { IconSend, IconTrash } from '#gateway/npm/tabler__icons-react';
 
-import type { QuestId } from '@dungeonmaster/shared/contracts';
+import type { Quest } from '@dungeonmaster/shared/contracts';
 
 import type { CommentBatchSendResult } from '../../contracts/comment-batch-send-result/comment-batch-send-result-contract';
 import type { CommentQueueEntry } from '../../contracts/comment-queue-entry/comment-queue-entry-contract';
@@ -50,7 +50,7 @@ const SEND_TEST_ID = testIdContract.parse('COMMENT_SEND_BUTTON');
 const NETWORK_ERROR_MESSAGE = 'Failed to send comments — check your connection and try again.';
 
 export interface CommentQueueBarWidgetProps {
-  questId: QuestId;
+  questId: Quest['id'];
   onSend: (params: { comments: readonly CommentQueueEntry[] }) => Promise<CommentBatchSendResult>;
 }
 

@@ -8,27 +8,27 @@
  * smoketestListenerState.clear();
  */
 
-import type { QuestId } from '@dungeonmaster/shared/contracts';
+import type { Quest } from '@dungeonmaster/shared/contracts';
 
 import type { SmoketestListenerEntry } from '../../contracts/smoketest-listener-entry/smoketest-listener-entry-contract';
 
-const state: { entries: Map<QuestId, SmoketestListenerEntry> } = {
+const state: { entries: Map<Quest['id'], SmoketestListenerEntry> } = {
   entries: new Map(),
 };
 
 export const smoketestListenerState = {
-  register: ({ questId, entry }: { questId: QuestId; entry: SmoketestListenerEntry }): void => {
+  register: ({ questId, entry }: { questId: Quest['id']; entry: SmoketestListenerEntry }): void => {
     state.entries.set(questId, entry);
   },
 
-  get: ({ questId }: { questId: QuestId }): SmoketestListenerEntry | undefined =>
+  get: ({ questId }: { questId: Quest['id'] }): SmoketestListenerEntry | undefined =>
     state.entries.get(questId),
 
-  unregister: ({ questId }: { questId: QuestId }): void => {
+  unregister: ({ questId }: { questId: Quest['id'] }): void => {
     state.entries.delete(questId);
   },
 
-  getAllQuestIds: (): readonly QuestId[] => Array.from(state.entries.keys()),
+  getAllQuestIds: (): readonly Quest['id'][] => Array.from(state.entries.keys()),
 
   clear: (): void => {
     state.entries.clear();

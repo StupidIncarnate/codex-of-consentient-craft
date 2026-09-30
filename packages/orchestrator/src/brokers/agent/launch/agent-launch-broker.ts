@@ -19,16 +19,7 @@
  * });
  */
 
-import type {
-  AbsoluteFilePath,
-  ChatEntry,
-  ExitCode,
-  ProcessId,
-  QuestId,
-  QuestWorkItemId,
-  RepoRootCwd,
-  SessionId,
-} from '@dungeonmaster/shared/contracts';
+import type { AbsoluteFilePath, ChatEntry, ExitCode, ProcessId, QuestWorkItemId, RepoRootCwd, SessionId, Quest } from '@dungeonmaster/shared/contracts';
 import { processIdContract } from '@dungeonmaster/shared/contracts';
 import { randomUUID } from '#gateway/node/crypto';
 import { stderr } from '#gateway/node/process';
@@ -67,7 +58,7 @@ export const agentLaunchBroker = ({
   // questId + questWorkItemId are forwarded to `registerProcess` only. Chat-spawn callers
   // pass them so the orchestration-processes registry can locate this agent later. Loop
   // layer brokers omit them today (loop-level processId already carries the kill switch).
-  questId?: QuestId;
+  questId?: Quest['id'];
   questWorkItemId?: QuestWorkItemId;
   processIdPrefix: ProcessIdPrefix;
 
@@ -99,7 +90,7 @@ export const agentLaunchBroker = ({
   // loop-level processId carries the kill switch); only chat-spawn sites register.
   registerProcess?: (params: {
     processId: ProcessId;
-    questId: QuestId;
+    questId: Quest['id'];
     questWorkItemId: QuestWorkItemId;
     kill: () => void;
   }) => void;

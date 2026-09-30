@@ -12,13 +12,7 @@
 
 import { Group, Loader, SegmentedControl, Stack, Text } from '#gateway/npm/mantine__core';
 
-import type {
-  QuestId,
-  QuestListItem,
-  SessionId,
-  SessionListItem,
-  SkippedQuestFile,
-} from '@dungeonmaster/shared/contracts';
+import type { QuestListItem, SessionId, SessionListItem, SkippedQuestFile, Quest } from '@dungeonmaster/shared/contracts';
 
 import type { SessionFilter } from '../../contracts/session-filter/session-filter-contract';
 import { sessionFilterContract } from '../../contracts/session-filter/session-filter-contract';
@@ -39,12 +33,12 @@ export interface GuildSessionListWidgetProps {
   filter: SessionFilter;
   onFilterChange: (params: { filter: SessionFilter }) => void;
   onSelect: (params: { sessionId: SessionId }) => void;
-  onSelectQuest: (params: { questId: QuestId }) => void;
+  onSelectQuest: (params: { questId: Quest['id'] }) => void;
   onAdd: () => void;
-  confirmingQuestId: QuestId | null;
-  onConfirmingQuestIdChange: (params: { questId: QuestId | null }) => void;
-  onDeleteQuest: (params: { questId: QuestId }) => void;
-  deletingQuestId: QuestId | null;
+  confirmingQuestId: Quest['id'] | null;
+  onConfirmingQuestIdChange: (params: { questId: Quest['id'] | null }) => void;
+  onDeleteQuest: (params: { questId: Quest['id'] }) => void;
+  deletingQuestId: Quest['id'] | null;
 }
 
 const { colors } = emberDepthsThemeStatics;

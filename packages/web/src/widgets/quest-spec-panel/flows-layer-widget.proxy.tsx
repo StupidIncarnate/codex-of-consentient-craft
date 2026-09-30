@@ -1,7 +1,7 @@
 import { screen } from '#gateway/npm/testing-library__react';
 import userEvent from '#gateway/npm/testing-library__user-event';
 
-import type { QuestId } from '@dungeonmaster/shared/contracts';
+import type { Quest } from '@dungeonmaster/shared/contracts';
 
 import type { CommentQueueEntryStub } from '../../contracts/comment-queue-entry/comment-queue-entry.stub';
 import { ReactFlowDiagramWidgetProxy } from '../react-flow-diagram/react-flow-diagram-widget.proxy';
@@ -17,7 +17,7 @@ type QueuedEntry = ReturnType<typeof CommentQueueEntryStub>;
 export const FlowsLayerWidgetProxy = (): {
   setupPositions: (args: SetupPositionsArgs) => void;
   setupEmptyQueue: () => void;
-  setupQueuedComments: (params: { questId: QuestId; entries: QueuedEntry[] }) => void;
+  setupQueuedComments: (params: { questId: Quest['id']; entries: QueuedEntry[] }) => void;
   clickNode: ReactFlowProxy['clickNode'];
   clickObservableNode: ReactFlowProxy['clickObservableNode'];
   getCommentBadgeTextsOn: ReactFlowProxy['getCommentBadgeTextsOn'];
@@ -48,7 +48,7 @@ export const FlowsLayerWidgetProxy = (): {
       questId,
       entries,
     }: {
-      questId: QuestId;
+      questId: Quest['id'];
       entries: QueuedEntry[];
     }): void => {
       tabProxy.setupQueuedComments({ questId, entries });

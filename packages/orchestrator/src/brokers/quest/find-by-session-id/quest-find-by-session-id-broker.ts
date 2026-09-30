@@ -12,7 +12,7 @@
  * WHEN-NOT-TO-USE: Anywhere needing live workItem state — this only returns the questId.
  */
 
-import type { QuestId, SessionId } from '@dungeonmaster/shared/contracts';
+import type { SessionId, Quest } from '@dungeonmaster/shared/contracts';
 import { isChatWorkItemRoleGuard } from '@dungeonmaster/shared/guards';
 
 import { guildListBroker } from '../../guild/list/guild-list-broker';
@@ -22,7 +22,7 @@ export const questFindBySessionIdBroker = async ({
   sessionId,
 }: {
   sessionId: SessionId;
-}): Promise<QuestId | null> => {
+}): Promise<Quest['id'] | null> => {
   const guilds = await guildListBroker();
   const validGuilds = guilds.filter((g) => g.valid);
 

@@ -1,7 +1,6 @@
 import { StartOrchestratorProxy } from '@dungeonmaster/orchestrator/startup/start-orchestrator.proxy';
 import { DispatchStateStub } from '@dungeonmaster/shared/contracts/dispatch-state/dispatch-state.stub';
 import { GetQuestResultStub } from '@dungeonmaster/shared/contracts/get-quest-result/get-quest-result.stub';
-import type { QuestId } from '@dungeonmaster/shared/contracts';
 import type { ProcessIdStub } from '@dungeonmaster/shared/contracts/process-id/process-id.stub';
 import type { QuestStub } from '@dungeonmaster/shared/contracts/quest/quest.stub';
 import { QuestStartResponder } from './quest-start-responder';
@@ -11,8 +10,8 @@ type Quest = ReturnType<typeof QuestStub>;
 
 export const QuestStartResponderProxy = (): {
   setupQuest: (params: { quest: Quest }) => void;
-  setupStartQuest: (params: { questId: QuestId; processId: ProcessId }) => void;
-  setupStartQuestError: (params: { questId: QuestId; message: string }) => void;
+  setupStartQuest: (params: { questId: Quest['id']; processId: ProcessId }) => void;
+  setupStartQuestError: (params: { questId: Quest['id']; message: string }) => void;
   setupDispatchPlays: () => void;
   setupDispatchError: (params: { message: string }) => void;
   getDispatchPlayCalls: () => readonly unknown[];
@@ -27,10 +26,10 @@ export const QuestStartResponderProxy = (): {
         result: GetQuestResultStub({ success: true, quest }),
       });
     },
-    setupStartQuest: ({ questId, processId }: { questId: QuestId; processId: ProcessId }): void => {
+    setupStartQuest: ({ questId, processId }: { questId: Quest['id']; processId: ProcessId }): void => {
       orchestrator.startQuestReturns({ questId, processId });
     },
-    setupStartQuestError: ({ questId, message }: { questId: QuestId; message: string }): void => {
+    setupStartQuestError: ({ questId, message }: { questId: Quest['id']; message: string }): void => {
       orchestrator.startQuestThrows({ questId, error: new Error(message) });
     },
 

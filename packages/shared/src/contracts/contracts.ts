@@ -102,7 +102,6 @@ export * from './install-result/install-result-contract';
 export * from './install-context/install-context-contract';
 
 // ID Contracts (Wave 1)
-export * from './quest-id/quest-id-contract';
 
 export * from './observable-id/observable-id-contract';
 

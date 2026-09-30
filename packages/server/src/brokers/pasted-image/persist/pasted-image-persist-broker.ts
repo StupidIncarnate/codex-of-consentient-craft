@@ -23,7 +23,7 @@ import {
   locationsQuestImagesPathFindBroker,
 } from '@dungeonmaster/shared/brokers';
 import { absoluteFilePathContract } from '@dungeonmaster/shared/contracts';
-import type { GuildId, PastedImageUpload, QuestId } from '@dungeonmaster/shared/contracts';
+import type { GuildId, PastedImageUpload, Quest } from '@dungeonmaster/shared/contracts';
 
 import { userMessageContract } from '../../../contracts/user-message/user-message-contract';
 import type { UserMessage } from '../../../contracts/user-message/user-message-contract';
@@ -39,7 +39,7 @@ export const pastedImagePersistBroker = async ({
   images,
 }: {
   guildId: GuildId;
-  questId: QuestId;
+  questId: Quest['id'];
   message: string;
   images: readonly PastedImageUpload[];
 }): Promise<UserMessage> => {

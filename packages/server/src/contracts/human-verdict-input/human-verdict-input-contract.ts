@@ -9,11 +9,11 @@
  */
 
 import { z } from '#gateway/npm/zod';
-import { questIdContract } from '@dungeonmaster/shared/contracts';
+import { questContract } from '@dungeonmaster/shared/contracts';
 
 export const humanVerdictInputContract = z
   .object({
-    questId: questIdContract.describe('The quest the verdict is recorded against'),
+    questId: questContract.shape.id.describe('The quest the verdict is recorded against'),
     unitId: z
       .string()
       .min(1)

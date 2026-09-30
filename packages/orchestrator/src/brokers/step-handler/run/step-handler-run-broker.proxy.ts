@@ -13,7 +13,7 @@
  * const result = await stepHandlerRunBroker({ handler: 'ward', args: [], questId, workItemId, onLine: () => undefined });
  */
 
-import type { QuestId } from '@dungeonmaster/shared/contracts';
+import type { Quest } from '@dungeonmaster/shared/contracts';
 import { ExitCodeStub } from '@dungeonmaster/shared/contracts/exit-code/exit-code.stub';
 import { FileContentsStub } from '@dungeonmaster/shared/contracts/file-contents/file-contents.stub';
 import { FileNameStub } from '@dungeonmaster/shared/contracts/file-name/file-name.stub';
@@ -26,9 +26,9 @@ import { stepHandlerRiftcarverBrokerProxy } from '../riftcarver/step-handler-rif
 import { stepHandlerWardBrokerProxy } from '../ward/step-handler-ward-broker.proxy';
 
 export const stepHandlerRunBrokerProxy = (): {
-  setupWardDone: (params: { questId: QuestId }) => void;
-  setupWardMissingWorktree: (params: { questId: QuestId; worktreePath: string }) => void;
-  setupCleanupDone: (params: { questId: QuestId }) => void;
+  setupWardDone: (params: { questId: Quest['id'] }) => void;
+  setupWardMissingWorktree: (params: { questId: Quest['id']; worktreePath: string }) => void;
+  setupCleanupDone: (params: { questId: Quest['id'] }) => void;
 } => {
   const cleanupProxy = stepHandlerCleanupBrokerProxy();
   // Inert — composed to satisfy enforce-proxy-child-creation against this file's imports. Their
@@ -40,7 +40,7 @@ export const stepHandlerRunBrokerProxy = (): {
   const wardProxy = stepHandlerWardBrokerProxy();
 
   return {
-    setupWardDone: ({ questId }: { questId: QuestId }): void => {
+    setupWardDone: ({ questId }: { questId: Quest['id'] }): void => {
       wardProxy.wardExits({
         questId,
         exitCode: ExitCodeStub({ value: wardExitCodeStatics.exitCodes.pass }),
@@ -53,13 +53,13 @@ export const stepHandlerRunBrokerProxy = (): {
       questId,
       worktreePath,
     }: {
-      questId: QuestId;
+      questId: Quest['id'];
       worktreePath: string;
     }): void => {
       wardProxy.setupWorktreeMissing({ questId, worktreePath });
     },
 
-    setupCleanupDone: ({ questId }: { questId: QuestId }): void => {
+    setupCleanupDone: ({ questId }: { questId: Quest['id'] }): void => {
       cleanupProxy.cleanupExits({
         questId,
         exitCode: ExitCodeStub({ value: 0 }),

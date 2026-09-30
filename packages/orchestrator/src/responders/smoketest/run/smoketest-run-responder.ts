@@ -13,14 +13,7 @@ import {
   smoketestRunIdContract,
   urlSlugContract,
 } from '@dungeonmaster/shared/contracts';
-import type {
-  FilePath,
-  SmoketestCaseResult,
-  SmoketestRunId,
-  SmoketestSuite,
-  UrlSlug,
-  QuestId,
-} from '@dungeonmaster/shared/contracts';
+import type { FilePath, SmoketestCaseResult, SmoketestRunId, SmoketestSuite, UrlSlug, Quest } from '@dungeonmaster/shared/contracts';
 import { nameToUrlSlugTransformer } from '@dungeonmaster/shared/transformers';
 
 import {
@@ -43,7 +36,7 @@ export const SmoketestRunResponder = async ({
   startPath: FilePath;
 }): Promise<{
   runId: SmoketestRunId;
-  enqueued: readonly { questId: QuestId; guildSlug: UrlSlug }[];
+  enqueued: readonly { questId: Quest['id']; guildSlug: UrlSlug }[];
   results: readonly SmoketestCaseResult[];
 }> => {
   if (smoketestRunState.isActive()) {
@@ -63,7 +56,7 @@ export const SmoketestRunResponder = async ({
       guild.urlSlug ?? nameToUrlSlugTransformer({ name: guild.name }),
     );
 
-    const enqueued: { questId: QuestId; guildSlug: UrlSlug }[] = [];
+    const enqueued: { questId: Quest['id']; guildSlug: UrlSlug }[] = [];
 
     if (suite === 'mcp' || suite === 'all') {
       const questSource = questSourceContract.parse('smoketest-mcp');
@@ -98,7 +91,7 @@ export const SmoketestRunResponder = async ({
       await smoketestClearPriorQuestsBroker({ questSource });
 
       const orchRecords = await smoketestCaseCatalogStatics.orchestration.reduce<
-        Promise<readonly { questId: QuestId; guildSlug: UrlSlug }[]>
+        Promise<readonly { questId: Quest['id']; guildSlug: UrlSlug }[]>
       >(
         async (prevPromise, scenarioRaw) => {
           const prev = await prevPromise;
@@ -111,7 +104,7 @@ export const SmoketestRunResponder = async ({
           });
           return [...prev, record];
         },
-        Promise.resolve([] as readonly { questId: QuestId; guildSlug: UrlSlug }[]),
+        Promise.resolve([] as readonly { questId: Quest['id']; guildSlug: UrlSlug }[]),
       );
 
       enqueued.push(...orchRecords);

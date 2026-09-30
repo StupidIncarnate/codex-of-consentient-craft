@@ -4,12 +4,7 @@ import { readNonEmptyLinesProxy } from '#gateway/node/fs__promises/read-non-empt
 import { homedir } from '#gateway/node/os';
 import { claudeLineNormalizeBrokerProxy } from '@dungeonmaster/shared/brokers/claude-line/normalize/claude-line-normalize-broker.proxy';
 import { cwdResolveBrokerProxy } from '@dungeonmaster/shared/brokers/cwd/resolve/cwd-resolve-broker.proxy';
-import type {
-  FilePath,
-  AbsoluteFilePath,
-  QuestId,
-  SessionId,
-} from '@dungeonmaster/shared/contracts';
+import type { FilePath, AbsoluteFilePath, SessionId, Quest } from '@dungeonmaster/shared/contracts';
 import type { FileNameStub } from '@dungeonmaster/shared/contracts/file-name/file-name.stub';
 import {
   absoluteFilePathContract,
@@ -49,10 +44,10 @@ export const chatHistoryReplayBrokerProxy = (): {
   setupSubagentDirMissing: (params?: { sessionId?: SessionId }) => void;
   setupCwdResolveSuccess: (params: { cwd: string }) => void;
   setupCwdResolveReject: () => void;
-  setupQuestSession: (params: { questId: QuestId; sessionId: SessionId; cwd: string }) => void;
-  setupQuestWorktree: (params: { questId: QuestId; worktreePath: string }) => void;
-  setupQuestRepoRoot: (params: { questId: QuestId; repoRoot: string }) => void;
-  setupQuestWorktreeMissing: (params: { questId: QuestId; worktreePath: string }) => void;
+  setupQuestSession: (params: { questId: Quest['id']; sessionId: SessionId; cwd: string }) => void;
+  setupQuestWorktree: (params: { questId: Quest['id']; worktreePath: string }) => void;
+  setupQuestRepoRoot: (params: { questId: Quest['id']; repoRoot: string }) => void;
+  setupQuestWorktreeMissing: (params: { questId: Quest['id']; worktreePath: string }) => void;
   setPort: (params: { value: string }) => void;
 } => {
   claudeLineNormalizeBrokerProxy();
@@ -242,7 +237,7 @@ export const chatHistoryReplayBrokerProxy = (): {
       sessionId,
       cwd,
     }: {
-      questId: QuestId;
+      questId: Quest['id'];
       sessionId: SessionId;
       cwd: string;
     }): void => {
@@ -258,7 +253,7 @@ export const chatHistoryReplayBrokerProxy = (): {
       questId,
       worktreePath,
     }: {
-      questId: QuestId;
+      questId: Quest['id'];
       worktreePath: string;
     }): void => {
       questCwdMock.calledWith([{ questId }]).resolves(
@@ -269,7 +264,7 @@ export const chatHistoryReplayBrokerProxy = (): {
       );
       projectPathOverrideRef.value = absoluteFilePathContract.parse(worktreePath);
     },
-    setupQuestRepoRoot: ({ questId, repoRoot }: { questId: QuestId; repoRoot: string }): void => {
+    setupQuestRepoRoot: ({ questId, repoRoot }: { questId: Quest['id']; repoRoot: string }): void => {
       questCwdMock.calledWith([{ questId }]).resolves(
         QuestCwdResolutionStub({
           kind: 'repo-root',
@@ -284,7 +279,7 @@ export const chatHistoryReplayBrokerProxy = (): {
       questId,
       worktreePath,
     }: {
-      questId: QuestId;
+      questId: Quest['id'];
       worktreePath: string;
     }): void => {
       questCwdMock.calledWith([{ questId }]).resolves(

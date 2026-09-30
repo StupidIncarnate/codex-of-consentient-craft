@@ -16,12 +16,12 @@ import { join } from '#gateway/node/path';
 import { dungeonmasterHomeFindBroker } from '@dungeonmaster/shared/brokers';
 import { locationsStatics } from '@dungeonmaster/shared/statics';
 import { absoluteFilePathContract, type AbsoluteFilePath } from '@dungeonmaster/shared/contracts';
-import type { QuestId } from '@dungeonmaster/shared/contracts';
+import type { Quest } from '@dungeonmaster/shared/contracts';
 
 export const questFindBroker = ({
   questId,
 }: {
-  questId: QuestId;
+  questId: Quest['id'];
 }): AbsoluteFilePath | undefined => {
   const { homePath: fallbackHomePath } = dungeonmasterHomeFindBroker();
   const currentDir = cwd();

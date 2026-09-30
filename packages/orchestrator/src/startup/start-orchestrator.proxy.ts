@@ -30,7 +30,7 @@
  * orchestrator.getQuestNotFound({ questId });
  */
 
-import type { WorkItem, GuildId, GuildName, GuildPath, ProcessId, QuestId, QuestStatus, QuestWorkItemId, SessionId, SmoketestSuite, UrlSlug } from '@dungeonmaster/shared/contracts';
+import type { WorkItem, GuildId, GuildName, GuildPath, ProcessId, QuestStatus, QuestWorkItemId, SessionId, SmoketestSuite, UrlSlug } from '@dungeonmaster/shared/contracts';
 import { registerMock } from '@dungeonmaster/testing/register-mock';
 import type { RecordedCalls } from '@dungeonmaster/testing/register-mock';
 import { DispatchStateStub } from '@dungeonmaster/shared/contracts/dispatch-state/dispatch-state.stub';
@@ -116,29 +116,29 @@ export const StartOrchestratorProxy = (): {
     skipped: SkippedQuestFile[];
   }) => void;
   listQuestsWithSkipsThrows: (params: { guildId: GuildId; error: Error }) => void;
-  loadQuestReturns: (params: { questId: QuestId; quest: Quest }) => void;
-  loadQuestThrows: (params: { questId: QuestId; error: Error }) => void;
+  loadQuestReturns: (params: { questId: Quest['id']; quest: Quest }) => void;
+  loadQuestThrows: (params: { questId: Quest['id']; error: Error }) => void;
   // ONE-SHOT staging, consumed in REGISTRATION order — lets a test hand two SUCCESSIVE calls for
   // the SAME questId two DIFFERENT quest snapshots, which the sticky `loadQuestReturns` cannot do
   // (a later `loadQuestReturns` for the same questId overwrites every prior call). Traced from
   // server-init-responder's outbox-race test: two onQuestChanged firings for one questId, resolved
   // out of firing order.
-  loadQuestReturnsOnce: (params: { questId: QuestId; quest: Quest }) => void;
+  loadQuestReturnsOnce: (params: { questId: Quest['id']; quest: Quest }) => void;
   // Same one-shot ordering as `loadQuestReturnsOnce`, but resolves after `delayMs` instead of
   // immediately — for reproducing two overlapping loads that finish OUT OF the order they started.
   loadQuestReturnsOnceDelayed: (params: {
-    questId: QuestId;
+    questId: Quest['id'];
     quest: Quest;
     delayMs: number;
   }) => void;
   // getQuest — QuestFlow.get -> questGetBroker.ts, whose catch block never throws: every failure
   // (missing quest, bad JSON) comes back as { success: false, error: <message> }.
-  getQuestReturns: (params: { questId: QuestId; result: GetQuestResult }) => void;
-  getQuestThrows: (params: { questId: QuestId; error: Error }) => void;
+  getQuestReturns: (params: { questId: Quest['id']; result: GetQuestResult }) => void;
+  getQuestThrows: (params: { questId: Quest['id']; error: Error }) => void;
   // The real questGetBroker failure shape, traced through questFindQuestPathBroker's own
   // QuestNotFoundError (packages/orchestrator/src/errors/quest-not-found/quest-not-found-error.ts) —
   // never a hand-typed string.
-  getQuestNotFound: (params: { questId: QuestId }) => void;
+  getQuestNotFound: (params: { questId: Quest['id'] }) => void;
   getPlanningNotesReturns: (params: { questId: string; result: GetPlanningNotesResult }) => void;
   getPlanningNotesThrows: (params: { questId: string; error: Error }) => void;
   // Every call StartOrchestrator.getPlanningNotes received, first-arg only — mirrors
@@ -170,23 +170,23 @@ export const StartOrchestratorProxy = (): {
   getQuestStatusReturns: (params: { processId: ProcessId; status: OrchestrationStatus }) => void;
   getQuestStatusThrows: (params: { processId: ProcessId; error: Error }) => void;
   // Quest mutation methods — OrchestrationFlow / QuestFlow.
-  startQuestReturns: (params: { questId: QuestId; processId: ProcessId }) => void;
-  startQuestThrows: (params: { questId: QuestId; error: Error }) => void;
-  pauseQuestReturns: (params: { questId: QuestId; paused: boolean }) => void;
-  pauseQuestThrows: (params: { questId: QuestId; error: Error }) => void;
+  startQuestReturns: (params: { questId: Quest['id']; processId: ProcessId }) => void;
+  startQuestThrows: (params: { questId: Quest['id']; error: Error }) => void;
+  pauseQuestReturns: (params: { questId: Quest['id']; paused: boolean }) => void;
+  pauseQuestThrows: (params: { questId: Quest['id']; error: Error }) => void;
   resumeQuestReturns: (params: {
-    questId: QuestId;
+    questId: Quest['id'];
     resumed: boolean;
     restoredStatus: QuestStatus;
   }) => void;
-  resumeQuestThrows: (params: { questId: QuestId; error: Error }) => void;
-  mergeQuestReturns: (params: { questId: QuestId; merging: boolean }) => void;
-  mergeQuestThrows: (params: { questId: QuestId; error: Error }) => void;
+  resumeQuestThrows: (params: { questId: Quest['id']; error: Error }) => void;
+  mergeQuestReturns: (params: { questId: Quest['id']; merging: boolean }) => void;
+  mergeQuestThrows: (params: { questId: Quest['id']; error: Error }) => void;
   mergeQuestGetCalls: () => readonly unknown[];
-  abandonQuestReturns: (params: { questId: QuestId; abandoned: boolean }) => void;
-  abandonQuestThrows: (params: { questId: QuestId; error: Error }) => void;
-  deleteQuestReturns: (params: { questId: QuestId; deleted: boolean }) => void;
-  deleteQuestThrows: (params: { questId: QuestId; error: Error }) => void;
+  abandonQuestReturns: (params: { questId: Quest['id']; abandoned: boolean }) => void;
+  abandonQuestThrows: (params: { questId: Quest['id']; error: Error }) => void;
+  deleteQuestReturns: (params: { questId: Quest['id']; deleted: boolean }) => void;
+  deleteQuestThrows: (params: { questId: Quest['id']; error: Error }) => void;
   addQuestReturns: (params: { guildId: GuildId; result: AddQuestResult }) => void;
   addQuestThrows: (params: { guildId: GuildId; error: Error }) => void;
   modifyQuestReturns: (params: { questId?: string; result: ModifyQuestResult }) => void;
@@ -204,7 +204,7 @@ export const StartOrchestratorProxy = (): {
   startChatReturns: (params: {
     guildId: GuildId;
     chatProcessId: ProcessId;
-    questId?: QuestId;
+    questId?: Quest['id'];
   }) => void;
   startChatThrows: (params: { guildId: GuildId; error: Error }) => void;
   // Every call StartOrchestrator.startChat received, first-arg only — mirrors
@@ -212,16 +212,16 @@ export const StartOrchestratorProxy = (): {
   // (by guildId, the most recent message, a minted questId) filters/reads this array itself rather
   // than reaching for the jest mock directly.
   startChatGetCalls: () => readonly unknown[];
-  clarifyAnswerReturns: (params: { questId: QuestId; chatProcessId: ProcessId }) => void;
-  clarifyAnswerThrows: (params: { questId: QuestId; error: Error }) => void;
+  clarifyAnswerReturns: (params: { questId: Quest['id']; chatProcessId: ProcessId }) => void;
+  clarifyAnswerThrows: (params: { questId: Quest['id']; error: Error }) => void;
   commentBatchReturns: (params: {
-    questId: QuestId;
+    questId: Quest['id'];
     chatProcessId: ProcessId;
     message: string;
   }) => void;
-  commentBatchThrows: (params: { questId: QuestId; error: Error }) => void;
+  commentBatchThrows: (params: { questId: Quest['id']; error: Error }) => void;
   // Every call StartOrchestrator.commentBatch received for this questId, as the raw argument lists.
-  commentBatchGetCalls: (params: { questId: QuestId }) => RecordedCalls;
+  commentBatchGetCalls: (params: { questId: Quest['id'] }) => RecordedCalls;
   stopAllChatsThrows: (params: { error: Error }) => void;
   stopAllChatsWasCalled: () => boolean;
   replayChatHistorySetupSuccess: () => void;
@@ -230,23 +230,23 @@ export const StartOrchestratorProxy = (): {
   // startChatGetCalls/playDispatchGetCalls. Unaddressed on purpose: a caller needing one field off
   // a specific call (the sessionId) filters/reads this array itself.
   replayChatHistoryGetCalls: () => readonly unknown[];
-  startFollowupChatReturns: (params: { questId: QuestId; chatProcessId: ProcessId }) => void;
-  startFollowupChatThrows: (params: { questId: QuestId; error: Error }) => void;
+  startFollowupChatReturns: (params: { questId: Quest['id']; chatProcessId: ProcessId }) => void;
+  startFollowupChatThrows: (params: { questId: Quest['id']; error: Error }) => void;
   // Every call StartOrchestrator.startFollowupChat received, first-arg only — mirrors
   // startChatGetCalls.
   startFollowupChatGetCalls: () => readonly unknown[];
-  stopFollowupChatReturns: (params: { questId: QuestId; stopped: boolean }) => void;
-  stopFollowupChatThrows: (params: { questId: QuestId; error: Error }) => void;
+  stopFollowupChatReturns: (params: { questId: Quest['id']; stopped: boolean }) => void;
+  stopFollowupChatThrows: (params: { questId: Quest['id']; error: Error }) => void;
   // Every call StartOrchestrator.stopFollowupChat received, first-arg only — mirrors
   // startChatGetCalls.
   stopFollowupChatGetCalls: () => readonly unknown[];
   // Agent prompt — AgentPromptFlow.
   getAgentPromptReturns: (params: {
     agent: string;
-    questId: QuestId;
+    questId: Quest['id'];
     result: AgentPromptResult;
   }) => void;
-  getAgentPromptThrows: (params: { agent: string; questId: QuestId; error: Error }) => void;
+  getAgentPromptThrows: (params: { agent: string; questId: Quest['id']; error: Error }) => void;
   // Every call StartOrchestrator.getAgentPrompt received, first-arg only — mirrors
   // startChatGetCalls. A caller needing the exact forwarded shape (e.g. proving a field is ABSENT
   // rather than merely undefined) filters/reads this array itself.
@@ -275,7 +275,7 @@ export const StartOrchestratorProxy = (): {
   // MCP-driven surface — QuestFlow.mcpCreate / handleSignalBack / getServerConfig / work.
   createQuestForMcpReturns: (params: {
     userRequest: string;
-    questId: QuestId;
+    questId: Quest['id'];
     guildSlug: UrlSlug;
   }) => void;
   createQuestForMcpThrows: (params: { userRequest: string; error: Error }) => void;
@@ -283,9 +283,9 @@ export const StartOrchestratorProxy = (): {
   // startChatGetCalls. A caller needing the exact forwarded shape (proving an optional field like
   // questType/sessionId reached the call) filters/reads this array itself.
   createQuestForMcpGetCalls: () => readonly unknown[];
-  handleSignalBackResolves: (params: { questId?: QuestId; workItemId?: QuestWorkItemId }) => void;
+  handleSignalBackResolves: (params: { questId?: Quest['id']; workItemId?: QuestWorkItemId }) => void;
   handleSignalBackThrows: (params: {
-    questId?: QuestId;
+    questId?: Quest['id'];
     workItemId?: QuestWorkItemId;
     error: Error;
   }) => void;
@@ -302,11 +302,11 @@ export const StartOrchestratorProxy = (): {
   // /reads this array itself.
   questWorkGetCalls: () => readonly unknown[];
   // Reverse lookups — QuestFlow.findBySessionId / findByWorkItemId.
-  findQuestBySessionIdReturns: (params: { sessionId: SessionId; questId: QuestId | null }) => void;
+  findQuestBySessionIdReturns: (params: { sessionId: SessionId; questId: Quest['id'] | null }) => void;
   findQuestBySessionIdThrows: (params: { sessionId: SessionId; error: Error }) => void;
   findQuestByWorkItemIdReturns: (params: {
     workItemId: QuestWorkItemId;
-    questId: QuestId | null;
+    questId: Quest['id'] | null;
   }) => void;
   findQuestByWorkItemIdThrows: (params: { workItemId: QuestWorkItemId; error: Error }) => void;
   // Monitor watcher — QuestFlow.startMonitorWatcher.
@@ -486,13 +486,13 @@ export const StartOrchestratorProxy = (): {
     listQuestsWithSkipsThrows: ({ guildId, error }: { guildId: GuildId; error: Error }): void => {
       listQuestsWithSkipsHandle.calledWith([{ guildId }]).rejects(error);
     },
-    loadQuestReturns: ({ questId, quest }: { questId: QuestId; quest: Quest }): void => {
+    loadQuestReturns: ({ questId, quest }: { questId: Quest['id']; quest: Quest }): void => {
       loadQuestHandle.calledWith([{ questId }]).resolves(quest);
     },
-    loadQuestThrows: ({ questId, error }: { questId: QuestId; error: Error }): void => {
+    loadQuestThrows: ({ questId, error }: { questId: Quest['id']; error: Error }): void => {
       loadQuestHandle.calledWith([{ questId }]).rejects(error);
     },
-    loadQuestReturnsOnce: ({ questId, quest }: { questId: QuestId; quest: Quest }): void => {
+    loadQuestReturnsOnce: ({ questId, quest }: { questId: Quest['id']; quest: Quest }): void => {
       loadQuestHandle.onceFor([{ questId }]).resolves(quest);
     },
     loadQuestReturnsOnceDelayed: ({
@@ -500,7 +500,7 @@ export const StartOrchestratorProxy = (): {
       quest,
       delayMs,
     }: {
-      questId: QuestId;
+      questId: Quest['id'];
       quest: Quest;
       delayMs: number;
     }): void => {
@@ -513,13 +513,13 @@ export const StartOrchestratorProxy = (): {
           }),
       );
     },
-    getQuestReturns: ({ questId, result }: { questId: QuestId; result: GetQuestResult }): void => {
+    getQuestReturns: ({ questId, result }: { questId: Quest['id']; result: GetQuestResult }): void => {
       getQuestHandle.calledWith([{ questId }]).resolves(result);
     },
-    getQuestThrows: ({ questId, error }: { questId: QuestId; error: Error }): void => {
+    getQuestThrows: ({ questId, error }: { questId: Quest['id']; error: Error }): void => {
       getQuestHandle.calledWith([{ questId }]).rejects(error);
     },
-    getQuestNotFound: ({ questId }: { questId: QuestId }): void => {
+    getQuestNotFound: ({ questId }: { questId: Quest['id'] }): void => {
       const notFound = new QuestNotFoundError({ questId });
       getQuestHandle
         .calledWith([{ questId }])
@@ -612,18 +612,18 @@ export const StartOrchestratorProxy = (): {
       questId,
       processId,
     }: {
-      questId: QuestId;
+      questId: Quest['id'];
       processId: ProcessId;
     }): void => {
       startQuestHandle.calledWith([{ questId }]).resolves(processId);
     },
-    startQuestThrows: ({ questId, error }: { questId: QuestId; error: Error }): void => {
+    startQuestThrows: ({ questId, error }: { questId: Quest['id']; error: Error }): void => {
       startQuestHandle.calledWith([{ questId }]).rejects(error);
     },
-    pauseQuestReturns: ({ questId, paused }: { questId: QuestId; paused: boolean }): void => {
+    pauseQuestReturns: ({ questId, paused }: { questId: Quest['id']; paused: boolean }): void => {
       pauseQuestHandle.calledWith([{ questId }]).resolves({ paused });
     },
-    pauseQuestThrows: ({ questId, error }: { questId: QuestId; error: Error }): void => {
+    pauseQuestThrows: ({ questId, error }: { questId: Quest['id']; error: Error }): void => {
       pauseQuestHandle.calledWith([{ questId }]).rejects(error);
     },
     resumeQuestReturns: ({
@@ -631,19 +631,19 @@ export const StartOrchestratorProxy = (): {
       resumed,
       restoredStatus,
     }: {
-      questId: QuestId;
+      questId: Quest['id'];
       resumed: boolean;
       restoredStatus: QuestStatus;
     }): void => {
       resumeQuestHandle.calledWith([{ questId }]).resolves({ resumed, restoredStatus });
     },
-    resumeQuestThrows: ({ questId, error }: { questId: QuestId; error: Error }): void => {
+    resumeQuestThrows: ({ questId, error }: { questId: Quest['id']; error: Error }): void => {
       resumeQuestHandle.calledWith([{ questId }]).rejects(error);
     },
-    mergeQuestReturns: ({ questId, merging }: { questId: QuestId; merging: boolean }): void => {
+    mergeQuestReturns: ({ questId, merging }: { questId: Quest['id']; merging: boolean }): void => {
       mergeQuestHandle.calledWith([{ questId }]).resolves({ merging });
     },
-    mergeQuestThrows: ({ questId, error }: { questId: QuestId; error: Error }): void => {
+    mergeQuestThrows: ({ questId, error }: { questId: Quest['id']; error: Error }): void => {
       mergeQuestHandle.calledWith([{ questId }]).rejects(error);
     },
     // Unaddressed on purpose: a status-gate test needs to prove the call was reached ZERO times.
@@ -653,18 +653,18 @@ export const StartOrchestratorProxy = (): {
       questId,
       abandoned,
     }: {
-      questId: QuestId;
+      questId: Quest['id'];
       abandoned: boolean;
     }): void => {
       abandonQuestHandle.calledWith([{ questId }]).resolves({ abandoned });
     },
-    abandonQuestThrows: ({ questId, error }: { questId: QuestId; error: Error }): void => {
+    abandonQuestThrows: ({ questId, error }: { questId: Quest['id']; error: Error }): void => {
       abandonQuestHandle.calledWith([{ questId }]).rejects(error);
     },
-    deleteQuestReturns: ({ questId, deleted }: { questId: QuestId; deleted: boolean }): void => {
+    deleteQuestReturns: ({ questId, deleted }: { questId: Quest['id']; deleted: boolean }): void => {
       deleteQuestHandle.calledWith([{ questId }]).resolves({ deleted });
     },
-    deleteQuestThrows: ({ questId, error }: { questId: QuestId; error: Error }): void => {
+    deleteQuestThrows: ({ questId, error }: { questId: Quest['id']; error: Error }): void => {
       deleteQuestHandle.calledWith([{ questId }]).rejects(error);
     },
     addQuestReturns: ({ guildId, result }: { guildId: GuildId; result: AddQuestResult }): void => {
@@ -713,7 +713,7 @@ export const StartOrchestratorProxy = (): {
     }: {
       guildId: GuildId;
       chatProcessId: ProcessId;
-      questId?: QuestId;
+      questId?: Quest['id'];
     }): void => {
       startChatHandle
         .calledWith([{ guildId }])
@@ -730,12 +730,12 @@ export const StartOrchestratorProxy = (): {
       questId,
       chatProcessId,
     }: {
-      questId: QuestId;
+      questId: Quest['id'];
       chatProcessId: ProcessId;
     }): void => {
       clarifyAnswerHandle.calledWith([{ questId }]).resolves({ chatProcessId });
     },
-    clarifyAnswerThrows: ({ questId, error }: { questId: QuestId; error: Error }): void => {
+    clarifyAnswerThrows: ({ questId, error }: { questId: Quest['id']; error: Error }): void => {
       clarifyAnswerHandle.calledWith([{ questId }]).rejects(error);
     },
     commentBatchReturns: ({
@@ -743,16 +743,16 @@ export const StartOrchestratorProxy = (): {
       chatProcessId,
       message,
     }: {
-      questId: QuestId;
+      questId: Quest['id'];
       chatProcessId: ProcessId;
       message: string;
     }): void => {
       commentBatchHandle.calledWith([{ questId }]).resolves({ chatProcessId, message });
     },
-    commentBatchThrows: ({ questId, error }: { questId: QuestId; error: Error }): void => {
+    commentBatchThrows: ({ questId, error }: { questId: Quest['id']; error: Error }): void => {
       commentBatchHandle.calledWith([{ questId }]).rejects(error);
     },
-    commentBatchGetCalls: ({ questId }: { questId: QuestId }): RecordedCalls =>
+    commentBatchGetCalls: ({ questId }: { questId: Quest['id'] }): RecordedCalls =>
       commentBatchHandle.callsMatching([{ questId }]),
     // stopAllChats takes no arguments — calledWith([]) is the honest description of that call.
     stopAllChatsThrows: ({ error }: { error: Error }): void => {
@@ -774,12 +774,12 @@ export const StartOrchestratorProxy = (): {
       questId,
       chatProcessId,
     }: {
-      questId: QuestId;
+      questId: Quest['id'];
       chatProcessId: ProcessId;
     }): void => {
       startFollowupChatHandle.calledWith([{ questId }]).resolves({ chatProcessId });
     },
-    startFollowupChatThrows: ({ questId, error }: { questId: QuestId; error: Error }): void => {
+    startFollowupChatThrows: ({ questId, error }: { questId: Quest['id']; error: Error }): void => {
       startFollowupChatHandle.calledWith([{ questId }]).rejects(error);
     },
     startFollowupChatGetCalls: (): readonly unknown[] =>
@@ -788,12 +788,12 @@ export const StartOrchestratorProxy = (): {
       questId,
       stopped,
     }: {
-      questId: QuestId;
+      questId: Quest['id'];
       stopped: boolean;
     }): void => {
       stopFollowupChatHandle.calledWith([{ questId }]).resolves({ stopped });
     },
-    stopFollowupChatThrows: ({ questId, error }: { questId: QuestId; error: Error }): void => {
+    stopFollowupChatThrows: ({ questId, error }: { questId: Quest['id']; error: Error }): void => {
       stopFollowupChatHandle.calledWith([{ questId }]).rejects(error);
     },
     stopFollowupChatGetCalls: (): readonly unknown[] =>
@@ -804,7 +804,7 @@ export const StartOrchestratorProxy = (): {
       result,
     }: {
       agent: string;
-      questId: QuestId;
+      questId: Quest['id'];
       result: AgentPromptResult;
     }): void => {
       getAgentPromptHandle.calledWith([{ agent, questId }]).resolves(result);
@@ -815,7 +815,7 @@ export const StartOrchestratorProxy = (): {
       error,
     }: {
       agent: string;
-      questId: QuestId;
+      questId: Quest['id'];
       error: Error;
     }): void => {
       getAgentPromptHandle.calledWith([{ agent, questId }]).rejects(error);
@@ -895,7 +895,7 @@ export const StartOrchestratorProxy = (): {
       guildSlug,
     }: {
       userRequest: string;
-      questId: QuestId;
+      questId: Quest['id'];
       guildSlug: UrlSlug;
     }): void => {
       createQuestForMcpHandle.calledWith([{ userRequest }]).resolves({ questId, guildSlug });
@@ -917,7 +917,7 @@ export const StartOrchestratorProxy = (): {
       questId,
       workItemId,
     }: {
-      questId?: QuestId;
+      questId?: Quest['id'];
       workItemId?: QuestWorkItemId;
     }): void => {
       const address =
@@ -929,7 +929,7 @@ export const StartOrchestratorProxy = (): {
       workItemId,
       error,
     }: {
-      questId?: QuestId;
+      questId?: Quest['id'];
       workItemId?: QuestWorkItemId;
       error: Error;
     }): void => {
@@ -976,7 +976,7 @@ export const StartOrchestratorProxy = (): {
       questId,
     }: {
       sessionId: SessionId;
-      questId: QuestId | null;
+      questId: Quest['id'] | null;
     }): void => {
       findQuestBySessionIdHandle.calledWith([{ sessionId }]).resolves(questId);
     },
@@ -994,7 +994,7 @@ export const StartOrchestratorProxy = (): {
       questId,
     }: {
       workItemId: QuestWorkItemId;
-      questId: QuestId | null;
+      questId: Quest['id'] | null;
     }): void => {
       findQuestByWorkItemIdHandle.calledWith([{ workItemId }]).resolves(questId);
     },

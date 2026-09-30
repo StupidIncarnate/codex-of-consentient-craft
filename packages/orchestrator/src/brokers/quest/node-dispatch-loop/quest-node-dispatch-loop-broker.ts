@@ -25,7 +25,7 @@
  * Dropping it means minutes of a dead panel with nothing at the call site to show for it.
  */
 
-import type { Quest, ProcessId, QuestId, QuestWorkItemId } from '@dungeonmaster/shared/contracts';
+import type { Quest, ProcessId, QuestWorkItemId } from '@dungeonmaster/shared/contracts';
 
 import type { ActiveQuestFacade } from '../../../contracts/active-quest-facade/active-quest-facade-contract';
 import { orchestrationDispatchStatics } from '../../../statics/orchestration-dispatch/orchestration-dispatch-statics';
@@ -45,10 +45,10 @@ export const questNodeDispatchLoopBroker = async ({
   onStepLine,
 }: {
   isPlaying: () => boolean;
-  onStepLine: (params: { questId: QuestId; workItemId: QuestWorkItemId; line: string }) => void;
+  onStepLine: (params: { questId: Quest['id']; workItemId: QuestWorkItemId; line: string }) => void;
   registerProcess?: (params: {
     processId: ProcessId;
-    questId: QuestId;
+    questId: Quest['id'];
     questWorkItemId: QuestWorkItemId;
     kill: () => void;
   }) => void;

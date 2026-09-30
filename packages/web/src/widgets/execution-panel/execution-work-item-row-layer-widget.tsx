@@ -28,17 +28,7 @@
  * />
  */
 
-import type {
-  ChatEntry,
-  OperationItem,
-  QuestId,
-  QuestWorkItemId,
-  RiftcarverResult,
-  SessionId,
-  UrlSlug,
-  WardResult,
-  WorkItem,
-} from '@dungeonmaster/shared/contracts';
+import type { ChatEntry, OperationItem, QuestWorkItemId, RiftcarverResult, SessionId, UrlSlug, WardResult, WorkItem, Quest } from '@dungeonmaster/shared/contracts';
 import { riftcarverResultContract } from '@dungeonmaster/shared/contracts';
 
 import type { DisplayLabel } from '../../contracts/display-label/display-label-contract';
@@ -64,7 +54,7 @@ export interface ExecutionWorkItemRowLayerWidgetProps {
   // Omitted for a step row nested under an operation header — the header alone is numbered.
   order?: number;
   workItem: WorkItem;
-  questId: QuestId;
+  questId: Quest['id'];
   now?: IsoTimestamp;
   // Terminal-quest-with-no-operations rendering (see the panel) auto-expands every row so the
   // abandon-early transcript is visible without a click.

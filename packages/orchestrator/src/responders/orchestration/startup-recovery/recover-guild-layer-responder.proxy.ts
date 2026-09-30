@@ -12,14 +12,7 @@ import { randomUUID } from '#gateway/node/crypto';
 import { FilePathStub } from '@dungeonmaster/shared/contracts/file-path/file-path.stub';
 import { GuildStub } from '@dungeonmaster/shared/contracts/guild/guild.stub';
 import { RepoRootCwdStub } from '@dungeonmaster/shared/contracts/repo-root-cwd/repo-root-cwd.stub';
-import type {
-  AbsoluteFilePath,
-  GuildId,
-  GuildPath,
-  ProcessId,
-  QuestBranchName,
-  QuestId,
-} from '@dungeonmaster/shared/contracts';
+import type { AbsoluteFilePath, GuildId, GuildPath, ProcessId, QuestBranchName } from '@dungeonmaster/shared/contracts';
 import type { QuestStub } from '@dungeonmaster/shared/contracts/quest/quest.stub';
 import {
   registerMock,
@@ -87,7 +80,7 @@ export const RecoverGuildLayerResponderProxy = (): {
     guildId: GuildId;
     guildPath: GuildPath;
     quests: Quest[];
-    existingProcessQuestId: QuestId;
+    existingProcessQuestId: Quest['id'];
   }) => void;
   setupGuildDirectoryReadFailure: (params: { error: Error }) => void;
   setupWorktreeMissing: (params: { quest: Quest; worktreePath: AbsoluteFilePath }) => void;
@@ -276,7 +269,7 @@ export const RecoverGuildLayerResponderProxy = (): {
       guildId: GuildId;
       guildPath: GuildPath;
       quests: Quest[];
-      existingProcessQuestId: QuestId;
+      existingProcessQuestId: Quest['id'];
     }): void => {
       guildGetProxy.setupDirectGuild({ guild: GuildStub({ id: guildId, path: guildPath }) });
       questListProxy.setupDirectList({ guildId, quests });

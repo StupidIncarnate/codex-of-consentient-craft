@@ -32,12 +32,7 @@ import { randomUUID } from '#gateway/node/crypto';
 import { ensureDir } from '#gateway/node/fs__promises';
 import { resolve } from '#gateway/node/path';
 import { dungeonmasterHomeStatics } from '@dungeonmaster/shared/statics';
-import {
-  fileContentsContract,
-  filePathContract,
-  questContract,
-  questIdContract,
-} from '@dungeonmaster/shared/contracts';
+import { fileContentsContract, filePathContract, questContract } from '@dungeonmaster/shared/contracts';
 import type { Quest } from '@dungeonmaster/shared/contracts';
 
 import { questPersistDirectBroker } from '../persist-direct/quest-persist-direct-broker';
@@ -52,7 +47,7 @@ export const questWriteRouteBroker = async ({
   fields: Record<string, unknown>;
 }): Promise<Quest> => {
   const parsedFields = questFieldsContract.parse(fields);
-  const id = questIdContract.parse(fields.id ?? randomUUID());
+  const id = questContract.shape.id.parse(fields.id ?? randomUUID());
   const folder = questContract.shape.folder.parse(fields.folder ?? id);
   const createdAt = questContract.shape.createdAt.parse(
     fields.createdAt ?? new Date().toISOString(),

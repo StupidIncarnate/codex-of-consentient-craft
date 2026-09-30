@@ -2,18 +2,18 @@ import { ensureDirProxy } from '#gateway/node/fs__promises/ensure-dir/ensure-dir
 import { randomUUID } from '#gateway/node/crypto';
 import { registerMock, registerSpyOn } from '@dungeonmaster/testing/register-mock';
 
-import { questContract, questIdContract } from '@dungeonmaster/shared/contracts';
-import type { QuestId } from '@dungeonmaster/shared/contracts';
+import { questContract } from '@dungeonmaster/shared/contracts';
+import type { Quest } from '@dungeonmaster/shared/contracts';
 
 import { questPersistDirectBrokerProxy } from '../persist-direct/quest-persist-direct-broker.proxy';
 
-const FIXED_QUEST_ID = questIdContract.parse('f47ac10b-58cc-4372-a567-0e02b2c3d479');
+const FIXED_QUEST_ID = questContract.shape.id.parse('f47ac10b-58cc-4372-a567-0e02b2c3d479');
 const FIXED_TIMESTAMP = questContract.shape.createdAt.parse('2024-01-15T10:00:00.000Z');
 
 export const questWriteRouteBrokerProxy = (): {
   succeeds: ({ questFilePath, outboxPath }: { questFilePath: string; outboxPath: string }) => void;
   pathsTouched: () => readonly unknown[];
-  mintedQuestId: QuestId;
+  mintedQuestId: Quest['id'];
   mintedCreatedAt: typeof FIXED_TIMESTAMP;
 } => {
   const ensureDirHandle = ensureDirProxy();
