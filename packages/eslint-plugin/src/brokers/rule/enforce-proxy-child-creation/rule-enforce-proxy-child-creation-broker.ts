@@ -44,7 +44,7 @@ import { dirname } from '#gateway/node/path';
 import { hasFileSuffixGuard } from '../../../guards/has-file-suffix/has-file-suffix-guard';
 import { astGetImportsTransformer } from '../../../transformers/ast-get-imports/ast-get-imports-transformer';
 import { parseImplementationImportsTransformer } from '../../../transformers/parse-implementation-imports/parse-implementation-imports-transformer';
-import type { FileContents, ModulePath } from '@dungeonmaster/shared/contracts';
+import type { FileContents } from '@dungeonmaster/shared/contracts';
 import {
   identifierContract,
   filePathContract,
@@ -108,7 +108,7 @@ export const ruleEnforceProxyChildCreationBroker = (): TSESLint.RuleModule<
 
     // Ban: a proxy outside the gateway packages that `registerMock({ fn })`s a gateway wrapper.
     // Only the wrapper's own proxy, inside the gateway, stages the outside call it wraps.
-    const gatewayImportPaths = new Map<string, ModulePath>(); // local name -> gateway import path
+    const gatewayImportPaths = new Map<string, string>(); // local name -> gateway import path
     const isWrapperMockCheckActive =
       banWrapperMocks && filename !== '' && !filename.includes('/packages/@gateway/');
 
@@ -209,7 +209,7 @@ export const ruleEnforceProxyChildCreationBroker = (): TSESLint.RuleModule<
     });
 
     // Track proxy imports and creation calls
-    const proxyImports = new Map<string, ModulePath>(); // proxyName -> importPath
+    const proxyImports = new Map<string, string>(); // proxyName -> importPath
     const proxyCreationCalls = new Set<string>(); // proxyName
     let currentProxyFunctionNode: TSESTree.Node | null = null;
 
@@ -333,7 +333,7 @@ export const ruleEnforceProxyChildCreationBroker = (): TSESLint.RuleModule<
           // check — there is no `_test_` barrel to read instead. The wrapper's own proxy sits
           // beside it (`<folder>/<folder>.proxy.ts`), which is the per-file path a caller's proxy
           // is expected to import directly.
-          const expectedProxyPath = ((): ModulePath | null => {
+          const expectedProxyPath = ((): string | null => {
             if (isGatewayImport) {
               const barrelPath =
                 gatewaySubpathSegment === undefined
@@ -353,7 +353,7 @@ export const ruleEnforceProxyChildCreationBroker = (): TSESLint.RuleModule<
               }
 
               const [scopeSegment, packageFolder, subpath] = importPathSegments;
-              return `${scopeSegment}/${packageFolder}/${subpath}/${relativeWrapperPath}.proxy` as ModulePath;
+              return `${scopeSegment}/${packageFolder}/${subpath}/${relativeWrapperPath}.proxy` as string;
             }
             if (isWorkspacePackageRootImport) {
               // TS narrows gatewayFolderSegment to `string` here via aliased-condition analysis —
@@ -427,7 +427,7 @@ export const ruleEnforceProxyChildCreationBroker = (): TSESLint.RuleModule<
               tsExtension === undefined
                 ? `${importPath}.proxy`
                 : importPath.replace(tsExtension, '.proxy')
-            ) as ModulePath;
+            ) as string;
           })();
 
           if (expectedProxyPath === null) {

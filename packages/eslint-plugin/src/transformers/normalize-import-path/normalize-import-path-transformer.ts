@@ -8,14 +8,12 @@
  * const alsoNormalized = normalizeImportPathTransformer({ importPath: './user-widget.tsx' });
  * // Returns: './user-widget'
  */
-import { modulePathContract } from '@dungeonmaster/shared/contracts';
-import type { ModulePath } from '@dungeonmaster/shared/contracts';
 
 export const normalizeImportPathTransformer = ({
   importPath,
 }: {
   importPath: string;
-}): ModulePath => {
+}): string => {
   let normalized = importPath;
 
   // Remove .proxy.ts or .proxy.tsx extensions
@@ -28,5 +26,5 @@ export const normalizeImportPathTransformer = ({
     normalized = normalized.slice(0, normalized.lastIndexOf('.'));
   }
 
-  return modulePathContract.parse(normalized);
+  return normalized;
 };

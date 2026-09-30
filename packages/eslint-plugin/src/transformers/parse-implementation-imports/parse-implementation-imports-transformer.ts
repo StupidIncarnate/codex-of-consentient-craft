@@ -18,8 +18,8 @@
  * // scope (read off the real workspace root, never hardcoded); with none given, this shape is
  * // skipped entirely, same as before this branch existed
  */
-import type { Identifier, ModulePath } from '@dungeonmaster/shared/contracts';
-import { identifierContract, modulePathContract } from '@dungeonmaster/shared/contracts';
+import type { Identifier } from '@dungeonmaster/shared/contracts';
+import { identifierContract } from '@dungeonmaster/shared/contracts';
 import {
   fileExtensionsStatics,
   folderConfigStatics,
@@ -39,8 +39,8 @@ export const parseImplementationImportsTransformer = ({
   content: string;
   implementationFilePath?: string;
   workspaceScope?: string;
-}): Map<Identifier, ModulePath> => {
-  const imports = new Map<Identifier, ModulePath>();
+}): Map<Identifier, string> => {
+  const imports = new Map<Identifier, string>();
 
   // Strip comments before parsing to avoid false positives from example code
   // Remove multi-line comments (/* ... */)
@@ -222,7 +222,7 @@ export const parseImplementationImportsTransformer = ({
           if (defaultImport !== undefined) {
             imports.set(
               identifierContract.parse(defaultImport),
-              modulePathContract.parse(importPath),
+              importPath,
             );
           }
         }

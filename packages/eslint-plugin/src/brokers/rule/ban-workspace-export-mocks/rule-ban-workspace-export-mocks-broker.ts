@@ -22,7 +22,7 @@ import { AST_NODE_TYPES } from '#gateway/npm/typescript-eslint__utils';
 import type { TSESLint, TSESTree } from '#gateway/npm/typescript-eslint__utils';
 import { astGetImportsTransformer } from '../../../transformers/ast-get-imports/ast-get-imports-transformer';
 import { gatewayCallerPackageNameTransformer } from '../../../transformers/gateway-caller-package-name/gateway-caller-package-name-transformer';
-import type { ModulePath, PackageName } from '@dungeonmaster/shared/contracts';
+import type { PackageName } from '@dungeonmaster/shared/contracts';
 
 export const ruleBanWorkspaceExportMocksBroker = (): TSESLint.RuleModule<'composeProxy'> => ({
   meta: {
@@ -51,7 +51,7 @@ export const ruleBanWorkspaceExportMocksBroker = (): TSESLint.RuleModule<'compos
     const { filename } = ctx;
     const ownPackageFolder = gatewayCallerPackageNameTransformer({ filename });
 
-    const imports = new Map<string, ModulePath>();
+    const imports = new Map<string, string>();
 
     return {
       ImportDeclaration: (node: TSESTree.ImportDeclaration): void => {

@@ -1,5 +1,4 @@
 import { IdentifierStub } from '@dungeonmaster/shared/contracts/identifier/identifier.stub';
-import { ModulePathStub } from '@dungeonmaster/shared/contracts/module-path/module-path.stub';
 import { parseImplementationImportsTransformer } from './parse-implementation-imports-transformer';
 
 describe('parseImplementationImportsTransformer', () => {
@@ -13,10 +12,10 @@ describe('parseImplementationImportsTransformer', () => {
 
     expect(result.size).toBe(2);
     expect(result.get(IdentifierStub({ value: 'httpBroker' }))).toStrictEqual(
-      ModulePathStub({ value: '../../brokers/http/http-broker' }),
+      '../../brokers/http/http-broker',
     );
     expect(result.get(IdentifierStub({ value: 'dbBroker' }))).toStrictEqual(
-      ModulePathStub({ value: '../../brokers/db/db-broker' }),
+      '../../brokers/db/db-broker',
     );
   });
 
@@ -29,7 +28,7 @@ describe('parseImplementationImportsTransformer', () => {
 
     expect(result.size).toBe(1);
     expect(result.get(IdentifierStub({ value: 'httpBroker' }))).toStrictEqual(
-      ModulePathStub({ value: '../../brokers/http/http-broker' }),
+      '../../brokers/http/http-broker',
     );
   });
 
@@ -43,7 +42,7 @@ describe('parseImplementationImportsTransformer', () => {
 
     expect(result.size).toBe(1);
     expect(result.get(IdentifierStub({ value: 'httpBroker' }))).toStrictEqual(
-      ModulePathStub({ value: '../../brokers/http/http-broker' }),
+      '../../brokers/http/http-broker',
     );
   });
 
@@ -57,7 +56,7 @@ describe('parseImplementationImportsTransformer', () => {
 
     expect(result.size).toBe(1);
     expect(result.get(IdentifierStub({ value: 'httpBroker' }))).toStrictEqual(
-      ModulePathStub({ value: '../../brokers/http/http-broker' }),
+      '../../brokers/http/http-broker',
     );
   });
 
@@ -71,7 +70,7 @@ describe('parseImplementationImportsTransformer', () => {
 
     expect(result.size).toBe(1);
     expect(result.get(IdentifierStub({ value: 'httpBroker' }))).toStrictEqual(
-      ModulePathStub({ value: '../../brokers/http/http-broker' }),
+      '../../brokers/http/http-broker',
     );
   });
 
@@ -85,7 +84,7 @@ describe('parseImplementationImportsTransformer', () => {
 
     expect(result.size).toBe(1);
     expect(result.get(IdentifierStub({ value: 'httpBroker' }))).toStrictEqual(
-      ModulePathStub({ value: '../../brokers/http/http-broker' }),
+      '../../brokers/http/http-broker',
     );
   });
 
@@ -99,7 +98,7 @@ describe('parseImplementationImportsTransformer', () => {
 
     expect(result.size).toBe(1);
     expect(result.get(IdentifierStub({ value: 'httpBroker' }))).toStrictEqual(
-      ModulePathStub({ value: '../../brokers/http/http-broker' }),
+      '../../brokers/http/http-broker',
     );
   });
 
@@ -112,7 +111,7 @@ describe('parseImplementationImportsTransformer', () => {
 
     expect(result.size).toBe(1);
     expect(result.get(IdentifierStub({ value: 'httpBrokerProxy' }))).toStrictEqual(
-      ModulePathStub({ value: '../../brokers/http/http-broker.proxy' }),
+      '../../brokers/http/http-broker.proxy',
     );
   });
 
@@ -125,7 +124,7 @@ describe('parseImplementationImportsTransformer', () => {
 
     expect(result.size).toBe(1);
     expect(result.get(IdentifierStub({ value: 'inkBoxBroker' }))).toStrictEqual(
-      ModulePathStub({ value: '../../brokers/ink/box/ink-box-broker.tsx' }),
+      '../../brokers/ink/box/ink-box-broker.tsx',
     );
   });
 
@@ -138,7 +137,7 @@ describe('parseImplementationImportsTransformer', () => {
 
     expect(result.size).toBe(1);
     expect(result.get(IdentifierStub({ value: 'reactBroker' }))).toStrictEqual(
-      ModulePathStub({ value: '../../brokers/react/react-broker.jsx' }),
+      '../../brokers/react/react-broker.jsx',
     );
   });
 
@@ -152,7 +151,7 @@ describe('parseImplementationImportsTransformer', () => {
 
     expect(result.size).toBe(1);
     expect(result.get(IdentifierStub({ value: 'httpBroker' }))).toStrictEqual(
-      ModulePathStub({ value: '../../brokers/http/http-broker' }),
+      '../../brokers/http/http-broker',
     );
   });
 
@@ -167,7 +166,7 @@ describe('parseImplementationImportsTransformer', () => {
 
     expect(result.size).toBe(1);
     expect(result.get(IdentifierStub({ value: 'httpBroker' }))).toStrictEqual(
-      ModulePathStub({ value: '../../brokers/http/http-broker' }),
+      '../../brokers/http/http-broker',
     );
   });
 
@@ -180,10 +179,10 @@ describe('parseImplementationImportsTransformer', () => {
 
     expect(result.size).toBe(2);
     expect(result.get(IdentifierStub({ value: 'httpBroker' }))).toStrictEqual(
-      ModulePathStub({ value: '../../brokers/data/data-broker' }),
+      '../../brokers/data/data-broker',
     );
     expect(result.get(IdentifierStub({ value: 'dbBroker' }))).toStrictEqual(
-      ModulePathStub({ value: '../../brokers/data/data-broker' }),
+      '../../brokers/data/data-broker',
     );
   });
 
@@ -196,7 +195,7 @@ describe('parseImplementationImportsTransformer', () => {
 
     expect(result.size).toBe(1);
     expect(result.get(IdentifierStub({ value: 'httpBroker' }))).toStrictEqual(
-      ModulePathStub({ value: '../../brokers/http/http-broker' }),
+      '../../brokers/http/http-broker',
     );
   });
 
@@ -209,7 +208,7 @@ describe('parseImplementationImportsTransformer', () => {
 
     expect(result.size).toBe(1);
     expect(result.get(IdentifierStub({ value: 'walkBroker' }))).toStrictEqual(
-      ModulePathStub({ value: '../../brokers/walk/walk-broker' }),
+      '../../brokers/walk/walk-broker',
     );
     expect(result.get(IdentifierStub({ value: 'WalkMemo' }))).toBe(undefined);
   });
@@ -224,7 +223,7 @@ describe('parseImplementationImportsTransformer', () => {
 
     expect(result.size).toBe(1);
     expect(result.get(IdentifierStub({ value: 'httpBroker' }))).toStrictEqual(
-      ModulePathStub({ value: '../../brokers/http/http-broker' }),
+      '../../brokers/http/http-broker',
     );
     expect(result.get(IdentifierStub({ value: 'WalkMemo' }))).toBe(undefined);
   });
@@ -250,10 +249,10 @@ describe('parseImplementationImportsTransformer', () => {
 
     expect(result.size).toBe(2);
     expect(result.get(IdentifierStub({ value: 'userBroker' }))).toStrictEqual(
-      ModulePathStub({ value: '@dungeonmaster/shared/brokers' }),
+      '@dungeonmaster/shared/brokers',
     );
     expect(result.get(IdentifierStub({ value: 'httpBroker' }))).toStrictEqual(
-      ModulePathStub({ value: '@dungeonmaster/shared/brokers' }),
+      '@dungeonmaster/shared/brokers',
     );
   });
 
@@ -268,7 +267,7 @@ describe('parseImplementationImportsTransformer', () => {
 
     expect(result.size).toBe(1);
     expect(result.get(IdentifierStub({ value: 'httpBroker' }))).toStrictEqual(
-      ModulePathStub({ value: '@dungeonmaster/shared/brokers' }),
+      '@dungeonmaster/shared/brokers',
     );
   });
 
@@ -285,10 +284,10 @@ describe('parseImplementationImportsTransformer', () => {
 
     expect(result.size).toBe(2);
     expect(result.get(IdentifierStub({ value: 'something' }))).toStrictEqual(
-      ModulePathStub({ value: '@dungeonmaster/shared' }),
+      '@dungeonmaster/shared',
     );
     expect(result.get(IdentifierStub({ value: 'httpBroker' }))).toStrictEqual(
-      ModulePathStub({ value: '../../brokers/http/http-broker' }),
+      '../../brokers/http/http-broker',
     );
   });
 
@@ -302,10 +301,10 @@ describe('parseImplementationImportsTransformer', () => {
 
     expect(result.size).toBe(2);
     expect(result.get(IdentifierStub({ value: 'OrdersBroker' }))).toStrictEqual(
-      ModulePathStub({ value: '@acme/orders' }),
+      '@acme/orders',
     );
     expect(result.get(IdentifierStub({ value: 'httpBroker' }))).toStrictEqual(
-      ModulePathStub({ value: '../../brokers/http/http-broker' }),
+      '../../brokers/http/http-broker',
     );
   });
 
@@ -319,7 +318,7 @@ describe('parseImplementationImportsTransformer', () => {
 
     expect(result.size).toBe(1);
     expect(result.get(IdentifierStub({ value: 'httpBroker' }))).toStrictEqual(
-      ModulePathStub({ value: '../../brokers/http/http-broker' }),
+      '../../brokers/http/http-broker',
     );
   });
 
@@ -333,10 +332,10 @@ describe('parseImplementationImportsTransformer', () => {
 
     expect(result.size).toBe(2);
     expect(result.get(IdentifierStub({ value: 'z' }))).toStrictEqual(
-      ModulePathStub({ value: '@dungeonmaster/npm' }),
+      '@dungeonmaster/npm',
     );
     expect(result.get(IdentifierStub({ value: 'httpBroker' }))).toStrictEqual(
-      ModulePathStub({ value: '../../brokers/http/http-broker' }),
+      '../../brokers/http/http-broker',
     );
   });
 
@@ -349,10 +348,10 @@ describe('parseImplementationImportsTransformer', () => {
 
     expect(result.size).toBe(2);
     expect(result.get(IdentifierStub({ value: 'userBroker' }))).toStrictEqual(
-      ModulePathStub({ value: '@dungeonmaster/shared/brokers' }),
+      '@dungeonmaster/shared/brokers',
     );
     expect(result.get(IdentifierStub({ value: 'authBroker' }))).toStrictEqual(
-      ModulePathStub({ value: '@dungeonmaster/shared/brokers' }),
+      '@dungeonmaster/shared/brokers',
     );
   });
 
@@ -366,7 +365,7 @@ describe('parseImplementationImportsTransformer', () => {
 
     expect(result.size).toBe(1);
     expect(result.get(IdentifierStub({ value: 'httpBroker' }))).toStrictEqual(
-      ModulePathStub({ value: '../../brokers/http/http-broker' }),
+      '../../brokers/http/http-broker',
     );
   });
 
@@ -380,10 +379,10 @@ describe('parseImplementationImportsTransformer', () => {
 
     expect(result.size).toBe(2);
     expect(result.get(IdentifierStub({ value: 'userBroker' }))).toStrictEqual(
-      ModulePathStub({ value: '@acme/core/brokers' }),
+      '@acme/core/brokers',
     );
     expect(result.get(IdentifierStub({ value: 'httpBroker' }))).toStrictEqual(
-      ModulePathStub({ value: '@myorg/utils/brokers' }),
+      '@myorg/utils/brokers',
     );
   });
 
@@ -398,7 +397,7 @@ describe('parseImplementationImportsTransformer', () => {
 
     expect(result.size).toBe(1);
     expect(result.get(IdentifierStub({ value: 'httpBroker' }))).toStrictEqual(
-      ModulePathStub({ value: '@acme/core/brokers' }),
+      '@acme/core/brokers',
     );
   });
 
@@ -411,10 +410,10 @@ describe('parseImplementationImportsTransformer', () => {
 
     expect(result.size).toBe(2);
     expect(result.get(IdentifierStub({ value: 'readJsonFileIfExists' }))).toStrictEqual(
-      ModulePathStub({ value: '@dungeonmaster/node/fs/promises' }),
+      '@dungeonmaster/node/fs/promises',
     );
     expect(result.get(IdentifierStub({ value: 'writeFile' }))).toStrictEqual(
-      ModulePathStub({ value: '@dungeonmaster/node/fs/promises' }),
+      '@dungeonmaster/node/fs/promises',
     );
   });
 
@@ -427,7 +426,7 @@ describe('parseImplementationImportsTransformer', () => {
 
     expect(result.size).toBe(1);
     expect(result.get(IdentifierStub({ value: 'z' }))).toStrictEqual(
-      ModulePathStub({ value: '@dungeonmaster/npm/zod' }),
+      '@dungeonmaster/npm/zod',
     );
   });
 
@@ -440,10 +439,10 @@ describe('parseImplementationImportsTransformer', () => {
 
     expect(result.size).toBe(2);
     expect(result.get(IdentifierStub({ value: 'readJsonFileIfExists' }))).toStrictEqual(
-      ModulePathStub({ value: '#gateway/node/fs/promises' }),
+      '#gateway/node/fs/promises',
     );
     expect(result.get(IdentifierStub({ value: 'writeFile' }))).toStrictEqual(
-      ModulePathStub({ value: '#gateway/node/fs/promises' }),
+      '#gateway/node/fs/promises',
     );
   });
 
@@ -456,7 +455,7 @@ describe('parseImplementationImportsTransformer', () => {
 
     expect(result.size).toBe(1);
     expect(result.get(IdentifierStub({ value: 'z' }))).toStrictEqual(
-      ModulePathStub({ value: '#gateway/npm/zod' }),
+      '#gateway/npm/zod',
     );
   });
 
@@ -470,13 +469,13 @@ describe('parseImplementationImportsTransformer', () => {
 
     expect(result.size).toBe(3);
     expect(result.get(IdentifierStub({ value: 'userBroker' }))).toStrictEqual(
-      ModulePathStub({ value: '@acme/core/brokers' }),
+      '@acme/core/brokers',
     );
     expect(result.get(IdentifierStub({ value: 'authBroker' }))).toStrictEqual(
-      ModulePathStub({ value: '@acme/core/brokers' }),
+      '@acme/core/brokers',
     );
     expect(result.get(IdentifierStub({ value: 'logBroker' }))).toStrictEqual(
-      ModulePathStub({ value: '@myorg/utils/brokers' }),
+      '@myorg/utils/brokers',
     );
   });
 });

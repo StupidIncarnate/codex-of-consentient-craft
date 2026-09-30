@@ -9,15 +9,13 @@
  *
  * WHEN-TO-USE: When suggesting stub imports instead of contract imports in test files
  */
-import { modulePathContract } from '@dungeonmaster/shared/contracts';
-import type { ModulePath } from '@dungeonmaster/shared/contracts';
 
 export const contractPathToStubPathTransformer = ({
   contractPath,
 }: {
   contractPath: string;
-}): ModulePath => {
+}): string => {
   const stubPath = contractPath.replace(/-contract(\.ts)?$/u, '.stub');
 
-  return modulePathContract.parse(stubPath);
+  return stubPath;
 };

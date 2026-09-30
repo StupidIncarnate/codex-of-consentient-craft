@@ -11,8 +11,7 @@
  * namedImportEntriesTransformer({ namedImports: 'httpAdapter, type WalkMemo', importPath: '../http/http-adapter' });
  * // Returns [[IdentifierStub({ value: 'httpAdapter' }), ModulePathStub({ value: '../http/http-adapter' })]]
  */
-import type { Identifier, ModulePath } from '@dungeonmaster/shared/contracts';
-import { modulePathContract } from '@dungeonmaster/shared/contracts';
+import type { Identifier } from '@dungeonmaster/shared/contracts';
 import { namedImportValueNamesTransformer } from '../named-import-value-names/named-import-value-names-transformer';
 
 export const namedImportEntriesTransformer = ({
@@ -21,10 +20,10 @@ export const namedImportEntriesTransformer = ({
 }: {
   namedImports: string | undefined;
   importPath: string;
-}): [Identifier, ModulePath][] =>
+}): [Identifier, string][] =>
   namedImports === undefined
     ? []
-    : namedImportValueNamesTransformer({ namedImports }).map((name): [Identifier, ModulePath] => [
+    : namedImportValueNamesTransformer({ namedImports }).map((name): [Identifier, string] => [
         name,
-        modulePathContract.parse(importPath),
+        importPath,
       ]);

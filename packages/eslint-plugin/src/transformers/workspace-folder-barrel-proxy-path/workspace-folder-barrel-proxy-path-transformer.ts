@@ -12,13 +12,11 @@
  * });
  * // Returns '@dungeonmaster/shared/brokers/project-root/find/project-root-find-broker.proxy' as branded ModulePath
  */
-import type { ModulePath } from '@dungeonmaster/shared/contracts';
-import { modulePathContract } from '@dungeonmaster/shared/contracts';
 
 export const workspaceFolderBarrelProxyPathTransformer = ({
   importPath,
   relativeWrapperPath,
 }: {
-  importPath: ModulePath;
-  relativeWrapperPath: ModulePath;
-}): ModulePath => modulePathContract.parse(`${importPath}/${relativeWrapperPath}.proxy`);
+  importPath: string;
+  relativeWrapperPath: string;
+}): string => `${importPath}/${relativeWrapperPath}.proxy`;

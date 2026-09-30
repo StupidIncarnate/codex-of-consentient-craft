@@ -14,12 +14,12 @@ import { isNpmPackageGuard } from '../../../guards/is-npm-package/is-npm-package
 import { isIoBoundaryProxyGuard } from '../../../guards/is-io-boundary-proxy/is-io-boundary-proxy-guard';
 import { astGetImportsTransformer } from '../../../transformers/ast-get-imports/ast-get-imports-transformer';
 import { astGetCallFirstArgumentNameTransformer } from '../../../transformers/ast-get-call-first-argument-name/ast-get-call-first-argument-name-transformer';
-import type { Identifier, ModulePath } from '@dungeonmaster/shared/contracts';
+import type { Identifier } from '@dungeonmaster/shared/contracts';
 
 export const ruleJestMockedMustImportBroker = (): TSESLint.RuleModule<
   'mockedNotImported' | 'mockingAdapter' | 'notNpmPackage'
 > => {
-  const importedNames = new Map<Identifier, ModulePath>(); // local name -> source
+  const importedNames = new Map<Identifier, string>(); // local name -> source
 
   return {
     meta: {

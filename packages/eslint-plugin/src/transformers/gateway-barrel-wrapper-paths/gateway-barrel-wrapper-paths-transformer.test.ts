@@ -1,6 +1,5 @@
 import { FileContentsStub } from '@dungeonmaster/shared/contracts/file-contents/file-contents.stub';
 import { IdentifierStub } from '@dungeonmaster/shared/contracts/identifier/identifier.stub';
-import { ModulePathStub } from '@dungeonmaster/shared/contracts/module-path/module-path.stub';
 import { gatewayBarrelWrapperPathsTransformer } from './gateway-barrel-wrapper-paths-transformer';
 
 describe('gatewayBarrelWrapperPathsTransformer', () => {
@@ -19,13 +18,13 @@ describe('gatewayBarrelWrapperPathsTransformer', () => {
       new Map([
         [
           IdentifierStub({ value: 'readJsonFileIfExists' }),
-          ModulePathStub({ value: 'read-json-file-if-exists/read-json-file-if-exists' }),
+          'read-json-file-if-exists/read-json-file-if-exists',
         ],
         [
           IdentifierStub({ value: 'writeFile' }),
-          ModulePathStub({ value: 'write-file/write-file' }),
+          'write-file/write-file',
         ],
-        [IdentifierStub({ value: 'glob' }), ModulePathStub({ value: 'glob/glob' })],
+        [IdentifierStub({ value: 'glob' }), 'glob/glob'],
       ]),
     );
   });
@@ -42,7 +41,7 @@ describe('gatewayBarrelWrapperPathsTransformer', () => {
 
     expect(result).toStrictEqual(
       new Map([
-        [IdentifierStub({ value: 'readFile' }), ModulePathStub({ value: 'read-file/read-file' })],
+        [IdentifierStub({ value: 'readFile' }), 'read-file/read-file'],
       ]),
     );
   });
@@ -58,7 +57,7 @@ describe('gatewayBarrelWrapperPathsTransformer', () => {
     const result = gatewayBarrelWrapperPathsTransformer({ content });
 
     expect(result).toStrictEqual(
-      new Map([[IdentifierStub({ value: 'glob' }), ModulePathStub({ value: 'glob/glob' })]]),
+      new Map([[IdentifierStub({ value: 'glob' }), 'glob/glob']]),
     );
   });
 
@@ -76,7 +75,7 @@ describe('gatewayBarrelWrapperPathsTransformer', () => {
       new Map([
         [
           IdentifierStub({ value: 'readdirEntries' }),
-          ModulePathStub({ value: 'readdir-entries/readdir-entries' }),
+          'readdir-entries/readdir-entries',
         ],
       ]),
     );
@@ -97,7 +96,7 @@ describe('gatewayBarrelWrapperPathsTransformer', () => {
 
     expect(result).toStrictEqual(
       new Map([
-        [IdentifierStub({ value: 'readFile' }), ModulePathStub({ value: 'read-file/read-file' })],
+        [IdentifierStub({ value: 'readFile' }), 'read-file/read-file'],
       ]),
     );
   });

@@ -17,7 +17,7 @@ import { astGetImportsTransformer } from '../../../transformers/ast-get-imports/
 import { isGatewayFileGuard } from '../../../guards/is-gateway-file/is-gateway-file-guard';
 import { isNpmPackageGuard } from '../../../guards/is-npm-package/is-npm-package-guard';
 import { identifierContract } from '@dungeonmaster/shared/contracts';
-import type { Identifier, ModulePath } from '@dungeonmaster/shared/contracts';
+import type { Identifier } from '@dungeonmaster/shared/contracts';
 
 export const ruleBanTypeAliasesBroker = (): TSESLint.RuleModule<
   'noFieldTypeAlias' | 'noLibraryTypeAlias'
@@ -45,7 +45,7 @@ export const ruleBanTypeAliasesBroker = (): TSESLint.RuleModule<
       return {};
     }
 
-    const imports = new Map<Identifier, ModulePath>();
+    const imports = new Map<Identifier, string>();
 
     return {
       Program: (node: TSESTree.Program): void => {

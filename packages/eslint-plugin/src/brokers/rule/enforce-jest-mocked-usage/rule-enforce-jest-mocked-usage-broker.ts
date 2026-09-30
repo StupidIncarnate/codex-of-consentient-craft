@@ -11,7 +11,6 @@ import { isAstMethodCallGuard } from '../../../guards/is-ast-method-call/is-ast-
 import { hasFileSuffixGuard } from '../../../guards/has-file-suffix/has-file-suffix-guard';
 import { astGetImportsTransformer } from '../../../transformers/ast-get-imports/ast-get-imports-transformer';
 import { astGetCallFirstArgumentNameTransformer } from '../../../transformers/ast-get-call-first-argument-name/ast-get-call-first-argument-name-transformer';
-import type { ModulePath } from '@dungeonmaster/shared/contracts';
 import { modulePathContract } from '@dungeonmaster/shared/contracts';
 import { jestMockingStatics } from '../../../statics/jest-mocking/jest-mocking-statics';
 
@@ -19,8 +18,8 @@ export const ruleEnforceJestMockedUsageBroker = (): TSESLint.RuleModule<
   'useJestMocked' | 'spyOnModuleImport' | 'nonAdapterNoJestMocked' | 'mockWithoutImport'
 > => {
   // Track jest.mock() calls (module path -> node for reporting) and imported module names
-  const jestMockedModules = new Map<ModulePath, TSESTree.Node>();
-  const importedModuleNames = new Map<string, ModulePath>(); // local name -> module source
+  const jestMockedModules = new Map<string, TSESTree.Node>();
+  const importedModuleNames = new Map<string, string>(); // local name -> module source
   const variablesWithJestMocked = new Set<string>();
 
   return {

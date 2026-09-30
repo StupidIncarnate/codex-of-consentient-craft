@@ -26,7 +26,6 @@ export * from './file-contents/file-contents-contract';
 export * from './identifier/identifier-contract';
 
 // Module Path Contracts
-export * from './module-path/module-path-contract';
 
 // Error Message Contracts
 export * from './error-message/error-message-contract';
