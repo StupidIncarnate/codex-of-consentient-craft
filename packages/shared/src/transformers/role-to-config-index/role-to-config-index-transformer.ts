@@ -13,7 +13,6 @@
 
 import type { ConfigIndex } from '../../contracts/config-index/config-index-contract';
 import { configIndexContract } from '../../contracts/config-index/config-index-contract';
-import type { FloorName } from '../../contracts/floor-name/floor-name-contract';
 import type { WorkItemRole } from '../../contracts/work-item-role/work-item-role-contract';
 import { executionFloorConfigStatics } from '../../statics/execution-floor-config/execution-floor-config-statics';
 
@@ -22,7 +21,7 @@ export const roleToConfigIndexTransformer = ({
   floorName,
 }: {
   role: WorkItemRole;
-  floorName?: FloorName;
+  floorName?: string;
 }): ConfigIndex => {
   const index =
     floorName === undefined
