@@ -2,14 +2,14 @@
 
 ```
 contracts/
-  user/
-    user-contract.ts
-    user-contract.test.ts
-    user.stub.ts
-  user-id/
-    user-id-contract.ts
-    user-id-contract.test.ts
-    user-id.stub.ts
+  guild/
+    guild-contract.ts
+    guild-contract.test.ts
+    guild.stub.ts
+  quest/
+    quest-contract.ts
+    quest-contract.test.ts
+    quest.stub.ts
   active-quest-facade/
     active-quest-facade-contract.ts   # types only: no test, no stub
 ```
@@ -28,38 +28,46 @@ export type ActiveQuestFacade = {
 
 **NAMING CONVENTIONS:**
 
-- **Schemas**: camelCase with `Contract` suffix (e.g., `userContract`, `emailAddressContract`)
-- **Inferred Types**: PascalCase (e.g., `User`, `EmailAddress`, `UserId`)
+- **Schemas**: camelCase with `Contract` suffix (e.g., `guildContract`, `questContract`)
+- **Inferred Types**: PascalCase (e.g., `Guild`, `Quest`)
+- **No standalone scalar contract.** A lone branded string or number (`UserId`, `FilePath`, `Url`) does not exist;
+  a value is a field of its owner's object contract. A parameter that holds an owner's id takes `Guild['id']`; any
+  other loose text or number is a plain `string` or `number`.
 
 **CONTRACT CREATION PATTERN:**
 
-All contracts MUST use `.brand<'TypeName'>()` on primitives (string, number):
+Every object contract, every object nested in it, and every string and number field carries `.brand<'…'>()`, with
+the text derived from the owner and the key: field `id` of `Guild` is `'GuildId'`, field `name` is `'GuildName'`, the
+object itself is `'Guild'`. Import `z` through the gateway (`#gateway/npm/zod`), never from `'zod'`.
 
 ```typescript
-import {z} from 'zod';
+// contracts/guild/guild-contract.ts
+import {z} from '#gateway/npm/zod';
 
-// Branded primitive
-export const userIdContract = z.string()
-    .uuid()
-    .brand<'UserId'>();
-export type UserId = z.infer<typeof userIdContract>;
+export const guildContract = z
+    .object({
+        id: z.uuid().brand<'GuildId'>(),
+        name: z.string().min(1).brand<'GuildName'>(),
+        path: z.string().min(1).brand<'GuildPath'>(),
+        createdAt: z.iso.datetime().brand<'GuildCreatedAt'>(),
+    })
+    .brand<'Guild'>();
 
-// Object with branded fields
-export const userContract = z.object({
-    id: userIdContract,
-    email: z.string().email().brand<'EmailAddress'>(),
-    name: z.string().min(1).brand<'UserName'>()
-});
-export type User = z.infer<typeof userContract>;
+export type Guild = z.infer<typeof guildContract>;
 ```
+
+A field that holds another owner's object reuses that owner's contract instead of restating its shape. A value of a
+top-level `z.record` or `z.array` contract takes no brand, and neither does a contract used only as a generic
+constraint. A record or array that is a field of an object contract brands its values, owner plus key.
 
 **CRITICAL - TEST IMPORTS:**
 
-- Test files MUST import from `.stub.ts` files, NOT from `-contract.ts` files
-- ✅ CORRECT: `import { UserStub } from "./user.stub"`
-- ❌ WRONG: `import { userContract } from "./user-contract"`
-- This is enforced by `@dungeonmaster/ban-contract-in-tests` ESLint rule
-- Stub files re-export the contract implementation for test use
+- Test files import each stub from its own `.stub.ts` file, never from a contract or a production barrel
+- ✅ CORRECT: `import { GuildStub } from "./guild.stub"`
+- ❌ WRONG: `import { guildContract } from "./guild-contract"`
+- This is enforced by the `@dungeonmaster/enforce-contract-usage-in-tests` ESLint rule; a contract's own
+  `-contract.test.ts` is the one test that imports the contract
+- A stub parses its data through its contract; it does not re-export the contract
 - A test of code that takes a types-only contract's type passes an object literal; TypeScript types it structurally,
   so the test names no contract and no stub
 
@@ -73,32 +81,22 @@ Use spread operator with `StubArgument<Type>`
 
 ```typescript
 import type {StubArgument} from '@dungeonmaster/shared/@types';
-import {userContract} from './user-contract';
-import type {User} from './user-contract';
+import {guildContract} from './guild-contract';
+import type {Guild} from './guild-contract';
 
-export const UserStub = ({...props}: StubArgument<User> = {}): User =>
-    userContract.parse({
-        id: '123',
-        name: 'John',
-        email: 'john@example.com',
+export const GuildStub = ({...props}: StubArgument<Guild> = {}): Guild =>
+    guildContract.parse({
+        id: 'f47ac10b-58cc-4372-a567-0e02b2c3d479',
+        name: 'My Guild',
+        path: '/home/user/my-guild',
+        createdAt: '2024-01-15T10:00:00.000Z',
         ...props,
     });
 ```
 
-**2. Branded String Stubs (primitives):**
+There is no stub for a lone branded string or number: no standalone scalar contract exists to stub.
 
-Use single `value` property
-
-```typescript
-import {filePathContract} from './file-path-contract';
-import type {FilePath} from './file-path-contract';
-
-export const FilePathStub = (
-    {value}: { value: string } = {value: '/test/file.ts'}
-): FilePath => filePathContract.parse(value);
-```
-
-**3. Mixed Data + Function Stubs (our own types with both data and functions):**
+**2. Mixed Data + Function Stubs (our own types with both data and functions):**
 
 A type with data and functions keeps the const for its data half and a stub. A type whose every member is a function,
 a function type or a generic method set has no schema to write: its file exports only types (see FOLDER STRUCTURE), with
@@ -108,19 +106,17 @@ no const, stub or test.
 
 // src/contracts/notifier/notifier-contract.ts
 import type {StubArgument} from '@dungeonmaster/shared/@types';
-import {z} from 'zod';
+import {z} from '#gateway/npm/zod';
 
 // Contract defines ONLY data properties (no z.function())
 export const notifierContract = z.object({
-    channel: z.string().brand<'Channel'>().optional(),
+    channel: z.string().brand<'NotifierChannel'>().optional(),
 });
 
 // Type adds functions via intersection
 export type Notifier = z.infer<typeof notifierContract> & {
     send: (...args: unknown[]) => unknown;
 };
-
-const channelContract = z.string().brand<'Channel'>();
 
 // src/contracts/notifier/notifier.stub.ts
 
@@ -134,7 +130,7 @@ export const NotifierStub = ({
     return {
         // Data properties validated through contract
         ...notifierContract.parse({
-            channel: channelContract.parse('alerts'),
+            channel: 'alerts',
             ...dataProps,
         }),
         // Function properties preserved (not parsed to maintain references)
@@ -148,7 +144,12 @@ export const NotifierStub = ({
 own file (`#gateway/npm/typescript-eslint__utils/rule-context/rule-context.stub`). A contract-and-stub pair that
 re-declares a library type by hand is wrong.
 
-**4. All stubs MUST:**
+**A field holding an outside package's type reuses the gateway's schema, branded `'#Gateway<Type>'`.** Never
+`z.custom` or `z.instanceof` in a contract.
+
+**A contract nothing in production parses is deleted, with its stub and test.**
+
+**3. All stubs MUST:**
 
 - Use object destructuring parameters
 - Data properties MUST be validated through `contract.parse()`
@@ -169,22 +170,21 @@ Contracts use `.stub.ts` files to create test data, NOT `.proxy.ts` files.
 
 ```typescript
 // ✅ CORRECT - Stub for creating test data
-// contracts/user/user.stub.ts
-export const UserStub = ({...props}: StubArgument<User> = {}): User =>
-    userContract.parse({
+// contracts/guild/guild.stub.ts
+export const GuildStub = ({...props}: StubArgument<Guild> = {}): Guild =>
+    guildContract.parse({
         id: 'f47ac10b-58cc-4372-a567-0e02b2c3d479',
-        name: 'John Doe',
-        email: 'john@example.com',
+        name: 'My Guild',
+        path: '/home/user/my-guild',
+        createdAt: '2024-01-15T10:00:00.000Z',
         ...props
     });
 
 // ✅ CORRECT - Tests import stubs, NEVER contracts
-import {UserStub} from './user.stub';
-
-type User = ReturnType<typeof UserStub>;
+import {GuildStub} from './guild.stub';
 
 // ❌ WRONG - Importing contract in test
-import type {User} from './user-contract'; // Forbidden!
+import type {Guild} from './guild-contract'; // Forbidden!
 ```
 
 **Why no proxies for contracts:**
@@ -215,66 +215,61 @@ Stubs never use `jest.fn()` internally - they accept mocks via props to preserve
 **TEST EXAMPLE:**
 
 ```typescript
-// contracts/user/user-contract.test.ts
-import {userContract} from './user-contract';
-import {UserStub} from './user.stub';
+// contracts/guild/guild-contract.test.ts
+import {guildContract} from './guild-contract';
+import {GuildStub} from './guild.stub';
 
-type User = ReturnType<typeof UserStub>;
+describe('guildContract', () => {
+    describe('valid guilds', () => {
+        it('VALID: full guild => parses successfully', () => {
+            const guild = GuildStub();
 
-describe('userContract', () => {
-    describe('valid users', () => {
-        it('VALID: {id, name, email} => parses successfully', () => {
-            const user = UserStub({
-                id: 'f47ac10b-58cc-4372-a567-0e02b2c3d479',
-                name: 'John Doe',
-                email: 'john@example.com',
-            });
-
-            const result = userContract.parse(user);
+            const result = guildContract.parse(guild);
 
             expect(result).toStrictEqual({
                 id: 'f47ac10b-58cc-4372-a567-0e02b2c3d479',
-                name: 'John Doe',
-                email: 'john@example.com',
+                name: 'My Guild',
+                path: '/home/user/my-guild',
+                createdAt: '2024-01-15T10:00:00.000Z',
             });
         });
 
-        it('VALID: {stub with name override} => parses with custom name', () => {
-            const user = UserStub({name: 'Jane Smith'});
+        it('VALID: {name: "Custom Guild"} => parses with the custom name', () => {
+            const guild = GuildStub({name: 'Custom Guild'});
 
-            const result = userContract.parse(user);
+            const result = guildContract.parse(guild);
 
-            expect(result.name).toBe('Jane Smith');
+            expect(result.name).toBe('Custom Guild');
         });
     });
 
-    describe('invalid users', () => {
-        it('INVALID: {email: "not-an-email"} => throws validation error', () => {
+    describe('invalid guilds', () => {
+        it('INVALID: {} => throws validation error', () => {
             expect(() => {
-                return userContract.parse({
-                    id: 'f47ac10b-58cc-4372-a567-0e02b2c3d479',
-                    name: 'John Doe',
-                    email: 'not-an-email',
-                });
-            }).toThrow(/Invalid email/u);
+                guildContract.parse({});
+            }).toThrow(/received undefined/u);
         });
 
         it('INVALID: {id: "not-a-uuid"} => throws validation error', () => {
+            const baseGuild = GuildStub();
+
             expect(() => {
-                return userContract.parse({
+                guildContract.parse({
+                    ...baseGuild,
                     id: 'not-a-uuid',
-                    name: 'John Doe',
-                    email: 'john@example.com',
                 });
-            }).toThrow(/Invalid uuid/u);
+            }).toThrow(/Invalid UUID/u);
         });
 
-        it('INVALID: {missing name and email} => throws validation error', () => {
+        it('INVALID: {createdAt: "not-a-timestamp"} => throws validation error', () => {
+            const baseGuild = GuildStub();
+
             expect(() => {
-                return userContract.parse({
-                    id: 'f47ac10b-58cc-4372-a567-0e02b2c3d479',
+                guildContract.parse({
+                    ...baseGuild,
+                    createdAt: 'not-a-timestamp',
                 });
-            }).toThrow(/Required/u);
+            }).toThrow(/Invalid ISO datetime/u);
         });
     });
 });
