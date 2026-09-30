@@ -65,7 +65,7 @@ type GitBaseRef = NonNullable<Quest['baseRef']>;
 type PlanningNotes = Quest['planningNotes'];
 type QuestStatus = Quest['status'];
 type QuestType = Quest['questType'];
-type WorktreePath = NonNullable<Quest['worktreePath']>;
+type WorktreePath = string;
 type BranchName = string;
 
 export const orchestrationQuestHarness = (): {
