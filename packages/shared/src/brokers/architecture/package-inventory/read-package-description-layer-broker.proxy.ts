@@ -1,6 +1,4 @@
-import { ContentTextStub } from '../../../contracts/content-text/content-text.stub';
 import { readFileSyncProxy } from '#gateway/node/fs/read-file-sync/read-file-sync.proxy';
-import type { ContentText } from '../../../contracts/content-text/content-text-contract';
 import { FileMissingErrorStub } from '#gateway/node/fs/file-missing-error/file-missing-error.stub';
 
 const isAbsolutePath = (value: unknown): boolean =>
@@ -12,10 +10,10 @@ export const readPackageDescriptionLayerBrokerProxy = (): {
     description,
   }: {
     packageJsonPath: string;
-    description: ContentText;
+    description: string;
   }) => void;
   setupNoPackageJson: ({ packageJsonPath }: { packageJsonPath: string }) => void;
-  setupImplementation: ({ fn }: { fn: (filePath: ContentText) => ContentText }) => void;
+  setupImplementation: ({ fn }: { fn: (filePath: string) => string }) => void;
 } => {
   const gatewayProxy = readFileSyncProxy();
 
@@ -25,7 +23,7 @@ export const readPackageDescriptionLayerBrokerProxy = (): {
       description,
     }: {
       packageJsonPath: string;
-      description: ContentText;
+      description: string;
     }): void => {
       gatewayProxy.returns({
         path: packageJsonPath,
@@ -40,10 +38,10 @@ export const readPackageDescriptionLayerBrokerProxy = (): {
       });
     },
 
-    setupImplementation: ({ fn }: { fn: (filePath: ContentText) => ContentText }): void => {
+    setupImplementation: ({ fn }: { fn: (filePath: string) => string }): void => {
       gatewayProxy.implementsMatchingPath({
         path: isAbsolutePath,
-        fn: (path) => fn(ContentTextStub({ value: path })),
+        fn: (path) => fn(path),
       });
     },
   };

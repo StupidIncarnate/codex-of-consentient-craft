@@ -17,23 +17,22 @@
  * WHEN-NOT-TO-USE: When a deterministic responder-per-route mapping is available
  */
 
-import type { ContentText } from '../../contracts/content-text/content-text-contract';
 import { urlSegmentsExtractTransformer } from '../url-segments-extract/url-segments-extract-transformer';
 
 export const urlBestResponderImportPickTransformer = ({
   urlPattern,
   responderImports,
 }: {
-  urlPattern: ContentText;
-  responderImports: ContentText[];
-}): ContentText | null => {
+  urlPattern: string;
+  responderImports: string[];
+}): string | null => {
   if (responderImports.length === 0) {
     return null;
   }
 
   const keywords = urlSegmentsExtractTransformer({ urlPattern });
 
-  let bestImport: ContentText | null = null;
+  let bestImport: string | null = null;
   let bestScore = -1;
 
   for (const ip of responderImports) {

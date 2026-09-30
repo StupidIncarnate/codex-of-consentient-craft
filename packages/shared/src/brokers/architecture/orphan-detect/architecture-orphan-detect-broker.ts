@@ -16,10 +16,6 @@
  * after each package's boot tree in the project-map output.
  */
 
-import {
-  contentTextContract,
-  type ContentText,
-} from '../../../contracts/content-text/content-text-contract';
 import { filePathToDisplayNameTransformer } from '../../../transformers/file-path-to-display-name/file-path-to-display-name-transformer';
 import { listWalkedFolderFilesLayerBroker } from './list-walked-folder-files-layer-broker';
 import { walkReachableFilesLayerBroker } from './walk-reachable-files-layer-broker';
@@ -28,21 +24,21 @@ export const architectureOrphanDetectBroker = ({
   packageSrcPath,
 }: {
   packageSrcPath: string;
-}): ContentText => {
+}): string => {
   const candidates = listWalkedFolderFilesLayerBroker({ packageSrcPath });
   const reachable = walkReachableFilesLayerBroker({ packageSrcPath });
 
-  const orphans: ContentText[] = [];
+  const orphans: string[] = [];
   for (const candidate of candidates) {
     if (reachable.has(candidate)) continue;
     orphans.push(filePathToDisplayNameTransformer({ filePath: candidate, packageSrcPath }));
   }
 
   if (orphans.length === 0) {
-    return contentTextContract.parse('');
+    return '';
   }
 
   const sortedDisplay = orphans.map(String).sort((a, b) => a.localeCompare(b));
   const body = sortedDisplay.join('\n');
-  return contentTextContract.parse(`## Unreferenced\n\n\`\`\`\n${body}\n\`\`\``);
+  return `## Unreferenced\n\n\`\`\`\n${body}\n\`\`\``;
 };

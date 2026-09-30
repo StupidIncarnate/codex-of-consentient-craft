@@ -12,7 +12,6 @@
  * resolveImportedStaticsLayerBroker({ objectName: 'bundleStatics', propertyName: 'buildCommand', moduleBody, filename });
  * // Returns 'npm' as ContentText, or undefined when the import or its property cannot be read
  */
-import type { ContentText } from '@dungeonmaster/shared/contracts';
 import { readFileSyncIfExists } from '#gateway/node/fs';
 import { AST_NODE_TYPES } from '#gateway/npm/typescript-eslint__utils';
 import type { TSESTree } from '#gateway/npm/typescript-eslint__utils';
@@ -29,7 +28,7 @@ export const resolveImportedStaticsLayerBroker = ({
   propertyName: string;
   moduleBody: readonly TSESTree.ProgramStatement[];
   filename: string;
-}): ContentText | undefined => {
+}): string | undefined => {
   for (const statement of moduleBody) {
     if (statement.type !== AST_NODE_TYPES.ImportDeclaration) {
       continue;

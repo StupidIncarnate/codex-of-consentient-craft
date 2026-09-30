@@ -7,7 +7,6 @@
  * // Reads localStorage and sessionStorage matching prefix 'dm-' and renders as ContentText JSON
  */
 
-import type { ContentText } from '@dungeonmaster/shared/contracts';
 
 import type { BrowserSession } from '../../../contracts/browser-session/browser-session-contract';
 import { storageReadingRenderTransformer } from '../../../transformers/storage-reading-render/storage-reading-render-transformer';
@@ -18,7 +17,7 @@ export const stepStorageBroker = async ({
 }: {
   session: BrowserSession;
   prefix: string;
-}): Promise<ContentText> => {
+}): Promise<string> => {
   const reading = await session.readStorage({ prefix });
 
   return storageReadingRenderTransformer({ reading });

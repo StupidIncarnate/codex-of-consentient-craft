@@ -14,15 +14,13 @@
  * // Returns 'FREED: 4100MB (4299161600 bytes)\nREMOVED: …\nREFUSED: …\nNOT CHECKED: …\n'
  */
 
-import { contentTextContract } from '@dungeonmaster/shared/contracts';
-import type { ContentText } from '@dungeonmaster/shared/contracts';
 
 import type { PruneAnswer } from '../../contracts/prune-answer/prune-answer-contract';
 
 const EVERYTHING = 'everything';
 const NONE = 'none';
 
-export const pruneAnswerRenderTransformer = ({ answer }: { answer: PruneAnswer }): ContentText => {
+export const pruneAnswerRenderTransformer = ({ answer }: { answer: PruneAnswer }): string => {
   const removedText =
     answer.removed.length === 0
       ? NONE
@@ -45,10 +43,8 @@ export const pruneAnswerRenderTransformer = ({ answer }: { answer: PruneAnswer }
       ? NONE
       : answer.unresolved.map((gap) => `${gap.kind} (${gap.why})`).join(', ');
 
-  return contentTextContract.parse(
-    `FREED: ${answer.freedMB}MB (${answer.freedBytes} bytes)\n` +
+  return (`FREED: ${answer.freedMB}MB (${answer.freedBytes} bytes)\n` +
       `REMOVED: ${removedText}\n` +
       `REFUSED: ${refusedText}\n` +
-      `NOT CHECKED: ${unresolvedText}\n`,
-  );
+      `NOT CHECKED: ${unresolvedText}\n`);
 };

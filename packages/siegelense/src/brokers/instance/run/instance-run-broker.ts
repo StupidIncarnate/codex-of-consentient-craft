@@ -29,7 +29,6 @@
  * // or throws InstanceKilledError when the registry already reads this instance as killed
  */
 
-import { contentTextContract } from '@dungeonmaster/shared/contracts';
 
 import { driverSocketRequestBroker } from '../../driver/socket-request/driver-socket-request-broker';
 import { driverRequestContract } from '../../../contracts/driver-request/driver-request-contract';
@@ -72,9 +71,7 @@ export const instanceRunBroker = async ({
 
   const request = driverRequestContract.parse({
     kind: 'run',
-    payload: contentTextContract.parse(
-      JSON.stringify(runRequestContract.parse({ instanceId, steps, stopOn })),
-    ),
+    payload: JSON.stringify(runRequestContract.parse({ instanceId, steps, stopOn })),
   });
 
   const response = await driverSocketRequestBroker({

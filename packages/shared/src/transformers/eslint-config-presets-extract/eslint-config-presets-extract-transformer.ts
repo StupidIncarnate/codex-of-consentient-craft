@@ -12,10 +12,6 @@
  * WHEN-TO-USE: eslint-plugin headline broker rendering the config presets section
  */
 
-import {
-  contentTextContract,
-  type ContentText,
-} from '../../contracts/content-text/content-text-contract';
 
 // Matches the opening "configs: {" position; we then scan forward manually
 const CONFIGS_OPEN_PATTERN = /configs\s*:\s*\{/u;
@@ -24,8 +20,8 @@ const TOP_LEVEL_KEY_PATTERN = /(?:^|,)\s*['"]?([\w-]+)['"]?\s*:/gu;
 export const eslintConfigPresetsExtractTransformer = ({
   source,
 }: {
-  source: ContentText;
-}): ContentText[] => {
+  source: string;
+}): string[] => {
   const sourceStr = String(source);
 
   const openMatch = CONFIGS_OPEN_PATTERN.exec(sourceStr);
@@ -75,13 +71,13 @@ export const eslintConfigPresetsExtractTransformer = ({
     })
     .join('');
 
-  const results: ContentText[] = [];
+  const results: string[] = [];
 
   let match = TOP_LEVEL_KEY_PATTERN.exec(flatContent);
   while (match !== null) {
     const [, keyName] = match;
     if (keyName !== undefined) {
-      results.push(contentTextContract.parse(keyName));
+      results.push(keyName);
     }
     match = TOP_LEVEL_KEY_PATTERN.exec(flatContent);
   }

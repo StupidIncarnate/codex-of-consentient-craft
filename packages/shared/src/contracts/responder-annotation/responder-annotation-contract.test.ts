@@ -1,6 +1,5 @@
 import { responderAnnotationContract } from './responder-annotation-contract';
 import { ResponderAnnotationStub } from './responder-annotation.stub';
-import { ContentTextStub } from '../content-text/content-text.stub';
 
 describe('responderAnnotationContract', () => {
   describe('valid inputs', () => {
@@ -15,7 +14,7 @@ describe('responderAnnotationContract', () => {
 
     it('VALID: {suffix only} => parses with null suffix replaced', () => {
       const result = ResponderAnnotationStub({
-        suffix: ContentTextStub({ value: '[POST /api/x]' }),
+        suffix: '[POST /api/x]',
       });
 
       expect(result).toStrictEqual({
@@ -26,7 +25,7 @@ describe('responderAnnotationContract', () => {
 
     it('VALID: {childLines only} => parses with non-empty childLines', () => {
       const result = ResponderAnnotationStub({
-        childLines: [ContentTextStub({ value: '← packages/web (fooBroker)' })],
+        childLines: ['← packages/web (fooBroker)'],
       });
 
       expect(result).toStrictEqual({
@@ -37,10 +36,10 @@ describe('responderAnnotationContract', () => {
 
     it('VALID: {suffix + childLines} => parses with both populated', () => {
       const result = ResponderAnnotationStub({
-        suffix: ContentTextStub({ value: '[GET /api/x]' }),
+        suffix: '[GET /api/x]',
         childLines: [
-          ContentTextStub({ value: '← packages/web (a)' }),
-          ContentTextStub({ value: '← packages/web (b)' }),
+          '← packages/web (a)',
+          '← packages/web (b)',
         ],
       });
 

@@ -32,8 +32,6 @@
  * // (still moving: network)'
  */
 
-import { contentTextContract } from '@dungeonmaster/shared/contracts';
-import type { ContentText } from '@dungeonmaster/shared/contracts';
 
 import type { BrowserSession } from '../../../contracts/browser-session/browser-session-contract';
 import { driverStatics } from '../../../statics/driver/driver-statics';
@@ -51,7 +49,7 @@ export const stepClickBroker = async ({
   within: string | null;
   ref: number | null;
   timeoutMs: number | null;
-}): Promise<ContentText> => {
+}): Promise<string> => {
   const resolvedTimeoutMs = timeoutMs ?? driverStatics.run.defaultStepTimeoutMs;
 
   if (ref !== null) {
@@ -62,7 +60,7 @@ export const stepClickBroker = async ({
       pollMs: driverStatics.settle.pollMs,
     });
     return settleReadingRenderTransformer({
-      baseMessage: contentTextContract.parse(`clicked ref ${String(ref)}`),
+      baseMessage: `clicked ref ${String(ref)}`,
       settleReading,
     });
   }
@@ -86,9 +84,7 @@ export const stepClickBroker = async ({
   });
 
   return settleReadingRenderTransformer({
-    baseMessage: contentTextContract.parse(
-      within === null ? `clicked ${target}` : `clicked ${target} within ${within}`,
-    ),
+    baseMessage: (within === null ? `clicked ${target}` : `clicked ${target} within ${within}`),
     settleReading,
   });
 };

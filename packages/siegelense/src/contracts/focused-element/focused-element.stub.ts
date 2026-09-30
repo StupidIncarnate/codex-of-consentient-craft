@@ -1,5 +1,4 @@
 import type { StubArgument } from '@dungeonmaster/shared/@types';
-import { ContentTextStub } from '@dungeonmaster/shared/contracts/content-text/content-text.stub';
 
 import { focusedElementContract } from './focused-element-contract';
 import type { FocusedElement } from './focused-element-contract';
@@ -8,7 +7,7 @@ export const FocusedElementStub = ({
   ...props
 }: StubArgument<FocusedElement> = {}): FocusedElement =>
   focusedElementContract.parse({
-    tag: ContentTextStub({ value: 'input' }),
+    tag: 'input',
     testId: null,
     role: null,
     domId: null,

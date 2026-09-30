@@ -12,10 +12,6 @@
  */
 
 import {
-  contentTextContract,
-  type ContentText,
-} from '../../contracts/content-text/content-text-contract';
-import {
   routeMetadataContract,
   type RouteMetadata,
 } from '../../contracts/route-metadata/route-metadata-contract';
@@ -29,7 +25,7 @@ const LINE_COMMENT_PATTERN = /\/\/[^\n]*/gu;
 export const routeMetadataExtractTransformer = ({
   source,
 }: {
-  source: ContentText;
+  source: string;
 }): RouteMetadata[] => {
   const sourceStr = String(source)
     .replace(BLOCK_COMMENT_PATTERN, '')
@@ -45,9 +41,9 @@ export const routeMetadataExtractTransformer = ({
     const attrs = match[1] ?? '';
     const elementMatch = ELEMENT_ATTR_PATTERN.exec(attrs);
     if (elementMatch?.[1] !== undefined) {
-      const responderSymbol = contentTextContract.parse(elementMatch[1]);
+      const responderSymbol = elementMatch[1];
       const pathMatch = PATH_ATTR_PATTERN.exec(attrs);
-      const path = pathMatch?.[1] === undefined ? null : contentTextContract.parse(pathMatch[1]);
+      const path = pathMatch?.[1] === undefined ? null : pathMatch[1];
       result.push(routeMetadataContract.parse({ path, responderSymbol }));
     }
     match = ROUTE_JSX_PATTERN.exec(sourceStr);

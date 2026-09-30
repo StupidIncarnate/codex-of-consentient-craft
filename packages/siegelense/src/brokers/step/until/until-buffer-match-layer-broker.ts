@@ -21,7 +21,6 @@
  * // Resolves the reading once a line matches, or throws UntilCeilingHitError at the ceiling
  */
 
-import type { ContentText } from '@dungeonmaster/shared/contracts';
 import { setTimeout } from '#gateway/node/setTimeout';
 
 import { resultRowContract } from '../../../contracts/result-row/result-row-contract';
@@ -40,15 +39,15 @@ export const untilBufferMatchLayerBroker = async ({
   buildReading,
 }: {
   kind: 'console' | 'network';
-  readSince: (params: { fromIndex: number }) => readonly ContentText[];
+  readSince: (params: { fromIndex: number }) => readonly string[];
   fromIndex: number;
   startedAtMs: number;
   deadlineAtMs: number;
   timeoutMs: number;
   matches: (parsed: Record<PropertyKey, unknown>) => boolean;
   descriptor: string;
-  buildReading: (params: { parsed: Record<PropertyKey, unknown>; waitedMs: number }) => ContentText;
-}): Promise<ContentText> => {
+  buildReading: (params: { parsed: Record<PropertyKey, unknown>; waitedMs: number }) => string;
+}): Promise<string> => {
   const sinceLines = readSince({ fromIndex });
   const matchedLine = sinceLines.find((line) => matches(resultRowContract.parse(JSON.parse(line))));
 

@@ -15,8 +15,6 @@
  */
 
 import { readFileSync } from '#gateway/node/fs';
-import { contentTextContract } from '../../../contracts/content-text/content-text-contract';
-import type { ContentText } from '../../../contracts/content-text/content-text-contract';
 import { exportNameExtractTransformer } from '../../../transformers/export-name-extract/export-name-extract-transformer';
 import { filePathToSymbolNameTransformer } from '../../../transformers/file-path-to-symbol-name/file-path-to-symbol-name-transformer';
 
@@ -24,10 +22,10 @@ export const architectureExportNameResolveBroker = ({
   filePath,
 }: {
   filePath: string;
-}): ContentText => {
+}): string => {
   const fallback = filePathToSymbolNameTransformer({ filePath });
   try {
-    const source = contentTextContract.parse(readFileSync(filePath));
+    const source = readFileSync(filePath);
     const extracted = exportNameExtractTransformer({ source });
     return extracted ?? fallback;
   } catch {

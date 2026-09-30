@@ -1,6 +1,5 @@
 import { TextContentSchema } from '#gateway/npm/modelcontextprotocol__sdk__types';
 import { ToolNameStub } from '../../../contracts/tool-name/tool-name.stub';
-import { ContentTextStub } from '@dungeonmaster/shared/contracts/content-text/content-text.stub';
 import { DesignDecisionStub } from '@dungeonmaster/shared/contracts/design-decision/design-decision.stub';
 import { FlowNodeStub } from '@dungeonmaster/shared/contracts/flow-node/flow-node.stub';
 import { FlowStub } from '@dungeonmaster/shared/contracts/flow/flow.stub';
@@ -1113,9 +1112,7 @@ describe('QuestHandleResponder', () => {
   describe('get-blight-checklist', () => {
     it('VALID: {questId} => dispatches to the blight layer responder and returns rendered text VERBATIM with newlines intact', async () => {
       const proxy = QuestHandleResponderProxy();
-      const multiLineChecklist = ContentTextStub({
-        value: '# BLIGHT CHECKLIST\nUnits: 2\n[ ] a-file:security:x\n[x] b-file:perf:reviewed',
-      });
+      const multiLineChecklist = '# BLIGHT CHECKLIST\nUnits: 2\n[ ] a-file:security:x\n[x] b-file:perf:reviewed';
       proxy.setupGetBlightChecklistReturns({
         questId: QuestIdStub({ value: 'test-quest-id' }),
         result: { success: true, data: multiLineChecklist },
@@ -1143,7 +1140,7 @@ describe('QuestHandleResponder', () => {
       const proxy = QuestHandleResponderProxy();
       proxy.setupGetBlightChecklistReturns({
         questId: QuestIdStub({ value: 'test-quest-id' }),
-        result: { success: true, data: ContentTextStub({ value: '# BLIGHT CHECKLIST' }) },
+        result: { success: true, data: '# BLIGHT CHECKLIST' },
       });
 
       await proxy.callResponder({

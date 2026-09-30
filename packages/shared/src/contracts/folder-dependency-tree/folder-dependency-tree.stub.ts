@@ -10,14 +10,13 @@ import {
   folderDependencyTreeContract,
   type FolderDependencyTree,
 } from './folder-dependency-tree-contract';
-import { ContentTextStub } from '../content-text/content-text.stub';
 
 export const FolderDependencyTreeStub = ({
   ...props
 }: StubArgument<FolderDependencyTree> = {}): FolderDependencyTree =>
   folderDependencyTreeContract.parse({
-    hierarchy: ContentTextStub({ value: 'statics/          # Can import: nothing (leaf node)' }),
+    hierarchy: 'statics/          # Can import: nothing (leaf node)',
     graph: {},
-    matrix: ContentTextStub({ value: 'FROM \\ TO' }),
+    matrix: 'FROM \\ TO',
     ...props,
   });

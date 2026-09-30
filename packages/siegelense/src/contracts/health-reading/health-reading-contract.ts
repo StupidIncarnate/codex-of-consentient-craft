@@ -20,7 +20,6 @@
  */
 
 import { z } from '#gateway/npm/zod';
-import { contentTextContract } from '@dungeonmaster/shared/contracts';
 
 import { healthVerdictContract } from '../health-verdict/health-verdict-contract';
 import { hexColourContract } from '../hex-colour/hex-colour-contract';
@@ -33,12 +32,12 @@ export const healthReadingContract = z
     blank: z.boolean(),
     blankColour: hexColourContract.nullable(),
     consoleErrors: readingCountContract,
-    firstConsoleError: contentTextContract.nullable(),
+    firstConsoleError: z.string().brand<'HealthReadingFirstConsoleError'>().nullable(),
     network5xxCount: readingCountContract,
-    first5xx: contentTextContract.nullable(),
+    first5xx: z.string().brand<'HealthReadingFirst5xx'>().nullable(),
     serverErrors: readingCountContract,
-    firstServerError: contentTextContract.nullable(),
-    rendered: contentTextContract,
+    firstServerError: z.string().brand<'HealthReadingFirstServerError'>().nullable(),
+    rendered: z.string().brand<'HealthReadingRendered'>(),
   })
   .strict();
 

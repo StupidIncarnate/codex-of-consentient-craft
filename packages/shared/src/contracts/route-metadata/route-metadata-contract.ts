@@ -13,11 +13,10 @@
  */
 
 import { z } from '#gateway/npm/zod';
-import { contentTextContract } from '../content-text/content-text-contract';
 
 export const routeMetadataContract = z.object({
-  path: contentTextContract.nullable(),
-  responderSymbol: contentTextContract,
+  path: z.string().brand<'RouteMetadataPath'>().nullable(),
+  responderSymbol: z.string().brand<'RouteMetadataResponderSymbol'>(),
 });
 
 export type RouteMetadata = z.infer<typeof routeMetadataContract>;

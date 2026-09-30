@@ -22,7 +22,6 @@
  * // Resolves the target, clicks it, and returns the reading — or throws
  */
 
-import type { ContentText } from '@dungeonmaster/shared/contracts';
 
 import type { BufferLengths } from '../../../contracts/buffer-lengths/buffer-lengths-contract';
 import type { LaneSession } from '../../../contracts/lane-session/lane-session-contract';
@@ -75,7 +74,7 @@ export const runVerbLayerBroker = async ({
   shotPath: string | null;
   browserWindowStart: BufferLengths | null;
   recordBinding: (params: { name: SeedBindingName; result: unknown }) => void;
-}): Promise<ContentText> => {
+}): Promise<string> => {
   if (step.step === 'seed') {
     const reading = await stepSeedBroker({ lane, step });
     if (step.as !== null) {

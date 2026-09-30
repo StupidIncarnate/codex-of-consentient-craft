@@ -1,6 +1,5 @@
 import { stdout } from '#gateway/node/process';
 import { registerSpyOn } from '@dungeonmaster/testing/register-mock';
-import { ContentTextStub } from '@dungeonmaster/shared/contracts/content-text/content-text.stub';
 
 import { KillResultStub } from '../../contracts/kill-result/kill-result.stub';
 import { RepoLocalPathStub } from '../../contracts/repo-local-path/repo-local-path.stub';
@@ -59,7 +58,7 @@ describe('SiegelenseKillLayerFlow', () => {
 
       const writes = stdoutSpy
         .callsMatching([])
-        .map((call) => ContentTextStub({ value: String(call[0]) }));
+        .map((call) => String(call[0]));
 
       const expectedResult = KillResultStub({
         instanceId: tree.killedInstanceId(),
@@ -85,7 +84,7 @@ describe('SiegelenseKillLayerFlow', () => {
 
       const writes = stdoutSpy
         .callsMatching([])
-        .map((call) => ContentTextStub({ value: String(call[0]) }));
+        .map((call) => String(call[0]));
 
       const expectedResult = KillResultStub({
         instanceId: tree.killedInstanceId(),

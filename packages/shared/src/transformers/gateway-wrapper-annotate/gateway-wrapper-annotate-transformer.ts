@@ -18,8 +18,6 @@
  * // Returns ['readFile ✗ banned, use readTextFile']
  */
 
-import { contentTextContract } from '../../contracts/content-text/content-text-contract';
-import type { ContentText } from '../../contracts/content-text/content-text-contract';
 import type { GatewayLintConfig } from '../../contracts/gateway-lint-config/gateway-lint-config-contract';
 
 const PACKAGE_PATH_SEPARATOR = '/';
@@ -30,17 +28,17 @@ export const gatewayWrapperAnnotateTransformer = ({
   wrapperNames,
   gatewayLintConfig,
 }: {
-  subpath: ContentText;
-  wrapperNames: ContentText[];
+  subpath: string;
+  wrapperNames: string[];
   gatewayLintConfig: GatewayLintConfig;
-}): ContentText[] =>
+}): string[] =>
   wrapperNames.map((wrapperName) => {
     const bannedEntry = gatewayLintConfig.bannedExports?.find(
       (entry) =>
         String(entry.subpath) === String(subpath) && String(entry.name) === String(wrapperName),
     );
     if (bannedEntry !== undefined) {
-      return contentTextContract.parse(`${wrapperName} ✗ banned, use ${bannedEntry.use}`);
+      return `${wrapperName} ✗ banned, use ${bannedEntry.use}`;
     }
 
     const restrictedEntry = gatewayLintConfig.restrictedTo?.find(
@@ -55,8 +53,8 @@ export const gatewayWrapperAnnotateTransformer = ({
           return segments.pop() ?? String(packageName);
         })
         .join(PACKAGE_NAME_LIST_JOIN);
-      return contentTextContract.parse(`${wrapperName} (${packageList} only)`);
+      return `${wrapperName} (${packageList} only)`;
     }
 
-    return contentTextContract.parse(String(wrapperName));
+    return String(wrapperName);
   });

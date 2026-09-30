@@ -1,4 +1,3 @@
-import { ContentTextStub } from '@dungeonmaster/shared/contracts/content-text/content-text.stub';
 
 import { BootFailureMarkerStub } from '../../../contracts/boot-failure-marker/boot-failure-marker.stub';
 import { EpochMsStub } from '../../../contracts/epoch-ms/epoch-ms.stub';
@@ -11,7 +10,7 @@ describe('bootFailureMarkerWriteBroker', () => {
     it('VALID: {evidencePath, message} => writes boot-failure.json under that directory', async () => {
       const proxy = bootFailureMarkerWriteBrokerProxy();
       const evidencePath = '/home/user/.dungeonmaster/siegelense/unowned/instances/inst_7f3a9c21';
-      const message = ContentTextStub({ value: 'CLAUDE_CLI_PATH is required' });
+      const message = 'CLAUDE_CLI_PATH is required';
       const nowMs = 1_700_000_500_000;
       proxy.setupWriteSucceeds({ evidencePath, nowMs });
 

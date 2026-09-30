@@ -3,8 +3,7 @@ import { ensureDirProxy } from '#gateway/node/fs__promises/ensure-dir/ensure-dir
 import { stderrProxy } from '#gateway/node/process/stderr/stderr.proxy';
 import { registerMock, registerSpyOn } from '@dungeonmaster/testing/register-mock';
 import type { MockHandle } from '@dungeonmaster/testing/register-mock';
-import { ContentTextStub } from '@dungeonmaster/shared/contracts/content-text/content-text.stub';
-import type { ContentText, Guild, SiegeRun } from '@dungeonmaster/shared/contracts';
+import type { Guild, SiegeRun } from '@dungeonmaster/shared/contracts';
 
 import { BufferLengthsStub } from '../../../contracts/buffer-lengths/buffer-lengths.stub';
 import { LaneSessionStub } from '../../../contracts/lane-session/lane-session.stub';
@@ -86,9 +85,9 @@ export const runExecuteBrokerProxy = (): {
   };
   seedBookPresent: () => void;
   seedLaneAnswers: (params: {
-    apiBaseUrl: ContentText;
+    apiBaseUrl: string;
     guild: Guild;
-    questIds: readonly ContentText[];
+    questIds: readonly string[];
     secondGuild?: Guild;
   }) => { getCallArgs: () => readonly unknown[] };
   dispatchedSteps: () => readonly unknown[];
@@ -103,12 +102,12 @@ export const runExecuteBrokerProxy = (): {
   laneWithBrowserHistory: (params: {
     consoleStart: ReadingCount;
     networkStart: ReadingCount;
-    newConsoleLines: readonly ContentText[];
-    newNetworkLines: readonly ContentText[];
+    newConsoleLines: readonly string[];
+    newNetworkLines: readonly string[];
   }) => LaneSession;
   laneWithGrowingConsoleBuffer: () => {
     lane: LaneSession;
-    pushConsoleLine: (params: { text: ContentText }) => void;
+    pushConsoleLine: (params: { text: string }) => void;
   };
   laneClickTriggersNetworkLine: () => { lane: LaneSession };
   laneCapturingShots: (params?: { evidencePath?: string }) => {
@@ -142,7 +141,7 @@ export const runExecuteBrokerProxy = (): {
     snapshotCountAtEachStep: () => readonly ReadingCount[];
   };
   failSnapshotCapture: (params: { error: Error }) => void;
-  getStderrText: () => ReturnType<typeof ContentTextStub>;
+  getStderrText: () => string;
 } => {
   // Satisfies enforce-proxy-child-creation for every broker/adapter run-execute-broker.ts imports.
   locationsRunPathsFindBrokerProxy();
@@ -301,9 +300,9 @@ export const runExecuteBrokerProxy = (): {
       questIds,
       secondGuild,
     }: {
-      apiBaseUrl: ContentText;
+      apiBaseUrl: string;
       guild: Guild;
-      questIds: readonly ContentText[];
+      questIds: readonly string[];
       secondGuild?: Guild;
     }): { getCallArgs: () => readonly unknown[] } =>
       stepLayerProxy.seedLaneAnswers({
@@ -370,8 +369,8 @@ export const runExecuteBrokerProxy = (): {
     }: {
       consoleStart: ReadingCount;
       networkStart: ReadingCount;
-      newConsoleLines: readonly ContentText[];
-      newNetworkLines: readonly ContentText[];
+      newConsoleLines: readonly string[];
+      newNetworkLines: readonly string[];
     }): LaneSession =>
       LaneSessionStub({
         evidencePath: EVIDENCE_PATH,
@@ -397,11 +396,11 @@ export const runExecuteBrokerProxy = (): {
     // with no step attached (e.g. between two runs), console.jsonl's own runId/step: null case.
     laneWithGrowingConsoleBuffer: (): {
       lane: LaneSession;
-      pushConsoleLine: (params: { text: ContentText }) => void;
+      pushConsoleLine: (params: { text: string }) => void;
     } => {
-      const consoleBuffer: ContentText[] = [];
+      const consoleBuffer: string[] = [];
       const gotoMock = jest.fn().mockImplementation(async () => {
-        consoleBuffer.push(ContentTextStub({ value: `{"line":${String(consoleBuffer.length)}}` }));
+        consoleBuffer.push(`{"line":${String(consoleBuffer.length)}}`);
         return Promise.resolve(undefined);
       });
       const lane = LaneSessionStub({
@@ -421,7 +420,7 @@ export const runExecuteBrokerProxy = (): {
       });
       return {
         lane,
-        pushConsoleLine: ({ text }: { text: ContentText }): void => {
+        pushConsoleLine: ({ text }: { text: string }): void => {
           consoleBuffer.push(text);
         },
       };
@@ -436,12 +435,10 @@ export const runExecuteBrokerProxy = (): {
     // calls) is what lets a test prove a match from an earlier RUN still sits before the SECOND
     // run's own window.
     laneClickTriggersNetworkLine: (): { lane: LaneSession } => {
-      const networkBuffer: ContentText[] = [];
+      const networkBuffer: string[] = [];
       const clickMock = jest.fn().mockImplementation(async () => {
         networkBuffer.push(
-          ContentTextStub({
-            value: JSON.stringify({ method: 'POST', url: '/api/guilds', status: 201 }),
-          }),
+          JSON.stringify({ method: 'POST', url: '/api/guilds', status: 201 }),
         );
         return Promise.resolve(undefined);
       });
@@ -579,7 +576,7 @@ export const runExecuteBrokerProxy = (): {
       snapshotCaptureHandle.calledWith([{ manual: false }]).rejects(error);
     },
 
-    getStderrText: (): ReturnType<typeof ContentTextStub> =>
-      ContentTextStub({ value: stderrLog.getWrittenText() }),
+    getStderrText: (): string =>
+      stderrLog.getWrittenText(),
   };
 };

@@ -48,8 +48,6 @@
  * // memory/profile/OOM reading never enters the sentence
  */
 
-import { contentTextContract } from '@dungeonmaster/shared/contracts';
-import type { ContentText } from '@dungeonmaster/shared/contracts';
 
 import type { CapacityProfile } from '../../../contracts/capacity-profile/capacity-profile-contract';
 import type { InstanceState } from '../../../contracts/instance-state/instance-state-contract';
@@ -69,9 +67,9 @@ export const likelyCauseLayerBroker = ({
   specName: SpecName;
   rssAtLastBeat: Megabytes | null;
   oomKillsSinceBoot: ReadingCount | null;
-  shutdownReason: ContentText | null;
+  shutdownReason: string | null;
   soloProfile: CapacityProfile | null;
-}): ContentText | null => {
+}): string | null => {
   if (state === 'alive') {
     return null;
   }
@@ -95,5 +93,5 @@ export const likelyCauseLayerBroker = ({
       ? 'kernel OOM events unavailable'
       : `kernel OOM kills since boot: ${String(oomKillsSinceBoot)}`;
 
-  return contentTextContract.parse(`${memoryPart}; ${oomPart}`);
+  return `${memoryPart}; ${oomPart}`;
 };

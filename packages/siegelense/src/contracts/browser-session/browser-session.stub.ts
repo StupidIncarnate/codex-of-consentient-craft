@@ -1,6 +1,4 @@
 import type { StubArgument } from '@dungeonmaster/shared/@types';
-import { contentTextContract } from '@dungeonmaster/shared/contracts';
-import type { ContentText } from '@dungeonmaster/shared/contracts';
 
 import type { BrowserSession } from './browser-session-contract';
 import { BufferLengthsStub } from '../buffer-lengths/buffer-lengths.stub';
@@ -74,7 +72,7 @@ export const BrowserSessionStub = ({
     describeMatches:
       describeMatches ?? (async (): Promise<readonly StepCandidate[]> => Promise.resolve([])),
     nearestNames:
-      nearestNames ?? (async (): Promise<readonly ContentText[]> => Promise.resolve([])),
+      nearestNames ?? (async (): Promise<readonly string[]> => Promise.resolve([])),
     clickMatch: clickMatch ?? (async (): Promise<void> => Promise.resolve()),
     clickRef: clickRef ?? (async (): Promise<void> => Promise.resolve()),
     fillRef: fillRef ?? (async (): Promise<void> => Promise.resolve()),
@@ -91,10 +89,10 @@ export const BrowserSessionStub = ({
     captureLive: captureLive ?? (async (): Promise<void> => Promise.resolve()),
     evaluateSource:
       evaluateSource ??
-      (async (): Promise<ContentText> => Promise.resolve(contentTextContract.parse(''))),
-    readConsoleSince: readConsoleSince ?? ((): readonly ContentText[] => []),
-    readNetworkSince: readNetworkSince ?? ((): readonly ContentText[] => []),
-    readWebsocketSince: readWebsocketSince ?? ((): readonly ContentText[] => []),
+      (async (): Promise<string> => Promise.resolve('')),
+    readConsoleSince: readConsoleSince ?? ((): readonly string[] => []),
+    readNetworkSince: readNetworkSince ?? ((): readonly string[] => []),
+    readWebsocketSince: readWebsocketSince ?? ((): readonly string[] => []),
     readDom: readDom ?? (async (): Promise<DomReading> => Promise.resolve(DomReadingStub())),
     checkRootPresent: checkRootPresent ?? (async (): Promise<boolean> => Promise.resolve(true)),
     setViewport: setViewport ?? (async (): Promise<void> => Promise.resolve()),

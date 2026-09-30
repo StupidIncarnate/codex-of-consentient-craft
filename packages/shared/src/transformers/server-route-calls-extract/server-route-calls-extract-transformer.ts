@@ -19,10 +19,6 @@
  */
 
 import {
-  contentTextContract,
-  type ContentText,
-} from '../../contracts/content-text/content-text-contract';
-import {
   serverRouteCallSiteContract,
   type ServerRouteCallSite,
 } from '../../contracts/server-route-call-site/server-route-call-site-contract';
@@ -39,7 +35,7 @@ const RESPONDER_REF_PATTERN = /\bawait\s+([A-Z][A-Za-z0-9]*Responder)\s*\(/u;
 export const serverRouteCallsExtractTransformer = ({
   source,
 }: {
-  source: ContentText;
+  source: string;
 }): ServerRouteCallSite[] => {
   const sourceStr = String(source);
   const callStarts = [];
@@ -68,11 +64,11 @@ export const serverRouteCallsExtractTransformer = ({
     const sliceText = sourceStr.slice(current.bodyStart, sliceEnd);
     const responderMatch = RESPONDER_REF_PATTERN.exec(sliceText);
     const responderName =
-      responderMatch?.[1] === undefined ? null : contentTextContract.parse(responderMatch[1]);
+      responderMatch?.[1] === undefined ? null : responderMatch[1];
     results.push(
       serverRouteCallSiteContract.parse({
-        method: contentTextContract.parse(current.method),
-        rawArg: contentTextContract.parse(current.rawArg),
+        method: current.method,
+        rawArg: current.rawArg,
         responderName,
       }),
     );

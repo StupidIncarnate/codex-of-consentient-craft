@@ -1,4 +1,3 @@
-import { ContentTextStub } from '@dungeonmaster/shared/contracts/content-text/content-text.stub';
 
 import { CapacityProfileStub } from '../../../contracts/capacity-profile/capacity-profile.stub';
 import { MegabytesStub } from '../../../contracts/megabytes/megabytes.stub';
@@ -121,9 +120,7 @@ describe('likelyCauseLayerBroker', () => {
         specName: SpecNameStub({ value: 'dungeonmaster-stack' }),
         rssAtLastBeat: MegabytesStub({ value: 622 }),
         oomKillsSinceBoot: ReadingCountStub({ value: 1 }),
-        shutdownReason: ContentTextStub({
-          value: 'reaped by idle timeout after 900s with no run received',
-        }),
+        shutdownReason: 'reaped by idle timeout after 900s with no run received',
         soloProfile: null,
       });
 
@@ -138,9 +135,7 @@ describe('likelyCauseLayerBroker', () => {
         specName: SpecNameStub({ value: 'dungeonmaster-stack' }),
         rssAtLastBeat: null,
         oomKillsSinceBoot: null,
-        shutdownReason: ContentTextStub({
-          value: 'reaped by idle timeout after 900s with no run received',
-        }),
+        shutdownReason: 'reaped by idle timeout after 900s with no run received',
         soloProfile: null,
       });
 
@@ -155,9 +150,7 @@ describe('likelyCauseLayerBroker', () => {
         specName: SpecNameStub({ value: 'stack' }),
         rssAtLastBeat: MegabytesStub({ value: 609 }),
         oomKillsSinceBoot: ReadingCountStub({ value: 0 }),
-        shutdownReason: ContentTextStub({
-          value: 'reaped by cleanup after its heartbeat went stale',
-        }),
+        shutdownReason: 'reaped by cleanup after its heartbeat went stale',
         soloProfile: CapacityProfileStub({
           spec: 'stack',
           poolSize: 1,
@@ -195,7 +188,7 @@ describe('likelyCauseLayerBroker', () => {
         specName: SpecNameStub({ value: 'dungeonmaster-stack' }),
         rssAtLastBeat: null,
         oomKillsSinceBoot: null,
-        shutdownReason: ContentTextStub({ value: 'reaped by idle timeout' }),
+        shutdownReason: 'reaped by idle timeout',
         soloProfile: null,
       });
 

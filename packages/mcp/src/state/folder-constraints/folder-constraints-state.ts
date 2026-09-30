@@ -7,21 +7,20 @@
  * // Returns ContentText or undefined
  */
 import type { FolderType } from '@dungeonmaster/shared/contracts';
-import type { ContentText } from '../../contracts/content-text/content-text-contract';
 
-const constraintsMap = new Map<FolderType, ContentText>();
+const constraintsMap = new Map<FolderType, string>();
 
 export const folderConstraintsState = {
-  set: ({ folderType, content }: { folderType: FolderType; content: ContentText }): void => {
+  set: ({ folderType, content }: { folderType: FolderType; content: string }): void => {
     constraintsMap.set(folderType, content);
   },
 
-  get: ({ folderType }: { folderType: FolderType }): ContentText | undefined =>
+  get: ({ folderType }: { folderType: FolderType }): string | undefined =>
     constraintsMap.get(folderType),
 
   clear: (): void => {
     constraintsMap.clear();
   },
 
-  getAll: (): Map<FolderType, ContentText> => new Map(constraintsMap),
+  getAll: (): Map<FolderType, string> => new Map(constraintsMap),
 } as const;

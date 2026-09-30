@@ -23,8 +23,7 @@
 
 import { z } from '#gateway/npm/zod';
 
-import { absoluteFilePathContract, contentTextContract } from '@dungeonmaster/shared/contracts';
-import type { ContentText } from '@dungeonmaster/shared/contracts';
+import { absoluteFilePathContract } from '@dungeonmaster/shared/contracts';
 
 import type { BrowserSession } from '../browser-session/browser-session-contract';
 import { fileDescriptorContract } from '../file-descriptor/file-descriptor-contract';
@@ -39,8 +38,8 @@ export const laneSessionContract = z
     ports: portPairContract,
     homePath: absoluteFilePathContract,
     evidencePath: absoluteFilePathContract,
-    baseUrl: contentTextContract,
-    apiBaseUrl: contentTextContract,
+    baseUrl: z.string().brand<'LaneSessionBaseUrl'>(),
+    apiBaseUrl: z.string().brand<'LaneSessionApiBaseUrl'>(),
     pgids: z.array(processGroupIdContract).readonly(),
     // `z.custom`, not a nested schema: the value is a live session closed over a browser, and the
     // check passes the same reference through so its functions survive the parse.
@@ -52,6 +51,6 @@ export const laneSessionContract = z
   .brand<'LaneSession'>();
 
 export type LaneSession = z.infer<typeof laneSessionContract> & {
-  readServerLogSince: ({ fromByte }: { fromByte: number }) => readonly ContentText[];
+  readServerLogSince: ({ fromByte }: { fromByte: number }) => readonly string[];
   serverLogLength: () => ServerLogByteCount;
 };

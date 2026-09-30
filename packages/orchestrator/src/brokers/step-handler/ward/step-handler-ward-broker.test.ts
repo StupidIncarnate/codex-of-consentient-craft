@@ -1,4 +1,3 @@
-import { ContentTextStub } from '@dungeonmaster/shared/contracts/content-text/content-text.stub';
 import { ExitCodeStub } from '@dungeonmaster/shared/contracts/exit-code/exit-code.stub';
 import { FileNameStub } from '@dungeonmaster/shared/contracts/file-name/file-name.stub';
 import { QuestIdStub } from '@dungeonmaster/shared/contracts/quest-id/quest-id.stub';
@@ -8,7 +7,7 @@ import { wardExitCodeStatics } from '@dungeonmaster/shared/statics';
 import { stepHandlerWardBroker } from './step-handler-ward-broker';
 import { stepHandlerWardBrokerProxy } from './step-handler-ward-broker.proxy';
 
-type ContentText = ReturnType<typeof ContentTextStub>;
+type ContentText = string;
 
 const QUEST_ID = QuestIdStub({ value: 'add-auth' });
 const WORK_ITEM_ID = QuestWorkItemIdStub({ value: 'f47ac10b-58cc-4372-a567-0e02b2c3d479' });
@@ -183,7 +182,7 @@ describe('stepHandlerWardBroker', () => {
         args: [],
         questId: QUEST_ID,
         workItemId: WORK_ITEM_ID,
-        onLine: (line) => seenLines.push(ContentTextStub({ value: line })),
+        onLine: (line) => seenLines.push(line),
       });
 
       expect(seenLines).toStrictEqual(['run: 1780108054226-a080', 'lint: PASS']);

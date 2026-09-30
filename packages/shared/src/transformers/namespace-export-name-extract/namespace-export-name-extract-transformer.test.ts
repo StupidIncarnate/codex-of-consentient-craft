@@ -1,11 +1,10 @@
 import { namespaceExportNameExtractTransformer } from './namespace-export-name-extract-transformer';
-import { ContentTextStub } from '../../contracts/content-text/content-text.stub';
 
 describe('namespaceExportNameExtractTransformer', () => {
   describe('no matching export', () => {
     it('EMPTY: {source with no exported const object} => returns null', () => {
       const result = namespaceExportNameExtractTransformer({
-        source: ContentTextStub({ value: 'const x = 1;' }),
+        source: 'const x = 1;',
       });
 
       expect(result).toBe(null);
@@ -13,7 +12,7 @@ describe('namespaceExportNameExtractTransformer', () => {
 
     it('EMPTY: {lowercase export const} => returns null', () => {
       const result = namespaceExportNameExtractTransformer({
-        source: ContentTextStub({ value: 'export const lowerCase = {};' }),
+        source: 'export const lowerCase = {};',
       });
 
       expect(result).toBe(null);
@@ -23,9 +22,7 @@ describe('namespaceExportNameExtractTransformer', () => {
   describe('valid namespace export', () => {
     it('VALID: {StartOrchestrator exported} => returns StartOrchestrator', () => {
       const result = namespaceExportNameExtractTransformer({
-        source: ContentTextStub({
-          value: 'export const StartOrchestrator = {\n  listGuilds: async () => [],\n};\n',
-        }),
+        source: 'export const StartOrchestrator = {\n  listGuilds: async () => [],\n};\n',
       });
 
       expect(String(result)).toBe('StartOrchestrator');
@@ -33,9 +30,7 @@ describe('namespaceExportNameExtractTransformer', () => {
 
     it('VALID: {StartMcp exported} => returns StartMcp', () => {
       const result = namespaceExportNameExtractTransformer({
-        source: ContentTextStub({
-          value: 'export const StartMcp = { discover: async () => {} };\n',
-        }),
+        source: 'export const StartMcp = { discover: async () => {} };\n',
       });
 
       expect(String(result)).toBe('StartMcp');

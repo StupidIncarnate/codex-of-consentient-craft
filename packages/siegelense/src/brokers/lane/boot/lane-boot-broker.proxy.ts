@@ -14,8 +14,6 @@ import { envSnapshotProxy } from '#gateway/node/process/env-snapshot/env-snapsho
 import { ensureDirProxy } from '#gateway/node/fs__promises/ensure-dir/ensure-dir.proxy';
 import { registerMock, requireActual } from '@dungeonmaster/testing/register-mock';
 import { cwdResolveBrokerProxy } from '@dungeonmaster/shared/brokers/cwd/resolve/cwd-resolve-broker.proxy';
-import { contentTextContract } from '@dungeonmaster/shared/contracts';
-import type { ContentText } from '@dungeonmaster/shared/contracts';
 
 import { rmProxy } from '#gateway/node/fs__promises/rm/rm.proxy';
 import { processKillGroupBrokerProxy } from '../../process/kill-group/process-kill-group-broker.proxy';
@@ -80,7 +78,7 @@ export const laneBootBrokerProxy = (): {
   // The env a spawned process's stdio inherits, captured at the SAME point `lane-boot-broker`
   // itself reads `process.env` — a test reading process.env only after `await`ing the whole boot
   // would also pick up browserSessionLaunchBroker's own later PLAYWRIGHT_BROWSERS_PATH mutation.
-  getInheritedEnvSnapshot: () => Record<PropertyKey, ContentText>;
+  getInheritedEnvSnapshot: () => Record<PropertyKey, string>;
 } => {
   const resolveProxy = cwdResolveBrokerProxy();
   // `join` (from '#gateway/node/path') runs for real, on a sticky passthrough default — every
@@ -232,13 +230,13 @@ export const laneBootBrokerProxy = (): {
     getBrowserLaunchCallCount: (): ReadingCount =>
       ReadingCountStub({ value: browserProxy.getLaunchCalls().length }),
 
-    getInheritedEnvSnapshot: (): Record<PropertyKey, ContentText> =>
+    getInheritedEnvSnapshot: (): Record<PropertyKey, string> =>
       Object.fromEntries(
         Object.entries(envSnapshot())
           .filter(([, value]) => value !== undefined)
-          .map(([key, value]): [PropertyKey, ContentText] => [
+          .map(([key, value]): [PropertyKey, string] => [
             key,
-            contentTextContract.parse(value),
+            value,
           ]),
       ),
   };

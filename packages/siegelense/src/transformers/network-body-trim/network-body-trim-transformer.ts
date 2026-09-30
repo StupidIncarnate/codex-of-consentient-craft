@@ -12,16 +12,12 @@
  * // Returns '<a> <b>' as ContentText
  */
 
-import { contentTextContract } from '@dungeonmaster/shared/contracts';
-import type { ContentText } from '@dungeonmaster/shared/contracts';
 
 import { resultsStatics } from '../../statics/results/results-statics';
 
-export const networkBodyTrimTransformer = ({ body }: { body: ContentText }): ContentText => {
+export const networkBodyTrimTransformer = ({ body }: { body: string }): string => {
   const collapsed = body.replace(/\s+/gu, ' ');
-  return contentTextContract.parse(
-    collapsed.length > resultsStatics.render.bodyTrimChars
+  return (collapsed.length > resultsStatics.render.bodyTrimChars
       ? `${collapsed.slice(0, resultsStatics.render.bodyTrimChars)}…`
-      : collapsed,
-  );
+      : collapsed);
 };

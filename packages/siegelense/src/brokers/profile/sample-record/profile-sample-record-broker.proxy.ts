@@ -16,8 +16,6 @@
 import { existsSyncProxy } from '#gateway/node/fs/exists-sync/exists-sync.proxy';
 import { ensureDirProxy } from '#gateway/node/fs__promises/ensure-dir/ensure-dir.proxy';
 import { join } from '#gateway/node/path';
-import { ContentTextStub } from '@dungeonmaster/shared/contracts/content-text/content-text.stub';
-import type { ContentText } from '@dungeonmaster/shared/contracts';
 import { registerMock, requireActual } from '@dungeonmaster/testing/register-mock';
 import { stderrProxy } from '#gateway/node/process/stderr/stderr.proxy';
 
@@ -51,7 +49,7 @@ export const profileSampleRecordBrokerProxy = (): {
     existingRecordJson: string;
   }) => void;
   getWrittenRecord: (params: { profilesPath: string; instanceId: InstanceId }) => unknown;
-  getStderrMessages: () => readonly ContentText[];
+  getStderrMessages: () => readonly string[];
 } => {
   // Both are empty proxies — the spec lookup is a statics read and the hash is a real digest the
   // tests want computed for real. Constructed to satisfy enforce-proxy-child-creation.
@@ -136,7 +134,7 @@ export const profileSampleRecordBrokerProxy = (): {
         path: String(recordPathFor({ profilesPath, instanceId })),
       }),
 
-    getStderrMessages: (): readonly ContentText[] =>
-      stderr.getWrites().map((chunk) => ContentTextStub({ value: String(chunk) })),
+    getStderrMessages: (): readonly string[] =>
+      stderr.getWrites().map((chunk) => String(chunk)),
   };
 };

@@ -1,4 +1,3 @@
-import { ContentTextStub } from '@dungeonmaster/shared/contracts/content-text/content-text.stub';
 
 import { BootFailureMarkerStub } from '../../../contracts/boot-failure-marker/boot-failure-marker.stub';
 
@@ -12,7 +11,7 @@ describe('bootFailureMarkerReadBroker', () => {
     it('VALID: {boot-failure.json present} => returns the parsed marker', async () => {
       const proxy = bootFailureMarkerReadBrokerProxy();
       const marker = BootFailureMarkerStub({
-        message: ContentTextStub({ value: 'CLAUDE_CLI_PATH is required' }),
+        message: 'CLAUDE_CLI_PATH is required',
       });
       proxy.setupMarkerFound({ evidencePath: EVIDENCE_PATH, marker });
 

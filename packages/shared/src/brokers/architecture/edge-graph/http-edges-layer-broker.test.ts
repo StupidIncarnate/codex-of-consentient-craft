@@ -1,9 +1,7 @@
 import { httpEdgesLayerBroker } from './http-edges-layer-broker';
 import { httpEdgesLayerBrokerProxy } from './http-edges-layer-broker.proxy';
-import { ContentTextStub } from '../../../contracts/content-text/content-text.stub';
 
-const SERVER_STATICS = ContentTextStub({
-  value: `export const apiRoutesStatics = {
+const SERVER_STATICS = `export const apiRoutesStatics = {
   health: { check: '/api/health' },
   quests: {
     list: '/api/quests',
@@ -12,11 +10,9 @@ const SERVER_STATICS = ContentTextStub({
     delete: '/api/quests/:questId',
   },
   guilds: { list: '/api/guilds' },
-} as const;`,
-});
+} as const;`;
 
-const WEB_STATICS = ContentTextStub({
-  value: `export const webConfigStatics = {
+const WEB_STATICS = `export const webConfigStatics = {
   api: {
     routes: {
       quests: '/api/quests',
@@ -26,8 +22,7 @@ const WEB_STATICS = ContentTextStub({
       sessionChatHistory: '/api/sessions/:sessionId/chat/history',
     },
   },
-} as const;`,
-});
+} as const;`;
 
 const PROJECT_ROOT = '/repo';
 
@@ -47,9 +42,7 @@ describe('httpEdgesLayerBroker', () => {
         flowFiles: [
           {
             path: QUEST_FLOW_PATH,
-            source: ContentTextStub({
-              value: 'app.post(apiRoutesStatics.quests.start, async (c) => {});',
-            }),
+            source: 'app.post(apiRoutesStatics.quests.start, async (c) => {});',
           },
         ],
         brokerFiles: [],
@@ -80,9 +73,7 @@ describe('httpEdgesLayerBroker', () => {
         flowFiles: [
           {
             path: HEALTH_FLOW_PATH,
-            source: ContentTextStub({
-              value: "app.get('/api/health', (c) => c.json({ status: 'ok' }));",
-            }),
+            source: "app.get('/api/health', (c) => c.json({ status: 'ok' }));",
           },
         ],
         brokerFiles: [],
@@ -113,17 +104,13 @@ describe('httpEdgesLayerBroker', () => {
         flowFiles: [
           {
             path: QUEST_FLOW_PATH,
-            source: ContentTextStub({
-              value: 'app.get(apiRoutesStatics.quests.list, async (c) => {});',
-            }),
+            source: 'app.get(apiRoutesStatics.quests.list, async (c) => {});',
           },
         ],
         brokerFiles: [
           {
             path: QUEST_LIST_BROKER_PATH,
-            source: ContentTextStub({
-              value: 'fetchGetAdapter({ url: webConfigStatics.api.routes.quests });',
-            }),
+            source: 'fetchGetAdapter({ url: webConfigStatics.api.routes.quests });',
           },
         ],
       });
@@ -151,9 +138,7 @@ describe('httpEdgesLayerBroker', () => {
         flowFiles: [
           {
             path: HEALTH_FLOW_PATH,
-            source: ContentTextStub({
-              value: 'app.get(apiRoutesStatics.health.check, (c) => {});',
-            }),
+            source: 'app.get(apiRoutesStatics.health.check, (c) => {});',
           },
         ],
         brokerFiles: [],
@@ -183,9 +168,7 @@ describe('httpEdgesLayerBroker', () => {
         brokerFiles: [
           {
             path: QUEST_LIST_BROKER_PATH,
-            source: ContentTextStub({
-              value: 'fetchGetAdapter({ url: webConfigStatics.api.routes.sessionChatHistory });',
-            }),
+            source: 'fetchGetAdapter({ url: webConfigStatics.api.routes.sessionChatHistory });',
           },
         ],
       });
@@ -215,18 +198,13 @@ describe('httpEdgesLayerBroker', () => {
         flowFiles: [
           {
             path: QUEST_FLOW_PATH,
-            source: ContentTextStub({
-              value: 'app.post(apiRoutesStatics.quests.start, async (c) => {});',
-            }),
+            source: 'app.post(apiRoutesStatics.quests.start, async (c) => {});',
           },
         ],
         brokerFiles: [
           {
             path: QUEST_START_BROKER_PATH,
-            source: ContentTextStub({
-              value:
-                "fetchPostAdapter({ url: webConfigStatics.api.routes.questStart.replace(':questId', questId), body: {} });",
-            }),
+            source: "fetchPostAdapter({ url: webConfigStatics.api.routes.questStart.replace(':questId', questId), body: {} });",
           },
         ],
       });
@@ -254,9 +232,7 @@ describe('httpEdgesLayerBroker', () => {
         flowFiles: [
           {
             path: QUEST_FLOW_PATH,
-            source: ContentTextStub({
-              value: 'app.patch(apiRoutesStatics.quests.byId, async (c) => {});',
-            }),
+            source: 'app.patch(apiRoutesStatics.quests.byId, async (c) => {});',
           },
         ],
         brokerFiles: [],
@@ -285,9 +261,7 @@ describe('httpEdgesLayerBroker', () => {
         flowFiles: [
           {
             path: QUEST_FLOW_PATH,
-            source: ContentTextStub({
-              value: 'app.delete(apiRoutesStatics.quests.delete, async (c) => {});',
-            }),
+            source: 'app.delete(apiRoutesStatics.quests.delete, async (c) => {});',
           },
         ],
         brokerFiles: [],
@@ -318,9 +292,7 @@ describe('httpEdgesLayerBroker', () => {
         flowFiles: [
           {
             path: '/repo/packages/server/src/flows/quest/quest-flow.integration.test.ts',
-            source: ContentTextStub({
-              value: 'app.get(apiRoutesStatics.quests.list, async (c) => {});',
-            }),
+            source: 'app.get(apiRoutesStatics.quests.list, async (c) => {});',
           },
         ],
         brokerFiles: [],
@@ -341,9 +313,7 @@ describe('httpEdgesLayerBroker', () => {
         brokerFiles: [
           {
             path: '/repo/packages/web/src/brokers/quest/list/quest-list-broker.proxy.ts',
-            source: ContentTextStub({
-              value: 'fetchGetAdapter({ url: webConfigStatics.api.routes.quests });',
-            }),
+            source: 'fetchGetAdapter({ url: webConfigStatics.api.routes.quests });',
           },
         ],
       });
@@ -382,23 +352,17 @@ describe('httpEdgesLayerBroker', () => {
         flowFiles: [
           {
             path: QUEST_FLOW_PATH,
-            source: ContentTextStub({
-              value: 'app.get(apiRoutesStatics.quests.list, async (c) => {});',
-            }),
+            source: 'app.get(apiRoutesStatics.quests.list, async (c) => {});',
           },
         ],
         brokerFiles: [
           {
             path: QUEST_LIST_BROKER_PATH,
-            source: ContentTextStub({
-              value: 'fetchGetAdapter({ url: webConfigStatics.api.routes.quests });',
-            }),
+            source: 'fetchGetAdapter({ url: webConfigStatics.api.routes.quests });',
           },
           {
             path: tuiListBrokerPath,
-            source: ContentTextStub({
-              value: 'fetchGetAdapter({ url: webConfigStatics.api.routes.guilds });',
-            }),
+            source: 'fetchGetAdapter({ url: webConfigStatics.api.routes.guilds });',
           },
         ],
         frontendPackageNames: ['web', 'tui'],

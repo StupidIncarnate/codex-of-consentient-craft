@@ -7,12 +7,12 @@
  */
 
 import type { StubArgument } from '../../@types/stub-argument.type';
-import { contentTextContract } from '../content-text/content-text-contract';
 import type { ResponderAnnotation } from '../responder-annotation/responder-annotation-contract';
 import {
   responderAnnotationMapContract,
   type ResponderAnnotationMap,
 } from './responder-annotation-map-contract';
+import { ResponderAnnotationStub } from '../responder-annotation/responder-annotation.stub';
 
 type Entry = readonly [string, ResponderAnnotation];
 
@@ -30,13 +30,13 @@ export const ResponderAnnotationMapStub = ({
     const [key, value] = item;
     if (key === undefined || value === undefined) continue;
     const suffixInput = value.suffix;
-    initial.set(key, {
+    initial.set(key, ResponderAnnotationStub({
       suffix:
         suffixInput === null || suffixInput === undefined
           ? null
-          : contentTextContract.parse(suffixInput),
-      childLines: (value.childLines ?? []).map((line) => contentTextContract.parse(line)),
-    });
+          : suffixInput,
+      childLines: (value.childLines ?? []).map((line) => line),
+    }));
   }
   return responderAnnotationMapContract.parse(initial);
 };

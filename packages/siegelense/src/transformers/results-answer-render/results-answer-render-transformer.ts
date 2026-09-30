@@ -16,8 +16,6 @@
  * // Returns 'INSTANCE: inst_7f3a9c21 (alive)\nREADINGS: none found for query\n'
  */
 
-import { contentTextContract } from '@dungeonmaster/shared/contracts';
-import type { ContentText } from '@dungeonmaster/shared/contracts';
 import { safeJsonParseTransformer } from '@dungeonmaster/shared/transformers';
 
 import type { ResultsAnswer } from '../../contracts/results-answer/results-answer-contract';
@@ -28,7 +26,7 @@ export const resultsAnswerRenderTransformer = ({
   answer,
 }: {
   answer: ResultsAnswer;
-}): ContentText => {
+}): string => {
   const header = `INSTANCE: ${answer.instanceId} (${answer.instanceState})`;
 
   const lines = answer.rows.map((row) => {
@@ -55,7 +53,7 @@ export const resultsAnswerRenderTransformer = ({
       const exchange = `${record.method} ${status} ${url}`;
       return bodySource.length === 0
         ? exchange
-        : `${exchange} — ${networkBodyTrimTransformer({ body: contentTextContract.parse(bodySource) })}`;
+        : `${exchange} — ${networkBodyTrimTransformer({ body: bodySource })}`;
     }
 
     const step = typeof record.step === 'number' ? record.step : answer.step;
@@ -86,14 +84,12 @@ export const resultsAnswerRenderTransformer = ({
 
   if (answer.storedReturn !== null) {
     const summary = `${header}\n${runAnswerRenderTransformer({ result: answer.storedReturn })}`;
-    return contentTextContract.parse(
-      lines.length === 0 ? summary : `${summary}${lines.join('\n')}\n`,
-    );
+    return (lines.length === 0 ? summary : `${summary}${lines.join('\n')}\n`);
   }
 
   if (lines.length === 0) {
-    return contentTextContract.parse(`${header}\nREADINGS: none found for query\n`);
+    return `${header}\nREADINGS: none found for query\n`;
   }
 
-  return contentTextContract.parse(`${header}\n${lines.join('\n')}\n`);
+  return `${header}\n${lines.join('\n')}\n`;
 };

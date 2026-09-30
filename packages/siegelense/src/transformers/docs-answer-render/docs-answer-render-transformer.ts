@@ -14,8 +14,6 @@
  * // Returns the whole manual as formatted Markdown, one trailing newline
  */
 
-import { contentTextContract } from '@dungeonmaster/shared/contracts';
-import type { ContentText } from '@dungeonmaster/shared/contracts';
 
 import type { DocsAnswer } from '../../contracts/docs-answer/docs-answer-contract';
 
@@ -23,7 +21,7 @@ const BLOCK_GAP = '\n\n';
 const DOCUMENT_TITLE = '# Siegelense Documentation';
 const ABOUT_HEADING = '## About';
 
-export const docsAnswerRenderTransformer = ({ answer }: { answer: DocsAnswer }): ContentText => {
+export const docsAnswerRenderTransformer = ({ answer }: { answer: DocsAnswer }): string => {
   const blocks = [DOCUMENT_TITLE];
 
   if (answer.about.length > 0) {
@@ -66,5 +64,5 @@ export const docsAnswerRenderTransformer = ({ answer }: { answer: DocsAnswer }):
     }
   }
 
-  return contentTextContract.parse(`${blocks.join(BLOCK_GAP)}\n`);
+  return `${blocks.join(BLOCK_GAP)}\n`;
 };

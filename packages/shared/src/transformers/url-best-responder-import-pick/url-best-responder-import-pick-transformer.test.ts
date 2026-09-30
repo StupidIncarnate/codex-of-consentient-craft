@@ -1,10 +1,9 @@
 import { urlBestResponderImportPickTransformer } from './url-best-responder-import-pick-transformer';
-import { ContentTextStub } from '../../contracts/content-text/content-text.stub';
 
 describe('urlBestResponderImportPickTransformer', () => {
   describe('empty imports list', () => {
     it('EMPTY: {responderImports: []} => returns null', () => {
-      const urlPattern = ContentTextStub({ value: '/api/quests/:questId/start' });
+      const urlPattern = '/api/quests/:questId/start';
 
       const result = urlBestResponderImportPickTransformer({
         urlPattern,
@@ -17,10 +16,8 @@ describe('urlBestResponderImportPickTransformer', () => {
 
   describe('single import', () => {
     it('VALID: {single responder} => returns that import', () => {
-      const urlPattern = ContentTextStub({ value: '/api/quests/:questId/start' });
-      const responderImport = ContentTextStub({
-        value: '../../responders/quest/start/quest-start-responder',
-      });
+      const urlPattern = '/api/quests/:questId/start';
+      const responderImport = '../../responders/quest/start/quest-start-responder';
 
       const result = urlBestResponderImportPickTransformer({
         urlPattern,
@@ -33,13 +30,9 @@ describe('urlBestResponderImportPickTransformer', () => {
 
   describe('multiple imports', () => {
     it('VALID: {two imports, one matches URL keywords} => returns highest-scoring import', () => {
-      const urlPattern = ContentTextStub({ value: '/api/quests/:questId/start' });
-      const startImport = ContentTextStub({
-        value: '../../responders/quest/start/quest-start-responder',
-      });
-      const listImport = ContentTextStub({
-        value: '../../responders/quest/list/quest-list-responder',
-      });
+      const urlPattern = '/api/quests/:questId/start';
+      const startImport = '../../responders/quest/start/quest-start-responder';
+      const listImport = '../../responders/quest/list/quest-list-responder';
 
       const result = urlBestResponderImportPickTransformer({
         urlPattern,
@@ -50,13 +43,9 @@ describe('urlBestResponderImportPickTransformer', () => {
     });
 
     it('VALID: {two imports in reversed order, one matches URL keywords} => returns highest-scoring import', () => {
-      const urlPattern = ContentTextStub({ value: '/api/quests/:questId/start' });
-      const startImport = ContentTextStub({
-        value: '../../responders/quest/start/quest-start-responder',
-      });
-      const listImport = ContentTextStub({
-        value: '../../responders/quest/list/quest-list-responder',
-      });
+      const urlPattern = '/api/quests/:questId/start';
+      const startImport = '../../responders/quest/start/quest-start-responder';
+      const listImport = '../../responders/quest/list/quest-list-responder';
 
       const result = urlBestResponderImportPickTransformer({
         urlPattern,
@@ -67,13 +56,9 @@ describe('urlBestResponderImportPickTransformer', () => {
     });
 
     it('VALID: {no keyword match, two imports} => returns first import as tiebreak', () => {
-      const urlPattern = ContentTextStub({ value: '/api/health' });
-      const firstImport = ContentTextStub({
-        value: '../../responders/quest/start/quest-start-responder',
-      });
-      const secondImport = ContentTextStub({
-        value: '../../responders/quest/list/quest-list-responder',
-      });
+      const urlPattern = '/api/health';
+      const firstImport = '../../responders/quest/start/quest-start-responder';
+      const secondImport = '../../responders/quest/list/quest-list-responder';
 
       const result = urlBestResponderImportPickTransformer({
         urlPattern,

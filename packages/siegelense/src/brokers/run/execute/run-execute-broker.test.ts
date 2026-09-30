@@ -622,8 +622,7 @@ describe('runExecuteBroker', () => {
         consoleStart: ReadingCountStub({ value: 10 }),
         networkStart: ReadingCountStub({ value: 3 }),
         newConsoleLines: [
-          ContentTextStub({
-            value: JSON.stringify({
+          JSON.stringify({
               at: 1,
               kind: 'console',
               type: 'error',
@@ -631,7 +630,6 @@ describe('runExecuteBroker', () => {
               url: '',
               line: 0,
             }),
-          }),
         ],
         newNetworkLines: [],
       });
@@ -788,7 +786,7 @@ describe('runExecuteBroker', () => {
         setLastShotPath: proxy.setLastShotPath,
       });
 
-      pushConsoleLine({ text: ContentTextStub({ value: '{"betweenRuns":true}' }) });
+      pushConsoleLine({ text: '{"betweenRuns":true}' });
 
       await runExecuteBroker({
         lane,
@@ -1192,7 +1190,7 @@ describe('runExecuteBroker', () => {
       proxy.stagePaths({ runId });
       proxy.seedBookPresent();
       proxy.seedLaneAnswers({
-        apiBaseUrl: ContentTextStub({ value: API }),
+        apiBaseUrl: API,
         guild: GuildStub({
           id: GUILD_ID,
           name: 'Siege Guild',
@@ -1228,7 +1226,7 @@ describe('runExecuteBroker', () => {
       proxy.stagePaths({ runId });
       proxy.seedBookPresent();
       const seedRun = proxy.seedLaneAnswers({
-        apiBaseUrl: ContentTextStub({ value: API }),
+        apiBaseUrl: API,
         guild: GuildStub({
           id: GUILD_ID,
           name: 'Siege Guild',
@@ -1278,7 +1276,7 @@ describe('runExecuteBroker', () => {
       proxy.stagePaths({ runId });
       proxy.seedBookPresent();
       proxy.seedLaneAnswers({
-        apiBaseUrl: ContentTextStub({ value: API }),
+        apiBaseUrl: API,
         guild: GuildStub({
           id: GUILD_ID,
           name: 'First Guild',

@@ -34,7 +34,6 @@
  * // Returns the step 7 reading from run_2's transcript, with instanceState and verb attached
  */
 
-import { contentTextContract } from '@dungeonmaster/shared/contracts';
 
 import { readingCountContract } from '../../../contracts/reading-count/reading-count-contract';
 import { resultKindContract } from '../../../contracts/result-kind/result-kind-contract';
@@ -224,7 +223,7 @@ export const resultsReadBroker = async ({
 
     if (query.kind === null) {
       const readings = await transcriptReadLayerBroker({ transcriptPath: transcript });
-      const rows = readings.map((reading) => contentTextContract.parse(JSON.stringify(reading)));
+      const rows = readings.map((reading) => JSON.stringify(reading));
       const capped = rows.slice(0, resultsStatics.limits.maxRows);
       const projectedRows = capped.map((row) =>
         resultRowProjectTransformer({ row, fields: query.fields }),
@@ -253,7 +252,7 @@ export const resultsReadBroker = async ({
         : query.step === null
           ? storedReturn.shots
           : storedReturn.shots.filter((shot) => shot.step === query.step);
-    const rows = shots.map((shot) => contentTextContract.parse(JSON.stringify(shot)));
+    const rows = shots.map((shot) => JSON.stringify(shot));
     const capped = rows.slice(0, resultsStatics.limits.maxRows);
     const projectedRows = capped.map((row) =>
       resultRowProjectTransformer({ row, fields: query.fields }),
@@ -288,7 +287,7 @@ export const resultsReadBroker = async ({
             stepRangeExpandTransformer({ range: stepRange }).includes(reading.step),
           );
     const verb = query.step === null ? null : (filtered.at(0)?.verb ?? null);
-    const rows = filtered.map((reading) => contentTextContract.parse(JSON.stringify(reading)));
+    const rows = filtered.map((reading) => JSON.stringify(reading));
 
     if (rows.length === 0) {
       await runMissingCheckLayerBroker({

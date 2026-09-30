@@ -7,14 +7,13 @@
  */
 
 import type { StubArgument } from '../../@types/stub-argument.type';
-import { ContentTextStub } from '../content-text/content-text.stub';
 import { methodDomainGroupContract, type MethodDomainGroup } from './method-domain-group-contract';
 
 export const MethodDomainGroupStub = ({
   ...props
 }: StubArgument<MethodDomainGroup> = {}): MethodDomainGroup =>
   methodDomainGroupContract.parse({
-    domain: ContentTextStub({ value: 'Guilds' }),
-    methods: [ContentTextStub({ value: 'listGuilds' })],
+    domain: 'Guilds',
+    methods: ['listGuilds'],
     ...props,
   });

@@ -7,7 +7,6 @@
  */
 
 import type { StubArgument } from '../../@types/stub-argument.type';
-import { ContentTextStub } from '../content-text/content-text.stub';
 import {
   serverRouteCallSiteContract,
   type ServerRouteCallSite,
@@ -17,8 +16,8 @@ export const ServerRouteCallSiteStub = ({
   ...props
 }: StubArgument<ServerRouteCallSite> = {}): ServerRouteCallSite =>
   serverRouteCallSiteContract.parse({
-    method: ContentTextStub({ value: 'GET' }),
-    rawArg: ContentTextStub({ value: 'apiRoutesStatics.quests.list' }),
-    responderName: ContentTextStub({ value: 'QuestListResponder' }),
+    method: 'GET',
+    rawArg: 'apiRoutesStatics.quests.list',
+    responderName: 'QuestListResponder',
     ...props,
   });

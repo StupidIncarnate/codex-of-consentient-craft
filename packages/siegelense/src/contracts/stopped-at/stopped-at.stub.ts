@@ -1,5 +1,4 @@
 import type { StubArgument } from '@dungeonmaster/shared/@types';
-import { ContentTextStub } from '@dungeonmaster/shared/contracts/content-text/content-text.stub';
 
 import { StepCandidateStub } from '../step-candidate/step-candidate.stub';
 import { StepIndexStub } from '../step-index/step-index.stub';
@@ -11,7 +10,7 @@ export const StoppedAtStub = ({ ...props }: StubArgument<StoppedAt> = {}): Stopp
   stoppedAtContract.parse({
     step: StepIndexStub({ value: 4 }),
     verb: StepVerbStub({ value: 'click' }),
-    error: ContentTextStub({ value: 'AMBIGUOUS: 2 elements match [data-testid="PIXEL_BTN"]' }),
+    error: 'AMBIGUOUS: 2 elements match [data-testid="PIXEL_BTN"]',
     candidates: [StepCandidateStub()],
     ...props,
   });

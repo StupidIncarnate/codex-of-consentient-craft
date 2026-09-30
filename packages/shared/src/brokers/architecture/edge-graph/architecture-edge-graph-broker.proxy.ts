@@ -1,5 +1,4 @@
 import { httpEdgesLayerBrokerProxy } from './http-edges-layer-broker.proxy';
-import type { ContentText } from '../../../contracts/content-text/content-text-contract';
 
 export const architectureEdgeGraphBrokerProxy = (): {
   setup: ({
@@ -8,10 +7,10 @@ export const architectureEdgeGraphBrokerProxy = (): {
     flowFiles,
     brokerFiles,
   }: {
-    serverStaticsSource: ContentText;
-    webStaticsSource: ContentText;
-    flowFiles: { path: string; source: ContentText }[];
-    brokerFiles: { path: string; source: ContentText }[];
+    serverStaticsSource: string;
+    webStaticsSource: string;
+    flowFiles: { path: string; source: string }[];
+    brokerFiles: { path: string; source: string }[];
   }) => void;
 } => {
   const httpProxy = httpEdgesLayerBrokerProxy();
@@ -23,10 +22,10 @@ export const architectureEdgeGraphBrokerProxy = (): {
       flowFiles,
       brokerFiles,
     }: {
-      serverStaticsSource: ContentText;
-      webStaticsSource: ContentText;
-      flowFiles: { path: string; source: ContentText }[];
-      brokerFiles: { path: string; source: ContentText }[];
+      serverStaticsSource: string;
+      webStaticsSource: string;
+      flowFiles: { path: string; source: string }[];
+      brokerFiles: { path: string; source: string }[];
     }): void => {
       httpProxy.setup({ serverStaticsSource, webStaticsSource, flowFiles, brokerFiles });
     },

@@ -26,7 +26,6 @@
  * proxy.stageBootSucceeds({ lane });
  */
 
-import { ContentTextStub } from '@dungeonmaster/shared/contracts/content-text/content-text.stub';
 import type { SiegeInstance } from '@dungeonmaster/shared/contracts';
 import { locationsStatics } from '@dungeonmaster/shared/statics';
 import { registerMock } from '@dungeonmaster/testing/register-mock';
@@ -84,7 +83,7 @@ export const SiegelenseDriverResponderProxy = (): {
   getBootFailureMarkerWriteCallArgs: () => unknown;
   getRegistryUpdateCallCount: () => ReadingCount;
   stagePid: (params: { pid: number }) => void;
-  getStderrText: () => ReturnType<typeof ContentTextStub>;
+  getStderrText: () => string;
 } => {
   const pidProxy = getPidProxy();
   // The responder logs a failed boot-failure-marker write to stderr; recorded here, off the runner's output.
@@ -168,7 +167,7 @@ export const SiegelenseDriverResponderProxy = (): {
       laneBootHandle.calledWith([{ instanceId }]).rejects(error);
       bootLockReleaseHandle.calledWith([{ instanceId }]).resolves({ success: true });
       bootFailureMarkerWriteHandle.calledWith([{ message: error.message }]).resolves({
-        message: ContentTextStub({ value: error.message }),
+        message: error.message,
         atMs: EpochMsStub(),
       });
     },
@@ -235,7 +234,7 @@ export const SiegelenseDriverResponderProxy = (): {
       pidProxy.setupPid({ pid });
     },
 
-    getStderrText: (): ReturnType<typeof ContentTextStub> =>
-      ContentTextStub({ value: stderrLog.getWrittenText() }),
+    getStderrText: (): string =>
+      stderrLog.getWrittenText(),
   };
 };

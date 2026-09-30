@@ -21,7 +21,7 @@
  * be read as a success by the layer above.
  */
 
-import type { Quest, WorkItem, OperationItem, ContentText } from '@dungeonmaster/shared/contracts';
+import type { Quest, WorkItem, OperationItem } from '@dungeonmaster/shared/contracts';
 import { questContract, workItemContract, operationItemContract } from '@dungeonmaster/shared/contracts';
 
 import type { QuestWorkView } from '../../../contracts/quest-work-view/quest-work-view-contract';
@@ -34,7 +34,7 @@ import { questGetWorkPlanBroker } from '../../../brokers/quest/get-work-plan/que
 // an `interface`, which `ban-adhoc-types` then refuses in a responder.
 export type QuestGetQuestWorkResult =
   | { readonly view: QuestWorkView; readonly planText: null }
-  | { readonly view: null; readonly planText: ContentText };
+  | { readonly view: null; readonly planText: string };
 
 export const QuestGetQuestWorkResponder = async ({
   questId,

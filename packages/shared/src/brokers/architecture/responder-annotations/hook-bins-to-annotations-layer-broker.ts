@@ -13,16 +13,13 @@
  */
 
 import {
-  contentTextContract,
-  type ContentText,
-} from '../../../contracts/content-text/content-text-contract';
-import {
   responderAnnotationMapContract,
   type ResponderAnnotationMap,
 } from '../../../contracts/responder-annotation-map/responder-annotation-map-contract';
 import type { ResponderAnnotation } from '../../../contracts/responder-annotation/responder-annotation-contract';
 import { hookStartupSrcPathResolveTransformer } from '../../../transformers/hook-startup-src-path-resolve/hook-startup-src-path-resolve-transformer';
 import { readPackageJsonLayerBroker } from './read-package-json-layer-broker';
+import { responderAnnotationContract } from '../../../contracts/responder-annotation/responder-annotation-contract';
 
 export const hookBinsToAnnotationsLayerBroker = ({
   packageRoot,
@@ -43,13 +40,13 @@ export const hookBinsToAnnotationsLayerBroker = ({
 
   for (const [binName, binPath] of Object.entries(rawBin)) {
     const startupPath = hookStartupSrcPathResolveTransformer({
-      binPath: contentTextContract.parse(String(binPath)),
+      binPath: String(binPath),
       packageRoot,
     });
     if (startupPath === undefined) continue;
 
-    const suffix: ContentText = contentTextContract.parse(`[hook: ${binName}]`);
-    result.set(startupPath, { suffix, childLines: [] });
+    const suffix: string = `[hook: ${binName}]`;
+    result.set(startupPath, responderAnnotationContract.parse({ suffix, childLines: [] }));
   }
 
   return responderAnnotationMapContract.parse(result);

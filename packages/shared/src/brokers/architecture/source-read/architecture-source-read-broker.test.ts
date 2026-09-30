@@ -1,15 +1,12 @@
 import { architectureSourceReadBroker } from './architecture-source-read-broker';
 import { architectureSourceReadBrokerProxy } from './architecture-source-read-broker.proxy';
-import { ContentTextStub } from '../../../contracts/content-text/content-text.stub';
 
 describe('architectureSourceReadBroker', () => {
   describe('existing file', () => {
     it('VALID: {readable file} => returns file content', () => {
       const proxy = architectureSourceReadBrokerProxy();
       const filePath = '/repo/packages/web/src/bindings/use-quest/use-quest-binding.ts';
-      const content = ContentTextStub({
-        value: "import { questFetcher } from '../../brokers/quest/quest-broker';",
-      });
+      const content = "import { questFetcher } from '../../brokers/quest/quest-broker';";
 
       proxy.setupReturns({ filePath, content });
 

@@ -12,7 +12,6 @@
  * the boot-tree's widget subtree renderer
  */
 
-import type { ContentText } from '../../../contracts/content-text/content-text-contract';
 import { importStatementsExtractTransformer } from '../../../transformers/import-statements-extract/import-statements-extract-transformer';
 import { relativeImportResolveTransformer } from '../../../transformers/relative-import-resolve/relative-import-resolve-transformer';
 import { namespaceCallFirstExtractTransformer } from '../../../transformers/namespace-call-first-extract/namespace-call-first-extract-transformer';
@@ -24,7 +23,7 @@ export const architectureOrchestratorMethodExtractBroker = ({
   serverResponderFile,
 }: {
   serverResponderFile: string | null;
-}): ContentText | null => {
+}): string | null => {
   if (serverResponderFile === null) return null;
 
   const responderSource = architectureSourceReadBroker({ filePath: serverResponderFile });

@@ -1,4 +1,3 @@
-import { ContentTextStub } from '@dungeonmaster/shared/contracts/content-text/content-text.stub';
 
 import { BrowserSessionStub } from '../../../contracts/browser-session/browser-session.stub';
 import { LaneSessionStub } from '../../../contracts/lane-session/lane-session.stub';
@@ -116,10 +115,7 @@ describe('stepHealthBroker', () => {
     const session = BrowserSessionStub({
       checkRootPresent: jest.fn().mockResolvedValue(true),
       readConsoleSince: () => [
-        ContentTextStub({
-          value:
-            '{"at":1,"kind":"console","type":"error","text":"Uncaught TypeError: cannot read properties of undefined"}',
-        }),
+        '{"at":1,"kind":"console","type":"error","text":"Uncaught TypeError: cannot read properties of undefined"}',
       ],
     });
 
@@ -140,7 +136,7 @@ describe('stepHealthBroker', () => {
     const lane = LaneSessionStub();
     const session = BrowserSessionStub({
       checkRootPresent: jest.fn().mockResolvedValue(true),
-      readConsoleSince: () => [ContentTextStub({ value: '{"kind":"pageerror"}' })],
+      readConsoleSince: () => ['{"kind":"pageerror"}'],
     });
 
     const result = await stepHealthBroker({
@@ -161,9 +157,7 @@ describe('stepHealthBroker', () => {
     const session = BrowserSessionStub({
       checkRootPresent: jest.fn().mockResolvedValue(true),
       readNetworkSince: () => [
-        ContentTextStub({
-          value: '{"at":1,"method":"GET","url":"/api/guilds","status":500}',
-        }),
+        '{"at":1,"method":"GET","url":"/api/guilds","status":500}',
       ],
     });
 
@@ -182,7 +176,7 @@ describe('stepHealthBroker', () => {
   it('VALID: {server error present} => returns DEGRADED verdict and server error count', async () => {
     stepHealthBrokerProxy();
     const lane = LaneSessionStub({
-      readServerLogSince: () => [ContentTextStub({ value: 'panic: server error occurred' })],
+      readServerLogSince: () => ['panic: server error occurred'],
     });
     const session = BrowserSessionStub({
       checkRootPresent: jest.fn().mockResolvedValue(true),

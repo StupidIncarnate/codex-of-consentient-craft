@@ -3,8 +3,6 @@ import { safeReaddirLayerBrokerProxy } from './safe-readdir-layer-broker.proxy';
 import { countFilesRecursiveLayerBrokerProxy } from './count-files-recursive-layer-broker.proxy';
 import { formatFolderContentLayerBrokerProxy } from './format-folder-content-layer-broker.proxy';
 import { readPackageDescriptionLayerBrokerProxy } from './read-package-description-layer-broker.proxy';
-import type { ContentText } from '../../../contracts/content-text/content-text-contract';
-import { ContentTextStub } from '../../../contracts/content-text/content-text.stub';
 import { FileMissingErrorStub } from '#gateway/node/fs/file-missing-error/file-missing-error.stub';
 import { DirentStub } from '#gateway/node/fs/readdir-entries-sync/dirent.stub';
 
@@ -13,15 +11,15 @@ const DEFAULT_LEAF_FILE_COUNT = 3;
 const makeDirent = ({ name, isDir }: { name: string; isDir: boolean }): Dirent =>
   DirentStub({ name, kind: isDir ? 'directory' : 'file' });
 
-const fillLeafDirectories = (pathMap: Map<ContentText, Dirent[]>): void => {
+const fillLeafDirectories = (pathMap: Map<string, Dirent[]>): void => {
   const registeredPaths = new Set(pathMap.keys());
 
-  const leafEntries: [ContentText, Dirent[]][] = [];
+  const leafEntries: [string, Dirent[]][] = [];
 
   for (const [parentPath, entries] of pathMap) {
     for (const entry of entries) {
       if (entry.isDirectory()) {
-        const childPath = ContentTextStub({ value: `${String(parentPath)}/${entry.name}` });
+        const childPath = `${String(parentPath)}/${entry.name}`;
         if (!registeredPaths.has(childPath)) {
           leafEntries.push([
             childPath,
@@ -50,25 +48,23 @@ const buildPackagePathMap = ({
     entries: { name: string; isDir: boolean }[];
     subEntries?: Record<string, { name: string; isDir: boolean }[]>;
   }[];
-  pathMap: Map<ContentText, Dirent[]>;
+  pathMap: Map<string, Dirent[]>;
 }): void => {
   pathMap.set(
-    ContentTextStub({ value: `packages/${packageName}/src` }),
+    `packages/${packageName}/src`,
     folders.map((folder) => makeDirent({ name: folder.name, isDir: true })),
   );
 
   for (const folder of folders) {
     pathMap.set(
-      ContentTextStub({ value: `packages/${packageName}/src/${folder.name}` }),
+      `packages/${packageName}/src/${folder.name}`,
       folder.entries.map((entry) => makeDirent({ name: entry.name, isDir: entry.isDir })),
     );
 
     if (folder.subEntries !== undefined) {
       for (const [subName, subItems] of Object.entries(folder.subEntries)) {
         pathMap.set(
-          ContentTextStub({
-            value: `packages/${packageName}/src/${folder.name}/${subName}`,
-          }),
+          `packages/${packageName}/src/${folder.name}/${subName}`,
           subItems.map((entry) => makeDirent({ name: entry.name, isDir: entry.isDir })),
         );
       }
@@ -90,7 +86,7 @@ export const architecturePackageInventoryBrokerProxy = (): {
     folders,
   }: {
     packageName: string;
-    description?: ContentText;
+    description?: string;
     folders: {
       name: string;
       entries: { name: string; isDir: boolean }[];
@@ -102,7 +98,7 @@ export const architecturePackageInventoryBrokerProxy = (): {
   }: {
     packages: {
       name: string;
-      description?: ContentText;
+      description?: string;
       folders: {
         name: string;
         entries: { name: string; isDir: boolean }[];
@@ -119,7 +115,7 @@ export const architecturePackageInventoryBrokerProxy = (): {
       entries: { name: string; isDir: boolean }[];
       subEntries?: Record<string, { name: string; isDir: boolean }[]>;
     }[];
-    description?: ContentText;
+    description?: string;
   }) => void;
   setupEmptySrc: () => void;
 } => {
@@ -146,14 +142,14 @@ export const architecturePackageInventoryBrokerProxy = (): {
       folders,
     }: {
       packageName: string;
-      description?: ContentText;
+      description?: string;
       folders: {
         name: string;
         entries: { name: string; isDir: boolean }[];
         subEntries?: Record<string, { name: string; isDir: boolean }[]>;
       }[];
     }): void => {
-      const pathMap = new Map<ContentText, Dirent[]>();
+      const pathMap = new Map<string, Dirent[]>();
       buildPackagePathMap({ packageName, folders, pathMap });
       fillLeafDirectories(pathMap);
 
@@ -169,12 +165,12 @@ export const architecturePackageInventoryBrokerProxy = (): {
       });
 
       descriptionProxy.setupImplementation({
-        fn: (filePath: ContentText): ContentText => {
+        fn: (filePath: string): string => {
           if (
             description !== undefined &&
             String(filePath).endsWith(`packages/${packageName}/package.json`)
           ) {
-            return ContentTextStub({ value: JSON.stringify({ description }) });
+            return JSON.stringify({ description });
           }
           throw FileMissingErrorStub({ path: String(filePath) });
         },
@@ -186,7 +182,7 @@ export const architecturePackageInventoryBrokerProxy = (): {
     }: {
       packages: {
         name: string;
-        description?: ContentText;
+        description?: string;
         folders: {
           name: string;
           entries: { name: string; isDir: boolean }[];
@@ -194,14 +190,14 @@ export const architecturePackageInventoryBrokerProxy = (): {
         }[];
       }[];
     }): void => {
-      const pathMap = new Map<ContentText, Dirent[]>();
-      const descriptions = new Map<ContentText, ContentText>();
+      const pathMap = new Map<string, Dirent[]>();
+      const descriptions = new Map<string, string>();
 
       for (const pkg of packages) {
         buildPackagePathMap({ packageName: pkg.name, folders: pkg.folders, pathMap });
         if (pkg.description !== undefined) {
           descriptions.set(
-            ContentTextStub({ value: `packages/${pkg.name}/package.json` }),
+            `packages/${pkg.name}/package.json`,
             pkg.description,
           );
         }
@@ -221,10 +217,10 @@ export const architecturePackageInventoryBrokerProxy = (): {
       });
 
       descriptionProxy.setupImplementation({
-        fn: (filePath: ContentText): ContentText => {
+        fn: (filePath: string): string => {
           for (const [suffix, desc] of descriptions) {
             if (String(filePath).endsWith(String(suffix))) {
-              return ContentTextStub({ value: JSON.stringify({ description: desc }) });
+              return JSON.stringify({ description: desc });
             }
           }
           throw FileMissingErrorStub({ path: String(filePath) });
@@ -241,25 +237,25 @@ export const architecturePackageInventoryBrokerProxy = (): {
         entries: { name: string; isDir: boolean }[];
         subEntries?: Record<string, { name: string; isDir: boolean }[]>;
       }[];
-      description?: ContentText;
+      description?: string;
     }): void => {
-      const pathMap = new Map<ContentText, Dirent[]>();
+      const pathMap = new Map<string, Dirent[]>();
 
       pathMap.set(
-        ContentTextStub({ value: '/src' }),
+        '/src',
         folders.map((folder) => makeDirent({ name: folder.name, isDir: true })),
       );
 
       for (const folder of folders) {
         pathMap.set(
-          ContentTextStub({ value: `/src/${folder.name}` }),
+          `/src/${folder.name}`,
           folder.entries.map((entry) => makeDirent({ name: entry.name, isDir: entry.isDir })),
         );
 
         if (folder.subEntries !== undefined) {
           for (const [subName, subItems] of Object.entries(folder.subEntries)) {
             pathMap.set(
-              ContentTextStub({ value: `/src/${folder.name}/${subName}` }),
+              `/src/${folder.name}/${subName}`,
               subItems.map((entry) => makeDirent({ name: entry.name, isDir: entry.isDir })),
             );
           }
@@ -280,9 +276,9 @@ export const architecturePackageInventoryBrokerProxy = (): {
       });
 
       descriptionProxy.setupImplementation({
-        fn: (filePath: ContentText): ContentText => {
+        fn: (filePath: string): string => {
           if (description !== undefined && String(filePath).endsWith('package.json')) {
-            return ContentTextStub({ value: JSON.stringify({ description }) });
+            return JSON.stringify({ description });
           }
           throw FileMissingErrorStub({ path: String(filePath) });
         },
@@ -295,7 +291,7 @@ export const architecturePackageInventoryBrokerProxy = (): {
       });
 
       descriptionProxy.setupImplementation({
-        fn: (): ContentText => {
+        fn: (): string => {
           throw FileMissingErrorStub();
         },
       });

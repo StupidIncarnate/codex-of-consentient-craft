@@ -10,7 +10,6 @@ import { stderrProxy } from '#gateway/node/process/stderr/stderr.proxy';
 import { registerMock, requireActual } from '@dungeonmaster/testing/register-mock';
 import type { MockHandle } from '@dungeonmaster/testing/register-mock';
 import { cwdResolveBrokerProxy } from '@dungeonmaster/shared/brokers/cwd/resolve/cwd-resolve-broker.proxy';
-import { ContentTextStub } from '@dungeonmaster/shared/contracts/content-text/content-text.stub';
 import { NetworkPortStub } from '@dungeonmaster/shared/contracts/network-port/network-port.stub';
 import { ProcessIdStub } from '@dungeonmaster/shared/contracts/process-id/process-id.stub';
 import type { TimeoutMs } from '@dungeonmaster/shared/contracts';
@@ -144,7 +143,7 @@ export const instanceStartBrokerProxy = (): {
   getRegistryAndBootLockWriteOrder: () => readonly unknown[];
   getBootLockReleasedPaths: () => unknown[];
   getLastRegistryWriteContent: () => unknown;
-  getStderrMessages: () => readonly ReturnType<typeof ContentTextStub>[];
+  getStderrMessages: () => readonly string[];
   mintInstanceId: () => InstanceId;
   setupStaleReap: (params: { staleInstanceId: InstanceId }) => void;
   stageLaneSpec: (params: { processes: readonly DevServerE2eProcess[] }) => void;
@@ -264,7 +263,7 @@ export const instanceStartBrokerProxy = (): {
   // The registry every scenario stages already holds the reserved instance's own row, which the boot
   // reads back at the end. Every read before the reservation lands (this broker's own count and
   // capacity's) sees the fleet WITHOUT that row, as it does for real.
-  const preReserveRegistry: { json: ReturnType<typeof ContentTextStub> | null } = { json: null };
+  const preReserveRegistry: { json: string | null } = { json: null };
   const stageRegistryAndLocks = ({ registry }: { registry: Registry }): void => {
     clockProxy.setupNow({ ms: EpochMsStub().valueOf() });
     registryReadProxy.setupPresentRegistry({ content: JSON.stringify(registry) });
@@ -275,7 +274,7 @@ export const instanceStartBrokerProxy = (): {
         (entry) => entry.id !== InstanceIdStub({ value: MINTED_INSTANCE_ID_VALUE }),
       ),
     });
-    preReserveRegistry.json = ContentTextStub({ value: withoutOwnRow });
+    preReserveRegistry.json = withoutOwnRow;
     Array.from({ length: PRE_RESERVE_REGISTRY_READS }).forEach(() => {
       registryReadProxy.setupPresentRegistryOnce({ content: withoutOwnRow });
     });
@@ -467,7 +466,7 @@ export const instanceStartBrokerProxy = (): {
       pollProxy.setupFailureMarkerAppears({
         socketPath,
         evidencePath: evidencePathAbs,
-        marker: BootFailureMarkerStub({ message: ContentTextStub({ value: driverMessage }) }),
+        marker: BootFailureMarkerStub({ message: driverMessage }),
       });
 
       // The driver never got as far as writing a boot lock in this scenario either — it dies
@@ -497,8 +496,8 @@ export const instanceStartBrokerProxy = (): {
 
     getLastRegistryWriteContent: (): unknown => reserveProxy.getWrittenRegistry(),
 
-    getStderrMessages: (): readonly ReturnType<typeof ContentTextStub>[] =>
-      stderrRecorder.getWrites().map((chunk) => ContentTextStub({ value: String(chunk) })),
+    getStderrMessages: (): readonly string[] =>
+      stderrRecorder.getWrites().map((chunk) => String(chunk)),
 
     mintInstanceId: (): InstanceId => InstanceIdStub({ value: MINTED_INSTANCE_ID_VALUE }),
 

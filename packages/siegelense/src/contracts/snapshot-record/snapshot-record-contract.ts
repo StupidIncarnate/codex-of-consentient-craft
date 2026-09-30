@@ -18,7 +18,7 @@
 
 import { z } from '#gateway/npm/zod';
 
-import { absoluteFilePathContract, contentTextContract } from '@dungeonmaster/shared/contracts';
+import { absoluteFilePathContract } from '@dungeonmaster/shared/contracts';
 
 import { epochMsContract } from '../epoch-ms/epoch-ms-contract';
 import { snapshotNameContract } from '../snapshot-name/snapshot-name-contract';
@@ -29,7 +29,7 @@ export const snapshotRecordContract = z
     atMs: epochMsContract,
     manual: z.boolean(),
     path: absoluteFilePathContract,
-    age: contentTextContract.optional(),
+    age: z.string().brand<'SnapshotRecordAge'>().optional(),
   })
   .strict();
 

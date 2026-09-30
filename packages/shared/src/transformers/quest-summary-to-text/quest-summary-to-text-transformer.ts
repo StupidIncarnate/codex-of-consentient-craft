@@ -35,8 +35,6 @@
  * that barrel, so every other export of it, this renderer included, would answer `undefined`.
  */
 
-import { contentTextContract } from '../../contracts/content-text/content-text-contract';
-import type { ContentText } from '../../contracts/content-text/content-text-contract';
 import type { QuestSummary } from '../../contracts/quest-summary/quest-summary-contract';
 import { questSummaryLimitsStatics } from '../../statics/quest-summary-limits/quest-summary-limits-statics';
 
@@ -44,7 +42,7 @@ export const questSummaryToTextTransformer = ({
   summary,
 }: {
   summary: QuestSummary;
-}): ContentText => {
+}): string => {
   const flowsShown = summary.flows.slice(0, questSummaryLimitsStatics.maxFlows);
   const flowsDropped = summary.flows.length - flowsShown.length;
   const flowsNotice =
@@ -203,7 +201,7 @@ export const questSummaryToTextTransformer = ({
   const body = [header, coverage, observables, debt, humanChecks, notes].join('\n');
 
   if (body.length <= questSummaryLimitsStatics.maxRenderChars) {
-    return contentTextContract.parse(body);
+    return body;
   }
 
   // The last resort, and the only bound that actually holds: the section caps count entries, and
@@ -212,7 +210,5 @@ export const questSummaryToTextTransformer = ({
   const cut = body.slice(0, questSummaryLimitsStatics.maxRenderChars);
   const kept = cut.slice(0, cut.lastIndexOf('\n') + 1);
 
-  return contentTextContract.parse(
-    `${kept}\n[TRUNCATED at the ${String(questSummaryLimitsStatics.maxRenderChars)}-character ceiling — ${String(body.length - kept.length)} character(s) were dropped from the END of this render, so the sections after this line are missing or cut short. Sections run coverage, mid-quest observables, debt, human check, notes; read quest.json for whatever fell off.]`,
-  );
+  return `${kept}\n[TRUNCATED at the ${String(questSummaryLimitsStatics.maxRenderChars)}-character ceiling — ${String(body.length - kept.length)} character(s) were dropped from the END of this render, so the sections after this line are missing or cut short. Sections run coverage, mid-quest observables, debt, human check, notes; read quest.json for whatever fell off.]`;
 };

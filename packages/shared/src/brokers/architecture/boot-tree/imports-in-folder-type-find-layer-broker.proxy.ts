@@ -2,7 +2,6 @@ import { existsSyncProxy } from '#gateway/node/fs/exists-sync/exists-sync.proxy'
 import { readFileContentsLayerBrokerProxy } from './read-file-contents-layer-broker.proxy';
 import { importStatementsExtractTransformer } from '../../../transformers/import-statements-extract/import-statements-extract-transformer';
 import { relativeImportResolveTransformer } from '../../../transformers/relative-import-resolve/relative-import-resolve-transformer';
-import type { ContentText } from '../../../contracts/content-text/content-text-contract';
 
 const TS_SUFFIX = '.ts';
 const TSX_SUFFIX = '.tsx';
@@ -13,12 +12,12 @@ export const importsInFolderTypeFindLayerBrokerProxy = (): {
     content,
   }: {
     sourceFile: string;
-    content: ContentText;
+    content: string;
   }) => void;
   setupMissing: ({ sourceFile }: { sourceFile: string }) => void;
   setupImplementation: (params: {
-    fn: (filePath: ContentText) => ContentText;
-    map?: Record<string, ContentText>;
+    fn: (filePath: string) => string;
+    map?: Record<string, string>;
   }) => void;
   setupTsExists: ({ result }: { result: boolean }) => void;
   setupTsxExists: ({ result }: { result: boolean }) => void;
@@ -39,7 +38,7 @@ export const importsInFolderTypeFindLayerBrokerProxy = (): {
       content,
     }: {
       sourceFile: string;
-      content: ContentText;
+      content: string;
     }): void => {
       fileProxy.setupReturns({ filePath: sourceFile, content });
 
@@ -67,8 +66,8 @@ export const importsInFolderTypeFindLayerBrokerProxy = (): {
       fn,
       map,
     }: {
-      fn: (filePath: ContentText) => ContentText;
-      map?: Record<string, ContentText>;
+      fn: (filePath: string) => string;
+      map?: Record<string, string>;
     }): void => {
       fileProxy.setupImplementation({ fn });
 

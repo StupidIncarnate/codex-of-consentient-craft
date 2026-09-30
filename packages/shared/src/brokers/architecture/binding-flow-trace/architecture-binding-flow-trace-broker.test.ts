@@ -1,6 +1,5 @@
 import { architectureBindingFlowTraceBroker } from './architecture-binding-flow-trace-broker';
 import { architectureBindingFlowTraceBrokerProxy } from './architecture-binding-flow-trace-broker.proxy';
-import { ContentTextStub } from '../../../contracts/content-text/content-text.stub';
 import { HttpEdgeStub } from '../../../contracts/http-edge/http-edge.stub';
 import { WsEdgeStub } from '../../../contracts/ws-edge/ws-edge.stub';
 
@@ -28,7 +27,7 @@ describe('architectureBindingFlowTraceBroker', () => {
       architectureBindingFlowTraceBrokerProxy().setupFiles({});
 
       const result = architectureBindingFlowTraceBroker({
-        bindingName: ContentTextStub({ value: BINDING_NAME }),
+        bindingName: BINDING_NAME,
         packageRoot: PACKAGE_ROOT,
         projectRoot: PROJECT_ROOT,
         httpEdges: [],
@@ -47,8 +46,8 @@ describe('architectureBindingFlowTraceBroker', () => {
       });
 
       const edge = HttpEdgeStub({
-        method: ContentTextStub({ value: 'GET' }),
-        urlPattern: ContentTextStub({ value: '/api/quests' }),
+        method: 'GET',
+        urlPattern: '/api/quests',
         serverFlowFile: FLOW_FILE,
         serverResponderFile: null,
         webBrokerFile: BROKER_FILE,
@@ -56,7 +55,7 @@ describe('architectureBindingFlowTraceBroker', () => {
       });
 
       const result = architectureBindingFlowTraceBroker({
-        bindingName: ContentTextStub({ value: BINDING_NAME }),
+        bindingName: BINDING_NAME,
         packageRoot: PACKAGE_ROOT,
         projectRoot: PROJECT_ROOT,
         httpEdges: [edge],
@@ -81,7 +80,7 @@ describe('architectureBindingFlowTraceBroker', () => {
       });
 
       const result = architectureBindingFlowTraceBroker({
-        bindingName: ContentTextStub({ value: BINDING_NAME }),
+        bindingName: BINDING_NAME,
         packageRoot: PACKAGE_ROOT,
         projectRoot: PROJECT_ROOT,
         httpEdges: [edge],
@@ -106,7 +105,7 @@ describe('architectureBindingFlowTraceBroker', () => {
       });
 
       const result = architectureBindingFlowTraceBroker({
-        bindingName: ContentTextStub({ value: BINDING_NAME }),
+        bindingName: BINDING_NAME,
         packageRoot: PACKAGE_ROOT,
         projectRoot: PROJECT_ROOT,
         httpEdges: [edge],
@@ -130,7 +129,7 @@ describe('architectureBindingFlowTraceBroker', () => {
       });
 
       const result = architectureBindingFlowTraceBroker({
-        bindingName: ContentTextStub({ value: BINDING_NAME }),
+        bindingName: BINDING_NAME,
         packageRoot: PACKAGE_ROOT,
         projectRoot: PROJECT_ROOT,
         httpEdges: [unrelatedEdge],
@@ -149,7 +148,7 @@ describe('architectureBindingFlowTraceBroker', () => {
       });
 
       const wsEdge = WsEdgeStub({
-        eventType: ContentTextStub({ value: 'quest-updated' }),
+        eventType: 'quest-updated',
         emitterFile: EMITTER_FILE,
         consumerFiles: [BINDING_FILE],
         wsGatewayFile: null,
@@ -157,7 +156,7 @@ describe('architectureBindingFlowTraceBroker', () => {
       });
 
       const result = architectureBindingFlowTraceBroker({
-        bindingName: ContentTextStub({ value: BINDING_NAME }),
+        bindingName: BINDING_NAME,
         packageRoot: PACKAGE_ROOT,
         projectRoot: PROJECT_ROOT,
         httpEdges: [],
@@ -174,7 +173,7 @@ describe('architectureBindingFlowTraceBroker', () => {
       });
 
       const wsEdge = WsEdgeStub({
-        eventType: ContentTextStub({ value: 'quest-updated' }),
+        eventType: 'quest-updated',
         emitterFile: EMITTER_FILE,
         consumerFiles: [BINDING_FILE],
         wsGatewayFile: null,
@@ -182,7 +181,7 @@ describe('architectureBindingFlowTraceBroker', () => {
       });
 
       const result = architectureBindingFlowTraceBroker({
-        bindingName: ContentTextStub({ value: BINDING_NAME }),
+        bindingName: BINDING_NAME,
         packageRoot: PACKAGE_ROOT,
         projectRoot: PROJECT_ROOT,
         httpEdges: [],
@@ -204,7 +203,7 @@ describe('architectureBindingFlowTraceBroker', () => {
       });
 
       const wsEdge = WsEdgeStub({
-        eventType: ContentTextStub({ value: 'quest-updated' }),
+        eventType: 'quest-updated',
         emitterFile: EMITTER_FILE,
         consumerFiles: [BINDING_FILE],
         wsGatewayFile: GATEWAY_FILE,
@@ -212,7 +211,7 @@ describe('architectureBindingFlowTraceBroker', () => {
       });
 
       const result = architectureBindingFlowTraceBroker({
-        bindingName: ContentTextStub({ value: BINDING_NAME }),
+        bindingName: BINDING_NAME,
         packageRoot: PACKAGE_ROOT,
         projectRoot: PROJECT_ROOT,
         httpEdges: [],

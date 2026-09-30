@@ -7,14 +7,13 @@
  */
 
 import { z } from '#gateway/npm/zod';
-import { contentTextContract } from '@dungeonmaster/shared/contracts';
 
 import { resetUndidContract } from '../reset-undid/reset-undid-contract';
 
 export const resetReadingContract = z.object({
-  restored: contentTextContract,
+  restored: z.string().brand<'ResetReadingRestored'>(),
   undid: resetUndidContract,
-  NOT_cleared: z.array(contentTextContract),
+  NOT_cleared: z.array(z.string().brand<'ResetReadingNOTCleared'>()),
 });
 
 export type ResetReading = z.infer<typeof resetReadingContract>;

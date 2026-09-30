@@ -1,5 +1,4 @@
 import type { StubArgument } from '@dungeonmaster/shared/@types';
-import { ContentTextStub } from '@dungeonmaster/shared/contracts/content-text/content-text.stub';
 
 import { HealthVerdictStub } from '../health-verdict/health-verdict.stub';
 import { ReadingCountStub } from '../reading-count/reading-count.stub';
@@ -18,8 +17,6 @@ export const HealthReadingStub = ({ ...props }: StubArgument<HealthReading> = {}
     first5xx: null,
     serverErrors: ReadingCountStub({ value: 0 }),
     firstServerError: null,
-    rendered: ContentTextStub({
-      value: 'HEALTHY   root present · not blank · console clean · no 5xx · server log clean',
-    }),
+    rendered: 'HEALTHY   root present · not blank · console clean · no 5xx · server log clean',
     ...props,
   });

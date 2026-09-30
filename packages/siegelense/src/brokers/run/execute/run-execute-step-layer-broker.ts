@@ -49,7 +49,6 @@
  * // { reading, stoppedAt, timedOut } once ok is false
  */
 
-import { contentTextContract } from '@dungeonmaster/shared/contracts';
 
 import { isNativeError } from '#gateway/node/util__types';
 import type { BufferLengths } from '../../../contracts/buffer-lengths/buffer-lengths-contract';
@@ -105,9 +104,7 @@ export const runExecuteStepLayerBroker = async ({
 
     if (step.step === 'goto') {
       if (typeof step.path === 'object') {
-        const match = contentTextContract.parse(
-          `{${step.path.step}.${step.path.row}.${step.path.field}}`,
-        );
+        const match = `{${step.path.step}.${step.path.row}.${step.path.field}}`;
         const resolvedPath = stepRefSubstituteTransformer({
           text: match,
           outputs: outputs(),
@@ -115,7 +112,7 @@ export const runExecuteStepLayerBroker = async ({
         resolvedStep = { ...step, path: urlPathContract.parse(resolvedPath) };
       } else if (step.path.includes('{')) {
         const resolvedPath = stepRefSubstituteTransformer({
-          text: contentTextContract.parse(step.path),
+          text: step.path,
           outputs: outputs(),
         });
         resolvedStep = { ...step, path: urlPathContract.parse(resolvedPath) };
@@ -125,7 +122,7 @@ export const runExecuteStepLayerBroker = async ({
       Object.entries(step.params).forEach(([key, value]) => {
         if (typeof value === 'string' && value.includes('{')) {
           resolvedParams[key] = stepRefSubstituteTransformer({
-            text: contentTextContract.parse(value),
+            text: value,
             outputs: outputs(),
           });
         } else {
@@ -168,9 +165,7 @@ export const runExecuteStepLayerBroker = async ({
       stoppedAt: stoppedAtContract.parse({
         step: index,
         verb,
-        error: contentTextContract.parse(
-          `step ${String(index)} (${verb}) declared expect: 'error' but succeeded: ${reading.reading}`,
-        ),
+        error: `step ${String(index)} (${verb}) declared expect: 'error' but succeeded: ${reading.reading}`,
         candidates: [],
       }),
       timedOut: false,
@@ -196,14 +191,12 @@ export const runExecuteStepLayerBroker = async ({
     // whichever realm constructed the value, our own error classes included, since `isNativeError`
     // inspects the V8 error slot rather than the prototype chain. The `'message' in error` check is
     // what lets the property access typecheck.
-    const message = contentTextContract.parse(
-      underlyingError !== null &&
+    const message = (underlyingError !== null &&
         typeof underlyingError === 'object' &&
         isNativeError(underlyingError) &&
         'message' in underlyingError
         ? underlyingError.message
-        : String(underlyingError),
-    );
+        : String(underlyingError));
     // The STRUCTURED half of an ambiguity. The message already carries every candidate, but a
     // session parsing the JSON got an empty array — `StoppedAt.candidates` was hardcoded `[]` on
     // every failure, so the one failure with a machine-readable recovery reported none of it

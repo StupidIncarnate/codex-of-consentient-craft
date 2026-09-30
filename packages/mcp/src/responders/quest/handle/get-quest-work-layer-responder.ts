@@ -18,7 +18,6 @@
 
 import { StartOrchestrator } from '@dungeonmaster/orchestrator';
 
-import { contentTextContract } from '../../../contracts/content-text/content-text-contract';
 import { getQuestWorkInputContract } from '../../../contracts/get-quest-work-input/get-quest-work-input-contract';
 import type { CallToolResult } from '#gateway/npm/modelcontextprotocol__sdk__types';
 
@@ -42,11 +41,9 @@ export const GetQuestWorkLayerResponder = async ({
       content: [
         {
           type: 'text',
-          text: contentTextContract.parse(
-            result.planText === null
+          text: (result.planText === null
               ? JSON.stringify(result.view, null, JSON_INDENT_SPACES)
-              : String(result.planText),
-          ),
+              : String(result.planText)),
         },
       ],
     };
@@ -56,9 +53,7 @@ export const GetQuestWorkLayerResponder = async ({
       content: [
         {
           type: 'text',
-          text: contentTextContract.parse(
-            JSON.stringify({ success: false, error: errorMessage }, null, JSON_INDENT_SPACES),
-          ),
+          text: JSON.stringify({ success: false, error: errorMessage }, null, JSON_INDENT_SPACES),
         },
       ],
       isError: true,

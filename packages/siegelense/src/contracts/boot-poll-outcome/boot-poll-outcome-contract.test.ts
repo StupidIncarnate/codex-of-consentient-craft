@@ -1,4 +1,3 @@
-import { ContentTextStub } from '@dungeonmaster/shared/contracts/content-text/content-text.stub';
 
 import { bootPollOutcomeContract } from './boot-poll-outcome-contract';
 import { BootPollOutcomeStub } from './boot-poll-outcome.stub';
@@ -30,7 +29,7 @@ describe('bootPollOutcomeContract', () => {
     it('VALID: {status: failed, message} => carries the driver message through', () => {
       const outcome: BootPollOutcome = BootPollOutcomeStub({
         status: 'failed',
-        message: ContentTextStub({ value: 'CLAUDE_CLI_PATH is required' }),
+        message: 'CLAUDE_CLI_PATH is required',
       });
 
       const result = bootPollOutcomeContract.parse(outcome);

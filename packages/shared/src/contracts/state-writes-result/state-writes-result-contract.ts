@@ -11,12 +11,11 @@
  */
 
 import { z } from '#gateway/npm/zod';
-import { contentTextContract } from '../content-text/content-text-contract';
 
 export const stateWritesResultContract = z.object({
-  inMemoryStores: z.array(contentTextContract),
-  fileWrites: z.array(contentTextContract),
-  browserStorageWrites: z.array(contentTextContract),
+  inMemoryStores: z.array(z.string().brand<'StateWritesResultInMemoryStores'>()),
+  fileWrites: z.array(z.string().brand<'StateWritesResultFileWrites'>()),
+  browserStorageWrites: z.array(z.string().brand<'StateWritesResultBrowserStorageWrites'>()),
 });
 
 export type StateWritesResult = z.infer<typeof stateWritesResultContract>;

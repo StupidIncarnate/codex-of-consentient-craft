@@ -20,8 +20,6 @@
  * // 'HEALTHY   root present · not blank · console clean · no 5xx · server log clean'
  */
 
-import { contentTextContract } from '@dungeonmaster/shared/contracts';
-import type { ContentText } from '@dungeonmaster/shared/contracts';
 
 import { healthReadingContract } from '../../contracts/health-reading/health-reading-contract';
 import type { HealthReading } from '../../contracts/health-reading/health-reading-contract';
@@ -45,11 +43,11 @@ export const healthReadingRenderTransformer = ({
   blank: boolean;
   blankColour: HexColour | null;
   consoleErrors: ReadingCount;
-  firstConsoleError: ContentText | null;
+  firstConsoleError: string | null;
   network5xxCount: ReadingCount;
-  first5xx: ContentText | null;
+  first5xx: string | null;
   serverErrors: ReadingCount;
-  firstServerError: ContentText | null;
+  firstServerError: string | null;
 }): HealthReading => {
   const isDown = !rootPresent || blank;
   const isDegraded = !isDown && (consoleErrors > 0 || network5xxCount > 0 || serverErrors > 0);
@@ -103,6 +101,6 @@ export const healthReadingRenderTransformer = ({
     first5xx,
     serverErrors,
     firstServerError,
-    rendered: contentTextContract.parse(renderedText),
+    rendered: renderedText,
   });
 };

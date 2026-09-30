@@ -1,6 +1,5 @@
 import { busEventLinesRenderLayerBroker } from './bus-event-lines-render-layer-broker';
 import { busEventLinesRenderLayerBrokerProxy } from './bus-event-lines-render-layer-broker.proxy';
-import { ContentTextStub } from '../../../contracts/content-text/content-text.stub';
 import { EventBusContextStub } from '../../../contracts/event-bus-context/event-bus-context.stub';
 
 const RESPONDER_FILE = '/repo/packages/foo/src/responders/foo/foo-responder.ts';
@@ -30,18 +29,18 @@ describe('busEventLinesRenderLayerBroker', () => {
           emitterSites: [
             {
               emitterFile: RESPONDER_FILE,
-              eventType: ContentTextStub({ value: 'chat-output' }),
-              busExportName: ContentTextStub({ value: 'myBus' }),
+              eventType: 'chat-output',
+              busExportName: 'myBus',
             },
             {
               emitterFile: RESPONDER_FILE,
-              eventType: ContentTextStub({ value: 'chat-output' }),
-              busExportName: ContentTextStub({ value: 'myBus' }),
+              eventType: 'chat-output',
+              busExportName: 'myBus',
             },
             {
               emitterFile: RESPONDER_FILE,
-              eventType: ContentTextStub({ value: 'chat-output' }),
-              busExportName: ContentTextStub({ value: 'myBus' }),
+              eventType: 'chat-output',
+              busExportName: 'myBus',
             },
           ],
         }),
@@ -59,18 +58,18 @@ describe('busEventLinesRenderLayerBroker', () => {
           emitterSites: [
             {
               emitterFile: RESPONDER_FILE,
-              eventType: ContentTextStub({ value: 'chat-output' }),
-              busExportName: ContentTextStub({ value: 'myBus' }),
+              eventType: 'chat-output',
+              busExportName: 'myBus',
             },
             {
               emitterFile: RESPONDER_FILE,
-              eventType: ContentTextStub({ value: 'chat-complete' }),
-              busExportName: ContentTextStub({ value: 'myBus' }),
+              eventType: 'chat-complete',
+              busExportName: 'myBus',
             },
             {
               emitterFile: OTHER_FILE,
-              eventType: ContentTextStub({ value: 'unrelated' }),
-              busExportName: ContentTextStub({ value: 'myBus' }),
+              eventType: 'unrelated',
+              busExportName: 'myBus',
             },
           ],
         }),
@@ -90,7 +89,7 @@ describe('busEventLinesRenderLayerBroker', () => {
           subscriberFiles: [
             {
               subscriberFile: RESPONDER_FILE,
-              busExportName: ContentTextStub({ value: 'myBus' }),
+              busExportName: 'myBus',
             },
           ],
         }),
@@ -108,11 +107,11 @@ describe('busEventLinesRenderLayerBroker', () => {
           subscriberFiles: [
             {
               subscriberFile: RESPONDER_FILE,
-              busExportName: ContentTextStub({ value: 'myBus' }),
+              busExportName: 'myBus',
             },
             {
               subscriberFile: RESPONDER_FILE,
-              busExportName: ContentTextStub({ value: 'myBus' }),
+              busExportName: 'myBus',
             },
           ],
         }),
@@ -132,14 +131,14 @@ describe('busEventLinesRenderLayerBroker', () => {
           emitterSites: [
             {
               emitterFile: RESPONDER_FILE,
-              eventType: ContentTextStub({ value: 'chat-output' }),
-              busExportName: ContentTextStub({ value: 'myBus' }),
+              eventType: 'chat-output',
+              busExportName: 'myBus',
             },
           ],
           subscriberFiles: [
             {
               subscriberFile: RESPONDER_FILE,
-              busExportName: ContentTextStub({ value: 'myBus' }),
+              busExportName: 'myBus',
             },
           ],
         }),

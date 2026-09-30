@@ -15,8 +15,6 @@
  * // Returns '{"status":200,"responseBody":"ok"}' as ContentText
  */
 
-import { contentTextContract } from '@dungeonmaster/shared/contracts';
-import type { ContentText } from '@dungeonmaster/shared/contracts';
 
 import { resultRowContract } from '../../contracts/result-row/result-row-contract';
 import type { ResultField } from '../../contracts/result-field/result-field-contract';
@@ -25,9 +23,9 @@ export const resultRowProjectTransformer = ({
   row,
   fields,
 }: {
-  row: ContentText;
+  row: string;
   fields: readonly ResultField[] | null;
-}): ContentText => {
+}): string => {
   if (fields === null) {
     return row;
   }
@@ -41,5 +39,5 @@ export const resultRowProjectTransformer = ({
     return accumulated;
   }, {});
 
-  return contentTextContract.parse(JSON.stringify(projected));
+  return JSON.stringify(projected);
 };

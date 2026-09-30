@@ -1,13 +1,12 @@
 import { busEmitterSiteContract } from './bus-emitter-site-contract';
-import { ContentTextStub } from '../content-text/content-text.stub';
 
 describe('busEmitterSiteContract', () => {
   describe('parse', () => {
     it('VALID: {full record} => parses successfully', () => {
       const result = busEmitterSiteContract.parse({
         emitterFile: '/repo/packages/orchestrator/src/responders/chat/replay/chat-replay-responder.ts',
-        eventType: ContentTextStub({ value: 'chat-output' }),
-        busExportName: ContentTextStub({ value: 'orchestrationEventsState' }),
+        eventType: 'chat-output',
+        busExportName: 'orchestrationEventsState',
       });
 
       expect(result).toStrictEqual({

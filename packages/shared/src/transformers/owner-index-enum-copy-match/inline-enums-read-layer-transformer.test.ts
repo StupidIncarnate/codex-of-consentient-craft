@@ -1,4 +1,3 @@
-import { ContentTextStub } from '../../contracts/content-text/content-text.stub';
 import { OwnerIndexOwnerStub } from '../../contracts/owner-index-owner/owner-index-owner.stub';
 import { inlineEnumsReadLayerTransformer } from './inline-enums-read-layer-transformer';
 
@@ -10,8 +9,7 @@ describe('inlineEnumsReadLayerTransformer', () => {
         contractName: 'workItemContract',
         filePath: '/repo/packages/alpha/src/contracts/work-item/work-item-contract.ts',
         packageName: '@repo/alpha',
-        schemaText: ContentTextStub({
-          value: [
+        schemaText: [
             'z.object({',
             "  role: z.enum(['worker', 'admin']),",
             '  title: z.string(),',
@@ -19,7 +17,6 @@ describe('inlineEnumsReadLayerTransformer', () => {
             '  kind: z.enum(kinds),',
             '})',
           ].join('\n'),
-        }),
       });
 
       expect(inlineEnumsReadLayerTransformer({ owner })).toStrictEqual([
@@ -44,7 +41,7 @@ describe('inlineEnumsReadLayerTransformer', () => {
 
     it('EMPTY: {no enum keys} => returns an empty list', () => {
       const owner = OwnerIndexOwnerStub({
-        schemaText: ContentTextStub({ value: 'z.object({ id: z.string() })' }),
+        schemaText: 'z.object({ id: z.string() })',
       });
 
       expect(inlineEnumsReadLayerTransformer({ owner })).toStrictEqual([]);

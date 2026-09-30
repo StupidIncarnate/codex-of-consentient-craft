@@ -11,8 +11,6 @@
  * the session it was routed to with no way to see why it owns the line.
  */
 
-import { contentTextContract } from '../../contracts/content-text/content-text-contract';
-import type { ContentText } from '../../contracts/content-text/content-text-contract';
 import type { QuestContractProperty } from '../../contracts/quest-contract-property/quest-contract-property-contract';
 import { textDisplaySymbolsStatics } from '../../statics/text-display-symbols/text-display-symbols-statics';
 
@@ -22,8 +20,8 @@ export const questContractPropertiesToTextTransformer = ({
 }: {
   properties: readonly QuestContractProperty[];
   depth: number;
-}): ContentText[] => {
-  const lines: ContentText[] = [];
+}): string[] => {
+  const lines: string[] = [];
   const prefix = textDisplaySymbolsStatics.indent.repeat(depth);
 
   for (const prop of properties) {
@@ -43,7 +41,7 @@ export const questContractPropertiesToTextTransformer = ({
     if (prop.description) {
       propParts.push(` ${textDisplaySymbolsStatics.emDash} ${String(prop.description)}`);
     }
-    lines.push(contentTextContract.parse(`${prefix}${propParts.join('')}`));
+    lines.push(`${prefix}${propParts.join('')}`);
     if (prop.properties && prop.properties.length > 0) {
       lines.push(
         ...questContractPropertiesToTextTransformer({

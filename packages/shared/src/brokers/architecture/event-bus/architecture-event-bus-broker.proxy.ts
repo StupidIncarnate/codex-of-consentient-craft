@@ -1,13 +1,12 @@
 import { eventBusStatesFindLayerBrokerProxy } from './event-bus-states-find-layer-broker.proxy';
 import { busEmitterSitesFindLayerBrokerProxy } from './bus-emitter-sites-find-layer-broker.proxy';
 import { busSubscriberFilesFindLayerBrokerProxy } from './bus-subscriber-files-find-layer-broker.proxy';
-import type { ContentText } from '../../../contracts/content-text/content-text-contract';
 
 export const architectureEventBusBrokerProxy = (): {
   setup: ({
     sourceFiles,
   }: {
-    sourceFiles: { path: string; source: ContentText }[];
+    sourceFiles: { path: string; source: string }[];
   }) => void;
 } => {
   // All three child layer brokers share the same listTsFiles/readFile mock surface
@@ -22,7 +21,7 @@ export const architectureEventBusBrokerProxy = (): {
     setup: ({
       sourceFiles,
     }: {
-      sourceFiles: { path: string; source: ContentText }[];
+      sourceFiles: { path: string; source: string }[];
     }): void => {
       statesProxy.setup({ sourceFiles });
       emittersProxy.setup({ sourceFiles });

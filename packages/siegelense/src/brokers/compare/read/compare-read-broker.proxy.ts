@@ -1,4 +1,4 @@
-import type { ContentText, Guild, SiegeInstance } from '@dungeonmaster/shared/contracts';
+import type { Guild, SiegeInstance } from '@dungeonmaster/shared/contracts';
 
 import type { RegistryEntryStub } from '../../../contracts/registry-entry/registry-entry.stub';
 import { RegistryStub } from '../../../contracts/registry/registry.stub';
@@ -41,12 +41,12 @@ export const compareReadBrokerProxy = (): {
   setupConsoleLines: (params: {
     evidencePath: string;
     runId: RunId;
-    lines: readonly ContentText[];
+    lines: readonly string[];
   }) => void;
   setupNetworkLines: (params: {
     evidencePath: string;
     runId: RunId;
-    lines: readonly ContentText[];
+    lines: readonly string[];
   }) => void;
   setupStepReadings: (params: {
     evidencePath: string;
@@ -75,8 +75,8 @@ export const compareReadBrokerProxy = (): {
   newLinesLayerBrokerProxy();
   elementDeltaLastLayerBrokerProxy();
 
-  const consoleLinesByRun = new Map<RunId, readonly ContentText[]>();
-  const networkLinesByRun = new Map<RunId, readonly ContentText[]>();
+  const consoleLinesByRun = new Map<RunId, readonly string[]>();
+  const networkLinesByRun = new Map<RunId, readonly string[]>();
 
   return {
     evidencePathFor: (params: {
@@ -167,7 +167,7 @@ export const compareReadBrokerProxy = (): {
     }: {
       evidencePath: string;
       runId: RunId;
-      lines: readonly ContentText[];
+      lines: readonly string[];
     }): void => {
       // console.jsonl is one append-only file per INSTANCE, shared by every run — so staging run B's
       // lines must not erase run A's. Every call re-stages the FULL accumulated content across every
@@ -192,7 +192,7 @@ export const compareReadBrokerProxy = (): {
     }: {
       evidencePath: string;
       runId: RunId;
-      lines: readonly ContentText[];
+      lines: readonly string[];
     }): void => {
       // network.jsonl is the same shared, append-only, per-instance shape as console.jsonl above —
       // every call re-stages the FULL accumulated content across every run set up so far.

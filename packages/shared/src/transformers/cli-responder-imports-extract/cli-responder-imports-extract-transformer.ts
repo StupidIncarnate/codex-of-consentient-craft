@@ -10,10 +10,6 @@
  * WHEN-NOT-TO-USE: When full AST parsing is needed — this is a v1 regex heuristic
  */
 
-import {
-  contentTextContract,
-  type ContentText,
-} from '../../contracts/content-text/content-text-contract';
 
 // Matches: import { SomeResponder } from '../../responders/..'
 const RESPONDER_IMPORT_PATTERN = /import\s+\{\s*(\w+Responder)\s*\}\s+from\s+['"][^'"]*['"]/gu;
@@ -21,15 +17,15 @@ const RESPONDER_IMPORT_PATTERN = /import\s+\{\s*(\w+Responder)\s*\}\s+from\s+['"
 export const cliResponderImportsExtractTransformer = ({
   source,
 }: {
-  source: ContentText;
-}): ContentText[] => {
-  const names: ContentText[] = [];
+  source: string;
+}): string[] => {
+  const names: string[] = [];
   RESPONDER_IMPORT_PATTERN.lastIndex = 0;
   let match = RESPONDER_IMPORT_PATTERN.exec(String(source));
   while (match !== null) {
     const [, name] = match;
     if (name !== undefined) {
-      const parsed = contentTextContract.parse(name);
+      const parsed = name;
       const alreadySeen = names.some((n) => String(n) === String(parsed));
       if (!alreadySeen) {
         names.push(parsed);

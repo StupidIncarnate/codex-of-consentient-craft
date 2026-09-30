@@ -14,8 +14,6 @@
  * WHEN-NOT-TO-USE: For non-statics dotted expressions, or when full AST parsing is needed
  */
 
-import type { ContentText } from '../../contracts/content-text/content-text-contract';
-import { contentTextContract } from '../../contracts/content-text/content-text-contract';
 
 // Matches: key: 'value' or key: "value" — for direct string property extraction
 const STRING_PROP_PATTERN =
@@ -25,9 +23,9 @@ export const staticsPathResolveTransformer = ({
   source,
   dotPath,
 }: {
-  source: ContentText;
-  dotPath: ContentText;
-}): ContentText | null => {
+  source: string;
+  dotPath: string;
+}): string | null => {
   const parts = String(dotPath).split('.');
   // parts[0] is the statics object name (e.g. 'apiRoutesStatics'), skip it
   const propertyKeys = parts.slice(1);
@@ -73,7 +71,7 @@ export const staticsPathResolveTransformer = ({
         const matchedKey = singleKey ?? doubleKey;
         const matchedVal = singleVal ?? doubleVal;
         if (matchedKey === key && matchedVal !== undefined) {
-          return contentTextContract.parse(matchedVal);
+          return matchedVal;
         }
         propMatch = STRING_PROP_PATTERN.exec(currentBody);
       }

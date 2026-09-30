@@ -13,18 +13,14 @@
  */
 
 import { readFileSync } from '#gateway/node/fs';
-import {
-  contentTextContract,
-  type ContentText,
-} from '../../../contracts/content-text/content-text-contract';
 
 export const architectureSourceReadBroker = ({
   filePath,
 }: {
   filePath: string;
-}): ContentText | undefined => {
+}): string | undefined => {
   try {
-    return contentTextContract.parse(readFileSync(String(filePath)));
+    return readFileSync(String(filePath));
   } catch {
     return undefined;
   }

@@ -10,11 +10,10 @@
 
 import { z } from '#gateway/npm/zod';
 import { absoluteFilePathContract } from '../absolute-file-path/absolute-file-path-contract';
-import { contentTextContract } from '../content-text/content-text-contract';
 
 export const widgetEdgesContract = z.object({
   childWidgetPaths: z.array(absoluteFilePathContract),
-  bindingNames: z.array(contentTextContract),
+  bindingNames: z.array(z.string().brand<'WidgetEdgesBindingNames'>()),
 });
 
 export type WidgetEdges = z.infer<typeof widgetEdgesContract>;

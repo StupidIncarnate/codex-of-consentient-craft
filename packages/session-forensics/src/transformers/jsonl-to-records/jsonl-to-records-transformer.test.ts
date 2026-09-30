@@ -1,6 +1,5 @@
 import { jsonlToRecordsTransformer } from './jsonl-to-records-transformer';
 import { TranscriptRecordStub } from '../../contracts/transcript-record/transcript-record.stub';
-import { ContentTextStub } from '@dungeonmaster/shared/contracts/content-text/content-text.stub';
 
 describe('jsonlToRecordsTransformer', () => {
   describe('valid input', () => {
@@ -22,7 +21,7 @@ describe('jsonlToRecordsTransformer', () => {
       ];
 
       const result = jsonlToRecordsTransformer({
-        contents: ContentTextStub({ value: lines.join('\n') }),
+        contents: lines.join('\n'),
       });
 
       expect(result).toStrictEqual([
@@ -46,7 +45,7 @@ describe('jsonlToRecordsTransformer', () => {
         message: { content: 'No timestamp on this line.' },
       });
 
-      const result = jsonlToRecordsTransformer({ contents: ContentTextStub({ value: line }) });
+      const result = jsonlToRecordsTransformer({ contents: line });
 
       expect(result).toStrictEqual([
         { type: 'user', message: { content: 'No timestamp on this line.' } },
@@ -56,14 +55,14 @@ describe('jsonlToRecordsTransformer', () => {
 
   describe('empty input', () => {
     it('EMPTY: {empty string} => returns no records', () => {
-      const result = jsonlToRecordsTransformer({ contents: ContentTextStub({ value: '' }) });
+      const result = jsonlToRecordsTransformer({ contents: '' });
 
       expect(result).toStrictEqual([]);
     });
 
     it('EMPTY: {only newlines and spaces} => returns no records', () => {
       const result = jsonlToRecordsTransformer({
-        contents: ContentTextStub({ value: '\n   \n\t\n  \n' }),
+        contents: '\n   \n\t\n  \n',
       });
 
       expect(result).toStrictEqual([]);
@@ -82,7 +81,7 @@ describe('jsonlToRecordsTransformer', () => {
       });
 
       const result = jsonlToRecordsTransformer({
-        contents: ContentTextStub({ value: `${line}\n` }),
+        contents: `${line}\n`,
       });
 
       expect(result).toStrictEqual([
@@ -106,7 +105,7 @@ describe('jsonlToRecordsTransformer', () => {
       });
 
       const result = jsonlToRecordsTransformer({
-        contents: ContentTextStub({ value: [validLine, '{"type":"assis'].join('\n') }),
+        contents: [validLine, '{"type":"assis'].join('\n'),
       });
 
       expect(result).toStrictEqual([
@@ -130,7 +129,7 @@ describe('jsonlToRecordsTransformer', () => {
       });
 
       const result = jsonlToRecordsTransformer({
-        contents: ContentTextStub({ value: [validLine, JSON.stringify({ nope: 1 })].join('\n') }),
+        contents: [validLine, JSON.stringify({ nope: 1 })].join('\n'),
       });
 
       expect(result).toStrictEqual([
@@ -159,7 +158,7 @@ describe('jsonlToRecordsTransformer', () => {
       });
 
       const result = jsonlToRecordsTransformer({
-        contents: ContentTextStub({ value: [first, '', second].join('\n') }),
+        contents: [first, '', second].join('\n'),
       });
 
       expect(result).toStrictEqual([

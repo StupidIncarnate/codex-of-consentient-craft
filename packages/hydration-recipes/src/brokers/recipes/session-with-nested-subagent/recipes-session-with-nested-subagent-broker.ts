@@ -29,7 +29,6 @@
  * // Writes the three JSONL files and returns { session: { sessionId, outer, nested } }
  */
 
-import { contentTextContract } from '@dungeonmaster/shared/contracts';
 import type { Guild } from '@dungeonmaster/shared/contracts';
 import { hydrationRunResultContract } from '@dungeonmaster/hydration/contracts';
 import type { HydrationRunResult } from '@dungeonmaster/hydration/contracts';
@@ -57,9 +56,7 @@ export const recipesSessionWithNestedSubagentBroker = async ({
   context: RecipeContext;
   guild: Guild['id'];
 }): Promise<HydrationRunResult> => {
-  const guildsUrl = contentTextContract.parse(
-    `${context.apiBaseUrl}${recipeHttpStatics.routes.guilds}`,
-  );
+  const guildsUrl = `${context.apiBaseUrl}${recipeHttpStatics.routes.guilds}`;
   const listing = guildListingContract.parse({
     guilds: await fetchJson({
       url: guildsUrl,

@@ -1,13 +1,12 @@
 import { readFileContentsLayerBroker } from './read-file-contents-layer-broker';
 import { readFileContentsLayerBrokerProxy } from './read-file-contents-layer-broker.proxy';
-import { ContentTextStub } from '../../../contracts/content-text/content-text.stub';
 
 describe('readFileContentsLayerBroker', () => {
   describe('successful reads', () => {
     it('VALID: {existing file} => returns content', () => {
       const proxy = readFileContentsLayerBrokerProxy();
       const filePath = '/project/src/startup/start-app.ts';
-      const content = ContentTextStub({ value: 'import { foo } from "./foo";' });
+      const content = 'import { foo } from "./foo";';
       proxy.setupReturns({ filePath, content });
       const result = readFileContentsLayerBroker({ filePath });
 

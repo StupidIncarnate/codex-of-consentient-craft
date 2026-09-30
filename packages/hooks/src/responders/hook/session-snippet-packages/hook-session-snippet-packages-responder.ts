@@ -15,11 +15,10 @@
  */
 
 import { packageNameContract } from '@dungeonmaster/shared/contracts';
-import { contentTextContract } from '@dungeonmaster/shared/contracts';
 import { readdirEntriesSync } from '#gateway/node/fs';
 import { cwd } from '#gateway/node/process';
 import { gatewayLocationsStatics } from '@dungeonmaster/shared/statics';
-import type { ContentText, PackageName } from '@dungeonmaster/shared/contracts';
+import type { PackageName } from '@dungeonmaster/shared/contracts';
 
 const SINGLE_ROOT_FALLBACK_PACKAGE_NAME = 'root';
 
@@ -39,7 +38,7 @@ export const HookSessionSnippetPackagesResponder = ({
   projectRoot,
 }: {
   projectRoot?: string;
-} = {}): ContentText => {
+} = {}): string => {
   const resolvedProjectRoot = projectRoot ?? cwd();
   const packagesDir = `${String(resolvedProjectRoot)}/packages`;
 
@@ -79,5 +78,5 @@ export const HookSessionSnippetPackagesResponder = ({
 
   const bullets = packages.map((name) => `- **${String(name)}**`).join('\n');
 
-  return contentTextContract.parse(`## Packages\n\n${bullets}`);
+  return `## Packages\n\n${bullets}`;
 };

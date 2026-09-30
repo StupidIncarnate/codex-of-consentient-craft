@@ -9,10 +9,6 @@
  * without a full AST parse (v1 regex approach per project-map feature brief)
  */
 
-import {
-  contentTextContract,
-  type ContentText,
-} from '../../contracts/content-text/content-text-contract';
 import { templateLiteralsStripTransformer } from '../template-literals-strip/template-literals-strip-transformer';
 
 const IMPORT_FROM_PATTERN =
@@ -22,20 +18,20 @@ const BLOCK_COMMENT_PATTERN = /\/\*[\s\S]*?\*\//gu;
 export const importStatementsExtractTransformer = ({
   source,
 }: {
-  source: ContentText;
-}): ContentText[] => {
+  source: string;
+}): string[] => {
   const blockCommentsRemoved = String(source).replace(BLOCK_COMMENT_PATTERN, '');
   const stripped = templateLiteralsStripTransformer({
-    source: contentTextContract.parse(blockCommentsRemoved),
+    source: blockCommentsRemoved,
   });
   const cleanedSource = String(stripped);
-  const paths: ContentText[] = [];
+  const paths: string[] = [];
   IMPORT_FROM_PATTERN.lastIndex = 0;
   let match = IMPORT_FROM_PATTERN.exec(cleanedSource);
   while (match !== null) {
     const [, captured] = match;
     if (captured !== undefined) {
-      paths.push(contentTextContract.parse(captured));
+      paths.push(captured);
     }
     match = IMPORT_FROM_PATTERN.exec(cleanedSource);
   }

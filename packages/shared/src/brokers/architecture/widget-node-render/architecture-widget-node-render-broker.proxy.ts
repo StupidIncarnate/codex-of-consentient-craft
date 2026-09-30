@@ -1,18 +1,17 @@
 import { architectureBindingFlowTraceBrokerProxy } from '../binding-flow-trace/architecture-binding-flow-trace-broker.proxy';
 import { architectureExportNameResolveBrokerProxy } from '../export-name-resolve/architecture-export-name-resolve-broker.proxy';
 import { FileMissingErrorStub } from '#gateway/node/fs/file-missing-error/file-missing-error.stub';
-import type { ContentText } from '../../../contracts/content-text/content-text-contract';
 
 export const architectureWidgetNodeRenderBrokerProxy = (): {
-  setupExportNamesMap: ({ map }: { map: Record<string, ContentText> }) => void;
+  setupExportNamesMap: ({ map }: { map: Record<string, string> }) => void;
 } => {
   architectureBindingFlowTraceBrokerProxy();
   const exportProxy = architectureExportNameResolveBrokerProxy();
 
   return {
-    setupExportNamesMap: ({ map }: { map: Record<string, ContentText> }): void => {
+    setupExportNamesMap: ({ map }: { map: Record<string, string> }): void => {
       exportProxy.setupImplementation({
-        fn: (filePath: ContentText): ContentText => {
+        fn: (filePath: string): string => {
           const fp = String(filePath);
           for (const [suffix, content] of Object.entries(map)) {
             if (fp.endsWith(suffix)) {

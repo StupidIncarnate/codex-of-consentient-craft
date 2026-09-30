@@ -1,7 +1,6 @@
 import { architectureProjectMapBroker } from './architecture-project-map-broker';
 import { architectureProjectMapBrokerProxy } from './architecture-project-map-broker.proxy';
 import { PackageNameStub } from '../../../contracts/package-name/package-name.stub';
-import { ContentTextStub } from '../../../contracts/content-text/content-text.stub';
 import { projectMapStatics } from '../../../statics/project-map/project-map-statics';
 
 describe('architectureProjectMapBroker', () => {
@@ -212,12 +211,10 @@ describe('architectureProjectMapBroker', () => {
         projectRoot,
         folder: 'node',
         subpathName: 'fs',
-        barrelContent: ContentTextStub({
-          value: [
+        barrelContent: [
             "export * from 'fs';",
             "export { existsSync } from './exists-sync/exists-sync';",
           ].join('\n'),
-        }),
       });
 
       const result = await architectureProjectMapBroker({

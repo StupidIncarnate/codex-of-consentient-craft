@@ -13,18 +13,14 @@
  * WHEN-NOT-TO-USE: When all namespace calls are needed (use namespaceMethodCallsExtractTransformer)
  */
 
-import {
-  contentTextContract,
-  type ContentText,
-} from '../../contracts/content-text/content-text-contract';
 import { namespaceMethodCallsExtractTransformer } from '../namespace-method-calls-extract/namespace-method-calls-extract-transformer';
 import { namespaceNameExtractTransformer } from '../namespace-name-extract/namespace-name-extract-transformer';
 
 export const namespaceCallFirstExtractTransformer = ({
   source,
 }: {
-  source: ContentText;
-}): ContentText | null => {
+  source: string;
+}): string | null => {
   const ns = namespaceNameExtractTransformer({ source });
   if (ns === null) {
     return null;
@@ -34,5 +30,5 @@ export const namespaceCallFirstExtractTransformer = ({
   if (firstMethod === undefined) {
     return null;
   }
-  return contentTextContract.parse(`${String(ns)}.${String(firstMethod)}({...})`);
+  return `${String(ns)}.${String(firstMethod)}({...})`;
 };

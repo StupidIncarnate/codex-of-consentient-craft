@@ -17,7 +17,6 @@
 
 import { z } from '#gateway/npm/zod';
 
-import { contentTextContract } from '@dungeonmaster/shared/contracts';
 
 import { loadAverageContract } from '../load-average/load-average-contract';
 import { megabytesContract } from '../megabytes/megabytes-contract';
@@ -30,7 +29,7 @@ export const machineReadingContract = z.object({
   cores: readingCountContract,
   loadAvg: loadAverageContract,
   oomKillsSinceBoot: readingCountContract.nullable(),
-  lastOomAt: contentTextContract.nullable(),
+  lastOomAt: z.string().brand<'MachineReadingLastOomAt'>().nullable(),
 });
 
 export type MachineReading = z.infer<typeof machineReadingContract>;

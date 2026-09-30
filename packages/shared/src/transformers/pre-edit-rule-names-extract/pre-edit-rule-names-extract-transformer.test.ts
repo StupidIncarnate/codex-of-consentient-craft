@@ -1,6 +1,5 @@
 import { preEditRuleNamesExtractTransformer } from './pre-edit-rule-names-extract-transformer';
 import { dungeonmasterRuleEnforceOnStatics } from '../../statics/dungeonmaster-rule-enforce-on/dungeonmaster-rule-enforce-on-statics';
-import { ContentTextStub } from '../../contracts/content-text/content-text.stub';
 
 describe('preEditRuleNamesExtractTransformer', () => {
   describe('rule filtering', () => {
@@ -14,15 +13,15 @@ describe('preEditRuleNamesExtractTransformer', () => {
       });
 
       expect(result).toStrictEqual([
-        ContentTextStub({ value: 'rule-alpha' }),
-        ContentTextStub({ value: 'rule-gamma' }),
+        'rule-alpha',
+        'rule-gamma',
       ]);
     });
 
     it('VALID: {enforceOn with real dungeonmasterRuleEnforceOnStatics} => returns pre-edit rules matching statics', () => {
       const expectedRules = Object.entries(dungeonmasterRuleEnforceOnStatics)
         .filter(([, timing]) => timing === 'pre-edit')
-        .map(([ruleName]) => ContentTextStub({ value: ruleName }));
+        .map(([ruleName]) => ruleName);
 
       const result = preEditRuleNamesExtractTransformer({
         enforceOn: dungeonmasterRuleEnforceOnStatics,

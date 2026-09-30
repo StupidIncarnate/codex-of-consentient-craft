@@ -12,17 +12,15 @@
  * // Returns 'video recording stopped — saved to /path/video.webm' as ContentText
  */
 
-import { contentTextContract } from '@dungeonmaster/shared/contracts';
-import type { ContentText } from '@dungeonmaster/shared/contracts';
 
 import type { VideoResult } from '../../contracts/video-result/video-result-contract';
 import { videoStatics } from '../../statics/video/video-statics';
 
-export const videoReadingRenderTransformer = ({ result }: { result: VideoResult }): ContentText => {
+export const videoReadingRenderTransformer = ({ result }: { result: VideoResult }): string => {
   if (result.status === 'started') {
-    return contentTextContract.parse(videoStatics.readings.started);
+    return videoStatics.readings.started;
   }
 
   const targetPath = result.path ?? 'evidence/video';
-  return contentTextContract.parse(videoStatics.readings.stopped.replace('{path}', targetPath));
+  return videoStatics.readings.stopped.replace('{path}', targetPath);
 };

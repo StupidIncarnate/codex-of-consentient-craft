@@ -1,6 +1,5 @@
 import { architectureExportNameResolveBroker } from './architecture-export-name-resolve-broker';
 import { architectureExportNameResolveBrokerProxy } from './architecture-export-name-resolve-broker.proxy';
-import { ContentTextStub } from '../../../contracts/content-text/content-text.stub';
 
 describe('architectureExportNameResolveBroker', () => {
   describe('export found in source', () => {
@@ -10,14 +9,12 @@ describe('architectureExportNameResolveBroker', () => {
 
       proxy.setupReturns({
         filePath,
-        content: ContentTextStub({
-          value: `export const questLoadBroker = () => {};`,
-        }),
+        content: `export const questLoadBroker = () => {};`,
       });
 
       const result = architectureExportNameResolveBroker({ filePath });
 
-      expect(result).toStrictEqual(ContentTextStub({ value: 'questLoadBroker' }));
+      expect(result).toStrictEqual('questLoadBroker');
     });
   });
 
@@ -28,14 +25,12 @@ describe('architectureExportNameResolveBroker', () => {
 
       proxy.setupReturns({
         filePath,
-        content: ContentTextStub({
-          value: `export const HomeContentWidget = () => null;`,
-        }),
+        content: `export const HomeContentWidget = () => null;`,
       });
 
       const result = architectureExportNameResolveBroker({ filePath });
 
-      expect(result).toStrictEqual(ContentTextStub({ value: 'HomeContentWidget' }));
+      expect(result).toStrictEqual('HomeContentWidget');
     });
   });
 
@@ -48,7 +43,7 @@ describe('architectureExportNameResolveBroker', () => {
 
       const result = architectureExportNameResolveBroker({ filePath });
 
-      expect(result).toStrictEqual(ContentTextStub({ value: 'quest-load-broker' }));
+      expect(result).toStrictEqual('quest-load-broker');
     });
   });
 
@@ -59,14 +54,12 @@ describe('architectureExportNameResolveBroker', () => {
 
       proxy.setupReturns({
         filePath,
-        content: ContentTextStub({
-          value: `// no export here\nimport { foo } from './foo';`,
-        }),
+        content: `// no export here\nimport { foo } from './foo';`,
       });
 
       const result = architectureExportNameResolveBroker({ filePath });
 
-      expect(result).toStrictEqual(ContentTextStub({ value: 'quest-load-broker' }));
+      expect(result).toStrictEqual('quest-load-broker');
     });
   });
 });

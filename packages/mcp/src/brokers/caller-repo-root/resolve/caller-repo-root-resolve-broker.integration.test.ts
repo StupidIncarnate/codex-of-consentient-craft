@@ -12,7 +12,6 @@
 import { cwdResolveBroker } from '@dungeonmaster/shared/brokers';
 import { installTestbedCreateBroker } from '@dungeonmaster/testing';
 import { architecturePackageInventoryBroker } from '@dungeonmaster/shared/brokers';
-import { ContentTextStub } from '@dungeonmaster/shared/contracts/content-text/content-text.stub';
 
 describe('cwdResolveBroker + architecturePackageInventoryBroker (integration: real nested worktree layout)', () => {
   it('VALID: {startPath deep inside a worktree nested under the main checkout} => resolves the WORKTREE root, and an inventory taken there sees the worktree package but NOT a package that exists only in the outer checkout', async () => {
@@ -48,7 +47,7 @@ describe('cwdResolveBroker + architecturePackageInventoryBroker (integration: re
     expect(repoRoot).toBe(innerRoot);
 
     const innerInventory = architecturePackageInventoryBroker({
-      packageName: ContentTextStub({ value: 'inner-pkg' }),
+      packageName: 'inner-pkg',
       srcPath: `${repoRoot}/packages/inner-pkg/src`,
       packageJsonPath: `${repoRoot}/packages/inner-pkg/package.json`,
     });
@@ -56,7 +55,7 @@ describe('cwdResolveBroker + architecturePackageInventoryBroker (integration: re
     expect(String(innerInventory).split('\n')[0]).toBe('## inner-pkg (1 files)');
 
     const outerOnlyInventory = architecturePackageInventoryBroker({
-      packageName: ContentTextStub({ value: 'outer-only-pkg' }),
+      packageName: 'outer-only-pkg',
       srcPath: `${repoRoot}/packages/outer-only-pkg/src`,
       packageJsonPath: `${repoRoot}/packages/outer-only-pkg/package.json`,
     });

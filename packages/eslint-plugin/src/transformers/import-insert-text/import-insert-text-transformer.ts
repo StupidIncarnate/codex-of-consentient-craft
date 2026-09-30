@@ -7,8 +7,6 @@
  * importInsertTextTransformer({ anchor, name: 'Quest', source: '../quest/quest-contract', importKind: 'type' });
  * // Returns ", Quest" after a specifier anchor, "\nimport type { Quest } from '../quest/quest-contract';" after an import, and the same statement with its own trailing newline when the file has no import
  */
-import { contentTextContract } from '@dungeonmaster/shared/contracts';
-import type { ContentText } from '@dungeonmaster/shared/contracts';
 import { AST_NODE_TYPES } from '#gateway/npm/typescript-eslint__utils';
 import type { TSESTree } from '#gateway/npm/typescript-eslint__utils';
 
@@ -22,11 +20,11 @@ export const importInsertTextTransformer = ({
   name: string;
   source: string;
   importKind: 'type' | 'value';
-}): ContentText => {
+}): string => {
   if (anchor?.type === AST_NODE_TYPES.ImportSpecifier) {
-    return contentTextContract.parse(`, ${name}`);
+    return `, ${name}`;
   }
 
   const statement = `import ${importKind === 'type' ? 'type ' : ''}{ ${name} } from '${source}';`;
-  return contentTextContract.parse(anchor === null ? `${statement}\n` : `\n${statement}`);
+  return (anchor === null ? `${statement}\n` : `\n${statement}`);
 };

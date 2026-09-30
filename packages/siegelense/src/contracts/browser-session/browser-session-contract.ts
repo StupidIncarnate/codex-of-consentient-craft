@@ -16,7 +16,6 @@
  * // touches a Playwright Page
  */
 
-import type { ContentText } from '@dungeonmaster/shared/contracts';
 
 import type { BoxReading } from '../box-reading/box-reading-contract';
 import type { BufferLengths } from '../buffer-lengths/buffer-lengths-contract';
@@ -50,7 +49,7 @@ export interface BrowserSession {
     target: string;
     within?: string;
   }) => Promise<readonly StepCandidate[]>;
-  nearestNames: ({ target }: { target: string }) => Promise<readonly ContentText[]>;
+  nearestNames: ({ target }: { target: string }) => Promise<readonly string[]>;
   clickMatch: ({
     target,
     within,
@@ -128,13 +127,13 @@ export interface BrowserSession {
   }) => Promise<SettleReading>;
   capture: ({ filePath }: { filePath: string }) => Promise<void>;
   captureLive: ({ filePath }: { filePath: string }) => Promise<void>;
-  evaluateSource: ({ source }: { source: string }) => Promise<ContentText>;
+  evaluateSource: ({ source }: { source: string }) => Promise<string>;
   // Armed once at boot and never cleared (siegelense-tooling.md line 1635) — a run records where it
   // started via `bufferLengths()` and reads forward from there with `fromIndex`, so its own index
   // counts only ITS window rather than every run's running total.
-  readConsoleSince: ({ fromIndex }: { fromIndex: number }) => readonly ContentText[];
-  readNetworkSince: ({ fromIndex }: { fromIndex: number }) => readonly ContentText[];
-  readWebsocketSince: ({ fromIndex }: { fromIndex: number }) => readonly ContentText[];
+  readConsoleSince: ({ fromIndex }: { fromIndex: number }) => readonly string[];
+  readNetworkSince: ({ fromIndex }: { fromIndex: number }) => readonly string[];
+  readWebsocketSince: ({ fromIndex }: { fromIndex: number }) => readonly string[];
   readDom: ({
     target,
     fields,

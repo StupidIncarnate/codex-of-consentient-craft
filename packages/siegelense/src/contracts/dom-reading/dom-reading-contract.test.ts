@@ -1,4 +1,3 @@
-import { ContentTextStub } from '@dungeonmaster/shared/contracts/content-text/content-text.stub';
 
 import { DomNodeStub } from '../dom-node/dom-node.stub';
 import { ReadingCountStub } from '../reading-count/reading-count.stub';
@@ -60,7 +59,7 @@ describe('domReadingContract', () => {
       count: ReadingCountStub({ value: 58 }),
       showing: ReadingCountStub({ value: 10 }),
       capped: true,
-      note: ContentTextStub({ value: 'count: 58, showing 10, capped. Narrow this.' }),
+      note: 'count: 58, showing 10, capped. Narrow this.',
       nodes: [DomNodeStub()],
     });
 

@@ -10,7 +10,7 @@ import { ContentTextStub } from '@dungeonmaster/shared/contracts/content-text/co
 
 import { setTimeoutProxy } from '#gateway/node/setTimeout/set-timeout/set-timeout.proxy';
 
-type ContentText = ReturnType<typeof ContentTextStub>;
+type ContentText = string;
 
 export const untilBufferMatchLayerBrokerProxy = (): {
   linesAnswering: (params: { lines: readonly string[] }) => {
@@ -83,9 +83,7 @@ export const untilBufferMatchLayerBrokerProxy = (): {
         parsed: Record<PropertyKey, unknown>;
         waitedMs: number;
       }): ContentText =>
-        ContentTextStub({
-          value: `answered ${String(parsed.status)} after ${String(waitedMs)}ms`,
-        }),
+        `answered ${String(parsed.status)} after ${String(waitedMs)}ms`,
 
     buildConsoleArrivedReading:
       ({ pattern }: { pattern: string }) =>
@@ -96,8 +94,6 @@ export const untilBufferMatchLayerBrokerProxy = (): {
         parsed: Record<PropertyKey, unknown>;
         waitedMs: number;
       }): ContentText =>
-        ContentTextStub({
-          value: `console line matching /${pattern}/ arrived after ${String(waitedMs)}ms — "${String(parsed.text)}"`,
-        }),
+        `console line matching /${pattern}/ arrived after ${String(waitedMs)}ms — "${String(parsed.text)}"`,
   };
 };

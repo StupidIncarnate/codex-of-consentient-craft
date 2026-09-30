@@ -17,7 +17,7 @@
  *   'execution-panel-tab-followup', 'execution-panel-tab-execution', 'execution-panel-tab-spec',
  * ]);
  */
-import type { Guild, Quest, ContentText, UrlSlug } from '@dungeonmaster/shared/contracts';
+import type { Guild, Quest, UrlSlug } from '@dungeonmaster/shared/contracts';
 import { appendFileSync, readFileSync } from '#gateway/node/fs';
 import { writeFile } from '#gateway/node/fs__promises';
 import { dirname } from '#gateway/node/path';
@@ -93,7 +93,7 @@ export const followupHarness = ({
   setQuestStatusOnDisk: (params: { questFilePath: string; status: string }) => Promise<void>;
   pressFollowup: () => Promise<void>;
   sendFollowupMessage: (params: { text: string }) => Promise<void>;
-  errorMessages: () => Promise<ContentText[]>;
+  errorMessages: () => Promise<string[]>;
   seedTavernkeeperSession: (params: {
     sessionId: string;
     turns: readonly { role: 'user' | 'assistant'; text: string }[];
@@ -104,7 +104,7 @@ export const followupHarness = ({
     order: number;
   }) => Promise<void>;
   transcriptHasText: (params: { text: string }) => Promise<boolean>;
-  transcriptOrder: (params: { candidates: readonly string[] }) => Promise<ContentText[]>;
+  transcriptOrder: (params: { candidates: readonly string[] }) => Promise<string[]>;
   isTurnInFlight: () => Promise<boolean>;
   switchToExecutionTab: () => Promise<void>;
   switchToFollowupTab: () => Promise<void>;
@@ -321,7 +321,7 @@ export const followupHarness = ({
   // cannot tell "the exact 400 body text" from a longer string that merely contains it; and an
   // exact list makes "this failure and no other" assertable, so a tab naming the WRONG quest's
   // worktree fails instead of passing on a hasText hit.
-  const errorMessages = async (): Promise<ContentText[]> => {
+  const errorMessages = async (): Promise<string[]> => {
     const texts = await page
       .getByTestId('CHAT_PANEL')
       .getByTestId('CHAT_MESSAGE')
@@ -332,7 +332,7 @@ export const followupHarness = ({
             .map((element) => element.children[1]?.textContent ?? ''),
         ERROR_ENTRY_LABEL,
       );
-    return texts as ContentText[];
+    return texts as string[];
   };
 
   // The candidates, in the order their messages appear in the transcript's DOM — the only read
@@ -342,7 +342,7 @@ export const followupHarness = ({
     candidates,
   }: {
     candidates: readonly string[];
-  }): Promise<ContentText[]> => {
+  }): Promise<string[]> => {
     const messages = await page
       .getByTestId('CHAT_PANEL')
       .getByTestId('CHAT_MESSAGE')
@@ -354,7 +354,7 @@ export const followupHarness = ({
       }))
       .filter((entry) => entry.position >= 0)
       .sort((left, right) => left.position - right.position)
-      .map((entry) => entry.candidate) as ContentText[];
+      .map((entry) => entry.candidate) as string[];
   };
 
   // "The tavernkeeper is still running": the composer shows STOP and no longer offers SEND. Both

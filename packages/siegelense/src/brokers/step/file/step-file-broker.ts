@@ -13,8 +13,6 @@
  */
 
 import { join } from '#gateway/node/path';
-import { contentTextContract } from '@dungeonmaster/shared/contracts';
-import type { ContentText } from '@dungeonmaster/shared/contracts';
 
 import { readFile, statIfExists } from '#gateway/node/fs__promises';
 import type { LaneSession } from '../../../contracts/lane-session/lane-session-contract';
@@ -27,13 +25,13 @@ export const stepFileBroker = async ({
 }: {
   lane: LaneSession;
   path: StepFilePath;
-}): Promise<ContentText> => {
+}): Promise<string> => {
   const homeFilePath = join(lane.homePath, path);
   const homeStat = await statIfExists(homeFilePath);
 
   if (homeStat !== null) {
     const content = await readFile(homeFilePath);
-    return contentTextContract.parse(content);
+    return content;
   }
 
   const evidenceFilePath = join(lane.evidencePath, path);
@@ -41,7 +39,7 @@ export const stepFileBroker = async ({
 
   if (evidenceStat !== null) {
     const content = await readFile(evidenceFilePath);
-    return contentTextContract.parse(content);
+    return content;
   }
 
   throw new StepFileNotFoundError({ path, homePath: lane.homePath });

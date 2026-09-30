@@ -1,13 +1,9 @@
 import { namespaceCallFirstExtractTransformer } from './namespace-call-first-extract-transformer';
-import { ContentTextStub } from '../../contracts/content-text/content-text.stub';
 
 describe('namespaceCallFirstExtractTransformer', () => {
   describe('source with namespace call', () => {
     it('VALID: {StartOrchestrator.startQuest call} => returns namespace.method token', () => {
-      const source = ContentTextStub({
-        value:
-          'export const adapter = async ({ questId }) => StartOrchestrator.startQuest({ questId });',
-      });
+      const source = 'export const adapter = async ({ questId }) => StartOrchestrator.startQuest({ questId });';
 
       const result = namespaceCallFirstExtractTransformer({ source });
 
@@ -15,9 +11,7 @@ describe('namespaceCallFirstExtractTransformer', () => {
     });
 
     it('VALID: {StartOrchestrator.listQuests call} => returns listQuests token', () => {
-      const source = ContentTextStub({
-        value: 'export const adapter = async () => StartOrchestrator.listQuests({});',
-      });
+      const source = 'export const adapter = async () => StartOrchestrator.listQuests({});';
 
       const result = namespaceCallFirstExtractTransformer({ source });
 
@@ -27,10 +21,7 @@ describe('namespaceCallFirstExtractTransformer', () => {
 
   describe('source with multiple namespace calls', () => {
     it('VALID: {two namespace calls} => returns first call token', () => {
-      const source = ContentTextStub({
-        value:
-          'StartOrchestrator.getQuest({ questId }); StartOrchestrator.startQuest({ questId });',
-      });
+      const source = 'StartOrchestrator.getQuest({ questId }); StartOrchestrator.startQuest({ questId });';
 
       const result = namespaceCallFirstExtractTransformer({ source });
 
@@ -40,9 +31,7 @@ describe('namespaceCallFirstExtractTransformer', () => {
 
   describe('source without namespace call', () => {
     it('EMPTY: {no uppercase namespace} => returns null', () => {
-      const source = ContentTextStub({
-        value: 'export const adapter = async () => fetch("/api/quests");',
-      });
+      const source = 'export const adapter = async () => fetch("/api/quests");';
 
       const result = namespaceCallFirstExtractTransformer({ source });
 
@@ -50,7 +39,7 @@ describe('namespaceCallFirstExtractTransformer', () => {
     });
 
     it('EMPTY: {empty source} => returns null', () => {
-      const source = ContentTextStub({ value: '' });
+      const source = '';
 
       const result = namespaceCallFirstExtractTransformer({ source });
 

@@ -1,5 +1,5 @@
 import { z } from '#gateway/npm/zod';
-import type { ContentText, Guild } from '@dungeonmaster/shared/contracts';
+import type { Guild } from '@dungeonmaster/shared/contracts';
 
 import { isNativeErrorProxy } from '#gateway/node/util__types/is-native-error/is-native-error.proxy';
 import { LaneSessionStub } from '../../../contracts/lane-session/lane-session.stub';
@@ -36,9 +36,9 @@ export const runExecuteStepLayerBrokerProxy = (): {
   }) => LaneSession;
   seedBookPresentAt: (params: { packagePath: string }) => void;
   seedLaneAnswers: (params: {
-    apiBaseUrl: ContentText;
+    apiBaseUrl: string;
     guild: Guild;
-    questIds: readonly ContentText[];
+    questIds: readonly string[];
     secondGuild?: Guild;
   }) => { getCallArgs: () => readonly unknown[] };
   lastShotPath: () => string | null;

@@ -1,4 +1,3 @@
-import { ContentTextStub } from '@dungeonmaster/shared/contracts/content-text/content-text.stub';
 
 import { EpochMsStub } from '../../../contracts/epoch-ms/epoch-ms.stub';
 import { ShutdownReasonStub } from '../../../contracts/shutdown-reason/shutdown-reason.stub';
@@ -11,9 +10,7 @@ describe('shutdownReasonWriteBroker', () => {
     it('VALID: {evidencePath, reason} => writes shutdown-reason.json under that directory', async () => {
       const proxy = shutdownReasonWriteBrokerProxy();
       const evidencePath = '/home/user/.dungeonmaster/siegelense/unowned/instances/inst_7f3a9c21';
-      const reason = ContentTextStub({
-        value: 'reaped by idle timeout after 900s with no run received',
-      });
+      const reason = 'reaped by idle timeout after 900s with no run received';
       const nowMs = 1_700_000_500_000;
       proxy.setupWriteSucceeds({ evidencePath, nowMs });
 

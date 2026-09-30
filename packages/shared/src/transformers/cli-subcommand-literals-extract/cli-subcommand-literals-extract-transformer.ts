@@ -10,10 +10,6 @@
  * WHEN-NOT-TO-USE: When full AST parsing is needed — this is a v1 regex heuristic
  */
 
-import {
-  contentTextContract,
-  type ContentText,
-} from '../../contracts/content-text/content-text-contract';
 
 // Matches: args[0] === 'run'  OR  args[0] === "run"  OR  case 'run':  OR  case "run":
 const SUBCOMMAND_LITERAL_PATTERN =
@@ -22,15 +18,15 @@ const SUBCOMMAND_LITERAL_PATTERN =
 export const cliSubcommandLiteralsExtractTransformer = ({
   source,
 }: {
-  source: ContentText;
-}): ContentText[] => {
-  const literals: ContentText[] = [];
+  source: string;
+}): string[] => {
+  const literals: string[] = [];
   SUBCOMMAND_LITERAL_PATTERN.lastIndex = 0;
   let match = SUBCOMMAND_LITERAL_PATTERN.exec(String(source));
   while (match !== null) {
     const captured = match[1] ?? match[2];
     if (captured !== undefined) {
-      const parsed = contentTextContract.parse(captured);
+      const parsed = captured;
       const alreadySeen = literals.some((l) => String(l) === String(parsed));
       if (!alreadySeen) {
         literals.push(parsed);

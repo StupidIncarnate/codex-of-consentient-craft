@@ -16,7 +16,6 @@ import { isKeyOfGuard } from '@dungeonmaster/shared/guards';
 import { HookSessionSnippetPackagesResponder } from '../../responders/hook/session-snippet-packages/hook-session-snippet-packages-responder';
 import { buildFolderTypesTableTransformer } from '../../transformers/build-folder-types-table/build-folder-types-table-transformer';
 import { wrapSubagentStartOutputTransformer } from '../../transformers/wrap-subagent-start-output/wrap-subagent-start-output-transformer';
-import type { ContentText } from '@dungeonmaster/shared/contracts';
 
 type DynamicKey = {
   [K in keyof typeof sessionSnippetStatics]: (typeof sessionSnippetStatics)[K] extends null
@@ -24,7 +23,7 @@ type DynamicKey = {
     : never;
 }[keyof typeof sessionSnippetStatics];
 
-const dynamicGenerators: Record<DynamicKey, () => Promise<ContentText>> = {
+const dynamicGenerators: Record<DynamicKey, () => Promise<string>> = {
   folderTypes: async () => Promise.resolve(buildFolderTypesTableTransformer()),
   packages: async () => Promise.resolve(HookSessionSnippetPackagesResponder()),
 };

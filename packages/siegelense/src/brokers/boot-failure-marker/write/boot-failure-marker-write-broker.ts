@@ -16,7 +16,6 @@
  */
 
 import { join } from '#gateway/node/path';
-import type { ContentText } from '@dungeonmaster/shared/contracts';
 import { locationsStatics } from '@dungeonmaster/shared/statics';
 
 import { writeFile } from '#gateway/node/fs__promises';
@@ -29,7 +28,7 @@ export const bootFailureMarkerWriteBroker = async ({
   message,
 }: {
   evidencePath: string;
-  message: ContentText;
+  message: string;
 }): Promise<BootFailureMarker> => {
   const markerPath = join(evidencePath, locationsStatics.siegelense.bootFailure);
 

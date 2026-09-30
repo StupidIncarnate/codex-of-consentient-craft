@@ -16,12 +16,11 @@
  */
 
 import { z } from '#gateway/npm/zod';
-import { contentTextContract } from '../content-text/content-text-contract';
 
 export const importEdgeContract = z.object({
-  consumerPackage: contentTextContract,
-  sourcePackage: contentTextContract,
-  barrel: contentTextContract,
+  consumerPackage: z.string().brand<'ImportEdgeConsumerPackage'>(),
+  sourcePackage: z.string().brand<'ImportEdgeSourcePackage'>(),
+  barrel: z.string().brand<'ImportEdgeBarrel'>(),
   importCount: z.number().int().min(1).brand<'ImportCount'>(),
 });
 

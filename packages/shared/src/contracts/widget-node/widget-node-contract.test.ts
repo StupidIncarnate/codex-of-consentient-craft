@@ -1,6 +1,5 @@
 import { widgetNodeContract } from './widget-node-contract';
 import { WidgetNodeStub } from './widget-node.stub';
-import { ContentTextStub } from '../content-text/content-text.stub';
 
 describe('widgetNodeContract', () => {
   describe('valid nodes', () => {
@@ -19,14 +18,14 @@ describe('widgetNodeContract', () => {
 
     it('VALID: {node with children and bindings} => parses successfully', () => {
       const child = WidgetNodeStub({
-        widgetName: ContentTextStub({ value: 'child-widget' }),
+        widgetName: 'child-widget',
         filePath: '/stub/src/widgets/child/child-widget.tsx',
       });
 
       const result = WidgetNodeStub({
-        widgetName: ContentTextStub({ value: 'parent-widget' }),
+        widgetName: 'parent-widget',
         filePath: '/stub/src/widgets/parent/parent-widget.tsx',
-        bindingsAttached: [ContentTextStub({ value: 'use-data-binding' })],
+        bindingsAttached: ['use-data-binding'],
         children: [child],
       });
 

@@ -18,7 +18,6 @@
  * // Throws Error('--pool must be a whole number of 1 or more; got "abc"') when raw is 'abc'
  */
 
-import type { ContentText } from '@dungeonmaster/shared/contracts';
 
 import { z } from '#gateway/npm/zod';
 
@@ -29,7 +28,7 @@ export const numericFlagParseTransformer = <T>({
   parse,
 }: {
   flag: string;
-  raw: ContentText;
+  raw: string;
   accepts: string;
   parse: (value: number) => T;
 }): T => {

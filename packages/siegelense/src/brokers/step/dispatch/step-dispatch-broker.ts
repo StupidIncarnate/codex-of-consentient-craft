@@ -56,8 +56,6 @@
  * // Resolves the target, clicks it, captures to shotPath, measures it, and returns the stamped StepReading
  */
 
-import { contentTextContract } from '@dungeonmaster/shared/contracts';
-import type { ContentText } from '@dungeonmaster/shared/contracts';
 
 import { isNativeError } from '#gateway/node/util__types';
 import { stderr } from '#gateway/node/process';
@@ -290,11 +288,9 @@ export const stepDispatchBroker = async ({
     // `isNativeError` checks the V8-internal error slot instead, answering correctly
     // whichever realm constructed the value; the `'message' in error` check is what lets the
     // property access typecheck.
-    const reading: ContentText = contentTextContract.parse(
-      error !== null && typeof error === 'object' && isNativeError(error) && 'message' in error
+    const reading: string = (error !== null && typeof error === 'object' && isNativeError(error) && 'message' in error
         ? error.message
-        : String(error),
-    );
+        : String(error));
 
     if (
       shotPath !== null &&

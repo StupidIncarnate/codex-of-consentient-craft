@@ -19,12 +19,11 @@
 
 import { z } from '#gateway/npm/zod';
 
-import { contentTextContract } from '@dungeonmaster/shared/contracts';
 
 import { epochMsContract } from '../epoch-ms/epoch-ms-contract';
 
 export const shutdownReasonContract = z.object({
-  reason: contentTextContract,
+  reason: z.string().brand<'ShutdownReasonReason'>(),
   atMs: epochMsContract,
 });
 

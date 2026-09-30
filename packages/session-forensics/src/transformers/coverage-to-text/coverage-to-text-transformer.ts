@@ -14,7 +14,6 @@
  * // Returns ContentText: one block per flow (flow id, column header, one row per track),
  * // separated by blank lines, ending in the caveat block
  */
-import { contentTextContract, type ContentText } from '@dungeonmaster/shared/contracts';
 
 import type { TrackCoverage } from '../../contracts/track-coverage/track-coverage-contract';
 
@@ -42,9 +41,9 @@ export const coverageToTextTransformer = ({
   coverage,
 }: {
   coverage: readonly TrackCoverage[];
-}): ContentText => {
+}): string => {
   if (coverage.length === 0) {
-    return contentTextContract.parse('');
+    return '';
   }
 
   const byFlow = new Map<TrackCoverage['flowId'], TrackCoverage[]>();
@@ -72,5 +71,5 @@ export const coverageToTextTransformer = ({
     return [`Flow ${flowId}`, HEADER_LINE, ...rowLines].join('\n');
   });
 
-  return contentTextContract.parse(`${flowBlocks.join('\n\n')}\n\n${CAVEAT_BLOCK}`);
+  return `${flowBlocks.join('\n\n')}\n\n${CAVEAT_BLOCK}`;
 };

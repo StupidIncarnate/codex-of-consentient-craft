@@ -8,15 +8,13 @@
  * // Returns '.tsx'
  */
 
-import { contentTextContract } from '../../contracts/content-text/content-text-contract';
-import type { ContentText } from '../../contracts/content-text/content-text-contract';
 
 export const fileSuffixExtensionTransformer = ({
   suffix,
 }: {
-  suffix: ContentText;
-}): ContentText => {
+  suffix: string;
+}): string => {
   const matched = /\.tsx?$/u.exec(suffix);
 
-  return contentTextContract.parse(matched === null ? '' : matched[0]);
+  return (matched === null ? '' : matched[0]);
 };

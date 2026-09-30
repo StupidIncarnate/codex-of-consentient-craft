@@ -22,7 +22,6 @@
  * // Returns { reaped: ReapedInstance, portsReleased: readonly NetworkPort[] }
  */
 
-import { contentTextContract } from '@dungeonmaster/shared/contracts';
 import type { NetworkPort } from '@dungeonmaster/shared/contracts';
 
 import { epochMsContract } from '../../../contracts/epoch-ms/epoch-ms-contract';
@@ -44,7 +43,7 @@ export const staleReapLayerBroker = async ({
 
   const killResult = await instanceKillBroker({
     instanceId: entry.id,
-    reason: contentTextContract.parse('reaped by cleanup after its heartbeat went stale'),
+    reason: 'reaped by cleanup after its heartbeat went stale',
   });
 
   const staleFor = elapsedRenderTransformer({

@@ -14,10 +14,6 @@
  */
 
 import {
-  contentTextContract,
-  type ContentText,
-} from '../../../contracts/content-text/content-text-contract';
-import {
   importEdgeContract,
   type ImportEdge,
 } from '../../../contracts/import-edge/import-edge-contract';
@@ -40,19 +36,19 @@ export const importEdgesLayerBroker = ({
 
   // Step 1: collect known package names
   const packageEntries = safeReaddirLayerBroker({ dirPath: packagesDir });
-  const knownPackageNames = new Set<ContentText>();
+  const knownPackageNames = new Set<string>();
   for (const entry of packageEntries) {
     if (entry.kind === 'directory' && entry.name !== locationsStatics.repoRoot.claudeMd) {
-      knownPackageNames.add(contentTextContract.parse(entry.name));
+      knownPackageNames.add(entry.name);
     }
   }
 
   // aggregation map: key = "<consumerPkg>|<sourcePkg>|<barrel>" as ContentText
   // value: Set of distinct consumer file paths (as AbsoluteFilePath strings) that imported this edge
-  const edgeFileMap = new Map<ContentText, Set<string>>();
+  const edgeFileMap = new Map<string, Set<string>>();
   const edgeMeta = new Map<
-    ContentText,
-    { consumerPackage: ContentText; sourcePackage: ContentText; barrel: ContentText }
+    string,
+    { consumerPackage: string; sourcePackage: string; barrel: string }
   >();
 
   // Step 2: for each consumer package, list all TS source files and parse imports
@@ -84,7 +80,7 @@ export const importEdgesLayerBroker = ({
         const sourcePackageName = slashIndex === -1 ? afterScope : afterScope.slice(0, slashIndex);
 
         // Only process imports from known monorepo packages
-        const sourcePackage = contentTextContract.parse(sourcePackageName);
+        const sourcePackage = sourcePackageName;
         const isKnownPackage = [...knownPackageNames].some((p) => String(p) === sourcePackageName);
         if (!isKnownPackage) {
           continue;
@@ -103,13 +99,9 @@ export const importEdgesLayerBroker = ({
         }
 
         // Extract barrel subpath: '@dungeonmaster/shared/contracts' → 'contracts', '@dungeonmaster/shared' → ''
-        const barrel = contentTextContract.parse(
-          slashIndex === -1 ? '' : afterScope.slice(slashIndex + 1),
-        );
+        const barrel = (slashIndex === -1 ? '' : afterScope.slice(slashIndex + 1));
 
-        const edgeKey = contentTextContract.parse(
-          `${consumerPkgName}|${sourcePackageName}|${String(barrel)}`,
-        );
+        const edgeKey = `${consumerPkgName}|${sourcePackageName}|${String(barrel)}`;
 
         if (!edgeFileMap.has(edgeKey)) {
           edgeFileMap.set(edgeKey, new Set<string>());

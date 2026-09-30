@@ -16,18 +16,13 @@
  */
 
 import { z } from '#gateway/npm/zod';
-import {
-  packageNameContract,
-  packageTypeContract,
-  contentTextContract,
-  pathSegmentContract,
-} from '@dungeonmaster/shared/contracts';
+import { packageNameContract, packageTypeContract, pathSegmentContract } from '@dungeonmaster/shared/contracts';
 
 export const createPackageRequestContract = z.object({
   packageName: packageNameContract,
   directoryName: pathSegmentContract,
   packageType: packageTypeContract,
-  description: contentTextContract,
+  description: z.string().brand<'CreatePackageRequestDescription'>(),
   packagesDir: pathSegmentContract,
 });
 

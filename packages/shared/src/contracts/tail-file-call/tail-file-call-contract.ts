@@ -7,10 +7,9 @@
  */
 
 import { z } from '#gateway/npm/zod';
-import { contentTextContract } from '../content-text/content-text-contract';
 
 export const tailFileCallContract = z.object({
-  filePathArg: contentTextContract,
+  filePathArg: z.string().brand<'TailFileCallFilePathArg'>(),
 });
 
 export type TailFileCall = z.infer<typeof tailFileCallContract>;

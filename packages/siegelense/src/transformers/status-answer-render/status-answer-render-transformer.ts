@@ -38,8 +38,7 @@
  * // Returns 'No record of the instance id "<id>". Check the id dungeonmaster siegelense start returned.\n'
  */
 
-import { contentTextContract } from '@dungeonmaster/shared/contracts';
-import type { ContentText, SiegeInstance } from '@dungeonmaster/shared/contracts';
+import type { SiegeInstance } from '@dungeonmaster/shared/contracts';
 
 import type { StatusAnswer } from '../../contracts/status-answer/status-answer-contract';
 import { statusTableStatics } from '../../statics/status-table/status-table-statics';
@@ -54,15 +53,13 @@ export const statusAnswerRenderTransformer = ({
   instanceId: SiegeInstance['id'] | null;
   branch?: string | null;
   since?: '1h' | '6h' | '1d' | 'beginning' | null;
-}): ContentText => {
+}): string => {
   const monitoredLine = `MONITORED: ${answer.monitored.join(', ')}`;
   const machineLine = `MACHINE: free ${answer.machine.freeMemMB}MB/${answer.machine.totalMemMB}MB mem, free disk ${answer.machine.freeDiskMB ?? '-'}MB, ${answer.machine.cores} cores, load ${answer.machine.loadAvg.join('/')}, OOM kills ${answer.machine.oomKillsSinceBoot ?? '-'} (last ${answer.machine.lastOomAt ?? '-'})`;
 
   if (answer.instances.length === 0) {
     if (instanceId !== null) {
-      return contentTextContract.parse(
-        `No record of the instance id "${instanceId}". Check the id dungeonmaster siegelense start returned.\n`,
-      );
+      return `No record of the instance id "${instanceId}". Check the id dungeonmaster siegelense start returned.\n`;
     }
 
     const { widest, display: sinceDisplay } = statusTableStatics.sinceWindows;
@@ -77,9 +74,7 @@ export const statusAnswerRenderTransformer = ({
           : ' Widen by dropping --branch.'
         : ` Widen with --since ${sinceDisplay[widest]}.`;
 
-    return contentTextContract.parse(
-      `${monitoredLine}\n${machineLine}\nNo siegelense instances created${branchClause}${sinceClause}.${widenClause}\n`,
-    );
+    return `${monitoredLine}\n${machineLine}\nNo siegelense instances created${branchClause}${sinceClause}.${widenClause}\n`;
   }
 
   const [onlyInstance] = answer.instances;
@@ -152,7 +147,7 @@ export const statusAnswerRenderTransformer = ({
       singleBottomLine,
     ];
 
-    return contentTextContract.parse(`${singleTableLines.join('\n')}\n`);
+    return `${singleTableLines.join('\n')}\n`;
   }
 
   const { headers, cellPadding } = statusTableStatics.table;
@@ -191,5 +186,5 @@ export const statusAnswerRenderTransformer = ({
 
   const tableLines = [topLine, headerLine, headerSeparator, ...rowLines, bottomLine];
 
-  return contentTextContract.parse(`${monitoredLine}\n${machineLine}\n${tableLines.join('\n')}\n`);
+  return `${monitoredLine}\n${machineLine}\n${tableLines.join('\n')}\n`;
 };

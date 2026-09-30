@@ -1,4 +1,3 @@
-import { ContentTextStub } from '@dungeonmaster/shared/contracts/content-text/content-text.stub';
 
 import { DomRectStub } from '../dom-rect/dom-rect.stub';
 import { domNodeContract } from './dom-node-contract';
@@ -40,7 +39,7 @@ describe('domNodeContract', () => {
       visibility: undefined,
       opacity: undefined,
       rect: DomRectStub(),
-      text: ContentTextStub({ value: 'Submit' }),
+      text: 'Submit',
       attrs: undefined,
       value: undefined,
     });

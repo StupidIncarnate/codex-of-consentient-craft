@@ -8,12 +8,11 @@
 
 import { z } from '#gateway/npm/zod';
 
-import { contentTextContract } from '../content-text/content-text-contract';
 
 export const packageJsonContract = z
   .object({
     name: z.string().brand<'PackageJsonName'>().optional(),
-    description: contentTextContract.optional(),
+    description: z.string().brand<'PackageJsonDescription'>().optional(),
     bin: z
       .union([
         z.record(z.string().brand<'BinKey'>(), z.string().brand<'BinPath'>()),

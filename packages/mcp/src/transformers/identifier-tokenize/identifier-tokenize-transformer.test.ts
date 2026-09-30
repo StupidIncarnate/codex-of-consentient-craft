@@ -1,14 +1,13 @@
 import { identifierTokenizeTransformer } from './identifier-tokenize-transformer';
-import { ContentTextStub } from '../../contracts/content-text/content-text.stub';
 
 describe('identifierTokenizeTransformer', () => {
   it('VALID: {OrchestrationEventType} => splits PascalCase on case boundaries', () => {
     const result = identifierTokenizeTransformer({ identifier: 'OrchestrationEventType' });
 
     expect(result).toStrictEqual([
-      ContentTextStub({ value: 'Orchestration' }),
-      ContentTextStub({ value: 'Event' }),
-      ContentTextStub({ value: 'Type' }),
+      'Orchestration',
+      'Event',
+      'Type',
     ]);
   });
 
@@ -16,9 +15,9 @@ describe('identifierTokenizeTransformer', () => {
     const result = identifierTokenizeTransformer({ identifier: 'orchestrationEventType' });
 
     expect(result).toStrictEqual([
-      ContentTextStub({ value: 'orchestration' }),
-      ContentTextStub({ value: 'Event' }),
-      ContentTextStub({ value: 'Type' }),
+      'orchestration',
+      'Event',
+      'Type',
     ]);
   });
 
@@ -26,9 +25,9 @@ describe('identifierTokenizeTransformer', () => {
     const result = identifierTokenizeTransformer({ identifier: 'orchestration-event-type' });
 
     expect(result).toStrictEqual([
-      ContentTextStub({ value: 'orchestration' }),
-      ContentTextStub({ value: 'event' }),
-      ContentTextStub({ value: 'type' }),
+      'orchestration',
+      'event',
+      'type',
     ]);
   });
 
@@ -36,9 +35,9 @@ describe('identifierTokenizeTransformer', () => {
     const result = identifierTokenizeTransformer({ identifier: 'orchestration_event_type' });
 
     expect(result).toStrictEqual([
-      ContentTextStub({ value: 'orchestration' }),
-      ContentTextStub({ value: 'event' }),
-      ContentTextStub({ value: 'type' }),
+      'orchestration',
+      'event',
+      'type',
     ]);
   });
 
@@ -46,9 +45,9 @@ describe('identifierTokenizeTransformer', () => {
     const result = identifierTokenizeTransformer({ identifier: 'ORCHESTRATION_EVENT_TYPE' });
 
     expect(result).toStrictEqual([
-      ContentTextStub({ value: 'ORCHESTRATION' }),
-      ContentTextStub({ value: 'EVENT' }),
-      ContentTextStub({ value: 'TYPE' }),
+      'ORCHESTRATION',
+      'EVENT',
+      'TYPE',
     ]);
   });
 
@@ -56,8 +55,8 @@ describe('identifierTokenizeTransformer', () => {
     const result = identifierTokenizeTransformer({ identifier: 'URLParser' });
 
     expect(result).toStrictEqual([
-      ContentTextStub({ value: 'URL' }),
-      ContentTextStub({ value: 'Parser' }),
+      'URL',
+      'Parser',
     ]);
   });
 
@@ -65,8 +64,8 @@ describe('identifierTokenizeTransformer', () => {
     const result = identifierTokenizeTransformer({ identifier: 'IOError' });
 
     expect(result).toStrictEqual([
-      ContentTextStub({ value: 'IO' }),
-      ContentTextStub({ value: 'Error' }),
+      'IO',
+      'Error',
     ]);
   });
 
@@ -74,8 +73,8 @@ describe('identifierTokenizeTransformer', () => {
     const result = identifierTokenizeTransformer({ identifier: 'getURL' });
 
     expect(result).toStrictEqual([
-      ContentTextStub({ value: 'get' }),
-      ContentTextStub({ value: 'URL' }),
+      'get',
+      'URL',
     ]);
   });
 
@@ -83,30 +82,30 @@ describe('identifierTokenizeTransformer', () => {
     const result = identifierTokenizeTransformer({ identifier: 'version1Beta' });
 
     expect(result).toStrictEqual([
-      ContentTextStub({ value: 'version1' }),
-      ContentTextStub({ value: 'Beta' }),
+      'version1',
+      'Beta',
     ]);
   });
 
   it('VALID: {single} => single-token identifier returns one token', () => {
     const result = identifierTokenizeTransformer({ identifier: 'single' });
 
-    expect(result).toStrictEqual([ContentTextStub({ value: 'single' })]);
+    expect(result).toStrictEqual(['single']);
   });
 
   it('VALID: {Single} => single PascalCase word returns one token', () => {
     const result = identifierTokenizeTransformer({ identifier: 'Single' });
 
-    expect(result).toStrictEqual([ContentTextStub({ value: 'Single' })]);
+    expect(result).toStrictEqual(['Single']);
   });
 
   it('VALID: {orchestration event type} => splits on whitespace', () => {
     const result = identifierTokenizeTransformer({ identifier: 'orchestration event type' });
 
     expect(result).toStrictEqual([
-      ContentTextStub({ value: 'orchestration' }),
-      ContentTextStub({ value: 'event' }),
-      ContentTextStub({ value: 'type' }),
+      'orchestration',
+      'event',
+      'type',
     ]);
   });
 
@@ -114,10 +113,10 @@ describe('identifierTokenizeTransformer', () => {
     const result = identifierTokenizeTransformer({ identifier: 'mixed-case_With Spaces' });
 
     expect(result).toStrictEqual([
-      ContentTextStub({ value: 'mixed' }),
-      ContentTextStub({ value: 'case' }),
-      ContentTextStub({ value: 'With' }),
-      ContentTextStub({ value: 'Spaces' }),
+      'mixed',
+      'case',
+      'With',
+      'Spaces',
     ]);
   });
 
@@ -137,8 +136,8 @@ describe('identifierTokenizeTransformer', () => {
     const result = identifierTokenizeTransformer({ identifier: '-event-type-' });
 
     expect(result).toStrictEqual([
-      ContentTextStub({ value: 'event' }),
-      ContentTextStub({ value: 'type' }),
+      'event',
+      'type',
     ]);
   });
 });

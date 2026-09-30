@@ -14,16 +14,13 @@ const addressOwner = OwnerIndexOwnerStub({
   ownerName: 'Address',
   contractName: 'addressContract',
   packageName: shared,
-  schemaText: ContentTextStub({
-    value:
-      "z.object({\n  street: z.string().min(1).brand<'Street'>(),\n  city: z.string(),\n}).brand<'Address'>()",
-  }),
+  schemaText: "z.object({\n  street: z.string().min(1).brand<'Street'>(),\n  city: z.string(),\n}).brand<'Address'>()",
 });
 const strangerOwner = OwnerIndexOwnerStub({
   ownerName: 'Hidden',
   contractName: 'hiddenContract',
   packageName: stranger,
-  schemaText: ContentTextStub({ value: 'z.object({ zip: z.string() })' }),
+  schemaText: 'z.object({ zip: z.string() })',
 });
 const ownerIndex = OwnerIndexStub({
   owners: [addressOwner, strangerOwner],
@@ -42,10 +39,7 @@ describe('ownerIndexObjectCopyMatchTransformer', () => {
         ownerIndex,
         packageName: alpha,
         contractName,
-        objectText: ContentTextStub({
-          value:
-            "z.object({ city: z.string(), street: z.string().min(1).brand<'PersonStreet'>() })",
-        }),
+        objectText: "z.object({ city: z.string(), street: z.string().min(1).brand<'PersonStreet'>() })",
       });
 
       expect(result).toStrictEqual(addressOwner);

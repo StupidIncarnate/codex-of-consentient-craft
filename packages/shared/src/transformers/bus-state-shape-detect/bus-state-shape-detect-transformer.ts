@@ -17,8 +17,6 @@
  * that ignores imports/exports outside the first `export const NAME = {…}`.
  */
 
-import type { ContentText } from '../../contracts/content-text/content-text-contract';
-import { contentTextContract } from '../../contracts/content-text/content-text-contract';
 
 const EXPORT_CONST_PATTERN = /export\s+const\s+(\w+)\s*=\s*\{/u;
 const EMIT_KEY_PATTERN = /\bemit\s*[:(]/u;
@@ -27,8 +25,8 @@ const ON_KEY_PATTERN = /\bon\s*[:(]/u;
 export const busStateShapeDetectTransformer = ({
   source,
 }: {
-  source: ContentText;
-}): ContentText | null => {
+  source: string;
+}): string | null => {
   const sourceStr = String(source);
   if (!EMIT_KEY_PATTERN.test(sourceStr)) return null;
   if (!ON_KEY_PATTERN.test(sourceStr)) return null;
@@ -36,5 +34,5 @@ export const busStateShapeDetectTransformer = ({
   if (match === null) return null;
   const [, exportName] = match;
   if (exportName === undefined) return null;
-  return contentTextContract.parse(exportName);
+  return exportName;
 };

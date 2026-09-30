@@ -9,7 +9,6 @@
  * bucketsToTextTransformer({ buckets: [TimeBucketStub()] });
  * // Returns a ContentText: a header naming each column in plain words, then one row per bucket
  */
-import { contentTextContract, type ContentText } from '@dungeonmaster/shared/contracts';
 import type { TimeBucket } from '../../contracts/time-bucket/time-bucket-contract';
 
 const HEADER =
@@ -36,9 +35,8 @@ export const bucketsToTextTransformer = ({
   buckets,
 }: {
   buckets: readonly TimeBucket[];
-}): ContentText =>
-  contentTextContract.parse(
-    [
+}): string =>
+  [
       HEADER,
       ...buckets.map((bucket) => {
         const windowStartClock = new Date(bucket.windowStart)
@@ -67,5 +65,4 @@ export const bucketsToTextTransformer = ({
           topTools
         );
       }),
-    ].join('\n'),
-  );
+    ].join('\n');

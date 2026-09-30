@@ -1,9 +1,8 @@
 import { namespaceMethodsGroupByDomainTransformer } from './namespace-methods-group-by-domain-transformer';
-import { ContentTextStub } from '../../contracts/content-text/content-text.stub';
 
-const GUILDS_DOMAIN = ContentTextStub({ value: 'Guilds' });
-const ORCHESTRATION_DOMAIN = ContentTextStub({ value: 'Orchestration' });
-const OTHER_DOMAIN = ContentTextStub({ value: 'Other' });
+const GUILDS_DOMAIN = 'Guilds';
+const ORCHESTRATION_DOMAIN = 'Orchestration';
+const OTHER_DOMAIN = 'Other';
 
 describe('namespaceMethodsGroupByDomainTransformer', () => {
   describe('empty input', () => {
@@ -19,9 +18,9 @@ describe('namespaceMethodsGroupByDomainTransformer', () => {
 
   describe('known methods', () => {
     it('VALID: {methods with known prefixes} => groups into correct domains', () => {
-      const listGuilds = ContentTextStub({ value: 'listGuilds' });
-      const getGuild = ContentTextStub({ value: 'getGuild' });
-      const startQuest = ContentTextStub({ value: 'startQuest' });
+      const listGuilds = 'listGuilds';
+      const getGuild = 'getGuild';
+      const startQuest = 'startQuest';
 
       const result = namespaceMethodsGroupByDomainTransformer({
         methodNames: [listGuilds, getGuild, startQuest],
@@ -41,7 +40,7 @@ describe('namespaceMethodsGroupByDomainTransformer', () => {
 
   describe('unknown methods', () => {
     it('VALID: {method not in prefix map} => grouped under Other', () => {
-      const unknownMethod = ContentTextStub({ value: 'doMysteryThing' });
+      const unknownMethod = 'doMysteryThing';
 
       const result = namespaceMethodsGroupByDomainTransformer({
         methodNames: [unknownMethod],
@@ -52,8 +51,8 @@ describe('namespaceMethodsGroupByDomainTransformer', () => {
     });
 
     it('VALID: {mixed known and unknown methods} => known grouped by domain, unknown under Other', () => {
-      const listGuilds = ContentTextStub({ value: 'listGuilds' });
-      const mystery = ContentTextStub({ value: 'doSomethingUnknown' });
+      const listGuilds = 'listGuilds';
+      const mystery = 'doSomethingUnknown';
 
       const result = namespaceMethodsGroupByDomainTransformer({
         methodNames: [listGuilds, mystery],
@@ -69,9 +68,9 @@ describe('namespaceMethodsGroupByDomainTransformer', () => {
 
   describe('ordering', () => {
     it('VALID: {methods from two domains in interleaved order} => groups Guilds together, preserves insertion order of domains', () => {
-      const listGuilds = ContentTextStub({ value: 'listGuilds' });
-      const startQuest = ContentTextStub({ value: 'startQuest' });
-      const addGuild = ContentTextStub({ value: 'addGuild' });
+      const listGuilds = 'listGuilds';
+      const startQuest = 'startQuest';
+      const addGuild = 'addGuild';
 
       const result = namespaceMethodsGroupByDomainTransformer({
         methodNames: [listGuilds, startQuest, addGuild],

@@ -1,7 +1,6 @@
 import { SessionIdStub } from '@dungeonmaster/shared/contracts/session-id/session-id.stub';
 import { AgentIdStub } from '@dungeonmaster/shared/contracts/agent-id/agent-id.stub';
 import { QuestIdStub } from '@dungeonmaster/shared/contracts/quest-id/quest-id.stub';
-import { ContentTextStub } from '@dungeonmaster/shared/contracts/content-text/content-text.stub';
 import { FlowStub } from '@dungeonmaster/shared/contracts/flow/flow.stub';
 import { FlowNodeStub } from '@dungeonmaster/shared/contracts/flow-node/flow-node.stub';
 import { FlowObservableStub } from '@dungeonmaster/shared/contracts/flow-observable/flow-observable.stub';
@@ -21,7 +20,7 @@ describe('DigestRunResponder', () => {
     it('VALID: {command: summary} => renders the whole fixed block for a populated session', () => {
       const proxy = DigestRunResponderProxy();
       const target = SessionIdStub({ value: 'session-summary-valid' });
-      const contents = ContentTextStub({ value: JSON.stringify(TranscriptRecordStub()) });
+      const contents = JSON.stringify(TranscriptRecordStub());
       proxy.setupSession({ target, contents });
 
       const result = DigestRunResponder({
@@ -91,7 +90,7 @@ describe('DigestRunResponder', () => {
     it('EDGE: {roster has three sub-agent rows} => the count reaches the render', () => {
       const proxy = DigestRunResponderProxy();
       const target = SessionIdStub({ value: 'session-summary-edge' });
-      const contents = ContentTextStub({ value: JSON.stringify(TranscriptRecordStub()) });
+      const contents = JSON.stringify(TranscriptRecordStub());
       proxy.setupSessionWithSubagents({
         target,
         contents,
@@ -138,7 +137,7 @@ describe('DigestRunResponder', () => {
     it('VALID: {command: buckets} => renders the header plus one row for a populated session', () => {
       const proxy = DigestRunResponderProxy();
       const target = SessionIdStub({ value: 'session-buckets-valid' });
-      const contents = ContentTextStub({ value: JSON.stringify(TranscriptRecordStub()) });
+      const contents = JSON.stringify(TranscriptRecordStub());
       proxy.setupSession({ target, contents });
 
       const result = DigestRunResponder({
@@ -157,12 +156,10 @@ describe('DigestRunResponder', () => {
     it('VALID: {no bucketMinutes} => a 10-minute gap between records stays inside one default 15-minute bucket', () => {
       const proxy = DigestRunResponderProxy();
       const target = SessionIdStub({ value: 'session-buckets-default-width' });
-      const contents = ContentTextStub({
-        value: [
+      const contents = [
           JSON.stringify(TranscriptRecordStub({ timestamp: '2026-09-01T19:00:00.000Z' })),
           JSON.stringify(TranscriptRecordStub({ timestamp: '2026-09-01T19:10:00.000Z' })),
-        ].join('\n'),
-      });
+        ].join('\n');
       proxy.setupSession({ target, contents });
 
       const result = DigestRunResponder({
@@ -181,12 +178,10 @@ describe('DigestRunResponder', () => {
     it('VALID: {command: buckets, bucketMinutes: 5} => the same 10-minute gap splits into two 5-minute buckets', () => {
       const proxy = DigestRunResponderProxy();
       const target = SessionIdStub({ value: 'session-buckets-minutes-flag' });
-      const contents = ContentTextStub({
-        value: [
+      const contents = [
           JSON.stringify(TranscriptRecordStub({ timestamp: '2026-09-01T19:00:00.000Z' })),
           JSON.stringify(TranscriptRecordStub({ timestamp: '2026-09-01T19:10:00.000Z' })),
-        ].join('\n'),
-      });
+        ].join('\n');
       proxy.setupSession({ target, contents });
 
       const result = DigestRunResponder({
@@ -209,12 +204,10 @@ describe('DigestRunResponder', () => {
     it('VALID: {command: gaps} => renders header, one idle gap row, and the summary', () => {
       const proxy = DigestRunResponderProxy();
       const target = SessionIdStub({ value: 'session-gaps-valid' });
-      const contents = ContentTextStub({
-        value: [
+      const contents = [
           JSON.stringify(TranscriptRecordStub({ timestamp: '2026-09-01T19:00:00.000Z' })),
           JSON.stringify(TranscriptRecordStub({ timestamp: '2026-09-01T19:05:00.000Z' })),
-        ].join('\n'),
-      });
+        ].join('\n');
       proxy.setupSession({ target, contents });
 
       const result = DigestRunResponder({
@@ -241,13 +234,11 @@ describe('DigestRunResponder', () => {
     it('EDGE: {one roster row has no timestamped transcript} => that window is skipped, the timestamped one is used', () => {
       const proxy = DigestRunResponderProxy();
       const target = SessionIdStub({ value: 'session-gaps-edge' });
-      const contents = ContentTextStub({
-        value: [
+      const contents = [
           JSON.stringify(TranscriptRecordStub({ timestamp: '2026-09-01T19:00:00.000Z' })),
           JSON.stringify(TranscriptRecordStub({ timestamp: '2026-09-01T19:05:00.000Z' })),
           JSON.stringify(TranscriptRecordStub({ timestamp: '2026-09-01T19:10:00.000Z' })),
-        ].join('\n'),
-      });
+        ].join('\n');
       // subagentRosterLoadBroker only ever reports startedAt/endedAt as a matched pair, derived
       // together from a sub-agent's own transcript timestamps — a real row can never carry
       // exactly one of the two. A sub-agent with no readable transcript at all is the real-world
@@ -259,11 +250,9 @@ describe('DigestRunResponder', () => {
         agents: [
           {
             agentId: AgentIdStub({ value: 'agent-alpha' }),
-            transcriptContents: ContentTextStub({
-              value: JSON.stringify(
+            transcriptContents: JSON.stringify(
                 TranscriptRecordStub({ timestamp: '2026-09-01T19:02:00.000Z' }),
               ),
-            }),
           },
           { agentId: AgentIdStub({ value: 'agent-beta' }) },
         ],
@@ -294,12 +283,10 @@ describe('DigestRunResponder', () => {
     it('VALID: {no gapFloorSeconds} => a 90-second gap stays below the default 120-second floor and is dropped', () => {
       const proxy = DigestRunResponderProxy();
       const target = SessionIdStub({ value: 'session-gaps-default-floor' });
-      const contents = ContentTextStub({
-        value: [
+      const contents = [
           JSON.stringify(TranscriptRecordStub({ timestamp: '2026-09-01T19:00:00.000Z' })),
           JSON.stringify(TranscriptRecordStub({ timestamp: '2026-09-01T19:01:30.000Z' })),
-        ].join('\n'),
-      });
+        ].join('\n');
       proxy.setupSession({ target, contents });
 
       const result = DigestRunResponder({
@@ -325,12 +312,10 @@ describe('DigestRunResponder', () => {
     it('VALID: {command: gaps, gapFloorSeconds: 30} => the same 90-second gap clears the lower floor and is listed', () => {
       const proxy = DigestRunResponderProxy();
       const target = SessionIdStub({ value: 'session-gaps-floor-flag' });
-      const contents = ContentTextStub({
-        value: [
+      const contents = [
           JSON.stringify(TranscriptRecordStub({ timestamp: '2026-09-01T19:00:00.000Z' })),
           JSON.stringify(TranscriptRecordStub({ timestamp: '2026-09-01T19:01:30.000Z' })),
-        ].join('\n'),
-      });
+        ].join('\n');
       proxy.setupSession({ target, contents });
 
       const result = DigestRunResponder({
@@ -445,7 +430,7 @@ describe('DigestRunResponder', () => {
       const proxy = DigestRunResponderProxy();
       const questId = QuestIdStub({ value: 'quest-command-quest' });
       const target = SessionIdStub({ value: 'session-quest-command' });
-      const contents = ContentTextStub({ value: JSON.stringify(TranscriptRecordStub()) });
+      const contents = JSON.stringify(TranscriptRecordStub());
       proxy.setupSessionWithSubagents({
         target,
         contents,

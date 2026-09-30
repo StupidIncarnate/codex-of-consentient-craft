@@ -1,7 +1,6 @@
 import { readSourceLayerBroker } from './read-source-layer-broker';
 import { readSourceLayerBrokerProxy } from './read-source-layer-broker.proxy';
 import { FileMissingErrorStub } from '#gateway/node/fs/file-missing-error/file-missing-error.stub';
-import { ContentTextStub } from '../../../contracts/content-text/content-text.stub';
 
 const FILE_PATH = '/repo/packages/web/src/widgets/app-widget.ts';
 
@@ -9,9 +8,7 @@ describe('readSourceLayerBroker', () => {
   describe('successful read', () => {
     it('VALID: existing file => returns content', () => {
       const proxy = readSourceLayerBrokerProxy();
-      const content = ContentTextStub({
-        value: "import { x } from '@dungeonmaster/shared/contracts';",
-      });
+      const content = "import { x } from '@dungeonmaster/shared/contracts';";
       proxy.returns({ filePath: FILE_PATH, content });
 
       const result = readSourceLayerBroker({ filePath: FILE_PATH });

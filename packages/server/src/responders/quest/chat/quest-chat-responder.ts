@@ -11,7 +11,6 @@
  */
 
 import { questFindQuestPathBroker, StartOrchestrator } from '@dungeonmaster/orchestrator';
-import { contentTextContract } from '@dungeonmaster/shared/contracts';
 import {
   isChatWorkItemRoleGuard,
   isPostQuestChatWorkItemRoleGuard,
@@ -65,7 +64,7 @@ export const QuestChatResponder = async ({
       // collapsed into the generic message-required reply below.
       const imagesError = zodFirstFieldErrorMessageTransformer({
         error: parsedBody.error,
-        field: contentTextContract.parse('images'),
+        field: 'images',
       });
       if (imagesError !== undefined) {
         return responderResultContract.parse({

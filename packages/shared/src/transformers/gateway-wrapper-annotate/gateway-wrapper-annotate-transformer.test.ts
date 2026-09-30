@@ -1,15 +1,14 @@
 import { gatewayWrapperAnnotateTransformer } from './gateway-wrapper-annotate-transformer';
-import { ContentTextStub } from '../../contracts/content-text/content-text.stub';
 import { GatewayLintConfigStub } from '../../contracts/gateway-lint-config/gateway-lint-config.stub';
 
 describe('gatewayWrapperAnnotateTransformer', () => {
   describe('no gateway config', () => {
     it('VALID: {empty gatewayLintConfig} => every wrapper name is unchanged', () => {
       const result = gatewayWrapperAnnotateTransformer({
-        subpath: ContentTextStub({ value: '#gateway/node/fs' }),
+        subpath: '#gateway/node/fs',
         wrapperNames: [
-          ContentTextStub({ value: 'existsSync' }),
-          ContentTextStub({ value: 'readFileSync' }),
+          'existsSync',
+          'readFileSync',
         ],
         gatewayLintConfig: GatewayLintConfigStub(),
       });
@@ -32,10 +31,10 @@ describe('gatewayWrapperAnnotateTransformer', () => {
       });
 
       const result = gatewayWrapperAnnotateTransformer({
-        subpath: ContentTextStub({ value: '#gateway/node/fs__promises' }),
+        subpath: '#gateway/node/fs__promises',
         wrapperNames: [
-          ContentTextStub({ value: 'readFile' }),
-          ContentTextStub({ value: 'writeFile' }),
+          'readFile',
+          'writeFile',
         ],
         gatewayLintConfig,
       });
@@ -56,8 +55,8 @@ describe('gatewayWrapperAnnotateTransformer', () => {
       });
 
       const result = gatewayWrapperAnnotateTransformer({
-        subpath: ContentTextStub({ value: '#gateway/node/fs__promises' }),
-        wrapperNames: [ContentTextStub({ value: 'readFile' })],
+        subpath: '#gateway/node/fs__promises',
+        wrapperNames: ['readFile'],
         gatewayLintConfig,
       });
 
@@ -79,10 +78,10 @@ describe('gatewayWrapperAnnotateTransformer', () => {
       });
 
       const result = gatewayWrapperAnnotateTransformer({
-        subpath: ContentTextStub({ value: '#gateway/bin/claude' }),
+        subpath: '#gateway/bin/claude',
         wrapperNames: [
-          ContentTextStub({ value: 'resolveClaudeCliPath' }),
-          ContentTextStub({ value: 'spawnStreamJson' }),
+          'resolveClaudeCliPath',
+          'spawnStreamJson',
         ],
         gatewayLintConfig,
       });
@@ -102,8 +101,8 @@ describe('gatewayWrapperAnnotateTransformer', () => {
       });
 
       const result = gatewayWrapperAnnotateTransformer({
-        subpath: ContentTextStub({ value: '#gateway/bin/spawn' }),
-        wrapperNames: [ContentTextStub({ value: 'run' })],
+        subpath: '#gateway/bin/spawn',
+        wrapperNames: ['run'],
         gatewayLintConfig,
       });
 
@@ -122,10 +121,10 @@ describe('gatewayWrapperAnnotateTransformer', () => {
       });
 
       const result = gatewayWrapperAnnotateTransformer({
-        subpath: ContentTextStub({ value: '#gateway/bin/spawn' }),
+        subpath: '#gateway/bin/spawn',
         wrapperNames: [
-          ContentTextStub({ value: 'run' }),
-          ContentTextStub({ value: 'runDetached' }),
+          'run',
+          'runDetached',
         ],
         gatewayLintConfig,
       });
@@ -137,7 +136,7 @@ describe('gatewayWrapperAnnotateTransformer', () => {
   describe('empty wrapper names', () => {
     it('EMPTY: {wrapperNames: []} => returns an empty array', () => {
       const result = gatewayWrapperAnnotateTransformer({
-        subpath: ContentTextStub({ value: '#gateway/npm/zod' }),
+        subpath: '#gateway/npm/zod',
         wrapperNames: [],
         gatewayLintConfig: GatewayLintConfigStub(),
       });

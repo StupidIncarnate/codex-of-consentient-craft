@@ -19,13 +19,12 @@
 
 import { z } from '#gateway/npm/zod';
 
-import { contentTextContract } from '@dungeonmaster/shared/contracts';
 
 import { readingCountContract } from '../reading-count/reading-count-contract';
 
 export const refResolutionContract = z.object({
   state: z.enum(['live', 'stale', 'unknown']).brand<'RefResolutionState'>(),
-  boundary: contentTextContract.nullable(),
+  boundary: z.string().brand<'RefResolutionBoundary'>().nullable(),
   highestMinted: readingCountContract,
 });
 

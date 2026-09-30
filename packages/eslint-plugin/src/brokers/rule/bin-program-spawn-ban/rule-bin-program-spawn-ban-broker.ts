@@ -21,8 +21,7 @@
  * // Returns an RuleModule that flags spawn('git', [...]) outside packages/@gateway/bin/src/**,
  * // naming currentBranch() from #gateway/bin/git in the report message
  */
-import { contentTextContract } from '@dungeonmaster/shared/contracts';
-import type { ContentText, PackageName } from '@dungeonmaster/shared/contracts';
+import type { PackageName } from '@dungeonmaster/shared/contracts';
 import { gatewayLocationsStatics } from '@dungeonmaster/shared/statics';
 import { AST_NODE_TYPES } from '#gateway/npm/typescript-eslint__utils';
 import type { TSESLint, TSESTree } from '#gateway/npm/typescript-eslint__utils';
@@ -89,9 +88,9 @@ export const ruleBinProgramSpawnBanBroker = (): TSESLint.RuleModule<'binProgramS
     const aliasedGatewaySource = `${gatewayLocationsStatics.importPrefix}/${gatewayLocationsStatics.folders.node}/child_process`;
 
     let moduleBody: readonly TSESTree.ProgramStatement[] = [];
-    const gatewayLocalNames = new Set<ContentText>();
-    const rawLocalNames = new Map<ContentText, ContentText>();
-    const rawNamespaceNames = new Set<ContentText>();
+    const gatewayLocalNames = new Set<string>();
+    const rawLocalNames = new Map<string, string>();
+    const rawNamespaceNames = new Set<string>();
 
     return {
       Program: (node: TSESTree.Program): void => {
@@ -116,9 +115,9 @@ export const ruleBinProgramSpawnBanBroker = (): TSESLint.RuleModule<'binProgramS
             if (specifier.type === AST_NODE_TYPES.ImportSpecifier) {
               const importedName =
                 specifier.imported.type === AST_NODE_TYPES.Identifier
-                  ? contentTextContract.parse(specifier.imported.name)
+                  ? specifier.imported.name
                   : undefined;
-              const localName = contentTextContract.parse(specifier.local.name);
+              const localName = specifier.local.name;
               if (importedName === undefined) {
                 continue;
               }
@@ -142,7 +141,7 @@ export const ruleBinProgramSpawnBanBroker = (): TSESLint.RuleModule<'binProgramS
             }
 
             if (specifier.type === AST_NODE_TYPES.ImportNamespaceSpecifier && isNodeModuleSource) {
-              const localName = contentTextContract.parse(specifier.local.name);
+              const localName = specifier.local.name;
               rawNamespaceNames.add(localName);
             }
           }
@@ -155,7 +154,7 @@ export const ruleBinProgramSpawnBanBroker = (): TSESLint.RuleModule<'binProgramS
 
         if (
           callee.type === AST_NODE_TYPES.Identifier &&
-          gatewayLocalNames.has(contentTextContract.parse(callee.name))
+          gatewayLocalNames.has(callee.name)
         ) {
           const [optionsArg] = args;
           if (optionsArg?.type !== AST_NODE_TYPES.ObjectExpression) {
@@ -173,18 +172,18 @@ export const ruleBinProgramSpawnBanBroker = (): TSESLint.RuleModule<'binProgramS
           return;
         }
 
-        const rawImportedName = ((): ContentText | undefined => {
+        const rawImportedName = ((): string | undefined => {
           if (callee.type === AST_NODE_TYPES.Identifier) {
-            return rawLocalNames.get(contentTextContract.parse(callee.name));
+            return rawLocalNames.get(callee.name);
           }
           if (
             callee.type === AST_NODE_TYPES.MemberExpression &&
             !callee.computed &&
             callee.object.type === AST_NODE_TYPES.Identifier &&
-            rawNamespaceNames.has(contentTextContract.parse(callee.object.name)) &&
+            rawNamespaceNames.has(callee.object.name) &&
             callee.property.type === AST_NODE_TYPES.Identifier
           ) {
-            const propertyName = contentTextContract.parse(callee.property.name);
+            const propertyName = callee.property.name;
             return childProcessFunctionNamesStatics.rawFunctionNames.some(
               (name) => name === propertyName,
             )

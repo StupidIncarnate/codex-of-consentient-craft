@@ -1,4 +1,3 @@
-import { ContentTextStub } from '@dungeonmaster/shared/contracts/content-text/content-text.stub';
 import { QuestIdStub } from '@dungeonmaster/shared/contracts/quest-id/quest-id.stub';
 import { QuestStub } from '@dungeonmaster/shared/contracts/quest/quest.stub';
 import { QuestWorkItemIdStub } from '@dungeonmaster/shared/contracts/quest-work-item-id/quest-work-item-id.stub';
@@ -6,7 +5,7 @@ import { QuestWorkItemIdStub } from '@dungeonmaster/shared/contracts/quest-work-
 import { stepHandlerRiftcarverBroker } from './step-handler-riftcarver-broker';
 import { stepHandlerRiftcarverBrokerProxy } from './step-handler-riftcarver-broker.proxy';
 
-type ContentText = ReturnType<typeof ContentTextStub>;
+type ContentText = string;
 
 const RIFTCARVER_RESULT_ID = 'f0f0f0f0-f0f0-4f0f-bf0f-f0f0f0f0f0f0';
 const WORK_ITEM_ID = QuestWorkItemIdStub({ value: '54abb935-7a96-3e73-83b3-3d46fdc6f046' });
@@ -129,7 +128,7 @@ describe('stepHandlerRiftcarverBroker', () => {
         args: [],
         questId,
         workItemId: WORK_ITEM_ID,
-        onLine: (line) => seenLines.push(ContentTextStub({ value: line })),
+        onLine: (line) => seenLines.push(line),
       });
 
       const verdictLines = seenLines.filter((line) => line.startsWith('— CARVED:'));

@@ -13,22 +13,21 @@
 import { createServer } from '#gateway/node/http';
 import type { Server } from '#gateway/node/http';
 
-import { ContentTextStub } from '@dungeonmaster/shared/contracts/content-text/content-text.stub';
 import { GuildStub } from '@dungeonmaster/shared/contracts/guild/guild.stub';
 
 export const laneApiHarness = (): {
   beforeEach: () => Promise<void>;
   afterEach: () => Promise<void>;
   serveGuild: (params: { id: string; path: string; urlSlug: string }) => void;
-  baseUrl: () => ReturnType<typeof ContentTextStub>;
+  baseUrl: () => string;
 } => {
   const state: {
     server: Server | null;
-    origin: ReturnType<typeof ContentTextStub>;
+    origin: string;
     guilds: unknown[];
   } = {
     server: null,
-    origin: ContentTextStub({ value: '' }),
+    origin: '',
     guilds: [],
   };
 
@@ -44,7 +43,7 @@ export const laneApiHarness = (): {
         server.listen(0, '127.0.0.1', () => {
           const address = server.address();
           const port = typeof address === 'object' && address !== null ? address.port : 0;
-          state.origin = ContentTextStub({ value: `http://127.0.0.1:${String(port)}` });
+          state.origin = `http://127.0.0.1:${String(port)}`;
           resolve();
         });
       });
@@ -68,6 +67,6 @@ export const laneApiHarness = (): {
       state.guilds = [GuildStub({ id, path, urlSlug })];
     },
 
-    baseUrl: (): ReturnType<typeof ContentTextStub> => state.origin,
+    baseUrl: (): string => state.origin,
   };
 };

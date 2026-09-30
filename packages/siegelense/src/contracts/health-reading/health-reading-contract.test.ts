@@ -1,4 +1,3 @@
-import { ContentTextStub } from '@dungeonmaster/shared/contracts/content-text/content-text.stub';
 
 import { HealthVerdictStub } from '../health-verdict/health-verdict.stub';
 import { HexColourStub } from '../hex-colour/hex-colour.stub';
@@ -20,14 +19,11 @@ describe('healthReadingContract', () => {
       const fixture = HealthReadingStub({
         verdict: HealthVerdictStub({ value: 'DEGRADED' }),
         consoleErrors: ReadingCountStub({ value: 1 }),
-        firstConsoleError: ContentTextStub({ value: 'Cannot read properties of null' }),
+        firstConsoleError: 'Cannot read properties of null',
         network5xxCount: ReadingCountStub({ value: 0 }),
         serverErrors: ReadingCountStub({ value: 2 }),
-        firstServerError: ContentTextStub({ value: 'Internal server exception' }),
-        rendered: ContentTextStub({
-          value:
-            'DEGRADED  root present · not blank · console: 1 error "Cannot read properties of null" · no 5xx · server log: 2 errors',
-        }),
+        firstServerError: 'Internal server exception',
+        rendered: 'DEGRADED  root present · not blank · console: 1 error "Cannot read properties of null" · no 5xx · server log: 2 errors',
       });
 
       const result = healthReadingContract.parse(fixture);
@@ -41,10 +37,7 @@ describe('healthReadingContract', () => {
         rootPresent: false,
         blank: true,
         blankColour: HexColourStub({ value: '#0d0907' }),
-        rendered: ContentTextStub({
-          value:
-            'DOWN      root absent · page blank (#0d0907) · console clean · no 5xx · server log clean',
-        }),
+        rendered: 'DOWN      root absent · page blank (#0d0907) · console clean · no 5xx · server log clean',
       });
 
       const result = healthReadingContract.parse(fixture);

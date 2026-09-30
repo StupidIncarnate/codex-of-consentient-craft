@@ -1,7 +1,6 @@
 import { widgetTreeResultContract } from './widget-tree-result-contract';
 import { WidgetTreeResultStub } from './widget-tree-result.stub';
 import { WidgetNodeStub } from '../widget-node/widget-node.stub';
-import { ContentTextStub } from '../content-text/content-text.stub';
 
 describe('widgetTreeResultContract', () => {
   describe('valid results', () => {
@@ -18,7 +17,7 @@ describe('widgetTreeResultContract', () => {
 
     it('VALID: {populated roots and hubs} => parses successfully', () => {
       const node = WidgetNodeStub();
-      const hub = ContentTextStub({ value: 'shared-widget' });
+      const hub = 'shared-widget';
 
       const result = WidgetTreeResultStub({
         roots: [node],

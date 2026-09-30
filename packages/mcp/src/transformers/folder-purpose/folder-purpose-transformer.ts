@@ -9,20 +9,18 @@
 import { folderConfigStatics } from '@dungeonmaster/shared/statics';
 import type { FolderType } from '@dungeonmaster/shared/contracts';
 import { isKeyOfGuard } from '@dungeonmaster/shared/guards';
-import { contentTextContract } from '../../contracts/content-text/content-text-contract';
-import type { ContentText } from '../../contracts/content-text/content-text-contract';
 
 export const folderPurposeTransformer = ({
   folderType,
 }: {
   folderType: FolderType;
-}): ContentText => {
+}): string => {
   // Look up purpose from folder config metadata
   if (!isKeyOfGuard(folderType, folderConfigStatics)) {
-    return contentTextContract.parse('No purpose description available.');
+    return 'No purpose description available.';
   }
 
   const config = folderConfigStatics[folderType];
 
-  return contentTextContract.parse(config.meta.purpose);
+  return config.meta.purpose;
 };

@@ -17,7 +17,6 @@
  */
 
 import { join } from '#gateway/node/path';
-import type { ContentText } from '@dungeonmaster/shared/contracts';
 import { locationsStatics } from '@dungeonmaster/shared/statics';
 
 import { writeFile } from '#gateway/node/fs__promises';
@@ -30,7 +29,7 @@ export const shutdownReasonWriteBroker = async ({
   reason,
 }: {
   evidencePath: string;
-  reason: ContentText;
+  reason: string;
 }): Promise<ShutdownReason> => {
   const markerPath = join(evidencePath, locationsStatics.siegelense.shutdownReason);
 

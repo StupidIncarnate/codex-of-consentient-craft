@@ -1,6 +1,5 @@
 import { widgetSubtreeRenderLayerBroker } from './widget-subtree-render-layer-broker';
 import { widgetSubtreeRenderLayerBrokerProxy } from './widget-subtree-render-layer-broker.proxy';
-import { ContentTextStub } from '../../../contracts/content-text/content-text.stub';
 import { WidgetNodeStub } from '../../../contracts/widget-node/widget-node.stub';
 import { WidgetTreeResultStub } from '../../../contracts/widget-tree-result/widget-tree-result.stub';
 
@@ -16,20 +15,18 @@ describe('widgetSubtreeRenderLayerBroker', () => {
 
       proxy.setupSource({
         sourceFile: responderFile,
-        content: ContentTextStub({
-          value: `import { HomeContentWidget } from '../../../widgets/home-content/home-content-widget';`,
-        }),
+        content: `import { HomeContentWidget } from '../../../widgets/home-content/home-content-widget';`,
       });
 
       const widgetTree = WidgetTreeResultStub({
         roots: [
           WidgetNodeStub({
-            widgetName: ContentTextStub({ value: 'home-content-widget' }),
+            widgetName: 'home-content-widget',
             filePath: widgetFile,
             bindingsAttached: [],
             children: [
               WidgetNodeStub({
-                widgetName: ContentTextStub({ value: 'guild-list-widget' }),
+                widgetName: 'guild-list-widget',
                 filePath: childFile,
                 bindingsAttached: [],
                 children: [],
@@ -50,7 +47,7 @@ describe('widgetSubtreeRenderLayerBroker', () => {
         packageRoot,
         projectRoot,
         packageSrcPath,
-        indent: ContentTextStub({ value: '      ' }),
+        indent: '      ',
       });
 
       expect(result.map(String)).toStrictEqual([
@@ -69,9 +66,7 @@ describe('widgetSubtreeRenderLayerBroker', () => {
 
       proxy.setupSource({
         sourceFile: responderFile,
-        content: ContentTextStub({
-          value: `import { OtherWidget } from '../../widgets/other/other-widget';`,
-        }),
+        content: `import { OtherWidget } from '../../widgets/other/other-widget';`,
       });
 
       const widgetTree = WidgetTreeResultStub({ roots: [], hubs: [] });
@@ -86,7 +81,7 @@ describe('widgetSubtreeRenderLayerBroker', () => {
         packageRoot,
         projectRoot,
         packageSrcPath,
-        indent: ContentTextStub({ value: '      ' }),
+        indent: '      ',
       });
 
       expect(result).toStrictEqual([]);
@@ -102,7 +97,7 @@ describe('widgetSubtreeRenderLayerBroker', () => {
 
       proxy.setupSource({
         sourceFile: responderFile,
-        content: ContentTextStub({ value: `export const x = () => null;` }),
+        content: `export const x = () => null;`,
       });
 
       const widgetTree = WidgetTreeResultStub({ roots: [], hubs: [] });
@@ -117,7 +112,7 @@ describe('widgetSubtreeRenderLayerBroker', () => {
         packageRoot,
         projectRoot,
         packageSrcPath,
-        indent: ContentTextStub({ value: '' }),
+        indent: '',
       });
 
       expect(result).toStrictEqual([]);

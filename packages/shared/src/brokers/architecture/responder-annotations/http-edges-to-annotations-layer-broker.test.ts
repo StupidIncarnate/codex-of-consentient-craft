@@ -1,23 +1,18 @@
 import { httpEdgesToAnnotationsLayerBroker } from './http-edges-to-annotations-layer-broker';
 import { httpEdgesToAnnotationsLayerBrokerProxy } from './http-edges-to-annotations-layer-broker.proxy';
-import { ContentTextStub } from '../../../contracts/content-text/content-text.stub';
 
 const PROJECT_ROOT = '/repo';
 const PACKAGE_ROOT = '/repo/packages/server';
 
-const SERVER_STATICS = ContentTextStub({
-  value: `export const apiRoutesStatics = {
+const SERVER_STATICS = `export const apiRoutesStatics = {
   quests: {
     start: '/api/quests/:questId/start',
   },
-} as const;`,
-});
+} as const;`;
 
-const WEB_STATICS = ContentTextStub({
-  value: `export const webConfigStatics = {
+const WEB_STATICS = `export const webConfigStatics = {
   api: { routes: { questStart: '/api/quests/:questId/start' } },
-} as const;`,
-});
+} as const;`;
 
 const QUEST_FLOW_PATH = '/repo/packages/server/src/flows/quest/quest-flow.ts';
 const QUEST_START_RESPONDER_PATH = '/repo/packages/server/src/responders/quest/start/quest-start-responder.ts';
@@ -52,23 +47,19 @@ describe('httpEdgesToAnnotationsLayerBroker', () => {
         flowFiles: [
           {
             path: QUEST_FLOW_PATH,
-            source: ContentTextStub({
-              value: `import { QuestStartResponder } from '../../responders/quest/start/quest-start-responder';
+            source: `import { QuestStartResponder } from '../../responders/quest/start/quest-start-responder';
 app.post(apiRoutesStatics.quests.start, async (c) => {
   const result = await QuestStartResponder({ args: c.req });
   return c.json(result);
 });`,
-            }),
           },
         ],
         brokerFiles: [
           {
             path: QUEST_START_BROKER_PATH,
-            source: ContentTextStub({
-              value: `export const questStartBroker = async () => {
+            source: `export const questStartBroker = async () => {
   await fetchPostAdapter({ url: webConfigStatics.api.routes.questStart });
 };`,
-            }),
           },
         ],
       });

@@ -14,8 +14,6 @@
  * // Returns ContentText: 'HEALTHY   root present · not blank · console clean · no 5xx · server log clean'
  */
 
-import { contentTextContract } from '@dungeonmaster/shared/contracts';
-import type { ContentText } from '@dungeonmaster/shared/contracts';
 import { safeJsonParseTransformer } from '@dungeonmaster/shared/transformers';
 
 import type { BrowserSession } from '../../../contracts/browser-session/browser-session-contract';
@@ -50,7 +48,7 @@ export const stepHealthBroker = async ({
   session: BrowserSession;
   shotPath: string | null;
   browserWindowStart: BufferLengths | null;
-}): Promise<ContentText> => {
+}): Promise<string> => {
   if (shotPath !== null) {
     await session.capture({ filePath: shotPath });
   }
@@ -70,7 +68,7 @@ export const stepHealthBroker = async ({
   const errorConsoleLines = consoleLines.filter((line) => CONSOLE_ERROR_PATTERN.test(line));
   const consoleErrors = readingCountContract.parse(errorConsoleLines.length);
 
-  let firstConsoleError: ContentText | null = null;
+  let firstConsoleError: string | null = null;
   const [firstConsoleLine] = errorConsoleLines;
   if (firstConsoleLine !== undefined) {
     const parseResult = safeJsonParseTransformer({ value: firstConsoleLine });
@@ -81,9 +79,9 @@ export const stepHealthBroker = async ({
       'text' in parseResult.value &&
       typeof parseResult.value.text === 'string'
     ) {
-      firstConsoleError = contentTextContract.parse(parseResult.value.text);
+      firstConsoleError = parseResult.value.text;
     } else {
-      firstConsoleError = contentTextContract.parse(firstConsoleLine);
+      firstConsoleError = firstConsoleLine;
     }
   }
 
@@ -91,7 +89,7 @@ export const stepHealthBroker = async ({
   const networkLines = session.readNetworkSince({ fromIndex: networkFromIndex });
 
   let network5xxCountValue = 0;
-  let first5xx: ContentText | null = null;
+  let first5xx: string | null = null;
 
   for (const line of networkLines) {
     const parseResult = safeJsonParseTransformer({ value: line });
@@ -114,7 +112,7 @@ export const stepHealthBroker = async ({
           'url' in parseResult.value && typeof parseResult.value.url === 'string'
             ? parseResult.value.url
             : '';
-        first5xx = contentTextContract.parse(`${method} ${url}`.trim());
+        first5xx = `${method} ${url}`.trim();
       }
     }
   }
@@ -124,10 +122,10 @@ export const stepHealthBroker = async ({
   const errorServerLines = serverLines.filter((line) => SERVER_ERROR_PATTERN.test(line));
   const serverErrors = readingCountContract.parse(errorServerLines.length);
 
-  let firstServerError: ContentText | null = null;
+  let firstServerError: string | null = null;
   const [firstServerLine] = errorServerLines;
   if (firstServerLine !== undefined) {
-    firstServerError = contentTextContract.parse(firstServerLine);
+    firstServerError = firstServerLine;
   }
 
   const reading = healthReadingRenderTransformer({

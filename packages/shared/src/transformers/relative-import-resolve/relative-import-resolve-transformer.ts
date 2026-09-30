@@ -12,14 +12,13 @@
  * for further inspection. Returns null when importPath is not relative (e.g. npm packages).
  */
 
-import type { ContentText } from '../../contracts/content-text/content-text-contract';
 
 export const relativeImportResolveTransformer = ({
   sourceFile,
   importPath,
 }: {
   sourceFile: string;
-  importPath: ContentText;
+  importPath: string;
 }): string | null => {
   const importPathStr = String(importPath);
   if (!importPathStr.startsWith('.')) {

@@ -13,8 +13,6 @@
 import { architectureBootTreeBroker } from '../boot-tree/architecture-boot-tree-broker';
 import { architectureOrphanDetectBroker } from '../orphan-detect/architecture-orphan-detect-broker';
 import { architectureResponderAnnotationsBroker } from '../responder-annotations/architecture-responder-annotations-broker';
-import type { ContentText } from '../../../contracts/content-text/content-text-contract';
-import { contentTextContract } from '../../../contracts/content-text/content-text-contract';
 import type { PackageType } from '../../../contracts/package-type/package-type-contract';
 
 export const packageSectionBuildLayerBroker = ({
@@ -23,14 +21,14 @@ export const packageSectionBuildLayerBroker = ({
   packageType,
   projectRoot,
 }: {
-  packageName: ContentText;
+  packageName: string;
   packageRoot: string;
   packageType: PackageType;
   projectRoot: string;
-}): ContentText => {
-  const packageParts: ContentText[] = [];
+}): string => {
+  const packageParts: string[] = [];
 
-  packageParts.push(contentTextContract.parse(`# ${String(packageName)} [${packageType}]`));
+  packageParts.push(`# ${String(packageName)} [${packageType}]`);
 
   const { responderAnnotations, startupAnnotations } = architectureResponderAnnotationsBroker({
     packageType,
@@ -54,5 +52,5 @@ export const packageSectionBuildLayerBroker = ({
     packageParts.push(orphanSection);
   }
 
-  return contentTextContract.parse(packageParts.join('\n\n'));
+  return packageParts.join('\n\n');
 };

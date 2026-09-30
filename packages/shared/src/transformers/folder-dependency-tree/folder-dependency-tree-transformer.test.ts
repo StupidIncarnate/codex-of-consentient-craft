@@ -1,5 +1,4 @@
 import { folderDependencyTreeTransformer } from './folder-dependency-tree-transformer';
-import { ContentTextStub } from '../../contracts/content-text/content-text.stub';
 import { FolderConfigStub } from '../../contracts/folder-config/folder-config.stub';
 
 const FolderConfigsStub = (
@@ -47,9 +46,7 @@ const buildMatrixStub = ({
     return cells.join(' | ');
   });
 
-  return ContentTextStub({
-    value: [header, separator, ...rows].join('\n'),
-  });
+  return [header, separator, ...rows].join('\n');
 };
 
 describe('folderDependencyTreeTransformer', () => {
@@ -62,9 +59,7 @@ describe('folderDependencyTreeTransformer', () => {
       const result = folderDependencyTreeTransformer({ folderConfigs });
 
       expect(result).toStrictEqual({
-        hierarchy: ContentTextStub({
-          value: 'statics/  # Can import: nothing (leaf node)',
-        }),
+        hierarchy: 'statics/  # Can import: nothing (leaf node)',
         graph: {
           statics: [],
         },
@@ -85,9 +80,7 @@ describe('folderDependencyTreeTransformer', () => {
       const result = folderDependencyTreeTransformer({ folderConfigs });
 
       expect(result).toStrictEqual({
-        hierarchy: ContentTextStub({
-          value: 'guards/  # Can import: statics',
-        }),
+        hierarchy: 'guards/  # Can import: statics',
         graph: {
           guards: ['statics'],
         },
@@ -110,11 +103,9 @@ describe('folderDependencyTreeTransformer', () => {
       const result = folderDependencyTreeTransformer({ folderConfigs });
 
       expect(result).toStrictEqual({
-        hierarchy: ContentTextStub({
-          value: `statics/    # Can import: nothing (leaf node)
+        hierarchy: `statics/    # Can import: nothing (leaf node)
 contracts/  # Can import: statics
 guards/     # Can import: contracts, statics`,
-        }),
         graph: {
           statics: [],
           contracts: ['statics'],
@@ -142,10 +133,8 @@ guards/     # Can import: contracts, statics`,
       const result = folderDependencyTreeTransformer({ folderConfigs });
 
       expect(result).toStrictEqual({
-        hierarchy: ContentTextStub({
-          value: `statics/  # Can import: nothing (leaf node)
+        hierarchy: `statics/  # Can import: nothing (leaf node)
 startup/  # Can import: flows, contracts`,
-        }),
         graph: {
           statics: [],
           startup: ['flows', 'contracts'],
@@ -175,12 +164,10 @@ startup/  # Can import: flows, contracts`,
       const result = folderDependencyTreeTransformer({ folderConfigs });
 
       expect(result).toStrictEqual({
-        hierarchy: ContentTextStub({
-          value: `statics/       # Can import: nothing (leaf node)
+        hierarchy: `statics/       # Can import: nothing (leaf node)
 guards/        # Can import: contracts, statics
 transformers/  # Can import: guards, contracts, statics
 brokers/       # Can import: transformers, guards, contracts, statics`,
-        }),
         graph: {
           statics: [],
           guards: ['contracts', 'statics'],
@@ -209,9 +196,7 @@ brokers/       # Can import: transformers, guards, contracts, statics`,
       const result = folderDependencyTreeTransformer({ folderConfigs });
 
       expect(result).toStrictEqual({
-        hierarchy: ContentTextStub({
-          value: 'statics/  # Can import: nothing (leaf node)',
-        }),
+        hierarchy: 'statics/  # Can import: nothing (leaf node)',
         graph: {
           statics: [],
         },
@@ -230,7 +215,7 @@ brokers/       # Can import: transformers, guards, contracts, statics`,
       const result = folderDependencyTreeTransformer({ folderConfigs });
 
       expect(result).toStrictEqual({
-        hierarchy: ContentTextStub({ value: '' }),
+        hierarchy: '',
         graph: {},
         matrix: buildMatrixStub({
           folders: [],
@@ -249,9 +234,7 @@ brokers/       # Can import: transformers, guards, contracts, statics`,
       const result = folderDependencyTreeTransformer({ folderConfigs });
 
       expect(result).toStrictEqual({
-        hierarchy: ContentTextStub({
-          value: 'guards/  # Can import: statics, contracts',
-        }),
+        hierarchy: 'guards/  # Can import: statics, contracts',
         graph: {
           guards: ['statics', 'contracts'],
         },
@@ -272,9 +255,7 @@ brokers/       # Can import: transformers, guards, contracts, statics`,
       const result = folderDependencyTreeTransformer({ folderConfigs });
 
       expect(result).toStrictEqual({
-        hierarchy: ContentTextStub({
-          value: 'brokers/  # Can import: node_modules, statics',
-        }),
+        hierarchy: 'brokers/  # Can import: node_modules, statics',
         graph: {
           brokers: ['node_modules', 'statics'],
         },

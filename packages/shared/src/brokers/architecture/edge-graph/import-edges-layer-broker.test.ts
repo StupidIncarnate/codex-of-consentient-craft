@@ -1,13 +1,12 @@
 import { importEdgesLayerBroker } from './import-edges-layer-broker';
 import { importEdgesLayerBrokerProxy } from './import-edges-layer-broker.proxy';
-import { ContentTextStub } from '../../../contracts/content-text/content-text.stub';
 
 const PROJECT_ROOT = '/repo';
 
-const SERVER_PKG = ContentTextStub({ value: 'server' });
-const WEB_PKG = ContentTextStub({ value: 'web' });
-const SHARED_PKG = ContentTextStub({ value: 'shared' });
-const ORCHESTRATOR_PKG = ContentTextStub({ value: 'orchestrator' });
+const SERVER_PKG = 'server';
+const WEB_PKG = 'web';
+const SHARED_PKG = 'shared';
+const ORCHESTRATOR_PKG = 'orchestrator';
 
 describe('importEdgesLayerBroker', () => {
   describe('single consumer file importing one barrel', () => {
@@ -22,9 +21,7 @@ describe('importEdgesLayerBroker', () => {
         sourceFiles: [
           {
             path: consumerFile,
-            source: ContentTextStub({
-              value: `import { userContract } from '@dungeonmaster/shared/contracts';`,
-            }),
+            source: `import { userContract } from '@dungeonmaster/shared/contracts';`,
           },
         ],
       });
@@ -55,15 +52,11 @@ describe('importEdgesLayerBroker', () => {
         sourceFiles: [
           {
             path: fileA,
-            source: ContentTextStub({
-              value: `import { questContract } from '@dungeonmaster/shared/contracts';`,
-            }),
+            source: `import { questContract } from '@dungeonmaster/shared/contracts';`,
           },
           {
             path: fileB,
-            source: ContentTextStub({
-              value: `import { questIdContract } from '@dungeonmaster/shared/contracts';`,
-            }),
+            source: `import { questIdContract } from '@dungeonmaster/shared/contracts';`,
           },
         ],
       });
@@ -93,9 +86,7 @@ describe('importEdgesLayerBroker', () => {
         sourceFiles: [
           {
             path: adapterFile,
-            source: ContentTextStub({
-              value: `import { StartOrchestrator } from '@dungeonmaster/orchestrator';`,
-            }),
+            source: `import { StartOrchestrator } from '@dungeonmaster/orchestrator';`,
           },
         ],
       });
@@ -118,9 +109,7 @@ describe('importEdgesLayerBroker', () => {
         sourceFiles: [
           {
             path: consumerFile,
-            source: ContentTextStub({
-              value: `import { StartOrchestrator } from '@dungeonmaster/orchestrator';`,
-            }),
+            source: `import { StartOrchestrator } from '@dungeonmaster/orchestrator';`,
           },
         ],
       });
@@ -150,13 +139,11 @@ describe('importEdgesLayerBroker', () => {
         sourceFiles: [
           {
             path: consumerFile,
-            source: ContentTextStub({
-              value: [
+            source: [
                 `import React from 'react';`,
                 `import { z } from 'zod';`,
                 `import { useState } from 'react';`,
               ].join('\n'),
-            }),
           },
         ],
       });
@@ -179,9 +166,7 @@ describe('importEdgesLayerBroker', () => {
         sourceFiles: [
           {
             path: testFile,
-            source: ContentTextStub({
-              value: `import { userContract } from '@dungeonmaster/shared/contracts';`,
-            }),
+            source: `import { userContract } from '@dungeonmaster/shared/contracts';`,
           },
         ],
       });
@@ -202,9 +187,7 @@ describe('importEdgesLayerBroker', () => {
         sourceFiles: [
           {
             path: proxyFile,
-            source: ContentTextStub({
-              value: `import { userContract } from '@dungeonmaster/shared/contracts';`,
-            }),
+            source: `import { userContract } from '@dungeonmaster/shared/contracts';`,
           },
         ],
       });
@@ -228,15 +211,11 @@ describe('importEdgesLayerBroker', () => {
         sourceFiles: [
           {
             path: fileA,
-            source: ContentTextStub({
-              value: `import { questContract } from '@dungeonmaster/shared/contracts';`,
-            }),
+            source: `import { questContract } from '@dungeonmaster/shared/contracts';`,
           },
           {
             path: fileB,
-            source: ContentTextStub({
-              value: `import { projectMapStatics } from '@dungeonmaster/shared/statics';`,
-            }),
+            source: `import { projectMapStatics } from '@dungeonmaster/shared/statics';`,
           },
         ],
       });

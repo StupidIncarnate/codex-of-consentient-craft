@@ -11,12 +11,11 @@
 
 import { z } from '#gateway/npm/zod';
 
-import { contentTextContract } from '../content-text/content-text-contract';
 import { identifierContract } from '../identifier/identifier-contract';
 
 export const schemaObjectEntryContract = z.object({
   key: identifierContract,
-  valueText: contentTextContract,
+  valueText: z.string().brand<'SchemaObjectEntryValueText'>(),
 });
 
 export type SchemaObjectEntry = z.infer<typeof schemaObjectEntryContract>;

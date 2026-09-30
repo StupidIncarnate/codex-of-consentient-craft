@@ -1,4 +1,3 @@
-import { ContentTextStub } from '@dungeonmaster/shared/contracts/content-text/content-text.stub';
 import { gatewayLocationsStatics } from '@dungeonmaster/shared/statics';
 import { HookSessionSnippetPackagesResponder } from './hook-session-snippet-packages-responder';
 import { HookSessionSnippetPackagesResponderProxy } from './hook-session-snippet-packages-responder.proxy';
@@ -24,9 +23,7 @@ describe('HookSessionSnippetPackagesResponder', () => {
       });
 
       expect(result).toBe(
-        ContentTextStub({
-          value: '## Packages\n\n- **cli**\n- **config**\n- **shared**\n- **testing**\n- **web**',
-        }),
+        '## Packages\n\n- **cli**\n- **config**\n- **shared**\n- **testing**\n- **web**',
       );
     });
 
@@ -45,7 +42,7 @@ describe('HookSessionSnippetPackagesResponder', () => {
         projectRoot: '/project',
       });
 
-      expect(result).toBe(ContentTextStub({ value: '## Packages\n\n- **cli**' }));
+      expect(result).toBe('## Packages\n\n- **cli**');
     });
 
     it('VALID: {no projectRoot argument} => reads the packages dir under cwd', () => {
@@ -58,7 +55,7 @@ describe('HookSessionSnippetPackagesResponder', () => {
 
       const result = HookSessionSnippetPackagesResponder();
 
-      expect(result).toBe(ContentTextStub({ value: '## Packages\n\n- **hooks**' }));
+      expect(result).toBe('## Packages\n\n- **hooks**');
     });
   });
 
@@ -86,9 +83,7 @@ describe('HookSessionSnippetPackagesResponder', () => {
       });
 
       expect(result).toBe(
-        ContentTextStub({
-          value: `## Packages\n\n- **${gatewayLocationsStatics.importPrefix}**\n- **cli**`,
-        }),
+        `## Packages\n\n- **${gatewayLocationsStatics.importPrefix}**\n- **cli**`,
       );
     });
 
@@ -108,9 +103,7 @@ describe('HookSessionSnippetPackagesResponder', () => {
       });
 
       expect(result).toBe(
-        ContentTextStub({
-          value: `## Packages\n\n- **${gatewayLocationsStatics.importPrefix}**\n- **cli**`,
-        }),
+        `## Packages\n\n- **${gatewayLocationsStatics.importPrefix}**\n- **cli**`,
       );
     });
   });
@@ -128,7 +121,7 @@ describe('HookSessionSnippetPackagesResponder', () => {
         projectRoot: '/project',
       });
 
-      expect(result).toBe(ContentTextStub({ value: '## Packages\n\n- **root**' }));
+      expect(result).toBe('## Packages\n\n- **root**');
     });
 
     it('EMPTY: {no packages dir} => returns root package entry', () => {
@@ -140,7 +133,7 @@ describe('HookSessionSnippetPackagesResponder', () => {
         projectRoot: '/project',
       });
 
-      expect(result).toBe(ContentTextStub({ value: '## Packages\n\n- **root**' }));
+      expect(result).toBe('## Packages\n\n- **root**');
     });
   });
 });

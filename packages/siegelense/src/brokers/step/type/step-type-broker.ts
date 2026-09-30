@@ -29,8 +29,6 @@
  * // 5000ms (still moving: network)'
  */
 
-import { contentTextContract } from '@dungeonmaster/shared/contracts';
-import type { ContentText } from '@dungeonmaster/shared/contracts';
 
 import type { BrowserSession } from '../../../contracts/browser-session/browser-session-contract';
 import { driverStatics } from '../../../statics/driver/driver-statics';
@@ -50,7 +48,7 @@ export const stepTypeBroker = async ({
   ref: number | null;
   value: string;
   timeoutMs: number | null;
-}): Promise<ContentText> => {
+}): Promise<string> => {
   const resolvedTimeoutMs = timeoutMs ?? driverStatics.run.defaultStepTimeoutMs;
 
   if (ref !== null) {
@@ -61,7 +59,7 @@ export const stepTypeBroker = async ({
       pollMs: driverStatics.settle.pollMs,
     });
     return settleReadingRenderTransformer({
-      baseMessage: contentTextContract.parse(`typed "${value}" into ref ${String(ref)}`),
+      baseMessage: `typed "${value}" into ref ${String(ref)}`,
       settleReading,
     });
   }
@@ -85,11 +83,9 @@ export const stepTypeBroker = async ({
   });
 
   return settleReadingRenderTransformer({
-    baseMessage: contentTextContract.parse(
-      within === null
+    baseMessage: (within === null
         ? `typed "${value}" into ${target}`
-        : `typed "${value}" into ${target} within ${within}`,
-    ),
+        : `typed "${value}" into ${target} within ${within}`),
     settleReading,
   });
 };

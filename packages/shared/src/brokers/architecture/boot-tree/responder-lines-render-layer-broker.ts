@@ -14,10 +14,6 @@
  * is responsible for emitting the flow's display name on its own line; this broker only renders the body
  */
 
-import {
-  contentTextContract,
-  type ContentText,
-} from '../../../contracts/content-text/content-text-contract';
 import type { WidgetContext } from '../../../contracts/widget-context/widget-context-contract';
 import type { EventBusContext } from '../../../contracts/event-bus-context/event-bus-context-contract';
 import type { ResponderAnnotationMap } from '../../../contracts/responder-annotation-map/responder-annotation-map-contract';
@@ -51,9 +47,9 @@ export const responderLinesRenderLayerBroker = ({
   consumedWidgetResponders?: Set<string>;
   eventBusContext?: EventBusContext;
   responderAnnotations?: ResponderAnnotationMap;
-}): ContentText[] => {
+}): string[] => {
   const indent = '    '.repeat(depth);
-  const lines: ContentText[] = [];
+  const lines: string[] = [];
 
   const { entries: responders } = importsInFolderTypeFindLayerBroker({
     sourceFile: flowFile,
@@ -62,7 +58,7 @@ export const responderLinesRenderLayerBroker = ({
   });
   const routes = routeMetadataExtractLayerBroker({ flowFile });
 
-  const symbolToResponderFile = new Map<ContentText, string>();
+  const symbolToResponderFile = new Map<string, string>();
   for (const responderFile of responders) {
     const symbolName = filePathToSymbolNameTransformer({ filePath: responderFile });
     symbolToResponderFile.set(symbolName, responderFile);
@@ -83,11 +79,11 @@ export const responderLinesRenderLayerBroker = ({
       responderFile === undefined ? undefined : responderAnnotations?.get(responderFile);
     const annotationSuffixSource = annotation?.suffix ?? null;
     const suffixStr = annotationSuffixSource === null ? '' : `  ${String(annotationSuffixSource)}`;
-    lines.push(contentTextContract.parse(`${indent}  ${prefix}${suffixStr}`));
+    lines.push(`${indent}  ${prefix}${suffixStr}`);
     if (annotation !== undefined) {
       const childIndent = `${indent}      `;
       for (const cl of annotation.childLines) {
-        lines.push(contentTextContract.parse(`${childIndent}${String(cl)}`));
+        lines.push(`${childIndent}${String(cl)}`);
       }
     }
 
@@ -105,7 +101,7 @@ export const responderLinesRenderLayerBroker = ({
         packageRoot: widgetContext.packageRoot,
         projectRoot: widgetContext.projectRoot,
         packageSrcPath,
-        indent: contentTextContract.parse(`${indent}      `),
+        indent: `${indent}      `,
       });
       for (const wl of widgetLines) {
         lines.push(wl);
@@ -117,7 +113,7 @@ export const responderLinesRenderLayerBroker = ({
     if (consumedResponders.has(responderFile)) continue;
 
     const exportName = architectureExportNameResolveBroker({ filePath: responderFile });
-    let renderName: ContentText = exportName;
+    let renderName: string = exportName;
     try {
       renderName = importPathToPackagePrefixTransformer({
         renderingFilePath,
@@ -131,11 +127,11 @@ export const responderLinesRenderLayerBroker = ({
     const annotation = responderAnnotations?.get(responderFile);
     const annotationSuffixSource = annotation?.suffix ?? null;
     const suffixStr = annotationSuffixSource === null ? '' : `  ${String(annotationSuffixSource)}`;
-    lines.push(contentTextContract.parse(`${indent}  ↳ ${String(renderName)}${suffixStr}`));
+    lines.push(`${indent}  ↳ ${String(renderName)}${suffixStr}`);
     if (annotation !== undefined) {
       const childIndent = `${indent}      `;
       for (const cl of annotation.childLines) {
-        lines.push(contentTextContract.parse(`${childIndent}${String(cl)}`));
+        lines.push(`${childIndent}${String(cl)}`);
       }
     }
 
@@ -145,7 +141,7 @@ export const responderLinesRenderLayerBroker = ({
       renderingFilePath,
     });
     for (const al of callChainLines) {
-      lines.push(contentTextContract.parse(`${indent}${String(al)}`));
+      lines.push(`${indent}${String(al)}`);
     }
 
     if (eventBusContext !== undefined) {
@@ -157,7 +153,7 @@ export const responderLinesRenderLayerBroker = ({
       // sit at the same visual depth as the responder's adapter calls.
       const busIndent = `${indent}      `;
       for (const bl of busLines) {
-        lines.push(contentTextContract.parse(`${busIndent}${String(bl)}`));
+        lines.push(`${busIndent}${String(bl)}`);
       }
     }
 
@@ -171,7 +167,7 @@ export const responderLinesRenderLayerBroker = ({
         packageRoot: widgetContext.packageRoot,
         projectRoot: widgetContext.projectRoot,
         packageSrcPath,
-        indent: contentTextContract.parse(`${indent}      `),
+        indent: `${indent}      `,
       });
       for (const wl of widgetLines) {
         lines.push(wl);
@@ -191,7 +187,7 @@ export const responderLinesRenderLayerBroker = ({
     visited.add(childAbsPath);
 
     const childDisplay = architectureExportNameResolveBroker({ filePath: childFlow });
-    lines.push(contentTextContract.parse(`${indent}  ↳ ${String(childDisplay)}`));
+    lines.push(`${indent}  ↳ ${String(childDisplay)}`);
 
     // exactOptionalPropertyTypes forbids passing `eventBusContext: undefined` to an
     // optional field — only include it when defined.

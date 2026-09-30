@@ -1,13 +1,12 @@
 import { webFetchCallSiteContract } from './web-fetch-call-site-contract';
 import { WebFetchCallSiteStub } from './web-fetch-call-site.stub';
-import { ContentTextStub } from '../content-text/content-text.stub';
 
 describe('webFetchCallSiteContract', () => {
   describe('valid inputs', () => {
     it('VALID: {statics ref} => parses successfully', () => {
       const result = WebFetchCallSiteStub({
-        method: ContentTextStub({ value: 'GET' }),
-        rawArg: ContentTextStub({ value: 'webConfigStatics.api.routes.quests' }),
+        method: 'GET',
+        rawArg: 'webConfigStatics.api.routes.quests',
       });
 
       expect(result).toStrictEqual({
@@ -18,8 +17,8 @@ describe('webFetchCallSiteContract', () => {
 
     it('VALID: {POST method} => parses with POST', () => {
       const result = WebFetchCallSiteStub({
-        method: ContentTextStub({ value: 'POST' }),
-        rawArg: ContentTextStub({ value: 'webConfigStatics.api.routes.questStart' }),
+        method: 'POST',
+        rawArg: 'webConfigStatics.api.routes.questStart',
       });
 
       expect(result).toStrictEqual({

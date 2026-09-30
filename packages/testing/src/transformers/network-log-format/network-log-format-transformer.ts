@@ -6,7 +6,6 @@
  * // Returns formatted string like "--- Network Log (1 requests) ---\nGET /api/guilds -> 200 (12ms) [mock]\n---"
  */
 
-import { contentTextContract, type ContentText } from '@dungeonmaster/shared/contracts';
 
 import type { NetworkLogEntry } from '../../contracts/network-log-entry/network-log-entry-contract';
 import type { WsLogEntry } from '../../contracts/ws-log-entry/ws-log-entry-contract';
@@ -19,12 +18,12 @@ export const networkLogFormatTransformer = ({
 }: {
   entries: NetworkLogEntry[];
   wsEntries: WsLogEntry[];
-}): ContentText => {
-  const lines: ContentText[] = [];
+}): string => {
+  const lines: string[] = [];
 
   if (entries.length > 0) {
     lines.push(
-      contentTextContract.parse(`--- Network Log (${String(entries.length)} requests) ---`),
+      `--- Network Log (${String(entries.length)} requests) ---`,
     );
     for (const entry of entries) {
       lines.push(formatHttpEntryTransformer({ entry }));
@@ -33,7 +32,7 @@ export const networkLogFormatTransformer = ({
 
   if (wsEntries.length > 0) {
     lines.push(
-      contentTextContract.parse(`--- WebSocket (${String(wsEntries.length)} messages) ---`),
+      `--- WebSocket (${String(wsEntries.length)} messages) ---`,
     );
     for (const wsEntry of wsEntries) {
       lines.push(formatWsEntryTransformer({ wsEntry }));
@@ -41,8 +40,8 @@ export const networkLogFormatTransformer = ({
   }
 
   if (lines.length > 0) {
-    lines.push(contentTextContract.parse('---'));
+    lines.push('---');
   }
 
-  return contentTextContract.parse(lines.join('\n'));
+  return lines.join('\n');
 };

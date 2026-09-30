@@ -1,8 +1,6 @@
 import type { DirEntrySync } from '#gateway/node/fs';
 import { listFlowFilesLayerBrokerProxy } from './list-flow-files-layer-broker.proxy';
 import { architectureSourceReadBrokerProxy } from '../source-read/architecture-source-read-broker.proxy';
-import type { ContentText } from '../../../contracts/content-text/content-text-contract';
-import { ContentTextStub } from '../../../contracts/content-text/content-text.stub';
 
 export const mcpToolsToAnnotationsLayerBrokerProxy = (): {
   setup: ({
@@ -12,7 +10,7 @@ export const mcpToolsToAnnotationsLayerBrokerProxy = (): {
   }: {
     packageRoot: string;
     flowEntries: DirEntrySync[];
-    flowFiles: { path: string; source: ContentText }[];
+    flowFiles: { path: string; source: string }[];
   }) => void;
 } => {
   const listProxy = listFlowFilesLayerBrokerProxy();
@@ -26,24 +24,24 @@ export const mcpToolsToAnnotationsLayerBrokerProxy = (): {
     }: {
       packageRoot: string;
       flowEntries: DirEntrySync[];
-      flowFiles: { path: string; source: ContentText }[];
+      flowFiles: { path: string; source: string }[];
     }): void => {
       listProxy.returns({
         dirPath: `${String(packageRoot)}/src/flows`,
         entries: flowEntries,
       });
 
-      const fileMap = new Map<string, ContentText>();
+      const fileMap = new Map<string, string>();
       for (const f of flowFiles) {
         fileMap.set(f.path, f.source);
       }
-      const fileImpl = (filePath: ContentText): ContentText => {
+      const fileImpl = (filePath: string): string => {
         for (const [key, source] of fileMap) {
           if (String(key) === String(filePath)) {
             return source;
           }
         }
-        return ContentTextStub({ value: '' });
+        return '';
       };
       sourceProxy.setupImplementation({ fn: fileImpl });
     },

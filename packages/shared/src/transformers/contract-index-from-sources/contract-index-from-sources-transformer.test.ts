@@ -1,4 +1,3 @@
-import { ContentTextStub } from '../../contracts/content-text/content-text.stub';
 import { ContractIndexPackageStub } from '../../contracts/contract-index-package/contract-index-package.stub';
 import { PackageNameStub } from '../../contracts/package-name/package-name.stub';
 import { contractIndexFromSourcesTransformer } from './contract-index-from-sources-transformer';
@@ -15,38 +14,30 @@ const betaPackage = ContractIndexPackageStub({
   dir: betaDir,
 });
 
-const ONE_CONTRACT_TEXT = ContentTextStub({
-  value: [
+const ONE_CONTRACT_TEXT = [
     "import { z } from 'zod';",
     "export const oneContract = z.string().brand<'one'>();",
     'export type one = z.infer<typeof oneContract>;',
     '',
-  ].join('\n'),
-});
-const TWO_CONTRACT_TEXT = ContentTextStub({
-  value: [
+  ].join('\n');
+const TWO_CONTRACT_TEXT = [
     "import { z } from 'zod';",
     "export const twoContract = z.string().brand<'two'>();",
     'export type two = z.infer<typeof twoContract>;',
     '',
-  ].join('\n'),
-});
-const INNER_CONTRACT_TEXT = ContentTextStub({
-  value: [
+  ].join('\n');
+const INNER_CONTRACT_TEXT = [
     "import { z } from 'zod';",
     "export const innerContract = z.string().brand<'inner'>();",
     'export type inner = z.infer<typeof innerContract>;',
     '',
-  ].join('\n'),
-});
-const DETAIL_CONTRACT_TEXT = ContentTextStub({
-  value: [
+  ].join('\n');
+const DETAIL_CONTRACT_TEXT = [
     "import { z } from 'zod';",
     "export const detailContract = z.string().brand<'detail'>();",
     'export type detail = z.infer<typeof detailContract>;',
     '',
-  ].join('\n'),
-});
+  ].join('\n');
 
 describe('contractIndexFromSourcesTransformer', () => {
   describe('parse detection', () => {
@@ -63,10 +54,7 @@ describe('contractIndexFromSourcesTransformer', () => {
           { filePath: lonelyFile, text: TWO_CONTRACT_TEXT },
           {
             filePath: brokerFile,
-            text: ContentTextStub({
-              value:
-                "import { oneContract } from '../../contracts/one/one-contract';\nexport const useBroker = (v: unknown) => oneContract.parse(v);",
-            }),
+            text: "import { oneContract } from '../../contracts/one/one-contract';\nexport const useBroker = (v: unknown) => oneContract.parse(v);",
           },
         ],
       });
@@ -105,9 +93,7 @@ describe('contractIndexFromSourcesTransformer', () => {
           { filePath: contractFile, text: ONE_CONTRACT_TEXT },
           {
             filePath: '/repo/packages/alpha/src/contracts/one/one-contract.test.ts',
-            text: ContentTextStub({
-              value: "import { oneContract } from './one-contract';\noneContract.parse('x');",
-            }),
+            text: "import { oneContract } from './one-contract';\noneContract.parse('x');",
           },
         ],
       });
@@ -139,16 +125,11 @@ describe('contractIndexFromSourcesTransformer', () => {
           { filePath: contractFile, text: ONE_CONTRACT_TEXT },
           {
             filePath: harnessFile,
-            text: ContentTextStub({
-              value:
-                "import { oneContract } from '@repo/alpha/contracts';\nexport const enqueue = (v: unknown) => oneContract.parse(v);",
-            }),
+            text: "import { oneContract } from '@repo/alpha/contracts';\nexport const enqueue = (v: unknown) => oneContract.parse(v);",
           },
           {
             filePath: '/repo/packages/alpha/contracts.ts',
-            text: ContentTextStub({
-              value: "export * from './src/contracts/one/one-contract';\n// contract barrel",
-            }),
+            text: "export * from './src/contracts/one/one-contract';\n// contract barrel",
           },
         ],
       });
@@ -169,9 +150,7 @@ describe('contractIndexFromSourcesTransformer', () => {
 
     it('VALID: {a test, a stub and a proxy inside test/harnesses parse the contract} => the contract stays unparsed', () => {
       const contractFile = '/repo/packages/alpha/src/contracts/one/one-contract.ts';
-      const parseText = ContentTextStub({
-        value: "import { oneContract } from '@repo/alpha/contracts';\noneContract.parse('x');",
-      });
+      const parseText = "import { oneContract } from '@repo/alpha/contracts';\noneContract.parse('x');";
 
       const result = contractIndexFromSourcesTransformer({
         rootDir,
@@ -180,9 +159,7 @@ describe('contractIndexFromSourcesTransformer', () => {
           { filePath: contractFile, text: ONE_CONTRACT_TEXT },
           {
             filePath: '/repo/packages/alpha/contracts.ts',
-            text: ContentTextStub({
-              value: "export * from './src/contracts/one/one-contract';\n// contract barrel",
-            }),
+            text: "export * from './src/contracts/one/one-contract';\n// contract barrel",
           },
           {
             filePath: '/repo/packages/beta/test/harnesses/mock/mock.harness.test.ts',
@@ -224,8 +201,7 @@ describe('contractIndexFromSourcesTransformer', () => {
         sources: [
           {
             filePath: handleFile,
-            text: ContentTextStub({
-              value: [
+            text: [
                 'export type MockHandle = {',
                 '  callsMatching: {',
                 '    (args: readonly []): RecordedCalls;',
@@ -238,7 +214,6 @@ describe('contractIndexFromSourcesTransformer', () => {
                 '}',
                 '',
               ].join('\n'),
-            }),
           },
         ],
       });
@@ -274,22 +249,17 @@ describe('contractIndexFromSourcesTransformer', () => {
           { filePath: innerFile, text: INNER_CONTRACT_TEXT },
           {
             filePath: outerFile,
-            text: ContentTextStub({
-              value: [
+            text: [
                 "import { z } from 'zod';",
                 "import { innerContract } from '../inner/inner-contract';",
                 'export const outerContract = z.object({ inner: innerContract });',
                 'export type Outer = z.infer<typeof outerContract>;',
                 '',
               ].join('\n'),
-            }),
           },
           {
             filePath: brokerFile,
-            text: ContentTextStub({
-              value:
-                "import { outerContract } from '../../contracts/outer/outer-contract';\nexport const useBroker = (v: unknown) => outerContract.parse(v);",
-            }),
+            text: "import { outerContract } from '../../contracts/outer/outer-contract';\nexport const useBroker = (v: unknown) => outerContract.parse(v);",
           },
         ],
       });
@@ -333,16 +303,11 @@ describe('contractIndexFromSourcesTransformer', () => {
           { filePath: layerFile, text: DETAIL_CONTRACT_TEXT },
           {
             filePath: '/repo/packages/alpha/contracts.ts',
-            text: ContentTextStub({
-              value: "export * from './src/contracts/one/one-contract';\n// contract barrel",
-            }),
+            text: "export * from './src/contracts/one/one-contract';\n// contract barrel",
           },
           {
             filePath: brokerFile,
-            text: ContentTextStub({
-              value:
-                "import { oneContract } from '@repo/alpha/contracts';\nexport const useBroker = (v: unknown) => oneContract.safeParse(v);",
-            }),
+            text: "import { oneContract } from '@repo/alpha/contracts';\nexport const useBroker = (v: unknown) => oneContract.safeParse(v);",
           },
         ],
       });

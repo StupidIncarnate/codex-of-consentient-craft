@@ -10,14 +10,12 @@
  * // Returns 'pressed "Enter" — nothing focused'
  */
 
-import { contentTextContract } from '@dungeonmaster/shared/contracts';
-import type { ContentText } from '@dungeonmaster/shared/contracts';
 
 import type { KeyReading } from '../../contracts/key-reading/key-reading-contract';
 
-export const keyReadingRenderTransformer = ({ reading }: { reading: KeyReading }): ContentText => {
+export const keyReadingRenderTransformer = ({ reading }: { reading: KeyReading }): string => {
   if (reading.focused === null) {
-    return contentTextContract.parse(`pressed "${reading.press}" — nothing focused`);
+    return `pressed "${reading.press}" — nothing focused`;
   }
 
   const { tag, testId, role, domId, text, ref } = reading.focused;
@@ -28,5 +26,5 @@ export const keyReadingRenderTransformer = ({ reading }: { reading: KeyReading }
   const refPart = ref === null ? '' : ` (ref ${String(ref)})`;
   const element = `${tag}${domIdPart}${testIdPart}${rolePart}${textPart}${refPart}`;
 
-  return contentTextContract.parse(`pressed "${reading.press}" — focused: ${element}`);
+  return `pressed "${reading.press}" — focused: ${element}`;
 };

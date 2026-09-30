@@ -1,12 +1,11 @@
 import { readSourceTextLayerBroker } from './read-source-text-layer-broker';
 import { readSourceTextLayerBrokerProxy } from './read-source-text-layer-broker.proxy';
-import { ContentTextStub } from '../../../contracts/content-text/content-text.stub';
 
 describe('readSourceTextLayerBroker', () => {
   it('VALID: {file exists} => returns the file contents', () => {
     const proxy = readSourceTextLayerBrokerProxy();
     const filePath = '/repo/file.ts';
-    proxy.setupReturns({ filePath, content: ContentTextStub({ value: 'export const foo = 1;' }) });
+    proxy.setupReturns({ filePath, content: 'export const foo = 1;' });
 
     const result = readSourceTextLayerBroker({ filePath });
 

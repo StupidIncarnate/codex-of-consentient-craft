@@ -16,8 +16,6 @@
  * // Returns 'g_1' as ContentText
  */
 
-import { contentTextContract } from '@dungeonmaster/shared/contracts';
-import type { ContentText } from '@dungeonmaster/shared/contracts';
 
 import { stepRefContract } from '../../contracts/step-ref/step-ref-contract';
 import { StepRefUnresolvedError } from '../../errors/step-ref-unresolved/step-ref-unresolved-error';
@@ -31,7 +29,7 @@ export const stepRefResolveTransformer = ({
 }: {
   ref: string;
   outputs: Record<PropertyKey, Record<PropertyKey, unknown>>;
-}): ContentText => {
+}): string => {
   const parsed = stepRefContract.safeParse(ref);
 
   if (!parsed.success) {
@@ -113,5 +111,5 @@ export const stepRefResolveTransformer = ({
   }
 
   const text = typeof value === 'string' ? value : JSON.stringify(value);
-  return contentTextContract.parse(text);
+  return text;
 };

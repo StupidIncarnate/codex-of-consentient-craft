@@ -12,12 +12,10 @@ import {
   folderConfigContract,
   type FolderConfig,
 } from '../../../contracts/folder-config/folder-config-contract';
-import type { ContentText } from '../../../contracts/content-text/content-text-contract';
-import { contentTextContract } from '../../../contracts/content-text/content-text-contract';
 import { folderDependencyTreeTransformer } from '../../../transformers/folder-dependency-tree/folder-dependency-tree-transformer';
 import { isKeyOfGuard } from '../../../guards/is-key-of/is-key-of-guard';
 
-export const architectureOverviewBroker = (): ContentText => {
+export const architectureOverviewBroker = (): string => {
   const { hierarchy } = folderDependencyTreeTransformer({
     folderConfigs: folderConfigStatics,
   });
@@ -398,5 +396,5 @@ Mocks go at I/O boundaries and nowhere else. An adapter mocks its own npm packag
 
 `;
 
-  return contentTextContract.parse(markdown);
+  return markdown;
 };

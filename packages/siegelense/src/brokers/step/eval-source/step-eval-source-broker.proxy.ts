@@ -3,7 +3,6 @@
 // value it resolves to.
 // USAGE: const proxy = stepEvalSourceBrokerProxy(); const { session } = proxy.sessionEvaluating({evaluated: '"ok"'});
 
-import { contentTextContract } from '@dungeonmaster/shared/contracts';
 
 import { BrowserSessionStub } from '../../../contracts/browser-session/browser-session.stub';
 import type { BrowserSession } from '../../../contracts/browser-session/browser-session-contract';
@@ -19,7 +18,7 @@ export const stepEvalSourceBrokerProxy = (): {
   }: {
     evaluated: string;
   }): { session: BrowserSession; getEvaluateSourceCalls: () => readonly unknown[] } => {
-    const evaluateSource = jest.fn().mockResolvedValue(contentTextContract.parse(evaluated));
+    const evaluateSource = jest.fn().mockResolvedValue(evaluated);
     return {
       session: BrowserSessionStub({ evaluateSource }),
       getEvaluateSourceCalls: (): readonly unknown[] => evaluateSource.mock.calls,

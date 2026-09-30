@@ -22,7 +22,7 @@
  * its output has to a UI.
  */
 
-import { contentTextContract, workItemContract } from '@dungeonmaster/shared/contracts';
+import { workItemContract } from '@dungeonmaster/shared/contracts';
 import {
   isPendingWorkItemStatusGuard,
   isTerminalWorkItemStatusGuard,
@@ -96,7 +96,7 @@ export const questRunStepBroker = async ({
                 declaredWord: result.outcome,
                 ...(detail.length === 0
                   ? {}
-                  : { declaredReason: contentTextContract.parse(detail) }),
+                  : { declaredReason: detail }),
                 ...(result.outcome === 'wall' && detail.length > 0
                   ? { errorMessage: detail }
                   : {}),

@@ -12,7 +12,6 @@
 
 import { z } from '#gateway/npm/zod';
 
-import { contentTextContract } from '@dungeonmaster/shared/contracts';
 
 import { domNodeContract } from '../dom-node/dom-node-contract';
 import { readingCountContract } from '../reading-count/reading-count-contract';
@@ -22,7 +21,7 @@ export const domReadingContract = z
     count: readingCountContract,
     showing: readingCountContract.optional(),
     capped: z.boolean().optional(),
-    note: contentTextContract.nullable().optional(),
+    note: z.string().brand<'DomReadingNote'>().nullable().optional(),
     nodes: z.array(domNodeContract).readonly().optional(),
   })
   .strict();

@@ -1,13 +1,12 @@
 import { routeMetadataContract } from './route-metadata-contract';
 import { RouteMetadataStub } from './route-metadata.stub';
-import { ContentTextStub } from '../content-text/content-text.stub';
 
 describe('routeMetadataContract', () => {
   describe('valid inputs', () => {
     it('VALID: {path Route} => parses with path string', () => {
       const result = RouteMetadataStub({
-        path: ContentTextStub({ value: '/:guildSlug/quest' }),
-        responderSymbol: ContentTextStub({ value: 'AppQuestChatResponder' }),
+        path: '/:guildSlug/quest',
+        responderSymbol: 'AppQuestChatResponder',
       });
 
       expect(result).toStrictEqual({
@@ -19,7 +18,7 @@ describe('routeMetadataContract', () => {
     it('VALID: {layout Route} => parses with null path', () => {
       const result = RouteMetadataStub({
         path: null,
-        responderSymbol: ContentTextStub({ value: 'AppLayoutResponder' }),
+        responderSymbol: 'AppLayoutResponder',
       });
 
       expect(result).toStrictEqual({

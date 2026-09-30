@@ -1,4 +1,3 @@
-import { ContentTextStub } from '@dungeonmaster/shared/contracts/content-text/content-text.stub';
 import { OperationItemStub } from '@dungeonmaster/shared/contracts/operation-item/operation-item.stub';
 import { QuestIdStub } from '@dungeonmaster/shared/contracts/quest-id/quest-id.stub';
 import { QuestStub } from '@dungeonmaster/shared/contracts/quest/quest.stub';
@@ -8,7 +7,7 @@ import { WorkItemStub } from '@dungeonmaster/shared/contracts/work-item/work-ite
 import { stepHandlerCommitBroker } from './step-handler-commit-broker';
 import { stepHandlerCommitBrokerProxy } from './step-handler-commit-broker.proxy';
 
-type ContentText = ReturnType<typeof ContentTextStub>;
+type ContentText = string;
 
 const WORK_ITEM_ID = QuestWorkItemIdStub({ value: 'f47ac10b-58cc-4372-a567-0e02b2c3d479' });
 const OPERATION_ID = '11111111-1111-4111-8111-111111111111';
@@ -177,7 +176,7 @@ describe('stepHandlerCommitBroker', () => {
         args: [],
         questId,
         workItemId: WORK_ITEM_ID,
-        onLine: (line) => seenLines.push(ContentTextStub({ value: line })),
+        onLine: (line) => seenLines.push(line),
       });
 
       expect(seenLines[0]).toBe('git add -A');

@@ -12,26 +12,22 @@
  * WHEN-NOT-TO-USE: When the import path does not contain an `adapters/` segment (returns empty)
  */
 
-import {
-  contentTextContract,
-  type ContentText,
-} from '../../contracts/content-text/content-text-contract';
 
 export const adapterFolderFromImportPathTransformer = ({
   importPath,
 }: {
-  importPath: ContentText;
-}): ContentText => {
+  importPath: string;
+}): string => {
   const ipStr = String(importPath);
   const adpIdx = ipStr.indexOf('adapters/');
   if (adpIdx === -1) {
-    return contentTextContract.parse('');
+    return '';
   }
   const afterPrefix = ipStr.slice(adpIdx + 'adapters/'.length);
   const segments = afterPrefix.split('/');
   if (segments.length > 1) {
     const folderSegments = segments.slice(0, -1);
-    return contentTextContract.parse(`adapters/${folderSegments.join('/')}`);
+    return `adapters/${folderSegments.join('/')}`;
   }
-  return contentTextContract.parse(`adapters/${afterPrefix}`);
+  return `adapters/${afterPrefix}`;
 };

@@ -10,19 +10,15 @@
  * const isPresent = rootCheck.toResult({ raw });
  */
 
-import { contentTextContract } from '@dungeonmaster/shared/contracts';
-import type { ContentText } from '@dungeonmaster/shared/contracts';
 
 import { healthStatics } from '../../statics/health/health-statics';
 
 export const rootCheckTransformer = (): {
-  checkSource: () => ContentText;
+  checkSource: () => string;
   toResult: (params: { raw: unknown }) => boolean;
 } => ({
-  checkSource: (): ContentText =>
-    contentTextContract.parse(
-      `Boolean(document.querySelector(${JSON.stringify(healthStatics.selectors.root)}))`,
-    ),
+  checkSource: (): string =>
+    `Boolean(document.querySelector(${JSON.stringify(healthStatics.selectors.root)}))`,
 
   toResult: ({ raw }: { raw: unknown }): boolean => Boolean(raw),
 });

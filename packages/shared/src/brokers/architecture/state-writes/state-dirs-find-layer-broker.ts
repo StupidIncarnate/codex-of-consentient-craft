@@ -11,21 +11,17 @@
  * state/ folder convention
  */
 
-import {
-  contentTextContract,
-  type ContentText,
-} from '../../../contracts/content-text/content-text-contract';
 import { safeReaddirLayerBroker } from './safe-readdir-layer-broker';
 
 export const stateDirsFindLayerBroker = ({
   packageRoot,
 }: {
   packageRoot: string;
-}): ContentText[] => {
+}): string[] => {
   const stateDirPath = `${String(packageRoot)}/src/state`;
   const entries = safeReaddirLayerBroker({ dirPath: stateDirPath });
 
   return entries
     .filter((entry) => entry.kind === 'directory')
-    .map((entry) => contentTextContract.parse(entry.name));
+    .map((entry) => entry.name);
 };

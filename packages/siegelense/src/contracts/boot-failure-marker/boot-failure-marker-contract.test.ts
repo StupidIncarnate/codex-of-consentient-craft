@@ -1,4 +1,3 @@
-import { ContentTextStub } from '@dungeonmaster/shared/contracts/content-text/content-text.stub';
 
 import { EpochMsStub } from '../epoch-ms/epoch-ms.stub';
 import { bootFailureMarkerContract } from './boot-failure-marker-contract';
@@ -10,7 +9,7 @@ describe('bootFailureMarkerContract', () => {
   describe('valid markers', () => {
     it('VALID: {message, atMs} => parses successfully', () => {
       const marker: BootFailureMarker = BootFailureMarkerStub({
-        message: ContentTextStub({ value: 'Refusing to boot against the real CLI' }),
+        message: 'Refusing to boot against the real CLI',
         atMs: EpochMsStub({ value: 1_700_000_000_000 }),
       });
 

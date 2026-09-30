@@ -2,7 +2,6 @@ import { listTsFilesLayerBrokerProxy } from './list-ts-files-layer-broker.proxy'
 import { readFileLayerBrokerProxy } from './read-file-layer-broker.proxy';
 import { resolvePackageGroupsLayerBrokerProxy } from './resolve-package-groups-layer-broker.proxy';
 import { resolveStaticsFirstMatchLayerBrokerProxy } from './resolve-statics-first-match-layer-broker.proxy';
-import type { ContentText } from '../../../contracts/content-text/content-text-contract';
 
 export const httpEdgesLayerBrokerProxy = (): {
   setup: ({
@@ -13,10 +12,10 @@ export const httpEdgesLayerBrokerProxy = (): {
     httpBackendPackageNames,
     frontendPackageNames,
   }: {
-    serverStaticsSource: ContentText;
-    webStaticsSource: ContentText;
-    flowFiles: { path: string; source: ContentText }[];
-    brokerFiles: { path: string; source: ContentText }[];
+    serverStaticsSource: string;
+    webStaticsSource: string;
+    flowFiles: { path: string; source: string }[];
+    brokerFiles: { path: string; source: string }[];
     httpBackendPackageNames?: string[];
     frontendPackageNames?: string[];
   }) => void;
@@ -35,10 +34,10 @@ export const httpEdgesLayerBrokerProxy = (): {
       httpBackendPackageNames = ['server'],
       frontendPackageNames = ['web'],
     }: {
-      serverStaticsSource: ContentText;
-      webStaticsSource: ContentText;
-      flowFiles: { path: string; source: ContentText }[];
-      brokerFiles: { path: string; source: ContentText }[];
+      serverStaticsSource: string;
+      webStaticsSource: string;
+      flowFiles: { path: string; source: string }[];
+      brokerFiles: { path: string; source: string }[];
       httpBackendPackageNames?: string[];
       frontendPackageNames?: string[];
     }): void => {

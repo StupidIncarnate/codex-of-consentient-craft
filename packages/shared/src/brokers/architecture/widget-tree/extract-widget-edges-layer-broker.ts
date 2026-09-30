@@ -14,10 +14,6 @@
  */
 
 import {
-  contentTextContract,
-  type ContentText,
-} from '../../../contracts/content-text/content-text-contract';
-import {
   widgetEdgesContract,
   type WidgetEdges,
 } from '../../../contracts/widget-edges/widget-edges-contract';
@@ -42,7 +38,7 @@ export const extractWidgetEdgesLayerBroker = ({
 
   const importPaths = importStatementsExtractTransformer({ source: content });
   const childWidgetPaths: string[] = [];
-  const bindingNames: ContentText[] = [];
+  const bindingNames: string[] = [];
   const bindingsFolder = `${String(packageSrcPath)}/${widgetTreeStatics.bindingsFolderName}/`;
 
   for (const importPath of importPaths) {
@@ -67,7 +63,7 @@ export const extractWidgetEdgesLayerBroker = ({
       const parts = String(importPath).split('/');
       const lastName = parts[parts.length - 1];
       if (lastName !== undefined) {
-        bindingNames.push(contentTextContract.parse(lastName));
+        bindingNames.push(lastName);
       }
     }
   }

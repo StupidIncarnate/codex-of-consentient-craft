@@ -23,7 +23,6 @@
  * // { outcome: 'done' | 'empty' | 'unmet' | 'wall', detail, resultRef? }
  */
 
-import { contentTextContract } from '@dungeonmaster/shared/contracts';
 
 import { stepHandlerResultContract } from '../../../contracts/step-handler-result/step-handler-result-contract';
 import type { StepHandlerResult } from '../../../contracts/step-handler-result/step-handler-result-contract';
@@ -66,7 +65,7 @@ export const stepHandlerRunBroker = async ({
   } catch (error: unknown) {
     return stepHandlerResultContract.parse({
       outcome: 'wall',
-      detail: contentTextContract.parse(error instanceof Error ? error.message : String(error)),
+      detail: (error instanceof Error ? error.message : String(error)),
     });
   }
 };

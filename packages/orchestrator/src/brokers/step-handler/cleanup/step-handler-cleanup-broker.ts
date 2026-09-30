@@ -28,7 +28,6 @@
  * // { outcome: 'done' | 'empty' | 'wall', detail }
  */
 
-import { contentTextContract } from '@dungeonmaster/shared/contracts';
 import { streamLines, RunNotFoundError } from '#gateway/node/child_process';
 import { getEnv } from '#gateway/node/process';
 
@@ -71,7 +70,7 @@ export const stepHandlerCleanupBroker = async ({
   if (exitCode !== CLI_SUCCESS_EXIT_CODE) {
     return stepHandlerResultContract.parse({
       outcome: 'wall',
-      detail: contentTextContract.parse(output),
+      detail: output,
     });
   }
 
@@ -79,6 +78,6 @@ export const stepHandlerCleanupBroker = async ({
 
   return stepHandlerResultContract.parse({
     outcome: cleanupOutcomeClassifyTransformer({ answer }),
-    detail: contentTextContract.parse(output),
+    detail: output,
   });
 };

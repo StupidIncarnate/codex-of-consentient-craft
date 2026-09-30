@@ -20,7 +20,6 @@
  */
 
 import { z } from '#gateway/npm/zod';
-import type { ContentText } from '@dungeonmaster/shared/contracts';
 
 export const enumFlagParseTransformer = <T>({
   flag,
@@ -29,9 +28,9 @@ export const enumFlagParseTransformer = <T>({
   parse,
 }: {
   flag: string;
-  raw: ContentText;
+  raw: string;
   options: readonly string[];
-  parse: (value: ContentText) => T;
+  parse: (value: string) => T;
 }): T => {
   try {
     return parse(raw);

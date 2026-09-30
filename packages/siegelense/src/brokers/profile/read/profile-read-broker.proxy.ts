@@ -10,8 +10,6 @@
  * proxy.stageSampleRecord({ profilesPath, fileName: 'inst_a.json', json });
  */
 
-import { ContentTextStub } from '@dungeonmaster/shared/contracts/content-text/content-text.stub';
-import type { ContentText } from '@dungeonmaster/shared/contracts';
 import { InstanceIdStub } from '../../../contracts/instance-id/instance-id.stub';
 import { ProfileObservationStub } from '../../../contracts/profile-observation/profile-observation.stub';
 import { SpecHashStub } from '../../../contracts/spec-hash/spec-hash.stub';
@@ -57,7 +55,7 @@ export const profileReadBrokerProxy = (): {
   stageSampleRecord: (params: { profilesPath: string; fileName: string; json: string }) => void;
   stageBootRecord: (params: { profilesPath: string; fileName: string; json: string }) => void;
   stageLaneSpec: (params: { processes: readonly DevServerE2eProcess[] }) => void;
-  getStderrMessages: () => readonly ContentText[];
+  getStderrMessages: () => readonly string[];
 } => {
   // laneSpecFindBrokerProxy() stages a sticky default (a single headless api process) at
   // construction, so the directory the tree hangs off is a genuine content hash of a real spec.
@@ -200,7 +198,7 @@ export const profileReadBrokerProxy = (): {
       laneSpecProxy.setupConfiguredProcesses({ processes });
     },
 
-    getStderrMessages: (): readonly ContentText[] =>
-      stderr.getWrites().map((chunk) => ContentTextStub({ value: String(chunk) })),
+    getStderrMessages: (): readonly string[] =>
+      stderr.getWrites().map((chunk) => String(chunk)),
   };
 };

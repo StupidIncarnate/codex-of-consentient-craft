@@ -1,6 +1,5 @@
 import { architecturePackageInventoryBroker } from './architecture-package-inventory-broker';
 import { architecturePackageInventoryBrokerProxy } from './architecture-package-inventory-broker.proxy';
-import { ContentTextStub } from '../../../contracts/content-text/content-text.stub';
 
 describe('architecturePackageInventoryBroker', () => {
   describe('header line and description', () => {
@@ -9,7 +8,7 @@ describe('architecturePackageInventoryBroker', () => {
 
       proxy.setupPackage({
         packageName: 'web',
-        description: ContentTextStub({ value: 'Web UI' }),
+        description: 'Web UI',
         folders: [
           {
             name: 'contracts',
@@ -22,17 +21,15 @@ describe('architecturePackageInventoryBroker', () => {
       });
 
       const result = architecturePackageInventoryBroker({
-        packageName: ContentTextStub({ value: 'web' }),
+        packageName: 'web',
         srcPath: '/repo/packages/web/src',
         packageJsonPath: '/repo/packages/web/package.json',
       });
 
       expect(result).toStrictEqual(
-        ContentTextStub({
-          value: ['## web (6 files) — Web UI', '  contracts/ (6) — chat-entry/, quest-id/'].join(
+        ['## web (6 files) — Web UI', '  contracts/ (6) — chat-entry/, quest-id/'].join(
             '\n',
           ),
-        }),
       );
     });
 
@@ -50,15 +47,13 @@ describe('architecturePackageInventoryBroker', () => {
       });
 
       const result = architecturePackageInventoryBroker({
-        packageName: ContentTextStub({ value: 'tools' }),
+        packageName: 'tools',
         srcPath: '/repo/packages/tools/src',
         packageJsonPath: '/repo/packages/tools/package.json',
       });
 
       expect(result).toStrictEqual(
-        ContentTextStub({
-          value: ['## tools (3 files)', '  contracts/ (3) — config/'].join('\n'),
-        }),
+        ['## tools (3 files)', '  contracts/ (3) — config/'].join('\n'),
       );
     });
   });
@@ -71,13 +66,13 @@ describe('architecturePackageInventoryBroker', () => {
       proxy.setupEmpty({ srcPath, packageJsonPath });
 
       const result = architecturePackageInventoryBroker({
-        packageName: ContentTextStub({ value: 'web' }),
+        packageName: 'web',
         srcPath,
         packageJsonPath,
       });
 
       expect(result).toStrictEqual(
-        ContentTextStub({ value: ['## web (0 files)', '  (empty)'].join('\n') }),
+        ['## web (0 files)', '  (empty)'].join('\n'),
       );
     });
   });
@@ -101,18 +96,16 @@ describe('architecturePackageInventoryBroker', () => {
       });
 
       const result = architecturePackageInventoryBroker({
-        packageName: ContentTextStub({ value: 'app' }),
+        packageName: 'app',
         srcPath: '/repo/packages/app/src',
         packageJsonPath: '/repo/packages/app/package.json',
       });
 
       expect(result).toStrictEqual(
-        ContentTextStub({
-          value: [
+        [
             '## app (9 files)',
             '  contracts/ (9) — chat-entry/, quest-id/, user-input/',
           ].join('\n'),
-        }),
       );
     });
 
@@ -143,18 +136,16 @@ describe('architecturePackageInventoryBroker', () => {
       });
 
       const result = architecturePackageInventoryBroker({
-        packageName: ContentTextStub({ value: 'app' }),
+        packageName: 'app',
         srcPath: '/repo/packages/app/src',
         packageJsonPath: '/repo/packages/app/package.json',
       });
 
       expect(result).toStrictEqual(
-        ContentTextStub({
-          value: [
+        [
             '## app (12 files)',
             '  brokers/ (12) — guild/ (create/, list/), quest/ (modify/, start/)',
           ].join('\n'),
-        }),
       );
     });
 
@@ -175,15 +166,13 @@ describe('architecturePackageInventoryBroker', () => {
       });
 
       const result = architecturePackageInventoryBroker({
-        packageName: ContentTextStub({ value: 'app' }),
+        packageName: 'app',
         srcPath: '/repo/packages/app/src',
         packageJsonPath: '/repo/packages/app/package.json',
       });
 
       expect(result).toStrictEqual(
-        ContentTextStub({
-          value: ['## app (2 files)', '  startup/ (2) — start-app, start-server'].join('\n'),
-        }),
+        ['## app (2 files)', '  startup/ (2) — start-app, start-server'].join('\n'),
       );
     });
   });
@@ -213,19 +202,17 @@ describe('architecturePackageInventoryBroker', () => {
       });
 
       const result = architecturePackageInventoryBroker({
-        packageName: ContentTextStub({ value: 'cli' }),
+        packageName: 'cli',
         srcPath: '/repo/packages/cli/src',
         packageJsonPath: '/repo/packages/cli/package.json',
       });
 
       expect(result).toStrictEqual(
-        ContentTextStub({
-          value: [
+        [
             '## cli (6 files)',
             '  bin/ (0)',
             '  brokers/ (6) — guild/ (create/, list/)',
           ].join('\n'),
-        }),
       );
     });
 
@@ -247,15 +234,13 @@ describe('architecturePackageInventoryBroker', () => {
       });
 
       const result = architecturePackageInventoryBroker({
-        packageName: ContentTextStub({ value: 'empty-pkg' }),
+        packageName: 'empty-pkg',
         srcPath: '/repo/packages/empty-pkg/src',
         packageJsonPath: '/repo/packages/empty-pkg/package.json',
       });
 
       expect(result).toStrictEqual(
-        ContentTextStub({
-          value: ['## empty-pkg (0 files)', '  assets/ (0)', '  bin/ (0)'].join('\n'),
-        }),
+        ['## empty-pkg (0 files)', '  assets/ (0)', '  bin/ (0)'].join('\n'),
       );
     });
 
@@ -280,15 +265,13 @@ describe('architecturePackageInventoryBroker', () => {
       });
 
       const result = architecturePackageInventoryBroker({
-        packageName: ContentTextStub({ value: 'app' }),
+        packageName: 'app',
         srcPath: '/repo/packages/app/src',
         packageJsonPath: '/repo/packages/app/package.json',
       });
 
       expect(result).toStrictEqual(
-        ContentTextStub({
-          value: ['## app (6 files)', '  contracts/ (6) — chat-entry/, quest-id/'].join('\n'),
-        }),
+        ['## app (6 files)', '  contracts/ (6) — chat-entry/, quest-id/'].join('\n'),
       );
     });
   });
@@ -311,13 +294,13 @@ describe('architecturePackageInventoryBroker', () => {
       });
 
       const result = architecturePackageInventoryBroker({
-        packageName: ContentTextStub({ value: 'app' }),
+        packageName: 'app',
         srcPath: '/repo/packages/app/src',
         packageJsonPath: '/repo/packages/app/package.json',
       });
 
       expect(result).toStrictEqual(
-        ContentTextStub({ value: ['## app (2 files)', '  guards/ (2)'].join('\n') }),
+        ['## app (2 files)', '  guards/ (2)'].join('\n'),
       );
     });
   });
@@ -341,17 +324,15 @@ describe('architecturePackageInventoryBroker', () => {
       });
 
       const result = architecturePackageInventoryBroker({
-        packageName: ContentTextStub({ value: 'zeta' }),
+        packageName: 'zeta',
         srcPath: '/repo/packages/zeta/src',
         packageJsonPath: '/repo/packages/zeta/package.json',
       });
 
       expect(result).toStrictEqual(
-        ContentTextStub({
-          value: ['## zeta (6 files)', '  contracts/ (3) — user/', '  widgets/ (3) — app/'].join(
+        ['## zeta (6 files)', '  contracts/ (3) — user/', '  widgets/ (3) — app/'].join(
             '\n',
           ),
-        }),
       );
     });
   });

@@ -1,11 +1,10 @@
-import { ContentTextStub } from '@dungeonmaster/shared/contracts/content-text/content-text.stub';
 
 import { truncateNetworkBodyTransformer } from './truncate-network-body-transformer';
 
 describe('truncateNetworkBodyTransformer', () => {
   describe('short bodies', () => {
     it('VALID: {body: short string} => returns unchanged', () => {
-      const body = ContentTextStub({ value: '{"id":"abc"}' });
+      const body = '{"id":"abc"}';
 
       const result = truncateNetworkBodyTransformer({ body });
 
@@ -13,7 +12,7 @@ describe('truncateNetworkBodyTransformer', () => {
     });
 
     it('VALID: {body: empty string} => returns empty', () => {
-      const body = ContentTextStub({ value: '' });
+      const body = '';
 
       const result = truncateNetworkBodyTransformer({ body });
 
@@ -21,7 +20,7 @@ describe('truncateNetworkBodyTransformer', () => {
     });
 
     it('VALID: {body: exactly maxBodyLength} => returns unchanged', () => {
-      const body = ContentTextStub({ value: 'x'.repeat(1500) });
+      const body = 'x'.repeat(1500);
 
       const result = truncateNetworkBodyTransformer({ body });
 
@@ -31,7 +30,7 @@ describe('truncateNetworkBodyTransformer', () => {
 
   describe('long bodies', () => {
     it('VALID: {body: exceeds maxBodyLength} => returns truncated with ellipsis', () => {
-      const body = ContentTextStub({ value: 'x'.repeat(1501) });
+      const body = 'x'.repeat(1501);
 
       const result = truncateNetworkBodyTransformer({ body });
 
@@ -39,7 +38,7 @@ describe('truncateNetworkBodyTransformer', () => {
     });
 
     it('VALID: {body: much longer than max} => truncates to maxBodyLength plus ellipsis', () => {
-      const body = ContentTextStub({ value: 'y'.repeat(3000) });
+      const body = 'y'.repeat(3000);
 
       const result = truncateNetworkBodyTransformer({ body });
 

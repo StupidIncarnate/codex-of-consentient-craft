@@ -10,8 +10,6 @@
  * proxy.setupProfileReadFails({ error });
  */
 
-import { ContentTextStub } from '@dungeonmaster/shared/contracts/content-text/content-text.stub';
-import type { ContentText } from '@dungeonmaster/shared/contracts';
 import { registerMock } from '@dungeonmaster/testing/register-mock';
 
 import { stderrProxy } from '#gateway/node/process/stderr/stderr.proxy';
@@ -26,7 +24,7 @@ type SpecName = ReturnType<typeof SpecNameStub>;
 export const profileSoloReadLayerBrokerProxy = (): {
   setupProfile: (params: { profile: SpecProfile }) => void;
   setupProfileReadFails: (params: { error: Error; specName: SpecName }) => void;
-  getStderrMessages: () => readonly ContentText[];
+  getStderrMessages: () => readonly string[];
 } => {
   // Constructed for enforce-proxy-child-creation only — the broker below is staged directly.
   profileReadBrokerProxy();
@@ -42,7 +40,7 @@ export const profileSoloReadLayerBrokerProxy = (): {
       profileHandle.calledWith([{ specName }]).rejects(error);
     },
 
-    getStderrMessages: (): readonly ContentText[] =>
-      stderr.getWrites().map((chunk) => ContentTextStub({ value: String(chunk) })),
+    getStderrMessages: (): readonly string[] =>
+      stderr.getWrites().map((chunk) => String(chunk)),
   };
 };

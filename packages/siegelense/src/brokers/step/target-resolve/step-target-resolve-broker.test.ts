@@ -1,4 +1,3 @@
-import { ContentTextStub } from '@dungeonmaster/shared/contracts/content-text/content-text.stub';
 
 import type { StepAmbiguousError } from '../../../errors/step-ambiguous/step-ambiguous-error';
 import { stepTargetResolveBroker } from './step-target-resolve-broker';
@@ -129,9 +128,9 @@ describe('stepTargetResolveBroker', () => {
     it('EMPTY: {zero matches} => throws StepNoMatchError naming the nearest testIds', async () => {
       const proxy = stepTargetResolveBrokerProxy();
       const nearest = [
-        ContentTextStub({ value: 'GUILD_LIST' }),
-        ContentTextStub({ value: 'GUILD_ITEM_f52cd' }),
-        ContentTextStub({ value: 'PIXEL_BTN' }),
+        'GUILD_LIST',
+        'GUILD_ITEM_f52cd',
+        'PIXEL_BTN',
       ];
       const session = proxy.sessionWithNearest({ nearest });
 

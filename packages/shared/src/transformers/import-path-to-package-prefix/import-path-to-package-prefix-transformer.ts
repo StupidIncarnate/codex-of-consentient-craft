@@ -10,8 +10,6 @@
  * // Returns ContentText 'shared/brokers/portResolveBroker'
  */
 
-import { contentTextContract } from '../../contracts/content-text/content-text-contract';
-import type { ContentText } from '../../contracts/content-text/content-text-contract';
 
 const PACKAGE_PATH_PATTERN = /\/packages\/([^/]+)\/src\/([^/]+)\//u;
 const OUT_OF_BOUNDS_MESSAGE =
@@ -25,7 +23,7 @@ export const importPathToPackagePrefixTransformer = ({
   renderingFilePath: string;
   referencedFilePath: string;
   symbolName: string;
-}): ContentText => {
+}): string => {
   const renderingMatch = PACKAGE_PATH_PATTERN.exec(renderingFilePath);
   if (renderingMatch === null) {
     throw new Error(`${OUT_OF_BOUNDS_MESSAGE} — got "${renderingFilePath}"`);
@@ -48,8 +46,8 @@ export const importPathToPackagePrefixTransformer = ({
   }
 
   if (renderingPackage === referencedPackage) {
-    return contentTextContract.parse(symbolName);
+    return symbolName;
   }
 
-  return contentTextContract.parse(`${referencedPackage}/${referencedFolder}/${symbolName}`);
+  return `${referencedPackage}/${referencedFolder}/${symbolName}`;
 };

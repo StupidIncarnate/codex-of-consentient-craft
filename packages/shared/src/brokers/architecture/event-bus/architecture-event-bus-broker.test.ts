@@ -1,6 +1,5 @@
 import { architectureEventBusBroker } from './architecture-event-bus-broker';
 import { architectureEventBusBrokerProxy } from './architecture-event-bus-broker.proxy';
-import { ContentTextStub } from '../../../contracts/content-text/content-text.stub';
 
 const PROJECT_ROOT = '/repo';
 const STATE_FILE = '/repo/packages/foo/src/state/my-bus/my-bus-state.ts';
@@ -31,29 +30,19 @@ describe('architectureEventBusBroker', () => {
         sourceFiles: [
           {
             path: STATE_FILE,
-            source: ContentTextStub({
-              value:
-                'export const myBus = { emit: ({ type }) => {}, on: ({ type, handler }) => {} };',
-            }),
+            source: 'export const myBus = { emit: ({ type }) => {}, on: ({ type, handler }) => {} };',
           },
           {
             path: EMITTER_FILE,
-            source: ContentTextStub({
-              value: "myBus.emit({ type: 'chat-output', payload });",
-            }),
+            source: "myBus.emit({ type: 'chat-output', payload });",
           },
           {
             path: SUBSCRIBER_ADAPTER,
-            source: ContentTextStub({
-              value: 'myBus.on({ type, handler });',
-            }),
+            source: 'myBus.on({ type, handler });',
           },
           {
             path: GATEWAY_RESPONDER,
-            source: ContentTextStub({
-              value:
-                "import { fooEventsOnAdapter } from '../../../adapters/foo/events-on/foo-events-on-adapter';",
-            }),
+            source: "import { fooEventsOnAdapter } from '../../../adapters/foo/events-on/foo-events-on-adapter';",
           },
         ],
       });
@@ -64,20 +53,20 @@ describe('architectureEventBusBroker', () => {
         buses: [
           {
             stateFile: STATE_FILE,
-            exportName: ContentTextStub({ value: 'myBus' }),
+            exportName: 'myBus',
           },
         ],
         emitterSites: [
           {
             emitterFile: EMITTER_FILE,
-            eventType: ContentTextStub({ value: 'chat-output' }),
-            busExportName: ContentTextStub({ value: 'myBus' }),
+            eventType: 'chat-output',
+            busExportName: 'myBus',
           },
         ],
         subscriberFiles: [
           {
             subscriberFile: GATEWAY_RESPONDER,
-            busExportName: ContentTextStub({ value: 'myBus' }),
+            busExportName: 'myBus',
           },
         ],
       });

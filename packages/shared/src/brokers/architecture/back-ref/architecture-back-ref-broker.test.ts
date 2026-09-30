@@ -1,6 +1,5 @@
 import { architectureBackRefBroker } from './architecture-back-ref-broker';
 import { architectureBackRefBrokerProxy } from './architecture-back-ref-broker.proxy';
-import { ContentTextStub } from '../../../contracts/content-text/content-text.stub';
 
 describe('architectureBackRefBroker', () => {
   describe('responder file with PascalCase export', () => {
@@ -9,9 +8,7 @@ describe('architectureBackRefBroker', () => {
       const filePath = '/repo/packages/orchestrator/src/responders/chat/replay/chat-replay-responder.ts';
       proxy.setupSource({
         filePath,
-        content: ContentTextStub({
-          value: 'export const ChatReplayResponder = (input: Input) => {};',
-        }),
+        content: 'export const ChatReplayResponder = (input: Input) => {};',
       });
 
       const result = architectureBackRefBroker({
@@ -29,9 +26,7 @@ describe('architectureBackRefBroker', () => {
       const filePath = '/repo/packages/web/src/bindings/use-quest-queue/use-quest-queue-binding.ts';
       proxy.setupSource({
         filePath,
-        content: ContentTextStub({
-          value: 'export const useQuestQueueBinding = () => {};',
-        }),
+        content: 'export const useQuestQueueBinding = () => {};',
       });
 
       const result = architectureBackRefBroker({
@@ -79,9 +74,7 @@ describe('architectureBackRefBroker', () => {
       const filePath = '/repo/packages/web/src/bindings/use-x/use-x-binding.ts';
       proxy.setupSource({
         filePath,
-        content: ContentTextStub({
-          value: 'import x from "y";\nconst foo = 1;',
-        }),
+        content: 'import x from "y";\nconst foo = 1;',
       });
 
       const result = architectureBackRefBroker({

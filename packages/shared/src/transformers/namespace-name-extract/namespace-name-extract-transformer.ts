@@ -14,10 +14,6 @@
  * (use namespaceCallFirstExtractTransformer)
  */
 
-import {
-  contentTextContract,
-  type ContentText,
-} from '../../contracts/content-text/content-text-contract';
 
 // Matches the first UppercaseNamespace segment before a dot-method call
 const NAMESPACE_PATTERN = /\b([A-Z][A-Za-z0-9]*)\.(?:[a-z][A-Za-z0-9]*)\s*\(/u;
@@ -25,8 +21,8 @@ const NAMESPACE_PATTERN = /\b([A-Z][A-Za-z0-9]*)\.(?:[a-z][A-Za-z0-9]*)\s*\(/u;
 export const namespaceNameExtractTransformer = ({
   source,
 }: {
-  source: ContentText;
-}): ContentText | null => {
+  source: string;
+}): string | null => {
   const match = NAMESPACE_PATTERN.exec(String(source));
   if (match === null) {
     return null;
@@ -35,5 +31,5 @@ export const namespaceNameExtractTransformer = ({
   if (ns === undefined || ns === '') {
     return null;
   }
-  return contentTextContract.parse(ns);
+  return ns;
 };

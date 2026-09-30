@@ -21,7 +21,6 @@
  */
 
 import { absoluteFilePathContract } from '@dungeonmaster/shared/contracts';
-import type { ContentText } from '@dungeonmaster/shared/contracts';
 
 import type { BrowserSession } from '../../../contracts/browser-session/browser-session-contract';
 import type { VideoAction } from '../../../contracts/video-action/video-action-contract';
@@ -35,7 +34,7 @@ export const stepVideoBroker = async ({
 }: {
   session: BrowserSession;
   action: VideoAction;
-}): Promise<ContentText> => {
+}): Promise<string> => {
   const result = await session.videoAction({ action });
 
   if (result.status !== 'stopped' || result.path === null) {

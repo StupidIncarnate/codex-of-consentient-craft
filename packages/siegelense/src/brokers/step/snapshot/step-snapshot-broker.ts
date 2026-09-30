@@ -11,7 +11,6 @@
  * // Captures snapshot "clean" and returns 'snapshot "clean" recorded' as ContentText
  */
 
-import type { ContentText } from '@dungeonmaster/shared/contracts';
 
 import type { LaneSession } from '../../../contracts/lane-session/lane-session-contract';
 import type { SnapshotName } from '../../../contracts/snapshot-name/snapshot-name-contract';
@@ -24,7 +23,7 @@ export const stepSnapshotBroker = async ({
 }: {
   lane: LaneSession;
   as: SnapshotName;
-}): Promise<ContentText> => {
+}): Promise<string> => {
   await snapshotCaptureBroker({
     homePath: lane.homePath,
     name: as,

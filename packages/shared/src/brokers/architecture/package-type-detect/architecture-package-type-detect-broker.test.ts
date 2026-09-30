@@ -1,4 +1,3 @@
-import { ContentTextStub } from '../../../contracts/content-text/content-text.stub';
 import { architecturePackageTypeDetectBrokerProxy } from './architecture-package-type-detect-broker.proxy';
 import { architecturePackageTypeDetectBroker } from './architecture-package-type-detect-broker';
 
@@ -61,9 +60,7 @@ describe('architecturePackageTypeDetectBroker', () => {
         packageRoot: PACKAGE_ROOT,
         srcDirNames: ['flows'],
         flowFilePath: `${PACKAGE_ROOT}/src/flows/arch-flow.ts`,
-        flowFileContent: ContentTextStub({
-          value: "import type { ToolRegistration } from '@modelcontextprotocol/sdk';",
-        }),
+        flowFileContent: "import type { ToolRegistration } from '@modelcontextprotocol/sdk';",
       });
 
       const result = await architecturePackageTypeDetectBroker({
@@ -84,10 +81,7 @@ describe('architecturePackageTypeDetectBroker', () => {
           dependencies: { '@modelcontextprotocol/sdk': '^1.0.0' },
         }),
         flowFilePath: `${PACKAGE_ROOT}/src/flows/tools/tools-flow.ts`,
-        flowFileContent: ContentTextStub({
-          value:
-            "import { toolStatics } from '../../statics/tool/tool-statics';\n\nexport const ToolsFlow = (): typeof toolStatics.tools => toolStatics.tools;\n",
-        }),
+        flowFileContent: "import { toolStatics } from '../../statics/tool/tool-statics';\n\nexport const ToolsFlow = (): typeof toolStatics.tools => toolStatics.tools;\n",
       });
 
       const result = await architecturePackageTypeDetectBroker({
@@ -123,10 +117,7 @@ describe('architecturePackageTypeDetectBroker', () => {
         srcDirNames: ['flows', 'responders', 'startup', 'state'],
         packageJsonContent: JSON.stringify({ exports: { './package.json': './package.json' } }),
         startupFileName: 'start-jobs.ts',
-        startupFileContent: ContentTextStub({
-          value:
-            "import { JobsFlow } from '../flows/jobs/jobs-flow';\n\nexport const StartJobs = {\n  run: async ({ input }: { input: string }): Promise<{ handled: boolean }> => {\n    const result = await JobsFlow({ input });\n    return result;\n  },\n};\n",
-        }),
+        startupFileContent: "import { JobsFlow } from '../flows/jobs/jobs-flow';\n\nexport const StartJobs = {\n  run: async ({ input }: { input: string }): Promise<{ handled: boolean }> => {\n    const result = await JobsFlow({ input });\n    return result;\n  },\n};\n",
       });
 
       const result = await architecturePackageTypeDetectBroker({
@@ -193,15 +184,9 @@ describe('architecturePackageTypeDetectBroker', () => {
           bin: { runner: './dist/bin/runner-entry.js' },
         }),
         startupFileName: 'start-runner.ts',
-        startupFileContent: ContentTextStub({
-          value:
-            'export const StartRunner = ({ command }: { command: string | undefined }): Promise<{ handled: boolean }> => Promise.resolve({ handled: command !== undefined });\n',
-        }),
+        startupFileContent: 'export const StartRunner = ({ command }: { command: string | undefined }): Promise<{ handled: boolean }> => Promise.resolve({ handled: command !== undefined });\n',
         binFileName: 'runner-entry.ts',
-        binFileContent: ContentTextStub({
-          value:
-            "import { argv, exit, stderr } from '#gateway/node/process';\nimport { StartRunner } from '../src/startup/start-runner';\n",
-        }),
+        binFileContent: "import { argv, exit, stderr } from '#gateway/node/process';\nimport { StartRunner } from '../src/startup/start-runner';\n",
       });
 
       const result = await architecturePackageTypeDetectBroker({
@@ -295,9 +280,7 @@ describe('architecturePackageTypeDetectBroker', () => {
         srcDirNames: ['startup'],
         packageJsonContent: JSON.stringify({ bin: { mycli: './dist/bin.js' } }),
         startupFileName: 'start-cli.ts',
-        startupFileContent: ContentTextStub({
-          value: 'const args = process.argv.slice(2);',
-        }),
+        startupFileContent: 'const args = process.argv.slice(2);',
       });
 
       const result = await architecturePackageTypeDetectBroker({
@@ -315,9 +298,7 @@ describe('architecturePackageTypeDetectBroker', () => {
         packageRoot: PACKAGE_ROOT,
         srcDirNames: ['flows', 'responders', 'state', 'startup'],
         startupFileName: 'start-orchestrator.ts',
-        startupFileContent: ContentTextStub({
-          value: 'export const StartOrchestrator = { runQuest: async ({ questId }) => {} };',
-        }),
+        startupFileContent: 'export const StartOrchestrator = { runQuest: async ({ questId }) => {} };',
       });
 
       const result = await architecturePackageTypeDetectBroker({
@@ -399,7 +380,7 @@ describe('architecturePackageTypeDetectBroker', () => {
         srcDirNames: ['brokers', 'startup'],
         packageJsonContent: JSON.stringify({ bin: { dungeonmaster: './dist/bin.js' } }),
         startupFileName: 'start-install.ts',
-        startupFileContent: ContentTextStub({ value: 'process.argv.slice(2)' }),
+        startupFileContent: 'process.argv.slice(2)',
       });
 
       const result = await architecturePackageTypeDetectBroker({
@@ -483,9 +464,7 @@ describe('architecturePackageTypeDetectBroker', () => {
         packageRoot: PACKAGE_ROOT,
         srcDirNames: ['brokers', 'flows', 'responders', 'state', 'startup'],
         startupFileName: 'start-orchestrator.ts',
-        startupFileContent: ContentTextStub({
-          value: 'export const StartOrchestrator = { runQuest: async ({ questId }) => {} };',
-        }),
+        startupFileContent: 'export const StartOrchestrator = { runQuest: async ({ questId }) => {} };',
       });
 
       const result = await architecturePackageTypeDetectBroker({
@@ -531,9 +510,7 @@ describe('architecturePackageTypeDetectBroker', () => {
         srcDirNames: ['startup', 'brokers'],
         packageJsonContent: JSON.stringify({ bin: { 'dm-tooling': './dist/bin.js' } }),
         startupFileName: 'start-primitive-duplicate-detection.ts',
-        startupFileContent: ContentTextStub({
-          value: 'const args = process.argv.slice(2);',
-        }),
+        startupFileContent: 'const args = process.argv.slice(2);',
       });
 
       const result = await architecturePackageTypeDetectBroker({
@@ -550,9 +527,7 @@ describe('architecturePackageTypeDetectBroker', () => {
         srcDirNames: ['startup', 'brokers'],
         packageJsonContent: JSON.stringify({ bin: { ward: './dist/bin.js' } }),
         startupFileName: 'start-ward.ts',
-        startupFileContent: ContentTextStub({
-          value: 'const argv = process.argv.slice(2);',
-        }),
+        startupFileContent: 'const argv = process.argv.slice(2);',
       });
 
       const result = await architecturePackageTypeDetectBroker({

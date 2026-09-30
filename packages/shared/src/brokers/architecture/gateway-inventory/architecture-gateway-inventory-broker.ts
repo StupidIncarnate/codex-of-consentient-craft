@@ -17,8 +17,6 @@
 
 import { existsSync, readFileSync, readdirEntriesSync } from '#gateway/node/fs';
 import type { DirEntrySync } from '#gateway/node/fs';
-import { contentTextContract } from '../../../contracts/content-text/content-text-contract';
-import type { ContentText } from '../../../contracts/content-text/content-text-contract';
 import { gatewayLocationsStatics } from '../../../statics/gateway-locations/gateway-locations-statics';
 import { projectMapStatics } from '../../../statics/project-map/project-map-statics';
 import { gatewaySubpathBarrelParseTransformer } from '../../../transformers/gateway-subpath-barrel-parse/gateway-subpath-barrel-parse-transformer';
@@ -36,7 +34,7 @@ export const architectureGatewayInventoryBroker = ({
   projectRoot,
 }: {
   projectRoot: string;
-}): ContentText => {
+}): string => {
   const gatewayLintConfig = gatewayLintConfigReadBroker({ repoRoot: projectRoot });
 
   const groupSections = Object.values(gatewayLocationsStatics.folders).map((folder) => {
@@ -55,7 +53,7 @@ export const architectureGatewayInventoryBroker = ({
       .sort((a, b) => a.localeCompare(b));
 
     if (subpathNames.length === 0) {
-      return contentTextContract.parse(`### ${folder}\n${EMPTY_GROUP_LABEL}`);
+      return `### ${folder}\n${EMPTY_GROUP_LABEL}`;
     }
 
     const subpathLines = subpathNames.flatMap((subpathName) => {
@@ -69,7 +67,7 @@ export const architectureGatewayInventoryBroker = ({
 
       // A barrel that exists but cannot be read renders the same as one that never existed.
       try {
-        const barrelContent = contentTextContract.parse(readFileSync(barrelPath));
+        const barrelContent = readFileSync(barrelPath);
         const { realModule, wrapperNames } = gatewaySubpathBarrelParseTransformer({
           barrelContent,
         });
@@ -84,7 +82,7 @@ export const architectureGatewayInventoryBroker = ({
         }
 
         const annotated = gatewayWrapperAnnotateTransformer({
-          subpath: contentTextContract.parse(fullSubpath),
+          subpath: fullSubpath,
           wrapperNames,
           gatewayLintConfig,
         });
@@ -95,8 +93,8 @@ export const architectureGatewayInventoryBroker = ({
       }
     });
 
-    return contentTextContract.parse([`### ${folder}`, ...subpathLines].join('\n'));
+    return [`### ${folder}`, ...subpathLines].join('\n');
   });
 
-  return contentTextContract.parse(groupSections.join('\n\n'));
+  return groupSections.join('\n\n');
 };

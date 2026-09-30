@@ -28,7 +28,7 @@
 
 import { z } from '#gateway/npm/zod';
 
-import { arrayIndexContract, contentTextContract } from '@dungeonmaster/shared/contracts';
+import { arrayIndexContract } from '@dungeonmaster/shared/contracts';
 
 import { refContract } from '../ref/ref-contract';
 import { selectorContract } from '../selector/selector-contract';
@@ -37,8 +37,8 @@ export const stepCandidateContract = z.object({
   index: arrayIndexContract,
   ref: refContract.nullable().default(null),
   within: selectorContract.nullable(),
-  text: contentTextContract,
-  rect: contentTextContract,
+  text: z.string().brand<'StepCandidateText'>(),
+  rect: z.string().brand<'StepCandidateRect'>(),
 });
 
 export type StepCandidate = z.infer<typeof stepCandidateContract>;

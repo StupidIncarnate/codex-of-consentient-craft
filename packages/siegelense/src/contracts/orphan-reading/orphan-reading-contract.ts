@@ -14,13 +14,12 @@
 
 import { z } from '#gateway/npm/zod';
 
-import { contentTextContract } from '@dungeonmaster/shared/contracts';
 
 import { processGroupIdContract } from '../process-group-id/process-group-id-contract';
 
 export const orphanReadingContract = z.object({
   pgid: processGroupIdContract,
-  cmd: contentTextContract.nullable(),
+  cmd: z.string().brand<'OrphanReadingCmd'>().nullable(),
   alive: z.boolean(),
 });
 

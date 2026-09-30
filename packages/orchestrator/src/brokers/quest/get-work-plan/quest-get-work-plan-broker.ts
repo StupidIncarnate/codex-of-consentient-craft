@@ -21,7 +21,7 @@
  */
 
 import { stepNameContract } from '@dungeonmaster/shared/contracts';
-import type { ContentText, Quest, OperationItem } from '@dungeonmaster/shared/contracts';
+import type { Quest, OperationItem } from '@dungeonmaster/shared/contracts';
 import { locationsStatics } from '@dungeonmaster/shared/statics';
 import { join } from '#gateway/node/path';
 
@@ -40,7 +40,7 @@ export const questGetWorkPlanBroker = async ({
 }: {
   questId: Quest['id'];
   operationItemId: OperationItem['id'];
-}): Promise<ContentText> => {
+}): Promise<string> => {
   const { questPath } = await questFindQuestPathBroker({ questId });
   const questFilePath = join(questPath, locationsStatics.quest.questFile);
   const quest: Quest = await questLoadBroker({ questFilePath });

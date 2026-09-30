@@ -9,21 +9,19 @@
  */
 
 import { readFileSync } from '#gateway/node/fs';
-import type { ContentText } from '../../../contracts/content-text/content-text-contract';
 import { packageJsonContract } from '../../../contracts/package-json/package-json-contract';
-import { contentTextContract } from '../../../contracts/content-text/content-text-contract';
 
 export const readPackageDescriptionLayerBroker = ({
   packageJsonPath,
 }: {
   packageJsonPath: string;
-}): ContentText => {
+}): string => {
   try {
     const raw = readFileSync(packageJsonPath);
     const packageJson = packageJsonContract.parse(JSON.parse(raw));
 
-    return packageJson.description ?? contentTextContract.parse('');
+    return packageJson.description ?? '';
   } catch {
-    return contentTextContract.parse('');
+    return '';
   }
 };

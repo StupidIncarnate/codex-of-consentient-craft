@@ -1,12 +1,11 @@
 import { hookStartupSrcPathResolveTransformer } from './hook-startup-src-path-resolve-transformer';
-import { ContentTextStub } from '../../contracts/content-text/content-text.stub';
 
 const PACKAGE_ROOT = '/repo/packages/hooks';
 
 describe('hookStartupSrcPathResolveTransformer', () => {
   describe('standard dist bin path', () => {
     it('VALID: {./dist/src/startup/start-pre-edit-hook.js} => strips src/ prefix and resolves to src .ts path', () => {
-      const binPath = ContentTextStub({ value: './dist/src/startup/start-pre-edit-hook.js' });
+      const binPath = './dist/src/startup/start-pre-edit-hook.js';
 
       const result = hookStartupSrcPathResolveTransformer({ binPath, packageRoot: PACKAGE_ROOT });
 
@@ -14,7 +13,7 @@ describe('hookStartupSrcPathResolveTransformer', () => {
     });
 
     it('VALID: {./dist/startup/start-pre-bash-hook.js} => resolves to src .ts path', () => {
-      const binPath = ContentTextStub({ value: './dist/startup/start-pre-bash-hook.js' });
+      const binPath = './dist/startup/start-pre-bash-hook.js';
 
       const result = hookStartupSrcPathResolveTransformer({ binPath, packageRoot: PACKAGE_ROOT });
 
@@ -24,7 +23,7 @@ describe('hookStartupSrcPathResolveTransformer', () => {
 
   describe('non-dist bin path', () => {
     it('EMPTY: {./bin/script.js} => returns undefined', () => {
-      const binPath = ContentTextStub({ value: './bin/script.js' });
+      const binPath = './bin/script.js';
 
       const result = hookStartupSrcPathResolveTransformer({ binPath, packageRoot: PACKAGE_ROOT });
 

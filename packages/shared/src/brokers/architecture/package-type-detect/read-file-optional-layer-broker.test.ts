@@ -1,4 +1,3 @@
-import { ContentTextStub } from '../../../contracts/content-text/content-text.stub';
 import { readFileOptionalLayerBrokerProxy } from './read-file-optional-layer-broker.proxy';
 import { readFileOptionalLayerBroker } from './read-file-optional-layer-broker';
 
@@ -6,7 +5,7 @@ describe('readFileOptionalLayerBroker', () => {
   it('VALID: {filePath: existing file} => returns content', () => {
     const proxy = readFileOptionalLayerBrokerProxy();
     const filePath = '/project/src/startup/start-foo.ts';
-    const content = ContentTextStub({ value: 'export const StartFoo = {};' });
+    const content = 'export const StartFoo = {};';
     proxy.setupReturns({ filePath, content });
 
     const result = readFileOptionalLayerBroker({ filePath });

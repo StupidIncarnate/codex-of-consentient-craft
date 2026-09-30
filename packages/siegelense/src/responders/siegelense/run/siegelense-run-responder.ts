@@ -24,7 +24,6 @@
 import { readFile } from '#gateway/node/fs__promises';
 import { resolve } from '#gateway/node/path';
 import { stdout } from '#gateway/node/process';
-import { contentTextContract } from '@dungeonmaster/shared/contracts';
 
 import { instanceRunBroker } from '../../../brokers/instance/run/instance-run-broker';
 import { registryReadBroker } from '../../../brokers/registry/read/registry-read-broker';
@@ -46,16 +45,14 @@ export const SiegelenseRunResponder = async ({
   const stepsFileContent =
     stepsFilePath === null
       ? null
-      : contentTextContract.parse(
-          await readFile(resolve(stepsFilePath)).catch((error: unknown) => {
+      : (await readFile(resolve(stepsFilePath)).catch((error: unknown) => {
             throw new Error(
               `${STEPS_FILE_FLAG}'s file could not be read: ${
                 error instanceof Error ? error.message : String(error)
               }`,
               { cause: error },
             );
-          }),
-        );
+          }));
 
   const { instanceId, steps, stopOn, isJson } = runArgsParseTransformer({
     args,

@@ -61,7 +61,7 @@
 
 import { ensureDir } from '#gateway/node/fs__promises';
 import { stderr } from '#gateway/node/process';
-import type { ContentText, SiegeInstance, SiegeRun } from '@dungeonmaster/shared/contracts';
+import type { SiegeInstance, SiegeRun } from '@dungeonmaster/shared/contracts';
 
 import { bufferEntryContract } from '../../../contracts/buffer-entry/buffer-entry-contract';
 import { epochMsContract } from '../../../contracts/epoch-ms/epoch-ms-contract';
@@ -336,11 +336,11 @@ export const runExecuteBroker = async ({
   const firstStop = stopCandidates.at(0) ?? null;
   const stoppedAt: StoppedAt | null = firstStop === null ? null : firstStop.stoppedAt;
 
-  const consoleLines: readonly ContentText[] =
+  const consoleLines: readonly string[] =
     lane.browser === null || browserWindowStart === null
       ? []
       : lane.browser.readConsoleSince({ fromIndex: browserWindowStart.consoleLines });
-  const networkLines: readonly ContentText[] =
+  const networkLines: readonly string[] =
     lane.browser === null || browserWindowStart === null
       ? []
       : lane.browser.readNetworkSince({ fromIndex: browserWindowStart.networkLines });

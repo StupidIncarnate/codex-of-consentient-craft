@@ -1,4 +1,3 @@
-import { ContentTextStub } from '@dungeonmaster/shared/contracts/content-text/content-text.stub';
 
 import { EpochMsStub } from '../../../contracts/epoch-ms/epoch-ms.stub';
 import { InstanceIdStub } from '../../../contracts/instance-id/instance-id.stub';
@@ -39,9 +38,8 @@ const networkText = ({
   url: string;
   status: number;
   responseBody?: string;
-}): ReturnType<typeof ContentTextStub> =>
-  ContentTextStub({
-    value: JSON.stringify({
+}): string =>
+  JSON.stringify({
       at: 1,
       method,
       url,
@@ -49,8 +47,7 @@ const networkText = ({
       status,
       requestBody: null,
       responseBody: responseBody ?? 'ok',
-    }),
-  });
+    });
 
 const bufferLine = ({
   runId,
@@ -59,9 +56,9 @@ const bufferLine = ({
 }: {
   runId: RunId | null;
   step: number | null;
-  text: ReturnType<typeof ContentTextStub>;
-}): ReturnType<typeof ContentTextStub> =>
-  ContentTextStub({ value: `${JSON.stringify({ runId, step, atMs: 1_700_000_000_000, text })}\n` });
+  text: string;
+}): string =>
+  `${JSON.stringify({ runId, step, atMs: 1_700_000_000_000, text })}\n`;
 
 describe('resultsReadBroker', () => {
   it('VALID: {no kind, no step, run named, empty transcript} => storedReturn carries the exact RunResult from disk, rows empty', async () => {
@@ -424,7 +421,7 @@ describe('resultsReadBroker', () => {
     proxy.setupRegistry({ registry: RegistryStub({ instances: [entry] }) });
     const evidencePath = proxy.evidencePathFor({ instanceId: INSTANCE_ID });
     proxy.setupRuns({ evidencePath, entries: ['run_2.jsonl', 'run_2.json'] });
-    const wsText = ContentTextStub({ value: '{"at":1,"direction":"send","payload":"ping"}' });
+    const wsText = '{"at":1,"direction":"send","payload":"ping"}';
     proxy.setupBuffer({
       evidencePath,
       kind: 'websocket',
@@ -447,15 +444,9 @@ describe('resultsReadBroker', () => {
       evidencePath,
       entries: ['run_1.jsonl', 'run_1.json', 'run_2.jsonl', 'run_2.json'],
     });
-    const run1Text = ContentTextStub({
-      value: '{"at":1,"kind":"console","type":"log","text":"a"}',
-    });
-    const betweenRunsText = ContentTextStub({
-      value: '{"at":2,"kind":"console","type":"log","text":"b"}',
-    });
-    const run2Text = ContentTextStub({
-      value: '{"at":3,"kind":"console","type":"log","text":"c"}',
-    });
+    const run1Text = '{"at":1,"kind":"console","type":"log","text":"a"}';
+    const betweenRunsText = '{"at":2,"kind":"console","type":"log","text":"b"}';
+    const run2Text = '{"at":3,"kind":"console","type":"log","text":"c"}';
     proxy.setupBuffer({
       evidencePath,
       kind: 'console',
@@ -561,7 +552,7 @@ describe('resultsReadBroker', () => {
       content: bufferLine({
         runId: RUN_2,
         step: null,
-        text: ContentTextStub({ value: '{"at":1,"kind":"console","type":"log","text":"a"}' }),
+        text: '{"at":1,"kind":"console","type":"log","text":"a"}',
       }),
     });
     proxy.setupBuffer({
@@ -579,7 +570,7 @@ describe('resultsReadBroker', () => {
       content: bufferLine({
         runId: RUN_2,
         step: null,
-        text: ContentTextStub({ value: '{"at":1,"direction":"send","payload":"ping"}' }),
+        text: '{"at":1,"direction":"send","payload":"ping"}',
       }),
     });
 

@@ -11,17 +11,13 @@
  * // 'web (edit, frontend-react), queue-runner (new, programmatic-service)'
  */
 
-import { contentTextContract } from '../../contracts/content-text/content-text-contract';
-import type { ContentText } from '../../contracts/content-text/content-text-contract';
 import type { QuestPackageEntry } from '../../contracts/quest-package-entry/quest-package-entry-contract';
 
 export const questPackageEntriesToTextTransformer = ({
   entries,
 }: {
   entries: readonly QuestPackageEntry[];
-}): ContentText =>
-  contentTextContract.parse(
-    entries
+}): string =>
+  entries
       .map((entry) => `${String(entry.name)} (${entry.changeType}, ${entry.packageType})`)
-      .join(', '),
-  );
+      .join(', ');

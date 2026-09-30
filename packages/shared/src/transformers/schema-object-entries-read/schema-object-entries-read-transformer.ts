@@ -10,8 +10,6 @@
  */
 import * as ts from '#gateway/npm/typescript';
 
-import { contentTextContract } from '../../contracts/content-text/content-text-contract';
-import type { ContentText } from '../../contracts/content-text/content-text-contract';
 import { identifierContract } from '../../contracts/identifier/identifier-contract';
 import { schemaObjectEntryContract } from '../../contracts/schema-object-entry/schema-object-entry-contract';
 import type { SchemaObjectEntry } from '../../contracts/schema-object-entry/schema-object-entry-contract';
@@ -20,7 +18,7 @@ import { ownerIndexStatics } from '../../statics/owner-index/owner-index-statics
 export const schemaObjectEntriesReadTransformer = ({
   text,
 }: {
-  text: ContentText;
+  text: string;
 }): SchemaObjectEntry[] => {
   const [statement] = ts.createSourceFile(
     'schema-entries.ts',
@@ -42,7 +40,7 @@ export const schemaObjectEntriesReadTransformer = ({
     ts.isPropertyAccessExpression(node)
   ) {
     return schemaObjectEntriesReadTransformer({
-      text: contentTextContract.parse(node.expression.getText()),
+      text: node.expression.getText(),
     });
   }
 
@@ -57,7 +55,7 @@ export const schemaObjectEntriesReadTransformer = ({
     ownerIndexStatics.objectRootNames.some((name) => name === callee.name.text);
   if (!isObjectRoot) {
     return schemaObjectEntriesReadTransformer({
-      text: contentTextContract.parse(callee.expression.getText()),
+      text: callee.expression.getText(),
     });
   }
 
@@ -83,7 +81,7 @@ export const schemaObjectEntriesReadTransformer = ({
       : [
           schemaObjectEntryContract.parse({
             key: identifierContract.parse(keyNode.text),
-            valueText: contentTextContract.parse(valueNode.getText()),
+            valueText: valueNode.getText(),
           }),
         ];
   });

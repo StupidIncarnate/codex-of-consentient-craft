@@ -1,4 +1,3 @@
-import { ContentTextStub } from '@dungeonmaster/shared/contracts/content-text/content-text.stub';
 
 import { ElementDeltaStub } from '../../../contracts/element-delta/element-delta.stub';
 import { KeyRowStub } from '../../../contracts/key-row/key-row.stub';
@@ -8,8 +7,8 @@ import { StepReadingStub } from '../../../contracts/step-reading/step-reading.st
 import { elementDeltaLastLayerBroker } from './element-delta-last-layer-broker';
 import { elementDeltaLastLayerBrokerProxy } from './element-delta-last-layer-broker.proxy';
 
-const rowFor = (reading: ReturnType<typeof StepReadingStub>): ReturnType<typeof ContentTextStub> =>
-  ContentTextStub({ value: JSON.stringify(reading) });
+const rowFor = (reading: ReturnType<typeof StepReadingStub>): string =>
+  JSON.stringify(reading);
 
 describe('elementDeltaLastLayerBroker', () => {
   describe('a single row carrying a delta', () => {

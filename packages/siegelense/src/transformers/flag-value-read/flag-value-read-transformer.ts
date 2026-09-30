@@ -13,8 +13,6 @@
  * // Returns null — the flag was never named
  */
 
-import { contentTextContract } from '@dungeonmaster/shared/contracts';
-import type { ContentText } from '@dungeonmaster/shared/contracts';
 
 export const flagValueReadTransformer = ({
   args,
@@ -22,7 +20,7 @@ export const flagValueReadTransformer = ({
 }: {
   args: readonly string[];
   flag: string;
-}): ContentText | null => {
+}): string | null => {
   const occurrenceCount = args.filter((arg) => arg === flag).length;
 
   if (occurrenceCount === 0) {
@@ -44,5 +42,5 @@ export const flagValueReadTransformer = ({
     );
   }
 
-  return contentTextContract.parse(value);
+  return value;
 };

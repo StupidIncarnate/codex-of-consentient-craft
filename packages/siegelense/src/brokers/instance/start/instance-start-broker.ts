@@ -78,7 +78,7 @@ import { now } from '#gateway/node/Date';
 import { join } from '#gateway/node/path';
 import { openForAppendSync } from '#gateway/node/fs';
 import { cwd, envSnapshot, execPath, stderr } from '#gateway/node/process';
-import { contentTextContract, type ContentText, type TimeoutMs } from '@dungeonmaster/shared/contracts';
+import { type TimeoutMs } from '@dungeonmaster/shared/contracts';
 import { environmentStatics, locationsStatics } from '@dungeonmaster/shared/statics';
 import { cwdResolveBroker } from '@dungeonmaster/shared/brokers';
 
@@ -226,7 +226,7 @@ export const instanceStartBroker = async ({
   // below narrows to its OWN initializer (`null`) at the point the outer catch block reads it,
   // which trips `no-unnecessary-condition` as an always-false comparison even though the closure
   // genuinely can and does set it. A property access carries no such narrowing.
-  const seedFailure: { reason: ContentText | null } = { reason: null };
+  const seedFailure: { reason: string | null } = { reason: null };
 
   try {
     const evidencePath = locationsInstanceEvidencePathFindBroker({
@@ -259,7 +259,7 @@ export const instanceStartBroker = async ({
     const inheritedEnv = Object.fromEntries(
       Object.entries(envSnapshot())
         .filter(([, value]) => value !== undefined)
-        .map(([key, value]): [PropertyKey, ContentText] => [key, contentTextContract.parse(value)]),
+        .map(([key, value]): [PropertyKey, string] => [key, value]),
     );
 
     spawnDetached({
@@ -429,18 +429,14 @@ export const instanceStartBroker = async ({
         ? null
         : await recipeSeedRunBroker({
             recipe: seed,
-            apiBaseUrl: contentTextContract.parse(
-              `http://${environmentStatics.hostname}:${String(bootedEntry.ports.api)}`,
-            ),
+            apiBaseUrl: `http://${environmentStatics.hostname}:${String(bootedEntry.ports.api)}`,
             homePath,
             parameters: {},
           }).catch((seedError: unknown) => {
             // Named here, not derived from `bootError` in the catch below — this is the ONE place
             // that knows the failure came from the seed step specifically, rather than from the
             // boot poll that ran before it ever started.
-            seedFailure.reason = contentTextContract.parse(
-              `--seed ${seed} failed: ${String(seedError)}`,
-            );
+            seedFailure.reason = `--seed ${seed} failed: ${String(seedError)}`;
             throw seedError;
           });
 
@@ -448,17 +444,13 @@ export const instanceStartBroker = async ({
       instanceId: reservedEntry.id,
       specName,
       baseUrl: hasWebSurface
-        ? contentTextContract.parse(
-            `http://${environmentStatics.hostname}:${String(bootedEntry.ports.web)}`,
-          )
+        ? `http://${environmentStatics.hostname}:${String(bootedEntry.ports.web)}`
         : null,
       // `apiUrl` is `.optional()`, not `.nullable()` (unlike `baseUrl`) — omitted entirely rather
       // than set to `null` when the spec has no api surface, matching exactOptionalPropertyTypes.
       ...(hasApiSurface
         ? {
-            apiUrl: contentTextContract.parse(
-              `http://${environmentStatics.hostname}:${String(bootedEntry.ports.api)}`,
-            ),
+            apiUrl: `http://${environmentStatics.hostname}:${String(bootedEntry.ports.api)}`,
           }
         : {}),
       home: homePath,

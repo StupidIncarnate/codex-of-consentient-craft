@@ -11,8 +11,6 @@
  * // Returns '2025-09-14' as branded ContentText
  */
 
-import { contentTextContract } from '@dungeonmaster/shared/contracts';
-import type { ContentText } from '@dungeonmaster/shared/contracts';
 
 import type { EpochMs } from '../../contracts/epoch-ms/epoch-ms-contract';
 
@@ -20,8 +18,8 @@ export const profileMeasuredDateRenderTransformer = ({
   measuredAtMs,
 }: {
   measuredAtMs: EpochMs;
-}): ContentText => {
+}): string => {
   const [datePart] = new Date(measuredAtMs).toISOString().split('T');
 
-  return contentTextContract.parse(datePart);
+  return datePart;
 };

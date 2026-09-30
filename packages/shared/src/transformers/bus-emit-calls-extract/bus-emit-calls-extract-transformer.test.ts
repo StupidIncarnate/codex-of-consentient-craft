@@ -1,14 +1,11 @@
 import { busEmitCallsExtractTransformer } from './bus-emit-calls-extract-transformer';
-import { ContentTextStub } from '../../contracts/content-text/content-text.stub';
 
 describe('busEmitCallsExtractTransformer', () => {
   describe('source has emit call matching the bus name', () => {
     it('VALID: {single emit with single-quoted type} => returns one event type', () => {
       const result = busEmitCallsExtractTransformer({
-        source: ContentTextStub({
-          value: "myBus.emit({ type: 'chat-output', payload });",
-        }),
-        busExportName: ContentTextStub({ value: 'myBus' }),
+        source: "myBus.emit({ type: 'chat-output', payload });",
+        busExportName: 'myBus',
       });
 
       expect(result.map(String)).toStrictEqual(['chat-output']);
@@ -16,13 +13,11 @@ describe('busEmitCallsExtractTransformer', () => {
 
     it('VALID: {multiple emits with different types} => returns all types in order', () => {
       const result = busEmitCallsExtractTransformer({
-        source: ContentTextStub({
-          value: [
+        source: [
             "myBus.emit({ type: 'chat-output', payload });",
             "myBus.emit({ type: 'chat-complete', payload });",
           ].join('\n'),
-        }),
-        busExportName: ContentTextStub({ value: 'myBus' }),
+        busExportName: 'myBus',
       });
 
       expect(result.map(String)).toStrictEqual(['chat-output', 'chat-complete']);
@@ -30,10 +25,8 @@ describe('busEmitCallsExtractTransformer', () => {
 
     it('VALID: {double-quoted type literal} => returns the type', () => {
       const result = busEmitCallsExtractTransformer({
-        source: ContentTextStub({
-          value: 'otherBus.emit({ type: "phase-change", processId });',
-        }),
-        busExportName: ContentTextStub({ value: 'otherBus' }),
+        source: 'otherBus.emit({ type: "phase-change", processId });',
+        busExportName: 'otherBus',
       });
 
       expect(result.map(String)).toStrictEqual(['phase-change']);
@@ -43,10 +36,8 @@ describe('busEmitCallsExtractTransformer', () => {
   describe('source has emit call matching a different bus', () => {
     it('EMPTY: {emit on unrelated bus} => returns empty array', () => {
       const result = busEmitCallsExtractTransformer({
-        source: ContentTextStub({
-          value: "otherBus.emit({ type: 'chat-output', payload });",
-        }),
-        busExportName: ContentTextStub({ value: 'myBus' }),
+        source: "otherBus.emit({ type: 'chat-output', payload });",
+        busExportName: 'myBus',
       });
 
       expect(result).toStrictEqual([]);
@@ -56,10 +47,8 @@ describe('busEmitCallsExtractTransformer', () => {
   describe('source has no emit calls', () => {
     it('EMPTY: {no emit pattern} => returns empty array', () => {
       const result = busEmitCallsExtractTransformer({
-        source: ContentTextStub({
-          value: 'export const foo = () => {};',
-        }),
-        busExportName: ContentTextStub({ value: 'myBus' }),
+        source: 'export const foo = () => {};',
+        busExportName: 'myBus',
       });
 
       expect(result).toStrictEqual([]);

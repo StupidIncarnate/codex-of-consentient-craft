@@ -17,7 +17,6 @@
  * SessionForensicsFlow({ argv: ['buckets', 'abc-123', '--minutes', '5'] });
  * // Returns the `buckets` render with a 5-minute window instead of the default 15
  */
-import { contentTextContract, type ContentText } from '@dungeonmaster/shared/contracts';
 
 import { DigestRunResponder } from '../../responders/digest/run/digest-run-responder';
 import { digestCommandContract } from '../../contracts/digest-command/digest-command-contract';
@@ -27,16 +26,14 @@ import { gapFloorSecondsContract } from '../../contracts/gap-floor-seconds/gap-f
 const MINUTES_FLAG = '--minutes';
 const FLOOR_SECONDS_FLAG = '--floor-seconds';
 
-const USAGE_BLOCK = contentTextContract.parse(
-  [
+const USAGE_BLOCK = [
     'usage: session-forensics <command> <target>',
     ...digestCommandContract.options,
     'buckets --minutes <n>',
     'gaps --floor-seconds <n>',
-  ].join('\n'),
-);
+  ].join('\n');
 
-export const SessionForensicsFlow = ({ argv }: { argv: readonly string[] }): ContentText => {
+export const SessionForensicsFlow = ({ argv }: { argv: readonly string[] }): string => {
   const parsedCommand = digestCommandContract.safeParse(argv[0]);
   const [, target] = argv;
 

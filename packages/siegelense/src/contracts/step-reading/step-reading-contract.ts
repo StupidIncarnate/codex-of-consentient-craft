@@ -37,7 +37,7 @@
 
 import { z } from '#gateway/npm/zod';
 
-import { absoluteFilePathContract, contentTextContract } from '@dungeonmaster/shared/contracts';
+import { absoluteFilePathContract } from '@dungeonmaster/shared/contracts';
 
 import { elementDeltaContract } from '../element-delta/element-delta-contract';
 import { epochMsContract } from '../epoch-ms/epoch-ms-contract';
@@ -56,7 +56,7 @@ export const stepReadingContract = z.object({
   node: nodeLabelContract.nullable(),
   ok: z.boolean(),
   expected: stepExpectationContract,
-  reading: contentTextContract,
+  reading: z.string().brand<'StepReadingReading'>(),
   shot: absoluteFilePathContract.nullable(),
   pixelChange: pixelChangeContract.nullable(),
   blank: z.boolean().nullable(),

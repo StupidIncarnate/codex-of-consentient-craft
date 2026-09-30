@@ -10,10 +10,6 @@
  * WHEN-TO-USE: When retrieving the list of ESLint rules that should run during pre-edit hook execution
  */
 
-import {
-  contentTextContract,
-  type ContentText,
-} from '../../contracts/content-text/content-text-contract';
 import type { dungeonmasterRuleEnforceOnStatics } from '../../statics/dungeonmaster-rule-enforce-on/dungeonmaster-rule-enforce-on-statics';
 
 export const preEditRuleNamesExtractTransformer = ({
@@ -23,7 +19,7 @@ export const preEditRuleNamesExtractTransformer = ({
     string,
     (typeof dungeonmasterRuleEnforceOnStatics)[keyof typeof dungeonmasterRuleEnforceOnStatics]
   >;
-}): ContentText[] =>
+}): string[] =>
   Object.entries(enforceOn)
     .filter(([, timing]) => timing === 'pre-edit')
-    .map(([ruleName]) => contentTextContract.parse(ruleName));
+    .map(([ruleName]) => ruleName);

@@ -17,12 +17,11 @@
 
 import { z } from '#gateway/npm/zod';
 
-import { contentTextContract } from '@dungeonmaster/shared/contracts';
 
 export const bootPollOutcomeContract = z.discriminatedUnion('status', [
   z.object({ status: z.literal('ready') }).strict(),
   z.object({ status: z.literal('timeout') }).strict(),
-  z.object({ status: z.literal('failed'), message: contentTextContract }).strict(),
+  z.object({ status: z.literal('failed'), message: z.string().brand<'BootPollOutcomeMessage'>() }).strict(),
 ]);
 
 export type BootPollOutcome = z.infer<typeof bootPollOutcomeContract>;

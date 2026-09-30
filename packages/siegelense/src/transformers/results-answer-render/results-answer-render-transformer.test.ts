@@ -1,4 +1,3 @@
-import { ContentTextStub } from '@dungeonmaster/shared/contracts/content-text/content-text.stub';
 
 import { InstanceIdStub } from '../../contracts/instance-id/instance-id.stub';
 import { ResultsAnswerStub } from '../../contracts/results-answer/results-answer.stub';
@@ -27,12 +26,8 @@ describe('resultsAnswerRenderTransformer', () => {
         instanceId: InstanceIdStub({ value: 'inst_7f3a9c21' }),
         instanceState: 'alive',
         rows: [
-          ContentTextStub({
-            value: JSON.stringify({ step: 1, verb: 'goto', content: 'https://example.com' }),
-          }),
-          ContentTextStub({
-            value: JSON.stringify({ step: 2, verb: 'click', content: '[data-testid="ADD"]' }),
-          }),
+          JSON.stringify({ step: 1, verb: 'goto', content: 'https://example.com' }),
+          JSON.stringify({ step: 2, verb: 'click', content: '[data-testid="ADD"]' }),
         ],
       });
 
@@ -48,9 +43,7 @@ describe('resultsAnswerRenderTransformer', () => {
         instanceId: InstanceIdStub({ value: 'inst_7f3a9c21' }),
         instanceState: 'alive',
         rows: [
-          ContentTextStub({
-            value: JSON.stringify({ step: 1, verb: 'goto', reading: 'navigated to /' }),
-          }),
+          JSON.stringify({ step: 1, verb: 'goto', reading: 'navigated to /' }),
         ],
       });
 
@@ -83,12 +76,8 @@ describe('resultsAnswerRenderTransformer', () => {
         instanceId: InstanceIdStub({ value: 'inst_7f3a9c21' }),
         instanceState: 'alive',
         rows: [
-          ContentTextStub({
-            value: JSON.stringify({ step: 1, verb: 'goto', content: 'https://example.com' }),
-          }),
-          ContentTextStub({
-            value: JSON.stringify({ step: 2, verb: 'click', content: '[data-testid="ADD"]' }),
-          }),
+          JSON.stringify({ step: 1, verb: 'goto', content: 'https://example.com' }),
+          JSON.stringify({ step: 2, verb: 'click', content: '[data-testid="ADD"]' }),
         ],
         storedReturn: runResult,
       });
@@ -109,8 +98,7 @@ describe('resultsAnswerRenderTransformer', () => {
         instanceState: 'alive',
         kind: 'console',
         rows: [
-          ContentTextStub({
-            value: JSON.stringify({
+          JSON.stringify({
               at: 1,
               kind: 'console',
               type: 'error',
@@ -118,9 +106,7 @@ describe('resultsAnswerRenderTransformer', () => {
               url: '',
               line: 0,
             }),
-          }),
-          ContentTextStub({
-            value: JSON.stringify({
+          JSON.stringify({
               at: 2,
               kind: 'console',
               type: 'warning',
@@ -128,7 +114,6 @@ describe('resultsAnswerRenderTransformer', () => {
               url: '',
               line: 0,
             }),
-          }),
         ],
       });
 
@@ -147,8 +132,7 @@ describe('resultsAnswerRenderTransformer', () => {
         instanceState: 'alive',
         kind: 'network',
         rows: [
-          ContentTextStub({
-            value: JSON.stringify({
+          JSON.stringify({
               at: 1,
               method: 'POST',
               url: '/api/guilds',
@@ -157,7 +141,6 @@ describe('resultsAnswerRenderTransformer', () => {
               requestBody: '{"name":"x"}',
               responseBody: '{"error":"database unavailable"}',
             }),
-          }),
         ],
       });
 
@@ -174,8 +157,7 @@ describe('resultsAnswerRenderTransformer', () => {
         instanceState: 'alive',
         kind: 'network',
         rows: [
-          ContentTextStub({
-            value: JSON.stringify({
+          JSON.stringify({
               at: 1,
               method: 'GET',
               url: '/api/quests',
@@ -184,7 +166,6 @@ describe('resultsAnswerRenderTransformer', () => {
               requestBody: null,
               responseBody: '<request failed: timeout>',
             }),
-          }),
         ],
       });
 
@@ -202,8 +183,7 @@ describe('resultsAnswerRenderTransformer', () => {
         instanceState: 'alive',
         kind: 'network',
         rows: [
-          ContentTextStub({
-            value: JSON.stringify({
+          JSON.stringify({
               at: 1,
               method: 'GET',
               url: '/api/x',
@@ -212,7 +192,6 @@ describe('resultsAnswerRenderTransformer', () => {
               requestBody: null,
               responseBody: longBody,
             }),
-          }),
         ],
       });
 
@@ -229,8 +208,7 @@ describe('resultsAnswerRenderTransformer', () => {
         instanceState: 'alive',
         kind: 'network',
         rows: [
-          ContentTextStub({
-            value: JSON.stringify({
+          JSON.stringify({
               at: 1,
               method: 'GET',
               url: '/@vite/client',
@@ -239,7 +217,6 @@ describe('resultsAnswerRenderTransformer', () => {
               requestBody: null,
               responseBody: null,
             }),
-          }),
         ],
       });
 

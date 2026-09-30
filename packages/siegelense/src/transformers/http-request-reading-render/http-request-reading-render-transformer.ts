@@ -8,8 +8,6 @@
  * // Returns '200 OK — {"ok":true}' as ContentText
  */
 
-import { contentTextContract } from '@dungeonmaster/shared/contracts';
-import type { ContentText } from '@dungeonmaster/shared/contracts';
 
 import { requestStatics } from '../../statics/request/request-statics';
 
@@ -21,10 +19,8 @@ export const httpRequestReadingRenderTransformer = ({
   status: number;
   statusText: string;
   body: unknown;
-}): ContentText => {
+}): string => {
   const bodyPreview =
     typeof body === 'object' && body !== null ? JSON.stringify(body) : String(body);
-  return contentTextContract.parse(
-    `${String(status)} ${statusText}${requestStatics.reading.delimiter}${bodyPreview}`,
-  );
+  return `${String(status)} ${statusText}${requestStatics.reading.delimiter}${bodyPreview}`;
 };

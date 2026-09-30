@@ -11,8 +11,6 @@
  * // Returns 'REAPED: inst_9b2c (stale 9h, killed 33812, 33840, home removed)\n...'
  */
 
-import { contentTextContract } from '@dungeonmaster/shared/contracts';
-import type { ContentText } from '@dungeonmaster/shared/contracts';
 
 import type { CleanupAnswer } from '../../contracts/cleanup-answer/cleanup-answer-contract';
 
@@ -20,7 +18,7 @@ export const cleanupAnswerRenderTransformer = ({
   answer,
 }: {
   answer: CleanupAnswer;
-}): ContentText => {
+}): string => {
   const reapedText =
     answer.reaped.length === 0
       ? 'none'
@@ -40,14 +38,12 @@ export const cleanupAnswerRenderTransformer = ({
       ? 'none'
       : answer.leftAlone.map((entry) => `${entry.id} (${entry.why})`).join(', ');
 
-  return contentTextContract.parse(
-    `REAPED: ${reapedText}\nPORTS RELEASED: ${portsText}\nLOCK RELEASED: ${
+  return `REAPED: ${reapedText}\nPORTS RELEASED: ${portsText}\nLOCK RELEASED: ${
       // `false` here only ever means no stale lock needed releasing — an unlink failure inside
       // lockReleaseLayerBroker throws rather than returning false, so "none held" never hides a
       // failed release; that failure surfaces as a thrown error instead of a CleanupAnswer at all.
       answer.lockReleased ? 'yes' : 'none held'
     }\nASSETS AGED: ${answer.assetsAged.instances} instances, ${
       answer.assetsAged.freedMB
-    }MB\nLEFT ALONE: ${leftAloneText}\n`,
-  );
+    }MB\nLEFT ALONE: ${leftAloneText}\n`;
 };

@@ -15,11 +15,10 @@
  */
 
 import { z } from '#gateway/npm/zod';
-import { contentTextContract } from '../content-text/content-text-contract';
 
 export const responderAnnotationContract = z.object({
-  suffix: contentTextContract.nullable(),
-  childLines: z.array(contentTextContract),
+  suffix: z.string().brand<'ResponderAnnotationSuffix'>().nullable(),
+  childLines: z.array(z.string().brand<'ResponderAnnotationChildLines'>()),
 });
 
 export type ResponderAnnotation = z.infer<typeof responderAnnotationContract>;

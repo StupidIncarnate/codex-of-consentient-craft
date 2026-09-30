@@ -3,8 +3,6 @@ import { existsSyncProxy } from '#gateway/node/fs/exists-sync/exists-sync.proxy'
 import { readFileSyncProxy } from '#gateway/node/fs/read-file-sync/read-file-sync.proxy';
 import type { DirEntrySync } from '#gateway/node/fs';
 import { gatewayLintConfigReadBrokerProxy } from '../../gateway-lint-config/read/gateway-lint-config-read-broker.proxy';
-import type { ContentText } from '../../../contracts/content-text/content-text-contract';
-import { ContentTextStub } from '../../../contracts/content-text/content-text.stub';
 
 const makeDirEntry = ({ name }: { name: string }): DirEntrySync => ({ name, kind: 'directory' });
 
@@ -18,14 +16,14 @@ export const architectureGatewayInventoryBrokerProxy = (): {
     projectRoot: string;
     folder: string;
     subpathName: string;
-    barrelContent?: ContentText;
+    barrelContent?: string;
   }) => void;
   setupGatewayLintConfig: ({
     repoRoot,
     fileContent,
   }: {
     repoRoot: string;
-    fileContent: ContentText;
+    fileContent: string;
   }) => void;
 } => {
   const readdirProxy = readdirEntriesSyncProxy();
@@ -46,7 +44,7 @@ export const architectureGatewayInventoryBrokerProxy = (): {
     exists: false,
   });
 
-  const entriesByFolderSrcPath = new Map<ContentText, DirEntrySync[]>();
+  const entriesByFolderSrcPath = new Map<string, DirEntrySync[]>();
 
   return {
     setupSubpath: ({
@@ -58,10 +56,10 @@ export const architectureGatewayInventoryBrokerProxy = (): {
       projectRoot: string;
       folder: string;
       subpathName: string;
-      barrelContent?: ContentText;
+      barrelContent?: string;
     }): void => {
       const folderSrcPath = `${String(projectRoot)}/packages/@gateway/${folder}/src`;
-      const folderSrcPathKey = ContentTextStub({ value: String(folderSrcPath) });
+      const folderSrcPathKey = String(folderSrcPath);
 
       const existingEntries = entriesByFolderSrcPath.get(folderSrcPathKey) ?? [];
       const entries = [...existingEntries, makeDirEntry({ name: subpathName })];
@@ -84,7 +82,7 @@ export const architectureGatewayInventoryBrokerProxy = (): {
       fileContent,
     }: {
       repoRoot: string;
-      fileContent: ContentText;
+      fileContent: string;
     }): void => {
       lintConfigProxy.setupConfig({
         configPath: `${String(repoRoot)}/.dungeonmaster.json`,

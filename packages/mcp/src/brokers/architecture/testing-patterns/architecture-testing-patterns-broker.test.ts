@@ -1,8 +1,7 @@
 import { architectureTestingPatternsBroker } from './architecture-testing-patterns-broker';
 import { architectureTestingPatternsBrokerProxy } from './architecture-testing-patterns-broker.proxy';
-import type { ContentTextStub } from '../../../contracts/content-text/content-text.stub';
 
-type ContentText = ReturnType<typeof ContentTextStub>;
+type ContentText = string;
 
 describe('architectureTestingPatternsBroker', () => {
   describe('generate testing patterns documentation', () => {

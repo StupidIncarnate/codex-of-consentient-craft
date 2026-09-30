@@ -18,8 +18,6 @@ import { formatFolderContentLayerBroker } from './format-folder-content-layer-br
 import { readPackageDescriptionLayerBroker } from './read-package-description-layer-broker';
 import { folderConfigStatics } from '../../../statics/folder-config/folder-config-statics';
 import { projectMapStatics } from '../../../statics/project-map/project-map-statics';
-import type { ContentText } from '../../../contracts/content-text/content-text-contract';
-import { contentTextContract } from '../../../contracts/content-text/content-text-contract';
 import { folderConfigContract } from '../../../contracts/folder-config/folder-config-contract';
 import { isKeyOfGuard } from '../../../guards/is-key-of/is-key-of-guard';
 
@@ -28,10 +26,10 @@ export const architecturePackageInventoryBroker = ({
   srcPath,
   packageJsonPath,
 }: {
-  packageName: ContentText;
+  packageName: string;
   srcPath: string;
   packageJsonPath: string;
-}): ContentText => {
+}): string => {
   const totalFiles = countFilesRecursiveLayerBroker({ dirPath: srcPath });
   const description = readPackageDescriptionLayerBroker({ packageJsonPath });
   const descriptionSuffix =
@@ -41,15 +39,11 @@ export const architecturePackageInventoryBroker = ({
     .sort((a, b) => a.name.localeCompare(b.name));
 
   if (folderEntries.length === 0) {
-    return contentTextContract.parse(
-      `## ${packageName} (${String(totalFiles)} files)${descriptionSuffix}\n  ${projectMapStatics.emptyLabel}`,
-    );
+    return `## ${packageName} (${String(totalFiles)} files)${descriptionSuffix}\n  ${projectMapStatics.emptyLabel}`;
   }
 
-  const lines: ContentText[] = [
-    contentTextContract.parse(
-      `## ${packageName} (${String(totalFiles)} files)${descriptionSuffix}`,
-    ),
+  const lines: string[] = [
+    `## ${packageName} (${String(totalFiles)} files)${descriptionSuffix}`,
   ];
 
   for (const folder of folderEntries) {
@@ -65,12 +59,12 @@ export const architecturePackageInventoryBroker = ({
 
     if (content.length > 0) {
       lines.push(
-        contentTextContract.parse(`  ${folder.name}/ (${String(fileCount)}) — ${content}`),
+        `  ${folder.name}/ (${String(fileCount)}) — ${content}`,
       );
     } else {
-      lines.push(contentTextContract.parse(`  ${folder.name}/ (${String(fileCount)})`));
+      lines.push(`  ${folder.name}/ (${String(fileCount)})`);
     }
   }
 
-  return contentTextContract.parse(lines.join('\n'));
+  return lines.join('\n');
 };

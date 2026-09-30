@@ -1,6 +1,5 @@
 import { SessionIdStub } from '@dungeonmaster/shared/contracts/session-id/session-id.stub';
 import { PathSegmentStub } from '@dungeonmaster/shared/contracts/path-segment/path-segment.stub';
-import { ContentTextStub } from '@dungeonmaster/shared/contracts/content-text/content-text.stub';
 
 import { transcriptLoadBroker } from './transcript-load-broker';
 import { transcriptLoadBrokerProxy } from './transcript-load-broker.proxy';
@@ -29,7 +28,7 @@ describe('transcriptLoadBroker', () => {
       proxy.setupTranscript({
         target,
         projectDir: PathSegmentStub({ value: 'proj-a' }),
-        contents: ContentTextStub({ value: lines.join('\n') }),
+        contents: lines.join('\n'),
       });
 
       const result = transcriptLoadBroker({ target });
@@ -59,7 +58,7 @@ describe('transcriptLoadBroker', () => {
       proxy.setupTranscript({
         target,
         projectDir: PathSegmentStub({ value: 'proj-a' }),
-        contents: ContentTextStub({ value: line }),
+        contents: line,
       });
 
       const result = transcriptLoadBroker({ target });
@@ -86,7 +85,7 @@ describe('transcriptLoadBroker', () => {
       proxy.setupTranscript({
         target,
         projectDir: PathSegmentStub({ value: 'proj-a' }),
-        contents: ContentTextStub({ value: '' }),
+        contents: '',
       });
 
       const result = transcriptLoadBroker({ target });
@@ -110,7 +109,7 @@ describe('transcriptLoadBroker', () => {
       proxy.setupTranscript({
         target,
         projectDir: PathSegmentStub({ value: 'proj-a' }),
-        contents: ContentTextStub({ value: [validLine, '{"type":"assis'].join('\n') }),
+        contents: [validLine, '{"type":"assis'].join('\n'),
       });
 
       const result = transcriptLoadBroker({ target });
@@ -141,7 +140,7 @@ describe('transcriptLoadBroker', () => {
         target,
         projectDir: PathSegmentStub({ value: 'proj-a' }),
         parentSessionId,
-        contents: ContentTextStub({ value: line }),
+        contents: line,
       });
 
       const result = transcriptLoadBroker({ target, parentSessionId });

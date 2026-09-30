@@ -1,4 +1,3 @@
-import { ContentTextStub } from '@dungeonmaster/shared/contracts/content-text/content-text.stub';
 
 import { SettleReadingStub } from '../../contracts/settle-reading/settle-reading.stub';
 import { settleReadingRenderTransformer } from './settle-reading-render-transformer';
@@ -6,7 +5,7 @@ import { settleReadingRenderTransformer } from './settle-reading-render-transfor
 describe('settleReadingRenderTransformer', () => {
   describe('settled: true', () => {
     it('VALID: {baseMessage, settled: true} => returns baseMessage unchanged', () => {
-      const baseMessage = ContentTextStub({ value: 'clicked [data-testid="PIXEL_BTN"]' });
+      const baseMessage = 'clicked [data-testid="PIXEL_BTN"]';
       const settleReading = SettleReadingStub({ settled: true, reason: 'quiet', waitedMs: 120 });
 
       const result = settleReadingRenderTransformer({ baseMessage, settleReading });
@@ -17,7 +16,7 @@ describe('settleReadingRenderTransformer', () => {
 
   describe('settled: false', () => {
     it('VALID: {baseMessage, settled: false, one unsettled signal} => appends the reason, wait time and signal', () => {
-      const baseMessage = ContentTextStub({ value: 'clicked [data-testid="SLOW_BTN"]' });
+      const baseMessage = 'clicked [data-testid="SLOW_BTN"]';
       const settleReading = SettleReadingStub({
         settled: false,
         reason: 'ceiling',
@@ -34,7 +33,7 @@ describe('settleReadingRenderTransformer', () => {
     });
 
     it('VALID: {baseMessage, settled: false, several unsettled signals} => joins every still-moving signal with a comma', () => {
-      const baseMessage = ContentTextStub({ value: 'typed "x" into [data-testid="NAME_INPUT"]' });
+      const baseMessage = 'typed "x" into [data-testid="NAME_INPUT"]';
       const settleReading = SettleReadingStub({
         settled: false,
         reason: 'ceiling',

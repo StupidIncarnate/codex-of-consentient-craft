@@ -11,7 +11,6 @@
  */
 
 import { safeJsonParseTransformer } from '@dungeonmaster/shared/transformers';
-import type { ContentText } from '@dungeonmaster/shared/contracts';
 import {
   transcriptRecordContract,
   type TranscriptRecord,
@@ -20,7 +19,7 @@ import {
 export const jsonlToRecordsTransformer = ({
   contents,
 }: {
-  contents: ContentText;
+  contents: string;
 }): readonly TranscriptRecord[] =>
   contents.split('\n').flatMap((line): TranscriptRecord[] => {
     if (line.trim() === '') {

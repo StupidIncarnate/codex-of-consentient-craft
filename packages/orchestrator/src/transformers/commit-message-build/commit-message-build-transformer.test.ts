@@ -1,4 +1,3 @@
-import { ContentTextStub } from '@dungeonmaster/shared/contracts/content-text/content-text.stub';
 import { QuestWorkItemIdStub } from '@dungeonmaster/shared/contracts/quest-work-item-id/quest-work-item-id.stub';
 import { StepNameStub } from '@dungeonmaster/shared/contracts/step-name/step-name.stub';
 import { UnitObservationStub } from '@dungeonmaster/shared/contracts/unit-observation/unit-observation.stub';
@@ -8,7 +7,7 @@ import { commitMessageBuildTransformer } from './commit-message-build-transforme
 const WORK_ITEM_ID = QuestWorkItemIdStub({ value: 'f47ac10b-58cc-4372-a567-0e02b2c3d479' });
 const FAMILY = 'codeweaver';
 const STEP = StepNameStub({ value: 'commit' });
-const SCOPE = ContentTextStub({ value: 'add-auth — package: auth · flow: login-flow' });
+const SCOPE = 'add-auth — package: auth · flow: login-flow';
 
 describe('commitMessageBuildTransformer', () => {
   describe('one met, one cant-meet with a toSettle, and one unmet', () => {
@@ -72,7 +71,7 @@ describe('commitMessageBuildTransformer', () => {
       const result = commitMessageBuildTransformer({
         family: 'spiritmender',
         step: StepNameStub({ value: 'repair' }),
-        scope: ContentTextStub({ value: 'fix ward (committed) failures' }),
+        scope: 'fix ward (committed) failures',
         workItems: [{ id: WORK_ITEM_ID, observations: [] }],
       });
 

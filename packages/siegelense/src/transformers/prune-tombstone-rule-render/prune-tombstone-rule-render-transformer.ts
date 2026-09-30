@@ -12,8 +12,6 @@
  * // Returns 'olderThan 7d' as ContentText
  */
 
-import { contentTextContract } from '@dungeonmaster/shared/contracts';
-import type { ContentText } from '@dungeonmaster/shared/contracts';
 
 import type { PruneQuery } from '../../contracts/prune-query/prune-query-contract';
 
@@ -21,12 +19,12 @@ export const pruneTombstoneRuleRenderTransformer = ({
   query,
 }: {
   query: PruneQuery;
-}): ContentText => {
+}): string => {
   const parts = [
     query.instanceId === null ? null : `instance ${query.instanceId}`,
     query.kind === null ? null : `kind ${query.kind}`,
     `olderThan ${query.olderThan}`,
   ];
 
-  return contentTextContract.parse(parts.filter((part) => part !== null).join(', '));
+  return parts.filter((part) => part !== null).join(', ');
 };

@@ -20,7 +20,6 @@
 
 import { z } from '#gateway/npm/zod';
 
-import { contentTextContract } from '@dungeonmaster/shared/contracts';
 
 import { stepCandidateContract } from '../step-candidate/step-candidate-contract';
 import { stepIndexContract } from '../step-index/step-index-contract';
@@ -29,7 +28,7 @@ import { stepVerbContract } from '../step-verb/step-verb-contract';
 export const stoppedAtContract = z.object({
   step: stepIndexContract,
   verb: stepVerbContract,
-  error: contentTextContract,
+  error: z.string().brand<'StoppedAtError'>(),
   candidates: z.array(stepCandidateContract).readonly(),
 });
 

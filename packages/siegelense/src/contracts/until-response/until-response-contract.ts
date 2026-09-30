@@ -12,14 +12,13 @@
 
 import { z } from '#gateway/npm/zod';
 
-import { contentTextContract } from '@dungeonmaster/shared/contracts';
 
 import { httpMethodContract } from '../http-method/http-method-contract';
 
 export const untilResponseContract = z
   .object({
     method: httpMethodContract,
-    path: contentTextContract,
+    path: z.string().brand<'UntilResponsePath'>(),
   })
   .strict();
 

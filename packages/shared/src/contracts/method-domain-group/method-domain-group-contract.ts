@@ -13,11 +13,10 @@
  */
 
 import { z } from '#gateway/npm/zod';
-import { contentTextContract } from '../content-text/content-text-contract';
 
 export const methodDomainGroupContract = z.object({
-  domain: contentTextContract,
-  methods: z.array(contentTextContract),
+  domain: z.string().brand<'MethodDomainGroupDomain'>(),
+  methods: z.array(z.string().brand<'MethodDomainGroupMethods'>()),
 });
 
 export type MethodDomainGroup = z.infer<typeof methodDomainGroupContract>;

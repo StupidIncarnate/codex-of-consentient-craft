@@ -17,19 +17,15 @@
  * importStatementsExtractTransformer instead
  */
 
-import {
-  contentTextContract,
-  type ContentText,
-} from '../../contracts/content-text/content-text-contract';
 
 const NAMED_IMPORTS_PATTERN = /import\s+(?:type\s+)?\{([^}]+)\}\s+from\s+['"]([^'"]+)['"]/gu;
 
 export const namedImportsToPathMapTransformer = ({
   source,
 }: {
-  source: ContentText;
-}): Map<ContentText, ContentText> => {
-  const result = new Map<ContentText, ContentText>();
+  source: string;
+}): Map<string, string> => {
+  const result = new Map<string, string>();
   NAMED_IMPORTS_PATTERN.lastIndex = 0;
   let match = NAMED_IMPORTS_PATTERN.exec(String(source));
   while (match !== null) {
@@ -44,7 +40,7 @@ export const namedImportsToPathMapTransformer = ({
         if (localName === undefined) continue;
         const cleaned = localName.replace(/^type\s+/u, '').trim();
         if (cleaned === '') continue;
-        result.set(contentTextContract.parse(cleaned), contentTextContract.parse(fromPath));
+        result.set(cleaned, fromPath);
       }
     }
     match = NAMED_IMPORTS_PATTERN.exec(String(source));

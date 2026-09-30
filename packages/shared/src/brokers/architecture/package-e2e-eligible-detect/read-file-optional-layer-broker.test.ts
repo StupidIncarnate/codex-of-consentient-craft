@@ -1,4 +1,3 @@
-import { ContentTextStub } from '../../../contracts/content-text/content-text.stub';
 import { readFileOptionalLayerBrokerProxy } from './read-file-optional-layer-broker.proxy';
 import { readFileOptionalLayerBroker } from './read-file-optional-layer-broker';
 
@@ -6,7 +5,7 @@ describe('readFileOptionalLayerBroker', () => {
   it('VALID: {filePath: existing file} => returns content', () => {
     const proxy = readFileOptionalLayerBrokerProxy();
     const filePath = '/project/package.json';
-    const content = ContentTextStub({ value: '{"dependencies":{"react":"18.2.0"}}' });
+    const content = '{"dependencies":{"react":"18.2.0"}}';
     proxy.setupReturns({ filePath, content });
 
     const result = readFileOptionalLayerBroker({ filePath });

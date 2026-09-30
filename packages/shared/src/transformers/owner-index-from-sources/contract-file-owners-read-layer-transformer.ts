@@ -11,7 +11,6 @@
  */
 import * as ts from '#gateway/npm/typescript';
 
-import { contentTextContract } from '../../contracts/content-text/content-text-contract';
 import { identifierContract } from '../../contracts/identifier/identifier-contract';
 import { ownerIndexEnumContract } from '../../contracts/owner-index-enum/owner-index-enum-contract';
 import type { OwnerIndexEnum } from '../../contracts/owner-index-enum/owner-index-enum-contract';
@@ -149,7 +148,7 @@ export const contractFileOwnersReadLayerTransformer = ({
         filePath,
         packageName,
         ...(typeName === undefined ? {} : { typeName }),
-        schemaText: contentTextContract.parse(initializer.getText(sourceFile)),
+        schemaText: initializer.getText(sourceFile),
         fields,
       }),
     ];
@@ -170,7 +169,7 @@ export const contractFileOwnersReadLayerTransformer = ({
 
   const enums = declarations.flatMap(({ name, initializer }) => {
     const values = enumValuesReadTransformer({
-      text: contentTextContract.parse(initializer.getText(sourceFile)),
+      text: initializer.getText(sourceFile),
     });
     return values === undefined
       ? []

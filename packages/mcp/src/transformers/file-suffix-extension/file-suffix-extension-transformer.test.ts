@@ -1,11 +1,10 @@
-import { ContentTextStub } from '../../contracts/content-text/content-text.stub';
 import { fileSuffixExtensionTransformer } from './file-suffix-extension-transformer';
 
 describe('fileSuffixExtensionTransformer', () => {
   describe('TypeScript file extensions', () => {
     it('VALID: {suffix: -broker.ts} => returns .ts', () => {
       const result = fileSuffixExtensionTransformer({
-        suffix: ContentTextStub({ value: '-broker.ts' }),
+        suffix: '-broker.ts',
       });
 
       expect(result).toBe('.ts');
@@ -13,7 +12,7 @@ describe('fileSuffixExtensionTransformer', () => {
 
     it('VALID: {suffix: -widget.tsx} => returns .tsx', () => {
       const result = fileSuffixExtensionTransformer({
-        suffix: ContentTextStub({ value: '-widget.tsx' }),
+        suffix: '-widget.tsx',
       });
 
       expect(result).toBe('.tsx');
@@ -21,7 +20,7 @@ describe('fileSuffixExtensionTransformer', () => {
 
     it('VALID: {suffix: .ts} => returns .ts', () => {
       const result = fileSuffixExtensionTransformer({
-        suffix: ContentTextStub({ value: '.ts' }),
+        suffix: '.ts',
       });
 
       expect(result).toBe('.ts');
@@ -29,7 +28,7 @@ describe('fileSuffixExtensionTransformer', () => {
 
     it('VALID: {suffix: .stub.ts} => returns .ts', () => {
       const result = fileSuffixExtensionTransformer({
-        suffix: ContentTextStub({ value: '.stub.ts' }),
+        suffix: '.stub.ts',
       });
 
       expect(result).toBe('.ts');
@@ -39,7 +38,7 @@ describe('fileSuffixExtensionTransformer', () => {
   describe('suffixes carrying no extension', () => {
     it('VALID: {suffix: -test} => returns empty string', () => {
       const result = fileSuffixExtensionTransformer({
-        suffix: ContentTextStub({ value: '-test' }),
+        suffix: '-test',
       });
 
       expect(result).toBe('');
@@ -47,7 +46,7 @@ describe('fileSuffixExtensionTransformer', () => {
 
     it('EMPTY: {suffix: ""} => returns empty string', () => {
       const result = fileSuffixExtensionTransformer({
-        suffix: ContentTextStub({ value: '' }),
+        suffix: '',
       });
 
       expect(result).toBe('');

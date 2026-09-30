@@ -14,8 +14,6 @@
  * // Returns 'GET http://x/api/quests'
  */
 
-import { contentTextContract } from '@dungeonmaster/shared/contracts';
-import type { ContentText } from '@dungeonmaster/shared/contracts';
 
 export const settleRequestShapeTransformer = ({
   method,
@@ -23,7 +21,5 @@ export const settleRequestShapeTransformer = ({
 }: {
   method: string;
   url: string;
-}): ContentText =>
-  contentTextContract.parse(
-    `${method.toUpperCase()} ${(url.split('#')[0] ?? '').split('?')[0] ?? ''}`,
-  );
+}): string =>
+  `${method.toUpperCase()} ${(url.split('#')[0] ?? '').split('?')[0] ?? ''}`;

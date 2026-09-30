@@ -1,5 +1,4 @@
 import { handlerNameToResponderPathTransformer } from './handler-name-to-responder-path-transformer';
-import { ContentTextStub } from '../../contracts/content-text/content-text.stub';
 
 const PKG_SRC = '/repo/packages/mcp/src';
 
@@ -7,7 +6,7 @@ describe('handlerNameToResponderPathTransformer', () => {
   describe('ArchitectureHandleResponder', () => {
     it('VALID: {ArchitectureHandleResponder} => architecture handle responder path', () => {
       const result = handlerNameToResponderPathTransformer({
-        handlerName: ContentTextStub({ value: 'ArchitectureHandleResponder' }),
+        handlerName: 'ArchitectureHandleResponder',
         packageSrcPath: PKG_SRC,
       });
 
@@ -20,7 +19,7 @@ describe('handlerNameToResponderPathTransformer', () => {
   describe('QuestHandleResponder', () => {
     it('VALID: {QuestHandleResponder} => quest handle responder path', () => {
       const result = handlerNameToResponderPathTransformer({
-        handlerName: ContentTextStub({ value: 'QuestHandleResponder' }),
+        handlerName: 'QuestHandleResponder',
         packageSrcPath: PKG_SRC,
       });
 
@@ -33,7 +32,7 @@ describe('handlerNameToResponderPathTransformer', () => {
   describe('InteractionHandleResponder', () => {
     it('VALID: {InteractionHandleResponder} => interaction handle responder path', () => {
       const result = handlerNameToResponderPathTransformer({
-        handlerName: ContentTextStub({ value: 'InteractionHandleResponder' }),
+        handlerName: 'InteractionHandleResponder',
         packageSrcPath: PKG_SRC,
       });
 

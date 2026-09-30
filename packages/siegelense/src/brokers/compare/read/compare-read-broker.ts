@@ -46,7 +46,6 @@
  */
 
 import { readFileIfExists } from '#gateway/node/fs__promises';
-import { contentTextContract } from '@dungeonmaster/shared/contracts';
 
 import { compareAnswerContract } from '../../../contracts/compare-answer/compare-answer-contract';
 import type { CompareAnswer } from '../../../contracts/compare-answer/compare-answer-contract';
@@ -235,7 +234,7 @@ export const compareReadBroker = async ({
         });
 
   const pixels =
-    pixelChange === null ? null : contentTextContract.parse(`last capture differs ${pixelChange}`);
+    pixelChange === null ? null : `last capture differs ${pixelChange}`;
 
   // Network has no query-level lever for status (see the header comment), so both runs' FULL row
   // sets are narrowed here, after the read, to what `network.errors` counts and `network.new` lists:

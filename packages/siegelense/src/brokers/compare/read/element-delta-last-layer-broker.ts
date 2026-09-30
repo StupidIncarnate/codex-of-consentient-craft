@@ -12,7 +12,6 @@
  * // Returns the `delta` off the last row that carried a non-null one, or null when none did
  */
 
-import type { ContentText } from '@dungeonmaster/shared/contracts';
 
 import type { ElementDelta } from '../../../contracts/element-delta/element-delta-contract';
 import { stepReadingContract } from '../../../contracts/step-reading/step-reading-contract';
@@ -20,7 +19,7 @@ import { stepReadingContract } from '../../../contracts/step-reading/step-readin
 export const elementDeltaLastLayerBroker = ({
   rows,
 }: {
-  rows: readonly ContentText[];
+  rows: readonly string[];
 }): ElementDelta | null => {
   const readings = rows.map((row) => stepReadingContract.parse(JSON.parse(row)));
   const lastWithDelta = [...readings].reverse().find((reading) => reading.delta !== null);

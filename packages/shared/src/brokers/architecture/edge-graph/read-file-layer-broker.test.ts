@@ -1,14 +1,11 @@
 import { readFileLayerBroker } from './read-file-layer-broker';
 import { readFileLayerBrokerProxy } from './read-file-layer-broker.proxy';
-import { ContentTextStub } from '../../../contracts/content-text/content-text.stub';
 
 describe('readFileLayerBroker', () => {
   it('VALID: {existing file} => returns file contents', () => {
     const proxy = readFileLayerBrokerProxy();
     const filePath = '/repo/packages/server/src/flows/quest/quest-flow.ts';
-    const content = ContentTextStub({
-      value: 'app.get(apiRoutesStatics.quests.list, async (c) => {});',
-    });
+    const content = 'app.get(apiRoutesStatics.quests.list, async (c) => {});';
 
     proxy.setupReturns({ filePath, content });
 

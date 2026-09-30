@@ -1,4 +1,3 @@
-import { ContentTextStub } from '@dungeonmaster/shared/contracts/content-text/content-text.stub';
 
 import { BufferEntryStub } from '../../../contracts/buffer-entry/buffer-entry.stub';
 import { ResultWhereStub } from '../../../contracts/result-where/result-where.stub';
@@ -18,9 +17,8 @@ const networkText = ({
   method: string;
   url: string;
   status: number;
-}): ReturnType<typeof ContentTextStub> =>
-  ContentTextStub({
-    value: JSON.stringify({
+}): string =>
+  JSON.stringify({
       at: 1,
       method,
       url,
@@ -28,8 +26,7 @@ const networkText = ({
       status,
       requestBody: null,
       responseBody: 'ok',
-    }),
-  });
+    });
 
 describe('bufferReadLayerBroker', () => {
   it('EMPTY: {no buffer file} => returns an empty array', async () => {
@@ -142,8 +139,7 @@ describe('bufferReadLayerBroker', () => {
     const proxy = bufferReadLayerBrokerProxy();
     const errorEntry = BufferEntryStub({
       runId: RUN_2,
-      text: ContentTextStub({
-        value: JSON.stringify({
+      text: JSON.stringify({
           at: 1,
           kind: 'console',
           type: 'error',
@@ -151,13 +147,10 @@ describe('bufferReadLayerBroker', () => {
           url: '',
           line: 0,
         }),
-      }),
     });
     const logEntry = BufferEntryStub({
       runId: RUN_2,
-      text: ContentTextStub({
-        value: JSON.stringify({ at: 1, kind: 'console', type: 'log', text: 'x', url: '', line: 0 }),
-      }),
+      text: JSON.stringify({ at: 1, kind: 'console', type: 'log', text: 'x', url: '', line: 0 }),
     });
     proxy.setupBuffer({
       bufferPath: BUFFER_PATH,

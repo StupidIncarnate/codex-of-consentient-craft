@@ -14,13 +14,12 @@
  * WHEN-NOT-TO-USE: When the handler uses a non-standard naming convention
  */
 
-import type { ContentText } from '../../contracts/content-text/content-text-contract';
 
 export const handlerNameToResponderPathTransformer = ({
   handlerName,
   packageSrcPath,
 }: {
-  handlerName: ContentText;
+  handlerName: string;
   packageSrcPath: string;
 }): string => {
   // Convert PascalCase to kebab-case: ArchitectureHandleResponder → architecture-handle-responder

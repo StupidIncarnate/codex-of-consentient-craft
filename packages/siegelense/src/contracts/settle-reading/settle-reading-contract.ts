@@ -23,7 +23,6 @@
  */
 
 import { z } from '#gateway/npm/zod';
-import { contentTextContract } from '@dungeonmaster/shared/contracts';
 
 import { readingCountContract } from '../reading-count/reading-count-contract';
 
@@ -37,7 +36,7 @@ export const settleReadingContract = z
     unsettled: z.array(z.enum(['network', 'dom', 'animation']).brand<'SettleSignal'>()).readonly(),
     // In-flight requests that were NOT discounted as pollers, at the moment the wait ended.
     pendingRequests: readingCountContract,
-    pollersDiscounted: z.array(contentTextContract).readonly(),
+    pollersDiscounted: z.array(z.string().brand<'SettleReadingPollersDiscounted'>()).readonly(),
   })
   .strict();
 

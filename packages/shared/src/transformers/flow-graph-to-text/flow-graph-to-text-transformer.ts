@@ -55,8 +55,6 @@
  * green that proves something else or reports the unit as impossible.
  */
 
-import { contentTextContract } from '../../contracts/content-text/content-text-contract';
-import type { ContentText } from '../../contracts/content-text/content-text-contract';
 import type { Flow } from '../../contracts/flow/flow-contract';
 import type { PackageName } from '../../contracts/package-name/package-name-contract';
 import { textDisplaySymbolsStatics } from '../../statics/text-display-symbols/text-display-symbols-statics';
@@ -82,7 +80,7 @@ export const flowGraphToTextTransformer = ({
   // The other flows on the quest, so a `flowId:nodeId` edge target can be resolved into a real
   // node. Omitted, the marker renders exactly as it always has — a bare stub.
   otherFlows?: readonly Flow[] | undefined;
-}): ContentText[] => {
+}): string[] => {
   const nodeMap = new Map(flow.nodes.map((n) => [n.id, n] as const));
   const outgoingEdges = new Map(
     flow.nodes.map(
@@ -111,7 +109,7 @@ export const flowGraphToTextTransformer = ({
   const ownPackageText = ownPackage === undefined ? undefined : String(ownPackage);
 
   const visited = new Set<FlowNode['id']>();
-  const lines: ContentText[] = [];
+  const lines: string[] = [];
 
   const entryNodeIdResult = flowNodeContract.shape.id.safeParse(flow.entryPoint);
   const entryNodeId = entryNodeIdResult.success ? entryNodeIdResult.data : undefined;
@@ -139,9 +137,7 @@ export const flowGraphToTextTransformer = ({
 
       if (!node) {
         lines.push(
-          contentTextContract.parse(
-            `${indent}${SYM.rightArrow} ${String(nodeId)} ${SYM.crossFlow}`,
-          ),
+          `${indent}${SYM.rightArrow} ${String(nodeId)} ${SYM.crossFlow}`,
         );
         continue;
       }
@@ -187,9 +183,7 @@ export const flowGraphToTextTransformer = ({
       // markers stay at the END, because each is a property of the whole line rather than a field:
       // MERGE is about the graph, YOURS about the caller.
       lines.push(
-        contentTextContract.parse(
-          `${indent}[#${nodeId}]${packagesPart} ${node.label} (${node.type})${mergeMarker}${ownMarker}`,
-        ),
+        `${indent}[#${nodeId}]${packagesPart} ${node.label} (${node.type})${mergeMarker}${ownMarker}`,
       );
 
       // THE NODE DECIDES WHAT IS READ; the observable's own `{package}` still decides who signs it.
@@ -207,15 +201,13 @@ export const flowGraphToTextTransformer = ({
         // package set looks like on the node line above — one convention for one kind of value, so
         // a reader scanning a graph never has to work out which field a bare name is.
         lines.push(
-          contentTextContract.parse(
-            `${indent}${SYM.indent}${SYM.observable} #${obs.id} {${String(obs.package)}} ${obs.description} [${obs.type}]${readCheckMarker}${originMarker}`,
-          ),
+          `${indent}${SYM.indent}${SYM.observable} #${obs.id} {${String(obs.package)}} ${obs.description} [${obs.type}]${readCheckMarker}${originMarker}`,
         );
       }
 
       const edges = outgoingEdges.get(nodeId) ?? [];
       if (edges.length === 0) {
-        lines.push(contentTextContract.parse(`${indent}${SYM.indent}${SYM.terminal}`));
+        lines.push(`${indent}${SYM.indent}${SYM.terminal}`);
         continue;
       }
 
@@ -239,21 +231,15 @@ export const flowGraphToTextTransformer = ({
           // line because a labelled cross-flow edge mints a real branch unit, and a session cannot
           // write evidence for a branch whose name it never saw.
           lines.push(
-            contentTextContract.parse(
-              `${indent}${SYM.indent}${SYM.rightArrow}${edgeIdPart}${labelPart}${edgeToStr} ${SYM.crossFlow}${edgeOwnMarker}`,
-            ),
+            `${indent}${SYM.indent}${SYM.rightArrow}${edgeIdPart}${labelPart}${edgeToStr} ${SYM.crossFlow}${edgeOwnMarker}`,
           );
           const target = crossFlowTargets.get(edgeToStr);
           if (target !== undefined) {
             lines.push(
-              contentTextContract.parse(
-                `${indent}${SYM.indent}${SYM.indent}target: [#${String(target.node.id)}] {${target.node.packages.map((name) => String(name)).join(', ')}} ${String(target.node.label)} (${target.node.type}) in flow #${String(target.flow.id)} "${String(target.flow.name)}"`,
-              ),
+              `${indent}${SYM.indent}${SYM.indent}target: [#${String(target.node.id)}] {${target.node.packages.map((name) => String(name)).join(', ')}} ${String(target.node.label)} (${target.node.type}) in flow #${String(target.flow.id)} "${String(target.flow.name)}"`,
             );
             lines.push(
-              contentTextContract.parse(
-                `${indent}${SYM.indent}${SYM.indent}${CROSS_FLOW_HANDOFF_NOTE}`,
-              ),
+              `${indent}${SYM.indent}${SYM.indent}${CROSS_FLOW_HANDOFF_NOTE}`,
             );
           }
           continue;
@@ -266,21 +252,15 @@ export const flowGraphToTextTransformer = ({
 
         if (isCrossFlow) {
           lines.push(
-            contentTextContract.parse(
-              `${indent}${SYM.indent}${SYM.rightArrow}${edgeIdPart}${labelPart}${edgeToStr} ${SYM.crossFlow}${edgeOwnMarker}`,
-            ),
+            `${indent}${SYM.indent}${SYM.rightArrow}${edgeIdPart}${labelPart}${edgeToStr} ${SYM.crossFlow}${edgeOwnMarker}`,
           );
         } else if (isBackRef) {
           lines.push(
-            contentTextContract.parse(
-              `${indent}${SYM.indent}${SYM.rightArrow}${edgeIdPart}${labelPart}[#${edgeToStr}] ${SYM.backRef}${edgeOwnMarker}`,
-            ),
+            `${indent}${SYM.indent}${SYM.rightArrow}${edgeIdPart}${labelPart}[#${edgeToStr}] ${SYM.backRef}${edgeOwnMarker}`,
           );
         } else {
           lines.push(
-            contentTextContract.parse(
-              `${indent}${SYM.indent}${SYM.rightArrow}${edgeIdPart}${labelPart}[#${String(toId)}]${edgeOwnMarker}`,
-            ),
+            `${indent}${SYM.indent}${SYM.rightArrow}${edgeIdPart}${labelPart}[#${String(toId)}]${edgeOwnMarker}`,
           );
           childrenToVisit.push({ nodeId: toId, depth: depth + DEPTH_INCREMENT });
         }

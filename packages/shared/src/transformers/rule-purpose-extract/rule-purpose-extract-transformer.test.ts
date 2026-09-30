@@ -1,19 +1,14 @@
 import { rulePurposeExtractTransformer } from './rule-purpose-extract-transformer';
-import { ContentTextStub } from '../../contracts/content-text/content-text.stub';
 
-const RULE_SOURCE_WITH_PURPOSE = ContentTextStub({
-  value: `/**
+const RULE_SOURCE_WITH_PURPOSE = `/**
  * PURPOSE: Bans raw string and number types in favor of Zod contract types
  *
  * USAGE:
  * const rule = ruleBanPrimitivesBroker();
  */
-export const ruleBanPrimitivesBroker = () => {};`,
-});
+export const ruleBanPrimitivesBroker = () => {};`;
 
-const RULE_SOURCE_WITHOUT_PURPOSE = ContentTextStub({
-  value: `export const ruleFooBroker = () => {};`,
-});
+const RULE_SOURCE_WITHOUT_PURPOSE = `export const ruleFooBroker = () => {};`;
 
 describe('rulePurposeExtractTransformer', () => {
   describe('purpose present', () => {
@@ -37,7 +32,7 @@ describe('rulePurposeExtractTransformer', () => {
   describe('rule name extraction from path', () => {
     it('VALID: {multiline source starting with PURPOSE} => trims whitespace', () => {
       const result = rulePurposeExtractTransformer({
-        source: ContentTextStub({ value: '/* \n * PURPOSE:   Trims spaces  \n */' }),
+        source: '/* \n * PURPOSE:   Trims spaces  \n */',
       });
 
       expect(String(result)).toBe('Trims spaces');

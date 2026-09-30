@@ -14,10 +14,6 @@
  */
 
 import {
-  contentTextContract,
-  type ContentText,
-} from '../../../contracts/content-text/content-text-contract';
-import {
   importEdgeContract,
   type ImportEdge,
 } from '../../../contracts/import-edge/import-edge-contract';
@@ -43,17 +39,17 @@ export const architectureImportEdgesBroker = ({
     return [];
   }
 
-  const knownPackageNames = new Set<ContentText>();
+  const knownPackageNames = new Set<string>();
   for (const entry of packageEntries) {
     if (entry.kind === 'directory' && entry.name !== locationsStatics.repoRoot.claudeMd) {
-      knownPackageNames.add(contentTextContract.parse(entry.name));
+      knownPackageNames.add(entry.name);
     }
   }
 
-  const edgeFileMap = new Map<ContentText, Set<string>>();
+  const edgeFileMap = new Map<string, Set<string>>();
   const edgeMeta = new Map<
-    ContentText,
-    { consumerPackage: ContentText; sourcePackage: ContentText; barrel: ContentText }
+    string,
+    { consumerPackage: string; sourcePackage: string; barrel: string }
   >();
 
   for (const consumerPkg of knownPackageNames) {
@@ -95,14 +91,10 @@ export const architectureImportEdgesBroker = ({
           continue;
         }
 
-        const sourcePackage = contentTextContract.parse(sourcePackageName);
-        const barrel = contentTextContract.parse(
-          slashIndex === -1 ? '' : afterScope.slice(slashIndex + 1),
-        );
+        const sourcePackage = sourcePackageName;
+        const barrel = (slashIndex === -1 ? '' : afterScope.slice(slashIndex + 1));
 
-        const edgeKey = contentTextContract.parse(
-          `${consumerPkgName}|${sourcePackageName}|${String(barrel)}`,
-        );
+        const edgeKey = `${consumerPkgName}|${sourcePackageName}|${String(barrel)}`;
 
         if (!edgeFileMap.has(edgeKey)) {
           edgeFileMap.set(edgeKey, new Set<string>());

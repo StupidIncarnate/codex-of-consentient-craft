@@ -1,7 +1,6 @@
 import { PNG } from '#gateway/npm/pngjs';
 import { z } from '#gateway/npm/zod';
-import { contentTextContract } from '@dungeonmaster/shared/contracts';
-import type { ContentText, Guild } from '@dungeonmaster/shared/contracts';
+import type { Guild } from '@dungeonmaster/shared/contracts';
 import { registerSpyOn } from '@dungeonmaster/testing/register-mock';
 
 import { isNativeErrorProxy } from '#gateway/node/util__types/is-native-error/is-native-error.proxy';
@@ -73,9 +72,9 @@ export const stepDispatchBrokerProxy = (): {
   laneRejectingWaitForMatch: (params: { error: Error }) => { lane: LaneSession };
   seedBookPresentAt: (params: { packagePath: string }) => void;
   seedLaneAnswers: (params: {
-    apiBaseUrl: ContentText;
+    apiBaseUrl: string;
     guild: Guild;
-    questIds: readonly ContentText[];
+    questIds: readonly string[];
     secondGuild?: Guild;
   }) => { getCallArgs: () => readonly unknown[] };
   lastShotPath: () => string | null;
@@ -91,7 +90,7 @@ export const stepDispatchBrokerProxy = (): {
     sourcePath: string;
     destinationPath: string;
   }) => void;
-  getStderrText: () => ContentText;
+  getStderrText: () => string;
 } => {
   // This proxy builds its own BrowserSession scenarios directly, so only the SEED half of the verb
   // layer's own proxy is ever addressed: a `seed` step drives no page and so has no BrowserSession
@@ -147,7 +146,7 @@ export const stepDispatchBrokerProxy = (): {
           fillMatch: jest.fn().mockResolvedValue(undefined),
           waitForMatch: jest.fn().mockResolvedValue(undefined),
           capture: captureMock,
-          evaluateSource: jest.fn().mockResolvedValue(contentTextContract.parse('"Guild Hall"')),
+          evaluateSource: jest.fn().mockResolvedValue('"Guild Hall"'),
           ...(keyListings === undefined
             ? {}
             : {
@@ -181,7 +180,7 @@ export const stepDispatchBrokerProxy = (): {
           fillMatch: jest.fn().mockResolvedValue(undefined),
           waitForMatch: jest.fn().mockResolvedValue(undefined),
           capture: jest.fn().mockResolvedValue(undefined),
-          evaluateSource: jest.fn().mockResolvedValue(contentTextContract.parse('"Guild Hall"')),
+          evaluateSource: jest.fn().mockResolvedValue('"Guild Hall"'),
         },
       }),
     }),
@@ -308,9 +307,9 @@ export const stepDispatchBrokerProxy = (): {
       questIds,
       secondGuild,
     }: {
-      apiBaseUrl: ContentText;
+      apiBaseUrl: string;
       guild: Guild;
-      questIds: readonly ContentText[];
+      questIds: readonly string[];
       secondGuild?: Guild;
     }): { getCallArgs: () => readonly unknown[] } =>
       verbLayerProxy.seedLaneAnswers({
@@ -320,6 +319,6 @@ export const stepDispatchBrokerProxy = (): {
         ...(secondGuild === undefined ? {} : { secondGuild }),
       }),
 
-    getStderrText: (): ContentText => contentTextContract.parse(stderrLog.getWrittenText()),
+    getStderrText: (): string => stderrLog.getWrittenText(),
   };
 };

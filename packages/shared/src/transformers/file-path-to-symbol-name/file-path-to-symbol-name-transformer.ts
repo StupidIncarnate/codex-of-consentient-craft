@@ -11,20 +11,16 @@
  * rendering — the symbol name is the kebab-case identifier used in imports
  */
 
-import {
-  contentTextContract,
-  type ContentText,
-} from '../../contracts/content-text/content-text-contract';
 
 export const filePathToSymbolNameTransformer = ({
   filePath,
 }: {
   filePath: string;
-}): ContentText => {
+}): string => {
   const filePathStr = String(filePath);
   const lastSlash = filePathStr.lastIndexOf('/');
   const basename = lastSlash === -1 ? filePathStr : filePathStr.slice(lastSlash + 1);
   const dot = basename.lastIndexOf('.');
   const stem = dot === -1 ? basename : basename.slice(0, dot);
-  return contentTextContract.parse(stem);
+  return stem;
 };

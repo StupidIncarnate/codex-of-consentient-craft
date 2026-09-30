@@ -24,7 +24,7 @@
  */
 
 import { pid } from '#gateway/node/process';
-import { contentTextContract, processIdContract } from '@dungeonmaster/shared/contracts';
+import { processIdContract } from '@dungeonmaster/shared/contracts';
 
 import { driverSocketRequestBroker } from '../socket-request/driver-socket-request-broker';
 import { processIsAliveBroker } from '../../process/is-alive/process-is-alive-broker';
@@ -52,7 +52,7 @@ export const driverLiveCheckBroker = async ({
 
   return driverSocketRequestBroker({
     socketPath: entry.socketPath,
-    request: driverRequestContract.parse({ kind: 'ping', payload: contentTextContract.parse('') }),
+    request: driverRequestContract.parse({ kind: 'ping', payload: '' }),
     timeoutMs: driverStatics.socket.requestTimeoutMs,
   })
     .then(() => true)

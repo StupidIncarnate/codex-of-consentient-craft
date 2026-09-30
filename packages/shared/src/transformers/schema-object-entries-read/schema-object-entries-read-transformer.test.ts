@@ -5,15 +5,13 @@ describe('schemaObjectEntriesReadTransformer', () => {
   describe('object roots', () => {
     it('VALID: {keys, a quoted key and a getter behind a brand call} => lists key and value text in written order', () => {
       const result = schemaObjectEntriesReadTransformer({
-        text: ContentTextStub({
-          value: [
+        text: [
             'z.object({',
             "  id: z.string().brand<'ThingId'>(),",
             "  'other-key': z.number(),",
             '  get parent() { return thingContract.shape.id; },',
             "}).brand<'Thing'>()",
           ].join('\n'),
-        }),
       });
 
       expect(result).toStrictEqual([
@@ -25,7 +23,7 @@ describe('schemaObjectEntriesReadTransformer', () => {
 
     it('VALID: {z.strictObject behind parentheses and optional} => reads the object root', () => {
       const result = schemaObjectEntriesReadTransformer({
-        text: ContentTextStub({ value: '(z.strictObject({ a: z.string() })).optional()' }),
+        text: '(z.strictObject({ a: z.string() })).optional()',
       });
 
       expect(result).toStrictEqual([{ key: 'a', valueText: 'z.string()' }]);
@@ -44,7 +42,7 @@ describe('schemaObjectEntriesReadTransformer', () => {
 
     it('EMPTY: {a spread and a method in the literal} => skips entries with no key or value', () => {
       const result = schemaObjectEntriesReadTransformer({
-        text: ContentTextStub({ value: 'z.object({ ...base, run() {}, ok: z.string() })' }),
+        text: 'z.object({ ...base, run() {}, ok: z.string() })',
       });
 
       expect(result).toStrictEqual([{ key: 'ok', valueText: 'z.string()' }]);

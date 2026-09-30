@@ -16,11 +16,10 @@
  */
 
 import { z } from '#gateway/npm/zod';
-import { contentTextContract } from '../content-text/content-text-contract';
 import { absoluteFilePathContract } from '../absolute-file-path/absolute-file-path-contract';
 
 export const fileBusEdgeContract = z.object({
-  filePath: contentTextContract,
+  filePath: z.string().brand<'FileBusEdgeFilePath'>(),
   writerFile: absoluteFilePathContract.nullable(),
   watcherFile: absoluteFilePathContract.nullable(),
   paired: z.boolean(),

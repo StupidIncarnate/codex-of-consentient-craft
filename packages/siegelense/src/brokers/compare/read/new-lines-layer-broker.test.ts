@@ -1,4 +1,3 @@
-import { ContentTextStub } from '@dungeonmaster/shared/contracts/content-text/content-text.stub';
 
 import { resultsStatics } from '../../../statics/results/results-statics';
 
@@ -9,12 +8,12 @@ describe('newLinesLayerBroker', () => {
   describe('a genuine difference', () => {
     it('VALID: {linesA: ["a"], linesB: ["a","b"]} => returns only the line unique to linesB', () => {
       newLinesLayerBrokerProxy();
-      const linesA = [ContentTextStub({ value: 'a' })];
-      const linesB = [ContentTextStub({ value: 'a' }), ContentTextStub({ value: 'b' })];
+      const linesA = ['a'];
+      const linesB = ['a', 'b'];
 
       const result = newLinesLayerBroker({ linesA, linesB });
 
-      expect(result).toStrictEqual([ContentTextStub({ value: 'b' })]);
+      expect(result).toStrictEqual(['b']);
     });
   });
 
@@ -29,8 +28,8 @@ describe('newLinesLayerBroker', () => {
 
     it('VALID: {linesA and linesB identical} => returns an empty list', () => {
       newLinesLayerBrokerProxy();
-      const linesA = [ContentTextStub({ value: 'x' })];
-      const linesB = [ContentTextStub({ value: 'x' })];
+      const linesA = ['x'];
+      const linesB = ['x'];
 
       const result = newLinesLayerBroker({ linesA, linesB });
 
@@ -42,11 +41,11 @@ describe('newLinesLayerBroker', () => {
     it('VALID: {linesB repeats the same new line twice} => the new list carries it once', () => {
       newLinesLayerBrokerProxy();
       const linesA: never[] = [];
-      const linesB = [ContentTextStub({ value: 'c' }), ContentTextStub({ value: 'c' })];
+      const linesB = ['c', 'c'];
 
       const result = newLinesLayerBroker({ linesA, linesB });
 
-      expect(result).toStrictEqual([ContentTextStub({ value: 'c' })]);
+      expect(result).toStrictEqual(['c']);
     });
   });
 
@@ -56,14 +55,14 @@ describe('newLinesLayerBroker', () => {
       const overflow = 5;
       const linesB = Array.from(
         { length: resultsStatics.limits.maxRows + overflow },
-        (_unused, index) => ContentTextStub({ value: `line-${String(index)}` }),
+        (_unused, index) => `line-${String(index)}`,
       );
 
       const result = newLinesLayerBroker({ linesA: [], linesB });
 
       expect(result).toStrictEqual(
         Array.from({ length: resultsStatics.limits.maxRows }, (_unused, index) =>
-          ContentTextStub({ value: `line-${String(index)}` }),
+          `line-${String(index)}`,
         ),
       );
     });

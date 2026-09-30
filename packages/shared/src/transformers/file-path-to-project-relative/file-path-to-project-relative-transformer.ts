@@ -15,10 +15,6 @@
  * cross-package display tokens in the project-map output
  */
 
-import {
-  contentTextContract,
-  type ContentText,
-} from '../../contracts/content-text/content-text-contract';
 
 const PACKAGES_SEGMENT = '/packages/';
 const SRC_PREFIX = 'src/';
@@ -30,18 +26,18 @@ export const filePathToProjectRelativeTransformer = ({
 }: {
   filePath: string;
   projectRoot: string;
-}): ContentText => {
+}): string => {
   const raw = String(filePath);
   const packagesPrefix = `${String(projectRoot)}${PACKAGES_SEGMENT}`;
 
   if (!raw.startsWith(packagesPrefix)) {
-    return contentTextContract.parse(raw);
+    return raw;
   }
 
   const withoutPackages = raw.slice(packagesPrefix.length);
   const slashIdx = withoutPackages.indexOf('/');
   if (slashIdx === -1) {
-    return contentTextContract.parse(withoutPackages);
+    return withoutPackages;
   }
 
   const pkgName = withoutPackages.slice(0, slashIdx);
@@ -51,5 +47,5 @@ export const filePathToProjectRelativeTransformer = ({
     ? restNormalized.slice(0, restNormalized.length - TS_EXT.length)
     : restNormalized;
 
-  return contentTextContract.parse(`${pkgName}/${withoutExt}`);
+  return `${pkgName}/${withoutExt}`;
 };

@@ -14,10 +14,6 @@
  */
 
 import {
-  contentTextContract,
-  type ContentText,
-} from '../../contracts/content-text/content-text-contract';
-import {
   tailFileCallContract,
   type TailFileCall,
 } from '../../contracts/tail-file-call/tail-file-call-contract';
@@ -31,13 +27,13 @@ const backtickSegment = '`([^`]*)`';
 export const tailFileCallsExtractTransformer = ({
   source,
 }: {
-  source: ContentText;
+  source: string;
 }): TailFileCall[] => {
   const { importSource, importedName } = projectMapStatics.fsTailGatewayCall;
   const localName = gatewayImportLocalNameFindTransformer({
     source,
-    importSource: contentTextContract.parse(importSource),
-    importedName: contentTextContract.parse(importedName),
+    importSource: importSource,
+    importedName: importedName,
   });
   if (localName === undefined) {
     return [];
@@ -53,11 +49,11 @@ export const tailFileCallsExtractTransformer = ({
     const literal = singleQuoted ?? doubleQuoted ?? backticked;
 
     if (literal !== undefined) {
-      results.push(tailFileCallContract.parse({ filePathArg: contentTextContract.parse(literal) }));
+      results.push(tailFileCallContract.parse({ filePathArg: literal }));
     } else if (brokerName !== undefined) {
       results.push(
         tailFileCallContract.parse({
-          filePathArg: contentTextContract.parse(`<computed: ${brokerName}>`),
+          filePathArg: `<computed: ${brokerName}>`,
         }),
       );
     } else if (bareVar !== undefined) {
@@ -65,7 +61,7 @@ export const tailFileCallsExtractTransformer = ({
         tailFileCallContract.parse({
           filePathArg: filePathArgResolveTransformer({
             source,
-            variableName: contentTextContract.parse(bareVar),
+            variableName: bareVar,
           }),
         }),
       );

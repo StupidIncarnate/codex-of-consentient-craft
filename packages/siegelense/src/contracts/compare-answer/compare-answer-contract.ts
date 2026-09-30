@@ -32,7 +32,7 @@
 
 import { z } from '#gateway/npm/zod';
 
-import { contentTextContract, siegeInstanceContract, siegeRunContract } from '@dungeonmaster/shared/contracts';
+import { siegeInstanceContract, siegeRunContract } from '@dungeonmaster/shared/contracts';
 
 import { countDeltaContract } from '../count-delta/count-delta-contract';
 import { elementDeltaContract } from '../element-delta/element-delta-contract';
@@ -45,17 +45,17 @@ export const compareAnswerContract = z
     runB: siegeRunContract.shape.id,
     console: z.object({
       errors: countDeltaContract,
-      new: z.array(contentTextContract).readonly(),
+      new: z.array(z.string().brand<'CompareAnswerConsoleNew'>()).readonly(),
     }),
     server: z.object({
       errors: countDeltaContract,
-      new: z.array(contentTextContract).readonly(),
+      new: z.array(z.string().brand<'CompareAnswerServerNew'>()).readonly(),
     }),
     network: z.object({
       errors: countDeltaContract,
-      new: z.array(contentTextContract).readonly(),
+      new: z.array(z.string().brand<'CompareAnswerNetworkNew'>()).readonly(),
     }),
-    pixels: contentTextContract.nullable(),
+    pixels: z.string().brand<'CompareAnswerPixels'>().nullable(),
     elements: z
       .object({
         runA: elementDeltaContract.nullable(),

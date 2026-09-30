@@ -39,8 +39,8 @@ import { join } from '#gateway/node/path';
 import { cwd, envSnapshot } from '#gateway/node/process';
 import { ensureDir, rm } from '#gateway/node/fs__promises';
 import { environmentStatics, locationsStatics } from '@dungeonmaster/shared/statics';
-import { contentTextContract, packageTypeContract } from '@dungeonmaster/shared/contracts';
-import type { ContentText, SiegeInstance } from '@dungeonmaster/shared/contracts';
+import { packageTypeContract } from '@dungeonmaster/shared/contracts';
+import type { SiegeInstance } from '@dungeonmaster/shared/contracts';
 
 import { processGroupIdContract } from '../../../contracts/process-group-id/process-group-id-contract';
 import { browserSessionLaunchBroker } from '../../browser-session/launch/browser-session-launch-broker';
@@ -57,6 +57,7 @@ import type { LaneSession } from '../../../contracts/lane-session/lane-session-c
 import type { LaneSpec } from '../../../contracts/lane-spec/lane-spec-contract';
 import type { PortPair } from '../../../contracts/port-pair/port-pair-contract';
 import { LaneBootFailedError } from '../../../errors/lane-boot-failed/lane-boot-failed-error';
+import { laneSpecContract } from '../../../contracts/lane-spec/lane-spec-contract';
 
 export const laneBootBroker = async ({
   spec,
@@ -77,10 +78,10 @@ export const laneBootBroker = async ({
   // typed overload instead of its untyped `any`-returning one; `contentTextContract.parse` accepts
   // `unknown` so a value already known non-undefined at runtime passes through with no type
   // predicate, and a genuinely undefined one is filtered out first.
-  const inheritedEnv: Record<PropertyKey, ContentText> = Object.fromEntries(
+  const inheritedEnv: Record<PropertyKey, string> = Object.fromEntries(
     Object.entries(envSnapshot())
       .filter(([, value]) => value !== undefined)
-      .map(([key, value]): [PropertyKey, ContentText] => [key, contentTextContract.parse(value)]),
+      .map(([key, value]): [PropertyKey, string] => [key, value]),
   );
 
   const cwdSeed = cwd();
@@ -112,8 +113,8 @@ export const laneBootBroker = async ({
         })
       : Promise.resolve(undefined),
   ]);
-  const apiWorkspace = contentTextContract.parse(resolvedApiWorkspace ?? '');
-  const webWorkspace = contentTextContract.parse(resolvedWebWorkspace ?? '');
+  const apiWorkspace = (resolvedApiWorkspace ?? '');
+  const webWorkspace = (resolvedWebWorkspace ?? '');
 
   const substitutedSpecEnv = laneEnvSubstituteTransformer({
     env: spec.env,
@@ -142,7 +143,7 @@ export const laneBootBroker = async ({
       }),
     );
     const substitutedProcessEnv = laneEnvSubstituteTransformer({
-      env: laneProcess.env,
+      env: laneSpecContract.shape.env.parse(laneProcess.env),
       ports,
       home: homePath,
       claudeQueueDir,

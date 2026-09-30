@@ -1,6 +1,4 @@
 import type { StubArgument } from '@dungeonmaster/shared/@types';
-import { contentTextContract } from '@dungeonmaster/shared/contracts';
-import type { ContentText } from '@dungeonmaster/shared/contracts';
 
 import { laneSessionContract } from './lane-session-contract';
 import type { LaneSession } from './lane-session-contract';
@@ -43,10 +41,8 @@ export const LaneSessionStub = ({
       ports: PortPairStub(dataProps.ports),
       homePath: (dataProps.homePath ?? '/tmp/dm-siege-stub'),
       evidencePath: (dataProps.evidencePath ?? '/tmp/dm-siege-stub-evidence'),
-      baseUrl: contentTextContract.parse(dataProps.baseUrl ?? 'http://127.0.0.1:0'),
-      apiBaseUrl: contentTextContract.parse(
-        dataProps.apiBaseUrl ?? dataProps.baseUrl ?? 'http://127.0.0.1:0',
-      ),
+      baseUrl: (dataProps.baseUrl ?? 'http://127.0.0.1:0'),
+      apiBaseUrl: (dataProps.apiBaseUrl ?? dataProps.baseUrl ?? 'http://127.0.0.1:0'),
       pgids:
         dataProps.pgids === undefined
           ? [ProcessGroupIdStub()]
@@ -57,7 +53,7 @@ export const LaneSessionStub = ({
           ? []
           : dataProps.logFds.map((value) => value),
     }),
-    readServerLogSince: readServerLogSince ?? ((): readonly ContentText[] => []),
+    readServerLogSince: readServerLogSince ?? ((): readonly string[] => []),
     serverLogLength:
       serverLogLength ??
       (serverLogLengthSequence === undefined

@@ -24,7 +24,7 @@
 
 import { z } from '#gateway/npm/zod';
 
-import { contentTextContract, timeoutMsContract } from '@dungeonmaster/shared/contracts';
+import { timeoutMsContract } from '@dungeonmaster/shared/contracts';
 
 import { laneProcessContract } from '../lane-process/lane-process-contract';
 import { specNameContract } from '../spec-name/spec-name-contract';
@@ -35,7 +35,7 @@ export const laneSpecContract = z
     processes: z.array(laneProcessContract).readonly(),
     browser: z.boolean(),
     bootTimeoutMs: timeoutMsContract,
-    env: z.record(z.string().brand<'EnvVarName'>(), contentTextContract),
+    env: z.record(z.string().brand<'EnvVarName'>(), z.string().brand<'LaneSpecEnv'>()),
   })
   .refine((spec) => spec.processes.length > 0, {
     message: 'a lane spec must declare at least one process',

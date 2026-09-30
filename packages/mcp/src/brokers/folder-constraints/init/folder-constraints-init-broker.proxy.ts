@@ -16,21 +16,20 @@ import { resolve } from '#gateway/node/path';
 import { stderrProxy } from '#gateway/node/process/stderr/stderr.proxy';
 import { folderConstraintsStatics } from '../../../statics/folder-constraints/folder-constraints-statics';
 import type { FolderTypeWithConstraints } from '../../../statics/folder-constraints/folder-constraints-statics';
-import { ContentTextStub } from '../../../contracts/content-text/content-text.stub';
 import { pathSegmentContract } from '@dungeonmaster/shared/contracts';
 
-type ContentText = ReturnType<typeof ContentTextStub>;
+type ContentText = string;
 
 // Every constraint markdown file on disk opens with this exact line.
-const FOLDER_STRUCTURE_HEADING = ContentTextStub({ value: '**FOLDER STRUCTURE:**' });
+const FOLDER_STRUCTURE_HEADING = '**FOLDER STRUCTURE:**';
 
 // The one real section-header line each content-asserting test in
 // folder-constraints-init-broker.test.ts checks for, copied verbatim from its constraint file.
 const SECTION_HEADING_BY_FOLDER_TYPE: Partial<Record<FolderTypeWithConstraints, ContentText>> = {
-  brokers: ContentTextStub({ value: '**PROXY PATTERN:**' }),
-  guards: ContentTextStub({ value: '**OBJECT ARGUMENTS FOR STATICS:**' }),
-  contracts: ContentTextStub({ value: '**CRITICAL - TEST IMPORTS:**' }),
-  statics: ContentTextStub({ value: '**CRITICAL RULES:**' }),
+  brokers: '**PROXY PATTERN:**',
+  guards: '**OBJECT ARGUMENTS FOR STATICS:**',
+  contracts: '**CRITICAL - TEST IMPORTS:**',
+  statics: '**CRITICAL RULES:**',
 };
 
 export const folderConstraintsInitBrokerProxy = (): Record<PropertyKey, never> => {
@@ -45,7 +44,7 @@ export const folderConstraintsInitBrokerProxy = (): Record<PropertyKey, never> =
     const filepath = pathSegmentContract.parse(resolve(constraintsDir, filename));
     const sectionHeading = SECTION_HEADING_BY_FOLDER_TYPE[folderType as FolderTypeWithConstraints];
     const contents = sectionHeading
-      ? ContentTextStub({ value: `${FOLDER_STRUCTURE_HEADING}\n${sectionHeading}` })
+      ? `${FOLDER_STRUCTURE_HEADING}\n${sectionHeading}`
       : FOLDER_STRUCTURE_HEADING;
     fileGateway.returns({ path: filepath, contents });
   }

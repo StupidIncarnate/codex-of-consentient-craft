@@ -1,6 +1,5 @@
 import { busSubscriberFilesFindLayerBroker } from './bus-subscriber-files-find-layer-broker';
 import { busSubscriberFilesFindLayerBrokerProxy } from './bus-subscriber-files-find-layer-broker.proxy';
-import { ContentTextStub } from '../../../contracts/content-text/content-text.stub';
 import { EventBusStub } from '../../../contracts/event-bus/event-bus.stub';
 
 const PROJECT_ROOT = '/repo';
@@ -31,16 +30,11 @@ describe('busSubscriberFilesFindLayerBroker', () => {
         sourceFiles: [
           {
             path: SUBSCRIBER_ADAPTER,
-            source: ContentTextStub({
-              value: 'myBus.on({ type, handler });',
-            }),
+            source: 'myBus.on({ type, handler });',
           },
           {
             path: GATEWAY_RESPONDER,
-            source: ContentTextStub({
-              value:
-                "import { fooEventsOnAdapter } from '../../../adapters/foo/events-on/foo-events-on-adapter';",
-            }),
+            source: "import { fooEventsOnAdapter } from '../../../adapters/foo/events-on/foo-events-on-adapter';",
           },
         ],
       });
@@ -50,7 +44,7 @@ describe('busSubscriberFilesFindLayerBroker', () => {
         buses: [
           EventBusStub({
             stateFile: STATE_FILE,
-            exportName: ContentTextStub({ value: 'myBus' }),
+            exportName: 'myBus',
           }),
         ],
       });
@@ -58,7 +52,7 @@ describe('busSubscriberFilesFindLayerBroker', () => {
       expect(result).toStrictEqual([
         {
           subscriberFile: GATEWAY_RESPONDER,
-          busExportName: ContentTextStub({ value: 'myBus' }),
+          busExportName: 'myBus',
         },
       ]);
     });
@@ -71,9 +65,7 @@ describe('busSubscriberFilesFindLayerBroker', () => {
         sourceFiles: [
           {
             path: GATEWAY_RESPONDER,
-            source: ContentTextStub({
-              value: 'myBus.on({ type, handler });',
-            }),
+            source: 'myBus.on({ type, handler });',
           },
         ],
       });
@@ -83,7 +75,7 @@ describe('busSubscriberFilesFindLayerBroker', () => {
         buses: [
           EventBusStub({
             stateFile: STATE_FILE,
-            exportName: ContentTextStub({ value: 'myBus' }),
+            exportName: 'myBus',
           }),
         ],
       });
@@ -91,7 +83,7 @@ describe('busSubscriberFilesFindLayerBroker', () => {
       expect(result).toStrictEqual([
         {
           subscriberFile: GATEWAY_RESPONDER,
-          busExportName: ContentTextStub({ value: 'myBus' }),
+          busExportName: 'myBus',
         },
       ]);
     });
@@ -104,9 +96,7 @@ describe('busSubscriberFilesFindLayerBroker', () => {
         sourceFiles: [
           {
             path: UNRELATED_RESPONDER,
-            source: ContentTextStub({
-              value: 'export const otherResponder = () => {};',
-            }),
+            source: 'export const otherResponder = () => {};',
           },
         ],
       });
@@ -116,7 +106,7 @@ describe('busSubscriberFilesFindLayerBroker', () => {
         buses: [
           EventBusStub({
             stateFile: STATE_FILE,
-            exportName: ContentTextStub({ value: 'myBus' }),
+            exportName: 'myBus',
           }),
         ],
       });

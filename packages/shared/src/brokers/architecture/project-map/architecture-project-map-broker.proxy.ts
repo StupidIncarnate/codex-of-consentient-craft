@@ -3,9 +3,7 @@ import { architectureGatewayInventoryBrokerProxy } from '../gateway-inventory/ar
 import { packageSectionBuildLayerBrokerProxy } from './package-section-build-layer-broker.proxy';
 import { pointerFooterRenderLayerBrokerProxy } from './pointer-footer-render-layer-broker.proxy';
 import { discoverPackagesLayerBrokerProxy } from './discover-packages-layer-broker.proxy';
-import { ContentTextStub } from '../../../contracts/content-text/content-text.stub';
 import { projectMapStatics } from '../../../statics/project-map/project-map-statics';
-import type { ContentText } from '../../../contracts/content-text/content-text-contract';
 
 /**
  * All sub-proxies share the same underlying `readdirSync` and `readFileSync` staging — one
@@ -57,7 +55,7 @@ export const architectureProjectMapBrokerProxy = (): {
     projectRoot: string;
     folder: string;
     subpathName: string;
-    barrelContent?: ContentText;
+    barrelContent?: string;
   }) => void;
 } => {
   const discoverProxy = discoverPackagesLayerBrokerProxy();
@@ -106,9 +104,7 @@ export const architectureProjectMapBrokerProxy = (): {
         packageJsonContent: '{}',
         srcDirNames: ['flows', 'responders', 'state', 'startup'],
         startupFileName: 'start-app.ts',
-        startupFileContent: ContentTextStub({
-          value: 'export const StartApp = { run: async () => {} };',
-        }),
+        startupFileContent: 'export const StartApp = { run: async () => {} };',
       });
     },
 
@@ -181,7 +177,7 @@ export const architectureProjectMapBrokerProxy = (): {
       projectRoot: string;
       folder: string;
       subpathName: string;
-      barrelContent?: ContentText;
+      barrelContent?: string;
     }): void => {
       gatewayInventoryProxy.setupSubpath({
         projectRoot,

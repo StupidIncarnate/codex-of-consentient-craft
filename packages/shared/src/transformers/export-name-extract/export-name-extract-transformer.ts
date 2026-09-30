@@ -14,18 +14,14 @@
  * matches the first `export const|function <name>` statement in source order
  */
 
-import {
-  contentTextContract,
-  type ContentText,
-} from '../../contracts/content-text/content-text-contract';
 
 const EXPORT_PATTERN = /export\s+(?:const|function)\s+([A-Za-z_$][A-Za-z0-9_$]*)/u;
 
 export const exportNameExtractTransformer = ({
   source,
 }: {
-  source: ContentText;
-}): ContentText | null => {
+  source: string;
+}): string | null => {
   const match = EXPORT_PATTERN.exec(String(source));
   if (match === null) {
     return null;
@@ -34,5 +30,5 @@ export const exportNameExtractTransformer = ({
   if (name === undefined || name === '') {
     return null;
   }
-  return contentTextContract.parse(name);
+  return name;
 };

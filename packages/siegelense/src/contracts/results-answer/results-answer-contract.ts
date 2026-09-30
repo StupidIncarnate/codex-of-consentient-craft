@@ -20,7 +20,7 @@
 
 import { z } from '#gateway/npm/zod';
 
-import { contentTextContract, siegeInstanceContract, siegeRunContract } from '@dungeonmaster/shared/contracts';
+import { siegeInstanceContract, siegeRunContract } from '@dungeonmaster/shared/contracts';
 
 import { epochMsContract } from '../epoch-ms/epoch-ms-contract';
 import { instanceStateContract } from '../instance-state/instance-state-contract';
@@ -38,11 +38,11 @@ export const resultsAnswerContract = z.object({
   step: stepIndexContract.nullable(),
   verb: stepVerbContract.nullable(),
   prunedAtMs: epochMsContract.nullable(),
-  prunedByRule: contentTextContract.nullable(),
+  prunedByRule: z.string().brand<'ResultsAnswerPrunedByRule'>().nullable(),
   matched: readingCountContract,
   returned: readingCountContract,
   truncated: z.boolean(),
-  rows: z.array(contentTextContract).readonly(),
+  rows: z.array(z.string().brand<'ResultsAnswerRows'>()).readonly(),
   storedReturn: runResultContract.nullable(),
 });
 

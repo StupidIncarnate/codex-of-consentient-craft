@@ -31,7 +31,6 @@
 import { deleteEnv, getEnv, setEnv, stdout } from '#gateway/node/process';
 import { registerSpyOn } from '@dungeonmaster/testing/register-mock';
 import { installTestbedCreateBroker } from '@dungeonmaster/testing';
-import { ContentTextStub } from '@dungeonmaster/shared/contracts/content-text/content-text.stub';
 import { locationsStatics } from '@dungeonmaster/shared/statics';
 
 import { InstanceIdStub } from '../../contracts/instance-id/instance-id.stub';
@@ -212,7 +211,7 @@ describe('SiegelenseStatusLayerFlow', () => {
 
       const writes = stdoutSpy
         .callsMatching([])
-        .map((call) => ContentTextStub({ value: String(call[0]) }));
+        .map((call) => String(call[0]));
 
       const [wholeOutput] = writes;
 
@@ -231,7 +230,7 @@ describe('SiegelenseStatusLayerFlow', () => {
 
         const writes = stdoutSpy
           .callsMatching([])
-          .map((call) => ContentTextStub({ value: String(call[0]) }));
+          .map((call) => String(call[0]));
 
         const [wholeOutput] = writes;
 
@@ -249,7 +248,7 @@ describe('SiegelenseStatusLayerFlow', () => {
 
       const writes = stdoutSpy
         .callsMatching([])
-        .map((call) => ContentTextStub({ value: String(call[0]) }));
+        .map((call) => String(call[0]));
 
       const [wholeOutput] = writes;
 
@@ -264,7 +263,7 @@ describe('SiegelenseStatusLayerFlow', () => {
 
       const writes = stdoutSpy
         .callsMatching([])
-        .map((call) => ContentTextStub({ value: String(call[0]) }));
+        .map((call) => String(call[0]));
 
       const [wholeOutput] = writes;
 
@@ -281,7 +280,7 @@ describe('SiegelenseStatusLayerFlow', () => {
 
       const writes = stdoutSpy
         .callsMatching([])
-        .map((call) => ContentTextStub({ value: String(call[0]) }));
+        .map((call) => String(call[0]));
 
       const [wholeOutput] = writes;
 
@@ -299,7 +298,7 @@ describe('SiegelenseStatusLayerFlow', () => {
 
       const writes = stdoutSpy
         .callsMatching([])
-        .map((call) => ContentTextStub({ value: String(call[0]) }));
+        .map((call) => String(call[0]));
 
       const [wholeOutput] = writes;
       const withoutLiveMachineBlock = wholeOutput!.replace(MACHINE_BLOCK_PATTERN, '');
@@ -317,7 +316,7 @@ describe('SiegelenseStatusLayerFlow', () => {
 
       const writes = stdoutSpy
         .callsMatching([])
-        .map((call) => ContentTextStub({ value: String(call[0]) }));
+        .map((call) => String(call[0]));
 
       // The table's VALUE column pads to the widest cell — the live evidence-dir path under
       // `testbed.guildPath` — so rows are parsed into a plain field/value object instead of
@@ -369,7 +368,7 @@ describe('SiegelenseStatusLayerFlow', () => {
 
       const writes = stdoutSpy
         .callsMatching([])
-        .map((call) => ContentTextStub({ value: String(call[0]) }));
+        .map((call) => String(call[0]));
 
       expect(writes).toStrictEqual([]);
     });
@@ -384,7 +383,7 @@ describe('SiegelenseStatusLayerFlow', () => {
 
       const writes = stdoutSpy
         .callsMatching([])
-        .map((call) => ContentTextStub({ value: String(call[0]) }));
+        .map((call) => String(call[0]));
 
       expect(writes).toStrictEqual([]);
     });

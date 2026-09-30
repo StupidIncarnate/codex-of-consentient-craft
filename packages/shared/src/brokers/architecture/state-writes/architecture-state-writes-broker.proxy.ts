@@ -1,7 +1,6 @@
 import { listSourceFilesLayerBrokerProxy } from './list-source-files-layer-broker.proxy';
 import { stateDirsFindLayerBrokerProxy } from './state-dirs-find-layer-broker.proxy';
 import { readSourceFileLayerBrokerProxy } from './read-source-file-layer-broker.proxy';
-import type { ContentText } from '../../../contracts/content-text/content-text-contract';
 
 export const architectureStateWritesBrokerProxy = (): {
   setupSourceFiles: ({
@@ -12,7 +11,7 @@ export const architectureStateWritesBrokerProxy = (): {
   }: {
     packageRoot: string;
     filePaths: string[];
-    contents: ContentText[];
+    contents: string[];
     stateDirNames: string[];
   }) => void;
   setupEmpty: ({ packageRoot }: { packageRoot: string }) => void;
@@ -30,7 +29,7 @@ export const architectureStateWritesBrokerProxy = (): {
     }: {
       packageRoot: string;
       filePaths: string[];
-      contents: ContentText[];
+      contents: string[];
       stateDirNames: string[];
     }): void => {
       const srcPath = `${String(packageRoot)}/src`;

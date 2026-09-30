@@ -11,8 +11,6 @@
  * const reading = keyPress.toReading({ press: 'Enter', rawFocused: raw });
  */
 
-import { contentTextContract } from '@dungeonmaster/shared/contracts';
-import type { ContentText } from '@dungeonmaster/shared/contracts';
 
 import { focusedElementContract } from '../../contracts/focused-element/focused-element-contract';
 import { keyReadingContract } from '../../contracts/key-reading/key-reading-contract';
@@ -63,13 +61,13 @@ const FOCUS_READ_SOURCE = `(() => {
 })()`;
 
 export const keyPressTransformer = (): {
-  focusReadSource: () => ContentText;
+  focusReadSource: () => string;
   toReading: (params: { press: string; rawFocused: unknown }) => KeyReading;
 } => ({
-  focusReadSource: (): ContentText => contentTextContract.parse(FOCUS_READ_SOURCE),
+  focusReadSource: (): string => FOCUS_READ_SOURCE,
 
   toReading: ({ press, rawFocused }: { press: string; rawFocused: unknown }): KeyReading => {
-    const validatedPress = contentTextContract.parse(press);
+    const validatedPress = press;
     if (rawFocused === null || rawFocused === undefined) {
       return keyReadingContract.parse({ press: validatedPress, focused: null });
     }

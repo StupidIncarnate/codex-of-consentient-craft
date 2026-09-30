@@ -13,7 +13,6 @@ import { signalBackBroker } from '../../../brokers/signal/back/signal-back-broke
 import { getAgentPromptInputContract } from '../../../contracts/get-agent-prompt-input/get-agent-prompt-input-contract';
 import type { CallToolResult } from '#gateway/npm/modelcontextprotocol__sdk__types';
 import type { ToolName } from '../../../contracts/tool-name/tool-name-contract';
-import { contentTextContract } from '../../../contracts/content-text/content-text-contract';
 
 const JSON_INDENT_SPACES = 2;
 
@@ -49,7 +48,7 @@ export const InteractionHandleResponder = async ({
       content: [
         {
           type: 'text',
-          text: contentTextContract.parse(JSON.stringify(result, null, JSON_INDENT_SPACES)),
+          text: JSON.stringify(result, null, JSON_INDENT_SPACES),
         },
       ],
     };
@@ -89,7 +88,7 @@ export const InteractionHandleResponder = async ({
       content: [
         {
           type: 'text',
-          text: contentTextContract.parse(JSON.stringify(result, null, JSON_INDENT_SPACES)),
+          text: JSON.stringify(result, null, JSON_INDENT_SPACES),
         },
       ],
     };

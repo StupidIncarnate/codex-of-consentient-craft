@@ -11,7 +11,6 @@
  * staticsStringPropertyTransformer({ source, objectName: 'bundleStatics', propertyName: 'buildCommand' });
  * // Returns 'npm' as ContentText, or undefined when the property is not a plain top-level string
  */
-import { contentTextContract, type ContentText } from '@dungeonmaster/shared/contracts';
 import { topLevelTextLayerTransformer } from './top-level-text-layer-transformer';
 
 const IDENTIFIER_PATTERN = /^[A-Za-z_$][\w$]*$/u;
@@ -25,7 +24,7 @@ export const staticsStringPropertyTransformer = ({
   source: string;
   objectName: string;
   propertyName: string;
-}): ContentText | undefined => {
+}): string | undefined => {
   if (!IDENTIFIER_PATTERN.test(objectName) || !IDENTIFIER_PATTERN.test(propertyName)) {
     return undefined;
   }
@@ -40,7 +39,7 @@ export const staticsStringPropertyTransformer = ({
   }
 
   const topLevel = topLevelTextLayerTransformer({
-    body: contentTextContract.parse(source.slice(declaration.index + declaration[0].length)),
+    body: source.slice(declaration.index + declaration[0].length),
   });
   const escapedProperty = propertyName.replace(DOLLAR_PATTERN, '\\$');
   const property = new RegExp(
@@ -49,5 +48,5 @@ export const staticsStringPropertyTransformer = ({
   ).exec(topLevel);
   const value = property?.[1] ?? property?.[2] ?? property?.[3];
 
-  return value === undefined || value.length === 0 ? undefined : contentTextContract.parse(value);
+  return value === undefined || value.length === 0 ? undefined : value;
 };

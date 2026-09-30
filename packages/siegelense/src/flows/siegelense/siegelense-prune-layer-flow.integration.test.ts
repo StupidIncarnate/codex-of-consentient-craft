@@ -27,7 +27,6 @@
 import { deleteEnv, getEnv, setEnv, stdout } from '#gateway/node/process';
 import { registerSpyOn } from '@dungeonmaster/testing/register-mock';
 import { installTestbedCreateBroker } from '@dungeonmaster/testing';
-import { ContentTextStub } from '@dungeonmaster/shared/contracts/content-text/content-text.stub';
 import { GuildIdStub } from '@dungeonmaster/shared/contracts/guild-id/guild-id.stub';
 import { QuestIdStub } from '@dungeonmaster/shared/contracts/quest-id/quest-id.stub';
 import { QuestNoteStub } from '@dungeonmaster/shared/contracts/quest-note/quest-note.stub';
@@ -135,7 +134,7 @@ describe('SiegelensePruneLayerFlow', () => {
   let videoKindResult: Awaited<ReturnType<typeof SiegelensePruneLayerFlow>> | null = null;
   let targetAnswer: unknown = null;
   let citedAnswer: unknown = null;
-  let liveRenderedOutput: ReturnType<typeof ContentTextStub> | null = null;
+  let liveRenderedOutput: string | null = null;
   let boundaryTooYoungAnswer: unknown = null;
   let boundaryPastWindowAnswer: unknown = null;
   let boundaryLogAfterTooYoungSweep: ReturnType<typeof testbed.readFile> = null;
@@ -398,7 +397,7 @@ describe('SiegelensePruneLayerFlow', () => {
     });
     const targetWrites = targetSpy
       .callsMatching([])
-      .map((call) => ContentTextStub({ value: String(call[0]) }))
+      .map((call) => String(call[0]))
       .slice(targetBefore);
     const [targetWholeOutput] = targetWrites;
     targetAnswer = JSON.parse(String(targetWholeOutput));
@@ -411,7 +410,7 @@ describe('SiegelensePruneLayerFlow', () => {
     });
     const citedWrites = citedSpy
       .callsMatching([])
-      .map((call) => ContentTextStub({ value: String(call[0]) }))
+      .map((call) => String(call[0]))
       .slice(citedBefore);
     const [citedWholeOutput] = citedWrites;
     citedAnswer = JSON.parse(String(citedWholeOutput));
@@ -424,7 +423,7 @@ describe('SiegelensePruneLayerFlow', () => {
     });
     const liveWrites = liveSpy
       .callsMatching([])
-      .map((call) => ContentTextStub({ value: String(call[0]) }))
+      .map((call) => String(call[0]))
       .slice(liveBefore);
     const [liveWholeOutput] = liveWrites;
     liveRenderedOutput = liveWholeOutput ?? null;
@@ -441,7 +440,7 @@ describe('SiegelensePruneLayerFlow', () => {
     });
     const boundaryTooYoungWrites = boundaryTooYoungSpy
       .callsMatching([])
-      .map((call) => ContentTextStub({ value: String(call[0]) }))
+      .map((call) => String(call[0]))
       .slice(boundaryTooYoungBefore);
     const [boundaryTooYoungWholeOutput] = boundaryTooYoungWrites;
     boundaryTooYoungAnswer = JSON.parse(String(boundaryTooYoungWholeOutput));
@@ -460,7 +459,7 @@ describe('SiegelensePruneLayerFlow', () => {
     });
     const boundaryPastWindowWrites = boundaryPastWindowSpy
       .callsMatching([])
-      .map((call) => ContentTextStub({ value: String(call[0]) }))
+      .map((call) => String(call[0]))
       .slice(boundaryPastWindowBefore);
     const [boundaryPastWindowWholeOutput] = boundaryPastWindowWrites;
     boundaryPastWindowAnswer = JSON.parse(String(boundaryPastWindowWholeOutput));
@@ -712,7 +711,7 @@ describe('SiegelensePruneLayerFlow', () => {
 
       const writes = stdoutSpy
         .callsMatching([])
-        .map((call) => ContentTextStub({ value: String(call[0]) }));
+        .map((call) => String(call[0]));
 
       const after = testbed.readFile({
         relativePath: NO_CONFIRM_LOG_PATH,

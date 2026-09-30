@@ -15,10 +15,6 @@
  * WHEN-NOT-TO-USE: When full AST accuracy is required — this is a v1 regex heuristic
  */
 
-import {
-  contentTextContract,
-  type ContentText,
-} from '../../contracts/content-text/content-text-contract';
 
 // Matches the exported namespace object literal header
 const NAMESPACE_OBJECT_HEADER_PATTERN = /export\s+const\s+\w+\s*=\s*\{/u;
@@ -29,8 +25,8 @@ const TOP_LEVEL_KEY_PATTERN = /^(\s+)([a-z][A-Za-z0-9]*):/u;
 export const namespaceObjectKeysExtractTransformer = ({
   source,
 }: {
-  source: ContentText;
-}): ContentText[] => {
+  source: string;
+}): string[] => {
   const src = String(source);
 
   const namespaceMatch = NAMESPACE_OBJECT_HEADER_PATTERN.exec(src);
@@ -42,7 +38,7 @@ export const namespaceObjectKeysExtractTransformer = ({
 
   // Walk character-by-character so we can both (a) find the end of the namespace literal and
   // (b) track which lines sit at brace-depth-1 (immediate properties of the namespace).
-  const found: ContentText[] = [];
+  const found: string[] = [];
   let depth = 1;
   let lineStart = startIdx;
   for (let i = startIdx; i < src.length; i += 1) {
@@ -73,7 +69,7 @@ export const namespaceObjectKeysExtractTransformer = ({
     }
     const [whole, , methodName] = match;
     if (methodName !== undefined) {
-      const parsed = contentTextContract.parse(methodName);
+      const parsed = methodName;
       const alreadySeen = found.some((m) => String(m) === String(parsed));
       if (!alreadySeen) {
         found.push(parsed);

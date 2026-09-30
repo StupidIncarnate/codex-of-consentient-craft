@@ -12,12 +12,11 @@
  */
 
 import { z } from '#gateway/npm/zod';
-import { contentTextContract } from '../content-text/content-text-contract';
 
 export const serverRouteCallSiteContract = z.object({
-  method: contentTextContract,
-  rawArg: contentTextContract,
-  responderName: contentTextContract.nullable(),
+  method: z.string().brand<'ServerRouteCallSiteMethod'>(),
+  rawArg: z.string().brand<'ServerRouteCallSiteRawArg'>(),
+  responderName: z.string().brand<'ServerRouteCallSiteResponderName'>().nullable(),
 });
 
 export type ServerRouteCallSite = z.infer<typeof serverRouteCallSiteContract>;

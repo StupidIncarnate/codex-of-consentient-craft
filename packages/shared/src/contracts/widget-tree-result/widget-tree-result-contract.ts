@@ -13,12 +13,11 @@
  */
 
 import { z } from '#gateway/npm/zod';
-import { contentTextContract } from '../content-text/content-text-contract';
 import { widgetNodeContract } from '../widget-node/widget-node-contract';
 
 export const widgetTreeResultContract = z.object({
   roots: z.array(widgetNodeContract),
-  hubs: z.array(contentTextContract),
+  hubs: z.array(z.string().brand<'WidgetTreeResultHubs'>()),
 });
 
 export type WidgetTreeResult = z.infer<typeof widgetTreeResultContract>;

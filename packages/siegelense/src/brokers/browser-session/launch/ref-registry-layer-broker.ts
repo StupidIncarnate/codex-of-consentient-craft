@@ -40,8 +40,6 @@
  * // Drives ref 23 through the strict locator path, then removes the mark it made
  */
 
-import { contentTextContract } from '@dungeonmaster/shared/contracts';
-import type { ContentText } from '@dungeonmaster/shared/contracts';
 
 import { rawRefStateContract } from '../../../contracts/raw-ref-state/raw-ref-state-contract';
 import { refResolutionContract } from '../../../contracts/ref-resolution/ref-resolution-contract';
@@ -67,28 +65,28 @@ const INIT_SCRIPT_SOURCE = `(() => {
 })()`;
 
 export const refRegistryLayerBroker = (): {
-  initScriptSource: () => ContentText;
-  refStateSource: (params: { ref: number }) => ContentText;
-  stampSource: (params: { ref: number }) => ContentText;
-  unstampSource: () => ContentText;
-  targetSelector: () => ContentText;
-  boxSource: (params: { ref: number }) => ContentText;
+  initScriptSource: () => string;
+  refStateSource: (params: { ref: number }) => string;
+  stampSource: (params: { ref: number }) => string;
+  unstampSource: () => string;
+  targetSelector: () => string;
+  boxSource: (params: { ref: number }) => string;
   toResolution: (params: { raw: unknown; ref: number; highestMinted: number }) => RefResolution;
 } => ({
-  initScriptSource: (): ContentText => contentTextContract.parse(INIT_SCRIPT_SOURCE),
+  initScriptSource: (): string => INIT_SCRIPT_SOURCE,
 
   // Self-invoked for the same reason `describeMatches`'s source is: a bare arrow-function source
   // string is never CALLED by Playwright at all — its client tags a call with
   // `isFunction: typeof pageFunction === 'function'`, and a string fails that test — so an
   // un-called function fails to serialize and comes back `undefined`.
-  refStateSource: ({ ref }: { ref: number }): ContentText =>
-    contentTextContract.parse(`(() => {
+  refStateSource: ({ ref }: { ref: number }): string =>
+    `(() => {
   const registry = window.${GLOBAL} === undefined ? null : window.${GLOBAL}.${ARRAY};
   if (registry === null || registry === undefined) { return 'out-of-range'; }
   const element = registry[${String(ref - 1)}];
   if (element === undefined || element === null) { return 'out-of-range'; }
   return element.isConnected === true ? 'live' : 'detached';
-})()`),
+})()`,
 
   // Driving by ref goes through a LOCATOR rather than an ElementHandle — this package's tsconfig
   // carries no `dom` lib, so `JSHandle.asElement()` resolves to `null` at the type level and the
@@ -96,8 +94,8 @@ export const refRegistryLayerBroker = (): {
   // no-pick work for a ref exactly as it does for a selector: exactly one element carries the
   // attribute, so the locator resolves to one element or to none, never to "the first of several".
   // The caller unstamps in a `finally`, so the mutation never outlives the step that made it.
-  stampSource: ({ ref }: { ref: number }): ContentText =>
-    contentTextContract.parse(`(() => {
+  stampSource: ({ ref }: { ref: number }): string =>
+    `(() => {
   document.querySelectorAll('[${ATTRIBUTE}]').forEach((stamped) => { stamped.removeAttribute('${ATTRIBUTE}'); });
   const registry = window.${GLOBAL} === undefined ? null : window.${GLOBAL}.${ARRAY};
   if (registry === null || registry === undefined) { return false; }
@@ -105,18 +103,18 @@ export const refRegistryLayerBroker = (): {
   if (element === undefined || element === null || element.isConnected !== true) { return false; }
   element.setAttribute('${ATTRIBUTE}', '');
   return true;
-})()`),
+})()`,
 
-  unstampSource: (): ContentText =>
-    contentTextContract.parse(`(() => {
+  unstampSource: (): string =>
+    `(() => {
   document.querySelectorAll('[${ATTRIBUTE}]').forEach((stamped) => { stamped.removeAttribute('${ATTRIBUTE}'); });
   return true;
-})()`),
+})()`,
 
-  targetSelector: (): ContentText => contentTextContract.parse(`[${ATTRIBUTE}]`),
+  targetSelector: (): string => `[${ATTRIBUTE}]`,
 
-  boxSource: ({ ref }: { ref: number }): ContentText =>
-    contentTextContract.parse(`(() => {
+  boxSource: ({ ref }: { ref: number }): string =>
+    `(() => {
   const registry = window.${GLOBAL} === undefined ? null : window.${GLOBAL}.${ARRAY};
   if (registry === null || registry === undefined) { return null; }
   const element = registry[${String(ref - 1)}];
@@ -146,7 +144,7 @@ export const refRegistryLayerBroker = (): {
     visible,
     inViewport,
   };
-})()`),
+})()`,
 
   toResolution: ({
     raw,

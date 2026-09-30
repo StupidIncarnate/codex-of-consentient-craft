@@ -1,4 +1,3 @@
-import { ContentTextStub } from '@dungeonmaster/shared/contracts/content-text/content-text.stub';
 
 import { docsStatics } from '../../statics/docs/docs-statics';
 import { runArgsParseTransformer } from './run-args-parse-transformer';
@@ -40,7 +39,7 @@ describe('runArgsParseTransformer', () => {
 
       const result = runArgsParseTransformer({
         args: ['--instance', 'inst_7f3a9c21', '--steps-file', '/tmp/wherever/steps.json'],
-        stepsFileContent: ContentTextStub({ value: stepsJson }),
+        stepsFileContent: stepsJson,
       });
 
       expect(result).toStrictEqual({
@@ -257,7 +256,7 @@ describe('runArgsParseTransformer', () => {
       expect(() =>
         runArgsParseTransformer({
           args: ['--instance', 'inst_7f3a9c21', '--steps-file', '/tmp/steps.json'],
-          stepsFileContent: ContentTextStub({ value: '[]' }),
+          stepsFileContent: '[]',
         }),
       ).toThrow(/^--steps-file: a run needs at least one step/u);
     });

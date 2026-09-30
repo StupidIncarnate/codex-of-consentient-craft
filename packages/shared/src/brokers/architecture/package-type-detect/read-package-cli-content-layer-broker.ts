@@ -10,7 +10,6 @@
  * parsed command as a parameter, or vice versa.
  */
 
-import type { ContentText } from '../../../contracts/content-text/content-text-contract';
 import { isBinSourceFileNameGuard } from '../../../guards/is-bin-source-file-name/is-bin-source-file-name-guard';
 import { matchesStartupFileNameGuard } from '../../../guards/matches-startup-file-name/matches-startup-file-name-guard';
 import { readFileOptionalLayerBroker } from './read-file-optional-layer-broker';
@@ -20,8 +19,8 @@ export const readPackageCliContentLayerBroker = ({
   packageRoot,
 }: {
   packageRoot: string;
-}): ContentText | undefined => {
-  const collected: ContentText[] = [];
+}): string | undefined => {
+  const collected: string[] = [];
 
   const startupDirPath = `${packageRoot}/src/startup`;
   const startupEntries = safeReaddirLayerBroker({ dirPath: startupDirPath });
@@ -47,5 +46,5 @@ export const readPackageCliContentLayerBroker = ({
 
   if (collected.length === 0) return undefined;
   const joined = collected.map((c) => String(c)).join('\n\n');
-  return joined as ContentText;
+  return joined as string;
 };

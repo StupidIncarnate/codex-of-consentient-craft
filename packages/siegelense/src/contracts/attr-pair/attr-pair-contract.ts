@@ -16,11 +16,10 @@
 
 import { z } from '#gateway/npm/zod';
 
-import { contentTextContract } from '@dungeonmaster/shared/contracts';
 
 export const attrPairContract = z.object({
-  name: contentTextContract,
-  value: contentTextContract,
+  name: z.string().brand<'AttrPairName'>(),
+  value: z.string().brand<'AttrPairValue'>(),
 });
 
 export type AttrPair = z.infer<typeof attrPairContract>;

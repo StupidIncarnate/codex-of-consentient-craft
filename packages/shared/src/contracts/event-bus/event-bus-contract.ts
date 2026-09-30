@@ -15,12 +15,11 @@
  */
 
 import { z } from '#gateway/npm/zod';
-import { contentTextContract } from '../content-text/content-text-contract';
 import { absoluteFilePathContract } from '../absolute-file-path/absolute-file-path-contract';
 
 export const eventBusContract = z.object({
   stateFile: absoluteFilePathContract,
-  exportName: contentTextContract,
+  exportName: z.string().brand<'EventBusExportName'>(),
 });
 
 export type EventBus = z.infer<typeof eventBusContract>;

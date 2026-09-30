@@ -10,10 +10,6 @@
  * WHEN-NOT-TO-USE: When full AST parsing is needed — this is a v1 regex heuristic
  */
 
-import {
-  contentTextContract,
-  type ContentText,
-} from '../../contracts/content-text/content-text-contract';
 
 const FLOW_IMPORT_PATTERN =
   /import\s+(?:type\s+)?(?:\{[^}]+\}|\*\s+as\s+\w+|\w+)\s+from\s+['"]([^'"]*(?:flows|responders)[^'"]*)['"]/u;
@@ -21,8 +17,8 @@ const FLOW_IMPORT_PATTERN =
 export const hookFlowImportExtractTransformer = ({
   source,
 }: {
-  source: ContentText;
-}): ContentText | undefined => {
+  source: string;
+}): string | undefined => {
   const match = FLOW_IMPORT_PATTERN.exec(String(source));
   if (match === null) {
     return undefined;
@@ -31,5 +27,5 @@ export const hookFlowImportExtractTransformer = ({
   if (captured === undefined) {
     return undefined;
   }
-  return contentTextContract.parse(captured);
+  return captured;
 };

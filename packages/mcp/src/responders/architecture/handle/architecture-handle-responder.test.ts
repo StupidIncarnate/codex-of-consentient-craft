@@ -1,6 +1,5 @@
 import { TextContentSchema } from '#gateway/npm/modelcontextprotocol__sdk__types';
 import { ToolNameStub } from '../../../contracts/tool-name/tool-name.stub';
-import { ContentTextStub } from '@dungeonmaster/shared/contracts/content-text/content-text.stub';
 import { GlobPatternStub } from '@dungeonmaster/shared/contracts/glob-pattern/glob-pattern.stub';
 import { PathSegmentStub as FilePathStub } from '@dungeonmaster/shared/contracts/path-segment/path-segment.stub';
 import { projectMapStatics } from '@dungeonmaster/shared/statics';
@@ -254,12 +253,10 @@ describe('ArchitectureHandleResponder', () => {
       proxy.setupGatewaySubpath({
         folder: 'node',
         subpathName: 'fs',
-        barrelContent: ContentTextStub({
-          value: [
+        barrelContent: [
             "export * from 'fs';",
             "export { existsSync } from './exists-sync/exists-sync';",
           ].join('\n'),
-        }),
       });
 
       const result = await proxy.callResponder({

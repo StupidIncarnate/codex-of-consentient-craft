@@ -31,7 +31,7 @@
 
 import { z } from '#gateway/npm/zod';
 
-import { arrayIndexContract, contentTextContract } from '@dungeonmaster/shared/contracts';
+import { arrayIndexContract } from '@dungeonmaster/shared/contracts';
 
 import { attrPairContract } from '../attr-pair/attr-pair-contract';
 import { elementFlagContract } from '../element-flag/element-flag-contract';
@@ -41,18 +41,18 @@ import { refContract } from '../ref/ref-contract';
 export const keyRowContract = z.object({
   ref: refContract,
   depth: arrayIndexContract,
-  testId: contentTextContract.nullable(),
-  tag: contentTextContract,
-  role: contentTextContract.nullable(),
-  domId: contentTextContract.nullable(),
-  sibling: contentTextContract.nullable(),
-  text: contentTextContract.nullable(),
-  value: contentTextContract.nullable(),
-  placeholder: contentTextContract.nullable(),
+  testId: z.string().brand<'KeyRowTestId'>().nullable(),
+  tag: z.string().brand<'KeyRowTag'>(),
+  role: z.string().brand<'KeyRowRole'>().nullable(),
+  domId: z.string().brand<'KeyRowDomId'>().nullable(),
+  sibling: z.string().brand<'KeyRowSibling'>().nullable(),
+  text: z.string().brand<'KeyRowText'>().nullable(),
+  value: z.string().brand<'KeyRowValue'>().nullable(),
+  placeholder: z.string().brand<'KeyRowPlaceholder'>().nullable(),
   attrs: z.array(attrPairContract).readonly(),
   attrsDropped: readingCountContract,
   flags: z.array(elementFlagContract).readonly(),
-  flagDetail: z.record(z.string().brand<'ElementFlagName'>(), contentTextContract).readonly(),
+  flagDetail: z.record(z.string().brand<'ElementFlagName'>(), z.string().brand<'KeyRowFlagDetail'>()).readonly(),
 });
 
 export type KeyRow = z.infer<typeof keyRowContract>;

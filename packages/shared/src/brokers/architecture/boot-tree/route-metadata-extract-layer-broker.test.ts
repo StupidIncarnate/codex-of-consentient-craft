@@ -1,6 +1,5 @@
 import { routeMetadataExtractLayerBroker } from './route-metadata-extract-layer-broker';
 import { routeMetadataExtractLayerBrokerProxy } from './route-metadata-extract-layer-broker.proxy';
-import { ContentTextStub } from '../../../contracts/content-text/content-text.stub';
 
 describe('routeMetadataExtractLayerBroker', () => {
   describe('reads flow source and extracts routes', () => {
@@ -9,16 +8,14 @@ describe('routeMetadataExtractLayerBroker', () => {
       const flowFile = '/repo/packages/web/src/flows/quest-chat/quest-chat-flow.tsx';
       proxy.setupSource({
         flowFile,
-        content: ContentTextStub({
-          value: `<Route path="/:guildSlug/quest" element={<AppQuestChatResponder />} />`,
-        }),
+        content: `<Route path="/:guildSlug/quest" element={<AppQuestChatResponder />} />`,
       });
       const result = routeMetadataExtractLayerBroker({ flowFile });
 
       expect(result).toStrictEqual([
         {
-          path: ContentTextStub({ value: '/:guildSlug/quest' }),
-          responderSymbol: ContentTextStub({ value: 'AppQuestChatResponder' }),
+          path: '/:guildSlug/quest',
+          responderSymbol: 'AppQuestChatResponder',
         },
       ]);
     });
@@ -41,9 +38,7 @@ describe('routeMetadataExtractLayerBroker', () => {
       const flowFile = '/repo/packages/cli/src/flows/cli/cli-flow.ts';
       proxy.setupSource({
         flowFile,
-        content: ContentTextStub({
-          value: `export const CliFlow = () => CliInitResponder();`,
-        }),
+        content: `export const CliFlow = () => CliInitResponder();`,
       });
       const result = routeMetadataExtractLayerBroker({ flowFile });
 

@@ -1,10 +1,9 @@
 import { packageSectionBuildLayerBroker } from './package-section-build-layer-broker';
 import { packageSectionBuildLayerBrokerProxy } from './package-section-build-layer-broker.proxy';
-import { ContentTextStub } from '../../../contracts/content-text/content-text.stub';
 
 const PROJECT_ROOT = '/repo';
 const PACKAGE_ROOT = '/repo/packages/orchestrator';
-const PACKAGE_NAME = ContentTextStub({ value: 'orchestrator' });
+const PACKAGE_NAME = 'orchestrator';
 
 describe('packageSectionBuildLayerBroker', () => {
   describe('section header', () => {

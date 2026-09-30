@@ -1,5 +1,4 @@
 import { architectureSourceReadBrokerProxy } from '../source-read/architecture-source-read-broker.proxy';
-import type { ContentText } from '../../../contracts/content-text/content-text-contract';
 
 export const architectureBackRefBrokerProxy = (): {
   setupSource: ({
@@ -7,10 +6,10 @@ export const architectureBackRefBrokerProxy = (): {
     content,
   }: {
     filePath: string;
-    content: ContentText;
+    content: string;
   }) => void;
   setupMissing: ({ filePath }: { filePath: string }) => void;
-  setupImplementation: ({ fn }: { fn: (filePath: ContentText) => ContentText }) => void;
+  setupImplementation: ({ fn }: { fn: (filePath: string) => string }) => void;
 } => {
   const sourceProxy = architectureSourceReadBrokerProxy();
   return {
@@ -19,14 +18,14 @@ export const architectureBackRefBrokerProxy = (): {
       content,
     }: {
       filePath: string;
-      content: ContentText;
+      content: string;
     }): void => {
       sourceProxy.setupReturns({ filePath, content });
     },
     setupMissing: ({ filePath }: { filePath: string }): void => {
       sourceProxy.setupMissing({ filePath });
     },
-    setupImplementation: ({ fn }: { fn: (filePath: ContentText) => ContentText }): void => {
+    setupImplementation: ({ fn }: { fn: (filePath: string) => string }): void => {
       sourceProxy.setupImplementation({ fn });
     },
   };

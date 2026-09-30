@@ -1,12 +1,11 @@
 import { folderConstraintsState } from './folder-constraints-state';
-import { ContentTextStub } from '../../contracts/content-text/content-text.stub';
 
 describe('folderConstraintsState', () => {
   it('VALID: {folderType, content} => stores and retrieves content', () => {
     folderConstraintsState.clear();
 
     const folderType = 'brokers';
-    const content = ContentTextStub({ value: '**COMPLEXITY:**\n- Keep files under 300 lines' });
+    const content = '**COMPLEXITY:**\n- Keep files under 300 lines';
 
     folderConstraintsState.set({ folderType, content });
     const retrieved = folderConstraintsState.get({ folderType });
@@ -29,8 +28,8 @@ describe('folderConstraintsState', () => {
 
     const folderType1 = 'brokers';
     const folderType2 = 'guards';
-    const content1 = ContentTextStub({ value: 'constraint 1' });
-    const content2 = ContentTextStub({ value: 'constraint 2' });
+    const content1 = 'constraint 1';
+    const content2 = 'constraint 2';
 
     folderConstraintsState.set({ folderType: folderType1, content: content1 });
     folderConstraintsState.set({ folderType: folderType2, content: content2 });
@@ -46,8 +45,8 @@ describe('folderConstraintsState', () => {
 
     const folderType1 = 'brokers';
     const folderType2 = 'guards';
-    const content1 = ContentTextStub({ value: 'constraint 1' });
-    const content2 = ContentTextStub({ value: 'constraint 2' });
+    const content1 = 'constraint 1';
+    const content2 = 'constraint 2';
 
     folderConstraintsState.set({ folderType: folderType1, content: content1 });
     folderConstraintsState.set({ folderType: folderType2, content: content2 });
@@ -63,8 +62,8 @@ describe('folderConstraintsState', () => {
     folderConstraintsState.clear();
 
     const folderType = 'brokers';
-    const content1 = ContentTextStub({ value: 'old content' });
-    const content2 = ContentTextStub({ value: 'new content' });
+    const content1 = 'old content';
+    const content2 = 'new content';
 
     folderConstraintsState.set({ folderType, content: content1 });
     folderConstraintsState.set({ folderType, content: content2 });

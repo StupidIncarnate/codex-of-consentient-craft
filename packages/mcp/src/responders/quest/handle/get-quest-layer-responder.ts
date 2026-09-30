@@ -15,7 +15,6 @@
 import { StartOrchestrator } from '@dungeonmaster/orchestrator';
 import { questToTextDisplayTransformer } from '@dungeonmaster/shared/transformers';
 
-import { contentTextContract } from '../../../contracts/content-text/content-text-contract';
 import { mcpGetQuestInputContract } from '../../../contracts/get-quest-input/get-quest-input-contract';
 import type { CallToolResult } from '#gateway/npm/modelcontextprotocol__sdk__types';
 import { questStripCommentsTransformer } from '../../../transformers/quest-strip-comments/quest-strip-comments-transformer';
@@ -72,7 +71,7 @@ export const GetQuestLayerResponder = async ({
       content: [
         {
           type: 'text',
-          text: contentTextContract.parse(JSON.stringify(agentPayload, null, JSON_INDENT_SPACES)),
+          text: JSON.stringify(agentPayload, null, JSON_INDENT_SPACES),
         },
       ],
       ...(!result.success && { isError: true }),
@@ -83,9 +82,7 @@ export const GetQuestLayerResponder = async ({
       content: [
         {
           type: 'text',
-          text: contentTextContract.parse(
-            JSON.stringify({ success: false, error: errorMessage }, null, JSON_INDENT_SPACES),
-          ),
+          text: JSON.stringify({ success: false, error: errorMessage }, null, JSON_INDENT_SPACES),
         },
       ],
       isError: true,

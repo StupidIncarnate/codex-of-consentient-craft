@@ -15,7 +15,6 @@
  * WHEN-NOT-TO-USE: When TypeScript AST-level accuracy is required (this is a regex v1 heuristic)
  */
 
-import type { ContentText } from '../../../contracts/content-text/content-text-contract';
 import {
   fileBusEdgeContract,
   type FileBusEdge,
@@ -35,8 +34,8 @@ export const fileBusEdgesLayerBroker = ({
   const packagesDir = `${String(projectRoot)}/${PACKAGES_REL}`;
   const allFiles = listTsFilesLayerBroker({ dirPath: packagesDir });
 
-  const writerEntries: { filePath: ContentText; writerFile: string }[] = [];
-  const readerEntries: { filePath: ContentText; watcherFile: string }[] = [];
+  const writerEntries: { filePath: string; writerFile: string }[] = [];
+  const readerEntries: { filePath: string; watcherFile: string }[] = [];
 
   for (const filePath of allFiles) {
     const source = readFileLayerBroker({ filePath });
@@ -52,7 +51,7 @@ export const fileBusEdgesLayerBroker = ({
     }
   }
 
-  const busPaths = new Set<ContentText>([
+  const busPaths = new Set<string>([
     ...writerEntries.map((w) => w.filePath),
     ...readerEntries.map((r) => r.filePath),
   ]);

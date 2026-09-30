@@ -15,10 +15,6 @@
  * WHEN-TO-USE: Inside architecture-responder-annotations-broker for http-backend packages
  */
 
-import {
-  contentTextContract,
-  type ContentText,
-} from '../../../contracts/content-text/content-text-contract';
 import type { HttpEdge } from '../../../contracts/http-edge/http-edge-contract';
 import {
   responderAnnotationMapContract,
@@ -27,6 +23,7 @@ import {
 import type { ResponderAnnotation } from '../../../contracts/responder-annotation/responder-annotation-contract';
 import { architectureEdgeGraphBroker } from '../edge-graph/architecture-edge-graph-broker';
 import { architectureBackRefBroker } from '../back-ref/architecture-back-ref-broker';
+import { responderAnnotationContract } from '../../../contracts/responder-annotation/responder-annotation-contract';
 
 export const httpEdgesToAnnotationsLayerBroker = ({
   projectRoot,
@@ -55,23 +52,21 @@ export const httpEdgesToAnnotationsLayerBroker = ({
 
   for (const [responderFile, edges] of grouped) {
     // Build suffix: deduplicate (method, url) pairs so the same route isn't repeated.
-    const routeKeys: ContentText[] = [];
+    const routeKeys: string[] = [];
     for (const edge of edges) {
-      const routeKey = contentTextContract.parse(
-        `${String(edge.method)} ${String(edge.urlPattern)}`,
-      );
+      const routeKey = `${String(edge.method)} ${String(edge.urlPattern)}`;
       const alreadyAdded = routeKeys.some((k) => String(k) === String(routeKey));
       if (!alreadyAdded) {
         routeKeys.push(routeKey);
       }
     }
-    const suffix: ContentText | null =
+    const suffix: string | null =
       routeKeys.length === 0
         ? null
-        : contentTextContract.parse(`[${routeKeys.map(String).join('; ')}]`);
+        : `[${routeKeys.map(String).join('; ')}]`;
 
     // Build childLines: deduplicate webBrokerFile entries, render each as ← packages/<pkg> (Symbol).
-    const childLines: ContentText[] = [];
+    const childLines: string[] = [];
     const seenConsumerPaths: string[] = [];
     for (const edge of edges) {
       if (edge.webBrokerFile === null) continue;
@@ -80,10 +75,10 @@ export const httpEdgesToAnnotationsLayerBroker = ({
       seenConsumerPaths.push(edge.webBrokerFile);
       const ref = architectureBackRefBroker({ filePath: edge.webBrokerFile, projectRoot });
       if (ref === null) continue;
-      childLines.push(contentTextContract.parse(`← ${String(ref)}`));
+      childLines.push(`← ${String(ref)}`);
     }
 
-    result.set(responderFile, { suffix, childLines });
+    result.set(responderFile, responderAnnotationContract.parse({ suffix, childLines }));
   }
 
   return responderAnnotationMapContract.parse(result);

@@ -21,12 +21,11 @@
 
 import { z } from '#gateway/npm/zod';
 
-import { contentTextContract } from '@dungeonmaster/shared/contracts';
 
 export const driverResponseContract = z.object({
   ok: z.boolean(),
-  payload: contentTextContract,
-  error: contentTextContract.nullable(),
+  payload: z.string().brand<'DriverResponsePayload'>(),
+  error: z.string().brand<'DriverResponseError'>().nullable(),
 });
 
 export type DriverResponse = z.infer<typeof driverResponseContract>;

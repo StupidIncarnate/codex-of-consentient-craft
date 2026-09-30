@@ -1,7 +1,6 @@
 import type { DirEntrySync } from '#gateway/node/fs';
 import { mcpToolsToAnnotationsLayerBroker } from './mcp-tools-to-annotations-layer-broker';
 import { mcpToolsToAnnotationsLayerBrokerProxy } from './mcp-tools-to-annotations-layer-broker.proxy';
-import { ContentTextStub } from '../../../contracts/content-text/content-text.stub';
 
 const PACKAGE_ROOT = '/repo/packages/mcp';
 
@@ -30,14 +29,12 @@ describe('mcpToolsToAnnotationsLayerBroker', () => {
         flowFiles: [
           {
             path: '/repo/packages/mcp/src/flows/quest-flow.ts',
-            source: ContentTextStub({
-              value: `import { QuestHandleResponder } from '../responders/quest/handle/quest-handle-responder';
+            source: `import { QuestHandleResponder } from '../responders/quest/handle/quest-handle-responder';
 const tools = [
   { name: 'get-quest' as never, handler: async ({ args }) => QuestHandleResponder({ tool: 'get-quest' as never, args }) },
   { name: 'modify-quest' as never, handler: async ({ args }) => QuestHandleResponder({ tool: 'modify-quest' as never, args }) },
   { name: 'start-quest' as never, handler: async ({ args }) => QuestHandleResponder({ tool: 'start-quest' as never, args }) },
 ];`,
-            }),
           },
         ],
       });

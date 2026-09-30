@@ -8,7 +8,6 @@
  * ownerIndexObjectCopyMatchTransformer({ ownerIndex, packageName, objectText, contractName });
  * // Returns the first reachable OwnerIndexOwner with the same keys and schemas, own package first, or undefined
  */
-import type { ContentText } from '../../contracts/content-text/content-text-contract';
 import type { Identifier } from '../../contracts/identifier/identifier-contract';
 import type { OwnerIndexOwner } from '../../contracts/owner-index-owner/owner-index-owner-contract';
 import type { OwnerIndex } from '../../contracts/owner-index/owner-index-contract';
@@ -24,7 +23,7 @@ export const ownerIndexObjectCopyMatchTransformer = ({
 }: {
   ownerIndex: OwnerIndex;
   packageName: PackageName;
-  objectText: ContentText;
+  objectText: string;
   contractName: Identifier;
 }): OwnerIndexOwner | undefined => {
   const wanted = objectSignatureLayerTransformer({ text: objectText });

@@ -16,8 +16,7 @@
  * // Returns the rendered ContentText for the `summary` command
  */
 import { readFileSync } from '#gateway/node/fs';
-import { contentTextContract, questContract, sessionContract } from '@dungeonmaster/shared/contracts';
-import type { ContentText } from '@dungeonmaster/shared/contracts';
+import { questContract, sessionContract } from '@dungeonmaster/shared/contracts';
 
 import { transcriptLoadBroker } from '../../../brokers/transcript/load/transcript-load-broker';
 import { transcriptResolveBroker } from '../../../brokers/transcript/resolve/transcript-resolve-broker';
@@ -53,7 +52,7 @@ export const DigestRunResponder = ({
   target: string;
   bucketMinutes?: BucketMinutes;
   gapFloorSeconds?: GapFloorSeconds;
-}): ContentText => {
+}): string => {
   if (command === 'coverage') {
     const questId = questContract.shape.id.parse(target);
     const { flows, workItems } = questLoadBroker({ questId });
@@ -75,7 +74,7 @@ export const DigestRunResponder = ({
       const transcriptSizeBytes =
         transcriptPath === undefined
           ? 0
-          : contentTextContract.parse(readFileSync(transcriptPath)).length;
+          : readFileSync(transcriptPath).length;
 
       const subagentCount =
         transcriptPath === undefined

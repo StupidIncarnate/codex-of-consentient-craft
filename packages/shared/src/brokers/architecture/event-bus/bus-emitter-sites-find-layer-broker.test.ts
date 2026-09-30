@@ -1,6 +1,5 @@
 import { busEmitterSitesFindLayerBroker } from './bus-emitter-sites-find-layer-broker';
 import { busEmitterSitesFindLayerBrokerProxy } from './bus-emitter-sites-find-layer-broker.proxy';
-import { ContentTextStub } from '../../../contracts/content-text/content-text.stub';
 import { EventBusStub } from '../../../contracts/event-bus/event-bus.stub';
 
 const PROJECT_ROOT = '/repo';
@@ -29,9 +28,7 @@ describe('busEmitterSitesFindLayerBroker', () => {
         sourceFiles: [
           {
             path: EMITTER_FILE,
-            source: ContentTextStub({
-              value: "myBus.emit({ type: 'chat-output', payload });",
-            }),
+            source: "myBus.emit({ type: 'chat-output', payload });",
           },
         ],
       });
@@ -41,7 +38,7 @@ describe('busEmitterSitesFindLayerBroker', () => {
         buses: [
           EventBusStub({
             stateFile: STATE_FILE,
-            exportName: ContentTextStub({ value: 'myBus' }),
+            exportName: 'myBus',
           }),
         ],
       });
@@ -49,8 +46,8 @@ describe('busEmitterSitesFindLayerBroker', () => {
       expect(result).toStrictEqual([
         {
           emitterFile: EMITTER_FILE,
-          eventType: ContentTextStub({ value: 'chat-output' }),
-          busExportName: ContentTextStub({ value: 'myBus' }),
+          eventType: 'chat-output',
+          busExportName: 'myBus',
         },
       ]);
     });
@@ -63,11 +60,7 @@ describe('busEmitterSitesFindLayerBroker', () => {
         sourceFiles: [
           {
             path: STATE_FILE,
-            source: ContentTextStub({
-              // The bus state file's own body contains `emit:` and a generic call —
-              // but we exclude the state file itself from emitter-site discovery.
-              value: 'export const myBus = { emit: ({ type }) => { /* myBus.emit literal */ } };',
-            }),
+            source: 'export const myBus = { emit: ({ type }) => { /* myBus.emit literal */ } };',
           },
         ],
       });
@@ -77,7 +70,7 @@ describe('busEmitterSitesFindLayerBroker', () => {
         buses: [
           EventBusStub({
             stateFile: STATE_FILE,
-            exportName: ContentTextStub({ value: 'myBus' }),
+            exportName: 'myBus',
           }),
         ],
       });

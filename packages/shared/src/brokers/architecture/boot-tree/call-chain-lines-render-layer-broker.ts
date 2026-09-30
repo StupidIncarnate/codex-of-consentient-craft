@@ -20,10 +20,6 @@
  */
 
 import {
-  contentTextContract,
-  type ContentText,
-} from '../../../contracts/content-text/content-text-contract';
-import {
   folderTypeContract,
   type FolderType,
 } from '../../../contracts/folder-type/folder-type-contract';
@@ -33,7 +29,7 @@ import { importPathToPackagePrefixTransformer } from '../../../transformers/impo
 import { architectureExportNameResolveBroker } from '../export-name-resolve/architecture-export-name-resolve-broker';
 import { importsInFolderTypeFindLayerBroker } from './imports-in-folder-type-find-layer-broker';
 
-const BASE_INDENT_DEFAULT: ContentText = contentTextContract.parse('      ');
+const BASE_INDENT_DEFAULT: string = '      ';
 const DEPTH_INDENT_UNIT = '  ';
 
 export const callChainLinesRenderLayerBroker = ({
@@ -49,9 +45,9 @@ export const callChainLinesRenderLayerBroker = ({
   renderingFilePath: string;
   depth?: number;
   visited?: Set<string>;
-  baseIndent?: ContentText;
-}): ContentText[] => {
-  const lines: ContentText[] = [];
+  baseIndent?: string;
+}): string[] => {
+  const lines: string[] = [];
   const effectiveBase = baseIndent ?? BASE_INDENT_DEFAULT;
   const indent = `${String(effectiveBase)}${DEPTH_INDENT_UNIT.repeat(depth)}`;
 
@@ -73,7 +69,7 @@ export const callChainLinesRenderLayerBroker = ({
       visited.add(importedFile);
 
       const importedSymbol = architectureExportNameResolveBroker({ filePath: importedFile });
-      let display: ContentText = importedSymbol;
+      let display: string = importedSymbol;
       try {
         display = importPathToPackagePrefixTransformer({
           renderingFilePath,
@@ -84,7 +80,7 @@ export const callChainLinesRenderLayerBroker = ({
         // Cross-package qualification unavailable — keep the bare export name.
       }
 
-      lines.push(contentTextContract.parse(`${indent}→ ${String(display)}`));
+      lines.push(`${indent}→ ${String(display)}`);
 
       const recurseArgs =
         baseIndent === undefined
@@ -114,7 +110,7 @@ export const callChainLinesRenderLayerBroker = ({
       visited.add(layerFile);
 
       const layerSymbol = architectureExportNameResolveBroker({ filePath: layerFile });
-      let layerDisplay: ContentText = layerSymbol;
+      let layerDisplay: string = layerSymbol;
       try {
         layerDisplay = importPathToPackagePrefixTransformer({
           renderingFilePath,
@@ -125,7 +121,7 @@ export const callChainLinesRenderLayerBroker = ({
         // Cross-package qualification unavailable — keep the bare export name.
       }
 
-      lines.push(contentTextContract.parse(`${indent}→ ${String(layerDisplay)}`));
+      lines.push(`${indent}→ ${String(layerDisplay)}`);
 
       const layerRecurseArgs =
         baseIndent === undefined

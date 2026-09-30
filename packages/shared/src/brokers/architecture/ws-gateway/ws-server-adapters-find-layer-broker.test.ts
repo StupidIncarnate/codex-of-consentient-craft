@@ -1,6 +1,5 @@
 import { wsServerAdaptersFindLayerBroker } from './ws-server-adapters-find-layer-broker';
 import { wsServerAdaptersFindLayerBrokerProxy } from './ws-server-adapters-find-layer-broker.proxy';
-import { ContentTextStub } from '../../../contracts/content-text/content-text.stub';
 
 const PROJECT_ROOT = '/repo';
 const HONO_WS_ADAPTER = '/repo/packages/server/src/adapters/hono/create-node-web-socket/hono-create-node-web-socket-adapter.ts';
@@ -25,9 +24,7 @@ describe('wsServerAdaptersFindLayerBroker', () => {
         sourceFiles: [
           {
             path: HONO_WS_ADAPTER,
-            source: ContentTextStub({
-              value: "import { createNodeWebSocket } from '@hono/node-ws';",
-            }),
+            source: "import { createNodeWebSocket } from '@hono/node-ws';",
           },
         ],
       });
@@ -45,9 +42,7 @@ describe('wsServerAdaptersFindLayerBroker', () => {
         sourceFiles: [
           {
             path: HTTP_ADAPTER,
-            source: ContentTextStub({
-              value: "import { serve } from '@hono/node-server';",
-            }),
+            source: "import { serve } from '@hono/node-server';",
           },
         ],
       });
@@ -65,9 +60,7 @@ describe('wsServerAdaptersFindLayerBroker', () => {
         sourceFiles: [
           {
             path: '/repo/packages/server/src/responders/server/init/server-init-responder.ts',
-            source: ContentTextStub({
-              value: "import { foo } from '@hono/node-ws';",
-            }),
+            source: "import { foo } from '@hono/node-ws';",
           },
         ],
       });

@@ -1,11 +1,10 @@
-import { contentTextContract, type ContentText } from '@dungeonmaster/shared/contracts';
 import { getStdinProxy } from '#gateway/node/process/get-stdin/get-stdin.proxy';
 import { stdoutProxy } from '#gateway/node/process/stdout/stdout.proxy';
 import { questionProxy } from '#gateway/node/readline/question/question.proxy';
 
 export const createPackageResolveRequestBrokerProxy = (): {
   setupAnswers: (params: { name?: string; packageType?: string; description?: string }) => void;
-  getPromptsAsked: () => readonly ContentText[];
+  getPromptsAsked: () => readonly string[];
 } => {
   const stdin = getStdinProxy();
   stdoutProxy();
@@ -28,7 +27,7 @@ export const createPackageResolveRequestBrokerProxy = (): {
       }
     },
 
-    getPromptsAsked: (): readonly ContentText[] =>
-      question.getPromptsAsked().map((prompt) => contentTextContract.parse(prompt)),
+    getPromptsAsked: (): readonly string[] =>
+      question.getPromptsAsked().map((prompt) => prompt),
   };
 };

@@ -66,16 +66,7 @@
  * // ClaudeModel this same work item is dispatched on
  */
 
-import {
-  agentPromptResultContract,
-  contentTextContract,
-  workItemPayloadKeyContract,
-  workItemRoleContract,
-  type AgentPromptResult,
-  type ContentText,
-  type Quest,
-  type WorkItem,
-} from '@dungeonmaster/shared/contracts';
+import { agentPromptResultContract, workItemPayloadKeyContract, workItemRoleContract, type AgentPromptResult, type Quest, type WorkItem } from '@dungeonmaster/shared/contracts';
 import { isChatWorkItemRoleGuard, isCommandWorkItemRoleGuard } from '@dungeonmaster/shared/guards';
 
 import { agentPromptNameContract } from '../../contracts/agent-prompt-name/agent-prompt-name-contract';
@@ -93,7 +84,7 @@ export const workItemToPromptTransformer = ({
   quest: Quest;
   workItem: WorkItem;
   agentName: string;
-}): { prompt: ContentText; model: AgentPromptResult['model'] } => {
+}): { prompt: string; model: AgentPromptResult['model'] } => {
   const node = workItemStepNodeTransformer({ quest, workItem });
   const hasStepPrompt = node?.kind === 'prompt' && node.prompt !== undefined;
   const promptName =
@@ -117,7 +108,7 @@ export const workItemToPromptTransformer = ({
     const minionArguments = `Quest ID: ${String(quest.id)}\nWork Item ID: ${String(workItem.id)}`;
     const { prompt: template, model } = agentNameToPromptTransformer({ agent: promptName });
     return {
-      prompt: contentTextContract.parse(template.replace('$ARGUMENTS', () => minionArguments)),
+      prompt: template.replace('$ARGUMENTS', () => minionArguments),
       model,
     };
   }
@@ -173,13 +164,11 @@ export const workItemToPromptTransformer = ({
   // `relayTailFanOutTransformer`), so it is the only thing in this block a session reads an ARGUMENT
   // out of. Every prompt that spells out a `get-quest` or `get-qa-checklist` call takes its
   // substitutions from these four.
-  const parts: ContentText[] = [
-    contentTextContract.parse(`Quest ID: ${String(quest.id)}`),
-    contentTextContract.parse(`Work Item ID: ${String(workItem.id)}`),
-    contentTextContract.parse(`Operation Item ID: ${String(linkedOperation.id)}`),
-    contentTextContract.parse(
-      `Your operation item: [${linkedOperation.role}] ${String(linkedOperation.text)}`,
-    ),
+  const parts: string[] = [
+    `Quest ID: ${String(quest.id)}`,
+    `Work Item ID: ${String(workItem.id)}`,
+    `Operation Item ID: ${String(linkedOperation.id)}`,
+    `Your operation item: [${linkedOperation.role}] ${String(linkedOperation.text)}`,
   ];
 
   // Warpgate only. The prompt template tells the agent to resolve the base branch "recorded ON
@@ -196,8 +185,8 @@ export const workItemToPromptTransformer = ({
   const isWarpgate = node?.kind === 'prompt' && node.prompt === 'warpgate';
   if (isWarpgate && quest.baseBranch !== undefined) {
     parts.push(
-      contentTextContract.parse(''),
-      contentTextContract.parse(`Base branch: ${quest.baseBranch}`),
+      '',
+      `Base branch: ${quest.baseBranch}`,
     );
   }
 
@@ -219,13 +208,9 @@ export const workItemToPromptTransformer = ({
       .at(-1);
     if (latestFailedWard !== undefined) {
       parts.push(
-        contentTextContract.parse(''),
-        contentTextContract.parse(
-          `Failed ward result: ${String(latestFailedWard.id)} (mode: ${String(latestFailedWard.wardMode)}${latestFailedWard.runId === undefined ? '' : `, runId: ${String(latestFailedWard.runId)}`})`,
-        ),
-        contentTextContract.parse(
-          `Ward detail blob: <questFolder>/ward-results/${String(latestFailedWard.id)}.json`,
-        ),
+        '',
+        `Failed ward result: ${String(latestFailedWard.id)} (mode: ${String(latestFailedWard.wardMode)}${latestFailedWard.runId === undefined ? '' : `, runId: ${String(latestFailedWard.runId)}`})`,
+        `Ward detail blob: <questFolder>/ward-results/${String(latestFailedWard.id)}.json`,
       );
     }
   }
@@ -245,8 +230,8 @@ export const workItemToPromptTransformer = ({
     );
     if (parsedInstance.success) {
       parts.push(
-        contentTextContract.parse(''),
-        contentTextContract.parse(`Instance ID: ${String(parsedInstance.data.instanceId)}`),
+        '',
+        `Instance ID: ${String(parsedInstance.data.instanceId)}`,
       );
     }
   }
@@ -276,7 +261,7 @@ export const workItemToPromptTransformer = ({
   // `$` sequence (`$&`, `` $` ``, `$'`), which a string replacement would expand against the match
   // — `` $` `` splices the whole preceding prompt in. A function replacement is taken verbatim.
   return {
-    prompt: contentTextContract.parse(template.replace('$ARGUMENTS', () => parts.join('\n'))),
+    prompt: template.replace('$ARGUMENTS', () => parts.join('\n')),
     model: resolvedModel,
   };
 };

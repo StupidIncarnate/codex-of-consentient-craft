@@ -13,7 +13,6 @@
 import { z } from '#gateway/npm/zod';
 
 import { absoluteFilePathContract } from '../absolute-file-path/absolute-file-path-contract';
-import { contentTextContract } from '../content-text/content-text-contract';
 import { identifierContract } from '../identifier/identifier-contract';
 import { packageNameContract } from '../package-name/package-name-contract';
 
@@ -23,7 +22,7 @@ export const ownerIndexEnumContract = z.object({
   filePath: absoluteFilePathContract,
   packageName: packageNameContract,
   key: identifierContract.optional(),
-  values: z.array(contentTextContract),
+  values: z.array(z.string().brand<'OwnerIndexEnumValues'>()),
 });
 
 export type OwnerIndexEnum = z.infer<typeof ownerIndexEnumContract>;

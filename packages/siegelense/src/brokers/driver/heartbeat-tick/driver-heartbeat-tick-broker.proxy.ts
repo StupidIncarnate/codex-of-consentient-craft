@@ -15,8 +15,7 @@
 
 import { pidProxy } from '#gateway/node/process/pid/pid.proxy';
 import { stderrProxy } from '#gateway/node/process/stderr/stderr.proxy';
-import type { ContentText, SiegeInstance } from '@dungeonmaster/shared/contracts';
-import { ContentTextStub } from '@dungeonmaster/shared/contracts/content-text/content-text.stub';
+import type { SiegeInstance } from '@dungeonmaster/shared/contracts';
 import { registerMock } from '@dungeonmaster/testing/register-mock';
 
 import { heartbeatWriteBrokerProxy } from '../../heartbeat/write/heartbeat-write-broker.proxy';
@@ -46,7 +45,7 @@ export const driverHeartbeatTickBrokerProxy = (): {
   stageSampleRecordFails: (params: { error: Error; instanceId: SiegeInstance['id'] }) => void;
   getWrittenHeartbeatContent: (params: { evidencePath: string }) => unknown;
   getSampleRecordCalls: () => readonly unknown[];
-  getStderrMessages: () => readonly ContentText[];
+  getStderrMessages: () => readonly string[];
 } => {
   const heartbeatProxy = heartbeatWriteBrokerProxy();
   // Constructed for enforce-proxy-child-creation only — the sampler itself is mocked below.
@@ -128,7 +127,7 @@ export const driverHeartbeatTickBrokerProxy = (): {
     getSampleRecordCalls: (): readonly unknown[] =>
       sampleHandle.callsMatching([]).map((call) => call[0]),
 
-    getStderrMessages: (): readonly ContentText[] =>
-      stderrRecorder.getWrites().map((chunk) => ContentTextStub({ value: String(chunk) })),
+    getStderrMessages: (): readonly string[] =>
+      stderrRecorder.getWrites().map((chunk) => String(chunk)),
   };
 };

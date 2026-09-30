@@ -15,8 +15,6 @@
  * WHEN-NOT-TO-USE: When TypeScript AST-level accuracy is required (this is a regex v1 heuristic)
  */
 
-import { contentTextContract } from '../../../contracts/content-text/content-text-contract';
-import type { ContentText } from '../../../contracts/content-text/content-text-contract';
 import { httpEdgeContract, type HttpEdge } from '../../../contracts/http-edge/http-edge-contract';
 import { isNonTestFileGuard } from '../../../guards/is-non-test-file/is-non-test-file-guard';
 import { namedImportsToPathMapTransformer } from '../../../transformers/named-imports-to-path-map/named-imports-to-path-map-transformer';
@@ -37,7 +35,7 @@ export const httpEdgesLayerBroker = ({
 
   // Load every http-backend package's api-routes statics source and every frontend package's
   // web-config statics source — a repo may run several of either.
-  const serverStaticsSources: ContentText[] = [];
+  const serverStaticsSources: string[] = [];
   for (const backendRoot of httpBackendRoots) {
     const source = readFileLayerBroker({
       filePath: `${backendRoot}/src/statics/api-routes/api-routes-statics.ts`,
@@ -47,7 +45,7 @@ export const httpEdgesLayerBroker = ({
     }
   }
 
-  const webStaticsSources: ContentText[] = [];
+  const webStaticsSources: string[] = [];
   for (const frontendRoot of frontendRoots) {
     const source = readFileLayerBroker({
       filePath: `${frontendRoot}/src/statics/web-config/web-config-statics.ts`,
@@ -59,8 +57,8 @@ export const httpEdgesLayerBroker = ({
 
   // Collect server-side routes from every http-backend package's flow files
   const serverEntries: {
-    method: ContentText;
-    urlPattern: ContentText;
+    method: string;
+    urlPattern: string;
     flowFile: string;
     responderFile: string | null;
   }[] = [];
@@ -81,7 +79,7 @@ export const httpEdgesLayerBroker = ({
       const callSites = serverRouteCallsExtractTransformer({ source });
       for (const site of callSites) {
         const rawArg = String(site.rawArg);
-        let urlPattern: ContentText = contentTextContract.parse(rawArg);
+        let urlPattern: string = rawArg;
         if (rawArg.startsWith('apiRoutesStatics.')) {
           const resolved = resolveStaticsFirstMatchLayerBroker({
             sources: serverStaticsSources,
@@ -97,7 +95,7 @@ export const httpEdgesLayerBroker = ({
         if (site.responderName !== null) {
           // Find the import path for the responder name (Map keys are branded ContentText, so
           // we iterate to compare by string value).
-          let importPath: ContentText | null = null;
+          let importPath: string | null = null;
           for (const [name, path] of importMap) {
             if (String(name) === String(site.responderName)) {
               importPath = path;
@@ -119,8 +117,8 @@ export const httpEdgesLayerBroker = ({
 
   // Collect web-side fetch calls from every frontend package's broker files
   const webEntries: {
-    method: ContentText;
-    urlPattern: ContentText;
+    method: string;
+    urlPattern: string;
     brokerFile: string;
   }[] = [];
 
@@ -139,13 +137,13 @@ export const httpEdgesLayerBroker = ({
       const callSites = webFetchCallsExtractTransformer({ source });
       for (const site of callSites) {
         const rawArg = String(site.rawArg);
-        let urlPattern: ContentText = contentTextContract.parse(rawArg);
+        let urlPattern: string = rawArg;
         if (rawArg.startsWith('webConfigStatics.')) {
           // Strip any trailing .replace(...) — the statics ref ends before the first .replace
           const staticsRef = rawArg.split('.replace')[0] ?? rawArg;
           const resolved = resolveStaticsFirstMatchLayerBroker({
             sources: webStaticsSources,
-            dotPath: contentTextContract.parse(staticsRef),
+            dotPath: staticsRef,
           });
           if (resolved === null) {
             continue;

@@ -1,5 +1,4 @@
 import { ArrayIndexStub } from '../../contracts/array-index/array-index.stub';
-import { ContentTextStub } from '../../contracts/content-text/content-text.stub';
 
 import { promisePoolTransformer } from './promise-pool-transformer';
 import { setTimeout } from '#gateway/node/setTimeout';
@@ -14,19 +13,19 @@ describe('promisePoolTransformer', () => {
       ];
       const handler = async (
         ms: ReturnType<typeof ArrayIndexStub>,
-      ): Promise<ReturnType<typeof ContentTextStub>> => {
+      ): Promise<string> => {
         await new Promise((resolve) => {
           setTimeout(resolve, ms);
         });
-        return ContentTextStub({ value: `done-${String(ms)}` });
+        return `done-${String(ms)}`;
       };
 
       const results = await promisePoolTransformer({ items, concurrency: 3, handler });
 
       expect(results).toStrictEqual([
-        ContentTextStub({ value: 'done-30' }),
-        ContentTextStub({ value: 'done-10' }),
-        ContentTextStub({ value: 'done-20' }),
+        'done-30',
+        'done-10',
+        'done-20',
       ]);
     });
   });

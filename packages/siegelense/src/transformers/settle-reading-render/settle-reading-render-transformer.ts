@@ -20,8 +20,6 @@
  * // Returns 'clicked [data-testid="SLOW_BTN"]; did not settle after 5000ms (still moving: network)'
  */
 
-import { contentTextContract } from '@dungeonmaster/shared/contracts';
-import type { ContentText } from '@dungeonmaster/shared/contracts';
 
 import type { SettleReading } from '../../contracts/settle-reading/settle-reading-contract';
 
@@ -29,14 +27,12 @@ export const settleReadingRenderTransformer = ({
   baseMessage,
   settleReading,
 }: {
-  baseMessage: ContentText;
+  baseMessage: string;
   settleReading: SettleReading;
-}): ContentText => {
+}): string => {
   if (settleReading.settled) {
     return baseMessage;
   }
 
-  return contentTextContract.parse(
-    `${baseMessage}; did not settle after ${String(settleReading.waitedMs)}ms (still moving: ${settleReading.unsettled.join(', ')})`,
-  );
+  return `${baseMessage}; did not settle after ${String(settleReading.waitedMs)}ms (still moving: ${settleReading.unsettled.join(', ')})`;
 };

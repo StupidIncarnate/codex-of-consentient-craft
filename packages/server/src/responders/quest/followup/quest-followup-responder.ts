@@ -12,7 +12,6 @@
  */
 
 import { questFindQuestPathBroker, StartOrchestrator } from '@dungeonmaster/orchestrator';
-import { contentTextContract } from '@dungeonmaster/shared/contracts';
 import { isFollowupChatableQuestStatusGuard } from '@dungeonmaster/shared/guards';
 
 import { zodFirstFieldErrorMessageTransformer } from '../../../transformers/zod-first-field-error-message/zod-first-field-error-message-transformer';
@@ -62,7 +61,7 @@ export const QuestFollowupResponder = async ({
       // for a problem in images.
       const imagesError = zodFirstFieldErrorMessageTransformer({
         error: parsedBody.error,
-        field: contentTextContract.parse('images'),
+        field: 'images',
       });
       if (imagesError !== undefined) {
         return responderResultContract.parse({

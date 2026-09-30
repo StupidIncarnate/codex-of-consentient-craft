@@ -13,7 +13,6 @@
  * WHEN-NOT-TO-USE: When TypeScript AST-level accuracy is required (regex v1 heuristic)
  */
 
-import type { ContentText } from '../../../contracts/content-text/content-text-contract';
 import { wsEdgeContract, type WsEdge } from '../../../contracts/ws-edge/ws-edge-contract';
 import { isNonTestFileGuard } from '../../../guards/is-non-test-file/is-non-test-file-guard';
 import { wsEmitCallsExtractTransformer } from '../../../transformers/ws-emit-calls-extract/ws-emit-calls-extract-transformer';
@@ -33,8 +32,8 @@ export const architectureWsEdgesBroker = ({
   const packagesDir = `${root}/${PACKAGES_REL}`;
   const allFiles = listTsFilesLayerBroker({ dirPath: packagesDir });
 
-  const emitterEntries: { eventType: ContentText; emitterFile: string }[] = [];
-  const consumerEntries: { eventType: ContentText; consumerFile: string }[] = [];
+  const emitterEntries: { eventType: string; emitterFile: string }[] = [];
+  const consumerEntries: { eventType: string; consumerFile: string }[] = [];
 
   for (const filePath of allFiles) {
     if (!isNonTestFileGuard({ filePath })) {
@@ -67,7 +66,7 @@ export const architectureWsEdgesBroker = ({
     }
   }
 
-  const seenTypes = new Set<ContentText>();
+  const seenTypes = new Set<string>();
   for (const { eventType } of emitterEntries) {
     seenTypes.add(eventType);
   }

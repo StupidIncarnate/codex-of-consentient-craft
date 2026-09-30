@@ -1,20 +1,15 @@
 import { architectureEdgeGraphBroker } from './architecture-edge-graph-broker';
 import { architectureEdgeGraphBrokerProxy } from './architecture-edge-graph-broker.proxy';
-import { ContentTextStub } from '../../../contracts/content-text/content-text.stub';
 
 const PROJECT_ROOT = '/repo';
 
-const SERVER_STATICS = ContentTextStub({
-  value: `export const apiRoutesStatics = {
+const SERVER_STATICS = `export const apiRoutesStatics = {
   quests: { list: '/api/quests' },
-} as const;`,
-});
+} as const;`;
 
-const WEB_STATICS = ContentTextStub({
-  value: `export const webConfigStatics = {
+const WEB_STATICS = `export const webConfigStatics = {
   api: { routes: { quests: '/api/quests' } },
-} as const;`,
-});
+} as const;`;
 
 describe('architectureEdgeGraphBroker', () => {
   describe('no source files', () => {
@@ -45,9 +40,7 @@ describe('architectureEdgeGraphBroker', () => {
         flowFiles: [
           {
             path: flowPath,
-            source: ContentTextStub({
-              value: 'app.get(apiRoutesStatics.quests.list, async (c) => {});',
-            }),
+            source: 'app.get(apiRoutesStatics.quests.list, async (c) => {});',
           },
         ],
         brokerFiles: [],
@@ -57,8 +50,8 @@ describe('architectureEdgeGraphBroker', () => {
 
       expect(result).toStrictEqual([
         {
-          method: ContentTextStub({ value: 'GET' }),
-          urlPattern: ContentTextStub({ value: '/api/quests' }),
+          method: 'GET',
+          urlPattern: '/api/quests',
           serverFlowFile: flowPath,
           serverResponderFile: null,
           webBrokerFile: null,

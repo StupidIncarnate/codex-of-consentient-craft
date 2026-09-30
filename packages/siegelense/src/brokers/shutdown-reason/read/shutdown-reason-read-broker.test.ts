@@ -1,4 +1,3 @@
-import { ContentTextStub } from '@dungeonmaster/shared/contracts/content-text/content-text.stub';
 
 import { ShutdownReasonStub } from '../../../contracts/shutdown-reason/shutdown-reason.stub';
 
@@ -12,9 +11,7 @@ describe('shutdownReasonReadBroker', () => {
     it('VALID: {shutdown-reason.json present} => returns the parsed marker', async () => {
       const proxy = shutdownReasonReadBrokerProxy();
       const marker = ShutdownReasonStub({
-        reason: ContentTextStub({
-          value: 'reaped by idle timeout after 900s with no run received',
-        }),
+        reason: 'reaped by idle timeout after 900s with no run received',
       });
       proxy.setupMarkerFound({ evidencePath: EVIDENCE_PATH, marker });
 

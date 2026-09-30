@@ -18,7 +18,6 @@
 
 import { copyFile } from '#gateway/node/fs__promises';
 import { dirname, join } from '#gateway/node/path';
-import type { ContentText } from '@dungeonmaster/shared/contracts';
 
 import { setTimeout } from '#gateway/node/setTimeout';
 import type { BrowserSession } from '../../../contracts/browser-session/browser-session-contract';
@@ -45,7 +44,7 @@ export const stepHoldBroker = async ({
   shotPath: string | null;
   frames: number;
   everyMs: number;
-}): Promise<ContentText> => {
+}): Promise<string> => {
   const dir = shotPath === null ? lane.evidencePath : dirname(shotPath);
 
   const framePaths: string[] = [];

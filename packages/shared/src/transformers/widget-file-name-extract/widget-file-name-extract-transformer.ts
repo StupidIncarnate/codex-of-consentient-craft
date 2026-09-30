@@ -10,23 +10,19 @@
  * WHEN-TO-USE: Widget-tree broker and headline renderers deriving widget display names from file paths
  */
 
-import {
-  contentTextContract,
-  type ContentText,
-} from '../../contracts/content-text/content-text-contract';
 import { widgetTreeStatics } from '../../statics/widget-tree/widget-tree-statics';
 
 export const widgetFileNameExtractTransformer = ({
   filePath,
 }: {
   filePath: string;
-}): ContentText => {
+}): string => {
   const parts = String(filePath).split('/');
   const basename = parts[parts.length - 1] ?? String(filePath);
 
   if (basename.endsWith(widgetTreeStatics.tsxSuffix)) {
-    return contentTextContract.parse(basename.slice(0, -widgetTreeStatics.tsxSuffix.length));
+    return basename.slice(0, -widgetTreeStatics.tsxSuffix.length);
   }
 
-  return contentTextContract.parse(basename.slice(0, -widgetTreeStatics.tsSuffix.length));
+  return basename.slice(0, -widgetTreeStatics.tsSuffix.length);
 };

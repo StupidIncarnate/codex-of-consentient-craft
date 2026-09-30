@@ -1,4 +1,3 @@
-import { ContentTextStub } from '@dungeonmaster/shared/contracts/content-text/content-text.stub';
 import { PackageJsonStub } from '@dungeonmaster/shared/contracts/package-json/package-json.stub';
 import { cwdResolveBrokerProxy } from '@dungeonmaster/shared/brokers/cwd/resolve/cwd-resolve-broker.proxy';
 import { readFileSyncProxy } from '#gateway/node/fs/read-file-sync/read-file-sync.proxy';
@@ -26,7 +25,7 @@ export const webBundlePackageResolveBrokerProxy = (): {
       const dependencies = Object.fromEntries(dependencyNames.map((name) => [name, '*']));
       fsProxy.returns({
         path: OWN_PACKAGE_JSON_PATH,
-        contents: ContentTextStub({ value: JSON.stringify(PackageJsonStub({ dependencies })) }),
+        contents: JSON.stringify(PackageJsonStub({ dependencies })),
       });
     },
 
@@ -38,16 +37,14 @@ export const webBundlePackageResolveBrokerProxy = (): {
     setupCandidateReact: ({ candidateName }: { candidateName: string }): void => {
       fsProxy.returns({
         path: require.resolve(`${candidateName}/package.json`),
-        contents: ContentTextStub({
-          value: JSON.stringify(PackageJsonStub({ dependencies: { react: '^19.0.0' } })),
-        }),
+        contents: JSON.stringify(PackageJsonStub({ dependencies: { react: '^19.0.0' } })),
       });
     },
 
     setupCandidateNoReact: ({ candidateName }: { candidateName: string }): void => {
       fsProxy.returns({
         path: require.resolve(`${candidateName}/package.json`),
-        contents: ContentTextStub({ value: JSON.stringify(PackageJsonStub({ dependencies: {} })) }),
+        contents: JSON.stringify(PackageJsonStub({ dependencies: {} })),
       });
     },
   };

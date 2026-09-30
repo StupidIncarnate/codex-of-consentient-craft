@@ -42,9 +42,8 @@ import { deleteEnv, getEnv, kill, setEnv, stderr } from '#gateway/node/process';
 import { PNG } from '#gateway/npm/pngjs';
 
 import { installTestbedCreateBroker } from '@dungeonmaster/testing';
-import { ContentTextStub } from '@dungeonmaster/shared/contracts/content-text/content-text.stub';
 import { ProcessIdStub } from '@dungeonmaster/shared/contracts/process-id/process-id.stub';
-import type { ContentText, SiegeInstance, SiegeRun } from '@dungeonmaster/shared/contracts';
+import type { SiegeInstance, SiegeRun } from '@dungeonmaster/shared/contracts';
 import { locationsStatics } from '@dungeonmaster/shared/statics';
 
 import { cleanupRunBroker } from '../../../src/brokers/cleanup/run/cleanup-run-broker';
@@ -105,30 +104,15 @@ const STALE_LAST_BEAT_MS_AGO = 10 * 60 * 1000;
 // listenerLinesTransformer's own console/network line shapes — the exact substrings
 // resultsStatics.patterns matches against, so these fixture lines classify the same way a real
 // browser capture would.
-const CONSOLE_STEP1_LOG = ContentTextStub({
-  value: JSON.stringify({ at: 1, kind: 'console', type: 'log', text: 'navigating' }),
-});
-const CONSOLE_STEP2_ERROR = ContentTextStub({
-  value: JSON.stringify({ at: 2, kind: 'console', type: 'error', text: 'modal failed to open' }),
-});
-const CONSOLE_STEP2_WARNING = ContentTextStub({
-  value: JSON.stringify({ at: 3, kind: 'console', type: 'warning', text: 'slow modal' }),
-});
-const CONSOLE_STEP3_ERROR = ContentTextStub({
-  value: JSON.stringify({ at: 4, kind: 'console', type: 'error', text: 'eval issue' }),
-});
-const CONSOLE_RUN2_ERROR_A = ContentTextStub({
-  value: JSON.stringify({ at: 5, kind: 'console', type: 'error', text: 'new bug A' }),
-});
-const CONSOLE_RUN2_ERROR_B = ContentTextStub({
-  value: JSON.stringify({ at: 6, kind: 'console', type: 'error', text: 'new bug B' }),
-});
-const CONSOLE_RUN2_ERROR_C = ContentTextStub({
-  value: JSON.stringify({ at: 7, kind: 'console', type: 'error', text: 'new bug C' }),
-});
+const CONSOLE_STEP1_LOG = JSON.stringify({ at: 1, kind: 'console', type: 'log', text: 'navigating' });
+const CONSOLE_STEP2_ERROR = JSON.stringify({ at: 2, kind: 'console', type: 'error', text: 'modal failed to open' });
+const CONSOLE_STEP2_WARNING = JSON.stringify({ at: 3, kind: 'console', type: 'warning', text: 'slow modal' });
+const CONSOLE_STEP3_ERROR = JSON.stringify({ at: 4, kind: 'console', type: 'error', text: 'eval issue' });
+const CONSOLE_RUN2_ERROR_A = JSON.stringify({ at: 5, kind: 'console', type: 'error', text: 'new bug A' });
+const CONSOLE_RUN2_ERROR_B = JSON.stringify({ at: 6, kind: 'console', type: 'error', text: 'new bug B' });
+const CONSOLE_RUN2_ERROR_C = JSON.stringify({ at: 7, kind: 'console', type: 'error', text: 'new bug C' });
 
-const NETWORK_RUN1_OK = ContentTextStub({
-  value: JSON.stringify({
+const NETWORK_RUN1_OK = JSON.stringify({
     at: 1,
     method: 'GET',
     url: '/api/guilds',
@@ -136,10 +120,8 @@ const NETWORK_RUN1_OK = ContentTextStub({
     status: 200,
     requestBody: null,
     responseBody: 'ok',
-  }),
-});
-const NETWORK_RUN1_BAD = ContentTextStub({
-  value: JSON.stringify({
+  });
+const NETWORK_RUN1_BAD = JSON.stringify({
     at: 2,
     method: 'POST',
     url: '/api/guilds',
@@ -147,10 +129,8 @@ const NETWORK_RUN1_BAD = ContentTextStub({
     status: 500,
     requestBody: null,
     responseBody: 'boom',
-  }),
-});
-const NETWORK_RUN2_BAD_A = ContentTextStub({
-  value: JSON.stringify({
+  });
+const NETWORK_RUN2_BAD_A = JSON.stringify({
     at: 3,
     method: 'POST',
     url: '/api/x',
@@ -158,10 +138,8 @@ const NETWORK_RUN2_BAD_A = ContentTextStub({
     status: 500,
     requestBody: null,
     responseBody: 'bad',
-  }),
-});
-const NETWORK_RUN2_BAD_B = ContentTextStub({
-  value: JSON.stringify({
+  });
+const NETWORK_RUN2_BAD_B = JSON.stringify({
     at: 4,
     method: 'GET',
     url: '/api/y',
@@ -169,13 +147,12 @@ const NETWORK_RUN2_BAD_B = ContentTextStub({
     status: 502,
     requestBody: null,
     responseBody: 'bad',
-  }),
-});
+  });
 
-const SERVER_LINE_STEP1 = ContentTextStub({ value: 'startup ok' });
-const SERVER_LINE_STEP2 = ContentTextStub({ value: '[ERROR] inside window' });
-const SERVER_LINE_STEP3 = ContentTextStub({ value: '[ERROR] outside window' });
-const SERVER_LINE_RUN2 = ContentTextStub({ value: '[ERROR] run2 problem' });
+const SERVER_LINE_STEP1 = 'startup ok';
+const SERVER_LINE_STEP2 = '[ERROR] inside window';
+const SERVER_LINE_STEP3 = '[ERROR] outside window';
+const SERVER_LINE_RUN2 = '[ERROR] run2 problem';
 
 export const evidenceTreeHarness = (): {
   beforeEach: () => Promise<void>;
@@ -197,14 +174,14 @@ export const evidenceTreeHarness = (): {
   run2StoredReturnPath: () => string;
   crashRun2: () => void;
   addStaleAliveEntry: () => Promise<SiegeInstance['id']>;
-  consoleStep2Rows: () => readonly ContentText[];
-  consoleRun1ErrorRows: () => readonly ContentText[];
-  consoleRun2ErrorRows: () => readonly ContentText[];
-  serverInsideWindowRow: () => ContentText;
-  serverOutsideWindowRow: () => ContentText;
-  serverRun2ErrorRows: () => readonly ContentText[];
-  networkRun1NonSuccessRows: () => readonly ContentText[];
-  networkRun2NonSuccessRows: () => readonly ContentText[];
+  consoleStep2Rows: () => readonly string[];
+  consoleRun1ErrorRows: () => readonly string[];
+  consoleRun2ErrorRows: () => readonly string[];
+  serverInsideWindowRow: () => string;
+  serverOutsideWindowRow: () => string;
+  serverRun2ErrorRows: () => readonly string[];
+  networkRun1NonSuccessRows: () => readonly string[];
+  networkRun2NonSuccessRows: () => readonly string[];
   // Read-path calls. `flows/` (and its colocated .integration.test.ts) may not import
   // `brokers/` directly — @dungeonmaster/enforce-import-dependencies — so the suite reaches
   // `results`/`status`/`compare`/`cleanup` and the two shot-measurement brokers through here.
@@ -282,7 +259,7 @@ export const evidenceTreeHarness = (): {
   // Byte offsets computed from the strings themselves rather than counted by hand, so the fixture
   // stays correct even if a line's text changes length later.
   const buildServerLog = (): {
-    content: ContentText;
+    content: string;
     step1Window: ServerLogWindow;
     step2Window: ServerLogWindow;
     step3Window: ServerLogWindow;
@@ -297,7 +274,7 @@ export const evidenceTreeHarness = (): {
       ServerLogByteCountStub({ value: Buffer.byteLength(text, 'utf8') });
 
     return {
-      content: ContentTextStub({ value: afterRun2 }),
+      content: afterRun2,
       step1Window: { fromByte: byteCount(''), toByte: byteCount(afterStep1) },
       step2Window: { fromByte: byteCount(afterStep1), toByte: byteCount(afterStep2) },
       step3Window: { fromByte: byteCount(afterStep2), toByte: byteCount(afterStep3) },
@@ -313,14 +290,11 @@ export const evidenceTreeHarness = (): {
     runId: SiegeRun['id'];
     step: number;
     text: string;
-  }): ContentText =>
-    ContentTextStub({
-      value: `${JSON.stringify({ runId, step, atMs: 1_700_000_000_000, text })}\n`,
-    });
+  }): string =>
+    `${JSON.stringify({ runId, step, atMs: 1_700_000_000_000, text })}\n`;
 
-  const consoleJsonl = (): ContentText =>
-    ContentTextStub({
-      value: [
+  const consoleJsonl = (): string =>
+    [
         bufferLine({ runId: RUN_1, step: 1, text: CONSOLE_STEP1_LOG }),
         bufferLine({ runId: RUN_1, step: 2, text: CONSOLE_STEP2_ERROR }),
         bufferLine({ runId: RUN_1, step: 2, text: CONSOLE_STEP2_WARNING }),
@@ -328,18 +302,15 @@ export const evidenceTreeHarness = (): {
         bufferLine({ runId: RUN_2, step: 1, text: CONSOLE_RUN2_ERROR_A }),
         bufferLine({ runId: RUN_2, step: 1, text: CONSOLE_RUN2_ERROR_B }),
         bufferLine({ runId: RUN_2, step: 1, text: CONSOLE_RUN2_ERROR_C }),
-      ].join(''),
-    });
+      ].join('');
 
-  const networkJsonl = (): ContentText =>
-    ContentTextStub({
-      value: [
+  const networkJsonl = (): string =>
+    [
         bufferLine({ runId: RUN_1, step: 1, text: NETWORK_RUN1_OK }),
         bufferLine({ runId: RUN_1, step: 2, text: NETWORK_RUN1_BAD }),
         bufferLine({ runId: RUN_2, step: 1, text: NETWORK_RUN2_BAD_A }),
         bufferLine({ runId: RUN_2, step: 1, text: NETWORK_RUN2_BAD_B }),
-      ].join(''),
-    });
+      ].join('');
 
   const run1Steps = (): readonly StepReading[] => {
     const serverLog = buildServerLog();

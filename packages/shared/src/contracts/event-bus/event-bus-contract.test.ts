@@ -1,12 +1,11 @@
 import { eventBusContract } from './event-bus-contract';
-import { ContentTextStub } from '../content-text/content-text.stub';
 
 describe('eventBusContract', () => {
   describe('parse', () => {
     it('VALID: {stateFile + exportName} => parses successfully', () => {
       const result = eventBusContract.parse({
         stateFile: '/repo/packages/orchestrator/src/state/orchestration-events/orchestration-events-state.ts',
-        exportName: ContentTextStub({ value: 'orchestrationEventsState' }),
+        exportName: 'orchestrationEventsState',
       });
 
       expect(result).toStrictEqual({

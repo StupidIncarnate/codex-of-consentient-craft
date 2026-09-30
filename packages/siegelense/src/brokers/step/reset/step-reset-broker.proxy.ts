@@ -8,7 +8,7 @@
  */
 
 import type { DirEntrySync } from '#gateway/node/fs';
-import type { ContentText, FileName, Guild } from '@dungeonmaster/shared/contracts';
+import type { FileName, Guild } from '@dungeonmaster/shared/contracts';
 import { QuestStub } from '@dungeonmaster/shared/contracts/quest/quest.stub';
 import { registerMock } from '@dungeonmaster/testing/register-mock';
 import type { MockHandle } from '@dungeonmaster/testing/register-mock';
@@ -48,9 +48,9 @@ export const stepResetBrokerProxy = (): {
     entries: readonly FileName[];
   }) => void;
   setupReseed: (params: {
-    apiBaseUrl: ContentText;
+    apiBaseUrl: string;
     guild: Guild;
-    questIds: readonly ContentText[];
+    questIds: readonly string[];
   }) => void;
 } => {
   // Constructed for enforce-proxy-child-creation only (step-reset-broker.ts imports

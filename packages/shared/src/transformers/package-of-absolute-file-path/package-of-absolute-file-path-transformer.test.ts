@@ -1,4 +1,3 @@
-import { ContentTextStub } from '../../contracts/content-text/content-text.stub';
 import { packageOfAbsoluteFilePathTransformer } from './package-of-absolute-file-path-transformer';
 
 describe('packageOfAbsoluteFilePathTransformer', () => {
@@ -7,7 +6,7 @@ describe('packageOfAbsoluteFilePathTransformer', () => {
       filePath: '/repo/packages/server/src/responders/x-responder.ts',
     });
 
-    expect(result).toBe(ContentTextStub({ value: 'server' }));
+    expect(result).toBe('server');
   });
 
   it('VALID: {file under packages/orchestrator/src/state} => returns orchestrator', () => {
@@ -15,7 +14,7 @@ describe('packageOfAbsoluteFilePathTransformer', () => {
       filePath: '/repo/packages/orchestrator/src/state/foo/foo-state.ts',
     });
 
-    expect(result).toBe(ContentTextStub({ value: 'orchestrator' }));
+    expect(result).toBe('orchestrator');
   });
 
   it('INVALID: {path outside packages/} => returns null', () => {

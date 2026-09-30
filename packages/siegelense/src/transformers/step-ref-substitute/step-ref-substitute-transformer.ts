@@ -11,8 +11,6 @@
  * // Returns '/siege-guild' as ContentText
  */
 
-import { contentTextContract } from '@dungeonmaster/shared/contracts';
-import type { ContentText } from '@dungeonmaster/shared/contracts';
 
 import { stepRefResolveTransformer } from '../step-ref-resolve/step-ref-resolve-transformer';
 
@@ -20,9 +18,9 @@ export const stepRefSubstituteTransformer = ({
   text,
   outputs,
 }: {
-  text: ContentText;
+  text: string;
   outputs: Record<PropertyKey, Record<PropertyKey, unknown>>;
-}): ContentText => {
+}): string => {
   if (!text.includes('{') || !text.includes('}')) {
     return text;
   }
@@ -42,5 +40,5 @@ export const stepRefSubstituteTransformer = ({
     const resolved = stepRefResolveTransformer({ ref: match, outputs });
     return `${resolved}${rest}`;
   });
-  return contentTextContract.parse([firstPart, ...resolvedRemaining].join(''));
+  return [firstPart, ...resolvedRemaining].join('');
 };

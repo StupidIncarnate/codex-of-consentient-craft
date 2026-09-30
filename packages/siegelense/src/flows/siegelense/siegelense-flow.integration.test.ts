@@ -19,7 +19,6 @@
 import { deleteEnv, getEnv, setEnv, stdout } from '#gateway/node/process';
 import { registerSpyOn } from '@dungeonmaster/testing/register-mock';
 import { installTestbedCreateBroker } from '@dungeonmaster/testing';
-import { ContentTextStub } from '@dungeonmaster/shared/contracts/content-text/content-text.stub';
 
 import { CleanupAnswerStub } from '../../contracts/cleanup-answer/cleanup-answer.stub';
 import { CompareQueryStub } from '../../contracts/compare-query/compare-query.stub';
@@ -80,7 +79,7 @@ describe('SiegelenseFlow', () => {
 
       const writes = stdoutSpy
         .callsMatching([])
-        .map((call) => ContentTextStub({ value: String(call[0]) }));
+        .map((call) => String(call[0]));
 
       // MACHINE reads live statfs/loadavg — stripped the same way the status route's own
       // assertion strips it, so this stays deterministic.
@@ -101,13 +100,13 @@ describe('SiegelenseFlow', () => {
 
       const bareWrites = stdoutSpy
         .callsMatching([])
-        .map((call) => ContentTextStub({ value: String(call[0]) }));
+        .map((call) => String(call[0]));
 
       await SiegelenseFlow({ args: ['status'] });
 
       const statusWrites = stdoutSpy
         .callsMatching([])
-        .map((call) => ContentTextStub({ value: String(call[0]) }))
+        .map((call) => String(call[0]))
         .slice(bareWrites.length);
 
       // MACHINE reads live statfs/loadavg independently on each call, so the two readings can
@@ -203,7 +202,7 @@ describe('SiegelenseFlow', () => {
 
       const writes = stdoutSpy
         .callsMatching([])
-        .map((call) => ContentTextStub({ value: String(call[0]) }));
+        .map((call) => String(call[0]));
 
       // MACHINE reads live statfs/loadavg — stripped the same way EMPTY_FLEET_STATUS_JSON strips
       // it from the --json form above, so this assertion stays deterministic.
@@ -224,7 +223,7 @@ describe('SiegelenseFlow', () => {
 
       const writes = stdoutSpy
         .callsMatching([])
-        .map((call) => ContentTextStub({ value: String(call[0]) }));
+        .map((call) => String(call[0]));
 
       const [wholeOutput] = writes;
       const withoutLiveMachineBlock = wholeOutput!.replace(
@@ -245,7 +244,7 @@ describe('SiegelenseFlow', () => {
 
       const writes = stdoutSpy
         .callsMatching([])
-        .map((call) => ContentTextStub({ value: String(call[0]) }));
+        .map((call) => String(call[0]));
 
       expect(writes).toStrictEqual([
         'REAPED: none\n' +
@@ -264,7 +263,7 @@ describe('SiegelenseFlow', () => {
 
       const writes = stdoutSpy
         .callsMatching([])
-        .map((call) => ContentTextStub({ value: String(call[0]) }));
+        .map((call) => String(call[0]));
 
       const expectedAnswer = CleanupAnswerStub({
         reaped: [],
@@ -289,7 +288,7 @@ describe('SiegelenseFlow', () => {
 
       const writes = stdoutSpy
         .callsMatching([])
-        .map((call) => ContentTextStub({ value: String(call[0]) }));
+        .map((call) => String(call[0]));
 
       const [wholeOutput] = writes;
       const [firstLine] = wholeOutput!.split('\n');
@@ -315,7 +314,7 @@ describe('SiegelenseFlow', () => {
 
       const writes = stdoutSpy
         .callsMatching([])
-        .map((call) => ContentTextStub({ value: String(call[0]) }));
+        .map((call) => String(call[0]));
 
       expect(writes).toStrictEqual([siegelenseHelpRenderTransformer({ call: null })]);
     });
@@ -330,7 +329,7 @@ describe('SiegelenseFlow', () => {
 
         const writes = stdoutSpy
           .callsMatching([])
-          .map((recorded) => ContentTextStub({ value: String(recorded[0]) }));
+          .map((recorded) => String(recorded[0]));
 
         const [wholeOutput] = writes;
         const [firstLine] = wholeOutput!.split('\n');
@@ -667,7 +666,7 @@ describe('SiegelenseFlow', () => {
 
         const writes = stdoutSpy
           .callsMatching([])
-          .map((call) => ContentTextStub({ value: String(call[0]) }));
+          .map((call) => String(call[0]));
 
         // A single SiegelenseFlow({args: ['status', '--json']}) call makes exactly one
         // process.stdout.write (SiegelenseStatusResponder's own header comment says so) — proven
@@ -703,7 +702,7 @@ describe('SiegelenseFlow', () => {
 
         const writes = stdoutSpy
           .callsMatching([])
-          .map((call) => ContentTextStub({ value: String(call[0]) }));
+          .map((call) => String(call[0]));
 
         const [wholeOutput] = writes;
         const lines = wholeOutput!.split('\n');
@@ -743,7 +742,7 @@ describe('SiegelenseFlow', () => {
 
       const writes = stdoutSpy
         .callsMatching([])
-        .map((call) => ContentTextStub({ value: String(call[0]) }));
+        .map((call) => String(call[0]));
 
       const [wholeOutput] = writes;
       const lines = wholeOutput!.split('\n');

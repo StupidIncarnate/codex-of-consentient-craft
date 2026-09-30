@@ -12,7 +12,6 @@
 import { readFileSync, readJsonFileSyncIfExists, walkFilesSync } from '#gateway/node/fs';
 
 import { contractIndexPackageContract } from '../../../contracts/contract-index-package/contract-index-package-contract';
-import { contentTextContract } from '../../../contracts/content-text/content-text-contract';
 import type { ContractIndexEntry } from '../../../contracts/contract-index-entry/contract-index-entry-contract';
 import { packageJsonContract } from '../../../contracts/package-json/package-json-contract';
 import { packageNameContract } from '../../../contracts/package-name/package-name-contract';
@@ -60,7 +59,7 @@ export const contractIndexBuildBroker = ({
     )
     .map((filePath) => ({
       filePath,
-      text: contentTextContract.parse(readFileSync(filePath)),
+      text: readFileSync(filePath),
     }));
 
   const entries = contractIndexFromSourcesTransformer({ rootDir, packages, sources });

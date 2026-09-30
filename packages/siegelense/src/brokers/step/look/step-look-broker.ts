@@ -26,7 +26,6 @@
  * // The same reading, scoped to one region — rung 2
  */
 
-import type { ContentText } from '@dungeonmaster/shared/contracts';
 
 import type { BrowserSession } from '../../../contracts/browser-session/browser-session-contract';
 import { selectorContract } from '../../../contracts/selector/selector-contract';
@@ -38,7 +37,7 @@ export const stepLookBroker = async ({
 }: {
   session: BrowserSession;
   within: string | null;
-}): Promise<ContentText> => {
+}): Promise<string> => {
   const scope =
     within === null
       ? null

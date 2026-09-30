@@ -1,11 +1,10 @@
-import { ContentTextStub } from '@dungeonmaster/shared/contracts/content-text/content-text.stub';
 
 import { EpochMsStub } from '../../../contracts/epoch-ms/epoch-ms.stub';
 import { ReadingCountStub } from '../../../contracts/reading-count/reading-count.stub';
 import { settlePollLayerBroker } from './settle-poll-layer-broker';
 import { settlePollLayerBrokerProxy } from './settle-poll-layer-broker.proxy';
 
-const PROBE_SOURCE = ContentTextStub({ value: '(() => ({}))()' });
+const PROBE_SOURCE = '(() => ({}))()';
 
 describe('settlePollLayerBroker', () => {
   describe('a page that is already still', () => {
@@ -287,7 +286,7 @@ describe('settlePollLayerBroker', () => {
         networkSnapshot: () => ({
           pendingRequests: ReadingCountStub({ value: 2 }),
           lastActivityAtMs: null,
-          pollersDiscounted: [ContentTextStub({ value: 'GET http://localhost:3737/api/quests' })],
+          pollersDiscounted: ['GET http://localhost:3737/api/quests'],
         }),
       });
 

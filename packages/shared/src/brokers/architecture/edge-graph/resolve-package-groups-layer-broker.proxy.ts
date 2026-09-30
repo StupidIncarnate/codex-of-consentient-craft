@@ -1,7 +1,6 @@
 import { listTsFilesLayerBrokerProxy } from './list-ts-files-layer-broker.proxy';
 import { safeReaddirLayerBrokerProxy } from './safe-readdir-layer-broker.proxy';
 import { readFileLayerBrokerProxy } from './read-file-layer-broker.proxy';
-import { ContentTextStub } from '../../../contracts/content-text/content-text.stub';
 
 export const resolvePackageGroupsLayerBrokerProxy = (): {
   setupPackagesDir: ({
@@ -62,7 +61,7 @@ export const resolvePackageGroupsLayerBrokerProxy = (): {
       for (const { name, content } of flowFiles) {
         readFileProxy.setupReturns({
           filePath: `${packageRoot}/src/flows/${name}`,
-          content: ContentTextStub({ value: content }),
+          content: content,
         });
       }
       // Exact-path address (not .setupImplementation's low-specificity catch-all) — every
@@ -71,7 +70,7 @@ export const resolvePackageGroupsLayerBrokerProxy = (): {
       // registration the moment a second package is staged in the same test.
       readFileProxy.setupReturns({
         filePath: `${packageRoot}/package.json`,
-        content: ContentTextStub({ value: packageJsonContent }),
+        content: packageJsonContent,
       });
     },
   };

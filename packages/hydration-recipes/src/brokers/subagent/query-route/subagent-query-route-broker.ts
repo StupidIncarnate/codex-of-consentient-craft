@@ -21,7 +21,7 @@
  */
 import { claudePathSlugEncoderTransformer } from '@dungeonmaster/shared/transformers';
 import { readFileSync, readdirEntriesSync } from '#gateway/node/fs';
-import { contentTextContract, lineCountContract, agentContract, sessionContract } from '@dungeonmaster/shared/contracts';
+import { lineCountContract, agentContract, sessionContract } from '@dungeonmaster/shared/contracts';
 
 import { isJsonlFileGuard } from '../../../guards/is-jsonl-file/is-jsonl-file-guard';
 import { matchesWhereClauseGuard } from '../../../guards/matches-where-clause/matches-where-clause-guard';
@@ -50,8 +50,7 @@ export const subagentQueryRouteBroker = ({
   const subagentsDirPath = `${sessionsDir}/${sessionId}/subagents`;
   const parentFilePath = `${sessionsDir}/${sessionId}.jsonl`;
 
-  const parentLines = contentTextContract
-    .parse(readFileSync(parentFilePath))
+  const parentLines = readFileSync(parentFilePath)
     .split('\n')
     .filter((line) => line.length > 0);
 
@@ -65,8 +64,7 @@ export const subagentQueryRouteBroker = ({
     return {
       entry,
       filePath,
-      lines: contentTextContract
-        .parse(readFileSync(filePath))
+      lines: readFileSync(filePath)
         .split('\n')
         .filter((line) => line.length > 0),
     };

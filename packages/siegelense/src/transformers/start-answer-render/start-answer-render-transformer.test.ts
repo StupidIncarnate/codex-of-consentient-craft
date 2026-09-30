@@ -1,4 +1,3 @@
-import { ContentTextStub } from '@dungeonmaster/shared/contracts/content-text/content-text.stub';
 
 import { InstanceManifestStub } from '../../contracts/instance-manifest/instance-manifest.stub';
 import { SeedResultStub } from '../../contracts/seed-result/seed-result.stub';
@@ -75,7 +74,7 @@ describe('startAnswerRenderTransformer', () => {
           linkPresent: true,
         },
         bootMs: 15_000,
-        seeded: { guildSlug: ContentTextStub({ value: 'siege-guild' }) },
+        seeded: { guildSlug: 'siege-guild' },
       });
 
       const result = startAnswerRenderTransformer({ manifest });
@@ -276,7 +275,7 @@ describe('startAnswerRenderTransformer', () => {
         instanceId: 'inst_1c60cf225b13465d8b32449607d69529',
         specName: 'dungeonmaster-stack',
         baseUrl: 'http://dungeonmaster.localhost:41385',
-        apiUrl: ContentTextStub({ value: 'http://dungeonmaster.localhost:37895' }),
+        apiUrl: 'http://dungeonmaster.localhost:37895',
         home: '/tmp/dm-siege-inst_1c60cf225b13465d8b32449607d69529',
         evidence: {
           path: '/repo/.dungeonmaster-assets/siegelense-assets/guilds/g1/instances/inst_1c60cf225b13465d8b32449607d69529',
@@ -306,11 +305,11 @@ describe('startAnswerRenderTransformer', () => {
         instanceId: 'inst_7f3a9c21',
         specName: 'dungeonmaster-stack',
         baseUrl: 'http://localhost:34173',
-        url: ContentTextStub({ value: 'http://localhost:34173' }),
-        apiUrl: ContentTextStub({ value: 'http://localhost:34172' }),
+        url: 'http://localhost:34173',
+        apiUrl: 'http://localhost:34172',
         paths: {
           home: '/custom/home/path',
-          evidenceDir: ContentTextStub({ value: '/custom/evidence/path' }),
+          evidenceDir: '/custom/evidence/path',
         },
         bootMs: 12_000,
         seeded: null,

@@ -9,7 +9,6 @@
  * // Returns the stringified value the page's evaluate call produced
  */
 
-import type { ContentText } from '@dungeonmaster/shared/contracts';
 
 import type { BrowserSession } from '../../../contracts/browser-session/browser-session-contract';
 
@@ -19,7 +18,7 @@ export const stepEvalSourceBroker = async ({
 }: {
   session: BrowserSession;
   source: string;
-}): Promise<ContentText> => {
+}): Promise<string> => {
   const reading = await session.evaluateSource({ source });
   return reading;
 };

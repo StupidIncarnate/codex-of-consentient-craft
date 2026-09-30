@@ -8,8 +8,6 @@
  * valueReuseFixTextTransformer({ valueText: 'questIdContract.optional()', reuse: 'questContract.shape.id' });
  * // Returns 'questContract.shape.id.optional()'; null for 'z.string().default("x")'
  */
-import { contentTextContract } from '@dungeonmaster/shared/contracts';
-import type { ContentText } from '@dungeonmaster/shared/contracts';
 
 const TRAILING_MODIFIERS = /(?:\.(?:optional|nullable|nullish)\(\))+$/u;
 
@@ -19,10 +17,10 @@ export const valueReuseFixTextTransformer = ({
 }: {
   valueText: string;
   reuse: string;
-}): ContentText | null => {
+}): string | null => {
   if (valueText.includes('.default(')) {
     return null;
   }
   const tail = TRAILING_MODIFIERS.exec(valueText.trim())?.[0] ?? '';
-  return contentTextContract.parse(`${reuse}${tail}`);
+  return `${reuse}${tail}`;
 };

@@ -28,8 +28,6 @@
  * // "visible"; did not settle after 5000ms (still moving: network)'
  */
 
-import { contentTextContract } from '@dungeonmaster/shared/contracts';
-import type { ContentText } from '@dungeonmaster/shared/contracts';
 
 import type { BrowserSession } from '../../../contracts/browser-session/browser-session-contract';
 import { WaitForCeilingHitError } from '../../../errors/wait-for-ceiling-hit/wait-for-ceiling-hit-error';
@@ -48,7 +46,7 @@ export const stepWaitForBroker = async ({
   within: string | null;
   state: string;
   timeoutMs: number | null;
-}): Promise<ContentText> => {
+}): Promise<string> => {
   const resolvedTimeoutMs = timeoutMs ?? driverStatics.run.defaultStepTimeoutMs;
   const matchParams =
     within === null
@@ -74,7 +72,7 @@ export const stepWaitForBroker = async ({
   });
 
   return settleReadingRenderTransformer({
-    baseMessage: contentTextContract.parse(`${target} reached state "${state}"`),
+    baseMessage: `${target} reached state "${state}"`,
     settleReading,
   });
 };

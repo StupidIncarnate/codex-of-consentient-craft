@@ -53,8 +53,6 @@
  * // Returns { settled: true, reason: 'quiet', waitedMs: 300, unsettled: [], ... }
  */
 
-import { contentTextContract } from '@dungeonmaster/shared/contracts';
-import type { ContentText } from '@dungeonmaster/shared/contracts';
 
 import { epochMsContract } from '../../../contracts/epoch-ms/epoch-ms-contract';
 import type { EpochMs } from '../../../contracts/epoch-ms/epoch-ms-contract';
@@ -125,18 +123,18 @@ export const settleWaitLayerBroker = ({
   // would be read after the classification it was meant to govern had already happened.
   pollerRepeatThreshold = DEFAULT_POLLER_REPEAT_THRESHOLD,
 }: {
-  evaluate: (params: { source: ContentText }) => Promise<unknown>;
+  evaluate: (params: { source: string }) => Promise<unknown>;
   pause: (params: { ms: number }) => Promise<void>;
   pollerRepeatThreshold?: number | undefined;
 }): {
-  initScriptSource: () => ContentText;
-  probeSource: () => ContentText;
+  initScriptSource: () => string;
+  probeSource: () => string;
   noteRequestStarted: (params: {
     method: string;
     url: string;
     resourceType: string;
-  }) => ContentText;
-  noteRequestSettled: (params: { method: string; url: string }) => ContentText;
+  }) => string;
+  noteRequestSettled: (params: { method: string; url: string }) => string;
   waitForSettle: (params: {
     quietWindowMs?: number | undefined;
     ceilingMs?: number | undefined;
@@ -146,19 +144,19 @@ export const settleWaitLayerBroker = ({
   // How many times each shape has STARTED over the whole life of the session. The repeat count is
   // what classifies a poller, and it has to outlive one `waitForSettle` call — a page polling every
   // two seconds would never cross a threshold reset per wait.
-  const startCounts = new Map<ContentText, ReadingCount>();
-  const pendingByShape = new Map<ContentText, ReadingCount>();
+  const startCounts = new Map<string, ReadingCount>();
+  const pendingByShape = new Map<string, ReadingCount>();
   // A HOLDER whose field mutates rather than a reassigned `let`, matching `mintState` in
   // `browser-session-launch-broker.ts`, so a read before an await and a write after it never give
   // `require-atomic-updates` cause to flag it.
   const networkState = { lastActivityAtMs: null as EpochMs | null };
 
   return {
-    initScriptSource: (): ContentText => contentTextContract.parse(INSTALL_SOURCE),
+    initScriptSource: (): string => INSTALL_SOURCE,
 
-    probeSource: (): ContentText => contentTextContract.parse(PROBE_SOURCE),
+    probeSource: (): string => PROBE_SOURCE,
 
-    noteRequestStarted: ({ method, url, resourceType }): ContentText => {
+    noteRequestStarted: ({ method, url, resourceType }): string => {
       const shape = settleRequestShapeTransformer({ method, url });
       if (STREAMING_RESOURCE_TYPES.has(resourceType)) {
         return shape;
@@ -178,7 +176,7 @@ export const settleWaitLayerBroker = ({
 
     // Decrements only while something is actually pending for that shape, so the settle event of a
     // request already classed a poller drains nothing and the tally never goes negative.
-    noteRequestSettled: ({ method, url }): ContentText => {
+    noteRequestSettled: ({ method, url }): string => {
       const shape = settleRequestShapeTransformer({ method, url });
       const pending = pendingByShape.get(shape) ?? 0;
       if (pending > 0) {
@@ -196,7 +194,7 @@ export const settleWaitLayerBroker = ({
       settlePollLayerBroker({
         evaluate,
         pause,
-        probeSource: contentTextContract.parse(PROBE_SOURCE),
+        probeSource: PROBE_SOURCE,
         quietWindowMs,
         ceilingMs,
         pollMs,

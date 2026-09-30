@@ -16,14 +16,14 @@
 
 import { z } from '#gateway/npm/zod';
 
-import { contentTextContract, relatedDataItemContract } from '@dungeonmaster/shared/contracts';
+import { relatedDataItemContract } from '@dungeonmaster/shared/contracts';
 
 import { stepOutcomeContract } from '../step-outcome/step-outcome-contract';
 
 export const stepHandlerResultContract = z
   .object({
     outcome: stepOutcomeContract,
-    detail: contentTextContract,
+    detail: z.string().brand<'StepHandlerResultDetail'>(),
     resultRef: relatedDataItemContract.optional(),
   })
   .strict();

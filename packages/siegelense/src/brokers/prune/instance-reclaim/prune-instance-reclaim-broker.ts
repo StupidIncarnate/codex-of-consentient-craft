@@ -24,7 +24,6 @@
  */
 
 import { unlink } from '#gateway/node/fs__promises';
-import { contentTextContract } from '@dungeonmaster/shared/contracts';
 
 import type { CitationGap } from '../../../contracts/citation-gap/citation-gap-contract';
 import { epochMsContract } from '../../../contracts/epoch-ms/epoch-ms-contract';
@@ -73,13 +72,11 @@ export const pruneInstanceReclaimBroker = async ({
       removal: null,
       refusal: pruneRefusalContract.parse({
         id: entry.id,
-        why: contentTextContract.parse(
-          entry.lastBeatMs === null
+        why: (entry.lastBeatMs === null
             ? 'reserved — booting, no beat yet'
             : `live — last beat ${elapsedRenderTransformer({
                 elapsedMs: epochMsContract.parse(nowMs - entry.lastBeatMs),
-              })} ago`,
-        ),
+              })} ago`),
       }),
       gaps: [],
     };
@@ -112,9 +109,7 @@ export const pruneInstanceReclaimBroker = async ({
       removal: null,
       refusal: pruneRefusalContract.parse({
         id: entry.id,
-        why: contentTextContract.parse(
-          resolution.references.map((reference) => String(reference.why)).join('; '),
-        ),
+        why: resolution.references.map((reference) => String(reference.why)).join('; '),
       }),
       gaps: resolution.gaps,
     };

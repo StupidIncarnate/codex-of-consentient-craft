@@ -1,6 +1,5 @@
 import { architectureWsGatewayBroker } from './architecture-ws-gateway-broker';
 import { architectureWsGatewayBrokerProxy } from './architecture-ws-gateway-broker.proxy';
-import { ContentTextStub } from '../../../contracts/content-text/content-text.stub';
 
 const PROJECT_ROOT = '/repo';
 const WS_ADAPTER = '/repo/packages/server/src/adapters/hono/create-node-web-socket/hono-create-node-web-socket-adapter.ts';
@@ -25,16 +24,11 @@ describe('architectureWsGatewayBroker', () => {
         sourceFiles: [
           {
             path: WS_ADAPTER,
-            source: ContentTextStub({
-              value: "import { createNodeWebSocket } from '@hono/node-ws';",
-            }),
+            source: "import { createNodeWebSocket } from '@hono/node-ws';",
           },
           {
             path: GATEWAY_FILE,
-            source: ContentTextStub({
-              value:
-                "import { honoCreateNodeWebSocketAdapter } from '../../../adapters/hono/create-node-web-socket/hono-create-node-web-socket-adapter';",
-            }),
+            source: "import { honoCreateNodeWebSocketAdapter } from '../../../adapters/hono/create-node-web-socket/hono-create-node-web-socket-adapter';",
           },
         ],
       });
@@ -52,16 +46,11 @@ describe('architectureWsGatewayBroker', () => {
         sourceFiles: [
           {
             path: '/repo/packages/server/src/adapters/hono/serve/hono-serve-adapter.ts',
-            source: ContentTextStub({
-              value: "import { serve } from '@hono/node-server';",
-            }),
+            source: "import { serve } from '@hono/node-server';",
           },
           {
             path: GATEWAY_FILE,
-            source: ContentTextStub({
-              value:
-                "import { honoServeAdapter } from '../../../adapters/hono/serve/hono-serve-adapter';",
-            }),
+            source: "import { honoServeAdapter } from '../../../adapters/hono/serve/hono-serve-adapter';",
           },
         ],
       });

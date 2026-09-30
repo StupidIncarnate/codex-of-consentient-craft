@@ -14,14 +14,11 @@
  * // Returns a ContentText of canonical JSON, stable across two differently-ordered equivalent specs
  */
 
-import { contentTextContract } from '@dungeonmaster/shared/contracts';
-import type { ContentText } from '@dungeonmaster/shared/contracts';
 
 import type { LaneSpec } from '../../contracts/lane-spec/lane-spec-contract';
 
-export const laneSpecCanonicalJsonTransformer = ({ spec }: { spec: LaneSpec }): ContentText =>
-  contentTextContract.parse(
-    JSON.stringify({
+export const laneSpecCanonicalJsonTransformer = ({ spec }: { spec: LaneSpec }): string =>
+  JSON.stringify({
       name: spec.name,
       processes: spec.processes.map((process) => ({
         name: process.name,
@@ -41,5 +38,4 @@ export const laneSpecCanonicalJsonTransformer = ({ spec }: { spec: LaneSpec }): 
       env: Object.fromEntries(
         Object.entries(spec.env).sort(([keyA], [keyB]) => (keyA < keyB ? -1 : keyA > keyB ? 1 : 0)),
       ),
-    }),
-  );
+    });

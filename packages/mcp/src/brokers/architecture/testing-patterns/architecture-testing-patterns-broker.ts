@@ -8,10 +8,8 @@
  * WHEN-TO-USE: When LLMs need to understand how to write tests and create proxy files
  */
 
-import type { ContentText } from '../../../contracts/content-text/content-text-contract';
-import { contentTextContract } from '../../../contracts/content-text/content-text-contract';
 
-export const architectureTestingPatternsBroker = (): ContentText => {
+export const architectureTestingPatternsBroker = (): string => {
   // Purpose
   const purpose = `**Why so strict?** Loose tests pass when code is broken. Exact tests catch real bugs.`;
 
@@ -947,5 +945,5 @@ Before writing any test, verify:
 - [ ] Every documented argument of an entry point is covered — each flag present, each flag absent, each enum value, the required-flag refusal, each mutually exclusive or co-required combination — reaching real behaviour across any package boundary it crosses
 `;
 
-  return contentTextContract.parse(markdown);
+  return markdown;
 };

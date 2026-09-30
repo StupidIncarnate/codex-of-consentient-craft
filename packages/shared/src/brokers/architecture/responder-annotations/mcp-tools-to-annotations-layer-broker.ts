@@ -13,10 +13,6 @@
  */
 
 import {
-  contentTextContract,
-  type ContentText,
-} from '../../../contracts/content-text/content-text-contract';
-import {
   responderAnnotationMapContract,
   type ResponderAnnotationMap,
 } from '../../../contracts/responder-annotation-map/responder-annotation-map-contract';
@@ -28,6 +24,7 @@ import { importStatementsExtractTransformer } from '../../../transformers/import
 import { relativeImportResolveTransformer } from '../../../transformers/relative-import-resolve/relative-import-resolve-transformer';
 import { architectureSourceReadBroker } from '../source-read/architecture-source-read-broker';
 import { listFlowFilesLayerBroker } from './list-flow-files-layer-broker';
+import { responderAnnotationContract } from '../../../contracts/responder-annotation/responder-annotation-contract';
 
 export const mcpToolsToAnnotationsLayerBroker = ({
   packageRoot,
@@ -38,7 +35,7 @@ export const mcpToolsToAnnotationsLayerBroker = ({
   const result = new Map<string, ResponderAnnotation>();
 
   // Collect tools per responder file.
-  const toolsByResponder = new Map<string, ContentText[]>();
+  const toolsByResponder = new Map<string, string[]>();
 
   for (const flowFile of flowFiles) {
     const source = architectureSourceReadBroker({ filePath: flowFile });
@@ -51,7 +48,7 @@ export const mcpToolsToAnnotationsLayerBroker = ({
 
     // Build a map of kebab-case responder symbol → resolved responder file by walking the
     // flow's import statements. Keyed by ContentText (kebab symbol) for brand-safety.
-    const importedResponderFiles = new Map<ContentText, string>();
+    const importedResponderFiles = new Map<string, string>();
     const importPaths = importStatementsExtractTransformer({ source });
     for (const importPath of importPaths) {
       const resolved = relativeImportResolveTransformer({ sourceFile: flowFile, importPath });
@@ -63,7 +60,7 @@ export const mcpToolsToAnnotationsLayerBroker = ({
       const dot = basename.lastIndexOf('.');
       const stem = dot === -1 ? basename : basename.slice(0, dot);
       importedResponderFiles.set(
-        contentTextContract.parse(stem),
+        stem,
         resolvedStr,
       );
     }
@@ -91,8 +88,8 @@ export const mcpToolsToAnnotationsLayerBroker = ({
   }
 
   for (const [responderFile, tools] of toolsByResponder) {
-    const suffix = contentTextContract.parse(`[tools: ${tools.map(String).join(', ')}]`);
-    result.set(responderFile, { suffix, childLines: [] });
+    const suffix = `[tools: ${tools.map(String).join(', ')}]`;
+    result.set(responderFile, responderAnnotationContract.parse({ suffix, childLines: [] }));
   }
 
   return responderAnnotationMapContract.parse(result);

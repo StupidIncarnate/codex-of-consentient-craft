@@ -1,6 +1,5 @@
 import { walkReachableFilesLayerBroker } from './walk-reachable-files-layer-broker';
 import { walkReachableFilesLayerBrokerProxy } from './walk-reachable-files-layer-broker.proxy';
-import { ContentTextStub } from '../../../contracts/content-text/content-text.stub';
 import type { Dirent } from '#gateway/node/fs';
 import { FileMissingErrorStub } from '#gateway/node/fs/file-missing-error/file-missing-error.stub';
 import { DirentStub } from '#gateway/node/fs/readdir-entries-sync/dirent.stub';
@@ -20,9 +19,9 @@ const dispatchByPath =
 
 const dispatchSourceByPath =
   ({ sources }: { sources: ReadonlyMap<string, string> }) =>
-  (filePath: ReturnType<typeof ContentTextStub>): ReturnType<typeof ContentTextStub> => {
+  (filePath: string): string => {
     const text = sources.get(String(filePath));
-    return text === undefined ? throwEnoent() : ContentTextStub({ value: text });
+    return text === undefined ? throwEnoent() : text;
   };
 
 const dispatchExistsByPathSet =

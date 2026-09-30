@@ -7,11 +7,10 @@
  */
 
 import { z } from '#gateway/npm/zod';
-import { contentTextContract } from '../content-text/content-text-contract';
 
 export const webFetchCallSiteContract = z.object({
-  method: contentTextContract,
-  rawArg: contentTextContract,
+  method: z.string().brand<'WebFetchCallSiteMethod'>(),
+  rawArg: z.string().brand<'WebFetchCallSiteRawArg'>(),
 });
 
 export type WebFetchCallSite = z.infer<typeof webFetchCallSiteContract>;

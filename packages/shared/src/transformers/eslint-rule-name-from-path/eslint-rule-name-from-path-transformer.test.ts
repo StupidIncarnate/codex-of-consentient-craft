@@ -1,5 +1,4 @@
 import { eslintRuleNameFromPathTransformer } from './eslint-rule-name-from-path-transformer';
-import { ContentTextStub } from '../../contracts/content-text/content-text.stub';
 
 describe('eslintRuleNameFromPathTransformer', () => {
   it('VALID: {ban-primitives broker path} => returns ban-primitives', () => {
@@ -7,7 +6,7 @@ describe('eslintRuleNameFromPathTransformer', () => {
       filePath: '/repo/packages/eslint-plugin/src/brokers/rule/ban-primitives/rule-ban-primitives-broker.ts',
     });
 
-    expect(result).toStrictEqual(ContentTextStub({ value: 'ban-primitives' }));
+    expect(result).toStrictEqual('ban-primitives');
   });
 
   it('VALID: {enforce-project-structure broker path} => returns enforce-project-structure', () => {
@@ -15,6 +14,6 @@ describe('eslintRuleNameFromPathTransformer', () => {
       filePath: '/repo/packages/eslint-plugin/src/brokers/rule/enforce-project-structure/rule-enforce-project-structure-broker.ts',
     });
 
-    expect(result).toStrictEqual(ContentTextStub({ value: 'enforce-project-structure' }));
+    expect(result).toStrictEqual('enforce-project-structure');
   });
 });

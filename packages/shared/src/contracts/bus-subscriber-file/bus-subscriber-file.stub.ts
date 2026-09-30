@@ -6,7 +6,6 @@
  */
 
 import type { StubArgument } from '../../@types/stub-argument.type';
-import { ContentTextStub } from '../content-text/content-text.stub';
 import { busSubscriberFileContract, type BusSubscriberFile } from './bus-subscriber-file-contract';
 
 export const BusSubscriberFileStub = ({
@@ -14,6 +13,6 @@ export const BusSubscriberFileStub = ({
 }: StubArgument<BusSubscriberFile> = {}): BusSubscriberFile =>
   busSubscriberFileContract.parse({
     subscriberFile: '/repo/packages/server/src/responders/server/init/server-init-responder.ts',
-    busExportName: ContentTextStub({ value: 'orchestrationEventsState' }),
+    busExportName: 'orchestrationEventsState',
     ...props,
   });

@@ -9,14 +9,12 @@
  * // Returns a validated PackageJson
  */
 
-import { contentTextContract, packageJsonContract } from '@dungeonmaster/shared/contracts';
+import { packageJsonContract } from '@dungeonmaster/shared/contracts';
 import type { PackageJson } from '@dungeonmaster/shared/contracts';
 import { readFileSync } from '#gateway/node/fs';
 
 export const packageJsonReadBroker = ({ filePath }: { filePath: string }): PackageJson => {
-  const fileContents = contentTextContract.parse(
-    readFileSync(filePath),
-  );
+  const fileContents = readFileSync(filePath);
 
   return packageJsonContract.parse(JSON.parse(fileContents));
 };

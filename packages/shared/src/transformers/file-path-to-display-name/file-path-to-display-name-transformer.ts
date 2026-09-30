@@ -13,10 +13,6 @@
  * display names for the rendered output
  */
 
-import {
-  contentTextContract,
-  type ContentText,
-} from '../../contracts/content-text/content-text-contract';
 
 export const filePathToDisplayNameTransformer = ({
   filePath,
@@ -24,7 +20,7 @@ export const filePathToDisplayNameTransformer = ({
 }: {
   filePath: string;
   packageSrcPath: string;
-}): ContentText => {
+}): string => {
   const prefix = `${String(packageSrcPath)}/`;
   const relative = String(filePath).startsWith(prefix)
     ? String(filePath).slice(prefix.length)
@@ -36,5 +32,5 @@ export const filePathToDisplayNameTransformer = ({
       ? relative.slice(0, relative.length - '.ts'.length)
       : relative;
 
-  return contentTextContract.parse(withoutExt);
+  return withoutExt;
 };

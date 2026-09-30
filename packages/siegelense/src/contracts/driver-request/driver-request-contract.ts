@@ -19,13 +19,12 @@
 
 import { z } from '#gateway/npm/zod';
 
-import { contentTextContract } from '@dungeonmaster/shared/contracts';
 
 import { driverRequestKindContract } from '../driver-request-kind/driver-request-kind-contract';
 
 export const driverRequestContract = z.object({
   kind: driverRequestKindContract,
-  payload: contentTextContract,
+  payload: z.string().brand<'DriverRequestPayload'>(),
 });
 
 export type DriverRequest = z.infer<typeof driverRequestContract>;

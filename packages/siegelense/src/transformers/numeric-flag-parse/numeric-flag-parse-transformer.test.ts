@@ -1,4 +1,3 @@
-import { ContentTextStub } from '@dungeonmaster/shared/contracts/content-text/content-text.stub';
 
 import { z } from '#gateway/npm/zod';
 
@@ -9,7 +8,7 @@ describe('numericFlagParseTransformer', () => {
     it('VALID: {raw: "3"} => returns the parsed number', () => {
       const result = numericFlagParseTransformer({
         flag: '--pool',
-        raw: ContentTextStub({ value: '3' }),
+        raw: '3',
         accepts: 'a whole number of 1 or more',
         parse: (value) => value,
       });
@@ -27,7 +26,7 @@ describe('numericFlagParseTransformer', () => {
       expect(() =>
         numericFlagParseTransformer({
           flag: '--pool',
-          raw: ContentTextStub({ value: 'abc' }),
+          raw: 'abc',
           accepts: 'a whole number of 1 or more',
           parse: (): never => {
             throw zodError;
@@ -46,7 +45,7 @@ describe('numericFlagParseTransformer', () => {
       expect(() =>
         numericFlagParseTransformer({
           flag: '--pool',
-          raw: ContentTextStub({ value: '0' }),
+          raw: '0',
           accepts: 'a whole number of 1 or more',
           parse: (): never => {
             throw zodError;
@@ -65,7 +64,7 @@ describe('numericFlagParseTransformer', () => {
       expect(() =>
         numericFlagParseTransformer({
           flag: '--pool',
-          raw: ContentTextStub({ value: '1.5' }),
+          raw: '1.5',
           accepts: 'a whole number of 1 or more',
           parse: (): never => {
             throw zodError;
@@ -82,7 +81,7 @@ describe('numericFlagParseTransformer', () => {
       expect(() =>
         numericFlagParseTransformer({
           flag: '--pool',
-          raw: ContentTextStub({ value: '3' }),
+          raw: '3',
           accepts: 'a whole number of 1 or more',
           parse: (): never => {
             throw plainError;

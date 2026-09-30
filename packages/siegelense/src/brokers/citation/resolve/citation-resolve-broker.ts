@@ -23,7 +23,6 @@
  * `gaps: []` for, which reads as "nothing cites this" for a question this package never asked.
  */
 
-import { contentTextContract } from '@dungeonmaster/shared/contracts';
 
 import { readFileIfExists } from '#gateway/node/fs__promises';
 import { citationGapContract } from '../../../contracts/citation-gap/citation-gap-contract';
@@ -42,20 +41,16 @@ import type { SiegeRun } from '@dungeonmaster/shared/contracts';
 // `refused: []` also reads which question was never put.
 const OPEN_ISSUE_GAP = citationGapContract.parse({
   kind: citationKindContract.parse('open-issue'),
-  why: contentTextContract.parse(
-    'not checked: no issue record exists to check. Nothing in this repo stores an issue carrying ' +
+  why: ('not checked: no issue record exists to check. Nothing in this repo stores an issue carrying ' +
       "a typed instanceId/runId — a workItem's own observation carries neither field and " +
       'questNoteKindContract has no issue member — so a walker records a defect as a failing test ' +
-      'or as prose in a note, neither of which a resolver can match an instance against.',
-  ),
+      'or as prose in a note, neither of which a resolver can match an instance against.'),
 });
 
 const NO_PRELUDE_GAP = citationGapContract.parse({
   kind: citationKindContract.parse('verified-prelude'),
-  why: contentTextContract.parse(
-    'not checked: the quest records no worktree, so there is no .quest-plans directory to read ' +
-      'preludes out of.',
-  ),
+  why: ('not checked: the quest records no worktree, so there is no .quest-plans directory to read ' +
+      'preludes out of.'),
 });
 
 export const citationResolveBroker = async ({
@@ -77,10 +72,8 @@ export const citationResolveBroker = async ({
     return citationResolutionContract.parse({
       references: [],
       gaps: [OPEN_ISSUE_GAP],
-      blocked: contentTextContract.parse(
-        `quest ${entry.questId} is recorded on ${entry.id} but no guild is, and a quest record ` +
-          `resolves through its guild — refusing rather than treating an unreachable record as uncited.`,
-      ),
+      blocked: (`quest ${entry.questId} is recorded on ${entry.id} but no guild is, and a quest record ` +
+          `resolves through its guild — refusing rather than treating an unreachable record as uncited.`),
     });
   }
 
@@ -95,10 +88,8 @@ export const citationResolveBroker = async ({
     return citationResolutionContract.parse({
       references: [],
       gaps: [OPEN_ISSUE_GAP],
-      blocked: contentTextContract.parse(
-        `quest ${entry.questId} is recorded on ${entry.id} but no quest record exists at ` +
-          `${questFilePath} — refusing rather than treating an unreadable record as uncited.`,
-      ),
+      blocked: (`quest ${entry.questId} is recorded on ${entry.id} but no quest record exists at ` +
+          `${questFilePath} — refusing rather than treating an unreadable record as uncited.`),
     });
   }
 

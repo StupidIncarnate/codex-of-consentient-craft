@@ -26,7 +26,7 @@
 
 import { z } from '#gateway/npm/zod';
 
-import { contentTextContract, siegeInstanceContract } from '@dungeonmaster/shared/contracts';
+import { siegeInstanceContract } from '@dungeonmaster/shared/contracts';
 
 import { elapsedTextContract } from '../elapsed-text/elapsed-text-contract';
 import { instanceEvidenceListingContract } from '../instance-evidence-listing/instance-evidence-listing-contract';
@@ -49,8 +49,8 @@ export const instanceStatusContract = z.object({
   lastStep: lastStepReadingContract.nullable(),
   orphans: z.array(orphanReadingContract).readonly(),
   evidence: instanceEvidenceListingContract.nullable(),
-  likelyCause: contentTextContract.nullable(),
-  branch: contentTextContract.nullable(),
+  likelyCause: z.string().brand<'InstanceStatusLikelyCause'>().nullable(),
+  branch: z.string().brand<'InstanceStatusBranch'>().nullable(),
   evidenceComplete: z.boolean(),
 });
 

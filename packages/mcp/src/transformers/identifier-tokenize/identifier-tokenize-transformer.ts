@@ -11,10 +11,6 @@
  * WHEN-TO-USE: Building cross-naming-convention regex matchers — same word stems should
  * match regardless of how the identifier is cased or separated on disk.
  */
-import {
-  contentTextContract,
-  type ContentText,
-} from '../../contracts/content-text/content-text-contract';
 
 const LOWER_OR_DIGIT_TO_UPPER_PATTERN = /([a-z\d])([A-Z])/gu;
 const CAPS_RUN_TO_CAP_LOWER_PATTERN = /([A-Z]+)([A-Z][a-z])/gu;
@@ -24,7 +20,7 @@ export const identifierTokenizeTransformer = ({
   identifier,
 }: {
   identifier: string;
-}): readonly ContentText[] =>
+}): readonly string[] =>
   identifier
     .replace(LOWER_OR_DIGIT_TO_UPPER_PATTERN, '$1 $2')
     .replace(CAPS_RUN_TO_CAP_LOWER_PATTERN, '$1 $2')
@@ -32,4 +28,4 @@ export const identifierTokenizeTransformer = ({
     .trim()
     .split(' ')
     .filter((token) => token.length > 0)
-    .map((token) => contentTextContract.parse(token));
+    .map((token) => token);

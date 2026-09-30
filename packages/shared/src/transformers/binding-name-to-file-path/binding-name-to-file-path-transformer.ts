@@ -15,7 +15,6 @@
  * the convention here keeps the two callers in lockstep.
  */
 
-import type { ContentText } from '../../contracts/content-text/content-text-contract';
 
 const BINDING_SUFFIX = '-binding';
 const BINDINGS_PATH = '/src/bindings/';
@@ -24,7 +23,7 @@ export const bindingNameToFilePathTransformer = ({
   bindingName,
   packageRoot,
 }: {
-  bindingName: ContentText;
+  bindingName: string;
   packageRoot: string;
 }): string => {
   const bindingNameStr = String(bindingName);

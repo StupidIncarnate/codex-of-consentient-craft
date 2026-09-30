@@ -1,5 +1,4 @@
 import type { StubArgument } from '@dungeonmaster/shared/@types';
-import { ContentTextStub } from '@dungeonmaster/shared/contracts/content-text/content-text.stub';
 
 import { bootPollOutcomeContract } from './boot-poll-outcome-contract';
 import type { BootPollOutcome } from './boot-poll-outcome-contract';
@@ -10,7 +9,7 @@ import type { BootPollOutcome } from './boot-poll-outcome-contract';
 const BOOT_POLL_OUTCOME_DEFAULTS = {
   ready: { status: 'ready' },
   timeout: { status: 'timeout' },
-  failed: { status: 'failed', message: ContentTextStub() },
+  failed: { status: 'failed', message: 'Result text' },
 } as const satisfies Record<BootPollOutcome['status'], Record<string, unknown>>;
 
 export const BootPollOutcomeStub = ({

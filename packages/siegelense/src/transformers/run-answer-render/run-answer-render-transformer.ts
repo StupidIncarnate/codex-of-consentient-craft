@@ -9,12 +9,10 @@
  * // Returns 'RUN: run_1 (status: done, steps: 5, duration: 0ms)\n...'
  */
 
-import { contentTextContract } from '@dungeonmaster/shared/contracts';
-import type { ContentText } from '@dungeonmaster/shared/contracts';
 
 import type { RunResult } from '../../contracts/run-result/run-result-contract';
 
-export const runAnswerRenderTransformer = ({ result }: { result: RunResult }): ContentText => {
+export const runAnswerRenderTransformer = ({ result }: { result: RunResult }): string => {
   const stoppedText =
     result.stoppedAt === null
       ? ''
@@ -27,7 +25,5 @@ export const runAnswerRenderTransformer = ({ result }: { result: RunResult }): C
           .map((shot) => `${shot.path.split('/').at(-1) ?? String(shot.step)} (${shot.path})`)
           .join(', ')}`;
 
-  return contentTextContract.parse(
-    `RUN: ${result.runId} (status: ${result.status}, steps: ${result.stepsRun}, duration: ${result.durationMs ?? 0}ms)${stoppedText}${screenshotsText}\n`,
-  );
+  return `RUN: ${result.runId} (status: ${result.status}, steps: ${result.stepsRun}, duration: ${result.durationMs ?? 0}ms)${stoppedText}${screenshotsText}\n`;
 };

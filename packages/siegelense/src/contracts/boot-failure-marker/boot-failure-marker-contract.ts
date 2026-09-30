@@ -17,12 +17,11 @@
 
 import { z } from '#gateway/npm/zod';
 
-import { contentTextContract } from '@dungeonmaster/shared/contracts';
 
 import { epochMsContract } from '../epoch-ms/epoch-ms-contract';
 
 export const bootFailureMarkerContract = z.object({
-  message: contentTextContract,
+  message: z.string().brand<'BootFailureMarkerMessage'>(),
   atMs: epochMsContract,
 });
 

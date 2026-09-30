@@ -1,4 +1,3 @@
-import { ContentTextStub } from '@dungeonmaster/shared/contracts/content-text/content-text.stub';
 import { FileNameStub } from '@dungeonmaster/shared/contracts/file-name/file-name.stub';
 
 import { isTargetingStepGuard } from './is-targeting-step-guard';
@@ -14,16 +13,16 @@ const STEP_FIXTURES = [
   StepStub({ step: 'goto', path: UrlPathStub() }),
   StepStub({ step: 'waitFor', target: SelectorStub(), state: LocatorStateStub() }),
   StepStub({ step: 'click', target: SelectorStub() }),
-  StepStub({ step: 'type', target: SelectorStub(), value: ContentTextStub() }),
+  StepStub({ step: 'type', target: SelectorStub(), value: 'Result text' }),
   StepStub({ step: 'screenshot', name: FileNameStub({ value: 'step1.png' }) }),
-  StepStub({ step: 'eval', source: ContentTextStub() }),
+  StepStub({ step: 'eval', source: 'Result text' }),
   StepStub({ step: 'dom', target: SelectorStub() }),
   StepStub({ step: 'until', visible: SelectorStub() }),
-  StepStub({ step: 'key', press: ContentTextStub({ value: 'Enter' }) }),
+  StepStub({ step: 'key', press: 'Enter' }),
   StepStub({ step: 'health' }),
   StepStub({ step: 'resize', width: 1280, height: 720 }),
   StepStub({ step: 'storage' }),
-  StepStub({ step: 'paste', target: SelectorStub(), value: ContentTextStub() }),
+  StepStub({ step: 'paste', target: SelectorStub(), value: 'Result text' }),
 ];
 
 type StepVerbLiteral = ReturnType<typeof StepStub>['step'];

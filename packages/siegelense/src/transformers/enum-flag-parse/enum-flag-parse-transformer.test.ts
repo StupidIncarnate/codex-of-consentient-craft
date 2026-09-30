@@ -1,5 +1,4 @@
 import { z } from '#gateway/npm/zod';
-import { ContentTextStub } from '@dungeonmaster/shared/contracts/content-text/content-text.stub';
 
 import { enumFlagParseTransformer } from './enum-flag-parse-transformer';
 
@@ -8,7 +7,7 @@ describe('enumFlagParseTransformer', () => {
     it('VALID: {raw: "video"} => returns the parsed value', () => {
       const result = enumFlagParseTransformer({
         flag: '--kind',
-        raw: ContentTextStub({ value: 'video' }),
+        raw: 'video',
         options: ['video', 'shot', 'transcript', 'log'],
         parse: (value) => value,
       });
@@ -31,7 +30,7 @@ describe('enumFlagParseTransformer', () => {
       expect(() =>
         enumFlagParseTransformer({
           flag: '--kind',
-          raw: ContentTextStub({ value: 'nope' }),
+          raw: 'nope',
           options: ['video', 'shot', 'transcript', 'log'],
           parse: (): never => {
             throw zodIssueError;
@@ -48,7 +47,7 @@ describe('enumFlagParseTransformer', () => {
       expect(() =>
         enumFlagParseTransformer({
           flag: '--kind',
-          raw: ContentTextStub({ value: 'video' }),
+          raw: 'video',
           options: ['video', 'shot', 'transcript', 'log'],
           parse: (): never => {
             throw plainError;

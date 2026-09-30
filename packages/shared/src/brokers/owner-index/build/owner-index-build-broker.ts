@@ -13,7 +13,6 @@
  */
 import { readFileSync, readJsonFileSyncIfExists } from '#gateway/node/fs';
 
-import { contentTextContract } from '../../../contracts/content-text/content-text-contract';
 import { ownerIndexPackageContract } from '../../../contracts/owner-index-package/owner-index-package-contract';
 import type { OwnerIndexPackage } from '../../../contracts/owner-index-package/owner-index-package-contract';
 import type { OwnerIndex } from '../../../contracts/owner-index/owner-index-contract';
@@ -57,7 +56,7 @@ export const ownerIndexBuildBroker = ({ rootDir }: { rootDir: string }): OwnerIn
     .filter(({ isLayer }) => !isLayer)
     .map(({ filePath }) => ({
       filePath,
-      text: contentTextContract.parse(readFileSync(filePath)),
+      text: readFileSync(filePath),
     }));
 
   const ownerIndex = ownerIndexFromSourcesTransformer({ rootDir, packages, sources });

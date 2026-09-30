@@ -13,8 +13,6 @@
  * // Reads matching DOM nodes from the session and renders the reading
  */
 
-import { contentTextContract } from '@dungeonmaster/shared/contracts';
-import type { ContentText } from '@dungeonmaster/shared/contracts';
 
 import type { BrowserSession } from '../../../contracts/browser-session/browser-session-contract';
 import { domReadingContract } from '../../../contracts/dom-reading/dom-reading-contract';
@@ -33,14 +31,14 @@ export const stepDomBroker = async ({
   target: string;
   fields: readonly DomField[] | null;
   text: DomTextMode | null;
-}): Promise<ContentText> => {
+}): Promise<string> => {
   const reading = await session.readDom({ target, fields, text });
 
   const notedReading =
     reading.count === 0 && (reading.note === null || reading.note === undefined)
       ? domReadingContract.parse({
           ...reading,
-          note: contentTextContract.parse(domStatics.notes.noMatch.replace('{target}', target)),
+          note: domStatics.notes.noMatch.replace('{target}', target),
         })
       : reading;
 

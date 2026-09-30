@@ -38,8 +38,6 @@
  * // after 5000ms (still moving: network)'
  */
 
-import { contentTextContract } from '@dungeonmaster/shared/contracts';
-import type { ContentText } from '@dungeonmaster/shared/contracts';
 
 import type { BrowserSession } from '../../../contracts/browser-session/browser-session-contract';
 import { driverStatics } from '../../../statics/driver/driver-statics';
@@ -62,7 +60,7 @@ export const stepPasteBroker = async ({
   filePath: string | null;
   value: string | null;
   timeoutMs: number | null;
-}): Promise<ContentText> => {
+}): Promise<string> => {
   const resolvedTimeoutMs = timeoutMs ?? driverStatics.run.defaultStepTimeoutMs;
 
   if (ref !== null) {
@@ -86,7 +84,7 @@ export const stepPasteBroker = async ({
             .replace('{filePath}', filePath)
             .replace('{ref}', String(ref));
     return settleReadingRenderTransformer({
-      baseMessage: contentTextContract.parse(reading),
+      baseMessage: reading,
       settleReading,
     });
   }
@@ -121,7 +119,7 @@ export const stepPasteBroker = async ({
             .replace('{target}', target)
             .replace('{within}', within);
     return settleReadingRenderTransformer({
-      baseMessage: contentTextContract.parse(reading),
+      baseMessage: reading,
       settleReading,
     });
   }
@@ -135,7 +133,7 @@ export const stepPasteBroker = async ({
           .replace('{filePath}', filePath)
           .replace('{target}', target);
   return settleReadingRenderTransformer({
-    baseMessage: contentTextContract.parse(reading),
+    baseMessage: reading,
     settleReading,
   });
 };

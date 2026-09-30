@@ -1,11 +1,10 @@
 import { bindingNameToFilePathTransformer } from './binding-name-to-file-path-transformer';
-import { ContentTextStub } from '../../contracts/content-text/content-text.stub';
 
 describe('bindingNameToFilePathTransformer', () => {
   describe('without -binding suffix', () => {
     it('VALID: {bindingName: use-quests, packageRoot: /repo/packages/web} => resolves to use-quests/use-quests-binding.ts', () => {
       const result = bindingNameToFilePathTransformer({
-        bindingName: ContentTextStub({ value: 'use-quests' }),
+        bindingName: 'use-quests',
         packageRoot: '/repo/packages/web',
       });
 
@@ -16,7 +15,7 @@ describe('bindingNameToFilePathTransformer', () => {
 
     it('VALID: {bindingName: use-quest-queue} => resolves to use-quest-queue/use-quest-queue-binding.ts', () => {
       const result = bindingNameToFilePathTransformer({
-        bindingName: ContentTextStub({ value: 'use-quest-queue' }),
+        bindingName: 'use-quest-queue',
         packageRoot: '/repo/packages/web',
       });
 
@@ -29,7 +28,7 @@ describe('bindingNameToFilePathTransformer', () => {
   describe('with -binding suffix', () => {
     it('VALID: {bindingName: use-quests-binding} => folder is use-quests, file keeps the suffix', () => {
       const result = bindingNameToFilePathTransformer({
-        bindingName: ContentTextStub({ value: 'use-quests-binding' }),
+        bindingName: 'use-quests-binding',
         packageRoot: '/repo/packages/web',
       });
 

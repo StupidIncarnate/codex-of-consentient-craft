@@ -15,10 +15,6 @@
  * WHEN-NOT-TO-USE: When full AST parsing is needed — this is a v1 regex heuristic
  */
 
-import {
-  contentTextContract,
-  type ContentText,
-} from '../../contracts/content-text/content-text-contract';
 
 // Matches: handler: async ({ args }) => SomeName({
 // Capture group 1 = the responder function name (PascalCase identifier)
@@ -28,15 +24,15 @@ const HANDLER_RESPONDER_PATTERN =
 export const mcpHandlerResponderExtractTransformer = ({
   source,
 }: {
-  source: ContentText;
-}): ContentText[] => {
-  const responders: ContentText[] = [];
+  source: string;
+}): string[] => {
+  const responders: string[] = [];
   HANDLER_RESPONDER_PATTERN.lastIndex = 0;
   let match = HANDLER_RESPONDER_PATTERN.exec(String(source));
   while (match !== null) {
     const [, responderName] = match;
     if (responderName !== undefined) {
-      responders.push(contentTextContract.parse(responderName));
+      responders.push(responderName);
     }
     match = HANDLER_RESPONDER_PATTERN.exec(String(source));
   }

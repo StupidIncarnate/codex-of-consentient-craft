@@ -1,5 +1,4 @@
 import { architectureSourceReadBrokerProxy } from '../source-read/architecture-source-read-broker.proxy';
-import { ContentTextStub } from '../../../contracts/content-text/content-text.stub';
 import { FileMissingErrorStub } from '#gateway/node/fs/file-missing-error/file-missing-error.stub';
 
 export const architectureOrchestratorMethodExtractBrokerProxy = (): {
@@ -13,7 +12,7 @@ export const architectureOrchestratorMethodExtractBrokerProxy = (): {
         fn: (filePath) => {
           const content = fileMap[String(filePath)];
           if (content === undefined) throw FileMissingErrorStub({ path: String(filePath) });
-          return ContentTextStub({ value: content });
+          return content;
         },
       });
     },

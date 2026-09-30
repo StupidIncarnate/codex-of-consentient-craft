@@ -7,12 +7,11 @@
  */
 
 import type { StubArgument } from '../../@types/stub-argument.type';
-import { ContentTextStub } from '../content-text/content-text.stub';
 import { wsEdgeContract, type WsEdge } from './ws-edge-contract';
 
 export const WsEdgeStub = ({ ...props }: StubArgument<WsEdge> = {}): WsEdge =>
   wsEdgeContract.parse({
-    eventType: ContentTextStub({ value: 'chat-output' }),
+    eventType: 'chat-output',
     emitterFile: '/repo/packages/orchestrator/src/responders/chat/start/chat-start-responder.ts',
     consumerFiles: [
       '/repo/packages/web/src/bindings/use-quest-chat/use-quest-chat-binding.ts',

@@ -10,14 +10,12 @@
  */
 import * as ts from '#gateway/npm/typescript';
 
-import { contentTextContract } from '../../contracts/content-text/content-text-contract';
-import type { ContentText } from '../../contracts/content-text/content-text-contract';
 
 export const enumValuesReadTransformer = ({
   text,
 }: {
-  text: ContentText;
-}): ContentText[] | undefined => {
+  text: string;
+}): string[] | undefined => {
   const [statement] = ts.createSourceFile(
     'enum-values.ts',
     `const chain = ${text};`,
@@ -34,13 +32,13 @@ export const enumValuesReadTransformer = ({
 
   if (ts.isParenthesizedExpression(node) || ts.isNonNullExpression(node)) {
     return enumValuesReadTransformer({
-      text: contentTextContract.parse(node.expression.getText()),
+      text: node.expression.getText(),
     });
   }
 
   if (ts.isPropertyAccessExpression(node)) {
     return enumValuesReadTransformer({
-      text: contentTextContract.parse(node.expression.getText()),
+      text: node.expression.getText(),
     });
   }
 
@@ -55,7 +53,7 @@ export const enumValuesReadTransformer = ({
     callee.name.text === 'enum'
   )) {
     return enumValuesReadTransformer({
-      text: contentTextContract.parse(callee.expression.getText()),
+      text: callee.expression.getText(),
     });
   }
 
@@ -69,6 +67,6 @@ export const enumValuesReadTransformer = ({
   return literals.length === argument.elements.length
     ? literals
         .sort((left, right) => left.localeCompare(right))
-        .map((value) => contentTextContract.parse(value))
+        .map((value) => value)
     : undefined;
 };

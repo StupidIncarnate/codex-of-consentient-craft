@@ -20,8 +20,6 @@ import { pointerFooterRenderLayerBroker } from './pointer-footer-render-layer-br
 import { discoverPackagesLayerBroker } from './discover-packages-layer-broker';
 import { projectMapStatics } from '../../../statics/project-map/project-map-statics';
 import { gatewayLocationsStatics } from '../../../statics/gateway-locations/gateway-locations-statics';
-import type { ContentText } from '../../../contracts/content-text/content-text-contract';
-import { contentTextContract } from '../../../contracts/content-text/content-text-contract';
 import type { PackageName } from '../../../contracts/package-name/package-name-contract';
 
 export const architectureProjectMapBroker = async ({
@@ -30,7 +28,7 @@ export const architectureProjectMapBroker = async ({
 }: {
   projectRoot: string;
   packages: PackageName[];
-}): Promise<ContentText> => {
+}): Promise<string> => {
   if (packages.length === 0) {
     throw new Error('get-project-map requires at least one package name in `packages`.');
   }
@@ -39,7 +37,7 @@ export const architectureProjectMapBroker = async ({
   const packageEntries = discoverPackagesLayerBroker({ dirPath: packagesPath });
 
   const scanTargets: {
-    packageName: ContentText;
+    packageName: string;
     packageRoot: string;
   }[] = [];
 
@@ -49,13 +47,13 @@ export const architectureProjectMapBroker = async ({
     for (const pkg of sortedPackages) {
       const pkgRoot = `${projectRoot}/${projectMapStatics.packagesDirName}/${pkg.relativeDir}`;
       scanTargets.push({
-        packageName: contentTextContract.parse(pkg.name),
+        packageName: pkg.name,
         packageRoot: pkgRoot,
       });
     }
   } else {
     scanTargets.push({
-      packageName: contentTextContract.parse(projectMapStatics.rootPackageName),
+      packageName: projectMapStatics.rootPackageName,
       packageRoot: projectRoot,
     });
   }
@@ -93,9 +91,7 @@ export const architectureProjectMapBroker = async ({
   // for it by name is owed an answer rather than silence.
   const packageSections = requestedTargets.map(({ packageName, packageRoot, packageType }) =>
     packageType === 'library'
-      ? contentTextContract.parse(
-          `# ${String(packageName)} [${packageType}]\n\n${projectMapStatics.libraryNoFlowNotice}`,
-        )
+      ? `# ${String(packageName)} [${packageType}]\n\n${projectMapStatics.libraryNoFlowNotice}`
       : packageSectionBuildLayerBroker({
           packageName,
           packageRoot,
@@ -106,20 +102,16 @@ export const architectureProjectMapBroker = async ({
 
   const orderedSections = isGatewayRequested
     ? [
-        contentTextContract.parse(
-          `# ${gatewayGroupName} [gateway] — outside packages, Node, the browser and installed programs, reached only through here\n\n${architectureGatewayInventoryBroker({ projectRoot })}`,
-        ),
+        `# ${gatewayGroupName} [gateway] — outside packages, Node, the browser and installed programs, reached only through here\n\n${architectureGatewayInventoryBroker({ projectRoot })}`,
         ...packageSections,
       ]
     : packageSections;
 
-  const topLevelParts: ContentText[] = [
-    contentTextContract.parse(
-      `${projectMapStatics.symbolLegend}\n${projectMapStatics.urlPairingConvention}`,
-    ),
+  const topLevelParts: string[] = [
+    `${projectMapStatics.symbolLegend}\n${projectMapStatics.urlPairingConvention}`,
     ...orderedSections,
     pointerFooterRenderLayerBroker(),
   ];
 
-  return contentTextContract.parse(topLevelParts.join('\n\n---\n\n'));
+  return topLevelParts.join('\n\n---\n\n');
 };

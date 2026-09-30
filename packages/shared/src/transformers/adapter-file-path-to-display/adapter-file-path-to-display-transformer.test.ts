@@ -1,4 +1,3 @@
-import { ContentTextStub } from '../../contracts/content-text/content-text.stub';
 import { adapterFilePathToDisplayTransformer } from './adapter-file-path-to-display-transformer';
 
 describe('adapterFilePathToDisplayTransformer', () => {
@@ -8,7 +7,7 @@ describe('adapterFilePathToDisplayTransformer', () => {
       renderingFilePath: '/repo/packages/server/src/startup/start-server.ts',
     });
 
-    expect(result).toBe(ContentTextStub({ value: 'adapters/orchestrator/get-quest' }));
+    expect(result).toBe('adapters/orchestrator/get-quest');
   });
 
   it('VALID: {cross package} => prepends referenced package name', () => {
@@ -17,7 +16,7 @@ describe('adapterFilePathToDisplayTransformer', () => {
       renderingFilePath: '/repo/packages/server/src/startup/start-server.ts',
     });
 
-    expect(result).toBe(ContentTextStub({ value: 'web/adapters/fetch/post' }));
+    expect(result).toBe('web/adapters/fetch/post');
   });
 
   it('VALID: {single-segment adapter folder} => returns adapters/<vendor>', () => {
@@ -26,7 +25,7 @@ describe('adapterFilePathToDisplayTransformer', () => {
       renderingFilePath: '/repo/packages/server/src/startup/start-server.ts',
     });
 
-    expect(result).toBe(ContentTextStub({ value: 'adapters/hono' }));
+    expect(result).toBe('adapters/hono');
   });
 
   it('INVALID: {file path outside packages/<pkg>/src/} => throws out-of-bounds error', () => {

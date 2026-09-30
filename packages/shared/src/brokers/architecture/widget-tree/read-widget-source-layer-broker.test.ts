@@ -1,15 +1,12 @@
 import { readWidgetSourceLayerBroker } from './read-widget-source-layer-broker';
 import { readWidgetSourceLayerBrokerProxy } from './read-widget-source-layer-broker.proxy';
-import { ContentTextStub } from '../../../contracts/content-text/content-text.stub';
 
 describe('readWidgetSourceLayerBroker', () => {
   describe('successful reads', () => {
     it('VALID: {existing file} => returns file content', () => {
       const proxy = readWidgetSourceLayerBrokerProxy();
       const filePath = '/repo/packages/web/src/widgets/quest-chat/quest-chat-widget.tsx';
-      const content = ContentTextStub({
-        value: "import { useQuestBinding } from './use-quest-binding';",
-      });
+      const content = "import { useQuestBinding } from './use-quest-binding';";
       proxy.setupReturns({ filePath, content });
 
       const result = readWidgetSourceLayerBroker({ filePath });

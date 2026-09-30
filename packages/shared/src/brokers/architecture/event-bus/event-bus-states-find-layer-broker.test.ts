@@ -1,6 +1,5 @@
 import { eventBusStatesFindLayerBroker } from './event-bus-states-find-layer-broker';
 import { eventBusStatesFindLayerBrokerProxy } from './event-bus-states-find-layer-broker.proxy';
-import { ContentTextStub } from '../../../contracts/content-text/content-text.stub';
 
 const PROJECT_ROOT = '/repo';
 const BUS_STATE_FILE = '/repo/packages/foo/src/state/my-bus/my-bus-state.ts';
@@ -26,10 +25,7 @@ describe('eventBusStatesFindLayerBroker', () => {
         sourceFiles: [
           {
             path: BUS_STATE_FILE,
-            source: ContentTextStub({
-              value:
-                'export const myBus = {\n  emit: ({ type }) => {},\n  on: ({ type, handler }) => {},\n};',
-            }),
+            source: 'export const myBus = {\n  emit: ({ type }) => {},\n  on: ({ type, handler }) => {},\n};',
           },
         ],
       });
@@ -39,7 +35,7 @@ describe('eventBusStatesFindLayerBroker', () => {
       expect(result).toStrictEqual([
         {
           stateFile: BUS_STATE_FILE,
-          exportName: ContentTextStub({ value: 'myBus' }),
+          exportName: 'myBus',
         },
       ]);
     });
@@ -52,9 +48,7 @@ describe('eventBusStatesFindLayerBroker', () => {
         sourceFiles: [
           {
             path: NON_BUS_STATE_FILE,
-            source: ContentTextStub({
-              value: 'export const counter = { emit: () => {} };',
-            }),
+            source: 'export const counter = { emit: () => {} };',
           },
         ],
       });
@@ -72,9 +66,7 @@ describe('eventBusStatesFindLayerBroker', () => {
         sourceFiles: [
           {
             path: NON_STATE_FILE,
-            source: ContentTextStub({
-              value: 'export const responder = { emit: () => {}, on: () => {} };',
-            }),
+            source: 'export const responder = { emit: () => {}, on: () => {} };',
           },
         ],
       });

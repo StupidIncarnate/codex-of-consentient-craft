@@ -1,5 +1,4 @@
 import { readWidgetSourceLayerBrokerProxy } from './read-widget-source-layer-broker.proxy';
-import type { ContentText } from '../../../contracts/content-text/content-text-contract';
 
 export const extractWidgetEdgesLayerBrokerProxy = (): {
   setupWidgetSource: ({
@@ -7,7 +6,7 @@ export const extractWidgetEdgesLayerBrokerProxy = (): {
     content,
   }: {
     filePath: string;
-    content: ContentText;
+    content: string;
   }) => void;
   setupMissingWidget: ({ filePath }: { filePath: string }) => void;
 } => {
@@ -19,7 +18,7 @@ export const extractWidgetEdgesLayerBrokerProxy = (): {
       content,
     }: {
       filePath: string;
-      content: ContentText;
+      content: string;
     }): void => {
       readSourceProxy.setupReturns({ filePath, content });
     },

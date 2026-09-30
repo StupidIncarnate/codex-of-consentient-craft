@@ -22,7 +22,6 @@
  * // Returns { instanceId: 'inst_7f3a9c21', steps: [{ step: 'goto', path: '/', node: null, expect: 'ok' }], stopOn: 'error', isJson: false }
  */
 
-import type { ContentText } from '@dungeonmaster/shared/contracts';
 
 import { runArgsContract } from '../../contracts/run-args/run-args-contract';
 import type { RunArgs } from '../../contracts/run-args/run-args-contract';
@@ -56,7 +55,7 @@ export const runArgsParseTransformer = ({
   stepsFileContent,
 }: {
   args: readonly string[];
-  stepsFileContent: ContentText | null;
+  stepsFileContent: string | null;
 }): RunArgs => {
   for (let i = 0; i < args.length; i++) {
     const arg = args[i];

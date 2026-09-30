@@ -24,8 +24,6 @@
  * // Returns '34172' as ContentText
  */
 
-import { contentTextContract } from '@dungeonmaster/shared/contracts';
-import type { ContentText } from '@dungeonmaster/shared/contracts';
 
 import type { PortPair } from '../../contracts/port-pair/port-pair-contract';
 
@@ -43,16 +41,14 @@ export const lanePlaceholderSubstituteTransformer = ({
   home: string;
   claudeQueueDir: string;
   wardQueueDir: string;
-  apiWorkspace: ContentText;
-  webWorkspace: ContentText;
-}): ContentText =>
-  contentTextContract.parse(
-    template
+  apiWorkspace: string;
+  webWorkspace: string;
+}): string =>
+  template
       .replaceAll('{apiPort}', String(ports.api))
       .replaceAll('{webPort}', String(ports.web))
       .replaceAll('{home}', home)
       .replaceAll('{claudeQueueDir}', claudeQueueDir)
       .replaceAll('{wardQueueDir}', wardQueueDir)
       .replaceAll('{apiWorkspace}', apiWorkspace)
-      .replaceAll('{webWorkspace}', webWorkspace),
-  );
+      .replaceAll('{webWorkspace}', webWorkspace);

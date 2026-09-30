@@ -7,8 +7,6 @@ import { hasResponderCreateLayerBrokerProxy } from './has-responder-create-layer
 import { dirExistsInParentLayerBrokerProxy } from './dir-exists-in-parent-layer-broker.proxy';
 import { binEntryCountLayerBrokerProxy } from './bin-entry-count-layer-broker.proxy';
 import { detectPackageTypeLayerBrokerProxy } from './detect-package-type-layer-broker.proxy';
-import { ContentTextStub } from '../../../contracts/content-text/content-text.stub';
-import type { ContentText } from '../../../contracts/content-text/content-text-contract';
 import { FileMissingErrorStub } from '#gateway/node/fs/file-missing-error/file-missing-error.stub';
 import { DirentStub } from '#gateway/node/fs/readdir-entries-sync/dirent.stub';
 
@@ -37,11 +35,11 @@ export const architecturePackageTypeDetectBrokerProxy = (): {
     srcDirNames?: readonly string[];
     packageJsonContent?: string;
     startupFileName?: string;
-    startupFileContent?: ContentText;
+    startupFileContent?: string;
     binFileName?: string;
-    binFileContent?: ContentText;
+    binFileContent?: string;
     flowFilePath?: string;
-    flowFileContent?: ContentText;
+    flowFileContent?: string;
     responderDirNames?: readonly string[];
     responderHookSubDirs?: readonly string[];
     brokerDirNames?: readonly string[];
@@ -77,11 +75,11 @@ export const architecturePackageTypeDetectBrokerProxy = (): {
       srcDirNames?: readonly string[];
       packageJsonContent?: string;
       startupFileName?: string;
-      startupFileContent?: ContentText;
+      startupFileContent?: string;
       binFileName?: string;
-      binFileContent?: ContentText;
+      binFileContent?: string;
       flowFilePath?: string;
-      flowFileContent?: ContentText;
+      flowFileContent?: string;
       responderDirNames?: readonly string[];
       responderHookSubDirs?: readonly string[];
       brokerDirNames?: readonly string[];
@@ -128,9 +126,9 @@ export const architecturePackageTypeDetectBrokerProxy = (): {
       });
 
       readFileProxy.setupImplementation({
-        fn: (filePath: ContentText): ContentText => {
+        fn: (filePath: string): string => {
           if (String(filePath) === `${packageRoot}/package.json`) {
-            return ContentTextStub({ value: packageJsonContent });
+            return packageJsonContent;
           }
           if (
             startupFileName !== undefined &&

@@ -1,4 +1,3 @@
-import { ContentTextStub } from '@dungeonmaster/shared/contracts/content-text/content-text.stub';
 
 import { ResetReadingStub } from '../../contracts/reset-reading/reset-reading.stub';
 import { ResetUndidStub } from '../../contracts/reset-undid/reset-undid.stub';
@@ -17,11 +16,11 @@ describe('resetReadingRenderTransformer', () => {
 
   it('VALID: {reading with custom diff} => serializes full reset reading to ContentText JSON string', () => {
     const reading = ResetReadingStub({
-      restored: ContentTextStub({ value: 'page storage' }),
+      restored: 'page storage',
       undid: ResetUndidStub({ files: 3, added: 1, modified: 2, removed: 0 }),
       NOT_cleared: [
-        ContentTextStub({ value: 'disk' }),
-        ContentTextStub({ value: 'server memory' }),
+        'disk',
+        'server memory',
       ],
     });
 

@@ -23,8 +23,7 @@
  * therefore in both sides' scopes, because a seam has two halves and each side builds its own.
  */
 
-import { contentTextContract } from '@dungeonmaster/shared/contracts';
-import type { ContentText, OperationItem, Quest } from '@dungeonmaster/shared/contracts';
+import type { OperationItem, Quest } from '@dungeonmaster/shared/contracts';
 
 // The package KIND that answers "where does code two packages both call live". It is the whole of
 // `packageBuildOrderStatics`' first tier, described there as the pure providers nothing in the
@@ -39,7 +38,7 @@ export const codeweaverScopeBlockTransformer = ({
 }: {
   quest: Quest;
   operationItem: OperationItem;
-}): ContentText[] => {
+}): string[] => {
   const [ownPackage] = operationItem.packageNames;
   if (ownPackage === undefined) {
     return [];
@@ -101,12 +100,10 @@ export const codeweaverScopeBlockTransformer = ({
     seams.length === 0
       ? []
       : [
-          contentTextContract.parse(''),
-          contentTextContract.parse(
-            'Seams — each line is a node you share with another package, and where that package’s half of it stands:',
-          ),
+          '',
+          'Seams — each line is a node you share with another package, and where that package’s half of it stands:',
           ...seams.map(({ node, other, disposition }) =>
-            contentTextContract.parse(`  - #${String(node.id)} with ${other} — ${disposition}`),
+            `  - #${String(node.id)} with ${other} — ${disposition}`,
           ),
         ];
 
@@ -155,18 +152,14 @@ export const codeweaverScopeBlockTransformer = ({
     orderedSharedHomes.length === 0
       ? []
       : [
-          contentTextContract.parse(''),
-          contentTextContract.parse(
-            `Shared homes — the ${SHARED_HOME_KIND}-kind packages this quest declares. Code your package and another BOTH need moves into one of these, rather than being copied into yours or reached across for:`,
-          ),
+          '',
+          `Shared homes — the ${SHARED_HOME_KIND}-kind packages this quest declares. Code your package and another BOTH need moves into one of these, rather than being copied into yours or reached across for:`,
           ...orderedSharedHomes.map(({ name, reachable }) =>
-            contentTextContract.parse(
-              `  - ${name} — ${
+            `  - ${name} — ${
                 reachable
                   ? `${ownPackageText} already depends on it`
                   : `${ownPackageText} does not depend on it yet, so the move adds that dependency too`
               }`,
-            ),
           ),
         ];
 

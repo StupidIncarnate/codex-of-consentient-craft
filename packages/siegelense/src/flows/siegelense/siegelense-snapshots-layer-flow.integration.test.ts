@@ -33,7 +33,6 @@
 import { deleteEnv, getEnv, setEnv, stdout } from '#gateway/node/process';
 import { registerSpyOn } from '@dungeonmaster/testing/register-mock';
 import { installTestbedCreateBroker } from '@dungeonmaster/testing';
-import { ContentTextStub } from '@dungeonmaster/shared/contracts/content-text/content-text.stub';
 import { locationsStatics } from '@dungeonmaster/shared/statics';
 
 import { snapshotStoreHarness } from '../../../test/harnesses/snapshot-store/snapshot-store.harness';
@@ -207,7 +206,7 @@ describe('SiegelenseSnapshotsLayerFlow', () => {
 
       const writes = stdoutSpy
         .callsMatching([])
-        .map((call) => ContentTextStub({ value: String(call[0]) }));
+        .map((call) => String(call[0]));
 
       expect(writes).toStrictEqual([]);
     });
@@ -222,7 +221,7 @@ describe('SiegelenseSnapshotsLayerFlow', () => {
 
       const writes = stdoutSpy
         .callsMatching([])
-        .map((call) => ContentTextStub({ value: String(call[0]) }));
+        .map((call) => String(call[0]));
 
       expect(writes).toStrictEqual([]);
     });
@@ -237,7 +236,7 @@ describe('SiegelenseSnapshotsLayerFlow', () => {
 
       const writes = stdoutSpy
         .callsMatching([])
-        .map((call) => ContentTextStub({ value: String(call[0]) }));
+        .map((call) => String(call[0]));
 
       expect(writes).toStrictEqual([
         `INSTANCE: ${KILLED_ID} (killed)\nSNAPSHOTS: none — the throwaway home died with the instance at kill\n`,
@@ -252,7 +251,7 @@ describe('SiegelenseSnapshotsLayerFlow', () => {
 
       const writes = stdoutSpy
         .callsMatching([])
-        .map((call) => ContentTextStub({ value: String(call[0]) }));
+        .map((call) => String(call[0]));
 
       const [wholeOutput] = writes;
 
@@ -273,7 +272,7 @@ describe('SiegelenseSnapshotsLayerFlow', () => {
 
       const writes = stdoutSpy
         .callsMatching([])
-        .map((call) => ContentTextStub({ value: String(call[0]) }));
+        .map((call) => String(call[0]));
 
       expect(writes).toStrictEqual([
         `INSTANCE: ${PRUNED_ID} (pruned)\nSNAPSHOTS: none recorded yet\n`,
@@ -288,7 +287,7 @@ describe('SiegelenseSnapshotsLayerFlow', () => {
 
       const writes = stdoutSpy
         .callsMatching([])
-        .map((call) => ContentTextStub({ value: String(call[0]) }));
+        .map((call) => String(call[0]));
 
       const [wholeOutput] = writes;
 
@@ -309,7 +308,7 @@ describe('SiegelenseSnapshotsLayerFlow', () => {
 
       const writes = stdoutSpy
         .callsMatching([])
-        .map((call) => ContentTextStub({ value: String(call[0]) }));
+        .map((call) => String(call[0]));
 
       expect(writes).toStrictEqual([
         `INSTANCE: ${ALIVE_EMPTY_ID} (alive)\nSNAPSHOTS: none recorded yet\n`,
@@ -324,7 +323,7 @@ describe('SiegelenseSnapshotsLayerFlow', () => {
 
       const writes = stdoutSpy
         .callsMatching([])
-        .map((call) => ContentTextStub({ value: String(call[0]) }));
+        .map((call) => String(call[0]));
 
       const [wholeOutput] = writes;
 
@@ -345,7 +344,7 @@ describe('SiegelenseSnapshotsLayerFlow', () => {
 
       const writes = stdoutSpy
         .callsMatching([])
-        .map((call) => ContentTextStub({ value: String(call[0]) }));
+        .map((call) => String(call[0]));
 
       const [wholeOutput] = writes;
 
@@ -372,7 +371,7 @@ describe('SiegelenseSnapshotsLayerFlow', () => {
 
       const writes = stdoutSpy
         .callsMatching([])
-        .map((call) => ContentTextStub({ value: String(call[0]) }));
+        .map((call) => String(call[0]));
 
       const [wholeOutput] = writes;
 

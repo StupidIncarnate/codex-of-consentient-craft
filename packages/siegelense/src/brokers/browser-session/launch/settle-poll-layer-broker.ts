@@ -24,7 +24,6 @@
  * // Returns { settled: false, reason: 'ceiling', waitedMs: 5000, unsettled: ['network'], ... }
  */
 
-import type { ContentText } from '@dungeonmaster/shared/contracts';
 
 import type { EpochMs } from '../../../contracts/epoch-ms/epoch-ms-contract';
 import { rawSettleProbeContract } from '../../../contracts/raw-settle-probe/raw-settle-probe-contract';
@@ -43,9 +42,9 @@ export const settlePollLayerBroker = async ({
   attemptsLeft,
   networkSnapshot,
 }: {
-  evaluate: (params: { source: ContentText }) => Promise<unknown>;
+  evaluate: (params: { source: string }) => Promise<unknown>;
   pause: (params: { ms: number }) => Promise<void>;
-  probeSource: ContentText;
+  probeSource: string;
   quietWindowMs: number;
   ceilingMs: number;
   pollMs: number;
@@ -54,7 +53,7 @@ export const settlePollLayerBroker = async ({
   networkSnapshot: () => {
     pendingRequests: ReadingCount;
     lastActivityAtMs: EpochMs | null;
-    pollersDiscounted: readonly ContentText[];
+    pollersDiscounted: readonly string[];
   };
 }): Promise<SettleReading> => {
   const raw = await evaluate({ source: probeSource });

@@ -12,8 +12,6 @@
  * // Returns 'no recipes declared yet\n'
  */
 
-import { contentTextContract } from '@dungeonmaster/shared/contracts';
-import type { ContentText } from '@dungeonmaster/shared/contracts';
 
 import type { RecipesAnswer } from '../../contracts/recipes-answer/recipes-answer-contract';
 
@@ -26,9 +24,9 @@ export const recipesAnswerRenderTransformer = ({
   answer,
 }: {
   answer: RecipesAnswer;
-}): ContentText => {
+}): string => {
   if (answer.recipes.length === 0) {
-    return contentTextContract.parse(NO_RECIPES);
+    return NO_RECIPES;
   }
 
   const blocks = answer.recipes.map((entry) => {
@@ -53,5 +51,5 @@ export const recipesAnswerRenderTransformer = ({
     ].join('\n');
   });
 
-  return contentTextContract.parse(`${blocks.join('\n\n')}\n`);
+  return `${blocks.join('\n\n')}\n`;
 };

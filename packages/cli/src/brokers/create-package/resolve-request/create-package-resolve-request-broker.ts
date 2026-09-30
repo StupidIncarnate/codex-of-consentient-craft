@@ -17,18 +17,8 @@
  * // Returns a CreatePackageRequest with packageName '@acme/widgets' and directoryName 'widgets'
  */
 
-import {
-  packageNameContract,
-  packageTypeContract,
-  contentTextContract,
-  pathSegmentContract,
-} from '@dungeonmaster/shared/contracts';
-import type {
-  PackageName,
-  PackageType,
-  ContentText,
-  PathSegment,
-} from '@dungeonmaster/shared/contracts';
+import { packageNameContract, packageTypeContract, pathSegmentContract } from '@dungeonmaster/shared/contracts';
+import type { PackageName, PackageType, PathSegment } from '@dungeonmaster/shared/contracts';
 import { packageBuildOrderStatics } from '@dungeonmaster/shared/statics';
 import { getStdin, stdout } from '#gateway/node/process';
 import { question } from '#gateway/node/readline';
@@ -118,18 +108,16 @@ export const createPackageResolveRequestBroker = async ({
 
   const packageType: PackageType = parsedType.data;
 
-  const descriptionDefault = contentTextContract.parse(`${directoryName} package`);
-  const description: ContentText =
+  const descriptionDefault = `${directoryName} package`;
+  const description: string =
     args.description === undefined
       ? interactive
-        ? contentTextContract.parse(
-            await question({
+        ? (await question({
               input: getStdin(),
               output: stdout,
               prompt: 'Description: ',
               fallback: descriptionDefault,
-            }),
-          )
+            }))
         : descriptionDefault
       : args.description;
 

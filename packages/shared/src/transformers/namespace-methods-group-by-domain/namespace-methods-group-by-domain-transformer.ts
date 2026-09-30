@@ -13,10 +13,6 @@
  */
 
 import {
-  contentTextContract,
-  type ContentText,
-} from '../../contracts/content-text/content-text-contract';
-import {
   methodDomainGroupContract,
   type MethodDomainGroup,
 } from '../../contracts/method-domain-group/method-domain-group-contract';
@@ -25,14 +21,14 @@ export const namespaceMethodsGroupByDomainTransformer = ({
   methodNames,
   prefixToDomain,
 }: {
-  methodNames: ContentText[];
-  prefixToDomain: Readonly<Record<string, ContentText>>;
+  methodNames: string[];
+  prefixToDomain: Readonly<Record<string, string>>;
 }): MethodDomainGroup[] => {
-  const otherDomain = contentTextContract.parse('Other');
+  const otherDomain = 'Other';
 
   // domainOrder preserves insertion order; domainGroups maps domain string to methods
-  const domainOrder: ContentText[] = [];
-  const domainGroups = new Map<ContentText, ContentText[]>();
+  const domainOrder: string[] = [];
+  const domainGroups = new Map<string, string[]>();
 
   for (const methodName of methodNames) {
     const nameStr = String(methodName);

@@ -1,4 +1,3 @@
-import { ContentTextStub } from '@dungeonmaster/shared/contracts/content-text/content-text.stub';
 import { GuildStub } from '@dungeonmaster/shared/contracts/guild/guild.stub';
 import { QuestStub } from '@dungeonmaster/shared/contracts/quest/quest.stub';
 
@@ -28,7 +27,7 @@ describe('recipeSeedRunBroker', () => {
 
       const result = await recipeSeedRunBroker({
         recipe: RecipeNameStub({ value: 'guild-with-three-quests' }),
-        apiBaseUrl: ContentTextStub({ value: API }),
+        apiBaseUrl: API,
         homePath: HOME,
         parameters: {},
       });
@@ -48,7 +47,7 @@ describe('recipeSeedRunBroker', () => {
       await expect(
         recipeSeedRunBroker({
           recipe: RecipeNameStub({ value: 'guild-with-three-quests' }),
-          apiBaseUrl: ContentTextStub({ value: API }),
+          apiBaseUrl: API,
           homePath: HOME,
           parameters: {},
         }),
@@ -62,7 +61,7 @@ describe('recipeSeedRunBroker', () => {
       await expect(
         recipeSeedRunBroker({
           recipe: RecipeNameStub({ value: 'guild-with-three-quests' }),
-          apiBaseUrl: ContentTextStub({ value: API }),
+          apiBaseUrl: API,
           homePath: HOME,
           parameters: {},
         }),

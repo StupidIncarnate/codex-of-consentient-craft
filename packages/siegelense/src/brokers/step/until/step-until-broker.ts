@@ -24,8 +24,6 @@
  * // throws UntilCeilingHitError once the ceiling passes
  */
 
-import { contentTextContract } from '@dungeonmaster/shared/contracts';
-import type { ContentText } from '@dungeonmaster/shared/contracts';
 
 import type { BufferLengths } from '../../../contracts/buffer-lengths/buffer-lengths-contract';
 import type { LaneSession } from '../../../contracts/lane-session/lane-session-contract';
@@ -59,7 +57,7 @@ export const stepUntilBroker = async ({
   console: UntilConsolePattern | null;
   timeoutMs: number | null;
   browserWindowStart: BufferLengths | null;
-}): Promise<ContentText> => {
+}): Promise<string> => {
   const resolvedTimeoutMs = timeoutMs ?? driverStatics.run.defaultStepTimeoutMs;
 
   // The one form R13 exists for: an operational flow has no screen and still writes files, so
@@ -125,7 +123,7 @@ export const stepUntilBroker = async ({
       throw error;
     }
     const waitedMs = Date.now() - startedAtMs;
-    return contentTextContract.parse(`${visible} became visible after ${String(waitedMs)}ms`);
+    return `${visible} became visible after ${String(waitedMs)}ms`;
   }
 
   if (predicate !== null) {
@@ -146,7 +144,7 @@ export const stepUntilBroker = async ({
       });
     }
     const waitedMs = Date.now() - startedAtMs;
-    return contentTextContract.parse(`predicate became true after ${String(waitedMs)}ms`);
+    return `predicate became true after ${String(waitedMs)}ms`;
   }
 
   if (consolePattern !== null) {
@@ -174,9 +172,7 @@ export const stepUntilBroker = async ({
         typeof parsed.text === 'string' && new RegExp(consolePattern, 'u').test(parsed.text),
       descriptor: `console matching /${consolePattern}/`,
       buildReading: ({ parsed, waitedMs }) =>
-        contentTextContract.parse(
-          `console line matching /${consolePattern}/ arrived after ${String(waitedMs)}ms — "${String(parsed.text)}"`,
-        ),
+        `console line matching /${consolePattern}/ arrived after ${String(waitedMs)}ms — "${String(parsed.text)}"`,
     });
   }
 
@@ -204,9 +200,7 @@ export const stepUntilBroker = async ({
         parsed.url.includes(response.path),
       descriptor: `response ${response.method} ${response.path}`,
       buildReading: ({ parsed, waitedMs }) =>
-        contentTextContract.parse(
-          `${response.method} ${response.path} answered ${String(parsed.status)} after ${String(waitedMs)}ms`,
-        ),
+        `${response.method} ${response.path} answered ${String(parsed.status)} after ${String(waitedMs)}ms`,
     });
   }
 

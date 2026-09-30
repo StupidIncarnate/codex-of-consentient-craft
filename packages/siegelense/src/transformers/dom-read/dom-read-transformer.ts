@@ -11,8 +11,6 @@
  * const reading = domRead.toReading({ raw, fields: ['text', 'rect'] });
  */
 
-import { contentTextContract } from '@dungeonmaster/shared/contracts';
-import type { ContentText } from '@dungeonmaster/shared/contracts';
 
 import type { DomField } from '../../contracts/dom-field/dom-field-contract';
 import { domNodeContract } from '../../contracts/dom-node/dom-node-contract';
@@ -24,7 +22,7 @@ import { readingCountContract } from '../../contracts/reading-count/reading-coun
 import { domStatics } from '../../statics/dom/dom-statics';
 
 export const domReadTransformer = (): {
-  readSource: (params: { target: string; text: DomTextMode | null }) => ContentText;
+  readSource: (params: { target: string; text: DomTextMode | null }) => string;
   toReading: (params: { raw: unknown; fields: readonly DomField[] | null }) => DomReading;
 } => ({
   readSource: ({
@@ -33,7 +31,7 @@ export const domReadTransformer = (): {
   }: {
     target: string;
     text: DomTextMode | null;
-  }): ContentText => {
+  }): string => {
     const isFull = textMode === 'full';
     const source = `(() => {
   const elements = Array.from(document.querySelectorAll(${JSON.stringify(target)}));
@@ -77,7 +75,7 @@ export const domReadTransformer = (): {
   });
   return { count, nodes };
 })()`;
-    return contentTextContract.parse(source);
+    return source;
   },
 
   toReading: ({
@@ -98,9 +96,7 @@ export const domReadTransformer = (): {
     const showing = readingCountContract.parse(parsedRaw.nodes.length);
     const capped = count > showing;
     const note = capped
-      ? contentTextContract.parse(
-          `count: ${String(count)}, showing ${String(showing)}, capped. Narrow this.`,
-        )
+      ? `count: ${String(count)}, showing ${String(showing)}, capped. Narrow this.`
       : null;
 
     const projectedNodes = parsedRaw.nodes.map((node) => {

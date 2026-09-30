@@ -20,7 +20,6 @@
 
 import { stdout } from '#gateway/node/process';
 import { registerSpyOn } from '@dungeonmaster/testing/register-mock';
-import { ContentTextStub } from '@dungeonmaster/shared/contracts/content-text/content-text.stub';
 
 import { CompareQueryStub } from '../../contracts/compare-query/compare-query.stub';
 import { InstanceUnknownError } from '../../errors/instance-unknown/instance-unknown-error';
@@ -59,7 +58,7 @@ describe('SiegelenseCompareLayerFlow', () => {
 
       const writes = stdoutSpy
         .callsMatching([])
-        .map((call) => ContentTextStub({ value: String(call[0]) }));
+        .map((call) => String(call[0]));
 
       const [wholeOutput] = writes;
 
@@ -92,7 +91,7 @@ describe('SiegelenseCompareLayerFlow', () => {
 
       const writes = stdoutSpy
         .callsMatching([])
-        .map((call) => ContentTextStub({ value: String(call[0]) }));
+        .map((call) => String(call[0]));
 
       const [wholeOutput] = writes;
 

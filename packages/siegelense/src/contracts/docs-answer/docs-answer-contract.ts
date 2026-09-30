@@ -11,23 +11,22 @@
  * // Returns a validated DocsAnswer
  */
 
-import { contentTextContract } from '@dungeonmaster/shared/contracts';
 import { z } from '#gateway/npm/zod';
 
 import { docsScopeContract } from '../docs-scope/docs-scope-contract';
 
 const docsSectionContract = z
   .object({
-    heading: contentTextContract,
-    lines: z.array(contentTextContract),
+    heading: z.string().brand<'DocsSectionHeading'>(),
+    lines: z.array(z.string().brand<'DocsSectionLines'>()),
   })
   .strict();
 
 const docsScopeDocumentContract = z
   .object({
     scope: docsScopeContract,
-    audience: contentTextContract,
-    summary: contentTextContract,
+    audience: z.string().brand<'DocsScopeDocumentAudience'>(),
+    summary: z.string().brand<'DocsScopeDocumentSummary'>(),
     sections: z.array(docsSectionContract),
   })
   .strict();
@@ -35,7 +34,7 @@ const docsScopeDocumentContract = z
 export const docsAnswerContract = z
   .object({
     requested: docsScopeContract.nullable(),
-    about: z.array(contentTextContract),
+    about: z.array(z.string().brand<'DocsAnswerAbout'>()),
     scopes: z.array(docsScopeDocumentContract),
   })
   .strict();

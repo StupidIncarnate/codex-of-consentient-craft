@@ -6,17 +6,14 @@
  * // Returns "+12ms <- {"type":"quest-modified"}"
  */
 
-import { contentTextContract, type ContentText } from '@dungeonmaster/shared/contracts';
 
 import type { WsLogEntry } from '../../contracts/ws-log-entry/ws-log-entry-contract';
 import { truncateNetworkBodyTransformer } from '../truncate-network-body/truncate-network-body-transformer';
 
-export const formatWsEntryTransformer = ({ wsEntry }: { wsEntry: WsLogEntry }): ContentText => {
+export const formatWsEntryTransformer = ({ wsEntry }: { wsEntry: WsLogEntry }): string => {
   const arrow = wsEntry.direction === 'sent' ? '\u2192' : '\u2190';
   const truncatedData = truncateNetworkBodyTransformer({
-    body: contentTextContract.parse(wsEntry.data),
+    body: wsEntry.data,
   });
-  return contentTextContract.parse(
-    `+${String(wsEntry.elapsedMs)}ms ${arrow} ${String(truncatedData)}`,
-  );
+  return `+${String(wsEntry.elapsedMs)}ms ${arrow} ${String(truncatedData)}`;
 };

@@ -12,8 +12,6 @@
  * WHEN-NOT-TO-USE: When full AST parsing is needed — this is a v1 regex heuristic
  */
 
-import type { ContentText } from '../../contracts/content-text/content-text-contract';
-import { contentTextContract } from '../../contracts/content-text/content-text-contract';
 
 // Matches: if (parsed.data.type === 'some-literal' or "some-literal"
 const CONSUME_PATTERN = /if\s*\(\s*parsed\.data\.type\s*===\s*['"]([^'"]+)['"]/gu;
@@ -21,16 +19,16 @@ const CONSUME_PATTERN = /if\s*\(\s*parsed\.data\.type\s*===\s*['"]([^'"]+)['"]/g
 export const wsConsumeCallsExtractTransformer = ({
   source,
 }: {
-  source: ContentText;
-}): ContentText[] => {
-  const results: ContentText[] = [];
+  source: string;
+}): string[] => {
+  const results: string[] = [];
   CONSUME_PATTERN.lastIndex = 0;
 
   let match = CONSUME_PATTERN.exec(String(source));
   while (match !== null) {
     const [, captured] = match;
     if (captured !== undefined) {
-      results.push(contentTextContract.parse(captured));
+      results.push(captured);
     }
     match = CONSUME_PATTERN.exec(String(source));
   }

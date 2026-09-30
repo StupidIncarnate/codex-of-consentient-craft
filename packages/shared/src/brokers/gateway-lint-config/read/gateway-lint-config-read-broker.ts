@@ -16,7 +16,6 @@
  */
 
 import { existsSync, readFileSync } from '#gateway/node/fs';
-import { contentTextContract } from '../../../contracts/content-text/content-text-contract';
 import { gatewayLintConfigFileContract } from '../../../contracts/gateway-lint-config-file/gateway-lint-config-file-contract';
 import type { GatewayLintConfig } from '../../../contracts/gateway-lint-config/gateway-lint-config-contract';
 import { locationsStatics } from '../../../statics/locations/locations-statics';
@@ -35,7 +34,7 @@ export const gatewayLintConfigReadBroker = ({
   }
 
   try {
-    const raw = contentTextContract.parse(readFileSync(configPath));
+    const raw = readFileSync(configPath);
     const file = gatewayLintConfigFileContract.safeParse(JSON.parse(raw));
     return file.success
       ? (file.data.gateway ?? EMPTY_GATEWAY_LINT_CONFIG)

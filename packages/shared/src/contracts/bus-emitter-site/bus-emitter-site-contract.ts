@@ -14,13 +14,12 @@
  */
 
 import { z } from '#gateway/npm/zod';
-import { contentTextContract } from '../content-text/content-text-contract';
 import { absoluteFilePathContract } from '../absolute-file-path/absolute-file-path-contract';
 
 export const busEmitterSiteContract = z.object({
   emitterFile: absoluteFilePathContract,
-  eventType: contentTextContract,
-  busExportName: contentTextContract,
+  eventType: z.string().brand<'BusEmitterSiteEventType'>(),
+  busExportName: z.string().brand<'BusEmitterSiteBusExportName'>(),
 });
 
 export type BusEmitterSite = z.infer<typeof busEmitterSiteContract>;

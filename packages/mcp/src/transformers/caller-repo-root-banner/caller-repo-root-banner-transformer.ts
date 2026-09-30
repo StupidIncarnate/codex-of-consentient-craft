@@ -17,8 +17,6 @@
 
 import type { RepoRootCwd } from '@dungeonmaster/shared/contracts';
 
-import { contentTextContract } from '../../contracts/content-text/content-text-contract';
-import type { ContentText } from '../../contracts/content-text/content-text-contract';
 import type { CallerRepoRootSource } from '../../contracts/caller-repo-root-source/caller-repo-root-source-contract';
 
 export const callerRepoRootBannerTransformer = ({
@@ -29,7 +27,7 @@ export const callerRepoRootBannerTransformer = ({
   repoRoot: RepoRootCwd;
   source: CallerRepoRootSource;
   configFound: boolean;
-}): ContentText => {
+}): string => {
   const locationClause =
     source === 'server-cwd-fallback'
       ? 'WARNING: the MCP call carried no caller context from the dungeonmaster-pre-mcp-caller ' +
@@ -43,7 +41,5 @@ export const callerRepoRootBannerTransformer = ({
     : ' WARNING: no .dungeonmaster.json was found anywhere above that path — this is the ' +
       'literal starting directory, not a confirmed dungeonmaster project root.';
 
-  return contentTextContract.parse(
-    `[project-root: ${String(repoRoot)} — ${locationClause}${configClause}]`,
-  );
+  return `[project-root: ${String(repoRoot)} — ${locationClause}${configClause}]`;
 };

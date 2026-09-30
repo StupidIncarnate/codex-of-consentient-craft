@@ -26,8 +26,6 @@
  * cheapest section here and the one no reader can re-derive.
  */
 
-import { contentTextContract } from '../../contracts/content-text/content-text-contract';
-import type { ContentText } from '../../contracts/content-text/content-text-contract';
 import type { PackageName } from '../../contracts/package-name/package-name-contract';
 import type { Quest } from '../../contracts/quest/quest-contract';
 import { questFlowSliceLimitsStatics } from '../../statics/quest-flow-slice-limits/quest-flow-slice-limits-statics';
@@ -56,32 +54,28 @@ export const questFlowSliceTransformer = ({
   // The package whose half of the flow is the reader's. Omitted, every node is theirs and every
   // observable renders verbatim — the flowrider / siegemaster / reviewer view.
   packageName?: PackageName | undefined;
-}): ContentText => {
+}): string => {
   const flow =
     flowId === undefined
       ? undefined
       : quest.flows.find((candidate) => String(candidate.id) === String(flowId));
   const packageNameText = packageName === undefined ? undefined : String(packageName);
 
-  const parts: ContentText[] = [
-    contentTextContract.parse(`# Quest: ${String(quest.title)}`),
-    contentTextContract.parse(
-      `Quest ID: ${String(quest.id)} | Status: ${quest.status} | Type: ${quest.questType}`,
-    ),
+  const parts: string[] = [
+    `# Quest: ${String(quest.title)}`,
+    `Quest ID: ${String(quest.id)} | Status: ${quest.status} | Type: ${quest.questType}`,
   ];
 
   if (quest.packagesAffected.length > 0) {
     parts.push(
-      contentTextContract.parse(
-        `Packages affected (whole quest): ${String(questPackageEntriesToTextTransformer({ entries: quest.packagesAffected }))}`,
-      ),
+      `Packages affected (whole quest): ${String(questPackageEntriesToTextTransformer({ entries: quest.packagesAffected }))}`,
     );
   }
 
   parts.push(
-    contentTextContract.parse(''),
-    contentTextContract.parse('Original user request (the intent behind the flows):'),
-    contentTextContract.parse(String(quest.userRequest)),
+    '',
+    'Original user request (the intent behind the flows):',
+    String(quest.userRequest),
   );
 
   if (flowId !== undefined && flow === undefined) {
@@ -89,16 +83,14 @@ export const questFlowSliceTransformer = ({
     // ledger item or a prompt, so a bare "not found" leaves it unable to tell a typo from a flow
     // that was renamed under it.
     parts.push(
-      contentTextContract.parse(''),
-      contentTextContract.parse(
-        `## No flow #${String(flowId)} on this quest. Its flows are: ${
+      '',
+      `## No flow #${String(flowId)} on this quest. Its flows are: ${
           quest.flows.length === 0
             ? SYM.none
             : quest.flows.map((candidate) => `#${String(candidate.id)}`).join(', ')
         }`,
-      ),
     );
-    return contentTextContract.parse(parts.join('\n'));
+    return parts.join('\n');
   }
 
   // The same refusal the flow miss above gets, for the same reason and a sharper one. An unknown
@@ -125,14 +117,12 @@ export const questFlowSliceTransformer = ({
   ];
   if (packageNameText !== undefined && !knownPackages.includes(packageNameText)) {
     parts.push(
-      contentTextContract.parse(''),
-      contentTextContract.parse(
-        `## No package "${packageNameText}" on this quest. Its packages are: ${
+      '',
+      `## No package "${packageNameText}" on this quest. Its packages are: ${
           knownPackages.length === 0 ? SYM.none : knownPackages.join(', ')
         }`,
-      ),
     );
-    return contentTextContract.parse(parts.join('\n'));
+    return parts.join('\n');
   }
 
   // The rest of the spine, by name only. A session that cannot see a flow still has to know it is
@@ -140,60 +130,46 @@ export const questFlowSliceTransformer = ({
   const otherFlows = quest.flows.filter((candidate) => candidate.id !== flow?.id);
   if (otherFlows.length > 0) {
     parts.push(
-      contentTextContract.parse(''),
-      contentTextContract.parse(
-        flow === undefined
+      '',
+      (flow === undefined
           ? '## Flows on this quest — fetch each one you own with get-quest({ questId, flowId })'
-          : '## Other flows on this quest — ids and names only, NOT your scope',
-      ),
+          : '## Other flows on this quest — ids and names only, NOT your scope'),
       ...otherFlows.map((candidate) => {
         const taggedHere =
           packageNameText !== undefined &&
           candidate.nodes.some((node) =>
             node.packages.some((name) => String(name) === packageNameText),
           );
-        return contentTextContract.parse(
-          `#${String(candidate.id)} ${SYM.emDash} "${String(candidate.name)}" (${candidate.flowType})${
+        return `#${String(candidate.id)} ${SYM.emDash} "${String(candidate.name)}" (${candidate.flowType})${
             taggedHere ? ` ${SYM.emDash} you tag nodes here` : ''
-          }`,
-        );
+          }`;
       }),
     );
   }
 
   if (flow !== undefined) {
     parts.push(
-      contentTextContract.parse(''),
-      contentTextContract.parse(
-        (packageNameText === undefined
+      '',
+      (packageNameText === undefined
           ? SYM.flowSliceWholeFlowLegendLines
           : SYM.flowSliceLegendLines
         ).join('\n'),
-      ),
-      contentTextContract.parse(''),
-      contentTextContract.parse(
-        `## Flow: #${String(flow.id)} ${SYM.emDash} "${String(flow.name)}"`,
-      ),
-      contentTextContract.parse(`Type: ${flow.flowType}`),
+      '',
+      `## Flow: #${String(flow.id)} ${SYM.emDash} "${String(flow.name)}"`,
+      `Type: ${flow.flowType}`,
       ...(flow.scope === undefined
         ? []
-        : [contentTextContract.parse(`Scope: ${String(flow.scope)}`)]),
-      contentTextContract.parse(`Entry: ${String(flow.entryPoint)}`),
-      contentTextContract.parse(
-        `Exits: ${flow.exitPoints.map((exitPoint) => String(exitPoint)).join(' | ')}`,
-      ),
+        : [`Scope: ${String(flow.scope)}`]),
+      `Entry: ${String(flow.entryPoint)}`,
+      `Exits: ${flow.exitPoints.map((exitPoint) => String(exitPoint)).join(' | ')}`,
       ...(packageNameText === undefined
         ? [
-            contentTextContract.parse(
-              'The WHOLE flow is yours — every node, whatever package it lands in.',
-            ),
+            'The WHOLE flow is yours — every node, whatever package it lands in.',
           ]
         : [
-            contentTextContract.parse(
-              `Your package: ${packageNameText}. Its nodes carry ${SYM.ownedNode}, and so does every labelled edge LEAVING one of them — a branch belongs to the node it leaves, and its id is the ${SYM.edgeIdOpen}…${SYM.edgeIdClose} at the head of the line. On a marked node EVERY observable is listed whatever package owns it, and each node's tag set counts them per package (${SYM.observable}). The graph is NOT filtered — the nodes between yours are how yours connect.`,
-            ),
+            `Your package: ${packageNameText}. Its nodes carry ${SYM.ownedNode}, and so does every labelled edge LEAVING one of them — a branch belongs to the node it leaves, and its id is the ${SYM.edgeIdOpen}…${SYM.edgeIdClose} at the head of the line. On a marked node EVERY observable is listed whatever package owns it, and each node's tag set counts them per package (${SYM.observable}). The graph is NOT filtered — the nodes between yours are how yours connect.`,
           ]),
-      contentTextContract.parse(''),
+      '',
       ...flowGraphToTextTransformer({
         flow,
         ...(packageName !== undefined && { ownPackage: packageName }),
@@ -223,16 +199,12 @@ export const questFlowSliceTransformer = ({
 
     if (inboundEdges.length > 0) {
       parts.push(
-        contentTextContract.parse(''),
-        contentTextContract.parse('### Edges arriving from another flow'),
+        '',
+        '### Edges arriving from another flow',
         ...inboundEdges.flatMap((inbound) => [
-          contentTextContract.parse(
-            `${SYM.rightArrow}${SYM.edgeIdOpen}${String(inbound.edge.id)}${SYM.edgeIdClose} ${inbound.edge.label === undefined ? '' : `"${String(inbound.edge.label)}" `}into [#${inbound.target.slice(`${String(flow.id)}:`.length)}]`,
-          ),
-          contentTextContract.parse(
-            `${SYM.indent}source: [#${String(inbound.sourceNode.id)}] {${inbound.sourceNode.packages.map((name) => String(name)).join(', ')}} ${String(inbound.sourceNode.label)} (${inbound.sourceNode.type}) in flow #${String(inbound.source.id)} "${String(inbound.source.name)}"`,
-          ),
-          contentTextContract.parse(`${SYM.indent}${CROSS_FLOW_INBOUND_NOTE}`),
+          `${SYM.rightArrow}${SYM.edgeIdOpen}${String(inbound.edge.id)}${SYM.edgeIdClose} ${inbound.edge.label === undefined ? '' : `"${String(inbound.edge.label)}" `}into [#${inbound.target.slice(`${String(flow.id)}:`.length)}]`,
+          `${SYM.indent}source: [#${String(inbound.sourceNode.id)}] {${inbound.sourceNode.packages.map((name) => String(name)).join(', ')}} ${String(inbound.sourceNode.label)} (${inbound.sourceNode.type}) in flow #${String(inbound.source.id)} "${String(inbound.source.name)}"`,
+          `${SYM.indent}${CROSS_FLOW_INBOUND_NOTE}`,
         ]),
       );
     }
@@ -326,12 +298,10 @@ export const questFlowSliceTransformer = ({
   for (const group of contractGroups) {
     if (group.entries.length > 0) {
       parts.push(
-        contentTextContract.parse(''),
-        contentTextContract.parse(group.heading),
+        '',
+        group.heading,
         ...group.entries.flatMap(({ contract, properties }) => [
-          contentTextContract.parse(
-            `#${String(contract.id)} ${SYM.emDash} ${String(contract.name)} (${contract.kind}, ${contract.status}) [${SYM.rightArrow} ${String(contract.source)}] on node #${String(contract.nodeId)}`,
-          ),
+          `#${String(contract.id)} ${SYM.emDash} ${String(contract.name)} (${contract.kind}, ${contract.status}) [${SYM.rightArrow} ${String(contract.source)}] on node #${String(contract.nodeId)}`,
           ...(properties.length === 0
             ? []
             : questContractPropertiesToTextTransformer({
@@ -364,27 +334,23 @@ export const questFlowSliceTransformer = ({
 
   if (scopedDecisions.length > 0) {
     parts.push(
-      contentTextContract.parse(''),
-      contentTextContract.parse('## Design decisions governing these nodes'),
+      '',
+      '## Design decisions governing these nodes',
       ...scopedDecisions.flatMap((decision) => [
-        contentTextContract.parse(`#${String(decision.id)}: "${String(decision.title)}"`),
-        contentTextContract.parse(`${SYM.indent}Rationale: ${String(decision.rationale)}`),
-        contentTextContract.parse(
-          `${SYM.indent}Relates to: ${decision.relatedNodeIds.map((nodeId) => `#${String(nodeId)}`).join(', ')}`,
-        ),
+        `#${String(decision.id)}: "${String(decision.title)}"`,
+        `${SYM.indent}Rationale: ${String(decision.rationale)}`,
+        `${SYM.indent}Relates to: ${decision.relatedNodeIds.map((nodeId) => `#${String(nodeId)}`).join(', ')}`,
       ]),
     );
   }
 
   if (questWideDecisions.length > 0) {
     parts.push(
-      contentTextContract.parse(''),
-      contentTextContract.parse(
-        '## Design decisions for the whole quest — no node named, so they bind every flow',
-      ),
+      '',
+      '## Design decisions for the whole quest — no node named, so they bind every flow',
       ...questWideDecisions.flatMap((decision) => [
-        contentTextContract.parse(`#${String(decision.id)}: "${String(decision.title)}"`),
-        contentTextContract.parse(`${SYM.indent}Rationale: ${String(decision.rationale)}`),
+        `#${String(decision.id)}: "${String(decision.title)}"`,
+        `${SYM.indent}Rationale: ${String(decision.rationale)}`,
       ]),
     );
   }
@@ -402,7 +368,7 @@ export const questFlowSliceTransformer = ({
   const body = parts.join('\n');
 
   if (body.length <= questFlowSliceLimitsStatics.maxRenderChars) {
-    return contentTextContract.parse(body);
+    return body;
   }
 
   // The only bound that actually holds. Every section above is bounded by the SHAPE of the call, but
@@ -412,7 +378,5 @@ export const questFlowSliceTransformer = ({
   const cut = body.slice(0, questFlowSliceLimitsStatics.maxRenderChars);
   const kept = cut.slice(0, cut.lastIndexOf('\n') + 1);
 
-  return contentTextContract.parse(
-    `${kept}\n[TRUNCATED at the ${String(questFlowSliceLimitsStatics.maxRenderChars)}-character ceiling — ${String(body.length - kept.length)} character(s) were dropped from the END of this render, so the sections after this line are missing or cut short. Sections run flow graph, cross-flow edges, contracts, design decisions, off-map probes; read quest.json for whatever fell off.]`,
-  );
+  return `${kept}\n[TRUNCATED at the ${String(questFlowSliceLimitsStatics.maxRenderChars)}-character ceiling — ${String(body.length - kept.length)} character(s) were dropped from the END of this render, so the sections after this line are missing or cut short. Sections run flow graph, cross-flow edges, contracts, design decisions, off-map probes; read quest.json for whatever fell off.]`;
 };

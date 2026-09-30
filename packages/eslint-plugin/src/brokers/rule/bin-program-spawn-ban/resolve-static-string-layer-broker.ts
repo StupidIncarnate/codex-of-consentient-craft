@@ -13,7 +13,6 @@
  * resolveStaticStringLayerBroker({ node: literalNode, moduleBody: programBody });
  * // Returns 'git' as ContentText, or undefined when the node is not statically resolvable this way
  */
-import { contentTextContract, type ContentText } from '@dungeonmaster/shared/contracts';
 import { AST_NODE_TYPES } from '#gateway/npm/typescript-eslint__utils';
 import type { TSESTree } from '#gateway/npm/typescript-eslint__utils';
 import { objectPropertyValueTransformer } from '../../../transformers/object-property-value/object-property-value-transformer';
@@ -28,7 +27,7 @@ export const resolveStaticStringLayerBroker = ({
   node: TSESTree.Node | undefined;
   moduleBody: readonly TSESTree.ProgramStatement[];
   filename?: string | undefined;
-}): ContentText | undefined => {
+}): string | undefined => {
   if (node === undefined) {
     return undefined;
   }
@@ -44,13 +43,13 @@ export const resolveStaticStringLayerBroker = ({
   }
 
   if (node.type === AST_NODE_TYPES.Literal) {
-    return typeof node.value === 'string' ? contentTextContract.parse(node.value) : undefined;
+    return typeof node.value === 'string' ? node.value : undefined;
   }
 
   if (node.type === AST_NODE_TYPES.TemplateLiteral) {
     const [firstQuasi] = node.quasis;
     const text = firstQuasi?.value.cooked;
-    return text !== undefined && text.length > 0 ? contentTextContract.parse(text) : undefined;
+    return text !== undefined && text.length > 0 ? text : undefined;
   }
 
   if (node.type === AST_NODE_TYPES.Identifier) {

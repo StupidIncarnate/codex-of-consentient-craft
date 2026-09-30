@@ -17,10 +17,6 @@
  * widget tree section and the boot-tree's per-responder widget subtree
  */
 
-import {
-  contentTextContract,
-  type ContentText,
-} from '../../../contracts/content-text/content-text-contract';
 import type { WidgetNode } from '../../../contracts/widget-node/widget-node-contract';
 import type { HttpEdge } from '../../../contracts/http-edge/http-edge-contract';
 import type { WsEdge } from '../../../contracts/ws-edge/ws-edge-contract';
@@ -41,7 +37,7 @@ export const architectureWidgetNodeRenderBroker = ({
   callChainFn,
 }: {
   node: WidgetNode;
-  prefix: ContentText;
+  prefix: string;
   isLast: boolean;
   httpEdges: HttpEdge[];
   wsEdges: WsEdge[];
@@ -52,28 +48,28 @@ export const architectureWidgetNodeRenderBroker = ({
     sourceFile: string;
     packageSrcPath: string;
     renderingFilePath: string;
-    baseIndent?: ContentText;
-  }) => ContentText[];
-}): ContentText[] => {
+    baseIndent?: string;
+  }) => string[];
+}): string[] => {
   const { pipe, branch, last, indent } = projectMapHeadlineFrontendReactStatics.treeConnectors;
   const { bindingFlowLineSubIndent, httpMethodPadWidth } = projectMapHeadlineFrontendReactStatics;
   const connector = isLast ? last : branch;
-  const lines: ContentText[] = [];
+  const lines: string[] = [];
 
   const widgetDisplayName = architectureExportNameResolveBroker({ filePath: node.filePath });
   lines.push(
-    contentTextContract.parse(`${String(prefix)}${connector} ${String(widgetDisplayName)}`),
+    `${String(prefix)}${connector} ${String(widgetDisplayName)}`,
   );
 
   const childIndentStr = isLast ? `${String(prefix)}${indent}` : `${String(prefix)}${pipe}  `;
   const flowIndent = `${childIndentStr}${bindingFlowLineSubIndent}`;
-  const chainBaseIndent = contentTextContract.parse(flowIndent);
+  const chainBaseIndent = flowIndent;
 
   for (const bindingName of node.bindingsAttached) {
     const bindingFile = bindingNameToFilePathTransformer({ bindingName, packageRoot });
     const bindingDisplayName = architectureExportNameResolveBroker({ filePath: bindingFile });
     lines.push(
-      contentTextContract.parse(`${childIndentStr}bindings: ${String(bindingDisplayName)}`),
+      `${childIndentStr}bindings: ${String(bindingDisplayName)}`,
     );
 
     if (callChainFn !== undefined && packageSrcPath !== undefined) {
@@ -103,16 +99,14 @@ export const architectureWidgetNodeRenderBroker = ({
           ? ''
           : `  ──► ${String(flow.serverRef)}${flow.orchestratorMethod === null ? '' : ` → ${String(flow.orchestratorMethod)}`}`;
       lines.push(
-        contentTextContract.parse(
-          `${flowIndent}→ ${method} ${String(flow.urlPattern)}${flowSuffix}`,
-        ),
+        `${flowIndent}→ ${method} ${String(flow.urlPattern)}${flowSuffix}`,
       );
     }
 
     for (const ws of wsEvents) {
       const emitterSuffix = ws.emitterRef === null ? '' : `  ←─ ${String(ws.emitterRef)}`;
       lines.push(
-        contentTextContract.parse(`${flowIndent}ws← ${String(ws.eventType)}${emitterSuffix}`),
+        `${flowIndent}ws← ${String(ws.eventType)}${emitterSuffix}`,
       );
     }
   }
@@ -130,7 +124,7 @@ export const architectureWidgetNodeRenderBroker = ({
     }
   }
 
-  const grandChildPrefix = contentTextContract.parse(childIndentStr);
+  const grandChildPrefix = childIndentStr;
   for (let i = 0; i < node.children.length; i++) {
     const child = node.children[i];
     if (child === undefined) continue;

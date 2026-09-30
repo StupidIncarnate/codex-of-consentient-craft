@@ -11,20 +11,16 @@
  * WHEN-TO-USE: eslint-plugin headline broker converting rule file paths to rule names
  */
 
-import {
-  contentTextContract,
-  type ContentText,
-} from '../../contracts/content-text/content-text-contract';
 import { projectMapHeadlineEslintPluginStatics } from '../../statics/project-map-headline-eslint-plugin/project-map-headline-eslint-plugin-statics';
 
 export const eslintRuleNameFromPathTransformer = ({
   filePath,
 }: {
   filePath: string;
-}): ContentText => {
+}): string => {
   const parts = String(filePath).split('/');
   // Parent directory name is the rule domain folder (e.g. 'ban-primitives')
   const parentDir =
     parts[parts.length - projectMapHeadlineEslintPluginStatics.ruleNameParentDirDepth] ?? '';
-  return contentTextContract.parse(parentDir);
+  return parentDir;
 };

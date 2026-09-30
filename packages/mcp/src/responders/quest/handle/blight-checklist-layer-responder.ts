@@ -13,7 +13,6 @@
 
 import { StartOrchestrator } from '@dungeonmaster/orchestrator';
 
-import { contentTextContract } from '../../../contracts/content-text/content-text-contract';
 import { getBlightChecklistInputContract } from '../../../contracts/get-blight-checklist-input/get-blight-checklist-input-contract';
 import type { CallToolResult } from '#gateway/npm/modelcontextprotocol__sdk__types';
 
@@ -38,15 +37,13 @@ export const BlightChecklistLayerResponder = async ({
       content: [
         {
           type: 'text',
-          text: contentTextContract.parse(
-            checklist.success
+          text: (checklist.success
               ? checklist.data
               : JSON.stringify(
                   { success: false, error: checklist.error },
                   null,
                   JSON_INDENT_SPACES,
-                ),
-          ),
+                )),
         },
       ],
       ...(!checklist.success && { isError: true }),
@@ -57,9 +54,7 @@ export const BlightChecklistLayerResponder = async ({
       content: [
         {
           type: 'text',
-          text: contentTextContract.parse(
-            JSON.stringify({ success: false, error: errorMessage }, null, JSON_INDENT_SPACES),
-          ),
+          text: JSON.stringify({ success: false, error: errorMessage }, null, JSON_INDENT_SPACES),
         },
       ],
       isError: true,

@@ -11,7 +11,6 @@
  */
 import * as ts from '#gateway/npm/typescript';
 
-import type { ContentText } from '../../contracts/content-text/content-text-contract';
 import { contractUsesBindingContract } from '../../contracts/contract-uses-binding/contract-uses-binding-contract';
 import { contractIndexEntryContract } from '../../contracts/contract-index-entry/contract-index-entry-contract';
 import type { ContractIndexEntry } from '../../contracts/contract-index-entry/contract-index-entry-contract';
@@ -34,7 +33,7 @@ export const contractIndexFromSourcesTransformer = ({
 }: {
   rootDir: string;
   packages: ContractIndexPackage[];
-  sources: { filePath: string; text: ContentText }[];
+  sources: { filePath: string; text: string }[];
 }): ContractIndexEntry[] => {
   const knownFiles = new Set(sources.map((source) => source.filePath));
   const rootPrefixLength = rootDir.length + 1;

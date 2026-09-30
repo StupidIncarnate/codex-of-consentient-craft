@@ -1,5 +1,4 @@
 import type { StubArgument } from '@dungeonmaster/shared/@types';
-import { ContentTextStub } from '@dungeonmaster/shared/contracts/content-text/content-text.stub';
 import { FileNameStub } from '@dungeonmaster/shared/contracts/file-name/file-name.stub';
 
 import { HttpMethodStub } from '../http-method/http-method.stub';
@@ -45,7 +44,7 @@ const STEP_DEFAULTS = {
     target: SelectorStub(),
     within: null,
     ref: null,
-    value: ContentTextStub(),
+    value: 'Result text',
     timeoutMs: null,
     node: null,
     expect: StepExpectationStub(),
@@ -59,7 +58,7 @@ const STEP_DEFAULTS = {
   },
   eval: {
     step: 'eval',
-    source: ContentTextStub(),
+    source: 'Result text',
     node: null,
     expect: StepExpectationStub(),
   },
@@ -104,7 +103,7 @@ const STEP_DEFAULTS = {
   },
   key: {
     step: 'key',
-    press: ContentTextStub({ value: 'Enter' }),
+    press: 'Enter',
     node: null,
     expect: StepExpectationStub(),
   },
@@ -129,7 +128,7 @@ const STEP_DEFAULTS = {
   },
   before: {
     step: 'before',
-    source: ContentTextStub({ value: 'window.__injected = true;' }),
+    source: 'window.__injected = true;',
     node: null,
     expect: StepExpectationStub(),
   },
@@ -151,7 +150,7 @@ const STEP_DEFAULTS = {
     within: null,
     ref: null,
     filePath: null,
-    value: ContentTextStub(),
+    value: 'Result text',
     timeoutMs: null,
     node: null,
     expect: StepExpectationStub(),

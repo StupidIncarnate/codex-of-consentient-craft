@@ -26,7 +26,6 @@
  * // Returns { kept: [{ name: 'href', value: '→ /queue' }], dropped: 0 }
  */
 
-import { contentTextContract } from '@dungeonmaster/shared/contracts';
 
 import { attrPairContract } from '../../contracts/attr-pair/attr-pair-contract';
 import type { AttrPair } from '../../contracts/attr-pair/attr-pair-contract';
@@ -67,8 +66,8 @@ export const attrsBudgetTransformer = ({
           ? `${keyStatics.arrows.link} ${truncated}${opensNewTab ? ` ${keyStatics.arrows.newTab}` : ''}`
           : truncated;
       return attrPairContract.parse({
-        name: contentTextContract.parse(attribute.name),
-        value: contentTextContract.parse(rendered),
+        name: attribute.name,
+        value: rendered,
       });
     });
 

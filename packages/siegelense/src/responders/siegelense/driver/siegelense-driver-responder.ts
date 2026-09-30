@@ -35,7 +35,7 @@
  * // Same, but the served lane reaps itself after 1_800_000ms of no traffic instead of the default
  */
 
-import { contentTextContract, processIdContract } from '@dungeonmaster/shared/contracts';
+import { processIdContract } from '@dungeonmaster/shared/contracts';
 import type { TimeoutMs, SiegeInstance } from '@dungeonmaster/shared/contracts';
 import { getPid, stderr } from '#gateway/node/process';
 
@@ -111,9 +111,7 @@ export const SiegelenseDriverResponder = async ({
       try {
         await bootFailureMarkerWriteBroker({
           evidencePath,
-          message: contentTextContract.parse(
-            bootError instanceof Error ? bootError.message : String(bootError),
-          ),
+          message: (bootError instanceof Error ? bootError.message : String(bootError)),
         });
       } catch (markerWriteError: unknown) {
         stderr.write(

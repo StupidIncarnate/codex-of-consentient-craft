@@ -17,7 +17,6 @@
  * // Returns true
  */
 
-import type { ContentText } from '@dungeonmaster/shared/contracts';
 
 import { resultsStatics } from '../../statics/results/results-statics';
 
@@ -29,7 +28,7 @@ const NETWORK_STATUS_PATTERN = new RegExp(
   resultsStatics.patterns.networkStatus.flags,
 );
 
-export const isNetworkLineNon2xxGuard = ({ line }: { line?: ContentText }): boolean => {
+export const isNetworkLineNon2xxGuard = ({ line }: { line?: string }): boolean => {
   if (!line) {
     return false;
   }

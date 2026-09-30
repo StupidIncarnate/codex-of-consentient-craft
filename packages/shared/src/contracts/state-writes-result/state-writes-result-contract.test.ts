@@ -1,6 +1,5 @@
 import { stateWritesResultContract } from './state-writes-result-contract';
 import { StateWritesResultStub } from './state-writes-result.stub';
-import { ContentTextStub } from '../content-text/content-text.stub';
 
 describe('stateWritesResultContract', () => {
   describe('valid results', () => {
@@ -17,9 +16,9 @@ describe('stateWritesResultContract', () => {
     });
 
     it('VALID: {populated arrays} => parses successfully', () => {
-      const store = ContentTextStub({ value: 'design-process' });
-      const fileWrite = ContentTextStub({ value: '/path/to/quest.json' });
-      const browserWrite = ContentTextStub({ value: 'localStorage: session-id' });
+      const store = 'design-process';
+      const fileWrite = '/path/to/quest.json';
+      const browserWrite = 'localStorage: session-id';
 
       const result = StateWritesResultStub({
         inMemoryStores: [store],

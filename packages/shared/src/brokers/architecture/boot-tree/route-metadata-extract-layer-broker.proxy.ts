@@ -1,5 +1,4 @@
 import { readFileContentsLayerBrokerProxy } from './read-file-contents-layer-broker.proxy';
-import type { ContentText } from '../../../contracts/content-text/content-text-contract';
 
 export const routeMetadataExtractLayerBrokerProxy = (): {
   setupSource: ({
@@ -7,10 +6,10 @@ export const routeMetadataExtractLayerBrokerProxy = (): {
     content,
   }: {
     flowFile: string;
-    content: ContentText;
+    content: string;
   }) => void;
   setupMissing: ({ flowFile }: { flowFile: string }) => void;
-  setupImplementation: ({ fn }: { fn: (filePath: ContentText) => ContentText }) => void;
+  setupImplementation: ({ fn }: { fn: (filePath: string) => string }) => void;
 } => {
   const fileProxy = readFileContentsLayerBrokerProxy();
 
@@ -20,14 +19,14 @@ export const routeMetadataExtractLayerBrokerProxy = (): {
       content,
     }: {
       flowFile: string;
-      content: ContentText;
+      content: string;
     }): void => {
       fileProxy.setupReturns({ filePath: flowFile, content });
     },
     setupMissing: ({ flowFile }: { flowFile: string }): void => {
       fileProxy.setupMissing({ filePath: flowFile });
     },
-    setupImplementation: ({ fn }: { fn: (filePath: ContentText) => ContentText }): void => {
+    setupImplementation: ({ fn }: { fn: (filePath: string) => string }): void => {
       fileProxy.setupImplementation({ fn });
     },
   };

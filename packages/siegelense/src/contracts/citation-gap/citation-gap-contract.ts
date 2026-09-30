@@ -17,13 +17,12 @@
 
 import { z } from '#gateway/npm/zod';
 
-import { contentTextContract } from '@dungeonmaster/shared/contracts';
 
 import { citationKindContract } from '../citation-kind/citation-kind-contract';
 
 export const citationGapContract = z.object({
   kind: citationKindContract,
-  why: contentTextContract,
+  why: z.string().brand<'CitationGapWhy'>(),
 });
 
 export type CitationGap = z.infer<typeof citationGapContract>;

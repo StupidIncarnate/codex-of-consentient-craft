@@ -10,7 +10,6 @@
 
 import { z } from '#gateway/npm/zod';
 
-import { contentTextContract } from '@dungeonmaster/shared/contracts';
 
 import { attrPairContract } from '../attr-pair/attr-pair-contract';
 import { domRectContract } from '../dom-rect/dom-rect-contract';
@@ -21,17 +20,17 @@ export const rawDomReadingContract = z.object({
   nodes: z
     .array(
       z.object({
-        tagName: contentTextContract,
-        testId: contentTextContract.nullable(),
-        className: contentTextContract.nullable(),
+        tagName: z.string().brand<'RawDomReadingNodesTagName'>(),
+        testId: z.string().brand<'RawDomReadingNodesTestId'>().nullable(),
+        className: z.string().brand<'RawDomReadingNodesClassName'>().nullable(),
         childCount: readingCountContract,
-        display: contentTextContract,
-        visibility: contentTextContract,
-        opacity: contentTextContract,
+        display: z.string().brand<'RawDomReadingNodesDisplay'>(),
+        visibility: z.string().brand<'RawDomReadingNodesVisibility'>(),
+        opacity: z.string().brand<'RawDomReadingNodesOpacity'>(),
         rect: domRectContract,
-        text: contentTextContract,
+        text: z.string().brand<'RawDomReadingNodesText'>(),
         attrs: z.array(attrPairContract).readonly(),
-        value: contentTextContract.nullable(),
+        value: z.string().brand<'RawDomReadingNodesValue'>().nullable(),
       }),
     )
     .readonly(),

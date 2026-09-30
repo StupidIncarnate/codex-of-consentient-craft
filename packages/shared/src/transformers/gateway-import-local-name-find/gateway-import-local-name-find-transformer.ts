@@ -12,10 +12,6 @@
  * // Returns 'tail'; undefined when the source does not import it from that specifier
  */
 
-import {
-  contentTextContract,
-  type ContentText,
-} from '../../contracts/content-text/content-text-contract';
 
 const REGEX_SPECIALS = /[.*+?^${}()|[\]\\/]/gu;
 
@@ -24,10 +20,10 @@ export const gatewayImportLocalNameFindTransformer = ({
   importSource,
   importedName,
 }: {
-  source: ContentText;
-  importSource: ContentText;
-  importedName: ContentText;
-}): ContentText | undefined => {
+  source: string;
+  importSource: string;
+  importedName: string;
+}): string | undefined => {
   const escapedSource = String(importSource).replace(REGEX_SPECIALS, '\\$&');
   const importPattern = new RegExp(
     `import\\s+(?!type\\s)\\{([^}]*)\\}\\s+from\\s+['"]${escapedSource}['"]`,
@@ -40,7 +36,7 @@ export const gatewayImportLocalNameFindTransformer = ({
     for (const specifier of specifierList.split(',')) {
       const [imported = '', local] = specifier.trim().split(/\s+as\s+/u);
       if (imported === wanted) {
-        return contentTextContract.parse(local ?? imported);
+        return (local ?? imported);
       }
     }
   }

@@ -32,7 +32,6 @@ import { homedir } from '#gateway/node/os';
 import { join } from '#gateway/node/path';
 import { getEnv, setEnv, stderr } from '#gateway/node/process';
 import { contentTextContract } from '@dungeonmaster/shared/contracts';
-import type { ContentText } from '@dungeonmaster/shared/contracts';
 
 import { boxReadingContract } from '../../../contracts/box-reading/box-reading-contract';
 import type { BoxReading } from '../../../contracts/box-reading/box-reading-contract';
@@ -148,9 +147,9 @@ export const browserSessionLaunchBroker = async ({
   await context.grantPermissions(['clipboard-read', 'clipboard-write'], { origin: baseUrl });
   const page = await context.newPage();
 
-  const consoleLines: ContentText[] = [];
-  const networkLines: ContentText[] = [];
-  const websocketLines: ContentText[] = [];
+  const consoleLines: string[] = [];
+  const networkLines: string[] = [];
+  const websocketLines: string[] = [];
   const linesBuild = listenerLinesTransformer();
   const refRegistry = refRegistryLayerBroker();
   const keyReader = keyReadTransformer();
@@ -268,7 +267,7 @@ export const browserSessionLaunchBroker = async ({
           payload:
             typeof payload === 'string'
               ? linesBuild.truncatePayload({ text: payload })
-              : contentTextContract.parse('<binary>'),
+              : '<binary>',
         }),
       );
     });
@@ -282,7 +281,7 @@ export const browserSessionLaunchBroker = async ({
           payload:
             typeof payload === 'string'
               ? linesBuild.truncatePayload({ text: payload })
-              : contentTextContract.parse('<binary>'),
+              : '<binary>',
         }),
       );
     });
@@ -360,7 +359,7 @@ export const browserSessionLaunchBroker = async ({
       target: _target,
     }: {
       target: string;
-    }): Promise<readonly ContentText[]> => {
+    }): Promise<readonly string[]> => {
       // Self-invoked for the same reason describeMatches is, above — a bare `() => ...` source
       // string is never called by Playwright at all, so it takes no `arg` to begin with.
       const raw = await page.evaluate(`(${NEAREST_NAMES_SOURCE})()`);
@@ -492,19 +491,19 @@ export const browserSessionLaunchBroker = async ({
       await page.screenshot({ path: filePath, animations: 'allow' });
     },
 
-    evaluateSource: async ({ source }: { source: string }): Promise<ContentText> => {
+    evaluateSource: async ({ source }: { source: string }): Promise<string> => {
       const evaluated: unknown = await page.evaluate(source);
       if (evaluated === undefined) {
-        return contentTextContract.parse('undefined');
+        return 'undefined';
       }
-      return contentTextContract.parse(JSON.stringify(evaluated));
+      return JSON.stringify(evaluated);
     },
 
-    readConsoleSince: ({ fromIndex }: { fromIndex: number }): readonly ContentText[] =>
+    readConsoleSince: ({ fromIndex }: { fromIndex: number }): readonly string[] =>
       consoleLines.slice(fromIndex),
-    readNetworkSince: ({ fromIndex }: { fromIndex: number }): readonly ContentText[] =>
+    readNetworkSince: ({ fromIndex }: { fromIndex: number }): readonly string[] =>
       networkLines.slice(fromIndex),
-    readWebsocketSince: ({ fromIndex }: { fromIndex: number }): readonly ContentText[] =>
+    readWebsocketSince: ({ fromIndex }: { fromIndex: number }): readonly string[] =>
       websocketLines.slice(fromIndex),
 
     readDom: async ({

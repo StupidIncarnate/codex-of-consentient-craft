@@ -1,14 +1,13 @@
 import { serverRouteCallSiteContract } from './server-route-call-site-contract';
 import { ServerRouteCallSiteStub } from './server-route-call-site.stub';
-import { ContentTextStub } from '../content-text/content-text.stub';
 
 describe('serverRouteCallSiteContract', () => {
   describe('valid inputs', () => {
     it('VALID: {statics ref + responder name} => parses successfully', () => {
       const result = ServerRouteCallSiteStub({
-        method: ContentTextStub({ value: 'GET' }),
-        rawArg: ContentTextStub({ value: 'apiRoutesStatics.quests.list' }),
-        responderName: ContentTextStub({ value: 'QuestListResponder' }),
+        method: 'GET',
+        rawArg: 'apiRoutesStatics.quests.list',
+        responderName: 'QuestListResponder',
       });
 
       expect(result).toStrictEqual({
@@ -20,9 +19,9 @@ describe('serverRouteCallSiteContract', () => {
 
     it('VALID: {POST method with inline path} => parses with POST', () => {
       const result = ServerRouteCallSiteStub({
-        method: ContentTextStub({ value: 'POST' }),
-        rawArg: ContentTextStub({ value: '/api/quests/:questId/start' }),
-        responderName: ContentTextStub({ value: 'QuestStartResponder' }),
+        method: 'POST',
+        rawArg: '/api/quests/:questId/start',
+        responderName: 'QuestStartResponder',
       });
 
       expect(result).toStrictEqual({
@@ -34,8 +33,8 @@ describe('serverRouteCallSiteContract', () => {
 
     it('VALID: {responderName: null} => allowed for inline-handler routes (e.g. health)', () => {
       const result = ServerRouteCallSiteStub({
-        method: ContentTextStub({ value: 'GET' }),
-        rawArg: ContentTextStub({ value: '/api/health' }),
+        method: 'GET',
+        rawArg: '/api/health',
         responderName: null,
       });
 

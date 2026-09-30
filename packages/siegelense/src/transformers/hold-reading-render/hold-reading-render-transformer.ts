@@ -11,17 +11,13 @@
  * // Returns '{"frames":4,"differing":0,"reading":"NOTHING CHANGED across 4.5s","shots":["/tmp/shot1.png"]}'
  */
 
-import { contentTextContract } from '@dungeonmaster/shared/contracts';
-import type { ContentText } from '@dungeonmaster/shared/contracts';
 
 import type { HoldReading } from '../../contracts/hold-reading/hold-reading-contract';
 
-export const holdReadingRenderTransformer = ({ reading }: { reading: HoldReading }): ContentText =>
-  contentTextContract.parse(
-    JSON.stringify({
+export const holdReadingRenderTransformer = ({ reading }: { reading: HoldReading }): string =>
+  JSON.stringify({
       frames: reading.frames,
       differing: reading.differing,
       reading: reading.verdict,
       shots: reading.shots,
-    }),
-  );
+    });

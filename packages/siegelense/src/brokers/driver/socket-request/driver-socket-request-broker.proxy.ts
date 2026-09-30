@@ -1,12 +1,11 @@
 import { unixSocketRequestProxy } from '#gateway/node/net/unix-socket-request/unix-socket-request.proxy';
 import { UnixSocketRecordedErrorStub } from '#gateway/node/net/unix-socket-recorded-error/unix-socket-recorded-error.stub';
-import { ContentTextStub } from '@dungeonmaster/shared/contracts/content-text/content-text.stub';
 
 import type { DriverResponseStub } from '../../../contracts/driver-response/driver-response.stub';
 import { ReadingCountStub } from '../../../contracts/reading-count/reading-count.stub';
 
 type DriverResponse = ReturnType<typeof DriverResponseStub>;
-type ContentText = ReturnType<typeof ContentTextStub>;
+type ContentText = string;
 type ReadingCount = ReturnType<typeof ReadingCountStub>;
 
 // Every stage is addressed by the test's own socketPath — the exact path `unixSocketRequest`
@@ -73,7 +72,7 @@ export const driverSocketRequestBrokerProxy = (): {
     }): readonly ContentText[] =>
       socketProxy
         .getRequestLinesFor({ socketPath })
-        .map((requestLine) => ContentTextStub({ value: requestLine })),
+        .map((requestLine) => requestLine),
 
     getConnectionCountFor: ({ socketPath }: { socketPath: string }): ReadingCount =>
       ReadingCountStub({ value: socketProxy.getConnectionCountFor({ socketPath }) }),

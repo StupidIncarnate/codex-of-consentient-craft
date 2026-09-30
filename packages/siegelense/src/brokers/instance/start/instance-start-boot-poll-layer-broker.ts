@@ -31,7 +31,6 @@ import type { BootPollOutcome } from '../../../contracts/boot-poll-outcome/boot-
 import { driverRequestContract } from '../../../contracts/driver-request/driver-request-contract';
 import type { EpochMs } from '../../../contracts/epoch-ms/epoch-ms-contract';
 import { driverStatics } from '../../../statics/driver/driver-statics';
-import { contentTextContract } from '@dungeonmaster/shared/contracts';
 
 export const instanceStartBootPollLayerBroker = async ({
   socketPath,
@@ -47,7 +46,7 @@ export const instanceStartBootPollLayerBroker = async ({
       socketPath,
       request: driverRequestContract.parse({
         kind: 'ping',
-        payload: contentTextContract.parse(''),
+        payload: '',
       }),
       timeoutMs: driverStatics.socket.connectTimeoutMs,
     });

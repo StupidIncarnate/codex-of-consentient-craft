@@ -14,7 +14,6 @@
  * // Returns ['b'] — the one line unique to linesB
  */
 
-import type { ContentText } from '@dungeonmaster/shared/contracts';
 
 import { resultsStatics } from '../../../statics/results/results-statics';
 
@@ -22,9 +21,9 @@ export const newLinesLayerBroker = ({
   linesA,
   linesB,
 }: {
-  linesA: readonly ContentText[];
-  linesB: readonly ContentText[];
-}): readonly ContentText[] => {
+  linesA: readonly string[];
+  linesB: readonly string[];
+}): readonly string[] => {
   const setA = new Set(linesA);
   const uniqueNew = [...new Set(linesB)].filter((line) => !setA.has(line));
 

@@ -1,7 +1,6 @@
 import type { DirEntrySync } from '#gateway/node/fs';
 import { safeReaddirLayerBrokerProxy } from './safe-readdir-layer-broker.proxy';
 import { readFileOptionalLayerBrokerProxy } from './read-file-optional-layer-broker.proxy';
-import { ContentTextStub } from '../../../contracts/content-text/content-text.stub';
 
 const makeDirDirent = ({ name }: { name: string }): DirEntrySync => ({ name, kind: 'directory' });
 
@@ -36,7 +35,7 @@ export const architecturePackageE2eEligibleDetectBrokerProxy = (): {
       });
       readFileProxy.setupReturns({
         filePath: `${packageRoot}/package.json`,
-        content: ContentTextStub({ value: packageJsonContent }),
+        content: packageJsonContent,
       });
     },
   };

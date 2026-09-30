@@ -1,7 +1,6 @@
 import { deleteEnv, getEnv, setEnv, stdout } from '#gateway/node/process';
 import { registerSpyOn } from '@dungeonmaster/testing/register-mock';
 import { installTestbedCreateBroker } from '@dungeonmaster/testing';
-import { ContentTextStub } from '@dungeonmaster/shared/contracts/content-text/content-text.stub';
 
 import { InstanceUnknownError } from '../errors/instance-unknown/instance-unknown-error';
 import { machineStatics } from '../statics/machine/machine-statics';
@@ -26,7 +25,7 @@ describe('StartSiegelense', () => {
 
       const writes = stdoutSpy
         .callsMatching([])
-        .map((call) => ContentTextStub({ value: String(call[0]) }));
+        .map((call) => String(call[0]));
 
       // MACHINE reads live statfs/loadavg, stripped the same way siegelense-flow.integration.test.ts
       // strips it from the equivalent assertion, so this stays deterministic.

@@ -1,7 +1,6 @@
 import { architectureExportNameResolveBrokerProxy } from '../export-name-resolve/architecture-export-name-resolve-broker.proxy';
 import { importsInFolderTypeFindLayerBrokerProxy } from './imports-in-folder-type-find-layer-broker.proxy';
 import { FileMissingErrorStub } from '#gateway/node/fs/file-missing-error/file-missing-error.stub';
-import type { ContentText } from '../../../contracts/content-text/content-text-contract';
 
 export const callChainLinesRenderLayerBrokerProxy = (): {
   setupSource: ({
@@ -9,10 +8,10 @@ export const callChainLinesRenderLayerBrokerProxy = (): {
     content,
   }: {
     sourceFile: string;
-    content: ContentText;
+    content: string;
   }) => void;
   setupMissing: ({ sourceFile }: { sourceFile: string }) => void;
-  setupFileContentsMap: ({ map }: { map: Record<string, ContentText> }) => void;
+  setupFileContentsMap: ({ map }: { map: Record<string, string> }) => void;
 } => {
   const importsProxy = importsInFolderTypeFindLayerBrokerProxy();
   // The renderer also calls architectureExportNameResolveBroker directly to resolve the
@@ -22,8 +21,8 @@ export const callChainLinesRenderLayerBrokerProxy = (): {
   const exportNameProxy = architectureExportNameResolveBrokerProxy();
 
   const buildImpl =
-    (map: Record<string, ContentText>) =>
-    (filePath: ContentText): ContentText => {
+    (map: Record<string, string>) =>
+    (filePath: string): string => {
       const fp = String(filePath);
       for (const [suffix, content] of Object.entries(map)) {
         if (fp.endsWith(suffix)) {
@@ -39,7 +38,7 @@ export const callChainLinesRenderLayerBrokerProxy = (): {
       content,
     }: {
       sourceFile: string;
-      content: ContentText;
+      content: string;
     }): void => {
       importsProxy.setupSource({ sourceFile, content });
     },
@@ -48,7 +47,7 @@ export const callChainLinesRenderLayerBrokerProxy = (): {
       importsProxy.setupMissing({ sourceFile });
     },
 
-    setupFileContentsMap: ({ map }: { map: Record<string, ContentText> }): void => {
+    setupFileContentsMap: ({ map }: { map: Record<string, string> }): void => {
       const impl = buildImpl(map);
       importsProxy.setupImplementation({ fn: impl, map });
       exportNameProxy.setupImplementation({ fn: impl });

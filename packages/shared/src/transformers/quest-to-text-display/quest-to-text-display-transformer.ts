@@ -13,8 +13,6 @@
  * // did not ask for it".
  */
 
-import { contentTextContract } from '../../contracts/content-text/content-text-contract';
-import type { ContentText } from '../../contracts/content-text/content-text-contract';
 import type { Quest } from '../../contracts/quest/quest-contract';
 import type { QuestStage } from '../../contracts/quest-stage/quest-stage-contract';
 import { isQuestSectionInStageGuard } from '../../guards/is-quest-section-in-stage/is-quest-section-in-stage-guard';
@@ -31,29 +29,27 @@ export const questToTextDisplayTransformer = ({
 }: {
   quest: Quest;
   stage?: QuestStage | undefined;
-}): ContentText => {
-  const parts: ContentText[] = [];
+}): string => {
+  const parts: string[] = [];
 
-  parts.push(contentTextContract.parse(SYM.legendLines.join('\n')));
-  parts.push(contentTextContract.parse(''));
-  parts.push(contentTextContract.parse(`# Quest: ${String(quest.title)}`));
-  parts.push(contentTextContract.parse(`Status: ${quest.status}`));
+  parts.push(SYM.legendLines.join('\n'));
+  parts.push('');
+  parts.push(`# Quest: ${String(quest.title)}`);
+  parts.push(`Status: ${quest.status}`);
 
   if (isQuestSectionInStageGuard({ section: 'designDecisions', stage })) {
-    parts.push(contentTextContract.parse(''));
-    parts.push(contentTextContract.parse(SYM.sectionHeaders.designDecisions));
-    parts.push(contentTextContract.parse(''));
+    parts.push('');
+    parts.push(SYM.sectionHeaders.designDecisions);
+    parts.push('');
     if (quest.designDecisions.length === 0) {
-      parts.push(contentTextContract.parse(SYM.none));
+      parts.push(SYM.none);
     } else {
       for (const dd of quest.designDecisions) {
-        parts.push(contentTextContract.parse(`#${String(dd.id)}: "${String(dd.title)}"`));
-        parts.push(contentTextContract.parse(`${SYM.indent}Rationale: ${String(dd.rationale)}`));
+        parts.push(`#${String(dd.id)}: "${String(dd.title)}"`);
+        parts.push(`${SYM.indent}Rationale: ${String(dd.rationale)}`);
         if (dd.relatedNodeIds.length > 0) {
           parts.push(
-            contentTextContract.parse(
-              `${SYM.indent}Relates to: ${dd.relatedNodeIds.map((nid) => `#${String(nid)}`).join(', ')}`,
-            ),
+            `${SYM.indent}Relates to: ${dd.relatedNodeIds.map((nid) => `#${String(nid)}`).join(', ')}`,
           );
         }
       }
@@ -61,18 +57,18 @@ export const questToTextDisplayTransformer = ({
   }
 
   if (isQuestSectionInStageGuard({ section: 'contracts', stage })) {
-    parts.push(contentTextContract.parse(''));
-    parts.push(contentTextContract.parse(SYM.sectionHeaders.contracts));
-    parts.push(contentTextContract.parse(''));
+    parts.push('');
+    parts.push(SYM.sectionHeaders.contracts);
+    parts.push('');
     if (quest.contracts.length === 0) {
-      parts.push(contentTextContract.parse(SYM.none));
+      parts.push(SYM.none);
     } else {
       for (const c of quest.contracts) {
         const headerParts = [`#${String(c.id)}`, SYM.emDash, c.name, `(${c.kind}, ${c.status})`];
         if (c.source) {
           headerParts.push(`[${SYM.rightArrow} ${String(c.source)}]`);
         }
-        parts.push(contentTextContract.parse(headerParts.join(' ')));
+        parts.push(headerParts.join(' '));
 
         if (c.properties.length > 0) {
           parts.push(
@@ -87,24 +83,20 @@ export const questToTextDisplayTransformer = ({
   }
 
   if (isQuestSectionInStageGuard({ section: 'toolingRequirements', stage })) {
-    parts.push(contentTextContract.parse(''));
-    parts.push(contentTextContract.parse(SYM.sectionHeaders.tooling));
-    parts.push(contentTextContract.parse(''));
+    parts.push('');
+    parts.push(SYM.sectionHeaders.tooling);
+    parts.push('');
     if (quest.toolingRequirements.length === 0) {
-      parts.push(contentTextContract.parse(SYM.none));
+      parts.push(SYM.none);
     } else {
       for (const t of quest.toolingRequirements) {
         parts.push(
-          contentTextContract.parse(
-            `#${String(t.id)}: "${String(t.name)}" (${String(t.packageName)})`,
-          ),
+          `#${String(t.id)}: "${String(t.name)}" (${String(t.packageName)})`,
         );
-        parts.push(contentTextContract.parse(`${SYM.indent}Reason: ${String(t.reason)}`));
+        parts.push(`${SYM.indent}Reason: ${String(t.reason)}`);
         if (t.requiredByObservables.length > 0) {
           parts.push(
-            contentTextContract.parse(
-              `${SYM.indent}Used by: ${t.requiredByObservables.map((oid) => `#${String(oid)}`).join(', ')}`,
-            ),
+            `${SYM.indent}Used by: ${t.requiredByObservables.map((oid) => `#${String(oid)}`).join(', ')}`,
           );
         }
       }
@@ -117,23 +109,19 @@ export const questToTextDisplayTransformer = ({
   // render by the ledger and the graph instead of by the package count. `usedBy` is printed only
   // for a `new` package, where it is the only source of reverse edges the dependency graph has.
   if (isQuestSectionInStageGuard({ section: 'packagesAffected', stage })) {
-    parts.push(contentTextContract.parse(''));
-    parts.push(contentTextContract.parse(SYM.sectionHeaders.packagesAffected));
-    parts.push(contentTextContract.parse(''));
+    parts.push('');
+    parts.push(SYM.sectionHeaders.packagesAffected);
+    parts.push('');
     if (quest.packagesAffected.length === 0) {
-      parts.push(contentTextContract.parse(SYM.none));
+      parts.push(SYM.none);
     } else {
       for (const entry of quest.packagesAffected) {
         parts.push(
-          contentTextContract.parse(
-            `${String(entry.name)} ${SYM.emDash} ${entry.changeType}, ${entry.packageType} [${String(entry.location)}]`,
-          ),
+          `${String(entry.name)} ${SYM.emDash} ${entry.changeType}, ${entry.packageType} [${String(entry.location)}]`,
         );
         if (entry.usedBy !== undefined && entry.usedBy.length > 0) {
           parts.push(
-            contentTextContract.parse(
-              `${SYM.indent}Used by: ${entry.usedBy.map((name) => String(name)).join(', ')}`,
-            ),
+            `${SYM.indent}Used by: ${entry.usedBy.map((name) => String(name)).join(', ')}`,
           );
         }
       }
@@ -142,31 +130,27 @@ export const questToTextDisplayTransformer = ({
 
   if (isQuestSectionInStageGuard({ section: 'flows', stage })) {
     for (const flow of quest.flows) {
-      parts.push(contentTextContract.parse(''));
+      parts.push('');
       parts.push(
-        contentTextContract.parse(
-          `## Flow: #${String(flow.id)} ${SYM.emDash} "${String(flow.name)}"`,
-        ),
+        `## Flow: #${String(flow.id)} ${SYM.emDash} "${String(flow.name)}"`,
       );
       if (flow.scope) {
-        parts.push(contentTextContract.parse(`Scope: ${String(flow.scope)}`));
+        parts.push(`Scope: ${String(flow.scope)}`);
       }
       parts.push(
-        contentTextContract.parse(
-          `Entry: ${String(flow.entryPoint)} | Exits: ${flow.exitPoints.map((ep) => String(ep)).join(', ')}`,
-        ),
+        `Entry: ${String(flow.entryPoint)} | Exits: ${flow.exitPoints.map((ep) => String(ep)).join(', ')}`,
       );
-      parts.push(contentTextContract.parse(''));
+      parts.push('');
       parts.push(...flowGraphToTextTransformer({ flow }));
     }
   }
 
   if (isQuestSectionInStageGuard({ section: 'operations', stage })) {
-    parts.push(contentTextContract.parse(''));
-    parts.push(contentTextContract.parse(SYM.sectionHeaders.operations));
-    parts.push(contentTextContract.parse(''));
+    parts.push('');
+    parts.push(SYM.sectionHeaders.operations);
+    parts.push('');
     if (quest.operations.length === 0) {
-      parts.push(contentTextContract.parse(SYM.none));
+      parts.push(SYM.none);
     } else {
       for (const operation of quest.operations) {
         const lockedPart = operation.locked ? ' [locked]' : '';
@@ -184,9 +168,7 @@ export const questToTextDisplayTransformer = ({
             ? ''
             : ` [packages: ${operation.packageNames.map((name) => String(name)).join(', ')}]`;
         parts.push(
-          contentTextContract.parse(
-            `#${String(operation.id)}: [${operation.role}] ${String(operation.text)} ${SYM.emDash} ${operation.status}${lockedPart}${flowsPart}${packagesPart}`,
-          ),
+          `#${String(operation.id)}: [${operation.role}] ${String(operation.text)} ${SYM.emDash} ${operation.status}${lockedPart}${flowsPart}${packagesPart}`,
         );
       }
     }
@@ -201,24 +183,22 @@ export const questToTextDisplayTransformer = ({
     isQuestSectionInStageGuard({ section: 'planningNotes', stage }) &&
     quest.planningNotes.questNotes.length > 0
   ) {
-    parts.push(contentTextContract.parse(''));
-    parts.push(contentTextContract.parse(SYM.sectionHeaders.questNotes));
-    parts.push(contentTextContract.parse(''));
+    parts.push('');
+    parts.push(SYM.sectionHeaders.questNotes);
+    parts.push('');
     for (const note of quest.planningNotes.questNotes) {
       parts.push(
-        contentTextContract.parse(
-          `#${String(note.id)}: [${note.kind}] ${String(note.role)} ${SYM.emDash} ${String(note.summary)}`,
-        ),
+        `#${String(note.id)}: [${note.kind}] ${String(note.role)} ${SYM.emDash} ${String(note.summary)}`,
       );
-      parts.push(contentTextContract.parse(`${SYM.indent}Detail: ${String(note.detail)}`));
+      parts.push(`${SYM.indent}Detail: ${String(note.detail)}`);
       if (note.flowId !== undefined) {
-        parts.push(contentTextContract.parse(`${SYM.indent}Flow: #${String(note.flowId)}`));
+        parts.push(`${SYM.indent}Flow: #${String(note.flowId)}`);
       }
       if (note.unitId !== undefined) {
-        parts.push(contentTextContract.parse(`${SYM.indent}Unit: ${String(note.unitId)}`));
+        parts.push(`${SYM.indent}Unit: ${String(note.unitId)}`);
       }
     }
   }
 
-  return contentTextContract.parse(parts.join('\n'));
+  return parts.join('\n');
 };

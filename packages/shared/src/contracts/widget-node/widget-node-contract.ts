@@ -14,13 +14,12 @@
  */
 
 import { z } from '#gateway/npm/zod';
-import { contentTextContract } from '../content-text/content-text-contract';
 import { absoluteFilePathContract } from '../absolute-file-path/absolute-file-path-contract';
 
 const widgetNodeFields = z.object({
-  widgetName: contentTextContract,
+  widgetName: z.string().brand<'WidgetNodeFieldsWidgetName'>(),
   filePath: absoluteFilePathContract,
-  bindingsAttached: z.array(contentTextContract),
+  bindingsAttached: z.array(z.string().brand<'WidgetNodeFieldsBindingsAttached'>()),
 });
 
 type WidgetNodeSelf = z.infer<typeof widgetNodeFields> & {

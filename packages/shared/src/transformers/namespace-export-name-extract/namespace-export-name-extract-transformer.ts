@@ -12,10 +12,6 @@
  * WHEN-NOT-TO-USE: When full AST accuracy is required — this is a v1 regex heuristic
  */
 
-import {
-  contentTextContract,
-  type ContentText,
-} from '../../contracts/content-text/content-text-contract';
 
 // Matches `export const <Name> = {` — captures the const name
 const NAMESPACE_EXPORT_PATTERN = /export\s+const\s+([A-Z][A-Za-z0-9]*)\s*=/u;
@@ -23,8 +19,8 @@ const NAMESPACE_EXPORT_PATTERN = /export\s+const\s+([A-Z][A-Za-z0-9]*)\s*=/u;
 export const namespaceExportNameExtractTransformer = ({
   source,
 }: {
-  source: ContentText;
-}): ContentText | null => {
+  source: string;
+}): string | null => {
   const match = NAMESPACE_EXPORT_PATTERN.exec(String(source));
   if (match === null) {
     return null;
@@ -33,5 +29,5 @@ export const namespaceExportNameExtractTransformer = ({
   if (name === undefined || name === '') {
     return null;
   }
-  return contentTextContract.parse(name);
+  return name;
 };

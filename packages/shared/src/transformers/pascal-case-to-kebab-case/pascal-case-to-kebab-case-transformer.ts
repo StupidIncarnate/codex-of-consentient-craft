@@ -9,10 +9,6 @@
  * cross-referencing route metadata against responder file imports
  */
 
-import {
-  contentTextContract,
-  type ContentText,
-} from '../../contracts/content-text/content-text-contract';
 
 const PASCAL_BOUNDARY_PATTERN = /([A-Z])/gu;
 const LEADING_DASH_PATTERN = /^-/u;
@@ -20,11 +16,11 @@ const LEADING_DASH_PATTERN = /^-/u;
 export const pascalCaseToKebabCaseTransformer = ({
   pascal,
 }: {
-  pascal: ContentText;
-}): ContentText => {
+  pascal: string;
+}): string => {
   const kebab = String(pascal)
     .replace(PASCAL_BOUNDARY_PATTERN, '-$1')
     .toLowerCase()
     .replace(LEADING_DASH_PATTERN, '');
-  return contentTextContract.parse(kebab);
+  return kebab;
 };

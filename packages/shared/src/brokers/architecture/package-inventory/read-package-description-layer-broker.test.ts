@@ -1,13 +1,12 @@
 import { readPackageDescriptionLayerBroker } from './read-package-description-layer-broker';
 import { readPackageDescriptionLayerBrokerProxy } from './read-package-description-layer-broker.proxy';
-import { ContentTextStub } from '../../../contracts/content-text/content-text.stub';
 
 describe('readPackageDescriptionLayerBroker', () => {
   describe('successful reads', () => {
     it('VALID: package.json with description => returns description', () => {
       const proxy = readPackageDescriptionLayerBrokerProxy();
       const packageJsonPath = '/project/packages/web/package.json';
-      const description = ContentTextStub({ value: 'A web package' });
+      const description = 'A web package';
 
       proxy.setupDescription({ packageJsonPath, description });
 
@@ -26,7 +25,7 @@ describe('readPackageDescriptionLayerBroker', () => {
 
       const result = readPackageDescriptionLayerBroker({ packageJsonPath });
 
-      expect(result).toStrictEqual(ContentTextStub({ value: '' }));
+      expect(result).toStrictEqual('');
     });
   });
 });

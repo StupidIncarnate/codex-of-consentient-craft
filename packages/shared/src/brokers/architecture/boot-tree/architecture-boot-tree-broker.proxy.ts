@@ -7,7 +7,6 @@ import { architectureEdgeGraphBrokerProxy } from '../edge-graph/architecture-edg
 import { architectureWsEdgesBrokerProxy } from '../ws-edges/architecture-ws-edges-broker.proxy';
 import { architectureEventBusBrokerProxy } from '../event-bus/architecture-event-bus-broker.proxy';
 import { FileMissingErrorStub } from '#gateway/node/fs/file-missing-error/file-missing-error.stub';
-import type { ContentText } from '../../../contracts/content-text/content-text-contract';
 
 export const architectureBootTreeBrokerProxy = (): {
   setupStartupFiles: ({
@@ -18,7 +17,7 @@ export const architectureBootTreeBrokerProxy = (): {
     names: string[];
   }) => void;
   setupNoStartupFiles: ({ packageRoot }: { packageRoot: string }) => void;
-  setupFileContentsMap: ({ map }: { map: Record<string, ContentText> }) => void;
+  setupFileContentsMap: ({ map }: { map: Record<string, string> }) => void;
 } => {
   const startupProxy = startupFilesFindLayerBrokerProxy();
   const flowImportsProxy = importsInFolderTypeFindLayerBrokerProxy();
@@ -36,8 +35,8 @@ export const architectureBootTreeBrokerProxy = (): {
   architectureEventBusBrokerProxy();
 
   const buildImpl =
-    (map: Record<string, ContentText>) =>
-    (filePath: ContentText): ContentText => {
+    (map: Record<string, string>) =>
+    (filePath: string): string => {
       const fp = String(filePath);
       for (const [suffix, content] of Object.entries(map)) {
         if (fp.endsWith(suffix)) {
@@ -64,7 +63,7 @@ export const architectureBootTreeBrokerProxy = (): {
       startupProxy.setupEmpty({ packageSrcPath });
     },
 
-    setupFileContentsMap: ({ map }: { map: Record<string, ContentText> }): void => {
+    setupFileContentsMap: ({ map }: { map: Record<string, string> }): void => {
       const impl = buildImpl(map);
       flowImportsProxy.setupImplementation({ fn: impl, map });
       responderProxy.setupFileContentsMap({ map });

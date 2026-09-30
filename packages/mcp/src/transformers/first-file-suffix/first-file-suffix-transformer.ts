@@ -7,18 +7,16 @@
  */
 
 import type { FolderConfig } from '@dungeonmaster/shared/contracts';
-import { contentTextContract } from '../../contracts/content-text/content-text-contract';
-import type { ContentText } from '../../contracts/content-text/content-text-contract';
 
-export const firstFileSuffixTransformer = ({ config }: { config: FolderConfig }): ContentText => {
+export const firstFileSuffixTransformer = ({ config }: { config: FolderConfig }): string => {
   if (typeof config.fileSuffix === 'string') {
-    return contentTextContract.parse(config.fileSuffix);
+    return config.fileSuffix;
   }
 
   const [firstSuffix] = config.fileSuffix;
   if (firstSuffix === undefined) {
-    return contentTextContract.parse('');
+    return '';
   }
 
-  return contentTextContract.parse(firstSuffix);
+  return firstSuffix;
 };

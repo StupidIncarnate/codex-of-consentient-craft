@@ -7,13 +7,12 @@
  */
 
 import type { StubArgument } from '../../@types/stub-argument.type';
-import { ContentTextStub } from '../content-text/content-text.stub';
 import { httpEdgeContract, type HttpEdge } from './http-edge-contract';
 
 export const HttpEdgeStub = ({ ...props }: StubArgument<HttpEdge> = {}): HttpEdge =>
   httpEdgeContract.parse({
-    method: ContentTextStub({ value: 'GET' }),
-    urlPattern: ContentTextStub({ value: '/api/quests' }),
+    method: 'GET',
+    urlPattern: '/api/quests',
     serverFlowFile: '/repo/packages/server/src/flows/quest/quest-flow.ts',
     serverResponderFile: null,
     webBrokerFile: '/repo/packages/web/src/brokers/quest/list/quest-list-broker.ts',

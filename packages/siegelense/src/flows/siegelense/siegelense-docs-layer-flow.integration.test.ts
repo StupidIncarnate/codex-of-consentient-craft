@@ -1,6 +1,5 @@
 import { stdout } from '#gateway/node/process';
 import { registerSpyOn } from '@dungeonmaster/testing/register-mock';
-import { ContentTextStub } from '@dungeonmaster/shared/contracts/content-text/content-text.stub';
 
 import { DocsScopeStub } from '../../contracts/docs-scope/docs-scope.stub';
 import { siegelenseCallStatics } from '../../statics/siegelense-call/siegelense-call-statics';
@@ -20,7 +19,7 @@ describe('SiegelenseDocsLayerFlow', () => {
 
       const writes = stdoutSpy
         .callsMatching([])
-        .map((call) => ContentTextStub({ value: String(call[0]) }));
+        .map((call) => String(call[0]));
 
       const [wholeOutput] = writes;
       const expectedMarkdown = docsAnswerRenderTransformer({
@@ -53,7 +52,7 @@ describe('SiegelenseDocsLayerFlow', () => {
 
         const writes = stdoutSpy
           .callsMatching([])
-          .map((call) => ContentTextStub({ value: String(call[0]) }));
+          .map((call) => String(call[0]));
 
         const [wholeOutput] = writes;
         const expectedJson = `${JSON.stringify(
@@ -76,7 +75,7 @@ describe('SiegelenseDocsLayerFlow', () => {
 
       const writes = stdoutSpy
         .callsMatching([])
-        .map((call) => ContentTextStub({ value: String(call[0]) }));
+        .map((call) => String(call[0]));
 
       const [wholeOutput] = writes;
       const expectedJson = `${JSON.stringify(
@@ -106,7 +105,7 @@ describe('SiegelenseDocsLayerFlow', () => {
 
       const writes = stdoutSpy
         .callsMatching([])
-        .map((call) => ContentTextStub({ value: String(call[0]) }));
+        .map((call) => String(call[0]));
 
       const [wholeOutput] = writes;
       const expectedMarkdown = docsAnswerRenderTransformer({

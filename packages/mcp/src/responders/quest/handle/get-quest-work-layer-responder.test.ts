@@ -1,6 +1,5 @@
 import { QuestIdStub } from '@dungeonmaster/shared/contracts/quest-id/quest-id.stub';
 import { TextContentSchema } from '#gateway/npm/modelcontextprotocol__sdk__types';
-import { ContentTextStub } from '@dungeonmaster/shared/contracts/content-text/content-text.stub';
 
 import { GetQuestWorkLayerResponder } from './get-quest-work-layer-responder';
 import { GetQuestWorkLayerResponderProxy } from './get-quest-work-layer-responder.proxy';
@@ -51,7 +50,7 @@ describe('GetQuestWorkLayerResponder', () => {
       const proxy = GetQuestWorkLayerResponderProxy();
       proxy.setupReturns({
         questId: QUEST_ID,
-        result: { view: null, planText: ContentTextStub({ value: PLAN_MARKDOWN }) },
+        result: { view: null, planText: PLAN_MARKDOWN },
       });
 
       const response = await GetQuestWorkLayerResponder({

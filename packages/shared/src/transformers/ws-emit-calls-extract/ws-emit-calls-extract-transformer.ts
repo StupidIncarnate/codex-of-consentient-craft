@@ -12,8 +12,6 @@
  * WHEN-NOT-TO-USE: When full AST parsing is needed — this is a v1 regex heuristic
  */
 
-import type { ContentText } from '../../contracts/content-text/content-text-contract';
-import { contentTextContract } from '../../contracts/content-text/content-text-contract';
 
 // Matches: orchestrationEventsState.emit({ type: 'some-literal' or "some-literal"
 const EMIT_PATTERN = /orchestrationEventsState\.emit\(\s*\{\s*type:\s*['"]([^'"]+)['"]/gu;
@@ -21,16 +19,16 @@ const EMIT_PATTERN = /orchestrationEventsState\.emit\(\s*\{\s*type:\s*['"]([^'"]
 export const wsEmitCallsExtractTransformer = ({
   source,
 }: {
-  source: ContentText;
-}): ContentText[] => {
-  const results: ContentText[] = [];
+  source: string;
+}): string[] => {
+  const results: string[] = [];
   EMIT_PATTERN.lastIndex = 0;
 
   let match = EMIT_PATTERN.exec(String(source));
   while (match !== null) {
     const [, captured] = match;
     if (captured !== undefined) {
-      results.push(contentTextContract.parse(captured));
+      results.push(captured);
     }
     match = EMIT_PATTERN.exec(String(source));
   }

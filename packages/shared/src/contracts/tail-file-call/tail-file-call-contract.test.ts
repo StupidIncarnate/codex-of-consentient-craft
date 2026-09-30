@@ -1,11 +1,10 @@
 import { tailFileCallContract } from './tail-file-call-contract';
-import { ContentTextStub } from '../content-text/content-text.stub';
 
 describe('tailFileCallContract', () => {
   describe('parse', () => {
     it('VALID: {literal filePathArg} => parses successfully', () => {
       const result = tailFileCallContract.parse({
-        filePathArg: ContentTextStub({ value: '/repo/.dungeonmaster/quests/quest.jsonl' }),
+        filePathArg: '/repo/.dungeonmaster/quests/quest.jsonl',
       });
 
       expect(result).toStrictEqual({
@@ -15,7 +14,7 @@ describe('tailFileCallContract', () => {
 
     it('VALID: {computed filePathArg} => parses successfully', () => {
       const result = tailFileCallContract.parse({
-        filePathArg: ContentTextStub({ value: '<computed: questPathBroker>' }),
+        filePathArg: '<computed: questPathBroker>',
       });
 
       expect(result).toStrictEqual({

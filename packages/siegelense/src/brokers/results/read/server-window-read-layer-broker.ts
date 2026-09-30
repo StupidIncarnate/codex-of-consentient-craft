@@ -21,8 +21,6 @@
 
 import { join } from '#gateway/node/path';
 import { locationsStatics } from '@dungeonmaster/shared/statics';
-import { contentTextContract } from '@dungeonmaster/shared/contracts';
-import type { ContentText } from '@dungeonmaster/shared/contracts';
 
 import { readFileIfExists } from '#gateway/node/fs__promises';
 import type { ResultWhere } from '../../../contracts/result-where/result-where-contract';
@@ -42,7 +40,7 @@ export const serverWindowReadLayerBroker = async ({
   readings: readonly StepReading[];
   step: StepIndex | null;
   where: ResultWhere | null;
-}): Promise<readonly ContentText[]> => {
+}): Promise<readonly string[]> => {
   const stepRange = where?.steps ?? null;
 
   const targetSteps: readonly StepIndex[] =
@@ -75,7 +73,7 @@ export const serverWindowReadLayerBroker = async ({
   const lines = sliced
     .split('\n')
     .filter((line) => line.length > 0)
-    .map((line) => contentTextContract.parse(line));
+    .map((line) => line);
 
   const level = where?.level ?? null;
   if (level !== 'error') {

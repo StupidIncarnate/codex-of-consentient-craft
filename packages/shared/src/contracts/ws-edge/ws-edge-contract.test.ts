@@ -1,11 +1,10 @@
 import { wsEdgeContract } from './ws-edge-contract';
-import { ContentTextStub } from '../content-text/content-text.stub';
 
 describe('wsEdgeContract', () => {
   describe('parse', () => {
     it('VALID: {full paired edge with gateway} => parses successfully', () => {
       const result = wsEdgeContract.parse({
-        eventType: ContentTextStub({ value: 'chat-output' }),
+        eventType: 'chat-output',
         emitterFile: '/repo/packages/orchestrator/src/responders/chat/start/chat-start-responder.ts',
         consumerFiles: [
           '/repo/packages/web/src/bindings/use-quest-chat/use-quest-chat-binding.ts',
@@ -26,7 +25,7 @@ describe('wsEdgeContract', () => {
 
     it('VALID: {null emitterFile and gateway, paired=false} => parses successfully', () => {
       const result = wsEdgeContract.parse({
-        eventType: ContentTextStub({ value: 'chat-output' }),
+        eventType: 'chat-output',
         emitterFile: null,
         consumerFiles: [
           '/repo/packages/web/src/bindings/use-quest-chat/use-quest-chat-binding.ts',
@@ -46,7 +45,7 @@ describe('wsEdgeContract', () => {
 
     it('VALID: {empty consumerFiles, gateway present} => parses successfully', () => {
       const result = wsEdgeContract.parse({
-        eventType: ContentTextStub({ value: 'chat-complete' }),
+        eventType: 'chat-complete',
         emitterFile: '/repo/packages/orchestrator/src/responders/chat/start/chat-start-responder.ts',
         consumerFiles: [],
         wsGatewayFile: '/repo/packages/server/src/responders/server/init/server-init-responder.ts',

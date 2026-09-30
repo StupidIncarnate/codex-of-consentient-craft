@@ -13,8 +13,6 @@
  * // Returns 'INSTANCE: inst_7f3a9c21 (dungeonmaster-stack)\n...SEEDED: none\n'
  */
 
-import { contentTextContract } from '@dungeonmaster/shared/contracts';
-import type { ContentText } from '@dungeonmaster/shared/contracts';
 
 import type { InstanceManifest } from '../../contracts/instance-manifest/instance-manifest-contract';
 import { seedRowSummaryStatics } from '../../statics/seed-row-summary/seed-row-summary-statics';
@@ -23,7 +21,7 @@ export const startAnswerRenderTransformer = ({
   manifest,
 }: {
   manifest: InstanceManifest;
-}): ContentText => {
+}): string => {
   const url = manifest.url ?? manifest.baseUrl ?? '-';
   const apiUrl = manifest.apiUrl ?? '-';
   const home = manifest.paths?.home ?? manifest.home;
@@ -79,8 +77,7 @@ export const startAnswerRenderTransformer = ({
             }),
           ];
 
-  return contentTextContract.parse(
-    [
+  return [
       `INSTANCE: ${manifest.instanceId} (${manifest.specName})`,
       `URL: ${url}`,
       `API: ${apiUrl}`,
@@ -89,6 +86,5 @@ export const startAnswerRenderTransformer = ({
       `BOOT: ${manifest.bootMs}ms`,
       ...seededLines,
       '',
-    ].join('\n'),
-  );
+    ].join('\n');
 };

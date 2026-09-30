@@ -15,14 +15,14 @@
  * landed commit wants `commit` and one auditing the whole branch wants `quest`.
  */
 
-import type { Quest, ContentText } from '@dungeonmaster/shared/contracts';
-import { contentTextContract, questContract } from '@dungeonmaster/shared/contracts';
+import type { Quest } from '@dungeonmaster/shared/contracts';
+import { questContract } from '@dungeonmaster/shared/contracts';
 
 import { questGetBlightChecklistBroker } from '../../../brokers/quest/get-blight-checklist/quest-get-blight-checklist-broker';
 import { blightChecklistToTextTransformer } from '../../../transformers/blight-checklist-to-text/blight-checklist-to-text-transformer';
 
 export type QuestGetBlightChecklistResponderResult =
-  | { readonly success: true; readonly data: ContentText }
+  | { readonly success: true; readonly data: string }
   | { readonly success: false; readonly error: string };
 
 export const QuestGetBlightChecklistResponder = async ({
@@ -42,24 +42,20 @@ export const QuestGetBlightChecklistResponder = async ({
     if (checklist === null) {
       return {
         success: true,
-        data: contentTextContract.parse(
-          'This quest has no pinned review base (baseRef), so there is no diff to scope. That is a real state, not an error — a quest seeded before the base was pinned cannot have a review scope computed.',
-        ),
+        data: 'This quest has no pinned review base (baseRef), so there is no diff to scope. That is a real state, not an error — a quest seeded before the base was pinned cannot have a review scope computed.',
       };
     }
 
     if (checklist.items.length === 0) {
       return {
         success: true,
-        data: contentTextContract.parse(
-          'There are no changed files to review against the pinned base, so there is nothing to disposition.',
-        ),
+        data: 'There are no changed files to review against the pinned base, so there is nothing to disposition.',
       };
     }
 
     return {
       success: true,
-      data: contentTextContract.parse(blightChecklistToTextTransformer({ checklist })),
+      data: blightChecklistToTextTransformer({ checklist }),
     };
   } catch (error) {
     const errorMessage = error instanceof Error ? error.message : 'Unknown error';

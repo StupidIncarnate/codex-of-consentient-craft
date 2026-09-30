@@ -5,7 +5,6 @@ import { routeMetadataExtractLayerBrokerProxy } from './route-metadata-extract-l
 import { widgetSubtreeRenderLayerBrokerProxy } from './widget-subtree-render-layer-broker.proxy';
 import { busEventLinesRenderLayerBrokerProxy } from './bus-event-lines-render-layer-broker.proxy';
 import { FileMissingErrorStub } from '#gateway/node/fs/file-missing-error/file-missing-error.stub';
-import type { ContentText } from '../../../contracts/content-text/content-text-contract';
 
 export const responderLinesRenderLayerBrokerProxy = (): {
   setupFlowSource: ({
@@ -13,11 +12,11 @@ export const responderLinesRenderLayerBrokerProxy = (): {
     content,
   }: {
     sourceFile: string;
-    content: ContentText;
+    content: string;
   }) => void;
   setupFlowMissing: ({ sourceFile }: { sourceFile: string }) => void;
-  setupFlowImplementation: ({ fn }: { fn: (filePath: ContentText) => ContentText }) => void;
-  setupFileContentsMap: ({ map }: { map: Record<string, ContentText> }) => void;
+  setupFlowImplementation: ({ fn }: { fn: (filePath: string) => string }) => void;
+  setupFileContentsMap: ({ map }: { map: Record<string, string> }) => void;
 } => {
   const flowImportsProxy = importsInFolderTypeFindLayerBrokerProxy();
   const callChainProxy = callChainLinesRenderLayerBrokerProxy();
@@ -30,8 +29,8 @@ export const responderLinesRenderLayerBrokerProxy = (): {
   busEventLinesRenderLayerBrokerProxy();
 
   const buildImpl =
-    (map: Record<string, ContentText>) =>
-    (filePath: ContentText): ContentText => {
+    (map: Record<string, string>) =>
+    (filePath: string): string => {
       const fp = String(filePath);
       for (const [suffix, content] of Object.entries(map)) {
         if (fp.endsWith(suffix)) {
@@ -47,7 +46,7 @@ export const responderLinesRenderLayerBrokerProxy = (): {
       content,
     }: {
       sourceFile: string;
-      content: ContentText;
+      content: string;
     }): void => {
       flowImportsProxy.setupSource({ sourceFile, content });
     },
@@ -56,11 +55,11 @@ export const responderLinesRenderLayerBrokerProxy = (): {
       flowImportsProxy.setupMissing({ sourceFile });
     },
 
-    setupFlowImplementation: ({ fn }: { fn: (filePath: ContentText) => ContentText }): void => {
+    setupFlowImplementation: ({ fn }: { fn: (filePath: string) => string }): void => {
       flowImportsProxy.setupImplementation({ fn });
     },
 
-    setupFileContentsMap: ({ map }: { map: Record<string, ContentText> }): void => {
+    setupFileContentsMap: ({ map }: { map: Record<string, string> }): void => {
       callChainProxy.setupFileContentsMap({ map });
       routeMetadataProxy.setupImplementation({ fn: buildImpl(map) });
     },

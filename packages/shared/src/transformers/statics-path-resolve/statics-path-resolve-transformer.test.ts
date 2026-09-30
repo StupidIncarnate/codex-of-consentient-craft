@@ -1,8 +1,6 @@
 import { staticsPathResolveTransformer } from './statics-path-resolve-transformer';
-import { ContentTextStub } from '../../contracts/content-text/content-text.stub';
 
-const API_ROUTES_SOURCE = ContentTextStub({
-  value: `export const apiRoutesStatics = {
+const API_ROUTES_SOURCE = `export const apiRoutesStatics = {
   health: {
     check: '/api/health',
   },
@@ -17,11 +15,9 @@ const API_ROUTES_SOURCE = ContentTextStub({
     list: '/api/guilds',
     byId: '/api/guilds/:guildId',
   },
-} as const;`,
-});
+} as const;`;
 
-const WEB_CONFIG_SOURCE = ContentTextStub({
-  value: `export const webConfigStatics = {
+const WEB_CONFIG_SOURCE = `export const webConfigStatics = {
   api: {
     routes: {
       quests: '/api/quests',
@@ -30,15 +26,14 @@ const WEB_CONFIG_SOURCE = ContentTextStub({
       guildById: '/api/guilds/:guildId',
     },
   },
-} as const;`,
-});
+} as const;`;
 
 describe('staticsPathResolveTransformer', () => {
   describe('two-level paths', () => {
     it('VALID: {apiRoutesStatics.health.check} => resolves to /api/health', () => {
       const result = staticsPathResolveTransformer({
         source: API_ROUTES_SOURCE,
-        dotPath: ContentTextStub({ value: 'apiRoutesStatics.health.check' }),
+        dotPath: 'apiRoutesStatics.health.check',
       });
 
       expect(result).toBe('/api/health');
@@ -47,7 +42,7 @@ describe('staticsPathResolveTransformer', () => {
     it('VALID: {apiRoutesStatics.quests.list} => resolves to /api/quests', () => {
       const result = staticsPathResolveTransformer({
         source: API_ROUTES_SOURCE,
-        dotPath: ContentTextStub({ value: 'apiRoutesStatics.quests.list' }),
+        dotPath: 'apiRoutesStatics.quests.list',
       });
 
       expect(result).toBe('/api/quests');
@@ -56,7 +51,7 @@ describe('staticsPathResolveTransformer', () => {
     it('VALID: {apiRoutesStatics.quests.start} => resolves to /api/quests/:questId/start', () => {
       const result = staticsPathResolveTransformer({
         source: API_ROUTES_SOURCE,
-        dotPath: ContentTextStub({ value: 'apiRoutesStatics.quests.start' }),
+        dotPath: 'apiRoutesStatics.quests.start',
       });
 
       expect(result).toBe('/api/quests/:questId/start');
@@ -65,7 +60,7 @@ describe('staticsPathResolveTransformer', () => {
     it('VALID: {apiRoutesStatics.guilds.byId} => resolves to /api/guilds/:guildId', () => {
       const result = staticsPathResolveTransformer({
         source: API_ROUTES_SOURCE,
-        dotPath: ContentTextStub({ value: 'apiRoutesStatics.guilds.byId' }),
+        dotPath: 'apiRoutesStatics.guilds.byId',
       });
 
       expect(result).toBe('/api/guilds/:guildId');
@@ -76,7 +71,7 @@ describe('staticsPathResolveTransformer', () => {
     it('VALID: {webConfigStatics.api.routes.quests} => resolves to /api/quests', () => {
       const result = staticsPathResolveTransformer({
         source: WEB_CONFIG_SOURCE,
-        dotPath: ContentTextStub({ value: 'webConfigStatics.api.routes.quests' }),
+        dotPath: 'webConfigStatics.api.routes.quests',
       });
 
       expect(result).toBe('/api/quests');
@@ -85,7 +80,7 @@ describe('staticsPathResolveTransformer', () => {
     it('VALID: {webConfigStatics.api.routes.questStart} => resolves to /api/quests/:questId/start', () => {
       const result = staticsPathResolveTransformer({
         source: WEB_CONFIG_SOURCE,
-        dotPath: ContentTextStub({ value: 'webConfigStatics.api.routes.questStart' }),
+        dotPath: 'webConfigStatics.api.routes.questStart',
       });
 
       expect(result).toBe('/api/quests/:questId/start');
@@ -96,7 +91,7 @@ describe('staticsPathResolveTransformer', () => {
     it('INVALID: {path with missing key} => returns null', () => {
       const result = staticsPathResolveTransformer({
         source: API_ROUTES_SOURCE,
-        dotPath: ContentTextStub({ value: 'apiRoutesStatics.quests.nonExistent' }),
+        dotPath: 'apiRoutesStatics.quests.nonExistent',
       });
 
       expect(result).toBe(null);
@@ -105,7 +100,7 @@ describe('staticsPathResolveTransformer', () => {
     it('INVALID: {path with no properties} => returns null', () => {
       const result = staticsPathResolveTransformer({
         source: API_ROUTES_SOURCE,
-        dotPath: ContentTextStub({ value: 'apiRoutesStatics' }),
+        dotPath: 'apiRoutesStatics',
       });
 
       expect(result).toBe(null);
@@ -115,8 +110,8 @@ describe('staticsPathResolveTransformer', () => {
   describe('empty source', () => {
     it('EMPTY: {source with no object literal} => returns null', () => {
       const result = staticsPathResolveTransformer({
-        source: ContentTextStub({ value: 'export const x = 42;' }),
-        dotPath: ContentTextStub({ value: 'x.foo' }),
+        source: 'export const x = 42;',
+        dotPath: 'x.foo',
       });
 
       expect(result).toBe(null);

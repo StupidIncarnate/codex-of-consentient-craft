@@ -1,6 +1,5 @@
 import { existsSyncProxy } from '#gateway/node/fs/exists-sync/exists-sync.proxy';
 import { readFileSyncProxy } from '#gateway/node/fs/read-file-sync/read-file-sync.proxy';
-import type { ContentText } from '../../../contracts/content-text/content-text-contract';
 
 export const gatewayLintConfigReadBrokerProxy = (): {
   setupMissingConfig: ({ configPath }: { configPath: string }) => void;
@@ -9,7 +8,7 @@ export const gatewayLintConfigReadBrokerProxy = (): {
     fileContent,
   }: {
     configPath: string;
-    fileContent: ContentText;
+    fileContent: string;
   }) => void;
 } => {
   const existsProxy = existsSyncProxy();
@@ -25,7 +24,7 @@ export const gatewayLintConfigReadBrokerProxy = (): {
       fileContent,
     }: {
       configPath: string;
-      fileContent: ContentText;
+      fileContent: string;
     }): void => {
       existsProxy.returns({ path: configPath, exists: true });
       readProxy.returns({ path: configPath, contents: fileContent });

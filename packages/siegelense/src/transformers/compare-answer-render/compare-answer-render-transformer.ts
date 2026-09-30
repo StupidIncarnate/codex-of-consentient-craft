@@ -16,8 +16,6 @@
  * // Returns 'INSTANCE: inst_7f3a9c21\nCOMPARING: run_4 -> run_5\nCONSOLE ERRORS: +2\nSERVER ERRORS: +0\nNETWORK NON-2XX: +1\nPIXEL DELTA: last capture differs 12%\nELEMENTS WITHIN RUN A: +0 -0 ~0\nELEMENTS WITHIN RUN B: +0 -0 ~0\n'
  */
 
-import { contentTextContract } from '@dungeonmaster/shared/contracts';
-import type { ContentText } from '@dungeonmaster/shared/contracts';
 
 import type { CompareAnswer } from '../../contracts/compare-answer/compare-answer-contract';
 
@@ -25,7 +23,7 @@ export const compareAnswerRenderTransformer = ({
   answer,
 }: {
   answer: CompareAnswer;
-}): ContentText => {
+}): string => {
   const consoleDelta =
     answer.consoleErrorDelta === undefined
       ? answer.console.errors
@@ -56,8 +54,7 @@ export const compareAnswerRenderTransformer = ({
       ? 'none'
       : `+${String(answer.elements.runB.appeared.length)} -${String(answer.elements.runB.disappeared.length)} ~${String(answer.elements.runB.changed.length)}`;
 
-  return contentTextContract.parse(
-    [
+  return [
       `INSTANCE: ${answer.instanceId}`,
       `COMPARING: ${answer.runA} -> ${answer.runB}`,
       `CONSOLE ERRORS: ${consoleDelta}`,
@@ -67,6 +64,5 @@ export const compareAnswerRenderTransformer = ({
       `ELEMENTS WITHIN RUN A: ${elementsRunA}`,
       `ELEMENTS WITHIN RUN B: ${elementsRunB}`,
       '',
-    ].join('\n'),
-  );
+    ].join('\n');
 };

@@ -12,10 +12,6 @@
  * WHEN-NOT-TO-USE: When full AST parsing is needed — this is a v1 regex heuristic
  */
 
-import {
-  contentTextContract,
-  type ContentText,
-} from '../../contracts/content-text/content-text-contract';
 
 const SPAWN_WITH_LITERAL_PATTERN = /\bspawn(?:Sync)?\s*\(\s*['"`]([^'"`]+)['"`]/u;
 const SPAWN_CALL_PATTERN = /\bspawn(?:Sync)?\s*\(/u;
@@ -23,15 +19,15 @@ const SPAWN_CALL_PATTERN = /\bspawn(?:Sync)?\s*\(/u;
 export const hookSpawnNameExtractTransformer = ({
   source,
 }: {
-  source: ContentText;
-}): ContentText | undefined => {
+  source: string;
+}): string | undefined => {
   const src = String(source);
   const withLiteralMatch = SPAWN_WITH_LITERAL_PATTERN.exec(src);
   if (withLiteralMatch !== null) {
-    return contentTextContract.parse(withLiteralMatch[1] ?? '(subprocess)');
+    return (withLiteralMatch[1] ?? '(subprocess)');
   }
   if (SPAWN_CALL_PATTERN.test(src)) {
-    return contentTextContract.parse('(subprocess)');
+    return '(subprocess)';
   }
   return undefined;
 };

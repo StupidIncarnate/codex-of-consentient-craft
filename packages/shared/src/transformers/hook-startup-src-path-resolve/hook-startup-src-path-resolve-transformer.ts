@@ -15,7 +15,6 @@
  * WHEN-NOT-TO-USE: For non-dist bin paths
  */
 
-import type { ContentText } from '../../contracts/content-text/content-text-contract';
 
 // Matches ./dist/... or ./dist/src/... bin paths, capturing the sub-path after dist/
 const DIST_BIN_PATTERN = /^\.\/dist\/(?:src\/)?(.+)\.js$/u;
@@ -24,7 +23,7 @@ export const hookStartupSrcPathResolveTransformer = ({
   binPath,
   packageRoot,
 }: {
-  binPath: ContentText;
+  binPath: string;
   packageRoot: string;
 }): string | undefined => {
   const [, relSrc] = DIST_BIN_PATTERN.exec(String(binPath)) ?? [];

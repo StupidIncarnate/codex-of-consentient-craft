@@ -15,16 +15,15 @@
  * statics sources collected from every matching package
  */
 
-import type { ContentText } from '../../../contracts/content-text/content-text-contract';
 import { staticsPathResolveTransformer } from '../../../transformers/statics-path-resolve/statics-path-resolve-transformer';
 
 export const resolveStaticsFirstMatchLayerBroker = ({
   sources,
   dotPath,
 }: {
-  sources: ContentText[];
-  dotPath: ContentText;
-}): ContentText | null => {
+  sources: string[];
+  dotPath: string;
+}): string | null => {
   for (const source of sources) {
     const resolved = staticsPathResolveTransformer({ source, dotPath });
     if (resolved !== null) {

@@ -1,4 +1,3 @@
-import { ContentTextStub } from '@dungeonmaster/shared/contracts/content-text/content-text.stub';
 
 import { HealthReadingStub } from '../../contracts/health-reading/health-reading.stub';
 import { HexColourStub } from '../../contracts/hex-colour/hex-colour.stub';
@@ -31,9 +30,7 @@ describe('healthReadingRenderTransformer', () => {
         first5xx: null,
         serverErrors: ReadingCountStub({ value: 0 }),
         firstServerError: null,
-        rendered: ContentTextStub({
-          value: 'HEALTHY   root present · not blank · console clean · no 5xx · server log clean',
-        }),
+        rendered: 'HEALTHY   root present · not blank · console clean · no 5xx · server log clean',
       }),
     );
   });
@@ -44,7 +41,7 @@ describe('healthReadingRenderTransformer', () => {
       blank: false,
       blankColour: null,
       consoleErrors: ReadingCountStub({ value: 1 }),
-      firstConsoleError: ContentTextStub({ value: 'TypeError: null has no properties' }),
+      firstConsoleError: 'TypeError: null has no properties',
       network5xxCount: ReadingCountStub({ value: 0 }),
       first5xx: null,
       serverErrors: ReadingCountStub({ value: 0 }),
@@ -58,15 +55,12 @@ describe('healthReadingRenderTransformer', () => {
         blank: false,
         blankColour: null,
         consoleErrors: ReadingCountStub({ value: 1 }),
-        firstConsoleError: ContentTextStub({ value: 'TypeError: null has no properties' }),
+        firstConsoleError: 'TypeError: null has no properties',
         network5xxCount: ReadingCountStub({ value: 0 }),
         first5xx: null,
         serverErrors: ReadingCountStub({ value: 0 }),
         firstServerError: null,
-        rendered: ContentTextStub({
-          value:
-            'DEGRADED  root present · not blank · console: 1 error "TypeError: null has no properties" · no 5xx · server log clean',
-        }),
+        rendered: 'DEGRADED  root present · not blank · console: 1 error "TypeError: null has no properties" · no 5xx · server log clean',
       }),
     );
   });
@@ -96,10 +90,7 @@ describe('healthReadingRenderTransformer', () => {
         first5xx: null,
         serverErrors: ReadingCountStub({ value: 0 }),
         firstServerError: null,
-        rendered: ContentTextStub({
-          value:
-            'DEGRADED  root present · not blank · console: 3 errors · no 5xx · server log clean',
-        }),
+        rendered: 'DEGRADED  root present · not blank · console: 3 errors · no 5xx · server log clean',
       }),
     );
   });
@@ -112,7 +103,7 @@ describe('healthReadingRenderTransformer', () => {
       consoleErrors: ReadingCountStub({ value: 0 }),
       firstConsoleError: null,
       network5xxCount: ReadingCountStub({ value: 1 }),
-      first5xx: ContentTextStub({ value: 'GET /api/session' }),
+      first5xx: 'GET /api/session',
       serverErrors: ReadingCountStub({ value: 0 }),
       firstServerError: null,
     });
@@ -126,13 +117,10 @@ describe('healthReadingRenderTransformer', () => {
         consoleErrors: ReadingCountStub({ value: 0 }),
         firstConsoleError: null,
         network5xxCount: ReadingCountStub({ value: 1 }),
-        first5xx: ContentTextStub({ value: 'GET /api/session' }),
+        first5xx: 'GET /api/session',
         serverErrors: ReadingCountStub({ value: 0 }),
         firstServerError: null,
-        rendered: ContentTextStub({
-          value:
-            'DEGRADED  root present · not blank · console clean · network: 1 5xx "GET /api/session" · server log clean',
-        }),
+        rendered: 'DEGRADED  root present · not blank · console clean · network: 1 5xx "GET /api/session" · server log clean',
       }),
     );
   });
@@ -162,10 +150,7 @@ describe('healthReadingRenderTransformer', () => {
         first5xx: null,
         serverErrors: ReadingCountStub({ value: 0 }),
         firstServerError: null,
-        rendered: ContentTextStub({
-          value:
-            'DEGRADED  root present · not blank · console clean · network: 2 5xx · server log clean',
-        }),
+        rendered: 'DEGRADED  root present · not blank · console clean · network: 2 5xx · server log clean',
       }),
     );
   });
@@ -180,7 +165,7 @@ describe('healthReadingRenderTransformer', () => {
       network5xxCount: ReadingCountStub({ value: 0 }),
       first5xx: null,
       serverErrors: ReadingCountStub({ value: 1 }),
-      firstServerError: ContentTextStub({ value: 'fatal exception' }),
+      firstServerError: 'fatal exception',
     });
 
     expect(reading).toStrictEqual(
@@ -194,11 +179,8 @@ describe('healthReadingRenderTransformer', () => {
         network5xxCount: ReadingCountStub({ value: 0 }),
         first5xx: null,
         serverErrors: ReadingCountStub({ value: 1 }),
-        firstServerError: ContentTextStub({ value: 'fatal exception' }),
-        rendered: ContentTextStub({
-          value:
-            'DEGRADED  root present · not blank · console clean · no 5xx · server log: 1 error',
-        }),
+        firstServerError: 'fatal exception',
+        rendered: 'DEGRADED  root present · not blank · console clean · no 5xx · server log: 1 error',
       }),
     );
   });
@@ -228,10 +210,7 @@ describe('healthReadingRenderTransformer', () => {
         first5xx: null,
         serverErrors: ReadingCountStub({ value: 2 }),
         firstServerError: null,
-        rendered: ContentTextStub({
-          value:
-            'DEGRADED  root present · not blank · console clean · no 5xx · server log: 2 errors',
-        }),
+        rendered: 'DEGRADED  root present · not blank · console clean · no 5xx · server log: 2 errors',
       }),
     );
   });
@@ -261,9 +240,7 @@ describe('healthReadingRenderTransformer', () => {
         first5xx: null,
         serverErrors: ReadingCountStub({ value: 0 }),
         firstServerError: null,
-        rendered: ContentTextStub({
-          value: 'DOWN      root absent · not blank · console clean · no 5xx · server log clean',
-        }),
+        rendered: 'DOWN      root absent · not blank · console clean · no 5xx · server log clean',
       }),
     );
   });
@@ -293,10 +270,7 @@ describe('healthReadingRenderTransformer', () => {
         first5xx: null,
         serverErrors: ReadingCountStub({ value: 0 }),
         firstServerError: null,
-        rendered: ContentTextStub({
-          value:
-            'DOWN      root present · page blank (#0d0907) · console clean · no 5xx · server log clean',
-        }),
+        rendered: 'DOWN      root present · page blank (#0d0907) · console clean · no 5xx · server log clean',
       }),
     );
   });
@@ -326,9 +300,7 @@ describe('healthReadingRenderTransformer', () => {
         first5xx: null,
         serverErrors: ReadingCountStub({ value: 0 }),
         firstServerError: null,
-        rendered: ContentTextStub({
-          value: 'DOWN      root present · page blank · console clean · no 5xx · server log clean',
-        }),
+        rendered: 'DOWN      root present · page blank · console clean · no 5xx · server log clean',
       }),
     );
   });

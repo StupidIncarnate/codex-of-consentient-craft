@@ -1,7 +1,6 @@
 import { collectFolderFilesLayerBrokerProxy } from './collect-folder-files-layer-broker.proxy';
 import { readWidgetSourceLayerBrokerProxy } from './read-widget-source-layer-broker.proxy';
 import { widgetTreeStatics } from '../../../statics/widget-tree/widget-tree-statics';
-import type { ContentText } from '../../../contracts/content-text/content-text-contract';
 
 export const findRootWidgetImportsLayerBrokerProxy = (): {
   setupRootSources: ({
@@ -13,9 +12,9 @@ export const findRootWidgetImportsLayerBrokerProxy = (): {
   }: {
     packageSrcPath: string;
     responderFilePaths: string[];
-    responderContents: ContentText[];
+    responderContents: string[];
     flowFilePaths: string[];
-    flowContents: ContentText[];
+    flowContents: string[];
   }) => void;
   setupEmpty: ({ packageSrcPath }: { packageSrcPath: string }) => void;
 } => {
@@ -34,9 +33,9 @@ export const findRootWidgetImportsLayerBrokerProxy = (): {
     }: {
       packageSrcPath: string;
       responderFilePaths: string[];
-      responderContents: ContentText[];
+      responderContents: string[];
       flowFilePaths: string[];
-      flowContents: ContentText[];
+      flowContents: string[];
     }): void => {
       // readdir call for responders dir
       folderFilesProxy.setupFlatDirectory({

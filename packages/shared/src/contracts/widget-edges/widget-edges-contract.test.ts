@@ -1,6 +1,5 @@
 import { widgetEdgesContract } from './widget-edges-contract';
 import { WidgetEdgesStub } from './widget-edges.stub';
-import { ContentTextStub } from '../content-text/content-text.stub';
 
 describe('widgetEdgesContract', () => {
   describe('valid edges', () => {
@@ -14,7 +13,7 @@ describe('widgetEdgesContract', () => {
 
     it('VALID: {populated child paths and binding names} => parses successfully', () => {
       const childPath = '/repo/packages/web/src/widgets/child/child-widget.tsx';
-      const bindingName = ContentTextStub({ value: 'use-quest-binding' });
+      const bindingName = 'use-quest-binding';
 
       const result = WidgetEdgesStub({
         childWidgetPaths: [childPath],

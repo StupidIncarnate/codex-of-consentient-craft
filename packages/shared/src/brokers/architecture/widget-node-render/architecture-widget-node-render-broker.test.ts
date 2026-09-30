@@ -1,10 +1,9 @@
 import { architectureWidgetNodeRenderBroker } from './architecture-widget-node-render-broker';
 import { architectureWidgetNodeRenderBrokerProxy } from './architecture-widget-node-render-broker.proxy';
 import { WidgetNodeStub } from '../../../contracts/widget-node/widget-node.stub';
-import { ContentTextStub } from '../../../contracts/content-text/content-text.stub';
 import { projectMapHeadlineFrontendReactStatics } from '../../../statics/project-map-headline-frontend-react/project-map-headline-frontend-react-statics';
 
-const EMPTY_PREFIX = ContentTextStub({ value: '' });
+const EMPTY_PREFIX = '';
 const PACKAGE_ROOT = '/repo/packages/web';
 const PROJECT_ROOT = '/repo';
 
@@ -14,7 +13,7 @@ describe('architectureWidgetNodeRenderBroker', () => {
       const proxy = architectureWidgetNodeRenderBrokerProxy();
       proxy.setupExportNamesMap({
         map: {
-          'my-widget.tsx': ContentTextStub({ value: `export const MyWidget = () => null;` }),
+          'my-widget.tsx': `export const MyWidget = () => null;`,
         },
       });
 
@@ -43,7 +42,7 @@ describe('architectureWidgetNodeRenderBroker', () => {
       const proxy = architectureWidgetNodeRenderBrokerProxy();
       proxy.setupExportNamesMap({
         map: {
-          'my-widget.tsx': ContentTextStub({ value: `export const MyWidget = () => null;` }),
+          'my-widget.tsx': `export const MyWidget = () => null;`,
         },
       });
 
@@ -74,18 +73,14 @@ describe('architectureWidgetNodeRenderBroker', () => {
       const proxy = architectureWidgetNodeRenderBrokerProxy();
       proxy.setupExportNamesMap({
         map: {
-          'chat-widget.tsx': ContentTextStub({ value: `export const ChatWidget = () => null;` }),
-          'use-quest-chat-binding.ts': ContentTextStub({
-            value: `export const useQuestChat = () => null;`,
-          }),
-          'use-quest-chat.ts': ContentTextStub({
-            value: `export const useQuestChat = () => null;`,
-          }),
+          'chat-widget.tsx': `export const ChatWidget = () => null;`,
+          'use-quest-chat-binding.ts': `export const useQuestChat = () => null;`,
+          'use-quest-chat.ts': `export const useQuestChat = () => null;`,
         },
       });
 
       const node = WidgetNodeStub({
-        bindingsAttached: [ContentTextStub({ value: 'use-quest-chat' })],
+        bindingsAttached: ['use-quest-chat'],
         children: [],
         filePath: '/repo/packages/web/src/widgets/chat/chat-widget.tsx',
       });
@@ -112,12 +107,8 @@ describe('architectureWidgetNodeRenderBroker', () => {
       const proxy = architectureWidgetNodeRenderBrokerProxy();
       proxy.setupExportNamesMap({
         map: {
-          'parent-widget.tsx': ContentTextStub({
-            value: `export const ParentWidget = () => null;`,
-          }),
-          'child-widget.tsx': ContentTextStub({
-            value: `export const ChildWidget = () => null;`,
-          }),
+          'parent-widget.tsx': `export const ParentWidget = () => null;`,
+          'child-widget.tsx': `export const ChildWidget = () => null;`,
         },
       });
 

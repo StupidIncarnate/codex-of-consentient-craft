@@ -1,6 +1,5 @@
 import { extractWidgetEdgesLayerBroker } from './extract-widget-edges-layer-broker';
 import { extractWidgetEdgesLayerBrokerProxy } from './extract-widget-edges-layer-broker.proxy';
-import { ContentTextStub } from '../../../contracts/content-text/content-text.stub';
 
 type AbsoluteFilePath = string;
 
@@ -15,9 +14,7 @@ describe('extractWidgetEdgesLayerBroker', () => {
 
       proxy.setupWidgetSource({
         filePath: widgetFilePath,
-        content: ContentTextStub({
-          value: `import { ChatWidget } from '../chat/chat-widget';`,
-        }),
+        content: `import { ChatWidget } from '../chat/chat-widget';`,
       });
 
       const result = extractWidgetEdgesLayerBroker({
@@ -40,9 +37,7 @@ describe('extractWidgetEdgesLayerBroker', () => {
 
       proxy.setupWidgetSource({
         filePath: widgetFilePath,
-        content: ContentTextStub({
-          value: `import { useQuestBinding } from '../../bindings/quest/use-quest-binding';`,
-        }),
+        content: `import { useQuestBinding } from '../../bindings/quest/use-quest-binding';`,
       });
 
       const result = extractWidgetEdgesLayerBroker({
@@ -86,9 +81,7 @@ describe('extractWidgetEdgesLayerBroker', () => {
 
       proxy.setupWidgetSource({
         filePath: widgetFilePath,
-        content: ContentTextStub({
-          value: `import React from 'react';`,
-        }),
+        content: `import React from 'react';`,
       });
 
       const result = extractWidgetEdgesLayerBroker({

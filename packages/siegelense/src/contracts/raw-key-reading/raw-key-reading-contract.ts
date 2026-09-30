@@ -24,7 +24,7 @@
 
 import { z } from '#gateway/npm/zod';
 
-import { arrayIndexContract, contentTextContract } from '@dungeonmaster/shared/contracts';
+import { arrayIndexContract } from '@dungeonmaster/shared/contracts';
 
 import { attrPairContract } from '../attr-pair/attr-pair-contract';
 import { elementFlagContract } from '../element-flag/element-flag-contract';
@@ -38,22 +38,22 @@ export const rawKeyReadingContract = z.object({
         ref: refContract,
         depth: arrayIndexContract,
         parentRef: refContract.nullable(),
-        testId: contentTextContract.nullable(),
-        tag: contentTextContract,
-        role: contentTextContract.nullable(),
-        domId: contentTextContract.nullable(),
-        text: contentTextContract.nullable(),
-        value: contentTextContract.nullable(),
-        placeholder: contentTextContract.nullable(),
+        testId: z.string().brand<'RawKeyReadingRowsTestId'>().nullable(),
+        tag: z.string().brand<'RawKeyReadingRowsTag'>(),
+        role: z.string().brand<'RawKeyReadingRowsRole'>().nullable(),
+        domId: z.string().brand<'RawKeyReadingRowsDomId'>().nullable(),
+        text: z.string().brand<'RawKeyReadingRowsText'>().nullable(),
+        value: z.string().brand<'RawKeyReadingRowsValue'>().nullable(),
+        placeholder: z.string().brand<'RawKeyReadingRowsPlaceholder'>().nullable(),
         attributes: z.array(attrPairContract).readonly(),
         flags: z.array(elementFlagContract).readonly(),
-        flagDetail: z.record(z.string().brand<'ElementFlagName'>(), contentTextContract).readonly(),
+        flagDetail: z.record(z.string().brand<'ElementFlagName'>(), z.string().brand<'RawKeyReadingRowsFlagDetail'>()).readonly(),
       }),
     )
     .readonly(),
   highestRef: readingCountContract,
   skipped: z
-    .array(z.object({ under: contentTextContract, count: readingCountContract }))
+    .array(z.object({ under: z.string().brand<'RawKeyReadingSkippedUnder'>(), count: readingCountContract }))
     .readonly(),
 });
 

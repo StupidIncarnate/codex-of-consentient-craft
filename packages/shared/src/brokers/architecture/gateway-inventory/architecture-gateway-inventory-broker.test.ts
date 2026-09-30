@@ -1,6 +1,5 @@
 import { architectureGatewayInventoryBroker } from './architecture-gateway-inventory-broker';
 import { architectureGatewayInventoryBrokerProxy } from './architecture-gateway-inventory-broker.proxy';
-import { ContentTextStub } from '../../../contracts/content-text/content-text.stub';
 
 describe('architectureGatewayInventoryBroker', () => {
   describe('every group with no subpaths', () => {
@@ -37,12 +36,10 @@ describe('architectureGatewayInventoryBroker', () => {
         projectRoot,
         folder: 'node',
         subpathName: 'fs',
-        barrelContent: ContentTextStub({
-          value: [
+        barrelContent: [
             "export * from 'fs';",
             "export { existsSync } from './exists-sync/exists-sync';",
           ].join('\n'),
-        }),
       });
 
       const result = architectureGatewayInventoryBroker({ projectRoot });
@@ -75,9 +72,7 @@ describe('architectureGatewayInventoryBroker', () => {
         projectRoot,
         folder: 'npm',
         subpathName: 'zod',
-        barrelContent: ContentTextStub({
-          value: ["export * from 'zod';", "export { default } from 'zod';"].join('\n'),
-        }),
+        barrelContent: ["export * from 'zod';", "export { default } from 'zod';"].join('\n'),
       });
 
       const result = architectureGatewayInventoryBroker({ projectRoot });
@@ -109,12 +104,10 @@ describe('architectureGatewayInventoryBroker', () => {
         projectRoot,
         folder: 'bin',
         subpathName: 'claude',
-        barrelContent: ContentTextStub({
-          value: [
+        barrelContent: [
             "export { resolveClaudeCliPath } from './resolve-claude-cli-path/resolve-claude-cli-path';",
             "export { spawnStreamJson } from './spawn-stream-json/spawn-stream-json';",
           ].join('\n'),
-        }),
       });
 
       const result = architectureGatewayInventoryBroker({ projectRoot });
@@ -174,17 +167,14 @@ describe('architectureGatewayInventoryBroker', () => {
         projectRoot,
         folder: 'node',
         subpathName: 'fs__promises',
-        barrelContent: ContentTextStub({
-          value: [
+        barrelContent: [
             "export * from 'fs/promises';",
             "export { readFile } from './read-file/read-file';",
           ].join('\n'),
-        }),
       });
       proxy.setupGatewayLintConfig({
         repoRoot: projectRoot,
-        fileContent: ContentTextStub({
-          value: JSON.stringify({
+        fileContent: JSON.stringify({
             gateway: {
               bannedExports: [
                 {
@@ -196,7 +186,6 @@ describe('architectureGatewayInventoryBroker', () => {
               ],
             },
           }),
-        }),
       });
 
       const result = architectureGatewayInventoryBroker({ projectRoot });

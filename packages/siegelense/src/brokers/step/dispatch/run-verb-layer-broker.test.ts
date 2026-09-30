@@ -1,4 +1,3 @@
-import { ContentTextStub } from '@dungeonmaster/shared/contracts/content-text/content-text.stub';
 
 import { LaneSessionStub } from '../../../contracts/lane-session/lane-session.stub';
 import { SelectorStub } from '../../../contracts/selector/selector.stub';
@@ -36,7 +35,7 @@ describe('runVerbLayerBroker', () => {
     it('VALID: {type, one match} => calls countMatches before fillMatch', async () => {
       const proxy = runVerbLayerBrokerProxy();
       const { lane, callOrder } = proxy.sessionWithOneMatch();
-      const step = StepStub({ step: 'type', target: SelectorStub(), value: ContentTextStub() });
+      const step = StepStub({ step: 'type', target: SelectorStub(), value: 'Result text' });
 
       await runVerbLayerBroker({
         lane,
@@ -53,7 +52,7 @@ describe('runVerbLayerBroker', () => {
     it('VALID: {paste, one match} => calls countMatches before pasteMatch', async () => {
       const proxy = runVerbLayerBrokerProxy();
       const { lane, callOrder } = proxy.sessionWithOneMatch();
-      const step = StepStub({ step: 'paste', target: SelectorStub(), value: ContentTextStub() });
+      const step = StepStub({ step: 'paste', target: SelectorStub(), value: 'Result text' });
 
       await runVerbLayerBroker({
         lane,
@@ -173,7 +172,7 @@ describe('runVerbLayerBroker', () => {
     it('VALID: {key} => calls pressKey and returns rendered key result', async () => {
       const proxy = runVerbLayerBrokerProxy();
       const { lane, callOrder } = proxy.sessionWithOneMatch();
-      const step = StepStub({ step: 'key', press: ContentTextStub({ value: 'Enter' }) });
+      const step = StepStub({ step: 'key', press: 'Enter' });
 
       const result = await runVerbLayerBroker({
         lane,
@@ -350,7 +349,7 @@ describe('runVerbLayerBroker', () => {
       const { lane } = proxy.sessionWithOneMatch();
       const step = StepStub({
         step: 'before',
-        source: ContentTextStub({ value: 'window.__x = 1;' }),
+        source: 'window.__x = 1;',
       });
       const index = StepIndexStub({ value: 1 });
 
@@ -425,7 +424,7 @@ describe('runVerbLayerBroker', () => {
       const step = StepStub({
         step: 'paste',
         target: SelectorStub({ value: '[data-testid="INPUT"]' }),
-        value: ContentTextStub({ value: 'hello' }),
+        value: 'hello',
       });
       const index = StepIndexStub({ value: 1 });
 

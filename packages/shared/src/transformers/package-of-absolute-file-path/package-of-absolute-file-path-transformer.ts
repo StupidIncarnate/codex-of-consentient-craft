@@ -16,10 +16,6 @@
  * WHEN-TO-USE: Edge-graph aggregators grouping edges by source/destination package
  */
 
-import {
-  contentTextContract,
-  type ContentText,
-} from '../../contracts/content-text/content-text-contract';
 
 const PACKAGES_DIR_PATTERN = /\/packages\/([^/]+)\//u;
 
@@ -27,10 +23,10 @@ export const packageOfAbsoluteFilePathTransformer = ({
   filePath,
 }: {
   filePath: string;
-}): ContentText | null => {
+}): string | null => {
   const match = PACKAGES_DIR_PATTERN.exec(String(filePath));
   if (match === null) return null;
   const [, pkg] = match;
   if (pkg === undefined) return null;
-  return contentTextContract.parse(pkg);
+  return pkg;
 };

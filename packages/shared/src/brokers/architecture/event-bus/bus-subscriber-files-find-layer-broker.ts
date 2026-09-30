@@ -19,7 +19,6 @@ import {
   busSubscriberFileContract,
   type BusSubscriberFile,
 } from '../../../contracts/bus-subscriber-file/bus-subscriber-file-contract';
-import type { ContentText } from '../../../contracts/content-text/content-text-contract';
 import type { EventBus } from '../../../contracts/event-bus/event-bus-contract';
 import { isNonTestFileGuard } from '../../../guards/is-non-test-file/is-non-test-file-guard';
 import { busOnCallDetectTransformer } from '../../../transformers/bus-on-call-detect/bus-on-call-detect-transformer';
@@ -48,11 +47,11 @@ export const busSubscriberFilesFindLayerBroker = ({
 
   // Pass 1: per bus, find every file that calls `<exportName>.on(`.
   // Track sources so pass 2 can use them without re-reading.
-  const filesWithSource: { path: string; source: ContentText }[] = [];
+  const filesWithSource: { path: string; source: string }[] = [];
   // Map from bus exportName to the adapter files that subscribe to that bus.
-  const subscriberAdaptersByBus = new Map<ContentText, Set<string>>();
+  const subscriberAdaptersByBus = new Map<string, Set<string>>();
   // Map from bus exportName to non-adapter files that call `.on` directly.
-  const directNonAdapterByBus = new Map<ContentText, Set<string>>();
+  const directNonAdapterByBus = new Map<string, Set<string>>();
 
   for (const filePath of allFiles) {
     if (!isNonTestFileGuard({ filePath })) continue;

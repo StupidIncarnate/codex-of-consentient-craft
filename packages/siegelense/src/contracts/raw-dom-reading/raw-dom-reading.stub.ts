@@ -1,5 +1,4 @@
 import type { StubArgument } from '@dungeonmaster/shared/@types';
-import { ContentTextStub } from '@dungeonmaster/shared/contracts/content-text/content-text.stub';
 
 import { DomRectStub } from '../dom-rect/dom-rect.stub';
 import { ReadingCountStub } from '../reading-count/reading-count.stub';
@@ -11,15 +10,15 @@ export const RawDomReadingStub = ({ ...props }: StubArgument<RawDomReading> = {}
     count: ReadingCountStub({ value: 1 }),
     nodes: [
       {
-        tagName: ContentTextStub({ value: 'button' }),
-        testId: ContentTextStub({ value: 'SUBMIT_BTN' }),
-        className: ContentTextStub({ value: 'btn primary' }),
+        tagName: 'button',
+        testId: 'SUBMIT_BTN',
+        className: 'btn primary',
         childCount: ReadingCountStub({ value: 0 }),
-        display: ContentTextStub({ value: 'inline-block' }),
-        visibility: ContentTextStub({ value: 'visible' }),
-        opacity: ContentTextStub({ value: '1' }),
+        display: 'inline-block',
+        visibility: 'visible',
+        opacity: '1',
         rect: DomRectStub(),
-        text: ContentTextStub({ value: 'Submit' }),
+        text: 'Submit',
         attrs: [],
         value: null,
       },

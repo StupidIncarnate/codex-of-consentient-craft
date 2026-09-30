@@ -1,4 +1,3 @@
-import { ContentTextStub } from '@dungeonmaster/shared/contracts/content-text/content-text.stub';
 import { GuildIdStub } from '@dungeonmaster/shared/contracts/guild-id/guild-id.stub';
 
 import { CompareQueryStub } from '../../../contracts/compare-query/compare-query.stub';
@@ -27,25 +26,21 @@ describe('compareReadBroker', () => {
       const guildId = GuildIdStub();
       const runA = RunIdStub({ value: 'run_4' });
       const runB = RunIdStub({ value: 'run_5' });
-      const firstError = ContentTextStub({
-        value: JSON.stringify({
+      const firstError = JSON.stringify({
           at: 1,
           kind: 'console',
           type: 'error',
           text: 'Cannot read properties of null',
           url: '',
           line: 0,
-        }),
-      });
-      const secondError = ContentTextStub({
-        value: JSON.stringify({
+        });
+      const secondError = JSON.stringify({
           at: 2,
           kind: 'pageerror',
           type: 'TypeError',
           text: 'boom',
           stack: null,
-        }),
-      });
+        });
 
       proxy.setupInstance({
         entry: RegistryEntryStub({ id: instanceId, guildId, state: 'killed' }),
@@ -245,26 +240,22 @@ describe('compareReadBroker', () => {
       const guildId = GuildIdStub();
       const runA = RunIdStub({ value: 'run_4' });
       const runB = RunIdStub({ value: 'run_5' });
-      const sharedLogLine = ContentTextStub({
-        value: JSON.stringify({
+      const sharedLogLine = JSON.stringify({
           at: 1,
           kind: 'console',
           type: 'log',
           text: 'boot',
           url: '',
           line: 0,
-        }),
-      });
-      const newErrorLine = ContentTextStub({
-        value: JSON.stringify({
+        });
+      const newErrorLine = JSON.stringify({
           at: 2,
           kind: 'console',
           type: 'error',
           text: 'Cannot read properties of null',
           url: '',
           line: 0,
-        }),
-      });
+        });
 
       proxy.setupInstance({
         entry: RegistryEntryStub({ id: instanceId, guildId, state: 'killed' }),
@@ -296,16 +287,14 @@ describe('compareReadBroker', () => {
       const guildId = GuildIdStub();
       const runA = RunIdStub({ value: 'run_4' });
       const runB = RunIdStub({ value: 'run_5' });
-      const sharedErrorLine = ContentTextStub({
-        value: JSON.stringify({
+      const sharedErrorLine = JSON.stringify({
           at: 1,
           kind: 'console',
           type: 'error',
           text: 'boot failed',
           url: '',
           line: 0,
-        }),
-      });
+        });
 
       proxy.setupInstance({
         entry: RegistryEntryStub({ id: instanceId, guildId, state: 'killed' }),
@@ -337,26 +326,22 @@ describe('compareReadBroker', () => {
       const guildId = GuildIdStub();
       const runA = RunIdStub({ value: 'run_4' });
       const runB = RunIdStub({ value: 'run_5' });
-      const newErrorLine = ContentTextStub({
-        value: JSON.stringify({
+      const newErrorLine = JSON.stringify({
           at: 1,
           kind: 'console',
           type: 'error',
           text: 'Cannot read properties of null',
           url: '',
           line: 0,
-        }),
-      });
-      const newWarningLine = ContentTextStub({
-        value: JSON.stringify({
+        });
+      const newWarningLine = JSON.stringify({
           at: 2,
           kind: 'console',
           type: 'warning',
           text: 'deprecated api call',
           url: '',
           line: 0,
-        }),
-      });
+        });
 
       proxy.setupInstance({
         entry: RegistryEntryStub({ id: instanceId, guildId, state: 'killed' }),
@@ -393,8 +378,7 @@ describe('compareReadBroker', () => {
       const guildId = GuildIdStub();
       const runA = RunIdStub({ value: 'run_4' });
       const runB = RunIdStub({ value: 'run_5' });
-      const shared2xxLine = ContentTextStub({
-        value: JSON.stringify({
+      const shared2xxLine = JSON.stringify({
           at: 1,
           method: 'GET',
           url: '/x',
@@ -402,10 +386,8 @@ describe('compareReadBroker', () => {
           status: 200,
           requestBody: null,
           responseBody: 'ok',
-        }),
-      });
-      const newNon2xxLine = ContentTextStub({
-        value: JSON.stringify({
+        });
+      const newNon2xxLine = JSON.stringify({
           at: 2,
           method: 'POST',
           url: '/api/guilds',
@@ -413,8 +395,7 @@ describe('compareReadBroker', () => {
           status: 500,
           requestBody: null,
           responseBody: null,
-        }),
-      });
+        });
 
       proxy.setupInstance({
         entry: RegistryEntryStub({ id: instanceId, guildId, state: 'killed' }),
@@ -446,8 +427,7 @@ describe('compareReadBroker', () => {
       const guildId = GuildIdStub();
       const runA = RunIdStub({ value: 'run_4' });
       const runB = RunIdStub({ value: 'run_5' });
-      const newNon2xxLine = ContentTextStub({
-        value: JSON.stringify({
+      const newNon2xxLine = JSON.stringify({
           at: 1,
           method: 'GET',
           url: '/api/quests',
@@ -455,10 +435,8 @@ describe('compareReadBroker', () => {
           status: 404,
           requestBody: null,
           responseBody: null,
-        }),
-      });
-      const new2xxLine = ContentTextStub({
-        value: JSON.stringify({
+        });
+      const new2xxLine = JSON.stringify({
           at: 2,
           method: 'POST',
           url: '/api/quests',
@@ -466,8 +444,7 @@ describe('compareReadBroker', () => {
           status: 201,
           requestBody: null,
           responseBody: 'created',
-        }),
-      });
+        });
 
       proxy.setupInstance({
         entry: RegistryEntryStub({ id: instanceId, guildId, state: 'killed' }),
@@ -503,8 +480,7 @@ describe('compareReadBroker', () => {
       const runA = RunIdStub({ value: 'run_1' });
       const runB = RunIdStub({ value: 'run_2' });
       const cacheRevalidationLines = [1, 2, 3].map((at) =>
-        ContentTextStub({
-          value: JSON.stringify({
+        JSON.stringify({
             at,
             method: 'GET',
             url: '/@vite/client',
@@ -513,10 +489,8 @@ describe('compareReadBroker', () => {
             requestBody: null,
             responseBody: null,
           }),
-        }),
       );
-      const realFailureLine = ContentTextStub({
-        value: JSON.stringify({
+      const realFailureLine = JSON.stringify({
           at: 4,
           method: 'POST',
           url: '/api/guilds',
@@ -524,8 +498,7 @@ describe('compareReadBroker', () => {
           status: 500,
           requestBody: null,
           responseBody: null,
-        }),
-      });
+        });
 
       proxy.setupInstance({
         entry: RegistryEntryStub({ id: instanceId, guildId, state: 'killed' }),
@@ -595,8 +568,7 @@ describe('compareReadBroker', () => {
       const guildId = GuildIdStub();
       const runA = RunIdStub({ value: 'run_4' });
       const runB = RunIdStub({ value: 'run_5' });
-      const movedPermanentlyLine = ContentTextStub({
-        value: JSON.stringify({
+      const movedPermanentlyLine = JSON.stringify({
           at: 1,
           method: 'GET',
           url: '/old-path',
@@ -604,10 +576,8 @@ describe('compareReadBroker', () => {
           status: 301,
           requestBody: null,
           responseBody: null,
-        }),
-      });
-      const foundLine = ContentTextStub({
-        value: JSON.stringify({
+        });
+      const foundLine = JSON.stringify({
           at: 2,
           method: 'GET',
           url: '/redirected',
@@ -615,8 +585,7 @@ describe('compareReadBroker', () => {
           status: 302,
           requestBody: null,
           responseBody: null,
-        }),
-      });
+        });
 
       proxy.setupInstance({
         entry: RegistryEntryStub({ id: instanceId, guildId, state: 'killed' }),
@@ -651,8 +620,7 @@ describe('compareReadBroker', () => {
       const guildId = GuildIdStub();
       const runA = RunIdStub({ value: 'run_4' });
       const runB = RunIdStub({ value: 'run_5' });
-      const status399Line = ContentTextStub({
-        value: JSON.stringify({
+      const status399Line = JSON.stringify({
           at: 1,
           method: 'GET',
           url: '/x',
@@ -660,10 +628,8 @@ describe('compareReadBroker', () => {
           status: 399,
           requestBody: null,
           responseBody: null,
-        }),
-      });
-      const status400Line = ContentTextStub({
-        value: JSON.stringify({
+        });
+      const status400Line = JSON.stringify({
           at: 2,
           method: 'GET',
           url: '/y',
@@ -671,8 +637,7 @@ describe('compareReadBroker', () => {
           status: 400,
           requestBody: null,
           responseBody: null,
-        }),
-      });
+        });
 
       proxy.setupInstance({
         entry: RegistryEntryStub({ id: instanceId, guildId, state: 'killed' }),
@@ -707,8 +672,7 @@ describe('compareReadBroker', () => {
       const guildId = GuildIdStub();
       const runA = RunIdStub({ value: 'run_4' });
       const runB = RunIdStub({ value: 'run_5' });
-      const noResponseLine = ContentTextStub({
-        value: JSON.stringify({
+      const noResponseLine = JSON.stringify({
           at: 1,
           method: 'GET',
           url: '/never-answered',
@@ -716,8 +680,7 @@ describe('compareReadBroker', () => {
           status: null,
           requestBody: null,
           responseBody: null,
-        }),
-      });
+        });
 
       proxy.setupInstance({
         entry: RegistryEntryStub({ id: instanceId, guildId, state: 'killed' }),

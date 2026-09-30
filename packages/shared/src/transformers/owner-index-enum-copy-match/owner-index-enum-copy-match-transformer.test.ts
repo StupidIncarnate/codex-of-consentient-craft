@@ -1,4 +1,3 @@
-import { ContentTextStub } from '../../contracts/content-text/content-text.stub';
 import { IdentifierStub } from '../../contracts/identifier/identifier.stub';
 import { OwnerIndexEnumStub } from '../../contracts/owner-index-enum/owner-index-enum.stub';
 import { OwnerIndexOwnerStub } from '../../contracts/owner-index-owner/owner-index-owner.stub';
@@ -27,9 +26,7 @@ const workItemOwner = OwnerIndexOwnerStub({
   ownerName: 'WorkItem',
   contractName: 'workItemContract',
   packageName: shared,
-  schemaText: ContentTextStub({
-    value: "z.object({ role: z.enum(['worker', 'admin']), title: z.string() })",
-  }),
+  schemaText: "z.object({ role: z.enum(['worker', 'admin']), title: z.string() })",
 });
 const packages = [
   OwnerIndexPackageStub({ name: alpha, dependencies: [shared] }),
@@ -50,7 +47,7 @@ describe('ownerIndexEnumCopyMatchTransformer', () => {
         ownerIndex,
         packageName: alpha,
         contractName,
-        enumText: ContentTextStub({ value: "z.enum(['open', 'done'])" }),
+        enumText: "z.enum(['open', 'done'])",
       });
 
       expect(result).toStrictEqual(statusEnum);
@@ -64,9 +61,7 @@ describe('ownerIndexEnumCopyMatchTransformer', () => {
               ownerName: 'Task',
               contractName: 'taskContract',
               packageName: shared,
-              schemaText: ContentTextStub({
-                value: "z.object({ state: z.enum(['open', 'done']) })",
-              }),
+              schemaText: "z.object({ state: z.enum(['open', 'done']) })",
             }),
           ],
           enums: [statusEnum],
@@ -74,7 +69,7 @@ describe('ownerIndexEnumCopyMatchTransformer', () => {
         }),
         packageName: alpha,
         contractName,
-        enumText: ContentTextStub({ value: "z.enum(['done', 'open'])" }),
+        enumText: "z.enum(['done', 'open'])",
       });
 
       expect(result).toStrictEqual(statusEnum);
@@ -85,7 +80,7 @@ describe('ownerIndexEnumCopyMatchTransformer', () => {
         ownerIndex,
         packageName: alpha,
         contractName: statusEnum.contractName,
-        enumText: ContentTextStub({ value: "z.enum(['done', 'open'])" }),
+        enumText: "z.enum(['done', 'open'])",
       });
 
       expect(result).toBe(undefined);
@@ -96,7 +91,7 @@ describe('ownerIndexEnumCopyMatchTransformer', () => {
         ownerIndex,
         packageName: alpha,
         contractName,
-        enumText: ContentTextStub({ value: "z.enum(['shown', 'hidden'])" }),
+        enumText: "z.enum(['shown', 'hidden'])",
       });
 
       expect(result).toBe(undefined);
@@ -109,7 +104,7 @@ describe('ownerIndexEnumCopyMatchTransformer', () => {
         ownerIndex,
         packageName: alpha,
         contractName,
-        enumText: ContentTextStub({ value: "z.enum(['admin', 'worker']).brand<'Role'>()" }),
+        enumText: "z.enum(['admin', 'worker']).brand<'Role'>()",
       });
 
       expect(result).toStrictEqual({
@@ -127,7 +122,7 @@ describe('ownerIndexEnumCopyMatchTransformer', () => {
         ownerIndex,
         packageName: alpha,
         contractName: workItemOwner.contractName,
-        enumText: ContentTextStub({ value: "z.enum(['admin', 'worker'])" }),
+        enumText: "z.enum(['admin', 'worker'])",
       });
 
       expect(result).toBe(undefined);
@@ -140,7 +135,7 @@ describe('ownerIndexEnumCopyMatchTransformer', () => {
         ownerIndex,
         packageName: alpha,
         contractName,
-        enumText: ContentTextStub({ value: "z.enum(['left', 'right'])" }),
+        enumText: "z.enum(['left', 'right'])",
       });
 
       expect(result).toBe(undefined);
@@ -151,7 +146,7 @@ describe('ownerIndexEnumCopyMatchTransformer', () => {
         ownerIndex,
         packageName: alpha,
         contractName,
-        enumText: ContentTextStub({ value: 'z.enum(values)' }),
+        enumText: 'z.enum(values)',
       });
 
       expect(result).toBe(undefined);

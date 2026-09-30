@@ -7,7 +7,6 @@
  * // Returns 'pressed "Enter" — nothing focused'
  */
 
-import type { ContentText } from '@dungeonmaster/shared/contracts';
 
 import type { BrowserSession } from '../../../contracts/browser-session/browser-session-contract';
 import { keyReadingRenderTransformer } from '../../../transformers/key-reading-render/key-reading-render-transformer';
@@ -18,7 +17,7 @@ export const stepKeyBroker = async ({
 }: {
   session: BrowserSession;
   press: string;
-}): Promise<ContentText> => {
+}): Promise<string> => {
   const reading = await session.pressKey({ press });
   return keyReadingRenderTransformer({ reading });
 };

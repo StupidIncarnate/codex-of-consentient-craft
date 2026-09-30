@@ -41,6 +41,7 @@ import { pruneTombstoneRuleRenderTransformer } from '../../../transformers/prune
 import { registryReadBroker } from '../../registry/read/registry-read-broker';
 import { registryUpdateBroker } from '../../registry/update/registry-update-broker';
 import { pruneInstanceReclaimBroker } from '../instance-reclaim/prune-instance-reclaim-broker';
+import { registryContract } from '../../../contracts/registry/registry-contract';
 
 const PRUNED_STATE = instanceStateContract.parse('pruned');
 
@@ -97,7 +98,7 @@ export const pruneRunBroker = async ({
     const prunedByRule = pruneTombstoneRuleRenderTransformer({ query });
 
     await registryUpdateBroker({
-      mutate: (current) => ({
+      mutate: (current) => (registryContract.parse({
         instances: current.instances.map((entry) =>
           tombstonedIds.has(String(entry.id))
             ? {
@@ -109,7 +110,7 @@ export const pruneRunBroker = async ({
               }
             : entry,
         ),
-      }),
+      })),
     });
   }
 

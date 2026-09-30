@@ -19,7 +19,6 @@
 import { readdirIfExists, readFileIfExists } from '#gateway/node/fs__promises';
 import { join } from '#gateway/node/path';
 import { isNativeError } from '#gateway/node/util__types';
-import { contentTextContract } from '@dungeonmaster/shared/contracts';
 
 import { processIsAliveBroker } from '../../process/is-alive/process-is-alive-broker';
 import { orphanReadingContract } from '../../../contracts/orphan-reading/orphan-reading-contract';
@@ -108,12 +107,10 @@ export const orphanReadBroker = async ({
       const cmd =
         cmdlineContent === null
           ? null
-          : contentTextContract.parse(
-              cmdlineContent
+          : cmdlineContent
                 .split('\u0000')
                 .filter((token) => token !== '')
-                .join(' '),
-            );
+                .join(' ');
 
       return orphanReadingContract.parse({ pgid, cmd, alive });
     }),

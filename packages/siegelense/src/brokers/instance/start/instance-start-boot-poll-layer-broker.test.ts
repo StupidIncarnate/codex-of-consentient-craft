@@ -1,4 +1,3 @@
-import { ContentTextStub } from '@dungeonmaster/shared/contracts/content-text/content-text.stub';
 
 import { instanceStartBootPollLayerBroker } from './instance-start-boot-poll-layer-broker';
 import { instanceStartBootPollLayerBrokerProxy } from './instance-start-boot-poll-layer-broker.proxy';
@@ -50,7 +49,7 @@ describe('instanceStartBootPollLayerBroker', () => {
     it('ERROR: {connect fails, boot-failure.json present} => returns { status: failed, message } before the deadline', async () => {
       const proxy = instanceStartBootPollLayerBrokerProxy();
       const marker = BootFailureMarkerStub({
-        message: ContentTextStub({ value: 'CLAUDE_CLI_PATH is required' }),
+        message: 'CLAUDE_CLI_PATH is required',
       });
       proxy.setupFailureMarkerAppears({
         socketPath: SOCKET_PATH,

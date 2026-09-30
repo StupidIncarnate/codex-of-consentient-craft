@@ -1,4 +1,3 @@
-import { ContentTextStub } from '@dungeonmaster/shared/contracts/content-text/content-text.stub';
 import { GuildIdStub } from '@dungeonmaster/shared/contracts/guild-id/guild-id.stub';
 
 import { EpochMsStub } from '../../../contracts/epoch-ms/epoch-ms.stub';
@@ -320,9 +319,7 @@ describe('instanceEntryLayerBroker', () => {
       proxy.setupShutdownReasonFound({
         evidencePath,
         marker: ShutdownReasonStub({
-          reason: ContentTextStub({
-            value: 'reaped by idle timeout after 900s with no run received',
-          }),
+          reason: 'reaped by idle timeout after 900s with no run received',
         }),
       });
       proxy.setupProfileSolo({ profile: NO_PROFILE });

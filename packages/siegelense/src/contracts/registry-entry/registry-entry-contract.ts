@@ -41,7 +41,7 @@
 
 import { z } from '#gateway/npm/zod';
 
-import { absoluteFilePathContract, contentTextContract, processIdContract, questContract, guildContract, siegeInstanceContract } from '@dungeonmaster/shared/contracts';
+import { absoluteFilePathContract, processIdContract, questContract, guildContract, siegeInstanceContract } from '@dungeonmaster/shared/contracts';
 
 import { epochMsContract } from '../epoch-ms/epoch-ms-contract';
 import { instanceOwnerContract } from '../instance-owner/instance-owner-contract';
@@ -67,8 +67,8 @@ export const registryEntryContract = z.object({
   bootedAtMs: epochMsContract.nullable(),
   lastBeatMs: epochMsContract.nullable(),
   prunedAtMs: epochMsContract.nullable(),
-  prunedByRule: contentTextContract.nullable(),
-  branch: contentTextContract.nullish(),
+  prunedByRule: z.string().brand<'RegistryEntryPrunedByRule'>().nullable(),
+  branch: z.string().brand<'RegistryEntryBranch'>().nullish(),
 });
 
 export type RegistryEntry = z.infer<typeof registryEntryContract>;

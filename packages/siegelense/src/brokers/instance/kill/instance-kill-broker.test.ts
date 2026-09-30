@@ -1,4 +1,3 @@
-import { ContentTextStub } from '@dungeonmaster/shared/contracts/content-text/content-text.stub';
 
 import { instanceKillBroker } from './instance-kill-broker';
 import { instanceKillBrokerProxy } from './instance-kill-broker.proxy';
@@ -144,7 +143,7 @@ describe('instanceKillBroker', () => {
 
       await instanceKillBroker({
         instanceId: INSTANCE_ID,
-        reason: ContentTextStub({ value: 'reaped by cleanup after its heartbeat went stale' }),
+        reason: 'reaped by cleanup after its heartbeat went stale',
       });
 
       expect(proxy.getWrittenShutdownReason({ evidencePath: EVIDENCE_PATH })).toStrictEqual({

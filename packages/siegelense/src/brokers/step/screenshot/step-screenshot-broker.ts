@@ -10,8 +10,6 @@
  * // Captures the page to filePath and returns it as the reading
  */
 
-import { contentTextContract } from '@dungeonmaster/shared/contracts';
-import type { ContentText } from '@dungeonmaster/shared/contracts';
 
 import type { BrowserSession } from '../../../contracts/browser-session/browser-session-contract';
 
@@ -21,7 +19,7 @@ export const stepScreenshotBroker = async ({
 }: {
   session: BrowserSession;
   filePath: string;
-}): Promise<ContentText> => {
+}): Promise<string> => {
   await session.capture({ filePath });
-  return contentTextContract.parse(filePath);
+  return filePath;
 };

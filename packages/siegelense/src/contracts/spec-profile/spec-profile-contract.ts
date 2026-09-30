@@ -29,7 +29,6 @@
 
 import { z } from '#gateway/npm/zod';
 
-import { contentTextContract } from '@dungeonmaster/shared/contracts';
 
 import { epochMsContract } from '../epoch-ms/epoch-ms-contract';
 import { megabytesContract } from '../megabytes/megabytes-contract';
@@ -42,7 +41,7 @@ export const specProfileContract = z.object({
   specName: specNameContract,
   processes: readingCountContract,
   hash: specHashContract,
-  measuredAt: contentTextContract.nullable(),
+  measuredAt: z.string().brand<'SpecProfileMeasuredAt'>().nullable(),
   fromRuns: readingCountContract,
   bootMs: epochMsContract.nullable(),
   samples: z

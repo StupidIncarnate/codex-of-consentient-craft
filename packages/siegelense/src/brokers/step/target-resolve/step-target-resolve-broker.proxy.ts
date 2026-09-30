@@ -1,5 +1,4 @@
 import { z } from '#gateway/npm/zod';
-import type { ContentText } from '@dungeonmaster/shared/contracts';
 
 import { BrowserSessionStub } from '../../../contracts/browser-session/browser-session.stub';
 import type { BrowserSession } from '../../../contracts/browser-session/browser-session-contract';
@@ -14,7 +13,7 @@ const matchCountContract = z.number().int().nonnegative().brand<'MatchCount'>();
 export const stepTargetResolveBrokerProxy = (): {
   sessionWithOneMatch: () => BrowserSession;
   sessionWithCandidates: (params: { candidates: readonly StepCandidate[] }) => BrowserSession;
-  sessionWithNearest: (params: { nearest: readonly ContentText[] }) => BrowserSession;
+  sessionWithNearest: (params: { nearest: readonly string[] }) => BrowserSession;
   sessionWithFailedLookup: (params: { error: Error }) => BrowserSession;
   sessionNarrowingWithin: (params: {
     unscopedCandidates: readonly StepCandidate[];
@@ -38,7 +37,7 @@ export const stepTargetResolveBrokerProxy = (): {
       describeMatches: jest.fn().mockResolvedValue(candidates),
     }),
 
-  sessionWithNearest: ({ nearest }: { nearest: readonly ContentText[] }): BrowserSession =>
+  sessionWithNearest: ({ nearest }: { nearest: readonly string[] }): BrowserSession =>
     BrowserSessionStub({
       countMatches: jest.fn().mockResolvedValue(matchCountContract.parse(0)),
       nearestNames: jest.fn().mockResolvedValue(nearest),

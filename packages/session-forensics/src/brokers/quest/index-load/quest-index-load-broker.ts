@@ -23,7 +23,7 @@ import {
   wardResultContract,
   riftcarverResultContract,
 } from '@dungeonmaster/shared/contracts';
-import type { ContentText, WorkItem, OperationItem, WardResult, RiftcarverResult, Quest } from '@dungeonmaster/shared/contracts';
+import type { WorkItem, OperationItem, WardResult, RiftcarverResult, Quest } from '@dungeonmaster/shared/contracts';
 import { questFindBroker } from '../find/quest-find-broker';
 
 export const questIndexLoadBroker = ({
@@ -31,7 +31,7 @@ export const questIndexLoadBroker = ({
 }: {
   questId: Quest['id'];
 }): {
-  userRequest: ContentText | undefined;
+  userRequest: string | undefined;
   workItems: readonly WorkItem[];
   operations: readonly OperationItem[];
   wardResults: readonly WardResult[];
@@ -50,7 +50,7 @@ export const questIndexLoadBroker = ({
     return empty;
   }
 
-  const contents = contentTextContract.parse(readFileSync(questPath));
+  const contents = readFileSync(questPath);
   const parsed = safeJsonParseTransformer({ value: contents });
 
   if (!parsed.ok) {

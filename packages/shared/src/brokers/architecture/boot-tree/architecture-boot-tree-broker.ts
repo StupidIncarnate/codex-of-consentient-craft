@@ -14,10 +14,6 @@
  * WHEN-NOT-TO-USE: For library package type (libraries skip the Boot section)
  */
 
-import {
-  contentTextContract,
-  type ContentText,
-} from '../../../contracts/content-text/content-text-contract';
 import type { PackageType } from '../../../contracts/package-type/package-type-contract';
 import type { ResponderAnnotationMap } from '../../../contracts/responder-annotation-map/responder-annotation-map-contract';
 import { architectureWidgetTreeBroker } from '../widget-tree/architecture-widget-tree-broker';
@@ -46,12 +42,12 @@ export const architectureBootTreeBroker = ({
   packageType?: PackageType;
   responderAnnotations?: ResponderAnnotationMap;
   startupAnnotations?: ResponderAnnotationMap;
-}): ContentText => {
+}): string => {
   const packageSrcPath = `${String(packageRoot)}/src`;
   const startupFiles = startupFilesFindLayerBroker({ packageSrcPath });
 
   if (startupFiles.length === 0) {
-    return contentTextContract.parse('## Boot\n\n```\n(no startup files found)\n```');
+    return '## Boot\n\n```\n(no startup files found)\n```';
   }
 
   const widgetContext: WidgetContext | undefined =
@@ -68,7 +64,7 @@ export const architectureBootTreeBroker = ({
   const eventBusContext: EventBusContext | undefined =
     projectRoot === undefined ? undefined : architectureEventBusBroker({ projectRoot });
 
-  const allBlocks: ContentText[] = [];
+  const allBlocks: string[] = [];
   const visited = new Set<string>();
   const consumedWidgetResponders = new Set<string>();
 
@@ -88,20 +84,18 @@ export const architectureBootTreeBroker = ({
     const startupAnnotation = startupAnnotations?.get(startupFile);
     const startupSuffixSource = startupAnnotation?.suffix ?? null;
     const startupSuffix = startupSuffixSource === null ? '' : `  ${String(startupSuffixSource)}`;
-    const annotatedStartupLine = contentTextContract.parse(
-      `${String(startupDisplay)}${startupSuffix}`,
-    );
-    const startupBlockLines: ContentText[] = [annotatedStartupLine];
+    const annotatedStartupLine = `${String(startupDisplay)}${startupSuffix}`;
+    const startupBlockLines: string[] = [annotatedStartupLine];
     if (startupAnnotation !== undefined) {
       const childIndent = '      ';
       for (const cl of startupAnnotation.childLines) {
-        startupBlockLines.push(contentTextContract.parse(`${childIndent}${String(cl)}`));
+        startupBlockLines.push(`${childIndent}${String(cl)}`);
       }
     }
     if (flowNames.length > 0) {
-      startupBlockLines.push(contentTextContract.parse(`  ↳ flows/{${flowNames.join(', ')}}`));
+      startupBlockLines.push(`  ↳ flows/{${flowNames.join(', ')}}`);
     }
-    allBlocks.push(contentTextContract.parse(startupBlockLines.map(String).join('\n')));
+    allBlocks.push(startupBlockLines.map(String).join('\n'));
 
     for (const flowFile of flowFiles) {
       if (visited.has(flowFile)) continue;
@@ -127,9 +121,9 @@ export const architectureBootTreeBroker = ({
         ...annotationArgs,
       });
 
-      const flowBlockLines: ContentText[] = [flowDisplay, ...responderLines];
-      allBlocks.push(contentTextContract.parse(''));
-      allBlocks.push(contentTextContract.parse(flowBlockLines.map(String).join('\n')));
+      const flowBlockLines: string[] = [flowDisplay, ...responderLines];
+      allBlocks.push('');
+      allBlocks.push(flowBlockLines.map(String).join('\n'));
     }
   }
 
@@ -139,5 +133,5 @@ export const architectureBootTreeBroker = ({
   }
 
   const body = allBlocks.map(String).join('\n');
-  return contentTextContract.parse(`## Boot\n\n\`\`\`\n${body}\n\`\`\``);
+  return `## Boot\n\n\`\`\`\n${body}\n\`\`\``;
 };

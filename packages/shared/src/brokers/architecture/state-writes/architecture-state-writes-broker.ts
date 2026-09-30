@@ -11,7 +11,6 @@
  * WHEN-NOT-TO-USE: For library-type packages that perform no writes
  */
 
-import type { ContentText } from '../../../contracts/content-text/content-text-contract';
 import {
   stateWritesResultContract,
   type StateWritesResult,
@@ -35,8 +34,8 @@ export const architectureStateWritesBroker = ({
 
   // Collect all source file contents (skip missing files silently). Keep filePath alongside
   // each content so per-folder filtering (e.g. adapters-only browser-storage scanning) works.
-  const fileContents: ContentText[] = [];
-  const fileEntries: { filePath: string; content: ContentText }[] = [];
+  const fileContents: string[] = [];
+  const fileEntries: { filePath: string; content: string }[] = [];
   for (const filePath of sourceFiles) {
     const content = readSourceFileLayerBroker({ filePath });
     if (content !== undefined) {
@@ -47,7 +46,7 @@ export const architectureStateWritesBroker = ({
 
   // In-memory stores: state/* folders imported by any source file
   const stateDirs = stateDirsFindLayerBroker({ packageRoot });
-  const allImportPaths: ContentText[] = [];
+  const allImportPaths: string[] = [];
   for (const content of fileContents) {
     const imports = importStatementsExtractTransformer({ source: content });
     for (const imp of imports) {
@@ -59,8 +58,8 @@ export const architectureStateWritesBroker = ({
   );
 
   // File writes: scan all source files for fs adapter callers
-  const literalWrites: ContentText[] = [];
-  const computedWrites: ContentText[] = [];
+  const literalWrites: string[] = [];
+  const computedWrites: string[] = [];
   for (const content of fileContents) {
     const calls = fileWriteCallsExtractTransformer({ source: content });
     for (const call of calls) {
@@ -82,7 +81,7 @@ export const architectureStateWritesBroker = ({
   // statics that mention `localStorage.setItem(...)` as documentation examples don't get
   // counted as real browser storage writes. The brief enumerates these as the categories
   // that don't move data and aren't sources of state writes.
-  const browserStorageWrites: ContentText[] = [];
+  const browserStorageWrites: string[] = [];
   for (const { filePath, content } of fileEntries) {
     const fp = String(filePath);
     if (

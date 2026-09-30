@@ -16,8 +16,6 @@
  */
 
 import { dynamicImport } from '#gateway/node/module';
-import { contentTextContract } from '@dungeonmaster/shared/contracts';
-import type { ContentText } from '@dungeonmaster/shared/contracts';
 import { recipesConventionStatics } from '@dungeonmaster/shared/statics';
 
 import type { LaneSession } from '../../../contracts/lane-session/lane-session-contract';
@@ -34,7 +32,7 @@ export const stepSeedBroker = async ({
 }: {
   lane: LaneSession;
   step: Step;
-}): Promise<ContentText> => {
+}): Promise<string> => {
   if (step.step !== 'seed') {
     throw new Error(
       `step-seed-broker: expected a 'seed' step, got '${step.step}' — the caller's own dispatch should have already filtered this`,
@@ -101,5 +99,5 @@ export const stepSeedBroker = async ({
     baseUrl: lane.baseUrl,
   });
 
-  return contentTextContract.parse(JSON.stringify(raw));
+  return JSON.stringify(raw);
 };

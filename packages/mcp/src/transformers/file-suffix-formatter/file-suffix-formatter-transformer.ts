@@ -6,14 +6,12 @@
  * // Returns '-broker'
  */
 
-import { contentTextContract } from '../../contracts/content-text/content-text-contract';
-import type { ContentText } from '../../contracts/content-text/content-text-contract';
 
 export const fileSuffixFormatterTransformer = ({
   suffix,
 }: {
-  suffix: ContentText;
-}): ContentText => {
+  suffix: string;
+}): string => {
   const formatted = suffix.replace(/\.tsx?$/u, '');
-  return contentTextContract.parse(formatted);
+  return formatted;
 };

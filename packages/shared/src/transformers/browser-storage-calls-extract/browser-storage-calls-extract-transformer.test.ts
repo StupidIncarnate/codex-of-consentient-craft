@@ -1,12 +1,9 @@
 import { browserStorageCallsExtractTransformer } from './browser-storage-calls-extract-transformer';
-import { ContentTextStub } from '../../contracts/content-text/content-text.stub';
 
 describe('browserStorageCallsExtractTransformer', () => {
   describe('localStorage', () => {
     it('VALID: {localStorage.setItem with single-quoted key} => returns localStorage: key', () => {
-      const source = ContentTextStub({
-        value: `localStorage.setItem('session-id', value);`,
-      });
+      const source = `localStorage.setItem('session-id', value);`;
 
       const result = browserStorageCallsExtractTransformer({ source });
 
@@ -14,9 +11,7 @@ describe('browserStorageCallsExtractTransformer', () => {
     });
 
     it('VALID: {localStorage.setItem with double-quoted key} => returns localStorage: key', () => {
-      const source = ContentTextStub({
-        value: `localStorage.setItem("theme", "dark");`,
-      });
+      const source = `localStorage.setItem("theme", "dark");`;
 
       const result = browserStorageCallsExtractTransformer({ source });
 
@@ -26,9 +21,7 @@ describe('browserStorageCallsExtractTransformer', () => {
 
   describe('sessionStorage', () => {
     it('VALID: {sessionStorage.setItem} => returns sessionStorage: key', () => {
-      const source = ContentTextStub({
-        value: `sessionStorage.setItem('auth-token', token);`,
-      });
+      const source = `sessionStorage.setItem('auth-token', token);`;
 
       const result = browserStorageCallsExtractTransformer({ source });
 
@@ -38,9 +31,7 @@ describe('browserStorageCallsExtractTransformer', () => {
 
   describe('indexedDB', () => {
     it('VALID: {indexedDB.open} => returns indexedDB: name', () => {
-      const source = ContentTextStub({
-        value: `const db = indexedDB.open('my-database', 1);`,
-      });
+      const source = `const db = indexedDB.open('my-database', 1);`;
 
       const result = browserStorageCallsExtractTransformer({ source });
 
@@ -50,12 +41,10 @@ describe('browserStorageCallsExtractTransformer', () => {
 
   describe('multiple calls', () => {
     it('VALID: {localStorage and sessionStorage in same file} => returns both in order', () => {
-      const source = ContentTextStub({
-        value: [
+      const source = [
           `localStorage.setItem('user-pref', value);`,
           `sessionStorage.setItem('csrf-token', token);`,
-        ].join('\n'),
-      });
+        ].join('\n');
 
       const result = browserStorageCallsExtractTransformer({ source });
 
@@ -65,9 +54,7 @@ describe('browserStorageCallsExtractTransformer', () => {
 
   describe('no calls', () => {
     it('EMPTY: {source with no storage calls} => returns empty array', () => {
-      const source = ContentTextStub({
-        value: `const x = 42;`,
-      });
+      const source = `const x = 42;`;
 
       const result = browserStorageCallsExtractTransformer({ source });
 

@@ -1,13 +1,12 @@
 import { httpEdgeContract } from './http-edge-contract';
 import { HttpEdgeStub } from './http-edge.stub';
-import { ContentTextStub } from '../content-text/content-text.stub';
 
 describe('httpEdgeContract', () => {
   describe('valid inputs', () => {
     it('VALID: {paired edge} => parses successfully with all fields', () => {
       const result = HttpEdgeStub({
-        method: ContentTextStub({ value: 'POST' }),
-        urlPattern: ContentTextStub({ value: '/api/quests/:questId/start' }),
+        method: 'POST',
+        urlPattern: '/api/quests/:questId/start',
         serverFlowFile: '/repo/packages/server/src/flows/quest/quest-flow.ts',
         serverResponderFile: null,
         webBrokerFile: '/repo/packages/web/src/brokers/quest/start/quest-start-broker.ts',
@@ -26,8 +25,8 @@ describe('httpEdgeContract', () => {
 
     it('VALID: {orphan-server edge} => parses with null webBrokerFile', () => {
       const result = HttpEdgeStub({
-        method: ContentTextStub({ value: 'GET' }),
-        urlPattern: ContentTextStub({ value: '/api/health' }),
+        method: 'GET',
+        urlPattern: '/api/health',
         serverFlowFile: '/repo/packages/server/src/flows/health/health-flow.ts',
         serverResponderFile: null,
         webBrokerFile: null,
@@ -46,8 +45,8 @@ describe('httpEdgeContract', () => {
 
     it('VALID: {orphan-web edge} => parses with null serverFlowFile', () => {
       const result = HttpEdgeStub({
-        method: ContentTextStub({ value: 'GET' }),
-        urlPattern: ContentTextStub({ value: '/api/sessions/:sessionId/chat/history' }),
+        method: 'GET',
+        urlPattern: '/api/sessions/:sessionId/chat/history',
         serverFlowFile: null,
         serverResponderFile: null,
         webBrokerFile: '/repo/packages/web/src/brokers/session/chat-history-broker.ts',

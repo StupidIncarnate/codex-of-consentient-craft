@@ -1,4 +1,3 @@
-import { ContentTextStub } from '@dungeonmaster/shared/contracts/content-text/content-text.stub';
 import { FileNameStub } from '@dungeonmaster/shared/contracts/file-name/file-name.stub';
 
 import { LocatorStateStub } from '../locator-state/locator-state.stub';
@@ -13,22 +12,22 @@ const STEP_FIXTURES = [
   StepStub({ step: 'goto', path: UrlPathStub() }),
   StepStub({ step: 'waitFor', target: SelectorStub(), state: LocatorStateStub() }),
   StepStub({ step: 'click', target: SelectorStub() }),
-  StepStub({ step: 'type', target: SelectorStub(), value: ContentTextStub() }),
+  StepStub({ step: 'type', target: SelectorStub(), value: 'Result text' }),
   StepStub({ step: 'screenshot', name: FileNameStub({ value: 'step1.png' }) }),
-  StepStub({ step: 'eval', source: ContentTextStub() }),
+  StepStub({ step: 'eval', source: 'Result text' }),
   StepStub({ step: 'look' }),
   StepStub({ step: 'box' }),
   StepStub({ step: 'dom', target: SelectorStub() }),
   StepStub({ step: 'seed' }),
   StepStub({ step: 'until', visible: SelectorStub() }),
-  StepStub({ step: 'key', press: ContentTextStub({ value: 'Enter' }) }),
+  StepStub({ step: 'key', press: 'Enter' }),
   StepStub({ step: 'health' }),
   StepStub({ step: 'resize', width: 1280, height: 720 }),
   StepStub({ step: 'request', path: '/api/guilds' }),
-  StepStub({ step: 'before', source: ContentTextStub() }),
+  StepStub({ step: 'before', source: 'Result text' }),
   StepStub({ step: 'file' }),
   StepStub({ step: 'storage' }),
-  StepStub({ step: 'paste', target: SelectorStub(), value: ContentTextStub() }),
+  StepStub({ step: 'paste', target: SelectorStub(), value: 'Result text' }),
   StepStub({ step: 'hold' }),
   StepStub({ step: 'video', action: 'start' }),
   StepStub({ step: 'snapshot' }),

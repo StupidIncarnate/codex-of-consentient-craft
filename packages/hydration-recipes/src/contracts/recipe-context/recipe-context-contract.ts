@@ -20,12 +20,12 @@
  * // Returns a validated RecipeContext
  */
 
-import { absoluteFilePathContract, contentTextContract } from '@dungeonmaster/shared/contracts';
+import { absoluteFilePathContract } from '@dungeonmaster/shared/contracts';
 import { z } from '#gateway/npm/zod';
 
 export const recipeContextContract = z
   .object({
-    apiBaseUrl: contentTextContract,
+    apiBaseUrl: z.string().brand<'RecipeContextApiBaseUrl'>(),
     homePath: absoluteFilePathContract,
   })
   .strict();

@@ -20,7 +20,6 @@
 import { StartOrchestrator } from '@dungeonmaster/orchestrator';
 import { questSummaryToTextTransformer } from '@dungeonmaster/shared/transformers';
 
-import { contentTextContract } from '../../../contracts/content-text/content-text-contract';
 import { getQuestSummaryInputContract } from '../../../contracts/get-quest-summary-input/get-quest-summary-input-contract';
 import type { CallToolResult } from '#gateway/npm/modelcontextprotocol__sdk__types';
 
@@ -42,7 +41,7 @@ export const QuestSummaryLayerResponder = async ({
       content: [
         {
           type: 'text',
-          text: contentTextContract.parse(questSummaryToTextTransformer({ summary })),
+          text: questSummaryToTextTransformer({ summary }),
         },
       ],
     };
@@ -52,9 +51,7 @@ export const QuestSummaryLayerResponder = async ({
       content: [
         {
           type: 'text',
-          text: contentTextContract.parse(
-            JSON.stringify({ success: false, error: errorMessage }, null, JSON_INDENT_SPACES),
-          ),
+          text: JSON.stringify({ success: false, error: errorMessage }, null, JSON_INDENT_SPACES),
         },
       ],
       isError: true,

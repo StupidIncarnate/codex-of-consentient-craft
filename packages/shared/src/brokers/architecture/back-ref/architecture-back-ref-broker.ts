@@ -16,10 +16,6 @@
  * HTTP, WS, and file-bus edges
  */
 
-import {
-  contentTextContract,
-  type ContentText,
-} from '../../../contracts/content-text/content-text-contract';
 import { exportNameExtractTransformer } from '../../../transformers/export-name-extract/export-name-extract-transformer';
 import { architectureSourceReadBroker } from '../source-read/architecture-source-read-broker';
 
@@ -31,7 +27,7 @@ export const architectureBackRefBroker = ({
 }: {
   filePath: string;
   projectRoot: string;
-}): ContentText | null => {
+}): string | null => {
   const raw = String(filePath);
   const packagesPrefix = `${String(projectRoot)}${PACKAGES_SEGMENT}`;
   if (!raw.startsWith(packagesPrefix)) {
@@ -53,5 +49,5 @@ export const architectureBackRefBroker = ({
     return null;
   }
 
-  return contentTextContract.parse(`packages/${packageName} (${String(exportName)})`);
+  return `packages/${packageName} (${String(exportName)})`;
 };

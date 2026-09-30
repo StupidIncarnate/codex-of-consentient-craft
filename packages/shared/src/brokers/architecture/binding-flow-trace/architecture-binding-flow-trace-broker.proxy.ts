@@ -1,7 +1,6 @@
 import { architectureSourceReadBrokerProxy } from '../source-read/architecture-source-read-broker.proxy';
 import { architectureOrchestratorMethodExtractBrokerProxy } from '../orchestrator-method-extract/architecture-orchestrator-method-extract-broker.proxy';
 import { architectureBackRefBrokerProxy } from '../back-ref/architecture-back-ref-broker.proxy';
-import { ContentTextStub } from '../../../contracts/content-text/content-text.stub';
 import { FileMissingErrorStub } from '#gateway/node/fs/file-missing-error/file-missing-error.stub';
 
 export const architectureBindingFlowTraceBrokerProxy = (): {
@@ -17,7 +16,7 @@ export const architectureBindingFlowTraceBrokerProxy = (): {
         fn: (filePath) => {
           const content = fileMap[String(filePath)];
           if (content === undefined) throw FileMissingErrorStub({ path: String(filePath) });
-          return ContentTextStub({ value: content });
+          return content;
         },
       });
     },

@@ -1,6 +1,5 @@
 import { buildWidgetNodeLayerBroker } from './build-widget-node-layer-broker';
 import { buildWidgetNodeLayerBrokerProxy } from './build-widget-node-layer-broker.proxy';
-import { ContentTextStub } from '../../../contracts/content-text/content-text.stub';
 import { WidgetEdgesStub } from '../../../contracts/widget-edges/widget-edges.stub';
 
 type AbsoluteFilePath = string;
@@ -36,7 +35,7 @@ describe('buildWidgetNodeLayerBroker', () => {
 
       const filePath = '/repo/packages/web/src/widgets/app/app-widget.tsx';
       const widgetFileSet = new Set<AbsoluteFilePath>([filePath]);
-      const binding = ContentTextStub({ value: 'use-quest-binding' });
+      const binding = 'use-quest-binding';
       const edgesMap = new Map([[filePath, WidgetEdgesStub({ bindingNames: [binding] })]]);
       const hubPaths = new Set<AbsoluteFilePath>();
 

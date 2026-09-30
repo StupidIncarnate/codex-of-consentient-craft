@@ -1,5 +1,4 @@
 import { readFileSyncProxy } from '#gateway/node/fs/read-file-sync/read-file-sync.proxy';
-import type { ContentText } from '../../../contracts/content-text/content-text-contract';
 import { FileMissingErrorStub } from '#gateway/node/fs/file-missing-error/file-missing-error.stub';
 
 export const readSourceFileLayerBrokerProxy = (): {
@@ -8,7 +7,7 @@ export const readSourceFileLayerBrokerProxy = (): {
     content,
   }: {
     filePath: string;
-    content: ContentText;
+    content: string;
   }) => void;
   setupMissing: ({ filePath }: { filePath: string }) => void;
 } => {
@@ -20,7 +19,7 @@ export const readSourceFileLayerBrokerProxy = (): {
       content,
     }: {
       filePath: string;
-      content: ContentText;
+      content: string;
     }): void => {
       gatewayProxy.returns({ path: String(filePath), contents: content });
     },

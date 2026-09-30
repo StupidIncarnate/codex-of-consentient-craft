@@ -1,5 +1,4 @@
 import { FsErrorStub } from '#gateway/node/fs/is-fs-error/fs-error.stub';
-import { ContentTextStub } from '@dungeonmaster/shared/contracts/content-text/content-text.stub';
 import { FileNameStub } from '@dungeonmaster/shared/contracts/file-name/file-name.stub';
 
 import { ElementDeltaStub } from '../../../contracts/element-delta/element-delta.stub';
@@ -332,7 +331,7 @@ describe('stepDispatchBroker', () => {
       const { lane } = proxy.happyLane();
       const step = StepStub({
         step: 'eval',
-        source: ContentTextStub({ value: '() => document.title' }),
+        source: '() => document.title',
       });
 
       const result = await stepDispatchBroker({
@@ -866,7 +865,7 @@ describe('stepDispatchBroker', () => {
       const { lane } = proxy.happyLane();
       const step = StepStub({
         step: 'eval',
-        source: ContentTextStub({ value: '() => document.title' }),
+        source: '() => document.title',
       });
 
       const result = await stepDispatchBroker({
@@ -960,7 +959,7 @@ describe('stepDispatchBroker', () => {
       const step = StepStub({
         step: 'type',
         target: SelectorStub(),
-        value: ContentTextStub({ value: 'siege-1' }),
+        value: 'siege-1',
       });
 
       const result = await stepDispatchBroker({
@@ -1078,7 +1077,7 @@ describe('stepDispatchBroker', () => {
       const { lane } = proxy.happyLane();
       const step = StepStub({
         step: 'eval',
-        source: ContentTextStub({ value: '() => document.title' }),
+        source: '() => document.title',
       });
 
       const result = await stepDispatchBroker({

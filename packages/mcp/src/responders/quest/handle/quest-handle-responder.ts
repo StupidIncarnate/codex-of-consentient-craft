@@ -19,7 +19,6 @@ import { QuestWorkLayerResponder } from './quest-work-layer-responder';
 import type { CallToolResult } from '#gateway/npm/modelcontextprotocol__sdk__types';
 import type { ToolName } from '../../../contracts/tool-name/tool-name-contract';
 import { toolNameContract } from '../../../contracts/tool-name/tool-name-contract';
-import { contentTextContract } from '../../../contracts/content-text/content-text-contract';
 import { createQuestInputContract } from '../../../contracts/create-quest-input/create-quest-input-contract';
 import { createQuestOutputContract } from '../../../contracts/create-quest-output/create-quest-output-contract';
 import { getQuestPlanningNotesInputContract } from '../../../contracts/get-quest-planning-notes-input/get-quest-planning-notes-input-contract';
@@ -100,7 +99,7 @@ export const QuestHandleResponder = async ({
         content: [
           {
             type: 'text',
-            text: contentTextContract.parse(text),
+            text: text,
           },
         ],
         ...(!result.success && { isError: true }),
@@ -111,9 +110,7 @@ export const QuestHandleResponder = async ({
         content: [
           {
             type: 'text',
-            text: contentTextContract.parse(
-              JSON.stringify({ success: false, error: errorMessage }, null, JSON_INDENT_SPACES),
-            ),
+            text: JSON.stringify({ success: false, error: errorMessage }, null, JSON_INDENT_SPACES),
           },
         ],
         isError: true,
@@ -130,9 +127,7 @@ export const QuestHandleResponder = async ({
         content: [
           {
             type: 'text',
-            text: contentTextContract.parse(
-              JSON.stringify({ success: true, processId }, null, JSON_INDENT_SPACES),
-            ),
+            text: JSON.stringify({ success: true, processId }, null, JSON_INDENT_SPACES),
           },
         ],
       };
@@ -142,9 +137,7 @@ export const QuestHandleResponder = async ({
         content: [
           {
             type: 'text',
-            text: contentTextContract.parse(
-              JSON.stringify({ success: false, error: errorMessage }, null, JSON_INDENT_SPACES),
-            ),
+            text: JSON.stringify({ success: false, error: errorMessage }, null, JSON_INDENT_SPACES),
           },
         ],
         isError: true,
@@ -161,9 +154,7 @@ export const QuestHandleResponder = async ({
         content: [
           {
             type: 'text',
-            text: contentTextContract.parse(
-              JSON.stringify({ success: true, status }, null, JSON_INDENT_SPACES),
-            ),
+            text: JSON.stringify({ success: true, status }, null, JSON_INDENT_SPACES),
           },
         ],
       };
@@ -173,9 +164,7 @@ export const QuestHandleResponder = async ({
         content: [
           {
             type: 'text',
-            text: contentTextContract.parse(
-              JSON.stringify({ success: false, error: errorMessage }, null, JSON_INDENT_SPACES),
-            ),
+            text: JSON.stringify({ success: false, error: errorMessage }, null, JSON_INDENT_SPACES),
           },
         ],
         isError: true,
@@ -192,9 +181,7 @@ export const QuestHandleResponder = async ({
         content: [
           {
             type: 'text',
-            text: contentTextContract.parse(
-              JSON.stringify({ success: true, quests }, null, JSON_INDENT_SPACES),
-            ),
+            text: JSON.stringify({ success: true, quests }, null, JSON_INDENT_SPACES),
           },
         ],
       };
@@ -204,9 +191,7 @@ export const QuestHandleResponder = async ({
         content: [
           {
             type: 'text',
-            text: contentTextContract.parse(
-              JSON.stringify({ success: false, error: errorMessage }, null, JSON_INDENT_SPACES),
-            ),
+            text: JSON.stringify({ success: false, error: errorMessage }, null, JSON_INDENT_SPACES),
           },
         ],
         isError: true,
@@ -221,9 +206,7 @@ export const QuestHandleResponder = async ({
         content: [
           {
             type: 'text',
-            text: contentTextContract.parse(
-              JSON.stringify({ success: true, guilds }, null, JSON_INDENT_SPACES),
-            ),
+            text: JSON.stringify({ success: true, guilds }, null, JSON_INDENT_SPACES),
           },
         ],
       };
@@ -233,9 +216,7 @@ export const QuestHandleResponder = async ({
         content: [
           {
             type: 'text',
-            text: contentTextContract.parse(
-              JSON.stringify({ success: false, error: errorMessage }, null, JSON_INDENT_SPACES),
-            ),
+            text: JSON.stringify({ success: false, error: errorMessage }, null, JSON_INDENT_SPACES),
           },
         ],
         isError: true,
@@ -257,7 +238,7 @@ export const QuestHandleResponder = async ({
         content: [
           {
             type: 'text',
-            text: contentTextContract.parse(JSON.stringify(notes, null, JSON_INDENT_SPACES)),
+            text: JSON.stringify(notes, null, JSON_INDENT_SPACES),
           },
         ],
         ...(!notes.success && { isError: true }),
@@ -268,9 +249,7 @@ export const QuestHandleResponder = async ({
         content: [
           {
             type: 'text',
-            text: contentTextContract.parse(
-              JSON.stringify({ success: false, error: errorMessage }, null, JSON_INDENT_SPACES),
-            ),
+            text: JSON.stringify({ success: false, error: errorMessage }, null, JSON_INDENT_SPACES),
           },
         ],
         isError: true,
@@ -296,7 +275,7 @@ export const QuestHandleResponder = async ({
         content: [
           {
             type: 'text',
-            text: contentTextContract.parse(JSON.stringify(payload, null, JSON_INDENT_SPACES)),
+            text: JSON.stringify(payload, null, JSON_INDENT_SPACES),
           },
         ],
       };
@@ -306,9 +285,7 @@ export const QuestHandleResponder = async ({
         content: [
           {
             type: 'text',
-            text: contentTextContract.parse(
-              JSON.stringify({ success: false, error: errorMessage }, null, JSON_INDENT_SPACES),
-            ),
+            text: JSON.stringify({ success: false, error: errorMessage }, null, JSON_INDENT_SPACES),
           },
         ],
         isError: true,
@@ -327,7 +304,7 @@ export const QuestHandleResponder = async ({
         content: [
           {
             type: 'text',
-            text: contentTextContract.parse(JSON.stringify(payload, null, JSON_INDENT_SPACES)),
+            text: JSON.stringify(payload, null, JSON_INDENT_SPACES),
           },
         ],
       };
@@ -337,9 +314,7 @@ export const QuestHandleResponder = async ({
         content: [
           {
             type: 'text',
-            text: contentTextContract.parse(
-              JSON.stringify({ success: false, error: errorMessage }, null, JSON_INDENT_SPACES),
-            ),
+            text: JSON.stringify({ success: false, error: errorMessage }, null, JSON_INDENT_SPACES),
           },
         ],
         isError: true,

@@ -19,8 +19,7 @@
  * fetch.
  */
 
-import { contentTextContract } from '@dungeonmaster/shared/contracts';
-import type { ContentText, OperationItem, PieceId, QaChecklistItem } from '@dungeonmaster/shared/contracts';
+import type { OperationItem, PieceId, QaChecklistItem } from '@dungeonmaster/shared/contracts';
 
 import type { QuestWorkUnit } from '../../contracts/quest-work-view/quest-work-view-contract';
 import type { WorkPlan } from '../../contracts/work-plan/work-plan-contract';
@@ -36,7 +35,7 @@ export const workPlanToTextTransformer = ({
   operationItem: OperationItem;
   plan: WorkPlan | null;
   inScopeUnits: readonly QuestWorkUnit[];
-}): ContentText => {
+}): string => {
   const header = [
     `# Plan for operation item ${String(operationItem.id)}`,
     '',
@@ -45,14 +44,12 @@ export const workPlanToTextTransformer = ({
   ];
 
   if (plan === null) {
-    return contentTextContract.parse(
-      [
+    return [
         ...header,
         'No planner has run against this item yet, so there is no plan to review. That is a real',
         'state, not an error — the scope is waiting on its `plan` step.',
         '',
-      ].join('\n'),
-    );
+      ].join('\n');
   }
 
   // The claim index is built ONCE and read by both halves below, so the piece rows and the coverage
@@ -124,8 +121,7 @@ export const workPlanToTextTransformer = ({
 
   const flowText = plan.flowId === null ? 'none (contracts-only cell)' : String(plan.flowId);
 
-  return contentTextContract.parse(
-    [
+  return [
       ...header,
       `Family: ${plan.family} · flow: ${flowText}`,
       `Written by work item ${String(plan.writtenBy)} at ${String(plan.writtenAt)}`,
@@ -139,6 +135,5 @@ export const workPlanToTextTransformer = ({
       '| --- | --- | --- |',
       ...coverageRows,
       '',
-    ].join('\n'),
-  );
+    ].join('\n');
 };

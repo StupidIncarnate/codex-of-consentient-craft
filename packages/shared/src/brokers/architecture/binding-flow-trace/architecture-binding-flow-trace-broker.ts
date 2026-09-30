@@ -15,7 +15,6 @@
  * the boot-tree's widget subtree renderer and the standalone widget tree section
  */
 
-import type { ContentText } from '../../../contracts/content-text/content-text-contract';
 import type { HttpEdge } from '../../../contracts/http-edge/http-edge-contract';
 import type { WsEdge } from '../../../contracts/ws-edge/ws-edge-contract';
 import { bindingNameToFilePathTransformer } from '../../../transformers/binding-name-to-file-path/binding-name-to-file-path-transformer';
@@ -34,21 +33,21 @@ export const architectureBindingFlowTraceBroker = ({
   httpEdges,
   wsEdges,
 }: {
-  bindingName: ContentText;
+  bindingName: string;
   packageRoot: string;
   projectRoot: string;
   httpEdges: HttpEdge[];
   wsEdges: WsEdge[];
 }): {
   httpFlows: {
-    method: ContentText;
-    urlPattern: ContentText;
-    serverRef: ContentText | null;
-    orchestratorMethod: ContentText | null;
+    method: string;
+    urlPattern: string;
+    serverRef: string | null;
+    orchestratorMethod: string | null;
   }[];
   wsEvents: {
-    eventType: ContentText;
-    emitterRef: ContentText | null;
+    eventType: string;
+    emitterRef: string | null;
   }[];
 } => {
   const bindingFilePath = bindingNameToFilePathTransformer({ bindingName, packageRoot });
@@ -62,10 +61,10 @@ export const architectureBindingFlowTraceBroker = ({
   const brokerImports = imports.filter((p) => String(p).includes(BROKERS_MARKER));
 
   const httpFlows: {
-    method: ContentText;
-    urlPattern: ContentText;
-    serverRef: ContentText | null;
-    orchestratorMethod: ContentText | null;
+    method: string;
+    urlPattern: string;
+    serverRef: string | null;
+    orchestratorMethod: string | null;
   }[] = [];
 
   for (const brokerImport of brokerImports) {

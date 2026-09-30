@@ -18,7 +18,7 @@
  */
 
 import type { Quest, SiegeInstance } from '@dungeonmaster/shared/contracts';
-import { contentTextContract, siegeInstanceContract, siegeRunContract } from '@dungeonmaster/shared/contracts';
+import { siegeInstanceContract, siegeRunContract } from '@dungeonmaster/shared/contracts';
 import { questStatusMetadataStatics } from '@dungeonmaster/shared/statics';
 
 import { citationKindContract } from '../../../contracts/citation-kind/citation-kind-contract';
@@ -61,9 +61,7 @@ export const walkedNoteLayerBroker = ({
         instanceId,
         runId: noteRun.success ? noteRun.data : null,
         citingFile: questFilePath,
-        why: contentTextContract.parse(
-          `${runLabel} cited by a WALKED note on open quest ${quest.id} (${quest.status}) in ${questFilePath}`,
-        ),
+        why: `${runLabel} cited by a WALKED note on open quest ${quest.id} (${quest.status}) in ${questFilePath}`,
       }),
     ];
   });

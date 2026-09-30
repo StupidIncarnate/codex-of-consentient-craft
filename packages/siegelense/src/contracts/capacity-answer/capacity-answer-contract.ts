@@ -24,7 +24,6 @@
 
 import { z } from '#gateway/npm/zod';
 
-import { contentTextContract } from '@dungeonmaster/shared/contracts';
 
 import { capacityMeasuredContract } from '../capacity-measured/capacity-measured-contract';
 import { capacityProfileContract } from '../capacity-profile/capacity-profile-contract';
@@ -34,7 +33,7 @@ export const capacityAnswerContract = z
   .object({
     suggested: readingCountContract,
     ceiling: readingCountContract,
-    why: contentTextContract,
+    why: z.string().brand<'CapacityAnswerWhy'>(),
     measured: capacityMeasuredContract,
     profile: capacityProfileContract.nullable(),
   })

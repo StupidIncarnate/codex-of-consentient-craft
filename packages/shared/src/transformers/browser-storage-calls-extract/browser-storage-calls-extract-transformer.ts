@@ -11,10 +11,6 @@
  * WHEN-NOT-TO-USE: When full AST parsing is needed — this is a v1 regex heuristic
  */
 
-import {
-  contentTextContract,
-  type ContentText,
-} from '../../contracts/content-text/content-text-contract';
 import { projectMapStatics } from '../../statics/project-map/project-map-statics';
 
 // Matches: localStorage.setItem('key', ...) or sessionStorage.setItem('key', ...)
@@ -26,9 +22,9 @@ const INDEXED_DB_PATTERN = /\bindexedDB\.open\s*\(\s*['"]([^'"]+)['"]/gu;
 export const browserStorageCallsExtractTransformer = ({
   source,
 }: {
-  source: ContentText;
-}): ContentText[] => {
-  const results: ContentText[] = [];
+  source: string;
+}): string[] => {
+  const results: string[] = [];
   const { localStoragePrefix, sessionStoragePrefix, indexedDbPrefix } =
     projectMapStatics.browserStoragePatterns;
 
@@ -38,7 +34,7 @@ export const browserStorageCallsExtractTransformer = ({
     const [, storageType, key] = match;
     if (storageType !== undefined && key !== undefined) {
       const prefix = storageType === 'localStorage' ? localStoragePrefix : sessionStoragePrefix;
-      results.push(contentTextContract.parse(`${prefix}${key}`));
+      results.push(`${prefix}${key}`);
     }
     match = LOCAL_SESSION_PATTERN.exec(String(source));
   }
@@ -48,7 +44,7 @@ export const browserStorageCallsExtractTransformer = ({
   while (dbMatch !== null) {
     const [, dbName] = dbMatch;
     if (dbName !== undefined) {
-      results.push(contentTextContract.parse(`${indexedDbPrefix}${dbName}`));
+      results.push(`${indexedDbPrefix}${dbName}`);
     }
     dbMatch = INDEXED_DB_PATTERN.exec(String(source));
   }

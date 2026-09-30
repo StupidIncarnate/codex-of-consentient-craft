@@ -1,13 +1,12 @@
 import { importEdgeContract } from './import-edge-contract';
-import { ContentTextStub } from '../content-text/content-text.stub';
 
 describe('importEdgeContract', () => {
   describe('parse', () => {
     it('VALID: {consumerPackage, sourcePackage, barrel, importCount:1} => parses successfully', () => {
       const result = importEdgeContract.parse({
-        consumerPackage: ContentTextStub({ value: 'web' }),
-        sourcePackage: ContentTextStub({ value: 'shared' }),
-        barrel: ContentTextStub({ value: 'contracts' }),
+        consumerPackage: 'web',
+        sourcePackage: 'shared',
+        barrel: 'contracts',
         importCount: 1,
       });
 
@@ -21,9 +20,9 @@ describe('importEdgeContract', () => {
 
     it('VALID: {barrel empty string for root import} => parses successfully', () => {
       const result = importEdgeContract.parse({
-        consumerPackage: ContentTextStub({ value: 'server' }),
-        sourcePackage: ContentTextStub({ value: 'shared' }),
-        barrel: ContentTextStub({ value: '' }),
+        consumerPackage: 'server',
+        sourcePackage: 'shared',
+        barrel: '',
         importCount: 5,
       });
 
@@ -38,9 +37,9 @@ describe('importEdgeContract', () => {
     it('INVALID: {importCount: 0} => throws min-1 validation error', () => {
       expect(() =>
         importEdgeContract.parse({
-          consumerPackage: ContentTextStub({ value: 'web' }),
-          sourcePackage: ContentTextStub({ value: 'shared' }),
-          barrel: ContentTextStub({ value: 'contracts' }),
+          consumerPackage: 'web',
+          sourcePackage: 'shared',
+          barrel: 'contracts',
           importCount: 0,
         }),
       ).toThrow(/expected number to be >=1/u);
@@ -49,9 +48,9 @@ describe('importEdgeContract', () => {
     it('INVALID: {importCount: negative} => throws min-1 validation error', () => {
       expect(() =>
         importEdgeContract.parse({
-          consumerPackage: ContentTextStub({ value: 'web' }),
-          sourcePackage: ContentTextStub({ value: 'shared' }),
-          barrel: ContentTextStub({ value: 'contracts' }),
+          consumerPackage: 'web',
+          sourcePackage: 'shared',
+          barrel: 'contracts',
           importCount: -1,
         }),
       ).toThrow(/expected number to be >=1/u);

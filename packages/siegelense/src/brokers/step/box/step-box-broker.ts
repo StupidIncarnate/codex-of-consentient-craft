@@ -12,7 +12,6 @@
  * // Reads the geometry of ref 26 from the session and renders it
  */
 
-import type { ContentText } from '@dungeonmaster/shared/contracts';
 
 import type { BrowserSession } from '../../../contracts/browser-session/browser-session-contract';
 import { boxReadingRenderTransformer } from '../../../transformers/box-reading-render/box-reading-render-transformer';
@@ -23,7 +22,7 @@ export const stepBoxBroker = async ({
 }: {
   session: BrowserSession;
   ref: number;
-}): Promise<ContentText> => {
+}): Promise<string> => {
   const reading = await session.boxRef({ ref });
   return boxReadingRenderTransformer({ reading });
 };

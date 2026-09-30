@@ -27,8 +27,6 @@
  * // Returns the rendered key as ContentText, ready to be a step's own reading
  */
 
-import { contentTextContract } from '@dungeonmaster/shared/contracts';
-import type { ContentText } from '@dungeonmaster/shared/contracts';
 
 import type { KeyListing } from '../../contracts/key-listing/key-listing-contract';
 
@@ -42,18 +40,16 @@ const HEADINGS = {
   flags: 'flags',
 } as const;
 
-export const keyRenderTransformer = ({ listing }: { listing: KeyListing }): ContentText => {
+export const keyRenderTransformer = ({ listing }: { listing: KeyListing }): string => {
   const scope = listing.within === null ? '' : ` within ${listing.within}`;
   const summary = `key: ${String(listing.rows.length)} rows${scope}`;
 
   if (listing.rows.length === 0) {
-    return contentTextContract.parse(
-      [
+    return [
         summary,
         'Nothing here is addressable — no element carries a data-testid, its own text, a control or an image. If the page should have painted by now, that IS the finding.',
         ...listing.truncated,
-      ].join('\n'),
-    );
+      ].join('\n');
   }
 
   const cells = listing.rows.map((row) => {
@@ -126,7 +122,5 @@ export const keyRenderTransformer = ({ listing }: { listing: KeyListing }): Cont
       .trimEnd(),
   );
 
-  return contentTextContract.parse(
-    [summary, header, rule, ...rows, ...listing.duplicates, ...listing.truncated].join('\n'),
-  );
+  return [summary, header, rule, ...rows, ...listing.duplicates, ...listing.truncated].join('\n');
 };

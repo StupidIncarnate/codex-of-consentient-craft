@@ -1,4 +1,3 @@
-import { ContentTextStub } from '@dungeonmaster/shared/contracts/content-text/content-text.stub';
 
 import { DomRectStub } from '../../contracts/dom-rect/dom-rect.stub';
 import { RawDomReadingStub } from '../../contracts/raw-dom-reading/raw-dom-reading.stub';
@@ -140,15 +139,15 @@ describe('domReadTransformer', () => {
         count: ReadingCountStub({ value: 58 }),
         nodes: [
           {
-            tagName: ContentTextStub({ value: 'div' }),
+            tagName: 'div',
             testId: null,
             className: null,
             childCount: ReadingCountStub({ value: 0 }),
-            display: ContentTextStub({ value: 'block' }),
-            visibility: ContentTextStub({ value: 'visible' }),
-            opacity: ContentTextStub({ value: '1' }),
+            display: 'block',
+            visibility: 'visible',
+            opacity: '1',
             rect: DomRectStub(),
-            text: ContentTextStub({ value: 'Item' }),
+            text: 'Item',
             attrs: [],
             value: null,
           },

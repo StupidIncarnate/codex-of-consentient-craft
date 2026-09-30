@@ -8,7 +8,6 @@
  * resolveSpawnedProgramLayerBroker({ commandNode: literalGitNode, argsNode: undefined, moduleBody });
  * // Returns 'git' as ContentText
  */
-import type { ContentText } from '@dungeonmaster/shared/contracts';
 import { AST_NODE_TYPES } from '#gateway/npm/typescript-eslint__utils';
 import type { TSESTree } from '#gateway/npm/typescript-eslint__utils';
 import { firstWordTransformer } from '../../../transformers/first-word/first-word-transformer';
@@ -25,7 +24,7 @@ export const resolveSpawnedProgramLayerBroker = ({
   argsNode: TSESTree.Node | undefined;
   moduleBody: readonly TSESTree.ProgramStatement[];
   filename?: string | undefined;
-}): ContentText | undefined => {
+}): string | undefined => {
   const resolvedCommand = resolveStaticStringLayerBroker({
     node: commandNode,
     moduleBody,

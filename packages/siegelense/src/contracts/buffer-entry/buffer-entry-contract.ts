@@ -14,7 +14,7 @@
 
 import { z } from '#gateway/npm/zod';
 
-import { contentTextContract, siegeRunContract } from '@dungeonmaster/shared/contracts';
+import { siegeRunContract } from '@dungeonmaster/shared/contracts';
 
 import { epochMsContract } from '../epoch-ms/epoch-ms-contract';
 import { stepIndexContract } from '../step-index/step-index-contract';
@@ -23,7 +23,7 @@ export const bufferEntryContract = z.object({
   runId: siegeRunContract.shape.id.nullable(),
   step: stepIndexContract.nullable(),
   atMs: epochMsContract,
-  text: contentTextContract,
+  text: z.string().brand<'BufferEntryText'>(),
 });
 
 export type BufferEntry = z.infer<typeof bufferEntryContract>;

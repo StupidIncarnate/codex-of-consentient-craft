@@ -7,8 +7,7 @@
  * ownerIndexImportSourceTransformer({ ownerFilePath, ownerPackageName, filePath, packageName });
  * // Returns '../quest/quest-contract' in one package, '@repo/shared/contracts' across two
  */
-import { contentTextContract } from '@dungeonmaster/shared/contracts';
-import type { ContentText, PackageName } from '@dungeonmaster/shared/contracts';
+import type { PackageName } from '@dungeonmaster/shared/contracts';
 
 const CONTRACTS_SUBPATH = 'contracts';
 const EXTENSION = /\.tsx?$/u;
@@ -23,9 +22,9 @@ export const ownerIndexImportSourceTransformer = ({
   ownerPackageName: PackageName;
   filePath: string;
   packageName: PackageName;
-}): ContentText => {
+}): string => {
   if (ownerPackageName !== packageName) {
-    return contentTextContract.parse(`${ownerPackageName}/${CONTRACTS_SUBPATH}`);
+    return `${ownerPackageName}/${CONTRACTS_SUBPATH}`;
   }
 
   const fromFolders = filePath.split('/').slice(0, -1);
@@ -35,5 +34,5 @@ export const ownerIndexImportSourceTransformer = ({
   const climbs = fromFolders.length - common;
   const prefix = climbs === 0 ? './' : '../'.repeat(climbs);
 
-  return contentTextContract.parse(`${prefix}${toSegments.slice(common).join('/')}`);
+  return `${prefix}${toSegments.slice(common).join('/')}`;
 };

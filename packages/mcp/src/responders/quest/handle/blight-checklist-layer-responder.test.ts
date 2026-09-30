@@ -1,5 +1,4 @@
 import { QuestIdStub } from '@dungeonmaster/shared/contracts/quest-id/quest-id.stub';
-import { ContentTextStub } from '@dungeonmaster/shared/contracts/content-text/content-text.stub';
 
 import { BlightChecklistLayerResponder } from './blight-checklist-layer-responder';
 import { BlightChecklistLayerResponderProxy } from './blight-checklist-layer-responder.proxy';
@@ -14,9 +13,7 @@ describe('BlightChecklistLayerResponder', () => {
         questId: QuestIdStub({ value: 'add-auth' }),
         result: {
           success: true,
-          data: ContentTextStub({
-            value: '# BLIGHT CHECKLIST\nUnits: 3\n[ ] a-file:security:x',
-          }),
+          data: '# BLIGHT CHECKLIST\nUnits: 3\n[ ] a-file:security:x',
         },
       });
 
@@ -31,7 +28,7 @@ describe('BlightChecklistLayerResponder', () => {
       const proxy = BlightChecklistLayerResponderProxy();
       proxy.setupReturns({
         questId: QuestIdStub({ value: 'add-auth' }),
-        result: { success: true, data: ContentTextStub({ value: '# BLIGHT CHECKLIST' }) },
+        result: { success: true, data: '# BLIGHT CHECKLIST' },
       });
 
       await BlightChecklistLayerResponder({ args: { questId: 'add-auth' } });
@@ -47,7 +44,7 @@ describe('BlightChecklistLayerResponder', () => {
       const proxy = BlightChecklistLayerResponderProxy();
       proxy.setupReturns({
         questId: QuestIdStub({ value: 'add-auth' }),
-        result: { success: true, data: ContentTextStub({ value: '# BLIGHT CHECKLIST' }) },
+        result: { success: true, data: '# BLIGHT CHECKLIST' },
       });
 
       await BlightChecklistLayerResponder({ args: { questId: 'add-auth', scope: 'commit' } });
@@ -65,7 +62,7 @@ describe('BlightChecklistLayerResponder', () => {
       const proxy = BlightChecklistLayerResponderProxy();
       proxy.setupReturns({
         questId: QuestIdStub({ value: 'add-auth' }),
-        result: { success: true, data: ContentTextStub({ value: '# BLIGHT CHECKLIST' }) },
+        result: { success: true, data: '# BLIGHT CHECKLIST' },
       });
 
       await BlightChecklistLayerResponder({ args: { questId: 'add-auth', scope: 'unpushed' } });
@@ -82,7 +79,7 @@ describe('BlightChecklistLayerResponder', () => {
       const proxy = BlightChecklistLayerResponderProxy();
       proxy.setupReturns({
         questId: QuestIdStub({ value: 'add-auth' }),
-        result: { success: false, error: ContentTextStub({ value: 'Quest not found' }) as never },
+        result: { success: false, error: 'Quest not found' as never },
       });
 
       const result = await BlightChecklistLayerResponder({ args: { questId: 'add-auth' } });

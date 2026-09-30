@@ -1,26 +1,20 @@
-import { ContentTextStub } from '@dungeonmaster/shared/contracts/content-text/content-text.stub';
 
 import { runIndexComputeTransformer } from './run-index-compute-transformer';
 
-const consoleLine = ({ type }: { type: string }): ReturnType<typeof ContentTextStub> =>
-  ContentTextStub({
-    value: JSON.stringify({ at: 1, kind: 'console', type, text: 'x', url: 'http://x', line: 0 }),
-  });
+const consoleLine = ({ type }: { type: string }): string =>
+  JSON.stringify({ at: 1, kind: 'console', type, text: 'x', url: 'http://x', line: 0 });
 
-const pageErrorLine = (): ReturnType<typeof ContentTextStub> =>
-  ContentTextStub({
-    value: JSON.stringify({
+const pageErrorLine = (): string =>
+  JSON.stringify({
       at: 1,
       kind: 'pageerror',
       type: 'TypeError',
       text: 'boom',
       stack: null,
-    }),
-  });
+    });
 
-const networkLine = ({ status }: { status: number | null }): ReturnType<typeof ContentTextStub> =>
-  ContentTextStub({
-    value: JSON.stringify({
+const networkLine = ({ status }: { status: number | null }): string =>
+  JSON.stringify({
       at: 1,
       method: 'GET',
       url: '/x',
@@ -28,8 +22,7 @@ const networkLine = ({ status }: { status: number | null }): ReturnType<typeof C
       status,
       requestBody: null,
       responseBody: 'ok',
-    }),
-  });
+    });
 
 describe('runIndexComputeTransformer', () => {
   describe('empty window', () => {
@@ -107,8 +100,8 @@ describe('runIndexComputeTransformer', () => {
         consoleLines: [],
         networkLines: [],
         serverLines: [
-          ContentTextStub({ value: '[api] listening on 5051' }),
-          ContentTextStub({ value: '[api] Error: connection refused' }),
+          '[api] listening on 5051',
+          '[api] Error: connection refused',
         ],
       });
 
@@ -119,7 +112,7 @@ describe('runIndexComputeTransformer', () => {
       const result = runIndexComputeTransformer({
         consoleLines: [],
         networkLines: [],
-        serverLines: [ContentTextStub({ value: 'FATAL ERROR: out of memory' })],
+        serverLines: ['FATAL ERROR: out of memory'],
       });
 
       expect(result.server).toStrictEqual({ errors: 1 });

@@ -41,12 +41,7 @@
  * package name out of a path, which would assume a layout this tool has to work without.
  */
 
-import { contentTextContract } from '@dungeonmaster/shared/contracts';
-import type {
-  BlightChecklist,
-  BlightChecklistItem,
-  ContentText,
-} from '@dungeonmaster/shared/contracts';
+import type { BlightChecklist, BlightChecklistItem } from '@dungeonmaster/shared/contracts';
 
 import { blightChecklistLimitsStatics } from '../../statics/blight-checklist-limits/blight-checklist-limits-statics';
 import { blightConcernLegendStatics } from '../../statics/blight-concern-legend/blight-concern-legend-statics';
@@ -55,7 +50,7 @@ export const blightChecklistToTextTransformer = ({
   checklist,
 }: {
   checklist: BlightChecklist;
-}): ContentText => {
+}): string => {
   const remaining = new Set(checklist.remainingItemIds.map(String));
 
   const totalUnitCount = checklist.items.length;
@@ -165,13 +160,11 @@ export const blightChecklistToTextTransformer = ({
     })
     .join('\n');
 
-  return contentTextContract.parse(
-    [
+  return [
       header,
       concernLegend,
       '',
       `## UNITS — [ ] no disposition yet, [x] already dispositioned in quest.planningNotes.blightLedger${truncationNotice}`,
       unitBlock,
-    ].join('\n'),
-  );
+    ].join('\n');
 };

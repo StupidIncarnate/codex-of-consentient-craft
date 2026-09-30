@@ -46,8 +46,7 @@ import { tmpdir } from '#gateway/node/os';
 import { join } from '#gateway/node/path';
 import { stderr } from '#gateway/node/process';
 import { setTimeout } from '#gateway/node/setTimeout';
-import { contentTextContract } from '@dungeonmaster/shared/contracts';
-import type { ContentText, SiegeInstance } from '@dungeonmaster/shared/contracts';
+import type { SiegeInstance } from '@dungeonmaster/shared/contracts';
 
 import { driverSocketRequestBroker } from '../../driver/socket-request/driver-socket-request-broker';
 import { processIsAliveBroker } from '../../process/is-alive/process-is-alive-broker';
@@ -68,7 +67,7 @@ export const instanceKillBroker = async ({
   reason,
 }: {
   instanceId: SiegeInstance['id'];
-  reason?: ContentText;
+  reason?: string;
 }): Promise<KillResult> => {
   const registry = await registryReadBroker();
   const entry = registry.instances.find((candidate) => candidate.id === instanceId);
@@ -96,7 +95,7 @@ export const instanceKillBroker = async ({
 
   const request = driverRequestContract.parse({
     kind: 'kill',
-    payload: contentTextContract.parse(''),
+    payload: '',
   });
 
   return driverSocketRequestBroker({
@@ -158,11 +157,9 @@ export const instanceKillBroker = async ({
           evidencePath,
           reason:
             reason ??
-            contentTextContract.parse(
-              `reaped ${candidatePgids.length} orphaned process group${
+            `reaped ${candidatePgids.length} orphaned process group${
                 candidatePgids.length === 1 ? '' : 's'
               } outside the idle timeout`,
-            ),
         });
       }
 

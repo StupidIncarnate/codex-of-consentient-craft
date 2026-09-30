@@ -31,7 +31,7 @@
  * //   kind: 'network', where: null, fields: null, since: null, isJson: false }
  */
 
-import { arrayIndexContract, contentTextContract, siegeInstanceContract, siegeRunContract } from '@dungeonmaster/shared/contracts';
+import { arrayIndexContract, siegeInstanceContract, siegeRunContract } from '@dungeonmaster/shared/contracts';
 
 import { httpMethodContract } from '../../contracts/http-method/http-method-contract';
 import { logLevelContract } from '../../contracts/log-level/log-level-contract';
@@ -174,7 +174,7 @@ export const resultsArgsParseTransformer = ({ args }: { args: readonly string[] 
     kind: kindValue === null ? null : resultKindContract.parse(kindValue),
     where: hasWhere
       ? resultWhereContract.parse({
-          path: wherePathValue === null ? null : contentTextContract.parse(wherePathValue),
+          path: wherePathValue === null ? null : wherePathValue,
           method:
             whereMethodValue === null
               ? null

@@ -1,7 +1,5 @@
 import { z } from '#gateway/npm/zod';
-import { contentTextContract } from '@dungeonmaster/shared/contracts';
-import { ContentTextStub } from '@dungeonmaster/shared/contracts/content-text/content-text.stub';
-import type { ContentText, Guild } from '@dungeonmaster/shared/contracts';
+import type { Guild } from '@dungeonmaster/shared/contracts';
 
 import { BoxReadingStub } from '../../../contracts/box-reading/box-reading.stub';
 import { DomReadingStub } from '../../../contracts/dom-reading/dom-reading.stub';
@@ -46,7 +44,7 @@ export const runVerbLayerBrokerProxy = (): {
   sessionWithOneMatch: () => {
     lane: LaneSession;
     session: BrowserSession;
-    callOrder: () => readonly ContentText[];
+    callOrder: () => readonly string[];
   };
   sessionWithTwoMatches: () => { lane: LaneSession; session: BrowserSession };
   stagesSeedRecipe: (params: { result: unknown }) => {
@@ -54,12 +52,12 @@ export const runVerbLayerBrokerProxy = (): {
   };
   seedBookPresentAt: (params: { packagePath: string }) => void;
   seedLaneAnswers: (params: {
-    apiBaseUrl: ContentText;
+    apiBaseUrl: string;
     guild: Guild;
-    questIds: readonly ContentText[];
+    questIds: readonly string[];
     secondGuild?: Guild;
   }) => { getCallArgs: () => readonly unknown[] };
-  browserlessLane: (params?: { apiBaseUrl?: ContentText }) => { lane: LaneSession };
+  browserlessLane: (params?: { apiBaseUrl?: string }) => { lane: LaneSession };
   setupRequestResponse: (params: {
     url: string;
     status?: number;
@@ -113,40 +111,40 @@ export const runVerbLayerBrokerProxy = (): {
     sessionWithOneMatch: (): {
       lane: LaneSession;
       session: BrowserSession;
-      callOrder: () => readonly ContentText[];
+      callOrder: () => readonly string[];
     } => {
-      const order: ContentText[] = [];
+      const order: string[] = [];
       const session = BrowserSessionStub({
         countMatches: jest.fn().mockImplementation(async () => {
-          order.push(contentTextContract.parse('countMatches'));
+          order.push('countMatches');
           return Promise.resolve(matchCountContract.parse(1));
         }),
         clickMatch: jest.fn().mockImplementation(async () => {
-          order.push(contentTextContract.parse('clickMatch'));
+          order.push('clickMatch');
           return Promise.resolve();
         }),
         fillMatch: jest.fn().mockImplementation(async () => {
-          order.push(contentTextContract.parse('fillMatch'));
+          order.push('fillMatch');
           return Promise.resolve();
         }),
         pasteMatch: jest.fn().mockImplementation(async () => {
-          order.push(contentTextContract.parse('pasteMatch'));
+          order.push('pasteMatch');
           return Promise.resolve();
         }),
         waitForMatch: jest.fn().mockImplementation(async () => {
-          order.push(contentTextContract.parse('waitForMatch'));
+          order.push('waitForMatch');
           return Promise.resolve();
         }),
         refState: jest.fn().mockImplementation(async () => {
-          order.push(contentTextContract.parse('refState'));
+          order.push('refState');
           return Promise.resolve(RefResolutionStub({ state: 'live' }));
         }),
         boxRef: jest.fn().mockImplementation(async () => {
-          order.push(contentTextContract.parse('boxRef'));
+          order.push('boxRef');
           return Promise.resolve(BoxReadingStub());
         }),
         readDom: jest.fn().mockImplementation(async () => {
-          order.push(contentTextContract.parse('readDom'));
+          order.push('readDom');
           return Promise.resolve(DomReadingStub());
         }),
       });
@@ -155,7 +153,7 @@ export const runVerbLayerBrokerProxy = (): {
       return {
         lane: LaneSessionStub({ browser: session }),
         session,
-        callOrder: (): readonly ContentText[] => order,
+        callOrder: (): readonly string[] => order,
       };
     },
 
@@ -189,18 +187,18 @@ export const runVerbLayerBrokerProxy = (): {
       questIds,
       secondGuild,
     }: {
-      apiBaseUrl: ContentText;
+      apiBaseUrl: string;
       guild: Guild;
-      questIds: readonly ContentText[];
+      questIds: readonly string[];
       secondGuild?: Guild;
     }): { getCallArgs: () => readonly unknown[] } => {
       const activeQuestId =
         questIds[1] ??
         questIds[0] ??
-        ContentTextStub({ value: 'bbbbbbbb-2222-4222-8222-222222222222' });
+        'bbbbbbbb-2222-4222-8222-222222222222';
       const makeResult = (targetGuild: Guild): Record<PropertyKey, unknown> => ({
         guildId: targetGuild.id,
-        guildSlug: ContentTextStub({ value: targetGuild.urlSlug ?? 'siege-guild' }),
+        guildSlug: (targetGuild.urlSlug ?? 'siege-guild'),
         questId: activeQuestId,
         guild: {
           id: targetGuild.id,
@@ -240,10 +238,10 @@ export const runVerbLayerBrokerProxy = (): {
       return seedProxy.stagesSeedRun({ result: seedResult });
     },
 
-    browserlessLane: (params?: { apiBaseUrl?: ContentText }): { lane: LaneSession } => ({
+    browserlessLane: (params?: { apiBaseUrl?: string }): { lane: LaneSession } => ({
       lane: LaneSessionStub({
         browser: null,
-        apiBaseUrl: params?.apiBaseUrl ?? contentTextContract.parse('http://127.0.0.1:34172'),
+        apiBaseUrl: params?.apiBaseUrl ?? 'http://127.0.0.1:34172',
       }),
     }),
 

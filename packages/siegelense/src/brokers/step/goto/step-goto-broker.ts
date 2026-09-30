@@ -9,8 +9,6 @@
  * // Returns ContentText '/guilds' once the page has navigated there
  */
 
-import { contentTextContract } from '@dungeonmaster/shared/contracts';
-import type { ContentText } from '@dungeonmaster/shared/contracts';
 
 import type { BrowserSession } from '../../../contracts/browser-session/browser-session-contract';
 
@@ -20,7 +18,7 @@ export const stepGotoBroker = async ({
 }: {
   session: BrowserSession;
   path: string;
-}): Promise<ContentText> => {
+}): Promise<string> => {
   await session.goto({ url: path });
-  return contentTextContract.parse(path);
+  return path;
 };

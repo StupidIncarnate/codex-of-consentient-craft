@@ -1,4 +1,3 @@
-import type { ContentText } from '@dungeonmaster/shared/contracts';
 
 import { fetchJsonProxy } from '#gateway/node/fetch/fetch-json/fetch-json.proxy';
 import { writeFileCreatingParentProxy } from '#gateway/node/fs__promises/write-file-creating-parent/write-file-creating-parent.proxy';
@@ -7,7 +6,7 @@ import { transcriptLinesReadTransformer } from '../../../transformers/transcript
 
 export const recipesSessionWithNestedSubagentBrokerProxy = (): {
   laneAnswers: (params: {
-    apiBaseUrl: ContentText;
+    apiBaseUrl: string;
     guilds: unknown;
     transcriptPaths: readonly string[];
   }) => void;
@@ -28,7 +27,7 @@ export const recipesSessionWithNestedSubagentBrokerProxy = (): {
       guilds,
       transcriptPaths,
     }: {
-      apiBaseUrl: ContentText;
+      apiBaseUrl: string;
       guilds: unknown;
       transcriptPaths: readonly string[];
     }): void => {

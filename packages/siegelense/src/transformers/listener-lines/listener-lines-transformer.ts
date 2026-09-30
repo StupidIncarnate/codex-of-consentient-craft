@@ -11,8 +11,6 @@
  * // Returns a ContentText JSON line, ready to push onto the console buffer
  */
 
-import { contentTextContract } from '@dungeonmaster/shared/contracts';
-import type { ContentText } from '@dungeonmaster/shared/contracts';
 
 import type { EpochMs } from '../../contracts/epoch-ms/epoch-ms-contract';
 
@@ -26,23 +24,23 @@ const SKIPPED_BODY_TEXT = '<body not captured for this resource type>';
 
 export const listenerLinesTransformer = (): {
   isBodySkippedResourceType: (params: { resourceType: string }) => boolean;
-  skippedBodyPlaceholder: () => ContentText;
-  unavailableBodyPlaceholder: (params: { error: unknown }) => ContentText;
-  truncatedBody: (params: { text: string }) => ContentText;
-  truncatePayload: (params: { text: string }) => ContentText;
+  skippedBodyPlaceholder: () => string;
+  unavailableBodyPlaceholder: (params: { error: unknown }) => string;
+  truncatedBody: (params: { text: string }) => string;
+  truncatePayload: (params: { text: string }) => string;
   consoleLine: (params: {
     at: EpochMs;
     type: string;
     text: string;
     url: string;
     line: number;
-  }) => ContentText;
+  }) => string;
   pageErrorLine: (params: {
     at: EpochMs;
     type: string;
     text: string;
     stack: string | null;
-  }) => ContentText;
+  }) => string;
   networkLine: (params: {
     at: EpochMs;
     method: string;
@@ -50,8 +48,8 @@ export const listenerLinesTransformer = (): {
     resourceType: string;
     status: number | null;
     requestBody: string | null;
-    responseBody: ContentText;
-  }) => ContentText;
+    responseBody: string;
+  }) => string;
   requestFailedLine: (params: {
     at: EpochMs;
     method: string;
@@ -59,34 +57,34 @@ export const listenerLinesTransformer = (): {
     resourceType: string;
     requestBody: string | null;
     errorText: string;
-  }) => ContentText;
+  }) => string;
   websocketFrameLine: (params: {
     at: EpochMs;
     url: string;
     direction: 'sent' | 'received';
-    payload: ContentText;
-  }) => ContentText;
-  websocketCloseLine: (params: { at: EpochMs; url: string }) => ContentText;
+    payload: string;
+  }) => string;
+  websocketCloseLine: (params: { at: EpochMs; url: string }) => string;
 } => ({
   isBodySkippedResourceType: ({ resourceType }): boolean =>
     BODY_SKIP_RESOURCE_TYPES.has(resourceType),
 
-  skippedBodyPlaceholder: (): ContentText => contentTextContract.parse(SKIPPED_BODY_TEXT),
+  skippedBodyPlaceholder: (): string => SKIPPED_BODY_TEXT,
 
-  unavailableBodyPlaceholder: ({ error }): ContentText =>
-    contentTextContract.parse(`<body unavailable: ${String(error)}>`),
+  unavailableBodyPlaceholder: ({ error }): string =>
+    `<body unavailable: ${String(error)}>`,
 
-  truncatedBody: ({ text }): ContentText =>
-    contentTextContract.parse(text.slice(0, MAX_BODY_CHARS)),
+  truncatedBody: ({ text }): string =>
+    text.slice(0, MAX_BODY_CHARS),
 
-  truncatePayload: ({ text }): ContentText =>
-    contentTextContract.parse(text.slice(0, MAX_BODY_CHARS)),
+  truncatePayload: ({ text }): string =>
+    text.slice(0, MAX_BODY_CHARS),
 
-  consoleLine: ({ at, type, text, url, line }): ContentText =>
-    contentTextContract.parse(JSON.stringify({ at, kind: 'console', type, text, url, line })),
+  consoleLine: ({ at, type, text, url, line }): string =>
+    JSON.stringify({ at, kind: 'console', type, text, url, line }),
 
-  pageErrorLine: ({ at, type, text, stack }): ContentText =>
-    contentTextContract.parse(JSON.stringify({ at, kind: 'pageerror', type, text, stack })),
+  pageErrorLine: ({ at, type, text, stack }): string =>
+    JSON.stringify({ at, kind: 'pageerror', type, text, stack }),
 
   networkLine: ({
     at,
@@ -96,14 +94,11 @@ export const listenerLinesTransformer = (): {
     status,
     requestBody,
     responseBody,
-  }): ContentText =>
-    contentTextContract.parse(
-      JSON.stringify({ at, method, url, resourceType, status, requestBody, responseBody }),
-    ),
+  }): string =>
+    JSON.stringify({ at, method, url, resourceType, status, requestBody, responseBody }),
 
-  requestFailedLine: ({ at, method, url, resourceType, requestBody, errorText }): ContentText =>
-    contentTextContract.parse(
-      JSON.stringify({
+  requestFailedLine: ({ at, method, url, resourceType, requestBody, errorText }): string =>
+    JSON.stringify({
         at,
         method,
         url,
@@ -112,11 +107,10 @@ export const listenerLinesTransformer = (): {
         requestBody,
         responseBody: `<request failed: ${errorText}>`,
       }),
-    ),
 
-  websocketFrameLine: ({ at, url, direction, payload }): ContentText =>
-    contentTextContract.parse(JSON.stringify({ at, url, direction, payload })),
+  websocketFrameLine: ({ at, url, direction, payload }): string =>
+    JSON.stringify({ at, url, direction, payload }),
 
-  websocketCloseLine: ({ at, url }): ContentText =>
-    contentTextContract.parse(JSON.stringify({ at, url, direction: 'closed', payload: '' })),
+  websocketCloseLine: ({ at, url }): string =>
+    JSON.stringify({ at, url, direction: 'closed', payload: '' }),
 });

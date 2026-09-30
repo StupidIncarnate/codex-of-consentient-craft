@@ -14,10 +14,6 @@
  * WHEN-NOT-TO-USE: When full AST parsing is needed — this is a v1 regex heuristic
  */
 
-import {
-  contentTextContract,
-  type ContentText,
-} from '../../contracts/content-text/content-text-contract';
 
 // Matches: name: 'discover' as never  OR  name: "discover" as never
 const TOOL_NAME_PATTERN = /name:\s*['"]([^'"]+)['"]\s*as\s+never/gu;
@@ -25,15 +21,15 @@ const TOOL_NAME_PATTERN = /name:\s*['"]([^'"]+)['"]\s*as\s+never/gu;
 export const mcpToolNamesExtractTransformer = ({
   source,
 }: {
-  source: ContentText;
-}): ContentText[] => {
-  const names: ContentText[] = [];
+  source: string;
+}): string[] => {
+  const names: string[] = [];
   TOOL_NAME_PATTERN.lastIndex = 0;
   let match = TOOL_NAME_PATTERN.exec(String(source));
   while (match !== null) {
     const [, name] = match;
     if (name !== undefined) {
-      names.push(contentTextContract.parse(name));
+      names.push(name);
     }
     match = TOOL_NAME_PATTERN.exec(String(source));
   }

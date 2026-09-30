@@ -56,7 +56,6 @@ import { clearInterval } from '#gateway/node/clearInterval';
 import { unixSocketServe } from '#gateway/node/net';
 import { on, stderr } from '#gateway/node/process';
 import { setInterval } from '#gateway/node/setInterval';
-import { contentTextContract } from '@dungeonmaster/shared/contracts';
 import type { TimeoutMs, Guild, SiegeInstance } from '@dungeonmaster/shared/contracts';
 
 import { driverHandleRequestBroker } from '../../../brokers/driver/handle-request/driver-handle-request-broker';
@@ -225,9 +224,7 @@ export const DriverServeLayerResponder = async ({
       try {
         await shutdownReasonWriteBroker({
           evidencePath: locationsInstanceEvidencePathFindBroker({ instanceId, guildId }),
-          reason: contentTextContract.parse(
-            `reaped by idle timeout after ${String(driverSessionState.idleTimeoutMs() / MS_PER_SECOND)}s with no run received`,
-          ),
+          reason: `reaped by idle timeout after ${String(driverSessionState.idleTimeoutMs() / MS_PER_SECOND)}s with no run received`,
         });
       } catch (markerWriteError: unknown) {
         stderr.write(

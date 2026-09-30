@@ -9,16 +9,14 @@
  */
 
 import { readFileSync } from '#gateway/node/fs';
-import { contentTextContract } from '../../../contracts/content-text/content-text-contract';
-import type { ContentText } from '../../../contracts/content-text/content-text-contract';
 
 export const readFileOptionalLayerBroker = ({
   filePath,
 }: {
   filePath: string;
-}): ContentText | undefined => {
+}): string | undefined => {
   try {
-    return contentTextContract.parse(readFileSync(filePath));
+    return readFileSync(filePath);
   } catch {
     return undefined;
   }

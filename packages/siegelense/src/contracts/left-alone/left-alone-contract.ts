@@ -14,12 +14,12 @@
 
 import { z } from '#gateway/npm/zod';
 
-import { contentTextContract, siegeInstanceContract } from '@dungeonmaster/shared/contracts';
+import { siegeInstanceContract } from '@dungeonmaster/shared/contracts';
 
 
 export const leftAloneContract = z.object({
   id: siegeInstanceContract.shape.id,
-  why: contentTextContract,
+  why: z.string().brand<'LeftAloneWhy'>(),
 });
 
 export type LeftAlone = z.infer<typeof leftAloneContract>;

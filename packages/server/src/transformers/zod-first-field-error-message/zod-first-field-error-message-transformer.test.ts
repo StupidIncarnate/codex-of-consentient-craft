@@ -1,4 +1,3 @@
-import { ContentTextStub } from '@dungeonmaster/shared/contracts/content-text/content-text.stub';
 
 import { z } from '#gateway/npm/zod';
 
@@ -20,7 +19,7 @@ describe('zodFirstFieldErrorMessageTransformer', () => {
 
       const message = zodFirstFieldErrorMessageTransformer({
         error: zodIssueError,
-        field: ContentTextStub({ value: 'images' }),
+        field: 'images',
       });
 
       expect(message).toBe('Too big: expected array to have <=1 items');
@@ -42,7 +41,7 @@ describe('zodFirstFieldErrorMessageTransformer', () => {
 
       const result = zodFirstFieldErrorMessageTransformer({
         error: zodIssueError,
-        field: ContentTextStub({ value: 'images' }),
+        field: 'images',
       });
 
       expect(result).toBe(undefined);

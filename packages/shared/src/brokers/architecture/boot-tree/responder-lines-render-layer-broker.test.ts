@@ -1,6 +1,5 @@
 import { responderLinesRenderLayerBroker } from './responder-lines-render-layer-broker';
 import { responderLinesRenderLayerBrokerProxy } from './responder-lines-render-layer-broker.proxy';
-import { ContentTextStub } from '../../../contracts/content-text/content-text.stub';
 
 describe('responderLinesRenderLayerBroker', () => {
   describe('single responder no brokers', () => {
@@ -12,12 +11,8 @@ describe('responderLinesRenderLayerBroker', () => {
 
       proxy.setupFileContentsMap({
         map: {
-          'quest-flow.ts': ContentTextStub({
-            value: `import { questStartResponder } from '../../responders/quest/start/quest-start-responder';`,
-          }),
-          'quest-start-responder.ts': ContentTextStub({
-            value: `export const questStartResponder = () => {};`,
-          }),
+          'quest-flow.ts': `import { questStartResponder } from '../../responders/quest/start/quest-start-responder';`,
+          'quest-start-responder.ts': `export const questStartResponder = () => {};`,
         },
       });
 
@@ -27,7 +22,7 @@ describe('responderLinesRenderLayerBroker', () => {
         renderingFilePath,
       });
 
-      expect(result).toStrictEqual([ContentTextStub({ value: '  ↳ questStartResponder' })]);
+      expect(result).toStrictEqual(['  ↳ questStartResponder']);
     });
   });
 
@@ -40,18 +35,12 @@ describe('responderLinesRenderLayerBroker', () => {
 
       proxy.setupFileContentsMap({
         map: {
-          'server-flow.ts': ContentTextStub({
-            value: `import { serverInitResponder } from '../../responders/server/init/server-init-responder';`,
-          }),
-          'server-init-responder.ts': ContentTextStub({
-            value: [
+          'server-flow.ts': `import { serverInitResponder } from '../../responders/server/init/server-init-responder';`,
+          'server-init-responder.ts': [
               `import { serverInitBroker } from '../../../brokers/server/init/server-init-broker';`,
               `export const serverInitResponder = () => {};`,
             ].join('\n'),
-          }),
-          'server-init-broker.ts': ContentTextStub({
-            value: `export const serverInitBroker = () => {};`,
-          }),
+          'server-init-broker.ts': `export const serverInitBroker = () => {};`,
         },
       });
 
@@ -62,8 +51,8 @@ describe('responderLinesRenderLayerBroker', () => {
       });
 
       expect(result).toStrictEqual([
-        ContentTextStub({ value: '  ↳ serverInitResponder' }),
-        ContentTextStub({ value: '      → serverInitBroker' }),
+        '  ↳ serverInitResponder',
+        '      → serverInitBroker',
       ]);
     });
   });
@@ -96,13 +85,11 @@ describe('responderLinesRenderLayerBroker', () => {
 
       proxy.setupFileContentsMap({
         map: {
-          'home-flow.tsx': ContentTextStub({
-            value: [
+          'home-flow.tsx': [
               `import { AppHomeResponder } from '../../responders/app/home/app-home-responder';`,
               `<Route path="/" element={<AppHomeResponder />} />`,
             ].join('\n'),
-          }),
-          'app-home-responder.ts': ContentTextStub({ value: '' }),
+          'app-home-responder.ts': '',
         },
       });
 
@@ -112,7 +99,7 @@ describe('responderLinesRenderLayerBroker', () => {
         renderingFilePath,
       });
 
-      expect(result).toStrictEqual([ContentTextStub({ value: '  path="/" → AppHomeResponder' })]);
+      expect(result).toStrictEqual(['  path="/" → AppHomeResponder']);
     });
 
     it('VALID: {flow with path-less layout Route} => renders (layout) ResponderSymbol line', () => {
@@ -123,13 +110,11 @@ describe('responderLinesRenderLayerBroker', () => {
 
       proxy.setupFileContentsMap({
         map: {
-          'app-flow.tsx': ContentTextStub({
-            value: [
+          'app-flow.tsx': [
               `import { AppLayoutResponder } from '../../responders/app/layout/app-layout-responder';`,
               `<Route element={<AppLayoutResponder />}>`,
             ].join('\n'),
-          }),
-          'app-layout-responder.ts': ContentTextStub({ value: '' }),
+          'app-layout-responder.ts': '',
         },
       });
 
@@ -139,7 +124,7 @@ describe('responderLinesRenderLayerBroker', () => {
         renderingFilePath,
       });
 
-      expect(result).toStrictEqual([ContentTextStub({ value: '  (layout) AppLayoutResponder' })]);
+      expect(result).toStrictEqual(['  (layout) AppLayoutResponder']);
     });
   });
 
@@ -152,25 +137,17 @@ describe('responderLinesRenderLayerBroker', () => {
 
       proxy.setupFileContentsMap({
         map: {
-          'app-mount-flow.tsx': ContentTextStub({
-            value: `import { AppFlow } from '../app/app-flow';`,
-          }),
-          'app-flow.ts': ContentTextStub({
-            value: [
+          'app-mount-flow.tsx': `import { AppFlow } from '../app/app-flow';`,
+          'app-flow.ts': [
               `import { HomeFlow } from '../home/home-flow';`,
               `export const appFlow = () => null;`,
             ].join('\n'),
-          }),
-          'home-flow.ts': ContentTextStub({
-            value: [
+          'home-flow.ts': [
               `import { AppHomeResponder } from '../../responders/app/home/app-home-responder';`,
               `<Route path="/" element={<AppHomeResponder />} />`,
               `export const homeFlow = () => null;`,
             ].join('\n'),
-          }),
-          'app-home-responder.ts': ContentTextStub({
-            value: `export const AppHomeResponder = () => null;`,
-          }),
+          'app-home-responder.ts': `export const AppHomeResponder = () => null;`,
         },
       });
 
@@ -181,9 +158,9 @@ describe('responderLinesRenderLayerBroker', () => {
       });
 
       expect(result).toStrictEqual([
-        ContentTextStub({ value: '  ↳ appFlow' }),
-        ContentTextStub({ value: '      ↳ homeFlow' }),
-        ContentTextStub({ value: '          path="/" → AppHomeResponder' }),
+        '  ↳ appFlow',
+        '      ↳ homeFlow',
+        '          path="/" → AppHomeResponder',
       ]);
     });
 
@@ -195,15 +172,11 @@ describe('responderLinesRenderLayerBroker', () => {
 
       proxy.setupFileContentsMap({
         map: {
-          'a-flow.tsx': ContentTextStub({
-            value: `import { BFlow } from '../b/b-flow';`,
-          }),
-          'b-flow.ts': ContentTextStub({
-            value: [
+          'a-flow.tsx': `import { BFlow } from '../b/b-flow';`,
+          'b-flow.ts': [
               `import { AFlow } from '../a/a-flow';`,
               `export const bFlow = () => null;`,
             ].join('\n'),
-          }),
         },
       });
 
@@ -221,7 +194,7 @@ describe('responderLinesRenderLayerBroker', () => {
         visited,
       });
 
-      expect(result).toStrictEqual([ContentTextStub({ value: '  ↳ bFlow' })]);
+      expect(result).toStrictEqual(['  ↳ bFlow']);
     });
   });
 });

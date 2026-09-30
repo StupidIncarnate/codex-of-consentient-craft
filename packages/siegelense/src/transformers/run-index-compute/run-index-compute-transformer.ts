@@ -26,7 +26,6 @@
  * // Returns a validated RunIndex counting only those lines
  */
 
-import type { ContentText } from '@dungeonmaster/shared/contracts';
 
 import { readingCountContract } from '../../contracts/reading-count/reading-count-contract';
 import { runIndexContract } from '../../contracts/run-index/run-index-contract';
@@ -52,9 +51,9 @@ export const runIndexComputeTransformer = ({
   networkLines,
   serverLines,
 }: {
-  consoleLines: readonly ContentText[];
-  networkLines: readonly ContentText[];
-  serverLines: readonly ContentText[];
+  consoleLines: readonly string[];
+  networkLines: readonly string[];
+  serverLines: readonly string[];
 }): RunIndex => {
   const consoleErrors = consoleLines.filter((line) => CONSOLE_ERROR_PATTERN.test(line)).length;
   const consoleWarnings = consoleLines.filter((line) => CONSOLE_WARNING_PATTERN.test(line)).length;

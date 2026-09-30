@@ -21,23 +21,19 @@
  *   literals are scrubbed.
  */
 
-import {
-  contentTextContract,
-  type ContentText,
-} from '../../contracts/content-text/content-text-contract';
 
 const TWO_CHAR_STEP = 2;
-const BRACE_MARKER: ContentText = contentTextContract.parse('');
+const BRACE_MARKER: string = '';
 
 type StripContext =
   | { kind: 'template' }
-  | { kind: 'interp'; openBraces: ContentText[]; stringQuote: null | "'" | '"' };
+  | { kind: 'interp'; openBraces: string[]; stringQuote: null | "'" | '"' };
 
 export const templateLiteralsStripTransformer = ({
   source,
 }: {
-  source: ContentText;
-}): ContentText => {
+  source: string;
+}): string => {
   const text = String(source);
   const len = text.length;
   const stack: StripContext[] = [];
@@ -145,5 +141,5 @@ export const templateLiteralsStripTransformer = ({
     }
   }
 
-  return contentTextContract.parse(out);
+  return out;
 };

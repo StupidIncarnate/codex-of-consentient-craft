@@ -33,11 +33,7 @@
 
 import { z } from '#gateway/npm/zod';
 
-import {
-  contentTextContract,
-  fileNameContract,
-  timeoutMsContract,
-} from '@dungeonmaster/shared/contracts';
+import { fileNameContract, timeoutMsContract } from '@dungeonmaster/shared/contracts';
 
 import { domFieldContract } from '../dom-field/dom-field-contract';
 import { domTextModeContract } from '../dom-text-mode/dom-text-mode-contract';
@@ -118,7 +114,7 @@ export const stepContract = z
         target: selectorContract.nullable().default(null),
         within: selectorContract.nullable().default(null),
         ref: refContract.nullable().default(null),
-        value: contentTextContract,
+        value: z.string().brand<'StepValue'>(),
         timeoutMs: timeoutMsContract.nullable().default(null),
         node: nodeLabelContract.nullable().default(null),
         expect: stepExpectationContract.default(
@@ -150,7 +146,7 @@ export const stepContract = z
     z
       .object({
         step: z.literal('eval'),
-        source: contentTextContract,
+        source: z.string().brand<'StepSource'>(),
         node: nodeLabelContract.nullable().default(null),
         expect: stepExpectationContract.default(
           stepExpectationContract.parse(stepStatics.defaults.expect),
@@ -219,7 +215,7 @@ export const stepContract = z
         visible: selectorContract.nullable().default(null),
         response: untilResponseContract.nullable().default(null),
         file: untilFilePathContract.nullable().default(null),
-        predicate: contentTextContract.nullable().default(null),
+        predicate: z.string().brand<'StepPredicate'>().nullable().default(null),
         console: untilConsolePatternContract.nullable().default(null),
         timeoutMs: timeoutMsContract.nullable().default(null),
         node: nodeLabelContract.nullable().default(null),
@@ -231,7 +227,7 @@ export const stepContract = z
     z
       .object({
         step: z.literal('key'),
-        press: contentTextContract,
+        press: z.string().brand<'StepPress'>(),
         node: nodeLabelContract.nullable().default(null),
         expect: stepExpectationContract.default(
           stepExpectationContract.parse(stepStatics.defaults.expect),
@@ -276,7 +272,7 @@ export const stepContract = z
     z
       .object({
         step: z.literal('before'),
-        source: contentTextContract,
+        source: z.string().brand<'StepSource'>(),
         node: nodeLabelContract.nullable().default(null),
         expect: stepExpectationContract.default(
           stepExpectationContract.parse(stepStatics.defaults.expect),
@@ -312,7 +308,7 @@ export const stepContract = z
         within: selectorContract.nullable().default(null),
         ref: refContract.nullable().default(null),
         filePath: z.string().brand<'PasteFilePath'>().nullable().default(null),
-        value: contentTextContract.nullable().default(null),
+        value: z.string().brand<'StepValue'>().nullable().default(null),
         timeoutMs: timeoutMsContract.nullable().default(null),
         node: nodeLabelContract.nullable().default(null),
         expect: stepExpectationContract.default(
@@ -368,7 +364,7 @@ export const stepContract = z
         step: z.literal('reset'),
         level: resetLevelContract.default(resetLevelContract.parse('state')),
         to: snapshotNameContract.nullable().default(null),
-        reseed: contentTextContract.nullable().default(null),
+        reseed: z.string().brand<'StepReseed'>().nullable().default(null),
         node: nodeLabelContract.nullable().default(null),
         expect: stepExpectationContract.default(
           stepExpectationContract.parse(stepStatics.defaults.expect),

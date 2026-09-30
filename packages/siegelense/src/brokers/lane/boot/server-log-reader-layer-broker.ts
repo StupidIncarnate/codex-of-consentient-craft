@@ -17,8 +17,6 @@
  */
 
 import { readFileSync } from '#gateway/node/fs';
-import { contentTextContract } from '@dungeonmaster/shared/contracts';
-import type { ContentText } from '@dungeonmaster/shared/contracts';
 
 import { serverLogByteCountContract } from '../../../contracts/server-log-byte-count/server-log-byte-count-contract';
 import type { ServerLogByteCount } from '../../../contracts/server-log-byte-count/server-log-byte-count-contract';
@@ -29,21 +27,21 @@ export const serverLogReaderLayerBroker = ({
 }: {
   logPath: string;
 }): {
-  readServerLogSince: ({ fromByte }: { fromByte: number }) => readonly ContentText[];
+  readServerLogSince: ({ fromByte }: { fromByte: number }) => readonly string[];
   serverLogLength: () => ServerLogByteCount;
 } => ({
   serverLogLength: (): ServerLogByteCount => {
-    const content = contentTextContract.parse(readFileSync(logPath));
+    const content = readFileSync(logPath);
     return serverLogByteCountContract.parse(Buffer.byteLength(content, 'utf8'));
   },
 
-  readServerLogSince: ({ fromByte }: { fromByte: number }): readonly ContentText[] => {
-    const content = contentTextContract.parse(readFileSync(logPath));
+  readServerLogSince: ({ fromByte }: { fromByte: number }): readonly string[] => {
+    const content = readFileSync(logPath);
     const sliced = Buffer.from(content, 'utf8').subarray(fromByte).toString('utf8');
 
     return sliced
       .split('\n')
       .filter((line) => line.length > 0)
-      .map((line) => contentTextContract.parse(line));
+      .map((line) => line);
   },
 });

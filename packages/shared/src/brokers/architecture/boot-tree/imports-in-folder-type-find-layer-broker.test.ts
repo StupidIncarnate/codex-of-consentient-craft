@@ -1,6 +1,5 @@
 import { importsInFolderTypeFindLayerBroker } from './imports-in-folder-type-find-layer-broker';
 import { importsInFolderTypeFindLayerBrokerProxy } from './imports-in-folder-type-find-layer-broker.proxy';
-import { ContentTextStub } from '../../../contracts/content-text/content-text.stub';
 
 describe('importsInFolderTypeFindLayerBroker', () => {
   describe('flow imports', () => {
@@ -11,9 +10,7 @@ describe('importsInFolderTypeFindLayerBroker', () => {
 
       proxy.setupSource({
         sourceFile,
-        content: ContentTextStub({
-          value: `import { questFlow } from '../flows/quest/quest-flow';`,
-        }),
+        content: `import { questFlow } from '../flows/quest/quest-flow';`,
       });
 
       const result = importsInFolderTypeFindLayerBroker({
@@ -37,12 +34,10 @@ describe('importsInFolderTypeFindLayerBroker', () => {
 
       proxy.setupSource({
         sourceFile,
-        content: ContentTextStub({
-          value: [
+        content: [
             `import { questFlow } from '../flows/quest/quest-flow';`,
             `import { guildFlow } from '../flows/guild/guild-flow';`,
           ].join('\n'),
-        }),
       });
 
       const result = importsInFolderTypeFindLayerBroker({
@@ -69,12 +64,10 @@ describe('importsInFolderTypeFindLayerBroker', () => {
 
       proxy.setupSource({
         sourceFile,
-        content: ContentTextStub({
-          value: [
+        content: [
             `import { questFlow } from '../flows/quest/quest-flow';`,
             `import { someContract } from '@dungeonmaster/shared/contracts';`,
           ].join('\n'),
-        }),
       });
 
       const result = importsInFolderTypeFindLayerBroker({
@@ -98,9 +91,7 @@ describe('importsInFolderTypeFindLayerBroker', () => {
 
       proxy.setupSource({
         sourceFile,
-        content: ContentTextStub({
-          value: `import { questFlow } from '../flows/quest/quest-flow.test';`,
-        }),
+        content: `import { questFlow } from '../flows/quest/quest-flow.test';`,
       });
 
       const result = importsInFolderTypeFindLayerBroker({
@@ -121,9 +112,7 @@ describe('importsInFolderTypeFindLayerBroker', () => {
 
       proxy.setupSource({
         sourceFile,
-        content: ContentTextStub({
-          value: `import { runSiegemasterLayerBroker } from './run-siegemaster-layer-broker';`,
-        }),
+        content: `import { runSiegemasterLayerBroker } from './run-siegemaster-layer-broker';`,
       });
 
       const result = importsInFolderTypeFindLayerBroker({
@@ -147,12 +136,10 @@ describe('importsInFolderTypeFindLayerBroker', () => {
 
       proxy.setupSource({
         sourceFile,
-        content: ContentTextStub({
-          value: [
+        content: [
             `import { questGetBroker } from '../get/quest-get-broker';`,
             `import { runSiegemasterLayerBroker } from './run-siegemaster-layer-broker';`,
           ].join('\n'),
-        }),
       });
 
       const result = importsInFolderTypeFindLayerBroker({

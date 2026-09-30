@@ -3,7 +3,6 @@ import { findRootWidgetImportsLayerBrokerProxy } from './find-root-widget-import
 import { extractWidgetEdgesLayerBrokerProxy } from './extract-widget-edges-layer-broker.proxy';
 import { buildWidgetNodeLayerBrokerProxy } from './build-widget-node-layer-broker.proxy';
 import { widgetTreeStatics } from '../../../statics/widget-tree/widget-tree-statics';
-import type { ContentText } from '../../../contracts/content-text/content-text-contract';
 
 export const architectureWidgetTreeBrokerProxy = (): {
   setupPackage: ({
@@ -17,11 +16,11 @@ export const architectureWidgetTreeBrokerProxy = (): {
   }: {
     packageRoot: string;
     widgetFilePaths: string[];
-    widgetSources: ContentText[];
+    widgetSources: string[];
     responderFilePaths: string[];
-    responderContents: ContentText[];
+    responderContents: string[];
     flowFilePaths: string[];
-    flowContents: ContentText[];
+    flowContents: string[];
   }) => void;
   setupEmpty: ({ packageRoot }: { packageRoot: string }) => void;
 } => {
@@ -42,11 +41,11 @@ export const architectureWidgetTreeBrokerProxy = (): {
     }: {
       packageRoot: string;
       widgetFilePaths: string[];
-      widgetSources: ContentText[];
+      widgetSources: string[];
       responderFilePaths: string[];
-      responderContents: ContentText[];
+      responderContents: string[];
       flowFilePaths: string[];
-      flowContents: ContentText[];
+      flowContents: string[];
     }): void => {
       const packageSrcPath = `${String(packageRoot)}/src`;
       const widgetsDirPath = `${String(packageSrcPath)}/${widgetTreeStatics.widgetsFolderName}`;

@@ -1,5 +1,4 @@
 import type { Dirent } from '#gateway/node/fs';
-import type { ContentText } from '../../../contracts/content-text/content-text-contract';
 import { listTsFilesLayerBrokerProxy } from './list-ts-files-layer-broker.proxy';
 import { readFileLayerBrokerProxy } from './read-file-layer-broker.proxy';
 import { safeReaddirLayerBrokerProxy } from './safe-readdir-layer-broker.proxy';
@@ -60,8 +59,8 @@ export const importEdgesLayerBrokerProxy = (): {
     sourceFiles,
   }: {
     projectRoot: string;
-    packages: ContentText[];
-    sourceFiles: { path: string; source: ContentText }[];
+    packages: string[];
+    sourceFiles: { path: string; source: string }[];
   }) => void;
 } => {
   const readdirProxy = safeReaddirLayerBrokerProxy();
@@ -77,8 +76,8 @@ export const importEdgesLayerBrokerProxy = (): {
       sourceFiles,
     }: {
       projectRoot: string;
-      packages: ContentText[];
-      sourceFiles: { path: string; source: ContentText }[];
+      packages: string[];
+      sourceFiles: { path: string; source: string }[];
     }): void => {
       const root = String(projectRoot);
 
@@ -103,13 +102,13 @@ export const importEdgesLayerBrokerProxy = (): {
         },
       });
 
-      const fileMap = new Map<string, ContentText>();
+      const fileMap = new Map<string, string>();
       for (const file of sourceFiles) {
         fileMap.set(file.path, file.source);
       }
 
       readFileProxy.setupImplementation({
-        fn: (filePath: ContentText): ContentText => {
+        fn: (filePath: string): string => {
           for (const [key, content] of fileMap) {
             if (String(key) === String(filePath)) {
               return content;

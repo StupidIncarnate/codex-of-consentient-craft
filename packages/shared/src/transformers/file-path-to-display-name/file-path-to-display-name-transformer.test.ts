@@ -1,5 +1,4 @@
 import { filePathToDisplayNameTransformer } from './file-path-to-display-name-transformer';
-import { ContentTextStub } from '../../contracts/content-text/content-text.stub';
 
 describe('filePathToDisplayNameTransformer', () => {
   describe('strip prefix and .ts extension', () => {
@@ -8,7 +7,7 @@ describe('filePathToDisplayNameTransformer', () => {
       const packageSrcPath = '/repo/packages/server/src';
       const result = filePathToDisplayNameTransformer({ filePath, packageSrcPath });
 
-      expect(result).toBe(ContentTextStub({ value: 'flows/quest/quest-flow' }));
+      expect(result).toBe('flows/quest/quest-flow');
     });
 
     it('VALID: {startup file} => returns relative path without extension', () => {
@@ -16,7 +15,7 @@ describe('filePathToDisplayNameTransformer', () => {
       const packageSrcPath = '/repo/packages/server/src';
       const result = filePathToDisplayNameTransformer({ filePath, packageSrcPath });
 
-      expect(result).toBe(ContentTextStub({ value: 'startup/start-server' }));
+      expect(result).toBe('startup/start-server');
     });
 
     it('VALID: {responder file} => returns relative path without extension', () => {
@@ -25,7 +24,7 @@ describe('filePathToDisplayNameTransformer', () => {
       const result = filePathToDisplayNameTransformer({ filePath, packageSrcPath });
 
       expect(result).toBe(
-        ContentTextStub({ value: 'responders/quest/start/quest-start-responder' }),
+        'responders/quest/start/quest-start-responder',
       );
     });
   });
@@ -37,7 +36,7 @@ describe('filePathToDisplayNameTransformer', () => {
       const result = filePathToDisplayNameTransformer({ filePath, packageSrcPath });
 
       expect(result).toBe(
-        ContentTextStub({ value: '/other/packages/shared/src/adapters/foo/foo-adapter' }),
+        '/other/packages/shared/src/adapters/foo/foo-adapter',
       );
     });
   });
@@ -48,7 +47,7 @@ describe('filePathToDisplayNameTransformer', () => {
       const packageSrcPath = '/repo/packages/server/src';
       const result = filePathToDisplayNameTransformer({ filePath, packageSrcPath });
 
-      expect(result).toBe(ContentTextStub({ value: 'flows/quest/quest-flow.js' }));
+      expect(result).toBe('flows/quest/quest-flow.js');
     });
   });
 });

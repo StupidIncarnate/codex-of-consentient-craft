@@ -14,8 +14,6 @@ import {
 } from '@dungeonmaster/shared/contracts';
 import { isKeyOfGuard } from '@dungeonmaster/shared/guards';
 
-import { contentTextContract } from '../../../contracts/content-text/content-text-contract';
-import type { ContentText } from '../../../contracts/content-text/content-text-contract';
 import { folderPurposeTransformer } from '../../../transformers/folder-purpose/folder-purpose-transformer';
 import { folderConstraintsTransformer } from '../../../transformers/folder-constraints/folder-constraints-transformer';
 import { fileSuffixExtensionTransformer } from '../../../transformers/file-suffix-extension/file-suffix-extension-transformer';
@@ -27,13 +25,11 @@ export const architectureFolderDetailBroker = ({
   supplementalConstraints,
 }: {
   folderType: FolderType;
-  supplementalConstraints?: ContentText;
-}): ContentText => {
+  supplementalConstraints?: string;
+}): string => {
   // Look up config from statics using type-safe key check
   if (!isKeyOfGuard(folderType, folderConfigStatics)) {
-    return contentTextContract.parse(
-      `# Unknown Folder Type: ${folderType}\n\nNo configuration found for this folder type.`,
-    );
+    return `# Unknown Folder Type: ${folderType}\n\nNo configuration found for this folder type.`;
   }
 
   // Now TypeScript knows folderType is a valid key - we can safely access it
@@ -44,65 +40,59 @@ export const architectureFolderDetailBroker = ({
   const config: FolderConfig = folderConfigContract.parse(rawConfig);
 
   // Build comprehensive markdown documentation
-  const sections: ContentText[] = [];
+  const sections: string[] = [];
 
   // Header
-  sections.push(contentTextContract.parse(`# ${folderType}/ Folder Type\n`));
+  sections.push(`# ${folderType}/ Folder Type\n`);
 
   // 1. Purpose
-  sections.push(contentTextContract.parse(`## Purpose\n`));
+  sections.push(`## Purpose\n`);
   sections.push(folderPurposeTransformer({ folderType }));
-  sections.push(contentTextContract.parse(''));
+  sections.push('');
 
   // 2. File Structure
-  sections.push(contentTextContract.parse(`## File Structure\n`));
-  sections.push(contentTextContract.parse(`**Pattern:** \`${config.folderPattern}\`\n`));
+  sections.push(`## File Structure\n`);
+  sections.push(`**Pattern:** \`${config.folderPattern}\`\n`);
   sections.push(
-    contentTextContract.parse(
-      `**Folder Depth:** ${config.folderDepth} level${config.folderDepth === 1 ? '' : 's'}\n`,
-    ),
+    `**Folder Depth:** ${config.folderDepth} level${config.folderDepth === 1 ? '' : 's'}\n`,
   );
-  sections.push(contentTextContract.parse(''));
+  sections.push('');
 
   // 3. Naming Conventions
-  sections.push(contentTextContract.parse(`## Naming Conventions\n`));
-  const fileSuffixText = contentTextContract.parse(
-    Array.isArray(config.fileSuffix) ? config.fileSuffix.join('` or `') : config.fileSuffix,
-  );
-  sections.push(contentTextContract.parse(`**File Suffix:** \`${fileSuffixText}\`\n`));
+  sections.push(`## Naming Conventions\n`);
+  const fileSuffixText = (Array.isArray(config.fileSuffix) ? config.fileSuffix.join('` or `') : config.fileSuffix);
+  sections.push(`**File Suffix:** \`${fileSuffixText}\`\n`);
 
   // Only include export suffix if it's defined (skip for startup, assets, migrations)
   if (config.exportSuffix) {
     sections.push(
-      contentTextContract.parse(
-        `**Export Suffix:** \`${config.exportSuffix}\` (${config.exportCase})\n`,
-      ),
+      `**Export Suffix:** \`${config.exportSuffix}\` (${config.exportCase})\n`,
     );
   }
-  sections.push(contentTextContract.parse(''));
+  sections.push('');
 
   // 4. Import Rules
-  sections.push(contentTextContract.parse(`## Import Rules\n`));
+  sections.push(`## Import Rules\n`);
 
   if (config.allowedImports.length === 0) {
     sections.push(
-      contentTextContract.parse('**Cannot import from any other layers** - Pure domain entities\n'),
+      '**Cannot import from any other layers** - Pure domain entities\n',
     );
   } else if (config.allowedImports.some((imp) => imp === '*')) {
     sections.push(
-      contentTextContract.parse('**Can import from anywhere** - Orchestration/startup files\n'),
+      '**Can import from anywhere** - Orchestration/startup files\n',
     );
   } else {
-    sections.push(contentTextContract.parse('**Can import from:**\n'));
+    sections.push('**Can import from:**\n');
     const importLines = config.allowedImports.map((imp) => `- \`${imp}\``).join('\n');
-    sections.push(contentTextContract.parse(`${importLines}\n`));
+    sections.push(`${importLines}\n`);
   }
-  sections.push(contentTextContract.parse(''));
+  sections.push('');
 
   // 5. Required Files
-  sections.push(contentTextContract.parse(`## Required Files\n`));
+  sections.push(`## Required Files\n`);
   sections.push(
-    contentTextContract.parse(`**Proxy Required:** ${config.requireProxy ? 'Yes' : 'No'}\n`),
+    `**Proxy Required:** ${config.requireProxy ? 'Yes' : 'No'}\n`,
   );
 
   const firstSuffix = firstFileSuffixTransformer({ config });
@@ -113,57 +103,53 @@ export const architectureFolderDetailBroker = ({
   const extension = fileSuffixExtensionTransformer({ suffix: firstSuffix });
   const testInfix = config.testType === 'integration' ? '.integration.test' : '.test';
 
-  sections.push(contentTextContract.parse(`- Implementation: \`{name}${firstSuffix}\`\n`));
+  sections.push(`- Implementation: \`{name}${firstSuffix}\`\n`);
 
   if (config.testType !== 'none') {
     sections.push(
-      contentTextContract.parse(`- Test: \`{name}${baseName}${testInfix}${extension}\`\n`),
+      `- Test: \`{name}${baseName}${testInfix}${extension}\`\n`,
     );
   }
 
   if (config.requireProxy) {
-    sections.push(contentTextContract.parse(`- Proxy: \`{name}${baseName}.proxy${extension}\`\n`));
+    sections.push(`- Proxy: \`{name}${baseName}.proxy${extension}\`\n`);
   }
 
   // The stub replaces the entry suffix rather than appending to it, so a `user-contract.ts` pairs
   // with `user.stub.ts` — `ban-contract-in-tests` sends every test import here instead.
   if (config.requireStub) {
-    sections.push(contentTextContract.parse(`- Stub: \`{name}.stub${extension}\`\n`));
+    sections.push(`- Stub: \`{name}.stub${extension}\`\n`);
   }
 
   if (folderType === 'contracts') {
     sections.push(
-      contentTextContract.parse(
-        'A file whose every export is a type Zod cannot check (a function type, a method set, a generic) exports only types and needs no test or stub.\n',
-      ),
+      'A file whose every export is a type Zod cannot check (a function type, a method set, a generic) exports only types and needs no test or stub.\n',
     );
   }
-  sections.push(contentTextContract.parse(''));
+  sections.push('');
 
   // 6. Special Features
-  sections.push(contentTextContract.parse(`## Special Features\n`));
+  sections.push(`## Special Features\n`);
 
   if (config.allowsLayerFiles) {
     sections.push(
-      contentTextContract.parse(
-        '**Layer Files Allowed:** Yes - Complex logic can be decomposed into `{name}-layer-{suffix}` files\n',
-      ),
+      '**Layer Files Allowed:** Yes - Complex logic can be decomposed into `{name}-layer-{suffix}` files\n',
     );
   }
 
   if (config.allowRegex) {
-    sections.push(contentTextContract.parse('**Regex Allowed:** Yes - Can use regex literals\n'));
+    sections.push('**Regex Allowed:** Yes - Can use regex literals\n');
   }
 
   if (config.disallowAdhocTypes) {
     sections.push(
-      contentTextContract.parse('**Ad-hoc Types Forbidden:** All types must come from contracts\n'),
+      '**Ad-hoc Types Forbidden:** All types must come from contracts\n',
     );
   }
-  sections.push(contentTextContract.parse(''));
+  sections.push('');
 
   // 7. Critical Constraints
-  sections.push(contentTextContract.parse(`## Critical Constraints\n`));
+  sections.push(`## Critical Constraints\n`);
 
   sections.push(
     folderConstraintsTransformer({
@@ -172,15 +158,13 @@ export const architectureFolderDetailBroker = ({
       ...(supplementalConstraints && { supplementalConstraints }),
     }),
   );
-  sections.push(contentTextContract.parse(''));
+  sections.push('');
 
   // 8. Examples Link
-  sections.push(contentTextContract.parse(`## Learn More\n`));
+  sections.push(`## Learn More\n`);
   sections.push(
-    contentTextContract.parse(
-      `Use \`get-architecture\` and \`get-folder-detail\` tools for detailed examples and patterns.\n`,
-    ),
+    `Use \`get-architecture\` and \`get-folder-detail\` tools for detailed examples and patterns.\n`,
   );
 
-  return contentTextContract.parse(sections.join('\n'));
+  return sections.join('\n');
 };

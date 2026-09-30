@@ -12,20 +12,16 @@
  * WHEN-NOT-TO-USE: When the path may not contain a `flows/` segment
  */
 
-import {
-  contentTextContract,
-  type ContentText,
-} from '../../contracts/content-text/content-text-contract';
 
 export const flowGroupFromFilePathTransformer = ({
   filePath,
 }: {
   filePath: string;
-}): ContentText => {
+}): string => {
   const parts = String(filePath).split('/');
   const flowsIdx = parts.lastIndexOf('flows');
   if (flowsIdx !== -1 && parts[flowsIdx + 1] !== undefined) {
-    return contentTextContract.parse(parts[flowsIdx + 1] ?? '');
+    return (parts[flowsIdx + 1] ?? '');
   }
-  return contentTextContract.parse('');
+  return '';
 };

@@ -11,7 +11,6 @@
  * // Returns '200 OK — {"id": "..."}' as ContentText or throws HttpRequestFailedError
  */
 
-import type { ContentText } from '@dungeonmaster/shared/contracts';
 import { environmentStatics } from '@dungeonmaster/shared/statics';
 import { safeJsonParseTransformer } from '@dungeonmaster/shared/transformers';
 
@@ -29,7 +28,7 @@ export const stepRequestBroker = async ({
 }: {
   lane: LaneSession;
   step: Step & { step: 'request' };
-}): Promise<ContentText> => {
+}): Promise<string> => {
   const baseUrl =
     'apiBaseUrl' in lane && typeof lane.apiBaseUrl === 'string'
       ? lane.apiBaseUrl

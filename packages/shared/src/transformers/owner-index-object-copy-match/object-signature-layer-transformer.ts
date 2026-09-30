@@ -7,8 +7,6 @@
  * objectSignatureLayerTransformer({ text: "z.object({ id: z.string().brand<'A'>() })" });
  * // Returns 'id:z.string()', or undefined when the schema has no keys
  */
-import { contentTextContract } from '../../contracts/content-text/content-text-contract';
-import type { ContentText } from '../../contracts/content-text/content-text-contract';
 import { schemaObjectEntriesReadTransformer } from '../schema-object-entries-read/schema-object-entries-read-transformer';
 
 const BRAND_CALL = /\.brand<[^>]*>\(\)/gu;
@@ -17,18 +15,16 @@ const WHITESPACE = /\s+/gu;
 export const objectSignatureLayerTransformer = ({
   text,
 }: {
-  text: ContentText;
-}): ContentText | undefined => {
+  text: string;
+}): string | undefined => {
   const entries = schemaObjectEntriesReadTransformer({ text });
   return entries.length === 0
     ? undefined
-    : contentTextContract.parse(
-        entries
+    : entries
           .map(
             ({ key, valueText }) =>
               `${key}:${valueText.replace(BRAND_CALL, '').replace(WHITESPACE, '')}`,
           )
           .sort((left, right) => left.localeCompare(right))
-          .join('|'),
-      );
+          .join('|');
 };

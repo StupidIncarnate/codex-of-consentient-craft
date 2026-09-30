@@ -1,6 +1,5 @@
 import { architectureWidgetTreeBroker } from './architecture-widget-tree-broker';
 import { architectureWidgetTreeBrokerProxy } from './architecture-widget-tree-broker.proxy';
-import { ContentTextStub } from '../../../contracts/content-text/content-text.stub';
 
 describe('architectureWidgetTreeBroker', () => {
   describe('empty package', () => {
@@ -52,17 +51,15 @@ describe('architectureWidgetTreeBroker', () => {
         ],
         widgetSources: [
           // app-widget source: no widget imports
-          ContentTextStub({ value: `import React from 'react';` }),
+          `import React from 'react';`,
           // content-layer-widget source: no widget imports (layer file, not a root)
-          ContentTextStub({ value: `import React from 'react';` }),
+          `import React from 'react';`,
         ],
         responderFilePaths: [
           '/repo/packages/web/src/responders/app-responder.ts',
         ],
         responderContents: [
-          ContentTextStub({
-            value: `import { AppWidget } from '../widgets/app-widget';`,
-          }),
+          `import { AppWidget } from '../widgets/app-widget';`,
         ],
         flowFilePaths: [],
         flowContents: [],
@@ -94,14 +91,12 @@ describe('architectureWidgetTreeBroker', () => {
         widgetFilePaths: [
           '/repo/packages/web/src/widgets/app-widget.tsx',
         ],
-        widgetSources: [ContentTextStub({ value: `import React from 'react';` })],
+        widgetSources: [`import React from 'react';`],
         responderFilePaths: [
           '/repo/packages/web/src/responders/app-responder.ts',
         ],
         responderContents: [
-          ContentTextStub({
-            value: `import { AppWidget } from '../widgets/app-widget';`,
-          }),
+          `import { AppWidget } from '../widgets/app-widget';`,
         ],
         flowFilePaths: [],
         flowContents: [],
@@ -133,17 +128,13 @@ describe('architectureWidgetTreeBroker', () => {
           '/repo/packages/web/src/widgets/data-widget.tsx',
         ],
         widgetSources: [
-          ContentTextStub({
-            value: `import { useQuestBinding } from '../bindings/quest/use-quest-binding';`,
-          }),
+          `import { useQuestBinding } from '../bindings/quest/use-quest-binding';`,
         ],
         responderFilePaths: [
           '/repo/packages/web/src/responders/app-responder.ts',
         ],
         responderContents: [
-          ContentTextStub({
-            value: `import { DataWidget } from '../widgets/data-widget';`,
-          }),
+          `import { DataWidget } from '../widgets/data-widget';`,
         ],
         flowFilePaths: [],
         flowContents: [],
@@ -183,37 +174,25 @@ describe('architectureWidgetTreeBroker', () => {
         ],
         widgetSources: [
           // app-widget: no imports
-          ContentTextStub({ value: `import React from 'react';` }),
+          `import React from 'react';`,
           // panel-a imports shared-widget (sibling in widgets/)
-          ContentTextStub({
-            value: `import { SharedWidget } from './shared-widget';`,
-          }),
+          `import { SharedWidget } from './shared-widget';`,
           // panel-b imports shared-widget (sibling in widgets/)
-          ContentTextStub({
-            value: `import { SharedWidget } from './shared-widget';`,
-          }),
+          `import { SharedWidget } from './shared-widget';`,
           // panel-c imports shared-widget (sibling in widgets/)
-          ContentTextStub({
-            value: `import { SharedWidget } from './shared-widget';`,
-          }),
+          `import { SharedWidget } from './shared-widget';`,
           // panel-d imports shared-widget (sibling in widgets/)
-          ContentTextStub({
-            value: `import { SharedWidget } from './shared-widget';`,
-          }),
+          `import { SharedWidget } from './shared-widget';`,
           // panel-e imports shared-widget (sibling in widgets/)
-          ContentTextStub({
-            value: `import { SharedWidget } from './shared-widget';`,
-          }),
+          `import { SharedWidget } from './shared-widget';`,
           // shared-widget: no imports
-          ContentTextStub({ value: `import React from 'react';` }),
+          `import React from 'react';`,
         ],
         responderFilePaths: [
           '/repo/packages/web/src/responders/app-responder.ts',
         ],
         responderContents: [
-          ContentTextStub({
-            value: `import { AppWidget } from '../widgets/app-widget';`,
-          }),
+          `import { AppWidget } from '../widgets/app-widget';`,
         ],
         flowFilePaths: [],
         flowContents: [],

@@ -24,8 +24,6 @@
  * // path resolved against /repo
  */
 
-import { contentTextContract } from '@dungeonmaster/shared/contracts';
-import type { ContentText } from '@dungeonmaster/shared/contracts';
 
 import { isRelativePathEnvValueGuard } from '../../guards/is-relative-path-env-value/is-relative-path-env-value-guard';
 import { lanePlaceholderSubstituteTransformer } from '../lane-placeholder-substitute/lane-placeholder-substitute-transformer';
@@ -47,12 +45,12 @@ export const laneEnvSubstituteTransformer = ({
   home: string;
   claudeQueueDir: string;
   wardQueueDir: string;
-  apiWorkspace: ContentText;
-  webWorkspace: ContentText;
+  apiWorkspace: string;
+  webWorkspace: string;
   repoRoot: string;
-}): Record<PropertyKey, ContentText> =>
+}): Record<PropertyKey, string> =>
   Object.fromEntries(
-    Object.entries(env).map(([key, value]): [PropertyKey, ContentText] => {
+    Object.entries(env).map(([key, value]): [PropertyKey, string] => {
       const substituted = lanePlaceholderSubstituteTransformer({
         template: value,
         ports,
@@ -66,7 +64,7 @@ export const laneEnvSubstituteTransformer = ({
       return [
         key,
         isRelativePathEnvValueGuard({ value: substituted })
-          ? contentTextContract.parse(`${repoRoot}/${substituted}`)
+          ? `${repoRoot}/${substituted}`
           : substituted,
       ];
     }),

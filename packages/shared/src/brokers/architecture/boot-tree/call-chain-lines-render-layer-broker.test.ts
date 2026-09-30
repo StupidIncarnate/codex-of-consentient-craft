@@ -1,6 +1,5 @@
 import { callChainLinesRenderLayerBroker } from './call-chain-lines-render-layer-broker';
 import { callChainLinesRenderLayerBrokerProxy } from './call-chain-lines-render-layer-broker.proxy';
-import { ContentTextStub } from '../../../contracts/content-text/content-text.stub';
 
 describe('callChainLinesRenderLayerBroker', () => {
   describe('leaf broker import', () => {
@@ -12,12 +11,8 @@ describe('callChainLinesRenderLayerBroker', () => {
 
       proxy.setupFileContentsMap({
         map: {
-          'quest-start-responder.ts': ContentTextStub({
-            value: `import { questStartBroker } from '../../../brokers/quest/start/quest-start-broker';`,
-          }),
-          'quest-start-broker.ts': ContentTextStub({
-            value: `export const questStartBroker = () => {};`,
-          }),
+          'quest-start-responder.ts': `import { questStartBroker } from '../../../brokers/quest/start/quest-start-broker';`,
+          'quest-start-broker.ts': `export const questStartBroker = () => {};`,
         },
       });
 
@@ -27,7 +22,7 @@ describe('callChainLinesRenderLayerBroker', () => {
         renderingFilePath,
       });
 
-      expect(result).toStrictEqual([ContentTextStub({ value: '      → questStartBroker' })]);
+      expect(result).toStrictEqual(['      → questStartBroker']);
     });
   });
 
@@ -40,18 +35,12 @@ describe('callChainLinesRenderLayerBroker', () => {
 
       proxy.setupFileContentsMap({
         map: {
-          'chat-start-responder.ts': ContentTextStub({
-            value: `import { chatStartBroker } from '../../../brokers/chat/start/chat-start-broker';`,
-          }),
-          'chat-start-broker.ts': ContentTextStub({
-            value: [
+          'chat-start-responder.ts': `import { chatStartBroker } from '../../../brokers/chat/start/chat-start-broker';`,
+          'chat-start-broker.ts': [
               `import { chatPersistBroker } from '../persist/chat-persist-broker';`,
               `export const chatStartBroker = () => {};`,
             ].join('\n'),
-          }),
-          'chat-persist-broker.ts': ContentTextStub({
-            value: `export const chatPersistBroker = () => {};`,
-          }),
+          'chat-persist-broker.ts': `export const chatPersistBroker = () => {};`,
         },
       });
 
@@ -62,8 +51,8 @@ describe('callChainLinesRenderLayerBroker', () => {
       });
 
       expect(result).toStrictEqual([
-        ContentTextStub({ value: '      → chatStartBroker' }),
-        ContentTextStub({ value: '        → chatPersistBroker' }),
+        '      → chatStartBroker',
+        '        → chatPersistBroker',
       ]);
     });
   });
@@ -77,21 +66,15 @@ describe('callChainLinesRenderLayerBroker', () => {
 
       proxy.setupFileContentsMap({
         map: {
-          'cycle-foo-responder.ts': ContentTextStub({
-            value: `import { cycleABroker } from '../../../brokers/cycle/a/cycle-a-broker';`,
-          }),
-          'cycle-a-broker.ts': ContentTextStub({
-            value: [
+          'cycle-foo-responder.ts': `import { cycleABroker } from '../../../brokers/cycle/a/cycle-a-broker';`,
+          'cycle-a-broker.ts': [
               `import { cycleBBroker } from '../../../brokers/cycle/b/cycle-b-broker';`,
               `export const cycleABroker = () => {};`,
             ].join('\n'),
-          }),
-          'cycle-b-broker.ts': ContentTextStub({
-            value: [
+          'cycle-b-broker.ts': [
               `import { cycleABroker } from '../../../brokers/cycle/a/cycle-a-broker';`,
               `export const cycleBBroker = () => {};`,
             ].join('\n'),
-          }),
         },
       });
 
@@ -102,8 +85,8 @@ describe('callChainLinesRenderLayerBroker', () => {
       });
 
       expect(result).toStrictEqual([
-        ContentTextStub({ value: '      → cycleABroker' }),
-        ContentTextStub({ value: '        → cycleBBroker' }),
+        '      → cycleABroker',
+        '        → cycleBBroker',
       ]);
     });
   });
@@ -136,12 +119,8 @@ describe('callChainLinesRenderLayerBroker', () => {
 
       proxy.setupFileContentsMap({
         map: {
-          'quest-start-responder.ts': ContentTextStub({
-            value: `import { questStartBroker } from '../../../brokers/quest/start/quest-start-broker';`,
-          }),
-          'quest-start-broker.ts': ContentTextStub({
-            value: `// no export declaration here`,
-          }),
+          'quest-start-responder.ts': `import { questStartBroker } from '../../../brokers/quest/start/quest-start-broker';`,
+          'quest-start-broker.ts': `// no export declaration here`,
         },
       });
 
@@ -151,7 +130,7 @@ describe('callChainLinesRenderLayerBroker', () => {
         renderingFilePath,
       });
 
-      expect(result).toStrictEqual([ContentTextStub({ value: '      → quest-start-broker' })]);
+      expect(result).toStrictEqual(['      → quest-start-broker']);
     });
   });
 
@@ -164,24 +143,16 @@ describe('callChainLinesRenderLayerBroker', () => {
 
       proxy.setupFileContentsMap({
         map: {
-          'quest-start-responder.ts': ContentTextStub({
-            value: `import { questOrchestrationLoopBroker } from '../../../brokers/quest/orchestration-loop/quest-orchestration-loop-broker';`,
-          }),
-          'quest-orchestration-loop-broker.ts': ContentTextStub({
-            value: [
+          'quest-start-responder.ts': `import { questOrchestrationLoopBroker } from '../../../brokers/quest/orchestration-loop/quest-orchestration-loop-broker';`,
+          'quest-orchestration-loop-broker.ts': [
               `import { runSiegemasterLayerBroker } from './run-siegemaster-layer-broker';`,
               `export const questOrchestrationLoopBroker = () => {};`,
             ].join('\n'),
-          }),
-          'run-siegemaster-layer-broker.ts': ContentTextStub({
-            value: [
+          'run-siegemaster-layer-broker.ts': [
               `import { siegeRunBroker } from '../../siege/run/siege-run-broker';`,
               `export const runSiegemasterLayerBroker = () => {};`,
             ].join('\n'),
-          }),
-          'siege-run-broker.ts': ContentTextStub({
-            value: `export const siegeRunBroker = () => {};`,
-          }),
+          'siege-run-broker.ts': `export const siegeRunBroker = () => {};`,
         },
       });
 
@@ -192,9 +163,9 @@ describe('callChainLinesRenderLayerBroker', () => {
       });
 
       expect(result).toStrictEqual([
-        ContentTextStub({ value: '      → questOrchestrationLoopBroker' }),
-        ContentTextStub({ value: '        → runSiegemasterLayerBroker' }),
-        ContentTextStub({ value: '          → siegeRunBroker' }),
+        '      → questOrchestrationLoopBroker',
+        '        → runSiegemasterLayerBroker',
+        '          → siegeRunBroker',
       ]);
     });
 
@@ -206,25 +177,17 @@ describe('callChainLinesRenderLayerBroker', () => {
 
       proxy.setupFileContentsMap({
         map: {
-          'foo-responder.ts': ContentTextStub({
-            value: `import { questOrchestrationLoopBroker } from '../../../brokers/quest/orchestration-loop/quest-orchestration-loop-broker';`,
-          }),
-          'quest-orchestration-loop-broker.ts': ContentTextStub({
-            value: [
+          'foo-responder.ts': `import { questOrchestrationLoopBroker } from '../../../brokers/quest/orchestration-loop/quest-orchestration-loop-broker';`,
+          'quest-orchestration-loop-broker.ts': [
               `import { runSiegemasterLayerBroker } from './run-siegemaster-layer-broker';`,
               `import { runWardLayerBroker } from './run-ward-layer-broker';`,
               `export const questOrchestrationLoopBroker = () => {};`,
             ].join('\n'),
-          }),
-          'run-siegemaster-layer-broker.ts': ContentTextStub({
-            value: [
+          'run-siegemaster-layer-broker.ts': [
               `import { runWardLayerBroker } from './run-ward-layer-broker';`,
               `export const runSiegemasterLayerBroker = () => {};`,
             ].join('\n'),
-          }),
-          'run-ward-layer-broker.ts': ContentTextStub({
-            value: `export const runWardLayerBroker = () => {};`,
-          }),
+          'run-ward-layer-broker.ts': `export const runWardLayerBroker = () => {};`,
         },
       });
 
@@ -235,9 +198,9 @@ describe('callChainLinesRenderLayerBroker', () => {
       });
 
       expect(result).toStrictEqual([
-        ContentTextStub({ value: '      → questOrchestrationLoopBroker' }),
-        ContentTextStub({ value: '        → runSiegemasterLayerBroker' }),
-        ContentTextStub({ value: '          → runWardLayerBroker' }),
+        '      → questOrchestrationLoopBroker',
+        '        → runSiegemasterLayerBroker',
+        '          → runWardLayerBroker',
       ]);
     });
 
@@ -249,21 +212,15 @@ describe('callChainLinesRenderLayerBroker', () => {
 
       proxy.setupFileContentsMap({
         map: {
-          'foo-responder.ts': ContentTextStub({
-            value: `import { parentBroker } from '../../../brokers/parent/x/parent-broker';`,
-          }),
-          'parent-broker.ts': ContentTextStub({
-            value: [
+          'foo-responder.ts': `import { parentBroker } from '../../../brokers/parent/x/parent-broker';`,
+          'parent-broker.ts': [
               `import { fooXLayerBroker } from './foo-x-layer-broker';`,
               `export const parentBroker = () => {};`,
             ].join('\n'),
-          }),
-          'foo-x-layer-broker.ts': ContentTextStub({
-            value: [
+          'foo-x-layer-broker.ts': [
               `import { parentBroker } from './parent-broker';`,
               `export const fooXLayerBroker = () => {};`,
             ].join('\n'),
-          }),
         },
       });
 
@@ -274,8 +231,8 @@ describe('callChainLinesRenderLayerBroker', () => {
       });
 
       expect(result).toStrictEqual([
-        ContentTextStub({ value: '      → parentBroker' }),
-        ContentTextStub({ value: '        → fooXLayerBroker' }),
+        '      → parentBroker',
+        '        → fooXLayerBroker',
       ]);
     });
   });

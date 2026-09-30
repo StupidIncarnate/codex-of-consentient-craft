@@ -10,13 +10,12 @@
 
 import { z } from '#gateway/npm/zod';
 
-import { contentTextContract } from '@dungeonmaster/shared/contracts';
 
 import { focusedElementContract } from '../focused-element/focused-element-contract';
 
 export const keyReadingContract = z
   .object({
-    press: contentTextContract,
+    press: z.string().brand<'KeyReadingPress'>(),
     focused: focusedElementContract.nullable(),
   })
   .strict();

@@ -1,5 +1,4 @@
 import { AbsoluteFilePathStub } from '@dungeonmaster/shared/contracts/absolute-file-path/absolute-file-path.stub';
-import { ContentTextStub } from '@dungeonmaster/shared/contracts/content-text/content-text.stub';
 import { GuildIdStub } from '@dungeonmaster/shared/contracts/guild-id/guild-id.stub';
 import { GuildStub } from '@dungeonmaster/shared/contracts/guild/guild.stub';
 
@@ -26,7 +25,7 @@ describe('recipesSessionWithNestedSubagentBroker', () => {
     it('VALID: {guild} => writes exactly the main transcript and the two sub-agent files', async () => {
       const proxy = recipesSessionWithNestedSubagentBrokerProxy();
       proxy.laneAnswers({
-        apiBaseUrl: ContentTextStub({ value: API }),
+        apiBaseUrl: API,
         guilds: [GuildStub({ id: GUILD_ID, path: GUILD_PATH, urlSlug: 'siege-guild' })],
         transcriptPaths: WRITTEN_PATHS.map((value) => AbsoluteFilePathStub({ value })),
       });
@@ -44,7 +43,7 @@ describe('recipesSessionWithNestedSubagentBroker', () => {
     it('VALID: {guild} => returns the session id and the route both chains render at', async () => {
       const proxy = recipesSessionWithNestedSubagentBrokerProxy();
       proxy.laneAnswers({
-        apiBaseUrl: ContentTextStub({ value: API }),
+        apiBaseUrl: API,
         guilds: [GuildStub({ id: GUILD_ID, path: GUILD_PATH, urlSlug: 'siege-guild' })],
         transcriptPaths: WRITTEN_PATHS.map((value) => AbsoluteFilePathStub({ value })),
       });
@@ -68,7 +67,7 @@ describe('recipesSessionWithNestedSubagentBroker', () => {
     it('VALID: {guild} => the MAIN file is the user line, the outer launch, the outer completion', async () => {
       const proxy = recipesSessionWithNestedSubagentBrokerProxy();
       proxy.laneAnswers({
-        apiBaseUrl: ContentTextStub({ value: API }),
+        apiBaseUrl: API,
         guilds: [GuildStub({ id: GUILD_ID, path: GUILD_PATH, urlSlug: 'siege-guild' })],
         transcriptPaths: WRITTEN_PATHS.map((value) => AbsoluteFilePathStub({ value })),
       });
@@ -96,7 +95,7 @@ describe('recipesSessionWithNestedSubagentBroker', () => {
     it('VALID: {guild} => the OUTER agent file is its own text, the nested launch, the NESTED completion', async () => {
       const proxy = recipesSessionWithNestedSubagentBrokerProxy();
       proxy.laneAnswers({
-        apiBaseUrl: ContentTextStub({ value: API }),
+        apiBaseUrl: API,
         guilds: [GuildStub({ id: GUILD_ID, path: GUILD_PATH, urlSlug: 'siege-guild' })],
         transcriptPaths: WRITTEN_PATHS.map((value) => AbsoluteFilePathStub({ value })),
       });
@@ -129,7 +128,7 @@ describe('recipesSessionWithNestedSubagentBroker', () => {
     it('VALID: {guild} => the NESTED agent file is one line, its marker text', async () => {
       const proxy = recipesSessionWithNestedSubagentBrokerProxy();
       proxy.laneAnswers({
-        apiBaseUrl: ContentTextStub({ value: API }),
+        apiBaseUrl: API,
         guilds: [GuildStub({ id: GUILD_ID, path: GUILD_PATH, urlSlug: 'siege-guild' })],
         transcriptPaths: WRITTEN_PATHS.map((value) => AbsoluteFilePathStub({ value })),
       });
@@ -153,7 +152,7 @@ describe('recipesSessionWithNestedSubagentBroker', () => {
     it('ERROR: {a guild the lane does not know} => throws naming it and listing what the lane knows', async () => {
       const proxy = recipesSessionWithNestedSubagentBrokerProxy();
       proxy.laneAnswers({
-        apiBaseUrl: ContentTextStub({ value: API }),
+        apiBaseUrl: API,
         guilds: [GuildStub({ id: GUILD_ID, path: GUILD_PATH, urlSlug: 'siege-guild' })],
         transcriptPaths: [],
       });

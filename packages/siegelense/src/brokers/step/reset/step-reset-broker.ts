@@ -36,8 +36,6 @@
  * // Rewinds disk, clears storage, and returns formatted ResetReading as ContentText
  */
 
-import { contentTextContract } from '@dungeonmaster/shared/contracts';
-import type { ContentText } from '@dungeonmaster/shared/contracts';
 
 import { recipeNameContract } from '../../../contracts/recipe-name/recipe-name-contract';
 
@@ -65,8 +63,8 @@ export const stepResetBroker = async ({
   lane: LaneSession;
   level: ResetLevel;
   to: SnapshotName | null;
-  reseed: ContentText | null;
-}): Promise<ContentText> => {
+  reseed: string | null;
+}): Promise<string> => {
   const zeroUndid: ResetUndid = {
     files: readingCountContract.parse(0),
     added: readingCountContract.parse(0),
@@ -74,12 +72,12 @@ export const stepResetBroker = async ({
     removed: readingCountContract.parse(0),
   };
 
-  const notCleared: readonly ContentText[] =
+  const notCleared: readonly string[] =
     level === 'page'
-      ? resetStatics.notCleared.page.map((item) => contentTextContract.parse(item))
+      ? resetStatics.notCleared.page.map((item) => item)
       : level === 'state'
-        ? resetStatics.notCleared.state.map((item) => contentTextContract.parse(item))
-        : resetStatics.notCleared.instance.map((item) => contentTextContract.parse(item));
+        ? resetStatics.notCleared.state.map((item) => item)
+        : resetStatics.notCleared.instance.map((item) => item);
 
   if (level === 'page') {
     if (lane.browser === null) {
@@ -92,11 +90,11 @@ export const stepResetBroker = async ({
     const { cleared } = await resetClearStorageLayerBroker({ browser: lane.browser });
 
     const reading = resetReadingContract.parse({
-      restored: contentTextContract.parse('page'),
+      restored: 'page',
       undid: zeroUndid,
       NOT_cleared: cleared
         ? notCleared
-        : [...notCleared, contentTextContract.parse(resetStatics.storageSkipped.noOrigin)],
+        : [...notCleared, resetStatics.storageSkipped.noOrigin],
     });
     return resetReadingRenderTransformer({ reading });
   }
@@ -119,11 +117,11 @@ export const stepResetBroker = async ({
     }
 
     const reading = resetReadingContract.parse({
-      restored: contentTextContract.parse(to),
+      restored: to,
       undid,
       NOT_cleared: storageCleared
         ? notCleared
-        : [...notCleared, contentTextContract.parse(resetStatics.storageSkipped.noOrigin)],
+        : [...notCleared, resetStatics.storageSkipped.noOrigin],
     });
     return resetReadingRenderTransformer({ reading });
   }
@@ -161,9 +159,9 @@ export const stepResetBroker = async ({
     });
   }
 
-  let restored: ContentText = contentTextContract.parse('instance');
+  let restored: string = 'instance';
   if (to !== null) {
-    restored = contentTextContract.parse(to);
+    restored = to;
   } else if (reseed !== null) {
     restored = reseed;
   }
@@ -173,7 +171,7 @@ export const stepResetBroker = async ({
     undid,
     NOT_cleared: instanceStorageCleared
       ? notCleared
-      : [...notCleared, contentTextContract.parse(resetStatics.storageSkipped.noOrigin)],
+      : [...notCleared, resetStatics.storageSkipped.noOrigin],
   });
 
   return resetReadingRenderTransformer({ reading });

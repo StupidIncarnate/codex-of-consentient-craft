@@ -21,7 +21,7 @@ import { rm } from '#gateway/node/fs__promises';
 import { stderr } from '#gateway/node/process';
 import { StartOrchestrator } from '@dungeonmaster/orchestrator';
 import { locationsQuestFolderPathFindBroker } from '@dungeonmaster/shared/brokers';
-import { contentTextContract, questContract } from '@dungeonmaster/shared/contracts';
+import { questContract } from '@dungeonmaster/shared/contracts';
 
 import { zodFirstFieldErrorMessageTransformer } from '../../../transformers/zod-first-field-error-message/zod-first-field-error-message-transformer';
 import { pastedImagePersistBroker } from '../../../brokers/pasted-image/persist/pasted-image-persist-broker';
@@ -71,7 +71,7 @@ export const QuestNewResponder = async ({
       // below, mirroring the chat and follow-up routes' own body validation.
       const imagesError = zodFirstFieldErrorMessageTransformer({
         error: parsedBody.error,
-        field: contentTextContract.parse('images'),
+        field: 'images',
       });
       if (imagesError !== undefined) {
         return responderResultContract.parse({

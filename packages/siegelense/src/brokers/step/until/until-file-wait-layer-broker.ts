@@ -13,8 +13,6 @@
  */
 
 import { join } from '#gateway/node/path';
-import { contentTextContract } from '@dungeonmaster/shared/contracts';
-import type { ContentText } from '@dungeonmaster/shared/contracts';
 
 import { statIfExists } from '#gateway/node/fs__promises';
 import { setTimeout } from '#gateway/node/setTimeout';
@@ -34,13 +32,13 @@ export const untilFileWaitLayerBroker = async ({
   startedAtMs: number;
   deadlineAtMs: number;
   timeoutMs: number;
-}): Promise<ContentText> => {
+}): Promise<string> => {
   const filePath = join(homePath, file);
   const stat = await statIfExists(filePath);
 
   if (stat !== null) {
     const waitedMs = Date.now() - startedAtMs;
-    return contentTextContract.parse(`${file} appeared after ${String(waitedMs)}ms`);
+    return `${file} appeared after ${String(waitedMs)}ms`;
   }
 
   if (Date.now() >= deadlineAtMs) {

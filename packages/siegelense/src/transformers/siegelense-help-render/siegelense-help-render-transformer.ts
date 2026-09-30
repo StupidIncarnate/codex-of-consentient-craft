@@ -20,8 +20,6 @@
  * // Returns the index: headline, one line per built call, footer
  */
 
-import { contentTextContract } from '@dungeonmaster/shared/contracts';
-import type { ContentText } from '@dungeonmaster/shared/contracts';
 
 import { siegelenseHelpStatics } from '../../statics/siegelense-help/siegelense-help-statics';
 
@@ -35,7 +33,7 @@ export const siegelenseHelpRenderTransformer = ({
   call,
 }: {
   call: SiegelenseCall | null;
-}): ContentText => {
+}): string => {
   if (call === null) {
     const builtNames = Object.keys(siegelenseHelpStatics.calls) as readonly SiegelenseCall[];
     const callsBlock = [
@@ -43,9 +41,7 @@ export const siegelenseHelpRenderTransformer = ({
       ...builtNames.map((name) => `  ${siegelenseHelpStatics.calls[name].summary}`),
     ].join('\n');
 
-    return contentTextContract.parse(
-      `${[siegelenseHelpStatics.index.headline, callsBlock, siegelenseHelpStatics.index.footer].join(SECTION_GAP)}\n`,
-    );
+    return `${[siegelenseHelpStatics.index.headline, callsBlock, siegelenseHelpStatics.index.footer].join(SECTION_GAP)}\n`;
   }
 
   const entry = siegelenseHelpStatics.calls[call];
@@ -78,5 +74,5 @@ export const siegelenseHelpRenderTransformer = ({
     ['EXAMPLE', `  ${entry.example}`].join('\n'),
   ];
 
-  return contentTextContract.parse(`${blocks.join(SECTION_GAP)}\n`);
+  return `${blocks.join(SECTION_GAP)}\n`;
 };

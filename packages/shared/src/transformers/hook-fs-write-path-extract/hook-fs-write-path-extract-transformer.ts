@@ -12,10 +12,6 @@
  * WHEN-NOT-TO-USE: When full AST parsing is needed — this is a v1 regex heuristic
  */
 
-import {
-  contentTextContract,
-  type ContentText,
-} from '../../contracts/content-text/content-text-contract';
 
 const FS_WRITE_CALL_PATTERN =
   /\b(?:writeFileSync|appendFileSync|writeFile|appendFile|fsWriteFileAdapter|fsAppendFileAdapter|fsMkdirAdapter)\s*\(/u;
@@ -25,15 +21,15 @@ const QUOTED_PATH_AFTER_CALL_PATTERN =
 export const hookFsWritePathExtractTransformer = ({
   source,
 }: {
-  source: ContentText;
-}): ContentText | undefined => {
+  source: string;
+}): string | undefined => {
   const src = String(source);
   const withLiteralMatch = QUOTED_PATH_AFTER_CALL_PATTERN.exec(src);
   if (withLiteralMatch !== null) {
-    return contentTextContract.parse(withLiteralMatch[1] ?? '(file)');
+    return (withLiteralMatch[1] ?? '(file)');
   }
   if (FS_WRITE_CALL_PATTERN.test(src)) {
-    return contentTextContract.parse('(file)');
+    return '(file)';
   }
   return undefined;
 };

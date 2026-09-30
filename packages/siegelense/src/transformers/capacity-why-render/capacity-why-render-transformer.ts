@@ -35,8 +35,6 @@
  * // less 512MB headroom; 1 siege instance already up'
  */
 
-import { contentTextContract } from '@dungeonmaster/shared/contracts';
-import type { ContentText } from '@dungeonmaster/shared/contracts';
 
 import type { CapacityMeasured } from '../../contracts/capacity-measured/capacity-measured-contract';
 import type { CapacityProfile } from '../../contracts/capacity-profile/capacity-profile-contract';
@@ -69,7 +67,7 @@ export const capacityWhyRenderTransformer = ({
   requestedPoolSize: ProfilePoolSize | null;
   cores: ReadingCount;
   loadAvg1: CapacityMeasured['loadAvg1'];
-}): ContentText => {
+}): string => {
   const { headroomMB } = capacityStatics.memory;
   const peakMB = profile === null ? 0 : profile.peakMB;
   const reservedDebitMB = peakMB * reservedInstances;
@@ -117,13 +115,11 @@ export const capacityWhyRenderTransformer = ({
   ];
   const limitClause = limitClauses.find((candidate) => candidate !== null) ?? null;
 
-  return contentTextContract.parse(
-    [
+  return [
       profileClause,
       ...(poolMismatchClause === null ? [] : [poolMismatchClause]),
       memoryClause,
       instancesClause,
       ...(limitClause === null ? [] : [limitClause]),
-    ].join(CLAUSE_SEPARATOR),
-  );
+    ].join(CLAUSE_SEPARATOR);
 };

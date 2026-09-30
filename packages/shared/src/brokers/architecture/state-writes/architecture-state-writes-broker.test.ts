@@ -1,6 +1,5 @@
 import { architectureStateWritesBroker } from './architecture-state-writes-broker';
 import { architectureStateWritesBrokerProxy } from './architecture-state-writes-broker.proxy';
-import { ContentTextStub } from '../../../contracts/content-text/content-text.stub';
 
 describe('architectureStateWritesBroker', () => {
   describe('in-memory stores', () => {
@@ -13,9 +12,7 @@ describe('architectureStateWritesBroker', () => {
         packageRoot,
         filePaths: [srcFile],
         contents: [
-          ContentTextStub({
-            value: `import { designProcessState } from '../../state/design-process/design-process-state';`,
-          }),
+          `import { designProcessState } from '../../state/design-process/design-process-state';`,
         ],
         stateDirNames: ['design-process'],
       });
@@ -38,9 +35,7 @@ describe('architectureStateWritesBroker', () => {
         packageRoot,
         filePaths: [srcFile],
         contents: [
-          ContentTextStub({
-            value: `import { otherBroker } from '../../brokers/other/other-broker';`,
-          }),
+          `import { otherBroker } from '../../brokers/other/other-broker';`,
         ],
         stateDirNames: ['orphaned-store'],
       });
@@ -65,9 +60,7 @@ describe('architectureStateWritesBroker', () => {
         packageRoot,
         filePaths: [srcFile],
         contents: [
-          ContentTextStub({
-            value: `import { appendFile, writeFile, ensureDir } from '#gateway/node/fs__promises';\nawait appendFile('/data/event-outbox.jsonl', data);`,
-          }),
+          `import { appendFile, writeFile, ensureDir } from '#gateway/node/fs__promises';\nawait appendFile('/data/event-outbox.jsonl', data);`,
         ],
         stateDirNames: [],
       });
@@ -90,9 +83,7 @@ describe('architectureStateWritesBroker', () => {
         packageRoot,
         filePaths: [srcFile],
         contents: [
-          ContentTextStub({
-            value: `import { appendFile, writeFile, ensureDir } from '#gateway/node/fs__promises';\nawait writeFile('/data/quest.json', content);`,
-          }),
+          `import { appendFile, writeFile, ensureDir } from '#gateway/node/fs__promises';\nawait writeFile('/data/quest.json', content);`,
         ],
         stateDirNames: [],
       });
@@ -115,9 +106,7 @@ describe('architectureStateWritesBroker', () => {
         packageRoot,
         filePaths: [srcFile],
         contents: [
-          ContentTextStub({
-            value: `import { appendFile, writeFile, ensureDir } from '#gateway/node/fs__promises';\nawait ensureDir(questDirBroker(questId));`,
-          }),
+          `import { appendFile, writeFile, ensureDir } from '#gateway/node/fs__promises';\nawait ensureDir(questDirBroker(questId));`,
         ],
         stateDirNames: [],
       });
@@ -140,14 +129,12 @@ describe('architectureStateWritesBroker', () => {
         packageRoot,
         filePaths: [srcFile],
         contents: [
-          ContentTextStub({
-            value: [
+          [
               "import { appendFile, writeFile } from '#gateway/node/fs__promises';",
               `await writeFile('/z-quest.json', content);`,
               `await appendFile('/a-outbox.jsonl', data);`,
               `await writeFile('/z-quest.json', content);`,
             ].join('\n'),
-          }),
         ],
         stateDirNames: [],
       });
@@ -172,9 +159,7 @@ describe('architectureStateWritesBroker', () => {
         packageRoot,
         filePaths: [srcFile],
         contents: [
-          ContentTextStub({
-            value: `localStorage.setItem('session-id', value);`,
-          }),
+          `localStorage.setItem('session-id', value);`,
         ],
         stateDirNames: [],
       });

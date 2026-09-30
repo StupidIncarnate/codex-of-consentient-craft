@@ -10,7 +10,6 @@
 
 import { z } from '#gateway/npm/zod';
 
-import { contentTextContract } from '@dungeonmaster/shared/contracts';
 
 import { attrPairContract } from '../attr-pair/attr-pair-contract';
 import { domRectContract } from '../dom-rect/dom-rect-contract';
@@ -18,17 +17,17 @@ import { readingCountContract } from '../reading-count/reading-count-contract';
 
 export const domNodeContract = z
   .object({
-    tagName: contentTextContract.optional(),
-    testId: contentTextContract.nullable().optional(),
-    className: contentTextContract.nullable().optional(),
+    tagName: z.string().brand<'DomNodeTagName'>().optional(),
+    testId: z.string().brand<'DomNodeTestId'>().nullable().optional(),
+    className: z.string().brand<'DomNodeClassName'>().nullable().optional(),
     childCount: readingCountContract.optional(),
-    display: contentTextContract.optional(),
-    visibility: contentTextContract.optional(),
-    opacity: contentTextContract.optional(),
+    display: z.string().brand<'DomNodeDisplay'>().optional(),
+    visibility: z.string().brand<'DomNodeVisibility'>().optional(),
+    opacity: z.string().brand<'DomNodeOpacity'>().optional(),
     rect: domRectContract.optional(),
-    text: contentTextContract.optional(),
+    text: z.string().brand<'DomNodeText'>().optional(),
     attrs: z.array(attrPairContract).readonly().optional(),
-    value: contentTextContract.nullable().optional(),
+    value: z.string().brand<'DomNodeValue'>().nullable().optional(),
   })
   .strict();
 

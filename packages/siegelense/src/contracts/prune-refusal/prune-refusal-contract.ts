@@ -18,12 +18,12 @@
 
 import { z } from '#gateway/npm/zod';
 
-import { contentTextContract, siegeInstanceContract } from '@dungeonmaster/shared/contracts';
+import { siegeInstanceContract } from '@dungeonmaster/shared/contracts';
 
 
 export const pruneRefusalContract = z.object({
   id: siegeInstanceContract.shape.id,
-  why: contentTextContract,
+  why: z.string().brand<'PruneRefusalWhy'>(),
 });
 
 export type PruneRefusal = z.infer<typeof pruneRefusalContract>;

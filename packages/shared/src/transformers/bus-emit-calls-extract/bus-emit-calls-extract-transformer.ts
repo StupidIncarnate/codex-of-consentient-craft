@@ -14,8 +14,6 @@
  * WHEN-NOT-TO-USE: When AST-level accuracy is required — this is a regex v1 heuristic.
  */
 
-import type { ContentText } from '../../contracts/content-text/content-text-contract';
-import { contentTextContract } from '../../contracts/content-text/content-text-contract';
 
 const ESCAPE_REGEX_PATTERN = /[.*+?^${}()|[\]\\]/gu;
 
@@ -23,19 +21,19 @@ export const busEmitCallsExtractTransformer = ({
   source,
   busExportName,
 }: {
-  source: ContentText;
-  busExportName: ContentText;
-}): ContentText[] => {
+  source: string;
+  busExportName: string;
+}): string[] => {
   const escaped = String(busExportName).replace(ESCAPE_REGEX_PATTERN, '\\$&');
   const pattern = new RegExp(`${escaped}\\.emit\\(\\s*\\{\\s*type:\\s*['"]([^'"]+)['"]`, 'gu');
-  const results: ContentText[] = [];
+  const results: string[] = [];
   pattern.lastIndex = 0;
 
   let match = pattern.exec(String(source));
   while (match !== null) {
     const [, captured] = match;
     if (captured !== undefined) {
-      results.push(contentTextContract.parse(captured));
+      results.push(captured);
     }
     match = pattern.exec(String(source));
   }

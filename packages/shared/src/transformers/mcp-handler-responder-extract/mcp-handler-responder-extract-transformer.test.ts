@@ -1,11 +1,10 @@
 import { mcpHandlerResponderExtractTransformer } from './mcp-handler-responder-extract-transformer';
-import { ContentTextStub } from '../../contracts/content-text/content-text.stub';
 
 describe('mcpHandlerResponderExtractTransformer', () => {
   describe('empty source', () => {
     it('EMPTY: {source: ""} => returns []', () => {
       const result = mcpHandlerResponderExtractTransformer({
-        source: ContentTextStub({ value: '' }),
+        source: '',
       });
 
       expect(result).toStrictEqual([]);
@@ -13,7 +12,7 @@ describe('mcpHandlerResponderExtractTransformer', () => {
 
     it('EMPTY: {source with no handler entries} => returns []', () => {
       const result = mcpHandlerResponderExtractTransformer({
-        source: ContentTextStub({ value: 'export const SomeFlow = () => [];' }),
+        source: 'export const SomeFlow = () => [];',
       });
 
       expect(result).toStrictEqual([]);
@@ -22,16 +21,14 @@ describe('mcpHandlerResponderExtractTransformer', () => {
 
   describe('single handler', () => {
     it('VALID: {single handler entry} => returns the responder name', () => {
-      const source = ContentTextStub({
-        value: `export const ArchitectureFlow = (): ToolRegistration[] => [
+      const source = `export const ArchitectureFlow = (): ToolRegistration[] => [
   {
     name: 'discover' as never,
     description: 'Discover utilities' as never,
     inputSchema: emptySchema as never,
     handler: async ({ args }) => ArchitectureHandleResponder({ tool: 'discover' as never, args }),
   },
-];`,
-      });
+];`;
 
       const result = mcpHandlerResponderExtractTransformer({ source });
 
@@ -41,8 +38,7 @@ describe('mcpHandlerResponderExtractTransformer', () => {
 
   describe('multiple handlers', () => {
     it('VALID: {three handler entries} => returns all responder names in order', () => {
-      const source = ContentTextStub({
-        value: `export const ArchitectureFlow = (): ToolRegistration[] => [
+      const source = `export const ArchitectureFlow = (): ToolRegistration[] => [
   {
     name: 'discover' as never,
     description: 'A' as never,
@@ -62,8 +58,7 @@ describe('mcpHandlerResponderExtractTransformer', () => {
     inputSchema: s as never,
     handler: async ({ args }) => QuestHandleResponder({ tool: 'get-quest' as never, args }),
   },
-];`,
-      });
+];`;
 
       const result = mcpHandlerResponderExtractTransformer({ source });
 

@@ -2,7 +2,6 @@ import { installTestbedCreateBroker } from '@dungeonmaster/testing';
 import { SessionIdStub } from '@dungeonmaster/shared/contracts/session-id/session-id.stub';
 import { AgentIdStub } from '@dungeonmaster/shared/contracts/agent-id/agent-id.stub';
 import { QuestIdStub } from '@dungeonmaster/shared/contracts/quest-id/quest-id.stub';
-import { ContentTextStub } from '@dungeonmaster/shared/contracts/content-text/content-text.stub';
 import { FlowStub } from '@dungeonmaster/shared/contracts/flow/flow.stub';
 import { WorkItemStub } from '@dungeonmaster/shared/contracts/work-item/work-item.stub';
 import { OperationItemStub } from '@dungeonmaster/shared/contracts/operation-item/operation-item.stub';
@@ -128,7 +127,7 @@ describe('SessionForensicsFlow', () => {
       });
       const questId = QuestIdStub({ value: 'flow-quest-command-quest' });
       const target = SessionIdStub({ value: 'session-flow-quest-command' });
-      const content = ContentTextStub({ value: JSON.stringify(TranscriptRecordStub()) });
+      const content = JSON.stringify(TranscriptRecordStub());
       await harness.writeSession({
         sessionId: target,
         content,
@@ -203,12 +202,10 @@ describe('SessionForensicsFlow', () => {
 
     it('VALID: {argv: [buckets, target, --minutes, 5]} => a 10-minute gap between real records splits into two 5-minute buckets', async () => {
       const target = SessionIdStub({ value: 'session-flow-buckets-minutes-flag' });
-      const content = ContentTextStub({
-        value: [
+      const content = [
           JSON.stringify(TranscriptRecordStub({ timestamp: '2026-09-01T19:00:00.000Z' })),
           JSON.stringify(TranscriptRecordStub({ timestamp: '2026-09-01T19:10:00.000Z' })),
-        ].join('\n'),
-      });
+        ].join('\n');
       await harness.writeSession({ sessionId: target, content });
 
       const result = SessionForensicsFlow({ argv: ['buckets', target, '--minutes', '5'] });
@@ -224,12 +221,10 @@ describe('SessionForensicsFlow', () => {
 
     it('VALID: {argv: [gaps, target, --floor-seconds, 30]} => a 90-second gap between real records clears the lower floor and is listed', async () => {
       const target = SessionIdStub({ value: 'session-flow-gaps-floor-flag' });
-      const content = ContentTextStub({
-        value: [
+      const content = [
           JSON.stringify(TranscriptRecordStub({ timestamp: '2026-09-01T19:00:00.000Z' })),
           JSON.stringify(TranscriptRecordStub({ timestamp: '2026-09-01T19:01:30.000Z' })),
-        ].join('\n'),
-      });
+        ].join('\n');
       await harness.writeSession({ sessionId: target, content });
 
       const result = SessionForensicsFlow({ argv: ['gaps', target, '--floor-seconds', '30'] });

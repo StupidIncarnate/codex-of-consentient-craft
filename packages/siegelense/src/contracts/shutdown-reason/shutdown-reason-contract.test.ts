@@ -1,4 +1,3 @@
-import { ContentTextStub } from '@dungeonmaster/shared/contracts/content-text/content-text.stub';
 
 import { EpochMsStub } from '../epoch-ms/epoch-ms.stub';
 import { shutdownReasonContract } from './shutdown-reason-contract';
@@ -10,9 +9,7 @@ describe('shutdownReasonContract', () => {
   describe('valid markers', () => {
     it('VALID: {reason, atMs} => parses successfully', () => {
       const marker: ShutdownReason = ShutdownReasonStub({
-        reason: ContentTextStub({
-          value: 'reaped by idle timeout after 900s with no run received',
-        }),
+        reason: 'reaped by idle timeout after 900s with no run received',
         atMs: EpochMsStub({ value: 1_700_000_000_000 }),
       });
 

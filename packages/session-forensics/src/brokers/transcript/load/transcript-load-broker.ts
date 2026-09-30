@@ -13,7 +13,6 @@
  */
 
 import { readFileSync } from '#gateway/node/fs';
-import { contentTextContract } from '@dungeonmaster/shared/contracts';
 import type { Session } from '@dungeonmaster/shared/contracts';
 import { transcriptResolveBroker } from '../resolve/transcript-resolve-broker';
 import { jsonlToRecordsTransformer } from '../../../transformers/jsonl-to-records/jsonl-to-records-transformer';
@@ -35,6 +34,6 @@ export const transcriptLoadBroker = ({
     return [];
   }
 
-  const contents = contentTextContract.parse(readFileSync(transcriptPath));
+  const contents = readFileSync(transcriptPath);
   return jsonlToRecordsTransformer({ contents });
 };

@@ -14,10 +14,6 @@
  */
 
 import {
-  contentTextContract,
-  type ContentText,
-} from '../../contracts/content-text/content-text-contract';
-import {
   fileWriteCallContract,
   type FileWriteCall,
 } from '../../contracts/file-write-call/file-write-call-contract';
@@ -31,15 +27,15 @@ const backtickSegment = '`([^`]*)`';
 export const fileWriteCallsExtractTransformer = ({
   source,
 }: {
-  source: ContentText;
+  source: string;
 }): FileWriteCall[] => {
   const { importSource, importedNames } = projectMapStatics.fsWriteGatewayCalls;
-  const importedByLocal = new Map<ContentText, ContentText>();
+  const importedByLocal = new Map<string, string>();
   for (const importedName of importedNames) {
-    const imported = contentTextContract.parse(importedName);
+    const imported = importedName;
     const localName = gatewayImportLocalNameFindTransformer({
       source,
-      importSource: contentTextContract.parse(importSource),
+      importSource: importSource,
       importedName: imported,
     });
     if (localName !== undefined) {
@@ -59,19 +55,19 @@ export const fileWriteCallsExtractTransformer = ({
   for (const match of String(source).matchAll(pattern)) {
     const [, matchedLocal = '', singleQuoted, doubleQuoted, backticked, brokerName, bareVar] =
       match;
-    const adapter = importedByLocal.get(contentTextContract.parse(matchedLocal));
+    const adapter = importedByLocal.get(matchedLocal);
     const literal = singleQuoted ?? doubleQuoted ?? backticked;
 
     if (adapter !== undefined) {
       if (literal !== undefined) {
         results.push(
-          fileWriteCallContract.parse({ adapter, filePathArg: contentTextContract.parse(literal) }),
+          fileWriteCallContract.parse({ adapter, filePathArg: literal }),
         );
       } else if (brokerName !== undefined) {
         results.push(
           fileWriteCallContract.parse({
             adapter,
-            filePathArg: contentTextContract.parse(`<computed: ${brokerName}>`),
+            filePathArg: `<computed: ${brokerName}>`,
           }),
         );
       } else if (bareVar !== undefined) {
@@ -80,7 +76,7 @@ export const fileWriteCallsExtractTransformer = ({
             adapter,
             filePathArg: filePathArgResolveTransformer({
               source,
-              variableName: contentTextContract.parse(bareVar),
+              variableName: bareVar,
             }),
           }),
         );

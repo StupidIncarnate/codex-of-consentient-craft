@@ -15,14 +15,13 @@
  */
 import { z } from '#gateway/npm/zod';
 
-import { contentTextContract } from '../content-text/content-text-contract';
 import { questContract } from '../quest/quest-contract';
 
 export const getQuestResultContract = z
   .object({
     success: z.boolean(),
     quest: questContract.optional(),
-    flowSlice: contentTextContract.optional(),
+    flowSlice: z.string().brand<'GetQuestResultFlowSlice'>().optional(),
     error: z.string().brand<'GetQuestResultError'>().optional(),
   })
   .brand<'GetQuestResult'>();

@@ -17,8 +17,6 @@
  * // Returns { realModule: 'fs', wrapperNames: ['existsSync'] }
  */
 
-import { contentTextContract } from '../../contracts/content-text/content-text-contract';
-import type { ContentText } from '../../contracts/content-text/content-text-contract';
 
 const STAR_EXPORT_PATTERN = /^export \* from ['"]([^'"]+)['"];?\s*$/u;
 const NAMED_EXPORT_PATTERN = /^export \{\s*([^}]+?)\s*\} from ['"](\.[^'"]+)['"];?\s*$/u;
@@ -28,15 +26,15 @@ const EXPORT_TYPE_PREFIX = 'export type';
 export const gatewaySubpathBarrelParseTransformer = ({
   barrelContent,
 }: {
-  barrelContent: ContentText;
-}): { realModule?: ContentText; wrapperNames: ContentText[] } => {
+  barrelContent: string;
+}): { realModule?: string; wrapperNames: string[] } => {
   const lines = String(barrelContent)
     .split('\n')
     .map((line) => line.trim());
 
   const starLine = lines.find((line) => STAR_EXPORT_PATTERN.test(line));
   const starMatch = starLine === undefined ? null : STAR_EXPORT_PATTERN.exec(starLine);
-  const realModule = starMatch === null ? undefined : contentTextContract.parse(starMatch[1] ?? '');
+  const realModule = starMatch === null ? undefined : (starMatch[1] ?? '');
 
   const wrapperNames = lines
     .filter((line) => !line.startsWith(EXPORT_TYPE_PREFIX))
@@ -55,7 +53,7 @@ export const gatewaySubpathBarrelParseTransformer = ({
             : clause.slice(aliasIndex + ALIAS_MARKER.length).trim();
         })
         .filter((name) => name.length > 0)
-        .map((name) => contentTextContract.parse(name));
+        .map((name) => name);
     });
 
   return {

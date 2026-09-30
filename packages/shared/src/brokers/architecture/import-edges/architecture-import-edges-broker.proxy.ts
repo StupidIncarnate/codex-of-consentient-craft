@@ -1,6 +1,4 @@
 import type { Dirent } from '#gateway/node/fs';
-import type { ContentText } from '../../../contracts/content-text/content-text-contract';
-import { ContentTextStub } from '../../../contracts/content-text/content-text.stub';
 import { safeReaddirLayerBrokerProxy } from './safe-readdir-layer-broker.proxy';
 import { readSourceLayerBrokerProxy } from './read-source-layer-broker.proxy';
 import { listTsFilesRecursiveLayerBrokerProxy } from './list-ts-files-recursive-layer-broker.proxy';
@@ -26,14 +24,14 @@ const addToTree = (
 
 const addPathToTree = (
   tree: Map<string, Dirent[]>,
-  parts: ContentText[],
+  parts: string[],
   depth: number,
 ): void => {
   if (depth >= parts.length) {
     return;
   }
   const parentDir = (parts.slice(0, depth).map(String).join('/') || '/');
-  const childName = String(parts[depth] ?? ContentTextStub({ value: '' }));
+  const childName = String(parts[depth] ?? '');
   if (childName === '') {
     return;
   }
@@ -53,8 +51,8 @@ export const architectureImportEdgesBrokerProxy = (): {
     sourceFiles,
   }: {
     projectRoot: string;
-    packages: ContentText[];
-    sourceFiles: { path: string; source: ContentText }[];
+    packages: string[];
+    sourceFiles: { path: string; source: string }[];
   }) => void;
 } => {
   const readdirProxy = safeReaddirLayerBrokerProxy();
@@ -68,8 +66,8 @@ export const architectureImportEdgesBrokerProxy = (): {
       sourceFiles,
     }: {
       projectRoot: string;
-      packages: ContentText[];
-      sourceFiles: { path: string; source: ContentText }[];
+      packages: string[];
+      sourceFiles: { path: string; source: string }[];
     }): void => {
       const root = String(projectRoot);
 
@@ -84,7 +82,7 @@ export const architectureImportEdgesBrokerProxy = (): {
       for (const file of sourceFiles) {
         const parts = String(file.path)
           .split('/')
-          .map((p) => ContentTextStub({ value: p }));
+          .map((p) => p);
         addPathToTree(tree, parts, 1);
       }
 
@@ -95,19 +93,19 @@ export const architectureImportEdgesBrokerProxy = (): {
         },
       });
 
-      const fileMap = new Map<string, ContentText>();
+      const fileMap = new Map<string, string>();
       for (const file of sourceFiles) {
         fileMap.set(file.path, file.source);
       }
 
       readProxy.implementation({
-        fn: (filePath): ContentText => {
+        fn: (filePath): string => {
           for (const [key, content] of fileMap) {
             if (String(key) === String(filePath)) {
               return content;
             }
           }
-          return ContentTextStub({ value: '' });
+          return '';
         },
       });
     },

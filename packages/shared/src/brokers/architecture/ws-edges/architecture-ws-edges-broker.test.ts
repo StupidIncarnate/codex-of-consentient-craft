@@ -1,6 +1,5 @@
 import { architectureWsEdgesBroker } from './architecture-ws-edges-broker';
 import { architectureWsEdgesBrokerProxy } from './architecture-ws-edges-broker.proxy';
-import { ContentTextStub } from '../../../contracts/content-text/content-text.stub';
 
 const PROJECT_ROOT = '/repo';
 const EMIT_FILE = '/repo/packages/orchestrator/src/state/orchestration-events/orchestration-events-state.ts';
@@ -25,15 +24,11 @@ describe('architectureWsEdgesBroker', () => {
         sourceFiles: [
           {
             path: EMIT_FILE,
-            source: ContentTextStub({
-              value: "orchestrationEventsState.emit({ type: 'chat-output', payload });",
-            }),
+            source: "orchestrationEventsState.emit({ type: 'chat-output', payload });",
           },
           {
             path: CONSUME_FILE,
-            source: ContentTextStub({
-              value: "if (parsed.data.type === 'chat-output') {",
-            }),
+            source: "if (parsed.data.type === 'chat-output') {",
           },
         ],
       });
@@ -42,7 +37,7 @@ describe('architectureWsEdgesBroker', () => {
 
       expect(result).toStrictEqual([
         {
-          eventType: ContentTextStub({ value: 'chat-output' }),
+          eventType: 'chat-output',
           emitterFile: EMIT_FILE,
           consumerFiles: [CONSUME_FILE],
           wsGatewayFile: null,
@@ -57,9 +52,7 @@ describe('architectureWsEdgesBroker', () => {
         sourceFiles: [
           {
             path: EMIT_FILE,
-            source: ContentTextStub({
-              value: "orchestrationEventsState.emit({ type: 'slot-update', payload });",
-            }),
+            source: "orchestrationEventsState.emit({ type: 'slot-update', payload });",
           },
         ],
       });
@@ -68,7 +61,7 @@ describe('architectureWsEdgesBroker', () => {
 
       expect(result).toStrictEqual([
         {
-          eventType: ContentTextStub({ value: 'slot-update' }),
+          eventType: 'slot-update',
           emitterFile: EMIT_FILE,
           consumerFiles: [],
           wsGatewayFile: null,

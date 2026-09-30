@@ -42,7 +42,6 @@ import { discoverIgnoreState } from '../../../state/discover-ignore/discover-ign
 import { folderConstraintsState } from '../../../state/folder-constraints/folder-constraints-state';
 import type { CallToolResult } from '#gateway/npm/modelcontextprotocol__sdk__types';
 import type { ToolName } from '../../../contracts/tool-name/tool-name-contract';
-import { contentTextContract } from '../../../contracts/content-text/content-text-contract';
 import { folderDetailInputContract } from '../../../contracts/folder-detail-input/folder-detail-input-contract';
 import { getProjectInventoryInputContract } from '../../../contracts/get-project-inventory-input/get-project-inventory-input-contract';
 import { getProjectMapInputContract } from '../../../contracts/get-project-map-input/get-project-map-input-contract';
@@ -87,7 +86,7 @@ export const ArchitectureHandleResponder = async ({
       content: [
         {
           type: 'text',
-          text: contentTextContract.parse(JSON.stringify(resultWithRoot, null, JSON_INDENT_SPACES)),
+          text: JSON.stringify(resultWithRoot, null, JSON_INDENT_SPACES),
         },
       ],
     };
@@ -100,7 +99,7 @@ export const ArchitectureHandleResponder = async ({
       content: [
         {
           type: 'text',
-          text: contentTextContract.parse(result),
+          text: result,
         },
       ],
     };
@@ -119,7 +118,7 @@ export const ArchitectureHandleResponder = async ({
       content: [
         {
           type: 'text',
-          text: contentTextContract.parse(result),
+          text: result,
         },
       ],
     };
@@ -132,7 +131,7 @@ export const ArchitectureHandleResponder = async ({
       content: [
         {
           type: 'text',
-          text: contentTextContract.parse(result),
+          text: result,
         },
       ],
     };
@@ -148,7 +147,7 @@ export const ArchitectureHandleResponder = async ({
     });
 
     return {
-      content: [{ type: 'text', text: contentTextContract.parse(`${banner}\n\n${result}`) }],
+      content: [{ type: 'text', text: `${banner}\n\n${result}` }],
     };
   }
 
@@ -169,9 +168,7 @@ export const ArchitectureHandleResponder = async ({
         content: [
           {
             type: 'text',
-            text: contentTextContract.parse(
-              `${banner}\n\n## ${String(packageName)} — outside packages, Node, the browser and installed programs, reached only through here\n\n${gatewayResult}`,
-            ),
+            text: `${banner}\n\n## ${String(packageName)} — outside packages, Node, the browser and installed programs, reached only through here\n\n${gatewayResult}`,
           },
         ],
       };
@@ -206,7 +203,7 @@ export const ArchitectureHandleResponder = async ({
     });
 
     return {
-      content: [{ type: 'text', text: contentTextContract.parse(`${banner}\n\n${result}`) }],
+      content: [{ type: 'text', text: `${banner}\n\n${result}` }],
     };
   }
 

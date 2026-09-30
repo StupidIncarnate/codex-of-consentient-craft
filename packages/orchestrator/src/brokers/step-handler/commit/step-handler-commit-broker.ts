@@ -37,7 +37,7 @@
  * // { outcome: 'done' | 'empty', detail }
  */
 
-import { contentTextContract, getQuestInputContract, stepNameContract } from '@dungeonmaster/shared/contracts';
+import { getQuestInputContract, stepNameContract } from '@dungeonmaster/shared/contracts';
 
 import { addAll, commit, push } from '#gateway/bin/git';
 
@@ -122,7 +122,7 @@ export const stepHandlerCommitBroker = async ({
   const message = commitMessageBuildTransformer({
     family: ownWorkItem.role,
     step: ownStep,
-    scope: contentTextContract.parse(String(linkedOperation?.text ?? ownWorkItem.id)),
+    scope: String(linkedOperation?.text ?? ownWorkItem.id),
     workItems: coveredWorkItems.map((item) => ({ id: item.id, observations: item.observations })),
   });
 
@@ -154,6 +154,6 @@ export const stepHandlerCommitBroker = async ({
 
   return stepHandlerResultContract.parse({
     outcome: isEmpty ? 'empty' : 'done',
-    detail: contentTextContract.parse(detail),
+    detail: detail,
   });
 };

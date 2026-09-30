@@ -1,12 +1,11 @@
 import { architectureImportEdgesBroker } from './architecture-import-edges-broker';
 import { architectureImportEdgesBrokerProxy } from './architecture-import-edges-broker.proxy';
-import { ContentTextStub } from '../../../contracts/content-text/content-text.stub';
 import { ImportEdgeStub } from '../../../contracts/import-edge/import-edge.stub';
 
 const PROJECT_ROOT = '/repo';
 
-const WEB_PKG = ContentTextStub({ value: 'web' });
-const SHARED_PKG = ContentTextStub({ value: 'shared' });
+const WEB_PKG = 'web';
+const SHARED_PKG = 'shared';
 
 describe('architectureImportEdgesBroker', () => {
   describe('no packages', () => {
@@ -29,9 +28,7 @@ describe('architectureImportEdgesBroker', () => {
         sourceFiles: [
           {
             path: '/repo/packages/web/src/widgets/app-widget.ts',
-            source: ContentTextStub({
-              value: "import { questContract } from '@dungeonmaster/shared/contracts';",
-            }),
+            source: "import { questContract } from '@dungeonmaster/shared/contracts';",
           },
         ],
       });
@@ -40,9 +37,9 @@ describe('architectureImportEdgesBroker', () => {
 
       expect(result).toStrictEqual([
         ImportEdgeStub({
-          consumerPackage: ContentTextStub({ value: 'web' }),
-          sourcePackage: ContentTextStub({ value: 'shared' }),
-          barrel: ContentTextStub({ value: 'contracts' }),
+          consumerPackage: 'web',
+          sourcePackage: 'shared',
+          barrel: 'contracts',
           importCount: 1,
         }),
       ]);
@@ -56,15 +53,11 @@ describe('architectureImportEdgesBroker', () => {
         sourceFiles: [
           {
             path: '/repo/packages/web/src/widgets/a-widget.ts',
-            source: ContentTextStub({
-              value: "import { x } from '@dungeonmaster/shared/contracts';",
-            }),
+            source: "import { x } from '@dungeonmaster/shared/contracts';",
           },
           {
             path: '/repo/packages/web/src/widgets/b-widget.ts',
-            source: ContentTextStub({
-              value: "import { y } from '@dungeonmaster/shared/contracts';",
-            }),
+            source: "import { y } from '@dungeonmaster/shared/contracts';",
           },
         ],
       });
@@ -73,9 +66,9 @@ describe('architectureImportEdgesBroker', () => {
 
       expect(result).toStrictEqual([
         ImportEdgeStub({
-          consumerPackage: ContentTextStub({ value: 'web' }),
-          sourcePackage: ContentTextStub({ value: 'shared' }),
-          barrel: ContentTextStub({ value: 'contracts' }),
+          consumerPackage: 'web',
+          sourcePackage: 'shared',
+          barrel: 'contracts',
           importCount: 2,
         }),
       ]);
@@ -89,7 +82,7 @@ describe('architectureImportEdgesBroker', () => {
         sourceFiles: [
           {
             path: '/repo/packages/web/src/widgets/app-widget.ts',
-            source: ContentTextStub({ value: "import { foo } from './local-module';" }),
+            source: "import { foo } from './local-module';",
           },
         ],
       });

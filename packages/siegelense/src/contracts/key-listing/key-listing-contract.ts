@@ -27,7 +27,6 @@
 
 import { z } from '#gateway/npm/zod';
 
-import { contentTextContract } from '@dungeonmaster/shared/contracts';
 
 import { keyRowContract } from '../key-row/key-row-contract';
 import { selectorContract } from '../selector/selector-contract';
@@ -36,9 +35,9 @@ export const keyListingContract = z
   .object({
     within: selectorContract.nullable(),
     rows: z.array(keyRowContract).readonly(),
-    duplicates: z.array(contentTextContract).readonly(),
-    truncated: z.array(contentTextContract).readonly(),
-    rendered: contentTextContract,
+    duplicates: z.array(z.string().brand<'KeyListingDuplicates'>()).readonly(),
+    truncated: z.array(z.string().brand<'KeyListingTruncated'>()).readonly(),
+    rendered: z.string().brand<'KeyListingRendered'>(),
   })
   .strict();
 

@@ -11,7 +11,6 @@
  * // Returns a ContentText: a header block of session facts, a token block, a tool-call histogram,
  * // then the tool-result byte count and the sub-agent count
  */
-import { contentTextContract, type ContentText } from '@dungeonmaster/shared/contracts';
 import type { TranscriptSummary } from '../../contracts/transcript-summary/transcript-summary-contract';
 
 const LABEL_WIDTH = 25;
@@ -23,7 +22,7 @@ export const summaryToTextTransformer = ({
   summary,
 }: {
   summary: TranscriptSummary;
-}): ContentText => {
+}): string => {
   const startLine =
     summary.startedAt === undefined
       ? `${'Session started'.padEnd(LABEL_WIDTH)}(nothing in the file was timestamped)`
@@ -87,7 +86,5 @@ export const summaryToTextTransformer = ({
     `${'Sub-agents started'.padEnd(LABEL_WIDTH)}${summary.subagentCount.toLocaleString('en-US')}`,
   ].join('\n');
 
-  return contentTextContract.parse(
-    [headerBlock, tokensBlock, toolCallsBlock, footerBlock].join('\n\n'),
-  );
+  return [headerBlock, tokensBlock, toolCallsBlock, footerBlock].join('\n\n');
 };

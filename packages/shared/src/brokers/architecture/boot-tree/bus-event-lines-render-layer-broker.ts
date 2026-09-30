@@ -15,10 +15,6 @@
  * `→ adapters/...` call chain block.
  */
 
-import {
-  contentTextContract,
-  type ContentText,
-} from '../../../contracts/content-text/content-text-contract';
 import type { EventBusContext } from '../../../contracts/event-bus-context/event-bus-context-contract';
 
 export const busEventLinesRenderLayerBroker = ({
@@ -27,13 +23,13 @@ export const busEventLinesRenderLayerBroker = ({
 }: {
   responderFile: string;
   eventBusContext: EventBusContext;
-}): ContentText[] => {
-  const lines: ContentText[] = [];
+}): string[] => {
+  const lines: string[] = [];
   const responderPath = String(responderFile);
 
   // A responder may emit the same event type multiple times — show one bus→ line
   // per distinct event type, in first-seen order.
-  const emittedTypes: ContentText[] = [];
+  const emittedTypes: string[] = [];
   for (const site of eventBusContext.emitterSites) {
     if (String(site.emitterFile) !== responderPath) continue;
     const alreadyAdded = emittedTypes.some(
@@ -44,10 +40,10 @@ export const busEventLinesRenderLayerBroker = ({
     }
   }
   for (const eventType of emittedTypes) {
-    lines.push(contentTextContract.parse(`bus→ ${String(eventType)}`));
+    lines.push(`bus→ ${String(eventType)}`);
   }
 
-  const subscribedBusNames: ContentText[] = [];
+  const subscribedBusNames: string[] = [];
   for (const sub of eventBusContext.subscriberFiles) {
     if (String(sub.subscriberFile) !== responderPath) continue;
     const alreadyAdded = subscribedBusNames.some(
@@ -58,7 +54,7 @@ export const busEventLinesRenderLayerBroker = ({
     }
   }
   for (const busName of subscribedBusNames) {
-    lines.push(contentTextContract.parse(`bus← ${String(busName)} (subscribes all event types)`));
+    lines.push(`bus← ${String(busName)} (subscribes all event types)`);
   }
 
   return lines;

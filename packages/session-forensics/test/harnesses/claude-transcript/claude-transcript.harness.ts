@@ -23,12 +23,11 @@ import { join } from '#gateway/node/path';
 import { locationsClaudeProjectsRootFindBroker } from '@dungeonmaster/shared/brokers';
 import type { SessionIdStub } from '@dungeonmaster/shared/contracts/session-id/session-id.stub';
 import type { AgentIdStub } from '@dungeonmaster/shared/contracts/agent-id/agent-id.stub';
-import type { ContentTextStub } from '@dungeonmaster/shared/contracts/content-text/content-text.stub';
 import { pid } from '#gateway/node/process';
 
 type SessionId = ReturnType<typeof SessionIdStub>;
 type AgentId = ReturnType<typeof AgentIdStub>;
-type ContentText = ReturnType<typeof ContentTextStub>;
+type ContentText = string;
 
 const PROJECT_DIR_PREFIX = 'session-forensics-flow-integration-test-';
 const SUBAGENTS_DIR_NAME = 'subagents';

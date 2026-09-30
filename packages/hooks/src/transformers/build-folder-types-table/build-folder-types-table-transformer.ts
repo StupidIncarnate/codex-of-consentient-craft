@@ -8,11 +8,9 @@
  * WHEN-TO-USE: When the session-snippet hook needs the folder types table generated from config
  */
 
-import type { ContentText } from '@dungeonmaster/shared/contracts';
-import { contentTextContract } from '@dungeonmaster/shared/contracts';
 import { folderConfigStatics } from '@dungeonmaster/shared/statics';
 
-export const buildFolderTypesTableTransformer = (): ContentText => {
+export const buildFolderTypesTableTransformer = (): string => {
   const entries = Object.entries(folderConfigStatics)
     .map(([key, config]) => ({
       key,
@@ -25,12 +23,10 @@ export const buildFolderTypesTableTransformer = (): ContentText => {
       return depthDiff === 0 ? a.key.localeCompare(b.key) : depthDiff;
     });
 
-  const header = contentTextContract.parse(
-    '| Folder | Purpose | When to Use |\n|--------|---------|-------------|',
-  );
+  const header = '| Folder | Purpose | When to Use |\n|--------|---------|-------------|';
   const rows = entries.map(({ key, purpose, whenToUse }) =>
-    contentTextContract.parse(`| ${key}/ | ${purpose} | ${whenToUse} |`),
+    `| ${key}/ | ${purpose} | ${whenToUse} |`,
   );
 
-  return contentTextContract.parse(`## Folder Types\n\n${header}\n${rows.join('\n')}`);
+  return `## Folder Types\n\n${header}\n${rows.join('\n')}`;
 };

@@ -1,4 +1,3 @@
-import { ContentTextStub } from '@dungeonmaster/shared/contracts/content-text/content-text.stub';
 import { ExitCodeStub } from '@dungeonmaster/shared/contracts/exit-code/exit-code.stub';
 import { QuestIdStub } from '@dungeonmaster/shared/contracts/quest-id/quest-id.stub';
 import { QuestWorkItemIdStub } from '@dungeonmaster/shared/contracts/quest-work-item-id/quest-work-item-id.stub';
@@ -7,7 +6,7 @@ import { CleanupCliAnswerStub } from '../../../contracts/cleanup-answer/cleanup-
 import { stepHandlerCleanupBroker } from './step-handler-cleanup-broker';
 import { stepHandlerCleanupBrokerProxy } from './step-handler-cleanup-broker.proxy';
 
-type ContentText = ReturnType<typeof ContentTextStub>;
+type ContentText = string;
 
 const QUEST_ID = QuestIdStub({ value: 'add-auth' });
 const WORK_ITEM_ID = QuestWorkItemIdStub({ value: 'f47ac10b-58cc-4372-a567-0e02b2c3d479' });
@@ -125,7 +124,7 @@ describe('stepHandlerCleanupBroker', () => {
         args: [],
         questId: QUEST_ID,
         workItemId: WORK_ITEM_ID,
-        onLine: (line) => seenLines.push(ContentTextStub({ value: line })),
+        onLine: (line) => seenLines.push(line),
       });
 
       expect(seenLines.length).toBeGreaterThan(0);

@@ -7,11 +7,10 @@
  * firstWordTransformer({ text: contentTextContract.parse('git status') });
  * // Returns 'git' as ContentText
  */
-import { contentTextContract, type ContentText } from '@dungeonmaster/shared/contracts';
 
 const FIRST_WORD_PATTERN = /^\S+/u;
 
-export const firstWordTransformer = ({ text }: { text: ContentText }): ContentText | undefined => {
+export const firstWordTransformer = ({ text }: { text: string }): string | undefined => {
   const match = FIRST_WORD_PATTERN.exec(text.trim());
-  return match === null ? undefined : contentTextContract.parse(match[0]);
+  return match === null ? undefined : match[0];
 };

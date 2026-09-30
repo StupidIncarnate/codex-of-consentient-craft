@@ -1,13 +1,9 @@
 import { serverRouteCallsExtractTransformer } from './server-route-calls-extract-transformer';
-import { ContentTextStub } from '../../contracts/content-text/content-text.stub';
 
 describe('serverRouteCallsExtractTransformer', () => {
   describe('statics member-expression args', () => {
     it('VALID: {app.get with statics ref + responder body} => returns method, ref, responder', () => {
-      const source = ContentTextStub({
-        value:
-          'app.get(apiRoutesStatics.quests.list, async (c) => { const r = await QuestListResponder({}); });',
-      });
+      const source = 'app.get(apiRoutesStatics.quests.list, async (c) => { const r = await QuestListResponder({}); });';
 
       const result = serverRouteCallsExtractTransformer({ source });
 
@@ -21,10 +17,7 @@ describe('serverRouteCallsExtractTransformer', () => {
     });
 
     it('VALID: {app.post with statics ref + responder body} => returns POST tuple', () => {
-      const source = ContentTextStub({
-        value:
-          'app.post(apiRoutesStatics.quests.start, async (c) => { const r = await QuestStartResponder({}); });',
-      });
+      const source = 'app.post(apiRoutesStatics.quests.start, async (c) => { const r = await QuestStartResponder({}); });';
 
       const result = serverRouteCallsExtractTransformer({ source });
 
@@ -38,10 +31,7 @@ describe('serverRouteCallsExtractTransformer', () => {
     });
 
     it('VALID: {app.patch with statics ref + responder body} => returns PATCH tuple', () => {
-      const source = ContentTextStub({
-        value:
-          'app.patch(apiRoutesStatics.quests.byId, async (c) => { const r = await QuestModifyResponder({}); });',
-      });
+      const source = 'app.patch(apiRoutesStatics.quests.byId, async (c) => { const r = await QuestModifyResponder({}); });';
 
       const result = serverRouteCallsExtractTransformer({ source });
 
@@ -55,10 +45,7 @@ describe('serverRouteCallsExtractTransformer', () => {
     });
 
     it('VALID: {app.delete with statics ref + responder body} => returns DELETE tuple', () => {
-      const source = ContentTextStub({
-        value:
-          'app.delete(apiRoutesStatics.quests.delete, async (c) => { const r = await QuestDeleteResponder({}); });',
-      });
+      const source = 'app.delete(apiRoutesStatics.quests.delete, async (c) => { const r = await QuestDeleteResponder({}); });';
 
       const result = serverRouteCallsExtractTransformer({ source });
 
@@ -74,9 +61,7 @@ describe('serverRouteCallsExtractTransformer', () => {
 
   describe('inline string literal args', () => {
     it('VALID: {app.get inline-handler with no responder} => responderName=null', () => {
-      const source = ContentTextStub({
-        value: "app.get('/api/health', (c) => c.json({ status: 'ok' }));",
-      });
+      const source = "app.get('/api/health', (c) => c.json({ status: 'ok' }));";
 
       const result = serverRouteCallsExtractTransformer({ source });
 
@@ -84,10 +69,7 @@ describe('serverRouteCallsExtractTransformer', () => {
     });
 
     it('VALID: {app.post with double-quoted literal + responder body} => paired tuple', () => {
-      const source = ContentTextStub({
-        value:
-          'app.post("/api/quests", async (c) => { const r = await QuestUserAddResponder({}); });',
-      });
+      const source = 'app.post("/api/quests", async (c) => { const r = await QuestUserAddResponder({}); });';
 
       const result = serverRouteCallsExtractTransformer({ source });
 
@@ -99,13 +81,11 @@ describe('serverRouteCallsExtractTransformer', () => {
 
   describe('multiple routes', () => {
     it('VALID: {multiple app.<method> calls each with their own responder} => pairs each call to its body responder', () => {
-      const source = ContentTextStub({
-        value: [
+      const source = [
           'app.get(apiRoutesStatics.quests.list, async (c) => { await QuestListResponder({}); });',
           'app.post(apiRoutesStatics.quests.list, async (c) => { await QuestUserAddResponder({}); });',
           'app.patch(apiRoutesStatics.quests.byId, async (c) => { await QuestModifyResponder({}); });',
-        ].join('\n'),
-      });
+        ].join('\n');
 
       const result = serverRouteCallsExtractTransformer({ source });
 
@@ -131,9 +111,7 @@ describe('serverRouteCallsExtractTransformer', () => {
 
   describe('empty source', () => {
     it('EMPTY: {source with no route registrations} => returns empty array', () => {
-      const source = ContentTextStub({
-        value: 'import { Hono } from "hono";\nconst app = new Hono();',
-      });
+      const source = 'import { Hono } from "hono";\nconst app = new Hono();';
 
       const result = serverRouteCallsExtractTransformer({ source });
 

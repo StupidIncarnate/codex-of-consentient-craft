@@ -13,8 +13,6 @@
  * // Returns 'INSTANCE: inst_7f3a9c21 (alive)\nSNAPSHOTS: none recorded yet\n'
  */
 
-import { contentTextContract } from '@dungeonmaster/shared/contracts';
-import type { ContentText } from '@dungeonmaster/shared/contracts';
 
 import { epochMsContract } from '../../contracts/epoch-ms/epoch-ms-contract';
 import type { EpochMs } from '../../contracts/epoch-ms/epoch-ms-contract';
@@ -28,15 +26,13 @@ export const snapshotsAnswerRenderTransformer = ({
 }: {
   answer: SnapshotsAnswer;
   nowMs?: EpochMs | undefined;
-}): ContentText => {
+}): string => {
   const instanceLine = `INSTANCE: ${answer.instanceId} (${answer.instanceState})`;
 
   if (answer.snapshots.length === 0) {
-    return contentTextContract.parse(
-      answer.instanceState === 'killed'
+    return (answer.instanceState === 'killed'
         ? `${instanceLine}\nSNAPSHOTS: none — the throwaway home died with the instance at kill\n`
-        : `${instanceLine}\nSNAPSHOTS: none recorded yet\n`,
-    );
+        : `${instanceLine}\nSNAPSHOTS: none recorded yet\n`);
   }
 
   const { headers, cellPadding } = snapshotsTableStatics.table;
@@ -67,5 +63,5 @@ export const snapshotsAnswerRenderTransformer = ({
 
   const tableLines = [topLine, headerLine, headerSeparator, ...rowLines, bottomLine];
 
-  return contentTextContract.parse(`${instanceLine}\n${tableLines.join('\n')}\n`);
+  return `${instanceLine}\n${tableLines.join('\n')}\n`;
 };

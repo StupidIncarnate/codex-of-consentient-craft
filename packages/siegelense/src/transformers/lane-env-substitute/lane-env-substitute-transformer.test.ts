@@ -1,5 +1,4 @@
 import { laneEnvSubstituteTransformer } from './lane-env-substitute-transformer';
-import { ContentTextStub } from '@dungeonmaster/shared/contracts/content-text/content-text.stub';
 import { PortPairStub } from '../../contracts/port-pair/port-pair.stub';
 import { LaneSpecStub } from '../../contracts/lane-spec/lane-spec.stub';
 
@@ -7,8 +6,8 @@ const PORTS = PortPairStub({ api: 34_172, web: 34_173 });
 const HOME = '/tmp/dm-siege-inst_1';
 const CLAUDE_QUEUE_DIR = '/tmp/dm-siege-inst_1/claude-queue';
 const WARD_QUEUE_DIR = '/tmp/dm-siege-inst_1/ward-queue';
-const API_WORKSPACE = ContentTextStub({ value: '@dungeonmaster/server' });
-const WEB_WORKSPACE = ContentTextStub({ value: '@dungeonmaster/web' });
+const API_WORKSPACE = '@dungeonmaster/server';
+const WEB_WORKSPACE = '@dungeonmaster/web';
 const REPO_ROOT = '/repo';
 
 describe('laneEnvSubstituteTransformer', () => {

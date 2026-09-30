@@ -11,8 +11,6 @@
  * // Returns '2026-01-01T00:00:03.000Z' as a branded ContentText
  */
 
-import { contentTextContract } from '@dungeonmaster/shared/contracts';
-import type { ContentText } from '@dungeonmaster/shared/contracts';
 
 import { seedFixtureStatics } from '../../statics/seed-fixture/seed-fixture-statics';
 import { transcriptTimeStatics } from '../../statics/transcript-time/transcript-time-statics';
@@ -21,9 +19,7 @@ export const transcriptTimestampTransformer = ({
   offsetSeconds,
 }: {
   offsetSeconds: number;
-}): ContentText => {
+}): string => {
   const baseMs = Date.parse(seedFixtureStatics.session.baseTimestamp);
-  return contentTextContract.parse(
-    new Date(baseMs + offsetSeconds * transcriptTimeStatics.conversion.msPerSecond).toISOString(),
-  );
+  return new Date(baseMs + offsetSeconds * transcriptTimeStatics.conversion.msPerSecond).toISOString();
 };

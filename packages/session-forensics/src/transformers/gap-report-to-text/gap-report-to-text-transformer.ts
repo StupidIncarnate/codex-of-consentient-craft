@@ -11,7 +11,6 @@
  * // Returns ContentText: a header explaining what a gap is, one line per surviving gap, then a
  * // summary splitting the run into time spent waiting on a sub-agent and time with nothing running
  */
-import { contentTextContract, type ContentText } from '@dungeonmaster/shared/contracts';
 
 import { digestDefaultStatics } from '../../statics/digest-default/digest-default-statics';
 import type { GapReport } from '../../contracts/gap-report/gap-report-contract';
@@ -26,7 +25,7 @@ export const gapReportToTextTransformer = ({
 }: {
   report: GapReport;
   floorSeconds?: number;
-}): ContentText => {
+}): string => {
   const inGapsSeconds = report.blockedSeconds + report.idleSeconds;
 
   const inGapsPercent =
@@ -59,5 +58,5 @@ export const gapReportToTextTransformer = ({
     `  nothing running at all  ${(report.idleSeconds / SECONDS_PER_MINUTE).toFixed(1)} minutes  (${idlePercent.toFixed(1)}%)`,
   ];
 
-  return contentTextContract.parse(lines.join('\n'));
+  return lines.join('\n');
 };

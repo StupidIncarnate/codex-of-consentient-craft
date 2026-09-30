@@ -8,11 +8,10 @@
  */
 
 import { z } from '#gateway/npm/zod';
-import { contentTextContract } from '../content-text/content-text-contract';
 
 export const fileWriteCallContract = z.object({
-  adapter: contentTextContract,
-  filePathArg: contentTextContract,
+  adapter: z.string().brand<'FileWriteCallAdapter'>(),
+  filePathArg: z.string().brand<'FileWriteCallFilePathArg'>(),
 });
 
 export type FileWriteCall = z.infer<typeof fileWriteCallContract>;

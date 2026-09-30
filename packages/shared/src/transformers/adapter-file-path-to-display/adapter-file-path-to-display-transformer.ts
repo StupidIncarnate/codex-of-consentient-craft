@@ -19,10 +19,6 @@
  * tmp/server-map.md expects (e.g. `adapters/orchestrator/get-quest` not the kebab basename)
  */
 
-import {
-  contentTextContract,
-  type ContentText,
-} from '../../contracts/content-text/content-text-contract';
 
 const PACKAGE_PATH_PATTERN = /\/packages\/([^/]+)\/src\//u;
 const OUT_OF_BOUNDS_MESSAGE =
@@ -34,7 +30,7 @@ export const adapterFilePathToDisplayTransformer = ({
 }: {
   filePath: string;
   renderingFilePath: string;
-}): ContentText => {
+}): string => {
   const referencedMatch = PACKAGE_PATH_PATTERN.exec(String(filePath));
   if (referencedMatch === null) {
     throw new Error(`${OUT_OF_BOUNDS_MESSAGE} — got "${String(filePath)}"`);
@@ -59,8 +55,8 @@ export const adapterFilePathToDisplayTransformer = ({
     lastSlashInRelative === -1 ? afterSrc : afterSrc.slice(0, lastSlashInRelative);
 
   if (referencedPackage === renderingPackage) {
-    return contentTextContract.parse(parentRelative);
+    return parentRelative;
   }
 
-  return contentTextContract.parse(`${referencedPackage}/${parentRelative}`);
+  return `${referencedPackage}/${parentRelative}`;
 };

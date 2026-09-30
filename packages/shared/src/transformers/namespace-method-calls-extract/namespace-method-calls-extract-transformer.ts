@@ -12,10 +12,6 @@
  * WHEN-NOT-TO-USE: When full AST parsing is needed — this is a v1 regex heuristic
  */
 
-import {
-  contentTextContract,
-  type ContentText,
-} from '../../contracts/content-text/content-text-contract';
 
 // Matches <UppercaseNamespace>.<camelCaseMethod>(
 // Capture group 1 = method name
@@ -24,15 +20,15 @@ const NAMESPACE_METHOD_PATTERN = /\b[A-Z][A-Za-z0-9]*\.([a-z][A-Za-z0-9]*)\s*\(/
 export const namespaceMethodCallsExtractTransformer = ({
   source,
 }: {
-  source: ContentText;
-}): ContentText[] => {
-  const found: ContentText[] = [];
+  source: string;
+}): string[] => {
+  const found: string[] = [];
   NAMESPACE_METHOD_PATTERN.lastIndex = 0;
   let match = NAMESPACE_METHOD_PATTERN.exec(String(source));
   while (match !== null) {
     const [, methodName] = match;
     if (methodName !== undefined) {
-      const parsed = contentTextContract.parse(methodName);
+      const parsed = methodName;
       const alreadySeen = found.some((m) => String(m) === String(parsed));
       if (!alreadySeen) {
         found.push(parsed);

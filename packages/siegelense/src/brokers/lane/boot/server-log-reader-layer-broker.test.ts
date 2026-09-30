@@ -1,6 +1,5 @@
 import { serverLogReaderLayerBroker } from './server-log-reader-layer-broker';
 import { serverLogReaderLayerBrokerProxy } from './server-log-reader-layer-broker.proxy';
-import { ContentTextStub } from '@dungeonmaster/shared/contracts/content-text/content-text.stub';
 
 describe('serverLogReaderLayerBroker', () => {
   describe('serverLogLength()', () => {
@@ -9,7 +8,7 @@ describe('serverLogReaderLayerBroker', () => {
       const logPath = '/repo/.dungeonmaster-assets/siegelense-assets/inst_1/api-server.log';
       proxy.setupLogContent({
         logPath,
-        content: ContentTextStub({ value: 'line one\nline two\n' }),
+        content: 'line one\nline two\n',
       });
 
       const { serverLogLength } = serverLogReaderLayerBroker({ logPath });
@@ -20,7 +19,7 @@ describe('serverLogReaderLayerBroker', () => {
     it('EMPTY: {no content yet} => returns 0', () => {
       const proxy = serverLogReaderLayerBrokerProxy();
       const logPath = '/repo/.dungeonmaster-assets/siegelense-assets/inst_1/api-server.log';
-      proxy.setupLogContent({ logPath, content: ContentTextStub({ value: '' }) });
+      proxy.setupLogContent({ logPath, content: '' });
 
       const { serverLogLength } = serverLogReaderLayerBroker({ logPath });
 
@@ -34,7 +33,7 @@ describe('serverLogReaderLayerBroker', () => {
       const logPath = '/repo/.dungeonmaster-assets/siegelense-assets/inst_1/api-server.log';
       proxy.setupLogContent({
         logPath,
-        content: ContentTextStub({ value: 'line one\nline two\n' }),
+        content: 'line one\nline two\n',
       });
 
       const { readServerLogSince } = serverLogReaderLayerBroker({ logPath });
@@ -47,7 +46,7 @@ describe('serverLogReaderLayerBroker', () => {
       const logPath = '/repo/.dungeonmaster-assets/siegelense-assets/inst_1/api-server.log';
       proxy.setupLogContent({
         logPath,
-        content: ContentTextStub({ value: 'line one\nline two\n' }),
+        content: 'line one\nline two\n',
       });
 
       const { readServerLogSince } = serverLogReaderLayerBroker({ logPath });

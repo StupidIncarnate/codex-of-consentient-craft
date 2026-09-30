@@ -21,11 +21,10 @@
  */
 
 import { z } from '#gateway/npm/zod';
-import { contentTextContract } from '../content-text/content-text-contract';
 import { absoluteFilePathContract } from '../absolute-file-path/absolute-file-path-contract';
 
 export const wsEdgeContract = z.object({
-  eventType: contentTextContract,
+  eventType: z.string().brand<'WsEdgeEventType'>(),
   emitterFile: absoluteFilePathContract.nullable(),
   consumerFiles: z.array(absoluteFilePathContract),
   wsGatewayFile: absoluteFilePathContract.nullable(),

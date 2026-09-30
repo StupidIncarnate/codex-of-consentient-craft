@@ -1,5 +1,4 @@
 import { FolderConfigStub } from '@dungeonmaster/shared/contracts/folder-config/folder-config.stub';
-import { ContentTextStub } from '../../contracts/content-text/content-text.stub';
 import { folderConstraintsTransformer } from './folder-constraints-transformer';
 
 describe('folderConstraintsTransformer', () => {
@@ -101,9 +100,7 @@ describe('folderConstraintsTransformer', () => {
 
   describe('supplemental constraints', () => {
     it('VALID: {supplementalConstraints: provided} => includes supplemental content', () => {
-      const supplementalConstraints = ContentTextStub({
-        value: '\n**COMPLEXITY:**\n- Keep files under 300 lines',
-      });
+      const supplementalConstraints = '\n**COMPLEXITY:**\n- Keep files under 300 lines';
 
       const constraints = folderConstraintsTransformer({
         folderType: 'brokers',
@@ -131,9 +128,7 @@ describe('folderConstraintsTransformer', () => {
     });
 
     it('VALID: {supplementalConstraints: with examples} => includes example code', () => {
-      const supplementalConstraints = ContentTextStub({
-        value: '\n**EXAMPLES:**\n```typescript\nexport const example = () => {};\n```',
-      });
+      const supplementalConstraints = '\n**EXAMPLES:**\n```typescript\nexport const example = () => {};\n```';
 
       const constraints = folderConstraintsTransformer({
         folderType: 'transformers',

@@ -14,10 +14,6 @@
  */
 
 import {
-  contentTextContract,
-  type ContentText,
-} from '../../contracts/content-text/content-text-contract';
-import {
   webFetchCallSiteContract,
   type WebFetchCallSite,
 } from '../../contracts/web-fetch-call-site/web-fetch-call-site-contract';
@@ -37,7 +33,7 @@ const FETCH_PATTERN = new RegExp(
 export const webFetchCallsExtractTransformer = ({
   source,
 }: {
-  source: ContentText;
+  source: string;
 }): WebFetchCallSite[] => {
   const results: WebFetchCallSite[] = [];
   FETCH_PATTERN.lastIndex = 0;
@@ -59,8 +55,8 @@ export const webFetchCallsExtractTransformer = ({
 
     results.push(
       webFetchCallSiteContract.parse({
-        method: contentTextContract.parse(methodStr),
-        rawArg: contentTextContract.parse(rawArgStr),
+        method: methodStr,
+        rawArg: rawArgStr,
       }),
     );
 

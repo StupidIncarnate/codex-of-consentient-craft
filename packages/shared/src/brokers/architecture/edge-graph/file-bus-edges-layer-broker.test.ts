@@ -1,6 +1,5 @@
 import { fileBusEdgesLayerBroker } from './file-bus-edges-layer-broker';
 import { fileBusEdgesLayerBrokerProxy } from './file-bus-edges-layer-broker.proxy';
-import { ContentTextStub } from '../../../contracts/content-text/content-text.stub';
 
 const PROJECT_ROOT = '/repo';
 
@@ -19,23 +18,19 @@ describe('fileBusEdgesLayerBroker', () => {
         sourceFiles: [
           {
             path: WRITER_FILE,
-            source: ContentTextStub({
-              value: [
+            source: [
                 PROMISES_IMPORT,
                 'const outboxFilePath = join(homePath, locationsStatics.dungeonmasterHome.eventOutbox);',
                 'await appendFile(outboxFilePath, line);',
               ].join('\n'),
-            }),
           },
           {
             path: READER_FILE,
-            source: ContentTextStub({
-              value: [
+            source: [
                 TAIL_IMPORT,
                 'const outboxPath = join(homePath, locationsStatics.dungeonmasterHome.eventOutbox);',
                 "tailFile({ path: outboxPath, startPosition: 'end', onLine });",
               ].join('\n'),
-            }),
           },
         ],
       });
@@ -58,15 +53,11 @@ describe('fileBusEdgesLayerBroker', () => {
         sourceFiles: [
           {
             path: WRITER_FILE,
-            source: ContentTextStub({
-              value: `${PROMISES_IMPORT}\nawait appendFile('/data/bus.jsonl', line);`,
-            }),
+            source: `${PROMISES_IMPORT}\nawait appendFile('/data/bus.jsonl', line);`,
           },
           {
             path: READER_FILE,
-            source: ContentTextStub({
-              value: `${TAIL_IMPORT}\ntailFile({ path: '/data/bus.jsonl', onLine });`,
-            }),
+            source: `${TAIL_IMPORT}\ntailFile({ path: '/data/bus.jsonl', onLine });`,
           },
         ],
       });
@@ -92,21 +83,15 @@ describe('fileBusEdgesLayerBroker', () => {
         sourceFiles: [
           {
             path: otherWriter,
-            source: ContentTextStub({
-              value: `${PROMISES_IMPORT}\nawait appendFile('/data/bus.jsonl', line);`,
-            }),
+            source: `${PROMISES_IMPORT}\nawait appendFile('/data/bus.jsonl', line);`,
           },
           {
             path: WRITER_FILE,
-            source: ContentTextStub({
-              value: `${PROMISES_IMPORT}\nawait appendFile('/data/bus.jsonl', line);`,
-            }),
+            source: `${PROMISES_IMPORT}\nawait appendFile('/data/bus.jsonl', line);`,
           },
           {
             path: READER_FILE,
-            source: ContentTextStub({
-              value: `${TAIL_IMPORT}\ntailFile({ path: '/data/bus.jsonl', onLine });`,
-            }),
+            source: `${TAIL_IMPORT}\ntailFile({ path: '/data/bus.jsonl', onLine });`,
           },
         ],
       });
@@ -137,20 +122,16 @@ describe('fileBusEdgesLayerBroker', () => {
         sourceFiles: [
           {
             path: READER_FILE,
-            source: ContentTextStub({
-              value: [
+            source: [
                 PROMISES_IMPORT,
                 TAIL_IMPORT,
                 "await appendFile('/data/bus.jsonl', '');",
                 "tailFile({ path: '/data/bus.jsonl', onLine });",
               ].join('\n'),
-            }),
           },
           {
             path: WRITER_FILE,
-            source: ContentTextStub({
-              value: `${PROMISES_IMPORT}\nawait appendFile('/data/bus.jsonl', line);`,
-            }),
+            source: `${PROMISES_IMPORT}\nawait appendFile('/data/bus.jsonl', line);`,
           },
         ],
       });
@@ -173,14 +154,12 @@ describe('fileBusEdgesLayerBroker', () => {
         sourceFiles: [
           {
             path: READER_FILE,
-            source: ContentTextStub({
-              value: [
+            source: [
                 PROMISES_IMPORT,
                 TAIL_IMPORT,
                 "await appendFile('/data/bus.jsonl', '');",
                 "tailFile({ path: '/data/bus.jsonl', onLine });",
               ].join('\n'),
-            }),
           },
         ],
       });
@@ -205,9 +184,7 @@ describe('fileBusEdgesLayerBroker', () => {
         sourceFiles: [
           {
             path: WRITER_FILE,
-            source: ContentTextStub({
-              value: `${PROMISES_IMPORT}\nawait appendFile('/data/lonely.jsonl', line);`,
-            }),
+            source: `${PROMISES_IMPORT}\nawait appendFile('/data/lonely.jsonl', line);`,
           },
         ],
       });
@@ -230,10 +207,7 @@ describe('fileBusEdgesLayerBroker', () => {
         sourceFiles: [
           {
             path: WRITER_FILE,
-            source: ContentTextStub({
-              value:
-                "import { ensureDir } from '#gateway/node/fs__promises';\nawait ensureDir('/data/dir');",
-            }),
+            source: "import { ensureDir } from '#gateway/node/fs__promises';\nawait ensureDir('/data/dir');",
           },
         ],
       });
@@ -249,9 +223,7 @@ describe('fileBusEdgesLayerBroker', () => {
         sourceFiles: [
           {
             path: TEST_FILE,
-            source: ContentTextStub({
-              value: `${PROMISES_IMPORT}\nawait appendFile('/data/bus.jsonl', line);`,
-            }),
+            source: `${PROMISES_IMPORT}\nawait appendFile('/data/bus.jsonl', line);`,
           },
         ],
       });

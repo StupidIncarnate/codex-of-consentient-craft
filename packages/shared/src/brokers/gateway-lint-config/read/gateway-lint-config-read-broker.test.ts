@@ -1,6 +1,5 @@
 import { gatewayLintConfigReadBroker } from './gateway-lint-config-read-broker';
 import { gatewayLintConfigReadBrokerProxy } from './gateway-lint-config-read-broker.proxy';
-import { ContentTextStub } from '../../../contracts/content-text/content-text.stub';
 
 describe('gatewayLintConfigReadBroker', () => {
   describe('no .dungeonmaster.json at the repo root', () => {
@@ -24,7 +23,7 @@ describe('gatewayLintConfigReadBroker', () => {
       const configPath = '/repo/.dungeonmaster.json';
       proxy.setupConfig({
         configPath,
-        fileContent: ContentTextStub({ value: JSON.stringify({ framework: 'monorepo' }) }),
+        fileContent: JSON.stringify({ framework: 'monorepo' }),
       });
 
       const result = gatewayLintConfigReadBroker({ repoRoot });
@@ -40,8 +39,7 @@ describe('gatewayLintConfigReadBroker', () => {
       const configPath = '/repo/.dungeonmaster.json';
       proxy.setupConfig({
         configPath,
-        fileContent: ContentTextStub({
-          value: JSON.stringify({
+        fileContent: JSON.stringify({
             gateway: {
               bannedExports: [
                 {
@@ -53,7 +51,6 @@ describe('gatewayLintConfigReadBroker', () => {
               ],
             },
           }),
-        }),
       });
 
       const result = gatewayLintConfigReadBroker({ repoRoot });
@@ -76,7 +73,7 @@ describe('gatewayLintConfigReadBroker', () => {
       const proxy = gatewayLintConfigReadBrokerProxy();
       const repoRoot = '/repo';
       const configPath = '/repo/.dungeonmaster.json';
-      proxy.setupConfig({ configPath, fileContent: ContentTextStub({ value: '{not json' }) });
+      proxy.setupConfig({ configPath, fileContent: '{not json' });
 
       const result = gatewayLintConfigReadBroker({ repoRoot });
 
@@ -91,13 +88,11 @@ describe('gatewayLintConfigReadBroker', () => {
       const configPath = '/repo/.dungeonmaster.json';
       proxy.setupConfig({
         configPath,
-        fileContent: ContentTextStub({
-          value: JSON.stringify({
+        fileContent: JSON.stringify({
             gateway: {
               bannedExports: [{ subpath: '#gateway/node/fs', name: 'readFileSync' }],
             },
           }),
-        }),
       });
 
       const result = gatewayLintConfigReadBroker({ repoRoot });

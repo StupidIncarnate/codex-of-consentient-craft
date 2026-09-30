@@ -7,7 +7,6 @@
  * // Returns 'resized to 1280x720' as ContentText
  */
 
-import type { ContentText } from '@dungeonmaster/shared/contracts';
 
 import type { BrowserSession } from '../../../contracts/browser-session/browser-session-contract';
 import { resizeReadingRenderTransformer } from '../../../transformers/resize-reading-render/resize-reading-render-transformer';
@@ -20,7 +19,7 @@ export const stepResizeBroker = async ({
   session: BrowserSession;
   width: number;
   height: number;
-}): Promise<ContentText> => {
+}): Promise<string> => {
   await session.setViewport({ width, height });
 
   return resizeReadingRenderTransformer({ width, height });

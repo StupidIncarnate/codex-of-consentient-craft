@@ -2,7 +2,6 @@ import type { Dirent } from '#gateway/node/fs';
 
 import { readFileOptionalLayerBrokerProxy } from './read-file-optional-layer-broker.proxy';
 import { safeReaddirLayerBrokerProxy } from './safe-readdir-layer-broker.proxy';
-import { ContentTextStub } from '../../../contracts/content-text/content-text.stub';
 import { FileMissingErrorStub } from '#gateway/node/fs/file-missing-error/file-missing-error.stub';
 import { DirentStub } from '#gateway/node/fs/readdir-entries-sync/dirent.stub';
 
@@ -49,12 +48,12 @@ export const readPackageCliContentLayerBrokerProxy = (): {
           const filePathStr = String(filePath);
           for (const [name, content] of Object.entries(startupFiles)) {
             if (filePathStr === `${packageRoot}/src/startup/${name}`) {
-              return ContentTextStub({ value: content });
+              return content;
             }
           }
           for (const [name, content] of Object.entries(binFiles)) {
             if (filePathStr === `${packageRoot}/bin/${name}`) {
-              return ContentTextStub({ value: content });
+              return content;
             }
           }
           throw FileMissingErrorStub({ path: filePathStr });

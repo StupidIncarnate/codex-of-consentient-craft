@@ -9,7 +9,6 @@
  * topLevelTextLayerTransformer({ body: "cmd: 'git', nested: { cmd: 'npm' } };" });
  * // Returns "cmd: 'git', nested: , " with the nested content removed
  */
-import { contentTextContract, type ContentText } from '@dungeonmaster/shared/contracts';
 
 const OPENERS = '{[(';
 const CLOSERS = '}])';
@@ -18,7 +17,7 @@ const LINE_COMMENT = '//';
 const BLOCK_COMMENT_OPEN = '/*';
 const BLOCK_COMMENT_CLOSE = '*/';
 
-export const topLevelTextLayerTransformer = ({ body }: { body: ContentText }): ContentText => {
+export const topLevelTextLayerTransformer = ({ body }: { body: string }): string => {
   let depth = 1;
   let quote = '';
   let text = '';
@@ -64,5 +63,5 @@ export const topLevelTextLayerTransformer = ({ body }: { body: ContentText }): C
     text += depth === 1 ? char : '';
   }
 
-  return contentTextContract.parse(text);
+  return text;
 };

@@ -12,17 +12,13 @@
  * WHEN-NOT-TO-USE: When parameter segments are needed
  */
 
-import {
-  contentTextContract,
-  type ContentText,
-} from '../../contracts/content-text/content-text-contract';
 import { urlSegmentsExtractStatics } from '../../statics/url-segments-extract/url-segments-extract-statics';
 
 export const urlSegmentsExtractTransformer = ({
   urlPattern,
 }: {
-  urlPattern: ContentText;
-}): ContentText[] =>
+  urlPattern: string;
+}): string[] =>
   String(urlPattern)
     .split('/')
     .filter((seg) => {
@@ -32,4 +28,4 @@ export const urlSegmentsExtractTransformer = ({
       }
       return true;
     })
-    .map((seg) => contentTextContract.parse(seg));
+    .map((seg) => seg);

@@ -17,8 +17,6 @@
  * // Returns '{"guildSlug":"siege-1","sessions.nested":"/x"}' as a branded ContentText
  */
 
-import { contentTextContract } from '@dungeonmaster/shared/contracts';
-import type { ContentText } from '@dungeonmaster/shared/contracts';
 
-export const seedResultRenderTransformer = ({ result }: { result: unknown }): ContentText =>
-  contentTextContract.parse(JSON.stringify(result));
+export const seedResultRenderTransformer = ({ result }: { result: unknown }): string =>
+  JSON.stringify(result);

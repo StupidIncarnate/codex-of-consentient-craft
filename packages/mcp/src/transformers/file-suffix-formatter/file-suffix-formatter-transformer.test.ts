@@ -1,11 +1,10 @@
-import { ContentTextStub } from '../../contracts/content-text/content-text.stub';
 import { fileSuffixFormatterTransformer } from './file-suffix-formatter-transformer';
 
 describe('fileSuffixFormatterTransformer', () => {
   describe('TypeScript file extensions', () => {
     it('VALID: {suffix: -broker.ts} => removes .ts extension', () => {
       const result = fileSuffixFormatterTransformer({
-        suffix: ContentTextStub({ value: '-broker.ts' }),
+        suffix: '-broker.ts',
       });
 
       expect(result).toBe('-broker');
@@ -13,7 +12,7 @@ describe('fileSuffixFormatterTransformer', () => {
 
     it('VALID: {suffix: -widget.tsx} => removes .tsx extension', () => {
       const result = fileSuffixFormatterTransformer({
-        suffix: ContentTextStub({ value: '-widget.tsx' }),
+        suffix: '-widget.tsx',
       });
 
       expect(result).toBe('-widget');
@@ -21,7 +20,7 @@ describe('fileSuffixFormatterTransformer', () => {
 
     it('VALID: {suffix: -guard.ts} => removes .ts extension', () => {
       const result = fileSuffixFormatterTransformer({
-        suffix: ContentTextStub({ value: '-guard.ts' }),
+        suffix: '-guard.ts',
       });
 
       expect(result).toBe('-guard');
@@ -31,7 +30,7 @@ describe('fileSuffixFormatterTransformer', () => {
   describe('non-TypeScript suffixes', () => {
     it('VALID: {suffix: -test} => returns unchanged', () => {
       const result = fileSuffixFormatterTransformer({
-        suffix: ContentTextStub({ value: '-test' }),
+        suffix: '-test',
       });
 
       expect(result).toBe('-test');
@@ -39,7 +38,7 @@ describe('fileSuffixFormatterTransformer', () => {
 
     it('VALID: {suffix: .stub.ts} => removes .ts extension only', () => {
       const result = fileSuffixFormatterTransformer({
-        suffix: ContentTextStub({ value: '.stub.ts' }),
+        suffix: '.stub.ts',
       });
 
       expect(result).toBe('.stub');

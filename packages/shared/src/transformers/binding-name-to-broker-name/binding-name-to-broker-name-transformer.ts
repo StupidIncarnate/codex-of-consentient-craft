@@ -10,10 +10,6 @@
  * WHEN-NOT-TO-USE: When you need a real import-resolved broker name (this is a display heuristic)
  */
 
-import {
-  contentTextContract,
-  type ContentText,
-} from '../../contracts/content-text/content-text-contract';
 
 const USE_PREFIX = 'use-';
 const BINDING_SUFFIX = '-binding';
@@ -22,8 +18,8 @@ const BROKER_SUFFIX = '-broker';
 export const bindingNameToBrokerNameTransformer = ({
   bindingName,
 }: {
-  bindingName: ContentText;
-}): ContentText => {
+  bindingName: string;
+}): string => {
   let name = String(bindingName);
 
   if (name.startsWith(USE_PREFIX)) {
@@ -34,5 +30,5 @@ export const bindingNameToBrokerNameTransformer = ({
     name = name.slice(0, -BINDING_SUFFIX.length);
   }
 
-  return contentTextContract.parse(`${name}${BROKER_SUFFIX}`);
+  return `${name}${BROKER_SUFFIX}`;
 };

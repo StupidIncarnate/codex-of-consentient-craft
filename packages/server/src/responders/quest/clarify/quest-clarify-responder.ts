@@ -7,7 +7,6 @@
  */
 
 import { questFindQuestPathBroker, StartOrchestrator } from '@dungeonmaster/orchestrator';
-import { contentTextContract } from '@dungeonmaster/shared/contracts';
 import { isChatWorkItemRoleGuard } from '@dungeonmaster/shared/guards';
 
 import { zodFirstFieldErrorMessageTransformer } from '../../../transformers/zod-first-field-error-message/zod-first-field-error-message-transformer';
@@ -54,7 +53,7 @@ export const QuestClarifyResponder = async ({
     if (!parsedBody.success) {
       const answersError = zodFirstFieldErrorMessageTransformer({
         error: parsedBody.error,
-        field: contentTextContract.parse('answers'),
+        field: 'answers',
       });
       if (answersError !== undefined) {
         return responderResultContract.parse({

@@ -8,8 +8,6 @@
  * // Returns 'resized to 1280x720' as ContentText
  */
 
-import { contentTextContract } from '@dungeonmaster/shared/contracts';
-import type { ContentText } from '@dungeonmaster/shared/contracts';
 
 import { resizeStatics } from '../../statics/resize/resize-statics';
 
@@ -19,7 +17,5 @@ export const resizeReadingRenderTransformer = ({
 }: {
   width: number;
   height: number;
-}): ContentText =>
-  contentTextContract.parse(
-    resizeStatics.template.replace('{width}', String(width)).replace('{height}', String(height)),
-  );
+}): string =>
+  resizeStatics.template.replace('{width}', String(width)).replace('{height}', String(height));

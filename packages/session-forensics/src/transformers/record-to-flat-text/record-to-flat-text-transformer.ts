@@ -8,7 +8,6 @@
  * recordToFlatTextTransformer({ record: TranscriptRecordStub({ message: { content: 'hi' } }) });
  * // Returns ContentText 'hi'
  */
-import { contentTextContract, type ContentText } from '@dungeonmaster/shared/contracts';
 import { recordToContentBlocksTransformer } from '../record-to-content-blocks/record-to-content-blocks-transformer';
 import { digestDefaultStatics } from '../../statics/digest-default/digest-default-statics';
 import type { TranscriptRecord } from '../../contracts/transcript-record/transcript-record-contract';
@@ -19,7 +18,7 @@ export const recordToFlatTextTransformer = ({
 }: {
   record: TranscriptRecord;
   thinkingChars?: number;
-}): ContentText => {
+}): string => {
   const blocks = recordToContentBlocksTransformer({ record });
 
   const pieces = blocks.flatMap((block) => {
@@ -36,5 +35,5 @@ export const recordToFlatTextTransformer = ({
     return [];
   });
 
-  return contentTextContract.parse(pieces.join('\n'));
+  return pieces.join('\n');
 };

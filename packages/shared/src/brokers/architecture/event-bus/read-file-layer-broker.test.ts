@@ -1,6 +1,5 @@
 import { readFileLayerBroker } from './read-file-layer-broker';
 import { readFileLayerBrokerProxy } from './read-file-layer-broker.proxy';
-import { ContentTextStub } from '../../../contracts/content-text/content-text.stub';
 
 const FILE = '/repo/packages/orchestrator/src/state/orchestration-events-state.ts';
 
@@ -8,7 +7,7 @@ describe('readFileLayerBroker', () => {
   describe('file exists', () => {
     it('VALID: {readable file} => returns file content', () => {
       const proxy = readFileLayerBrokerProxy();
-      const content = ContentTextStub({ value: 'export const foo = 1;' });
+      const content = 'export const foo = 1;';
       proxy.setupReturns({ filePath: FILE, content });
 
       const result = readFileLayerBroker({ filePath: FILE });

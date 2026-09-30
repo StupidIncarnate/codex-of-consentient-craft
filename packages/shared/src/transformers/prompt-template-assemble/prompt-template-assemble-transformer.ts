@@ -6,15 +6,13 @@
  * // Returns: ContentText('Hello World')
  */
 
-import { contentTextContract } from '../../contracts/content-text/content-text-contract';
-import type { ContentText } from '../../contracts/content-text/content-text-contract';
 
 export const promptTemplateAssembleTransformer = ({
   template,
   placeholder,
   value,
 }: {
-  template: ContentText;
-  placeholder: ContentText;
-  value: ContentText;
-}): ContentText => contentTextContract.parse(template.replace(placeholder, value));
+  template: string;
+  placeholder: string;
+  value: string;
+}): string => template.replace(placeholder, value);

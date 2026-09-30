@@ -1,5 +1,4 @@
 import { filePathToProjectRelativeTransformer } from './file-path-to-project-relative-transformer';
-import { ContentTextStub } from '../../contracts/content-text/content-text.stub';
 
 const PROJECT_ROOT = '/repo';
 
@@ -11,9 +10,7 @@ describe('filePathToProjectRelativeTransformer', () => {
       const result = filePathToProjectRelativeTransformer({ filePath, projectRoot: PROJECT_ROOT });
 
       expect(result).toBe(
-        ContentTextStub({
-          value: 'orchestrator/state/orchestration-events/orchestration-events-state',
-        }),
+        'orchestrator/state/orchestration-events/orchestration-events-state',
       );
     });
 
@@ -23,7 +20,7 @@ describe('filePathToProjectRelativeTransformer', () => {
       const result = filePathToProjectRelativeTransformer({ filePath, projectRoot: PROJECT_ROOT });
 
       expect(result).toBe(
-        ContentTextStub({ value: 'server/adapters/orchestrator/events-on/events-on-adapter' }),
+        'server/adapters/orchestrator/events-on/events-on-adapter',
       );
     });
 
@@ -32,7 +29,7 @@ describe('filePathToProjectRelativeTransformer', () => {
 
       const result = filePathToProjectRelativeTransformer({ filePath, projectRoot: PROJECT_ROOT });
 
-      expect(result).toBe(ContentTextStub({ value: 'shared/brokers' }));
+      expect(result).toBe('shared/brokers');
     });
   });
 
@@ -42,7 +39,7 @@ describe('filePathToProjectRelativeTransformer', () => {
 
       const result = filePathToProjectRelativeTransformer({ filePath, projectRoot: PROJECT_ROOT });
 
-      expect(result).toBe(ContentTextStub({ value: '/other/location/some-file.ts' }));
+      expect(result).toBe('/other/location/some-file.ts');
     });
   });
 
@@ -52,7 +49,7 @@ describe('filePathToProjectRelativeTransformer', () => {
 
       const result = filePathToProjectRelativeTransformer({ filePath, projectRoot: PROJECT_ROOT });
 
-      expect(result).toBe(ContentTextStub({ value: 'shared' }));
+      expect(result).toBe('shared');
     });
   });
 });

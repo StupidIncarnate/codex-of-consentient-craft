@@ -9,15 +9,13 @@ import { folderConstraintsStatics } from '../../../statics/folder-constraints/fo
 import { resolve } from '#gateway/node/path';
 import { readFile } from '#gateway/node/fs__promises';
 import { stderr } from '#gateway/node/process';
-import { contentTextContract } from '../../../contracts/content-text/content-text-contract';
-import type { ContentText } from '../../../contracts/content-text/content-text-contract';
 import { pathSegmentContract } from '@dungeonmaster/shared/contracts';
 import type { FolderType } from '@dungeonmaster/shared/contracts';
 
 export const folderConstraintsInitBroker = async (): Promise<{
-  folderConstraints: Map<FolderType, ContentText>;
+  folderConstraints: Map<FolderType, string>;
 }> => {
-  const constraintsMap = new Map<FolderType, ContentText>();
+  const constraintsMap = new Map<FolderType, string>();
   const constraintsDir = pathSegmentContract.parse(
     resolve(__dirname, '../../../statics/folder-constraints'),
   );
@@ -29,7 +27,7 @@ export const folderConstraintsInitBroker = async (): Promise<{
       try {
         const filepath = pathSegmentContract.parse(resolve(constraintsDir, filename));
         const content = await readFile(filepath);
-        const validated = contentTextContract.parse(`\n${content}`);
+        const validated = `\n${content}`;
         return { folderType, content: validated, error: null };
       } catch (error: unknown) {
         const errorMessage = error instanceof Error ? error.message : 'Unknown error';

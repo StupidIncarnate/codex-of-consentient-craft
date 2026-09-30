@@ -8,7 +8,6 @@
  * questIndexToTextTransformer({ userRequest: 'Add auth', rows: [WorkItemIndexRowStub()] });
  * // Returns ContentText: "User request: Add auth", then one label block per row
  */
-import { contentTextContract, type ContentText } from '@dungeonmaster/shared/contracts';
 
 import type { WorkItemIndexRow } from '../../contracts/work-item-index-row/work-item-index-row-contract';
 
@@ -22,9 +21,9 @@ export const questIndexToTextTransformer = ({
 }: {
   userRequest?: string;
   rows: readonly WorkItemIndexRow[];
-}): ContentText => {
+}): string => {
   if (rows.length === 0 && userRequest === undefined) {
-    return contentTextContract.parse('');
+    return '';
   }
 
   const userRequestLine = `User request: ${userRequest ?? NONE}`;
@@ -49,5 +48,5 @@ export const questIndexToTextTransformer = ({
     ].join('\n');
   });
 
-  return contentTextContract.parse([userRequestLine, ...rowBlocks].join('\n\n'));
+  return [userRequestLine, ...rowBlocks].join('\n\n');
 };

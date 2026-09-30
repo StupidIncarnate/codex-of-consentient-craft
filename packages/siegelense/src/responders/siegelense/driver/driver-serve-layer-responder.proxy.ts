@@ -26,7 +26,6 @@ import { onProxy } from '#gateway/node/process/on/on.proxy';
 import { stderrProxy } from '#gateway/node/process/stderr/stderr.proxy';
 import { IntervalHandleStub } from '#gateway/node/setInterval/interval-handle.stub';
 import { setIntervalProxy } from '#gateway/node/setInterval/set-interval/set-interval.proxy';
-import { ContentTextStub } from '@dungeonmaster/shared/contracts/content-text/content-text.stub';
 import { registerMock } from '@dungeonmaster/testing/register-mock';
 
 import { driverHandleRequestBroker } from '../../../brokers/driver/handle-request/driver-handle-request-broker';
@@ -66,7 +65,7 @@ export const DriverServeLayerResponderProxy = (): {
   // Opens one connection and sends `line`; the replies land asynchronously, so read
   // `getWrittenLines()` (every line written back, newline stripped, in order) once it has settled.
   sendSocketLine: (params: { line: string }) => {
-    getWrittenLines: () => readonly ReturnType<typeof ContentTextStub>[];
+    getWrittenLines: () => readonly string[];
   };
   stageHandleRequestResponds: (params: { response: DriverResponse }) => void;
   stageHandleRequestFails: (params: { error: Error }) => void;
@@ -153,12 +152,12 @@ export const DriverServeLayerResponderProxy = (): {
       line,
     }: {
       line: string;
-    }): { getWrittenLines: () => readonly ReturnType<typeof ContentTextStub>[] } => {
+    }): { getWrittenLines: () => readonly string[] } => {
       const client = socketProxy.connectClient({ socketPath: SOCKET_PATH_VALUE });
       client.sendLine({ line });
       return {
-        getWrittenLines: (): readonly ReturnType<typeof ContentTextStub>[] =>
-          client.getWrittenLines().map((written) => ContentTextStub({ value: written })),
+        getWrittenLines: (): readonly string[] =>
+          client.getWrittenLines().map((written) => written),
       };
     },
 

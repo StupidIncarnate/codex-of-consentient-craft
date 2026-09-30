@@ -1,6 +1,5 @@
 import { findRootWidgetImportsLayerBroker } from './find-root-widget-imports-layer-broker';
 import { findRootWidgetImportsLayerBrokerProxy } from './find-root-widget-imports-layer-broker.proxy';
-import { ContentTextStub } from '../../../contracts/content-text/content-text.stub';
 
 describe('findRootWidgetImportsLayerBroker', () => {
   describe('root detection', () => {
@@ -14,9 +13,7 @@ describe('findRootWidgetImportsLayerBroker', () => {
         packageSrcPath,
         responderFilePaths: [responderFilePath],
         responderContents: [
-          ContentTextStub({
-            value: `import { QuestChatWidget } from '../widgets/quest-chat/quest-chat-widget';`,
-          }),
+          `import { QuestChatWidget } from '../widgets/quest-chat/quest-chat-widget';`,
         ],
         flowFilePaths: [],
         flowContents: [],
@@ -42,9 +39,7 @@ describe('findRootWidgetImportsLayerBroker', () => {
         packageSrcPath,
         responderFilePaths: [responderFilePath],
         responderContents: [
-          ContentTextStub({
-            value: `import { OtherWidget } from '../widgets/other/other-widget';`,
-          }),
+          `import { OtherWidget } from '../widgets/other/other-widget';`,
         ],
         flowFilePaths: [],
         flowContents: [],

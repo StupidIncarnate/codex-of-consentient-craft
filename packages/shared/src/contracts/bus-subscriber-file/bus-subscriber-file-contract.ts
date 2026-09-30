@@ -14,12 +14,11 @@
  */
 
 import { z } from '#gateway/npm/zod';
-import { contentTextContract } from '../content-text/content-text-contract';
 import { absoluteFilePathContract } from '../absolute-file-path/absolute-file-path-contract';
 
 export const busSubscriberFileContract = z.object({
   subscriberFile: absoluteFilePathContract,
-  busExportName: contentTextContract,
+  busExportName: z.string().brand<'BusSubscriberFileBusExportName'>(),
 });
 
 export type BusSubscriberFile = z.infer<typeof busSubscriberFileContract>;

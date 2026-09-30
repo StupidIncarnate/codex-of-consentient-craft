@@ -12,8 +12,6 @@
  */
 
 import { projectMapStatics } from '../../../statics/project-map/project-map-statics';
-import type { ContentText } from '../../../contracts/content-text/content-text-contract';
-import { contentTextContract } from '../../../contracts/content-text/content-text-contract';
 import { safeReaddirLayerBroker } from './safe-readdir-layer-broker';
 import { countFilesRecursiveLayerBroker } from './count-files-recursive-layer-broker';
 import type { FolderConfig } from '../../../contracts/folder-config/folder-config-contract';
@@ -26,7 +24,7 @@ export const formatFolderContentLayerBroker = ({
 }: {
   dirPath: string;
   folderDepth: FolderDepth;
-}): ContentText => {
+}): string => {
   // Depth 0: list file stems (strip extension)
   if (folderDepth === projectMapStatics.depth0) {
     const entries = safeReaddirLayerBroker({ dirPath });
@@ -37,7 +35,7 @@ export const formatFolderContentLayerBroker = ({
         return dotIndex > 0 ? entry.name.slice(0, dotIndex) : entry.name;
       });
 
-    return contentTextContract.parse(fileNames.join(', '));
+    return fileNames.join(', ');
   }
 
   // Depth 2: list domain/ (action1/, action2/) pairs
@@ -50,7 +48,7 @@ export const formatFolderContentLayerBroker = ({
       })
       .sort((a, b) => a.name.localeCompare(b.name));
 
-    const domainParts: ContentText[] = [];
+    const domainParts: string[] = [];
 
     for (const domain of domains) {
       const domainPath = `${dirPath}/${domain.name}`;
@@ -64,13 +62,13 @@ export const formatFolderContentLayerBroker = ({
         .sort();
 
       if (actions.length > 0) {
-        domainParts.push(contentTextContract.parse(`${domain.name}/ (${actions.join(', ')})`));
+        domainParts.push(`${domain.name}/ (${actions.join(', ')})`);
       } else {
-        domainParts.push(contentTextContract.parse(`${domain.name}/`));
+        domainParts.push(`${domain.name}/`);
       }
     }
 
-    return contentTextContract.parse(domainParts.join(', '));
+    return domainParts.join(', ');
   }
 
   // Depth 1 (default): list first-level subdirectory names
@@ -84,5 +82,5 @@ export const formatFolderContentLayerBroker = ({
     .map((entry) => `${entry.name}/`)
     .sort();
 
-  return contentTextContract.parse(subdirNames.join(', '));
+  return subdirNames.join(', ');
 };

@@ -37,8 +37,6 @@
  * // Returns a KeyListing whose `rendered` is the text tree a session reads
  */
 
-import { contentTextContract } from '@dungeonmaster/shared/contracts';
-import type { ContentText } from '@dungeonmaster/shared/contracts';
 
 import { keyListingContract } from '../../contracts/key-listing/key-listing-contract';
 import type { KeyListing } from '../../contracts/key-listing/key-listing-contract';
@@ -276,11 +274,11 @@ const READ_SOURCE_BODY = `(params) => {
 }`;
 
 export const keyReadTransformer = (): {
-  readSource: (params: { within: Selector | null }) => ContentText;
+  readSource: (params: { within: Selector | null }) => string;
   highestRefOf: (params: { raw: unknown }) => ReadingCount;
   toListing: (params: { raw: unknown; within: Selector | null }) => KeyListing;
 } => ({
-  readSource: ({ within }: { within: Selector | null }): ContentText => {
+  readSource: ({ within }: { within: Selector | null }): string => {
     const params = JSON.stringify({
       within,
       rootLabel: within ?? 'the page',
@@ -297,7 +295,7 @@ export const keyReadTransformer = (): {
       maxDepth: keyStatics.limits.maxDepth,
       textChars: keyStatics.limits.textChars,
     });
-    return contentTextContract.parse(`(${READ_SOURCE_BODY})(${params})`);
+    return `(${READ_SOURCE_BODY})(${params})`;
   },
 
   highestRefOf: ({ raw }: { raw: unknown }): ReadingCount =>
@@ -372,13 +370,11 @@ export const keyReadTransformer = (): {
       }))
       .filter((entry) => entry.parents.length > 1)
       .map((entry) =>
-        contentTextContract.parse(
-          `… ${entry.testId} appears ${String(entry.parents.length)}× — under ${entry.parents.join(' and under ')}`,
-        ),
+        `… ${entry.testId} appears ${String(entry.parents.length)}× — under ${entry.parents.join(' and under ')}`,
       );
 
     const truncated = reading.skipped.map((entry) =>
-      contentTextContract.parse(`… ${String(entry.count)} more under ${entry.under}`),
+      `… ${String(entry.count)} more under ${entry.under}`,
     );
 
     const unrendered = keyListingContract.parse({
@@ -386,7 +382,7 @@ export const keyReadTransformer = (): {
       rows,
       duplicates,
       truncated,
-      rendered: contentTextContract.parse(''),
+      rendered: '',
     });
 
     return keyListingContract.parse({
