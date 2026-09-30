@@ -1,9 +1,8 @@
 import { isPortFreeProxy } from '#gateway/node/net/is-port-free/is-port-free.proxy';
 
-import type { ProcessPidStub } from '../../../contracts/process-pid/process-pid.stub';
 import { processIsAliveBrokerProxy } from '../../process/is-alive/process-is-alive-broker.proxy';
 
-type ProcessPid = ReturnType<typeof ProcessPidStub>;
+type ProcessPid = number;
 
 export const smoketestRunTeardownChecksBrokerProxy = (): {
   setupPortFree: (params: { port: number }) => void;

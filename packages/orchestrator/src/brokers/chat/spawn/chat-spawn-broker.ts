@@ -23,7 +23,6 @@ import {
 } from '@dungeonmaster/shared/brokers';
 
 import { processIdPrefixContract } from '../../../contracts/process-id-prefix/process-id-prefix-contract';
-import type { ProcessPid } from '../../../contracts/process-pid/process-pid-contract';
 import { chatPromptBuildTransformer } from '../../../transformers/chat-prompt-build/chat-prompt-build-transformer';
 import { roleToModelTransformer } from '../../../transformers/role-to-model/role-to-model-transformer';
 import { agentLaunchBroker } from '../../agent/launch/agent-launch-broker';
@@ -91,7 +90,7 @@ export const chatSpawnBroker = async ({
   // to `orchestrationProcessesState.recordActivity` / `setMetadata`. Optional — chat
   // sites that don't care about stale-process detection can omit these.
   recordActivity?: (params: { processId: ProcessId }) => void;
-  setMetadata?: (params: { processId: ProcessId; osPid?: ProcessPid }) => void;
+  setMetadata?: (params: { processId: ProcessId; osPid?: number }) => void;
 }): Promise<{
   chatProcessId: ProcessId;
   handle: ReturnType<typeof chatStreamProcessHandleBroker>;

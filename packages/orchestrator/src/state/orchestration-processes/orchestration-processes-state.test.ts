@@ -5,7 +5,6 @@ import { QuestWorkItemIdStub } from '@dungeonmaster/shared/contracts/quest-work-
 import { orchestrationProcessesState } from './orchestration-processes-state';
 import { orchestrationProcessesStateProxy } from './orchestration-processes-state.proxy';
 import { OrchestrationProcessStub } from '../../contracts/orchestration-process/orchestration-process.stub';
-import { ProcessPidStub } from '../../contracts/process-pid/process-pid.stub';
 
 describe('orchestrationProcessesState', () => {
   describe('register', () => {
@@ -395,7 +394,7 @@ describe('orchestrationProcessesState', () => {
 
       orchestrationProcessesState.setMetadata({
         processId,
-        osPid: ProcessPidStub({ value: 4321 }),
+        osPid: 4321,
         sessionJsonlPath: '/home/user/.claude/projects/x/s.jsonl',
       });
 
@@ -411,7 +410,7 @@ describe('orchestrationProcessesState', () => {
       const orchestrationProcess = OrchestrationProcessStub();
       proxy.setupWithProcess({ orchestrationProcess });
       const { processId } = orchestrationProcess;
-      orchestrationProcessesState.setMetadata({ processId, osPid: ProcessPidStub({ value: 99 }) });
+      orchestrationProcessesState.setMetadata({ processId, osPid: 99 });
 
       orchestrationProcessesState.register({ orchestrationProcess });
 
@@ -423,7 +422,7 @@ describe('orchestrationProcessesState', () => {
       proxy.setupEmpty();
       const processId = ProcessIdStub({ value: 'proc-unregistered' });
 
-      orchestrationProcessesState.setMetadata({ processId, osPid: ProcessPidStub({ value: 5 }) });
+      orchestrationProcessesState.setMetadata({ processId, osPid: 5 });
 
       expect(orchestrationProcessesState.getActivity({ processId })).toBe(undefined);
     });

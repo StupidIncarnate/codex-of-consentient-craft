@@ -15,7 +15,6 @@
 import type { ProcessId } from '@dungeonmaster/shared/contracts';
 
 import type { ProcessActivity } from '../../../contracts/process-activity/process-activity-contract';
-import type { ProcessPid } from '../../../contracts/process-pid/process-pid-contract';
 import { processStaleThresholdStatics } from '../../../statics/process-stale-threshold/process-stale-threshold-statics';
 import { timerIntervalStartBroker } from '../../timer/interval-start/timer-interval-start-broker';
 import { processIsAliveBroker } from '../is-alive/process-is-alive-broker';
@@ -32,7 +31,7 @@ export const processStaleWatchBroker = ({
   onStale: (params: {
     processId: ProcessId;
     silentForMs: number;
-    pid: ProcessPid | undefined;
+    pid: number | undefined;
     alive: boolean | undefined;
   }) => void;
   intervalMs?: number;

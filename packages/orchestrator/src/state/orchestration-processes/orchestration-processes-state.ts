@@ -19,7 +19,6 @@ import { orchestrationProcessContract } from '../../contracts/orchestration-proc
 import type { OrchestrationProcess } from '../../contracts/orchestration-process/orchestration-process-contract';
 import { processActivityContract } from '../../contracts/process-activity/process-activity-contract';
 import type { ProcessActivity } from '../../contracts/process-activity/process-activity-contract';
-import type { ProcessPid } from '../../contracts/process-pid/process-pid-contract';
 
 const state = {
   processes: new Map<ProcessId, OrchestrationProcess>(),
@@ -59,7 +58,7 @@ export const orchestrationProcessesState = {
     sessionJsonlPath,
   }: {
     processId: ProcessId;
-    osPid?: ProcessPid;
+    osPid?: number;
     sessionJsonlPath?: string;
   }): void => {
     const entry = state.activity.get(processId);

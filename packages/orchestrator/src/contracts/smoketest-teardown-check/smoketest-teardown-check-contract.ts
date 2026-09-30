@@ -10,7 +10,6 @@ import { z } from '#gateway/npm/zod';
 
 import { networkPortContract } from '@dungeonmaster/shared/contracts';
 
-import { processPidContract } from '../process-pid/process-pid-contract';
 
 const portFreeCheckContract = z.object({
   kind: z.literal('port-free'),
@@ -19,7 +18,7 @@ const portFreeCheckContract = z.object({
 
 const processGoneCheckContract = z.object({
   kind: z.literal('process-gone'),
-  pid: processPidContract,
+  pid: z.number().int().positive().brand<'ProcessGoneCheckPid'>(),
 });
 
 export const smoketestTeardownCheckContract = z.discriminatedUnion('kind', [

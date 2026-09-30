@@ -9,11 +9,10 @@ import { z } from '#gateway/npm/zod';
 
 import { absoluteFilePathContract } from '@dungeonmaster/shared/contracts';
 
-import { processPidContract } from '../process-pid/process-pid-contract';
 
 export const processActivityContract = z.object({
   lastActivityAt: z.date(),
-  osPid: processPidContract.optional(),
+  osPid: z.number().int().positive().brand<'ProcessActivityOsPid'>().optional(),
   sessionJsonlPath: absoluteFilePathContract.optional(),
 });
 

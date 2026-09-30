@@ -17,8 +17,6 @@ import type { Session } from '@dungeonmaster/shared/contracts';
 import { claudeLineNormalizeBroker } from '@dungeonmaster/shared/brokers';
 
 import type { ClaudeModel } from '../../../contracts/claude-model/claude-model-contract';
-import type { ProcessPid } from '../../../contracts/process-pid/process-pid-contract';
-import { processPidContract } from '../../../contracts/process-pid/process-pid-contract';
 import { sessionIdExtractorTransformer } from '../../../transformers/session-id-extractor/session-id-extractor-transformer';
 import { agentSpawnStreamJsonBroker } from '../spawn-stream-json/agent-spawn-stream-json-broker';
 
@@ -50,7 +48,7 @@ export const agentSpawnUnifiedBroker = ({
   // for why a chat spawn needs this — the quest's images directory sits outside the spawn's
   // cwd, so a pasted-image Read is denied without it.
   addDir?: string;
-}): { kill: () => void; sessionId$: Promise<Session['id'] | null>; pid: ProcessPid | undefined } => {
+}): { kill: () => void; sessionId$: Promise<Session['id'] | null>; pid: number | undefined } => {
   const spawnParams: Parameters<typeof agentSpawnStreamJsonBroker>[0] = {
     prompt,
     cwd,
@@ -121,8 +119,8 @@ export const agentSpawnUnifiedBroker = ({
   // it so the launcher can record OS-level telemetry against the registry entry — the stale
   // watchdog uses this for kill(pid, 0) liveness probes and /proc/<pid>/stat CPU sampling.
   const childPid = childProcess.pid;
-  const pid: ProcessPid | undefined =
-    typeof childPid === 'number' && childPid > 0 ? processPidContract.parse(childPid) : undefined;
+  const pid: number | undefined =
+    typeof childPid === 'number' && childPid > 0 ? childPid : undefined;
 
   return {
     kill: (): void => {

@@ -2,14 +2,13 @@ import {
   PortFreeTeardownCheckStub,
   ProcessGoneTeardownCheckStub,
 } from '../../../contracts/smoketest-teardown-check/smoketest-teardown-check.stub';
-import { ProcessPidStub } from '../../../contracts/process-pid/process-pid.stub';
 import { smoketestRunTeardownChecksBroker } from './smoketest-run-teardown-checks-broker';
 import { smoketestRunTeardownChecksBrokerProxy } from './smoketest-run-teardown-checks-broker.proxy';
 
 const PORT = 4751;
 const portCheck = PortFreeTeardownCheckStub({ port: PORT });
-const DEAD_PID = ProcessPidStub({ value: 4_999_999 });
-const ALIVE_PID = ProcessPidStub({ value: 4_753 });
+const DEAD_PID = 4_999_999;
+const ALIVE_PID = 4_753;
 const deadProcessCheck = ProcessGoneTeardownCheckStub({ pid: DEAD_PID });
 const alivePidProcessCheck = ProcessGoneTeardownCheckStub({ pid: ALIVE_PID });
 

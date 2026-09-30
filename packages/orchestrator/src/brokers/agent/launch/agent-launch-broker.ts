@@ -26,7 +26,6 @@ import { stderr } from '#gateway/node/process';
 
 import type { ClaudeModel } from '../../../contracts/claude-model/claude-model-contract';
 import type { ProcessIdPrefix } from '../../../contracts/process-id-prefix/process-id-prefix-contract';
-import type { ProcessPid } from '../../../contracts/process-pid/process-pid-contract';
 import type { StreamSignal } from '../../../contracts/stream-signal/stream-signal-contract';
 import type { StreamText } from '../../../contracts/stream-text/stream-text-contract';
 import { chatStreamProcessHandleBroker } from '../../chat/stream-process-handle/chat-stream-process-handle-broker';
@@ -100,7 +99,7 @@ export const agentLaunchBroker = ({
   // (setMetadata). The `processStaleWatchBroker` reads `getActivity({ processId })` to
   // decide whether a registered process has gone silent.
   recordActivity?: (params: { processId: ProcessId }) => void;
-  setMetadata?: (params: { processId: ProcessId; osPid?: ProcessPid }) => void;
+  setMetadata?: (params: { processId: ProcessId; osPid?: number }) => void;
 
   abortSignal?: AbortSignal;
 

@@ -1,8 +1,7 @@
-import type { ProcessPidStub } from '../../../contracts/process-pid/process-pid.stub';
 import { timerIntervalStartBrokerProxy } from '../../timer/interval-start/timer-interval-start-broker.proxy';
 import { processIsAliveBrokerProxy } from '../is-alive/process-is-alive-broker.proxy';
 
-type ProcessPid = ReturnType<typeof ProcessPidStub>;
+type ProcessPid = number;
 
 export const processStaleWatchBrokerProxy = ({
   intervalMs,

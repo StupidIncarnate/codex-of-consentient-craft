@@ -1,9 +1,8 @@
 import { isFsErrorProxy } from '#gateway/node/fs/is-fs-error/is-fs-error.proxy';
 import { killProxy } from '#gateway/node/process/kill/kill.proxy';
 
-import type { ProcessPidStub } from '../../../contracts/process-pid/process-pid.stub';
 
-type ProcessPid = ReturnType<typeof ProcessPidStub>;
+type ProcessPid = number;
 
 const PROBE_SIGNAL = 0;
 

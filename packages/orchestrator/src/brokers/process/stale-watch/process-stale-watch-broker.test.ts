@@ -1,6 +1,5 @@
 import { ProcessIdStub } from '@dungeonmaster/shared/contracts/process-id/process-id.stub';
 
-import { ProcessPidStub } from '../../../contracts/process-pid/process-pid.stub';
 import { processStaleWatchBroker } from './process-stale-watch-broker';
 import { processStaleWatchBrokerProxy } from './process-stale-watch-broker.proxy';
 
@@ -53,7 +52,7 @@ describe('processStaleWatchBroker', () => {
     it('VALID: {stale process with osPid, alive} => onStale fires with alive=true, pid set, silentForMs=120_000', () => {
       jest.useFakeTimers().setSystemTime(new Date('2026-05-12T22:58:24.835Z'));
       const proxy = processStaleWatchBrokerProxy({ intervalMs: 1000 });
-      const pid = ProcessPidStub({ value: 812325 });
+      const pid = 812325;
       proxy.setupAlive({ pid });
       const longAgo = new Date(Date.now() - 120_000);
       const onStale = jest.fn();
@@ -78,7 +77,7 @@ describe('processStaleWatchBroker', () => {
     it('VALID: {stale process with osPid, dead} => onStale fires with alive=false', () => {
       jest.useFakeTimers().setSystemTime(new Date('2026-05-12T22:58:24.835Z'));
       const proxy = processStaleWatchBrokerProxy({ intervalMs: 1000 });
-      const pid = ProcessPidStub({ value: 999999 });
+      const pid = 999999;
       proxy.setupDead({ pid });
       const longAgo = new Date(Date.now() - 120_000);
       const onStale = jest.fn();
