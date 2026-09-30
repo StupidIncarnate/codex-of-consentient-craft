@@ -6,17 +6,13 @@
  * // Returns ['mcp__dungeonmaster__discover', 'mcp__dungeonmaster__get-architecture', ...]
  */
 
-import {
-  mcpPermissionContract,
-  type McpPermission,
-} from '../../contracts/mcp-permission/mcp-permission-contract';
 import { mcpToolsStatics } from '@dungeonmaster/shared/statics';
 
-export const mcpPermissionsCreatorTransformer = (): McpPermission[] => {
+export const mcpPermissionsCreatorTransformer = (): string[] => {
   const { server, tools } = mcpToolsStatics;
 
   return tools.names.map((toolName) => {
     const permission = `mcp__${server.name}__${toolName}`;
-    return mcpPermissionContract.parse(permission);
+    return permission;
   });
 };
