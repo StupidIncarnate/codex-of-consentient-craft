@@ -1,6 +1,6 @@
 // B13: owner index (object contracts with a `z.infer` type) + camelCase-word-boundary name matcher.
 const fs=require('fs'),path=require('path');
-const lib=require('../../phase34/lib/repo.cjs');const {ts,ROOT,rel}=lib;
+const lib=require('../../lib/repo.cjs');const {ts,ROOT,rel}=lib;
 const words=s=>s.replace(/([a-z0-9])([A-Z])/g,'$1 $2').replace(/([A-Z]+)([A-Z][a-z])/g,'$1 $2').split(' ').map(x=>x.toLowerCase());
 const ws=lib.workspaces();
 // find z.object( literal at the root of a call chain

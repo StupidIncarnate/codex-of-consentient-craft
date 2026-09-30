@@ -13,7 +13,7 @@
 // casts inside each statement that gained a diagnostic, repeat until the file matches its baseline.
 //
 // Usage:
-//   node tmp/phase34/b15-as-never/run.cjs <pkg> [--files=a.test.ts,b.test.ts] [--stub-args-only]
+//   node scrolls/brands-gateways-epic/phase34-scripts/b15-as-never/run.cjs <pkg> [--files=a.test.ts,b.test.ts] [--stub-args-only]
 //        [--sample-out=<dir>] [apply]
 const fs = require('fs');
 const path = require('path');
@@ -90,7 +90,7 @@ for (const f of files) {
     fs.writeFileSync(dest, after);
   } else if (APPLY) fs.writeFileSync(f, after);
 }
-const OUT = path.join(__dirname, 'out');
+const OUT = lib.outDir(__dirname);
 fs.mkdirSync(OUT, { recursive: true });
 fs.writeFileSync(path.join(OUT, `${w.short}.diff`), diffText);
 fs.writeFileSync(path.join(OUT, `${w.short}-kept.txt`), keptList.join('\n') + '\n');

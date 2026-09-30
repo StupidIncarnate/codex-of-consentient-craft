@@ -140,7 +140,7 @@ const addAstImport = (abs, text) => {
   const sf = lib.parse(abs, text);
   const first = sf.statements.find((s) => ts.isImportDeclaration(s));
   const at = first ? first.getStart(sf) : 0;
-  return lib.mergeDuplicateImports(abs, `${text.slice(0, at)}import { AST_NODE_TYPES } from '#gateway/npm/typescript-eslint__utils';\n${text.slice(at)}`);
+  return lib.mergeDuplicateImports(abs, `${text.slice(0, at)}import { AST_NODE_TYPES } from '${lib.GW}npm/typescript-eslint__utils';\n${text.slice(at)}`);
 };
 
 // Returns { applied: {kind:count}, hand: [{line, reason, code}] } after editing live[file].
@@ -216,7 +216,7 @@ const widenBrandFile = (svc, live, file) => {
   if (!brandDiags.length) return 0;
   const text0 = live.get(file).text;
   const sf = lib.parse(file, text0);
-  const imp = sf.statements.find((s) => ts.isImportDeclaration(s) && !/#gateway/u.test(s.moduleSpecifier.getText(sf)) && s.importClause?.namedBindings && ts.isNamedImports(s.importClause.namedBindings) && s.importClause.namedBindings.elements.some((e) => e.name.text === 'Identifier'));
+  const imp = sf.statements.find((s) => ts.isImportDeclaration(s) && !s.moduleSpecifier.getText(sf).includes(lib.GW) && s.importClause?.namedBindings && ts.isNamedImports(s.importClause.namedBindings) && s.importClause.namedBindings.elements.some((e) => e.name.text === 'Identifier'));
   if (!imp) return 0;
   const edits = [];
   const visit = (n) => {

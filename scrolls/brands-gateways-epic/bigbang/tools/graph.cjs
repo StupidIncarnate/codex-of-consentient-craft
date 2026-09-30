@@ -1,5 +1,5 @@
 #!/usr/bin/env node
-// Import graph over every .ts/.tsx under packages/*/{src,test} and packages/@gateway/*/{src,test}.
+// Import graph over every .ts/.tsx under packages/*/{src,test} and <gateway-dir>/*/{src,test}.
 // Specifiers resolve with ts.resolveModuleName under the OWNING package's tsconfig.json options (node16 +
 // `source` condition for most, bundler for web, `paths` for eslint-plugin), unfenced like ward's tsc.
 // Edges: import/export-from, import = require, import(), require(), import('x') types.
@@ -10,7 +10,7 @@
 // Strongly connected components are then collapsed over those groups.
 // level: 0 = depends on no other group; else 1 + max(level of deps).
 //
-// Usage: node tmp/bigbang/tools/graph.cjs [--out=graph.json] [--overlay=<json>]
+// Usage: node scrolls/brands-gateways-epic/bigbang/tools/graph.cjs [--out=graph.json] [--overlay=<json>]
 // Output: { stats, groups: [{id, pkg, pkgs, files, deps, rdeps, level, cycle}], fileToGroup, unresolved }
 const fs = require('fs');
 const path = require('path');
@@ -81,7 +81,7 @@ const specifiersOf = (sf) => {
   return out;
 };
 
-const inRepoSpec = (s) => s.startsWith('.') || s.startsWith('#') || s.startsWith('@dungeonmaster/');
+const inRepoSpec = (s) => s.startsWith('.') || s.startsWith('#') || s.startsWith(L.cfg.SCOPE);
 const edges = files.map(() => new Set());
 const unresolved = [];
 for (const f of files) {

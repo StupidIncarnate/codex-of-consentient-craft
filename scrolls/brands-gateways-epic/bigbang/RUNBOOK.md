@@ -8,7 +8,8 @@ Planned 2026-09-29 against HEAD 83774d89a. Counts below are from dry runs on tha
 
 ## Rules for the whole run
 
-1. Run every command from the worktree root. Scripts run from their `tmp/` copies, never from `scrolls/`.
+1. Run every command from the worktree root. This run used `tmp/` copies of the scripts (step 0). The committed scripts now
+   run in place from `scrolls/` against any root (`--root`, `lib/port-config.cjs`); `PORTING.md` is the guide for the next repo.
 2. One script process at a time. The scripts read `packages/` from disk, so a second run would see half-applied output.
 3. After every apply: `git add -A packages && (git diff --cached --quiet || git commit -q -m "<wave> <name>: script output (tree red)")`.
    `git add -A packages` records moved-away files as deletions; the moved copies sit in `tmp/deletions/<wave>/` (gitignored).

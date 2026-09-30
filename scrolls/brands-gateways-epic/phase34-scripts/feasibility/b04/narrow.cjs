@@ -1,13 +1,13 @@
 // B04 (a) refinement: narrow helper params typed `TSESTree.Node` to the union of node types their
 // PRODUCTION call sites pass. Runs over the retyped overlay (sample-all), LanguageService per package.
-// Usage: node .../narrow.cjs [--sample=tmp/phase34-feasibility/b04/sample-all] [--out=dir]
+// Usage: node .../narrow.cjs [--sample=<root-relative dir, default <out>/phase34/feasibility/b04/sample-all>] [--out=dir]
 const fs = require('fs');
 const path = require('path');
-const lib = require('../../phase34/lib/repo.cjs');
+const lib = require('../../lib/repo.cjs');
 const { NODE_NAMES } = require('./retype.cjs');
 const { ts, ROOT, rel } = lib;
 const arg = (n) => process.argv.find((a) => a.startsWith(`--${n}=`))?.slice(n.length + 3);
-const SAMPLE = path.join(ROOT, arg('sample') ?? 'tmp/phase34-feasibility/b04/sample-all');
+const SAMPLE = path.join(ROOT, arg('sample') ?? path.relative(ROOT, path.join(lib.workDir(__dirname), 'sample-all')));
 const out = arg('out');
 const w = lib.workspaces().find((x) => x.short === 'eslint-plugin');
 

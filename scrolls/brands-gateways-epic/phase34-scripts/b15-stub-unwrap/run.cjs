@@ -3,7 +3,7 @@
 // is just the literal. This unwraps them for a list of stubs a human has decided, keeping only the
 // unwraps the type checker accepts, and drops the stub's import where no use is left.
 //
-//   node tmp/phase34/b15-stub-unwrap/run.cjs <pkg> --stubs=ExecutionStepStatusStub,ContentTextStub
+//   node scrolls/brands-gateways-epic/phase34-scripts/b15-stub-unwrap/run.cjs <pkg> --stubs=ExecutionStepStatusStub,ContentTextStub
 //        [--files=a.test.ts,...] [--sample-out=<dir>] [--overlay-dir=<dir>] [apply]
 //
 // `--overlay-dir` lays a sample dir (repo-relative paths, e.g. b15-enum-brands-off's `--sample-out`) over the
@@ -127,7 +127,7 @@ for (const f of (onlyFiles ?? fileNames).filter((x) => TEST_FILE.test(x) && fs.e
     fs.writeFileSync(dest, after);
   } else if (APPLY) fs.writeFileSync(f, after);
 }
-const OUT = path.join(__dirname, 'out');
+const OUT = lib.outDir(__dirname);
 fs.mkdirSync(OUT, { recursive: true });
 fs.writeFileSync(path.join(OUT, `${w.short}.diff`), diffText);
 fs.writeFileSync(path.join(OUT, `${w.short}-kept.txt`), keptList.join('\n') + '\n');

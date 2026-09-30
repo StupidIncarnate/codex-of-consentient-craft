@@ -16,11 +16,11 @@
 // Skips `@gateway/*` (already this form) and `@dungeonmaster/testing` (its public exports stay).
 //
 // Usage:
-//   node tmp/phase34/b03-exports-barrels/run.cjs [pkg ...]                       dry run
-//   node tmp/phase34/b03-exports-barrels/run.cjs shared --sample-out=<dir>       write the result under <dir>
-//   node tmp/phase34/b03-exports-barrels/run.cjs shared --verify=<file,...>      typecheck those importer
+//   node scrolls/brands-gateways-epic/phase34-scripts/b03-exports-barrels/run.cjs [pkg ...]                       dry run
+//   node scrolls/brands-gateways-epic/phase34-scripts/b03-exports-barrels/run.cjs shared --sample-out=<dir>       write the result under <dir>
+//   node scrolls/brands-gateways-epic/phase34-scripts/b03-exports-barrels/run.cjs shared --verify=<file,...>      typecheck those importer
 //                                          files against the planned tree (overlaid in memory), before vs after
-//   node tmp/phase34/b03-exports-barrels/run.cjs shared apply                    write it in place
+//   node scrolls/brands-gateways-epic/phase34-scripts/b03-exports-barrels/run.cjs shared apply                    write it in place
 const fs = require('fs');
 const path = require('path');
 const lib = require('../lib/repo.cjs');
@@ -35,7 +35,7 @@ const pkgArgs = args.filter((a) => !a.startsWith('--') && a !== 'apply');
 
 const ws = lib.workspaces();
 const selected = ws.filter(
-  (w) => !w.isGateway && w.name !== '@dungeonmaster/testing' && (!pkgArgs.length || pkgArgs.includes(w.short)),
+  (w) => !w.isGateway && w.name !== lib.pkgName('testing') && (!pkgArgs.length || pkgArgs.includes(w.short)),
 );
 const resolveNow = lib.makeResolver();
 
@@ -150,7 +150,7 @@ for (const [abs, text] of writes) {
   const before = fs.existsSync(abs) ? fs.readFileSync(abs, 'utf8') : '';
   diffText += text === null ? `--- a/${rel(abs)}\n+++ /dev/null (deleted)\n` : lib.unifiedDiff(rel(abs), before, text);
 }
-const OUT = path.join(__dirname, 'out');
+const OUT = lib.outDir(__dirname);
 fs.mkdirSync(OUT, { recursive: true });
 fs.writeFileSync(path.join(OUT, 'last-run.diff'), diffText);
 fs.writeFileSync(path.join(OUT, 'leftovers.json'), JSON.stringify(leftovers, null, 1));
@@ -184,7 +184,7 @@ if (verifyFiles.length) {
     console.log(`\nverify ${rel(f)}`);
     for (const st of sf.statements) {
       if (!(ts.isImportDeclaration(st) || ts.isExportDeclaration(st)) || !st.moduleSpecifier) continue;
-      if (!/^@dungeonmaster\/|^\./u.test(st.moduleSpecifier.text)) continue;
+      if (!lib.SCOPE_RE.test(st.moduleSpecifier.text) && !st.moduleSpecifier.text.startsWith('.')) continue;
       const t = r(st.moduleSpecifier.text, f);
       console.log(`  ${t ? 'ok ' : 'NOT RESOLVED'} ${st.moduleSpecifier.text}${t ? '  ->  ' + rel(t) : ''}`);
     }
@@ -202,7 +202,7 @@ if (sampleOut) {
   }
 } else if (APPLY) {
   for (const [abs, text] of writes) {
-    if (text === null) { const mv = path.join(ROOT, 'tmp/deletions/3.3', rel(abs)); fs.mkdirSync(path.dirname(mv), { recursive: true }); fs.renameSync(abs, mv); }
+    if (text === null) { const mv = path.join(lib.DELETIONS, '3.3', rel(abs)); fs.mkdirSync(path.dirname(mv), { recursive: true }); fs.renameSync(abs, mv); }
     else {
       fs.mkdirSync(path.dirname(abs), { recursive: true });
       fs.writeFileSync(abs, text);

@@ -9,11 +9,12 @@
 // syntax error in one file does not hide every semantic error in the package.
 //
 // Usage:
-//   node tmp/bigbang/tools/diag.cjs [--pkgs=cli,config,@gateway/node] [--jobs=3] [--out=file.json]
+//   node scrolls/brands-gateways-epic/bigbang/tools/diag.cjs [--root=DIR] [--pkgs=cli,config,@gateway/node] [--jobs=3] [--out=file.json]
 //        [--overlay=<json file | inline json {path: content|null}>] [--no-build-pass] [--full] [--fence]
-// Resolution is UNFENCED by default, like ward's real tsc: in this worktree node_modules lacks @types/pngjs and
-// @types/pixelmatch, and tsc finds them by walking up into the main checkout. --fence hides every path outside
-// the worktree and reports that gap (TS7016 in @gateway/npm, TS2305 in siegelense).
+// Resolution is UNFENCED by default, like ward's real tsc: in the gateway-pivot worktree node_modules lacks
+// @types/pngjs and @types/pixelmatch, and tsc finds them by walking up into the main checkout. --fence hides every
+// path outside the root (and outside `file:`-linked packages' real directories) and reports that gap.
+// --out is resolved against the root; the worker processes inherit --root through MIGRATE_ROOT.
 // One fresh child process per package (memory is returned between packages); --jobs runs N at once.
 // Output: JSON array of {pkg, file, line, col, code, message, template, templateFine, checkedBy}, one entry
 // per distinct diagnostic. `pkg` is the package that OWNS the file (a red shared file is reported once,
@@ -116,7 +117,7 @@ const main = async () => {
     // Workers re-read the overlay from a file; inline JSON is written out once.
     const s = String(A.overlay);
     if (s.trim().startsWith('{')) {
-      const p = path.join(__dirname, '.work', `overlay-${process.pid}.json`);
+      const p = path.join(L.cfg.workDir(__dirname), `overlay-${process.pid}.json`);
       fs.mkdirSync(path.dirname(p), { recursive: true });
       fs.writeFileSync(p, s);
       overlayArg = p;

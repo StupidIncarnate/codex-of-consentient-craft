@@ -10,8 +10,8 @@
 //   cast-contract  JSON.parse(x) as FooType  ->  fooContract.parse(JSON.parse(x)) when FooType is a `z.infer` alias
 //                  (resolved through the file's own import, or the checker for an alias reached by a helper type)
 //
-// Usage (from the worktree root, on the tmp/phase34 copy):
-//   node tmp/phase34/b17-json-parse/run.cjs [pkg ...] [--sample-out=dir] [--no-gate] [apply]
+// Usage (from the repo root, or pass --root=DIR; settings in lib/port-config.cjs):
+//   node scrolls/brands-gateways-epic/phase34-scripts/b17-json-parse/run.cjs [pkg ...] [--sample-out=dir] [--no-gate] [apply]
 // Default is a dry run: counts per package and the leftovers file. `--sample-out` writes the rewritten files under
 // <dir>/<repo path> for lib/verify-sample.cjs. `apply` writes packages/ (do not, until the operator says so).
 const fs = require('fs');
@@ -26,7 +26,7 @@ const doApply = args.includes('apply');
 const noGate = args.includes('--no-gate');
 const sampleOut = flag('sample-out');
 const pkgFilter = args.filter((a) => !a.startsWith('--') && a !== 'apply');
-const outDir = path.join(__dirname, 'out');
+const outDir = lib.outDir(__dirname);
 
 const ws = lib.workspaces();
 const typeIndex = buildTypeIndex(ws);

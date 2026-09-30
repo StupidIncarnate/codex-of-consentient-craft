@@ -1,6 +1,6 @@
 const ts=require('typescript'),path=require('path'),fs=require('fs');
-const R=process.cwd();
-const file=R+'/tmp/libcopy-census/probe/probe.ts';
+const C=require('../lib/port-config.cjs');const R=C.ROOT;const O=C.OUT+'/libcopy-census';fs.mkdirSync(O,{recursive:true});
+const file=R+'/tmp/libcopy-census/probe/probe.ts' /* under the root, not <out>: its imports resolve through the root's node_modules */;
 const prog=ts.createProgram([file],{strict:true,moduleResolution:ts.ModuleResolutionKind.Node16,module:ts.ModuleKind.Node16,target:ts.ScriptTarget.ES2022,skipLibCheck:true,noEmit:true,types:[]});
 const chk=prog.getTypeChecker();
 const sf=prog.getSourceFile(file);
@@ -22,6 +22,6 @@ for(const m of members){
   }
   out[t]=props;
 }
-fs.writeFileSync(R+'/tmp/libcopy-census/reqkeys.json',JSON.stringify(out,null,1));
+fs.writeFileSync(O+'/reqkeys.json',JSON.stringify(out,null,1));
 console.log(Object.keys(out).length,'node types');
 console.log(JSON.stringify(out.CallExpression),JSON.stringify(out.Identifier));

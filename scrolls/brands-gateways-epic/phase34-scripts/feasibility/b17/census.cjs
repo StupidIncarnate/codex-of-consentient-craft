@@ -3,7 +3,7 @@
 // Usage: node .../census.cjs [--rewrite] [--sample-out=dir]
 const fs = require('fs');
 const path = require('path');
-const lib = require('../../phase34/lib/repo.cjs');
+const lib = require('../../lib/repo.cjs');
 const { typeIndex, pascal, camel } = require('../b14/census.cjs');
 const { ts, ROOT, rel } = lib;
 const arg = (n) => process.argv.find((a) => a.startsWith(`--${n}=`))?.slice(n.length + 3);
@@ -170,5 +170,5 @@ if (doRewrite) {
   const out = arg('sample-out');
   if (out) for (const [f, t] of overlay) { const d = path.join(ROOT, out, rel(f)); fs.mkdirSync(path.dirname(d), { recursive: true }); fs.writeFileSync(d, t); }
 }
-fs.mkdirSync(path.join(__dirname, 'out'), { recursive: true });
-fs.writeFileSync(path.join(__dirname, 'out', 'sites.json'), JSON.stringify(sites.map((s) => ({ file: rel(s.file), line: s.sf.getLineAndCharacterOfPosition(s.node.getStart(s.sf)).line + 1, klass: s.klass, text: s.cur.parent.getText(s.sf).slice(0, 120).replace(/\s+/g, ' ') })), null, 1));
+fs.mkdirSync(lib.outDir(__dirname), { recursive: true });
+fs.writeFileSync(path.join(lib.outDir(__dirname), 'sites.json'), JSON.stringify(sites.map((s) => ({ file: rel(s.file), line: s.sf.getLineAndCharacterOfPosition(s.node.getStart(s.sf)).line + 1, klass: s.klass, text: s.cur.parent.getText(s.sf).slice(0, 120).replace(/\s+/g, ' ') })), null, 1));

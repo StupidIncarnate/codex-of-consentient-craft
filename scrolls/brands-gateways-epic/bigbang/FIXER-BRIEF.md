@@ -1,7 +1,7 @@
 # Fixer brief: clearing the big-bang type errors
 
 You are one of many fixer agents working in parallel on the repo at
-`/home/brutus-home/projects/codex-of-consentient-craft/worktrees/gateway-pivot`. Run every command from there.
+the repo root the operator names in your prompt. Run every command from there.
 
 ## What happened
 
@@ -57,6 +57,28 @@ You get a batch of 1 to 5 files and the exact type errors in each. Make every li
 - git commands of any kind, builds, `npm install`, ward, tsc, jest, eslint. The operator runs every check.
 - Forking or dispatching sub-agents.
 - Restoring a file from git (`git show HEAD:...`, `git checkout`). Other agents' work sits in the same tree.
+
+## Unit-test stage (typecheck is at 0; keep it there)
+
+You get failing unit test files. Run them first and read the real failure:
+`npm run ward -- --only unit -- <your test files>` (file-scoped: prints each failing assertion inline). At most five
+runs. Then fix the CAUSE, which is almost always in production code or a contract, not the test:
+
+- **An INVALID test that no longer throws means validation was lost.** A script turned a validating standalone brand
+  (`instanceIdContract` with a regex, `absoluteFilePathContract` with a refine, a `.min(1)`) into a plain type or a bare
+  inline brand, and its check went with it. Find the original under `tmp/deletions/<wave>/<path>` and put the same check
+  back where the value enters: the owning object contract's field keeps the base schema's refinements
+  (`instanceId: z.string().regex(/^inst_[0-9a-f]{8}$/u).brand<'KillArgsInstanceId'>()`), or the args parser parses
+  through that field. Never delete the INVALID test, never loosen its expectation.
+- **A parse that now throws on a VALID input** means a script added a runtime parse whose schema is stricter than what
+  flows there (a strict object, a brand refinement). Fix the schema or the parse site; do not change the valid input
+  unless it was genuinely invalid data.
+- **An error message changed** because the thrown ZodError now comes from a different schema: restore the original
+  check so the message is what the test asserts. Change the expected message only when the old contract is truly gone
+  and the new message is the right one; say so under NOTES.
+- **A stub default or a stripped function** (a parse dropped a field; decision 4): fix the stub or the parse site.
+
+A fix to production code must keep typecheck at 0: `node tmp/bigbang/tools/diag.cjs --pkgs=<pkg> --full`.
 
 ## Report
 

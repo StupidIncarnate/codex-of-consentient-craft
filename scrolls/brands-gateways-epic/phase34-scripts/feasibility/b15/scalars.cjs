@@ -1,5 +1,5 @@
 // standalone scalar brand contracts and how many files touch them
-const fs=require('fs'),path=require('path');const lib=require('../../phase34/lib/repo.cjs');const {ts,ROOT,rel}=lib;
+const fs=require('fs'),path=require('path');const lib=require('../../lib/repo.cjs');const {ts,ROOT,rel}=lib;
 const ws=lib.workspaces();
 const scalars=[];
 for(const w of ws){ if(w.isGateway)continue;
@@ -23,4 +23,4 @@ console.log('standalone scalar brands',scalars.length);
 const buckets={0:0,'1-3':0,'4-10':0,'11-40':0,'41+':0};scalars.forEach(s=>{const n=s.files.length;buckets[n===0?0:n<=3?'1-3':n<=10?'4-10':n<=40?'11-40':'41+']++});console.log(buckets);
 for(const s of scalars.filter(s=>s.files.length>=3&&s.files.length<=6).slice(0,8))console.log('small',s.files.length,s.name,s.type,s.kind,rel(s.file));
 for(const s of scalars.filter(s=>s.files.length>=20&&s.files.length<=45).slice(0,8))console.log('medium',s.files.length,s.name,s.type,s.kind,s.init.slice(0,70));
-fs.writeFileSync(path.join(__dirname,'out-scalars.json'),JSON.stringify(scalars.map(s=>({...s,file:rel(s.file),files:s.files.map(rel)})),null,1));
+fs.writeFileSync(path.join(lib.workDir(__dirname),'out-scalars.json'),JSON.stringify(scalars.map(s=>({...s,file:rel(s.file),files:s.files.map(rel)})),null,1));

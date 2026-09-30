@@ -2,7 +2,7 @@
 // what each definition is (object contract, or a standalone scalar/enum that B15's B2 deletes) and
 // which packages every user already depends on — the candidates to keep the name.
 //
-// Usage: node tmp/phase34/b11-contract-merge/census.cjs            (read-only; writes out/duplicates.json)
+// Usage: node scrolls/brands-gateways-epic/phase34-scripts/b11-contract-merge/census.cjs            (read-only; writes out/duplicates.json)
 const fs = require('fs');
 const path = require('path');
 const lib = require('../lib/repo.cjs');
@@ -39,8 +39,8 @@ const closure = (short, withDev, seen = new Set()) => {
   const pj = byShort.get(short)?.packageJson ?? {};
   const names = { ...pj.dependencies, ...pj.peerDependencies, ...(withDev ? pj.devDependencies : {}) };
   for (const d of Object.keys(names)) {
-    const s = d.replace(/^@dungeonmaster\//u, '');
-    if (d.startsWith('@dungeonmaster/') && byShort.has(s)) closure(s, false, seen);
+    const s = d.replace(lib.SCOPE_RE, '');
+    if (d.startsWith(lib.SCOPE) && byShort.has(s)) closure(s, false, seen);
   }
   return seen;
 };
@@ -83,8 +83,8 @@ for (const [name, defs] of byName) {
   });
 }
 dups.sort((a, b) => a.name.localeCompare(b.name));
-fs.mkdirSync(path.join(__dirname, 'out'), { recursive: true });
-fs.writeFileSync(path.join(__dirname, 'out', 'duplicates.json'), JSON.stringify(dups, null, 1));
+fs.mkdirSync(lib.outDir(__dirname), { recursive: true });
+fs.writeFileSync(path.join(lib.outDir(__dirname), 'duplicates.json'), JSON.stringify(dups, null, 1));
 const objectDups = dups.filter((d) => d.definitions.some((x) => x.shape === 'object'));
 console.log(`${dups.length} contract names declared in more than one package; ${objectDups.length} have an object definition (B11 merges these; scalar/enum ones wait for B15's B2).`);
 for (const d of dups) {

@@ -1,6 +1,8 @@
-> **This folder is the committed copy of `tmp/phase34/`.** The scripts name `tmp/phase34` in their own paths and
-> write their output under it, so run them from there: `cp -a scrolls/brands-gateways-epic/phase34-scripts tmp/phase34`
-> when `tmp/phase34/` is missing. The `out/` and `sample-out/` folders are not copied here.
+> **Run the scripts in place, from any repo.** The root is the cwd or `--root=DIR`; every setting that differs between
+> repos (npm scope, gateway folder and import prefix, the decision-table file, the scratch folder) is a flag or a
+> `MIGRATE_*` variable read by `lib/port-config.cjs`, whose header lists them with this repo's values as defaults.
+> Output goes to `<out>/phase34/<script folder>/out` (default `<root>/tmp/phase34/...`, the layout the first run used);
+> moved-away files to `<out>/deletions/<chunk>/`. Porting to another repo: `../bigbang/PORTING.md`.
 
 > `feasibility/`, `brand-census/` and `libcopy-census/` were added on 2026-09-29 for the re-plan in
 > `../EPIC.md` ("Phases 3 and 4 — the plan"), which names the chunk that promotes each prototype. Their outputs are not copied, apart
@@ -10,18 +12,20 @@
 
 Scripts for the mechanical parts of the brands-and-gateways epic's Phases 3 and 4. Every script
 re-censuses the tree on each run (no stored file lists), defaults to a dry run, and writes only when
-given `apply`. Run every one from the worktree root. Output is gated by ward like any other change
+given `apply`. Run every one from the repo root (or pass `--root`). Output is gated by ward like any other change
 (EPIC.md rule 16); record each use in EPIC.md's "Scripts used".
 
 `lib/repo.cjs` holds what they share: TypeScript's own module resolution (`node16`,
-`customConditions: ['source']`), fenced to this worktree, with an in-memory overlay; an export-graph
+`customConditions: ['source']`), fenced to the root, with an in-memory overlay; an export-graph
 walker that finds the file DECLARING a name behind any barrel; B03's planned `exports` map; a
 LanguageService per package; the typecheck gate; a Myers diff.
 
 **Fencing matters here.** This worktree sits inside the main checkout, so a resolution that misses in
 this tree walks up and silently lands in the main checkout's `packages/` (it happened while building
 these: a "0 new errors" result was really the main checkout's code). Every host in `lib/` hides paths
-outside the worktree.
+outside the root. A consumer that links `@dungeonmaster/*` by `file:` resolves them outside its root, so
+`port-config.cjs` lets each such link's real directory (and every `node_modules` above it) through the fence;
+`--link-fence=0` turns that off.
 
 `lib/verify-sample.cjs <sampleDir> [<sampleDir> ...] [--check=a.ts,b.ts] [--no-exports-overlay]`
 proves a sample without touching `packages/`: it overlays every sample file at its real path (several

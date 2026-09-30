@@ -15,7 +15,7 @@
 // Each file is then gated through lib.gateEdits (the LanguageService): a statement whose edits add a
 // diagnostic gets them restored. Tests/stubs/proxies are counted and never edited.
 //
-// Usage: node tmp/phase34/b15-dead-reparse/run.cjs [--pkgs=a,b] [--sample-out=dir] [--kept-out=file]
+// Usage: node scrolls/brands-gateways-epic/phase34-scripts/b15-dead-reparse/run.cjs [--pkgs=a,b] [--sample-out=dir] [--kept-out=file]
 //        [--no-gate] [--distrust-stubs] [--no-literal-unions] [--verify-package]
 //        (a literal that the checker proves is a member of an enum-like contract's literal union counts as
 //         proven; `--no-literal-unions` keeps those parses. Run with node --max-old-space-size=32000.)

@@ -7,16 +7,19 @@
 //   4 malformed.cjs  the deletion list                                 -> out/malformed-tests.md
 //   5 leftovers.cjs  the hand queue                                    -> out/hand-queue.md
 // A work dir that already exists is moved aside (renamed), never deleted.
-// Usage: node tmp/phase34/sd1-retype-residue/pipeline.cjs [--work=tmp/sd1-work] [--narrow]
+// Usage: node scrolls/brands-gateways-epic/phase34-scripts/sd1-retype-residue/pipeline.cjs [--work=<out>/sd1-work] [--narrow]
 const fs = require('fs');
 const path = require('path');
 const { execFileSync } = require('child_process');
-const { ROOT } = require('../lib/repo.cjs');
+const lib = require('../lib/repo.cjs');
+
+const { ROOT } = lib;
 const arg = (n) => process.argv.find((a) => a.startsWith(`--${n}=`))?.slice(n.length + 3);
-const work = arg('work') ?? 'tmp/sd1-work';
+// Paths handed to the child scripts are relative to the root: they join them onto it.
+const work = arg('work') ?? path.relative(ROOT, path.join(lib.OUT, 'sd1-work'));
 const abs = path.join(ROOT, work);
 if (fs.existsSync(abs)) fs.renameSync(abs, `${abs}.${new Date().toISOString().replace(/[:.]/gu, '-')}`);
-fs.mkdirSync(path.join(__dirname, 'out'), { recursive: true });
+fs.mkdirSync(lib.outDir(__dirname), { recursive: true });
 const run = (script, args) => {
   console.log(`\n## ${script} ${args.join(' ')}`);
   execFileSync('node', [path.join(__dirname, script), ...args], { stdio: 'inherit', cwd: ROOT, maxBuffer: 1 << 28 });

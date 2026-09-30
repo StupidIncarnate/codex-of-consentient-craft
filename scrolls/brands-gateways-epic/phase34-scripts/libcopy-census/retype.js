@@ -1,7 +1,7 @@
 // Classify every `Tsestree` type reference so a retype script knows the target: visitor key -> TSESTree.<Key>, else TSESTree.Node
-const ts=require('typescript'),fs=require('fs');const R=process.cwd();
-const scan=JSON.parse(fs.readFileSync(R+'/tmp/libcopy-census/scan.json','utf8')).files;
-const AST=new Set(Object.keys(JSON.parse(fs.readFileSync(R+'/tmp/libcopy-census/reqkeys.json','utf8'))));
+const ts=require('typescript'),fs=require('fs');const C=require('../lib/port-config.cjs');const R=C.ROOT;const O=C.OUT+'/libcopy-census';fs.mkdirSync(O,{recursive:true});
+const scan=JSON.parse(fs.readFileSync(O+'/scan.json','utf8')).files;
+const AST=new Set(Object.keys(JSON.parse(fs.readFileSync(O+'/reqkeys.json','utf8'))));
 const rows=[];
 for(const [rel,rec] of Object.entries(scan)){
   if(!('Tsestree' in rec.imports))continue;
@@ -30,7 +30,7 @@ for(const [rel,rec] of Object.entries(scan)){
     ts.forEachChild(n,v);
   })(sf);
 }
-fs.writeFileSync(R+'/tmp/libcopy-census/retype.json',JSON.stringify(rows));
+fs.writeFileSync(O+'/retype.json',JSON.stringify(rows));
 const cnt=(f)=>rows.reduce((m,r)=>{const k=f(r);m[k]=(m[k]||0)+1;return m;},{});
 console.log('refs',rows.length,JSON.stringify(cnt(r=>r.kind)));
 console.log(JSON.stringify(cnt(r=>r.kind+':'+r.cls)));

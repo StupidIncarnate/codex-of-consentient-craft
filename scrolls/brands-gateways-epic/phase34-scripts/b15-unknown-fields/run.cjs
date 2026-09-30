@@ -11,7 +11,7 @@
 // that depends on it adds no diagnostic; a diagnostic is attributed to the edited file it names, else the
 // edited files in its folder, else the file whose contract names appear in its statement.
 //
-//   node --max-old-space-size=32000 tmp/phase34/b15-unknown-fields/run.cjs [--only=json,own] [--pkgs=a,b]
+//   node --max-old-space-size=32000 scrolls/brands-gateways-epic/phase34-scripts/b15-unknown-fields/run.cjs [--only=json,own] [--pkgs=a,b]
 //        [--responders] [--sample-out=dir] [--no-gate] [--leftovers=file] [apply]
 // Default is a dry run. `apply` writes packages/.
 const fs = require('fs');
@@ -29,7 +29,7 @@ const withResponders = args.includes('--responders');
 const only = flag('only')?.split(',');
 const pkgs = flag('pkgs')?.split(',');
 const sampleOut = flag('sample-out');
-const leftoversOut = flag('leftovers') ?? path.join(__dirname, 'out', 'leftovers.json');
+const leftoversOut = flag('leftovers') ?? path.join(lib.outDir(__dirname), 'leftovers.json');
 fs.mkdirSync(path.dirname(leftoversOut), { recursive: true });
 
 const keyOfNode = (n) => {

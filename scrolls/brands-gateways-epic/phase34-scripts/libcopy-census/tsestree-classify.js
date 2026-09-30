@@ -1,7 +1,7 @@
 const ts=require('typescript'),fs=require('fs');
-const R=process.cwd();
-const req=JSON.parse(fs.readFileSync(R+'/tmp/libcopy-census/reqkeys.json','utf8'));
-const scan=JSON.parse(fs.readFileSync(R+'/tmp/libcopy-census/scan.json','utf8')).files;
+const C=require('../lib/port-config.cjs');const R=C.ROOT;const O=C.OUT+'/libcopy-census';fs.mkdirSync(O,{recursive:true});
+const req=JSON.parse(fs.readFileSync(O+'/reqkeys.json','utf8'));
+const scan=JSON.parse(fs.readFileSync(O+'/scan.json','utf8')).files;
 const GW=new Set(['Identifier','CallExpression','MemberExpression','Program','ArrowFunctionExpression','Literal','Property','ObjectExpression','BlockStatement','ExpressionStatement','VariableDeclaration','ReturnStatement','JSXElement','JSXFragment']);
 const STUB='TsestreeStub';
 const out=[];
@@ -48,12 +48,12 @@ for(const [rel,rec] of Object.entries(scan)){
     ts.forEachChild(n,c=>v(c,inside));
   })(sf,false);
 }
-fs.writeFileSync(R+'/tmp/libcopy-census/tsestree-classify.json',JSON.stringify(out,null,0));
+fs.writeFileSync(O+'/tsestree-classify.json',JSON.stringify(out,null,0));
 const only=(c,pred)=>c.cls==='HAND'&&pred;
 console.log('HAND solely parent-supplied',out.filter(c=>c.cls==='HAND'&&c.flags.length===1&&c.flags[0]==='parent-supplied'&&!c.missing.length&&!c.unknown.length).length);
 console.log('HAND with missing/unknown structural',out.filter(c=>c.cls==='HAND'&&(c.missing.length||c.unknown.length)).length);
 console.log('PRINT with defaulted fields',out.filter(c=>c.cls==='PRINT'&&c.defaulted.length).length);
-fs.writeFileSync(R+'/tmp/libcopy-census/tsestree-hand-sites.txt',out.filter(c=>c.cls==='HAND').map(c=>c.file+':'+c.line+'  root='+c.rootType+'  '+[...c.missing.map(x=>'missing '+x),...c.unknown.map(x=>'unknown '+x),...c.flags].join('; ')).join('\n'));
+fs.writeFileSync(O+'/tsestree-hand-sites.txt',out.filter(c=>c.cls==='HAND').map(c=>c.file+':'+c.line+'  root='+c.rootType+'  '+[...c.missing.map(x=>'missing '+x),...c.unknown.map(x=>'unknown '+x),...c.flags].join('; ')).join('\n'));
 const cnt=(f)=>out.reduce((m,c)=>{const k=f(c);m[k]=(m[k]||0)+1;return m;},{});
 console.log('outer',out.length,JSON.stringify(cnt(c=>c.cls)));
 console.log('root types',JSON.stringify(Object.entries(cnt(c=>c.rootType)).sort((a,b)=>b[1]-a[1])));

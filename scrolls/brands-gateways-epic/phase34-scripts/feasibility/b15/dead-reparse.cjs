@@ -1,7 +1,7 @@
 // Dead re-parses: `xContract.parse(arg)` where the checker says arg is already assignable to the parse's own result type.
 // Counts them, rewrites them to `arg` on an overlay (production files), and typechecks the touched packages.
 // Usage: node .../dead-reparse.cjs [--pkgs=a,b] [--sample-out=dir]
-const fs=require('fs'),path=require('path');const lib=require('../../phase34/lib/repo.cjs');const {ts,ROOT,rel}=lib;
+const fs=require('fs'),path=require('path');const lib=require('../../lib/repo.cjs');const {ts,ROOT,rel}=lib;
 const arg=n=>process.argv.find(a=>a.startsWith(`--${n}=`))?.slice(n.length+3);const only=arg('pkgs')?.split(',');
 const ws=lib.workspaces();
 const res={sites:0,dead:0,deadProd:0,deadTest:0,byContract:{},scalarDead:0,objectDead:0,files:new Set()};

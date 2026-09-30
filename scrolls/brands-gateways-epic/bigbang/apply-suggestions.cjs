@@ -1,10 +1,12 @@
 // Applies ESLint's first suggestion for one rule, package by package, repeating until no suggestion is left.
-// Usage: node tmp/bigbang/apply-suggestions.cjs <ruleId> [pkgDir ...]   (default: every package with a src/)
+// Usage: node scrolls/brands-gateways-epic/bigbang/apply-suggestions.cjs [--root=DIR] <ruleId> [pkgDir ...]   (default: every package with a src/)
 const { execFileSync } = require('child_process');
 const fs = require('fs');
 const path = require('path');
 
-const root = path.resolve(__dirname, '..', '..');
+const cfg = require('../phase34-scripts/lib/port-config.cjs');
+
+const root = cfg.ROOT;
 const rule = process.argv[2];
 let dirs = process.argv.slice(3);
 if (!dirs.length) {
@@ -14,7 +16,8 @@ if (!dirs.length) {
     else dirs.push(p);
   }
 }
-const out = path.join(root, 'tmp', 'bigbang', 'logs', 'eslint-suggest.json');
+const out = path.join(cfg.OUT, 'bigbang', 'logs', 'eslint-suggest.json');
+fs.mkdirSync(path.dirname(out), { recursive: true });
 let total = 0;
 for (const dir of dirs) {
   for (let pass = 0; pass < 5; pass++) {

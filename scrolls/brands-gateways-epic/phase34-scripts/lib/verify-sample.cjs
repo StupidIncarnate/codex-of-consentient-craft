@@ -6,7 +6,7 @@
 //   2. the file is typechecked with its package's own tsconfig on today's disk and on the overlaid
 //      tree, and any diagnostic the overlay added is printed.
 // Several sample dirs stack, so the outputs of two scripts can be proved together.
-// Usage: node tmp/phase34/lib/verify-sample.cjs <sampleDir> [<sampleDir> ...] [--check=<file,...>] [--no-exports-overlay]
+// Usage: node scrolls/brands-gateways-epic/phase34-scripts/lib/verify-sample.cjs <sampleDir> [<sampleDir> ...] [--check=<file,...>] [--no-exports-overlay]
 const fs = require('fs');
 const path = require('path');
 const lib = require('./repo.cjs');

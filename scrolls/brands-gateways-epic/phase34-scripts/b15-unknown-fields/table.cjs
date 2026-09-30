@@ -1,11 +1,10 @@
-// Reads item 3's decisions table out of b15-brand-migration.md, one row per line.
-const fs = require('fs');
-const path = require('path');
+// Reads item 3's decisions table out of the decision file (--decisions=<file>, default items/b15-brand-migration.md),
+// one row per line. PORTING.md gives the heading and columns.
 const lib = require('../lib/repo.cjs');
-const FILE = path.join(lib.ROOT, 'scrolls/brands-gateways-epic/items/b15-brand-migration.md');
 module.exports = () => {
-  const t = fs.readFileSync(FILE, 'utf8');
+  const t = lib.cfg.decisionsText();
   const start = t.indexOf('### Item 3: the `z.unknown()` sites');
+  if (start === -1) throw new Error(`${lib.cfg.DECISIONS}: no "### Item 3: the \`z.unknown()\` sites" heading`);
   const end = t.indexOf('Reading the columns:', start);
   return t.slice(start, end).split('\n').filter((l) => /^\| \d+ \|/.test(l)).map((l) => {
     const c = l.split('|').slice(1, -1).map((s) => s.trim());

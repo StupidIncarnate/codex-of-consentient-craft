@@ -2,10 +2,10 @@
 // (only roots the printer PROVED against the real parser), `EslintContextStub` to `RuleContextStub`,
 // `TsestreeNodeType.X` to `AST_NODE_TYPES.X`, and fix imports. Nothing written under packages/.
 const path = require('path');
-const lib = require('../../phase34/lib/repo.cjs');
+const lib = require('../../lib/repo.cjs');
 const { convertRoot } = require('./stubprint.cjs');
 const { ts } = lib;
-const GW = '#gateway/npm/typescript-eslint__utils';
+const GW = `${lib.GW}npm/typescript-eslint__utils`;
 
 const kebab = (s) => s.replace(/([a-z0-9])([A-Z])/gu, '$1-$2').replace(/([A-Z]+)([A-Z][a-z])/gu, '$1-$2').toLowerCase();
 const stubPath = (type) => `${GW}/${kebab(type)}/${kebab(type)}.stub`;

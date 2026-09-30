@@ -16,8 +16,8 @@
 // carries one owner. The leftovers file is JSON: the rewriter's skips (with reasons), what still names the brand, and every
 // diagnostic still standing.
 //
-// Usage (from the worktree root, `tmp/phase34/` copy):
-//   node tmp/phase34/b15-value-brands/run.cjs --brand=errorMessageContract --file=packages/shared/src/contracts/error-message/error-message-contract.ts
+// Usage (from the repo root, or pass --root=DIR; settings in lib/port-config.cjs):
+//   node scrolls/brands-gateways-epic/phase34-scripts/b15-value-brands/run.cjs --brand=errorMessageContract --file=packages/shared/src/contracts/error-message/error-message-contract.ts
 //     [--no-rewrite] [--rounds=3] [--pkgs=a,b] [--sample-out=dir] [--leftovers=file]
 // A dry run: nothing under packages/ is written and nothing is deleted. --sample-out writes the changed files as copies at
 // their repo paths (prove them with lib/verify-sample.cjs).
@@ -518,7 +518,7 @@ for (let r = 0; r <= rounds; r++) {
 // the diagnostics still standing become leftovers
 const standing = [];
 for (const [pk, v] of cur) for (const it of v.items) standing.push({ pkg: pk, where: it.where, text: `TS${it.code} ${it.msg.slice(0, 200)}` });
-const outDir = path.join(ROOT, 'tmp', 'phase34', 'b15-value-brands', 'out');
+const outDir = lib.outDir(__dirname);
 fs.mkdirSync(outDir, { recursive: true });
 const lf = arg('leftovers') ? path.resolve(ROOT, arg('leftovers')) : path.join(outDir, `${brandName}-leftovers.json`);
 fs.writeFileSync(lf, JSON.stringify({ ...result, leftovers, standing }, null, 1));
@@ -529,7 +529,7 @@ if (sampleOut) for (const [f, t] of overlay) { if (t === null) continue; const d
 if (process.argv.includes('apply')) {
   for (const [f, t] of overlay) {
     if (t !== null) { fs.mkdirSync(path.dirname(f), { recursive: true }); fs.writeFileSync(f, t); continue; }
-    const mv = path.join(ROOT, 'tmp', 'deletions', 'W5', rel(f));
+    const mv = path.join(lib.DELETIONS, 'W5', rel(f));
     fs.mkdirSync(path.dirname(mv), { recursive: true });
     if (fs.existsSync(f)) fs.renameSync(f, mv);
   }

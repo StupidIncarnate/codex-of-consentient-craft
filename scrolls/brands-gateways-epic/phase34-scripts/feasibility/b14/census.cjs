@@ -2,7 +2,7 @@
 // outside proxies, widgets and contracts; method sets, mixed shapes, data shapes; and which data shapes print to zod.
 const fs = require('fs');
 const path = require('path');
-const lib = require('../../phase34/lib/repo.cjs');
+const lib = require('../../lib/repo.cjs');
 const { ts, ROOT, rel } = lib;
 const ws = lib.workspaces();
 const resolver = lib.makeResolver();
@@ -247,6 +247,6 @@ if (require.main === module) {
     rows.push({ file: rel(s.file), kind: s.kind, name: s.name, klass: s.klass, isTest: s.isTest, ok: p.ok, reason: p.reason, text: s.text.slice(0, 200) });
   }
   console.log(JSON.stringify(summary, null, 1));
-  fs.mkdirSync(path.join(__dirname, 'out'), { recursive: true });
-  fs.writeFileSync(path.join(__dirname, 'out', 'census.json'), JSON.stringify(rows, null, 1));
+  fs.mkdirSync(lib.outDir(__dirname), { recursive: true });
+  fs.writeFileSync(path.join(lib.outDir(__dirname), 'census.json'), JSON.stringify(rows, null, 1));
 }

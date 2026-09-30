@@ -11,9 +11,9 @@
 // with importers left is listed with them; run b03-per-file-imports first.
 //
 // Usage:
-//   node tmp/phase34/b03-strip-barrels/run.cjs [pkg ...]              dry run
-//   node tmp/phase34/b03-strip-barrels/run.cjs shared --sample-out=<dir>
-//   node tmp/phase34/b03-strip-barrels/run.cjs shared apply
+//   node scrolls/brands-gateways-epic/phase34-scripts/b03-strip-barrels/run.cjs [pkg ...]              dry run
+//   node scrolls/brands-gateways-epic/phase34-scripts/b03-strip-barrels/run.cjs shared --sample-out=<dir>
+//   node scrolls/brands-gateways-epic/phase34-scripts/b03-strip-barrels/run.cjs shared apply
 const fs = require('fs');
 const path = require('path');
 const lib = require('../lib/repo.cjs');
@@ -26,7 +26,7 @@ const pkgArgs = args.filter((a) => !a.startsWith('--') && a !== 'apply');
 
 const ws = lib.workspaces();
 const selected = ws.filter(
-  (w) => !w.isGateway && w.name !== '@dungeonmaster/testing' && (!pkgArgs.length || pkgArgs.includes(w.short)),
+  (w) => !w.isGateway && w.name !== lib.pkgName('testing') && (!pkgArgs.length || pkgArgs.includes(w.short)),
 );
 const resolve = lib.makeResolver();
 const writes = new Map();
@@ -142,7 +142,7 @@ for (const [abs, text] of writes) {
   diffText +=
     text === null ? `--- a/${rel(abs)}\n+++ /dev/null (deleted)\n` : lib.unifiedDiff(rel(abs), fs.readFileSync(abs, 'utf8'), text);
 }
-const OUT = path.join(__dirname, 'out');
+const OUT = lib.outDir(__dirname);
 fs.mkdirSync(OUT, { recursive: true });
 fs.writeFileSync(path.join(OUT, 'last-run.diff'), diffText);
 fs.writeFileSync(path.join(OUT, 'leftovers.json'), JSON.stringify(leftovers, null, 1));
@@ -162,7 +162,7 @@ if (sampleOut) {
   }
 } else if (APPLY) {
   for (const [abs, text] of writes) {
-    if (text === null) { const mv = path.join(ROOT, 'tmp/deletions/3.3', rel(abs)); fs.mkdirSync(path.dirname(mv), { recursive: true }); fs.renameSync(abs, mv); }
+    if (text === null) { const mv = path.join(lib.DELETIONS, '3.3', rel(abs)); fs.mkdirSync(path.dirname(mv), { recursive: true }); fs.renameSync(abs, mv); }
     else fs.writeFileSync(abs, text);
   }
 }

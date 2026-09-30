@@ -9,7 +9,7 @@
 //   { x }                -> { x: XStub({ value: x }) }   when x is not a literal const
 // A round's edits to a file are reverted when the file ends the round with MORE diagnostics than it began it with.
 // Everything else goes to leftovers.txt. Nothing under packages/ is written; --sample-out writes final texts.
-// Usage: node tmp/phase34/b13-test-fallout/run.cjs [--pkgs=a,b] [--sample-out=dir] [--leftovers=file]
+// Usage: node scrolls/brands-gateways-epic/phase34-scripts/b13-test-fallout/run.cjs [--pkgs=a,b] [--sample-out=dir] [--leftovers=file]
 const fs = require('fs');
 const path = require('path');
 const lib = require('../lib/repo.cjs');
@@ -219,7 +219,7 @@ console.log('total'.padEnd(18), String(a).padStart(11), String(b).padStart(15));
 const byWhy = {};
 for (const l of leftovers) { const k = l.why.replace(/\d+/gu, 'N'); byWhy[k] = (byWhy[k] ?? 0) + 1; }
 console.log('leftover reasons', JSON.stringify(Object.entries(byWhy).sort((x, y) => y[1] - x[1]), null, 0));
-const outDir = path.join(__dirname, 'out');
+const outDir = lib.outDir(__dirname);
 fs.mkdirSync(outDir, { recursive: true });
 const lo = arg('leftovers') ?? path.join(outDir, 'leftovers.txt');
 leftovers.sort((x, y) => x.pkg.localeCompare(y.pkg) || x.file.localeCompare(y.file) || x.line - y.line);

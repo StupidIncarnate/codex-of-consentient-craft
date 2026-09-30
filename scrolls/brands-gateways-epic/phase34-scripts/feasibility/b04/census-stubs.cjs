@@ -1,4 +1,4 @@
-const fs=require('fs'),path=require('path');const lib=require('../../phase34/lib/repo.cjs');const {ts,ROOT,rel}=lib;
+const fs=require('fs'),path=require('path');const lib=require('../../lib/repo.cjs');const {ts,ROOT,rel}=lib;
 const files=[...lib.walk(path.join(ROOT,'packages/eslint-plugin')),...lib.walk(path.join(ROOT,'packages/local-eslint'))].filter(f=>/Tsestree|EslintContextStub/.test(fs.readFileSync(f,'utf8')));
 const types={},ctxKeys={},nodeKeys={};let roots=0,nested=0,ctx=0,ctxShapes={};
 for(const f of files){const sf=lib.parse(f);

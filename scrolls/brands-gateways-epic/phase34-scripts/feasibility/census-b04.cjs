@@ -1,4 +1,4 @@
-const lib = require('../phase34/lib/repo.cjs');
+const lib = require('../lib/repo.cjs');
 const fs = require('fs'); const path = require('path');
 const { ts, ROOT, rel } = lib;
 const files = [...lib.walk(path.join(ROOT,'packages/eslint-plugin')), ...lib.walk(path.join(ROOT,'packages/local-eslint'))];
@@ -12,4 +12,4 @@ for (const f of files) {
   const cc=(t.match(/EslintContextStub\(/g)||[]).length; if(cc){ctxCalls+=cc;ctxFiles.add(rel(f));}
 }
 console.log({prodRef:prodRef.length, stubCalls, stubFiles:stubFiles.size, ctxCalls, ctxFiles:ctxFiles.size});
-fs.writeFileSync(__dirname+'/b04-prod-files.txt', prodRef.join('\n'));
+fs.writeFileSync(lib.workDir(__dirname)+'/b04-prod-files.txt', prodRef.join('\n'));

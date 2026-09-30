@@ -52,15 +52,15 @@ for (const w of ws) {
 
 // Outside-package types a contract field holds through the gateway's schema (C9). A schema the gateway does not
 // have yet is `proposed`: the generator writes it into the sample beside the contracts that need it, and lists it.
-const gatewayKind = (pkg) => (pkg === '@dungeonmaster/web' ? 'browser' : 'node');
+const gatewayKind = (pkg) => lib.cfg.gatewayKindOf(pkg);
 const GATEWAY_TYPES = {
   Error: { schema: 'errorSchema', sub: 'Error', file: 'error-schema', brand: '#GatewayError', ctor: 'Error', sample: "new Error('sample')" },
   Uint8Array: { schema: 'uint8ArraySchema', sub: 'Uint8Array', file: 'uint8-array-schema', brand: '#GatewayUint8Array', ctor: 'Uint8Array', sample: 'new Uint8Array()' },
-  Buffer: { schema: 'bufferSchema', sub: 'buffer', exists: true, spec: '#gateway/node/buffer', sample: "Buffer.from('sample')" },
-  ChildProcess: { schema: 'childProcessSchema', sub: 'child_process', exists: true, spec: '#gateway/node/child_process', sample: null },
-  WalkedFile: { schema: 'walkedFileSchema', sub: 'fs', exists: true, spec: '#gateway/node/fs', sample: "{ path: '/a', sizeBytes: 0, modifiedAtMs: 0 }" },
+  Buffer: { schema: 'bufferSchema', sub: 'buffer', exists: true, spec: `${lib.GW}node/buffer`, sample: "Buffer.from('sample')" },
+  ChildProcess: { schema: 'childProcessSchema', sub: 'child_process', exists: true, spec: `${lib.GW}node/child_process`, sample: null },
+  WalkedFile: { schema: 'walkedFileSchema', sub: 'fs', exists: true, spec: `${lib.GW}node/fs`, sample: "{ path: '/a', sizeBytes: 0, modifiedAtMs: 0 }" },
 };
-const gatewaySpec = (name, pkg) => GATEWAY_TYPES[name].spec ?? `#gateway/${gatewayKind(pkg)}/${GATEWAY_TYPES[name].sub}`;
+const gatewaySpec = (name, pkg) => GATEWAY_TYPES[name].spec ?? `${lib.GW}${gatewayKind(pkg)}/${GATEWAY_TYPES[name].sub}`;
 
 class Unprintable extends Error {}
 const no = (r) => {

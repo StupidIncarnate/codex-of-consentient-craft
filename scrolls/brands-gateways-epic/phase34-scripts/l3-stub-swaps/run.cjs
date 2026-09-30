@@ -2,8 +2,8 @@
 // of the same copies (libcopy-census/stub-map.json and its `_typeMap`; gateway paths from
 // items/b05-other-library-type-copies.md "Stub paths (from L0)").
 //
-//   node tmp/phase34/l3-stub-swaps/run.cjs [pkg ...] [--sample-out=<dir>] [--no-dependents] [--keep-blocked] [apply]
-//   node tmp/phase34/l3-stub-swaps/run.cjs --list-dead            (read-only; dead copies on the tree as it stands)
+//   node scrolls/brands-gateways-epic/phase34-scripts/l3-stub-swaps/run.cjs [pkg ...] [--sample-out=<dir>] [--no-dependents] [--keep-blocked] [apply]
+//   node scrolls/brands-gateways-epic/phase34-scripts/l3-stub-swaps/run.cjs --list-dead            (read-only; dead copies on the tree as it stands)
 //
 // Re-censuses on every run. Per package: every call of a copy stub becomes the gateway stub (or the real
 // value: the three `ts.*` stubs and EslintRulesStub unwrap), every reference to a copy's type becomes the
@@ -39,18 +39,18 @@ const KEEP_BLOCKED = args.includes('--keep-blocked');
 const sampleOut = opt('sample-out') ? path.resolve(ROOT, opt('sample-out')) : null;
 const pkgArgs = args.filter((a) => !a.startsWith('--') && a !== 'apply');
 const WS = lib.workspaces();
-const OUT = path.join(__dirname, 'out');
+const OUT = lib.outDir(__dirname);
 const log = (m) => process.stderr.write(`${m}\n`);
 
 const GW = {
-  timeout: '#gateway/node/setTimeout/timeout/timeout.stub',
-  flat: '#gateway/npm/typescript-eslint__utils/flat-config/flat-config.stub',
-  ws: '#gateway/npm/hono__ws/ws-context/ws-context.stub',
-  rpc: '#gateway/npm/modelcontextprotocol__sdk__types/json-rpc-request/json-rpc-request.stub',
-  ts: '#gateway/npm/typescript',
-  utils: '#gateway/npm/typescript-eslint__utils',
-  honoWs: '#gateway/npm/hono__ws',
-  sdk: '#gateway/npm/modelcontextprotocol__sdk__types',
+  timeout: `${lib.GW}node/setTimeout/timeout/timeout.stub`,
+  flat: `${lib.GW}npm/typescript-eslint__utils/flat-config/flat-config.stub`,
+  ws: `${lib.GW}npm/hono__ws/ws-context/ws-context.stub`,
+  rpc: `${lib.GW}npm/modelcontextprotocol__sdk__types/json-rpc-request/json-rpc-request.stub`,
+  ts: `${lib.GW}npm/typescript`,
+  utils: `${lib.GW}npm/typescript-eslint__utils`,
+  honoWs: `${lib.GW}npm/hono__ws`,
+  sdk: `${lib.GW}npm/modelcontextprotocol__sdk__types`,
 };
 const IMP = {
   timeoutStub: { spec: GW.timeout, name: 'TimeoutStub' },
@@ -79,7 +79,7 @@ const BY_TYPE = new Map(FAMILIES.map((f) => [f.type, f]));
 const ALL_NAMES = FAMILIES.flatMap((f) => [f.stub, f.type, f.contract]);
 const isOwn = (relFile) => FAMILIES.some((f) => relFile.startsWith(`${f.dir}/`));
 const ownFamily = (relFile) => FAMILIES.find((f) => relFile.startsWith(`${f.dir}/`));
-const isGatewaySpec = (s) => s.startsWith('#gateway/') && s !== GW.rpc;
+const isGatewaySpec = (s) => s.startsWith(`${lib.GW}`) && s !== GW.rpc;
 const TEST_FILE = /\.(test|integration\.test|e2e|spec)\.tsx?$/u;
 const NON_TEST = (f) => !TEST_FILE.test(f);
 

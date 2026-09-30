@@ -3,7 +3,7 @@
 // Usage: node .../retype.cjs [--pkgs=a,b] [--validate] [--sample-out=dir] [--tests]
 const fs = require('fs');
 const path = require('path');
-const lib = require('../../phase34/lib/repo.cjs');
+const lib = require('../../lib/repo.cjs');
 const { buildIndex, words, ws } = require('./index.cjs');
 const { ts, ROOT, rel } = lib;
 const arg = (n) => process.argv.find((a) => a.startsWith(`--${n}=`))?.slice(n.length + 3);
@@ -102,6 +102,6 @@ if (require.main === module) {
   console.log('skipped', skipped, 'id-key', candidates.filter((c) => c.isId).length);
   console.log('by pkg', JSON.stringify(byPkg));
   console.log(Object.entries(byName).sort((a, b) => b[1] - a[1]).slice(0, 40).map((e) => e[1] + ' ' + e[0]).join('\n'));
-  fs.mkdirSync(path.join(__dirname, 'out'), { recursive: true });
-  fs.writeFileSync(path.join(__dirname, 'out', 'candidates.json'), JSON.stringify(candidates.map((c) => ({ ...c, file: rel(c.file), ownerFile: rel(c.ownerFile) })), null, 1));
+  fs.mkdirSync(lib.outDir(__dirname), { recursive: true });
+  fs.writeFileSync(path.join(lib.outDir(__dirname), 'candidates.json'), JSON.stringify(candidates.map((c) => ({ ...c, file: rel(c.file), ownerFile: rel(c.ownerFile) })), null, 1));
 }

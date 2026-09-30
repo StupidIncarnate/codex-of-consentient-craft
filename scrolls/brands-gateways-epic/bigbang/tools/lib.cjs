@@ -3,7 +3,10 @@
 const fs = require('fs');
 const path = require('path');
 
-const ROOT = path.resolve(__dirname, '..', '..', '..');
+// Root, scope and gateway folder come from phase34-scripts/lib/port-config.cjs (flags, MIGRATE_* env, or defaults).
+const cfg = require('../../phase34-scripts/lib/port-config.cjs');
+
+const { ROOT } = cfg;
 const ts = require(path.join(ROOT, 'node_modules', 'typescript'));
 
 const rel = (abs) => path.relative(ROOT, abs).split(path.sep).join('/');
@@ -25,13 +28,13 @@ const workspaces = () => {
     const pj = path.join(dir, 'package.json');
     if (!fs.existsSync(pj)) return;
     const json = JSON.parse(fs.readFileSync(pj, 'utf8'));
-    const short = json.name.replace(/^@dungeonmaster\//u, '');
+    const short = cfg.SCOPE_RE.test(json.name) ? cfg.stripScope(json.name) : path.basename(dir);
     const r = rel(dir);
     out.push({ name: json.name, short, dir, rel: r, key: r.replace(/^packages\//u, '') });
   };
   const pk = path.join(ROOT, 'packages');
   for (const d of fs.readdirSync(pk)) {
-    if (d === '@gateway') for (const g of fs.readdirSync(path.join(pk, d))) add(path.join(pk, d, g));
+    if (`packages/${d}` === cfg.GATEWAY_DIR) for (const g of fs.readdirSync(path.join(pk, d))) add(path.join(pk, d, g));
     else add(path.join(pk, d));
   }
   return out;
@@ -44,7 +47,7 @@ const ownerOf = (relPath, list) => {
   return best ? best.key : null;
 };
 
-// Accepts 'cli', 'packages/cli', '@dungeonmaster/cli', '@gateway/node', 'node' (gateway short name).
+// Accepts 'cli', 'packages/cli', '<scope>cli', '@gateway/node', 'node' (gateway short name).
 const pickPackages = (spec, list) => {
   if (!spec || spec === true) return list;
   const want = String(spec).split(',').map((s) => s.trim()).filter(Boolean);
@@ -62,12 +65,10 @@ const parseTsconfig = (cfgPath) => {
   return parsed;
 };
 
-// This worktree sits inside the main checkout: an unfenced walk-up that misses here would resolve to the
-// MAIN checkout's copy and fake a pass. Every host hides paths outside ROOT.
-const inRoot = (p) => {
-  const a = path.resolve(p);
-  return a === ROOT || a.startsWith(ROOT + path.sep);
-};
+// A worktree sits inside the main checkout: an unfenced walk-up that misses there would resolve to the
+// MAIN checkout's copy and fake a pass. A fenced host hides paths outside the root and the real directories
+// of `file:`-linked packages (port-config.cjs).
+const inRoot = cfg.inFence;
 
 // overlay: Map<absRealPath, text|null>. Lookups try the path as asked and its realpath.
 const realOrSelf = (p) => {
@@ -165,6 +166,7 @@ const writeJson = (p, v) => {
 };
 
 module.exports = {
+  cfg,
   ROOT,
   ts,
   rel,

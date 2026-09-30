@@ -2,16 +2,16 @@
 //   1. type errors left in production files after retype, strip, guard, brand-widen and dead-condition removal
 //   2. stub trees the printer cannot print (helper-body roots and malformed trees are not here: the first are
 //      converted through their call sites, the second are on the deletion list)
-// Usage: node tmp/phase34/sd1-retype-residue/leftovers.cjs [--residue=out/residue.json] [--md=out/hand-queue.md]
+// Usage: node scrolls/brands-gateways-epic/phase34-scripts/sd1-retype-residue/leftovers.cjs [--residue=out/residue.json] [--md=out/hand-queue.md]
 const fs = require('fs');
 const path = require('path');
 const lib = require('../lib/repo.cjs');
 const { convertRoot, classify } = require('./stubprint2.cjs');
 const { ts, ROOT, rel } = lib;
-fs.mkdirSync(path.join(__dirname, 'out'), { recursive: true });
+fs.mkdirSync(lib.outDir(__dirname), { recursive: true });
 const arg = (n) => process.argv.find((a) => a.startsWith(`--${n}=`))?.slice(n.length + 3);
-const residue = JSON.parse(fs.readFileSync(path.join(__dirname, arg('residue') ?? 'out/residue.json'), 'utf8'));
-const PROD_SAMPLE = arg('prod') ?? 'tmp/sd1-sample2';
+const residue = JSON.parse(fs.readFileSync(path.join(lib.workDir(__dirname), arg('residue') ?? 'out/residue.json'), 'utf8'));
+const PROD_SAMPLE = arg('prod') ?? path.relative(ROOT, path.join(lib.OUT, 'sd1-sample2'));
 
 const label = (msg, code) => {
   if (/'Node'\./u.test(msg) || /does not exist on type 'Node'/u.test(msg)) return 'helper parameter still typed TSESTree.Node: retype to the function or object node its callers pass, then drop the dead checks after it';
@@ -90,6 +90,6 @@ for (const f of [...byFile.keys()].sort()) {
   for (const r of e.stub) md.push(`- stub tree at line ${r.line} (${r.reason}): \`${r.src}\``);
   md.push('');
 }
-fs.writeFileSync(path.join(__dirname, arg('md') ?? 'out/hand-queue.md'), md.join('\n'));
-fs.writeFileSync(path.join(__dirname, 'out/hand-queue.json'), JSON.stringify({ typeRows, stubRows, malformed, helperRoots }, null, 1));
+fs.writeFileSync(path.join(lib.workDir(__dirname), arg('md') ?? 'out/hand-queue.md'), md.join('\n'));
+fs.writeFileSync(path.join(lib.workDir(__dirname), 'out/hand-queue.json'), JSON.stringify({ typeRows, stubRows, malformed, helperRoots }, null, 1));
 console.log(JSON.stringify({ typeErrors: typeRows.length, typeFiles: new Set(typeRows.map((r) => r.file)).size, unprintableTrees: stubRows.length, stubFiles: new Set(stubRows.map((r) => r.file)).size, queueFiles: byFile.size, malformed }));

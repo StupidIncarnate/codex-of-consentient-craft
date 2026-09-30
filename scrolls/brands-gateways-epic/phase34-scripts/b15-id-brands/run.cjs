@@ -1,6 +1,6 @@
 // SD3, waves W3 and W4: a standalone id brand becomes its owner's field (`id`, or the persisted key for an owner-field row).
 //
-// Input is 4.0's decision tables in items/b15-brand-migration.md (2.2 owned ids, 2.4 ownerless ids); `--brand` names a row by
+// Input is 4.0's decision tables (--decisions=<file>, default items/b15-brand-migration.md: 2.2 owned ids, 2.4 ownerless ids); `--brand` names a row by
 // brand (`QuestId`) or const (`questIdContract`). Every row with the same owner path and key is one group and retyped in one
 // pass (same-name copies, and rows such as `QuestWorkItemId` and orchestrator `WorkItemId` that converge on one owner).
 //
@@ -20,8 +20,8 @@
 // Nothing under packages/ is written unless `apply` is given, and then only under `--apply-to` (default the repo root).
 // Removed files are MOVED to tmp/deletions/W3/<repo path>, never deleted.
 //
-// Usage (from the worktree root, `tmp/phase34/` copy):
-//   node tmp/phase34/b15-id-brands/run.cjs --brand=QuestId [--pkg=shared] [--no-group] [--no-rewrite] [--rounds=3]
+// Usage (from the repo root, or pass --root=DIR; settings in lib/port-config.cjs):
+//   node scrolls/brands-gateways-epic/phase34-scripts/b15-id-brands/run.cjs --brand=QuestId [--pkg=shared] [--no-group] [--no-rewrite] [--rounds=3]
 //     [--pkgs=a,b] [--sample-out=dir] [--leftovers=file] [--apply-to=dir apply]
 const fs = require('fs');
 const path = require('path');
@@ -39,9 +39,11 @@ const sameFile = (a, b) => a && b && path.resolve(a) === path.resolve(b);
 const PK = path.join(ROOT, 'packages');
 
 // ---------- 4.0 tables ----------
-const itemFile = path.join(ROOT, 'scrolls', 'brands-gateways-epic', 'items', 'b15-brand-migration.md');
+// The decision file is --decisions=<file> (port-config.cjs; default this repo's items/b15-brand-migration.md). PORTING.md
+// gives the headings and columns read here.
 const readTable = (startRe, endRe) => {
-  const lines = fs.readFileSync(itemFile, 'utf8').split('\n');
+  const lines = lib.cfg.decisionsText().split('\n');
+  if (!lines.some((l) => startRe.test(l))) throw new Error(`${lib.cfg.DECISIONS}: no heading matching ${startRe}`);
   const a = lines.findIndex((l) => startRe.test(l));
   const b = lines.findIndex((l, i) => i > a && endRe.test(l));
   return lines.slice(a + 1, b).filter((l) => l.startsWith('|') && !/^\|[-| ]+\|$/u.test(l)).slice(1).map((l) => l.slice(1, -1).split('|').map((c) => c.trim()));
@@ -272,7 +274,7 @@ const collectFor = (f, text) => {
         body += text.slice(last, n.initializer.end);
         add(n.getStart(sf), n.end, `get ${n.name.getText(sf)}(): ${t} {\n return ${body};\n }`, 'getter');
         useOwner();
-        need(f, 'z', '#gateway/npm/zod', false);
+        need(f, 'z', lib.ZOD_SPEC, false);
         return;
       }
       leftovers.gettersSkipped.push(`${rel(f)}:${sf.getLineAndCharacterOfPosition(n.getStart(sf)).line + 1} ${n.getText(sf).slice(0, 70).replace(/\s+/gu, ' ')}`);
@@ -349,7 +351,7 @@ if (ownerIsNew) {
  * // Returns: ${ownerTypeName} object
  */
 
-import { z } from '#gateway/npm/zod';
+import { z } from '${lib.ZOD_SPEC}';
 ${impLines.length ? `${impLines.join('\n')}\n` : ''}
 export const ${ownerConst} = z
   .object({
@@ -602,7 +604,7 @@ for (let r = 0; r <= rounds; r++) {
 }
 const standing = [];
 for (const [pk, v] of cur) for (const it of v.items) standing.push({ pkg: pk, where: it.where, text: `TS${it.code} ${it.msg.slice(0, 200)}` });
-const outDir = path.join(ROOT, 'tmp', 'phase34', 'b15-id-brands', 'out');
+const outDir = lib.outDir(__dirname);
 fs.mkdirSync(outDir, { recursive: true });
 const lf = arg('leftovers') ? path.resolve(ROOT, arg('leftovers')) : path.join(outDir, `${wantBrand}-leftovers.json`);
 fs.writeFileSync(lf, JSON.stringify({ ...result, leftovers, standing }, null, 1));
@@ -615,7 +617,8 @@ if (flag('apply') || process.argv.includes('apply')) {
   for (const [f, t] of overlay) {
     const dest = path.join(to, rel(f));
     if (t === null) {
-      const mv = path.join(to, 'tmp', 'deletions', process.env.CHUNK ?? 'W3', rel(f));
+      // Applied to the root: moved files go to <out>/deletions/<CHUNK>; applied to a copy (--apply-to): under the copy's tmp/.
+      const mv = path.join(to === ROOT ? lib.DELETIONS : path.join(to, 'tmp', 'deletions'), process.env.CHUNK ?? 'W3', rel(f));
       fs.mkdirSync(path.dirname(mv), { recursive: true });
       if (fs.existsSync(dest)) fs.renameSync(dest, mv);
       else if (fs.existsSync(f)) fs.copyFileSync(f, mv);

@@ -7,17 +7,19 @@ A diagnostic is the script's doing when
   - anywhere, its message names a brand text one of the script's field-inline edits created.
 The edit covering the diagnostic's line is held; when no edit covers it, every edit in that file is held ('*').
 The brand-text rule only counts a diagnostic that is new: a new code in a changed file, a new (code, line) elsewhere.
-Holds accumulate across rounds in tmp/bigbang/logs/dangling-holds.json.
+Holds accumulate across rounds in <out>/bigbang/logs/dangling-holds.json, where fix-dangling.cjs reads them.
+<out> is MIGRATE_OUT, else <MIGRATE_ROOT or cwd>/tmp (phase34-scripts/lib/port-config.cjs).
 
-Usage: python3 tmp/bigbang/fix-dangling-holds.py <base diag> <after diag>
+Usage: python3 scrolls/brands-gateways-epic/bigbang/fix-dangling-holds.py <base diag> <after diag>
 """
 import json, os, re, sys, collections
 
+LOGS = os.path.join(os.environ.get('MIGRATE_OUT') or os.path.join(os.environ.get('MIGRATE_ROOT') or os.getcwd(), 'tmp'), 'bigbang', 'logs')
 base = json.load(open(sys.argv[1]))
 after = json.load(open(sys.argv[2]))
-manifest = json.load(open('tmp/bigbang/logs/dangling-manifest.json'))
-changed = set(open('tmp/bigbang/logs/dangling-changed.txt').read().split())
-hf = 'tmp/bigbang/logs/dangling-holds.json'
+manifest = json.load(open(os.path.join(LOGS, 'dangling-manifest.json')))
+changed = set(open(os.path.join(LOGS, 'dangling-changed.txt')).read().split())
+hf = os.path.join(LOGS, 'dangling-holds.json')
 holds = json.load(open(hf)) if os.path.exists(hf) else []
 have = {(h['file'], h['id']) for h in holds}
 

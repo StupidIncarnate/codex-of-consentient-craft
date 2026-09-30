@@ -2,7 +2,7 @@
 // Usage: node .../validate.cjs [--tests] [--sample-out=dir]
 const fs = require('fs');
 const path = require('path');
-const lib = require('../../phase34/lib/repo.cjs');
+const lib = require('../../lib/repo.cjs');
 const { candidates, barrelExports, resolver, owners } = require('./retype.cjs');
 const { ts, ROOT, rel } = lib;
 const arg = (n) => process.argv.find((a) => a.startsWith(`--${n}=`))?.slice(n.length + 3);
@@ -148,7 +148,7 @@ const kinds = {};
 for (const c of kept) for (const d of results.perCandidate.get(c)) { const m = /TS(\d+): (.{0,50})/.exec(d); const k = 'TS' + m[1] + ' ' + m[2].replace(/'[^']*'/g, 'X'); kinds[k] = (kinds[k] ?? 0) + 1; }
 console.log('leftover kinds', JSON.stringify(Object.entries(kinds).sort((a, b) => b[1] - a[1]).slice(0, 8)));
 console.log('unattributed sample', unattr.slice(0, 5));
-fs.mkdirSync(path.join(__dirname, 'out'), { recursive: true });
-fs.writeFileSync(path.join(__dirname, 'out', 'validate.json'), JSON.stringify({ kept: kept.map((c) => ({ ...c, file: rel(c.file), ownerFile: rel(c.ownerFile), diags: results.perCandidate.get(c) })) }, null, 1));
+fs.mkdirSync(lib.outDir(__dirname), { recursive: true });
+fs.writeFileSync(path.join(lib.outDir(__dirname), 'validate.json'), JSON.stringify({ kept: kept.map((c) => ({ ...c, file: rel(c.file), ownerFile: rel(c.ownerFile), diags: results.perCandidate.get(c) })) }, null, 1));
 const out = arg('sample-out');
 if (out) for (const [f, t] of overlay) { const d = path.join(ROOT, out, rel(f)); fs.mkdirSync(path.dirname(d), { recursive: true }); fs.writeFileSync(d, t); }

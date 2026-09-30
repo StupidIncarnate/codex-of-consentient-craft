@@ -13,11 +13,11 @@
 //
 // Writes nothing without `apply`. Never deletes: the alias line is removed from the file text only.
 // Usage (from the repo root):
-//   node tmp/phase34/b03-stub-type-alias/run.cjs                       dry run, whole repo
-//   node tmp/phase34/b03-stub-type-alias/run.cjs --importers=orchestrator,web
-//   node tmp/phase34/b03-stub-type-alias/run.cjs --sample-out=<dir>    rewritten copies, repo-relative layout
-//   node tmp/phase34/b03-stub-type-alias/run.cjs ... apply
-// Then: node tmp/phase34/lib/verify-sample.cjs <dir>
+//   node scrolls/brands-gateways-epic/phase34-scripts/b03-stub-type-alias/run.cjs                       dry run, whole repo
+//   node scrolls/brands-gateways-epic/phase34-scripts/b03-stub-type-alias/run.cjs --importers=orchestrator,web
+//   node scrolls/brands-gateways-epic/phase34-scripts/b03-stub-type-alias/run.cjs --sample-out=<dir>    rewritten copies, repo-relative layout
+//   node scrolls/brands-gateways-epic/phase34-scripts/b03-stub-type-alias/run.cjs ... apply
+// Then: node scrolls/brands-gateways-epic/phase34-scripts/lib/verify-sample.cjs <dir>
 const fs = require('fs');
 const path = require('path');
 const lib = require('../lib/repo.cjs');
@@ -31,7 +31,7 @@ const flag = (n) => {
 const APPLY = args.includes('apply');
 const importerFilter = flag('importers');
 const sampleOut = flag('sample-out')?.[0] ?? null;
-const OUT = path.join(__dirname, 'out');
+const OUT = lib.outDir(__dirname);
 fs.mkdirSync(OUT, { recursive: true });
 
 const ws = lib.workspaces();

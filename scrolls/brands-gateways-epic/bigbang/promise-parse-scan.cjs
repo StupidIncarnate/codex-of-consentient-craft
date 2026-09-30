@@ -1,10 +1,11 @@
 // Finds `x.parse(arg)` / `x.safeParse(arg)` whose argument's type is a Promise (a missing await), in every package.
-// Usage: node tmp/bigbang/promise-parse-scan.cjs
-const ts = require('typescript');
+// Usage: node scrolls/brands-gateways-epic/bigbang/promise-parse-scan.cjs [--root=DIR]
 const fs = require('fs');
 const path = require('path');
+const port = require('../phase34-scripts/lib/port-config.cjs');
 
-const root = path.resolve(__dirname, '..', '..');
+const root = port.ROOT;
+const ts = require(path.join(root, 'node_modules', 'typescript'));
 const pkgDirs = [];
 for (const d of fs.readdirSync(path.join(root, 'packages'))) {
   const p = path.join(root, 'packages', d);

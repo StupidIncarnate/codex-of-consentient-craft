@@ -1,14 +1,14 @@
 // SD1 (d): every test that builds a node the real TSESTree types forbid (a required field undefined or null, an
 // array or wrong node type in a slot, a non-Program with `parent: null`) covers a branch the retype makes dead.
 // Writes the deletion list: the test, what is missing, and the production lines that test the missing field.
-// Usage: node tmp/phase34/sd1-retype-residue/malformed.cjs [--sample=tmp/sd1-sample2] [--md=out/malformed-tests.md] [--json=out/malformed-tests.json]
+// Usage: node scrolls/brands-gateways-epic/phase34-scripts/sd1-retype-residue/malformed.cjs [--sample=tmp/sd1-sample2] [--md=out/malformed-tests.md] [--json=out/malformed-tests.json]
 const fs = require('fs');
 const path = require('path');
 const lib = require('../lib/repo.cjs');
 const { convertRoot, classify } = require('./stubprint2.cjs');
 const { ts, ROOT, rel } = lib;
 const arg = (n) => process.argv.find((a) => a.startsWith(`--${n}=`))?.slice(n.length + 3);
-const SAMPLE = arg('sample') ?? 'tmp/sd1-sample2';
+const SAMPLE = arg('sample') ?? path.relative(ROOT, path.join(lib.OUT, 'sd1-sample2'));
 
 const fieldsOf = (c) => {
   if (c.reason === 'parent-null') return ['parent'];
@@ -99,7 +99,7 @@ const main = () => {
     out.push({ ...e, allRootsMalformed: bad.length === e.roots.length, malformedRoots: bad.length, otherRoots: e.roots.length - bad.length, fields, prodFile: rel(prodPath), branchLines: lines });
   }
   out.sort((a, b) => a.file.localeCompare(b.file) || a.line - b.line);
-  const jsonPath = path.join(__dirname, arg('json') ?? 'out/malformed-tests.json');
+  const jsonPath = path.join(lib.workDir(__dirname), arg('json') ?? 'out/malformed-tests.json');
   fs.mkdirSync(path.dirname(jsonPath), { recursive: true });
   fs.writeFileSync(jsonPath, JSON.stringify({ totalRoots, kinds, tests: out }, null, 1));
   const md = [
@@ -122,7 +122,7 @@ const main = () => {
     if (!t.branchLines.length) md.push('  - dead branch: no line reads these fields in a condition; read the visitor');
     md.push('');
   }
-  fs.writeFileSync(path.join(__dirname, arg('md') ?? 'out/malformed-tests.md'), md.join('\n') + '\n');
+  fs.writeFileSync(path.join(lib.workDir(__dirname), arg('md') ?? 'out/malformed-tests.md'), md.join('\n') + '\n');
   console.log(JSON.stringify({ totalRoots, kinds, tests: out.length, deleteWhole: out.filter((t) => t.allRootsMalformed).length }));
 };
 main();

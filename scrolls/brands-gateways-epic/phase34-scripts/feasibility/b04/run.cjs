@@ -1,9 +1,9 @@
 // B04 driver: retype (+ optional-chain strip) production files of eslint-plugin/local-eslint on an
 // in-memory overlay, typecheck before/after, report per-file leftovers. --sample-out=d writes copies.
-// Usage: node tmp/phase34-feasibility/b04/run.cjs [--pkg=eslint-plugin] [--only=substr,..] [--no-strip] [--sample-out=dir]
+// Usage: node scrolls/brands-gateways-epic/phase34-scripts/feasibility/b04/run.cjs [--pkg=eslint-plugin] [--only=substr,..] [--no-strip] [--sample-out=dir]
 const fs = require('fs');
 const path = require('path');
-const lib = require('../../phase34/lib/repo.cjs');
+const lib = require('../../lib/repo.cjs');
 const { retype } = require('./retype.cjs');
 const { ts, ROOT, rel } = lib;
 const arg = (n) => process.argv.find((a) => a.startsWith(`--${n}=`))?.slice(n.length + 3);
@@ -106,7 +106,7 @@ const main = () => {
       }
     }
   }
-  const outFile = arg('json') ?? path.join(__dirname, 'out', 'run.json');
+  const outFile = arg('json') ? path.resolve(lib.workDir(__dirname), arg('json')) : path.join(lib.outDir(__dirname), 'run.json');
   fs.mkdirSync(path.dirname(outFile), { recursive: true });
   fs.writeFileSync(outFile, JSON.stringify(summary, null, 1));
   for (const s of summary) {

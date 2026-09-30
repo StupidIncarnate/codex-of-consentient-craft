@@ -1,6 +1,6 @@
 // B14 batch: generate every printable data shape (one per source file, unique contract names), overlay, typecheck per package.
 const fs=require('fs'),path=require('path');
-const lib=require('../../phase34/lib/repo.cjs');const {ts,ROOT,rel}=lib;
+const lib=require('../../lib/repo.cjs');const {ts,ROOT,rel}=lib;
 const {shapes,tryPrint,folderTypeOf}=require('./census.cjs');const {genOne}=require('./gen.cjs');
 const ws=lib.workspaces();
 const seenFiles=new Set(),seenNames=new Set();
@@ -28,5 +28,5 @@ const genFilesBad=new Set(badFiles);
 const perShapeClean=gens.filter(g=>[g.cfile,g.srcFile].every(f=>!genFilesBad.has(rel(f)))&&![path.join(g.dir,path.basename(g.cfile).replace(/-contract\.ts$/,'.stub.ts')),path.join(g.dir,path.basename(g.cfile).replace(/\.ts$/,'.test.ts'))].some(f=>genFilesBad.has(rel(f)))).length;
 console.log(JSON.stringify({filesChecked:files,filesClean:clean,newDiagnostics:newD,shapesFullyClean:perShapeClean,of:gens.length}));
 console.log(Object.entries(kinds).sort((a,b)=>b[1]-a[1]).slice(0,12));
-fs.writeFileSync(path.join(__dirname,'out','batch-bad-files.txt'),badFiles.join('\n'));
-if(process.argv.includes('--sample-out')){for(const [f,t] of overlay){const d=path.join(ROOT,'tmp/phase34-feasibility/b14/sample-batch',rel(f));fs.mkdirSync(path.dirname(d),{recursive:true});fs.writeFileSync(d,t)}}
+fs.writeFileSync(path.join(lib.outDir(__dirname), 'batch-bad-files.txt'),badFiles.join('\n'));
+if(process.argv.includes('--sample-out')){for(const [f,t] of overlay){const d=path.join(lib.workDir(__dirname),'sample-batch',rel(f));fs.mkdirSync(path.dirname(d),{recursive:true});fs.writeFileSync(d,t)}}

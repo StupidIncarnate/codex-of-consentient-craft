@@ -1,7 +1,7 @@
 // Finish the brand-migration rewrite in files that still import a moved brand contract / stub / type.
 //
-// Driven by TS2307 / TS2305 / TS2724 in a diag json (default tmp/bigbang/logs/diag-r2.json). For each such error whose
-// missing file (or missing name) is a brand that was moved to tmp/deletions/<wave>/<repo path>, the importing file is
+// Driven by TS2307 / TS2305 / TS2724 in a diag json (default <out>/bigbang/logs/diag-r2.json). For each such error whose
+// missing file (or missing name) is a brand that was moved to <out>/deletions/<wave>/<repo path>, the importing file is
 // rewritten:
 //   type ref `T` / `z.infer<typeof c>` / `ReturnType<typeof TStub>`  -> string | number   (owner id: Owner['key'])
 //   `TStub({ value: v })` -> v ;  `TStub()` -> the moved stub's default literal
@@ -11,23 +11,26 @@
 //   the dead import (or the dead names of a multi-name import) is removed; a dead `export ... from` line is removed.
 // A dead name with any reference left unrewritten keeps its import, and every such site goes to the leftovers file.
 //
-// Usage: node tmp/bigbang/fix-dangling.cjs [--diag=file] [apply]
+// Usage: node scrolls/brands-gateways-epic/bigbang/fix-dangling.cjs [--root=DIR] [--diag=file] [apply]
 const fs = require('fs');
 const path = require('path');
-const lib = require('../phase34/lib/repo.cjs');
+const lib = require('../phase34-scripts/lib/repo.cjs');
 
 const { ts, ROOT, rel } = lib;
 const arg = (n) => process.argv.find((a) => a.startsWith(`--${n}=`))?.slice(n.length + 3);
 const APPLY = process.argv.includes('apply');
-const diagFile = path.resolve(ROOT, arg('diag') ?? 'tmp/bigbang/logs/diag-r2.json');
-const leftFile = path.join(ROOT, 'tmp/bigbang/logs/dangling-leftovers.txt');
-const changedFile = path.join(ROOT, 'tmp/bigbang/logs/dangling-changed.txt');
+// Logs and state live under <out>/bigbang (port-config.cjs: --out-dir, default <root>/tmp).
+const BB = path.join(lib.OUT, 'bigbang');
+fs.mkdirSync(path.join(BB, 'logs'), { recursive: true });
+const diagFile = path.resolve(ROOT, arg('diag') ?? path.join(BB, 'logs/diag-r2.json'));
+const leftFile = path.join(BB, 'logs/dangling-leftovers.txt');
+const changedFile = path.join(BB, 'logs/dangling-changed.txt');
 const ws = lib.workspaces();
 // Originals: the first apply copies each file it changes here; every later run rewrites from that copy, so a re-run with a
 // longer hold list starts from the same text and the edit ids (kind@offset into the original) stay stable.
-const ORIG = path.join(ROOT, 'tmp/bigbang/state/dangling-orig');
-const manifestFile = path.join(ROOT, 'tmp/bigbang/logs/dangling-manifest.json');
-const holdsFile = path.join(ROOT, 'tmp/bigbang/logs/dangling-holds.json');
+const ORIG = path.join(BB, 'state/dangling-orig');
+const manifestFile = path.join(BB, 'logs/dangling-manifest.json');
+const holdsFile = path.join(BB, 'logs/dangling-holds.json');
 const holds = new Map(); // `${file}|${id}` -> reason ; id '*' holds every edit in the file
 if (fs.existsSync(holdsFile)) for (const h of JSON.parse(fs.readFileSync(holdsFile, 'utf8'))) holds.set(`${h.file}|${h.id}`, h.reason);
 const manifest = [];
@@ -35,7 +38,7 @@ const resolver = lib.makeResolver();
 const pascal = (s) => s.replace(/(^|[_\-\s]+)([a-zA-Z0-9])/gu, (_, __, c) => c.toUpperCase());
 
 // ---------------------------------------------------------------- registry of moved files
-const DEL = path.join(ROOT, 'tmp', 'deletions');
+const DEL = lib.DELETIONS;
 const WAVE_ORDER = ['W5', 'W4', 'W3', 'W1', 'W2'];
 const waves = fs.readdirSync(DEL).sort((a, b) => (WAVE_ORDER.indexOf(b) - WAVE_ORDER.indexOf(a)));
 const movedByOrig = new Map(); // original abs path -> moved abs path
@@ -56,9 +59,9 @@ for (const w of waves) {
 
 // owner-id brands (W3/W4): const -> { ownerConst, ownerFile, key, ownerTypeName }
 const ownerIds = new Map();
-for (const f of fs.readdirSync(path.join(ROOT, 'tmp/bigbang/logs'))) {
+for (const f of fs.readdirSync(path.join(BB, 'logs'))) {
   if (!/^W[34]-.*\.log$/u.test(f)) continue;
-  const first = fs.readFileSync(path.join(ROOT, 'tmp/bigbang/logs', f), 'utf8').split('\n')[0];
+  const first = fs.readFileSync(path.join(BB, 'logs', f), 'utf8').split('\n')[0];
   const j = JSON.parse(first.replace(/^\[\d+s\]\s*/u, ''));
   for (const g of j.group) ownerIds.set(path.join(ROOT, g.file), { ownerConst: j.ownerConst, ownerFile: path.join(ROOT, j.owner), key: j.key, ownerTypeName: j.ownerTypeName, const: g.const, type: g.type });
 }
@@ -519,7 +522,7 @@ for (const [relFile, errs] of byFile) {
 fs.writeFileSync(manifestFile, JSON.stringify(manifest, null, 1));
 fs.writeFileSync(leftFile, `${leftovers.join('\n')}\n`);
 fs.writeFileSync(changedFile, `${changed.join('\n')}\n`);
-fs.writeFileSync(path.join(ROOT, 'tmp/bigbang/logs/dangling-samples.json'), JSON.stringify(samples, null, 1));
+fs.writeFileSync(path.join(BB, 'logs/dangling-samples.json'), JSON.stringify(samples, null, 1));
 console.log(APPLY ? 'APPLIED' : 'DRY RUN', JSON.stringify(stats, null, 1));
 console.log('files changed', changed.length, '| leftovers', leftovers.length);
 const reasons = {};

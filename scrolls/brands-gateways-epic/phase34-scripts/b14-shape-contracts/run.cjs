@@ -15,8 +15,8 @@
 // make unique, and any shape whose rewrite adds a TypeScript diagnostic anywhere in its package or a package that
 // depends on it (the gate).
 //
-// Usage (from the worktree root, on the tmp/phase34 copy):
-//   node tmp/phase34/b14-shape-contracts/run.cjs [pkg ...] [--sample-out=dir] [--no-gate] [--census] [apply]
+// Usage (from the repo root, or pass --root=DIR; settings in lib/port-config.cjs):
+//   node scrolls/brands-gateways-epic/phase34-scripts/b14-shape-contracts/run.cjs [pkg ...] [--sample-out=dir] [--no-gate] [--census] [apply]
 // Default is a dry run: counts per package, out/leftovers.txt, out/leftovers.json, out/generated.json.
 // `--sample-out` writes every new and changed file under <dir>/<repo path> for lib/verify-sample.cjs.
 // `apply` writes packages/ (do not, until the operator says so).
@@ -34,7 +34,7 @@ const noGate = args.includes('--no-gate');
 const censusOnly = args.includes('--census');
 const sampleOut = flag('sample-out');
 const pkgFilter = args.filter((a) => !a.startsWith('--') && a !== 'apply');
-const outDir = path.join(__dirname, 'out');
+const outDir = lib.outDir(__dirname);
 fs.mkdirSync(outDir, { recursive: true });
 
 const relSpec = (fromFile, toFileNoExt) => {
@@ -275,12 +275,12 @@ const purposeOf = (s, base) =>
 const gatewayFiles = (name, pkg) => {
   const g = GATEWAY_TYPES[name];
   const kind = S.gatewayKind(pkg);
-  const dir = path.join(ROOT, 'packages/@gateway', kind, 'src', g.sub);
+  const dir = path.join(ROOT, lib.GATEWAY_DIR, kind, 'src', g.sub);
   const schemaFile = path.join(dir, `${g.file}.ts`);
   const barrel = path.join(dir, `${g.sub}.ts`);
   return [
     [schemaFile, `/**\n * PURPOSE: The one real runtime check for a \`${name}\` value, branded \`'${g.brand}'\` so every contract that holds one shares this check (BR C9)\n *\n * USAGE:\n * ${g.schema}.parse(${g.sample});\n * // Returns the same value, typed as ${name} & branded '${g.brand}'\n */\nimport { z } from 'zod';\n\nexport const ${g.schema} = z.instanceof(${g.ctor}).brand<'${g.brand}'>();\n`],
-    [barrel, `/**\n * PURPOSE: Reaches the ${name} global's schema through the gateway\n *\n * USAGE:\n * import { ${g.schema} } from '#gateway/${kind}/${g.sub}';\n */\n\nexport { ${g.schema} } from './${g.file}';\n`],
+    [barrel, `/**\n * PURPOSE: Reaches the ${name} global's schema through the gateway\n *\n * USAGE:\n * import { ${g.schema} } from '${lib.GW}${kind}/${g.sub}';\n */\n\nexport { ${g.schema} } from './${g.file}';\n`],
   ];
 };
 
@@ -415,7 +415,7 @@ const planShape = (s, ctxFile) => {
     }
     for (const [name, schema] of p.gateway) (imports.get(S.gatewaySpec(name, s.pkg)) ?? imports.set(S.gatewaySpec(name, s.pkg), []).get(S.gatewaySpec(name, s.pkg))).push(schema);
     const importLines = [...imports].map(([sp3, names]) => `import { ${[...new Set(names)].join(', ')} } from '${sp3}';`).join('\n');
-    out.contractText = `/**\n * PURPOSE: ${purposeOf(s, base)}\n *\n * USAGE:\n * ${cname}.parse(value);\n * // Returns validated ${base}\n */\nimport { z } from '#gateway/npm/zod';\n${importLines}\n\nexport const ${cname} = ${p.code};\n\nexport type ${base} = z.infer<typeof ${cname}>;\n`;
+    out.contractText = `/**\n * PURPOSE: ${purposeOf(s, base)}\n *\n * USAGE:\n * ${cname}.parse(value);\n * // Returns validated ${base}\n */\nimport { z } from '${lib.ZOD_SPEC}';\n${importLines}\n\nexport const ${cname} = ${p.code};\n\nexport type ${base} = z.infer<typeof ${cname}>;\n`;
     try {
       Object.assign(out, stubFor(s, p, base, cname, cfile, refsAll));
     } catch (e) {
@@ -431,7 +431,8 @@ const splitOf = (typeNode, sf) => S.splitType(typeNode, sf);
 let prettier = null;
 const fmt = async (file, text) => {
   prettier ??= require(path.join(ROOT, 'node_modules/prettier'));
-  const cfg = JSON.parse(fs.readFileSync(path.join(ROOT, '.prettierrc.json'), 'utf8'));
+  // The repo's own prettier config, found the way prettier finds it (a consumer may have none, or not .prettierrc.json).
+  const cfg = (await prettier.resolveConfig(file)) ?? {};
   return prettier.format(text, { ...cfg, filepath: file });
 };
 
@@ -529,7 +530,7 @@ const main = async () => {
     for (const pf of activePlans) for (const x of pf.shapes) byName.set(x.s.name, pf);
     for (const [pn, w] of pkgs) {
       const options = lib.packageCompilerOptions(w.dir);
-      const mine = [...overlay.keys()].filter((f) => lib.workspaceOf(f, S.ws)?.name === pn && !f.includes('/@gateway/'));
+      const mine = [...overlay.keys()].filter((f) => lib.workspaceOf(f, S.ws)?.name === pn && !lib.cfg.inside(f, path.join(ROOT, lib.GATEWAY_DIR)));
       const files = [...new Set([...(options.rootNames ?? []), ...mine])].filter((f) => f.includes(`${w.rel}/`) || f.startsWith(w.dir));
       const t0 = Date.now();
       const aft = lib.diagnosticsWithOverlay(files, overlay, options).diagnostics;
@@ -611,15 +612,15 @@ const main = async () => {
   const lines = [`Leftovers for hand (${leftovers.length}), grouped by reason. Each row: package  file:line  kind name  type`, ''];
   for (const [r, list] of Object.entries(groups).sort((a, b) => b[1].length - a[1].length)) {
     lines.push(`## ${r} (${list.length})`);
-    for (const l of list.sort((a, b) => (a.file + a.line).localeCompare(b.file + b.line))) lines.push(`${l.pkg.replace('@dungeonmaster/', '')}  ${l.file}:${l.line}  ${l.kind} ${l.name}  ${l.text}${l.reason.startsWith('gate: ') ? `\n      ${l.reason.slice(6)}` : ''}`);
+    for (const l of list.sort((a, b) => (a.file + a.line).localeCompare(b.file + b.line))) lines.push(`${l.pkg.replace(lib.SCOPE, '')}  ${l.file}:${l.line}  ${l.kind} ${l.name}  ${l.text}${l.reason.startsWith('gate: ') ? `\n      ${l.reason.slice(6)}` : ''}`);
     lines.push('');
   }
   if (unattributed.length) lines.push(`## unattributed downstream diagnostics after the last round (${unattributed.length})`, ...unattributed.slice(0, 40), '');
   fs.writeFileSync(path.join(outDir, 'leftovers.txt'), lines.join('\n'));
   const per = {};
-  for (const s of impl) (per[s.pkg.replace('@dungeonmaster/', '')] ??= { found: 0, methodSet: 0, generated: 0, left: 0 })[s.klass === 'method-set' ? 'methodSet' : 'found']++;
-  for (const g of generated) per[g.pkg.replace('@dungeonmaster/', '')].generated++;
-  for (const l of leftovers) per[l.pkg.replace('@dungeonmaster/', '')].left++;
+  for (const s of impl) (per[s.pkg.replace(lib.SCOPE, '')] ??= { found: 0, methodSet: 0, generated: 0, left: 0 })[s.klass === 'method-set' ? 'methodSet' : 'found']++;
+  for (const g of generated) per[g.pkg.replace(lib.SCOPE, '')].generated++;
+  for (const l of leftovers) per[l.pkg.replace(lib.SCOPE, '')].left++;
   console.table(per);
   console.log(JSON.stringify({ found, generated: generated.length, reused: generated.filter((g) => g.reused).length, leftovers: leftovers.length, gateDropped: gateFailed.length, filesWritten: overlay.size, applied: doApply }));
 };

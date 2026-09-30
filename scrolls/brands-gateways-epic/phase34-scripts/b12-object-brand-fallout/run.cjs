@@ -9,8 +9,8 @@
 //   a literal holding a spread is PARTIAL and goes to the partial list for a person; a literal missing a property is
 //   INCOMPLETE (its error predates the brand or the stub fills it) and goes to leftovers too.
 //
-// Usage (from the worktree root, `tmp/phase34/` copy):
-//   node --max-old-space-size=32000 tmp/phase34/b12-object-brand-fallout/run.cjs [--census] [--only-pkg=shared,mcp]
+// Usage (from the repo root, or pass --root=DIR; settings in lib/port-config.cjs):
+//   node --max-old-space-size=32000 scrolls/brands-gateways-epic/phase34-scripts/b12-object-brand-fallout/run.cjs [--census] [--only-pkg=shared,mcp]
 //     [--pkgs=a,b] [--rounds=3] [--no-rewrite] [--sample-out=dir] [--leftovers=file]
 // `--only-pkg` restricts which packages' contracts get branded (default all); `--pkgs` restricts which packages are measured
 // (default: every package that holds or depends on a branded one, in dependency order). Nothing under packages/ is written.
@@ -94,8 +94,8 @@ const visitPkg = (w) => {
   order.push(w);
 };
 ws.forEach(visitPkg);
-let target = order.filter((w) => touched.has(w.short) || depsOf(w).some((d) => touched.has(d.replace(/^@dungeonmaster\//u, '')) || [...touched].some((t) => d === `@dungeonmaster/${t}`)));
-target = target.filter((w) => touched.has(w.short) || depsOf(w).some((d) => touched.has(d.replace(/^@dungeonmaster\//u, ''))));
+let target = order.filter((w) => touched.has(w.short) || depsOf(w).some((d) => touched.has(d.replace(lib.SCOPE_RE, '')) || [...touched].some((t) => d === lib.pkgName(t))));
+target = target.filter((w) => touched.has(w.short) || depsOf(w).some((d) => touched.has(d.replace(lib.SCOPE_RE, ''))));
 if (arg('pkgs')) target = target.filter((w) => arg('pkgs').split(',').includes(w.short));
 const baseByPkg = new Map();
 const baseOf = (w) => {
@@ -335,7 +335,7 @@ for (let r = 0; r <= rounds; r++) {
 }
 const standing = [];
 for (const [pk, v] of cur) for (const it of v.items) standing.push({ pkg: pk, where: it.where, text: `TS${it.code} ${it.msg}` });
-const outDir = path.join(ROOT, 'tmp', 'phase34', 'b12-object-brand-fallout', 'out');
+const outDir = lib.outDir(__dirname);
 fs.mkdirSync(outDir, { recursive: true });
 const lf = arg('leftovers') ? path.resolve(ROOT, arg('leftovers')) : path.join(outDir, 'leftovers.json');
 fs.writeFileSync(lf, JSON.stringify({ ...result, rewrittenFiles: rewritten.size, leftovers, standing }, null, 1));

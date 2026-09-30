@@ -2,9 +2,9 @@
 // Batches of red files for fixer agents, from diag.cjs output + graph.cjs output.
 //
 // Usage:
-//   node tmp/bigbang/tools/queue.cjs --diag=diag.json --graph=graph.json [--max=5] [--mode=ready|all]
+//   node scrolls/brands-gateways-epic/bigbang/tools/queue.cjs --diag=diag.json --graph=graph.json [--max=5] [--mode=ready|all]
 //        [--transitive] [--pkgs=a,b] [--out=queue.json]
-//   node tmp/bigbang/tools/queue.cjs --diag=diag.json --by-template [--fine] [--min=1] [--out=templates.json]
+//   node scrolls/brands-gateways-epic/bigbang/tools/queue.cjs --diag=diag.json --by-template [--fine] [--min=1] [--out=templates.json]
 //
 // ready: a red group qualifies only when every group it imports (direct deps; --transitive = all reachable)
 //        has no diagnostics. A red file outside the graph (bin/, package-root *.ts, @types) is always ready.

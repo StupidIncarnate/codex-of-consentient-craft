@@ -1,8 +1,11 @@
 import json,re,collections
-R='/home/brutus-home/projects/codex-of-consentient-craft/worktrees/gateway-pivot/'
-calls=json.load(open(R+'tmp/libcopy-census/stubcalls-all.json'))
-ts=json.load(open(R+'tmp/libcopy-census/tsestree-classify.json'))
-retype=json.load(open(R+'tmp/libcopy-census/retype.json'))
+import os as _os
+# Root: MIGRATE_ROOT or cwd. Scratch: MIGRATE_OUT or <root>/tmp (phase34-scripts/lib/port-config.cjs).
+R=_os.path.join(_os.environ.get('MIGRATE_ROOT') or _os.getcwd(),'')
+O=_os.path.join(_os.environ.get('MIGRATE_OUT') or R+'tmp','')
+calls=json.load(open(O+'libcopy-census/stubcalls-all.json'))
+ts=json.load(open(O+'libcopy-census/tsestree-classify.json'))
+retype=json.load(open(O+'libcopy-census/retype.json'))
 GW={'Identifier','CallExpression','MemberExpression','Program','ArrowFunctionExpression','Literal','Property','ObjectExpression','BlockStatement','ExpressionStatement','VariableDeclaration','ReturnStatement','JSXElement','JSXFragment'}
 def indir(f,pk,d): return f.startswith(f'packages/{pk}/src/contracts/{d}/')
 def topkeys(c): return [k for k in c['keys'] if not k.startswith('>')]
@@ -99,7 +102,7 @@ M['TsestreeStub']=dict(oldFile='packages/eslint-plugin/src/contracts/tsestree/ts
   printWithInventedDefaults=sum(1 for c in ts if c['cls']=='PRINT' and c['defaulted']),
   handReasons=dict(collections.Counter(r for c in ts if c['cls']=='HAND' for r in ([('missing '+x) for x in c['missing']]+[('unknown key '+x) for x in c['unknown']]+[('flag '+f) for f in c['flags']])).most_common(40)),
   ownKeysByNodeType={t:dict(v.most_common()) for t,v in sorted(own.items())},
-  handSitesFile='tmp/libcopy-census/tsestree-hand-sites.txt',handSiteCount=len(hand))
+  handSitesFile=O+'libcopy-census/tsestree-hand-sites.txt',handSiteCount=len(hand))
 # type retype table
 rc=collections.Counter((r['kind'],r['cls']) for r in retype)
 vk=collections.Counter(r['key'] for r in retype if r['key'])
@@ -119,7 +122,7 @@ M['_typeMap']={
  'WsClient':{'realType':'WSContext (hono/ws)'},'ZodIssueError':{'realType':'z.ZodError (z.core.$ZodIssue[])'},'ProcessSignal':{'realType':'NodeJS.Signals'},'ExecError':{'realType':'child_process ExecException / SpawnSyncReturns error'},
  'is-node-error guard':{'realType':'NodeJS.ErrnoException via the gateway fs error guard (#gateway/node/fs is-fs-error)'},
 }
-json.dump(M,open(R+'tmp/libcopy-census/stub-map.json','w'),indent=1)
+json.dump(M,open(O+'libcopy-census/stub-map.json','w'),indent=1)
 for k,v in M.items():
     if k.startswith('_'): continue
     print(f"{k:40s} {v.get('classes')} own-contract-test-calls={v.get('ownContractTestCalls','-')} gatewayStub={v['gatewayHasStub']}")

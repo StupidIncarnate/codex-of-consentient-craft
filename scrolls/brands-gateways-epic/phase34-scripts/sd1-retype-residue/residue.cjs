@@ -1,6 +1,6 @@
 // SD1 residue pass over a run.cjs sample: guard (narrowing) each file with TS2339s, then write the result and
 // the remaining diagnostics (the hand queue).
-// Usage: node tmp/phase34/sd1-retype-residue/residue.cjs --sample=tmp/sd1-sample0 --out=tmp/sd1-sample2 [--json=out/residue.json]
+// Usage: node scrolls/brands-gateways-epic/phase34-scripts/sd1-retype-residue/residue.cjs --sample=tmp/sd1-sample0 --out=tmp/sd1-sample2 [--json=out/residue.json]
 const fs = require('fs');
 const path = require('path');
 const lib = require('../lib/repo.cjs');
@@ -8,7 +8,7 @@ const { guardFile, widenBrandFile } = require('./guard.cjs');
 const { narrowGated } = require('./narrow-gated.cjs');
 const { census, eliminateFile } = require('./deadcond.cjs');
 const { ROOT, rel } = lib;
-fs.mkdirSync(path.join(__dirname, 'out'), { recursive: true });
+fs.mkdirSync(lib.outDir(__dirname), { recursive: true });
 const arg = (n) => process.argv.find((a) => a.startsWith(`--${n}=`))?.slice(n.length + 3);
 const SAMPLE = path.join(ROOT, arg('sample'));
 const out = arg('out');
@@ -67,5 +67,5 @@ if (out) {
     fs.writeFileSync(dest, t.text);
   }
 }
-fs.writeFileSync(path.join(__dirname, arg('json') ?? 'out/residue.json'), JSON.stringify(report, null, 1));
+fs.writeFileSync(path.join(lib.workDir(__dirname), arg('json') ?? 'out/residue.json'), JSON.stringify(report, null, 1));
 console.log(JSON.stringify({ dead: report.dead, deadCensus: report.deadCensus, applied: report.applied, packages: report.packages, hand: report.hand.length }));

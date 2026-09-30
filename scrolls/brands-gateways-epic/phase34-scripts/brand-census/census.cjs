@@ -1,9 +1,13 @@
-// Read-only AST census for the brands epic. Run: node tmp/brand-census/census.cjs (from repo root)
-const ROOT = '/home/brutus-home/projects/codex-of-consentient-craft/worktrees/gateway-pivot';
+// Read-only AST census for the brands epic: the input a 4.0 decision pass drafts its tables from (PORTING.md).
+// Run from the repo root, or pass --root=DIR; writes CSVs under <out>/brand-census (default <root>/tmp/brand-census).
+//   node scrolls/brands-gateways-epic/phase34-scripts/brand-census/census.cjs [--root=DIR] [--out-dir=DIR] [--scope=@x/]
+const cfg = require('../lib/port-config.cjs');
+const { ROOT } = cfg;
 const ts = require(ROOT + '/node_modules/typescript');
 const fs = require('fs');
 const path = require('path');
-const OUT = ROOT + '/tmp/brand-census';
+const OUT = path.join(cfg.OUT, 'brand-census');
+fs.mkdirSync(OUT, { recursive: true });
 
 // ---------- file walk ----------
 const SKIP_DIRS = new Set(['node_modules', 'dist', 'coverage', '.turbo', '.git']);
@@ -19,7 +23,7 @@ const walk = (dir, pkg) => {
   }
 };
 for (const p of fs.readdirSync(ROOT + '/packages')) {
-  if (p === '@gateway') continue;
+  if (`packages/${p}` === cfg.GATEWAY_DIR) continue;
   if (!fs.statSync(ROOT + '/packages/' + p).isDirectory()) continue;
   walk(ROOT + '/packages/' + p, p);
 }
@@ -400,7 +404,7 @@ for (let i = 0; i < files.length; i++) {
   const doB14 = f.kind !== 'proxy' && !f.rel.split('/').includes('contracts') && !f.rel.split('/').includes('widgets') && !/-contract\.tsx?$/.test(f.rel);
   const imported = new Set();
   for (const st of sf.statements) {
-    if (ts.isImportDeclaration(st) && ts.isStringLiteral(st.moduleSpecifier) && /^(\.|@dungeonmaster\/)/.test(st.moduleSpecifier.text) && st.importClause?.namedBindings && ts.isNamedImports(st.importClause.namedBindings))
+    if (ts.isImportDeclaration(st) && ts.isStringLiteral(st.moduleSpecifier) && (st.moduleSpecifier.text.startsWith('.') || st.moduleSpecifier.text.startsWith(cfg.SCOPE)) && st.importClause?.namedBindings && ts.isNamedImports(st.importClause.namedBindings))
       for (const el of st.importClause.namedBindings.elements) imported.add((el.propertyName || el.name).text);
   }
   const visit = (n) => {

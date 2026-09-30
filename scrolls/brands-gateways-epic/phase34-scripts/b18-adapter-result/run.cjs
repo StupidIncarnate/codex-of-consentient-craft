@@ -9,8 +9,8 @@
 // constant the checker rejects (`mockResolvedValue({ success: true })` against a void function) becomes `undefined`, and
 // only where the edit clears a diagnostic the conversion caused.
 //
-// Usage (from the worktree root, after `cp -a scrolls/brands-gateways-epic/phase34-scripts tmp/phase34`):
-//   node tmp/phase34/b18-adapter-result/run.cjs [--pkgs=a,b] [--sample-out=dir] [--leftovers=file] [--no-verify]
+// Usage (from the repo root, or pass --root=DIR; settings in lib/port-config.cjs):
+//   node scrolls/brands-gateways-epic/phase34-scripts/b18-adapter-result/run.cjs [--pkgs=a,b] [--sample-out=dir] [--leftovers=file] [--no-verify]
 // It is a dry run. It writes nothing under packages/ and deletes nothing; --sample-out writes the changed files as copies
 // at their repo paths (prove them with lib/verify-sample.cjs --check=...). Verification typechecks every touched package and
 // every package that depends on one, before and after, and prints only the diagnostics the conversion added.

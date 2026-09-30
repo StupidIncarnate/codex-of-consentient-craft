@@ -2,11 +2,11 @@
 // TSESTree types, `EslintContext` to TSESLint.RuleContext, string `.type` compares to AST_NODE_TYPES.
 // Pure text transform; nothing here writes under packages/.
 const path = require('path');
-const lib = require('../../phase34/lib/repo.cjs');
+const lib = require('../../lib/repo.cjs');
 const { ts, ROOT } = lib;
-const { AST_NODE_TYPES } = require('@typescript-eslint/types');
+const { AST_NODE_TYPES } = lib.rootRequire('@typescript-eslint/types');
 const NODE_NAMES = new Set(Object.keys(AST_NODE_TYPES));
-const GATEWAY = '#gateway/npm/typescript-eslint__utils';
+const GATEWAY = `${lib.GW}npm/typescript-eslint__utils`;
 
 const CTX_MAP = {
   EslintContext: 'TSESLint.RuleContext<string, unknown[]>',

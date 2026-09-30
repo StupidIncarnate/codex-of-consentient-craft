@@ -1,7 +1,7 @@
 // B11, after a human has decided a merge: point every importer of one contract copy at the copy that
 // keeps the name, then delete the losing copy's contract, stub and test and its barrel lines.
 //
-//   node tmp/phase34/b11-contract-merge/move.cjs --from=<losing -contract.ts> --to=<keeping -contract.ts>
+//   node scrolls/brands-gateways-epic/phase34-scripts/b11-contract-merge/move.cjs --from=<losing -contract.ts> --to=<keeping -contract.ts>
 //        [--sample-out=<dir>] [apply]
 //
 // Every name the losing contract file and its <base>.stub.ts export must also be exported by the
@@ -177,12 +177,12 @@ for (const w of ws) {
 let diff = '';
 for (const f of losing) diff += `--- a/${rel(f)}\n+++ /dev/null (deleted)\n`;
 for (const [f, t] of writes) diff += lib.unifiedDiff(rel(f), fs.readFileSync(f, 'utf8'), t);
-fs.mkdirSync(path.join(__dirname, 'out'), { recursive: true });
-fs.writeFileSync(path.join(__dirname, 'out', 'move-last-run.diff'), diff);
-fs.writeFileSync(path.join(__dirname, 'out', 'move-leftovers.json'), JSON.stringify(leftovers, null, 1));
+fs.mkdirSync(lib.outDir(__dirname), { recursive: true });
+fs.writeFileSync(path.join(lib.outDir(__dirname), 'move-last-run.diff'), diff);
+fs.writeFileSync(path.join(lib.outDir(__dirname), 'move-leftovers.json'), JSON.stringify(leftovers, null, 1));
 console.log(`${APPLY ? 'APPLIED' : sampleOut ? 'SAMPLE' : 'DRY RUN'}: ${rel(from)} -> ${rel(to)}`);
 console.log(`  ${rewritten} files rewritten, ${losing.size} files deleted, ${leftovers.length} left for an agent`, [...new Set(leftovers.map((l) => l.kind))]);
-console.log('  diff: tmp/phase34/b11-contract-merge/out/move-last-run.diff');
+console.log(`  diff: ${path.join(lib.outDir(__dirname), 'move-last-run.diff')}`);
 // An importer left pointing at the losing copy would break the moment it is deleted: nothing is
 // written until every importer could be moved (a missing package dependency is listed, not blocking).
 const blocking = leftovers.filter((l) => l.kind !== 'missing-dependency');
@@ -197,7 +197,7 @@ if (blocking.length) {
   }
 } else if (APPLY) {
   for (const f of losing) {
-    const mv = path.join(ROOT, 'tmp', 'deletions', 'W2', path.relative(ROOT, f));
+    const mv = path.join(lib.DELETIONS, 'W2', path.relative(ROOT, f));
     fs.mkdirSync(path.dirname(mv), { recursive: true });
     fs.renameSync(f, mv);
   }

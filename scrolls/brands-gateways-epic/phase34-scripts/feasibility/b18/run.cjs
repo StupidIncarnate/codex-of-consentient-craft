@@ -3,7 +3,7 @@
 // Usage: node .../run.cjs [--pkgs=a,b] [--apply-sample] [--sample-out=dir]
 const fs = require('fs');
 const path = require('path');
-const lib = require('../../phase34/lib/repo.cjs');
+const lib = require('../../lib/repo.cjs');
 const { ts, ROOT, rel } = lib;
 const arg = (n) => process.argv.find((a) => a.startsWith(`--${n}=`))?.slice(n.length + 3);
 const onlyPkgs = arg('pkgs')?.split(',');

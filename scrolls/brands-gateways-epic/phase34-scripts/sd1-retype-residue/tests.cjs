@@ -1,16 +1,16 @@
 // SD1 (b) end to end: convert every test and proxy file of eslint-plugin and local-eslint that builds `TsestreeStub`
 // trees or `EslintContextStub`s, over the SD1 production sample, generate the gateway node stubs the swaps
 // need (an overlay, the real gateway is L0's), and typecheck every converted file before and after.
-// Usage: node tmp/phase34/sd1-retype-residue/tests.cjs [--prod=tmp/sd1-sample2] [--out=tmp/sd1-tests-out] [--pkg=eslint-plugin]
+// Usage: node scrolls/brands-gateways-epic/phase34-scripts/sd1-retype-residue/tests.cjs [--prod=tmp/sd1-sample2] [--out=tmp/sd1-tests-out] [--pkg=eslint-plugin]
 const fs = require('fs');
 const path = require('path');
 const lib = require('../lib/repo.cjs');
 const { retype } = require('./retype.cjs');
 const { convertTest, kebab } = require('./convert-tests2.cjs');
 const { ts, ROOT, rel } = lib;
-fs.mkdirSync(path.join(__dirname, 'out'), { recursive: true });
+fs.mkdirSync(lib.outDir(__dirname), { recursive: true });
 const arg = (n) => process.argv.find((a) => a.startsWith(`--${n}=`))?.slice(n.length + 3);
-const PROD = path.join(ROOT, arg('prod') ?? 'tmp/sd1-sample2');
+const PROD = path.join(ROOT, arg('prod') ?? path.relative(ROOT, path.join(lib.OUT, 'sd1-sample2')));
 const outDir = arg('out');
 const pkgs = (arg('pkg') ?? 'eslint-plugin,local-eslint').split(',');
 const DEFAULT_CODE = { Identifier: 'x;', Literal: "'x';", TSTypeAnnotation: 'let x: string;', TSTypeReference: 'let x: T;', TSTypeLiteral: 'type T = { a: string };', TSPropertySignature: 'type T = { a: string };', AssignmentPattern: 'const { a = 1 } = y;', ObjectPattern: 'const { a } = y;', ImportDeclaration: "import { a } from 'x';", ImportSpecifier: "import { a } from 'x';", ExportNamedDeclaration: 'export const a = 1;', FunctionDeclaration: 'function f() {}', FunctionExpression: 'const f = function () {};', SpreadElement: 'f(...a);', VariableDeclarator: 'const a = 1;', IfStatement: 'if (a) {}', UnaryExpression: '!a;', TSArrayType: 'let x: string[];', TSStringKeyword: 'let x: string;', TSBooleanKeyword: 'let x: boolean;', ArrayExpression: 'const a = [];', ArrayPattern: 'const [a] = y;', TemplateLiteral: 'const t = `a`;', ClassDeclaration: 'class A {}', MethodDefinition: 'class A { m() {} }', ImportExpression: "import('x');", JSXText: 'const j = <a>t</a>;', JSXExpressionContainer: 'const j = <a>{b}</a>;', TSInterfaceBody: 'interface I { a: string }', TSTypePredicate: 'function f(x): x is string {}', NewExpression: 'new A();', TSAsExpression: 'a as b;', SwitchCase: 'switch (a) { case 1: }', BinaryExpression: 'a + b;', ExportSpecifier: 'export { a };' };
@@ -45,7 +45,7 @@ for (const pk of pkgs) {
     perFile.push({ file: rel(f), leftTsestree: (text.match(/\bTsestree(Stub|NodeType)?\b|\bEslintContext(Stub)?\b/gu) || []).length, rootsOk: c.rootsOk ?? 0, rootsSkipped: c.rootsSkipped ?? 0, helperRoots: c.helperRoots ?? 0 });
   }
 }
-const gwDir = path.join(ROOT, 'packages/@gateway/npm/src/typescript-eslint__utils');
+const gwDir = path.join(ROOT, lib.GATEWAY_DIR, 'npm/src/typescript-eslint__utils');
 const generated = [];
 for (const t of needStubs) {
   const file = path.join(gwDir, kebab(t), `${kebab(t)}.stub.ts`);
@@ -68,7 +68,7 @@ for (const pk of pkgs) {
     rows.push({ file: rel(f), base: (base.get(f) ?? []).length, added: added.length, diags: added.map(lib.formatDiagnostic) });
   }
 }
-fs.writeFileSync(path.join(__dirname, 'out', 'tests-run.json'), JSON.stringify({ total, generated, perFile, rows }, null, 1));
+fs.writeFileSync(path.join(lib.outDir(__dirname), 'tests-run.json'), JSON.stringify({ total, generated, perFile, rows }, null, 1));
 console.log(JSON.stringify({ ...total, generatedStubs: generated, filesWithNewDiagnostics: rows.filter((r) => r.added).length, newDiagnostics: rows.reduce((a, r) => a + r.added, 0) }));
 if (outDir) {
   for (const [f, t] of overlay) {

@@ -1,7 +1,23 @@
 # Strips every `<x>Contract.shape.<f>.parse(ARG)` wrap W5's rewriter added, leaving ARG, in the files it touched.
-# A wrap whose full text already existed at ef67a7930 (end of segment A, before W5) is kept.
-# Usage: python3 tmp/bigbang/strip-w5-wraps.py [apply]
-import re, subprocess, sys
+# A wrap whose full text already existed at --base (the last commit before W5; this repo's run: ef67a7930) is kept.
+# --files lists the repo-relative files W5 touched, one per line (default <out>/bigbang/logs/w5-wrap-files.txt), e.g.
+#   git diff --name-only <base>..<last W5 commit> -- packages > <out>/bigbang/logs/w5-wrap-files.txt
+# Root: --root, else MIGRATE_ROOT, else cwd. <out>: --out-dir, else MIGRATE_OUT, else <root>/tmp.
+# Usage: python3 scrolls/brands-gateways-epic/bigbang/strip-w5-wraps.py [--root=DIR] [--base=REV] [--files=FILE] [apply]
+import os, re, subprocess, sys
+
+
+def opt(name, default):
+    for a in sys.argv[1:]:
+        if a.startswith(f'--{name}='):
+            return a[len(name) + 3:]
+    return default
+
+
+ROOT = os.path.abspath(opt('root', os.environ.get('MIGRATE_ROOT') or os.getcwd()))
+OUT = os.path.abspath(opt('out-dir', os.environ.get('MIGRATE_OUT') or os.path.join(ROOT, 'tmp')))
+BASE = opt('base', 'ef67a7930')
+FILES = opt('files', os.path.join(OUT, 'bigbang', 'logs', 'w5-wrap-files.txt'))
 
 PAT = re.compile(r'[A-Za-z_$][\w$]*Contract(?:\.shape\.[\w$]+)+\.parse\(')
 APPLY = 'apply' in sys.argv
@@ -60,12 +76,12 @@ def wraps(s):
     return out
 
 
-files = open('tmp/bigbang/logs/w5-wrap-files.txt').read().split()
+files = open(FILES).read().split()
 total = 0
 for f in files:
-    base = subprocess.run(['git', 'show', 'ef67a7930:' + f], capture_output=True, text=True).stdout
+    base = subprocess.run(['git', 'show', BASE + ':' + f], capture_output=True, text=True, cwd=ROOT).stdout
     keep = {base[a:e + 1] for a, _, e in wraps(base)}
-    s = open(f).read()
+    s = open(os.path.join(ROOT, f)).read()
     removed = 0
     while True:
         cands = [(a, b, e) for a, b, e in wraps(s) if s[a:e + 1] not in keep]
@@ -77,5 +93,5 @@ for f in files:
     if removed:
         total += removed
         print(f'{removed:3d} {f}')
-        if APPLY: open(f, 'w').write(s)
+        if APPLY: open(os.path.join(ROOT, f), 'w').write(s)
 print('removed', total, 'wraps' + ('' if APPLY else ' (dry run)'))

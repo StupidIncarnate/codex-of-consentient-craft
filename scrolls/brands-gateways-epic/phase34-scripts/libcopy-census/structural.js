@@ -1,6 +1,6 @@
 // Inline / declared structural shapes that look like library shapes: type literals & interfaces with >=2 keys drawn from lib key families
-const ts=require('typescript'),fs=require('fs');const R=process.cwd();
-const scan=JSON.parse(fs.readFileSync(R+'/tmp/libcopy-census/scan.json','utf8')).files;
+const ts=require('typescript'),fs=require('fs');const C=require('../lib/port-config.cjs');const R=C.ROOT;const O=C.OUT+'/libcopy-census';fs.mkdirSync(O,{recursive:true});
+const scan=JSON.parse(fs.readFileSync(O+'/scan.json','utf8')).files;
 const FAM={
  ast:['type','name','callee','parent','body','range','loc','arguments','params','id','init','object','property','expression','declaration','source','specifiers','value','key','computed'],
  childproc:['pid','stdout','stderr','stdin','kill','on','once','exitCode','signalCode','killed'],
@@ -32,7 +32,7 @@ for(const [rel,rec] of Object.entries(scan)){
     ts.forEachChild(n,v);
   })(sf);
 }
-fs.writeFileSync(R+'/tmp/libcopy-census/structural.json',JSON.stringify(out));
+fs.writeFileSync(O+'/structural.json',JSON.stringify(out));
 const by={};out.forEach(o=>{const k=o.file.split('/')[1]+' / '+o.fam;by[k]=(by[k]||0)+1;});
 console.log(JSON.stringify(by,null,1));
 out.filter(o=>['ast','childproc','fsstats','timer','ws','eslintctx','zoderr'].includes(o.fam)).slice(0,60).forEach(o=>console.log(o.file.replace('packages/',''),o.line,o.kind,o.name||'',o.fam,o.keys.join(',')));

@@ -214,7 +214,7 @@ const plan = ({ overlay: parentOverlay = new Map(), exclude = new Set() } = {}) 
       const impText = mergeImports(impNames);
       overlay.set(
         cfile,
-        `/**\n * PURPOSE: Defines the \`data\` ${respName} returns on success\n *\n * USAGE:\n * const data = ${cname}.parse(value);\n * // Returns validated ${base}\n */\n\nimport { z } from '#gateway/npm/zod';\n${impText}\nexport const ${cname} = ${body};\n\nexport type ${base} = z.infer<typeof ${cname}>;\n`,
+        `/**\n * PURPOSE: Defines the \`data\` ${respName} returns on success\n *\n * USAGE:\n * const data = ${cname}.parse(value);\n * // Returns validated ${base}\n */\n\nimport { z } from '${lib.ZOD_SPEC}';\n${impText}\nexport const ${cname} = ${body};\n\nexport type ${base} = z.infer<typeof ${cname}>;\n`,
       );
       generated.push({ name: cname, file: cfile });
       todo.push(`${rel(cfile)}: needs ${kebab(base)}.stub.ts and ${kebab(base)}-contract.test.ts${pr.notes.length ? ` (${[...new Set(pr.notes)].join('; ')})` : ''}`);
@@ -231,14 +231,14 @@ const plan = ({ overlay: parentOverlay = new Map(), exclude = new Set() } = {}) 
   // the shared error contract and the base union
   overlay.set(
     errFile,
-    `/**\n * PURPOSE: Defines the \`data\` a responder returns when it fails\n *\n * USAGE:\n * const data = responderErrorDataContract.parse({ error: 'Invalid params' });\n * // Returns { error } with a branded message\n */\n\nimport { z } from '#gateway/npm/zod';\n\nexport const responderErrorDataContract = z\n  .strictObject({ error: z.string().brand<'ResponderErrorMessage'>() })\n  .brand<'ResponderErrorData'>();\n\nexport type ResponderErrorData = z.infer<typeof responderErrorDataContract>;\n`,
+    `/**\n * PURPOSE: Defines the \`data\` a responder returns when it fails\n *\n * USAGE:\n * const data = responderErrorDataContract.parse({ error: 'Invalid params' });\n * // Returns { error } with a branded message\n */\n\nimport { z } from '${lib.ZOD_SPEC}';\n\nexport const responderErrorDataContract = z\n  .strictObject({ error: z.string().brand<'ResponderErrorMessage'>() })\n  .brand<'ResponderErrorData'>();\n\nexport type ResponderErrorData = z.infer<typeof responderErrorDataContract>;\n`,
   );
   todo.push(`${rel(errFile)}: needs responder-error-data.stub.ts and responder-error-data-contract.test.ts`);
   const baseFile = path.join(contractsDir, 'responder-result/responder-result-contract.ts');
   const members = ['responderErrorDataContract', ...new Set(generated.map((g) => g.name))];
   const impText = mergeImports([{ names: ['responderErrorDataContract'], spec: relSpec(baseFile, errFile) }, ...generated.map((g) => ({ names: [g.name], spec: g.existing ? G.resolveContract(g.name, baseFile).import?.spec : relSpec(baseFile, g.file) }))]);
   const baseText = fs.readFileSync(baseFile, 'utf8').replace('data: z.unknown(),', `data: z.union([${members.join(', ')}]),`);
-  overlay.set(baseFile, G.addImports(baseText, baseFile, [{ names: [], spec: '' }].slice(0, 0)).replace("import { z } from '#gateway/npm/zod';\n", `import { z } from '#gateway/npm/zod';\n${impText}`));
+  overlay.set(baseFile, G.addImports(baseText, baseFile, [{ names: [], spec: '' }].slice(0, 0)).replace(`import { z } from '${lib.ZOD_SPEC}';\n`, `import { z } from '${lib.ZOD_SPEC}';\n${impText}`));
   return { overlay, leftovers, todo, groups, baseFile, errFile, generated };
 };
 
@@ -272,6 +272,6 @@ if (require.main === module) {
       fs.mkdirSync(path.dirname(d), { recursive: true });
       fs.writeFileSync(d, t);
     }
-  fs.mkdirSync(path.join(__dirname, 'out'), { recursive: true });
-  fs.writeFileSync(path.join(__dirname, 'out', 'responder-data-todo.txt'), out.todo.join('\n') + '\n');
+  fs.mkdirSync(lib.outDir(__dirname), { recursive: true });
+  fs.writeFileSync(path.join(lib.outDir(__dirname), 'responder-data-todo.txt'), out.todo.join('\n') + '\n');
 }

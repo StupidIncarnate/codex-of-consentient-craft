@@ -5,7 +5,7 @@
 // Usage: node .../codemod.cjs --brand=headerTextContract [--file=<contract path>] [--sample-out=dir]
 const fs = require('fs');
 const path = require('path');
-const lib = require('../../phase34/lib/repo.cjs');
+const lib = require('../../lib/repo.cjs');
 const { ts, ROOT, rel } = lib;
 const arg = (n) => process.argv.find((a) => a.startsWith(`--${n}=`))?.slice(n.length + 3);
 const ws = lib.workspaces();
@@ -213,7 +213,7 @@ if (out) for (const [f, t] of overlay) { if (t === null) continue; const d = pat
 if (process.argv.includes('apply')) {
   for (const [f, t] of overlay) {
     if (t !== null) { fs.mkdirSync(path.dirname(f), { recursive: true }); fs.writeFileSync(f, t); continue; }
-    const mv = path.join(ROOT, 'tmp', 'deletions', 'W1', rel(f));
+    const mv = path.join(lib.DELETIONS, 'W1', rel(f));
     fs.mkdirSync(path.dirname(mv), { recursive: true });
     if (fs.existsSync(f)) fs.renameSync(f, mv);
   }

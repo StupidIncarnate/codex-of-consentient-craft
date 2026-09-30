@@ -15,7 +15,7 @@
 // property such as `name`/`url`/`status`/`issues`, a code with no literal) are listed in out/leftovers.txt with the
 // reason. Files are only edited, never moved or deleted.
 //
-// Usage: node tmp/phase34/t05-recorded-failures/run.cjs [pkg ...] [--sample-out=<dir>] [apply]
+// Usage: node scrolls/brands-gateways-epic/phase34-scripts/t05-recorded-failures/run.cjs [pkg ...] [--sample-out=<dir>] [apply]
 const fs = require('fs');
 const path = require('path');
 const lib = require('../lib/repo.cjs');
@@ -28,11 +28,11 @@ const sampleOut = opt('sample-out');
 const only = args.filter((a) => !a.startsWith('--') && a !== 'apply');
 
 const STUB_IMPORTS = {
-  FsErrorStub: '#gateway/node/fs/is-fs-error/fs-error.stub',
-  FileMissingErrorStub: '#gateway/node/fs/file-missing-error/file-missing-error.stub',
+  FsErrorStub: `${lib.GW}node/fs/is-fs-error/fs-error.stub`,
+  FileMissingErrorStub: `${lib.GW}node/fs/file-missing-error/file-missing-error.stub`,
 };
-const GATEWAY_PROXY = /packages\/@gateway\/node\/src\/fs(__promises)?\/.+\.proxy\.ts$/u;
-const SKIP_FILE = /packages\/(@gateway\/|eslint-plugin\/src\/brokers\/rule\/ban-invented)/u;
+const GATEWAY_PROXY = new RegExp(`${lib.cfg.esc(lib.GATEWAY_DIR)}/node/src/fs(__promises)?/.+\\.proxy\\.ts$`, 'u');
+const SKIP_FILE = new RegExp(`${lib.cfg.esc(lib.GATEWAY_DIR)}/|packages/eslint-plugin/src/brokers/rule/ban-invented`, 'u');
 
 const stripWrap = (n) => {
   let x = n;
@@ -289,7 +289,7 @@ for (const w of workspaces) {
     } else if (APPLY) fs.writeFileSync(f, after);
   }
 }
-const OUT = path.join(__dirname, 'out');
+const OUT = lib.outDir(__dirname);
 fs.mkdirSync(OUT, { recursive: true });
 fs.writeFileSync(path.join(OUT, 'run.diff'), diffText);
 fs.writeFileSync(path.join(OUT, 'leftovers.txt'), leftovers.join('\n') + '\n');

@@ -5,7 +5,7 @@ const path = require('path');
 const lib = require('../lib/repo.cjs');
 const { convertRoot } = require('./stubprint2.cjs');
 const { ts } = lib;
-const GW = '#gateway/npm/typescript-eslint__utils';
+const GW = `${lib.GW}npm/typescript-eslint__utils`;
 
 const kebab = (s) => s.replace(/([a-z0-9])([A-Z])/gu, '$1-$2').replace(/([A-Z]+)([A-Z][a-z])/gu, '$1-$2').toLowerCase();
 const stubPath = (type) => `${GW}/${kebab(type)}/${kebab(type)}.stub`;
@@ -72,7 +72,7 @@ const pruneImports = (abs, text) => {
   for (const st of sf.statements) {
     if (!ts.isImportDeclaration(st) || !st.importClause?.namedBindings || !ts.isNamedImports(st.importClause.namedBindings)) continue;
     const els = st.importClause.namedBindings.elements;
-    const candidates = /#gateway|tsestree|eslint-context|node-type|shared\/testing|\.stub/u.test(st.moduleSpecifier.getText(sf));
+    const candidates = (st.moduleSpecifier.getText(sf).includes(lib.GW) || /tsestree|eslint-context|node-type|shared\/testing|\.stub/u.test(st.moduleSpecifier.getText(sf)));
     const keep = els.filter((e) => !/^(Tsestree(Stub|NodeType)?|EslintContextStub|\w+Stub|\w+NodeStub)$/u.test(e.name.text) || new RegExp(`\\b${e.name.text}\\b`, 'u').test(bodyText));
     if (keep.length === els.length) continue;
     const lineEnd = text.indexOf('\n', st.end);
@@ -90,7 +90,7 @@ const convertTest = (abs, text) => {
     if (ts.isIdentifier(n) && /Stub$/u.test(n.text)) taken.add(n.text);
     ts.forEachChild(n, noteTaken);
   };
-  for (const st of sf.statements) if (ts.isImportDeclaration(st) && !/#gateway/u.test(st.moduleSpecifier.getText(sf))) noteTaken(st);
+  for (const st of sf.statements) if (ts.isImportDeclaration(st) && !st.moduleSpecifier.getText(sf).includes(lib.GW)) noteTaken(st);
   const localName = (type) => (taken.has(`${type}Stub`) ? `${type}NodeStub` : `${type}Stub`);
   const edits = [];
   const stubs = new Set(); // node types needing an import

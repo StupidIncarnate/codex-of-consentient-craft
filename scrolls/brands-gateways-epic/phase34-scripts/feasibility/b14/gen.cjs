@@ -3,7 +3,7 @@
 // Usage: node .../gen.cjs <repo-relative file> <name> --out=<dir>
 const fs = require('fs');
 const path = require('path');
-const lib = require('../../phase34/lib/repo.cjs');
+const lib = require('../../lib/repo.cjs');
 const { shapes, tryPrint, typeIndex, pascal, camel, kebab, contractNames, folderTypeOf } = require('./census.cjs');
 const { ts, ROOT, rel } = lib;
 const arg = (n) => process.argv.find((a) => a.startsWith(`--${n}=`))?.slice(n.length + 3);
@@ -65,7 +65,7 @@ const genOne = (fileRel, name) => {
     return [...bySpec].map(([sp, names]) => `import { ${[...new Set(names)].join(', ')} } from '${sp}';`).join('\n');
   };
   const zodCode = p.code;
-  const contractText = `/**\n * PURPOSE: Defines the data ${s.kind === 'alias' ? 'shape named ' + s.name : 'returned by ' + s.name}\n *\n * USAGE:\n * const value = ${cname}.parse(input);\n * // Returns validated ${base}\n */\nimport { z } from '#gateway/npm/zod';\n${importsOf(specFor)}\n\nexport const ${cname} = ${zodCode.replace(/\{ /gu, '{\n  ').replace(/, (?=\w+: z\.|\w+: \w+Contract)/gu, ',\n  ').replace(/ \}\)/gu, '\n})')};\n\nexport type ${base} = z.infer<typeof ${cname}>;\n`;
+  const contractText = `/**\n * PURPOSE: Defines the data ${s.kind === 'alias' ? 'shape named ' + s.name : 'returned by ' + s.name}\n *\n * USAGE:\n * const value = ${cname}.parse(input);\n * // Returns validated ${base}\n */\nimport { z } from '${lib.ZOD_SPEC}';\n${importsOf(specFor)}\n\nexport const ${cname} = ${zodCode.replace(/\{ /gu, '{\n  ').replace(/, (?=\w+: z\.|\w+: \w+Contract)/gu, ',\n  ').replace(/ \}\)/gu, '\n})')};\n\nexport type ${base} = z.infer<typeof ${cname}>;\n`;
   // sample values for the stub
   const sample = (t) => {
     if (ts.isParenthesizedTypeNode(t)) return sample(t.type);

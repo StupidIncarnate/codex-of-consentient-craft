@@ -1,6 +1,10 @@
 import json,re,glob,os,sys
-R='/home/brutus-home/projects/codex-of-consentient-craft/worktrees/gateway-pivot/'
-S=json.load(open(R+'tmp/libcopy-census/scan.json'))['files']
+import os as _os
+# Root: MIGRATE_ROOT or cwd. Scratch: MIGRATE_OUT or <root>/tmp (phase34-scripts/lib/port-config.cjs).
+R=_os.path.join(_os.environ.get('MIGRATE_ROOT') or _os.getcwd(),'')
+O=_os.path.join(_os.environ.get('MIGRATE_OUT') or R+'tmp','')
+SCOPE=_os.environ.get('MIGRATE_SCOPE') or '@dungeonmaster/'
+S=json.load(open(O+'libcopy-census/scan.json'))['files']
 CAND=[l.split() for l in '''eslint-plugin ast-node
 eslint-plugin eslint-config
 eslint-plugin eslint-context
@@ -84,10 +88,10 @@ for pk,d in CAND:
         if f.startswith(base): continue
         for n in names:
             m=rec['imports'].get(n)
-            if m and (d in m or m.startswith('@dungeonmaster')) and (f.startswith(f'packages/{pk}/') or m.startswith('@dungeonmaster')):
+            if m and (d in m or m.startswith(SCOPE)) and (f.startswith(f'packages/{pk}/') or m.startswith(SCOPE)):
                 users[kind(f)].add(f)
         if stubname and rec['calls'].get(stubname) and not f.startswith(base):
             stubcalls['n']+=rec['calls'][stubname]; stubcalls['files'].add(f)
     res[f'{pk}:{d}']={'lines':len(src.split('\n')),'names':names,'stub':stubname,'users':{k:sorted(v) for k,v in users.items()},'stubcalls':{'n':stubcalls['n'],'files':sorted(stubcalls['files'])}}
     print(f"{pk}:{d:28s} lines={len(src.split(chr(10))):4d} prod={len(users['prod'])} test={len(users['test'])} stubf={len(users['stub'])} proxy={len(users['proxy'])} stub={stubname} calls={stubcalls['n']} in {len(stubcalls['files'])} files")
-json.dump(res,open(R+'tmp/libcopy-census/users.json','w'),indent=1)
+json.dump(res,open(O+'libcopy-census/users.json','w'),indent=1)

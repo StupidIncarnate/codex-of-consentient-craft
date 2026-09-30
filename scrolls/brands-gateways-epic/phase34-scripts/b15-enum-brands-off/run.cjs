@@ -1,6 +1,6 @@
 // Wave 3.2: an enum takes no brand (rules B1). Three steps, one script.
 //
-//   node tmp/phase34/b15-enum-brands-off/run.cjs [pkg ...] [--sample-out=<dir>] [--census] [--no-gate] [apply]
+//   node scrolls/brands-gateways-epic/phase34-scripts/b15-enum-brands-off/run.cjs [pkg ...] [--sample-out=<dir>] [--census] [--no-gate] [apply]
 //        1. census of every enum contract (z.enum, z.nativeEnum, z.literal, a z.union of those), its stub and
 //           every use of the stub, repo-wide;
 //        2. drops `.brand<...>()` from each branded enum contract of the named packages (all when none is
@@ -9,7 +9,7 @@
 //        3. prints, per package in dependency order, the exact `b15-stub-unwrap` command lines with the enum
 //           stubs that package's test files still wrap in a literal.
 //
-//   node tmp/phase34/b15-enum-brands-off/run.cjs move-stubs [pkg ...] [--sample-out=<dir>] [--verify] [apply]
+//   node scrolls/brands-gateways-epic/phase34-scripts/b15-enum-brands-off/run.cjs move-stubs [pkg ...] [--sample-out=<dir>] [--verify] [apply]
 //        an enum stub that nothing references any more (not a test, a proxy, another stub, a harness or a
 //        barrel-free import) moves, with its own test, to tmp/deletions/3.2/<original path>. Every barrel line
 //        re-exporting it goes. Nothing is ever removed (EPIC rule 20). Run it after the unwrap has been applied.
@@ -32,7 +32,7 @@ const NO_GATE = args.includes('--no-gate');
 const VERIFY = args.includes('--verify');
 const sampleOut = opt('sample-out') ? path.resolve(ROOT, opt('sample-out')) : null;
 const pkgArgs = args.filter((a) => !a.startsWith('--') && a !== 'apply' && a !== 'move-stubs');
-const OUT = path.join(__dirname, 'out');
+const OUT = lib.outDir(__dirname);
 fs.mkdirSync(OUT, { recursive: true });
 
 const ws = lib.workspaces().filter((w) => !w.isGateway);
@@ -283,7 +283,7 @@ if (MOVE) {
     }
   }
   let diff = '';
-  for (const f of toMove.keys()) diff += `--- a/${rel(f)}\n+++ /dev/null (moved to tmp/deletions/3.2)\n`;
+  for (const f of toMove.keys()) diff += `--- a/${rel(f)}\n+++ /dev/null (moved to ${rel(path.join(lib.DELETIONS, '3.2'))})\n`;
   for (const [f, t] of writes) diff += lib.unifiedDiff(rel(f), fs.readFileSync(f, 'utf8'), t);
   fs.writeFileSync(path.join(OUT, 'move-stubs.diff'), diff);
   fs.writeFileSync(path.join(OUT, 'move-stubs-kept.txt'), kept.join('\n') + '\n');
@@ -304,7 +304,7 @@ if (MOVE) {
   if (sampleOut) for (const [f, t] of writes) (fs.mkdirSync(path.dirname(path.join(sampleOut, rel(f))), { recursive: true }), fs.writeFileSync(path.join(sampleOut, rel(f)), t));
   if (APPLY && !sampleOut) {
     for (const f of toMove.keys()) {
-      const dest = path.join(ROOT, 'tmp', 'deletions', '3.2', rel(f));
+      const dest = path.join(lib.DELETIONS, '3.2', rel(f));
       fs.mkdirSync(path.dirname(dest), { recursive: true });
       fs.renameSync(f, dest);
     }
@@ -392,7 +392,7 @@ for (const w of order) {
   if (!stubs.size) continue;
   const n = [...stubs].reduce((a, s) => a + (uses.get(s) ?? []).filter((u) => u.pkg === w.short && u.test && u.kind === 'literal').length, 0);
   lines.push(`# ${w.short}: ${n} literal wraps`);
-  lines.push(`node tmp/phase34/b15-stub-unwrap/run.cjs ${w.short} --stubs=${[...stubs].sort().join(',')}`);
+  lines.push(`node scrolls/brands-gateways-epic/phase34-scripts/b15-stub-unwrap/run.cjs ${w.short} --stubs=${[...stubs].sort().join(',')}`);
 }
 fs.writeFileSync(path.join(OUT, 'unwrap-commands.txt'), lines.join('\n') + '\n');
 console.log(`\nunwrap command lines (${rel(path.join(OUT, 'unwrap-commands.txt'))}), packages in dependency order:`);

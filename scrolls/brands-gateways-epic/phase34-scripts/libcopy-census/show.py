@@ -1,5 +1,8 @@
 import sys,glob,re
-R='/home/brutus-home/projects/codex-of-consentient-craft/worktrees/gateway-pivot/'
+import os as _os
+# Root: MIGRATE_ROOT or cwd. Scratch: MIGRATE_OUT or <root>/tmp (phase34-scripts/lib/port-config.cjs).
+R=_os.path.join(_os.environ.get('MIGRATE_ROOT') or _os.getcwd(),'')
+O=_os.path.join(_os.environ.get('MIGRATE_OUT') or R+'tmp','')
 N=45
 for a in sys.argv[1:]:
     pk,name=a.split(':')

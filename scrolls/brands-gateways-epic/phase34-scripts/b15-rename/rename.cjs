@@ -8,8 +8,8 @@
 // transitively); locations from all of them are unioned. Strings and comments are not touched: a
 // brand text inside `.brand<'...'>()` is B12's autofix, and a comment is for the agent.
 //
-//   node tmp/phase34/b15-rename/rename.cjs --file=<declaring file> --from=Old --to=New [--sample-out=<dir>] [apply]
-//   node tmp/phase34/b15-rename/rename.cjs --batch=<renames.json> [--sample-out=<dir>] [apply]
+//   node scrolls/brands-gateways-epic/phase34-scripts/b15-rename/rename.cjs --file=<declaring file> --from=Old --to=New [--sample-out=<dir>] [apply]
+//   node scrolls/brands-gateways-epic/phase34-scripts/b15-rename/rename.cjs --batch=<renames.json> [--sample-out=<dir>] [apply]
 //        renames.json: [{ "file": "packages/...-contract.ts", "from": "FailCount", "to": "WorkItemRetryCount" }, ...]
 // A rename is refused when `to` already appears as an identifier in any file it would touch.
 const fs = require('fs');
@@ -120,8 +120,8 @@ for (const j of jobs) {
     }
   }
 }
-fs.mkdirSync(path.join(__dirname, 'out'), { recursive: true });
-fs.writeFileSync(path.join(__dirname, 'out', 'leftovers.txt'), leftovers.join('\n') + '\n');
+fs.mkdirSync(lib.outDir(__dirname), { recursive: true });
+fs.writeFileSync(path.join(lib.outDir(__dirname), 'leftovers.txt'), leftovers.join('\n') + '\n');
 
 let diff = '';
 const writes = new Map();
@@ -132,12 +132,12 @@ for (const [f, edits] of perFile) {
   writes.set(f, after);
   diff += lib.unifiedDiff(rel(f), text, after);
 }
-fs.mkdirSync(path.join(__dirname, 'out'), { recursive: true });
-fs.writeFileSync(path.join(__dirname, 'out', 'last-run.diff'), diff);
+fs.mkdirSync(lib.outDir(__dirname), { recursive: true });
+fs.writeFileSync(path.join(lib.outDir(__dirname), 'last-run.diff'), diff);
 for (const j of jobs) {
   console.log(j.refused ? `REFUSED ${j.from} -> ${j.to}: ${j.refused}` : `${j.from} -> ${j.to}: ${j.locs.size} locations in ${new Set([...j.locs.values()].map((l) => l.file)).size} files`);
 }
-console.log(`same text NOT renamed (another symbol of that name, a comment or a string): ${leftovers.length}, listed in tmp/phase34/b15-rename/out/leftovers.txt`);
+console.log(`same text NOT renamed (another symbol of that name, a comment or a string): ${leftovers.length}, listed in ${path.join(lib.outDir(__dirname), 'leftovers.txt')}`);
 console.log(`${APPLY ? 'APPLIED' : sampleOut ? 'SAMPLE' : 'DRY RUN'}: ${writes.size} files; ${pkgs.size} packages scanned in ${((Date.now() - t0) / 1000).toFixed(0)}s; diff tmp/phase34/b15-rename/out/last-run.diff`);
 if (sampleOut) {
   for (const [f, t] of writes) {

@@ -7,7 +7,10 @@
 const fs = require('fs');
 const path = require('path');
 
-const ROOT = path.resolve(__dirname, '..', '..', '..');
+// Root, scope, gateway names and output folders come from port-config.cjs (flags, MIGRATE_* env, or defaults).
+const cfg = require('./port-config.cjs');
+
+const { ROOT } = cfg;
 const ts = require(path.join(ROOT, 'node_modules', 'typescript'));
 
 const SKIP_DIRS = new Set([
@@ -34,17 +37,18 @@ const workspaces = () => {
     const json = JSON.parse(fs.readFileSync(pj, 'utf8'));
     out.push({
       name: json.name,
-      short: json.name.replace(/^@dungeonmaster\//u, ''),
+      // An unscoped package (a consumer's bin package) goes by its folder name, as the decision tables do.
+      short: cfg.SCOPE_RE.test(json.name) ? cfg.stripScope(json.name) : path.basename(dir),
       dir,
       rel: rel(dir),
-      isGateway: rel(dir).startsWith('packages/@gateway/'),
+      isGateway: rel(dir).startsWith(`${cfg.GATEWAY_DIR}/`),
       packageJsonPath: pj,
       packageJson: json,
     });
   };
   const pk = path.join(ROOT, 'packages');
   for (const d of fs.readdirSync(pk)) {
-    if (d === '@gateway') {
+    if (`packages/${d}` === cfg.GATEWAY_DIR) {
       for (const g of fs.readdirSync(path.join(pk, d))) add(path.join(pk, d, g));
     } else add(path.join(pk, d));
   }
@@ -86,12 +90,10 @@ const COMPILER_OPTIONS = {
 };
 
 // overlay: Map<absPath, text | null>; null means "this file does not exist".
-// This worktree sits inside the main checkout, so an unfenced walk-up that misses here resolves to
-// the MAIN checkout's copy and fakes a pass. Every host below hides paths outside ROOT.
-const inRoot = (p) => {
-  const a = path.resolve(p);
-  return a === ROOT || a.startsWith(ROOT + path.sep);
-};
+// A worktree sits inside the main checkout, so an unfenced walk-up that misses there resolves to
+// the MAIN checkout's copy and fakes a pass. Every host below hides paths outside the fence
+// (the root, plus the real directories of `file:`-linked packages: port-config.cjs).
+const inRoot = cfg.inFence;
 // Overlay keys are real paths; resolution asks through the node_modules symlink path, so a path is
 // also looked up by its real directory.
 const canon = (p) => {
@@ -395,7 +397,7 @@ const applyEdits = (text, edits) => {
 // at both its real path and its node_modules symlink path (resolution reads the symlink path).
 const plannedExportsOverlay = (list = workspaces(), overlay = new Map()) => {
   for (const w of list) {
-    if (w.isGateway || w.name === '@dungeonmaster/testing') continue;
+    if (w.isGateway || w.name === cfg.pkgName('testing')) continue;
     const text = JSON.stringify({ ...w.packageJson, exports: plannedExports(w).exports }, null, 2);
     overlay.set(w.packageJsonPath, text);
     overlay.set(path.join(ROOT, 'node_modules', w.name, 'package.json'), text);
@@ -446,7 +448,7 @@ const formatDiagnostic = (d) => {
   return `${rel(d.file.fileName)}:${line + 1} TS${d.code}: ${msg}`;
 };
 
-// A LanguageService over one package's own tsconfig.json, fenced to this worktree. `live` maps an
+// A LanguageService over one package's own tsconfig.json, fenced to the root. `live` maps an
 // absolute path to { v, text } for in-memory edits; bump `v` on every change.
 const makeLanguageService = (pkgDir, live = new Map()) => {
   const cfgPath = path.join(pkgDir, 'tsconfig.json');
@@ -587,7 +589,19 @@ const isTestSupport = (abs) =>
   TEST_SUPPORT_FILE.test(abs) || /[\\/](test|tests|e2e|__mocks__|test-fixtures)[\\/]/u.test(rel(abs));
 
 module.exports = {
+  cfg,
   ROOT,
+  OUT: cfg.OUT,
+  SCOPE: cfg.SCOPE,
+  SCOPE_RE: cfg.SCOPE_RE,
+  GW: cfg.GW,
+  GATEWAY_DIR: cfg.GATEWAY_DIR,
+  ZOD_SPEC: cfg.ZOD_SPEC,
+  DELETIONS: cfg.DELETIONS,
+  workDir: cfg.workDir,
+  outDir: cfg.outDir,
+  pkgName: cfg.pkgName,
+  rootRequire: cfg.rootRequire,
   ts,
   inRoot,
   rel,

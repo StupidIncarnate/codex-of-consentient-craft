@@ -17,12 +17,12 @@
 // (its public test support stays as it is).
 //
 // Usage (from the repo root):
-//   node tmp/phase34/b03-per-file-imports/rewrite.cjs                     dry run, whole repo
-//   node tmp/phase34/b03-per-file-imports/rewrite.cjs --importers=web,mcp  only files in these packages
-//   node tmp/phase34/b03-per-file-imports/rewrite.cjs --targets=shared     only names declared in shared
-//   node tmp/phase34/b03-per-file-imports/rewrite.cjs --sample-out=<dir> --files=a.ts,b.ts
+//   node scrolls/brands-gateways-epic/phase34-scripts/b03-per-file-imports/rewrite.cjs                     dry run, whole repo
+//   node scrolls/brands-gateways-epic/phase34-scripts/b03-per-file-imports/rewrite.cjs --importers=web,mcp  only files in these packages
+//   node scrolls/brands-gateways-epic/phase34-scripts/b03-per-file-imports/rewrite.cjs --targets=shared     only names declared in shared
+//   node scrolls/brands-gateways-epic/phase34-scripts/b03-per-file-imports/rewrite.cjs --sample-out=<dir> --files=a.ts,b.ts
 //                                                   write rewritten copies of those files into <dir>
-//   node tmp/phase34/b03-per-file-imports/rewrite.cjs ... apply            write the edits in place
+//   node scrolls/brands-gateways-epic/phase34-scripts/b03-per-file-imports/rewrite.cjs ... apply            write the edits in place
 // Every run writes out/last-run.diff (full unified diff) and out/leftovers.json (what an agent must do).
 const fs = require('fs');
 const path = require('path');
@@ -39,13 +39,13 @@ const importerFilter = flag('importers');
 const targetFilter = flag('targets');
 const sampleOut = flag('sample-out')?.[0] ?? null;
 const onlyFiles = flag('files')?.map((f) => path.resolve(ROOT, f)) ?? null;
-const OUT = path.join(__dirname, 'out');
+const OUT = lib.outDir(__dirname);
 fs.mkdirSync(OUT, { recursive: true });
 
 const ws = lib.workspaces();
 const byName = new Map(ws.map((w) => [w.name, w]));
 const targets = ws.filter(
-  (w) => !w.isGateway && w.name !== '@dungeonmaster/testing' && (!targetFilter || targetFilter.includes(w.short)),
+  (w) => !w.isGateway && w.name !== lib.pkgName('testing') && (!targetFilter || targetFilter.includes(w.short)),
 );
 const targetNames = new Set(targets.map((w) => w.name));
 
@@ -95,13 +95,13 @@ const specFor = (declFile, importer) => {
 for (const file of files) {
   stats.filesScanned++;
   const text = fs.readFileSync(file, 'utf8');
-  if (!text.includes('@dungeonmaster/') && !/from\s+['"]\.{1,2}\//u.test(text)) continue;
+  if (!text.includes(lib.SCOPE) && !/from\s+['"]\.{1,2}\//u.test(text)) continue;
   const sf = lib.parse(file, text);
   const importerW = lib.workspaceOf(file, ws);
 
   // Non-import string mentions of a `/testing` barrel (jest.mock, registerModuleMock, fixtures).
   const visitStrings = (n) => {
-    if ((ts.isStringLiteral(n) || ts.isNoSubstitutionTemplateLiteral(n)) && /@dungeonmaster\/[\w-]+\/testing\b/u.test(n.text)) {
+    if ((ts.isStringLiteral(n) || ts.isNoSubstitutionTemplateLiteral(n)) && new RegExp(`${lib.cfg.SCOPE_ESC}[\\w-]+/testing\\b`, 'u').test(n.text)) {
       const p = n.parent;
       if (!(p && (ts.isImportDeclaration(p) || ts.isExportDeclaration(p)))) {
         left('testing-barrel-string', file, { line: sf.getLineAndCharacterOfPosition(n.getStart()).line + 1, text: n.text });
@@ -124,7 +124,7 @@ for (const file of files) {
     const spec = st.moduleSpecifier.text;
     const target = resolveNow(spec, file);
     if (!target) {
-      const m = /^(@dungeonmaster\/[\w-]+)/u.exec(spec);
+      const m = new RegExp(`^(${lib.cfg.SCOPE_ESC}[\\w-]+)`, 'u').exec(spec);
       if (m && targetNames.has(m[1])) left('unresolved-specifier', file, { spec });
       continue;
     }
@@ -137,11 +137,11 @@ for (const file of files) {
       const ic = st.importClause;
       if (!ic) continue;
       if (ic.namedBindings && ts.isNamespaceImport(ic.namedBindings)) {
-        if (spec.startsWith('@dungeonmaster/') || rootBarrel(target)) left('namespace-import', file, { spec });
+        if (spec.startsWith(lib.SCOPE) || rootBarrel(target)) left('namespace-import', file, { spec });
         continue;
       }
       clause = ic.namedBindings && ts.isNamedImports(ic.namedBindings) ? ic.namedBindings.elements : [];
-      if (ic.name && (spec.startsWith('@dungeonmaster/') || rootBarrel(target))) left('default-import', file, { spec });
+      if (ic.name && (spec.startsWith(lib.SCOPE) || rootBarrel(target))) left('default-import', file, { spec });
     } else {
       if (!st.exportClause || !ts.isNamedExports(st.exportClause)) continue;
       clause = st.exportClause.elements;

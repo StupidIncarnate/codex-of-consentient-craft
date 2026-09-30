@@ -3,17 +3,17 @@
 // Usage: node .../sample.cjs <folderSubstr,...> [--out=dir]
 const fs = require('fs');
 const path = require('path');
-const lib = require('../../phase34/lib/repo.cjs');
+const lib = require('../../lib/repo.cjs');
 const { retype } = require('./retype.cjs');
 const { convertTest, kebab } = require('./convert-tests.cjs');
 const { ts, ROOT, rel } = lib;
 const arg = (n) => process.argv.find((a) => a.startsWith(`--${n}=`))?.slice(n.length + 3);
 const folders = process.argv[2].split(',');
 const outDir = arg('out');
-const SAMPLE_ALL = path.join(__dirname, 'sample-all');
+const SAMPLE_ALL = path.join(lib.workDir(__dirname), 'sample-all');
 
 const w = lib.workspaces().find((x) => x.short === 'eslint-plugin');
-const gw = lib.workspaces().find((x) => x.name === '@dungeonmaster/gateway-npm' || x.rel === 'packages/@gateway/npm');
+const gw = lib.workspaces().find((x) => x.rel === `${lib.GATEWAY_DIR}/npm`);
 const overlay = new Map();
 // 1) production retype+strip from the all-package run
 const walk = (d) => fs.readdirSync(d, { withFileTypes: true }).forEach((e) => (e.isDirectory() ? walk(path.join(d, e.name)) : overlay.set(path.join(ROOT, path.relative(SAMPLE_ALL, path.join(d, e.name))), fs.readFileSync(path.join(d, e.name), 'utf8'))));
@@ -43,7 +43,7 @@ for (const f of inFolder) {
   stats.tests++;
 }
 // 3) generate missing gateway stubs
-const gwDir = path.join(ROOT, 'packages/@gateway/npm/src/typescript-eslint__utils');
+const gwDir = path.join(ROOT, lib.GATEWAY_DIR, 'npm/src/typescript-eslint__utils');
 const DEFAULT_CODE = { Identifier: 'x;', Literal: "'x';", TSTypeAnnotation: 'let x: string;', TSTypeReference: 'let x: T;', TSTypeLiteral: 'type T = { a: string };', TSPropertySignature: 'type T = { a: string };', AssignmentPattern: 'const { a = 1 } = y;', ObjectPattern: 'const { a } = y;', ImportDeclaration: "import { a } from 'x';", ImportSpecifier: "import { a } from 'x';", ExportNamedDeclaration: 'export const a = 1;', FunctionDeclaration: 'function f() {}', FunctionExpression: 'const f = function () {};', SpreadElement: 'f(...a);', VariableDeclarator: 'const a = 1;', IfStatement: 'if (a) {}', UnaryExpression: '!a;', TSArrayType: 'let x: string[];', TSStringKeyword: 'let x: string;', TSBooleanKeyword: 'let x: boolean;', ArrayExpression: 'const a = [];' };
 const generated = [];
 for (const t of needStubs) {
@@ -67,7 +67,7 @@ for (const f of checked) {
   bad += added.length;
   rows.push({ f: rel(f), base: (base.get(f) ?? []).length, added: added.length, diags: added.map(lib.formatDiagnostic) });
 }
-fs.writeFileSync(path.join(__dirname, 'out', 'sample-' + folders.join('_').replace(/[^a-z0-9_-]/giu, '-') + '.json'), JSON.stringify(rows, null, 1));
+fs.writeFileSync(path.join(lib.outDir(__dirname), 'sample-' + folders.join('_').replace(/[^a-z0-9_-]/giu, '-') + '.json'), JSON.stringify(rows, null, 1));
 console.log(JSON.stringify({ folders, files: checked.length, ...stats, generatedStubs: generated, newDiagnostics: bad, filesWithNew: rows.filter((r) => r.added).length }));
 for (const r of rows.filter((x) => x.added)) {
   console.log(' ', r.f, r.added);

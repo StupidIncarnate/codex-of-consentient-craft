@@ -1,5 +1,5 @@
 // Loads the B13 prototype (feasibility/b13/index.cjs + retype.cjs) with its repo.cjs require pointed at
-// phase34/lib, then builds the retype overlay the way validate.cjs does. The prototype computes its
+// this folder's ../lib/repo.cjs (one module instance, one root), then builds the retype overlay the way validate.cjs does. The prototype computes its
 // candidates at load time from process.argv, so --tests is pushed before it loads.
 const fs = require('fs');
 const path = require('path');
@@ -15,7 +15,7 @@ const loadProto = (name) => {
   const file = path.join(b13Dir, `${name}.cjs`);
   const src = fs
     .readFileSync(file, 'utf8')
-    .replaceAll("'../../phase34/lib/repo.cjs'", JSON.stringify(libPath))
+    .replaceAll("'../../lib/repo.cjs'", JSON.stringify(libPath))
     .replace(/require\('\.\/(\w+)\.cjs'\)/gu, (_, n) => `__loadProto(${JSON.stringify(n)})`);
   const m = new Module(file, module);
   m.filename = file;

@@ -1,8 +1,8 @@
 // Usage: node stubcalls.js <StubName> ... ; for each outermost call of the stub in packages/* (not @gateway), record arg shape.
 const ts=require('typescript'),fs=require('fs'),path=require('path');
-const R=process.cwd();
+const C=require('../lib/port-config.cjs');const R=C.ROOT;const O=C.OUT+'/libcopy-census';fs.mkdirSync(O,{recursive:true});
 const names=process.argv.slice(2);
-const scan=JSON.parse(fs.readFileSync(R+'/tmp/libcopy-census/scan.json','utf8')).files;
+const scan=JSON.parse(fs.readFileSync(O+'/scan.json','utf8')).files;
 const out={};
 for(const n of names)out[n]=[];
 for(const [rel,rec] of Object.entries(scan)){
@@ -39,5 +39,5 @@ for(const [rel,rec] of Object.entries(scan)){
     })(sf,false);
   }
 }
-fs.writeFileSync(R+'/tmp/libcopy-census/stubcalls-all.json',JSON.stringify(out));
+fs.writeFileSync(O+'/stubcalls-all.json',JSON.stringify(out));
 for(const n of names){const a=out[n];const kc={};a.forEach(c=>c.keys.forEach(k=>kc[k]=(kc[k]||0)+1));console.log(n,'outer calls',a.length,'by kind',JSON.stringify(a.reduce((m,c)=>(m[c.kind]=(m[c.kind]||0)+1,m),{})));console.log(' keys',JSON.stringify(Object.entries(kc).sort((x,y)=>y[1]-x[1])));console.log(' flags',JSON.stringify(a.reduce((m,c)=>(c.flags.forEach(f=>m[f]=(m[f]||0)+1),m),{})));}

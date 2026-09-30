@@ -20,7 +20,7 @@
 // Also flags `notZodInfer`: an exported type alias/interface in a contract file that is not
 // `z.infer<typeof ...>`/`z.input`/`z.output` (B02 item, rule 2; the hydration Collection/RowVerbs/Op case).
 //
-// Usage: node tmp/phase34/b02-contract-index/index.cjs [pkg ...]
+// Usage: node scrolls/brands-gateways-epic/phase34-scripts/b02-contract-index/index.cjs [pkg ...]
 // Writes out/contract-index.json and out/delete-candidates.txt (dead class only, one path per line).
 const fs = require('fs');
 const path = require('path');
@@ -214,7 +214,7 @@ return { list: contractFiles.map((f) => info.get(f)), counts, trioOf };
 };
 
 module.exports = { buildIndex };
-const OUT = path.join(__dirname, 'out');
+const OUT = lib.outDir(__dirname);
 fs.mkdirSync(OUT, { recursive: true });
 if (require.main !== module) return;
 const pkgArgs = process.argv.slice(2).filter((a) => !a.startsWith('--'));

@@ -3,9 +3,9 @@
 // checking every field the hand-built tree set against the parsed node.
 const fs = require('fs');
 const path = require('path');
-const lib = require('../../phase34/lib/repo.cjs');
+const lib = require('../../lib/repo.cjs');
 const { ts, ROOT, rel } = lib;
-const { parse, simpleTraverse } = require('@typescript-eslint/typescript-estree');
+const { parse, simpleTraverse } = lib.rootRequire('@typescript-eslint/typescript-estree');
 
 class Unsupported extends Error {}
 const bad = (r) => {
@@ -385,8 +385,8 @@ if (require.main === module) {
       }
     }
   }
-  fs.mkdirSync(path.join(__dirname, 'out'), { recursive: true });
-  fs.writeFileSync(path.join(__dirname, 'out', 'stubprint.json'), JSON.stringify(res, null, 1));
+  fs.mkdirSync(lib.outDir(__dirname), { recursive: true });
+  fs.writeFileSync(path.join(lib.outDir(__dirname), 'stubprint.json'), JSON.stringify(res, null, 1));
   const top = (o, n = 40) => Object.entries(o).sort((a, b) => b[1] - a[1]).slice(0, n).map((e) => e.join(':')).join('  ');
   console.log(`roots total=${res.total} converted+verified=${res.ok} (${((100 * res.ok) / res.total).toFixed(1)}%)`);
   console.log(`TsestreeStub( calls: ${res.callsAll} total, ${res.callsOk} inside verified roots (${((100 * res.callsOk) / res.callsAll).toFixed(1)}%)`);
