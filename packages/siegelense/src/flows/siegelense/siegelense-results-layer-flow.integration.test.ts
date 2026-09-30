@@ -23,7 +23,6 @@
 import { stdout } from '#gateway/node/process';
 import { registerSpyOn } from '@dungeonmaster/testing/register-mock';
 
-import { ResultFieldStub } from '../../contracts/result-field/result-field.stub';
 import { ResultsQueryStub } from '../../contracts/results-query/results-query.stub';
 import { ResultWhereStub } from '../../contracts/result-where/result-where.stub';
 import { RunIdRequiredError } from '../../errors/run-id-required/run-id-required-error';
@@ -508,8 +507,8 @@ describe('SiegelenseResultsLayerFlow', () => {
     it('VALID: {callArgs: [..., --where-method, POST, --fields, status,method, --json]} => the row reduced to exactly those two keys', async () => {
       const [unprojectedRow] = tree.networkRun1NonSuccessRows();
       const projectFields = [
-        ResultFieldStub({ value: 'status' }),
-        ResultFieldStub({ value: 'method' }),
+        'status',
+        'method',
       ];
       const expectedProjectedRow = resultRowProjectTransformer({
         row: unprojectedRow!,

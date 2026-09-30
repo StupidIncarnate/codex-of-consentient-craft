@@ -2,7 +2,6 @@
 import { InstanceIdStub } from '../../../contracts/instance-id/instance-id.stub';
 import { RegistryEntryStub } from '../../../contracts/registry-entry/registry-entry.stub';
 import { RegistryStub } from '../../../contracts/registry/registry.stub';
-import { ResultFieldStub } from '../../../contracts/result-field/result-field.stub';
 import { ResultWhereStub } from '../../../contracts/result-where/result-where.stub';
 import { ResultsQueryStub } from '../../../contracts/results-query/results-query.stub';
 import { RunIdStub } from '../../../contracts/run-id/run-id.stub';
@@ -278,7 +277,7 @@ describe('resultsReadBroker', () => {
         instanceId: INSTANCE_ID,
         runId: RUN_2,
         kind: 'network',
-        fields: [ResultFieldStub({ value: 'status' }), ResultFieldStub({ value: 'responseBody' })],
+        fields: ['status', 'responseBody'],
       }),
     });
 

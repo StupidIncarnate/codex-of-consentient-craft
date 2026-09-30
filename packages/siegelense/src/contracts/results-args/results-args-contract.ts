@@ -18,7 +18,6 @@
 
 import { z } from '#gateway/npm/zod';
 
-import { resultFieldContract } from '../result-field/result-field-contract';
 import { resultKindContract } from '../result-kind/result-kind-contract';
 import { resultWhereContract } from '../result-where/result-where-contract';
 import { sinceMarkerContract } from '../since-marker/since-marker-contract';
@@ -32,7 +31,7 @@ export const resultsArgsContract = z
     step: z.number().int().min(instanceLifecycleStatics.numbering.firstStep).brand<'ResultsArgsStep'>().nullable(),
     kind: resultKindContract.nullable(),
     where: resultWhereContract.nullable(),
-    fields: z.array(resultFieldContract).readonly().nullable(),
+    fields: z.array(z.string().min(1).brand<'ResultsArgsFields'>()).readonly().nullable(),
     since: sinceMarkerContract.nullable(),
     isJson: z.boolean(),
   })

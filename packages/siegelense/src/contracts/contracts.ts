@@ -52,7 +52,6 @@ export * from './http-method/http-method-contract';
 
 export * from './log-level/log-level-contract';
 
-export * from './result-field/result-field-contract';
 
 export * from './result-kind/result-kind-contract';
 

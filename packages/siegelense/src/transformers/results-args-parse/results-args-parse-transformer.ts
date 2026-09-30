@@ -35,7 +35,6 @@ import { siegeInstanceContract, siegeRunContract } from '@dungeonmaster/shared/c
 
 import { httpMethodContract } from '../../contracts/http-method/http-method-contract';
 import { logLevelContract } from '../../contracts/log-level/log-level-contract';
-import { resultFieldContract } from '../../contracts/result-field/result-field-contract';
 import { resultKindContract } from '../../contracts/result-kind/result-kind-contract';
 import { resultWhereContract } from '../../contracts/result-where/result-where-contract';
 import {
@@ -216,7 +215,7 @@ export const resultsArgsParseTransformer = ({ args }: { args: readonly string[] 
                   `empty token. Each entry between commas must be a non-empty field name.`,
               );
             }
-            return resultFieldContract.parse(token);
+            return token;
           }),
     since:
       sinceValue === null

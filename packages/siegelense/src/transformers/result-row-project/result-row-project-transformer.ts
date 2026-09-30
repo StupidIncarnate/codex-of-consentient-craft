@@ -17,14 +17,13 @@
 
 
 import { resultRowContract } from '../../contracts/result-row/result-row-contract';
-import type { ResultField } from '../../contracts/result-field/result-field-contract';
 
 export const resultRowProjectTransformer = ({
   row,
   fields,
 }: {
   row: string;
-  fields: readonly ResultField[] | null;
+  fields: readonly string[] | null;
 }): string => {
   if (fields === null) {
     return row;

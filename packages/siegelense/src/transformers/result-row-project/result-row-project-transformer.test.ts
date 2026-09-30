@@ -1,5 +1,4 @@
 
-import { ResultFieldStub } from '../../contracts/result-field/result-field.stub';
 import { resultRowProjectTransformer } from './result-row-project-transformer';
 
 describe('resultRowProjectTransformer', () => {
@@ -19,7 +18,7 @@ describe('resultRowProjectTransformer', () => {
 
       const result = resultRowProjectTransformer({
         row,
-        fields: [ResultFieldStub({ value: 'status' }), ResultFieldStub({ value: 'responseBody' })],
+        fields: ['status', 'responseBody'],
       });
 
       expect(JSON.parse(result)).toStrictEqual({ status: 200, responseBody: 'ok' });
@@ -30,7 +29,7 @@ describe('resultRowProjectTransformer', () => {
 
       const result = resultRowProjectTransformer({
         row,
-        fields: [ResultFieldStub({ value: 'status' }), ResultFieldStub({ value: 'responseBody' })],
+        fields: ['status', 'responseBody'],
       });
 
       expect(JSON.parse(result)).toStrictEqual({ status: 200 });
@@ -43,7 +42,7 @@ describe('resultRowProjectTransformer', () => {
 
       const result = resultRowProjectTransformer({
         row,
-        fields: [ResultFieldStub({ value: 'status' })],
+        fields: ['status'],
       });
 
       expect(JSON.parse(result)).toStrictEqual({});
@@ -54,7 +53,7 @@ describe('resultRowProjectTransformer', () => {
 
       const result = resultRowProjectTransformer({
         row,
-        fields: [ResultFieldStub({ value: 'status' })],
+        fields: ['status'],
       });
 
       expect(JSON.parse(result)).toStrictEqual({});
