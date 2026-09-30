@@ -83,7 +83,7 @@ export const checkRunIntegrationBrokerProxy = (): {
   const binProxy = binResolveBrokerProxy();
   // The resolved bin path depends on projectFolder.path, so the getter below (which takes no
   // params) addresses the spawn read against whatever setup last resolved — set here, read there.
-  const resolvedCommandRef: { value: BinCommand } = { value: BinCommandStub() };
+  const resolvedCommandRef: { value: string } = { value: '/project/node_modules/.bin/eslint' };
 
   // The broker calls globSync once per integration discovery pattern. These tests assert on jest
   // output parsing, not which pattern discovered which file, so the default stages every real

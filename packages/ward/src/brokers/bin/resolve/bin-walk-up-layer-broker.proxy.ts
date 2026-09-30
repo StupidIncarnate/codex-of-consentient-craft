@@ -3,17 +3,15 @@ import { join } from '#gateway/node/path';
 import { AbsoluteFilePathStub } from '@dungeonmaster/shared/contracts/absolute-file-path/absolute-file-path.stub';
 import type { AbsoluteFilePath } from '@dungeonmaster/shared/contracts';
 
-import { BinCommandStub } from '../../../contracts/bin-command/bin-command.stub';
-import type { BinCommand } from '../../../contracts/bin-command/bin-command-contract';
 import { binWorkspaceRootLayerBrokerProxy } from './bin-workspace-root-layer-broker.proxy';
 
 export const binWalkUpLayerBrokerProxy = (): {
   setupWalk: (params: {
     dir: AbsoluteFilePath;
-    binName: BinCommand;
+    binName: string;
     binDir: AbsoluteFilePath | null;
     workspaceRoot: AbsoluteFilePath | null;
-  }) => BinCommand;
+  }) => string;
 } => {
   const existsProxy = existsSyncProxy();
   const rootProxy = binWorkspaceRootLayerBrokerProxy();
@@ -33,10 +31,10 @@ export const binWalkUpLayerBrokerProxy = (): {
       workspaceRoot,
     }: {
       dir: AbsoluteFilePath;
-      binName: BinCommand;
+      binName: string;
       binDir: AbsoluteFilePath | null;
       workspaceRoot: AbsoluteFilePath | null;
-    }): BinCommand => {
+    }): string => {
       const segments = String(dir)
         .split('/')
         .filter((segment) => segment !== '');
@@ -69,7 +67,7 @@ export const binWalkUpLayerBrokerProxy = (): {
       });
 
       return stopIndex !== -1 && binDir !== null && holdsBinary(deepestFirst[stopIndex] ?? '')
-        ? BinCommandStub({ value: join(binDir, 'node_modules', '.bin', String(binName)) })
+        ? join(binDir, 'node_modules', '.bin', String(binName))
         : binName;
     },
   };

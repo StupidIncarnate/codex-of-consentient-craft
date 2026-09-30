@@ -12,22 +12,18 @@ import { existsSync } from '#gateway/node/fs';
 import { dirname, join } from '#gateway/node/path';
 import { absoluteFilePathContract, type AbsoluteFilePath } from '@dungeonmaster/shared/contracts';
 
-import {
-  binCommandContract,
-  type BinCommand,
-} from '../../../contracts/bin-command/bin-command-contract';
 import { binWorkspaceRootLayerBroker } from './bin-workspace-root-layer-broker';
 
 export const binWalkUpLayerBroker = ({
   binName,
   dir,
 }: {
-  binName: BinCommand;
+  binName: string;
   dir: AbsoluteFilePath;
-}): BinCommand => {
+}): string => {
   const candidate = join(dir, 'node_modules', '.bin', String(binName));
   if (existsSync(candidate)) {
-    return binCommandContract.parse(candidate);
+    return candidate;
   }
 
   if (binWorkspaceRootLayerBroker({ dir })) {

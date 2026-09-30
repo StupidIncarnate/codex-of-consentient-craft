@@ -76,7 +76,7 @@ export const checkRunE2eBrokerProxy = (): {
   const bundleProxy = bundleBuildBrokerProxy();
   // The resolved bin path depends on projectFolder.path, so the getters below (which take no
   // params) address the spawn read against whatever setup last resolved — set here, read there.
-  const resolvedCommandRef: { value: BinCommand } = { value: BinCommandStub() };
+  const resolvedCommandRef: { value: string } = { value: '/project/node_modules/.bin/eslint' };
   // `sourceConditionSupportedBroker` walks every ancestor of the cwd, so "reachable" is staged per
   // cwd in `setupPlaywrightConfigExists`; a cwd `setupSourceConditionUnsupported` marked keeps that
   // answer whichever order the two setups are called in.
