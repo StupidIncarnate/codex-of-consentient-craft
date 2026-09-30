@@ -19,8 +19,6 @@
 import type { OperationItem, Quest } from '@dungeonmaster/shared/contracts';
 import { questFlowStatics } from '@dungeonmaster/shared/statics';
 
-import { agentFamilyNameContract } from '../../contracts/agent-family-name/agent-family-name-contract';
-import type { AgentFamilyName } from '../../contracts/agent-family-name/agent-family-name-contract';
 
 export const workItemFamilyResolveTransformer = ({
   quest,
@@ -28,12 +26,12 @@ export const workItemFamilyResolveTransformer = ({
 }: {
   quest: Quest;
   operationItem: OperationItem;
-}): AgentFamilyName | undefined => {
+}): string | undefined => {
   const questFlow = questFlowStatics[quest.questType];
 
   const familyEntry = Object.entries(questFlow.families).find(
     (entry) => entry[1].role === operationItem.role,
   );
 
-  return familyEntry === undefined ? undefined : agentFamilyNameContract.parse(familyEntry[0]);
+  return familyEntry === undefined ? undefined : familyEntry[0];
 };

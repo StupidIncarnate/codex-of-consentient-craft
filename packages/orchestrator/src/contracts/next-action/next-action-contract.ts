@@ -58,7 +58,7 @@ export const nextActionContract = z.discriminatedUnion('kind', [
   z.object({
     kind: z.literal('block'),
     operationItemId: operationItemContract.shape.id,
-    family: z.string().min(1).brand<'AgentFamilyName'>(),
+    family: z.string().min(1).brand<'NextActionFamily'>(),
     step: stepNameContract,
     reason: z.enum(['wall', 'max-visits', 'unknown-step', 'unknown-route-target', 'no-minter']),
     message: z.string().min(1).brand<'BlockMessage'>(),

@@ -12,7 +12,6 @@
 
 import type { StepName } from '@dungeonmaster/shared/contracts';
 
-import type { AgentFamilyName } from '../../contracts/agent-family-name/agent-family-name-contract';
 import { agentFlowStatics } from '../../statics/agent-flow/agent-flow-statics';
 
 const agentFlowGraphs: Readonly<
@@ -27,7 +26,7 @@ export const isStepMintableOnRequestGuard = ({
   family,
   step,
 }: {
-  family?: AgentFamilyName;
+  family?: string;
   step?: StepName;
 }): boolean => {
   if (family === undefined || step === undefined) {

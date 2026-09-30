@@ -41,7 +41,6 @@
 import { operationItemContract, outcomeTypeContract, pieceIdContract, qaChecklistItemContract, qaChecklistKindContract, qaWalkPathContract, questContract, questNoteContract, repoRelativePathContract, stepNameContract, unitMarkContract, unitObservationContract, unitObservationFieldsContract, wardResultContract, workItemContract, flowNodeContract, flowContract, flowEdgeContract, flowRecipeContract, siegeInstanceContract, siegeRunContract, absoluteFilePathContract, relativeFilePathContract } from '@dungeonmaster/shared/contracts';
 import { z } from '#gateway/npm/zod';
 
-import { agentFamilyNameContract } from '../agent-family-name/agent-family-name-contract';
 import { commitShaContract } from '../commit-sha/commit-sha-contract';
 import { questWorkInstanceContract } from '../quest-work-instance/quest-work-instance-contract';
 import { recipeIdContract } from '../recipe-id/recipe-id-contract';
@@ -157,7 +156,7 @@ const questWorkTruncation = z.object({
 export const questWorkViewContract = z.object({
   questId: questContract.shape.id,
   workItemId: workItemContract.shape.id,
-  family: agentFamilyNameContract,
+  family: z.string().min(1).brand<'QuestWorkViewFamily'>(),
   step: stepNameContract,
   role: z.enum(['planner', 'worker', 'reviewer']),
   scope: questWorkScope,
