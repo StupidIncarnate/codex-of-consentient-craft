@@ -1,5 +1,4 @@
 import type { StubArgument } from '@dungeonmaster/shared/@types';
-import { ProcessIdStub } from '@dungeonmaster/shared/contracts/process-id/process-id.stub';
 
 import { InstanceIdStub } from '../instance-id/instance-id.stub';
 import { ProcessGroupIdStub } from '../process-group-id/process-group-id.stub';
@@ -11,7 +10,7 @@ export const InstanceHeartbeatStub = ({
 }: StubArgument<InstanceHeartbeat> = {}): InstanceHeartbeat =>
   instanceHeartbeatContract.parse({
     instanceId: InstanceIdStub(),
-    pid: ProcessIdStub(),
+    pid: 'proc-12345',
     pgids: [ProcessGroupIdStub()],
     beatAtMs: 1,
     rssMB: null,

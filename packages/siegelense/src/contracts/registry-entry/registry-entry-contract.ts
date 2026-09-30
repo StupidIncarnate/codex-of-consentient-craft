@@ -41,7 +41,7 @@
 
 import { z } from '#gateway/npm/zod';
 
-import { absoluteFilePathContract, processIdContract, questContract, guildContract, siegeInstanceContract } from '@dungeonmaster/shared/contracts';
+import { absoluteFilePathContract, questContract, guildContract, siegeInstanceContract } from '@dungeonmaster/shared/contracts';
 
 import { instanceStateContract } from '../instance-state/instance-state-contract';
 import { portPairContract } from '../port-pair/port-pair-contract';
@@ -53,7 +53,7 @@ export const registryEntryContract = z.object({
   guildId: guildContract.shape.id.nullable(),
   specName: z.string().min(1).brand<'RegistryEntrySpecName'>(),
   specHash: z.string().regex(/^[0-9a-f]{8,64}$/u).brand<'RegistryEntrySpecHash'>(),
-  pid: processIdContract.nullable(),
+  pid: z.string().min(1).brand<'RegistryEntryPid'>().nullable(),
   pgids: z.array(z.number().int().positive().brand<'RegistryEntryPgids'>()).readonly(),
   socketPath: absoluteFilePathContract.nullable(),
   ports: portPairContract,

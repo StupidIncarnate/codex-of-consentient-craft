@@ -7,7 +7,6 @@ import { GuildIdStub } from '@dungeonmaster/shared/contracts/guild-id/guild-id.s
 import { ModifyQuestResultStub } from '@dungeonmaster/shared/contracts/modify-quest-result/modify-quest-result.stub';
 import { OperationItemStub } from '@dungeonmaster/shared/contracts/operation-item/operation-item.stub';
 import { OrchestrationStatusStub } from '@dungeonmaster/shared/contracts/orchestration-status/orchestration-status.stub';
-import { ProcessIdStub } from '@dungeonmaster/shared/contracts/process-id/process-id.stub';
 import { QuestCommentStub } from '@dungeonmaster/shared/contracts/quest-comment/quest-comment.stub';
 import { QuestContractEntryStub } from '@dungeonmaster/shared/contracts/quest-contract-entry/quest-contract-entry.stub';
 import { QuestIdStub } from '@dungeonmaster/shared/contracts/quest-id/quest-id.stub';
@@ -794,7 +793,7 @@ describe('QuestHandleResponder', () => {
     it('VALID: {questId} => returns processId', async () => {
       const proxy = QuestHandleResponderProxy();
       const questId = QuestIdStub({ value: 'add-auth' });
-      const processId = ProcessIdStub();
+      const processId = 'proc-12345';
       proxy.setupStartQuestReturns({ questId, processId });
 
       const result = await proxy.callResponder({

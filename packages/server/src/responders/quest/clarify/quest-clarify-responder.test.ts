@@ -1,5 +1,4 @@
 import { GuildIdStub } from '@dungeonmaster/shared/contracts/guild-id/guild-id.stub';
-import { ProcessIdStub } from '@dungeonmaster/shared/contracts/process-id/process-id.stub';
 import { QuestIdStub } from '@dungeonmaster/shared/contracts/quest-id/quest-id.stub';
 import { QuestStub } from '@dungeonmaster/shared/contracts/quest/quest.stub';
 import { SessionIdStub } from '@dungeonmaster/shared/contracts/session-id/session-id.stub';
@@ -15,7 +14,7 @@ describe('QuestClarifyResponder', () => {
       const questId = QuestIdStub();
       const sessionId = SessionIdStub({ value: 'session-clarify' });
       const guildId = GuildIdStub();
-      const chatProcessId = ProcessIdStub({ value: 'proc-clarify' });
+      const chatProcessId = 'proc-clarify';
       const quest = QuestStub({
         id: questId,
         workItems: [WorkItemStub({ role: 'chaoswhisperer', sessionId })],

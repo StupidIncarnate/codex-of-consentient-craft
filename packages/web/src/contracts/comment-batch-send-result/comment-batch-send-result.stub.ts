@@ -1,5 +1,4 @@
 import type { StubArgument } from '@dungeonmaster/shared/@types';
-import { ProcessIdStub } from '@dungeonmaster/shared/contracts/process-id/process-id.stub';
 
 import { commentBatchSendResultContract } from './comment-batch-send-result-contract';
 import type { CommentBatchSendResult } from './comment-batch-send-result-contract';
@@ -12,6 +11,6 @@ export const CommentBatchSendResultStub = ({
 }: StubArgument<CommentBatchSendResult> = {}): CommentBatchSendResult =>
   commentBatchSendResultContract.parse({
     outcome: 'sent',
-    chatProcessId: ProcessIdStub(),
+    chatProcessId: 'proc-12345',
     ...props,
   });

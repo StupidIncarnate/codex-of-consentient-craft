@@ -20,7 +20,7 @@
  * placeholder values.
  */
 
-import type { ProcessId, WorkItem, Quest, Guild } from '@dungeonmaster/shared/contracts';
+import type { WorkItem, Quest, Guild } from '@dungeonmaster/shared/contracts';
 import { workItemContract } from '@dungeonmaster/shared/contracts';
 
 import { smoketestPlaceholdersStatics } from '../../statics/smoketest-placeholders/smoketest-placeholders-statics';
@@ -39,7 +39,7 @@ export const smoketestSubstituteWorkItemPlaceholdersTransformer = ({
   workItems: readonly WorkItem[];
   questId: Quest['id'];
   guildId: Guild['id'];
-  processId: ProcessId;
+  processId: string;
 }): WorkItem[] =>
   workItems.map((wi) => {
     if (wi.smoketestPromptOverride === undefined) {

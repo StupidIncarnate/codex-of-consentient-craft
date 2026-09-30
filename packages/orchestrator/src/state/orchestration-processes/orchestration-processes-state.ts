@@ -13,7 +13,7 @@
  * orchestrationProcessesState.findByQuestWorkItemId({questWorkItemId});
  */
 
-import type { ProcessId, Quest, WorkItem } from '@dungeonmaster/shared/contracts';
+import type { Quest, WorkItem } from '@dungeonmaster/shared/contracts';
 
 import { orchestrationProcessContract } from '../../contracts/orchestration-process/orchestration-process-contract';
 import type { OrchestrationProcess } from '../../contracts/orchestration-process/orchestration-process-contract';
@@ -21,8 +21,8 @@ import { processActivityContract } from '../../contracts/process-activity/proces
 import type { ProcessActivity } from '../../contracts/process-activity/process-activity-contract';
 
 const state = {
-  processes: new Map<ProcessId, OrchestrationProcess>(),
-  activity: new Map<ProcessId, ProcessActivity>(),
+  processes: new Map<string, OrchestrationProcess>(),
+  activity: new Map<string, ProcessActivity>(),
 };
 
 export const orchestrationProcessesState = {
@@ -46,7 +46,7 @@ export const orchestrationProcessesState = {
     );
   },
 
-  recordActivity: ({ processId }: { processId: ProcessId }): void => {
+  recordActivity: ({ processId }: { processId: string }): void => {
     const entry = state.activity.get(processId);
     if (entry === undefined) return;
     entry.lastActivityAt = new Date();
@@ -57,7 +57,7 @@ export const orchestrationProcessesState = {
     osPid,
     sessionJsonlPath,
   }: {
-    processId: ProcessId;
+    processId: string;
     osPid?: number;
     sessionJsonlPath?: string;
   }): void => {
@@ -73,10 +73,10 @@ export const orchestrationProcessesState = {
     );
   },
 
-  getActivity: ({ processId }: { processId: ProcessId }): ProcessActivity | undefined =>
+  getActivity: ({ processId }: { processId: string }): ProcessActivity | undefined =>
     state.activity.get(processId),
 
-  get: ({ processId }: { processId: ProcessId }): OrchestrationProcess | undefined =>
+  get: ({ processId }: { processId: string }): OrchestrationProcess | undefined =>
     state.processes.get(processId),
 
   findByQuestId: ({ questId }: { questId: Quest['id'] }): OrchestrationProcess | undefined => {
@@ -111,7 +111,7 @@ export const orchestrationProcessesState = {
     return matches;
   },
 
-  kill: ({ processId }: { processId: ProcessId }): boolean => {
+  kill: ({ processId }: { processId: string }): boolean => {
     const entry = state.processes.get(processId);
     if (!entry) return false;
     entry.kill();
@@ -128,9 +128,9 @@ export const orchestrationProcessesState = {
     state.activity.clear();
   },
 
-  has: ({ processId }: { processId: ProcessId }): boolean => state.processes.has(processId),
+  has: ({ processId }: { processId: string }): boolean => state.processes.has(processId),
 
-  remove: ({ processId }: { processId: ProcessId }): boolean => {
+  remove: ({ processId }: { processId: string }): boolean => {
     state.activity.delete(processId);
     return state.processes.delete(processId);
   },
@@ -140,5 +140,5 @@ export const orchestrationProcessesState = {
     state.activity.clear();
   },
 
-  getAll: (): ProcessId[] => Array.from(state.processes.keys()),
+  getAll: (): string[] => Array.from(state.processes.keys()),
 } as const;

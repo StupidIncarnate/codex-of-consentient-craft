@@ -1,6 +1,5 @@
 import { FileMissingErrorStub } from '#gateway/node/fs/file-missing-error/file-missing-error.stub';
 import { FsErrorStub } from '#gateway/node/fs/is-fs-error/fs-error.stub';
-import { ProcessIdStub } from '@dungeonmaster/shared/contracts/process-id/process-id.stub';
 import { QuestIdStub } from '@dungeonmaster/shared/contracts/quest-id/quest-id.stub';
 import { SessionIdStub } from '@dungeonmaster/shared/contracts/session-id/session-id.stub';
 
@@ -48,7 +47,7 @@ describe('scanSubagentsDirLayerBroker', () => {
     const proxy = scanSubagentsDirLayerBrokerProxy();
     const sessionFilePath = '/home/user/.claude/projects/-home-user-proj/abc-123.jsonl';
     const parentSessionId = SessionIdStub({ value: 'abc-123' });
-    const chatProcessId = ProcessIdStub({ value: 'scan-proc-1' });
+    const chatProcessId = 'scan-proc-1';
     const activeQuestId = QuestIdStub({ value: 'quest-scan' });
     const subagentsDir = '/home/user/.claude/projects/-home-user-proj/abc-123/subagents';
 
@@ -113,7 +112,7 @@ describe('scanSubagentsDirLayerBroker', () => {
     const proxy = scanSubagentsDirLayerBrokerProxy();
     const sessionFilePath = '/home/user/.claude/projects/-home-user-proj/abc-123.jsonl';
     const parentSessionId = SessionIdStub({ value: 'abc-123' });
-    const chatProcessId = ProcessIdStub({ value: 'scan-proc-2' });
+    const chatProcessId = 'scan-proc-2';
     const activeQuestId = QuestIdStub({ value: 'quest-scan-empty' });
 
     proxy.setupSubagentDirMissing({
@@ -147,7 +146,7 @@ describe('scanSubagentsDirLayerBroker', () => {
     const proxy = scanSubagentsDirLayerBrokerProxy();
     const sessionFilePath = '/home/user/.claude/projects/-home-user-proj/abc-123.jsonl';
     const parentSessionId = SessionIdStub({ value: 'abc-123' });
-    const chatProcessId = ProcessIdStub({ value: 'scan-proc-eacces' });
+    const chatProcessId = 'scan-proc-eacces';
     const activeQuestId = QuestIdStub({ value: 'quest-scan-eacces' });
     const subagentsDir = '/home/user/.claude/projects/-home-user-proj/abc-123/subagents';
 
@@ -180,7 +179,7 @@ describe('scanSubagentsDirLayerBroker', () => {
     const proxy = scanSubagentsDirLayerBrokerProxy();
     const sessionFilePath = '/home/user/.claude/projects/-home-user-proj/abc-123.jsonl';
     const parentSessionId = SessionIdStub({ value: 'abc-123' });
-    const chatProcessId = ProcessIdStub({ value: 'scan-proc-3' });
+    const chatProcessId = 'scan-proc-3';
     const activeQuestId = QuestIdStub({ value: 'quest-scan-mixed' });
     const subagentsDir = '/home/user/.claude/projects/-home-user-proj/abc-123/subagents';
 
@@ -250,7 +249,7 @@ describe('scanSubagentsDirLayerBroker', () => {
     const proxy = scanSubagentsDirLayerBrokerProxy();
     const sessionFilePath = '/home/user/.claude/projects/-home-user-proj/abc-123.jsonl';
     const parentSessionId = SessionIdStub({ value: 'abc-123' });
-    const chatProcessId = ProcessIdStub({ value: 'scan-proc-filter' });
+    const chatProcessId = 'scan-proc-filter';
     const activeQuestId = QuestIdStub({ value: 'quest-scan-filter' });
     const subagentsDir = '/home/user/.claude/projects/-home-user-proj/abc-123/subagents';
 
@@ -333,7 +332,7 @@ describe('scanSubagentsDirLayerBroker', () => {
     const proxy = scanSubagentsDirLayerBrokerProxy();
     const sessionFilePath = '/home/user/.claude/projects/-home-user-proj/abc-123.jsonl';
     const parentSessionId = SessionIdStub({ value: 'abc-123' });
-    const chatProcessId = ProcessIdStub({ value: 'scan-proc-nested' });
+    const chatProcessId = 'scan-proc-nested';
     const activeQuestId = QuestIdStub({ value: 'quest-scan-nested' });
     const subagentsDir = '/home/user/.claude/projects/-home-user-proj/abc-123/subagents';
 

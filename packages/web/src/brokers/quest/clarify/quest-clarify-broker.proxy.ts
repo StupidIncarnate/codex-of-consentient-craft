@@ -1,14 +1,13 @@
 // PURPOSE: Proxy for quest-clarify-broker providing test control over HTTP responses
 // USAGE: Create proxy in test, use setup methods to configure endpoint behavior
 
-import type { ProcessId } from '@dungeonmaster/shared/contracts';
 
 import { fetchJsonProxy } from '#gateway/browser/fetch/fetch-json/fetch-json.proxy';
 
 import { webConfigStatics } from '../../../statics/web-config/web-config-statics';
 
 export const questClarifyBrokerProxy = (): {
-  setupClarify: (params: { chatProcessId: ProcessId }) => void;
+  setupClarify: (params: { chatProcessId: string }) => void;
   setupInvalidResponse: (params: { chatProcessId: unknown }) => void;
   setupError: () => void;
   getRequestCount: () => number;

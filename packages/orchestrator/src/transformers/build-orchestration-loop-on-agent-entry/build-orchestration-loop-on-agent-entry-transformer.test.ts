@@ -1,5 +1,4 @@
 import { ChatEntryStub } from '@dungeonmaster/shared/contracts/chat-entry/chat-entry.stub';
-import { ProcessIdStub } from '@dungeonmaster/shared/contracts/process-id/process-id.stub';
 import { QuestIdStub } from '@dungeonmaster/shared/contracts/quest-id/quest-id.stub';
 import { QuestWorkItemIdStub } from '@dungeonmaster/shared/contracts/quest-work-item-id/quest-work-item-id.stub';
 import { SessionIdStub } from '@dungeonmaster/shared/contracts/session-id/session-id.stub';
@@ -12,9 +11,7 @@ type SessionId = ReturnType<typeof SessionIdStub>;
 describe('buildOrchestrationLoopOnAgentEntryTransformer', () => {
   describe('first emit before sessionId is known', () => {
     it('VALID: {sessionId undefined, empty memo} => returns payload WITHOUT sessionId or chatProcessId, WITH questId + workItemId', () => {
-      const processId = ProcessIdStub({
-        value: 'proc-queue-aaaaaaaa-1111-4222-9333-444444444444',
-      });
+      const processId = 'proc-queue-aaaaaaaa-1111-4222-9333-444444444444';
       const slotIndex = 0;
       const entries = [ChatEntryStub({ role: 'assistant', type: 'text', content: 'first-line' })];
       const questId = QuestIdStub({ value: 'aaaaaaaa-1111-4222-9333-444444444444' });
@@ -36,9 +33,7 @@ describe('buildOrchestrationLoopOnAgentEntryTransformer', () => {
 
   describe('emit with sessionId — populates memo and stamps payload', () => {
     it('VALID: {sessionId provided} => returns payload WITH sessionId AND chatProcessId === sessionId AND populates memo', () => {
-      const processId = ProcessIdStub({
-        value: 'proc-queue-aaaaaaaa-1111-4222-9333-444444444444',
-      });
+      const processId = 'proc-queue-aaaaaaaa-1111-4222-9333-444444444444';
       const slotIndex = 0;
       const entries = [
         ChatEntryStub({ role: 'assistant', type: 'text', content: 'second-line-with-session' }),
@@ -73,9 +68,7 @@ describe('buildOrchestrationLoopOnAgentEntryTransformer', () => {
 
   describe('subsequent emit without sessionId param — pulls from memo', () => {
     it('VALID: {memo populated, sessionId undefined in params} => returns payload WITH memoized sessionId AND chatProcessId === sessionId', () => {
-      const processId = ProcessIdStub({
-        value: 'proc-queue-aaaaaaaa-1111-4222-9333-444444444444',
-      });
+      const processId = 'proc-queue-aaaaaaaa-1111-4222-9333-444444444444';
       const slotIndex = 0;
       const entries = [
         ChatEntryStub({ role: 'assistant', type: 'text', content: 'third-line-defensive' }),
@@ -108,9 +101,7 @@ describe('buildOrchestrationLoopOnAgentEntryTransformer', () => {
 
   describe('per-slot isolation', () => {
     it('VALID: {slot 0 has sessionId, slot 1 emits without one} => slot 1 payload omits sessionId+chatProcessId, slot 0 payload retains them', () => {
-      const processId = ProcessIdStub({
-        value: 'proc-queue-eeeeeeee-1111-4222-9333-444444444444',
-      });
+      const processId = 'proc-queue-eeeeeeee-1111-4222-9333-444444444444';
       const slot0 = 0;
       const slot1 = 1;
       const slot0SessionId = SessionIdStub({ value: '11111111-918c-4408-aeb1-f8f4ce8400cb' });

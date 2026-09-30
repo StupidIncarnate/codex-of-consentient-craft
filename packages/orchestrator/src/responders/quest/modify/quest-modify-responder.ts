@@ -10,7 +10,6 @@ import type { Quest, ModifyQuestInput, ModifyQuestResult, Session } from '@dunge
 import { stderr } from '#gateway/node/process';
 import { AbortController } from '#gateway/node/AbortController';
 import { randomUUID } from '#gateway/node/crypto';
-import { processIdContract } from '@dungeonmaster/shared/contracts';
 
 import { buildOrchestrationLoopOnAgentEntryTransformer } from '../../../transformers/build-orchestration-loop-on-agent-entry/build-orchestration-loop-on-agent-entry-transformer';
 import { guildGetBroker } from '../../../brokers/guild/get/guild-get-broker';
@@ -20,6 +19,7 @@ import { questOrchestrationLoopBroker } from '../../../brokers/quest/orchestrati
 import { orchestrationEventsState } from '../../../state/orchestration-events/orchestration-events-state';
 import { orchestrationProcessesState } from '../../../state/orchestration-processes/orchestration-processes-state';
 import { isAutoResumableQuestStatusGuard } from '@dungeonmaster/shared/guards';
+import { orchestrationProcessContract } from '../../../contracts/orchestration-process/orchestration-process-contract';
 
 export const QuestModifyResponder = async ({
   questId,
@@ -39,17 +39,17 @@ export const QuestModifyResponder = async ({
       });
 
       if (!existingProcess) {
-        const processId = processIdContract.parse(`proc-${randomUUID()}`);
+        const processId = `proc-${randomUUID()}`;
         const abortController = new AbortController();
 
         orchestrationProcessesState.register({
-          orchestrationProcess: {
+          orchestrationProcess: orchestrationProcessContract.shape.processId.parse(orchestrationProcessContract.shape.processId.parse(orchestrationProcessContract.parse({
             processId,
             questId: typedQuestId,
             kill: () => {
               abortController.abort();
             },
-          },
+          }))),
         });
 
         // Per-slot sessionId memo — sessionId arrives on a later emission than the first entries, so memo the latest per slot.

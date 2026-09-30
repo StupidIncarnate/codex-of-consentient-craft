@@ -10,7 +10,6 @@ import { stderrProxy } from '#gateway/node/process/stderr/stderr.proxy';
 import { registerMock, requireActual } from '@dungeonmaster/testing/register-mock';
 import type { MockHandle } from '@dungeonmaster/testing/register-mock';
 import { cwdResolveBrokerProxy } from '@dungeonmaster/shared/brokers/cwd/resolve/cwd-resolve-broker.proxy';
-import { ProcessIdStub } from '@dungeonmaster/shared/contracts/process-id/process-id.stub';
 import { instanceLifecycleStatics } from '../../../statics/instance-lifecycle/instance-lifecycle-statics';
 import { locationsStatics } from '@dungeonmaster/shared/statics';
 import type { DevServerE2eProcess } from '@dungeonmaster/config';
@@ -423,7 +422,7 @@ export const instanceStartBrokerProxy = (): {
 
       bootLockReleaseProxy.setupLockHeldBy({
         heldBy: instanceId,
-        heldByPid: ProcessIdStub(),
+        heldByPid: 'proc-12345',
         acquiredAtMs: nowMs,
       });
 
@@ -470,7 +469,7 @@ export const instanceStartBrokerProxy = (): {
       // the same acquired-by-this-instance shape the timeout path above stages.
       bootLockReleaseProxy.setupLockHeldBy({
         heldBy: instanceId,
-        heldByPid: ProcessIdStub(),
+        heldByPid: 'proc-12345',
         acquiredAtMs: 1,
       });
 

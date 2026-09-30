@@ -8,7 +8,7 @@
  * sub.unsubscribe();
  */
 
-import type { ProcessId, Quest, WardResult, Guild, Session } from '@dungeonmaster/shared/contracts';
+import type { Quest, WardResult, Guild, Session } from '@dungeonmaster/shared/contracts';
 import { wsMessageContract } from '@dungeonmaster/shared/contracts';
 
 import { clearTimeout } from '#gateway/browser/clearTimeout';
@@ -244,7 +244,7 @@ export const webSocketChannelState = {
   }: {
     sessionId: Session['id'];
     guildId: Guild['id'];
-    chatProcessId: ProcessId;
+    chatProcessId: string;
   }): boolean => {
     if (internalState.socket === null) return false;
     return internalState.socket.send({

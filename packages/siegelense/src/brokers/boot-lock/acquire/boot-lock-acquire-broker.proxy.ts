@@ -8,7 +8,6 @@ import { ensureDirProxy } from '#gateway/node/fs__promises/ensure-dir/ensure-dir
 import { readFileIfExistsProxy } from '#gateway/node/fs__promises/read-file-if-exists/read-file-if-exists.proxy';
 import { unlinkIfExistsProxy } from '#gateway/node/fs__promises/unlink-if-exists/unlink-if-exists.proxy';
 import { writeFileExclusiveProxy } from '#gateway/node/fs__promises/write-file-exclusive/write-file-exclusive.proxy';
-import { ProcessIdStub } from '@dungeonmaster/shared/contracts/process-id/process-id.stub';
 
 import { BootLockStub } from '../../../contracts/boot-lock/boot-lock.stub';
 import type { InstanceIdStub } from '../../../contracts/instance-id/instance-id.stub';
@@ -37,7 +36,7 @@ export const bootLockAcquireBrokerProxy = (): {
   setupPid: (params: { pid: number }) => void;
   setupLockHeldBy: (params: {
     heldBy: InstanceId;
-    heldByPid: ReturnType<typeof ProcessIdStub>;
+    heldByPid: string;
     acquiredAtMs: EpochMs;
   }) => void;
   setupStaleLockHeldBy: (params: { otherInstanceId: InstanceId; nowMs: EpochMs }) => void;
@@ -122,7 +121,7 @@ export const bootLockAcquireBrokerProxy = (): {
       acquiredAtMs,
     }: {
       heldBy: InstanceId;
-      heldByPid: ReturnType<typeof ProcessIdStub>;
+      heldByPid: string;
       acquiredAtMs: EpochMs;
     }): void => {
       // The exclusive create is tried before any read, so its failure (this instance's own file
@@ -147,7 +146,7 @@ export const bootLockAcquireBrokerProxy = (): {
           instanceLifecycleStatics.bootLock.pollMs);
       const lock = BootLockStub({
         heldBy: otherInstanceId,
-        heldByPid: ProcessIdStub(),
+        heldByPid: 'proc-12345',
         acquiredAtMs,
       });
       // FIRST exclusive create fails (the stale file is there) → read → stale → unlink → the
@@ -175,7 +174,7 @@ export const bootLockAcquireBrokerProxy = (): {
           instanceLifecycleStatics.bootLock.pollMs);
       const lock = BootLockStub({
         heldBy: otherInstanceId,
-        heldByPid: ProcessIdStub(),
+        heldByPid: 'proc-12345',
         acquiredAtMs,
       });
       writeProxy.rejectsOnce({ path: bootLockPath, error: eexistError });
@@ -200,7 +199,7 @@ export const bootLockAcquireBrokerProxy = (): {
           instanceLifecycleStatics.bootLock.pollMs);
       const lock = BootLockStub({
         heldBy: otherInstanceId,
-        heldByPid: ProcessIdStub(),
+        heldByPid: 'proc-12345',
         acquiredAtMs,
       });
       writeProxy.rejectsOnce({ path: bootLockPath, error: eexistError });
@@ -253,7 +252,7 @@ export const bootLockAcquireBrokerProxy = (): {
 
       const lock = BootLockStub({
         heldBy: otherInstanceId,
-        heldByPid: ProcessIdStub(),
+        heldByPid: 'proc-12345',
         acquiredAtMs: (nowMs - pollMs),
       });
 
@@ -293,12 +292,12 @@ export const bootLockAcquireBrokerProxy = (): {
 
       const staleLock = BootLockStub({
         heldBy: otherInstanceId,
-        heldByPid: ProcessIdStub(),
+        heldByPid: 'proc-12345',
         acquiredAtMs: (nowMsFirstAttempt - ttlMs - pollMs),
       });
       const freshLock = BootLockStub({
         heldBy: otherInstanceId,
-        heldByPid: ProcessIdStub(),
+        heldByPid: 'proc-12345',
         acquiredAtMs: (nowMsSecondAttempt - pollMs),
       });
 

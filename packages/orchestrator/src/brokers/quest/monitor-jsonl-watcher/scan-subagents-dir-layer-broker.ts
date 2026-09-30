@@ -18,7 +18,7 @@
 import { isFsError, readdirSync } from '#gateway/node/fs';
 import type { TailFileHandle } from '#gateway/node/fs';
 import { readNonEmptyLines } from '#gateway/node/fs__promises';
-import { fileNameContract, type ChatEntry, type FileName, type ProcessId } from '@dungeonmaster/shared/contracts';
+import { fileNameContract, type ChatEntry, type FileName } from '@dungeonmaster/shared/contracts';
 import { claudeLineNormalizeBroker } from '@dungeonmaster/shared/brokers';
 
 import type { ChatLineProcessor } from '../../../contracts/chat-line-processor/chat-line-processor-contract';
@@ -44,13 +44,13 @@ export const scanSubagentsDirLayerBroker = async ({
   sessionFilePath: string;
   parentSessionId: Session['id'];
   processor: ChatLineProcessor;
-  chatProcessId: ProcessId;
+  chatProcessId: string;
   activeQuestIdGetter: () => Quest['id'] | null;
   // Forwarded to each sub-agent tail so its emits carry the owning `workItemId`. Optional:
   // omitted by layer tests.
   workItemIdForAgent?: (params: { agentId: Agent['id'] }) => WorkItem['id'] | null;
   emit: (params: {
-    chatProcessId: ProcessId;
+    chatProcessId: string;
     entries: ChatEntry[];
     questId: Quest['id'] | null;
     sessionId: Session['id'];

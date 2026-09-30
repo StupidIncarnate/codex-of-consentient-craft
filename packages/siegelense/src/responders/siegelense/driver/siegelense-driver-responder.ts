@@ -35,7 +35,6 @@
  * // Same, but the served lane reaps itself after 1_800_000ms of no traffic instead of the default
  */
 
-import { processIdContract } from '@dungeonmaster/shared/contracts';
 import type { SiegeInstance } from '@dungeonmaster/shared/contracts';
 import { getPid, stderr } from '#gateway/node/process';
 
@@ -132,7 +131,7 @@ export const SiegelenseDriverResponder = async ({
           ? {
               ...row,
               bootedAtMs: Date.now(),
-              pid: processIdContract.parse(String(getPid())),
+              pid: String(getPid()),
               pgids: lane.pgids,
               socketPath,
             }

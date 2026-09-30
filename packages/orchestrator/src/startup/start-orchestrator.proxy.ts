@@ -30,7 +30,7 @@
  * orchestrator.getQuestNotFound({ questId });
  */
 
-import type { WorkItem, ProcessId, QuestStatus, SmoketestSuite, Session } from '@dungeonmaster/shared/contracts';
+import type { WorkItem, QuestStatus, SmoketestSuite, Session } from '@dungeonmaster/shared/contracts';
 import { registerMock } from '@dungeonmaster/testing/register-mock';
 import type { RecordedCalls } from '@dungeonmaster/testing/register-mock';
 import { DispatchStateStub } from '@dungeonmaster/shared/contracts/dispatch-state/dispatch-state.stub';
@@ -167,10 +167,10 @@ export const StartOrchestratorProxy = (): {
   // mergeQuestGetCalls. A caller needing the scope a specific call forwarded (never addressed,
   // since two scopes for one questId would otherwise collide) filters/reads this array itself.
   getBlightChecklistGetCalls: () => readonly unknown[];
-  getQuestStatusReturns: (params: { processId: ProcessId; status: OrchestrationStatus }) => void;
-  getQuestStatusThrows: (params: { processId: ProcessId; error: Error }) => void;
+  getQuestStatusReturns: (params: { processId: string; status: OrchestrationStatus }) => void;
+  getQuestStatusThrows: (params: { processId: string; error: Error }) => void;
   // Quest mutation methods — OrchestrationFlow / QuestFlow.
-  startQuestReturns: (params: { questId: Quest['id']; processId: ProcessId }) => void;
+  startQuestReturns: (params: { questId: Quest['id']; processId: string }) => void;
   startQuestThrows: (params: { questId: Quest['id']; error: Error }) => void;
   pauseQuestReturns: (params: { questId: Quest['id']; paused: boolean }) => void;
   pauseQuestThrows: (params: { questId: Quest['id']; error: Error }) => void;
@@ -203,7 +203,7 @@ export const StartOrchestratorProxy = (): {
   // Chat methods — ChatStartFlow / ClarifyAnswerFlow / CommentBatchFlow / ChatReplayFlow.
   startChatReturns: (params: {
     guildId: Guild['id'];
-    chatProcessId: ProcessId;
+    chatProcessId: string;
     questId?: Quest['id'];
   }) => void;
   startChatThrows: (params: { guildId: Guild['id']; error: Error }) => void;
@@ -212,11 +212,11 @@ export const StartOrchestratorProxy = (): {
   // (by guildId, the most recent message, a minted questId) filters/reads this array itself rather
   // than reaching for the jest mock directly.
   startChatGetCalls: () => readonly unknown[];
-  clarifyAnswerReturns: (params: { questId: Quest['id']; chatProcessId: ProcessId }) => void;
+  clarifyAnswerReturns: (params: { questId: Quest['id']; chatProcessId: string }) => void;
   clarifyAnswerThrows: (params: { questId: Quest['id']; error: Error }) => void;
   commentBatchReturns: (params: {
     questId: Quest['id'];
-    chatProcessId: ProcessId;
+    chatProcessId: string;
     message: string;
   }) => void;
   commentBatchThrows: (params: { questId: Quest['id']; error: Error }) => void;
@@ -230,7 +230,7 @@ export const StartOrchestratorProxy = (): {
   // startChatGetCalls/playDispatchGetCalls. Unaddressed on purpose: a caller needing one field off
   // a specific call (the sessionId) filters/reads this array itself.
   replayChatHistoryGetCalls: () => readonly unknown[];
-  startFollowupChatReturns: (params: { questId: Quest['id']; chatProcessId: ProcessId }) => void;
+  startFollowupChatReturns: (params: { questId: Quest['id']; chatProcessId: string }) => void;
   startFollowupChatThrows: (params: { questId: Quest['id']; error: Error }) => void;
   // Every call StartOrchestrator.startFollowupChat received, first-arg only — mirrors
   // startChatGetCalls.
@@ -600,12 +600,12 @@ export const StartOrchestratorProxy = (): {
       processId,
       status,
     }: {
-      processId: ProcessId;
+      processId: string;
       status: OrchestrationStatus;
     }): void => {
       getQuestStatusHandle.calledWith([{ processId }]).returns(status);
     },
-    getQuestStatusThrows: ({ processId, error }: { processId: ProcessId; error: Error }): void => {
+    getQuestStatusThrows: ({ processId, error }: { processId: string; error: Error }): void => {
       getQuestStatusHandle.calledWith([{ processId }]).throws(error);
     },
     startQuestReturns: ({
@@ -613,7 +613,7 @@ export const StartOrchestratorProxy = (): {
       processId,
     }: {
       questId: Quest['id'];
-      processId: ProcessId;
+      processId: string;
     }): void => {
       startQuestHandle.calledWith([{ questId }]).resolves(processId);
     },
@@ -712,7 +712,7 @@ export const StartOrchestratorProxy = (): {
       questId,
     }: {
       guildId: Guild['id'];
-      chatProcessId: ProcessId;
+      chatProcessId: string;
       questId?: Quest['id'];
     }): void => {
       startChatHandle
@@ -731,7 +731,7 @@ export const StartOrchestratorProxy = (): {
       chatProcessId,
     }: {
       questId: Quest['id'];
-      chatProcessId: ProcessId;
+      chatProcessId: string;
     }): void => {
       clarifyAnswerHandle.calledWith([{ questId }]).resolves({ chatProcessId });
     },
@@ -744,7 +744,7 @@ export const StartOrchestratorProxy = (): {
       message,
     }: {
       questId: Quest['id'];
-      chatProcessId: ProcessId;
+      chatProcessId: string;
       message: string;
     }): void => {
       commentBatchHandle.calledWith([{ questId }]).resolves({ chatProcessId, message });
@@ -775,7 +775,7 @@ export const StartOrchestratorProxy = (): {
       chatProcessId,
     }: {
       questId: Quest['id'];
-      chatProcessId: ProcessId;
+      chatProcessId: string;
     }): void => {
       startFollowupChatHandle.calledWith([{ questId }]).resolves({ chatProcessId });
     },

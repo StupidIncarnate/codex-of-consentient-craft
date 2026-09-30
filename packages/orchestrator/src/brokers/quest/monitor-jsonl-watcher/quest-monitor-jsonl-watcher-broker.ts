@@ -19,7 +19,7 @@
  */
 
 import { stderr } from '#gateway/node/process';
-import { type ChatEntry, type ProcessId, sessionContract } from '@dungeonmaster/shared/contracts';
+import { type ChatEntry, sessionContract } from '@dungeonmaster/shared/contracts';
 import { claudeLineNormalizeBroker } from '@dungeonmaster/shared/brokers';
 import { tailFile } from '#gateway/node/fs';
 import type { TailFileHandle } from '#gateway/node/fs';
@@ -57,13 +57,13 @@ export const questMonitorJsonlWatcherBroker = ({
   // to its own execution row instead of the merged parent-session bucket. Optional:
   // omitted by tests.
   workItemIdForAgent?: (params: { agentId: Agent['id'] }) => WorkItem['id'] | null | undefined;
-  chatProcessId: ProcessId;
+  chatProcessId: string;
   // Emits from sub-agent tails carry `sessionId: parentSessionId` so the web binding
   // buckets them under the same key that `wi.sessionId` resolves to via
   // chat-replay-responder. The main-session tail IS the per-row content for the worker
   // session this watcher tails, so its emits carry `sessionId` + `mainSessionWorkItemId` too.
   emit: (params: {
-    chatProcessId: ProcessId;
+    chatProcessId: string;
     entries: ChatEntry[];
     questId: Quest['id'] | null;
     sessionId?: Session['id'];

@@ -14,7 +14,7 @@
  * const bySession = await StartOrchestrator.findQuestBySessionId({ sessionId });
  */
 
-import type { Flow, WorkItem, OperationItem, AddQuestInput, AddQuestResult, AgentPromptResult, CommentBatchEntry, DirectoryEntry, DispatchState, GetQuestResult, Guild, GuildListItem, ModifyQuestInput, ModifyQuestResult, OrchestrationMode, OrchestrationStatus, ProcessId, Quest, QuestListItem, QuestListResult, QuestQueueEntry, QuestStatus, QuestType, RateLimitsSnapshot, Session } from '@dungeonmaster/shared/contracts';
+import type { Flow, WorkItem, OperationItem, AddQuestInput, AddQuestResult, AgentPromptResult, CommentBatchEntry, DirectoryEntry, DispatchState, GetQuestResult, Guild, GuildListItem, ModifyQuestInput, ModifyQuestResult, OrchestrationMode, OrchestrationStatus, Quest, QuestListItem, QuestListResult, QuestQueueEntry, QuestStatus, QuestType, RateLimitsSnapshot, Session } from '@dungeonmaster/shared/contracts';
 
 import type { QuestGetServerConfigResult } from '../contracts/quest-get-server-config-result/quest-get-server-config-result-contract';
 
@@ -103,7 +103,7 @@ export const StartOrchestrator = {
   loadQuest: async ({ questId }: { questId: Quest['id'] }): Promise<Quest> =>
     QuestFlow.load({ questId }),
 
-  startQuest: async ({ questId }: { questId: Quest['id'] }): Promise<ProcessId> =>
+  startQuest: async ({ questId }: { questId: Quest['id'] }): Promise<string> =>
     OrchestrationFlow.start({ questId }),
 
   pauseQuest: async ({ questId }: { questId: Quest['id'] }): Promise<{ paused: boolean }> =>
@@ -130,7 +130,7 @@ export const StartOrchestrator = {
     guildId: Guild['id'];
   }): Promise<{ deleted: boolean }> => OrchestrationFlow.delete({ questId, guildId }),
 
-  getQuestStatus: ({ processId }: { processId: ProcessId }): OrchestrationStatus =>
+  getQuestStatus: ({ processId }: { processId: string }): OrchestrationStatus =>
     OrchestrationFlow.getStatus({ processId }),
 
   addQuest: async ({
@@ -260,7 +260,7 @@ export const StartOrchestrator = {
     // rationale (`questId` / `mintedQuestId` / `existingQuestId`).
     existingQuestId?: Quest['id'];
     sessionId?: Session['id'];
-  }): Promise<{ chatProcessId: ProcessId; questId?: Quest['id'] }> =>
+  }): Promise<{ chatProcessId: string; questId?: Quest['id'] }> =>
     ChatStartFlow({
       guildId,
       message,
@@ -282,7 +282,7 @@ export const StartOrchestrator = {
     questId: Quest['id'];
     answers: { header: string; label: string }[];
     questions: ClarificationQuestion[];
-  }): Promise<{ chatProcessId: ProcessId }> =>
+  }): Promise<{ chatProcessId: string }> =>
     ClarifyAnswerFlow({ guildId, sessionId, questId, answers, questions }),
 
   commentBatch: async ({
@@ -295,10 +295,10 @@ export const StartOrchestrator = {
     sessionId: Session['id'];
     questId: Quest['id'];
     comments: CommentBatchEntry[];
-  }): Promise<{ chatProcessId: ProcessId; message: string }> =>
+  }): Promise<{ chatProcessId: string; message: string }> =>
     CommentBatchFlow({ guildId, sessionId, questId, comments }),
 
-  stopChat: ({ chatProcessId }: { chatProcessId: ProcessId }): boolean =>
+  stopChat: ({ chatProcessId }: { chatProcessId: string }): boolean =>
     ChatStopFlow({ chatProcessId }),
 
   stopAllChats: (): void => {
@@ -312,7 +312,7 @@ export const StartOrchestrator = {
   }: {
     sessionId: Session['id'];
     guildId: Guild['id'];
-    chatProcessId?: ProcessId;
+    chatProcessId?: string;
   }): Promise<void> =>
     ChatReplayFlow({
       sessionId,
@@ -331,7 +331,7 @@ export const StartOrchestrator = {
     questId: Quest['id'];
     guildId: Guild['id'];
     message: string;
-  }): Promise<{ chatProcessId: ProcessId }> => FollowupChatStartFlow({ questId, guildId, message }),
+  }): Promise<{ chatProcessId: string }> => FollowupChatStartFlow({ questId, guildId, message }),
 
   // Keyed by QUEST, unlike stopChat's chatProcessId, because the browser pressing STOP on the
   // FOLLOW-UP tab may never have seen the id of the process it wants stopped — the turn can have

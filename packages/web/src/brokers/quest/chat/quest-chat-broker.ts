@@ -10,7 +10,7 @@
  * // Returns { chatProcessId } on success; throws the server's exact rejection text otherwise
  */
 
-import type { PastedImageUpload, ProcessId, Quest } from '@dungeonmaster/shared/contracts';
+import type { PastedImageUpload, Quest } from '@dungeonmaster/shared/contracts';
 
 import { xhrPostWithProgress } from '#gateway/browser/XMLHttpRequest';
 
@@ -29,7 +29,7 @@ export const questChatBroker = async ({
   message: string;
   images?: readonly PastedImageUpload[];
   onProgress?: UploadProgressHandler;
-}): Promise<{ chatProcessId: ProcessId }> => {
+}): Promise<{ chatProcessId: string }> => {
   const url = webConfigStatics.api.routes.questChat.replace(':questId', questId);
 
   const post = uploadProgressPostContract.parse({

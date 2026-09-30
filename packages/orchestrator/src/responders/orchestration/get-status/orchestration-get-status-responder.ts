@@ -6,7 +6,7 @@
  * // Returns OrchestrationStatus or throws if process not found
  */
 
-import type { OrchestrationStatus, ProcessId } from '@dungeonmaster/shared/contracts';
+import type { OrchestrationStatus } from '@dungeonmaster/shared/contracts';
 import { orchestrationStatusContract } from '@dungeonmaster/shared/contracts';
 
 import { orchestrationProcessesState } from '../../../state/orchestration-processes/orchestration-processes-state';
@@ -14,7 +14,7 @@ import { orchestrationProcessesState } from '../../../state/orchestration-proces
 export const OrchestrationGetStatusResponder = ({
   processId,
 }: {
-  processId: ProcessId;
+  processId: string;
 }): OrchestrationStatus => {
   const process = orchestrationProcessesState.get({ processId });
 

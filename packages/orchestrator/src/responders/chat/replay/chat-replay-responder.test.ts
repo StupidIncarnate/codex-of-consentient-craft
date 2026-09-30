@@ -1,6 +1,5 @@
 import { FileMissingErrorStub } from '#gateway/node/fs/file-missing-error/file-missing-error.stub';
 import { FsErrorStub } from '#gateway/node/fs/is-fs-error/fs-error.stub';
-import { ProcessIdStub } from '@dungeonmaster/shared/contracts/process-id/process-id.stub';
 import { SessionIdStub } from '@dungeonmaster/shared/contracts/session-id/session-id.stub';
 import { GuildIdStub } from '@dungeonmaster/shared/contracts/guild-id/guild-id.stub';
 import { GuildConfigStub } from '@dungeonmaster/shared/contracts/guild-config/guild-config.stub';
@@ -34,7 +33,7 @@ describe('ChatReplayResponder', () => {
       const eventCapture = proxy.setupEventCapture();
       const sessionId = SessionIdStub({ value: 'session-abc' });
       const guildId = GuildIdStub();
-      const chatProcessId = ProcessIdStub({ value: 'replay-test' });
+      const chatProcessId = 'replay-test';
       const guild = GuildStub({ id: guildId });
 
       proxy.setupGuild({
@@ -71,7 +70,7 @@ describe('ChatReplayResponder', () => {
       const eventCapture = proxy.setupEventCapture();
       const sessionId = SessionIdStub({ value: 'session-stamped' });
       const guildId = GuildIdStub();
-      const chatProcessId = ProcessIdStub({ value: 'replay-stamp' });
+      const chatProcessId = 'replay-stamp';
       const guild = GuildStub({ id: guildId });
       const linkedWorkItem = WorkItemStub({
         role: 'chaoswhisperer',
@@ -132,7 +131,7 @@ describe('ChatReplayResponder', () => {
       const eventCapture = proxy.setupEventCapture();
       const sessionId = SessionIdStub({ value: 'session-linked' });
       const guildId = GuildIdStub();
-      const chatProcessId = ProcessIdStub({ value: 'replay-link' });
+      const chatProcessId = 'replay-link';
       const guild = GuildStub({ id: guildId });
       const linkedWorkItem = WorkItemStub({
         role: 'chaoswhisperer',
@@ -191,7 +190,7 @@ describe('ChatReplayResponder', () => {
       const eventCapture = proxy.setupEventCapture();
       const sessionId = SessionIdStub({ value: 'session-orphan' });
       const guildId = GuildIdStub();
-      const chatProcessId = ProcessIdStub({ value: 'replay-orphan' });
+      const chatProcessId = 'replay-orphan';
       const guild = GuildStub({ id: guildId });
 
       // Quest list comes back EMPTY — sessionId belongs to no quest workItem.
@@ -239,7 +238,7 @@ describe('ChatReplayResponder', () => {
       const eventCapture = proxy.setupEventCapture();
       const sessionId = SessionIdStub({ value: 'session-no-quests-dir' });
       const guildId = GuildIdStub();
-      const chatProcessId = ProcessIdStub({ value: 'replay-no-quests-dir' });
+      const chatProcessId = 'replay-no-quests-dir';
       const guild = GuildStub({ id: guildId });
       const questsPath = `/home/testuser/.dungeonmaster/guilds/${guildId}/quests`;
 
@@ -273,7 +272,7 @@ describe('ChatReplayResponder', () => {
       const eventCapture = proxy.setupEventCapture();
       const sessionId = SessionIdStub({ value: 'session-quests-dir-denied' });
       const guildId = GuildIdStub();
-      const chatProcessId = ProcessIdStub({ value: 'replay-quests-dir-denied' });
+      const chatProcessId = 'replay-quests-dir-denied';
       const questsPath = `/home/testuser/.dungeonmaster/guilds/${guildId}/quests`;
 
       proxy.setupQuestsPath({
@@ -298,7 +297,7 @@ describe('ChatReplayResponder', () => {
       const eventCapture = proxy.setupEventCapture();
       const sessionId = SessionIdStub({ value: 'session-pasted-image-linked' });
       const guildId = GuildIdStub();
-      const chatProcessId = ProcessIdStub({ value: 'replay-pasted-image-linked' });
+      const chatProcessId = 'replay-pasted-image-linked';
       const guild = GuildStub({ id: guildId });
       const linkedWorkItem = WorkItemStub({
         role: 'chaoswhisperer',
@@ -386,7 +385,7 @@ describe('ChatReplayResponder', () => {
       const eventCapture = proxy.setupEventCapture();
       const sessionId = SessionIdStub({ value: 'session-pasted-image-orphan' });
       const guildId = GuildIdStub();
-      const chatProcessId = ProcessIdStub({ value: 'replay-pasted-image-orphan' });
+      const chatProcessId = 'replay-pasted-image-orphan';
       const guild = GuildStub({ id: guildId });
 
       // Quest list comes back EMPTY — sessionId belongs to no quest workItem.
@@ -440,7 +439,7 @@ describe('ChatReplayResponder', () => {
       const eventCapture = proxy.setupEventCapture();
       const sessionId = SessionIdStub({ value: 'session-pasted-image-single-entry' });
       const guildId = GuildIdStub();
-      const chatProcessId = ProcessIdStub({ value: 'replay-pasted-image-single-entry' });
+      const chatProcessId = 'replay-pasted-image-single-entry';
       const guild = GuildStub({ id: guildId });
       const lineUuid = 'pasted-image-single-entry-uuid';
 
@@ -491,7 +490,7 @@ describe('ChatReplayResponder', () => {
       const eventCapture = proxy.setupEventCapture();
       const sessionId = SessionIdStub({ value: 'session-pasted-image-with-md-link' });
       const guildId = GuildIdStub();
-      const chatProcessId = ProcessIdStub({ value: 'replay-pasted-image-with-md-link' });
+      const chatProcessId = 'replay-pasted-image-with-md-link';
       const guild = GuildStub({ id: guildId });
 
       proxy.setupQuestsPath({
@@ -536,7 +535,7 @@ describe('ChatReplayResponder', () => {
       const eventCapture = proxy.setupEventCapture();
       const sessionId = SessionIdStub({ value: 'session-pasted-image-distinctive-port' });
       const guildId = GuildIdStub();
-      const chatProcessId = ProcessIdStub({ value: 'replay-pasted-image-distinctive-port' });
+      const chatProcessId = 'replay-pasted-image-distinctive-port';
       const guild = GuildStub({ id: guildId });
 
       proxy.setupQuestsPath({
@@ -591,7 +590,7 @@ describe('ChatReplayResponder', () => {
       const eventCapture = proxy.setupEventCapture();
       const sessionId = SessionIdStub({ value: 'session-worktree' });
       const guildId = GuildIdStub();
-      const chatProcessId = ProcessIdStub({ value: 'replay-worktree' });
+      const chatProcessId = 'replay-worktree';
       const guild = GuildStub({ id: guildId });
       const linkedWorkItem = WorkItemStub({
         role: 'chaoswhisperer',
@@ -681,7 +680,7 @@ describe('ChatReplayResponder', () => {
       const eventCapture = proxy.setupEventCapture();
       const sessionId = SessionIdStub({ value: 'session-orphan-guild-path' });
       const guildId = GuildIdStub();
-      const chatProcessId = ProcessIdStub({ value: 'replay-orphan-guild' });
+      const chatProcessId = 'replay-orphan-guild';
       const guild = GuildStub({ id: guildId });
 
       // Quest list comes back EMPTY — sessionId belongs to no quest workItem, so the responder
@@ -735,7 +734,7 @@ describe('ChatReplayResponder', () => {
       const proxy = ChatReplayResponderProxy();
       const sessionId = SessionIdStub({ value: 'session-worktree-missing' });
       const guildId = GuildIdStub();
-      const chatProcessId = ProcessIdStub({ value: 'replay-worktree-missing' });
+      const chatProcessId = 'replay-worktree-missing';
       const linkedWorkItem = WorkItemStub({
         role: 'chaoswhisperer',
         sessionId,
@@ -775,7 +774,7 @@ describe('ChatReplayResponder', () => {
       const eventCapture = proxy.setupEventCapture();
       const sessionId = SessionIdStub({ value: 'session-worktree-missing-no-complete' });
       const guildId = GuildIdStub();
-      const chatProcessId = ProcessIdStub({ value: 'replay-worktree-missing-no-complete' });
+      const chatProcessId = 'replay-worktree-missing-no-complete';
       const linkedWorkItem = WorkItemStub({
         role: 'chaoswhisperer',
         sessionId,

@@ -11,12 +11,11 @@
  * WHEN-NOT-TO-USE: Not for request-scoped invocation.
  */
 
-import { processIdContract } from '@dungeonmaster/shared/contracts';
 
 import { orchestrationEventsState } from '../../../state/orchestration-events/orchestration-events-state';
 import { questExecutionQueueState } from '../../../state/quest-execution-queue/quest-execution-queue-state';
 
-const RUNNER_PROCESS_ID = processIdContract.parse('execution-queue-runner');
+const RUNNER_PROCESS_ID = 'execution-queue-runner';
 
 const state: {
   installed: boolean;

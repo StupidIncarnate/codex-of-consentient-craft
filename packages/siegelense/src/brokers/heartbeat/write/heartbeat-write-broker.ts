@@ -37,7 +37,7 @@
 import { now } from '#gateway/node/Date';
 import { join } from '#gateway/node/path';
 import { stderr } from '#gateway/node/process';
-import type { ProcessId, Guild, SiegeInstance } from '@dungeonmaster/shared/contracts';
+import type { Guild, SiegeInstance } from '@dungeonmaster/shared/contracts';
 import { locationsStatics } from '@dungeonmaster/shared/statics';
 
 import { writeFile } from '#gateway/node/fs__promises';
@@ -55,7 +55,7 @@ export const heartbeatWriteBroker = async ({
   guildId,
 }: {
   instanceId: SiegeInstance['id'];
-  pid: ProcessId;
+  pid: string;
   pgids: readonly number[];
   guildId: Guild['id'] | null;
 }): Promise<InstanceHeartbeat> => {

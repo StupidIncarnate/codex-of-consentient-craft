@@ -14,7 +14,7 @@
  */
 import { useCallback, useEffect, useMemo, useRef, useState } from '#gateway/npm/react';
 
-import type { AskUserQuestionItem, ChatEntry, ChatEntryUuid, PastedImageUpload, ProcessId, Quest, WorkItem, Session } from '@dungeonmaster/shared/contracts';
+import type { AskUserQuestionItem, ChatEntry, ChatEntryUuid, PastedImageUpload, Quest, WorkItem, Session } from '@dungeonmaster/shared/contracts';
 import { askUserQuestionContract, chatEntryContract, questContract, slotIndexContract } from '@dungeonmaster/shared/contracts';
 import {
   isPostQuestChatWorkItemRoleGuard,
@@ -65,7 +65,7 @@ export const useQuestChatBinding = ({
   pendingClarification: { questions: AskUserQuestionItem[] } | null;
   isStreaming: boolean;
   isFollowupStreaming: boolean;
-  armStreaming: (params?: { chatProcessId: ProcessId }) => void;
+  armStreaming: (params?: { chatProcessId: string }) => void;
   disarmStreaming: () => void;
   disarmFollowupStreaming: () => void;
   sendMessage: (params: {
@@ -260,12 +260,12 @@ export const useQuestChatBinding = ({
   // sub-second window between committing a turn and its POST resolving. An untracked turn falls
   // back to clearing on any `turn-ended`, which is what keeps a turn that emits nothing from
   // sticking on STOP forever.
-  const trackedChatProcessIdRef = useRef<ProcessId | null>(null);
+  const trackedChatProcessIdRef = useRef<string | null>(null);
 
   // The same handle for the FOLLOW-UP tab's turn, kept apart from the main composer's. A follow-up
   // POST writing the shared ref would retarget whichever turn the main composer had in flight, so
   // that turn's own completion would then read as foreign and never clear it.
-  const followupTrackedChatProcessIdRef = useRef<ProcessId | null>(null);
+  const followupTrackedChatProcessIdRef = useRef<string | null>(null);
 
   // Read by the chat-output subscription below, which is set up once per questId and cannot close
   // over a value that changes when the quest does.
@@ -285,7 +285,7 @@ export const useQuestChatBinding = ({
   // nothing is left to clear it: the composer holds STOP forever and the user cannot send again.
   // Held as a ref, not state, because it must not re-render and must be readable by the
   // subscription closures below, which are set up once.
-  const endedChatProcessIdsRef = useRef<Set<ProcessId>>(new Set<ProcessId>());
+  const endedChatProcessIdsRef = useRef<Set<string>>(new Set<string>());
 
   // A pending turn belongs to the quest it was armed for. Carrying it across a real quest→quest
   // switch would show STOP over an idle workspace. The null→id transition is deliberately NOT a
@@ -322,7 +322,7 @@ export const useQuestChatBinding = ({
     // The previous quest's tavernkeeper id must not route the next quest's output; the new quest's
     // own quest-modified rewrites it.
     followupWorkItemIdRef.current = null;
-    endedChatProcessIdsRef.current = new Set<ProcessId>();
+    endedChatProcessIdsRef.current = new Set<string>();
   }, [questId]);
 
   useEffect(() => {
@@ -916,7 +916,7 @@ export const useQuestChatBinding = ({
   // subscribed to, which the server drops. The server re-sends that completion at the end of the
   // subscribe, stamped `retained`, and a retained frame is applied only on an exact handle match:
   // without the handle there is nothing for it to match and the composer holds STOP forever.
-  const armStreaming = useCallback((params?: { chatProcessId: ProcessId }): void => {
+  const armStreaming = useCallback((params?: { chatProcessId: string }): void => {
     setPendingTurn(true);
     trackedChatProcessIdRef.current = params?.chatProcessId ?? null;
   }, []);

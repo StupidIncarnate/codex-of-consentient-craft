@@ -24,7 +24,6 @@
  */
 
 import { pid } from '#gateway/node/process';
-import { processIdContract } from '@dungeonmaster/shared/contracts';
 
 import { driverSocketRequestBroker } from '../socket-request/driver-socket-request-broker';
 import { processIsAliveBroker } from '../../process/is-alive/process-is-alive-broker';
@@ -37,7 +36,7 @@ export const driverLiveCheckBroker = async ({
 }: {
   entry: RegistryEntry;
 }): Promise<boolean> => {
-  if (entry.pid === null || entry.pid === processIdContract.parse(String(pid))) {
+  if (entry.pid === null || entry.pid === String(pid)) {
     return false;
   }
 

@@ -1,4 +1,3 @@
-import { ProcessIdStub } from '@dungeonmaster/shared/contracts/process-id/process-id.stub';
 import { QuestIdStub } from '@dungeonmaster/shared/contracts/quest-id/quest-id.stub';
 
 import { questClarifyBroker } from './quest-clarify-broker';
@@ -8,7 +7,7 @@ describe('questClarifyBroker', () => {
   describe('successful clarification', () => {
     it('VALID: {questId, answers, questions} => returns chatProcessId', async () => {
       const proxy = questClarifyBrokerProxy();
-      const chatProcessId = ProcessIdStub({ value: 'clarify-proc-1' });
+      const chatProcessId = 'clarify-proc-1';
       proxy.setupClarify({ chatProcessId });
 
       const result = await questClarifyBroker({

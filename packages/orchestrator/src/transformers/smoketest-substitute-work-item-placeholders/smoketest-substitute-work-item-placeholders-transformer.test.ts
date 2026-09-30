@@ -1,5 +1,4 @@
 import { GuildIdStub } from '@dungeonmaster/shared/contracts/guild-id/guild-id.stub';
-import { ProcessIdStub } from '@dungeonmaster/shared/contracts/process-id/process-id.stub';
 import { QuestIdStub } from '@dungeonmaster/shared/contracts/quest-id/quest-id.stub';
 import { QuestWorkItemIdStub } from '@dungeonmaster/shared/contracts/quest-work-item-id/quest-work-item-id.stub';
 import { WorkItemStub } from '@dungeonmaster/shared/contracts/work-item/work-item.stub';
@@ -8,7 +7,7 @@ import { smoketestSubstituteWorkItemPlaceholdersTransformer } from './smoketest-
 
 const QUEST_ID = QuestIdStub({ value: 'f1f1f1f1-1111-4111-8111-111111111111' });
 const GUILD_ID = GuildIdStub({ value: 'a2a2a2a2-2222-4222-8222-222222222222' });
-const PROCESS_ID = ProcessIdStub({ value: 'proc-c3c3c3c3' });
+const PROCESS_ID = 'proc-c3c3c3c3';
 
 describe('smoketestSubstituteWorkItemPlaceholdersTransformer', () => {
   it('VALID: {workItem with {{questId}} placeholder} => substitutes live questId', () => {

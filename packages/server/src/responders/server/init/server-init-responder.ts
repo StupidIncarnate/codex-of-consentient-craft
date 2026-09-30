@@ -6,11 +6,7 @@
  * // Sets up WebSocket routes, starts serving, subscribes to orchestration events, handles shutdown
  */
 
-import {
-  orchestrationEventTypeContract,
-  processIdContract,
-  wsMessageContract,
-} from '@dungeonmaster/shared/contracts';
+import { orchestrationEventTypeContract, wsMessageContract } from '@dungeonmaster/shared/contracts';
 import {
   portResolveBroker,
   locationsWardResultsPathFindBroker,
@@ -32,7 +28,7 @@ import { webBundleResponseBroker } from '../../../brokers/web-bundle/response/we
 import { wsEventRelayBroadcastBroker } from '../../../brokers/ws-event-relay/broadcast/ws-event-relay-broadcast-broker';
 import { devLogEventFormatTransformer } from '../../../transformers/dev-log-event-format/dev-log-event-format-transformer';
 import { errorFormatReasonTransformer } from '../../../transformers/error-format-reason/error-format-reason-transformer';
-import type { OrchestrationEventType, ProcessId, WsMessage, Quest, WorkItem } from '@dungeonmaster/shared/contracts';
+import type { OrchestrationEventType, WsMessage, Quest, WorkItem } from '@dungeonmaster/shared/contracts';
 
 import { chatOutputRoutingContract } from '../../../contracts/chat-output-payload/chat-output-payload-contract';
 import { wsEventDataContract } from '../../../contracts/ws-event-data/ws-event-data-contract';
@@ -114,7 +110,7 @@ export const ServerInitResponder = ({
   // questId) would be filtered out by the per-quest broadcast filter and the readonly
   // viewer page would hang on the loading state forever. The entry is removed when
   // chat-history-complete fires for that chatProcessId, or when the client disconnects.
-  const replayClientByChatProcessId = new Map<ProcessId, WSContext>();
+  const replayClientByChatProcessId = new Map<string, WSContext>();
   // workItemId → owning questId. The quest-driven watchers emit chat-output tagged with a
   // workItemId but no questId (one watcher can serve work items across several quests, so
   // there is no single id to stamp at the source), and a frame this map cannot answer for
@@ -138,7 +134,7 @@ export const ServerInitResponder = ({
   // listening when it fired can never learn the turn ended. That is not a rare window on the
   // first message of a quest, where the browser cannot subscribe until the POST that CREATES the
   // quest returns its id, and the agent can spawn and exit inside that round trip.
-  const retainedChatCompleteByQuest = new Map<Quest['id'], Map<ProcessId, WsMessage>>();
+  const retainedChatCompleteByQuest = new Map<Quest['id'], Map<string, WsMessage>>();
   // questOutboxWatchBroker fires onQuestChanged once per outbox line, synchronously, with no
   // debounce — two lines for the SAME questId (e.g. two PATCHes landing back-to-back) fire two
   // independent, unawaited orchestratorLoadQuestAdapter reads that can settle in either order.
@@ -239,7 +235,7 @@ export const ServerInitResponder = ({
             // events stamped with those IDs route to subWs via the direct-send
             // path (per-quest delivery is suppressed for this client by the flag
             // above to prevent live + replay duplicates).
-            const replayChatProcessIds: ProcessId[] = [];
+            const replayChatProcessIds: string[] = [];
             // Replay-on-subscribe — load the quest, replay each work item's session JSONL.
             StartOrchestrator.loadQuest({ questId: subQuestId })
               .then(async (quest) => {
@@ -280,9 +276,7 @@ export const ServerInitResponder = ({
                       .filter((wi) => wi.sessionId !== undefined)
                       .map(async (wi) => {
                         if (!wi.sessionId) return;
-                        const taggedId = processIdContract.parse(
-                          `quest-replay-${subQuestId}-${wi.id}-${wi.sessionId}`,
-                        );
+                        const taggedId = `quest-replay-${subQuestId}-${wi.id}-${wi.sessionId}`;
                         replayChatProcessIds.push(taggedId);
                         replayClientByChatProcessId.set(taggedId, subWs);
                         await StartOrchestrator.replayChatHistory({
@@ -456,9 +450,7 @@ export const ServerInitResponder = ({
                     .filter((wi) => wi.sessionId !== undefined)
                     .map(async (wi) => {
                       if (!wi.sessionId) return;
-                      const taggedId = processIdContract.parse(
-                        `quest-replay-${replayQuestId}-${wi.id}-${wi.sessionId}`,
-                      );
+                      const taggedId = `quest-replay-${replayQuestId}-${wi.id}-${wi.sessionId}`;
                       await StartOrchestrator.replayChatHistory({
                         sessionId: wi.sessionId,
                         guildId: replayGuildId,
@@ -549,7 +541,7 @@ export const ServerInitResponder = ({
   nodeWebSocket.injectWebSocket(server);
 
   const pipelineChatOutputBuffer: {
-    processId: ProcessId;
+    processId: string;
     payload: Record<PropertyKey, unknown>;
   }[] = [];
 
@@ -558,7 +550,7 @@ export const ServerInitResponder = ({
   // session, not a Task-dispatched sub-agent. To route those emits to the right per-quest
   // subscriber we scan tool_use inputs / tool_result content for an embedded questId and
   // latch it per chatProcessId so subsequent emits inherit it.
-  const monitorChatQuestIdCache = new Map<ProcessId, Quest['id']>();
+  const monitorChatQuestIdCache = new Map<string, Quest['id']>();
 
   const eventTypes = orchestrationEventTypeContract.options;
   for (const type of eventTypes) {
@@ -672,7 +664,7 @@ export const ServerInitResponder = ({
           ) {
             let questCompletions = retainedChatCompleteByQuest.get(payloadQuestId);
             if (questCompletions === undefined) {
-              questCompletions = new Map<ProcessId, WsMessage>();
+              questCompletions = new Map<string, WsMessage>();
               retainedChatCompleteByQuest.set(payloadQuestId, questCompletions);
             }
             // Deleted first so a re-completed process moves to the END of the insertion order the

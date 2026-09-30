@@ -1,11 +1,10 @@
 import { StartOrchestratorProxy } from '@dungeonmaster/orchestrator/startup/start-orchestrator.proxy';
 import { DispatchStateStub } from '@dungeonmaster/shared/contracts/dispatch-state/dispatch-state.stub';
 import { GetQuestResultStub } from '@dungeonmaster/shared/contracts/get-quest-result/get-quest-result.stub';
-import type { ProcessIdStub } from '@dungeonmaster/shared/contracts/process-id/process-id.stub';
 import type { QuestStub } from '@dungeonmaster/shared/contracts/quest/quest.stub';
 import { QuestStartResponder } from './quest-start-responder';
 
-type ProcessId = ReturnType<typeof ProcessIdStub>;
+type ProcessId = string;
 type Quest = ReturnType<typeof QuestStub>;
 
 export const QuestStartResponderProxy = (): {

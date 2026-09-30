@@ -24,7 +24,6 @@
  */
 
 import { pid, stderr } from '#gateway/node/process';
-import { processIdContract } from '@dungeonmaster/shared/contracts';
 import type { Guild, SiegeInstance } from '@dungeonmaster/shared/contracts';
 
 import type { LaneSession } from '../../../contracts/lane-session/lane-session-contract';
@@ -42,7 +41,7 @@ export const driverHeartbeatTickBroker = async ({
 }): Promise<void> => {
   const heartbeat = await heartbeatWriteBroker({
     instanceId,
-    pid: processIdContract.parse(String(pid)),
+    pid: String(pid),
     pgids: lane.pgids,
     guildId,
   });

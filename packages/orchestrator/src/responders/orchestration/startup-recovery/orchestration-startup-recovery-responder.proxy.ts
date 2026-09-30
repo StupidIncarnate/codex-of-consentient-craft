@@ -7,7 +7,7 @@
  * await OrchestrationStartupRecoveryResponder({guildItems});
  */
 
-import type { ProcessId, Guild } from '@dungeonmaster/shared/contracts';
+import type { Guild } from '@dungeonmaster/shared/contracts';
 import type { QuestStub } from '@dungeonmaster/shared/contracts/quest/quest.stub';
 
 import { orchestrationProcessesState } from '../../../state/orchestration-processes/orchestration-processes-state';
@@ -21,13 +21,13 @@ export const OrchestrationStartupRecoveryResponderProxy = (): {
     guildPath: string;
     quests: Quest[];
   }) => void;
-  getRegisteredProcessIds: () => readonly ProcessId[];
+  getRegisteredProcessIds: () => readonly string[];
 } => {
   const layerProxy = RecoverGuildLayerResponderProxy();
 
   return {
     setupGuildWithQuests: layerProxy.setupGuildWithQuests,
 
-    getRegisteredProcessIds: (): readonly ProcessId[] => orchestrationProcessesState.getAll(),
+    getRegisteredProcessIds: (): readonly string[] => orchestrationProcessesState.getAll(),
   };
 };

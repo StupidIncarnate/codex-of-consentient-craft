@@ -6,7 +6,7 @@
  * // Returns { chatProcessId: ProcessId }
  */
 
-import type { AskUserQuestionItem, ProcessId, Quest } from '@dungeonmaster/shared/contracts';
+import type { AskUserQuestionItem, Quest } from '@dungeonmaster/shared/contracts';
 
 import { fetchJson } from '#gateway/browser/fetch';
 
@@ -21,7 +21,7 @@ export const questClarifyBroker = async ({
   questId: Quest['id'];
   answers: { header: string; label: string }[];
   questions: AskUserQuestionItem[];
-}): Promise<{ chatProcessId: ProcessId }> => {
+}): Promise<{ chatProcessId: string }> => {
   const url = webConfigStatics.api.routes.questClarify.replace(':questId', questId);
 
   const response = await fetchJson({

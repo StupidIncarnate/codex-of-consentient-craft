@@ -1,6 +1,5 @@
 import { GuildIdStub } from '@dungeonmaster/shared/contracts/guild-id/guild-id.stub';
 import { PastedImageUploadStub } from '@dungeonmaster/shared/contracts/pasted-image-upload/pasted-image-upload.stub';
-import { ProcessIdStub } from '@dungeonmaster/shared/contracts/process-id/process-id.stub';
 import { QuestIdStub } from '@dungeonmaster/shared/contracts/quest-id/quest-id.stub';
 import { pastedImageStatics } from '@dungeonmaster/shared/statics';
 import { QuestNewResponder } from './quest-new-responder';
@@ -11,7 +10,7 @@ describe('QuestNewResponder', () => {
     it('VALID: {guildId in params, message in body, adapter returns questId} => returns 200 with questId and chatProcessId', async () => {
       const proxy = QuestNewResponderProxy();
       const guildId = GuildIdStub();
-      const chatProcessId = ProcessIdStub({ value: 'proc-new-quest' });
+      const chatProcessId = 'proc-new-quest';
       const questId = QuestIdStub({ value: 'f47ac10b-58cc-4372-a567-0e02b2c3d479' });
 
       proxy.setupQuestNew({ guildId, chatProcessId, questId });
@@ -33,7 +32,7 @@ describe('QuestNewResponder', () => {
     it('VALID: {adapter omits questId} => returns 200 with chatProcessId only', async () => {
       const proxy = QuestNewResponderProxy();
       const guildId = GuildIdStub();
-      const chatProcessId = ProcessIdStub({ value: 'proc-no-quest' });
+      const chatProcessId = 'proc-no-quest';
 
       proxy.setupQuestNew({ guildId, chatProcessId });
 
@@ -53,7 +52,7 @@ describe('QuestNewResponder', () => {
     it('VALID: {body.questType: "bug-hunt"} => forwards questType to startChat', async () => {
       const proxy = QuestNewResponderProxy();
       const guildId = GuildIdStub();
-      const chatProcessId = ProcessIdStub({ value: 'proc-bug-hunt' });
+      const chatProcessId = 'proc-bug-hunt';
 
       proxy.setupQuestNew({ guildId, chatProcessId });
 
@@ -72,7 +71,7 @@ describe('QuestNewResponder', () => {
     it('VALID: {body without questType} => omits questType so the orchestrator applies its feature default', async () => {
       const proxy = QuestNewResponderProxy();
       const guildId = GuildIdStub();
-      const chatProcessId = ProcessIdStub({ value: 'proc-default' });
+      const chatProcessId = 'proc-default';
 
       proxy.setupQuestNew({ guildId, chatProcessId });
 
@@ -210,7 +209,7 @@ describe('QuestNewResponder', () => {
     it('VALID: {no images key at all, message text only} => persist broker never touches the filesystem, message forwarded unchanged, no questId minted', async () => {
       const proxy = QuestNewResponderProxy();
       const guildId = GuildIdStub();
-      const chatProcessId = ProcessIdStub({ value: 'proc-no-images-key' });
+      const chatProcessId = 'proc-no-images-key';
 
       proxy.setupQuestNew({ guildId, chatProcessId });
 
@@ -233,7 +232,7 @@ describe('QuestNewResponder', () => {
     it('EDGE: {images: []} => persist broker never touches the filesystem, message forwarded unchanged, no questId minted', async () => {
       const proxy = QuestNewResponderProxy();
       const guildId = GuildIdStub();
-      const chatProcessId = ProcessIdStub({ value: 'proc-empty-images-array' });
+      const chatProcessId = 'proc-empty-images-array';
 
       proxy.setupQuestNew({ guildId, chatProcessId });
 
@@ -262,7 +261,7 @@ describe('QuestNewResponder', () => {
       const imageId = '44444444-4444-4444-8444-444444444444';
       proxy.stagePastedImageIds({ ids: [imageId] });
       const guildId = GuildIdStub();
-      const chatProcessId = ProcessIdStub({ value: 'proc-one-image-rewrite' });
+      const chatProcessId = 'proc-one-image-rewrite';
       proxy.setupQuestNew({ guildId, chatProcessId, questId });
       const image = PastedImageUploadStub({ mediaType: 'image/png', dataBase64: 'b25lLWltYWdl' });
 
@@ -292,7 +291,7 @@ describe('QuestNewResponder', () => {
       const questId = QuestIdStub({ value: '33333333-3333-4333-8333-333333333333' });
       proxy.setupMintedQuestId({ questId });
       const guildId = GuildIdStub();
-      const chatProcessId = ProcessIdStub({ value: 'proc-forwarded-to-agent' });
+      const chatProcessId = 'proc-forwarded-to-agent';
       proxy.setupQuestNew({ guildId, chatProcessId, questId });
       const sourcePath = '/tmp/snip.png';
       const copyId = '66666666-6666-4666-8666-666666666666';
@@ -315,7 +314,7 @@ describe('QuestNewResponder', () => {
       const questId = QuestIdStub({ value: '77777777-7777-4777-8777-777777777777' });
       proxy.setupMintedQuestId({ questId });
       const guildId = GuildIdStub();
-      const chatProcessId = ProcessIdStub({ value: 'proc-mint-on-path' });
+      const chatProcessId = 'proc-mint-on-path';
       proxy.setupQuestNew({ guildId, chatProcessId, questId });
       const sourcePath = '/tmp/only-a-path.png';
       const copyId = '88888888-8888-4888-8888-888888888888';

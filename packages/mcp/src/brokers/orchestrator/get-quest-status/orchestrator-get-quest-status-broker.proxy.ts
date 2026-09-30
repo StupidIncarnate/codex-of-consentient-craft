@@ -1,7 +1,6 @@
 // PURPOSE: Proxy for orchestrator-get-quest-status-broker that mocks shared fetch + port resolution
 // USAGE: const proxy = orchestratorGetQuestStatusBrokerProxy(); proxy.returns({ processId, status: OrchestrationStatusStub() });
 
-import type { ProcessId } from '@dungeonmaster/shared/contracts';
 import type { OrchestrationStatusStub } from '@dungeonmaster/shared/contracts/orchestration-status/orchestration-status.stub';
 import { fetchJsonProxy } from '#gateway/node/fetch/fetch-json/fetch-json.proxy';
 import { portResolveBrokerProxy } from '@dungeonmaster/shared/brokers/port/resolve/port-resolve-broker.proxy';
@@ -12,8 +11,8 @@ type OrchestrationStatus = ReturnType<typeof OrchestrationStatusStub>;
 const PORT = '4750';
 
 export const orchestratorGetQuestStatusBrokerProxy = (): {
-  returns: (params: { processId: ProcessId; status: OrchestrationStatus }) => void;
-  setupServerError: (params: { processId: ProcessId; message: string }) => void;
+  returns: (params: { processId: string; status: OrchestrationStatus }) => void;
+  setupServerError: (params: { processId: string; message: string }) => void;
 } => {
   const fetchProxy = fetchJsonProxy();
   const portProxy = portResolveBrokerProxy();
@@ -26,13 +25,13 @@ export const orchestratorGetQuestStatusBrokerProxy = (): {
       processId,
       status,
     }: {
-      processId: ProcessId;
+      processId: string;
       status: OrchestrationStatus;
     }): void => {
       const url = `http://${environmentStatics.hostname}:${PORT}/api/process/${processId}`;
       fetchProxy.setupSuccess({ url, body: status });
     },
-    setupServerError: ({ processId, message }: { processId: ProcessId; message: string }): void => {
+    setupServerError: ({ processId, message }: { processId: string; message: string }): void => {
       const url = `http://${environmentStatics.hostname}:${PORT}/api/process/${processId}`;
       fetchProxy.setupNotOk({
         url,

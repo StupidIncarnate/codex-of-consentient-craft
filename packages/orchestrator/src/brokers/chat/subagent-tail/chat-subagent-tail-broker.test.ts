@@ -1,5 +1,4 @@
 import { claudeLineNormalizeBroker } from '@dungeonmaster/shared/brokers';
-import { ProcessIdStub } from '@dungeonmaster/shared/contracts/process-id/process-id.stub';
 import { SessionIdStub } from '@dungeonmaster/shared/contracts/session-id/session-id.stub';
 
 import { AgentIdStub } from '../../../contracts/agent-id/agent-id.stub';
@@ -24,7 +23,7 @@ describe('chatSubagentTailBroker', () => {
       const agentId = AgentIdStub({ value: 'agent-alpha' });
       const subagentPath =
         '/home/user/.claude/projects/-home-user-my-project/test-session-1/subagents/agent-agent-alpha.jsonl';
-      const chatProcessId = ProcessIdStub({ value: 'proc-tail-1' });
+      const chatProcessId = 'proc-tail-1';
       const processor = chatLineProcessTransformer();
 
       proxy.setupHomeDir({ homeDir: '/home/user' });
@@ -74,7 +73,7 @@ describe('chatSubagentTailBroker', () => {
       const agentId = AgentIdStub({ value: 'agent-delta' });
       const subagentPath =
         '/home/user/.claude/projects/-home-user-my-project/test-session-args/subagents/agent-agent-delta.jsonl';
-      const chatProcessId = ProcessIdStub({ value: 'proc-args-1' });
+      const chatProcessId = 'proc-args-1';
       const calls: Parameters<ReturnType<typeof chatLineProcessTransformer>['processLine']>[0][] =
         [];
 
@@ -117,7 +116,7 @@ describe('chatSubagentTailBroker', () => {
       const agentId = AgentIdStub({ value: 'agent-gamma' });
       const subagentPath =
         '/home/user/.claude/projects/-home-user-my-project/test-session-sys/subagents/agent-agent-gamma.jsonl';
-      const chatProcessId = ProcessIdStub({ value: 'proc-tail-sys' });
+      const chatProcessId = 'proc-tail-sys';
       const processor = chatLineProcessTransformer();
 
       proxy.setupHomeDir({ homeDir: '/home/user' });
@@ -150,7 +149,7 @@ describe('chatSubagentTailBroker', () => {
       const agentId = AgentIdStub({ value: 'agent-epsilon' });
       const subagentPath =
         '/home/user/.claude/projects/-home-user-my-project/test-session-agent-detected/subagents/agent-agent-epsilon.jsonl';
-      const chatProcessId = ProcessIdStub({ value: 'proc-agent-detected' });
+      const chatProcessId = 'proc-agent-detected';
 
       proxy.setupHomeDir({ homeDir: '/home/user' });
       proxy.setupLines({
@@ -190,7 +189,7 @@ describe('chatSubagentTailBroker', () => {
       const agentId = AgentIdStub({ value: 'agent-eta' });
       const subagentPath =
         '/home/user/.claude/projects/-home-user-my-project/test-session-sub-stop/subagents/agent-agent-eta.jsonl';
-      const chatProcessId = ProcessIdStub({ value: 'proc-sub-stop' });
+      const chatProcessId = 'proc-sub-stop';
       const processor = chatLineProcessTransformer();
 
       proxy.setupHomeDir({ homeDir: '/home/user' });
@@ -238,7 +237,7 @@ describe('chatSubagentTailBroker', () => {
         agentId: AgentIdStub({ value: 'agent-repo-root' }),
         processor: chatLineProcessTransformer(),
         onEntries: () => {},
-        chatProcessId: ProcessIdStub({ value: 'proc-sub-repo-root' }),
+        chatProcessId: 'proc-sub-repo-root',
       });
 
       await flushImmediate();
@@ -263,7 +262,7 @@ describe('chatSubagentTailBroker', () => {
         agentId: AgentIdStub({ value: 'agent-in-worktree' }),
         processor: chatLineProcessTransformer(),
         onEntries: () => {},
-        chatProcessId: ProcessIdStub({ value: 'proc-sub-worktree' }),
+        chatProcessId: 'proc-sub-worktree',
       });
 
       await flushImmediate();

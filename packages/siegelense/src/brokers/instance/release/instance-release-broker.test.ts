@@ -1,4 +1,3 @@
-import { ProcessIdStub } from '@dungeonmaster/shared/contracts/process-id/process-id.stub';
 
 import { instanceReleaseBroker } from './instance-release-broker';
 import { instanceReleaseBrokerProxy } from './instance-release-broker.proxy';
@@ -14,7 +13,7 @@ describe('instanceReleaseBroker', () => {
       const instanceId = InstanceIdStub({ value: 'inst_7f3a9c21' });
       const entry = RegistryEntryStub({
         id: instanceId,
-        pid: ProcessIdStub(),
+        pid: 'proc-12345',
         pgids: [ProcessGroupIdStub()],
         socketPath: '/tmp/dm-siege-sockets/inst_7f3a9c21.sock',
         state: 'alive',
@@ -37,7 +36,7 @@ describe('instanceReleaseBroker', () => {
       const bystanderId = InstanceIdStub({ value: 'inst_deadbeef' });
       const released = RegistryEntryStub({
         id: instanceId,
-        pid: ProcessIdStub(),
+        pid: 'proc-12345',
         pgids: [ProcessGroupIdStub()],
         socketPath: '/tmp/dm-siege-sockets/inst_7f3a9c21.sock',
       });

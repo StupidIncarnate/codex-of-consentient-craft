@@ -19,7 +19,6 @@ import { orchestratorGetQuestStatusBrokerProxy } from '../../../brokers/orchestr
 import type { StartOrchestrator } from '@dungeonmaster/orchestrator';
 import { StartOrchestratorProxy } from '@dungeonmaster/orchestrator/startup/start-orchestrator.proxy';
 
-import { ProcessIdStub } from '@dungeonmaster/shared/contracts/process-id/process-id.stub';
 import type { GetQuestResultStub } from '@dungeonmaster/shared/contracts/get-quest-result/get-quest-result.stub';
 import type { GuildIdStub } from '@dungeonmaster/shared/contracts/guild-id/guild-id.stub';
 import type { ModifyQuestResultStub } from '@dungeonmaster/shared/contracts/modify-quest-result/modify-quest-result.stub';
@@ -41,7 +40,7 @@ type QuestId = ReturnType<typeof QuestIdStub>;
 type UrlSlug = string;
 type GuildId = ReturnType<typeof GuildIdStub>;
 type QuestListItem = ReturnType<typeof QuestListItemStub>;
-type ProcessId = ReturnType<typeof ProcessIdStub>;
+type ProcessId = string;
 // Derived from the real StartOrchestrator method signatures (never hand-typed) so the elements
 // each *GetCalls() hands back can be read by field without an ad-hoc structural cast.
 type ModifyQuestParams = Parameters<typeof StartOrchestrator.modifyQuest>[0];
@@ -163,7 +162,7 @@ export const QuestHandleResponderProxy = (): {
       processId: string;
       status: OrchestrationStatus;
     }): void => {
-      getQuestStatusProxy.returns({ processId: ProcessIdStub({ value: processId }), status });
+      getQuestStatusProxy.returns({ processId: processId, status });
     },
 
     setupGetQuestStatusServerError: ({
@@ -174,7 +173,7 @@ export const QuestHandleResponderProxy = (): {
       message: string;
     }): void => {
       getQuestStatusProxy.setupServerError({
-        processId: ProcessIdStub({ value: processId }),
+        processId: processId,
         message,
       });
     },

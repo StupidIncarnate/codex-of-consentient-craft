@@ -8,12 +8,12 @@
  * // Returns pending questions for a session after promotion from process-level tracking
  */
 
-import type { ProcessId, Session } from '@dungeonmaster/shared/contracts';
+import type { Session } from '@dungeonmaster/shared/contracts';
 
 import { pendingClarificationEntryContract } from '../../contracts/pending-clarification-entry/pending-clarification-entry-contract';
 import type { PendingClarificationEntry } from '../../contracts/pending-clarification-entry/pending-clarification-entry-contract';
 
-const processQuestions = new Map<ProcessId, PendingClarificationEntry>();
+const processQuestions = new Map<string, PendingClarificationEntry>();
 const sessionQuestions = new Map<Session['id'], PendingClarificationEntry>();
 
 export const pendingClarificationState = {
@@ -22,7 +22,7 @@ export const pendingClarificationState = {
     questId,
     questions,
   }: {
-    processId: ProcessId;
+    processId: string;
   } & PendingClarificationEntry): void => {
     processQuestions.set(
       processId,
@@ -34,7 +34,7 @@ export const pendingClarificationState = {
     processId,
     sessionId,
   }: {
-    processId: ProcessId;
+    processId: string;
     sessionId: Session['id'];
   }): boolean => {
     const entry = processQuestions.get(processId);

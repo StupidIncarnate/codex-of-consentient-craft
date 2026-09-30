@@ -18,15 +18,8 @@
  */
 
 import { randomUUID } from '#gateway/node/crypto';
-import {
-  getQuestInputContract,
-  modifyQuestInputContract,
-  processIdContract,
-  questContract,
-  questQueueEntryContract,
-  workItemContract,
-} from '@dungeonmaster/shared/contracts';
-import type { ProcessId, Quest } from '@dungeonmaster/shared/contracts';
+import { getQuestInputContract, modifyQuestInputContract, questContract, questQueueEntryContract, workItemContract } from '@dungeonmaster/shared/contracts';
+import type { Quest } from '@dungeonmaster/shared/contracts';
 import { questFlowStatics, questStatusMetadataStatics } from '@dungeonmaster/shared/statics';
 import { nameToUrlSlugTransformer } from '@dungeonmaster/shared/transformers';
 import {
@@ -45,12 +38,13 @@ import { familyLedgerKeyTransformer } from '../../../transformers/family-ledger-
 import { orchestrationProcessesState } from '../../../state/orchestration-processes/orchestration-processes-state';
 import { questExecutionQueueState } from '../../../state/quest-execution-queue/quest-execution-queue-state';
 import { PrepareQuestPackageGraphLayerResponder } from './prepare-quest-package-graph-layer-responder';
+import { orchestrationProcessContract } from '../../../contracts/orchestration-process/orchestration-process-contract';
 
 export const OrchestrationStartResponder = async ({
   questId,
 }: {
   questId: Quest['id'];
-}): Promise<ProcessId> => {
+}): Promise<string> => {
   const input = getQuestInputContract.parse({ questId });
   const result = await questGetBroker({ input });
 
@@ -76,7 +70,7 @@ export const OrchestrationStartResponder = async ({
   // recomputed while the workspace moves on.
   const packageGraph = await PrepareQuestPackageGraphLayerResponder({ quest });
 
-  const processId = processIdContract.parse(`proc-${randomUUID()}`);
+  const processId = `proc-${randomUUID()}`;
 
   // Idempotency, keyed on the ONE family Start seeds. Every later family's scopes are minted when
   // the graph routes to it, so there is no tail on the ledger to detect and a check looking for one
@@ -184,13 +178,13 @@ export const OrchestrationStartResponder = async ({
   // paused quest must STAY queued so resume/dispatch can pick it back up. Queue-entry removal is
   // owned by the sync listener (terminal status / delete).
   orchestrationProcessesState.register({
-    orchestrationProcess: {
+    orchestrationProcess: orchestrationProcessContract.shape.processId.parse(orchestrationProcessContract.shape.processId.parse(orchestrationProcessContract.parse({
       processId,
       questId,
       kill: (): void => {
         // No-op — nothing was spawned at start.
       },
-    },
+    }))),
   });
 
   questExecutionQueueState.enqueue({ entry });

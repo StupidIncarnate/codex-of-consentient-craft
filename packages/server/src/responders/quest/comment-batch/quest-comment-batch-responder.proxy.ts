@@ -1,7 +1,6 @@
 import { questFindQuestPathBrokerProxy } from '@dungeonmaster/orchestrator/brokers/quest/find-quest-path/quest-find-quest-path-broker.proxy';
 import { StartOrchestratorProxy } from '@dungeonmaster/orchestrator/startup/start-orchestrator.proxy';
 import type { GuildIdStub } from '@dungeonmaster/shared/contracts/guild-id/guild-id.stub';
-import type { ProcessIdStub } from '@dungeonmaster/shared/contracts/process-id/process-id.stub';
 import type { QuestStub } from '@dungeonmaster/shared/contracts/quest/quest.stub';
 import { StartEndpointMock } from '@dungeonmaster/testing';
 
@@ -12,7 +11,7 @@ import { apiRoutesStatics } from '../../../statics/api-routes/api-routes-statics
 import { QuestCommentBatchResponder } from './quest-comment-batch-responder';
 
 type Quest = ReturnType<typeof QuestStub>;
-type ProcessId = ReturnType<typeof ProcessIdStub>;
+type ProcessId = string;
 type GuildId = ReturnType<typeof GuildIdStub>;
 type AbsoluteFilePath = string;
 type EndpointControl = ReturnType<typeof StartEndpointMock.listen>;

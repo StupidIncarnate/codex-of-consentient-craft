@@ -1,9 +1,4 @@
-import type {
-  GetQuestResult,
-  OrchestrationEventType,
-  ProcessId,
-  Quest as QuestContract,
-} from '@dungeonmaster/shared/contracts';
+import type { GetQuestResult, OrchestrationEventType, Quest as QuestContract } from '@dungeonmaster/shared/contracts';
 import type { QuestStub } from '@dungeonmaster/shared/contracts/quest/quest.stub';
 import { getQuestResultContract, questContract } from '@dungeonmaster/shared/contracts';
 import type { FileName } from '@dungeonmaster/shared/contracts';
@@ -64,7 +59,7 @@ export const ChatStartResponderProxy = ({
   setupEventCapture: () => {
     getEmittedEvents: () => readonly {
       type: OrchestrationEventType;
-      processId: ProcessId;
+      processId: string;
       payload: Record<PropertyKey, unknown>;
     }[];
   };
@@ -154,7 +149,7 @@ export const ChatStartResponderProxy = ({
     setupEventCapture: () => {
       const emittedEvents: {
         type: OrchestrationEventType;
-        processId: ProcessId;
+        processId: string;
         payload: Record<PropertyKey, unknown>;
       }[] = [];
 

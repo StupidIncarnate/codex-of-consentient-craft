@@ -4,7 +4,7 @@ import { randomUuidProxy } from '#gateway/browser/crypto/random-uuid/random-uuid
 import { fireEvent, screen } from '#gateway/npm/testing-library__react';
 import userEvent from '#gateway/npm/testing-library__user-event';
 
-import type { OrchestrationMode, ProcessId, Quest } from '@dungeonmaster/shared/contracts';
+import type { OrchestrationMode, Quest } from '@dungeonmaster/shared/contracts';
 import type { QuestSummaryStub } from '@dungeonmaster/shared/contracts/quest-summary/quest-summary.stub';
 import { registerMock } from '@dungeonmaster/testing/register-mock';
 import type { MockHandle } from '@dungeonmaster/testing/register-mock';
@@ -44,11 +44,11 @@ import { userEventStatics } from '../../statics/user-event/user-event-statics';
 export const QuestChatContentLayerWidgetProxy = (): {
   setupConnectedChannel: () => void;
   deliverWsMessage: (params: { data: string }) => void;
-  setupChat: (params: { chatProcessId: ProcessId }) => void;
-  setupClarify: (params: { chatProcessId: ProcessId }) => void;
+  setupChat: (params: { chatProcessId: string }) => void;
+  setupClarify: (params: { chatProcessId: string }) => void;
   setupPause: () => void;
   setupMode: (params: { mode: OrchestrationMode }) => void;
-  setupNewQuest: (params: { questId: Quest['id']; chatProcessId: ProcessId }) => void;
+  setupNewQuest: (params: { questId: Quest['id']; chatProcessId: string }) => void;
   setupNewQuestError: () => void;
   setupQuestSummary: (params: { summary: ReturnType<typeof QuestSummaryStub> }) => void;
   setupTimestamps: (params: { timestamps: readonly string[] }) => void;
@@ -80,7 +80,7 @@ export const QuestChatContentLayerWidgetProxy = (): {
   getNewQuestRequestCount: () => number;
   getNewQuestRequestBodies: () => Promise<unknown[]>;
   selectQuestType: (params: { label: string }) => Promise<void>;
-  setupFollowup: (params: { chatProcessId: ProcessId }) => void;
+  setupFollowup: (params: { chatProcessId: string }) => void;
   setupFollowupRejected: (params: { error: string }) => void;
   setupMerge: (params: { merging: boolean }) => void;
   getFollowupRequestBody: () => Promise<unknown>;

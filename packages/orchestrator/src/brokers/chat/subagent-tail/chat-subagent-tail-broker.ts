@@ -28,7 +28,7 @@ import { appendFile, ensureDir } from '#gateway/node/fs__promises';
 import { getEnv, stderr } from '#gateway/node/process';
 import { homedir } from '#gateway/node/os';
 import { claudeLineNormalizeBroker } from '@dungeonmaster/shared/brokers';
-import type { ChatEntry, ProcessId, Agent, Session } from '@dungeonmaster/shared/contracts';
+import type { ChatEntry, Agent, Session } from '@dungeonmaster/shared/contracts';
 import {
   claudeProjectPathEncoderTransformer,
   stripJsonlSuffixTransformer,
@@ -49,8 +49,8 @@ export const chatSubagentTailBroker = async ({
   cwd: string;
   agentId: Agent['id'];
   processor: ChatLineProcessor;
-  onEntries: (params: { chatProcessId: ProcessId; entries: ChatEntry[] }) => void;
-  chatProcessId: ProcessId;
+  onEntries: (params: { chatProcessId: string; entries: ChatEntry[] }) => void;
+  chatProcessId: string;
 }): Promise<{ stop: () => void; initialDrain: Promise<void> }> => {
   const projectPath = cwd;
   const homeDir = homedir();

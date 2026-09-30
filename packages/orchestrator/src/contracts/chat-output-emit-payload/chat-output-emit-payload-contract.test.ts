@@ -1,5 +1,4 @@
 import { ChatEntryStub } from '@dungeonmaster/shared/contracts/chat-entry/chat-entry.stub';
-import { ProcessIdStub } from '@dungeonmaster/shared/contracts/process-id/process-id.stub';
 import { QuestIdStub } from '@dungeonmaster/shared/contracts/quest-id/quest-id.stub';
 import { QuestWorkItemIdStub } from '@dungeonmaster/shared/contracts/quest-work-item-id/quest-work-item-id.stub';
 import { SessionIdStub } from '@dungeonmaster/shared/contracts/session-id/session-id.stub';
@@ -9,13 +8,13 @@ import { ChatOutputEmitPayloadStub } from './chat-output-emit-payload.stub';
 
 describe('chatOutputEmitPayloadContract', () => {
   it('VALID: {full payload with sessionId + chatProcessId} => parses', () => {
-    const processId = ProcessIdStub({ value: 'proc-queue-aaaaaaaa-1111-4222-9333-444444444444' });
+    const processId = 'proc-queue-aaaaaaaa-1111-4222-9333-444444444444';
     const slotIndex = 0;
     const entries = [ChatEntryStub({ role: 'assistant', type: 'text', content: 'hello' })];
     const questId = QuestIdStub({ value: 'aaaaaaaa-1111-4222-9333-444444444444' });
     const workItemId = QuestWorkItemIdStub({ value: 'bbbbbbbb-1111-4222-9333-444444444444' });
     const sessionId = SessionIdStub({ value: 'b4a5c2d1-918c-4408-aeb1-f8f4ce8400cb' });
-    const chatProcessId = ProcessIdStub({ value: 'b4a5c2d1-918c-4408-aeb1-f8f4ce8400cb' });
+    const chatProcessId = 'b4a5c2d1-918c-4408-aeb1-f8f4ce8400cb';
 
     const parsed = chatOutputEmitPayloadContract.parse({
       processId,
@@ -39,7 +38,7 @@ describe('chatOutputEmitPayloadContract', () => {
   });
 
   it('VALID: {minimal payload, no sessionId, no chatProcessId} => parses', () => {
-    const processId = ProcessIdStub({ value: 'proc-queue-aaaaaaaa-1111-4222-9333-444444444444' });
+    const processId = 'proc-queue-aaaaaaaa-1111-4222-9333-444444444444';
     const slotIndex = 0;
     const entries = [ChatEntryStub({ role: 'assistant', type: 'text', content: 'hello' })];
     const questId = QuestIdStub({ value: 'aaaaaaaa-1111-4222-9333-444444444444' });
@@ -57,7 +56,7 @@ describe('chatOutputEmitPayloadContract', () => {
   });
 
   it('INVALID: {missing questId} => throws Required error', () => {
-    const processId = ProcessIdStub({ value: 'proc-queue-aaaaaaaa-1111-4222-9333-444444444444' });
+    const processId = 'proc-queue-aaaaaaaa-1111-4222-9333-444444444444';
     const slotIndex = 0;
     const entries = [ChatEntryStub({ role: 'assistant', type: 'text', content: 'hello' })];
     const workItemId = QuestWorkItemIdStub({ value: 'bbbbbbbb-1111-4222-9333-444444444444' });
@@ -68,7 +67,7 @@ describe('chatOutputEmitPayloadContract', () => {
   });
 
   it('INVALID: {missing workItemId} => throws Required error', () => {
-    const processId = ProcessIdStub({ value: 'proc-queue-aaaaaaaa-1111-4222-9333-444444444444' });
+    const processId = 'proc-queue-aaaaaaaa-1111-4222-9333-444444444444';
     const slotIndex = 0;
     const entries = [ChatEntryStub({ role: 'assistant', type: 'text', content: 'hello' })];
     const questId = QuestIdStub({ value: 'aaaaaaaa-1111-4222-9333-444444444444' });
@@ -84,7 +83,7 @@ describe('chatOutputEmitPayloadContract', () => {
     const parsed = chatOutputEmitPayloadContract.parse(ChatOutputEmitPayloadStub({ entries }));
 
     expect(parsed).toStrictEqual({
-      processId: ProcessIdStub({ value: 'proc-queue-aaaaaaaa-1111-4222-9333-444444444444' }),
+      processId: 'proc-queue-aaaaaaaa-1111-4222-9333-444444444444',
       slotIndex: 0,
       entries,
       questId: QuestIdStub({ value: 'aaaaaaaa-1111-4222-9333-444444444444' }),

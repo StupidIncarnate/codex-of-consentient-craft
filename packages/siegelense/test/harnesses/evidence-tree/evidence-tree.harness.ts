@@ -42,7 +42,6 @@ import { deleteEnv, getEnv, kill, setEnv, stderr } from '#gateway/node/process';
 import { PNG } from '#gateway/npm/pngjs';
 
 import { installTestbedCreateBroker } from '@dungeonmaster/testing';
-import { ProcessIdStub } from '@dungeonmaster/shared/contracts/process-id/process-id.stub';
 import type { SiegeInstance, SiegeRun } from '@dungeonmaster/shared/contracts';
 import { locationsStatics } from '@dungeonmaster/shared/statics';
 
@@ -452,7 +451,7 @@ export const evidenceTreeHarness = (): {
       owner: '42781',
       specName: 'dungeonmaster-stack',
       specHash: 'a3f9c2e1',
-      pid: ProcessIdStub(),
+      pid: 'proc-12345',
       pgids: [],
       socketPath: null,
       ports: PortPairStub({ api: 40_011, web: 40_012 }),
@@ -475,7 +474,7 @@ export const evidenceTreeHarness = (): {
 
     const heartbeat = InstanceHeartbeatStub({
       instanceId: KILLED_INSTANCE_ID,
-      pid: ProcessIdStub(),
+      pid: 'proc-12345',
       pgids: [],
       beatAtMs: 1,
       rssMB: 1_840,
@@ -581,7 +580,7 @@ export const evidenceTreeHarness = (): {
 
     const heartbeat = InstanceHeartbeatStub({
       instanceId: STALE_INSTANCE_ID,
-      pid: ProcessIdStub(),
+      pid: 'proc-12345',
       pgids: [stalePgid],
       beatAtMs: 1,
       rssMB: null,
@@ -596,7 +595,7 @@ export const evidenceTreeHarness = (): {
       owner: '42781',
       specName: 'dungeonmaster-stack',
       specHash: 'a3f9c2e1',
-      pid: ProcessIdStub(),
+      pid: 'proc-12345',
       // heartbeatWriteBroker stamps the SAME pgids onto heartbeat.json and this row in one call —
       // the fixture above is a lie unless this row names the same pgid, and instanceKillBroker's
       // orphan-reap path reads its candidates from THIS field, never the file.

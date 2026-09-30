@@ -1,4 +1,3 @@
-import { ProcessIdStub } from '@dungeonmaster/shared/contracts/process-id/process-id.stub';
 
 import { processStaleWatchBroker } from './process-stale-watch-broker';
 import { processStaleWatchBrokerProxy } from './process-stale-watch-broker.proxy';
@@ -8,7 +7,7 @@ describe('processStaleWatchBroker', () => {
     it('VALID: {process silent for exactly 90s, threshold 60s} => onStale fires with silentForMs=90_000', () => {
       jest.useFakeTimers().setSystemTime(new Date('2026-05-12T22:58:24.835Z'));
       const proxy = processStaleWatchBrokerProxy({ intervalMs: 1000 });
-      const processId = ProcessIdStub({ value: 'proc-stale' });
+      const processId = 'proc-stale';
       const ninetySecondsAgo = new Date(Date.now() - 90_000);
       const onStale = jest.fn();
       processStaleWatchBroker({
@@ -35,7 +34,7 @@ describe('processStaleWatchBroker', () => {
       const fiveSecondsAgo = new Date(Date.now() - 5_000);
       const onStale = jest.fn();
       processStaleWatchBroker({
-        getProcessIds: () => [ProcessIdStub({ value: 'proc-active' })],
+        getProcessIds: () => ['proc-active'],
         getActivity: () => ({ lastActivityAt: fiveSecondsAgo }),
         onStale,
         intervalMs: 1000,
@@ -57,7 +56,7 @@ describe('processStaleWatchBroker', () => {
       const longAgo = new Date(Date.now() - 120_000);
       const onStale = jest.fn();
       processStaleWatchBroker({
-        getProcessIds: () => [ProcessIdStub({ value: 'proc-1' })],
+        getProcessIds: () => ['proc-1'],
         getActivity: () => ({ lastActivityAt: longAgo, osPid: pid }),
         onStale,
         intervalMs: 1000,
@@ -67,7 +66,7 @@ describe('processStaleWatchBroker', () => {
       jest.useRealTimers();
 
       expect(onStale).toHaveBeenCalledWith({
-        processId: ProcessIdStub({ value: 'proc-1' }),
+        processId: 'proc-1',
         silentForMs: 120_000,
         pid,
         alive: true,
@@ -82,7 +81,7 @@ describe('processStaleWatchBroker', () => {
       const longAgo = new Date(Date.now() - 120_000);
       const onStale = jest.fn();
       processStaleWatchBroker({
-        getProcessIds: () => [ProcessIdStub({ value: 'proc-dead' })],
+        getProcessIds: () => ['proc-dead'],
         getActivity: () => ({ lastActivityAt: longAgo, osPid: pid }),
         onStale,
         intervalMs: 1000,
@@ -92,7 +91,7 @@ describe('processStaleWatchBroker', () => {
       jest.useRealTimers();
 
       expect(onStale).toHaveBeenCalledWith({
-        processId: ProcessIdStub({ value: 'proc-dead' }),
+        processId: 'proc-dead',
         silentForMs: 120_000,
         pid,
         alive: false,
@@ -105,7 +104,7 @@ describe('processStaleWatchBroker', () => {
       const proxy = processStaleWatchBrokerProxy({ intervalMs: 1000 });
       const onStale = jest.fn();
       processStaleWatchBroker({
-        getProcessIds: () => [ProcessIdStub({ value: 'proc-ghost' })],
+        getProcessIds: () => ['proc-ghost'],
         getActivity: () => undefined,
         onStale,
         intervalMs: 1000,

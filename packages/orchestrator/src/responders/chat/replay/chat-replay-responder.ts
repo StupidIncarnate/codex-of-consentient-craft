@@ -8,8 +8,7 @@
 
 import { randomUUID } from '#gateway/node/crypto';
 import { isFsError } from '#gateway/node/fs';
-import type { ProcessId, Quest, Guild, Session } from '@dungeonmaster/shared/contracts';
-import { processIdContract } from '@dungeonmaster/shared/contracts';
+import type { Quest, Guild, Session } from '@dungeonmaster/shared/contracts';
 
 import { chatHistoryReplayBroker } from '../../../brokers/chat/history-replay/chat-history-replay-broker';
 import { questListBroker } from '../../../brokers/quest/list/quest-list-broker';
@@ -24,9 +23,9 @@ export const ChatReplayResponder = async ({
 }: {
   sessionId: Session['id'];
   guildId: Guild['id'];
-  chatProcessId?: ProcessId;
+  chatProcessId?: string;
 }): Promise<void> => {
-  const chatProcessId = clientChatProcessId ?? processIdContract.parse(`replay-${randomUUID()}`);
+  const chatProcessId = clientChatProcessId ?? `replay-${randomUUID()}`;
 
   // Look up the linked quest BEFORE replay so chat-output frames can be stamped with
   // questId+workItemId when available. Orphan sessions (no linked quest) still emit

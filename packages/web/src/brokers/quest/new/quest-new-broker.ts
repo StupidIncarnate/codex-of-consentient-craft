@@ -9,8 +9,8 @@
  * // Returns { questId, chatProcessId } on success; throws the server's own rejection text otherwise
  */
 
-import { processIdContract, questContract } from '@dungeonmaster/shared/contracts';
-import type { PastedImageUpload, ProcessId, QuestType, Quest, Guild } from '@dungeonmaster/shared/contracts';
+import { questContract } from '@dungeonmaster/shared/contracts';
+import type { PastedImageUpload, QuestType, Quest, Guild } from '@dungeonmaster/shared/contracts';
 
 import { xhrPostWithProgress } from '#gateway/browser/XMLHttpRequest';
 
@@ -33,7 +33,7 @@ export const questNewBroker = async ({
   questType?: QuestType;
   images?: readonly PastedImageUpload[];
   onProgress?: UploadProgressHandler;
-}): Promise<{ questId: Quest['id']; chatProcessId: ProcessId }> => {
+}): Promise<{ questId: Quest['id']; chatProcessId: string }> => {
   const url = webConfigStatics.api.routes.questNew.replace(':guildId', guildId);
 
   const post = uploadProgressPostContract.parse({
@@ -75,7 +75,7 @@ export const questNewBroker = async ({
     ) {
       return {
         questId: questContract.shape.id.parse(parsed.data.questId),
-        chatProcessId: processIdContract.parse(parsed.data.chatProcessId),
+        chatProcessId: parsed.data.chatProcessId,
       };
     }
     // A 200 carrying no usable questId/chatProcessId is a broken server contract, not a success.

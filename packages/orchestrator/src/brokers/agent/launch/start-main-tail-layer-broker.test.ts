@@ -1,4 +1,3 @@
-import { ProcessIdStub } from '@dungeonmaster/shared/contracts/process-id/process-id.stub';
 import { SessionIdStub } from '@dungeonmaster/shared/contracts/session-id/session-id.stub';
 import { setImmediate } from '#gateway/node/setImmediate';
 
@@ -35,7 +34,7 @@ describe('startMainTailLayerBroker', () => {
         sessionId,
         cwd: '/home/user/my-project',
         processor: chatLineProcessTransformer(),
-        chatProcessId: ProcessIdStub({ value: 'proc-tail-test' }),
+        chatProcessId: 'proc-tail-test',
         onEntries,
       });
 

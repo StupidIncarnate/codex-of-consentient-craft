@@ -1,4 +1,3 @@
-import { ProcessIdStub } from '@dungeonmaster/shared/contracts/process-id/process-id.stub';
 import { QuestIdStub } from '@dungeonmaster/shared/contracts/quest-id/quest-id.stub';
 import { QuestWorkItemIdStub } from '@dungeonmaster/shared/contracts/quest-work-item-id/quest-work-item-id.stub';
 
@@ -29,15 +28,15 @@ describe('orchestrationProcessesState', () => {
     it('EDGE: {duplicate processId} => overwrites existing process', () => {
       const proxy = orchestrationProcessesStateProxy();
       proxy.setupEmpty();
-      const processId = ProcessIdStub({ value: 'proc-dup' });
+      const processId = 'proc-dup';
       const questId1 = QuestIdStub({ value: 'quest-old' });
       const questId2 = QuestIdStub({ value: 'quest-new' });
 
       orchestrationProcessesState.register({
-        orchestrationProcess: { processId, questId: questId1, kill: jest.fn() },
+        orchestrationProcess: OrchestrationProcessStub({ processId, questId: questId1, kill: jest.fn() }),
       });
       orchestrationProcessesState.register({
-        orchestrationProcess: { processId, questId: questId2, kill: jest.fn() },
+        orchestrationProcess: OrchestrationProcessStub({ processId, questId: questId2, kill: jest.fn() }),
       });
 
       const result = orchestrationProcessesState.get({ processId });
@@ -67,7 +66,7 @@ describe('orchestrationProcessesState', () => {
     it('EMPTY: {nonexistent processId} => returns undefined', () => {
       const proxy = orchestrationProcessesStateProxy();
       proxy.setupEmpty();
-      const processId = ProcessIdStub({ value: 'nonexistent' });
+      const processId = 'nonexistent';
 
       const result = orchestrationProcessesState.get({ processId });
 
@@ -78,7 +77,7 @@ describe('orchestrationProcessesState', () => {
   describe('kill', () => {
     it('VALID: {registered process} => kills process, removes from state, returns true', () => {
       const proxy = orchestrationProcessesStateProxy();
-      const processId = ProcessIdStub({ value: 'proc-kill-1' });
+      const processId = 'proc-kill-1';
       const questId = QuestIdStub({ value: 'quest-kill-1' });
       const kill = jest.fn();
       proxy.setupWithProcessAndKill({ processId, questId, kill });
@@ -93,7 +92,7 @@ describe('orchestrationProcessesState', () => {
     it('EMPTY: {unknown processId} => returns false', () => {
       const proxy = orchestrationProcessesStateProxy();
       proxy.setupEmpty();
-      const processId = ProcessIdStub({ value: 'nonexistent' });
+      const processId = 'nonexistent';
 
       const result = orchestrationProcessesState.kill({ processId });
 
@@ -107,16 +106,16 @@ describe('orchestrationProcessesState', () => {
       proxy.setupEmpty();
       const kill1 = jest.fn();
       const kill2 = jest.fn();
-      const processId1 = ProcessIdStub({ value: 'proc-1' });
-      const processId2 = ProcessIdStub({ value: 'proc-2' });
+      const processId1 = 'proc-1';
+      const processId2 = 'proc-2';
       const questId1 = QuestIdStub({ value: 'quest-1' });
       const questId2 = QuestIdStub({ value: 'quest-2' });
 
       orchestrationProcessesState.register({
-        orchestrationProcess: { processId: processId1, questId: questId1, kill: kill1 },
+        orchestrationProcess: OrchestrationProcessStub({ processId: processId1, questId: questId1, kill: kill1 }),
       });
       orchestrationProcessesState.register({
-        orchestrationProcess: { processId: processId2, questId: questId2, kill: kill2 },
+        orchestrationProcess: OrchestrationProcessStub({ processId: processId2, questId: questId2, kill: kill2 }),
       });
 
       orchestrationProcessesState.killAll();
@@ -153,7 +152,7 @@ describe('orchestrationProcessesState', () => {
     it('EMPTY: {unknown processId} => returns false', () => {
       const proxy = orchestrationProcessesStateProxy();
       proxy.setupEmpty();
-      const processId = ProcessIdStub({ value: 'nonexistent' });
+      const processId = 'nonexistent';
 
       const result = orchestrationProcessesState.has({ processId });
 
@@ -193,7 +192,7 @@ describe('orchestrationProcessesState', () => {
     it('VALID: {process registered with questWorkItemId} => returns the matching process', () => {
       const proxy = orchestrationProcessesStateProxy();
       proxy.setupEmpty();
-      const processId = ProcessIdStub({ value: 'proc-launch-1' });
+      const processId = 'proc-launch-1';
       const questId = QuestIdStub({ value: 'quest-launch-1' });
       const questWorkItemId = QuestWorkItemIdStub({
         value: 'f47ac10b-58cc-4372-a567-0e02b2c3d479',
@@ -201,7 +200,7 @@ describe('orchestrationProcessesState', () => {
       const kill = jest.fn();
 
       orchestrationProcessesState.register({
-        orchestrationProcess: { processId, questId, questWorkItemId, kill },
+        orchestrationProcess: OrchestrationProcessStub({ processId, questId, questWorkItemId, kill }),
       });
 
       const result = orchestrationProcessesState.findByQuestWorkItemId({ questWorkItemId });
@@ -247,17 +246,17 @@ describe('orchestrationProcessesState', () => {
       const sharedQuestId = QuestIdStub({ value: 'shared-quest' });
       const otherQuestId = QuestIdStub({ value: 'other-quest' });
       const chatProcess = OrchestrationProcessStub({
-        processId: ProcessIdStub({ value: 'chat-aaaa' }),
+        processId: 'chat-aaaa',
         questId: sharedQuestId,
         kill: jest.fn(),
       });
       const placeholderProcess = OrchestrationProcessStub({
-        processId: ProcessIdStub({ value: 'proc-bbbb' }),
+        processId: 'proc-bbbb',
         questId: sharedQuestId,
         kill: jest.fn(),
       });
       const unrelatedProcess = OrchestrationProcessStub({
-        processId: ProcessIdStub({ value: 'proc-queue-cccc' }),
+        processId: 'proc-queue-cccc',
         questId: otherQuestId,
         kill: jest.fn(),
       });
@@ -311,7 +310,7 @@ describe('orchestrationProcessesState', () => {
     it('EMPTY: {nonexistent processId} => returns false', () => {
       const proxy = orchestrationProcessesStateProxy();
       proxy.setupEmpty();
-      const processId = ProcessIdStub({ value: 'nonexistent' });
+      const processId = 'nonexistent';
 
       const removed = orchestrationProcessesState.remove({ processId });
 
@@ -347,11 +346,11 @@ describe('orchestrationProcessesState', () => {
     it('INVALID: {questId: 123} => throws before anything is stored', () => {
       const proxy = orchestrationProcessesStateProxy();
       proxy.setupEmpty();
-      const processId = ProcessIdStub({ value: 'proc-invalid' });
+      const processId = 'proc-invalid';
 
       expect(() => {
         orchestrationProcessesState.register({
-          orchestrationProcess: { processId, questId: 123 as never, kill: jest.fn() },
+          orchestrationProcess: OrchestrationProcessStub({ processId, questId: 123 as never, kill: jest.fn() }),
         });
       }).toThrow(/questId/u);
       expect(orchestrationProcessesState.getAll()).toStrictEqual([]);
@@ -360,11 +359,11 @@ describe('orchestrationProcessesState', () => {
     it('VALID: {kill} => the stored process still calls the registered kill function', () => {
       const proxy = orchestrationProcessesStateProxy();
       proxy.setupEmpty();
-      const processId = ProcessIdStub({ value: 'proc-kill-kept' });
+      const processId = 'proc-kill-kept';
       const questId = QuestIdStub({ value: 'quest-kill-kept' });
       const kill = jest.fn();
 
-      orchestrationProcessesState.register({ orchestrationProcess: { processId, questId, kill } });
+      orchestrationProcessesState.register({ orchestrationProcess: OrchestrationProcessStub({ processId, questId, kill }) });
       orchestrationProcessesState.get({ processId })?.kill();
 
       expect(kill).toHaveBeenCalledTimes(1);
@@ -420,7 +419,7 @@ describe('orchestrationProcessesState', () => {
     it('EMPTY: {setMetadata for unregistered processId} => stores nothing', () => {
       const proxy = orchestrationProcessesStateProxy();
       proxy.setupEmpty();
-      const processId = ProcessIdStub({ value: 'proc-unregistered' });
+      const processId = 'proc-unregistered';
 
       orchestrationProcessesState.setMetadata({ processId, osPid: 5 });
 

@@ -16,7 +16,6 @@
 
 import { randomUUID } from '#gateway/node/crypto';
 import { questContract } from '@dungeonmaster/shared/contracts';
-import { ProcessIdStub } from '@dungeonmaster/shared/contracts/process-id/process-id.stub';
 import { QuestIdStub } from '@dungeonmaster/shared/contracts/quest-id/quest-id.stub';
 import type { WorkItem } from '@dungeonmaster/shared/contracts';
 import type { QuestStub } from '@dungeonmaster/shared/contracts/quest/quest.stub';
@@ -28,6 +27,7 @@ import { questOperationsUpdateBrokerProxy } from '../../../brokers/quest/operati
 import { orchestrationProcessesState } from '../../../state/orchestration-processes/orchestration-processes-state';
 import { orchestrationProcessesStateProxy } from '../../../state/orchestration-processes/orchestration-processes-state.proxy';
 import { OrchestrationMergeResponder } from './orchestration-merge-responder';
+import { OrchestrationProcessStub } from '../../../contracts/orchestration-process/orchestration-process.stub';
 
 type Quest = ReturnType<typeof QuestStub>;
 type Parsed = ReturnType<typeof questContract.parse>;
@@ -119,15 +119,15 @@ export const OrchestrationMergeResponderProxy = (): {
     // either the status-flip persist or the ledger-append persist — not just that it ran at all.
     setupTavernkeeperProcessRunning: ({ workItemId }: { workItemId: WorkItem['id'] }): void => {
       orchestrationProcessesState.register({
-        orchestrationProcess: {
-          processId: ProcessIdStub({ value: 'proc-tavernkeeper-f47ac10b' }),
+        orchestrationProcess: OrchestrationProcessStub({
+          processId: 'proc-tavernkeeper-f47ac10b',
           questId: QuestIdStub(),
           questWorkItemId: workItemId,
           kill: (): void => {
             killTracking.called = true;
             killTracking.noQuestWriteYet = opsProxy.getAllPersistedContents().length === 0;
           },
-        },
+        }),
       });
     },
 

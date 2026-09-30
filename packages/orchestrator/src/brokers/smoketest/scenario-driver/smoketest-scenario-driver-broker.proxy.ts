@@ -1,7 +1,5 @@
 import { clearIntervalProxy } from '#gateway/node/clearInterval/clear-interval/clear-interval.proxy';
 import { setIntervalProxy } from '#gateway/node/setInterval/set-interval/set-interval.proxy';
-import { ProcessIdStub } from '@dungeonmaster/shared/contracts/process-id/process-id.stub';
-import type { ProcessId } from '@dungeonmaster/shared/contracts';
 import type { QuestStub } from '@dungeonmaster/shared/contracts/quest/quest.stub';
 
 import { createDriverHandlerLayerBrokerProxy } from './create-driver-handler-layer-broker.proxy';
@@ -11,7 +9,7 @@ import { smoketestSweepPendingWorkItemsLayerBrokerProxy } from './smoketest-swee
 type Quest = ReturnType<typeof QuestStub>;
 
 type QuestModifiedHandler = (event: {
-  processId: ProcessId;
+  processId: string;
   payload: { questId?: unknown };
 }) => void;
 
@@ -63,7 +61,7 @@ export const smoketestScenarioDriverBrokerProxy = (): {
     },
     emitQuestModified: (payload: { questId?: unknown }): void => {
       const snapshot = handlers.slice();
-      const emittedProcessId = ProcessIdStub({ value: 'driver-proxy-emitted' });
+      const emittedProcessId = 'driver-proxy-emitted';
       for (const h of snapshot) {
         h({ processId: emittedProcessId, payload });
       }

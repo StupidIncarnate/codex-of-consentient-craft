@@ -1,7 +1,6 @@
 import type { UserChatEntryStub } from '@dungeonmaster/shared/contracts/chat-entry/chat-entry.stub';
 import { AskUserQuestionStub } from '@dungeonmaster/shared/contracts/ask-user-question/ask-user-question.stub';
 import { PastedImageUploadStub } from '@dungeonmaster/shared/contracts/pasted-image-upload/pasted-image-upload.stub';
-import { ProcessIdStub } from '@dungeonmaster/shared/contracts/process-id/process-id.stub';
 import { QuestIdStub } from '@dungeonmaster/shared/contracts/quest-id/quest-id.stub';
 import { QuestStub } from '@dungeonmaster/shared/contracts/quest/quest.stub';
 import { QuestWorkItemIdStub } from '@dungeonmaster/shared/contracts/quest-work-item-id/quest-work-item-id.stub';
@@ -174,7 +173,7 @@ describe('useQuestChatBinding', () => {
               questId: 'quest-out-1',
               workItemId: QuestWorkItemIdStub(),
               sessionId,
-              chatProcessId: ProcessIdStub({ value: 'proc-1' }),
+              chatProcessId: 'proc-1',
               entries: [
                 {
                   role: 'assistant',
@@ -249,7 +248,7 @@ describe('useQuestChatBinding', () => {
             payload: {
               questId: 'quest-other',
               workItemId: QuestWorkItemIdStub(),
-              chatProcessId: ProcessIdStub({ value: 'proc-2' }),
+              chatProcessId: 'proc-2',
               entries: [{ role: 'assistant', type: 'text', content: 'noise' }],
             },
             timestamp: '2025-01-01T00:00:00.000Z',
@@ -293,7 +292,7 @@ describe('useQuestChatBinding', () => {
             payload: {
               workItemId: QuestWorkItemIdStub(),
               sessionId: SessionIdStub({ value: 'f47ac10b-58cc-4372-a567-0e02b2c3d480' }),
-              chatProcessId: ProcessIdStub({ value: 'proc-orphan' }),
+              chatProcessId: 'proc-orphan',
               // Fully-formed entries: the payload must be rejected by the questId filter,
               // not by chatEntryContract. Entries missing uuid/timestamp are dropped as
               // unparseable before the filter is ever consulted, which passes this
@@ -350,7 +349,7 @@ describe('useQuestChatBinding', () => {
               questId: 'quest-running-in-another-tab',
               workItemId: QuestWorkItemIdStub(),
               sessionId: SessionIdStub({ value: 'f47ac10b-58cc-4372-a567-0e02b2c3d481' }),
-              chatProcessId: ProcessIdStub({ value: 'proc-other-quest' }),
+              chatProcessId: 'proc-other-quest',
               entries: [
                 {
                   role: 'assistant',
@@ -803,7 +802,7 @@ describe('useQuestChatBinding', () => {
             payload: {
               questId: 'quest-hist-1',
               workItemId: QuestWorkItemIdStub(),
-              chatProcessId: ProcessIdStub({ value: 'proc-h' }),
+              chatProcessId: 'proc-h',
               entries: [{ role: 'assistant', type: 'text', content: 'replay' }],
             },
             timestamp: '2025-01-01T00:00:00.000Z',
@@ -812,7 +811,7 @@ describe('useQuestChatBinding', () => {
         proxy.deliverWsMessage({
           data: JSON.stringify({
             type: 'chat-history-complete',
-            payload: { chatProcessId: ProcessIdStub({ value: 'proc-h' }) },
+            payload: { chatProcessId: 'proc-h' },
             timestamp: '2025-01-01T00:00:00.000Z',
           }),
         });
@@ -843,7 +842,7 @@ describe('useQuestChatBinding', () => {
               workItemId,
               sessionId,
               replay: true,
-              chatProcessId: ProcessIdStub({ value: 'quest-replay-wi-1' }),
+              chatProcessId: 'quest-replay-wi-1',
               entries: [
                 {
                   role: 'assistant',
@@ -925,7 +924,7 @@ describe('useQuestChatBinding', () => {
               questId: 'quest-replay-strobe',
               workItemId: QuestWorkItemIdStub({ value: '00000000-0000-4000-8000-0000000000a1' }),
               replay: true,
-              chatProcessId: ProcessIdStub({ value: 'quest-replay-a' }),
+              chatProcessId: 'quest-replay-a',
               entries: [
                 {
                   role: 'assistant',
@@ -946,7 +945,7 @@ describe('useQuestChatBinding', () => {
         proxy.deliverWsMessage({
           data: JSON.stringify({
             type: 'chat-history-complete',
-            payload: { chatProcessId: ProcessIdStub({ value: 'quest-replay-a' }) },
+            payload: { chatProcessId: 'quest-replay-a' },
             timestamp: '2025-01-01T00:00:00.000Z',
           }),
         });
@@ -961,7 +960,7 @@ describe('useQuestChatBinding', () => {
               questId: 'quest-replay-strobe',
               workItemId: QuestWorkItemIdStub({ value: '00000000-0000-4000-8000-0000000000a2' }),
               replay: true,
-              chatProcessId: ProcessIdStub({ value: 'quest-replay-b' }),
+              chatProcessId: 'quest-replay-b',
               entries: [
                 {
                   role: 'assistant',
@@ -982,7 +981,7 @@ describe('useQuestChatBinding', () => {
         proxy.deliverWsMessage({
           data: JSON.stringify({
             type: 'chat-history-complete',
-            payload: { chatProcessId: ProcessIdStub({ value: 'quest-replay-b' }) },
+            payload: { chatProcessId: 'quest-replay-b' },
             timestamp: '2025-01-01T00:00:00.000Z',
           }),
         });
@@ -1007,7 +1006,7 @@ describe('useQuestChatBinding', () => {
               questId: 'quest-replay-then-live',
               workItemId: QuestWorkItemIdStub(),
               replay: true,
-              chatProcessId: ProcessIdStub({ value: 'quest-replay-c' }),
+              chatProcessId: 'quest-replay-c',
               entries: [
                 {
                   role: 'assistant',
@@ -1024,7 +1023,7 @@ describe('useQuestChatBinding', () => {
         proxy.deliverWsMessage({
           data: JSON.stringify({
             type: 'chat-history-complete',
-            payload: { chatProcessId: ProcessIdStub({ value: 'quest-replay-c' }) },
+            payload: { chatProcessId: 'quest-replay-c' },
             timestamp: '2025-01-01T00:00:00.000Z',
           }),
         });
@@ -1034,7 +1033,7 @@ describe('useQuestChatBinding', () => {
             payload: {
               questId: 'quest-replay-then-live',
               workItemId: QuestWorkItemIdStub(),
-              chatProcessId: ProcessIdStub({ value: 'proc-live' }),
+              chatProcessId: 'proc-live',
               entries: [
                 {
                   role: 'assistant',
@@ -1067,7 +1066,7 @@ describe('useQuestChatBinding', () => {
           data: JSON.stringify({
             type: 'clarification-request',
             payload: {
-              chatProcessId: ProcessIdStub({ value: 'proc-c' }),
+              chatProcessId: 'proc-c',
               questions: [
                 {
                   question: 'Which DB?',
@@ -1103,7 +1102,7 @@ describe('useQuestChatBinding', () => {
       const message = 'Hi';
       const synthUuid = '00000000-0000-4000-8000-00000000000a';
       const synthTs = '2025-01-01T00:00:00.000Z';
-      proxy.setupChat({ chatProcessId: ProcessIdStub({ value: 'proc-send' }) });
+      proxy.setupChat({ chatProcessId: 'proc-send' });
       proxy.setupUuids({ uuids: [synthUuid] });
       proxy.setupTimestamps({ timestamps: [synthTs] });
 
@@ -1147,7 +1146,7 @@ describe('useQuestChatBinding', () => {
       const questId = QuestIdStub({ value: 'quest-send-image-1' });
       const message = 'Look at this [Pasted Image 1]';
       const image = PastedImageUploadStub({ mediaType: 'image/png' });
-      proxy.setupChat({ chatProcessId: ProcessIdStub({ value: 'proc-send-image' }) });
+      proxy.setupChat({ chatProcessId: 'proc-send-image' });
       proxy.setupUuids({ uuids: ['00000000-0000-4000-8000-000000000d01'] });
       proxy.setupTimestamps({ timestamps: ['2026-09-01T00:00:00.000Z'] });
 
@@ -1215,7 +1214,7 @@ describe('useQuestChatBinding', () => {
       const synthUuid = '00000000-0000-4000-8000-0000000000c1';
       const synthTs = '2026-07-01T12:00:00.000Z';
       proxy.setupCommentBatchSent({
-        chatProcessId: ProcessIdStub({ value: 'proc-comment-sent' }),
+        chatProcessId: 'proc-comment-sent',
         deliveredMessage: DELIVERED_COMMENT_MESSAGE,
       });
       proxy.setupUuids({ uuids: [synthUuid] });
@@ -1265,7 +1264,7 @@ describe('useQuestChatBinding', () => {
       proxy.setupConnectedChannel();
       const questId = QuestIdStub({ value: 'quest-comment-sent-2' });
       proxy.setupCommentBatchSentWithoutDeliveredMessage({
-        chatProcessId: ProcessIdStub({ value: 'proc-comment-bare' }),
+        chatProcessId: 'proc-comment-bare',
       });
 
       const { result } = renderHook(() => useQuestChatBinding({ questId }));
@@ -1399,7 +1398,7 @@ describe('useQuestChatBinding', () => {
       const message = 'Hello after pause';
       const pausedQuest = QuestStub({ id: questId, status: 'paused' });
       proxy.setupResume({ restoredStatus: 'in_progress' });
-      proxy.setupChat({ chatProcessId: ProcessIdStub({ value: 'proc-pr' }) });
+      proxy.setupChat({ chatProcessId: 'proc-pr' });
 
       const { result } = renderHook(() => useQuestChatBinding({ questId }));
 
@@ -1429,7 +1428,7 @@ describe('useQuestChatBinding', () => {
       const questId = QuestIdStub({ value: 'quest-pause-resume-2' });
       const message = 'Hello after pause';
       const pausedQuest = QuestStub({ id: questId, status: 'paused' });
-      proxy.setupChat({ chatProcessId: ProcessIdStub({ value: 'proc-pr-2' }) });
+      proxy.setupChat({ chatProcessId: 'proc-pr-2' });
       proxy.setupResumeServerError();
 
       const { result } = renderHook(() => useQuestChatBinding({ questId }));
@@ -1472,7 +1471,7 @@ describe('useQuestChatBinding', () => {
             payload: {
               questId: 'quest-complete-1',
               workItemId: QuestWorkItemIdStub(),
-              chatProcessId: ProcessIdStub({ value: 'proc-cc' }),
+              chatProcessId: 'proc-cc',
               entries: [{ role: 'assistant', type: 'text', content: 'streaming' }],
             },
             timestamp: '2025-01-01T00:00:00.000Z',
@@ -1482,7 +1481,7 @@ describe('useQuestChatBinding', () => {
           data: JSON.stringify({
             type: 'chat-complete',
             payload: {
-              chatProcessId: ProcessIdStub({ value: 'proc-cc' }),
+              chatProcessId: 'proc-cc',
               exitCode: 0,
               sessionId: SessionIdStub({ value: 'f47ac10b-58cc-4372-a567-0e02b2c3d479' }),
             },
@@ -1511,7 +1510,7 @@ describe('useQuestChatBinding', () => {
           data: JSON.stringify({
             type: 'chat-complete',
             payload: {
-              chatProcessId: ProcessIdStub({ value: 'proc-silent' }),
+              chatProcessId: 'proc-silent',
               exitCode: 0,
               sessionId: SessionIdStub({ value: 'f47ac10b-58cc-4372-a567-0e02b2c3d479' }),
             },
@@ -1562,7 +1561,7 @@ describe('useQuestChatBinding', () => {
       const proxy = useQuestChatBindingProxy();
       proxy.setupConnectedChannel();
       const questId = QuestIdStub({ value: 'quest-retained-completion' });
-      const chatProcessId = ProcessIdStub({ value: 'chat-first-message' });
+      const chatProcessId = 'chat-first-message';
 
       const { result } = renderHook(() => useQuestChatBinding({ questId }));
 
@@ -1610,7 +1609,7 @@ describe('useQuestChatBinding', () => {
           data: JSON.stringify({
             type: 'chat-complete',
             payload: {
-              chatProcessId: ProcessIdStub({ value: 'chat-an-earlier-turn' }),
+              chatProcessId: 'chat-an-earlier-turn',
               exitCode: 0,
               retained: true,
             },
@@ -1629,7 +1628,7 @@ describe('useQuestChatBinding', () => {
       const proxy = useQuestChatBindingProxy();
       proxy.setupConnectedChannel();
       const questId = QuestIdStub({ value: 'quest-foreign-complete' });
-      proxy.setupChat({ chatProcessId: ProcessIdStub({ value: 'proc-mine' }) });
+      proxy.setupChat({ chatProcessId: 'proc-mine' });
       proxy.setupUuids({ uuids: ['00000000-0000-4000-8000-0000000000f1'] });
       proxy.setupTimestamps({ timestamps: ['2026-08-05T00:00:00.000Z'] });
 
@@ -1647,7 +1646,7 @@ describe('useQuestChatBinding', () => {
           data: JSON.stringify({
             type: 'chat-complete',
             payload: {
-              chatProcessId: ProcessIdStub({ value: 'proc-someone-else' }),
+              chatProcessId: 'proc-someone-else',
               exitCode: 0,
               sessionId: SessionIdStub({ value: 'f47ac10b-58cc-4372-a567-0e02b2c3d479' }),
             },
@@ -1658,7 +1657,7 @@ describe('useQuestChatBinding', () => {
           data: JSON.stringify({
             type: 'chat-complete',
             payload: {
-              chatProcessId: ProcessIdStub({ value: 'proc-a-third-one' }),
+              chatProcessId: 'proc-a-third-one',
               exitCode: 0,
               sessionId: SessionIdStub({ value: 'f47ac10b-58cc-4372-a567-0e02b2c3d479' }),
             },
@@ -1673,7 +1672,7 @@ describe('useQuestChatBinding', () => {
           data: JSON.stringify({
             type: 'chat-complete',
             payload: {
-              chatProcessId: ProcessIdStub({ value: 'proc-mine' }),
+              chatProcessId: 'proc-mine',
               exitCode: 0,
               sessionId: SessionIdStub({ value: 'f47ac10b-58cc-4372-a567-0e02b2c3d479' }),
             },
@@ -1703,7 +1702,7 @@ describe('useQuestChatBinding', () => {
       const sessionId = SessionIdStub({ value: 'f47ac10b-58cc-4372-a567-0e02b2c3d479' });
       const entryUuid = '00000000-0000-4000-8000-0000000000e1';
       const entryTs = '2026-08-09T00:00:05.000Z';
-      proxy.setupChat({ chatProcessId: ProcessIdStub({ value: 'proc-ended' }) });
+      proxy.setupChat({ chatProcessId: 'proc-ended' });
       proxy.setupUuids({ uuids: ['00000000-0000-4000-8000-0000000000e0'] });
       proxy.setupTimestamps({ timestamps: ['2026-08-09T00:00:00.000Z'] });
 
@@ -1718,7 +1717,7 @@ describe('useQuestChatBinding', () => {
           data: JSON.stringify({
             type: 'chat-complete',
             payload: {
-              chatProcessId: ProcessIdStub({ value: 'proc-ended' }),
+              chatProcessId: 'proc-ended',
               exitCode: 0,
               sessionId,
             },
@@ -1739,7 +1738,7 @@ describe('useQuestChatBinding', () => {
             payload: {
               questId: 'quest-late-output',
               sessionId,
-              chatProcessId: ProcessIdStub({ value: 'proc-ended' }),
+              chatProcessId: 'proc-ended',
               entries: [
                 {
                   role: 'assistant',
@@ -1779,7 +1778,7 @@ describe('useQuestChatBinding', () => {
       proxy.setupConnectedChannel();
       const questId = QuestIdStub({ value: 'quest-new-turn-output' });
       const sessionId = SessionIdStub({ value: 'f47ac10b-58cc-4372-a567-0e02b2c3d479' });
-      proxy.setupChat({ chatProcessId: ProcessIdStub({ value: 'proc-first' }) });
+      proxy.setupChat({ chatProcessId: 'proc-first' });
       proxy.setupUuids({ uuids: ['00000000-0000-4000-8000-0000000000e2'] });
       proxy.setupTimestamps({ timestamps: ['2026-08-09T00:00:00.000Z'] });
 
@@ -1794,7 +1793,7 @@ describe('useQuestChatBinding', () => {
           data: JSON.stringify({
             type: 'chat-complete',
             payload: {
-              chatProcessId: ProcessIdStub({ value: 'proc-first' }),
+              chatProcessId: 'proc-first',
               exitCode: 0,
               sessionId,
             },
@@ -1813,7 +1812,7 @@ describe('useQuestChatBinding', () => {
             payload: {
               questId: 'quest-new-turn-output',
               sessionId,
-              chatProcessId: ProcessIdStub({ value: 'proc-second' }),
+              chatProcessId: 'proc-second',
               entries: [
                 {
                   role: 'assistant',
@@ -1867,7 +1866,7 @@ describe('useQuestChatBinding', () => {
       const proxy = useQuestChatBindingProxy();
       proxy.setupConnectedChannel();
       const questId = QuestIdStub({ value: 'quest-clarify-submit-1' });
-      proxy.setupClarify({ chatProcessId: ProcessIdStub({ value: 'proc-clar' }) });
+      proxy.setupClarify({ chatProcessId: 'proc-clar' });
       const stub = AskUserQuestionStub();
 
       const { result } = renderHook(() => useQuestChatBinding({ questId }));
@@ -1923,7 +1922,7 @@ describe('useQuestChatBinding', () => {
             payload: {
               questId: 'quest-nosession-1',
               workItemId: QuestWorkItemIdStub(),
-              chatProcessId: ProcessIdStub({ value: 'proc-ns' }),
+              chatProcessId: 'proc-ns',
               entries: [
                 {
                   role: 'assistant',
@@ -2032,7 +2031,7 @@ describe('useQuestChatBinding', () => {
               questId: 'quest-reconnect-1',
               workItemId: QuestWorkItemIdStub(),
               sessionId,
-              chatProcessId: ProcessIdStub({ value: 'proc-reconnect' }),
+              chatProcessId: 'proc-reconnect',
               entries: [
                 {
                   role: 'assistant',
@@ -2163,7 +2162,7 @@ describe('useQuestChatBinding', () => {
       const questId1 = QuestIdStub({ value: 'quest-followup-carry-old' });
       const questId2 = QuestIdStub({ value: 'quest-followup-carry-new' });
       const message = 'What did this quest change?';
-      proxy.setupFollowup({ chatProcessId: ProcessIdStub({ value: 'proc-followup-carry' }) });
+      proxy.setupFollowup({ chatProcessId: 'proc-followup-carry' });
       proxy.setupUuids({ uuids: ['00000000-0000-4000-8000-000000000601'] });
       proxy.setupTimestamps({ timestamps: ['2026-08-09T00:00:00.000Z'] });
 
@@ -2206,7 +2205,7 @@ describe('useQuestChatBinding', () => {
       const message = 'Show me what changed';
       const synthUuid = '00000000-0000-4000-8000-000000000301';
       const synthTs = '2026-08-09T00:00:00.000Z';
-      proxy.setupFollowup({ chatProcessId: ProcessIdStub({ value: 'proc-followup-post' }) });
+      proxy.setupFollowup({ chatProcessId: 'proc-followup-post' });
       proxy.setupUuids({ uuids: [synthUuid] });
       proxy.setupTimestamps({ timestamps: [synthTs] });
 
@@ -2337,7 +2336,7 @@ describe('useQuestChatBinding', () => {
       const secondUuid = '00000000-0000-4000-8000-000000000307';
       const firstTs = '2026-08-09T00:00:05.000Z';
       const secondTs = '2026-08-09T00:00:06.000Z';
-      proxy.setupFollowup({ chatProcessId: ProcessIdStub({ value: 'proc-followup-first' }) });
+      proxy.setupFollowup({ chatProcessId: 'proc-followup-first' });
       proxy.setupUuids({ uuids: [firstUuid, secondUuid] });
       proxy.setupTimestamps({ timestamps: [firstTs, secondTs] });
 
@@ -2448,7 +2447,7 @@ describe('useQuestChatBinding', () => {
             payload: {
               questId: 'quest-followup-stream-1',
               workItemId: QuestWorkItemIdStub(),
-              chatProcessId: ProcessIdStub({ value: 'proc-followup-stream' }),
+              chatProcessId: 'proc-followup-stream',
               entries: [
                 {
                   role: 'assistant',
@@ -2510,7 +2509,7 @@ describe('useQuestChatBinding', () => {
             payload: {
               questId: 'quest-followup-turn-end-1',
               workItemId: QuestWorkItemIdStub(),
-              chatProcessId: ProcessIdStub({ value: 'proc-followup-turn-end' }),
+              chatProcessId: 'proc-followup-turn-end',
               entries: [
                 {
                   role: 'assistant',
@@ -2532,7 +2531,7 @@ describe('useQuestChatBinding', () => {
           data: JSON.stringify({
             type: 'chat-complete',
             payload: {
-              chatProcessId: ProcessIdStub({ value: 'proc-followup-turn-end' }),
+              chatProcessId: 'proc-followup-turn-end',
               exitCode: 0,
               sessionId: tavernkeeperSessionId,
             },
@@ -2576,7 +2575,7 @@ describe('useQuestChatBinding', () => {
             payload: {
               questId: 'quest-followup-complete-status-1',
               workItemId: QuestWorkItemIdStub(),
-              chatProcessId: ProcessIdStub({ value: 'proc-followup-complete' }),
+              chatProcessId: 'proc-followup-complete',
               entries: [
                 {
                   role: 'assistant',
@@ -2598,7 +2597,7 @@ describe('useQuestChatBinding', () => {
           data: JSON.stringify({
             type: 'chat-complete',
             payload: {
-              chatProcessId: ProcessIdStub({ value: 'proc-followup-complete' }),
+              chatProcessId: 'proc-followup-complete',
               exitCode: 0,
               sessionId: tavernkeeperSessionId,
             },
@@ -2642,7 +2641,7 @@ describe('useQuestChatBinding', () => {
             payload: {
               questId: 'quest-followup-merged-status-1',
               workItemId: QuestWorkItemIdStub(),
-              chatProcessId: ProcessIdStub({ value: 'proc-followup-merged' }),
+              chatProcessId: 'proc-followup-merged',
               entries: [
                 {
                   role: 'assistant',
@@ -2664,7 +2663,7 @@ describe('useQuestChatBinding', () => {
           data: JSON.stringify({
             type: 'chat-complete',
             payload: {
-              chatProcessId: ProcessIdStub({ value: 'proc-followup-merged' }),
+              chatProcessId: 'proc-followup-merged',
               exitCode: 0,
               sessionId: tavernkeeperSessionId,
             },
@@ -2695,8 +2694,8 @@ describe('useQuestChatBinding', () => {
       const followupUuid = '00000000-0000-4000-8000-000000000502';
       const mainTs = '2026-08-09T00:00:00.000Z';
       const followupTs = '2026-08-09T00:00:01.000Z';
-      proxy.setupChat({ chatProcessId: ProcessIdStub({ value: 'proc-main-isolation' }) });
-      proxy.setupFollowup({ chatProcessId: ProcessIdStub({ value: 'proc-followup-isolation' }) });
+      proxy.setupChat({ chatProcessId: 'proc-main-isolation' });
+      proxy.setupFollowup({ chatProcessId: 'proc-followup-isolation' });
       proxy.setupUuids({ uuids: [mainUuid, followupUuid] });
       proxy.setupTimestamps({ timestamps: [mainTs, followupTs] });
 
@@ -2787,7 +2786,7 @@ describe('useQuestChatBinding', () => {
             payload: {
               questId: 'quest-followup-scope-1',
               workItemId: codeweaverWorkItemId,
-              chatProcessId: ProcessIdStub({ value: 'proc-codeweaver-scope' }),
+              chatProcessId: 'proc-codeweaver-scope',
               entries: [
                 {
                   role: 'assistant',
@@ -2821,7 +2820,7 @@ describe('useQuestChatBinding', () => {
       const proxy = useQuestChatBindingProxy();
       proxy.setupConnectedChannel();
       const questId = QuestIdStub({ value: 'quest-followup-scope-2' });
-      proxy.setupFollowup({ chatProcessId: ProcessIdStub({ value: 'proc-tavernkeeper-live' }) });
+      proxy.setupFollowup({ chatProcessId: 'proc-tavernkeeper-live' });
       proxy.setupUuids({ uuids: ['00000000-0000-4000-8000-0000000000c4'] });
       proxy.setupTimestamps({ timestamps: ['2026-08-09T00:00:00.000Z'] });
 
@@ -2839,7 +2838,7 @@ describe('useQuestChatBinding', () => {
           data: JSON.stringify({
             type: 'chat-complete',
             payload: {
-              chatProcessId: ProcessIdStub({ value: 'proc-somebody-else' }),
+              chatProcessId: 'proc-somebody-else',
               exitCode: 0,
             },
             timestamp: '2026-08-09T00:00:01.000Z',
@@ -2853,7 +2852,7 @@ describe('useQuestChatBinding', () => {
           data: JSON.stringify({
             type: 'chat-complete',
             payload: {
-              chatProcessId: ProcessIdStub({ value: 'proc-tavernkeeper-live' }),
+              chatProcessId: 'proc-tavernkeeper-live',
               exitCode: 0,
             },
             timestamp: '2026-08-09T00:00:02.000Z',
@@ -2917,7 +2916,7 @@ describe('useQuestChatBinding', () => {
       const proxy = useQuestChatBindingProxy();
       proxy.setupConnectedChannel();
       const questId = QuestIdStub({ value: 'quest-followup-stop-fail' });
-      proxy.setupFollowup({ chatProcessId: ProcessIdStub({ value: 'proc-followup-stop-fail' }) });
+      proxy.setupFollowup({ chatProcessId: 'proc-followup-stop-fail' });
       proxy.setupFollowupStopError();
       proxy.setupUuids({ uuids: ['00000000-0000-4000-8000-0000000000c7'] });
       proxy.setupTimestamps({ timestamps: ['2026-08-09T00:00:00.000Z'] });
@@ -2948,8 +2947,8 @@ describe('useQuestChatBinding', () => {
       const proxy = useQuestChatBindingProxy();
       proxy.setupConnectedChannel();
       const questId = QuestIdStub({ value: 'quest-followup-scope-3' });
-      proxy.setupChat({ chatProcessId: ProcessIdStub({ value: 'proc-main-scope-3' }) });
-      proxy.setupFollowup({ chatProcessId: ProcessIdStub({ value: 'proc-followup-scope-3' }) });
+      proxy.setupChat({ chatProcessId: 'proc-main-scope-3' });
+      proxy.setupFollowup({ chatProcessId: 'proc-followup-scope-3' });
       proxy.setupUuids({
         uuids: ['00000000-0000-4000-8000-0000000000c5', '00000000-0000-4000-8000-0000000000c6'],
       });
@@ -2992,7 +2991,7 @@ describe('useQuestChatBinding', () => {
       const optimisticTs = '2026-09-02T00:00:00.000Z';
       const deliveredUuid = '00000000-0000-4000-8000-000000000702';
       const deliveredTs = '2026-09-02T00:00:01.000Z';
-      proxy.setupChat({ chatProcessId: ProcessIdStub({ value: 'proc-dedupe-plain-1' }) });
+      proxy.setupChat({ chatProcessId: 'proc-dedupe-plain-1' });
       proxy.setupUuids({ uuids: [optimisticUuid] });
       proxy.setupTimestamps({ timestamps: [optimisticTs] });
 
@@ -3009,7 +3008,7 @@ describe('useQuestChatBinding', () => {
             payload: {
               questId: 'quest-dedupe-plain-1',
               sessionId,
-              chatProcessId: ProcessIdStub({ value: 'proc-dedupe-plain-1' }),
+              chatProcessId: 'proc-dedupe-plain-1',
               entries: [
                 {
                   role: 'user',
@@ -3046,7 +3045,7 @@ describe('useQuestChatBinding', () => {
       const deliveredUuid = '00000000-0000-4000-8000-000000000704';
       const deliveredTs = '2026-09-02T00:00:01.000Z';
       const image = PastedImageUploadStub({ mediaType: 'image/png' });
-      proxy.setupChat({ chatProcessId: ProcessIdStub({ value: 'proc-dedupe-image-1' }) });
+      proxy.setupChat({ chatProcessId: 'proc-dedupe-image-1' });
       proxy.setupUuids({ uuids: [optimisticUuid] });
       proxy.setupTimestamps({ timestamps: [optimisticTs] });
 
@@ -3068,7 +3067,7 @@ describe('useQuestChatBinding', () => {
             payload: {
               questId: 'quest-dedupe-image-1',
               sessionId,
-              chatProcessId: ProcessIdStub({ value: 'proc-dedupe-image-1' }),
+              chatProcessId: 'proc-dedupe-image-1',
               entries: [
                 {
                   role: 'user',
@@ -3105,7 +3104,7 @@ describe('useQuestChatBinding', () => {
       const optimisticTs = '2026-09-02T00:00:00.000Z';
       const deliveredUuid = '00000000-0000-4000-8000-000000000711';
       const deliveredTs = '2026-09-02T00:00:01.000Z';
-      proxy.setupChat({ chatProcessId: ProcessIdStub({ value: 'proc-dedupe-screenshot-1' }) });
+      proxy.setupChat({ chatProcessId: 'proc-dedupe-screenshot-1' });
       proxy.setupUuids({ uuids: [optimisticUuid] });
       proxy.setupTimestamps({ timestamps: [optimisticTs] });
 
@@ -3126,7 +3125,7 @@ describe('useQuestChatBinding', () => {
             payload: {
               questId: 'quest-dedupe-screenshot-1',
               sessionId,
-              chatProcessId: ProcessIdStub({ value: 'proc-dedupe-screenshot-1' }),
+              chatProcessId: 'proc-dedupe-screenshot-1',
               entries: [
                 {
                   role: 'user',
@@ -3161,7 +3160,7 @@ describe('useQuestChatBinding', () => {
       const questId = QuestIdStub({ value: 'quest-dedupe-no-twin-1' });
       const optimisticUuid = '00000000-0000-4000-8000-000000000705';
       const optimisticTs = '2026-09-02T00:00:00.000Z';
-      proxy.setupChat({ chatProcessId: ProcessIdStub({ value: 'proc-dedupe-no-twin-1' }) });
+      proxy.setupChat({ chatProcessId: 'proc-dedupe-no-twin-1' });
       proxy.setupUuids({ uuids: [optimisticUuid] });
       proxy.setupTimestamps({ timestamps: [optimisticTs] });
 
@@ -3192,7 +3191,7 @@ describe('useQuestChatBinding', () => {
       const optimisticTs = '2026-09-02T00:00:00.000Z';
       const deliveredUuid = '00000000-0000-4000-8000-000000000707';
       const deliveredTs = '2026-09-02T00:00:01.000Z';
-      proxy.setupChat({ chatProcessId: ProcessIdStub({ value: 'proc-dedupe-different-1' }) });
+      proxy.setupChat({ chatProcessId: 'proc-dedupe-different-1' });
       proxy.setupUuids({ uuids: [optimisticUuid] });
       proxy.setupTimestamps({ timestamps: [optimisticTs] });
 
@@ -3209,7 +3208,7 @@ describe('useQuestChatBinding', () => {
             payload: {
               questId: 'quest-dedupe-different-1',
               sessionId,
-              chatProcessId: ProcessIdStub({ value: 'proc-dedupe-different-1' }),
+              chatProcessId: 'proc-dedupe-different-1',
               entries: [
                 {
                   role: 'user',
@@ -3264,7 +3263,7 @@ describe('useQuestChatBinding', () => {
             payload: {
               questId: 'quest-dedupe-wire-1',
               sessionId,
-              chatProcessId: ProcessIdStub({ value: 'proc-dedupe-wire-replay' }),
+              chatProcessId: 'proc-dedupe-wire-replay',
               entries: [
                 {
                   role: 'assistant',
@@ -3289,7 +3288,7 @@ describe('useQuestChatBinding', () => {
             type: 'chat-output',
             payload: {
               questId: 'quest-dedupe-wire-1',
-              chatProcessId: ProcessIdStub({ value: 'proc-dedupe-wire-live' }),
+              chatProcessId: 'proc-dedupe-wire-live',
               entries: [
                 {
                   role: 'assistant',
@@ -3343,7 +3342,7 @@ describe('useQuestChatBinding', () => {
       const imageA = PastedImageUploadStub({ mediaType: 'image/png', dataBase64: 'iVBORw0KGgo=' });
       const imageB = PastedImageUploadStub({ mediaType: 'image/jpeg', dataBase64: 'aGVsbG8=' });
       const stagedUuid = '00000000-0000-4000-8000-000000000801';
-      proxy.setupChat({ chatProcessId: ProcessIdStub({ value: 'proc-remember-images-1' }) });
+      proxy.setupChat({ chatProcessId: 'proc-remember-images-1' });
       proxy.setupUuids({ uuids: [stagedUuid] });
       proxy.setupTimestamps({ timestamps: ['2026-09-02T00:00:00.000Z'] });
 
@@ -3370,7 +3369,7 @@ describe('useQuestChatBinding', () => {
       proxy.setupConnectedChannel();
       const questId = QuestIdStub({ value: 'quest-remember-images-none-1' });
       const stagedUuid = '00000000-0000-4000-8000-000000000802';
-      proxy.setupChat({ chatProcessId: ProcessIdStub({ value: 'proc-remember-images-none-1' }) });
+      proxy.setupChat({ chatProcessId: 'proc-remember-images-none-1' });
       proxy.setupUuids({ uuids: [stagedUuid] });
       proxy.setupTimestamps({ timestamps: ['2026-09-02T00:00:00.000Z'] });
 
@@ -3395,7 +3394,7 @@ describe('useQuestChatBinding', () => {
       const image = PastedImageUploadStub({ mediaType: 'image/webp', dataBase64: 'aGVsbG8=' });
       const stagedUuid = '00000000-0000-4000-8000-000000000803';
       proxy.setupFollowup({
-        chatProcessId: ProcessIdStub({ value: 'proc-remember-images-followup-1' }),
+        chatProcessId: 'proc-remember-images-followup-1',
       });
       proxy.setupUuids({ uuids: [stagedUuid] });
       proxy.setupTimestamps({ timestamps: ['2026-09-02T00:00:00.000Z'] });
@@ -3427,7 +3426,7 @@ describe('useQuestChatBinding', () => {
       const deliveredUuid = '00000000-0000-4000-8000-000000000902';
       const deliveredTs = '2026-09-02T00:00:01.000Z';
       const image = PastedImageUploadStub({ mediaType: 'image/png' });
-      proxy.setupChat({ chatProcessId: ProcessIdStub({ value: 'proc-forget-images-1' }) });
+      proxy.setupChat({ chatProcessId: 'proc-forget-images-1' });
       proxy.setupUuids({ uuids: [stagedUuid] });
       proxy.setupTimestamps({ timestamps: [stagedTs] });
 
@@ -3449,7 +3448,7 @@ describe('useQuestChatBinding', () => {
             payload: {
               questId: 'quest-forget-images-1',
               sessionId,
-              chatProcessId: ProcessIdStub({ value: 'proc-forget-images-1' }),
+              chatProcessId: 'proc-forget-images-1',
               entries: [
                 {
                   role: 'user',
@@ -3491,7 +3490,7 @@ describe('useQuestChatBinding', () => {
       const stagedUuid = '00000000-0000-4000-8000-000000000903';
       const stagedTs = '2026-09-02T00:00:00.000Z';
       const image = PastedImageUploadStub({ mediaType: 'image/png' });
-      proxy.setupChat({ chatProcessId: ProcessIdStub({ value: 'proc-forget-images-none-1' }) });
+      proxy.setupChat({ chatProcessId: 'proc-forget-images-none-1' });
       proxy.setupUuids({ uuids: [stagedUuid] });
       proxy.setupTimestamps({ timestamps: [stagedTs] });
 
@@ -3544,7 +3543,7 @@ describe('useQuestChatBinding', () => {
       const deliveredTs = '2026-09-02T00:00:01.000Z';
       const image = PastedImageUploadStub({ mediaType: 'image/png' });
       proxy.setupFollowup({
-        chatProcessId: ProcessIdStub({ value: 'proc-forget-images-followup-1' }),
+        chatProcessId: 'proc-forget-images-followup-1',
       });
       proxy.setupUuids({ uuids: [stagedUuid] });
       proxy.setupTimestamps({ timestamps: [stagedTs] });
@@ -3577,7 +3576,7 @@ describe('useQuestChatBinding', () => {
             payload: {
               questId: 'quest-forget-images-followup-1',
               workItemId: QuestWorkItemIdStub(),
-              chatProcessId: ProcessIdStub({ value: 'proc-forget-images-followup-1' }),
+              chatProcessId: 'proc-forget-images-followup-1',
               entries: [
                 {
                   role: 'user',
@@ -3623,7 +3622,7 @@ describe('useQuestChatBinding', () => {
       const questId2 = QuestIdStub({ value: 'quest-forget-images-switch-new' });
       const stagedUuid = '00000000-0000-4000-8000-000000000906';
       const image = PastedImageUploadStub({ mediaType: 'image/png' });
-      proxy.setupFollowup({ chatProcessId: ProcessIdStub({ value: 'proc-forget-images-switch' }) });
+      proxy.setupFollowup({ chatProcessId: 'proc-forget-images-switch' });
       proxy.setupUuids({ uuids: [stagedUuid] });
       proxy.setupTimestamps({ timestamps: ['2026-09-02T00:00:00.000Z'] });
 
@@ -3682,9 +3681,9 @@ describe('useQuestChatBinding', () => {
       const followupUuid = '00000000-0000-4000-8000-000000000908';
       const mainImage = PastedImageUploadStub({ mediaType: 'image/png' });
       const followupImage = PastedImageUploadStub({ mediaType: 'image/jpeg' });
-      proxy.setupChat({ chatProcessId: ProcessIdStub({ value: 'proc-forget-images-keep-main' }) });
+      proxy.setupChat({ chatProcessId: 'proc-forget-images-keep-main' });
       proxy.setupFollowup({
-        chatProcessId: ProcessIdStub({ value: 'proc-forget-images-keep-followup' }),
+        chatProcessId: 'proc-forget-images-keep-followup',
       });
       proxy.setupUuids({ uuids: [mainUuid, followupUuid] });
       proxy.setupTimestamps({ timestamps: [mainTs, '2026-09-02T00:00:01.000Z'] });

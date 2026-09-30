@@ -1,6 +1,5 @@
 import { stderr } from '#gateway/node/process';
 import { randomUUID } from '#gateway/node/crypto';
-import type { ProcessId } from '@dungeonmaster/shared/contracts';
 import type { QuestStub } from '@dungeonmaster/shared/contracts/quest/quest.stub';
 import { GuildConfigStub } from '@dungeonmaster/shared/contracts/guild-config/guild-config.stub';
 import { GuildIdStub } from '@dungeonmaster/shared/contracts/guild-id/guild-id.stub';
@@ -74,7 +73,7 @@ export const OrchestrationResumeResponderProxy = (): {
   getAllPersistedContents: () => readonly unknown[];
   getLastPersistedQuest: () => ReturnType<typeof questContract.parse>;
   getPersistedQuestAt: (params: { index: number }) => ReturnType<typeof questContract.parse>;
-  getRegisteredProcessIds: () => readonly ProcessId[];
+  getRegisteredProcessIds: () => readonly string[];
   getEmittedResumeEvents: () => readonly CapturedOrchestrationEmit[];
 } => {
   const getProxy = questGetBrokerProxy();
@@ -320,7 +319,7 @@ export const OrchestrationResumeResponderProxy = (): {
       return questContract.parse(JSON.parse(String(persisted[index])));
     },
 
-    getRegisteredProcessIds: (): readonly ProcessId[] => orchestrationProcessesState.getAll(),
+    getRegisteredProcessIds: (): readonly string[] => orchestrationProcessesState.getAll(),
 
     getEmittedResumeEvents: (): readonly CapturedOrchestrationEmit[] => emittedResumeEvents,
   };

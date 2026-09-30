@@ -12,7 +12,6 @@
  * // Returns { stop } — call stop() to tear down (test cleanup or process shutdown).
  */
 
-import type { ProcessId } from '@dungeonmaster/shared/contracts';
 
 import type { ProcessActivity } from '../../../contracts/process-activity/process-activity-contract';
 import { processStaleThresholdStatics } from '../../../statics/process-stale-threshold/process-stale-threshold-statics';
@@ -26,10 +25,10 @@ export const processStaleWatchBroker = ({
   intervalMs = processStaleThresholdStatics.tickIntervalMs,
   thresholdMs = processStaleThresholdStatics.thresholdMs,
 }: {
-  getProcessIds: () => ProcessId[];
-  getActivity: (params: { processId: ProcessId }) => ProcessActivity | undefined;
+  getProcessIds: () => string[];
+  getActivity: (params: { processId: string }) => ProcessActivity | undefined;
   onStale: (params: {
-    processId: ProcessId;
+    processId: string;
     silentForMs: number;
     pid: number | undefined;
     alive: boolean | undefined;

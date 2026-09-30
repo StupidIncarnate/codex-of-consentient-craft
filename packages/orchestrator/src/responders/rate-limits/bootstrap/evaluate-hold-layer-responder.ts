@@ -26,7 +26,6 @@
  */
 
 import { stderr } from '#gateway/node/process';
-import { processIdContract } from '@dungeonmaster/shared/contracts';
 
 import { dispatchHoldEvaluateBroker } from '../../../brokers/dispatch-hold/evaluate/dispatch-hold-evaluate-broker';
 import { usageLedgerScanBroker } from '../../../brokers/usage-ledger/scan/usage-ledger-scan-broker';
@@ -37,7 +36,7 @@ import { rateLimitsState } from '../../../state/rate-limits/rate-limits-state';
 import { usageLedgerScanFlightState } from '../../../state/usage-ledger-scan-flight/usage-ledger-scan-flight-state';
 import { usageLedgerToSnapshotTransformer } from '../../../transformers/usage-ledger-to-snapshot/usage-ledger-to-snapshot-transformer';
 
-const MEASURE_PROCESS_ID = processIdContract.parse('rate-limits-measure');
+const MEASURE_PROCESS_ID = 'rate-limits-measure';
 
 export const EvaluateHoldLayerResponder = (): void => {
   const nowMs = Date.now();

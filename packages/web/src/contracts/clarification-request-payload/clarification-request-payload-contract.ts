@@ -8,10 +8,9 @@
 
 import { z } from '#gateway/npm/zod';
 
-import { processIdContract } from '@dungeonmaster/shared/contracts';
 
 export const clarificationRequestPayloadContract = z.object({
-  chatProcessId: processIdContract,
+  chatProcessId: z.string().min(1).brand<'ClarificationRequestPayloadChatProcessId'>(),
   questions: z.unknown(),
 });
 

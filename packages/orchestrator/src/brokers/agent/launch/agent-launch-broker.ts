@@ -19,8 +19,7 @@
  * });
  */
 
-import type { ChatEntry, ProcessId, Quest, WorkItem, Session } from '@dungeonmaster/shared/contracts';
-import { processIdContract } from '@dungeonmaster/shared/contracts';
+import type { ChatEntry, Quest, WorkItem, Session } from '@dungeonmaster/shared/contracts';
 import { randomUUID } from '#gateway/node/crypto';
 import { stderr } from '#gateway/node/process';
 
@@ -66,15 +65,15 @@ export const agentLaunchBroker = ({
   disableToolSearch?: boolean;
 
   onEntries: (params: {
-    chatProcessId: ProcessId;
+    chatProcessId: string;
     entries: ChatEntry[];
     sessionId: Session['id'] | undefined;
   }) => void;
-  onText: (params: { chatProcessId: ProcessId; text: string }) => void;
-  onSignal: (params: { chatProcessId: ProcessId; signal: StreamSignal }) => void;
-  onSessionId: (params: { chatProcessId: ProcessId; sessionId: Session['id'] }) => void;
+  onText: (params: { chatProcessId: string; text: string }) => void;
+  onSignal: (params: { chatProcessId: string; signal: StreamSignal }) => void;
+  onSessionId: (params: { chatProcessId: string; sessionId: Session['id'] }) => void;
   onComplete: (params: {
-    chatProcessId: ProcessId;
+    chatProcessId: string;
     exitCode: number | null;
     sessionId: Session['id'] | null;
   }) => void;
@@ -86,7 +85,7 @@ export const agentLaunchBroker = ({
   // Optional: orchestration-loop layer brokers do not register per-work-item today (the
   // loop-level processId carries the kill switch); only chat-spawn sites register.
   registerProcess?: (params: {
-    processId: ProcessId;
+    processId: string;
     questId: Quest['id'];
     questWorkItemId: WorkItem['id'];
     kill: () => void;
@@ -97,8 +96,8 @@ export const agentLaunchBroker = ({
   // hooks on every line (recordActivity) and once the spawn's OS pid is known
   // (setMetadata). The `processStaleWatchBroker` reads `getActivity({ processId })` to
   // decide whether a registered process has gone silent.
-  recordActivity?: (params: { processId: ProcessId }) => void;
-  setMetadata?: (params: { processId: ProcessId; osPid?: number }) => void;
+  recordActivity?: (params: { processId: string }) => void;
+  setMetadata?: (params: { processId: string; osPid?: number }) => void;
 
   abortSignal?: AbortSignal;
 
@@ -108,12 +107,12 @@ export const agentLaunchBroker = ({
   // orchestration-loop roles never receive pasted images.
   addDir?: string;
 }): {
-  processId: ProcessId;
+  processId: string;
   handle: ReturnType<typeof chatStreamProcessHandleBroker>;
   kill: () => void;
   sessionId$: Promise<Session['id'] | null>;
 } => {
-  const processId = processIdContract.parse(`${processIdPrefix}-${randomUUID()}`);
+  const processId = `${processIdPrefix}-${randomUUID()}`;
 
   // Tail stop slot for post-exit JSONL appends. Wired lazily inside the spawn's
   // `onComplete` (after the CLI exits, when the file has been fully written by the live

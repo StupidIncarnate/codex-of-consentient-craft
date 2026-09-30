@@ -1,4 +1,3 @@
-import { ProcessIdStub } from '@dungeonmaster/shared/contracts/process-id/process-id.stub';
 import { QuestIdStub } from '@dungeonmaster/shared/contracts/quest-id/quest-id.stub';
 import { QuestStub } from '@dungeonmaster/shared/contracts/quest/quest.stub';
 import { QuestWorkItemIdStub } from '@dungeonmaster/shared/contracts/quest-work-item-id/quest-work-item-id.stub';
@@ -25,7 +24,7 @@ describe('FollowupChatStopResponder', () => {
       proxy.setupQuestFound({ quest });
       const kill = proxy.setupRunningProcessFor({
         quest,
-        processId: ProcessIdStub({ value: 'proc-tavernkeeper-stop' }),
+        processId: 'proc-tavernkeeper-stop',
         questId,
         workItemIndex: 0,
       });
@@ -63,7 +62,7 @@ describe('FollowupChatStopResponder', () => {
       proxy.setupQuestFound({ quest });
       const siblingKill = proxy.setupRunningProcessFor({
         quest,
-        processId: ProcessIdStub({ value: 'proc-codeweaver-running' }),
+        processId: 'proc-codeweaver-running',
         questId,
         workItemIndex: 1,
       });

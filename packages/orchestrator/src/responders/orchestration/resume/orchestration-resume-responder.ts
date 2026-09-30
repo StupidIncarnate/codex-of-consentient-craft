@@ -28,7 +28,7 @@ import { AbortController } from '#gateway/node/AbortController';
 import { randomUUID } from '#gateway/node/crypto';
 import type { QuestStatus, ModifyQuestInput, Quest, Session } from '@dungeonmaster/shared/contracts';
 
-import { getQuestInputContract, modifyQuestInputContract, processIdContract } from '@dungeonmaster/shared/contracts';
+import { getQuestInputContract, modifyQuestInputContract } from '@dungeonmaster/shared/contracts';
 
 import { buildOrchestrationLoopOnAgentEntryTransformer } from '../../../transformers/build-orchestration-loop-on-agent-entry/build-orchestration-loop-on-agent-entry-transformer';
 import { questResumeRearmWorkItemsTransformer } from '../../../transformers/quest-resume-rearm-work-items/quest-resume-rearm-work-items-transformer';
@@ -49,6 +49,7 @@ import { worktreeEnsureQuestBranchBroker } from '../../../brokers/worktree/ensur
 import { questResumeTriggerContract } from '../../../contracts/quest-resume-trigger/quest-resume-trigger-contract';
 import { orchestrationEventsState } from '../../../state/orchestration-events/orchestration-events-state';
 import { orchestrationProcessesState } from '../../../state/orchestration-processes/orchestration-processes-state';
+import { orchestrationProcessContract } from '../../../contracts/orchestration-process/orchestration-process-contract';
 
 // Note: this launch body is intentionally aligned with the matching block inside
 // RecoverGuildLayerResponder. The extraction target (a shared per-quest recovery responder
@@ -158,7 +159,7 @@ export const OrchestrationResumeResponder = async ({
 
   const reloaded = reloadedResult.quest;
 
-  const announcementProcessId = processIdContract.parse(`proc-resume-${randomUUID()}`);
+  const announcementProcessId = `proc-resume-${randomUUID()}`;
   orchestrationEventsState.emit({
     type: 'quest-resumed',
     processId: announcementProcessId,
@@ -200,17 +201,17 @@ export const OrchestrationResumeResponder = async ({
     await questModifyBroker({ input: resetInput });
   }
 
-  const processId = processIdContract.parse(`proc-recovery-${randomUUID()}`);
+  const processId = `proc-recovery-${randomUUID()}`;
   const abortController = new AbortController();
 
   orchestrationProcessesState.register({
-    orchestrationProcess: {
+    orchestrationProcess: orchestrationProcessContract.shape.processId.parse(orchestrationProcessContract.shape.processId.parse(orchestrationProcessContract.parse({
       processId,
       questId: reloaded.id,
       kill: (): void => {
         abortController.abort();
       },
-    },
+    }))),
   });
 
   // Per-slot sessionId memo — sessionId arrives on a later emission than the first entries, so memo the latest per slot.

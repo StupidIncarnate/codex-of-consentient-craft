@@ -12,10 +12,10 @@
 
 import { z } from '#gateway/npm/zod';
 
-import { processIdContract, sessionContract } from '@dungeonmaster/shared/contracts';
+import { sessionContract } from '@dungeonmaster/shared/contracts';
 
 export const chatCompletePayloadContract = z.object({
-  chatProcessId: processIdContract,
+  chatProcessId: z.string().min(1).brand<'ChatCompletePayloadChatProcessId'>(),
   sessionId: sessionContract.shape.id.optional().catch(undefined),
   retained: z.boolean().optional(),
 });

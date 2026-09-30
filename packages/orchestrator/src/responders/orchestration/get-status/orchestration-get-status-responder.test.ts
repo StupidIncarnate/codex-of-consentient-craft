@@ -1,4 +1,3 @@
-import { ProcessIdStub } from '@dungeonmaster/shared/contracts/process-id/process-id.stub';
 
 import { OrchestrationProcessStub } from '../../../contracts/orchestration-process/orchestration-process.stub';
 import { OrchestrationGetStatusResponderProxy } from './orchestration-get-status-responder.proxy';
@@ -6,7 +5,7 @@ import { OrchestrationGetStatusResponderProxy } from './orchestration-get-status
 describe('OrchestrationGetStatusResponder', () => {
   describe('process found', () => {
     it('VALID: {processId} => returns orchestration status for registered process', () => {
-      const processId = ProcessIdStub({ value: 'proc-test-123' });
+      const processId = 'proc-test-123';
       const orchestrationProcess = OrchestrationProcessStub({
         processId,
         questId: 'add-auth',
@@ -29,7 +28,7 @@ describe('OrchestrationGetStatusResponder', () => {
 
   describe('process not found', () => {
     it('ERROR: {unknown processId} => throws process not found error', () => {
-      const processId = ProcessIdStub({ value: 'proc-nonexistent' });
+      const processId = 'proc-nonexistent';
       const proxy = OrchestrationGetStatusResponderProxy();
       proxy.setupEmpty();
 

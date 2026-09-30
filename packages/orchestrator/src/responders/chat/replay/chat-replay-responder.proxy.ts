@@ -1,6 +1,6 @@
 import { randomUUID } from '#gateway/node/crypto';
 import { isFsErrorProxy } from '#gateway/node/fs/is-fs-error/is-fs-error.proxy';
-import type { OrchestrationEventType, ProcessId } from '@dungeonmaster/shared/contracts';
+import type { OrchestrationEventType } from '@dungeonmaster/shared/contracts';
 import { registerMock } from '@dungeonmaster/testing/register-mock';
 
 import { chatHistoryReplayBrokerProxy } from '../../../brokers/chat/history-replay/chat-history-replay-broker.proxy';
@@ -40,7 +40,7 @@ export const ChatReplayResponderProxy = (): {
   setupEventCapture: () => {
     getEmittedEvents: () => readonly {
       type: OrchestrationEventType;
-      processId: ProcessId;
+      processId: string;
       payload: Record<PropertyKey, unknown>;
     }[];
   };
@@ -71,7 +71,7 @@ export const ChatReplayResponderProxy = (): {
     setupEventCapture: () => {
       const emittedEvents: {
         type: OrchestrationEventType;
-        processId: ProcessId;
+        processId: string;
         payload: Record<PropertyKey, unknown>;
       }[] = [];
 

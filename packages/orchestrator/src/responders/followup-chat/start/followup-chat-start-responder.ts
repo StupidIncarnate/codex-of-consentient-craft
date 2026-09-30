@@ -12,13 +12,14 @@
 import { stderr } from '#gateway/node/process';
 import { randomUUID } from '#gateway/node/crypto';
 import { getQuestInputContract, workItemContract, workItemRoleContract } from '@dungeonmaster/shared/contracts';
-import type { ModifyQuestInput, ProcessId, Quest, WorkItem, Guild } from '@dungeonmaster/shared/contracts';
+import type { ModifyQuestInput, Quest, WorkItem, Guild } from '@dungeonmaster/shared/contracts';
 
 import { chatSpawnBroker } from '../../../brokers/chat/spawn/chat-spawn-broker';
 import { questGetBroker } from '../../../brokers/quest/get/quest-get-broker';
 import { questModifyBroker } from '../../../brokers/quest/modify/quest-modify-broker';
 import { orchestrationEventsState } from '../../../state/orchestration-events/orchestration-events-state';
 import { orchestrationProcessesState } from '../../../state/orchestration-processes/orchestration-processes-state';
+import { orchestrationProcessContract } from '../../../contracts/orchestration-process/orchestration-process-contract';
 
 export const FollowupChatStartResponder = async ({
   guildId,
@@ -28,7 +29,7 @@ export const FollowupChatStartResponder = async ({
   guildId: Guild['id'];
   questId: Quest['id'];
   message: string;
-}): Promise<{ chatProcessId: ProcessId }> => {
+}): Promise<{ chatProcessId: string }> => {
   const questResult = await questGetBroker({ input: getQuestInputContract.parse({ questId }) });
 
   if (!questResult.success || !questResult.quest) {
@@ -141,7 +142,7 @@ export const FollowupChatStartResponder = async ({
       },
       registerProcess: ({ processId, questWorkItemId, kill }) => {
         orchestrationProcessesState.register({
-          orchestrationProcess: { processId, questId, questWorkItemId, kill },
+          orchestrationProcess: orchestrationProcessContract.shape.processId.parse(orchestrationProcessContract.shape.processId.parse(orchestrationProcessContract.parse({ processId, questId, questWorkItemId, kill }))),
         });
       },
       recordActivity: ({ processId }) => {

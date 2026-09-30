@@ -1,5 +1,4 @@
 import { GuildIdStub } from '@dungeonmaster/shared/contracts/guild-id/guild-id.stub';
-import { ProcessIdStub } from '@dungeonmaster/shared/contracts/process-id/process-id.stub';
 import { QuestIdStub } from '@dungeonmaster/shared/contracts/quest-id/quest-id.stub';
 import { SessionIdStub } from '@dungeonmaster/shared/contracts/session-id/session-id.stub';
 
@@ -45,7 +44,7 @@ describe('webSocketChannelState', () => {
       proxy.triggerOpen();
 
       const questId = QuestIdStub({ value: 'quest-1' });
-      const chatProcessId = ProcessIdStub({ value: 'proc-1' });
+      const chatProcessId = 'proc-1';
       const captured: ReturnType<typeof ChatOutputPayloadStub>[] = [];
       const sub = webSocketChannelState.chatOutput$().subscribe((p) => {
         captured.push(p);
@@ -70,7 +69,7 @@ describe('webSocketChannelState', () => {
       proxy.connect();
       proxy.triggerOpen();
 
-      const chatProcessId = ProcessIdStub({ value: 'proc-complete' });
+      const chatProcessId = 'proc-complete';
       const captured: unknown[] = [];
       const sub = webSocketChannelState.chatStreamEnded$().subscribe((p) => {
         captured.push(p);
@@ -97,7 +96,7 @@ describe('webSocketChannelState', () => {
       proxy.connect();
       proxy.triggerOpen();
 
-      const chatProcessId = ProcessIdStub({ value: 'proc-hist' });
+      const chatProcessId = 'proc-hist';
       const captured: unknown[] = [];
       const sub = webSocketChannelState.chatStreamEnded$().subscribe((p) => {
         captured.push(p);
@@ -124,7 +123,7 @@ describe('webSocketChannelState', () => {
       proxy.connect();
       proxy.triggerOpen();
 
-      const chatProcessId = ProcessIdStub({ value: 'proc-clarify' });
+      const chatProcessId = 'proc-clarify';
       const captured: ReturnType<typeof ClarificationRequestPayloadStub>[] = [];
       const sub = webSocketChannelState.clarificationRequest$().subscribe((p) => {
         captured.push(p);
@@ -370,7 +369,7 @@ describe('webSocketChannelState', () => {
       proxy.triggerOpen();
 
       const questId = QuestIdStub({ value: 'quest-multi' });
-      const chatProcessId = ProcessIdStub({ value: 'proc-multi' });
+      const chatProcessId = 'proc-multi';
       const captured1: ReturnType<typeof ChatOutputPayloadStub>[] = [];
       const captured2: ReturnType<typeof ChatOutputPayloadStub>[] = [];
 
@@ -495,7 +494,7 @@ describe('webSocketChannelState', () => {
 
       const sessionId = SessionIdStub({ value: 'f47ac10b-58cc-4372-a567-0e02b2c3d479' });
       const guildId = GuildIdStub({ value: 'f47ac10b-58cc-4372-a567-0e02b2c3d479' });
-      const chatProcessId = ProcessIdStub({ value: 'proc-replay' });
+      const chatProcessId = 'proc-replay';
 
       webSocketChannelState.sendReplayHistory({ sessionId, guildId, chatProcessId });
 

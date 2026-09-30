@@ -11,14 +11,14 @@
 
 import { z } from '#gateway/npm/zod';
 
-import { processIdContract, questContract, workItemContract } from '@dungeonmaster/shared/contracts';
+import { questContract, workItemContract } from '@dungeonmaster/shared/contracts';
 
 // `kill` is a function — a Zod object schema cannot check callability, so it stays out of the
 // parse and is attached only through the type intersection below. `.loose()` carries it
 // through `.parse()` unvalidated when a real caller supplies one.
 export const orchestrationProcessContract = z
   .object({
-    processId: processIdContract,
+    processId: z.string().min(1).brand<'OrchestrationProcessProcessId'>(),
     questId: questContract.shape.id,
     questWorkItemId: workItemContract.shape.id.optional(),
   })

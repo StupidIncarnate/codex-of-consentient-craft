@@ -1,7 +1,7 @@
 import { crypto } from '#gateway/browser/crypto';
 import { registerSpyOn } from '@dungeonmaster/testing/register-mock';
 import type { SpyOnHandle } from '@dungeonmaster/testing/register-mock';
-import type { ProcessId, QuestStatus } from '@dungeonmaster/shared/contracts';
+import type { QuestStatus } from '@dungeonmaster/shared/contracts';
 import type { UserChatEntryStub } from '@dungeonmaster/shared/contracts/chat-entry/chat-entry.stub';
 
 import { questChatBrokerProxy } from '../../brokers/quest/chat/quest-chat-broker.proxy';
@@ -20,15 +20,15 @@ type ImageDataUrl = string;
 
 export const useQuestChatBindingProxy = (): {
   setupConnectedChannel: () => void;
-  setupChat: (params: { chatProcessId: ProcessId }) => void;
+  setupChat: (params: { chatProcessId: string }) => void;
   setupChatError: () => void;
-  setupClarify: (params: { chatProcessId: ProcessId }) => void;
+  setupClarify: (params: { chatProcessId: string }) => void;
   setupClarifyError: () => void;
-  setupCommentBatchSent: (params: { chatProcessId: ProcessId; deliveredMessage: string }) => void;
-  setupCommentBatchSentWithoutDeliveredMessage: (params: { chatProcessId: ProcessId }) => void;
+  setupCommentBatchSent: (params: { chatProcessId: string; deliveredMessage: string }) => void;
+  setupCommentBatchSentWithoutDeliveredMessage: (params: { chatProcessId: string }) => void;
   setupCommentBatchStale: (params: { staleAnchors: unknown[] }) => void;
   setupCommentBatchFailed: (params: { error: string }) => void;
-  setupFollowup: (params: { chatProcessId: ProcessId }) => void;
+  setupFollowup: (params: { chatProcessId: string }) => void;
   setupFollowupRejected: (params: { error: string }) => void;
   setupFollowupError: () => void;
   setupPause: () => void;

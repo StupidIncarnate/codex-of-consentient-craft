@@ -1,5 +1,4 @@
 import { OrchestrationStatusStub } from '@dungeonmaster/shared/contracts/orchestration-status/orchestration-status.stub';
-import { ProcessIdStub } from '@dungeonmaster/shared/contracts/process-id/process-id.stub';
 
 import { processStatusBroker } from './process-status-broker';
 import { processStatusBrokerProxy } from './process-status-broker.proxy';
@@ -8,7 +7,7 @@ describe('processStatusBroker', () => {
   describe('successful fetch', () => {
     it('VALID: {processId} => returns orchestration status', async () => {
       const proxy = processStatusBrokerProxy();
-      const processId = ProcessIdStub({ value: 'proc-12345' });
+      const processId = 'proc-12345';
       const status = OrchestrationStatusStub({ processId: 'proc-12345', phase: 'codeweaver' });
 
       proxy.setupStatus({ status });
@@ -22,7 +21,7 @@ describe('processStatusBroker', () => {
   describe('error handling', () => {
     it('ERROR: {invalid processId} => throws error', async () => {
       const proxy = processStatusBrokerProxy();
-      const processId = ProcessIdStub({ value: 'nonexistent' });
+      const processId = 'nonexistent';
 
       proxy.setupError();
 
@@ -33,7 +32,7 @@ describe('processStatusBroker', () => {
   describe('zod validation', () => {
     it('ERROR: {fetch returns invalid shape} => throws ZodError', async () => {
       const proxy = processStatusBrokerProxy();
-      const processId = ProcessIdStub({ value: 'proc-12345' });
+      const processId = 'proc-12345';
 
       proxy.setupInvalidResponse({ data: { bad: 'data' } });
 

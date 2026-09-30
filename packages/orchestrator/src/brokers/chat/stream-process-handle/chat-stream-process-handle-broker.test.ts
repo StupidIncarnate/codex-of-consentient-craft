@@ -3,7 +3,6 @@ import {
   AssistantTextStreamLineStub,
   AssistantToolUseStreamLineStub,
 } from '@dungeonmaster/shared/contracts/assistant-stream-line/assistant-stream-line.stub';
-import { ProcessIdStub } from '@dungeonmaster/shared/contracts/process-id/process-id.stub';
 import { SessionIdStub } from '@dungeonmaster/shared/contracts/session-id/session-id.stub';
 import { SystemInitStreamLineStub } from '@dungeonmaster/shared/contracts/system-init-stream-line/system-init-stream-line.stub';
 import { TaskToolResultStreamLineStub } from '@dungeonmaster/shared/contracts/user-tool-result-stream-line/user-tool-result-stream-line.stub';
@@ -40,7 +39,7 @@ describe('chatStreamProcessHandleBroker', () => {
 
       const cwd = '/home/user/my-project';
       const sessionId = SessionIdStub({ value: 'sess-fallback' });
-      const chatProcessId = ProcessIdStub({ value: 'proc-fallback' });
+      const chatProcessId = 'proc-fallback';
 
       const calls: unknown[] = [];
 
@@ -78,7 +77,7 @@ describe('chatStreamProcessHandleBroker', () => {
       chatStreamProcessHandleBrokerProxy();
 
       const cwd = '/home/user/my-project';
-      const chatProcessId = ProcessIdStub({ value: 'proc-empty' });
+      const chatProcessId = 'proc-empty';
       const calls: unknown[] = [];
 
       const handle = chatStreamProcessHandleBroker({
@@ -103,7 +102,7 @@ describe('chatStreamProcessHandleBroker', () => {
 
       const cwd = '/home/user/my-project';
       const sessionId = SessionIdStub({ value: 'sess-text' });
-      const chatProcessId = ProcessIdStub({ value: 'proc-text' });
+      const chatProcessId = 'proc-text';
 
       const calls: unknown[] = [];
 
@@ -155,7 +154,7 @@ describe('chatStreamProcessHandleBroker', () => {
       chatStreamProcessHandleBrokerProxy();
 
       const cwd = '/home/user/my-project';
-      const chatProcessId = ProcessIdStub({ value: 'proc-init' });
+      const chatProcessId = 'proc-init';
       const calls: unknown[] = [];
 
       const handle = chatStreamProcessHandleBroker({
@@ -202,7 +201,7 @@ describe('chatStreamProcessHandleBroker', () => {
     it('VALID: {parent emits Task tool_use + tool_result with toolUseResult.agentId after init} => agent-detected starts chatSubagentTailBroker; sub-agent line tails through onEntries with source=subagent and agentId=toolUseId', async () => {
       const proxy = chatStreamProcessHandleBrokerProxy();
       const cwd = '/home/user/my-project';
-      const chatProcessId = ProcessIdStub({ value: 'proc-subagent' });
+      const chatProcessId = 'proc-subagent';
 
       proxy.setupSubagentHomeDir({ homeDir: '/home/user' });
       proxy.setupSubagentLines({
@@ -338,7 +337,7 @@ describe('chatStreamProcessHandleBroker', () => {
     it('VALID: {handle.stop() called after sub-agent setup} => no further sub-agent entries flow through onEntries', async () => {
       const proxy = chatStreamProcessHandleBrokerProxy();
       const cwd = '/home/user/my-project';
-      const chatProcessId = ProcessIdStub({ value: 'proc-stop' });
+      const chatProcessId = 'proc-stop';
 
       proxy.setupSubagentHomeDir({ homeDir: '/home/user' });
       proxy.setupSubagentLines({
@@ -451,7 +450,7 @@ describe('chatStreamProcessHandleBroker', () => {
       proxy.setupTimestamps({ timestamps: [TS] });
 
       const cwd = '/home/user/my-project';
-      const chatProcessId = ProcessIdStub({ value: 'proc-text-fallback' });
+      const chatProcessId = 'proc-text-fallback';
 
       const textCalls: unknown[] = [];
       const signalCalls: unknown[] = [];
@@ -483,7 +482,7 @@ describe('chatStreamProcessHandleBroker', () => {
       chatStreamProcessHandleBrokerProxy();
 
       const cwd = '/home/user/my-project';
-      const chatProcessId = ProcessIdStub({ value: 'proc-text-json' });
+      const chatProcessId = 'proc-text-json';
 
       const textCalls: unknown[] = [];
 
@@ -524,7 +523,7 @@ describe('chatStreamProcessHandleBroker', () => {
       chatStreamProcessHandleBrokerProxy();
 
       const cwd = '/home/user/my-project';
-      const chatProcessId = ProcessIdStub({ value: 'proc-text-no-fire' });
+      const chatProcessId = 'proc-text-no-fire';
 
       const textCalls: unknown[] = [];
 
@@ -569,7 +568,7 @@ describe('chatStreamProcessHandleBroker', () => {
       chatStreamProcessHandleBrokerProxy();
 
       const cwd = '/home/user/my-project';
-      const chatProcessId = ProcessIdStub({ value: 'proc-signal' });
+      const chatProcessId = 'proc-signal';
 
       const signalCalls: unknown[] = [];
 
@@ -620,7 +619,7 @@ describe('chatStreamProcessHandleBroker', () => {
       chatStreamProcessHandleBrokerProxy();
 
       const cwd = '/home/user/my-project';
-      const chatProcessId = ProcessIdStub({ value: 'proc-no-signal' });
+      const chatProcessId = 'proc-no-signal';
 
       const signalCalls: unknown[] = [];
 
@@ -658,7 +657,7 @@ describe('chatStreamProcessHandleBroker', () => {
       proxy.setupTimestamps({ timestamps: [TS] });
 
       const cwd = '/home/user/my-project';
-      const chatProcessId = ProcessIdStub({ value: 'proc-fallback-no-signal' });
+      const chatProcessId = 'proc-fallback-no-signal';
 
       const signalCalls: unknown[] = [];
 
@@ -684,7 +683,7 @@ describe('chatStreamProcessHandleBroker', () => {
 
       const cwd = '/home/user/my-project';
       const sessionId = SessionIdStub({ value: 'sess-image' });
-      const chatProcessId = ProcessIdStub({ value: 'proc-image' });
+      const chatProcessId = 'proc-image';
 
       const capturedEntries: EmittedChatEntries = [];
 

@@ -1,6 +1,5 @@
 import { GuildIdStub } from '@dungeonmaster/shared/contracts/guild-id/guild-id.stub';
 import { OperationItemStub } from '@dungeonmaster/shared/contracts/operation-item/operation-item.stub';
-import { ProcessIdStub } from '@dungeonmaster/shared/contracts/process-id/process-id.stub';
 import { QuestIdStub } from '@dungeonmaster/shared/contracts/quest-id/quest-id.stub';
 import { QuestStub } from '@dungeonmaster/shared/contracts/quest/quest.stub';
 import { QuestWorkItemIdStub } from '@dungeonmaster/shared/contracts/quest-work-item-id/quest-work-item-id.stub';
@@ -48,7 +47,7 @@ describe('questOrchestrationLoopBroker', () => {
 
       await expect(
         questOrchestrationLoopBroker({
-          processId: ProcessIdStub({ value: 'proc-test-1' }),
+          processId: 'proc-test-1',
           questId,
           startPath: '/project/src',
           guildId: GuildIdStub({ value: 'f47ac10b-58cc-4372-a567-0e02b2c3d479' }),
@@ -72,7 +71,7 @@ describe('questOrchestrationLoopBroker', () => {
 
       await expect(
         questOrchestrationLoopBroker({
-          processId: ProcessIdStub({ value: 'proc-test-1' }),
+          processId: 'proc-test-1',
           questId,
           startPath: '/project/src',
           guildId: GuildIdStub({ value: 'f47ac10b-58cc-4372-a567-0e02b2c3d479' }),
@@ -113,7 +112,7 @@ describe('questOrchestrationLoopBroker', () => {
 
       await expect(
         questOrchestrationLoopBroker({
-          processId: ProcessIdStub({ value: 'proc-test-1' }),
+          processId: 'proc-test-1',
           questId,
           startPath: '/project/src',
           guildId: GuildIdStub({ value: 'f47ac10b-58cc-4372-a567-0e02b2c3d479' }),
@@ -151,7 +150,7 @@ describe('questOrchestrationLoopBroker', () => {
 
       await expect(
         questOrchestrationLoopBroker({
-          processId: ProcessIdStub({ value: 'proc-test-1' }),
+          processId: 'proc-test-1',
           questId,
           startPath: '/project/src',
           guildId: GuildIdStub({ value: 'f47ac10b-58cc-4372-a567-0e02b2c3d479' }),
@@ -199,7 +198,7 @@ describe('questOrchestrationLoopBroker', () => {
 
       await expect(
         questOrchestrationLoopBroker({
-          processId: ProcessIdStub({ value: 'proc-test-1' }),
+          processId: 'proc-test-1',
           questId,
           startPath: '/project/src',
           guildId: GuildIdStub({ value: 'f47ac10b-58cc-4372-a567-0e02b2c3d479' }),
@@ -239,7 +238,7 @@ describe('questOrchestrationLoopBroker', () => {
       proxy.setupQuestTerminal({ quest });
 
       await questOrchestrationLoopBroker({
-        processId: ProcessIdStub({ value: 'proc-test-1' }),
+        processId: 'proc-test-1',
         questId,
         startPath: '/project/src',
         guildId: GuildIdStub({ value: 'f47ac10b-58cc-4372-a567-0e02b2c3d479' }),
@@ -294,7 +293,7 @@ describe('questOrchestrationLoopBroker', () => {
       proxy.setupQuestReady({ quest });
 
       await questOrchestrationLoopBroker({
-        processId: ProcessIdStub({ value: 'proc-test-1' }),
+        processId: 'proc-test-1',
         questId,
         startPath: '/project/src',
         guildId: GuildIdStub({ value: 'f47ac10b-58cc-4372-a567-0e02b2c3d479' }),
@@ -342,7 +341,7 @@ describe('questOrchestrationLoopBroker', () => {
       proxy.setupNoReadyItems({ quest });
 
       await questOrchestrationLoopBroker({
-        processId: ProcessIdStub({ value: 'proc-test-1' }),
+        processId: 'proc-test-1',
         questId,
         startPath: '/project/src',
         guildId: GuildIdStub({ value: 'f47ac10b-58cc-4372-a567-0e02b2c3d479' }),
@@ -390,7 +389,7 @@ describe('questOrchestrationLoopBroker', () => {
       proxy.setupQuestBlocked({ quest });
 
       await questOrchestrationLoopBroker({
-        processId: ProcessIdStub({ value: 'proc-test-1' }),
+        processId: 'proc-test-1',
         questId,
         startPath: '/project/src',
         guildId: GuildIdStub({ value: 'f47ac10b-58cc-4372-a567-0e02b2c3d479' }),
@@ -434,7 +433,7 @@ describe('questOrchestrationLoopBroker', () => {
 
       await expect(
         questOrchestrationLoopBroker({
-          processId: ProcessIdStub({ value: 'proc-test-1' }),
+          processId: 'proc-test-1',
           questId,
           startPath: '/project/src',
           guildId: GuildIdStub({ value: 'f47ac10b-58cc-4372-a567-0e02b2c3d479' }),
@@ -500,7 +499,7 @@ describe('questOrchestrationLoopBroker', () => {
 
       await expect(
         questOrchestrationLoopBroker({
-          processId: ProcessIdStub({ value: 'proc-test-1' }),
+          processId: 'proc-test-1',
           questId,
           startPath: '/project/src',
           guildId: GuildIdStub({ value: 'f47ac10b-58cc-4372-a567-0e02b2c3d479' }),
@@ -520,7 +519,7 @@ describe('questOrchestrationLoopBroker', () => {
 
       await expect(
         questOrchestrationLoopBroker({
-          processId: ProcessIdStub({ value: 'proc-test-1' }),
+          processId: 'proc-test-1',
           questId,
           startPath: '/project/src',
           guildId: GuildIdStub({ value: 'f47ac10b-58cc-4372-a567-0e02b2c3d479' }),

@@ -3,7 +3,6 @@ import { pid } from '#gateway/node/process';
 import { bootLockAcquireBroker } from './boot-lock-acquire-broker';
 import { bootLockAcquireBrokerProxy } from './boot-lock-acquire-broker.proxy';
 import { InstanceIdStub } from '../../../contracts/instance-id/instance-id.stub';
-import { ProcessIdStub } from '@dungeonmaster/shared/contracts/process-id/process-id.stub';
 
 describe('bootLockAcquireBroker', () => {
   describe('no lock present', () => {
@@ -20,7 +19,7 @@ describe('bootLockAcquireBroker', () => {
       expect(result).toStrictEqual({
         lock: {
           heldBy: instanceId,
-          heldByPid: ProcessIdStub({ value: String(pid) }),
+          heldByPid: String(pid),
           acquiredAtMs: nowMs,
         },
         tookOverStale: false,
@@ -110,7 +109,7 @@ describe('bootLockAcquireBroker', () => {
       expect(result).toStrictEqual({
         lock: {
           heldBy: instanceId,
-          heldByPid: ProcessIdStub({ value: String(pid) }),
+          heldByPid: String(pid),
           acquiredAtMs: nowMs,
         },
         tookOverStale: false,
@@ -134,7 +133,7 @@ describe('bootLockAcquireBroker', () => {
       expect(result).toStrictEqual({
         lock: {
           heldBy: instanceId,
-          heldByPid: ProcessIdStub({ value: String(pid) }),
+          heldByPid: String(pid),
           acquiredAtMs: nowMs,
         },
         tookOverStale: true,
@@ -202,7 +201,7 @@ describe('bootLockAcquireBroker', () => {
       expect(result).toStrictEqual({
         lock: {
           heldBy: instanceId,
-          heldByPid: ProcessIdStub({ value: String(pid) }),
+          heldByPid: String(pid),
           acquiredAtMs: nowMs,
         },
         tookOverStale: true,
@@ -284,7 +283,7 @@ describe('bootLockAcquireBroker', () => {
     it('VALID: {lock heldBy: this instance} => returns the existing lock unchanged, without writing', async () => {
       const proxy = bootLockAcquireBrokerProxy();
       const instanceId = InstanceIdStub({ value: 'inst_1a2b3c4d' });
-      const heldByPid = ProcessIdStub();
+      const heldByPid = 'proc-12345';
       const acquiredAtMs = 1;
 
       proxy.setupLockHeldBy({ heldBy: instanceId, heldByPid, acquiredAtMs });

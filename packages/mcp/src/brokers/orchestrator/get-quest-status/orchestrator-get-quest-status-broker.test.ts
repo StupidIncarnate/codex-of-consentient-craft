@@ -1,5 +1,4 @@
 import { OrchestrationStatusStub } from '@dungeonmaster/shared/contracts/orchestration-status/orchestration-status.stub';
-import { ProcessIdStub } from '@dungeonmaster/shared/contracts/process-id/process-id.stub';
 
 import { orchestratorGetQuestStatusBroker } from './orchestrator-get-quest-status-broker';
 import { orchestratorGetQuestStatusBrokerProxy } from './orchestrator-get-quest-status-broker.proxy';
@@ -8,7 +7,7 @@ describe('orchestratorGetQuestStatusBroker', () => {
   describe('successful status retrieval', () => {
     it('VALID: {processId} => returns parsed orchestration status', async () => {
       const proxy = orchestratorGetQuestStatusBrokerProxy();
-      const processId = ProcessIdStub({ value: 'proc-123' });
+      const processId = 'proc-123';
       const status = OrchestrationStatusStub({
         processId: 'proc-123',
         questId: 'add-auth',
@@ -26,7 +25,7 @@ describe('orchestratorGetQuestStatusBroker', () => {
   describe('error cases', () => {
     it('ERROR: {server returns "Process not found"} => throws "Process not found: <processId>"', async () => {
       const proxy = orchestratorGetQuestStatusBrokerProxy();
-      const processId = ProcessIdStub({ value: 'proc-missing' });
+      const processId = 'proc-missing';
 
       proxy.setupServerError({ processId, message: 'Process not found: proc-missing' });
 
@@ -37,7 +36,7 @@ describe('orchestratorGetQuestStatusBroker', () => {
 
     it('ERROR: {fetch fails with generic error} => rethrows original message', async () => {
       const proxy = orchestratorGetQuestStatusBrokerProxy();
-      const processId = ProcessIdStub({ value: 'proc-456' });
+      const processId = 'proc-456';
 
       proxy.setupServerError({ processId, message: 'Internal server error' });
 

@@ -8,7 +8,7 @@
 
 import { stderr } from '#gateway/node/process';
 import { ConfigNotFoundError, configResolveBroker } from '@dungeonmaster/config';
-import type { ProcessId, WorkItem, WorkItemRole, ModifyQuestInput, Quest, Guild } from '@dungeonmaster/shared/contracts';
+import type { WorkItem, WorkItemRole, ModifyQuestInput, Quest, Guild } from '@dungeonmaster/shared/contracts';
 
 import type { OnAgentEntryCallback } from '../../../contracts/orchestration-callbacks/orchestration-callbacks-contract';
 import { getQuestInputContract } from '@dungeonmaster/shared/contracts';
@@ -43,7 +43,7 @@ export const questOrchestrationLoopBroker = async ({
   userMessage,
   slotCount: providedSlotCount,
 }: {
-  processId: ProcessId;
+  processId: string;
   questId: Quest['id'];
   startPath: string;
   guildId: Guild['id'];

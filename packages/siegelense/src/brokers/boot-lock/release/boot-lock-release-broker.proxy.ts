@@ -4,7 +4,6 @@ import { locationsBootLockPathFindBrokerProxy } from '../../locations/boot-lock-
 import { unlinkProxy } from '#gateway/node/fs__promises/unlink/unlink.proxy';
 import { BootLockStub } from '../../../contracts/boot-lock/boot-lock.stub';
 import type { InstanceIdStub } from '../../../contracts/instance-id/instance-id.stub';
-import type { ProcessIdStub } from '@dungeonmaster/shared/contracts/process-id/process-id.stub';
 
 type InstanceId = ReturnType<typeof InstanceIdStub>;
 type EpochMs = number;
@@ -17,7 +16,7 @@ export const bootLockReleaseBrokerProxy = (): {
   setupNoLock: () => void;
   setupLockHeldBy: (params: {
     heldBy: InstanceId;
-    heldByPid: ReturnType<typeof ProcessIdStub>;
+    heldByPid: string;
     acquiredAtMs: EpochMs;
   }) => void;
   setupLockReadFailsForNonAbsenceReason: () => void;
@@ -51,7 +50,7 @@ export const bootLockReleaseBrokerProxy = (): {
       acquiredAtMs,
     }: {
       heldBy: InstanceId;
-      heldByPid: ReturnType<typeof ProcessIdStub>;
+      heldByPid: string;
       acquiredAtMs: EpochMs;
     }): void => {
       const lock = BootLockStub({ heldBy, heldByPid, acquiredAtMs });

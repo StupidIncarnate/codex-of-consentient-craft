@@ -1,5 +1,4 @@
 import { GuildIdStub } from '@dungeonmaster/shared/contracts/guild-id/guild-id.stub';
-import { ProcessIdStub } from '@dungeonmaster/shared/contracts/process-id/process-id.stub';
 
 import { InstanceHeartbeatStub } from '../../../contracts/instance-heartbeat/instance-heartbeat.stub';
 import { InstanceIdStub } from '../../../contracts/instance-id/instance-id.stub';
@@ -18,7 +17,7 @@ describe('heartbeatWriteBroker', () => {
     it('VALID: {a guild-owned instance} => writes heartbeat.json under the guild partition and stamps the row', async () => {
       const proxy = heartbeatWriteBrokerProxy();
       const instanceId = InstanceIdStub({ value: 'inst_7f3a9c21' });
-      const pid = ProcessIdStub({ value: 'proc-12345' });
+      const pid = 'proc-12345';
       const pgids = [4821];
       const guildId = GuildIdStub({ value: 'f47ac10b-58cc-4372-a567-0e02b2c3d479' });
       const nowMs = 1_700_000_500_000;
@@ -64,7 +63,7 @@ describe('heartbeatWriteBroker', () => {
     it('EMPTY: {guildId: null} => writes heartbeat.json under unowned/', async () => {
       const proxy = heartbeatWriteBrokerProxy();
       const instanceId = InstanceIdStub({ value: 'inst_7f3a9c21' });
-      const pid = ProcessIdStub({ value: 'proc-12345' });
+      const pid = 'proc-12345';
       const pgids = [4821];
       const nowMs = 1_700_000_500_000;
       const evidencePath = '/home/user/.dungeonmaster/siegelense/unowned/instances/inst_7f3a9c21';
@@ -92,7 +91,7 @@ describe('heartbeatWriteBroker', () => {
     it('VALID: {several pgids} => every pgid reaches the file', async () => {
       const proxy = heartbeatWriteBrokerProxy();
       const instanceId = InstanceIdStub({ value: 'inst_7f3a9c21' });
-      const pid = ProcessIdStub({ value: 'proc-12345' });
+      const pid = 'proc-12345';
       const pgids = [
         4821,
         4822,
@@ -132,7 +131,7 @@ describe('heartbeatWriteBroker', () => {
     it('VALID: {pgids with a measurable rss} => the written heartbeat carries rssMB', async () => {
       const proxy = heartbeatWriteBrokerProxy();
       const instanceId = InstanceIdStub({ value: 'inst_7f3a9c21' });
-      const pid = ProcessIdStub({ value: 'proc-12345' });
+      const pid = 'proc-12345';
       const pgids = [4821];
       const guildId = GuildIdStub({ value: 'f47ac10b-58cc-4372-a567-0e02b2c3d479' });
       const nowMs = 1_700_000_500_000;
@@ -174,7 +173,7 @@ describe('heartbeatWriteBroker', () => {
     it('ERROR: {machineRssByPgidBroker rejects} => still writes heartbeat.json with rssMB null and stamps the row', async () => {
       const proxy = heartbeatWriteBrokerProxy();
       const instanceId = InstanceIdStub({ value: 'inst_7f3a9c21' });
-      const pid = ProcessIdStub({ value: 'proc-12345' });
+      const pid = 'proc-12345';
       const pgids = [4821];
       const guildId = GuildIdStub({ value: 'f47ac10b-58cc-4372-a567-0e02b2c3d479' });
       const nowMs = 1_700_000_500_000;
@@ -221,7 +220,7 @@ describe('heartbeatWriteBroker', () => {
       const proxy = heartbeatWriteBrokerProxy();
       const instanceId = InstanceIdStub({ value: 'inst_7f3a9c21' });
       const otherInstanceId = InstanceIdStub({ value: 'inst_00000000' });
-      const pid = ProcessIdStub({ value: 'proc-12345' });
+      const pid = 'proc-12345';
       const pgids = [4821];
       const guildId = GuildIdStub({ value: 'f47ac10b-58cc-4372-a567-0e02b2c3d479' });
       const nowMs = 1_700_000_500_000;

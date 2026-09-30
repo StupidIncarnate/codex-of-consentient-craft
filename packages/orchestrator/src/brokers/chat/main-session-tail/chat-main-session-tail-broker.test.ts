@@ -1,5 +1,4 @@
 import { claudeLineNormalizeBroker } from '@dungeonmaster/shared/brokers';
-import { ProcessIdStub } from '@dungeonmaster/shared/contracts/process-id/process-id.stub';
 import { SessionIdStub } from '@dungeonmaster/shared/contracts/session-id/session-id.stub';
 
 import { AgentIdStub } from '../../../contracts/agent-id/agent-id.stub';
@@ -23,7 +22,7 @@ describe('chatMainSessionTailBroker', () => {
       const sessionId = SessionIdStub({ value: 'test-session-main-tail' });
       const jsonlPath =
         '/home/user/.claude/projects/-home-user-my-project/test-session-main-tail.jsonl';
-      const chatProcessId = ProcessIdStub({ value: 'proc-main-1' });
+      const chatProcessId = 'proc-main-1';
       const processor = chatLineProcessTransformer();
 
       proxy.setupHomeDir({ homeDir: '/home/user' });
@@ -82,7 +81,7 @@ describe('chatMainSessionTailBroker', () => {
       const sessionId = SessionIdStub({ value: 'test-session-main-args' });
       const jsonlPath =
         '/home/user/.claude/projects/-home-user-my-project/test-session-main-args.jsonl';
-      const chatProcessId = ProcessIdStub({ value: 'proc-main-args' });
+      const chatProcessId = 'proc-main-args';
       const calls: Parameters<ReturnType<typeof chatLineProcessTransformer>['processLine']>[0][] =
         [];
 
@@ -122,7 +121,7 @@ describe('chatMainSessionTailBroker', () => {
       const sessionId = SessionIdStub({ value: 'test-session-main-startpos' });
       const jsonlPath =
         '/home/user/.claude/projects/-home-user-my-project/test-session-main-startpos.jsonl';
-      const chatProcessId = ProcessIdStub({ value: 'proc-main-startpos' });
+      const chatProcessId = 'proc-main-startpos';
       const processor = chatLineProcessTransformer();
 
       proxy.setupHomeDir({ homeDir: '/home/user' });
@@ -152,7 +151,7 @@ describe('chatMainSessionTailBroker', () => {
       const sessionId = SessionIdStub({ value: 'test-session-main-noise' });
       const jsonlPath =
         '/home/user/.claude/projects/-home-user-my-project/test-session-main-noise.jsonl';
-      const chatProcessId = ProcessIdStub({ value: 'proc-main-noise' });
+      const chatProcessId = 'proc-main-noise';
       const processor = chatLineProcessTransformer();
 
       proxy.setupHomeDir({ homeDir: '/home/user' });
@@ -183,7 +182,7 @@ describe('chatMainSessionTailBroker', () => {
       const sessionId = SessionIdStub({ value: 'test-session-main-agent-detected' });
       const jsonlPath =
         '/home/user/.claude/projects/-home-user-my-project/test-session-main-agent-detected.jsonl';
-      const chatProcessId = ProcessIdStub({ value: 'proc-main-agent-detected' });
+      const chatProcessId = 'proc-main-agent-detected';
 
       proxy.setupHomeDir({ homeDir: '/home/user' });
       proxy.setupLines({
@@ -221,7 +220,7 @@ describe('chatMainSessionTailBroker', () => {
       const sessionId = SessionIdStub({ value: 'test-session-main-stop' });
       const jsonlPath =
         '/home/user/.claude/projects/-home-user-my-project/test-session-main-stop.jsonl';
-      const chatProcessId = ProcessIdStub({ value: 'proc-main-stop' });
+      const chatProcessId = 'proc-main-stop';
       const processor = chatLineProcessTransformer();
 
       proxy.setupHomeDir({ homeDir: '/home/user' });
@@ -266,7 +265,7 @@ describe('chatMainSessionTailBroker', () => {
         sessionId: SessionIdStub({ value: 'session-at-repo-root' }),
         cwd: '/home/user/my-project',
         processor: chatLineProcessTransformer(),
-        chatProcessId: ProcessIdStub({ value: 'proc-main-repo-root' }),
+        chatProcessId: 'proc-main-repo-root',
         onEntries: () => {},
       });
 
@@ -290,7 +289,7 @@ describe('chatMainSessionTailBroker', () => {
         sessionId: SessionIdStub({ value: 'session-in-worktree' }),
         cwd: '/home/user/my-project/worktrees/quest-c8171a64',
         processor: chatLineProcessTransformer(),
-        chatProcessId: ProcessIdStub({ value: 'proc-main-worktree' }),
+        chatProcessId: 'proc-main-worktree',
         onEntries: () => {},
       });
 

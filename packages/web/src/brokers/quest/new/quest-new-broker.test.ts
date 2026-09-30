@@ -1,6 +1,5 @@
 import { GuildIdStub } from '@dungeonmaster/shared/contracts/guild-id/guild-id.stub';
 import { PastedImageUploadStub } from '@dungeonmaster/shared/contracts/pasted-image-upload/pasted-image-upload.stub';
-import { ProcessIdStub } from '@dungeonmaster/shared/contracts/process-id/process-id.stub';
 import { QuestIdStub } from '@dungeonmaster/shared/contracts/quest-id/quest-id.stub';
 
 import { questNewBroker } from './quest-new-broker';
@@ -13,7 +12,7 @@ describe('questNewBroker', () => {
       const guildId = GuildIdStub();
       const message = 'Add auth';
       const questId = QuestIdStub({ value: 'quest-new-1' });
-      const chatProcessId = ProcessIdStub({ value: 'proc-new-1' });
+      const chatProcessId = 'proc-new-1';
 
       proxy.setupNew({ questId, chatProcessId });
 
@@ -104,7 +103,7 @@ describe('questNewBroker', () => {
 
       proxy.setupNew({
         questId: QuestIdStub({ value: 'quest-count-1' }),
-        chatProcessId: ProcessIdStub({ value: 'proc-count-1' }),
+        chatProcessId: 'proc-count-1',
       });
 
       await questNewBroker({ guildId: GuildIdStub(), message: 'Hi' });
@@ -119,7 +118,7 @@ describe('questNewBroker', () => {
       const guildId = GuildIdStub({ value: '4c78841e-022a-87d0-8928-189580cb01c5' });
       const message = 'Investigate crash';
 
-      proxy.setupNew({ questId: QuestIdStub(), chatProcessId: ProcessIdStub() });
+      proxy.setupNew({ questId: QuestIdStub(), chatProcessId: 'proc-12345' });
 
       await questNewBroker({ guildId, message, questType: 'bug-hunt' });
 
@@ -134,7 +133,7 @@ describe('questNewBroker', () => {
       const guildId = GuildIdStub({ value: '00118165-fbf1-11d4-8940-5ee9492debae' });
       const message = 'Just text';
 
-      proxy.setupNew({ questId: QuestIdStub(), chatProcessId: ProcessIdStub() });
+      proxy.setupNew({ questId: QuestIdStub(), chatProcessId: 'proc-12345' });
 
       await questNewBroker({ guildId, message });
 
@@ -148,7 +147,7 @@ describe('questNewBroker', () => {
       const guildId = GuildIdStub({ value: '35fd5b8f-551b-8baf-b8fb-a5c4702e7b71' });
       const message = 'No attachments';
 
-      proxy.setupNew({ questId: QuestIdStub(), chatProcessId: ProcessIdStub() });
+      proxy.setupNew({ questId: QuestIdStub(), chatProcessId: 'proc-12345' });
 
       await questNewBroker({ guildId, message, images: [] });
 
@@ -172,7 +171,7 @@ describe('questNewBroker', () => {
         dataBase64: 'd29ybGQ=',
       });
 
-      proxy.setupNew({ questId: QuestIdStub(), chatProcessId: ProcessIdStub() });
+      proxy.setupNew({ questId: QuestIdStub(), chatProcessId: 'proc-12345' });
 
       await questNewBroker({ guildId, message, images: [firstImage, secondImage] });
 

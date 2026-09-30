@@ -19,15 +19,14 @@
  * isTrackedChatProcessGuard({ chatProcessId: payload.chatProcessId, trackedChatProcessId: ref.current, retained: payload.retained });
  */
 
-import type { ProcessId } from '@dungeonmaster/shared/contracts';
 
 export const isTrackedChatProcessGuard = ({
   chatProcessId,
   trackedChatProcessId,
   retained,
 }: {
-  chatProcessId?: ProcessId | undefined;
-  trackedChatProcessId?: ProcessId | null | undefined;
+  chatProcessId?: string | undefined;
+  trackedChatProcessId?: string | null | undefined;
   retained?: boolean | undefined;
 }): boolean => {
   if (retained === true) {

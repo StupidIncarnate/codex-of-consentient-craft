@@ -32,7 +32,7 @@
 import { AbortController } from '#gateway/node/AbortController';
 import { clearInterval } from '#gateway/node/clearInterval';
 import { setInterval } from '#gateway/node/setInterval';
-import type { ProcessId, WorkItemRole, Quest } from '@dungeonmaster/shared/contracts';
+import type { WorkItemRole, Quest } from '@dungeonmaster/shared/contracts';
 
 import { GuildNotFoundError } from '../../../errors/guild-not-found/guild-not-found-error';
 import { QuestNotFoundError } from '../../../errors/quest-not-found/quest-not-found-error';
@@ -42,7 +42,7 @@ import { createDriverPollTickLayerBroker } from './create-driver-poll-tick-layer
 import { smoketestSweepPendingWorkItemsLayerBroker } from './smoketest-sweep-pending-work-items-layer-broker';
 
 type QuestModifiedHandler = (event: {
-  processId: ProcessId;
+  processId: string;
   payload: { questId?: unknown };
 }) => void;
 

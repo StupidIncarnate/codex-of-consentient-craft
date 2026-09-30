@@ -13,8 +13,8 @@
  * // Returns: { type, processId, payload } — the argument orchestrationEventsState.emit takes
  */
 
-import { orchestrationEventTypeContract, processIdContract } from '@dungeonmaster/shared/contracts';
-import type { OrchestrationEventType, ProcessId, Quest, WorkItem } from '@dungeonmaster/shared/contracts';
+import { orchestrationEventTypeContract } from '@dungeonmaster/shared/contracts';
+import type { OrchestrationEventType, Quest, WorkItem } from '@dungeonmaster/shared/contracts';
 
 import { chatOutputEmitPayloadContract } from '../../contracts/chat-output-emit-payload/chat-output-emit-payload-contract';
 import type { ChatOutputEmitPayload } from '../../contracts/chat-output-emit-payload/chat-output-emit-payload-contract';
@@ -33,10 +33,10 @@ export const commandChatOutputEmitTransformer = ({
   line: string;
 }): {
   type: OrchestrationEventType;
-  processId: ProcessId;
+  processId: string;
   payload: ChatOutputEmitPayload;
 } => {
-  const chatProcessId = processIdContract.parse(String(workItemId));
+  const chatProcessId = String(workItemId);
 
   return {
     type: orchestrationEventTypeContract.parse('chat-output'),

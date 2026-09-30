@@ -21,14 +21,14 @@
  * dispatcher paused but PLAYABLE.
  */
 
-import type { Guild, WorkItem, ProcessId, Quest } from '@dungeonmaster/shared/contracts';
+import type { Guild, WorkItem, Quest } from '@dungeonmaster/shared/contracts';
 import { writeFileSync } from '#gateway/node/fs';
 import * as path from '#gateway/node/path';
 
 import type { APIRequestContext } from '#gateway/npm/playwright__test';
 import { z } from '#gateway/npm/zod';
 
-import { processIdContract, questContract } from '@dungeonmaster/shared/contracts';
+import { questContract } from '@dungeonmaster/shared/contracts';
 import { SimpleTextResponseStub } from '@dungeonmaster/shared/contracts/claude-queue-response/claude-queue-response.stub';
 import { WardQueueResponseStub } from '@dungeonmaster/shared/contracts/ward-queue-response/ward-queue-response.stub';
 import { dmHttpResponseContract } from '@dungeonmaster/hydration-recipes/contracts';
@@ -151,7 +151,7 @@ export const dispatchHarness = ({
   // own body for why this is RAW ON PURPOSE.
   startQuestViaStartRoute: (params: {
     questId: Quest['id'];
-  }) => Promise<{ status: DmHttpResponse['status']; processId: ProcessId }>;
+  }) => Promise<{ status: DmHttpResponse['status']; processId: string }>;
 } => {
   const claudeMock = claudeMockHarness({
     guildPath,
@@ -339,12 +339,12 @@ export const dispatchHarness = ({
       questId,
     }: {
       questId: Quest['id'];
-    }): Promise<{ status: DmHttpResponse['status']; processId: ProcessId }> => {
+    }): Promise<{ status: DmHttpResponse['status']; processId: string }> => {
       const response = await request.post(`/api/quests/${questId}/start`);
       const body: unknown = await response.json();
       return {
         status: dmHttpResponseContract.shape.status.parse(response.status()),
-        processId: processIdContract.parse((body as Record<PropertyKey, unknown>).processId),
+        processId: (body as Record<PropertyKey, unknown>).processId,
       };
     },
   };

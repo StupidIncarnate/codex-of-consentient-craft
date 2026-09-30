@@ -13,7 +13,7 @@ export const getQuestStatusInputContract = z
       .string()
       .min(1)
       .describe('The process ID returned from start-quest')
-      .brand<'ProcessId'>(),
+      .brand<'GetQuestStatusInputProcessId'>(),
   })
   .strict()
   .brand<'GetQuestStatusInput'>();

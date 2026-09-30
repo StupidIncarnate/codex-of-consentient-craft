@@ -128,7 +128,6 @@ export * from './tooling-requirement/tooling-requirement-contract';
 export * from './operation-item/operation-item-contract';
 
 // Process & Orchestration Contracts
-export * from './process-id/process-id-contract';
 
 export * from './orchestration-slot/orchestration-slot-contract';
 

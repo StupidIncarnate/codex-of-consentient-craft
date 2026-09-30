@@ -1,4 +1,3 @@
-import { ProcessIdStub } from '@dungeonmaster/shared/contracts/process-id/process-id.stub';
 import { QuestIdStub } from '@dungeonmaster/shared/contracts/quest-id/quest-id.stub';
 import { installTestbedCreateBroker } from '@dungeonmaster/testing';
 
@@ -65,7 +64,7 @@ describe('StartOrchestrator', () => {
 
   describe('orchestration wiring', () => {
     it('ERROR: {nonexistent processId} => getQuestStatus delegates to OrchestrationFlow.getStatus and throws', () => {
-      const processId = ProcessIdStub({ value: 'proc-nonexistent' });
+      const processId = 'proc-nonexistent';
 
       expect(() => StartOrchestrator.getQuestStatus({ processId })).toThrow(
         /Process not found: proc-nonexistent/u,
@@ -109,7 +108,7 @@ describe('StartOrchestrator', () => {
 
   describe('chat wiring', () => {
     it('VALID: {nonexistent chatProcessId} => stopChat delegates to ChatStopFlow and returns false', () => {
-      const chatProcessId = ProcessIdStub({ value: 'proc-nonexistent-chat' });
+      const chatProcessId = 'proc-nonexistent-chat';
 
       const result = StartOrchestrator.stopChat({ chatProcessId });
 

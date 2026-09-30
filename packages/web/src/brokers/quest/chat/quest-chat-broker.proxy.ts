@@ -5,7 +5,6 @@
 // getRequestBody() to assert what was actually posted. Pass `url` to stage one concrete request
 // url instead of the route template, so a test proves the questId was substituted into it.
 
-import type { ProcessId } from '@dungeonmaster/shared/contracts';
 
 import { xhrPostWithProgressProxy } from '#gateway/browser/XMLHttpRequest/xhr-post-with-progress/xhr-post-with-progress.proxy';
 
@@ -16,7 +15,7 @@ const OK_STATUS = 200;
 export const questChatBrokerProxy = ({
   url = webConfigStatics.api.routes.questChat,
 }: { url?: string } = {}): {
-  setupChat: (params: { chatProcessId: ProcessId }) => void;
+  setupChat: (params: { chatProcessId: string }) => void;
   setupInvalidResponse: (params: { chatProcessId: unknown }) => void;
   setupError: () => void;
   setupRejected: (params: { status: number; error: string }) => void;

@@ -28,8 +28,8 @@
 
 import { stderr } from '#gateway/node/process';
 import { randomUUID } from '#gateway/node/crypto';
-import type { ProcessId, Quest, WorkItem, Session } from '@dungeonmaster/shared/contracts';
-import { getQuestInputContract, modifyQuestInputContract, processIdContract, workItemRoleContract, sessionContract } from '@dungeonmaster/shared/contracts';
+import type { Quest, WorkItem, Session } from '@dungeonmaster/shared/contracts';
+import { getQuestInputContract, modifyQuestInputContract, workItemRoleContract, sessionContract } from '@dungeonmaster/shared/contracts';
 import { isTerminalWorkItemStatusGuard } from '@dungeonmaster/shared/guards';
 
 import type { SpawnInstruction } from '../../../contracts/spawn-instruction/spawn-instruction-contract';
@@ -58,7 +58,7 @@ export const spawnOneAgentLayerBroker = async ({
   instruction: SpawnInstruction;
   cwd: string;
   registerProcess?: (params: {
-    processId: ProcessId;
+    processId: string;
     questId: Quest['id'];
     questWorkItemId: WorkItem['id'];
     kill: () => void;
@@ -66,7 +66,7 @@ export const spawnOneAgentLayerBroker = async ({
   // Called once each attempt's child has exited. Without it every attempt leaves a registry entry
   // behind whose child is long dead, which the stale-process watchdog then warns about forever —
   // and an overload retry would mint up to 30 of them for a single work item.
-  unregisterProcess?: (params: { processId: ProcessId }) => void;
+  unregisterProcess?: (params: { processId: string }) => void;
   isPlaying?: () => boolean;
   // Recursion state: how many overload retries have already been spent, and the sessionId a prior
   // attempt captured (so this attempt resumes it rather than starting over).
@@ -74,9 +74,7 @@ export const spawnOneAgentLayerBroker = async ({
   carriedSessionId?: Session['id'];
 }): Promise<void> => {
   const model = instruction.model ?? roleToModelTransformer({ role: instruction.role });
-  const processId = processIdContract.parse(
-    `${orchestrationDispatchStatics.processIdPrefix}-${randomUUID()}`,
-  );
+  const processId = `${orchestrationDispatchStatics.processIdPrefix}-${randomUUID()}`;
 
   // Resume path: either orphan recovery retained a crashed session (resumePrompt on the
   // instruction) or an earlier attempt in THIS dispatch captured one before the overload killed

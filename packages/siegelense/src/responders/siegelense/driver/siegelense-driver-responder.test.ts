@@ -1,5 +1,4 @@
 import { GuildIdStub } from '@dungeonmaster/shared/contracts/guild-id/guild-id.stub';
-import { ProcessIdStub } from '@dungeonmaster/shared/contracts/process-id/process-id.stub';
 
 import { InstanceIdStub } from '../../../contracts/instance-id/instance-id.stub';
 import { LaneSessionStub } from '../../../contracts/lane-session/lane-session.stub';
@@ -144,7 +143,7 @@ describe('SiegelenseDriverResponder', () => {
     it('ERROR: {row has a live driver} => throws naming the pid and never boots a lane', async () => {
       const proxy = SiegelenseDriverResponderProxy();
       const instanceId = InstanceIdStub({ value: 'inst_11fe0001' });
-      const livePid = ProcessIdStub({ value: '108019' });
+      const livePid = '108019';
       const entry = RegistryEntryStub({ id: instanceId, specName: SPEC_NAME, pid: livePid });
       proxy.stageRegistryRow({ entry });
       proxy.stageDriverAlreadyLive({ entry });

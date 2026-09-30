@@ -4,7 +4,6 @@ import {
 } from '@dungeonmaster/shared/contracts/assistant-stream-line/assistant-stream-line.stub';
 import { GuildIdStub } from '@dungeonmaster/shared/contracts/guild-id/guild-id.stub';
 import { SessionIdStub } from '@dungeonmaster/shared/contracts/session-id/session-id.stub';
-import { ProcessIdStub } from '@dungeonmaster/shared/contracts/process-id/process-id.stub';
 import { QuestIdStub } from '@dungeonmaster/shared/contracts/quest-id/quest-id.stub';
 import { QuestStub } from '@dungeonmaster/shared/contracts/quest/quest.stub';
 import { WorkItemStub } from '@dungeonmaster/shared/contracts/work-item/work-item.stub';
@@ -170,7 +169,7 @@ describe('ChatStartResponder', () => {
       const guildId = GuildIdStub();
       const sessionId = SessionIdStub({ value: 'session-inflight' });
       const questId = QuestIdStub({ value: 'quest-inflight' });
-      const existingProcessId = ProcessIdStub({ value: 'existing-proc-123' });
+      const existingProcessId = 'existing-proc-123';
       const killMock = jest.fn();
       const exitCode = 0;
 
@@ -301,7 +300,7 @@ describe('ChatStartResponder', () => {
       const sessionId = SessionIdStub({ value: 'session-different' });
       const questId = QuestIdStub({ value: 'quest-this-session' });
       const otherQuestId = QuestIdStub({ value: 'quest-other' });
-      const otherProcessId = ProcessIdStub({ value: 'other-proc-456' });
+      const otherProcessId = 'other-proc-456';
       const killMock = jest.fn();
       const exitCode = 0;
 

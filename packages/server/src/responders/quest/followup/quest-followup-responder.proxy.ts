@@ -2,7 +2,6 @@ import { join } from '#gateway/node/path';
 import { questFindQuestPathBrokerProxy } from '@dungeonmaster/orchestrator/brokers/quest/find-quest-path/quest-find-quest-path-broker.proxy';
 import { StartOrchestratorProxy } from '@dungeonmaster/orchestrator/startup/start-orchestrator.proxy';
 import type { GuildIdStub } from '@dungeonmaster/shared/contracts/guild-id/guild-id.stub';
-import type { ProcessIdStub } from '@dungeonmaster/shared/contracts/process-id/process-id.stub';
 import type { QuestStub } from '@dungeonmaster/shared/contracts/quest/quest.stub';
 import { dungeonmasterHomeStatics } from '@dungeonmaster/shared/statics';
 import { registerMock } from '@dungeonmaster/testing/register-mock';
@@ -11,7 +10,7 @@ import { pastedImagePersistBrokerProxy } from '../../../brokers/pasted-image/per
 import { QuestFollowupResponder } from './quest-followup-responder';
 
 type Quest = ReturnType<typeof QuestStub>;
-type ProcessId = ReturnType<typeof ProcessIdStub>;
+type ProcessId = string;
 type GuildId = ReturnType<typeof GuildIdStub>;
 type AbsoluteFilePath = string;
 

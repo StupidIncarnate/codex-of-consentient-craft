@@ -12,10 +12,9 @@
 
 import { z } from '#gateway/npm/zod';
 
-import { processIdContract } from '@dungeonmaster/shared/contracts';
 
 export const questFollowupResponseContract = z.object({
-  chatProcessId: processIdContract.optional(),
+  chatProcessId: z.string().min(1).brand<'QuestFollowupResponseChatProcessId'>().optional(),
   error: z.string().min(1).brand<'QuestFollowupErrorMessage'>().optional(),
 });
 

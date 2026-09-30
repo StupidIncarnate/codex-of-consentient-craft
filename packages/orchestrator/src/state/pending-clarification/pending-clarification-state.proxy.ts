@@ -1,10 +1,9 @@
 import type { SessionIdStub } from '@dungeonmaster/shared/contracts/session-id/session-id.stub';
-import { ProcessIdStub } from '@dungeonmaster/shared/contracts/process-id/process-id.stub';
 
 import { pendingClarificationState } from './pending-clarification-state';
 import type { PendingClarificationEntryStub } from '../../contracts/pending-clarification-entry/pending-clarification-entry.stub';
 
-type ProcessId = ReturnType<typeof ProcessIdStub>;
+type ProcessId = string;
 type SessionId = ReturnType<typeof SessionIdStub>;
 type PendingClarificationEntry = ReturnType<typeof PendingClarificationEntryStub>;
 
@@ -32,7 +31,7 @@ export const pendingClarificationStateProxy = (): {
     questions,
   }: { sessionId: SessionId } & PendingClarificationEntry): void => {
     pendingClarificationState.clear();
-    const tempProcessId = ProcessIdStub({ value: 'temp-promote' });
+    const tempProcessId = 'temp-promote';
     pendingClarificationState.setForProcess({
       processId: tempProcessId,
       questId,

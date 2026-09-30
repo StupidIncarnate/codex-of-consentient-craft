@@ -10,17 +10,13 @@
 
 import { fetchJson } from '#gateway/node/fetch';
 import { portResolveBroker } from '@dungeonmaster/shared/brokers';
-import {
-  orchestrationStatusContract,
-  type OrchestrationStatus,
-  type ProcessId,
-} from '@dungeonmaster/shared/contracts';
+import { orchestrationStatusContract, type OrchestrationStatus } from '@dungeonmaster/shared/contracts';
 import { environmentStatics } from '@dungeonmaster/shared/statics';
 
 export const orchestratorGetQuestStatusBroker = async ({
   processId,
 }: {
-  processId: ProcessId;
+  processId: string;
 }): Promise<OrchestrationStatus> => {
   const port = portResolveBroker();
   // Use environmentStatics.hostname (the same hostname the server binds to via

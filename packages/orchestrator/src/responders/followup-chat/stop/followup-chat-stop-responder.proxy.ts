@@ -1,4 +1,3 @@
-import type { ProcessIdStub } from '@dungeonmaster/shared/contracts/process-id/process-id.stub';
 import type { QuestIdStub } from '@dungeonmaster/shared/contracts/quest-id/quest-id.stub';
 import type { QuestStub } from '@dungeonmaster/shared/contracts/quest/quest.stub';
 
@@ -7,7 +6,7 @@ import { orchestrationProcessesStateProxy } from '../../../state/orchestration-p
 import { FollowupChatStopResponder } from './followup-chat-stop-responder';
 
 type Quest = ReturnType<typeof QuestStub>;
-type ProcessId = ReturnType<typeof ProcessIdStub>;
+type ProcessId = string;
 type QuestId = ReturnType<typeof QuestIdStub>;
 
 export const FollowupChatStopResponderProxy = (): {

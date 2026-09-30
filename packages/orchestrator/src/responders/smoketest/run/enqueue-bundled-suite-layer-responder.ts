@@ -8,7 +8,7 @@
 
 import { randomUUID } from '#gateway/node/crypto';
 import type { QuestQueueEntry, QuestSource, Quest, Guild } from '@dungeonmaster/shared/contracts';
-import { processIdContract, questQueueEntryContract } from '@dungeonmaster/shared/contracts';
+import { questQueueEntryContract } from '@dungeonmaster/shared/contracts';
 
 import { smoketestListenerEntryContract } from '../../../contracts/smoketest-listener-entry/smoketest-listener-entry-contract';
 import { smoketestScenarioMetaContract } from '../../../contracts/smoketest-scenario-meta/smoketest-scenario-meta-contract';
@@ -22,6 +22,7 @@ import { smoketestListenerState } from '../../../state/smoketest-listener/smoket
 import { smoketestScenarioMetaState } from '../../../state/smoketest-scenario-meta/smoketest-scenario-meta-state';
 import { LoadQuestLayerResponder } from './load-quest-layer-responder';
 import { OverwriteWorkItemsLayerResponder } from './overwrite-work-items-layer-responder';
+import { orchestrationProcessContract } from '../../../contracts/orchestration-process/orchestration-process-contract';
 
 export const EnqueueBundledSuiteLayerResponder = async ({
   suite,
@@ -52,15 +53,15 @@ export const EnqueueBundledSuiteLayerResponder = async ({
 
   // Pre-register an orchestration processId tied to this smoketest's questId so the
   // get-quest-status MCP probe has a live id to query at runtime.
-  const processId = processIdContract.parse(`proc-${randomUUID()}`);
+  const processId = `proc-${randomUUID()}`;
   orchestrationProcessesState.register({
-    orchestrationProcess: {
+    orchestrationProcess: orchestrationProcessContract.shape.processId.parse(orchestrationProcessContract.shape.processId.parse(orchestrationProcessContract.parse({
       processId,
       questId,
       kill: (): void => {
         questExecutionQueueState.removeByQuestId({ questId });
       },
-    },
+    }))),
   });
 
   const substitutedWorkItems = smoketestSubstituteWorkItemPlaceholdersTransformer({

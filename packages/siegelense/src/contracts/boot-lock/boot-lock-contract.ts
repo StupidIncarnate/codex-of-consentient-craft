@@ -16,12 +16,12 @@
 
 import { z } from '#gateway/npm/zod';
 
-import { processIdContract, siegeInstanceContract } from '@dungeonmaster/shared/contracts';
+import { siegeInstanceContract } from '@dungeonmaster/shared/contracts';
 
 
 export const bootLockContract = z.object({
   heldBy: siegeInstanceContract.shape.id,
-  heldByPid: processIdContract,
+  heldByPid: z.string().min(1).brand<'BootLockHeldByPid'>(),
   acquiredAtMs: z.number().int().nonnegative().brand<'BootLockAcquiredAtMs'>(),
 });
 

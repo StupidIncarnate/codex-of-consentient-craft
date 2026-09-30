@@ -12,7 +12,7 @@ import { orchestrationSlotContract } from '../orchestration-slot/orchestration-s
 import { questContract } from '../quest/quest-contract';
 
 export const orchestrationStatusContract = z.object({
-  processId: z.string().brand<'ProcessId'>(),
+  processId: z.string().brand<'OrchestrationStatusProcessId'>(),
   questId: questContract.shape.id,
   phase: z.enum([
     'codeweaver',

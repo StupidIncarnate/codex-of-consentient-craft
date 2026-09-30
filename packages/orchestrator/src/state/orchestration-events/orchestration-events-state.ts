@@ -7,9 +7,8 @@
  */
 
 import type { OrchestrationEventType } from '@dungeonmaster/shared/contracts';
-import type { ProcessId } from '@dungeonmaster/shared/contracts';
 
-type EventHandler = (event: { processId: ProcessId; payload: Record<string, unknown> }) => void;
+type EventHandler = (event: { processId: string; payload: Record<string, unknown> }) => void;
 
 const state = {
   listeners: new Map<OrchestrationEventType, Set<EventHandler>>(),
@@ -22,7 +21,7 @@ export const orchestrationEventsState = {
     payload,
   }: {
     type: OrchestrationEventType;
-    processId: ProcessId;
+    processId: string;
     payload: Record<string, unknown>;
   }): void => {
     const handlers = state.listeners.get(type);

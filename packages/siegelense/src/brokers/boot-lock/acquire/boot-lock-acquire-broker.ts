@@ -45,7 +45,6 @@ import { bootLockContract } from '../../../contracts/boot-lock/boot-lock-contrac
 import type { BootLock } from '../../../contracts/boot-lock/boot-lock-contract';
 import { instanceLifecycleStatics } from '../../../statics/instance-lifecycle/instance-lifecycle-statics';
 import { BootLockHeldError } from '../../../errors/boot-lock-held/boot-lock-held-error';
-import { processIdContract } from '@dungeonmaster/shared/contracts';
 import type { SiegeInstance } from '@dungeonmaster/shared/contracts';
 
 export const bootLockAcquireBroker = async ({
@@ -65,7 +64,7 @@ export const bootLockAcquireBroker = async ({
 
   const newLock = bootLockContract.parse({
     heldBy: instanceId,
-    heldByPid: processIdContract.parse(String(getPid())),
+    heldByPid: String(getPid()),
     acquiredAtMs: nowMs,
   });
 

@@ -1,4 +1,3 @@
-import { ProcessIdStub } from '@dungeonmaster/shared/contracts/process-id/process-id.stub';
 
 import { OrchestrationProcessStub } from '../../../contracts/orchestration-process/orchestration-process.stub';
 import { ProcessStaleWatchBootstrapResponder } from './process-stale-watch-bootstrap-responder';
@@ -11,7 +10,7 @@ describe('ProcessStaleWatchBootstrapResponder', () => {
     jest.useFakeTimers().setSystemTime(new Date('2026-05-12T22:58:24.835Z'));
     const proxy = ProcessStaleWatchBootstrapResponderProxy();
     proxy.reset();
-    const processId = ProcessIdStub({ value: 'proc-stale-bootstrap' });
+    const processId = 'proc-stale-bootstrap';
     proxy.registerProcess({
       orchestrationProcess: OrchestrationProcessStub({ processId, kill: jest.fn() }),
     });
@@ -30,7 +29,7 @@ describe('ProcessStaleWatchBootstrapResponder', () => {
     jest.useFakeTimers().setSystemTime(new Date('2026-05-12T22:58:24.835Z'));
     const proxy = ProcessStaleWatchBootstrapResponderProxy();
     proxy.reset();
-    const processId = ProcessIdStub({ value: 'proc-stale-bootstrap-idempotent' });
+    const processId = 'proc-stale-bootstrap-idempotent';
     proxy.registerProcess({
       orchestrationProcess: OrchestrationProcessStub({ processId, kill: jest.fn() }),
     });

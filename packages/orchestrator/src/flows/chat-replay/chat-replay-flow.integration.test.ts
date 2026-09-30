@@ -1,5 +1,4 @@
 import { GuildIdStub } from '@dungeonmaster/shared/contracts/guild-id/guild-id.stub';
-import { ProcessIdStub } from '@dungeonmaster/shared/contracts/process-id/process-id.stub';
 import { SessionIdStub } from '@dungeonmaster/shared/contracts/session-id/session-id.stub';
 import { installTestbedCreateBroker } from '@dungeonmaster/testing';
 
@@ -41,7 +40,7 @@ describe('ChatReplayFlow', () => {
       const { restore } = envHarness.setupHome({ tempDir: testbed.guildPath });
       const sessionId = SessionIdStub({ value: 'session-replay-with-process' });
       const guildId = GuildIdStub({ value: '00000000-0000-0000-0000-000000000000' });
-      const chatProcessId = ProcessIdStub({ value: 'replay-explicit-process-id' });
+      const chatProcessId = 'replay-explicit-process-id';
       const error = await ChatReplayFlow({ sessionId, guildId, chatProcessId }).catch(
         (thrown: unknown) => thrown,
       );

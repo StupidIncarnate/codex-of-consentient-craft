@@ -24,7 +24,7 @@ import { kill, setEnv, stderr } from '#gateway/node/process';
 import { join, resolve as resolvePath } from '#gateway/node/path';
 import { setTimeout } from '#gateway/node/setTimeout';
 
-import type { ProcessId, SiegeInstance } from '@dungeonmaster/shared/contracts';
+import type { SiegeInstance } from '@dungeonmaster/shared/contracts';
 import { locationsStatics } from '@dungeonmaster/shared/statics';
 import { configDefaultsStatics } from '@dungeonmaster/config';
 import { DungeonmasterConfigStub } from '@dungeonmaster/config/contracts/dungeonmaster-config/dungeonmaster-config.stub';
@@ -99,7 +99,7 @@ export const driverFleetHarness = (): {
   configureApiLane: (params: { configDir: string }) => void;
   boot: (params: { specName: string; idleTimeoutMs?: number }) => Promise<InstanceManifest>;
   killViaBroker: (params: { instanceId: SiegeInstance['id'] }) => Promise<KillResult>;
-  sigkillDriverPid: (params: { pid: ProcessId }) => void;
+  sigkillDriverPid: (params: { pid: string }) => void;
   registryEntry: (params: { instanceId: SiegeInstance['id'] }) => Promise<RegistryEntry | undefined>;
   pingSocket: (params: { instanceId: SiegeInstance['id'] }) => Promise<boolean>;
   isGroupAlive: (params: { pgid: number }) => boolean;
@@ -110,7 +110,7 @@ export const driverFleetHarness = (): {
     instanceId: SiegeInstance['id'];
     deadlineMs: number;
   }) => Promise<readonly number[]>;
-  waitForDriverProcessExit: (params: { pid: ProcessId; deadlineMs: number }) => Promise<boolean>;
+  waitForDriverProcessExit: (params: { pid: string; deadlineMs: number }) => Promise<boolean>;
   waitForGroupsDead: (params: {
     pgids: readonly number[];
     deadlineMs: number;
@@ -197,7 +197,7 @@ export const driverFleetHarness = (): {
   const killViaBroker = async ({ instanceId }: { instanceId: SiegeInstance['id'] }): Promise<KillResult> =>
     instanceKillBroker({ instanceId });
 
-  const sigkillDriverPid = ({ pid }: { pid: ProcessId }): void => {
+  const sigkillDriverPid = ({ pid }: { pid: string }): void => {
     kill(Number(pid), 'SIGKILL');
   };
 
@@ -313,7 +313,7 @@ export const driverFleetHarness = (): {
     pid,
     deadlineMs,
   }: {
-    pid: ProcessId;
+    pid: string;
     deadlineMs: number;
   }): Promise<boolean> => {
     if (!processIsAliveBroker({ pgid: Number(pid) })) {

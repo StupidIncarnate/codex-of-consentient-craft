@@ -1,6 +1,5 @@
 import { GuildIdStub } from '@dungeonmaster/shared/contracts/guild-id/guild-id.stub';
 import { PastedImageUploadStub } from '@dungeonmaster/shared/contracts/pasted-image-upload/pasted-image-upload.stub';
-import { ProcessIdStub } from '@dungeonmaster/shared/contracts/process-id/process-id.stub';
 import { QuestIdStub } from '@dungeonmaster/shared/contracts/quest-id/quest-id.stub';
 import { QuestStub } from '@dungeonmaster/shared/contracts/quest/quest.stub';
 import { SessionIdStub } from '@dungeonmaster/shared/contracts/session-id/session-id.stub';
@@ -17,7 +16,7 @@ describe('QuestChatResponder', () => {
       const questId = QuestIdStub();
       const sessionId = SessionIdStub({ value: 'session-resume' });
       const guildId = GuildIdStub();
-      const chatProcessId = ProcessIdStub({ value: 'proc-resume' });
+      const chatProcessId = 'proc-resume';
       const quest = QuestStub({
         id: questId,
         workItems: [
@@ -52,7 +51,7 @@ describe('QuestChatResponder', () => {
       const questId = QuestIdStub({ value: 'quest-paused' });
       const sessionId = SessionIdStub({ value: 'session-paused' });
       const guildId = GuildIdStub();
-      const chatProcessId = ProcessIdStub({ value: 'proc-after-resume' });
+      const chatProcessId = 'proc-after-resume';
       const quest = QuestStub({
         id: questId,
         status: 'paused',
@@ -98,7 +97,7 @@ describe('QuestChatResponder', () => {
       const tavernkeeperSessionId = SessionIdStub({ value: 'session-tavernkeeper' });
       const chaoswhispererSessionId = SessionIdStub({ value: 'session-chaoswhisperer' });
       const guildId = GuildIdStub();
-      const chatProcessId = ProcessIdStub({ value: 'proc-chaoswhisperer' });
+      const chatProcessId = 'proc-chaoswhisperer';
       const quest = QuestStub({
         id: questId,
         workItems: [
@@ -141,7 +140,7 @@ describe('QuestChatResponder', () => {
       const questId = QuestIdStub({ value: 'quest-only-tavernkeeper' });
       const tavernkeeperSessionId = SessionIdStub({ value: 'session-only-tavernkeeper' });
       const guildId = GuildIdStub();
-      const chatProcessId = ProcessIdStub({ value: 'proc-fresh-tavernkeeper' });
+      const chatProcessId = 'proc-fresh-tavernkeeper';
       const quest = QuestStub({
         id: questId,
         workItems: [WorkItemStub({ role: 'tavernkeeper', sessionId: tavernkeeperSessionId })],
@@ -180,7 +179,7 @@ describe('QuestChatResponder', () => {
       const proxy = QuestChatResponderProxy();
       const questId = QuestIdStub({ value: 'quest-no-session' });
       const guildId = GuildIdStub();
-      const chatProcessId = ProcessIdStub({ value: 'proc-fresh' });
+      const chatProcessId = 'proc-fresh';
       const quest = QuestStub({
         id: questId,
         workItems: [],
@@ -318,7 +317,7 @@ describe('QuestChatResponder', () => {
       const proxy = QuestChatResponderProxy();
       const questId = QuestIdStub({ value: 'quest-no-images-key' });
       const guildId = GuildIdStub();
-      const chatProcessId = ProcessIdStub({ value: 'proc-no-images-key' });
+      const chatProcessId = 'proc-no-images-key';
       const quest = QuestStub({ id: questId, workItems: [] });
 
       proxy.setupQuestLoad({ quest });
@@ -350,7 +349,7 @@ describe('QuestChatResponder', () => {
       const proxy = QuestChatResponderProxy();
       const questId = QuestIdStub({ value: 'quest-empty-images-array' });
       const guildId = GuildIdStub();
-      const chatProcessId = ProcessIdStub({ value: 'proc-empty-images-array' });
+      const chatProcessId = 'proc-empty-images-array';
       const quest = QuestStub({ id: questId, workItems: [] });
 
       proxy.setupQuestLoad({ quest });
@@ -382,7 +381,7 @@ describe('QuestChatResponder', () => {
       const proxy = QuestChatResponderProxy();
       const questId = QuestIdStub({ value: 'quest-two-images' });
       const guildId = GuildIdStub();
-      const chatProcessId = ProcessIdStub({ value: 'proc-two-images' });
+      const chatProcessId = 'proc-two-images';
       const quest = QuestStub({ id: questId, workItems: [] });
 
       proxy.setupQuestLoad({ quest });
@@ -499,7 +498,7 @@ describe('QuestChatResponder', () => {
       proxy.stagePastedImageIds({ ids: [imageId] });
       const questId = QuestIdStub({ value: 'quest-one-image-rewrite' });
       const guildId = GuildIdStub();
-      const chatProcessId = ProcessIdStub({ value: 'proc-one-image-rewrite' });
+      const chatProcessId = 'proc-one-image-rewrite';
       const quest = QuestStub({ id: questId, workItems: [] });
 
       proxy.setupQuestLoad({ quest });
@@ -543,7 +542,7 @@ describe('QuestChatResponder', () => {
       });
       const questId = QuestIdStub({ value: 'quest-local-path-no-images-key' });
       const guildId = GuildIdStub();
-      const chatProcessId = ProcessIdStub({ value: 'proc-local-path-no-images-key' });
+      const chatProcessId = 'proc-local-path-no-images-key';
       const quest = QuestStub({ id: questId, workItems: [] });
 
       proxy.setupQuestLoad({ quest });

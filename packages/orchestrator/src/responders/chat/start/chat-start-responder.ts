@@ -8,7 +8,7 @@
 
 import { stderr } from '#gateway/node/process';
 import { getQuestInputContract, workItemRoleContract } from '@dungeonmaster/shared/contracts';
-import type { ChatEntry, ProcessId, QuestType, Quest, WorkItem, Guild, Session } from '@dungeonmaster/shared/contracts';
+import type { ChatEntry, QuestType, Quest, WorkItem, Guild, Session } from '@dungeonmaster/shared/contracts';
 import { questFlowStatics } from '@dungeonmaster/shared/statics';
 
 import { chatSpawnBroker } from '../../../brokers/chat/spawn/chat-spawn-broker';
@@ -19,6 +19,7 @@ import { orchestrationProcessesState } from '../../../state/orchestration-proces
 import { pendingClarificationState } from '../../../state/pending-clarification/pending-clarification-state';
 import type { ClarificationQuestion } from '../../../contracts/clarification-question/clarification-question-contract';
 import { streamJsonToClarificationTransformer } from '../../../transformers/stream-json-to-clarification/stream-json-to-clarification-transformer';
+import { orchestrationProcessContract } from '../../../contracts/orchestration-process/orchestration-process-contract';
 
 export const ChatStartResponder = async ({
   guildId,
@@ -46,7 +47,7 @@ export const ChatStartResponder = async ({
   // header for the full three-channel rationale (`questId` / `mintedQuestId` / `existingQuestId`).
   existingQuestId?: Quest['id'];
   sessionId?: Session['id'];
-}): Promise<{ chatProcessId: ProcessId; questId?: Quest['id'] }> => {
+}): Promise<{ chatProcessId: string; questId?: Quest['id'] }> => {
   if (sessionId) {
     stderr.write(`[CLARIFICATION-DEBUG] startChat called with sessionId=${sessionId}\n`);
     const pending = pendingClarificationState.getForSession({ sessionId });
@@ -133,14 +134,14 @@ export const ChatStartResponder = async ({
   // and a follow-up questGetBroker resolves the chaoswhisperer work item. The first stdout
   // lines may race ahead of that lookup. Buffering preserves ordering and guarantees every
   // chat-output emit carries questId+workItemId for routing.
-  const chatOutputBuffer: { chatProcessId: ProcessId; entries: ChatEntry[] }[] = [];
+  const chatOutputBuffer: { chatProcessId: string; entries: ChatEntry[] }[] = [];
 
   // Buffer clarification-request emits the same way. The server's per-quest broadcast
   // filter routes clarifications by `questId`; an emit that races `onQuestCreated` would
   // miss every subscribed client. Drains in parallel with chatOutputBuffer once chatQuestId
   // is known. Unlike chat-output, clarification only needs questId (not workItemId).
   const clarificationBuffer: {
-    chatProcessId: ProcessId;
+    chatProcessId: string;
     questions: ClarificationQuestion[];
   }[] = [];
 
@@ -390,12 +391,12 @@ export const ChatStartResponder = async ({
       // output buffer's race-prevention semantics keep working — early emits buffer
       // until `onQuestCreated` populates the closure.
       orchestrationProcessesState.register({
-        orchestrationProcess: {
+        orchestrationProcess: orchestrationProcessContract.shape.processId.parse(orchestrationProcessContract.shape.processId.parse(orchestrationProcessContract.parse({
           processId,
           questId: launcherQuestId,
           questWorkItemId,
           kill,
-        },
+        }))),
       });
     },
     recordActivity: ({ processId }) => {

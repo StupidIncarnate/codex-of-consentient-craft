@@ -14,7 +14,6 @@
  * WHEN-NOT-TO-USE: Not for request-scoped invocation.
  */
 
-import { processIdContract } from '@dungeonmaster/shared/contracts';
 
 import { questNodeDispatchLoopBroker } from '../../../brokers/quest/node-dispatch-loop/quest-node-dispatch-loop-broker';
 import { commandChatOutputEmitTransformer } from '../../../transformers/command-chat-output-emit/command-chat-output-emit-transformer';
@@ -24,8 +23,9 @@ import { orchestrationDispatchState } from '../../../state/orchestration-dispatc
 import { orchestrationEventsState } from '../../../state/orchestration-events/orchestration-events-state';
 import { orchestrationProcessesState } from '../../../state/orchestration-processes/orchestration-processes-state';
 import { questExecutionQueueState } from '../../../state/quest-execution-queue/quest-execution-queue-state';
+import { orchestrationProcessContract } from '../../../contracts/orchestration-process/orchestration-process-contract';
 
-const RUNNER_PROCESS_ID = processIdContract.parse('node-dispatch-runner');
+const RUNNER_PROCESS_ID = 'node-dispatch-runner';
 
 const state: {
   runner: NodeDispatchRunnerController | null;
@@ -64,7 +64,7 @@ export const OrchestrationDispatchBootstrapResponder = (): void => {
         },
         registerProcess: ({ processId, questId, questWorkItemId, kill }): void => {
           orchestrationProcessesState.register({
-            orchestrationProcess: { processId, questId, questWorkItemId, kill },
+            orchestrationProcess: orchestrationProcessContract.shape.processId.parse(orchestrationProcessContract.shape.processId.parse(orchestrationProcessContract.parse({ processId, questId, questWorkItemId, kill }))),
           });
         },
         // Every spawned child gets removed from the registry when it exits. Leaving entries behind

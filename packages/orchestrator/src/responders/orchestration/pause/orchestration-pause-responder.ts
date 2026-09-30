@@ -8,7 +8,7 @@
 
 import { randomUUID } from '#gateway/node/crypto';
 import type { Quest } from '@dungeonmaster/shared/contracts';
-import { getQuestInputContract, processIdContract } from '@dungeonmaster/shared/contracts';
+import { getQuestInputContract } from '@dungeonmaster/shared/contracts';
 
 import { questGetBroker } from '../../../brokers/quest/get/quest-get-broker';
 import { questPauseBroker } from '../../../brokers/quest/pause/quest-pause-broker';
@@ -34,7 +34,7 @@ export const OrchestrationPauseResponder = async ({
   // afterwards would find nothing and mint a synthetic id for a process that really existed.
   const existingProcess = orchestrationProcessesState.findByQuestId({ questId });
   const announcementProcessId =
-    existingProcess?.processId ?? processIdContract.parse(`proc-pause-${randomUUID()}`);
+    existingProcess?.processId ?? `proc-pause-${randomUUID()}`;
 
   const result = await questPauseBroker({
     questId,

@@ -1,6 +1,5 @@
 import { GuildIdStub } from '@dungeonmaster/shared/contracts/guild-id/guild-id.stub';
 import { PastedImageUploadStub } from '@dungeonmaster/shared/contracts/pasted-image-upload/pasted-image-upload.stub';
-import { ProcessIdStub } from '@dungeonmaster/shared/contracts/process-id/process-id.stub';
 import { QuestIdStub } from '@dungeonmaster/shared/contracts/quest-id/quest-id.stub';
 import { QuestStub } from '@dungeonmaster/shared/contracts/quest/quest.stub';
 import { pastedImageStatics, questStatusMetadataStatics } from '@dungeonmaster/shared/statics';
@@ -45,7 +44,7 @@ describe('QuestFollowupResponder', () => {
       const proxy = QuestFollowupResponderProxy();
       const questId = QuestIdStub({ value: 'quest-complete-followup' });
       const guildId = GuildIdStub();
-      const chatProcessId = ProcessIdStub({ value: 'proc-followup' });
+      const chatProcessId = 'proc-followup';
       const quest = QuestStub({ id: questId, status: 'complete' });
 
       proxy.setupQuestLoad({ quest });
@@ -70,7 +69,7 @@ describe('QuestFollowupResponder', () => {
       const proxy = QuestFollowupResponderProxy();
       const questId = QuestIdStub({ value: 'quest-merged-followup' });
       const guildId = GuildIdStub();
-      const chatProcessId = ProcessIdStub({ value: 'proc-merged' });
+      const chatProcessId = 'proc-merged';
       const quest = QuestStub({ id: questId, status: 'merged' });
 
       proxy.setupQuestLoad({ quest });
@@ -99,7 +98,7 @@ describe('QuestFollowupResponder', () => {
         const proxy = QuestFollowupResponderProxy();
         const questId = QuestIdStub();
         const guildId = GuildIdStub();
-        const chatProcessId = ProcessIdStub();
+        const chatProcessId = 'proc-12345';
         const quest = QuestStub({ id: questId, status });
 
         proxy.setupQuestLoad({ quest });
@@ -222,7 +221,7 @@ describe('QuestFollowupResponder', () => {
       const proxy = QuestFollowupResponderProxy();
       const questId = QuestIdStub({ value: 'quest-two-images' });
       const guildId = GuildIdStub();
-      const chatProcessId = ProcessIdStub({ value: 'proc-two-images' });
+      const chatProcessId = 'proc-two-images';
       const quest = QuestStub({ id: questId, status: 'complete' });
       const homePath = '/home/followup-two-images';
       const imagesDirPath = `${homePath}/.dungeonmaster/guilds/${guildId}/quests/${questId}/images`;
@@ -263,7 +262,7 @@ describe('QuestFollowupResponder', () => {
       const proxy = QuestFollowupResponderProxy();
       const questId = QuestIdStub({ value: 'quest-forward-rewritten' });
       const guildId = GuildIdStub();
-      const chatProcessId = ProcessIdStub({ value: 'proc-forward-rewritten' });
+      const chatProcessId = 'proc-forward-rewritten';
       const quest = QuestStub({ id: questId, status: 'blocked' });
       const homePath = '/home/followup-forward';
       const imagesDirPath = `${homePath}/.dungeonmaster/guilds/${guildId}/quests/${questId}/images`;
@@ -358,7 +357,7 @@ describe('QuestFollowupResponder', () => {
       const proxy = QuestFollowupResponderProxy();
       const questId = QuestIdStub({ value: 'quest-no-images-key' });
       const guildId = GuildIdStub();
-      const chatProcessId = ProcessIdStub({ value: 'proc-no-images-key' });
+      const chatProcessId = 'proc-no-images-key';
       const quest = QuestStub({ id: questId, status: 'complete' });
 
       proxy.setupQuestLoad({ quest });
@@ -386,7 +385,7 @@ describe('QuestFollowupResponder', () => {
       const copyId = '66666666-6666-4666-8666-666666666666';
       const questId = QuestIdStub({ value: 'quest-local-path-no-images-key' });
       const guildId = GuildIdStub();
-      const chatProcessId = ProcessIdStub({ value: 'proc-local-path-no-images-key' });
+      const chatProcessId = 'proc-local-path-no-images-key';
       const quest = QuestStub({ id: questId, status: 'complete' });
 
       proxy.setupQuestLoad({ quest });

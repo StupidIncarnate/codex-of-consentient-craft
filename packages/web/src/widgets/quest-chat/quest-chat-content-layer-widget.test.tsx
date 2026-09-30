@@ -5,7 +5,6 @@ import { MemoryRouter, Route, Routes } from '#gateway/npm/react-router-dom';
 
 import { GuildIdStub } from '@dungeonmaster/shared/contracts/guild-id/guild-id.stub';
 import { PastedImageUploadStub } from '@dungeonmaster/shared/contracts/pasted-image-upload/pasted-image-upload.stub';
-import { ProcessIdStub } from '@dungeonmaster/shared/contracts/process-id/process-id.stub';
 import { QuestIdStub } from '@dungeonmaster/shared/contracts/quest-id/quest-id.stub';
 import { QuestStub } from '@dungeonmaster/shared/contracts/quest/quest.stub';
 import { QuestSummaryFlowStub } from '@dungeonmaster/shared/contracts/quest-summary-flow/quest-summary-flow.stub';
@@ -136,7 +135,7 @@ describe('QuestChatContentLayerWidget', () => {
       proxy.setupMode({ mode: 'node' });
       proxy.setupNewQuest({
         questId: QuestIdStub({ value: 'q-created' }),
-        chatProcessId: ProcessIdStub({ value: 'proc-created' }),
+        chatProcessId: 'proc-created',
       });
       const guildId = GuildIdStub({ value: '55555555-6666-7777-8888-999999999999' });
 
@@ -199,7 +198,7 @@ describe('QuestChatContentLayerWidget', () => {
       proxy.setupMode({ mode: 'node' });
       proxy.setupNewQuest({
         questId: QuestIdStub({ value: 'q-feature' }),
-        chatProcessId: ProcessIdStub({ value: 'proc-feature' }),
+        chatProcessId: 'proc-feature',
       });
       const guildId = GuildIdStub({ value: '6b47438c-b99d-7f75-98d2-6a577c26bc59' });
 
@@ -236,7 +235,7 @@ describe('QuestChatContentLayerWidget', () => {
       proxy.setupMode({ mode: 'node' });
       proxy.setupNewQuest({
         questId: QuestIdStub({ value: 'q-bug' }),
-        chatProcessId: ProcessIdStub({ value: 'proc-bug' }),
+        chatProcessId: 'proc-bug',
       });
       const guildId = GuildIdStub({ value: 'efb6d98d-378a-183f-b291-9e1679effb0e' });
 
@@ -480,7 +479,7 @@ describe('QuestChatContentLayerWidget', () => {
       proxy.setupMode({ mode: 'claude' });
       const guildId = GuildIdStub({ value: '273d7f9c-bd74-5e5d-be5c-44153ab8473c' });
       const quest = QuestStub({ id: 'q-clarify', status: 'review_flows' });
-      const chatProcessId = ProcessIdStub({ value: 'proc-clarify' });
+      const chatProcessId = 'proc-clarify';
       proxy.setupClarify({ chatProcessId });
 
       const { findByTestId } = mantineRenderMiddleware({
@@ -661,7 +660,7 @@ describe('QuestChatContentLayerWidget', () => {
       proxy.setupMode({ mode: 'claude' });
       const guildId = GuildIdStub({ value: '5dc553d4-b2df-6c6a-8a03-1c81bae7fa67' });
       const quest = QuestStub({ id: 'q-clarify-order', status: 'review_flows' });
-      const chatProcessId = ProcessIdStub({ value: 'proc-clarify-order' });
+      const chatProcessId = 'proc-clarify-order';
       proxy.setupClarify({ chatProcessId });
       // Mocked timestamp for the synthetic user entry created by submitClarifyAnswers.
       // Sits BETWEEN the two agent chat-outputs (T1=10s, T2=30s, T3=50s).
@@ -873,7 +872,7 @@ describe('QuestChatContentLayerWidget', () => {
       proxy.setupConnectedChannel();
       proxy.setupMode({ mode: 'claude' });
       proxy.setupQuestSummary({ summary: QuestSummaryStub({ questId: 'q-followup-post' }) });
-      proxy.setupFollowup({ chatProcessId: ProcessIdStub({ value: 'proc-followup-post' }) });
+      proxy.setupFollowup({ chatProcessId: 'proc-followup-post' });
       const guildId = GuildIdStub({ value: '9eadb744-387f-851c-8c16-f756689ab5da' });
       const quest = QuestStub({ id: 'q-followup-post', status: 'complete' });
 
@@ -1025,7 +1024,7 @@ describe('QuestChatContentLayerWidget', () => {
             payload: {
               questId: quest.id,
               workItemId: codeweaverWorkItemId,
-              chatProcessId: ProcessIdStub({ value: 'proc-codeweaver-scope' }),
+              chatProcessId: 'proc-codeweaver-scope',
               entries: [
                 {
                   role: 'assistant',
@@ -1056,7 +1055,7 @@ describe('QuestChatContentLayerWidget', () => {
       proxy.setupConnectedChannel();
       proxy.setupMode({ mode: 'claude' });
       proxy.setupQuestSummary({ summary: QuestSummaryStub({ questId: 'q-followup-stop' }) });
-      proxy.setupFollowup({ chatProcessId: ProcessIdStub({ value: 'proc-followup-stop' }) });
+      proxy.setupFollowup({ chatProcessId: 'proc-followup-stop' });
       proxy.setupFollowupStop({ stopped: true });
       proxy.setupPause();
       const guildId = GuildIdStub({ value: '40c0a194-6a9c-3b24-a174-685cff60330b' });
@@ -1502,7 +1501,7 @@ describe('QuestChatContentLayerWidget', () => {
       proxy.setupMode({ mode: 'node' });
       proxy.setupNewQuest({
         questId: QuestIdStub({ value: 'q-image-create' }),
-        chatProcessId: ProcessIdStub({ value: 'proc-image-create' }),
+        chatProcessId: 'proc-image-create',
       });
       const guildId = GuildIdStub({ value: '4943d44a-c991-2928-80b6-7ef4334d84bb' });
 
@@ -1558,9 +1557,9 @@ describe('QuestChatContentLayerWidget', () => {
       proxy.setupMode({ mode: 'node' });
       proxy.setupNewQuest({
         questId: QuestIdStub({ value: 'q-shape-create' }),
-        chatProcessId: ProcessIdStub({ value: 'proc-shape-create' }),
+        chatProcessId: 'proc-shape-create',
       });
-      proxy.setupChat({ chatProcessId: ProcessIdStub({ value: 'proc-shape-chat' }) });
+      proxy.setupChat({ chatProcessId: 'proc-shape-chat' });
       const guildId = GuildIdStub({ value: 'adf0453a-ee64-84b2-b92c-1ad541b192ce' });
       const sharedMessage = 'Same request, twice';
       // Both surfaces paste the image before typing, so both embed the SAME `[Pasted Image 1]`
@@ -1671,7 +1670,7 @@ describe('QuestChatContentLayerWidget', () => {
       const proxy = QuestChatContentLayerWidgetProxy();
       proxy.setupConnectedChannel();
       proxy.setupMode({ mode: 'node' });
-      proxy.setupChat({ chatProcessId: ProcessIdStub({ value: 'proc-dedupe-image' }) });
+      proxy.setupChat({ chatProcessId: 'proc-dedupe-image' });
       const guildId = GuildIdStub({ value: 'f0299cc2-1a09-8219-a48d-1f4555df225f' });
 
       mantineRenderMiddleware({
@@ -1786,7 +1785,7 @@ describe('QuestChatContentLayerWidget', () => {
       const newQuestId = QuestIdStub({ value: 'q-screenshot' });
       proxy.setupNewQuest({
         questId: newQuestId,
-        chatProcessId: ProcessIdStub({ value: 'proc-screenshot' }),
+        chatProcessId: 'proc-screenshot',
       });
       const guildId = GuildIdStub({ value: '88430dc1-49c7-3b3a-9d48-13bc6c85826f' });
 

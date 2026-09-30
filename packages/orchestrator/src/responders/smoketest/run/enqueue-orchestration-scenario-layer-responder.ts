@@ -6,7 +6,7 @@
  * // Returns { questId, guildSlug }.
  */
 
-import type { ProcessId, QuestQueueEntry, QuestSource, WorkItemRole, Quest, Guild } from '@dungeonmaster/shared/contracts';
+import type { QuestQueueEntry, QuestSource, WorkItemRole, Quest, Guild } from '@dungeonmaster/shared/contracts';
 import { questQueueEntryContract } from '@dungeonmaster/shared/contracts';
 
 import { smoketestListenerEntryContract } from '../../../contracts/smoketest-listener-entry/smoketest-listener-entry-contract';
@@ -23,7 +23,7 @@ import { smoketestScenarioState } from '../../../state/smoketest-scenario/smoket
 import { LoadQuestLayerResponder } from './load-quest-layer-responder';
 
 type QuestModifiedHandler = (event: {
-  processId: ProcessId;
+  processId: string;
   payload: { questId?: unknown };
 }) => void;
 

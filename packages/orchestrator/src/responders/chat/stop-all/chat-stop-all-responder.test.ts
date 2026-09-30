@@ -1,8 +1,8 @@
-import { ProcessIdStub } from '@dungeonmaster/shared/contracts/process-id/process-id.stub';
 import { QuestIdStub } from '@dungeonmaster/shared/contracts/quest-id/quest-id.stub';
 
 import { orchestrationProcessesState } from '../../../state/orchestration-processes/orchestration-processes-state';
 import { ChatStopAllResponderProxy } from './chat-stop-all-responder.proxy';
+import { OrchestrationProcessStub } from '../../../contracts/orchestration-process/orchestration-process.stub';
 
 describe('ChatStopAllResponder', () => {
   describe('with active processes', () => {
@@ -10,13 +10,13 @@ describe('ChatStopAllResponder', () => {
       const proxy = ChatStopAllResponderProxy();
       const kill1 = jest.fn();
       const kill2 = jest.fn();
-      const processId1 = ProcessIdStub({ value: 'chat-1' });
-      const processId2 = ProcessIdStub({ value: 'chat-2' });
+      const processId1 = 'chat-1';
+      const processId2 = 'chat-2';
       const questId1 = QuestIdStub({ value: 'quest-1' });
       const questId2 = QuestIdStub({ value: 'quest-2' });
       proxy.setupWithProcess({ processId: processId1, questId: questId1, kill: kill1 });
       orchestrationProcessesState.register({
-        orchestrationProcess: { processId: processId2, questId: questId2, kill: kill2 },
+        orchestrationProcess: OrchestrationProcessStub({ processId: processId2, questId: questId2, kill: kill2 }),
       });
 
       proxy.callResponder();

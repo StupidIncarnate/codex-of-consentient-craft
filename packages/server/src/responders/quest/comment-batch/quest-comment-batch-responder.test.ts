@@ -2,7 +2,6 @@ import { FlowNodeStub } from '@dungeonmaster/shared/contracts/flow-node/flow-nod
 import { FlowObservableStub } from '@dungeonmaster/shared/contracts/flow-observable/flow-observable.stub';
 import { FlowStub } from '@dungeonmaster/shared/contracts/flow/flow.stub';
 import { GuildIdStub } from '@dungeonmaster/shared/contracts/guild-id/guild-id.stub';
-import { ProcessIdStub } from '@dungeonmaster/shared/contracts/process-id/process-id.stub';
 import { QuestIdStub } from '@dungeonmaster/shared/contracts/quest-id/quest-id.stub';
 import { QuestStub } from '@dungeonmaster/shared/contracts/quest/quest.stub';
 import { SessionIdStub } from '@dungeonmaster/shared/contracts/session-id/session-id.stub';
@@ -18,7 +17,7 @@ describe('QuestCommentBatchResponder', () => {
       const questId = QuestIdStub();
       const sessionId = SessionIdStub({ value: 'session-comments' });
       const guildId = GuildIdStub();
-      const chatProcessId = ProcessIdStub({ value: 'proc-comments' });
+      const chatProcessId = 'proc-comments';
       const node = FlowNodeStub({ id: 'start', label: 'Start Page' });
       const flow = FlowStub({ id: 'login-flow', nodes: [node] });
       const quest = QuestStub({
@@ -77,7 +76,7 @@ describe('QuestCommentBatchResponder', () => {
       });
       proxy.setupCommentBatch({
         questId,
-        chatProcessId: ProcessIdStub({ value: 'proc-comments' }),
+        chatProcessId: 'proc-comments',
         deliveredMessage:
           'Flow "Login Flow" / observable `redirects-to-dashboard` ("Redirects to dashboard") on node `start`\nUser Comment: This assertion is wrong',
       });

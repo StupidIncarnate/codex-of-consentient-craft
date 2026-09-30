@@ -1,11 +1,10 @@
-import { ProcessIdStub } from '@dungeonmaster/shared/contracts/process-id/process-id.stub';
 
 import { isTrackedChatProcessGuard } from './is-tracked-chat-process-guard';
 
 describe('isTrackedChatProcessGuard', () => {
   describe('a tracked turn', () => {
     it('VALID: {chatProcessId matches trackedChatProcessId} => returns true', () => {
-      const chatProcessId = ProcessIdStub({ value: 'proc-mine' });
+      const chatProcessId = 'proc-mine';
 
       const result = isTrackedChatProcessGuard({
         chatProcessId,
@@ -19,8 +18,8 @@ describe('isTrackedChatProcessGuard', () => {
     // in-flight turn as idle.
     it('VALID: {chatProcessId names a different process} => returns false', () => {
       const result = isTrackedChatProcessGuard({
-        chatProcessId: ProcessIdStub({ value: 'proc-somebody-else' }),
-        trackedChatProcessId: ProcessIdStub({ value: 'proc-mine' }),
+        chatProcessId: 'proc-somebody-else',
+        trackedChatProcessId: 'proc-mine',
       });
 
       expect(result).toBe(false);
@@ -28,7 +27,7 @@ describe('isTrackedChatProcessGuard', () => {
 
     it('VALID: {payload carries no chatProcessId} => returns true', () => {
       const result = isTrackedChatProcessGuard({
-        trackedChatProcessId: ProcessIdStub({ value: 'proc-mine' }),
+        trackedChatProcessId: 'proc-mine',
       });
 
       expect(result).toBe(true);
@@ -38,7 +37,7 @@ describe('isTrackedChatProcessGuard', () => {
   describe('an untracked turn', () => {
     it('VALID: {trackedChatProcessId null, payload names a process} => returns true', () => {
       const result = isTrackedChatProcessGuard({
-        chatProcessId: ProcessIdStub({ value: 'proc-anything' }),
+        chatProcessId: 'proc-anything',
         trackedChatProcessId: null,
       });
 
@@ -47,7 +46,7 @@ describe('isTrackedChatProcessGuard', () => {
 
     it('EMPTY: {trackedChatProcessId omitted, payload names a process} => returns true', () => {
       const result = isTrackedChatProcessGuard({
-        chatProcessId: ProcessIdStub({ value: 'proc-anything' }),
+        chatProcessId: 'proc-anything',
       });
 
       expect(result).toBe(true);
@@ -62,7 +61,7 @@ describe('isTrackedChatProcessGuard', () => {
 
   describe('a retained completion', () => {
     it('VALID: {retained, chatProcessId matches trackedChatProcessId} => returns true', () => {
-      const chatProcessId = ProcessIdStub({ value: 'chat-first-message' });
+      const chatProcessId = 'chat-first-message';
 
       const result = isTrackedChatProcessGuard({
         chatProcessId,
@@ -77,7 +76,7 @@ describe('isTrackedChatProcessGuard', () => {
     // POST resolves, and a re-delivered completion for some earlier turn would otherwise clear it.
     it('VALID: {retained, trackedChatProcessId null} => returns false', () => {
       const result = isTrackedChatProcessGuard({
-        chatProcessId: ProcessIdStub({ value: 'chat-an-earlier-turn' }),
+        chatProcessId: 'chat-an-earlier-turn',
         trackedChatProcessId: null,
         retained: true,
       });
@@ -87,8 +86,8 @@ describe('isTrackedChatProcessGuard', () => {
 
     it('VALID: {retained, chatProcessId names a different process} => returns false', () => {
       const result = isTrackedChatProcessGuard({
-        chatProcessId: ProcessIdStub({ value: 'chat-an-earlier-turn' }),
-        trackedChatProcessId: ProcessIdStub({ value: 'chat-mine' }),
+        chatProcessId: 'chat-an-earlier-turn',
+        trackedChatProcessId: 'chat-mine',
         retained: true,
       });
 
@@ -97,7 +96,7 @@ describe('isTrackedChatProcessGuard', () => {
 
     it('EMPTY: {retained, payload carries no chatProcessId} => returns false', () => {
       const result = isTrackedChatProcessGuard({
-        trackedChatProcessId: ProcessIdStub({ value: 'chat-mine' }),
+        trackedChatProcessId: 'chat-mine',
         retained: true,
       });
 
@@ -106,7 +105,7 @@ describe('isTrackedChatProcessGuard', () => {
 
     it('VALID: {retained false, trackedChatProcessId null} => returns true, same as an unflagged frame', () => {
       const result = isTrackedChatProcessGuard({
-        chatProcessId: ProcessIdStub({ value: 'chat-anything' }),
+        chatProcessId: 'chat-anything',
         trackedChatProcessId: null,
         retained: false,
       });

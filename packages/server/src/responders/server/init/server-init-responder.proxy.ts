@@ -1,4 +1,4 @@
-import type { WardResult, OrchestrationEventType, ProcessId, Guild } from '@dungeonmaster/shared/contracts';
+import type { WardResult, OrchestrationEventType, Guild } from '@dungeonmaster/shared/contracts';
 import { Hono } from '#gateway/npm/hono';
 import type { QuestStub } from '@dungeonmaster/shared/contracts/quest/quest.stub';
 
@@ -46,7 +46,7 @@ const FLUSH_INTERVAL_MS = 100;
 registerModuleMock({ module: '@hono/node-server' });
 
 type Quest = ReturnType<typeof QuestStub>;
-type EventHandler = (args: { processId: ProcessId; payload: Record<string, unknown> }) => void;
+type EventHandler = (args: { processId: string; payload: Record<string, unknown> }) => void;
 // questOutboxWatchBroker and questFindQuestPathBroker are answered DIRECTLY through their own
 // proxies' setupWatchCaptureOnly / setupResolves, not through their real-broker scenarios
 // (setupWatchStarted / setupQuestPath). This responder ALSO composes webBundleResponseBrokerProxy,

@@ -1,4 +1,3 @@
-import { ProcessIdStub } from '@dungeonmaster/shared/contracts/process-id/process-id.stub';
 
 import { serverAppHarness } from '../../../test/harnesses/server-app/server-app.harness';
 
@@ -10,7 +9,7 @@ describe('ProcessFlow', () => {
   describe('GET /api/process/:processId', () => {
     it('VALID: {processId} => delegates to ProcessStatusResponder and returns response', async () => {
       const app = ProcessFlow();
-      const processId = ProcessIdStub();
+      const processId = 'proc-12345';
 
       const response = await app.request(`/api/process/${processId}`);
       const body: unknown = await response.json();
@@ -23,7 +22,7 @@ describe('ProcessFlow', () => {
   describe('GET /api/process/:processId/output', () => {
     it('VALID: {processId} => delegates to ProcessOutputResponder and returns response', async () => {
       const app = ProcessFlow();
-      const processId = ProcessIdStub();
+      const processId = 'proc-12345';
 
       const response = await app.request(`/api/process/${processId}/output`);
       const body: unknown = await response.json();

@@ -1,11 +1,10 @@
-import { ProcessIdStub } from '@dungeonmaster/shared/contracts/process-id/process-id.stub';
 import { ProcessOutputResponderProxy } from './process-output-responder.proxy';
 
 describe('ProcessOutputResponder', () => {
   describe('successful output retrieval', () => {
     it('VALID: {valid processId} => returns 200 with empty slots', () => {
       const proxy = ProcessOutputResponderProxy();
-      const processId = ProcessIdStub();
+      const processId = 'proc-12345';
 
       const result = proxy.callResponder({ params: { processId } });
 

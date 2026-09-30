@@ -9,10 +9,9 @@ import { locationsQuestFolderPathFindBrokerProxy } from '@dungeonmaster/shared/b
 import { pastedImagePersistBrokerProxy } from '../../../brokers/pasted-image/persist/pasted-image-persist-broker.proxy';
 import { QuestNewResponder } from './quest-new-responder';
 import type { GuildIdStub } from '@dungeonmaster/shared/contracts/guild-id/guild-id.stub';
-import type { ProcessIdStub } from '@dungeonmaster/shared/contracts/process-id/process-id.stub';
 import type { QuestIdStub } from '@dungeonmaster/shared/contracts/quest-id/quest-id.stub';
 
-type ProcessId = ReturnType<typeof ProcessIdStub>;
+type ProcessId = string;
 type QuestId = ReturnType<typeof QuestIdStub>;
 type GuildId = ReturnType<typeof GuildIdStub>;
 // Derived from the real StartOrchestrator.startChat signature (never hand-typed) so the elements

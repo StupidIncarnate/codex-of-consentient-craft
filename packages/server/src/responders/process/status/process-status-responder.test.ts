@@ -1,12 +1,11 @@
 import { OrchestrationStatusStub } from '@dungeonmaster/shared/contracts/orchestration-status/orchestration-status.stub';
-import { ProcessIdStub } from '@dungeonmaster/shared/contracts/process-id/process-id.stub';
 import { ProcessStatusResponderProxy } from './process-status-responder.proxy';
 
 describe('ProcessStatusResponder', () => {
   describe('successful status retrieval', () => {
     it('VALID: {valid processId} => returns 200 with status', () => {
       const proxy = ProcessStatusResponderProxy();
-      const processId = ProcessIdStub();
+      const processId = 'proc-12345';
       const status = OrchestrationStatusStub();
       proxy.setupGetStatus({ status });
 
@@ -68,7 +67,7 @@ describe('ProcessStatusResponder', () => {
   describe('error cases', () => {
     it('ERROR: {adapter throws} => returns 500 with error message', () => {
       const proxy = ProcessStatusResponderProxy();
-      const processId = ProcessIdStub({ value: 'proc-123' });
+      const processId = 'proc-123';
       proxy.setupGetStatusError({ processId, message: 'Process not found' });
 
       const result = proxy.callResponder({ params: { processId } });

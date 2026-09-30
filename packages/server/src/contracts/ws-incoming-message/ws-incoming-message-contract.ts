@@ -7,14 +7,14 @@
  */
 
 import { z } from '#gateway/npm/zod';
-import { processIdContract, questContract, guildContract, sessionContract } from '@dungeonmaster/shared/contracts';
+import { questContract, guildContract, sessionContract } from '@dungeonmaster/shared/contracts';
 
 export const wsIncomingMessageContract = z.discriminatedUnion('type', [
   z.object({
     type: z.literal('replay-history'),
     sessionId: sessionContract.shape.id,
     guildId: guildContract.shape.id,
-    chatProcessId: processIdContract,
+    chatProcessId: z.string().min(1).brand<'WsIncomingMessageChatProcessId'>(),
   }),
   z.object({
     type: z.literal('ward-detail-request'),

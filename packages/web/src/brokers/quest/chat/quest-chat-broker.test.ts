@@ -1,5 +1,4 @@
 import { PastedImageUploadStub } from '@dungeonmaster/shared/contracts/pasted-image-upload/pasted-image-upload.stub';
-import { ProcessIdStub } from '@dungeonmaster/shared/contracts/process-id/process-id.stub';
 import { QuestIdStub } from '@dungeonmaster/shared/contracts/quest-id/quest-id.stub';
 
 import { questChatBroker } from './quest-chat-broker';
@@ -11,7 +10,7 @@ describe('questChatBroker', () => {
       const proxy = questChatBrokerProxy();
       const questId = QuestIdStub({ value: 'quest-chat-1' });
       const message = 'Continue';
-      const chatProcessId = ProcessIdStub({ value: 'proc-chat-1' });
+      const chatProcessId = 'proc-chat-1';
 
       proxy.setupChat({ chatProcessId });
 
@@ -26,7 +25,7 @@ describe('questChatBroker', () => {
       const proxy = questChatBrokerProxy();
       const questId = QuestIdStub({ value: 'quest-chat-2' });
       const message = 'Continue';
-      const chatProcessId = ProcessIdStub({ value: 'proc-chat-2' });
+      const chatProcessId = 'proc-chat-2';
 
       proxy.setupChat({ chatProcessId });
 
@@ -99,7 +98,7 @@ describe('questChatBroker', () => {
       const proxy = questChatBrokerProxy({ url: '/api/quests/quest-images-1/chat' });
       const questId = QuestIdStub({ value: 'quest-images-1' });
       const message = 'A[Pasted Image 1]B[Pasted Image 2]C';
-      const chatProcessId = ProcessIdStub({ value: 'proc-images-1' });
+      const chatProcessId = 'proc-images-1';
       const imageOne = PastedImageUploadStub({ mediaType: 'image/png' });
       const imageTwo = PastedImageUploadStub({ mediaType: 'image/jpeg' });
 
@@ -119,7 +118,7 @@ describe('questChatBroker', () => {
       const proxy = questChatBrokerProxy();
       const questId = QuestIdStub({ value: 'quest-text-only-1' });
       const message = 'Just words';
-      const chatProcessId = ProcessIdStub({ value: 'proc-text-only-1' });
+      const chatProcessId = 'proc-text-only-1';
 
       proxy.setupChat({ chatProcessId });
 
@@ -132,7 +131,7 @@ describe('questChatBroker', () => {
       const proxy = questChatBrokerProxy();
       const questId = QuestIdStub({ value: 'quest-text-only-2' });
       const message = 'Still just words';
-      const chatProcessId = ProcessIdStub({ value: 'proc-text-only-2' });
+      const chatProcessId = 'proc-text-only-2';
 
       proxy.setupChat({ chatProcessId });
 

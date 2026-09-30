@@ -1,4 +1,3 @@
-import { ProcessIdStub } from '@dungeonmaster/shared/contracts/process-id/process-id.stub';
 import { SessionIdStub } from '@dungeonmaster/shared/contracts/session-id/session-id.stub';
 import { QuestIdStub } from '@dungeonmaster/shared/contracts/quest-id/quest-id.stub';
 
@@ -11,7 +10,7 @@ describe('pendingClarificationState', () => {
     it('VALID: {processId, questId, questions} => stores entry by processId', () => {
       const proxy = pendingClarificationStateProxy();
       proxy.setupEmpty();
-      const processId = ProcessIdStub({ value: 'proc-1' });
+      const processId = 'proc-1';
       const questId = QuestIdStub({ value: 'quest-1' });
       const questions = [ClarificationQuestionStub()];
 
@@ -42,7 +41,7 @@ describe('pendingClarificationState', () => {
     it('INVALID: {questions: []} => throws and stores nothing to promote', () => {
       const proxy = pendingClarificationStateProxy();
       proxy.setupEmpty();
-      const processId = ProcessIdStub({ value: 'proc-no-questions' });
+      const processId = 'proc-no-questions';
       const questId = QuestIdStub({ value: 'quest-no-questions' });
 
       expect(() => {
@@ -60,7 +59,7 @@ describe('pendingClarificationState', () => {
   describe('promoteToSession', () => {
     it('VALID: {existing processId, sessionId} => moves entry to session map and returns true', () => {
       const proxy = pendingClarificationStateProxy();
-      const processId = ProcessIdStub({ value: 'proc-promote' });
+      const processId = 'proc-promote';
       const questId = QuestIdStub({ value: 'quest-promote' });
       const questions = [ClarificationQuestionStub()];
       proxy.setupWithProcessEntry({ processId, questId, questions });
@@ -91,7 +90,7 @@ describe('pendingClarificationState', () => {
     it('EMPTY: {nonexistent processId} => returns false', () => {
       const proxy = pendingClarificationStateProxy();
       proxy.setupEmpty();
-      const processId = ProcessIdStub({ value: 'nonexistent' });
+      const processId = 'nonexistent';
       const sessionId = SessionIdStub({ value: 'session-no-match' });
 
       const result = pendingClarificationState.promoteToSession({ processId, sessionId });
@@ -101,7 +100,7 @@ describe('pendingClarificationState', () => {
 
     it('VALID: {promote} => removes entry from process map', () => {
       const proxy = pendingClarificationStateProxy();
-      const processId = ProcessIdStub({ value: 'proc-remove' });
+      const processId = 'proc-remove';
       const questId = QuestIdStub({ value: 'quest-remove' });
       const questions = [ClarificationQuestionStub()];
       proxy.setupWithProcessEntry({ processId, questId, questions });
@@ -184,7 +183,7 @@ describe('pendingClarificationState', () => {
     it('VALID: {entries in both maps} => clears all entries', () => {
       const proxy = pendingClarificationStateProxy();
       proxy.setupEmpty();
-      const processId = ProcessIdStub({ value: 'proc-clear' });
+      const processId = 'proc-clear';
       const questId = QuestIdStub({ value: 'quest-clear' });
       const questions = [ClarificationQuestionStub()];
       const sessionId = SessionIdStub({ value: 'session-clear' });
@@ -192,7 +191,7 @@ describe('pendingClarificationState', () => {
       pendingClarificationState.setForProcess({ processId, questId, questions });
       pendingClarificationState.promoteToSession({ processId, sessionId });
       pendingClarificationState.setForProcess({
-        processId: ProcessIdStub({ value: 'proc-clear-2' }),
+        processId: 'proc-clear-2',
         questId,
         questions,
       });
@@ -202,7 +201,7 @@ describe('pendingClarificationState', () => {
       expect(pendingClarificationState.getForSession({ sessionId })).toBe(undefined);
 
       const promoteResult = pendingClarificationState.promoteToSession({
-        processId: ProcessIdStub({ value: 'proc-clear-2' }),
+        processId: 'proc-clear-2',
         sessionId: SessionIdStub({ value: 'session-clear-2' }),
       });
 

@@ -8,11 +8,10 @@
  * // Returns { chatProcessId: ProcessId }
  */
 
-import { processIdContract } from '@dungeonmaster/shared/contracts';
 import { z } from '#gateway/npm/zod';
 
 export const questClarifyResultContract = z.object({
-  chatProcessId: processIdContract,
+  chatProcessId: z.string().min(1).brand<'QuestClarifyResultChatProcessId'>(),
 });
 
 export type QuestClarifyResult = z.infer<typeof questClarifyResultContract>;

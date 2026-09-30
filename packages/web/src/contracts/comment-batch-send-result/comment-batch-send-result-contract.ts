@@ -11,14 +11,13 @@
 
 import { z } from '#gateway/npm/zod';
 
-import { processIdContract } from '@dungeonmaster/shared/contracts';
 
 import { commentAnchorContract } from '../comment-anchor/comment-anchor-contract';
 
 export const commentBatchSendResultContract = z.discriminatedUnion('outcome', [
   z.object({
     outcome: z.literal('sent'),
-    chatProcessId: processIdContract,
+    chatProcessId: z.string().min(1).brand<'CommentBatchSendResultChatProcessId'>(),
     // The markdown turn the agent received. Optional so an older server that does not echo it back
     // still parses as a success — the batch WAS delivered either way, and the panel simply falls
     // back to showing nothing extra rather than the send appearing to fail.

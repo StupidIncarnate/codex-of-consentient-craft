@@ -41,7 +41,7 @@
  */
 
 import { stderr } from '#gateway/node/process';
-import type { ProcessId, QuestStatus, Quest, Guild } from '@dungeonmaster/shared/contracts';
+import type { QuestStatus, Quest, Guild } from '@dungeonmaster/shared/contracts';
 import { questContract, workItemContract } from '@dungeonmaster/shared/contracts';
 import {
   isActiveWorkItemStatusGuard,
@@ -70,8 +70,8 @@ export const questPauseBroker = async ({
   // the staleness the "ghost running" fix below closes.
   previousStatus: QuestStatus;
   processControls: {
-    findAllByQuestId: ({ questId }: { questId: Quest['id'] }) => { processId: ProcessId }[];
-    kill: ({ processId }: { processId: ProcessId }) => void;
+    findAllByQuestId: ({ questId }: { questId: Quest['id'] }) => { processId: string }[];
+    kill: ({ processId }: { processId: string }) => void;
   };
 }): Promise<{ paused: boolean }> => {
   // EVERY registration for the quest, not the first one. Start Quest registers a quest-level

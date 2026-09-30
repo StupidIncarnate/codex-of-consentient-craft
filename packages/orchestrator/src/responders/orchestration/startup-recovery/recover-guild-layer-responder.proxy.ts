@@ -10,7 +10,7 @@
 import { stderrProxy } from '#gateway/node/process/stderr/stderr.proxy';
 import { randomUUID } from '#gateway/node/crypto';
 import { GuildStub } from '@dungeonmaster/shared/contracts/guild/guild.stub';
-import type { ProcessId, Guild } from '@dungeonmaster/shared/contracts';
+import type { Guild } from '@dungeonmaster/shared/contracts';
 import type { QuestStub } from '@dungeonmaster/shared/contracts/quest/quest.stub';
 import {
   registerMock,
@@ -97,7 +97,7 @@ export const RecoverGuildLayerResponderProxy = (): {
     currentBranchName: string;
     output: string;
   }) => void;
-  getRegisteredProcessIds: () => readonly ProcessId[];
+  getRegisteredProcessIds: () => readonly string[];
   getAllPersistedContents: () => readonly unknown[];
   getRestoreSpawnedArgs: () => readonly unknown[];
   getWorktreeRestoreCalls: () => readonly unknown[];
@@ -286,7 +286,7 @@ export const RecoverGuildLayerResponderProxy = (): {
       questListProxy.setupDirectListFailure({ error });
     },
 
-    getRegisteredProcessIds: (): readonly ProcessId[] => orchestrationProcessesState.getAll(),
+    getRegisteredProcessIds: (): readonly string[] => orchestrationProcessesState.getAll(),
 
     // Read the `contents` argument straight off every questPersistBroker call this test made —
     // persistMock's real body never runs, so nothing ever reaches an underlying fs adapter now.

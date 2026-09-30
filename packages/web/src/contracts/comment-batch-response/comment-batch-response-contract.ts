@@ -12,12 +12,11 @@
 
 import { z } from '#gateway/npm/zod';
 
-import { processIdContract } from '@dungeonmaster/shared/contracts';
 
 import { commentAnchorContract } from '../comment-anchor/comment-anchor-contract';
 
 export const commentBatchResponseContract = z.object({
-  chatProcessId: processIdContract.optional(),
+  chatProcessId: z.string().min(1).brand<'CommentBatchResponseChatProcessId'>().optional(),
   // The markdown turn the agent actually received, echoed back so the panel can render the user's
   // own entry immediately instead of waiting for a reload to replay it from the session file.
   deliveredMessage: z.string().min(1).brand<'DeliveredCommentMessage'>().optional(),

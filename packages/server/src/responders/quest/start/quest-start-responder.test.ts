@@ -1,4 +1,3 @@
-import { ProcessIdStub } from '@dungeonmaster/shared/contracts/process-id/process-id.stub';
 import { QuestIdStub } from '@dungeonmaster/shared/contracts/quest-id/quest-id.stub';
 import { QuestStub } from '@dungeonmaster/shared/contracts/quest/quest.stub';
 import { questStatusMetadataStatics } from '@dungeonmaster/shared/statics';
@@ -28,7 +27,7 @@ describe('QuestStartResponder', () => {
       async (status) => {
         const proxy = QuestStartResponderProxy();
         const questId = QuestIdStub();
-        const processId = ProcessIdStub();
+        const processId = 'proc-12345';
         const quest = QuestStub({ id: questId, status });
         proxy.setupQuest({ quest });
         proxy.setupStartQuest({ questId, processId });
@@ -54,7 +53,7 @@ describe('QuestStartResponder', () => {
       async (status) => {
         const proxy = QuestStartResponderProxy();
         const questId = QuestIdStub();
-        const processId = ProcessIdStub();
+        const processId = 'proc-12345';
         const quest = QuestStub({ id: questId, status });
         proxy.setupQuest({ quest });
         proxy.setupStartQuest({ questId, processId });
@@ -86,7 +85,7 @@ describe('QuestStartResponder', () => {
     it('ERROR: {playDispatch throws} => returns 200 with the error as the dispatch reason', async () => {
       const proxy = QuestStartResponderProxy();
       const questId = QuestIdStub();
-      const processId = ProcessIdStub();
+      const processId = 'proc-12345';
       const quest = QuestStub({ id: questId, status: 'approved' });
       proxy.setupQuest({ quest });
       proxy.setupStartQuest({ questId, processId });

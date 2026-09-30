@@ -16,7 +16,7 @@
 
 import { stderr } from '#gateway/node/process';
 import { workItemRoleContract, sessionContract } from '@dungeonmaster/shared/contracts';
-import type { ChatEntry, ModifyQuestInput, ProcessId, QuestType, WorkItemRole, Quest, WorkItem, Guild, Session } from '@dungeonmaster/shared/contracts';
+import type { ChatEntry, ModifyQuestInput, QuestType, WorkItemRole, Quest, WorkItem, Guild, Session } from '@dungeonmaster/shared/contracts';
 import {
   locationsQuestFolderPathFindBroker,
   locationsQuestImagesPathFindBroker,
@@ -65,7 +65,7 @@ export const chatSpawnBroker = async ({
   message: string;
   sessionId?: Session['id'];
   onEntries: (params: {
-    chatProcessId: ProcessId;
+    chatProcessId: string;
     entries: ChatEntry[];
     sessionId: Session['id'] | undefined;
   }) => void;
@@ -74,14 +74,14 @@ export const chatSpawnBroker = async ({
   // returns a promise because it awaits sub-agent tail drains before emitting
   // chat-complete on the bus.
   onComplete: (params: {
-    chatProcessId: ProcessId;
+    chatProcessId: string;
     exitCode: number | null;
     sessionId: Session['id'] | null;
   }) => void | Promise<void>;
-  onQuestCreated?: (params: { questId: Quest['id']; chatProcessId: ProcessId }) => void;
-  onSessionIdExtracted?: (params: { chatProcessId: ProcessId; sessionId: Session['id'] }) => void;
+  onQuestCreated?: (params: { questId: Quest['id']; chatProcessId: string }) => void;
+  onSessionIdExtracted?: (params: { chatProcessId: string; sessionId: Session['id'] }) => void;
   registerProcess: (params: {
-    processId: ProcessId;
+    processId: string;
     questId: Quest['id'];
     questWorkItemId: WorkItem['id'];
     kill: () => void;
@@ -89,10 +89,10 @@ export const chatSpawnBroker = async ({
   // Telemetry callbacks forwarded to `agentLaunchBroker` so the responder can bind them
   // to `orchestrationProcessesState.recordActivity` / `setMetadata`. Optional — chat
   // sites that don't care about stale-process detection can omit these.
-  recordActivity?: (params: { processId: ProcessId }) => void;
-  setMetadata?: (params: { processId: ProcessId; osPid?: number }) => void;
+  recordActivity?: (params: { processId: string }) => void;
+  setMetadata?: (params: { processId: string; osPid?: number }) => void;
 }): Promise<{
-  chatProcessId: ProcessId;
+  chatProcessId: string;
   handle: ReturnType<typeof chatStreamProcessHandleBroker>;
 }> => {
   if (role === 'ward') {

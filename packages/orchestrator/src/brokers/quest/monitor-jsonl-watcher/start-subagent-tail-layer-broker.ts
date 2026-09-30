@@ -14,7 +14,7 @@
  * // Returns void; the tail handle lands in `subagentHandles`
  */
 
-import { type ChatEntry, type ProcessId } from '@dungeonmaster/shared/contracts';
+import { type ChatEntry } from '@dungeonmaster/shared/contracts';
 import { claudeLineNormalizeBroker } from '@dungeonmaster/shared/brokers';
 import { tailFile } from '#gateway/node/fs';
 import type { TailFileHandle } from '#gateway/node/fs';
@@ -45,7 +45,7 @@ export const startSubagentTailLayerBroker = ({
   // `sessionEntries.get(wi.sessionId)` lookup returns [] until the user refreshes.
   parentSessionId: Session['id'];
   processor: ChatLineProcessor;
-  chatProcessId: ProcessId;
+  chatProcessId: string;
   activeQuestIdGetter: () => Quest['id'] | null;
   // Resolves this sub-agent's owning work item id from its realAgentId. Stamped on every
   // emit as `workItemId` so the web routes the transcript to its own execution row rather
@@ -53,7 +53,7 @@ export const startSubagentTailLayerBroker = ({
   // when no active work item currently carries this agentId.
   workItemIdForAgent?: (params: { agentId: Agent['id'] }) => WorkItem['id'] | null;
   emit: (params: {
-    chatProcessId: ProcessId;
+    chatProcessId: string;
     entries: ChatEntry[];
     questId: Quest['id'] | null;
     sessionId: Session['id'];

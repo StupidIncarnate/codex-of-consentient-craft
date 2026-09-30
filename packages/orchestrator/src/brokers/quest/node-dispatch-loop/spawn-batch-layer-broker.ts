@@ -14,7 +14,7 @@
  */
 
 import { stderr } from '#gateway/node/process';
-import type { ModifyQuestInput, ProcessId, Quest, WorkItem } from '@dungeonmaster/shared/contracts';
+import type { ModifyQuestInput, Quest, WorkItem } from '@dungeonmaster/shared/contracts';
 
 import type { SpawnInstruction } from '../../../contracts/spawn-instruction/spawn-instruction-contract';
 import { questCwdResolveBroker } from '../cwd-resolve/quest-cwd-resolve-broker';
@@ -29,12 +29,12 @@ export const spawnBatchLayerBroker = async ({
 }: {
   agents: readonly SpawnInstruction[];
   registerProcess?: (params: {
-    processId: ProcessId;
+    processId: string;
     questId: Quest['id'];
     questWorkItemId: WorkItem['id'];
     kill: () => void;
   }) => void;
-  unregisterProcess?: (params: { processId: ProcessId }) => void;
+  unregisterProcess?: (params: { processId: string }) => void;
   // Forwarded to the per-agent layer so an API-overload backoff — which can sleep for minutes —
   // abandons its retry when the user pauses dispatch instead of waking up and spawning anyway.
   isPlaying?: () => boolean;

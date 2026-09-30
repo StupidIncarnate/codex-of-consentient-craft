@@ -1,4 +1,3 @@
-import { ProcessIdStub } from '@dungeonmaster/shared/contracts/process-id/process-id.stub';
 import { QuestIdStub } from '@dungeonmaster/shared/contracts/quest-id/quest-id.stub';
 import { SessionIdStub } from '@dungeonmaster/shared/contracts/session-id/session-id.stub';
 
@@ -13,7 +12,7 @@ describe('chatStreamEndedPayloadContract', () => {
   });
 
   it('VALID: {chatProcessId only} => parses', () => {
-    const chatProcessId = ProcessIdStub({ value: 'replay-abc' });
+    const chatProcessId = 'replay-abc';
 
     expect(
       chatStreamEndedPayloadContract.parse({ reason: 'history-replayed', chatProcessId }),
@@ -24,7 +23,7 @@ describe('chatStreamEndedPayloadContract', () => {
   });
 
   it('VALID: {chatProcessId + sessionId} => parses chat-complete shape', () => {
-    const chatProcessId = ProcessIdStub({ value: 'live-1' });
+    const chatProcessId = 'live-1';
     const sessionId = SessionIdStub({ value: 'sess-1' });
 
     expect(
@@ -45,7 +44,7 @@ describe('chatStreamEndedPayloadContract', () => {
   });
 
   it('VALID: {turn-ended + retained} => parses the subscribe-time re-delivery of a finished turn', () => {
-    const chatProcessId = ProcessIdStub({ value: 'chat-first-message' });
+    const chatProcessId = 'chat-first-message';
 
     expect(
       chatStreamEndedPayloadContract.parse({

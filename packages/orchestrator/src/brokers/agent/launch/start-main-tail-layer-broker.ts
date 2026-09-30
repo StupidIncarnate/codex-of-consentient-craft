@@ -15,7 +15,7 @@
  * `~/.claude/projects/` directory the tailed transcript was written to.
  */
 
-import type { ChatEntry, ProcessId, Session } from '@dungeonmaster/shared/contracts';
+import type { ChatEntry, Session } from '@dungeonmaster/shared/contracts';
 
 import type { ChatLineProcessor } from '../../../contracts/chat-line-processor/chat-line-processor-contract';
 import { chatMainSessionTailBroker } from '../../chat/main-session-tail/chat-main-session-tail-broker';
@@ -30,9 +30,9 @@ export const startMainTailLayerBroker = ({
   sessionId: Session['id'];
   cwd: string;
   processor: ChatLineProcessor;
-  chatProcessId: ProcessId;
+  chatProcessId: string;
   onEntries: (params: {
-    chatProcessId: ProcessId;
+    chatProcessId: string;
     entries: ChatEntry[];
     sessionId: Session['id'] | undefined;
   }) => void;

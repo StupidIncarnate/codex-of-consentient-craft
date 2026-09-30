@@ -1,5 +1,4 @@
 import { GuildIdStub } from '@dungeonmaster/shared/contracts/guild-id/guild-id.stub';
-import { ProcessIdStub } from '@dungeonmaster/shared/contracts/process-id/process-id.stub';
 import { QuestIdStub } from '@dungeonmaster/shared/contracts/quest-id/quest-id.stub';
 import { QuestStub } from '@dungeonmaster/shared/contracts/quest/quest.stub';
 import { QuestWorkItemIdStub } from '@dungeonmaster/shared/contracts/quest-work-item-id/quest-work-item-id.stub';
@@ -15,13 +14,13 @@ const buildProcessControls = ({
 }: {
   questIdMatch?: ReturnType<typeof QuestIdStub>;
   kill?: jest.Mock;
-  processIds?: readonly ReturnType<typeof ProcessIdStub>[];
+  processIds?: readonly string[];
 } = {}): {
   findAllByQuestId: jest.Mock;
   kill: jest.Mock;
 } => {
   const killMock = kill ?? jest.fn();
-  const ids = processIds ?? [ProcessIdStub({ value: 'proc-match' })];
+  const ids = processIds ?? ['proc-match'];
   const findAllByQuestId =
     questIdMatch === undefined
       ? jest.fn().mockReturnValue([])
@@ -175,8 +174,8 @@ describe('questPauseBroker', () => {
         questIdMatch: questId,
         kill,
         processIds: [
-          ProcessIdStub({ value: 'proc-start-noop' }),
-          ProcessIdStub({ value: 'proc-warpgate-child' }),
+          'proc-start-noop',
+          'proc-warpgate-child',
         ],
       });
 

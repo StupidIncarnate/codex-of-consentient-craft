@@ -32,7 +32,7 @@
 
 import type { WorkItem, Quest, Session } from '@dungeonmaster/shared/contracts';
 import { homedir } from '#gateway/node/os';
-import { processIdContract, type ChatEntry, type OrchestrationEventType, type ProcessId, questContract, workItemContract, sessionContract } from '@dungeonmaster/shared/contracts';
+import { type ChatEntry, type OrchestrationEventType, questContract, workItemContract, sessionContract } from '@dungeonmaster/shared/contracts';
 import { claudeProjectPathEncoderTransformer } from '@dungeonmaster/shared/transformers';
 
 import { questMonitorJsonlWatcherBroker } from '../monitor-jsonl-watcher/quest-monitor-jsonl-watcher-broker';
@@ -49,7 +49,7 @@ export const questMonitorWatcherStartBroker = async ({
   projectDir: string;
   emit: (params: {
     type: OrchestrationEventType;
-    processId: ProcessId;
+    processId: string;
     payload: Record<string, unknown>;
   }) => void;
   // The work item whose agent writes this session's MAIN JSONL — its own output, not
@@ -95,7 +95,7 @@ export const questMonitorWatcherStartBroker = async ({
     sessionId,
   });
 
-  const chatProcessId: ProcessId = processIdContract.parse(`proc-worker-${parentSessionId}`);
+  const chatProcessId: string = `proc-worker-${parentSessionId}`;
   // Sized 0 (running) or 1 (stopped). The terminal emit below must fire exactly once: the
   // reactor stops a watcher when its work item leaves the active set, and the server-wide
   // teardown stops every watcher it still holds, so both can reach the same handle.
@@ -118,7 +118,7 @@ export const questMonitorWatcherStartBroker = async ({
       sessionId: emittedSessionId,
       workItemId: emittedWorkItemId,
     }: {
-      chatProcessId: ProcessId;
+      chatProcessId: string;
       entries: ChatEntry[];
       questId: Quest['id'] | null;
       sessionId?: Session['id'];

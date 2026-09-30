@@ -1,6 +1,5 @@
 import { setTimeout } from '#gateway/node/setTimeout';
 import { GuildIdStub } from '@dungeonmaster/shared/contracts/guild-id/guild-id.stub';
-import { ProcessIdStub } from '@dungeonmaster/shared/contracts/process-id/process-id.stub';
 import { QuestCommentStub } from '@dungeonmaster/shared/contracts/quest-comment/quest-comment.stub';
 import { QuestIdStub } from '@dungeonmaster/shared/contracts/quest-id/quest-id.stub';
 import { QuestStub } from '@dungeonmaster/shared/contracts/quest/quest.stub';
@@ -38,7 +37,7 @@ describe('ServerInitResponder', () => {
           type: 'replay-history',
           sessionId: SessionIdStub(),
           guildId: GuildIdStub(),
-          chatProcessId: ProcessIdStub(),
+          chatProcessId: 'proc-12345',
         }),
         ws: client,
       });
@@ -61,8 +60,8 @@ describe('ServerInitResponder', () => {
       const sessionIdOne = SessionIdStub({ value: 'session-relay-pin-one' });
       const sessionIdTwo = SessionIdStub({ value: 'session-relay-pin-two' });
       const guildId = GuildIdStub();
-      const chatProcessIdOne = ProcessIdStub({ value: 'relay-pin-proc-one' });
-      const chatProcessIdTwo = ProcessIdStub({ value: 'relay-pin-proc-two' });
+      const chatProcessIdOne = 'relay-pin-proc-one';
+      const chatProcessIdTwo = 'relay-pin-proc-two';
       proxy.simulateConnection({ client });
       proxy.simulateMessage({
         data: JSON.stringify({
@@ -109,7 +108,7 @@ describe('ServerInitResponder', () => {
 
       const sendMock = jest.fn();
       const client = WsContextStub({ send: sendMock });
-      const chatProcessId = ProcessIdStub({ value: 'replay-flag-proc' });
+      const chatProcessId = 'replay-flag-proc';
       const sessionId = SessionIdStub({ value: 'session-replay-flag' });
       proxy.simulateConnection({ client });
       proxy.simulateMessage({
@@ -129,7 +128,7 @@ describe('ServerInitResponder', () => {
 
       const handler = proxy.getCapturedEventHandler({ type: 'chat-output' });
       handler!({
-        processId: ProcessIdStub({ value: 'p-replay-flag' }),
+        processId: 'p-replay-flag',
         payload: {
           chatProcessId,
           sessionId,
@@ -224,7 +223,7 @@ describe('ServerInitResponder', () => {
 
       const handler = proxy.getCapturedEventHandler({ type: 'chat-output' });
       handler!({
-        processId: ProcessIdStub(),
+        processId: 'proc-12345',
         payload: { slotIndex: 0, text: 'buffered' },
       });
 
@@ -241,7 +240,7 @@ describe('ServerInitResponder', () => {
 
       const handler = proxy.getCapturedEventHandler({ type: 'chat-output' });
       handler!({
-        processId: ProcessIdStub(),
+        processId: 'proc-12345',
         payload: { text: 'no-quest-id' },
       });
 
@@ -271,7 +270,7 @@ describe('ServerInitResponder', () => {
 
       const handler = proxy.getCapturedEventHandler({ type: 'phase-change' });
       handler!({
-        processId: ProcessIdStub(),
+        processId: 'proc-12345',
         payload: { phase: 'codeweaver' },
       });
 
@@ -370,7 +369,7 @@ describe('ServerInitResponder', () => {
     it('VALID: {chat-complete fires with no subscriber, then a client subscribes to that quest} => it receives the completion stamped retained, before chat-history-complete', async () => {
       const proxy = ServerInitResponderProxy();
       const questId = QuestIdStub({ value: 'quest-retained-completion' });
-      const chatProcessId = ProcessIdStub({ value: 'chat-first-message' });
+      const chatProcessId = 'chat-first-message';
       proxy.setupLoadQuestSuccess({ quest: QuestStub({ id: questId, workItems: [] }) });
       proxy.setupFindQuestPathSuccess({
         questId,
@@ -431,9 +430,9 @@ describe('ServerInitResponder', () => {
 
       const completeHandler = proxy.getCapturedEventHandler({ type: 'chat-complete' });
       completeHandler!({
-        processId: ProcessIdStub({ value: 'chat-on-quest-X' }),
+        processId: 'chat-on-quest-X',
         payload: {
-          chatProcessId: ProcessIdStub({ value: 'chat-on-quest-X' }),
+          chatProcessId: 'chat-on-quest-X',
           questId: questIdX,
           exitCode: 0,
         },
@@ -918,17 +917,17 @@ describe('ServerInitResponder', () => {
       const handler = proxy.getCapturedEventHandler({ type: 'chat-output' });
       // Event tagged with questIdY should reach the client (still subscribed).
       handler!({
-        processId: ProcessIdStub({ value: 'p-Y' }),
+        processId: 'p-Y',
         payload: { questId: questIdY, text: 'for-Y' },
       });
       // Event tagged with questIdX should NOT reach the client (unsubscribed).
       handler!({
-        processId: ProcessIdStub({ value: 'p-X' }),
+        processId: 'p-X',
         payload: { questId: questIdX, text: 'for-X' },
       });
       // Event tagged with otherQuestId should NOT reach the client either.
       handler!({
-        processId: ProcessIdStub({ value: 'p-Z' }),
+        processId: 'p-Z',
         payload: { questId: otherQuestId, text: 'for-Z' },
       });
 
@@ -979,7 +978,7 @@ describe('ServerInitResponder', () => {
 
       const handler = proxy.getCapturedEventHandler({ type: 'chat-output' });
       handler!({
-        processId: ProcessIdStub({ value: 'p-1' }),
+        processId: 'p-1',
         payload: { questId: questIdX, text: 'X-only' },
       });
 
@@ -1011,7 +1010,7 @@ describe('ServerInitResponder', () => {
 
       const handler = proxy.getCapturedEventHandler({ type: 'chat-output' });
       handler!({
-        processId: ProcessIdStub({ value: 'p-envelope' }),
+        processId: 'p-envelope',
         payload: { questId: questIdX, chatProcessId: 'cp-envelope', entries: [] },
       });
 
@@ -1063,7 +1062,7 @@ describe('ServerInitResponder', () => {
 
       const handler = proxy.getCapturedEventHandler({ type: 'chat-output' });
       handler!({
-        processId: ProcessIdStub({ value: 'p-replay-envelope' }),
+        processId: 'p-replay-envelope',
         payload: {
           questId: questIdX,
           chatProcessId: 'cp-replay-envelope',
@@ -1128,7 +1127,7 @@ describe('ServerInitResponder', () => {
 
       const handler = proxy.getCapturedEventHandler({ type: 'chat-output' });
       handler!({
-        processId: ProcessIdStub({ value: 'p-unresolved' }),
+        processId: 'p-unresolved',
         payload: { chatProcessId: 'proc-monitor-unresolved', entries: [] },
       });
 
@@ -1188,7 +1187,7 @@ describe('ServerInitResponder', () => {
       // emit has. It must land on X's subscriber, stamped, and nowhere else.
       const handler = proxy.getCapturedEventHandler({ type: 'chat-output' });
       handler!({
-        processId: ProcessIdStub({ value: 'p-lookup' }),
+        processId: 'p-lookup',
         payload: { chatProcessId: 'cp-lookup', workItemId, entries: [] },
       });
 
@@ -1249,7 +1248,7 @@ describe('ServerInitResponder', () => {
 
       const handler = proxy.getCapturedEventHandler({ type: 'phase-change' });
       handler!({
-        processId: ProcessIdStub({ value: 'p-broadcast' }),
+        processId: 'p-broadcast',
         payload: { phase: 'codeweaver' },
       });
 
@@ -1293,7 +1292,7 @@ describe('ServerInitResponder', () => {
 
       const handler = proxy.getCapturedEventHandler({ type: 'chat-output' });
       handler!({
-        processId: ProcessIdStub({ value: 'p-flush' }),
+        processId: 'p-flush',
         payload: { questId: questIdX, slotIndex: 0, text: 'pipeline-X' },
       });
 
@@ -1349,7 +1348,7 @@ describe('ServerInitResponder', () => {
       // reach the client (no subscription, no broadcast fallback for per-quest events).
       const handler = proxy.getCapturedEventHandler({ type: 'chat-output' });
       handler!({
-        processId: ProcessIdStub({ value: 'p-after-replay' }),
+        processId: 'p-after-replay',
         payload: { questId, text: 'post-replay' },
       });
 
@@ -1398,7 +1397,7 @@ describe('ServerInitResponder', () => {
 
       const handler = proxy.getCapturedEventHandler({ type: 'chat-output' });
       handler!({
-        processId: ProcessIdStub({ value: 'p-after-disconnect' }),
+        processId: 'p-after-disconnect',
         payload: { questId, text: 'after-disconnect' },
       });
 
@@ -1415,8 +1414,8 @@ describe('ServerInitResponder', () => {
       const sendB = jest.fn();
       const clientA = WsContextStub({ send: sendA });
       const clientB = WsContextStub({ send: sendB });
-      const replayProcessIdA = ProcessIdStub({ value: 'replay-direct-two-A' });
-      const replayProcessIdB = ProcessIdStub({ value: 'replay-direct-two-B' });
+      const replayProcessIdA = 'replay-direct-two-A';
+      const replayProcessIdB = 'replay-direct-two-B';
       const linkedQuestId = QuestIdStub({ value: 'quest-replay-link-two' });
       proxy.simulateConnection({ client: clientA });
       proxy.simulateConnection({ client: clientB });
@@ -1443,7 +1442,7 @@ describe('ServerInitResponder', () => {
 
       const handler = proxy.getCapturedEventHandler({ type: 'chat-output' });
       handler!({
-        processId: ProcessIdStub({ value: 'p-replay-two-A' }),
+        processId: 'p-replay-two-A',
         payload: {
           chatProcessId: replayProcessIdA,
           questId: linkedQuestId,
@@ -1481,7 +1480,7 @@ describe('ServerInitResponder', () => {
 
       const sendMock = jest.fn();
       const client = WsContextStub({ send: sendMock });
-      const replayProcessId = ProcessIdStub({ value: 'replay-direct-orphan' });
+      const replayProcessId = 'replay-direct-orphan';
       proxy.simulateConnection({ client });
       proxy.simulateMessage({
         data: JSON.stringify({
@@ -1496,12 +1495,12 @@ describe('ServerInitResponder', () => {
 
       const chatOutputHandler = proxy.getCapturedEventHandler({ type: 'chat-output' });
       chatOutputHandler!({
-        processId: ProcessIdStub({ value: 'p-orphan' }),
+        processId: 'p-orphan',
         payload: { chatProcessId: replayProcessId, text: 'orphan-frame' },
       });
       const completeHandler = proxy.getCapturedEventHandler({ type: 'chat-history-complete' });
       completeHandler!({
-        processId: ProcessIdStub({ value: 'p-orphan' }),
+        processId: 'p-orphan',
         payload: { chatProcessId: replayProcessId, sessionId: 'sess-orphan' },
       });
 
@@ -1536,7 +1535,7 @@ describe('ServerInitResponder', () => {
       const internalReplayProcessId = `quest-replay-${questId}-wi-1-sess-1`;
       const handler = proxy.getCapturedEventHandler({ type: 'chat-output' });
       handler!({
-        processId: ProcessIdStub({ value: 'p-internal' }),
+        processId: 'p-internal',
         payload: {
           chatProcessId: internalReplayProcessId,
           questId,

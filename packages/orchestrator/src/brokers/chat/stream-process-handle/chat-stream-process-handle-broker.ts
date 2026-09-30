@@ -25,7 +25,7 @@
 import { stderr } from '#gateway/node/process';
 import { randomUUID } from '#gateway/node/crypto';
 import { chatEntryContract, sessionContract } from '@dungeonmaster/shared/contracts';
-import type { ChatEntry, ProcessId, Agent, Session } from '@dungeonmaster/shared/contracts';
+import type { ChatEntry, Agent, Session } from '@dungeonmaster/shared/contracts';
 import { claudeLineNormalizeBroker } from '@dungeonmaster/shared/brokers';
 
 import { questGetServerConfigBroker } from '../../quest/get-server-config/quest-get-server-config-broker';
@@ -46,19 +46,19 @@ export const chatStreamProcessHandleBroker = ({
   onText,
   onSignal,
 }: {
-  chatProcessId: ProcessId;
+  chatProcessId: string;
   cwd: string;
   sessionId?: Session['id'];
   onEntries: (params: {
-    chatProcessId: ProcessId;
+    chatProcessId: string;
     entries: ChatEntry[];
     sessionId: Session['id'] | undefined;
   }) => void;
   // Required — every agent emits text and may signal-back; the harness invariant is uniform
   // observation across roles. Callers with no consumer wire a no-op explicitly so the lack
   // of consumption is acknowledged at the call site, not silenced by an optional default.
-  onText: (params: { chatProcessId: ProcessId; text: string }) => void;
-  onSignal: (params: { chatProcessId: ProcessId; signal: StreamSignal }) => void;
+  onText: (params: { chatProcessId: string; text: string }) => void;
+  onSignal: (params: { chatProcessId: string; signal: StreamSignal }) => void;
 }): {
   onLine: (params: { rawLine: string }) => void;
   stop: () => void;

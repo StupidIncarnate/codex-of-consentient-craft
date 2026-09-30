@@ -1,7 +1,6 @@
 import { bootLockReleaseBroker } from './boot-lock-release-broker';
 import { bootLockReleaseBrokerProxy } from './boot-lock-release-broker.proxy';
 import { InstanceIdStub } from '../../../contracts/instance-id/instance-id.stub';
-import { ProcessIdStub } from '@dungeonmaster/shared/contracts/process-id/process-id.stub';
 
 describe('bootLockReleaseBroker', () => {
   describe('no lock present', () => {
@@ -47,7 +46,7 @@ describe('bootLockReleaseBroker', () => {
 
       proxy.setupLockHeldBy({
         heldBy: instanceId,
-        heldByPid: ProcessIdStub(),
+        heldByPid: 'proc-12345',
         acquiredAtMs: 1,
       });
 
@@ -62,7 +61,7 @@ describe('bootLockReleaseBroker', () => {
 
       proxy.setupLockHeldBy({
         heldBy: instanceId,
-        heldByPid: ProcessIdStub(),
+        heldByPid: 'proc-12345',
         acquiredAtMs: 1,
       });
 
@@ -78,7 +77,7 @@ describe('bootLockReleaseBroker', () => {
 
       proxy.setupLockHeldBy({
         heldBy: otherInstanceId,
-        heldByPid: ProcessIdStub(),
+        heldByPid: 'proc-12345',
         acquiredAtMs: 1,
       });
 
@@ -94,7 +93,7 @@ describe('bootLockReleaseBroker', () => {
 
       proxy.setupLockHeldBy({
         heldBy: otherInstanceId,
-        heldByPid: ProcessIdStub(),
+        heldByPid: 'proc-12345',
         acquiredAtMs: 1,
       });
 

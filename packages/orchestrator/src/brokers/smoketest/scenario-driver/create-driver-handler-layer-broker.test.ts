@@ -1,5 +1,4 @@
 import type { WorkItemRoleStub } from '@dungeonmaster/shared/contracts/work-item-role/work-item-role.stub';
-import { ProcessIdStub } from '@dungeonmaster/shared/contracts/process-id/process-id.stub';
 import { QuestIdStub } from '@dungeonmaster/shared/contracts/quest-id/quest-id.stub';
 import { QuestStub } from '@dungeonmaster/shared/contracts/quest/quest.stub';
 import { QuestWorkItemIdStub } from '@dungeonmaster/shared/contracts/quest-work-item-id/quest-work-item-id.stub';
@@ -14,7 +13,7 @@ const QUEST_ID = QuestIdStub({ value: 'layer-handler-quest' });
 const OTHER_QUEST_ID = QuestIdStub({ value: 'other-layer-quest' });
 const WI_PENDING = QuestWorkItemIdStub({ value: 'e59cd261-9611-1e18-9d70-6c8ab7d46bd2' });
 const CODEWEAVER_ROLE = 'codeweaver';
-const EMITTED_PROCESS_ID = ProcessIdStub({ value: 'layer-handler-proc' });
+const EMITTED_PROCESS_ID = 'layer-handler-proc';
 // Unique substring from smoketestPromptsStatics.signalComplete that survives JSON escaping.
 const SIGNAL_COMPLETE_SIGNATURE = 'smoketest-complete';
 

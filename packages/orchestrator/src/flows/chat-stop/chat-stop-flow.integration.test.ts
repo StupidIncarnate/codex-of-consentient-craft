@@ -1,4 +1,3 @@
-import { ProcessIdStub } from '@dungeonmaster/shared/contracts/process-id/process-id.stub';
 
 import { ChatStopFlow } from './chat-stop-flow';
 
@@ -11,7 +10,7 @@ describe('ChatStopFlow', () => {
 
   describe('process not found', () => {
     it('EMPTY: {chatProcessId: unregistered} => returns false', () => {
-      const chatProcessId = ProcessIdStub({ value: 'chat-nonexistent' });
+      const chatProcessId = 'chat-nonexistent';
 
       const result = ChatStopFlow({ chatProcessId });
 

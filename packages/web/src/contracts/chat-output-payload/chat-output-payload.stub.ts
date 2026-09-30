@@ -1,5 +1,4 @@
 import type { StubArgument } from '@dungeonmaster/shared/@types';
-import { ProcessIdStub } from '@dungeonmaster/shared/contracts/process-id/process-id.stub';
 import { QuestIdStub } from '@dungeonmaster/shared/contracts/quest-id/quest-id.stub';
 import { QuestWorkItemIdStub } from '@dungeonmaster/shared/contracts/quest-work-item-id/quest-work-item-id.stub';
 import { SessionIdStub } from '@dungeonmaster/shared/contracts/session-id/session-id.stub';
@@ -11,7 +10,7 @@ export const ChatOutputPayloadStub = ({
   ...props
 }: StubArgument<ChatOutputPayload> = {}): ChatOutputPayload =>
   chatOutputPayloadContract.parse({
-    chatProcessId: ProcessIdStub(),
+    chatProcessId: 'proc-12345',
     entries: [],
     sessionId: SessionIdStub(),
     questId: QuestIdStub(),
