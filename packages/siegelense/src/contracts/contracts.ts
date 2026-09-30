@@ -11,7 +11,6 @@ export * from './repo-local-path/repo-local-path-contract';
 
 
 
-export * from './spec-hash/spec-hash-contract';
 
 export * from './registry/registry-contract';
 

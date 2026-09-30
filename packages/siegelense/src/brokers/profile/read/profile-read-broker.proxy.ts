@@ -12,7 +12,6 @@
 
 import { InstanceIdStub } from '../../../contracts/instance-id/instance-id.stub';
 import { ProfileObservationStub } from '../../../contracts/profile-observation/profile-observation.stub';
-import { SpecHashStub } from '../../../contracts/spec-hash/spec-hash.stub';
 import type { SpecProfileStub } from '../../../contracts/spec-profile/spec-profile.stub';
 import { join } from '#gateway/node/path';
 import { registerMock, requireActual } from '@dungeonmaster/testing/register-mock';
@@ -113,7 +112,7 @@ export const profileReadBrokerProxy = (): {
           contents: JSON.stringify(
             ProfileObservationStub({
               instanceId,
-              specHash: SpecHashStub({ value: DEFAULT_SPEC_HASH_VALUE }),
+              specHash: DEFAULT_SPEC_HASH_VALUE,
               pools: [{ poolSize, peakMB, steadySumMB: steadyMB, steadyBeats: 1 }],
             }),
           ),

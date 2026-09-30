@@ -27,12 +27,11 @@
 
 import { z } from '#gateway/npm/zod';
 
-import { specHashContract } from '../spec-hash/spec-hash-contract';
 import { siegeInstanceContract } from '@dungeonmaster/shared/contracts';
 
 export const profileObservationContract = z.object({
   instanceId: siegeInstanceContract.shape.id,
-  specHash: specHashContract,
+  specHash: z.string().regex(/^[0-9a-f]{8,64}$/u).brand<'ProfileObservationSpecHash'>(),
   firstBeatAtMs: z.number().int().nonnegative().brand<'ProfileObservationFirstBeatAtMs'>(),
   measuredAtMs: z.number().int().nonnegative().brand<'ProfileObservationMeasuredAtMs'>(),
   pools: z

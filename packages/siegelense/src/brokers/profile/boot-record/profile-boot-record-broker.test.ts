@@ -1,6 +1,5 @@
 
 import { InstanceIdStub } from '../../../contracts/instance-id/instance-id.stub';
-import { SpecHashStub } from '../../../contracts/spec-hash/spec-hash.stub';
 
 import { profileBootRecordBroker } from './profile-boot-record-broker';
 import { profileBootRecordBrokerProxy } from './profile-boot-record-broker.proxy';
@@ -15,7 +14,7 @@ describe('profileBootRecordBroker', () => {
     it('VALID: {bootMs: 20000} => writes the boot record under the spec hash, carrying the measured time', async () => {
       const proxy = profileBootRecordBrokerProxy();
       const instanceId = InstanceIdStub({ value: 'inst_7f3a9c21' });
-      const specHash = SpecHashStub({ value: 'a3f9c2e1' });
+      const specHash = 'a3f9c2e1';
       const profilesPath = '/home/user/.dungeonmaster/siegelense/profiles/a3f9c2e1';
       proxy.setupBootRecordWrite({
         homeDir: HOME_DIR,
@@ -46,7 +45,7 @@ describe('profileBootRecordBroker', () => {
     it('VALID: {a different spec hash} => the record lands under that hash, so a changed spec never reads the old timing', async () => {
       const proxy = profileBootRecordBrokerProxy();
       const instanceId = InstanceIdStub({ value: 'inst_9b2c4d11' });
-      const specHash = SpecHashStub({ value: 'b1b1b1b1' });
+      const specHash = 'b1b1b1b1';
       const profilesPath = '/home/user/.dungeonmaster/siegelense/profiles/b1b1b1b1';
       proxy.setupBootRecordWrite({
         homeDir: HOME_DIR,

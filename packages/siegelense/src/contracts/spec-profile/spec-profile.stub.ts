@@ -1,6 +1,5 @@
 import type { StubArgument } from '@dungeonmaster/shared/@types';
 
-import { SpecHashStub } from '../spec-hash/spec-hash.stub';
 import { specProfileContract } from './spec-profile-contract';
 import type { SpecProfile } from './spec-profile-contract';
 
@@ -8,7 +7,7 @@ export const SpecProfileStub = ({ ...props }: StubArgument<SpecProfile> = {}): S
   specProfileContract.parse({
     specName: 'dungeonmaster-stack',
     processes: 3,
-    hash: SpecHashStub(),
+    hash: 'a3f9c2e1',
     measuredAt: '2026-09-14',
     fromRuns: 14,
     bootMs: 20_000,

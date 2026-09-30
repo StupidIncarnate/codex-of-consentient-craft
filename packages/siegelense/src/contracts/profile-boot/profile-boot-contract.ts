@@ -22,12 +22,11 @@
 
 import { z } from '#gateway/npm/zod';
 
-import { specHashContract } from '../spec-hash/spec-hash-contract';
 import { siegeInstanceContract } from '@dungeonmaster/shared/contracts';
 
 export const profileBootContract = z.object({
   instanceId: siegeInstanceContract.shape.id,
-  specHash: specHashContract,
+  specHash: z.string().regex(/^[0-9a-f]{8,64}$/u).brand<'ProfileBootSpecHash'>(),
   bootMs: z.number().int().nonnegative().brand<'ProfileBootBootMs'>(),
   recordedAtMs: z.number().int().nonnegative().brand<'ProfileBootRecordedAtMs'>(),
 });

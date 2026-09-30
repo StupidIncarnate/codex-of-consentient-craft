@@ -16,15 +16,13 @@
 
 import { createHash } from '#gateway/node/crypto';
 
-import { specHashContract } from '../../../contracts/spec-hash/spec-hash-contract';
-import type { SpecHash } from '../../../contracts/spec-hash/spec-hash-contract';
 import type { LaneSpec } from '../../../contracts/lane-spec/lane-spec-contract';
 import { laneSpecCanonicalJsonTransformer } from '../../../transformers/lane-spec-canonical-json/lane-spec-canonical-json-transformer';
 
 const HASH_ALGORITHM = 'sha256';
 
-export const laneSpecHashBroker = ({ spec }: { spec: LaneSpec }): SpecHash => {
+export const laneSpecHashBroker = ({ spec }: { spec: LaneSpec }): string => {
   const canonicalJson = laneSpecCanonicalJsonTransformer({ spec });
   const digest = createHash(HASH_ALGORITHM).update(String(canonicalJson)).digest('hex');
-  return specHashContract.parse(digest);
+  return digest;
 };

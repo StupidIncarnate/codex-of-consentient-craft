@@ -27,7 +27,6 @@ import { InstanceOwnerStub } from '../../../contracts/instance-owner/instance-ow
 import { PortPairStub } from '../../../contracts/port-pair/port-pair.stub';
 import { PruneQueryStub } from '../../../contracts/prune-query/prune-query.stub';
 import { RegistryEntryStub } from '../../../contracts/registry-entry/registry-entry.stub';
-import { SpecHashStub } from '../../../contracts/spec-hash/spec-hash.stub';
 import { locationsInstanceEvidencePathFindBroker } from '../../locations/instance-evidence-path-find/locations-instance-evidence-path-find-broker';
 import { registryReadBroker } from '../../registry/read/registry-read-broker';
 import { registryWriteBroker } from '../../registry/write/registry-write-broker';
@@ -88,7 +87,7 @@ describe('prune, against a real evidence tree', () => {
             id: CITED_ID,
             owner: InstanceOwnerStub(),
             specName: 'dungeonmaster-stack',
-            specHash: SpecHashStub(),
+            specHash: 'a3f9c2e1',
             pid: null,
             pgids: [],
             socketPath: null,
@@ -106,7 +105,7 @@ describe('prune, against a real evidence tree', () => {
             id: UNCITED_ID,
             owner: InstanceOwnerStub(),
             specName: 'dungeonmaster-stack',
-            specHash: SpecHashStub(),
+            specHash: 'a3f9c2e1',
             pid: null,
             pgids: [],
             socketPath: null,
@@ -124,7 +123,7 @@ describe('prune, against a real evidence tree', () => {
             id: NEIGHBOUR_ID,
             owner: InstanceOwnerStub(),
             specName: 'dungeonmaster-stack',
-            specHash: SpecHashStub(),
+            specHash: 'a3f9c2e1',
             pid: null,
             pgids: [],
             socketPath: null,
@@ -142,7 +141,7 @@ describe('prune, against a real evidence tree', () => {
             id: LIVE_ID,
             owner: InstanceOwnerStub(),
             specName: 'dungeonmaster-stack',
-            specHash: SpecHashStub(),
+            specHash: 'a3f9c2e1',
             pid: null,
             pgids: [],
             socketPath: null,
@@ -160,7 +159,7 @@ describe('prune, against a real evidence tree', () => {
             id: DRY_RUN_ID,
             owner: InstanceOwnerStub(),
             specName: 'dungeonmaster-stack',
-            specHash: SpecHashStub(),
+            specHash: 'a3f9c2e1',
             pid: null,
             pgids: [],
             socketPath: null,

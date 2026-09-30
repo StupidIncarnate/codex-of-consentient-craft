@@ -9,7 +9,6 @@ import { InstanceOwnerStub } from '../../../contracts/instance-owner/instance-ow
 import { PortPairStub } from '../../../contracts/port-pair/port-pair.stub';
 import { RegistryEntryStub } from '../../../contracts/registry-entry/registry-entry.stub';
 import { RegistryStub } from '../../../contracts/registry/registry.stub';
-import { SpecHashStub } from '../../../contracts/spec-hash/spec-hash.stub';
 import { PortClaimExhaustedError } from '../../../errors/port-claim-exhausted/port-claim-exhausted-error';
 import { instanceLifecycleStatics } from '../../../statics/instance-lifecycle/instance-lifecycle-statics';
 
@@ -29,7 +28,7 @@ describe('instanceReserveBroker', () => {
     it('VALID: {registry claims an unrelated pair} => returns a reservation row and writes it', async () => {
       const proxy = instanceReserveBrokerProxy();
       const specName = 'dungeonmaster-stack';
-      const specHash = SpecHashStub();
+      const specHash = 'a3f9c2e1';
       const bystander = RegistryEntryStub({
         id: InstanceIdStub({ value: 'inst_11111111' }),
         ports: PortPairStub({ api: 30_000, web: 30_001 }),
@@ -93,7 +92,7 @@ describe('instanceReserveBroker', () => {
 
       await instanceReserveBroker({
         specName: 'dungeonmaster-stack',
-        specHash: SpecHashStub(),
+        specHash: 'a3f9c2e1',
         questId: null,
         guildId: null,
       });
@@ -109,7 +108,7 @@ describe('instanceReserveBroker', () => {
       const questId = QuestIdStub();
       const guildId = GuildIdStub();
       const specName = 'dungeonmaster-stack';
-      const specHash = SpecHashStub();
+      const specHash = 'a3f9c2e1';
       proxy.setupBranch({ branch: null });
       proxy.setupRegistry({ json: JSON.stringify(RegistryStub({ instances: [] })) });
       proxy.setupEvidenceDir({
@@ -147,7 +146,7 @@ describe('instanceReserveBroker', () => {
     it('VALID: {branch detected on git HEAD} => the written row carries the branch name', async () => {
       const proxy = instanceReserveBrokerProxy();
       const specName = 'dungeonmaster-stack';
-      const specHash = SpecHashStub();
+      const specHash = 'a3f9c2e1';
       proxy.setupBranch({ branch: 'feat/def-04' });
       proxy.setupRegistry({ json: JSON.stringify(RegistryStub({ instances: [] })) });
       proxy.setupEvidenceDir({
@@ -173,7 +172,7 @@ describe('instanceReserveBroker', () => {
     it('INVALID: {registry already claims 34173/34174} => re-rolls, returns a different pair, and writes it', async () => {
       const proxy = instanceReserveBrokerProxy();
       const specName = 'dungeonmaster-stack';
-      const specHash = SpecHashStub();
+      const specHash = 'a3f9c2e1';
       const claimed = RegistryEntryStub({ ports: CLAIMED_PAIR });
       proxy.setupBranch({ branch: null });
       proxy.setupRegistry({ json: JSON.stringify(RegistryStub({ instances: [claimed] })) });
@@ -238,7 +237,7 @@ describe('instanceReserveBroker', () => {
 
       const result = await instanceReserveBroker({
         specName: 'dungeonmaster-stack',
-        specHash: SpecHashStub(),
+        specHash: 'a3f9c2e1',
         questId: null,
         guildId: null,
       });
@@ -260,7 +259,7 @@ describe('instanceReserveBroker', () => {
       await expect(
         instanceReserveBroker({
           specName: 'dungeonmaster-stack',
-          specHash: SpecHashStub(),
+          specHash: 'a3f9c2e1',
           questId: null,
           guildId: null,
         }),
@@ -289,7 +288,7 @@ describe('instanceReserveBroker', () => {
       await expect(
         instanceReserveBroker({
           specName: 'dungeonmaster-stack',
-          specHash: SpecHashStub(),
+          specHash: 'a3f9c2e1',
           questId: null,
           guildId: null,
         }),

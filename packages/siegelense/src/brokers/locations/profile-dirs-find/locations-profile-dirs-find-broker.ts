@@ -13,14 +13,13 @@
 
 import { join } from '#gateway/node/path';
 
-import type { SpecHash } from '../../../contracts/spec-hash/spec-hash-contract';
 import { profileStatics } from '../../../statics/profile/profile-statics';
 import { locationsProfilesPathFindBroker } from '../profiles-path-find/locations-profiles-path-find-broker';
 
 export const locationsProfileDirsFindBroker = ({
   specHash,
 }: {
-  specHash: SpecHash;
+  specHash: string;
 }): {
   samplesDir: string;
   bootsDir: string;

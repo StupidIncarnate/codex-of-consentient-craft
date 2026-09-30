@@ -1,5 +1,4 @@
 
-import { SpecHashStub } from '../../../contracts/spec-hash/spec-hash.stub';
 
 import { locationsProfileDirsFindBroker } from './locations-profile-dirs-find-broker';
 import { locationsProfileDirsFindBrokerProxy } from './locations-profile-dirs-find-broker.proxy';
@@ -8,7 +7,7 @@ describe('locationsProfileDirsFindBroker', () => {
   describe('profile directory resolution', () => {
     it('VALID: {specHash: a3f9c2e1} => returns the samples and boots directories under that hash', () => {
       const proxy = locationsProfileDirsFindBrokerProxy();
-      const specHash = SpecHashStub({ value: 'a3f9c2e1' });
+      const specHash = 'a3f9c2e1';
 
       proxy.setupProfilesPath({
         homeDir: '/home/user',
@@ -28,7 +27,7 @@ describe('locationsProfileDirsFindBroker', () => {
     it('EDGE: {a different spec hash} => both directories move with the hash, so a changed spec re-measures', () => {
       const proxy = locationsProfileDirsFindBrokerProxy();
       const longHash = 'f'.repeat(64);
-      const specHash = SpecHashStub({ value: longHash });
+      const specHash = longHash;
 
       proxy.setupProfilesPath({
         homeDir: '/home/user',

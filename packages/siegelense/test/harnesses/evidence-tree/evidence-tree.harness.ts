@@ -68,7 +68,6 @@ import { RunIdStub } from '../../../src/contracts/run-id/run-id.stub';
 import { RunResultStub } from '../../../src/contracts/run-result/run-result.stub';
 import { ServerLogByteCountStub } from '../../../src/contracts/server-log-byte-count/server-log-byte-count.stub';
 import { ShotListingStub } from '../../../src/contracts/shot-listing/shot-listing.stub';
-import { SpecHashStub } from '../../../src/contracts/spec-hash/spec-hash.stub';
 import { StepReadingStub } from '../../../src/contracts/step-reading/step-reading.stub';
 import type { BlankReading } from '../../../src/contracts/blank-reading/blank-reading-contract';
 import type { CleanupAnswer } from '../../../src/contracts/cleanup-answer/cleanup-answer-contract';
@@ -436,7 +435,7 @@ export const evidenceTreeHarness = (): {
       id: KILLED_INSTANCE_ID,
       owner: InstanceOwnerStub(),
       specName: 'dungeonmaster-stack',
-      specHash: SpecHashStub(),
+      specHash: 'a3f9c2e1',
       pid: null,
       pgids: [],
       socketPath: null,
@@ -454,7 +453,7 @@ export const evidenceTreeHarness = (): {
       id: LIVE_INSTANCE_ID,
       owner: InstanceOwnerStub(),
       specName: 'dungeonmaster-stack',
-      specHash: SpecHashStub(),
+      specHash: 'a3f9c2e1',
       pid: ProcessIdStub(),
       pgids: [],
       socketPath: null,
@@ -598,7 +597,7 @@ export const evidenceTreeHarness = (): {
       id: STALE_INSTANCE_ID,
       owner: InstanceOwnerStub(),
       specName: 'dungeonmaster-stack',
-      specHash: SpecHashStub(),
+      specHash: 'a3f9c2e1',
       pid: ProcessIdStub(),
       // heartbeatWriteBroker stamps the SAME pgids onto heartbeat.json and this row in one call —
       // the fixture above is a lie unless this row names the same pgid, and instanceKillBroker's

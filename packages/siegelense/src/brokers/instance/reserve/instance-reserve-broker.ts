@@ -41,7 +41,6 @@ import { portPairContract } from '../../../contracts/port-pair/port-pair-contrac
 import type { PortPair } from '../../../contracts/port-pair/port-pair-contract';
 import { registryEntryContract } from '../../../contracts/registry-entry/registry-entry-contract';
 import type { RegistryEntry } from '../../../contracts/registry-entry/registry-entry-contract';
-import type { SpecHash } from '../../../contracts/spec-hash/spec-hash-contract';
 import { PortClaimExhaustedError } from '../../../errors/port-claim-exhausted/port-claim-exhausted-error';
 import { isGitNotARepositoryErrorGuard } from '../../../guards/is-git-not-a-repository-error/is-git-not-a-repository-error-guard';
 import { instanceLifecycleStatics } from '../../../statics/instance-lifecycle/instance-lifecycle-statics';
@@ -54,7 +53,7 @@ export const instanceReserveBroker = async ({
   guildId,
 }: {
   specName: string;
-  specHash: SpecHash;
+  specHash: string;
   questId: Quest['id'] | null;
   guildId: Guild['id'] | null;
 }): Promise<RegistryEntry> => {

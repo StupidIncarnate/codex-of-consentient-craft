@@ -46,7 +46,6 @@ import { absoluteFilePathContract, processIdContract, questContract, guildContra
 import { instanceOwnerContract } from '../instance-owner/instance-owner-contract';
 import { instanceStateContract } from '../instance-state/instance-state-contract';
 import { portPairContract } from '../port-pair/port-pair-contract';
-import { specHashContract } from '../spec-hash/spec-hash-contract';
 
 export const registryEntryContract = z.object({
   id: siegeInstanceContract.shape.id,
@@ -54,7 +53,7 @@ export const registryEntryContract = z.object({
   questId: questContract.shape.id.nullable(),
   guildId: guildContract.shape.id.nullable(),
   specName: z.string().min(1).brand<'RegistryEntrySpecName'>(),
-  specHash: specHashContract,
+  specHash: z.string().regex(/^[0-9a-f]{8,64}$/u).brand<'RegistryEntrySpecHash'>(),
   pid: processIdContract.nullable(),
   pgids: z.array(z.number().int().positive().brand<'RegistryEntryPgids'>()).readonly(),
   socketPath: absoluteFilePathContract.nullable(),

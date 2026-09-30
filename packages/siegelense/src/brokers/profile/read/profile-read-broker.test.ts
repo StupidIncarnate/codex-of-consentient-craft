@@ -1,6 +1,5 @@
 import { DevServerE2eProcessStub } from '@dungeonmaster/config/contracts/dev-server-e2e-process/dev-server-e2e-process.stub';
 
-import { SpecHashStub } from '../../../contracts/spec-hash/spec-hash.stub';
 import { laneSpecFindBroker } from '../../lane-spec/find/lane-spec-find-broker';
 import { laneSpecHashBroker } from '../../lane-spec/hash/lane-spec-hash-broker';
 
@@ -19,10 +18,8 @@ const specHashFor = async ({
   specName,
 }: {
   specName: string;
-}): Promise<ReturnType<typeof SpecHashStub>> =>
-  SpecHashStub({
-    value: String(laneSpecHashBroker({ spec: await laneSpecFindBroker({ specName }) })),
-  });
+}): Promise<string> =>
+  String(laneSpecHashBroker({ spec: await laneSpecFindBroker({ specName }) }));
 
 const profilesPathFor = async ({
   specName,

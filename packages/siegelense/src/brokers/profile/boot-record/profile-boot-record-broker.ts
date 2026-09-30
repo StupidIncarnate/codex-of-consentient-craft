@@ -21,7 +21,6 @@ import { join } from '#gateway/node/path';
 
 import { profileBootContract } from '../../../contracts/profile-boot/profile-boot-contract';
 import type { ProfileBoot } from '../../../contracts/profile-boot/profile-boot-contract';
-import type { SpecHash } from '../../../contracts/spec-hash/spec-hash-contract';
 import { profileStatics } from '../../../statics/profile/profile-statics';
 import { locationsProfileDirsFindBroker } from '../../locations/profile-dirs-find/locations-profile-dirs-find-broker';
 import type { SiegeInstance } from '@dungeonmaster/shared/contracts';
@@ -32,7 +31,7 @@ export const profileBootRecordBroker = async ({
   bootMs,
 }: {
   instanceId: SiegeInstance['id'];
-  specHash: SpecHash;
+  specHash: string;
   bootMs: number;
 }): Promise<ProfileBoot> => {
   const { bootsDir } = locationsProfileDirsFindBroker({ specHash });

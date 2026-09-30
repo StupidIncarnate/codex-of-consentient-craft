@@ -30,12 +30,11 @@
 import { z } from '#gateway/npm/zod';
 
 
-import { specHashContract } from '../spec-hash/spec-hash-contract';
 
 export const specProfileContract = z.object({
   specName: z.string().min(1).brand<'SpecProfileSpecName'>(),
   processes: z.number().int().nonnegative().brand<'SpecProfileProcesses'>(),
-  hash: specHashContract,
+  hash: z.string().regex(/^[0-9a-f]{8,64}$/u).brand<'SpecProfileHash'>(),
   measuredAt: z.string().brand<'SpecProfileMeasuredAt'>().nullable(),
   fromRuns: z.number().int().nonnegative().brand<'SpecProfileFromRuns'>(),
   bootMs: z.number().int().nonnegative().brand<'SpecProfileBootMs'>().nullable(),

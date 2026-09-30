@@ -1,12 +1,11 @@
 import { InstanceIdStub } from '../../contracts/instance-id/instance-id.stub';
 import { ProfileObservationStub } from '../../contracts/profile-observation/profile-observation.stub';
-import { SpecHashStub } from '../../contracts/spec-hash/spec-hash.stub';
 import { profileStatics } from '../../statics/profile/profile-statics';
 
 import { profileObservationMergeTransformer } from './profile-observation-merge-transformer';
 
 const INSTANCE_ID = InstanceIdStub({ value: 'inst_7f3a9c21' });
-const SPEC_HASH = SpecHashStub({ value: 'a3f9c2e1' });
+const SPEC_HASH = 'a3f9c2e1';
 const FIRST_BEAT_MS = 1_700_000_000_000;
 
 describe('profileObservationMergeTransformer', () => {

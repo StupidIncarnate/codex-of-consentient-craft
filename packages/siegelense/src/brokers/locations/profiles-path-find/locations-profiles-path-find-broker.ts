@@ -12,12 +12,11 @@
 import { locationsRootPathFindBroker } from '../root-path-find/locations-root-path-find-broker';
 import { join } from '#gateway/node/path';
 import { locationsStatics } from '@dungeonmaster/shared/statics';
-import type { SpecHash } from '../../../contracts/spec-hash/spec-hash-contract';
 
 export const locationsProfilesPathFindBroker = ({
   specHash,
 }: {
-  specHash: SpecHash;
+  specHash: string;
 }): string => {
   const rootPath = locationsRootPathFindBroker();
 
