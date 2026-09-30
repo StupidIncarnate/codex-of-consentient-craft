@@ -6,8 +6,6 @@
  * // Returns annotated message explaining the timeout, or null if not a timeout combo
  */
 
-import type { ErrorMessage } from '@dungeonmaster/shared/contracts';
-import { errorMessageContract } from '@dungeonmaster/shared/contracts';
 
 const TIMEOUT_INDICATORS = [
   /Exceeded timeout of \d+/u,
@@ -31,7 +29,7 @@ export const annotateTimeoutFailureTransformer = ({
   failureMessages,
 }: {
   failureMessages: string[];
-}): ErrorMessage | null => {
+}): string | null => {
   const hasTimeout = failureMessages.some((msg) =>
     TIMEOUT_INDICATORS.some((pattern) => pattern.test(msg)),
   );
@@ -43,5 +41,5 @@ export const annotateTimeoutFailureTransformer = ({
     return null;
   }
 
-  return errorMessageContract.parse(TIMEOUT_ANNOTATION);
+  return TIMEOUT_ANNOTATION;
 };

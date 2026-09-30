@@ -6,7 +6,6 @@
  * // Returns TestFailure[] containing only failed test entries
  */
 
-import { type ErrorMessage, errorMessageContract } from '@dungeonmaster/shared/contracts';
 import { jestJsonReportContract } from '../../contracts/jest-json-report/jest-json-report-contract';
 import {
   testFailureContract,
@@ -20,7 +19,7 @@ import { stripTimeoutNoiseTransformer } from '../strip-timeout-noise/strip-timeo
 export const jestJsonParseTransformer = ({
   jsonOutput,
 }: {
-  jsonOutput: ErrorMessage;
+  jsonOutput: string;
 }): TestFailure[] => {
   const jsonString = extractJsonObjectTransformer({ output: jsonOutput });
   const report = jestJsonReportContract.safeParse(JSON.parse(jsonString));
@@ -68,7 +67,7 @@ export const jestJsonParseTransformer = ({
       const message =
         timeoutAnnotation ??
         stripTimeoutNoiseTransformer({
-          message: errorMessageContract.parse(rawMessages.join('\n')),
+          message: rawMessages.join('\n'),
         });
       const firstMessage = failureMessages.length > 0 ? String(failureMessages[0]) : '';
       const hasStack = firstMessage.length > 0 && firstMessage.includes('\n    at ');
@@ -101,7 +100,7 @@ export const jestJsonParseTransformer = ({
       assertionFailures.length === 0
     ) {
       const stripped = stripAnsiCodesTransformer({
-        text: errorMessageContract.parse(String(suiteMessage)),
+        text: String(suiteMessage),
       });
       const cleanedMessage =
         stripped
@@ -110,7 +109,7 @@ export const jestJsonParseTransformer = ({
           .find((line) => line.length > 0 && !line.startsWith('●')) ?? stripped;
 
       const strippedSuiteMessage = stripTimeoutNoiseTransformer({
-        message: errorMessageContract.parse(cleanedMessage),
+        message: cleanedMessage,
       });
 
       return [

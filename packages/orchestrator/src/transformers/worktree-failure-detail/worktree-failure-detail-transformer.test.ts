@@ -1,5 +1,4 @@
 import { AbsoluteFilePathStub } from '@dungeonmaster/shared/contracts/absolute-file-path/absolute-file-path.stub';
-import { ErrorMessageStub } from '@dungeonmaster/shared/contracts/error-message/error-message.stub';
 
 import { worktreeFailureDetailTransformer } from './worktree-failure-detail-transformer';
 
@@ -17,7 +16,7 @@ describe('worktreeFailureDetailTransformer', () => {
 
   it('VALID: {non-empty cleanupOutput} => appends the cleanup failure detail', () => {
     const worktreePath = AbsoluteFilePathStub({ value: '/repo/worktrees/quest-slug-a1b2c3d4' });
-    const cleanupOutput = ErrorMessageStub({ value: 'rm -rf failed: EBUSY' });
+    const cleanupOutput = 'rm -rf failed: EBUSY';
 
     const result = worktreeFailureDetailTransformer({
       worktreePath,
@@ -32,7 +31,7 @@ describe('worktreeFailureDetailTransformer', () => {
 
   it('EMPTY: {cleanupOutput: ""} => omits the cleanup suffix', () => {
     const worktreePath = AbsoluteFilePathStub({ value: '/repo/worktrees/quest-slug-a1b2c3d4' });
-    const cleanupOutput = ErrorMessageStub({ value: '' });
+    const cleanupOutput = '';
 
     const result = worktreeFailureDetailTransformer({
       worktreePath,

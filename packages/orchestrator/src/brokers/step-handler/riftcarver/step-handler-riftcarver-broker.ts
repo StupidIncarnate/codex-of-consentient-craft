@@ -30,7 +30,7 @@ import { getEnv, stderr } from '#gateway/node/process';
 import { randomUUID } from '#gateway/node/crypto';
 import { locationsWorktreePathFindBroker } from '@dungeonmaster/shared/brokers';
 import { streamLines } from '#gateway/node/child_process';
-import { contentTextContract, errorMessageContract, exitCodeContract, fileContentsContract, filePathContract, getQuestInputContract, questContract, relatedDataItemContract, riftcarverResultContract, type AbsoluteFilePath, type BaseBranchName, type ErrorMessage, type Quest, type QuestBranchName } from '@dungeonmaster/shared/contracts';
+import { contentTextContract, exitCodeContract, fileContentsContract, filePathContract, getQuestInputContract, questContract, relatedDataItemContract, riftcarverResultContract, type AbsoluteFilePath, type BaseBranchName, type Quest, type QuestBranchName } from '@dungeonmaster/shared/contracts';
 
 import { currentBranch, headSha, push, upstreamSha, verifyRef } from '#gateway/bin/git';
 import { pathExists } from '#gateway/node/fs__promises';
@@ -93,10 +93,10 @@ export const stepHandlerRiftcarverBroker = async ({
 
   // One funnel for every line: the live panel and the persisted history file see the same text in
   // the same order, because there is no second path to either.
-  const carveLog: ErrorMessage[] = [];
+  const carveLog: string[] = [];
   const stream = {
     emit: (line: string): void => {
-      carveLog.push(errorMessageContract.parse(line));
+      carveLog.push(line);
       onLine(line);
     },
   };

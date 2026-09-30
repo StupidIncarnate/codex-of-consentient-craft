@@ -6,7 +6,6 @@
  * // Returns TestFailure[] with suitePath, testName, message, and stackTrace
  */
 
-import { errorMessageContract, type ErrorMessage } from '@dungeonmaster/shared/contracts';
 
 import type { TestFailure } from '../../contracts/test-failure/test-failure-contract';
 import { testFailureContract } from '../../contracts/test-failure/test-failure-contract';
@@ -23,7 +22,7 @@ const RETRY_HEADER_PATTERN = /^\s+Retry\s+#\d+\s+─/u;
 export const parsePlaywrightCrashOutputTransformer = ({
   output,
 }: {
-  output: ErrorMessage;
+  output: string;
 }): TestFailure[] => {
   const clean = stripAnsiCodesTransformer({ text: output });
   const lines = clean.split('\n');
@@ -38,14 +37,14 @@ export const parsePlaywrightCrashOutputTransformer = ({
     }
 
     const [, filePath, , testNameRaw] = headerMatch;
-    const suitePath = errorMessageContract.parse(filePath ?? '');
-    const testName = errorMessageContract.parse((testNameRaw ?? '').trim());
+    const suitePath = (filePath ?? '');
+    const testName = (testNameRaw ?? '').trim();
 
     i++;
 
-    const errorLines: ErrorMessage[] = [];
-    const stackLines: ErrorMessage[] = [];
-    const networkLogLines: ErrorMessage[] = [];
+    const errorLines: string[] = [];
+    const stackLines: string[] = [];
+    const networkLogLines: string[] = [];
     let inAttachmentOrRetry = false;
     let inNetworkLog = false;
 
@@ -78,7 +77,7 @@ export const parsePlaywrightCrashOutputTransformer = ({
       if (inNetworkLog) {
         const trimmed = line.trimStart();
         if (trimmed.length > 0) {
-          networkLogLines.push(errorMessageContract.parse(trimmed));
+          networkLogLines.push(trimmed);
         }
         i++;
         continue;
@@ -91,9 +90,9 @@ export const parsePlaywrightCrashOutputTransformer = ({
 
       const trimmed = line.trimStart();
       if (trimmed.startsWith('at ') || trimmed.startsWith('at /')) {
-        stackLines.push(errorMessageContract.parse(line));
+        stackLines.push(line);
       } else if (trimmed.length > 0) {
-        errorLines.push(errorMessageContract.parse(line));
+        errorLines.push(line);
       }
 
       i++;
@@ -105,7 +104,7 @@ export const parsePlaywrightCrashOutputTransformer = ({
       .join('\n');
 
     const strippedMessage = stripTimeoutNoiseTransformer({
-      message: errorMessageContract.parse(rawMessage),
+      message: rawMessage,
     });
 
     const networkLog = networkLogLines.join('\n');

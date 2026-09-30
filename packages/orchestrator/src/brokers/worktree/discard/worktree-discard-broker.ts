@@ -16,12 +16,7 @@
  * // discarded is true only when both `git worktree remove` and `git branch -D` exited 0
  */
 
-import {
-  errorMessageContract,
-  type AbsoluteFilePath,
-  type ErrorMessage,
-  type QuestBranchName,
-} from '@dungeonmaster/shared/contracts';
+import { type AbsoluteFilePath, type QuestBranchName } from '@dungeonmaster/shared/contracts';
 
 import { branchDelete, worktreeRemove } from '#gateway/bin/git';
 
@@ -33,18 +28,18 @@ export const worktreeDiscardBroker = async ({
   repoRoot: AbsoluteFilePath;
   worktreePath: AbsoluteFilePath;
   branchName: QuestBranchName;
-}): Promise<{ discarded: boolean; output: ErrorMessage }> => {
+}): Promise<{ discarded: boolean; output: string }> => {
   const removeResult = await worktreeRemove({ cwd: repoRoot, worktreePath });
 
   if (removeResult.exitCode !== 0) {
-    return { discarded: false, output: errorMessageContract.parse(removeResult.output) };
+    return { discarded: false, output: removeResult.output };
   }
 
   const deleteResult = await branchDelete({ cwd: repoRoot, branchName });
 
   if (deleteResult.exitCode !== 0) {
-    return { discarded: false, output: errorMessageContract.parse(deleteResult.output) };
+    return { discarded: false, output: deleteResult.output };
   }
 
-  return { discarded: true, output: errorMessageContract.parse('') };
+  return { discarded: true, output: '' };
 };

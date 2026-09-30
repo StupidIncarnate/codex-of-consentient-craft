@@ -15,7 +15,7 @@ export const smoketestCaseResultContract = z.object({
   name: z.string().min(1).brand<'SmoketestCaseName'>(),
   passed: z.boolean(),
   summary: z.string().brand<'SmoketestCaseSummary'>().optional(),
-  errorMessage: z.string().brand<'ErrorMessage'>().optional(),
+  errorMessage: z.string().brand<'SmoketestCaseResultErrorMessage'>().optional(),
   output: z.string().brand<'AgentOutput'>().optional(),
   durationMs: z.number().int().nonnegative().brand<'DurationMs'>().optional(),
   prompt: z.string().brand<'AgentPromptText'>().optional(),

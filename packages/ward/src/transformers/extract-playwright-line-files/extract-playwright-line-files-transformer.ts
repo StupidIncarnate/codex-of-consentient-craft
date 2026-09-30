@@ -6,7 +6,6 @@
  * // Returns ['packages/web/src/flows/app/smoke.e2e.ts']
  */
 
-import type { ErrorMessage } from '@dungeonmaster/shared/contracts';
 
 import {
   gitRelativePathContract,
@@ -18,7 +17,7 @@ const LINE_REPORTER_PATTERN = /› ([\w/./-]+\.e2e\.ts):\d+/gu;
 export const extractPlaywrightLineFilesTransformer = ({
   output,
 }: {
-  output: ErrorMessage;
+  output: string;
 }): GitRelativePath[] => {
   const seen = new Set<GitRelativePath>();
   let match = LINE_REPORTER_PATTERN.exec(output);

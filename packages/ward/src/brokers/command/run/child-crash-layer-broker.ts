@@ -9,7 +9,7 @@
  * // Returns CheckResult[] — one failing check per requested type, each carrying the child's output tail
  */
 
-import type { ErrorMessage, ExitCode } from '@dungeonmaster/shared/contracts';
+import type { ExitCode } from '@dungeonmaster/shared/contracts';
 import { wardExitCodeStatics } from '@dungeonmaster/shared/statics';
 
 import type { CheckResult } from '../../../contracts/check-result/check-result-contract';
@@ -29,7 +29,7 @@ export const childCrashLayerBroker = ({
   projectFolder: ProjectFolder;
   checkTypes: CheckType[];
   exitCode: ExitCode | null;
-  output: ErrorMessage;
+  output: string;
 }): CheckResult[] => {
   const resolvedExitCode =
     exitCode === null ? wardExitCodeStatics.exitCodes.failing : Number(exitCode);

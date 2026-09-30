@@ -5,7 +5,6 @@
  * await questModifyBroker({questId, modifications: {title: 'New Title'}});
  * // Returns void on success, throws on failure
  */
-import { errorMessageContract } from '@dungeonmaster/shared/contracts';
 import type { Quest } from '@dungeonmaster/shared/contracts';
 
 import { fetchJson } from '#gateway/browser/fetch';
@@ -30,11 +29,9 @@ export const questModifyBroker = async ({
   if (parsedResponse.success && !parsedResponse.data.success) {
     const errorValue = parsedResponse.data.error;
     throw new Error(
-      errorMessageContract.parse(
-        typeof errorValue === 'string' && errorValue.length > 0
+      (typeof errorValue === 'string' && errorValue.length > 0
           ? errorValue
-          : 'Quest modification failed',
-      ),
+          : 'Quest modification failed'),
     );
   }
 };

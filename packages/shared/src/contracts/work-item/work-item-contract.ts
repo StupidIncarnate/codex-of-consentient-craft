@@ -64,7 +64,7 @@ export const workItemContract = z.object({
   // Same reasoning as `startedAt` above — `.nullish()` so an explicit `null` doesn't fail the
   // whole quest.json parse.
   completedAt: z.iso.datetime().brand<'IsoTimestamp'>().nullish(),
-  errorMessage: z.string().brand<'ErrorMessage'>().optional(),
+  errorMessage: z.string().brand<'WorkItemErrorMessage'>().optional(),
   summary: z.string().brand<'SignalSummary'>().optional(),
   insertedBy: workItemId.optional(),
   resume: z

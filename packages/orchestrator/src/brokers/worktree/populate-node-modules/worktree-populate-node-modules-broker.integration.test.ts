@@ -1,6 +1,5 @@
 import { installTestbedCreateBroker } from '@dungeonmaster/testing';
 import { AbsoluteFilePathStub } from '@dungeonmaster/shared/contracts/absolute-file-path/absolute-file-path.stub';
-import { ErrorMessageStub } from '@dungeonmaster/shared/contracts/error-message/error-message.stub';
 import { FileNameStub } from '@dungeonmaster/shared/contracts/file-name/file-name.stub';
 import { QuestBranchNameStub } from '@dungeonmaster/shared/contracts/quest-branch-name/quest-branch-name.stub';
 
@@ -8,7 +7,7 @@ import { worktreePopulateNodeModulesBroker } from './worktree-populate-node-modu
 import { worktreePrepareBroker } from '../prepare/worktree-prepare-broker';
 import { gitWorktreeFixtureHarness } from '../../../../test/harnesses/git-worktree-fixture/git-worktree-fixture.harness';
 
-type StreamedLine = ReturnType<typeof ErrorMessageStub>;
+type StreamedLine = string;
 
 // Real fs throughout — no adapter is mocked. The unit suite proves which symlinks were REQUESTED;
 // only this one proves the links that land actually resolve inside the worktree, that a package's
@@ -56,7 +55,7 @@ describe('worktreePopulateNodeModulesBroker (integration) — real fs mirroring'
         repoRoot: repoPath,
         worktreePath,
         onLine: (line): void => {
-          streamed.push(ErrorMessageStub({ value: line }));
+          streamed.push(line);
         },
       }),
     ).resolves.toBe(undefined);
@@ -148,7 +147,7 @@ describe('worktreePopulateNodeModulesBroker (integration) — real fs mirroring'
       repoRoot: repoPath,
       worktreePath,
       onLine: (line): void => {
-        streamed.push(ErrorMessageStub({ value: line }));
+        streamed.push(line);
       },
     });
 

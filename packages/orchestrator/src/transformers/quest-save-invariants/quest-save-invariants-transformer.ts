@@ -32,7 +32,7 @@
  */
 import type { QuestStatus, Quest } from '@dungeonmaster/shared/contracts';
 
-import type { ErrorMessage, VerifyQuestCheck } from '@dungeonmaster/shared/contracts';
+import type { VerifyQuestCheck } from '@dungeonmaster/shared/contracts';
 import { verifyQuestCheckContract } from '@dungeonmaster/shared/contracts';
 
 import { questContractSourceCoverageViolationsTransformer } from '../quest-contract-source-coverage-violations/quest-contract-source-coverage-violations-transformer';
@@ -52,7 +52,7 @@ export const questSaveInvariantsTransformer = ({
   const invariantChecks = questValidateSpecTransformer({ quest, scope: 'invariants' });
   const failures = invariantChecks.filter((check) => !check.passed);
 
-  const relational: { name: unknown; offenders: ErrorMessage[] }[] = [];
+  const relational: { name: unknown; offenders: string[] }[] = [];
 
   if (nextStatus === 'flows_approved') {
     relational.push(

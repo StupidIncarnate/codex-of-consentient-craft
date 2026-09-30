@@ -12,7 +12,7 @@ import { verifyQuestCheckContract } from '../verify-quest-check/verify-quest-che
 export const modifyQuestResultContract = z
   .object({
     success: z.boolean(),
-    error: z.string().brand<'ErrorMessage'>().optional(),
+    error: z.string().brand<'ModifyQuestResultError'>().optional(),
     failedChecks: z.array(verifyQuestCheckContract).optional(),
   })
   .brand<'ModifyQuestResult'>();

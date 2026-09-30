@@ -8,7 +8,7 @@
  * // Returns: [{ file: 'a.ts', line: 3, message: 'No.' }]
  */
 
-import { errorMessageContract, type AbsoluteFilePath } from '@dungeonmaster/shared/contracts';
+import { type AbsoluteFilePath } from '@dungeonmaster/shared/contracts';
 
 import { eslintJsonReportContract } from '../../contracts/eslint-json-report/eslint-json-report-contract';
 import type { ScanRuleName } from '../../contracts/scan-rule-name/scan-rule-name-contract';
@@ -29,7 +29,7 @@ export const eslintJsonToScanViolationsTransformer = ({
   rule: ScanRuleName;
   rootPath: AbsoluteFilePath;
 }): ScanViolation[] => {
-  const slice = extractJsonArrayTransformer({ output: errorMessageContract.parse(jsonOutput) });
+  const slice = extractJsonArrayTransformer({ output: jsonOutput });
 
   const report = ((): ReturnType<typeof eslintJsonReportContract.parse> => {
     try {

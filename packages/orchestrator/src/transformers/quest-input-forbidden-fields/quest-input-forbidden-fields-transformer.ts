@@ -26,8 +26,6 @@
  * nothing left on a flow write for this transformer to refuse beyond the allowlist.
  */
 import type { QuestStatus } from '@dungeonmaster/shared/contracts';
-import { errorMessageContract } from '@dungeonmaster/shared/contracts';
-import type { ErrorMessage } from '@dungeonmaster/shared/contracts';
 
 import type { ModifyQuestInput } from '@dungeonmaster/shared/contracts';
 import { inspectableModifyQuestInputFieldsStatics } from '../../statics/inspectable-modify-quest-input-fields/inspectable-modify-quest-input-fields-statics';
@@ -44,8 +42,8 @@ export const questInputForbiddenFieldsTransformer = ({
   input: ModifyQuestInput;
   currentStatus: QuestStatus;
   nextStatus?: QuestStatus;
-}): ErrorMessage[] => {
-  const offenders: ErrorMessage[] = [];
+}): string[] => {
+  const offenders: string[] = [];
   const entry = questStatusInputAllowlistStatics[currentStatus];
   const allowedSet = new Set<unknown>(entry.allowedFields);
 
@@ -87,7 +85,7 @@ export const questInputForbiddenFieldsTransformer = ({
     }
     if (!allowedSet.has(field)) {
       offenders.push(
-        errorMessageContract.parse(`Field '${field}' not allowed in status '${currentStatus}'`),
+        `Field '${field}' not allowed in status '${currentStatus}'`,
       );
     }
   }
@@ -107,9 +105,7 @@ export const questInputForbiddenFieldsTransformer = ({
       }
       if (!allowedPlanningNotesSet.has(subField)) {
         offenders.push(
-          errorMessageContract.parse(
-            `Sub-field 'planningNotes.${subField}' not allowed in status '${currentStatus}'`,
-          ),
+          `Sub-field 'planningNotes.${subField}' not allowed in status '${currentStatus}'`,
         );
       }
     }
@@ -123,7 +119,7 @@ export const questInputForbiddenFieldsTransformer = ({
   }
 
   if (flowsRule === 'forbidden') {
-    offenders.push(errorMessageContract.parse(`Flows not allowed in status '${currentStatus}'`));
+    offenders.push(`Flows not allowed in status '${currentStatus}'`);
     return offenders;
   }
 

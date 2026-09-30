@@ -32,7 +32,7 @@
 
 import { getEnv } from '#gateway/node/process';
 import { randomUUID } from '#gateway/node/crypto';
-import { absoluteFilePathContract, contentTextContract, errorMessageContract, filePathContract, relatedDataItemContract, wardResultContract, type ModifyQuestInput } from '@dungeonmaster/shared/contracts';
+import { absoluteFilePathContract, contentTextContract, filePathContract, relatedDataItemContract, wardResultContract, type ModifyQuestInput } from '@dungeonmaster/shared/contracts';
 import { locationsStatics, wardExitCodeStatics } from '@dungeonmaster/shared/statics';
 import { streamLines, RunNotFoundError } from '#gateway/node/child_process';
 import { ensureDir, writeFile } from '#gateway/node/fs__promises';
@@ -87,7 +87,7 @@ export const stepHandlerWardBroker = async ({
   });
 
   const exitCode = rawExitCode ?? wardExitCodeStatics.exitCodes.failing;
-  const output = errorMessageContract.parse(rawOutput);
+  const output = rawOutput;
   // A 0-file scope is `empty`, not green — `runId === null` is the machine-readable signal.
   // `commandRunBroker` returns before any check runs and saves no result on that path, so no
   // `run: <id>` line is ever printed; string-matching the message it prints instead would be

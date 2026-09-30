@@ -1,12 +1,10 @@
-import { ErrorMessageStub } from '@dungeonmaster/shared/contracts/error-message/error-message.stub';
 
 import { jestJsonParsePassingTransformer } from './jest-json-parse-passing-transformer';
 
 describe('jestJsonParsePassingTransformer', () => {
   describe('valid inputs', () => {
     it('VALID: {jest output with passed assertion results} => returns PassingTest[] entries with durations', () => {
-      const jsonOutput = ErrorMessageStub({
-        value: JSON.stringify({
+      const jsonOutput = JSON.stringify({
           testResults: [
             {
               name: 'src/a.test.ts',
@@ -16,8 +14,7 @@ describe('jestJsonParsePassingTransformer', () => {
               ],
             },
           ],
-        }),
-      });
+        });
 
       const result = jestJsonParsePassingTransformer({ jsonOutput });
 
@@ -28,8 +25,7 @@ describe('jestJsonParsePassingTransformer', () => {
     });
 
     it('VALID: {mix of passed and failed tests} => only returns passed entries', () => {
-      const jsonOutput = ErrorMessageStub({
-        value: JSON.stringify({
+      const jsonOutput = JSON.stringify({
           testResults: [
             {
               name: 'src/app.test.ts',
@@ -44,8 +40,7 @@ describe('jestJsonParsePassingTransformer', () => {
               ],
             },
           ],
-        }),
-      });
+        });
 
       const result = jestJsonParsePassingTransformer({ jsonOutput });
 
@@ -55,16 +50,14 @@ describe('jestJsonParsePassingTransformer', () => {
     });
 
     it('VALID: {passed test without duration} => defaults durationMs to 0', () => {
-      const jsonOutput = ErrorMessageStub({
-        value: JSON.stringify({
+      const jsonOutput = JSON.stringify({
           testResults: [
             {
               name: 'src/app.test.ts',
               assertionResults: [{ status: 'passed', fullName: 'VALID: {x} => y' }],
             },
           ],
-        }),
-      });
+        });
 
       const result = jestJsonParsePassingTransformer({ jsonOutput });
 
@@ -76,7 +69,7 @@ describe('jestJsonParsePassingTransformer', () => {
 
   describe('empty inputs', () => {
     it('EMPTY: {no testResults} => returns empty array', () => {
-      const jsonOutput = ErrorMessageStub({ value: JSON.stringify({ testResults: [] }) });
+      const jsonOutput = JSON.stringify({ testResults: [] });
 
       const result = jestJsonParsePassingTransformer({ jsonOutput });
 
@@ -84,7 +77,7 @@ describe('jestJsonParsePassingTransformer', () => {
     });
 
     it('EMPTY: {testResults is not an array} => returns empty array', () => {
-      const jsonOutput = ErrorMessageStub({ value: JSON.stringify({ testResults: 'nope' }) });
+      const jsonOutput = JSON.stringify({ testResults: 'nope' });
 
       const result = jestJsonParsePassingTransformer({ jsonOutput });
 
@@ -92,7 +85,7 @@ describe('jestJsonParsePassingTransformer', () => {
     });
 
     it('EMPTY: {parsed value is not an object} => returns empty array', () => {
-      const jsonOutput = ErrorMessageStub({ value: JSON.stringify(null) });
+      const jsonOutput = JSON.stringify(null);
 
       const result = jestJsonParsePassingTransformer({ jsonOutput });
 
@@ -100,15 +93,13 @@ describe('jestJsonParsePassingTransformer', () => {
     });
 
     it('EMPTY: {suite missing name field} => skips suite', () => {
-      const jsonOutput = ErrorMessageStub({
-        value: JSON.stringify({
+      const jsonOutput = JSON.stringify({
           testResults: [
             {
               assertionResults: [{ status: 'passed', fullName: 'VALID: ok', duration: 5 }],
             },
           ],
-        }),
-      });
+        });
 
       const result = jestJsonParsePassingTransformer({ jsonOutput });
 
@@ -116,9 +107,7 @@ describe('jestJsonParsePassingTransformer', () => {
     });
 
     it('EMPTY: {assertionResults missing} => skips suite', () => {
-      const jsonOutput = ErrorMessageStub({
-        value: JSON.stringify({ testResults: [{ name: 'src/a.test.ts' }] }),
-      });
+      const jsonOutput = JSON.stringify({ testResults: [{ name: 'src/a.test.ts' }] });
 
       const result = jestJsonParsePassingTransformer({ jsonOutput });
 
@@ -126,16 +115,14 @@ describe('jestJsonParsePassingTransformer', () => {
     });
 
     it('EMPTY: {assertion missing fullName} => skips entry', () => {
-      const jsonOutput = ErrorMessageStub({
-        value: JSON.stringify({
+      const jsonOutput = JSON.stringify({
           testResults: [
             {
               name: 'src/a.test.ts',
               assertionResults: [{ status: 'passed' }],
             },
           ],
-        }),
-      });
+        });
 
       const result = jestJsonParsePassingTransformer({ jsonOutput });
 

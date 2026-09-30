@@ -28,7 +28,6 @@ export * from './identifier/identifier-contract';
 // Module Path Contracts
 
 // Error Message Contracts
-export * from './error-message/error-message-contract';
 export * from './blocked-reason/blocked-reason-contract';
 
 // Extracted Metadata Contracts

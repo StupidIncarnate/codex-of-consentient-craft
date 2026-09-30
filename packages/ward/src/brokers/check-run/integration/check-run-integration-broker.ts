@@ -10,12 +10,7 @@ import { run, RunNotFoundError } from '#gateway/node/child_process';
 import { existsSync } from '#gateway/node/fs';
 import { readFile, unlink } from '#gateway/node/fs__promises';
 import { pid } from '#gateway/node/process';
-import {
-  absoluteFilePathContract,
-  errorMessageContract,
-  exitCodeContract,
-  filePathContract,
-} from '@dungeonmaster/shared/contracts';
+import { absoluteFilePathContract, exitCodeContract, filePathContract } from '@dungeonmaster/shared/contracts';
 
 import { binCommandContract } from '../../../contracts/bin-command/bin-command-contract';
 import { rawOutputContract } from '../../../contracts/raw-output/raw-output-contract';
@@ -249,7 +244,7 @@ export const checkRunIntegrationBroker = async ({
   if (status === 'fail') {
     try {
       testFailures = jestJsonParseTransformer({
-        jsonOutput: errorMessageContract.parse(result.output),
+        jsonOutput: result.output,
       });
     } catch {
       resolvedStatus = 'fail';
@@ -258,12 +253,12 @@ export const checkRunIntegrationBroker = async ({
   }
 
   const passingTests = jestJsonParsePassingTransformer({
-    jsonOutput: errorMessageContract.parse(result.output),
+    jsonOutput: result.output,
   });
 
   try {
     const jsonSlice = extractJsonObjectTransformer({
-      output: errorMessageContract.parse(result.output),
+      output: result.output,
     });
     const parsed = jestJsonReportContract.parse(JSON.parse(jsonSlice));
     if (parsed.numTotalTestSuites !== undefined) {

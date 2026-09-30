@@ -27,8 +27,8 @@
 
 import { randomUUID } from '#gateway/node/crypto';
 import { join } from '#gateway/node/path';
-import { errorMessageContract, filePathContract, operationItemContract, workItemContract } from '@dungeonmaster/shared/contracts';
-import type { ErrorMessage, OperationItem, Quest, WorkItem } from '@dungeonmaster/shared/contracts';
+import { filePathContract, operationItemContract, workItemContract } from '@dungeonmaster/shared/contracts';
+import type { OperationItem, Quest, WorkItem } from '@dungeonmaster/shared/contracts';
 import {
   isCommandWorkItemRoleGuard,
   isTerminalWorkItemStatusGuard,
@@ -96,7 +96,7 @@ export const questRouteScopeBroker = async ({
 
   // An object holder, not a bare `let`: the values are assigned inside the update callback, which
   // TypeScript's flow analysis cannot see through.
-  const halt: { workItemId?: WorkItem['id']; reason?: ErrorMessage } = {};
+  const halt: { workItemId?: WorkItem['id']; reason?: string } = {};
   const persisted = await questOperationsUpdateBroker({
     questId,
     update: ({ quest }) => {
@@ -151,7 +151,7 @@ export const questRouteScopeBroker = async ({
 
       if (action.kind === 'block') {
         halt.workItemId = last.id;
-        halt.reason = errorMessageContract.parse(String(action.message));
+        halt.reason = String(action.message);
         return null;
       }
 

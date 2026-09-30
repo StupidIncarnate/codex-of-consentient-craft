@@ -27,16 +27,7 @@ import { upstreamShaProxy } from '#gateway/bin/git/upstream-sha/upstream-sha.pro
 import { verifyRefProxy } from '#gateway/bin/git/verify-ref/verify-ref.proxy';
 
 import { locationsWorktreePathFindBrokerProxy } from '@dungeonmaster/shared/brokers/locations/worktree-path-find/locations-worktree-path-find-broker.proxy';
-import {
-  baseBranchNameContract,
-  errorMessageContract,
-  exitCodeContract,
-  questBranchNameContract,
-  riftcarverResultContract,
-  type ErrorMessage,
-  type ExitCode,
-  type Quest,
-} from '@dungeonmaster/shared/contracts';
+import { baseBranchNameContract, exitCodeContract, questBranchNameContract, riftcarverResultContract, type ExitCode, type Quest } from '@dungeonmaster/shared/contracts';
 import { AbsoluteFilePathStub } from '@dungeonmaster/shared/contracts/absolute-file-path/absolute-file-path.stub';
 import { FilePathStub } from '@dungeonmaster/shared/contracts/file-path/file-path.stub';
 import { GuildIdStub } from '@dungeonmaster/shared/contracts/guild-id/guild-id.stub';
@@ -125,13 +116,13 @@ export const stepHandlerRiftcarverBrokerProxy = (): {
 
   // Whether the quest's own branch already resolves in git: decides whether the carve is a create
   // (`-b`) or an attach, and both are staged from this one flag.
-  const questBranch: { exists: boolean; addFailureOutput: ErrorMessage | null } = {
+  const questBranch: { exists: boolean; addFailureOutput: string | null } = {
     exists: false,
     addFailureOutput: null,
   };
-  const typecheckOutcome: { exitCode: ExitCode; lines: readonly ErrorMessage[] } = {
+  const typecheckOutcome: { exitCode: ExitCode; lines: readonly string[] } = {
     exitCode: exitCodeContract.parse(GIT_SUCCESS),
-    lines: [errorMessageContract.parse('✓ typecheck')],
+    lines: ['✓ typecheck'],
   };
 
   const stageUpstream = ({ tracked }: { tracked: boolean }): void => {
@@ -235,14 +226,12 @@ export const stepHandlerRiftcarverBrokerProxy = (): {
     },
 
     setupWorktreeAddFails: ({ output }: { output: string }): void => {
-      questBranch.addFailureOutput = errorMessageContract.parse(output);
+      questBranch.addFailureOutput = output;
       stageCarve();
     },
 
     setupWorktreeAddPermissionDenied: (): void => {
-      questBranch.addFailureOutput = errorMessageContract.parse(
-        `fatal: cannot mkdir ${WORKTREE_PATH}: Permission denied`,
-      );
+      questBranch.addFailureOutput = `fatal: cannot mkdir ${WORKTREE_PATH}: Permission denied`;
       stageCarve();
     },
 
@@ -263,7 +252,7 @@ export const stepHandlerRiftcarverBrokerProxy = (): {
 
     setupTypecheckFails: ({ lines }: { lines: readonly string[] }): void => {
       typecheckOutcome.exitCode = exitCodeContract.parse(TYPECHECK_FAILURE);
-      typecheckOutcome.lines = lines.map((line) => errorMessageContract.parse(line));
+      typecheckOutcome.lines = lines.map((line) => line);
       // Re-stages the same address `setupQuest` already staged — the later registration wins (see
       // `mockStagedBestMatchTransformer`), so this overrides the green default without needing a
       // fresh proxy or a second construction.

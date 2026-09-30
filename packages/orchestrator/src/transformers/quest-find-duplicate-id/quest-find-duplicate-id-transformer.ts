@@ -6,8 +6,8 @@
  * // Returns: 'Duplicate ID "a" in flows — this ID already exists. Use a unique ID or omit to leave existing unchanged.'
  */
 
-import type { ErrorMessage, ItemWithId } from '@dungeonmaster/shared/contracts';
-import { errorMessageContract, itemWithIdContract } from '@dungeonmaster/shared/contracts';
+import type { ItemWithId } from '@dungeonmaster/shared/contracts';
+import { itemWithIdContract } from '@dungeonmaster/shared/contracts';
 
 import { isArrayOfItemsWithIdGuard } from '../../guards/is-array-of-items-with-id/is-array-of-items-with-id-guard';
 
@@ -16,15 +16,13 @@ export const questFindDuplicateIdTransformer = ({
   context,
 }: {
   items: ItemWithId[];
-  context: ErrorMessage;
-}): ErrorMessage | undefined => {
+  context: string;
+}): string | undefined => {
   const seen = new Set<unknown>();
 
   for (const item of items) {
     if (seen.has(item.id)) {
-      return errorMessageContract.parse(
-        `Duplicate ID "${String(item.id)}" in ${context} — this ID already exists. Use a unique ID or omit to leave existing unchanged.`,
-      );
+      return `Duplicate ID "${String(item.id)}" in ${context} — this ID already exists. Use a unique ID or omit to leave existing unchanged.`;
     }
     seen.add(item.id);
 
@@ -32,7 +30,7 @@ export const questFindDuplicateIdTransformer = ({
       const propertyValue = item[key];
       if (isArrayOfItemsWithIdGuard({ value: propertyValue }) && Array.isArray(propertyValue)) {
         const nestedItems = propertyValue.map((entry) => itemWithIdContract.parse(entry));
-        const nestedContext = errorMessageContract.parse(`${context}[${String(item.id)}].${key}`);
+        const nestedContext = `${context}[${String(item.id)}].${key}`;
         const nested = questFindDuplicateIdTransformer({
           items: nestedItems,
           context: nestedContext,

@@ -1,13 +1,10 @@
-import { ErrorMessageStub } from '@dungeonmaster/shared/contracts/error-message/error-message.stub';
 
 import { wardOutputToRunIdTransformer } from './ward-output-to-run-id-transformer';
 
 describe('wardOutputToRunIdTransformer', () => {
   describe('output with run ID line', () => {
     it('VALID: {output with run: prefix on first line} => returns run ID as FileName', () => {
-      const output = ErrorMessageStub({
-        value: 'run: 1739625600000-a3f1\nlint:      PASS  10 packages',
-      });
+      const output = 'run: 1739625600000-a3f1\nlint:      PASS  10 packages';
 
       const result = wardOutputToRunIdTransformer({ output });
 
@@ -15,9 +12,7 @@ describe('wardOutputToRunIdTransformer', () => {
     });
 
     it('VALID: {output with run: on non-first line} => returns run ID', () => {
-      const output = ErrorMessageStub({
-        value: 'some prefix\nrun: 1739625600000-b2e4\nlint:      FAIL',
-      });
+      const output = 'some prefix\nrun: 1739625600000-b2e4\nlint:      FAIL';
 
       const result = wardOutputToRunIdTransformer({ output });
 
@@ -25,9 +20,7 @@ describe('wardOutputToRunIdTransformer', () => {
     });
 
     it('VALID: {output with only run line} => returns run ID', () => {
-      const output = ErrorMessageStub({
-        value: 'run: 1700000000000-dead',
-      });
+      const output = 'run: 1700000000000-dead';
 
       const result = wardOutputToRunIdTransformer({ output });
 
@@ -38,9 +31,7 @@ describe('wardOutputToRunIdTransformer', () => {
       // Real ward CLI appends a total-duration suffix to the run line, e.g.
       // `run: 1780108054226-a080  (80.7s)` (see ward resultToSummaryTransformer). The run ID
       // must be extracted without the `  (80.7s)` tail so `ward detail <runId>` resolves it.
-      const output = ErrorMessageStub({
-        value: 'run: 1780108054226-a080  (80.7s)\nlint:      FAIL  1 packages',
-      });
+      const output = 'run: 1780108054226-a080  (80.7s)\nlint:      FAIL  1 packages';
 
       const result = wardOutputToRunIdTransformer({ output });
 
@@ -50,9 +41,7 @@ describe('wardOutputToRunIdTransformer', () => {
 
   describe('output without run ID line', () => {
     it('EMPTY: {output with no run: prefix} => returns null', () => {
-      const output = ErrorMessageStub({
-        value: 'Some error output without run id',
-      });
+      const output = 'Some error output without run id';
 
       const result = wardOutputToRunIdTransformer({ output });
 
@@ -60,7 +49,7 @@ describe('wardOutputToRunIdTransformer', () => {
     });
 
     it('EMPTY: {empty output} => returns null', () => {
-      const output = ErrorMessageStub({ value: '' });
+      const output = '';
 
       const result = wardOutputToRunIdTransformer({ output });
 

@@ -11,7 +11,7 @@
 
 import { stderr } from '#gateway/node/process';
 import { randomUUID } from '#gateway/node/crypto';
-import { errorMessageContract, getQuestInputContract, workItemContract, workItemRoleContract } from '@dungeonmaster/shared/contracts';
+import { getQuestInputContract, workItemContract, workItemRoleContract } from '@dungeonmaster/shared/contracts';
 import type { ModifyQuestInput, ProcessId, Quest, WorkItem, Guild } from '@dungeonmaster/shared/contracts';
 
 import { chatSpawnBroker } from '../../../brokers/chat/spawn/chat-spawn-broker';
@@ -172,7 +172,7 @@ export const FollowupChatStartResponder = async ({
             id: tavernkeeperWorkItemId,
             status: 'failed',
             completedAt: new Date().toISOString(),
-            errorMessage: errorMessageContract.parse(failureMessage),
+            errorMessage: failureMessage,
           },
         ],
       } as ModifyQuestInput,

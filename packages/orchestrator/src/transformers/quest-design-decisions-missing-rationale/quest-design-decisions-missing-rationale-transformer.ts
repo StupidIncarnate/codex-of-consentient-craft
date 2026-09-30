@@ -6,26 +6,24 @@
  * // Returns ErrorMessage[] — e.g. ["design decision 'use-jwt' has empty rationale"].
  */
 import type { DesignDecision } from '@dungeonmaster/shared/contracts';
-import { errorMessageContract } from '@dungeonmaster/shared/contracts';
-import type { ErrorMessage } from '@dungeonmaster/shared/contracts';
 
 export const questDesignDecisionsMissingRationaleTransformer = ({
   designDecisions,
 }: {
   designDecisions?: DesignDecision[];
-}): ErrorMessage[] => {
+}): string[] => {
   if (!designDecisions) {
     return [];
   }
 
-  const offenders: ErrorMessage[] = [];
+  const offenders: string[] = [];
 
   for (const decision of designDecisions) {
     const { rationale } = decision;
     const isEmpty = typeof rationale !== 'string' || rationale.length === 0;
     if (isEmpty) {
       offenders.push(
-        errorMessageContract.parse(`design decision '${String(decision.id)}' has empty rationale`),
+        `design decision '${String(decision.id)}' has empty rationale`,
       );
     }
   }

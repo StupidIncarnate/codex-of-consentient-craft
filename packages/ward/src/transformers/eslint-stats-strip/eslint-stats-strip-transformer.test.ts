@@ -1,12 +1,10 @@
-import { ErrorMessageStub } from '@dungeonmaster/shared/contracts/error-message/error-message.stub';
 
 import { eslintStatsStripTransformer } from './eslint-stats-strip-transformer';
 
 describe('eslintStatsStripTransformer', () => {
   describe('entries carrying stats', () => {
     it('VALID: {two entries with stats and usedDeprecatedRules} => keeps every other key, in order', () => {
-      const output = ErrorMessageStub({
-        value: JSON.stringify([
+      const output = JSON.stringify([
           {
             filePath: '/p/a.ts',
             messages: [{ ruleId: 'no-console', severity: 2, message: 'No console', line: 3 }],
@@ -15,8 +13,7 @@ describe('eslintStatsStripTransformer', () => {
             usedDeprecatedRules: [],
           },
           { filePath: '/p/b.ts', messages: [], errorCount: 0, stats: { times: { passes: [] } } },
-        ]),
-      });
+        ]);
 
       const result = eslintStatsStripTransformer({ output });
 
@@ -26,9 +23,7 @@ describe('eslintStatsStripTransformer', () => {
     });
 
     it('VALID: {text before and after the array} => rewrites only the array', () => {
-      const output = ErrorMessageStub({
-        value: 'warn: slow\n[{"filePath":"a.ts","messages":[],"stats":{"times":{}}}]\ntrailing',
-      });
+      const output = 'warn: slow\n[{"filePath":"a.ts","messages":[],"stats":{"times":{}}}]\ntrailing';
 
       const result = eslintStatsStripTransformer({ output });
 
@@ -36,7 +31,7 @@ describe('eslintStatsStripTransformer', () => {
     });
 
     it('VALID: {non-object entry beside an object with stats} => keeps the non-object entry', () => {
-      const output = ErrorMessageStub({ value: '[7,{"filePath":"a.ts","stats":{}}]' });
+      const output = '[7,{"filePath":"a.ts","stats":{}}]';
 
       const result = eslintStatsStripTransformer({ output });
 
@@ -46,7 +41,7 @@ describe('eslintStatsStripTransformer', () => {
 
   describe('output left unchanged', () => {
     it('EMPTY: {empty output} => returns empty output', () => {
-      const output = ErrorMessageStub({ value: '' });
+      const output = '';
 
       const result = eslintStatsStripTransformer({ output });
 
@@ -54,7 +49,7 @@ describe('eslintStatsStripTransformer', () => {
     });
 
     it('VALID: {entries with no stats} => returns the exact original text, whitespace included', () => {
-      const output = ErrorMessageStub({ value: '[ {"filePath": "a.ts", "messages": []} ]' });
+      const output = '[ {"filePath": "a.ts", "messages": []} ]';
 
       const result = eslintStatsStripTransformer({ output });
 
@@ -62,7 +57,7 @@ describe('eslintStatsStripTransformer', () => {
     });
 
     it('EDGE: {non-JSON text} => returns the text unchanged', () => {
-      const output = ErrorMessageStub({ value: 'Oops! Something went wrong! See above.' });
+      const output = 'Oops! Something went wrong! See above.';
 
       const result = eslintStatsStripTransformer({ output });
 
@@ -70,7 +65,7 @@ describe('eslintStatsStripTransformer', () => {
     });
 
     it('EDGE: {bracket text that is not JSON} => returns the text unchanged', () => {
-      const output = ErrorMessageStub({ value: '[not json] stats' });
+      const output = '[not json] stats';
 
       const result = eslintStatsStripTransformer({ output });
 
@@ -78,7 +73,7 @@ describe('eslintStatsStripTransformer', () => {
     });
 
     it('EDGE: {truncated array} => returns the text unchanged', () => {
-      const output = ErrorMessageStub({ value: '[{"filePath":"a.ts","stats":{}},' });
+      const output = '[{"filePath":"a.ts","stats":{}},';
 
       const result = eslintStatsStripTransformer({ output });
 

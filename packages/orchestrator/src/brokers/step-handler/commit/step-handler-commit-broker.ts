@@ -37,7 +37,7 @@
  * // { outcome: 'done' | 'empty', detail }
  */
 
-import { absoluteFilePathContract, contentTextContract, errorMessageContract, getQuestInputContract, stepNameContract, type ErrorMessage } from '@dungeonmaster/shared/contracts';
+import { absoluteFilePathContract, contentTextContract, getQuestInputContract, stepNameContract } from '@dungeonmaster/shared/contracts';
 
 import { addAll, commit, push } from '#gateway/bin/git';
 
@@ -128,7 +128,7 @@ export const stepHandlerCommitBroker = async ({
 
   const result = await questWithModifyLockBroker({
     questId,
-    run: async (): Promise<{ pushFailed: boolean; pushOutput: ErrorMessage }> => {
+    run: async (): Promise<{ pushFailed: boolean; pushOutput: string }> => {
       await addAll({ cwd });
       onLine('git add -A');
 
@@ -140,7 +140,7 @@ export const stepHandlerCommitBroker = async ({
 
       return {
         pushFailed: pushResult.exitCode !== 0,
-        pushOutput: errorMessageContract.parse(pushResult.output),
+        pushOutput: pushResult.output,
       };
     },
   });

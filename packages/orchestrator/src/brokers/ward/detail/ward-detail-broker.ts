@@ -6,12 +6,7 @@
  * // Returns ErrorMessage with JSON output, or null if command fails
  */
 
-import {
-  errorMessageContract,
-  type AbsoluteFilePath,
-  type ErrorMessage,
-  type FileName,
-} from '@dungeonmaster/shared/contracts';
+import { type AbsoluteFilePath, type FileName } from '@dungeonmaster/shared/contracts';
 import { run, RunNotFoundError } from '#gateway/node/child_process';
 import { getEnv } from '#gateway/node/process';
 
@@ -24,7 +19,7 @@ export const wardDetailBroker = async ({
 }: {
   startPath: AbsoluteFilePath;
   runId: FileName;
-}): Promise<ErrorMessage | null> => {
+}): Promise<string | null> => {
   const { exitCode, output } = await run({
     command: getEnv('WARD_CLI_PATH') ?? WARD_COMMAND,
     args: ['detail', runId, JSON_FLAG],
@@ -55,5 +50,5 @@ export const wardDetailBroker = async ({
     return null;
   }
 
-  return errorMessageContract.parse(trimmed);
+  return trimmed;
 };

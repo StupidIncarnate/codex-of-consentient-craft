@@ -6,7 +6,6 @@
  * // Returns 'registerMock: nothing set up for the call NAME("/a/other.json"). Calls that ARE set up: ("/a/quest.json")'
  */
 
-import { errorMessageContract, type ErrorMessage } from '@dungeonmaster/shared/contracts';
 
 import type { StagedCall } from '../../contracts/staged-call/staged-call-contract';
 
@@ -18,9 +17,8 @@ export const mockUnmatchedCallMessageTransformer = ({
   name: string;
   args: readonly unknown[];
   staged: StagedCall[];
-}): ErrorMessage =>
-  errorMessageContract.parse(
-    [
+}): string =>
+  [
       `registerMock: nothing set up for the call ${name}(`,
       args
         .map((value) => (typeof value === 'function' ? '<predicate>' : JSON.stringify(value)))
@@ -34,5 +32,4 @@ export const mockUnmatchedCallMessageTransformer = ({
               .join(', ')})`,
         )
         .join(' | '),
-    ].join(''),
-  );
+    ].join('');

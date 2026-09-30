@@ -2,7 +2,6 @@ import { screen } from '#gateway/npm/testing-library__react';
 import userEvent from '#gateway/npm/testing-library__user-event';
 
 import { ContractNameStub } from '@dungeonmaster/shared/contracts/contract-name/contract-name.stub';
-import { ErrorMessageStub } from '@dungeonmaster/shared/contracts/error-message/error-message.stub';
 import { RiftcarverResultStub } from '@dungeonmaster/shared/contracts/riftcarver-result/riftcarver-result.stub';
 import { UnitObservationStub } from '@dungeonmaster/shared/contracts/unit-observation/unit-observation.stub';
 import { WardResultStub } from '@dungeonmaster/shared/contracts/ward-result/ward-result.stub';
@@ -720,7 +719,7 @@ describe('ExecutionRowLayerWidget', () => {
           <ExecutionRowLayerWidget
             {...defaultProps()}
             status="failed"
-            errorMessage={ErrorMessageStub({ value: 'Type check failed' })}
+            errorMessage={'Type check failed'}
           />
         ),
       });
@@ -763,7 +762,7 @@ describe('ExecutionRowLayerWidget', () => {
             {...defaultProps()}
             status="failed"
             workItem={WorkItemStub({ summary: 'BLOCKED: type errors in auth module' })}
-            errorMessage={ErrorMessageStub({ value: 'verification_failed' })}
+            errorMessage={'verification_failed'}
           />
         ),
       });

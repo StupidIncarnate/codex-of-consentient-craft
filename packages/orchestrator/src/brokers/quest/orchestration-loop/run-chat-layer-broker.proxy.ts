@@ -1,5 +1,5 @@
 import { stderrProxy } from '#gateway/node/process/stderr/stderr.proxy';
-import { questContract, type ErrorMessage, type RepoRootCwd, type WorkItemStatus } from '@dungeonmaster/shared/contracts';
+import { questContract, type RepoRootCwd, type WorkItemStatus } from '@dungeonmaster/shared/contracts';
 import { RepoRootCwdStub } from '@dungeonmaster/shared/contracts/repo-root-cwd/repo-root-cwd.stub';
 import type { QuestStub } from '@dungeonmaster/shared/contracts/quest/quest.stub';
 
@@ -34,7 +34,7 @@ export const runChatLayerBrokerProxy = (): {
   }) => WorkItemStatus | undefined;
   getLastPersistedWorkItemErrorMessage: (params: {
     workItemId: WorkItem['id'];
-  }) => ErrorMessage | undefined;
+  }) => string | undefined;
 } => {
   stderrProxy();
   const modifyProxy = questModifyBrokerProxy();
@@ -129,7 +129,7 @@ export const runChatLayerBrokerProxy = (): {
       workItemId,
     }: {
       workItemId: WorkItem['id'];
-    }): ErrorMessage | undefined => {
+    }): string | undefined => {
       const persisted = modifyProxy.getAllPersistedContents();
       if (persisted.length === 0) {
         return undefined;

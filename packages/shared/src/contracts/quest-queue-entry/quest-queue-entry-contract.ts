@@ -29,7 +29,7 @@ export const questQueueEntryContract = z.object({
   startedAt: z.iso.datetime().brand<'IsoTimestamp'>().optional(),
   error: z
     .object({
-      message: z.string().min(1).brand<'ErrorMessage'>(),
+      message: z.string().min(1).brand<'QuestQueueEntryErrorMessage'>(),
       at: z.iso.datetime().brand<'IsoTimestamp'>(),
     })
     .optional(),

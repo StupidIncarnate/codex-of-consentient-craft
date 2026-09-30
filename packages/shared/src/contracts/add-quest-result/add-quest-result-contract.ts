@@ -17,7 +17,7 @@ export const addQuestResultContract = z
     questFolder: z.string().brand<'QuestFolder'>().optional(),
     filePath: z.string().brand<'FilePath'>().optional(),
     intakeWorkItemId: workItemContract.shape.id.optional(),
-    error: z.string().brand<'ErrorMessage'>().optional(),
+    error: z.string().brand<'AddQuestResultError'>().optional(),
   })
   .brand<'AddQuestResult'>();
 

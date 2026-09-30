@@ -6,9 +6,8 @@
  * // Returns '[{"key":"val"}]'
  */
 
-import type { ErrorMessage } from '@dungeonmaster/shared/contracts';
 
-export const extractJsonArrayTransformer = ({ output }: { output: ErrorMessage }): ErrorMessage => {
+export const extractJsonArrayTransformer = ({ output }: { output: string }): string => {
   const start = output.indexOf('[');
   if (start < 0) {
     return output;
@@ -45,7 +44,7 @@ export const extractJsonArrayTransformer = ({ output }: { output: ErrorMessage }
     } else if (char === ']') {
       depth--;
       if (depth === 0) {
-        return output.slice(start, i + 1) as ErrorMessage;
+        return output.slice(start, i + 1) as string;
       }
     }
   }

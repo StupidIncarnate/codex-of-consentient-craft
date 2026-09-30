@@ -11,15 +11,15 @@
  * questUnresolvedObservablePackagesTransformer({flows: quest.flows});
  * // Returns ErrorMessage[] — one sentence per observable still carrying no package
  */
-import { errorMessageContract, packageNameContract } from '@dungeonmaster/shared/contracts';
-import type { ErrorMessage, Flow } from '@dungeonmaster/shared/contracts';
+import { packageNameContract } from '@dungeonmaster/shared/contracts';
+import type { Flow } from '@dungeonmaster/shared/contracts';
 
 export const questUnresolvedObservablePackagesTransformer = ({
   flows,
 }: {
   flows: Flow[];
-}): ErrorMessage[] => {
-  const offenders: ErrorMessage[] = [];
+}): string[] => {
+  const offenders: string[] = [];
 
   for (const flow of flows) {
     // Runs on the raw merge output, before the whole-quest re-parse applies the array defaults, so a
@@ -48,9 +48,7 @@ export const questUnresolvedObservablePackagesTransformer = ({
         }
 
         offenders.push(
-          errorMessageContract.parse(
-            `Observable '${String(observable.id)}' on node '${String(node.id)}' in flow '${String(flow.id)}' names no package, and its node tags ${tagList}. An omitted package is filled in from the owning node only when that node tags exactly ONE — state the package this observable is read in, drawn from the ones its node already tags, or retag the node.`,
-          ),
+          `Observable '${String(observable.id)}' on node '${String(node.id)}' in flow '${String(flow.id)}' names no package, and its node tags ${tagList}. An omitted package is filled in from the owning node only when that node tags exactly ONE — state the package this observable is read in, drawn from the ones its node already tags, or retag the node.`,
         );
       }
     }

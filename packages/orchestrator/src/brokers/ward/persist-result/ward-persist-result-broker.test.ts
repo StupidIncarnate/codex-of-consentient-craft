@@ -1,4 +1,3 @@
-import { ErrorMessageStub } from '@dungeonmaster/shared/contracts/error-message/error-message.stub';
 import { FilePathStub } from '@dungeonmaster/shared/contracts/file-path/file-path.stub';
 
 import { wardPersistResultBroker } from './ward-persist-result-broker';
@@ -10,7 +9,7 @@ describe('wardPersistResultBroker', () => {
       const proxy = wardPersistResultBrokerProxy();
       const questFolderPath = FilePathStub({ value: '/quests/quest-001' });
       const wardResultId = 'run-1773805659495';
-      const detailJson = ErrorMessageStub({ value: '{"checks":[]}' });
+      const detailJson = '{"checks":[]}';
 
       proxy.setupSuccess({ questFolderPath, wardResultId });
 
@@ -23,7 +22,7 @@ describe('wardPersistResultBroker', () => {
       const proxy = wardPersistResultBrokerProxy();
       const questFolderPath = FilePathStub({ value: '/quests/quest-002' });
       const wardResultId = 'run-abc';
-      const detailJson = ErrorMessageStub({ value: '{"checks":[{"checkType":"lint"}]}' });
+      const detailJson = '{"checks":[{"checkType":"lint"}]}';
 
       proxy.setupSuccess({ questFolderPath, wardResultId });
 
@@ -42,7 +41,7 @@ describe('wardPersistResultBroker', () => {
       const proxy = wardPersistResultBrokerProxy();
       const questFolderPath = FilePathStub({ value: '/quests/quest-003' });
       const wardResultId = 'result-xyz';
-      const detailJson = ErrorMessageStub({ value: '{"checks":[]}' });
+      const detailJson = '{"checks":[]}';
 
       proxy.setupSuccess({ questFolderPath, wardResultId });
 
@@ -57,7 +56,7 @@ describe('wardPersistResultBroker', () => {
       const proxy = wardPersistResultBrokerProxy();
       const questFolderPath = FilePathStub({ value: '/quests/quest-004' });
       const wardResultId = 'result-mkdir';
-      const detailJson = ErrorMessageStub({ value: '{"checks":[]}' });
+      const detailJson = '{"checks":[]}';
 
       proxy.setupSuccess({ questFolderPath, wardResultId });
 
@@ -72,7 +71,7 @@ describe('wardPersistResultBroker', () => {
       const proxy = wardPersistResultBrokerProxy();
       const questFolderPath = FilePathStub({ value: '/quests/quest-001' });
       const wardResultId = 'run-fail';
-      const detailJson = ErrorMessageStub({ value: '{"checks":[]}' });
+      const detailJson = '{"checks":[]}';
 
       proxy.setupWriteFailure({
         questFolderPath,

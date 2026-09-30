@@ -6,8 +6,8 @@
  * // Returns { success: true, data: planningNotes } or { success: false, error }
  */
 
-import { errorMessageContract, questContract } from '@dungeonmaster/shared/contracts';
-import type { ErrorMessage, Quest } from '@dungeonmaster/shared/contracts';
+import { questContract } from '@dungeonmaster/shared/contracts';
+import type { Quest } from '@dungeonmaster/shared/contracts';
 
 import { questGetPlanningNotesBroker } from '../../../brokers/quest/get-planning-notes/quest-get-planning-notes-broker';
 
@@ -15,7 +15,7 @@ type PlanningNotes = Quest['planningNotes'];
 
 export type QuestGetPlanningNotesResponderResult =
   | { readonly success: true; readonly data: PlanningNotes }
-  | { readonly success: false; readonly error: ErrorMessage };
+  | { readonly success: false; readonly error: string };
 
 export const QuestGetPlanningNotesResponder = async ({
   questId,
@@ -28,6 +28,6 @@ export const QuestGetPlanningNotesResponder = async ({
     return { success: true, data };
   } catch (error) {
     const errorMessage = error instanceof Error ? error.message : 'Unknown error';
-    return { success: false, error: errorMessageContract.parse(errorMessage) };
+    return { success: false, error: errorMessage };
   }
 };

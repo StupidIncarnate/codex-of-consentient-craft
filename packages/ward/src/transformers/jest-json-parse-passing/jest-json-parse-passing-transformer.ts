@@ -6,7 +6,6 @@
  * // Returns PassingTest[] containing only passed assertionResults entries
  */
 
-import type { ErrorMessage } from '@dungeonmaster/shared/contracts';
 
 import { jestJsonReportContract } from '../../contracts/jest-json-report/jest-json-report-contract';
 import {
@@ -18,7 +17,7 @@ import { extractJsonObjectTransformer } from '../extract-json-object/extract-jso
 export const jestJsonParsePassingTransformer = ({
   jsonOutput,
 }: {
-  jsonOutput: ErrorMessage;
+  jsonOutput: string;
 }): PassingTest[] => {
   try {
     const jsonString = extractJsonObjectTransformer({ output: jsonOutput });

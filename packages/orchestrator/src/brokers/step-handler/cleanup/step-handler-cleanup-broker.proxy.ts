@@ -17,8 +17,7 @@
 import { streamLinesProxy } from '#gateway/node/child_process/stream-lines/stream-lines.proxy';
 import { RunNotFoundErrorProxy } from '#gateway/node/child_process/run-not-found.error.proxy';
 import { getEnvProxy } from '#gateway/node/process/get-env/get-env.proxy';
-import type { ErrorMessage, ExitCode, Quest } from '@dungeonmaster/shared/contracts';
-import { ErrorMessageStub } from '@dungeonmaster/shared/contracts/error-message/error-message.stub';
+import type { ExitCode, Quest } from '@dungeonmaster/shared/contracts';
 import { ExitCodeStub } from '@dungeonmaster/shared/contracts/exit-code/exit-code.stub';
 import { RepoRootCwdStub } from '@dungeonmaster/shared/contracts/repo-root-cwd/repo-root-cwd.stub';
 import { registerMock, registerModuleMock } from '@dungeonmaster/testing/register-mock';
@@ -48,9 +47,9 @@ export const stepHandlerCleanupBrokerProxy = (): {
   RunNotFoundErrorProxy();
   getEnvProxy();
   const cleanupSpawn = streamLinesProxy();
-  const runResult: { exitCode: ExitCode; output: ErrorMessage } = {
+  const runResult: { exitCode: ExitCode; output: string } = {
     exitCode: ExitCodeStub({ value: 0 }),
-    output: ErrorMessageStub({ value: '{}' }),
+    output: '{}',
   };
   const stageCleanupSpawn = (): void => {
     cleanupSpawn.setupSuccess({
@@ -78,7 +77,7 @@ export const stepHandlerCleanupBrokerProxy = (): {
     }): void => {
       stageRepoRoot({ questId });
       runResult.exitCode = exitCode;
-      runResult.output = ErrorMessageStub({ value: JSON.stringify(answer) });
+      runResult.output = JSON.stringify(answer);
       stageCleanupSpawn();
     },
 
@@ -93,14 +92,14 @@ export const stepHandlerCleanupBrokerProxy = (): {
     }): void => {
       stageRepoRoot({ questId });
       runResult.exitCode = exitCode;
-      runResult.output = ErrorMessageStub({ value: output });
+      runResult.output = output;
       stageCleanupSpawn();
     },
 
     cleanupPrintsInvalidJson: ({ questId }: { questId: Quest['id'] }): void => {
       stageRepoRoot({ questId });
       runResult.exitCode = ExitCodeStub({ value: 0 });
-      runResult.output = ErrorMessageStub({ value: 'not json' });
+      runResult.output = 'not json';
       stageCleanupSpawn();
     },
 

@@ -12,16 +12,16 @@
  * //   model rather than showing it to the user alone
  */
 
-import { errorMessageContract, exitCodeContract } from '@dungeonmaster/shared/contracts';
-import type { ErrorMessage, ExitCode } from '@dungeonmaster/shared/contracts';
+import { exitCodeContract } from '@dungeonmaster/shared/contracts';
+import type { ExitCode } from '@dungeonmaster/shared/contracts';
 
 import { hookExitCodeStatics } from '../../../statics/hook-exit-code/hook-exit-code-statics';
 import { worktreeBlockMessageStatics } from '../../../statics/worktree-block-message/worktree-block-message-statics';
 
 export const HookWorktreeCreateResponder = (): {
-  stderr: ErrorMessage;
+  stderr: string;
   exitCode: ExitCode;
 } => ({
-  stderr: errorMessageContract.parse(`${worktreeBlockMessageStatics.blockMessage}\n`),
+  stderr: `${worktreeBlockMessageStatics.blockMessage}\n`,
   exitCode: exitCodeContract.parse(hookExitCodeStatics.blockingFailure),
 });

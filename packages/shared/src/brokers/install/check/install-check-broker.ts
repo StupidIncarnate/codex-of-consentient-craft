@@ -9,7 +9,6 @@
 
 import { existsSync } from '#gateway/node/fs';
 import { join } from '#gateway/node/path';
-import type { ErrorMessage } from '../../../contracts/error-message/error-message-contract';
 import type { FilePath } from '../../../contracts/file-path/file-path-contract';
 import { locationsStatics } from '../../../statics/locations/locations-statics';
 
@@ -21,16 +20,16 @@ export const installCheckBroker = ({
   projectRoot,
 }: {
   projectRoot: FilePath;
-}): { valid: boolean; error?: ErrorMessage } => {
+}): { valid: boolean; error?: string } => {
   const packageJsonPath = join(projectRoot, 'package.json');
   const claudeDirPath = join(projectRoot, locationsStatics.repoRoot.claude.dir);
 
   if (!existsSync(packageJsonPath)) {
-    return { valid: false, error: 'No package.json found.' as ErrorMessage };
+    return { valid: false, error: 'No package.json found.' as string };
   }
 
   if (!existsSync(claudeDirPath)) {
-    return { valid: false, error: 'No .claude directory found.' as ErrorMessage };
+    return { valid: false, error: 'No .claude directory found.' as string };
   }
 
   return { valid: true };

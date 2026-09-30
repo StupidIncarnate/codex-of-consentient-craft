@@ -6,8 +6,6 @@
  * // Returns ErrorMessage[] — e.g. ["contract 'LoginCredentials' property 'email' uses raw primitive 'string'"].
  */
 import type { QuestContractEntry, QuestContractProperty } from '@dungeonmaster/shared/contracts';
-import { errorMessageContract } from '@dungeonmaster/shared/contracts';
-import type { ErrorMessage } from '@dungeonmaster/shared/contracts';
 
 const rawPrimitiveBlocklist = new Set(['string', 'number', 'any', 'object', 'unknown']);
 
@@ -15,12 +13,12 @@ export const questContractRawPrimitivePropertiesTransformer = ({
   contracts,
 }: {
   contracts?: QuestContractEntry[];
-}): ErrorMessage[] => {
+}): string[] => {
   if (!contracts) {
     return [];
   }
 
-  const offenders: ErrorMessage[] = [];
+  const offenders: string[] = [];
 
   for (const contract of contracts) {
     const contractName = String(contract.name);
@@ -47,9 +45,7 @@ export const questContractRawPrimitivePropertiesTransformer = ({
 
       if (property.type && rawPrimitiveBlocklist.has(String(property.type).toLowerCase())) {
         offenders.push(
-          errorMessageContract.parse(
-            `contract '${contractName}' property '${fieldPath}' uses raw primitive '${String(property.type)}'`,
-          ),
+          `contract '${contractName}' property '${fieldPath}' uses raw primitive '${String(property.type)}'`,
         );
       }
 

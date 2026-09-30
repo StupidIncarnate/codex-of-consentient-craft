@@ -6,7 +6,6 @@
  * // Returns: WardFileDetail with failure details and passing-test blocks per project
  */
 
-import { errorMessageContract } from '@dungeonmaster/shared/contracts';
 
 import type { ErrorEntry } from '../../contracts/error-entry/error-entry-contract';
 import type { TestFailure } from '../../contracts/test-failure/test-failure-contract';
@@ -15,6 +14,7 @@ import { isCallerFileScopeGuard } from '../../guards/is-caller-file-scope/is-cal
 import { isPathSuffixMatchGuard } from '../../guards/is-path-suffix-match/is-path-suffix-match-guard';
 import { extractNetworkLogTransformer } from '../extract-network-log/extract-network-log-transformer';
 import { stripAnsiCodesTransformer } from '../strip-ansi-codes/strip-ansi-codes-transformer';
+import { errorEntryContract } from '../../contracts/error-entry/error-entry-contract';
 
 const MS_PER_SECOND = 1000;
 
@@ -57,16 +57,16 @@ export const resultToDetailTransformer = ({
 
         const rawText = project.rawOutput.stderr || project.rawOutput.stdout;
         const networkLog = extractNetworkLogTransformer({
-          rawOutput: errorMessageContract.parse(rawText),
+          rawOutput: rawText,
         });
         if (networkLog.length > 0) {
-          entries.push(errorMessageContract.parse(`\n  Network Log:\n    ${networkLog}`));
+          entries.push(errorEntryContract.shape.message.parse(`\n  Network Log:\n    ${networkLog}`));
         }
       }
     }
 
     const raw = entries.length > 0 ? `${filePath}\n${entries.join('\n')}` : String(filePath);
-    const output = stripAnsiCodesTransformer({ text: errorMessageContract.parse(raw) });
+    const output = stripAnsiCodesTransformer({ text: raw });
 
     return output;
   }
@@ -80,9 +80,7 @@ export const resultToDetailTransformer = ({
         const locationPart =
           error.line === 0 ? '' : ` (line ${String(error.line)}, col ${String(error.column)})`;
         sections.push(
-          errorMessageContract.parse(
-            `${error.filePath}\n  ${check.checkType}${rulePart}${locationPart}\n    ${error.message}`,
-          ),
+          errorEntryContract.shape.message.parse(`${error.filePath}\n  ${check.checkType}${rulePart}${locationPart}\n    ${error.message}`),
         );
       }
 
@@ -90,14 +88,12 @@ export const resultToDetailTransformer = ({
         const stackPart = failure.stackTrace ? `\n    ${failure.stackTrace}` : '';
         const rawTextForLog = project.rawOutput.stderr || project.rawOutput.stdout;
         const networkLogForFailure = extractNetworkLogTransformer({
-          rawOutput: errorMessageContract.parse(rawTextForLog),
+          rawOutput: rawTextForLog,
         });
         const networkPart =
           networkLogForFailure.length > 0 ? `\n\n  Network Log:\n    ${networkLogForFailure}` : '';
         sections.push(
-          errorMessageContract.parse(
-            `${failure.suitePath}\n  FAIL  "${failure.testName}"\n    ${failure.message}${stackPart}${networkPart}`,
-          ),
+          errorEntryContract.shape.message.parse(`${failure.suitePath}\n  FAIL  "${failure.testName}"\n    ${failure.message}${stackPart}${networkPart}`),
         );
       }
 
@@ -109,15 +105,11 @@ export const resultToDetailTransformer = ({
         const rawText = project.rawOutput.stderr || project.rawOutput.stdout;
         if (rawText.length > 0) {
           sections.push(
-            errorMessageContract.parse(
-              `${project.projectFolder.name}\n  (crash) ${check.checkType}\n    ${rawText}`,
-            ),
+            errorEntryContract.shape.message.parse(`${project.projectFolder.name}\n  (crash) ${check.checkType}\n    ${rawText}`),
           );
         } else {
           sections.push(
-            errorMessageContract.parse(
-              `${project.projectFolder.name}\n  (crash) ${check.checkType}\n    no output captured`,
-            ),
+            errorEntryContract.shape.message.parse(`${project.projectFolder.name}\n  (crash) ${check.checkType}\n    no output captured`),
           );
         }
       }
@@ -139,7 +131,7 @@ export const resultToDetailTransformer = ({
             Number(passing.durationMs) > 0 ? ` (${String(passing.durationMs)}ms)` : '';
           return `    ✓ ${passing.suitePath} › ${passing.testName}${testDurationPart}`;
         });
-        sections.push(errorMessageContract.parse([header, ...testLines].join('\n')));
+        sections.push(errorEntryContract.shape.message.parse([header, ...testLines].join('\n')));
       }
 
       // A RUN THE CALLER SCOPED TO FILES GETS NO `not run` SECTION AT ALL. `onlyDiscovered` is every
@@ -155,16 +147,14 @@ export const resultToDetailTransformer = ({
         !isCallerFileScopeGuard({ filters: wardResult.filters })
       ) {
         sections.push(
-          errorMessageContract.parse(
-            `not run (${String(project.onlyDiscovered.length)} files):\n  ${project.onlyDiscovered.join('\n  ')}`,
-          ),
+          errorEntryContract.shape.message.parse(`not run (${String(project.onlyDiscovered.length)} files):\n  ${project.onlyDiscovered.join('\n  ')}`),
         );
       }
     }
   }
 
   const raw = sections.length > 0 ? sections.join('\n\n') : 'No errors found';
-  const output = stripAnsiCodesTransformer({ text: errorMessageContract.parse(raw) });
+  const output = stripAnsiCodesTransformer({ text: raw });
 
   return output;
 };

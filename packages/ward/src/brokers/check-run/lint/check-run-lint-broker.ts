@@ -7,11 +7,7 @@
  */
 
 import { run, RunNotFoundError } from '#gateway/node/child_process';
-import {
-  absoluteFilePathContract,
-  errorMessageContract,
-  exitCodeContract,
-} from '@dungeonmaster/shared/contracts';
+import { absoluteFilePathContract, exitCodeContract } from '@dungeonmaster/shared/contracts';
 
 import { binCommandContract } from '../../../contracts/bin-command/bin-command-contract';
 import { eslintJsonReportContract } from '../../../contracts/eslint-json-report/eslint-json-report-contract';
@@ -105,7 +101,7 @@ export const checkRunLintBroker = async ({
 
   try {
     const jsonSlice = extractJsonArrayTransformer({
-      output: errorMessageContract.parse(result.output),
+      output: result.output,
     });
     const parsed = eslintJsonReportContract.parse(JSON.parse(jsonSlice));
     // AN IGNORED PATH IS NOT A LINTED FILE. ESLint replies with a full result entry for an
@@ -129,7 +125,7 @@ export const checkRunLintBroker = async ({
     rawOutput: rawOutputContract.parse({
       // The timing tree is read into `fileTimings` above and dropped here: it was 88% of a saved
       // whole-repo lint run, and `ward raw lint` needs only the messages.
-      stdout: eslintStatsStripTransformer({ output: errorMessageContract.parse(result.output) }),
+      stdout: eslintStatsStripTransformer({ output: result.output }),
       stderr: '',
       exitCode,
       signal: result.signal,

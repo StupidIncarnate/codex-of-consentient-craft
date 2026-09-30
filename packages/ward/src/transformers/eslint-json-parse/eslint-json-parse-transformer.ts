@@ -6,7 +6,6 @@
  * // Returns ErrorEntry[] with severity mapped from ESLint numeric codes
  */
 
-import { errorMessageContract } from '@dungeonmaster/shared/contracts';
 
 import {
   errorEntryContract,
@@ -22,7 +21,7 @@ export const eslintJsonParseTransformer = ({
   jsonOutput: string;
 }): ErrorEntry[] => {
   const cleanedOutput = extractJsonArrayTransformer({
-    output: errorMessageContract.parse(jsonOutput),
+    output: jsonOutput,
   });
   const report = eslintJsonReportContract.safeParse(JSON.parse(cleanedOutput));
 

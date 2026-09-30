@@ -20,13 +20,8 @@ import { NpmNotInstalledError, runScript } from '#gateway/bin/npm';
 import { existsSync } from '#gateway/node/fs';
 import { ensureDir, readFile, rename, rm } from '#gateway/node/fs__promises';
 import { pid } from '#gateway/node/process';
-import {
-  absoluteFilePathContract,
-  errorMessageContract,
-  exitCodeContract,
-  filePathContract,
-} from '@dungeonmaster/shared/contracts';
-import type { AbsoluteFilePath, ErrorMessage } from '@dungeonmaster/shared/contracts';
+import { absoluteFilePathContract, exitCodeContract, filePathContract } from '@dungeonmaster/shared/contracts';
+import type { AbsoluteFilePath } from '@dungeonmaster/shared/contracts';
 
 import { packageJsonContract } from '../../../contracts/package-json/package-json-contract';
 import { bundleStatics } from '../../../statics/bundle/bundle-statics';
@@ -37,7 +32,7 @@ export const bundleBuildBroker = async ({
   packageRoot,
 }: {
   packageRoot: AbsoluteFilePath;
-}): Promise<{ bundleDir: AbsoluteFilePath | null; error: ErrorMessage | null }> => {
+}): Promise<{ bundleDir: AbsoluteFilePath | null; error: string | null }> => {
   const manifestRaw = await readFile(
     filePathContract.parse(`${String(packageRoot)}/package.json`),
   ).catch(() => null);
@@ -103,9 +98,7 @@ export const bundleBuildBroker = async ({
 
     return {
       bundleDir: null,
-      error: errorMessageContract.parse(
-        `bundle build failed in ${String(packageRoot)}:\n${result.output}`,
-      ),
+      error: `bundle build failed in ${String(packageRoot)}:\n${result.output}`,
     };
   }
 

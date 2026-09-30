@@ -6,19 +6,17 @@
  * // Returns ErrorMessage[] — e.g. ["flow 'login' node 'done' observable 'obs-1' has empty description"].
  */
 import type { Flow } from '@dungeonmaster/shared/contracts';
-import { errorMessageContract } from '@dungeonmaster/shared/contracts';
-import type { ErrorMessage } from '@dungeonmaster/shared/contracts';
 
 export const questObservablesMissingDescriptionTransformer = ({
   flows,
 }: {
   flows?: Flow[];
-}): ErrorMessage[] => {
+}): string[] => {
   if (!flows) {
     return [];
   }
 
-  const offenders: ErrorMessage[] = [];
+  const offenders: string[] = [];
 
   for (const flow of flows) {
     for (const node of flow.nodes) {
@@ -27,9 +25,7 @@ export const questObservablesMissingDescriptionTransformer = ({
         const isEmpty = typeof description !== 'string' || description.length === 0;
         if (isEmpty) {
           offenders.push(
-            errorMessageContract.parse(
-              `flow '${String(flow.id)}' node '${String(node.id)}' observable '${String(observable.id)}' has empty description`,
-            ),
+            `flow '${String(flow.id)}' node '${String(node.id)}' observable '${String(observable.id)}' has empty description`,
           );
         }
       }

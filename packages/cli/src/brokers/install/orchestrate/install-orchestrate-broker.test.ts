@@ -8,7 +8,6 @@ import { FilePathStub } from '@dungeonmaster/shared/contracts/file-path/file-pat
 import { PackageNameStub } from '@dungeonmaster/shared/contracts/package-name/package-name.stub';
 import { InstallContextStub } from '@dungeonmaster/shared/contracts/install-context/install-context.stub';
 import { InstallResultStub } from '@dungeonmaster/shared/contracts/install-result/install-result.stub';
-import { ErrorMessageStub } from '@dungeonmaster/shared/contracts/error-message/error-message.stub';
 
 describe('installOrchestrateBroker', () => {
   describe('orchestrating installs', () => {
@@ -162,7 +161,7 @@ describe('installOrchestrateBroker', () => {
             packageName: '@dungeonmaster/hooks',
             success: false,
             action: 'failed',
-            error: ErrorMessageStub({ value: 'Install failed' }),
+            error: 'Install failed',
           },
         }),
       ]);

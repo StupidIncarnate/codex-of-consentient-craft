@@ -6,14 +6,12 @@
  * // Returns ErrorMessage[] — each entry is a duplicated design decision id.
  */
 import type { DesignDecision } from '@dungeonmaster/shared/contracts';
-import { errorMessageContract } from '@dungeonmaster/shared/contracts';
-import type { ErrorMessage } from '@dungeonmaster/shared/contracts';
 
 export const questDuplicateDesignDecisionIdsTransformer = ({
   designDecisions,
 }: {
   designDecisions?: DesignDecision[];
-}): ErrorMessage[] => {
+}): string[] => {
   if (!designDecisions) {
     return [];
   }
@@ -30,5 +28,5 @@ export const questDuplicateDesignDecisionIdsTransformer = ({
     }
   }
 
-  return Array.from(duplicates).map((id) => errorMessageContract.parse(String(id)));
+  return Array.from(duplicates).map((id) => String(id));
 };

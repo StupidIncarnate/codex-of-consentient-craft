@@ -6,19 +6,17 @@
  * // Returns ErrorMessage[] — e.g. ["flow 'login' edge 'e1' from decision 'check-auth' has no label"].
  */
 import type { Flow } from '@dungeonmaster/shared/contracts';
-import { errorMessageContract } from '@dungeonmaster/shared/contracts';
-import type { ErrorMessage } from '@dungeonmaster/shared/contracts';
 
 export const questDecisionEdgesMissingLabelTransformer = ({
   flows,
 }: {
   flows?: Flow[];
-}): ErrorMessage[] => {
+}): string[] => {
   if (!flows) {
     return [];
   }
 
-  const offenders: ErrorMessage[] = [];
+  const offenders: string[] = [];
 
   for (const flow of flows) {
     const decisionNodeIds = new Set<unknown>();
@@ -36,9 +34,7 @@ export const questDecisionEdgesMissingLabelTransformer = ({
       const labelIsEmpty = edge.label === undefined || String(edge.label).length === 0;
       if (labelIsEmpty) {
         offenders.push(
-          errorMessageContract.parse(
-            `flow '${String(flow.id)}' edge '${String(edge.id)}' from decision '${fromId}' has no label`,
-          ),
+          `flow '${String(flow.id)}' edge '${String(edge.id)}' from decision '${fromId}' has no label`,
         );
       }
     }

@@ -1,4 +1,3 @@
-import { ErrorMessageStub } from '@dungeonmaster/shared/contracts/error-message/error-message.stub';
 
 import { TestFailureStub } from '../../contracts/test-failure/test-failure.stub';
 import { parsePlaywrightCrashOutputTransformer } from './parse-playwright-crash-output-transformer';
@@ -6,14 +5,12 @@ import { parsePlaywrightCrashOutputTransformer } from './parse-playwright-crash-
 describe('parsePlaywrightCrashOutputTransformer', () => {
   describe('no failures', () => {
     it('EMPTY: {output: only progress lines} => returns empty array', () => {
-      const output = ErrorMessageStub({
-        value: [
+      const output = [
           'Running 5 tests using 1 worker',
           '',
           '[1/5] [chromium] › packages/web/src/flows/app/smoke.e2e.ts:20:7 › Smoke › loads page',
           '[2/5] [chromium] › packages/web/src/flows/app/smoke.e2e.ts:30:7 › Smoke › clicks button',
-        ].join('\n'),
-      });
+        ].join('\n');
 
       const result = parsePlaywrightCrashOutputTransformer({ output });
 
@@ -23,8 +20,7 @@ describe('parsePlaywrightCrashOutputTransformer', () => {
 
   describe('single failure', () => {
     it('VALID: {output: one numbered failure with error and stack} => returns one TestFailure with message and stackTrace', () => {
-      const output = ErrorMessageStub({
-        value: [
+      const output = [
           '[1/3] [chromium] › packages/web/src/flows/app/smoke.e2e.ts:20:7 › Smoke › loads page',
           '[2/3] [chromium] › packages/web/src/flows/quest-chat/quest.e2e.ts:10:7 › Quest › starts quest',
           '[3/3] [chromium] › packages/web/src/flows/quest-chat/quest.e2e.ts:10:7 › Quest › starts quest (retry #1)',
@@ -42,8 +38,7 @@ describe('parsePlaywrightCrashOutputTransformer', () => {
           '        at navigateToSession (/project/packages/web/src/flows/quest-chat/quest.e2e.ts:87:39)',
           '        at /project/packages/web/src/flows/quest-chat/quest.e2e.ts:10:11',
           '',
-        ].join('\n'),
-      });
+        ].join('\n');
 
       const result = parsePlaywrightCrashOutputTransformer({ output });
 
@@ -70,8 +65,7 @@ describe('parsePlaywrightCrashOutputTransformer', () => {
 
   describe('multiple failures', () => {
     it('VALID: {output: two numbered failures} => returns two TestFailure entries', () => {
-      const output = ErrorMessageStub({
-        value: [
+      const output = [
           '  1) [chromium] › packages/web/src/flows/home/alpha.e2e.ts:10:7 › Alpha › test one ',
           '',
           '    Expected: true',
@@ -83,8 +77,7 @@ describe('parsePlaywrightCrashOutputTransformer', () => {
           '    Timeout of 5000ms exceeded.',
           '        at /project/packages/web/src/flows/home/beta.e2e.ts:25:10',
           '',
-        ].join('\n'),
-      });
+        ].join('\n');
 
       const result = parsePlaywrightCrashOutputTransformer({ output });
 
@@ -108,8 +101,7 @@ describe('parsePlaywrightCrashOutputTransformer', () => {
 
   describe('filters noise', () => {
     it('VALID: {output: failure with WebServer lines and attachments} => strips noise from error block', () => {
-      const output = ErrorMessageStub({
-        value: [
+      const output = [
           '  1) [chromium] › packages/web/src/flows/quest-chat/quest.e2e.ts:10:7 › Quest › fails ',
           '',
           '    Error: element not found',
@@ -129,8 +121,7 @@ describe('parsePlaywrightCrashOutputTransformer', () => {
           '[WebServer] some debug output',
           '[WebServer] more debug output',
           '',
-        ].join('\n'),
-      });
+        ].join('\n');
 
       const result = parsePlaywrightCrashOutputTransformer({ output });
 
@@ -147,14 +138,12 @@ describe('parsePlaywrightCrashOutputTransformer', () => {
 
   describe('ansi codes', () => {
     it('VALID: {output: failure with ANSI escape codes} => strips ANSI before parsing', () => {
-      const output = ErrorMessageStub({
-        value: [
+      const output = [
           '  1) \x1b[31m[chromium]\x1b[0m › packages/web/src/flows/app/smoke.e2e.ts:5:7 › Smoke › red test ',
           '',
           '    \x1b[1mAssertion failed\x1b[0m',
           '',
-        ].join('\n'),
-      });
+        ].join('\n');
 
       const result = parsePlaywrightCrashOutputTransformer({ output });
 

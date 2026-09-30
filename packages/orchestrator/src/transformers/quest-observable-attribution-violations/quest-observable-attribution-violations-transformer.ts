@@ -20,14 +20,12 @@
  * // a package that is neither observed nor forced by a seam.
  */
 import type { FlowNode, Flow } from '@dungeonmaster/shared/contracts';
-import { errorMessageContract } from '@dungeonmaster/shared/contracts';
-import type { ErrorMessage } from '@dungeonmaster/shared/contracts';
 
 export const questObservableAttributionViolationsTransformer = ({
   flows,
 }: {
   flows: Flow[];
-}): ErrorMessage[] => {
+}): string[] => {
   // Keyed `<flowId>:<nodeId>` exactly as `questUngluedSeamEdgesTransformer` keys it, so a cross-flow
   // `flowId:nodeId` ref and a bare in-flow one resolve identically under both rules.
   const nodesByQualifiedId = new Map<unknown, FlowNode>();
@@ -69,7 +67,7 @@ export const questObservableAttributionViolationsTransformer = ({
     }
   }
 
-  const offenders: ErrorMessage[] = [];
+  const offenders: string[] = [];
 
   for (const flow of flows) {
     const flowId = String(flow.id);
@@ -88,9 +86,7 @@ export const questObservableAttributionViolationsTransformer = ({
         const observablePackage = String(observable.package);
         if (!nodePackageSet.has(observablePackage)) {
           offenders.push(
-            errorMessageContract.parse(
-              `Observable '${String(observable.id)}' on node '${nodeId}' in flow '${flowId}' is attributed to package '${observablePackage}', which its node does not tag (node packages: ${nodePackages.join(', ')}). An observable sits on exactly ONE side of its node's seam — set its package to one the node already tags, or widen the node's packages to include it.`,
-            ),
+            `Observable '${String(observable.id)}' on node '${nodeId}' in flow '${flowId}' is attributed to package '${observablePackage}', which its node does not tag (node packages: ${nodePackages.join(', ')}). An observable sits on exactly ONE side of its node's seam — set its package to one the node already tags, or widen the node's packages to include it.`,
           );
           continue;
         }
@@ -133,9 +129,7 @@ export const questObservableAttributionViolationsTransformer = ({
           ? 'none of them'
           : [...coveredPackages].map((name) => String(name)).join(', ');
       offenders.push(
-        errorMessageContract.parse(
-          `Node '${nodeId}' in flow '${flowId}' tags packages ${nodePackages.join(', ')} but its observables only cover ${coveredList}. Package(s) ${uncovered.join(', ')} are declared on the node and asserted by nothing — a seam declared on one side only. Add an observable carrying each uncovered package, or narrow the node's packages to what it really lands in.`,
-        ),
+        `Node '${nodeId}' in flow '${flowId}' tags packages ${nodePackages.join(', ')} but its observables only cover ${coveredList}. Package(s) ${uncovered.join(', ')} are declared on the node and asserted by nothing — a seam declared on one side only. Add an observable carrying each uncovered package, or narrow the node's packages to what it really lands in.`,
       );
     }
   }

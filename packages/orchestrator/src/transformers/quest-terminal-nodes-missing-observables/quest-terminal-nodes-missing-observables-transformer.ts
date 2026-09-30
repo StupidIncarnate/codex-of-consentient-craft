@@ -6,19 +6,17 @@
  * // Returns ErrorMessage[] — e.g. ["flow 'login' terminal node 'done' has no observables"].
  */
 import type { Flow } from '@dungeonmaster/shared/contracts';
-import { errorMessageContract } from '@dungeonmaster/shared/contracts';
-import type { ErrorMessage } from '@dungeonmaster/shared/contracts';
 
 export const questTerminalNodesMissingObservablesTransformer = ({
   flows,
 }: {
   flows?: Flow[];
-}): ErrorMessage[] => {
+}): string[] => {
   if (!flows) {
     return [];
   }
 
-  const offenders: ErrorMessage[] = [];
+  const offenders: string[] = [];
 
   for (const flow of flows) {
     for (const node of flow.nodes) {
@@ -27,9 +25,7 @@ export const questTerminalNodesMissingObservablesTransformer = ({
       }
       if (node.observables.length === 0) {
         offenders.push(
-          errorMessageContract.parse(
-            `flow '${String(flow.id)}' terminal node '${String(node.id)}' has no observables`,
-          ),
+          `flow '${String(flow.id)}' terminal node '${String(node.id)}' has no observables`,
         );
       }
     }

@@ -12,11 +12,7 @@
  * // Returns '/repo/worktrees/quest-slug-a1b2c3d4: ward typecheck exited with code 1'
  */
 
-import {
-  errorMessageContract,
-  type AbsoluteFilePath,
-  type ErrorMessage,
-} from '@dungeonmaster/shared/contracts';
+import { type AbsoluteFilePath } from '@dungeonmaster/shared/contracts';
 
 export const worktreeFailureDetailTransformer = ({
   worktreePath,
@@ -25,13 +21,13 @@ export const worktreeFailureDetailTransformer = ({
 }: {
   worktreePath: AbsoluteFilePath;
   cause: string;
-  cleanupOutput?: ErrorMessage;
-}): ErrorMessage => {
+  cleanupOutput?: string;
+}): string => {
   const detail = `${worktreePath}: ${cause}`;
 
   if (cleanupOutput !== undefined && cleanupOutput.trim().length > 0) {
-    return errorMessageContract.parse(`${detail} (worktree cleanup also failed: ${cleanupOutput})`);
+    return `${detail} (worktree cleanup also failed: ${cleanupOutput})`;
   }
 
-  return errorMessageContract.parse(detail);
+  return detail;
 };

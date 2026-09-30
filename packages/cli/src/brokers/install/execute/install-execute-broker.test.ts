@@ -8,7 +8,6 @@ import { FilePathStub } from '@dungeonmaster/shared/contracts/file-path/file-pat
 import { PackageNameStub } from '@dungeonmaster/shared/contracts/package-name/package-name.stub';
 import { InstallContextStub } from '@dungeonmaster/shared/contracts/install-context/install-context.stub';
 import { InstallResultStub } from '@dungeonmaster/shared/contracts/install-result/install-result.stub';
-import { ErrorMessageStub } from '@dungeonmaster/shared/contracts/error-message/error-message.stub';
 
 describe('installExecuteBroker', () => {
   describe('executing install', () => {
@@ -71,9 +70,7 @@ describe('installExecuteBroker', () => {
             packageName: '@dungeonmaster/test',
             success: false,
             action: 'failed',
-            error: ErrorMessageStub({
-              value: 'No StartInstall function found in /path/to/invalid.ts',
-            }),
+            error: 'No StartInstall function found in /path/to/invalid.ts',
           },
         }),
       );
@@ -100,7 +97,7 @@ describe('installExecuteBroker', () => {
             packageName: '@dungeonmaster/test',
             success: false,
             action: 'failed',
-            error: ErrorMessageStub({ value: 'Module not found' }),
+            error: 'Module not found',
           },
         }),
       );
@@ -131,7 +128,7 @@ describe('installExecuteBroker', () => {
             packageName: '@dungeonmaster/test',
             success: false,
             action: 'failed',
-            error: ErrorMessageStub({ value: 'Install failed' }),
+            error: 'Install failed',
           },
         }),
       );
@@ -218,9 +215,7 @@ describe('installExecuteBroker', () => {
             packageName: '@dungeonmaster/cli',
             success: false,
             action: 'failed',
-            error: ErrorMessageStub({
-              value: `No StartInstallFinalize function found in ${installPath}`,
-            }),
+            error: `No StartInstallFinalize function found in ${installPath}`,
           },
         }),
       );

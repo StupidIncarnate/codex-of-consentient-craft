@@ -6,8 +6,6 @@
  * // Returns ErrorMessage[] — e.g. ["contract 'LoginCredentials' has unresolved nodeId 'ghost'"].
  */
 import type { Flow, QuestContractEntry } from '@dungeonmaster/shared/contracts';
-import { errorMessageContract } from '@dungeonmaster/shared/contracts';
-import type { ErrorMessage } from '@dungeonmaster/shared/contracts';
 
 export const questUnresolvedContractNodeRefsTransformer = ({
   contracts,
@@ -15,7 +13,7 @@ export const questUnresolvedContractNodeRefsTransformer = ({
 }: {
   contracts?: QuestContractEntry[];
   flows?: Flow[];
-}): ErrorMessage[] => {
+}): string[] => {
   if (!contracts || contracts.length === 0) {
     return [];
   }
@@ -29,15 +27,13 @@ export const questUnresolvedContractNodeRefsTransformer = ({
     }
   }
 
-  const offenders: ErrorMessage[] = [];
+  const offenders: string[] = [];
 
   for (const contract of contracts) {
     const nodeId = String(contract.nodeId);
     if (!allNodeIds.has(nodeId)) {
       offenders.push(
-        errorMessageContract.parse(
-          `contract '${String(contract.name)}' has unresolved nodeId '${nodeId}'`,
-        ),
+        `contract '${String(contract.name)}' has unresolved nodeId '${nodeId}'`,
       );
     }
   }

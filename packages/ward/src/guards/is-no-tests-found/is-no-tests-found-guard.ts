@@ -10,7 +10,6 @@
  * WHEN-NOT-TO-USE: In full runs, where a missing-tests banner signals a real misconfiguration to surface
  */
 
-import { errorMessageContract } from '@dungeonmaster/shared/contracts';
 
 import { stripAnsiCodesTransformer } from '../../transformers/strip-ansi-codes/strip-ansi-codes-transformer';
 
@@ -26,7 +25,7 @@ export const isNoTestsFoundGuard = ({ output }: { output?: string }): boolean =>
   // The colour codes come off rather than the anchor coming off the pattern: an unanchored match
   // would also fire on these words appearing inside a test NAME in jest's JSON report, which is the
   // one case this guard exists to tell apart.
-  const clean = stripAnsiCodesTransformer({ text: errorMessageContract.parse(output) });
+  const clean = stripAnsiCodesTransformer({ text: output });
 
   return /^No tests found/mu.test(String(clean));
 };

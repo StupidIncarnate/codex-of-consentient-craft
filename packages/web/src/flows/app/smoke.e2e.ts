@@ -1,5 +1,4 @@
 import { test, expect } from '../../../test/harnesses/e2e-fixtures';
-import { ErrorMessageStub } from '@dungeonmaster/shared/contracts/error-message/error-message.stub';
 import { guildHarness } from '../../../test/harnesses/guild/guild.harness';
 
 test.describe('Smoke Tests', () => {
@@ -17,9 +16,9 @@ test.describe('Smoke Tests', () => {
   });
 
   test('ERROR: app renders without errors', async ({ page }) => {
-    type ErrorMessage = ReturnType<typeof ErrorMessageStub>;
+    type ErrorMessage = string;
     const errors: ErrorMessage[] = [];
-    page.on('pageerror', (error: Error) => errors.push(ErrorMessageStub({ value: error.message })));
+    page.on('pageerror', (error: Error) => errors.push(error.message));
 
     await page.goto('/');
 

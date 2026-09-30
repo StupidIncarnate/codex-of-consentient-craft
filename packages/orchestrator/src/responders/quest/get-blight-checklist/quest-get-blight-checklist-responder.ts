@@ -15,15 +15,15 @@
  * landed commit wants `commit` and one auditing the whole branch wants `quest`.
  */
 
-import type { Quest, ContentText, ErrorMessage } from '@dungeonmaster/shared/contracts';
-import { contentTextContract, errorMessageContract, questContract } from '@dungeonmaster/shared/contracts';
+import type { Quest, ContentText } from '@dungeonmaster/shared/contracts';
+import { contentTextContract, questContract } from '@dungeonmaster/shared/contracts';
 
 import { questGetBlightChecklistBroker } from '../../../brokers/quest/get-blight-checklist/quest-get-blight-checklist-broker';
 import { blightChecklistToTextTransformer } from '../../../transformers/blight-checklist-to-text/blight-checklist-to-text-transformer';
 
 export type QuestGetBlightChecklistResponderResult =
   | { readonly success: true; readonly data: ContentText }
-  | { readonly success: false; readonly error: ErrorMessage };
+  | { readonly success: false; readonly error: string };
 
 export const QuestGetBlightChecklistResponder = async ({
   questId,
@@ -63,6 +63,6 @@ export const QuestGetBlightChecklistResponder = async ({
     };
   } catch (error) {
     const errorMessage = error instanceof Error ? error.message : 'Unknown error';
-    return { success: false, error: errorMessageContract.parse(errorMessage) };
+    return { success: false, error: errorMessage };
   }
 };

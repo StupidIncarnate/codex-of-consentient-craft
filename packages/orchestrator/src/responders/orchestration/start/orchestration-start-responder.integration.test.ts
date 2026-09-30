@@ -1,6 +1,5 @@
 import { installTestbedCreateBroker } from '@dungeonmaster/testing';
 import { AbsoluteFilePathStub } from '@dungeonmaster/shared/contracts/absolute-file-path/absolute-file-path.stub';
-import { ErrorMessageStub } from '@dungeonmaster/shared/contracts/error-message/error-message.stub';
 import { FileContentsStub } from '@dungeonmaster/shared/contracts/file-contents/file-contents.stub';
 import { FileNameStub } from '@dungeonmaster/shared/contracts/file-name/file-name.stub';
 import { OperationItemStub } from '@dungeonmaster/shared/contracts/operation-item/operation-item.stub';
@@ -165,7 +164,7 @@ describe('OrchestrationStartResponder (integration) — real quest.json + real g
         repoPath,
         relativePath: RepoRelativePathStub({ value: 'ADVANCE.md' }),
         content: FileContentsStub({ value: 'advance main past the taken branch\n' }),
-        message: ErrorMessageStub({ value: 'advance main' }),
+        message: 'advance main',
       });
 
       const questId = HOSTILE_QUEST_ID;
@@ -179,14 +178,14 @@ describe('OrchestrationStartResponder (integration) — real quest.json + real g
 
       const existingBranchShaBefore = await git.gitRevParseOrNull({
         repoPath,
-        ref: ErrorMessageStub({ value: TAKEN_BRANCH_NAME_STRING }),
+        ref: TAKEN_BRANCH_NAME_STRING,
       });
 
       await OrchestrationStartResponder({ questId });
 
       const existingBranchShaAfter = await git.gitRevParseOrNull({
         repoPath,
-        ref: ErrorMessageStub({ value: TAKEN_BRANCH_NAME_STRING }),
+        ref: TAKEN_BRANCH_NAME_STRING,
       });
       const worktreesDirExists = git.pathExists({
         absolutePath: AbsoluteFilePathStub({ value: `${testbed.guildPath}/worktrees` }),

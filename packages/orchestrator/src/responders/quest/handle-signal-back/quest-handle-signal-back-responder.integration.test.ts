@@ -1,7 +1,6 @@
 import { randomUUID } from '#gateway/node/crypto';
 import { installTestbedCreateBroker } from '@dungeonmaster/testing';
 import { AbsoluteFilePathStub } from '@dungeonmaster/shared/contracts/absolute-file-path/absolute-file-path.stub';
-import { ErrorMessageStub } from '@dungeonmaster/shared/contracts/error-message/error-message.stub';
 import { FileContentsStub } from '@dungeonmaster/shared/contracts/file-contents/file-contents.stub';
 import { FileNameStub } from '@dungeonmaster/shared/contracts/file-name/file-name.stub';
 import { FlowNodeStub } from '@dungeonmaster/shared/contracts/flow-node/flow-node.stub';
@@ -86,20 +85,20 @@ describe('QuestHandleSignalBackResponder (integration) — review coverage no lo
 
     const startRef = await git.gitRevParseOrNull({
       repoPath: worktreePath,
-      ref: ErrorMessageStub({ value: 'HEAD' }),
+      ref: 'HEAD',
     });
 
     await git.commitFile({
       repoPath: worktreePath,
       relativePath: ALPHA_FILE,
       content: FileContentsStub({ value: 'export const alphaBroker = (): number => 1;\n' }),
-      message: ErrorMessageStub({ value: 'round 1' }),
+      message: 'round 1',
     });
     await git.commitFile({
       repoPath: worktreePath,
       relativePath: BETA_FILE,
       content: FileContentsStub({ value: 'export const betaBroker = (): number => 2;\n' }),
-      message: ErrorMessageStub({ value: 'round 2' }),
+      message: 'round 2',
     });
 
     const cwOpId = OperationItemIdStub({ value: '00000000-0000-4000-8000-0000000000d2' });
@@ -210,14 +209,14 @@ describe('QuestHandleSignalBackResponder (integration) — review coverage no lo
 
       const startRef = await git.gitRevParseOrNull({
         repoPath: worktreePath,
-        ref: ErrorMessageStub({ value: 'HEAD' }),
+        ref: 'HEAD',
       });
 
       await git.commitFile({
         repoPath: worktreePath,
         relativePath: ALPHA_FILE,
         content: FileContentsStub({ value: 'export const alphaBroker = (): number => 1;\n' }),
-        message: ErrorMessageStub({ value: 'round 1' }),
+        message: 'round 1',
       });
 
       const cwOpId = OperationItemIdStub({ value: '00000000-0000-4000-8000-0000000000d4' });
@@ -382,7 +381,7 @@ describe('QuestHandleSignalBackResponder (integration) — review coverage no lo
     // Stamped, then nothing committed after it.
     const startRef = await git.gitRevParseOrNull({
       repoPath: worktreePath,
-      ref: ErrorMessageStub({ value: 'HEAD' }),
+      ref: 'HEAD',
     });
 
     const cwOpId = OperationItemIdStub({ value: '00000000-0000-4000-8000-0000000000d6' });
@@ -966,7 +965,7 @@ describe('QuestHandleSignalBackResponder (integration) — warpgate merge comple
     const worktreeExistedBefore = git.pathExists({ absolutePath: worktreePath });
     const branchShaBefore = await git.gitRevParseOrNull({
       repoPath,
-      ref: ErrorMessageStub({ value: String(branchName) }),
+      ref: String(branchName),
     });
 
     await expect(
@@ -984,7 +983,7 @@ describe('QuestHandleSignalBackResponder (integration) — warpgate merge comple
     const worktreeExistsAfter = git.pathExists({ absolutePath: worktreePath });
     const branchShaAfter = await git.gitRevParseOrNull({
       repoPath,
-      ref: ErrorMessageStub({ value: String(branchName) }),
+      ref: String(branchName),
     });
 
     testbed.cleanup();

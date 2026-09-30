@@ -13,8 +13,6 @@
  *   - 'new'                    => path MUST NOT resolve
  */
 import type { QuestContractEntry } from '@dungeonmaster/shared/contracts';
-import { errorMessageContract } from '@dungeonmaster/shared/contracts';
-import type { ErrorMessage } from '@dungeonmaster/shared/contracts';
 
 export const questContractSourceResolutionTransformer = ({
   contracts,
@@ -22,30 +20,26 @@ export const questContractSourceResolutionTransformer = ({
 }: {
   contracts?: QuestContractEntry[];
   resolvedSources: Set<unknown>;
-}): ErrorMessage[] => {
+}): string[] => {
   if (!contracts) {
     return [];
   }
 
-  const offenders: ErrorMessage[] = [];
+  const offenders: string[] = [];
   for (const entry of contracts) {
     const exists = resolvedSources.has(entry.source);
     const { status } = entry;
 
     if (status === 'new' && exists) {
       offenders.push(
-        errorMessageContract.parse(
-          `Contract '${String(entry.name)}' has status 'new' but source '${String(entry.source)}' already resolves on disk. Set status to 'existing' or 'modified', change the source path, or drop the entry.`,
-        ),
+        `Contract '${String(entry.name)}' has status 'new' but source '${String(entry.source)}' already resolves on disk. Set status to 'existing' or 'modified', change the source path, or drop the entry.`,
       );
       continue;
     }
 
     if ((status === 'existing' || status === 'modified') && !exists) {
       offenders.push(
-        errorMessageContract.parse(
-          `Contract '${String(entry.name)}' has status '${status}' but source '${String(entry.source)}' does not resolve on disk. Set status to 'new', or correct the source path.`,
-        ),
+        `Contract '${String(entry.name)}' has status '${status}' but source '${String(entry.source)}' does not resolve on disk. Set status to 'new', or correct the source path.`,
       );
     }
   }

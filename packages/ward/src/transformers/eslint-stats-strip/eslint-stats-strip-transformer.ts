@@ -10,13 +10,12 @@
  * // Returns '[{"filePath":"a.ts","messages":[]}]'
  */
 
-import { errorMessageContract, type ErrorMessage } from '@dungeonmaster/shared/contracts';
 
 import { eslintRawReportContract } from '../../contracts/eslint-raw-report/eslint-raw-report-contract';
 import { eslintStripKeysStatics } from '../../statics/eslint-strip-keys/eslint-strip-keys-statics';
 import { extractJsonArrayTransformer } from '../extract-json-array/extract-json-array-transformer';
 
-export const eslintStatsStripTransformer = ({ output }: { output: ErrorMessage }): ErrorMessage => {
+export const eslintStatsStripTransformer = ({ output }: { output: string }): string => {
   const start = output.indexOf('[');
   if (start < 0) {
     return output;
@@ -53,7 +52,5 @@ export const eslintStatsStripTransformer = ({ output }: { output: ErrorMessage }
       : entry,
   );
 
-  return errorMessageContract.parse(
-    `${output.slice(0, start)}${JSON.stringify(stripped)}${output.slice(start + slice.length)}`,
-  );
+  return `${output.slice(0, start)}${JSON.stringify(stripped)}${output.slice(start + slice.length)}`;
 };

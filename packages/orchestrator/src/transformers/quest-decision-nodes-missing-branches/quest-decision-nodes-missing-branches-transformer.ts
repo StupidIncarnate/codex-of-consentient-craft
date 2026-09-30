@@ -6,8 +6,6 @@
  * // Returns ErrorMessage[] — e.g. ["flow 'login' decision 'check-auth' has 1 outgoing edges (need ≥2)"].
  */
 import type { Flow } from '@dungeonmaster/shared/contracts';
-import { errorMessageContract } from '@dungeonmaster/shared/contracts';
-import type { ErrorMessage } from '@dungeonmaster/shared/contracts';
 
 const MIN_DECISION_OUTGOING = 2;
 
@@ -15,12 +13,12 @@ export const questDecisionNodesMissingBranchesTransformer = ({
   flows,
 }: {
   flows?: Flow[];
-}): ErrorMessage[] => {
+}): string[] => {
   if (!flows) {
     return [];
   }
 
-  const offenders: ErrorMessage[] = [];
+  const offenders: string[] = [];
 
   for (const flow of flows) {
     for (const node of flow.nodes) {
@@ -32,9 +30,7 @@ export const questDecisionNodesMissingBranchesTransformer = ({
       ).length;
       if (outgoingCount < MIN_DECISION_OUTGOING) {
         offenders.push(
-          errorMessageContract.parse(
-            `flow '${String(flow.id)}' decision '${String(node.id)}' has ${outgoingCount} outgoing edges (need ≥2)`,
-          ),
+          `flow '${String(flow.id)}' decision '${String(node.id)}' has ${outgoingCount} outgoing edges (need ≥2)`,
         );
       }
     }

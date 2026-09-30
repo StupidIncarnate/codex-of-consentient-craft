@@ -9,13 +9,12 @@
 
 import { z } from '#gateway/npm/zod';
 
-import { errorMessageContract } from '../error-message/error-message-contract';
 import { exitCodeContract } from '../exit-code/exit-code-contract';
 
 export const portKillListenerResultContract = z.object({
   pid: z.number().int().positive().brand<'PortListenerPid'>(),
   exitCode: exitCodeContract,
-  output: errorMessageContract,
+  output: z.string().brand<'PortKillListenerResultOutput'>(),
 });
 
 export type PortKillListenerResult = z.infer<typeof portKillListenerResultContract>;

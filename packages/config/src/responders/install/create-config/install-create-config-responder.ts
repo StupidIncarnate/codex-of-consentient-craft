@@ -18,13 +18,7 @@
  * // file), or 'skipped' (already has both, fails validation, or could not be safely read)
  */
 
-import {
-  type InstallContext,
-  type InstallResult,
-  installMessageContract,
-  packageNameContract,
-  errorMessageContract,
-} from '@dungeonmaster/shared/contracts';
+import { type InstallContext, type InstallResult, installMessageContract, packageNameContract, installResultContract } from '@dungeonmaster/shared/contracts';
 import { locationsStatics, environmentStatics } from '@dungeonmaster/shared/statics';
 import { jsonFileContentsTransformer } from '@dungeonmaster/shared/transformers';
 import { join } from '#gateway/node/path';
@@ -57,7 +51,7 @@ export const InstallCreateConfigResponder = async ({
     if (!readResult.ok) {
       const { error } = readResult;
       const isCorruptJson = error instanceof SyntaxError;
-      return {
+      return installResultContract.parse({
         packageName: packageNameContract.parse(PACKAGE_NAME),
         success: true,
         action: 'skipped',
@@ -66,8 +60,8 @@ export const InstallCreateConfigResponder = async ({
             ? '.dungeonmaster.json exists but is not valid JSON — left untouched'
             : '.dungeonmaster.json exists but could not be read — left untouched',
         ),
-        error: errorMessageContract.parse(error instanceof Error ? error.message : String(error)),
-      };
+        error: (error instanceof Error ? error.message : String(error)),
+      });
     }
 
     // `pathExists` already confirmed the file was there, so `readResult.value === null` here means

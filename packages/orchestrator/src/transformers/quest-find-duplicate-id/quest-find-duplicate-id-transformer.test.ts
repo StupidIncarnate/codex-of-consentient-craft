@@ -1,4 +1,3 @@
-import { ErrorMessageStub } from '@dungeonmaster/shared/contracts/error-message/error-message.stub';
 import { FlowNodeStub } from '@dungeonmaster/shared/contracts/flow-node/flow-node.stub';
 import { FlowObservableStub } from '@dungeonmaster/shared/contracts/flow-observable/flow-observable.stub';
 
@@ -14,7 +13,7 @@ describe('questFindDuplicateIdTransformer', () => {
 
       const result = questFindDuplicateIdTransformer({
         items,
-        context: ErrorMessageStub({ value: 'nodes' }),
+        context: 'nodes',
       });
 
       expect(result).toBe(undefined);
@@ -30,7 +29,7 @@ describe('questFindDuplicateIdTransformer', () => {
 
       const result = questFindDuplicateIdTransformer({
         items,
-        context: ErrorMessageStub({ value: 'nodes' }),
+        context: 'nodes',
       });
 
       expect(result).toBe(
@@ -48,7 +47,7 @@ describe('questFindDuplicateIdTransformer', () => {
 
       const result = questFindDuplicateIdTransformer({
         items,
-        context: ErrorMessageStub({ value: 'nodes' }),
+        context: 'nodes',
       });
 
       expect(result).toBe(
@@ -61,7 +60,7 @@ describe('questFindDuplicateIdTransformer', () => {
     it('EMPTY: {items: []} => returns undefined', () => {
       const result = questFindDuplicateIdTransformer({
         items: [],
-        context: ErrorMessageStub({ value: 'flows' }),
+        context: 'flows',
       });
 
       expect(result).toBe(undefined);

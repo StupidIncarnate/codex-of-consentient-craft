@@ -14,8 +14,6 @@
  * // Returns ErrorMessage[] — one sentence per offending entry, naming the orphaned dependents by name.
  */
 import type { QuestPackageEntry } from '@dungeonmaster/shared/contracts';
-import { errorMessageContract } from '@dungeonmaster/shared/contracts';
-import type { ErrorMessage } from '@dungeonmaster/shared/contracts';
 
 export const questPackageEntryViolationsTransformer = ({
   entries,
@@ -25,8 +23,8 @@ export const questPackageEntryViolationsTransformer = ({
   entries: QuestPackageEntry[];
   existingLocations: Set<unknown>;
   dependentsByPackage: Map<unknown, unknown[]>;
-}): ErrorMessage[] => {
-  const offenders: ErrorMessage[] = [];
+}): string[] => {
+  const offenders: string[] = [];
 
   // A dependent is accounted for when the same write also declares it — 'edit' because its imports
   // change, 'delete' because it goes too. A dependent declared 'new' does not count: a package this
@@ -43,16 +41,12 @@ export const questPackageEntryViolationsTransformer = ({
     if (entry.changeType === 'new') {
       if (locationResolves) {
         offenders.push(
-          errorMessageContract.parse(
-            `Package entry '${name}' declares changeType 'new' but its location '${location}' already resolves on disk. A 'new' package is one this quest creates — set changeType to 'edit', or point location at the path the new package will actually live at.`,
-          ),
+          `Package entry '${name}' declares changeType 'new' but its location '${location}' already resolves on disk. A 'new' package is one this quest creates — set changeType to 'edit', or point location at the path the new package will actually live at.`,
         );
       }
       if (entry.usedBy === undefined || entry.usedBy.length === 0) {
         offenders.push(
-          errorMessageContract.parse(
-            `Package entry '${name}' declares changeType 'new' but names no usedBy[] consumers. A package with no package.json on disk yet has no other source of reverse edges, so the post-quest dependency graph cannot place it — list every package that will depend on '${name}'.`,
-          ),
+          `Package entry '${name}' declares changeType 'new' but names no usedBy[] consumers. A package with no package.json on disk yet has no other source of reverse edges, so the post-quest dependency graph cannot place it — list every package that will depend on '${name}'.`,
         );
       }
       continue;
@@ -60,9 +54,7 @@ export const questPackageEntryViolationsTransformer = ({
 
     if (!locationResolves) {
       offenders.push(
-        errorMessageContract.parse(
-          `Package entry '${name}' declares changeType '${entry.changeType}' but its location '${location}' does not resolve on disk. An 'edit' or 'delete' entry names a package that already exists — correct the location, or set changeType to 'new' if this quest is what creates it.`,
-        ),
+        `Package entry '${name}' declares changeType '${entry.changeType}' but its location '${location}' does not resolve on disk. An 'edit' or 'delete' entry names a package that already exists — correct the location, or set changeType to 'new' if this quest is what creates it.`,
       );
     }
 
@@ -78,9 +70,7 @@ export const questPackageEntryViolationsTransformer = ({
     }
 
     offenders.push(
-      errorMessageContract.parse(
-        `Package entry '${name}' declares changeType 'delete' but these packages still depend on it and are not declared as 'edit' or 'delete': ${orphaned.join(', ')}. Removing '${name}' would leave the post-quest dependency graph with a dangling edge — add an entry for each of them (usually 'edit', for the import removal), or keep '${name}'.`,
-      ),
+      `Package entry '${name}' declares changeType 'delete' but these packages still depend on it and are not declared as 'edit' or 'delete': ${orphaned.join(', ')}. Removing '${name}' would leave the post-quest dependency graph with a dangling edge — add an entry for each of them (usually 'edit', for the import removal), or keep '${name}'.`,
     );
   }
 

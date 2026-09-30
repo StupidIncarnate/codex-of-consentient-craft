@@ -37,8 +37,6 @@
 
 import * as ts from '#gateway/npm/typescript';
 import { resolve, join } from '#gateway/node/path';
-import { errorMessageContract } from '@dungeonmaster/shared/contracts';
-import type { ErrorMessage } from '@dungeonmaster/shared/contracts';
 
 // Real path so the default host's own directory walk (typeRoots, node_modules) finds this
 // package's real @types/node, @playwright/test and @dungeonmaster/* workspace packages. Every BARE
@@ -77,7 +75,7 @@ export const typescriptContentDiagnosticsBroker = ({
 }: {
   content: string;
   dirPath?: string;
-}): readonly ErrorMessage[] => {
+}): readonly string[] => {
   const parsedConfig = ts.getParsedCommandLineOfConfigFile(
     ESLINT_PLUGIN_TSCONFIG_PATH,
     undefined,
@@ -144,11 +142,9 @@ export const typescriptContentDiagnosticsBroker = ({
   return diagnostics.map((diagnostic) => {
     const message = ts.flattenDiagnosticMessageText(diagnostic.messageText, ' ');
     if (diagnostic.file === undefined || diagnostic.start === undefined) {
-      return errorMessageContract.parse(`TS${String(diagnostic.code)}: ${message}`);
+      return `TS${String(diagnostic.code)}: ${message}`;
     }
     const { line } = diagnostic.file.getLineAndCharacterOfPosition(diagnostic.start);
-    return errorMessageContract.parse(
-      `TS${String(diagnostic.code)} [line ${String(line + 1)}]: ${message}`,
-    );
+    return `TS${String(diagnostic.code)} [line ${String(line + 1)}]: ${message}`;
   });
 };

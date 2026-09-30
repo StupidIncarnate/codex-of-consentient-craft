@@ -14,7 +14,6 @@
  * // Returns JSON string with checks, errors, testFailures, plus rawOutput on crash projects only
  */
 
-import { errorMessageContract, type ErrorMessage } from '@dungeonmaster/shared/contracts';
 
 import type { WardRunResult } from '../../contracts/ward-result/ward-result-contract';
 import { rawOutputCapStatics } from '../../statics/raw-output-cap/raw-output-cap-statics';
@@ -27,7 +26,7 @@ export const resultToDetailJsonTransformer = ({
   wardResult,
 }: {
   wardResult: WardRunResult;
-}): ErrorMessage => {
+}): string => {
   const { maxChars } = rawOutputCapStatics.cap;
 
   const hasPassthrough =
@@ -86,7 +85,7 @@ export const resultToDetailJsonTransformer = ({
   };
 
   const raw = JSON.stringify(trimmed, null, JSON_INDENT_SPACES);
-  const cleaned = stripAnsiCodesTransformer({ text: errorMessageContract.parse(raw) });
+  const cleaned = stripAnsiCodesTransformer({ text: raw });
 
-  return errorMessageContract.parse(cleaned);
+  return cleaned;
 };

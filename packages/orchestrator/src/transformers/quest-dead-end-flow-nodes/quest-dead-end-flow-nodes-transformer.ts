@@ -6,15 +6,13 @@
  * // Returns ErrorMessage[] — e.g. ["flow 'login' node 'stuck' (type state) has no outgoing edge"].
  */
 import type { Flow } from '@dungeonmaster/shared/contracts';
-import { errorMessageContract } from '@dungeonmaster/shared/contracts';
-import type { ErrorMessage } from '@dungeonmaster/shared/contracts';
 
-export const questDeadEndFlowNodesTransformer = ({ flows }: { flows?: Flow[] }): ErrorMessage[] => {
+export const questDeadEndFlowNodesTransformer = ({ flows }: { flows?: Flow[] }): string[] => {
   if (!flows) {
     return [];
   }
 
-  const offenders: ErrorMessage[] = [];
+  const offenders: string[] = [];
 
   for (const flow of flows) {
     const nodesWithOutgoing = new Set<unknown>();
@@ -28,9 +26,7 @@ export const questDeadEndFlowNodesTransformer = ({ flows }: { flows?: Flow[] }):
       }
       if (!nodesWithOutgoing.has(String(node.id))) {
         offenders.push(
-          errorMessageContract.parse(
-            `flow '${String(flow.id)}' node '${String(node.id)}' (type ${node.type}) has no outgoing edge`,
-          ),
+          `flow '${String(flow.id)}' node '${String(node.id)}' (type ${node.type}) has no outgoing edge`,
         );
       }
     }

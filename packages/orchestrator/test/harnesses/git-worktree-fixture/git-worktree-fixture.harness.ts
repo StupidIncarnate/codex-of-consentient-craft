@@ -33,15 +33,7 @@ import {
 import { join } from '#gateway/node/path';
 
 import { run } from '#gateway/node/child_process';
-import {
-  absoluteFilePathContract,
-  errorMessageContract,
-  type AbsoluteFilePath,
-  type ErrorMessage,
-  type FileContents,
-  type FileName,
-  type RepoRelativePath,
-} from '@dungeonmaster/shared/contracts';
+import { absoluteFilePathContract, type AbsoluteFilePath, type FileContents, type FileName, type RepoRelativePath } from '@dungeonmaster/shared/contracts';
 import { deleteEnv, envSnapshot, getEnv, setEnv } from '#gateway/node/process';
 
 const ARGV_LOG_FILENAME = 'argv.log';
@@ -67,11 +59,11 @@ export const gitWorktreeFixtureHarness = (): {
     repoPath: AbsoluteFilePath;
     initialBranchName: FileName;
     packageNames: readonly FileName[];
-  }) => Promise<{ baseRef: ErrorMessage }>;
+  }) => Promise<{ baseRef: string }>;
   createBranchAt: (params: {
     repoPath: AbsoluteFilePath;
     branchName: FileName;
-    fromRef?: ErrorMessage;
+    fromRef?: string;
   }) => Promise<void>;
   // Runs `git checkout <branchName>` inside repoPath — reach for this against a WORKTREE's own
   // path to simulate branch drift (something checked the worktree out onto a different existing
@@ -82,33 +74,33 @@ export const gitWorktreeFixtureHarness = (): {
     repoPath: AbsoluteFilePath;
     relativePath: RepoRelativePath;
     content: FileContents;
-    message: ErrorMessage;
-  }) => Promise<{ sha: ErrorMessage }>;
+    message: string;
+  }) => Promise<{ sha: string }>;
   dirtyTrackedFile: (params: {
     repoPath: AbsoluteFilePath;
     relativePath: RepoRelativePath;
     content: FileContents;
   }) => void;
-  readTextFile: (params: { absolutePath: AbsoluteFilePath }) => ErrorMessage | null;
+  readTextFile: (params: { absolutePath: AbsoluteFilePath }) => string | null;
   pathExists: (params: { absolutePath: AbsoluteFilePath }) => boolean;
-  readSymlinkTarget: (params: { absolutePath: AbsoluteFilePath }) => ErrorMessage | null;
+  readSymlinkTarget: (params: { absolutePath: AbsoluteFilePath }) => string | null;
   // Resolves a symlink chain all the way to its real, canonical target on disk (fs.realpathSync),
   // unlike readSymlinkTarget which only reads the raw (often relative) stored target string. Use
   // this whenever an observable asks whether a link RESOLVES inside a given directory rather than
   // what string it stores — null for a dangling/broken link, matching the hostile fixture case.
   realpathOf: (params: { absolutePath: AbsoluteFilePath }) => AbsoluteFilePath | null;
   isExecutableFile: (params: { absolutePath: AbsoluteFilePath }) => boolean;
-  gitStatusPorcelain: (params: { repoPath: AbsoluteFilePath }) => Promise<ErrorMessage>;
+  gitStatusPorcelain: (params: { repoPath: AbsoluteFilePath }) => Promise<string>;
   gitRevParseOrNull: (params: {
     repoPath: AbsoluteFilePath;
-    ref: ErrorMessage;
-  }) => Promise<ErrorMessage | null>;
+    ref: string;
+  }) => Promise<string | null>;
   // `git rev-parse --abbrev-ref HEAD` needs its own method (not gitRevParseOrNull) because that
   // command takes TWO argv tokens after `rev-parse`, and gitRevParseOrNull's single `ref` param
   // maps to exactly one spawn argument — passing '--abbrev-ref HEAD' as one string would hand git
   // a single malformed ref instead of two flags.
-  gitCurrentBranchName: (params: { repoPath: AbsoluteFilePath }) => Promise<ErrorMessage | null>;
-  gitWorktreeListOutput: (params: { repoPath: AbsoluteFilePath }) => Promise<ErrorMessage>;
+  gitCurrentBranchName: (params: { repoPath: AbsoluteFilePath }) => Promise<string | null>;
+  gitWorktreeListOutput: (params: { repoPath: AbsoluteFilePath }) => Promise<string>;
   writeWorkspaceNodeModulesFixture: (params: {
     repoPath: AbsoluteFilePath;
     workspacePackages: readonly FileName[];
@@ -125,7 +117,7 @@ export const gitWorktreeFixtureHarness = (): {
   }) => Promise<void>;
   captureGitArgv: (params: {
     captureDir: AbsoluteFilePath;
-  }) => Promise<{ restore: () => void; readArgvLog: () => readonly ErrorMessage[] }>;
+  }) => Promise<{ restore: () => void; readArgvLog: () => readonly string[] }>;
 } => {
   // A real fixture repo: git is expected on the machine running these integration tests, so a
   // missing binary (GitNotInstalledError) is left to throw rather than folded into a fake result —
@@ -146,7 +138,7 @@ export const gitWorktreeFixtureHarness = (): {
     message,
   }: {
     repoPath: AbsoluteFilePath;
-    message: ErrorMessage;
+    message: string;
   }): void => {
     gitRunSync({
       args: ['commit', '-m', message],
@@ -163,7 +155,7 @@ export const gitWorktreeFixtureHarness = (): {
     repoPath: AbsoluteFilePath;
     initialBranchName: FileName;
     packageNames: readonly FileName[];
-  }): Promise<{ baseRef: ErrorMessage }> => {
+  }): Promise<{ baseRef: string }> => {
     ensureDirSync(repoPath);
     await runGit({ repoPath, args: ['init', '-b', initialBranchName] });
     writeFileSync(join(repoPath, 'README.md'), '# fixture repo\n');
@@ -190,9 +182,9 @@ export const gitWorktreeFixtureHarness = (): {
       writeFileSync(join(distDir, 'index.js'), `module.exports = { name: '${packageName}' };\n`);
     }
     await runGit({ repoPath, args: ['add', '-A'] });
-    commitGit({ repoPath, message: errorMessageContract.parse('base') });
+    commitGit({ repoPath, message: 'base' });
     const { output } = await runGit({ repoPath, args: ['rev-parse', 'HEAD'] });
-    return { baseRef: errorMessageContract.parse(output.trim()) };
+    return { baseRef: output.trim() };
   };
 
   const createBranchAt = async ({
@@ -202,7 +194,7 @@ export const gitWorktreeFixtureHarness = (): {
   }: {
     repoPath: AbsoluteFilePath;
     branchName: FileName;
-    fromRef?: ErrorMessage;
+    fromRef?: string;
   }): Promise<void> => {
     await runGit({
       repoPath,
@@ -215,10 +207,10 @@ export const gitWorktreeFixtureHarness = (): {
     ref,
   }: {
     repoPath: AbsoluteFilePath;
-    ref: ErrorMessage;
-  }): Promise<ErrorMessage | null> => {
+    ref: string;
+  }): Promise<string | null> => {
     const { exitCode, output } = await runGit({ repoPath, args: ['rev-parse', ref] });
-    return exitCode === 0 ? errorMessageContract.parse(output.trim()) : null;
+    return exitCode === 0 ? output.trim() : null;
   };
 
   const commitFile = async ({
@@ -230,25 +222,25 @@ export const gitWorktreeFixtureHarness = (): {
     repoPath: AbsoluteFilePath;
     relativePath: RepoRelativePath;
     content: FileContents;
-    message: ErrorMessage;
-  }): Promise<{ sha: ErrorMessage }> => {
+    message: string;
+  }): Promise<{ sha: string }> => {
     writeFileSync(join(repoPath, relativePath), content);
     await runGit({ repoPath, args: ['add', '-A'] });
     commitGit({ repoPath, message });
     const { output } = await runGit({ repoPath, args: ['rev-parse', 'HEAD'] });
-    return { sha: errorMessageContract.parse(output.trim()) };
+    return { sha: output.trim() };
   };
 
   const gitCurrentBranchName = async ({
     repoPath,
   }: {
     repoPath: AbsoluteFilePath;
-  }): Promise<ErrorMessage | null> => {
+  }): Promise<string | null> => {
     const { exitCode, output } = await runGit({
       repoPath,
       args: ['rev-parse', '--abbrev-ref', 'HEAD'],
     });
-    return exitCode === 0 ? errorMessageContract.parse(output.trim()) : null;
+    return exitCode === 0 ? output.trim() : null;
   };
 
   const checkoutBranch = async ({
@@ -278,17 +270,17 @@ export const gitWorktreeFixtureHarness = (): {
     }): void => {
       writeFileSync(join(repoPath, relativePath), content);
     },
-    readTextFile: ({ absolutePath }: { absolutePath: AbsoluteFilePath }): ErrorMessage | null =>
-      existsSync(absolutePath) ? errorMessageContract.parse(readFileSync(absolutePath)) : null,
+    readTextFile: ({ absolutePath }: { absolutePath: AbsoluteFilePath }): string | null =>
+      existsSync(absolutePath) ? readFileSync(absolutePath) : null,
     pathExists: ({ absolutePath }: { absolutePath: AbsoluteFilePath }): boolean =>
       existsSync(absolutePath),
     readSymlinkTarget: ({
       absolutePath,
     }: {
       absolutePath: AbsoluteFilePath;
-    }): ErrorMessage | null => {
+    }): string | null => {
       try {
-        return errorMessageContract.parse(readlinkSync(absolutePath));
+        return readlinkSync(absolutePath);
       } catch {
         return null;
       }
@@ -316,18 +308,18 @@ export const gitWorktreeFixtureHarness = (): {
       repoPath,
     }: {
       repoPath: AbsoluteFilePath;
-    }): Promise<ErrorMessage> => {
+    }): Promise<string> => {
       const { output } = await runGit({ repoPath, args: ['status', '--porcelain'] });
-      return errorMessageContract.parse(output.trim());
+      return output.trim();
     },
     gitRevParseOrNull,
     gitWorktreeListOutput: async ({
       repoPath,
     }: {
       repoPath: AbsoluteFilePath;
-    }): Promise<ErrorMessage> => {
+    }): Promise<string> => {
       const { output } = await runGit({ repoPath, args: ['worktree', 'list'] });
-      return errorMessageContract.parse(output);
+      return output;
     },
     writeWorkspaceNodeModulesFixture: async ({
       repoPath,
@@ -395,7 +387,7 @@ export const gitWorktreeFixtureHarness = (): {
       captureDir,
     }: {
       captureDir: AbsoluteFilePath;
-    }): Promise<{ restore: () => void; readArgvLog: () => readonly ErrorMessage[] }> => {
+    }): Promise<{ restore: () => void; readArgvLog: () => readonly string[] }> => {
       ensureDirSync(captureDir);
       const { output: realGitPath } = await run({
         command: 'command',
@@ -427,13 +419,13 @@ export const gitWorktreeFixtureHarness = (): {
           }
           setEnv('PATH', savedPath);
         },
-        readArgvLog: (): readonly ErrorMessage[] =>
+        readArgvLog: (): readonly string[] =>
           existsSync(logPath)
             ? readFileSync(logPath)
                 .split('\n')
                 .map((line) => line.trim())
                 .filter((line) => line.length > 0)
-                .map((line) => errorMessageContract.parse(line))
+                .map((line) => line)
             : [],
       };
     },

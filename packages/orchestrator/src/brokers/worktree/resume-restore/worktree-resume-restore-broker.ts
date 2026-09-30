@@ -15,12 +15,7 @@
  * // restored is true once the worktree is confirmed on branchName, whether or not a checkout ran
  */
 
-import {
-  errorMessageContract,
-  type AbsoluteFilePath,
-  type ErrorMessage,
-  type QuestBranchName,
-} from '@dungeonmaster/shared/contracts';
+import { type AbsoluteFilePath, type QuestBranchName } from '@dungeonmaster/shared/contracts';
 import { checkout, currentBranch } from '#gateway/bin/git';
 
 const COLON_SEPARATOR = ': ';
@@ -32,7 +27,7 @@ export const worktreeResumeRestoreBroker = async ({
 }: {
   worktreePath: AbsoluteFilePath;
   branchName: QuestBranchName;
-}): Promise<{ restored: boolean; currentBranch: ErrorMessage; output: ErrorMessage }> => {
+}): Promise<{ restored: boolean; currentBranch: string; output: string }> => {
   const branchAttempt = await (async () => {
     try {
       const result = await currentBranch({ cwd: worktreePath });
@@ -43,7 +38,7 @@ export const worktreeResumeRestoreBroker = async ({
       const colonIndex = markerIndex === -1 ? -1 : message.indexOf(COLON_SEPARATOR, markerIndex);
       const output =
         colonIndex === -1 ? message : message.slice(colonIndex + COLON_SEPARATOR.length);
-      return { success: false as const, error: errorMessageContract.parse(output) };
+      return { success: false as const, error: output };
     }
   })();
 
@@ -68,8 +63,8 @@ export const worktreeResumeRestoreBroker = async ({
   if (branch !== null && branch === String(branchName)) {
     return {
       restored: true,
-      currentBranch: errorMessageContract.parse(branch),
-      output: errorMessageContract.parse(rawBranch),
+      currentBranch: branch,
+      output: rawBranch,
     };
   }
 
@@ -77,7 +72,7 @@ export const worktreeResumeRestoreBroker = async ({
 
   return {
     restored: checkoutResult.exitCode === 0,
-    currentBranch: errorMessageContract.parse(branch ?? 'HEAD'),
-    output: errorMessageContract.parse(checkoutResult.output),
+    currentBranch: (branch ?? 'HEAD'),
+    output: checkoutResult.output,
   };
 };

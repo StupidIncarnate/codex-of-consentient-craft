@@ -28,13 +28,7 @@ import { AbortController } from '#gateway/node/AbortController';
 import { randomUUID } from '#gateway/node/crypto';
 import type { QuestStatus, ModifyQuestInput, SlotIndex, Quest, Session } from '@dungeonmaster/shared/contracts';
 
-import {
-  errorMessageContract,
-  filePathContract,
-  getQuestInputContract,
-  modifyQuestInputContract,
-  processIdContract,
-} from '@dungeonmaster/shared/contracts';
+import { filePathContract, getQuestInputContract, modifyQuestInputContract, processIdContract } from '@dungeonmaster/shared/contracts';
 
 import { buildOrchestrationLoopOnAgentEntryTransformer } from '../../../transformers/build-orchestration-loop-on-agent-entry/build-orchestration-loop-on-agent-entry-transformer';
 import { questResumeRearmWorkItemsTransformer } from '../../../transformers/quest-resume-rearm-work-items/quest-resume-rearm-work-items-transformer';
@@ -89,7 +83,7 @@ export const OrchestrationResumeResponder = async ({
   const cwdResolution = await questCwdResolveBroker({ questId });
 
   if (cwdResolution.kind === 'missing-worktree') {
-    const reason = errorMessageContract.parse(`Worktree not found: ${cwdResolution.worktreePath}`);
+    const reason = `Worktree not found: ${cwdResolution.worktreePath}`;
     // Mirrors blockOnMissingWorktreeLayerBroker's carrier rule — the dispatch scan's own halt
     // route for the same condition — so the two halt routes read identically in the execution
     // panel: the first still-actionable item carries the reason; once every item is terminal, the

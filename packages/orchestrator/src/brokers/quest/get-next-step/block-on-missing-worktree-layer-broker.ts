@@ -16,7 +16,6 @@
  */
 
 import type { AbsoluteFilePath, ModifyQuestInput, Quest } from '@dungeonmaster/shared/contracts';
-import { errorMessageContract } from '@dungeonmaster/shared/contracts';
 import { isTerminalWorkItemStatusGuard } from '@dungeonmaster/shared/guards';
 
 import { questBlockOnFailureBroker } from '../block-on-failure/quest-block-on-failure-broker';
@@ -29,7 +28,7 @@ export const blockOnMissingWorktreeLayerBroker = async ({
   quest: Quest;
   worktreePath: AbsoluteFilePath;
 }): Promise<{ blocked: boolean }> => {
-  const reason = errorMessageContract.parse(`Worktree not found: ${worktreePath}`);
+  const reason = `Worktree not found: ${worktreePath}`;
 
   // The failure reason lands on the first still-actionable item so the execution view surfaces
   // it against work the user is actually waiting on; once every item is terminal, the last one

@@ -1,4 +1,3 @@
-import { ErrorMessageStub } from '@dungeonmaster/shared/contracts/error-message/error-message.stub';
 import { ExitCodeStub } from '@dungeonmaster/shared/contracts/exit-code/exit-code.stub';
 
 import { ProjectFolderStub } from '../../../contracts/project-folder/project-folder.stub';
@@ -17,7 +16,7 @@ describe('childCrashLayerBroker', () => {
         projectFolder,
         checkTypes: ['lint', 'unit'],
         exitCode: ExitCodeStub({ value: 1 }),
-        output: ErrorMessageStub({ value: 'boom' }),
+        output: 'boom',
       });
 
       expect(result.map((check) => [check.checkType, check.status])).toStrictEqual([
@@ -34,7 +33,7 @@ describe('childCrashLayerBroker', () => {
         projectFolder,
         checkTypes: ['lint'],
         exitCode: ExitCodeStub({ value: 137 }),
-        output: ErrorMessageStub({ value: 'partial output' }),
+        output: 'partial output',
       });
 
       const projectResult = result[0]?.projectResults[0];
@@ -54,7 +53,7 @@ describe('childCrashLayerBroker', () => {
         projectFolder: ProjectFolderStub(),
         checkTypes: ['lint'],
         exitCode: null,
-        output: ErrorMessageStub({ value: '' }),
+        output: '',
       });
 
       expect(result[0]?.projectResults[0]?.rawOutput.exitCode).toBe(1);

@@ -22,11 +22,7 @@
  * its output has to a UI.
  */
 
-import {
-  contentTextContract,
-  errorMessageContract,
-  workItemContract,
-} from '@dungeonmaster/shared/contracts';
+import { contentTextContract, workItemContract } from '@dungeonmaster/shared/contracts';
 import {
   isPendingWorkItemStatusGuard,
   isTerminalWorkItemStatusGuard,
@@ -102,7 +98,7 @@ export const questRunStepBroker = async ({
                   ? {}
                   : { declaredReason: contentTextContract.parse(detail) }),
                 ...(result.outcome === 'wall' && detail.length > 0
-                  ? { errorMessage: errorMessageContract.parse(detail) }
+                  ? { errorMessage: detail }
                   : {}),
                 // The back-link the execution panel resolves a row's detail through —
                 // `wardResults/<id>`, `riftcarverResults/<id>`.

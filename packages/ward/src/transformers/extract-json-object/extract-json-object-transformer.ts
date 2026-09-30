@@ -9,15 +9,14 @@
  * // Returns '{"numTotalTestSuites":5,"testResults":[]}'
  */
 
-import type { ErrorMessage } from '@dungeonmaster/shared/contracts';
 
 const JEST_SUMMARY_KEY = '"numTotalTestSuites"';
 
 export const extractJsonObjectTransformer = ({
   output,
 }: {
-  output: ErrorMessage;
-}): ErrorMessage => {
+  output: string;
+}): string => {
   let depth = 0;
   let inString = false;
   let escaped = false;
@@ -55,7 +54,7 @@ export const extractJsonObjectTransformer = ({
       if (depth === 0 && currentStart >= 0) {
         const candidate = output.slice(currentStart, i + 1);
         if (candidate.includes(JEST_SUMMARY_KEY)) {
-          return candidate as ErrorMessage;
+          return candidate as string;
         }
         currentStart = -1;
       }

@@ -16,14 +16,7 @@ import {
   portKillListenersBroker,
 } from '@dungeonmaster/shared/brokers';
 
-import {
-  absoluteFilePathContract,
-  errorMessageContract,
-  exitCodeContract,
-  fileContentsContract,
-  filePathContract,
-  networkPortContract,
-} from '@dungeonmaster/shared/contracts';
+import { absoluteFilePathContract, exitCodeContract, fileContentsContract, filePathContract, networkPortContract } from '@dungeonmaster/shared/contracts';
 
 import { binCommandContract } from '../../../contracts/bin-command/bin-command-contract';
 import { rawOutputContract } from '../../../contracts/raw-output/raw-output-contract';
@@ -228,7 +221,7 @@ export const checkRunE2eBroker = async ({
   if (status === 'fail' && result.output.length > 0) {
     try {
       testFailures = parsePlaywrightCrashOutputTransformer({
-        output: errorMessageContract.parse(result.output),
+        output: result.output,
       });
     } catch {
       testFailures = [];
@@ -278,7 +271,7 @@ export const checkRunE2eBroker = async ({
   const processedFiles: GitRelativePath[] = [];
   const lineFiles =
     result.output.length > 0
-      ? extractPlaywrightLineFilesTransformer({ output: errorMessageContract.parse(result.output) })
+      ? extractPlaywrightLineFilesTransformer({ output: result.output })
       : [];
   for (const file of lineFiles) {
     processedFiles.push(file);

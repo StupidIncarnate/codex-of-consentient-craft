@@ -12,7 +12,7 @@ export const errorEntryContract = z.object({
   filePath: z.string().brand<'ErrorFilePath'>(),
   line: z.number().brand<'ErrorLine'>(),
   column: z.number().brand<'ErrorColumn'>(),
-  message: z.string().brand<'ErrorMessage'>(),
+  message: z.string().brand<'ErrorEntryMessage'>(),
   rule: z.string().brand<'ErrorRule'>().optional(),
   severity: z.enum(['error', 'warning']),
 });

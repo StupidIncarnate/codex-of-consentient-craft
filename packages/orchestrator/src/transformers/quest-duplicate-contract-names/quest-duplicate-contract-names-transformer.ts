@@ -7,21 +7,19 @@
  * // e.g. ["Contract `LoginCredentials` already declared with source `packages/shared/src/contracts/login-credentials/login-credentials-contract.ts`. Either remove your write, change source to a shared path, or rename your contract."].
  */
 import type { QuestContractEntry } from '@dungeonmaster/shared/contracts';
-import { errorMessageContract } from '@dungeonmaster/shared/contracts';
-import type { ErrorMessage } from '@dungeonmaster/shared/contracts';
 
 export const questDuplicateContractNamesTransformer = ({
   contracts,
 }: {
   contracts?: QuestContractEntry[];
-}): ErrorMessage[] => {
+}): string[] => {
   if (!contracts) {
     return [];
   }
 
   const firstSeenSourceByName = new Map<unknown, unknown>();
   const reportedNames = new Set<unknown>();
-  const offenders: ErrorMessage[] = [];
+  const offenders: string[] = [];
 
   for (const contract of contracts) {
     const name = String(contract.name);
@@ -39,9 +37,7 @@ export const questDuplicateContractNamesTransformer = ({
 
     const existingSource = String(firstSeenSourceByName.get(name));
     offenders.push(
-      errorMessageContract.parse(
-        `Contract \`${name}\` already declared with source \`${existingSource}\`. Either remove your write, change source to a shared path, or rename your contract.`,
-      ),
+      `Contract \`${name}\` already declared with source \`${existingSource}\`. Either remove your write, change source to a shared path, or rename your contract.`,
     );
   }
 

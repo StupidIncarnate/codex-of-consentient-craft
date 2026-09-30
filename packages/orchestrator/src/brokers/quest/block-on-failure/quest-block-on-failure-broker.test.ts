@@ -1,4 +1,3 @@
-import { ErrorMessageStub } from '@dungeonmaster/shared/contracts/error-message/error-message.stub';
 import { QuestIdStub } from '@dungeonmaster/shared/contracts/quest-id/quest-id.stub';
 import { QuestStub } from '@dungeonmaster/shared/contracts/quest/quest.stub';
 import { QuestWorkItemIdStub } from '@dungeonmaster/shared/contracts/quest-work-item-id/quest-work-item-id.stub';
@@ -109,9 +108,7 @@ describe('questBlockOnFailureBroker', () => {
 
       const failedId = QuestWorkItemIdStub({ value: 'a1b2c3d4-e5f6-4a7b-8c9d-0e1f2a3b4c5d' });
       const pendingId = QuestWorkItemIdStub({ value: 'b2c3d4e5-f6a7-4b9c-8d1e-2f3a4b5c6d7e' });
-      const reason = ErrorMessageStub({
-        value: 'quest worktree missing: /home/user/.dungeonmaster/worktrees/quest-42',
-      });
+      const reason = 'quest worktree missing: /home/user/.dungeonmaster/worktrees/quest-42';
 
       const quest = QuestStub({
         id: 'test-quest',
@@ -204,9 +201,7 @@ describe('questBlockOnFailureBroker', () => {
       const failedId = QuestWorkItemIdStub({ value: 'a1b2c3d4-e5f6-4a7b-8c9d-0e1f2a3b4c5d' });
       const pendingOneId = QuestWorkItemIdStub({ value: 'b2c3d4e5-f6a7-4b9c-8d1e-2f3a4b5c6d7e' });
       const pendingTwoId = QuestWorkItemIdStub({ value: 'c3d4e5f6-a7b8-4c1d-8e2f-3a4b5c6d7e8f' });
-      const reason = ErrorMessageStub({
-        value: 'quest worktree missing: /home/user/.dungeonmaster/worktrees/quest-99',
-      });
+      const reason = 'quest worktree missing: /home/user/.dungeonmaster/worktrees/quest-99';
 
       const quest = QuestStub({
         id: 'test-quest',
@@ -399,9 +394,7 @@ describe('questBlockOnFailureBroker', () => {
       proxy.setupPassthrough();
 
       const carrierId = QuestWorkItemIdStub({ value: 'a1b2c3d4-e5f6-4a7b-8c9d-0e1f2a3b4c5d' });
-      const reason = ErrorMessageStub({
-        value: 'Worktree not found: /home/user/.dungeonmaster/worktrees/quest-77',
-      });
+      const reason = 'Worktree not found: /home/user/.dungeonmaster/worktrees/quest-77';
 
       // Mirrors a quest that blocked once for an unrelated reason (its only work item drained to
       // `skipped`, so it is already terminal with no errorMessage), then loses its worktree AS

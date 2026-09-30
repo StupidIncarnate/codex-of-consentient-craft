@@ -13,8 +13,7 @@ import { useState } from '#gateway/npm/react';
 
 import { Box, Group, Stack, Text } from '#gateway/npm/mantine__core';
 
-import type { QuestNote, QuestSummaryObservable, ErrorMessage, Quest } from '@dungeonmaster/shared/contracts';
-import { errorMessageContract } from '@dungeonmaster/shared/contracts';
+import type { QuestNote, QuestSummaryObservable, Quest } from '@dungeonmaster/shared/contracts';
 
 import { questHumanVerdictBroker } from '../../brokers/quest/human-verdict/quest-human-verdict-broker';
 import type { ButtonLabel } from '../../contracts/button-label/button-label-contract';
@@ -43,7 +42,7 @@ export const HumanCheckRowLayerWidget = ({
   const { colors } = emberDepthsThemeStatics;
   const [reason, setReason] = useState('');
   const [submitting, setSubmitting] = useState(false);
-  const [error, setError] = useState<ErrorMessage | null>(null);
+  const [error, setError] = useState<string | null>(null);
   const disableControls = reason.trim().length === 0 || submitting;
 
   return (
@@ -103,9 +102,7 @@ export const HumanCheckRowLayerWidget = ({
                   })
                   .catch((thrown: unknown) => {
                     setError(
-                      errorMessageContract.parse(
-                        thrown instanceof Error ? thrown.message : String(thrown),
-                      ),
+                      (thrown instanceof Error ? thrown.message : String(thrown)),
                     );
                     setSubmitting(false);
                   });
@@ -129,9 +126,7 @@ export const HumanCheckRowLayerWidget = ({
                   })
                   .catch((thrown: unknown) => {
                     setError(
-                      errorMessageContract.parse(
-                        thrown instanceof Error ? thrown.message : String(thrown),
-                      ),
+                      (thrown instanceof Error ? thrown.message : String(thrown)),
                     );
                     setSubmitting(false);
                   });

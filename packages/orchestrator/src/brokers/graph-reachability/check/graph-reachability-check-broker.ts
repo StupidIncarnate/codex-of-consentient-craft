@@ -12,14 +12,13 @@
  * // Returns [] when the family graph and all six step graphs are each internally consistent
  */
 import { routedGraphContract } from '@dungeonmaster/shared/contracts';
-import type { ErrorMessage } from '@dungeonmaster/shared/contracts';
 import { questFlowStatics } from '@dungeonmaster/shared/statics';
 import { graphReachabilityViolationsTransformer } from '@dungeonmaster/shared/transformers';
 import { agentFlowStatics } from '../../../statics/agent-flow/agent-flow-statics';
 import { agentPromptClassificationStatics } from '../../../statics/agent-prompt-classification/agent-prompt-classification-statics';
 import { graphReachabilityCheckStatics } from '../../../statics/graph-reachability-check/graph-reachability-check-statics';
 
-export const graphReachabilityCheckBroker = (): ErrorMessage[] => {
+export const graphReachabilityCheckBroker = (): string[] => {
   const familyViolations = Object.entries(questFlowStatics).flatMap(([questType, family]) => {
     const graph = routedGraphContract.parse({
       graphName: questType,

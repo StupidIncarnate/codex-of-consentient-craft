@@ -14,14 +14,14 @@
 
 import { z } from '#gateway/npm/zod';
 
-import { errorMessageContract, questStatusContract } from '@dungeonmaster/shared/contracts';
+import { questStatusContract } from '@dungeonmaster/shared/contracts';
 
 export const questResumeOutcomeContract = z.object({
   resumed: z.boolean(),
   restoredStatus: questStatusContract,
   dispatch: z.object({
     started: z.boolean(),
-    reason: errorMessageContract.optional(),
+    reason: z.string().brand<'QuestResumeOutcomeDispatchReason'>().optional(),
   }),
 });
 

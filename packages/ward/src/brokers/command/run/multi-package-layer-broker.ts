@@ -8,13 +8,7 @@
 
 import { stream, RunNotFoundError } from '#gateway/node/child_process';
 import { stderr } from '#gateway/node/process';
-import {
-  absoluteFilePathContract,
-  errorMessageContract,
-  exitCodeContract,
-  filePathContract,
-  type AbsoluteFilePath,
-} from '@dungeonmaster/shared/contracts';
+import { absoluteFilePathContract, exitCodeContract, filePathContract, type AbsoluteFilePath } from '@dungeonmaster/shared/contracts';
 import { promisePoolTransformer } from '@dungeonmaster/shared/transformers';
 import { configResolveBroker, configDefaultsStatics } from '@dungeonmaster/config';
 
@@ -186,7 +180,7 @@ export const multiPackageLayerBroker = async ({
           checkTypes,
           exitCode:
             spawnResult.exitCode === null ? null : exitCodeContract.parse(spawnResult.exitCode),
-          output: errorMessageContract.parse(spawnResult.output),
+          output: spawnResult.output,
         }),
       };
     },

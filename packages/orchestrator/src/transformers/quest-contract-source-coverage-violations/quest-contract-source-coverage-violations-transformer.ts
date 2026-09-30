@@ -26,16 +26,14 @@
  * // Returns ErrorMessage[] — one sentence per offending contract, each carrying its own remediation.
  */
 import type { Quest } from '@dungeonmaster/shared/contracts';
-import { errorMessageContract } from '@dungeonmaster/shared/contracts';
-import type { ErrorMessage } from '@dungeonmaster/shared/contracts';
 import { questContractSourceOwnerTransformer } from '@dungeonmaster/shared/transformers';
 
 export const questContractSourceCoverageViolationsTransformer = ({
   quest,
 }: {
   quest: Quest;
-}): ErrorMessage[] => {
-  const offenders: ErrorMessage[] = [];
+}): string[] => {
+  const offenders: string[] = [];
 
   for (const contract of quest.contracts) {
     if (contract.status === 'existing') {
@@ -53,9 +51,7 @@ export const questContractSourceCoverageViolationsTransformer = ({
       }) === undefined
     ) {
       offenders.push(
-        errorMessageContract.parse(
-          `Contract '${String(contract.name)}' declares source '${String(contract.source)}', which sits under no package in quest.packagesAffected. The implementation ledger routes each contract into its package's item by these paths, so a contract resolving nowhere reaches no session at all. Point source at a declared package's location, add the entry { name, location, changeType: 'edit' | 'new', packageType } that owns it, or mark the contract status 'existing' if the quest only references it.`,
-        ),
+        `Contract '${String(contract.name)}' declares source '${String(contract.source)}', which sits under no package in quest.packagesAffected. The implementation ledger routes each contract into its package's item by these paths, so a contract resolving nowhere reaches no session at all. Point source at a declared package's location, add the entry { name, location, changeType: 'edit' | 'new', packageType } that owns it, or mark the contract status 'existing' if the quest only references it.`,
       );
     }
 
@@ -71,9 +67,7 @@ export const questContractSourceCoverageViolationsTransformer = ({
         }) === undefined
       ) {
         offenders.push(
-          errorMessageContract.parse(
-            `Contract '${String(contract.name)}' property '${String(property.name)}' declares source '${String(property.source)}', which sits under no package in quest.packagesAffected. A property carrying its own source is how one contract delivers into several packages, so a property resolving nowhere reaches no session at all. Point it at a declared package's location, add the entry { name, location, changeType: 'edit' | 'new', packageType } that owns it, or drop the property source so it falls back to the contract's.`,
-          ),
+          `Contract '${String(contract.name)}' property '${String(property.name)}' declares source '${String(property.source)}', which sits under no package in quest.packagesAffected. A property carrying its own source is how one contract delivers into several packages, so a property resolving nowhere reaches no session at all. Point it at a declared package's location, add the entry { name, location, changeType: 'edit' | 'new', packageType } that owns it, or drop the property source so it falls back to the contract's.`,
         );
       }
     }

@@ -21,7 +21,7 @@ import { questContract } from '@dungeonmaster/shared/contracts';
 export const agentQuestPayloadContract = z.object({
   success: z.boolean(),
   quest: questContract.omit({ comments: true }).optional(),
-  error: z.string().brand<'ErrorMessage'>().optional(),
+  error: z.string().brand<'AgentQuestPayloadError'>().optional(),
 });
 
 export type AgentQuestPayload = z.infer<typeof agentQuestPayloadContract>;

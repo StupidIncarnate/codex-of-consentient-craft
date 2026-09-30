@@ -16,9 +16,7 @@
  * });
  * // Returns [] when every step is reachable, reaches a terminal, and every route target is real
  */
-import { errorMessageContract } from '../../contracts/error-message/error-message-contract';
 import { routedGraphNodeKeyContract } from '../../contracts/routed-graph-node-key/routed-graph-node-key-contract';
-import type { ErrorMessage } from '../../contracts/error-message/error-message-contract';
 import type { RoutedGraph } from '../../contracts/routed-graph/routed-graph-contract';
 import type { RoutedGraphNodeKey } from '../../contracts/routed-graph-node-key/routed-graph-node-key-contract';
 import { graphOutcomeWordStatics } from '../../statics/graph-outcome-word/graph-outcome-word-statics';
@@ -37,8 +35,8 @@ export const graphReachabilityViolationsTransformer = ({
   exemptFlag: 'mintableOnRequest' | 'appendedAtMerge';
   knownPrompts: readonly string[];
   knownHandlers: readonly string[];
-}): ErrorMessage[] => {
-  const violations: ErrorMessage[] = [];
+}): string[] => {
+  const violations: string[] = [];
   const terminalsText = terminals.map((terminal) => `'${terminal}'`).join(' or ');
 
   // `Object.entries` erases branding on its own keys, so every step key is re-parsed here, once,
@@ -71,9 +69,7 @@ export const graphReachabilityViolationsTransformer = ({
   for (const [stepKey, node] of nodesMap) {
     if (!reachableFromEntry.has(stepKey) && node[exemptFlag] !== true) {
       violations.push(
-        errorMessageContract.parse(
-          `Step '${stepKey}' in the '${graph.graphName}' graph is reached by no route from '${graph.entry}'. Route something to it, or declare mintableOnRequest: true if a running session asks for it. A step nothing reaches is a prompt that is never dispatched, and the quest that needed it stalls with no error.`,
-        ),
+        `Step '${stepKey}' in the '${graph.graphName}' graph is reached by no route from '${graph.entry}'. Route something to it, or declare mintableOnRequest: true if a running session asks for it. A step nothing reaches is a prompt that is never dispatched, and the quest that needed it stalls with no error.`,
       );
     }
   }
@@ -100,9 +96,7 @@ export const graphReachabilityViolationsTransformer = ({
   for (const stepKey of nodesMap.keys()) {
     if (!reachesTerminal.has(stepKey)) {
       violations.push(
-        errorMessageContract.parse(
-          `Step '${stepKey}' in the '${graph.graphName}' graph reaches no terminal — every path out of it returns to a step already on the path. Give some step on that cycle a route to ${terminalsText}, or the quest runs forever.`,
-        ),
+        `Step '${stepKey}' in the '${graph.graphName}' graph reaches no terminal — every path out of it returns to a step already on the path. Give some step on that cycle a route to ${terminalsText}, or the quest runs forever.`,
       );
     }
   }
@@ -113,16 +107,12 @@ export const graphReachabilityViolationsTransformer = ({
     for (const [outcome, target] of Object.entries(node.routes)) {
       if (!nodesMap.has(target) && !terminals.includes(target)) {
         violations.push(
-          errorMessageContract.parse(
-            `Route \`${outcome}: '${target}'\` on step '${stepKey}' in the '${graph.graphName}' graph names nothing. A target is a step key in the same graph, or ${terminalsText}. This is the typo case, and in production it is a silent stall rather than an error.`,
-          ),
+          `Route \`${outcome}: '${target}'\` on step '${stepKey}' in the '${graph.graphName}' graph names nothing. A target is a step key in the same graph, or ${terminalsText}. This is the typo case, and in production it is a silent stall rather than an error.`,
         );
       }
       if (!graphOutcomeWordStatics.words.some((word) => word === outcome)) {
         violations.push(
-          errorMessageContract.parse(
-            `\`${outcome}\` is not an outcome word. Step '${stepKey}' in the '${graph.graphName}' graph may route \`done\`, \`unmet\`, \`empty\` or \`wall\`, and nothing else. \`pass\`, \`green\`, \`rework\` and \`confirmed\` are the vocabularies this replaced.`,
-          ),
+          `\`${outcome}\` is not an outcome word. Step '${stepKey}' in the '${graph.graphName}' graph may route \`done\`, \`unmet\`, \`empty\` or \`wall\`, and nothing else. \`pass\`, \`green\`, \`rework\` and \`confirmed\` are the vocabularies this replaced.`,
         );
       }
     }
@@ -141,9 +131,7 @@ export const graphReachabilityViolationsTransformer = ({
       }
       if (!('done' in targetNode.routes)) {
         violations.push(
-          errorMessageContract.parse(
-            `Step '${target}' in the '${graph.graphName}' graph declares no \`done\` route but is reached by \`${outcome}\` from '${stepKey}'. A step with no forward edge returns to whoever minted it, and only an \`unmet\` route or a request has a minter to return to. Declare a \`done\` route, or drop that inbound one.`,
-          ),
+          `Step '${target}' in the '${graph.graphName}' graph declares no \`done\` route but is reached by \`${outcome}\` from '${stepKey}'. A step with no forward edge returns to whoever minted it, and only an \`unmet\` route or a request has a minter to return to. Declare a \`done\` route, or drop that inbound one.`,
         );
       }
     }
@@ -208,9 +196,7 @@ export const graphReachabilityViolationsTransformer = ({
           if (!hasMaxVisits) {
             const pathText = [...cycleNodes, next].join(' → ');
             violations.push(
-              errorMessageContract.parse(
-                `The cycle <${pathText}> in the '${graph.graphName}' graph declares \`maxVisits\` on no step on it. Put one on any step in that cycle; without it nothing stops the quest re-entering it forever.`,
-              ),
+              `The cycle <${pathText}> in the '${graph.graphName}' graph declares \`maxVisits\` on no step on it. Put one on any step in that cycle; without it nothing stops the quest re-entering it forever.`,
             );
           }
         }
@@ -223,16 +209,12 @@ export const graphReachabilityViolationsTransformer = ({
   for (const [stepKey, node] of nodesMap) {
     if (node.prompt !== undefined && !knownPrompts.includes(node.prompt)) {
       violations.push(
-        errorMessageContract.parse(
-          `Step '${stepKey}' in the '${graph.graphName}' graph names prompt '${node.prompt}', which nothing serves. Add it to agentPromptClassificationStatics.promptNames and to agentNameToPromptTransformer, or fix the name. A dangling prompt is a session dispatched against nothing.`,
-        ),
+        `Step '${stepKey}' in the '${graph.graphName}' graph names prompt '${node.prompt}', which nothing serves. Add it to agentPromptClassificationStatics.promptNames and to agentNameToPromptTransformer, or fix the name. A dangling prompt is a session dispatched against nothing.`,
       );
     }
     if (node.handler !== undefined && !knownHandlers.includes(node.handler)) {
       violations.push(
-        errorMessageContract.parse(
-          `Step '${stepKey}' in the '${graph.graphName}' graph names handler '${node.handler}', which nothing serves. It must be one of ${knownHandlers.join(', ')}, or fix the name. A dangling handler is a session dispatched against nothing.`,
-        ),
+        `Step '${stepKey}' in the '${graph.graphName}' graph names handler '${node.handler}', which nothing serves. It must be one of ${knownHandlers.join(', ')}, or fix the name. A dangling handler is a session dispatched against nothing.`,
       );
     }
   }

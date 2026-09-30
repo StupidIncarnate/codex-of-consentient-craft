@@ -11,24 +11,20 @@
  * // Returns ErrorMessage[] — one sentence per offending node/tag, each carrying its own remediation.
  */
 import type { Quest } from '@dungeonmaster/shared/contracts';
-import { errorMessageContract } from '@dungeonmaster/shared/contracts';
-import type { ErrorMessage } from '@dungeonmaster/shared/contracts';
 
 export const questNodePackageCoverageViolationsTransformer = ({
   quest,
 }: {
   quest: Quest;
-}): ErrorMessage[] => {
+}): string[] => {
   const declaredNames = new Set<unknown>(quest.packagesAffected.map((entry) => String(entry.name)));
-  const offenders: ErrorMessage[] = [];
+  const offenders: string[] = [];
 
   for (const flow of quest.flows) {
     for (const node of flow.nodes) {
       if (node.packages.length === 0) {
         offenders.push(
-          errorMessageContract.parse(
-            `Node '${String(node.id)}' in flow '${String(flow.id)}' tags no package. Every node names at least one package it lands in — the tag is what routes the node's terminal and branch units, which carry no observable to read a package from. Tag it with a name from quest.packagesAffected, or with two when it spans a seam.`,
-          ),
+          `Node '${String(node.id)}' in flow '${String(flow.id)}' tags no package. Every node names at least one package it lands in — the tag is what routes the node's terminal and branch units, which carry no observable to read a package from. Tag it with a name from quest.packagesAffected, or with two when it spans a seam.`,
         );
         continue;
       }
@@ -38,9 +34,7 @@ export const questNodePackageCoverageViolationsTransformer = ({
           continue;
         }
         offenders.push(
-          errorMessageContract.parse(
-            `Node '${String(node.id)}' in flow '${String(flow.id)}' tags package '${String(packageName)}', which is not in quest.packagesAffected. Add an entry { name, location, changeType: 'edit' | 'new', packageType } — and for a 'new' package, usedBy[] naming its consumers — in the same modify-quest call, or retag the node.`,
-          ),
+          `Node '${String(node.id)}' in flow '${String(flow.id)}' tags package '${String(packageName)}', which is not in quest.packagesAffected. Add an entry { name, location, changeType: 'edit' | 'new', packageType } — and for a 'new' package, usedBy[] naming its consumers — in the same modify-quest call, or retag the node.`,
         );
       }
     }

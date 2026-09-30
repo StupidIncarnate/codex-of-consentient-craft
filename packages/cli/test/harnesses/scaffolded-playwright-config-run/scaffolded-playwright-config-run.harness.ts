@@ -30,9 +30,8 @@ import { join } from '#gateway/node/path';
 import { envSnapshot, execPath } from '#gateway/node/process';
 import { setTimeout } from '#gateway/node/setTimeout';
 import { tsxCliPath } from '#gateway/npm/tsx';
-import { errorMessageContract, packageJsonContract } from '@dungeonmaster/shared/contracts';
+import { packageJsonContract } from '@dungeonmaster/shared/contracts';
 import { ExitCodeStub } from '@dungeonmaster/shared/contracts/exit-code/exit-code.stub';
-import type { ErrorMessage } from '@dungeonmaster/shared/contracts';
 
 const RUN_TIMEOUT_MS = 20_000;
 
@@ -40,8 +39,8 @@ export const scaffoldedPlaywrightConfigRunHarness = (): {
   installGatewayNodeStub: (params: { dirPath: string }) => void;
   run: (params: { configPath: string; cwd: string; env: Record<string, string> }) => Promise<{
     exitCode: ReturnType<typeof ExitCodeStub>;
-    stdout: ErrorMessage;
-    stderr: ErrorMessage;
+    stdout: string;
+    stderr: string;
   }>;
 } => ({
   installGatewayNodeStub: ({ dirPath }: { dirPath: string }): void => {
@@ -96,8 +95,8 @@ export const scaffoldedPlaywrightConfigRunHarness = (): {
     env: Record<string, string>;
   }): Promise<{
     exitCode: ReturnType<typeof ExitCodeStub>;
-    stdout: ErrorMessage;
-    stderr: ErrorMessage;
+    stdout: string;
+    stderr: string;
   }> =>
     new Promise((promiseResolve, promiseReject) => {
       const evalCode =
@@ -118,14 +117,14 @@ export const scaffoldedPlaywrightConfigRunHarness = (): {
       // fails to load prints its message on stderr, so a stream reads back as written, plus a
       // closing newline where the child wrote none.
       const text = {
-        stdout: errorMessageContract.parse(''),
-        stderr: errorMessageContract.parse(''),
+        stdout: '',
+        stderr: '',
       };
       child.onStdoutLine((line) => {
-        text.stdout = errorMessageContract.parse(`${text.stdout}${line}\n`);
+        text.stdout = `${text.stdout}${line}\n`;
       });
       child.onStderrLine((line) => {
-        text.stderr = errorMessageContract.parse(`${text.stderr}${line}\n`);
+        text.stderr = `${text.stderr}${line}\n`;
       });
 
       const timer = setTimeout(() => {

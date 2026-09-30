@@ -14,10 +14,9 @@
  */
 
 import { typescriptContentDiagnosticsBroker } from '../../../src/brokers/typescript/content-diagnostics/typescript-content-diagnostics-broker';
-import type { ErrorMessage } from '@dungeonmaster/shared/contracts';
 
 export const scaffoldedTemplateTypecheckHarness = (): {
-  typecheck: (params: { content: string; dirPath?: string }) => readonly ErrorMessage[];
+  typecheck: (params: { content: string; dirPath?: string }) => readonly string[];
 } => ({
   typecheck: ({
     content,
@@ -25,6 +24,6 @@ export const scaffoldedTemplateTypecheckHarness = (): {
   }: {
     content: string;
     dirPath?: string;
-  }): readonly ErrorMessage[] =>
+  }): readonly string[] =>
     typescriptContentDiagnosticsBroker(dirPath === undefined ? { content } : { content, dirPath }),
 });

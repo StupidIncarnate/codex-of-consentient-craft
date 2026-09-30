@@ -15,7 +15,6 @@ import { z } from '#gateway/npm/zod';
 import { packageNameContract } from '../package-name/package-name-contract';
 import { installActionContract } from '../install-action/install-action-contract';
 import { installMessageContract } from '../install-message/install-message-contract';
-import { errorMessageContract } from '../error-message/error-message-contract';
 
 /**
  * Represents the result of an install operation
@@ -26,7 +25,7 @@ export const installResultContract = z.object({
   success: z.boolean(),
   action: installActionContract,
   message: installMessageContract.optional(),
-  error: errorMessageContract.optional(),
+  error: z.string().brand<'InstallResultError'>().optional(),
 });
 
 export type InstallResult = z.infer<typeof installResultContract>;

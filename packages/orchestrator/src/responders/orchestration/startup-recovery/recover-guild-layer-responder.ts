@@ -15,7 +15,7 @@
 import { stderr } from '#gateway/node/process';
 import { AbortController } from '#gateway/node/AbortController';
 import { randomUUID } from '#gateway/node/crypto';
-import { filePathContract, processIdContract, errorMessageContract, modifyQuestInputContract } from '@dungeonmaster/shared/contracts';
+import { filePathContract, processIdContract, modifyQuestInputContract } from '@dungeonmaster/shared/contracts';
 import type { GuildListItem, ModifyQuestInput, Quest, SlotIndex, Session } from '@dungeonmaster/shared/contracts';
 
 import { buildOrchestrationLoopOnAgentEntryTransformer } from '../../../transformers/build-orchestration-loop-on-agent-entry/build-orchestration-loop-on-agent-entry-transformer';
@@ -83,9 +83,7 @@ export const RecoverGuildLayerResponder = async ({
             // nor a launched loop. Mirrors blockOnMissingWorktreeLayerBroker's reason format and
             // carrier rule exactly, inlined here because layer files cannot be imported across
             // domains.
-            const reason = errorMessageContract.parse(
-              `Worktree not found: ${resolution.worktreePath}`,
-            );
+            const reason = `Worktree not found: ${resolution.worktreePath}`;
             const carrier =
               quest.workItems.find(
                 (item) => !isTerminalWorkItemStatusGuard({ status: item.status }),

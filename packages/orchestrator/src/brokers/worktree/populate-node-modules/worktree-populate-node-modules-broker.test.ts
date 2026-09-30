@@ -1,12 +1,11 @@
 import { AbsoluteFilePathStub } from '@dungeonmaster/shared/contracts/absolute-file-path/absolute-file-path.stub';
-import { ErrorMessageStub } from '@dungeonmaster/shared/contracts/error-message/error-message.stub';
 import { FilePathStub } from '@dungeonmaster/shared/contracts/file-path/file-path.stub';
 import { FsErrorStub } from '#gateway/node/fs/is-fs-error/fs-error.stub';
 
 import { worktreePopulateNodeModulesBroker } from './worktree-populate-node-modules-broker';
 import { worktreePopulateNodeModulesBrokerProxy } from './worktree-populate-node-modules-broker.proxy';
 
-type StreamedLine = ReturnType<typeof ErrorMessageStub>;
+type StreamedLine = string;
 
 describe('worktreePopulateNodeModulesBroker', () => {
   describe('workspace package carries its own node_modules', () => {
@@ -173,7 +172,7 @@ describe('worktreePopulateNodeModulesBroker', () => {
         repoRoot,
         worktreePath,
         onLine: (line): void => {
-          streamed.push(ErrorMessageStub({ value: line }));
+          streamed.push(line);
         },
       });
 
@@ -203,7 +202,7 @@ describe('worktreePopulateNodeModulesBroker', () => {
           repoRoot,
           worktreePath,
           onLine: (line): void => {
-            streamed.push(ErrorMessageStub({ value: line }));
+            streamed.push(line);
           },
         }),
       ).resolves.toBe(undefined);
@@ -240,7 +239,7 @@ describe('worktreePopulateNodeModulesBroker', () => {
           repoRoot,
           worktreePath,
           onLine: (line): void => {
-            streamed.push(ErrorMessageStub({ value: line }));
+            streamed.push(line);
           },
         }),
       ).resolves.toBe(undefined);
@@ -276,7 +275,7 @@ describe('worktreePopulateNodeModulesBroker', () => {
           repoRoot,
           worktreePath,
           onLine: (line): void => {
-            streamed.push(ErrorMessageStub({ value: line }));
+            streamed.push(line);
           },
         }),
       ).resolves.toBe(undefined);

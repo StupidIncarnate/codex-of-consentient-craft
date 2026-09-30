@@ -11,7 +11,6 @@
  * The real broker stays the default, so a caller that stages nothing gets the genuine check.
  */
 
-import { ErrorMessageStub } from '@dungeonmaster/shared/contracts/error-message/error-message.stub';
 import {
   registerMock,
   registerModuleMock,
@@ -41,7 +40,7 @@ export const graphReachabilityCheckBrokerProxy = (): {
       handle.calledWith([]).returns([]);
     },
     setupViolation: ({ message }: { message: string }): void => {
-      handle.calledWith([]).returns([ErrorMessageStub({ value: message })]);
+      handle.calledWith([]).returns([message]);
     },
   };
 };

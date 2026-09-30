@@ -6,7 +6,6 @@
  * // Returns PlaywrightLineResults with passed/failed test titles and total count
  */
 
-import type { ErrorMessage } from '@dungeonmaster/shared/contracts';
 
 import {
   playwrightLineResultsContract,
@@ -19,7 +18,7 @@ const FAIL_PATTERN = /^\s*(?:\d+ )?(?:\u2717|\u00d7)\s+(.+)$/u;
 export const playwrightLineToResultsTransformer = ({
   output,
 }: {
-  output: ErrorMessage;
+  output: string;
 }): PlaywrightLineResults => {
   const lines = String(output).split('\n');
   const passed: unknown[] = [];

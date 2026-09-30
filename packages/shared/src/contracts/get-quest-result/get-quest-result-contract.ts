@@ -23,7 +23,7 @@ export const getQuestResultContract = z
     success: z.boolean(),
     quest: questContract.optional(),
     flowSlice: contentTextContract.optional(),
-    error: z.string().brand<'ErrorMessage'>().optional(),
+    error: z.string().brand<'GetQuestResultError'>().optional(),
   })
   .brand<'GetQuestResult'>();
 

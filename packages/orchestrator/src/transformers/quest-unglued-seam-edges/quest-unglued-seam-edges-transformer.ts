@@ -13,10 +13,8 @@
  * // Returns ErrorMessage[] — one sentence per unglued edge, naming both endpoints and their tags.
  */
 import type { FlowNode, Flow } from '@dungeonmaster/shared/contracts';
-import { errorMessageContract } from '@dungeonmaster/shared/contracts';
-import type { ErrorMessage } from '@dungeonmaster/shared/contracts';
 
-export const questUngluedSeamEdgesTransformer = ({ flows }: { flows: Flow[] }): ErrorMessage[] => {
+export const questUngluedSeamEdgesTransformer = ({ flows }: { flows: Flow[] }): string[] => {
   // Keyed `<flowId>:<nodeId>` so a cross-flow `flowId:nodeId` edge ref resolves through the same
   // lookup as a bare in-flow one.
   const nodesByQualifiedId = new Map<unknown, FlowNode>();
@@ -26,7 +24,7 @@ export const questUngluedSeamEdgesTransformer = ({ flows }: { flows: Flow[] }): 
     }
   }
 
-  const offenders: ErrorMessage[] = [];
+  const offenders: string[] = [];
 
   for (const flow of flows) {
     const flowId = String(flow.id);
@@ -52,9 +50,7 @@ export const questUngluedSeamEdgesTransformer = ({ flows }: { flows: Flow[] }): 
       const fromList = fromNode.packages.map((name) => String(name)).join(', ');
       const toList = toNode.packages.map((name) => String(name)).join(', ');
       offenders.push(
-        errorMessageContract.parse(
-          `Edge '${String(edge.id)}' in flow '${flowId}' joins node '${String(fromNode.id)}' (packages: ${fromList}) to node '${String(toNode.id)}' (packages: ${toList}), which share no package. An edge whose endpoints share no package is a boundary crossed with nothing spanning it — widen one endpoint to carry both packages (that endpoint IS the glue node), or insert a node between them that does.`,
-        ),
+        `Edge '${String(edge.id)}' in flow '${flowId}' joins node '${String(fromNode.id)}' (packages: ${fromList}) to node '${String(toNode.id)}' (packages: ${toList}), which share no package. An edge whose endpoints share no package is a boundary crossed with nothing spanning it — widen one endpoint to carry both packages (that endpoint IS the glue node), or insert a node between them that does.`,
       );
     }
   }

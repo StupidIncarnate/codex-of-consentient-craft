@@ -6,12 +6,11 @@
  * // Returns 'Error' as ErrorMessage
  */
 
-import type { ErrorMessage } from '@dungeonmaster/shared/contracts';
 
 const ESC_CHAR_CODE = 27;
 const ESC_SEQUENCE_PREFIX_LENGTH = 2;
 
-export const stripAnsiCodesTransformer = ({ text }: { text: ErrorMessage }): ErrorMessage => {
+export const stripAnsiCodesTransformer = ({ text }: { text: string }): string => {
   let result = '';
   let i = 0;
 
@@ -28,5 +27,5 @@ export const stripAnsiCodesTransformer = ({ text }: { text: ErrorMessage }): Err
     }
   }
 
-  return result as ErrorMessage;
+  return result as string;
 };

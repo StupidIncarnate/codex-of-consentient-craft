@@ -15,7 +15,7 @@
  */
 
 import { dynamicImport } from '#gateway/node/module';
-import { installResultContract, errorMessageContract } from '@dungeonmaster/shared/contracts';
+import { installResultContract } from '@dungeonmaster/shared/contracts';
 import type {
   InstallContext,
   InstallResult,
@@ -47,7 +47,7 @@ export const installExecuteBroker = async ({
         packageName,
         success: false,
         action: 'failed',
-        error: errorMessageContract.parse(`No ${exportName} function found in ${installPath}`),
+        error: `No ${exportName} function found in ${installPath}`,
       });
     }
 
@@ -59,7 +59,7 @@ export const installExecuteBroker = async ({
       packageName,
       success: false,
       action: 'failed',
-      error: errorMessageContract.parse(errorMessage),
+      error: errorMessage,
     });
   }
 };

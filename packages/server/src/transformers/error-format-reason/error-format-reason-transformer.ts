@@ -8,17 +8,15 @@
  * // Non-Error thrown value: String(error)
  */
 
-import { errorMessageContract } from '@dungeonmaster/shared/contracts';
-import type { ErrorMessage } from '@dungeonmaster/shared/contracts';
 
-export const errorFormatReasonTransformer = ({ error }: { error: unknown }): ErrorMessage => {
+export const errorFormatReasonTransformer = ({ error }: { error: unknown }): string => {
   if (!(error instanceof Error)) {
-    return errorMessageContract.parse(String(error));
+    return String(error);
   }
   if (!error.cause) {
-    return errorMessageContract.parse(error.message);
+    return error.message;
   }
   const causeMessage =
     error.cause instanceof Error ? error.cause.message : JSON.stringify(error.cause);
-  return errorMessageContract.parse(`${error.message} | cause: ${causeMessage}`);
+  return `${error.message} | cause: ${causeMessage}`;
 };

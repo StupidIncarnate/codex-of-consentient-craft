@@ -1,6 +1,5 @@
 import { installTestbedCreateBroker } from '@dungeonmaster/testing';
 import { AbsoluteFilePathStub } from '@dungeonmaster/shared/contracts/absolute-file-path/absolute-file-path.stub';
-import { ErrorMessageStub } from '@dungeonmaster/shared/contracts/error-message/error-message.stub';
 import { FileContentsStub } from '@dungeonmaster/shared/contracts/file-contents/file-contents.stub';
 import { FileNameStub } from '@dungeonmaster/shared/contracts/file-name/file-name.stub';
 import { QuestBranchNameStub } from '@dungeonmaster/shared/contracts/quest-branch-name/quest-branch-name.stub';
@@ -37,7 +36,7 @@ describe('worktreePrepareBroker (integration) — real git worktree creation', (
       repoPath,
       relativePath: RepoRelativePathStub({ value: 'README.md' }),
       content: FileContentsStub({ value: '# fixture repo\nsecond commit on main, past develop\n' }),
-      message: ErrorMessageStub({ value: 'advance main past develop' }),
+      message: 'advance main past develop',
     });
 
     const worktreePath = AbsoluteFilePathStub({
@@ -55,7 +54,7 @@ describe('worktreePrepareBroker (integration) — real git worktree creation', (
 
     const questBranchSha = await git.gitRevParseOrNull({
       repoPath,
-      ref: ErrorMessageStub({ value: branchName }),
+      ref: branchName,
     });
     const worktreeHeadBranch = await git.gitCurrentBranchName({ repoPath: worktreePath });
     const worktreeDirExists = git.pathExists({ absolutePath: worktreePath });
@@ -174,11 +173,11 @@ describe('worktreePrepareBroker (integration) — real git worktree creation', (
       repoPath,
       relativePath: RepoRelativePathStub({ value: 'README.md' }),
       content: FileContentsStub({ value: '# fixture repo\nmain advanced past the quest branch\n' }),
-      message: ErrorMessageStub({ value: 'advance main past the quest branch' }),
+      message: 'advance main past the quest branch',
     });
     const existingBranchShaBefore = await git.gitRevParseOrNull({
       repoPath,
-      ref: ErrorMessageStub({ value: branchName }),
+      ref: branchName,
     });
 
     const worktreePath = AbsoluteFilePathStub({
@@ -194,7 +193,7 @@ describe('worktreePrepareBroker (integration) — real git worktree creation', (
 
     const existingBranchShaAfter = await git.gitRevParseOrNull({
       repoPath,
-      ref: ErrorMessageStub({ value: branchName }),
+      ref: branchName,
     });
     const worktreeHeadBranch = await git.gitCurrentBranchName({ repoPath: worktreePath });
     const worktreeDirExists = git.pathExists({ absolutePath: worktreePath });

@@ -6,7 +6,6 @@
  * // Returns 'Timed out (see network log below)' as ErrorMessage
  */
 
-import type { ErrorMessage } from '@dungeonmaster/shared/contracts';
 
 const TIMEOUT_PATTERNS = [
   // Jest: primary timeout message (test and hook variants)
@@ -44,19 +43,19 @@ const FALLBACK_MESSAGE = 'Timed out (see network log below)';
 export const stripTimeoutNoiseTransformer = ({
   message,
 }: {
-  message: ErrorMessage;
-}): ErrorMessage => {
+  message: string;
+}): string => {
   let result = message;
 
   for (const pattern of TIMEOUT_PATTERNS) {
-    result = result.replace(pattern, '') as ErrorMessage;
+    result = result.replace(pattern, '') as string;
   }
 
   const trimmed = result.trim();
 
   if (trimmed.length === 0) {
-    return FALLBACK_MESSAGE as ErrorMessage;
+    return FALLBACK_MESSAGE as string;
   }
 
-  return trimmed as ErrorMessage;
+  return trimmed as string;
 };

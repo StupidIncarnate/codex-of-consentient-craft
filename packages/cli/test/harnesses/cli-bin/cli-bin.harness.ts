@@ -24,12 +24,7 @@ import { envSnapshot, execPath } from '#gateway/node/process';
 import { setTimeout } from '#gateway/node/setTimeout';
 import { tsxCliPath } from '#gateway/npm/tsx';
 
-import {
-  errorMessageContract,
-  fileContentsContract,
-  type ErrorMessage,
-  type FileContents,
-} from '@dungeonmaster/shared/contracts';
+import { fileContentsContract, type FileContents } from '@dungeonmaster/shared/contracts';
 import { FilePathStub } from '@dungeonmaster/shared/contracts/file-path/file-path.stub';
 import { ExitCodeStub } from '@dungeonmaster/shared/contracts/exit-code/exit-code.stub';
 
@@ -69,14 +64,14 @@ export const cliBinHarness = (): {
   readBinContent: () => FileContents;
   runCommand: ({ args }: { args: readonly string[] }) => Promise<{
     exitCode: ReturnType<typeof ExitCodeStub>;
-    stdout: ErrorMessage;
-    stderr: ErrorMessage;
+    stdout: string;
+    stderr: string;
   }>;
   runInit: () => Promise<{ exitCode: ReturnType<typeof ExitCodeStub> }>;
   requireWithoutAutorun: () => Promise<{ exitedCleanly: boolean; servedLineSeen: boolean }>;
   runWithClosedStdoutReader: ({ args }: { args: readonly string[] }) => Promise<{
     cliExitCode: ReturnType<typeof ExitCodeStub>;
-    cliStderr: ErrorMessage;
+    cliStderr: string;
   }>;
 } => {
   // One spawn with every stdio stream a pipe, each read line by line and rejoined with the newline
@@ -98,21 +93,21 @@ export const cliBinHarness = (): {
     closeStdin: boolean;
   }): Promise<{
     exitCode: ReturnType<typeof ExitCodeStub>;
-    stdout: ErrorMessage;
-    stderr: ErrorMessage;
+    stdout: string;
+    stderr: string;
   }> =>
     new Promise((promiseResolve, promiseReject) => {
       const child = spawnPiped({ command, args, cwd, env });
       const text = {
-        stdout: errorMessageContract.parse(''),
-        stderr: errorMessageContract.parse(''),
+        stdout: '',
+        stderr: '',
       };
 
       child.onStdoutLine((line) => {
-        text.stdout = errorMessageContract.parse(`${text.stdout}${line}\n`);
+        text.stdout = `${text.stdout}${line}\n`;
       });
       child.onStderrLine((line) => {
-        text.stderr = errorMessageContract.parse(`${text.stderr}${line}\n`);
+        text.stderr = `${text.stderr}${line}\n`;
       });
       if (closeStdin) {
         child.endStdin();
@@ -152,8 +147,8 @@ export const cliBinHarness = (): {
     args: readonly string[];
   }): Promise<{
     exitCode: ReturnType<typeof ExitCodeStub>;
-    stdout: ErrorMessage;
-    stderr: ErrorMessage;
+    stdout: string;
+    stderr: string;
   }> => {
     const tempDir = mkdtempSync(join(tmpdir(), 'dungeonmaster-e2e-'));
     const dungeonmasterHome = mkdtempSync(join(tmpdir(), 'dungeonmaster-e2e-home-'));
@@ -189,7 +184,7 @@ export const cliBinHarness = (): {
     args: readonly string[];
   }): Promise<{
     cliExitCode: ReturnType<typeof ExitCodeStub>;
-    cliStderr: ErrorMessage;
+    cliStderr: string;
   }> => {
     const tempDir = mkdtempSync(join(tmpdir(), 'dungeonmaster-e2e-'));
     const dungeonmasterHome = mkdtempSync(join(tmpdir(), 'dungeonmaster-e2e-home-'));
@@ -273,9 +268,9 @@ export const cliBinHarness = (): {
         });
         child.endStdin();
 
-        const seen = { stdout: errorMessageContract.parse('') };
+        const seen = { stdout: '' };
         child.onStdoutLine((line) => {
-          seen.stdout = errorMessageContract.parse(`${seen.stdout}${line}\n`);
+          seen.stdout = `${seen.stdout}${line}\n`;
         });
 
         const settle = ({ exitedCleanly }: { exitedCleanly: boolean }): void => {

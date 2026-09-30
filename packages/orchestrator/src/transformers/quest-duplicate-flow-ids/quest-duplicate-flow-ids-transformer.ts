@@ -6,10 +6,8 @@
  * // Returns ErrorMessage[] — each entry is a duplicated flow id, e.g. ["login-flow"].
  */
 import type { Flow } from '@dungeonmaster/shared/contracts';
-import { errorMessageContract } from '@dungeonmaster/shared/contracts';
-import type { ErrorMessage } from '@dungeonmaster/shared/contracts';
 
-export const questDuplicateFlowIdsTransformer = ({ flows }: { flows?: Flow[] }): ErrorMessage[] => {
+export const questDuplicateFlowIdsTransformer = ({ flows }: { flows?: Flow[] }): string[] => {
   if (!flows) {
     return [];
   }
@@ -26,5 +24,5 @@ export const questDuplicateFlowIdsTransformer = ({ flows }: { flows?: Flow[] }):
     }
   }
 
-  return Array.from(duplicates).map((id) => errorMessageContract.parse(String(id)));
+  return Array.from(duplicates).map((id) => String(id));
 };

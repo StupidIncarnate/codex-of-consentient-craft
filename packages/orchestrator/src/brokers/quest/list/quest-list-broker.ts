@@ -29,13 +29,8 @@
  * readable, while a caller building a response needs the full skip set on every call.
  */
 
-import type { ErrorMessage, FilePath, Quest, SkippedQuestFile, Guild } from '@dungeonmaster/shared/contracts';
-import {
-  errorMessageContract,
-  fileNameContract,
-  filePathContract,
-  skippedQuestFileContract,
-} from '@dungeonmaster/shared/contracts';
+import type { FilePath, Quest, SkippedQuestFile, Guild } from '@dungeonmaster/shared/contracts';
+import { fileNameContract, filePathContract, skippedQuestFileContract } from '@dungeonmaster/shared/contracts';
 import { locationsStatics } from '@dungeonmaster/shared/statics';
 import { readdirSync } from '#gateway/node/fs';
 import { join } from '#gateway/node/path';
@@ -45,7 +40,7 @@ import { isQuestFolderGuard } from '../../../guards/is-quest-folder/is-quest-fol
 import { questLoadBroker } from '../load/quest-load-broker';
 import { questResolveQuestsPathBroker } from '../resolve-quests-path/quest-resolve-quests-path-broker';
 
-const lastReportedReason = new Map<FilePath, ErrorMessage>();
+const lastReportedReason = new Map<FilePath, string>();
 
 export const questListBroker = async ({
   guildId,
@@ -72,9 +67,7 @@ export const questListBroker = async ({
         return quest;
       } catch (error: unknown) {
         // questLoadBroker's message already names the file and the rejected field.
-        const reason = errorMessageContract.parse(
-          error instanceof Error ? error.message : String(error),
-        );
+        const reason = (error instanceof Error ? error.message : String(error));
         if (lastReportedReason.get(reportKey) !== reason) {
           lastReportedReason.set(reportKey, reason);
           stderr.write(

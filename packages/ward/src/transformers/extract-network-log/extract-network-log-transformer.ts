@@ -6,7 +6,6 @@
  * // Returns 'GET /api 200' as ErrorMessage
  */
 
-import type { ErrorMessage } from '@dungeonmaster/shared/contracts';
 
 const NETWORK_LOG_START = '__NETWORK_LOG__';
 const NETWORK_LOG_END = '__NETWORK_LOG_END__';
@@ -14,9 +13,9 @@ const NETWORK_LOG_END = '__NETWORK_LOG_END__';
 export const extractNetworkLogTransformer = ({
   rawOutput,
 }: {
-  rawOutput: ErrorMessage;
-}): ErrorMessage => {
-  const blocks: ErrorMessage[] = [];
+  rawOutput: string;
+}): string => {
+  const blocks: string[] = [];
   let searchFrom = 0;
 
   while (searchFrom < rawOutput.length) {
@@ -36,11 +35,11 @@ export const extractNetworkLogTransformer = ({
     const content = rawOutput.slice(contentStart, endIndex).trim();
 
     if (content.length > 0) {
-      blocks.push(content as ErrorMessage);
+      blocks.push(content as string);
     }
 
     searchFrom = endIndex + NETWORK_LOG_END.length;
   }
 
-  return blocks.join('\n') as ErrorMessage;
+  return blocks.join('\n') as string;
 };

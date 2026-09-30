@@ -6,19 +6,17 @@
  * // Returns ErrorMessage[] — one per offending node, e.g. ["flow 'login' node 'n1': duplicate observables 'obs-a'"].
  */
 import type { Flow } from '@dungeonmaster/shared/contracts';
-import { errorMessageContract } from '@dungeonmaster/shared/contracts';
-import type { ErrorMessage } from '@dungeonmaster/shared/contracts';
 
 export const questDuplicateObservableIdsInNodeTransformer = ({
   flows,
 }: {
   flows?: Flow[];
-}): ErrorMessage[] => {
+}): string[] => {
   if (!flows) {
     return [];
   }
 
-  const offenders: ErrorMessage[] = [];
+  const offenders: string[] = [];
 
   for (const flow of flows) {
     for (const node of flow.nodes) {
@@ -39,9 +37,7 @@ export const questDuplicateObservableIdsInNodeTransformer = ({
           .map((id) => `'${String(id)}'`)
           .join(',');
         offenders.push(
-          errorMessageContract.parse(
-            `flow '${String(flow.id)}' node '${String(node.id)}': duplicate observables ${ids}`,
-          ),
+          `flow '${String(flow.id)}' node '${String(node.id)}': duplicate observables ${ids}`,
         );
       }
     }

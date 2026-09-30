@@ -6,15 +6,13 @@
  * // Returns ErrorMessage[] — e.g. ["flow 'login' has orphan node 'extra'"].
  */
 import type { Flow } from '@dungeonmaster/shared/contracts';
-import { errorMessageContract } from '@dungeonmaster/shared/contracts';
-import type { ErrorMessage } from '@dungeonmaster/shared/contracts';
 
-export const questOrphanFlowNodesTransformer = ({ flows }: { flows?: Flow[] }): ErrorMessage[] => {
+export const questOrphanFlowNodesTransformer = ({ flows }: { flows?: Flow[] }): string[] => {
   if (!flows) {
     return [];
   }
 
-  const offenders: ErrorMessage[] = [];
+  const offenders: string[] = [];
 
   for (const flow of flows) {
     const connectedNodeIds = new Set<unknown>();
@@ -26,9 +24,7 @@ export const questOrphanFlowNodesTransformer = ({ flows }: { flows?: Flow[] }): 
     for (const node of flow.nodes) {
       if (!connectedNodeIds.has(String(node.id))) {
         offenders.push(
-          errorMessageContract.parse(
-            `flow '${String(flow.id)}' has orphan node '${String(node.id)}'`,
-          ),
+          `flow '${String(flow.id)}' has orphan node '${String(node.id)}'`,
         );
       }
     }

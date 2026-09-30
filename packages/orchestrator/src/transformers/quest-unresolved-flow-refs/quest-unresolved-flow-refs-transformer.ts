@@ -6,14 +6,12 @@
  * // Returns ErrorMessage[] — e.g. ["flow 'login' edge 'e1' has unresolved 'to' ref 'ghost'"].
  */
 import type { Flow } from '@dungeonmaster/shared/contracts';
-import { errorMessageContract } from '@dungeonmaster/shared/contracts';
-import type { ErrorMessage } from '@dungeonmaster/shared/contracts';
 
 export const questUnresolvedFlowRefsTransformer = ({
   flows,
 }: {
   flows?: Flow[];
-}): ErrorMessage[] => {
+}): string[] => {
   if (!flows) {
     return [];
   }
@@ -27,7 +25,7 @@ export const questUnresolvedFlowRefsTransformer = ({
     nodeIdsByFlowId.set(String(flow.id), nodeIds);
   }
 
-  const offenders: ErrorMessage[] = [];
+  const offenders: string[] = [];
 
   for (const flow of flows) {
     const currentFlowNodeIds = nodeIdsByFlowId.get(String(flow.id)) ?? new Set<unknown>();
@@ -57,9 +55,7 @@ export const questUnresolvedFlowRefsTransformer = ({
 
         if (!resolved) {
           offenders.push(
-            errorMessageContract.parse(
-              `flow '${String(flow.id)}' edge '${String(edge.id)}' has unresolved '${String(directionKey)}' ref '${ref}'`,
-            ),
+            `flow '${String(flow.id)}' edge '${String(edge.id)}' has unresolved '${String(directionKey)}' ref '${ref}'`,
           );
         }
       }

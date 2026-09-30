@@ -17,7 +17,7 @@
 import { Box, Text, UnstyledButton } from '#gateway/npm/mantine__core';
 import { useEffect, useMemo, useRef, useState } from '#gateway/npm/react';
 
-import type { ContractName, ErrorMessage, RiftcarverResult, WardResult, WorkItem, ChatEntry, CssPixels, Quest } from '@dungeonmaster/shared/contracts';
+import type { ContractName, RiftcarverResult, WardResult, WorkItem, ChatEntry, CssPixels, Quest } from '@dungeonmaster/shared/contracts';
 
 import { cssPixelsContract } from '@dungeonmaster/shared/contracts';
 import { isCommandWorkItemRoleGuard } from '@dungeonmaster/shared/guards';
@@ -60,7 +60,7 @@ export interface ExecutionRowLayerWidgetProps {
   // panel to that row's own four-tier label (T2-1) rather than a raw id. Never derived from
   // `insertedBy` — that field means a retry splice superseding a failed item, a different edge.
   mintedByLabel?: DisplayLabel;
-  errorMessage?: ErrorMessage;
+  errorMessage?: string;
   // Carries summary, attempt, maxAttempts, startedAt, completedAt and actualSignal as ONE object
   // rather than six flattened WorkItem['x'] properties, so a caller passes the work item it already
   // has instead of picking it apart field by field.

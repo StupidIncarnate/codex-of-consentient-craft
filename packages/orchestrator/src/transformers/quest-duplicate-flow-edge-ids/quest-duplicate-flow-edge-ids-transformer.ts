@@ -6,19 +6,17 @@
  * // Returns ErrorMessage[] — one entry per flow that has duplicate edge ids, e.g. ["flow 'login': duplicate edges 'e1'"].
  */
 import type { Flow } from '@dungeonmaster/shared/contracts';
-import { errorMessageContract } from '@dungeonmaster/shared/contracts';
-import type { ErrorMessage } from '@dungeonmaster/shared/contracts';
 
 export const questDuplicateFlowEdgeIdsTransformer = ({
   flows,
 }: {
   flows?: Flow[];
-}): ErrorMessage[] => {
+}): string[] => {
   if (!flows) {
     return [];
   }
 
-  const offenders: ErrorMessage[] = [];
+  const offenders: string[] = [];
 
   for (const flow of flows) {
     const seen = new Set<unknown>();
@@ -38,7 +36,7 @@ export const questDuplicateFlowEdgeIdsTransformer = ({
         .map((id) => `'${String(id)}'`)
         .join(',');
       offenders.push(
-        errorMessageContract.parse(`flow '${String(flow.id)}': duplicate edges ${ids}`),
+        `flow '${String(flow.id)}': duplicate edges ${ids}`,
       );
     }
   }
