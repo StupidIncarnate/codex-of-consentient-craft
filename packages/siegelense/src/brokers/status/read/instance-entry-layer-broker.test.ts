@@ -6,7 +6,6 @@ import { InstanceStatusStub } from '../../../contracts/instance-status/instance-
 import { ProcessGroupIdStub } from '../../../contracts/process-group-id/process-group-id.stub';
 import { RegistryEntryStub } from '../../../contracts/registry-entry/registry-entry.stub';
 import { ShutdownReasonStub } from '../../../contracts/shutdown-reason/shutdown-reason.stub';
-import { SpecNameStub } from '../../../contracts/spec-name/spec-name.stub';
 import { SpecProfileStub } from '../../../contracts/spec-profile/spec-profile.stub';
 import { StepReadingStub } from '../../../contracts/step-reading/step-reading.stub';
 
@@ -29,7 +28,7 @@ describe('instanceEntryLayerBroker', () => {
       const entry = RegistryEntryStub({
         id: instanceId,
         guildId: null,
-        specName: SpecNameStub({ value: 'dungeonmaster-stack' }),
+        specName: 'dungeonmaster-stack',
         pgids: [],
         bootedAtMs: 1_700_000_160_000,
         lastBeatMs: 1_700_000_998_000,
@@ -84,7 +83,7 @@ describe('instanceEntryLayerBroker', () => {
       const entry = RegistryEntryStub({
         id: instanceId,
         guildId: null,
-        specName: SpecNameStub({ value: 'dungeonmaster-stack' }),
+        specName: 'dungeonmaster-stack',
         pgids: [ProcessGroupIdStub({ value: 4_143_212 }), ProcessGroupIdStub({ value: 4_143_213 })],
         bootedAtMs: 1_700_000_160_000,
         lastBeatMs: 1_700_000_998_000,
@@ -142,7 +141,7 @@ describe('instanceEntryLayerBroker', () => {
       const entry = RegistryEntryStub({
         id: instanceId,
         guildId,
-        specName: SpecNameStub({ value: 'dungeonmaster-stack' }),
+        specName: 'dungeonmaster-stack',
         pgids: [],
         lastBeatMs: 1_700_000_760_000,
       });
@@ -217,7 +216,7 @@ describe('instanceEntryLayerBroker', () => {
       const entry = RegistryEntryStub({
         id: instanceId,
         guildId,
-        specName: SpecNameStub({ value: 'dungeonmaster-stack' }),
+        specName: 'dungeonmaster-stack',
         pgids: [],
         lastBeatMs: 1_700_000_760_000,
       });
@@ -294,7 +293,7 @@ describe('instanceEntryLayerBroker', () => {
       const entry = RegistryEntryStub({
         id: instanceId,
         guildId,
-        specName: SpecNameStub({ value: 'dungeonmaster-stack' }),
+        specName: 'dungeonmaster-stack',
         pgids: [],
         lastBeatMs: 1_700_000_760_000,
       });
@@ -379,7 +378,7 @@ describe('instanceEntryLayerBroker', () => {
       const entry = RegistryEntryStub({
         id: instanceId,
         guildId,
-        specName: SpecNameStub({ value: 'dungeonmaster-stack' }),
+        specName: 'dungeonmaster-stack',
         pgids: [pgid],
         lastBeatMs: 1_700_000_760_000,
       });
@@ -484,7 +483,7 @@ describe('instanceEntryLayerBroker', () => {
       const entry = RegistryEntryStub({
         id: instanceId,
         guildId: null,
-        specName: SpecNameStub({ value: 'stack' }),
+        specName: 'stack',
         pgids: [],
         lastBeatMs: 1_700_000_760_000,
       });
@@ -569,7 +568,7 @@ describe('instanceEntryLayerBroker', () => {
       const entry = RegistryEntryStub({
         id: instanceId,
         guildId,
-        specName: SpecNameStub({ value: 'dungeonmaster-stack' }),
+        specName: 'dungeonmaster-stack',
         pgids: [],
         lastBeatMs: 1_700_000_760_000,
       });
@@ -650,7 +649,7 @@ describe('instanceEntryLayerBroker', () => {
       const entry = RegistryEntryStub({
         id: instanceId,
         guildId,
-        specName: SpecNameStub({ value: 'dungeonmaster-stack' }),
+        specName: 'dungeonmaster-stack',
         pgids: [],
         lastBeatMs: 1_700_000_760_000,
       });

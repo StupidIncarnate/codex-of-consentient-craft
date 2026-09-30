@@ -3,7 +3,6 @@ import { CapacityProfileStub } from '../../contracts/capacity-profile/capacity-p
 import { CapacitySuggestionStub } from '../../contracts/capacity-suggestion/capacity-suggestion.stub';
 import { MegabytesStub } from '../../contracts/megabytes/megabytes.stub';
 import { ProfilePoolSizeStub } from '../../contracts/profile-pool-size/profile-pool-size.stub';
-import { SpecNameStub } from '../../contracts/spec-name/spec-name.stub';
 
 import { capacityWhyRenderTransformer } from './capacity-why-render-transformer';
 
@@ -17,7 +16,7 @@ describe('capacityWhyRenderTransformer', () => {
   describe("the spec's own three clauses", () => {
     it('VALID: {measured profile, 1 instance up} => names the peak, the steady, the free RAM, the headroom and the instance', () => {
       const result = capacityWhyRenderTransformer({
-        specName: SpecNameStub({ value: 'dungeonmaster-stack' }),
+        specName: 'dungeonmaster-stack',
         profile: CapacityProfileStub({ poolSize: 1, steadyMB: 1800, peakMB: 2600, fromRuns: 9 }),
         suggestion: CapacitySuggestionStub({
           suggested: 2,
@@ -42,7 +41,7 @@ describe('capacityWhyRenderTransformer', () => {
 
     it('EMPTY: {nothing up} => the third clause says nothing else is up rather than naming zero instances', () => {
       const result = capacityWhyRenderTransformer({
-        specName: SpecNameStub({ value: 'dungeonmaster-stack' }),
+        specName: 'dungeonmaster-stack',
         profile: CapacityProfileStub({ poolSize: 1, steadyMB: 1800, peakMB: 2600, fromRuns: 9 }),
         suggestion: CapacitySuggestionStub({
           suggested: 3,
@@ -67,7 +66,7 @@ describe('capacityWhyRenderTransformer', () => {
 
     it('VALID: {2 instances up} => pluralises the third clause', () => {
       const result = capacityWhyRenderTransformer({
-        specName: SpecNameStub({ value: 'dungeonmaster-stack' }),
+        specName: 'dungeonmaster-stack',
         profile: CapacityProfileStub({ poolSize: 3, steadyMB: 1920, peakMB: 2810, fromRuns: 5 }),
         suggestion: CapacitySuggestionStub({
           suggested: 1,
@@ -94,7 +93,7 @@ describe('capacityWhyRenderTransformer', () => {
   describe('reservations still booting', () => {
     it('VALID: {1 reservation} => the memory clause names the debited peak and the third clause names the reservation', () => {
       const result = capacityWhyRenderTransformer({
-        specName: SpecNameStub({ value: 'dungeonmaster-stack' }),
+        specName: 'dungeonmaster-stack',
         profile: CapacityProfileStub({ poolSize: 1, steadyMB: 1800, peakMB: 2600, fromRuns: 9 }),
         suggestion: CapacitySuggestionStub({
           suggested: 2,
@@ -121,7 +120,7 @@ describe('capacityWhyRenderTransformer', () => {
   describe('no measured profile', () => {
     it('EMPTY: {profile: null, --pool omitted} => the first clause names the spec, the default, and how to record a profile', () => {
       const result = capacityWhyRenderTransformer({
-        specName: SpecNameStub({ value: 'dungeonmaster-api' }),
+        specName: 'dungeonmaster-api',
         profile: null,
         suggestion: CapacitySuggestionStub({
           suggested: 2,
@@ -147,7 +146,7 @@ describe('capacityWhyRenderTransformer', () => {
 
     it('VALID: {profile: null, --pool 5} => names --pool as having no effect, since nothing was measured to pick a group from', () => {
       const result = capacityWhyRenderTransformer({
-        specName: SpecNameStub({ value: 'dungeonmaster-api' }),
+        specName: 'dungeonmaster-api',
         profile: null,
         suggestion: CapacitySuggestionStub({
           suggested: 2,
@@ -175,7 +174,7 @@ describe('capacityWhyRenderTransformer', () => {
   describe('a requested pool size against a measured profile', () => {
     it('VALID: {--pool matches the profile group} => no extra clause, the requested and used pool sizes already agree', () => {
       const result = capacityWhyRenderTransformer({
-        specName: SpecNameStub({ value: 'dungeonmaster-stack' }),
+        specName: 'dungeonmaster-stack',
         profile: CapacityProfileStub({ poolSize: 1, steadyMB: 1800, peakMB: 2600, fromRuns: 9 }),
         suggestion: CapacitySuggestionStub({
           suggested: 2,
@@ -200,7 +199,7 @@ describe('capacityWhyRenderTransformer', () => {
 
     it('EDGE: {--pool 99999, no group that large} => names which pool size the profile block actually used', () => {
       const result = capacityWhyRenderTransformer({
-        specName: SpecNameStub({ value: 'dungeonmaster-stack' }),
+        specName: 'dungeonmaster-stack',
         profile: CapacityProfileStub({ poolSize: 1, steadyMB: 1800, peakMB: 2600, fromRuns: 9 }),
         suggestion: CapacitySuggestionStub({
           suggested: 2,
@@ -228,7 +227,7 @@ describe('capacityWhyRenderTransformer', () => {
   describe('the limiting clause', () => {
     it('EDGE: {memoryAllows: 0} => names the available memory against the peak, the hard case', () => {
       const result = capacityWhyRenderTransformer({
-        specName: SpecNameStub({ value: 'dungeonmaster-stack' }),
+        specName: 'dungeonmaster-stack',
         profile: CapacityProfileStub({ poolSize: 1, steadyMB: 1800, peakMB: 2600, fromRuns: 9 }),
         suggestion: CapacitySuggestionStub({
           suggested: 0,
@@ -254,7 +253,7 @@ describe('capacityWhyRenderTransformer', () => {
 
     it('EDGE: {ceilingLeft: 0, memory still fine} => names the full policy pool instead', () => {
       const result = capacityWhyRenderTransformer({
-        specName: SpecNameStub({ value: 'dungeonmaster-stack' }),
+        specName: 'dungeonmaster-stack',
         profile: CapacityProfileStub({ poolSize: 1, steadyMB: 1800, peakMB: 2600, fromRuns: 9 }),
         suggestion: CapacitySuggestionStub({
           suggested: 0,
@@ -280,7 +279,7 @@ describe('capacityWhyRenderTransformer', () => {
 
     it('VALID: {memory allows more than the ceiling, CPU roomier still} => says the answer was capped by policy', () => {
       const result = capacityWhyRenderTransformer({
-        specName: SpecNameStub({ value: 'dungeonmaster-stack' }),
+        specName: 'dungeonmaster-stack',
         profile: CapacityProfileStub({ poolSize: 1, steadyMB: 1800, peakMB: 2600, fromRuns: 9 }),
         suggestion: CapacitySuggestionStub({
           suggested: 3,
@@ -306,7 +305,7 @@ describe('capacityWhyRenderTransformer', () => {
 
     it('VALID: {memory and ceiling agree} => no fourth clause at all', () => {
       const result = capacityWhyRenderTransformer({
-        specName: SpecNameStub({ value: 'dungeonmaster-stack' }),
+        specName: 'dungeonmaster-stack',
         profile: CapacityProfileStub({ poolSize: 1, steadyMB: 1800, peakMB: 2600, fromRuns: 9 }),
         suggestion: CapacitySuggestionStub({
           suggested: 2,
@@ -335,7 +334,7 @@ describe('capacityWhyRenderTransformer', () => {
       const { cores, loadAvg1 } = CapacityMeasuredStub({ cores: 12, loadAvg1: 33.56 });
 
       const result = capacityWhyRenderTransformer({
-        specName: SpecNameStub({ value: 'dungeonmaster-stack' }),
+        specName: 'dungeonmaster-stack',
         profile: CapacityProfileStub({ poolSize: 1, steadyMB: 1800, peakMB: 2600, fromRuns: 9 }),
         suggestion: CapacitySuggestionStub({
           suggested: 1,
@@ -364,7 +363,7 @@ describe('capacityWhyRenderTransformer', () => {
       const { cores, loadAvg1 } = CapacityMeasuredStub({ cores: 8, loadAvg1: 4.2 });
 
       const result = capacityWhyRenderTransformer({
-        specName: SpecNameStub({ value: 'dungeonmaster-stack' }),
+        specName: 'dungeonmaster-stack',
         profile: CapacityProfileStub({ poolSize: 1, steadyMB: 1800, peakMB: 2600, fromRuns: 9 }),
         suggestion: CapacitySuggestionStub({
           suggested: 3,

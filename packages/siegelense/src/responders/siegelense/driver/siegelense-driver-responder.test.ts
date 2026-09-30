@@ -4,14 +4,13 @@ import { ProcessIdStub } from '@dungeonmaster/shared/contracts/process-id/proces
 import { InstanceIdStub } from '../../../contracts/instance-id/instance-id.stub';
 import { LaneSessionStub } from '../../../contracts/lane-session/lane-session.stub';
 import { RegistryEntryStub } from '../../../contracts/registry-entry/registry-entry.stub';
-import { SpecNameStub } from '../../../contracts/spec-name/spec-name.stub';
 import { InstanceUnknownError } from '../../../errors/instance-unknown/instance-unknown-error';
 import { LaneBootFailedError } from '../../../errors/lane-boot-failed/lane-boot-failed-error';
 
 import { SiegelenseDriverResponder } from './siegelense-driver-responder';
 import { SiegelenseDriverResponderProxy } from './siegelense-driver-responder.proxy';
 
-const SPEC_NAME = SpecNameStub({ value: 'api' });
+const SPEC_NAME = 'api';
 
 describe('SiegelenseDriverResponder', () => {
   describe('a reserved instance boots cleanly', () => {

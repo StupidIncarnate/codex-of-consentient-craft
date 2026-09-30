@@ -41,7 +41,6 @@ import type { CapacityProfile } from '../../contracts/capacity-profile/capacity-
 import type { CapacitySuggestion } from '../../contracts/capacity-suggestion/capacity-suggestion-contract';
 import type { Megabytes } from '../../contracts/megabytes/megabytes-contract';
 import type { ProfilePoolSize } from '../../contracts/profile-pool-size/profile-pool-size-contract';
-import type { SpecName } from '../../contracts/spec-name/spec-name-contract';
 import { capacityStatics } from '../../statics/capacity/capacity-statics';
 
 const CLAUSE_SEPARATOR = '; ';
@@ -57,7 +56,7 @@ export const capacityWhyRenderTransformer = ({
   cores,
   loadAvg1,
 }: {
-  specName: SpecName;
+  specName: string;
   profile: CapacityProfile | null;
   suggestion: CapacitySuggestion;
   freeMemMB: Megabytes;

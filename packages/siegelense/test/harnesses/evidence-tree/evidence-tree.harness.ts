@@ -70,7 +70,6 @@ import { RunResultStub } from '../../../src/contracts/run-result/run-result.stub
 import { ServerLogByteCountStub } from '../../../src/contracts/server-log-byte-count/server-log-byte-count.stub';
 import { ShotListingStub } from '../../../src/contracts/shot-listing/shot-listing.stub';
 import { SpecHashStub } from '../../../src/contracts/spec-hash/spec-hash.stub';
-import { SpecNameStub } from '../../../src/contracts/spec-name/spec-name.stub';
 import { StepReadingStub } from '../../../src/contracts/step-reading/step-reading.stub';
 import type { BlankReading } from '../../../src/contracts/blank-reading/blank-reading-contract';
 import type { CleanupAnswer } from '../../../src/contracts/cleanup-answer/cleanup-answer-contract';
@@ -438,7 +437,7 @@ export const evidenceTreeHarness = (): {
     RegistryEntryStub({
       id: KILLED_INSTANCE_ID,
       owner: InstanceOwnerStub(),
-      specName: SpecNameStub(),
+      specName: 'dungeonmaster-stack',
       specHash: SpecHashStub(),
       pid: null,
       pgids: [],
@@ -456,7 +455,7 @@ export const evidenceTreeHarness = (): {
     RegistryEntryStub({
       id: LIVE_INSTANCE_ID,
       owner: InstanceOwnerStub(),
-      specName: SpecNameStub(),
+      specName: 'dungeonmaster-stack',
       specHash: SpecHashStub(),
       pid: ProcessIdStub(),
       pgids: [],
@@ -600,7 +599,7 @@ export const evidenceTreeHarness = (): {
     const staleEntry = RegistryEntryStub({
       id: STALE_INSTANCE_ID,
       owner: InstanceOwnerStub(),
-      specName: SpecNameStub(),
+      specName: 'dungeonmaster-stack',
       specHash: SpecHashStub(),
       pid: ProcessIdStub(),
       // heartbeatWriteBroker stamps the SAME pgids onto heartbeat.json and this row in one call —

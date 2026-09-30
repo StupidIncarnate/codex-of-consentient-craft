@@ -20,7 +20,6 @@ import { configResolveBroker, e2eProcessPlaceholderStatics } from '@dungeonmaste
 
 import { laneSpecContract } from '../../../contracts/lane-spec/lane-spec-contract';
 import type { LaneSpec } from '../../../contracts/lane-spec/lane-spec-contract';
-import type { SpecName } from '../../../contracts/spec-name/spec-name-contract';
 import { laneSpecConventionStatics } from '../../../statics/lane-spec-convention/lane-spec-convention-statics';
 import { driverStatics } from '../../../statics/driver/driver-statics';
 import { E2eNotConfiguredError } from '../../../errors/e2e-not-configured/e2e-not-configured-error';
@@ -28,7 +27,7 @@ import { E2eNotConfiguredError } from '../../../errors/e2e-not-configured/e2e-no
 export const laneSpecFindBroker = async ({
   specName,
 }: {
-  specName: SpecName;
+  specName: string;
 }): Promise<LaneSpec> => {
   const browser =
     specName === laneSpecConventionStatics.browsered

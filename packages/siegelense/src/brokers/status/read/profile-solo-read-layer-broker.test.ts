@@ -1,4 +1,3 @@
-import { SpecNameStub } from '../../../contracts/spec-name/spec-name.stub';
 import { SpecProfileStub } from '../../../contracts/spec-profile/spec-profile.stub';
 
 import { profileSoloReadLayerBroker } from './profile-solo-read-layer-broker';
@@ -19,7 +18,7 @@ describe('profileSoloReadLayerBroker', () => {
       });
 
       const result = await profileSoloReadLayerBroker({
-        specName: SpecNameStub({ value: 'stack' }),
+        specName: 'stack',
       });
 
       expect(result).toStrictEqual({
@@ -43,7 +42,7 @@ describe('profileSoloReadLayerBroker', () => {
       });
 
       const result = await profileSoloReadLayerBroker({
-        specName: SpecNameStub({ value: 'stack' }),
+        specName: 'stack',
       });
 
       expect(result).toStrictEqual({
@@ -70,7 +69,7 @@ describe('profileSoloReadLayerBroker', () => {
       });
 
       const result = await profileSoloReadLayerBroker({
-        specName: SpecNameStub({ value: 'stack' }),
+        specName: 'stack',
       });
 
       expect(result).toBe(null);
@@ -81,12 +80,12 @@ describe('profileSoloReadLayerBroker', () => {
     it('ERROR: {profileReadBroker rejects} => returns null and logs the failure instead of throwing', async () => {
       const proxy = profileSoloReadLayerBrokerProxy();
       proxy.setupProfileReadFails({
-        specName: SpecNameStub({ value: 'ghost' }),
+        specName: 'ghost',
         error: new Error('Unknown lane spec "ghost". Known specs: stack, api'),
       });
 
       const result = await profileSoloReadLayerBroker({
-        specName: SpecNameStub({ value: 'ghost' }),
+        specName: 'ghost',
       });
 
       expect(result).toBe(null);

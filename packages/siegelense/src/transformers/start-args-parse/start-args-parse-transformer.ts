@@ -34,7 +34,6 @@
 import { timeoutMsContract, questContract, guildContract } from '@dungeonmaster/shared/contracts';
 
 import { recipeNameContract } from '../../contracts/recipe-name/recipe-name-contract';
-import { specNameContract } from '../../contracts/spec-name/spec-name-contract';
 import { startArgsContract } from '../../contracts/start-args/start-args-contract';
 import type { StartArgs } from '../../contracts/start-args/start-args-contract';
 import { driverStatics } from '../../statics/driver/driver-statics';
@@ -111,7 +110,7 @@ export const startArgsParseTransformer = ({ args }: { args: readonly string[] })
   return startArgsContract.parse({
     specName: flagContractParseTransformer({
       flag: SPEC_FLAG,
-      parse: () => specNameContract.parse(specValue),
+      parse: () => specValue,
     }),
     questId:
       questValue === null

@@ -37,7 +37,6 @@ import type { CapacityAnswer } from '../../../contracts/capacity-answer/capacity
 import { capacityMeasuredContract } from '../../../contracts/capacity-measured/capacity-measured-contract';
 import { profilePoolSizeContract } from '../../../contracts/profile-pool-size/profile-pool-size-contract';
 import type { ProfilePoolSize } from '../../../contracts/profile-pool-size/profile-pool-size-contract';
-import type { SpecName } from '../../../contracts/spec-name/spec-name-contract';
 import { isReservedRegistryEntryGuard } from '../../../guards/is-reserved-registry-entry/is-reserved-registry-entry-guard';
 import { isStaleRegistryEntryGuard } from '../../../guards/is-stale-registry-entry/is-stale-registry-entry-guard';
 import { isStaleReservationRegistryEntryGuard } from '../../../guards/is-stale-reservation-registry-entry/is-stale-reservation-registry-entry-guard';
@@ -55,7 +54,7 @@ export const capacityReadBroker = async ({
   specName,
   poolSize,
 }: {
-  specName: SpecName;
+  specName: string;
   poolSize: ProfilePoolSize | null;
 }): Promise<CapacityAnswer> => {
   // The pool a caller has not named is the largest one policy allows, so the group read is the most

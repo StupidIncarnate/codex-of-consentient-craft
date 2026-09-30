@@ -48,14 +48,13 @@ import { instanceStateContract } from '../instance-state/instance-state-contract
 import { portPairContract } from '../port-pair/port-pair-contract';
 import { processGroupIdContract } from '../process-group-id/process-group-id-contract';
 import { specHashContract } from '../spec-hash/spec-hash-contract';
-import { specNameContract } from '../spec-name/spec-name-contract';
 
 export const registryEntryContract = z.object({
   id: siegeInstanceContract.shape.id,
   owner: instanceOwnerContract,
   questId: questContract.shape.id.nullable(),
   guildId: guildContract.shape.id.nullable(),
-  specName: specNameContract,
+  specName: z.string().min(1).brand<'RegistryEntrySpecName'>(),
   specHash: specHashContract,
   pid: processIdContract.nullable(),
   pgids: z.array(processGroupIdContract).readonly(),

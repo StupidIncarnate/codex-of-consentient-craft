@@ -28,7 +28,6 @@ import { PortPairStub } from '../../../contracts/port-pair/port-pair.stub';
 import { PruneQueryStub } from '../../../contracts/prune-query/prune-query.stub';
 import { RegistryEntryStub } from '../../../contracts/registry-entry/registry-entry.stub';
 import { SpecHashStub } from '../../../contracts/spec-hash/spec-hash.stub';
-import { SpecNameStub } from '../../../contracts/spec-name/spec-name.stub';
 import { locationsInstanceEvidencePathFindBroker } from '../../locations/instance-evidence-path-find/locations-instance-evidence-path-find-broker';
 import { registryReadBroker } from '../../registry/read/registry-read-broker';
 import { registryWriteBroker } from '../../registry/write/registry-write-broker';
@@ -88,7 +87,7 @@ describe('prune, against a real evidence tree', () => {
           RegistryEntryStub({
             id: CITED_ID,
             owner: InstanceOwnerStub(),
-            specName: SpecNameStub(),
+            specName: 'dungeonmaster-stack',
             specHash: SpecHashStub(),
             pid: null,
             pgids: [],
@@ -106,7 +105,7 @@ describe('prune, against a real evidence tree', () => {
           RegistryEntryStub({
             id: UNCITED_ID,
             owner: InstanceOwnerStub(),
-            specName: SpecNameStub(),
+            specName: 'dungeonmaster-stack',
             specHash: SpecHashStub(),
             pid: null,
             pgids: [],
@@ -124,7 +123,7 @@ describe('prune, against a real evidence tree', () => {
           RegistryEntryStub({
             id: NEIGHBOUR_ID,
             owner: InstanceOwnerStub(),
-            specName: SpecNameStub(),
+            specName: 'dungeonmaster-stack',
             specHash: SpecHashStub(),
             pid: null,
             pgids: [],
@@ -142,7 +141,7 @@ describe('prune, against a real evidence tree', () => {
           RegistryEntryStub({
             id: LIVE_ID,
             owner: InstanceOwnerStub(),
-            specName: SpecNameStub(),
+            specName: 'dungeonmaster-stack',
             specHash: SpecHashStub(),
             pid: null,
             pgids: [],
@@ -160,7 +159,7 @@ describe('prune, against a real evidence tree', () => {
           RegistryEntryStub({
             id: DRY_RUN_ID,
             owner: InstanceOwnerStub(),
-            specName: SpecNameStub(),
+            specName: 'dungeonmaster-stack',
             specHash: SpecHashStub(),
             pid: null,
             pgids: [],

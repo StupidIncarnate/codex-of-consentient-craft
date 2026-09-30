@@ -14,7 +14,6 @@ import { DevServerE2eProcessStub } from '@dungeonmaster/config/contracts/dev-ser
 import { InstanceIdStub } from '../../../contracts/instance-id/instance-id.stub';
 import { MegabytesStub } from '../../../contracts/megabytes/megabytes.stub';
 import { RegistryEntryStub } from '../../../contracts/registry-entry/registry-entry.stub';
-import { SpecNameStub } from '../../../contracts/spec-name/spec-name.stub';
 import { profileStatics } from '../../../statics/profile/profile-statics';
 import { registryUpdateBroker } from '../../registry/update/registry-update-broker';
 import { profileBootRecordBroker } from '../boot-record/profile-boot-record-broker';
@@ -24,7 +23,7 @@ import { laneSpecHashBroker } from '../../lane-spec/hash/lane-spec-hash-broker';
 
 import { profileSampleRecordBroker } from './profile-sample-record-broker';
 
-const HEADLESS_SPEC = SpecNameStub({ value: 'api' });
+const HEADLESS_SPEC = 'api';
 const SUBJECT_ID = InstanceIdStub({ value: 'inst_aaaa1111' });
 const SECOND_ID = InstanceIdStub({ value: 'inst_bbbb2222' });
 const THIRD_ID = InstanceIdStub({ value: 'inst_cccc3333' });

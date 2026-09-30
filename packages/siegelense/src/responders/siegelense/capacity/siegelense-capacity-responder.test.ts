@@ -2,7 +2,6 @@ import { CapacityAnswerStub } from '../../../contracts/capacity-answer/capacity-
 import { CapacityMeasuredStub } from '../../../contracts/capacity-measured/capacity-measured.stub';
 import { CapacityProfileStub } from '../../../contracts/capacity-profile/capacity-profile.stub';
 import { ProfilePoolSizeStub } from '../../../contracts/profile-pool-size/profile-pool-size.stub';
-import { SpecNameStub } from '../../../contracts/spec-name/spec-name.stub';
 import { siegelenseOutputStatics } from '../../../statics/siegelense-output/siegelense-output-statics';
 import { capacityAnswerRenderTransformer } from '../../../transformers/capacity-answer-render/capacity-answer-render-transformer';
 
@@ -22,11 +21,11 @@ describe('SiegelenseCapacityResponder', () => {
         measured: CapacityMeasuredStub(),
         profile: CapacityProfileStub(),
       });
-      proxy.stageAnswer({ specName: SpecNameStub(), poolSize: null, answer });
+      proxy.stageAnswer({ specName: 'dungeonmaster-stack', poolSize: null, answer });
 
       await expect(
         SiegelenseCapacityResponder({
-          specName: SpecNameStub(),
+          specName: 'dungeonmaster-stack',
           poolSize: null,
         }),
       ).resolves.toBe(undefined);
@@ -47,11 +46,11 @@ describe('SiegelenseCapacityResponder', () => {
         measured: CapacityMeasuredStub(),
         profile: CapacityProfileStub(),
       });
-      proxy.stageAnswer({ specName: SpecNameStub(), poolSize: null, answer });
+      proxy.stageAnswer({ specName: 'dungeonmaster-stack', poolSize: null, answer });
 
       await expect(
         SiegelenseCapacityResponder({
-          specName: SpecNameStub(),
+          specName: 'dungeonmaster-stack',
           poolSize: null,
           isJson: true,
         }),
@@ -66,7 +65,7 @@ describe('SiegelenseCapacityResponder', () => {
   describe('both flags named', () => {
     it('VALID: {specName, poolSize: 3} => passes both through to the broker and writes human summary', async () => {
       const proxy = SiegelenseCapacityResponderProxy();
-      const specName = SpecNameStub({ value: 'dungeonmaster-api' });
+      const specName = 'dungeonmaster-api';
       const poolSize = ProfilePoolSizeStub({ value: 3 });
       const answer = CapacityAnswerStub({
         suggested: 1,
@@ -100,9 +99,9 @@ describe('SiegelenseCapacityResponder', () => {
           'no measured profile for dungeonmaster-stack, so the default pair of 2 profiles itself; ' +
           'free RAM 5320MB less 512MB headroom; nothing else up',
       });
-      proxy.stageAnswer({ specName: SpecNameStub(), poolSize: null, answer });
+      proxy.stageAnswer({ specName: 'dungeonmaster-stack', poolSize: null, answer });
 
-      await SiegelenseCapacityResponder({ specName: SpecNameStub(), poolSize: null });
+      await SiegelenseCapacityResponder({ specName: 'dungeonmaster-stack', poolSize: null });
 
       expect(proxy.getStdoutWrites()).toStrictEqual([capacityAnswerRenderTransformer({ answer })]);
     });

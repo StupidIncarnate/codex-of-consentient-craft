@@ -19,11 +19,10 @@ import { z } from '#gateway/npm/zod';
 
 import { megabytesContract } from '../megabytes/megabytes-contract';
 import { profilePoolSizeContract } from '../profile-pool-size/profile-pool-size-contract';
-import { specNameContract } from '../spec-name/spec-name-contract';
 
 export const capacityProfileContract = z
   .object({
-    spec: specNameContract,
+    spec: z.string().min(1).brand<'CapacityProfileSpec'>(),
     poolSize: profilePoolSizeContract,
     steadyMB: megabytesContract,
     peakMB: megabytesContract,

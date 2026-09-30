@@ -1,4 +1,3 @@
-import { SpecNameStub } from '../spec-name/spec-name.stub';
 import { capacityArgsContract } from './capacity-args-contract';
 import { CapacityArgsStub } from './capacity-args.stub';
 
@@ -16,7 +15,7 @@ describe('capacityArgsContract', () => {
 
     it('VALID: {specName, poolSize: 3} => parses both through with default isJson false', () => {
       const result = capacityArgsContract.parse(
-        CapacityArgsStub({ specName: SpecNameStub({ value: 'dungeonmaster-api' }), poolSize: 3 }),
+        CapacityArgsStub({ specName: 'dungeonmaster-api', poolSize: 3 }),
       );
 
       expect(result).toStrictEqual({ specName: 'dungeonmaster-api', poolSize: 3, isJson: false });
@@ -25,7 +24,7 @@ describe('capacityArgsContract', () => {
     it('VALID: {specName, poolSize: 3, isJson: true} => parses all three fields', () => {
       const result = capacityArgsContract.parse(
         CapacityArgsStub({
-          specName: SpecNameStub({ value: 'dungeonmaster-api' }),
+          specName: 'dungeonmaster-api',
           poolSize: 3,
           isJson: true,
         }),

@@ -30,11 +30,10 @@ import { z } from '#gateway/npm/zod';
 import { timeoutMsContract, questContract, guildContract } from '@dungeonmaster/shared/contracts';
 
 import { recipeNameContract } from '../recipe-name/recipe-name-contract';
-import { specNameContract } from '../spec-name/spec-name-contract';
 
 export const startArgsContract = z
   .object({
-    specName: specNameContract,
+    specName: z.string().min(1).brand<'StartArgsSpecName'>(),
     questId: questContract.shape.id.nullable(),
     guildId: guildContract.shape.id.nullable(),
     // The recipe to run against the new lane once it is up, filling the manifest's `seeded`

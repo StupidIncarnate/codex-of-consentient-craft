@@ -2,7 +2,6 @@ import type { StubArgument } from '@dungeonmaster/shared/@types';
 
 import { InstanceIdStub } from '../instance-id/instance-id.stub';
 import { RepoLocalPathStub } from '../repo-local-path/repo-local-path.stub';
-import { SpecNameStub } from '../spec-name/spec-name.stub';
 import { instanceManifestContract } from './instance-manifest-contract';
 import type { InstanceManifest } from './instance-manifest-contract';
 
@@ -11,7 +10,7 @@ export const InstanceManifestStub = ({
 }: StubArgument<InstanceManifest> = {}): InstanceManifest =>
   instanceManifestContract.parse({
     instanceId: InstanceIdStub(),
-    specName: SpecNameStub(),
+    specName: 'dungeonmaster-stack',
     baseUrl: 'http://localhost:34173',
     home: '/tmp/dm-siege-inst_7f3a9c21',
     evidence: RepoLocalPathStub({

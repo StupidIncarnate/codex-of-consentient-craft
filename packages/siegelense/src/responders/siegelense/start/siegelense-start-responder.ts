@@ -47,7 +47,6 @@ import type { RecipeName } from '../../../contracts/recipe-name/recipe-name-cont
 import { instanceStartBroker } from '../../../brokers/instance/start/instance-start-broker';
 import { questOwningGuildFindBroker } from '../../../brokers/quest/owning-guild-find/quest-owning-guild-find-broker';
 import { recipesReadBroker } from '../../../brokers/recipes/read/recipes-read-broker';
-import type { SpecName } from '../../../contracts/spec-name/spec-name-contract';
 import { RecipeUnknownError } from '../../../errors/recipe-unknown/recipe-unknown-error';
 import { SeedRecipeNeedsInputError } from '../../../errors/seed-recipe-needs-input/seed-recipe-needs-input-error';
 import { siegelenseOutputStatics } from '../../../statics/siegelense-output/siegelense-output-statics';
@@ -61,7 +60,7 @@ export const SiegelenseStartResponder = async ({
   idleTimeoutMs,
   isJson = false,
 }: {
-  specName: SpecName;
+  specName: string;
   questId: Quest['id'] | null;
   guildId: Guild['id'] | null;
   seed: RecipeName | null;

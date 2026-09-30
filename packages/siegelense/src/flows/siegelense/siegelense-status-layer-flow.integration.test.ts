@@ -36,7 +36,6 @@ import { locationsStatics } from '@dungeonmaster/shared/statics';
 import { InstanceIdStub } from '../../contracts/instance-id/instance-id.stub';
 import { RegistryEntryStub } from '../../contracts/registry-entry/registry-entry.stub';
 import { RegistryStub } from '../../contracts/registry/registry.stub';
-import { SpecNameStub } from '../../contracts/spec-name/spec-name.stub';
 import { InstanceUnknownError } from '../../errors/instance-unknown/instance-unknown-error';
 import { machineStatics } from '../../statics/machine/machine-statics';
 import { siegelenseOutputStatics } from '../../statics/siegelense-output/siegelense-output-statics';
@@ -50,7 +49,7 @@ const MAIN_RECENT_ID = InstanceIdStub({ value: 'inst_00001aaa' });
 const FEATURE_MID_ID = InstanceIdStub({ value: 'inst_00002bbb' });
 const MAIN_OLD_ID = InstanceIdStub({ value: 'inst_00003ccc' });
 const UNKNOWN_INSTANCE_ID = InstanceIdStub({ value: 'inst_deadbeef01' });
-const SPEC_NAME = SpecNameStub({ value: 'dungeonmaster-stack' });
+const SPEC_NAME = 'dungeonmaster-stack';
 
 const MACHINE_BLOCK_PATTERN = / {2}"machine": \{[\s\S]*?\n {2}\},\n/u;
 // Matches the LIKELY CAUSE cell's own trimmed VALUE (no "LIKELY CAUSE:" prefix, no box-drawing

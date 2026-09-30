@@ -16,7 +16,6 @@
 import { capacityArgsContract } from '../../contracts/capacity-args/capacity-args-contract';
 import type { CapacityArgs } from '../../contracts/capacity-args/capacity-args-contract';
 import { profilePoolSizeContract } from '../../contracts/profile-pool-size/profile-pool-size-contract';
-import { specNameContract } from '../../contracts/spec-name/spec-name-contract';
 import { laneSpecConventionStatics } from '../../statics/lane-spec-convention/lane-spec-convention-statics';
 import { siegelenseOutputStatics } from '../../statics/siegelense-output/siegelense-output-statics';
 import { flagContractParseTransformer } from '../flag-contract-parse/flag-contract-parse-transformer';
@@ -75,7 +74,7 @@ export const capacityArgsParseTransformer = ({
 
   const specName = flagContractParseTransformer({
     flag: SPEC_FLAG,
-    parse: () => specNameContract.parse(rawSpecName),
+    parse: () => rawSpecName,
   });
 
   const rawPoolSize = flagValueReadTransformer({ args, flag: POOL_FLAG });

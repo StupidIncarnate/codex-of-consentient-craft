@@ -28,10 +28,9 @@ import { recipesReadBroker } from '../../../brokers/recipes/read/recipes-read-br
 import { recipesReadBrokerProxy } from '../../../brokers/recipes/read/recipes-read-broker.proxy';
 import type { InstanceManifestStub } from '../../../contracts/instance-manifest/instance-manifest.stub';
 import type { RecipeListingEntryStub } from '../../../contracts/recipe-listing-entry/recipe-listing-entry.stub';
-import type { SpecNameStub } from '../../../contracts/spec-name/spec-name.stub';
 
 type InstanceManifest = ReturnType<typeof InstanceManifestStub>;
-type SpecName = ReturnType<typeof SpecNameStub>;
+type SpecName = string;
 type RecipeListingEntry = ReturnType<typeof RecipeListingEntryStub>;
 
 export const SiegelenseStartResponderProxy = (): {

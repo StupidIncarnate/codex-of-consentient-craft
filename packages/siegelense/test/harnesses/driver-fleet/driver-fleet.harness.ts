@@ -45,7 +45,6 @@ import type { KillResult } from '../../../src/contracts/kill-result/kill-result-
 import { ProcessGroupIdStub } from '../../../src/contracts/process-group-id/process-group-id.stub';
 import type { ProcessGroupId } from '../../../src/contracts/process-group-id/process-group-id-contract';
 import type { RegistryEntry } from '../../../src/contracts/registry-entry/registry-entry-contract';
-import type { SpecName } from '../../../src/contracts/spec-name/spec-name-contract';
 import { driverStatics } from '../../../src/statics/driver/driver-statics';
 
 // How often waitForHeartbeatPgids re-checks the file. instanceLifecycleStatics.heartbeat.intervalMs
@@ -100,7 +99,7 @@ const REPO_ROOT = resolvePath(__dirname, '..', '..', '..', '..', '..');
 export const driverFleetHarness = (): {
   ensureHomeReady: (params: { home: string }) => void;
   configureApiLane: (params: { configDir: string }) => void;
-  boot: (params: { specName: SpecName; idleTimeoutMs?: TimeoutMs }) => Promise<InstanceManifest>;
+  boot: (params: { specName: string; idleTimeoutMs?: TimeoutMs }) => Promise<InstanceManifest>;
   killViaBroker: (params: { instanceId: SiegeInstance['id'] }) => Promise<KillResult>;
   sigkillDriverPid: (params: { pid: ProcessId }) => void;
   registryEntry: (params: { instanceId: SiegeInstance['id'] }) => Promise<RegistryEntry | undefined>;
@@ -176,7 +175,7 @@ export const driverFleetHarness = (): {
     specName,
     idleTimeoutMs,
   }: {
-    specName: SpecName;
+    specName: string;
     idleTimeoutMs?: TimeoutMs;
   }): Promise<InstanceManifest> => {
     // See the module-level comment on FAKE_CLAUDE_CLI_PATH/FAKE_WARD_CLI_PATH above. Set here

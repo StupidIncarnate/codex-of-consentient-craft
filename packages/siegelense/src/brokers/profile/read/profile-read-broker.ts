@@ -33,7 +33,6 @@ import { profileObservationContract } from '../../../contracts/profile-observati
 import type { ProfileObservation } from '../../../contracts/profile-observation/profile-observation-contract';
 import { specProfileContract } from '../../../contracts/spec-profile/spec-profile-contract';
 import type { SpecProfile } from '../../../contracts/spec-profile/spec-profile-contract';
-import type { SpecName } from '../../../contracts/spec-name/spec-name-contract';
 import { profileStatics } from '../../../statics/profile/profile-statics';
 import { profileMeasuredDateRenderTransformer } from '../../../transformers/profile-measured-date-render/profile-measured-date-render-transformer';
 import { profileSamplesGroupTransformer } from '../../../transformers/profile-samples-group/profile-samples-group-transformer';
@@ -46,7 +45,7 @@ const BROWSER_PROCESS_COUNT = 1;
 export const profileReadBroker = async ({
   specName,
 }: {
-  specName: SpecName;
+  specName: string;
 }): Promise<SpecProfile> => {
   const spec = await laneSpecFindBroker({ specName });
   const specHash = laneSpecHashBroker({ spec });

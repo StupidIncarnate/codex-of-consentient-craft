@@ -52,7 +52,6 @@
 import type { CapacityProfile } from '../../../contracts/capacity-profile/capacity-profile-contract';
 import type { InstanceState } from '../../../contracts/instance-state/instance-state-contract';
 import type { Megabytes } from '../../../contracts/megabytes/megabytes-contract';
-import type { SpecName } from '../../../contracts/spec-name/spec-name-contract';
 
 export const likelyCauseLayerBroker = ({
   state,
@@ -63,7 +62,7 @@ export const likelyCauseLayerBroker = ({
   soloProfile,
 }: {
   state: InstanceState;
-  specName: SpecName;
+  specName: string;
   rssAtLastBeat: Megabytes | null;
   oomKillsSinceBoot: number | null;
   shutdownReason: string | null;

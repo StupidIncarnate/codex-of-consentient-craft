@@ -1,7 +1,6 @@
 import { DevServerE2eProcessStub } from '@dungeonmaster/config/contracts/dev-server-e2e-process/dev-server-e2e-process.stub';
 
 import { SpecHashStub } from '../../../contracts/spec-hash/spec-hash.stub';
-import { SpecNameStub } from '../../../contracts/spec-name/spec-name.stub';
 import { laneSpecFindBroker } from '../../lane-spec/find/lane-spec-find-broker';
 import { laneSpecHashBroker } from '../../lane-spec/hash/lane-spec-hash-broker';
 
@@ -9,8 +8,8 @@ import { profileReadBroker } from './profile-read-broker';
 import { profileReadBrokerProxy } from './profile-read-broker.proxy';
 
 const ROOT_PATH_VALUE = '/home/user/.dungeonmaster/siegelense';
-const WEB_SPEC = SpecNameStub({ value: 'stack' });
-const HEADLESS_SPEC = SpecNameStub({ value: 'api' });
+const WEB_SPEC = 'stack';
+const HEADLESS_SPEC = 'api';
 const BEAT_MS = 1_757_808_000_000;
 
 // The digests are REAL: laneSpecHashBrokerProxy stages nothing, so each spec's profile directory is
@@ -19,7 +18,7 @@ const BEAT_MS = 1_757_808_000_000;
 const specHashFor = async ({
   specName,
 }: {
-  specName: ReturnType<typeof SpecNameStub>;
+  specName: string;
 }): Promise<ReturnType<typeof SpecHashStub>> =>
   SpecHashStub({
     value: String(laneSpecHashBroker({ spec: await laneSpecFindBroker({ specName }) })),
@@ -28,7 +27,7 @@ const specHashFor = async ({
 const profilesPathFor = async ({
   specName,
 }: {
-  specName: ReturnType<typeof SpecNameStub>;
+  specName: string;
 }): Promise<string> =>
   `${ROOT_PATH_VALUE}/profiles/${String(await specHashFor({ specName }))}`;
 

@@ -1,7 +1,6 @@
 
 import { CapacityProfileStub } from '../../../contracts/capacity-profile/capacity-profile.stub';
 import { MegabytesStub } from '../../../contracts/megabytes/megabytes.stub';
-import { SpecNameStub } from '../../../contracts/spec-name/spec-name.stub';
 
 import { likelyCauseLayerBroker } from './likely-cause-layer-broker';
 import { likelyCauseLayerBrokerProxy } from './likely-cause-layer-broker.proxy';
@@ -13,7 +12,7 @@ describe('likelyCauseLayerBroker', () => {
 
       const result = likelyCauseLayerBroker({
         state: 'dead',
-        specName: SpecNameStub({ value: 'dungeonmaster-stack' }),
+        specName: 'dungeonmaster-stack',
         rssAtLastBeat: MegabytesStub({ value: 2980 }),
         oomKillsSinceBoot: 2,
         shutdownReason: null,
@@ -32,7 +31,7 @@ describe('likelyCauseLayerBroker', () => {
 
       const result = likelyCauseLayerBroker({
         state: 'dead',
-        specName: SpecNameStub({ value: 'dungeonmaster-stack' }),
+        specName: 'dungeonmaster-stack',
         rssAtLastBeat: null,
         oomKillsSinceBoot: null,
         shutdownReason: null,
@@ -49,7 +48,7 @@ describe('likelyCauseLayerBroker', () => {
 
       const result = likelyCauseLayerBroker({
         state: 'killed',
-        specName: SpecNameStub({ value: 'dungeonmaster-stack' }),
+        specName: 'dungeonmaster-stack',
         rssAtLastBeat: MegabytesStub({ value: 1200 }),
         oomKillsSinceBoot: 0,
         shutdownReason: null,
@@ -68,7 +67,7 @@ describe('likelyCauseLayerBroker', () => {
 
       const result = likelyCauseLayerBroker({
         state: 'dead',
-        specName: SpecNameStub({ value: 'stack' }),
+        specName: 'stack',
         rssAtLastBeat: MegabytesStub({ value: 609 }),
         oomKillsSinceBoot: 0,
         shutdownReason: null,
@@ -91,7 +90,7 @@ describe('likelyCauseLayerBroker', () => {
 
       const result = likelyCauseLayerBroker({
         state: 'dead',
-        specName: SpecNameStub({ value: 'stack' }),
+        specName: 'stack',
         rssAtLastBeat: MegabytesStub({ value: 2900 }),
         oomKillsSinceBoot: 1,
         shutdownReason: null,
@@ -116,7 +115,7 @@ describe('likelyCauseLayerBroker', () => {
 
       const result = likelyCauseLayerBroker({
         state: 'dead',
-        specName: SpecNameStub({ value: 'dungeonmaster-stack' }),
+        specName: 'dungeonmaster-stack',
         rssAtLastBeat: MegabytesStub({ value: 622 }),
         oomKillsSinceBoot: 1,
         shutdownReason: 'reaped by idle timeout after 900s with no run received',
@@ -131,7 +130,7 @@ describe('likelyCauseLayerBroker', () => {
 
       const result = likelyCauseLayerBroker({
         state: 'killed',
-        specName: SpecNameStub({ value: 'dungeonmaster-stack' }),
+        specName: 'dungeonmaster-stack',
         rssAtLastBeat: null,
         oomKillsSinceBoot: null,
         shutdownReason: 'reaped by idle timeout after 900s with no run received',
@@ -146,7 +145,7 @@ describe('likelyCauseLayerBroker', () => {
 
       const result = likelyCauseLayerBroker({
         state: 'dead',
-        specName: SpecNameStub({ value: 'stack' }),
+        specName: 'stack',
         rssAtLastBeat: MegabytesStub({ value: 609 }),
         oomKillsSinceBoot: 0,
         shutdownReason: 'reaped by cleanup after its heartbeat went stale',
@@ -169,7 +168,7 @@ describe('likelyCauseLayerBroker', () => {
 
       const result = likelyCauseLayerBroker({
         state: 'alive',
-        specName: SpecNameStub({ value: 'dungeonmaster-stack' }),
+        specName: 'dungeonmaster-stack',
         rssAtLastBeat: null,
         oomKillsSinceBoot: 2,
         shutdownReason: null,
@@ -184,7 +183,7 @@ describe('likelyCauseLayerBroker', () => {
 
       const result = likelyCauseLayerBroker({
         state: 'alive',
-        specName: SpecNameStub({ value: 'dungeonmaster-stack' }),
+        specName: 'dungeonmaster-stack',
         rssAtLastBeat: null,
         oomKillsSinceBoot: null,
         shutdownReason: 'reaped by idle timeout',
@@ -199,7 +198,7 @@ describe('likelyCauseLayerBroker', () => {
 
       const result = likelyCauseLayerBroker({
         state: 'alive',
-        specName: SpecNameStub({ value: 'dungeonmaster-stack' }),
+        specName: 'dungeonmaster-stack',
         rssAtLastBeat: null,
         oomKillsSinceBoot: null,
         shutdownReason: null,

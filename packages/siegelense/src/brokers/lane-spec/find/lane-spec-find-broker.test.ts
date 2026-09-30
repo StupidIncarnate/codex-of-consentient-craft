@@ -1,6 +1,5 @@
 import { laneSpecFindBroker } from './lane-spec-find-broker';
 import { laneSpecFindBrokerProxy } from './lane-spec-find-broker.proxy';
-import { SpecNameStub } from '../../../contracts/spec-name/spec-name.stub';
 import { E2eNotConfiguredError } from '../../../errors/e2e-not-configured/e2e-not-configured-error';
 import { e2eProcessPlaceholderStatics } from '@dungeonmaster/config';
 import { DevServerE2eProcessStub } from '@dungeonmaster/config/contracts/dev-server-e2e-process/dev-server-e2e-process.stub';
@@ -9,7 +8,7 @@ describe('laneSpecFindBroker', () => {
   describe('a configured repo', () => {
     it('VALID: {specName: "api"} => returns the validated, browserless spec built from devServer.e2e.processes', async () => {
       const proxy = laneSpecFindBrokerProxy();
-      const specName = SpecNameStub({ value: 'api' });
+      const specName = 'api';
       proxy.setupConfiguredProcesses({
         processes: [
           DevServerE2eProcessStub({
@@ -29,7 +28,7 @@ describe('laneSpecFindBroker', () => {
 
     it('VALID: {specName: "stack"} => returns the validated, browsered spec built from the same config', async () => {
       const proxy = laneSpecFindBrokerProxy();
-      const specName = SpecNameStub({ value: 'stack' });
+      const specName = 'stack';
       proxy.setupConfiguredProcesses({
         processes: [
           DevServerE2eProcessStub({
@@ -49,7 +48,7 @@ describe('laneSpecFindBroker', () => {
 
     it('VALID: {two configured processes} => builds one LaneProcess per configured entry, each spawned through sh -c', async () => {
       const proxy = laneSpecFindBrokerProxy();
-      const specName = SpecNameStub({ value: 'stack' });
+      const specName = 'stack';
       proxy.setupConfiguredProcesses({
         processes: [
           DevServerE2eProcessStub({
@@ -102,7 +101,7 @@ describe('laneSpecFindBroker', () => {
   describe('devServer.e2e is absent', () => {
     it('ERROR: {no devServer.e2e in the resolved config} => throws E2eNotConfiguredError naming devServer.e2e.processes', async () => {
       const proxy = laneSpecFindBrokerProxy();
-      const specName = SpecNameStub({ value: 'api' });
+      const specName = 'api';
       proxy.setupE2eAbsent();
 
       const caughtError = (await laneSpecFindBroker({ specName }).catch(
@@ -121,7 +120,7 @@ describe('laneSpecFindBroker', () => {
 
     it('ERROR: {devServer itself absent from config} => throws the same named error', async () => {
       const proxy = laneSpecFindBrokerProxy();
-      const specName = SpecNameStub({ value: 'api' });
+      const specName = 'api';
       proxy.setupDevServerAbsent();
 
       await expect(laneSpecFindBroker({ specName })).rejects.toThrow(E2eNotConfiguredError);
@@ -131,7 +130,7 @@ describe('laneSpecFindBroker', () => {
   describe('devServer.e2e.processes is the unedited placeholder', () => {
     it('ERROR: {the seeded placeholder, unedited} => throws E2eNotConfiguredError', async () => {
       const proxy = laneSpecFindBrokerProxy();
-      const specName = SpecNameStub({ value: 'api' });
+      const specName = 'api';
       proxy.setupConfiguredProcesses({
         processes: [DevServerE2eProcessStub(e2eProcessPlaceholderStatics.process)],
       });
@@ -143,7 +142,7 @@ describe('laneSpecFindBroker', () => {
   describe('an unknown spec name', () => {
     it('ERROR: {specName: "nightly"} => throws naming the spec and the known convention names', async () => {
       laneSpecFindBrokerProxy();
-      const specName = SpecNameStub({ value: 'nightly' });
+      const specName = 'nightly';
 
       await expect(laneSpecFindBroker({ specName })).rejects.toThrow(
         /^Unknown lane spec "nightly"\. Known specs: stack, api$/u,

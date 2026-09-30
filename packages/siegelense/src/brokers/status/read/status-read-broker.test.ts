@@ -5,7 +5,6 @@ import { InstanceIdStub } from '../../../contracts/instance-id/instance-id.stub'
 import { ProcessGroupIdStub } from '../../../contracts/process-group-id/process-group-id.stub';
 import { RegistryEntryStub } from '../../../contracts/registry-entry/registry-entry.stub';
 import { RegistryStub } from '../../../contracts/registry/registry.stub';
-import { SpecNameStub } from '../../../contracts/spec-name/spec-name.stub';
 import { SpecProfileStub } from '../../../contracts/spec-profile/spec-profile.stub';
 import { StatusAnswerStub } from '../../../contracts/status-answer/status-answer.stub';
 import { StepReadingStub } from '../../../contracts/step-reading/step-reading.stub';
@@ -30,7 +29,7 @@ describe('statusReadBroker', () => {
         RegistryEntryStub({
           id,
           guildId: null,
-          specName: SpecNameStub({ value: 'dungeonmaster-stack' }),
+          specName: 'dungeonmaster-stack',
           pgids: [ProcessGroupIdStub({ value: 4_143_212 + index })],
           state: 'alive',
           bootedAtMs: (nowMs - 60_000),
@@ -163,7 +162,7 @@ describe('statusReadBroker', () => {
       const entry = RegistryEntryStub({
         id: instanceId,
         guildId,
-        specName: SpecNameStub({ value: 'dungeonmaster-stack' }),
+        specName: 'dungeonmaster-stack',
         pgids: [pgid],
         state: 'alive',
         lastBeatMs: (nowMs - 240_000),
@@ -338,7 +337,7 @@ describe('statusReadBroker', () => {
       const entry1 = RegistryEntryStub({
         id: id1,
         branch: 'feat/branch-a',
-        specName: SpecNameStub({ value: 'dungeonmaster-stack' }),
+        specName: 'dungeonmaster-stack',
         state: 'alive',
         bootedAtMs: (nowMs - 60_000),
         lastBeatMs: (nowMs - 1000),
@@ -346,7 +345,7 @@ describe('statusReadBroker', () => {
       const entry2 = RegistryEntryStub({
         id: id2,
         branch: 'main',
-        specName: SpecNameStub({ value: 'dungeonmaster-stack' }),
+        specName: 'dungeonmaster-stack',
         state: 'alive',
         bootedAtMs: (nowMs - 60_000),
         lastBeatMs: (nowMs - 1000),
@@ -414,7 +413,7 @@ describe('statusReadBroker', () => {
       const entryRecent = RegistryEntryStub({
         id: idRecent,
         branch: 'main',
-        specName: SpecNameStub({ value: 'dungeonmaster-stack' }),
+        specName: 'dungeonmaster-stack',
         state: 'alive',
         bootedAtMs: (nowMs - 60_000),
         lastBeatMs: (nowMs - 1000),
@@ -422,7 +421,7 @@ describe('statusReadBroker', () => {
       const entryOld = RegistryEntryStub({
         id: idOld,
         branch: 'main',
-        specName: SpecNameStub({ value: 'dungeonmaster-stack' }),
+        specName: 'dungeonmaster-stack',
         state: 'alive',
         bootedAtMs: (nowMs - 7_200_000),
         lastBeatMs: (nowMs - 7_200_000),
@@ -489,7 +488,7 @@ describe('statusReadBroker', () => {
       const entryReservation = RegistryEntryStub({
         id: idReservation,
         branch: null,
-        specName: SpecNameStub({ value: 'dungeonmaster-stack' }),
+        specName: 'dungeonmaster-stack',
         state: 'alive',
         bootedAtMs: null,
         lastBeatMs: null,
@@ -565,7 +564,7 @@ describe('statusReadBroker', () => {
       const entryRecent = RegistryEntryStub({
         id: idRecent,
         branch: 'main',
-        specName: SpecNameStub({ value: 'dungeonmaster-stack' }),
+        specName: 'dungeonmaster-stack',
         state: 'alive',
         bootedAtMs: (nowMs - 60_000),
         lastBeatMs: (nowMs - 1000),
@@ -573,7 +572,7 @@ describe('statusReadBroker', () => {
       const entryOld = RegistryEntryStub({
         id: idOld,
         branch: 'main',
-        specName: SpecNameStub({ value: 'dungeonmaster-stack' }),
+        specName: 'dungeonmaster-stack',
         state: 'alive',
         bootedAtMs: (nowMs - 25_200_000),
         lastBeatMs: (nowMs - 25_200_000),
@@ -677,7 +676,7 @@ describe('statusReadBroker', () => {
       const entryRecent = RegistryEntryStub({
         id: idRecent,
         branch: 'main',
-        specName: SpecNameStub({ value: 'dungeonmaster-stack' }),
+        specName: 'dungeonmaster-stack',
         state: 'alive',
         bootedAtMs: (nowMs - 60_000),
         lastBeatMs: (nowMs - 1000),
@@ -685,7 +684,7 @@ describe('statusReadBroker', () => {
       const entryOld = RegistryEntryStub({
         id: idOld,
         branch: 'main',
-        specName: SpecNameStub({ value: 'dungeonmaster-stack' }),
+        specName: 'dungeonmaster-stack',
         state: 'alive',
         bootedAtMs: (nowMs - 25_200_000),
         lastBeatMs: (nowMs - 25_200_000),

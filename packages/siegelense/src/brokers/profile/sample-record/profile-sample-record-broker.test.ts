@@ -3,7 +3,6 @@ import { InstanceIdStub } from '../../../contracts/instance-id/instance-id.stub'
 import { MegabytesStub } from '../../../contracts/megabytes/megabytes.stub';
 import { RegistryEntryStub } from '../../../contracts/registry-entry/registry-entry.stub';
 import { RegistryStub } from '../../../contracts/registry/registry.stub';
-import { SpecNameStub } from '../../../contracts/spec-name/spec-name.stub';
 import { profileStatics } from '../../../statics/profile/profile-statics';
 import { laneSpecFindBroker } from '../../lane-spec/find/lane-spec-find-broker';
 import { laneSpecHashBroker } from '../../lane-spec/hash/lane-spec-hash-broker';
@@ -12,7 +11,7 @@ import { profileSampleRecordBroker } from './profile-sample-record-broker';
 import { profileSampleRecordBrokerProxy } from './profile-sample-record-broker.proxy';
 
 const ROOT_PATH_VALUE = '/home/user/.dungeonmaster/siegelense';
-const HEADLESS_SPEC = SpecNameStub({ value: 'api' });
+const HEADLESS_SPEC = 'api';
 const INSTANCE_ID = InstanceIdStub({ value: 'inst_7f3a9c21' });
 const FIRST_BEAT_MS = 1_700_000_000_000;
 

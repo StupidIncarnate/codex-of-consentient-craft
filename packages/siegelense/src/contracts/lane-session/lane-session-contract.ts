@@ -30,11 +30,10 @@ import { fileDescriptorContract } from '../file-descriptor/file-descriptor-contr
 import { portPairContract } from '../port-pair/port-pair-contract';
 import { processGroupIdContract } from '../process-group-id/process-group-id-contract';
 import type { ServerLogByteCount } from '../server-log-byte-count/server-log-byte-count-contract';
-import { specNameContract } from '../spec-name/spec-name-contract';
 
 export const laneSessionContract = z
   .object({
-    specName: specNameContract,
+    specName: z.string().min(1).brand<'LaneSessionSpecName'>(),
     ports: portPairContract,
     homePath: absoluteFilePathContract,
     evidencePath: absoluteFilePathContract,

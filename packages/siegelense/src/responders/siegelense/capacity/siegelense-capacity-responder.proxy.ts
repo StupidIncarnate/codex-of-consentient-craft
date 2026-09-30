@@ -16,11 +16,10 @@ import { capacityReadBroker } from '../../../brokers/capacity/read/capacity-read
 import { capacityReadBrokerProxy } from '../../../brokers/capacity/read/capacity-read-broker.proxy';
 import type { CapacityAnswerStub } from '../../../contracts/capacity-answer/capacity-answer.stub';
 import type { ProfilePoolSizeStub } from '../../../contracts/profile-pool-size/profile-pool-size.stub';
-import type { SpecNameStub } from '../../../contracts/spec-name/spec-name.stub';
 
 type CapacityAnswer = ReturnType<typeof CapacityAnswerStub>;
 type ProfilePoolSize = ReturnType<typeof ProfilePoolSizeStub>;
-type SpecName = ReturnType<typeof SpecNameStub>;
+type SpecName = string;
 
 export const SiegelenseCapacityResponderProxy = (): {
   stageAnswer: (params: {

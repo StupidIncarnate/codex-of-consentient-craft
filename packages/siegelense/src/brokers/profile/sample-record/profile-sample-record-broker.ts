@@ -34,7 +34,6 @@ import type { Megabytes } from '../../../contracts/megabytes/megabytes-contract'
 import { profileObservationContract } from '../../../contracts/profile-observation/profile-observation-contract';
 import type { ProfileObservation } from '../../../contracts/profile-observation/profile-observation-contract';
 import { profilePoolSizeContract } from '../../../contracts/profile-pool-size/profile-pool-size-contract';
-import type { SpecName } from '../../../contracts/spec-name/spec-name-contract';
 import { profileStatics } from '../../../statics/profile/profile-statics';
 import { profileObservationMergeTransformer } from '../../../transformers/profile-observation-merge/profile-observation-merge-transformer';
 import { laneSpecFindBroker } from '../../lane-spec/find/lane-spec-find-broker';
@@ -52,7 +51,7 @@ export const profileSampleRecordBroker = async ({
   beatAtMs,
 }: {
   instanceId: SiegeInstance['id'];
-  specName: SpecName;
+  specName: string;
   rssMB: Megabytes | null;
   beatAtMs: number;
 }): Promise<ProfileObservation | null> => {

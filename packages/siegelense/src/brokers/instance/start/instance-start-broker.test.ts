@@ -12,7 +12,6 @@ import { PortPairStub } from '../../../contracts/port-pair/port-pair.stub';
 import { RecipeNameStub } from '../../../contracts/recipe-name/recipe-name.stub';
 import { RegistryEntryStub } from '../../../contracts/registry-entry/registry-entry.stub';
 import { RegistryStub } from '../../../contracts/registry/registry.stub';
-import { SpecNameStub } from '../../../contracts/spec-name/spec-name.stub';
 import { DriverBootFailedError } from '../../../errors/driver-boot-failed/driver-boot-failed-error';
 import { LaneBootFailedError } from '../../../errors/lane-boot-failed/lane-boot-failed-error';
 import { instanceLifecycleStatics } from '../../../statics/instance-lifecycle/instance-lifecycle-statics';
@@ -35,7 +34,7 @@ describe('instanceStartBroker', () => {
       });
 
       await instanceStartBroker({
-        specName: SpecNameStub({ value: 'api' }),
+        specName: 'api',
         questId: null,
         guildId: null,
         seed: null,
@@ -60,7 +59,7 @@ describe('instanceStartBroker', () => {
       });
 
       await instanceStartBroker({
-        specName: SpecNameStub({ value: 'api' }),
+        specName: 'api',
         questId: null,
         guildId: null,
         seed: null,
@@ -88,7 +87,7 @@ describe('instanceStartBroker', () => {
       });
 
       const result = await instanceStartBroker({
-        specName: SpecNameStub({ value: 'api' }),
+        specName: 'api',
         questId: null,
         guildId: null,
         seed: null,
@@ -110,7 +109,7 @@ describe('instanceStartBroker', () => {
       });
 
       const result = await instanceStartBroker({
-        specName: SpecNameStub({ value: 'api' }),
+        specName: 'api',
         questId: null,
         guildId: null,
         seed: null,
@@ -125,7 +124,7 @@ describe('instanceStartBroker', () => {
       const proxy = instanceStartBrokerProxy();
       const instanceId = proxy.mintInstanceId();
       const nowMs = 1_700_000_000_000;
-      const specName = SpecNameStub({ value: 'api' });
+      const specName = 'api';
       proxy.stageProcessUnreachable({ url: 'http://dungeonmaster.localhost:34172/api/guilds' });
       proxy.setupBootNeverAnswers({
         instanceId,
@@ -150,7 +149,7 @@ describe('instanceStartBroker', () => {
     it('ERROR: {boot-failure.json appears on the first failed ping} => throws DriverBootFailedError naming the driver message, not a generic ready-path timeout', async () => {
       const proxy = instanceStartBrokerProxy();
       const instanceId = proxy.mintInstanceId();
-      const specName = SpecNameStub({ value: 'api' });
+      const specName = 'api';
       const driverMessage = 'the api process exited before opening its port.';
       proxy.setupBootFailureMarkerAppears({
         instanceId,
@@ -182,7 +181,7 @@ describe('instanceStartBroker', () => {
     it('ERROR: {driver reports a boot failure} => releases the reservation instead of leaving it alive with no boot time', async () => {
       const proxy = instanceStartBrokerProxy();
       const instanceId = proxy.mintInstanceId();
-      const specName = SpecNameStub({ value: 'api' });
+      const specName = 'api';
       proxy.setupBootFailureMarkerAppears({
         instanceId,
         evidencePath: UNOWNED_EVIDENCE_PATH,
@@ -215,7 +214,7 @@ describe('instanceStartBroker', () => {
       const proxy = instanceStartBrokerProxy();
       const instanceId = proxy.mintInstanceId();
       const nowMs = 1_700_000_000_000;
-      const specName = SpecNameStub({ value: 'api' });
+      const specName = 'api';
       proxy.stageProcessUnreachable({ url: 'http://dungeonmaster.localhost:34172/api/guilds' });
       proxy.setupBootNeverAnswers({
         instanceId,
@@ -249,7 +248,7 @@ describe('instanceStartBroker', () => {
       const proxy = instanceStartBrokerProxy();
       const instanceId = proxy.mintInstanceId();
       const nowMs = 1_700_000_000_000;
-      const specName = SpecNameStub({ value: 'api' });
+      const specName = 'api';
       proxy.stageProcessUnreachable({ url: 'http://dungeonmaster.localhost:34172/api/guilds' });
       proxy.setupBootNeverAnswers({
         instanceId,
@@ -277,7 +276,7 @@ describe('instanceStartBroker', () => {
       const proxy = instanceStartBrokerProxy();
       const instanceId = proxy.mintInstanceId();
       const nowMs = 1_700_000_000_000;
-      const specName = SpecNameStub({ value: 'stack' });
+      const specName = 'stack';
       const webProcessName = LaneProcessNameStub({ value: 'web' });
       proxy.stageLaneSpec({
         processes: [
@@ -323,7 +322,7 @@ describe('instanceStartBroker', () => {
     it('VALID: {spec with no process claiming the web port} => baseUrl is null', async () => {
       const proxy = instanceStartBrokerProxy();
       const instanceId = proxy.mintInstanceId();
-      const specName = SpecNameStub({ value: 'api' });
+      const specName = 'api';
       proxy.setupHappyBoot({
         instanceId,
         evidencePath: UNOWNED_EVIDENCE_PATH,
@@ -343,7 +342,7 @@ describe('instanceStartBroker', () => {
     it('VALID: {spec with a process claiming the web port} => baseUrl is the real web URL', async () => {
       const proxy = instanceStartBrokerProxy();
       const instanceId = proxy.mintInstanceId();
-      const specName = SpecNameStub({ value: 'stack' });
+      const specName = 'stack';
       proxy.stageLaneSpec({
         processes: [
           DevServerE2eProcessStub({
@@ -389,7 +388,7 @@ describe('instanceStartBroker', () => {
     it('VALID: {spec whose processes include the api process} => apiUrl is the real api URL', async () => {
       const proxy = instanceStartBrokerProxy();
       const instanceId = proxy.mintInstanceId();
-      const specName = SpecNameStub({ value: 'api' });
+      const specName = 'api';
       proxy.setupHappyBoot({
         instanceId,
         evidencePath: UNOWNED_EVIDENCE_PATH,
@@ -430,7 +429,7 @@ describe('instanceStartBroker', () => {
       });
 
       const result = await instanceStartBroker({
-        specName: SpecNameStub({ value: 'api' }),
+        specName: 'api',
         questId: null,
         guildId: null,
         seed: null,
@@ -457,7 +456,7 @@ describe('instanceStartBroker', () => {
       });
 
       const result = await instanceStartBroker({
-        specName: SpecNameStub({ value: 'api' }),
+        specName: 'api',
         questId: null,
         guildId: null,
         seed: null,
@@ -490,7 +489,7 @@ describe('instanceStartBroker', () => {
       });
 
       const result = await instanceStartBroker({
-        specName: SpecNameStub({ value: 'api' }),
+        specName: 'api',
         questId: null,
         guildId: null,
         seed: null,
@@ -513,7 +512,7 @@ describe('instanceStartBroker', () => {
       });
 
       const result = await instanceStartBroker({
-        specName: SpecNameStub({ value: 'api' }),
+        specName: 'api',
         questId: null,
         guildId: null,
         seed: null,
@@ -543,7 +542,7 @@ describe('instanceStartBroker', () => {
       proxy.setupStaleReap({ staleInstanceId });
 
       await instanceStartBroker({
-        specName: SpecNameStub({ value: 'api' }),
+        specName: 'api',
         questId: null,
         guildId: null,
         seed: null,
@@ -567,7 +566,7 @@ describe('instanceStartBroker', () => {
 
       await expect(
         instanceStartBroker({
-          specName: SpecNameStub({ value: 'api' }),
+          specName: 'api',
           questId: null,
           guildId: null,
           seed: null,
@@ -591,7 +590,7 @@ describe('instanceStartBroker', () => {
       });
 
       const result = await instanceStartBroker({
-        specName: SpecNameStub({ value: 'api' }),
+        specName: 'api',
         questId: null,
         guildId: null,
         seed: null,
@@ -617,7 +616,7 @@ describe('instanceStartBroker', () => {
       });
 
       const result = await instanceStartBroker({
-        specName: SpecNameStub({ value: 'api' }),
+        specName: 'api',
         questId,
         guildId,
         seed: null,
@@ -640,7 +639,7 @@ describe('instanceStartBroker', () => {
       });
 
       const result = await instanceStartBroker({
-        specName: SpecNameStub({ value: 'api' }),
+        specName: 'api',
         questId: null,
         guildId: null,
         seed: null,
@@ -657,7 +656,7 @@ describe('instanceStartBroker', () => {
     it('ERROR: {seed fails after a successful boot} => attempts a real kill of the running driver rather than only relabelling the registry row', async () => {
       const proxy = instanceStartBrokerProxy();
       const instanceId = proxy.mintInstanceId();
-      const specName = SpecNameStub({ value: 'api' });
+      const specName = 'api';
       const seed = RecipeNameStub({ value: 'guild-with-three-quests' });
       const missingMessage =
         'No recipes package found at /default/cwd/packages/hydration-recipes. Run "dungeonmaster init" to scaffold packages/hydration-recipes.';
@@ -678,7 +677,7 @@ describe('instanceStartBroker', () => {
     it('ERROR: {seed fails after a successful boot} => writes a shutdown reason naming the seed and its failure', async () => {
       const proxy = instanceStartBrokerProxy();
       const instanceId = proxy.mintInstanceId();
-      const specName = SpecNameStub({ value: 'api' });
+      const specName = 'api';
       const seed = RecipeNameStub({ value: 'guild-with-three-quests' });
       const missingMessage =
         'No recipes package found at /default/cwd/packages/hydration-recipes. Run "dungeonmaster init" to scaffold packages/hydration-recipes.';
@@ -707,7 +706,7 @@ describe('instanceStartBroker', () => {
     it('ERROR: {boot-lock acquire throws before the boot try even starts} => still releases the reservation, never the boot lock it never held', async () => {
       const proxy = instanceStartBrokerProxy();
       const instanceId = proxy.mintInstanceId();
-      const specName = SpecNameStub({ value: 'api' });
+      const specName = 'api';
       proxy.stageBootLockAcquireFailsWithReadError({
         registry: RegistryStub({ instances: [RegistryEntryStub({ id: instanceId })] }),
       });
@@ -746,7 +745,7 @@ describe('instanceStartBroker', () => {
 
       await expect(
         instanceStartBroker({
-          specName: SpecNameStub({ value: 'api' }),
+          specName: 'api',
           questId: null,
           guildId: null,
           seed: null,
@@ -777,7 +776,7 @@ describe('instanceStartBroker', () => {
 
       await expect(
         instanceStartBroker({
-          specName: SpecNameStub({ value: 'api' }),
+          specName: 'api',
           questId: null,
           guildId: null,
           seed: null,
@@ -800,7 +799,7 @@ describe('instanceStartBroker', () => {
       });
 
       const result = await instanceStartBroker({
-        specName: SpecNameStub({ value: 'api' }),
+        specName: 'api',
         questId: null,
         guildId: null,
         seed: null,

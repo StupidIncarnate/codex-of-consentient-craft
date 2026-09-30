@@ -10,7 +10,6 @@ import { PortPairStub } from '../../../contracts/port-pair/port-pair.stub';
 import { RegistryEntryStub } from '../../../contracts/registry-entry/registry-entry.stub';
 import { RegistryStub } from '../../../contracts/registry/registry.stub';
 import { SpecHashStub } from '../../../contracts/spec-hash/spec-hash.stub';
-import { SpecNameStub } from '../../../contracts/spec-name/spec-name.stub';
 import { PortClaimExhaustedError } from '../../../errors/port-claim-exhausted/port-claim-exhausted-error';
 import { instanceLifecycleStatics } from '../../../statics/instance-lifecycle/instance-lifecycle-statics';
 
@@ -29,7 +28,7 @@ describe('instanceReserveBroker', () => {
   describe('no port collision', () => {
     it('VALID: {registry claims an unrelated pair} => returns a reservation row and writes it', async () => {
       const proxy = instanceReserveBrokerProxy();
-      const specName = SpecNameStub();
+      const specName = 'dungeonmaster-stack';
       const specHash = SpecHashStub();
       const bystander = RegistryEntryStub({
         id: InstanceIdStub({ value: 'inst_11111111' }),
@@ -93,7 +92,7 @@ describe('instanceReserveBroker', () => {
       proxy.setupPortCandidates({ pairs: freePairs(instanceLifecycleStatics.ports.claimAttempts) });
 
       await instanceReserveBroker({
-        specName: SpecNameStub(),
+        specName: 'dungeonmaster-stack',
         specHash: SpecHashStub(),
         questId: null,
         guildId: null,
@@ -109,7 +108,7 @@ describe('instanceReserveBroker', () => {
       const proxy = instanceReserveBrokerProxy();
       const questId = QuestIdStub();
       const guildId = GuildIdStub();
-      const specName = SpecNameStub();
+      const specName = 'dungeonmaster-stack';
       const specHash = SpecHashStub();
       proxy.setupBranch({ branch: null });
       proxy.setupRegistry({ json: JSON.stringify(RegistryStub({ instances: [] })) });
@@ -147,7 +146,7 @@ describe('instanceReserveBroker', () => {
 
     it('VALID: {branch detected on git HEAD} => the written row carries the branch name', async () => {
       const proxy = instanceReserveBrokerProxy();
-      const specName = SpecNameStub();
+      const specName = 'dungeonmaster-stack';
       const specHash = SpecHashStub();
       proxy.setupBranch({ branch: 'feat/def-04' });
       proxy.setupRegistry({ json: JSON.stringify(RegistryStub({ instances: [] })) });
@@ -173,7 +172,7 @@ describe('instanceReserveBroker', () => {
   describe('port collision', () => {
     it('INVALID: {registry already claims 34173/34174} => re-rolls, returns a different pair, and writes it', async () => {
       const proxy = instanceReserveBrokerProxy();
-      const specName = SpecNameStub();
+      const specName = 'dungeonmaster-stack';
       const specHash = SpecHashStub();
       const claimed = RegistryEntryStub({ ports: CLAIMED_PAIR });
       proxy.setupBranch({ branch: null });
@@ -238,7 +237,7 @@ describe('instanceReserveBroker', () => {
       proxy.setupPortCandidates({ pairs: freePairs(instanceLifecycleStatics.ports.claimAttempts) });
 
       const result = await instanceReserveBroker({
-        specName: SpecNameStub(),
+        specName: 'dungeonmaster-stack',
         specHash: SpecHashStub(),
         questId: null,
         guildId: null,
@@ -260,7 +259,7 @@ describe('instanceReserveBroker', () => {
 
       await expect(
         instanceReserveBroker({
-          specName: SpecNameStub(),
+          specName: 'dungeonmaster-stack',
           specHash: SpecHashStub(),
           questId: null,
           guildId: null,
@@ -289,7 +288,7 @@ describe('instanceReserveBroker', () => {
 
       await expect(
         instanceReserveBroker({
-          specName: SpecNameStub(),
+          specName: 'dungeonmaster-stack',
           specHash: SpecHashStub(),
           questId: null,
           guildId: null,

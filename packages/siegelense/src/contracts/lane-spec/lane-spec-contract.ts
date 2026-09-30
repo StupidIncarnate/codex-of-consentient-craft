@@ -27,11 +27,10 @@ import { z } from '#gateway/npm/zod';
 import { timeoutMsContract } from '@dungeonmaster/shared/contracts';
 
 import { laneProcessContract } from '../lane-process/lane-process-contract';
-import { specNameContract } from '../spec-name/spec-name-contract';
 
 export const laneSpecContract = z
   .object({
-    name: specNameContract,
+    name: z.string().min(1).brand<'LaneSpecName'>(),
     processes: z.array(laneProcessContract).readonly(),
     browser: z.boolean(),
     bootTimeoutMs: timeoutMsContract,

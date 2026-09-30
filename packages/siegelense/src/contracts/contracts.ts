@@ -10,7 +10,6 @@
 export * from './repo-local-path/repo-local-path-contract';
 
 
-export * from './spec-name/spec-name-contract';
 
 export * from './spec-hash/spec-hash-contract';
 

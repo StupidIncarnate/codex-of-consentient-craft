@@ -8,7 +8,6 @@ import { processGroupIdContract } from '../process-group-id/process-group-id-con
 import { ProcessGroupIdStub } from '../process-group-id/process-group-id.stub';
 import { serverLogByteCountContract } from '../server-log-byte-count/server-log-byte-count-contract';
 import type { ServerLogByteCount } from '../server-log-byte-count/server-log-byte-count-contract';
-import { SpecNameStub } from '../spec-name/spec-name.stub';
 
 export const LaneSessionStub = ({
   ...props
@@ -36,8 +35,8 @@ export const LaneSessionStub = ({
     ...laneSessionContract.parse({
       specName:
         dataProps.specName === undefined
-          ? SpecNameStub()
-          : SpecNameStub({ value: dataProps.specName }),
+          ? 'dungeonmaster-stack'
+          : dataProps.specName,
       ports: PortPairStub(dataProps.ports),
       homePath: (dataProps.homePath ?? '/tmp/dm-siege-stub'),
       evidencePath: (dataProps.evidencePath ?? '/tmp/dm-siege-stub-evidence'),

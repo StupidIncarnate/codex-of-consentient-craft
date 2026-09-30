@@ -33,10 +33,9 @@ import { z } from '#gateway/npm/zod';
 import { megabytesContract } from '../megabytes/megabytes-contract';
 import { profilePoolSizeContract } from '../profile-pool-size/profile-pool-size-contract';
 import { specHashContract } from '../spec-hash/spec-hash-contract';
-import { specNameContract } from '../spec-name/spec-name-contract';
 
 export const specProfileContract = z.object({
-  specName: specNameContract,
+  specName: z.string().min(1).brand<'SpecProfileSpecName'>(),
   processes: z.number().int().nonnegative().brand<'SpecProfileProcesses'>(),
   hash: specHashContract,
   measuredAt: z.string().brand<'SpecProfileMeasuredAt'>().nullable(),

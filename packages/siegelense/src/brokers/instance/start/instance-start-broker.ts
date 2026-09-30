@@ -110,7 +110,6 @@ import type { InstanceManifest } from '../../../contracts/instance-manifest/inst
 import type { LaneProcessName } from '../../../contracts/lane-process-name/lane-process-name-contract';
 import { laneSpecFindBroker } from '../../lane-spec/find/lane-spec-find-broker';
 import { laneSpecHashBroker } from '../../lane-spec/hash/lane-spec-hash-broker';
-import type { SpecName } from '../../../contracts/spec-name/spec-name-contract';
 import { driverStatics } from '../../../statics/driver/driver-statics';
 import { DriverBootFailedError } from '../../../errors/driver-boot-failed/driver-boot-failed-error';
 import { LaneBootFailedError } from '../../../errors/lane-boot-failed/lane-boot-failed-error';
@@ -124,7 +123,7 @@ export const instanceStartBroker = async ({
   seed,
   idleTimeoutMs,
 }: {
-  specName: SpecName;
+  specName: string;
   questId: Quest['id'] | null;
   guildId: Guild['id'] | null;
   seed: RecipeName | null;

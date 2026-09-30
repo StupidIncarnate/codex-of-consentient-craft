@@ -17,7 +17,6 @@ import { stdout } from '#gateway/node/process';
 
 import { capacityReadBroker } from '../../../brokers/capacity/read/capacity-read-broker';
 import type { ProfilePoolSize } from '../../../contracts/profile-pool-size/profile-pool-size-contract';
-import type { SpecName } from '../../../contracts/spec-name/spec-name-contract';
 import { siegelenseOutputStatics } from '../../../statics/siegelense-output/siegelense-output-statics';
 import { capacityAnswerRenderTransformer } from '../../../transformers/capacity-answer-render/capacity-answer-render-transformer';
 
@@ -26,7 +25,7 @@ export const SiegelenseCapacityResponder = async ({
   poolSize,
   isJson = false,
 }: {
-  specName: SpecName;
+  specName: string;
   poolSize: ProfilePoolSize | null;
   isJson?: boolean;
 }): Promise<void> => {

@@ -34,12 +34,11 @@ import { instanceStateContract } from '../instance-state/instance-state-contract
 import { lastStepReadingContract } from '../last-step-reading/last-step-reading-contract';
 import { megabytesContract } from '../megabytes/megabytes-contract';
 import { orphanReadingContract } from '../orphan-reading/orphan-reading-contract';
-import { specNameContract } from '../spec-name/spec-name-contract';
 
 export const instanceStatusContract = z.object({
   id: siegeInstanceContract.shape.id,
   state: instanceStateContract,
-  specName: specNameContract,
+  specName: z.string().min(1).brand<'InstanceStatusSpecName'>(),
   uptime: elapsedTextContract.nullable(),
   lastBeat: elapsedTextContract.nullable(),
   runs: z.number().int().nonnegative().brand<'InstanceStatusRuns'>(),

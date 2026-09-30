@@ -21,7 +21,6 @@
 import { stderr } from '#gateway/node/process';
 import type { CapacityProfile } from '../../../contracts/capacity-profile/capacity-profile-contract';
 import { profilePoolSizeContract } from '../../../contracts/profile-pool-size/profile-pool-size-contract';
-import type { SpecName } from '../../../contracts/spec-name/spec-name-contract';
 import { capacitySampleSelectTransformer } from '../../../transformers/capacity-sample-select/capacity-sample-select-transformer';
 import { profileReadBroker } from '../../profile/read/profile-read-broker';
 
@@ -30,7 +29,7 @@ const SOLO_POOL_SIZE = 1;
 export const profileSoloReadLayerBroker = async ({
   specName,
 }: {
-  specName: SpecName;
+  specName: string;
 }): Promise<CapacityProfile | null> => {
   const profile = await profileReadBroker({ specName }).catch((error: unknown) => {
     stderr.write(

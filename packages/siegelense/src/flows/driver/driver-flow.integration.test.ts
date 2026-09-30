@@ -3,7 +3,6 @@ import { TimeoutMsStub } from '@dungeonmaster/shared/contracts/timeout-ms/timeou
 import { installTestbedCreateBroker } from '@dungeonmaster/testing';
 
 import { InstanceIdStub } from '../../contracts/instance-id/instance-id.stub';
-import { SpecNameStub } from '../../contracts/spec-name/spec-name.stub';
 import { InstanceUnknownError } from '../../errors/instance-unknown/instance-unknown-error';
 import { driverStatics } from '../../statics/driver/driver-statics';
 import { driverFleetHarness } from '../../../test/harnesses/driver-fleet/driver-fleet.harness';
@@ -48,7 +47,7 @@ const HEARTBEAT_WAIT_CEILING_MS = 20_000;
 // (driverStatics.teardown.graceMs, 3s) is the only real wait on the kill path — 10s leaves ample
 // margin over that without reading as a timing-sensitive guess.
 const DRIVER_EXIT_WAIT_CEILING_MS = 10_000;
-const HEADLESS_SPEC = SpecNameStub({ value: 'api' });
+const HEADLESS_SPEC = 'api';
 
 // FIXED: the driver, spawned as a real OS process from inside a Jest worker, used to crash before
 // answering its ready path with `Error [ERR_MODULE_NOT_FOUND]` resolving
@@ -470,7 +469,7 @@ describe('driver teardown', () => {
       const IDLE_TIMEOUT_MS = 3_000;
       const IDLE_REAP_WAIT_CEILING_MS = 20_000;
       const KILL_ESCALATION_WAIT_MS = driverStatics.teardown.graceMs + 3_000;
-      const BROWSERED_SPEC = SpecNameStub({ value: 'stack' });
+      const BROWSERED_SPEC = 'stack';
 
       let hasAtLeastOneHeartbeatPgid: boolean;
       let shutdownReasonWritten: boolean;

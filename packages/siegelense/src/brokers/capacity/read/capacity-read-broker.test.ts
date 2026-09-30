@@ -3,7 +3,6 @@ import { InstanceOwnerStub } from '../../../contracts/instance-owner/instance-ow
 import { ProfilePoolSizeStub } from '../../../contracts/profile-pool-size/profile-pool-size.stub';
 import { RegistryStub } from '../../../contracts/registry/registry.stub';
 import { RegistryEntryStub } from '../../../contracts/registry-entry/registry-entry.stub';
-import { SpecNameStub } from '../../../contracts/spec-name/spec-name.stub';
 import { SpecProfileStub } from '../../../contracts/spec-profile/spec-profile.stub';
 
 import { capacityReadBroker } from './capacity-read-broker';
@@ -44,7 +43,7 @@ describe('capacityReadBroker', () => {
       proxy.setupNow({ nowMs: NOW_MS });
 
       const answer = await capacityReadBroker({
-        specName: SpecNameStub({ value: 'api' }),
+        specName: 'api',
         poolSize: ProfilePoolSizeStub({ value: 1 }),
       });
 
@@ -95,7 +94,7 @@ describe('capacityReadBroker', () => {
       proxy.setupNow({ nowMs: NOW_MS });
 
       const answer = await capacityReadBroker({
-        specName: SpecNameStub({ value: 'api' }),
+        specName: 'api',
         poolSize: ProfilePoolSizeStub({ value: 3 }),
       });
 
@@ -145,7 +144,7 @@ describe('capacityReadBroker', () => {
       proxy.setupNow({ nowMs: NOW_MS });
 
       const answer = await capacityReadBroker({
-        specName: SpecNameStub({ value: 'api' }),
+        specName: 'api',
         poolSize: ProfilePoolSizeStub({ value: 1 }),
       });
 
@@ -211,7 +210,7 @@ describe('capacityReadBroker', () => {
       proxy.setupNow({ nowMs: NOW_MS });
 
       const answer = await capacityReadBroker({
-        specName: SpecNameStub({ value: 'api' }),
+        specName: 'api',
         poolSize: ProfilePoolSizeStub({ value: 1 }),
       });
 
@@ -272,7 +271,7 @@ describe('capacityReadBroker', () => {
       proxy.setupNow({ nowMs: NOW_MS });
 
       const answer = await capacityReadBroker({
-        specName: SpecNameStub({ value: 'api' }),
+        specName: 'api',
         poolSize: ProfilePoolSizeStub({ value: 1 }),
       });
 
@@ -337,7 +336,7 @@ describe('capacityReadBroker', () => {
       proxy.setupNow({ nowMs: NOW_MS });
 
       const answer = await capacityReadBroker({
-        specName: SpecNameStub({ value: 'api' }),
+        specName: 'api',
         poolSize: ProfilePoolSizeStub({ value: 1 }),
       });
 
@@ -402,7 +401,7 @@ describe('capacityReadBroker', () => {
       proxy.setupNow({ nowMs: NOW_MS });
 
       const answer = await capacityReadBroker({
-        specName: SpecNameStub({ value: 'api' }),
+        specName: 'api',
         poolSize: ProfilePoolSizeStub({ value: 1 }),
       });
 
@@ -455,7 +454,7 @@ describe('capacityReadBroker', () => {
       proxy.setupNow({ nowMs: NOW_MS });
 
       const answer = await capacityReadBroker({
-        specName: SpecNameStub({ value: 'api' }),
+        specName: 'api',
         poolSize: null,
       });
 
@@ -493,7 +492,7 @@ describe('capacityReadBroker', () => {
       proxy.setupNow({ nowMs: NOW_MS });
 
       const answer = await capacityReadBroker({
-        specName: SpecNameStub({ value: 'stack' }),
+        specName: 'stack',
         poolSize: null,
       });
 
@@ -539,7 +538,7 @@ describe('capacityReadBroker', () => {
       proxy.setupNow({ nowMs: NOW_MS });
 
       const answer = await capacityReadBroker({
-        specName: SpecNameStub({ value: 'api' }),
+        specName: 'api',
         poolSize: ProfilePoolSizeStub({ value: 5 }),
       });
 
@@ -582,7 +581,7 @@ describe('capacityReadBroker', () => {
       proxy.setupNow({ nowMs: NOW_MS });
 
       const answer = await capacityReadBroker({
-        specName: SpecNameStub({ value: 'api' }),
+        specName: 'api',
         poolSize: ProfilePoolSizeStub({ value: 99_999 }),
       });
 
@@ -634,7 +633,7 @@ describe('capacityReadBroker', () => {
       proxy.setupNow({ nowMs: NOW_MS });
 
       const answer = await capacityReadBroker({
-        specName: SpecNameStub({ value: 'api' }),
+        specName: 'api',
         poolSize: ProfilePoolSizeStub({ value: 1 }),
       });
 
@@ -685,7 +684,7 @@ describe('capacityReadBroker', () => {
       proxy.setupNow({ nowMs: NOW_MS });
 
       const answer = await capacityReadBroker({
-        specName: SpecNameStub({ value: 'api' }),
+        specName: 'api',
         poolSize: ProfilePoolSizeStub({ value: 1 }),
       });
 

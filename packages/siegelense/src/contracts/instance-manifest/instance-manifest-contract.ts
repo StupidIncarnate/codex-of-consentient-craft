@@ -44,11 +44,10 @@ import { absoluteFilePathContract, siegeInstanceContract } from '@dungeonmaster/
 
 import { repoLocalPathContract } from '../repo-local-path/repo-local-path-contract';
 import { seedResultContract } from '../seed-result/seed-result-contract';
-import { specNameContract } from '../spec-name/spec-name-contract';
 
 export const instanceManifestContract = z.object({
   instanceId: siegeInstanceContract.shape.id,
-  specName: specNameContract,
+  specName: z.string().min(1).brand<'InstanceManifestSpecName'>(),
   baseUrl: z.string().brand<'InstanceManifestBaseUrl'>().nullable(),
   url: z.string().brand<'InstanceManifestUrl'>().optional(),
   apiUrl: z.string().brand<'InstanceManifestApiUrl'>().optional(),

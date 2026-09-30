@@ -8,7 +8,6 @@ import { RecipeListingEntryStub } from '../../../contracts/recipe-listing-entry/
 import { RecipeNameStub } from '../../../contracts/recipe-name/recipe-name.stub';
 import { RepoLocalPathStub } from '../../../contracts/repo-local-path/repo-local-path.stub';
 import { SeedResultStub } from '../../../contracts/seed-result/seed-result.stub';
-import { SpecNameStub } from '../../../contracts/spec-name/spec-name.stub';
 import { RecipeUnknownError } from '../../../errors/recipe-unknown/recipe-unknown-error';
 import { SeedRecipeNeedsInputError } from '../../../errors/seed-recipe-needs-input/seed-recipe-needs-input-error';
 import { siegelenseOutputStatics } from '../../../statics/siegelense-output/siegelense-output-statics';
@@ -21,7 +20,7 @@ describe('SiegelenseStartResponder', () => {
   describe('a spec with a quest and a guild', () => {
     it('VALID: {specName, questId, guildId} => writes the human summary by default', async () => {
       const proxy = SiegelenseStartResponderProxy();
-      const specName = SpecNameStub();
+      const specName = 'dungeonmaster-stack';
       const questId = QuestIdStub();
       const guildId = GuildIdStub();
       const manifest = InstanceManifestStub({ specName });
@@ -34,7 +33,7 @@ describe('SiegelenseStartResponder', () => {
 
     it('VALID: {questId, guildId both given} => never calls questOwningGuildFindBroker, the explicit guildId wins', async () => {
       const proxy = SiegelenseStartResponderProxy();
-      const specName = SpecNameStub();
+      const specName = 'dungeonmaster-stack';
       const questId = QuestIdStub();
       const guildId = GuildIdStub();
       const manifest = InstanceManifestStub({ specName });
@@ -50,7 +49,7 @@ describe('SiegelenseStartResponder', () => {
 
     it('VALID: {isJson: true} => writes the complete InstanceManifest as one JSON document', async () => {
       const proxy = SiegelenseStartResponderProxy();
-      const specName = SpecNameStub();
+      const specName = 'dungeonmaster-stack';
       const questId = QuestIdStub();
       const guildId = GuildIdStub();
       const manifest = InstanceManifestStub({ specName });
@@ -67,7 +66,7 @@ describe('SiegelenseStartResponder', () => {
   describe('no quest and no guild named', () => {
     it('VALID: {no quest, no guild} => calls instanceStartBroker with questId null and guildId null', async () => {
       const proxy = SiegelenseStartResponderProxy();
-      const specName = SpecNameStub();
+      const specName = 'dungeonmaster-stack';
       const manifest = InstanceManifestStub({ specName });
       proxy.stageManifest({ manifest });
 
@@ -82,7 +81,7 @@ describe('SiegelenseStartResponder', () => {
   describe('a quest named with no guild, and the quest resolves to a guild', () => {
     it('VALID: {questId, guildId: null} => resolves the owning guild and files evidence under it, never unowned', async () => {
       const proxy = SiegelenseStartResponderProxy();
-      const specName = SpecNameStub();
+      const specName = 'dungeonmaster-stack';
       const questId = QuestIdStub();
       const resolvedGuildId = GuildIdStub();
       const instanceId = InstanceIdStub();
@@ -116,7 +115,7 @@ describe('SiegelenseStartResponder', () => {
   describe('a quest named with no guild, and the quest cannot be resolved to any guild', () => {
     it('ERROR: {questId not found by any registered guild} => refuses before instanceStartBroker ever runs', async () => {
       const proxy = SiegelenseStartResponderProxy();
-      const specName = SpecNameStub();
+      const specName = 'dungeonmaster-stack';
       const questId = QuestIdStub();
       const thrown = new Error(
         `--quest ${questId} could not be resolved to a guild: no registered guild's quest list ` +
@@ -139,7 +138,7 @@ describe('SiegelenseStartResponder', () => {
   describe('a guild named with no quest', () => {
     it('VALID: {guildId, questId: null} => forwards questId null and the evidence path files under that guild', async () => {
       const proxy = SiegelenseStartResponderProxy();
-      const specName = SpecNameStub();
+      const specName = 'dungeonmaster-stack';
       const guildId = GuildIdStub();
       const instanceId = InstanceIdStub();
       // Same join order, guildId branch: [rootPath, guildsDir, guildId, instancesDir, instanceId].
@@ -169,7 +168,7 @@ describe('SiegelenseStartResponder', () => {
   describe('a seed recipe whose bound name resolves to a bare id', () => {
     it('VALID: {seed, seeded: bare id} => forwards seed and writes a SEEDED line carrying just that id', async () => {
       const proxy = SiegelenseStartResponderProxy();
-      const specName = SpecNameStub();
+      const specName = 'dungeonmaster-stack';
       const seed = RecipeNameStub();
       const seeded = SeedResultStub({ guild: 'a1b2c3d4-5e6f-4890-abcd-ef1234567890' });
       const manifest = InstanceManifestStub({ specName, seeded });
@@ -188,7 +187,7 @@ describe('SiegelenseStartResponder', () => {
 
     it('VALID: {seed, seeded: bare id, isJson: true} => the JSON document carries the bare id', async () => {
       const proxy = SiegelenseStartResponderProxy();
-      const specName = SpecNameStub();
+      const specName = 'dungeonmaster-stack';
       const seed = RecipeNameStub();
       const seeded = SeedResultStub({ guild: 'a1b2c3d4-5e6f-4890-abcd-ef1234567890' });
       const manifest = InstanceManifestStub({ specName, seeded });
@@ -214,7 +213,7 @@ describe('SiegelenseStartResponder', () => {
   describe('a seed recipe whose bound name resolves to a saved row', () => {
     it('VALID: {seed, seeded: full row} => forwards seed and writes a SEEDED line with the id and identity fields', async () => {
       const proxy = SiegelenseStartResponderProxy();
-      const specName = SpecNameStub();
+      const specName = 'dungeonmaster-stack';
       const seed = RecipeNameStub();
       const seeded = SeedResultStub();
       const manifest = InstanceManifestStub({ specName, seeded });
@@ -233,7 +232,7 @@ describe('SiegelenseStartResponder', () => {
 
     it('VALID: {seed, seeded: full row, isJson: true} => the JSON document carries the whole saved row', async () => {
       const proxy = SiegelenseStartResponderProxy();
-      const specName = SpecNameStub();
+      const specName = 'dungeonmaster-stack';
       const seed = RecipeNameStub();
       const seeded = SeedResultStub();
       const manifest = InstanceManifestStub({ specName, seeded });
@@ -259,7 +258,7 @@ describe('SiegelenseStartResponder', () => {
   describe('a seed recipe whose listing entry declares no inputs', () => {
     it('VALID: {seed, listing entry present with inputKeys: []} => proceeds and forwards seed unchanged', async () => {
       const proxy = SiegelenseStartResponderProxy();
-      const specName = SpecNameStub();
+      const specName = 'dungeonmaster-stack';
       const seed = RecipeNameStub();
       const seeded = SeedResultStub();
       const manifest = InstanceManifestStub({ specName, seeded });
@@ -279,7 +278,7 @@ describe('SiegelenseStartResponder', () => {
   describe('a seed recipe whose listing entry declares an input', () => {
     it('ERROR: {seed, listing entry present with inputKeys: [guildId]} => refuses before instanceStartBroker ever runs', async () => {
       const proxy = SiegelenseStartResponderProxy();
-      const specName = SpecNameStub();
+      const specName = 'dungeonmaster-stack';
       const seed = RecipeNameStub({ value: 'quest-advances-one-step' });
       proxy.stageRecipeListing({
         entries: [RecipeListingEntryStub({ recipeName: seed, inputKeys: ['guildId'] })],
@@ -301,7 +300,7 @@ describe('SiegelenseStartResponder', () => {
   describe('a --seed recipe the listing does not hold', () => {
     it("ERROR: {seed: nope, empty listing} => refuses with the run seed step's own wording, naming every known recipe", async () => {
       const proxy = SiegelenseStartResponderProxy();
-      const specName = SpecNameStub();
+      const specName = 'dungeonmaster-stack';
       const seed = RecipeNameStub({ value: 'nope' });
       proxy.stageRecipeListing({
         entries: [
@@ -329,7 +328,7 @@ describe('SiegelenseStartResponder', () => {
   describe('instanceStartBroker throws', () => {
     it('ERROR: {broker throws} => the error propagates unchanged and stdout stays empty', async () => {
       const proxy = SiegelenseStartResponderProxy();
-      const specName = SpecNameStub();
+      const specName = 'dungeonmaster-stack';
       const thrown = new Error('instanceStartBroker: boot failed');
       proxy.stageError({ error: thrown, specName });
 

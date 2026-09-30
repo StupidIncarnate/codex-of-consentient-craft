@@ -31,7 +31,6 @@ import { InstanceOwnerStub } from '../../../src/contracts/instance-owner/instanc
 import { PortPairStub } from '../../../src/contracts/port-pair/port-pair.stub';
 import { RegistryEntryStub } from '../../../src/contracts/registry-entry/registry-entry.stub';
 import { SpecHashStub } from '../../../src/contracts/spec-hash/spec-hash.stub';
-import { SpecNameStub } from '../../../src/contracts/spec-name/spec-name.stub';
 
 const DAY_SECONDS = 86_400;
 const RUN_ID = 'run_1';
@@ -107,7 +106,7 @@ export const evidenceAgeHarness = (): {
           RegistryEntryStub({
             id: instanceId,
             owner: InstanceOwnerStub(),
-            specName: SpecNameStub(),
+            specName: 'dungeonmaster-stack',
             specHash: SpecHashStub(),
             pid: null,
             pgids: [],
