@@ -14,7 +14,6 @@ import { composerInsertImageBroker } from '../../brokers/composer/insert-image/c
 import { composerReadTransformer } from '../../transformers/composer-read/composer-read-transformer';
 import { mantineRenderMiddleware } from '@dungeonmaster/testing/middleware/mantine-render';
 import { draftImagesSaveBroker } from '../../brokers/draft-images/save/draft-images-save-broker';
-import { ByteLengthStub } from '../../contracts/byte-length/byte-length.stub';
 import { ComposerAttachmentStub } from '../../contracts/composer-attachment/composer-attachment.stub';
 import { chatComposerStatics } from '../../statics/chat-composer/chat-composer-statics';
 import { base64ByteLengthTransformer } from '../../transformers/base64-byte-length/base64-byte-length-transformer';
@@ -1902,8 +1901,8 @@ describe('ChatInputWidget', () => {
       // whether or not the widget still (incorrectly) hands one to a text-only send.
       const onSendMessage = jest.fn(async (params: OnSendMessageParams): Promise<void> => {
         params.onProgress?.({
-          bytesSent: ByteLengthStub({ value: 512 }),
-          bytesTotal: ByteLengthStub({ value: 1024 }),
+          bytesSent: 512,
+          bytesTotal: 1024,
         });
         return new Promise<void>(() => {});
       });
@@ -1939,13 +1938,13 @@ describe('ChatInputWidget', () => {
       // settles.
       const onSendMessage = jest.fn(async ({ onProgress }: OnSendMessageParams): Promise<void> => {
         onProgress?.({
-          bytesSent: ByteLengthStub({ value: 512 }),
-          bytesTotal: ByteLengthStub({ value: 1024 }),
+          bytesSent: 512,
+          bytesTotal: 1024,
         });
         await Promise.resolve();
         onProgress?.({
-          bytesSent: ByteLengthStub({ value: 1024 }),
-          bytesTotal: ByteLengthStub({ value: 1024 }),
+          bytesSent: 1024,
+          bytesTotal: 1024,
         });
         return new Promise<void>(() => {});
       });

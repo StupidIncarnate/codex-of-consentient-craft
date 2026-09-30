@@ -8,8 +8,6 @@
  * // Returns: 4
  */
 
-import { byteLengthContract } from '../../contracts/byte-length/byte-length-contract';
-import type { ByteLength } from '../../contracts/byte-length/byte-length-contract';
 
 // This math must match the `.superRefine` in
 // packages/shared/src/contracts/pasted-image-upload/pasted-image-upload-contract.ts digit for
@@ -20,7 +18,7 @@ const BASE64_CHARS_PER_GROUP = 4;
 const DOUBLE_PADDING = '==';
 const SINGLE_PADDING = '=';
 
-export const base64ByteLengthTransformer = ({ dataBase64 }: { dataBase64: string }): ByteLength => {
+export const base64ByteLengthTransformer = ({ dataBase64 }: { dataBase64: string }): number => {
   let strippedLength = dataBase64.length;
   if (dataBase64.endsWith(DOUBLE_PADDING)) {
     strippedLength = dataBase64.length - DOUBLE_PADDING.length;
@@ -28,7 +26,5 @@ export const base64ByteLengthTransformer = ({ dataBase64 }: { dataBase64: string
     strippedLength = dataBase64.length - SINGLE_PADDING.length;
   }
 
-  return byteLengthContract.parse(
-    Math.floor((strippedLength * BASE64_BYTES_PER_GROUP) / BASE64_CHARS_PER_GROUP),
-  );
+  return Math.floor((strippedLength * BASE64_BYTES_PER_GROUP) / BASE64_CHARS_PER_GROUP);
 };

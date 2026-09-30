@@ -20,7 +20,6 @@ import { z } from '#gateway/npm/zod';
 import { pastedImageMediaTypeContract } from '@dungeonmaster/shared/contracts';
 import { pastedImageStatics } from '@dungeonmaster/shared/statics';
 
-import { byteLengthContract } from '../byte-length/byte-length-contract';
 import { imageDataUrlContract } from '../image-data-url/image-data-url-contract';
 import { pixelLengthContract } from '../pixel-length/pixel-length-contract';
 
@@ -31,7 +30,7 @@ export const composerAttachmentContract = z.object({
   mediaType: pastedImageMediaTypeContract,
   dataUrl: imageDataUrlContract,
   // The decoded size after downscaling; feeds the per-message byte total.
-  byteLength: byteLengthContract.refine((value) => value <= pastedImageStatics.maxBytesPerImage, {
+  byteLength: z.number().int().nonnegative().brand<'ComposerAttachmentByteLength'>().refine((value) => value <= pastedImageStatics.maxBytesPerImage, {
     message: `Decoded image exceeds ${String(pastedImageStatics.maxBytesPerImage)} bytes`,
   }),
   // The pixel size after downscaling.

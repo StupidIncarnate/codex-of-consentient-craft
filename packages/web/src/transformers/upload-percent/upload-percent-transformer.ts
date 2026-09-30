@@ -10,7 +10,6 @@
  * // Returns: UploadPercent branded number
  */
 
-import type { ByteLength } from '../../contracts/byte-length/byte-length-contract';
 import { uploadPercentContract } from '../../contracts/upload-percent/upload-percent-contract';
 import type { UploadPercent } from '../../contracts/upload-percent/upload-percent-contract';
 import { chatComposerStatics } from '../../statics/chat-composer/chat-composer-statics';
@@ -19,8 +18,8 @@ export const uploadPercentTransformer = ({
   bytesSent,
   bytesTotal,
 }: {
-  bytesSent: ByteLength;
-  bytesTotal: ByteLength;
+  bytesSent: number;
+  bytesTotal: number;
 }): UploadPercent => {
   if (bytesTotal === 0) {
     return uploadPercentContract.parse(chatComposerStatics.upload.minPercent);

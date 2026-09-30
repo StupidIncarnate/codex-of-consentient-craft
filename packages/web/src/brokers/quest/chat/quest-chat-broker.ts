@@ -14,7 +14,6 @@ import type { PastedImageUpload, ProcessId, Quest } from '@dungeonmaster/shared/
 
 import { xhrPostWithProgress } from '#gateway/browser/XMLHttpRequest';
 
-import { byteLengthContract } from '../../../contracts/byte-length/byte-length-contract';
 import { questChatResponseContract } from '../../../contracts/quest-chat-response/quest-chat-response-contract';
 import { uploadProgressPostContract } from '../../../contracts/upload-progress-post/upload-progress-post-contract';
 import type { UploadProgressHandler } from '../../../contracts/upload-progress-post/upload-progress-post-contract';
@@ -44,8 +43,8 @@ export const questChatBroker = async ({
     body: post.body,
     onProgress: ({ bytesSent, bytesTotal }): void => {
       post.onProgress({
-        bytesSent: byteLengthContract.parse(bytesSent),
-        bytesTotal: byteLengthContract.parse(bytesTotal),
+        bytesSent: bytesSent,
+        bytesTotal: bytesTotal,
       });
     },
   });

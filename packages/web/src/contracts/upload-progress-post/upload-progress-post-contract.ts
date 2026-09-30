@@ -14,11 +14,10 @@
 
 import { z } from '#gateway/npm/zod';
 
-import type { ByteLength } from '../byte-length/byte-length-contract';
 
 export type UploadProgressHandler = (params: {
-  bytesSent: ByteLength;
-  bytesTotal: ByteLength;
+  bytesSent: number;
+  bytesTotal: number;
 }) => void;
 
 export const uploadProgressPostContract = z.object({
