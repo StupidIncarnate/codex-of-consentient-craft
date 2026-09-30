@@ -35,7 +35,7 @@ import { getEnv } from '#gateway/node/process';
 // sessionId over the old one and quest.json ends up looking the same either way.
 const claudeInvocationContract = z.object({
   resumeSessionId: z.string().brand<'SessionId'>().nullable(),
-  prompt: z.string().brand<'PromptText'>().nullable(),
+  prompt: z.string().brand<'ClaudeInvocationPrompt'>().nullable(),
 });
 
 type ClaudeInvocation = z.infer<typeof claudeInvocationContract>;

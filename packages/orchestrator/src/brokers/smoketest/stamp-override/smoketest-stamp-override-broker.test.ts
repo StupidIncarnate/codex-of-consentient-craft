@@ -3,7 +3,6 @@ import { QuestStub } from '@dungeonmaster/shared/contracts/quest/quest.stub';
 import { QuestWorkItemIdStub } from '@dungeonmaster/shared/contracts/quest-work-item-id/quest-work-item-id.stub';
 import { WorkItemStub } from '@dungeonmaster/shared/contracts/work-item/work-item.stub';
 
-import { PromptTextStub } from '../../../contracts/prompt-text/prompt-text.stub';
 import { smoketestStampOverrideBroker } from './smoketest-stamp-override-broker';
 import { smoketestStampOverrideBrokerProxy } from './smoketest-stamp-override-broker.proxy';
 
@@ -12,7 +11,7 @@ type Quest = ReturnType<typeof QuestStub>;
 const TARGET_WORK_ITEM_ID = QuestWorkItemIdStub({ value: 'e4a1c2fd-8bcf-83b0-ba4b-1818d51fc09c' });
 const OTHER_WORK_ITEM_ID = QuestWorkItemIdStub({ value: '9febc069-b4e3-2f38-bd80-34df765c3b3e' });
 const QUEST_ID = QuestIdStub({ value: 'stamp-override-quest' });
-const OVERRIDE_PROMPT = PromptTextStub({ value: 'You are a test agent. Signal complete.' });
+const OVERRIDE_PROMPT = 'You are a test agent. Signal complete.';
 
 const questWithTargetItem = QuestStub({
   id: QUEST_ID,
@@ -29,7 +28,7 @@ const questWithAlreadyStampedItem = QuestStub({
       id: TARGET_WORK_ITEM_ID,
       role: 'codeweaver',
       status: 'pending',
-      smoketestPromptOverride: PromptTextStub({ value: 'previously stamped prompt' }),
+      smoketestPromptOverride: 'previously stamped prompt',
     }),
   ],
 });

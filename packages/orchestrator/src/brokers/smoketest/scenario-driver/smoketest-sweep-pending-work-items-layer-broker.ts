@@ -18,7 +18,6 @@ import { isPendingWorkItemStatusGuard } from '@dungeonmaster/shared/guards';
 import { locationsStatics } from '@dungeonmaster/shared/statics';
 import { join } from '#gateway/node/path';
 
-import { promptTextContract } from '../../../contracts/prompt-text/prompt-text-contract';
 import { smoketestPlaceholdersStatics } from '../../../statics/smoketest-placeholders/smoketest-placeholders-statics';
 import {
   smoketestPromptsStatics,
@@ -65,13 +64,11 @@ export const smoketestSweepPendingWorkItemsLayerBroker = async ({
       // scripted agent has no other way to learn it — `signal-back` requires both ids and a one-line
       // prompt is that agent's entire context. Left unresolved, every scripted session is refused by
       // the tool, never signals, and the quest blocks once orphan recovery spends its resets.
-      const override = promptTextContract.parse(
-        smoketestPromptsStatics[promptName]
+      const override = smoketestPromptsStatics[promptName]
           .split(smoketestPlaceholdersStatics.questId)
           .join(String(questId))
           .split(smoketestPlaceholdersStatics.workItemId)
-          .join(String(item.id)),
-      );
+          .join(String(item.id));
       // The scripted session this override is about to drive walks nothing and writes no sign-off
       // of its own. Nothing gates its `done` on that absence, but the harness fabricates one anyway
       // — BEFORE the stamp, so it is on disk by the time the agent signals — so the fixture quest

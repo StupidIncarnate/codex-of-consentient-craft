@@ -4,7 +4,6 @@ import { QuestIdStub } from '@dungeonmaster/shared/contracts/quest-id/quest-id.s
 import { QuestWorkItemIdStub } from '@dungeonmaster/shared/contracts/quest-work-item-id/quest-work-item-id.stub';
 import { WorkItemStub } from '@dungeonmaster/shared/contracts/work-item/work-item.stub';
 
-import { PromptTextStub } from '../../contracts/prompt-text/prompt-text.stub';
 import { smoketestSubstituteWorkItemPlaceholdersTransformer } from './smoketest-substitute-work-item-placeholders-transformer';
 
 const QUEST_ID = QuestIdStub({ value: 'f1f1f1f1-1111-4111-8111-111111111111' });
@@ -14,9 +13,7 @@ const PROCESS_ID = ProcessIdStub({ value: 'proc-c3c3c3c3' });
 describe('smoketestSubstituteWorkItemPlaceholdersTransformer', () => {
   it('VALID: {workItem with {{questId}} placeholder} => substitutes live questId', () => {
     const wi = WorkItemStub({
-      smoketestPromptOverride: PromptTextStub({
-        value: 'Call get-quest with questId={{questId}}.',
-      }),
+      smoketestPromptOverride: 'Call get-quest with questId={{questId}}.',
     });
 
     const [updated] = smoketestSubstituteWorkItemPlaceholdersTransformer({
@@ -36,9 +33,7 @@ describe('smoketestSubstituteWorkItemPlaceholdersTransformer', () => {
   // context is its one-line prompt.
   it('VALID: {workItem with {{workItemId}} placeholder} => substitutes that item OWN id', () => {
     const wi = WorkItemStub({
-      smoketestPromptOverride: PromptTextStub({
-        value: 'signal-back {"workItemId":"{{workItemId}}"}',
-      }),
+      smoketestPromptOverride: 'signal-back {"workItemId":"{{workItemId}}"}',
     });
 
     const [updated] = smoketestSubstituteWorkItemPlaceholdersTransformer({
@@ -54,11 +49,11 @@ describe('smoketestSubstituteWorkItemPlaceholdersTransformer', () => {
   it('VALID: {two work items sharing one {{workItemId}} prompt} => each resolves to its OWN id, never the first', () => {
     const first = WorkItemStub({
       id: QuestWorkItemIdStub({ value: '11111111-1111-4111-8111-111111111111' }),
-      smoketestPromptOverride: PromptTextStub({ value: 'wi={{workItemId}}' }),
+      smoketestPromptOverride: 'wi={{workItemId}}',
     });
     const second = WorkItemStub({
       id: QuestWorkItemIdStub({ value: '22222222-2222-4222-8222-222222222222' }),
-      smoketestPromptOverride: PromptTextStub({ value: 'wi={{workItemId}}' }),
+      smoketestPromptOverride: 'wi={{workItemId}}',
     });
 
     const updated = smoketestSubstituteWorkItemPlaceholdersTransformer({
@@ -76,9 +71,7 @@ describe('smoketestSubstituteWorkItemPlaceholdersTransformer', () => {
 
   it('VALID: {workItem with {{guildId}} placeholder} => substitutes live guildId', () => {
     const wi = WorkItemStub({
-      smoketestPromptOverride: PromptTextStub({
-        value: 'list-quests {"guildId":"{{guildId}}"}',
-      }),
+      smoketestPromptOverride: 'list-quests {"guildId":"{{guildId}}"}',
     });
 
     const [updated] = smoketestSubstituteWorkItemPlaceholdersTransformer({
@@ -93,7 +86,7 @@ describe('smoketestSubstituteWorkItemPlaceholdersTransformer', () => {
 
   it('VALID: {workItem with both placeholders} => substitutes both', () => {
     const wi = WorkItemStub({
-      smoketestPromptOverride: PromptTextStub({ value: 'q={{questId}} g={{guildId}}' }),
+      smoketestPromptOverride: 'q={{questId}} g={{guildId}}',
     });
 
     const [updated] = smoketestSubstituteWorkItemPlaceholdersTransformer({
@@ -108,7 +101,7 @@ describe('smoketestSubstituteWorkItemPlaceholdersTransformer', () => {
 
   it('VALID: {workItem with no placeholder} => returns same reference', () => {
     const wi = WorkItemStub({
-      smoketestPromptOverride: PromptTextStub({ value: 'no placeholders here' }),
+      smoketestPromptOverride: 'no placeholders here',
     });
 
     const [updated] = smoketestSubstituteWorkItemPlaceholdersTransformer({
@@ -136,9 +129,7 @@ describe('smoketestSubstituteWorkItemPlaceholdersTransformer', () => {
 
   it('VALID: {workItem with {{processId}} placeholder} => substitutes live processId', () => {
     const wi = WorkItemStub({
-      smoketestPromptOverride: PromptTextStub({
-        value: 'get-quest-status {"processId":"{{processId}}"}',
-      }),
+      smoketestPromptOverride: 'get-quest-status {"processId":"{{processId}}"}',
     });
 
     const [updated] = smoketestSubstituteWorkItemPlaceholdersTransformer({
@@ -155,9 +146,7 @@ describe('smoketestSubstituteWorkItemPlaceholdersTransformer', () => {
 
   it('VALID: {workItem with all three placeholders} => substitutes all', () => {
     const wi = WorkItemStub({
-      smoketestPromptOverride: PromptTextStub({
-        value: 'q={{questId}} g={{guildId}} p={{processId}}',
-      }),
+      smoketestPromptOverride: 'q={{questId}} g={{guildId}} p={{processId}}',
     });
 
     const [updated] = smoketestSubstituteWorkItemPlaceholdersTransformer({
@@ -174,9 +163,7 @@ describe('smoketestSubstituteWorkItemPlaceholdersTransformer', () => {
 
   it('VALID: {multiple placeholder occurrences} => substitutes all of them', () => {
     const wi = WorkItemStub({
-      smoketestPromptOverride: PromptTextStub({
-        value: 'a={{questId}} b={{questId}} c={{guildId}}',
-      }),
+      smoketestPromptOverride: 'a={{questId}} b={{questId}} c={{guildId}}',
     });
 
     const [updated] = smoketestSubstituteWorkItemPlaceholdersTransformer({

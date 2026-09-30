@@ -10,7 +10,6 @@
 
 import type { WorkItemRole, Quest, Session } from '@dungeonmaster/shared/contracts';
 
-import type { PromptText } from '../../contracts/prompt-text/prompt-text-contract';
 import { imagePromptTrailerTransformer } from '../image-prompt-trailer/image-prompt-trailer-transformer';
 import { dumpsterCreatePromptStatics } from '../../statics/dumpster-create-prompt/dumpster-create-prompt-statics';
 import { dumpsterHuntPromptStatics } from '../../statics/dumpster-hunt-prompt/dumpster-hunt-prompt-statics';
@@ -26,7 +25,7 @@ export const chatPromptBuildTransformer = ({
   message: string;
   questId: Quest['id'] | null;
   sessionId?: Session['id'];
-}): PromptText => {
+}): string => {
   if (sessionId) {
     return imagePromptTrailerTransformer({ promptText: message });
   }

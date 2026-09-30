@@ -3,7 +3,6 @@ import { setImmediate } from '#gateway/node/setImmediate';
 import { SessionIdStub } from '@dungeonmaster/shared/contracts/session-id/session-id.stub';
 import { locationsStatics, sessionSnippetStatics } from '@dungeonmaster/shared/statics';
 
-import { PromptTextStub } from '../../../contracts/prompt-text/prompt-text.stub';
 import { agentSpawnStreamJsonBroker } from './agent-spawn-stream-json-broker';
 import { agentSpawnStreamJsonBrokerProxy } from './agent-spawn-stream-json-broker.proxy';
 
@@ -16,7 +15,7 @@ describe('agentSpawnStreamJsonBroker', () => {
       const { mockProcess } = proxy.setupSpawn();
 
       const result = agentSpawnStreamJsonBroker({
-        prompt: PromptTextStub({ value: 'Hello' }),
+        prompt: 'Hello',
         cwd: '/repo',
         model: 'sonnet',
       });
@@ -42,7 +41,7 @@ describe('agentSpawnStreamJsonBroker', () => {
       proxy.setupSpawn();
 
       agentSpawnStreamJsonBroker({
-        prompt: PromptTextStub({ value: 'Hello' }),
+        prompt: 'Hello',
         cwd: '/repo',
         resumeSessionId: SessionIdStub({ value: 'abc-123' }),
         model: 'opus',
@@ -71,7 +70,7 @@ describe('agentSpawnStreamJsonBroker', () => {
       const addDir = `/home/user/.dungeonmaster/quests/q-1/${locationsStatics.quest.imagesDir}`;
 
       agentSpawnStreamJsonBroker({
-        prompt: PromptTextStub({ value: 'Hello' }),
+        prompt: 'Hello',
         cwd: '/repo',
         resumeSessionId: SessionIdStub({ value: 'abc-123' }),
         model: 'sonnet',
@@ -100,7 +99,7 @@ describe('agentSpawnStreamJsonBroker', () => {
       proxy.setupSpawn();
 
       agentSpawnStreamJsonBroker({
-        prompt: PromptTextStub({ value: 'Hello' }),
+        prompt: 'Hello',
         cwd: '/repo',
         model: 'sonnet',
       });
@@ -126,7 +125,7 @@ describe('agentSpawnStreamJsonBroker', () => {
       proxy.setupSpawn();
 
       agentSpawnStreamJsonBroker({
-        prompt: PromptTextStub({ value: 'Hello' }),
+        prompt: 'Hello',
         cwd: '/repo',
         model: 'haiku',
       });
@@ -148,7 +147,7 @@ describe('agentSpawnStreamJsonBroker', () => {
       proxy.setupSpawn();
 
       agentSpawnStreamJsonBroker({
-        prompt: PromptTextStub({ value: 'Hello' }),
+        prompt: 'Hello',
         model: 'haiku',
       });
 
@@ -170,7 +169,7 @@ describe('agentSpawnStreamJsonBroker', () => {
       proxy.setupSpawn();
 
       agentSpawnStreamJsonBroker({
-        prompt: PromptTextStub({ value: 'Hello' }),
+        prompt: 'Hello',
         cwd: '/repo',
         model: 'haiku',
         disableToolSearch: true,
@@ -196,7 +195,7 @@ describe('agentSpawnStreamJsonBroker', () => {
       proxy.setupSpawn();
 
       agentSpawnStreamJsonBroker({
-        prompt: PromptTextStub({ value: 'Hello' }),
+        prompt: 'Hello',
         cwd: '/repo',
         model: 'sonnet',
       });
@@ -209,7 +208,7 @@ describe('agentSpawnStreamJsonBroker', () => {
       proxy.setupSpawn();
 
       agentSpawnStreamJsonBroker({
-        prompt: PromptTextStub({ value: 'Hello' }),
+        prompt: 'Hello',
         model: 'sonnet',
       });
 
@@ -221,7 +220,7 @@ describe('agentSpawnStreamJsonBroker', () => {
       proxy.setupSpawn();
 
       agentSpawnStreamJsonBroker({
-        prompt: PromptTextStub({ value: 'Hello' }),
+        prompt: 'Hello',
         model: 'sonnet',
       });
 
@@ -234,7 +233,7 @@ describe('agentSpawnStreamJsonBroker', () => {
       proxy.setupSpawn();
 
       agentSpawnStreamJsonBroker({
-        prompt: PromptTextStub({ value: 'Hello' }),
+        prompt: 'Hello',
         model: 'sonnet',
         stdinMode: 'ignore',
       });
@@ -245,9 +244,7 @@ describe('agentSpawnStreamJsonBroker', () => {
     it('VALID: {prompt: absolute image path} => -p carries the prompt verbatim', () => {
       const proxy = agentSpawnStreamJsonBrokerProxy();
       proxy.setupSpawn();
-      const prompt = PromptTextStub({
-        value: 'Look at /home/user/.dungeonmaster/quests/q-1/images/shot.png please',
-      });
+      const prompt = 'Look at /home/user/.dungeonmaster/quests/q-1/images/shot.png please';
 
       agentSpawnStreamJsonBroker({ prompt, model: 'sonnet' });
 
@@ -269,7 +266,7 @@ describe('agentSpawnStreamJsonBroker', () => {
       proxy.setupSpawn();
 
       agentSpawnStreamJsonBroker({
-        prompt: PromptTextStub({ value: 'Hello' }),
+        prompt: 'Hello',
         model: 'sonnet',
       });
 
@@ -281,7 +278,7 @@ describe('agentSpawnStreamJsonBroker', () => {
       proxy.setupSpawn();
 
       agentSpawnStreamJsonBroker({
-        prompt: PromptTextStub({ value: 'Hello' }),
+        prompt: 'Hello',
         model: 'haiku',
         disableToolSearch: true,
       });
@@ -297,7 +294,7 @@ describe('agentSpawnStreamJsonBroker', () => {
       const onStderrLine = jest.fn();
 
       agentSpawnStreamJsonBroker({
-        prompt: PromptTextStub({ value: 'Hello' }),
+        prompt: 'Hello',
         model: 'sonnet',
         onStderrLine,
       });
@@ -323,7 +320,7 @@ describe('agentSpawnStreamJsonBroker', () => {
       });
 
       agentSpawnStreamJsonBroker({
-        prompt: PromptTextStub({ value: 'Hello' }),
+        prompt: 'Hello',
         model: 'sonnet',
         onStderrLine,
       });
@@ -349,7 +346,7 @@ describe('agentSpawnStreamJsonBroker', () => {
 
       expect(() =>
         agentSpawnStreamJsonBroker({
-          prompt: PromptTextStub({ value: 'Hello' }),
+          prompt: 'Hello',
           model: 'sonnet',
         }),
       ).toThrow(/^claude not installed$/u);
@@ -382,7 +379,7 @@ describe('agentSpawnStreamJsonBroker', () => {
       const onExit = jest.fn();
 
       const { process: child } = agentSpawnStreamJsonBroker({
-        prompt: PromptTextStub({ value: 'Hello' }),
+        prompt: 'Hello',
         model: 'sonnet',
       });
       child.on('exit', onExit);

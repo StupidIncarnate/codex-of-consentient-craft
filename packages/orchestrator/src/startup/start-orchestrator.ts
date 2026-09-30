@@ -16,7 +16,6 @@
 
 import type { Flow, WorkItem, OperationItem, AddQuestInput, AddQuestResult, AgentPromptResult, BlockedReason, CommentBatchEntry, DirectoryEntry, DispatchState, GetQuestResult, Guild, GuildListItem, GuildName, ModifyQuestInput, ModifyQuestResult, OrchestrationMode, OrchestrationStatus, ProcessId, Quest, QuestListItem, QuestListResult, QuestQueueEntry, QuestStatus, QuestType, RateLimitsSnapshot, UrlSlug, Session } from '@dungeonmaster/shared/contracts';
 
-import type { PromptText } from '../contracts/prompt-text/prompt-text-contract';
 import type { QuestGetServerConfigResult } from '../contracts/quest-get-server-config-result/quest-get-server-config-result-contract';
 
 import type { ClarificationQuestion } from '../contracts/clarification-question/clarification-question-contract';
@@ -296,7 +295,7 @@ export const StartOrchestrator = {
     sessionId: Session['id'];
     questId: Quest['id'];
     comments: CommentBatchEntry[];
-  }): Promise<{ chatProcessId: ProcessId; message: PromptText }> =>
+  }): Promise<{ chatProcessId: ProcessId; message: string }> =>
     CommentBatchFlow({ guildId, sessionId, questId, comments }),
 
   stopChat: ({ chatProcessId }: { chatProcessId: ProcessId }): boolean =>

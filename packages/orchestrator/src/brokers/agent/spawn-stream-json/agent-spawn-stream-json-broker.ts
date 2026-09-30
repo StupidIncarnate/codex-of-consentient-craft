@@ -27,7 +27,6 @@ import type { Session } from '@dungeonmaster/shared/contracts';
 import { locationsStatics } from '@dungeonmaster/shared/statics';
 
 import type { ClaudeModel } from '../../../contracts/claude-model/claude-model-contract';
-import type { PromptText } from '../../../contracts/prompt-text/prompt-text-contract';
 import { claudeSpawnCommandBuildTransformer } from '../../../transformers/claude-spawn-command-build/claude-spawn-command-build-transformer';
 
 export const agentSpawnStreamJsonBroker = ({
@@ -40,7 +39,7 @@ export const agentSpawnStreamJsonBroker = ({
   onStderrLine,
   addDir,
 }: {
-  prompt: PromptText;
+  prompt: string;
   resumeSessionId?: Session['id'];
   cwd?: string;
   stdinMode?: 'inherit' | 'ignore';

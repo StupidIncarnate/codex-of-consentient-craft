@@ -1,6 +1,5 @@
 import { SessionIdStub } from '@dungeonmaster/shared/contracts/session-id/session-id.stub';
 
-import { PromptTextStub } from '../../../contracts/prompt-text/prompt-text.stub';
 import { SpawnInstructionStub } from '../../../contracts/spawn-instruction/spawn-instruction.stub';
 import { apiOverloadRetryStatics } from '../../../statics/api-overload-retry/api-overload-retry-statics';
 import { spawnOneAgentLayerBroker } from './spawn-one-agent-layer-broker';
@@ -189,7 +188,7 @@ describe('spawnOneAgentLayerBroker', () => {
     it('VALID: {overload on a resume-marked instruction} => keeps resuming the orphan-retained session', async () => {
       const proxy = spawnOneAgentLayerBrokerProxy();
       const resumeSessionId = SessionIdStub({ value: '1a2b3c4d-3e38-48c9-bdec-22b61883b473' });
-      const resumePrompt = PromptTextStub({ value: 'Finish and signal back.' });
+      const resumePrompt = 'Finish and signal back.';
       const instruction = SpawnInstructionStub({ resumeSessionId, resumePrompt });
       proxy.setupSpawnEmitsApiOverloadThenExits({ instruction, exitCode: 1 });
       proxy.setupSpawnExitsWithoutSession({ exitCode: 0 });

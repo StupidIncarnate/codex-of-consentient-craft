@@ -2,7 +2,6 @@ import { QuestIdStub } from '@dungeonmaster/shared/contracts/quest-id/quest-id.s
 import { QuestWorkItemIdStub } from '@dungeonmaster/shared/contracts/quest-work-item-id/quest-work-item-id.stub';
 import { SessionIdStub } from '@dungeonmaster/shared/contracts/session-id/session-id.stub';
 
-import { PromptTextStub } from '../prompt-text/prompt-text.stub';
 import { spawnInstructionContract } from './spawn-instruction-contract';
 import { SpawnInstructionStub } from './spawn-instruction.stub';
 
@@ -11,7 +10,7 @@ describe('spawnInstructionContract', () => {
     it('VALID: {full payload with model} => parses successfully', () => {
       const questId = QuestIdStub({ value: 'aaaaaaaa-1111-4222-9333-444444444444' });
       const workItemId = QuestWorkItemIdStub({ value: 'bbbbbbbb-1111-4222-9333-444444444444' });
-      const taskPrompt = PromptTextStub({ value: 'do the work' });
+      const taskPrompt = 'do the work';
 
       const result = spawnInstructionContract.parse({
         questId,
@@ -44,13 +43,9 @@ describe('spawnInstructionContract', () => {
     it('VALID: {with resumeSessionId and resumePrompt} => parses successfully', () => {
       const questId = QuestIdStub({ value: 'aaaaaaaa-1111-4222-9333-444444444444' });
       const workItemId = QuestWorkItemIdStub({ value: 'bbbbbbbb-1111-4222-9333-444444444444' });
-      const taskPrompt = PromptTextStub({
-        value: 'Call mcp__dungeonmaster__get-agent-prompt(...)',
-      });
+      const taskPrompt = 'Call mcp__dungeonmaster__get-agent-prompt(...)';
       const resumeSessionId = SessionIdStub({ value: '9c4d8f1c-3e38-48c9-bdec-22b61883b473' });
-      const resumePrompt = PromptTextStub({
-        value: 'You already have context; finish and signal back.',
-      });
+      const resumePrompt = 'You already have context; finish and signal back.';
 
       const result = spawnInstructionContract.parse({
         questId,
@@ -78,7 +73,7 @@ describe('spawnInstructionContract', () => {
         spawnInstructionContract.parse({
           role: 'codeweaver',
           workItemId: QuestWorkItemIdStub({ value: 'bbbbbbbb-1111-4222-9333-444444444444' }),
-          taskPrompt: PromptTextStub({ value: 'work' }),
+          taskPrompt: 'work',
         }),
       ).toThrow(/received undefined/u);
     });
@@ -88,7 +83,7 @@ describe('spawnInstructionContract', () => {
         spawnInstructionContract.parse({
           questId: QuestIdStub({ value: 'aaaaaaaa-1111-4222-9333-444444444444' }),
           role: 'codeweaver',
-          taskPrompt: PromptTextStub({ value: 'work' }),
+          taskPrompt: 'work',
         }),
       ).toThrow(/received undefined/u);
     });
@@ -109,7 +104,7 @@ describe('spawnInstructionContract', () => {
           questId: QuestIdStub({ value: 'aaaaaaaa-1111-4222-9333-444444444444' }),
           role: 'not-a-role',
           workItemId: QuestWorkItemIdStub({ value: 'bbbbbbbb-1111-4222-9333-444444444444' }),
-          taskPrompt: PromptTextStub({ value: 'work' }),
+          taskPrompt: 'work',
         }),
       ).toThrow(/Invalid option/u);
     });
@@ -120,7 +115,7 @@ describe('spawnInstructionContract', () => {
           questId: QuestIdStub({ value: 'aaaaaaaa-1111-4222-9333-444444444444' }),
           role: 'codeweaver',
           workItemId: QuestWorkItemIdStub({ value: 'bbbbbbbb-1111-4222-9333-444444444444' }),
-          taskPrompt: PromptTextStub({ value: 'work' }),
+          taskPrompt: 'work',
           model: 'gpt',
         }),
       ).toThrow(/Invalid option/u);

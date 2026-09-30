@@ -7,7 +7,6 @@ import { RelatedDataItemStub } from '@dungeonmaster/shared/contracts/related-dat
 import { SessionIdStub } from '@dungeonmaster/shared/contracts/session-id/session-id.stub';
 import { WorkItemStub } from '@dungeonmaster/shared/contracts/work-item/work-item.stub';
 
-import { PromptTextStub } from '../../../contracts/prompt-text/prompt-text.stub';
 import { agentFlowStatics } from '../../../statics/agent-flow/agent-flow-statics';
 import { roleToModelStatics } from '../../../statics/role-to-model/role-to-model-statics';
 import { workItemToPromptTransformer } from '../../../transformers/work-item-to-prompt/work-item-to-prompt-transformer';
@@ -176,10 +175,7 @@ describe('buildSpawnInstructionLayerBroker', () => {
       const workItemId = QuestWorkItemIdStub({
         value: '58a837a1-7e08-41b5-bf02-d32a57122660',
       });
-      const override = PromptTextStub({
-        value:
-          'Do exactly one thing and nothing else: Call "mcp__dungeonmaster__signal-back" with { "signal": "complete", "operationStatus": "done" }. Do not output anything else.',
-      });
+      const override = 'Do exactly one thing and nothing else: Call "mcp__dungeonmaster__signal-back" with { "signal": "complete", "operationStatus": "done" }. Do not output anything else.';
       const workItem = WorkItemStub({
         id: workItemId,
         role: 'codeweaver',
@@ -208,10 +204,7 @@ describe('buildSpawnInstructionLayerBroker', () => {
         value: '58a837a1-7e08-41b5-bf02-d32a57122661',
       });
       const sessionId = SessionIdStub({ value: '9c4d8f1c-3e38-48c9-bdec-22b61883b473' });
-      const override = PromptTextStub({
-        value:
-          'Do exactly one thing and nothing else: Call "mcp__dungeonmaster__signal-back" with { "signal": "complete", "operationStatus": "done" }. Do not output anything else.',
-      });
+      const override = 'Do exactly one thing and nothing else: Call "mcp__dungeonmaster__signal-back" with { "signal": "complete", "operationStatus": "done" }. Do not output anything else.';
       const workItem = WorkItemStub({
         id: workItemId,
         role: 'flowrider',

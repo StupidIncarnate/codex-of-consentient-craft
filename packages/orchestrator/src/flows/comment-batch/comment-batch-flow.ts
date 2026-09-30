@@ -11,7 +11,6 @@
 
 import type { CommentBatchEntry, ProcessId, Quest, Guild, Session } from '@dungeonmaster/shared/contracts';
 
-import type { PromptText } from '../../contracts/prompt-text/prompt-text-contract';
 import { ChatStartResponder } from '../../responders/chat/start/chat-start-responder';
 import { CommentBatchResponder } from '../../responders/comment/batch/comment-batch-responder';
 import { commentBatchToMarkdownTransformer } from '../../transformers/comment-batch-to-markdown/comment-batch-to-markdown-transformer';
@@ -26,7 +25,7 @@ export const CommentBatchFlow = async ({
   sessionId: Session['id'];
   questId: Quest['id'];
   comments: CommentBatchEntry[];
-}): Promise<{ chatProcessId: ProcessId; message: PromptText }> => {
+}): Promise<{ chatProcessId: ProcessId; message: string }> => {
   // Persist gates delivery, mirroring the clarify flow's ordering exactly: the responder throws
   // when the quest write fails, so the markdown is never built and no chat process is ever spawned
   // for feedback the quest does not record. The browser holds its localStorage queue until it sees

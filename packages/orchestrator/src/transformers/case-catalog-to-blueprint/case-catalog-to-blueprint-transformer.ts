@@ -27,7 +27,6 @@ import {
 } from '@dungeonmaster/shared/contracts';
 import type { OperationItem, WorkItem } from '@dungeonmaster/shared/contracts';
 
-import { promptTextContract } from '../../contracts/prompt-text/prompt-text-contract';
 import { questBlueprintContract } from '../../contracts/quest-blueprint/quest-blueprint-contract';
 import type { QuestBlueprint } from '../../contracts/quest-blueprint/quest-blueprint-contract';
 import { smoketestBlueprintsStatics } from '../../statics/smoketest-blueprints/smoketest-blueprints-statics';
@@ -91,7 +90,7 @@ export const caseCatalogToBlueprintTransformer = ({
         `caseCatalogToBlueprintTransformer: no prompt found for promptKey "${entry.promptKey}"`,
       );
     }
-    const override = promptTextContract.parse(resolved);
+    const override = resolved;
     const expectedSignal = streamSignalKindContract.parse(entry.expectedSignal);
     return workItemContract.parse({
       id: workItemId,

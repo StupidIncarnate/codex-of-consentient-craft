@@ -77,7 +77,7 @@ export const workItemContract = z.object({
     .describe(
       'Copied from the linked operation item when advance creates this item, so the dispatched session is handed its package slice with the rest of its identity rather than having to resolve the operations ref to find it. Optional and omitted when empty: work items are the most numerous array on a quest, and a `.default([])` would materialise an empty array onto every one of them on every re-parse. The operation item is the authority — this is a copy taken at dispatch.',
     ),
-  smoketestPromptOverride: z.string().min(1).brand<'PromptText'>().optional(),
+  smoketestPromptOverride: z.string().min(1).brand<'WorkItemSmoketestPromptOverride'>().optional(),
   smoketestExpectedSignal: streamSignalKindContract.optional(),
   actualSignal: streamSignalKindContract.optional(),
   step: stepNameContract.optional(),

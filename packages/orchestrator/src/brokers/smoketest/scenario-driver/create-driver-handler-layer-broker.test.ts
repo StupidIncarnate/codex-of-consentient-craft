@@ -5,7 +5,6 @@ import { QuestStub } from '@dungeonmaster/shared/contracts/quest/quest.stub';
 import { QuestWorkItemIdStub } from '@dungeonmaster/shared/contracts/quest-work-item-id/quest-work-item-id.stub';
 import { WorkItemStub } from '@dungeonmaster/shared/contracts/work-item/work-item.stub';
 
-import { PromptTextStub } from '../../../contracts/prompt-text/prompt-text.stub';
 import { createDriverHandlerLayerBroker } from './create-driver-handler-layer-broker';
 import { createDriverHandlerLayerBrokerProxy } from './create-driver-handler-layer-broker.proxy';
 import { setImmediate } from '#gateway/node/setImmediate';
@@ -31,7 +30,7 @@ const questWithStampedCodeweaver = QuestStub({
       id: WI_PENDING,
       role: 'codeweaver',
       status: 'pending',
-      smoketestPromptOverride: PromptTextStub({ value: 'pre-existing stamp' }),
+      smoketestPromptOverride: 'pre-existing stamp',
     }),
   ],
 });

@@ -18,7 +18,6 @@ import type { Quest, WorkItem } from '@dungeonmaster/shared/contracts';
 import { locationsStatics } from '@dungeonmaster/shared/statics';
 import { join } from '#gateway/node/path';
 
-import type { PromptText } from '../../../contracts/prompt-text/prompt-text-contract';
 import { questFindQuestPathBroker } from '../../quest/find-quest-path/quest-find-quest-path-broker';
 import { questLoadBroker } from '../../quest/load/quest-load-broker';
 import { questPersistBroker } from '../../quest/persist/quest-persist-broker';
@@ -33,7 +32,7 @@ export const smoketestStampOverrideBroker = async ({
 }: {
   questId: Quest['id'];
   workItemId: WorkItem['id'];
-  override: PromptText;
+  override: string;
 }): Promise<void> =>
   questWithModifyLockBroker({
     questId,

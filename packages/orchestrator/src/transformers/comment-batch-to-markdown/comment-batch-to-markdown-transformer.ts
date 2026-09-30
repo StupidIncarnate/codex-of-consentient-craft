@@ -13,8 +13,6 @@
  */
 import type { Flow, FlowNode, FlowObservable, QuestComment } from '@dungeonmaster/shared/contracts';
 
-import { promptTextContract } from '../../contracts/prompt-text/prompt-text-contract';
-import type { PromptText } from '../../contracts/prompt-text/prompt-text-contract';
 
 // The rule line that separates one comment's block from the next, and the full sequence the
 // blocks are joined on.
@@ -33,7 +31,7 @@ export const commentBatchToMarkdownTransformer = ({
 }: {
   comments: QuestComment[];
   flows: Flow[];
-}): PromptText => {
+}): string => {
   const flowsById = new Map<Flow['id'], Flow>();
   const nodesByFlowId = new Map<Flow['id'], Map<FlowNode['id'], FlowNode>>();
   const observablesByFlowAndNodeId = new Map<
@@ -103,5 +101,5 @@ export const commentBatchToMarkdownTransformer = ({
     );
   });
 
-  return promptTextContract.parse(blocks.join(BLOCK_DIVIDER));
+  return blocks.join(BLOCK_DIVIDER);
 };

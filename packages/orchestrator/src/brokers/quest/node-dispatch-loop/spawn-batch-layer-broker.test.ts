@@ -1,7 +1,6 @@
 import { QuestIdStub } from '@dungeonmaster/shared/contracts/quest-id/quest-id.stub';
 import { SessionIdStub } from '@dungeonmaster/shared/contracts/session-id/session-id.stub';
 
-import { PromptTextStub } from '../../../contracts/prompt-text/prompt-text.stub';
 import { SpawnInstructionStub } from '../../../contracts/spawn-instruction/spawn-instruction.stub';
 import { spawnBatchLayerBroker } from './spawn-batch-layer-broker';
 import { spawnBatchLayerBrokerProxy } from './spawn-batch-layer-broker.proxy';
@@ -156,9 +155,7 @@ describe('spawnBatchLayerBroker', () => {
     it('VALID: {instruction with resumeSessionId + resumePrompt} => spawns with the resume prompt and --resume <sessionId>', async () => {
       const proxy = spawnBatchLayerBrokerProxy();
       const resumeSessionId = SessionIdStub({ value: '1a2b3c4d-3e38-48c9-bdec-22b61883b473' });
-      const resumePrompt = PromptTextStub({
-        value: 'Your previous session for this work item was interrupted — finish and signal back.',
-      });
+      const resumePrompt = 'Your previous session for this work item was interrupted — finish and signal back.';
       const instruction = SpawnInstructionStub({ resumeSessionId, resumePrompt });
       proxy.setupQuestContext({
         questId: instruction.questId,
@@ -214,7 +211,7 @@ describe('spawnBatchLayerBroker', () => {
     it('VALID: {instruction with resumePrompt but NO resumeSessionId} => fresh spawn from taskPrompt without --resume', async () => {
       const proxy = spawnBatchLayerBrokerProxy();
       const instruction = SpawnInstructionStub({
-        resumePrompt: PromptTextStub({ value: 'Resume prompt with no session to resume.' }),
+        resumePrompt: 'Resume prompt with no session to resume.',
       });
       proxy.setupQuestContext({
         questId: instruction.questId,

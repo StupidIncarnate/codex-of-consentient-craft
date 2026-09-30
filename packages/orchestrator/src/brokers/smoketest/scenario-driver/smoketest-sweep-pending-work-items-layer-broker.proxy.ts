@@ -5,14 +5,13 @@ import { registerMock } from '@dungeonmaster/testing/register-mock';
 import type { MockHandle } from '@dungeonmaster/testing/register-mock';
 import { join } from '#gateway/node/path';
 
-import type { PromptTextStub } from '../../../contracts/prompt-text/prompt-text.stub';
 import { questFindQuestPathBrokerProxy } from '../../quest/find-quest-path/quest-find-quest-path-broker.proxy';
 import { questLoadBrokerProxy } from '../../quest/load/quest-load-broker.proxy';
 import { smoketestSignOutstandingUnitsBrokerProxy } from '../sign-outstanding-units/smoketest-sign-outstanding-units-broker.proxy';
 import { smoketestStampOverrideBrokerProxy } from '../stamp-override/smoketest-stamp-override-broker.proxy';
 
 type Quest = ReturnType<typeof QuestStub>;
-type PromptText = ReturnType<typeof PromptTextStub>;
+type PromptText = string;
 type FilePathValue = string;
 
 // smoketestSweepPendingWorkItemsLayerBroker's own join(questPath, quest.json) shares the exact

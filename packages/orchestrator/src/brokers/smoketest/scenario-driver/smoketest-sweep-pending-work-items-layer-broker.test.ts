@@ -11,7 +11,6 @@ import { QuestWorkItemIdStub } from '@dungeonmaster/shared/contracts/quest-work-
 import { WorkItemStub } from '@dungeonmaster/shared/contracts/work-item/work-item.stub';
 import { qaOffMapProbeStatics } from '@dungeonmaster/shared/statics';
 
-import { PromptTextStub } from '../../../contracts/prompt-text/prompt-text.stub';
 import { smoketestSweepPendingWorkItemsLayerBroker } from './smoketest-sweep-pending-work-items-layer-broker';
 import { smoketestSweepPendingWorkItemsLayerBrokerProxy } from './smoketest-sweep-pending-work-items-layer-broker.proxy';
 import { AbortController } from '#gateway/node/AbortController';
@@ -95,7 +94,7 @@ const questWithStampedCodeweaver = QuestStub({
       id: WI_PENDING,
       role: 'codeweaver',
       status: 'pending',
-      smoketestPromptOverride: PromptTextStub({ value: 'already stamped' }),
+      smoketestPromptOverride: 'already stamped',
     }),
   ],
 });

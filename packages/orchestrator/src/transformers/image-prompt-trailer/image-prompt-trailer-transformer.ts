@@ -11,18 +11,14 @@
 
 import { pastedImageStatics } from '@dungeonmaster/shared/statics';
 
-import { promptTextContract } from '../../contracts/prompt-text/prompt-text-contract';
-import type { PromptText } from '../../contracts/prompt-text/prompt-text-contract';
 
 export const imagePromptTrailerTransformer = ({
   promptText,
 }: {
   promptText: string;
-}): PromptText => {
+}): string => {
   const carriesImageToken = new RegExp(pastedImageStatics.imageTokenPattern, 'u').test(promptText);
   const alreadyTrailed = promptText.includes(pastedImageStatics.promptSentinel);
-  if (!carriesImageToken || alreadyTrailed) return promptTextContract.parse(promptText);
-  return promptTextContract.parse(
-    `${promptText}\n\n${pastedImageStatics.promptSentinel}\n${pastedImageStatics.promptInstruction}`,
-  );
+  if (!carriesImageToken || alreadyTrailed) return promptText;
+  return `${promptText}\n\n${pastedImageStatics.promptSentinel}\n${pastedImageStatics.promptInstruction}`;
 };

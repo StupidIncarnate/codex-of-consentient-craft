@@ -54,6 +54,7 @@ import type { SpawnInstruction } from '../../../contracts/spawn-instruction/spaw
 import { agentTaskPromptTransformer } from '../../../transformers/agent-task-prompt/agent-task-prompt-transformer';
 import { roleToModelTransformer } from '../../../transformers/role-to-model/role-to-model-transformer';
 import { stepDispatchRoleTransformer } from '../../../transformers/step-dispatch-role/step-dispatch-role-transformer';
+import { spawnInstructionContract } from '../../../contracts/spawn-instruction/spawn-instruction-contract';
 
 export const buildSpawnInstructionLayerBroker = ({
   quest,
@@ -74,7 +75,7 @@ export const buildSpawnInstructionLayerBroker = ({
 
   const canResume = workItem.sessionId !== undefined;
   const override = workItem.smoketestPromptOverride;
-  return {
+  return spawnInstructionContract.parse({
     questId,
     role,
     workItemId: workItem.id,
@@ -99,5 +100,5 @@ export const buildSpawnInstructionLayerBroker = ({
             }),
         }
       : {}),
-  };
+  });
 };

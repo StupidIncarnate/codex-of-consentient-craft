@@ -23,7 +23,6 @@
 import type { ProcessId, WorkItem, Quest, Guild } from '@dungeonmaster/shared/contracts';
 import { workItemContract } from '@dungeonmaster/shared/contracts';
 
-import { promptTextContract } from '../../contracts/prompt-text/prompt-text-contract';
 import { smoketestPlaceholdersStatics } from '../../statics/smoketest-placeholders/smoketest-placeholders-statics';
 
 const QUEST_ID_PLACEHOLDER = smoketestPlaceholdersStatics.questId;
@@ -61,6 +60,6 @@ export const smoketestSubstituteWorkItemPlaceholdersTransformer = ({
     }
     return workItemContract.parse({
       ...wi,
-      smoketestPromptOverride: promptTextContract.parse(substituted),
+      smoketestPromptOverride: substituted,
     });
   });

@@ -1,6 +1,5 @@
 import { SessionIdStub } from '@dungeonmaster/shared/contracts/session-id/session-id.stub';
 
-import { PromptTextStub } from '../../contracts/prompt-text/prompt-text.stub';
 import { claudeSpawnCommandBuildTransformer } from './claude-spawn-command-build-transformer';
 
 const SESSION_ID = '9c4d8f1c-3e38-48c9-bdec-22b61883b473';
@@ -9,7 +8,7 @@ describe('claudeSpawnCommandBuildTransformer', () => {
   describe('argv', () => {
     it('EMPTY: {no settings, no resume, no add-dir} => the seven base tokens and nothing else', () => {
       const { args } = claudeSpawnCommandBuildTransformer({
-        prompt: PromptTextStub({ value: 'Hello' }),
+        prompt: 'Hello',
         model: 'sonnet',
         settingsJson: '',
         disableToolSearch: false,
@@ -29,7 +28,7 @@ describe('claudeSpawnCommandBuildTransformer', () => {
 
     it('VALID: {settingsJson with hooks, disableToolSearch: false} => passes the settings verbatim', () => {
       const { args } = claudeSpawnCommandBuildTransformer({
-        prompt: PromptTextStub({ value: 'Hello' }),
+        prompt: 'Hello',
         model: 'opus',
         settingsJson: '{"hooks":{"SessionStart":[]},"permissions":{}}',
         disableToolSearch: false,
@@ -51,7 +50,7 @@ describe('claudeSpawnCommandBuildTransformer', () => {
 
     it('VALID: {settingsJson with hooks, disableToolSearch: true} => strips hooks and keeps the rest', () => {
       const { args } = claudeSpawnCommandBuildTransformer({
-        prompt: PromptTextStub({ value: 'Hello' }),
+        prompt: 'Hello',
         model: 'haiku',
         settingsJson: '{"hooks":{"SessionStart":[]},"permissions":{"allow":["Read"]}}',
         disableToolSearch: true,
@@ -73,7 +72,7 @@ describe('claudeSpawnCommandBuildTransformer', () => {
 
     it('ERROR: {settingsJson malformed, disableToolSearch: true} => passes the original string through', () => {
       const { args } = claudeSpawnCommandBuildTransformer({
-        prompt: PromptTextStub({ value: 'Hello' }),
+        prompt: 'Hello',
         model: 'haiku',
         settingsJson: '{not json',
         disableToolSearch: true,
@@ -95,7 +94,7 @@ describe('claudeSpawnCommandBuildTransformer', () => {
 
     it('EDGE: {settingsJson is a JSON array, disableToolSearch: true} => passes it through unchanged', () => {
       const { args } = claudeSpawnCommandBuildTransformer({
-        prompt: PromptTextStub({ value: 'Hello' }),
+        prompt: 'Hello',
         model: 'haiku',
         settingsJson: '[1,2]',
         disableToolSearch: true,
@@ -117,7 +116,7 @@ describe('claudeSpawnCommandBuildTransformer', () => {
 
     it('VALID: {resumeSessionId, addDir} => --resume then --add-dir close the argv in that order', () => {
       const { args } = claudeSpawnCommandBuildTransformer({
-        prompt: PromptTextStub({ value: 'Hello' }),
+        prompt: 'Hello',
         model: 'sonnet',
         settingsJson: '',
         disableToolSearch: false,
@@ -145,7 +144,7 @@ describe('claudeSpawnCommandBuildTransformer', () => {
   describe('environment', () => {
     it('VALID: {baseEnv: PATH and HOME} => keeps both and pins the print-mode wait ceiling to 0', () => {
       const { env } = claudeSpawnCommandBuildTransformer({
-        prompt: PromptTextStub({ value: 'Hello' }),
+        prompt: 'Hello',
         model: 'sonnet',
         settingsJson: '',
         disableToolSearch: false,
@@ -161,7 +160,7 @@ describe('claudeSpawnCommandBuildTransformer', () => {
 
     it('EDGE: {baseEnv entry undefined} => drops it', () => {
       const { env } = claudeSpawnCommandBuildTransformer({
-        prompt: PromptTextStub({ value: 'Hello' }),
+        prompt: 'Hello',
         model: 'sonnet',
         settingsJson: '',
         disableToolSearch: false,
@@ -176,7 +175,7 @@ describe('claudeSpawnCommandBuildTransformer', () => {
 
     it('EDGE: {baseEnv already carries the ceiling} => the spawn value wins', () => {
       const { env } = claudeSpawnCommandBuildTransformer({
-        prompt: PromptTextStub({ value: 'Hello' }),
+        prompt: 'Hello',
         model: 'sonnet',
         settingsJson: '',
         disableToolSearch: false,
@@ -188,7 +187,7 @@ describe('claudeSpawnCommandBuildTransformer', () => {
 
     it('VALID: {disableToolSearch: true} => adds ENABLE_TOOL_SEARCH=false', () => {
       const { env } = claudeSpawnCommandBuildTransformer({
-        prompt: PromptTextStub({ value: 'Hello' }),
+        prompt: 'Hello',
         model: 'haiku',
         settingsJson: '',
         disableToolSearch: true,
@@ -204,7 +203,7 @@ describe('claudeSpawnCommandBuildTransformer', () => {
 
     it('VALID: {disableToolSearch: false, baseEnv carries ENABLE_TOOL_SEARCH} => leaves the inherited value alone', () => {
       const { env } = claudeSpawnCommandBuildTransformer({
-        prompt: PromptTextStub({ value: 'Hello' }),
+        prompt: 'Hello',
         model: 'sonnet',
         settingsJson: '',
         disableToolSearch: false,

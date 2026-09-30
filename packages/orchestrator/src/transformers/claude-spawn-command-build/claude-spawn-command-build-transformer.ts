@@ -38,7 +38,6 @@ import type { Session } from '@dungeonmaster/shared/contracts';
 import type { ClaudeModel } from '../../contracts/claude-model/claude-model-contract';
 import { claudeSpawnCommandContract } from '../../contracts/claude-spawn-command/claude-spawn-command-contract';
 import type { ClaudeSpawnCommand } from '../../contracts/claude-spawn-command/claude-spawn-command-contract';
-import type { PromptText } from '../../contracts/prompt-text/prompt-text-contract';
 
 const PRINT_BG_WAIT_CEILING_NAME = 'CLAUDE_CODE_PRINT_BG_WAIT_CEILING_MS';
 const ENABLE_TOOL_SEARCH_NAME = 'ENABLE_TOOL_SEARCH';
@@ -52,7 +51,7 @@ export const claudeSpawnCommandBuildTransformer = ({
   resumeSessionId,
   addDir,
 }: {
-  prompt: PromptText;
+  prompt: string;
   model: ClaudeModel;
   settingsJson: string;
   disableToolSearch: boolean;

@@ -14,10 +14,6 @@
 import type { Quest, WorkItem } from '@dungeonmaster/shared/contracts';
 import { questPackageEntriesToTextTransformer } from '@dungeonmaster/shared/transformers';
 
-import {
-  promptTextContract,
-  type PromptText,
-} from '../../contracts/prompt-text/prompt-text-contract';
 import { workItemContextBlockStatics } from '../../statics/work-item-context-block/work-item-context-block-statics';
 
 export const workItemContextBlockTransformer = ({
@@ -26,7 +22,7 @@ export const workItemContextBlockTransformer = ({
 }: {
   quest: Quest;
   workItem: WorkItem;
-}): PromptText => {
+}): string => {
   const { separator, heading, labels } = workItemContextBlockStatics;
   const lines = [
     '',
@@ -53,5 +49,5 @@ export const workItemContextBlockTransformer = ({
     );
   }
 
-  return promptTextContract.parse(lines.join('\n'));
+  return lines.join('\n');
 };

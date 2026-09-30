@@ -27,7 +27,6 @@ import { stderr } from '#gateway/node/process';
 import type { ClaudeModel } from '../../../contracts/claude-model/claude-model-contract';
 import type { ProcessIdPrefix } from '../../../contracts/process-id-prefix/process-id-prefix-contract';
 import type { ProcessPid } from '../../../contracts/process-pid/process-pid-contract';
-import type { PromptText } from '../../../contracts/prompt-text/prompt-text-contract';
 import type { StreamSignal } from '../../../contracts/stream-signal/stream-signal-contract';
 import type { StreamText } from '../../../contracts/stream-text/stream-text-contract';
 import { chatStreamProcessHandleBroker } from '../../chat/stream-process-handle/chat-stream-process-handle-broker';
@@ -62,7 +61,7 @@ export const agentLaunchBroker = ({
   questWorkItemId?: WorkItem['id'];
   processIdPrefix: ProcessIdPrefix;
 
-  prompt: PromptText;
+  prompt: string;
   cwd: string;
   model: ClaudeModel;
   resumeSessionId?: Session['id'];

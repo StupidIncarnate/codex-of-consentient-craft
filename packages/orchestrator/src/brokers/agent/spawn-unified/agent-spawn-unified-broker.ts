@@ -19,7 +19,6 @@ import { claudeLineNormalizeBroker } from '@dungeonmaster/shared/brokers';
 import type { ClaudeModel } from '../../../contracts/claude-model/claude-model-contract';
 import type { ProcessPid } from '../../../contracts/process-pid/process-pid-contract';
 import { processPidContract } from '../../../contracts/process-pid/process-pid-contract';
-import type { PromptText } from '../../../contracts/prompt-text/prompt-text-contract';
 import { sessionIdExtractorTransformer } from '../../../transformers/session-id-extractor/session-id-extractor-transformer';
 import { agentSpawnStreamJsonBroker } from '../spawn-stream-json/agent-spawn-stream-json-broker';
 
@@ -35,7 +34,7 @@ export const agentSpawnUnifiedBroker = ({
   onStderrLine,
   addDir,
 }: {
-  prompt: PromptText;
+  prompt: string;
   cwd: string;
   resumeSessionId?: Session['id'];
   model: ClaudeModel;
