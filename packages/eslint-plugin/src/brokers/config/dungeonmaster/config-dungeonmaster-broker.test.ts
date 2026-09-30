@@ -363,14 +363,14 @@ describe('configDungeonmasterBroker', () => {
       expect(gateway.rules?.[EslintRuleNameStub({ value: ruleName })]).toBe('error');
     });
 
-    it('VALID: {} => typescript and gateway rules set enforce-stub-usage with the outside-type-cast check off', () => {
+    it('VALID: {} => typescript and gateway rules set enforce-stub-usage to a bare "error"', () => {
       configDungeonmasterBrokerProxy();
 
       const { typescript, gateway } = configDungeonmasterBroker();
       const ruleName = EslintRuleNameStub({ value: '@dungeonmaster/enforce-stub-usage' });
 
-      expect(typescript.rules?.[ruleName]).toStrictEqual(['error', { outsideTypeCasts: false }]);
-      expect(gateway.rules?.[ruleName]).toStrictEqual(['error', { outsideTypeCasts: false }]);
+      expect(typescript.rules?.[ruleName]).toBe('error');
+      expect(gateway.rules?.[ruleName]).toBe('error');
     });
 
     it('VALID: {} => typescript config defaults gatewayLintConfig to an empty option', () => {
@@ -438,7 +438,7 @@ describe('configDungeonmasterBroker', () => {
         typescript.rules?.[
           EslintRuleNameStub({ value: '@dungeonmaster/enforce-proxy-child-creation' })
         ],
-      ).toStrictEqual(['error', { banWrapperMocks: false }]);
+      ).toBe('error');
     });
   });
 
