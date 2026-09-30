@@ -28,7 +28,6 @@ import { z } from '#gateway/npm/zod';
 
 import { siegeInstanceContract } from '@dungeonmaster/shared/contracts';
 
-import { elapsedTextContract } from '../elapsed-text/elapsed-text-contract';
 import { instanceEvidenceListingContract } from '../instance-evidence-listing/instance-evidence-listing-contract';
 import { instanceStateContract } from '../instance-state/instance-state-contract';
 import { lastStepReadingContract } from '../last-step-reading/last-step-reading-contract';
@@ -38,8 +37,8 @@ export const instanceStatusContract = z.object({
   id: siegeInstanceContract.shape.id,
   state: instanceStateContract,
   specName: z.string().min(1).brand<'InstanceStatusSpecName'>(),
-  uptime: elapsedTextContract.nullable(),
-  lastBeat: elapsedTextContract.nullable(),
+  uptime: z.string().min(1).brand<'InstanceStatusUptime'>().nullable(),
+  lastBeat: z.string().min(1).brand<'InstanceStatusLastBeat'>().nullable(),
   runs: z.number().int().nonnegative().brand<'InstanceStatusRuns'>(),
   rssMB: z.number().int().nonnegative().brand<'InstanceStatusRssMB'>().nullable(),
   rssAtLastBeat: z.number().int().nonnegative().brand<'InstanceStatusRssAtLastBeat'>().nullable(),

@@ -11,7 +11,6 @@
  * // Returns 604800000 as EpochMs
  */
 
-import type { ElapsedText } from '../../contracts/elapsed-text/elapsed-text-contract';
 import { pruneStatics } from '../../statics/prune/prune-statics';
 
 const WINDOW_PATTERN = /^([0-9]+)([a-z])$/u;
@@ -19,7 +18,7 @@ const WINDOW_PATTERN = /^([0-9]+)([a-z])$/u;
 export const pruneOlderThanParseTransformer = ({
   olderThan,
 }: {
-  olderThan: ElapsedText;
+  olderThan: string;
 }): number => {
   const match = WINDOW_PATTERN.exec(String(olderThan));
 

@@ -9,30 +9,28 @@
  * // Returns '14m' as branded ElapsedText
  */
 
-import { elapsedTextContract } from '../../contracts/elapsed-text/elapsed-text-contract';
-import type { ElapsedText } from '../../contracts/elapsed-text/elapsed-text-contract';
 
 const MS_PER_SECOND = 1000;
 const SECONDS_PER_MINUTE = 60;
 const MINUTES_PER_HOUR = 60;
 const HOURS_PER_DAY = 24;
 
-export const elapsedRenderTransformer = ({ elapsedMs }: { elapsedMs: number }): ElapsedText => {
+export const elapsedRenderTransformer = ({ elapsedMs }: { elapsedMs: number }): string => {
   const totalSeconds = Math.floor(elapsedMs / MS_PER_SECOND);
   if (totalSeconds < SECONDS_PER_MINUTE) {
-    return elapsedTextContract.parse(`${totalSeconds}s`);
+    return `${totalSeconds}s`;
   }
 
   const totalMinutes = Math.floor(totalSeconds / SECONDS_PER_MINUTE);
   if (totalMinutes < MINUTES_PER_HOUR) {
-    return elapsedTextContract.parse(`${totalMinutes}m`);
+    return `${totalMinutes}m`;
   }
 
   const totalHours = Math.floor(totalMinutes / MINUTES_PER_HOUR);
   if (totalHours < HOURS_PER_DAY) {
-    return elapsedTextContract.parse(`${totalHours}h`);
+    return `${totalHours}h`;
   }
 
   const totalDays = Math.floor(totalHours / HOURS_PER_DAY);
-  return elapsedTextContract.parse(`${totalDays}d`);
+  return `${totalDays}d`;
 };

@@ -16,12 +16,11 @@
 
 import { z } from '#gateway/npm/zod';
 
-import { elapsedTextContract } from '../elapsed-text/elapsed-text-contract';
 import { siegeInstanceContract } from '@dungeonmaster/shared/contracts';
 
 export const reapedInstanceContract = z.object({
   id: siegeInstanceContract.shape.id,
-  staleFor: elapsedTextContract,
+  staleFor: z.string().min(1).brand<'ReapedInstanceStaleFor'>(),
   killed: z.array(z.number().int().positive().brand<'ReapedInstanceKilled'>()).readonly(),
   homeRemoved: z.boolean(),
 });

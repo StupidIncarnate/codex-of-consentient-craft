@@ -67,7 +67,6 @@ export * from './since-marker/since-marker-contract';
 
 export * from './step-range/step-range-contract';
 
-export * from './elapsed-text/elapsed-text-contract';
 
 export * from './instance-evidence-listing/instance-evidence-listing-contract';
 

@@ -17,7 +17,6 @@
  * // Returns { query: { instanceId: null, kind: 'video', olderThan: '2d' }, isJson: false }
  */
 
-import { elapsedTextContract } from '../../contracts/elapsed-text/elapsed-text-contract';
 import { pruneArgsContract } from '../../contracts/prune-args/prune-args-contract';
 import type { PruneArgs } from '../../contracts/prune-args/prune-args-contract';
 import { pruneAssetKindContract } from '../../contracts/prune-asset-kind/prune-asset-kind-contract';
@@ -79,7 +78,7 @@ export const pruneArgsParseTransformer = ({ args }: { args: readonly string[] })
 
   const olderThan = flagContractParseTransformer({
     flag: OLDER_THAN_FLAG,
-    parse: () => elapsedTextContract.parse(olderThanValue ?? pruneStatics.window.defaultOlderThan),
+    parse: () => (olderThanValue ?? pruneStatics.window.defaultOlderThan),
   });
 
   // Parsed for its refusal, not its value: a window this cannot read must be answered at the argv
