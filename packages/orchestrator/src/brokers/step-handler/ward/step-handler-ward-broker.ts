@@ -32,7 +32,7 @@
 
 import { getEnv } from '#gateway/node/process';
 import { randomUUID } from '#gateway/node/crypto';
-import { relatedDataItemContract, wardResultContract, type ModifyQuestInput } from '@dungeonmaster/shared/contracts';
+import { wardResultContract, type ModifyQuestInput } from '@dungeonmaster/shared/contracts';
 import { locationsStatics, wardExitCodeStatics } from '@dungeonmaster/shared/statics';
 import { streamLines, RunNotFoundError } from '#gateway/node/child_process';
 import { ensureDir, writeFile } from '#gateway/node/fs__promises';
@@ -134,6 +134,6 @@ export const stepHandlerWardBroker = async ({
   return stepHandlerResultContract.parse({
     outcome,
     detail: output,
-    resultRef: relatedDataItemContract.parse(`wardResults/${wardResult.id}`),
+    resultRef: `wardResults/${wardResult.id}`,
   });
 };

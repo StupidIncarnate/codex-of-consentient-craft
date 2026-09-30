@@ -3,7 +3,6 @@ import { OperationItemStub } from '@dungeonmaster/shared/contracts/operation-ite
 import { QuestIdStub } from '@dungeonmaster/shared/contracts/quest-id/quest-id.stub';
 import { QuestStub } from '@dungeonmaster/shared/contracts/quest/quest.stub';
 import { QuestWorkItemIdStub } from '@dungeonmaster/shared/contracts/quest-work-item-id/quest-work-item-id.stub';
-import { RelatedDataItemStub } from '@dungeonmaster/shared/contracts/related-data-item/related-data-item.stub';
 import { WorkItemStub } from '@dungeonmaster/shared/contracts/work-item/work-item.stub';
 
 import { stepDispatchRoleTransformer } from './step-dispatch-role-transformer';
@@ -25,7 +24,7 @@ describe('stepDispatchRoleTransformer', () => {
         id: WORK_ITEM_ID,
         role: 'ward',
         step: 'repair',
-        relatedDataItems: [RelatedDataItemStub({ value: `operations/${String(OPERATION_ID)}` })],
+        relatedDataItems: [`operations/${String(OPERATION_ID)}`],
       });
       const quest = QuestStub({
         id: QUEST_ID,
@@ -50,7 +49,7 @@ describe('stepDispatchRoleTransformer', () => {
         id: WORK_ITEM_ID,
         role: 'riftcarver',
         step: 'repair',
-        relatedDataItems: [RelatedDataItemStub({ value: `operations/${String(OPERATION_ID)}` })],
+        relatedDataItems: [`operations/${String(OPERATION_ID)}`],
       });
       const quest = QuestStub({
         id: QUEST_ID,
@@ -75,7 +74,7 @@ describe('stepDispatchRoleTransformer', () => {
         id: WORK_ITEM_ID,
         role: 'warpgate',
         step: 'merge',
-        relatedDataItems: [RelatedDataItemStub({ value: `operations/${String(OPERATION_ID)}` })],
+        relatedDataItems: [`operations/${String(OPERATION_ID)}`],
       });
       const quest = QuestStub({
         id: QUEST_ID,
@@ -100,7 +99,7 @@ describe('stepDispatchRoleTransformer', () => {
         id: WORK_ITEM_ID,
         role: 'codeweaver',
         step: 'work',
-        relatedDataItems: [RelatedDataItemStub({ value: `operations/${String(OPERATION_ID)}` })],
+        relatedDataItems: [`operations/${String(OPERATION_ID)}`],
       });
       const quest = QuestStub({
         id: QUEST_ID,
@@ -125,7 +124,7 @@ describe('stepDispatchRoleTransformer', () => {
         id: WORK_ITEM_ID,
         role: 'codeweaver',
         step: 'review',
-        relatedDataItems: [RelatedDataItemStub({ value: `operations/${String(OPERATION_ID)}` })],
+        relatedDataItems: [`operations/${String(OPERATION_ID)}`],
       });
       const quest = QuestStub({
         id: QUEST_ID,
@@ -152,7 +151,7 @@ describe('stepDispatchRoleTransformer', () => {
         id: WORK_ITEM_ID,
         role: 'ward',
         step: 'gate',
-        relatedDataItems: [RelatedDataItemStub({ value: `operations/${String(OPERATION_ID)}` })],
+        relatedDataItems: [`operations/${String(OPERATION_ID)}`],
       });
       const quest = QuestStub({
         id: QUEST_ID,
@@ -176,7 +175,7 @@ describe('stepDispatchRoleTransformer', () => {
       const workItem = WorkItemStub({
         id: WORK_ITEM_ID,
         role: 'codeweaver',
-        relatedDataItems: [RelatedDataItemStub({ value: `operations/${String(OPERATION_ID)}` })],
+        relatedDataItems: [`operations/${String(OPERATION_ID)}`],
       });
       const quest = QuestStub({
         id: QUEST_ID,

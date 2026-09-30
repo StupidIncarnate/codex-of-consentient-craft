@@ -9,7 +9,6 @@
 import { z } from '#gateway/npm/zod';
 
 import { pieceIdContract } from '../piece-id/piece-id-contract';
-import { relatedDataItemContract } from '../related-data-item/related-data-item-contract';
 import { spawnerTypeContract } from '../spawner-type/spawner-type-contract';
 import { stepNameContract } from '../step-name/step-name-contract';
 import { streamSignalKindContract } from '../stream-signal-kind/stream-signal-kind-contract';
@@ -35,7 +34,7 @@ export const workItemContract = z.object({
   // One operation item carries MANY work items over its life — one per step the router mints
   // on that scope, and one per piece inside a parallel step — so the ref is many-to-one and
   // `step` is what separates them. Ward items may additionally carry a `wardResults/<id>` ref.
-  relatedDataItems: z.array(relatedDataItemContract).default([]),
+  relatedDataItems: z.array(z.string().regex( /^(operations|wardResults|riftcarverResults|flows)\/[a-z0-9-]+$/u, 'Must be {collection}/{id}', ).brand<'WorkItemRelatedDataItems'>()).default([]),
   dependsOn: z.array(workItemId).default([]),
   // `.default()` before `.brand()` — zod v4 checks a `.default()` literal against the schema's
   // OWN output type, and a bare number can never satisfy a branded type; putting the brand last

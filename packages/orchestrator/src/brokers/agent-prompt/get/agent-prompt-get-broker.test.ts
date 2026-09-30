@@ -3,7 +3,6 @@ import { OperationItemStub } from '@dungeonmaster/shared/contracts/operation-ite
 import { QuestIdStub } from '@dungeonmaster/shared/contracts/quest-id/quest-id.stub';
 import { QuestStub } from '@dungeonmaster/shared/contracts/quest/quest.stub';
 import { QuestWorkItemIdStub } from '@dungeonmaster/shared/contracts/quest-work-item-id/quest-work-item-id.stub';
-import { RelatedDataItemStub } from '@dungeonmaster/shared/contracts/related-data-item/related-data-item.stub';
 import { WorkItemStub } from '@dungeonmaster/shared/contracts/work-item/work-item.stub';
 
 import { agentFlowStatics } from '../../../statics/agent-flow/agent-flow-statics';
@@ -132,7 +131,7 @@ describe('agentPromptGetBroker', () => {
         id: workItemId,
         role: 'codeweaver',
         step: 'plan',
-        relatedDataItems: [RelatedDataItemStub({ value: `operations/${String(operationId)}` })],
+        relatedDataItems: [`operations/${String(operationId)}`],
       });
       const quest = QuestStub({
         id: QuestIdStub({ value: 'add-auth' }),
@@ -183,7 +182,7 @@ describe('agentPromptGetBroker', () => {
         id: workItemId,
         role: 'codeweaver',
         step: 'review',
-        relatedDataItems: [RelatedDataItemStub({ value: `operations/${String(operationId)}` })],
+        relatedDataItems: [`operations/${String(operationId)}`],
       });
       const quest = QuestStub({
         id: QuestIdStub({ value: 'add-auth' }),
@@ -229,7 +228,7 @@ describe('agentPromptGetBroker', () => {
         id: workItemId,
         role: 'codeweaver',
         step: 'work',
-        relatedDataItems: [RelatedDataItemStub({ value: `operations/${String(operationId)}` })],
+        relatedDataItems: [`operations/${String(operationId)}`],
       });
       const quest = QuestStub({
         id: QuestIdStub({ value: 'add-auth' }),
@@ -303,7 +302,7 @@ describe('agentPromptGetBroker', () => {
         id: workItemId,
         role: 'codeweaver',
         step: 'plan',
-        relatedDataItems: [RelatedDataItemStub({ value: `operations/${String(operationId)}` })],
+        relatedDataItems: [`operations/${String(operationId)}`],
       });
       const quest = QuestStub({
         id: QuestIdStub({ value: 'add-auth' }),
@@ -334,7 +333,7 @@ describe('agentPromptGetBroker', () => {
       const workItemId = QuestWorkItemIdStub({ value: 'aaaaaaaa-5050-4222-9333-444444444444' });
       const operationId = OperationItemIdStub({ value: 'bbbbbbbb-5050-4222-9333-444444444444' });
       const relatedDataItems = [
-        RelatedDataItemStub({ value: `operations/${String(operationId)}` }),
+        `operations/${String(operationId)}`,
       ];
       const quest = QuestStub({
         id: QuestIdStub({ value: 'add-auth' }),
@@ -394,7 +393,7 @@ describe('agentPromptGetBroker', () => {
             role: 'codeweaver',
             step: 'plan',
             status: 'in_progress',
-            relatedDataItems: [RelatedDataItemStub({ value: `operations/${String(operationId)}` })],
+            relatedDataItems: [`operations/${String(operationId)}`],
             startRef: FIRST_ROUND_SHA,
           }),
         ],
@@ -419,7 +418,7 @@ describe('agentPromptGetBroker', () => {
       const workItemId = QuestWorkItemIdStub({ value: 'aaaaaaaa-5252-4222-9333-444444444444' });
       const operationId = OperationItemIdStub({ value: 'bbbbbbbb-5252-4222-9333-444444444444' });
       const relatedDataItems = [
-        RelatedDataItemStub({ value: `operations/${String(operationId)}` }),
+        `operations/${String(operationId)}`,
       ];
       const questAtFetch = QuestStub({
         id: QuestIdStub({ value: 'add-auth' }),
@@ -481,7 +480,7 @@ describe('agentPromptGetBroker', () => {
             role: 'codeweaver',
             step: 'plan',
             status: 'in_progress',
-            relatedDataItems: [RelatedDataItemStub({ value: `operations/${String(operationId)}` })],
+            relatedDataItems: [`operations/${String(operationId)}`],
           }),
         ],
       });
@@ -518,7 +517,7 @@ describe('agentPromptGetBroker', () => {
             role: 'codeweaver',
             step: 'plan',
             status: 'in_progress',
-            relatedDataItems: [RelatedDataItemStub({ value: `operations/${String(operationId)}` })],
+            relatedDataItems: [`operations/${String(operationId)}`],
           }),
         ],
       });
@@ -567,7 +566,7 @@ describe('agentPromptGetBroker', () => {
             role: 'codeweaver',
             step: 'plan',
             status: 'in_progress',
-            relatedDataItems: [RelatedDataItemStub({ value: `operations/${String(operationId)}` })],
+            relatedDataItems: [`operations/${String(operationId)}`],
           }),
         ],
       });

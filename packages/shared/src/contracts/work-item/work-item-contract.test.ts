@@ -1,5 +1,4 @@
 import { QuestStub } from '../quest/quest.stub';
-import { RelatedDataItemStub } from '../related-data-item/related-data-item.stub';
 import { UnitIdStub } from '../unit-id/unit-id.stub';
 import { UnitObservationStub } from '../unit-observation/unit-observation.stub';
 import { workItemContract } from './work-item-contract';
@@ -99,9 +98,7 @@ describe('workItemContract', () => {
     });
 
     it('VALID: work item with relatedDataItems => parses successfully', () => {
-      const ref = RelatedDataItemStub({
-        value: 'wardResults/a1b2c3d4-e5f6-7890-abcd-ef1234567890',
-      });
+      const ref = 'wardResults/a1b2c3d4-e5f6-7890-abcd-ef1234567890';
       const item = WorkItemStub({
         role: 'spiritmender',
         relatedDataItems: [ref],

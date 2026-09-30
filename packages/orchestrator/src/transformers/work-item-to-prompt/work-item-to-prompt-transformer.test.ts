@@ -4,7 +4,6 @@ import { QuestIdStub } from '@dungeonmaster/shared/contracts/quest-id/quest-id.s
 import { QuestPackageEntryStub } from '@dungeonmaster/shared/contracts/quest-package-entry/quest-package-entry.stub';
 import { QuestStub } from '@dungeonmaster/shared/contracts/quest/quest.stub';
 import { QuestWorkItemIdStub } from '@dungeonmaster/shared/contracts/quest-work-item-id/quest-work-item-id.stub';
-import { RelatedDataItemStub } from '@dungeonmaster/shared/contracts/related-data-item/related-data-item.stub';
 import { WardResultStub } from '@dungeonmaster/shared/contracts/ward-result/ward-result.stub';
 import { WardRunIdStub } from '@dungeonmaster/shared/contracts/ward-run-id/ward-run-id.stub';
 import { WorkItemStub } from '@dungeonmaster/shared/contracts/work-item/work-item.stub';
@@ -156,7 +155,7 @@ describe('workItemToPromptTransformer', () => {
         id: workItemId,
         role: 'ward',
         step: 'repair',
-        relatedDataItems: [RelatedDataItemStub({ value: `operations/${String(operationId)}` })],
+        relatedDataItems: [`operations/${String(operationId)}`],
       });
       const wardResult = WardResultStub({
         id: 'cccccccc-1212-4222-9333-444444444444',
@@ -208,7 +207,7 @@ describe('workItemToPromptTransformer', () => {
         id: workItemId,
         role: 'codeweaver',
         step: 'work',
-        relatedDataItems: [RelatedDataItemStub({ value: `operations/${String(operationId)}` })],
+        relatedDataItems: [`operations/${String(operationId)}`],
       });
       const quest = QuestStub({ id: questId, operations: [operation], workItems: [workItem] });
 
@@ -265,7 +264,7 @@ describe('workItemToPromptTransformer', () => {
         id: workItemId,
         role: 'codeweaver',
         step: 'plan',
-        relatedDataItems: [RelatedDataItemStub({ value: `operations/${String(operationId)}` })],
+        relatedDataItems: [`operations/${String(operationId)}`],
       });
       const quest = QuestStub({ id: questId, operations: [operation], workItems: [workItem] });
 
@@ -303,7 +302,7 @@ describe('workItemToPromptTransformer', () => {
         id: workItemId,
         role: 'codeweaver',
         step: 'plan',
-        relatedDataItems: [RelatedDataItemStub({ value: `operations/${String(operationId)}` })],
+        relatedDataItems: [`operations/${String(operationId)}`],
       });
       const quest = QuestStub({ id: questId, operations: [operation], workItems: [workItem] });
 
@@ -349,7 +348,7 @@ describe('workItemToPromptTransformer', () => {
           id: workItemId,
           role: 'codeweaver',
           step: 'plan',
-          relatedDataItems: [RelatedDataItemStub({ value: `operations/${String(operationId)}` })],
+          relatedDataItems: [`operations/${String(operationId)}`],
         });
         const quest = QuestStub({ id: questId, operations: [operation], workItems: [workItem] });
 
@@ -384,7 +383,7 @@ describe('workItemToPromptTransformer', () => {
           id: workItemId,
           role: 'codeweaver',
           step: 'plan',
-          relatedDataItems: [RelatedDataItemStub({ value: `operations/${String(operationId)}` })],
+          relatedDataItems: [`operations/${String(operationId)}`],
         });
         const quest = QuestStub({ id: questId, operations: [operation], workItems: [workItem] });
 
@@ -418,7 +417,7 @@ describe('workItemToPromptTransformer', () => {
           id: workItemId,
           role: 'codeweaver',
           step: 'plan',
-          relatedDataItems: [RelatedDataItemStub({ value: `operations/${String(operationId)}` })],
+          relatedDataItems: [`operations/${String(operationId)}`],
         });
         const quest = QuestStub({
           id: questId,
@@ -480,7 +479,7 @@ describe('workItemToPromptTransformer', () => {
           role: 'codeweaver',
           step: 'plan',
           relatedDataItems: [
-            RelatedDataItemStub({ value: `operations/${String(ownOperationId)}` }),
+            `operations/${String(ownOperationId)}`,
           ],
         });
         const longLedger = [
@@ -552,7 +551,7 @@ describe('workItemToPromptTransformer', () => {
           id: workItemId,
           role: 'warpgate',
           step: 'merge',
-          relatedDataItems: [RelatedDataItemStub({ value: `operations/${String(operationId)}` })],
+          relatedDataItems: [`operations/${String(operationId)}`],
         });
         const quest = QuestStub({
           id: questId,
@@ -595,7 +594,7 @@ describe('workItemToPromptTransformer', () => {
           id: workItemId,
           role: 'warpgate',
           step: 'merge',
-          relatedDataItems: [RelatedDataItemStub({ value: `operations/${String(operationId)}` })],
+          relatedDataItems: [`operations/${String(operationId)}`],
         });
         const quest = QuestStub({ id: questId, operations: [operation], workItems: [workItem] });
 
@@ -634,7 +633,7 @@ describe('workItemToPromptTransformer', () => {
           id: workItemId,
           role: 'codeweaver',
           step: 'plan',
-          relatedDataItems: [RelatedDataItemStub({ value: `operations/${String(operationId)}` })],
+          relatedDataItems: [`operations/${String(operationId)}`],
         });
         const quest = QuestStub({
           id: questId,
@@ -673,7 +672,7 @@ describe('workItemToPromptTransformer', () => {
       const workItem = WorkItemStub({
         id: workItemId,
         role: 'spiritmender',
-        relatedDataItems: [RelatedDataItemStub({ value: `operations/${String(operationId)}` })],
+        relatedDataItems: [`operations/${String(operationId)}`],
       });
       const wardResult = WardResultStub({
         id: 'cccccccc-8888-4222-9333-444444444444',
@@ -722,7 +721,7 @@ describe('workItemToPromptTransformer', () => {
       const workItem = WorkItemStub({
         id: workItemId,
         role: 'spiritmender',
-        relatedDataItems: [RelatedDataItemStub({ value: `operations/${String(operationId)}` })],
+        relatedDataItems: [`operations/${String(operationId)}`],
       });
       const wardResultPassing = WardResultStub({
         id: 'dddddddd-9999-4222-9333-444444444444',
@@ -780,7 +779,7 @@ describe('workItemToPromptTransformer', () => {
       const workItem = WorkItemStub({
         id: workItemId,
         role: 'spiritmender',
-        relatedDataItems: [RelatedDataItemStub({ value: `operations/${String(operationId)}` })],
+        relatedDataItems: [`operations/${String(operationId)}`],
       });
       const quest = QuestStub({
         id: questId,
@@ -820,7 +819,7 @@ describe('workItemToPromptTransformer', () => {
       const workItem = WorkItemStub({
         id: workItemId,
         role: 'spiritmender',
-        relatedDataItems: [RelatedDataItemStub({ value: `operations/${String(operationId)}` })],
+        relatedDataItems: [`operations/${String(operationId)}`],
       });
       const wardResultPassing = WardResultStub({
         id: 'cccccccc-1212-4222-9333-444444444444',
@@ -871,7 +870,7 @@ describe('workItemToPromptTransformer', () => {
           role: 'siegemaster',
           step: 'plan',
           needsLane: true,
-          relatedDataItems: [RelatedDataItemStub({ value: `operations/${String(operationId)}` })],
+          relatedDataItems: [`operations/${String(operationId)}`],
           payload: {
             instance: {
               instanceId: 'inst_7f3a9c21',
@@ -922,7 +921,7 @@ describe('workItemToPromptTransformer', () => {
           role: 'siegemaster',
           step: 'plan',
           needsLane: true,
-          relatedDataItems: [RelatedDataItemStub({ value: `operations/${String(operationId)}` })],
+          relatedDataItems: [`operations/${String(operationId)}`],
           payload: {
             instance: {
               instanceId: 'inst_7f3a9c21',
@@ -973,7 +972,7 @@ describe('workItemToPromptTransformer', () => {
           role: 'siegemaster',
           step: 'plan',
           needsLane: true,
-          relatedDataItems: [RelatedDataItemStub({ value: `operations/${String(operationId)}` })],
+          relatedDataItems: [`operations/${String(operationId)}`],
         });
         const quest = QuestStub({ id: questId, operations: [operation], workItems: [workItem] });
 
@@ -1009,7 +1008,7 @@ describe('workItemToPromptTransformer', () => {
           id: workItemId,
           role: 'codeweaver',
           step: 'plan',
-          relatedDataItems: [RelatedDataItemStub({ value: `operations/${String(operationId)}` })],
+          relatedDataItems: [`operations/${String(operationId)}`],
           payload: {
             instance: {
               instanceId: 'inst_7f3a9c21',
@@ -1060,7 +1059,7 @@ describe('workItemToPromptTransformer', () => {
         const workItem = WorkItemStub({
           role: 'codeweaver',
           relatedDataItems: [
-            RelatedDataItemStub({ value: 'operations/aaaaaaaa-1313-4222-9333-444444444444' }),
+            'operations/aaaaaaaa-1313-4222-9333-444444444444',
           ],
         });
         const quest = QuestStub({ operations: [], workItems: [workItem] });
@@ -1149,7 +1148,7 @@ describe('workItemToPromptTransformer', () => {
           id: QuestWorkItemIdStub({ value: 'bbbbbbbb-2222-4222-9333-444444444444' }),
           role: agentName,
           relatedDataItems: [
-            RelatedDataItemStub({ value: `operations/${String(operations[0]?.id)}` }),
+            `operations/${String(operations[0]?.id)}`,
           ],
         });
         const quest = QuestStub({
@@ -1230,7 +1229,7 @@ describe('workItemToPromptTransformer', () => {
           id: QuestWorkItemIdStub({ value: 'dddddddd-3333-4222-9333-444444444444' }),
           role: agentName,
           relatedDataItems: [
-            RelatedDataItemStub({ value: `operations/${String(ownOperationId)}` }),
+            `operations/${String(ownOperationId)}`,
           ],
         });
         const quest = QuestStub({

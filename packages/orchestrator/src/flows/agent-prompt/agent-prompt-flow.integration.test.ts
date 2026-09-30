@@ -17,7 +17,6 @@ import { OperationItemStub } from '@dungeonmaster/shared/contracts/operation-ite
 import { QuestIdStub } from '@dungeonmaster/shared/contracts/quest-id/quest-id.stub';
 import { QuestStub } from '@dungeonmaster/shared/contracts/quest/quest.stub';
 import { QuestWorkItemIdStub } from '@dungeonmaster/shared/contracts/quest-work-item-id/quest-work-item-id.stub';
-import { RelatedDataItemStub } from '@dungeonmaster/shared/contracts/related-data-item/related-data-item.stub';
 import { WorkItemStub } from '@dungeonmaster/shared/contracts/work-item/work-item.stub';
 
 import { agentFlowStatics } from '../../statics/agent-flow/agent-flow-statics';
@@ -77,7 +76,7 @@ describe('AgentPromptFlow', () => {
         id: workItemId,
         role: 'codeweaver',
         step: 'plan',
-        relatedDataItems: [RelatedDataItemStub({ value: `operations/${String(operationId)}` })],
+        relatedDataItems: [`operations/${String(operationId)}`],
       });
       const quest = QuestStub({ operations: [operation], workItems: [workItem] });
       await seeder.seed({ tempDir: testbed.guildPath, quest });

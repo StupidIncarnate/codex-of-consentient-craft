@@ -217,7 +217,6 @@ export * from './work-item-payload-key/work-item-payload-key-contract';
 
 export * from './spawner-type/spawner-type-contract';
 
-export * from './related-data-item/related-data-item-contract';
 
 export * from './ward-result/ward-result-contract';
 export * from './ward-detail/ward-detail-contract';

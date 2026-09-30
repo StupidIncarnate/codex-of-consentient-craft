@@ -30,7 +30,7 @@ import { getEnv, stderr } from '#gateway/node/process';
 import { randomUUID } from '#gateway/node/crypto';
 import { locationsWorktreePathFindBroker } from '@dungeonmaster/shared/brokers';
 import { streamLines } from '#gateway/node/child_process';
-import { getQuestInputContract, questContract, relatedDataItemContract, riftcarverResultContract, type BaseBranchName, type Quest } from '@dungeonmaster/shared/contracts';
+import { getQuestInputContract, questContract, riftcarverResultContract, type BaseBranchName, type Quest } from '@dungeonmaster/shared/contracts';
 
 import { currentBranch, headSha, push, upstreamSha, verifyRef } from '#gateway/bin/git';
 import { pathExists } from '#gateway/node/fs__promises';
@@ -336,6 +336,6 @@ export const stepHandlerRiftcarverBroker = async ({
   return stepHandlerResultContract.parse({
     outcome,
     detail: carveLog.join('\n'),
-    resultRef: relatedDataItemContract.parse(`riftcarverResults/${riftcarverResult.id}`),
+    resultRef: `riftcarverResults/${riftcarverResult.id}`,
   });
 };
