@@ -6,7 +6,6 @@ import { registerSpyOn } from '@dungeonmaster/testing/register-mock';
 import { BufferEntryStub } from '../../../contracts/buffer-entry/buffer-entry.stub';
 import { InstanceIdStub } from '../../../contracts/instance-id/instance-id.stub';
 import { RunIdStub } from '../../../contracts/run-id/run-id.stub';
-import { SelectorStub } from '../../../contracts/selector/selector.stub';
 import type { StepExpectationStub } from '../../../contracts/step-expectation/step-expectation.stub';
 import { StepStub } from '../../../contracts/step/step.stub';
 import { UntilResponseStub } from '../../../contracts/until-response/until-response.stub';
@@ -272,7 +271,7 @@ describe('runExecuteBroker', () => {
           StepStub({ step: 'goto', path: UrlPathStub({ value: '/step-1' }) }),
           StepStub({
             step: 'waitFor',
-            target: SelectorStub(),
+            target: '[data-testid="GUILD_ADD"]',
             state: 'visible',
           }),
           StepStub({ step: 'goto', path: UrlPathStub({ value: '/step-3' }) }),
@@ -320,7 +319,7 @@ describe('runExecuteBroker', () => {
           StepStub({ step: 'goto', path: UrlPathStub({ value: '/step-1' }) }),
           StepStub({
             step: 'waitFor',
-            target: SelectorStub(),
+            target: '[data-testid="GUILD_ADD"]',
             state: 'visible',
           }),
           StepStub({ step: 'goto', path: UrlPathStub({ value: '/step-3' }) }),
@@ -368,7 +367,7 @@ describe('runExecuteBroker', () => {
           StepStub({ step: 'goto', path: UrlPathStub({ value: '/step-1' }) }),
           StepStub({
             step: 'waitFor',
-            target: SelectorStub(),
+            target: '[data-testid="GUILD_ADD"]',
             state: 'visible',
             expect: 'error',
           }),
@@ -412,7 +411,7 @@ describe('runExecuteBroker', () => {
         instanceId: InstanceIdStub(),
         runId,
         steps: [
-          StepStub({ step: 'click', target: SelectorStub() }),
+          StepStub({ step: 'click', target: '[data-testid="GUILD_ADD"]' }),
           StepStub({
             step: 'until',
             response: UntilResponseStub({ method: 'POST', path: '/api/guilds' }),
@@ -462,7 +461,7 @@ describe('runExecuteBroker', () => {
         lane,
         instanceId: InstanceIdStub(),
         runId: firstRunId,
-        steps: [StepStub({ step: 'click', target: SelectorStub() })],
+        steps: [StepStub({ step: 'click', target: '[data-testid="GUILD_ADD"]' })],
         stopOn: 'error',
         flushCursor: proxy.flushCursor,
         advanceFlushCursor: proxy.advanceFlushCursor,

@@ -43,7 +43,6 @@ import { nodeLabelContract } from '../node-label/node-label-contract';
 import { recipeInputKeyContract } from '../recipe-input-key/recipe-input-key-contract';
 import { recipeNameContract } from '../recipe-name/recipe-name-contract';
 import { refContract } from '../ref/ref-contract';
-import { selectorContract } from '../selector/selector-contract';
 import { stepOutputNameContract } from '../step-output-name/step-output-name-contract';
 import { stepRefContract } from '../step-ref/step-ref-contract';
 import { evidenceFileStatics } from '../../statics/evidence-file/evidence-file-statics';
@@ -85,8 +84,8 @@ export const stepContract = z
     z
       .object({
         step: z.literal('waitFor'),
-        target: selectorContract,
-        within: selectorContract.nullable().default(null),
+        target: z.string().min(1).brand<'StepTarget'>(),
+        within: z.string().min(1).brand<'StepWithin'>().nullable().default(null),
         state: locatorStateContract,
         timeoutMs: timeoutMsContract.nullable().default(null),
         node: nodeLabelContract.nullable().default(null),
@@ -98,8 +97,8 @@ export const stepContract = z
     z
       .object({
         step: z.literal('click'),
-        target: selectorContract.nullable().default(null),
-        within: selectorContract.nullable().default(null),
+        target: z.string().min(1).brand<'StepTarget'>().nullable().default(null),
+        within: z.string().min(1).brand<'StepWithin'>().nullable().default(null),
         ref: refContract.nullable().default(null),
         timeoutMs: timeoutMsContract.nullable().default(null),
         node: nodeLabelContract.nullable().default(null),
@@ -111,8 +110,8 @@ export const stepContract = z
     z
       .object({
         step: z.literal('type'),
-        target: selectorContract.nullable().default(null),
-        within: selectorContract.nullable().default(null),
+        target: z.string().min(1).brand<'StepTarget'>().nullable().default(null),
+        within: z.string().min(1).brand<'StepWithin'>().nullable().default(null),
         ref: refContract.nullable().default(null),
         value: z.string().brand<'StepValue'>(),
         timeoutMs: timeoutMsContract.nullable().default(null),
@@ -162,7 +161,7 @@ export const stepContract = z
         // `withinSelectorNormaliseTransformer` is what makes both reach the same element, so a
         // session copying a scope out of an error and a session writing the spec's shorthand are
         // never one silent element-tag match apart.
-        within: selectorContract.nullable().default(null),
+        within: z.string().min(1).brand<'StepWithin'>().nullable().default(null),
         node: nodeLabelContract.nullable().default(null),
         expect: stepExpectationContract.default(
           stepExpectationContract.parse(stepStatics.defaults.expect),
@@ -182,7 +181,7 @@ export const stepContract = z
     z
       .object({
         step: z.literal('dom'),
-        target: selectorContract,
+        target: z.string().min(1).brand<'StepTarget'>(),
         fields: z.array(domFieldContract).readonly().nullable().default(null),
         text: domTextModeContract.nullable().default(null),
         node: nodeLabelContract.nullable().default(null),
@@ -212,7 +211,7 @@ export const stepContract = z
         // Exactly one of these five is non-null — enforced below on the union's own
         // `.superRefine`, next to the handle rule, for the same reason: a `.refine()` returns a
         // ZodEffects and `z.discriminatedUnion` accepts only ZodObjects.
-        visible: selectorContract.nullable().default(null),
+        visible: z.string().min(1).brand<'StepVisible'>().nullable().default(null),
         response: untilResponseContract.nullable().default(null),
         file: untilFilePathContract.nullable().default(null),
         predicate: z.string().brand<'StepPredicate'>().nullable().default(null),
@@ -304,8 +303,8 @@ export const stepContract = z
     z
       .object({
         step: z.literal('paste'),
-        target: selectorContract.nullable().default(null),
-        within: selectorContract.nullable().default(null),
+        target: z.string().min(1).brand<'StepTarget'>().nullable().default(null),
+        within: z.string().min(1).brand<'StepWithin'>().nullable().default(null),
         ref: refContract.nullable().default(null),
         filePath: z.string().brand<'PasteFilePath'>().nullable().default(null),
         value: z.string().brand<'StepValue'>().nullable().default(null),

@@ -31,12 +31,11 @@ import { z } from '#gateway/npm/zod';
 import { arrayIndexContract } from '@dungeonmaster/shared/contracts';
 
 import { refContract } from '../ref/ref-contract';
-import { selectorContract } from '../selector/selector-contract';
 
 export const stepCandidateContract = z.object({
   index: arrayIndexContract,
   ref: refContract.nullable().default(null),
-  within: selectorContract.nullable(),
+  within: z.string().min(1).brand<'StepCandidateWithin'>().nullable(),
   text: z.string().brand<'StepCandidateText'>(),
   rect: z.string().brand<'StepCandidateRect'>(),
 });

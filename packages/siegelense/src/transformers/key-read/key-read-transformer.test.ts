@@ -1,5 +1,4 @@
 import { RawKeyReadingStub } from '../../contracts/raw-key-reading/raw-key-reading.stub';
-import { SelectorStub } from '../../contracts/selector/selector.stub';
 import { keyReadTransformer } from './key-read-transformer';
 
 describe('keyReadTransformer', () => {
@@ -42,7 +41,7 @@ describe('keyReadTransformer', () => {
       const key = keyReadTransformer();
 
       const scopeAt = key
-        .readSource({ within: SelectorStub({ value: '[data-testid="MAP_FRAME"]' }) })
+        .readSource({ within: '[data-testid="MAP_FRAME"]' })
         .indexOf('"within":"[data-testid=\\"MAP_FRAME\\"]"');
 
       expect(scopeAt).toBeGreaterThan(-1);
@@ -371,7 +370,7 @@ describe('keyReadTransformer', () => {
 
       const result = key.toListing({
         raw: RawKeyReadingStub(),
-        within: SelectorStub({ value: '[data-testid="MAP_FRAME"]' }),
+        within: '[data-testid="MAP_FRAME"]',
       });
 
       expect(result.within).toBe('[data-testid="MAP_FRAME"]');

@@ -1,7 +1,6 @@
 import { FsErrorStub } from '#gateway/node/fs/is-fs-error/fs-error.stub';
 
 import { UrlPathStub } from '../../../contracts/url-path/url-path.stub';
-import { SelectorStub } from '../../../contracts/selector/selector.stub';
 import { StepCandidateStub } from '../../../contracts/step-candidate/step-candidate.stub';
 import { StepStub } from '../../../contracts/step/step.stub';
 
@@ -245,7 +244,7 @@ describe('runExecuteStepLayerBroker', () => {
       });
       const step = StepStub({
         step: 'waitFor',
-        target: SelectorStub(),
+        target: '[data-testid="GUILD_ADD"]',
         state: 'visible',
       });
 
@@ -303,7 +302,7 @@ describe('runExecuteStepLayerBroker', () => {
       const lane = proxy.laneUntilHitsCeiling({ error: ceilingError });
       const step = StepStub({
         step: 'until',
-        visible: SelectorStub({ value: '[data-testid="SUBAGENT_CHAIN"]' }),
+        visible: '[data-testid="SUBAGENT_CHAIN"]',
         timeoutMs: 20000,
       });
 
@@ -360,7 +359,7 @@ describe('runExecuteStepLayerBroker', () => {
       const lane = proxy.laneUntilHitsCeiling({ error: new Error(ambiguityMessage), candidates });
       const step = StepStub({
         step: 'until',
-        visible: SelectorStub({ value: '[data-testid="PIXEL_BTN"]' }),
+        visible: '[data-testid="PIXEL_BTN"]',
         timeoutMs: 20000,
       });
 

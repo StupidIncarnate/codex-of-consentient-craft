@@ -4,7 +4,6 @@ import { ElementDeltaStub } from '../../../contracts/element-delta/element-delta
 import { KeyListingStub } from '../../../contracts/key-listing/key-listing.stub';
 import { KeyRowStub } from '../../../contracts/key-row/key-row.stub';
 import { NodeLabelStub } from '../../../contracts/node-label/node-label.stub';
-import { SelectorStub } from '../../../contracts/selector/selector.stub';
 import { StepStub } from '../../../contracts/step/step.stub';
 import { UrlPathStub } from '../../../contracts/url-path/url-path.stub';
 import type { StepFailureCaptureError } from '../../../errors/step-failure-capture/step-failure-capture-error';
@@ -24,7 +23,7 @@ describe('stepDispatchBroker', () => {
     it('VALID: {click on a single match} => returns a reading with ok true and the shot path', async () => {
       const proxy = stepDispatchBrokerProxy();
       const { lane, captureCallArgs } = proxy.happyLane();
-      const step = StepStub({ step: 'click', target: SelectorStub() });
+      const step = StepStub({ step: 'click', target: '[data-testid="GUILD_ADD"]' });
       const shotPath = '/repo/.dungeonmaster-assets/siegelense-assets/guilds/g1/instances/inst_1/runs/run_1/step1.png';
       const backgroundPixel = [0x0d, 0x09, 0x07, 255];
       const foregroundPixel = [255, 255, 255, 255];
@@ -80,7 +79,7 @@ describe('stepDispatchBroker', () => {
     it('VALID: {a fully #0d0907 frame} => the reading carries blank true and the app background colour', async () => {
       const proxy = stepDispatchBrokerProxy();
       const { lane } = proxy.happyLane();
-      const step = StepStub({ step: 'click', target: SelectorStub() });
+      const step = StepStub({ step: 'click', target: '[data-testid="GUILD_ADD"]' });
       const shotPath = '/repo/.dungeonmaster-assets/siegelense-assets/guilds/g1/instances/inst_1/runs/run_1/step1.png';
       const backgroundPixel = [0x0d, 0x09, 0x07, 255];
       const pixels = new Uint8Array(Array.from({ length: 8 }, () => backgroundPixel).flat());
@@ -121,7 +120,7 @@ describe('stepDispatchBroker', () => {
     it('VALID: {no previous shot} => pixelChange is null', async () => {
       const proxy = stepDispatchBrokerProxy();
       const { lane } = proxy.happyLane();
-      const step = StepStub({ step: 'click', target: SelectorStub() });
+      const step = StepStub({ step: 'click', target: '[data-testid="GUILD_ADD"]' });
       const shotPath = '/repo/.dungeonmaster-assets/siegelense-assets/guilds/g1/instances/inst_1/runs/run_1/step1.png';
 
       const result = await stepDispatchBroker({
@@ -171,7 +170,7 @@ describe('stepDispatchBroker', () => {
 
       await stepDispatchBroker({
         lane,
-        step: StepStub({ step: 'click', target: SelectorStub() }),
+        step: StepStub({ step: 'click', target: '[data-testid="GUILD_ADD"]' }),
         index: 1,
         shotPath: firstShotPath,
         browserWindowStart: null,
@@ -182,7 +181,7 @@ describe('stepDispatchBroker', () => {
 
       const result = await stepDispatchBroker({
         lane,
-        step: StepStub({ step: 'click', target: SelectorStub() }),
+        step: StepStub({ step: 'click', target: '[data-testid="GUILD_ADD"]' }),
         index: 2,
         shotPath: secondShotPath,
         browserWindowStart: null,
@@ -200,7 +199,7 @@ describe('stepDispatchBroker', () => {
     it('VALID: {click throws as the declared attack} => still carries a measured blank and pixelChange', async () => {
       const proxy = stepDispatchBrokerProxy();
       const { lane } = proxy.laneRejectingClickMatch({ error: new Error('boom') });
-      const step = StepStub({ step: 'click', target: SelectorStub(), expect: 'error' });
+      const step = StepStub({ step: 'click', target: '[data-testid="GUILD_ADD"]', expect: 'error' });
       const shotPath = '/repo/.dungeonmaster-assets/siegelense-assets/guilds/g1/instances/inst_1/runs/run_1/step1.png';
       const backgroundPixel = [0x0d, 0x09, 0x07, 255];
       const pixels = new Uint8Array(Array.from({ length: 8 }, () => backgroundPixel).flat());
@@ -244,7 +243,7 @@ describe('stepDispatchBroker', () => {
       const { lane } = proxy.happyLane();
       const step = StepStub({
         step: 'waitFor',
-        target: SelectorStub(),
+        target: '[data-testid="GUILD_ADD"]',
         state: 'visible',
       });
 
@@ -279,7 +278,7 @@ describe('stepDispatchBroker', () => {
       const { lane } = proxy.happyLaneWithServerLogWindow({
         serverLogLengthSequence: [120, 450],
       });
-      const step = StepStub({ step: 'click', target: SelectorStub() });
+      const step = StepStub({ step: 'click', target: '[data-testid="GUILD_ADD"]' });
 
       const result = await stepDispatchBroker({
         lane,
@@ -300,7 +299,7 @@ describe('stepDispatchBroker', () => {
     it('INVALID: {click against dungeonmaster-api} => throws BrowserStepUnsupportedError naming the spec', async () => {
       const proxy = stepDispatchBrokerProxy();
       const lane = proxy.browserlessLane({ specName: 'dungeonmaster-api' });
-      const step = StepStub({ step: 'click', target: SelectorStub() });
+      const step = StepStub({ step: 'click', target: '[data-testid="GUILD_ADD"]' });
 
       const error = await stepDispatchBroker({
         lane,
@@ -431,7 +430,7 @@ describe('stepDispatchBroker', () => {
     it('VALID: {expect: error, step throws} => returns ok true', async () => {
       const proxy = stepDispatchBrokerProxy();
       const { lane } = proxy.laneRejectingClickMatch({ error: new Error('boom') });
-      const step = StepStub({ step: 'click', target: SelectorStub(), expect: 'error' });
+      const step = StepStub({ step: 'click', target: '[data-testid="GUILD_ADD"]', expect: 'error' });
 
       const result = await stepDispatchBroker({
         lane,
@@ -466,7 +465,7 @@ describe('stepDispatchBroker', () => {
     it('INVALID: {expect: error, step succeeds} => returns ok false', async () => {
       const proxy = stepDispatchBrokerProxy();
       const { lane } = proxy.happyLane();
-      const step = StepStub({ step: 'click', target: SelectorStub(), expect: 'error' });
+      const step = StepStub({ step: 'click', target: '[data-testid="GUILD_ADD"]', expect: 'error' });
 
       const result = await stepDispatchBroker({
         lane,
@@ -505,7 +504,7 @@ describe('stepDispatchBroker', () => {
       });
       const step = StepStub({
         step: 'waitFor',
-        target: SelectorStub(),
+        target: '[data-testid="GUILD_ADD"]',
         state: 'visible',
         expect: 'error',
       });
@@ -546,7 +545,7 @@ describe('stepDispatchBroker', () => {
       const { lane } = proxy.happyLane();
       const step = StepStub({
         step: 'waitFor',
-        target: SelectorStub(),
+        target: '[data-testid="GUILD_ADD"]',
         state: 'visible',
         expect: 'error',
       });
@@ -588,7 +587,7 @@ describe('stepDispatchBroker', () => {
       const { lane, captureCallArgs } = proxy.laneRejectingClickMatch({
         error: new Error('AMBIGUOUS: 2 elements match [data-testid="X"]'),
       });
-      const step = StepStub({ step: 'click', target: SelectorStub() });
+      const step = StepStub({ step: 'click', target: '[data-testid="GUILD_ADD"]' });
       const shotPath = '/repo/.dungeonmaster-assets/siegelense-assets/guilds/g1/instances/inst_1/runs/run_1/step1.png';
 
       const error = await stepDispatchBroker({
@@ -631,7 +630,7 @@ describe('stepDispatchBroker', () => {
       const { lane, captureCallArgs } = proxy.laneRejectingClickMatch({
         error: new Error('boom'),
       });
-      const step = StepStub({ step: 'click', target: SelectorStub() });
+      const step = StepStub({ step: 'click', target: '[data-testid="GUILD_ADD"]' });
 
       const error = await stepDispatchBroker({
         lane,
@@ -659,7 +658,7 @@ describe('stepDispatchBroker', () => {
         clickError: new Error('AMBIGUOUS: 2 elements match [data-testid="X"]'),
         captureError: FsErrorStub({ code: 'ENOSPC', syscall: 'write', path: '/shots/step1.png' }),
       });
-      const step = StepStub({ step: 'click', target: SelectorStub() });
+      const step = StepStub({ step: 'click', target: '[data-testid="GUILD_ADD"]' });
       const shotPath = '/repo/.dungeonmaster-assets/siegelense-assets/guilds/g1/instances/inst_1/runs/run_1/step1.png';
 
       const error = await stepDispatchBroker({
@@ -717,7 +716,7 @@ describe('stepDispatchBroker', () => {
 
       await stepDispatchBroker({
         lane: firstLane,
-        step: StepStub({ step: 'click', target: SelectorStub() }),
+        step: StepStub({ step: 'click', target: '[data-testid="GUILD_ADD"]' }),
         index: 1,
         shotPath: firstShotPath,
         browserWindowStart: null,
@@ -736,7 +735,7 @@ describe('stepDispatchBroker', () => {
 
       const error = await stepDispatchBroker({
         lane: failingLane,
-        step: StepStub({ step: 'click', target: SelectorStub() }),
+        step: StepStub({ step: 'click', target: '[data-testid="GUILD_ADD"]' }),
         index: 2,
         shotPath: secondShotPath,
         browserWindowStart: null,
@@ -780,7 +779,7 @@ describe('stepDispatchBroker', () => {
 
       await stepDispatchBroker({
         lane: firstLane,
-        step: StepStub({ step: 'click', target: SelectorStub() }),
+        step: StepStub({ step: 'click', target: '[data-testid="GUILD_ADD"]' }),
         index: 1,
         shotPath: firstShotPath,
         browserWindowStart: null,
@@ -802,7 +801,7 @@ describe('stepDispatchBroker', () => {
 
       const error = await stepDispatchBroker({
         lane: failingLane,
-        step: StepStub({ step: 'click', target: SelectorStub() }),
+        step: StepStub({ step: 'click', target: '[data-testid="GUILD_ADD"]' }),
         index: 2,
         shotPath: secondShotPath,
         browserWindowStart: null,
@@ -838,7 +837,7 @@ describe('stepDispatchBroker', () => {
       const { lane } = proxy.happyLane();
       const step = StepStub({
         step: 'click',
-        target: SelectorStub(),
+        target: '[data-testid="GUILD_ADD"]',
         node: NodeLabelStub({ value: 'open-guild-modal' }),
       });
 
@@ -885,7 +884,7 @@ describe('stepDispatchBroker', () => {
     it('INVALID: {two matches} => throws StepAmbiguousError uncaught and never calls clickMatch', async () => {
       const proxy = stepDispatchBrokerProxy();
       const { lane, clickMatchCallArgs } = proxy.laneWithTwoMatches();
-      const step = StepStub({ step: 'click', target: SelectorStub() });
+      const step = StepStub({ step: 'click', target: '[data-testid="GUILD_ADD"]' });
 
       const error = await stepDispatchBroker({
         lane,
@@ -933,7 +932,7 @@ describe('stepDispatchBroker', () => {
       const { lane } = proxy.happyLane();
       const step = StepStub({
         step: 'waitFor',
-        target: SelectorStub(),
+        target: '[data-testid="GUILD_ADD"]',
         state: 'visible',
       });
 
@@ -956,7 +955,7 @@ describe('stepDispatchBroker', () => {
       const { lane } = proxy.happyLane();
       const step = StepStub({
         step: 'type',
-        target: SelectorStub(),
+        target: '[data-testid="GUILD_ADD"]',
         value: 'siege-1',
       });
 
@@ -1103,7 +1102,7 @@ describe('stepDispatchBroker', () => {
       const beforeListing = KeyListingStub({ rows: [disappearingRow, changedBeforeRow] });
       const afterListing = KeyListingStub({ rows: [changedAfterRow, appearingRow] });
       const { lane } = proxy.happyLane({ keyListings: [beforeListing, afterListing] });
-      const step = StepStub({ step: 'click', target: SelectorStub() });
+      const step = StepStub({ step: 'click', target: '[data-testid="GUILD_ADD"]' });
       const shotPath = '/repo/.dungeonmaster-assets/siegelense-assets/guilds/g1/instances/inst_1/runs/run_1/step1.png';
 
       const result = await stepDispatchBroker({
@@ -1139,7 +1138,7 @@ describe('stepDispatchBroker', () => {
         error: new Error('AMBIGUOUS: 2 elements match [data-testid="X"]'),
         keyListings: [beforeListing, afterListing],
       });
-      const step = StepStub({ step: 'click', target: SelectorStub() });
+      const step = StepStub({ step: 'click', target: '[data-testid="GUILD_ADD"]' });
       const shotPath = '/repo/.dungeonmaster-assets/siegelense-assets/guilds/g1/instances/inst_1/runs/run_1/step1.png';
 
       const error = await stepDispatchBroker({
@@ -1180,7 +1179,7 @@ describe('stepDispatchBroker', () => {
         error: new Error('AMBIGUOUS: 2 elements match [data-testid="X"]'),
         keyListings: [beforeListing, afterListing],
       });
-      const step = StepStub({ step: 'click', target: SelectorStub(), expect: 'error' });
+      const step = StepStub({ step: 'click', target: '[data-testid="GUILD_ADD"]', expect: 'error' });
       const shotPath = '/repo/.dungeonmaster-assets/siegelense-assets/guilds/g1/instances/inst_1/runs/run_1/step1.png';
 
       const result = await stepDispatchBroker({

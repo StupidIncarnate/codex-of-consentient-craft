@@ -5,7 +5,6 @@ import { LocatorStateStub } from '../locator-state/locator-state.stub';
 import { RecipeNameStub } from '../recipe-name/recipe-name.stub';
 import { RefStub } from '../ref/ref.stub';
 import { ResetLevelStub } from '../reset-level/reset-level.stub';
-import { SelectorStub } from '../selector/selector.stub';
 import { SnapshotNameStub } from '../snapshot-name/snapshot-name.stub';
 import { StepExpectationStub } from '../step-expectation/step-expectation.stub';
 import { StepFilePathStub } from '../step-file-path/step-file-path.stub';
@@ -22,7 +21,7 @@ const STEP_DEFAULTS = {
   goto: { step: 'goto', path: UrlPathStub(), node: null, expect: StepExpectationStub() },
   waitFor: {
     step: 'waitFor',
-    target: SelectorStub(),
+    target: '[data-testid="GUILD_ADD"]',
     within: null,
     state: LocatorStateStub(),
     timeoutMs: null,
@@ -31,7 +30,7 @@ const STEP_DEFAULTS = {
   },
   click: {
     step: 'click',
-    target: SelectorStub(),
+    target: '[data-testid="GUILD_ADD"]',
     within: null,
     ref: null,
     timeoutMs: null,
@@ -40,7 +39,7 @@ const STEP_DEFAULTS = {
   },
   type: {
     step: 'type',
-    target: SelectorStub(),
+    target: '[data-testid="GUILD_ADD"]',
     within: null,
     ref: null,
     value: 'Result text',
@@ -75,7 +74,7 @@ const STEP_DEFAULTS = {
   },
   dom: {
     step: 'dom',
-    target: SelectorStub(),
+    target: '[data-testid="GUILD_ADD"]',
     fields: null,
     text: null,
     node: null,
@@ -91,7 +90,7 @@ const STEP_DEFAULTS = {
   },
   until: {
     step: 'until',
-    visible: SelectorStub(),
+    visible: '[data-testid="GUILD_ADD"]',
     response: null,
     file: null,
     predicate: null,
@@ -145,7 +144,7 @@ const STEP_DEFAULTS = {
   },
   paste: {
     step: 'paste',
-    target: SelectorStub(),
+    target: '[data-testid="GUILD_ADD"]',
     within: null,
     ref: null,
     filePath: null,

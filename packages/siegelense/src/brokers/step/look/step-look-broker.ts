@@ -28,7 +28,6 @@
 
 
 import type { BrowserSession } from '../../../contracts/browser-session/browser-session-contract';
-import { selectorContract } from '../../../contracts/selector/selector-contract';
 import { withinSelectorNormaliseTransformer } from '../../../transformers/within-selector-normalise/within-selector-normalise-transformer';
 
 export const stepLookBroker = async ({
@@ -41,7 +40,7 @@ export const stepLookBroker = async ({
   const scope =
     within === null
       ? null
-      : withinSelectorNormaliseTransformer({ within: selectorContract.parse(within) });
+      : withinSelectorNormaliseTransformer({ within: within });
 
   const listing = await session.look({ within: scope });
 

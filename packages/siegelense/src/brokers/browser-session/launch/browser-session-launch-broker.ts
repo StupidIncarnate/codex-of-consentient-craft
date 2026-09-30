@@ -39,7 +39,6 @@ import type { KeyListing } from '../../../contracts/key-listing/key-listing-cont
 import { matchCountContract } from '../../../contracts/match-count/match-count-contract';
 import { locatorStateContract } from '../../../contracts/locator-state/locator-state-contract';
 import type { RefResolution } from '../../../contracts/ref-resolution/ref-resolution-contract';
-import { selectorContract } from '../../../contracts/selector/selector-contract';
 import { driverStatics } from '../../../statics/driver/driver-statics';
 import { stepCandidateContract } from '../../../contracts/step-candidate/step-candidate-contract';
 import type { StepCandidate } from '../../../contracts/step-candidate/step-candidate-contract';
@@ -300,7 +299,7 @@ export const browserSessionLaunchBroker = async ({
     },
 
     look: async ({ within }: { within: string | null }): Promise<KeyListing> => {
-      const scope = within === null ? null : selectorContract.parse(within);
+      const scope = within === null ? null : within;
       const raw: unknown = await page.evaluate(keyReader.readSource({ within: scope }));
       mintState.highest = Math.max(mintState.highest, keyReader.highestRefOf({ raw }));
       return keyReader.toListing({ raw, within: scope });

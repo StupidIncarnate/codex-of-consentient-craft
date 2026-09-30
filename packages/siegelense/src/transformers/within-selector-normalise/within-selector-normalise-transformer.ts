@@ -17,12 +17,10 @@
  * // Returns '[data-testid="SUBAGENT_CHAIN_HEADER"]'
  */
 
-import { selectorContract } from '../../contracts/selector/selector-contract';
-import type { Selector } from '../../contracts/selector/selector-contract';
 
 const BARE_TESTID_PATTERN = /^[A-Za-z0-9_-]+$/u;
 
-export const withinSelectorNormaliseTransformer = ({ within }: { within: Selector }): Selector =>
+export const withinSelectorNormaliseTransformer = ({ within }: { within: string }): string =>
   BARE_TESTID_PATTERN.test(within)
-    ? selectorContract.parse(`[data-testid="${within}"]`)
-    : selectorContract.parse(within);
+    ? `[data-testid="${within}"]`
+    : within;

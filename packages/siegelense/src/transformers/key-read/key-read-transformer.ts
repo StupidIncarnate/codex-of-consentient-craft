@@ -42,7 +42,6 @@ import { keyListingContract } from '../../contracts/key-listing/key-listing-cont
 import type { KeyListing } from '../../contracts/key-listing/key-listing-contract';
 import { keyRowContract } from '../../contracts/key-row/key-row-contract';
 import { rawKeyReadingContract } from '../../contracts/raw-key-reading/raw-key-reading-contract';
-import type { Selector } from '../../contracts/selector/selector-contract';
 import { keyStatics } from '../../statics/key/key-statics';
 import { refStatics } from '../../statics/ref/ref-statics';
 import { attrsBudgetTransformer } from '../attrs-budget/attrs-budget-transformer';
@@ -273,11 +272,11 @@ const READ_SOURCE_BODY = `(params) => {
 }`;
 
 export const keyReadTransformer = (): {
-  readSource: (params: { within: Selector | null }) => string;
+  readSource: (params: { within: string | null }) => string;
   highestRefOf: (params: { raw: unknown }) => number;
-  toListing: (params: { raw: unknown; within: Selector | null }) => KeyListing;
+  toListing: (params: { raw: unknown; within: string | null }) => KeyListing;
 } => ({
-  readSource: ({ within }: { within: Selector | null }): string => {
+  readSource: ({ within }: { within: string | null }): string => {
     const params = JSON.stringify({
       within,
       rootLabel: within ?? 'the page',
@@ -300,7 +299,7 @@ export const keyReadTransformer = (): {
   highestRefOf: ({ raw }: { raw: unknown }): number =>
     rawKeyReadingContract.parse(raw).highestRef,
 
-  toListing: ({ raw, within }: { raw: unknown; within: Selector | null }): KeyListing => {
+  toListing: ({ raw, within }: { raw: unknown; within: string | null }): KeyListing => {
     const reading = rawKeyReadingContract.parse(raw);
     // The determinism guard, on the element column this time. Measured on this app: Mantine mints
     // `mantine-gwrqe5vg6-label` per mount, so a key carrying it differs between two readings of the

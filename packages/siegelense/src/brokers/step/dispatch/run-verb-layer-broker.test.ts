@@ -1,6 +1,5 @@
 
 import { LaneSessionStub } from '../../../contracts/lane-session/lane-session.stub';
-import { SelectorStub } from '../../../contracts/selector/selector.stub';
 import { StepFilePathStub } from '../../../contracts/step-file-path/step-file-path.stub';
 import { StepStub } from '../../../contracts/step/step.stub';
 import { UrlPathStub } from '../../../contracts/url-path/url-path.stub';
@@ -17,7 +16,7 @@ describe('runVerbLayerBroker', () => {
     it('VALID: {click, one match} => calls countMatches before clickMatch', async () => {
       const proxy = runVerbLayerBrokerProxy();
       const { lane, callOrder } = proxy.sessionWithOneMatch();
-      const step = StepStub({ step: 'click', target: SelectorStub() });
+      const step = StepStub({ step: 'click', target: '[data-testid="GUILD_ADD"]' });
 
       await runVerbLayerBroker({
         lane,
@@ -34,7 +33,7 @@ describe('runVerbLayerBroker', () => {
     it('VALID: {type, one match} => calls countMatches before fillMatch', async () => {
       const proxy = runVerbLayerBrokerProxy();
       const { lane, callOrder } = proxy.sessionWithOneMatch();
-      const step = StepStub({ step: 'type', target: SelectorStub(), value: 'Result text' });
+      const step = StepStub({ step: 'type', target: '[data-testid="GUILD_ADD"]', value: 'Result text' });
 
       await runVerbLayerBroker({
         lane,
@@ -51,7 +50,7 @@ describe('runVerbLayerBroker', () => {
     it('VALID: {paste, one match} => calls countMatches before pasteMatch', async () => {
       const proxy = runVerbLayerBrokerProxy();
       const { lane, callOrder } = proxy.sessionWithOneMatch();
-      const step = StepStub({ step: 'paste', target: SelectorStub(), value: 'Result text' });
+      const step = StepStub({ step: 'paste', target: '[data-testid="GUILD_ADD"]', value: 'Result text' });
 
       await runVerbLayerBroker({
         lane,
@@ -68,7 +67,7 @@ describe('runVerbLayerBroker', () => {
     it('VALID: {waitFor, one match} => calls countMatches before waitForMatch', async () => {
       const proxy = runVerbLayerBrokerProxy();
       const { lane, callOrder } = proxy.sessionWithOneMatch();
-      const step = StepStub({ step: 'waitFor', target: SelectorStub() });
+      const step = StepStub({ step: 'waitFor', target: '[data-testid="GUILD_ADD"]' });
 
       await runVerbLayerBroker({
         lane,
@@ -107,7 +106,7 @@ describe('runVerbLayerBroker', () => {
     it('INVALID: {click, two matches} => throws StepAmbiguousError and never calls clickMatch', async () => {
       const proxy = runVerbLayerBrokerProxy();
       const { lane, session } = proxy.sessionWithTwoMatches();
-      const step = StepStub({ step: 'click', target: SelectorStub() });
+      const step = StepStub({ step: 'click', target: '[data-testid="GUILD_ADD"]' });
 
       const error = await runVerbLayerBroker({
         lane,
@@ -151,7 +150,7 @@ describe('runVerbLayerBroker', () => {
     it('VALID: {dom} => calls readDom directly without resolving and returns rendered JSON', async () => {
       const proxy = runVerbLayerBrokerProxy();
       const { lane, callOrder } = proxy.sessionWithOneMatch();
-      const step = StepStub({ step: 'dom', target: SelectorStub() });
+      const step = StepStub({ step: 'dom', target: '[data-testid="GUILD_ADD"]' });
 
       const result = await runVerbLayerBroker({
         lane,
@@ -191,7 +190,7 @@ describe('runVerbLayerBroker', () => {
     it('ERROR: {click, lane.browser === null} => refuses by NAME rather than acting on nothing', async () => {
       const proxy = runVerbLayerBrokerProxy();
       const { lane } = proxy.browserlessLane();
-      const step = StepStub({ step: 'click', target: SelectorStub() });
+      const step = StepStub({ step: 'click', target: '[data-testid="GUILD_ADD"]' });
 
       const error = await runVerbLayerBroker({
         lane,
@@ -422,7 +421,7 @@ describe('runVerbLayerBroker', () => {
       const { lane } = proxy.sessionWithOneMatch();
       const step = StepStub({
         step: 'paste',
-        target: SelectorStub({ value: '[data-testid="INPUT"]' }),
+        target: '[data-testid="INPUT"]',
         value: 'hello',
       });
       const index = 1;

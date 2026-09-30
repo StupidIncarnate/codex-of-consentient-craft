@@ -1,6 +1,5 @@
 
 import { LocatorStateStub } from '../locator-state/locator-state.stub';
-import { SelectorStub } from '../selector/selector.stub';
 import { UrlPathStub } from '../url-path/url-path.stub';
 import { stepContract } from './step-contract';
 import { StepStub } from './step.stub';
@@ -9,16 +8,16 @@ import { StepStub } from './step.stub';
 // stepContract.parse rather than a raw literal — one entry per member of stepStatics.verbs.all.
 const STEP_FIXTURES = [
   StepStub({ step: 'goto', path: UrlPathStub() }),
-  StepStub({ step: 'waitFor', target: SelectorStub(), state: LocatorStateStub() }),
-  StepStub({ step: 'click', target: SelectorStub() }),
-  StepStub({ step: 'type', target: SelectorStub(), value: 'Result text' }),
+  StepStub({ step: 'waitFor', target: '[data-testid="GUILD_ADD"]', state: LocatorStateStub() }),
+  StepStub({ step: 'click', target: '[data-testid="GUILD_ADD"]' }),
+  StepStub({ step: 'type', target: '[data-testid="GUILD_ADD"]', value: 'Result text' }),
   StepStub({ step: 'screenshot', name: 'step1.png' }),
   StepStub({ step: 'eval', source: 'Result text' }),
   StepStub({ step: 'look' }),
   StepStub({ step: 'box' }),
-  StepStub({ step: 'dom', target: SelectorStub() }),
+  StepStub({ step: 'dom', target: '[data-testid="GUILD_ADD"]' }),
   StepStub({ step: 'seed' }),
-  StepStub({ step: 'until', visible: SelectorStub() }),
+  StepStub({ step: 'until', visible: '[data-testid="GUILD_ADD"]' }),
   StepStub({ step: 'key', press: 'Enter' }),
   StepStub({ step: 'health' }),
   StepStub({ step: 'resize', width: 1280, height: 720 }),
@@ -26,7 +25,7 @@ const STEP_FIXTURES = [
   StepStub({ step: 'before', source: 'Result text' }),
   StepStub({ step: 'file' }),
   StepStub({ step: 'storage' }),
-  StepStub({ step: 'paste', target: SelectorStub(), value: 'Result text' }),
+  StepStub({ step: 'paste', target: '[data-testid="GUILD_ADD"]', value: 'Result text' }),
   StepStub({ step: 'hold' }),
   StepStub({ step: 'video', action: 'start' }),
   StepStub({ step: 'snapshot' }),

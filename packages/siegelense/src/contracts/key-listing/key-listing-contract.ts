@@ -29,11 +29,10 @@ import { z } from '#gateway/npm/zod';
 
 
 import { keyRowContract } from '../key-row/key-row-contract';
-import { selectorContract } from '../selector/selector-contract';
 
 export const keyListingContract = z
   .object({
-    within: selectorContract.nullable(),
+    within: z.string().min(1).brand<'KeyListingWithin'>().nullable(),
     rows: z.array(keyRowContract).readonly(),
     duplicates: z.array(z.string().brand<'KeyListingDuplicates'>()).readonly(),
     truncated: z.array(z.string().brand<'KeyListingTruncated'>()).readonly(),
