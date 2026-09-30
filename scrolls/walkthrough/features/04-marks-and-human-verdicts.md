@@ -147,19 +147,19 @@ still says the word "screencast").
 
 ## Known open items
 
+Open defects from this section moved to scrolls/defects/ on 2026-09-30: DEF-203.
+
 - **No recorder exists.** `scrolls/consolidated-plan-handoff.md` records two owner decisions that
   closed this: `verifyByHuman` and siegelense video are separate features, and the screencast hold was
   deleted rather than built out — so a `verifyByHuman` criterion is judged with no attached evidence by
   design, not as a gap.
-- **The verdict buttons' in-flight disable has never had a test** (same handoff doc, "Known gaps" list)
-  — `EndpointControl` in `packages/testing` cannot hold a mocked HTTP request open long enough to
-  observe the disabled state mid-flight. MK-14 is the only way to see this today.
 - **`questSummaryObservableContract.addedBy`'s description was written for mid-quest observables** and
   `humanChecks` reuses the same contract — cosmetic, not a defect, per the same handoff doc's "Known
   gaps, not yet units" list.
 - Five orchestrator summary tests went red for several commits when the `human-verdict` note kind first
   landed (handoff doc, "Production bugs found and fixed this session") — worth an extra look at
   MK-25/MK-27 given that history.
+
 
 ## Sources
 

@@ -255,21 +255,11 @@ Args: `{ agent, questId, workItemId? }` — `workItemId` required for a relay ro
 
 ## Known open items
 
-- **`scrolls/orcha-changes/HANDOFF.md` is stale in at least two places, verified against current
-  `master`.** It lists "restore the graph check at server boot" as owed — `packages/server/src/startup/start-server.ts:15,32` already calls `GraphReachabilityBootFlow()`. It also flags
-  `orch-codeweaver-partial` in `smoketest-scenarios-statics.ts` as dead — that file currently declares
-  only `orchHappyPath` and `orchReachesFlowrider`; the stale scenario is already gone. Treat the rest of
-  that file's "Owed" section with the same skepticism and re-verify before acting on it.
-- **`CLOSE_OUT.repair` (shared by codeweaver/flowrider/siegemaster) declares no `done` route.**
-  HANDOFF.md flags this as "reachable, untested" for a `no-minter` block, reasoning that only
-  `wardFull`/`riftcarver`'s OWN `repair` (which declares `done: 'commit'`) are exercised by the current
-  gate/repair fixpoint tests. OR-19 exercises the shared `CLOSE_OUT.repair` path directly — watch
-  closely for a `{ reason: 'no-minter' }` block instead of the expected return-to-`ward` behavior.
-- **Check 19 in the plan validation ("a walk piece whose path needs a seeded system names a recipe")**
-  has no definition of "needs a seeded system" anywhere in the codebase — named in the contract, never
-  emitted (`scrolls/orcha-changes/HANDOFF.md`).
+Open defects from this section moved to scrolls/defects/ on 2026-09-30: DEF-201, DEF-202, DEF-214.
+
 - **`unitIdContract` and `qaChecklistItemIdContract`** are byte-identical validation under separate
   brands, paying a re-parse at every boundary — a possible dedup, not a bug (same source).
+
 
 ## Sources
 

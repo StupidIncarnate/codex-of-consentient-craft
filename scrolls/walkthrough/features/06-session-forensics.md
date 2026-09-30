@@ -201,15 +201,8 @@ treat SF-45/SF-46 as "run only if the user asks for a real post-mortem," not as 
 
 ## Known open items
 
-Found while writing this doc, not yet confirmed on a real walkthrough turn. Promote any confirmed row to
-`LEDGER.md`'s "Suspected defects from the exploration" table with a fresh `DEF-NN`.
+Open defects from this section moved to scrolls/defects/ on 2026-09-30: DEF-205, DEF-200, DEF-204, DEF-206, DEF-207.
 
-1. **Empty-string target crashes past the usage block, inconsistently with every other invalid-input path.**
-   `SessionForensicsFlow` only guards `target === undefined` (`packages/session-forensics/src/flows/session-forensics/session-forensics-flow.ts:43`), so `target: ''` sails through to `DigestRunResponder`, which calls `sessionIdContract.parse()`/`questIdContract.parse()` — not `.safeParse()` — at `packages/session-forensics/src/responders/digest/run/digest-run-responder.ts:58,65,101`. The resulting `ZodError` is uncaught by the flow and prints as a raw pretty-printed JSON array from `StartSessionForensics`'s top-level catch. This is a *tested*, deliberate-looking behavior (`start-session-forensics.integration.test.ts:50-81` asserts the exact dump), so it may be "working as designed" rather than a bug — but it is a rough CLI moment for a fat-fingered empty argument, worth a product call.
-2. **`coverage`/`quest` silently render blank for a quest whose flows fail schema validation, with zero indication anything went wrong.** Confirmed live against a real repo quest: `b4c31633-913d-4ea3-912a-76ae0d64bec4`'s `quest.json` holds 2 real flows whose node objects still carry pre-migration `codeweaverSignoff`/`flowriderSignoff` keys. `flowNodeContract` is `.strict()` (`packages/shared/src/contracts/flow-node/flow-node-contract.ts:44`) and rejects unrecognized keys; `questLoadBroker`'s `flowContract.array().safeParse(questJson.flows)` (`packages/session-forensics/src/brokers/quest/load/quest-load-broker.ts:48-49,54`) swallows that failure and returns `flows: []`. Any quest written before the sign-off-track retirement (commit `9939caa87`) reads as having zero flows, with no warning.
-3. **Quest id resolution never walks up from `process.cwd()`.** `questFindBroker` (`packages/session-forensics/src/brokers/quest/find/quest-find-broker.ts:30,33-34`) joins `cwd` directly into its three candidate roots. Every other "find the repo root" path in this codebase (`cwdResolveBroker`, per `packages/shared/CLAUDE.md`) walks upward looking for a marker file; this one does not. Running the CLI from any package subdirectory against a real quest id returns the same silent blank output as an unknown id (confirmed live, SF-33).
-4. **`.claude/commands/quest-forensics.md` has no "Step 6."** The file goes from `## Step 5 — compile` (line 196) straight to `# PHASE 2 — the delivery-chain audit` (line 241) and `## Step 7 — the coverage baseline` (line 262). Either intentional or a slip — worth asking the doc's owner.
-5. **A dangling `--minutes`/`--floor-seconds` flag with no value silently falls back to the default**, the same non-error path as the flag being entirely absent (`packages/session-forensics/src/flows/session-forensics/session-forensics-flow.ts:47-48`, `56-57`). Plausibly fine — flagged so the walkthrough driver makes the call deliberately rather than by accident.
 
 ## Sources
 

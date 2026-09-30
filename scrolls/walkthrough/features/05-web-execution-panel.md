@@ -212,19 +212,11 @@ in a real browser by a human**, which is this doc's whole reason to exist.
 
 ## Known open items
 
+Open defects from this section moved to scrolls/defects/ on 2026-09-30: DEF-208, DEF-218.
+
 - **`scrolls/consolidated-plan-handoff.md`, "What this session landed"**: "Track 2 — execution panel...
   **None of it has been seen in a browser yet**" — this walkthrough is the first real-browser pass over
   the whole feature. Treat every P1/P2 case as genuinely unverified, not a formality.
-- **`scrolls/consolidated-plan-units.md:214-219`** (T2-9a's own worked example) flags that decision 2's
-  worked example is ambiguous about whether "the operation row carries the piece name once" means real
-  nesting or a flat list with only the first row full-named. Current code (confirmed by reading
-  `execution-panel-widget.tsx`) implements the NESTED reading — indented child rows under a header. If
-  the owner intended the flat reading, EX-02/EX-03 will look wrong to them even though they match the
-  code exactly as shipped.
-- **`scrolls/consolidated-plan-handoff.md`, "Known gaps, not yet units"**: `quest-completed`'s hydration
-  recipe seeds work items with NO `relatedDataItems` link back to their operations — if EX-49/EX-64 look
-  odd on that specific seed (operations shown as unclaimed, or scopes not grouping the way expected),
-  this is the named, already-known cause, not a new find.
 - **`scrolls/consolidated-plan-handoff.md`, "Traps"**: a package-scoped `ward` run does not evaluate the
   open-handle gate, and lint reads compiled `shared/dist` for `locationsStatics` — neither is relevant to
   a browser walkthrough, but if you ALSO plan to fix something found here, rebuild `shared` before
@@ -232,6 +224,7 @@ in a real browser by a human**, which is this doc's whole reason to exist.
 - The legacy `pt N` (operation-text, prefix-form) path — EX-59 — is exercised only by the deterministic
   test dispatcher today; it may be rare or unreachable through ordinary manual use. Do not treat its
   absence during the walkthrough as a defect.
+
 
 ## Sources
 

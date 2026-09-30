@@ -147,14 +147,11 @@ its `id`/`path` from the `SEEDED:` block, then issue one `run` per recipe.
 
 ## Known open items
 
+Open defects from this section moved to scrolls/defects/ on 2026-09-30: DEF-209.
+
 - **Earlier seed fixes, not yet seen live.** Three fixes are proven by tests but not on the real CLI:
   `seedResultContract` accepts a full record, `guild-with-three-quests` seeds three distinct statuses with gate
   content, and `HydrationRouteFailedError` names the real failure kind. HY-06, HY-14, HY-32 and HY-33 confirm them.
-- **`attach` has no recipe or CLI surface.** It is fully built and integration-tested
-  (`15fec3a61`), but nothing in the catalog calls it — HY-23 is the only way to see it work today.
-  `packages/hydration/CLAUDE.md`'s own `attach` section documents a real TypeScript limitation
-  (`TS18048`) when chaining a child accessor off an attached row — worth re-reading if a future recipe
-  tries to.
 - **HY-29's error-text mismatch** between `start --seed <bad name>` and `run`'s `seed` step for the
   identical failure is a real inconsistency in the code, not a documentation gap — two different error
   classes, two different sentences, for the same user mistake.
@@ -169,6 +166,7 @@ its `id`/`path` from the `SEEDED:` block, then issue one `run` per recipe.
   guild `write` route's directory-creation asymmetry against its `api` counterpart.
 - **`recording` route kind is declared and unexercised** — no ingredient in this repo's catalog uses
   it, so nothing here proves it works.
+
 
 ## Sources
 

@@ -88,56 +88,20 @@ nothing.
 
 ## 28b — six defects, each its own small session
 
-| Defect | Where | Fix |
-|---|---|---|
-| `riftcarver` missing from the floor list, so it sorts last on a depth tie | `shared/src/statics/execution-floor-config/execution-floor-config-statics.ts` | add its entry. That list is also the dispatcher's sort tiebreak. **Verified — the real 11-entry list is quoted below** |
-| `orchestrationPhaseContract` is dead — a stale closed role enum, no consumer | `orchestrator/src/contracts/orchestration-phase/` | delete it, its stub and its test. **Verified — `discover({ grep: "orchestrationPhaseContract" })` returns only its own contract, `.test.ts` and `.stub.ts`, plus two planning docs. Zero hits under `brokers/`, `responders/`, `transformers/`** |
-| `dagTopologicalSortTransformer` + `dagReadyNodesProcessTransformer` are dead | `orchestrator/src/transformers/dag-topological-sort/` and `orchestrator/src/transformers/dag-ready-nodes-process/` — confirmed, both directories exist, no hedge needed | delete both. The live path is `computeWorkItemDepthsTransformer` at `shared/src/transformers/compute-work-item-depths/compute-work-item-depths-transformer.ts`, consumed by `shared/src/transformers/work-items-in-dispatch-order/work-items-in-dispatch-order-transformer.ts:31`. **Verified — `dagTopologicalSortTransformer` (`dag-topological-sort-transformer.ts:14`) imports `dagReadyNodesProcessTransformer` internally, and neither has any caller outside its own test file** |
-| `slotManagerStatics` JSDoc names a `slotCount` key that does not exist | `orchestrator/src/statics/slot-manager/slot-manager-statics.ts` | correct it. Story 15 replaces the budgets with `maxVisits`, so coordinate that line. **Verified — line 5's `USAGE` example reads `slotManagerStatics.codeweaver.slotCount;`; the real key at line 19 is `maxAttempts: 3,`. Fix the JSDoc to name whichever key is live when this session runs — `maxAttempts` if before story 15, `maxVisits` if after** |
-| `orchestrator/CLAUDE.md:634` is stale on concurrent browser walks | vs `flowrider-prompt-statics.ts:354` | **settled, but both line numbers below have drifted — use the real ones.** `orchestrator/CLAUDE.md:634` still reads *"Flowrider adds one more rule: never two browser walks against the same package at once, because Playwright writes"* — genuinely stale — and `flowrider-prompt-statics.ts:353-354` genuinely contradicts it: *"**Browser walks against the same package DO go out together, up to four at a time.** Ward hands every e2e run its own port pair, its own Playwright report path and its own artifact folder, so…"*. The resolution is real but at **`packages/ward/CLAUDE.md:439`** (not 430) — *"**Every e2e run is isolated from every other one, so SEVERAL browser walks against one package can run at once.**"* — and **`:445`** (not 436) for the per-run report-path row. A third source agrees independently: `scrolls/orcha-changes/23-instances-and-capacity.md:181-183` — *"Ward already isolates concurrent browser runs… each run gets its own port pair from `netFreePortPairAdapter`, its own `.ward-playwright-report-<serverPort>.json`, and its own `outputDir`."* Fix `orchestrator/CLAUDE.md:634` to match |
-| codeweaver's brief template promises a `MIRROR` block it never defines | `codeweaver-prompt-statics.ts:644`, `:647` | make it a real field or drop the references. **Verified exact, no drift** — line 644: *"This brief is meant to be enough. FILES, FACTS, FENCES, UNITS and MIRROR carry what the"*; line 647: *"MIRROR does not show, a FACT the file contradicts. Searching for what the brief already"* — MIRROR is named twice and defined nowhere else in the file. Flowrider's map DOES define one, twice: `flowrider-prompt-statics.ts:287-288` (`MIRROR\n  <the nearest existing spec, per file>`) and `:605-606` (`MIRROR\n  <the nearest existing spec to copy>`) — confirms "likely an omission" |
+Checked 2026-09-30. All six are done, verified in current code:
 
-**The real floor list, verbatim, `execution-floor-config-statics.ts:9-23`:**
+| Defect | Status |
+|---|---|
+| `riftcarver` missing from the floor list | DONE: `execution-floor-config-statics.ts:13` has `{ name: 'CARTOGRAPHY', role: 'riftcarver', type: 'floor' }` |
+| `orchestrationPhaseContract` is dead | DONE: no match for `orchestrationPhaseContract` under `packages/**/src` |
+| `dagTopologicalSortTransformer` and `dagReadyNodesProcessTransformer` are dead | DONE: no match under `packages/**/src` |
+| `slotManagerStatics` JSDoc names a `slotCount` key that does not exist | DONE: `slot-manager-statics.ts:8-9` now documents `orphanRecovery.maxResets` |
+| `orchestrator/CLAUDE.md` is stale on concurrent browser walks | DONE: the "never two browser walks" rule is gone from `packages/orchestrator/CLAUDE.md` |
+| codeweaver's brief template promises a `MIRROR` block it never defines | DONE: no `MIRROR` left in `codeweaver-prompt-statics.ts` |
 
-```
-export const executionFloorConfigStatics = {
-  floors: [
-    { name: 'HOMEBASE', role: 'chaoswhisperer', type: 'entrance' },
-    { name: 'HOMEBASE', role: 'glyphsmith', type: 'entrance' },
-    { name: 'HOMEBASE', role: 'bughunt', type: 'entrance' },
-    { name: 'FORGE', role: 'codeweaver', type: 'floor' },
-    { name: 'MINI BOSS', role: 'ward', wardPosition: 'first', type: 'floor' },
-    { name: 'INFIRMARY', role: 'spiritmender', type: 'floor' },
-    { name: 'GLUEWORKS', role: 'flowrider', type: 'floor' },
-    { name: 'ARENA', role: 'siegemaster', type: 'floor' },
-    { name: 'FLOOR BOSS', role: 'ward', wardPosition: 'last', type: 'floor' },
-    { name: 'TAVERN', role: 'tavernkeeper', type: 'floor' },
-    { name: 'WARPGATE', role: 'warpgate', type: 'floor' },
-  ],
-} as const;
-```
+The unread-config-knobs table that sat under this section moved to `scrolls/defects/`.
 
-No `riftcarver` entry anywhere. This session's own `glyphsmith` row retires alongside 28a, whichever
-order the two land in — coordinate rather than assume.
-
-**One correction already made, kept so nobody re-derives it.** `devServer.devCommand` is NOT unread —
-`tavernkeeper-prompt-statics.ts:86` reads it, verbatim: *"- **Resolve, never invent.** Read
-`.dungeonmaster.json` at the root of your cwd for `devServer.devCommand` and `devServer.port`. Run
-exactly that command on exactly that port —"*. A SESSION reads it, not code, which is why a grep for
-readers missed it.
-
-**The three still apparently unread, with their definition sites**, so the prompt-text check has
-somewhere to start. Every hit for each is a contract, a default or a test — no production reader and no
-prompt text:
-
-| Knob | Defined at | Every other hit |
-|---|---|---|
-| `orchestration.timeoutMs` | `packages/config/src/contracts/dungeonmaster-config/dungeonmaster-config-contract.ts:51-54` | its own `.test.ts`, nothing else |
-| `devServer.readinessPath` | same contract, `:99-102` | `config-defaults-statics.ts:39`; `environment.harness.ts:42-43`, whose comment already says *"Never read by Start…"* |
-| `devServer.readinessTimeoutMs` | same contract, `:103-108` | `config-defaults-statics.ts:45-46` |
-
-**Grep the prompt statics for each name before removing it** — that is the check `devCommand` failed,
-and these three share the shape that let it fail.
+Moved to scrolls/defects/ on 2026-09-30: DEF-231 (three config knobs, `orchestration.timeoutMs`, `devServer.readinessPath`, `devServer.readinessTimeoutMs`, that nothing reads).
 
 ---
 

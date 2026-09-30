@@ -428,18 +428,18 @@ recipes package exists to end.
 Five ingredients exist: `guild`, `quest`, `operation`, `session`, `subagent`. Their routes and
 `copies:` values all match what `packages/hydration-recipes/CLAUDE.md` documents.
 
-**7a. The quest ingredient declares both routes and has no two-route comparison.** Only `guild` has
+DONE (checked 2026-09-30, `packages/web/src/flows/home/quest-two-route-comparison.e2e.ts` exists and its header says it closes 7a): **7a. The quest ingredient declares both routes and has no two-route comparison.** Only `guild` has
 one, and it lives at `packages/web/src/flows/home/guild-two-route-comparison.e2e.ts`. The quest
 ingredient is the one that matters most — it is the `write` route the design keeps warning can drift
 from `questPersistBroker` — and nothing compares it to its `api` route.
 
-**7b. `quest-completed` makes a state that contradicts its own description.** The description reads
+DONE (checked 2026-09-30, `recipes-quest-completed-broker.ts` sets `status: 'complete'` on both operations and the description now says operations and work items finished): **7b. `quest-completed` makes a state that contradicts its own description.** The description reads
 "one guild holding one completed quest with all workflow operations finished". The recipe calls
 `.set({ role: … })` on each of its two operations and never touches `status`, and the operation
 ingredient's own default is `status: 'pending'`. So the two operations are pending, not finished. A
 session choosing this recipe from the listing gets a state the words promised it would not.
 
-**7c. `guild-mid-execution` makes two byte-identical rows.** It seeds three quests, overrides only
+DONE (checked 2026-09-30, `recipes-guild-mid-execution-broker.ts` header lines 5-8 and its description: quests 2 and 3 keep per-index 'Quest 2'/'Quest 3' titles and the description names that difference): **7c. `guild-mid-execution` makes two byte-identical rows.** It seeds three quests, overrides only
 `q[0]`, and leaves quests 2 and 3 at the same `setRaw({ status: 'created' })` with no title or
 operation difference. **That breaks "two of anything an assertion must tell apart" in the one recipe
 whose name promises a mid-execution guild.** An assertion meant to pick the second row cannot tell it
@@ -450,11 +450,11 @@ second differ from the third. **7g is the general rule this recipe breaks**, and
 why it broke: all three quests share one `status`, so the difference had to come from a title or an
 operation, and none was written.
 
-**7d. `session-with-nested-chain`'s description never states the depth.** The depth is 2, held in
+DONE (checked 2026-09-30, `recipes-session-with-nested-chain-broker.ts:41` description says "two levels deep"): **7d. `session-with-nested-chain`'s description never states the depth.** The depth is 2, held in
 `session-with-nested-chain-statics.ts:9`. A session reading the listing cannot tell a shallow chain
 from a deep one, which is the one fact that would let it choose.
 
-**7e. A ninth recipe is orphaned.** `recipesSessionWithNestedSubagentBroker` exists as an executable
+DONE (checked 2026-09-30, `recipes-catalog-broker.ts:34` imports it and `:282-313` lists it): **7e. A ninth recipe is orphaned.** `recipesSessionWithNestedSubagentBroker` exists as an executable
 broker and is imported by nothing in `recipes-catalog-broker.ts`, whose live catalog holds eight
 entries. Either wire it in or delete it — a recipe the listing cannot show is a recipe nobody can
 call.
@@ -498,7 +498,7 @@ produces the same bytes; this says two things inside one plan produce different 
 
 ## 8. Two route defects — these are observables against the app, not framework rules
 
-**8a. A recipe using both the guild and quest write routes spans two unrelated stores.**
+**8a. A recipe using both the guild and quest write routes spans two unrelated stores.** DONE for the guild route (checked 2026-09-30, `guild-write-route-broker.ts` passes `home: target.home` to `guildAddBroker`). The quest update, reach and operation routes still read the global env var: tracked as DEF-230 in `scrolls/defects/`. The text below is the original.
 
 | Route                   | Resolves its storage from                                                                                  |
 |-------------------------|------------------------------------------------------------------------------------------------------------|
@@ -515,7 +515,7 @@ lives on the INGREDIENT; the target picks which one runs": **a route that reache
 own storage location escapes the target, and the isolation this design promises holds only while every
 route honours the target it is given.**
 
-**8b. The guild write route creates a directory neither `api` nor production ever creates.**
+**8b.** DONE (checked 2026-09-30, `guild-directory-ensure-broker.ts` is shared by the `api` and `write` routes and fenced to the target; the decision was to keep the mkdir). Original text: **The guild write route creates a directory neither `api` nor production ever creates.**
 `guild-write-route-broker.ts:33` calls `fsMkdirAdapter` on the guild's own `path` before calling
 `guildAddBroker`. `guildAddBroker` never does that — its one mkdir at `guild-add-broker.ts:41` makes
 the quests directory under `guildsPath/<id>`, a different path entirely. A guild registered through
@@ -1082,7 +1082,7 @@ verb. A walker holding them will use them the first time something looks wrong.
 These are not tooling gaps. They are bugs in the app, found by driving it, and **nothing has picked
 either up because the quest they were found on was abandoned.** Both are still reproducible.
 
-### 22a. A nested sub-agent's body renders twice
+### DONE (checked 2026-09-30, `collect-subagent-chains-transformer.ts:181-185` filters consumed entries before the flush, and the trailing flush has the same guard): 22a. A nested sub-agent's body renders twice
 
 **The symptom.** On a session view showing a nested sub-agent chain, the inner sub-agent's body renders
 twice: once correctly nested, and once orphaned at the chat panel's root indent, with no header and no
@@ -1120,7 +1120,7 @@ orphaned-entry failure actually hit mid-walk when the seed's agentId ordering wa
 **To fix:** filter consumed entries out of `normalBuffer` before the trailing flush, and write the
 regression test against the ordering every existing fixture avoids — body entry before Task line.
 
-### 22b. The create-guild form's two inputs do not share a left edge
+### DONE (checked 2026-09-30, `guild-empty-state-widget.tsx:68` wraps both inputs in one `Stack align="flex-start"` with `GUILD_INPUT_ALIGNMENT_GROUP`): 22b. The create-guild form's two inputs do not share a left edge
 
 **The symptom.** `GUILD_NAME_INPUT` sits at x=510 and `GUILD_PATH_INPUT` at x=472 — same width, 37.9px
 apart. The `Name` and `Path` labels carry the same offset, so the whole row shifts.

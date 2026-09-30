@@ -173,26 +173,13 @@ ward surface, and use `timeout: 600000`+ if scripting it — never a fixed `slee
 
 ## Known open items
 
-- **E2e's residual `dist` need.** `check-run-e2e-broker.ts` still requires `packages/shared/dist` and
-  `packages/testing/dist` to be built before an e2e run — Playwright's own config/spec loader uses plain Node
-  resolution with no export conditions. The plan floated closing this via a `paths` map (probe P7) but D5.3-D5.5
-  were struck (section 11.1); this residual build is still live. If WD-41 fails with a `MODULE_NOT_FOUND` naming
-  `@dungeonmaster/shared` or `@dungeonmaster/testing`, build those two first.
-- **`hasUnmatchedTestNamePatternGuard` does not catch a scope that reaches no package at all** — WD-35 is the
-  reproduction (`packages/ward/CLAUDE.md`, "A scoped run that reaches no package at all is a different silence").
+Open defects from this section moved to scrolls/defects/ on 2026-09-30: DEF-211, DEF-212, DEF-216, DEF-217.
+
 - **Per-sub-agent worktrees, a borrowed-binaries opt-out, and a role-migration mechanism** are still open per
   section 11.4 of the plan — none of these are ward-specific enough to script into this walkthrough, but a
   worktree-flavoured ward run (`create-worktree` → `npm run ward -- -- <files>` inside it) is worth a spot check
   if you are touching that surface this session.
-- **Ward's own `eslint --fix` autofix bug (WD-46)** is upstream in `@typescript-eslint`, confirmed intermittent
-  (one deliberate before/after check found no recurrence across 17 legitimate `as unknown` hits). No automated
-  guard exists for it by design — a full-repo memory-ceiling test that used to run here was removed as
-  measuring nothing durable.
-- **Two served docs (`get-testing-patterns`, `get-syntax-rules`) instruct `grep -r ... packages/*/dist/`**, which
-  this repo's own `PreToolUse` hook blocks. Not ward's own surface, but ward's `packages/ward/CLAUDE.md` used to
-  carry the same kind of stale instruction (a `--only lint,test` verification line) — reconfirmed absent as of
-  this walkthrough (WD setup did not need it); if a future edit reintroduces an expensive default verification
-  command into that file, flag it.
+
 
 ## Sources
 

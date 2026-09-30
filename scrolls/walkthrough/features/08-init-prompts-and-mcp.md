@@ -268,28 +268,15 @@ Needs a real `questId` — mint one with IN-66 first if you have none.
 
 ## Known open items
 
-- **`.mcp.json` in THIS repo is stale relative to its own generator, and nothing self-heals it.** `.mcp.json:6`
-  still runs the old `bash -c "DUNGEONMASTER_HOME=... exec node packages/mcp/dist/src/index.js"` form, last touched
-  by an unrelated commit (`99fbf9984`). `packages/mcp/src/statics/mcp-server/mcp-server-statics.ts:15-16`
-  (`resolveScript`, last touched `e01d789f2` on 2026-09-17) defines the CURRENT generic
-  `require('@dungeonmaster/mcp')`-with-global-fallback form, and `.agents/plugins/dungeonmaster/mcp_config.json`
-  (rewritten unconditionally every init, no skip guard) already carries it. `packages/mcp/src/responders/install/
-  config-create/install-config-create-responder.ts:53-60` returns `action: 'skipped'` whenever a `dungeonmaster` key
-  already exists in `.mcp.json`'s `mcpServers`, so `dungeonmaster init` never rewrites a stale one, only a missing
-  one. IN-16/IN-17 pin this down; confirm on the real surface and open a DEF if it holds.
-- **`root CLAUDE.md`'s own "Four Resolution Scenarios" table describes Scenario 1 (dogfood) as executing
-  `packages/mcp/dist/src/index.js` directly** — true of the CURRENTLY-COMMITTED (stale) `.mcp.json`, but the NEW
-  generator makes no scenario-specific promise at all; it is one generic script for all four scenarios, relying on
-  Node's own module resolution walk. Whether that still resolves to THIS checkout's own `dist/` under the new form
-  needs confirming (IN-16 through IN-19).
-- **`nextActionTransformer` still indexes `agentFlowStatics` with loosely typed parameters** — a known consistency
-  gap, not scoped to this feature, noted in `scrolls/consolidated-plan-handoff.md`'s "Known gaps, not yet units".
+Open defects from this section moved to scrolls/defects/ on 2026-09-30: DEF-210, DEF-215.
+
 - **`dumpster-create-prompt-statics.ts` (~64KB) is deliberately uncapped** (`scrolls/consolidated-plan-handoff.md`,
   "Known gaps") — do not treat IN-109 as a defect on its own; it is a confirm-the-design case.
 - **Legacy pt-N path removal (`run-ward`/`run-riftcarver`, `operationStatus`, `partial`) is asserted from
   `scrolls/consolidated-plan-handoff.md`'s own "Finish" section and confirmed by absence from
   `mcpToolsStatics.tools.names` and `.claude/settings.json`'s permission list** — no case in this doc found a
   leftover reference in live source; IN-03/IN-98 are the confirmation cases, not open questions.
+
 
 ## Sources
 

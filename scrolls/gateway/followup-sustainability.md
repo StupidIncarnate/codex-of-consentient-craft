@@ -9,115 +9,21 @@ it.
 
 ### 5. Adding a gateway folder means editing many hand-kept copies of the same list
 
-The four folder names (`npm`, `node`, `browser`, `bin`) are written out separately in:
+Moved to scrolls/defects/ on 2026-09-30: DEF-232 (the remaining hand-kept `imports` copies; `gatewayLocationsStatics` is now the one list in `shared` and `cli`).
 
-- the `imports` field of every workspace `package.json`, gateway packages included
-- `gatewayLocationsStatics`, twice: once in `folders` and again in `packageGlobs`
-- `gatewayFoldersStatics` in `cli`, which `init` scaffolds from, and the node/browser split in
-  `gatewaySourceCopyStatics` beside it
-
-Nothing checks that these copies agree. A fifth folder, or a renamed one, means finding every copy
-by hand.
-
-These need to be consolidated somewhere at the very least.
-
-### 6. Two whole-repo checks run only when asked for
-
-`npm run ward -- platform` and `npm run ward -- dedupe` are separate subcommands. A bare
-`npm run ward` runs neither, and neither result is saved for `ward list` or `ward detail`. A
-platform crossing or a duplicate install goes unnoticed until someone remembers to run them. Both
-belong inside ward's `lint` check, and both subcommands get deleted. Item 30 has the work.
+### DONE (checked 2026-09-30, `packages/ward/src/brokers/command/run/platform-dedupe-check-layer-broker.ts` runs both checks inside lint and no `platform` or `dedupe` subcommand remains in ward startup): 6. Two whole-repo checks run only when asked for
 
 ## Found in the file-structure review
 
-### 10. Error classes get their own folder, proxy and test
+### DONE (checked 2026-09-30, every error class is now a `<name>.error.ts` beside its thrower, e.g. `bin/src/git/git-run/git-not-installed.error.ts` and `node/src/child_process/run-not-found.error.ts`; `lsof-run` exists): 10. Error classes get their own folder, proxy and test
 
-Every gateway error class sits in a wrapper folder of its own, with a proxy and a test. The class body
-is one line, such as `export class GitNotInstalledError extends Error {}`, so the proxy and the test
-check nothing. Today's error folders:
+The lint-rule half (`gateway-colocation` accepting `.error.ts` and refusing other error classes) was not re-checked.
 
-| Error folder | Thrown by |
-|---|---|
-| `bin/src/git/git-not-installed-error/` | `git/git-run/git-run.ts` |
-| `bin/src/npm/npm-not-installed-error/` | `npm/npm-run/npm-run.ts` |
-| `bin/src/kill/kill-not-installed-error/` | `kill/kill-run/kill-run.ts` |
-| `bin/src/cp/cp-not-installed-error/` | `cp/cp-run/cp-run.ts` |
-| `bin/src/lsof/lsof-not-installed-error/` | `lsof/listening-pids/listening-pids.ts` |
-| `bin/src/claude/claude-not-installed-error/` | `claude/resolve-claude-cli-path/resolve-claude-cli-path.ts` |
-| `node/src/child_process/run-not-found-error/` | `run`, `run-sync`, `stream` and `stream-lines` in `node/src/child_process/` |
+### DONE (checked 2026-09-30, `packages/@gateway/npm/@types/` and `packages/mcp/@types/` hold no files): 12. The npm gateway hand-writes types for the MCP SDK
 
-The standard:
+### DONE (checked 2026-09-30, the Mantine render lives in `packages/testing/src/middleware/mantine-render/mantine-render-middleware.ts`; the gateway keeps the raw pass-through): 15. `render` in the npm gateway is web's test setup
 
-1. An error class lives in a file named `<name>.error.ts`, such as `git-not-installed.error.ts`. The
-   file exports that one class, named after the file, and nothing else.
-2. The file sits in the folder of the wrapper that throws it: `git/git-run/git-not-installed.error.ts`.
-   When several wrappers in one subpath throw it, it sits in the subpath folder beside the barrel:
-   `node/src/child_process/run-not-found.error.ts`.
-3. An `.error.ts` file needs no proxy and no test.
-4. The subpath's barrel re-exports it, so callers still reach it as
-   `#gateway/bin/git`'s `GitNotInstalledError`.
-
-Work:
-
-1. Change `gateway-colocation` to accept `.error.ts` files. Today it counts dots to tell a barrel from
-   a wrapper file, so a two-dot `.error.ts` needs its own case. It must not ask for a proxy or a test.
-   It must refuse an `.error.ts` file that holds anything besides one exported class extending
-   `Error`, or whose class name does not match the file name.
-2. Refuse an error class declared in any other gateway file, so every new one lands in an `.error.ts`
-   file.
-3. Move the error classes in the table above. Delete their folders, proxies and tests. Fix the barrel
-   re-exports and every import of the old paths.
-4. Add `.error.ts` to the barrel rules under "Lint rules that keep the layout honest", and to the
-   layout row of the `gateway` folder-type doc.
-
-Still open after that: `lsof` has no `lsof-run`, so `listening-pids` catches `RunNotFoundError` inline,
-while `git`, `npm`, `kill` and `cp` each catch it in a `<program>-run` wrapper. A new program has two
-patterns to copy and no rule saying which.
-
-### 12. The npm gateway hand-writes types for the MCP SDK
-
-`packages/@gateway/npm/@types/modelcontextprotocol-sdk.d.ts` declares part of the SDK by hand. The
-file says it copies `packages/mcp/@types/modelcontextprotocol.d.ts`. Both copies exist because
-`moduleResolution: "node"` could not read the SDK's `exports` map. The repo now resolves with `node16`,
-which does read it, so both may be deletable: delete them and typecheck. A hand-written type copy breaks
-the design doc's requirement 3:
-"Nobody copies a large type tree". A per-package `@types/` folder also breaks `packages/CLAUDE.md`,
-which says type definitions go in the root `@types/`.
-
-### 15. `render` in the npm gateway is web's test setup
-
-`packages/@gateway/npm/src/testing-library__react/render/render.ts` wraps every render in `MantineProvider`.
-That is one app's choice of UI library, placed inside the shared wrapper for `@testing-library/react`.
-It makes `@testing-library/react` depend on `@mantine/core`. A second React package using another UI
-library would have to override `wrapper` on every call.
-
-The Mantine-wrapped `render` moves to `@dungeonmaster/testing`. The gateway keeps only the raw `render`,
-passed through by the subpath's `export *`. A `restrictedTo` entry in the `gateway` config then stops
-any other package calling the raw one:
-
-```json
-"restrictedTo": [
-  {
-    "subpath": "#gateway/npm/testing-library__react",
-    "name": "render",
-    "packages": ["testing"],
-    "reason": "widget tests render through @dungeonmaster/testing's render, which wraps MantineProvider"
-  }
-]
-```
-
-Work:
-
-1. Write the wrapped `render` in `@dungeonmaster/testing`, calling the raw `render` from
-   `#gateway/npm/testing-library__react`. `testing` then lists `@mantine/core` in its own dependencies.
-2. Move every caller of the gateway's wrapped `render` onto `testing`'s.
-3. Delete `packages/@gateway/npm/src/testing-library__react/render/` with its proxy and test, and its
-   re-export from the subpath's barrel.
-4. Add the `restrictedTo` entry above once the `gateway` config exists ("A `gateway` config in
-   `.dungeonmaster.json` constrains the gateway as bugs arise"). Until then, nothing stops a new caller
-   reaching for the raw `render`.
-
-
+The `restrictedTo` entry was not re-checked.
 
 ## Gateway standards as built
 
@@ -821,48 +727,21 @@ Work: measure how many existing shadows it reports across the repo, fix them, th
 
 ### 39. Ward's slow-test gate flags the `cli` install test under full-suite load
 
-The full `npm run ward` of 2026-09-26 passed every check, then failed its slow-test gate on
-`packages/cli/src/startup/start-install.integration.test.ts`: slowest test 10.7s against the 10s
-integration bar (`slowFileThresholdStatics.integrationTestWarnMs`). Run alone, the same file's slowest
-test takes 2.4s. The gateway source copy `init` now runs takes 50ms for 408 files, so the time is load
-from the rest of the suite, not the copy. A bare `npm run ward` is not green while it stands.
-
-Work: find which of the file's six tests hits 10s under load and why, before deciding between making it
-cheaper and raising the bar.
+Moved to scrolls/defects/ on 2026-09-30: DEF-233.
 
 ### 40. Suspected: `init` in a consumer looks for dungeonmaster's packages in the wrong place
 
-`packages/cli/bin/cli-entry.ts` sets `dungeonmasterRoot` four directories above the running bin. In
-this repo that is the repo root. In a consumer, the bin sits at
-`node_modules/@dungeonmaster/cli/dist/bin/`, so `dungeonmasterRoot` becomes `<consumer>/node_modules`,
-and `packageDiscoverBroker` then looks for `node_modules/packages/*/dist/startup/start-install.js`.
-Not verified against a real published install. The gateway source copy does not depend on it: it
-finds `@dungeonmaster/node` and `@dungeonmaster/browser` through Node's own module resolution.
-
-Work: install the packed packages into a scratch consumer and run `dungeonmaster init`.
+Moved to scrolls/defects/ on 2026-09-30: DEF-234.
 
 ### 41. The node and browser gateways `init` copies have not been run inside a consumer
 
-`init` copies dungeonmaster's node and browser source, tests and proxies included, into a consumer's
-`packages/@gateway/{node,browser}`. A scratch-consumer run proved the files land and the configs are
-written. Nobody has run the consumer's typecheck, tests or build against the copy. Known blockers:
-`@dungeonmaster/testing` is not published (item 21a), and the browser copy's tests need
-`jest-environment-jsdom` and `undici`, which `init` lists in the browser gateway's `devDependencies`.
-
-Work: once item 21a is done, run `npm install`, typecheck, the gateway tests and `npm run build` in a
-freshly `init`-ed consumer.
+Moved to scrolls/defects/ on 2026-09-30: DEF-235.
 
 ### 42. Tool tests still use the old gateway layout as sample data
 
-Tests in `packages/testing/src/middleware/`, `packages/testing/src/transformers/` and several
-`packages/eslint-plugin` rule tests feed their code specifiers such as `#gateway/npm/_test_` and
-package maps whose `exports` point at `./src/_test_/index.ts` and `./src/*/index.ts`. Each fixture is
-self-consistent, so the tests still prove their resolver or rule. But a reader copying a fixture gets a
-layout that no longer exists.
+Moved to scrolls/defects/ on 2026-09-30: DEF-236.
 
-Work: move the fixtures to the current forms, `#gateway/<pkg>/_test_/<subpath>` and `./src/*/*.ts`.
-
-### 43. The published base tsconfig still resolves with node10
+### DONE (checked 2026-09-30, `packages/eslint-plugin/configs/tsconfig.json:5` sets `moduleResolution: "node16"`): 43. The published base tsconfig still resolves with node10
 
 `packages/eslint-plugin/configs/tsconfig.json`, published as `@dungeonmaster/eslint-plugin/tsconfig`,
 sets `module: "commonjs"` and `moduleResolution: "node"`. A consumer gets `node16` only because `init`
@@ -872,7 +751,7 @@ published base directly, skipping the root, cannot resolve `#gateway/...`.
 Work: decide whether the published base moves to `node16` with `customConditions: ["source"]`, so the
 root override becomes unneeded.
 
-### 44. The ts-jest inline options are repeated in every package's Jest config
+### DONE (checked 2026-09-30, no `moduleResolution` remains in the root or package jest configs; `package-scaffold-config-statics.ts:153` only comments on it): 44. The ts-jest inline options are repeated in every package's Jest config
 
 `module: 'commonjs'` and `moduleResolution: 'node'` now sit in the root `jest.config.base.js`, in 13
 package `jest.config.*` files that override `transform` with their own copy of the same inline options,
@@ -881,7 +760,7 @@ A future ts-jest option has to be added to each copy by hand.
 
 Work: have the package configs reuse the base's `transform` entry instead of restating it.
 
-### 45. Every workspace package exposes its code and its test helpers the way the gateway does
+### DONE (checked 2026-09-30, `packages/CLAUDE.md` "What the package looks like" sets the standard: one barrel per folder type, `./*.proxy` and `./*.stub` keys, no `testing.ts`): 45. Every workspace package exposes its code and its test helpers the way the gateway does
 
 The four gateway packages each have two `exports` entries, `./*` and `./_test_/*`. The conditions on
 both are `gateway-dist`, `source`, `import`, `require` and `types`, resolved under `node16`. A caller
@@ -926,23 +805,5 @@ Work:
 
 ### 46. Review every `PURPOSE` comment in `packages/@gateway`
 
-The gateway's file headers were written while it was being built, and many describe that build rather
-than the file. A 2026-09-26 spot check of four headers found each kind of problem below:
+Moved to scrolls/defects/ on 2026-09-30: DEF-237.
 
-| Problem | Example |
-|---|---|
-| Tells the history of the adapters it replaced, which the comment rules forbid | `bin/src/git/current-branch/current-branch.ts` opens with how it "reconciles orchestrator's async `gitCurrentBranchAdapter`" with siegelense's; `npm/src/pngjs/decode-png/decode-png.ts` is "promoting the try/catch-with-cause shape every existing `pngjsDecodeAdapter` already carried" |
-| Describes a layout that no longer exists | `node/src/module/dynamic-import/dynamic-import.ts` explains why it cannot be "a property on `index.ts`'s `moduleGateway`"; there is no `index.ts` barrel any more |
-| Uses the old import form | `node/src/child_process/run-not-found-error/run-not-found-error.ts` names callers as `@dungeonmaster/bin/*`, not `#gateway/bin/...` |
-| Points at a follow-up item by number | `current-branch.ts` and `bin/src/lsof/listening-pids/listening-pids.ts` cite items 32 and 33 of this doc, which change number or disappear as items close |
-
-A text search cannot find these reliably, so every header gets read: every wrapper, proxy, stub and
-barrel file that has one.
-
-Each header states what the file does and why it is shaped that way, in the present tense. It names no
-adapter it replaced, no earlier layout, no trial and no item number here. Its `USAGE` example must
-compile against the file as it stands: `dynamic-import.ts`'s example still passes a type parameter
-that item 22 removes.
-
-Do this once the code items above have landed, alongside "Docs and teaching text to update", so each
-header is read against its final code. Split it per subpath, 2 to 4 files per agent.

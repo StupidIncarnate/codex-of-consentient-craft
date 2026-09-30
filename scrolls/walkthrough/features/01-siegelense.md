@@ -354,17 +354,14 @@ One case per step kind. Submit each as `dungeonmaster siegelense run --instance 
 
 ## Known open items
 
+Open defects from this section moved to scrolls/defects/ on 2026-09-30: DEF-213.
+
 - **`start --seed` cannot pass recipe params — 4 of 9 catalog recipes are unreachable through `start`.**
   `instanceStartBroker` hardcodes `parameters: {}` at `packages/siegelense/src/brokers/instance/start/instance-start-broker.ts:393`.
   `quest-advances-one-step` (`guildId`), `session-single-turn` (`guildPath`), `session-with-nested-chain`
   (`guildPath`) and `session-with-nested-subagent` (`guild`) all declare required `inputs` with no
   default. See SL-059 through SL-062. `run`'s `seed` STEP does accept `params` (SL-080) — that is the
   only reachable way to seed these four today.
-- **The driving-oddities file (commit `7c5ab8f7c`) has no CLI surface at all.** `drivingOddityAppendBroker`
-  / `drivingOddityReadBroker` exist and are tested at the broker level, but nothing in
-  `siegelenseCallStatics.calls.names`, no `step`, and no responder ever calls them. There is no manual
-  case that exercises this through the CLI — it is dead code from a walkthrough's perspective. Its home
-  is `.dungeonmaster-assets/` per its own header, alongside the `siegelense-assets` link.
 - **`docs`'s five scopes are the current, correct surface.** Design scrolls
   (`scrolls/seigelense/siege-verification-remainder.md` §9c) describe a planned sixth/seventh scope
   (`operating`, `operational`) for future browserless/operator work — not built, and
@@ -379,6 +376,7 @@ One case per step kind. Submit each as `dungeonmaster siegelense run --instance 
   real, unmocked integration coverage (`capacity` unknown-spec, all four `prune --kind` values, `prune
   --kind video` default window, all five `docs` scopes). `start --quest`/`--guild` alone and the whole
   `--seed` matrix remain genuinely untested through the CLI.
+
 
 ## Sources
 
