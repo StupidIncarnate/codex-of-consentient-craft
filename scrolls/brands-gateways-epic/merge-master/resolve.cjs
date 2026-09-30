@@ -799,7 +799,13 @@ if (STEPS.has('leftovers')) {
   const items = new Map(); // file -> {file, reasons: [{kind, ...}]}
   const add = (file, r) => {
     if (!items.has(file)) items.set(file, { file, reasons: [] });
-    items.get(file).reasons.push(r);
+    const have = items.get(file).reasons;
+    const dup = have.find((x) => x.kind === r.kind && x.line === r.line && (r.kind === 'dangling-import' || r.kind === 'adapter-unmapped'));
+    if (dup) {
+      if (r.code && !dup.code) Object.assign(dup, { code: r.code, message: r.message });
+      return;
+    }
+    have.push(r);
   };
   const listPkgFiles = (dir, acc = []) => {
     for (const e of fs.readdirSync(dir, { withFileTypes: true })) {
@@ -839,6 +845,7 @@ if (STEPS.has('leftovers')) {
     visit(sf);
     if (sf.parseDiagnostics.length) add(f, { kind: 'syntax-error', count: sf.parseDiagnostics.length, first: ts.flattenDiagnosticMessageText(sf.parseDiagnostics[0].messageText, '\n'), line: sf.getLineAndCharacterOfPosition(sf.parseDiagnostics[0].start ?? 0).line + 1 });
   }
+  if (!STEPS.has('adapters') && fs.existsSync(path.join(MM, 'adapter-kept.json'))) adapterKept.push(...JSON.parse(fs.readFileSync(path.join(MM, 'adapter-kept.json'), 'utf8')));
   for (const k of adapterKept) if (scanTouched.has(k.file)) add(k.file, { kind: 'adapter-unmapped', adapter: k.adapter, reason: k.reason, line: k.line });
   // master-added files that live in a deleted folder type
   for (const [f, s] of masterStatus) if (s === 'A' && /\/src\/adapters\//u.test(f) && fs.existsSync(path.join(W, f)) && /\.tsx?$/u.test(f)) add(f, { kind: 'new-adapter-file', note: 'master added a file under adapters/, a folder type this branch deleted; it needs a broker' });
@@ -874,5 +881,15 @@ if (STEPS.has('leftovers')) {
   log(`leftovers: ${items.size} files ${JSON.stringify(counts)} -> ${dest}`);
 }
 
-writeOut(path.join(MM, APPLY ? 'summary.json' : 'dry-run/summary.json'), JSON.stringify(summary, null, 1));
+const summaryPath = path.join(MM, APPLY ? 'summary.json' : 'dry-run/summary.json');
+let prior = {};
+try {
+  prior = APPLY ? JSON.parse(fs.readFileSync(summaryPath, 'utf8')) : {};
+} catch {
+  prior = {};
+}
+// a step that did not run this time keeps its last recorded result
+const merged = { ...prior, ...summary };
+for (const k of ['conflicts', 'duUd', 'adapters', 'dangling', 'brand', 'suggest', 'leftovers']) if (prior[k] && Object.keys(summary[k]).length === 0) merged[k] = prior[k];
+writeOut(summaryPath, JSON.stringify(merged, null, 1));
 log(`${APPLY ? 'APPLIED' : 'DRY RUN'}; summary at ${path.join(MM, APPLY ? 'summary.json' : 'dry-run/summary.json')}`);
