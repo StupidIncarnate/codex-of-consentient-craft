@@ -15,7 +15,6 @@ import { z } from '#gateway/npm/zod';
 import { absoluteFilePathContract } from '../absolute-file-path/absolute-file-path-contract';
 import { bucketStartKeyContract } from '../bucket-start-key/bucket-start-key-contract';
 import { usageBucketContract } from '../usage-bucket/usage-bucket-contract';
-import { weightedTokensContract } from '../weighted-tokens/weighted-tokens-contract';
 
 export const usageLedgerContract = z.object({
   // Keyed by the bucket's start time in epoch MILLISECONDS, as a string because JSON object keys
@@ -37,8 +36,8 @@ export const usageLedgerContract = z.object({
   // would stop the queue on a number that means nothing, and zero would make every reading
   // infinite.
   ceilings: z.object({
-    fiveHour: weightedTokensContract.nullable(),
-    sevenDay: weightedTokensContract.nullable(),
+    fiveHour: z.number().min(0).brand<'UsageLedgerCeilingsFiveHour'>().nullable(),
+    sevenDay: z.number().min(0).brand<'UsageLedgerCeilingsSevenDay'>().nullable(),
   }),
   updatedAt: z.iso.datetime().brand<'UsageLedgerUpdatedAt'>(),
 });

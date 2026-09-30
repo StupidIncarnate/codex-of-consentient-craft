@@ -13,12 +13,7 @@
  * // Returns: the branded resetsAt an on-screen countdown is rendered from — now, when already clear
  */
 
-import {
-  rateLimitWindowContract,
-  type RateLimitWindow,
-  type UsageLedger,
-  type WeightedTokens,
-} from '@dungeonmaster/shared/contracts';
+import { rateLimitWindowContract, type RateLimitWindow, type UsageLedger } from '@dungeonmaster/shared/contracts';
 import { rateLimitStatics, usageAccountingStatics } from '@dungeonmaster/shared/statics';
 
 import { usageBucketToWeightedTransformer } from '../usage-bucket-to-weighted/usage-bucket-to-weighted-transformer';
@@ -31,7 +26,7 @@ export const usageWindowRecoveryAtTransformer = ({
 }: {
   buckets: UsageLedger['buckets'];
   windowMs: number;
-  ceiling: WeightedTokens;
+  ceiling: number;
   nowMs: number;
 }): RateLimitWindow['resetsAt'] => {
   const threshold =

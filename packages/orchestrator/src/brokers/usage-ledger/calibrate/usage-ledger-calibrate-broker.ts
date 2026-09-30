@@ -16,12 +16,12 @@
  */
 
 import type { DispatchHold, UsageLedger } from '@dungeonmaster/shared/contracts';
-import { weightedTokensContract } from '@dungeonmaster/shared/contracts';
 import { usageAccountingStatics } from '@dungeonmaster/shared/statics';
 
 import { usageBucketsToWeightedTotalTransformer } from '../../../transformers/usage-buckets-to-weighted-total/usage-buckets-to-weighted-total-transformer';
 import { usageLedgerReadBroker } from '../read/usage-ledger-read-broker';
 import { usageLedgerWriteBroker } from '../write/usage-ledger-write-broker';
+import { usageLedgerContract } from '@dungeonmaster/shared/contracts';
 
 export const usageLedgerCalibrateBroker = async ({
   window,
@@ -53,10 +53,10 @@ export const usageLedgerCalibrateBroker = async ({
   // Re-parsed rather than handed straight through: Math.max returns a plain number and drops the
   // WeightedTokens brand, so the contract is what puts it back.
   const ceiling =
-    previous === null ? observed : weightedTokensContract.parse(Math.max(previous, observed));
+    previous === null ? observed : Math.max(previous, observed);
 
   return usageLedgerWriteBroker({
-    ledger: {
+    ledger: usageLedgerContract.parse({
       buckets: ledger.buckets,
       cursors: ledger.cursors,
       ceilings:
@@ -64,7 +64,7 @@ export const usageLedgerCalibrateBroker = async ({
           ? { fiveHour: ledger.ceilings.fiveHour, sevenDay: ceiling }
           : { fiveHour: ceiling, sevenDay: ledger.ceilings.sevenDay },
       updatedAt: ledger.updatedAt,
-    },
+    }),
     nowMs,
   });
 };

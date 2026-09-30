@@ -13,8 +13,7 @@
  * // Returns: WeightedTokens for that window
  */
 
-import { weightedTokensContract, type UsageLedger } from '@dungeonmaster/shared/contracts';
-import type { WeightedTokens } from '@dungeonmaster/shared/contracts';
+import { type UsageLedger } from '@dungeonmaster/shared/contracts';
 
 import { usageBucketToWeightedTransformer } from '../usage-bucket-to-weighted/usage-bucket-to-weighted-transformer';
 
@@ -26,7 +25,7 @@ export const usageBucketsToWeightedTotalTransformer = ({
   buckets: UsageLedger['buckets'];
   windowStartMs: number;
   nowMs: number;
-}): WeightedTokens => {
+}): number => {
   const total = Object.entries(buckets).reduce((running, [key, bucket]) => {
     const start = Number(key);
     // A bucket stamped in the future is a transcript written under a skewed clock; counting it
@@ -38,5 +37,5 @@ export const usageBucketsToWeightedTotalTransformer = ({
     return running + usageBucketToWeightedTransformer({ bucket });
   }, 0);
 
-  return weightedTokensContract.parse(total);
+  return total;
 };

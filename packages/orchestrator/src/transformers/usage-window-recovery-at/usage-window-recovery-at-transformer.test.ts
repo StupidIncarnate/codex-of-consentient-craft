@@ -1,5 +1,4 @@
 import { UsageBucketStub } from '@dungeonmaster/shared/contracts/usage-bucket/usage-bucket.stub';
-import { WeightedTokensStub } from '@dungeonmaster/shared/contracts/weighted-tokens/weighted-tokens.stub';
 
 import { usageWindowRecoveryAtTransformer } from './usage-window-recovery-at-transformer';
 
@@ -7,7 +6,7 @@ const HOUR = 3_600_000;
 const FIVE_HOURS = 18_000_000;
 const NOW = Date.parse('2026-09-13T05:00:00.000Z');
 // A ceiling of 1000 puts the 90% hold threshold at 900 weighted tokens.
-const CEILING = WeightedTokensStub({ value: 1_000 });
+const CEILING = 1_000;
 
 describe('usageWindowRecoveryAtTransformer', () => {
   describe('already below the threshold', () => {

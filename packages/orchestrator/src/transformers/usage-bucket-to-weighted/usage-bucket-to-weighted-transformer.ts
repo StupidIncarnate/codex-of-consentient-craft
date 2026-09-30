@@ -9,18 +9,15 @@
  * // Returns: WeightedTokens for that one hour
  */
 
-import { weightedTokensContract, type UsageBucket } from '@dungeonmaster/shared/contracts';
-import type { WeightedTokens } from '@dungeonmaster/shared/contracts';
+import { type UsageBucket } from '@dungeonmaster/shared/contracts';
 import { usageAccountingStatics } from '@dungeonmaster/shared/statics';
 
 export const usageBucketToWeightedTransformer = ({
   bucket,
 }: {
   bucket: UsageBucket;
-}): WeightedTokens =>
-  weightedTokensContract.parse(
-    bucket.input * usageAccountingStatics.weights.input +
+}): number =>
+  (bucket.input * usageAccountingStatics.weights.input +
       bucket.cacheCreation * usageAccountingStatics.weights.cacheCreation +
       bucket.cacheRead * usageAccountingStatics.weights.cacheRead +
-      bucket.output * usageAccountingStatics.weights.output,
-  );
+      bucket.output * usageAccountingStatics.weights.output);
