@@ -192,8 +192,21 @@ process, 16G heap); the R7 rule crashed on a tuple leaf (39101c111, its parent w
 - Integration (ward 1790764221906-5e38): 16 of 226 files red (hooks 41 errors, siegelense 14, cli 3,
   eslint-plugin 2, mcp 2, testing 1, browser 1). Opus round in flight, one agent per package (hooks with
   eslint-plugin, since hooks' integration runs the real rules).
-- Then: R2/R7 learn concession 25; web e2e with opus fixers; full bare ward; `build:clean`, `check:consumer`,
-  `check:published`; the scripts made portable for assayer.
+- bb834ed82 (6 opus): root `eslint.config.js` still loaded the deleted `filePathContract` (lint only passed because
+  ESLint read shared's stale `dist`); init's playwright template on plain types. `build:clean` (the stale `dist` of
+  cli, hydration-recipes held deleted contracts), then ward 1790764864950-89dd: **lint and integration green**
+  (226 files).
+- E2e (ward 1790765218082-ebdf): 130 of 131; `warpgate-queue-listing.e2e.ts` failed under load and passed alone
+  (1790765575837-5b26). F106.
+- 15512dd7f W8 `--responders` (39 responder data contracts) + a server opus agent (b6047b634): the generated union
+  had stripped keys (zod returns the first member that parses) and five responders had no data contract (a
+  non-empty session list or a smoketest run would have 500'd). b6047b634 also: R2 and R7 skip record keys, map
+  keys and `z.function` internals (concession 25 in the rules, new guards `is-ast-record-key`,
+  `is-ast-inside-zod-function`, `is-ast-brand-exempt`).
+- e1d5fd9b8 W9: 132 dead re-parses in 60 files; two were deliberate (web collect-subagent-chains, F107; siegelense
+  `SERVER_KIND`) and are restored. Ward 1790767412627-f3f5: typecheck 11,399, unit 4,144 green.
+- Next: W10 scans (R2, R4, R8, R9; R7 needs R7-f/g registration first), a fixer round to 0, switch-on, full bare
+  ward, `build:clean`, `check:consumer`, `check:published`, web e2e; then the scripts made portable for assayer.
 
 **After segment C (user, 2026-09-29 20:55): make the scripts portable and commit them.** The user will run the same
 migration on `/home/brutus-home/projects/assayer` (npm workspaces, packages `app`, `cli`, `core`, `desktop`,
