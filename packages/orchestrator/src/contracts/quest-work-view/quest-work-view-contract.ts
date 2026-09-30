@@ -38,7 +38,7 @@
  * off-map families — three of the four kinds, silently.
  */
 
-import { contentTextContract, filePathContract, flowRecipeNameContract, operationItemContract, outcomeTypeContract, packageNameContract, pieceIdContract, qaChecklistItemContract, qaChecklistKindContract, qaWalkPathContract, questContract, questNoteContract, repoRelativePathContract, siegeInstanceIdContract, siegeRunIdContract, stepNameContract, unitMarkContract, unitObservationContract, unitObservationFieldsContract, wardResultContract, workItemContract, flowNodeContract, flowContract, flowEdgeContract } from '@dungeonmaster/shared/contracts';
+import { contentTextContract, filePathContract, operationItemContract, outcomeTypeContract, packageNameContract, pieceIdContract, qaChecklistItemContract, qaChecklistKindContract, qaWalkPathContract, questContract, questNoteContract, repoRelativePathContract, siegeInstanceIdContract, siegeRunIdContract, stepNameContract, unitMarkContract, unitObservationContract, unitObservationFieldsContract, wardResultContract, workItemContract, flowNodeContract, flowContract, flowEdgeContract, flowRecipeContract } from '@dungeonmaster/shared/contracts';
 import { z } from '#gateway/npm/zod';
 
 import { agentFamilyNameContract } from '../agent-family-name/agent-family-name-contract';
@@ -100,7 +100,7 @@ const questWorkPiece = z.object({
 // loudly, it manufactures a defect that does not exist. Serve the `null` rather than omitting the
 // row, so a walker can see the gap.
 const questWorkRecipe = z.object({
-  name: flowRecipeNameContract,
+  name: flowRecipeContract.shape.id,
   provenRunId: siegeRunIdContract.nullable(),
 });
 

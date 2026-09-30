@@ -111,7 +111,6 @@ export * from './tooling-requirement-id/tooling-requirement-id-contract';
 
 
 
-export * from './flow-recipe-name/flow-recipe-name-contract';
 
 export * from './flow-recipe/flow-recipe-contract';
 

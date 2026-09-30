@@ -1,6 +1,6 @@
-import { flowRecipeNameContract } from './flow-recipe-name-contract';
-import type { FlowRecipeName } from './flow-recipe-name-contract';
+import type { FlowRecipe } from '../flow-recipe/flow-recipe-contract';
+import { flowRecipeContract } from '../flow-recipe/flow-recipe-contract';
 
 export const FlowRecipeNameStub = (
   { value }: { value: string } = { value: 'pc-walk-1' },
-): FlowRecipeName => flowRecipeNameContract.parse(value);
+): FlowRecipe['id'] => flowRecipeContract.shape.id.parse(value);
