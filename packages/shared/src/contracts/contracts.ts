@@ -128,7 +128,6 @@ export * from './flow-type/flow-type-contract';
 export * from './outcome-type/outcome-type-contract';
 
 // Flow Graph Contracts
-export * from './flow-node-id/flow-node-id-contract';
 
 export * from './flow-node-type/flow-node-type-contract';
 

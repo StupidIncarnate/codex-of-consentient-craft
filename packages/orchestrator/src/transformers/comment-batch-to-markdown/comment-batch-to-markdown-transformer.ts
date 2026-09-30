@@ -11,15 +11,7 @@
  * // escaped to '\---', so it cannot forge a block boundary and strand its tail without a context
  * // line. Every other '---' in the text is left byte-identical.
  */
-import type {
-  Flow,
-  FlowId,
-  FlowNode,
-  FlowNodeId,
-  FlowObservable,
-  ObservableId,
-  QuestComment,
-} from '@dungeonmaster/shared/contracts';
+import type { Flow, FlowId, FlowNode, FlowObservable, ObservableId, QuestComment } from '@dungeonmaster/shared/contracts';
 
 import { promptTextContract } from '../../contracts/prompt-text/prompt-text-contract';
 import type { PromptText } from '../../contracts/prompt-text/prompt-text-contract';
@@ -43,17 +35,17 @@ export const commentBatchToMarkdownTransformer = ({
   flows: Flow[];
 }): PromptText => {
   const flowsById = new Map<FlowId, Flow>();
-  const nodesByFlowId = new Map<FlowId, Map<FlowNodeId, FlowNode>>();
+  const nodesByFlowId = new Map<FlowId, Map<FlowNode['id'], FlowNode>>();
   const observablesByFlowAndNodeId = new Map<
     FlowId,
-    Map<FlowNodeId, Map<ObservableId, FlowObservable>>
+    Map<FlowNode['id'], Map<ObservableId, FlowObservable>>
   >();
 
   for (const flow of flows) {
     flowsById.set(flow.id, flow);
 
-    const nodesById = new Map<FlowNodeId, FlowNode>();
-    const observablesByNodeId = new Map<FlowNodeId, Map<ObservableId, FlowObservable>>();
+    const nodesById = new Map<FlowNode['id'], FlowNode>();
+    const observablesByNodeId = new Map<FlowNode['id'], Map<ObservableId, FlowObservable>>();
 
     for (const node of flow.nodes) {
       nodesById.set(node.id, node);

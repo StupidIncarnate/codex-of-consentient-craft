@@ -43,7 +43,6 @@ import { flowEdgeContract } from '../flow-edge/flow-edge-contract';
 import { flowEdgeIdContract } from '../flow-edge-id/flow-edge-id-contract';
 import { flowIdContract } from '../flow-id/flow-id-contract';
 import { flowNodeContract } from '../flow-node/flow-node-contract';
-import { flowNodeIdContract } from '../flow-node-id/flow-node-id-contract';
 import { flowObservableContract } from '../flow-observable/flow-observable-contract';
 import { flowOffMapSignoffContract } from '../flow-off-map-signoff/flow-off-map-signoff-contract';
 import { observableIdContract } from '../observable-id/observable-id-contract';
@@ -130,7 +129,7 @@ const fullFlowNode = flowNodeContract.extend({
 const deletableNodeContract = z.union([
   fullFlowNode,
   fullFlowNode.partial().required({ id: true }),
-  z.object({ id: flowNodeIdContract, _delete: deleteMarker }),
+  z.object({ id: flowNodeContract.shape.id, _delete: deleteMarker }),
 ]);
 
 const fullFlowEdge = flowEdgeContract.extend({

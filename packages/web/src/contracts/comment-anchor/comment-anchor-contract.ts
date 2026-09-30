@@ -11,16 +11,12 @@
 
 import { z } from '#gateway/npm/zod';
 
-import {
-  flowIdContract,
-  flowNodeIdContract,
-  observableIdContract,
-} from '@dungeonmaster/shared/contracts';
+import { flowIdContract, observableIdContract, flowNodeContract } from '@dungeonmaster/shared/contracts';
 
 export const commentAnchorContract = z.object({
   flowId: flowIdContract,
   // Carried even for an observable comment, so the anchor resolves through its parent node.
-  nodeId: flowNodeIdContract,
+  nodeId: flowNodeContract.shape.id,
   // Set only when the comment was left on a FLOW_OBSERVABLE_NODE card; absent for a node-card comment.
   observableId: observableIdContract.optional(),
 });

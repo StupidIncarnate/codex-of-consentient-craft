@@ -11,7 +11,7 @@
 
 import { z } from '#gateway/npm/zod';
 
-import { flowIdContract, flowNodeIdContract, observableIdContract, outcomeTypeContract, questContract } from '@dungeonmaster/shared/contracts';
+import { flowIdContract, observableIdContract, outcomeTypeContract, questContract, flowNodeContract } from '@dungeonmaster/shared/contracts';
 
 import { commentCountContract } from '../comment-count/comment-count-contract';
 import { reactFlowPackageChipContract } from '../react-flow-package-chip/react-flow-package-chip-contract';
@@ -37,7 +37,7 @@ export const flowObservableNodeDataContract = z.object({
   // The parent flow node this observable branches off, always set by the diagram widget (unlike
   // questId/flowId below, it is NOT part of the compose gate) so a comment on this card — or a click
   // on it in an approved, compose-disallowed quest — still resolves through its parent node.
-  nodeId: flowNodeIdContract,
+  nodeId: flowNodeContract.shape.id,
   // Anchor context for the comment COMPOSE affordance on this assertion card. Present only when the
   // comment compose controls are allowed for this quest; their absence is what makes the card
   // render no comment button.

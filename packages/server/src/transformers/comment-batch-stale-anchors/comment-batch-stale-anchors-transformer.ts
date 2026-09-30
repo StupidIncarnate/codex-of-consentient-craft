@@ -8,13 +8,7 @@
  * // Returns CommentStaleAnchor[] — only entries that FAIL to resolve, in `comments` order.
  * // Entries whose anchor still resolves are omitted entirely; an all-resolving batch => [].
  */
-import type {
-  CommentBatchEntry,
-  Flow,
-  FlowId,
-  FlowNodeId,
-  ObservableId,
-} from '@dungeonmaster/shared/contracts';
+import type { CommentBatchEntry, Flow, FlowId, ObservableId, FlowNode } from '@dungeonmaster/shared/contracts';
 
 import { commentStaleAnchorContract } from '../../contracts/comment-stale-anchor/comment-stale-anchor-contract';
 import type { CommentStaleAnchor } from '../../contracts/comment-stale-anchor/comment-stale-anchor-contract';
@@ -26,10 +20,10 @@ export const commentBatchStaleAnchorsTransformer = ({
   comments: CommentBatchEntry[];
   flows: Flow[];
 }): CommentStaleAnchor[] => {
-  const flowNodeObservables = new Map<FlowId, Map<FlowNodeId, Set<ObservableId>>>();
+  const flowNodeObservables = new Map<FlowId, Map<FlowNode['id'], Set<ObservableId>>>();
 
   for (const flow of flows) {
-    const nodeObservables = new Map<FlowNodeId, Set<ObservableId>>();
+    const nodeObservables = new Map<FlowNode['id'], Set<ObservableId>>();
     for (const node of flow.nodes) {
       const observableIds = new Set<ObservableId>();
       for (const observable of node.observables) {

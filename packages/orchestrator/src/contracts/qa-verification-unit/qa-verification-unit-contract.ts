@@ -31,25 +31,14 @@
 
 import { z } from '#gateway/npm/zod';
 
-import {
-  flowEdgeContract,
-  flowEdgeIdContract,
-  flowIdContract,
-  flowNodeContract,
-  flowNodeIdContract,
-  flowObservableContract,
-  observableIdContract,
-  observableOriginContract,
-  qaChecklistItemIdContract,
-  qaOffMapFamilyContract,
-} from '@dungeonmaster/shared/contracts';
+import { flowEdgeContract, flowEdgeIdContract, flowIdContract, flowNodeContract, flowObservableContract, observableIdContract, observableOriginContract, qaChecklistItemIdContract, qaOffMapFamilyContract } from '@dungeonmaster/shared/contracts';
 
 export const qaVerificationUnitContract = z.discriminatedUnion('kind', [
   z.object({
     kind: z.literal('terminal'),
     id: qaChecklistItemIdContract,
     flowId: flowIdContract,
-    nodeId: flowNodeIdContract,
+    nodeId: flowNodeContract.shape.id,
     nodeLabel: flowNodeContract.shape.label,
   }),
   z.object({
@@ -67,7 +56,7 @@ export const qaVerificationUnitContract = z.discriminatedUnion('kind', [
     kind: z.literal('observable'),
     id: qaChecklistItemIdContract,
     flowId: flowIdContract,
-    nodeId: flowNodeIdContract,
+    nodeId: flowNodeContract.shape.id,
     observableId: observableIdContract,
     observableType: flowObservableContract.shape.type,
     // Carried verbatim and allowed to be blank — a blank description is a spec hole the renderer

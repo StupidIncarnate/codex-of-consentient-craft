@@ -9,11 +9,11 @@
 import { z } from '#gateway/npm/zod';
 
 import { contractNameContract } from '../contract-name/contract-name-contract';
-import { flowNodeIdContract } from '../flow-node-id/flow-node-id-contract';
 import { questContractEntryIdContract } from '../quest-contract-entry-id/quest-contract-entry-id-contract';
 import { questContractKindContract } from '../quest-contract-kind/quest-contract-kind-contract';
 import { questContractPropertyContract } from '../quest-contract-property/quest-contract-property-contract';
 import { questContractStatusContract } from '../quest-contract-status/quest-contract-status-contract';
+import { flowNodeContract } from '../flow-node/flow-node-contract';
 
 export const questContractEntryContract = z.object({
   id: questContractEntryIdContract.describe('Unique identifier for this contract entry'),
@@ -33,7 +33,7 @@ export const questContractEntryContract = z.object({
     .describe(
       'File path where this contract lives or will be created. REQUIRED — the dedup error message uses this path to tell a conflicting writer where the existing entry lives.',
     ),
-  nodeId: flowNodeIdContract.describe(
+  nodeId: flowNodeContract.shape.id.describe(
     'Flow node this contract is anchored to — links the contract to the node where it is consumed or produced',
   ),
   properties: z

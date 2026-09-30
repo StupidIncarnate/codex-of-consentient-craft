@@ -21,11 +21,11 @@
 
 import { z } from '#gateway/npm/zod';
 
-import { flowNodeIdContract } from '../flow-node-id/flow-node-id-contract';
+import { flowNodeContract } from '../flow-node/flow-node-contract';
 
 export const qaWalkPathContract = z.object({
   nodeIds: z
-    .array(flowNodeIdContract)
+    .array(flowNodeContract.shape.id)
     .min(1)
     .describe(
       'Nodes in drive order, entry first. The last entry is the terminal this path ends at.',

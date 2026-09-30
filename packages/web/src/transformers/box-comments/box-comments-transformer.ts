@@ -11,12 +11,7 @@
  * boxCommentsTransformer({comments: quest.comments, flowId, nodeId, observableId});
  * // Returns only comments anchored to that exact observable card, newest first
  */
-import type {
-  FlowId,
-  FlowNodeId,
-  ObservableId,
-  QuestComment,
-} from '@dungeonmaster/shared/contracts';
+import type { FlowId, ObservableId, QuestComment, FlowNode } from '@dungeonmaster/shared/contracts';
 
 export const boxCommentsTransformer = ({
   comments,
@@ -26,7 +21,7 @@ export const boxCommentsTransformer = ({
 }: {
   comments: readonly QuestComment[];
   flowId: FlowId;
-  nodeId: FlowNodeId;
+  nodeId: FlowNode['id'];
   observableId?: ObservableId;
 }): QuestComment[] => {
   const matches = comments.filter((comment) => {

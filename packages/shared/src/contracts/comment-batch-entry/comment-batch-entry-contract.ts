@@ -13,13 +13,13 @@ import { z } from '#gateway/npm/zod';
 
 import { commentTextContract } from '../comment-text/comment-text-contract';
 import { flowIdContract } from '../flow-id/flow-id-contract';
-import { flowNodeIdContract } from '../flow-node-id/flow-node-id-contract';
 import { observableIdContract } from '../observable-id/observable-id-contract';
+import { flowNodeContract } from '../flow-node/flow-node-contract';
 
 export const commentBatchEntryContract = z.object({
   flowId: flowIdContract,
   // Carried even for an observable comment, so the anchor resolves through its parent node.
-  nodeId: flowNodeIdContract,
+  nodeId: flowNodeContract.shape.id,
   observableId: observableIdContract.optional(),
   text: commentTextContract,
   // Optional: the browser carries the queue entry's own createdAt so newest-first ordering matches

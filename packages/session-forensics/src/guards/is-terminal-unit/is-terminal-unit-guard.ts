@@ -14,16 +14,16 @@
  * isTerminalUnitGuard({ nodeId: FlowNodeIdStub({ value: 'done' }), nodeType: 'terminal', edgeSourceIds: [] });
  * // Returns true — a terminal node with nothing leaving it
  */
-import type { FlowNodeId, FlowNodeType } from '@dungeonmaster/shared/contracts';
+import type { FlowNodeType, FlowNode } from '@dungeonmaster/shared/contracts';
 
 export const isTerminalUnitGuard = ({
   nodeId,
   nodeType,
   edgeSourceIds,
 }: {
-  nodeId?: FlowNodeId;
+  nodeId?: FlowNode['id'];
   nodeType?: FlowNodeType;
-  edgeSourceIds?: readonly FlowNodeId[];
+  edgeSourceIds?: readonly FlowNode['id'][];
 }): boolean => {
   if (nodeId === undefined || nodeType === undefined || edgeSourceIds === undefined) {
     return false;

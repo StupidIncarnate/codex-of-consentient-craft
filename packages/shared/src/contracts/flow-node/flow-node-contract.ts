@@ -23,14 +23,13 @@
 
 import { z } from '#gateway/npm/zod';
 
-import { flowNodeIdContract } from '../flow-node-id/flow-node-id-contract';
 import { flowNodeTypeContract } from '../flow-node-type/flow-node-type-contract';
 import { flowObservableContract } from '../flow-observable/flow-observable-contract';
 import { packageNameContract } from '../package-name/package-name-contract';
 
 export const flowNodeContract = z
   .object({
-    id: flowNodeIdContract,
+    id: flowNodeId,
     label: z.string().min(1).brand<'FlowNodeLabel'>(),
     type: flowNodeTypeContract,
     packages: z

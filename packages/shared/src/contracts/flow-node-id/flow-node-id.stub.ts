@@ -1,5 +1,5 @@
-import { flowNodeIdContract } from './flow-node-id-contract';
-import type { FlowNodeId } from './flow-node-id-contract';
+import type { FlowNode } from '../flow-node/flow-node-contract';
+import { flowNodeContract } from '../flow-node/flow-node-contract';
 
-export const FlowNodeIdStub = ({ value }: { value: string } = { value: 'start' }): FlowNodeId =>
-  flowNodeIdContract.parse(value);
+export const FlowNodeIdStub = ({ value }: { value: string } = { value: 'start' }): FlowNode['id'] =>
+  flowNodeContract.shape.id.parse(value);

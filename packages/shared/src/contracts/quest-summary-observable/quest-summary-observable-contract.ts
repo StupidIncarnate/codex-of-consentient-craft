@@ -35,17 +35,17 @@
 import { z } from '#gateway/npm/zod';
 
 import { flowIdContract } from '../flow-id/flow-id-contract';
-import { flowNodeIdContract } from '../flow-node-id/flow-node-id-contract';
 import { flowObservableContract } from '../flow-observable/flow-observable-contract';
 import { observableIdContract } from '../observable-id/observable-id-contract';
 import { observableOriginContract } from '../observable-origin/observable-origin-contract';
 import { outcomeTypeContract } from '../outcome-type/outcome-type-contract';
 import { qaChecklistItemIdContract } from '../qa-checklist-item-id/qa-checklist-item-id-contract';
+import { flowNodeContract } from '../flow-node/flow-node-contract';
 
 export const questSummaryObservableContract = z.object({
   id: qaChecklistItemIdContract,
   flowId: flowIdContract,
-  nodeId: flowNodeIdContract,
+  nodeId: flowNodeContract.shape.id,
   observableId: observableIdContract,
   addedBy: observableOriginContract.describe(
     'Who wrote this observable in. On `midQuestObservables`, never `spec` — that slice is scope drift, filtered to post-approval additions. On `humanChecks`, `spec` is a legitimate value — a spec-authored verifyByHuman observable is still a human check.',

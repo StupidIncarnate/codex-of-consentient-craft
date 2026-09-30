@@ -27,13 +27,7 @@
  * than to this shape.
  */
 
-import {
-  flowEdgeIdContract,
-  flowNodeIdContract,
-  qaChecklistItemContract,
-  qaChecklistKindContract,
-  unitIdContract,
-} from '@dungeonmaster/shared/contracts';
+import { flowEdgeIdContract, qaChecklistItemContract, qaChecklistKindContract, unitIdContract, flowNodeContract } from '@dungeonmaster/shared/contracts';
 import { z } from '#gateway/npm/zod';
 
 export const workPlanFlowriderUnitContract = z.object({
@@ -47,7 +41,7 @@ export const workPlanFlowriderUnitContract = z.object({
     .describe('Filled by the orchestrator on read; a planner leaves it absent.'),
   observableTarget: z.object({
     target: z.enum(['observable', 'node', 'edge']),
-    nodeId: flowNodeIdContract.optional(),
+    nodeId: flowNodeContract.shape.id.optional(),
     edgeId: flowEdgeIdContract.optional(),
   }),
   assert: z

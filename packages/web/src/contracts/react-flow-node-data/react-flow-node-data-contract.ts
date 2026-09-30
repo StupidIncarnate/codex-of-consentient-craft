@@ -8,14 +8,14 @@
 
 import { z } from '#gateway/npm/zod';
 
-import { flowIdContract, flowNodeIdContract, flowNodeTypeContract, questContract } from '@dungeonmaster/shared/contracts';
+import { flowIdContract, flowNodeTypeContract, questContract, flowNodeContract } from '@dungeonmaster/shared/contracts';
 
 import { commentCountContract } from '../comment-count/comment-count-contract';
 import { contractCountContract } from '../contract-count/contract-count-contract';
 import { reactFlowPackageChipContract } from '../react-flow-package-chip/react-flow-package-chip-contract';
 
 export const reactFlowNodeDataContract = z.object({
-  nodeId: flowNodeIdContract,
+  nodeId: flowNodeContract.shape.id,
   label: z.string().min(1).brand<'FlowNodeLabel'>(),
   nodeType: flowNodeTypeContract,
   // Where this node's work lands, painted on the card itself rather than behind a click: this is

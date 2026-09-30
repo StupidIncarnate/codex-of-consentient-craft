@@ -10,16 +10,16 @@ import { z } from '#gateway/npm/zod';
 
 import { commentTextContract } from '../comment-text/comment-text-contract';
 import { flowIdContract } from '../flow-id/flow-id-contract';
-import { flowNodeIdContract } from '../flow-node-id/flow-node-id-contract';
 import { observableIdContract } from '../observable-id/observable-id-contract';
 import { questCommentIdContract } from '../quest-comment-id/quest-comment-id-contract';
+import { flowNodeContract } from '../flow-node/flow-node-contract';
 
 export const questCommentContract = z.object({
   id: questCommentIdContract,
   flowId: flowIdContract,
   // Stays required even when observableId is set, so an observable comment is findable from its
   // parent node — observables render as their own always-visible boxes branching right of the node.
-  nodeId: flowNodeIdContract,
+  nodeId: flowNodeContract.shape.id,
   observableId: observableIdContract.optional(),
   text: commentTextContract,
   // The age of the text as it currently stands, not of the first draft — editing a queued comment

@@ -38,7 +38,7 @@
  * off-map families — three of the four kinds, silently.
  */
 
-import { contentTextContract, filePathContract, flowEdgeIdContract, flowIdContract, flowNodeIdContract, flowRecipeNameContract, operationItemContract, operationItemIdContract, outcomeTypeContract, packageNameContract, pieceIdContract, qaChecklistItemContract, qaChecklistKindContract, qaWalkPathContract, questContract, questNoteContract, repoRelativePathContract, siegeInstanceIdContract, siegeRunIdContract, stepNameContract, unitIdContract, unitMarkContract, unitObservationContract, unitObservationFieldsContract, wardResultContract, workItemContract } from '@dungeonmaster/shared/contracts';
+import { contentTextContract, filePathContract, flowEdgeIdContract, flowIdContract, flowRecipeNameContract, operationItemContract, operationItemIdContract, outcomeTypeContract, packageNameContract, pieceIdContract, qaChecklistItemContract, qaChecklistKindContract, qaWalkPathContract, questContract, questNoteContract, repoRelativePathContract, siegeInstanceIdContract, siegeRunIdContract, stepNameContract, unitIdContract, unitMarkContract, unitObservationContract, unitObservationFieldsContract, wardResultContract, workItemContract, flowNodeContract } from '@dungeonmaster/shared/contracts';
 import { z } from '#gateway/npm/zod';
 
 import { agentFamilyNameContract } from '../agent-family-name/agent-family-name-contract';
@@ -67,7 +67,7 @@ const questWorkUnit = z.object({
   kind: qaChecklistKindContract,
   text: qaChecklistItemContract.shape.label,
   surface: qaChecklistItemContract.shape.checkSurface,
-  nodeId: flowNodeIdContract.nullable(),
+  nodeId: flowNodeContract.shape.id.nullable(),
   edgeId: flowEdgeIdContract.nullable(),
   observableType: outcomeTypeContract.nullable(),
   verifyByReading: z.boolean().default(false),

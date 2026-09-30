@@ -37,7 +37,7 @@
  */
 
 import { qaOffMapProbeStatics } from '@dungeonmaster/shared/statics';
-import { flowNodeIdContract, unitIdContract } from '@dungeonmaster/shared/contracts';
+import { unitIdContract, flowNodeContract } from '@dungeonmaster/shared/contracts';
 import type { Flow, WorkItem, UnitMark, UnitId } from '@dungeonmaster/shared/contracts';
 
 import {
@@ -79,7 +79,7 @@ export const questToUnitsTransformer = ({
     // Every edge's `from` names a node inside this same flow, so parsing it back through
     // `flowNodeIdContract` is safe. `flowEdgeRefContract` does accept a cross-flow form
     // ("otherFlow:node"), but only on `to`, where it marks an exit jump out of the flow.
-    const edgeSourceIds = flow.edges.map((edge) => flowNodeIdContract.parse(edge.from));
+    const edgeSourceIds = flow.edges.map((edge) => flowNodeContract.shape.id.parse(edge.from));
 
     const terminalUnits = flow.nodes.flatMap((node): VerificationUnit[] => {
       if (!isTerminalUnitGuard({ nodeId: node.id, nodeType: node.type, edgeSourceIds })) {

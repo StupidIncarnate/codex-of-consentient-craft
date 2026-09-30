@@ -58,10 +58,10 @@
 import { contentTextContract } from '../../contracts/content-text/content-text-contract';
 import type { ContentText } from '../../contracts/content-text/content-text-contract';
 import type { Flow } from '../../contracts/flow/flow-contract';
-import type { FlowNodeId } from '../../contracts/flow-node-id/flow-node-id-contract';
-import { flowNodeIdContract } from '../../contracts/flow-node-id/flow-node-id-contract';
 import type { PackageName } from '../../contracts/package-name/package-name-contract';
 import { textDisplaySymbolsStatics } from '../../statics/text-display-symbols/text-display-symbols-statics';
+import type { FlowNode } from '../../contracts/flow-node/flow-node-contract';
+import { flowNodeContract } from '../../contracts/flow-node/flow-node-contract';
 
 const SYM = textDisplaySymbolsStatics;
 const INITIAL_DEPTH = 0;
@@ -110,10 +110,10 @@ export const flowGraphToTextTransformer = ({
   );
   const ownPackageText = ownPackage === undefined ? undefined : String(ownPackage);
 
-  const visited = new Set<FlowNodeId>();
+  const visited = new Set<FlowNode['id']>();
   const lines: ContentText[] = [];
 
-  const entryNodeIdResult = flowNodeIdContract.safeParse(flow.entryPoint);
+  const entryNodeIdResult = flowNodeContract.shape.id.safeParse(flow.entryPoint);
   const entryNodeId = entryNodeIdResult.success ? entryNodeIdResult.data : undefined;
 
   const orderedNodeIds = [
@@ -222,7 +222,7 @@ export const flowGraphToTextTransformer = ({
       const childrenToVisit: typeof recursionStack = [];
 
       for (const edge of edges) {
-        const toIdParsed = flowNodeIdContract.safeParse(edge.to);
+        const toIdParsed = flowNodeContract.shape.id.safeParse(edge.to);
         const edgeToStr = String(edge.to);
         // ID FIRST, the same order the node and observable lines use, and it opens the line on
         // EVERY edge whether or not the edge is a unit.

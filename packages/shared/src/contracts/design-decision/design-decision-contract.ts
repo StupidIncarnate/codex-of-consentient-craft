@@ -9,13 +9,13 @@
 import { z } from '#gateway/npm/zod';
 
 import { designDecisionIdContract } from '../design-decision-id/design-decision-id-contract';
-import { flowNodeIdContract } from '../flow-node-id/flow-node-id-contract';
+import { flowNodeContract } from '../flow-node/flow-node-contract';
 
 export const designDecisionContract = z.object({
   id: designDecisionIdContract,
   title: z.string().min(1).brand<'DecisionTitle'>(),
   rationale: z.string().brand<'DecisionRationale'>(),
-  relatedNodeIds: z.array(flowNodeIdContract),
+  relatedNodeIds: z.array(flowNodeContract.shape.id),
 });
 
 export type DesignDecision = z.infer<typeof designDecisionContract>;

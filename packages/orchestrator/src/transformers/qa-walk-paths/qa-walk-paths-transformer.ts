@@ -22,7 +22,7 @@
  */
 
 import { qaWalkPathContract } from '@dungeonmaster/shared/contracts';
-import type { Flow, FlowNodeId, QaWalkPath } from '@dungeonmaster/shared/contracts';
+import type { Flow, QaWalkPath, FlowNode } from '@dungeonmaster/shared/contracts';
 
 export const qaWalkPathsTransformer = ({
   flow,
@@ -31,8 +31,8 @@ export const qaWalkPathsTransformer = ({
   branchLabels = [],
 }: {
   flow: Flow;
-  fromNodeId?: FlowNodeId;
-  visitedNodeIds?: readonly FlowNodeId[];
+  fromNodeId?: FlowNode['id'];
+  visitedNodeIds?: readonly FlowNode['id'][];
   branchLabels?: readonly string[];
 }): QaWalkPath[] => {
   if (fromNodeId === undefined) {
