@@ -74,7 +74,7 @@ describe('pruneArgsParseTransformer', () => {
 
     it('INVALID: {args: --instance 9b2c} => refuses naming the shape an instance id needed', () => {
       expect(() => pruneArgsParseTransformer({ args: ['--instance', '9b2c'] })).toThrow(
-        /^--instance: Instance id must look like/u,
+        /^--instance: Siege instance id must look like/u,
       );
     });
 

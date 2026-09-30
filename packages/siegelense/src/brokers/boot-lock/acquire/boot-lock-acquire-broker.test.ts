@@ -9,7 +9,7 @@ describe('bootLockAcquireBroker', () => {
     it('EMPTY: {no boot.lock} => writes and returns a fresh lock for this instance', async () => {
       const proxy = bootLockAcquireBrokerProxy();
       const instanceId = InstanceIdStub({ value: 'inst_1a2b3c4d' });
-      const nowMs = 1;
+      const nowMs = 1_700_000_000_000;
 
       proxy.setupNow({ nowMs });
       proxy.setupWriteSucceeds();
@@ -29,7 +29,7 @@ describe('bootLockAcquireBroker', () => {
     it('EMPTY: {no boot.lock} => writes the same lock it returns', async () => {
       const proxy = bootLockAcquireBrokerProxy();
       const instanceId = InstanceIdStub({ value: 'inst_1a2b3c4d' });
-      const nowMs = 1;
+      const nowMs = 1_700_000_000_000;
 
       proxy.setupNow({ nowMs });
       proxy.setupWriteSucceeds();
@@ -42,7 +42,7 @@ describe('bootLockAcquireBroker', () => {
     it('VALID: {absent lock} => the write used the exclusive flag', async () => {
       const proxy = bootLockAcquireBrokerProxy();
       const instanceId = InstanceIdStub({ value: 'inst_1a2b3c4d' });
-      const nowMs = 1;
+      const nowMs = 1_700_000_000_000;
 
       proxy.setupNow({ nowMs });
       proxy.setupWriteSucceeds();
@@ -98,7 +98,7 @@ describe('bootLockAcquireBroker', () => {
     it('EDGE: {the lock vanishes between the failed create and the read} => retries the create', async () => {
       const proxy = bootLockAcquireBrokerProxy();
       const instanceId = InstanceIdStub({ value: 'inst_1a2b3c4d' });
-      const nowMs = 1;
+      const nowMs = 1_700_000_000_000;
 
       proxy.setupNow({ nowMs });
       proxy.setupLockVanishesBeforeRetryRead();
@@ -122,7 +122,7 @@ describe('bootLockAcquireBroker', () => {
       const proxy = bootLockAcquireBrokerProxy();
       const instanceId = InstanceIdStub({ value: 'inst_1a2b3c4d' });
       const otherInstanceId = InstanceIdStub({ value: 'inst_deadbeef' });
-      const nowMs = 1;
+      const nowMs = 1_700_000_000_000;
 
       proxy.setupStaleLockHeldBy({ otherInstanceId, nowMs });
       proxy.setupNow({ nowMs });
@@ -144,7 +144,7 @@ describe('bootLockAcquireBroker', () => {
       const proxy = bootLockAcquireBrokerProxy();
       const instanceId = InstanceIdStub({ value: 'inst_1a2b3c4d' });
       const otherInstanceId = InstanceIdStub({ value: 'inst_deadbeef' });
-      const nowMs = 1;
+      const nowMs = 1_700_000_000_000;
 
       proxy.setupStaleLockHeldBy({ otherInstanceId, nowMs });
       proxy.setupNow({ nowMs });
@@ -159,7 +159,7 @@ describe('bootLockAcquireBroker', () => {
       const proxy = bootLockAcquireBrokerProxy();
       const instanceId = InstanceIdStub({ value: 'inst_1a2b3c4d' });
       const otherInstanceId = InstanceIdStub({ value: 'inst_deadbeef' });
-      const nowMs = 1;
+      const nowMs = 1_700_000_000_000;
 
       proxy.setupStaleLockHeldBy({ otherInstanceId, nowMs });
       proxy.setupNow({ nowMs });
@@ -190,7 +190,7 @@ describe('bootLockAcquireBroker', () => {
       const proxy = bootLockAcquireBrokerProxy();
       const instanceId = InstanceIdStub({ value: 'inst_1a2b3c4d' });
       const otherInstanceId = InstanceIdStub({ value: 'inst_deadbeef' });
-      const nowMs = 1;
+      const nowMs = 1_700_000_000_000;
 
       proxy.setupStaleUnlinkLostRaceToAnotherContender({ otherInstanceId, nowMs });
       proxy.setupNow({ nowMs });
@@ -212,7 +212,7 @@ describe('bootLockAcquireBroker', () => {
       const proxy = bootLockAcquireBrokerProxy();
       const instanceId = InstanceIdStub({ value: 'inst_1a2b3c4d' });
       const otherInstanceId = InstanceIdStub({ value: 'inst_deadbeef' });
-      const nowMs = 1;
+      const nowMs = 1_700_000_000_000;
 
       proxy.setupStaleUnlinkFailsForNonAbsenceReason({ otherInstanceId, nowMs });
       proxy.setupNow({ nowMs });
@@ -227,7 +227,7 @@ describe('bootLockAcquireBroker', () => {
     it('EDGE: {no siegelense root yet} => creates the root directory before acquiring the lock', async () => {
       const proxy = bootLockAcquireBrokerProxy();
       const instanceId = InstanceIdStub({ value: 'inst_1a2b3c4d' });
-      const nowMs = 1;
+      const nowMs = 1_700_000_000_000;
 
       proxy.setupNow({ nowMs });
       proxy.setupWriteSucceeds();
@@ -240,7 +240,7 @@ describe('bootLockAcquireBroker', () => {
     it('VALID: {no siegelense root yet} => the create is still exclusive, not a plain overwrite', async () => {
       const proxy = bootLockAcquireBrokerProxy();
       const instanceId = InstanceIdStub({ value: 'inst_1a2b3c4d' });
-      const nowMs = 1;
+      const nowMs = 1_700_000_000_000;
 
       proxy.setupNow({ nowMs });
       proxy.setupWriteSucceeds();

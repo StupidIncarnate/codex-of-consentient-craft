@@ -42,7 +42,7 @@ describe('citationReferenceContract', () => {
     it('INVALID: {runId: "run_zero"} => a malformed run id throws rather than reaching a refusal sentence', () => {
       expect(() => {
         CitationReferenceStub({ runId: 'run_zero' });
-      }).toThrow(/Invalid/u);
+      }).toThrow(/Siege run id must look like/u);
     });
   });
 });

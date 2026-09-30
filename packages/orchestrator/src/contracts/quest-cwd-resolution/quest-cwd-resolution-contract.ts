@@ -16,6 +16,9 @@
 
 import { z } from '#gateway/npm/zod';
 
+const ABSOLUTE_PATH_PATTERN = /^(?:\/|[A-Za-z]:\\)/u;
+const ABSOLUTE_PATH_MESSAGE = 'Path must be absolute (start with / or C:\\ on Windows)';
+
 export const questCwdResolutionContract = z.discriminatedUnion('kind', [
   // The cwd this SESSION was recorded running in, read off the quest's `sessions` ledger. It
   // outranks both derived kinds because it is measured rather than inferred, and it is served
@@ -23,15 +26,15 @@ export const questCwdResolutionContract = z.discriminatedUnion('kind', [
   // `~/.claude/projects/`, so it outlives the directory it was written from.
   z.object({
     kind: z.literal('session'),
-    cwd: z.string().min(1).brand<'QuestCwdResolutionCwd'>(),
+    cwd: z.string().min(1).refine((path) => ABSOLUTE_PATH_PATTERN.test(path), { message: ABSOLUTE_PATH_MESSAGE }).brand<'QuestCwdResolutionCwd'>(),
   }).brand<'QuestCwdResolution'>(),
   z.object({
     kind: z.literal('worktree'),
-    cwd: z.string().min(1).brand<'QuestCwdResolutionCwd'>(),
+    cwd: z.string().min(1).refine((path) => ABSOLUTE_PATH_PATTERN.test(path), { message: ABSOLUTE_PATH_MESSAGE }).brand<'QuestCwdResolutionCwd'>(),
   }).brand<'QuestCwdResolution'>(),
   z.object({
     kind: z.literal('repo-root'),
-    cwd: z.string().min(1).brand<'QuestCwdResolutionCwd'>(),
+    cwd: z.string().min(1).refine((path) => ABSOLUTE_PATH_PATTERN.test(path), { message: ABSOLUTE_PATH_MESSAGE }).brand<'QuestCwdResolutionCwd'>(),
   }).brand<'QuestCwdResolution'>(),
   z.object({
     kind: z.literal('missing-worktree'),

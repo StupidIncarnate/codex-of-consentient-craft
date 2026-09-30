@@ -28,10 +28,17 @@ import type {
   RecordOf,
 } from '../ingredient-config/ingredient-config-contract';
 import type { Collection } from '../hydration-collection/hydration-collection-contract';
+import { rowRefStatics } from '../../statics/row-ref/row-ref-statics';
+
+const { separator, matchWord } = rowRefStatics.slot;
+const ROW_REF_SLOT = `(?:\\d+${separator}\\d+|${matchWord})`;
+const ROW_REF_SEGMENT = `[A-Za-z][A-Za-z0-9-]*\\[${ROW_REF_SLOT}\\]`;
+const ROW_REF_PATTERN = new RegExp(`^${ROW_REF_SEGMENT}(?:\\/${ROW_REF_SEGMENT})*$`, 'u');
+const ROW_REF_MESSAGE = "must be an ancestor path like 'guild[0:0]/quest[0:2]'";
 
 export const ingredientHandleContract = z.object({
   ingredient: z.string().min(1).regex( /^[A-Za-z][A-Za-z0-9-]*$/u, 'must start with a letter and hold only letters, digits and hyphens — the character set a RowRef segment can encode', ).brand<'IngredientHandleIngredient'>(),
-  ref: z.string().min(1).brand<'IngredientHandleRef'>(),
+  ref: z.string().min(1).regex(ROW_REF_PATTERN, ROW_REF_MESSAGE).brand<'IngredientHandleRef'>(),
 }).brand<'IngredientHandle'>();
 
 export type IngredientHandleData = z.infer<typeof ingredientHandleContract>;

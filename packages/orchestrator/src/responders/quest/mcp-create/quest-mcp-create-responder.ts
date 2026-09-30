@@ -21,8 +21,10 @@ export const QuestMcpCreateResponder = async ({
   questType?: QuestType;
   sessionId?: Session['id'];
 }): Promise<QuestMcpCreateResponderResult> =>
-  questMcpCreateResponderResultContract.parse(questMcpCreateBroker({
-    userRequest,
-    ...(questType !== undefined && { questType }),
-    ...(sessionId !== undefined && { sessionId }),
-  }));
+  questMcpCreateResponderResultContract.parse(
+    await questMcpCreateBroker({
+      userRequest,
+      ...(questType !== undefined && { questType }),
+      ...(sessionId !== undefined && { sessionId }),
+    }),
+  );

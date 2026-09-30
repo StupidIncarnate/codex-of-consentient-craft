@@ -39,7 +39,7 @@ describe('pruneQueryContract', () => {
     it('INVALID: {instanceId: "inst_"} => a malformed instance id throws naming the shape it needed', () => {
       expect(() => {
         PruneQueryStub({ instanceId: 'inst_' });
-      }).toThrow(/Instance id must look like/u);
+      }).toThrow(/Siege instance id must look like/u);
     });
 
     it('INVALID: {an extra key} => .strict() throws rather than accepting a selector nothing applies', () => {

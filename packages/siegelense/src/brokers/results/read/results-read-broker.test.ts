@@ -648,6 +648,7 @@ describe('resultsReadBroker', () => {
     const entry = RegistryEntryStub({
       id: INSTANCE_ID,
       state: 'alive',
+      bootedAtMs: LAST_BEAT_MS - 60_000,
       lastBeatMs: LAST_BEAT_MS,
     });
     proxy.setupRegistry({ registry: RegistryStub({ instances: [entry] }) });
@@ -757,6 +758,7 @@ describe('resultsReadBroker', () => {
     const entry = RegistryEntryStub({
       id: INSTANCE_ID,
       state: 'alive',
+      bootedAtMs: LAST_BEAT_MS - 60_000,
       lastBeatMs: LAST_BEAT_MS,
     });
     proxy.setupRegistry({ registry: RegistryStub({ instances: [entry] }) });
@@ -790,6 +792,7 @@ describe('resultsReadBroker', () => {
     const entry = RegistryEntryStub({
       id: INSTANCE_ID,
       state: 'alive',
+      bootedAtMs: LAST_BEAT_MS - 60_000,
       lastBeatMs: LAST_BEAT_MS,
     });
     proxy.setupRegistry({ registry: RegistryStub({ instances: [entry] }) });

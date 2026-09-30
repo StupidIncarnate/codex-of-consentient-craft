@@ -40,7 +40,8 @@ export const questWorkPlanWriteBroker = async ({
   workItemId: WorkItem['id'];
   plan: PlanEnvelope;
 }): Promise<QuestWorkPlanWriteResult> =>
-  questWorkPlanWriteResultContract.parse(questWithModifyLockBroker({
+  questWorkPlanWriteResultContract.parse(
+    await questWithModifyLockBroker({
     questId,
     run: async (): Promise<{ operationItemId: OperationItem['id'] }> => {
       const { questPath } = await questFindQuestPathBroker({ questId });
@@ -87,4 +88,5 @@ export const questWorkPlanWriteBroker = async ({
 
       return { operationItemId: validatedPlan.operationItemId };
     },
-  }));
+    }),
+  );

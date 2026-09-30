@@ -63,6 +63,7 @@ export const instanceKillBrokerProxy = (): {
   }) => void;
   setupShutdownReasonWriteSucceeds: (params: {
     evidencePath: string;
+    nowMs?: number;
   }) => void;
   getWrittenShutdownReason: (params: {
     evidencePath: string;
@@ -239,10 +240,12 @@ export const instanceKillBrokerProxy = (): {
     // it through `setupWriteSucceeds` is a no-op collision, not a silent override.
     setupShutdownReasonWriteSucceeds: ({
       evidencePath,
+      nowMs = 1,
     }: {
       evidencePath: string;
+      nowMs?: number;
     }): void => {
-      shutdownReasonProxy.setupWriteSucceeds({ evidencePath, nowMs: 1 });
+      shutdownReasonProxy.setupWriteSucceeds({ evidencePath, nowMs });
     },
 
     getWrittenShutdownReason: ({

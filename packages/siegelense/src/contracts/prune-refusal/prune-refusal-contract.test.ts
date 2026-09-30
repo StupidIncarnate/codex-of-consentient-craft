@@ -27,7 +27,7 @@ describe('pruneRefusalContract', () => {
     it('INVALID: {id: "1d09"} => a malformed instance id throws naming the shape it needed', () => {
       expect(() => {
         PruneRefusalStub({ id: '1d09' });
-      }).toThrow(/Instance id must look like/u);
+      }).toThrow(/Siege instance id must look like/u);
     });
 
     it('INVALID: {why omitted} => throws, so a refusal can never be silent about its reason', () => {

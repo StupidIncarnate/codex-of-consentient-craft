@@ -50,10 +50,15 @@ export const linkValuesTransformer = ({
 
     const ancestorRecord = records.get(ancestorRef);
     const fromField = link.from ?? 'id';
-    values[link.as] =
+    const linkedValue =
       typeof ancestorRecord === 'object' && ancestorRecord !== null
         ? (ancestorRecord as Record<PropertyKey, unknown>)[fromField]
         : undefined;
+    // A key is left out rather than set to `undefined`: `values` is JSON, which has no undefined,
+    // and the pre-flight passes empty `records` on purpose so every link reads back as missing.
+    if (linkedValue !== undefined) {
+      values[link.as] = linkedValue;
+    }
   }
 
   return linkValuesResultContract.parse({ ok: true, values });

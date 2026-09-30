@@ -88,11 +88,11 @@ export const bootLockAcquireBroker = async ({
   const existingContents = await readFileIfExists(bootLockPath);
 
   if (existingContents === null) {
-    return bootLockAcquireResultContract.parse(bootLockAcquireBroker({
+    return bootLockAcquireBroker({
       instanceId,
       waitStartedAtMs: startedAtMs,
       tookOverStaleSoFar: tookOverStale,
-    }));
+    });
   }
 
   const existingLock = bootLockContract.parse(JSON.parse(existingContents));
@@ -116,11 +116,11 @@ export const bootLockAcquireBroker = async ({
     // can still win the re-create in between — that failure falls back through the SAME
     // exclusive-create branch above and reads whatever is there next, rather than this call
     // assuming its own stamp landed.
-    return bootLockAcquireResultContract.parse(bootLockAcquireBroker({
+    return bootLockAcquireBroker({
       instanceId,
       waitStartedAtMs: startedAtMs,
       tookOverStaleSoFar: true,
-    }));
+    });
   }
 
   if (nowMs - startedAtMs >= instanceLifecycleStatics.bootLock.waitCeilingMs) {
@@ -134,9 +134,9 @@ export const bootLockAcquireBroker = async ({
     setTimeout(resolve, instanceLifecycleStatics.bootLock.pollMs);
   });
 
-  return bootLockAcquireResultContract.parse(bootLockAcquireBroker({
+  return bootLockAcquireBroker({
     instanceId,
     waitStartedAtMs: startedAtMs,
     tookOverStaleSoFar: tookOverStale,
-  }));
+  });
 };

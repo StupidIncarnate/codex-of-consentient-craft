@@ -8,7 +8,7 @@ import { cleanupRunBrokerProxy } from './cleanup-run-broker.proxy';
 // instanceKillBrokerProxy (composed transitively through cleanupRunBrokerProxy) stamps Date.now()
 // to exactly this value at construction, so every test below reads its own NOW_MS off the same
 // stub rather than re-mocking the clock itself.
-const NOW_MS = 1;
+const NOW_MS = 1_700_000_000_000;
 
 const LIVE_ID = InstanceIdStub({ value: 'inst_7f3a' });
 const STALE_ID = InstanceIdStub({ value: 'inst_9b2c' });
@@ -50,6 +50,7 @@ describe('cleanupRunBroker', () => {
         id: RESERVED_ID,
         bootedAtMs: null,
         lastBeatMs: null,
+        reservedAtMs: (NOW_MS - 5000),
       });
       proxy.setupRegistry({
         registry: RegistryStub({ instances: [liveEntry, staleEntry, reservedEntry] }),

@@ -15,7 +15,7 @@ export const sourceFactsExtractStatementsLayerBroker = ({
   sourceFile,
 }: {
   sourceFile: ts.SourceFile;
-}): Omit<SourceFacts, 'catchAllSites'> => {
+}): Pick<SourceFacts, 'imports' | 'reExports' | 'exportNames'> => {
   const imports: { specifier: string; names: string[] }[] = [];
   const reExports: { specifier: string; names: string[]; isStar: boolean }[] = [];
   const exportNames: string[] = [];
@@ -84,5 +84,7 @@ export const sourceFactsExtractStatementsLayerBroker = ({
     }
   }
 
-  return sourceFactsContract.parse({ imports, reExports, exportNames: [...new Set(exportNames)] });
+  return sourceFactsContract.omit({ catchAllSites: true }).parse({
+    imports, reExports, exportNames: [...new Set(exportNames)],
+  });
 };

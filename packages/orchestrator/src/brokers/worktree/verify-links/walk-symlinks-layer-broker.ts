@@ -47,8 +47,18 @@ export const walkSymlinksLayerBroker = async ({
       if (entry.kind === 'symlink') {
         const rawTarget = await readlinkIfLink(entryPath);
 
-        // Nothing readable: there is no target to record.
-        if (typeof rawTarget !== 'string' || rawTarget.length === 0) {
+        // Nothing readable, or a bare relative path with no `./` or `../` lead: that shape cannot
+        // climb out of the tree it starts in, so there is nothing to record.
+        if (
+          typeof rawTarget !== 'string' ||
+          rawTarget.length === 0 ||
+          !(
+            rawTarget.startsWith(PATH_SEPARATOR) ||
+            rawTarget.startsWith('./') ||
+            rawTarget.startsWith('../') ||
+            rawTarget.startsWith(':\\', 1)
+          )
+        ) {
           return [];
         }
 

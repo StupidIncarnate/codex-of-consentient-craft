@@ -5,13 +5,15 @@
  *
  * USAGE:
  * const dataUrl = await fileReadDataUrlBroker({ blob: pastedImageBlob });
- * // Returns: ImageDataUrl branded string
+ * // Returns: ComposerAttachment['dataUrl']
  */
 
 import { FileReader } from '#gateway/browser/FileReader';
 
+import { composerAttachmentContract } from '../../../contracts/composer-attachment/composer-attachment-contract';
+import type { ComposerAttachment } from '../../../contracts/composer-attachment/composer-attachment-contract';
 
-export const fileReadDataUrlBroker = async ({ blob }: { blob: Blob }): Promise<string> => {
+export const fileReadDataUrlBroker = async ({ blob }: { blob: Blob }): Promise<ComposerAttachment['dataUrl']> => {
   const result = await new Promise<InstanceType<typeof FileReader>['result']>((resolve, reject) => {
     const reader = new FileReader();
 
@@ -40,5 +42,5 @@ export const fileReadDataUrlBroker = async ({ blob }: { blob: Blob }): Promise<s
   // Deliberate: this is what refuses a clipboard blob whose media type is not one of the four
   // allowed ones, at the moment the bytes are read, rather than letting an unsupported type travel
   // further into the composer.
-  return result;
+  return composerAttachmentContract.shape.dataUrl.parse(result);
 };

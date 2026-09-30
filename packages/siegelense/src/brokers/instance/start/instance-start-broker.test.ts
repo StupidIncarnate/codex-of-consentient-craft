@@ -15,6 +15,7 @@ import { instanceLifecycleStatics } from '../../../statics/instance-lifecycle/in
 const UNOWNED_EVIDENCE_PATH_VALUE =
   '/home/user/.dungeonmaster/siegelense/unowned/instances/inst_7f3a9c2158cc4372a5670e02b2c3d479';
 const UNOWNED_EVIDENCE_PATH = UNOWNED_EVIDENCE_PATH_VALUE;
+const NOW_MS = 1_700_000_000_000;
 
 describe('instanceStartBroker', () => {
   describe('reservation ordering', () => {
@@ -464,15 +465,18 @@ describe('instanceStartBroker', () => {
     it('VALID: {a reservation past its own staleAfterMs window} => counts only the fresh reservation, not the abandoned one', async () => {
       const proxy = instanceStartBrokerProxy();
       const instanceId = proxy.mintInstanceId();
-      const queued = RegistryEntryStub({ id: InstanceIdStub(), bootedAtMs: null });
+      const queued = RegistryEntryStub({
+        id: InstanceIdStub(),
+        bootedAtMs: null,
+        reservedAtMs: NOW_MS - 1000,
+      });
       const abandoned = RegistryEntryStub({
         id: InstanceIdStub({ value: 'inst_a620d5f3cc1e4431ac7b1b2613d82292' }),
         bootedAtMs: null,
         lastBeatMs: null,
         // Well past instanceLifecycleStatics.reservation.staleAfterMs (300_000ms / 5m) relative to
-        // EpochMsStub()'s own default value (1_700_000_000_000), which is what this proxy's
-        // sticky Date.now() default answers every unstaged call with.
-        reservedAtMs: 1 - instanceLifecycleStatics.reservation.staleAfterMs - 1,
+        // the clock staged below via setupClock.
+        reservedAtMs: NOW_MS - instanceLifecycleStatics.reservation.staleAfterMs - 1,
       });
       const bootedEntry = RegistryEntryStub({ id: instanceId, bootedAtMs: 1 });
 
@@ -481,6 +485,7 @@ describe('instanceStartBroker', () => {
         evidencePath: UNOWNED_EVIDENCE_PATH,
         registry: RegistryStub({ instances: [queued, abandoned, bootedEntry] }),
       });
+      proxy.setupClock({ nowMs: NOW_MS });
 
       const result = await instanceStartBroker({
         specName: 'api',
@@ -524,8 +529,8 @@ describe('instanceStartBroker', () => {
       const staleEntry = RegistryEntryStub({
         id: staleInstanceId,
         state: 'alive',
-        bootedAtMs: (1_700_000_000_000 - 30_000),
-        lastBeatMs: (1_700_000_000_000 - 20_000),
+        bootedAtMs: (NOW_MS - 30_000),
+        lastBeatMs: (NOW_MS - 20_000),
       });
 
       proxy.setupHappyBoot({
@@ -534,6 +539,7 @@ describe('instanceStartBroker', () => {
         registry: RegistryStub({ instances: [staleEntry, RegistryEntryStub({ id: instanceId })] }),
       });
       proxy.setupStaleReap({ staleInstanceId });
+      proxy.setupClock({ nowMs: NOW_MS });
 
       await instanceStartBroker({
         specName: 'api',

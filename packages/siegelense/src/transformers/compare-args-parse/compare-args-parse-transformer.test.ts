@@ -84,7 +84,7 @@ describe('compareArgsParseTransformer', () => {
           args: ['--instance', 'not-a-valid-id', '--run-a', 'run_4', '--run-b', 'run_5'],
         }),
       ).toThrow(
-        /^--instance: Instance id must look like "inst_" followed by 4 or more lowercase hex characters, e\.g\. "inst_7f3a9c21"$/u,
+        /^--instance: Siege instance id must look like "inst_" followed by 4 or more lowercase hex characters, e\.g\. "inst_7f3a9c21"$/u,
       );
     });
   });
@@ -95,7 +95,7 @@ describe('compareArgsParseTransformer', () => {
         compareArgsParseTransformer({
           args: ['--instance', 'inst_7f3a9c21', '--run-a', 'bogus', '--run-b', 'run_5'],
         }),
-      ).toThrow(/^--run-a: Invalid string: must match pattern \/\^run_\[1-9\]\[0-9\]\*\$\/u$/u);
+      ).toThrow(/^--run-a: Siege run id must look like "run_" followed by a positive integer with no leading zero, e\.g\. "run_2"$/u);
     });
   });
 
@@ -105,7 +105,7 @@ describe('compareArgsParseTransformer', () => {
         compareArgsParseTransformer({
           args: ['--instance', 'inst_7f3a9c21', '--run-a', 'run_4', '--run-b', 'bogus'],
         }),
-      ).toThrow(/^--run-b: Invalid string: must match pattern \/\^run_\[1-9\]\[0-9\]\*\$\/u$/u);
+      ).toThrow(/^--run-b: Siege run id must look like "run_" followed by a positive integer with no leading zero, e\.g\. "run_2"$/u);
     });
   });
 

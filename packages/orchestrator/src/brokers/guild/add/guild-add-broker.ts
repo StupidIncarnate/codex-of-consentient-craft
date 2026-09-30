@@ -23,7 +23,7 @@
  * data directory while its quests directory sat in the target: a seed reporting success against a
  * target whose config.json names no guild at all.
  *
- * `absoluteFilePathContract.parse`, because a relative home resolves against `process.cwd()` —
+ * An absolute-path parse, because a relative home resolves against `process.cwd()` —
  * the caller's own checkout — and the first thing to land there is a `config.json` no `cleanup()`
  * reaches.
  */
@@ -37,6 +37,7 @@ import { nameToUrlSlugTransformer } from '@dungeonmaster/shared/transformers';
 import { ensureDir } from '#gateway/node/fs__promises';
 import { join } from '#gateway/node/path';
 
+import { isAbsolutePathGuard } from '../../../guards/is-absolute-path/is-absolute-path-guard';
 import { GuildPathTakenError } from '../../../errors/guild-path-taken/guild-path-taken-error';
 import { guildConfigReadBroker } from '../../guild-config/read/guild-config-read-broker';
 import { guildConfigWriteBroker } from '../../guild-config/write/guild-config-write-broker';
@@ -52,7 +53,10 @@ export const guildAddBroker = async ({
   id?: string;
   home?: string;
 }): Promise<Guild> => {
-  const homePath = home === undefined ? undefined : home;
+  if (home !== undefined && !isAbsolutePathGuard({ path: home })) {
+    throw new Error('Path must be absolute (start with / or C:\\ on Windows)');
+  }
+  const homePath = home;
   const homeOverride = homePath === undefined ? {} : { home: homePath };
 
   const config = await guildConfigReadBroker(homeOverride);

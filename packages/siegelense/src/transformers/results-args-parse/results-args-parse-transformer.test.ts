@@ -196,7 +196,7 @@ describe('resultsArgsParseTransformer', () => {
   describe('a badly-shaped --instance', () => {
     it("INVALID: {--instance not-a-valid-id} => throws naming --instance and the contract's own message", () => {
       expect(() => resultsArgsParseTransformer({ args: ['--instance', 'not-a-valid-id'] })).toThrow(
-        /^--instance: Instance id must look like "inst_" followed by 4 or more lowercase hex characters, e\.g\. "inst_7f3a9c21"$/u,
+        /^--instance: Siege instance id must look like "inst_" followed by 4 or more lowercase hex characters, e\.g\. "inst_7f3a9c21"$/u,
       );
     });
   });
@@ -205,7 +205,7 @@ describe('resultsArgsParseTransformer', () => {
     it("INVALID: {--run bogus} => throws naming --run and runIdContract's own message", () => {
       expect(() =>
         resultsArgsParseTransformer({ args: ['--instance', 'inst_7f3a9c21', '--run', 'bogus'] }),
-      ).toThrow(/^--run: Invalid string: must match pattern \/\^run_\[1-9\]\[0-9\]\*\$\/u$/u);
+      ).toThrow(/^--run: Siege run id must look like "run_" followed by a positive integer with no leading zero, e\.g\. "run_2"$/u);
     });
   });
 

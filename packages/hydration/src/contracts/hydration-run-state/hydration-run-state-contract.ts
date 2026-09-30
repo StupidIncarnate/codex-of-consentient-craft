@@ -14,12 +14,19 @@
  * // Returns { recipeName: RecipeName, records: Map<RowRef, unknown>, saved: Map<SavedRecordName, unknown> }
  */
 import { z } from '#gateway/npm/zod';
+import { rowRefStatics } from '../../statics/row-ref/row-ref-statics';
+
+const { separator, matchWord } = rowRefStatics.slot;
+const ROW_REF_SLOT = `(?:\\d+${separator}\\d+|${matchWord})`;
+const ROW_REF_SEGMENT = `[A-Za-z][A-Za-z0-9-]*\\[${ROW_REF_SLOT}\\]`;
+const ROW_REF_PATTERN = new RegExp(`^${ROW_REF_SEGMENT}(?:\\/${ROW_REF_SEGMENT})*$`, 'u');
+const ROW_REF_MESSAGE = "must be an ancestor path like 'guild[0:0]/quest[0:2]'";
 
 const resolvedRecordContract = z.custom<unknown>();
 
 export const hydrationRunStateContract = z.object({
   recipeName: z.string().min(1).brand<'HydrationRunStateRecipeName'>(),
-  records: z.map(z.string().min(1), resolvedRecordContract),
+  records: z.map(z.string().min(1).regex(ROW_REF_PATTERN, ROW_REF_MESSAGE), resolvedRecordContract),
   saved: z.map(z.string().min(1), resolvedRecordContract),
 }).brand<'HydrationRunState'>();
 

@@ -10,13 +10,16 @@
  * so ahead of its VERBOSE gate — a schema that rejects null turns that event into an uncaught
  * throw inside `orchestrationEventsState.emit`, which takes the server process down.
  *
+ * `questions` and `entries` are JSON arrays only: the formatters count the first and `safeParse`
+ * each element of the second themselves, so a strict element shape here would make a partial entry
+ * throw inside the emit path instead of being skipped.
+ *
  * USAGE:
  * const parsed = devLogEventPayloadContract.parse(payload);
  * // Returns: { chatProcessId?, processId?, questId?, sessionId?, phase?, slotIndex?, role?, questions?[], entries?[] }
  */
 
 import { z } from '#gateway/npm/zod';
-import { askUserQuestionContract, chatEntryContract } from '@dungeonmaster/shared/contracts';
 
 export const devLogEventPayloadContract = z
   .object({
@@ -27,8 +30,8 @@ export const devLogEventPayloadContract = z
     phase: z.string().min(1).brand<'DevLogEventPayloadPhase'>().nullish(),
     slotIndex: z.number().int().nonnegative().brand<'DevLogEventPayloadSlotIndex'>().nullish(),
     role: z.string().min(1).brand<'DevLogEventPayloadRole'>().nullish(),
-    questions: askUserQuestionContract.shape.questions.nullish(),
-    entries: z.array(chatEntryContract).nullish(),
+    questions: z.array(z.json()).nullish(),
+    entries: z.array(z.json()).nullish(),
   })
   .loose().brand<'DevLogEventPayload'>();
 

@@ -314,7 +314,7 @@ describe('registryCreateBroker', () => {
           line: 8,
           code: 2353,
           message:
-            'Object literal may only specify known properties, and \'nope\' does not exist in type \'FieldValuesFor<{ name: string & $brand<"GuildName">; path: string & $brand<"GuildPath">; }>\'.',
+            'Object literal may only specify known properties, and \'nope\' does not exist in type \'FieldValuesFor<{ name: string & $brand<"GuildName">; path: string & $brand<"GuildFieldsPath">; }>\'.',
         },
       ]);
     });

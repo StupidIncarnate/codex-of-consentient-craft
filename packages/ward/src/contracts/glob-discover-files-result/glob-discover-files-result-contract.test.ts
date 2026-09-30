@@ -15,7 +15,7 @@ describe('globDiscoverFilesResultContract', () => {
       expect(() =>
         globDiscoverFilesResultContract.parse({
           ...GlobDiscoverFilesResultStub(),
-          discoveredCount: 123,
+          discoveredCount: 'many',
         }),
       ).toThrow(/expected|invalid/iu);
     });

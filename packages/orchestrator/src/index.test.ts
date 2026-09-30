@@ -25,7 +25,6 @@ describe('orchestrator', () => {
       'dumpsterCreatePromptStatics',
       'getQuestInputContract',
       'getQuestResultContract',
-      'isoTimestampContract',
       'modifyQuestInputContract',
       'modifyQuestResultContract',
       'nextStepContract',
@@ -45,18 +44,14 @@ describe('orchestrator', () => {
       'questUserAddBroker',
       'sessionIdExtractorTransformer',
       'signalFromStreamTransformer',
-      'slotCountContract',
-      'slotIndexContract',
       'spawnInstructionContract',
       'spiritmenderPromptStatics',
-      'streamJsonLineContract',
       'streamJsonToTextTransformer',
       'streamJsonToToolUseTransformer',
       'streamSignalContract',
       'toolDisplayConfigStatics',
       'toolInputToDisplayTransformer',
       'verifyQuestCheckContract',
-      'workItemIdContract',
     ]);
   });
 });

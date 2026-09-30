@@ -1,7 +1,13 @@
+import { nowProxy } from '#gateway/node/Date/now/now.proxy';
+
 import { registryReadBrokerProxy } from '../../registry/read/registry-read-broker.proxy';
 import { assetsAgeLayerBrokerProxy } from './assets-age-layer-broker.proxy';
 import { lockReleaseLayerBrokerProxy } from './lock-release-layer-broker.proxy';
 import { staleReapLayerBrokerProxy } from './stale-reap-layer-broker.proxy';
+
+// The clock every cleanup test reads its own NOW_MS off; staged at construction and again with
+// every shutdown-reason write, because that write's proxy re-stages Date.now itself.
+const CLEANUP_NOW_MS = 1_700_000_000_000;
 
 export const cleanupRunBrokerProxy = (): {
   setupRegistry: ReturnType<typeof staleReapLayerBrokerProxy>['setupRegistry'];
@@ -33,12 +39,20 @@ export const cleanupRunBrokerProxy = (): {
   registryReadBrokerProxy();
   const lockProxy = lockReleaseLayerBrokerProxy();
   const reapProxy = staleReapLayerBrokerProxy();
+  const clockProxy = nowProxy();
+  clockProxy.setupNow({ ms: CLEANUP_NOW_MS });
 
   return {
-    setupRegistry: reapProxy.setupRegistry,
+    // The registry proxy underneath stages its own clock, so the cleanup clock is restored after it.
+    setupRegistry: (...args: Parameters<ReturnType<typeof staleReapLayerBrokerProxy>['setupRegistry']>): void => {
+      reapProxy.setupRegistry(...args);
+      clockProxy.setupNow({ ms: CLEANUP_NOW_MS });
+    },
     setupDriverUnreachableReapsLivePgids: reapProxy.setupDriverUnreachableReapsLivePgids,
     setupDriverUnreachableNoPgids: reapProxy.setupDriverUnreachableNoPgids,
-    setupShutdownReasonWriteSucceeds: reapProxy.setupShutdownReasonWriteSucceeds,
+    setupShutdownReasonWriteSucceeds: ({ evidencePath }: { evidencePath: string }): void => {
+      reapProxy.setupShutdownReasonWriteSucceeds({ evidencePath, nowMs: CLEANUP_NOW_MS });
+    },
     setupNoLocks: lockProxy.setupNoLocks,
     setupBootLockStale: lockProxy.setupBootLockStale,
     getReleasedRegistry: reapProxy.getReleasedRegistry,

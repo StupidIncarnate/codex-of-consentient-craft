@@ -133,7 +133,7 @@ export const startArgsParseTransformer = ({ args }: { args: readonly string[] })
         ? null
         : flagContractParseTransformer({
             flag: SEED_FLAG,
-            parse: () => seedValue,
+            parse: () => startArgsContract.shape.seed.parse(seedValue),
           }),
     // Omitted entirely, never set to null, when absent — startArgsContract's own header says why
     // the KEY'S absence is what leaves the served lane's idle ceiling at driverStatics.idle.timeoutMs.

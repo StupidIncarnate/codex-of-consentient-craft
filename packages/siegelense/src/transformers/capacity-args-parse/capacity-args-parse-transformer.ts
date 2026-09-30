@@ -84,7 +84,7 @@ export const capacityArgsParseTransformer = ({
           flag: POOL_FLAG,
           raw: rawPoolSize,
           accepts: 'a whole number of 1 or more',
-          parse: (value) => value,
+          parse: (value) => capacityArgsContract.shape.poolSize.parse(value),
         });
 
   const isJson = args.includes(siegelenseOutputStatics.flags.json);

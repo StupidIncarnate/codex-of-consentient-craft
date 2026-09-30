@@ -64,6 +64,9 @@ export const instanceReserveBrokerProxy = (): {
 
     setupRegistry: ({ json }: { json: string }): void => {
       updateProxy.setupCurrentRegistry({ json });
+      // The registry proxy stages its own clock; this broker's reservation time reads the same
+      // spy, so the staged value is restored after it.
+      clockProxy.setupNow({ ms: NOW_MS_VALUE });
     },
 
     // registryUpdateBroker's mutate throws PortClaimExhaustedError when every candidate pair
@@ -71,6 +74,7 @@ export const instanceReserveBrokerProxy = (): {
     // resolution at all, matching the broker's real call order (acquire, read, release).
     setupRegistryForExhaustedClaim: ({ json }: { json: string }): void => {
       updateProxy.setupCurrentRegistryForThrowingMutate({ json });
+      clockProxy.setupNow({ ms: NOW_MS_VALUE });
     },
 
     setupEvidenceDir: ({

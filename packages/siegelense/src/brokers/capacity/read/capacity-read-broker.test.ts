@@ -14,6 +14,7 @@ const VMSTAT_CONTENT = 'nr_free_pages 12345\noom_kill 0\n';
 // so these tests keep proving what they say they prove. The CPU-specific describe block below sets
 // its own load instead.
 const LOAD_AVG = [0.5, 0.3, 0.2] as const;
+const SATURATED_LOAD_AVG = [33.56, 20.1, 10.4] as const;
 
 describe('capacityReadBroker', () => {
   describe('two pool-size groups, never blended', () => {
@@ -184,6 +185,7 @@ describe('capacityReadBroker', () => {
             RegistryEntryStub({
               id: InstanceIdStub({ value: 'inst_bbbb2222' }),
               owner: '88888',
+              reservedAtMs: (NOW_MS - 1000),
               bootedAtMs: null,
               lastBeatMs: null,
             }),
@@ -668,7 +670,7 @@ describe('capacityReadBroker', () => {
         freeMemBytes: 21_053 * MB_BYTES,
         totalMemBytes: 32_000 * MB_BYTES,
         coreCount: 12,
-        loadAvg: [33.56, 20.1, 10.4],
+        loadAvg: SATURATED_LOAD_AVG,
         diskBavail: 41_000,
         diskBsize: MB_BYTES,
         vmstatContent: VMSTAT_CONTENT,

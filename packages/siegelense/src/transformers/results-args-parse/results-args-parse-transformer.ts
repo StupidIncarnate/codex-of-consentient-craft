@@ -166,7 +166,7 @@ export const resultsArgsParseTransformer = ({ args }: { args: readonly string[] 
             flag: STEP_FLAG,
             raw: stepValue,
             accepts: 'a whole number of 1 or more',
-            parse: (value) => value,
+            parse: (value) => resultsArgsContract.shape.step.parse(value),
           }),
     kind: kindValue === null ? null : resultKindContract.parse(kindValue),
     where: hasWhere
@@ -186,7 +186,7 @@ export const resultsArgsParseTransformer = ({ args }: { args: readonly string[] 
                   flag: WHERE_NTH_FLAG,
                   raw: whereNthValue,
                   accepts: 'a whole number of 0 or more',
-                  parse: (value) => value,
+                  parse: (value) => resultWhereContract.shape.nth.parse(value),
                 }),
           level:
             whereLevelValue === null
@@ -200,7 +200,7 @@ export const resultsArgsParseTransformer = ({ args }: { args: readonly string[] 
               ? null
               : flagContractParseTransformer({
                   flag: WHERE_STEPS_FLAG,
-                  parse: () => whereStepsValue,
+                  parse: () => resultWhereContract.shape.steps.parse(whereStepsValue),
                 }),
         })
       : null,

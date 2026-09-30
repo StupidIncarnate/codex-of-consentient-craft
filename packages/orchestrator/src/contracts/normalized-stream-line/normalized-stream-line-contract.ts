@@ -13,9 +13,8 @@
  * to read. Validation guarantees the shapes we DO read; the rest are preserved by passthrough.
  */
 import { z } from '#gateway/npm/zod';
+import { inflatedTaskNotificationContentContract } from '../inflated-task-notification-content/inflated-task-notification-content-contract';
 import { normalizedStreamLineContentItemContract } from '../normalized-stream-line-content-item/normalized-stream-line-content-item-contract';
-import { usageLineShapeContract } from '../usage-line-shape/usage-line-shape-contract';
-import { agentContract } from '@dungeonmaster/shared/contracts';
 
 const _contentItem = z
   .object({
@@ -40,8 +39,26 @@ const _contentItem = z
 const message = z
   .object({
     role: z.string().brand<'MessageRole'>().nullish(),
-    content: z.union([z.string(), z.array(normalizedStreamLineContentItemContract)]).nullish(),
-    usage: usageLineShapeContract.shape.message.shape.usage.nullish(),
+    // Items stay `unknown`: a null or non-object entry must not reject the whole line, and every
+    // reader re-parses each item through normalizedStreamLineContentItemContract at its own index.
+    // The object form is the XML-inflated <task-notification> envelope, lifted by the chat-line processor.
+    content: z
+      .union([z.string(), z.array(z.unknown()), inflatedTaskNotificationContentContract])
+      .nullish(),
+    // camelCase: the line is normalized before it reaches this contract.
+    usage: z
+      .object({
+        inputTokens: z.number().brand<'MessageUsageInputTokens'>().nullish(),
+        outputTokens: z.number().brand<'MessageUsageOutputTokens'>().nullish(),
+        cacheCreationInputTokens: z
+          .number()
+          .brand<'MessageUsageCacheCreationInputTokens'>()
+          .nullish(),
+        cacheReadInputTokens: z.number().brand<'MessageUsageCacheReadInputTokens'>().nullish(),
+      })
+      .brand<'MessageUsage'>()
+      .loose()
+      .nullish(),
     stopReason: z.string().brand<'MessageStopReason'>().nullish(),
     model: z.string().brand<'MessageModel'>().nullish(),
   }).brand<'Message'>()
@@ -82,7 +99,8 @@ const taskNotification = z
 const toolUseResult = z.union([
   z
     .object({
-      agentId: agentContract.shape.id.optional(),
+      // unknown: the CLI has emitted a non-string agentId, and the processor narrows to string before use.
+      agentId: z.unknown().optional(),
       // Present on a BLOCKING Task/Agent completion only — the CLI's own measurement of that
       // sub-agent run. An async launch's result object carries no such field.
       totalDurationMs: z.number().brand<'ToolUseResultTotalDurationMs'>().nullish(),

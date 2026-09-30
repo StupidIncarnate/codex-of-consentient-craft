@@ -225,7 +225,7 @@ describe('guildAddBroker', () => {
       });
     });
 
-    it("INVALID: {home: 'relative/dm-home'} => throws absoluteFilePathContract's own validation error", async () => {
+    it("INVALID: {home: 'relative/dm-home'} => throws the absolute-path validation error", async () => {
       const proxy = guildAddBrokerProxy();
       proxy.setupRealBroker();
 

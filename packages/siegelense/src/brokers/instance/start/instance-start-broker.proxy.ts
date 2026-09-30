@@ -141,6 +141,7 @@ export const instanceStartBrokerProxy = (): {
   getStderrMessages: () => readonly string[];
   mintInstanceId: () => InstanceId;
   setupStaleReap: (params: { staleInstanceId: InstanceId }) => void;
+  setupClock: (params: { nowMs: number }) => void;
   stageLaneSpec: (params: { processes: readonly DevServerE2eProcess[] }) => void;
   stageProcessReachable: (params: { url: string }) => void;
   stageProcessUnreachable: (params: { url: string }) => void;
@@ -533,6 +534,13 @@ export const instanceStartBrokerProxy = (): {
           samples: [{ poolSize: capacityStatics.policy.ceiling, steadyMB, peakMB, runs: 1 }],
         }),
       });
+    },
+
+    // Replaces the sticky clock every scenario stages at 1 — for a scenario that needs a past
+    // instant (a heartbeat or reservation older than its window) a clock of 1 cannot express.
+    // Call it AFTER setupHappyBoot and setupStaleReap, which stage the clock themselves.
+    setupClock: ({ nowMs }: { nowMs: number }): void => {
+      clockProxy.setupNow({ ms: nowMs });
     },
 
     setupStaleReap: ({ staleInstanceId }: { staleInstanceId: InstanceId }): void => {

@@ -7,6 +7,7 @@
  * censusPathNormalizeTransformer({ path: 'packages/a/src/x/../y/./z.ts' });
  * // Returns 'packages/a/src/y/z.ts' as a branded CensusPath
  */
+import { z } from '#gateway/npm/zod';
 
 export const censusPathNormalizeTransformer = ({ path }: { path: string }): string => {
   const parts = path.split('/');
@@ -20,5 +21,5 @@ export const censusPathNormalizeTransformer = ({ path }: { path: string }): stri
     }
   }
 
-  return kept.join('/');
+  return z.string().min(1).parse(kept.join('/'));
 };

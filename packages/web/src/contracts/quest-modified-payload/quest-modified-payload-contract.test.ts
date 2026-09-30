@@ -1,4 +1,6 @@
 import { questModifiedPayloadContract } from './quest-modified-payload-contract';
+import { QuestStub } from '@dungeonmaster/shared/contracts/quest/quest.stub';
+
 import { QuestModifiedPayloadStub } from './quest-modified-payload.stub';
 
 describe('questModifiedPayloadContract', () => {
@@ -10,7 +12,7 @@ describe('questModifiedPayloadContract', () => {
 
       expect(result).toStrictEqual({
         questId: 'add-auth',
-        quest: {},
+        quest: QuestStub(),
       });
     });
   });
@@ -18,7 +20,7 @@ describe('questModifiedPayloadContract', () => {
   describe('invalid payloads', () => {
     it('INVALID: {missing questId} => throws validation error', () => {
       expect(() => {
-        questModifiedPayloadContract.parse({ quest: {} });
+        questModifiedPayloadContract.parse({ quest: QuestStub() });
       }).toThrow(/received undefined/u);
     });
   });

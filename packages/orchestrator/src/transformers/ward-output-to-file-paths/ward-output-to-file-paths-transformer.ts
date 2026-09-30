@@ -3,11 +3,12 @@
  *
  * USAGE:
  * wardOutputToFilePathsTransformer({ wardResultJson: FileContentsStub({ value: '{"checks":[...]}' }) });
- * // Returns [AbsoluteFilePath('/src/file.ts')]
+ * // Returns ['/src/file.ts']
  */
 
-
 import { wardDetailJsonContract } from '../../contracts/ward-detail-json/ward-detail-json-contract';
+
+const ABSOLUTE_PATH = /^(?:\/|[A-Za-z]:\\)/u;
 
 export const wardOutputToFilePathsTransformer = ({
   wardResultJson,
@@ -26,44 +27,16 @@ export const wardOutputToFilePathsTransformer = ({
   const result: string[] = [];
 
   for (const check of checks) {
-    const projectResults = check.projectResults ?? [];
+    for (const projectResult of check.projectResults ?? []) {
+      const candidates = [
+        ...(projectResult.errors ?? []).map((error) => error.filePath),
+        ...(projectResult.testFailures ?? []).map((failure) => failure.suitePath),
+      ];
 
-    for (const projectResult of projectResults) {
-      const errors = projectResult.errors ?? [];
-
-      for (const error of errors) {
-        const { filePath } = error;
-
-        if (typeof filePath === 'string') {
-          try {
-            const absolutePath = String(filePath);
-
-            if (!seen.has(absolutePath)) {
-              seen.add(absolutePath);
-              result.push(absolutePath);
-            }
-          } catch {
-            // Skip paths that fail absolute path validation
-          }
-        }
-      }
-
-      const testFailures = projectResult.testFailures ?? [];
-
-      for (const failure of testFailures) {
-        const { suitePath } = failure;
-
-        if (typeof suitePath === 'string') {
-          try {
-            const absolutePath = String(suitePath);
-
-            if (!seen.has(absolutePath)) {
-              seen.add(absolutePath);
-              result.push(absolutePath);
-            }
-          } catch {
-            // Skip paths that fail absolute path validation
-          }
+      for (const candidate of candidates) {
+        if (candidate !== undefined && ABSOLUTE_PATH.test(candidate) && !seen.has(candidate)) {
+          seen.add(candidate);
+          result.push(candidate);
         }
       }
     }

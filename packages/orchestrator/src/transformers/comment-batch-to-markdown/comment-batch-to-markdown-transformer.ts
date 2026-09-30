@@ -11,6 +11,7 @@
  * // escaped to '\---', so it cannot forge a block boundary and strand its tail without a context
  * // line. Every other '---' in the text is left byte-identical.
  */
+import { z } from '#gateway/npm/zod';
 import type { Flow, FlowNode, FlowObservable, QuestComment } from '@dungeonmaster/shared/contracts';
 
 
@@ -101,5 +102,6 @@ export const commentBatchToMarkdownTransformer = ({
     );
   });
 
-  return blocks.join(BLOCK_DIVIDER);
+  // An empty batch has nothing to tell the agent; refuse it rather than hand back an empty prompt.
+  return z.string().min(1).parse(blocks.join(BLOCK_DIVIDER));
 };

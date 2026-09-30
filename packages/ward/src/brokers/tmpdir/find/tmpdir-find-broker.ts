@@ -10,4 +10,10 @@
 
 import { tmpdir } from '#gateway/node/os';
 
-export const tmpdirFindBroker = (): string => tmpdir();
+export const tmpdirFindBroker = (): string => {
+  const path = tmpdir();
+  if (!path.startsWith('/') && !/^[A-Za-z]:\\/u.test(path)) {
+    throw new Error(`Scratch directory must be an absolute path, received: ${path}`);
+  }
+  return path;
+};

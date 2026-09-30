@@ -7,13 +7,14 @@
  * gatewayModuleDirTransformer({ specifier: '@mantine/core' });
  * // Returns 'mantine__core' as a branded GatewayModuleDir
  */
+import { z } from '#gateway/npm/zod';
 
 export const gatewayModuleDirTransformer = ({
   specifier,
 }: {
   specifier: string;
 }): string =>
-  specifier
-      .replace(/^node:/u, '')
-      .replace(/^@/u, '')
-      .replaceAll('/', '__');
+  z
+    .string()
+    .min(1)
+    .parse(specifier.replace(/^node:/u, '').replace(/^@/u, '').replaceAll('/', '__'));

@@ -246,7 +246,7 @@ export const bootLockAcquireBrokerProxy = (): {
     }: {
       otherInstanceId: InstanceId;
     }): { startedAtMs: EpochMs; expectedError: BootLockHeldError } => {
-      const startedAtMs = 1;
+      const startedAtMs = 1_700_000_000_000;
       const { pollMs, waitCeilingMs } = instanceLifecycleStatics.bootLock;
       const nowMs = (startedAtMs + waitCeilingMs);
 
@@ -285,7 +285,7 @@ export const bootLockAcquireBrokerProxy = (): {
     }: {
       otherInstanceId: InstanceId;
     }): { expectedError: BootLockHeldError } => {
-      const startedAtMs = 1;
+      const startedAtMs = 1_700_000_000_000;
       const { ttlMs, pollMs, waitCeilingMs } = instanceLifecycleStatics.bootLock;
       const nowMsFirstAttempt = startedAtMs;
       const nowMsSecondAttempt = (startedAtMs + waitCeilingMs);

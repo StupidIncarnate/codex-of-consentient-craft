@@ -16,4 +16,4 @@ export const ResolveCallerRepoRootLayerResponder = async ({
 }: {
   meta: Record<string, unknown> | undefined;
 }): Promise<ResolveCallerRepoRootLayerResult> =>
-  resolveCallerRepoRootLayerResultContract.parse(callerRepoRootResolveBroker({ meta }));
+  resolveCallerRepoRootLayerResultContract.parse(await callerRepoRootResolveBroker({ meta }));

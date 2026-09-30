@@ -57,7 +57,7 @@ export const questHumanVerdictRecordBroker = async ({
   outcome: 'met' | 'not-met';
   reason: string;
 }): Promise<QuestHumanVerdictRecordResult> =>
-  questHumanVerdictRecordResultContract.parse(questWithModifyLockBroker({
+  questHumanVerdictRecordResultContract.parse(await questWithModifyLockBroker({
     questId: questContract.shape.id.parse(questId),
     run: async (): Promise<{ quest: Quest }> => {
       const { questPath } = await questFindQuestPathBroker({

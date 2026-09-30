@@ -37,7 +37,7 @@ describe('killArgsContract', () => {
 
     it('INVALID: {instanceId: "not-an-instance-id"} => throws for a malformed instance id', () => {
       expect(() => killArgsContract.parse({ instanceId: 'not-an-instance-id' })).toThrow(
-        /Instance id must look like/u,
+        /Siege instance id must look like/u,
       );
     });
 

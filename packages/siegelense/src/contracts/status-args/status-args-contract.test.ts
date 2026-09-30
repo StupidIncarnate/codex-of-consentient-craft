@@ -86,7 +86,7 @@ describe('statusArgsContract', () => {
     it('INVALID: {instanceId: "not-an-instance-id"} => throws for a malformed instance id', () => {
       expect(() =>
         statusArgsContract.parse({ instanceId: 'not-an-instance-id', isJson: true }),
-      ).toThrow(/Instance id must look like/u);
+      ).toThrow(/Siege instance id must look like/u);
     });
 
     it('INVALID: {since: "2h"} => throws for invalid enum value', () => {

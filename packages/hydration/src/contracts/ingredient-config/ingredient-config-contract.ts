@@ -29,7 +29,7 @@ import { transitionSpecContract } from '../transition-spec/transition-spec-contr
 import type { TransitionSpecWithReachFor } from '../transition-spec/transition-spec-contract';
 import { hydrationRoutesContract } from '../hydration-routes/hydration-routes-contract';
 import type { RoutesFor } from '../hydration-routes/hydration-routes-contract';
-import type { reservedVerbStatics } from '../../statics/reserved-verb/reserved-verb-statics';
+import { reservedVerbStatics } from '../../statics/reserved-verb/reserved-verb-statics';
 
 // `fields`, `record` and each `extras` entry are zod schemas, not data — `z.custom` with no type
 // argument (so it infers `unknown`) checks the shape at runtime and hands the same reference back,
@@ -38,6 +38,8 @@ import type { reservedVerbStatics } from '../../statics/reserved-verb/reserved-v
 const zodSchemaContract = z.custom((value) => value instanceof z.ZodType, {
   message: 'Expected a zod schema',
 });
+
+const RESERVED_VERBS: readonly string[] = reservedVerbStatics.verbs;
 
 const ingredientDescriptionContract = z.string().min(1).brand<'IngredientDescription'>();
 
@@ -78,7 +80,19 @@ export const ingredientConfigContract = z
     transitions: transitionSpecContract.optional(),
     defaults: ingredientDefaultsFnContract.optional(),
     copies: z.string().min(1).superRefine((value, ctx) => { if (value.includes('/')) { ctx.addIssue({ code: 'custom', message: "copies: may not contain '/'. Use a bare identifier naming in-repo production code " + "(e.g. 'guildAddBroker'), or 'external:<name>' naming a producer outside the repo " + "(e.g. 'external:claude-cli').", }); return; } if (value.startsWith('external:') && value.slice('external:'.length).length === 0) { ctx.addIssue({ code: 'custom', message: "copies: 'external:' must name a producer after the prefix. Use a bare identifier " + "naming in-repo production code (e.g. 'guildAddBroker'), or 'external:<name>' naming a " + "producer outside the repo (e.g. 'external:claude-cli').", }); } }).brand<'IngredientConfigDataCopies'>().optional(),
-    extras: z.record(z.string(), extraContract).optional(),
+    extras: z
+      .record(z.string(), extraContract)
+      .superRefine((extras, ctx) => {
+        Object.keys(extras).forEach((verb) => {
+          if (RESERVED_VERBS.includes(verb)) {
+            ctx.addIssue({
+              code: 'custom',
+              message: `'${verb}' is a reserved verb and cannot be declared as an extra`,
+            });
+          }
+        });
+      })
+      .optional(),
   })
   .superRefine((config, ctx) => {
     if (config.routes.write !== undefined && config.copies === undefined) {
