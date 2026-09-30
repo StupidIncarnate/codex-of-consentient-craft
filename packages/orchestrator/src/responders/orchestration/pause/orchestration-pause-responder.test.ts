@@ -1,7 +1,6 @@
 import { QuestIdStub } from '@dungeonmaster/shared/contracts/quest-id/quest-id.stub';
 import { QuestStub } from '@dungeonmaster/shared/contracts/quest/quest.stub';
 
-import { OrchestrationEventPayloadKeyStub } from '../../../contracts/orchestration-event-payload-key/orchestration-event-payload-key.stub';
 import { OrchestrationPauseResponderProxy } from './orchestration-pause-responder.proxy';
 
 describe('OrchestrationPauseResponder', () => {
@@ -48,7 +47,7 @@ describe('OrchestrationPauseResponder', () => {
 
       await proxy.callResponder({ questId });
 
-      const questIdKey = OrchestrationEventPayloadKeyStub({ value: 'questId' });
+      const questIdKey = 'questId';
       const emittedQuestIds = proxy
         .getEmittedPauseEvents()
         .map((emit) => String(emit.payload[questIdKey]));

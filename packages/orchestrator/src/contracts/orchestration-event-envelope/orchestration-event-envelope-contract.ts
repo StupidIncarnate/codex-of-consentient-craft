@@ -10,13 +10,12 @@
  */
 import { z } from '#gateway/npm/zod';
 
-import { orchestrationEventPayloadKeyContract } from '../orchestration-event-payload-key/orchestration-event-payload-key-contract';
 
 export const orchestrationEventEnvelopeContract = z
   .object({
     type: z.string().brand<'OrchestrationEventEnvelopeType'>().optional(),
     processId: z.string().brand<'OrchestrationEventEnvelopeProcessId'>().optional(),
-    payload: z.record(orchestrationEventPayloadKeyContract, z.unknown()).optional(),
+    payload: z.record(z.string().brand<'OrchestrationEventEnvelopePayload'>(), z.unknown()).optional(),
   })
   .loose();
 

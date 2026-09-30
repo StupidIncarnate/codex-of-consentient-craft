@@ -6,7 +6,6 @@ import { QuestWorkItemIdStub } from '@dungeonmaster/shared/contracts/quest-work-
 import { SessionIdStub } from '@dungeonmaster/shared/contracts/session-id/session-id.stub';
 import { WorkItemStub } from '@dungeonmaster/shared/contracts/work-item/work-item.stub';
 
-import { OrchestrationEventPayloadKeyStub } from '../../../contracts/orchestration-event-payload-key/orchestration-event-payload-key.stub';
 import { slotManagerStatics } from '../../../statics/slot-manager/slot-manager-statics';
 import { OrchestrationResumeResponderProxy } from './orchestration-resume-responder.proxy';
 
@@ -83,7 +82,7 @@ describe('OrchestrationResumeResponder', () => {
 
       await proxy.callResponder({ questId });
 
-      const questIdKey = OrchestrationEventPayloadKeyStub({ value: 'questId' });
+      const questIdKey = 'questId';
       const emittedQuestIds = proxy
         .getEmittedResumeEvents()
         .map((emit) => String(emit.payload[questIdKey]));

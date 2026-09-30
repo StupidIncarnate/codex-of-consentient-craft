@@ -6,7 +6,6 @@ import { SessionIdStub } from '@dungeonmaster/shared/contracts/session-id/sessio
 import { WorkItemStub } from '@dungeonmaster/shared/contracts/work-item/work-item.stub';
 import { pastedImageStatics, workItemStatusMetadataStatics } from '@dungeonmaster/shared/statics';
 
-import { OrchestrationEventPayloadKeyStub } from '../../../contracts/orchestration-event-payload-key/orchestration-event-payload-key.stub';
 import { chatPromptBuildTransformer } from '../../../transformers/chat-prompt-build/chat-prompt-build-transformer';
 import { FollowupChatStartResponderProxy } from './followup-chat-start-responder.proxy';
 import { setImmediate } from '#gateway/node/setImmediate';
@@ -394,9 +393,9 @@ describe('FollowupChatStartResponder', () => {
       expect({
         processId: emitted?.processId,
         chatProcessId:
-          emitted?.payload[OrchestrationEventPayloadKeyStub({ value: 'chatProcessId' })],
-        questId: emitted?.payload[OrchestrationEventPayloadKeyStub({ value: 'questId' })],
-        workItemId: emitted?.payload[OrchestrationEventPayloadKeyStub({ value: 'workItemId' })],
+          emitted?.payload['chatProcessId'],
+        questId: emitted?.payload['questId'],
+        workItemId: emitted?.payload['workItemId'],
       }).toStrictEqual({
         processId: MINTED_CHAT_PROCESS_ID,
         chatProcessId: MINTED_CHAT_PROCESS_ID,
@@ -437,10 +436,10 @@ describe('FollowupChatStartResponder', () => {
 
       expect({
         chatProcessId:
-          emitted?.payload[OrchestrationEventPayloadKeyStub({ value: 'chatProcessId' })],
-        exitCode: emitted?.payload[OrchestrationEventPayloadKeyStub({ value: 'exitCode' })],
-        questId: emitted?.payload[OrchestrationEventPayloadKeyStub({ value: 'questId' })],
-        workItemId: emitted?.payload[OrchestrationEventPayloadKeyStub({ value: 'workItemId' })],
+          emitted?.payload['chatProcessId'],
+        exitCode: emitted?.payload['exitCode'],
+        questId: emitted?.payload['questId'],
+        workItemId: emitted?.payload['workItemId'],
       }).toStrictEqual({
         chatProcessId: MINTED_CHAT_PROCESS_ID,
         exitCode: 0,
