@@ -11,7 +11,7 @@ import { runFiltersContract } from '../run-filters/run-filters-contract';
 import { checkResultContract } from '../check-result/check-result-contract';
 import { durationMsContract } from '../duration-ms/duration-ms-contract';
 
-export const wardResultContract = z.object({
+export const wardRunResultContract = z.object({
   runId: z.string().regex(/^\d+-[a-f0-9]+$/u, 'Invalid RunId format: expected timestamp-hex pattern').brand<'WardResultRunId'>(),
   timestamp: z.number().brand<'Timestamp'>(),
   filters: runFiltersContract,
@@ -19,4 +19,4 @@ export const wardResultContract = z.object({
   durationMs: durationMsContract.default(durationMsContract.parse(0)),
 });
 
-export type WardResult = z.infer<typeof wardResultContract>;
+export type WardRunResult = z.infer<typeof wardRunResultContract>;

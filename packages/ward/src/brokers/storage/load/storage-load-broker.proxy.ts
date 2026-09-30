@@ -7,10 +7,10 @@ import {
   type FilePath,
 } from '@dungeonmaster/shared/contracts';
 
-import type { WardResult } from '../../../contracts/ward-result/ward-result-contract';
+import type { WardRunResult } from '../../../contracts/ward-result/ward-result-contract';
 
 export const storageLoadBrokerProxy = (): {
-  setupRunById: (params: { rootPath: AbsoluteFilePath; runId: WardResult['runId']; content: string }) => void;
+  setupRunById: (params: { rootPath: AbsoluteFilePath; runId: WardRunResult['runId']; content: string }) => void;
   setupLatestRun: (params: {
     rootPath: AbsoluteFilePath;
     entries: string[];
@@ -23,7 +23,7 @@ export const storageLoadBrokerProxy = (): {
     contents: Record<FilePath, FileContents>;
   }) => void;
   setupEmptyDir: (params: { rootPath: AbsoluteFilePath }) => void;
-  setupReadFail: (params: { rootPath: AbsoluteFilePath; runId: WardResult['runId'] }) => void;
+  setupReadFail: (params: { rootPath: AbsoluteFilePath; runId: WardRunResult['runId'] }) => void;
   setupReaddirFail: (params: { rootPath: AbsoluteFilePath }) => void;
 } => {
   const readProxy = readFileProxy();
@@ -39,7 +39,7 @@ export const storageLoadBrokerProxy = (): {
       content,
     }: {
       rootPath: AbsoluteFilePath;
-      runId: WardResult['runId'];
+      runId: WardRunResult['runId'];
       content: string;
     }): void => {
       const path = filePathContract.parse(`${wardDirFor({ rootPath })}/run-${runId}.json`);
@@ -83,7 +83,7 @@ export const storageLoadBrokerProxy = (): {
       readdirProxy.returns({ path: String(wardDirFor({ rootPath })), names: [] });
     },
 
-    setupReadFail: ({ rootPath, runId }: { rootPath: AbsoluteFilePath; runId: WardResult['runId'] }): void => {
+    setupReadFail: ({ rootPath, runId }: { rootPath: AbsoluteFilePath; runId: WardRunResult['runId'] }): void => {
       const path = filePathContract.parse(`${wardDirFor({ rootPath })}/run-${runId}.json`);
       readProxy.missing({ path });
     },

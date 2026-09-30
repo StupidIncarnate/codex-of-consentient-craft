@@ -1,4 +1,4 @@
-import { WardResultStub } from '../../contracts/ward-result/ward-result.stub';
+import { WardRunResultStub } from '../../contracts/ward-result/ward-result.stub';
 import { CheckResultStub } from '../../contracts/check-result/check-result.stub';
 import { ProjectResultStub } from '../../contracts/project-result/project-result.stub';
 import { ErrorEntryStub } from '../../contracts/error-entry/error-entry.stub';
@@ -9,7 +9,7 @@ import { resultToDetailTransformer } from './result-to-detail-transformer';
 describe('resultToDetailTransformer', () => {
   describe('no matches', () => {
     it('EMPTY: {wardResult: no checks, filePath: any} => returns file path only', () => {
-      const wardResult = WardResultStub({ checks: [] });
+      const wardResult = WardRunResultStub({ checks: [] });
       const { filePath } = ErrorEntryStub();
 
       const result = resultToDetailTransformer({ wardResult, filePath });
@@ -18,7 +18,7 @@ describe('resultToDetailTransformer', () => {
     });
 
     it('EMPTY: {wardResult: errors in different file} => returns file path only', () => {
-      const wardResult = WardResultStub({
+      const wardResult = WardRunResultStub({
         checks: [
           CheckResultStub({
             checkType: 'lint',
@@ -43,7 +43,7 @@ describe('resultToDetailTransformer', () => {
   describe('lint errors', () => {
     it('VALID: {wardResult: lint error matching filePath} => returns file with error detail', () => {
       const { filePath } = ErrorEntryStub({ filePath: 'src/app.ts' });
-      const wardResult = WardResultStub({
+      const wardResult = WardRunResultStub({
         checks: [
           CheckResultStub({
             checkType: 'lint',
@@ -77,7 +77,7 @@ describe('resultToDetailTransformer', () => {
   describe('typecheck errors', () => {
     it('VALID: {wardResult: tsc error without rule} => shows checkType without rule', () => {
       const { filePath } = ErrorEntryStub({ filePath: 'src/index.ts' });
-      const wardResult = WardResultStub({
+      const wardResult = WardRunResultStub({
         checks: [
           CheckResultStub({
             checkType: 'typecheck',
@@ -110,7 +110,7 @@ describe('resultToDetailTransformer', () => {
   describe('test failures', () => {
     it('VALID: {wardResult: test failure without stack} => shows failure without stack', () => {
       const { suitePath } = TestFailureStub({ suitePath: 'src/app.test.tsx' });
-      const wardResult = WardResultStub({
+      const wardResult = WardRunResultStub({
         checks: [
           CheckResultStub({
             checkType: 'unit',
@@ -145,7 +145,7 @@ describe('resultToDetailTransformer', () => {
       );
       const fullMessage = lines.join('\n');
       const { suitePath } = TestFailureStub({ suitePath: 'src/app.test.tsx' });
-      const wardResult = WardResultStub({
+      const wardResult = WardRunResultStub({
         checks: [
           CheckResultStub({
             checkType: 'unit',
@@ -182,7 +182,7 @@ describe('resultToDetailTransformer', () => {
         '    at runTest (/home/user/project/node_modules/jest-runner/build/index.js:343:7)',
       ].join('\n');
       const { suitePath } = TestFailureStub({ suitePath: 'src/app.test.tsx' });
-      const wardResult = WardResultStub({
+      const wardResult = WardRunResultStub({
         checks: [
           CheckResultStub({
             checkType: 'unit',
@@ -214,7 +214,7 @@ describe('resultToDetailTransformer', () => {
   describe('line zero errors', () => {
     it('VALID: {wardResult: lint error with line=0} => omits location from output', () => {
       const { filePath } = ErrorEntryStub({ filePath: 'src/broken.ts' });
-      const wardResult = WardResultStub({
+      const wardResult = WardRunResultStub({
         checks: [
           CheckResultStub({
             checkType: 'lint',
@@ -252,7 +252,7 @@ describe('resultToDetailTransformer', () => {
       const { filePath: queryPath } = ErrorEntryStub({
         filePath: 'packages/ward/src/guards/is-check-type/is-check-type-guard.ts',
       });
-      const wardResult = WardResultStub({
+      const wardResult = WardRunResultStub({
         checks: [
           CheckResultStub({
             checkType: 'lint',
@@ -288,7 +288,7 @@ describe('resultToDetailTransformer', () => {
       const { filePath: queryPath } = ErrorEntryStub({
         filePath: 'src/guards/is-check-type/is-check-type-guard.ts',
       });
-      const wardResult = WardResultStub({
+      const wardResult = WardRunResultStub({
         checks: [
           CheckResultStub({
             checkType: 'lint',
@@ -324,7 +324,7 @@ describe('resultToDetailTransformer', () => {
         filePath:
           '/home/user/projects/repo/packages/ward/src/guards/is-check-type/is-check-type-guard.ts',
       });
-      const wardResult = WardResultStub({
+      const wardResult = WardRunResultStub({
         checks: [
           CheckResultStub({
             checkType: 'typecheck',
@@ -359,7 +359,7 @@ describe('resultToDetailTransformer', () => {
         suitePath:
           '/home/user/projects/repo/packages/ward/src/guards/is-check-type/is-check-type-guard.test.ts',
       });
-      const wardResult = WardResultStub({
+      const wardResult = WardRunResultStub({
         checks: [
           CheckResultStub({
             checkType: 'unit',
@@ -393,7 +393,7 @@ describe('resultToDetailTransformer', () => {
       const { filePath: queryPath } = ErrorEntryStub({
         filePath: 'packages/other/src/completely-different.ts',
       });
-      const wardResult = WardResultStub({
+      const wardResult = WardRunResultStub({
         checks: [
           CheckResultStub({
             checkType: 'lint',
@@ -424,7 +424,7 @@ describe('resultToDetailTransformer', () => {
 
   describe('no filePath (all errors)', () => {
     it('EMPTY: {wardResult: no checks, no filePath} => returns no errors found', () => {
-      const wardResult = WardResultStub({ checks: [] });
+      const wardResult = WardRunResultStub({ checks: [] });
 
       const result = resultToDetailTransformer({ wardResult });
 
@@ -432,7 +432,7 @@ describe('resultToDetailTransformer', () => {
     });
 
     it('VALID: {wardResult: lint + test errors, no filePath} => returns all errors grouped by file', () => {
-      const wardResult = WardResultStub({
+      const wardResult = WardRunResultStub({
         checks: [
           CheckResultStub({
             checkType: 'lint',
@@ -472,7 +472,7 @@ describe('resultToDetailTransformer', () => {
 
   describe('crash projects (no filePath)', () => {
     it('VALID: {wardResult: fail with testFailures and stack traces} => returns failures with stack traces and not-run files', () => {
-      const wardResult = WardResultStub({
+      const wardResult = WardRunResultStub({
         checks: [
           CheckResultStub({
             checkType: 'e2e',
@@ -512,7 +512,7 @@ describe('resultToDetailTransformer', () => {
     });
 
     it('VALID: {wardResult: fail with no output} => returns crash with no output captured message', () => {
-      const wardResult = WardResultStub({
+      const wardResult = WardRunResultStub({
         checks: [
           CheckResultStub({
             checkType: 'e2e',
@@ -540,7 +540,7 @@ describe('resultToDetailTransformer', () => {
   describe('multiple errors in same file', () => {
     it('VALID: {wardResult: lint + test errors for same file} => shows all entries', () => {
       const { filePath } = ErrorEntryStub({ filePath: 'src/app.ts' });
-      const wardResult = WardResultStub({
+      const wardResult = WardRunResultStub({
         checks: [
           CheckResultStub({
             checkType: 'lint',
@@ -580,7 +580,7 @@ describe('resultToDetailTransformer', () => {
 
   describe('passing tests (no filePath)', () => {
     it('VALID: {passing project with passingTests} => emits pass block per project', () => {
-      const wardResult = WardResultStub({
+      const wardResult = WardRunResultStub({
         checks: [
           CheckResultStub({
             checkType: 'unit',
@@ -621,7 +621,7 @@ describe('resultToDetailTransformer', () => {
     });
 
     it('VALID: {passing project with no passingTests} => omits pass block', () => {
-      const wardResult = WardResultStub({
+      const wardResult = WardRunResultStub({
         checks: [
           CheckResultStub({
             checkType: 'lint',
@@ -643,7 +643,7 @@ describe('resultToDetailTransformer', () => {
     });
 
     it('VALID: {e2e pass with single file and cumulative duration} => reports total duration', () => {
-      const wardResult = WardResultStub({
+      const wardResult = WardRunResultStub({
         checks: [
           CheckResultStub({
             checkType: 'e2e',
@@ -684,7 +684,7 @@ describe('resultToDetailTransformer', () => {
     });
 
     it('VALID: {fail project also has passingTests} => pass block omitted on fail', () => {
-      const wardResult = WardResultStub({
+      const wardResult = WardRunResultStub({
         checks: [
           CheckResultStub({
             checkType: 'unit',
@@ -724,7 +724,7 @@ describe('resultToDetailTransformer', () => {
   describe('passing tests (with filePath)', () => {
     it('VALID: {passingTests matching filePath} => includes PASS entries in file detail', () => {
       const { filePath } = ErrorEntryStub({ filePath: 'src/foo.test.ts' });
-      const wardResult = WardResultStub({
+      const wardResult = WardRunResultStub({
         checks: [
           CheckResultStub({
             checkType: 'unit',
@@ -754,7 +754,7 @@ describe('resultToDetailTransformer', () => {
 
     it('VALID: {passingTests in different file} => file path only', () => {
       const { filePath } = ErrorEntryStub({ filePath: 'src/target.test.ts' });
-      const wardResult = WardResultStub({
+      const wardResult = WardRunResultStub({
         checks: [
           CheckResultStub({
             checkType: 'unit',
@@ -786,8 +786,8 @@ describe('resultToDetailTransformer', () => {
       filters,
     }: {
       filters?: { passthrough?: string[]; uncommitted?: boolean };
-    }): ReturnType<typeof WardResultStub> =>
-      WardResultStub({
+    }): ReturnType<typeof WardRunResultStub> =>
+      WardRunResultStub({
         ...(filters === undefined ? {} : { filters }),
         checks: [
           CheckResultStub({

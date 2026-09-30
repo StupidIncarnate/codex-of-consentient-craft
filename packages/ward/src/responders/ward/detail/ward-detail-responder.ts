@@ -11,7 +11,7 @@ import type { AbsoluteFilePath } from '@dungeonmaster/shared/contracts';
 
 import { errorEntryContract } from '../../../contracts/error-entry/error-entry-contract';
 import { commandDetailBroker } from '../../../brokers/command/detail/command-detail-broker';
-import { wardResultContract } from '../../../contracts/ward-result/ward-result-contract';
+import { wardRunResultContract } from '../../../contracts/ward-result/ward-result-contract';
 
 const FIRST_POSITIONAL_INDEX = 3;
 const JSON_FLAG = '--json';
@@ -33,7 +33,7 @@ export const WardDetailResponder = async ({
     return;
   }
 
-  const runId = wardResultContract.shape.runId.parse(runIdArg);
+  const runId = wardRunResultContract.shape.runId.parse(runIdArg);
 
   if (filePathArg) {
     const filePath = errorEntryContract.shape.filePath.parse(filePathArg);

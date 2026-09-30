@@ -9,7 +9,7 @@
 import type { AbsoluteFilePath } from '@dungeonmaster/shared/contracts';
 
 import { commandListBroker } from '../../../brokers/command/list/command-list-broker';
-import { wardResultContract } from '../../../contracts/ward-result/ward-result-contract';
+import { wardRunResultContract } from '../../../contracts/ward-result/ward-result-contract';
 
 const FIRST_POSITIONAL_INDEX = 3;
 
@@ -21,7 +21,7 @@ export const WardListResponder = async ({
   rootPath: AbsoluteFilePath;
 }): Promise<void> => {
   const runIdArg = args[FIRST_POSITIONAL_INDEX];
-  const runId = runIdArg ? wardResultContract.shape.runId.parse(runIdArg) : undefined;
+  const runId = runIdArg ? wardRunResultContract.shape.runId.parse(runIdArg) : undefined;
   const loadArgs = runId ? { rootPath, runId } : { rootPath };
   await commandListBroker(loadArgs);
 };

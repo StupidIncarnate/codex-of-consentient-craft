@@ -39,7 +39,7 @@
  */
 
 import type { CheckType } from '../../contracts/check-type/check-type-contract';
-import type { WardResult } from '../../contracts/ward-result/ward-result-contract';
+import type { WardRunResult } from '../../contracts/ward-result/ward-result-contract';
 import { isCrashedProjectResultGuard } from '../is-crashed-project-result/is-crashed-project-result-guard';
 
 const HONORS_FILE_SCOPE_BY_CHECK_TYPE = {
@@ -50,7 +50,7 @@ const HONORS_FILE_SCOPE_BY_CHECK_TYPE = {
   e2e: true,
 } as const satisfies Record<CheckType, boolean>;
 
-export const hasNoFilesProcessedGuard = ({ wardResult }: { wardResult?: WardResult }): boolean => {
+export const hasNoFilesProcessedGuard = ({ wardResult }: { wardResult?: WardRunResult }): boolean => {
   if (wardResult === undefined) {
     return false;
   }

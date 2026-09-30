@@ -10,7 +10,7 @@ import { errorMessageContract } from '@dungeonmaster/shared/contracts';
 
 import type { ErrorEntry } from '../../contracts/error-entry/error-entry-contract';
 import type { TestFailure } from '../../contracts/test-failure/test-failure-contract';
-import type { WardResult } from '../../contracts/ward-result/ward-result-contract';
+import type { WardRunResult } from '../../contracts/ward-result/ward-result-contract';
 import { isCallerFileScopeGuard } from '../../guards/is-caller-file-scope/is-caller-file-scope-guard';
 import { isPathSuffixMatchGuard } from '../../guards/is-path-suffix-match/is-path-suffix-match-guard';
 import { extractNetworkLogTransformer } from '../extract-network-log/extract-network-log-transformer';
@@ -22,7 +22,7 @@ export const resultToDetailTransformer = ({
   wardResult,
   filePath,
 }: {
-  wardResult: WardResult;
+  wardResult: WardRunResult;
   filePath?: ErrorEntry['filePath'] | TestFailure['suitePath'];
 }): string => {
   if (filePath) {

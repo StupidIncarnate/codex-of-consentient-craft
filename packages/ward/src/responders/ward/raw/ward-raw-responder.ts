@@ -11,7 +11,7 @@ import type { AbsoluteFilePath } from '@dungeonmaster/shared/contracts';
 
 import { checkTypeContract } from '../../../contracts/check-type/check-type-contract';
 import { commandRawBroker } from '../../../brokers/command/raw/command-raw-broker';
-import { wardResultContract } from '../../../contracts/ward-result/ward-result-contract';
+import { wardRunResultContract } from '../../../contracts/ward-result/ward-result-contract';
 
 const FIRST_POSITIONAL_INDEX = 3;
 const SECOND_POSITIONAL_INDEX = 4;
@@ -31,7 +31,7 @@ export const WardRawResponder = async ({
     return;
   }
 
-  const runId = wardResultContract.shape.runId.parse(runIdArg);
+  const runId = wardRunResultContract.shape.runId.parse(runIdArg);
   const checkType = checkTypeContract.parse(checkTypeArg);
   await commandRawBroker({ rootPath, runId, checkType });
 };

@@ -10,12 +10,12 @@
  * WHEN-NOT-TO-USE: Per package — a package without a matching test is a legitimate skip
  */
 
-import type { WardResult } from '../../contracts/ward-result/ward-result-contract';
+import type { WardRunResult } from '../../contracts/ward-result/ward-result-contract';
 
 export const hasUnmatchedTestNamePatternGuard = ({
   wardResult,
 }: {
-  wardResult?: WardResult;
+  wardResult?: WardRunResult;
 }): boolean => {
   if (wardResult === undefined) {
     return false;

@@ -7,14 +7,14 @@
  */
 
 import { hexFormatStatics } from '../../statics/hex-format/hex-format-statics';
-import type { WardResult } from '../../contracts/ward-result/ward-result-contract';
-import { wardResultContract } from '../../contracts/ward-result/ward-result-contract';
+import type { WardRunResult } from '../../contracts/ward-result/ward-result-contract';
+import { wardRunResultContract } from '../../contracts/ward-result/ward-result-contract';
 
-export const runIdGenerateTransformer = (): WardResult['runId'] => {
+export const runIdGenerateTransformer = (): WardRunResult['runId'] => {
   const timestamp = Date.now();
   const hex = Math.random()
     .toString(hexFormatStatics.radix)
     .slice(hexFormatStatics.sliceStart, hexFormatStatics.sliceEnd);
 
-  return wardResultContract.shape.runId.parse(`${timestamp}-${hex}`);
+  return wardRunResultContract.shape.runId.parse(`${timestamp}-${hex}`);
 };

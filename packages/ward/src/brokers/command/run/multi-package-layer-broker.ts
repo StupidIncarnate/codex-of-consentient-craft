@@ -20,8 +20,8 @@ import { configResolveBroker, configDefaultsStatics } from '@dungeonmaster/confi
 
 import { binCommandContract } from '../../../contracts/bin-command/bin-command-contract';
 import {
-  wardResultContract,
-  type WardResult,
+  wardRunResultContract,
+  type WardRunResult,
 } from '../../../contracts/ward-result/ward-result-contract';
 import type { WardConfig } from '../../../contracts/ward-config/ward-config-contract';
 import type { ProjectFolder } from '../../../contracts/project-folder/project-folder-contract';
@@ -53,7 +53,7 @@ export const multiPackageLayerBroker = async ({
   projectFolders: ProjectFolder[];
   rootPath: AbsoluteFilePath;
   platformDedupeProjectResult?: ProjectResult;
-}): Promise<WardResult> => {
+}): Promise<WardRunResult> => {
   const runId = runIdGenerateTransformer();
   const timestamp = Date.now();
   const wardBin = String(
@@ -240,7 +240,7 @@ export const multiPackageLayerBroker = async ({
       : { extraProjectResult: platformDedupeProjectResult }),
   });
 
-  const wardResult = wardResultContract.parse({
+  const wardResult = wardRunResultContract.parse({
     runId,
     timestamp,
     // THE GIT FLAGS RIDE ALONG BECAUSE `passthrough` CANNOT SPEAK FOR ITSELF. `gitScopeLayerBroker`

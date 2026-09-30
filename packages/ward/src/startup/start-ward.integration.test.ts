@@ -3,7 +3,7 @@ import { registerSpyOn } from '@dungeonmaster/testing/register-mock';
 import { chdir, cwd, stdout } from '#gateway/node/process';
 
 import { wardRunnerHarness } from '../../test/harnesses/ward-runner/ward-runner.harness';
-import { WardResultStub } from '../contracts/ward-result/ward-result.stub';
+import { WardRunResultStub } from '../contracts/ward-result/ward-result.stub';
 
 import { StartWard } from './start-ward';
 
@@ -30,7 +30,7 @@ describe('StartWard', () => {
 
       testbed.writeFile({
         relativePath: wardResultRelativePath,
-        content: JSON.stringify(WardResultStub()),
+        content: JSON.stringify(WardRunResultStub()),
       });
 
       const originalCwd = cwd();
@@ -68,7 +68,7 @@ describe('StartWard', () => {
 
       const wardResultRelativePath = `.ward/run-${VALID_RUN_ID}.json`;
 
-      const storedResult = WardResultStub();
+      const storedResult = WardRunResultStub();
       testbed.writeFile({
         relativePath: wardResultRelativePath,
         content: JSON.stringify(storedResult),

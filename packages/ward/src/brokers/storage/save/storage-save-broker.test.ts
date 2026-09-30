@@ -1,14 +1,14 @@
 import { AbsoluteFilePathStub } from '@dungeonmaster/shared/contracts/absolute-file-path/absolute-file-path.stub';
 
-import { WardResultStub } from '../../../contracts/ward-result/ward-result.stub';
+import { WardRunResultStub } from '../../../contracts/ward-result/ward-result.stub';
 import { CheckResultStub } from '../../../contracts/check-result/check-result.stub';
 import { ProjectResultStub } from '../../../contracts/project-result/project-result.stub';
 
 import { storageSaveBroker } from './storage-save-broker';
 import { storageSaveBrokerProxy } from './storage-save-broker.proxy';
 
-const failingWardResult = (): ReturnType<typeof WardResultStub> =>
-  WardResultStub({
+const failingWardResult = (): ReturnType<typeof WardRunResultStub> =>
+  WardRunResultStub({
     checks: [
       CheckResultStub({
         status: 'fail',
@@ -37,7 +37,7 @@ describe('storageSaveBroker', () => {
   describe('all checks pass', () => {
     it('VALID: {wardResult with no failures} => still writes file', async () => {
       const rootPath = AbsoluteFilePathStub({ value: '/home/user/project' });
-      const wardResult = WardResultStub();
+      const wardResult = WardRunResultStub();
 
       const proxy = storageSaveBrokerProxy();
       proxy.setupSuccess({ rootPath, runId: wardResult.runId });

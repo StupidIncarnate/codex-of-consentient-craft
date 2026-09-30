@@ -13,14 +13,14 @@ import {
   type AbsoluteFilePath,
 } from '@dungeonmaster/shared/contracts';
 
-import type { WardResult } from '../../../contracts/ward-result/ward-result-contract';
+import type { WardRunResult } from '../../../contracts/ward-result/ward-result-contract';
 
 export const storageSaveBroker = async ({
   rootPath,
   wardResult,
 }: {
   rootPath: AbsoluteFilePath;
-  wardResult: WardResult;
+  wardResult: WardRunResult;
 }): Promise<void> => {
   const wardDir = filePathContract.parse(`${rootPath}/.ward`);
   await ensureDir(wardDir);

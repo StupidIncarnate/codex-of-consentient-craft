@@ -9,10 +9,10 @@
  * // Returns true when at least one suite is over threshold
  */
 
-import type { WardResult } from '../../contracts/ward-result/ward-result-contract';
+import type { WardRunResult } from '../../contracts/ward-result/ward-result-contract';
 import { slowFileTimingsTransformer } from '../../transformers/slow-file-timings/slow-file-timings-transformer';
 
-export const hasSlowFilesGuard = ({ wardResult }: { wardResult?: WardResult }): boolean => {
+export const hasSlowFilesGuard = ({ wardResult }: { wardResult?: WardRunResult }): boolean => {
   if (!wardResult) {
     return false;
   }

@@ -1,6 +1,6 @@
 import { AbsoluteFilePathStub } from '@dungeonmaster/shared/contracts/absolute-file-path/absolute-file-path.stub';
 
-import { WardResultStub } from '../../../contracts/ward-result/ward-result.stub';
+import { WardRunResultStub } from '../../../contracts/ward-result/ward-result.stub';
 import { CheckResultStub } from '../../../contracts/check-result/check-result.stub';
 import { ProjectResultStub } from '../../../contracts/project-result/project-result.stub';
 import { ErrorEntryStub } from '../../../contracts/error-entry/error-entry.stub';
@@ -14,7 +14,7 @@ type ErrorFilePath = ReturnType<typeof ErrorEntryStub>['filePath'];
 describe('commandDetailBroker', () => {
   describe('result found', () => {
     it('VALID: {wardResult, filePath} => writes file detail to stdout', async () => {
-      const wardResult = WardResultStub({
+      const wardResult = WardRunResultStub({
         checks: [
           CheckResultStub({
             checkType: 'lint',
@@ -56,7 +56,7 @@ describe('commandDetailBroker', () => {
 
   describe('result found without filePath', () => {
     it('VALID: {wardResult, no filePath} => writes all details to stdout', async () => {
-      const wardResult = WardResultStub({
+      const wardResult = WardRunResultStub({
         checks: [
           CheckResultStub({
             checkType: 'lint',
@@ -97,7 +97,7 @@ describe('commandDetailBroker', () => {
 
   describe('json output', () => {
     it('VALID: {wardResult, json: true} => writes JSON detail to stdout', async () => {
-      const wardResult = WardResultStub({
+      const wardResult = WardRunResultStub({
         checks: [
           CheckResultStub({
             checkType: 'lint',
@@ -166,7 +166,7 @@ describe('commandDetailBroker', () => {
     });
 
     it('VALID: {wardResult, json: true, filePath} => ignores filePath and writes full JSON to stdout', async () => {
-      const wardResult = WardResultStub({
+      const wardResult = WardRunResultStub({
         checks: [
           CheckResultStub({
             checkType: 'lint',

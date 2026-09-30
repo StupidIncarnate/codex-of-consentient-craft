@@ -16,7 +16,7 @@
 
 import { errorMessageContract, type ErrorMessage } from '@dungeonmaster/shared/contracts';
 
-import type { WardResult } from '../../contracts/ward-result/ward-result-contract';
+import type { WardRunResult } from '../../contracts/ward-result/ward-result-contract';
 import { rawOutputCapStatics } from '../../statics/raw-output-cap/raw-output-cap-statics';
 import { hasCheckDiscoveryMismatchGuard } from '../../guards/has-check-discovery-mismatch/has-check-discovery-mismatch-guard';
 import { stripAnsiCodesTransformer } from '../strip-ansi-codes/strip-ansi-codes-transformer';
@@ -26,7 +26,7 @@ const JSON_INDENT_SPACES = 2;
 export const resultToDetailJsonTransformer = ({
   wardResult,
 }: {
-  wardResult: WardResult;
+  wardResult: WardRunResult;
 }): ErrorMessage => {
   const { maxChars } = rawOutputCapStatics.cap;
 

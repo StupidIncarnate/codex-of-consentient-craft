@@ -10,8 +10,8 @@ import { readdirIfExists, readFile } from '#gateway/node/fs__promises';
 import { filePathContract, type AbsoluteFilePath } from '@dungeonmaster/shared/contracts';
 
 import {
-  wardResultContract,
-  type WardResult,
+  wardRunResultContract,
+  type WardRunResult,
 } from '../../../contracts/ward-result/ward-result-contract';
 
 const RUN_FILE_PREFIX = 'run-';
@@ -22,15 +22,15 @@ export const storageLoadBroker = async ({
   runId,
 }: {
   rootPath: AbsoluteFilePath;
-  runId?: WardResult['runId'];
-}): Promise<WardResult | null> => {
+  runId?: WardRunResult['runId'];
+}): Promise<WardRunResult | null> => {
   const wardDir = filePathContract.parse(`${rootPath}/.ward`);
 
   if (runId) {
     const filePath = filePathContract.parse(`${wardDir}/run-${runId}.json`);
     try {
       const contents = await readFile(filePath);
-      return wardResultContract.parse(JSON.parse(contents));
+      return wardRunResultContract.parse(JSON.parse(contents));
     } catch {
       return null;
     }
@@ -48,7 +48,7 @@ export const storageLoadBroker = async ({
       .filter((entry) => entry.startsWith(RUN_FILE_PREFIX) && entry.endsWith(RUN_FILE_SUFFIX))
       .filter(
         (entry) =>
-          wardResultContract.shape.runId.safeParse(entry.slice(RUN_FILE_PREFIX.length, -RUN_FILE_SUFFIX.length))
+          wardRunResultContract.shape.runId.safeParse(entry.slice(RUN_FILE_PREFIX.length, -RUN_FILE_SUFFIX.length))
             .success,
       )
       .sort();
@@ -60,7 +60,7 @@ export const storageLoadBroker = async ({
     const latestFile = runFiles[runFiles.length - 1];
     const filePath = filePathContract.parse(`${wardDir}/${latestFile}`);
     const contents = await readFile(filePath);
-    return wardResultContract.parse(JSON.parse(contents));
+    return wardRunResultContract.parse(JSON.parse(contents));
   } catch {
     return null;
   }

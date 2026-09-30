@@ -8,12 +8,12 @@
 
 import type { ErrorEntry } from '../../contracts/error-entry/error-entry-contract';
 import type { TestFailure } from '../../contracts/test-failure/test-failure-contract';
-import type { WardResult } from '../../contracts/ward-result/ward-result-contract';
+import type { WardRunResult } from '../../contracts/ward-result/ward-result-contract';
 
 export const resultToListTransformer = ({
   wardResult,
 }: {
-  wardResult: WardResult;
+  wardResult: WardRunResult;
 }): string => {
   const fileMap = new Map<
     ErrorEntry['filePath'] | TestFailure['suitePath'],

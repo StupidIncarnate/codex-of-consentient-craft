@@ -11,7 +11,7 @@ import type { AbsoluteFilePath } from '@dungeonmaster/shared/contracts';
 
 import type { CheckType } from '../../../contracts/check-type/check-type-contract';
 import { storageLoadBroker } from '../../storage/load/storage-load-broker';
-import type { WardResult } from '../../../contracts/ward-result/ward-result-contract';
+import type { WardRunResult } from '../../../contracts/ward-result/ward-result-contract';
 
 export const commandRawBroker = async ({
   rootPath,
@@ -19,7 +19,7 @@ export const commandRawBroker = async ({
   checkType,
 }: {
   rootPath: AbsoluteFilePath;
-  runId: WardResult['runId'];
+  runId: WardRunResult['runId'];
   checkType: CheckType;
 }): Promise<void> => {
   const wardResult = await storageLoadBroker({ rootPath, runId });
