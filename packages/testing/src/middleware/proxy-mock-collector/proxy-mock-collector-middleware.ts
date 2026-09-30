@@ -77,7 +77,7 @@ export const proxyMockCollectorMiddleware = ({
       return { ...mock, moduleName: absoluteModuleName };
     });
 
-    mockCalls.push(mockCallContract.shape.moduleName.parse(mockCallContract.shape.moduleName.parse(mockCallContract.shape.moduleName.parse(...resolvedMocks))));
+    mockCalls.push(mockCallContract.shape.sourceFile.parse(mockCallContract.shape.sourceFile.parse(mockCallContract.shape.sourceFile.parse(mockCallContract.shape.moduleName.parse(mockCallContract.shape.moduleName.parse(mockCallContract.shape.moduleName.parse(...resolvedMocks)))))));
 
     const edges = astProxyImportsTransformer({ sourceFile });
     for (const edge of edges) {

@@ -12,12 +12,11 @@
 
 import { z } from '#gateway/npm/zod';
 import { factoryFunctionTextContract } from '../factory-function-text/factory-function-text-contract';
-import { sourceFileNameContract } from '../source-file-name/source-file-name-contract';
 
 export const mockCallContract = z.object({
   moduleName: z.string().min(1).brand<'MockCallModuleName'>(),
   factory: factoryFunctionTextContract.nullable(),
-  sourceFile: sourceFileNameContract,
+  sourceFile: z.string().min(1).brand<'MockCallSourceFile'>(),
   identifierNames: z.array(z.string().min(1).brand<'MockCallIdentifierNames'>()).default([]),
   // A property-access `registerMock({fn: X.method})` records X here, never in identifierNames — the
   // codegen for these auto-mocks every one of X's OWN methods (an object export, mockable the same

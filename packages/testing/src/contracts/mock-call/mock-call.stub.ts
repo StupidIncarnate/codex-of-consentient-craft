@@ -1,13 +1,12 @@
 import type { StubArgument } from '@dungeonmaster/shared/@types';
 import { mockCallContract } from './mock-call-contract';
 import type { MockCall } from './mock-call-contract';
-import { SourceFileNameStub } from '../source-file-name/source-file-name.stub';
 
 export const MockCallStub = ({ ...props }: StubArgument<MockCall> = {}): MockCall =>
   mockCallContract.parse({
     moduleName: 'fs',
     factory: null,
-    sourceFile: SourceFileNameStub({ value: 'test.proxy.ts' }),
+    sourceFile: 'test.proxy.ts',
     identifierNames: [],
     objectIdentifierNames: [],
     ...props,

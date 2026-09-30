@@ -9,7 +9,6 @@
 import * as ts from '#gateway/npm/typescript';
 import { mockCallContract } from '../../contracts/mock-call/mock-call-contract';
 import { factoryFunctionTextContract } from '../../contracts/factory-function-text/factory-function-text-contract';
-import { sourceFileNameContract } from '../../contracts/source-file-name/source-file-name-contract';
 import type { MockCall } from '../../contracts/mock-call/mock-call-contract';
 
 export const astModuleMockCallsTransformer = ({
@@ -57,7 +56,7 @@ export const astModuleMockCallsTransformer = ({
             mockCallContract.parse({
               moduleName: moduleProp,
               factory: factoryProp,
-              sourceFile: sourceFileNameContract.parse(tsSourceFile.fileName),
+              sourceFile: tsSourceFile.fileName,
             }),
           );
         }

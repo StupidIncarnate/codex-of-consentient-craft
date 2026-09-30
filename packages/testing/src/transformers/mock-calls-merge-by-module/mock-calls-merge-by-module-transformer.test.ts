@@ -1,7 +1,6 @@
 import { mockCallsMergeByModuleTransformer } from './mock-calls-merge-by-module-transformer';
 import { MockCallStub } from '../../contracts/mock-call/mock-call.stub';
 import { FactoryFunctionTextStub } from '../../contracts/factory-function-text/factory-function-text.stub';
-import { SourceFileNameStub } from '../../contracts/source-file-name/source-file-name.stub';
 
 describe('mockCallsMergeByModuleTransformer', () => {
   describe('two specifiers for the same Node builtin', () => {
@@ -121,13 +120,13 @@ describe('mockCallsMergeByModuleTransformer', () => {
     it('VALID: {two bare registerModuleMock requests, same module} => stays a single full auto-mock record', () => {
       const firstMock = MockCallStub({
         moduleName: '@dungeonmaster/orchestrator',
-        sourceFile: SourceFileNameStub({ value: 'first.proxy.ts' }),
+        sourceFile: 'first.proxy.ts',
         identifierNames: [],
         objectIdentifierNames: [],
       });
       const secondMock = MockCallStub({
         moduleName: '@dungeonmaster/orchestrator',
-        sourceFile: SourceFileNameStub({ value: 'second.proxy.ts' }),
+        sourceFile: 'second.proxy.ts',
         identifierNames: [],
         objectIdentifierNames: [],
       });
@@ -142,13 +141,13 @@ describe('mockCallsMergeByModuleTransformer', () => {
     it('VALID: {bare registerModuleMock request (full-auto) then bare-export mock (named), same module} => merges into one full auto-mock record, dropping the selective name', () => {
       const fullAutoMock = MockCallStub({
         moduleName: '@dungeonmaster/orchestrator',
-        sourceFile: SourceFileNameStub({ value: 'whole-module.proxy.ts' }),
+        sourceFile: 'whole-module.proxy.ts',
         identifierNames: [],
         objectIdentifierNames: [],
       });
       const bareExportMock = MockCallStub({
         moduleName: '@dungeonmaster/orchestrator',
-        sourceFile: SourceFileNameStub({ value: 'quest-list-broker.proxy.ts' }),
+        sourceFile: 'quest-list-broker.proxy.ts',
         identifierNames: ['questListBroker'],
       });
 
@@ -162,12 +161,12 @@ describe('mockCallsMergeByModuleTransformer', () => {
     it('VALID: {bare-export mock (named) then bare registerModuleMock request (full-auto), same module} => merges into one full auto-mock record regardless of arrival order', () => {
       const bareExportMock = MockCallStub({
         moduleName: '@dungeonmaster/orchestrator',
-        sourceFile: SourceFileNameStub({ value: 'quest-list-broker.proxy.ts' }),
+        sourceFile: 'quest-list-broker.proxy.ts',
         identifierNames: ['questListBroker'],
       });
       const fullAutoMock = MockCallStub({
         moduleName: '@dungeonmaster/orchestrator',
-        sourceFile: SourceFileNameStub({ value: 'whole-module.proxy.ts' }),
+        sourceFile: 'whole-module.proxy.ts',
         identifierNames: [],
         objectIdentifierNames: [],
       });
@@ -282,13 +281,13 @@ describe('mockCallsMergeByModuleTransformer', () => {
     it('VALID: {bare registerModuleMock request (full-auto) then property-access mock, same module} => merges into one full auto-mock record, dropping the object name', () => {
       const fullAutoMock = MockCallStub({
         moduleName: '@dungeonmaster/orchestrator',
-        sourceFile: SourceFileNameStub({ value: 'whole-module.proxy.ts' }),
+        sourceFile: 'whole-module.proxy.ts',
         identifierNames: [],
         objectIdentifierNames: [],
       });
       const propertyAccessMock = MockCallStub({
         moduleName: '@dungeonmaster/orchestrator',
-        sourceFile: SourceFileNameStub({ value: 'start-orchestrator.proxy.ts' }),
+        sourceFile: 'start-orchestrator.proxy.ts',
         identifierNames: [],
         objectIdentifierNames: ['StartOrchestrator'],
       });

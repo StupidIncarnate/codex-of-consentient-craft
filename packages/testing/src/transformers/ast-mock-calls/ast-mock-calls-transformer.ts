@@ -9,7 +9,6 @@
 import * as ts from '#gateway/npm/typescript';
 import { mockCallContract } from '../../contracts/mock-call/mock-call-contract';
 import { factoryFunctionTextContract } from '../../contracts/factory-function-text/factory-function-text-contract';
-import { sourceFileNameContract } from '../../contracts/source-file-name/source-file-name-contract';
 import { mockFnIdentifierNamesTransformer } from '../mock-fn-identifier-names/mock-fn-identifier-names-transformer';
 import type { MockCall } from '../../contracts/mock-call/mock-call-contract';
 
@@ -59,7 +58,7 @@ export const astMockCallsTransformer = ({
             mockCallContract.parse({
               moduleName,
               factory: factoryText,
-              sourceFile: sourceFileNameContract.parse(tsSourceFile.fileName),
+              sourceFile: tsSourceFile.fileName,
             }),
           );
         }
@@ -115,7 +114,7 @@ export const astMockCallsTransformer = ({
 
   // Walk all nodes to find registerMock({ fn: IDENTIFIER }) calls at any depth
   const nodeStack: ts.Node[] = [...tsSourceFile.statements];
-  const parsedSourceFile = sourceFileNameContract.parse(tsSourceFile.fileName);
+  const parsedSourceFile = tsSourceFile.fileName;
 
   while (nodeStack.length > 0) {
     const node = nodeStack.shift();

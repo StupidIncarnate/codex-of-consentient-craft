@@ -1,7 +1,6 @@
 import { mockCallContract } from './mock-call-contract';
 import { MockCallStub } from './mock-call.stub';
 import { FactoryFunctionTextStub } from '../factory-function-text/factory-function-text.stub';
-import { SourceFileNameStub } from '../source-file-name/source-file-name.stub';
 
 describe('mockCallContract', () => {
   describe('valid mock calls', () => {
@@ -9,7 +8,7 @@ describe('mockCallContract', () => {
       const mockCall = MockCallStub({
         moduleName: 'axios',
         factory: null,
-        sourceFile: SourceFileNameStub({ value: 'test.proxy.ts' }),
+        sourceFile: 'test.proxy.ts',
       });
 
       const result = mockCallContract.parse(mockCall);
@@ -27,7 +26,7 @@ describe('mockCallContract', () => {
       const mockCall = MockCallStub({
         moduleName: 'fs',
         factory: FactoryFunctionTextStub({ value: '() => ({ readFile: jest.fn() })' }),
-        sourceFile: SourceFileNameStub({ value: 'adapter.proxy.ts' }),
+        sourceFile: 'adapter.proxy.ts',
       });
 
       const result = mockCallContract.parse(mockCall);
@@ -45,7 +44,7 @@ describe('mockCallContract', () => {
       const mockCall = MockCallStub({
         moduleName: '@testing-library/react',
         factory: null,
-        sourceFile: SourceFileNameStub({ value: 'widget.proxy.tsx' }),
+        sourceFile: 'widget.proxy.tsx',
       });
 
       const result = mockCallContract.parse(mockCall);
@@ -63,7 +62,7 @@ describe('mockCallContract', () => {
       const mockCall = MockCallStub({
         moduleName: '@dungeonmaster/orchestrator',
         factory: null,
-        sourceFile: SourceFileNameStub({ value: 'orchestration-events-state.proxy.ts' }),
+        sourceFile: 'orchestration-events-state.proxy.ts',
         objectIdentifierNames: ['orchestrationEventsState'],
       });
 
