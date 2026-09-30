@@ -37,7 +37,6 @@ import type { Quest, Guild } from '@dungeonmaster/shared/contracts';
 import { locationsInstanceEvidencePathFindBroker } from '../../locations/instance-evidence-path-find/locations-instance-evidence-path-find-broker';
 import { registryUpdateBroker } from '../../registry/update/registry-update-broker';
 import { epochMsContract } from '../../../contracts/epoch-ms/epoch-ms-contract';
-import { instanceIdContract } from '../../../contracts/instance-id/instance-id-contract';
 import { instanceOwnerContract } from '../../../contracts/instance-owner/instance-owner-contract';
 import { portPairContract } from '../../../contracts/port-pair/port-pair-contract';
 import type { PortPair } from '../../../contracts/port-pair/port-pair-contract';
@@ -48,6 +47,7 @@ import type { SpecName } from '../../../contracts/spec-name/spec-name-contract';
 import { PortClaimExhaustedError } from '../../../errors/port-claim-exhausted/port-claim-exhausted-error';
 import { isGitNotARepositoryErrorGuard } from '../../../guards/is-git-not-a-repository-error/is-git-not-a-repository-error-guard';
 import { instanceLifecycleStatics } from '../../../statics/instance-lifecycle/instance-lifecycle-statics';
+import { siegeInstanceContract } from '@dungeonmaster/shared/contracts';
 
 export const instanceReserveBroker = async ({
   specName,
@@ -64,7 +64,7 @@ export const instanceReserveBroker = async ({
   // instanceIdContract's 4-char minimum, with no length arithmetic to hold a magic number.
   // split/join, not a regex: regex literals are confined to contracts/guards/transformers.
   const entropyHex = randomUUID().split('-').join('');
-  const resolvedInstanceId = instanceIdContract.parse(
+  const resolvedInstanceId = siegeInstanceContract.shape.id.parse(
     `${instanceLifecycleStatics.ids.instancePrefix}${entropyHex}`,
   );
   const resolvedOwner = instanceOwnerContract.parse(String(pid));

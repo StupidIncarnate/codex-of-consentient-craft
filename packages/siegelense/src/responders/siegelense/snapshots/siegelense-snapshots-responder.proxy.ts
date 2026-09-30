@@ -18,9 +18,9 @@ import { registryReadBrokerProxy } from '../../../brokers/registry/read/registry
 import { snapshotListBroker } from '../../../brokers/snapshot/list/snapshot-list-broker';
 import { snapshotListBrokerProxy } from '../../../brokers/snapshot/list/snapshot-list-broker.proxy';
 import type { EpochMs } from '../../../contracts/epoch-ms/epoch-ms-contract';
-import type { InstanceId } from '../../../contracts/instance-id/instance-id-contract';
 import type { RegistryStub } from '../../../contracts/registry/registry.stub';
 import type { SnapshotsAnswerStub } from '../../../contracts/snapshots-answer/snapshots-answer.stub';
+import type { SiegeInstance } from '@dungeonmaster/shared/contracts';
 
 type SnapshotsAnswer = ReturnType<typeof SnapshotsAnswerStub>;
 type Registry = ReturnType<typeof RegistryStub>;
@@ -28,7 +28,7 @@ type Registry = ReturnType<typeof RegistryStub>;
 export const SiegelenseSnapshotsResponderProxy = (): {
   stageRegistry: (params: { registry: Registry }) => void;
   stageAnswer: (params: { answer: SnapshotsAnswer }) => void;
-  stageError: (params: { error: Error; instanceId: InstanceId }) => void;
+  stageError: (params: { error: Error; instanceId: SiegeInstance['id'] }) => void;
   stageNow: (params: { nowMs: EpochMs }) => void;
   getStdoutWrites: () => unknown[];
 } => {
@@ -53,7 +53,7 @@ export const SiegelenseSnapshotsResponderProxy = (): {
       listHandle.calledWith([{ instanceId: answer.instanceId }]).resolves(answer);
     },
 
-    stageError: ({ error, instanceId }: { error: Error; instanceId: InstanceId }): void => {
+    stageError: ({ error, instanceId }: { error: Error; instanceId: SiegeInstance['id'] }): void => {
       listHandle.calledWith([{ instanceId }]).rejects(error);
     },
 

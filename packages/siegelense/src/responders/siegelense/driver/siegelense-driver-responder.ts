@@ -36,7 +36,7 @@
  */
 
 import { contentTextContract, processIdContract } from '@dungeonmaster/shared/contracts';
-import type { TimeoutMs } from '@dungeonmaster/shared/contracts';
+import type { TimeoutMs, SiegeInstance } from '@dungeonmaster/shared/contracts';
 import { getPid, stderr } from '#gateway/node/process';
 
 import { bootFailureMarkerWriteBroker } from '../../../brokers/boot-failure-marker/write/boot-failure-marker-write-broker';
@@ -50,7 +50,6 @@ import { locationsSocketPathFindBroker } from '../../../brokers/locations/socket
 import { registryReadBroker } from '../../../brokers/registry/read/registry-read-broker';
 import { registryUpdateBroker } from '../../../brokers/registry/update/registry-update-broker';
 import { epochMsContract } from '../../../contracts/epoch-ms/epoch-ms-contract';
-import type { InstanceId } from '../../../contracts/instance-id/instance-id-contract';
 import type { LaneSession } from '../../../contracts/lane-session/lane-session-contract';
 import { InstanceUnknownError } from '../../../errors/instance-unknown/instance-unknown-error';
 import { DriverServeLayerResponder } from './driver-serve-layer-responder';
@@ -59,7 +58,7 @@ export const SiegelenseDriverResponder = async ({
   instanceId,
   idleTimeoutMs,
 }: {
-  instanceId: InstanceId;
+  instanceId: SiegeInstance['id'];
   idleTimeoutMs?: TimeoutMs;
 }): Promise<void> => {
   const registry = await registryReadBroker();

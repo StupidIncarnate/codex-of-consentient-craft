@@ -11,11 +11,11 @@
 
 import { z } from '#gateway/npm/zod';
 
-import { instanceIdContract } from '../instance-id/instance-id-contract';
+import { siegeInstanceContract } from '@dungeonmaster/shared/contracts';
 
 export const killArgsContract = z
   .object({
-    instanceId: instanceIdContract,
+    instanceId: siegeInstanceContract.shape.id,
     isJson: z.boolean().default(false),
   })
   .strict();

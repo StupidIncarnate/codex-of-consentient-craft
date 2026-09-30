@@ -28,14 +28,14 @@
 import { z } from '#gateway/npm/zod';
 
 import { epochMsContract } from '../epoch-ms/epoch-ms-contract';
-import { instanceIdContract } from '../instance-id/instance-id-contract';
 import { megabytesContract } from '../megabytes/megabytes-contract';
 import { profilePoolSizeContract } from '../profile-pool-size/profile-pool-size-contract';
 import { readingCountContract } from '../reading-count/reading-count-contract';
 import { specHashContract } from '../spec-hash/spec-hash-contract';
+import { siegeInstanceContract } from '@dungeonmaster/shared/contracts';
 
 export const profileObservationContract = z.object({
-  instanceId: instanceIdContract,
+  instanceId: siegeInstanceContract.shape.id,
   specHash: specHashContract,
   firstBeatAtMs: epochMsContract,
   measuredAtMs: epochMsContract,

@@ -40,17 +40,16 @@
 
 import { z } from '#gateway/npm/zod';
 
-import { absoluteFilePathContract, contentTextContract } from '@dungeonmaster/shared/contracts';
+import { absoluteFilePathContract, contentTextContract, siegeInstanceContract } from '@dungeonmaster/shared/contracts';
 
 import { epochMsContract } from '../epoch-ms/epoch-ms-contract';
-import { instanceIdContract } from '../instance-id/instance-id-contract';
 import { readingCountContract } from '../reading-count/reading-count-contract';
 import { repoLocalPathContract } from '../repo-local-path/repo-local-path-contract';
 import { seedResultContract } from '../seed-result/seed-result-contract';
 import { specNameContract } from '../spec-name/spec-name-contract';
 
 export const instanceManifestContract = z.object({
-  instanceId: instanceIdContract,
+  instanceId: siegeInstanceContract.shape.id,
   specName: specNameContract,
   baseUrl: contentTextContract.nullable(),
   url: contentTextContract.optional(),

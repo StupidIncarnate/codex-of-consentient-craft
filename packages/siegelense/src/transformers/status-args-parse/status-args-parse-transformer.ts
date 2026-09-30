@@ -16,7 +16,6 @@
  * // Returns { instanceId: null, isJson: true } as StatusArgs
  */
 
-import { instanceIdContract } from '../../contracts/instance-id/instance-id-contract';
 import {
   statusArgsContract,
   type StatusArgs,
@@ -24,6 +23,7 @@ import {
 import { siegelenseOutputStatics } from '../../statics/siegelense-output/siegelense-output-statics';
 import { flagContractParseTransformer } from '../flag-contract-parse/flag-contract-parse-transformer';
 import { flagValueReadTransformer } from '../flag-value-read/flag-value-read-transformer';
+import { siegeInstanceContract } from '@dungeonmaster/shared/contracts';
 
 const INSTANCE_FLAG = '--instance';
 const BRANCH_FLAG = '--branch';
@@ -73,7 +73,7 @@ export const statusArgsParseTransformer = ({ args }: { args: readonly string[] }
       ? null
       : flagContractParseTransformer({
           flag: INSTANCE_FLAG,
-          parse: () => instanceIdContract.parse(rawInstanceId),
+          parse: () => siegeInstanceContract.shape.id.parse(rawInstanceId),
         });
 
   const rawBranch = flagValueReadTransformer({ args, flag: BRANCH_FLAG });

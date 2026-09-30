@@ -17,11 +17,11 @@
 
 import { compareArgsContract } from '../../contracts/compare-args/compare-args-contract';
 import type { CompareArgs } from '../../contracts/compare-args/compare-args-contract';
-import { instanceIdContract } from '../../contracts/instance-id/instance-id-contract';
 import { runIdContract } from '../../contracts/run-id/run-id-contract';
 import { siegelenseOutputStatics } from '../../statics/siegelense-output/siegelense-output-statics';
 import { flagContractParseTransformer } from '../flag-contract-parse/flag-contract-parse-transformer';
 import { flagValueReadTransformer } from '../flag-value-read/flag-value-read-transformer';
+import { siegeInstanceContract } from '@dungeonmaster/shared/contracts';
 
 const INSTANCE_FLAG = '--instance';
 const RUN_A_FLAG = '--run-a';
@@ -92,7 +92,7 @@ export const compareArgsParseTransformer = ({ args }: { args: readonly string[] 
   return compareArgsContract.parse({
     instanceId: flagContractParseTransformer({
       flag: INSTANCE_FLAG,
-      parse: () => instanceIdContract.parse(instanceValue),
+      parse: () => siegeInstanceContract.shape.id.parse(instanceValue),
     }),
     runA: flagContractParseTransformer({
       flag: RUN_A_FLAG,

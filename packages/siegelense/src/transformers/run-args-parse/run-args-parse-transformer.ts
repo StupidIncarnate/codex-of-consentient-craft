@@ -24,7 +24,6 @@
 
 import type { ContentText } from '@dungeonmaster/shared/contracts';
 
-import { instanceIdContract } from '../../contracts/instance-id/instance-id-contract';
 import { runArgsContract } from '../../contracts/run-args/run-args-contract';
 import type { RunArgs } from '../../contracts/run-args/run-args-contract';
 import { stopOnContract } from '../../contracts/stop-on/stop-on-contract';
@@ -32,6 +31,7 @@ import { siegelenseOutputStatics } from '../../statics/siegelense-output/siegele
 import { stepStatics } from '../../statics/step/step-statics';
 import { flagContractParseTransformer } from '../flag-contract-parse/flag-contract-parse-transformer';
 import { flagValueReadTransformer } from '../flag-value-read/flag-value-read-transformer';
+import { siegeInstanceContract } from '@dungeonmaster/shared/contracts';
 
 const INSTANCE_FLAG = '--instance';
 const STEPS_FLAG = '--steps';
@@ -128,7 +128,7 @@ export const runArgsParseTransformer = ({
 
   const instanceId = flagContractParseTransformer({
     flag: INSTANCE_FLAG,
-    parse: () => instanceIdContract.parse(instanceValue),
+    parse: () => siegeInstanceContract.shape.id.parse(instanceValue),
   });
 
   const stopOn =

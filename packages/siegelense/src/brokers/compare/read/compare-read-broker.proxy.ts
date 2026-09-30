@@ -1,6 +1,5 @@
-import type { AbsoluteFilePath, ContentText, Guild } from '@dungeonmaster/shared/contracts';
+import type { AbsoluteFilePath, ContentText, Guild, SiegeInstance } from '@dungeonmaster/shared/contracts';
 
-import type { InstanceId } from '../../../contracts/instance-id/instance-id-contract';
 import type { RegistryEntryStub } from '../../../contracts/registry-entry/registry-entry.stub';
 import { RegistryStub } from '../../../contracts/registry/registry.stub';
 import type { RunIdStub } from '../../../contracts/run-id/run-id.stub';
@@ -26,7 +25,7 @@ const FIXTURE_AT_MS = 1_700_000_000_000;
 
 export const compareReadBrokerProxy = (): {
   evidencePathFor: (params: {
-    instanceId: InstanceId;
+    instanceId: SiegeInstance['id'];
     guildId?: Guild['id'] | null;
   }) => AbsoluteFilePath;
   setupInstance: (params: { entry: RegistryEntry }) => void;
@@ -81,7 +80,7 @@ export const compareReadBrokerProxy = (): {
 
   return {
     evidencePathFor: (params: {
-      instanceId: InstanceId;
+      instanceId: SiegeInstance['id'];
       guildId?: Guild['id'] | null;
     }): AbsoluteFilePath => resultsProxy.evidencePathFor(params),
 

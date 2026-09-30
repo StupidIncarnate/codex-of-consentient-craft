@@ -18,12 +18,12 @@
 import { z } from '#gateway/npm/zod';
 
 import { fileSizeBytesContract } from '../file-size-bytes/file-size-bytes-contract';
-import { instanceIdContract } from '../instance-id/instance-id-contract';
 import { megabytesContract } from '../megabytes/megabytes-contract';
 import { pruneAssetKindContract } from '../prune-asset-kind/prune-asset-kind-contract';
+import { siegeInstanceContract } from '@dungeonmaster/shared/contracts';
 
 export const pruneRemovalContract = z.object({
-  id: instanceIdContract,
+  id: siegeInstanceContract.shape.id,
   kind: pruneAssetKindContract.nullable(),
   freedBytes: fileSizeBytesContract,
   freedMB: megabytesContract,

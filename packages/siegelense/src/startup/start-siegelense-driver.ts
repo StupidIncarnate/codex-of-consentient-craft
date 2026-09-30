@@ -11,11 +11,11 @@
  * // Boots that instance's lane and blocks for the driver's whole life
  */
 
-import { instanceIdContract } from '../contracts/instance-id/instance-id-contract';
 import { DriverFlow } from '../flows/driver/driver-flow';
+import { siegeInstanceContract } from '@dungeonmaster/shared/contracts';
 
 export const StartSiegelenseDriver = async ({
   instanceId,
 }: {
   instanceId: string;
-}): Promise<void> => DriverFlow({ instanceId: instanceIdContract.parse(instanceId) });
+}): Promise<void> => DriverFlow({ instanceId: siegeInstanceContract.shape.id.parse(instanceId) });

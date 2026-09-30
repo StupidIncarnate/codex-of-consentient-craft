@@ -19,14 +19,13 @@ import { locationsRootPathFindBroker } from '../root-path-find/locations-root-pa
 import { join } from '#gateway/node/path';
 import { locationsStatics } from '@dungeonmaster/shared/statics';
 import { absoluteFilePathContract, type AbsoluteFilePath } from '@dungeonmaster/shared/contracts';
-import type { InstanceId } from '../../../contracts/instance-id/instance-id-contract';
-import type { Guild } from '@dungeonmaster/shared/contracts';
+import type { Guild, SiegeInstance } from '@dungeonmaster/shared/contracts';
 
 export const locationsInstanceEvidencePathFindBroker = ({
   instanceId,
   guildId,
 }: {
-  instanceId: InstanceId;
+  instanceId: SiegeInstance['id'];
   guildId: Guild['id'] | null;
 }): AbsoluteFilePath => {
   const rootPath = locationsRootPathFindBroker();

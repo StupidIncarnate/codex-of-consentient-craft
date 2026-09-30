@@ -16,13 +16,12 @@
 
 import { z } from '#gateway/npm/zod';
 
-import { processIdContract } from '@dungeonmaster/shared/contracts';
+import { processIdContract, siegeInstanceContract } from '@dungeonmaster/shared/contracts';
 
 import { epochMsContract } from '../epoch-ms/epoch-ms-contract';
-import { instanceIdContract } from '../instance-id/instance-id-contract';
 
 export const bootLockContract = z.object({
-  heldBy: instanceIdContract,
+  heldBy: siegeInstanceContract.shape.id,
   heldByPid: processIdContract,
   acquiredAtMs: epochMsContract,
 });

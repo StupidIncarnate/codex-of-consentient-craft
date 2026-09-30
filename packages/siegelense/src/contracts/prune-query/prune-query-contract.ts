@@ -16,12 +16,12 @@
 import { z } from '#gateway/npm/zod';
 
 import { elapsedTextContract } from '../elapsed-text/elapsed-text-contract';
-import { instanceIdContract } from '../instance-id/instance-id-contract';
 import { pruneAssetKindContract } from '../prune-asset-kind/prune-asset-kind-contract';
+import { siegeInstanceContract } from '@dungeonmaster/shared/contracts';
 
 export const pruneQueryContract = z
   .object({
-    instanceId: instanceIdContract.nullable(),
+    instanceId: siegeInstanceContract.shape.id.nullable(),
     kind: pruneAssetKindContract.nullable(),
     olderThan: elapsedTextContract,
   })

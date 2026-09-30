@@ -21,12 +21,12 @@
 
 import type { Megabytes } from '../../contracts/megabytes/megabytes-contract';
 import type { EpochMs } from '../../contracts/epoch-ms/epoch-ms-contract';
-import type { InstanceId } from '../../contracts/instance-id/instance-id-contract';
 import { profileObservationContract } from '../../contracts/profile-observation/profile-observation-contract';
 import type { ProfileObservation } from '../../contracts/profile-observation/profile-observation-contract';
 import type { ProfilePoolSize } from '../../contracts/profile-pool-size/profile-pool-size-contract';
 import type { SpecHash } from '../../contracts/spec-hash/spec-hash-contract';
 import { profileStatics } from '../../statics/profile/profile-statics';
+import type { SiegeInstance } from '@dungeonmaster/shared/contracts';
 
 export const profileObservationMergeTransformer = ({
   observation,
@@ -37,7 +37,7 @@ export const profileObservationMergeTransformer = ({
   beatAtMs,
 }: {
   observation: ProfileObservation | null;
-  instanceId: InstanceId;
+  instanceId: SiegeInstance['id'];
   specHash: SpecHash;
   poolSize: ProfilePoolSize;
   rssMB: Megabytes;

@@ -15,13 +15,13 @@ import { tmpdir } from '#gateway/node/os';
 import { join } from '#gateway/node/path';
 import { locationsStatics } from '@dungeonmaster/shared/statics';
 import { absoluteFilePathContract, type AbsoluteFilePath } from '@dungeonmaster/shared/contracts';
-import type { InstanceId } from '../../../contracts/instance-id/instance-id-contract';
 import { evidenceFileStatics } from '../../../statics/evidence-file/evidence-file-statics';
+import type { SiegeInstance } from '@dungeonmaster/shared/contracts';
 
 export const locationsSocketPathFindBroker = ({
   instanceId,
 }: {
-  instanceId: InstanceId;
+  instanceId: SiegeInstance['id'];
 }): AbsoluteFilePath => {
   const tmpDir = tmpdir();
 

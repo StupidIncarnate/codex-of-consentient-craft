@@ -44,7 +44,7 @@ import { PNG } from '#gateway/npm/pngjs';
 import { installTestbedCreateBroker } from '@dungeonmaster/testing';
 import { ContentTextStub } from '@dungeonmaster/shared/contracts/content-text/content-text.stub';
 import { ProcessIdStub } from '@dungeonmaster/shared/contracts/process-id/process-id.stub';
-import type { AbsoluteFilePath, ContentText } from '@dungeonmaster/shared/contracts';
+import type { AbsoluteFilePath, ContentText, SiegeInstance } from '@dungeonmaster/shared/contracts';
 import { locationsStatics } from '@dungeonmaster/shared/statics';
 
 import { cleanupRunBroker } from '../../../src/brokers/cleanup/run/cleanup-run-broker';
@@ -79,7 +79,6 @@ import type { BlankReading } from '../../../src/contracts/blank-reading/blank-re
 import type { CleanupAnswer } from '../../../src/contracts/cleanup-answer/cleanup-answer-contract';
 import type { CompareAnswer } from '../../../src/contracts/compare-answer/compare-answer-contract';
 import type { CompareQuery } from '../../../src/contracts/compare-query/compare-query-contract';
-import type { InstanceId } from '../../../src/contracts/instance-id/instance-id-contract';
 import type { PixelChange } from '../../../src/contracts/pixel-change/pixel-change-contract';
 import type { ProcessGroupId } from '../../../src/contracts/process-group-id/process-group-id-contract';
 import type { Registry } from '../../../src/contracts/registry/registry-contract';
@@ -182,10 +181,10 @@ const SERVER_LINE_RUN2 = ContentTextStub({ value: '[ERROR] run2 problem' });
 export const evidenceTreeHarness = (): {
   beforeEach: () => Promise<void>;
   afterEach: () => void;
-  killedInstanceId: () => InstanceId;
-  liveInstanceId: () => InstanceId;
-  staleInstanceId: () => InstanceId;
-  unknownInstanceId: () => InstanceId;
+  killedInstanceId: () => SiegeInstance['id'];
+  liveInstanceId: () => SiegeInstance['id'];
+  staleInstanceId: () => SiegeInstance['id'];
+  unknownInstanceId: () => SiegeInstance['id'];
   fakePgid: () => ProcessGroupId;
   runOne: () => RunId;
   runTwo: () => RunId;
@@ -198,7 +197,7 @@ export const evidenceTreeHarness = (): {
   run2Result: () => RunResult;
   run2StoredReturnPath: () => AbsoluteFilePath;
   crashRun2: () => void;
-  addStaleAliveEntry: () => Promise<InstanceId>;
+  addStaleAliveEntry: () => Promise<SiegeInstance['id']>;
   consoleStep2Rows: () => readonly ContentText[];
   consoleRun1ErrorRows: () => readonly ContentText[];
   consoleRun2ErrorRows: () => readonly ContentText[];
@@ -211,7 +210,7 @@ export const evidenceTreeHarness = (): {
   // `brokers/` directly — @dungeonmaster/enforce-import-dependencies — so the suite reaches
   // `results`/`status`/`compare`/`cleanup` and the two shot-measurement brokers through here.
   readResults: (params: { query: ResultsQuery }) => Promise<ResultsAnswer>;
-  readStatus: (params: { instanceId: InstanceId | null }) => Promise<StatusAnswer>;
+  readStatus: (params: { instanceId: SiegeInstance['id'] | null }) => Promise<StatusAnswer>;
   readCompare: (params: { query: CompareQuery }) => Promise<CompareAnswer>;
   runCleanup: () => Promise<CleanupAnswer>;
   readRegistry: () => Promise<Registry>;
@@ -598,7 +597,7 @@ export const evidenceTreeHarness = (): {
     unlinkSync(run2Paths().storedReturn);
   };
 
-  const addStaleAliveEntry = async (): Promise<InstanceId> => {
+  const addStaleAliveEntry = async (): Promise<SiegeInstance['id']> => {
     const evidenceDir = staleInstanceEvidenceDir();
     mkdirSync(evidenceDir, { recursive: true });
 
@@ -692,7 +691,7 @@ export const evidenceTreeHarness = (): {
     networkRun2NonSuccessRows: () => [NETWORK_RUN2_BAD_A, NETWORK_RUN2_BAD_B],
     readResults: async ({ query }: { query: ResultsQuery }): Promise<ResultsAnswer> =>
       resultsReadBroker({ query }),
-    readStatus: async ({ instanceId }: { instanceId: InstanceId | null }): Promise<StatusAnswer> =>
+    readStatus: async ({ instanceId }: { instanceId: SiegeInstance['id'] | null }): Promise<StatusAnswer> =>
       statusReadBroker({ instanceId }),
     readCompare: async ({ query }: { query: CompareQuery }): Promise<CompareAnswer> =>
       compareReadBroker({ query }),

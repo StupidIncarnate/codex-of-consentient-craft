@@ -20,16 +20,16 @@ import { stdout } from '#gateway/node/process';
 
 import { instanceKillBroker } from '../../../brokers/instance/kill/instance-kill-broker';
 import { registryReadBroker } from '../../../brokers/registry/read/registry-read-broker';
-import type { InstanceId } from '../../../contracts/instance-id/instance-id-contract';
 import { InstanceUnknownError } from '../../../errors/instance-unknown/instance-unknown-error';
 import { siegelenseOutputStatics } from '../../../statics/siegelense-output/siegelense-output-statics';
 import { killAnswerRenderTransformer } from '../../../transformers/kill-answer-render/kill-answer-render-transformer';
+import type { SiegeInstance } from '@dungeonmaster/shared/contracts';
 
 export const SiegelenseKillResponder = async ({
   instanceId,
   isJson = false,
 }: {
-  instanceId: InstanceId;
+  instanceId: SiegeInstance['id'];
   isJson?: boolean | undefined;
 }): Promise<void> => {
   const registry = await registryReadBroker();

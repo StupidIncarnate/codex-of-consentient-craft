@@ -33,7 +33,6 @@ import { contentTextContract } from '@dungeonmaster/shared/contracts';
 
 import { driverSocketRequestBroker } from '../../driver/socket-request/driver-socket-request-broker';
 import { driverRequestContract } from '../../../contracts/driver-request/driver-request-contract';
-import type { InstanceId } from '../../../contracts/instance-id/instance-id-contract';
 import { registryEntryContract } from '../../../contracts/registry-entry/registry-entry-contract';
 import { runRequestContract } from '../../../contracts/run-request/run-request-contract';
 import { runResultContract } from '../../../contracts/run-result/run-result-contract';
@@ -47,13 +46,14 @@ import { locationsSocketPathFindBroker } from '../../locations/socket-path-find/
 import { registryReadBroker } from '../../registry/read/registry-read-broker';
 import { registryUpdateBroker } from '../../registry/update/registry-update-broker';
 import { driverStatics } from '../../../statics/driver/driver-statics';
+import type { SiegeInstance } from '@dungeonmaster/shared/contracts';
 
 export const instanceRunBroker = async ({
   instanceId,
   steps,
   stopOn,
 }: {
-  instanceId: InstanceId;
+  instanceId: SiegeInstance['id'];
   steps: readonly Step[];
   stopOn: StopOn;
 }): Promise<RunResult> => {

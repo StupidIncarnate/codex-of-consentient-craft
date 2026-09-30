@@ -20,16 +20,16 @@ import { stdout } from '#gateway/node/process';
 import { registryReadBroker } from '../../../brokers/registry/read/registry-read-broker';
 import { snapshotListBroker } from '../../../brokers/snapshot/list/snapshot-list-broker';
 import { epochMsContract } from '../../../contracts/epoch-ms/epoch-ms-contract';
-import type { InstanceId } from '../../../contracts/instance-id/instance-id-contract';
 import { InstanceUnknownError } from '../../../errors/instance-unknown/instance-unknown-error';
 import { siegelenseOutputStatics } from '../../../statics/siegelense-output/siegelense-output-statics';
 import { snapshotsAnswerRenderTransformer } from '../../../transformers/snapshots-answer-render/snapshots-answer-render-transformer';
+import type { SiegeInstance } from '@dungeonmaster/shared/contracts';
 
 export const SiegelenseSnapshotsResponder = async ({
   instanceId,
   isJson = false,
 }: {
-  instanceId: InstanceId;
+  instanceId: SiegeInstance['id'];
   isJson?: boolean | undefined;
 }): Promise<void> => {
   const registry = await registryReadBroker();

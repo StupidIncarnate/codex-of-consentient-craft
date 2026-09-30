@@ -15,19 +15,18 @@
 import { join } from '#gateway/node/path';
 import { readFileIfExists } from '#gateway/node/fs__promises';
 import { absoluteFilePathContract } from '@dungeonmaster/shared/contracts';
-import type { Guild } from '@dungeonmaster/shared/contracts';
+import type { Guild, SiegeInstance } from '@dungeonmaster/shared/contracts';
 import { locationsStatics } from '@dungeonmaster/shared/statics';
 
 import { instanceHeartbeatContract } from '../../../contracts/instance-heartbeat/instance-heartbeat-contract';
 import type { InstanceHeartbeat } from '../../../contracts/instance-heartbeat/instance-heartbeat-contract';
-import type { InstanceId } from '../../../contracts/instance-id/instance-id-contract';
 import { locationsInstanceEvidencePathFindBroker } from '../../locations/instance-evidence-path-find/locations-instance-evidence-path-find-broker';
 
 export const heartbeatReadBroker = async ({
   instanceId,
   guildId,
 }: {
-  instanceId: InstanceId;
+  instanceId: SiegeInstance['id'];
   guildId: Guild['id'] | null;
 }): Promise<InstanceHeartbeat | null> => {
   const evidenceDir = locationsInstanceEvidencePathFindBroker({ instanceId, guildId });

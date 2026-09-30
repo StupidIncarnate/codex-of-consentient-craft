@@ -13,13 +13,12 @@
 
 import { z } from '#gateway/npm/zod';
 
-import { contentTextContract } from '@dungeonmaster/shared/contracts';
+import { contentTextContract, siegeInstanceContract } from '@dungeonmaster/shared/contracts';
 
-import { instanceIdContract } from '../instance-id/instance-id-contract';
 
 export const statusArgsContract = z
   .object({
-    instanceId: instanceIdContract.nullable(),
+    instanceId: siegeInstanceContract.shape.id.nullable(),
     branch: contentTextContract.nullable().optional(),
     since: z.enum(['1h', '6h', '1d', 'beginning']).nullable().optional(),
     isJson: z.boolean(),

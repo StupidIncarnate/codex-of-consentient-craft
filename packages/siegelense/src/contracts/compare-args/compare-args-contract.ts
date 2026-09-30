@@ -12,12 +12,12 @@
 
 import { z } from '#gateway/npm/zod';
 
-import { instanceIdContract } from '../instance-id/instance-id-contract';
 import { runIdContract } from '../run-id/run-id-contract';
+import { siegeInstanceContract } from '@dungeonmaster/shared/contracts';
 
 export const compareArgsContract = z
   .object({
-    instanceId: instanceIdContract,
+    instanceId: siegeInstanceContract.shape.id,
     runA: runIdContract,
     runB: runIdContract,
     isJson: z.boolean().default(false),

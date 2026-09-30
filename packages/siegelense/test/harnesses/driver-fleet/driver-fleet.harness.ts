@@ -24,12 +24,7 @@ import { kill, setEnv, stderr } from '#gateway/node/process';
 import { join, resolve as resolvePath } from '#gateway/node/path';
 import { setTimeout } from '#gateway/node/setTimeout';
 
-import type {
-  AbsoluteFilePath,
-  NetworkPort,
-  ProcessId,
-  TimeoutMs,
-} from '@dungeonmaster/shared/contracts';
+import type { AbsoluteFilePath, NetworkPort, ProcessId, TimeoutMs, SiegeInstance } from '@dungeonmaster/shared/contracts';
 import { locationsStatics } from '@dungeonmaster/shared/statics';
 import { configDefaultsStatics } from '@dungeonmaster/config';
 import { DungeonmasterConfigStub } from '@dungeonmaster/config/contracts/dungeonmaster-config/dungeonmaster-config.stub';
@@ -45,7 +40,6 @@ import { driverSocketRequestBroker } from '../../../src/brokers/driver/socket-re
 import { processIsAliveBroker } from '../../../src/brokers/process/is-alive/process-is-alive-broker';
 import { processKillGroupBroker } from '../../../src/brokers/process/kill-group/process-kill-group-broker';
 import { DriverRequestStub } from '../../../src/contracts/driver-request/driver-request.stub';
-import type { InstanceId } from '../../../src/contracts/instance-id/instance-id-contract';
 import type { InstanceManifest } from '../../../src/contracts/instance-manifest/instance-manifest-contract';
 import type { KillResult } from '../../../src/contracts/kill-result/kill-result-contract';
 import { ProcessGroupIdStub } from '../../../src/contracts/process-group-id/process-group-id.stub';
@@ -107,16 +101,16 @@ export const driverFleetHarness = (): {
   ensureHomeReady: (params: { home: string }) => void;
   configureApiLane: (params: { configDir: string }) => void;
   boot: (params: { specName: SpecName; idleTimeoutMs?: TimeoutMs }) => Promise<InstanceManifest>;
-  killViaBroker: (params: { instanceId: InstanceId }) => Promise<KillResult>;
+  killViaBroker: (params: { instanceId: SiegeInstance['id'] }) => Promise<KillResult>;
   sigkillDriverPid: (params: { pid: ProcessId }) => void;
-  registryEntry: (params: { instanceId: InstanceId }) => Promise<RegistryEntry | undefined>;
-  pingSocket: (params: { instanceId: InstanceId }) => Promise<boolean>;
+  registryEntry: (params: { instanceId: SiegeInstance['id'] }) => Promise<RegistryEntry | undefined>;
+  pingSocket: (params: { instanceId: SiegeInstance['id'] }) => Promise<boolean>;
   isGroupAlive: (params: { pgid: ProcessGroupId }) => boolean;
   isPortFree: (params: { port: NetworkPort }) => Promise<boolean>;
-  heartbeatPgids: (params: { instanceId: InstanceId }) => readonly ProcessGroupId[];
-  heartbeatExists: (params: { instanceId: InstanceId }) => boolean;
+  heartbeatPgids: (params: { instanceId: SiegeInstance['id'] }) => readonly ProcessGroupId[];
+  heartbeatExists: (params: { instanceId: SiegeInstance['id'] }) => boolean;
   waitForHeartbeatPgids: (params: {
-    instanceId: InstanceId;
+    instanceId: SiegeInstance['id'];
     deadlineMs: number;
   }) => Promise<readonly ProcessGroupId[]>;
   waitForDriverProcessExit: (params: { pid: ProcessId; deadlineMs: number }) => Promise<boolean>;
@@ -125,15 +119,15 @@ export const driverFleetHarness = (): {
     deadlineMs: number;
   }) => Promise<boolean>;
   waitForShutdownReason: (params: {
-    instanceId: InstanceId;
+    instanceId: SiegeInstance['id'];
     deadlineMs: number;
   }) => Promise<boolean>;
-  evidenceDirExists: (params: { instanceId: InstanceId }) => boolean;
-  apiLogExists: (params: { instanceId: InstanceId }) => boolean;
-  homeDirExists: (params: { instanceId: InstanceId }) => boolean;
+  evidenceDirExists: (params: { instanceId: SiegeInstance['id'] }) => boolean;
+  apiLogExists: (params: { instanceId: SiegeInstance['id'] }) => boolean;
+  homeDirExists: (params: { instanceId: SiegeInstance['id'] }) => boolean;
   afterAll: () => Promise<void>;
 } => {
-  const trackedInstanceIds = new Set<InstanceId>();
+  const trackedInstanceIds = new Set<SiegeInstance['id']>();
 
   // Stopgap for a confirmed, separately-owned gap: a fresh DUNGEONMASTER_HOME has no `siegelense/`
   // directory yet — `dungeonmaster init`'s InstallLinkCreateResponder is what normally creates it,
@@ -175,7 +169,7 @@ export const driverFleetHarness = (): {
     writeFileSync(`${configDir}/.dungeonmaster.json`, JSON.stringify(config));
   };
 
-  const evidenceDir = ({ instanceId }: { instanceId: InstanceId }): AbsoluteFilePath =>
+  const evidenceDir = ({ instanceId }: { instanceId: SiegeInstance['id'] }): AbsoluteFilePath =>
     locationsInstanceEvidencePathFindBroker({ instanceId, guildId: null });
 
   const boot = async ({
@@ -203,7 +197,7 @@ export const driverFleetHarness = (): {
     return manifest;
   };
 
-  const killViaBroker = async ({ instanceId }: { instanceId: InstanceId }): Promise<KillResult> =>
+  const killViaBroker = async ({ instanceId }: { instanceId: SiegeInstance['id'] }): Promise<KillResult> =>
     instanceKillBroker({ instanceId });
 
   const sigkillDriverPid = ({ pid }: { pid: ProcessId }): void => {
@@ -213,13 +207,13 @@ export const driverFleetHarness = (): {
   const registryEntry = async ({
     instanceId,
   }: {
-    instanceId: InstanceId;
+    instanceId: SiegeInstance['id'];
   }): Promise<RegistryEntry | undefined> => {
     const registry = await registryReadBroker();
     return registry.instances.find((candidate) => candidate.id === instanceId);
   };
 
-  const pingSocket = async ({ instanceId }: { instanceId: InstanceId }): Promise<boolean> => {
+  const pingSocket = async ({ instanceId }: { instanceId: SiegeInstance['id'] }): Promise<boolean> => {
     const entry = await registryEntry({ instanceId });
     const socketPath = entry?.socketPath ?? null;
     if (socketPath === null) {
@@ -244,7 +238,7 @@ export const driverFleetHarness = (): {
   const heartbeatPgids = ({
     instanceId,
   }: {
-    instanceId: InstanceId;
+    instanceId: SiegeInstance['id'];
   }): readonly ProcessGroupId[] => {
     const heartbeatPath = join(evidenceDir({ instanceId }), locationsStatics.siegelense.heartbeat);
 
@@ -263,14 +257,14 @@ export const driverFleetHarness = (): {
       : [];
   };
 
-  const heartbeatExists = ({ instanceId }: { instanceId: InstanceId }): boolean =>
+  const heartbeatExists = ({ instanceId }: { instanceId: SiegeInstance['id'] }): boolean =>
     existsSync(join(evidenceDir({ instanceId }), locationsStatics.siegelense.heartbeat));
 
   const waitForHeartbeatPgids = async ({
     instanceId,
     deadlineMs,
   }: {
-    instanceId: InstanceId;
+    instanceId: SiegeInstance['id'];
     deadlineMs: number;
   }): Promise<readonly ProcessGroupId[]> => {
     const found = heartbeatPgids({ instanceId });
@@ -348,7 +342,7 @@ export const driverFleetHarness = (): {
     instanceId,
     deadlineMs,
   }: {
-    instanceId: InstanceId;
+    instanceId: SiegeInstance['id'];
     deadlineMs: number;
   }): Promise<boolean> => {
     const marker = await shutdownReasonReadBroker({ evidencePath: evidenceDir({ instanceId }) });
@@ -367,16 +361,16 @@ export const driverFleetHarness = (): {
     return waitForShutdownReason({ instanceId, deadlineMs });
   };
 
-  const evidenceDirExists = ({ instanceId }: { instanceId: InstanceId }): boolean =>
+  const evidenceDirExists = ({ instanceId }: { instanceId: SiegeInstance['id'] }): boolean =>
     existsSync(evidenceDir({ instanceId }));
 
-  const apiLogExists = ({ instanceId }: { instanceId: InstanceId }): boolean =>
+  const apiLogExists = ({ instanceId }: { instanceId: SiegeInstance['id'] }): boolean =>
     existsSync(join(evidenceDir({ instanceId }), locationsStatics.siegelense.apiLog));
 
-  const homeDirExists = ({ instanceId }: { instanceId: InstanceId }): boolean =>
+  const homeDirExists = ({ instanceId }: { instanceId: SiegeInstance['id'] }): boolean =>
     existsSync(locationsInstanceHomePathFindBroker({ instanceId }));
 
-  const reapDirectly = async ({ instanceId }: { instanceId: InstanceId }): Promise<void> => {
+  const reapDirectly = async ({ instanceId }: { instanceId: SiegeInstance['id'] }): Promise<void> => {
     const entry = await registryEntry({ instanceId }).catch((error: unknown) => {
       stderr.write(
         `[driver-fleet.harness] registry read failed reaping ${instanceId}: ${String(error)}\n`,

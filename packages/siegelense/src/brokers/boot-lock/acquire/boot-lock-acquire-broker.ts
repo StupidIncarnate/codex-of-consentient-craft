@@ -45,17 +45,17 @@ import { bootLockContract } from '../../../contracts/boot-lock/boot-lock-contrac
 import type { BootLock } from '../../../contracts/boot-lock/boot-lock-contract';
 import { epochMsContract } from '../../../contracts/epoch-ms/epoch-ms-contract';
 import type { EpochMs } from '../../../contracts/epoch-ms/epoch-ms-contract';
-import type { InstanceId } from '../../../contracts/instance-id/instance-id-contract';
 import { instanceLifecycleStatics } from '../../../statics/instance-lifecycle/instance-lifecycle-statics';
 import { BootLockHeldError } from '../../../errors/boot-lock-held/boot-lock-held-error';
 import { processIdContract } from '@dungeonmaster/shared/contracts';
+import type { SiegeInstance } from '@dungeonmaster/shared/contracts';
 
 export const bootLockAcquireBroker = async ({
   instanceId,
   waitStartedAtMs,
   tookOverStaleSoFar,
 }: {
-  instanceId: InstanceId;
+  instanceId: SiegeInstance['id'];
   waitStartedAtMs?: EpochMs;
   tookOverStaleSoFar?: boolean;
 }): Promise<{ lock: BootLock; tookOverStale: boolean }> => {

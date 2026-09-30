@@ -14,12 +14,11 @@
 
 import { z } from '#gateway/npm/zod';
 
-import { contentTextContract } from '@dungeonmaster/shared/contracts';
+import { contentTextContract, siegeInstanceContract } from '@dungeonmaster/shared/contracts';
 
-import { instanceIdContract } from '../instance-id/instance-id-contract';
 
 export const leftAloneContract = z.object({
-  id: instanceIdContract,
+  id: siegeInstanceContract.shape.id,
   why: contentTextContract,
 });
 

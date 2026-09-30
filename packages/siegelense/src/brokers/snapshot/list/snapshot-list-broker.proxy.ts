@@ -14,10 +14,9 @@
  */
 
 import { AbsoluteFilePathStub } from '@dungeonmaster/shared/contracts/absolute-file-path/absolute-file-path.stub';
-import type { AbsoluteFilePath } from '@dungeonmaster/shared/contracts';
+import type { AbsoluteFilePath, SiegeInstance } from '@dungeonmaster/shared/contracts';
 
 import { RegistryStub } from '../../../contracts/registry/registry.stub';
-import type { InstanceId } from '../../../contracts/instance-id/instance-id-contract';
 import type { RegistryEntryStub } from '../../../contracts/registry-entry/registry-entry.stub';
 import type { SnapshotRecordStub } from '../../../contracts/snapshot-record/snapshot-record.stub';
 import { driverStatics } from '../../../statics/driver/driver-statics';
@@ -33,12 +32,12 @@ type SnapshotRecord = ReturnType<typeof SnapshotRecordStub>;
 const TMP_DIR_VALUE = '/tmp';
 
 export const snapshotListBrokerProxy = (): {
-  homePathFor: (params: { instanceId: InstanceId }) => AbsoluteFilePath;
+  homePathFor: (params: { instanceId: SiegeInstance['id'] }) => AbsoluteFilePath;
   setupInstance: (params: { entry: RegistryEntry }) => void;
   setupUnknownInstance: () => void;
   setupNow: (params: { nowMs: number }) => void;
-  setupNoStore: (params: { instanceId: InstanceId }) => void;
-  setupIndex: (params: { instanceId: InstanceId; records: readonly SnapshotRecord[] }) => void;
+  setupNoStore: (params: { instanceId: SiegeInstance['id'] }) => void;
+  setupIndex: (params: { instanceId: SiegeInstance['id']; records: readonly SnapshotRecord[] }) => void;
 } => {
   const instanceStateProxy = instanceStateResolveBrokerProxy();
   // Constructed for enforce-proxy-child-creation. Deliberately NOT given `setupHomePath`, which
@@ -47,7 +46,7 @@ export const snapshotListBrokerProxy = (): {
   const indexReadProxy = snapshotIndexReadBrokerProxy();
 
   return {
-    homePathFor: ({ instanceId }: { instanceId: InstanceId }): AbsoluteFilePath =>
+    homePathFor: ({ instanceId }: { instanceId: SiegeInstance['id'] }): AbsoluteFilePath =>
       AbsoluteFilePathStub({
         value: `${TMP_DIR_VALUE}/${driverStatics.boot.homePrefix}${String(instanceId)}`,
       }),
@@ -65,7 +64,7 @@ export const snapshotListBrokerProxy = (): {
       instanceStateProxy.setupNow({ nowMs });
     },
 
-    setupNoStore: ({ instanceId }: { instanceId: InstanceId }): void => {
+    setupNoStore: ({ instanceId }: { instanceId: SiegeInstance['id'] }): void => {
       indexReadProxy.setupNoIndex({
         homePath: AbsoluteFilePathStub({
           value: `${TMP_DIR_VALUE}/${driverStatics.boot.homePrefix}${String(instanceId)}`,
@@ -77,7 +76,7 @@ export const snapshotListBrokerProxy = (): {
       instanceId,
       records,
     }: {
-      instanceId: InstanceId;
+      instanceId: SiegeInstance['id'];
       records: readonly SnapshotRecord[];
     }): void => {
       indexReadProxy.setupIndex({

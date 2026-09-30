@@ -14,12 +14,12 @@
 import { readFileIfExists, unlink } from '#gateway/node/fs__promises';
 import { locationsBootLockPathFindBroker } from '../../locations/boot-lock-path-find/locations-boot-lock-path-find-broker';
 import { bootLockContract } from '../../../contracts/boot-lock/boot-lock-contract';
-import type { InstanceId } from '../../../contracts/instance-id/instance-id-contract';
+import type { SiegeInstance } from '@dungeonmaster/shared/contracts';
 
 export const bootLockReleaseBroker = async ({
   instanceId,
 }: {
-  instanceId: InstanceId;
+  instanceId: SiegeInstance['id'];
 }): Promise<void> => {
   const bootLockPath = locationsBootLockPathFindBroker();
 

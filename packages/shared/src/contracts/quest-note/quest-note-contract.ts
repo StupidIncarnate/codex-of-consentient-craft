@@ -64,10 +64,10 @@
 import { z } from '#gateway/npm/zod';
 
 import { questNoteKindContract } from '../quest-note-kind/quest-note-kind-contract';
-import { siegeInstanceIdContract } from '../siege-instance-id/siege-instance-id-contract';
 import { siegeRunIdContract } from '../siege-run-id/siege-run-id-contract';
 import { workItemContract } from '../work-item/work-item-contract';
 import { flowContract } from '../flow/flow-contract';
+import { siegeInstanceContract } from '../siege-instance/siege-instance-contract';
 
 export const questNoteContract = z.object({
   id: z.string().min(1).brand<'QuestNoteId'>(),
@@ -96,7 +96,7 @@ export const questNoteContract = z.object({
       'Present when the note is scoped to one verification unit within the flow. Required on a ' +
         '`human-verdict` note, where it names the `verifyByHuman` observable the person judged.',
     ),
-  instanceId: siegeInstanceIdContract
+  instanceId: siegeInstanceContract.shape.id
     .nullish()
     .describe(
       'The siegelense driver instance that walked this path. Present on a `walked` note; absent on ' +

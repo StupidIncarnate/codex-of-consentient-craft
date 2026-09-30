@@ -21,7 +21,6 @@
  */
 
 import { epochMsContract } from '../../../contracts/epoch-ms/epoch-ms-contract';
-import type { InstanceId } from '../../../contracts/instance-id/instance-id-contract';
 import { instanceStateContract } from '../../../contracts/instance-state/instance-state-contract';
 import type { InstanceState } from '../../../contracts/instance-state/instance-state-contract';
 import type { RegistryEntry } from '../../../contracts/registry-entry/registry-entry-contract';
@@ -29,11 +28,12 @@ import { isReservedRegistryEntryGuard } from '../../../guards/is-reserved-regist
 import { isStaleRegistryEntryGuard } from '../../../guards/is-stale-registry-entry/is-stale-registry-entry-guard';
 import { instanceLifecycleStatics } from '../../../statics/instance-lifecycle/instance-lifecycle-statics';
 import { registryReadBroker } from '../../registry/read/registry-read-broker';
+import type { SiegeInstance } from '@dungeonmaster/shared/contracts';
 
 export const instanceStateResolveBroker = async ({
   instanceId,
 }: {
-  instanceId: InstanceId;
+  instanceId: SiegeInstance['id'];
 }): Promise<{ state: InstanceState; entry: RegistryEntry | null }> => {
   const registry = await registryReadBroker();
   const entry = registry.instances.find((candidate) => candidate.id === instanceId) ?? null;

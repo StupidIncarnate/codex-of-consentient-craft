@@ -17,12 +17,12 @@
 
 import { z } from '#gateway/npm/zod';
 
-import { instanceIdContract } from '../instance-id/instance-id-contract';
 import { stepContract } from '../step/step-contract';
 import { stopOnContract } from '../stop-on/stop-on-contract';
+import { siegeInstanceContract } from '@dungeonmaster/shared/contracts';
 
 export const runRequestContract = z.object({
-  instanceId: instanceIdContract,
+  instanceId: siegeInstanceContract.shape.id,
   steps: z.array(stepContract).readonly(),
   stopOn: stopOnContract,
 });

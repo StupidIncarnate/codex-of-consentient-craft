@@ -16,14 +16,13 @@
 
 import { join } from '#gateway/node/path';
 import { absoluteFilePathContract, contentTextContract } from '@dungeonmaster/shared/contracts';
-import type { AbsoluteFilePath } from '@dungeonmaster/shared/contracts';
+import type { AbsoluteFilePath, SiegeInstance } from '@dungeonmaster/shared/contracts';
 
 import { readFile, readdirIfExists } from '#gateway/node/fs__promises';
 import { isNativeError } from '#gateway/node/util__types';
 import { citationKindContract } from '../../../contracts/citation-kind/citation-kind-contract';
 import { citationReferenceContract } from '../../../contracts/citation-reference/citation-reference-contract';
 import type { CitationReference } from '../../../contracts/citation-reference/citation-reference-contract';
-import type { InstanceId } from '../../../contracts/instance-id/instance-id-contract';
 import { runIdContract } from '../../../contracts/run-id/run-id-contract';
 import type { RunId } from '../../../contracts/run-id/run-id-contract';
 import { citationStatics } from '../../../statics/citation/citation-statics';
@@ -36,7 +35,7 @@ export const verifiedPreludeLayerBroker = async ({
   worktreePath,
   runIds,
 }: {
-  instanceId: InstanceId;
+  instanceId: SiegeInstance['id'];
   worktreePath: AbsoluteFilePath;
   runIds: readonly RunId[];
 }): Promise<readonly CitationReference[]> => {

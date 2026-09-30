@@ -354,7 +354,6 @@ export * from './unit-observation/unit-observation-contract';
 // questions, tooling failures, out-of-scope observations, walk resets and walked-path records,
 // none of which close a unit)
 
-export * from './siege-instance-id/siege-instance-id-contract';
 
 export * from './siege-run-id/siege-run-id-contract';
 
@@ -560,3 +559,4 @@ export * from './owner-index-match/owner-index-match-contract';
 export * from './owner-index-usage/owner-index-usage-contract';
 export * from './schema-object-entry/schema-object-entry-contract';
 export * from './agent/agent-contract';
+export * from './siege-instance/siege-instance-contract';

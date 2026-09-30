@@ -16,18 +16,18 @@
  * // Returns a SnapshotsAnswer — the instance's state and its current restore points, oldest first
  */
 
-import type { InstanceId } from '../../../contracts/instance-id/instance-id-contract';
 import { snapshotsAnswerContract } from '../../../contracts/snapshots-answer/snapshots-answer-contract';
 import type { SnapshotsAnswer } from '../../../contracts/snapshots-answer/snapshots-answer-contract';
 import { snapshotIndexCollapseTransformer } from '../../../transformers/snapshot-index-collapse/snapshot-index-collapse-transformer';
 import { instanceStateResolveBroker } from '../../instance/state-resolve/instance-state-resolve-broker';
 import { locationsInstanceHomePathFindBroker } from '../../locations/instance-home-path-find/locations-instance-home-path-find-broker';
 import { snapshotIndexReadBroker } from '../index-read/snapshot-index-read-broker';
+import type { SiegeInstance } from '@dungeonmaster/shared/contracts';
 
 export const snapshotListBroker = async ({
   instanceId,
 }: {
-  instanceId: InstanceId;
+  instanceId: SiegeInstance['id'];
 }): Promise<SnapshotsAnswer> => {
   const { state } = await instanceStateResolveBroker({ instanceId });
 

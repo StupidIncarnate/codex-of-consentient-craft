@@ -45,7 +45,7 @@ import {
   filePathContract,
   packageTypeContract,
 } from '@dungeonmaster/shared/contracts';
-import type { AbsoluteFilePath, ContentText } from '@dungeonmaster/shared/contracts';
+import type { AbsoluteFilePath, ContentText, SiegeInstance } from '@dungeonmaster/shared/contracts';
 
 import { processGroupIdContract } from '../../../contracts/process-group-id/process-group-id-contract';
 import { browserSessionLaunchBroker } from '../../browser-session/launch/browser-session-launch-broker';
@@ -57,7 +57,6 @@ import { isLaneSpecTokenReferencedGuard } from '../../../guards/is-lane-spec-tok
 import { laneEnvSubstituteTransformer } from '../../../transformers/lane-env-substitute/lane-env-substitute-transformer';
 import { laneProcessPortResolveTransformer } from '../../../transformers/lane-process-port-resolve/lane-process-port-resolve-transformer';
 import { lanePlaceholderSubstituteTransformer } from '../../../transformers/lane-placeholder-substitute/lane-placeholder-substitute-transformer';
-import type { InstanceId } from '../../../contracts/instance-id/instance-id-contract';
 import { laneSessionContract } from '../../../contracts/lane-session/lane-session-contract';
 import type { LaneSession } from '../../../contracts/lane-session/lane-session-contract';
 import type { LaneSpec } from '../../../contracts/lane-spec/lane-spec-contract';
@@ -73,7 +72,7 @@ export const laneBootBroker = async ({
 }: {
   spec: LaneSpec;
   ports: PortPair;
-  instanceId: InstanceId;
+  instanceId: SiegeInstance['id'];
   homePath: AbsoluteFilePath;
   evidencePath: AbsoluteFilePath;
 }): Promise<LaneSession> => {

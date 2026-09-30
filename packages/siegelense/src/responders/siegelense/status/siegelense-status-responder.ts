@@ -35,10 +35,10 @@ import { stdout } from '#gateway/node/process';
 
 import { registryReadBroker } from '../../../brokers/registry/read/registry-read-broker';
 import { statusReadBroker } from '../../../brokers/status/read/status-read-broker';
-import type { InstanceId } from '../../../contracts/instance-id/instance-id-contract';
 import { InstanceUnknownError } from '../../../errors/instance-unknown/instance-unknown-error';
 import { siegelenseOutputStatics } from '../../../statics/siegelense-output/siegelense-output-statics';
 import { statusAnswerRenderTransformer } from '../../../transformers/status-answer-render/status-answer-render-transformer';
+import type { SiegeInstance } from '@dungeonmaster/shared/contracts';
 
 export const SiegelenseStatusResponder = async ({
   instanceId,
@@ -46,7 +46,7 @@ export const SiegelenseStatusResponder = async ({
   since = instanceId === null ? '6h' : null,
   isJson = false,
 }: {
-  instanceId: InstanceId | null;
+  instanceId: SiegeInstance['id'] | null;
   branch?: string | null | undefined;
   since?: '1h' | '6h' | '1d' | 'beginning' | null | undefined;
   isJson?: boolean | undefined;

@@ -1,9 +1,8 @@
 import { homedir } from '#gateway/node/os';
 import { registerMock } from '@dungeonmaster/testing/register-mock';
 import { AbsoluteFilePathStub } from '@dungeonmaster/shared/contracts/absolute-file-path/absolute-file-path.stub';
-import type { AbsoluteFilePath, Guild } from '@dungeonmaster/shared/contracts';
+import type { AbsoluteFilePath, Guild, SiegeInstance } from '@dungeonmaster/shared/contracts';
 
-import type { InstanceId } from '../../../contracts/instance-id/instance-id-contract';
 import type { RegistryStub } from '../../../contracts/registry/registry.stub';
 import type { RunId } from '../../../contracts/run-id/run-id-contract';
 import type { RunResultStub } from '../../../contracts/run-result/run-result.stub';
@@ -35,7 +34,7 @@ const ROOT_PATH_VALUE = '/home/user/.dungeonmaster/siegelense';
 
 export const resultsReadBrokerProxy = (): {
   evidencePathFor: (params: {
-    instanceId: InstanceId;
+    instanceId: SiegeInstance['id'];
     guildId?: Guild['id'] | null;
   }) => AbsoluteFilePath;
   setupRegistry: (params: { registry: Registry }) => void;
@@ -83,7 +82,7 @@ export const resultsReadBrokerProxy = (): {
       instanceId,
       guildId = null,
     }: {
-      instanceId: InstanceId;
+      instanceId: SiegeInstance['id'];
       guildId?: Guild['id'] | null;
     }): AbsoluteFilePath => {
       const partition =

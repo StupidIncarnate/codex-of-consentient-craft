@@ -38,14 +38,13 @@ import { now } from '#gateway/node/Date';
 import { join } from '#gateway/node/path';
 import { stderr } from '#gateway/node/process';
 import { absoluteFilePathContract, fileContentsContract } from '@dungeonmaster/shared/contracts';
-import type { ProcessId, Guild } from '@dungeonmaster/shared/contracts';
+import type { ProcessId, Guild, SiegeInstance } from '@dungeonmaster/shared/contracts';
 import { locationsStatics } from '@dungeonmaster/shared/statics';
 
 import { writeFile } from '#gateway/node/fs__promises';
 import { epochMsContract } from '../../../contracts/epoch-ms/epoch-ms-contract';
 import { instanceHeartbeatContract } from '../../../contracts/instance-heartbeat/instance-heartbeat-contract';
 import type { InstanceHeartbeat } from '../../../contracts/instance-heartbeat/instance-heartbeat-contract';
-import type { InstanceId } from '../../../contracts/instance-id/instance-id-contract';
 import type { Megabytes } from '../../../contracts/megabytes/megabytes-contract';
 import type { ProcessGroupId } from '../../../contracts/process-group-id/process-group-id-contract';
 import { locationsInstanceEvidencePathFindBroker } from '../../locations/instance-evidence-path-find/locations-instance-evidence-path-find-broker';
@@ -58,7 +57,7 @@ export const heartbeatWriteBroker = async ({
   pgids,
   guildId,
 }: {
-  instanceId: InstanceId;
+  instanceId: SiegeInstance['id'];
   pid: ProcessId;
   pgids: readonly ProcessGroupId[];
   guildId: Guild['id'] | null;

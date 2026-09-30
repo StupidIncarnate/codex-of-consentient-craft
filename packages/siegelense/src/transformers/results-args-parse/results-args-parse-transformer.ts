@@ -31,10 +31,9 @@
  * //   kind: 'network', where: null, fields: null, since: null, isJson: false }
  */
 
-import { arrayIndexContract, contentTextContract } from '@dungeonmaster/shared/contracts';
+import { arrayIndexContract, contentTextContract, siegeInstanceContract } from '@dungeonmaster/shared/contracts';
 
 import { httpMethodContract } from '../../contracts/http-method/http-method-contract';
-import { instanceIdContract } from '../../contracts/instance-id/instance-id-contract';
 import { logLevelContract } from '../../contracts/log-level/log-level-contract';
 import { resultFieldContract } from '../../contracts/result-field/result-field-contract';
 import { resultKindContract } from '../../contracts/result-kind/result-kind-contract';
@@ -155,7 +154,7 @@ export const resultsArgsParseTransformer = ({ args }: { args: readonly string[] 
   return resultsArgsContract.parse({
     instanceId: flagContractParseTransformer({
       flag: INSTANCE_FLAG,
-      parse: () => instanceIdContract.parse(instanceValue),
+      parse: () => siegeInstanceContract.shape.id.parse(instanceValue),
     }),
     runId:
       runValue === null

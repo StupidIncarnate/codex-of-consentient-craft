@@ -26,11 +26,10 @@
 
 import { z } from '#gateway/npm/zod';
 
-import { contentTextContract } from '@dungeonmaster/shared/contracts';
+import { contentTextContract, siegeInstanceContract } from '@dungeonmaster/shared/contracts';
 
 import { elapsedTextContract } from '../elapsed-text/elapsed-text-contract';
 import { instanceEvidenceListingContract } from '../instance-evidence-listing/instance-evidence-listing-contract';
-import { instanceIdContract } from '../instance-id/instance-id-contract';
 import { instanceStateContract } from '../instance-state/instance-state-contract';
 import { lastStepReadingContract } from '../last-step-reading/last-step-reading-contract';
 import { megabytesContract } from '../megabytes/megabytes-contract';
@@ -39,7 +38,7 @@ import { readingCountContract } from '../reading-count/reading-count-contract';
 import { specNameContract } from '../spec-name/spec-name-contract';
 
 export const instanceStatusContract = z.object({
-  id: instanceIdContract,
+  id: siegeInstanceContract.shape.id,
   state: instanceStateContract,
   specName: specNameContract,
   uptime: elapsedTextContract.nullable(),

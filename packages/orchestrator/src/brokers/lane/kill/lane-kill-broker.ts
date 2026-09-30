@@ -19,7 +19,7 @@
  */
 
 import { filePathContract } from '@dungeonmaster/shared/contracts';
-import type { SiegeInstanceId } from '@dungeonmaster/shared/contracts';
+import type { SiegeInstance } from '@dungeonmaster/shared/contracts';
 import { dynamicImport } from '#gateway/node/module';
 
 import { laneKillResultContract } from '../../../contracts/lane-kill-result/lane-kill-result-contract';
@@ -31,7 +31,7 @@ const SIEGELENSE_BROKERS_MODULE_NAME = '@dungeonmaster/siegelense/brokers';
 export const laneKillBroker = async ({
   instanceId,
 }: {
-  instanceId: SiegeInstanceId;
+  instanceId: SiegeInstance['id'];
 }): Promise<LaneKillResult> => {
   const modulePath = filePathContract.parse(require.resolve(SIEGELENSE_BROKERS_MODULE_NAME));
 

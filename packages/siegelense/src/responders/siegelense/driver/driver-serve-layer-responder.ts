@@ -57,7 +57,7 @@ import { unixSocketServe } from '#gateway/node/net';
 import { on, stderr } from '#gateway/node/process';
 import { setInterval } from '#gateway/node/setInterval';
 import { contentTextContract } from '@dungeonmaster/shared/contracts';
-import type { TimeoutMs, Guild } from '@dungeonmaster/shared/contracts';
+import type { TimeoutMs, Guild, SiegeInstance } from '@dungeonmaster/shared/contracts';
 
 import { driverHandleRequestBroker } from '../../../brokers/driver/handle-request/driver-handle-request-broker';
 import { driverHeartbeatTickBroker } from '../../../brokers/driver/heartbeat-tick/driver-heartbeat-tick-broker';
@@ -69,7 +69,6 @@ import { shutdownReasonWriteBroker } from '../../../brokers/shutdown-reason/writ
 import { driverRequestContract } from '../../../contracts/driver-request/driver-request-contract';
 import type { DriverRequest } from '../../../contracts/driver-request/driver-request-contract';
 import { driverResponseContract } from '../../../contracts/driver-response/driver-response-contract';
-import type { InstanceId } from '../../../contracts/instance-id/instance-id-contract';
 import type { LaneSession } from '../../../contracts/lane-session/lane-session-contract';
 import { driverSessionState } from '../../../state/driver-session/driver-session-state';
 import { driverStatics } from '../../../statics/driver/driver-statics';
@@ -86,7 +85,7 @@ export const DriverServeLayerResponder = async ({
   lane,
   idleTimeoutMs,
 }: {
-  instanceId: InstanceId;
+  instanceId: SiegeInstance['id'];
   guildId: Guild['id'] | null;
   lane: LaneSession;
   idleTimeoutMs?: TimeoutMs;

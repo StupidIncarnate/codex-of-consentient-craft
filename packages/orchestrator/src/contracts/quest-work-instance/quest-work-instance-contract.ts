@@ -24,14 +24,10 @@
 
 import { z } from '#gateway/npm/zod';
 
-import {
-  absoluteFilePathContract,
-  filePathContract,
-  siegeInstanceIdContract,
-} from '@dungeonmaster/shared/contracts';
+import { absoluteFilePathContract, filePathContract, siegeInstanceContract } from '@dungeonmaster/shared/contracts';
 
 export const questWorkInstanceContract = z.object({
-  instanceId: siegeInstanceIdContract,
+  instanceId: siegeInstanceContract.shape.id,
   baseUrl: z.string().min(1).brand<'InstanceBaseUrl'>().nullable(),
   apiUrl: z.string().min(1).brand<'InstanceApiUrl'>().nullable(),
   home: absoluteFilePathContract,

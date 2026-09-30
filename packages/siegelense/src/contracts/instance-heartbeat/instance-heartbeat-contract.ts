@@ -23,15 +23,14 @@
 
 import { z } from '#gateway/npm/zod';
 
-import { processIdContract } from '@dungeonmaster/shared/contracts';
+import { processIdContract, siegeInstanceContract } from '@dungeonmaster/shared/contracts';
 
 import { epochMsContract } from '../epoch-ms/epoch-ms-contract';
-import { instanceIdContract } from '../instance-id/instance-id-contract';
 import { megabytesContract } from '../megabytes/megabytes-contract';
 import { processGroupIdContract } from '../process-group-id/process-group-id-contract';
 
 export const instanceHeartbeatContract = z.object({
-  instanceId: instanceIdContract,
+  instanceId: siegeInstanceContract.shape.id,
   pid: processIdContract,
   pgids: z.array(processGroupIdContract).readonly(),
   beatAtMs: epochMsContract,

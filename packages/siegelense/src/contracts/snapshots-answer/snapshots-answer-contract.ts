@@ -17,13 +17,13 @@
 
 import { z } from '#gateway/npm/zod';
 
-import { instanceIdContract } from '../instance-id/instance-id-contract';
 import { instanceStateContract } from '../instance-state/instance-state-contract';
 import { snapshotRecordContract } from '../snapshot-record/snapshot-record-contract';
+import { siegeInstanceContract } from '@dungeonmaster/shared/contracts';
 
 export const snapshotsAnswerContract = z
   .object({
-    instanceId: instanceIdContract,
+    instanceId: siegeInstanceContract.shape.id,
     instanceState: instanceStateContract,
     snapshots: z.array(snapshotRecordContract).readonly(),
   })

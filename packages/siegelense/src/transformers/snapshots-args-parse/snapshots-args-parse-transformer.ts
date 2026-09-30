@@ -14,7 +14,6 @@
  * // Returns { instanceId: 'inst_7f3a9c21' } as SnapshotsArgs
  */
 
-import { instanceIdContract } from '../../contracts/instance-id/instance-id-contract';
 import {
   snapshotsArgsContract,
   type SnapshotsArgs,
@@ -22,6 +21,7 @@ import {
 import { siegelenseOutputStatics } from '../../statics/siegelense-output/siegelense-output-statics';
 import { flagContractParseTransformer } from '../flag-contract-parse/flag-contract-parse-transformer';
 import { flagValueReadTransformer } from '../flag-value-read/flag-value-read-transformer';
+import { siegeInstanceContract } from '@dungeonmaster/shared/contracts';
 
 const INSTANCE_FLAG = '--instance';
 const KNOWN_FLAGS = [INSTANCE_FLAG, siegelenseOutputStatics.flags.json] as const;
@@ -72,7 +72,7 @@ export const snapshotsArgsParseTransformer = ({
   return snapshotsArgsContract.parse({
     instanceId: flagContractParseTransformer({
       flag: INSTANCE_FLAG,
-      parse: () => instanceIdContract.parse(rawInstanceId),
+      parse: () => siegeInstanceContract.shape.id.parse(rawInstanceId),
     }),
     isJson: args.includes(siegelenseOutputStatics.flags.json),
   });

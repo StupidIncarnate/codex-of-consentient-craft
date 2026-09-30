@@ -39,9 +39,8 @@
  */
 
 import { contentTextContract } from '@dungeonmaster/shared/contracts';
-import type { ContentText } from '@dungeonmaster/shared/contracts';
+import type { ContentText, SiegeInstance } from '@dungeonmaster/shared/contracts';
 
-import type { InstanceId } from '../../contracts/instance-id/instance-id-contract';
 import type { StatusAnswer } from '../../contracts/status-answer/status-answer-contract';
 import { statusTableStatics } from '../../statics/status-table/status-table-statics';
 
@@ -52,7 +51,7 @@ export const statusAnswerRenderTransformer = ({
   since = null,
 }: {
   answer: StatusAnswer;
-  instanceId: InstanceId | null;
+  instanceId: SiegeInstance['id'] | null;
   branch?: string | null;
   since?: '1h' | '6h' | '1d' | 'beginning' | null;
 }): ContentText => {

@@ -18,10 +18,9 @@
  */
 
 import { fileContentsContract } from '@dungeonmaster/shared/contracts';
-import type { AbsoluteFilePath, FileContents } from '@dungeonmaster/shared/contracts';
+import type { AbsoluteFilePath, FileContents, SiegeInstance } from '@dungeonmaster/shared/contracts';
 import { readFileIfExists } from '#gateway/node/fs__promises';
 
-import type { InstanceId } from '../../../contracts/instance-id/instance-id-contract';
 import type { RunId } from '../../../contracts/run-id/run-id-contract';
 import { RunMissingError } from '../../../errors/run-missing/run-missing-error';
 
@@ -31,7 +30,7 @@ export const runMissingCheckLayerBroker = async ({
   storedReturnPath,
   transcriptPath,
 }: {
-  instanceId: InstanceId;
+  instanceId: SiegeInstance['id'];
   runId: RunId;
   storedReturnPath: AbsoluteFilePath;
   transcriptPath: AbsoluteFilePath;

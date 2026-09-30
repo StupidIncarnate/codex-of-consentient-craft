@@ -32,17 +32,16 @@
 
 import { z } from '#gateway/npm/zod';
 
-import { contentTextContract } from '@dungeonmaster/shared/contracts';
+import { contentTextContract, siegeInstanceContract } from '@dungeonmaster/shared/contracts';
 
 import { countDeltaContract } from '../count-delta/count-delta-contract';
 import { elementDeltaContract } from '../element-delta/element-delta-contract';
-import { instanceIdContract } from '../instance-id/instance-id-contract';
 import { readingCountContract } from '../reading-count/reading-count-contract';
 import { runIdContract } from '../run-id/run-id-contract';
 
 export const compareAnswerContract = z
   .object({
-    instanceId: instanceIdContract,
+    instanceId: siegeInstanceContract.shape.id,
     runA: runIdContract,
     runB: runIdContract,
     console: z.object({

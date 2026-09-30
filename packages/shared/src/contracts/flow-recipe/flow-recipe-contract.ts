@@ -16,12 +16,12 @@
 
 import { z } from '#gateway/npm/zod';
 
-import { siegeInstanceIdContract } from '../siege-instance-id/siege-instance-id-contract';
 import { siegeRunIdContract } from '../siege-run-id/siege-run-id-contract';
+import { siegeInstanceContract } from '../siege-instance/siege-instance-contract';
 
 export const flowRecipeContract = z.object({
   id: z.string().regex(/^[a-z0-9]+(?:-[a-z0-9]+)*$/u, 'Recipe name must be kebab-case …').brand<'FlowRecipeId'>(),
-  instanceId: siegeInstanceIdContract,
+  instanceId: siegeInstanceContract.shape.id,
   runId: siegeRunIdContract,
 });
 

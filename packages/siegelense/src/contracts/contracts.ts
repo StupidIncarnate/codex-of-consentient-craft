@@ -34,7 +34,6 @@ export * from './boot-lock/boot-lock-contract';
 
 export * from './instance-state/instance-state-contract';
 
-export * from './instance-id/instance-id-contract';
 
 export * from './step/step-contract';
 

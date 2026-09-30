@@ -15,15 +15,15 @@
  * // in the registry
  */
 
-import type { InstanceId } from '../../../contracts/instance-id/instance-id-contract';
 import { registryEntryContract } from '../../../contracts/registry-entry/registry-entry-contract';
 import type { RegistryEntry } from '../../../contracts/registry-entry/registry-entry-contract';
 import { registryUpdateBroker } from '../../registry/update/registry-update-broker';
+import type { SiegeInstance } from '@dungeonmaster/shared/contracts';
 
 export const instanceReleaseBroker = async ({
   instanceId,
 }: {
-  instanceId: InstanceId;
+  instanceId: SiegeInstance['id'];
 }): Promise<RegistryEntry> => {
   const updated = await registryUpdateBroker({
     mutate: (registry) => ({

@@ -44,14 +44,14 @@ import { locationsRepoLinkPathFindBroker } from '../../locations/repo-link-path-
 import { killResultContract } from '../../../contracts/kill-result/kill-result-contract';
 import type { KillResult } from '../../../contracts/kill-result/kill-result-contract';
 import type { LaneSession } from '../../../contracts/lane-session/lane-session-contract';
-import type { InstanceId } from '../../../contracts/instance-id/instance-id-contract';
+import type { SiegeInstance } from '@dungeonmaster/shared/contracts';
 
 export const laneTeardownBroker = async ({
   session,
   instanceId,
 }: {
   session: LaneSession;
-  instanceId: InstanceId;
+  instanceId: SiegeInstance['id'];
 }): Promise<KillResult> => {
   if (session.browser !== null) {
     await session.browser.close().catch((error: unknown) => {

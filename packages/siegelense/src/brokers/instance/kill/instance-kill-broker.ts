@@ -47,13 +47,12 @@ import { join } from '#gateway/node/path';
 import { stderr } from '#gateway/node/process';
 import { setTimeout } from '#gateway/node/setTimeout';
 import { absoluteFilePathContract, contentTextContract } from '@dungeonmaster/shared/contracts';
-import type { ContentText } from '@dungeonmaster/shared/contracts';
+import type { ContentText, SiegeInstance } from '@dungeonmaster/shared/contracts';
 
 import { driverSocketRequestBroker } from '../../driver/socket-request/driver-socket-request-broker';
 import { processIsAliveBroker } from '../../process/is-alive/process-is-alive-broker';
 import { processKillGroupBroker } from '../../process/kill-group/process-kill-group-broker';
 import { driverRequestContract } from '../../../contracts/driver-request/driver-request-contract';
-import type { InstanceId } from '../../../contracts/instance-id/instance-id-contract';
 import { killResultContract } from '../../../contracts/kill-result/kill-result-contract';
 import type { KillResult } from '../../../contracts/kill-result/kill-result-contract';
 import { instanceReleaseBroker } from '../release/instance-release-broker';
@@ -68,7 +67,7 @@ export const instanceKillBroker = async ({
   instanceId,
   reason,
 }: {
-  instanceId: InstanceId;
+  instanceId: SiegeInstance['id'];
   reason?: ContentText;
 }): Promise<KillResult> => {
   const registry = await registryReadBroker();

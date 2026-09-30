@@ -22,12 +22,11 @@
  * // Returns a DriverResponse — ok:true with an empty payload for a ping
  */
 
-import type { AbsoluteFilePath } from '@dungeonmaster/shared/contracts';
+import type { AbsoluteFilePath, SiegeInstance } from '@dungeonmaster/shared/contracts';
 
 import { driverResponseContract } from '../../../contracts/driver-response/driver-response-contract';
 import type { DriverResponse } from '../../../contracts/driver-response/driver-response-contract';
 import type { DriverRequest } from '../../../contracts/driver-request/driver-request-contract';
-import type { InstanceId } from '../../../contracts/instance-id/instance-id-contract';
 import type { LaneSession } from '../../../contracts/lane-session/lane-session-contract';
 import type { ReadingCount } from '../../../contracts/reading-count/reading-count-contract';
 import { runRequestContract } from '../../../contracts/run-request/run-request-contract';
@@ -50,7 +49,7 @@ export const driverHandleRequestBroker = async ({
   setLastShotPath,
 }: {
   request: DriverRequest;
-  instanceId: InstanceId;
+  instanceId: SiegeInstance['id'];
   lane: LaneSession;
   mintRunId: () => RunId;
   flushCursor: () => {

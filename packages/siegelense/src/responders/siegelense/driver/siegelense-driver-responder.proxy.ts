@@ -29,7 +29,7 @@
 import { AbsoluteFilePathStub } from '@dungeonmaster/shared/contracts/absolute-file-path/absolute-file-path.stub';
 import { ContentTextStub } from '@dungeonmaster/shared/contracts/content-text/content-text.stub';
 import { FilePathStub } from '@dungeonmaster/shared/contracts/file-path/file-path.stub';
-import type { AbsoluteFilePath } from '@dungeonmaster/shared/contracts';
+import type { AbsoluteFilePath, SiegeInstance } from '@dungeonmaster/shared/contracts';
 import { locationsStatics } from '@dungeonmaster/shared/statics';
 import { registerMock } from '@dungeonmaster/testing/register-mock';
 import { getPidProxy } from '#gateway/node/process/get-pid/get-pid.proxy';
@@ -52,7 +52,6 @@ import { registryReadBrokerProxy } from '../../../brokers/registry/read/registry
 import { registryUpdateBroker } from '../../../brokers/registry/update/registry-update-broker';
 import { registryUpdateBrokerProxy } from '../../../brokers/registry/update/registry-update-broker.proxy';
 import { EpochMsStub } from '../../../contracts/epoch-ms/epoch-ms.stub';
-import type { InstanceId } from '../../../contracts/instance-id/instance-id-contract';
 import type { LaneSession } from '../../../contracts/lane-session/lane-session-contract';
 import { ReadingCountStub } from '../../../contracts/reading-count/reading-count.stub';
 import type { Registry } from '../../../contracts/registry/registry-contract';
@@ -72,17 +71,17 @@ export const SiegelenseDriverResponderProxy = (): {
   stageRegistryRow: (params: { entry: RegistryEntry }) => void;
   stageEmptyRegistry: () => void;
   stageDriverAlreadyLive: (params: { entry: RegistryEntry }) => void;
-  stageBootSucceeds: (params: { lane: LaneSession; instanceId: InstanceId }) => void;
-  stageBootFails: (params: { error: Error; instanceId: InstanceId }) => void;
+  stageBootSucceeds: (params: { lane: LaneSession; instanceId: SiegeInstance['id'] }) => void;
+  stageBootFails: (params: { error: Error; instanceId: SiegeInstance['id'] }) => void;
   stageBootFailsAndMarkerWriteFails: (params: {
     error: Error;
     markerWriteError: Error;
-    instanceId: InstanceId;
+    instanceId: SiegeInstance['id'];
   }) => void;
   applyRegistryMutate: (params: { current: Registry }) => Registry;
   getServeCallArgs: () => unknown;
-  getExpectedSocketPath: (params: { instanceId: InstanceId }) => AbsoluteFilePath;
-  getExpectedEvidencePath: (params: { instanceId: InstanceId }) => AbsoluteFilePath;
+  getExpectedSocketPath: (params: { instanceId: SiegeInstance['id'] }) => AbsoluteFilePath;
+  getExpectedEvidencePath: (params: { instanceId: SiegeInstance['id'] }) => AbsoluteFilePath;
   getBootLockReleaseCallArgs: () => unknown;
   getBootFailureMarkerWriteCallArgs: () => unknown;
   getRegistryUpdateCallCount: () => ReadingCount;
@@ -154,7 +153,7 @@ export const SiegelenseDriverResponderProxy = (): {
       instanceId,
     }: {
       lane: LaneSession;
-      instanceId: InstanceId;
+      instanceId: SiegeInstance['id'];
     }): void => {
       laneBootHandle.calledWith([{ instanceId }]).resolves(lane);
       registryUpdateHandle
@@ -167,7 +166,7 @@ export const SiegelenseDriverResponderProxy = (): {
       serveHandle.calledWith([{ instanceId }]).resolves({ success: true });
     },
 
-    stageBootFails: ({ error, instanceId }: { error: Error; instanceId: InstanceId }): void => {
+    stageBootFails: ({ error, instanceId }: { error: Error; instanceId: SiegeInstance['id'] }): void => {
       laneBootHandle.calledWith([{ instanceId }]).rejects(error);
       bootLockReleaseHandle.calledWith([{ instanceId }]).resolves({ success: true });
       bootFailureMarkerWriteHandle.calledWith([{ message: error.message }]).resolves({
@@ -183,7 +182,7 @@ export const SiegelenseDriverResponderProxy = (): {
     }: {
       error: Error;
       markerWriteError: Error;
-      instanceId: InstanceId;
+      instanceId: SiegeInstance['id'];
     }): void => {
       laneBootHandle.calledWith([{ instanceId }]).rejects(error);
       bootLockReleaseHandle.calledWith([{ instanceId }]).resolves({ success: true });
@@ -211,7 +210,7 @@ export const SiegelenseDriverResponderProxy = (): {
     // Built independently from the fixed tmp dir, the socket statics and the instance id — never
     // by calling the real `locationsSocketPathFindBroker`, which would make this assertion compare
     // the broker's own output against itself and let a wrong path pass silently.
-    getExpectedSocketPath: ({ instanceId }: { instanceId: InstanceId }): AbsoluteFilePath =>
+    getExpectedSocketPath: ({ instanceId }: { instanceId: SiegeInstance['id'] }): AbsoluteFilePath =>
       AbsoluteFilePathStub({
         value: `${TMP_DIR_VALUE}/${locationsStatics.siegelense.socketsDirName}/${instanceId}${evidenceFileStatics.extensions.socket}`,
       }),
@@ -220,7 +219,7 @@ export const SiegelenseDriverResponderProxy = (): {
     // own default, never overridden here), so the broker's real "unowned" shape —
     // `<rootPath>/unowned/instances/<instanceId>` — is what the unstaged outer join genuinely
     // computes off SHARED_PATH_VALUE (staged as rootPath via setupRootOnly above).
-    getExpectedEvidencePath: ({ instanceId }: { instanceId: InstanceId }): AbsoluteFilePath =>
+    getExpectedEvidencePath: ({ instanceId }: { instanceId: SiegeInstance['id'] }): AbsoluteFilePath =>
       AbsoluteFilePathStub({
         value: `${SHARED_PATH_VALUE}/${locationsStatics.siegelense.unownedDir}/${locationsStatics.siegelense.instancesDir}/${instanceId}`,
       }),

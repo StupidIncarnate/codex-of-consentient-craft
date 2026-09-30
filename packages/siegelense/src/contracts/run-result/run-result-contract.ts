@@ -23,16 +23,16 @@
 
 import { z } from '#gateway/npm/zod';
 
-import { instanceIdContract } from '../instance-id/instance-id-contract';
 import { runIdContract } from '../run-id/run-id-contract';
 import { runIndexContract } from '../run-index/run-index-contract';
 import { runStatusContract } from '../run-status/run-status-contract';
 import { shotListingContract } from '../shot-listing/shot-listing-contract';
 import { stepIndexContract } from '../step-index/step-index-contract';
 import { stoppedAtContract } from '../stopped-at/stopped-at-contract';
+import { siegeInstanceContract } from '@dungeonmaster/shared/contracts';
 
 export const runResultContract = z.object({
-  instanceId: instanceIdContract,
+  instanceId: siegeInstanceContract.shape.id,
   runId: runIdContract,
   status: runStatusContract,
   stepsRun: stepIndexContract,

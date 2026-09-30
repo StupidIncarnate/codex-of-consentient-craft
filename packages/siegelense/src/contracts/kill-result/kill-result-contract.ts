@@ -22,14 +22,13 @@
 
 import { z } from '#gateway/npm/zod';
 
-import { networkPortContract } from '@dungeonmaster/shared/contracts';
+import { networkPortContract, siegeInstanceContract } from '@dungeonmaster/shared/contracts';
 
-import { instanceIdContract } from '../instance-id/instance-id-contract';
 import { processGroupIdContract } from '../process-group-id/process-group-id-contract';
 import { repoLocalPathContract } from '../repo-local-path/repo-local-path-contract';
 
 export const killResultContract = z.object({
-  instanceId: instanceIdContract,
+  instanceId: siegeInstanceContract.shape.id,
   stopped: z.boolean(),
   portsReleased: z.array(networkPortContract).readonly(),
   homeRemoved: z.boolean(),

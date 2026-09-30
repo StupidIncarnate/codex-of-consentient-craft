@@ -61,11 +61,10 @@
 
 import { ensureDir } from '#gateway/node/fs__promises';
 import { stderr } from '#gateway/node/process';
-import type { AbsoluteFilePath, ContentText } from '@dungeonmaster/shared/contracts';
+import type { AbsoluteFilePath, ContentText, SiegeInstance } from '@dungeonmaster/shared/contracts';
 
 import { bufferEntryContract } from '../../../contracts/buffer-entry/buffer-entry-contract';
 import { epochMsContract } from '../../../contracts/epoch-ms/epoch-ms-contract';
-import type { InstanceId } from '../../../contracts/instance-id/instance-id-contract';
 import type { LaneSession } from '../../../contracts/lane-session/lane-session-contract';
 import { readingCountContract } from '../../../contracts/reading-count/reading-count-contract';
 import type { ReadingCount } from '../../../contracts/reading-count/reading-count-contract';
@@ -110,7 +109,7 @@ export const runExecuteBroker = async ({
   setLastShotPath,
 }: {
   lane: LaneSession;
-  instanceId: InstanceId;
+  instanceId: SiegeInstance['id'];
   runId: RunId;
   steps: readonly Step[];
   stopOn: StopOn;

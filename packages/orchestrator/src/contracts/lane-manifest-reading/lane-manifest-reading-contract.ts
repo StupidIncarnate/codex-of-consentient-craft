@@ -22,7 +22,7 @@
 
 import { z } from '#gateway/npm/zod';
 
-import { absoluteFilePathContract, siegeInstanceIdContract } from '@dungeonmaster/shared/contracts';
+import { absoluteFilePathContract, siegeInstanceContract } from '@dungeonmaster/shared/contracts';
 
 const laneManifestLogEntry = z.object({
   path: absoluteFilePathContract,
@@ -30,7 +30,7 @@ const laneManifestLogEntry = z.object({
 });
 
 export const laneManifestReadingContract = z.object({
-  instanceId: siegeInstanceIdContract,
+  instanceId: siegeInstanceContract.shape.id,
   baseUrl: z.string().min(1).brand<'InstanceBaseUrl'>().nullable(),
   // `instanceStartBroker` never sets this field on its returned manifest today, so it arrives as
   // `undefined` rather than an explicit `null` — `.optional()`, not `.nullable()`.

@@ -21,13 +21,12 @@ import { readFileProxy } from '#gateway/node/fs__promises/read-file/read-file.pr
 import { resolve } from '#gateway/node/path';
 import { registerMock, requireActual } from '@dungeonmaster/testing/register-mock';
 import type { RecordedCalls } from '@dungeonmaster/testing/register-mock';
-import type { AbsoluteFilePath } from '@dungeonmaster/shared/contracts';
+import type { AbsoluteFilePath, SiegeInstance } from '@dungeonmaster/shared/contracts';
 
 import { instanceRunBroker } from '../../../brokers/instance/run/instance-run-broker';
 import { instanceRunBrokerProxy } from '../../../brokers/instance/run/instance-run-broker.proxy';
 import { registryReadBroker } from '../../../brokers/registry/read/registry-read-broker';
 import { registryReadBrokerProxy } from '../../../brokers/registry/read/registry-read-broker.proxy';
-import type { InstanceId } from '../../../contracts/instance-id/instance-id-contract';
 import type { RegistryStub } from '../../../contracts/registry/registry.stub';
 import type { RunResultStub } from '../../../contracts/run-result/run-result.stub';
 
@@ -37,7 +36,7 @@ type RunResult = ReturnType<typeof RunResultStub>;
 export const SiegelenseRunResponderProxy = (): {
   stageRegistry: (params: { registry: Registry }) => void;
   stageRunResult: (params: { result: RunResult }) => void;
-  stageRunThrows: (params: { error: Error; instanceId: InstanceId }) => void;
+  stageRunThrows: (params: { error: Error; instanceId: SiegeInstance['id'] }) => void;
   stageStepsFileContent: (params: { filePath: AbsoluteFilePath; content: string }) => void;
   stageStepsFileMissing: (params: { filePath: AbsoluteFilePath; error: Error }) => void;
   getStdoutWrites: () => unknown[];
@@ -67,7 +66,7 @@ export const SiegelenseRunResponderProxy = (): {
       instanceRunHandle.calledWith([{ instanceId: result.instanceId }]).resolves(result);
     },
 
-    stageRunThrows: ({ error, instanceId }: { error: Error; instanceId: InstanceId }): void => {
+    stageRunThrows: ({ error, instanceId }: { error: Error; instanceId: SiegeInstance['id'] }): void => {
       instanceRunHandle.calledWith([{ instanceId }]).rejects(error);
     },
 

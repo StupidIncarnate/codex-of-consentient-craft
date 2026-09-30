@@ -12,8 +12,8 @@
  * // Boots the registry row's lane and blocks for the driver's whole life
  */
 
-import type { InstanceId } from '../../contracts/instance-id/instance-id-contract';
 import { SiegelenseDriverResponder } from '../../responders/siegelense/driver/siegelense-driver-responder';
+import type { SiegeInstance } from '@dungeonmaster/shared/contracts';
 
-export const DriverFlow = async ({ instanceId }: { instanceId: InstanceId }): Promise<void> =>
+export const DriverFlow = async ({ instanceId }: { instanceId: SiegeInstance['id'] }): Promise<void> =>
   SiegelenseDriverResponder({ instanceId });

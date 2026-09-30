@@ -32,7 +32,6 @@ import { stderr } from '#gateway/node/process';
 import { absoluteFilePathContract, fileContentsContract } from '@dungeonmaster/shared/contracts';
 
 import type { EpochMs } from '../../../contracts/epoch-ms/epoch-ms-contract';
-import type { InstanceId } from '../../../contracts/instance-id/instance-id-contract';
 import type { Megabytes } from '../../../contracts/megabytes/megabytes-contract';
 import { profileObservationContract } from '../../../contracts/profile-observation/profile-observation-contract';
 import type { ProfileObservation } from '../../../contracts/profile-observation/profile-observation-contract';
@@ -44,6 +43,7 @@ import { laneSpecFindBroker } from '../../lane-spec/find/lane-spec-find-broker';
 import { laneSpecHashBroker } from '../../lane-spec/hash/lane-spec-hash-broker';
 import { locationsProfileDirsFindBroker } from '../../locations/profile-dirs-find/locations-profile-dirs-find-broker';
 import { registryReadBroker } from '../../registry/read/registry-read-broker';
+import type { SiegeInstance } from '@dungeonmaster/shared/contracts';
 
 const SOLO_POOL_SIZE = 1;
 
@@ -53,7 +53,7 @@ export const profileSampleRecordBroker = async ({
   rssMB,
   beatAtMs,
 }: {
-  instanceId: InstanceId;
+  instanceId: SiegeInstance['id'];
   specName: SpecName;
   rssMB: Megabytes | null;
   beatAtMs: EpochMs;

@@ -17,15 +17,13 @@
  * // Returns one CitationReference per walked note naming this instance, or [] on a closed quest
  */
 
-import type { AbsoluteFilePath, Quest } from '@dungeonmaster/shared/contracts';
-import { contentTextContract } from '@dungeonmaster/shared/contracts';
+import type { AbsoluteFilePath, Quest, SiegeInstance } from '@dungeonmaster/shared/contracts';
+import { contentTextContract, siegeInstanceContract } from '@dungeonmaster/shared/contracts';
 import { questStatusMetadataStatics } from '@dungeonmaster/shared/statics';
 
 import { citationKindContract } from '../../../contracts/citation-kind/citation-kind-contract';
 import { citationReferenceContract } from '../../../contracts/citation-reference/citation-reference-contract';
 import type { CitationReference } from '../../../contracts/citation-reference/citation-reference-contract';
-import { instanceIdContract } from '../../../contracts/instance-id/instance-id-contract';
-import type { InstanceId } from '../../../contracts/instance-id/instance-id-contract';
 import { runIdContract } from '../../../contracts/run-id/run-id-contract';
 import { citationStatics } from '../../../statics/citation/citation-statics';
 
@@ -36,7 +34,7 @@ export const walkedNoteLayerBroker = ({
   quest,
   questFilePath,
 }: {
-  instanceId: InstanceId;
+  instanceId: SiegeInstance['id'];
   quest: Quest;
   questFilePath: AbsoluteFilePath;
 }): readonly CitationReference[] => {
@@ -49,7 +47,7 @@ export const walkedNoteLayerBroker = ({
       return [];
     }
 
-    const noteInstance = instanceIdContract.safeParse(String(note.instanceId));
+    const noteInstance = siegeInstanceContract.shape.id.safeParse(String(note.instanceId));
 
     if (!noteInstance.success || String(noteInstance.data) !== String(instanceId)) {
       return [];

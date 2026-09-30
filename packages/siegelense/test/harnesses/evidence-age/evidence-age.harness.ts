@@ -23,14 +23,13 @@ import { existsSync } from '#gateway/node/fs';
 import { ensureDir, stat, utimes, writeFile } from '#gateway/node/fs__promises';
 
 import { AbsoluteFilePathStub } from '@dungeonmaster/shared/contracts/absolute-file-path/absolute-file-path.stub';
-import type { AbsoluteFilePath } from '@dungeonmaster/shared/contracts';
+import type { AbsoluteFilePath, SiegeInstance } from '@dungeonmaster/shared/contracts';
 
 import { locationsInstanceEvidencePathFindBroker } from '../../../src/brokers/locations/instance-evidence-path-find/locations-instance-evidence-path-find-broker';
 import { registryUpdateBroker } from '../../../src/brokers/registry/update/registry-update-broker';
 import { EpochMsStub } from '../../../src/contracts/epoch-ms/epoch-ms.stub';
 import type { EpochMs } from '../../../src/contracts/epoch-ms/epoch-ms-contract';
 import { InstanceIdStub } from '../../../src/contracts/instance-id/instance-id.stub';
-import type { InstanceId } from '../../../src/contracts/instance-id/instance-id-contract';
 import { InstanceOwnerStub } from '../../../src/contracts/instance-owner/instance-owner.stub';
 import { PortPairStub } from '../../../src/contracts/port-pair/port-pair.stub';
 import { RegistryEntryStub } from '../../../src/contracts/registry-entry/registry-entry.stub';
@@ -51,7 +50,7 @@ export const evidenceAgeHarness = (): {
   mtimeMs: (params: { filePath: AbsoluteFilePath }) => Promise<EpochMs>;
   exists: (params: { filePath: AbsoluteFilePath }) => boolean;
   seedAgingInstance: (params: { daysOld: number }) => Promise<{
-    instanceId: InstanceId;
+    instanceId: SiegeInstance['id'];
     videoPath: AbsoluteFilePath;
     shotPath: AbsoluteFilePath;
   }>;
@@ -83,7 +82,7 @@ export const evidenceAgeHarness = (): {
   }: {
     daysOld: number;
   }): Promise<{
-    instanceId: InstanceId;
+    instanceId: SiegeInstance['id'];
     videoPath: AbsoluteFilePath;
     shotPath: AbsoluteFilePath;
   }> => {

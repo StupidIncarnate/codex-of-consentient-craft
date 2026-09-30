@@ -18,17 +18,17 @@
 
 import { z } from '#gateway/npm/zod';
 
-import { instanceIdContract } from '../instance-id/instance-id-contract';
 import { resultFieldContract } from '../result-field/result-field-contract';
 import { resultKindContract } from '../result-kind/result-kind-contract';
 import { resultWhereContract } from '../result-where/result-where-contract';
 import { runIdContract } from '../run-id/run-id-contract';
 import { sinceMarkerContract } from '../since-marker/since-marker-contract';
 import { stepIndexContract } from '../step-index/step-index-contract';
+import { siegeInstanceContract } from '@dungeonmaster/shared/contracts';
 
 export const resultsArgsContract = z
   .object({
-    instanceId: instanceIdContract,
+    instanceId: siegeInstanceContract.shape.id,
     runId: runIdContract.nullable(),
     step: stepIndexContract.nullable(),
     kind: resultKindContract.nullable(),

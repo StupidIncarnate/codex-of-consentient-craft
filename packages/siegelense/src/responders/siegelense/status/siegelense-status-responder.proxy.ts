@@ -17,16 +17,16 @@ import { statusReadBroker } from '../../../brokers/status/read/status-read-broke
 import { statusReadBrokerProxy } from '../../../brokers/status/read/status-read-broker.proxy';
 import { registryReadBroker } from '../../../brokers/registry/read/registry-read-broker';
 import { registryReadBrokerProxy } from '../../../brokers/registry/read/registry-read-broker.proxy';
-import type { InstanceId } from '../../../contracts/instance-id/instance-id-contract';
 import type { StatusAnswerStub } from '../../../contracts/status-answer/status-answer.stub';
 import type { RegistryStub } from '../../../contracts/registry/registry.stub';
+import type { SiegeInstance } from '@dungeonmaster/shared/contracts';
 
 type StatusAnswer = ReturnType<typeof StatusAnswerStub>;
 type Registry = ReturnType<typeof RegistryStub>;
 
 export const SiegelenseStatusResponderProxy = (): {
   stageRegistry: (params: { registry: Registry }) => void;
-  stageAnswer: (params: { answer: StatusAnswer; instanceId: InstanceId | null }) => void;
+  stageAnswer: (params: { answer: StatusAnswer; instanceId: SiegeInstance['id'] | null }) => void;
   getStdoutWrites: () => unknown[];
 } => {
   // Constructed for enforce-proxy-child-creation only — this proxy stages statusReadBroker
@@ -48,7 +48,7 @@ export const SiegelenseStatusResponderProxy = (): {
       instanceId,
     }: {
       answer: StatusAnswer;
-      instanceId: InstanceId | null;
+      instanceId: SiegeInstance['id'] | null;
     }): void => {
       statusReadHandle.calledWith([{ instanceId }]).resolves(answer);
     },

@@ -31,7 +31,6 @@
  */
 
 import { epochMsContract } from '../../../contracts/epoch-ms/epoch-ms-contract';
-import type { InstanceId } from '../../../contracts/instance-id/instance-id-contract';
 import { instanceStateContract } from '../../../contracts/instance-state/instance-state-contract';
 import type { InstanceState } from '../../../contracts/instance-state/instance-state-contract';
 import { monitoredMetricContract } from '../../../contracts/monitored-metric/monitored-metric-contract';
@@ -44,6 +43,7 @@ import { machineReadBroker } from '../../machine/read/machine-read-broker';
 import { registryReadBroker } from '../../registry/read/registry-read-broker';
 import { machineStatics } from '../../../statics/machine/machine-statics';
 import { instanceEntryLayerBroker } from './instance-entry-layer-broker';
+import type { SiegeInstance } from '@dungeonmaster/shared/contracts';
 
 const SINCE_WINDOWS_MS = {
   '1h': 3_600_000,
@@ -56,7 +56,7 @@ export const statusReadBroker = async ({
   branch = null,
   since = instanceId === null ? '6h' : null,
 }: {
-  instanceId: InstanceId | null;
+  instanceId: SiegeInstance['id'] | null;
   branch?: string | null;
   since?: '1h' | '6h' | '1d' | 'beginning' | null;
 }): Promise<StatusAnswer> => {

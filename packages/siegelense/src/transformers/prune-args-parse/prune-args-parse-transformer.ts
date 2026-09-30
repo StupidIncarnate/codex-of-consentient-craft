@@ -18,7 +18,6 @@
  */
 
 import { elapsedTextContract } from '../../contracts/elapsed-text/elapsed-text-contract';
-import { instanceIdContract } from '../../contracts/instance-id/instance-id-contract';
 import { pruneArgsContract } from '../../contracts/prune-args/prune-args-contract';
 import type { PruneArgs } from '../../contracts/prune-args/prune-args-contract';
 import { pruneAssetKindContract } from '../../contracts/prune-asset-kind/prune-asset-kind-contract';
@@ -28,6 +27,7 @@ import { enumFlagParseTransformer } from '../enum-flag-parse/enum-flag-parse-tra
 import { flagContractParseTransformer } from '../flag-contract-parse/flag-contract-parse-transformer';
 import { flagValueReadTransformer } from '../flag-value-read/flag-value-read-transformer';
 import { pruneOlderThanParseTransformer } from '../prune-older-than-parse/prune-older-than-parse-transformer';
+import { siegeInstanceContract } from '@dungeonmaster/shared/contracts';
 
 const INSTANCE_FLAG = '--instance';
 const KIND_FLAG = '--kind';
@@ -93,7 +93,7 @@ export const pruneArgsParseTransformer = ({ args }: { args: readonly string[] })
           ? null
           : flagContractParseTransformer({
               flag: INSTANCE_FLAG,
-              parse: () => instanceIdContract.parse(instanceValue),
+              parse: () => siegeInstanceContract.shape.id.parse(instanceValue),
             }),
       kind:
         kindValue === null
