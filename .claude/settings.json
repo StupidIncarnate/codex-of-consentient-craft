@@ -6,11 +6,65 @@
   "promptCacheTtl": "1h",
   "subagentPromptCacheTtl": "1h",
   "promptSuggestionEnabled": false,
-  "attribution": {
-    "commit": "Claude'd it up in here!",
-    "pr": ""
-  },
   "hooks": {
+    "PreToolUse": [
+      {
+        "matcher": "Write|Edit|MultiEdit",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "dungeonmaster-pre-edit-lint"
+          }
+        ]
+      },
+      {
+        "matcher": "Bash",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "dungeonmaster-pre-bash"
+          }
+        ]
+      },
+      {
+        "matcher": "Grep|Glob|Search|Find",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "dungeonmaster-pre-search"
+          }
+        ]
+      },
+      {
+        "matcher": "Write",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "dungeonmaster-pre-folder-detail"
+          }
+        ]
+      },
+      {
+        "matcher": "mcp__dungeonmaster__.*",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "dungeonmaster-pre-mcp-caller"
+          }
+        ]
+      }
+    ],
+    "PostToolUse": [
+      {
+        "matcher": "AskUserQuestion",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "dungeonmaster-post-ask-question"
+          }
+        ]
+      }
+    ],
     "SessionStart": [
       {
         "hooks": [
@@ -129,53 +183,6 @@
           {
             "type": "command",
             "command": "dungeonmaster-session-snippet consumerGatewayWrapper"
-          }
-        ]
-      }
-    ],
-    "PreToolUse": [
-      {
-        "matcher": "Write|Edit|MultiEdit",
-        "hooks": [
-          {
-            "type": "command",
-            "command": "dungeonmaster-pre-edit-lint"
-          }
-        ]
-      },
-      {
-        "matcher": "Bash",
-        "hooks": [
-          {
-            "type": "command",
-            "command": "dungeonmaster-pre-bash"
-          }
-        ]
-      },
-      {
-        "matcher": "Grep|Glob|Search|Find",
-        "hooks": [
-          {
-            "type": "command",
-            "command": "dungeonmaster-pre-search"
-          }
-        ]
-      },
-      {
-        "matcher": "Write",
-        "hooks": [
-          {
-            "type": "command",
-            "command": "dungeonmaster-pre-folder-detail"
-          }
-        ]
-      },
-      {
-        "matcher": "mcp__dungeonmaster__.*",
-        "hooks": [
-          {
-            "type": "command",
-            "command": "dungeonmaster-pre-mcp-caller"
           }
         ]
       }
@@ -302,13 +309,12 @@
         ]
       }
     ],
-    "PostToolUse": [
+    "SubagentStop": [
       {
-        "matcher": "AskUserQuestion",
         "hooks": [
           {
             "type": "command",
-            "command": "dungeonmaster-post-ask-question"
+            "command": "dungeonmaster-subagent-stop"
           }
         ]
       }
@@ -319,16 +325,6 @@
           {
             "type": "command",
             "command": "dungeonmaster-worktree-create"
-          }
-        ]
-      }
-    ],
-    "SubagentStop": [
-      {
-        "hooks": [
-          {
-            "type": "command",
-            "command": "dungeonmaster-subagent-stop"
           }
         ]
       }
@@ -418,5 +414,9 @@
     "deny": [
       "Bash(sed:*)"
     ]
+  },
+  "attribution": {
+    "commit": "Claude'd it up in here!",
+    "pr": ""
   }
 }

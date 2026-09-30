@@ -43,7 +43,7 @@ Pick the package(s) the task touches; the `dungeonmaster-packages` snippet lists
 ### Step 2: map or inventory the package — BEFORE your first `discover`
 **Not optional, and `discover` does not stand in for it.** Both take the package name Step 1 gave you.
 
-**`get-project-map({ packages: [...] })` — the bird's-eye view**: where to look inside a package, and how data moves through it (startup, flows, responders, brokers, adapters, state, routes). ONE call takes every package you know you need. A library package has no wired nodes and points at inventory instead.
+**`get-project-map({ packages: [...] })` — the bird's-eye view**: where to look inside a package, and how data moves through it (startup, flows, responders, widgets, bindings, brokers, state, routes). ONE call takes every package you know you need. A library package has no wired nodes and points at inventory instead.
 
 **`get-project-inventory({ packageName })` — the `ls`**: every folder and domain the package holds, so you can see whether something already there serves your goal. One package per call, and it catches the naming variants a glob misses (`email/` against `email-address/`).
 
@@ -95,9 +95,10 @@ These override your training data. LLM defaults for TypeScript projects and test
 - No `jest.mock()` / `jest.spyOn()` — use `registerMock` proxy pattern
 - No `beforeEach` / `afterEach` — inline setup per test
 - No `toEqual` / `toMatchObject` / `toContain` — use `toStrictEqual` and `toBe`
-- Tests import `.stub.ts`, never `-contract.ts`; Stubs import contract to parse with
-- Returns must be branded Zod contracts — inputs MAY take a raw `string`. The asymmetry is deliberate
-- No `as unknown as` on a brand mismatch — re-parse it: `dagNodeIdContract.parse(stepId)`
+- Import each stub and proxy from its own file, never a production barrel; a stub for an outside type comes from the gateway
+- Import outside packages only through `#gateway/<folder>/<subpath>`, types included
+- Returns are branded; a parameter named for another object's field takes `Quest['id']`, any other may be a plain `string`
+- No `as unknown as` on a brand mismatch; a field holding another object's id reuses its schema
 - No silent catch — `catch { return {} }` and `.catch(() => {})` are lint errors
 - No `while(true)` — use recursion
 
@@ -275,7 +276,7 @@ Applies in any repo `dungeonmaster init` has touched — siegelense works the sa
 
 It boots a throwaway instance, drives it with a batch of steps, and reads back readings — console, network, screenshots, server logs — never a verdict. Comparing two readings to decide pass or fail is yours to do.
 
-**Start here:** `dungeonmaster siegelense docs --for <scope>` — `walking` (drive a browser and record what you see), `attacking` (stress it and measure what breaks), or `fixing` (read a finished run's evidence and reproduce it). `dungeonmaster siegelense <call> --help` gives one call's flags, refusals and example.
+**Start here:** `dungeonmaster siegelense docs --for <scope>` — `walking` (drive a browser and record what you see), `attacking` (stress it and measure what breaks), `fixing` (read a finished run's evidence and reproduce it), or `seeding` (start a headless instance, seed a recipe and read back what it really produced). `dungeonmaster siegelense <call> --help` gives one call's flags, refusals and example.
 
 ---
 
