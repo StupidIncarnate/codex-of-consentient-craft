@@ -440,7 +440,6 @@ export * from './repo-root-cwd/repo-root-cwd-contract';
 
 export * from './project-root-cwd/project-root-cwd-contract';
 
-export * from './guild-path-cwd/guild-path-cwd-contract';
 
 
 // Normalized Line Contracts
