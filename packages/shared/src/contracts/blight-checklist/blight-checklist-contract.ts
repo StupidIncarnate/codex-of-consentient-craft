@@ -20,7 +20,6 @@
 
 import { z } from '#gateway/npm/zod';
 
-import { blightChecklistItemIdContract } from '../blight-checklist-item-id/blight-checklist-item-id-contract';
 import { blightChecklistItemContract } from '../blight-checklist-item/blight-checklist-item-contract';
 
 export const blightChecklistContract = z.object({
@@ -36,7 +35,7 @@ export const blightChecklistContract = z.object({
       'Every changed-file/concern unit on this quest diff. THIS is the definition of done, not the changed-file list alone.',
     ),
   remainingItemIds: z
-    .array(blightChecklistItemIdContract)
+    .array(blightChecklistItemContract.shape.id)
     .default([])
     .describe(
       'The units carrying no entry in quest.planningNotes.blightLedger — what a reviewer still has to disposition on this pass.',

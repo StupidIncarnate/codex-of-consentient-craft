@@ -31,13 +31,13 @@
 
 import { z } from '#gateway/npm/zod';
 
-import { blightChecklistItemIdContract } from '../blight-checklist-item-id/blight-checklist-item-id-contract';
 import { blightDispositionContract } from '../blight-disposition/blight-disposition-contract';
 import { repoRelativePathContract } from '../repo-relative-path/repo-relative-path-contract';
 import { workItemContract } from '../work-item/work-item-contract';
+import { blightChecklistItemContract } from '../blight-checklist-item/blight-checklist-item-contract';
 
 export const questBlightLedgerEntryContract = z.object({
-  itemId: blightChecklistItemIdContract,
+  itemId: blightChecklistItemContract.shape.id,
   disposition: blightDispositionContract,
   evidence: z
     .string()

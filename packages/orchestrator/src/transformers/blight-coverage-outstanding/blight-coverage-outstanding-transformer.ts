@@ -17,13 +17,13 @@
  * with NO entry at all, so it can always be driven to empty honestly.
  */
 
-import type { BlightChecklist, BlightChecklistItemId } from '@dungeonmaster/shared/contracts';
+import type { BlightChecklist, BlightChecklistItem } from '@dungeonmaster/shared/contracts';
 
 export const blightCoverageOutstandingTransformer = ({
   checklist,
 }: {
   checklist: BlightChecklist | null;
-}): BlightChecklistItemId[] => {
+}): BlightChecklistItem['id'][] => {
   if (checklist === null) {
     return [];
   }

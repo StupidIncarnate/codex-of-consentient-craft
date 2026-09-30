@@ -24,13 +24,12 @@
 
 import { z } from '#gateway/npm/zod';
 
-import { blightChecklistItemIdContract } from '../blight-checklist-item-id/blight-checklist-item-id-contract';
 import { blightConcernContract } from '../blight-concern/blight-concern-contract';
 import { packageNameContract } from '../package-name/package-name-contract';
 import { repoRelativePathContract } from '../repo-relative-path/repo-relative-path-contract';
 
 export const blightChecklistItemContract = z.object({
-  id: blightChecklistItemIdContract,
+  id: z.string().min(1).brand<'BlightChecklistItemId'>(),
   implPath: repoRelativePathContract,
   concern: blightConcernContract,
   packageName: packageNameContract

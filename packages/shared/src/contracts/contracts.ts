@@ -331,7 +331,6 @@ export * from './blight-concern/blight-concern-contract';
 
 export * from './blight-disposition/blight-disposition-contract';
 
-export * from './blight-checklist-item-id/blight-checklist-item-id-contract';
 
 export * from './blight-checklist-item/blight-checklist-item-contract';
 
