@@ -1,7 +1,6 @@
 import { GuildIdStub } from '@dungeonmaster/shared/contracts/guild-id/guild-id.stub';
 import { QuestIdStub } from '@dungeonmaster/shared/contracts/quest-id/quest-id.stub';
 import { QuestStub } from '@dungeonmaster/shared/contracts/quest/quest.stub';
-import { UrlSlugStub } from '@dungeonmaster/shared/contracts/url-slug/url-slug.stub';
 
 import type { questHydrateBroker } from '../../../brokers/quest/hydrate/quest-hydrate-broker';
 import { orchestrationProcessesState } from '../../../state/orchestration-processes/orchestration-processes-state';
@@ -28,7 +27,7 @@ describe('EnqueueBundledSuiteLayerResponder', () => {
       });
 
       const guildId = GuildIdStub();
-      const guildSlug = UrlSlugStub({ value: 'smoketests' });
+      const guildSlug = 'smoketests';
       const questSource = 'smoketest-mcp';
 
       const result = await EnqueueBundledSuiteLayerResponder({
@@ -73,7 +72,7 @@ describe('EnqueueBundledSuiteLayerResponder', () => {
         quest: QuestStub({ id: hydratedQuestId, status: 'in_progress' }),
       });
 
-      const guildSlug = UrlSlugStub({ value: 'smoketests' });
+      const guildSlug = 'smoketests';
 
       const result = await EnqueueBundledSuiteLayerResponder({
         suite: 'signals',
@@ -110,7 +109,7 @@ describe('EnqueueBundledSuiteLayerResponder', () => {
         suite: 'mcp',
         questSource: 'smoketest-mcp',
         guildId: GuildIdStub(),
-        guildSlug: UrlSlugStub({ value: 'smoketests' }),
+        guildSlug: 'smoketests',
       });
 
       const registered = orchestrationProcessesState.findByQuestId({ questId: hydratedQuestId });
@@ -142,7 +141,7 @@ describe('EnqueueBundledSuiteLayerResponder', () => {
         suite: 'mcp',
         questSource,
         guildId,
-        guildSlug: UrlSlugStub({ value: 'smoketests' }),
+        guildSlug: 'smoketests',
       });
 
       const calls = proxy.getHydrateBrokerCallArgs();

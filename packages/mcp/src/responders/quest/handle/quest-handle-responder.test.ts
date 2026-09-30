@@ -17,7 +17,6 @@ import { QuestSummaryFlowStub } from '@dungeonmaster/shared/contracts/quest-summ
 import { QuestSummaryStub } from '@dungeonmaster/shared/contracts/quest-summary/quest-summary.stub';
 import { QuestSummaryTrackCountsStub } from '@dungeonmaster/shared/contracts/quest-summary-track-counts/quest-summary-track-counts.stub';
 import { ToolingRequirementStub } from '@dungeonmaster/shared/contracts/tooling-requirement/tooling-requirement.stub';
-import { UrlSlugStub } from '@dungeonmaster/shared/contracts/url-slug/url-slug.stub';
 import { questToTextDisplayTransformer } from '@dungeonmaster/shared/transformers';
 import { QuestHandleResponderProxy } from './quest-handle-responder.proxy';
 
@@ -1341,7 +1340,7 @@ describe('QuestHandleResponder', () => {
     it('VALID: {userRequest} => returns { questId, guildSlug } JSON', async () => {
       const proxy = QuestHandleResponderProxy();
       const questId = QuestIdStub({ value: 'aaaaaaaa-1111-4222-9333-444444444444' });
-      const guildSlug = UrlSlugStub({ value: 'my-guild' });
+      const guildSlug = 'my-guild';
       proxy.setupCreateQuestReturns({ userRequest: 'Build the login flow', questId, guildSlug });
 
       const result = await proxy.callResponder({
@@ -1362,7 +1361,7 @@ describe('QuestHandleResponder', () => {
     it('VALID: {userRequest, questType: "bug-hunt"} => returns { questId, guildSlug } JSON', async () => {
       const proxy = QuestHandleResponderProxy();
       const questId = QuestIdStub({ value: 'aaaaaaaa-1111-4222-9333-444444444444' });
-      const guildSlug = UrlSlugStub({ value: 'my-guild' });
+      const guildSlug = 'my-guild';
       proxy.setupCreateQuestReturns({
         userRequest: 'The tool result is not rendering',
         questId,
@@ -1387,7 +1386,7 @@ describe('QuestHandleResponder', () => {
     it('VALID: {userRequest} with a hook-stamped caller in meta => forwards the resolved sessionId to the create-quest adapter', async () => {
       const proxy = QuestHandleResponderProxy();
       const questId = QuestIdStub({ value: 'aaaaaaaa-1111-4222-9333-444444444444' });
-      const guildSlug = UrlSlugStub({ value: 'my-guild' });
+      const guildSlug = 'my-guild';
       proxy.setupCreateQuestReturns({ userRequest: 'Build the login flow', questId, guildSlug });
 
       const result = await proxy.callResponder({

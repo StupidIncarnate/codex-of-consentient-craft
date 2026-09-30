@@ -21,8 +21,8 @@ import {
   nameToUrlSlugTransformer,
 } from '@dungeonmaster/shared/transformers';
 import { ProjectRootNotFoundError } from '@dungeonmaster/shared/errors';
-import type { AddQuestInput, Guild, GuildListItem, QuestType, UrlSlug, Quest, Session } from '@dungeonmaster/shared/contracts';
-import { addQuestInputContract, urlSlugContract } from '@dungeonmaster/shared/contracts';
+import type { AddQuestInput, Guild, GuildListItem, QuestType, Quest, Session } from '@dungeonmaster/shared/contracts';
+import { addQuestInputContract } from '@dungeonmaster/shared/contracts';
 
 import { guildCoversRepoRootGuard } from '../../../guards/guild-covers-repo-root/guild-covers-repo-root-guard';
 import { guildAddBroker } from '../../guild/add/guild-add-broker';
@@ -41,7 +41,7 @@ export const questMcpCreateBroker = async ({
   sessionId?: Session['id'];
 }): Promise<{
   questId: Quest['id'];
-  guildSlug: UrlSlug;
+  guildSlug: string;
 }> => {
   const currentWorkingDirectory = cwd();
 
@@ -88,7 +88,7 @@ export const questMcpCreateBroker = async ({
   }
 
   const guildSlug = selectedGuild.urlSlug
-    ? urlSlugContract.parse(selectedGuild.urlSlug)
+    ? selectedGuild.urlSlug
     : nameToUrlSlugTransformer({ name: selectedGuild.name });
 
   return {

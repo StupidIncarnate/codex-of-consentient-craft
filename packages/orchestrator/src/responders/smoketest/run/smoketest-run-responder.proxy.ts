@@ -1,6 +1,5 @@
 import type { GuildIdStub } from '@dungeonmaster/shared/contracts/guild-id/guild-id.stub';
 import type { QuestIdStub } from '@dungeonmaster/shared/contracts/quest-id/quest-id.stub';
-import type { UrlSlugStub } from '@dungeonmaster/shared/contracts/url-slug/url-slug.stub';
 import { questSourceContract } from '@dungeonmaster/shared/contracts';
 import { GuildStub } from '@dungeonmaster/shared/contracts/guild/guild.stub';
 import type { RecordedCalls } from '@dungeonmaster/testing/register-mock';
@@ -14,7 +13,7 @@ import { EnqueueOrchestrationScenarioLayerResponderProxy } from './enqueue-orche
 
 type GuildId = ReturnType<typeof GuildIdStub>;
 type QuestId = ReturnType<typeof QuestIdStub>;
-type UrlSlug = ReturnType<typeof UrlSlugStub>;
+type UrlSlug = string;
 
 export const SmoketestRunResponderProxy = (): {
   reset: () => void;

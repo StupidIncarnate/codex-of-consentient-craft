@@ -163,7 +163,6 @@ export * from './orchestration-event-type/orchestration-event-type-contract';
 export * from './ws-message/ws-message-contract';
 
 // URL Slug Contracts
-export * from './url-slug/url-slug-contract';
 
 // Guild Contracts
 

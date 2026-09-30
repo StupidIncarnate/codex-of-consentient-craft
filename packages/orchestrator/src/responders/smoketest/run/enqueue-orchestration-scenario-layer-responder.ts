@@ -6,7 +6,7 @@
  * // Returns { questId, guildSlug }.
  */
 
-import type { ProcessId, QuestQueueEntry, QuestSource, UrlSlug, WorkItemRole, Quest, Guild } from '@dungeonmaster/shared/contracts';
+import type { ProcessId, QuestQueueEntry, QuestSource, WorkItemRole, Quest, Guild } from '@dungeonmaster/shared/contracts';
 import { questQueueEntryContract } from '@dungeonmaster/shared/contracts';
 
 import { smoketestListenerEntryContract } from '../../../contracts/smoketest-listener-entry/smoketest-listener-entry-contract';
@@ -36,8 +36,8 @@ export const EnqueueOrchestrationScenarioLayerResponder = async ({
   scenario: SmoketestScenario;
   questSource: QuestSource;
   guildId: Guild['id'];
-  guildSlug: UrlSlug;
-}): Promise<{ questId: Quest['id']; guildSlug: UrlSlug }> => {
+  guildSlug: string;
+}): Promise<{ questId: Quest['id']; guildSlug: string }> => {
   const { blueprint } = scenario;
   const { questId } = await questHydrateBroker({ blueprint, guildId, questSource });
 

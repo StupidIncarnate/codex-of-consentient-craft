@@ -28,7 +28,7 @@
  * />
  */
 
-import type { ChatEntry, OperationItem, RiftcarverResult, UrlSlug, WardResult, WorkItem, Quest, Session } from '@dungeonmaster/shared/contracts';
+import type { ChatEntry, OperationItem, RiftcarverResult, WardResult, WorkItem, Quest, Session } from '@dungeonmaster/shared/contracts';
 import { riftcarverResultContract } from '@dungeonmaster/shared/contracts';
 
 import type { ExecutionRole } from '../../contracts/execution-role/execution-role-contract';
@@ -56,7 +56,7 @@ export interface ExecutionWorkItemRowLayerWidgetProps {
   // Terminal-quest-with-no-operations rendering (see the panel) auto-expands every row so the
   // abandon-early transcript is visible without a click.
   includeSkipped: boolean;
-  guildSlug?: UrlSlug;
+  guildSlug?: string;
   workItemEntries: Map<WorkItem['id'], ChatEntry[]>;
   sessionEntries: Map<Session['id'], ChatEntry[]>;
   // Built once for the whole quest, above the row list — rebuilding it per row would be

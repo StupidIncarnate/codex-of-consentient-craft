@@ -4,7 +4,6 @@
  * The responder's own test calls setupPassthrough.
  */
 
-import type { UrlSlug } from '@dungeonmaster/shared/contracts';
 import type { QuestStub as QuestStubType } from '@dungeonmaster/shared/contracts/quest/quest.stub';
 import { registerModuleMock, requireActual } from '@dungeonmaster/testing/register-mock';
 
@@ -23,7 +22,7 @@ type Quest = ReturnType<typeof QuestStubType>;
 
 export const EnqueueBundledSuiteLayerResponderProxy = (): {
   reset: () => void;
-  setupReturnsRecord: (params: { record: { questId: Quest['id']; guildSlug: UrlSlug } }) => void;
+  setupReturnsRecord: (params: { record: { questId: Quest['id']; guildSlug: string } }) => void;
   setupReturnsNull: () => void;
   setupPassthrough: () => void;
   getCallArgs: () => readonly unknown[][];
@@ -58,7 +57,7 @@ export const EnqueueBundledSuiteLayerResponderProxy = (): {
     setupReturnsRecord: ({
       record,
     }: {
-      record: { questId: Quest['id']; guildSlug: UrlSlug };
+      record: { questId: Quest['id']; guildSlug: string };
     }): void => {
       mocked.mockResolvedValueOnce(record);
     },

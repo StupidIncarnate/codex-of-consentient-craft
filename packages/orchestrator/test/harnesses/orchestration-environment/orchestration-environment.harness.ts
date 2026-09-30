@@ -12,7 +12,7 @@ import * as fs from '#gateway/node/fs';
 import { ensureDir, writeFile } from '#gateway/node/fs__promises';
 import * as path from '#gateway/node/path';
 
-import type { UrlSlug, Quest, Guild } from '@dungeonmaster/shared/contracts';
+import type { Quest, Guild } from '@dungeonmaster/shared/contracts';
 
 import { guildAddBroker } from '../../../src/brokers/guild/add/guild-add-broker';
 import { OrchestrationFlow } from '../../../src/flows/orchestration/orchestration-flow';
@@ -73,7 +73,7 @@ export const orchestrationEnvironmentHarness = (): {
   makeAndChdir: (params: { dir: string }) => { restore: () => void };
   readConfigGuilds: (params: {
     tempDir: string;
-  }) => readonly { name: string; path: string; guildId: Guild['id']; urlSlug: UrlSlug }[];
+  }) => readonly { name: string; path: string; guildId: Guild['id']; urlSlug: string }[];
   questsDirExists: (params: { tempDir: string; guildId: Guild['id'] }) => boolean;
   questFilePersisted: (params: { tempDir: string; guildId: Guild['id']; questId: Quest['id'] }) => {
     exists: boolean;
@@ -205,10 +205,10 @@ export const orchestrationEnvironmentHarness = (): {
       tempDir,
     }: {
       tempDir: string;
-    }): readonly { name: string; path: string; guildId: Guild['id']; urlSlug: UrlSlug }[] => {
+    }): readonly { name: string; path: string; guildId: Guild['id']; urlSlug: string }[] => {
       const raw = fs.readFileSync(path.join(tempDir, 'config.json'));
       const parsed = JSON.parse(raw) as {
-        guilds: { name: string; path: string; id: Guild['id']; urlSlug: UrlSlug }[];
+        guilds: { name: string; path: string; id: Guild['id']; urlSlug: string }[];
       };
       return parsed.guilds.map((guild) => ({
         name: guild.name,

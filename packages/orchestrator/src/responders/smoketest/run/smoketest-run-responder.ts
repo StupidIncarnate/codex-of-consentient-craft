@@ -8,8 +8,8 @@
  */
 
 import { randomUUID } from '#gateway/node/crypto';
-import { questSourceContract, urlSlugContract } from '@dungeonmaster/shared/contracts';
-import type { SmoketestCaseResult, SmoketestSuite, UrlSlug, Quest } from '@dungeonmaster/shared/contracts';
+import { questSourceContract } from '@dungeonmaster/shared/contracts';
+import type { SmoketestCaseResult, SmoketestSuite, Quest } from '@dungeonmaster/shared/contracts';
 import { nameToUrlSlugTransformer } from '@dungeonmaster/shared/transformers';
 
 import {
@@ -34,7 +34,7 @@ export const SmoketestRunResponder = async ({
   startPath: string;
 }): Promise<{
   runId: ActiveSmoketestRun['runId'];
-  enqueued: readonly { questId: Quest['id']; guildSlug: UrlSlug }[];
+  enqueued: readonly { questId: Quest['id']; guildSlug: string }[];
   results: readonly SmoketestCaseResult[];
 }> => {
   if (smoketestRunState.isActive()) {
@@ -50,11 +50,9 @@ export const SmoketestRunResponder = async ({
   try {
     const { guildId } = await smoketestEnsureGuildBroker();
     const guild = await guildGetBroker({ guildId });
-    const guildSlug = urlSlugContract.parse(
-      guild.urlSlug ?? nameToUrlSlugTransformer({ name: guild.name }),
-    );
+    const guildSlug = (guild.urlSlug ?? nameToUrlSlugTransformer({ name: guild.name }));
 
-    const enqueued: { questId: Quest['id']; guildSlug: UrlSlug }[] = [];
+    const enqueued: { questId: Quest['id']; guildSlug: string }[] = [];
 
     if (suite === 'mcp' || suite === 'all') {
       const questSource = questSourceContract.parse('smoketest-mcp');
@@ -89,7 +87,7 @@ export const SmoketestRunResponder = async ({
       await smoketestClearPriorQuestsBroker({ questSource });
 
       const orchRecords = await smoketestCaseCatalogStatics.orchestration.reduce<
-        Promise<readonly { questId: Quest['id']; guildSlug: UrlSlug }[]>
+        Promise<readonly { questId: Quest['id']; guildSlug: string }[]>
       >(
         async (prevPromise, scenarioRaw) => {
           const prev = await prevPromise;
@@ -102,7 +100,7 @@ export const SmoketestRunResponder = async ({
           });
           return [...prev, record];
         },
-        Promise.resolve([] as readonly { questId: Quest['id']; guildSlug: UrlSlug }[]),
+        Promise.resolve([] as readonly { questId: Quest['id']; guildSlug: string }[]),
       );
 
       enqueued.push(...orchRecords);

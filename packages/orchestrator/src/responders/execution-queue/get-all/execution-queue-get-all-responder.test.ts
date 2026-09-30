@@ -2,7 +2,6 @@ import { GuildListItemStub } from '@dungeonmaster/shared/contracts/guild-list-it
 import { QuestIdStub } from '@dungeonmaster/shared/contracts/quest-id/quest-id.stub';
 import { QuestStub } from '@dungeonmaster/shared/contracts/quest/quest.stub';
 import { SessionIdStub } from '@dungeonmaster/shared/contracts/session-id/session-id.stub';
-import { UrlSlugStub } from '@dungeonmaster/shared/contracts/url-slug/url-slug.stub';
 import { WorkItemStub } from '@dungeonmaster/shared/contracts/work-item/work-item.stub';
 
 import { ExecutionQueueGetAllResponder } from './execution-queue-get-all-responder';
@@ -18,7 +17,7 @@ describe('ExecutionQueueGetAllResponder', () => {
 
   it('VALID: {in_progress quest on disk, nothing enqueued in memory} => derives the queue entry from disk with its live session', async () => {
     const proxy = ExecutionQueueGetAllResponderProxy();
-    const guildSlug = UrlSlugStub({ value: 'my-guild' });
+    const guildSlug = 'my-guild';
     const guild = GuildListItemStub({ urlSlug: guildSlug });
     const sessionId = SessionIdStub({ value: '9aadbf63-1111-4111-8111-111111111111' });
     const quest = QuestStub({

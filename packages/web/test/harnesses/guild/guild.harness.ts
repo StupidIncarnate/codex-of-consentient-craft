@@ -7,7 +7,7 @@
  * const guild = await guilds.createGuild({ name: 'Test', path: '/tmp/test' });
  * const guildId = guilds.extractGuildId({ guild });
  */
-import type { Guild, UrlSlug } from '@dungeonmaster/shared/contracts';
+import type { Guild } from '@dungeonmaster/shared/contracts';
 import type { APIRequestContext } from '#gateway/npm/playwright__test';
 
 import { dmRegistryBroker, recipesHydrationCreateBroker } from '@dungeonmaster/hydration-recipes';
@@ -41,7 +41,7 @@ export const guildHarness = ({
   // that route's own header for the full resolution.
   deleteGuild: (params: { guildId: Guild['id'] }) => Promise<void>;
   extractGuildId: (params: { guild: GuildRecord }) => Guild['id'];
-  extractUrlSlug: (params: { guild: GuildRecord }) => UrlSlug;
+  extractUrlSlug: (params: { guild: GuildRecord }) => string;
 } => {
   const resolvedBaseUrl =
     baseURL ??
@@ -113,8 +113,8 @@ export const guildHarness = ({
   const extractGuildId = ({ guild }: { guild: GuildRecord }): Guild['id'] =>
     String(guild.id) as Guild['id'];
 
-  const extractUrlSlug = ({ guild }: { guild: GuildRecord }): UrlSlug =>
-    String(guild.urlSlug) as UrlSlug;
+  const extractUrlSlug = ({ guild }: { guild: GuildRecord }): string =>
+    String(guild.urlSlug) as string;
 
   return {
     beforeEach: cleanGuilds,

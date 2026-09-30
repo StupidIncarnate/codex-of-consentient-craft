@@ -12,12 +12,12 @@
 
 import { z } from '#gateway/npm/zod';
 
-import { questContract, urlSlugContract, guildContract } from '@dungeonmaster/shared/contracts';
+import { questContract, guildContract } from '@dungeonmaster/shared/contracts';
 
 export const activeQuestEntryContract = z.object({
   quest: questContract,
   guildId: guildContract.shape.id,
-  guildSlug: urlSlugContract,
+  guildSlug: z.string().min(1).regex(/^[a-z0-9]+(?:-[a-z0-9]+)*$/u).brand<'ActiveQuestEntryGuildSlug'>(),
 });
 
 export type ActiveQuestEntry = z.infer<typeof activeQuestEntryContract>;

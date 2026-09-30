@@ -26,7 +26,6 @@ import type { ModifyQuestResultStub } from '@dungeonmaster/shared/contracts/modi
 import type { OrchestrationStatusStub } from '@dungeonmaster/shared/contracts/orchestration-status/orchestration-status.stub';
 import type { QuestIdStub } from '@dungeonmaster/shared/contracts/quest-id/quest-id.stub';
 import type { QuestListItemStub } from '@dungeonmaster/shared/contracts/quest-list-item/quest-list-item.stub';
-import type { UrlSlugStub } from '@dungeonmaster/shared/contracts/url-slug/url-slug.stub';
 import { QuestGetServerConfigResultStub } from '@dungeonmaster/orchestrator/contracts/quest-get-server-config-result/quest-get-server-config-result.stub';
 import { QuestHandleResponder } from './quest-handle-responder';
 
@@ -39,7 +38,7 @@ type CreateWorktreeResult = Awaited<ReturnType<typeof StartOrchestrator.createWo
 type GetQuestSummaryResult = Awaited<ReturnType<typeof StartOrchestrator.getQuestSummary>>;
 type QuestGetServerConfigResult = ReturnType<typeof QuestGetServerConfigResultStub>;
 type QuestId = ReturnType<typeof QuestIdStub>;
-type UrlSlug = ReturnType<typeof UrlSlugStub>;
+type UrlSlug = string;
 type GuildId = ReturnType<typeof GuildIdStub>;
 type QuestListItem = ReturnType<typeof QuestListItemStub>;
 type ProcessId = ReturnType<typeof ProcessIdStub>;

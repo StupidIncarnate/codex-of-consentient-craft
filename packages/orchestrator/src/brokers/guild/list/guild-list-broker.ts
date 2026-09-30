@@ -7,7 +7,7 @@
  */
 
 import { dungeonmasterHomeFindBroker } from '@dungeonmaster/shared/brokers';
-import { guildListItemContract } from '@dungeonmaster/shared/contracts';
+import { guildListItemContract, guildContract } from '@dungeonmaster/shared/contracts';
 import type { GuildListItem } from '@dungeonmaster/shared/contracts';
 import { dungeonmasterHomeStatics } from '@dungeonmaster/shared/statics';
 import { nameToUrlSlugTransformer } from '@dungeonmaster/shared/transformers';
@@ -26,7 +26,7 @@ export const guildListBroker = async (): Promise<GuildListItem[]> => {
 
   for (const guild of config.guilds) {
     if (!guild.urlSlug) {
-      guild.urlSlug = nameToUrlSlugTransformer({ name: guild.name });
+      guild.urlSlug = guildContract.shape.urlSlug.parse(nameToUrlSlugTransformer({ name: guild.name }));
       needsPersist = true;
     }
   }

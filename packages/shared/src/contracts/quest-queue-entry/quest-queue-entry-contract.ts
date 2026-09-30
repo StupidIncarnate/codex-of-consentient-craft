@@ -12,7 +12,6 @@ import { z } from '#gateway/npm/zod';
 
 import { questSourceContract } from '../quest-source/quest-source-contract';
 import { questStatusContract } from '../quest-status/quest-status-contract';
-import { urlSlugContract } from '../url-slug/url-slug-contract';
 import { questContract } from '../quest/quest-contract';
 import { guildContract } from '../guild/guild-contract';
 import { sessionContract } from '../session/session-contract';
@@ -20,7 +19,7 @@ import { sessionContract } from '../session/session-contract';
 export const questQueueEntryContract = z.object({
   questId: questContract.shape.id,
   guildId: guildContract.shape.id,
-  guildSlug: urlSlugContract,
+  guildSlug: z.string().min(1).regex(/^[a-z0-9]+(?:-[a-z0-9]+)*$/u).brand<'QuestQueueEntryGuildSlug'>(),
   questTitle: z.string().min(1).brand<'QuestTitle'>(),
   status: questStatusContract,
   questSource: questSourceContract.optional(),

@@ -13,7 +13,7 @@
  * warpgate.seedWarpgateQuest({ questId, questFolder, questFilePath, status: 'merging', warpgateStatus: 'in_progress' });
  * warpgate.seedFollowupTurns({ sessionId, turns: [{ role: 'user', text: 'hi' }, { role: 'assistant', text: 'hello' }] });
  */
-import type { Guild, Quest, UrlSlug } from '@dungeonmaster/shared/contracts';
+import type { Guild, Quest } from '@dungeonmaster/shared/contracts';
 import type { APIRequestContext } from '#gateway/npm/playwright__test';
 
 import { AssistantTextStreamLineStub } from '@dungeonmaster/shared/contracts/assistant-stream-line/assistant-stream-line.stub';
@@ -41,7 +41,7 @@ export const warpgateHarness = ({
 }): {
   setup: (params: { guildName: Guild['name']; title: string }) => Promise<{
     guildId: Guild['id'];
-    urlSlug: UrlSlug;
+    urlSlug: string;
     questId: Quest['id'];
     questFolder: Quest['folder'];
     questFilePath: string;
@@ -77,7 +77,7 @@ export const warpgateHarness = ({
     title: string;
   }): Promise<{
     guildId: Guild['id'];
-    urlSlug: UrlSlug;
+    urlSlug: string;
     questId: Quest['id'];
     questFolder: Quest['folder'];
     questFilePath: string;

@@ -30,7 +30,7 @@
  * orchestrator.getQuestNotFound({ questId });
  */
 
-import type { WorkItem, ProcessId, QuestStatus, SmoketestSuite, UrlSlug, Session } from '@dungeonmaster/shared/contracts';
+import type { WorkItem, ProcessId, QuestStatus, SmoketestSuite, Session } from '@dungeonmaster/shared/contracts';
 import { registerMock } from '@dungeonmaster/testing/register-mock';
 import type { RecordedCalls } from '@dungeonmaster/testing/register-mock';
 import { DispatchStateStub } from '@dungeonmaster/shared/contracts/dispatch-state/dispatch-state.stub';
@@ -276,7 +276,7 @@ export const StartOrchestratorProxy = (): {
   createQuestForMcpReturns: (params: {
     userRequest: string;
     questId: Quest['id'];
-    guildSlug: UrlSlug;
+    guildSlug: string;
   }) => void;
   createQuestForMcpThrows: (params: { userRequest: string; error: Error }) => void;
   // Every call StartOrchestrator.createQuestForMcp received, first-arg only — mirrors
@@ -896,7 +896,7 @@ export const StartOrchestratorProxy = (): {
     }: {
       userRequest: string;
       questId: Quest['id'];
-      guildSlug: UrlSlug;
+      guildSlug: string;
     }): void => {
       createQuestForMcpHandle.calledWith([{ userRequest }]).resolves({ questId, guildSlug });
     },

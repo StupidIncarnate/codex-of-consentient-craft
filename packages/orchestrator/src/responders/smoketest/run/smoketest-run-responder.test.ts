@@ -3,7 +3,6 @@ import type { SmoketestSuiteStub } from '@dungeonmaster/shared/contracts/smokete
 import { GuildIdStub } from '@dungeonmaster/shared/contracts/guild-id/guild-id.stub';
 import { QuestIdStub } from '@dungeonmaster/shared/contracts/quest-id/quest-id.stub';
 import { SmoketestRunIdStub } from '@dungeonmaster/shared/contracts/smoketest-run-id/smoketest-run-id.stub';
-import { UrlSlugStub } from '@dungeonmaster/shared/contracts/url-slug/url-slug.stub';
 
 import { smoketestCaseCatalogStatics } from '../../../statics/smoketest-case-catalog/smoketest-case-catalog-statics';
 import { smoketestRunState } from '../../../state/smoketest-run/smoketest-run-state';
@@ -21,8 +20,8 @@ const EnqueuedRecordStub = ({
   guildSlug,
 }: {
   questId: ReturnType<typeof QuestIdStub>;
-  guildSlug: ReturnType<typeof UrlSlugStub>;
-}): { questId: ReturnType<typeof QuestIdStub>; guildSlug: ReturnType<typeof UrlSlugStub> } => ({
+  guildSlug: string;
+}): { questId: ReturnType<typeof QuestIdStub>; guildSlug: string } => ({
   questId,
   guildSlug,
 });
@@ -81,7 +80,7 @@ describe('SmoketestRunResponder', () => {
       smoketestRunState.end();
       const proxy = SmoketestRunResponderProxy();
       const guildId = GuildIdStub();
-      const guildSlug = UrlSlugStub({ value: 'smoketests' });
+      const guildSlug = 'smoketests';
       const bundledQuestId = QuestIdStub({ value: 'mcp-bundled-quest' });
       const bundledRecord = EnqueuedRecordStub({ questId: bundledQuestId, guildSlug });
       proxy.setupHappyPath({ guildId, guildSlug, bundledRecord });
@@ -109,7 +108,7 @@ describe('SmoketestRunResponder', () => {
       smoketestRunState.end();
       const proxy = SmoketestRunResponderProxy();
       const guildId = GuildIdStub();
-      const guildSlug = UrlSlugStub({ value: 'smoketests' });
+      const guildSlug = 'smoketests';
       proxy.setupHappyPath({ guildId, guildSlug, bundledRecord: null });
 
       const result = await SmoketestRunResponder({
@@ -126,7 +125,7 @@ describe('SmoketestRunResponder', () => {
       smoketestRunState.end();
       const proxy = SmoketestRunResponderProxy();
       const guildId = GuildIdStub();
-      const guildSlug = UrlSlugStub({ value: 'smoketests' });
+      const guildSlug = 'smoketests';
       const bundledQuestId = QuestIdStub({ value: 'signals-bundled-quest' });
       const bundledRecord = EnqueuedRecordStub({ questId: bundledQuestId, guildSlug });
       proxy.setupHappyPath({ guildId, guildSlug, bundledRecord });
@@ -151,7 +150,7 @@ describe('SmoketestRunResponder', () => {
       smoketestRunState.end();
       const proxy = SmoketestRunResponderProxy();
       const guildId = GuildIdStub();
-      const guildSlug = UrlSlugStub({ value: 'smoketests' });
+      const guildSlug = 'smoketests';
       const expectedScenarioCount = smoketestCaseCatalogStatics.orchestration.length;
       const orchestrationRecords = smoketestCaseCatalogStatics.orchestration.map((_s, i) =>
         EnqueuedRecordStub({
@@ -183,7 +182,7 @@ describe('SmoketestRunResponder', () => {
       smoketestRunState.end();
       const proxy = SmoketestRunResponderProxy();
       const guildId = GuildIdStub();
-      const guildSlug = UrlSlugStub({ value: 'smoketests' });
+      const guildSlug = 'smoketests';
       const expectedScenarioCount = smoketestCaseCatalogStatics.orchestration.length;
       const mcpRecord = EnqueuedRecordStub({
         questId: QuestIdStub({ value: 'mcp-bundled' }),
@@ -233,7 +232,7 @@ describe('SmoketestRunResponder', () => {
       smoketestRunState.end();
       const proxy = SmoketestRunResponderProxy();
       const guildId = GuildIdStub();
-      const guildSlug = UrlSlugStub({ value: 'smoketests' });
+      const guildSlug = 'smoketests';
       proxy.setupHappyPath({ guildId, guildSlug, orchestrationRecords: [] });
       proxy.setupOrchestrationLayerRejectsOnce({ error: new Error('layer failure') });
 
@@ -250,7 +249,7 @@ describe('SmoketestRunResponder', () => {
       smoketestRunState.end();
       const proxy = SmoketestRunResponderProxy();
       const guildId = GuildIdStub();
-      const guildSlug = UrlSlugStub({ value: 'smoketests' });
+      const guildSlug = 'smoketests';
       proxy.setupHappyPath({
         guildId,
         guildSlug,
@@ -275,7 +274,7 @@ describe('SmoketestRunResponder', () => {
       smoketestRunState.end();
       const proxy = SmoketestRunResponderProxy();
       const guildId = GuildIdStub();
-      const guildSlug = UrlSlugStub({ value: 'smoketests' });
+      const guildSlug = 'smoketests';
       proxy.setupHappyPath({
         guildId,
         guildSlug,

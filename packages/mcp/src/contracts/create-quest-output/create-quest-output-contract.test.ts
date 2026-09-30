@@ -1,5 +1,4 @@
 import { QuestIdStub } from '@dungeonmaster/shared/contracts/quest-id/quest-id.stub';
-import { UrlSlugStub } from '@dungeonmaster/shared/contracts/url-slug/url-slug.stub';
 
 import { createQuestOutputContract } from './create-quest-output-contract';
 import { CreateQuestOutputStub } from './create-quest-output.stub';
@@ -16,7 +15,7 @@ describe('createQuestOutputContract', () => {
 
   it('VALID: {custom questId and slug} => parses successfully', () => {
     const questId = QuestIdStub({ value: 'feature-x' });
-    const guildSlug = UrlSlugStub({ value: 'another-guild' });
+    const guildSlug = 'another-guild';
 
     const result = createQuestOutputContract.parse({ questId, guildSlug });
 
@@ -25,7 +24,7 @@ describe('createQuestOutputContract', () => {
 
   it('INVALID: {missing questId} => throws Required', () => {
     expect(() =>
-      createQuestOutputContract.parse({ guildSlug: UrlSlugStub({ value: 'g' }) }),
+      createQuestOutputContract.parse({ guildSlug: 'g' }),
     ).toThrow(/received undefined/u);
   });
 
@@ -48,7 +47,7 @@ describe('createQuestOutputContract', () => {
     expect(() =>
       createQuestOutputContract.parse({
         questId: QuestIdStub({ value: 'q1' }),
-        guildSlug: UrlSlugStub({ value: 'g' }),
+        guildSlug: 'g',
         extra: 'stuff',
       }),
     ).toThrow(/Unrecognized key/u);

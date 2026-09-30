@@ -7,7 +7,7 @@
  */
 
 import { randomUUID } from '#gateway/node/crypto';
-import type { QuestQueueEntry, QuestSource, UrlSlug, Quest, Guild } from '@dungeonmaster/shared/contracts';
+import type { QuestQueueEntry, QuestSource, Quest, Guild } from '@dungeonmaster/shared/contracts';
 import { processIdContract, questQueueEntryContract } from '@dungeonmaster/shared/contracts';
 
 import { smoketestListenerEntryContract } from '../../../contracts/smoketest-listener-entry/smoketest-listener-entry-contract';
@@ -32,8 +32,8 @@ export const EnqueueBundledSuiteLayerResponder = async ({
   suite: 'mcp' | 'signals';
   questSource: QuestSource;
   guildId: Guild['id'];
-  guildSlug: UrlSlug;
-}): Promise<{ questId: Quest['id']; guildSlug: UrlSlug } | null> => {
+  guildSlug: string;
+}): Promise<{ questId: Quest['id']; guildSlug: string } | null> => {
   const cases =
     suite === 'mcp' ? smoketestCaseCatalogStatics.mcp : smoketestCaseCatalogStatics.signals;
 

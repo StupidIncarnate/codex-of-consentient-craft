@@ -14,7 +14,7 @@
  * const bySession = await StartOrchestrator.findQuestBySessionId({ sessionId });
  */
 
-import type { Flow, WorkItem, OperationItem, AddQuestInput, AddQuestResult, AgentPromptResult, BlockedReason, CommentBatchEntry, DirectoryEntry, DispatchState, GetQuestResult, Guild, GuildListItem, ModifyQuestInput, ModifyQuestResult, OrchestrationMode, OrchestrationStatus, ProcessId, Quest, QuestListItem, QuestListResult, QuestQueueEntry, QuestStatus, QuestType, RateLimitsSnapshot, UrlSlug, Session } from '@dungeonmaster/shared/contracts';
+import type { Flow, WorkItem, OperationItem, AddQuestInput, AddQuestResult, AgentPromptResult, BlockedReason, CommentBatchEntry, DirectoryEntry, DispatchState, GetQuestResult, Guild, GuildListItem, ModifyQuestInput, ModifyQuestResult, OrchestrationMode, OrchestrationStatus, ProcessId, Quest, QuestListItem, QuestListResult, QuestQueueEntry, QuestStatus, QuestType, RateLimitsSnapshot, Session } from '@dungeonmaster/shared/contracts';
 
 import type { QuestGetServerConfigResult } from '../contracts/quest-get-server-config-result/quest-get-server-config-result-contract';
 
@@ -407,7 +407,7 @@ export const StartOrchestrator = {
     userRequest: AddQuestInput['userRequest'];
     questType?: QuestType;
     sessionId?: Session['id'];
-  }): Promise<{ questId: Quest['id']; guildSlug: UrlSlug }> =>
+  }): Promise<{ questId: Quest['id']; guildSlug: string }> =>
     QuestFlow.mcpCreate({
       userRequest,
       ...(questType !== undefined && { questType }),
