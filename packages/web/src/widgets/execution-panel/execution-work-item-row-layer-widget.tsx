@@ -41,7 +41,6 @@ import type {
 } from '@dungeonmaster/shared/contracts';
 import { riftcarverResultContract } from '@dungeonmaster/shared/contracts';
 
-import { dependencyLabelContract } from '../../contracts/dependency-label/dependency-label-contract';
 import type { DisplayFilePath } from '../../contracts/display-file-path/display-file-path-contract';
 import type { DisplayLabel } from '../../contracts/display-label/display-label-contract';
 import { displayLabelContract } from '../../contracts/display-label/display-label-contract';
@@ -175,14 +174,14 @@ export const ExecutionWorkItemRowLayerWidget = ({
   const depLabels = workItem.dependsOn.map((depId) => {
     const rowLabel = workItemIdToLabel.get(depId);
     if (rowLabel === undefined) {
-      return dependencyLabelContract.parse(depId);
+      return depId;
     }
     const depScopeLabel = workItemIdToScopeLabel.get(depId);
     const label =
       depScopeLabel !== undefined && depScopeLabel !== scopeLabel && depScopeLabel !== rowLabel
         ? `${depScopeLabel}${CROSS_SCOPE_DEPENDENCY_SEPARATOR}${rowLabel}`
         : rowLabel;
-    return dependencyLabelContract.parse(label);
+    return label;
   });
 
   return (

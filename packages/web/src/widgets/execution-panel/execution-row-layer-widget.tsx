@@ -29,7 +29,6 @@ import type {
 import type { ChatEntry, CssPixels } from '@dungeonmaster/shared/contracts';
 import { cssPixelsContract } from '@dungeonmaster/shared/contracts';
 import { isCommandWorkItemRoleGuard } from '@dungeonmaster/shared/guards';
-import type { DependencyLabel } from '../../contracts/dependency-label/dependency-label-contract';
 import type { DisplayFilePath } from '../../contracts/display-file-path/display-file-path-contract';
 import type { DisplayLabel } from '../../contracts/display-label/display-label-contract';
 import type { ExecutionRole } from '../../contracts/execution-role/execution-role-contract';
@@ -62,7 +61,7 @@ export interface ExecutionRowLayerWidgetProps {
   role: ExecutionRole;
   status: ExecutionStepStatus;
   files: DisplayFilePath[];
-  dependsOn: DependencyLabel[];
+  dependsOn: string[];
   isAdhoc: boolean;
   // Set on a step row nested under an operation header (decision 2's NESTED ruling): shifts the
   // row right and drops its own [ROLE] badge, since the header already names the scope's role.
