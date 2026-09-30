@@ -28,7 +28,6 @@
 import type { BufferLengths } from '../../../contracts/buffer-lengths/buffer-lengths-contract';
 import type { LaneSession } from '../../../contracts/lane-session/lane-session-contract';
 import type { UntilConsolePattern } from '../../../contracts/until-console-pattern/until-console-pattern-contract';
-import type { UntilFilePath } from '../../../contracts/until-file-path/until-file-path-contract';
 import type { UntilResponse } from '../../../contracts/until-response/until-response-contract';
 import { BrowserStepUnsupportedError } from '../../../errors/browser-step-unsupported/browser-step-unsupported-error';
 import { StepAmbiguousError } from '../../../errors/step-ambiguous/step-ambiguous-error';
@@ -52,7 +51,7 @@ export const stepUntilBroker = async ({
   lane: LaneSession;
   visible: string | null;
   response: UntilResponse | null;
-  file: UntilFilePath | null;
+  file: string | null;
   predicate: string | null;
   console: UntilConsolePattern | null;
   timeoutMs: number | null;

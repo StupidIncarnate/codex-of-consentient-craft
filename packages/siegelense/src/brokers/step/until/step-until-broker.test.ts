@@ -1,6 +1,5 @@
 
 import { UntilConsolePatternStub } from '../../../contracts/until-console-pattern/until-console-pattern.stub';
-import { UntilFilePathStub } from '../../../contracts/until-file-path/until-file-path.stub';
 import { UntilResponseStub } from '../../../contracts/until-response/until-response.stub';
 import type { StepAmbiguousError } from '../../../errors/step-ambiguous/step-ambiguous-error';
 import { stepUntilBroker } from './step-until-broker';
@@ -235,7 +234,7 @@ describe('stepUntilBroker', () => {
         lane,
         visible: null,
         response: null,
-        file: UntilFilePathStub({ value: 'guilds/g1/quest.json' }),
+        file: 'guilds/g1/quest.json',
         predicate: null,
         console: null,
         timeoutMs: 10000,

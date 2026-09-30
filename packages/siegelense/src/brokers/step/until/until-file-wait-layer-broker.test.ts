@@ -1,10 +1,9 @@
 
-import { UntilFilePathStub } from '../../../contracts/until-file-path/until-file-path.stub';
 import { untilFileWaitLayerBroker } from './until-file-wait-layer-broker';
 import { untilFileWaitLayerBrokerProxy } from './until-file-wait-layer-broker.proxy';
 
 const HOME_PATH = '/tmp/dm-siege-inst_1';
-const FILE = UntilFilePathStub({ value: 'guilds/g1/quests/q1/quest.json' });
+const FILE = 'guilds/g1/quests/q1/quest.json';
 const RESOLVED_PATH = '/tmp/dm-siege-inst_1/guilds/g1/quests/q1/quest.json';
 
 describe('untilFileWaitLayerBroker', () => {

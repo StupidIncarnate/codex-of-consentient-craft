@@ -16,7 +16,6 @@ import { join } from '#gateway/node/path';
 
 import { statIfExists } from '#gateway/node/fs__promises';
 import { setTimeout } from '#gateway/node/setTimeout';
-import type { UntilFilePath } from '../../../contracts/until-file-path/until-file-path-contract';
 import { UntilCeilingHitError } from '../../../errors/until-ceiling-hit/until-ceiling-hit-error';
 import { driverStatics } from '../../../statics/driver/driver-statics';
 
@@ -28,7 +27,7 @@ export const untilFileWaitLayerBroker = async ({
   timeoutMs,
 }: {
   homePath: string;
-  file: UntilFilePath;
+  file: string;
   startedAtMs: number;
   deadlineAtMs: number;
   timeoutMs: number;
