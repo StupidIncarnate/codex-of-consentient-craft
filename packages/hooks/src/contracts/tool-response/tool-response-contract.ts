@@ -9,11 +9,11 @@ import { z } from '#gateway/npm/zod';
 
 export const toolResponseContract = z
   .object({
-    filePath: z.string().brand<'HookToolResponseFilePath'>().optional(),
+    filePath: z.string().brand<'ToolResponseFilePath'>().optional(),
     success: z.boolean().optional(),
     // Additional fields depend on the specific tool
   })
   .loose()
-  .brand<'HookToolResponse'>();
+  .brand<'ToolResponse'>();
 
 export type ToolResponse = z.infer<typeof toolResponseContract>;
