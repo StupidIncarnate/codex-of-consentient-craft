@@ -10,13 +10,14 @@
  */
 import { existsSync } from '#gateway/node/fs';
 import { agentTranscriptPathTransformer } from '../../../transformers/agent-transcript-path/agent-transcript-path-transformer';
+import type { Agent } from '@dungeonmaster/shared/contracts';
 
 export const transcriptResolveForHookBroker = ({
   transcriptPath,
   agentId,
 }: {
   transcriptPath: string;
-  agentId?: string;
+  agentId?: Agent['id'];
 }): string | null => {
   if (agentId === undefined) {
     return existsSync(transcriptPath) ? transcriptPath : null;

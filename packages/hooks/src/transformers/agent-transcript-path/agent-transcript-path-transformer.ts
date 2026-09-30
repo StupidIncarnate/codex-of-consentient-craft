@@ -15,6 +15,7 @@
  * // ] as branded AbsoluteFilePath entries
  */
 
+import type { Agent } from '@dungeonmaster/shared/contracts';
 const JSONL_SUFFIX = '.jsonl';
 
 export const agentTranscriptPathTransformer = ({
@@ -22,7 +23,7 @@ export const agentTranscriptPathTransformer = ({
   agentId,
 }: {
   transcriptPath: string;
-  agentId: string;
+  agentId: Agent['id'];
 }): readonly string[] => {
   const agentBasename = `agent-${agentId}.jsonl`;
   const lastSlashIndex = transcriptPath.lastIndexOf('/');

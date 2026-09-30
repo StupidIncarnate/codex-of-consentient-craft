@@ -7,10 +7,11 @@
  */
 
 import { z } from '#gateway/npm/zod';
+import { questContract } from '@dungeonmaster/shared/contracts';
 
 export const questBySessionResponseContract = z
   .object({
-    questId: z.string().min(1).brand<'QuestBySessionResponseQuestId'>(),
+    questId: questContract.shape.id,
   })
   .brand<'QuestBySessionResponse'>();
 
