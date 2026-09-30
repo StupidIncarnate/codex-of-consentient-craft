@@ -6,7 +6,7 @@ import { StartEndpointMock } from '@dungeonmaster/testing';
 
 // From the .stub file, not comment-batch-response-contract directly: @dungeonmaster/enforce-proxy-patterns
 // bans a proxy importing a value from any path ending `-contract` (only `.stub` paths are exempt).
-import { commentBatchDeliveredContract } from '../../../contracts/comment-batch-response/comment-batch-response.stub';
+import { commentBatchResponseContract } from '../../../contracts/comment-batch-response/comment-batch-response.stub';
 import { apiRoutesStatics } from '../../../statics/api-routes/api-routes-statics';
 import { QuestCommentBatchResponder } from './quest-comment-batch-responder';
 
@@ -99,7 +99,7 @@ export const QuestCommentBatchResponderProxy = (): {
       StartEndpointMock.listen({
         method: 'post',
         url: apiRoutesStatics.quests.comments,
-        contract: commentBatchDeliveredContract,
+        contract: commentBatchResponseContract,
       }),
   };
 };

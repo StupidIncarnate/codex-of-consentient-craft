@@ -30,7 +30,7 @@ import {
   testFailureContract,
   type TestFailure,
 } from '../../contracts/test-failure/test-failure-contract';
-import type { WardRunResult } from '../../contracts/ward-result/ward-result-contract';
+import type { WardResult } from '../../contracts/ward-result/ward-result-contract';
 
 const DEPENDENCY_STACK_FRAME = /^\s*at .*[/\\]node_modules[/\\]/u;
 
@@ -42,7 +42,7 @@ export const inlineFailureMessageTransformer = ({
 }: {
   message: TestFailure['message'];
   maxLines: number;
-  runId: WardRunResult['runId'];
+  runId: WardResult['runId'];
   displayPath: ErrorEntry['filePath'];
 }): TestFailure['message'] => {
   const lines = String(message)

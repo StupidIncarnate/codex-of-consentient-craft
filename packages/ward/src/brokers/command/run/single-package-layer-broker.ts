@@ -9,8 +9,8 @@
 import { stderr } from '#gateway/node/process';
 
 import {
-  wardRunResultContract,
-  type WardRunResult,
+  wardResultContract,
+  type WardResult,
 } from '../../../contracts/ward-result/ward-result-contract';
 import type { WardConfig } from '../../../contracts/ward-config/ward-config-contract';
 import type { ProjectFolder } from '../../../contracts/project-folder/project-folder-contract';
@@ -47,7 +47,7 @@ export const singlePackageLayerBroker = async ({
   projectFolder: ProjectFolder;
   rootPath: string;
   platformDedupeProjectResult?: ProjectResult;
-}): Promise<WardRunResult> => {
+}): Promise<WardResult> => {
   const runId = runIdGenerateTransformer();
   const timestamp = Date.now();
 
@@ -144,7 +144,7 @@ export const singlePackageLayerBroker = async ({
       : { extraProjectResult: platformDedupeProjectResult }),
   });
 
-  const wardResult = wardRunResultContract.parse({
+  const wardResult = wardResultContract.parse({
     runId,
     timestamp,
     // THE GIT FLAGS RIDE ALONG BECAUSE `passthrough` CANNOT SPEAK FOR ITSELF. `gitScopeLayerBroker`

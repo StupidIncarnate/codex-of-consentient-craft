@@ -1,10 +1,10 @@
-import { wardRunResultContract } from './ward-result-contract';
-import { WardRunResultStub } from './ward-result.stub';
+import { wardResultContract } from './ward-result-contract';
+import { WardResultStub } from './ward-result.stub';
 
 describe('wardResultContract', () => {
   describe('valid inputs', () => {
     it('VALID: {empty run with no checks} => parses successfully', () => {
-      const result = wardRunResultContract.parse(WardRunResultStub());
+      const result = wardResultContract.parse(WardResultStub());
 
       expect(result).toStrictEqual({
         runId: '1739625600000-a3f1',
@@ -16,8 +16,8 @@ describe('wardResultContract', () => {
     });
 
     it('VALID: {run with checks and filters} => parses successfully', () => {
-      const result = wardRunResultContract.parse(
-        WardRunResultStub({
+      const result = wardResultContract.parse(
+        WardResultStub({
           filters: { only: ['lint'], committed: true },
           checks: [
             {
@@ -49,7 +49,7 @@ describe('wardResultContract', () => {
   describe('invalid inputs', () => {
     it('INVALID: {runId: "bad"} => throws validation error', () => {
       expect(() =>
-        wardRunResultContract.parse({
+        wardResultContract.parse({
           runId: 'bad',
           timestamp: 0,
           filters: {},
@@ -59,13 +59,13 @@ describe('wardResultContract', () => {
     });
 
     it('INVALID: {missing all fields} => throws validation error', () => {
-      expect(() => wardRunResultContract.parse({})).toThrow(/received undefined/u);
+      expect(() => wardResultContract.parse({})).toThrow(/received undefined/u);
     });
   });
 
   describe('durationMs defaults', () => {
     it('VALID: {durationMs omitted} => defaults to 0', () => {
-      const result = wardRunResultContract.parse({
+      const result = wardResultContract.parse({
         runId: '1739625600000-a3f1',
         timestamp: 1739625600000,
         filters: {},
@@ -76,7 +76,7 @@ describe('wardResultContract', () => {
     });
 
     it('VALID: {durationMs provided} => preserves value', () => {
-      const result = wardRunResultContract.parse(WardRunResultStub({ durationMs: 23400 }));
+      const result = wardResultContract.parse(WardResultStub({ durationMs: 23400 }));
 
       expect(result.durationMs).toBe(23400);
     });
@@ -84,7 +84,7 @@ describe('wardResultContract', () => {
 
   describe('stub', () => {
     it('VALID: {default} => creates valid ward result', () => {
-      const result = WardRunResultStub();
+      const result = WardResultStub();
 
       expect(result).toStrictEqual({
         runId: '1739625600000-a3f1',
@@ -96,7 +96,7 @@ describe('wardResultContract', () => {
     });
 
     it('VALID: {custom timestamp} => creates ward result with override', () => {
-      const result = WardRunResultStub({ timestamp: 9999999999999 });
+      const result = WardResultStub({ timestamp: 9999999999999 });
 
       expect(result).toStrictEqual({
         runId: '1739625600000-a3f1',

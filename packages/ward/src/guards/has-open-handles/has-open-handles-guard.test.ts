@@ -2,12 +2,12 @@ import { hasOpenHandlesGuard } from './has-open-handles-guard';
 import { CheckResultStub } from '../../contracts/check-result/check-result.stub';
 import { OpenHandleStub } from '../../contracts/open-handle/open-handle.stub';
 import { ProjectResultStub } from '../../contracts/project-result/project-result.stub';
-import { WardRunResultStub } from '../../contracts/ward-result/ward-result.stub';
+import { WardResultStub } from '../../contracts/ward-result/ward-result.stub';
 
 describe('hasOpenHandlesGuard', () => {
   describe('runs that leaked', () => {
     it('VALID: {one handle in one package} => returns true', () => {
-      const wardResult = WardRunResultStub({
+      const wardResult = WardResultStub({
         checks: [
           CheckResultStub({
             checkType: 'unit',
@@ -21,7 +21,7 @@ describe('hasOpenHandlesGuard', () => {
     });
 
     it('VALID: {handle only in the second package} => returns true', () => {
-      const wardResult = WardRunResultStub({
+      const wardResult = WardResultStub({
         checks: [
           CheckResultStub({
             checkType: 'unit',
@@ -38,7 +38,7 @@ describe('hasOpenHandlesGuard', () => {
     });
 
     it('VALID: {handle only in the second check} => returns true', () => {
-      const wardResult = WardRunResultStub({
+      const wardResult = WardResultStub({
         checks: [
           CheckResultStub({ checkType: 'unit', status: 'pass', projectResults: [] }),
           CheckResultStub({
@@ -55,7 +55,7 @@ describe('hasOpenHandlesGuard', () => {
 
   describe('runs that reported none', () => {
     it('VALID: {every package reported an empty array} => returns false', () => {
-      const wardResult = WardRunResultStub({
+      const wardResult = WardResultStub({
         checks: [
           CheckResultStub({
             checkType: 'unit',
@@ -69,7 +69,7 @@ describe('hasOpenHandlesGuard', () => {
     });
 
     it('EMPTY: {no checks} => returns false', () => {
-      expect(hasOpenHandlesGuard({ wardResult: WardRunResultStub({ checks: [] }) })).toBe(false);
+      expect(hasOpenHandlesGuard({ wardResult: WardResultStub({ checks: [] }) })).toBe(false);
     });
 
     it('EMPTY: {wardResult: undefined} => returns false', () => {

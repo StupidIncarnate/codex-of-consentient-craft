@@ -8,14 +8,14 @@
 
 import { ensureDir, writeFile } from '#gateway/node/fs__promises';
 
-import type { WardRunResult } from '../../../contracts/ward-result/ward-result-contract';
+import type { WardResult } from '../../../contracts/ward-result/ward-result-contract';
 
 export const storageSaveBroker = async ({
   rootPath,
   wardResult,
 }: {
   rootPath: string;
-  wardResult: WardRunResult;
+  wardResult: WardResult;
 }): Promise<void> => {
   const wardDir = `${rootPath}/.ward`;
   await ensureDir(wardDir);

@@ -1,4 +1,4 @@
-import { WardRunResultStub } from '../../contracts/ward-result/ward-result.stub';
+import { WardResultStub } from '../../contracts/ward-result/ward-result.stub';
 import { CheckResultStub } from '../../contracts/check-result/check-result.stub';
 import { ProjectResultStub } from '../../contracts/project-result/project-result.stub';
 import { ErrorEntryStub } from '../../contracts/error-entry/error-entry.stub';
@@ -10,7 +10,7 @@ import { resultToDetailJsonTransformer } from './result-to-detail-json-transform
 describe('resultToDetailJsonTransformer', () => {
   describe('empty result', () => {
     it('VALID: {wardResult: no checks} => returns JSON with empty checks array', () => {
-      const wardResult = WardRunResultStub({ checks: [] });
+      const wardResult = WardResultStub({ checks: [] });
 
       const result = resultToDetailJsonTransformer({ wardResult });
       const parsed: unknown = JSON.parse(result);
@@ -25,7 +25,7 @@ describe('resultToDetailJsonTransformer', () => {
 
   describe('strips rawOutput', () => {
     it('VALID: {wardResult: passing check with rawOutput} => excludes rawOutput, onlyDiscovered, onlyProcessed', () => {
-      const wardResult = WardRunResultStub({
+      const wardResult = WardResultStub({
         checks: [
           CheckResultStub({
             checkType: 'lint',
@@ -72,7 +72,7 @@ describe('resultToDetailJsonTransformer', () => {
 
   describe('preserves per-package durationMs', () => {
     it('VALID: {wardResult: two projects with different durationMs} => each project keeps its own duration in JSON', () => {
-      const wardResult = WardRunResultStub({
+      const wardResult = WardResultStub({
         checks: [
           CheckResultStub({
             checkType: 'lint',
@@ -134,7 +134,7 @@ describe('resultToDetailJsonTransformer', () => {
 
   describe('preserves errors', () => {
     it('VALID: {wardResult: lint error} => includes full error details in JSON', () => {
-      const wardResult = WardRunResultStub({
+      const wardResult = WardResultStub({
         checks: [
           CheckResultStub({
             checkType: 'lint',
@@ -194,7 +194,7 @@ describe('resultToDetailJsonTransformer', () => {
 
   describe('preserves test failures', () => {
     it('VALID: {wardResult: test failure with stackTrace} => includes testFailure in JSON', () => {
-      const wardResult = WardRunResultStub({
+      const wardResult = WardResultStub({
         checks: [
           CheckResultStub({
             checkType: 'unit',
@@ -253,7 +253,7 @@ describe('resultToDetailJsonTransformer', () => {
 
   describe('errors and test failures combined', () => {
     it('VALID: {wardResult: project with errors and testFailures} => includes both in JSON', () => {
-      const wardResult = WardRunResultStub({
+      const wardResult = WardResultStub({
         checks: [
           CheckResultStub({
             checkType: 'unit',
@@ -328,7 +328,7 @@ describe('resultToDetailJsonTransformer', () => {
 
   describe('multiple checks', () => {
     it('VALID: {wardResult: lint and unit checks} => includes both checks in JSON', () => {
-      const wardResult = WardRunResultStub({
+      const wardResult = WardResultStub({
         checks: [
           CheckResultStub({
             checkType: 'lint',
@@ -408,7 +408,7 @@ describe('resultToDetailJsonTransformer', () => {
 
   describe('multiple project results', () => {
     it('VALID: {wardResult: check with two projects} => includes both projects in JSON', () => {
-      const wardResult = WardRunResultStub({
+      const wardResult = WardResultStub({
         checks: [
           CheckResultStub({
             checkType: 'lint',
@@ -483,7 +483,7 @@ describe('resultToDetailJsonTransformer', () => {
 
   describe('preserves passingTests', () => {
     it('VALID: {wardResult: project with passingTests} => includes passingTests in JSON', () => {
-      const wardResult = WardRunResultStub({
+      const wardResult = WardResultStub({
         checks: [
           CheckResultStub({
             checkType: 'unit',
@@ -540,7 +540,7 @@ describe('resultToDetailJsonTransformer', () => {
 
   describe('includes rawOutput for crash projects', () => {
     it('VALID: {wardResult: failing project with no errors/testFailures} => includes rawOutput', () => {
-      const wardResult = WardRunResultStub({
+      const wardResult = WardResultStub({
         checks: [
           CheckResultStub({
             checkType: 'integration',
@@ -599,7 +599,7 @@ describe('resultToDetailJsonTransformer', () => {
       const stdout = `${'H'.repeat(maxChars)}TAILMARK`;
       const expectedStdout = stdout.slice(-maxChars);
 
-      const wardResult = WardRunResultStub({
+      const wardResult = WardResultStub({
         checks: [
           CheckResultStub({
             checkType: 'integration',
@@ -646,7 +646,7 @@ describe('resultToDetailJsonTransformer', () => {
     });
 
     it('VALID: {failing project WITH structured errors} => still excludes rawOutput', () => {
-      const wardResult = WardRunResultStub({
+      const wardResult = WardResultStub({
         checks: [
           CheckResultStub({
             checkType: 'lint',
@@ -707,7 +707,7 @@ describe('resultToDetailJsonTransformer', () => {
 
   describe('records discovery mismatch', () => {
     it('VALID: {check with discovery mismatch (discovered>0, files=0, no passthrough)} => flags discoveryMismatch + includes onlyDiscovered/onlyProcessed', () => {
-      const wardResult = WardRunResultStub({
+      const wardResult = WardResultStub({
         checks: [
           CheckResultStub({
             checkType: 'e2e',
@@ -759,7 +759,7 @@ describe('resultToDetailJsonTransformer', () => {
     });
 
     it('VALID: {scoped passthrough run with results (discovered != files but suppressed)} => no discoveryMismatch, omits onlyDiscovered/onlyProcessed', () => {
-      const wardResult = WardRunResultStub({
+      const wardResult = WardResultStub({
         filters: { passthrough: ['packages/web/src/foo.test.ts'] },
         checks: [
           CheckResultStub({
@@ -809,7 +809,7 @@ describe('resultToDetailJsonTransformer', () => {
     it('VALID: {scoped run, project with filesCount and discoveredCount} => includes counts in JSON, no mismatch flag', () => {
       // Scoped (passthrough) run: filesCount != discoveredCount is expected under findRelatedTests,
       // so the discovery-mismatch verdict is suppressed and the counts simply round-trip.
-      const wardResult = WardRunResultStub({
+      const wardResult = WardResultStub({
         filters: { passthrough: ['packages/ward/src/foo.test.ts'] },
         checks: [
           CheckResultStub({

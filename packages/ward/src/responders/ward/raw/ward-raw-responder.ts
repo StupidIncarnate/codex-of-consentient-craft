@@ -10,7 +10,7 @@ import { stderr } from '#gateway/node/process';
 
 import { checkTypeContract } from '../../../contracts/check-type/check-type-contract';
 import { commandRawBroker } from '../../../brokers/command/raw/command-raw-broker';
-import { wardRunResultContract } from '../../../contracts/ward-result/ward-result-contract';
+import { wardResultContract } from '../../../contracts/ward-result/ward-result-contract';
 
 const FIRST_POSITIONAL_INDEX = 3;
 const SECOND_POSITIONAL_INDEX = 4;
@@ -30,7 +30,7 @@ export const WardRawResponder = async ({
     return;
   }
 
-  const runId = wardRunResultContract.shape.runId.parse(runIdArg);
+  const runId = wardResultContract.shape.runId.parse(runIdArg);
   const checkType = checkTypeContract.parse(checkTypeArg);
   await commandRawBroker({ rootPath, runId, checkType });
 };

@@ -11,9 +11,9 @@
  * // Returns true when at least one suite left a handle armed
  */
 
-import type { WardRunResult } from '../../contracts/ward-result/ward-result-contract';
+import type { WardResult } from '../../contracts/ward-result/ward-result-contract';
 
-export const hasOpenHandlesGuard = ({ wardResult }: { wardResult?: WardRunResult }): boolean => {
+export const hasOpenHandlesGuard = ({ wardResult }: { wardResult?: WardResult }): boolean => {
   if (!wardResult) {
     return false;
   }

@@ -10,14 +10,14 @@ import { stderr, stdout } from '#gateway/node/process';
 
 import { storageLoadBroker } from '../../storage/load/storage-load-broker';
 import { resultToListTransformer } from '../../../transformers/result-to-list/result-to-list-transformer';
-import type { WardRunResult } from '../../../contracts/ward-result/ward-result-contract';
+import type { WardResult } from '../../../contracts/ward-result/ward-result-contract';
 
 export const commandListBroker = async ({
   rootPath,
   runId,
 }: {
   rootPath: string;
-  runId?: WardRunResult['runId'];
+  runId?: WardResult['runId'];
 }): Promise<void> => {
   const loadArgs = runId ? { rootPath, runId } : { rootPath };
   const wardResult = await storageLoadBroker(loadArgs);

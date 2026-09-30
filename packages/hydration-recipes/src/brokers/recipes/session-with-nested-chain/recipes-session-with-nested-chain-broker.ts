@@ -24,7 +24,7 @@
 
 import { streamLineToJsonLineTransformer } from '@dungeonmaster/shared/transformers';
 
-import { sessionFieldsShape } from '../../../contracts/session-fields/session-fields-contract';
+import { sessionFieldsContract } from '../../../contracts/session-fields/session-fields-contract';
 import { nestedChainArgsContract } from '../../../contracts/nested-chain-args/nested-chain-args-contract';
 import { sessionWithNestedChainInputsContract } from '../../../contracts/session-with-nested-chain-inputs/session-with-nested-chain-inputs-contract';
 import { sessionWithNestedChainStatics } from '../../../statics/session-with-nested-chain/session-with-nested-chain-statics';
@@ -44,10 +44,10 @@ export const recipesSessionWithNestedChainBroker = recipe(
   },
   ({ guildPath }) => [
     dmRegistryBroker.sessions
-      .under({ cwd: sessionFieldsShape.shape.cwd.parse(guildPath) })
+      .under({ cwd: sessionFieldsContract.shape.cwd.parse(guildPath) })
       .add(1, (s) => [
         s[0].set({
-          lines: sessionFieldsShape.shape.lines.parse([
+          lines: sessionFieldsContract.shape.lines.parse([
             streamLineToJsonLineTransformer({
               streamLine: transcriptUserTextLineTransformer({
                 text: 'Dispatch a nested sub-agent chain',

@@ -13,7 +13,7 @@ import type { TestFailure } from '../../../contracts/test-failure/test-failure-c
 import { storageLoadBroker } from '../../storage/load/storage-load-broker';
 import { resultToDetailTransformer } from '../../../transformers/result-to-detail/result-to-detail-transformer';
 import { resultToDetailJsonTransformer } from '../../../transformers/result-to-detail-json/result-to-detail-json-transformer';
-import type { WardRunResult } from '../../../contracts/ward-result/ward-result-contract';
+import type { WardResult } from '../../../contracts/ward-result/ward-result-contract';
 
 export const commandDetailBroker = async ({
   rootPath,
@@ -22,7 +22,7 @@ export const commandDetailBroker = async ({
   json,
 }: {
   rootPath: string;
-  runId: WardRunResult['runId'];
+  runId: WardResult['runId'];
   filePath?: ErrorEntry['filePath'] | TestFailure['suitePath'];
   json?: boolean;
 }): Promise<void> => {

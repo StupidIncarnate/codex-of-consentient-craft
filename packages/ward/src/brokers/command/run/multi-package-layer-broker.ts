@@ -12,8 +12,8 @@ import { promisePoolTransformer } from '@dungeonmaster/shared/transformers';
 import { configResolveBroker, configDefaultsStatics } from '@dungeonmaster/config';
 
 import {
-  wardRunResultContract,
-  type WardRunResult,
+  wardResultContract,
+  type WardResult,
 } from '../../../contracts/ward-result/ward-result-contract';
 import type { WardConfig } from '../../../contracts/ward-config/ward-config-contract';
 import type { ProjectFolder } from '../../../contracts/project-folder/project-folder-contract';
@@ -46,7 +46,7 @@ export const multiPackageLayerBroker = async ({
   projectFolders: ProjectFolder[];
   rootPath: string;
   platformDedupeProjectResult?: ProjectResult;
-}): Promise<WardRunResult> => {
+}): Promise<WardResult> => {
   const runId = runIdGenerateTransformer();
   const timestamp = Date.now();
   const wardBin = binResolveBroker({
@@ -232,7 +232,7 @@ export const multiPackageLayerBroker = async ({
       : { extraProjectResult: platformDedupeProjectResult }),
   });
 
-  const wardResult = wardRunResultContract.parse({
+  const wardResult = wardResultContract.parse({
     runId,
     timestamp,
     // THE GIT FLAGS RIDE ALONG BECAUSE `passthrough` CANNOT SPEAK FOR ITSELF. `gitScopeLayerBroker`

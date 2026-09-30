@@ -7,7 +7,7 @@
  */
 
 import { errorEntryContract } from '../../contracts/error-entry/error-entry-contract';
-import type { WardRunResult } from '../../contracts/ward-result/ward-result-contract';
+import type { WardResult } from '../../contracts/ward-result/ward-result-contract';
 import { openHandleStackStatics } from '../../statics/open-handle-stack/open-handle-stack-statics';
 import { qualityGateStatics } from '../../statics/quality-gate/quality-gate-statics';
 import { inlineFailureStatics } from '../../statics/inline-failure/inline-failure-statics';
@@ -31,7 +31,7 @@ export const resultToSummaryTransformer = ({
   wardResult,
   cwd,
 }: {
-  wardResult: WardRunResult;
+  wardResult: WardResult;
   cwd: string;
 }): string => {
   const totalDurationSuffix =

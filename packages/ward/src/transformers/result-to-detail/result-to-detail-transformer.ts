@@ -6,7 +6,7 @@
  * // Returns: WardFileDetail with failure details and passing-test blocks per project
  */
 
-import type { WardRunResult } from '../../contracts/ward-result/ward-result-contract';
+import type { WardResult } from '../../contracts/ward-result/ward-result-contract';
 import { isCallerFileScopeGuard } from '../../guards/is-caller-file-scope/is-caller-file-scope-guard';
 import { isPathSuffixMatchGuard } from '../../guards/is-path-suffix-match/is-path-suffix-match-guard';
 import { extractNetworkLogTransformer } from '../extract-network-log/extract-network-log-transformer';
@@ -18,7 +18,7 @@ export const resultToDetailTransformer = ({
   wardResult,
   filePath,
 }: {
-  wardResult: WardRunResult;
+  wardResult: WardResult;
   filePath?: string;
 }): string => {
   if (filePath) {

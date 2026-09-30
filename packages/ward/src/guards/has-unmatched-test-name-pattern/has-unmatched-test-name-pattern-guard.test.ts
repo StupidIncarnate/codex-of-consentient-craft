@@ -1,12 +1,12 @@
 import { CheckResultStub } from '../../contracts/check-result/check-result.stub';
 import { ProjectResultStub } from '../../contracts/project-result/project-result.stub';
-import { WardRunResultStub } from '../../contracts/ward-result/ward-result.stub';
+import { WardResultStub } from '../../contracts/ward-result/ward-result.stub';
 import { hasUnmatchedTestNamePatternGuard } from './has-unmatched-test-name-pattern-guard';
 
 describe('hasUnmatchedTestNamePatternGuard', () => {
   describe('pattern matched somewhere', () => {
     it('VALID: {one package matched, rest unmatched} => returns false', () => {
-      const wardResult = WardRunResultStub({
+      const wardResult = WardResultStub({
         checks: [
           CheckResultStub({
             checkType: 'unit',
@@ -24,7 +24,7 @@ describe('hasUnmatchedTestNamePatternGuard', () => {
     });
 
     it('VALID: {unit unmatched but integration matched} => returns false', () => {
-      const wardResult = WardRunResultStub({
+      const wardResult = WardResultStub({
         checks: [
           CheckResultStub({
             checkType: 'unit',
@@ -49,7 +49,7 @@ describe('hasUnmatchedTestNamePatternGuard', () => {
 
   describe('pattern matched nowhere', () => {
     it('VALID: {every package unmatched} => returns true', () => {
-      const wardResult = WardRunResultStub({
+      const wardResult = WardResultStub({
         checks: [
           CheckResultStub({
             checkType: 'unit',
@@ -66,7 +66,7 @@ describe('hasUnmatchedTestNamePatternGuard', () => {
     });
 
     it('VALID: {unmatched unit alongside a passing lint} => returns true', () => {
-      const wardResult = WardRunResultStub({
+      const wardResult = WardResultStub({
         checks: [
           CheckResultStub({
             checkType: 'lint',
@@ -89,7 +89,7 @@ describe('hasUnmatchedTestNamePatternGuard', () => {
 
   describe('pattern never applied', () => {
     it('VALID: {no project carries a pattern outcome} => returns false', () => {
-      const wardResult = WardRunResultStub({
+      const wardResult = WardResultStub({
         checks: [
           CheckResultStub({
             checkType: 'unit',
@@ -103,7 +103,7 @@ describe('hasUnmatchedTestNamePatternGuard', () => {
     });
 
     it('EMPTY: {no checks} => returns false', () => {
-      expect(hasUnmatchedTestNamePatternGuard({ wardResult: WardRunResultStub() })).toBe(false);
+      expect(hasUnmatchedTestNamePatternGuard({ wardResult: WardResultStub() })).toBe(false);
     });
   });
 

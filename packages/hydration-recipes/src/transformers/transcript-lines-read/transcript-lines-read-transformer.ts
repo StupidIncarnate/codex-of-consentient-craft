@@ -13,7 +13,7 @@
  * // Returns the two parsed TranscriptLines
  */
 
-import { recipeTranscriptLineContract } from '../../contracts/transcript-line/transcript-line-contract';
+import { transcriptLineContract } from '../../contracts/transcript-line/transcript-line-contract';
 import type { RecipeTranscriptLine } from '../../contracts/transcript-line/transcript-line-contract';
 
 export const transcriptLinesReadTransformer = ({
@@ -24,4 +24,4 @@ export const transcriptLinesReadTransformer = ({
   contents
     .split('\n')
     .filter((line) => line.length > 0)
-    .map((line) => recipeTranscriptLineContract.parse(JSON.parse(line)));
+    .map((line) => transcriptLineContract.parse(JSON.parse(line)));

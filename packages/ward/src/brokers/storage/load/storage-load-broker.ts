@@ -9,8 +9,8 @@
 import { readdirIfExists, readFile } from '#gateway/node/fs__promises';
 
 import {
-  wardRunResultContract,
-  type WardRunResult,
+  wardResultContract,
+  type WardResult,
 } from '../../../contracts/ward-result/ward-result-contract';
 
 const RUN_FILE_PREFIX = 'run-';
@@ -21,15 +21,15 @@ export const storageLoadBroker = async ({
   runId,
 }: {
   rootPath: string;
-  runId?: WardRunResult['runId'];
-}): Promise<WardRunResult | null> => {
+  runId?: WardResult['runId'];
+}): Promise<WardResult | null> => {
   const wardDir = `${rootPath}/.ward`;
 
   if (runId) {
     const filePath = `${wardDir}/run-${runId}.json`;
     try {
       const contents = await readFile(filePath);
-      return wardRunResultContract.parse(JSON.parse(contents));
+      return wardResultContract.parse(JSON.parse(contents));
     } catch {
       return null;
     }
@@ -47,7 +47,7 @@ export const storageLoadBroker = async ({
       .filter((entry) => entry.startsWith(RUN_FILE_PREFIX) && entry.endsWith(RUN_FILE_SUFFIX))
       .filter(
         (entry) =>
-          wardRunResultContract.shape.runId.safeParse(
+          wardResultContract.shape.runId.safeParse(
             entry.slice(RUN_FILE_PREFIX.length, -RUN_FILE_SUFFIX.length),
           ).success,
       )
@@ -60,7 +60,7 @@ export const storageLoadBroker = async ({
     const latestFile = runFiles[runFiles.length - 1];
     const filePath = `${wardDir}/${latestFile}`;
     const contents = await readFile(filePath);
-    return wardRunResultContract.parse(JSON.parse(contents));
+    return wardResultContract.parse(JSON.parse(contents));
   } catch {
     return null;
   }

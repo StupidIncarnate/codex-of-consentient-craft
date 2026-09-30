@@ -10,17 +10,17 @@ import { z } from '#gateway/npm/zod';
 import { runFiltersContract } from '../run-filters/run-filters-contract';
 import { checkResultContract } from '../check-result/check-result-contract';
 
-export const wardRunResultContract = z
+export const wardResultContract = z
   .object({
     runId: z
       .string()
       .regex(/^\d+-[a-f0-9]+$/u, 'Invalid RunId format: expected timestamp-hex pattern')
-      .brand<'WardRunResultRunId'>(),
-    timestamp: z.number().brand<'WardRunResultTimestamp'>(),
+      .brand<'WardResultRunId'>(),
+    timestamp: z.number().brand<'WardResultTimestamp'>(),
     filters: runFiltersContract,
     checks: z.array(checkResultContract),
-    durationMs: z.number().nonnegative().default(0).brand<'WardRunResultDurationMs'>(),
+    durationMs: z.number().nonnegative().default(0).brand<'WardResultDurationMs'>(),
   })
-  .brand<'WardRunResult'>();
+  .brand<'WardResult'>();
 
-export type WardRunResult = z.infer<typeof wardRunResultContract>;
+export type WardResult = z.infer<typeof wardResultContract>;

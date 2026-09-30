@@ -2,12 +2,12 @@ import { hasSlowFilesGuard } from './has-slow-files-guard';
 import { CheckResultStub } from '../../contracts/check-result/check-result.stub';
 import { FileTimingStub } from '../../contracts/file-timing/file-timing.stub';
 import { ProjectResultStub } from '../../contracts/project-result/project-result.stub';
-import { WardRunResultStub } from '../../contracts/ward-result/ward-result.stub';
+import { WardResultStub } from '../../contracts/ward-result/ward-result.stub';
 
 describe('hasSlowFilesGuard', () => {
   describe('runs it calls slow', () => {
     it('VALID: {one suite over the test threshold} => returns true', () => {
-      const wardResult = WardRunResultStub({
+      const wardResult = WardResultStub({
         checks: [
           CheckResultStub({
             checkType: 'unit',
@@ -32,7 +32,7 @@ describe('hasSlowFilesGuard', () => {
     });
 
     it('VALID: {slow only in the second check} => returns true', () => {
-      const wardResult = WardRunResultStub({
+      const wardResult = WardResultStub({
         checks: [
           CheckResultStub({ checkType: 'unit', status: 'pass', projectResults: [] }),
           CheckResultStub({
@@ -58,7 +58,7 @@ describe('hasSlowFilesGuard', () => {
     });
 
     it('VALID: {lint, one file over the rule threshold} => returns true', () => {
-      const wardResult = WardRunResultStub({
+      const wardResult = WardResultStub({
         checks: [
           CheckResultStub({
             checkType: 'lint',
@@ -85,7 +85,7 @@ describe('hasSlowFilesGuard', () => {
 
   describe('runs it lets through', () => {
     it('VALID: {every suite under the threshold} => returns false', () => {
-      const wardResult = WardRunResultStub({
+      const wardResult = WardResultStub({
         checks: [
           CheckResultStub({
             checkType: 'unit',
@@ -105,7 +105,7 @@ describe('hasSlowFilesGuard', () => {
     });
 
     it('EDGE: {huge wall, tiny test bodies} => returns false, because wall is run position', () => {
-      const wardResult = WardRunResultStub({
+      const wardResult = WardResultStub({
         checks: [
           CheckResultStub({
             checkType: 'unit',
@@ -129,7 +129,7 @@ describe('hasSlowFilesGuard', () => {
     });
 
     it('EDGE: {lint, huge wall, small rule time} => returns false, because wall is the program build', () => {
-      const wardResult = WardRunResultStub({
+      const wardResult = WardResultStub({
         checks: [
           CheckResultStub({
             checkType: 'lint',
@@ -154,7 +154,7 @@ describe('hasSlowFilesGuard', () => {
     });
 
     it('EMPTY: {no checks} => returns false', () => {
-      expect(hasSlowFilesGuard({ wardResult: WardRunResultStub({ checks: [] }) })).toBe(false);
+      expect(hasSlowFilesGuard({ wardResult: WardResultStub({ checks: [] }) })).toBe(false);
     });
 
     it('EMPTY: {wardResult: undefined} => returns false', () => {

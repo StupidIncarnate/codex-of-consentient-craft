@@ -11,7 +11,7 @@
 import { sessionWithNestedChainInputsContract } from '../../../contracts/session-with-nested-chain-inputs/session-with-nested-chain-inputs-contract';
 import { dmRegistryBroker } from '../../dm/registry/dm-registry-broker';
 import { recipesHydrationCreateBroker } from '../../recipes-hydration/create/recipes-hydration-create-broker';
-import { sessionFieldsShape } from '../../../contracts/session-fields/session-fields-contract';
+import { sessionFieldsContract } from '../../../contracts/session-fields/session-fields-contract';
 
 const { recipe } = recipesHydrationCreateBroker();
 
@@ -23,10 +23,10 @@ export const recipesSessionSingleTurnBroker = recipe(
   },
   ({ guildPath }) => [
     dmRegistryBroker.sessions
-      .under({ cwd: sessionFieldsShape.shape.cwd.parse(guildPath) })
+      .under({ cwd: sessionFieldsContract.shape.cwd.parse(guildPath) })
       .add(1, (s) => [
         s[0].set({
-          lines: sessionFieldsShape.shape.lines.parse([
+          lines: sessionFieldsContract.shape.lines.parse([
             '{"type":"user","message":{"role":"user","content":"Single turn request"}}',
             '{"type":"assistant","message":{"role":"assistant","content":[{"type":"text","text":"Single turn response"}]}}',
           ]),

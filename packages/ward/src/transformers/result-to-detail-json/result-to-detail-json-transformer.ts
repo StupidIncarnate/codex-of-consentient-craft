@@ -14,7 +14,7 @@
  * // Returns JSON string with checks, errors, testFailures, plus rawOutput on crash projects only
  */
 
-import type { WardRunResult } from '../../contracts/ward-result/ward-result-contract';
+import type { WardResult } from '../../contracts/ward-result/ward-result-contract';
 import { rawOutputCapStatics } from '../../statics/raw-output-cap/raw-output-cap-statics';
 import { hasCheckDiscoveryMismatchGuard } from '../../guards/has-check-discovery-mismatch/has-check-discovery-mismatch-guard';
 import { stripAnsiCodesTransformer } from '../strip-ansi-codes/strip-ansi-codes-transformer';
@@ -24,7 +24,7 @@ const JSON_INDENT_SPACES = 2;
 export const resultToDetailJsonTransformer = ({
   wardResult,
 }: {
-  wardResult: WardRunResult;
+  wardResult: WardResult;
 }): string => {
   const { maxChars } = rawOutputCapStatics.cap;
 

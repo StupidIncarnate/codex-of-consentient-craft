@@ -1,12 +1,12 @@
-import { WardRunResultStub } from '../../../contracts/ward-result/ward-result.stub';
+import { WardResultStub } from '../../../contracts/ward-result/ward-result.stub';
 import { CheckResultStub } from '../../../contracts/check-result/check-result.stub';
 import { ProjectResultStub } from '../../../contracts/project-result/project-result.stub';
 
 import { storageSaveBroker } from './storage-save-broker';
 import { storageSaveBrokerProxy } from './storage-save-broker.proxy';
 
-const failingWardResult = (): ReturnType<typeof WardRunResultStub> =>
-  WardRunResultStub({
+const failingWardResult = (): ReturnType<typeof WardResultStub> =>
+  WardResultStub({
     checks: [
       CheckResultStub({
         status: 'fail',
@@ -35,7 +35,7 @@ describe('storageSaveBroker', () => {
   describe('all checks pass', () => {
     it('VALID: {wardResult with no failures} => still writes file', async () => {
       const rootPath = '/home/user/project';
-      const wardResult = WardRunResultStub();
+      const wardResult = WardResultStub();
 
       const proxy = storageSaveBrokerProxy();
       proxy.setupSuccess({ rootPath, runId: wardResult.runId });

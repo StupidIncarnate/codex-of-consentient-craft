@@ -1,4 +1,4 @@
-import { WardRunResultStub } from '../../contracts/ward-result/ward-result.stub';
+import { WardResultStub } from '../../contracts/ward-result/ward-result.stub';
 import { CheckResultStub } from '../../contracts/check-result/check-result.stub';
 import { ProjectResultStub } from '../../contracts/project-result/project-result.stub';
 import { ErrorEntryStub } from '../../contracts/error-entry/error-entry.stub';
@@ -8,7 +8,7 @@ import { resultToListTransformer } from './result-to-list-transformer';
 describe('resultToListTransformer', () => {
   describe('empty results', () => {
     it('EMPTY: {wardResult: no checks} => returns empty string', () => {
-      const wardResult = WardRunResultStub({ checks: [] });
+      const wardResult = WardResultStub({ checks: [] });
 
       const result = resultToListTransformer({ wardResult });
 
@@ -16,7 +16,7 @@ describe('resultToListTransformer', () => {
     });
 
     it('EMPTY: {wardResult: passing check with no errors} => returns empty string', () => {
-      const wardResult = WardRunResultStub({
+      const wardResult = WardResultStub({
         checks: [
           CheckResultStub({
             checkType: 'lint',
@@ -34,7 +34,7 @@ describe('resultToListTransformer', () => {
 
   describe('lint errors', () => {
     it('VALID: {wardResult: lint errors in one file} => groups errors under file path', () => {
-      const wardResult = WardRunResultStub({
+      const wardResult = WardResultStub({
         checks: [
           CheckResultStub({
             checkType: 'lint',
@@ -72,7 +72,7 @@ describe('resultToListTransformer', () => {
 
   describe('typecheck errors', () => {
     it('VALID: {wardResult: tsc error without rule} => shows checkType without rule', () => {
-      const wardResult = WardRunResultStub({
+      const wardResult = WardResultStub({
         checks: [
           CheckResultStub({
             checkType: 'typecheck',
@@ -95,7 +95,7 @@ describe('resultToListTransformer', () => {
 
   describe('test failures', () => {
     it('VALID: {wardResult: test failures in one suite} => groups failures under suite path', () => {
-      const wardResult = WardRunResultStub({
+      const wardResult = WardResultStub({
         checks: [
           CheckResultStub({
             checkType: 'unit',
@@ -131,7 +131,7 @@ describe('resultToListTransformer', () => {
 
   describe('line zero errors', () => {
     it('VALID: {wardResult: lint error with line=0} => omits line number from output', () => {
-      const wardResult = WardRunResultStub({
+      const wardResult = WardResultStub({
         checks: [
           CheckResultStub({
             checkType: 'lint',
@@ -162,7 +162,7 @@ describe('resultToListTransformer', () => {
 
   describe('mixed errors and failures across files', () => {
     it('VALID: {wardResult: lint + test errors in different files} => groups all by file path', () => {
-      const wardResult = WardRunResultStub({
+      const wardResult = WardResultStub({
         checks: [
           CheckResultStub({
             checkType: 'lint',
