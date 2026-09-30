@@ -500,7 +500,6 @@ export * from './usage-ledger/usage-ledger-contract';
 
 // Routed Graph Contracts (the shape both the family graph and each step graph satisfy, walked by
 // graphReachabilityViolationsTransformer)
-export * from './routed-graph-outcome-word/routed-graph-outcome-word-contract';
 export * from './routed-graph/routed-graph-contract';
 
 // Gateway Lint Config Contracts (the `gateway` key of `.dungeonmaster.json` — parsed once by

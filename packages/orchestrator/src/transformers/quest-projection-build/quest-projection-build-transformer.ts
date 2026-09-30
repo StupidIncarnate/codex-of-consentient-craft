@@ -26,7 +26,7 @@
  */
 
 import type { Quest, QuestProjection, WorkItem } from '@dungeonmaster/shared/contracts';
-import { questProjectionContract, routedGraphOutcomeWordContract, stepNameContract } from '@dungeonmaster/shared/contracts';
+import { questProjectionContract, stepNameContract } from '@dungeonmaster/shared/contracts';
 import { workItemStatusMetadataStatics } from '@dungeonmaster/shared/statics';
 
 import { agentFlowFamilyResolveTransformer } from '../agent-flow-family-resolve/agent-flow-family-resolve-transformer';
@@ -71,7 +71,7 @@ export const questProjectionBuildTransformer = ({ quest }: { quest: Quest }): Qu
     const plannedStart: string | undefined =
       actualSteps.length === 0
         ? graph.entry
-        : graph.nodes[currentStepKey]?.routes[routedGraphOutcomeWordContract.parse('done')];
+        : graph.nodes[currentStepKey]?.routes['done'];
 
     const plannedSteps = agentFlowPlannedStepsWalkTransformer({ graph, cursor: plannedStart }).map(
       (step) => ({

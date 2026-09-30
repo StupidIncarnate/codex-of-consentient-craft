@@ -24,7 +24,6 @@
  * reason — it was dead code, not a missing test.
  */
 
-import { routedGraphOutcomeWordContract } from '@dungeonmaster/shared/contracts';
 import type { RoutedGraph } from '@dungeonmaster/shared/contracts';
 
 export const agentFlowPlannedStepsWalkTransformer = ({
@@ -44,7 +43,7 @@ export const agentFlowPlannedStepsWalkTransformer = ({
     return [];
   }
 
-  const doneCursor = node.routes[routedGraphOutcomeWordContract.parse('done')];
+  const doneCursor = node.routes['done'];
 
   return [cursor, ...agentFlowPlannedStepsWalkTransformer({ graph, cursor: doneCursor })];
 };

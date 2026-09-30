@@ -1,6 +1,5 @@
 import { OperationItemStub } from '@dungeonmaster/shared/contracts/operation-item/operation-item.stub';
 import { QuestStub } from '@dungeonmaster/shared/contracts/quest/quest.stub';
-import { RoutedGraphOutcomeWordStub } from '@dungeonmaster/shared/contracts/routed-graph-outcome-word/routed-graph-outcome-word.stub';
 
 import { agentFlowFamilyResolveTransformer } from './agent-flow-family-resolve-transformer';
 
@@ -38,7 +37,7 @@ describe('agentFlowFamilyResolveTransformer', () => {
 
       const wardNode = graph.nodes['ward'];
 
-      expect(wardNode?.routes[RoutedGraphOutcomeWordStub({ value: 'done' })]).toBe('sweepOut');
+      expect(wardNode?.routes['done']).toBe('sweepOut');
     });
   });
 
