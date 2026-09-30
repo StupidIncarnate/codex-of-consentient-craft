@@ -117,6 +117,26 @@ describe('laneSessionContract', () => {
       expect(lane.apiBaseUrl).toBe('http://127.0.0.1:0');
     });
 
+    it('VALID: {} => stopProcesses defaults to a resolved undefined', async () => {
+      const lane = LaneSessionStub();
+
+      await expect(lane.stopProcesses()).resolves.toBe(undefined);
+    });
+
+    it('VALID: {} => startProcesses defaults to a resolved undefined', async () => {
+      const lane = LaneSessionStub();
+
+      await expect(lane.startProcesses()).resolves.toBe(undefined);
+    });
+
+    it('VALID: {startProcesses: mock} => the handed-in function is the same reference', () => {
+      const mockStartProcesses = jest.fn();
+
+      const lane = LaneSessionStub({ startProcesses: mockStartProcesses });
+
+      expect(lane.startProcesses).toBe(mockStartProcesses);
+    });
+
     it('VALID: {serverLogLength: mock} => the handed-in function is the same reference', () => {
       const mockServerLogLength = jest.fn();
 

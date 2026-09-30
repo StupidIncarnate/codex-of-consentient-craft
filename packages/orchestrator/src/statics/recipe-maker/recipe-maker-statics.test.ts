@@ -262,7 +262,11 @@ describe('recipeMakerStatics', () => {
         text: TEMPLATE,
       }),
       pointsAtStandard: hasIn({
-        needle: 'Call `get-testing-patterns`',
+        needle: 'Then call `get-testing-patterns`',
+        text: TEMPLATE,
+      }),
+      pointsAtRepoRecipeGuide: hasIn({
+        needle: 'Read\n`packages/hydration-recipes/CLAUDE.md` first',
         text: TEMPLATE,
       }),
       recipesAndIngredientsSection: hasIn({
@@ -282,6 +286,7 @@ describe('recipeMakerStatics', () => {
       catalogEntry: true,
       bothHalves: true,
       pointsAtStandard: true,
+      pointsAtRepoRecipeGuide: true,
       recipesAndIngredientsSection: true,
       notAnOutcome: true,
       composeFirst: true,
@@ -439,17 +444,21 @@ describe('recipeMakerStatics', () => {
     }).toStrictEqual({ sadPaths: 1, spilled: 1, marking: false, markingHeading: false });
   });
 
-  // WITH THE PLANNING DOCS SCOPE DELETED, THE FULL STEP CATALOG LIVES ONLY ON THE WALKING PAGE — a
-  // setup batch that needs a step beyond goto/click/seed has nowhere else in this prompt to learn
-  // one exists.
-  it('VALID: served template => points at the walking docs for the full step catalog', () => {
-    expect(
-      hasIn({
-        needle:
-          'dungeonmaster siegelense docs --for walking` names every verb the step contract accepts',
+  // The seeding page teaches the headless seed-and-read sequence and nothing else, so a setup that
+  // drives a browser still needs the walking page for its verbs.
+  it('VALID: served template => points at the seeding docs for a headless setup and the walking docs for a browser one', () => {
+    expect({
+      seeding: hasIn({
+        needle: 'dungeonmaster siegelense docs --for seeding` teaches the headless sequence',
         text: TEMPLATE,
       }),
-    ).toBe(true);
+      walking: hasIn({
+        needle: 'dungeonmaster siegelense docs --for walking` names every browser verb',
+        text: TEMPLATE,
+      }),
+      apiSpec: hasIn({ needle: 'runs on `--spec api`', text: TEMPLATE }),
+      stackSpec: hasIn({ needle: 'needs\n`--spec stack`', text: TEMPLATE }),
+    }).toStrictEqual({ seeding: true, walking: true, apiSpec: true, stackSpec: true });
   });
 
   // THE LISTING'S REAL FIELDS, NOT THE RETIRED BOOK'S — `produces:`/fidelity/parameters/returns

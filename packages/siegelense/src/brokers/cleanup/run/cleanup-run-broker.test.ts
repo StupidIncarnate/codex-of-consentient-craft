@@ -202,6 +202,7 @@ describe('cleanupRunBroker', () => {
             pid: null,
             pgids: [],
             socketPath: null,
+            killedAtMs: NOW_MS,
           }),
         ],
       });

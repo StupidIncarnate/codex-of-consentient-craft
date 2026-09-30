@@ -89,6 +89,35 @@ describe('hasCheckDiscoveryMismatchGuard', () => {
     });
   });
 
+  describe('crashed project results', () => {
+    it('VALID: {crashed with discovered>0 and files=0, hasPassthrough} => returns false', () => {
+      const check = CheckResultStub({
+        projectResults: [ProjectResultStub({ status: 'fail', filesCount: 0, discoveredCount: 5 })],
+      });
+
+      expect(hasCheckDiscoveryMismatchGuard({ check, hasPassthrough: true })).toBe(false);
+    });
+
+    it('VALID: {crashed with discovered>0 and files=0, no passthrough} => returns false', () => {
+      const check = CheckResultStub({
+        projectResults: [ProjectResultStub({ status: 'fail', filesCount: 0, discoveredCount: 5 })],
+      });
+
+      expect(hasCheckDiscoveryMismatchGuard({ check, hasPassthrough: false })).toBe(false);
+    });
+
+    it('VALID: {crashed alongside a package that really did diverge, no passthrough} => returns true', () => {
+      const check = CheckResultStub({
+        projectResults: [
+          ProjectResultStub({ status: 'fail', filesCount: 0, discoveredCount: 5 }),
+          ProjectResultStub({ status: 'pass', filesCount: 3, discoveredCount: 12 }),
+        ],
+      });
+
+      expect(hasCheckDiscoveryMismatchGuard({ check, hasPassthrough: false })).toBe(true);
+    });
+  });
+
   describe('zero discovered', () => {
     it('VALID: {discovered=0} => returns false', () => {
       const check = CheckResultStub({

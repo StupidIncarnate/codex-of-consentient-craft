@@ -36,9 +36,9 @@ describe('docsArgsContract', () => {
       expect(result.error?.issues).toStrictEqual([
         {
           code: 'invalid_value',
-          values: ['walking', 'attacking', 'fixing'],
+          values: ['walking', 'attacking', 'fixing', 'seeding'],
           path: ['scope'],
-          message: 'Invalid option: expected one of "walking"|"attacking"|"fixing"',
+          message: 'Invalid option: expected one of "walking"|"attacking"|"fixing"|"seeding"',
         },
       ]);
     });
@@ -50,9 +50,9 @@ describe('docsArgsContract', () => {
       expect(result.error?.issues).toStrictEqual([
         {
           code: 'invalid_value',
-          values: ['walking', 'attacking', 'fixing'],
+          values: ['walking', 'attacking', 'fixing', 'seeding'],
           path: ['scope'],
-          message: 'Invalid option: expected one of "walking"|"attacking"|"fixing"',
+          message: 'Invalid option: expected one of "walking"|"attacking"|"fixing"|"seeding"',
         },
       ]);
     });

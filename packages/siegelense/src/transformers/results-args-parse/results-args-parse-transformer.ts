@@ -44,6 +44,8 @@ import {
 import { sinceMarkerContract } from '../../contracts/since-marker/since-marker-contract';
 import { resultsStatics } from '../../statics/results/results-statics';
 import { siegelenseOutputStatics } from '../../statics/siegelense-output/siegelense-output-statics';
+import { resultsArgsScopeCheckTransformer } from '../results-args-scope-check/results-args-scope-check-transformer';
+import { enumFlagParseTransformer } from '../enum-flag-parse/enum-flag-parse-transformer';
 import { flagContractParseTransformer } from '../flag-contract-parse/flag-contract-parse-transformer';
 import { flagValueReadTransformer } from '../flag-value-read/flag-value-read-transformer';
 import { numericFlagParseTransformer } from '../numeric-flag-parse/numeric-flag-parse-transformer';
@@ -147,7 +149,7 @@ export const resultsArgsParseTransformer = ({ args }: { args: readonly string[] 
     whereLevelValue !== null ||
     whereStepsValue !== null;
 
-  return resultsArgsContract.parse({
+  const parsedArgs = resultsArgsContract.parse({
     instanceId: flagContractParseTransformer({
       flag: INSTANCE_FLAG,
       parse: () => siegeInstanceContract.shape.id.parse(instanceValue),
@@ -175,9 +177,11 @@ export const resultsArgsParseTransformer = ({ args }: { args: readonly string[] 
           method:
             whereMethodValue === null
               ? null
-              : flagContractParseTransformer({
+              : enumFlagParseTransformer({
                   flag: WHERE_METHOD_FLAG,
-                  parse: () => httpMethodContract.parse(whereMethodValue),
+                  raw: whereMethodValue,
+                  options: httpMethodContract.options,
+                  parse: (value) => httpMethodContract.parse(value),
                 }),
           nth:
             whereNthValue === null
@@ -191,9 +195,11 @@ export const resultsArgsParseTransformer = ({ args }: { args: readonly string[] 
           level:
             whereLevelValue === null
               ? null
-              : flagContractParseTransformer({
+              : enumFlagParseTransformer({
                   flag: WHERE_LEVEL_FLAG,
-                  parse: () => logLevelContract.parse(whereLevelValue),
+                  raw: whereLevelValue,
+                  options: logLevelContract.options,
+                  parse: (value) => logLevelContract.parse(value),
                 }),
           steps:
             whereStepsValue === null
@@ -225,4 +231,6 @@ export const resultsArgsParseTransformer = ({ args }: { args: readonly string[] 
           }),
     isJson: args.includes(siegelenseOutputStatics.flags.json),
   });
+
+  return resultsArgsScopeCheckTransformer({ args: parsedArgs });
 };

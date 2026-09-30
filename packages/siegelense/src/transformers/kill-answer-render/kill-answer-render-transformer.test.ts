@@ -61,4 +61,32 @@ describe('killAnswerRenderTransformer', () => {
       expect(rendered).toBe('KILLED: inst_7f3a9c21\nPROCESSES REAPED: 1 (9999)\nHOME: removed\n');
     });
   });
+
+  describe('a repeat kill', () => {
+    it('VALID: {alreadyKilledAtMs: 1700000123000} => says already killed at that ISO time and names the home already removed', () => {
+      const result = KillResultStub({
+        instanceId: InstanceIdStub({ value: 'inst_7f3a9c21' }),
+        alreadyKilledAtMs: 1_700_000_123_000,
+      });
+
+      const rendered = killAnswerRenderTransformer({ result });
+
+      expect(rendered).toBe(
+        'inst_7f3a9c21: already killed at 2023-11-14T22:15:23.000Z; nothing to do\nHOME: already removed\n',
+      );
+    });
+
+    it('EMPTY: {alreadyKilledAtMs: null} => says the time was not recorded', () => {
+      const result = KillResultStub({
+        instanceId: InstanceIdStub({ value: 'inst_7f3a9c21' }),
+        alreadyKilledAtMs: null,
+      });
+
+      const rendered = killAnswerRenderTransformer({ result });
+
+      expect(rendered).toBe(
+        'inst_7f3a9c21: already killed at an unrecorded time; nothing to do\nHOME: already removed\n',
+      );
+    });
+  });
 });

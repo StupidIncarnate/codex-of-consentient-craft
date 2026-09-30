@@ -1,5 +1,6 @@
 import { GuildIdStub } from '@dungeonmaster/shared/contracts/guild-id/guild-id.stub';
 import { GuildListItemStub } from '@dungeonmaster/shared/contracts/guild-list-item/guild-list-item.stub';
+import { screen } from '#gateway/npm/testing-library__react';
 
 import { mantineRenderMiddleware } from '@dungeonmaster/testing/middleware/mantine-render';
 import { GuildListWidget } from './guild-list-widget';
@@ -143,6 +144,26 @@ describe('GuildListWidget', () => {
       });
 
       expect(proxy.hasHeader()).toBe(true);
+    });
+  });
+
+  describe('add button test id', () => {
+    it('VALID: {guilds: []} => the + button carries GUILD_ADD_BUTTON and not PIXEL_BTN', () => {
+      GuildListWidgetProxy();
+
+      mantineRenderMiddleware({
+        ui: (
+          <GuildListWidget
+            guilds={[]}
+            selectedGuildId={null}
+            onSelect={jest.fn()}
+            onAdd={jest.fn()}
+          />
+        ),
+      });
+
+      expect(screen.getByTestId('GUILD_ADD_BUTTON').textContent).toBe('+ ');
+      expect(screen.queryAllByTestId('PIXEL_BTN')).toStrictEqual([]);
     });
   });
 });

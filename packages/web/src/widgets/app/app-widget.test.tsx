@@ -739,7 +739,7 @@ describe('AppWidget', () => {
   });
 
   describe('error and edge cases', () => {
-    it('VALID: {guilds API error} => empty state form shown (graceful degradation)', async () => {
+    it('ERROR: {guilds API error} => shows the load error instead of the first-run NEW GUILD form', async () => {
       const proxy = AppWidgetProxy();
 
       proxy.setupMountDefaults();
@@ -751,10 +751,11 @@ describe('AppWidget', () => {
       });
 
       await waitFor(() => {
-        expect(proxy.isNewGuildTitleVisible()).toBe(true);
+        expect(proxy.getGuildsErrorText()).toBe('Could not load guilds: Failed to fetch');
       });
 
-      expect(proxy.isNewGuildTitleVisible()).toBe(true);
+      expect(proxy.getGuildsErrorText()).toBe('Could not load guilds: Failed to fetch');
+      expect(proxy.isNewGuildTitleVisible()).toBe(false);
     });
 
     it('VALID: {load 3 guilds} => all visible in left column', async () => {

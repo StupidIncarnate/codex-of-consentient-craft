@@ -29,7 +29,7 @@
  * // Writes the three JSONL files and returns { session: { sessionId, outer, nested } }
  */
 
-import { agentContract } from '@dungeonmaster/shared/contracts';
+import { agentContract, toolUseContract } from '@dungeonmaster/shared/contracts';
 import type { Guild } from '@dungeonmaster/shared/contracts';
 import { hydrationRunResultContract } from '@dungeonmaster/hydration/contracts';
 import type { HydrationRunResult } from '@dungeonmaster/hydration/contracts';
@@ -99,7 +99,7 @@ export const recipesSessionWithNestedSubagentBroker = async ({
     streamLineToJsonLineTransformer({
       streamLine: {
         ...transcriptAssistantTaskToolUseLineTransformer({
-          toolUseId: fixture.outerToolUseId,
+          toolUseId: toolUseContract.shape.id.parse(fixture.outerToolUseId),
           description: fixture.outerDescription,
           prompt: fixture.outerPrompt,
         }),
@@ -112,7 +112,7 @@ export const recipesSessionWithNestedSubagentBroker = async ({
     streamLineToJsonLineTransformer({
       streamLine: {
         ...transcriptTaskToolResultLineTransformer({
-          toolUseId: fixture.outerToolUseId,
+          toolUseId: toolUseContract.shape.id.parse(fixture.outerToolUseId),
           content: fixture.completionText,
           agentId: agentContract.shape.id.parse(fixture.outerAgentId),
         }),
@@ -143,7 +143,7 @@ export const recipesSessionWithNestedSubagentBroker = async ({
     streamLineToJsonLineTransformer({
       streamLine: {
         ...transcriptAssistantTaskToolUseLineTransformer({
-          toolUseId: fixture.nestedToolUseId,
+          toolUseId: toolUseContract.shape.id.parse(fixture.nestedToolUseId),
           description: fixture.nestedDescription,
           prompt: fixture.nestedPrompt,
         }),
@@ -156,7 +156,7 @@ export const recipesSessionWithNestedSubagentBroker = async ({
     streamLineToJsonLineTransformer({
       streamLine: {
         ...transcriptTaskToolResultLineTransformer({
-          toolUseId: fixture.nestedToolUseId,
+          toolUseId: toolUseContract.shape.id.parse(fixture.nestedToolUseId),
           content: fixture.completionText,
           agentId: agentContract.shape.id.parse(fixture.nestedAgentId),
         }),

@@ -305,11 +305,15 @@ describe('CliFlow', () => {
     // measured window, so paying that one-time cost here — result discarded — keeps it off whichever
     // test happens to run first, the same fixture-cost pattern `get-testing-patterns` names for a
     // spawned child or a compiled module graph.
+    //
+    // The timeout covers a COLD transform cache, not a hang. That first compile measured 13.7s at
+    // load 10 on 12 cores and ran past jest's 30s default at load 22-25, beside another package's
+    // integration run; a warm cache pays well under a second.
     beforeAll(async () => {
       const stdout = harness.captureStdout();
       await CliSiegelenseResponder({ args: [] });
       stdout.restore();
-    });
+    }, 120_000);
 
     it('VALID: {command: "siegelense", args: []} => routes through the real dynamic import to the status responder and reports the reworded empty-fleet sentence naming the default --since window', async () => {
       const testbed = installTestbedCreateBroker({
@@ -347,7 +351,7 @@ describe('CliFlow', () => {
         '',
       ]);
       expect(machineLine).toMatch(
-        /^MACHINE: free \d+MB\/\d+MB mem, free disk \d+MB, \d+ cores, load [\d.]+\/[\d.]+\/[\d.]+, OOM kills \d+ \(last (?:-|\d{2}:\d{2}:\d{2})\)$/u,
+        /^MACHINE: free \d+MB\/\d+MB mem, free disk \d+MB, \d+ cores, load [\d.]+\/[\d.]+\/[\d.]+, OOM kills (?:\d+|unreadable)$/u,
       );
     });
 

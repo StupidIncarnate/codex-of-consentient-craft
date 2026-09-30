@@ -631,7 +631,7 @@ describe('SiegelensePruneLayerFlow', () => {
         'FREED: 0MB (0 bytes)\n' +
           'REMOVED: none\n' +
           `REFUSED: ${String(LIVE_ID)} (live — ${LAST_BEAT_PLACEHOLDER})\n` +
-          'NOT CHECKED: none\n',
+          `NOT CHECKED: open-issue (${OPEN_ISSUE_GAP_WHY})\n`,
       );
     });
 
@@ -674,7 +674,7 @@ describe('SiegelensePruneLayerFlow', () => {
         freedBytes: 0,
         removed: [],
         refused: [],
-        unresolved: [],
+        unresolved: [{ kind: 'open-issue', why: OPEN_ISSUE_GAP_WHY }],
       });
       expect(boundaryLogAfterTooYoungSweep).toBe(BOUNDARY_LOG_BODY);
     });

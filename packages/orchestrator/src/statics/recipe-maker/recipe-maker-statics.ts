@@ -131,8 +131,10 @@ where two compose makes the book worse while looking productive.
 
 ### 5. Author the gaps
 
-A recipe is COMPOSITION, and you write one yourself in a few lines. Call \`get-testing-patterns\`
-first — its Recipes and Ingredients section is the standard you follow for how to write one: naming
+A recipe is COMPOSITION, and you write one yourself in a few lines. Read
+\`packages/hydration-recipes/CLAUDE.md\` first — it is where this repo records its own ingredients,
+what each one copies, and the rules particular to its state. Then call \`get-testing-patterns\` — its
+Recipes and Ingredients section is the standard you follow for how to write one: naming
 each input after the field it fills, giving every input and returned field a one-line meaning,
 declaring what the recipe hands back, keeping \`makes\` honest, and composing before you write. Two
 halves, both required, and neither is a later pass:
@@ -160,12 +162,19 @@ dungeonmaster siegelense results --instance <id> --run <runId>
 dungeonmaster siegelense kill --instance <id>
 \`\`\`
 
-**Ask capacity before you open anything.** You are not the only session on this machine, and \`start\`
-refuses outright when it is full.
+**Pick the spec from what the setup does.** A setup of seeds and reads alone runs on \`--spec api\`,
+which boots no browser. A setup that also has to \`goto\` or \`click\` its way to the entry state needs
+\`--spec stack\`.
 
-Where your setup batch needs a step beyond \`goto\`, \`click\` or \`seed\`, \`dungeonmaster siegelense docs
---for walking\` names every verb the step contract accepts and the reading ladder for finding a
-testId in the first place.
+**Read the manual for the spec you picked, once, before your first \`start\`.**
+\`dungeonmaster siegelense docs --for seeding\` teaches the headless sequence: the \`seed\` step with
+its \`as\` handle and parameters, and the steps that read back what a seed produced. Where the setup
+drives a browser, \`dungeonmaster siegelense docs --for walking\` names every browser verb and the
+reading ladder for finding a testId in the first place.
+
+**Ask capacity before you open anything.** You are not the only session on this machine, and \`start\`
+refuses outright when it is full. Other recipe-makers may be running beside you, each on an instance
+of its own: every command you run names YOUR instance id, and you never kill one you did not start.
 
 **Close every instance you open.** An instance whose session ends without a \`kill\` leaks: it is not
 a child process of yours, so nothing tears it down for you.

@@ -85,6 +85,7 @@ export const registryEntryContract = z
     reservedAtMs: z.number().int().nonnegative().brand<'RegistryEntryReservedAtMs'>(),
     bootedAtMs: z.number().int().nonnegative().brand<'RegistryEntryBootedAtMs'>().nullable(),
     lastBeatMs: z.number().int().nonnegative().brand<'RegistryEntryLastBeatMs'>().nullable(),
+    killedAtMs: z.number().int().nonnegative().brand<'RegistryEntryKilledAtMs'>().nullish(),
     prunedAtMs: z.number().int().nonnegative().brand<'RegistryEntryPrunedAtMs'>().nullable(),
     prunedByRule: z.string().brand<'RegistryEntryPrunedByRule'>().nullable(),
     branch: z.string().brand<'RegistryEntryBranch'>().nullish(),

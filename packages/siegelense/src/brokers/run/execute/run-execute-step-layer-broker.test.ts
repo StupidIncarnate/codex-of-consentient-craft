@@ -5,6 +5,7 @@ import { StepStub } from '../../../contracts/step/step.stub';
 
 import { runExecuteStepLayerBroker } from './run-execute-step-layer-broker';
 import { runExecuteStepLayerBrokerProxy } from './run-execute-step-layer-broker.proxy';
+import { LocatorStateStub } from '../../../contracts/locator-state/locator-state.stub';
 
 const FIXED_NOW_MS = 1_700_000_000_000;
 
@@ -269,7 +270,7 @@ describe('runExecuteStepLayerBroker', () => {
           ok: false,
           expected: 'ok',
           reading:
-            'visible [data-testid="GUILD_ADD"] never resolved in 30000ms: Error: Timeout 30000ms exceeded',
+            'visible [data-testid="GUILD_ADD"] never resolved in 30000ms: Error: Timeout 30000ms exceeded — 0 elements match [data-testid="GUILD_ADD"] now. Nearest names on this page: (none found on this page).\nPage at failure:\nkey: (no addressable elements on this page)',
           shot: null,
           pixelChange: null,
           blank: null,
@@ -284,9 +285,78 @@ describe('runExecuteStepLayerBroker', () => {
           step: 2,
           verb: 'waitFor',
           error:
-            'visible [data-testid="GUILD_ADD"] never resolved in 30000ms: Error: Timeout 30000ms exceeded',
+            'visible [data-testid="GUILD_ADD"] never resolved in 30000ms: Error: Timeout 30000ms exceeded — 0 elements match [data-testid="GUILD_ADD"] now. Nearest names on this page: (none found on this page). The page\'s key at failure is in this step\'s reading: results --kind steps --step 2.',
           candidates: [],
         },
+        timedOut: true,
+      });
+    });
+
+    it('ERROR: {waitFor never resolves, no shotPath, a failureShotPath} => the failed step screenshots the page and its reading records that path', async () => {
+      const proxy = runExecuteStepLayerBrokerProxy();
+      const lane = proxy.laneWaitForHitsCeiling({
+        error: new Error('Timeout 30000ms exceeded'),
+      });
+      const step = StepStub({
+        step: 'waitFor',
+        target: '[data-testid="GUILD_ADD"]',
+        state: LocatorStateStub({ value: 'visible' }),
+      });
+
+      const outcome = await runExecuteStepLayerBroker({
+        lane,
+        step,
+        index: 2,
+        shotPath: null,
+        failureShotPath: '/repo/evidence/runs/run_7/step2.png',
+        browserWindowStart: null,
+        lastShotPath: proxy.lastShotPath,
+        setLastShotPath: proxy.setLastShotPath,
+        outputs: NO_OUTPUTS,
+        recordOutput: NOOP,
+      });
+
+      expect({ ok: outcome.reading.ok, shot: outcome.reading.shot }).toStrictEqual({
+        ok: false,
+        shot: '/repo/evidence/runs/run_7/step2.png',
+      });
+    });
+
+    it('ERROR: {waitFor on an absent target, timeoutMs 2000, clock advancing 1000ms per read} => the failure reading spans the wait: startedAtMs before dispatch, endedAtMs at the catch', async () => {
+      const proxy = runExecuteStepLayerBrokerProxy();
+      const lane = proxy.laneWaitForHitsCeiling({
+        error: new Error('Timeout 2000ms exceeded'),
+      });
+      proxy.clockAdvancing({ startMs: FIXED_NOW_MS, stepMs: 1000 });
+      const step = StepStub({
+        step: 'waitFor',
+        target: '[data-testid="NOPE"]',
+        state: LocatorStateStub({ value: 'visible' }),
+        timeoutMs: 2000,
+      });
+
+      const outcome = await runExecuteStepLayerBroker({
+        lane,
+        step,
+        index: 1,
+        shotPath: null,
+        browserWindowStart: null,
+        lastShotPath: proxy.lastShotPath,
+        setLastShotPath: proxy.setLastShotPath,
+        outputs: NO_OUTPUTS,
+        recordOutput: NOOP,
+      });
+
+      expect({
+        reading: outcome.reading.reading,
+        startedAtMs: outcome.reading.startedAtMs,
+        endedAtMs: outcome.reading.endedAtMs,
+        timedOut: outcome.timedOut,
+      }).toStrictEqual({
+        reading:
+          'visible [data-testid="NOPE"] never resolved in 2000ms: Error: Timeout 2000ms exceeded — 0 elements match [data-testid="NOPE"] now. Nearest names on this page: (none found on this page).\nPage at failure:\nkey: (no addressable elements on this page)',
+        startedAtMs: FIXED_NOW_MS + 1000,
+        endedAtMs: FIXED_NOW_MS + 3000,
         timedOut: true,
       });
     });

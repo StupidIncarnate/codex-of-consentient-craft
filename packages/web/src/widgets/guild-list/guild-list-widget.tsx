@@ -13,7 +13,7 @@ import { emberDepthsThemeStatics } from '../../statics/ember-depths-theme/ember-
 import { PixelBtnWidget } from '../pixel-btn/pixel-btn-widget';
 import { GuildRowLayerWidget } from './guild-row-layer-widget';
 
-import type { ButtonVariant } from '../../contracts/button-variant/button-variant-contract';
+const addTestId = 'GUILD_ADD_BUTTON';
 
 export interface GuildListWidgetProps {
   guilds: readonly GuildListItem[];
@@ -36,7 +36,7 @@ export const GuildListWidget = ({
         <Text ff="monospace" size="xs" style={{ color: colors['text-dim'] }}>
           GUILDS
         </Text>
-        <PixelBtnWidget label={'+ '} onClick={onAdd} variant={'ghost' as ButtonVariant} icon />
+        <PixelBtnWidget label={'+ '} onClick={onAdd} testId={addTestId} variant={'ghost'} icon />
       </Group>
       {guilds.map((guild) => (
         <GuildRowLayerWidget

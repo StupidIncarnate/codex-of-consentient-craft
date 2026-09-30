@@ -42,7 +42,12 @@ export const HomeContentWidget = (): React.JSX.Element => {
   const [addGuildModalOpened, setAddGuildModalOpened] = useState(false);
   const [sessionFilter, setSessionFilter] = useState<SessionFilter>('quests-only' as SessionFilter);
 
-  const { guilds, loading: guildsLoading, refresh: refreshGuilds } = useGuildsBinding();
+  const {
+    guilds,
+    loading: guildsLoading,
+    error: guildsError,
+    refresh: refreshGuilds,
+  } = useGuildsBinding();
   const { data: sessions, loading: sessionsLoading } = useSessionListBinding({
     guildId: selectedGuildId,
   });
@@ -91,10 +96,25 @@ export const HomeContentWidget = (): React.JSX.Element => {
 
   const { colors } = emberDepthsThemeStatics;
   const hasGuilds = guilds.length > 0;
+  // A failed list is not an empty one: falling through to the first-run form here reads as
+  // "you have no guilds" while every registered guild is still in config.json. The main view
+  // renders under the error instead, so its + button still reaches the NEW GUILD form.
+  const showNewGuildForm =
+    (!hasGuilds && !guildsLoading && guildsError === null) || internalView === 'new-guild';
 
   return (
     <>
-      {(!hasGuilds && !guildsLoading) || internalView === 'new-guild' ? (
+      {guildsError !== null && internalView !== 'new-guild' ? (
+        <Text
+          ff="monospace"
+          size="sm"
+          style={{ color: colors.danger, marginBottom: 8 }}
+          data-testid="HOME_GUILDS_ERROR"
+        >
+          Could not load guilds: {guildsError.message}
+        </Text>
+      ) : null}
+      {showNewGuildForm ? (
         <Center style={{ height: 250 }}>
           <GuildEmptyStateWidget
             onAddGuild={({ name, path }) => {

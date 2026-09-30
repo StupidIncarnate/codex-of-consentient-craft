@@ -46,7 +46,7 @@ describe('SiegelenseKillLayerFlow', () => {
   });
 
   describe('a known but already-dead id', () => {
-    it('VALID: {callArgs: [--instance, <killed>, --json]} => accepts the dead id and writes the complete KillResult as JSON', async () => {
+    it('VALID: {callArgs: [--instance, <killed>, --json]} => accepts the dead id as a repeat kill and writes the complete KillResult as JSON with alreadyKilledAtMs null', async () => {
       const stdoutSpy = registerSpyOn({ object: stdout, method: 'write' });
       stdoutSpy.calledWith([]).returns(true);
 
@@ -67,6 +67,7 @@ describe('SiegelenseKillLayerFlow', () => {
           linkPresent: false,
         }),
         reapedPgids: [],
+        alreadyKilledAtMs: null,
       });
 
       expect(writes).toStrictEqual([
@@ -74,7 +75,7 @@ describe('SiegelenseKillLayerFlow', () => {
       ]);
     });
 
-    it('VALID: {callArgs: [--instance, <killed>]} => writes the rendered human summary by default', async () => {
+    it('VALID: {callArgs: [--instance, <killed>]} => writes the rendered already-killed summary by default', async () => {
       const stdoutSpy = registerSpyOn({ object: stdout, method: 'write' });
       stdoutSpy.calledWith([]).returns(true);
 
@@ -91,6 +92,7 @@ describe('SiegelenseKillLayerFlow', () => {
           linkPresent: false,
         }),
         reapedPgids: [],
+        alreadyKilledAtMs: null,
       });
 
       expect(writes).toStrictEqual([killAnswerRenderTransformer({ result: expectedResult })]);

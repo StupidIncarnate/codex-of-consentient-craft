@@ -175,6 +175,17 @@ const STEP_DEFAULTS = {
     node: null,
     expect: StepExpectationStub(),
   },
+  scroll: {
+    step: 'scroll',
+    target: null,
+    within: null,
+    ref: null,
+    by: null,
+    byX: null,
+    to: 'bottom',
+    node: null,
+    expect: StepExpectationStub(),
+  },
 } as const satisfies Record<Step['step'], Record<string, unknown>>;
 
 export const StepStub = ({ ...props }: StubArgument<Step> = {}): Step => {
@@ -227,7 +238,9 @@ export const StepStub = ({ ...props }: StubArgument<Step> = {}): Step => {
                                               ? STEP_DEFAULTS.snapshot
                                               : stepVerb === 'reset'
                                                 ? STEP_DEFAULTS.reset
-                                                : STEP_DEFAULTS.click;
+                                                : stepVerb === 'scroll'
+                                                  ? STEP_DEFAULTS.scroll
+                                                  : STEP_DEFAULTS.click;
 
   // A `ref` override without a `target` override would otherwise carry click's default target in
   // beside it, and the handle rule rejects a step holding both. The stub's job is to build a VALID
@@ -250,8 +263,19 @@ export const StepStub = ({ ...props }: StubArgument<Step> = {}): Step => {
     stepVerb === 'paste' && 'filePath' in props && props.filePath !== null && !('value' in props);
   const withoutValue = payloadOverridden ? { value: null } : {};
 
+  // `scroll` defaults to the `to` mode; naming any other mode's field drops it so the one-mode rule
+  // holds.
+  const scrollModeOverridden =
+    stepVerb === 'scroll' &&
+    (('by' in props && props.by !== null) ||
+      ('byX' in props && props.byX !== null) ||
+      ('target' in props && props.target !== null) ||
+      ('ref' in props && props.ref !== null));
+  const withoutTo = scrollModeOverridden ? { to: null } : {};
+
   return stepContract.parse({
     ...base,
+    ...withoutTo,
     ...withoutTarget,
     ...withoutVisible,
     ...withoutValue,

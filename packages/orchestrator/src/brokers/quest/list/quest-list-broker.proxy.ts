@@ -29,6 +29,7 @@ export const questListBrokerProxy = (): {
   setupDirectListOnce: (params: { guildId: Guild['id']; quests: readonly Quest[] }) => void;
   setupDirectListFailure: (params: { error: Error }) => void;
   getSkipReports: () => readonly unknown[];
+  getListCalls: () => readonly unknown[];
 } => {
   const resolveQuestsPathProxy = questResolveQuestsPathBrokerProxy();
   const readdirProxy = readdirSyncProxy();
@@ -121,6 +122,8 @@ export const questListBrokerProxy = (): {
     },
     // Only the broker's own skip lines, in write order — so a test can assert HOW MANY times an
     // unchanged bad file was reported across repeated list calls, not just that it was reported.
+    // The argument object of every listing call, in call order.
+    getListCalls: (): readonly unknown[] => mocked.callsMatching([]).map((call) => call[0]),
     getSkipReports: (): readonly unknown[] =>
       stderrChild
         .getWrites()

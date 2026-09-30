@@ -1,7 +1,7 @@
 /**
  * PURPOSE: Restores state from a snapshot payload into the instance's throwaway home directory.
  * Compares files in homePath and payloadPath (excluding .siegelense-snapshots), removes
- * added files, copies the payload into home, and reports the undid diff ({ files, added,
+ * added files and the folders the snapshot never held, copies the payload into home, and reports the undid diff ({ files, added,
  * modified, removed }).
  *
  * A same-size pair is decided by CONTENT, never by mtime (DEF-81): `snapshotCaptureBroker`'s own
@@ -15,7 +15,8 @@
  *   homePath: AbsoluteFilePathStub({ value: '/tmp/instance-home' }),
  *   payloadPath: AbsoluteFilePathStub({ value: '/tmp/instance-home/.siegelense-snapshots/1' }),
  * });
- * // Returns { files: 3, added: 1, modified: 1, removed: 1 }
+ * // Returns { files: 3, added: 1, modified: 1, removed: 1 }, plus `addedFolders` when home holds a
+ * // folder the snapshot never did (the key is absent otherwise)
  */
 
 import { createHash } from '#gateway/node/crypto';
@@ -40,6 +41,7 @@ export const snapshotRestoreLayerBroker = async ({
   const homeFiles = new Map<RelativeFilePath, FileStat>();
   const homeQueue: string[] = [homePath];
   const homeFilePaths: string[] = [];
+  const homeDirPaths: string[] = [];
   const homePrefixLen = homePath.length + 1;
 
   while (homeQueue.length > 0) {
@@ -54,6 +56,7 @@ export const snapshotRestoreLayerBroker = async ({
       }
       const entryPath = `${currentDir}/${entry.name}`;
       if (entry.kind === 'directory') {
+        homeDirPaths.push(entryPath);
         homeQueue.push(entryPath);
       } else {
         homeFilePaths.push(entryPath);
@@ -84,6 +87,7 @@ export const snapshotRestoreLayerBroker = async ({
   const payloadFiles = new Map<RelativeFilePath, FileStat>();
   const payloadQueue: string[] = [payloadPath];
   const payloadFilePaths: string[] = [];
+  const payloadDirRels = new Set<RelativeFilePath>();
   const payloadPrefixLen = payloadPath.length + 1;
 
   while (payloadQueue.length > 0) {
@@ -95,6 +99,9 @@ export const snapshotRestoreLayerBroker = async ({
     for (const entry of entries) {
       const entryPath = `${currentDir}/${entry.name}`;
       if (entry.kind === 'directory') {
+        payloadDirRels.add(
+          relativeFilePathContract.parse(`./${entryPath.slice(payloadPrefixLen)}`),
+        );
         payloadQueue.push(entryPath);
       } else {
         payloadFilePaths.push(entryPath);
@@ -128,9 +135,21 @@ export const snapshotRestoreLayerBroker = async ({
     return !payloadFiles.has(relPath);
   });
 
-  await Promise.all(
-    addedPaths.map(async (dirPath) => rm(dirPath, { recursive: true, force: true })),
+  // A folder the snapshot never held is taken with everything under it. Only the outermost ones
+  // are removed (one recursive rm covers a nested chain), but every one is counted.
+  const addedDirRels = homeDirPaths
+    .map((dirPath) => relativeFilePathContract.parse(`./${dirPath.slice(homePrefixLen)}`))
+    .filter((relPath) => !payloadDirRels.has(relPath));
+  const outermostAddedDirRels = addedDirRels.filter(
+    (relPath) => !addedDirRels.some((other) => relPath.startsWith(`${other}/`)),
   );
+
+  await Promise.all([
+    ...addedPaths.map(async (dirPath) => rm(dirPath, { recursive: true, force: true })),
+    ...outermostAddedDirRels.map(async (relPath) =>
+      rm(`${homePath}${relPath.slice(1)}`, { recursive: true, force: true }),
+    ),
+  ]);
 
   let modifiedCount = 0;
   let removedCount = 0;
@@ -169,5 +188,6 @@ export const snapshotRestoreLayerBroker = async ({
     added: addedCount,
     modified: modifiedCount,
     removed: removedCount,
+    ...(addedDirRels.length === 0 ? {} : { addedFolders: addedDirRels.length }),
   });
 };

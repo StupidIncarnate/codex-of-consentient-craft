@@ -25,6 +25,7 @@
 import type { BufferLengths } from '../../../contracts/buffer-lengths/buffer-lengths-contract';
 import type { LaneSession } from '../../../contracts/lane-session/lane-session-contract';
 import { seedResultContract } from '../../../contracts/seed-result/seed-result-contract';
+import { resetReadingContract } from '../../../contracts/reset-reading/reset-reading-contract';
 import type { Step } from '../../../contracts/step/step-contract';
 import { stepVerbContract } from '../../../contracts/step-verb/step-verb-contract';
 import { BrowserStepUnsupportedError } from '../../../errors/browser-step-unsupported/browser-step-unsupported-error';
@@ -43,6 +44,7 @@ import { stepLookBroker } from '../look/step-look-broker';
 import { stepResizeBroker } from '../resize/step-resize-broker';
 import { stepRequestBroker } from '../request/step-request-broker';
 import { stepScreenshotBroker } from '../screenshot/step-screenshot-broker';
+import { stepScrollBroker } from '../scroll/step-scroll-broker';
 import { stepSeedBroker } from '../seed/step-seed-broker';
 import { stepSnapshotBroker } from '../snapshot/step-snapshot-broker';
 import { stepResetBroker } from '../reset/step-reset-broker';
@@ -120,12 +122,22 @@ export const runVerbLayerBroker = async ({
   // and process state and touch no page, so `stepResetBroker` takes the whole lane and narrows
   // to a live browser itself only when `level === 'page'`.
   if (step.step === 'reset') {
-    return stepResetBroker({
+    const reading = await stepResetBroker({
       lane,
       level: step.level,
       to: step.to,
       reseed: step.reseed,
     });
+    if (step.as !== null) {
+      // `bindings` is absent unless the step reseeded, and an `as` on a reset that reseeded nothing
+      // binds an empty record rather than a name a later step could never fill.
+      const parsed = resetReadingContract.parse(JSON.parse(reading));
+      recordBinding({
+        name: step.as,
+        result: parsed.bindings ?? {},
+      });
+    }
+    return reading;
   }
 
   const { browser: session } = lane;
@@ -139,21 +151,40 @@ export const runVerbLayerBroker = async ({
     });
   }
 
+  // `waitFor` is NOT pre-resolved: a zero-match count is exactly what it exists to wait out (a list
+  // rendered after a fetch), so resolving first would fail it at once with NO MATCH instead of
+  // polling until `timeoutMs`. `stepWaitForBroker` meets ambiguity through Playwright's strict locator
+  // instead and raises the same `StepAmbiguousError` this door would have.
   if (
     isTargetingStepGuard({ step }) &&
-    (step.step === 'waitFor' ||
-      step.step === 'click' ||
-      step.step === 'type' ||
-      step.step === 'paste')
+    (step.step === 'click' || step.step === 'type' || step.step === 'paste')
   ) {
-    // `waitFor` takes no `ref`: `ElementHandle.waitForElementState` has no `attached`/`detached`,
-    // which `locatorStateContract` carries, and a ref you already looked at is a poor subject for
-    // "wait until this exists" anyway.
     await stepTargetResolveBroker({
       session,
       target: step.target,
       within: step.within,
-      ref: step.step === 'waitFor' ? null : step.ref,
+      ref: step.ref,
+    });
+  }
+
+  // `scroll` resolves a handle only in its handle mode; the amount and edge modes name no element.
+  if (step.step === 'scroll') {
+    if (step.target !== null || step.ref !== null) {
+      await stepTargetResolveBroker({
+        session,
+        target: step.target,
+        within: step.within,
+        ref: step.ref,
+      });
+    }
+    return stepScrollBroker({
+      session,
+      target: step.target,
+      within: step.within,
+      ref: step.ref,
+      by: step.by,
+      byX: step.byX,
+      to: step.to,
     });
   }
 

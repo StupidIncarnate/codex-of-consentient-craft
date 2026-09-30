@@ -1,8 +1,12 @@
 /**
  * PURPOSE: Renders a `RunResult` into the concise, token-efficient human view an operator or agent
  * reads at a terminal after running a step batch — the run id, status, step count and duration on the
- * first line, followed by the failure point if stopped early, and captured screenshots when present.
- * Pure, keeping human formatting separated from the execution broker and the CLI responder.
+ * first line, followed by the first failure, and captured screenshots when present — a shot whose
+ * frame read blank carries `BLANK (<colour>)` beside its path, so a blank page shows in the run output
+ * itself rather than only in `--json`. The failure is
+ * labelled `STOPPED AT` when the batch halted there and `FIRST FAILURE … (continued: --stop-on
+ * never)` when it ran on past it, with a count once more than one step failed. Pure, keeping human
+ * formatting separated from the execution broker and the CLI responder.
  *
  * USAGE:
  * runAnswerRenderTransformer({ result: RunResultStub() });
@@ -12,16 +16,30 @@
 import type { RunResult } from '../../contracts/run-result/run-result-contract';
 
 export const runAnswerRenderTransformer = ({ result }: { result: RunResult }): string => {
+  const continued = result.stopOn === 'never';
+  const failedCount = result.failedSteps ?? 0;
+  const noteParts = [
+    ...(continued ? ['continued: --stop-on never'] : []),
+    ...(failedCount > 1 ? [`${String(failedCount)} steps failed`] : []),
+  ];
+  const noteText = noteParts.length === 0 ? '' : ` (${noteParts.join('; ')})`;
   const stoppedText =
     result.stoppedAt === null
       ? ''
-      : `\nSTOPPED AT: step ${result.stoppedAt.step} (${result.stoppedAt.verb}) — ${result.stoppedAt.error}`;
+      : `\n${continued ? 'FIRST FAILURE' : 'STOPPED AT'}: step ${result.stoppedAt.step} (${result.stoppedAt.verb}) — ${result.stoppedAt.error}${noteText}`;
 
   const screenshotsText =
     result.shots.length === 0
       ? ''
       : `\nSCREENSHOTS: ${result.shots
-          .map((shot) => `${shot.path.split('/').at(-1) ?? String(shot.step)} (${shot.path})`)
+          .map(
+            (shot) =>
+              `${shot.path.split('/').at(-1) ?? String(shot.step)} (${shot.path})${
+                shot.blank === true
+                  ? ` BLANK${shot.blankColour === null ? '' : ` (${shot.blankColour})`}`
+                  : ''
+              }`,
+          )
           .join(', ')}`;
 
   return `RUN: ${result.runId} (status: ${result.status}, steps: ${result.stepsRun}, duration: ${result.durationMs ?? 0}ms)${stoppedText}${screenshotsText}\n`;

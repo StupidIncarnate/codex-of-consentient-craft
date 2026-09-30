@@ -200,6 +200,7 @@ describe('instanceStartBroker', () => {
             pid: null,
             pgids: [],
             socketPath: null,
+            killedAtMs: 1_700_000_000_000,
           }),
         ],
       });
@@ -234,6 +235,7 @@ describe('instanceStartBroker', () => {
             pid: null,
             pgids: [],
             socketPath: null,
+            killedAtMs: 1_700_000_000_000,
           }),
         ],
       });
@@ -723,6 +725,7 @@ describe('instanceStartBroker', () => {
             pid: null,
             pgids: [],
             socketPath: null,
+            killedAtMs: 1_700_000_000_000,
           }),
         ],
       });

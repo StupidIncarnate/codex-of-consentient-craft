@@ -10,10 +10,11 @@
  */
 
 import { z } from '#gateway/npm/zod';
+import { questContract } from '@dungeonmaster/shared/contracts';
 
 export const testbedConfigContract = z
   .object({
-    questFolder: z.string().brand<'TestbedConfigQuestFolder'>(),
+    questFolder: questContract.shape.folder,
     wardCommands: z.record(z.string(), z.json()),
   })
   .loose()

@@ -10,7 +10,9 @@
  * moment that one step starts. Restarts step numbering at 1 inside a run-namespaced shots
  * directory (line 1630) — every acting step's unasked capture resolves there by index, and a
  * `screenshot` step resolves by its own `name` (line 2516) instead, still inside that same
- * run-namespaced directory so two runs never collide on one caller-chosen filename — flushes the
+ * run-namespaced directory so two runs never collide on one caller-chosen filename, and every other
+ * step gets a failure-only path by index, so a step that captures nothing on success still leaves
+ * a picture of the page when it fails — flushes the
  * transcript after every step rather than buffering it (line
  * 1676), and stops on the first failing step unless the caller set `stopOn: 'never'` (line 1638).
  * `runExecuteStepLayerBroker` is what turns BOTH an uncaught exception and the dispatcher's own
@@ -248,12 +250,19 @@ export const runExecuteBroker = async ({
       : step.step === 'screenshot'
         ? locationsShotPathFindBroker({ shotsDir: reportedShotsDir, step: index, name: step.name })
         : null;
+    // Every other step captures nothing on success, but a failed one still screenshots the page at
+    // the moment it failed — to this path, which only a failure ever writes.
+    const failureShotPath =
+      shotPath === null
+        ? locationsShotPathFindBroker({ shotsDir: reportedShotsDir, step: index })
+        : null;
 
     const outcome = await runExecuteStepLayerBroker({
       lane,
       step,
       index,
       shotPath,
+      failureShotPath,
       browserWindowStart,
       lastShotPath,
       setLastShotPath,
@@ -377,6 +386,8 @@ export const runExecuteBroker = async ({
     index,
     shots,
     ...(durationMs === undefined ? {} : { durationMs }),
+    stopOn,
+    failedSteps: stopCandidates.length,
   });
 
   await runReturnWriteBroker({ storedReturnPath: storedReturn, result });

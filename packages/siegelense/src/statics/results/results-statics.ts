@@ -14,7 +14,7 @@
  * // Returns ['console', 'network', 'ws', 'server', 'screenshots', 'steps']
  *
  * resultsStatics.kinds.sinceBootEligible;
- * // Returns ['console', 'network', 'ws'] — the only kinds a `since: 'boot'` read can answer
+ * // Returns ['console', 'network', 'ws', 'server'] — the only kinds a `since: 'boot'` read can answer
  *
  * new RegExp(resultsStatics.patterns.consoleError.source, resultsStatics.patterns.consoleError.flags)
  *   .test('{"at":1,"kind":"console","type":"error", ...}');
@@ -25,14 +25,39 @@ export const resultsStatics = {
   kinds: {
     // siegelense-tooling.md line 2593-2594's own order.
     all: ['console', 'network', 'ws', 'server', 'screenshots', 'steps'],
-    // console.jsonl/network.jsonl/ws.jsonl are the only per-instance files that hold every run's
-    // lines end to end (siegelense-tooling.md:122-124's own `kind`+`since: 'boot'` pairing) —
-    // server/screenshots/steps each resolve through ONE run's transcript, so there is no
+    // console.jsonl/network.jsonl/ws.jsonl and api-server.log are the per-instance files that hold
+    // every run's lines end to end (siegelense-tooling.md:122-124's own `kind`+`since: 'boot'`
+    // pairing) — screenshots/steps each resolve through ONE run's transcript, so there is no
     // "whole timeline" a boot-wide read can answer for them.
-    sinceBootEligible: ['console', 'network', 'ws'],
+    sinceBootEligible: ['console', 'network', 'ws', 'server'],
   },
   since: {
     boot: 'boot',
+  },
+  // Which --kind each --where-* flag can narrow. A flag outside its kinds filters nothing, so the
+  // parser refuses it rather than letting the whole unfiltered view come back.
+  whereScope: {
+    path: { flag: '--where-path', rows: 'network rows', kinds: ['network'] },
+    method: { flag: '--where-method', rows: 'network rows', kinds: ['network'] },
+    nth: {
+      flag: '--where-nth',
+      rows: 'console, network and ws rows',
+      kinds: ['console', 'network', 'ws'],
+    },
+    level: { flag: '--where-level', rows: 'console and server rows', kinds: ['console', 'server'] },
+    steps: {
+      flag: '--where-steps',
+      rows: 'console, network, ws, server and step rows',
+      kinds: ['console', 'network', 'ws', 'server', 'steps'],
+    },
+  },
+  // The names a --fields entry can match, per buffer kind. `run` and `step` are stamped onto a
+  // `--since boot` row only. Step and screenshot readings take their names from their own contracts.
+  fields: {
+    console: ['at', 'kind', 'type', 'text', 'url', 'line', 'stack'],
+    network: ['at', 'method', 'url', 'resourceType', 'status', 'requestBody', 'responseBody'],
+    ws: ['at', 'url', 'direction', 'payload'],
+    sinceBootStamped: ['run', 'step'],
   },
   limits: {
     maxRows: 200,
@@ -44,6 +69,16 @@ export const resultsStatics = {
     // The human text view's per-row body trim for `--kind network` — long enough that a real error
     // body's shape still reads, short enough that a screenful of rows stays a screenful.
     bodyTrimChars: 200,
+    // What an EMPTY answer calls the thing it found none of, per kind — "0 network requests during
+    // run_7" says what was looked for and where, where "none found" says neither.
+    emptyNouns: {
+      console: 'console lines',
+      network: 'network requests',
+      ws: 'websocket frames',
+      server: 'server log lines',
+      screenshots: 'screenshots',
+      steps: 'step readings',
+    },
   },
   patterns: {
     // Copied verbatim from run-index-compute-transformer.ts's CONSOLE_ERROR_PATTERN (line 28),

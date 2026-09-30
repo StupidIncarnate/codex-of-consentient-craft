@@ -18,6 +18,10 @@
  * that name — zero rows back, which reads exactly like an empty region and is the wrong-selector
  * failure the whole addressing design exists to remove.
  *
+ * The key lists elements, not pixels, so a page that continues past the viewport ends the reading
+ * with a `CUT OFF — …` line — the same one `screenshot` carries — since the shot written beside it
+ * shows the viewport only.
+ *
  * USAGE:
  * await stepLookBroker({ session, within: null });
  * // Returns the rendered key as this step's own reading
@@ -27,7 +31,9 @@
  */
 
 import type { BrowserSession } from '../../../contracts/browser-session/browser-session-contract';
+import { scrollCutoffRenderTransformer } from '../../../transformers/scroll-cutoff-render/scroll-cutoff-render-transformer';
 import { withinSelectorNormaliseTransformer } from '../../../transformers/within-selector-normalise/within-selector-normalise-transformer';
+import { stepScrollReadBroker } from '../scroll-read/step-scroll-read-broker';
 
 export const stepLookBroker = async ({
   session,
@@ -40,5 +46,8 @@ export const stepLookBroker = async ({
 
   const listing = await session.look({ within: scope });
 
-  return listing.rendered;
+  const scroll = await stepScrollReadBroker({ session });
+  const cutoff = scroll === null ? null : scrollCutoffRenderTransformer({ reading: scroll });
+
+  return cutoff === null ? listing.rendered : `${listing.rendered}\n${cutoff}`;
 };

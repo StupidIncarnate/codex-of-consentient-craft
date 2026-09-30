@@ -22,6 +22,11 @@ export const singlePackageLayerBrokerProxy = (): {
     projectFolder: ProjectFolder;
     relativePath: string;
   }) => void;
+  setupIntegrationOnlyCrash: (params: {
+    projectFolder: ProjectFolder;
+    discoveredFiles: string[];
+    stdout: string;
+  }) => void;
   getStderrCalls: () => unknown[];
 } => {
   // Date.now/Math.random take no identifying argument — the receiver is what a spy cannot see.
@@ -78,6 +83,20 @@ export const singlePackageLayerBrokerProxy = (): {
     },
     setupE2eOnlySkip: ({ projectFolder }: { projectFolder: ProjectFolder }): void => {
       e2eProxy.setupNotE2eEligible({ projectFolder });
+      saveProxy.setupSuccess({ rootPath, runId });
+      pruneProxy.setupEmpty({ rootPath });
+    },
+    setupIntegrationOnlyCrash: ({
+      projectFolder,
+      discoveredFiles,
+      stdout,
+    }: {
+      projectFolder: ProjectFolder;
+      discoveredFiles: string[];
+      stdout: string;
+    }): void => {
+      integrationProxy.setDiscoveredFiles({ files: discoveredFiles });
+      integrationProxy.setupFail({ projectFolder, stdout });
       saveProxy.setupSuccess({ rootPath, runId });
       pruneProxy.setupEmpty({ rootPath });
     },

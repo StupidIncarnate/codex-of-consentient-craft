@@ -22,7 +22,7 @@
  * // Appends a Task tool_use + tool_result to the session, writes agent-seed-agent-1.jsonl, then
  * // appends a nested Task tool_use + tool_result to THAT file and writes agent-seed-agent-1-1.jsonl
  */
-import { agentContract, sessionContract } from '@dungeonmaster/shared/contracts';
+import { agentContract, sessionContract, toolUseContract } from '@dungeonmaster/shared/contracts';
 import {
   claudePathSlugEncoderTransformer,
   streamLineToJsonLineTransformer,
@@ -66,7 +66,7 @@ export const sessionNestedChainBroker = async ({
     const agentId = agentContract.shape.id.parse(
       `seed-agent-1${NESTING_SUFFIX.repeat(previousLevel)}`,
     );
-    const toolUseId = `toolu_seed_nested_${level}`;
+    const toolUseId = toolUseContract.shape.id.parse(`toolu_seed_nested_${level}`);
     const parentFilePath =
       level === 1
         ? sessionFilePath

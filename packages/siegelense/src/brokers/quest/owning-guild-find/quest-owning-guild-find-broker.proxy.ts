@@ -22,6 +22,7 @@ export const questOwningGuildFindBrokerProxy = (): {
     guilds: readonly GuildListItem[];
     questsByGuildId: Readonly<Record<string, readonly Quest[]>>;
   }) => void;
+  getQuestListCalls: () => readonly unknown[];
 } => {
   const guildListProxy = guildListBrokerProxy();
   const questListProxy = questListBrokerProxy();
@@ -39,5 +40,6 @@ export const questOwningGuildFindBrokerProxy = (): {
         questListProxy.setupDirectList({ guildId: GuildIdStub({ value: guildId }), quests });
       });
     },
+    getQuestListCalls: (): readonly unknown[] => questListProxy.getListCalls(),
   };
 };

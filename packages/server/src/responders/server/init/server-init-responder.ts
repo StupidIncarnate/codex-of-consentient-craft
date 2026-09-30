@@ -15,7 +15,7 @@ import { environmentStatics } from '@dungeonmaster/shared/statics';
 import { clearInterval } from '#gateway/node/clearInterval';
 import { readFile } from '#gateway/node/fs__promises';
 import { join } from '#gateway/node/path';
-import { exit, on, stdout } from '#gateway/node/process';
+import { exit, getEnv, on, stdout } from '#gateway/node/process';
 import { setInterval } from '#gateway/node/setInterval';
 import { URL } from '#gateway/node/url';
 import { createNodeWebSocket } from '#gateway/npm/hono__node-ws';
@@ -529,7 +529,9 @@ export const ServerInitResponder = ({
   //    /assets/*, index.html (SPA fallback) for every other route.
   // /api and /ws are owned by the mounted sub-apps and the WS upgrade route, so they fall through
   // to their own handlers (or a real 404) in both modes.
-  const webUiPort = serverPort + 1;
+  // DUNGEONMASTER_WEB_PORT wins when the launcher picked the two ports independently (siegelense
+  // lanes, ward e2e); the +1 fallback holds only while one launcher picks both.
+  const webUiPort = Number(getEnv('DUNGEONMASTER_WEB_PORT')) || serverPort + 1;
   app.get('*', async (c) => {
     const { pathname, search } = new URL(c.req.url);
     if (pathname === '/ws' || pathname === '/api' || pathname.startsWith('/api/')) {

@@ -1571,6 +1571,44 @@ describe('ServerInitResponder', () => {
       });
     });
 
+    it('VALID: {DUNGEONMASTER_WEB_PORT set, GET /} => 302 redirect to that web port, not API port + 1', async () => {
+      const proxy = ServerInitResponderProxy();
+      proxy.setServerPort({ value: '4800' });
+      proxy.setWebPort({ value: '4950' });
+      proxy.callResponder();
+
+      const response = await proxy.dispatchRequest({
+        url: 'http://dungeonmaster.localhost:4800/',
+      });
+
+      expect({
+        status: response.status,
+        location: response.headers.get('location'),
+      }).toStrictEqual({
+        status: 302,
+        location: 'http://dungeonmaster.localhost:4950/',
+      });
+    });
+
+    it('VALID: {DUNGEONMASTER_WEB_PORT unset, GET /} => 302 redirect to API port + 1', async () => {
+      const proxy = ServerInitResponderProxy();
+      proxy.setServerPort({ value: '4800' });
+      proxy.clearWebPort();
+      proxy.callResponder();
+
+      const response = await proxy.dispatchRequest({
+        url: 'http://dungeonmaster.localhost:4800/',
+      });
+
+      expect({
+        status: response.status,
+        location: response.headers.get('location'),
+      }).toStrictEqual({
+        status: 302,
+        location: 'http://dungeonmaster.localhost:4801/',
+      });
+    });
+
     it('VALID: {GET /} => 302 redirect to web UI port (root redirect preserved)', async () => {
       const proxy = ServerInitResponderProxy();
       proxy.setServerPort({ value: '4800' });

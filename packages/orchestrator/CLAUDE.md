@@ -390,6 +390,7 @@ Claude-shape line through the processor and asserts the entry survives. Keep it 
   | `siege-adversarial-fixer` | step | `siege-adversarial-fixer/` | sonnet |
   | `siegemaster-reader` | step | `siegemaster-reader/` | sonnet |
   | `recipe-maker` | step | `recipe-maker/` | opus |
+  | `write-ingredient` | step | `write-ingredient/` | opus |
   | `spiritmender` | role | `spiritmender-prompt/` | sonnet |
   | `warpgate` | role | `warpgate-prompt/` | opus |
 
@@ -429,8 +430,8 @@ Claude-shape line through the processor and asserts the entry survives. Keep it 
   contracts are a `get-quest` call and the in-scope units are a `get-quest-work({ questId, workItemId })` call, each
   spelled out in the role's own prompt, and the flow id and package name `get-quest` takes are inside the operation
   item's text (`… — package: <name> · flow: <id>`).
-  Two role-specific extras ride along, and each is a value no tool call returns: `Base branch` for warpgate, and
-  `Failed ward result` / `Ward detail blob` for spiritmender.
+  Three conditional extras ride along, and each is a value no tool call returns: `Base branch` for warpgate,
+  `Failed ward result` / `Ward detail blob` for spiritmender, and `Instance ID` for a `needsLane` step's session.
 
   A parent-summoned minion calls `get-agent-prompt({agent, questId})` (no workItemId — it has no work item) and gets
   back its prompt plus the Quest ID and nothing else; everything narrower reaches it through its parent's brief.
@@ -452,7 +453,7 @@ Claude-shape line through the processor and asserts the entry survives. Keep it 
 Every statics file in this package holding agent-facing markdown — each family's `<role>-planner-statics` /
 `<role>-worker-statics` pair, the two `<role>-reviewer-statics`, siegemaster's named walk/fix/read steps
 (`siege-planner`, `siege-happy-walker`, `siege-adversarial-walker`, `siege-happy-fixer`, `siege-adversarial-fixer`,
-`siegemaster-reader`, `recipe-maker`), `chaoswhisperer-gap-minion-statics`, `standards-review-concerns-statics`,
+`siegemaster-reader`, `recipe-maker`, `write-ingredient`), `chaoswhisperer-gap-minion-statics`, `standards-review-concerns-statics`,
 `flow-evidence-contract-statics`, and the bespoke `spiritmender` / `warpgate` / `tavernkeeper` / `dumpster-*`
 prompts — is **TEXT INJECTED INTO A MODEL'S CONTEXT WINDOW.** It is not documentation, not a README, and
 not a page anyone opens. Five rules follow from that. Each one cost a real defect.
@@ -485,11 +486,12 @@ across both readers serves each of them answers it cannot use.
 ### 4. Check the RENDERER before promising a session what it will be handed
 
 A prompt that enumerates what a session receives is a claim about a transformer. **`workItemToPromptTransformer`
-serves FOUR IDS and two conditional extras — nothing else** — so a prompt sentence pointing at anything wider than
+serves FOUR IDS and three conditional extras — nothing else** — so a prompt sentence pointing at anything wider than
 that names a block no session will find. What a role fetches for itself is `get-quest` / `get-quest-work`, and each of
 those gates blocks on non-emptiness too. **Trace the render for the DEGENERATE case** — no flow, no package, no
-contract, an empty diff — never the happy one. Both extras are conditional: warpgate gets no `Base branch` line where
-`quest.baseBranch` is unset, and spiritmender gets no ward lines where no `wardResult` has a non-zero `exitCode`.
+contract, an empty diff — never the happy one. Every extra is conditional: warpgate gets no `Base branch` line where
+`quest.baseBranch` is unset, spiritmender gets no ward lines where no `wardResult` has a non-zero `exitCode`, and a
+session gets no `Instance ID` line where its work item records no instance.
 
 ### 5. Validate by DRY-RUNNING the prompt against a real quest
 
@@ -758,7 +760,9 @@ its reviewers run FIRST and find the work; its workers repair what they found.
   bracketing the pass. Router-owned, not a session's judgment: the first makes the pass's own capacity reading
   honest, the last catches whatever this pass leaked.
 - **`plan`** (`siege-planner`) cuts the scope into pieces — one per path to walk, one per off-map probe family to
-  attack — as a single `quest-work` plan call. It fetches no scope docs and drives nothing itself.
+  attack — as a single `quest-work` plan call. It drives no browser. Where it needs to read what a seed recipe
+  really produces, it starts one headless instance of its own, reads it through the `seeding` docs scope, and kills
+  it before it signals.
 - **`happyWalk`** (`siege-happy-walker`, role `reviewer`, `needsLane: true`) drives ONE whole path start to end
   against a lane the ROUTER already started for it. **It opens no source file, for any reason** — a value only
   source holds is requested from `siegemaster-reader` (a `mintableOnRequest` step) rather than read directly, since
@@ -768,15 +772,18 @@ its reviewers run FIRST and find the work; its workers repair what they found.
   its regression test from the same named recipe the walk used. It declares no `done` route — settling its units
   returns to the walker that minted it, which re-walks the same path fresh to prove the fix, rather than this
   session opening a lane of its own to check its own work.
-- **`adversarial`** / **`fixAdversarial`** repeat that shape against the round's allocated off-map family, in the
-  SAME lane, and only start once every `happyWalk` piece has drained — a step's `done` fires once every piece at
+- **`adversarial`** / **`fixAdversarial`** repeat that shape against the round's allocated off-map family, each
+  attack piece on a fresh lane of its own — no two sessions ever share a lane, because every probe changes the
+  state the next one would read — and only start once every `happyWalk` piece has drained — a step's `done` fires once every piece at
   that step has drained, which is what gives an antagonist's baseline (the happy run it is attacking) time to exist.
 - **`commit`** and **`ward`** are the same deterministic handlers as the other families, but siege OVERRIDES
   `ward`'s own routes to send `done`/`empty` to `sweepOut` rather than `@done` — the pass is not over until the lane
   is swept.
 - **`recipe`** (`recipe-maker`, shared with flowrider's own `recipe` step — a recipe is flow-scoped, not
-  family-scoped) and **`read`** (`siegemaster-reader`) are both `mintableOnRequest`: a planner or a walker requests
-  one mid-pass, and it returns to whoever asked rather than routing anywhere of its own.
+  family-scoped), **`writeIngredient`** (`write-ingredient`, requested by `recipe`, one session per missing
+  ingredient, in flowrider's graph too) and **`read`** (`siegemaster-reader`) are all `mintableOnRequest`: a
+  session requests one mid-pass, and it returns to whoever asked rather than routing anywhere of its own.
+  `recipe-maker` starts and kills its own instances to prove its recipes, so several can run side by side.
 
 Reopening a unit an earlier siegemaster pass already marked is a `quest-work` `invalidation` payload — a `flowId`
 and a reason, refused to any work item but a siegemaster one.
@@ -1382,10 +1389,12 @@ every work item whose linked operation item is still unfinished goes back to `pe
 keeping `sessionId` + the `resume` marker. Without it the blocking item is still `failed` at the budget, so the next
 recovery pass re-escalates and re-blocks — a resume that does nothing. The rearm persists BEFORE the status flip.
 
-**Siegemaster's rounds each own their own LANE.** `dungeonmaster siegelense start` (`packages/siegelense`'s
-`laneBootBroker`) stands up an API server, a Vite server and a headless Chromium against an OS-assigned port pair and
-a throwaway `DUNGEONMASTER_HOME` — one call per minion per round. A lane that will not start is a defect the round surfaces,
-never a wall. **Codeweaver and Flowrider are given no dev server and need none:** a Flowrider browser walk brings its
+**Every siege walker piece gets its own LANE, and the router starts it.** `laneProvisionBatchBroker` calls
+siegelense's `instanceStartBroker` (`packages/siegelense`'s `laneBootBroker` underneath), which stands up an API
+server, a Vite server and a headless Chromium against an OS-assigned port pair and a throwaway `DUNGEONMASTER_HOME` —
+one instance per `needsLane` piece, never shared. A lane that will not start is a defect the scan throws, never a
+wall. The planner and `recipe-maker` start their own instances ad hoc and kill them before they signal; the fixers
+start none and read the walker's evidence off disk. **Codeweaver and Flowrider are given no dev server and need none:** a Flowrider browser walk brings its
 own up from the project's Playwright config (`webServer`) and tears it down with the run. Operational flows run no
 server at all.
 
@@ -1556,7 +1565,7 @@ regardless of whether the extension is installed or the user's own interactive s
 tools — those are irrelevant to the child.
 
 Siegemaster's `ui-state` observables are driven by a Playwright lane
-(`packages/siegelense`'s `playwrightSessionAdapter`), each round's verifier/stress pair holding its own headless
+(`packages/siegelense`'s `playwrightSessionAdapter`), each walker piece holding its own headless
 Chromium — no session dispatched from this package needs `mcp__claude-in-chrome__*`.
 
 **`--chrome` is the only way to attach those tools to a headless child**, should a future role need

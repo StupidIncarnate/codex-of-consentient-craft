@@ -66,10 +66,10 @@ describe('siegelenseHelpStatics', () => {
       ],
       refusals: [
         'A --seed that FAILS tears the instance down and reports the failure, rather than handing back a lane whose state is not what you asked for. `seeded: null` means no --seed was given, never that one was given and produced nothing.',
-        '--idle-timeout-ms only RAISES the ceiling for this one instance — it never disables the idle timeout or makes it infinite. The timeout is the only backstop against an abandoned lane holding a port pair and a browser open forever.',
+        '--idle-timeout-ms only RAISES the ceiling for this one instance — a value below 900000 is refused, and it never disables the idle timeout or makes it infinite. The timeout is the only backstop against an abandoned lane holding a port pair and a browser open forever.',
       ],
       output:
-        'A human summary by default: instance id, spec, URLs, home and evidence paths, boot time, and one line per seeded binding. `dungeonmaster siegelense status --instance <id>` recovers the evidence paths later. `--json` prints the InstanceManifest unabridged, seeded rows included.',
+        'A human summary by default: instance id, spec, URLs, home and evidence paths, boot time, the idle timeout (IDLE TIMEOUT:), and one line per seeded binding. `dungeonmaster siegelense status --instance <id>` recovers the evidence paths later. `--json` prints the InstanceManifest unabridged, seeded rows included, plus `idleTimeoutMs`.',
       example: 'dungeonmaster siegelense start --spec stack',
     });
   });
@@ -120,7 +120,7 @@ describe('siegelenseHelpStatics', () => {
       ],
       refusals: [],
       output:
-        "By default, one summary line — run id, status, steps run and duration — plus the failure point when stopped early and any screenshot paths captured. `--json` prints the raw RunResult. Either way, a STATUS — an index and a shot list — never the steps' own payloads; query those afterward with `dungeonmaster siegelense results`.",
+        'By default, one summary line — run id, status, steps run and duration — plus the first failure (`STOPPED AT` when the batch halted there, `FIRST FAILURE … (continued: --stop-on never)` when it ran on) and any screenshot paths captured. A screenshot or look captures the viewport only: when the page continues past it, that step\'s reading ends with a `CUT OFF — page 900px tall; 400px below the viewport` line, and a `scroll` step (`{"step":"scroll","by":400}`, `"to":"bottom"`, or a `target`/`ref`) moves the page and reads back the new position. `--json` prints the raw RunResult. Either way, a STATUS — an index and a shot list — never the steps\' own payloads; query those afterward with `dungeonmaster siegelense results`.',
       example:
         'dungeonmaster siegelense run --instance inst_4f9c2a17b8e6405fa1d4c9e02b7f1a3c --steps \'[{"step":"goto","path":"/"}]\'',
     });
@@ -254,7 +254,7 @@ describe('siegelenseHelpStatics', () => {
           value: '<id>',
           required: false,
           description:
-            'report that one instance in full — last beat, last step, MEMORY, orphans, evidence paths, likelyCause — instead of the fleet.',
+            'report that one instance in full — last beat, last step, MEMORY, orphans, the evidence directory with every file in it, and likelyCause when it died unexpectedly — instead of the fleet.',
         },
         {
           name: '--branch',
@@ -281,7 +281,7 @@ describe('siegelenseHelpStatics', () => {
         'An --instance id with no record in the registry is refused rather than answered.',
       ],
       output:
-        "The fleet view lists instances but not their evidence paths or runs. Name one with --instance to get those. By default, the fleet prints as a box-drawing table (monitored vocabulary, machine reading, one row per instance); naming --instance prints that one instance in full as its own box-drawing table (last beat, last step, MEMORY, orphans, evidence paths, likelyCause) instead of the fleet. MEMORY is the last measured memory of the instance's processes; for a killed instance, it is the instance's footprint at the moment it ended, not a current reading. `--json` prints the raw StatusAnswer either way.",
+        "The fleet view lists instances but not their evidence paths or runs. Name one with --instance to get those. By default, the fleet prints as a box-drawing table (monitored vocabulary, machine reading, one row per instance); naming --instance prints that one instance in full as its own box-drawing table (last beat, last step, MEMORY, orphans, EVIDENCE DIR, likelyCause) instead of the fleet. EVIDENCE DIR is the absolute path of the instance's evidence directory, followed by a file tree of everything in it (logs, heartbeat, runs/*.jsonl transcripts and stored returns, screenshots, video), each file with its size; `--json` carries the same as evidence.dir plus evidence.files, one absolute path per file. LIKELY CAUSE appears only for an instance that ended unexpectedly — a recorded shutdown reason, or the memory and OOM evidence for a death nothing explained — and reads `-` for a live instance or a plain kill. MEMORY is the last measured memory of the instance's processes; for a killed instance, it is the instance's footprint at the moment it ended, not a current reading. `--json` prints the raw StatusAnswer either way. In it, each instance's memory is one { megabytes, measured } value — measured is live for a running instance and at-last-beat for one that ended — or null when nothing was measured; lastRunSaved says whether the latest run's stored return landed (false: the run was cut off mid-step), and is null for an instance with no run; machine.oomKillsSinceBoot is null when the kernel counter could not be read, never when it is zero.",
       example: 'dungeonmaster siegelense status --instance inst_4f9c2a17b8e6405fa1d4c9e02b7f1a3c',
     });
   });
@@ -332,7 +332,7 @@ describe('siegelenseHelpStatics', () => {
         'There is no cross-instance form: name one --instance and two runs (--run-a, --run-b) inside its own timeline — two different instances share nothing but a spec.',
       ],
       output:
-        "By default, instance id, the runs compared, console/server/network error deltas, the pixel diff summary, and each run's own element churn (ELEMENTS WITHIN RUN A/B — appeared/disappeared/changed inside that run's own steps, never a diff between run A and run B: compare reads stored evidence only and never re-drives a page to compute one). `--json` prints the raw CompareAnswer. Either way, a READING, never a verdict on whether a unit passes.",
+        "By default, instance id, the runs compared, console/server/network error deltas each followed by the lines new to run B (the first 5, the rest in --json), and the pixel diff summary naming both runs' last shot paths. Elements are not compared between the two runs: compare reads stored evidence only and never re-drives a page, so each run's own last element delta is in --json only. `--json` prints the raw CompareAnswer. Either way, a READING, never a verdict on whether a unit passes.",
       example: 'dungeonmaster siegelense compare --instance inst_9b2c --run-a run_1 --run-b run_2',
     });
   });
@@ -340,7 +340,7 @@ describe('siegelenseHelpStatics', () => {
   it('VALID: {calls.snapshots} => toStrictEqual its summary, synopsis, flags, refusals, output and example', () => {
     expect(siegelenseHelpStatics.calls.snapshots).toStrictEqual({
       summary:
-        'siegelense snapshots — list the points `reset level: state` can return to for one instance. Starts nothing.',
+        'siegelense snapshots — list the points a `reset` step can name in `to` (level state or instance) for one instance. Starts nothing.',
       synopsis: 'dungeonmaster siegelense snapshots --instance <id> [--json]',
       flags: [
         {
@@ -491,7 +491,7 @@ describe('siegelenseHelpStatics', () => {
           value: '<scope>',
           required: false,
           description:
-            "serve one role's page instead of the tool overview: walking, attacking, fixing. Omitted, docs serves the overview alone.",
+            "serve one role's page instead of the tool overview: walking, attacking, fixing, seeding. Omitted, docs serves the overview alone.",
         },
         {
           name: '--json',

@@ -106,8 +106,13 @@ export const StartOrchestratorProxy = (): {
   getGuildThrows: (params: { guildId: Guild['id']; error: Error }) => void;
   addGuildReturns: (params: { name: string; path: string; guild: Guild }) => void;
   addGuildThrows: (params: { name: string; path: string; error: Error }) => void;
+  // Every call StartOrchestrator.addGuild received, as the raw argument lists — unaddressed, so a
+  // test proving the orchestrator was NEVER reached reads `[]` whatever was staged.
+  addGuildGetCalls: () => RecordedCalls;
   updateGuildReturns: (params: { guildId: Guild['id']; guild: Guild }) => void;
   updateGuildThrows: (params: { guildId: Guild['id']; error: Error }) => void;
+  // Same read-back as `addGuildGetCalls`, for StartOrchestrator.updateGuild.
+  updateGuildGetCalls: () => RecordedCalls;
   removeGuildResolves: (params: { guildId: Guild['id'] }) => void;
   removeGuildThrows: (params: { guildId: Guild['id']; error: Error }) => void;
   browseDirectoriesReturns: (params: { path?: string; entries: DirectoryEntry[] }) => void;
@@ -438,12 +443,14 @@ export const StartOrchestratorProxy = (): {
     addGuildThrows: ({ name, path, error }: { name: string; path: string; error: Error }): void => {
       addGuildHandle.calledWith([{ name, path }]).rejects(error);
     },
+    addGuildGetCalls: (): RecordedCalls => addGuildHandle.callsMatching([]),
     updateGuildReturns: ({ guildId, guild }: { guildId: Guild['id']; guild: Guild }): void => {
       updateGuildHandle.calledWith([{ guildId }]).resolves(guild);
     },
     updateGuildThrows: ({ guildId, error }: { guildId: Guild['id']; error: Error }): void => {
       updateGuildHandle.calledWith([{ guildId }]).rejects(error);
     },
+    updateGuildGetCalls: (): RecordedCalls => updateGuildHandle.callsMatching([]),
     // removeGuild discards its resolved value — only the throw path is observable.
     removeGuildResolves: ({ guildId }: { guildId: Guild['id'] }): void => {
       removeGuildHandle.calledWith([{ guildId }]).resolves(undefined);

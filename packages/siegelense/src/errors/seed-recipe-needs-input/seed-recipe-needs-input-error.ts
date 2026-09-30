@@ -12,7 +12,7 @@
  *   recipeName: 'quest-advances-one-step',
  *   inputKeys: ['guildId'],
  * });
- * // Throws naming the recipe, its declared inputs, and a `run`-batch alternative that can supply them
+ * // Throws naming the recipe, its declared inputs, and ONE `--steps` array, in run order, that can supply them
  *
  * WHEN-TO-USE: From `SiegelenseStartResponder`, once the named `--seed` recipe's listing entry
  * carries a non-empty `inputKeys`.
@@ -34,9 +34,10 @@ export class SeedRecipeNeedsInputError extends Error {
 
     super(
       `Recipe "${recipeName}" needs the input${inputKeys.length > 1 ? 's' : ''} ${inputList}, ` +
-        `which start --seed cannot supply. Seed a guild first, then add a run seed step: ` +
-        `[{"step":"seed","recipe":"${recipeName}","params":{${paramsObject}}}] after ` +
-        `[{"step":"seed","recipe":"guild-empty","as":"g"}].`,
+        `which start --seed cannot supply. Start without --seed, then pass this one --steps array ` +
+        `to run (a binding lasts one batch), in run order: ` +
+        `[{"step":"seed","recipe":"guild-empty","as":"g"},` +
+        `{"step":"seed","recipe":"${recipeName}","params":{${paramsObject}}}].`,
     );
     this.name = 'SeedRecipeNeedsInputError';
   }

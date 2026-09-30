@@ -10,6 +10,7 @@ describe('holdReadingContract', () => {
     expect(result).toStrictEqual({
       frames: 4,
       differing: 0,
+      changed: [],
       verdict: 'NOTHING CHANGED across 4.5s',
       shots: [
         '/repo/.dungeonmaster-assets/siegelense-assets/runs/run_1/step1_frame1.png',
@@ -18,11 +19,45 @@ describe('holdReadingContract', () => {
     });
   });
 
+  it('VALID: {changed: [2, 4]} => parses the changed frame numbers', () => {
+    const reading = HoldReadingStub({
+      differing: 2,
+      changed: [2, 4],
+      verdict: 'still changing at 4.5s — these frames differ from the one before: 2, 4',
+    });
+
+    const result = holdReadingContract.parse(reading);
+
+    expect(result).toStrictEqual({
+      frames: 4,
+      differing: 2,
+      changed: [2, 4],
+      verdict: 'still changing at 4.5s — these frames differ from the one before: 2, 4',
+      shots: [
+        '/repo/.dungeonmaster-assets/siegelense-assets/runs/run_1/step1_frame1.png',
+        '/repo/.dungeonmaster-assets/siegelense-assets/runs/run_1/step1_frame2.png',
+      ],
+    });
+  });
+
+  it('INVALID: {changed: [0]} => throws validation error, frame numbers start at 1', () => {
+    expect(() => {
+      holdReadingContract.parse({
+        frames: 4,
+        differing: 1,
+        changed: [0],
+        verdict: 'still changing at 4.5s',
+        shots: [],
+      });
+    }).toThrow(/Too small: expected number to be >0/u);
+  });
+
   it('INVALID: {frames < minFrames} => throws validation error', () => {
     expect(() => {
       holdReadingContract.parse({
         frames: 1,
         differing: 0,
+        changed: [],
         verdict: 'NOTHING CHANGED across 1.5s',
         shots: [],
       });
@@ -34,6 +69,7 @@ describe('holdReadingContract', () => {
       holdReadingContract.parse({
         frames: 4,
         differing: -1,
+        changed: [],
         verdict: 'NOTHING CHANGED across 4.5s',
         shots: [],
       });
@@ -45,6 +81,7 @@ describe('holdReadingContract', () => {
       holdReadingContract.parse({
         frames: 4,
         differing: 0,
+        changed: [],
         verdict: 'NOTHING CHANGED across 4.5s',
         shots: [],
         extraKey: 'invalid',

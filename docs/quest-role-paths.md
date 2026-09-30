@@ -1005,12 +1005,20 @@ dispatchable while the wreckage is still in place.
 
 ### Siegemaster
 
-- **SIEGE-1 — A lane that will not boot is a defect, never a wall.** `happyWalk` and `adversarial` are the two steps
-  flagged `needsLane`; each provisions its own siegelense lane — an API server, a Vite server, a headless Chromium
-  page — before it runs. `sweepIn` and `sweepOut`, the family's own `cleanup`-kind steps at the head and tail of the
-  scope, make the first capacity reading honest and catch whatever a pass leaked. A lane that fails to start, or
-  whose server dies mid-walk, is something that step's own session reports and its fixer (`fixHappy` /
-  `fixAdversarial`) repairs like any other finding — not an environment wall.
+- **SIEGE-1 — The router starts every walker's lane, one per piece, and none is shared.** `happyWalk` and
+  `adversarial` are the two steps flagged `needsLane`. Before it dispatches a batch of either,
+  `laneProvisionBatchBroker` trims the batch to `siegelense capacity`'s `suggested` reading and starts one fresh
+  siegelense instance per piece — an API server, a Vite server, a headless Chromium page — and records it on the
+  work item. Recording the session's `outcome` kills it. A re-walk after a fixer gets a fresh instance, never the one
+  the defect was found on. A lane that fails to start THROWS out of the dispatch scan as a defect; no work item is
+  marked and nothing routes to `wall`. A server that dies mid-walk is a finding the walker marks `unmet` with the
+  `status` output as evidence.
+- **SIEGE-1a — Three sessions start instances of their own, ad hoc.** `plan` (`siege-planner`) starts one headless
+  instance when it needs to read what a seed recipe really produces; `recipe` (`recipe-maker`) starts its own to
+  prove the recipes it writes, so several recipe-makers can run side by side; each kills what it started before it
+  signals. The fixers start none: they read the walker's evidence off disk with `siegelense results`, which works
+  after the walker's instance is dead. `sweepIn` and `sweepOut`, the family's own `cleanup`-kind steps at the head
+  and tail of the scope, make the first capacity reading honest and catch whatever any of these leaked.
 - **SIEGE-2 — `happyWalk → adversarial` is a route, not a prompt rule.** `happyWalk`'s `done` fires only once every
   piece at that step has DRAINED, so every happy-path piece has recorded before the first `adversarial` piece is
   minted — proven directly in `quest-route-scope-broker.integration.test.ts`'s own phase-order coverage.

@@ -17,6 +17,7 @@ import { pastedImageStatics } from '@dungeonmaster/shared/statics';
 
 import { serverAppHarness } from '../../../test/harnesses/server-app/server-app.harness';
 
+import { GuildFlow } from '../guild/guild-flow';
 import { QuestFlow } from './quest-flow';
 
 describe('QuestFlow', () => {
@@ -431,6 +432,208 @@ describe('QuestFlow', () => {
       expect(response.status).toBe(400);
       expect(harness.toPlain(body)).toStrictEqual({
         error: 'Quest not found',
+      });
+    });
+  });
+
+  // DEF-113: a recipe walks a quest through `in_progress` to set up state. The real start route
+  // pressed play on the Node dispatcher, and the played dispatcher ran a real riftcarver against the
+  // seeded quest in a home with no git repo — `in_progress` read `blocked`, `complete` gained a
+  // FAILED carve row. Each recipe runs here against the REAL guild and quest routes, and the quests
+  // on disk must hold exactly the state the recipe names, with the dispatcher never played.
+  describe('POST /api/quests/:questId/start driven by a recipe', () => {
+    it('VALID: {recipe: guild-with-three-quests} => one created, one in_progress with its carve step still pending, one complete with nothing pending, and the dispatcher stays paused', async () => {
+      const restore = harness.setupTestHome({
+        baseName: 'quest-flow-seed-guild-with-three-quests',
+      });
+
+      await harness.seedRecipeThroughApps({
+        recipeName: 'guild-with-three-quests',
+        apps: [GuildFlow(), QuestFlow()],
+      });
+      const quests = harness.readSeededQuests();
+      const dispatchMode = await harness.readDispatchMode();
+
+      restore();
+
+      expect({ quests, dispatchMode }).toStrictEqual({
+        quests: [
+          {
+            title: 'Implement Authentication',
+            status: 'in_progress',
+            operations: [
+              { role: 'chaoswhisperer', status: 'complete' },
+              { role: 'riftcarver', status: 'in_progress' },
+            ],
+            workItems: [
+              { role: 'chaoswhisperer', status: 'complete' },
+              { role: 'riftcarver', status: 'pending' },
+            ],
+          },
+          {
+            title: 'Scaffold Architecture',
+            status: 'complete',
+            operations: [{ role: 'chaoswhisperer', status: 'complete' }],
+            workItems: [{ role: 'chaoswhisperer', status: 'complete' }],
+          },
+          {
+            title: 'Setup Database',
+            status: 'created',
+            operations: [{ role: 'chaoswhisperer', status: 'in_progress' }],
+            workItems: [{ role: 'chaoswhisperer', status: 'pending' }],
+          },
+        ],
+        dispatchMode: 'paused',
+      });
+    });
+
+    it('VALID: {recipe: guild-mid-execution} => the running quest in_progress with its riftcarver dropped, the other two created, and the dispatcher stays paused', async () => {
+      const restore = harness.setupTestHome({ baseName: 'quest-flow-seed-guild-mid-execution' });
+
+      await harness.seedRecipeThroughApps({
+        recipeName: 'guild-mid-execution',
+        apps: [GuildFlow(), QuestFlow()],
+      });
+      const quests = harness.readSeededQuests();
+      const dispatchMode = await harness.readDispatchMode();
+
+      restore();
+
+      expect({ quests, dispatchMode }).toStrictEqual({
+        quests: [
+          {
+            title: 'Quest 2',
+            status: 'created',
+            operations: [{ role: 'chaoswhisperer', status: 'in_progress' }],
+            workItems: [{ role: 'chaoswhisperer', status: 'pending' }],
+          },
+          {
+            title: 'Quest 3',
+            status: 'created',
+            operations: [{ role: 'chaoswhisperer', status: 'in_progress' }],
+            workItems: [{ role: 'chaoswhisperer', status: 'pending' }],
+          },
+          {
+            title: 'The running one',
+            status: 'in_progress',
+            operations: [
+              { role: 'chaoswhisperer', status: 'complete' },
+              { role: 'codeweaver', status: 'in_progress' },
+              { role: 'ward', status: 'pending' },
+              { role: 'flowrider', status: 'pending' },
+              { role: 'siegemaster', status: 'pending' },
+            ],
+            workItems: [{ role: 'chaoswhisperer', status: 'complete' }],
+          },
+        ],
+        dispatchMode: 'paused',
+      });
+    });
+
+    it('VALID: {recipe: quest-completed} => one complete quest with every step complete, and the dispatcher stays paused', async () => {
+      const restore = harness.setupTestHome({ baseName: 'quest-flow-seed-quest-completed' });
+
+      await harness.seedRecipeThroughApps({
+        recipeName: 'quest-completed',
+        apps: [GuildFlow(), QuestFlow()],
+      });
+      const quests = harness.readSeededQuests();
+      const dispatchMode = await harness.readDispatchMode();
+
+      restore();
+
+      expect({ quests, dispatchMode }).toStrictEqual({
+        quests: [
+          {
+            title: 'Verified Flow',
+            status: 'complete',
+            operations: [
+              { role: 'chaoswhisperer', status: 'complete' },
+              { role: 'codeweaver', status: 'complete' },
+              { role: 'ward', status: 'complete' },
+            ],
+            workItems: [
+              { role: 'chaoswhisperer', status: 'complete' },
+              { role: 'codeweaver', status: 'complete' },
+              { role: 'ward', status: 'complete' },
+            ],
+          },
+        ],
+        dispatchMode: 'paused',
+      });
+    });
+
+    it('VALID: {recipe: guild-active-suite} => one in_progress quest with its carve step still pending, one complete with nothing pending, and the dispatcher stays paused', async () => {
+      const restore = harness.setupTestHome({ baseName: 'quest-flow-seed-guild-active-suite' });
+
+      await harness.seedRecipeThroughApps({
+        recipeName: 'guild-active-suite',
+        apps: [GuildFlow(), QuestFlow()],
+      });
+      const quests = harness.readSeededQuests();
+      const dispatchMode = await harness.readDispatchMode();
+
+      restore();
+
+      expect({ quests, dispatchMode }).toStrictEqual({
+        quests: [
+          {
+            title: 'Active Development',
+            status: 'in_progress',
+            operations: [
+              { role: 'chaoswhisperer', status: 'complete' },
+              { role: 'riftcarver', status: 'in_progress' },
+            ],
+            workItems: [
+              { role: 'chaoswhisperer', status: 'complete' },
+              { role: 'riftcarver', status: 'pending' },
+            ],
+          },
+          {
+            title: 'Base Framework',
+            status: 'complete',
+            operations: [{ role: 'chaoswhisperer', status: 'complete' }],
+            workItems: [{ role: 'chaoswhisperer', status: 'complete' }],
+          },
+        ],
+        dispatchMode: 'paused',
+      });
+    });
+
+    it('VALID: {recipe: quest-advances-one-step, stacked on guild-empty} => the quest stays in_progress one step along, and the dispatcher stays paused', async () => {
+      const restore = harness.setupTestHome({
+        baseName: 'quest-flow-seed-quest-advances-one-step',
+      });
+
+      await harness.seedRecipeThroughApps({
+        recipeName: 'guild-empty',
+        apps: [GuildFlow(), QuestFlow()],
+      });
+      const [guildId] = harness.readSeededGuildIds();
+      await harness.seedRecipeThroughApps({
+        recipeName: 'quest-advances-one-step',
+        params: { guildId },
+        apps: [GuildFlow(), QuestFlow()],
+      });
+      const quests = harness.readSeededQuests();
+      const dispatchMode = await harness.readDispatchMode();
+
+      restore();
+
+      expect({ quests, dispatchMode }).toStrictEqual({
+        quests: [
+          {
+            title: 'Advancing quest',
+            status: 'in_progress',
+            operations: [
+              { role: 'chaoswhisperer', status: 'complete' },
+              { role: 'codeweaver', status: 'complete' },
+              { role: 'ward', status: 'in_progress' },
+            ],
+            workItems: [{ role: 'chaoswhisperer', status: 'complete' }],
+          },
+        ],
+        dispatchMode: 'paused',
       });
     });
   });

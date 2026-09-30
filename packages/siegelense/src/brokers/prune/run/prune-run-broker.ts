@@ -25,12 +25,15 @@
  * // Reports the same shape describing what WOULD be removed; deletes nothing, tombstones nothing
  */
 
+import { citationGapContract } from '../../../contracts/citation-gap/citation-gap-contract';
 import type { CitationGap } from '../../../contracts/citation-gap/citation-gap-contract';
+import { citationKindContract } from '../../../contracts/citation-kind/citation-kind-contract';
 import type { CitationKind } from '../../../contracts/citation-kind/citation-kind-contract';
 import { pruneAnswerContract } from '../../../contracts/prune-answer/prune-answer-contract';
 import type { PruneAnswer } from '../../../contracts/prune-answer/prune-answer-contract';
 import type { PruneQuery } from '../../../contracts/prune-query/prune-query-contract';
 import { InstanceUnknownError } from '../../../errors/instance-unknown/instance-unknown-error';
+import { citationStatics } from '../../../statics/citation/citation-statics';
 import { pruneStatics } from '../../../statics/prune/prune-statics';
 import { pruneOlderThanParseTransformer } from '../../../transformers/prune-older-than-parse/prune-older-than-parse-transformer';
 import { pruneTombstoneRuleRenderTransformer } from '../../../transformers/prune-tombstone-rule-render/prune-tombstone-rule-render-transformer';
@@ -38,8 +41,14 @@ import { registryReadBroker } from '../../registry/read/registry-read-broker';
 import { registryUpdateBroker } from '../../registry/update/registry-update-broker';
 import { pruneInstanceReclaimBroker } from '../instance-reclaim/prune-instance-reclaim-broker';
 import { registryContract } from '../../../contracts/registry/registry-contract';
+import { instanceStateContract } from '../../../contracts/instance-state/instance-state-contract';
 
-const PRUNED_STATE = 'pruned';
+const OPEN_ISSUE_GAP = citationGapContract.parse({
+  kind: citationKindContract.parse(citationStatics.openIssue.kind),
+  why: citationStatics.openIssue.uncheckedWhy,
+});
+
+const PRUNED_STATE = instanceStateContract.parse('pruned');
 
 export const pruneRunBroker = async ({
   query,
@@ -76,7 +85,10 @@ export const pruneRunBroker = async ({
 
   // One row per KIND, however many instances reported the same gap — a sweep of forty rows that
   // could not check for issue records has one unchecked question, not forty.
-  const gapsByKind = new Map<CitationKind, CitationGap>();
+  // Seeded with the open-issue gap before any instance reports: a dry run, an empty registry and a
+  // sweep that reaches no tree resolve no citations at all, and an answer with no gap reads as
+  // "nothing cites any of this" for a question that was never put.
+  const gapsByKind = new Map<CitationKind, CitationGap>([[OPEN_ISSUE_GAP.kind, OPEN_ISSUE_GAP]]);
   for (const outcome of outcomes) {
     for (const gap of outcome.gaps) {
       gapsByKind.set(gap.kind, gap);

@@ -1,5 +1,7 @@
 /**
- * PURPOSE: Inline guild creation form displayed when no guilds exist or user clicks new guild
+ * PURPOSE: Inline guild creation form displayed when no guilds exist or user clicks new guild.
+ * CREATE refuses a path that is not absolute with an error under the path input, and
+ * `onAddGuild` does not fire for it.
  *
  * USAGE:
  * <GuildEmptyStateWidget onAddGuild={fn} />
@@ -10,6 +12,7 @@ import { useState } from '#gateway/npm/react';
 
 import { Group, Stack, Text, TextInput } from '#gateway/npm/mantine__core';
 
+import { guildCreateInputContract } from '../../contracts/guild-create-input/guild-create-input-contract';
 import { emberDepthsThemeStatics } from '../../statics/ember-depths-theme/ember-depths-theme-statics';
 import { DirectoryBrowserModalWidget } from '../directory-browser-modal/directory-browser-modal-widget';
 import { PixelBtnWidget } from '../pixel-btn/pixel-btn-widget';
@@ -22,6 +25,9 @@ const createLabel = 'CREATE';
 const cancelLabel = 'CANCEL';
 const browseLabel = 'BROWSE';
 const ghostVariant = 'ghost';
+const createTestId = 'GUILD_CREATE_BUTTON';
+const cancelTestId = 'GUILD_CANCEL_BUTTON';
+const browseTestId = 'GUILD_BROWSE_BUTTON';
 
 export interface GuildEmptyStateWidgetProps {
   onAddGuild: ({ name, path }: { name: string; path: string }) => void;
@@ -34,6 +40,7 @@ export const GuildEmptyStateWidget = ({
 }: GuildEmptyStateWidgetProps): React.JSX.Element => {
   const [name, setName] = useState('');
   const [path, setPath] = useState('');
+  const [pathRejected, setPathRejected] = useState(false);
   const [browserOpened, setBrowserOpened] = useState(false);
   const { colors } = emberDepthsThemeStatics;
 
@@ -77,24 +84,41 @@ export const GuildEmptyStateWidget = ({
               value={path}
               onChange={(e) => {
                 setPath(e.target.value);
+                setPathRejected(false);
               }}
               w={INPUT_WIDTH}
               styles={inputStyles}
+              error={pathRejected}
               data-testid="GUILD_PATH_INPUT"
             />
             <PixelBtnWidget
               label={browseLabel}
+              testId={browseTestId}
               variant={ghostVariant}
               onClick={() => {
                 setBrowserOpened(true);
               }}
             />
           </Group>
+          {pathRejected ? (
+            <Text
+              ff="monospace"
+              style={{ color: colors.danger, fontSize: LABEL_FONT_SIZE }}
+              data-testid="GUILD_PATH_ERROR"
+            >
+              Path must be absolute (start with / or C:\ on Windows)
+            </Text>
+          ) : null}
         </Stack>
         <Group gap="xs">
           <PixelBtnWidget
             label={createLabel}
+            testId={createTestId}
             onClick={() => {
+              if (!guildCreateInputContract.shape.path.safeParse(path).success) {
+                setPathRejected(true);
+                return;
+              }
               onAddGuild({
                 name,
                 path,
@@ -102,7 +126,12 @@ export const GuildEmptyStateWidget = ({
             }}
           />
           {onCancel ? (
-            <PixelBtnWidget label={cancelLabel} onClick={onCancel} variant={ghostVariant} />
+            <PixelBtnWidget
+              label={cancelLabel}
+              testId={cancelTestId}
+              onClick={onCancel}
+              variant={ghostVariant}
+            />
           ) : null}
         </Group>
       </Stack>

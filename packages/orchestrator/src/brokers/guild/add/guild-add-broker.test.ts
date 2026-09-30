@@ -74,6 +74,41 @@ describe('guildAddBroker', () => {
     });
   });
 
+  describe('duplicate name', () => {
+    it('VALID: {name already registered under slug my-app} => returns the new guild on slug my-app-2', async () => {
+      const proxy = guildAddBrokerProxy();
+      const existingGuild = GuildStub({
+        id: 'aaaaaaaa-bbbb-4ccc-8ddd-eeeeeeeeeeee',
+        name: 'My App',
+        path: '/home/user/my-app',
+        urlSlug: 'my-app',
+      });
+
+      proxy.setupAddGuild({
+        existingConfig: GuildConfigStub({ guilds: [existingGuild] }),
+        homeDir: '/home/user',
+        homePath: '/home/user/.dungeonmaster',
+        guildsPath: '/home/user/.dungeonmaster/guilds',
+        guildDirPath: '/home/user/.dungeonmaster/guilds/f47ac10b-58cc-4372-a567-0e02b2c3d479',
+        questsDirPath:
+          '/home/user/.dungeonmaster/guilds/f47ac10b-58cc-4372-a567-0e02b2c3d479/quests',
+      });
+
+      const result = await guildAddBroker({
+        name: 'My App',
+        path: '/home/user/my-app-copy',
+      });
+
+      expect(result).toStrictEqual({
+        id: 'f47ac10b-58cc-4372-a567-0e02b2c3d479',
+        name: 'My App',
+        path: '/home/user/my-app-copy',
+        urlSlug: 'my-app-2',
+        createdAt: '2024-01-15T10:00:00.000Z',
+      });
+    });
+  });
+
   describe('duplicate path', () => {
     it('ERROR: {path already exists in config} => throws duplicate path error', async () => {
       const proxy = guildAddBrokerProxy();
@@ -240,11 +275,8 @@ describe('guildAddBroker', () => {
       ).rejects.toThrow(/Path must be absolute/u);
     });
 
-    // `filePathContract` is a UNION whose error still carries the absolute branch's message, so a
-    // bare 'relative/dm-home' is refused by both contracts and cannot tell them apart. '../dm-home'
-    // can: the union accepts a '../'-prefixed path, and every path joined off it stays '../'-
-    // prefixed and so stays acceptable, which is how a home validated as any-file-path reaches the
-    // filesystem resolving against `process.cwd()` instead of throwing here.
+    // '../dm-home' is relative too: joined paths stay '../'-prefixed, so a home not refused here
+    // reaches the filesystem resolving against `process.cwd()`.
     it("INVALID: {home: '../dm-home'} => throws rather than resolving against the process cwd", async () => {
       const proxy = guildAddBrokerProxy();
       proxy.setupRealBroker();

@@ -12,6 +12,7 @@ import { openHandleStackStatics } from '../../statics/open-handle-stack/open-han
 import { qualityGateStatics } from '../../statics/quality-gate/quality-gate-statics';
 import { inlineFailureStatics } from '../../statics/inline-failure/inline-failure-statics';
 import { countFailingFilesTransformer } from '../count-failing-files/count-failing-files-transformer';
+import { crashOutputExcerptTransformer } from '../crash-output-excerpt/crash-output-excerpt-transformer';
 import { discoveryDiffDisplayTransformer } from '../discovery-diff-display/discovery-diff-display-transformer';
 import { firstMeaningfulLineTransformer } from '../first-meaningful-line/first-meaningful-line-transformer';
 import { inlineFailureMessageTransformer } from '../inline-failure-message/inline-failure-message-transformer';
@@ -79,7 +80,7 @@ export const resultToSummaryTransformer = ({
     if (totalFiles === 0) {
       const statusWord = check.status === 'fail' ? 'FAIL' : 'WARN';
       const zeroDiscoveredPart =
-        totalDiscovered > 0 ? `, ${String(totalDiscovered)} discovered  DISCOVERY MISMATCH` : '';
+        totalDiscovered > 0 ? `, ${String(totalDiscovered)} discovered${mismatchPart}` : '';
       const zeroDiffPart = totalDiscovered > 0 ? diffPart : '';
       return [
         `${label} ${statusWord}  0 files run${zeroDiscoveredPart}${zeroDiffPart}${checkDurationPart}`,
@@ -185,11 +186,11 @@ export const resultToSummaryTransformer = ({
 
       if (isCrashedProjectResultGuard({ projectResult: project })) {
         const MAX_CRASH_OUTPUT = 200;
-        const rawText = project.rawOutput.stderr || project.rawOutput.stdout;
+        const rawOutput = project.rawOutput.stderr || project.rawOutput.stdout;
+        const rawText =
+          rawOutput.length > 0 ? crashOutputExcerptTransformer({ output: rawOutput }) : '';
         const truncated =
-          rawText.length > MAX_CRASH_OUTPUT
-            ? `${rawText.slice(0, MAX_CRASH_OUTPUT)}...`
-            : String(rawText);
+          rawText.length > MAX_CRASH_OUTPUT ? `${rawText.slice(0, MAX_CRASH_OUTPUT)}...` : rawText;
         if (truncated.length > 0) {
           return [`${project.projectFolder.name}\n  (crash) ${truncated}`];
         }

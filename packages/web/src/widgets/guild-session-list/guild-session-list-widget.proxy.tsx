@@ -83,7 +83,7 @@ export const GuildSessionListWidgetProxy = (): {
       await userEvent.click(screen.getByTestId(testId), userEventStatics.options);
     },
     clickAddButton: async (): Promise<void> => {
-      await userEvent.click(screen.getByTestId('PIXEL_BTN'), userEventStatics.options);
+      await userEvent.click(screen.getByTestId('SESSION_ADD_BUTTON'), userEventStatics.options);
     },
     clickFilterOption: async ({ label }: { label: string }): Promise<void> => {
       await userEvent.click(screen.getByText(label), userEventStatics.options);

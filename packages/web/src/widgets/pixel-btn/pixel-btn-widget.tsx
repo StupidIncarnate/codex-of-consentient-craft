@@ -2,8 +2,9 @@
  * PURPOSE: Renders a pixel-art styled button with primary, ghost, or danger variant
  *
  * USAGE:
- * <PixelBtnWidget label={label} onClick={handleClick} variant={variant} disabled={disabled} />
- * // Renders a monospace styled UnstyledButton with theme colors
+ * <PixelBtnWidget label={label} onClick={handleClick} variant={variant} disabled={disabled} testId={testId} />
+ * // Renders a monospace styled UnstyledButton with theme colors. `testId` names a button an
+ * // agent or spec must target on its own; omitted, it is the shared PIXEL_BTN.
  */
 
 import { UnstyledButton } from '#gateway/npm/mantine__core';
@@ -24,6 +25,7 @@ export interface PixelBtnWidgetProps {
   variant?: ButtonVariant;
   icon?: boolean;
   disabled?: boolean;
+  testId?: string;
 }
 
 export const PixelBtnWidget = ({
@@ -32,6 +34,7 @@ export const PixelBtnWidget = ({
   variant,
   icon,
   disabled,
+  testId,
 }: PixelBtnWidgetProps): React.JSX.Element => {
   const { colors } = emberDepthsThemeStatics;
   const isPrimary = !variant || variant === 'primary';
@@ -46,7 +49,7 @@ export const PixelBtnWidget = ({
       // and nothing else: a keyboard press, a screen reader and Playwright's own disabled check all
       // read the attribute, so styling alone leaves the control looking off and behaving live.
       disabled={disabled === true}
-      data-testid="PIXEL_BTN"
+      data-testid={testId ?? 'PIXEL_BTN'}
       style={{
         fontFamily: 'monospace',
         fontSize: icon ? ICON_FONT_SIZE : NORMAL_FONT_SIZE,

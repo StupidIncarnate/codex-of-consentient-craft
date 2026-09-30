@@ -8,14 +8,16 @@
  * `timeout` or `failed`, and it names the FIRST failure's location. Under `stopOn: 'error'` that
  * location is also where the batch halted, but under `stopOn: 'never'` the batch runs every
  * remaining step regardless — so `stoppedAt` names where the run WOULD have stopped, not where it
- * did. `index` and `shots` are always present, even empty, because "nothing happened" and "nobody
+ * did. `stopOn` records which of those two the batch ran under and `failedSteps` how many steps
+ * failed, so a reader can tell a halted run from one that pushed on; both are optional because a
+ * stored return written without them must still parse. `index` and `shots` are always present, even empty, because "nothing happened" and "nobody
  * looked" are different answers this shape must be able to tell apart.
  *
  * USAGE:
  * runResultContract.parse({
  *   instanceId: 'inst_7f3a9c21', runId: 'run_2', status: 'done', stepsRun: 5, stoppedAt: null,
  *   index: { console: { errors: 0, warnings: 2 }, server: { errors: 0 },
- *            network: { exchanges: 14, non2xx: 0 } },
+ *            network: { exchanges: 14, failed: 0 } },
  *   shots: [],
  * });
  * // Returns a validated RunResult
@@ -26,6 +28,7 @@ import { z } from '#gateway/npm/zod';
 import { runIndexContract } from '../run-index/run-index-contract';
 import { runStatusContract } from '../run-status/run-status-contract';
 import { shotListingContract } from '../shot-listing/shot-listing-contract';
+import { stopOnContract } from '../stop-on/stop-on-contract';
 import { stoppedAtContract } from '../stopped-at/stopped-at-contract';
 import { siegeInstanceContract, siegeRunContract } from '@dungeonmaster/shared/contracts';
 import { instanceLifecycleStatics } from '../../statics/instance-lifecycle/instance-lifecycle-statics';
@@ -44,6 +47,8 @@ export const runResultContract = z
     index: runIndexContract,
     shots: z.array(shotListingContract).readonly(),
     durationMs: z.number().int().nonnegative().brand<'RunResultDurationMs'>().optional(),
+    stopOn: stopOnContract.optional(),
+    failedSteps: z.number().int().nonnegative().brand<'RunResultFailedSteps'>().optional(),
   })
   .brand<'RunResult'>();
 

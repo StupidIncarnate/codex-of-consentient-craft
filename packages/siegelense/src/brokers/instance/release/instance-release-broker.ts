@@ -15,6 +15,8 @@
  * // in the registry
  */
 
+import { now } from '#gateway/node/Date';
+
 import { registryEntryContract } from '../../../contracts/registry-entry/registry-entry-contract';
 import type { RegistryEntry } from '../../../contracts/registry-entry/registry-entry-contract';
 import { registryUpdateBroker } from '../../registry/update/registry-update-broker';
@@ -37,6 +39,7 @@ export const instanceReleaseBroker = async ({
                 pid: null,
                 pgids: [],
                 socketPath: null,
+                killedAtMs: now(),
               })
             : entry,
         ),

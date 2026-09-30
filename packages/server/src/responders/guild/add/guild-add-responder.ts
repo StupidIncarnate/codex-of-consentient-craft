@@ -1,13 +1,14 @@
 /**
- * PURPOSE: Handles guild creation requests by validating input and delegating to the orchestrator adapter
+ * PURPOSE: Handles guild creation requests by validating input and delegating to the orchestrator
  *
  * USAGE:
  * const result = await GuildAddResponder({ body: { name: 'My Guild', path: '/projects/guild' } });
- * // Returns { status: 201, data: guild } or { status: 400/409/500, data: { error } } — 409 when the
- * // path is already registered to another guild
+ * // Returns { status: 201, data: guild } or { status: 400/409/500, data: { error } } — 400 names
+ * // `path` when it is not absolute, 409 when the path is already registered to another guild
  */
 
 import { StartOrchestrator } from '@dungeonmaster/orchestrator';
+import { guildAbsolutePathInputContract } from '../../../contracts/guild-absolute-path-input/guild-absolute-path-input-contract';
 import { guildAddBodyContract } from '../../../contracts/guild-add-body/guild-add-body-contract';
 import { responderResultContract } from '../../../contracts/responder-result/responder-result-contract';
 import type { ResponderResult } from '../../../contracts/responder-result/responder-result-contract';
@@ -32,6 +33,12 @@ export const GuildAddResponder = async ({ body }: { body: unknown }): Promise<Re
       });
     }
     const { name, path } = parsedBody.data;
+    if (!guildAbsolutePathInputContract.safeParse({ path }).success) {
+      return responderResultContract.parse({
+        status: httpStatusStatics.clientError.badRequest,
+        data: { error: 'path must be an absolute path (start with / or C:\\ on Windows)' },
+      });
+    }
     const result = await StartOrchestrator.addGuild({ name, path });
     return responderResultContract.parse({
       status: httpStatusStatics.success.created,

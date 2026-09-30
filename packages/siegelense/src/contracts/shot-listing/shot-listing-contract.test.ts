@@ -115,6 +115,44 @@ describe('shotListingContract', () => {
     });
   });
 
+  describe('count-bearing pixelChange readings', () => {
+    it.each(['0 px', '0.11% (1036 px)', '<0.01% (1 px)', '100.00% (921600 px)', '38%'])(
+      'VALID: {pixelChange: %s} => parses successfully and keeps the reading verbatim',
+      (value) => {
+        const result = shotListingContract.parse({
+          step: 2,
+          path: '/repo/.dungeonmaster-assets/siegelense-assets/guilds/g1/instances/inst_1/runs/run_1/step2.png',
+          open: false,
+          why: null,
+          node: null,
+          pixelChange: value,
+          blank: false,
+          blankColour: null,
+        });
+
+        expect(result.pixelChange).toBe(value);
+      },
+    );
+
+    it.each(['0.11%', '38', '<0.01% (px)', '0.1% (5 px)'])(
+      'INVALID: {pixelChange: %s} => a share without its pixel count, or a malformed one, throws',
+      (value) => {
+        expect(() =>
+          shotListingContract.parse({
+            step: 2,
+            path: '/repo/.dungeonmaster-assets/siegelense-assets/guilds/g1/instances/inst_1/runs/run_1/step2.png',
+            open: false,
+            why: null,
+            node: null,
+            pixelChange: value,
+            blank: false,
+            blankColour: null,
+          }),
+        ).toThrow(/Invalid string: must match pattern/u);
+      },
+    );
+  });
+
   describe('invalid listings', () => {
     it('INVALID: {missing open} => throws validation error', () => {
       expect(() =>

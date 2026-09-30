@@ -57,7 +57,52 @@ describe('SiegelenseStartResponder', () => {
       await SiegelenseStartResponder({ specName, questId, guildId, seed: null, isJson: true });
 
       expect(proxy.getStdoutWrites()).toStrictEqual([
-        `${JSON.stringify(manifest, null, siegelenseOutputStatics.json.indentSpaces)}\n`,
+        `${JSON.stringify({ ...manifest, idleTimeoutMs: 900_000 }, null, siegelenseOutputStatics.json.indentSpaces)}\n`,
+      ]);
+    });
+  });
+
+  describe('a raised idle timeout', () => {
+    it('VALID: {idleTimeoutMs: 1_800_000} => the human summary states the raised timeout', async () => {
+      const proxy = SiegelenseStartResponderProxy();
+      const specName = 'dungeonmaster-stack';
+      const manifest = InstanceManifestStub({ specName });
+      const idleTimeoutMs = 1_800_000;
+      proxy.stageManifest({ manifest });
+
+      await SiegelenseStartResponder({
+        specName,
+        questId: null,
+        guildId: null,
+        seed: null,
+        idleTimeoutMs,
+      });
+
+      expect(proxy.getStdoutWrites()).toStrictEqual([
+        startAnswerRenderTransformer({ manifest, idleTimeoutMs }),
+      ]);
+      expect(startAnswerRenderTransformer({ manifest, idleTimeoutMs }).split('\n')[6]).toBe(
+        'IDLE TIMEOUT: 30m (raised from the 15m default)',
+      );
+    });
+
+    it('VALID: {idleTimeoutMs: 1_800_000, isJson: true} => the JSON document carries idleTimeoutMs 1800000', async () => {
+      const proxy = SiegelenseStartResponderProxy();
+      const specName = 'dungeonmaster-stack';
+      const manifest = InstanceManifestStub({ specName });
+      proxy.stageManifest({ manifest });
+
+      await SiegelenseStartResponder({
+        specName,
+        questId: null,
+        guildId: null,
+        seed: null,
+        idleTimeoutMs: 1_800_000,
+        isJson: true,
+      });
+
+      expect(proxy.getStdoutWrites()).toStrictEqual([
+        `${JSON.stringify({ ...manifest, idleTimeoutMs: 1_800_000 }, null, siegelenseOutputStatics.json.indentSpaces)}\n`,
       ]);
     });
   });
@@ -204,7 +249,7 @@ describe('SiegelenseStartResponder', () => {
       });
 
       expect(proxy.getStdoutWrites()).toStrictEqual([
-        `${JSON.stringify(manifest, null, siegelenseOutputStatics.json.indentSpaces)}\n`,
+        `${JSON.stringify({ ...manifest, idleTimeoutMs: 900_000 }, null, siegelenseOutputStatics.json.indentSpaces)}\n`,
       ]);
     });
   });
@@ -249,7 +294,7 @@ describe('SiegelenseStartResponder', () => {
       });
 
       expect(proxy.getStdoutWrites()).toStrictEqual([
-        `${JSON.stringify(manifest, null, siegelenseOutputStatics.json.indentSpaces)}\n`,
+        `${JSON.stringify({ ...manifest, idleTimeoutMs: 900_000 }, null, siegelenseOutputStatics.json.indentSpaces)}\n`,
       ]);
     });
   });
@@ -335,6 +380,65 @@ describe('SiegelenseStartResponder', () => {
         SiegelenseStartResponder({ specName, questId: null, guildId: null, seed: null }),
       ).rejects.toStrictEqual(thrown);
       expect(proxy.getStdoutWrites()).toStrictEqual([]);
+    });
+  });
+
+  describe('the served build', () => {
+    it('VALID: {served build older than its source} => writes the exact stale-build warning to stderr and the summary to stdout', async () => {
+      const proxy = SiegelenseStartResponderProxy();
+      const specName = 'dungeonmaster-stack';
+      const manifest = InstanceManifestStub({ specName });
+      const warning = [
+        'STALE BUILD: this lane serves packages/web/dist, last built 2026-09-29T21:35:38.233Z at commit fd13432c156a; 1 file has changed since, and the lane serves none of those changes: packages/web/src/app.tsx.',
+        'REBUILD: run `npm run build` while no lane is live in this checkout — a build empties the folder a live lane serves — then start again.',
+        '',
+      ].join('\n');
+      proxy.stageStaleWarning({ specName, warning });
+      proxy.stageManifest({ manifest });
+
+      await SiegelenseStartResponder({ specName, questId: null, guildId: null, seed: null });
+
+      expect({
+        stderr: proxy.getStderrWrites(),
+        stdout: proxy.getStdoutWrites(),
+      }).toStrictEqual({
+        stderr: [warning],
+        stdout: [startAnswerRenderTransformer({ manifest })],
+      });
+    });
+
+    it('EMPTY: {served build current} => writes nothing to stderr', async () => {
+      const proxy = SiegelenseStartResponderProxy();
+      const specName = 'dungeonmaster-stack';
+      const manifest = InstanceManifestStub({ specName });
+      proxy.stageManifest({ manifest });
+
+      await SiegelenseStartResponder({ specName, questId: null, guildId: null, seed: null });
+
+      expect(proxy.getStderrWrites()).toStrictEqual([]);
+    });
+
+    it('ERROR: {stale-build check throws} => says so on stderr and still boots', async () => {
+      const proxy = SiegelenseStartResponderProxy();
+      const specName = 'dungeonmaster-stack';
+      const manifest = InstanceManifestStub({ specName });
+      proxy.stageStaleCheckError({
+        specName,
+        error: new Error('EACCES: permission denied, stat'),
+      });
+      proxy.stageManifest({ manifest });
+
+      await SiegelenseStartResponder({ specName, questId: null, guildId: null, seed: null });
+
+      expect({
+        stderr: proxy.getStderrWrites(),
+        stdout: proxy.getStdoutWrites(),
+      }).toStrictEqual({
+        stderr: [
+          "[siegelense start] the stale-build check failed, so nothing says whether this lane's compiled output is current: EACCES: permission denied, stat\n",
+        ],
+        stdout: [startAnswerRenderTransformer({ manifest })],
+      });
     });
   });
 });

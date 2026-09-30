@@ -9,6 +9,7 @@
 import { Hono } from '#gateway/npm/hono';
 
 import { ServerInitResponder } from '../../responders/server/init/server-init-responder';
+import { RequestLogFlow } from '../request-log/request-log-flow';
 
 export const ServerFlow = ({
   subApps,
@@ -18,6 +19,8 @@ export const ServerFlow = ({
   serveWebBundle?: boolean;
 }): void => {
   const app = new Hono();
+
+  app.route('', RequestLogFlow());
 
   for (const sub of subApps) {
     app.route('', sub);

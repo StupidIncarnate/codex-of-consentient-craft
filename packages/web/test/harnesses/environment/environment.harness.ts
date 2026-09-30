@@ -79,22 +79,21 @@ export const environmentHarness = ({
   // outside `guildPath` so `clearWorktrees`/`ensureFixtureRepo` (which only ever touch the guild
   // path itself) never disturb it across runs.
   //
-  // Checked on EVERY setup, not only when the fixture repo is first made: the two directories are
-  // separate `/tmp` entries that outlive the run, so either can vanish without the other (an OS
-  // `/tmp` sweep, a hand `rm`). A fixture `.git` whose origin is gone fails every carve's push, and
-  // the spec reads that as a spiritmender repair it never asked for.
+  // Runs on EVERY setup, not only when the fixture repo is first created. `global-setup.ts` sweeps
+  // any `/tmp/dm-e2e-*` entry whose mtime is over six hours old, and the two directories age apart:
+  // every test rewrites `<guildPath>/worktrees`, so the guild path stays fresh, while a push only
+  // writes inside the bare repo's subdirectories and never touches its own mtime. So the sweep
+  // removes the remote and keeps the guild repo that points at it, and a check made only at repo
+  // creation never notices. `git config` rather than `git remote add`, because the second setup of a
+  // repo already carrying `origin` would otherwise refuse the add.
   const remotePath = `${guildPath}-origin.git`;
 
   const ensureRemote = (): void => {
     if (!fs.existsSync(remotePath)) {
       gitRunSync({ args: ['init', '--bare', '-b', 'main', remotePath], cwd: guildPath });
     }
-    const remotes = gitRunSync({ args: ['remote'], cwd: guildPath }).split('\n');
-    runGit(
-      remotes.includes('origin')
-        ? ['remote', 'set-url', 'origin', remotePath]
-        : ['remote', 'add', 'origin', remotePath],
-    );
+    runGit(['config', 'remote.origin.url', remotePath]);
+    runGit(['config', 'remote.origin.fetch', '+refs/heads/*:refs/remotes/origin/*']);
   };
 
   // The dispatcher's deterministic `carve` step (packages/orchestrator's stepHandlerRiftcarverBroker)

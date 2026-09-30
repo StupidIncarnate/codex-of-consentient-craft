@@ -3,13 +3,14 @@
  *
  * USAGE:
  * <AppFlow />
- * // Renders Routes with AppLayoutResponder wrapping HomeFlow, QueueFlow, QuestChatFlow, and SessionViewFlow
+ * // Renders Routes with AppLayoutResponder wrapping HomeFlow, QueueFlow, QuestChatFlow, SessionViewFlow, and the NotFoundFlow catch-all
  */
 
 import { Route, Routes } from '#gateway/npm/react-router-dom';
 
 import { AppLayoutResponder } from '../../responders/app/layout/app-layout-responder';
 import { HomeFlow } from '../home/home-flow';
+import { NotFoundFlow } from '../not-found/not-found-flow';
 import { QuestChatFlow } from '../quest-chat/quest-chat-flow';
 import { QueueFlow } from '../queue/queue-flow';
 import { SessionViewFlow } from '../session-view/session-view-flow';
@@ -21,6 +22,7 @@ export const AppFlow = (): React.JSX.Element => (
       {QueueFlow()}
       {QuestChatFlow()}
       {SessionViewFlow()}
+      {NotFoundFlow()}
     </Route>
   </Routes>
 );

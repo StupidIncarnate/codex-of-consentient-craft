@@ -22,7 +22,12 @@ const SNAPSHOT_FILENAME = 'rate-limits.json';
 const HISTORY_FILENAME = 'rate-limits-history.jsonl';
 
 // `write` lives on the stream's prototype, so the capture sets an own property and restore removes
-// it again rather than leaving a bound copy of the original behind.
+// it again rather than leaving a bound copy of the original behind. Restore acts only while the
+// capture is still the installed writer: the original is jest's DefaultReporter wrapper, which
+// buffers and flushes on a 100ms timer, and the reporter swaps the real writer back in once the run
+// completes. A restore arriving AFTER that — from a hook that timed out while this capture was
+// active — would reinstall the buffering wrapper just before jest prints its `--json` report, and
+// `--forceExit` then drops the unflushed report, which ward reads as a crash.
 const captureWrites = ({
   stream,
 }: {
@@ -33,17 +38,21 @@ const captureWrites = ({
 } => {
   const writes: unknown[] = [];
   const ownWrite = Object.getOwnPropertyDescriptor(stream, 'write');
+  const captureWrite = (chunk: unknown): boolean => {
+    writes.push(chunk);
+    return true;
+  };
   Object.defineProperty(stream, 'write', {
     configurable: true,
     writable: true,
-    value: (chunk: unknown): boolean => {
-      writes.push(chunk);
-      return true;
-    },
+    value: captureWrite,
   });
   return {
     getOutput: (): readonly unknown[] => writes,
     restore: (): void => {
+      if (Object.getOwnPropertyDescriptor(stream, 'write')?.value !== captureWrite) {
+        return;
+      }
       if (ownWrite === undefined) {
         Reflect.deleteProperty(stream, 'write');
       } else {

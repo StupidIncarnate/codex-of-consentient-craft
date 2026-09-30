@@ -428,6 +428,69 @@ describe('resultsReadBroker', () => {
     expect(result.rows).toStrictEqual([wsText]);
   });
 
+  it('VALID: {kind: server, since: boot} => every api-server.log line, boot lines outside any step window included', async () => {
+    const proxy = resultsReadBrokerProxy();
+    const entry = RegistryEntryStub({ id: INSTANCE_ID, state: 'killed' });
+    proxy.setupRegistry({ registry: RegistryStub({ instances: [entry] }) });
+    const evidencePath = proxy.evidencePathFor({ instanceId: INSTANCE_ID });
+    proxy.setupRuns({ evidencePath, entries: ['run_5.jsonl', 'run_5.json'] });
+    proxy.setupServerLog({
+      evidencePath,
+      content:
+        'Server listening on http://dungeonmaster.localhost:39887\n' +
+        '[http] info GET /api/guilds 200 3ms\n' +
+        '[http] error GET /api/quests/queue 500 4ms: {"error":"boom"}\n',
+    });
+
+    const result = await resultsReadBroker({
+      query: ResultsQueryStub({ instanceId: INSTANCE_ID, kind: 'server', since: 'boot' }),
+    });
+
+    expect({
+      runId: result.runId,
+      kind: result.kind,
+      matched: result.matched,
+      rows: result.rows,
+    }).toStrictEqual({
+      runId: null,
+      kind: 'server',
+      matched: 3,
+      rows: [
+        'Server listening on http://dungeonmaster.localhost:39887',
+        '[http] info GET /api/guilds 200 3ms',
+        '[http] error GET /api/quests/queue 500 4ms: {"error":"boom"}',
+      ],
+    });
+  });
+
+  it('VALID: {kind: server, since: boot, where: {level: error}} => only the error lines of the whole log', async () => {
+    const proxy = resultsReadBrokerProxy();
+    const entry = RegistryEntryStub({ id: INSTANCE_ID, state: 'killed' });
+    proxy.setupRegistry({ registry: RegistryStub({ instances: [entry] }) });
+    const evidencePath = proxy.evidencePathFor({ instanceId: INSTANCE_ID });
+    proxy.setupRuns({ evidencePath, entries: ['run_5.jsonl', 'run_5.json'] });
+    proxy.setupServerLog({
+      evidencePath,
+      content:
+        'Server listening on http://dungeonmaster.localhost:39887\n' +
+        '[http] info GET /api/guilds 200 3ms\n' +
+        '[http] error GET /api/quests/queue 500 4ms: {"error":"boom"}\n',
+    });
+
+    const result = await resultsReadBroker({
+      query: ResultsQueryStub({
+        instanceId: INSTANCE_ID,
+        kind: 'server',
+        since: 'boot',
+        where: ResultWhereStub({ level: 'error' }),
+      }),
+    });
+
+    expect(result.rows).toStrictEqual([
+      '[http] error GET /api/quests/queue 500 4ms: {"error":"boom"}',
+    ]);
+  });
+
   it('VALID: {kind: console, since: boot} => entries from run_1 AND run_2 AND the untagged between-runs entry', async () => {
     const proxy = resultsReadBrokerProxy();
     const entry = RegistryEntryStub({ id: INSTANCE_ID, state: 'killed' });
@@ -453,7 +516,11 @@ describe('resultsReadBroker', () => {
       query: ResultsQueryStub({ instanceId: INSTANCE_ID, kind: 'console', since: 'boot' }),
     });
 
-    expect(result.rows).toStrictEqual([run1Text, betweenRunsText, run2Text]);
+    expect(result.rows).toStrictEqual([
+      '{"run":"run_1","step":null,"at":1,"kind":"console","type":"log","text":"a"}',
+      '{"run":null,"step":null,"at":2,"kind":"console","type":"log","text":"b"}',
+      '{"run":"run_2","step":null,"at":3,"kind":"console","type":"log","text":"c"}',
+    ]);
   });
 
   it('VALID: {kind: network, since: boot} => entries from run_1 AND run_2, with real matched/returned counts', async () => {
@@ -480,7 +547,14 @@ describe('resultsReadBroker', () => {
     });
 
     expect({ matched: result.matched, returned: result.returned, rows: result.rows }).toStrictEqual(
-      { matched: 2, returned: 2, rows: [run1Text, run2Text] },
+      {
+        matched: 2,
+        returned: 2,
+        rows: [
+          '{"run":"run_1","step":null,"at":1,"method":"GET","url":"/api/a","resourceType":"fetch","status":200,"requestBody":null,"responseBody":"ok"}',
+          '{"run":"run_2","step":null,"at":1,"method":"POST","url":"/api/b","resourceType":"fetch","status":500,"requestBody":null,"responseBody":"ok"}',
+        ],
+      },
     );
   });
 
@@ -528,7 +602,10 @@ describe('resultsReadBroker', () => {
       matched: 2,
       returned: 2,
       truncated: false,
-      rows: [run1Text, run2Text],
+      rows: [
+        '{"run":"run_1","step":null,"at":1,"method":"GET","url":"/api/a","resourceType":"fetch","status":200,"requestBody":null,"responseBody":"ok"}',
+        '{"run":"run_2","step":null,"at":1,"method":"POST","url":"/api/b","resourceType":"fetch","status":500,"requestBody":null,"responseBody":"ok"}',
+      ],
       storedReturn: null,
     });
   });
@@ -570,7 +647,7 @@ describe('resultsReadBroker', () => {
     await expect(
       resultsReadBroker({ query: ResultsQueryStub({ instanceId: INSTANCE_ID, since: 'boot' }) }),
     ).rejects.toThrow(
-      /^results against instance inst_7f3a9c21 with since: 'boot' and no kind cannot answer: boot spans every run, and only console, network, ws hold lines for the whole timeline\. Name one with --kind <kind>, or drop --since boot to read a single run's steps, server or screenshots\.$/u,
+      /^results against instance inst_7f3a9c21 with since: 'boot' and no kind cannot answer: boot spans every run, and only console, network, ws, server hold lines for the whole timeline\. Name one with --kind <kind>, or drop --since boot to read a single run's steps or screenshots\.$/u,
     );
   });
 
@@ -728,6 +805,73 @@ describe('resultsReadBroker', () => {
     expect({ matched: result.matched, returned: result.returned, rows: result.rows }).toStrictEqual(
       { matched: 0, returned: 0, rows: [] },
     );
+  });
+
+  it('VALID: {kind: network, run_2 made no requests, run_1 made two} => the empty answer names run_1 as the latest run holding network lines', async () => {
+    const proxy = resultsReadBrokerProxy();
+    const entry = RegistryEntryStub({ id: INSTANCE_ID, state: 'killed' });
+    proxy.setupRegistry({ registry: RegistryStub({ instances: [entry] }) });
+    const evidencePath = proxy.evidencePathFor({ instanceId: INSTANCE_ID });
+    proxy.setupRuns({
+      evidencePath,
+      entries: ['run_1.jsonl', 'run_1.json', 'run_2.jsonl', 'run_2.json'],
+    });
+    proxy.setupBuffer({
+      evidencePath,
+      kind: 'network',
+      content:
+        bufferLine({
+          runId: RUN_1,
+          step: 1,
+          text: networkText({ method: 'GET', url: '/', status: 200 }),
+        }) +
+        bufferLine({
+          runId: RUN_1,
+          step: 1,
+          text: networkText({ method: 'GET', url: '/api/guilds', status: 200 }),
+        }),
+    });
+    const runResult = RunResultStub({ instanceId: INSTANCE_ID, runId: RUN_2 });
+    proxy.setupStoredReturn({ evidencePath, runId: RUN_2, result: runResult });
+
+    const result = await resultsReadBroker({
+      query: ResultsQueryStub({ instanceId: INSTANCE_ID, runId: RUN_2, kind: 'network' }),
+    });
+
+    expect({
+      matched: result.matched,
+      rows: result.rows,
+      latestRunWithRows: result.latestRunWithRows,
+    }).toStrictEqual({ matched: 0, rows: [], latestRunWithRows: { runId: 'run_1', rows: 2 } });
+  });
+
+  it('VALID: {kind: server, run_2 steps wrote nothing to the log} => the empty answer names the byte window its steps covered', async () => {
+    const proxy = resultsReadBrokerProxy();
+    const entry = RegistryEntryStub({ id: INSTANCE_ID, state: 'killed' });
+    proxy.setupRegistry({ registry: RegistryStub({ instances: [entry] }) });
+    const evidencePath = proxy.evidencePathFor({ instanceId: INSTANCE_ID });
+    proxy.setupRuns({ evidencePath, entries: ['run_2.jsonl', 'run_2.json'] });
+    const reading = StepReadingStub({
+      step: 1,
+      serverWindow: ServerLogWindowStub({
+        fromByte: 2048,
+        toByte: 2048,
+      }),
+    });
+    proxy.setupTranscript({ evidencePath, runId: RUN_2, content: `${JSON.stringify(reading)}\n` });
+    proxy.setupServerLog({ evidencePath, content: 'x'.repeat(2048) });
+    const runResult = RunResultStub({ instanceId: INSTANCE_ID, runId: RUN_2 });
+    proxy.setupStoredReturn({ evidencePath, runId: RUN_2, result: runResult });
+
+    const result = await resultsReadBroker({
+      query: ResultsQueryStub({ instanceId: INSTANCE_ID, runId: RUN_2, kind: 'server' }),
+    });
+
+    expect({
+      matched: result.matched,
+      rows: result.rows,
+      serverWindow: result.serverWindow,
+    }).toStrictEqual({ matched: 0, rows: [], serverWindow: { fromByte: 2048, toByte: 2048 } });
   });
 
   it('VALID: {kind: server, a real run whose transcript holds no steps} => matched: 0 stays a legitimate empty, not a refusal', async () => {

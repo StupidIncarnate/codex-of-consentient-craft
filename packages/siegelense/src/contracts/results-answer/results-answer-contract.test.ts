@@ -3,6 +3,25 @@ import { ResultsAnswerStub } from './results-answer.stub';
 
 describe('resultsAnswerContract', () => {
   describe('valid answers', () => {
+    it('VALID: {latestRunWithRows, serverWindow} => parses the coverage an empty answer carries', () => {
+      const answer = ResultsAnswerStub({
+        runId: 'run_7',
+        kind: 'network',
+        latestRunWithRows: { runId: 'run_5', rows: 7 },
+        serverWindow: { fromByte: 1024, toByte: 1024 },
+      });
+
+      const result = resultsAnswerContract.parse(answer);
+
+      expect({
+        latestRunWithRows: result.latestRunWithRows,
+        serverWindow: result.serverWindow,
+      }).toStrictEqual({
+        latestRunWithRows: { runId: 'run_5', rows: 7 },
+        serverWindow: { fromByte: 1024, toByte: 1024 },
+      });
+    });
+
     it('VALID: {kind: "steps", rows: two step readings} => parses a steps answer carrying rows', () => {
       const answer = ResultsAnswerStub({
         instanceId: 'inst_7f3a9c21',

@@ -44,7 +44,11 @@
  * are `null` on a non-capturing step (no `session.look()` was ever taken to diff) and degrade to `null`
  * on their own read failure without disturbing anything else this file already measured or threw — an
  * evidence read must never replace the step's real outcome, the same rule the screenshot capture above
- * already follows.
+ * already follows. `failureShotPath` is the capture path for a step that has no `shotPath` of its
+ * own (`waitFor`, `eval`, …): such a step captures nothing on success, but a REAL failure still
+ * screenshots the page at that moment, so every failed step leaves a picture behind. On the success
+ * return, an ACTING step (`stepStatics.verbs.acting`) whose own capture reads blank appends
+ * `— page is BLANK (<colour>)` to its reading, so a `goto` onto a white page never reads as plain success.
  *
  * USAGE:
  * await stepDispatchBroker({
@@ -71,6 +75,7 @@ import { stepVerbContract } from '../../../contracts/step-verb/step-verb-contrac
 import { BrowserStepUnsupportedError } from '../../../errors/browser-step-unsupported/browser-step-unsupported-error';
 import { StepFailureCaptureError } from '../../../errors/step-failure-capture/step-failure-capture-error';
 import { isBrowserStepGuard } from '../../../guards/is-browser-step/is-browser-step-guard';
+import { stepStatics } from '../../../statics/step/step-statics';
 import { shotBlankReadBroker } from '../../shot/blank-read/shot-blank-read-broker';
 import { shotChangeReadBroker } from '../../shot/change-read/shot-change-read-broker';
 import { elementDeltaComputeTransformer } from '../../../transformers/element-delta-compute/element-delta-compute-transformer';
@@ -81,6 +86,7 @@ export const stepDispatchBroker = async ({
   step,
   index,
   shotPath,
+  failureShotPath = null,
   browserWindowStart,
   lastShotPath,
   setLastShotPath,
@@ -90,6 +96,7 @@ export const stepDispatchBroker = async ({
   step: Step;
   index: number;
   shotPath: string | null;
+  failureShotPath?: string | null;
   browserWindowStart: BufferLengths | null;
   lastShotPath: () => string | null;
   setLastShotPath: (params: { path: string }) => void;
@@ -161,6 +168,13 @@ export const stepDispatchBroker = async ({
     }
     const blank = blankReading === null ? null : blankReading.blank;
     const blankColour = blankReading === null ? null : blankReading.colour;
+    // An acting step's own reading is a bare confirmation (`goto` answers with its path), so a page
+    // it left blank would otherwise read as plain success; the blank verdict joins the reading itself.
+    const actedOntoBlank =
+      blank === true && stepStatics.verbs.acting.some((actingVerb) => actingVerb === step.step);
+    const shownReading = actedOntoBlank
+      ? `${reading} — page is BLANK${blankColour === null ? '' : ` (${blankColour})`}`
+      : reading;
 
     let delta: ElementDelta | null = null;
     if (previousReading !== null && session !== null) {
@@ -180,7 +194,7 @@ export const stepDispatchBroker = async ({
       node: step.node,
       ok,
       expected: step.expect,
-      reading,
+      reading: shownReading,
       shot: shotPath,
       pixelChange,
       blank,
@@ -204,15 +218,16 @@ export const stepDispatchBroker = async ({
       // `.catch`, so it rides upward on the rethrow instead: `StepFailureCaptureError` carries both
       // the original error and a `captured` boolean, so `runExecuteStepLayerBroker` reports `shot`
       // honestly rather than hardcoding `null` or guessing from the filesystem.
+      const failureCapturePath = shotPath ?? failureShotPath;
       if (
-        shotPath !== null &&
+        failureCapturePath !== null &&
         session !== null &&
         step.step !== 'screenshot' &&
         step.step !== 'health' &&
         step.step !== 'hold'
       ) {
         const captured = await session
-          .capture({ filePath: shotPath })
+          .capture({ filePath: failureCapturePath })
           .then(() => true)
           .catch((captureError: unknown) => {
             stderr.write(
@@ -234,12 +249,15 @@ export const stepDispatchBroker = async ({
         if (captured) {
           try {
             const [measuredBlank, measuredChange] = await Promise.all([
-              shotBlankReadBroker({ shotPath }),
-              shotChangeReadBroker({ previousPath: lastShotPath(), currentPath: shotPath }),
+              shotBlankReadBroker({ shotPath: failureCapturePath }),
+              shotChangeReadBroker({
+                previousPath: lastShotPath(),
+                currentPath: failureCapturePath,
+              }),
             ]);
             blankReading = measuredBlank;
             pixelChange = measuredChange;
-            setLastShotPath({ path: shotPath });
+            setLastShotPath({ path: failureCapturePath });
           } catch (readError: unknown) {
             stderr.write(
               `[step-dispatch] failure screenshot measurement failed for step ${String(index)}: ${String(readError)}\n`,

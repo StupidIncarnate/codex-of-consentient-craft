@@ -71,14 +71,21 @@ describe('resultsArgsParseTransformer', () => {
   describe('--fields as one comma-separated value', () => {
     it('VALID: {--fields status,responseBody} => the two-member array', () => {
       const result = resultsArgsParseTransformer({
-        args: ['--instance', 'inst_7f3a9c21', '--fields', 'status,responseBody'],
+        args: [
+          '--instance',
+          'inst_7f3a9c21',
+          '--kind',
+          'network',
+          '--fields',
+          'status,responseBody',
+        ],
       });
 
       expect(result).toStrictEqual({
         instanceId: 'inst_7f3a9c21',
         runId: null,
         step: null,
-        kind: null,
+        kind: 'network',
         where: null,
         fields: ['status', 'responseBody'],
         since: null,
@@ -165,19 +172,37 @@ describe('resultsArgsParseTransformer', () => {
   describe('a reversed --where-steps range', () => {
     it('VALID: {--where-steps 9-4} => stepRangeContract accepts it unordered, so where.steps is "9-4"', () => {
       const result = resultsArgsParseTransformer({
-        args: ['--instance', 'inst_7f3a9c21', '--where-steps', '9-4'],
+        args: ['--instance', 'inst_7f3a9c21', '--kind', 'steps', '--where-steps', '9-4'],
       });
 
       expect(result).toStrictEqual({
         instanceId: 'inst_7f3a9c21',
         runId: null,
         step: null,
-        kind: null,
+        kind: 'steps',
         where: { path: null, method: null, nth: null, level: null, steps: '9-4' },
         fields: null,
         since: null,
         isJson: false,
       });
+    });
+  });
+
+  describe('a --where-* flag or --fields name the kind cannot honour', () => {
+    it('INVALID: {--where-path /api/guilds, no --kind} => refuses naming the kind to add', () => {
+      expect(() =>
+        resultsArgsParseTransformer({
+          args: ['--instance', 'inst_7f3a9c21', '--run', 'run_22', '--where-path', '/api/guilds'],
+        }),
+      ).toThrow(/^--where-path filters network rows; add --kind network$/u);
+    });
+
+    it('INVALID: {--fields step,status, no --kind} => refuses naming status', () => {
+      expect(() =>
+        resultsArgsParseTransformer({
+          args: ['--instance', 'inst_7f3a9c21', '--fields', 'step,status'],
+        }),
+      ).toThrow(/^--fields: no field "status" on step readings; fields are: step, verb, /u);
     });
   });
 
@@ -233,7 +258,7 @@ describe('resultsArgsParseTransformer', () => {
           args: ['--instance', 'inst_7f3a9c21', '--where-method', 'WOOF'],
         }),
       ).toThrow(
-        /^--where-method: Invalid option: expected one of "GET"\|"POST"\|"PUT"\|"PATCH"\|"DELETE"\|"HEAD"\|"OPTIONS"$/u,
+        /^--where-method must be one of GET, POST, PUT, PATCH, DELETE, HEAD, OPTIONS; got "WOOF"$/u,
       );
     });
   });
@@ -262,7 +287,7 @@ describe('resultsArgsParseTransformer', () => {
         resultsArgsParseTransformer({
           args: ['--instance', 'inst_7f3a9c21', '--where-level', 'fatal'],
         }),
-      ).toThrow(/^--where-level: Invalid option: expected one of "error"\|"warn"\|"info"$/u);
+      ).toThrow(/^--where-level must be one of error, warn, info; got "fatal"$/u);
     });
   });
 

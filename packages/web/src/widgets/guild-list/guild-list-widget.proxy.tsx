@@ -27,7 +27,7 @@ export const GuildListWidgetProxy = (): {
       await userEvent.click(screen.getByTestId(testId), userEventStatics.options);
     },
     clickAddButton: async (): Promise<void> => {
-      await userEvent.click(screen.getByTestId('PIXEL_BTN'), userEventStatics.options);
+      await userEvent.click(screen.getByTestId('GUILD_ADD_BUTTON'), userEventStatics.options);
     },
     hasHeader: (): boolean => screen.queryByText('GUILDS') !== null,
   };

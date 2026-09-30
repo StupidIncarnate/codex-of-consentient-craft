@@ -70,6 +70,12 @@ export const driverStatics = {
   teardown: {
     // SIGTERM, then this long a wait, then SIGKILL to whatever is still standing.
     graceMs: 3_000,
+    // A `reset level: 'instance'` restart polls every group at this cadence until it has exited,
+    // rather than sleeping the whole grace: a server that exits on SIGTERM in 200ms costs 200ms.
+    exitPollMs: 100,
+    // How long a restart waits for SIGKILLed groups to actually leave the process table before it
+    // refuses to respawn onto ports something may still hold.
+    killWaitMs: 5_000,
     // The OS signals a driver process reacts to by tearing its own lane down. A bare array
     // literal at the call site is a magic-string-array lint violation, so it lives here instead.
     signals: ['SIGINT', 'SIGTERM'],

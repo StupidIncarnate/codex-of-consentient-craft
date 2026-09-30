@@ -220,6 +220,92 @@ describe('bufferReadLayerBroker', () => {
     expect(result).toStrictEqual([step1.text]);
   });
 
+  it('VALID: {where: {level: info}} => only the rows that are neither errors nor warnings', async () => {
+    const proxy = bufferReadLayerBrokerProxy();
+    const consoleText = ({ type }: { type: string }): string =>
+      JSON.stringify({ at: 1, kind: 'console', type, text: 'x', url: '', line: 0 });
+    const errorEntry = BufferEntryStub({ runId: RUN_2, text: consoleText({ type: 'error' }) });
+    const warningEntry = BufferEntryStub({ runId: RUN_2, text: consoleText({ type: 'warning' }) });
+    const logEntry = BufferEntryStub({ runId: RUN_2, text: consoleText({ type: 'log' }) });
+    const infoEntry = BufferEntryStub({ runId: RUN_2, text: consoleText({ type: 'info' }) });
+    proxy.setupBuffer({
+      bufferPath: BUFFER_PATH,
+      content: [errorEntry, warningEntry, logEntry, infoEntry]
+        .map((entry) => `${JSON.stringify(entry)}\n`)
+        .join(''),
+    });
+
+    const result = await bufferReadLayerBroker({
+      bufferPath: BUFFER_PATH,
+      runId: RUN_2,
+      sinceBoot: false,
+      step: null,
+      where: ResultWhereStub({ level: 'info' }),
+    });
+
+    expect(result).toStrictEqual([logEntry.text, infoEntry.text]);
+  });
+
+  it('EMPTY: {where: {level: info}, every row an error} => returns no rows', async () => {
+    const proxy = bufferReadLayerBrokerProxy();
+    const errorEntry = BufferEntryStub({
+      runId: RUN_2,
+      text: JSON.stringify({
+        at: 1,
+        kind: 'console',
+        type: 'error',
+        text: 'x',
+        url: '',
+        line: 0,
+      }),
+    });
+    proxy.setupBuffer({
+      bufferPath: BUFFER_PATH,
+      content: `${JSON.stringify(errorEntry)}\n`,
+    });
+
+    const result = await bufferReadLayerBroker({
+      bufferPath: BUFFER_PATH,
+      runId: RUN_2,
+      sinceBoot: false,
+      step: null,
+      where: ResultWhereStub({ level: 'info' }),
+    });
+
+    expect(result).toStrictEqual([]);
+  });
+
+  it('VALID: {sinceBoot: true, JSON rows from run_1 step 2 and between runs} => each row leads with its own run and step', async () => {
+    const proxy = bufferReadLayerBrokerProxy();
+    const run1Entry = BufferEntryStub({
+      runId: RunIdStub({ value: 'run_1' }),
+      step: 2,
+      text: JSON.stringify({ at: 5, url: 'ws://x', direction: 'sent' }),
+    });
+    const betweenRunsEntry = BufferEntryStub({
+      runId: null,
+      step: null,
+      text: JSON.stringify({ at: 9, url: 'ws://x', direction: 'closed' }),
+    });
+    proxy.setupBuffer({
+      bufferPath: BUFFER_PATH,
+      content: [run1Entry, betweenRunsEntry].map((entry) => `${JSON.stringify(entry)}\n`).join(''),
+    });
+
+    const result = await bufferReadLayerBroker({
+      bufferPath: BUFFER_PATH,
+      runId: null,
+      sinceBoot: true,
+      step: null,
+      where: null,
+    });
+
+    expect(result).toStrictEqual([
+      '{"run":"run_1","step":2,"at":5,"url":"ws://x","direction":"sent"}',
+      '{"run":null,"step":null,"at":9,"url":"ws://x","direction":"closed"}',
+    ]);
+  });
+
   it('EDGE: {a transcript-style truncated final line} => the earlier complete entries still answer', async () => {
     const proxy = bufferReadLayerBrokerProxy();
     const complete = BufferEntryStub({ runId: RUN_2 });

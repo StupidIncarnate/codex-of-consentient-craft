@@ -113,5 +113,74 @@ describe('GuildEmptyStateWidget', () => {
 
       expect(onCancel).toHaveBeenCalledTimes(1);
     });
+
+    it('VALID: {name, absolute path, click CREATE} => calls onAddGuild with both and shows no path error', async () => {
+      const proxy = GuildEmptyStateWidgetProxy();
+      const onAddGuild = jest.fn();
+
+      proxy.setupDirectoryBrowse({ entries: [] });
+      mantineRenderMiddleware({
+        ui: <GuildEmptyStateWidget onAddGuild={onAddGuild} />,
+      });
+
+      await proxy.typeGuildName({ value: 'jod' });
+      await proxy.typeGuildPath({ value: '/home/user/jo' });
+      await proxy.clickCreate();
+
+      expect(onAddGuild).toHaveBeenCalledTimes(1);
+      expect(onAddGuild).toHaveBeenCalledWith({ name: 'jod', path: '/home/user/jo' });
+      expect(proxy.getGuildPathError()).toBe(null);
+    });
+
+    it('INVALID: {relative path "jo", click CREATE} => shows the path error and never calls onAddGuild', async () => {
+      const proxy = GuildEmptyStateWidgetProxy();
+      const onAddGuild = jest.fn();
+
+      proxy.setupDirectoryBrowse({ entries: [] });
+      mantineRenderMiddleware({
+        ui: <GuildEmptyStateWidget onAddGuild={onAddGuild} />,
+      });
+
+      await proxy.typeGuildName({ value: 'jod' });
+      await proxy.typeGuildPath({ value: 'jo' });
+      await proxy.clickCreate();
+
+      expect(proxy.getGuildPathError()).toBe(
+        'Path must be absolute (start with / or C:\\ on Windows)',
+      );
+      expect(onAddGuild).toHaveBeenCalledTimes(0);
+    });
+
+    it('VALID: {path error shown, then path edited} => clears the path error', async () => {
+      const proxy = GuildEmptyStateWidgetProxy();
+
+      proxy.setupDirectoryBrowse({ entries: [] });
+      mantineRenderMiddleware({
+        ui: <GuildEmptyStateWidget onAddGuild={jest.fn()} />,
+      });
+
+      await proxy.typeGuildName({ value: 'jod' });
+      await proxy.typeGuildPath({ value: 'jo' });
+      await proxy.clickCreate();
+      await proxy.typeGuildPath({ value: 'x' });
+
+      expect(proxy.getGuildPathError()).toBe(null);
+    });
+  });
+
+  describe('button test ids', () => {
+    it('VALID: {onCancel provided} => BROWSE, CREATE and CANCEL each carry their own id', () => {
+      const proxy = GuildEmptyStateWidgetProxy();
+
+      proxy.setupDirectoryBrowse({ entries: [] });
+      mantineRenderMiddleware({
+        ui: <GuildEmptyStateWidget onAddGuild={jest.fn()} onCancel={jest.fn()} />,
+      });
+
+      expect(screen.getByTestId('GUILD_BROWSE_BUTTON').textContent).toBe('BROWSE');
+      expect(screen.getByTestId('GUILD_CREATE_BUTTON').textContent).toBe('CREATE');
+      expect(screen.getByTestId('GUILD_CANCEL_BUTTON').textContent).toBe('CANCEL');
+      expect(screen.queryAllByTestId('PIXEL_BTN')).toStrictEqual([]);
+    });
   });
 });

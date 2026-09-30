@@ -53,7 +53,7 @@ export const shotListingContract = z
     node: z.string().min(1).brand<'ShotListingNode'>().nullable(),
     pixelChange: z
       .string()
-      .regex(/^\d{1,3}%$/u)
+      .regex(/^(?:0 px|(?:<0\.01|\d{1,3}(?:\.\d{2})?)% \(\d+ px\)|\d{1,3}%)$/u)
       .brand<'ShotListingPixelChange'>()
       .nullable(),
     blank: z.boolean().nullable(),

@@ -105,4 +105,47 @@ describe('guildAddBroker â€” a supplied home confines every write (integration â
       questsDirInOther: false,
     });
   });
+
+  it('VALID: {two guilds with the same name, one home} => both register, and no two share a urlSlug', async () => {
+    const envTestbed = installTestbedCreateBroker({
+      baseName: 'guild-add-same-name-env-home',
+    });
+    const targetTestbed = installTestbedCreateBroker({
+      baseName: 'guild-add-same-name-target-home',
+    });
+    const { restore } = envHarness.setupHome({ tempDir: envTestbed.guildPath });
+    await envHarness.seedHome({ tempDir: targetTestbed.guildPath });
+
+    const first = await guildAddBroker({
+      name: 'Guild 1',
+      path: `${targetTestbed.guildPath}/guild-1`,
+      home: targetTestbed.guildPath,
+    });
+    const second = await guildAddBroker({
+      name: 'Guild 1',
+      path: `${targetTestbed.guildPath}/guild-2`,
+      home: targetTestbed.guildPath,
+    });
+
+    const registered = envHarness.readConfigGuilds({ tempDir: targetTestbed.guildPath });
+
+    restore();
+    envTestbed.cleanup();
+    targetTestbed.cleanup();
+
+    expect(registered).toStrictEqual([
+      {
+        name: 'Guild 1',
+        path: `${targetTestbed.guildPath}/guild-1`,
+        guildId: first.id,
+        urlSlug: 'guild-1',
+      },
+      {
+        name: 'Guild 1',
+        path: `${targetTestbed.guildPath}/guild-2`,
+        guildId: second.id,
+        urlSlug: 'guild-1-2',
+      },
+    ]);
+  });
 });

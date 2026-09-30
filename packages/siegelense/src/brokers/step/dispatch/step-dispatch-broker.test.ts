@@ -9,6 +9,7 @@ import { stepStatics } from '../../../statics/step/step-statics';
 
 import { stepDispatchBroker } from './step-dispatch-broker';
 import { stepDispatchBrokerProxy } from './step-dispatch-broker.proxy';
+import { LocatorStateStub } from '../../../contracts/locator-state/locator-state.stub';
 
 const FIXED_NOW_MS = 1_700_000_000_000;
 
@@ -102,7 +103,7 @@ describe('stepDispatchBroker', () => {
         node: null,
         ok: true,
         expected: 'ok',
-        reading: 'clicked [data-testid="GUILD_ADD"]',
+        reading: 'clicked [data-testid="GUILD_ADD"] — page is BLANK (#0d0907)',
         shot: '/repo/.dungeonmaster-assets/siegelense-assets/guilds/g1/instances/inst_1/runs/run_1/step1.png',
         pixelChange: null,
         blank: true,
@@ -112,6 +113,75 @@ describe('stepDispatchBroker', () => {
         serverWindow: { fromByte: 0, toByte: 0 },
         startedAtMs: FIXED_NOW_MS,
         endedAtMs: FIXED_NOW_MS,
+      });
+    });
+  });
+
+  describe('a goto whose capture is blank', () => {
+    it('VALID: {goto /x-does-not-exist onto a fully #ffffff frame} => the reading says the page is BLANK', async () => {
+      const proxy = stepDispatchBrokerProxy();
+      const { lane } = proxy.happyLane();
+      const step = StepStub({ step: 'goto', path: '/x-does-not-exist' });
+      const shotPath =
+        '/repo/.dungeonmaster-assets/siegelense-assets/guilds/g1/instances/inst_1/runs/run_25/step1.png';
+      const whitePixel = [0xff, 0xff, 0xff, 255];
+      const pixels = new Uint8Array(Array.from({ length: 8 }, () => whitePixel).flat());
+      proxy.stagesShotFrame({ shotPath, width: 4, height: 2, pixels });
+
+      const result = await stepDispatchBroker({
+        lane,
+        step,
+        index: 1,
+        shotPath,
+        browserWindowStart: null,
+        lastShotPath: proxy.lastShotPath,
+        setLastShotPath: proxy.setLastShotPath,
+        recordBinding: NOOP,
+      });
+
+      expect(result).toStrictEqual({
+        step: 1,
+        verb: 'goto',
+        node: null,
+        ok: true,
+        expected: 'ok',
+        reading: '/x-does-not-exist — page is BLANK (#ffffff)',
+        shot: '/repo/.dungeonmaster-assets/siegelense-assets/guilds/g1/instances/inst_1/runs/run_25/step1.png',
+        pixelChange: null,
+        blank: true,
+        blankColour: '#ffffff',
+        previousReading: KeyListingStub(),
+        delta: ElementDeltaStub(),
+        serverWindow: { fromByte: 0, toByte: 0 },
+        startedAtMs: FIXED_NOW_MS,
+        endedAtMs: FIXED_NOW_MS,
+      });
+    });
+
+    it('VALID: {look onto a blank frame} => a reading step keeps its own reading untouched', async () => {
+      const proxy = stepDispatchBrokerProxy();
+      const { lane } = proxy.happyLane();
+      const step = StepStub({ step: 'look' });
+      const shotPath =
+        '/repo/.dungeonmaster-assets/siegelense-assets/guilds/g1/instances/inst_1/runs/run_25/step2.png';
+      const whitePixel = [0xff, 0xff, 0xff, 255];
+      const pixels = new Uint8Array(Array.from({ length: 8 }, () => whitePixel).flat());
+      proxy.stagesShotFrame({ shotPath, width: 4, height: 2, pixels });
+
+      const result = await stepDispatchBroker({
+        lane,
+        step,
+        index: 2,
+        shotPath,
+        browserWindowStart: null,
+        lastShotPath: proxy.lastShotPath,
+        setLastShotPath: proxy.setLastShotPath,
+        recordBinding: NOOP,
+      });
+
+      expect({ reading: result.reading, blank: result.blank }).toStrictEqual({
+        reading: 'key: (no addressable elements on this page)',
+        blank: true,
       });
     });
   });
@@ -193,7 +263,7 @@ describe('stepDispatchBroker', () => {
         recordBinding: NOOP,
       });
 
-      expect(result.pixelChange).toBe('2%');
+      expect(result.pixelChange).toBe('2.00% (2 px)');
       expect(proxy.lastShotPath()).toBe(secondShotPath);
     });
   });
@@ -246,6 +316,55 @@ describe('stepDispatchBroker', () => {
   });
 
   describe('a waitFor with no shot', () => {
+    it('ERROR: {waitFor hits its ceiling, shotPath: null, a failureShotPath} => the failure still screenshots the page there and reports it captured', async () => {
+      const proxy = stepDispatchBrokerProxy();
+      const { lane } = proxy.laneRejectingWaitForMatch({
+        error: new Error('Timeout 30000ms exceeded'),
+      });
+      const step = StepStub({
+        step: 'waitFor',
+        target: '[data-testid="GUILD_ADD"]',
+        state: LocatorStateStub({ value: 'visible' }),
+      });
+      const failureShotPath =
+        '/repo/.dungeonmaster-assets/siegelense-assets/guilds/g1/instances/inst_1/runs/run_1/step1.png';
+      const backgroundPixel = [0x0d, 0x09, 0x07, 255];
+      const pixels = new Uint8Array(Array.from({ length: 8 }, () => backgroundPixel).flat());
+      proxy.stagesShotFrame({ shotPath: failureShotPath, width: 4, height: 2, pixels });
+
+      const error = await stepDispatchBroker({
+        lane,
+        step,
+        index: 1,
+        shotPath: null,
+        failureShotPath,
+        browserWindowStart: null,
+        lastShotPath: proxy.lastShotPath,
+        setLastShotPath: proxy.setLastShotPath,
+        recordBinding: NOOP,
+      }).then(
+        (): never => {
+          throw new Error('Expected stepDispatchBroker to reject');
+        },
+        (caught: unknown): StepFailureCaptureError => caught as StepFailureCaptureError,
+      );
+
+      expect({
+        name: error.name,
+        captured: error.captured,
+        blank: error.blank,
+        blankColour: error.blankColour,
+        lastShotPath: proxy.lastShotPath(),
+      }).toStrictEqual({
+        name: 'StepFailureCaptureError',
+        captured: true,
+        blank: true,
+        blankColour: '#0d0907',
+        lastShotPath:
+          '/repo/.dungeonmaster-assets/siegelense-assets/guilds/g1/instances/inst_1/runs/run_1/step1.png',
+      });
+    });
+
     it('EDGE: {shotPath: null} => pixelChange, blank and blankColour are all null and lastShotPath is unchanged', async () => {
       const proxy = stepDispatchBrokerProxy();
       const { lane } = proxy.happyLane();
@@ -778,7 +897,7 @@ describe('stepDispatchBroker', () => {
         captured: true,
         blank: true,
         blankColour: '#ffffff',
-        pixelChange: '100%',
+        pixelChange: '100.00% (8 px)',
       });
     });
 
@@ -1051,7 +1170,7 @@ describe('stepDispatchBroker', () => {
       });
 
       expect(result.reading).toBe(
-        'DOWN      root present · page blank (#0d0907) · console clean · no 5xx · server log clean',
+        'DOWN      root present · page blank (#0d0907) · console clean · no 5xx · server log clean — judged this run only (no page load recorded)',
       );
       expect(captureCallArgs()).toStrictEqual([
         [
@@ -1090,7 +1209,7 @@ describe('stepDispatchBroker', () => {
       });
 
       expect(result.reading).toBe(
-        '{"frames":2,"differing":0,"reading":"NOTHING CHANGED across 1s","shots":["/repo/.dungeonmaster-assets/siegelense-assets/guilds/g1/instances/inst_1/runs/run_1/step1_frame1.png","/repo/.dungeonmaster-assets/siegelense-assets/guilds/g1/instances/inst_1/runs/run_1/step1_frame2.png"]}',
+        '{"frames":2,"differing":0,"changed":[],"reading":"NOTHING CHANGED across 1s","shots":["/repo/.dungeonmaster-assets/siegelense-assets/guilds/g1/instances/inst_1/runs/run_1/step1_frame1.png","/repo/.dungeonmaster-assets/siegelense-assets/guilds/g1/instances/inst_1/runs/run_1/step1_frame2.png"]}',
       );
       expect(captureCallArgs()).toStrictEqual([]);
     });

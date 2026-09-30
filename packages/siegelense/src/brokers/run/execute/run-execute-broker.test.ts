@@ -12,6 +12,8 @@ import { locationsShotPathFindBroker } from '../../locations/shot-path-find/loca
 
 import { runExecuteBroker } from './run-execute-broker';
 import { runExecuteBrokerProxy } from './run-execute-broker.proxy';
+import { LocatorStateStub } from '../../../contracts/locator-state/locator-state.stub';
+import { StopOnStub } from '../../../contracts/stop-on/stop-on.stub';
 
 const gotoBatch = ({ count }: { count: number }): ReturnType<typeof StepStub>[] =>
   Array.from({ length: count }, (_unused, position) =>
@@ -136,10 +138,14 @@ describe('runExecuteBroker', () => {
         status: result.status,
         stepsRun: result.stepsRun,
         stoppedAt: result.stoppedAt,
+        stopOn: result.stopOn,
+        failedSteps: result.failedSteps,
       }).toStrictEqual({
         status: 'failed',
         stepsRun: 5,
         stoppedAt: { step: 3, verb: 'goto', error: 'boom', candidates: [] },
+        stopOn: 'never',
+        failedSteps: 1,
       });
       expect(gotoCallCount()).toBe(5);
     });
@@ -285,18 +291,69 @@ describe('runExecuteBroker', () => {
         status: result.status,
         stepsRun: result.stepsRun,
         stoppedAt: result.stoppedAt,
+        stopOn: result.stopOn,
+        failedSteps: result.failedSteps,
       }).toStrictEqual({
         status: 'timeout',
         stepsRun: 2,
+        stopOn: 'error',
+        failedSteps: 1,
         stoppedAt: {
           step: 2,
           verb: 'waitFor',
           error:
-            'visible [data-testid="GUILD_ADD"] never resolved in 30000ms: Error: Timeout 30000ms exceeded',
+            'visible [data-testid="GUILD_ADD"] never resolved in 30000ms: Error: Timeout 30000ms exceeded — 0 elements match [data-testid="GUILD_ADD"] now. Nearest names on this page: (none found on this page). The page\'s key at failure is in this step\'s reading: results --kind steps --step 2.',
           candidates: [],
         },
       });
       expect(gotoCallCount()).toBe(1);
+    });
+  });
+
+  describe('a failed step that takes no shot of its own', () => {
+    it('VALID: {step 2 waitFor hits its ceiling} => the failed step screenshots the page, and the run lists that shot open with why failed', async () => {
+      const proxy = runExecuteBrokerProxy();
+      const runId = RunIdStub({ value: 'run_1' });
+      proxy.stagePaths({ runId });
+      const { lane } = proxy.laneHangingOnWaitFor({
+        error: new Error('Timeout 30000ms exceeded'),
+      });
+
+      const result = await runExecuteBroker({
+        lane,
+        instanceId: InstanceIdStub(),
+        runId,
+        steps: [
+          StepStub({ step: 'goto', path: '/step-1' }),
+          StepStub({
+            step: 'waitFor',
+            target: '[data-testid="GUILD_ADD"]',
+            state: LocatorStateStub({ value: 'visible' }),
+          }),
+        ],
+        stopOn: StopOnStub({ value: 'error' }),
+        flushCursor: proxy.flushCursor,
+        advanceFlushCursor: proxy.advanceFlushCursor,
+        lastShotPath: proxy.lastShotPath,
+        setLastShotPath: proxy.setLastShotPath,
+      });
+
+      expect(result.shots.map((shot) => [shot.step, shot.path, shot.open, shot.why])).toStrictEqual(
+        [
+          [
+            1,
+            '/repo/.dungeonmaster-assets/siegelense-assets/guilds/g1/instances/inst_1/runs/run_1/step1.png',
+            true,
+            'start',
+          ],
+          [
+            2,
+            '/repo/.dungeonmaster-assets/siegelense-assets/guilds/g1/instances/inst_1/runs/run_1/step2.png',
+            true,
+            'failed',
+          ],
+        ],
+      );
     });
   });
 
@@ -340,9 +397,58 @@ describe('runExecuteBroker', () => {
           step: 2,
           verb: 'waitFor',
           error:
-            'visible [data-testid="GUILD_ADD"] never resolved in 30000ms: Error: Timeout 30000ms exceeded',
+            'visible [data-testid="GUILD_ADD"] never resolved in 30000ms: Error: Timeout 30000ms exceeded — 0 elements match [data-testid="GUILD_ADD"] now. Nearest names on this page: (none found on this page). The page\'s key at failure is in this step\'s reading: results --kind steps --step 2.',
           candidates: [],
         },
+      });
+      expect(gotoCallCount()).toBe(2);
+    });
+
+    it('VALID: {steps 2 and 3 both waitFor and never resolve, stopOn never} => failedSteps 2, stoppedAt still names step 2, and step 4 DOES run', async () => {
+      const proxy = runExecuteBrokerProxy();
+      const runId = RunIdStub({ value: 'run_1' });
+      proxy.stagePaths({ runId });
+      const { lane, gotoCallCount } = proxy.laneHangingOnWaitFor({
+        error: new Error('Timeout 30000ms exceeded'),
+      });
+
+      const result = await runExecuteBroker({
+        lane,
+        instanceId: InstanceIdStub(),
+        runId,
+        steps: [
+          StepStub({ step: 'goto', path: '/step-1' }),
+          StepStub({
+            step: 'waitFor',
+            target: '[data-testid="GUILD_ADD"]',
+            state: LocatorStateStub({ value: 'visible' }),
+          }),
+          StepStub({
+            step: 'waitFor',
+            target: '[data-testid="GUILD_ADD"]',
+            state: LocatorStateStub({ value: 'visible' }),
+          }),
+          StepStub({ step: 'goto', path: '/step-4' }),
+        ],
+        stopOn: StopOnStub({ value: 'never' }),
+        flushCursor: proxy.flushCursor,
+        advanceFlushCursor: proxy.advanceFlushCursor,
+        lastShotPath: proxy.lastShotPath,
+        setLastShotPath: proxy.setLastShotPath,
+      });
+
+      expect({
+        status: result.status,
+        stepsRun: result.stepsRun,
+        stoppedAtStep: result.stoppedAt?.step,
+        stopOn: result.stopOn,
+        failedSteps: result.failedSteps,
+      }).toStrictEqual({
+        status: 'timeout',
+        stepsRun: 4,
+        stoppedAtStep: 2,
+        stopOn: 'never',
+        failedSteps: 2,
       });
       expect(gotoCallCount()).toBe(2);
     });
@@ -839,7 +945,7 @@ describe('runExecuteBroker', () => {
         })),
       ).toStrictEqual([
         { step: 1, path: firstShotPath, pixelChange: null, blank: false },
-        { step: 2, path: secondShotPath, pixelChange: '0%', blank: false },
+        { step: 2, path: secondShotPath, pixelChange: '0 px', blank: false },
       ]);
     });
   });
@@ -1406,6 +1512,40 @@ describe('runExecuteBroker', () => {
       });
 
       expect(result.durationMs).toBe(1);
+    });
+
+    it('VALID: {one waitFor that hits its ceiling, clock advancing 1000ms per read} => a stopped run reports the time its failing step waited, never 0', async () => {
+      const proxy = runExecuteBrokerProxy();
+      const runId = RunIdStub({ value: 'run_1' });
+      proxy.stagePaths({ runId });
+      const { lane } = proxy.laneHangingOnWaitFor({
+        error: new Error('Timeout 2000ms exceeded'),
+      });
+      proxy.clockAdvancing({ startMs: 1_700_000_000_000, stepMs: 1000 });
+
+      const result = await runExecuteBroker({
+        lane,
+        instanceId: InstanceIdStub(),
+        runId,
+        steps: [
+          StepStub({
+            step: 'waitFor',
+            target: '[data-testid="GUILD_ADD"]',
+            state: LocatorStateStub({ value: 'visible' }),
+            timeoutMs: 2000,
+          }),
+        ],
+        stopOn: StopOnStub({ value: 'error' }),
+        flushCursor: proxy.flushCursor,
+        advanceFlushCursor: proxy.advanceFlushCursor,
+        lastShotPath: proxy.lastShotPath,
+        setLastShotPath: proxy.setLastShotPath,
+      });
+
+      expect({ status: result.status, durationMs: result.durationMs }).toStrictEqual({
+        status: 'timeout',
+        durationMs: 2000,
+      });
     });
   });
 });

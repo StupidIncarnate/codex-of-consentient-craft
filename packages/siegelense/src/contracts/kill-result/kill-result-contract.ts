@@ -8,6 +8,9 @@
  * `reapedPgids` is empty on the ordinary path and carries the groups it found on the orphan path — the
  * one field a caller reads to tell which of the two actually happened.
  *
+ * `alreadyKilledAtMs` is absent on a kill that did something; on a repeat kill of a row already at
+ * rest it carries when that row was killed, or `null` when no time was recorded.
+ *
  * USAGE:
  * killResultContract.parse({
  *   instanceId: 'inst_7f3a9c21',
@@ -45,6 +48,13 @@ export const killResultContract = z
     evidenceKept: repoLocalPathContract,
     reapedPgids: z.array(z.number().int().positive().brand<'KillResultReapedPgids'>()).readonly(),
     killed: z.array(z.number().int().positive().brand<'KillResultKilled'>()).readonly().optional(),
+    alreadyKilledAtMs: z
+      .number()
+      .int()
+      .nonnegative()
+      .brand<'KillResultAlreadyKilledAtMs'>()
+      .nullable()
+      .optional(),
   })
   .brand<'KillResult'>();
 

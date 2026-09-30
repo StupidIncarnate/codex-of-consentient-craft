@@ -2,7 +2,7 @@ import { SeedRecipeNeedsInputError } from './seed-recipe-needs-input-error';
 
 describe('SeedRecipeNeedsInputError', () => {
   describe('a recipe with one declared input', () => {
-    it('VALID: {recipeName, inputKeys: [guildId]} => names the input and a run-batch alternative bound to guild-empty', () => {
+    it('VALID: {recipeName, inputKeys: [guildId]} => names the input and one --steps array, guild-empty first', () => {
       const error = new SeedRecipeNeedsInputError({
         recipeName: 'quest-advances-one-step',
         inputKeys: ['guildId'],
@@ -10,9 +10,9 @@ describe('SeedRecipeNeedsInputError', () => {
 
       expect(error.message).toBe(
         'Recipe "quest-advances-one-step" needs the input guildId, which start --seed cannot ' +
-          'supply. Seed a guild first, then add a run seed step: ' +
-          '[{"step":"seed","recipe":"quest-advances-one-step","params":{"guildId":"{g.guild.id}"}}] ' +
-          'after [{"step":"seed","recipe":"guild-empty","as":"g"}].',
+          'supply. Start without --seed, then pass this one --steps array to run (a binding lasts one batch), in run order: ' +
+          '[{"step":"seed","recipe":"guild-empty","as":"g"},' +
+          '{"step":"seed","recipe":"quest-advances-one-step","params":{"guildId":"{g.guild.id}"}}].',
       );
     });
   });
@@ -26,9 +26,9 @@ describe('SeedRecipeNeedsInputError', () => {
 
       expect(error.message).toBe(
         'Recipe "session-with-nested-chain" needs the input guildPath, which start --seed cannot ' +
-          'supply. Seed a guild first, then add a run seed step: ' +
-          '[{"step":"seed","recipe":"session-with-nested-chain","params":{"guildPath":"{g.guild.path}"}}] ' +
-          'after [{"step":"seed","recipe":"guild-empty","as":"g"}].',
+          'supply. Start without --seed, then pass this one --steps array to run (a binding lasts one batch), in run order: ' +
+          '[{"step":"seed","recipe":"guild-empty","as":"g"},' +
+          '{"step":"seed","recipe":"session-with-nested-chain","params":{"guildPath":"{g.guild.path}"}}].',
       );
     });
   });
@@ -42,9 +42,9 @@ describe('SeedRecipeNeedsInputError', () => {
 
       expect(error.message).toBe(
         'Recipe "two-input-recipe" needs the inputs guildId, note, which start --seed cannot ' +
-          'supply. Seed a guild first, then add a run seed step: ' +
-          '[{"step":"seed","recipe":"two-input-recipe","params":{"guildId":"{g.guild.id}","note":"{g.guild.id}"}}] ' +
-          'after [{"step":"seed","recipe":"guild-empty","as":"g"}].',
+          'supply. Start without --seed, then pass this one --steps array to run (a binding lasts one batch), in run order: ' +
+          '[{"step":"seed","recipe":"guild-empty","as":"g"},' +
+          '{"step":"seed","recipe":"two-input-recipe","params":{"guildId":"{g.guild.id}","note":"{g.guild.id}"}}].',
       );
     });
   });

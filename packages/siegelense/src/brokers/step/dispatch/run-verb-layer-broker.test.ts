@@ -1,4 +1,6 @@
 import { LaneSessionStub } from '../../../contracts/lane-session/lane-session.stub';
+import { ScrollReadingStub } from '../../../contracts/scroll-reading/scroll-reading.stub';
+import { LocatorStateStub } from '../../../contracts/locator-state/locator-state.stub';
 import { StepStub } from '../../../contracts/step/step.stub';
 
 import { runVerbLayerBroker } from './run-verb-layer-broker';
@@ -69,7 +71,7 @@ describe('runVerbLayerBroker', () => {
       expect(callOrder()).toStrictEqual(['countMatches', 'pasteMatch']);
     });
 
-    it('VALID: {waitFor, one match} => calls countMatches before waitForMatch', async () => {
+    it('VALID: {waitFor, one match} => goes straight to waitForMatch with no countMatches pre-resolve', async () => {
       const proxy = runVerbLayerBrokerProxy();
       const { lane, callOrder } = proxy.sessionWithOneMatch();
       const step = StepStub({ step: 'waitFor', target: '[data-testid="GUILD_ADD"]' });
@@ -83,7 +85,29 @@ describe('runVerbLayerBroker', () => {
         recordBinding: NOOP,
       });
 
-      expect(callOrder()).toStrictEqual(['countMatches', 'waitForMatch']);
+      expect(callOrder()).toStrictEqual(['waitForMatch']);
+    });
+
+    it('VALID: {waitFor, target absent at start and appearing during the wait} => resolves with the reached state instead of failing NO MATCH', async () => {
+      const proxy = runVerbLayerBrokerProxy();
+      const { lane, callOrder } = proxy.sessionWithTargetAppearingLater();
+      const step = StepStub({
+        step: 'waitFor',
+        target: '[data-testid="QUEST_LIST"]',
+        state: LocatorStateStub({ value: 'visible' }),
+      });
+
+      const result = await runVerbLayerBroker({
+        lane,
+        step,
+        index: 1,
+        shotPath: null,
+        browserWindowStart: null,
+        recordBinding: NOOP,
+      });
+
+      expect(result).toBe('[data-testid="QUEST_LIST"] reached state "visible"');
+      expect(callOrder()).toStrictEqual(['waitForMatch']);
     });
 
     it('VALID: {box, live ref} => resolves refState then calls boxRef', async () => {
@@ -290,7 +314,7 @@ describe('runVerbLayerBroker', () => {
       });
 
       expect(reading).toBe(
-        'HEALTHY   root present · not blank · console clean · no 5xx · server log clean',
+        'HEALTHY   root present · not blank · console clean · no 5xx · server log clean — judged this run only (no page load recorded)',
       );
     });
   });
@@ -312,6 +336,71 @@ describe('runVerbLayerBroker', () => {
       });
 
       expect(reading).toBe('resized to 1280x720');
+    });
+  });
+
+  describe('a scroll step', () => {
+    it('VALID: {scroll by 400} => moves without resolving a handle and returns the new position', async () => {
+      const proxy = runVerbLayerBrokerProxy();
+      const { lane, callOrder } = proxy.sessionWithScroll({
+        reading: ScrollReadingStub({ scrollY: 400, scrollHeight: 900, viewportHeight: 500 }),
+      });
+      const step = StepStub({ step: 'scroll', by: 400 });
+
+      const reading = await runVerbLayerBroker({
+        lane,
+        step,
+        index: 1,
+        shotPath: null,
+        browserWindowStart: null,
+        recordBinding: NOOP,
+      });
+
+      expect(callOrder()).toStrictEqual(['evaluateSource', 'evaluateSource']);
+      expect(reading).toBe(
+        'scroll position x=0 y=400; page 1280x900; viewport 1280x500; max scroll x=0 y=400',
+      );
+    });
+
+    it('VALID: {scroll to a target} => resolves the target to one match before moving', async () => {
+      const proxy = runVerbLayerBrokerProxy();
+      const { lane, callOrder } = proxy.sessionWithScroll({
+        reading: ScrollReadingStub({ scrollY: 200, scrollHeight: 900, viewportHeight: 500 }),
+      });
+      const step = StepStub({ step: 'scroll', target: '[data-testid="GUILD_ADD"]' });
+
+      const reading = await runVerbLayerBroker({
+        lane,
+        step,
+        index: 1,
+        shotPath: null,
+        browserWindowStart: null,
+        recordBinding: NOOP,
+      });
+
+      expect(callOrder()).toStrictEqual(['countMatches', 'evaluateSource', 'evaluateSource']);
+      expect(reading).toBe(
+        'scroll position x=0 y=200; page 1280x900; viewport 1280x500; max scroll x=0 y=400',
+      );
+    });
+
+    it('VALID: {scroll to a ref} => checks the ref is live before moving', async () => {
+      const proxy = runVerbLayerBrokerProxy();
+      const { lane, callOrder } = proxy.sessionWithScroll({
+        reading: ScrollReadingStub({ scrollY: 300, scrollHeight: 900, viewportHeight: 500 }),
+      });
+      const step = StepStub({ step: 'scroll', ref: 26 });
+
+      await runVerbLayerBroker({
+        lane,
+        step,
+        index: 1,
+        shotPath: null,
+        browserWindowStart: null,
+        recordBinding: NOOP,
+      });
+
+      expect(callOrder()).toStrictEqual(['refState', 'evaluateSource', 'evaluateSource']);
     });
   });
 
@@ -465,7 +554,7 @@ describe('runVerbLayerBroker', () => {
       });
 
       expect(reading).toBe(
-        '{"frames":2,"differing":0,"reading":"NOTHING CHANGED across 1s","shots":["/tmp/dm-siege-stub-evidence/step1_frame1.png","/tmp/dm-siege-stub-evidence/step1_frame2.png"]}',
+        '{"frames":2,"differing":0,"changed":[],"reading":"NOTHING CHANGED across 1s","shots":["/tmp/dm-siege-stub-evidence/step1_frame1.png","/tmp/dm-siege-stub-evidence/step1_frame2.png"]}',
       );
     });
   });
@@ -530,6 +619,25 @@ describe('runVerbLayerBroker', () => {
   });
 
   describe('a reset step', () => {
+    it('VALID: {reset, level: "page", as: "r", no reseed} => binds an empty record under r, so a later {r.x} reference fails by name instead of resolving to nothing', async () => {
+      const proxy = runVerbLayerBrokerProxy();
+      const { lane } = proxy.sessionWithOneMatch();
+      const step = StepStub({ step: 'reset', level: 'page', to: null, as: 'r' });
+      const recordBinding = jest.fn();
+
+      await runVerbLayerBroker({
+        lane,
+        step,
+        index: 1,
+        shotPath: null,
+        browserWindowStart: null,
+        recordBinding,
+      });
+
+      expect(recordBinding).toHaveBeenCalledTimes(1);
+      expect(recordBinding).toHaveBeenCalledWith({ name: 'r', result: {} });
+    });
+
     it('VALID: {reset, level: "page"} => routes to stepResetBroker and returns reset reading', async () => {
       const proxy = runVerbLayerBrokerProxy();
       const { lane } = proxy.sessionWithOneMatch();

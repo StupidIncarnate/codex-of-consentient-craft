@@ -82,6 +82,35 @@ describe('singlePackageLayerBroker', () => {
         '\x1b[Ke2e         ward                 skip (0.0s)\n',
       ]);
     });
+
+    // Jest's report never reached ward, so filesCount is the default 0 against five discovered
+    // files. That is a crash, not five unrun tests: reading it as a DISCOVERY MISMATCH listed the
+    // very file the caller asked for under "only discovered".
+    it('ERROR: {integration crashes, no jest report, files discovered} => labels the line CRASH and lists no discovery diff', async () => {
+      const projectFolder = ProjectFolderStub();
+      const proxy = singlePackageLayerBrokerProxy();
+      proxy.setupIntegrationOnlyCrash({
+        projectFolder,
+        discoveredFiles: [
+          '/home/user/project/packages/ward/src/a.integration.test.ts',
+          '/home/user/project/packages/ward/src/b.integration.test.ts',
+        ],
+        stdout: '[OK] install log with no jest report',
+      });
+
+      const rootPath = '/project';
+      const config = WardConfigStub({
+        only: ['integration'],
+        passthrough: ['src/a.integration.test.ts'],
+      });
+
+      await singlePackageLayerBroker({ config, projectFolder, rootPath });
+
+      expect(proxy.getStderrCalls()).toStrictEqual([
+        'integration ward                 running...\r',
+        '\x1b[Kintegration ward                 FAIL  0 files, 2 discovered  CRASH (0.0s)\n',
+      ]);
+    });
   });
 
   describe('the filters it records on the result', () => {

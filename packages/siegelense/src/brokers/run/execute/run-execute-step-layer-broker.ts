@@ -31,6 +31,16 @@
  * rides the same way, straight through unchanged: `runExecuteBroker` computes it once, before the
  * whole step loop, so every step's `until { console }`/`until { response }` scans from THIS RUN's
  * own window rather than a fresh `bufferLengths()` read at whatever moment that one step starts.
+ * The failure reading's `startedAtMs` is read before the step runs and its `endedAtMs` once the
+ * error is caught, so a failed step's reading — and a stopped run's `durationMs` — covers the time
+ * the step actually spent. `failureShotPath` is the path a step with no shot of its own (`waitFor`,
+ * `eval`, …) captures to when it FAILS, so every failed step leaves a picture of the page at that
+ * moment; the reading's `shot` is whichever of the two paths the capture actually landed at. A
+ * targeting failure (`StepNoMatchError`, `WaitForCeilingHitError`) that read the page's key at the
+ * moment it failed has that key appended to the reading under the one-line message, so
+ * `results --kind steps` answers "what was on the page" without a second run that would see the
+ * page as it is later. `StoppedAt.error` stays the one line and points at that reading, because it
+ * is also what `run` prints.
  *
  * It is also where a step's references are SUBSTITUTED, immediately inside the try. That
  * placement is the point: an unresolvable reference throws, and this is the one place a throw
@@ -63,6 +73,7 @@ import { stepVerbContract } from '../../../contracts/step-verb/step-verb-contrac
 import { stoppedAtContract } from '../../../contracts/stopped-at/stopped-at-contract';
 import { stepCandidateContract } from '../../../contracts/step-candidate/step-candidate-contract';
 import { StepAmbiguousError } from '../../../errors/step-ambiguous/step-ambiguous-error';
+import { StepNoMatchError } from '../../../errors/step-no-match/step-no-match-error';
 import { StepFailureCaptureError } from '../../../errors/step-failure-capture/step-failure-capture-error';
 import { UntilCeilingHitError } from '../../../errors/until-ceiling-hit/until-ceiling-hit-error';
 import { WaitForCeilingHitError } from '../../../errors/wait-for-ceiling-hit/wait-for-ceiling-hit-error';
@@ -74,6 +85,7 @@ export const runExecuteStepLayerBroker = async ({
   step,
   index,
   shotPath,
+  failureShotPath = null,
   browserWindowStart,
   lastShotPath,
   setLastShotPath,
@@ -84,6 +96,7 @@ export const runExecuteStepLayerBroker = async ({
   step: Step;
   index: number;
   shotPath: string | null;
+  failureShotPath?: string | null;
   browserWindowStart: BufferLengths | null;
   lastShotPath: () => string | null;
   setLastShotPath: (params: { path: string }) => void;
@@ -92,6 +105,9 @@ export const runExecuteStepLayerBroker = async ({
 }): Promise<RunExecuteStepLayerResult> => {
   const verb = stepVerbContract.parse(step.step);
   const serverLogStartByte = lane.serverLogLength();
+  // Stamped before the step runs, so a failure reading spans the wait that failed rather than a
+  // zero-width instant at catch time, which would make a stopped run's `durationMs` read 0.
+  const startedAtMs = Date.now();
 
   try {
     let resolvedStep = step;
@@ -134,6 +150,7 @@ export const runExecuteStepLayerBroker = async ({
       step: resolvedStep,
       index,
       shotPath,
+      failureShotPath,
       browserWindowStart,
       lastShotPath,
       setLastShotPath,
@@ -202,14 +219,20 @@ export const runExecuteStepLayerBroker = async ({
       underlyingError instanceof StepAmbiguousError
         ? underlyingError.candidates.map((candidate) => stepCandidateContract.parse(candidate))
         : [];
+    const failureKey =
+      (underlyingError instanceof StepNoMatchError ||
+        underlyingError instanceof WaitForCeilingHitError) &&
+      typeof underlyingError.key === 'string'
+        ? underlyingError.key
+        : null;
     const reading = stepReadingContract.parse({
       step: index,
       verb,
       node: step.node,
       ok: false,
       expected: step.expect,
-      reading: message,
-      shot: capturedShot ? shotPath : null,
+      reading: failureKey === null ? message : `${message}\nPage at failure:\n${failureKey}`,
+      shot: capturedShot ? (shotPath ?? failureShotPath) : null,
       pixelChange: capturedPixelChange,
       blank: capturedBlank,
       blankColour: capturedBlankColour,
@@ -217,7 +240,7 @@ export const runExecuteStepLayerBroker = async ({
         fromByte: serverLogStartByte,
         toByte: lane.serverLogLength(),
       }),
-      startedAtMs: nowMs,
+      startedAtMs,
       endedAtMs: nowMs,
     });
 
@@ -226,7 +249,10 @@ export const runExecuteStepLayerBroker = async ({
       stoppedAt: stoppedAtContract.parse({
         step: index,
         verb,
-        error: message,
+        error:
+          failureKey === null
+            ? message
+            : `${message} The page's key at failure is in this step's reading: results --kind steps --step ${String(index)}.`,
         candidates: ambiguousCandidates,
       }),
       timedOut:

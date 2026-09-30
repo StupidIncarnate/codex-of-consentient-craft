@@ -27,6 +27,7 @@ describe('startAnswerRenderTransformer', () => {
           'HOME: /tmp/dm-siege-inst_7f3a9c21\n' +
           'EVIDENCE: /repo/.dungeonmaster-assets/siegelense-assets/guilds/g1/instances/inst_7f3a9c21\n' +
           'BOOT: 21000ms\n' +
+          'IDLE TIMEOUT: 15m (default)\n' +
           'SEEDED: none\n',
       );
     });
@@ -56,6 +57,7 @@ describe('startAnswerRenderTransformer', () => {
           'HOME: /tmp/dm-siege-inst_7f3a9c21\n' +
           'EVIDENCE: /repo/.dungeonmaster-assets/siegelense-assets/guilds/g1/instances/inst_7f3a9c21\n' +
           'BOOT: 15000ms\n' +
+          'IDLE TIMEOUT: 15m (default)\n' +
           'SEEDED: (empty)\n',
       );
     });
@@ -85,6 +87,7 @@ describe('startAnswerRenderTransformer', () => {
           'HOME: /tmp/dm-siege-inst_7f3a9c21\n' +
           'EVIDENCE: /repo/.dungeonmaster-assets/siegelense-assets/guilds/g1/instances/inst_7f3a9c21\n' +
           'BOOT: 15000ms\n' +
+          'IDLE TIMEOUT: 15m (default)\n' +
           'SEEDED:\n' +
           '  guildSlug: siege-guild\n',
       );
@@ -116,6 +119,7 @@ describe('startAnswerRenderTransformer', () => {
           'HOME: /tmp/dm-siege-inst_7f3a9c21\n' +
           'EVIDENCE: /repo/.dungeonmaster-assets/siegelense-assets/guilds/g1/instances/inst_7f3a9c21\n' +
           'BOOT: 15000ms\n' +
+          'IDLE TIMEOUT: 15m (default)\n' +
           'SEEDED:\n' +
           '  guild: 7306b468-0f2d-4a5e-9c3b-2d1e8f0a6b41 (name: Siege Guild, urlSlug: siege-guild)\n',
       );
@@ -151,6 +155,7 @@ describe('startAnswerRenderTransformer', () => {
           'HOME: /tmp/dm-siege-inst_7f3a9c21\n' +
           'EVIDENCE: /repo/.dungeonmaster-assets/siegelense-assets/guilds/g1/instances/inst_7f3a9c21\n' +
           'BOOT: 15000ms\n' +
+          'IDLE TIMEOUT: 15m (default)\n' +
           'SEEDED:\n' +
           '  guild: 7306b468-0f2d-4a5e-9c3b-2d1e8f0a6b41 (name: Siege Guild, urlSlug: siege-guild)\n' +
           '  questCreated: q1 (title: Add Auth, status: created)\n' +
@@ -187,6 +192,7 @@ describe('startAnswerRenderTransformer', () => {
           'HOME: /tmp/dm-siege-inst_7f3a9c21\n' +
           'EVIDENCE: /repo/.dungeonmaster-assets/siegelense-assets/guilds/g1/instances/inst_7f3a9c21\n' +
           'BOOT: 15000ms\n' +
+          'IDLE TIMEOUT: 15m (default)\n' +
           'SEEDED:\n' +
           '  guild: -\n',
       );
@@ -231,6 +237,7 @@ describe('startAnswerRenderTransformer', () => {
           'HOME: /tmp/dm-siege-inst_7f3a9c21\n' +
           'EVIDENCE: /repo/.dungeonmaster-assets/siegelense-assets/guilds/g1/instances/inst_7f3a9c21\n' +
           'BOOT: 15000ms\n' +
+          'IDLE TIMEOUT: 15m (default)\n' +
           'SEEDED:\n' +
           '  guild: 7306b468-0f2d-4a5e-9c3b-2d1e8f0a6b41 (name: Siege Guild, urlSlug: siege-guild)\n' +
           '  session: sess_abc123 (filePath: /home/user/.claude/projects/-repo/sess_abc123.jsonl)\n' +
@@ -263,6 +270,7 @@ describe('startAnswerRenderTransformer', () => {
           'HOME: /tmp/dm-siege-inst_7f3a9c21\n' +
           'EVIDENCE: /repo/.dungeonmaster-assets/siegelense-assets/guilds/g1/instances/inst_7f3a9c21\n' +
           'BOOT: 5000ms\n' +
+          'IDLE TIMEOUT: 15m (default)\n' +
           'SEEDED: none\n',
       );
     });
@@ -293,6 +301,7 @@ describe('startAnswerRenderTransformer', () => {
           'HOME: /tmp/dm-siege-inst_1c60cf225b13465d8b32449607d69529\n' +
           'EVIDENCE: /repo/.dungeonmaster-assets/siegelense-assets/guilds/g1/instances/inst_1c60cf225b13465d8b32449607d69529\n' +
           'BOOT: 18000ms\n' +
+          'IDLE TIMEOUT: 15m (default)\n' +
           'SEEDED: none\n',
       );
     });
@@ -323,6 +332,102 @@ describe('startAnswerRenderTransformer', () => {
           'HOME: /custom/home/path\n' +
           'EVIDENCE: /custom/evidence/path\n' +
           'BOOT: 12000ms\n' +
+          'IDLE TIMEOUT: 15m (default)\n' +
+          'SEEDED: none\n',
+      );
+    });
+  });
+
+  describe('idle timeout line', () => {
+    it('VALID: {idleTimeoutMs: 1_800_000} => renders the raised value against the default', () => {
+      const manifest = InstanceManifestStub({
+        instanceId: 'inst_7f3a9c21',
+        specName: 'dungeonmaster-stack',
+        baseUrl: 'http://localhost:34173',
+        home: '/tmp/dm-siege-inst_7f3a9c21',
+        evidence: {
+          path: '/repo/.dungeonmaster-assets/siegelense-assets/guilds/g1/instances/inst_7f3a9c21',
+          linkPresent: true,
+        },
+        bootMs: 15_000,
+        seeded: null,
+      });
+
+      const result = startAnswerRenderTransformer({
+        manifest,
+        idleTimeoutMs: 1_800_000,
+      });
+
+      expect(result).toBe(
+        'INSTANCE: inst_7f3a9c21 (dungeonmaster-stack)\n' +
+          'URL: http://localhost:34173\n' +
+          'API: -\n' +
+          'HOME: /tmp/dm-siege-inst_7f3a9c21\n' +
+          'EVIDENCE: /repo/.dungeonmaster-assets/siegelense-assets/guilds/g1/instances/inst_7f3a9c21\n' +
+          'BOOT: 15000ms\n' +
+          'IDLE TIMEOUT: 30m (raised from the 15m default)\n' +
+          'SEEDED: none\n',
+      );
+    });
+
+    it('EDGE: {idleTimeoutMs: 900_000, the default itself} => renders as the default', () => {
+      const manifest = InstanceManifestStub({
+        instanceId: 'inst_7f3a9c21',
+        specName: 'dungeonmaster-stack',
+        baseUrl: 'http://localhost:34173',
+        home: '/tmp/dm-siege-inst_7f3a9c21',
+        evidence: {
+          path: '/repo/.dungeonmaster-assets/siegelense-assets/guilds/g1/instances/inst_7f3a9c21',
+          linkPresent: true,
+        },
+        bootMs: 15_000,
+        seeded: null,
+      });
+
+      const result = startAnswerRenderTransformer({
+        manifest,
+        idleTimeoutMs: 900_000,
+      });
+
+      expect(result).toBe(
+        'INSTANCE: inst_7f3a9c21 (dungeonmaster-stack)\n' +
+          'URL: http://localhost:34173\n' +
+          'API: -\n' +
+          'HOME: /tmp/dm-siege-inst_7f3a9c21\n' +
+          'EVIDENCE: /repo/.dungeonmaster-assets/siegelense-assets/guilds/g1/instances/inst_7f3a9c21\n' +
+          'BOOT: 15000ms\n' +
+          'IDLE TIMEOUT: 15m (default)\n' +
+          'SEEDED: none\n',
+      );
+    });
+
+    it('EDGE: {idleTimeoutMs: 1_000_001, not a whole minute} => renders in ms', () => {
+      const manifest = InstanceManifestStub({
+        instanceId: 'inst_7f3a9c21',
+        specName: 'dungeonmaster-stack',
+        baseUrl: 'http://localhost:34173',
+        home: '/tmp/dm-siege-inst_7f3a9c21',
+        evidence: {
+          path: '/repo/.dungeonmaster-assets/siegelense-assets/guilds/g1/instances/inst_7f3a9c21',
+          linkPresent: true,
+        },
+        bootMs: 15_000,
+        seeded: null,
+      });
+
+      const result = startAnswerRenderTransformer({
+        manifest,
+        idleTimeoutMs: 1_000_001,
+      });
+
+      expect(result).toBe(
+        'INSTANCE: inst_7f3a9c21 (dungeonmaster-stack)\n' +
+          'URL: http://localhost:34173\n' +
+          'API: -\n' +
+          'HOME: /tmp/dm-siege-inst_7f3a9c21\n' +
+          'EVIDENCE: /repo/.dungeonmaster-assets/siegelense-assets/guilds/g1/instances/inst_7f3a9c21\n' +
+          'BOOT: 15000ms\n' +
+          'IDLE TIMEOUT: 1000001ms (raised from the 15m default)\n' +
           'SEEDED: none\n',
       );
     });

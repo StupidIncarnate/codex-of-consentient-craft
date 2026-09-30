@@ -19,6 +19,8 @@ describe('driverStatics', () => {
       },
       teardown: {
         graceMs: 3_000,
+        exitPollMs: 100,
+        killWaitMs: 5_000,
         signals: ['SIGINT', 'SIGTERM'],
       },
       run: {

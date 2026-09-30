@@ -17,7 +17,7 @@ import { dirname, join } from '#gateway/node/path';
 import { setTimeoutProxy } from '#gateway/node/setTimeout/set-timeout/set-timeout.proxy';
 import { registerMock, requireActual } from '@dungeonmaster/testing/register-mock';
 
-import { shotChangeReadBrokerProxy } from '../../shot/change-read/shot-change-read-broker.proxy';
+import { shotDiffCountBrokerProxy } from '../../shot/diff-count/shot-diff-count-broker.proxy';
 import { holdStatics } from '../../../statics/hold/hold-statics';
 import { Buffer } from '#gateway/node/buffer';
 
@@ -36,8 +36,8 @@ defaultPng.data = Buffer.from(new Uint8Array(DEFAULT_TOTAL_PIXEL_BYTES).fill(OPA
 const DEFAULT_FRAME_PNG = new Uint8Array(PNG.sync.write(defaultPng));
 
 export const stepHoldBrokerProxy = (): {
-  stagesShot: ReturnType<typeof shotChangeReadBrokerProxy>['stagesShot'];
-  stagesDefaultShot: ReturnType<typeof shotChangeReadBrokerProxy>['stagesDefaultShot'];
+  stagesShot: ReturnType<typeof shotDiffCountBrokerProxy>['stagesShot'];
+  stagesDefaultShot: ReturnType<typeof shotDiffCountBrokerProxy>['stagesDefaultShot'];
   succeedsCopy: (params: { sourcePath: string; destinationPath: string }) => void;
   getCopiesFrom: (params: { sourcePath: string }) => readonly unknown[][];
 } => {
@@ -56,7 +56,7 @@ export const stepHoldBrokerProxy = (): {
   const timeoutProxy = setTimeoutProxy();
   timeoutProxy.setupFiresImmediately({ ms: holdStatics.defaults.everyMs });
   timeoutProxy.setupFiresImmediately({ ms: ONE_SECOND_MS });
-  const shotChangeProxy = shotChangeReadBrokerProxy();
+  const shotChangeProxy = shotDiffCountBrokerProxy();
   const copyProxy = copyFileProxy();
 
   shotChangeProxy.stagesDefaultShot({ bytes: DEFAULT_FRAME_PNG });

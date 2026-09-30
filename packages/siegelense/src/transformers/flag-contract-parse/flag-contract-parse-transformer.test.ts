@@ -35,6 +35,52 @@ describe('flagContractParseTransformer', () => {
     });
   });
 
+  describe('a ZodError for an enum value', () => {
+    it('INVALID: {root-level invalid_value with values and input} => throws "flag must be one of <options>; got "<typed>"", never Zod wording', () => {
+      const zodIssueError = new z.ZodError([
+        {
+          code: 'invalid_value',
+          values: ['error', 'warn', 'info'],
+          input: 'warning',
+          message: 'Invalid option: expected one of "error"|"warn"|"info"',
+          path: [],
+        },
+      ]);
+
+      expect(() =>
+        flagContractParseTransformer({
+          flag: '--where-level',
+          parse: (): never => {
+            throw zodIssueError;
+          },
+        }),
+      ).toThrow(/^--where-level must be one of error, warn, info; got "warning"$/u);
+    });
+
+    it('INVALID: {invalid_value nested at path ["steps", 0, "level"]} => throws the path before the enum sentence', () => {
+      const zodIssueError = new z.ZodError([
+        {
+          code: 'invalid_value',
+          values: ['page', 'state', 'instance'],
+          input: 'everything',
+          message: 'Invalid option: expected one of "page"|"state"|"instance"',
+          path: ['steps', 0, 'level'],
+        },
+      ]);
+
+      expect(() =>
+        flagContractParseTransformer({
+          flag: '--steps',
+          parse: (): never => {
+            throw zodIssueError;
+          },
+        }),
+      ).toThrow(
+        /^--steps: steps\.0\.level: must be one of page, state, instance; got "everything"$/u,
+      );
+    });
+  });
+
   describe('a ZodError with a nested path', () => {
     it('INVALID: {parse throws an issue with path ["steps", 0]} => throws the path joined before the message', () => {
       const zodError = new z.ZodError([

@@ -65,9 +65,40 @@ describe('siegePlannerStatics', () => {
       '### 9. A batch holds pieces for ONE step',
       "### 10. `hostile-input` and `perf` are this quest's only security and performance coverage",
       '### 11. Mark every family that gets no piece',
-      '### 12. Request what the walks cannot start without',
+      '### 12. Check the seeds, then request what the walks cannot start without',
       '### 13. Write the plan, read it back, declare and signal',
     ]);
+  });
+
+  // The router starts no instance for `plan`, so the planner opens its own to read what a seed
+  // really produces — headless, through the seeding scope alone — and nothing else kills it.
+  it('VALID: served template => checks seeds on a headless instance of its own and kills it', () => {
+    expect({
+      seedingDocs: hasIn({ needle: 'dungeonmaster siegelense docs --for seeding' }),
+      capacityFirst: hasIn({ needle: 'dungeonmaster siegelense capacity --spec api' }),
+      startsHeadless: hasIn({ needle: 'dungeonmaster siegelense start --spec api' }),
+      kills: hasIn({ needle: 'dungeonmaster siegelense kill --instance <id>' }),
+      killsOnEveryPath: hasIn({
+        needle:
+          '**Kill it before you declare your outcome, on every path out, a failure included.**',
+      }),
+      noWalkingDocs: TEMPLATE.includes('--for walking'),
+      finishChecksKill: hasIn({
+        needle: '- no piece names a lane or an instance, and every instance you started is killed',
+      }),
+      oneRequestPerSeedState: hasIn({
+        needle: '**Send one request per seed state that stands on its own**',
+      }),
+    }).toStrictEqual({
+      seedingDocs: true,
+      capacityFirst: true,
+      startsHeadless: true,
+      kills: true,
+      killsOnEveryPath: true,
+      noWalkingDocs: false,
+      finishChecksKill: true,
+      oneRequestPerSeedState: true,
+    });
   });
 
   // A PIECE'S HUMAN NAME IS DISTINCT FROM ITS `id`. The router carries `pieceName` onto the minted

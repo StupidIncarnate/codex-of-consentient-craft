@@ -66,6 +66,7 @@ export const HomeContentWidgetProxy = (): {
   clickAddGuild: () => Promise<void>;
   clickAddSession: () => Promise<void>;
   isNewGuildTitleVisible: () => boolean;
+  getGuildsErrorText: () => HTMLElement['textContent'];
   isSessionEmptyStateVisible: () => boolean;
   isSelectGuildMessageVisible: () => boolean;
   typeGuildName: (params: { value: string }) => Promise<void>;
@@ -166,10 +167,12 @@ export const HomeContentWidgetProxy = (): {
     },
     clickAddSession: async (): Promise<void> => {
       const sessionListEl = screen.getByTestId('GUILD_SESSION_LIST');
-      const addButton = within(sessionListEl).getByTestId('PIXEL_BTN');
+      const addButton = within(sessionListEl).getByTestId('SESSION_ADD_BUTTON');
       await userEvent.click(addButton, userEventStatics.options);
     },
     isNewGuildTitleVisible: (): boolean => emptyState.isNewGuildTitleVisible(),
+    getGuildsErrorText: (): HTMLElement['textContent'] =>
+      screen.queryByTestId('HOME_GUILDS_ERROR')?.textContent ?? null,
     isSessionEmptyStateVisible: (): boolean => sessionList.hasEmptyState(),
     isSelectGuildMessageVisible: (): boolean => screen.queryByText('Select a guild') !== null,
     typeGuildName: async ({ value }: { value: string }): Promise<void> => {

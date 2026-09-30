@@ -11,14 +11,14 @@
  */
 
 import { assistantStreamLineContract } from '@dungeonmaster/shared/contracts';
-import type { AssistantStreamLine } from '@dungeonmaster/shared/contracts';
+import type { AssistantStreamLine, ToolUse } from '@dungeonmaster/shared/contracts';
 
 export const transcriptAssistantTaskToolUseLineTransformer = ({
   toolUseId,
   description,
   prompt,
 }: {
-  toolUseId: string;
+  toolUseId: ToolUse['id'];
   description: string;
   prompt: string;
 }): AssistantStreamLine =>

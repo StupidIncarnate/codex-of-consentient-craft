@@ -30,7 +30,6 @@ describe('machineReadBroker', () => {
       cores: 8,
       loadAvg: [7.9, 6.2, 4.1],
       oomKillsSinceBoot: 2,
-      lastOomAt: null,
     });
   });
 
@@ -57,7 +56,6 @@ describe('machineReadBroker', () => {
       cores: 8,
       loadAvg: [7.9, 6.2, 4.1],
       oomKillsSinceBoot: null,
-      lastOomAt: null,
     });
   });
 
@@ -85,7 +83,6 @@ describe('machineReadBroker', () => {
       cores: 8,
       loadAvg: [7.9, 6.2, 4.1],
       oomKillsSinceBoot: 2,
-      lastOomAt: null,
     });
   });
 

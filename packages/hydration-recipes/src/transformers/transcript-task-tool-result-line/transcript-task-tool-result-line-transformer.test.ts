@@ -1,3 +1,4 @@
+import { ToolUseStub } from '@dungeonmaster/shared/contracts/tool-use/tool-use.stub';
 import { AgentStub } from '@dungeonmaster/shared/contracts/agent/agent.stub';
 
 import { transcriptTaskToolResultLineTransformer } from './transcript-task-tool-result-line-transformer';
@@ -5,7 +6,7 @@ import { transcriptTaskToolResultLineTransformer } from './transcript-task-tool-
 describe('transcriptTaskToolResultLineTransformer', () => {
   it('VALID: {toolUseId, content, agentId} => returns a tool_result line carrying toolUseResult.agentId', () => {
     const result = transcriptTaskToolResultLineTransformer({
-      toolUseId: 'toolu_seed_nested_1',
+      toolUseId: ToolUseStub({ id: 'toolu_seed_nested_1' }).id,
       content: 'done',
       agentId: AgentStub({ id: 'seed-agent-1' }).id,
     });

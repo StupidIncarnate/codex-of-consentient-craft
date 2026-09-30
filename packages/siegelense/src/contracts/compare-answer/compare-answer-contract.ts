@@ -12,9 +12,8 @@
  * not build yet, and `compare` only ever reads stored evidence — it never re-drives a page to compute
  * a fresh cross-run diff, so each side's own last recorded delta is the whole record available to it.
  * `network.errors` counts exactly what `network.new` lists — a 4xx/5xx status or no response at all —
- * the same relationship `console.errors`/`server.errors` each have with their own `new:` list. It is
- * a narrower, DIFFERENT reading than `run`'s own persisted `RunIndex.network.non2xx`, which counts
- * every deviation from the [200, 300) range, an ordinary 3xx redirect included. Reach for this over
+ * the same relationship `console.errors`/`server.errors` each have with their own `new:` list, and
+ * the same rule (`isNetworkLineFailedGuard`) `run`'s own `RunIndex.network.failed` counts by. Reach for this over
  * building `console`/`server`/`network` ad hoc at a call site — this is the one shape both
  * `siegelense-compare` and `dungeonmaster siegelense compare` render from.
  *

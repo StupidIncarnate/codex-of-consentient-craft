@@ -99,7 +99,7 @@ describe('keyRenderTransformer', () => {
       expect(result).toBe(
         [
           'key: 11 rows',
-          'ref  element                                      text / value                      attrs               flags',
+          'ref  element                                      text / value                      attributes          flags',
           '---  -------------------------------------------  --------------------------------  ------------------  --------------------------',
           ' 22  SUBAGENT_CHAIN <div>',
           ' 23    SUBAGENT_CHAIN_HEADER <div>',
@@ -110,7 +110,7 @@ describe('keyRenderTransformer', () => {
           ' 32  PIXEL_BTN <button>                           "CREATE"                                              disabled',
           ' 35  HOME_QUEUE_LINK <a>                          "⚔ EXECUTION QUEUE"               → /queue',
           ' 38  DOCS_LINK <a>                                "docs"                            → /docs ↗',
-          ' 41  GUILD_NAME_INPUT <input>                     "" ph:"my-guild"                  maxlength=40        focused',
+          ' 41  GUILD_NAME_INPUT <input>                     "" placeholder: "my-guild"        maxlength=40        focused',
           ' 52  QUEST_ROW_9a1b <div role=button> #quest-row  "older quest"                     data-status=failed  offscreen low-contrast 1.4',
           '… subagent-chain-duration appears 2× — under SUBAGENT_CHAIN_HEADER and under CHAT_PANEL',
           '… 12 more under CHAT_MESSAGES_AREA',
@@ -130,8 +130,8 @@ describe('keyRenderTransformer', () => {
       expect(result).toBe(
         [
           'key: 1 rows',
-          'ref  element  text / value   attrs  flags',
-          '---  -------  -------------  -----  -----',
+          'ref  element  text / value   attributes  flags',
+          '---  -------  -------------  ----------  -----',
           ' 24  (p)      "▾ SUB-AGENT"',
         ].join('\n'),
       );
@@ -147,8 +147,8 @@ describe('keyRenderTransformer', () => {
       expect(result).toBe(
         [
           'key: 1 rows',
-          'ref  element          text / value  attrs  flags',
-          '---  ---------------  ------------  -----  -----',
+          'ref  element          text / value  attributes  flags',
+          '---  ---------------  ------------  ----------  -----',
           ' 32  PIXEL_BTN <div>  "CREATE"',
         ].join('\n'),
       );
@@ -173,8 +173,8 @@ describe('keyRenderTransformer', () => {
       expect(result).toBe(
         [
           'key: 1 rows',
-          'ref  element                      text / value   attrs  flags',
-          '---  ---------------------------  -------------  -----  -----',
+          'ref  element                      text / value   attributes  flags',
+          '---  ---------------------------  -------------  ----------  -----',
           ' 52  QUEST_ROW <div role=button>  "older quest"',
         ].join('\n'),
       );
@@ -199,8 +199,8 @@ describe('keyRenderTransformer', () => {
       expect(result).toBe(
         [
           'key: 1 rows',
-          'ref  element                   text / value  attrs  flags',
-          '---  ------------------------  ------------  -----  -----',
+          'ref  element                   text / value  attributes  flags',
+          '---  ------------------------  ------------  ----------  -----',
           ' 27  CHAT_MESSAGE <div> [1/2]',
         ].join('\n'),
       );
@@ -220,8 +220,8 @@ describe('keyRenderTransformer', () => {
       expect(result).toBe(
         [
           'key: 3 rows',
-          'ref  element      text / value  attrs  flags',
-          '---  -----------  ------------  -----  -----',
+          'ref  element      text / value  attributes  flags',
+          '---  -----------  ------------  ----------  -----',
           '  1  A <div>',
           '  2    B <div>',
           '  3      C <div>',
@@ -251,9 +251,9 @@ describe('keyRenderTransformer', () => {
       expect(result).toBe(
         [
           'key: 1 rows',
-          'ref  element                   text / value                 attrs  flags',
-          '---  ------------------------  ---------------------------  -----  -----',
-          ' 41  GUILD_NAME_INPUT <input>  "guild-alpha" ph:"my-guild"',
+          'ref  element                   text / value                           attributes  flags',
+          '---  ------------------------  -------------------------------------  ----------  -----',
+          ' 41  GUILD_NAME_INPUT <input>  "guild-alpha" placeholder: "my-guild"',
         ].join('\n'),
       );
     });
@@ -279,8 +279,8 @@ describe('keyRenderTransformer', () => {
       expect(result).toBe(
         [
           'key: 1 rows',
-          'ref  element              text / value  attrs     flags',
-          '---  -------------------  ------------  --------  -----',
+          'ref  element              text / value  attributes  flags',
+          '---  -------------------  ------------  ----------  -----',
           ' 35  HOME_QUEUE_LINK <a>  "QUEUE"       → /queue',
         ].join('\n'),
       );
@@ -305,8 +305,8 @@ describe('keyRenderTransformer', () => {
       expect(result).toBe(
         [
           'key: 1 rows',
-          'ref  element        text / value  attrs      flags',
-          '---  -------------  ------------  ---------  -----',
+          'ref  element        text / value  attributes  flags',
+          '---  -------------  ------------  ----------  -----',
           ' 38  DOCS_LINK <a>  "docs"        → /docs ↗',
         ].join('\n'),
       );
@@ -331,8 +331,8 @@ describe('keyRenderTransformer', () => {
       expect(result).toBe(
         [
           'key: 1 rows',
-          'ref  element             text / value  attrs     flags',
-          '---  ------------------  ------------  --------  -----',
+          'ref  element             text / value  attributes  flags',
+          '---  ------------------  ------------  ----------  -----',
           ' 41  NAME_INPUT <input>                required',
         ].join('\n'),
       );
@@ -358,7 +358,7 @@ describe('keyRenderTransformer', () => {
       expect(result).toBe(
         [
           'key: 1 rows',
-          'ref  element          text / value  attrs                       flags',
+          'ref  element          text / value  attributes                  flags',
           '---  ---------------  ------------  --------------------------  -----',
           ' 52  QUEST_ROW <div>                data-status=failed +3 more',
         ].join('\n'),
@@ -387,9 +387,9 @@ describe('keyRenderTransformer', () => {
       expect(result).toBe(
         [
           'key: 1 rows',
-          'ref  element          text / value   attrs  flags',
-          '---  ---------------  -------------  -----  ----------------',
-          ' 52  QUEST_ROW <div>  "older quest"         low-contrast 1.4',
+          'ref  element          text / value   attributes  flags',
+          '---  ---------------  -------------  ----------  ----------------',
+          ' 52  QUEST_ROW <div>  "older quest"              low-contrast 1.4',
         ].join('\n'),
       );
     });
@@ -413,9 +413,9 @@ describe('keyRenderTransformer', () => {
       expect(result).toBe(
         [
           'key: 1 rows',
-          'ref  element             text / value  attrs  flags',
-          '---  ------------------  ------------  -----  --------',
-          ' 32  PIXEL_BTN <button>  "CREATE"             disabled',
+          'ref  element             text / value  attributes  flags',
+          '---  ------------------  ------------  ----------  --------',
+          ' 32  PIXEL_BTN <button>  "CREATE"                  disabled',
         ].join('\n'),
       );
     });
@@ -435,8 +435,8 @@ describe('keyRenderTransformer', () => {
       expect(result).toBe(
         [
           'key: 1 rows',
-          'ref  element  text / value  attrs  flags',
-          '---  -------  ------------  -----  -----',
+          'ref  element  text / value  attributes  flags',
+          '---  -------  ------------  ----------  -----',
           '  1  A <div>',
           '… subagent-chain-duration appears 2× — under SUBAGENT_CHAIN_HEADER and under CHAT_PANEL',
         ].join('\n'),
@@ -454,8 +454,8 @@ describe('keyRenderTransformer', () => {
       expect(result).toBe(
         [
           'key: 1 rows',
-          'ref  element  text / value  attrs  flags',
-          '---  -------  ------------  -----  -----',
+          'ref  element  text / value  attributes  flags',
+          '---  -------  ------------  ----------  -----',
           '  1  A <div>',
           '… 12 more under CHAT_MESSAGES_AREA',
         ].join('\n'),
@@ -473,8 +473,8 @@ describe('keyRenderTransformer', () => {
       expect(result).toBe(
         [
           'key: 1 rows within [data-testid="SUBAGENT_CHAIN_HEADER"]',
-          'ref  element  text / value  attrs  flags',
-          '---  -------  ------------  -----  -----',
+          'ref  element  text / value  attributes  flags',
+          '---  -------  ------------  ----------  -----',
           '  1  A <div>',
         ].join('\n'),
       );

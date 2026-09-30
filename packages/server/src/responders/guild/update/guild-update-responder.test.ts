@@ -39,6 +39,25 @@ describe('GuildUpdateResponder', () => {
     });
   });
 
+  describe('relative path', () => {
+    it('INVALID: {path: "jo"} => returns 400 naming path and never calls the orchestrator', async () => {
+      const proxy = GuildUpdateResponderProxy();
+      const guildId = GuildIdStub();
+      proxy.setupUpdateGuild({ guild: GuildStub({ id: guildId }) });
+
+      const result = await proxy.callResponder({
+        params: { guildId },
+        body: { name: 'Updated', path: 'jo' },
+      });
+
+      expect(result).toStrictEqual({
+        status: 400,
+        data: { error: 'path must be an absolute path (start with / or C:\\ on Windows)' },
+      });
+      expect(proxy.getUpdateGuildCalls()).toStrictEqual([]);
+    });
+  });
+
   describe('validation errors', () => {
     it('INVALID: {null params} => returns 400 with error', async () => {
       const proxy = GuildUpdateResponderProxy();

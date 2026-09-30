@@ -90,6 +90,7 @@ export const instanceKillBroker = async ({
       homeRemoved: true,
       evidenceKept,
       reapedPgids: [],
+      alreadyKilledAtMs: entry.killedAtMs ?? entry.prunedAtMs,
     });
   }
 

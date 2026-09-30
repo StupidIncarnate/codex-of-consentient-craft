@@ -320,11 +320,34 @@ describe('QuestSummaryWidget', () => {
       ]);
     });
 
-    it('EMPTY: {debt: []} => renders the every-unit-is-proven line and no debt rows', async () => {
+    it('EMPTY: {debt: [], every track has 0 outstanding} => renders the every-unit-is-proven line and no debt rows', async () => {
       const proxy = QuestSummaryWidgetProxy();
       proxy.setupConnectedChannel();
       proxy.setupSummary({
-        summary: QuestSummaryStub({ questId: 'q-summary', debt: [] }),
+        summary: QuestSummaryStub({
+          questId: 'q-summary',
+          debt: [],
+          flows: [
+            QuestSummaryFlowStub({
+              tracks: [
+                QuestSummaryTrackCountsStub({
+                  id: 'flowrider',
+                  met: 4,
+                  cantMeet: 0,
+                  unmet: 0,
+                  outstanding: 0,
+                }),
+                QuestSummaryTrackCountsStub({
+                  id: 'siegemaster',
+                  met: 9,
+                  cantMeet: 0,
+                  unmet: 0,
+                  outstanding: 0,
+                }),
+              ],
+            }),
+          ],
+        }),
       });
 
       mantineRenderMiddleware({ ui: <QuestSummaryWidget questId={QUEST_ID} /> });
@@ -335,6 +358,79 @@ describe('QuestSummaryWidget', () => {
         'every unit is proven',
       );
       expect(screen.queryAllByTestId('QUEST_SUMMARY_DEBT_ROW')).toStrictEqual([]);
+    });
+
+    it('EMPTY: {debt: [], nothing met and 1 + 1 + 8 outstanding across two flows} => DEBT says the outstanding units are not proven rather than every unit is proven', async () => {
+      const proxy = QuestSummaryWidgetProxy();
+      proxy.setupConnectedChannel();
+      proxy.setupSummary({
+        summary: QuestSummaryStub({
+          questId: 'q-summary',
+          debt: [],
+          flows: [
+            QuestSummaryFlowStub({
+              id: 'verified-flow',
+              name: 'Verified Flow',
+              flowType: 'runtime',
+              tracks: [
+                QuestSummaryTrackCountsStub({
+                  id: 'codeweaver',
+                  met: 0,
+                  cantMeet: 0,
+                  unmet: 0,
+                  outstanding: 1,
+                }),
+                QuestSummaryTrackCountsStub({
+                  id: 'flowrider',
+                  met: 0,
+                  cantMeet: 0,
+                  unmet: 0,
+                  outstanding: 1,
+                }),
+              ],
+            }),
+            QuestSummaryFlowStub({
+              id: 'verified-walk',
+              name: 'Verified Walk',
+              flowType: 'runtime',
+              tracks: [
+                QuestSummaryTrackCountsStub({
+                  id: 'siegemaster',
+                  met: 0,
+                  cantMeet: 0,
+                  unmet: 0,
+                  outstanding: 8,
+                }),
+              ],
+            }),
+          ],
+        }),
+      });
+
+      mantineRenderMiddleware({ ui: <QuestSummaryWidget questId={QUEST_ID} /> });
+
+      await screen.findByTestId('QUEST_SUMMARY');
+
+      expect(screen.getByTestId('QUEST_SUMMARY_DEBT_EMPTY').textContent).toBe(
+        'no cant-meet or unmet marks — 10 outstanding, not proven',
+      );
+      expect(screen.queryAllByTestId('QUEST_SUMMARY_DEBT_ROW')).toStrictEqual([]);
+    });
+
+    it('EMPTY: {debt: [], flows: []} => renders the every-unit-is-proven line, since no flow holds a unit', async () => {
+      const proxy = QuestSummaryWidgetProxy();
+      proxy.setupConnectedChannel();
+      proxy.setupSummary({
+        summary: QuestSummaryStub({ questId: 'q-summary', debt: [], flows: [] }),
+      });
+
+      mantineRenderMiddleware({ ui: <QuestSummaryWidget questId={QUEST_ID} /> });
+
+      await screen.findByTestId('QUEST_SUMMARY');
+
+      expect(screen.getByTestId('QUEST_SUMMARY_DEBT_EMPTY').textContent).toBe(
+        'every unit is proven',
+      );
     });
 
     it('VALID: {one unmet entry} => the section heading reads DEBT and the empty line is gone', async () => {

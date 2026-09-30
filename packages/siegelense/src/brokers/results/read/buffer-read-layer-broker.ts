@@ -26,8 +26,8 @@
  */
 
 import type { SiegeRun } from '@dungeonmaster/shared/contracts';
-
 import { readFileIfExists } from '#gateway/node/fs__promises';
+import { safeJsonParseTransformer } from '@dungeonmaster/shared/transformers';
 import { bufferEntryContract } from '../../../contracts/buffer-entry/buffer-entry-contract';
 import type { BufferEntry } from '../../../contracts/buffer-entry/buffer-entry-contract';
 import { resultRowContract } from '../../../contracts/result-row/result-row-contract';
@@ -85,16 +85,19 @@ export const bufferReadLayerBroker = async ({
     level === null
       ? stepRangeFiltered
       : stepRangeFiltered.filter((entry) => {
-          const patternStatic =
-            level === 'error'
-              ? resultsStatics.patterns.consoleError
-              : level === 'warn'
-                ? resultsStatics.patterns.consoleWarning
-                : null;
-          if (patternStatic === null) {
-            return true;
-          }
-          return new RegExp(patternStatic.source, patternStatic.flags).test(entry.text);
+          const isError = new RegExp(
+            resultsStatics.patterns.consoleError.source,
+            resultsStatics.patterns.consoleError.flags,
+          ).test(entry.text);
+          const isWarning = new RegExp(
+            resultsStatics.patterns.consoleWarning.source,
+            resultsStatics.patterns.consoleWarning.flags,
+          ).test(entry.text);
+          return level === 'error'
+            ? isError
+            : level === 'warn'
+              ? isWarning
+              : !isError && !isWarning;
         });
 
   const pathAndMethodFiltered =
@@ -120,5 +123,15 @@ export const bufferReadLayerBroker = async ({
       ? pathAndMethodFiltered
       : pathAndMethodFiltered.filter((_unused, position) => position === nth);
 
-  return nthFiltered.map((entry) => entry.text);
+  if (!sinceBoot) {
+    return nthFiltered.map((entry) => entry.text);
+  }
+
+  // A boot-wide read spans every run, so each row names its own run and step.
+  return nthFiltered.map((entry) => {
+    const parsed = safeJsonParseTransformer({ value: entry.text });
+    return parsed.ok && typeof parsed.value === 'object' && parsed.value !== null
+      ? JSON.stringify({ run: entry.runId, step: entry.step, ...parsed.value })
+      : entry.text;
+  });
 };

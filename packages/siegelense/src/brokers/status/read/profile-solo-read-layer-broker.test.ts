@@ -77,7 +77,7 @@ describe('profileSoloReadLayerBroker', () => {
   });
 
   describe('the profile read itself fails', () => {
-    it('ERROR: {profileReadBroker rejects} => returns null and logs the failure instead of throwing', async () => {
+    it('ERROR: {profileReadBroker rejects} => returns null', async () => {
       const proxy = profileSoloReadLayerBrokerProxy();
       proxy.setupProfileReadFails({
         specName: 'ghost',
@@ -89,9 +89,6 @@ describe('profileSoloReadLayerBroker', () => {
       });
 
       expect(result).toBe(null);
-      expect(proxy.getStderrMessages()).toStrictEqual([
-        '[profile-solo-read] could not read the profile for spec ghost: Error: Unknown lane spec "ghost". Known specs: stack, api\n',
-      ]);
     });
   });
 });

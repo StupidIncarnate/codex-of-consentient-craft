@@ -55,6 +55,7 @@ import { recipeMakerStatics } from '../../statics/recipe-maker/recipe-maker-stat
 import { siegemasterReaderStatics } from '../../statics/siegemaster-reader/siegemaster-reader-statics';
 import { spiritmenderPromptStatics } from '../../statics/spiritmender-prompt/spiritmender-prompt-statics';
 import { warpgatePromptStatics } from '../../statics/warpgate-prompt/warpgate-prompt-statics';
+import { writeIngredientStatics } from '../../statics/write-ingredient/write-ingredient-statics';
 
 const AGENT_PROMPTS = {
   'chaoswhisperer-gap-minion': {
@@ -104,6 +105,7 @@ const AGENT_PROMPTS = {
   'siege-happy-walker': { model: 'sonnet', template: siegeHappyWalkerStatics.prompt.template },
   'recipe-maker': { model: 'opus', template: recipeMakerStatics.prompt.template },
   'siegemaster-reader': { model: 'sonnet', template: siegemasterReaderStatics.prompt.template },
+  'write-ingredient': { model: 'opus', template: writeIngredientStatics.prompt.template },
 
   spiritmender: {
     model: roleToModelStatics.spiritmender,

@@ -23,7 +23,13 @@
  * probe runs unconditionally, first, and a run that crashed before its closing `.json` write still
  * answers off its transcript alone. `console`/`network`/`ws`/`steps`/`server` run the SAME probe
  * only once their own read comes back empty, so a run that legitimately holds rows never pays for
- * the extra read. `compareReadBroker` drives this same broker through console/server/network for
+ * the extra read. An empty answer also says what it covered, so "clean" never reads like "not
+ * recorded" or "wrong run": an empty console/network/ws read for one run carries
+ * `latestRunWithRows` (the latest run on this instance holding lines of that kind), and an empty
+ * server read carries `serverWindow` (the `api-server.log` byte range the queried steps covered).
+ * `kind: 'server'` with `since: 'boot'` reads the WHOLE `api-server.log` — boot lines, per-request
+ * `[http]` lines and crashes alike — since that file already spans every run.
+ * `compareReadBroker` drives this same broker through console/server/network for
  * runs its OWN read already proved exist, so that lazy probe there finds a file already present on
  * the first try and never re-litigates a question compare already answered.
  *
@@ -42,12 +48,14 @@ import { runResultContract } from '../../../contracts/run-result/run-result-cont
 import { RunIdRequiredError } from '../../../errors/run-id-required/run-id-required-error';
 import { UnknownResultKindError } from '../../../errors/unknown-result-kind/unknown-result-kind-error';
 import { resultsStatics } from '../../../statics/results/results-statics';
+import { serverWindowCoverTransformer } from '../../../transformers/server-window-cover/server-window-cover-transformer';
 import { resultRowProjectTransformer } from '../../../transformers/result-row-project/result-row-project-transformer';
 import { stepRangeExpandTransformer } from '../../../transformers/step-range-expand/step-range-expand-transformer';
 import { instanceStateResolveBroker } from '../../instance/state-resolve/instance-state-resolve-broker';
 import { locationsBufferPathsFindBroker } from '../../locations/buffer-paths-find/locations-buffer-paths-find-broker';
 import { locationsInstanceEvidencePathFindBroker } from '../../locations/instance-evidence-path-find/locations-instance-evidence-path-find-broker';
 import { locationsRunPathsFindBroker } from '../../locations/run-paths-find/locations-run-paths-find-broker';
+import { bufferLatestRunLayerBroker } from './buffer-latest-run-layer-broker';
 import { bufferReadLayerBroker } from './buffer-read-layer-broker';
 import { runListLayerBroker } from './run-list-layer-broker';
 import { runMissingCheckLayerBroker } from './run-missing-check-layer-broker';
@@ -113,7 +121,7 @@ export const resultsReadBroker = async ({
       `results against instance ${query.instanceId} with since: 'boot' and no kind cannot ` +
         `answer: boot spans every run, and only ${resultsStatics.kinds.sinceBootEligible.join(', ')} ` +
         `hold lines for the whole timeline. Name one with --kind <kind>, or drop --since boot to ` +
-        `read a single run's steps, server or screenshots.`,
+        `read a single run's steps or screenshots.`,
     );
   }
 
@@ -148,7 +156,8 @@ export const resultsReadBroker = async ({
       where: query.where,
     });
 
-    if (matchedRows.length === 0 && !sinceBoot && effectiveRunId !== null) {
+    const emptyForOneRun = matchedRows.length === 0 && !sinceBoot && effectiveRunId !== null;
+    if (emptyForOneRun) {
       const { transcript, storedReturn: storedReturnPath } = locationsRunPathsFindBroker({
         evidencePath,
         runId: effectiveRunId,
@@ -160,6 +169,9 @@ export const resultsReadBroker = async ({
         transcriptPath: transcript,
       });
     }
+    const latestRunWithRows = emptyForOneRun
+      ? await bufferLatestRunLayerBroker({ bufferPath })
+      : undefined;
 
     const capped = matchedRows.slice(0, resultsStatics.limits.maxRows);
     const projectedRows = capped.map((row) =>
@@ -178,6 +190,37 @@ export const resultsReadBroker = async ({
       matched: matchedRows.length,
       returned: capped.length,
       truncated: matchedRows.length > capped.length,
+      rows: projectedRows,
+      storedReturn: null,
+      ...(latestRunWithRows === undefined ? {} : { latestRunWithRows }),
+    });
+  }
+
+  if (query.kind === SERVER_KIND && effectiveRunId === null) {
+    const rows = await serverWindowReadLayerBroker({
+      evidencePath,
+      readings: [],
+      step: query.step,
+      where: query.where,
+      sinceBoot: true,
+    });
+    const capped = rows.slice(0, resultsStatics.limits.maxRows);
+    const projectedRows = capped.map((row) =>
+      resultRowProjectTransformer({ row, fields: query.fields }),
+    );
+
+    return resultsAnswerContract.parse({
+      instanceId: query.instanceId,
+      instanceState: state,
+      runId: null,
+      kind: 'server',
+      step: query.step,
+      verb: null,
+      prunedAtMs: null,
+      prunedByRule: null,
+      matched: rows.length,
+      returned: capped.length,
+      truncated: rows.length > capped.length,
       rows: projectedRows,
       storedReturn: null,
     });
@@ -327,6 +370,7 @@ export const resultsReadBroker = async ({
       readings,
       step: query.step,
       where: query.where,
+      sinceBoot: false,
     });
 
     if (rows.length === 0) {
@@ -338,12 +382,18 @@ export const resultsReadBroker = async ({
       });
     }
 
+    const serverWindow =
+      rows.length === 0
+        ? serverWindowCoverTransformer({ readings, step: query.step, where: query.where })
+        : undefined;
+
     const capped = rows.slice(0, resultsStatics.limits.maxRows);
     const projectedRows = capped.map((row) =>
       resultRowProjectTransformer({ row, fields: query.fields }),
     );
 
     return resultsAnswerContract.parse({
+      ...(serverWindow === undefined ? {} : { serverWindow }),
       instanceId: query.instanceId,
       instanceState: state,
       runId: effectiveRunId,

@@ -5,7 +5,7 @@
  * `stepWaitForBroker` keeps: every form throws `UntilCeilingHitError` once its ceiling passes, and a
  * real error underneath propagates unchanged — the two Playwright-owned forms tell those apart with
  * `isPlaywrightTimeoutErrorGuard`, because only a CEILING may become `RunStatus`'s `'timeout'` and
- * this is the one wait here that hands an unresolved selector straight to a strict locator. Takes
+ * this hands an unresolved selector straight to a strict locator. Takes
  * the whole `LaneSession`, like `stepSeedBroker`,
  * because the `file` form touches disk and never a page (R13 — an operational flow has no screen and
  * still writes files) — the browser narrowing for the other four forms happens IN HERE, per form,
@@ -96,11 +96,9 @@ export const stepUntilBroker = async ({
         timeoutMs: resolvedTimeoutMs,
       });
     } catch (error: unknown) {
-      // Only a CEILING is a timeout. This is the one wait in the package that does not pre-resolve
-      // its target — `waitFor` goes through `stepTargetResolveBroker` first, which is exactly why
-      // `waitFor` cannot wait for an element to appear and this form can — so Playwright's strict
-      // locator is what meets an ambiguous selector here, and it raises a strict-mode violation
-      // rather than a TimeoutError. Folding it into a ceiling would answer `timeout` and advise
+      // Only a CEILING is a timeout. This form does not pre-resolve its target, so it can wait for
+      // an element to appear — Playwright's strict locator is what meets an ambiguous selector here,
+      // and it raises a strict-mode violation rather than a TimeoutError. Folding it into a ceiling would answer `timeout` and advise
       // waiting longer for something already on the screen twice — the package's own rule instead
       // ("ambiguity throws with the candidates", packages/siegelense/CLAUDE.md), the same shape
       // `stepTargetResolveBroker` already raises for `click`/`type`/`waitFor`. `describeMatches`

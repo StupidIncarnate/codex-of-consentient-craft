@@ -28,6 +28,7 @@ const STEP_FIXTURES = [
   StepStub({ step: 'video', action: 'start' }),
   StepStub({ step: 'snapshot' }),
   StepStub({ step: 'reset' }),
+  StepStub({ step: 'scroll' }),
 ];
 
 describe('stepContract', () => {
@@ -810,34 +811,38 @@ describe('stepContract', () => {
   });
 
   describe('the handle rule: a target OR a ref, never both and never neither', () => {
-    it('INVALID: {step: click with both a target and a ref} => rejected, naming both kinds of handle', () => {
-      expect(() =>
-        stepContract.parse({ step: 'click', target: '[data-testid="PIXEL_BTN"]', ref: 26 }),
-      ).toThrow(/a driving step takes exactly one handle/u);
-    });
+    it.each([
+      ['click', {}],
+      ['type', { value: 'x' }],
+    ] as const)(
+      'INVALID: {step: %s with both a target and a ref} => refuses with "not both", never the neither wording',
+      (verb, extra) => {
+        const result = stepContract.safeParse({
+          step: verb,
+          target: '[data-testid="PIXEL_BTN"]',
+          ref: 26,
+          ...extra,
+        });
 
-    it('INVALID: {step: click with neither} => rejected, naming both kinds of handle', () => {
-      expect(() => stepContract.parse({ step: 'click' })).toThrow(
-        /a driving step takes exactly one handle/u,
-      );
-    });
+        expect(result.error?.issues.map((issue) => issue.message)).toStrictEqual([
+          `a ${verb} step takes a \`target\` or a \`ref\`, not both: give one handle, because two handles could disagree about which element is meant.`,
+        ]);
+      },
+    );
 
-    it('INVALID: {step: type with both} => rejected', () => {
-      expect(() =>
-        stepContract.parse({
-          step: 'type',
-          target: '[data-testid="CHAT_INPUT"]',
-          ref: 14,
-          value: 'x',
-        }),
-      ).toThrow(/a driving step takes exactly one handle/u);
-    });
+    it.each([
+      ['click', {}],
+      ['type', { value: 'x' }],
+    ] as const)(
+      'INVALID: {step: %s with neither} => refuses with a generic example and no invented ref number',
+      (verb, extra) => {
+        const result = stepContract.safeParse({ step: verb, ...extra });
 
-    it('INVALID: {step: type with neither} => rejected', () => {
-      expect(() => stepContract.parse({ step: 'type', value: 'x' })).toThrow(
-        /a driving step takes exactly one handle/u,
-      );
-    });
+        expect(result.error?.issues.map((issue) => issue.message)).toStrictEqual([
+          `a ${verb} step needs a handle: a \`target\` selector — durable, so it belongs in a saved batch — or a \`ref\` from your latest \`look\`, for driving right now. Try { "step": "${verb}", "target": "[data-testid=YOUR_ID]" } or { "step": "${verb}", "ref": <a ref from your latest look> }`,
+        ]);
+      },
+    );
 
     it('VALID: {step: goto} => never graded against the handle rule, because it carries no handle at all', () => {
       const result = stepContract.parse({ step: 'goto', path: '/' });
@@ -1537,6 +1542,7 @@ describe('stepContract', () => {
         level: 'state',
         to: 'clean',
         reseed: null,
+        as: null,
         node: 'after-reset',
         expect: 'ok',
       });
@@ -1553,6 +1559,26 @@ describe('stepContract', () => {
         level: 'page',
         to: null,
         reseed: null,
+        as: null,
+        node: null,
+        expect: 'ok',
+      });
+    });
+
+    it('VALID: {step: reset, reseed, as: "g"} => keeps the binding name the reseed result is recorded under', () => {
+      const result = stepContract.parse({
+        step: 'reset',
+        level: 'instance',
+        reseed: 'guild-empty',
+        as: 'g',
+      });
+
+      expect(result).toStrictEqual({
+        step: 'reset',
+        level: 'instance',
+        to: null,
+        reseed: 'guild-empty',
+        as: 'g',
         node: null,
         expect: 'ok',
       });
@@ -1566,6 +1592,7 @@ describe('stepContract', () => {
         level: 'state',
         to: 'clean',
         reseed: null,
+        as: null,
         node: null,
         expect: 'ok',
       });
@@ -1589,6 +1616,108 @@ describe('stepContract', () => {
           target: '[data-testid="X"]',
         }),
       ).toThrow(/Unrecognized key: \\"target\\"/u);
+    });
+  });
+
+  describe('scroll', () => {
+    const SCROLL_MODE_ERROR = /a scroll step takes exactly one of: a handle/u;
+
+    it('VALID: {by: 400} => parses the amount mode with every other field defaulted', () => {
+      expect(stepContract.parse({ step: 'scroll', by: 400 })).toStrictEqual({
+        step: 'scroll',
+        target: null,
+        within: null,
+        ref: null,
+        by: 400,
+        byX: null,
+        to: null,
+        node: null,
+        expect: 'ok',
+      });
+    });
+
+    it('VALID: {by: -200, byX: 50} => both axes are one amount mode', () => {
+      expect(stepContract.parse({ step: 'scroll', by: -200, byX: 50 })).toStrictEqual({
+        step: 'scroll',
+        target: null,
+        within: null,
+        ref: null,
+        by: -200,
+        byX: 50,
+        to: null,
+        node: null,
+        expect: 'ok',
+      });
+    });
+
+    it('VALID: {to: top} => parses the edge mode', () => {
+      expect(StepStub({ step: 'scroll', to: 'top' })).toStrictEqual({
+        step: 'scroll',
+        target: null,
+        within: null,
+        ref: null,
+        by: null,
+        byX: null,
+        to: 'top',
+        node: null,
+        expect: 'ok',
+      });
+    });
+
+    it('VALID: {ref: 26} => parses the handle mode by ref', () => {
+      expect(StepStub({ step: 'scroll', ref: 26 })).toStrictEqual({
+        step: 'scroll',
+        target: null,
+        within: null,
+        ref: 26,
+        by: null,
+        byX: null,
+        to: null,
+        node: null,
+        expect: 'ok',
+      });
+    });
+
+    it('VALID: {target, within} => parses the handle mode by selector', () => {
+      expect(
+        stepContract.parse({
+          step: 'scroll',
+          target: '[data-testid="ROW"]',
+          within: '[data-testid="LIST"]',
+        }),
+      ).toStrictEqual({
+        step: 'scroll',
+        target: '[data-testid="ROW"]',
+        within: '[data-testid="LIST"]',
+        ref: null,
+        by: null,
+        byX: null,
+        to: null,
+        node: null,
+        expect: 'ok',
+      });
+    });
+
+    it.each([
+      { label: 'no mode', input: { step: 'scroll' } },
+      { label: 'by and to', input: { step: 'scroll', by: 10, to: 'top' } },
+      { label: 'ref and by', input: { step: 'scroll', ref: 3, by: 10 } },
+      { label: 'target and ref', input: { step: 'scroll', target: '#a', ref: 3 } },
+      { label: 'within without target', input: { step: 'scroll', within: '#a', by: 10 } },
+    ])('INVALID: {$label} => throws the scroll mode message', ({ input }) => {
+      expect(() => stepContract.parse(input)).toThrow(SCROLL_MODE_ERROR);
+    });
+
+    it('INVALID: {to: middle} => throws the enum error', () => {
+      expect(() => stepContract.parse({ step: 'scroll', to: 'middle' })).toThrow(
+        /Invalid option: expected one of \\"top\\"\|\\"bottom\\"/u,
+      );
+    });
+
+    it('INVALID: {by: 1.5} => throws for a non-integer amount', () => {
+      expect(() => stepContract.parse({ step: 'scroll', by: 1.5 })).toThrow(
+        /Invalid input: expected int, received number/u,
+      );
     });
   });
 });

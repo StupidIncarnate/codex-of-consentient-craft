@@ -31,6 +31,6 @@ export const siegelenseCallStatics = {
     ],
   },
   docs: {
-    scopes: ['walking', 'attacking', 'fixing'],
+    scopes: ['walking', 'attacking', 'fixing', 'seeding'],
   },
 } as const;

@@ -3,15 +3,26 @@ import { InstanceEvidenceListingStub } from './instance-evidence-listing.stub';
 
 describe('instanceEvidenceListingContract', () => {
   describe('valid listings', () => {
-    it('VALID: {the spec line 1180 block} => parses the complete populated listing', () => {
+    it('VALID: {dir, a log, a shot and a video} => parses every file as an absolute path with its size', () => {
       const listing = InstanceEvidenceListingStub({
         dir: {
           path: '/repo/.dungeonmaster-assets/siegelense-assets/guilds/g1/instances/inst_9b2c',
           linkPresent: true,
         },
-        transcript: 'run_2.jsonl',
-        logs: ['api-server.log', 'web-server.log'],
-        lastShot: 'run_2/step7.png',
+        files: [
+          {
+            path: '/repo/.dungeonmaster-assets/siegelense-assets/guilds/g1/instances/inst_9b2c/api-server.log',
+            bytes: 2048,
+          },
+          {
+            path: '/repo/.dungeonmaster-assets/siegelense-assets/guilds/g1/instances/inst_9b2c/runs/run_1/step1.png',
+            bytes: 51234,
+          },
+          {
+            path: '/repo/.dungeonmaster-assets/siegelense-assets/guilds/g1/instances/inst_9b2c/video/a1.webm',
+            bytes: 860132,
+          },
+        ],
       });
 
       const result = instanceEvidenceListingContract.parse(listing);
@@ -21,57 +32,52 @@ describe('instanceEvidenceListingContract', () => {
           path: '/repo/.dungeonmaster-assets/siegelense-assets/guilds/g1/instances/inst_9b2c',
           linkPresent: true,
         },
-        transcript: 'run_2.jsonl',
-        logs: ['api-server.log', 'web-server.log'],
-        lastShot: 'run_2/step7.png',
+        files: [
+          {
+            path: '/repo/.dungeonmaster-assets/siegelense-assets/guilds/g1/instances/inst_9b2c/api-server.log',
+            bytes: 2048,
+          },
+          {
+            path: '/repo/.dungeonmaster-assets/siegelense-assets/guilds/g1/instances/inst_9b2c/runs/run_1/step1.png',
+            bytes: 51234,
+          },
+          {
+            path: '/repo/.dungeonmaster-assets/siegelense-assets/guilds/g1/instances/inst_9b2c/video/a1.webm',
+            bytes: 860132,
+          },
+        ],
       });
     });
 
-    it('VALID: {transcript: null, logs: [], lastShot: null} => an instance that never ran a step or took a shot', () => {
-      const listing = InstanceEvidenceListingStub({
-        dir: {
-          path: '/repo/.dungeonmaster-assets/siegelense-assets/guilds/g1/instances/inst_9b2c',
-          linkPresent: true,
-        },
-        transcript: null,
-        logs: [],
-        lastShot: null,
-      });
-
-      const result = instanceEvidenceListingContract.parse(listing);
+    it('EMPTY: {files: []} => an evidence directory holding nothing', () => {
+      const result = instanceEvidenceListingContract.parse(
+        InstanceEvidenceListingStub({
+          dir: { path: '/home/user/.dungeonmaster/siegelense/inst_9b2c', linkPresent: false },
+          files: [],
+        }),
+      );
 
       expect(result).toStrictEqual({
-        dir: {
-          path: '/repo/.dungeonmaster-assets/siegelense-assets/guilds/g1/instances/inst_9b2c',
-          linkPresent: true,
-        },
-        transcript: null,
-        logs: [],
-        lastShot: null,
+        dir: { path: '/home/user/.dungeonmaster/siegelense/inst_9b2c', linkPresent: false },
+        files: [],
       });
     });
   });
 
   describe('invalid listings', () => {
     it('INVALID: {missing dir} => throws Required', () => {
-      expect(() =>
-        instanceEvidenceListingContract.parse({
-          transcript: null,
-          logs: [],
-          lastShot: null,
-        }),
-      ).toThrow(/received undefined/u);
+      expect(() => instanceEvidenceListingContract.parse({ files: [] })).toThrow(
+        /expected object, received undefined/u,
+      );
     });
 
-    it('INVALID: {missing lastShot} => throws Required, because .nullable() is not .optional()', () => {
+    it('INVALID: {missing files} => throws Required', () => {
       expect(() =>
         instanceEvidenceListingContract.parse({
           dir: {
             path: '/repo/.dungeonmaster-assets/siegelense-assets/guilds/g1/instances/inst_9b2c',
             linkPresent: true,
           },
-          transcript: null,
-          logs: [],
         }),
       ).toThrow(/received undefined/u);
     });

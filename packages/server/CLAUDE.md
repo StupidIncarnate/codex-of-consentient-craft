@@ -132,6 +132,28 @@ devLogEventFormatTransformer (main entry)
 - **Event formatting:** `src/transformers/dev-log-event-format/` and its chain (see above)
 - **Static messages** (WS connect, shutdown, errors): directly in the responder via `processDevLogAdapter`
 
+## Per-Request Logging
+
+Per-request lines are the one exception to "everything goes through `processDevLogAdapter`". They go
+through `processRequestLogBroker`, gated on `DUNGEONMASTER_REQUEST_LOG=1` rather than `VERBOSE=1`,
+because `npm run prod` sets `VERBOSE=1` and a line per request would flood it. The siegelense lane
+sets the switch in its api process env (`.dungeonmaster.json` → `devServer.e2e.processes`), so
+the lane's `api-server.log` shows what the server did during a run.
+
+`RequestLogFlow` holds a catch-all middleware that `ServerFlow` mounts before every route flow. It
+must stay first: Hono runs routes in registration order, and a route that answers never calls
+`next()`. One line per request:
+
+```
+[http] info GET /api/guilds 200 12ms
+[http] warn GET /api/nope 404 1ms
+[http] error GET /api/guilds 500 4ms: {"error":"Failed to list guilds"}
+```
+
+`error` is any 5xx, `warn` any 4xx. A failed request's detail is the thrown error's message when a
+handler threw, else the 5xx response body, since most responders catch their own failure and answer
+`500 { error }`.
+
 ## Quest Event Relay
 
 The server has two WS broadcast paths — they handle different event tiers:

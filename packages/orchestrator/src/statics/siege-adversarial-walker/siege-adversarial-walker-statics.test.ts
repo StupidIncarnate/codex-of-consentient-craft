@@ -146,7 +146,7 @@ describe('siege-adversarial-walker-statics', () => {
     });
   });
 
-  it('VALID: served template => lists siegelense docs, run/results/status, get-quest-work, get-quest, Write, quest-work, modify-quest and signal-back as yours', () => {
+  it('VALID: served template => lists siegelense docs, run/results/status, get-quest-work, get-quest, quest-work, modify-quest and signal-back as yours, and Write as not yours', () => {
     expect({
       hasYours: hasIn({ needle: 'YOURS' }),
       docsInYours: hasIn({
@@ -162,8 +162,8 @@ describe('siege-adversarial-walker-statics', () => {
       getQuestInYours: hasIn({
         needle: 'get-quest                      step 1, your flow whole',
       }),
-      writeInYours: hasIn({
-        needle: 'Write                          your PLAN: path. Nothing else.',
+      writeNotYours: hasIn({
+        needle: 'Edit / Write, on any path        you write no file — see [NO FILES]',
       }),
       questWorkInYours: hasIn({
         needle: 'quest-work                     observations, amendment, outcome',
@@ -177,7 +177,7 @@ describe('siege-adversarial-walker-statics', () => {
       instanceToolsInYours: true,
       getQuestWorkInYours: true,
       getQuestInYours: true,
-      writeInYours: true,
+      writeNotYours: true,
       questWorkInYours: true,
       modifyQuestInYours: true,
     });

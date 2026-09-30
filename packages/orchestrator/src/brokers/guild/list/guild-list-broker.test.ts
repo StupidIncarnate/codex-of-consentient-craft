@@ -168,6 +168,72 @@ describe('guildListBroker', () => {
       ]);
     });
 
+    it('VALID: {one guild with relative path "jo" beside a good guild} => lists both, the bad one flagged valid false', async () => {
+      const proxy = guildListBrokerProxy();
+      const homePath = '/home/user/.dungeonmaster';
+      const badGuild = GuildStub({
+        id: 'aaaaaaaa-bbbb-4ccc-8ddd-eeeeeeeeeeee',
+        name: 'jod',
+        path: 'jo',
+        urlSlug: 'jod',
+        createdAt: '2026-09-29T00:30:54.570Z',
+      });
+      const goodGuild = GuildStub({
+        id: 'f47ac10b-58cc-4372-a567-0e02b2c3d479',
+        name: 'My App',
+        path: '/home/user/my-app',
+        urlSlug: 'my-app',
+        createdAt: '2024-01-15T10:00:00.000Z',
+      });
+      const badQuestsDirPath =
+        '/home/user/.dungeonmaster/guilds/aaaaaaaa-bbbb-4ccc-8ddd-eeeeeeeeeeee/quests';
+      const goodQuestsDirPath =
+        '/home/user/.dungeonmaster/guilds/f47ac10b-58cc-4372-a567-0e02b2c3d479/quests';
+
+      proxy.setupGuildList({
+        config: GuildConfigStub({ guilds: [badGuild, goodGuild] }),
+        homeDir: '/home/user',
+        homePath,
+        guildEntries: [
+          {
+            accessible: true,
+            questsDirPath: badQuestsDirPath,
+            questDirEntries: [],
+          },
+          {
+            accessible: true,
+            questsDirPath: goodQuestsDirPath,
+            questDirEntries: [createMockDirEntry({ isDir: true })],
+          },
+        ],
+      });
+
+      const result = await guildListBroker();
+
+      expect(result).toStrictEqual([
+        {
+          id: 'aaaaaaaa-bbbb-4ccc-8ddd-eeeeeeeeeeee',
+          name: 'jod',
+          path: 'jo',
+          urlSlug: 'jod',
+          createdAt: '2026-09-29T00:30:54.570Z',
+
+          valid: false,
+          questCount: 0,
+        },
+        {
+          id: 'f47ac10b-58cc-4372-a567-0e02b2c3d479',
+          name: 'My App',
+          path: '/home/user/my-app',
+          urlSlug: 'my-app',
+          createdAt: '2024-01-15T10:00:00.000Z',
+
+          valid: true,
+          questCount: 1,
+        },
+      ]);
+    });
+
     it('VALID: {entries with non-directory files} => counts only directories as quests', async () => {
       const proxy = guildListBrokerProxy();
       const homePath = '/home/user/.dungeonmaster';

@@ -28,9 +28,21 @@ describe('stepStatics', () => {
           'video',
           'snapshot',
           'reset',
+          'scroll',
         ],
-        acting: ['goto', 'click', 'type', 'key', 'resize', 'paste'],
-        capturing: ['goto', 'click', 'type', 'look', 'key', 'health', 'resize', 'paste', 'hold'],
+        acting: ['goto', 'click', 'type', 'key', 'resize', 'paste', 'scroll'],
+        capturing: [
+          'goto',
+          'click',
+          'type',
+          'look',
+          'key',
+          'health',
+          'resize',
+          'paste',
+          'hold',
+          'scroll',
+        ],
         targeting: ['waitFor', 'click', 'type', 'paste'],
         browser: [
           'goto',
@@ -50,6 +62,7 @@ describe('stepStatics', () => {
           'paste',
           'hold',
           'video',
+          'scroll',
         ],
       },
       until: {
@@ -116,6 +129,7 @@ describe('stepStatics', () => {
       'resize',
       'paste',
       'hold',
+      'scroll',
     ]);
   });
 
@@ -127,6 +141,7 @@ describe('stepStatics', () => {
       'key',
       'resize',
       'paste',
+      'scroll',
     ]);
   });
 
@@ -155,6 +170,7 @@ describe('stepStatics', () => {
       'paste',
       'hold',
       'video',
+      'scroll',
     ]);
   });
 
@@ -185,6 +201,7 @@ describe('stepStatics', () => {
       'paste',
       'hold',
       'video',
+      'scroll',
     ]);
   });
 
@@ -192,7 +209,7 @@ describe('stepStatics', () => {
     expect(stepStatics.verbs.targeting).toStrictEqual(['waitFor', 'click', 'type', 'paste']);
   });
 
-  it('VALID: {verbs.all} => ends with reset, the twenty-third verb', () => {
+  it('VALID: {verbs.all} => ends with scroll, the twenty-fourth verb', () => {
     expect(stepStatics.verbs.all).toStrictEqual([
       'goto',
       'waitFor',
@@ -217,6 +234,7 @@ describe('stepStatics', () => {
       'video',
       'snapshot',
       'reset',
+      'scroll',
     ]);
   });
 });

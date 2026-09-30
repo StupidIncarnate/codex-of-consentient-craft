@@ -182,7 +182,9 @@ describe('compareReadBroker', () => {
         query: CompareQueryStub({ instanceId, runA, runB }),
       });
 
-      expect(result.pixels).toBe('last capture differs 2%');
+      expect(result.pixels).toBe(
+        'last capture differs 2.00% (2 px) (run_4: /repo/.dungeonmaster-assets/siegelense-assets/guilds/g1/instances/inst_7f3a9c21/runs/run_4/step1.png, run_5: /repo/.dungeonmaster-assets/siegelense-assets/guilds/g1/instances/inst_7f3a9c21/runs/run_5/step1.png)',
+      );
     });
   });
 
@@ -229,7 +231,8 @@ describe('compareReadBroker', () => {
         console: { errors: '+0', new: [] },
         server: { errors: '+0', new: [] },
         network: { errors: '+0', new: [] },
-        pixels: 'last capture differs 0%',
+        pixels:
+          'last capture differs 0 px (run_4: /repo/.dungeonmaster-assets/siegelense-assets/guilds/g1/instances/inst_7f3a9c21/runs/run_4/step1.png, run_4: /repo/.dungeonmaster-assets/siegelense-assets/guilds/g1/instances/inst_7f3a9c21/runs/run_4/step1.png)',
         elements: { runA: null, runB: null },
       });
     });

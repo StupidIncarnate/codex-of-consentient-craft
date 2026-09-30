@@ -45,6 +45,7 @@ describe('stepHoldBroker', () => {
         JSON.stringify({
           frames: 4,
           differing: 0,
+          changed: [],
           reading: 'NOTHING CHANGED across 4.5s',
           shots: [frame1, frame2, frame3, frame4],
         }),
@@ -89,8 +90,52 @@ describe('stepHoldBroker', () => {
         JSON.stringify({
           frames: 4,
           differing: 2,
-          reading: 'still changing at 4.5s',
+          changed: [2, 4],
+          reading: 'still changing at 4.5s — these frames differ from the one before: 2, 4',
           shots: [frame1, frame2, frame3, frame4],
+        }),
+      );
+    });
+
+    it('VALID: {one pixel of 10000 changes, 0.01% — a whole percent rounds it to 0%} => counts the frame as differing and names it', async () => {
+      const proxy = stepHoldBrokerProxy();
+      const lane = LaneSessionStub();
+      const captureLiveMock = jest.fn().mockResolvedValue(undefined);
+      const session = BrowserSessionStub({ captureLive: captureLiveMock });
+      const shotPath = '/tmp/runs/run_1/step4.png';
+      const index = 4;
+
+      const frame1 = '/tmp/runs/run_1/step4_frame1.png';
+      const frame2 = '/tmp/runs/run_1/step4_frame2.png';
+      const frame3 = '/tmp/runs/run_1/step4_frame3.png';
+
+      const whitePixels = new Uint8Array(40000).fill(255);
+      const onePixelChanged = new Uint8Array(40000).fill(255);
+      onePixelChanged[0] = 0;
+      onePixelChanged[1] = 0;
+      onePixelChanged[2] = 0;
+
+      proxy.stagesShot({ path: frame1, width: 100, height: 100, pixels: whitePixels });
+      proxy.stagesShot({ path: frame2, width: 100, height: 100, pixels: whitePixels });
+      proxy.stagesShot({ path: frame3, width: 100, height: 100, pixels: onePixelChanged });
+      proxy.succeedsCopy({ sourcePath: frame3, destinationPath: shotPath });
+
+      const result = await stepHoldBroker({
+        lane,
+        session,
+        index,
+        shotPath,
+        frames: 3,
+        everyMs: 1000,
+      });
+
+      expect(result).toBe(
+        JSON.stringify({
+          frames: 3,
+          differing: 1,
+          changed: [3],
+          reading: 'still changing at 2s — these frames differ from the one before: 3',
+          shots: [frame1, frame2, frame3],
         }),
       );
     });
@@ -129,6 +174,7 @@ describe('stepHoldBroker', () => {
         JSON.stringify({
           frames: 2,
           differing: 0,
+          changed: [],
           reading: 'NOTHING CHANGED across 1s',
           shots: [frame1, frame2],
         }),

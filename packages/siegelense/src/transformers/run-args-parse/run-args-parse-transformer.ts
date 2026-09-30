@@ -27,7 +27,9 @@ import type { RunArgs } from '../../contracts/run-args/run-args-contract';
 import { stopOnContract } from '../../contracts/stop-on/stop-on-contract';
 import { siegelenseOutputStatics } from '../../statics/siegelense-output/siegelense-output-statics';
 import { stepStatics } from '../../statics/step/step-statics';
+import { enumFlagParseTransformer } from '../enum-flag-parse/enum-flag-parse-transformer';
 import { flagContractParseTransformer } from '../flag-contract-parse/flag-contract-parse-transformer';
+import { stepBatchPreflightTransformer } from '../step-batch-preflight/step-batch-preflight-transformer';
 import { flagValueReadTransformer } from '../flag-value-read/flag-value-read-transformer';
 import { siegeInstanceContract } from '@dungeonmaster/shared/contracts';
 
@@ -38,8 +40,7 @@ const STOP_ON_FLAG = '--stop-on';
 
 const VALUE_FLAGS = [INSTANCE_FLAG, STEPS_FLAG, STEPS_FILE_FLAG, STOP_ON_FLAG];
 const KNOWN_FLAGS = [...VALUE_FLAGS, siegelenseOutputStatics.flags.json];
-const USAGE =
-  'Usage: dungeonmaster siegelense run --instance <instanceId> (--steps <json> | --steps-file <path>) [--stop-on error|never] [--json]';
+const USAGE = `Usage: dungeonmaster siegelense run --instance <instanceId> (--steps <json> | --steps-file <path>) [--stop-on ${stopOnContract.options.join('|')}] [--json]`;
 
 const STEPS_SOURCE_REFUSAL =
   `Exactly one of ${STEPS_FLAG} or ${STEPS_FILE_FLAG} is required: ${STEPS_FLAG} carries the ` +
@@ -111,9 +112,9 @@ export const runArgsParseTransformer = ({
     );
   }
 
-  const parsedSteps = ((): ReturnType<typeof runArgsContract.shape.steps.safeParse> => {
+  const parsedSteps: unknown = (() => {
     try {
-      return runArgsContract.shape.steps.safeParse(JSON.parse(rawStepsJson));
+      return JSON.parse(rawStepsJson);
     } catch (error) {
       throw new Error(
         `${sourceFlag}'s value is not valid JSON: ${error instanceof Error ? error.message : String(error)}`,
@@ -132,9 +133,11 @@ export const runArgsParseTransformer = ({
   const stopOn =
     stopOnValue === null
       ? stepStatics.defaults.stopOn
-      : flagContractParseTransformer({
+      : enumFlagParseTransformer({
           flag: STOP_ON_FLAG,
-          parse: () => stopOnContract.parse(stopOnValue),
+          raw: stopOnValue,
+          options: stopOnContract.options,
+          parse: (value) => stopOnContract.parse(value),
         });
 
   // Refused HERE, at argv parsing — before `instanceRunBroker` ever dials the driver's socket — so
@@ -142,18 +145,13 @@ export const runArgsParseTransformer = ({
   // down as `instanceRunBroker: driver for instance ... reported a failure: [` plus a raw JSON dump.
   // Checked after `instanceId`/`stopOn` above, not before: those two refusals take priority over an
   // empty batch when a caller's argv gets more than one thing wrong at once.
-  if (parsedSteps.success && parsedSteps.data.length === 0) {
+  if (Array.isArray(parsedSteps) && parsedSteps.length === 0) {
     throw new Error(`${sourceFlag}: ${EMPTY_BATCH_MESSAGE}`);
   }
 
-  // The steps' own issues are reported under the `steps` path, exactly as the whole-object parse
-  // below words them, because the steps were parsed on their own so the JSON text goes straight
-  // into a contract.
-  if (!parsedSteps.success) {
-    const detail = parsedSteps.error.issues
-      .map((issue) => `${['steps', ...issue.path].join('.')}: ${issue.message}`)
-      .join('; ');
-    throw new Error(`${sourceFlag}: ${detail}`, { cause: parsedSteps.error });
+  const refusals = stepBatchPreflightTransformer({ steps: parsedSteps });
+  if (refusals.length > 0) {
+    throw new Error(`${sourceFlag}: ${refusals.join('; ')}`);
   }
 
   return flagContractParseTransformer({
@@ -161,7 +159,7 @@ export const runArgsParseTransformer = ({
     parse: () =>
       runArgsContract.parse({
         instanceId,
-        steps: parsedSteps.data,
+        steps: parsedSteps,
         stopOn,
         isJson: args.includes(siegelenseOutputStatics.flags.json),
       }),

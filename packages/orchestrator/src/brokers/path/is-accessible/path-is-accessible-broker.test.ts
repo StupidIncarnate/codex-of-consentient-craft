@@ -1,5 +1,6 @@
 import { pathIsAccessibleBroker } from './path-is-accessible-broker';
 import { pathIsAccessibleBrokerProxy } from './path-is-accessible-broker.proxy';
+import { GuildStub } from '@dungeonmaster/shared/contracts/guild/guild.stub';
 
 describe('pathIsAccessibleBroker', () => {
   describe('accessible paths', () => {
@@ -34,6 +35,30 @@ describe('pathIsAccessibleBroker', () => {
       const path = '/root/locked';
 
       proxy.setupUnreadable({ path });
+
+      const result = await pathIsAccessibleBroker({ path });
+
+      expect(result).toBe(false);
+    });
+  });
+
+  describe('relative paths', () => {
+    it('INVALID: {path: "jo"} => returns false instead of throwing, even where the fs would answer true', async () => {
+      const proxy = pathIsAccessibleBrokerProxy();
+      const { path } = GuildStub({ path: 'jo' });
+
+      proxy.setupResult({ path, result: true });
+
+      const result = await pathIsAccessibleBroker({ path });
+
+      expect(result).toBe(false);
+    });
+
+    it('INVALID: {path: "./jo"} => returns false because a guild path must be absolute', async () => {
+      const proxy = pathIsAccessibleBrokerProxy();
+      const { path } = GuildStub({ path: './jo' });
+
+      proxy.setupResult({ path, result: true });
 
       const result = await pathIsAccessibleBroker({ path });
 

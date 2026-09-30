@@ -1,13 +1,14 @@
 /**
- * PURPOSE: Handles guild update requests by validating params/body and delegating to the orchestrator adapter
+ * PURPOSE: Handles guild update requests by validating params/body and delegating to the orchestrator
  *
  * USAGE:
  * const result = await GuildUpdateResponder({ params: { guildId: 'abc' }, body: { name: 'New' } });
- * // Returns { status: 200, data: guild } or { status: 400/409/500, data: { error } } — 409 when
- * // the new path is already registered to another guild
+ * // Returns { status: 200, data: guild } or { status: 400/409/500, data: { error } } — 400 names
+ * // `path` when it is not absolute, 409 when the new path is already registered to another guild
  */
 
 import { StartOrchestrator } from '@dungeonmaster/orchestrator';
+import { guildAbsolutePathInputContract } from '../../../contracts/guild-absolute-path-input/guild-absolute-path-input-contract';
 import { guildIdParamsContract } from '../../../contracts/guild-id-params/guild-id-params-contract';
 import { guildUpdateBodyContract } from '../../../contracts/guild-update-body/guild-update-body-contract';
 import { responderResultContract } from '../../../contracts/responder-result/responder-result-contract';
@@ -50,6 +51,13 @@ export const GuildUpdateResponder = async ({
     const parsedBody = guildUpdateBodyContract.safeParse(body);
     const name = parsedBody.success ? parsedBody.data.name : undefined;
     const path = parsedBody.success ? parsedBody.data.path : undefined;
+
+    if (path !== undefined && !guildAbsolutePathInputContract.safeParse({ path }).success) {
+      return responderResultContract.parse({
+        status: httpStatusStatics.clientError.badRequest,
+        data: { error: 'path must be an absolute path (start with / or C:\\ on Windows)' },
+      });
+    }
 
     const guild = await StartOrchestrator.updateGuild({
       guildId,

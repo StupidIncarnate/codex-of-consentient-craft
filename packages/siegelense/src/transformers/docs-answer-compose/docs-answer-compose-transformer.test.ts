@@ -34,7 +34,7 @@ describe('docsAnswerComposeTransformer', () => {
           'You will receive a test record containing the instance ID, the run ID, the step that failed, the setup sequence, and paths to the saved evidence.',
           'Steps 1 through 4 below do not require a running instance. They only read files from disk. They are completely free and work perfectly even if the instance was shut down hours ago. When debugging manually, Step 5 reproduces on a fresh instance; an orchestrated fixer skips Step 5 entirely.',
           'Every data query on an instance you already named reports its status as alive, killed, dead, or pruned.',
-          'A pruned status is an actual result, not empty data — if you query an old test and receive an empty list, you might incorrectly assume the test did nothing. Naming an id the registry never held is a different case: the tool refuses it outright, before touching any file, with exit code 1 and the message No record of the instance id "<id>". Check the id dungeonmaster siegelense start returned. A typo in the id gets you this refusal, never a silent "unknown" result.',
+          'A pruned status is an actual result, not empty data — if you query an old test and receive an empty list, you might incorrectly assume the test did nothing. Naming an id the registry never held is a different case: the tool refuses it outright, before touching any file, with exit code 1 and the message No record of the instance id "<id>". Check the id that `dungeonmaster siegelense start` returned. A typo in the id gets you this refusal, never a silent "unknown" result.',
         ],
       });
     });

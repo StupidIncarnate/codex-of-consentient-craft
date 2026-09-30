@@ -39,6 +39,7 @@ import { httpMethodContract } from '../http-method/http-method-contract';
 import { locatorStateContract } from '../locator-state/locator-state-contract';
 import { evidenceFileStatics } from '../../statics/evidence-file/evidence-file-statics';
 import { stepExpectationContract } from '../step-expectation/step-expectation-contract';
+import { scrollStatics } from '../../statics/scroll/scroll-statics';
 import { stepStatics } from '../../statics/step/step-statics';
 import { stepRefStatics } from '../../statics/step-ref/step-ref-statics';
 import { holdStatics } from '../../statics/hold/hold-statics';
@@ -51,8 +52,8 @@ import { fileStatics } from '../../statics/file/file-statics';
 
 const STEP_REF_SHAPE = /^\{(.+)\}$/u;
 
-const HANDLE_MESSAGE =
-  'a driving step takes exactly one handle: a `target` selector — durable, meaning the same element on the next run, so it is what belongs in a saved batch — or a `ref`, which one `look` minted against this instance and this page state and which is for driving right now. Try { "step": "click", "target": "[data-testid=PIXEL_BTN]", "within": "[data-testid=GUILD_LIST]" } or { "step": "click", "ref": 23 }';
+const SCROLL_MODE_MESSAGE =
+  'a scroll step takes exactly one of: a handle — a `target` selector or a `ref` from your latest `look`, brought into view, { "step": "scroll", "ref": 26 }; an amount — `by` pixels down and/or `byX` pixels right, negative for up or left, { "step": "scroll", "by": 400 }; or an edge — `to` "top" or "bottom", { "step": "scroll", "to": "bottom" }. A `target` and a `ref` together are refused, and `within` needs a `target`.';
 
 const UNTIL_CONDITION_MESSAGE =
   'an `until` step waits on exactly one condition, never zero and never two: `visible` — a selector that has not rendered yet, { "step": "until", "visible": "[data-testid=SUBAGENT_CHAIN]", "timeoutMs": 20000 }; `predicate` — a page expression that must become truthy, { "step": "until", "predicate": "document.querySelectorAll(\'[data-testid=QUEST_ROW]\').length === 3" }; `console` — a regex SOURCE string matched against a console line\'s text, { "step": "until", "console": "hydrated" }; `response` — a network exchange by method and a path substring, { "step": "until", "response": { "method": "POST", "path": "/api/quests" }, "timeoutMs": 15000 }; or `file` — a path resolved against the lane\'s home, { "step": "until", "file": "guilds/<id>/quests/<id>/quest.json", "timeoutMs": 10000 }';
@@ -447,6 +448,24 @@ export const stepContract = z
           .nullable()
           .default(null),
         reseed: z.string().brand<'StepReseed'>().nullable().default(null),
+        as: z.string().min(1).brand<'StepAs'>().nullable().default(null),
+        node: z.string().min(1).brand<'StepNode'>().nullable().default(null),
+        expect: stepExpectationContract.default(stepStatics.defaults.expect),
+      })
+      .strict()
+      .brand<'Step'>(),
+    z
+      .object({
+        step: z.literal('scroll'),
+        // Exactly one mode — a handle (`target` xor `ref`: bring that element into view), an amount
+        // (`by` down / `byX` right, negative for up / left), or an edge (`to`) — enforced on the
+        // union's `.superRefine` below for the reason `until`'s condition rule is.
+        target: z.string().min(1).brand<'StepTarget'>().nullable().default(null),
+        within: z.string().min(1).brand<'StepWithin'>().nullable().default(null),
+        ref: z.number().int().positive().brand<'StepRef'>().nullable().default(null),
+        by: z.number().int().brand<'StepBy'>().nullable().default(null),
+        byX: z.number().int().brand<'StepByX'>().nullable().default(null),
+        to: z.enum([scrollStatics.edges.top, scrollStatics.edges.bottom]).nullable().default(null),
         node: z.string().min(1).brand<'StepNode'>().nullable().default(null),
         expect: stepExpectationContract.default(stepStatics.defaults.expect),
       })
@@ -470,11 +489,32 @@ export const stepContract = z
       return;
     }
 
-    if (step.step === 'click' || step.step === 'type') {
-      if ((step.target === null) === (step.ref === null)) {
+    if (step.step === 'scroll') {
+      const handleCount = [step.target, step.ref].filter((value) => value !== null).length;
+      const amountSet = step.by !== null || step.byX !== null;
+      const modeCount = [handleCount > 0, amountSet, step.to !== null].filter(Boolean).length;
+      if (modeCount !== 1 || handleCount > 1 || (step.within !== null && step.target === null)) {
         context.addIssue({
           code: 'custom',
-          message: HANDLE_MESSAGE,
+          message: SCROLL_MODE_MESSAGE,
+          path: ['to'],
+        });
+      }
+      return;
+    }
+
+    if (step.step === 'click' || step.step === 'type') {
+      if (step.target === null && step.ref === null) {
+        context.addIssue({
+          code: 'custom',
+          message: `a ${step.step} step needs a handle: a \`target\` selector — durable, so it belongs in a saved batch — or a \`ref\` from your latest \`look\`, for driving right now. Try { "step": "${step.step}", "target": "[data-testid=YOUR_ID]" } or { "step": "${step.step}", "ref": <a ref from your latest look> }`,
+          path: ['target'],
+        });
+      }
+      if (step.target !== null && step.ref !== null) {
+        context.addIssue({
+          code: 'custom',
+          message: `a ${step.step} step takes a \`target\` or a \`ref\`, not both: give one handle, because two handles could disagree about which element is meant.`,
           path: ['target'],
         });
       }

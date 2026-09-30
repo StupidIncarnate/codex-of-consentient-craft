@@ -9,6 +9,12 @@
  * line hides the one thing a reader actually wants (method, status, url, body) behind property
  * names they have to parse first. Every other kind falls through to the generic
  * content/reading/text/message shape a step reading, a screenshot or a websocket frame carries.
+ * An EMPTY answer for a kind says what was looked for and for which window — `0 network requests
+ * during run_7` — then what the answer knows about where that evidence is instead: the latest run
+ * holding lines of that kind (`latestRunWithRows`), or the `api-server.log` byte range the steps
+ * covered (`serverWindow`). A bare "none found" reads the same for a clean run, a run that was never
+ * recorded, and the wrong run, and those are three different next moves. An answer with no kind, or
+ * for an `unknown`/`pruned` instance whose state already says why, keeps the plain notice.
  * Pure, keeping human formatting separate from the read broker and the CLI responder.
  *
  * USAGE:
@@ -19,7 +25,9 @@
 import { safeJsonParseTransformer } from '@dungeonmaster/shared/transformers';
 
 import type { ResultsAnswer } from '../../contracts/results-answer/results-answer-contract';
+import { resultsStatics } from '../../statics/results/results-statics';
 import { networkBodyTrimTransformer } from '../network-body-trim/network-body-trim-transformer';
+import { stepReadingTextRenderTransformer } from '../step-reading-text-render/step-reading-text-render-transformer';
 import { runAnswerRenderTransformer } from '../run-answer-render/run-answer-render-transformer';
 
 export const resultsAnswerRenderTransformer = ({ answer }: { answer: ResultsAnswer }): string => {
@@ -32,9 +40,30 @@ export const resultsAnswerRenderTransformer = ({ answer }: { answer: ResultsAnsw
     }
     const record = parsed.value as Record<PropertyKey, unknown>;
 
+    // Only a `--since boot` row carries `run`; a single run's rows keep their bare shape.
+    const atDate = typeof record.at === 'number' ? new Date(record.at) : null;
+    const stamp = [
+      typeof record.run === 'string' ? record.run : 'run' in record ? 'between runs' : null,
+      typeof record.step === 'number' ? `step ${String(record.step)}` : null,
+      atDate === null || Number.isNaN(atDate.getTime()) ? null : atDate.toISOString(),
+    ].filter((part) => part !== null);
+    const stampPrefix = 'run' in record ? `[${stamp.join(' ')}] ` : '';
+
     if (answer.kind === 'console' && typeof record.text === 'string') {
       const level = typeof record.type === 'string' ? record.type : 'log';
-      return `${level.toUpperCase()}: ${record.text}`;
+      return `${stampPrefix}${level.toUpperCase()}: ${record.text}`;
+    }
+
+    if (
+      answer.kind === 'ws' &&
+      typeof record.direction === 'string' &&
+      typeof record.url === 'string'
+    ) {
+      const payload = typeof record.payload === 'string' ? record.payload : '';
+      const frame = `${stampPrefix}${record.direction} ${record.url}`;
+      return payload.length === 0
+        ? frame
+        : `${frame} — ${networkBodyTrimTransformer({ body: payload })}`;
     }
 
     if (answer.kind === 'network' && typeof record.method === 'string') {
@@ -46,7 +75,7 @@ export const resultsAnswerRenderTransformer = ({ answer }: { answer: ResultsAnsw
           : typeof record.requestBody === 'string' && record.requestBody.length > 0
             ? record.requestBody
             : '';
-      const exchange = `${record.method} ${status} ${url}`;
+      const exchange = `${stampPrefix}${record.method} ${status} ${url}`;
       return bodySource.length === 0
         ? exchange
         : `${exchange} — ${networkBodyTrimTransformer({ body: bodySource })}`;
@@ -64,7 +93,10 @@ export const resultsAnswerRenderTransformer = ({ answer }: { answer: ResultsAnsw
             : typeof record.message === 'string'
               ? record.message
               : null;
-    const content = rawContent === null ? JSON.stringify(record) : rawContent;
+    const content =
+      rawContent === null
+        ? JSON.stringify(record)
+        : stepReadingTextRenderTransformer({ verb, reading: rawContent });
 
     if (step !== null && verb !== null) {
       return `[step ${step}] ${verb}: ${content}`;
@@ -84,7 +116,35 @@ export const resultsAnswerRenderTransformer = ({ answer }: { answer: ResultsAnsw
   }
 
   if (lines.length === 0) {
-    return `${header}\nREADINGS: none found for query\n`;
+    const { kind } = answer;
+    if (kind === null || answer.instanceState === 'unknown' || answer.instanceState === 'pruned') {
+      return `${header}\nREADINGS: none found for query\n`;
+    }
+
+    const noun =
+      Object.entries(resultsStatics.render.emptyNouns).find(([name]) => name === kind)?.[1] ??
+      `${kind} readings`;
+    const stepText = answer.step === null ? '' : ` step ${String(answer.step)}`;
+    const scope = answer.runId === null ? 'since boot' : `during ${answer.runId}${stepText}`;
+    const latest = answer.latestRunWithRows;
+    const window = answer.serverWindow;
+
+    const latestText =
+      latest === undefined
+        ? ''
+        : latest === null
+          ? ` Nothing of this kind was recorded on this instance at all.`
+          : latest.runId === answer.runId
+            ? ` ${latest.runId} holds ${String(latest.rows)} ${noun} in all; none match this query's step or filter.`
+            : ` Each run holds only what arrived during its own steps; the latest ${noun} on this instance are ${String(latest.rows)} from ${latest.runId} — read them with --run ${latest.runId}, or --since boot for the whole timeline.`;
+    const windowText =
+      window === undefined
+        ? ''
+        : window === null
+          ? ' No step in this query recorded a server log window.'
+          : ` Covered api-server.log bytes ${String(window.fromByte)}-${String(window.toByte)}${Number(window.fromByte) === Number(window.toByte) ? ': the server wrote nothing while these steps ran' : ''}.`;
+
+    return `${header}\nREADINGS: 0 ${noun} ${scope}.${latestText}${windowText}\n`;
   }
 
   return `${header}\n${lines.join('\n')}\n`;

@@ -37,6 +37,9 @@ export const questGetBrokerProxy = (): {
   // caller asserting on the `error` text of a `{ success: false, error }`. Any other input runs the
   // real broker.
   setupResolves: (params: { input: GetInput; result: GetResult }) => void;
+  // Answers the NEXT call for one exact `input` only, so a later call to the same address can be
+  // staged differently.
+  setupResolvesOnce: (params: { input: GetInput; result: GetResult }) => void;
 } => {
   const findQuestPathProxy = questFindQuestPathBrokerProxy();
   const joinHandle = registerMock({ fn: join });
@@ -52,6 +55,10 @@ export const questGetBrokerProxy = (): {
   return {
     setupResolves: ({ input, result }: { input: GetInput; result: GetResult }): void => {
       getMock.calledWith([{ input }]).resolves(result);
+    },
+
+    setupResolvesOnce: ({ input, result }: { input: GetInput; result: GetResult }): void => {
+      getMock.onceFor([{ input }]).resolves(result);
     },
 
     setupRealLookup: ({ questId }: { questId: Quest['id'] }): void => {

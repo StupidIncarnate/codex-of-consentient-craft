@@ -7,13 +7,43 @@ describe('runIndexContract', () => {
       const result = runIndexContract.parse({
         console: { errors: 0, warnings: 2 },
         server: { errors: 0 },
-        network: { exchanges: 14, non2xx: 0 },
+        network: { exchanges: 14, failed: 0 },
       });
 
       expect(result).toStrictEqual({
         console: { errors: 0, warnings: 2 },
         server: { errors: 0 },
-        network: { exchanges: 14, non2xx: 0 },
+        network: { exchanges: 14, failed: 0 },
+      });
+    });
+  });
+
+  describe('an index an older build wrote', () => {
+    it('VALID: {network: {exchanges: 9, non2xx: 1}} => reads non2xx as failed', () => {
+      const result = runIndexContract.parse({
+        console: { errors: 0, warnings: 0 },
+        server: { errors: 0 },
+        network: { exchanges: 9, non2xx: 1 },
+      });
+
+      expect(result).toStrictEqual({
+        console: { errors: 0, warnings: 0 },
+        server: { errors: 0 },
+        network: { exchanges: 9, failed: 1 },
+      });
+    });
+
+    it('VALID: {network carries both failed and non2xx} => keeps failed and drops non2xx', () => {
+      const result = runIndexContract.parse({
+        console: { errors: 0, warnings: 0 },
+        server: { errors: 0 },
+        network: { exchanges: 9, failed: 0, non2xx: 1 },
+      });
+
+      expect(result).toStrictEqual({
+        console: { errors: 0, warnings: 0 },
+        server: { errors: 0 },
+        network: { exchanges: 9, failed: 0 },
       });
     });
   });
@@ -23,19 +53,19 @@ describe('runIndexContract', () => {
       const result = runIndexContract.parse({
         console: { errors: 0, warnings: 0 },
         server: { errors: 0 },
-        network: { exchanges: 0, non2xx: 0 },
+        network: { exchanges: 0, failed: 0 },
       });
 
       expect(result).toStrictEqual({
         console: { errors: 0, warnings: 0 },
         server: { errors: 0 },
-        network: { exchanges: 0, non2xx: 0 },
+        network: { exchanges: 0, failed: 0 },
       });
     });
   });
 
   describe('invalid indexes', () => {
-    it('INVALID: {missing network.non2xx} => throws validation error', () => {
+    it('INVALID: {missing network.failed} => throws validation error', () => {
       expect(() =>
         runIndexContract.parse({
           console: { errors: 0, warnings: 0 },
@@ -50,9 +80,9 @@ describe('runIndexContract', () => {
         runIndexContract.parse({
           console: { errors: -1, warnings: 0 },
           server: { errors: 0 },
-          network: { exchanges: 0, non2xx: 0 },
-        }),
-      ).toThrow(/expected number to be >=0/u);
+          network: { exchanges: 0, failed: 0 },
+        } as never),
+      ).toThrow(/Too small: expected number to be >=0/u);
     });
   });
 
@@ -63,7 +93,7 @@ describe('runIndexContract', () => {
       expect(result).toStrictEqual({
         console: { errors: 0, warnings: 2 },
         server: { errors: 0 },
-        network: { exchanges: 14, non2xx: 0 },
+        network: { exchanges: 14, failed: 0 },
       });
     });
   });

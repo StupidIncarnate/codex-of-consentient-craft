@@ -99,6 +99,8 @@ const VMSTAT_CONTENT_VALUE = 'nr_free_pages 12345\noom_kill 0\n';
 // A stale reap adds the kill's read and the release's read, queued by setupStaleReap.
 const PRE_RESERVE_REGISTRY_READS = 2;
 const STALE_REAP_REGISTRY_READS = 2;
+// The instant a failed boot's reservation release stamps as `killedAtMs`.
+const RELEASED_AT_MS = 1_700_000_000_000;
 
 const ROOT_PATH_FILE = ROOT_PATH_VALUE;
 const LINK_PATH_FILE = LINK_PATH_VALUE;
@@ -440,6 +442,7 @@ export const instanceStartBrokerProxy = (): {
         socketPath,
         homePath: `${TMP_DIR_VALUE}/dm-siege-${instanceId}`,
       });
+      releaseProxy.setupNow({ nowMs: RELEASED_AT_MS });
     },
 
     setupBootFailureMarkerAppears: ({
@@ -479,6 +482,7 @@ export const instanceStartBrokerProxy = (): {
         socketPath,
         homePath: `${TMP_DIR_VALUE}/dm-siege-${instanceId}`,
       });
+      releaseProxy.setupNow({ nowMs: RELEASED_AT_MS });
     },
 
     getWrittenBootLock: (): unknown => bootLockAcquireProxy.getWrittenLock(),

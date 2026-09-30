@@ -1,20 +1,23 @@
 /**
  * PURPOSE: Assembles one `InstanceStatus` row from a registry row, its resolved state, and its
  * heartbeat file — the post-mortem `status` prints for one instance (siegelense-tooling.md lines
- * 1174-1183). `runs` and `evidenceComplete` are always populated: neither requires already holding
+ * 1174-1183). `runs` and `lastRunSaved` are always populated: neither requires already holding
  * this instance's id, so counting or checking completeness is not "browsing". Both come off
  * `runEvidenceComputeTransformer` — the SAME function `results`' `runListLayerBroker` calls — so the
  * two tools can never disagree about how many runs an instance holds or whether the latest one
- * finished. `lastStep` and `evidence` populate ONLY when `named` is true — a `status {}` fleet
+ * finished; `lastRunSaved` is `null` for an instance with no run at all. `lastStep` and `evidence`
+ * populate ONLY when `named` is true — a `status {}` fleet
  * listing never carries a run or an evidence path for an instance the caller has not already named
- * (chunk-03-read-path-and-perception.md §3.D, spec line 2380). `rssMB` (current) and `rssAtLastBeat`
- * (from the heartbeat file) never both carry a value: the first only while `state` is `'alive'`, the
- * second only once it is not. `orphans` draws the SAME line: it is `[]` while `state` is `'alive'`,
- * and `orphanReadBroker` runs at all only once it is not — a live instance's own pgids are its
+ * (chunk-03-read-path-and-perception.md §3.D, spec line 2380). A named `evidence` is the directory
+ * plus EVERY file `evidenceTreeLayerBroker` finds under it, each an absolute path — never a fixed set
+ * of known names, so a file kind nobody named (a recorded video) still shows. `memory` is the live process-group
+ * reading while `state` is `'alive'` and the heartbeat file's last figure once it is not, tagged
+ * with which one it is. `orphans` draws the SAME line: it is `[]` while `state` is `'alive'`, and
+ * `orphanReadBroker` runs at all only once it is not — a live instance's own pgids are its
  * actively-managed lane, never a leak, and the spec reserves "orphans" for what a dead one's driver
  * left BEHIND (siegelense-tooling.md:2497-2500, "a dead one carries … its surviving orphan pgids").
  * Reporting an alive instance's own lane under that name reads as a leak that is not there.
- * `shutdownReasonReadBroker` draws the SAME line as `orphans`/`rssAtLastBeat`: it runs only once
+ * `shutdownReasonReadBroker` draws the SAME line as `orphans`/`memory`: it runs only once
  * `state` is not `'alive'`, and its result feeds `likelyCauseLayerBroker` so a driver's own recorded
  * reason for tearing its lane down (an idle-timeout self-reap) reaches `likelyCause` verbatim instead
  * of the RSS/OOM reading standing in for it.
@@ -32,10 +35,10 @@
 
 import { join } from '#gateway/node/path';
 import { locationsStatics } from '@dungeonmaster/shared/statics';
-
-import { readdirIfExists, readFile, statIfExists } from '#gateway/node/fs__promises';
+import { readdirIfExists, readFile } from '#gateway/node/fs__promises';
 import { shutdownReasonReadBroker } from '../../shutdown-reason/read/shutdown-reason-read-broker';
 import { instanceEvidenceListingContract } from '../../../contracts/instance-evidence-listing/instance-evidence-listing-contract';
+import { instanceMemoryContract } from '../../../contracts/instance-memory/instance-memory-contract';
 import { instanceStatusContract } from '../../../contracts/instance-status/instance-status-contract';
 import type { InstanceStatus } from '../../../contracts/instance-status/instance-status-contract';
 import type { InstanceState } from '../../../contracts/instance-state/instance-state-contract';
@@ -51,6 +54,7 @@ import { locationsRepoLinkPathFindBroker } from '../../locations/repo-link-path-
 import { machineRssByPgidBroker } from '../../machine/rss-by-pgid/machine-rss-by-pgid-broker';
 import { orphanReadBroker } from '../../orphan/read/orphan-read-broker';
 import { evidenceFileStatics } from '../../../statics/evidence-file/evidence-file-statics';
+import { evidenceTreeLayerBroker } from './evidence-tree-layer-broker';
 import { likelyCauseLayerBroker } from './likely-cause-layer-broker';
 import { profileSoloReadLayerBroker } from './profile-solo-read-layer-broker';
 
@@ -104,12 +108,18 @@ export const instanceEntryLayerBroker = async ({
       : elapsedRenderTransformer({ elapsedMs: nowMs - entry.lastBeatMs });
 
   const rssAtLastBeat = state === 'alive' ? null : (heartbeat?.rssMB ?? null);
+  const memory =
+    state === 'alive'
+      ? rssMB === null
+        ? null
+        : instanceMemoryContract.parse({ megabytes: rssMB, measured: 'live' })
+      : rssAtLastBeat === null
+        ? null
+        : instanceMemoryContract.parse({ megabytes: rssAtLastBeat, measured: 'at-last-beat' });
+  const lastRunSaved = lastRunId === null ? null : evidenceComplete;
 
-  // Sequential, run only AFTER the Promise.all above has fully settled: profileSoloReadLayerBroker
-  // reaches profileReadBroker, which joins its own paths through the SAME shared pathJoinAdapter
-  // queue every other call above stages explicitly, in a fixed order (instance-entry-layer-broker.proxy.ts's
-  // own header). Racing it alongside that Promise.all would consume a queue entry staged for one of
-  // those other calls instead of computing its own real join.
+  // Sequential, run only AFTER the Promise.all above has fully settled, so a solo-profile read
+  // never races the heartbeat, runs-directory and /proc reads it is diagnosing alongside.
   const soloProfile =
     state === 'alive' ? null : await profileSoloReadLayerBroker({ specName: entry.specName });
 
@@ -130,36 +140,21 @@ export const instanceEntryLayerBroker = async ({
       uptime,
       lastBeat,
       runs,
-      rssMB,
-      rssAtLastBeat,
+      memory,
       lastStep: null,
       orphans,
       evidence: null,
       likelyCause,
       branch: entry.branch ?? null,
-      evidenceComplete,
+      lastRunSaved,
     });
   }
 
-  const [apiLogStat, webLogStat, driverLogStat, repoLocalDir] = await Promise.all([
-    statIfExists(join(evidenceDir, locationsStatics.siegelense.apiLog)),
-    statIfExists(join(evidenceDir, locationsStatics.siegelense.webLog)),
-    statIfExists(join(evidenceDir, locationsStatics.siegelense.driverLog)),
-    locationsRepoLinkPathFindBroker({ homePath: evidenceDir }),
-  ]);
-
-  // Full repo-local paths, not bare names — a bare "api-server.log" gives a reader nothing to
-  // `Read`. `fileNameContract` is an unbranded-format string brand (no path-shape constraint), so a
-  // full path parses through it cleanly; reusing it here — rather than widening the
-  // `instanceEvidenceListingContract.logs` element type to something path-shaped — is what keeps
-  // this a broker-only change.
-  const logs = [
-    ...(apiLogStat === null ? [] : [join(repoLocalDir.path, locationsStatics.siegelense.apiLog)]),
-    ...(webLogStat === null ? [] : [join(repoLocalDir.path, locationsStatics.siegelense.webLog)]),
-    ...(driverLogStat === null
-      ? []
-      : [join(repoLocalDir.path, locationsStatics.siegelense.driverLog)]),
-  ];
+  const repoLocalDir = await locationsRepoLinkPathFindBroker({ homePath: evidenceDir });
+  const evidence = instanceEvidenceListingContract.parse({
+    dir: repoLocalDir,
+    files: await evidenceTreeLayerBroker({ homeDir: evidenceDir, repoLocalDir: repoLocalDir.path }),
+  });
 
   if (lastRunId === null) {
     return instanceStatusContract.parse({
@@ -169,19 +164,13 @@ export const instanceEntryLayerBroker = async ({
       uptime,
       lastBeat,
       runs,
-      rssMB,
-      rssAtLastBeat,
+      memory,
       lastStep: null,
       orphans,
-      evidence: instanceEvidenceListingContract.parse({
-        dir: repoLocalDir,
-        transcript: null,
-        logs,
-        lastShot: null,
-      }),
+      evidence,
       likelyCause,
       branch: entry.branch ?? null,
-      evidenceComplete,
+      lastRunSaved,
     });
   }
 
@@ -192,41 +181,8 @@ export const instanceEntryLayerBroker = async ({
   const transcriptContent = await readFile(transcriptPath);
   const transcriptLines = transcriptContent.split('\n').filter((line) => line.length > 0);
   const lastLine = transcriptLines[transcriptLines.length - 1];
-
-  if (lastLine === undefined) {
-    return instanceStatusContract.parse({
-      id: entry.id,
-      state,
-      specName: entry.specName,
-      uptime,
-      lastBeat,
-      runs,
-      rssMB,
-      rssAtLastBeat,
-      lastStep: null,
-      orphans,
-      evidence: instanceEvidenceListingContract.parse({
-        dir: repoLocalDir,
-        transcript: `${lastRunId}${evidenceFileStatics.extensions.transcript}`,
-        logs,
-        lastShot: null,
-      }),
-      likelyCause,
-      branch: entry.branch ?? null,
-      evidenceComplete,
-    });
-  }
-
-  const lastReading = stepReadingContract.parse(JSON.parse(lastLine));
-  const lastStep = lastStepReadingContract.parse({
-    run: lastRunId,
-    step: lastReading.step,
-    verb: lastReading.verb,
-  });
-  const lastShot =
-    lastReading.shot === null
-      ? null
-      : `${lastRunId}/${evidenceFileStatics.naming.shotPrefix}${lastReading.step}${evidenceFileStatics.extensions.shot}`;
+  const lastReading =
+    lastLine === undefined ? null : stepReadingContract.parse(JSON.parse(lastLine));
 
   return instanceStatusContract.parse({
     id: entry.id,
@@ -235,18 +191,19 @@ export const instanceEntryLayerBroker = async ({
     uptime,
     lastBeat,
     runs,
-    rssMB,
-    rssAtLastBeat,
-    lastStep,
+    memory,
+    lastStep:
+      lastReading === null
+        ? null
+        : lastStepReadingContract.parse({
+            run: lastRunId,
+            step: lastReading.step,
+            verb: lastReading.verb,
+          }),
     orphans,
-    evidence: instanceEvidenceListingContract.parse({
-      dir: repoLocalDir,
-      transcript: `${lastRunId}${evidenceFileStatics.extensions.transcript}`,
-      logs,
-      lastShot,
-    }),
+    evidence,
     likelyCause,
     branch: entry.branch ?? null,
-    evidenceComplete,
+    lastRunSaved,
   });
 };

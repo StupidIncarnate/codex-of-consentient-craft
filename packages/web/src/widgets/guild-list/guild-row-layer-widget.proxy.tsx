@@ -7,7 +7,10 @@ export const GuildRowLayerWidgetProxy = (): {
   isItemSelected: (params: { testId: string }) => boolean;
   getItemName: (params: { testId: string }) => HTMLElement['textContent'];
   clickItem: (params: { testId: string }) => Promise<void>;
+  getInvalidMarkerText: (params: { testId: string }) => HTMLElement['textContent'];
 } => ({
+  getInvalidMarkerText: ({ testId }: { testId: string }): HTMLElement['textContent'] =>
+    screen.queryByTestId(testId)?.textContent ?? null,
   isItemSelected: ({ testId }: { testId: string }): boolean => {
     const element = screen.getByTestId(testId);
     return element.style.color === 'rgb(251, 191, 36)';

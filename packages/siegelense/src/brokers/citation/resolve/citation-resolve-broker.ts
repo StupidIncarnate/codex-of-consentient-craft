@@ -28,22 +28,20 @@ import { citationGapContract } from '../../../contracts/citation-gap/citation-ga
 import { citationResolutionContract } from '../../../contracts/citation-resolution/citation-resolution-contract';
 import type { CitationResolution } from '../../../contracts/citation-resolution/citation-resolution-contract';
 import type { RegistryEntry } from '../../../contracts/registry-entry/registry-entry-contract';
+import { citationStatics } from '../../../statics/citation/citation-statics';
 import { locationsCitationQuestFilePathFindBroker } from '../../locations/citation-quest-file-path-find/locations-citation-quest-file-path-find-broker';
 import { questRecordParseLayerBroker } from './quest-record-parse-layer-broker';
 import { verifiedPreludeLayerBroker } from './verified-prelude-layer-broker';
 import { walkedNoteLayerBroker } from './walked-note-layer-broker';
 import type { SiegeRun } from '@dungeonmaster/shared/contracts';
+import { citationKindContract } from '../../../contracts/citation-kind/citation-kind-contract';
 
 // The gap that never closes with anything this package can write. It rides every resolution of a
 // quest-owned instance, and `prune`/`cleanup` carry it into their own answers, so a caller reading
 // `refused: []` also reads which question was never put.
 const OPEN_ISSUE_GAP = citationGapContract.parse({
-  kind: 'open-issue',
-  why:
-    'not checked: no issue record exists to check. Nothing in this repo stores an issue carrying ' +
-    "a typed instanceId/runId — a workItem's own observation carries neither field and " +
-    'questNoteKindContract has no issue member — so a walker records a defect as a failing test ' +
-    'or as prose in a note, neither of which a resolver can match an instance against.',
+  kind: citationKindContract.parse(citationStatics.openIssue.kind),
+  why: citationStatics.openIssue.uncheckedWhy,
 });
 
 const NO_PRELUDE_GAP = citationGapContract.parse({

@@ -14,17 +14,19 @@ import { readFileBytesProxy } from '#gateway/node/fs__promises/read-file-bytes/r
 import { PNG } from '#gateway/npm/pngjs';
 import { decodePngProxy } from '#gateway/npm/pngjs/decode-png/decode-png.proxy';
 import { Buffer } from '#gateway/node/buffer';
+import { shotDiffCountBrokerProxy } from '../diff-count/shot-diff-count-broker.proxy';
 
 export const shotChangeReadBrokerProxy = (): {
   stagesShot: (params: { path: string; width: number; height: number; pixels: Uint8Array }) => void;
   // A low-specificity fallback so a caller composing this proxy (e.g. step-dispatch-broker.proxy.ts,
-  // which never imports fsReadFileAdapter directly and so may not construct its own proxy for it —
+  // which never imports readFileBytes directly and so may not construct its own proxy for it —
   // enforce-proxy-child-creation) can give every unstaged shot path a real decodable frame. A test's
   // own `stagesShot` for a SPECIFIC path still wins — exact-path matches outrank this wildcard.
   stagesDefaultShot: (params: { bytes: Uint8Array }) => void;
 } => {
   const readProxy = readFileBytesProxy();
   decodePngProxy();
+  shotDiffCountBrokerProxy();
 
   return {
     stagesShot: ({

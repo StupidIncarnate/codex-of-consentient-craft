@@ -21,7 +21,7 @@
 export class InstanceUnknownError extends Error {
   public constructor({ instanceId }: { instanceId: string }) {
     super(
-      `No record of the instance id "${instanceId}". Check the id dungeonmaster siegelense start returned.`,
+      `No record of the instance id "${instanceId}". Check the id that \`dungeonmaster siegelense start\` returned.`,
     );
     this.name = 'InstanceUnknownError';
   }

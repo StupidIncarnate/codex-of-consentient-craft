@@ -576,7 +576,9 @@ describe('resultToSummaryTransformer', () => {
       );
     });
 
-    it('VALID: {wardResult: integration 0 files run but 12 discovered} => shows DISCOVERY MISMATCH', () => {
+    // A crash left no report to count processed files from, so its 0 against 12 discovered is not
+    // evidence that 12 files went unrun — it is the crash itself, reported below as one.
+    it('ERROR: {wardResult: integration crashed, 0 files run but 12 discovered} => reads as a crash, not a DISCOVERY MISMATCH', () => {
       const wardResult = WardRunResultStub({
         checks: [
           CheckResultStub({
@@ -603,7 +605,7 @@ describe('resultToSummaryTransformer', () => {
       });
 
       expect(result).toBe(
-        'run: 1739625600000-a3f1\nintegration: FAIL  0 files run, 12 discovered  DISCOVERY MISMATCH\n\n--- integration ---\nhooks\n  (crash) Jest crashed',
+        'run: 1739625600000-a3f1\nintegration: FAIL  0 files run, 12 discovered\n\n--- integration ---\nhooks\n  (crash) Jest crashed',
       );
     });
 
@@ -666,7 +668,7 @@ describe('resultToSummaryTransformer', () => {
       );
     });
 
-    it('VALID: {wardResult: file-scoped 0 files run bad path} => shows DISCOVERY MISMATCH', () => {
+    it('ERROR: {wardResult: file-scoped, crashed, 0 files run} => reads as a crash, not a DISCOVERY MISMATCH', () => {
       const wardResult = WardRunResultStub({
         filters: { passthrough: ['src/brokers/quest/nonexistent'] },
         checks: [
@@ -694,7 +696,50 @@ describe('resultToSummaryTransformer', () => {
       });
 
       expect(result).toBe(
-        'run: 1739625600000-a3f1\nunit:      FAIL  0 files run, 209 discovered  DISCOVERY MISMATCH\n\n--- unit ---\norchestrator\n  (crash) No tests found',
+        'run: 1739625600000-a3f1\nunit:      FAIL  0 files run, 209 discovered\n\n--- unit ---\norchestrator\n  (crash) No tests found',
+      );
+    });
+
+    // DEF-161: jest's `--json` report never arrived, and what the tests wrote to stdout came first,
+    // so the head of the output was an install log naming nothing. The crash line carries the
+    // message under jest's own first failure header instead.
+    it('ERROR: {wardResult: crashed with test chatter before the jest report} => shows the failure message, not the chatter', () => {
+      const wardResult = WardRunResultStub({
+        filters: { passthrough: ['packages/cli/src/flows/cli/cli-flow.integration.test.ts'] },
+        checks: [
+          CheckResultStub({
+            checkType: 'integration',
+            status: 'fail',
+            projectResults: [
+              ProjectResultStub({
+                projectFolder: { name: 'cli', path: '/p/cli' },
+                status: 'fail',
+                filesCount: 0,
+                discoveredCount: 5,
+                rawOutput: {
+                  stdout: [
+                    '[OK] @dungeonmaster/cli: Added devDependencies to package.json',
+                    'FAIL src/flows/cli/cli-flow.integration.test.ts (73.469 s)',
+                    '  ● CliFlow › command routing - siegelense › VALID: routes',
+                    '',
+                    '    thrown: "Exceeded timeout of 30000 ms for a hook.',
+                  ].join('\n'),
+                  stderr: '',
+                  exitCode: 1,
+                },
+              }),
+            ],
+          }),
+        ],
+      });
+
+      const result = resultToSummaryTransformer({
+        wardResult,
+        cwd: '/p',
+      });
+
+      expect(result).toBe(
+        'run: 1739625600000-a3f1\nintegration: FAIL  0 files run, 5 discovered\n\n--- integration ---\ncli\n  (crash) thrown: "Exceeded timeout of 30000 ms for a hook.',
       );
     });
 

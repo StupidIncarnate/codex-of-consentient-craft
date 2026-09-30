@@ -5,6 +5,8 @@ import { InstanceIdStub } from '../../../contracts/instance-id/instance-id.stub'
 import { LaneProcessStub } from '../../../contracts/lane-process/lane-process.stub';
 import { LaneSpecStub } from '../../../contracts/lane-spec/lane-spec.stub';
 import { PortPairStub } from '../../../contracts/port-pair/port-pair.stub';
+import { RegistryEntryStub } from '../../../contracts/registry-entry/registry-entry.stub';
+import { RegistryStub } from '../../../contracts/registry/registry.stub';
 
 const INSTANCE_ID = InstanceIdStub();
 const HOME_PATH = '/tmp/dm-siege-inst_7f3a9c21';
@@ -946,6 +948,79 @@ describe('laneBootBroker', () => {
         env: { ...inheritedEnvSnapshot },
         detached: true,
         stdio: ['ignore', workerFd, workerFd],
+      });
+    });
+  });
+
+  describe('an instance restart', () => {
+    it('VALID: {stopProcesses then startProcesses} => respawns the same command onto the same log fd, and session.pgids and the registry row name the new group', async () => {
+      const proxy = laneBootBrokerProxy();
+      const repoRoot = proxy.resolveRepoRoot();
+      const ports = PortPairStub({ api: 34_172, web: 34_173 });
+      const apiFd = 10;
+      const apiProcess = LaneProcessStub({
+        name: 'api',
+        command: 'npm',
+        args: ['run', 'dev:no-watch'],
+        portRole: 'api',
+        readyPath: '/api/guilds',
+        logFileName: 'api-server.log',
+        env: { HOME: '{home}' },
+      });
+      const spec = LaneSpecStub({ processes: [apiProcess], browser: false, env: {} });
+      proxy.setupProcessBoot({
+        logPath: API_LOG_PATH,
+        fd: apiFd,
+        command: 'npm',
+        args: ['run', 'dev:no-watch'],
+        pid: 1_001,
+      });
+      proxy.setupServerReachable({ url: 'http://dungeonmaster.localhost:34172/api/guilds' });
+      proxy.setupGroupExitsOnSigterm({ pgid: 1_001 });
+      const inheritedEnvSnapshot = proxy.getInheritedEnvSnapshot();
+
+      const lane = await laneBootBroker({
+        spec,
+        ports,
+        instanceId: INSTANCE_ID,
+        homePath: HOME_PATH,
+        evidencePath: EVIDENCE_PATH,
+      });
+      const pgidsHeldAtBoot = lane.pgids;
+      await lane.stopProcesses();
+      proxy.setupRespawn({ command: 'npm', args: ['run', 'dev:no-watch'], pid: 2_001 });
+      // Staged only now: the registry read queues path resolutions on the shared path-join mock,
+      // and boot's own log-path joins would otherwise consume them.
+      proxy.setupRegistry({
+        json: JSON.stringify(
+          RegistryStub({
+            instances: [RegistryEntryStub({ id: INSTANCE_ID, pgids: [1_001] })],
+          }),
+        ),
+      });
+      await lane.startProcesses();
+
+      const expectedRegistry = RegistryStub({
+        instances: [RegistryEntryStub({ id: INSTANCE_ID, pgids: [2_001] })],
+      });
+
+      expect({
+        pgidsHeldAtBoot,
+        logFds: lane.logFds,
+        signalsToBootGroup: proxy.getKillSignalsFor({ pgid: 1_001 }),
+        respawnOptions: proxy.getSpawnOptionsFor({ command: 'npm', args: ['run', 'dev:no-watch'] }),
+        written: proxy.getWrittenRegistry(),
+      }).toStrictEqual({
+        pgidsHeldAtBoot: [2_001],
+        logFds: [10],
+        signalsToBootGroup: ['SIGTERM'],
+        respawnOptions: {
+          cwd: repoRoot,
+          env: { ...inheritedEnvSnapshot, HOME: HOME_PATH },
+          detached: true,
+          stdio: ['ignore', apiFd, apiFd],
+        },
+        written: `${JSON.stringify(expectedRegistry)}\n`,
       });
     });
   });

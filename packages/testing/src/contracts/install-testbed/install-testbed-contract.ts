@@ -10,10 +10,11 @@ import { z } from '#gateway/npm/zod';
 import type { TestbedConfig } from '../testbed-config/testbed-config-contract';
 import type { TestbedClaudeSettings } from '../testbed-claude-settings/testbed-claude-settings-contract';
 import type { TestbedMcpConfig } from '../testbed-mcp-config/testbed-mcp-config-contract';
+import { guildContract } from '@dungeonmaster/shared/contracts';
 
 export const installTestbedContract = z
   .object({
-    guildPath: z.string().brand<'InstallTestbedGuildPath'>(),
+    guildPath: guildContract.shape.path,
     dungeonmasterPath: z.string().brand<'InstallTestbedDungeonmasterPath'>(),
   })
   .brand<'InstallTestbed'>();

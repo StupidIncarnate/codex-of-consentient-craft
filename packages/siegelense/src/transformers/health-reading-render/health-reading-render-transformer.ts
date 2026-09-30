@@ -2,7 +2,9 @@
  * PURPOSE: Computes the overall health verdict ('HEALTHY', 'DEGRADED', 'DOWN') and formats the
  * single verdict line for the `health` step verb, composing five readings (root element presence,
  * shot blankness, console error count and first message, network 5xx count and first 5xx, and
- * server log error count).
+ * server log error count). `windowNote`, when given, trails the segments after an em dash and says
+ * which stretch of the browser buffers those readings were judged over — `stepHealthBroker` always
+ * passes one, so a HEALTHY verdict over a window that loaded nothing cannot pass for a clean page.
  *
  * USAGE:
  * healthReadingRenderTransformer({
@@ -34,6 +36,7 @@ export const healthReadingRenderTransformer = ({
   first5xx,
   serverErrors,
   firstServerError,
+  windowNote,
 }: {
   rootPresent: boolean;
   blank: boolean;
@@ -44,6 +47,7 @@ export const healthReadingRenderTransformer = ({
   first5xx: string | null;
   serverErrors: number;
   firstServerError: string | null;
+  windowNote?: string;
 }): HealthReading => {
   const isDown = !rootPresent || blank;
   const isDegraded = !isDown && (consoleErrors > 0 || network5xxCount > 0 || serverErrors > 0);
@@ -84,7 +88,9 @@ export const healthReadingRenderTransformer = ({
       : `server log: ${String(serverErrors)} ${serverErrors === 1 ? 'error' : 'errors'}`;
 
   const segments = [rootText, blankText, consoleText, networkText, serverText];
-  const renderedText = `${verdict.padEnd(healthStatics.formatting.verdictPaddedLength, ' ')}${segments.join(healthStatics.formatting.separator)}`;
+  const windowText =
+    windowNote === undefined ? '' : `${healthStatics.formatting.windowSeparator}${windowNote}`;
+  const renderedText = `${verdict.padEnd(healthStatics.formatting.verdictPaddedLength, ' ')}${segments.join(healthStatics.formatting.separator)}${windowText}`;
 
   return healthReadingContract.parse({
     verdict,

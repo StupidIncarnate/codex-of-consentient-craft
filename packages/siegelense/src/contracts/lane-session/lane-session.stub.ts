@@ -17,7 +17,14 @@ export const LaneSessionStub = ({
   // shrank".
   { serverLogLengthSequence?: readonly number[] }
 > = {}): LaneSession => {
-  const { readServerLogSince, serverLogLength, serverLogLengthSequence, ...dataProps } = props;
+  const {
+    readServerLogSince,
+    serverLogLength,
+    serverLogLengthSequence,
+    stopProcesses,
+    startProcesses,
+    ...dataProps
+  } = props;
 
   let serverLogLengthCallCount = 0;
   const readOneFromSequence = (): number => {
@@ -43,5 +50,7 @@ export const LaneSessionStub = ({
     serverLogLength:
       serverLogLength ??
       (serverLogLengthSequence === undefined ? (): number => 0 : readOneFromSequence),
+    stopProcesses: stopProcesses ?? (async (): Promise<void> => Promise.resolve()),
+    startProcesses: startProcesses ?? (async (): Promise<void> => Promise.resolve()),
   };
 };

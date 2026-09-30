@@ -53,8 +53,7 @@ export const shotOpenDecideTransformer = ({
         // that is neither blank, the failing step, first, nor last.
         return (
           shot.pixelChange !== null &&
-          Number(shot.pixelChange.slice(0, -perceptionStatics.pixelChange.percentSuffix.length)) >=
-            perceptionStatics.pixelChange.openThresholdPercent
+          Number.parseFloat(shot.pixelChange) >= perceptionStatics.pixelChange.openThresholdPercent
         );
       }) ?? null;
 

@@ -13,8 +13,26 @@ describe('resultsStatics', () => {
       ]);
     });
 
-    it('VALID: {kinds.sinceBootEligible} => is exactly the three buffer kinds a boot-wide read can answer', () => {
-      expect(resultsStatics.kinds.sinceBootEligible).toStrictEqual(['console', 'network', 'ws']);
+    it('VALID: {kinds.sinceBootEligible} => is exactly the three buffer kinds plus the server log, the kinds a boot-wide read can answer', () => {
+      expect(resultsStatics.kinds.sinceBootEligible).toStrictEqual([
+        'console',
+        'network',
+        'ws',
+        'server',
+      ]);
+    });
+  });
+
+  describe('render.emptyNouns', () => {
+    it('VALID: {emptyNouns} => names one noun for every kind', () => {
+      expect(resultsStatics.render.emptyNouns).toStrictEqual({
+        console: 'console lines',
+        network: 'network requests',
+        ws: 'websocket frames',
+        server: 'server log lines',
+        screenshots: 'screenshots',
+        steps: 'step readings',
+      });
     });
   });
 

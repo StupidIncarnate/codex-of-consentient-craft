@@ -14,6 +14,7 @@ export const GuildEmptyStateWidgetProxy = (): {
   typeGuildName: ({ value }: { value: string }) => Promise<void>;
   typeGuildPath: ({ value }: { value: string }) => Promise<void>;
   getGuildPathValue: () => HTMLElement['textContent'];
+  getGuildPathError: () => HTMLElement['textContent'];
   clickBrowse: () => Promise<void>;
   clickCreate: () => Promise<void>;
   clickCancel: () => Promise<void>;
@@ -41,29 +42,16 @@ export const GuildEmptyStateWidgetProxy = (): {
 
       return input?.value ?? '';
     },
+    getGuildPathError: (): HTMLElement['textContent'] =>
+      screen.queryByTestId('GUILD_PATH_ERROR')?.textContent ?? null,
     clickBrowse: async (): Promise<void> => {
-      const buttons = screen.getAllByTestId('PIXEL_BTN');
-      const browseBtn = buttons.find((btn) => btn.textContent === 'BROWSE');
-      if (!browseBtn) {
-        throw new Error('BROWSE button not found');
-      }
-      await userEvent.click(browseBtn, userEventStatics.options);
+      await userEvent.click(screen.getByTestId('GUILD_BROWSE_BUTTON'), userEventStatics.options);
     },
     clickCreate: async (): Promise<void> => {
-      const buttons = screen.getAllByTestId('PIXEL_BTN');
-      const createBtn = buttons.find((btn) => btn.textContent === 'CREATE');
-      if (!createBtn) {
-        throw new Error('CREATE button not found');
-      }
-      await userEvent.click(createBtn, userEventStatics.options);
+      await userEvent.click(screen.getByTestId('GUILD_CREATE_BUTTON'), userEventStatics.options);
     },
     clickCancel: async (): Promise<void> => {
-      const buttons = screen.getAllByTestId('PIXEL_BTN');
-      const cancelBtn = buttons.find((btn) => btn.textContent === 'CANCEL');
-      if (!cancelBtn) {
-        throw new Error('CANCEL button not found');
-      }
-      await userEvent.click(cancelBtn, userEventStatics.options);
+      await userEvent.click(screen.getByTestId('GUILD_CANCEL_BUTTON'), userEventStatics.options);
     },
     setupDirectoryBrowse: ({ entries }: { entries: DirectoryEntry[] }): void => {
       directoryBrowser.setupEntries({ entries });
@@ -72,13 +60,7 @@ export const GuildEmptyStateWidgetProxy = (): {
       await directoryBrowser.clickSelect();
     },
     isNewGuildTitleVisible: (): boolean => screen.queryByText('NEW GUILD') !== null,
-    isCancelVisible: (): boolean => {
-      const buttons = screen.queryAllByTestId('PIXEL_BTN');
-      return buttons.some((btn) => btn.textContent === 'CANCEL');
-    },
-    isBrowseVisible: (): boolean => {
-      const buttons = screen.queryAllByTestId('PIXEL_BTN');
-      return buttons.some((btn) => btn.textContent === 'BROWSE');
-    },
+    isCancelVisible: (): boolean => screen.queryByTestId('GUILD_CANCEL_BUTTON') !== null,
+    isBrowseVisible: (): boolean => screen.queryByTestId('GUILD_BROWSE_BUTTON') !== null,
   };
 };

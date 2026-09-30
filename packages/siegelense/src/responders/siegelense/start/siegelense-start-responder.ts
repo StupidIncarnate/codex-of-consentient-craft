@@ -4,7 +4,7 @@
  * §3.A of `scrolls/seigelense/plans/chunk-04-cli-surface.md`: every one of the seven calls writes
  * exactly one document to stdout, or nothing at all. `start` prints a human summary by default,
  * through `startAnswerRenderTransformer`, same as `status`/`cleanup`, and the raw `InstanceManifest`
- * as JSON with `--json` (`isJson: true`) — a failure from `instanceStartBroker` propagates unchanged
+ * as JSON with `--json` (`isJson: true`), plus the effective `idleTimeoutMs` (the `InstanceManifest` does not carry it; the responder is what knows the flag) — a failure from `instanceStartBroker` propagates unchanged
  * rather than being caught into a `{success:false}` document here; the CLI entry point turns an
  * uncaught throw into stderr text and exit 1.
  *
@@ -25,6 +25,11 @@
  * check, and `RecipeUnknownError` is the same wording a `run` batch's own `seed` step already uses
  * for the unknown-recipe case.
  *
+ * Before the boot it writes `servedBuildStaleReadBroker`'s warning to STDERR when a compiled folder
+ * the lane serves is behind the checkout — a `stack` lane's web is a build, not live source, so a
+ * change since that build is otherwise missing from the lane with nothing saying so. It only warns;
+ * nothing here builds.
+ *
  * USAGE:
  * await SiegelenseStartResponder({ specName: SpecNameStub(), questId: null, guildId: null, seed: null });
  * // Writes the human summary to stdout
@@ -39,14 +44,16 @@
  * // Same, but the driver it spawns serves the raised ceiling instead of driverStatics.idle.timeoutMs
  */
 
-import { stdout } from '#gateway/node/process';
+import { stderr, stdout } from '#gateway/node/process';
 import type { Quest, Guild } from '@dungeonmaster/shared/contracts';
 
 import { instanceStartBroker } from '../../../brokers/instance/start/instance-start-broker';
 import { questOwningGuildFindBroker } from '../../../brokers/quest/owning-guild-find/quest-owning-guild-find-broker';
 import { recipesReadBroker } from '../../../brokers/recipes/read/recipes-read-broker';
+import { servedBuildStaleReadBroker } from '../../../brokers/served-build/stale-read/served-build-stale-read-broker';
 import { RecipeUnknownError } from '../../../errors/recipe-unknown/recipe-unknown-error';
 import { SeedRecipeNeedsInputError } from '../../../errors/seed-recipe-needs-input/seed-recipe-needs-input-error';
+import { driverStatics } from '../../../statics/driver/driver-statics';
 import { siegelenseOutputStatics } from '../../../statics/siegelense-output/siegelense-output-statics';
 import { startAnswerRenderTransformer } from '../../../transformers/start-answer-render/start-answer-render-transformer';
 
@@ -89,6 +96,16 @@ export const SiegelenseStartResponder = async ({
     }
   }
 
+  // Stderr, never stdout: stdout stays the one document `start` promises. A check that throws is
+  // reported and the boot goes ahead — the warning is advice, and the lane is what was asked for.
+  const staleWarning = await servedBuildStaleReadBroker({ specName }).catch(
+    (error: unknown) =>
+      `[siegelense start] the stale-build check failed, so nothing says whether this lane's compiled output is current: ${error instanceof Error ? error.message : String(error)}\n`,
+  );
+  if (staleWarning.length > 0) {
+    stderr.write(staleWarning);
+  }
+
   const manifest = await instanceStartBroker(
     idleTimeoutMs === undefined
       ? { specName, questId, guildId: resolvedGuildId, seed }
@@ -96,7 +113,11 @@ export const SiegelenseStartResponder = async ({
   );
   stdout.write(
     isJson
-      ? `${JSON.stringify(manifest, null, siegelenseOutputStatics.json.indentSpaces)}\n`
-      : startAnswerRenderTransformer({ manifest }),
+      ? `${JSON.stringify(
+          { ...manifest, idleTimeoutMs: idleTimeoutMs ?? driverStatics.idle.timeoutMs },
+          null,
+          siegelenseOutputStatics.json.indentSpaces,
+        )}\n`
+      : startAnswerRenderTransformer({ manifest, idleTimeoutMs }),
   );
 };

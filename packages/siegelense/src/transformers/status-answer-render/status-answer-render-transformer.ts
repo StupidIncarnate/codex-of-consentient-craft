@@ -2,7 +2,9 @@
  * PURPOSE: Renders a `StatusAnswer` into the text a person reads at a terminal — the fleet form
  * (monitored vocabulary, machine reading, one line per instance) whenever no single instance
  * carries evidence, and the full single-instance form (last beat, last step, MEMORY, orphans,
- * evidence paths, likelyCause) when the one instance present does. MEMORY is the last measured
+ * the evidence directory and its file tree, likelyCause) when the one instance present does. The
+ * MACHINE line says `OOM kills unreadable` when the kernel counter could not be read, so it never
+ * reads like a count of zero. MEMORY is the last measured
  * memory of the instance's processes — for a killed instance, its footprint when it ended — labelled
  * plainly rather than as "RSS". Evidence is non-null only for a NAMED
  * query — `statusReadBroker`'s own no-browsing rule leaves it `null` on every fleet row — so that
@@ -20,10 +22,11 @@
  * routes a bare `dungeonmaster siegelense` (no subcommand) to the same `SiegelenseStatusResponder`
  * call `status` with no flags reaches, so this is the ONLY fleet-table renderer in the package.
  *
- * ORPHANS and LOGS each render ONE ROW PER ITEM, with a blank FIELD on every continuation row,
- * never a comma-joined list on one row — that join is what pushed a real terminal table to roughly
- * 500 characters wide when an instance carried several evidence log paths. EVIDENCE DIR stays a
- * single row: it is always exactly one path, so it cannot blow the width the same way.
+ * ORPHANS renders ONE ROW PER ITEM, with a blank FIELD on every continuation row, never a
+ * comma-joined list on one row — that join is what pushed a real terminal table to roughly 500
+ * characters wide when an instance carried several evidence paths. EVIDENCE DIR is one absolute
+ * path, followed by one continuation row per line of `evidenceTreeRenderTransformer`'s file tree —
+ * every file in the directory, relative to that path — or a single `no files` row.
  *
  * USAGE:
  * statusAnswerRenderTransformer({
@@ -35,13 +38,15 @@
  * // Returns 'MONITORED: ...\nMACHINE: ...\nNo siegelense instances created in the last 6hr. Widen with --since beginning.\n'
  *
  * statusAnswerRenderTransformer({ answer: StatusAnswerStub({ instances: [] }), instanceId: InstanceIdStub() });
- * // Returns 'No record of the instance id "<id>". Check the id dungeonmaster siegelense start returned.\n'
+ * // Returns 'No record of the instance id "<id>". Check the id that `dungeonmaster siegelense start` returned.\n'
  */
 
 import type { SiegeInstance } from '@dungeonmaster/shared/contracts';
 
+import { InstanceUnknownError } from '../../errors/instance-unknown/instance-unknown-error';
 import type { StatusAnswer } from '../../contracts/status-answer/status-answer-contract';
 import { statusTableStatics } from '../../statics/status-table/status-table-statics';
+import { evidenceTreeRenderTransformer } from '../evidence-tree-render/evidence-tree-render-transformer';
 
 export const statusAnswerRenderTransformer = ({
   answer,
@@ -55,11 +60,11 @@ export const statusAnswerRenderTransformer = ({
   since?: '1h' | '6h' | '1d' | 'beginning' | null;
 }): string => {
   const monitoredLine = `MONITORED: ${answer.monitored.join(', ')}`;
-  const machineLine = `MACHINE: free ${answer.machine.freeMemMB}MB/${answer.machine.totalMemMB}MB mem, free disk ${answer.machine.freeDiskMB ?? '-'}MB, ${answer.machine.cores} cores, load ${answer.machine.loadAvg.join('/')}, OOM kills ${answer.machine.oomKillsSinceBoot ?? '-'} (last ${answer.machine.lastOomAt ?? '-'})`;
+  const machineLine = `MACHINE: free ${answer.machine.freeMemMB}MB/${answer.machine.totalMemMB}MB mem, free disk ${answer.machine.freeDiskMB ?? '-'}MB, ${answer.machine.cores} cores, load ${answer.machine.loadAvg.join('/')}, OOM kills ${answer.machine.oomKillsSinceBoot ?? 'unreadable'}`;
 
   if (answer.instances.length === 0) {
     if (instanceId !== null) {
-      return `No record of the instance id "${instanceId}". Check the id dungeonmaster siegelense start returned.\n`;
+      return `${new InstanceUnknownError({ instanceId }).message}\n`;
     }
 
     const { widest, display: sinceDisplay } = statusTableStatics.sinceWindows;
@@ -82,10 +87,10 @@ export const statusAnswerRenderTransformer = ({
 
   if (answer.instances.length === 1 && onlyInstance !== undefined && namedEvidence !== null) {
     const evidence = namedEvidence;
-    // One row per orphan/log, with a blank FIELD on every continuation row — never a comma-joined
-    // list on one row. That join is what pushed a real terminal table to roughly 500 characters
-    // wide: several evidence paths (or orphan readings) sharing one row make the WHOLE table as
-    // wide as their sum, where EVIDENCE DIR alone (one path, one row) stays readable.
+    // One row per orphan and per evidence-tree line, with a blank FIELD on every continuation row —
+    // never a comma-joined list on one row. That join is what pushed a real terminal table to
+    // roughly 500 characters wide: several paths sharing one row make the WHOLE table as wide as
+    // their sum.
     const orphanRows =
       onlyInstance.orphans.length === 0
         ? [['ORPHANS', 'none']]
@@ -93,20 +98,19 @@ export const statusAnswerRenderTransformer = ({
             index === 0 ? 'ORPHANS' : '',
             `pgid ${orphan.pgid} (${orphan.alive ? 'alive' : 'dead'})`,
           ]);
-    const logRows =
-      evidence.logs.length === 0
-        ? [['LOGS', 'none']]
-        : evidence.logs.map((log, index) => [index === 0 ? 'LOGS' : '', log]);
+    const treeLines = evidenceTreeRenderTransformer({ listing: evidence });
+    const evidenceTreeRows =
+      treeLines.length === 0 ? [['', 'no files']] : treeLines.map((line) => ['', line]);
     const lastStepText =
       onlyInstance.lastStep === null
         ? '-'
         : `${onlyInstance.lastStep.run} step ${onlyInstance.lastStep.step} ${onlyInstance.lastStep.verb}`;
     const rssText =
-      onlyInstance.rssMB === null
-        ? onlyInstance.rssAtLastBeat === null
-          ? '-'
-          : `at last beat ${onlyInstance.rssAtLastBeat}MB`
-        : `${onlyInstance.rssMB}MB`;
+      onlyInstance.memory === null
+        ? '-'
+        : onlyInstance.memory.measured === 'live'
+          ? `${onlyInstance.memory.megabytes}MB`
+          : `at last beat ${onlyInstance.memory.megabytes}MB`;
 
     const { headers: singleHeaders, cellPadding: singleCellPadding } =
       statusTableStatics.singleInstanceTable;
@@ -121,9 +125,7 @@ export const statusAnswerRenderTransformer = ({
       ['LAST STEP', lastStepText],
       ...orphanRows,
       ['EVIDENCE DIR', evidence.dir.path],
-      ['TRANSCRIPT', evidence.transcript ?? '-'],
-      ...logRows,
-      ['LAST SHOT', evidence.lastShot ?? '-'],
+      ...evidenceTreeRows,
       ['LIKELY CAUSE', onlyInstance.likelyCause ?? '-'],
     ];
 
@@ -153,12 +155,7 @@ export const statusAnswerRenderTransformer = ({
   const { headers, cellPadding } = statusTableStatics.table;
 
   const rows = answer.instances.map((instance) => {
-    const rss =
-      instance.rssMB === null
-        ? instance.rssAtLastBeat === null
-          ? '-'
-          : `${instance.rssAtLastBeat}MB`
-        : `${instance.rssMB}MB`;
+    const rss = instance.memory === null ? '-' : `${instance.memory.megabytes}MB`;
     return [
       instance.id,
       instance.state,

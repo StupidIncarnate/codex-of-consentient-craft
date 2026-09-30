@@ -233,4 +233,28 @@ describe('PixelBtnWidget', () => {
       expect(button.style.backgroundColor).toBe('rgb(255, 107, 53)');
     });
   });
+
+  describe('testId', () => {
+    it('VALID: {testId: "GUILD_CREATE_BUTTON"} => button carries that id and not PIXEL_BTN', () => {
+      PixelBtnWidgetProxy();
+      const label = 'CREATE';
+      const testId = 'GUILD_CREATE_BUTTON';
+
+      mantineRenderMiddleware({
+        ui: <PixelBtnWidget label={label} onClick={jest.fn()} testId={testId} />,
+      });
+
+      expect(screen.getByTestId('GUILD_CREATE_BUTTON').textContent).toBe('CREATE');
+      expect(screen.queryAllByTestId('PIXEL_BTN')).toStrictEqual([]);
+    });
+
+    it('EMPTY: {no testId} => button carries PIXEL_BTN', () => {
+      PixelBtnWidgetProxy();
+      const label = 'GO';
+
+      mantineRenderMiddleware({ ui: <PixelBtnWidget label={label} onClick={jest.fn()} /> });
+
+      expect(screen.getByTestId('PIXEL_BTN').textContent).toBe('GO');
+    });
+  });
 });

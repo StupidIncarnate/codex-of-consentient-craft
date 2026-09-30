@@ -1,4 +1,5 @@
 import { StartOrchestratorProxy } from '@dungeonmaster/orchestrator/startup/start-orchestrator.proxy';
+import type { RecordedCalls } from '@dungeonmaster/testing/register-mock';
 import type { GuildStub } from '@dungeonmaster/shared/contracts/guild/guild.stub';
 import { GuildAddResponder } from './guild-add-responder';
 
@@ -7,6 +8,7 @@ type Guild = ReturnType<typeof GuildStub>;
 export const GuildAddResponderProxy = (): {
   setupAddGuild: (params: { name: string; path: string; guild: Guild }) => void;
   setupAddGuildError: (params: { name: string; path: string; message: string }) => void;
+  getAddGuildCalls: () => RecordedCalls;
   callResponder: typeof GuildAddResponder;
 } => {
   const orchestrator = StartOrchestratorProxy();
@@ -26,6 +28,7 @@ export const GuildAddResponderProxy = (): {
     }): void => {
       orchestrator.addGuildThrows({ name, path, error: new Error(message) });
     },
+    getAddGuildCalls: (): RecordedCalls => orchestrator.addGuildGetCalls(),
     callResponder: GuildAddResponder,
   };
 };

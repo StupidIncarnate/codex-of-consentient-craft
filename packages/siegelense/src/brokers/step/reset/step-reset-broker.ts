@@ -7,17 +7,14 @@
  * with BrowserStepUnsupportedError).
  * `level: 'state'` rewinds disk files to a named snapshot and clears browser storage if present,
  * running identically browserless.
- * `level: 'instance'` with an explicit `to` rewinds to that named snapshot, same mechanism as
- * `state`. With no `to` it rewinds to the instance's BOOT state instead: the earliest record in the
- * snapshot index. `run-execute-broker` always captures `run_N:start` before that run's own first
- * step dispatches (siegelense-tooling.md line 2630), so for the very first run against an instance
- * that capture IS the disk state `start` left behind — and every later capture postdates some
- * mutation — so the index's first entry (it is append-only, in capture order) is always that boot
- * state, for as long as the instance has run anything at all. An instance with no captures yet has
- * made no mutation to undo. This step runs inside a live `run` batch against the SAME driver
- * connection that dispatched it, so — unlike an operator's own `kill` then `start` — it can never
- * restart the underlying process; that is why `resetStatics.notCleared.instance` lists "server
- * memory" and "open websockets" too, exactly as `state` does.
+ * `level: 'instance'` restarts the lane: it stops every server process group and waits for each to
+ * exit, rewinds disk while nothing is running — to the named `to` snapshot, or with no `to` to the
+ * instance's BOOT state, the earliest record in the snapshot index (`run-execute-broker` captures
+ * `run_N:start` before a run's first step, so the first run's capture IS the disk `start` left, and
+ * the index is append-only) — respawns every process on the same ports, home, env and args, reloads
+ * the browser page to the lane's web base URL and clears its storage, then reseeds. Server memory
+ * and open websockets are gone afterwards. The restart touches only the lane's own child processes;
+ * the CLI's socket to this driver, which dispatched the batch, stays open throughout.
  *
  * Every browser storage clear goes through `resetClearStorageLayerBroker` rather than
  * `lane.browser.clearStorage()` directly (DEF-94): a `reset` step may be the FIRST step of a fresh
@@ -36,6 +33,7 @@
  * // Rewinds disk, clears storage, and returns formatted ResetReading as ContentText
  */
 
+import { environmentStatics } from '@dungeonmaster/shared/statics';
 import type { LaneSession } from '../../../contracts/lane-session/lane-session-contract';
 import type { ResetLevel } from '../../../contracts/reset-level/reset-level-contract';
 import { resetReadingContract } from '../../../contracts/reset-reading/reset-reading-contract';
@@ -120,45 +118,63 @@ export const stepResetBroker = async ({
     return resetReadingRenderTransformer({ reading });
   }
 
-  // level === 'instance'
+  // level === 'instance': stop every server process, restore disk while nothing is running, then
+  // respawn. The respawn runs in `finally` so a failed restore never leaves the lane with no
+  // servers; a respawn that fails throws `LaneRestartFailedError` naming the process and its log.
+  // The page leaves the app first: an app page left open retries its socket and its fetches
+  // against the stopped servers, and every failed retry lands in the console, where the next
+  // `health` reading counts it against an app that is fine.
+  if (lane.browser !== null) {
+    await lane.browser.goto({ url: resetStatics.blankPageUrl });
+  }
+  await lane.stopProcesses();
+
+  let undid = zeroUndid;
+  try {
+    if (to === null) {
+      // No explicit target: rewind to the instance's BOOT state — the earliest capture on record.
+      const records = await snapshotIndexReadBroker({ homePath: lane.homePath });
+      const [bootRecord] = records;
+      if (bootRecord !== undefined) {
+        undid = await snapshotRestoreLayerBroker({
+          homePath: lane.homePath,
+          payloadPath: bootRecord.path,
+        });
+      }
+    } else {
+      const record = await snapshotResolveBroker({ homePath: lane.homePath, name: to });
+      undid = await snapshotRestoreLayerBroker({
+        homePath: lane.homePath,
+        payloadPath: record.path,
+      });
+    }
+  } finally {
+    await lane.startProcesses();
+  }
+
+  // Load the web base URL first so storage has an origin to clear, then load it again so the app
+  // boots against empty storage and a fresh socket.
   let instanceStorageCleared = true;
   if (lane.browser !== null) {
+    const webBaseUrl = `http://${environmentStatics.hostname}:${String(lane.ports.web)}`;
+    await lane.browser.goto({ url: webBaseUrl });
     ({ cleared: instanceStorageCleared } = await resetClearStorageLayerBroker({
       browser: lane.browser,
     }));
+    await lane.browser.goto({ url: webBaseUrl });
   }
 
-  let undid = zeroUndid;
-  if (to === null) {
-    // No explicit target: rewind to the instance's BOOT state — the earliest capture on record.
-    const records = await snapshotIndexReadBroker({ homePath: lane.homePath });
-    const [bootRecord] = records;
-    if (bootRecord !== undefined) {
-      undid = await snapshotRestoreLayerBroker({
-        homePath: lane.homePath,
-        payloadPath: bootRecord.path,
-      });
-    }
-  } else {
-    const record = await snapshotResolveBroker({ homePath: lane.homePath, name: to });
-    undid = await snapshotRestoreLayerBroker({ homePath: lane.homePath, payloadPath: record.path });
-  }
+  const reseedBindings =
+    reseed === null
+      ? null
+      : await recipeSeedRunBroker({
+          recipe: reseed,
+          apiBaseUrl: lane.apiBaseUrl,
+          homePath: lane.homePath,
+          parameters: {},
+        });
 
-  if (reseed !== null) {
-    await recipeSeedRunBroker({
-      recipe: reseed,
-      apiBaseUrl: lane.apiBaseUrl,
-      homePath: lane.homePath,
-      parameters: {},
-    });
-  }
-
-  let restored = 'instance';
-  if (to !== null) {
-    restored = to;
-  } else if (reseed !== null) {
-    restored = reseed;
-  }
+  const restored: string = to === null ? 'instance' : to;
 
   const reading = resetReadingContract.parse({
     restored,
@@ -166,6 +182,9 @@ export const stepResetBroker = async ({
     NOT_cleared: instanceStorageCleared
       ? notCleared
       : [...notCleared, resetStatics.storageSkipped.noOrigin],
+    ...(reseed === null || reseedBindings === null
+      ? {}
+      : { reseeded: reseed, bindings: reseedBindings }),
   });
 
   return resetReadingRenderTransformer({ reading });

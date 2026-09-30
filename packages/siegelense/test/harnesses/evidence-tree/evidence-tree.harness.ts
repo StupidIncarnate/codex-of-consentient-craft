@@ -6,7 +6,7 @@
  * `cleanupRunBroker` against real files on disk rather than a mocked filesystem. Every screenshot is a
  * REAL PNG encoded by `pngjs`: `run_1/step1.png` is one solid `#0d0907` frame (proves `blank`),
  * `run_2/step1.png` differs over exactly half its pixels (proves `pixelChange` reads a real measured
- * value — deterministically 50% with `includeAA:false` and two flat colour blocks). `beforeEach` mints
+ * value — deterministically 50.00% (50 px) with `includeAA:false` and two flat colour blocks). `beforeEach` mints
  * a brand-new testbed and rebuilds the whole tree, so one test's mutation (`cleanup`'s reap, or the
  * crash variant's deleted stored return) can never leak into the next. `readResults`/`readStatus`/
  * `readCompare`/`runCleanup`/`readRegistry`/`measureBlank`/`measureChange` wrap the seven read-path
@@ -207,6 +207,7 @@ export const evidenceTreeHarness = (): {
   serverInsideWindowRow: () => string;
   serverOutsideWindowRow: () => string;
   serverRun2ErrorRows: () => readonly string[];
+  serverLogAllRows: () => readonly string[];
   networkRun1NonSuccessRows: () => readonly string[];
   networkRun2NonSuccessRows: () => readonly string[];
   // Read-path calls. `flows/` (and its colocated .integration.test.ts) may not import
@@ -404,7 +405,7 @@ export const evidenceTreeHarness = (): {
         expected: 'ok',
         reading: 'navigated to /missing',
         shot: run2Shot1Path(),
-        pixelChange: '50%',
+        pixelChange: '50.00% (50 px)',
         blank: false,
         blankColour: null,
         serverWindow: serverLog.run2Window,
@@ -424,7 +425,7 @@ export const evidenceTreeHarness = (): {
       index: {
         console: { errors: 2, warnings: 1 },
         server: { errors: 2 },
-        network: { exchanges: 2, non2xx: 1 },
+        network: { exchanges: 2, failed: 1 },
       },
       shots: [
         ShotListingStub({
@@ -450,7 +451,7 @@ export const evidenceTreeHarness = (): {
       index: {
         console: { errors: 3, warnings: 0 },
         server: { errors: 1 },
-        network: { exchanges: 2, non2xx: 2 },
+        network: { exchanges: 2, failed: 2 },
       },
       shots: [
         ShotListingStub({
@@ -459,7 +460,7 @@ export const evidenceTreeHarness = (): {
           open: true,
           why: 'changed',
           node: null,
-          pixelChange: '50%',
+          pixelChange: '50.00% (50 px)',
           blank: false,
           blankColour: null,
         }),
@@ -517,7 +518,7 @@ export const evidenceTreeHarness = (): {
       instanceId: KILLED_INSTANCE_ID,
       pid: 'proc-12345',
       pgids: [],
-      beatAtMs: 1,
+      beatAtMs: 1_700_000_000_000,
       rssMB: 1_840,
     });
     writeFileSync(
@@ -623,7 +624,7 @@ export const evidenceTreeHarness = (): {
       instanceId: STALE_INSTANCE_ID,
       pid: 'proc-12345',
       pgids: [stalePgid],
-      beatAtMs: 1,
+      beatAtMs: 1_700_000_000_000,
       rssMB: null,
     });
     writeFileSync(
@@ -689,6 +690,12 @@ export const evidenceTreeHarness = (): {
     serverInsideWindowRow: () => SERVER_LINE_STEP2,
     serverOutsideWindowRow: () => SERVER_LINE_STEP3,
     serverRun2ErrorRows: () => [SERVER_LINE_RUN2],
+    serverLogAllRows: () => [
+      SERVER_LINE_STEP1,
+      SERVER_LINE_STEP2,
+      SERVER_LINE_STEP3,
+      SERVER_LINE_RUN2,
+    ],
     networkRun1NonSuccessRows: () => [NETWORK_RUN1_BAD],
     networkRun2NonSuccessRows: () => [NETWORK_RUN2_BAD_A, NETWORK_RUN2_BAD_B],
     readResults: async ({ query }: { query: ResultsQuery }): Promise<ResultsAnswer> =>

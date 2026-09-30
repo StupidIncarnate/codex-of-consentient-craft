@@ -12,7 +12,6 @@
 
 import { registerMock } from '@dungeonmaster/testing/register-mock';
 
-import { stderrProxy } from '#gateway/node/process/stderr/stderr.proxy';
 import type { SpecProfileStub } from '../../../contracts/spec-profile/spec-profile.stub';
 import { profileReadBroker } from '../../profile/read/profile-read-broker';
 import { profileReadBrokerProxy } from '../../profile/read/profile-read-broker.proxy';
@@ -23,12 +22,10 @@ type SpecName = string;
 export const profileSoloReadLayerBrokerProxy = (): {
   setupProfile: (params: { profile: SpecProfile }) => void;
   setupProfileReadFails: (params: { error: Error; specName: SpecName }) => void;
-  getStderrMessages: () => readonly string[];
 } => {
   // Constructed for enforce-proxy-child-creation only — the broker below is staged directly.
   profileReadBrokerProxy();
   const profileHandle = registerMock({ fn: profileReadBroker });
-  const stderr = stderrProxy();
 
   return {
     setupProfile: ({ profile }: { profile: SpecProfile }): void => {
@@ -38,7 +35,5 @@ export const profileSoloReadLayerBrokerProxy = (): {
     setupProfileReadFails: ({ error, specName }: { error: Error; specName: SpecName }): void => {
       profileHandle.calledWith([{ specName }]).rejects(error);
     },
-
-    getStderrMessages: (): readonly string[] => stderr.getWrites().map((chunk) => String(chunk)),
   };
 };

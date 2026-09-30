@@ -9,6 +9,7 @@ import { LaneSessionStub } from '../../../contracts/lane-session/lane-session.st
 import type { LaneSession } from '../../../contracts/lane-session/lane-session-contract';
 import { RecipeListingEntryStub } from '../../../contracts/recipe-listing-entry/recipe-listing-entry.stub';
 import { RefResolutionStub } from '../../../contracts/ref-resolution/ref-resolution.stub';
+import type { ScrollReadingStub } from '../../../contracts/scroll-reading/scroll-reading.stub';
 import { stepBoxBrokerProxy } from '../box/step-box-broker.proxy';
 import { stepBeforeBrokerProxy } from '../before/step-before-broker.proxy';
 import { stepClickBrokerProxy } from '../click/step-click-broker.proxy';
@@ -23,6 +24,7 @@ import { stepLookBrokerProxy } from '../look/step-look-broker.proxy';
 import { stepRequestBrokerProxy } from '../request/step-request-broker.proxy';
 import { stepResizeBrokerProxy } from '../resize/step-resize-broker.proxy';
 import { stepScreenshotBrokerProxy } from '../screenshot/step-screenshot-broker.proxy';
+import { stepScrollBrokerProxy } from '../scroll/step-scroll-broker.proxy';
 import { stepSeedBrokerProxy } from '../seed/step-seed-broker.proxy';
 import { stepSnapshotBrokerProxy } from '../snapshot/step-snapshot-broker.proxy';
 import { stepResetBrokerProxy } from '../reset/step-reset-broker.proxy';
@@ -39,10 +41,20 @@ import { stepWaitForBrokerProxy } from '../wait-for/step-wait-for-broker.proxy';
 const matchCountContract = z.number().int().nonnegative().brand<'MatchCount'>();
 const TWO_MATCHES_COUNT = 2;
 
+type ScrollReading = ReturnType<typeof ScrollReadingStub>;
+
 export const runVerbLayerBrokerProxy = (): {
   sessionWithOneMatch: () => {
     lane: LaneSession;
     session: BrowserSession;
+    callOrder: () => readonly string[];
+  };
+  sessionWithScroll: (params: { reading: ScrollReading }) => {
+    lane: LaneSession;
+    callOrder: () => readonly string[];
+  };
+  sessionWithTargetAppearingLater: () => {
+    lane: LaneSession;
     callOrder: () => readonly string[];
   };
   sessionWithTwoMatches: () => { lane: LaneSession; session: BrowserSession };
@@ -88,6 +100,7 @@ export const runVerbLayerBrokerProxy = (): {
   const requestProxy = stepRequestBrokerProxy();
   const fileProxy = stepFileBrokerProxy();
   stepScreenshotBrokerProxy();
+  stepScrollBrokerProxy();
   stepStorageBrokerProxy();
   stepPasteBrokerProxy();
   stepTargetResolveBrokerProxy();
@@ -149,6 +162,58 @@ export const runVerbLayerBrokerProxy = (): {
       return {
         lane: LaneSessionStub({ browser: session }),
         session,
+        callOrder: (): readonly string[] => order,
+      };
+    },
+
+    // One match for a handle scroll, `true` for the move, and the chosen geometry for the read that
+    // follows — `callOrder` names each call in the order the layer made it.
+    sessionWithScroll: ({
+      reading,
+    }: {
+      reading: ScrollReading;
+    }): { lane: LaneSession; callOrder: () => readonly string[] } => {
+      const order: string[] = [];
+      const session = BrowserSessionStub({
+        countMatches: jest.fn().mockImplementation(async () => {
+          order.push('countMatches');
+          return Promise.resolve(matchCountContract.parse(1));
+        }),
+        refState: jest.fn().mockImplementation(async () => {
+          order.push('refState');
+          return Promise.resolve(RefResolutionStub({ state: 'live' }));
+        }),
+        evaluateSource: jest.fn().mockImplementation(async ({ source }: { source: string }) => {
+          order.push('evaluateSource');
+          return Promise.resolve(source.includes('scrollWidth') ? JSON.stringify(reading) : 'true');
+        }),
+      });
+      return {
+        lane: LaneSessionStub({ browser: session }),
+        callOrder: (): readonly string[] => order,
+      };
+    },
+
+    // The target is absent when the step starts and appears during the wait: `countMatches`
+    // answers 0 (a pre-resolve would throw NO MATCH on it), while `waitForMatch` resolves once the
+    // element shows up.
+    sessionWithTargetAppearingLater: (): {
+      lane: LaneSession;
+      callOrder: () => readonly string[];
+    } => {
+      const order: string[] = [];
+      const session = BrowserSessionStub({
+        countMatches: jest.fn().mockImplementation(async () => {
+          order.push('countMatches');
+          return Promise.resolve(matchCountContract.parse(0));
+        }),
+        waitForMatch: jest.fn().mockImplementation(async () => {
+          order.push('waitForMatch');
+          return Promise.resolve();
+        }),
+      });
+      return {
+        lane: LaneSessionStub({ browser: session }),
         callOrder: (): readonly string[] => order,
       };
     },

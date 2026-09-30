@@ -335,6 +335,40 @@ describe('sessionSnippetStatics', () => {
     );
   });
 
+  // THE FOUR LINES CARRY THE GATEWAY, PER-FILE TEST SUPPORT AND BRAND RULES INTO EVERY REPO. The
+  // returns line teaches the owner-field rule: a parameter holding an owner's id takes the owner's
+  // field type, every other parameter may be a plain `string`.
+  it('VALID: modifyingCodeGuidance snippet => teaches per-file test imports, the gateway, branded returns with owner-field parameters, and the brand-mismatch rule', () => {
+    const lines = sessionSnippetStatics.modifyingCodeGuidance.split('\n');
+
+    expect({
+      perFileTestImports: lines.includes(
+        '- Import each stub and proxy from its own file, never a production barrel; a stub for an outside type comes from the gateway',
+      ),
+      outsidePackagesThroughGateway: lines.includes(
+        '- Import outside packages only through `#gateway/<folder>/<subpath>`, types included',
+      ),
+      brandedReturnsOwnerFieldParameters: lines.includes(
+        "- Returns are branded; a parameter named for another object's field takes `Quest['id']`, any other may be a plain `string`",
+      ),
+      brandMismatch: lines.includes(
+        "- No `as unknown as` on a brand mismatch; a field holding another object's id reuses its schema",
+      ),
+      dropsTheAsymmetryLine: sessionSnippetStatics.modifyingCodeGuidance.indexOf(
+        'The asymmetry is deliberate',
+      ),
+      dropsTheReparseAdvice:
+        sessionSnippetStatics.modifyingCodeGuidance.indexOf('dagNodeIdContract'),
+    }).toStrictEqual({
+      perFileTestImports: true,
+      outsidePackagesThroughGateway: true,
+      brandedReturnsOwnerFieldParameters: true,
+      brandMismatch: true,
+      dropsTheAsymmetryLine: -1,
+      dropsTheReparseAdvice: -1,
+    });
+  });
+
   // A BUILD IS THE ONE COMMAND THAT REACHES OUTSIDE THE AGENT RUNNING IT: it rewrites every
   // package's compiled output with no lock, so it breaks siblings rather than itself. The rule has
   // to arrive by snippet, because a dispatched sub-agent reads no root instruction file. It must

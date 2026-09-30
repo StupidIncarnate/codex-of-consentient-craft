@@ -7,6 +7,8 @@ import { locationsWardResultsPathFindBrokerProxy } from '@dungeonmaster/shared/b
 import { clearIntervalProxy } from '#gateway/node/clearInterval/clear-interval/clear-interval.proxy';
 import { readFileProxy } from '#gateway/node/fs__promises/read-file/read-file.proxy';
 import { join } from '#gateway/node/path';
+import { deleteEnv, setEnv } from '#gateway/node/process';
+import { getEnvProxy } from '#gateway/node/process/get-env/get-env.proxy';
 import { exitProxy } from '#gateway/node/process/exit/exit.proxy';
 import { onProxy } from '#gateway/node/process/on/on.proxy';
 import { stdoutProxy } from '#gateway/node/process/stdout/stdout.proxy';
@@ -62,6 +64,8 @@ export const ServerInitResponderProxy = (): {
   callResponder: (params?: { serveWebBundle?: boolean }) => void;
   dispatchRequest: (params: { url: string; method?: string }) => Promise<Response>;
   setServerPort: (params: { value: string }) => void;
+  setWebPort: (params: { value: string }) => void;
+  clearWebPort: () => void;
   setupWebBundleFile: (params: { contents: string; expectedRelativePath: string }) => void;
   simulateConnection: (params: { client: WSContext }) => void;
   simulateMessage: (params: { data: string; ws: WSContext }) => void;
@@ -120,6 +124,7 @@ export const ServerInitResponderProxy = (): {
   // Signal handlers are recorded, never attached, so no test leaves a live SIGTERM/SIGINT listener
   // behind; exit is recorded for the same reason.
   onProxy();
+  getEnvProxy();
   exitProxy();
   stdoutProxy();
   const setIntervalChild = setIntervalProxy();
@@ -152,6 +157,12 @@ export const ServerInitResponderProxy = (): {
   const listen: { port: Parameters<typeof portProxy.setEnvPort>[0]['value'] } = { port: '3737' };
 
   return {
+    clearWebPort: (): void => {
+      deleteEnv('DUNGEONMASTER_WEB_PORT');
+    },
+    setWebPort: ({ value }: { value: string }): void => {
+      setEnv('DUNGEONMASTER_WEB_PORT', value);
+    },
     callResponder: ({ serveWebBundle = false }: { serveWebBundle?: boolean } = {}): void => {
       // The responder always starts the outbox watcher; capture its callbacks without running the
       // real broker. Staged here rather than at construction, where a child proxy's semantic method

@@ -3,7 +3,8 @@
  * "`steps` is the transcript — every step with its verb, its arguments and its reading, flushed as
  * it ran"). Reach for this over StoppedAt: every step in a run produces one StepReading, whether it
  * succeeded or not, while a StoppedAt exists only on the ONE step that ended the batch. `shot` is
- * `null` for a non-acting step (`waitFor`, `eval`) that took no screenshot, never an absent key —
+ * `null` for a non-acting step (`waitFor`, `eval`) that succeeded and so took no screenshot — a
+ * FAILED step always screenshots the page at the moment it failed — never an absent key —
  * these lines are written to disk and read back, so a step that captured nothing must say so rather
  * than merely omit the field. `pixelChange`, `blank` and `blankColour` are `null` only when `shot` is
  * `null` — a step that captured nothing measured nothing (line 1630: "`pixelChange` is `null` on a
@@ -75,7 +76,7 @@ export const stepReadingContract = z
       .nullable(),
     pixelChange: z
       .string()
-      .regex(/^\d{1,3}%$/u)
+      .regex(/^(?:0 px|(?:<0\.01|\d{1,3}(?:\.\d{2})?)% \(\d+ px\)|\d{1,3}%)$/u)
       .brand<'StepReadingPixelChange'>()
       .nullable(),
     blank: z.boolean().nullable(),

@@ -2,6 +2,7 @@ import { CapacityProfileStub } from '../../../contracts/capacity-profile/capacit
 
 import { likelyCauseLayerBroker } from './likely-cause-layer-broker';
 import { likelyCauseLayerBrokerProxy } from './likely-cause-layer-broker.proxy';
+import { InstanceStateStub } from '../../../contracts/instance-state/instance-state.stub';
 
 describe('likelyCauseLayerBroker', () => {
   describe('a dead instance with a full reading, no profile ever recorded', () => {
@@ -40,12 +41,29 @@ describe('likelyCauseLayerBroker', () => {
     });
   });
 
-  describe('a killed instance, no profile ever recorded', () => {
-    it('VALID: {state: killed, memory 1200} => a sentence naming the last measured memory', () => {
+  describe('a killed instance with no recorded reason', () => {
+    it('VALID: {state: killed, memory 1200, no shutdownReason} => null, because a plain kill is a deliberate stop, not a death to explain', () => {
       likelyCauseLayerBrokerProxy();
 
       const result = likelyCauseLayerBroker({
         state: 'killed',
+        specName: 'dungeonmaster-stack',
+        rssAtLastBeat: 1200,
+        oomKillsSinceBoot: 0,
+        shutdownReason: null,
+        soloProfile: null,
+      });
+
+      expect(result).toBe(null);
+    });
+  });
+
+  describe('a dead instance, no profile ever recorded', () => {
+    it('VALID: {state: dead, memory 1200} => a sentence naming the last measured memory', () => {
+      likelyCauseLayerBrokerProxy();
+
+      const result = likelyCauseLayerBroker({
+        state: InstanceStateStub({ value: 'dead' }),
         specName: 'dungeonmaster-stack',
         rssAtLastBeat: 1200,
         oomKillsSinceBoot: 0,

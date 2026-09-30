@@ -1,23 +1,17 @@
 /**
  * PURPOSE: Composes every child proxy `instanceEntryLayerBroker` reaches through — the evidence-path
  * resolution (twice: once directly, once inside `heartbeatReadBroker`), the runs-directory listing,
- * `/proc` for orphans and rss, the three known log files (api, web, driver), the repo-local symlink,
- * and the last run's transcript. Every one of those, and this broker's own joins (`runs`,
- * `api-server.log`, `web-server.log`, `driver.log`, one repo-local full path per log that passed its
- * presence check, and the last run's transcript), now resolve on the SAME shared `#gateway/node/path`
- * `join` mock — this broker's own joins through the sticky real-passthrough default
- * `locationsInstanceEvidencePathFindBrokerProxy` installs transitively (via
- * `locationsRootPathFindBrokerProxy`'s own `dungeonmasterHomeFindBrokerProxy`), the rest through
- * their own proxy's exact-tuple addressing — so no scenario method here stages a join, and none of
- * `instanceEntryLayerBroker`'s own setup calls depend on being made in any particular order relative
- * to each other. `setupProcListing` alone answers BOTH `orphanReadBroker`'s and
- * `machineRssByPgidBroker`'s own `/proc` readdir, since both call it with the identical `dirPath`
- * argument against the one shared mock.
+ * `/proc` for orphans and rss, the repo-local symlink, the evidence-directory walk, and the last
+ * run's transcript — behind scenario methods a test calls in any order: every child mock is
+ * addressed by its own path, and this broker's own joins resolve on `#gateway/node/path`'s real
+ * `join`, which no scenario method stages. `setupEvidenceTreeDir` stages one directory level of the
+ * evidence walk, keyed on the REAL home path; a level nobody stages reads as absent only after
+ * `setupEvidenceTreeMissingDir` says so. `setupProcListing` alone answers BOTH `orphanReadBroker`'s
+ * and `machineRssByPgidBroker`'s own `/proc` readdir, since both call it with the identical
+ * `dirPath` argument against the one shared mock.
  *
- * `setupProfileSolo` (whenever `state !== 'alive'`) may ALSO be called in any position: it mocks
- * `profileReadBroker` directly (`profileSoloReadLayerBrokerProxy`'s own choice, mirroring
- * `capacityReadBrokerProxy`), so it never touches the shared `pathJoinAdapter` queue every join
- * above competes on.
+ * `setupProfileSolo` (whenever `state !== 'alive'`) mocks `profileReadBroker` directly
+ * (`profileSoloReadLayerBrokerProxy`'s own choice, mirroring `capacityReadBrokerProxy`).
  *
  * USAGE:
  * const proxy = instanceEntryLayerBrokerProxy();
@@ -32,7 +26,6 @@ import { locationsStatics } from '@dungeonmaster/shared/statics';
 
 import { readFileProxy } from '#gateway/node/fs__promises/read-file/read-file.proxy';
 import { readdirIfExistsProxy } from '#gateway/node/fs__promises/readdir-if-exists/readdir-if-exists.proxy';
-import { statIfExistsProxy } from '#gateway/node/fs__promises/stat-if-exists/stat-if-exists.proxy';
 import type { InstanceHeartbeatStub } from '../../../contracts/instance-heartbeat/instance-heartbeat.stub';
 import type { ShutdownReasonStub } from '../../../contracts/shutdown-reason/shutdown-reason.stub';
 import type { SpecProfileStub } from '../../../contracts/spec-profile/spec-profile.stub';
@@ -42,6 +35,7 @@ import { locationsRepoLinkPathFindBrokerProxy } from '../../locations/repo-link-
 import { machineRssByPgidBrokerProxy } from '../../machine/rss-by-pgid/machine-rss-by-pgid-broker.proxy';
 import { orphanReadBrokerProxy } from '../../orphan/read/orphan-read-broker.proxy';
 import { shutdownReasonReadBrokerProxy } from '../../shutdown-reason/read/shutdown-reason-read-broker.proxy';
+import { evidenceTreeLayerBrokerProxy } from './evidence-tree-layer-broker.proxy';
 import { likelyCauseLayerBrokerProxy } from './likely-cause-layer-broker.proxy';
 import { profileSoloReadLayerBrokerProxy } from './profile-solo-read-layer-broker.proxy';
 
@@ -80,12 +74,6 @@ export const instanceEntryLayerBrokerProxy = (): {
   setupOrphanCmdline: (params: { pid: string; argv: readonly string[] }) => void;
   setupOrphanAlive: (params: { pgid: ProcessGroupId }) => void;
   setupOrphanGone: (params: { pgid: ProcessGroupId }) => void;
-  setupApiLogPresent: (params: { evidencePath: string }) => void;
-  setupApiLogAbsent: (params: { evidencePath: string }) => void;
-  setupWebLogPresent: (params: { evidencePath: string }) => void;
-  setupWebLogAbsent: (params: { evidencePath: string }) => void;
-  setupDriverLogPresent: (params: { evidencePath: string }) => void;
-  setupDriverLogAbsent: (params: { evidencePath: string }) => void;
   setupRepoLinkResolves: (params: {
     cwdPath: string;
     linkPath: string;
@@ -93,6 +81,12 @@ export const instanceEntryLayerBrokerProxy = (): {
     homePath: string;
     rootPath: string;
   }) => void;
+  setupEvidenceTreeDir: (params: {
+    dirPath: string;
+    files: readonly { name: string; bytes: number }[];
+    dirs?: readonly string[];
+  }) => void;
+  setupEvidenceTreeMissingDir: (params: { dirPath: string }) => void;
   setupTranscriptLines: (params: {
     evidencePath: string;
     runId: string;
@@ -106,7 +100,7 @@ export const instanceEntryLayerBrokerProxy = (): {
   const runsDirProxy = readdirIfExistsProxy();
   const rssProxy = machineRssByPgidBrokerProxy();
   const orphanProxy = orphanReadBrokerProxy();
-  const logStatProxy = statIfExistsProxy();
+  const evidenceTreeProxy = evidenceTreeLayerBrokerProxy();
   const repoLinkProxy = locationsRepoLinkPathFindBrokerProxy();
   const transcriptReadProxy = readFileProxy();
   const shutdownReasonProxy = shutdownReasonReadBrokerProxy();
@@ -180,9 +174,6 @@ export const instanceEntryLayerBrokerProxy = (): {
       rssProxy.setupProcListing(params);
     },
 
-    // orphanReadBroker's and machineRssByPgidBroker's own per-pid `/proc` joins resolve on
-    // `#gateway/node/path`'s own `join` mock, each through its own proxy's sticky real-passthrough
-    // default, so there is nothing to stage here for either.
     setupPidStat: (params: { pid: string; pgrp: number; comm?: string }): void => {
       rssProxy.setupPidStat(params);
     },
@@ -203,42 +194,6 @@ export const instanceEntryLayerBrokerProxy = (): {
       orphanProxy.setupGone(params);
     },
 
-    setupApiLogPresent: ({ evidencePath }: { evidencePath: string }): void => {
-      logStatProxy.returnsFile({
-        path: `${evidencePath}/${locationsStatics.siegelense.apiLog}`,
-        sizeBytes: 1,
-        modifiedAtMs: 0,
-      });
-    },
-
-    setupApiLogAbsent: ({ evidencePath }: { evidencePath: string }): void => {
-      logStatProxy.missing({ path: `${evidencePath}/${locationsStatics.siegelense.apiLog}` });
-    },
-
-    setupWebLogPresent: ({ evidencePath }: { evidencePath: string }): void => {
-      logStatProxy.returnsFile({
-        path: `${evidencePath}/${locationsStatics.siegelense.webLog}`,
-        sizeBytes: 1,
-        modifiedAtMs: 0,
-      });
-    },
-
-    setupWebLogAbsent: ({ evidencePath }: { evidencePath: string }): void => {
-      logStatProxy.missing({ path: `${evidencePath}/${locationsStatics.siegelense.webLog}` });
-    },
-
-    setupDriverLogPresent: ({ evidencePath }: { evidencePath: string }): void => {
-      logStatProxy.returnsFile({
-        path: `${evidencePath}/${locationsStatics.siegelense.driverLog}`,
-        sizeBytes: 1,
-        modifiedAtMs: 0,
-      });
-    },
-
-    setupDriverLogAbsent: ({ evidencePath }: { evidencePath: string }): void => {
-      logStatProxy.missing({ path: `${evidencePath}/${locationsStatics.siegelense.driverLog}` });
-    },
-
     setupRepoLinkResolves: (params: {
       cwdPath: string;
       linkPath: string;
@@ -247,6 +202,18 @@ export const instanceEntryLayerBrokerProxy = (): {
       rootPath: string;
     }): void => {
       repoLinkProxy.setupLinkResolvesToRoot(params);
+    },
+
+    setupEvidenceTreeDir: (params: {
+      dirPath: string;
+      files: readonly { name: string; bytes: number }[];
+      dirs?: readonly string[];
+    }): void => {
+      evidenceTreeProxy.setupDir(params);
+    },
+
+    setupEvidenceTreeMissingDir: (params: { dirPath: string }): void => {
+      evidenceTreeProxy.setupMissingDir(params);
     },
 
     setupTranscriptLines: ({

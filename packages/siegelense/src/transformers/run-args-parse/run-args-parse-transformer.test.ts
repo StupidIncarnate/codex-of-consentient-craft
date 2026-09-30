@@ -142,7 +142,18 @@ describe('runArgsParseTransformer', () => {
           ],
           stepsFileContent: null,
         }),
-      ).toThrow(/^--steps: steps\.0: Unrecognized key: "bogus"$/u);
+      ).toThrow(/^--steps: steps\.0: goto has no key "bogus"\. It takes: path, node, expect$/u);
+    });
+
+    it('INVALID: {step: teleport} => throws naming the typed step and every known step, without the word discriminator', () => {
+      expect(() =>
+        runArgsParseTransformer({
+          args: ['--instance', 'inst_7f3a9c21', '--steps', JSON.stringify([{ step: 'teleport' }])],
+          stepsFileContent: null,
+        }),
+      ).toThrow(
+        /^--steps: steps\.0: Unknown step "teleport"\. Known steps: goto, waitFor, click, type, screenshot, eval, look, box, dom, seed, until, key, health, resize, request, before, file, storage, paste, hold, video, snapshot, reset, scroll$/u,
+      );
     });
   });
 
@@ -166,7 +177,7 @@ describe('runArgsParseTransformer', () => {
           args: ['--instance', 'inst_7f3a9c21', '--steps', '[]', '--stop-on', 'maybe'],
           stepsFileContent: null,
         }),
-      ).toThrow(/^--stop-on: Invalid option: expected one of "error"\|"never"$/u);
+      ).toThrow(/^--stop-on must be one of error, never; got "maybe"$/u);
     });
   });
 
@@ -186,7 +197,7 @@ describe('runArgsParseTransformer', () => {
           stepsFileContent: null,
         }),
       ).toThrow(
-        /^--steps: steps\.0: Unrecognized key: "bogus"; steps\.1: Unrecognized key: "evil"$/u,
+        /^--steps: steps\.0: goto has no key "bogus"\. It takes: path, node, expect; steps\.1: goto has no key "evil"\. It takes: path, node, expect$/u,
       );
     });
   });
@@ -262,11 +273,12 @@ describe('runArgsParseTransformer', () => {
   });
 
   describe('every step example on a siegelense docs role page survives the same parse run --steps uses (DEF-79)', () => {
-    it('VALID: {walking, attacking, fixing} => every line starting with { "step": round-trips through --steps as a one-step batch, and at least one exists', () => {
+    it('VALID: {walking, attacking, fixing, seeding} => every line starting with { "step": round-trips through --steps as a one-step batch, and at least one exists', () => {
       const allLines = [
         ...docsStatics.scopes.walking.sections,
         ...docsStatics.scopes.attacking.sections,
         ...docsStatics.scopes.fixing.sections,
+        ...docsStatics.scopes.seeding.sections,
       ].flatMap((section) => section.lines);
       const fencedLines = allLines.filter((line) => line.startsWith('{ "step":'));
 
