@@ -11,7 +11,7 @@
 
 import { useCallback, useEffect, useState } from '#gateway/npm/react';
 
-import type { CommentText, Quest } from '@dungeonmaster/shared/contracts';
+import type { Quest } from '@dungeonmaster/shared/contracts';
 
 import type { CommentAnchor } from '../../contracts/comment-anchor/comment-anchor-contract';
 import { commentQueueEntryContract } from '../../contracts/comment-queue-entry/comment-queue-entry-contract';
@@ -26,7 +26,7 @@ export const useCommentQueueBinding = ({
 }): {
   entries: CommentQueueEntry[];
   entryFor: (params: { anchor: CommentAnchor }) => CommentQueueEntry | undefined;
-  queueComment: (params: { anchor: CommentAnchor; text: CommentText }) => void;
+  queueComment: (params: { anchor: CommentAnchor; text: string }) => void;
   deleteComment: (params: { anchor: CommentAnchor }) => void;
   clearQueue: () => void;
 } => {
@@ -53,7 +53,7 @@ export const useCommentQueueBinding = ({
   );
 
   const queueComment = useCallback(
-    ({ anchor, text }: { anchor: CommentAnchor; text: CommentText }): void => {
+    ({ anchor, text }: { anchor: CommentAnchor; text: string }): void => {
       // A fresh createdAt on every queue is what keeps an actively edited comment out of reach of
       // the 7 day sweep — createdAt is the age of the text as it stands, not of the first draft.
       commentQueueState.queue({

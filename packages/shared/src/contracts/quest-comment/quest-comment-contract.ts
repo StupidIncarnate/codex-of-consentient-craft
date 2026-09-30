@@ -8,7 +8,6 @@
 
 import { z } from '#gateway/npm/zod';
 
-import { commentTextContract } from '../comment-text/comment-text-contract';
 import { flowNodeContract } from '../flow-node/flow-node-contract';
 import { flowContract } from '../flow/flow-contract';
 import { flowObservableContract } from '../flow-observable/flow-observable-contract';
@@ -20,7 +19,7 @@ export const questCommentContract = z.object({
   // parent node — observables render as their own always-visible boxes branching right of the node.
   nodeId: flowNodeContract.shape.id,
   observableId: flowObservableContract.shape.id.optional(),
-  text: commentTextContract,
+  text: z.string().min(1).brand<'QuestCommentText'>(),
   // The age of the text as it currently stands, not of the first draft — editing a queued comment
   // bumps this, and it is carried through the send so newest-first ordering matches authoring order.
   createdAt: z.iso.datetime().brand<'QuestCommentCreatedAt'>(),

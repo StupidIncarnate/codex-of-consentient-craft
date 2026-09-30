@@ -9,12 +9,11 @@
 
 import { z } from '#gateway/npm/zod';
 
-import { commentTextContract } from '@dungeonmaster/shared/contracts';
 
 import { commentAnchorContract } from '../comment-anchor/comment-anchor-contract';
 
 export const commentQueueEntryContract = commentAnchorContract.extend({
-  text: commentTextContract,
+  text: z.string().min(1).brand<'CommentQueueEntryText'>(),
   // The age of the text as it currently stands, not of the first draft — re-queueing an edited
   // comment resets this to the edit time, which drives both the 7-day expiry sweep and
   // newest-first ordering after send.

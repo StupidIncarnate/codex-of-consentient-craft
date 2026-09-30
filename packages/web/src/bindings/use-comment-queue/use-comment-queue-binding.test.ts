@@ -1,4 +1,3 @@
-import { CommentTextStub } from '@dungeonmaster/shared/contracts/comment-text/comment-text.stub';
 import { QuestIdStub } from '@dungeonmaster/shared/contracts/quest-id/quest-id.stub';
 
 import { act, renderHook } from '#gateway/npm/testing-library__react';
@@ -154,7 +153,7 @@ describe('useCommentQueueBinding', () => {
       act(() => {
         result.current.queueComment({
           anchor: CommentAnchorStub({ nodeId: 'login-page' }),
-          text: CommentTextStub({ value: 'this step is wrong' }),
+          text: 'this step is wrong',
         });
       });
 
@@ -180,7 +179,7 @@ describe('useCommentQueueBinding', () => {
             nodeId: 'login-page',
             observableId: 'login-redirects-to-dashboard',
           }),
-          text: CommentTextStub({ value: 'this assertion is wrong' }),
+          text: 'this assertion is wrong',
         });
       });
 
@@ -210,7 +209,7 @@ describe('useCommentQueueBinding', () => {
       act(() => {
         result.current.queueComment({
           anchor: CommentAnchorStub({ nodeId: 'login-page' }),
-          text: CommentTextStub({ value: 'edited text' }),
+          text: 'edited text',
         });
       });
 
@@ -297,7 +296,7 @@ describe('useCommentQueueBinding', () => {
       act(() => {
         second.result.current.queueComment({
           anchor: CommentAnchorStub({ nodeId: 'login-page' }),
-          text: CommentTextStub({ value: 'shared store update' }),
+          text: 'shared store update',
         });
       });
 

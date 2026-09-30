@@ -14,10 +14,9 @@
  */
 import { GuildIdStub } from '@dungeonmaster/shared/contracts/guild-id/guild-id.stub';
 import { QuestIdStub } from '@dungeonmaster/shared/contracts/quest-id/quest-id.stub';
-import type { Guild, CommentText } from '@dungeonmaster/shared/contracts';
+import type { Guild } from '@dungeonmaster/shared/contracts';
 import type { APIRequestContext, Locator, Page } from '#gateway/npm/playwright__test';
 
-import { commentTextContract } from '@dungeonmaster/shared/contracts';
 
 import { navigationHarness } from '../navigation/navigation.harness';
 import { guildHarness } from '../guild/guild.harness';
@@ -358,7 +357,7 @@ export const commentBoxHarness = ({
   clickEditButton: () => Promise<void>;
   clickDeleteButton: () => Promise<void>;
   queuedTextFitsInsidePopover: () => Promise<boolean>;
-  queuedTextExact: () => Promise<CommentText>;
+  queuedTextExact: () => Promise<string>;
   readQueue: () => Promise<unknown>;
   hasQueueKey: () => Promise<boolean>;
   captureQueueSnapshot: () => Promise<void>;
@@ -764,12 +763,12 @@ export const commentBoxHarness = ({
     // whitespace-normalizes both sides of the comparison and would collapse a real newline down
     // to a space on both the actual AND the expected string, silently passing either way. This is
     // the only path that can tell "a newline" apart from "a space" or "stripped/escaped markup".
-    queuedTextExact: async (): Promise<CommentText> => {
+    queuedTextExact: async (): Promise<string> => {
       const text = await page.getByTestId('COMMENT_QUEUED_TEXT').textContent();
       if (text === null) {
         throw new Error('COMMENT_QUEUED_TEXT has no text content');
       }
-      return commentTextContract.parse(text);
+      return text;
     },
 
     // The queue exactly as the browser stored it, with each createdAt that round-trips as a real ISO

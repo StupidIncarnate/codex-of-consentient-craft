@@ -22,7 +22,6 @@ import {
 } from '#gateway/npm/tabler__icons-react';
 
 import type { Quest, FlowNode, Flow, FlowObservable } from '@dungeonmaster/shared/contracts';
-import { commentTextContract } from '@dungeonmaster/shared/contracts';
 
 import { useCommentQueueBinding } from '../../bindings/use-comment-queue/use-comment-queue-binding';
 import { buttonLabelContract } from '../../contracts/button-label/button-label-contract';
@@ -99,7 +98,7 @@ export const CommentPopoverWidget = ({
     // Whitespace-only queues nothing and leaves the editor open — there is no comment to store and
     // closing would silently discard what the user is still typing.
     if (trimmed.length === 0) return;
-    queueComment({ anchor, text: commentTextContract.parse(trimmed) });
+    queueComment({ anchor, text: trimmed });
     setEditing(false);
   }, [draft, queueComment, anchor]);
 
