@@ -19,16 +19,16 @@ export const timeBucketContract = z
   .object({
     windowStart: z.iso.datetime().brand<'TimeBucketWindowStart'>(),
     windowEnd: z.iso.datetime().brand<'TimeBucketWindowEnd'>(),
-    apiResponseCount: z.number().int().nonnegative(),
-    toolCallCount: z.number().int().nonnegative(),
-    outputTokens: z.number().int().nonnegative(),
-    contextInTokens: z.number().int().nonnegative(),
-    toolResultBytes: z.number().int().nonnegative(),
+    apiResponseCount: z.number().int().nonnegative().brand<'TimeBucketApiResponseCount'>(),
+    toolCallCount: z.number().int().nonnegative().brand<'TimeBucketToolCallCount'>(),
+    outputTokens: z.number().int().nonnegative().brand<'TimeBucketOutputTokens'>(),
+    contextInTokens: z.number().int().nonnegative().brand<'TimeBucketContextInTokens'>(),
+    toolResultBytes: z.number().int().nonnegative().brand<'TimeBucketToolResultBytes'>(),
     topTools: z
       .array(
         z.object({
-          name: z.string(),
-          count: z.number().int().nonnegative(),
+          name: z.string().brand<'TimeBucketTopToolsName'>(),
+          count: z.number().int().nonnegative().brand<'TimeBucketTopToolsCount'>(),
         }).brand<'TimeBucketTopTools'>(),
       )
       .default([]),

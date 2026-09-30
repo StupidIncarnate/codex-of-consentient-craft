@@ -30,9 +30,9 @@ export const verificationUnitContract = z
     flowId: z.string(),
     flowType: z.enum(['runtime', 'operational']),
     kind: z.enum(['terminal', 'branch', 'observable', 'off-map']),
-    unitId: z.string(),
-    nodeId: z.string().optional(),
-    packages: z.array(z.string()).default([]),
+    unitId: z.string().brand<'VerificationUnitUnitId'>(),
+    nodeId: z.string().brand<'VerificationUnitNodeId'>().optional(),
+    packages: z.array(z.string().brand<'VerificationUnitPackages'>()).default([]),
     addedBy: z
       .enum(['spec', 'chaoswhisperer', 'codeweaver', 'flowrider', 'siegemaster', 'operator'])
       .optional(),

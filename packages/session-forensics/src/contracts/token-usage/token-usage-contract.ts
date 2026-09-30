@@ -15,11 +15,11 @@ import { z } from '#gateway/npm/zod';
 
 export const tokenUsageContract = z
   .object({
-    inputTokens: z.number().int().nonnegative(),
-    outputTokens: z.number().int().nonnegative(),
-    cacheReadTokens: z.number().int().nonnegative(),
-    cacheCreationTokens: z.number().int().nonnegative(),
-    thinkingTokens: z.number().int().nonnegative(),
+    inputTokens: z.number().int().nonnegative().brand<'TokenUsageInputTokens'>(),
+    outputTokens: z.number().int().nonnegative().brand<'TokenUsageOutputTokens'>(),
+    cacheReadTokens: z.number().int().nonnegative().brand<'TokenUsageCacheReadTokens'>(),
+    cacheCreationTokens: z.number().int().nonnegative().brand<'TokenUsageCacheCreationTokens'>(),
+    thinkingTokens: z.number().int().nonnegative().brand<'TokenUsageThinkingTokens'>(),
   })
   .brand<'TokenUsage'>();
 

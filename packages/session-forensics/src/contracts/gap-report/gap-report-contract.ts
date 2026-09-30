@@ -20,9 +20,9 @@ import { turnGapContract } from '../turn-gap/turn-gap-contract';
 export const gapReportContract = z
   .object({
     gaps: z.array(turnGapContract).readonly(),
-    wallClockSeconds: z.number().nonnegative(),
-    blockedSeconds: z.number().nonnegative(),
-    idleSeconds: z.number().nonnegative(),
+    wallClockSeconds: z.number().nonnegative().brand<'GapReportWallClockSeconds'>(),
+    blockedSeconds: z.number().nonnegative().brand<'GapReportBlockedSeconds'>(),
+    idleSeconds: z.number().nonnegative().brand<'GapReportIdleSeconds'>(),
   })
   .brand<'GapReport'>();
 

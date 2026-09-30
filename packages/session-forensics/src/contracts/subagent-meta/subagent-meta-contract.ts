@@ -14,11 +14,11 @@ import { z } from '#gateway/npm/zod';
 
 export const subagentMetaContract = z
   .object({
-    agentType: z.string().min(1),
-    description: z.string().min(1),
-    toolUseId: z.string().min(1),
-    spawnDepth: z.number().int().nonnegative(),
-    model: z.string().min(1).optional(),
+    agentType: z.string().min(1).brand<'SubagentMetaAgentType'>(),
+    description: z.string().min(1).brand<'SubagentMetaDescription'>(),
+    toolUseId: z.string().min(1).brand<'SubagentMetaToolUseId'>(),
+    spawnDepth: z.number().int().nonnegative().brand<'SubagentMetaSpawnDepth'>(),
+    model: z.string().min(1).brand<'SubagentMetaModel'>().optional(),
   })
   .brand<'SubagentMeta'>();
 

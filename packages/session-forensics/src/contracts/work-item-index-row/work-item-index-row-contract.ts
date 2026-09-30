@@ -18,19 +18,19 @@ import { workItemRoleContract, workItemStatusContract, sessionContract } from '@
 
 export const workItemIndexRowContract = z
   .object({
-    workItemId: z.string(),
+    workItemId: z.string().brand<'WorkItemIndexRowWorkItemId'>(),
     role: workItemRoleContract,
     status: workItemStatusContract,
     sessionId: sessionContract.shape.id.optional(),
     // Undefined when the item never completed — `completedAt - startedAt` (or `createdAt` when
     // `startedAt` is absent) needs both ends of the range to exist.
-    wallClockSeconds: z.number().optional(),
-    operationText: z.string().optional(),
-    flowIds: z.array(z.string()).default([]),
-    packageNames: z.array(z.string()).default([]),
-    transcriptSizeBytes: z.number().int().nonnegative().default(0),
-    subagentCount: z.number().int().nonnegative().default(0),
-    wardRiftcarverSummary: z.string().optional(),
+    wallClockSeconds: z.number().brand<'WorkItemIndexRowWallClockSeconds'>().optional(),
+    operationText: z.string().brand<'WorkItemIndexRowOperationText'>().optional(),
+    flowIds: z.array(z.string().brand<'WorkItemIndexRowFlowIds'>()).default([]),
+    packageNames: z.array(z.string().brand<'WorkItemIndexRowPackageNames'>()).default([]),
+    transcriptSizeBytes: z.number().int().nonnegative().brand<'WorkItemIndexRowTranscriptSizeBytes'>().default(0),
+    subagentCount: z.number().int().nonnegative().brand<'WorkItemIndexRowSubagentCount'>().default(0),
+    wardRiftcarverSummary: z.string().brand<'WorkItemIndexRowWardRiftcarverSummary'>().optional(),
   })
   .brand<'WorkItemIndexRow'>();
 

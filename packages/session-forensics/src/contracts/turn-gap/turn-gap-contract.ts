@@ -18,8 +18,8 @@ import { agentContract } from '@dungeonmaster/shared/contracts';
 export const turnGapContract = z
   .object({
     gapStartedAt: z.iso.datetime().brand<'TurnGapGapStartedAt'>(),
-    elapsedMinutes: z.number().nonnegative(),
-    gapSeconds: z.number().nonnegative(),
+    elapsedMinutes: z.number().nonnegative().brand<'TurnGapElapsedMinutes'>(),
+    gapSeconds: z.number().nonnegative().brand<'TurnGapGapSeconds'>(),
     liveSubagentIds: z.array(agentContract.shape.id).default([]),
   })
   .brand<'TurnGap'>();

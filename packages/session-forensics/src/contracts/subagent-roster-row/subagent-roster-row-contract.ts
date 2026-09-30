@@ -23,7 +23,7 @@ export const subagentRosterRowContract = z
     meta: subagentMetaContract,
     startedAt: z.iso.datetime().brand<'SubagentRosterRowStartedAt'>().optional(),
     endedAt: z.iso.datetime().brand<'SubagentRosterRowEndedAt'>().optional(),
-    turnCount: z.number().int().nonnegative(),
+    turnCount: z.number().int().nonnegative().brand<'SubagentRosterRowTurnCount'>(),
     records: z.array(transcriptRecordContract),
   })
   .brand<'SubagentRosterRow'>();

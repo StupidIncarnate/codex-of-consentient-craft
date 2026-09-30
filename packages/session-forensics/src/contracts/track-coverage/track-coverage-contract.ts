@@ -22,12 +22,12 @@ export const trackCoverageContract = z
   .object({
     flowId: z.string(),
     track: z.enum(['codeweaver', 'flowrider', 'siegemaster']),
-    owed: z.number().int().nonnegative(),
-    signed: z.number().int().nonnegative(),
-    met: z.number().int().nonnegative(),
-    cantMeet: z.number().int().nonnegative(),
-    unmet: z.number().int().nonnegative(),
-    unsigned: z.number().int().nonnegative(),
+    owed: z.number().int().nonnegative().brand<'TrackCoverageOwed'>(),
+    signed: z.number().int().nonnegative().brand<'TrackCoverageSigned'>(),
+    met: z.number().int().nonnegative().brand<'TrackCoverageMet'>(),
+    cantMeet: z.number().int().nonnegative().brand<'TrackCoverageCantMeet'>(),
+    unmet: z.number().int().nonnegative().brand<'TrackCoverageUnmet'>(),
+    unsigned: z.number().int().nonnegative().brand<'TrackCoverageUnsigned'>(),
   })
   .refine((coverage) => coverage.signed + coverage.unsigned === coverage.owed, {
     message: 'signed + unsigned must equal owed',
