@@ -31,7 +31,7 @@ const sessionFieldsShape = z.object({
   sessionId: sessionContract.shape.id,
   cwd: absoluteFilePathContract,
   lines: z.array(z.string().min(1).brand<'SessionFieldsShapeLines'>()),
-});
+}).brand<'SessionFieldsShape'>();
 
 export type SessionFields = z.infer<typeof sessionFieldsShape>;
 

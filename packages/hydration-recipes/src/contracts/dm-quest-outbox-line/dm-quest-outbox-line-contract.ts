@@ -16,7 +16,7 @@ import { questContract } from '@dungeonmaster/shared/contracts';
 
 export const dmQuestOutboxLineContract = z.object({
   questId: questContract.shape.id,
-  timestamp: z.iso.datetime().brand<'DmQuestOutboxTimestamp'>(),
+  timestamp: z.iso.datetime().brand<'DmQuestOutboxLineTimestamp'>(),
 }).brand<'DmQuestOutboxLine'>();
 
 export type DmQuestOutboxLine = z.infer<typeof dmQuestOutboxLineContract>;

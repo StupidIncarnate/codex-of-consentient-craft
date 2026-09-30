@@ -20,24 +20,24 @@ import { z } from '#gateway/npm/zod';
 
 const CONTENT_ITEM = z
   .object({
-    type: z.string().min(1).brand<'TranscriptContentType'>(),
-    text: z.string().brand<'TranscriptContentText'>().optional(),
-    id: z.string().min(1).brand<'TranscriptToolUseId'>().optional(),
-    tool_use_id: z.string().min(1).brand<'TranscriptToolUseId'>().optional(),
-  })
+    type: z.string().min(1).brand<'CONTENTITEMType'>(),
+    text: z.string().brand<'CONTENTITEMText'>().optional(),
+    id: z.string().min(1).brand<'CONTENTITEMId'>().optional(),
+    tool_use_id: z.string().min(1).brand<'CONTENTITEMToolUseId'>().optional(),
+  }).brand<'CONTENTITEM'>()
   .loose();
 
 export const recipeTranscriptLineContract = z
   .object({
-    uuid: z.string().min(1).brand<'TranscriptLineUuid'>(),
-    timestamp: z.string().min(1).brand<'TranscriptLineTimestamp'>(),
+    uuid: z.string().min(1).brand<'RecipeTranscriptLineUuid'>(),
+    timestamp: z.string().min(1).brand<'RecipeTranscriptLineTimestamp'>(),
     message: z
       .object({
-        content: z.union([z.string().brand<'TranscriptUserText'>(), z.array(CONTENT_ITEM)]),
-      })
+        content: z.union([z.string().brand<'RecipeTranscriptLineMessageContent'>(), z.array(CONTENT_ITEM)]),
+      }).brand<'RecipeTranscriptLineMessage'>()
       .loose(),
     toolUseResult: z
-      .object({ agentId: z.string().min(1).brand<'TranscriptAgentId'>() })
+      .object({ agentId: z.string().min(1).brand<'RecipeTranscriptLineToolUseResultAgentId'>() }).brand<'RecipeTranscriptLineToolUseResult'>()
       .loose()
       .optional(),
   })

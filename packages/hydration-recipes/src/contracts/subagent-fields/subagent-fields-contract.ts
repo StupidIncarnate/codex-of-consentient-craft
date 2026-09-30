@@ -49,7 +49,7 @@ const subagentFieldsShape = z.object({
   completed: z.boolean(),
   sessionId: sessionContract.shape.id,
   cwd: absoluteFilePathContract,
-});
+}).brand<'SubagentFieldsShape'>();
 
 export type SubagentFields = z.infer<typeof subagentFieldsShape>;
 

@@ -13,7 +13,7 @@
 import { z } from '#gateway/npm/zod';
 
 export const dmHttpResponseContract = z.object({
-  status: z.number().int().brand<'HttpStatusCode'>(),
+  status: z.number().int().brand<'DmHttpResponseStatus'>(),
   body: z.unknown(),
 }).brand<'DmHttpResponse'>();
 
