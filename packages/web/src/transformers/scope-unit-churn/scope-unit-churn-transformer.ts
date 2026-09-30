@@ -11,8 +11,7 @@
  * // entirely when only one (or zero) ever touched it — see unitChurnContract's own min() for why
  */
 
-import type { WorkItem } from '@dungeonmaster/shared/contracts';
-import type { UnitId } from '@dungeonmaster/shared/contracts';
+import type { WorkItem, QaChecklistItem } from '@dungeonmaster/shared/contracts';
 
 import { displayLabelContract } from '../../contracts/display-label/display-label-contract';
 import { unitChurnContract } from '../../contracts/unit-churn/unit-churn-contract';
@@ -25,8 +24,8 @@ export const scopeUnitChurnTransformer = ({
 }: {
   workItems: readonly WorkItem[];
 }): UnitChurn[] => {
-  const stepsByUnitId = new Map<UnitId, UnitChurnStep[]>();
-  const unitIdOrder: UnitId[] = [];
+  const stepsByUnitId = new Map<QaChecklistItem['id'], UnitChurnStep[]>();
+  const unitIdOrder: QaChecklistItem['id'][] = [];
 
   workItems.forEach((workItem) => {
     const workItemLabel = displayLabelContract.parse(workItem.step ?? workItem.role);

@@ -15,12 +15,12 @@
  * across a brand boundary in this codebase.
  */
 
-import { unitIdContract } from '@dungeonmaster/shared/contracts';
-import type { Quest, UnitId } from '@dungeonmaster/shared/contracts';
+import { qaChecklistItemContract } from '@dungeonmaster/shared/contracts';
+import type { Quest, QaChecklistItem } from '@dungeonmaster/shared/contracts';
 
 import { qaUnitEnumerateTransformer } from '../qa-unit-enumerate/qa-unit-enumerate-transformer';
 
-export const workPlanQuestUnitIdsTransformer = ({ quest }: { quest: Quest }): UnitId[] =>
+export const workPlanQuestUnitIdsTransformer = ({ quest }: { quest: Quest }): QaChecklistItem['id'][] =>
   quest.flows.flatMap((flow) =>
-    qaUnitEnumerateTransformer({ flow }).map((unit) => unitIdContract.parse(String(unit.id))),
+    qaUnitEnumerateTransformer({ flow }).map((unit) => qaChecklistItemContract.shape.id.parse(String(unit.id))),
   );

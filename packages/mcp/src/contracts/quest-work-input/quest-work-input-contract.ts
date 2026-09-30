@@ -18,7 +18,7 @@
  */
 
 import { z } from '#gateway/npm/zod';
-import { questContract, workItemContract } from '@dungeonmaster/shared/contracts';
+import { questContract, workItemContract, qaChecklistItemContract } from '@dungeonmaster/shared/contracts';
 
 const planPayloadContract = z
   .object({
@@ -38,7 +38,7 @@ const observationsPayloadContract = z
       .array(
         z
           .object({
-            unitId: z.string().min(1).brand<'UnitId'>(),
+            unitId: qaChecklistItemContract.shape.id,
             mark: z.enum(['met', 'cant-meet', 'unmet']),
             evidence: z.string().min(1).brand<'MarkEvidence'>(),
             toSettle: z.string().min(1).brand<'ToSettleInstruction'>().optional(),

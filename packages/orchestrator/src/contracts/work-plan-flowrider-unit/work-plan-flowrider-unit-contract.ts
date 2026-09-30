@@ -27,11 +27,11 @@
  * than to this shape.
  */
 
-import { flowEdgeIdContract, qaChecklistItemContract, qaChecklistKindContract, unitIdContract, flowNodeContract } from '@dungeonmaster/shared/contracts';
+import { flowEdgeIdContract, qaChecklistItemContract, qaChecklistKindContract, flowNodeContract } from '@dungeonmaster/shared/contracts';
 import { z } from '#gateway/npm/zod';
 
 export const workPlanFlowriderUnitContract = z.object({
-  unitId: unitIdContract,
+  unitId: qaChecklistItemContract.shape.id,
   kind: qaChecklistKindContract,
   layer: z
     .enum(['browser', 'below-browser'])

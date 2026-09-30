@@ -17,11 +17,11 @@
  * // Returns: UnitCurrentMark
  */
 
-import { stepNameContract, unitIdContract, unitMarkContract, workItemContract } from '@dungeonmaster/shared/contracts';
+import { stepNameContract, unitMarkContract, workItemContract, qaChecklistItemContract } from '@dungeonmaster/shared/contracts';
 import { z } from '#gateway/npm/zod';
 
 export const unitCurrentMarkContract = z.object({
-  unitId: unitIdContract,
+  unitId: qaChecklistItemContract.shape.id,
   mark: unitMarkContract,
   // The three branded strings below are re-declared under the literals `unitObservationContract`
   // already uses rather than imported. A zod brand is structural on the literal, so a re-declaration

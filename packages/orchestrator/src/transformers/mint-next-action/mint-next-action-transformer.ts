@@ -33,7 +33,7 @@
  * units and its absent mark is then the state.
  */
 
-import type { Quest, StepName, UnitId, OperationItem } from '@dungeonmaster/shared/contracts';
+import type { Quest, StepName, OperationItem, QaChecklistItem } from '@dungeonmaster/shared/contracts';
 import { isTerminalWorkItemStatusGuard } from '@dungeonmaster/shared/guards';
 
 import { mintedWorkItemContract } from '../../contracts/minted-work-item/minted-work-item-contract';
@@ -68,7 +68,7 @@ export const mintNextActionTransformer = ({
   // where absent is the common case, and an optional parameter would put a ternary on every one of
   // those call sites for a value the step already spells.
   maxConcurrent: { limit: number; counts: string } | undefined;
-  invalidatedUnitIds: readonly UnitId[];
+  invalidatedUnitIds: readonly QaChecklistItem['id'][];
   from?: StepName;
   outcome?: StepOutcome;
 }): NextAction => {

@@ -25,7 +25,7 @@
  * unit and died read as outstanding rather than as whatever the last completed session said.
  */
 
-import type { OperationItem, Quest, UnitId } from '@dungeonmaster/shared/contracts';
+import type { OperationItem, Quest, QaChecklistItem } from '@dungeonmaster/shared/contracts';
 
 import type { QuestWorkUnit } from '../../contracts/quest-work-view/quest-work-view-contract';
 import { qaChecklistBuildTransformer } from '../qa-checklist-build/qa-checklist-build-transformer';
@@ -38,7 +38,7 @@ export const questWorkUnitsTransformer = ({
 }: {
   quest: Quest;
   operationItem: OperationItem;
-  unitIds: readonly UnitId[];
+  unitIds: readonly QaChecklistItem['id'][];
 }): QuestWorkUnit[] => {
   const scopedFlowIds = new Set(operationItem.flowIds.map(String));
 

@@ -23,7 +23,7 @@
  */
 
 import { flowContract } from '@dungeonmaster/shared/contracts';
-import type { Flow, QaChecklistItemId } from '@dungeonmaster/shared/contracts';
+import type { Flow, QaChecklistItem } from '@dungeonmaster/shared/contracts';
 
 import { qaUnitEnumerateTransformer } from '../qa-unit-enumerate/qa-unit-enumerate-transformer';
 
@@ -32,7 +32,7 @@ export const smoketestFlowSignoffApplyTransformer = ({
   unitIds,
 }: {
   flow: Flow;
-  unitIds: readonly QaChecklistItemId[];
+  unitIds: readonly QaChecklistItem['id'][];
 }): Flow => {
   const targetIds = new Set(unitIds.map(String));
   const units = qaUnitEnumerateTransformer({ flow }).filter((unit) =>

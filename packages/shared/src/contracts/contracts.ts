@@ -320,7 +320,6 @@ export * from './qa-checklist-kind/qa-checklist-kind-contract';
 
 export * from './qa-off-map-family/qa-off-map-family-contract';
 
-export * from './qa-checklist-item-id/qa-checklist-item-id-contract';
 
 export * from './qa-checklist-item/qa-checklist-item-contract';
 
@@ -354,7 +353,6 @@ export * from './flow-off-map-signoff/flow-off-map-signoff-contract';
 
 // Unit Observation Contracts (the generic mark — met/cant-meet/unmet — that a session records
 // against one unit, on the work item that was assigned it)
-export * from './unit-id/unit-id-contract';
 
 export * from './unit-mark/unit-mark-contract';
 

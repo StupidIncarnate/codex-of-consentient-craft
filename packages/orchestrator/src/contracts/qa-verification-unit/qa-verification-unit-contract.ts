@@ -31,19 +31,19 @@
 
 import { z } from '#gateway/npm/zod';
 
-import { flowEdgeContract, flowEdgeIdContract, flowIdContract, flowNodeContract, flowObservableContract, observableIdContract, observableOriginContract, qaChecklistItemIdContract, qaOffMapFamilyContract } from '@dungeonmaster/shared/contracts';
+import { flowEdgeContract, flowEdgeIdContract, flowIdContract, flowNodeContract, flowObservableContract, observableIdContract, observableOriginContract, qaOffMapFamilyContract, qaChecklistItemContract } from '@dungeonmaster/shared/contracts';
 
 export const qaVerificationUnitContract = z.discriminatedUnion('kind', [
   z.object({
     kind: z.literal('terminal'),
-    id: qaChecklistItemIdContract,
+    id: qaChecklistItemContract.shape.id,
     flowId: flowIdContract,
     nodeId: flowNodeContract.shape.id,
     nodeLabel: flowNodeContract.shape.label,
   }),
   z.object({
     kind: z.literal('branch'),
-    id: qaChecklistItemIdContract,
+    id: qaChecklistItemContract.shape.id,
     flowId: flowIdContract,
     edgeId: flowEdgeIdContract,
     edgeFrom: flowEdgeContract.shape.from,
@@ -54,7 +54,7 @@ export const qaVerificationUnitContract = z.discriminatedUnion('kind', [
   }),
   z.object({
     kind: z.literal('observable'),
-    id: qaChecklistItemIdContract,
+    id: qaChecklistItemContract.shape.id,
     flowId: flowIdContract,
     nodeId: flowNodeContract.shape.id,
     observableId: observableIdContract,
@@ -68,7 +68,7 @@ export const qaVerificationUnitContract = z.discriminatedUnion('kind', [
   }),
   z.object({
     kind: z.literal('off-map'),
-    id: qaChecklistItemIdContract,
+    id: qaChecklistItemContract.shape.id,
     flowId: flowIdContract,
     offMapFamily: qaOffMapFamilyContract,
   }),

@@ -38,7 +38,7 @@
  * off-map families — three of the four kinds, silently.
  */
 
-import { contentTextContract, filePathContract, flowEdgeIdContract, flowIdContract, flowRecipeNameContract, operationItemContract, outcomeTypeContract, packageNameContract, pieceIdContract, qaChecklistItemContract, qaChecklistKindContract, qaWalkPathContract, questContract, questNoteContract, repoRelativePathContract, siegeInstanceIdContract, siegeRunIdContract, stepNameContract, unitIdContract, unitMarkContract, unitObservationContract, unitObservationFieldsContract, wardResultContract, workItemContract, flowNodeContract } from '@dungeonmaster/shared/contracts';
+import { contentTextContract, filePathContract, flowEdgeIdContract, flowIdContract, flowRecipeNameContract, operationItemContract, outcomeTypeContract, packageNameContract, pieceIdContract, qaChecklistItemContract, qaChecklistKindContract, qaWalkPathContract, questContract, questNoteContract, repoRelativePathContract, siegeInstanceIdContract, siegeRunIdContract, stepNameContract, unitMarkContract, unitObservationContract, unitObservationFieldsContract, wardResultContract, workItemContract, flowNodeContract } from '@dungeonmaster/shared/contracts';
 import { z } from '#gateway/npm/zod';
 
 import { agentFamilyNameContract } from '../agent-family-name/agent-family-name-contract';
@@ -63,7 +63,7 @@ const questWorkScope = z.object({
 // `unitObservationFieldsContract`, not `unitObservationContract` — the latter ends in a
 // `.superRefine`, and a `ZodEffects` in zod 3 carries no `.shape`.
 const questWorkUnit = z.object({
-  unitId: unitIdContract,
+  unitId: qaChecklistItemContract.shape.id,
   kind: qaChecklistKindContract,
   text: qaChecklistItemContract.shape.label,
   surface: qaChecklistItemContract.shape.checkSurface,
@@ -92,7 +92,7 @@ const questWorkPiece = z.object({
   context: workPlanPieceContract.shape.context,
   recipeId: recipeIdContract.nullable(),
   baselineFor: pieceIdContract.nullable(),
-  contextUnitIds: z.array(unitIdContract).default([]),
+  contextUnitIds: z.array(qaChecklistItemContract.shape.id).default([]),
   payload: z.record(z.string().brand<'QuestWorkPiecePayloadKey'>(), z.unknown()),
 });
 

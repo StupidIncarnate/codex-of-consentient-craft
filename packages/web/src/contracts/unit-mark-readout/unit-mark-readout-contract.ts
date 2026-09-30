@@ -12,10 +12,10 @@
 
 import { z } from '#gateway/npm/zod';
 
-import { unitIdContract } from '@dungeonmaster/shared/contracts';
+import { qaChecklistItemContract } from '@dungeonmaster/shared/contracts';
 
 export const unitMarkReadoutContract = z.object({
-  unitId: unitIdContract,
+  unitId: qaChecklistItemContract.shape.id,
   mark: z.enum(['met', 'cant-meet', 'unmet', 'unmarked']),
 });
 

@@ -21,7 +21,6 @@
 import { z } from '#gateway/npm/zod';
 
 import { flowIdContract } from '../flow-id/flow-id-contract';
-import { qaChecklistItemIdContract } from '../qa-checklist-item-id/qa-checklist-item-id-contract';
 import { qaChecklistItemContract } from '../qa-checklist-item/qa-checklist-item-contract';
 import { qaWalkPathContract } from '../qa-walk-path/qa-walk-path-contract';
 
@@ -46,7 +45,7 @@ export const qaChecklistContract = z.object({
       'Every atomic verification unit on this flow. THIS is the definition of done, not `paths`.',
     ),
   remainingItemIds: z
-    .array(qaChecklistItemIdContract)
+    .array(qaChecklistItemContract.shape.id)
     .default([])
     .describe(
       "The units still outstanding for the track that asked. A unit leaves this list on a `met` or a `cant-meet` recorded in `workItem.observations` by a work item whose ROLE is that track — the tracks are independent, so a unit another track settled is still outstanding for yours, and an `unmet` settles it for nobody, since `unmet` is what mints the successor that carries it again. Asked with no track, every unit is listed: that is the read-only whole-quest shape, not a claim about any track's coverage.",

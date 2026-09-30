@@ -23,7 +23,7 @@
  * proves nothing, which is a different claim.
  */
 
-import { filePathContract, unitIdContract } from '@dungeonmaster/shared/contracts';
+import { filePathContract, qaChecklistItemContract } from '@dungeonmaster/shared/contracts';
 import { z } from '#gateway/npm/zod';
 
 export const workPlanFileEntryContract = z.object({
@@ -42,7 +42,7 @@ export const workPlanFileEntryContract = z.object({
     .brand<'PieceTypeSketch'>()
     .describe('What this file gives back, as a free-form sketch.'),
   proves: z
-    .array(unitIdContract)
+    .array(qaChecklistItemContract.shape.id)
     .optional()
     .describe('Present on a TEST file only — the units this file is written to settle.'),
 });

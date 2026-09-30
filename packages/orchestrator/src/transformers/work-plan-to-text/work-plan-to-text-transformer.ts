@@ -20,7 +20,7 @@
  */
 
 import { contentTextContract } from '@dungeonmaster/shared/contracts';
-import type { ContentText, OperationItem, PieceId, UnitId } from '@dungeonmaster/shared/contracts';
+import type { ContentText, OperationItem, PieceId, QaChecklistItem } from '@dungeonmaster/shared/contracts';
 
 import type { QuestWorkUnit } from '../../contracts/quest-work-view/quest-work-view-contract';
 import type { WorkPlan } from '../../contracts/work-plan/work-plan-contract';
@@ -57,7 +57,7 @@ export const workPlanToTextTransformer = ({
 
   // The claim index is built ONCE and read by both halves below, so the piece rows and the coverage
   // table cannot disagree about who claims what.
-  const claimedBy = new Map<UnitId, PieceId[]>();
+  const claimedBy = new Map<QaChecklistItem['id'], PieceId[]>();
 
   plan.batches.forEach((batch) => {
     batch.pieces.forEach((piece) => {

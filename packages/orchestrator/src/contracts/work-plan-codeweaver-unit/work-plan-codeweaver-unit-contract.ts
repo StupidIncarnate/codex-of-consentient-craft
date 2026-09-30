@@ -25,15 +25,11 @@
  * worked out what the unit means.
  */
 
-import {
-  outcomeTypeContract,
-  qaChecklistKindContract,
-  unitIdContract,
-} from '@dungeonmaster/shared/contracts';
+import { outcomeTypeContract, qaChecklistKindContract, qaChecklistItemContract } from '@dungeonmaster/shared/contracts';
 import { z } from '#gateway/npm/zod';
 
 export const workPlanCodeweaverUnitContract = z.object({
-  unitId: unitIdContract,
+  unitId: qaChecklistItemContract.shape.id,
   kind: qaChecklistKindContract.exclude(['off-map']),
   observableType: outcomeTypeContract
     .optional()

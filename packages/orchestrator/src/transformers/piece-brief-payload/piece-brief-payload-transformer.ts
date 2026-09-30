@@ -31,7 +31,7 @@
  */
 
 import { workItemPayloadKeyContract } from '@dungeonmaster/shared/contracts';
-import type { UnitId } from '@dungeonmaster/shared/contracts';
+import type { QaChecklistItem } from '@dungeonmaster/shared/contracts';
 
 import { mintedWorkItemContract } from '../../contracts/minted-work-item/minted-work-item-contract';
 import type { MintedWorkItem } from '../../contracts/minted-work-item/minted-work-item-contract';
@@ -43,7 +43,7 @@ export const pieceBriefPayloadTransformer = ({
   unitIds,
 }: {
   piece: WorkPlanPiece;
-  unitIds: readonly UnitId[];
+  unitIds: readonly QaChecklistItem['id'][];
 }): MintedWorkItem['payload'] => {
   const parsed = mintedWorkItemContract.shape.payload.safeParse(piece.payload);
   const source = parsed.success ? parsed.data : undefined;

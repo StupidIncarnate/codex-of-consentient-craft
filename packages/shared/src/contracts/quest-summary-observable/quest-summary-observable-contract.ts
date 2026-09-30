@@ -39,11 +39,11 @@ import { flowObservableContract } from '../flow-observable/flow-observable-contr
 import { observableIdContract } from '../observable-id/observable-id-contract';
 import { observableOriginContract } from '../observable-origin/observable-origin-contract';
 import { outcomeTypeContract } from '../outcome-type/outcome-type-contract';
-import { qaChecklistItemIdContract } from '../qa-checklist-item-id/qa-checklist-item-id-contract';
 import { flowNodeContract } from '../flow-node/flow-node-contract';
+import { qaChecklistItemContract } from '../qa-checklist-item/qa-checklist-item-contract';
 
 export const questSummaryObservableContract = z.object({
-  id: qaChecklistItemIdContract,
+  id: qaChecklistItemContract.shape.id,
   flowId: flowIdContract,
   nodeId: flowNodeContract.shape.id,
   observableId: observableIdContract,

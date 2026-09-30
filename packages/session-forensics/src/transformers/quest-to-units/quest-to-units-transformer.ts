@@ -37,8 +37,8 @@
  */
 
 import { qaOffMapProbeStatics } from '@dungeonmaster/shared/statics';
-import { unitIdContract, flowNodeContract } from '@dungeonmaster/shared/contracts';
-import type { Flow, WorkItem, UnitMark, UnitId } from '@dungeonmaster/shared/contracts';
+import { flowNodeContract, qaChecklistItemContract } from '@dungeonmaster/shared/contracts';
+import type { Flow, WorkItem, UnitMark, QaChecklistItem } from '@dungeonmaster/shared/contracts';
 
 import {
   verificationUnitContract,
@@ -63,7 +63,7 @@ export const questToUnitsTransformer = ({
   const marksByTrack = new Map(
     tracks.map((track) => [
       track,
-      new Map<UnitId, UnitMark>(
+      new Map<QaChecklistItem['id'], UnitMark>(
         workItems
           .filter((workItem) => workItem.role === track)
           .flatMap((workItem) =>
@@ -159,7 +159,7 @@ export const questToUnitsTransformer = ({
   });
 
   return unitsByFlow.map((unit) => {
-    const compositeId = unitIdContract.safeParse(`${unit.flowId}:${unit.kind}:${unit.unitId}`);
+    const compositeId = qaChecklistItemContract.shape.id.safeParse(`${unit.flowId}:${unit.kind}:${unit.unitId}`);
 
     return verificationUnitContract.parse({
       ...unit,

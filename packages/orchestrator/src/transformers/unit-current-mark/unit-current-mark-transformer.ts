@@ -16,7 +16,7 @@
  * assigned this unit, or the most recent one that was holds no observation for it.
  */
 
-import type { Quest, UnitId } from '@dungeonmaster/shared/contracts';
+import type { Quest, QaChecklistItem } from '@dungeonmaster/shared/contracts';
 
 import { unitCurrentMarkContract } from '../../contracts/unit-current-mark/unit-current-mark-contract';
 import type { UnitCurrentMark } from '../../contracts/unit-current-mark/unit-current-mark-contract';
@@ -27,7 +27,7 @@ export const unitCurrentMarkTransformer = ({
   unitId,
 }: {
   quest: Quest;
-  unitId: UnitId;
+  unitId: QaChecklistItem['id'];
 }): UnitCurrentMark | null => {
   // The UNION of the two reads, never one of them. `payload.units[]` is what the router forecast;
   // the observations cover every work item already on disk, every chat role, and anything minted

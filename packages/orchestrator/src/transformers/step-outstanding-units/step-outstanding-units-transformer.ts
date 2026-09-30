@@ -33,7 +33,7 @@
  * session that marked a unit it was not handed, and every work item minted before payloads existed.
  */
 
-import type { Quest, StepName, UnitId, OperationItem } from '@dungeonmaster/shared/contracts';
+import type { Quest, StepName, OperationItem, QaChecklistItem } from '@dungeonmaster/shared/contracts';
 import { isTerminalWorkItemStatusGuard } from '@dungeonmaster/shared/guards';
 
 import type { WorkPlan } from '../../contracts/work-plan/work-plan-contract';
@@ -51,7 +51,7 @@ export const stepOutstandingUnitsTransformer = ({
   plan: WorkPlan;
   operationItemId: OperationItem['id'];
   step: StepName;
-}): UnitId[] => {
+}): QaChecklistItem['id'][] => {
   // Resolved here as well as inside the in-scope call, so the message names the transformer the
   // caller actually invoked. An absent item is a caller bug, and `[]` for it is indistinguishable
   // from a genuinely empty scope — the reading that turns a gate off silently.

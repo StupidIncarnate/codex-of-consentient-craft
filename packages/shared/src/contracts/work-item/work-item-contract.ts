@@ -16,11 +16,11 @@ import { sessionIdContract } from '../session-id/session-id-contract';
 import { spawnerTypeContract } from '../spawner-type/spawner-type-contract';
 import { stepNameContract } from '../step-name/step-name-contract';
 import { streamSignalKindContract } from '../stream-signal-kind/stream-signal-kind-contract';
-import { unitIdContract } from '../unit-id/unit-id-contract';
 import { unitObservationContract } from '../unit-observation/unit-observation-contract';
 import { workItemPayloadKeyContract } from '../work-item-payload-key/work-item-payload-key-contract';
 import { workItemRoleContract } from '../work-item-role/work-item-role-contract';
 import { workItemStatusContract } from '../work-item-status/work-item-status-contract';
+import { qaChecklistItemContract } from '../qa-checklist-item/qa-checklist-item-contract';
 
 const workItemId = z.uuid().brand<'WorkItemId'>();
 
@@ -94,7 +94,7 @@ export const workItemContract = z.object({
   // `observations[].unitId`. Cannot be derived from the piece's own `assignedUnitIds` (that is
   // INTENT, re-filtered at dispatch) or from `payload.units[]` (not every family's payload has
   // one) — see story 02's own text for the full reasoning.
-  assignedUnitIds: z.array(unitIdContract).default([]),
+  assignedUnitIds: z.array(qaChecklistItemContract.shape.id).default([]),
   // The return edge: which work item's `unmet` marks or `request` caused this one to exist.
   // Deliberately NOT `insertedBy` — that field already means "supersedes a failed item" for the
   // `pt N` continuation chain, and `work-items-to-quest-status-transformer` reads it to derive

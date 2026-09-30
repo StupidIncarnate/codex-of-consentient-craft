@@ -14,13 +14,13 @@
 
 import { z } from '#gateway/npm/zod';
 
-import { unitIdContract } from '@dungeonmaster/shared/contracts';
+import { qaChecklistItemContract } from '@dungeonmaster/shared/contracts';
 
 import { unitChurnStepContract } from '../unit-churn-step/unit-churn-step-contract';
 import { unitChurnStatics } from '../../statics/unit-churn/unit-churn-statics';
 
 export const unitChurnContract = z.object({
-  unitId: unitIdContract,
+  unitId: qaChecklistItemContract.shape.id,
   marks: z.array(unitChurnStepContract).min(unitChurnStatics.limits.minMarksForChurn),
 });
 

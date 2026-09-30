@@ -60,8 +60,8 @@
  * the minted step's `done` returns to the session that asked for it.
  */
 
-import type { FlowId, Quest, StepName, UnitId, WorkItem, OperationItem } from '@dungeonmaster/shared/contracts';
-import { stepNameContract, unitIdContract } from '@dungeonmaster/shared/contracts';
+import type { FlowId, Quest, StepName, WorkItem, OperationItem, QaChecklistItem } from '@dungeonmaster/shared/contracts';
+import { stepNameContract, qaChecklistItemContract } from '@dungeonmaster/shared/contracts';
 import { isTerminalWorkItemStatusGuard } from '@dungeonmaster/shared/guards';
 
 import { mintedWorkItemContract } from '../../contracts/minted-work-item/minted-work-item-contract';
@@ -258,7 +258,7 @@ export const nextActionTransformer = ({
     ...new Set(terminalStepItems.flatMap((item) => item.assignedUnitIds.map(String))),
   ]
     .filter((unitId) => !liveAssignedUnitIds.has(unitId))
-    .map((unitId) => unitIdContract.parse(unitId))
+    .map((unitId) => qaChecklistItemContract.shape.id.parse(unitId))
     .filter((unitId) => {
       const mark = unitCurrentMarkTransformer({ quest, unitId });
 
@@ -269,7 +269,7 @@ export const nextActionTransformer = ({
   const unmetNode = unmetTarget === undefined ? undefined : graph.steps[unmetTarget];
 
   if (unmetUnitIds.length > 0 && unmetTarget !== undefined && unmetNode !== undefined) {
-    const claimedBy = new Map<UnitId, WorkPlanPiece>();
+    const claimedBy = new Map<QaChecklistItem['id'], WorkPlanPiece>();
 
     for (const planBatch of plan?.batches ?? []) {
       for (const piece of planBatch.pieces) {

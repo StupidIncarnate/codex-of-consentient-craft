@@ -20,11 +20,11 @@
 
 import { z } from '#gateway/npm/zod';
 
-import { unitIdContract } from '../unit-id/unit-id-contract';
 import { unitMarkContract } from '../unit-mark/unit-mark-contract';
+import { qaChecklistItemContract } from '../qa-checklist-item/qa-checklist-item-contract';
 
 export const unitObservationFieldsContract = z.object({
-  unitId: unitIdContract,
+  unitId: qaChecklistItemContract.shape.id,
   mark: unitMarkContract,
   evidence: z
     .string()

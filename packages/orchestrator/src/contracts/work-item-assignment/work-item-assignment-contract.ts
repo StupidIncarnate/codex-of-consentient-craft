@@ -10,7 +10,7 @@
  * // Returns: { success: true, data: { units: [{ unitId: 'send-flow:observable:obs-3' }] } }
  */
 
-import { unitIdContract } from '@dungeonmaster/shared/contracts';
+import { qaChecklistItemContract } from '@dungeonmaster/shared/contracts';
 import { z } from '#gateway/npm/zod';
 
 export const workItemAssignmentContract = z.object({
@@ -19,7 +19,7 @@ export const workItemAssignmentContract = z.object({
   // payload rather than an assertion about one key of it.
   // `.default([])` so a payload carrying no `units` key parses and contributes nothing, rather than
   // throwing and sending the caller down its absent-payload branch.
-  units: z.array(z.object({ unitId: unitIdContract }).loose()).default([]),
+  units: z.array(z.object({ unitId: qaChecklistItemContract.shape.id }).loose()).default([]),
 });
 
 export type WorkItemAssignment = z.infer<typeof workItemAssignmentContract>;

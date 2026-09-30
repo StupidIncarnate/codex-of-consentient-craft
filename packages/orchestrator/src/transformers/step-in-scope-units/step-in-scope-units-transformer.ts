@@ -31,8 +31,8 @@
  * derived from the graph, so a second derivation drifts and nothing reports it.
  */
 
-import type { Quest, StepName, UnitId, OperationItem } from '@dungeonmaster/shared/contracts';
-import { unitIdContract } from '@dungeonmaster/shared/contracts';
+import type { Quest, StepName, OperationItem, QaChecklistItem } from '@dungeonmaster/shared/contracts';
+import { qaChecklistItemContract } from '@dungeonmaster/shared/contracts';
 
 import { stepScopeStatics } from '../../statics/step-scope/step-scope-statics';
 import { qaUnitEnumerateTransformer } from '../qa-unit-enumerate/qa-unit-enumerate-transformer';
@@ -55,7 +55,7 @@ export const stepInScopeUnitsTransformer = ({
   quest: Quest;
   operationItemId: OperationItem['id'];
   step: StepName;
-}): UnitId[] => {
+}): QaChecklistItem['id'][] => {
   const operationItem = quest.operations.find((item) => item.id === operationItemId);
 
   if (operationItem === undefined) {
@@ -132,6 +132,6 @@ export const stepInScopeUnitsTransformer = ({
       // The seam rule's depth tiebreak. Handed over rather than defaulted, so a step's scope and
       // the fan-out that minted its cell order the same two packages the same way.
       packageGraph: quest.packageGraph,
-    }).map((unit) => unitIdContract.parse(unit.id));
+    }).map((unit) => qaChecklistItemContract.shape.id.parse(unit.id));
   });
 };

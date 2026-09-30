@@ -23,7 +23,7 @@
  * nothing to copy from, and synthesising a payload for it would invent a brief nobody wrote.
  */
 
-import { pieceIdContract, stepNameContract, unitIdContract, workItemPayloadKeyContract, workItemRoleContract, workItemContract } from '@dungeonmaster/shared/contracts';
+import { pieceIdContract, stepNameContract, workItemPayloadKeyContract, workItemRoleContract, workItemContract, qaChecklistItemContract } from '@dungeonmaster/shared/contracts';
 import { z } from '#gateway/npm/zod';
 
 export const mintedWorkItemContract = z.object({
@@ -31,7 +31,7 @@ export const mintedWorkItemContract = z.object({
   role: workItemRoleContract.describe(
     'Copied from the operation item this scope belongs to — never invented.',
   ),
-  assignedUnitIds: z.array(unitIdContract).default([]),
+  assignedUnitIds: z.array(qaChecklistItemContract.shape.id).default([]),
   pieceId: pieceIdContract.optional(),
   payload: z
     .record(workItemPayloadKeyContract, z.unknown())

@@ -49,7 +49,7 @@
  * a plan for omitting (`id`, `step`, `context`).
  */
 
-import { pieceIdContract, stepNameContract, unitIdContract } from '@dungeonmaster/shared/contracts';
+import { pieceIdContract, stepNameContract, qaChecklistItemContract } from '@dungeonmaster/shared/contracts';
 import { z } from '#gateway/npm/zod';
 
 import { recipeIdContract } from '../recipe-id/recipe-id-contract';
@@ -69,11 +69,11 @@ export const workPlanPieceContract = z.object({
     "Which step of this family's graph the piece runs — resolved against that graph by the plan validator, not here.",
   ),
   assignedUnitIds: z
-    .array(unitIdContract)
+    .array(qaChecklistItemContract.shape.id)
     .default([])
     .describe('The units this piece must MARK. May be empty on a contracts-only piece.'),
   contextUnitIds: z
-    .array(unitIdContract)
+    .array(qaChecklistItemContract.shape.id)
     .default([])
     .describe('The units this piece must READ and build against, and may NOT mark.'),
   recipeId: recipeIdContract.optional(),

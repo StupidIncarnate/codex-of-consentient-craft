@@ -15,7 +15,7 @@
  * refusal.
  */
 
-import { unitIdContract } from '@dungeonmaster/shared/contracts';
+import { qaChecklistItemContract } from '@dungeonmaster/shared/contracts';
 import { z } from '#gateway/npm/zod';
 
 export const signalGateResultContract = z.discriminatedUnion('ok', [
@@ -24,7 +24,7 @@ export const signalGateResultContract = z.discriminatedUnion('ok', [
   }),
   z.object({
     ok: z.literal(false),
-    unmarked: z.array(unitIdContract),
+    unmarked: z.array(qaChecklistItemContract.shape.id),
     message: z.string().min(1).brand<'SignalGateRefusalMessage'>(),
   }),
 ]);

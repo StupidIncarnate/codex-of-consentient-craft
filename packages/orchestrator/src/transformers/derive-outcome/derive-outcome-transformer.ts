@@ -17,7 +17,7 @@
  * with it — the rule is structural, never a check for whether the guess happened to be right.
  */
 
-import type { UnitId, UnitMark, UnitObservation } from '@dungeonmaster/shared/contracts';
+import type { UnitMark, UnitObservation, QaChecklistItem } from '@dungeonmaster/shared/contracts';
 
 import { stepOutcomeContract } from '../../contracts/step-outcome/step-outcome-contract';
 import type { StepOutcome } from '../../contracts/step-outcome/step-outcome-contract';
@@ -28,7 +28,7 @@ export const deriveOutcomeTransformer = ({
   declaredWord,
   hitWall,
 }: {
-  assignedUnitIds: readonly UnitId[];
+  assignedUnitIds: readonly QaChecklistItem['id'][];
   observations: readonly UnitObservation[];
   declaredWord?: StepOutcome;
   hitWall: boolean;
@@ -49,7 +49,7 @@ export const deriveOutcomeTransformer = ({
   // The unit's MOST RECENT mark in `observations`, by ARRAY ORDER — a later entry for the same
   // unit overwrites an earlier one in the Map, never `at`. Mirrors `unitCurrentMarkTransformer`'s
   // own "array order, never createdAt" rule: a parallel batch can share one timestamp.
-  const markByUnitId = new Map<UnitId, UnitMark>();
+  const markByUnitId = new Map<QaChecklistItem['id'], UnitMark>();
   for (const observation of observations) {
     markByUnitId.set(observation.unitId, observation.mark);
   }

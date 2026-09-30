@@ -12,7 +12,7 @@
  * // Returns: UnitMarkChurnEntry[], oldest first
  */
 
-import type { Quest, UnitId } from '@dungeonmaster/shared/contracts';
+import type { Quest, QaChecklistItem } from '@dungeonmaster/shared/contracts';
 
 import { unitMarkChurnEntryContract } from '../../contracts/unit-mark-churn-entry/unit-mark-churn-entry-contract';
 import type { UnitMarkChurnEntry } from '../../contracts/unit-mark-churn-entry/unit-mark-churn-entry-contract';
@@ -23,7 +23,7 @@ export const unitMarkChurnTransformer = ({
   unitId,
 }: {
   quest: Quest;
-  unitId: UnitId;
+  unitId: QaChecklistItem['id'];
 }): UnitMarkChurnEntry[] =>
   quest.workItems
     // The UNION of the two reads, never one of them. `payload.units[]` is what the router forecast;

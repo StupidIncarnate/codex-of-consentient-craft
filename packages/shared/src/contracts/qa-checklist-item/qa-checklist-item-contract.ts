@@ -31,13 +31,12 @@ import { flowEdgeIdContract } from '../flow-edge-id/flow-edge-id-contract';
 import { flowIdContract } from '../flow-id/flow-id-contract';
 import { observableIdContract } from '../observable-id/observable-id-contract';
 import { outcomeTypeContract } from '../outcome-type/outcome-type-contract';
-import { qaChecklistItemIdContract } from '../qa-checklist-item-id/qa-checklist-item-id-contract';
 import { qaChecklistKindContract } from '../qa-checklist-kind/qa-checklist-kind-contract';
 import { qaOffMapFamilyContract } from '../qa-off-map-family/qa-off-map-family-contract';
 import { flowNodeContract } from '../flow-node/flow-node-contract';
 
 export const qaChecklistItemContract = z.object({
-  id: qaChecklistItemIdContract,
+  id: z.string().min(1).regex(new RegExp(`^${KEBAB_SEGMENT}:${KEBAB_SEGMENT}:${KEBAB_SEGMENT}$`, 'u')).brand<'QaChecklistItemId'>(),
   flowId: flowIdContract,
   kind: qaChecklistKindContract,
   label: z
