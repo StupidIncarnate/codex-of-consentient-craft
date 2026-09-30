@@ -1,6 +1,6 @@
-import { questContractEntryIdContract } from './quest-contract-entry-id-contract';
-import type { QuestContractEntryId } from './quest-contract-entry-id-contract';
+import type { QuestContractEntry } from '../quest-contract-entry/quest-contract-entry-contract';
+import { questContractEntryContract } from '../quest-contract-entry/quest-contract-entry-contract';
 
 export const QuestContractEntryIdStub = (
   { value }: { value: string } = { value: 'login-credentials' },
-): QuestContractEntryId => questContractEntryIdContract.parse(value);
+): QuestContractEntry['id'] => questContractEntryContract.shape.id.parse(value);

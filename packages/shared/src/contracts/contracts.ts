@@ -170,7 +170,6 @@ export * from './quest-contract-status/quest-contract-status-contract';
 
 export * from './quest-contract-property/quest-contract-property-contract';
 
-export * from './quest-contract-entry-id/quest-contract-entry-id-contract';
 
 export * from './quest-contract-entry/quest-contract-entry-contract';
 

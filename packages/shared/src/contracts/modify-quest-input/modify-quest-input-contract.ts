@@ -48,7 +48,6 @@ import { packageNameContract } from '../package-name/package-name-contract';
 import { questBlightLedgerEntryContract } from '../quest-blight-ledger-entry/quest-blight-ledger-entry-contract';
 import { questCommentContract } from '../quest-comment/quest-comment-contract';
 import { questContractEntryContract } from '../quest-contract-entry/quest-contract-entry-contract';
-import { questContractEntryIdContract } from '../quest-contract-entry-id/quest-contract-entry-id-contract';
 import { questNoteContract } from '../quest-note/quest-note-contract';
 import { questPackageEntryContract } from '../quest-package-entry/quest-package-entry-contract';
 import { questStatusContract } from '../quest-status/quest-status-contract';
@@ -205,7 +204,7 @@ export const modifyQuestInputContract = z
         z.union([
           fullQuestContractEntry,
           fullQuestContractEntry.partial().required({ id: true }),
-          z.object({ id: questContractEntryIdContract, _delete: deleteMarker }),
+          z.object({ id: questContractEntryContract.shape.id, _delete: deleteMarker }),
         ]),
       )
       .describe(
