@@ -1,5 +1,4 @@
 
-import { UntilConsolePatternStub } from '../../../contracts/until-console-pattern/until-console-pattern.stub';
 import { UntilResponseStub } from '../../../contracts/until-response/until-response.stub';
 import type { StepAmbiguousError } from '../../../errors/step-ambiguous/step-ambiguous-error';
 import { stepUntilBroker } from './step-until-broker';
@@ -186,7 +185,7 @@ describe('stepUntilBroker', () => {
         response: null,
         file: null,
         predicate: null,
-        console: UntilConsolePatternStub({ value: 'hydrated' }),
+        console: 'hydrated',
         timeoutMs: null,
         browserWindowStart,
       });
