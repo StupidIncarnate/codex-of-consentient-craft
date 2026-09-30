@@ -11,7 +11,7 @@
  */
 
 import { userToolResultStreamLineContract } from '@dungeonmaster/shared/contracts';
-import type { UserToolResultStreamLine } from '@dungeonmaster/shared/contracts';
+import type { UserToolResultStreamLine, Agent } from '@dungeonmaster/shared/contracts';
 
 export const transcriptTaskToolResultLineTransformer = ({
   toolUseId,
@@ -20,7 +20,7 @@ export const transcriptTaskToolResultLineTransformer = ({
 }: {
   toolUseId: string;
   content: string;
-  agentId: string;
+  agentId: Agent['id'];
 }): UserToolResultStreamLine =>
   userToolResultStreamLineContract.parse({
     type: 'user',

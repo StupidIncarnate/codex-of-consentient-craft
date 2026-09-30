@@ -17,6 +17,7 @@
  */
 
 import { z } from '#gateway/npm/zod';
+import { agentContract } from '@dungeonmaster/shared/contracts';
 
 const CONTENT_ITEM = z
   .object({
@@ -42,7 +43,7 @@ export const transcriptLineContract = z
       .brand<'TranscriptLineMessage'>()
       .loose(),
     toolUseResult: z
-      .object({ agentId: z.string().min(1).brand<'TranscriptLineToolUseResultAgentId'>() })
+      .object({ agentId: agentContract.shape.id })
       .brand<'TranscriptLineToolUseResult'>()
       .loose()
       .optional(),

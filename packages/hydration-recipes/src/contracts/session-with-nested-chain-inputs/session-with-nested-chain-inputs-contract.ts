@@ -13,10 +13,11 @@
  * // Returns SessionWithNestedChainInputs
  */
 import { z } from '#gateway/npm/zod';
+import { guildContract } from '@dungeonmaster/shared/contracts';
 
 export const sessionWithNestedChainInputsContract = z
   .object({
-    guildPath: z.string().min(1).brand<'SessionWithNestedChainInputsGuildPath'>(),
+    guildPath: guildContract.shape.path,
   })
   .brand<'SessionWithNestedChainInputs'>();
 
