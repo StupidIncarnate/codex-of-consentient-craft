@@ -81,7 +81,7 @@ Status values:
 | `interrupted — re-dispatch` | Its sub-agent died with a session. Check for partial edits first                                |
 | `won't fix`                 | The user decided so. The reason is in the cell                                                  |
 
-Next free number: **DEF-165**. It starts there because commits and older scrolls already use DEF-01 to DEF-25
+Next free number: **DEF-168**. It starts there because commits and older scrolls already use DEF-01 to DEF-25
 for a siegelense walkthrough that finished before this one.
 
 Rows fixed before 2026-09-29 were checked again on the 2026-09-29 build and removed. `git log -p` on this file has
@@ -176,6 +176,9 @@ test went red after DEF-107.
 | DEF-162 | SL · DEF-157 follow-up | `siegelense-kill-layer-flow.integration.test.ts` fails on master after merge `9634751cf` (2 tests, run `1790721294506-0066`): expected `KILLED: inst_1111dead` / `PROCESSES REAPED: 0 (none)` / `HOME: removed`, received `inst_1111dead: already killed at an unrecorded time; nothing to do` / `HOME: already removed` | `fixed` — test only: both tests were real repeat kills of a `killed` row, so they now expect DEF-157's output. `d60732d86`, merge `63cbb5b07`. Ward passed (run `1790721447987-d41e`) |
 | DEF-163 | SL · DEF-158, DEF-143 follow-up | Ward integration on `packages/siegelense` (run `1790721528280-4880`) fails on master: two `siegelense-prune-layer-flow.integration.test.ts` tests (`a live instance … refused by name` and `--older-than 1d … nothing selected`), and `step-hold-broker.integration.test.ts` is a slow file (11.1s slowest test, over the 10s bar) | `fixed` — test only, `c83f48e13`, merge `1d3fc035b`. Prune expectations were stale after DEF-158; the hold test uses a 400x225 viewport (slowest 11.1s becomes 3.4s). Ward passed (run `1790721907212-3837`) |
 | DEF-164 | WEB · DEF-113, DEF-147 follow-up | The execution view shows the green `EXECUTION COMPLETE` banner above a `FAILED` row. A quest that really succeeded can keep failed work items in its history (ward fails, spiritmender repairs, ward re-runs green), and a group of rows with no operation shows the worst status among them, so a rule like "any failed row turns the banner red" would flag healthy quests | `needs decision` — which failures should the banner count? For example, only a top-level row with no later success in its scope |
+| DEF-165 | SL · full ward 2026-09-29 | Full `npm run ward` (run `1790725683293-c44b`): unit `packages/siegelense/src/brokers/run/execute/run-execute-broker.test.ts` fails `runExecuteBroker a run's shots carry their step's own perception fields VALID: {two steps, one measured change} => each ShotListing carries the pixelChange and blank its step measured` (toStrictEqual). Likely DEF-160 meeting DEF-120 | `dispatched` — worktree `def-165` |
+| DEF-166 | WEB · full ward 2026-09-29 | Full `npm run ward` (run `1790725683293-c44b`): e2e `packages/web/src/flows/home/bughunt-begin-transition.e2e.ts` fails `VALID: {Begin Quest pressed again on a quest whose relay a prior Start already seeded} => the second Start mints no second carve and the quest still reaches execution` (toHaveLength). Likely DEF-113 | `dispatched` — worktree `def-166` |
+| DEF-167 | WEB · full ward 2026-09-29 | Full `npm run ward` (run `1790725683293-c44b`): e2e `packages/web/src/flows/home/guild-two-route-comparison.e2e.ts` fails `VALID: {same guild fields via api and write routes} => produces equivalent domain state` (toBe). Likely DEF-133 | `dispatched` — worktree `def-167` |
 
 The user's decisions for the DEF-26 fix, 2026-09-23:
 
