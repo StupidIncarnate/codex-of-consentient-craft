@@ -20,13 +20,12 @@ import { z } from '#gateway/npm/zod';
 
 import { absoluteFilePathContract } from '@dungeonmaster/shared/contracts';
 
-import { epochMsContract } from '../epoch-ms/epoch-ms-contract';
 import { snapshotNameContract } from '../snapshot-name/snapshot-name-contract';
 
 export const snapshotRecordContract = z
   .object({
     name: snapshotNameContract,
-    atMs: epochMsContract,
+    atMs: z.number().int().nonnegative().brand<'SnapshotRecordAtMs'>(),
     manual: z.boolean(),
     path: absoluteFilePathContract,
     age: z.string().brand<'SnapshotRecordAge'>().optional(),

@@ -17,8 +17,6 @@
 
 import { readFileIfExists, unlink } from '#gateway/node/fs__promises';
 import { bootLockContract } from '../../../contracts/boot-lock/boot-lock-contract';
-import { epochMsContract } from '../../../contracts/epoch-ms/epoch-ms-contract';
-import type { EpochMs } from '../../../contracts/epoch-ms/epoch-ms-contract';
 import { locationsBootLockPathFindBroker } from '../../locations/boot-lock-path-find/locations-boot-lock-path-find-broker';
 import { locationsRegistryLockPathFindBroker } from '../../locations/registry-lock-path-find/locations-registry-lock-path-find-broker';
 import { instanceLifecycleStatics } from '../../../statics/instance-lifecycle/instance-lifecycle-statics';
@@ -26,7 +24,7 @@ import { instanceLifecycleStatics } from '../../../statics/instance-lifecycle/in
 export const lockReleaseLayerBroker = async ({
   nowMs,
 }: {
-  nowMs: EpochMs;
+  nowMs: number;
 }): Promise<{ lockReleased: boolean }> => {
   const bootLockPath = locationsBootLockPathFindBroker();
   let bootLockReleased = false;
@@ -48,7 +46,7 @@ export const lockReleaseLayerBroker = async ({
   // its own PURPOSE header.
   const registryLockContents = await readFileIfExists(registryLockPath);
   if (registryLockContents !== null) {
-    const acquiredAtMs = epochMsContract.parse(Number(registryLockContents));
+    const acquiredAtMs = Number(registryLockContents);
 
     if (nowMs - acquiredAtMs > instanceLifecycleStatics.registryLock.ttlMs) {
       await unlink(registryLockPath);

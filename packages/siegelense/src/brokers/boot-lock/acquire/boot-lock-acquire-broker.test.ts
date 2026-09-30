@@ -3,7 +3,6 @@ import { pid } from '#gateway/node/process';
 import { bootLockAcquireBroker } from './boot-lock-acquire-broker';
 import { bootLockAcquireBrokerProxy } from './boot-lock-acquire-broker.proxy';
 import { InstanceIdStub } from '../../../contracts/instance-id/instance-id.stub';
-import { EpochMsStub } from '../../../contracts/epoch-ms/epoch-ms.stub';
 import { ProcessIdStub } from '@dungeonmaster/shared/contracts/process-id/process-id.stub';
 
 describe('bootLockAcquireBroker', () => {
@@ -11,7 +10,7 @@ describe('bootLockAcquireBroker', () => {
     it('EMPTY: {no boot.lock} => writes and returns a fresh lock for this instance', async () => {
       const proxy = bootLockAcquireBrokerProxy();
       const instanceId = InstanceIdStub({ value: 'inst_1a2b3c4d' });
-      const nowMs = EpochMsStub();
+      const nowMs = 1;
 
       proxy.setupNow({ nowMs });
       proxy.setupWriteSucceeds();
@@ -31,7 +30,7 @@ describe('bootLockAcquireBroker', () => {
     it('EMPTY: {no boot.lock} => writes the same lock it returns', async () => {
       const proxy = bootLockAcquireBrokerProxy();
       const instanceId = InstanceIdStub({ value: 'inst_1a2b3c4d' });
-      const nowMs = EpochMsStub();
+      const nowMs = 1;
 
       proxy.setupNow({ nowMs });
       proxy.setupWriteSucceeds();
@@ -44,7 +43,7 @@ describe('bootLockAcquireBroker', () => {
     it('VALID: {absent lock} => the write used the exclusive flag', async () => {
       const proxy = bootLockAcquireBrokerProxy();
       const instanceId = InstanceIdStub({ value: 'inst_1a2b3c4d' });
-      const nowMs = EpochMsStub();
+      const nowMs = 1;
 
       proxy.setupNow({ nowMs });
       proxy.setupWriteSucceeds();
@@ -87,7 +86,7 @@ describe('bootLockAcquireBroker', () => {
       const proxy = bootLockAcquireBrokerProxy();
       const instanceId = InstanceIdStub({ value: 'inst_1a2b3c4d' });
 
-      proxy.setupNow({ nowMs: EpochMsStub() });
+      proxy.setupNow({ nowMs: 1 });
       proxy.setupLockReadFailsForNonAbsenceReason();
 
       await expect(bootLockAcquireBroker({ instanceId })).rejects.toThrow(
@@ -100,7 +99,7 @@ describe('bootLockAcquireBroker', () => {
     it('EDGE: {the lock vanishes between the failed create and the read} => retries the create', async () => {
       const proxy = bootLockAcquireBrokerProxy();
       const instanceId = InstanceIdStub({ value: 'inst_1a2b3c4d' });
-      const nowMs = EpochMsStub();
+      const nowMs = 1;
 
       proxy.setupNow({ nowMs });
       proxy.setupLockVanishesBeforeRetryRead();
@@ -124,7 +123,7 @@ describe('bootLockAcquireBroker', () => {
       const proxy = bootLockAcquireBrokerProxy();
       const instanceId = InstanceIdStub({ value: 'inst_1a2b3c4d' });
       const otherInstanceId = InstanceIdStub({ value: 'inst_deadbeef' });
-      const nowMs = EpochMsStub();
+      const nowMs = 1;
 
       proxy.setupStaleLockHeldBy({ otherInstanceId, nowMs });
       proxy.setupNow({ nowMs });
@@ -146,7 +145,7 @@ describe('bootLockAcquireBroker', () => {
       const proxy = bootLockAcquireBrokerProxy();
       const instanceId = InstanceIdStub({ value: 'inst_1a2b3c4d' });
       const otherInstanceId = InstanceIdStub({ value: 'inst_deadbeef' });
-      const nowMs = EpochMsStub();
+      const nowMs = 1;
 
       proxy.setupStaleLockHeldBy({ otherInstanceId, nowMs });
       proxy.setupNow({ nowMs });
@@ -161,7 +160,7 @@ describe('bootLockAcquireBroker', () => {
       const proxy = bootLockAcquireBrokerProxy();
       const instanceId = InstanceIdStub({ value: 'inst_1a2b3c4d' });
       const otherInstanceId = InstanceIdStub({ value: 'inst_deadbeef' });
-      const nowMs = EpochMsStub();
+      const nowMs = 1;
 
       proxy.setupStaleLockHeldBy({ otherInstanceId, nowMs });
       proxy.setupNow({ nowMs });
@@ -192,7 +191,7 @@ describe('bootLockAcquireBroker', () => {
       const proxy = bootLockAcquireBrokerProxy();
       const instanceId = InstanceIdStub({ value: 'inst_1a2b3c4d' });
       const otherInstanceId = InstanceIdStub({ value: 'inst_deadbeef' });
-      const nowMs = EpochMsStub();
+      const nowMs = 1;
 
       proxy.setupStaleUnlinkLostRaceToAnotherContender({ otherInstanceId, nowMs });
       proxy.setupNow({ nowMs });
@@ -214,7 +213,7 @@ describe('bootLockAcquireBroker', () => {
       const proxy = bootLockAcquireBrokerProxy();
       const instanceId = InstanceIdStub({ value: 'inst_1a2b3c4d' });
       const otherInstanceId = InstanceIdStub({ value: 'inst_deadbeef' });
-      const nowMs = EpochMsStub();
+      const nowMs = 1;
 
       proxy.setupStaleUnlinkFailsForNonAbsenceReason({ otherInstanceId, nowMs });
       proxy.setupNow({ nowMs });
@@ -229,7 +228,7 @@ describe('bootLockAcquireBroker', () => {
     it('EDGE: {no siegelense root yet} => creates the root directory before acquiring the lock', async () => {
       const proxy = bootLockAcquireBrokerProxy();
       const instanceId = InstanceIdStub({ value: 'inst_1a2b3c4d' });
-      const nowMs = EpochMsStub();
+      const nowMs = 1;
 
       proxy.setupNow({ nowMs });
       proxy.setupWriteSucceeds();
@@ -242,7 +241,7 @@ describe('bootLockAcquireBroker', () => {
     it('VALID: {no siegelense root yet} => the create is still exclusive, not a plain overwrite', async () => {
       const proxy = bootLockAcquireBrokerProxy();
       const instanceId = InstanceIdStub({ value: 'inst_1a2b3c4d' });
-      const nowMs = EpochMsStub();
+      const nowMs = 1;
 
       proxy.setupNow({ nowMs });
       proxy.setupWriteSucceeds();
@@ -286,10 +285,10 @@ describe('bootLockAcquireBroker', () => {
       const proxy = bootLockAcquireBrokerProxy();
       const instanceId = InstanceIdStub({ value: 'inst_1a2b3c4d' });
       const heldByPid = ProcessIdStub();
-      const acquiredAtMs = EpochMsStub();
+      const acquiredAtMs = 1;
 
       proxy.setupLockHeldBy({ heldBy: instanceId, heldByPid, acquiredAtMs });
-      proxy.setupNow({ nowMs: EpochMsStub() });
+      proxy.setupNow({ nowMs: 1 });
 
       const result = await bootLockAcquireBroker({ instanceId });
 

@@ -26,7 +26,6 @@
 
 import { appendFile, copyDirContents, ensureDir } from '#gateway/node/fs__promises';
 
-import { epochMsContract } from '../../../contracts/epoch-ms/epoch-ms-contract';
 import type { SnapshotName } from '../../../contracts/snapshot-name/snapshot-name-contract';
 import { snapshotOrdinalContract } from '../../../contracts/snapshot-ordinal/snapshot-ordinal-contract';
 import { snapshotRecordContract } from '../../../contracts/snapshot-record/snapshot-record-contract';
@@ -81,7 +80,7 @@ export const snapshotCaptureBroker = async ({
 
   const record = snapshotRecordContract.parse({
     name,
-    atMs: epochMsContract.parse(Date.now()),
+    atMs: Date.now(),
     manual,
     path: payload,
   });

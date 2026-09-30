@@ -54,8 +54,6 @@
  */
 
 
-import { epochMsContract } from '../../../contracts/epoch-ms/epoch-ms-contract';
-import type { EpochMs } from '../../../contracts/epoch-ms/epoch-ms-contract';
 import { readingCountContract } from '../../../contracts/reading-count/reading-count-contract';
 import type { ReadingCount } from '../../../contracts/reading-count/reading-count-contract';
 import type { SettleReading } from '../../../contracts/settle-reading/settle-reading-contract';
@@ -149,7 +147,7 @@ export const settleWaitLayerBroker = ({
   // A HOLDER whose field mutates rather than a reassigned `let`, matching `mintState` in
   // `browser-session-launch-broker.ts`, so a read before an await and a write after it never give
   // `require-atomic-updates` cause to flag it.
-  const networkState = { lastActivityAtMs: null as EpochMs | null };
+  const networkState = { lastActivityAtMs: null as number | null };
 
   return {
     initScriptSource: (): string => INSTALL_SOURCE,
@@ -170,7 +168,7 @@ export const settleWaitLayerBroker = ({
       }
 
       pendingByShape.set(shape, readingCountContract.parse((pendingByShape.get(shape) ?? 0) + 1));
-      networkState.lastActivityAtMs = epochMsContract.parse(Date.now());
+      networkState.lastActivityAtMs = Date.now();
       return shape;
     },
 
@@ -181,7 +179,7 @@ export const settleWaitLayerBroker = ({
       const pending = pendingByShape.get(shape) ?? 0;
       if (pending > 0) {
         pendingByShape.set(shape, readingCountContract.parse(pending - 1));
-        networkState.lastActivityAtMs = epochMsContract.parse(Date.now());
+        networkState.lastActivityAtMs = Date.now();
       }
       return shape;
     },

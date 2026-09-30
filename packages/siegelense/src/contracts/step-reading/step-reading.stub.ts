@@ -1,6 +1,5 @@
 import type { StubArgument } from '@dungeonmaster/shared/@types';
 
-import { EpochMsStub } from '../epoch-ms/epoch-ms.stub';
 import { PixelChangeStub } from '../pixel-change/pixel-change.stub';
 import { ServerLogWindowStub } from '../server-log-window/server-log-window.stub';
 import { StepExpectationStub } from '../step-expectation/step-expectation.stub';
@@ -22,7 +21,7 @@ export const StepReadingStub = ({ ...props }: StubArgument<StepReading> = {}): S
     blank: false,
     blankColour: null,
     serverWindow: ServerLogWindowStub(),
-    startedAtMs: EpochMsStub({ value: 1_700_000_000_000 }),
-    endedAtMs: EpochMsStub({ value: 1_700_000_000_210 }),
+    startedAtMs: 1_700_000_000_000,
+    endedAtMs: 1_700_000_000_210,
     ...props,
   });

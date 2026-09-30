@@ -24,8 +24,6 @@
 
 import type { NetworkPort } from '@dungeonmaster/shared/contracts';
 
-import { epochMsContract } from '../../../contracts/epoch-ms/epoch-ms-contract';
-import type { EpochMs } from '../../../contracts/epoch-ms/epoch-ms-contract';
 import { reapedInstanceContract } from '../../../contracts/reaped-instance/reaped-instance-contract';
 import type { ReapedInstance } from '../../../contracts/reaped-instance/reaped-instance-contract';
 import type { RegistryEntry } from '../../../contracts/registry-entry/registry-entry-contract';
@@ -37,7 +35,7 @@ export const staleReapLayerBroker = async ({
   nowMs,
 }: {
   entry: RegistryEntry;
-  nowMs: EpochMs;
+  nowMs: number;
 }): Promise<{ reaped: ReapedInstance; portsReleased: readonly NetworkPort[] }> => {
   const staleSinceMs = entry.lastBeatMs ?? entry.reservedAtMs;
 
@@ -47,7 +45,7 @@ export const staleReapLayerBroker = async ({
   });
 
   const staleFor = elapsedRenderTransformer({
-    elapsedMs: epochMsContract.parse(nowMs - staleSinceMs),
+    elapsedMs: (nowMs - staleSinceMs),
   });
 
   return {

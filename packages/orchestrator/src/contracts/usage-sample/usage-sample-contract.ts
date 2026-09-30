@@ -15,7 +15,7 @@ import { usageBucketContract } from '@dungeonmaster/shared/contracts';
 
 export const usageSampleContract = z.object({
   // The start of the hour this message landed in, epoch milliseconds.
-  bucketStartMs: z.number().int().min(0).brand<'EpochMs'>(),
+  bucketStartMs: z.number().int().min(0).brand<'UsageSampleBucketStartMs'>(),
   tokens: usageBucketContract,
 });
 

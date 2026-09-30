@@ -1,17 +1,14 @@
 import { isStaleReservationRegistryEntryGuard } from './is-stale-reservation-registry-entry-guard';
-import { EpochMsStub } from '../../contracts/epoch-ms/epoch-ms.stub';
 import { RegistryEntryStub } from '../../contracts/registry-entry/registry-entry.stub';
 import { instanceLifecycleStatics } from '../../statics/instance-lifecycle/instance-lifecycle-statics';
 
 describe('isStaleReservationRegistryEntryGuard', () => {
   describe('a reservation past its own staleAfterMs window', () => {
     it('VALID: {bootedAtMs: null, reservedAtMs older than staleAfterMs} => returns true', () => {
-      const nowMs = EpochMsStub({ value: 1_700_000_000_000 });
+      const nowMs = 1_700_000_000_000;
       const entry = RegistryEntryStub({
         bootedAtMs: null,
-        reservedAtMs: EpochMsStub({
-          value: nowMs - instanceLifecycleStatics.reservation.staleAfterMs - 1,
-        }),
+        reservedAtMs: (nowMs - instanceLifecycleStatics.reservation.staleAfterMs - 1),
       });
 
       const result = isStaleReservationRegistryEntryGuard({ entry, nowMs });
@@ -22,10 +19,10 @@ describe('isStaleReservationRegistryEntryGuard', () => {
 
   describe('a reservation still inside its boot window', () => {
     it('INVALID: {bootedAtMs: null, reservedAtMs seconds ago} => returns false', () => {
-      const nowMs = EpochMsStub({ value: 1_700_000_000_000 });
+      const nowMs = 1_700_000_000_000;
       const entry = RegistryEntryStub({
         bootedAtMs: null,
-        reservedAtMs: EpochMsStub({ value: nowMs - 5000 }),
+        reservedAtMs: (nowMs - 5000),
       });
 
       const result = isStaleReservationRegistryEntryGuard({ entry, nowMs });
@@ -36,12 +33,10 @@ describe('isStaleReservationRegistryEntryGuard', () => {
 
   describe('an instance that already booted', () => {
     it('INVALID: {bootedAtMs set, reservedAtMs older than staleAfterMs} => returns false — not a reservation any more', () => {
-      const nowMs = EpochMsStub({ value: 1_700_000_000_000 });
+      const nowMs = 1_700_000_000_000;
       const entry = RegistryEntryStub({
-        bootedAtMs: EpochMsStub({ value: nowMs - 1000 }),
-        reservedAtMs: EpochMsStub({
-          value: nowMs - instanceLifecycleStatics.reservation.staleAfterMs - 1,
-        }),
+        bootedAtMs: (nowMs - 1000),
+        reservedAtMs: (nowMs - instanceLifecycleStatics.reservation.staleAfterMs - 1),
       });
 
       const result = isStaleReservationRegistryEntryGuard({ entry, nowMs });
@@ -52,7 +47,7 @@ describe('isStaleReservationRegistryEntryGuard', () => {
 
   describe('empty input', () => {
     it('EMPTY: {entry: undefined} => returns false', () => {
-      const result = isStaleReservationRegistryEntryGuard({ nowMs: EpochMsStub() });
+      const result = isStaleReservationRegistryEntryGuard({ nowMs: 1 });
 
       expect(result).toBe(false);
     });

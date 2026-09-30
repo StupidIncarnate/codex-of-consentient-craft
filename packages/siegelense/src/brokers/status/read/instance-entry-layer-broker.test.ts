@@ -1,6 +1,5 @@
 import { GuildIdStub } from '@dungeonmaster/shared/contracts/guild-id/guild-id.stub';
 
-import { EpochMsStub } from '../../../contracts/epoch-ms/epoch-ms.stub';
 import { InstanceHeartbeatStub } from '../../../contracts/instance-heartbeat/instance-heartbeat.stub';
 import { InstanceIdStub } from '../../../contracts/instance-id/instance-id.stub';
 import { InstanceStatusStub } from '../../../contracts/instance-status/instance-status.stub';
@@ -26,15 +25,15 @@ describe('instanceEntryLayerBroker', () => {
     it('VALID: {alive, unnamed, empty pgids} => uptime, lastBeat and rssMB populated; lastStep and evidence stay null', async () => {
       const proxy = instanceEntryLayerBrokerProxy();
       const instanceId = InstanceIdStub({ value: 'inst_7f3a9c21' });
-      const nowMs = EpochMsStub({ value: 1_700_001_000_000 });
+      const nowMs = 1_700_001_000_000;
       const evidencePath = '/home/user/.dungeonmaster/siegelense/unowned/instances/inst_7f3a9c21';
       const entry = RegistryEntryStub({
         id: instanceId,
         guildId: null,
         specName: SpecNameStub({ value: 'dungeonmaster-stack' }),
         pgids: [],
-        bootedAtMs: EpochMsStub({ value: 1_700_000_160_000 }),
-        lastBeatMs: EpochMsStub({ value: 1_700_000_998_000 }),
+        bootedAtMs: 1_700_000_160_000,
+        lastBeatMs: 1_700_000_998_000,
       });
 
       proxy.setupEvidenceDir({
@@ -81,15 +80,15 @@ describe('instanceEntryLayerBroker', () => {
     it("VALID: {alive, unnamed, two real pgids} => orphans stays empty — those pgids are the instance's own lane, not a leak", async () => {
       const proxy = instanceEntryLayerBrokerProxy();
       const instanceId = InstanceIdStub({ value: 'inst_7f3a9c22' });
-      const nowMs = EpochMsStub({ value: 1_700_001_000_000 });
+      const nowMs = 1_700_001_000_000;
       const evidencePath = '/home/user/.dungeonmaster/siegelense/unowned/instances/inst_7f3a9c22';
       const entry = RegistryEntryStub({
         id: instanceId,
         guildId: null,
         specName: SpecNameStub({ value: 'dungeonmaster-stack' }),
         pgids: [ProcessGroupIdStub({ value: 4_143_212 }), ProcessGroupIdStub({ value: 4_143_213 })],
-        bootedAtMs: EpochMsStub({ value: 1_700_000_160_000 }),
-        lastBeatMs: EpochMsStub({ value: 1_700_000_998_000 }),
+        bootedAtMs: 1_700_000_160_000,
+        lastBeatMs: 1_700_000_998_000,
       });
 
       proxy.setupEvidenceDir({
@@ -139,14 +138,14 @@ describe('instanceEntryLayerBroker', () => {
       const proxy = instanceEntryLayerBrokerProxy();
       const instanceId = InstanceIdStub({ value: 'inst_9b2c0001' });
       const guildId = GuildIdStub({ value: 'f47ac10b-58cc-4372-a567-0e02b2c3d479' });
-      const nowMs = EpochMsStub({ value: 1_700_001_000_000 });
+      const nowMs = 1_700_001_000_000;
       const evidencePath = '/home/user/.dungeonmaster/siegelense/guilds/f47ac10b-58cc-4372-a567-0e02b2c3d479/instances/inst_9b2c0001';
       const entry = RegistryEntryStub({
         id: instanceId,
         guildId,
         specName: SpecNameStub({ value: 'dungeonmaster-stack' }),
         pgids: [],
-        lastBeatMs: EpochMsStub({ value: 1_700_000_760_000 }),
+        lastBeatMs: 1_700_000_760_000,
       });
 
       proxy.setupEvidenceDir({
@@ -214,14 +213,14 @@ describe('instanceEntryLayerBroker', () => {
       const proxy = instanceEntryLayerBrokerProxy();
       const instanceId = InstanceIdStub({ value: 'inst_9b2c0005' });
       const guildId = GuildIdStub({ value: 'f47ac10b-58cc-4372-a567-0e02b2c3d479' });
-      const nowMs = EpochMsStub({ value: 1_700_001_000_000 });
+      const nowMs = 1_700_001_000_000;
       const evidencePath = '/home/user/.dungeonmaster/siegelense/guilds/f47ac10b-58cc-4372-a567-0e02b2c3d479/instances/inst_9b2c0005';
       const entry = RegistryEntryStub({
         id: instanceId,
         guildId,
         specName: SpecNameStub({ value: 'dungeonmaster-stack' }),
         pgids: [],
-        lastBeatMs: EpochMsStub({ value: 1_700_000_760_000 }),
+        lastBeatMs: 1_700_000_760_000,
       });
 
       proxy.setupEvidenceDir({
@@ -291,14 +290,14 @@ describe('instanceEntryLayerBroker', () => {
       const proxy = instanceEntryLayerBrokerProxy();
       const instanceId = InstanceIdStub({ value: 'inst_9b2c0004' });
       const guildId = GuildIdStub({ value: 'f47ac10b-58cc-4372-a567-0e02b2c3d479' });
-      const nowMs = EpochMsStub({ value: 1_700_001_000_000 });
+      const nowMs = 1_700_001_000_000;
       const evidencePath = '/home/user/.dungeonmaster/siegelense/guilds/f47ac10b-58cc-4372-a567-0e02b2c3d479/instances/inst_9b2c0004';
       const entry = RegistryEntryStub({
         id: instanceId,
         guildId,
         specName: SpecNameStub({ value: 'dungeonmaster-stack' }),
         pgids: [],
-        lastBeatMs: EpochMsStub({ value: 1_700_000_760_000 }),
+        lastBeatMs: 1_700_000_760_000,
       });
       const heartbeat = InstanceHeartbeatStub({ instanceId, pgids: [], rssMB: 622 });
 
@@ -375,7 +374,7 @@ describe('instanceEntryLayerBroker', () => {
       const proxy = instanceEntryLayerBrokerProxy();
       const instanceId = InstanceIdStub({ value: 'inst_9b2c0000' });
       const guildId = GuildIdStub({ value: 'f47ac10b-58cc-4372-a567-0e02b2c3d479' });
-      const nowMs = EpochMsStub({ value: 1_700_001_000_000 });
+      const nowMs = 1_700_001_000_000;
       const evidencePath = '/home/user/.dungeonmaster/siegelense/guilds/f47ac10b-58cc-4372-a567-0e02b2c3d479/instances/inst_9b2c0000';
       const pgid = ProcessGroupIdStub({ value: 33_812 });
       const entry = RegistryEntryStub({
@@ -383,7 +382,7 @@ describe('instanceEntryLayerBroker', () => {
         guildId,
         specName: SpecNameStub({ value: 'dungeonmaster-stack' }),
         pgids: [pgid],
-        lastBeatMs: EpochMsStub({ value: 1_700_000_760_000 }),
+        lastBeatMs: 1_700_000_760_000,
       });
       const heartbeat = InstanceHeartbeatStub({
         instanceId,
@@ -488,7 +487,7 @@ describe('instanceEntryLayerBroker', () => {
         guildId: null,
         specName: SpecNameStub({ value: 'stack' }),
         pgids: [],
-        lastBeatMs: EpochMsStub({ value: 1_700_000_760_000 }),
+        lastBeatMs: 1_700_000_760_000,
       });
       const heartbeat = InstanceHeartbeatStub({ instanceId, pgids: [], rssMB: 609 });
 
@@ -529,7 +528,7 @@ describe('instanceEntryLayerBroker', () => {
         entry,
         state: 'dead',
         named: true,
-        nowMs: EpochMsStub({ value: 1_700_001_000_000 }),
+        nowMs: 1_700_001_000_000,
         oomKillsSinceBoot: ReadingCountStub({ value: 0 }),
       });
 
@@ -566,14 +565,14 @@ describe('instanceEntryLayerBroker', () => {
       const proxy = instanceEntryLayerBrokerProxy();
       const instanceId = InstanceIdStub({ value: 'inst_9b2c0002' });
       const guildId = GuildIdStub({ value: 'f47ac10b-58cc-4372-a567-0e02b2c3d479' });
-      const nowMs = EpochMsStub({ value: 1_700_001_000_000 });
+      const nowMs = 1_700_001_000_000;
       const evidencePath = '/home/user/.dungeonmaster/siegelense/guilds/f47ac10b-58cc-4372-a567-0e02b2c3d479/instances/inst_9b2c0002';
       const entry = RegistryEntryStub({
         id: instanceId,
         guildId,
         specName: SpecNameStub({ value: 'dungeonmaster-stack' }),
         pgids: [],
-        lastBeatMs: EpochMsStub({ value: 1_700_000_760_000 }),
+        lastBeatMs: 1_700_000_760_000,
       });
 
       proxy.setupEvidenceDir({
@@ -647,14 +646,14 @@ describe('instanceEntryLayerBroker', () => {
       const proxy = instanceEntryLayerBrokerProxy();
       const instanceId = InstanceIdStub({ value: 'inst_9b2c0003' });
       const guildId = GuildIdStub({ value: 'f47ac10b-58cc-4372-a567-0e02b2c3d479' });
-      const nowMs = EpochMsStub({ value: 1_700_001_000_000 });
+      const nowMs = 1_700_001_000_000;
       const evidencePath = '/home/user/.dungeonmaster/siegelense/guilds/f47ac10b-58cc-4372-a567-0e02b2c3d479/instances/inst_9b2c0003';
       const entry = RegistryEntryStub({
         id: instanceId,
         guildId,
         specName: SpecNameStub({ value: 'dungeonmaster-stack' }),
         pgids: [],
-        lastBeatMs: EpochMsStub({ value: 1_700_000_760_000 }),
+        lastBeatMs: 1_700_000_760_000,
       });
 
       proxy.setupEvidenceDir({

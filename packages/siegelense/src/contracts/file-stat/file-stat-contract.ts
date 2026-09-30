@@ -11,12 +11,11 @@
 
 import { z } from '#gateway/npm/zod';
 
-import { epochMsContract } from '../epoch-ms/epoch-ms-contract';
 import { fileSizeBytesContract } from '../file-size-bytes/file-size-bytes-contract';
 
 export const fileStatContract = z.object({
   sizeBytes: fileSizeBytesContract,
-  modifiedAtMs: epochMsContract,
+  modifiedAtMs: z.number().int().nonnegative().brand<'FileStatModifiedAtMs'>(),
 });
 
 export type FileStat = z.infer<typeof fileStatContract>;

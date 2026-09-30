@@ -2,9 +2,8 @@ import { registryReadBrokerProxy } from '../read/registry-read-broker.proxy';
 import { registryWriteBrokerProxy } from '../write/registry-write-broker.proxy';
 import { registryLockAcquireBrokerProxy } from '../lock-acquire/registry-lock-acquire-broker.proxy';
 import { registryLockReleaseBrokerProxy } from '../lock-release/registry-lock-release-broker.proxy';
-import { EpochMsStub } from '../../../contracts/epoch-ms/epoch-ms.stub';
 
-type EpochMs = ReturnType<typeof EpochMsStub>;
+type EpochMs = number;
 
 export const registryUpdateBrokerProxy = (): {
   lockPath: ReturnType<typeof registryLockAcquireBrokerProxy>['lockPath'];
@@ -34,7 +33,7 @@ export const registryUpdateBrokerProxy = (): {
     lockPath: lockAcquireProxy.lockPath,
 
     setupCurrentRegistry: ({ json }: { json: string }): void => {
-      lockAcquireProxy.setupNow({ nowMs: EpochMsStub() });
+      lockAcquireProxy.setupNow({ nowMs: 1 });
       lockAcquireProxy.setupAvailable();
       readProxy.setupPresentRegistry({ content: json });
       writeProxy.setupWriteSuccess();
@@ -47,7 +46,7 @@ export const registryUpdateBrokerProxy = (): {
     // it never got there. Release is staged immediately after read, since that is the next real
     // call once the write step is skipped.
     setupCurrentRegistryForThrowingMutate: ({ json }: { json: string }): void => {
-      lockAcquireProxy.setupNow({ nowMs: EpochMsStub() });
+      lockAcquireProxy.setupNow({ nowMs: 1 });
       lockAcquireProxy.setupAvailable();
       readProxy.setupPresentRegistry({ content: json });
       lockReleaseProxy.setupReleaseSucceeds();

@@ -1,5 +1,4 @@
 
-import { EpochMsStub } from '../../../contracts/epoch-ms/epoch-ms.stub';
 import { InstanceIdStub } from '../../../contracts/instance-id/instance-id.stub';
 import { ProcessGroupIdStub } from '../../../contracts/process-group-id/process-group-id.stub';
 import { RegistryEntryStub } from '../../../contracts/registry-entry/registry-entry.stub';
@@ -10,7 +9,7 @@ import { cleanupRunBrokerProxy } from './cleanup-run-broker.proxy';
 // instanceKillBrokerProxy (composed transitively through cleanupRunBrokerProxy) stamps Date.now()
 // to exactly this value at construction, so every test below reads its own NOW_MS off the same
 // stub rather than re-mocking the clock itself.
-const NOW_MS = EpochMsStub();
+const NOW_MS = 1;
 
 const LIVE_ID = InstanceIdStub({ value: 'inst_7f3a' });
 const STALE_ID = InstanceIdStub({ value: 'inst_9b2c' });
@@ -36,8 +35,8 @@ describe('cleanupRunBroker', () => {
 
       const liveEntry = RegistryEntryStub({
         id: LIVE_ID,
-        bootedAtMs: EpochMsStub({ value: NOW_MS - 900_000 }),
-        lastBeatMs: EpochMsStub({ value: NOW_MS - 2000 }),
+        bootedAtMs: (NOW_MS - 900_000),
+        lastBeatMs: (NOW_MS - 2000),
       });
       const pgidOne = ProcessGroupIdStub({ value: 33_812 });
       const pgidTwo = ProcessGroupIdStub({ value: 33_840 });
@@ -45,8 +44,8 @@ describe('cleanupRunBroker', () => {
         id: STALE_ID,
         socketPath: STALE_SOCKET_PATH,
         pgids: [pgidOne, pgidTwo],
-        bootedAtMs: EpochMsStub({ value: NOW_MS - 32_400_000 }),
-        lastBeatMs: EpochMsStub({ value: NOW_MS - 32_400_000 }),
+        bootedAtMs: (NOW_MS - 32_400_000),
+        lastBeatMs: (NOW_MS - 32_400_000),
       });
       const reservedEntry = RegistryEntryStub({
         id: RESERVED_ID,
@@ -102,7 +101,7 @@ describe('cleanupRunBroker', () => {
         lastBeatMs: null,
         // 10 minutes ago — past instanceLifecycleStatics.reservation.staleAfterMs (300_000ms / 5m),
         // the ceiling built from bootLock.waitCeilingMs + driverStatics.boot.defaultTimeoutMs.
-        reservedAtMs: EpochMsStub({ value: NOW_MS - 600_000 }),
+        reservedAtMs: (NOW_MS - 600_000),
       });
       proxy.setupRegistry({ registry: RegistryStub({ instances: [abandonedEntry] }) });
       proxy.setupDriverUnreachableNoPgids({
@@ -143,7 +142,7 @@ describe('cleanupRunBroker', () => {
         lastBeatMs: null,
         // Seconds old — nowhere near instanceLifecycleStatics.reservation.staleAfterMs (5m). A
         // real boot in flight looks exactly like this, and reaping it here would kill it.
-        reservedAtMs: EpochMsStub({ value: NOW_MS - 5000 }),
+        reservedAtMs: (NOW_MS - 5000),
       });
       proxy.setupRegistry({ registry: RegistryStub({ instances: [freshReservation] }) });
       proxy.setupNoLocks();
@@ -171,8 +170,8 @@ describe('cleanupRunBroker', () => {
         id: STALE_ID,
         socketPath: STALE_SOCKET_PATH,
         pgids: [pgidOne],
-        bootedAtMs: EpochMsStub({ value: NOW_MS - 32_400_000 }),
-        lastBeatMs: EpochMsStub({ value: NOW_MS - 32_400_000 }),
+        bootedAtMs: (NOW_MS - 32_400_000),
+        lastBeatMs: (NOW_MS - 32_400_000),
       });
       proxy.setupRegistry({ registry: RegistryStub({ instances: [staleEntry] }) });
 
@@ -216,8 +215,8 @@ describe('cleanupRunBroker', () => {
 
       const liveEntry = RegistryEntryStub({
         id: LIVE_ID,
-        bootedAtMs: EpochMsStub({ value: NOW_MS - 900_000 }),
-        lastBeatMs: EpochMsStub({ value: NOW_MS - 2000 }),
+        bootedAtMs: (NOW_MS - 900_000),
+        lastBeatMs: (NOW_MS - 2000),
       });
       proxy.setupRegistry({ registry: RegistryStub({ instances: [liveEntry] }) });
       proxy.setupNoLocks();
@@ -262,7 +261,7 @@ describe('cleanupRunBroker', () => {
       const proxy = cleanupRunBrokerProxy();
 
       proxy.setupRegistry({ registry: RegistryStub({ instances: [] }) });
-      proxy.setupBootLockStale({ acquiredAtMs: EpochMsStub({ value: NOW_MS - 46_000 }) });
+      proxy.setupBootLockStale({ acquiredAtMs: (NOW_MS - 46_000) });
 
       const result = await cleanupRunBroker();
 

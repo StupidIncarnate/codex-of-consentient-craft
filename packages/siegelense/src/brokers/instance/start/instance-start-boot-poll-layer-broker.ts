@@ -29,7 +29,6 @@ import { bootFailureMarkerReadBroker } from '../../boot-failure-marker/read/boot
 import { bootPollOutcomeContract } from '../../../contracts/boot-poll-outcome/boot-poll-outcome-contract';
 import type { BootPollOutcome } from '../../../contracts/boot-poll-outcome/boot-poll-outcome-contract';
 import { driverRequestContract } from '../../../contracts/driver-request/driver-request-contract';
-import type { EpochMs } from '../../../contracts/epoch-ms/epoch-ms-contract';
 import { driverStatics } from '../../../statics/driver/driver-statics';
 
 export const instanceStartBootPollLayerBroker = async ({
@@ -38,7 +37,7 @@ export const instanceStartBootPollLayerBroker = async ({
   evidencePath,
 }: {
   socketPath: string;
-  deadlineMs: EpochMs;
+  deadlineMs: number;
   evidencePath: string;
 }): Promise<BootPollOutcome> => {
   try {

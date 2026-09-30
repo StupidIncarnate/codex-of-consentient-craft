@@ -37,7 +37,6 @@ import { spawnDetachedProxy } from '#gateway/node/child_process/spawn-detached/s
 import { cliPackageBinResolveBrokerProxy } from '../../cli-package/bin-resolve/cli-package-bin-resolve-broker.proxy';
 import { instanceStartBootPollLayerBrokerProxy } from './instance-start-boot-poll-layer-broker.proxy';
 import { laneReadyWaitBrokerProxy } from '../../lane/ready-wait/lane-ready-wait-broker.proxy';
-import { EpochMsStub } from '../../../contracts/epoch-ms/epoch-ms.stub';
 import { InstanceIdStub } from '../../../contracts/instance-id/instance-id.stub';
 import { SpecProfileStub } from '../../../contracts/spec-profile/spec-profile.stub';
 import type { ReadingCountStub } from '../../../contracts/reading-count/reading-count.stub';
@@ -265,7 +264,7 @@ export const instanceStartBrokerProxy = (): {
   // capacity's) sees the fleet WITHOUT that row, as it does for real.
   const preReserveRegistry: { json: string | null } = { json: null };
   const stageRegistryAndLocks = ({ registry }: { registry: Registry }): void => {
-    clockProxy.setupNow({ ms: EpochMsStub().valueOf() });
+    clockProxy.setupNow({ ms: 1.valueOf() });
     registryReadProxy.setupPresentRegistry({ content: JSON.stringify(registry) });
     reserveProxy.setupRegistry({ json: JSON.stringify(registry) });
     const withoutOwnRow = JSON.stringify({
@@ -325,7 +324,7 @@ export const instanceStartBrokerProxy = (): {
       rootPath: ROOT_PATH_FILE,
       profilesPath: `${ROOT_PATH_VALUE}/profiles/${DEFAULT_SPEC_HASH_VALUE}`,
       instanceId,
-      nowMs: EpochMsStub().valueOf(),
+      nowMs: 1.valueOf(),
     });
 
     // Must mirror the real cliPackageBinResolveBroker's own require.resolve('@dungeonmaster/cli') +
@@ -428,7 +427,7 @@ export const instanceStartBrokerProxy = (): {
       bootLockReleaseProxy.setupLockHeldBy({
         heldBy: instanceId,
         heldByPid: ProcessIdStub(),
-        acquiredAtMs: EpochMsStub({ value: nowMs }),
+        acquiredAtMs: nowMs,
       });
 
       // The driver's own ping never answers here, but this stages nothing about WHICH lane
@@ -475,7 +474,7 @@ export const instanceStartBrokerProxy = (): {
       bootLockReleaseProxy.setupLockHeldBy({
         heldBy: instanceId,
         heldByPid: ProcessIdStub(),
-        acquiredAtMs: EpochMsStub(),
+        acquiredAtMs: 1,
       });
 
       // Same reasoning as setupBootNeverAnswers above: the catch's instanceKillBroker call falls

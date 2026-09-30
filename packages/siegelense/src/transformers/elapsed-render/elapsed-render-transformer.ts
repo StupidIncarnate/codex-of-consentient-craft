@@ -11,14 +11,13 @@
 
 import { elapsedTextContract } from '../../contracts/elapsed-text/elapsed-text-contract';
 import type { ElapsedText } from '../../contracts/elapsed-text/elapsed-text-contract';
-import type { EpochMs } from '../../contracts/epoch-ms/epoch-ms-contract';
 
 const MS_PER_SECOND = 1000;
 const SECONDS_PER_MINUTE = 60;
 const MINUTES_PER_HOUR = 60;
 const HOURS_PER_DAY = 24;
 
-export const elapsedRenderTransformer = ({ elapsedMs }: { elapsedMs: EpochMs }): ElapsedText => {
+export const elapsedRenderTransformer = ({ elapsedMs }: { elapsedMs: number }): ElapsedText => {
   const totalSeconds = Math.floor(elapsedMs / MS_PER_SECOND);
   if (totalSeconds < SECONDS_PER_MINUTE) {
     return elapsedTextContract.parse(`${totalSeconds}s`);

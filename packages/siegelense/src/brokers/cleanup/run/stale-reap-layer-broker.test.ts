@@ -1,5 +1,4 @@
 
-import { EpochMsStub } from '../../../contracts/epoch-ms/epoch-ms.stub';
 import { InstanceIdStub } from '../../../contracts/instance-id/instance-id.stub';
 import { ProcessGroupIdStub } from '../../../contracts/process-group-id/process-group-id.stub';
 import { RegistryEntryStub } from '../../../contracts/registry-entry/registry-entry.stub';
@@ -11,7 +10,7 @@ const INSTANCE_ID = InstanceIdStub({ value: 'inst_9b2c' });
 const SOCKET_PATH = `/tmp/dm-siege-sockets/${INSTANCE_ID}.sock`;
 const EVIDENCE_PATH = `/home/user/.dungeonmaster/siegelense/unowned/instances/${INSTANCE_ID}`;
 const HOME_PATH = `/tmp/dm-siege-${INSTANCE_ID}`;
-const NOW_MS = EpochMsStub({ value: 1_700_000_000_000 });
+const NOW_MS = 1_700_000_000_000;
 
 describe('staleReapLayerBroker', () => {
   describe('a stale instance whose driver is already gone', () => {
@@ -23,7 +22,7 @@ describe('staleReapLayerBroker', () => {
         id: INSTANCE_ID,
         socketPath: SOCKET_PATH,
         pgids: [pgidOne, pgidTwo],
-        lastBeatMs: EpochMsStub({ value: NOW_MS - 9 * 60 * 60 * 1000 }),
+        lastBeatMs: (NOW_MS - 9 * 60 * 60 * 1000),
       });
       proxy.setupRegistry({ registry: RegistryStub({ instances: [entry] }) });
       proxy.setupDriverUnreachableReapsLivePgids({
@@ -48,7 +47,7 @@ describe('staleReapLayerBroker', () => {
       // so a reader of `status` sees what actually ended the instance.
       expect(proxy.getWrittenShutdownReason({ evidencePath: EVIDENCE_PATH })).toStrictEqual({
         reason: 'reaped by cleanup after its heartbeat went stale',
-        atMs: EpochMsStub().valueOf(),
+        atMs: 1.valueOf(),
       });
     });
   });
@@ -60,7 +59,7 @@ describe('staleReapLayerBroker', () => {
         id: INSTANCE_ID,
         socketPath: SOCKET_PATH,
         pgids: [],
-        lastBeatMs: EpochMsStub({ value: NOW_MS - 60_000 }),
+        lastBeatMs: (NOW_MS - 60_000),
       });
       proxy.setupRegistry({ registry: RegistryStub({ instances: [entry] }) });
       proxy.setupDriverUnreachableNoPgids({
@@ -86,7 +85,7 @@ describe('staleReapLayerBroker', () => {
         pid: null,
         pgids: [],
         lastBeatMs: null,
-        reservedAtMs: EpochMsStub({ value: NOW_MS - 9 * 60 * 60 * 1000 }),
+        reservedAtMs: (NOW_MS - 9 * 60 * 60 * 1000),
       });
       proxy.setupRegistry({ registry: RegistryStub({ instances: [entry] }) });
       proxy.setupDriverUnreachableNoPgids({

@@ -35,7 +35,6 @@ import { contentTextContract } from '@dungeonmaster/shared/contracts';
 
 import { boxReadingContract } from '../../../contracts/box-reading/box-reading-contract';
 import type { BoxReading } from '../../../contracts/box-reading/box-reading-contract';
-import { epochMsContract } from '../../../contracts/epoch-ms/epoch-ms-contract';
 import type { KeyListing } from '../../../contracts/key-listing/key-listing-contract';
 import { matchCountContract } from '../../../contracts/match-count/match-count-contract';
 import { locatorStateContract } from '../../../contracts/locator-state/locator-state-contract';
@@ -181,7 +180,7 @@ export const browserSessionLaunchBroker = async ({
     const location = message.location();
     consoleLines.push(
       linesBuild.consoleLine({
-        at: epochMsContract.parse(Date.now()),
+        at: Date.now(),
         type: message.type(),
         text: message.text(),
         url: location.url,
@@ -193,7 +192,7 @@ export const browserSessionLaunchBroker = async ({
   page.on('pageerror', (error) => {
     consoleLines.push(
       linesBuild.pageErrorLine({
-        at: epochMsContract.parse(Date.now()),
+        at: Date.now(),
         type: error.name,
         text: error.message,
         stack: error.stack ?? null,
@@ -226,7 +225,7 @@ export const browserSessionLaunchBroker = async ({
       .then((responseBody) => {
         networkLines.push(
           linesBuild.networkLine({
-            at: epochMsContract.parse(Date.now()),
+            at: Date.now(),
             method: request.method(),
             url: request.url(),
             resourceType,
@@ -245,7 +244,7 @@ export const browserSessionLaunchBroker = async ({
     settleWait.noteRequestSettled({ method: request.method(), url: request.url() });
     networkLines.push(
       linesBuild.requestFailedLine({
-        at: epochMsContract.parse(Date.now()),
+        at: Date.now(),
         method: request.method(),
         url: request.url(),
         resourceType: request.resourceType(),
@@ -261,7 +260,7 @@ export const browserSessionLaunchBroker = async ({
       const { payload } = frame;
       websocketLines.push(
         linesBuild.websocketFrameLine({
-          at: epochMsContract.parse(Date.now()),
+          at: Date.now(),
           url: socketUrl,
           direction: 'sent',
           payload:
@@ -275,7 +274,7 @@ export const browserSessionLaunchBroker = async ({
       const { payload } = frame;
       websocketLines.push(
         linesBuild.websocketFrameLine({
-          at: epochMsContract.parse(Date.now()),
+          at: Date.now(),
           url: socketUrl,
           direction: 'received',
           payload:
@@ -287,7 +286,7 @@ export const browserSessionLaunchBroker = async ({
     });
     socket.on('close', () => {
       websocketLines.push(
-        linesBuild.websocketCloseLine({ at: epochMsContract.parse(Date.now()), url: socketUrl }),
+        linesBuild.websocketCloseLine({ at: Date.now(), url: socketUrl }),
       );
     });
   });

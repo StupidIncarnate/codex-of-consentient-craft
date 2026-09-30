@@ -4,11 +4,10 @@ import { locationsBootLockPathFindBrokerProxy } from '../../locations/boot-lock-
 import { unlinkProxy } from '#gateway/node/fs__promises/unlink/unlink.proxy';
 import { BootLockStub } from '../../../contracts/boot-lock/boot-lock.stub';
 import type { InstanceIdStub } from '../../../contracts/instance-id/instance-id.stub';
-import type { EpochMsStub } from '../../../contracts/epoch-ms/epoch-ms.stub';
 import type { ProcessIdStub } from '@dungeonmaster/shared/contracts/process-id/process-id.stub';
 
 type InstanceId = ReturnType<typeof InstanceIdStub>;
-type EpochMs = ReturnType<typeof EpochMsStub>;
+type EpochMs = number;
 
 const HOME_DIR = '/home/user';
 const BOOT_LOCK_VALUE = `${HOME_DIR}/.dungeonmaster/siegelense/boot.lock`;

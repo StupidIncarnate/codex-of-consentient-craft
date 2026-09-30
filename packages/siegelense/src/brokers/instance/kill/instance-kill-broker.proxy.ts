@@ -15,7 +15,6 @@ import { driverSocketRequestBrokerProxy } from '../../driver/socket-request/driv
 import { processIsAliveBrokerProxy } from '../../process/is-alive/process-is-alive-broker.proxy';
 import { processKillGroupBrokerProxy } from '../../process/kill-group/process-kill-group-broker.proxy';
 import { DriverResponseStub } from '../../../contracts/driver-response/driver-response.stub';
-import { EpochMsStub } from '../../../contracts/epoch-ms/epoch-ms.stub';
 import { KillResultStub } from '../../../contracts/kill-result/kill-result.stub';
 import type { ProcessGroupIdStub } from '../../../contracts/process-group-id/process-group-id.stub';
 import type { ReadingCountStub } from '../../../contracts/reading-count/reading-count.stub';
@@ -245,7 +244,7 @@ export const instanceKillBrokerProxy = (): {
     }: {
       evidencePath: string;
     }): void => {
-      shutdownReasonProxy.setupWriteSucceeds({ evidencePath, nowMs: EpochMsStub().valueOf() });
+      shutdownReasonProxy.setupWriteSucceeds({ evidencePath, nowMs: 1.valueOf() });
     },
 
     getWrittenShutdownReason: ({

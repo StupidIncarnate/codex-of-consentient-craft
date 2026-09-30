@@ -11,7 +11,6 @@ import { writeFileExclusiveProxy } from '#gateway/node/fs__promises/write-file-e
 import { ProcessIdStub } from '@dungeonmaster/shared/contracts/process-id/process-id.stub';
 
 import { BootLockStub } from '../../../contracts/boot-lock/boot-lock.stub';
-import { EpochMsStub } from '../../../contracts/epoch-ms/epoch-ms.stub';
 import type { InstanceIdStub } from '../../../contracts/instance-id/instance-id.stub';
 import { BootLockHeldError } from '../../../errors/boot-lock-held/boot-lock-held-error';
 import { instanceLifecycleStatics } from '../../../statics/instance-lifecycle/instance-lifecycle-statics';
@@ -19,7 +18,7 @@ import { locationsBootLockPathFindBrokerProxy } from '../../locations/boot-lock-
 import { locationsRootPathFindBrokerProxy } from '../../locations/root-path-find/locations-root-path-find-broker.proxy';
 
 type InstanceId = ReturnType<typeof InstanceIdStub>;
-type EpochMs = ReturnType<typeof EpochMsStub>;
+type EpochMs = number;
 
 const HOME_DIR = '/home/user';
 const HOME_PATH_VALUE = `${HOME_DIR}/.dungeonmaster`;
@@ -143,12 +142,9 @@ export const bootLockAcquireBrokerProxy = (): {
       otherInstanceId: InstanceId;
       nowMs: EpochMs;
     }): void => {
-      const acquiredAtMs = EpochMsStub({
-        value:
-          nowMs -
+      const acquiredAtMs = (nowMs -
           instanceLifecycleStatics.bootLock.ttlMs -
-          instanceLifecycleStatics.bootLock.pollMs,
-      });
+          instanceLifecycleStatics.bootLock.pollMs);
       const lock = BootLockStub({
         heldBy: otherInstanceId,
         heldByPid: ProcessIdStub(),
@@ -174,12 +170,9 @@ export const bootLockAcquireBrokerProxy = (): {
       otherInstanceId: InstanceId;
       nowMs: EpochMs;
     }): void => {
-      const acquiredAtMs = EpochMsStub({
-        value:
-          nowMs -
+      const acquiredAtMs = (nowMs -
           instanceLifecycleStatics.bootLock.ttlMs -
-          instanceLifecycleStatics.bootLock.pollMs,
-      });
+          instanceLifecycleStatics.bootLock.pollMs);
       const lock = BootLockStub({
         heldBy: otherInstanceId,
         heldByPid: ProcessIdStub(),
@@ -202,12 +195,9 @@ export const bootLockAcquireBrokerProxy = (): {
       otherInstanceId: InstanceId;
       nowMs: EpochMs;
     }): void => {
-      const acquiredAtMs = EpochMsStub({
-        value:
-          nowMs -
+      const acquiredAtMs = (nowMs -
           instanceLifecycleStatics.bootLock.ttlMs -
-          instanceLifecycleStatics.bootLock.pollMs,
-      });
+          instanceLifecycleStatics.bootLock.pollMs);
       const lock = BootLockStub({
         heldBy: otherInstanceId,
         heldByPid: ProcessIdStub(),
@@ -257,14 +247,14 @@ export const bootLockAcquireBrokerProxy = (): {
     }: {
       otherInstanceId: InstanceId;
     }): { startedAtMs: EpochMs; expectedError: BootLockHeldError } => {
-      const startedAtMs = EpochMsStub();
+      const startedAtMs = 1;
       const { pollMs, waitCeilingMs } = instanceLifecycleStatics.bootLock;
-      const nowMs = EpochMsStub({ value: startedAtMs + waitCeilingMs });
+      const nowMs = (startedAtMs + waitCeilingMs);
 
       const lock = BootLockStub({
         heldBy: otherInstanceId,
         heldByPid: ProcessIdStub(),
-        acquiredAtMs: EpochMsStub({ value: nowMs - pollMs }),
+        acquiredAtMs: (nowMs - pollMs),
       });
 
       // The exclusive create loses to this already-fresh file before the read ever runs.
@@ -296,20 +286,20 @@ export const bootLockAcquireBrokerProxy = (): {
     }: {
       otherInstanceId: InstanceId;
     }): { expectedError: BootLockHeldError } => {
-      const startedAtMs = EpochMsStub();
+      const startedAtMs = 1;
       const { ttlMs, pollMs, waitCeilingMs } = instanceLifecycleStatics.bootLock;
       const nowMsFirstAttempt = startedAtMs;
-      const nowMsSecondAttempt = EpochMsStub({ value: startedAtMs + waitCeilingMs });
+      const nowMsSecondAttempt = (startedAtMs + waitCeilingMs);
 
       const staleLock = BootLockStub({
         heldBy: otherInstanceId,
         heldByPid: ProcessIdStub(),
-        acquiredAtMs: EpochMsStub({ value: nowMsFirstAttempt - ttlMs - pollMs }),
+        acquiredAtMs: (nowMsFirstAttempt - ttlMs - pollMs),
       });
       const freshLock = BootLockStub({
         heldBy: otherInstanceId,
         heldByPid: ProcessIdStub(),
-        acquiredAtMs: EpochMsStub({ value: nowMsSecondAttempt - pollMs }),
+        acquiredAtMs: (nowMsSecondAttempt - pollMs),
       });
 
       // Every exclusive create this test drives loses — the first to the stale file, the retry to

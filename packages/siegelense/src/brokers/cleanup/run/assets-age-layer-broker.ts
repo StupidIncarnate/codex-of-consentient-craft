@@ -16,7 +16,6 @@
 
 import type { CitationGap } from '../../../contracts/citation-gap/citation-gap-contract';
 import type { CitationKind } from '../../../contracts/citation-kind/citation-kind-contract';
-import type { EpochMs } from '../../../contracts/epoch-ms/epoch-ms-contract';
 import { megabytesContract } from '../../../contracts/megabytes/megabytes-contract';
 import type { Megabytes } from '../../../contracts/megabytes/megabytes-contract';
 import { pruneQueryContract } from '../../../contracts/prune-query/prune-query-contract';
@@ -45,7 +44,7 @@ export const assetsAgeLayerBroker = async ({
   nowMs,
 }: {
   entries: readonly RegistryEntry[];
-  nowMs: EpochMs;
+  nowMs: number;
 }): Promise<{
   instances: ReadingCount;
   freedMB: Megabytes;

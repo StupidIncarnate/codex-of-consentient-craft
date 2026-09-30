@@ -25,7 +25,6 @@
  */
 
 
-import type { EpochMs } from '../../../contracts/epoch-ms/epoch-ms-contract';
 import { rawSettleProbeContract } from '../../../contracts/raw-settle-probe/raw-settle-probe-contract';
 import type { ReadingCount } from '../../../contracts/reading-count/reading-count-contract';
 import { settleReadingContract } from '../../../contracts/settle-reading/settle-reading-contract';
@@ -52,7 +51,7 @@ export const settlePollLayerBroker = async ({
   attemptsLeft: number;
   networkSnapshot: () => {
     pendingRequests: ReadingCount;
-    lastActivityAtMs: EpochMs | null;
+    lastActivityAtMs: number | null;
     pollersDiscounted: readonly string[];
   };
 }): Promise<SettleReading> => {

@@ -1,5 +1,4 @@
 
-import { EpochMsStub } from '../../../contracts/epoch-ms/epoch-ms.stub';
 import { InstanceIdStub } from '../../../contracts/instance-id/instance-id.stub';
 import { RegistryEntryStub } from '../../../contracts/registry-entry/registry-entry.stub';
 import { RegistryStub } from '../../../contracts/registry/registry.stub';
@@ -26,7 +25,7 @@ const EVERY_KIND = resultsStatics.kinds.all;
 const INSTANCE_ID = InstanceIdStub();
 const RUN_1 = RunIdStub({ value: 'run_1' });
 const RUN_2 = RunIdStub({ value: 'run_2' });
-const LAST_BEAT_MS = EpochMsStub({ value: 1_700_000_000_000 }).valueOf();
+const LAST_BEAT_MS = 1_700_000_000_000.valueOf();
 
 const networkText = ({
   method,
@@ -651,7 +650,7 @@ describe('resultsReadBroker', () => {
     const entry = RegistryEntryStub({
       id: INSTANCE_ID,
       state: 'alive',
-      lastBeatMs: EpochMsStub({ value: LAST_BEAT_MS }),
+      lastBeatMs: LAST_BEAT_MS,
     });
     proxy.setupRegistry({ registry: RegistryStub({ instances: [entry] }) });
     proxy.setupNow({ nowMs: LAST_BEAT_MS + 5000 });
@@ -760,7 +759,7 @@ describe('resultsReadBroker', () => {
     const entry = RegistryEntryStub({
       id: INSTANCE_ID,
       state: 'alive',
-      lastBeatMs: EpochMsStub({ value: LAST_BEAT_MS }),
+      lastBeatMs: LAST_BEAT_MS,
     });
     proxy.setupRegistry({ registry: RegistryStub({ instances: [entry] }) });
     proxy.setupNow({ nowMs: LAST_BEAT_MS + 5000 });
@@ -793,7 +792,7 @@ describe('resultsReadBroker', () => {
     const entry = RegistryEntryStub({
       id: INSTANCE_ID,
       state: 'alive',
-      lastBeatMs: EpochMsStub({ value: LAST_BEAT_MS }),
+      lastBeatMs: LAST_BEAT_MS,
     });
     proxy.setupRegistry({ registry: RegistryStub({ instances: [entry] }) });
     proxy.setupNow({ nowMs: LAST_BEAT_MS + 5000 });
@@ -854,7 +853,7 @@ describe('resultsReadBroker', () => {
 
   it('EMPTY: {pruned instance} => instanceState pruned with prunedAtMs and prunedByRule, rows []', async () => {
     const proxy = resultsReadBrokerProxy();
-    const prunedAtMs = EpochMsStub({ value: 1_700_000_500_000 });
+    const prunedAtMs = 1_700_000_500_000;
     const entry = RegistryEntryStub({
       id: INSTANCE_ID,
       state: 'pruned',

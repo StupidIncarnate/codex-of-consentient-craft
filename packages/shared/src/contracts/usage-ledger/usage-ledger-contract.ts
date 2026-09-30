@@ -26,7 +26,7 @@ export const usageLedgerContract = z.object({
   cursors: z.record(
     absoluteFilePathContract,
     z.object({
-      mtimeMs: z.number().min(0).brand<'EpochMs'>(),
+      mtimeMs: z.number().min(0).brand<'UsageLedgerCursorsMtimeMs'>(),
       size: z.number().int().min(0).brand<'ByteSize'>(),
     }),
   ),

@@ -16,7 +16,6 @@
  * // Returns true once nowMs - lastBeatMs exceeds intervalMs * stalenessBeats
  */
 
-import type { EpochMs } from '../../contracts/epoch-ms/epoch-ms-contract';
 import type { RegistryEntry } from '../../contracts/registry-entry/registry-entry-contract';
 import { instanceLifecycleStatics } from '../../statics/instance-lifecycle/instance-lifecycle-statics';
 
@@ -25,7 +24,7 @@ export const isStaleRegistryEntryGuard = ({
   nowMs,
 }: {
   entry?: RegistryEntry;
-  nowMs?: EpochMs;
+  nowMs?: number;
 }): boolean => {
   if (!entry || nowMs === undefined) {
     return false;

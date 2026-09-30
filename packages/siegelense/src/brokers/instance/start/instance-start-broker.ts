@@ -105,7 +105,6 @@ import { profileBootRecordBroker } from '../../profile/boot-record/profile-boot-
 import { recipeSeedRunBroker } from '../../recipe/seed-run/recipe-seed-run-broker';
 import { registryReadBroker } from '../../registry/read/registry-read-broker';
 import { shutdownReasonWriteBroker } from '../../shutdown-reason/write/shutdown-reason-write-broker';
-import { epochMsContract } from '../../../contracts/epoch-ms/epoch-ms-contract';
 import { instanceManifestContract } from '../../../contracts/instance-manifest/instance-manifest-contract';
 import type { InstanceManifest } from '../../../contracts/instance-manifest/instance-manifest-contract';
 import type { LaneProcessName } from '../../../contracts/lane-process-name/lane-process-name-contract';
@@ -151,7 +150,7 @@ export const instanceStartBroker = async ({
   // below for the opportunistic reap's own staleness check too — the two checks run close enough in
   // time that a second `now()` call would buy nothing but an extra call for a composing test's
   // mock queue to account for.
-  const nowMsForStaleness = epochMsContract.parse(now());
+  const nowMsForStaleness = now();
   const aheadOfMe = readingCountContract.parse(
     registryBeforeReserve.instances.filter(
       (candidate) =>
@@ -206,7 +205,7 @@ export const instanceStartBroker = async ({
   // capacity until its own staleness window passes on its own. This catch releases exactly that
   // reservation and nothing else — the boot lock itself is never released here, because a throw at
   // this point means this call never held it.
-  const lockWaitStartedAtMs = epochMsContract.parse(now());
+  const lockWaitStartedAtMs = now();
   try {
     await bootLockAcquireBroker({ instanceId: reservedEntry.id });
   } catch (lockAcquireError) {
@@ -219,8 +218,8 @@ export const instanceStartBroker = async ({
     }
     throw lockAcquireError;
   }
-  const lockWaitEndedAtMs = epochMsContract.parse(now());
-  const queuedMs = epochMsContract.parse(lockWaitEndedAtMs - lockWaitStartedAtMs);
+  const lockWaitEndedAtMs = now();
+  const queuedMs = (lockWaitEndedAtMs - lockWaitStartedAtMs);
 
   // An object property, never a bare `let` — a `let` reassigned only inside the `.catch()` closure
   // below narrows to its OWN initializer (`null`) at the point the outer catch block reads it,
@@ -281,10 +280,8 @@ export const instanceStartBroker = async ({
     });
 
     const socketPath = locationsSocketPathFindBroker({ instanceId: reservedEntry.id });
-    const bootStartedAtMs = epochMsContract.parse(now());
-    const bootDeadlineMs = epochMsContract.parse(
-      bootStartedAtMs + driverStatics.boot.defaultTimeoutMs,
-    );
+    const bootStartedAtMs = now();
+    const bootDeadlineMs = (bootStartedAtMs + driverStatics.boot.defaultTimeoutMs);
 
     const pollOutcome = await instanceStartBootPollLayerBroker({
       socketPath,
@@ -349,8 +346,8 @@ export const instanceStartBroker = async ({
       });
     }
 
-    const bootEndedAtMs = epochMsContract.parse(now());
-    const bootMs = epochMsContract.parse(bootEndedAtMs - bootStartedAtMs);
+    const bootEndedAtMs = now();
+    const bootMs = (bootEndedAtMs - bootStartedAtMs);
 
     // This is the only side that sees a boot begin, so it is the only side that can measure one —
     // `bootMs` is the one figure in a profile that is genuinely measured rather than illustrative

@@ -11,8 +11,6 @@
  * // Returns 604800000 as EpochMs
  */
 
-import { epochMsContract } from '../../contracts/epoch-ms/epoch-ms-contract';
-import type { EpochMs } from '../../contracts/epoch-ms/epoch-ms-contract';
 import type { ElapsedText } from '../../contracts/elapsed-text/elapsed-text-contract';
 import { pruneStatics } from '../../statics/prune/prune-statics';
 
@@ -22,7 +20,7 @@ export const pruneOlderThanParseTransformer = ({
   olderThan,
 }: {
   olderThan: ElapsedText;
-}): EpochMs => {
+}): number => {
   const match = WINDOW_PATTERN.exec(String(olderThan));
 
   if (match === null) {
@@ -43,5 +41,5 @@ export const pruneOlderThanParseTransformer = ({
     );
   }
 
-  return epochMsContract.parse(Number(amountText) * unitMs);
+  return (Number(amountText) * unitMs);
 };

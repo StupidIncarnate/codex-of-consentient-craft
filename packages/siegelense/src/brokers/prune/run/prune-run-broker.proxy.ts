@@ -1,11 +1,10 @@
 import { registerMock } from '@dungeonmaster/testing/register-mock';
 
-import { EpochMsStub } from '../../../contracts/epoch-ms/epoch-ms.stub';
 import { registryReadBrokerProxy } from '../../registry/read/registry-read-broker.proxy';
 import { registryUpdateBrokerProxy } from '../../registry/update/registry-update-broker.proxy';
 import { pruneInstanceReclaimBrokerProxy } from '../instance-reclaim/prune-instance-reclaim-broker.proxy';
 
-type EpochMs = ReturnType<typeof EpochMsStub>;
+type EpochMs = number;
 
 const FIXED_NOW_MS = 1_700_000_000_000;
 
@@ -23,7 +22,7 @@ export const pruneRunBrokerProxy = (): {
   registerMock({ fn: Date.now }).calledWith([]).returns(FIXED_NOW_MS);
 
   return {
-    nowMs: (): EpochMs => EpochMsStub({ value: FIXED_NOW_MS }),
+    nowMs: (): EpochMs => FIXED_NOW_MS,
 
     setupRegistry: ({ json }: { json: string }): void => {
       readProxy.setupPresentRegistry({ content: json });

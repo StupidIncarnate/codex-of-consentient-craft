@@ -30,7 +30,6 @@
  * // Returns a StatusAnswer with at most one entry, fully populated
  */
 
-import { epochMsContract } from '../../../contracts/epoch-ms/epoch-ms-contract';
 import { instanceStateContract } from '../../../contracts/instance-state/instance-state-contract';
 import type { InstanceState } from '../../../contracts/instance-state/instance-state-contract';
 import { monitoredMetricContract } from '../../../contracts/monitored-metric/monitored-metric-contract';
@@ -82,7 +81,7 @@ export const statusReadBroker = async ({
     entryStatePairs = entryStatePairs.filter((pair) => pair.entry.branch === branch);
   }
 
-  const nowMs = epochMsContract.parse(Date.now());
+  const nowMs = Date.now();
 
   if (since !== null && since !== 'beginning') {
     const windowMs = SINCE_WINDOWS_MS[since];

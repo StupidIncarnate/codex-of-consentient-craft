@@ -1,12 +1,11 @@
 import { registryLockAcquireBroker } from './registry-lock-acquire-broker';
 import { registryLockAcquireBrokerProxy } from './registry-lock-acquire-broker.proxy';
-import { EpochMsStub } from '../../../contracts/epoch-ms/epoch-ms.stub';
 
 describe('registryLockAcquireBroker', () => {
   describe('no lock present', () => {
     it('VALID: {no registry.lock} => returns success', async () => {
       const proxy = registryLockAcquireBrokerProxy();
-      proxy.setupNow({ nowMs: EpochMsStub() });
+      proxy.setupNow({ nowMs: 1 });
       proxy.setupAvailable();
 
       await expect(registryLockAcquireBroker({})).resolves.toBe(undefined);
@@ -14,7 +13,7 @@ describe('registryLockAcquireBroker', () => {
 
     it('VALID: {no registry.lock} => the write used the exclusive flag', async () => {
       const proxy = registryLockAcquireBrokerProxy();
-      proxy.setupNow({ nowMs: EpochMsStub() });
+      proxy.setupNow({ nowMs: 1 });
       proxy.setupAvailable();
 
       await registryLockAcquireBroker({});
@@ -26,7 +25,7 @@ describe('registryLockAcquireBroker', () => {
   describe('stale lock', () => {
     it('VALID: {lock older than ttlMs} => takes it over and returns success', async () => {
       const proxy = registryLockAcquireBrokerProxy();
-      const nowMs = EpochMsStub();
+      const nowMs = 1;
       proxy.setupStaleHeldByAnother({ nowMs });
       proxy.setupNow({ nowMs });
       proxy.setupAvailable();
@@ -36,7 +35,7 @@ describe('registryLockAcquireBroker', () => {
 
     it('VALID: {lock older than ttlMs} => unlinks the stale file before retrying', async () => {
       const proxy = registryLockAcquireBrokerProxy();
-      const nowMs = EpochMsStub();
+      const nowMs = 1;
       proxy.setupStaleHeldByAnother({ nowMs });
       proxy.setupNow({ nowMs });
       proxy.setupAvailable();
@@ -53,7 +52,7 @@ describe('registryLockAcquireBroker', () => {
     // it) rather than escaping to the caller.
     it('EDGE: {two contenders race to remove the same stale lock} => the loser retries instead of throwing', async () => {
       const proxy = registryLockAcquireBrokerProxy();
-      const nowMs = EpochMsStub();
+      const nowMs = 1;
       proxy.setupStaleUnlinkLostRaceToAnotherContender({ nowMs });
       proxy.setupNow({ nowMs });
       proxy.setupAvailable();
@@ -63,7 +62,7 @@ describe('registryLockAcquireBroker', () => {
 
     it('ERROR: {the stale-lock unlink fails for a reason other than absence} => throws', async () => {
       const proxy = registryLockAcquireBrokerProxy();
-      const nowMs = EpochMsStub();
+      const nowMs = 1;
       proxy.setupStaleUnlinkFailsForNonAbsenceReason({ nowMs });
       proxy.setupNow({ nowMs });
 
@@ -87,7 +86,7 @@ describe('registryLockAcquireBroker', () => {
   describe('lock read fails for a reason other than absence', () => {
     it('ERROR: {the lock read fails for a reason other than absence} => does not loop forever', async () => {
       const proxy = registryLockAcquireBrokerProxy();
-      proxy.setupNow({ nowMs: EpochMsStub() });
+      proxy.setupNow({ nowMs: 1 });
       proxy.setupLockReadFailsForNonAbsenceReason();
 
       await expect(registryLockAcquireBroker({})).rejects.toThrow(
@@ -99,7 +98,7 @@ describe('registryLockAcquireBroker', () => {
   describe('lock vanishes between the failed create and the read', () => {
     it('EDGE: {the lock vanishes between the failed create and the read} => retries the create', async () => {
       const proxy = registryLockAcquireBrokerProxy();
-      proxy.setupNow({ nowMs: EpochMsStub() });
+      proxy.setupNow({ nowMs: 1 });
       proxy.setupLockVanishesBeforeRetryRead();
       proxy.setupAvailable();
 
@@ -110,7 +109,7 @@ describe('registryLockAcquireBroker', () => {
   describe('a fresh home with no siegelense root yet', () => {
     it('EDGE: {no siegelense root yet} => creates the root directory before acquiring the lock', async () => {
       const proxy = registryLockAcquireBrokerProxy();
-      proxy.setupNow({ nowMs: EpochMsStub() });
+      proxy.setupNow({ nowMs: 1 });
       proxy.setupAvailable();
 
       await registryLockAcquireBroker({});
@@ -120,7 +119,7 @@ describe('registryLockAcquireBroker', () => {
 
     it('VALID: {no siegelense root yet} => the create is still exclusive, not a plain overwrite', async () => {
       const proxy = registryLockAcquireBrokerProxy();
-      proxy.setupNow({ nowMs: EpochMsStub() });
+      proxy.setupNow({ nowMs: 1 });
       proxy.setupAvailable();
 
       await registryLockAcquireBroker({});
@@ -130,7 +129,7 @@ describe('registryLockAcquireBroker', () => {
 
     it('VALID: {siegelense root already has files in it} => mkdir leaves them alone', async () => {
       const proxy = registryLockAcquireBrokerProxy();
-      proxy.setupNow({ nowMs: EpochMsStub() });
+      proxy.setupNow({ nowMs: 1 });
       proxy.setupAvailable();
 
       await registryLockAcquireBroker({});

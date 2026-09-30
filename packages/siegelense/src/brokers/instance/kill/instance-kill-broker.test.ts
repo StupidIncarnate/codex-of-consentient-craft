@@ -1,7 +1,6 @@
 
 import { instanceKillBroker } from './instance-kill-broker';
 import { instanceKillBrokerProxy } from './instance-kill-broker.proxy';
-import { EpochMsStub } from '../../../contracts/epoch-ms/epoch-ms.stub';
 import { InstanceIdStub } from '../../../contracts/instance-id/instance-id.stub';
 import { ProcessGroupIdStub } from '../../../contracts/process-group-id/process-group-id.stub';
 import { RegistryEntryStub } from '../../../contracts/registry-entry/registry-entry.stub';
@@ -120,7 +119,7 @@ describe('instanceKillBroker', () => {
 
       expect(proxy.getWrittenShutdownReason({ evidencePath: EVIDENCE_PATH })).toStrictEqual({
         reason: 'reaped 2 orphaned process groups outside the idle timeout',
-        atMs: EpochMsStub().valueOf(),
+        atMs: 1.valueOf(),
       });
     });
 
@@ -148,7 +147,7 @@ describe('instanceKillBroker', () => {
 
       expect(proxy.getWrittenShutdownReason({ evidencePath: EVIDENCE_PATH })).toStrictEqual({
         reason: 'reaped by cleanup after its heartbeat went stale',
-        atMs: EpochMsStub().valueOf(),
+        atMs: 1.valueOf(),
       });
     });
 

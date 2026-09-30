@@ -27,7 +27,6 @@ import { join } from '#gateway/node/path';
 
 import { readdirIfExists, readFile } from '#gateway/node/fs__promises';
 import { stderr } from '#gateway/node/process';
-import { epochMsContract } from '../../../contracts/epoch-ms/epoch-ms-contract';
 import { profileBootContract } from '../../../contracts/profile-boot/profile-boot-contract';
 import type { ProfileBoot } from '../../../contracts/profile-boot/profile-boot-contract';
 import { profileObservationContract } from '../../../contracts/profile-observation/profile-observation-contract';
@@ -118,10 +117,10 @@ export const profileReadBroker = async ({
       measuredAtMs === null
         ? null
         : profileMeasuredDateRenderTransformer({
-            measuredAtMs: epochMsContract.parse(measuredAtMs),
+            measuredAtMs: measuredAtMs,
           }),
     fromRuns: readingCountContract.parse(observations.length),
-    bootMs: bootMs === null ? null : epochMsContract.parse(bootMs),
+    bootMs: bootMs === null ? null : bootMs,
     samples: profileSamplesGroupTransformer({ observations }),
   });
 };

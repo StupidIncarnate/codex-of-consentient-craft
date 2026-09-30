@@ -6,7 +6,6 @@ import type { FileName } from '@dungeonmaster/shared/contracts';
 import { readFileProxy } from '#gateway/node/fs__promises/read-file/read-file.proxy';
 import { rmProxy } from '#gateway/node/fs__promises/rm/rm.proxy';
 import { statIfExistsProxy } from '#gateway/node/fs__promises/stat-if-exists/stat-if-exists.proxy';
-import type { EpochMs } from '../../../contracts/epoch-ms/epoch-ms-contract';
 import type { FileSizeBytes } from '../../../contracts/file-size-bytes/file-size-bytes-contract';
 
 export const snapshotRestoreLayerBrokerProxy = (): {
@@ -17,7 +16,7 @@ export const snapshotRestoreLayerBrokerProxy = (): {
     stats: readonly {
       filePath: string;
       sizeBytes: FileSizeBytes;
-      modifiedAtMs: EpochMs;
+      modifiedAtMs: number;
     }[];
   }) => void;
   // Only same-size pairs ever reach a content read (a size mismatch is decided without one), so a

@@ -43,7 +43,6 @@ import { z } from '#gateway/npm/zod';
 
 import { absoluteFilePathContract, processIdContract, questContract, guildContract, siegeInstanceContract } from '@dungeonmaster/shared/contracts';
 
-import { epochMsContract } from '../epoch-ms/epoch-ms-contract';
 import { instanceOwnerContract } from '../instance-owner/instance-owner-contract';
 import { instanceStateContract } from '../instance-state/instance-state-contract';
 import { portPairContract } from '../port-pair/port-pair-contract';
@@ -63,10 +62,10 @@ export const registryEntryContract = z.object({
   socketPath: absoluteFilePathContract.nullable(),
   ports: portPairContract,
   state: instanceStateContract,
-  reservedAtMs: epochMsContract,
-  bootedAtMs: epochMsContract.nullable(),
-  lastBeatMs: epochMsContract.nullable(),
-  prunedAtMs: epochMsContract.nullable(),
+  reservedAtMs: z.number().int().nonnegative().brand<'RegistryEntryReservedAtMs'>(),
+  bootedAtMs: z.number().int().nonnegative().brand<'RegistryEntryBootedAtMs'>().nullable(),
+  lastBeatMs: z.number().int().nonnegative().brand<'RegistryEntryLastBeatMs'>().nullable(),
+  prunedAtMs: z.number().int().nonnegative().brand<'RegistryEntryPrunedAtMs'>().nullable(),
   prunedByRule: z.string().brand<'RegistryEntryPrunedByRule'>().nullable(),
   branch: z.string().brand<'RegistryEntryBranch'>().nullish(),
 });

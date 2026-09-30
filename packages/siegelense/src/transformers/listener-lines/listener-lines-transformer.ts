@@ -12,7 +12,6 @@
  */
 
 
-import type { EpochMs } from '../../contracts/epoch-ms/epoch-ms-contract';
 
 // Reading a response body costs a round trip to the browser, and a bundle's body answers no
 // question a siege asks. Matches `siege-lane.ts`'s own BODY_SKIP_RESOURCE_TYPES.
@@ -29,20 +28,20 @@ export const listenerLinesTransformer = (): {
   truncatedBody: (params: { text: string }) => string;
   truncatePayload: (params: { text: string }) => string;
   consoleLine: (params: {
-    at: EpochMs;
+    at: number;
     type: string;
     text: string;
     url: string;
     line: number;
   }) => string;
   pageErrorLine: (params: {
-    at: EpochMs;
+    at: number;
     type: string;
     text: string;
     stack: string | null;
   }) => string;
   networkLine: (params: {
-    at: EpochMs;
+    at: number;
     method: string;
     url: string;
     resourceType: string;
@@ -51,7 +50,7 @@ export const listenerLinesTransformer = (): {
     responseBody: string;
   }) => string;
   requestFailedLine: (params: {
-    at: EpochMs;
+    at: number;
     method: string;
     url: string;
     resourceType: string;
@@ -59,12 +58,12 @@ export const listenerLinesTransformer = (): {
     errorText: string;
   }) => string;
   websocketFrameLine: (params: {
-    at: EpochMs;
+    at: number;
     url: string;
     direction: 'sent' | 'received';
     payload: string;
   }) => string;
-  websocketCloseLine: (params: { at: EpochMs; url: string }) => string;
+  websocketCloseLine: (params: { at: number; url: string }) => string;
 } => ({
   isBodySkippedResourceType: ({ resourceType }): boolean =>
     BODY_SKIP_RESOURCE_TYPES.has(resourceType),

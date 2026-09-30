@@ -27,7 +27,6 @@
 
 import type { CitationGap } from '../../../contracts/citation-gap/citation-gap-contract';
 import type { CitationKind } from '../../../contracts/citation-kind/citation-kind-contract';
-import { epochMsContract } from '../../../contracts/epoch-ms/epoch-ms-contract';
 import { fileSizeBytesContract } from '../../../contracts/file-size-bytes/file-size-bytes-contract';
 import { instanceStateContract } from '../../../contracts/instance-state/instance-state-contract';
 import { megabytesContract } from '../../../contracts/megabytes/megabytes-contract';
@@ -52,7 +51,7 @@ export const pruneRunBroker = async ({
   query: PruneQuery;
   dryRun?: boolean;
 }): Promise<PruneAnswer> => {
-  const nowMs = epochMsContract.parse(Date.now());
+  const nowMs = Date.now();
   const olderThanMs = pruneOlderThanParseTransformer({ olderThan: query.olderThan });
   const registry = await registryReadBroker();
 

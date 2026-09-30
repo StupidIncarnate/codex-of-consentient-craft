@@ -1,4 +1,3 @@
-import { EpochMsStub } from '../../../contracts/epoch-ms/epoch-ms.stub';
 import { InstanceIdStub } from '../../../contracts/instance-id/instance-id.stub';
 import { RegistryEntryStub } from '../../../contracts/registry-entry/registry-entry.stub';
 import { RegistryStub } from '../../../contracts/registry/registry.stub';
@@ -16,7 +15,7 @@ describe('SiegelenseSnapshotsResponder', () => {
   describe('an instance holding snapshots', () => {
     it('VALID: {default: isJson false} => writes the human summary table to stdout', async () => {
       const proxy = SiegelenseSnapshotsResponderProxy();
-      const nowMs = EpochMsStub({ value: 5000 });
+      const nowMs = 5000;
       proxy.stageNow({ nowMs });
       const instanceId = InstanceIdStub({ value: 'inst_7f3a9c21' });
       proxy.stageRegistry({

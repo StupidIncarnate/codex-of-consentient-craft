@@ -48,7 +48,6 @@ import { registryReadBroker } from '../../../brokers/registry/read/registry-read
 import { registryReadBrokerProxy } from '../../../brokers/registry/read/registry-read-broker.proxy';
 import { registryUpdateBroker } from '../../../brokers/registry/update/registry-update-broker';
 import { registryUpdateBrokerProxy } from '../../../brokers/registry/update/registry-update-broker.proxy';
-import { EpochMsStub } from '../../../contracts/epoch-ms/epoch-ms.stub';
 import type { LaneSession } from '../../../contracts/lane-session/lane-session-contract';
 import { ReadingCountStub } from '../../../contracts/reading-count/reading-count.stub';
 import type { Registry } from '../../../contracts/registry/registry-contract';
@@ -168,7 +167,7 @@ export const SiegelenseDriverResponderProxy = (): {
       bootLockReleaseHandle.calledWith([{ instanceId }]).resolves({ success: true });
       bootFailureMarkerWriteHandle.calledWith([{ message: error.message }]).resolves({
         message: error.message,
-        atMs: EpochMsStub(),
+        atMs: 1,
       });
     },
 

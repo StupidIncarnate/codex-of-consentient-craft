@@ -10,10 +10,9 @@ import { unlinkIfExistsProxy } from '#gateway/node/fs__promises/unlink-if-exists
 import { writeFileExclusiveProxy } from '#gateway/node/fs__promises/write-file-exclusive/write-file-exclusive.proxy';
 import { locationsRegistryLockPathFindBrokerProxy } from '../../locations/registry-lock-path-find/locations-registry-lock-path-find-broker.proxy';
 import { locationsRootPathFindBrokerProxy } from '../../locations/root-path-find/locations-root-path-find-broker.proxy';
-import { EpochMsStub } from '../../../contracts/epoch-ms/epoch-ms.stub';
 import { instanceLifecycleStatics } from '../../../statics/instance-lifecycle/instance-lifecycle-statics';
 
-type EpochMs = ReturnType<typeof EpochMsStub>;
+type EpochMs = number;
 
 const HOME_DIR = '/home/user';
 const HOME_PATH_VALUE = `${HOME_DIR}/.dungeonmaster`;
@@ -96,12 +95,9 @@ export const registryLockAcquireBrokerProxy = (): {
     // over) is a separate real call — pair this with `setupAvailable()` for that second one.
     setupStaleHeldByAnother: ({ nowMs }: { nowMs: EpochMs }): void => {
       stagePathResolution();
-      const acquiredAtMs = EpochMsStub({
-        value:
-          nowMs -
+      const acquiredAtMs = (nowMs -
           instanceLifecycleStatics.registryLock.ttlMs -
-          instanceLifecycleStatics.registryLock.pollMs,
-      });
+          instanceLifecycleStatics.registryLock.pollMs);
       writeProxy.rejectsOnce({ path: lockPath, error: eexistError });
       readProxy.returns({
         path: lockPath,
@@ -115,12 +111,9 @@ export const registryLockAcquireBrokerProxy = (): {
     // still reach, exactly as `setupStaleHeldByAnother` pairs with it.
     setupStaleUnlinkLostRaceToAnotherContender: ({ nowMs }: { nowMs: EpochMs }): void => {
       stagePathResolution();
-      const acquiredAtMs = EpochMsStub({
-        value:
-          nowMs -
+      const acquiredAtMs = (nowMs -
           instanceLifecycleStatics.registryLock.ttlMs -
-          instanceLifecycleStatics.registryLock.pollMs,
-      });
+          instanceLifecycleStatics.registryLock.pollMs);
       writeProxy.rejectsOnce({ path: lockPath, error: eexistError });
       readProxy.returns({
         path: lockPath,
@@ -133,12 +126,9 @@ export const registryLockAcquireBrokerProxy = (): {
     // — EACCES, not ENOENT — so it must still throw rather than being classified as a benign race.
     setupStaleUnlinkFailsForNonAbsenceReason: ({ nowMs }: { nowMs: EpochMs }): void => {
       stagePathResolution();
-      const acquiredAtMs = EpochMsStub({
-        value:
-          nowMs -
+      const acquiredAtMs = (nowMs -
           instanceLifecycleStatics.registryLock.ttlMs -
-          instanceLifecycleStatics.registryLock.pollMs,
-      });
+          instanceLifecycleStatics.registryLock.pollMs);
       writeProxy.rejectsOnce({ path: lockPath, error: eexistError });
       readProxy.returns({
         path: lockPath,
@@ -155,10 +145,10 @@ export const registryLockAcquireBrokerProxy = (): {
     // that same nowMs — so the broker throws without ever reaching its sleep-and-recurse branch.
     setupFreshHeldByAnotherPastCeiling: (): { startedAtMs: EpochMs; nowMs: EpochMs } => {
       stagePathResolution();
-      const startedAtMs = EpochMsStub();
+      const startedAtMs = 1;
       const { pollMs, waitCeilingMs } = instanceLifecycleStatics.registryLock;
-      const nowMs = EpochMsStub({ value: startedAtMs + waitCeilingMs });
-      const heldAcquiredAtMs = EpochMsStub({ value: nowMs - pollMs });
+      const nowMs = (startedAtMs + waitCeilingMs);
+      const heldAcquiredAtMs = (nowMs - pollMs);
 
       // The exclusive create loses to this already-fresh file before the read ever runs.
       writeProxy.rejects({ path: lockPath, error: eexistError });

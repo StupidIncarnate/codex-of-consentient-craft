@@ -13,7 +13,6 @@ import { QuestStub } from '@dungeonmaster/shared/contracts/quest/quest.stub';
 import { registerMock } from '@dungeonmaster/testing/register-mock';
 import type { MockHandle } from '@dungeonmaster/testing/register-mock';
 
-import type { EpochMs } from '../../../contracts/epoch-ms/epoch-ms-contract';
 import type { FileSizeBytes } from '../../../contracts/file-size-bytes/file-size-bytes-contract';
 import type { SnapshotRecord } from '../../../contracts/snapshot-record/snapshot-record-contract';
 import { recipeSeedRunBrokerProxy } from '../../recipe/seed-run/recipe-seed-run-broker.proxy';
@@ -36,7 +35,7 @@ export const stepResetBrokerProxy = (): {
     stats: readonly {
       filePath: string;
       sizeBytes: FileSizeBytes;
-      modifiedAtMs: EpochMs;
+      modifiedAtMs: number;
     }[];
   }) => void;
   setupRestoreFileContents: (params: {

@@ -1,5 +1,4 @@
 
-import { EpochMsStub } from '../epoch-ms/epoch-ms.stub';
 import { shutdownReasonContract } from './shutdown-reason-contract';
 import { ShutdownReasonStub } from './shutdown-reason.stub';
 
@@ -10,7 +9,7 @@ describe('shutdownReasonContract', () => {
     it('VALID: {reason, atMs} => parses successfully', () => {
       const marker: ShutdownReason = ShutdownReasonStub({
         reason: 'reaped by idle timeout after 900s with no run received',
-        atMs: EpochMsStub({ value: 1_700_000_000_000 }),
+        atMs: 1_700_000_000_000,
       });
 
       const result = shutdownReasonContract.parse(marker);

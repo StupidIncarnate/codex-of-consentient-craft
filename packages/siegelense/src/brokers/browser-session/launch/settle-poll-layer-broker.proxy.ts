@@ -8,11 +8,10 @@
 
 import { registerSpyOn } from '@dungeonmaster/testing/register-mock';
 
-import { EpochMsStub } from '../../../contracts/epoch-ms/epoch-ms.stub';
 import { RawSettleProbeStub } from '../../../contracts/raw-settle-probe/raw-settle-probe.stub';
 import { ReadingCountStub } from '../../../contracts/reading-count/reading-count.stub';
 
-type EpochMs = ReturnType<typeof EpochMsStub>;
+type EpochMs = number;
 type ContentText = string;
 type ReadingCount = ReturnType<typeof ReadingCountStub>;
 type RawSettleProbe = ReturnType<typeof RawSettleProbeStub>;
@@ -49,7 +48,7 @@ export const settlePollLayerBrokerProxy = (): {
     getProbeSources: () => readonly ContentText[];
   };
 } => {
-  const clock = { nowMs: EpochMsStub({ value: START_EPOCH_MS }) };
+  const clock = { nowMs: START_EPOCH_MS };
   const state = {
     probeCount: ReadingCountStub({ value: 0 }),
     mutatingForMs: 0,
@@ -89,7 +88,7 @@ export const settlePollLayerBrokerProxy = (): {
       );
     },
     pause: async ({ ms }: { ms: number }): Promise<void> => {
-      clock.nowMs = EpochMsStub({ value: clock.nowMs + ms });
+      clock.nowMs = (clock.nowMs + ms);
       if (state.tick !== null) {
         state.tick();
       }

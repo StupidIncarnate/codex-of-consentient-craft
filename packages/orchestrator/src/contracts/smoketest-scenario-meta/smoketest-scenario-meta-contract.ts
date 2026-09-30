@@ -11,7 +11,7 @@ import { z } from '#gateway/npm/zod';
 export const smoketestScenarioMetaContract = z.object({
   caseId: z.string().min(1).brand<'SmoketestCaseId'>(),
   name: z.string().min(1).brand<'SmoketestScenarioName'>(),
-  startedAt: z.number().int().nonnegative().brand<'EpochMs'>(),
+  startedAt: z.number().int().nonnegative().brand<'SmoketestScenarioMetaStartedAt'>(),
 });
 
 export type SmoketestScenarioMeta = z.infer<typeof smoketestScenarioMetaContract>;

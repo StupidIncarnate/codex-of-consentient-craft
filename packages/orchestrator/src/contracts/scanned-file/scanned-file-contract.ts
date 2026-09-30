@@ -16,7 +16,7 @@ import { absoluteFilePathContract } from '@dungeonmaster/shared/contracts';
 
 export const scannedFileContract = z.object({
   path: absoluteFilePathContract,
-  mtimeMs: z.number().min(0).brand<'EpochMs'>(),
+  mtimeMs: z.number().min(0).brand<'ScannedFileMtimeMs'>(),
   size: z.number().int().min(0).brand<'ByteSize'>(),
 });
 

@@ -20,11 +20,10 @@
 import { z } from '#gateway/npm/zod';
 
 
-import { epochMsContract } from '../epoch-ms/epoch-ms-contract';
 
 export const shutdownReasonContract = z.object({
   reason: z.string().brand<'ShutdownReasonReason'>(),
-  atMs: epochMsContract,
+  atMs: z.number().int().nonnegative().brand<'ShutdownReasonAtMs'>(),
 });
 
 export type ShutdownReason = z.infer<typeof shutdownReasonContract>;

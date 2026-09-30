@@ -17,7 +17,6 @@ import { registryReadBroker } from '../../../brokers/registry/read/registry-read
 import { registryReadBrokerProxy } from '../../../brokers/registry/read/registry-read-broker.proxy';
 import { snapshotListBroker } from '../../../brokers/snapshot/list/snapshot-list-broker';
 import { snapshotListBrokerProxy } from '../../../brokers/snapshot/list/snapshot-list-broker.proxy';
-import type { EpochMs } from '../../../contracts/epoch-ms/epoch-ms-contract';
 import type { RegistryStub } from '../../../contracts/registry/registry.stub';
 import type { SnapshotsAnswerStub } from '../../../contracts/snapshots-answer/snapshots-answer.stub';
 import type { SiegeInstance } from '@dungeonmaster/shared/contracts';
@@ -29,7 +28,7 @@ export const SiegelenseSnapshotsResponderProxy = (): {
   stageRegistry: (params: { registry: Registry }) => void;
   stageAnswer: (params: { answer: SnapshotsAnswer }) => void;
   stageError: (params: { error: Error; instanceId: SiegeInstance['id'] }) => void;
-  stageNow: (params: { nowMs: EpochMs }) => void;
+  stageNow: (params: { nowMs: number }) => void;
   getStdoutWrites: () => unknown[];
 } => {
   // Constructed for enforce-proxy-child-creation only — this proxy stages snapshotListBroker
@@ -57,7 +56,7 @@ export const SiegelenseSnapshotsResponderProxy = (): {
       listHandle.calledWith([{ instanceId }]).rejects(error);
     },
 
-    stageNow: ({ nowMs }: { nowMs: EpochMs }): void => {
+    stageNow: ({ nowMs }: { nowMs: number }): void => {
       nowHandle.calledWith([]).returns(nowMs);
     },
 

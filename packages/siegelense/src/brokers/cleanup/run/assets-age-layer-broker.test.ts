@@ -5,7 +5,6 @@ import { QuestStub } from '@dungeonmaster/shared/contracts/quest/quest.stub';
 import { SiegeInstanceIdStub } from '@dungeonmaster/shared/contracts/siege-instance-id/siege-instance-id.stub';
 import { SiegeRunIdStub } from '@dungeonmaster/shared/contracts/siege-run-id/siege-run-id.stub';
 
-import { EpochMsStub } from '../../../contracts/epoch-ms/epoch-ms.stub';
 import { InstanceIdStub } from '../../../contracts/instance-id/instance-id.stub';
 import { RegistryEntryStub } from '../../../contracts/registry-entry/registry-entry.stub';
 import { assetsAgeLayerBroker } from './assets-age-layer-broker';
@@ -31,7 +30,7 @@ describe('assetsAgeLayerBroker', () => {
 
       const result = await assetsAgeLayerBroker({
         entries: [],
-        nowMs: EpochMsStub({ value: NOW_MS }),
+        nowMs: NOW_MS,
       });
 
       expect(result).toStrictEqual({ instances: 0, freedMB: 0, refusals: [], gaps: [] });
@@ -84,11 +83,11 @@ describe('assetsAgeLayerBroker', () => {
             state: 'killed',
             questId: null,
             guildId: null,
-            bootedAtMs: EpochMsStub({ value: NOW_MS - DAY_MS * 4 }),
+            bootedAtMs: (NOW_MS - DAY_MS * 4),
             lastBeatMs: null,
           }),
         ],
-        nowMs: EpochMsStub({ value: NOW_MS }),
+        nowMs: NOW_MS,
       });
 
       expect(result).toStrictEqual({
@@ -172,11 +171,11 @@ describe('assetsAgeLayerBroker', () => {
             state: 'killed',
             questId: QuestIdStub({ value: QUEST }),
             guildId: GuildIdStub({ value: GUILD }),
-            bootedAtMs: EpochMsStub({ value: NOW_MS - DAY_MS * 40 }),
+            bootedAtMs: (NOW_MS - DAY_MS * 40),
             lastBeatMs: null,
           }),
         ],
-        nowMs: EpochMsStub({ value: NOW_MS }),
+        nowMs: NOW_MS,
       });
 
       expect(result).toStrictEqual({

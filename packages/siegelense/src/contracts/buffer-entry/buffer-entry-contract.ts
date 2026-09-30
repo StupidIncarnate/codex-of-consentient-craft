@@ -16,13 +16,12 @@ import { z } from '#gateway/npm/zod';
 
 import { siegeRunContract } from '@dungeonmaster/shared/contracts';
 
-import { epochMsContract } from '../epoch-ms/epoch-ms-contract';
 import { stepIndexContract } from '../step-index/step-index-contract';
 
 export const bufferEntryContract = z.object({
   runId: siegeRunContract.shape.id.nullable(),
   step: stepIndexContract.nullable(),
-  atMs: epochMsContract,
+  atMs: z.number().int().nonnegative().brand<'BufferEntryAtMs'>(),
   text: z.string().brand<'BufferEntryText'>(),
 });
 

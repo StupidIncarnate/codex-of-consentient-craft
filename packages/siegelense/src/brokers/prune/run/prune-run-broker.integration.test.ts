@@ -22,7 +22,6 @@ import { QuestStub } from '@dungeonmaster/shared/contracts/quest/quest.stub';
 import { SiegeInstanceIdStub } from '@dungeonmaster/shared/contracts/siege-instance-id/siege-instance-id.stub';
 import { SiegeRunIdStub } from '@dungeonmaster/shared/contracts/siege-run-id/siege-run-id.stub';
 
-import { EpochMsStub } from '../../../contracts/epoch-ms/epoch-ms.stub';
 import { InstanceIdStub } from '../../../contracts/instance-id/instance-id.stub';
 import { InstanceOwnerStub } from '../../../contracts/instance-owner/instance-owner.stub';
 import { PortPairStub } from '../../../contracts/port-pair/port-pair.stub';
@@ -98,8 +97,8 @@ describe('prune, against a real evidence tree', () => {
             state: 'killed',
             questId: QUEST,
             guildId: GUILD,
-            reservedAtMs: EpochMsStub({ value: nowMs - DAY_MS * 40 }),
-            bootedAtMs: EpochMsStub({ value: nowMs - DAY_MS * 40 }),
+            reservedAtMs: (nowMs - DAY_MS * 40),
+            bootedAtMs: (nowMs - DAY_MS * 40),
             lastBeatMs: null,
             prunedAtMs: null,
             prunedByRule: null,
@@ -116,8 +115,8 @@ describe('prune, against a real evidence tree', () => {
             state: 'killed',
             questId: null,
             guildId: null,
-            reservedAtMs: EpochMsStub({ value: nowMs - DAY_MS * 40 }),
-            bootedAtMs: EpochMsStub({ value: nowMs - DAY_MS * 40 }),
+            reservedAtMs: (nowMs - DAY_MS * 40),
+            bootedAtMs: (nowMs - DAY_MS * 40),
             lastBeatMs: null,
             prunedAtMs: null,
             prunedByRule: null,
@@ -134,8 +133,8 @@ describe('prune, against a real evidence tree', () => {
             state: 'killed',
             questId: null,
             guildId: null,
-            reservedAtMs: EpochMsStub({ value: nowMs - DAY_MS * 40 }),
-            bootedAtMs: EpochMsStub({ value: nowMs - DAY_MS * 40 }),
+            reservedAtMs: (nowMs - DAY_MS * 40),
+            bootedAtMs: (nowMs - DAY_MS * 40),
             lastBeatMs: null,
             prunedAtMs: null,
             prunedByRule: null,
@@ -152,9 +151,9 @@ describe('prune, against a real evidence tree', () => {
             state: 'alive',
             questId: null,
             guildId: null,
-            reservedAtMs: EpochMsStub({ value: nowMs - 120_000 }),
-            bootedAtMs: EpochMsStub({ value: nowMs - 120_000 }),
-            lastBeatMs: EpochMsStub({ value: nowMs - 2000 }),
+            reservedAtMs: (nowMs - 120_000),
+            bootedAtMs: (nowMs - 120_000),
+            lastBeatMs: (nowMs - 2000),
             prunedAtMs: null,
             prunedByRule: null,
           }),
@@ -170,8 +169,8 @@ describe('prune, against a real evidence tree', () => {
             state: 'killed',
             questId: null,
             guildId: null,
-            reservedAtMs: EpochMsStub({ value: nowMs - DAY_MS * 40 }),
-            bootedAtMs: EpochMsStub({ value: nowMs - DAY_MS * 40 }),
+            reservedAtMs: (nowMs - DAY_MS * 40),
+            bootedAtMs: (nowMs - DAY_MS * 40),
             lastBeatMs: null,
             prunedAtMs: null,
             prunedByRule: null,

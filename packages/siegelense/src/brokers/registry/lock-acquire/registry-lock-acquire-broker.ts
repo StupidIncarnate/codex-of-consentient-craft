@@ -26,8 +26,6 @@ import { isFsError } from '#gateway/node/fs';
 import { setTimeout } from '#gateway/node/setTimeout';
 import { locationsRegistryLockPathFindBroker } from '../../locations/registry-lock-path-find/locations-registry-lock-path-find-broker';
 import { locationsRootPathFindBroker } from '../../locations/root-path-find/locations-root-path-find-broker';
-import { epochMsContract } from '../../../contracts/epoch-ms/epoch-ms-contract';
-import type { EpochMs } from '../../../contracts/epoch-ms/epoch-ms-contract';
 import { instanceLifecycleStatics } from '../../../statics/instance-lifecycle/instance-lifecycle-statics';
 import {
   ensureDir,
@@ -39,12 +37,12 @@ import {
 export const registryLockAcquireBroker = async ({
   waitStartedAtMs,
 }: {
-  waitStartedAtMs?: EpochMs;
+  waitStartedAtMs?: number;
 }): Promise<void> => {
-  const startedAtMs = waitStartedAtMs ?? epochMsContract.parse(Date.now());
+  const startedAtMs = waitStartedAtMs ?? Date.now();
   const rootPath = locationsRootPathFindBroker();
   const lockPath = locationsRegistryLockPathFindBroker();
-  const nowMs = epochMsContract.parse(Date.now());
+  const nowMs = Date.now();
 
   await ensureDir(rootPath);
 
@@ -68,7 +66,7 @@ export const registryLockAcquireBroker = async ({
     return registryLockAcquireBroker({ waitStartedAtMs: startedAtMs });
   }
 
-  const existingAcquiredAtMs = epochMsContract.parse(Number(existingContents));
+  const existingAcquiredAtMs = Number(existingContents);
   const isStale = nowMs - existingAcquiredAtMs > instanceLifecycleStatics.registryLock.ttlMs;
 
   if (isStale) {

@@ -30,7 +30,6 @@
 import { z } from '#gateway/npm/zod';
 
 
-import { epochMsContract } from '../epoch-ms/epoch-ms-contract';
 import { megabytesContract } from '../megabytes/megabytes-contract';
 import { profilePoolSizeContract } from '../profile-pool-size/profile-pool-size-contract';
 import { readingCountContract } from '../reading-count/reading-count-contract';
@@ -43,7 +42,7 @@ export const specProfileContract = z.object({
   hash: specHashContract,
   measuredAt: z.string().brand<'SpecProfileMeasuredAt'>().nullable(),
   fromRuns: readingCountContract,
-  bootMs: epochMsContract.nullable(),
+  bootMs: z.number().int().nonnegative().brand<'SpecProfileBootMs'>().nullable(),
   samples: z
     .array(
       z.object({

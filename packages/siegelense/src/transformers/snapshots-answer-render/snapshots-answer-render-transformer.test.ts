@@ -1,4 +1,3 @@
-import { EpochMsStub } from '../../contracts/epoch-ms/epoch-ms.stub';
 import { InstanceIdStub } from '../../contracts/instance-id/instance-id.stub';
 import { SnapshotRecordStub } from '../../contracts/snapshot-record/snapshot-record.stub';
 import { SnapshotsAnswerStub } from '../../contracts/snapshots-answer/snapshots-answer.stub';
@@ -35,7 +34,7 @@ describe('snapshotsAnswerRenderTransformer', () => {
 
   describe('an instance holding snapshots', () => {
     it('VALID: {snapshots with nowMs} => renders aligned box-drawing table with computed age', () => {
-      const nowMs = EpochMsStub({ value: 100_000 });
+      const nowMs = 100_000;
       const answer = SnapshotsAnswerStub({
         instanceId: InstanceIdStub({ value: 'inst_7f3a9c21' }),
         instanceState: 'alive',

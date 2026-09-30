@@ -22,15 +22,14 @@
 
 import { z } from '#gateway/npm/zod';
 
-import { epochMsContract } from '../epoch-ms/epoch-ms-contract';
 import { specHashContract } from '../spec-hash/spec-hash-contract';
 import { siegeInstanceContract } from '@dungeonmaster/shared/contracts';
 
 export const profileBootContract = z.object({
   instanceId: siegeInstanceContract.shape.id,
   specHash: specHashContract,
-  bootMs: epochMsContract,
-  recordedAtMs: epochMsContract,
+  bootMs: z.number().int().nonnegative().brand<'ProfileBootBootMs'>(),
+  recordedAtMs: z.number().int().nonnegative().brand<'ProfileBootRecordedAtMs'>(),
 });
 
 export type ProfileBoot = z.infer<typeof profileBootContract>;

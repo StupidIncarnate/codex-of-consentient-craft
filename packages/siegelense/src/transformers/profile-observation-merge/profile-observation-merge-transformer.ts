@@ -20,7 +20,6 @@
  */
 
 import type { Megabytes } from '../../contracts/megabytes/megabytes-contract';
-import type { EpochMs } from '../../contracts/epoch-ms/epoch-ms-contract';
 import { profileObservationContract } from '../../contracts/profile-observation/profile-observation-contract';
 import type { ProfileObservation } from '../../contracts/profile-observation/profile-observation-contract';
 import type { ProfilePoolSize } from '../../contracts/profile-pool-size/profile-pool-size-contract';
@@ -41,7 +40,7 @@ export const profileObservationMergeTransformer = ({
   specHash: SpecHash;
   poolSize: ProfilePoolSize;
   rssMB: Megabytes;
-  beatAtMs: EpochMs;
+  beatAtMs: number;
 }): ProfileObservation => {
   const firstBeatAtMs = observation === null ? beatAtMs : observation.firstBeatAtMs;
   const isSettled = beatAtMs - firstBeatAtMs >= profileStatics.settle.afterMs;

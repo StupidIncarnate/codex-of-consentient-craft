@@ -18,12 +18,11 @@ import { z } from '#gateway/npm/zod';
 
 import { processIdContract, siegeInstanceContract } from '@dungeonmaster/shared/contracts';
 
-import { epochMsContract } from '../epoch-ms/epoch-ms-contract';
 
 export const bootLockContract = z.object({
   heldBy: siegeInstanceContract.shape.id,
   heldByPid: processIdContract,
-  acquiredAtMs: epochMsContract,
+  acquiredAtMs: z.number().int().nonnegative().brand<'BootLockAcquiredAtMs'>(),
 });
 
 export type BootLock = z.infer<typeof bootLockContract>;

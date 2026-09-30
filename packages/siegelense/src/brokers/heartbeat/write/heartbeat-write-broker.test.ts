@@ -1,7 +1,6 @@
 import { GuildIdStub } from '@dungeonmaster/shared/contracts/guild-id/guild-id.stub';
 import { ProcessIdStub } from '@dungeonmaster/shared/contracts/process-id/process-id.stub';
 
-import { EpochMsStub } from '../../../contracts/epoch-ms/epoch-ms.stub';
 import { InstanceHeartbeatStub } from '../../../contracts/instance-heartbeat/instance-heartbeat.stub';
 import { InstanceIdStub } from '../../../contracts/instance-id/instance-id.stub';
 import { ProcessGroupIdStub } from '../../../contracts/process-group-id/process-group-id.stub';
@@ -43,7 +42,7 @@ describe('heartbeatWriteBroker', () => {
         instanceId,
         pid,
         pgids,
-        beatAtMs: EpochMsStub({ value: nowMs }),
+        beatAtMs: nowMs,
       });
 
       expect(result).toStrictEqual(expectedHeartbeat);
@@ -55,7 +54,7 @@ describe('heartbeatWriteBroker', () => {
       );
 
       const expectedRegistry = RegistryStub({
-        instances: [{ ...row, lastBeatMs: EpochMsStub({ value: nowMs }) }],
+        instances: [{ ...row, lastBeatMs: nowMs }],
       });
 
       expect(proxy.getRegistryWrittenContent()).toBe(`${JSON.stringify(expectedRegistry)}\n`);
@@ -121,7 +120,7 @@ describe('heartbeatWriteBroker', () => {
         instanceId,
         pid,
         pgids,
-        beatAtMs: EpochMsStub({ value: nowMs }),
+        beatAtMs: nowMs,
       });
 
       expect(proxy.getWrittenHeartbeatContent({ evidencePath })).toBe(
@@ -161,7 +160,7 @@ describe('heartbeatWriteBroker', () => {
         instanceId,
         pid,
         pgids,
-        beatAtMs: EpochMsStub({ value: nowMs }),
+        beatAtMs: nowMs,
         rssMB: 10,
       });
 
@@ -201,7 +200,7 @@ describe('heartbeatWriteBroker', () => {
         instanceId,
         pid,
         pgids,
-        beatAtMs: EpochMsStub({ value: nowMs }),
+        beatAtMs: nowMs,
         rssMB: null,
       });
 
@@ -211,7 +210,7 @@ describe('heartbeatWriteBroker', () => {
       );
 
       const expectedRegistry = RegistryStub({
-        instances: [{ ...row, lastBeatMs: EpochMsStub({ value: nowMs }) }],
+        instances: [{ ...row, lastBeatMs: nowMs }],
       });
 
       expect(proxy.getRegistryWrittenContent()).toBe(`${JSON.stringify(expectedRegistry)}\n`);
@@ -246,7 +245,7 @@ describe('heartbeatWriteBroker', () => {
         instanceId,
         pid,
         pgids,
-        beatAtMs: EpochMsStub({ value: nowMs }),
+        beatAtMs: nowMs,
       });
 
       expect(proxy.getWrittenHeartbeatContent({ evidencePath })).toBe(

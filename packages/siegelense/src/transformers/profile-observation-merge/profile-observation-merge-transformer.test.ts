@@ -1,4 +1,3 @@
-import { EpochMsStub } from '../../contracts/epoch-ms/epoch-ms.stub';
 import { InstanceIdStub } from '../../contracts/instance-id/instance-id.stub';
 import { MegabytesStub } from '../../contracts/megabytes/megabytes.stub';
 import { ProfileObservationStub } from '../../contracts/profile-observation/profile-observation.stub';
@@ -21,7 +20,7 @@ describe('profileObservationMergeTransformer', () => {
         specHash: SPEC_HASH,
         poolSize: ProfilePoolSizeStub({ value: 1 }),
         rssMB: MegabytesStub({ value: 2600 }),
-        beatAtMs: EpochMsStub({ value: FIRST_BEAT_MS }),
+        beatAtMs: FIRST_BEAT_MS,
       });
 
       expect(result).toStrictEqual({
@@ -50,7 +49,7 @@ describe('profileObservationMergeTransformer', () => {
         specHash: SPEC_HASH,
         poolSize: ProfilePoolSizeStub({ value: 1 }),
         rssMB: MegabytesStub({ value: 2900 }),
-        beatAtMs: EpochMsStub({ value: FIRST_BEAT_MS + 1000 }),
+        beatAtMs: (FIRST_BEAT_MS + 1000),
       });
 
       expect(result).toStrictEqual({
@@ -77,7 +76,7 @@ describe('profileObservationMergeTransformer', () => {
         specHash: SPEC_HASH,
         poolSize: ProfilePoolSizeStub({ value: 1 }),
         rssMB: MegabytesStub({ value: 1800 }),
-        beatAtMs: EpochMsStub({ value: FIRST_BEAT_MS + 1000 }),
+        beatAtMs: (FIRST_BEAT_MS + 1000),
       });
 
       expect(result.pools).toStrictEqual([
@@ -102,7 +101,7 @@ describe('profileObservationMergeTransformer', () => {
         specHash: SPEC_HASH,
         poolSize: ProfilePoolSizeStub({ value: 1 }),
         rssMB: MegabytesStub({ value: 1800 }),
-        beatAtMs: EpochMsStub({ value: FIRST_BEAT_MS + profileStatics.settle.afterMs }),
+        beatAtMs: (FIRST_BEAT_MS + profileStatics.settle.afterMs),
       });
 
       expect(result.pools).toStrictEqual([
@@ -125,7 +124,7 @@ describe('profileObservationMergeTransformer', () => {
         specHash: SPEC_HASH,
         poolSize: ProfilePoolSizeStub({ value: 1 }),
         rssMB: MegabytesStub({ value: 1900 }),
-        beatAtMs: EpochMsStub({ value: FIRST_BEAT_MS + profileStatics.settle.afterMs + 5000 }),
+        beatAtMs: (FIRST_BEAT_MS + profileStatics.settle.afterMs + 5000),
       });
 
       expect(result.pools).toStrictEqual([
@@ -150,7 +149,7 @@ describe('profileObservationMergeTransformer', () => {
         specHash: SPEC_HASH,
         poolSize: ProfilePoolSizeStub({ value: 3 }),
         rssMB: MegabytesStub({ value: 1920 }),
-        beatAtMs: EpochMsStub({ value: FIRST_BEAT_MS + profileStatics.settle.afterMs + 5000 }),
+        beatAtMs: (FIRST_BEAT_MS + profileStatics.settle.afterMs + 5000),
       });
 
       expect(result.pools).toStrictEqual([
@@ -177,7 +176,7 @@ describe('profileObservationMergeTransformer', () => {
         specHash: SPEC_HASH,
         poolSize: ProfilePoolSizeStub({ value: 1 }),
         rssMB: MegabytesStub({ value: 1850 }),
-        beatAtMs: EpochMsStub({ value: FIRST_BEAT_MS + profileStatics.settle.afterMs + 9000 }),
+        beatAtMs: (FIRST_BEAT_MS + profileStatics.settle.afterMs + 9000),
       });
 
       expect(result.pools).toStrictEqual([

@@ -1,5 +1,4 @@
 import { isReservedRegistryEntryGuard } from './is-reserved-registry-entry-guard';
-import { EpochMsStub } from '../../contracts/epoch-ms/epoch-ms.stub';
 import { RegistryEntryStub } from '../../contracts/registry-entry/registry-entry.stub';
 
 describe('isReservedRegistryEntryGuard', () => {
@@ -15,7 +14,7 @@ describe('isReservedRegistryEntryGuard', () => {
 
   describe('a booted row', () => {
     it('INVALID: {entry: bootedAtMs set} => returns false', () => {
-      const entry = RegistryEntryStub({ bootedAtMs: EpochMsStub() });
+      const entry = RegistryEntryStub({ bootedAtMs: 1 });
 
       const result = isReservedRegistryEntryGuard({ entry });
 

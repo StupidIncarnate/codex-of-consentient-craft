@@ -1,4 +1,3 @@
-import { EpochMsStub } from '../../../contracts/epoch-ms/epoch-ms.stub';
 import { InstanceIdStub } from '../../../contracts/instance-id/instance-id.stub';
 import { PruneQueryStub } from '../../../contracts/prune-query/prune-query.stub';
 import { RegistryEntryStub } from '../../../contracts/registry-entry/registry-entry.stub';
@@ -21,8 +20,8 @@ describe('pruneRunBroker', () => {
               state: 'alive',
               questId: null,
               guildId: null,
-              bootedAtMs: EpochMsStub({ value: NOW_MS - 120_000 }),
-              lastBeatMs: EpochMsStub({ value: NOW_MS - 2000 }),
+              bootedAtMs: (NOW_MS - 120_000),
+              lastBeatMs: (NOW_MS - 2000),
             }),
           ],
         }),
@@ -49,16 +48,16 @@ describe('pruneRunBroker', () => {
               state: 'alive',
               questId: null,
               guildId: null,
-              bootedAtMs: EpochMsStub({ value: NOW_MS - 120_000 }),
-              lastBeatMs: EpochMsStub({ value: NOW_MS - 2000 }),
+              bootedAtMs: (NOW_MS - 120_000),
+              lastBeatMs: (NOW_MS - 2000),
             }),
             RegistryEntryStub({
               id: InstanceIdStub({ value: SECOND_LIVE_ID }),
               state: 'alive',
               questId: null,
               guildId: null,
-              bootedAtMs: EpochMsStub({ value: NOW_MS - 120_000 }),
-              lastBeatMs: EpochMsStub({ value: NOW_MS - 5000 }),
+              bootedAtMs: (NOW_MS - 120_000),
+              lastBeatMs: (NOW_MS - 5000),
             }),
           ],
         }),

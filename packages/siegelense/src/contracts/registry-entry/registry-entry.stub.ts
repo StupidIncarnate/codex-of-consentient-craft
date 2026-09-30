@@ -1,6 +1,5 @@
 import type { StubArgument } from '@dungeonmaster/shared/@types';
 
-import { EpochMsStub } from '../epoch-ms/epoch-ms.stub';
 import { InstanceIdStub } from '../instance-id/instance-id.stub';
 import { InstanceOwnerStub } from '../instance-owner/instance-owner.stub';
 import { InstanceStateStub } from '../instance-state/instance-state.stub';
@@ -23,7 +22,7 @@ export const RegistryEntryStub = ({ ...props }: StubArgument<RegistryEntry> = {}
     socketPath: null,
     ports: PortPairStub(),
     state: InstanceStateStub(),
-    reservedAtMs: EpochMsStub(),
+    reservedAtMs: 1,
     bootedAtMs: null,
     lastBeatMs: null,
     prunedAtMs: null,

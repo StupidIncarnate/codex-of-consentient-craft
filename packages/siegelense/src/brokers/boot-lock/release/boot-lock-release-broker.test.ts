@@ -1,7 +1,6 @@
 import { bootLockReleaseBroker } from './boot-lock-release-broker';
 import { bootLockReleaseBrokerProxy } from './boot-lock-release-broker.proxy';
 import { InstanceIdStub } from '../../../contracts/instance-id/instance-id.stub';
-import { EpochMsStub } from '../../../contracts/epoch-ms/epoch-ms.stub';
 import { ProcessIdStub } from '@dungeonmaster/shared/contracts/process-id/process-id.stub';
 
 describe('bootLockReleaseBroker', () => {
@@ -49,7 +48,7 @@ describe('bootLockReleaseBroker', () => {
       proxy.setupLockHeldBy({
         heldBy: instanceId,
         heldByPid: ProcessIdStub(),
-        acquiredAtMs: EpochMsStub(),
+        acquiredAtMs: 1,
       });
 
       await bootLockReleaseBroker({ instanceId });
@@ -64,7 +63,7 @@ describe('bootLockReleaseBroker', () => {
       proxy.setupLockHeldBy({
         heldBy: instanceId,
         heldByPid: ProcessIdStub(),
-        acquiredAtMs: EpochMsStub(),
+        acquiredAtMs: 1,
       });
 
       await expect(bootLockReleaseBroker({ instanceId })).resolves.toBe(undefined);
@@ -80,7 +79,7 @@ describe('bootLockReleaseBroker', () => {
       proxy.setupLockHeldBy({
         heldBy: otherInstanceId,
         heldByPid: ProcessIdStub(),
-        acquiredAtMs: EpochMsStub(),
+        acquiredAtMs: 1,
       });
 
       await bootLockReleaseBroker({ instanceId });
@@ -96,7 +95,7 @@ describe('bootLockReleaseBroker', () => {
       proxy.setupLockHeldBy({
         heldBy: otherInstanceId,
         heldByPid: ProcessIdStub(),
-        acquiredAtMs: EpochMsStub(),
+        acquiredAtMs: 1,
       });
 
       await expect(bootLockReleaseBroker({ instanceId })).resolves.toBe(undefined);

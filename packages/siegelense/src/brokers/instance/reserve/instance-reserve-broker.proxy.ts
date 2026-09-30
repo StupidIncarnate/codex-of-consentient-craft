@@ -10,7 +10,6 @@ import type { NetworkPort } from '@dungeonmaster/shared/contracts';
 
 import { locationsInstanceEvidencePathFindBrokerProxy } from '../../locations/instance-evidence-path-find/locations-instance-evidence-path-find-broker.proxy';
 import { registryUpdateBrokerProxy } from '../../registry/update/registry-update-broker.proxy';
-import { EpochMsStub } from '../../../contracts/epoch-ms/epoch-ms.stub';
 import { InstanceIdStub } from '../../../contracts/instance-id/instance-id.stub';
 
 const UUID_VALUE = '7f3a9c21-58cc-4372-a567-0e02b2c3d479';
@@ -18,7 +17,7 @@ const NOW_MS_VALUE = 1_700_000_000_000;
 
 export const instanceReserveBrokerProxy = (): {
   mintedInstanceId: () => ReturnType<typeof InstanceIdStub>;
-  mintedReservedAtMs: () => ReturnType<typeof EpochMsStub>;
+  mintedReservedAtMs: () => number;
   setupRegistry: (params: { json: string }) => void;
   setupRegistryForExhaustedClaim: (params: { json: string }) => void;
   setupEvidenceDir: (params: {
@@ -64,7 +63,7 @@ export const instanceReserveBrokerProxy = (): {
     mintedInstanceId: (): ReturnType<typeof InstanceIdStub> =>
       InstanceIdStub({ value: `inst_${UUID_VALUE.split('-').join('')}` }),
 
-    mintedReservedAtMs: (): ReturnType<typeof EpochMsStub> => EpochMsStub({ value: NOW_MS_VALUE }),
+    mintedReservedAtMs: (): number => NOW_MS_VALUE,
 
     setupRegistry: ({ json }: { json: string }): void => {
       updateProxy.setupCurrentRegistry({ json });

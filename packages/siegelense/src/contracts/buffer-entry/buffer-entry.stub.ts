@@ -1,6 +1,5 @@
 import type { StubArgument } from '@dungeonmaster/shared/@types';
 
-import { EpochMsStub } from '../epoch-ms/epoch-ms.stub';
 import { RunIdStub } from '../run-id/run-id.stub';
 import { StepIndexStub } from '../step-index/step-index.stub';
 import { bufferEntryContract } from './buffer-entry-contract';
@@ -10,7 +9,7 @@ export const BufferEntryStub = ({ ...props }: StubArgument<BufferEntry> = {}): B
   bufferEntryContract.parse({
     runId: RunIdStub(),
     step: StepIndexStub(),
-    atMs: EpochMsStub(),
+    atMs: 1,
     text: 'Result text',
     ...props,
   });

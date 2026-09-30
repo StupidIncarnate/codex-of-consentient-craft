@@ -1,4 +1,3 @@
-import { EpochMsStub } from '../../contracts/epoch-ms/epoch-ms.stub';
 import { elapsedRenderTransformer } from './elapsed-render-transformer';
 
 describe('elapsedRenderTransformer', () => {
@@ -11,7 +10,7 @@ describe('elapsedRenderTransformer', () => {
       [3_600_000, '1h'],
       [86_400_000, '1d'],
     ])('VALID: {elapsedMs: %i} => renders %s', (elapsedMs, expected) => {
-      const result = elapsedRenderTransformer({ elapsedMs: EpochMsStub({ value: elapsedMs }) });
+      const result = elapsedRenderTransformer({ elapsedMs: elapsedMs });
 
       expect(result).toBe(expected);
     });
@@ -19,7 +18,7 @@ describe('elapsedRenderTransformer', () => {
 
   describe('edge cases', () => {
     it('EDGE: {elapsedMs: 0} => renders the zero-second boundary', () => {
-      const result = elapsedRenderTransformer({ elapsedMs: EpochMsStub({ value: 0 }) });
+      const result = elapsedRenderTransformer({ elapsedMs: 0 });
 
       expect(result).toBe('0s');
     });

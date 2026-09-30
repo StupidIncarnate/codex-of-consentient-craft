@@ -69,7 +69,7 @@ describe('instanceStartBroker', () => {
       expect(proxy.getWrittenBootLock()).toStrictEqual({
         heldBy: instanceId,
         heldByPid: '31337',
-        acquiredAtMs: EpochMsStub().valueOf(),
+        acquiredAtMs: 1.valueOf(),
       });
     });
   });
@@ -421,7 +421,7 @@ describe('instanceStartBroker', () => {
       const instanceId = proxy.mintInstanceId();
       const queuedOne = RegistryEntryStub({ bootedAtMs: null });
       const queuedTwo = RegistryEntryStub({ bootedAtMs: null });
-      const bootedEntry = RegistryEntryStub({ id: instanceId, bootedAtMs: EpochMsStub() });
+      const bootedEntry = RegistryEntryStub({ id: instanceId, bootedAtMs: 1 });
 
       proxy.setupHappyBoot({
         instanceId,
@@ -448,7 +448,7 @@ describe('instanceStartBroker', () => {
         bootedAtMs: null,
         state: 'killed',
       });
-      const bootedEntry = RegistryEntryStub({ id: instanceId, bootedAtMs: EpochMsStub() });
+      const bootedEntry = RegistryEntryStub({ id: instanceId, bootedAtMs: 1 });
 
       proxy.setupHappyBoot({
         instanceId,
@@ -478,10 +478,10 @@ describe('instanceStartBroker', () => {
         // EpochMsStub()'s own default value (1_700_000_000_000), which is what this proxy's
         // sticky Date.now() default answers every unstaged call with.
         reservedAtMs: EpochMsStub({
-          value: EpochMsStub().valueOf() - instanceLifecycleStatics.reservation.staleAfterMs - 1,
+          value: 1.valueOf() - instanceLifecycleStatics.reservation.staleAfterMs - 1,
         }),
       });
-      const bootedEntry = RegistryEntryStub({ id: instanceId, bootedAtMs: EpochMsStub() });
+      const bootedEntry = RegistryEntryStub({ id: instanceId, bootedAtMs: 1 });
 
       proxy.setupHappyBoot({
         instanceId,
@@ -531,8 +531,8 @@ describe('instanceStartBroker', () => {
       const staleEntry = RegistryEntryStub({
         id: staleInstanceId,
         state: 'alive',
-        bootedAtMs: EpochMsStub({ value: 1_700_000_000_000 - 30_000 }),
-        lastBeatMs: EpochMsStub({ value: 1_700_000_000_000 - 20_000 }),
+        bootedAtMs: (1_700_000_000_000 - 30_000),
+        lastBeatMs: (1_700_000_000_000 - 20_000),
       });
 
       proxy.setupHappyBoot({
@@ -697,7 +697,7 @@ describe('instanceStartBroker', () => {
       expect(proxy.getWrittenShutdownReason({ evidencePath: UNOWNED_EVIDENCE_PATH })).toStrictEqual(
         {
           reason: `--seed ${seed} failed: RecipesPackageMissingError: ${missingMessage}`,
-          atMs: EpochMsStub().valueOf(),
+          atMs: 1.valueOf(),
         },
       );
     });

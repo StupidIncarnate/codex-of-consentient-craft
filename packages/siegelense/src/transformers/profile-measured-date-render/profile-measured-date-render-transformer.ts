@@ -12,12 +12,11 @@
  */
 
 
-import type { EpochMs } from '../../contracts/epoch-ms/epoch-ms-contract';
 
 export const profileMeasuredDateRenderTransformer = ({
   measuredAtMs,
 }: {
-  measuredAtMs: EpochMs;
+  measuredAtMs: number;
 }): string => {
   const [datePart] = new Date(measuredAtMs).toISOString().split('T');
 

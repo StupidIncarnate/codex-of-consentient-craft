@@ -2,7 +2,6 @@ import type { DirEntrySync } from '#gateway/node/fs';
 import { FileNameStub } from '@dungeonmaster/shared/contracts/file-name/file-name.stub';
 
 import { BrowserSessionStub } from '../../../contracts/browser-session/browser-session.stub';
-import { EpochMsStub } from '../../../contracts/epoch-ms/epoch-ms.stub';
 import { FileSizeBytesStub } from '../../../contracts/file-size-bytes/file-size-bytes.stub';
 import { LaneSessionStub } from '../../../contracts/lane-session/lane-session.stub';
 import { SnapshotNameStub } from '../../../contracts/snapshot-name/snapshot-name.stub';
@@ -91,12 +90,12 @@ describe('stepResetBroker', () => {
           {
             filePath: homeFile,
             sizeBytes: FileSizeBytesStub({ value: 100 }),
-            modifiedAtMs: EpochMsStub({ value: 1000 }),
+            modifiedAtMs: 1000,
           },
           {
             filePath: payloadFile,
             sizeBytes: FileSizeBytesStub({ value: 100 }),
-            modifiedAtMs: EpochMsStub({ value: 1000 }),
+            modifiedAtMs: 1000,
           },
         ],
       });
@@ -291,7 +290,7 @@ describe('stepResetBroker', () => {
           {
             filePath: seededFilePath,
             sizeBytes: FileSizeBytesStub({ value: 42 }),
-            modifiedAtMs: EpochMsStub({ value: 1700000000000 }),
+            modifiedAtMs: 1700000000000,
           },
         ],
       });

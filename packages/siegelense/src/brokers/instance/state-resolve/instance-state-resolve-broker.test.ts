@@ -1,4 +1,3 @@
-import { EpochMsStub } from '../../../contracts/epoch-ms/epoch-ms.stub';
 import { InstanceIdStub } from '../../../contracts/instance-id/instance-id.stub';
 import { RegistryEntryStub } from '../../../contracts/registry-entry/registry-entry.stub';
 import { RegistryStub } from '../../../contracts/registry/registry.stub';
@@ -8,7 +7,7 @@ import { instanceStateResolveBrokerProxy } from './instance-state-resolve-broker
 
 const INSTANCE_ID = InstanceIdStub({ value: 'inst_7f3a9c21' });
 const OTHER_INSTANCE_ID = InstanceIdStub({ value: 'inst_00000000' });
-const LAST_BEAT_MS = EpochMsStub({ value: 1_700_000_000_000 }).valueOf();
+const LAST_BEAT_MS = 1_700_000_000_000.valueOf();
 
 describe('instanceStateResolveBroker', () => {
   it('EMPTY: {no registry row for this instance id} => returns unknown with a null entry', async () => {
@@ -26,7 +25,7 @@ describe('instanceStateResolveBroker', () => {
     const entry = RegistryEntryStub({
       id: INSTANCE_ID,
       state: 'pruned',
-      prunedAtMs: EpochMsStub({ value: 1_700_000_100_000 }),
+      prunedAtMs: 1_700_000_100_000,
       prunedByRule: 'stale by 3 beats',
     });
     proxy.setupRegistry({ registry: RegistryStub({ instances: [entry] }) });
@@ -61,7 +60,7 @@ describe('instanceStateResolveBroker', () => {
     const entry = RegistryEntryStub({
       id: INSTANCE_ID,
       state: 'alive',
-      lastBeatMs: EpochMsStub({ value: LAST_BEAT_MS }),
+      lastBeatMs: LAST_BEAT_MS,
     });
     proxy.setupRegistry({ registry: RegistryStub({ instances: [entry] }) });
     // 5000ms since the last beat — inside the 15000ms staleness window (3 beats at a 5000ms
@@ -78,7 +77,7 @@ describe('instanceStateResolveBroker', () => {
     const entry = RegistryEntryStub({
       id: INSTANCE_ID,
       state: 'alive',
-      lastBeatMs: EpochMsStub({ value: LAST_BEAT_MS }),
+      lastBeatMs: LAST_BEAT_MS,
     });
     proxy.setupRegistry({ registry: RegistryStub({ instances: [entry] }) });
     // 20000ms since the last beat — past the 15000ms staleness window, so a row nobody updated
@@ -98,7 +97,7 @@ describe('instanceStateResolveBroker', () => {
       state: 'alive',
       bootedAtMs: null,
       lastBeatMs: null,
-      reservedAtMs: EpochMsStub({ value: reservedAtMs }),
+      reservedAtMs: reservedAtMs,
     });
     proxy.setupRegistry({ registry: RegistryStub({ instances: [entry] }) });
     // 5000ms since the reservation was written — a boot still comfortably in flight, nowhere
@@ -118,7 +117,7 @@ describe('instanceStateResolveBroker', () => {
       state: 'alive',
       bootedAtMs: null,
       lastBeatMs: null,
-      reservedAtMs: EpochMsStub({ value: reservedAtMs }),
+      reservedAtMs: reservedAtMs,
     });
     proxy.setupRegistry({ registry: RegistryStub({ instances: [entry] }) });
     // 600_000ms (10m) since the reservation was written — past the 300_000ms (5m) ceiling, so a

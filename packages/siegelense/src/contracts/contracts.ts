@@ -9,7 +9,6 @@
 
 export * from './repo-local-path/repo-local-path-contract';
 
-export * from './epoch-ms/epoch-ms-contract';
 
 export * from './spec-name/spec-name-contract';
 

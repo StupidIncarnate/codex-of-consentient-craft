@@ -64,7 +64,6 @@ import { stderr } from '#gateway/node/process';
 import type { SiegeInstance, SiegeRun } from '@dungeonmaster/shared/contracts';
 
 import { bufferEntryContract } from '../../../contracts/buffer-entry/buffer-entry-contract';
-import { epochMsContract } from '../../../contracts/epoch-ms/epoch-ms-contract';
 import type { LaneSession } from '../../../contracts/lane-session/lane-session-contract';
 import { readingCountContract } from '../../../contracts/reading-count/reading-count-contract';
 import type { ReadingCount } from '../../../contracts/reading-count/reading-count-contract';
@@ -173,7 +172,7 @@ export const runExecuteBroker = async ({
     const tailWebsocketLines = lane.browser.readWebsocketSince({
       fromIndex: cursorState.flushedThrough.websocketLines,
     });
-    const tailFlushedAtMs = epochMsContract.parse(Date.now());
+    const tailFlushedAtMs = Date.now();
     const tailConsoleEntries = tailConsoleLines.map((text) =>
       bufferEntryContract.parse({ runId: null, step: null, atMs: tailFlushedAtMs, text }),
     );
@@ -289,7 +288,7 @@ export const runExecuteBroker = async ({
       const stepWebsocketLines = lane.browser.readWebsocketSince({
         fromIndex: cursorState.flushedThrough.websocketLines,
       });
-      const stepFlushedAtMs = epochMsContract.parse(Date.now());
+      const stepFlushedAtMs = Date.now();
       const stepConsoleEntries = stepConsoleLines.map((text) =>
         bufferEntryContract.parse({ runId, step: index, atMs: stepFlushedAtMs, text }),
       );

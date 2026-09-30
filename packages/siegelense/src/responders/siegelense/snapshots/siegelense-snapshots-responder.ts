@@ -19,7 +19,6 @@ import { stdout } from '#gateway/node/process';
 
 import { registryReadBroker } from '../../../brokers/registry/read/registry-read-broker';
 import { snapshotListBroker } from '../../../brokers/snapshot/list/snapshot-list-broker';
-import { epochMsContract } from '../../../contracts/epoch-ms/epoch-ms-contract';
 import { InstanceUnknownError } from '../../../errors/instance-unknown/instance-unknown-error';
 import { siegelenseOutputStatics } from '../../../statics/siegelense-output/siegelense-output-statics';
 import { snapshotsAnswerRenderTransformer } from '../../../transformers/snapshots-answer-render/snapshots-answer-render-transformer';
@@ -44,7 +43,7 @@ export const SiegelenseSnapshotsResponder = async ({
       ? `${JSON.stringify(answer, null, siegelenseOutputStatics.json.indentSpaces)}\n`
       : snapshotsAnswerRenderTransformer({
           answer,
-          nowMs: epochMsContract.parse(Date.now()),
+          nowMs: Date.now(),
         }),
   );
 };

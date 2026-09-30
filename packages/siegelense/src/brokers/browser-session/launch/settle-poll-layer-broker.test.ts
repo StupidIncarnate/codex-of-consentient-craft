@@ -1,5 +1,4 @@
 
-import { EpochMsStub } from '../../../contracts/epoch-ms/epoch-ms.stub';
 import { ReadingCountStub } from '../../../contracts/reading-count/reading-count.stub';
 import { settlePollLayerBroker } from './settle-poll-layer-broker';
 import { settlePollLayerBrokerProxy } from './settle-poll-layer-broker.proxy';
@@ -157,7 +156,7 @@ describe('settlePollLayerBroker', () => {
     it('VALID: {nothing pending, last activity just now, quietWindow 100} => settles one window after that activity', async () => {
       const proxy = settlePollLayerBrokerProxy();
       const fake = proxy.pageQuiet();
-      const activityAtMs = EpochMsStub({ value: Date.now() });
+      const activityAtMs = Date.now();
 
       const reading = await settlePollLayerBroker({
         evaluate: fake.evaluate,

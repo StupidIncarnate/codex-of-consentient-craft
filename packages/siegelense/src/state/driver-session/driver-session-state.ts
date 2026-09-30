@@ -36,8 +36,6 @@
 import { timeoutMsContract, siegeRunContract } from '@dungeonmaster/shared/contracts';
 import type { TimeoutMs, SiegeRun } from '@dungeonmaster/shared/contracts';
 
-import { epochMsContract } from '../../contracts/epoch-ms/epoch-ms-contract';
-import type { EpochMs } from '../../contracts/epoch-ms/epoch-ms-contract';
 import type { LaneSession } from '../../contracts/lane-session/lane-session-contract';
 import { readingCountContract } from '../../contracts/reading-count/reading-count-contract';
 import type { ReadingCount } from '../../contracts/reading-count/reading-count-contract';
@@ -46,7 +44,7 @@ import { instanceLifecycleStatics } from '../../statics/instance-lifecycle/insta
 
 let currentLane: LaneSession | null = null;
 let runCounter = 0;
-let lastActivityAtMs: EpochMs = epochMsContract.parse(0);
+let lastActivityAtMs: number = 0;
 let idleTimeoutMsValue: TimeoutMs = timeoutMsContract.parse(driverStatics.idle.timeoutMs);
 let flushCursorConsoleLines: ReadingCount = readingCountContract.parse(0);
 let flushCursorNetworkLines: ReadingCount = readingCountContract.parse(0);
@@ -56,7 +54,7 @@ let lastShotPathValue: string | null = null;
 export const driverSessionState = {
   set: ({ lane, idleTimeoutMs }: { lane: LaneSession; idleTimeoutMs?: TimeoutMs }): void => {
     currentLane = lane;
-    lastActivityAtMs = epochMsContract.parse(Date.now());
+    lastActivityAtMs = Date.now();
     idleTimeoutMsValue = idleTimeoutMs ?? timeoutMsContract.parse(driverStatics.idle.timeoutMs);
   },
 
@@ -70,10 +68,10 @@ export const driverSessionState = {
   },
 
   touch: (): void => {
-    lastActivityAtMs = epochMsContract.parse(Date.now());
+    lastActivityAtMs = Date.now();
   },
 
-  lastActivityMs: (): EpochMs => lastActivityAtMs,
+  lastActivityMs: (): number => lastActivityAtMs,
 
   flushCursor: (): {
     consoleLines: ReadingCount;
@@ -108,7 +106,7 @@ export const driverSessionState = {
   clear: (): void => {
     currentLane = null;
     runCounter = 0;
-    lastActivityAtMs = epochMsContract.parse(0);
+    lastActivityAtMs = 0;
     idleTimeoutMsValue = timeoutMsContract.parse(driverStatics.idle.timeoutMs);
     flushCursorConsoleLines = readingCountContract.parse(0);
     flushCursorNetworkLines = readingCountContract.parse(0);

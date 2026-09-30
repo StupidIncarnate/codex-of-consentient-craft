@@ -20,7 +20,6 @@
  * // state: 'dead', entry: the stale registry row — entry is null only when state is 'unknown'
  */
 
-import { epochMsContract } from '../../../contracts/epoch-ms/epoch-ms-contract';
 import { instanceStateContract } from '../../../contracts/instance-state/instance-state-contract';
 import type { InstanceState } from '../../../contracts/instance-state/instance-state-contract';
 import type { RegistryEntry } from '../../../contracts/registry-entry/registry-entry-contract';
@@ -54,7 +53,7 @@ export const instanceStateResolveBroker = async ({
     return { state: instanceStateContract.parse('unusable'), entry };
   }
 
-  const nowMs = epochMsContract.parse(Date.now());
+  const nowMs = Date.now();
   const isStale =
     isStaleRegistryEntryGuard({ entry, nowMs }) ||
     (isReservedRegistryEntryGuard({ entry }) &&

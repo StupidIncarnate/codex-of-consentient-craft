@@ -21,7 +21,6 @@ import { locationsStatics } from '@dungeonmaster/shared/statics';
 import { writeFile } from '#gateway/node/fs__promises';
 import { bootFailureMarkerContract } from '../../../contracts/boot-failure-marker/boot-failure-marker-contract';
 import type { BootFailureMarker } from '../../../contracts/boot-failure-marker/boot-failure-marker-contract';
-import { epochMsContract } from '../../../contracts/epoch-ms/epoch-ms-contract';
 
 export const bootFailureMarkerWriteBroker = async ({
   evidencePath,
@@ -34,7 +33,7 @@ export const bootFailureMarkerWriteBroker = async ({
 
   const marker = bootFailureMarkerContract.parse({
     message,
-    atMs: epochMsContract.parse(Date.now()),
+    atMs: Date.now(),
   });
 
   const contents = `${JSON.stringify(marker)}\n`;

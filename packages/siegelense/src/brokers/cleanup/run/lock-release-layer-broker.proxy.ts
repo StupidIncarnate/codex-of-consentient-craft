@@ -3,11 +3,10 @@ import { readFileIfExistsProxy } from '#gateway/node/fs__promises/read-file-if-e
 import type { FsError } from '#gateway/node/fs';
 import { unlinkProxy } from '#gateway/node/fs__promises/unlink/unlink.proxy';
 import { BootLockStub } from '../../../contracts/boot-lock/boot-lock.stub';
-import type { EpochMsStub } from '../../../contracts/epoch-ms/epoch-ms.stub';
 import { locationsBootLockPathFindBrokerProxy } from '../../locations/boot-lock-path-find/locations-boot-lock-path-find-broker.proxy';
 import { locationsRegistryLockPathFindBrokerProxy } from '../../locations/registry-lock-path-find/locations-registry-lock-path-find-broker.proxy';
 
-type EpochMs = ReturnType<typeof EpochMsStub>;
+type EpochMs = number;
 
 const HOME_DIR = '/home/user';
 const HOME_PATH_VALUE = `${HOME_DIR}/.dungeonmaster`;

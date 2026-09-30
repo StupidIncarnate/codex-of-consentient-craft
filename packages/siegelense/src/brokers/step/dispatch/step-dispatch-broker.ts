@@ -62,7 +62,6 @@ import { stderr } from '#gateway/node/process';
 import type { BlankReading } from '../../../contracts/blank-reading/blank-reading-contract';
 import type { BufferLengths } from '../../../contracts/buffer-lengths/buffer-lengths-contract';
 import type { ElementDelta } from '../../../contracts/element-delta/element-delta-contract';
-import { epochMsContract } from '../../../contracts/epoch-ms/epoch-ms-contract';
 import type { KeyListing } from '../../../contracts/key-listing/key-listing-contract';
 import type { LaneSession } from '../../../contracts/lane-session/lane-session-contract';
 import type { SeedBindingName } from '../../../contracts/seed-binding-name/seed-binding-name-contract';
@@ -112,7 +111,7 @@ export const stepDispatchBroker = async ({
   // `verbs.capturing` member ever gets — and every member of that list is a browser verb.
   const { browser: session } = lane;
 
-  const startedAtMs = epochMsContract.parse(Date.now());
+  const startedAtMs = Date.now();
   const serverLogStartByte = lane.serverLogLength();
 
   // The element half of the pixel/element pair, taken ONCE before the verb runs so every branch
@@ -197,7 +196,7 @@ export const stepDispatchBroker = async ({
         toByte: lane.serverLogLength(),
       }),
       startedAtMs,
-      endedAtMs: epochMsContract.parse(Date.now()),
+      endedAtMs: Date.now(),
     });
   } catch (error: unknown) {
     if (step.expect !== 'error') {
@@ -346,7 +345,7 @@ export const stepDispatchBroker = async ({
         toByte: lane.serverLogLength(),
       }),
       startedAtMs,
-      endedAtMs: epochMsContract.parse(Date.now()),
+      endedAtMs: Date.now(),
     });
   }
 };

@@ -1,6 +1,5 @@
 import type { StubArgument } from '@dungeonmaster/shared/@types';
 
-import { EpochMsStub } from '../epoch-ms/epoch-ms.stub';
 import { InstanceIdStub } from '../instance-id/instance-id.stub';
 import { ReadingCountStub } from '../reading-count/reading-count.stub';
 import { RepoLocalPathStub } from '../repo-local-path/repo-local-path.stub';
@@ -28,8 +27,8 @@ export const InstanceManifestStub = ({
       }),
     },
     seeded: null,
-    queuedMs: EpochMsStub({ value: 34_000 }),
+    queuedMs: 34_000,
     aheadOfMe: ReadingCountStub({ value: 2 }),
-    bootMs: EpochMsStub({ value: 21_000 }),
+    bootMs: 21_000,
     ...props,
   });

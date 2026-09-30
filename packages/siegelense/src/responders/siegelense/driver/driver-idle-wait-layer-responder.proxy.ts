@@ -15,18 +15,17 @@ import { registerSpyOn } from '@dungeonmaster/testing/register-mock';
 import { clearTimeoutProxy } from '#gateway/node/clearTimeout/clear-timeout/clear-timeout.proxy';
 import { setTimeoutProxy } from '#gateway/node/setTimeout/set-timeout/set-timeout.proxy';
 
-import type { EpochMs } from '../../../contracts/epoch-ms/epoch-ms-contract';
 import { ReadingCountStub } from '../../../contracts/reading-count/reading-count.stub';
 import { LaneSessionStub } from '../../../contracts/lane-session/lane-session.stub';
 import { driverSessionState } from '../../../state/driver-session/driver-session-state';
 import { driverSessionStateProxy } from '../../../state/driver-session/driver-session-state.proxy';
 
 export const DriverIdleWaitLayerResponderProxy = (): {
-  setupLaneReady: (params: { nowMs: EpochMs }) => void;
-  setupLaneReadyWithIdleTimeout: (params: { nowMs: EpochMs; idleTimeoutMs: TimeoutMs }) => void;
+  setupLaneReady: (params: { nowMs: number }) => void;
+  setupLaneReadyWithIdleTimeout: (params: { nowMs: number; idleTimeoutMs: TimeoutMs }) => void;
   setupKilledAlready: () => void;
-  touch: (params: { nowMs: EpochMs }) => void;
-  stageNow: (params: { ms: EpochMs }) => void;
+  touch: (params: { nowMs: number }) => void;
+  stageNow: (params: { ms: number }) => void;
   stageSleepNeverFires: (params: { ms: TimeoutMs }) => void;
   getSleepCallCount: (params: { ms: TimeoutMs }) => ReturnType<typeof ReadingCountStub>;
 } => {
@@ -38,7 +37,7 @@ export const DriverIdleWaitLayerResponderProxy = (): {
   clearTimeoutProxy();
 
   return {
-    setupLaneReady: ({ nowMs }: { nowMs: EpochMs }): void => {
+    setupLaneReady: ({ nowMs }: { nowMs: number }): void => {
       nowHandle.onceFor([]).returns(nowMs);
       driverSessionState.set({ lane: LaneSessionStub() });
     },
@@ -47,7 +46,7 @@ export const DriverIdleWaitLayerResponderProxy = (): {
       nowMs,
       idleTimeoutMs,
     }: {
-      nowMs: EpochMs;
+      nowMs: number;
       idleTimeoutMs: TimeoutMs;
     }): void => {
       nowHandle.onceFor([]).returns(nowMs);
@@ -58,12 +57,12 @@ export const DriverIdleWaitLayerResponderProxy = (): {
       driverSessionState.clear();
     },
 
-    touch: ({ nowMs }: { nowMs: EpochMs }): void => {
+    touch: ({ nowMs }: { nowMs: number }): void => {
       nowHandle.onceFor([]).returns(nowMs);
       driverSessionState.touch();
     },
 
-    stageNow: ({ ms }: { ms: EpochMs }): void => {
+    stageNow: ({ ms }: { ms: number }): void => {
       nowHandle.onceFor([]).returns(ms);
     },
 

@@ -1,5 +1,4 @@
 
-import { EpochMsStub } from '../../../contracts/epoch-ms/epoch-ms.stub';
 import { ShutdownReasonStub } from '../../../contracts/shutdown-reason/shutdown-reason.stub';
 
 import { shutdownReasonWriteBroker } from './shutdown-reason-write-broker';
@@ -18,7 +17,7 @@ describe('shutdownReasonWriteBroker', () => {
 
       const expectedMarker = ShutdownReasonStub({
         reason,
-        atMs: EpochMsStub({ value: nowMs }),
+        atMs: nowMs,
       });
 
       expect(result).toStrictEqual(expectedMarker);

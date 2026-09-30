@@ -11,7 +11,6 @@ import { configDefaultsStatics } from '@dungeonmaster/config';
 import { DungeonmasterConfigStub } from '@dungeonmaster/config/contracts/dungeonmaster-config/dungeonmaster-config.stub';
 import { DevServerE2eProcessStub } from '@dungeonmaster/config/contracts/dev-server-e2e-process/dev-server-e2e-process.stub';
 
-import { EpochMsStub } from '../../../contracts/epoch-ms/epoch-ms.stub';
 import { InstanceIdStub } from '../../../contracts/instance-id/instance-id.stub';
 import { MegabytesStub } from '../../../contracts/megabytes/megabytes.stub';
 import { RegistryEntryStub } from '../../../contracts/registry-entry/registry-entry.stub';
@@ -72,7 +71,7 @@ describe('the profile sample-write path, against a real tree', () => {
           RegistryEntryStub({
             id: SUBJECT_ID,
             state: 'alive',
-            bootedAtMs: EpochMsStub({ value: FIRST_BEAT_MS - 20_000 }),
+            bootedAtMs: (FIRST_BEAT_MS - 20_000),
           }),
         ],
       }),
@@ -83,28 +82,28 @@ describe('the profile sample-write path, against a real tree', () => {
       instanceId: SUBJECT_ID,
       specName: HEADLESS_SPEC,
       rssMB: MegabytesStub({ value: 2600 }),
-      beatAtMs: EpochMsStub({ value: FIRST_BEAT_MS }),
+      beatAtMs: FIRST_BEAT_MS,
     });
     // Beat 2 — past the settle window: the first steady reading.
     await profileSampleRecordBroker({
       instanceId: SUBJECT_ID,
       specName: HEADLESS_SPEC,
       rssMB: MegabytesStub({ value: 1800 }),
-      beatAtMs: EpochMsStub({ value: FIRST_BEAT_MS + SETTLE_MS }),
+      beatAtMs: (FIRST_BEAT_MS + SETTLE_MS),
     });
     // Beat 3 — a failed measurement: recorded nowhere, so it cannot drag steady down.
     nullReadingRecord = await profileSampleRecordBroker({
       instanceId: SUBJECT_ID,
       specName: HEADLESS_SPEC,
       rssMB: null,
-      beatAtMs: EpochMsStub({ value: FIRST_BEAT_MS + SETTLE_MS + 5000 }),
+      beatAtMs: (FIRST_BEAT_MS + SETTLE_MS + 5000),
     });
     // Beat 4 — a second steady reading, still solo.
     soloRecord = await profileSampleRecordBroker({
       instanceId: SUBJECT_ID,
       specName: HEADLESS_SPEC,
       rssMB: MegabytesStub({ value: 1900 }),
-      beatAtMs: EpochMsStub({ value: FIRST_BEAT_MS + SETTLE_MS + 10_000 }),
+      beatAtMs: (FIRST_BEAT_MS + SETTLE_MS + 10_000),
     });
 
     // Two more instances boot: the pool this instance is running in is now three.
@@ -115,12 +114,12 @@ describe('the profile sample-write path, against a real tree', () => {
           RegistryEntryStub({
             id: SECOND_ID,
             state: 'alive',
-            bootedAtMs: EpochMsStub({ value: FIRST_BEAT_MS }),
+            bootedAtMs: FIRST_BEAT_MS,
           }),
           RegistryEntryStub({
             id: THIRD_ID,
             state: 'alive',
-            bootedAtMs: EpochMsStub({ value: FIRST_BEAT_MS }),
+            bootedAtMs: FIRST_BEAT_MS,
           }),
         ],
       }),
@@ -131,24 +130,24 @@ describe('the profile sample-write path, against a real tree', () => {
       instanceId: SUBJECT_ID,
       specName: HEADLESS_SPEC,
       rssMB: MegabytesStub({ value: 2810 }),
-      beatAtMs: EpochMsStub({ value: FIRST_BEAT_MS + SETTLE_MS + 20_000 }),
+      beatAtMs: (FIRST_BEAT_MS + SETTLE_MS + 20_000),
     });
     contendedRecord = await profileSampleRecordBroker({
       instanceId: SUBJECT_ID,
       specName: HEADLESS_SPEC,
       rssMB: MegabytesStub({ value: 2000 }),
-      beatAtMs: EpochMsStub({ value: FIRST_BEAT_MS + SETTLE_MS + 30_000 }),
+      beatAtMs: (FIRST_BEAT_MS + SETTLE_MS + 30_000),
     });
 
     await profileBootRecordBroker({
       instanceId: SUBJECT_ID,
       specHash: laneSpecHashBroker({ spec: await laneSpecFindBroker({ specName: HEADLESS_SPEC }) }),
-      bootMs: EpochMsStub({ value: 20_000 }),
+      bootMs: 20_000,
     });
     await profileBootRecordBroker({
       instanceId: SECOND_ID,
       specHash: laneSpecHashBroker({ spec: await laneSpecFindBroker({ specName: HEADLESS_SPEC }) }),
-      bootMs: EpochMsStub({ value: 22_000 }),
+      bootMs: 22_000,
     });
 
     profile = await profileReadBroker({ specName: HEADLESS_SPEC });

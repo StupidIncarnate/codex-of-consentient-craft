@@ -1,4 +1,3 @@
-import { EpochMsStub } from '../../../contracts/epoch-ms/epoch-ms.stub';
 import { InstanceIdStub } from '../../../contracts/instance-id/instance-id.stub';
 import { InstanceOwnerStub } from '../../../contracts/instance-owner/instance-owner.stub';
 import { ProfilePoolSizeStub } from '../../../contracts/profile-pool-size/profile-pool-size.stub';
@@ -182,8 +181,8 @@ describe('capacityReadBroker', () => {
             RegistryEntryStub({
               id: InstanceIdStub({ value: 'inst_aaaa1111' }),
               owner: InstanceOwnerStub({ value: '99999' }),
-              bootedAtMs: EpochMsStub({ value: NOW_MS - 60_000 }),
-              lastBeatMs: EpochMsStub({ value: NOW_MS - 1000 }),
+              bootedAtMs: (NOW_MS - 60_000),
+              lastBeatMs: (NOW_MS - 1000),
             }),
             RegistryEntryStub({
               id: InstanceIdStub({ value: 'inst_bbbb2222' }),
@@ -249,8 +248,8 @@ describe('capacityReadBroker', () => {
             RegistryEntryStub({
               id: InstanceIdStub({ value: 'inst_cccc3333' }),
               owner: InstanceOwnerStub({ value: '77777' }),
-              bootedAtMs: EpochMsStub({ value: NOW_MS - 600_000 }),
-              lastBeatMs: EpochMsStub({ value: NOW_MS - 60_000 }),
+              bootedAtMs: (NOW_MS - 600_000),
+              lastBeatMs: (NOW_MS - 60_000),
             }),
           ],
         }),
@@ -315,7 +314,7 @@ describe('capacityReadBroker', () => {
               // shape a reservation abandoned before boot.lock or the driver's own ping ever
               // fired takes. isStaleRegistryEntryGuard alone never catches this row: lastBeatMs
               // is null, and that guard returns false for a heartbeat that never started.
-              reservedAtMs: EpochMsStub({ value: NOW_MS - 16_200_000 }),
+              reservedAtMs: (NOW_MS - 16_200_000),
             }),
           ],
         }),
@@ -373,13 +372,13 @@ describe('capacityReadBroker', () => {
             RegistryEntryStub({
               id: InstanceIdStub({ value: 'inst_dddd4444' }),
               state: 'killed',
-              bootedAtMs: EpochMsStub({ value: NOW_MS - 600_000 }),
-              lastBeatMs: EpochMsStub({ value: NOW_MS - 1000 }),
+              bootedAtMs: (NOW_MS - 600_000),
+              lastBeatMs: (NOW_MS - 1000),
             }),
             RegistryEntryStub({
               id: InstanceIdStub({ value: 'inst_eeee5555' }),
               state: 'pruned',
-              prunedAtMs: EpochMsStub({ value: NOW_MS - 500 }),
+              prunedAtMs: (NOW_MS - 500),
               prunedByRule: 'older-than',
             }),
           ],

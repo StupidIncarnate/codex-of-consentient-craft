@@ -41,7 +41,6 @@ import type { ProcessId, Guild, SiegeInstance } from '@dungeonmaster/shared/cont
 import { locationsStatics } from '@dungeonmaster/shared/statics';
 
 import { writeFile } from '#gateway/node/fs__promises';
-import { epochMsContract } from '../../../contracts/epoch-ms/epoch-ms-contract';
 import { instanceHeartbeatContract } from '../../../contracts/instance-heartbeat/instance-heartbeat-contract';
 import type { InstanceHeartbeat } from '../../../contracts/instance-heartbeat/instance-heartbeat-contract';
 import type { Megabytes } from '../../../contracts/megabytes/megabytes-contract';
@@ -49,6 +48,7 @@ import type { ProcessGroupId } from '../../../contracts/process-group-id/process
 import { locationsInstanceEvidencePathFindBroker } from '../../locations/instance-evidence-path-find/locations-instance-evidence-path-find-broker';
 import { machineRssByPgidBroker } from '../../machine/rss-by-pgid/machine-rss-by-pgid-broker';
 import { registryUpdateBroker } from '../../registry/update/registry-update-broker';
+import { registryContract } from '../../../contracts/registry/registry-contract';
 
 export const heartbeatWriteBroker = async ({
   instanceId,
@@ -77,7 +77,7 @@ export const heartbeatWriteBroker = async ({
     instanceId,
     pid,
     pgids,
-    beatAtMs: epochMsContract.parse(now()),
+    beatAtMs: now(),
     rssMB,
   });
 
@@ -90,11 +90,11 @@ export const heartbeatWriteBroker = async ({
   await writeFile(heartbeatPath, contents);
 
   await registryUpdateBroker({
-    mutate: (current) => ({
+    mutate: (current) => (registryContract.parse({
       instances: current.instances.map((entry) =>
         entry.id === instanceId ? { ...entry, lastBeatMs: heartbeat.beatAtMs } : entry,
       ),
-    }),
+    })),
   });
 
   return heartbeat;

@@ -58,7 +58,6 @@ import { serverLogWindowContract } from '../../../contracts/server-log-window/se
 import { stepContract } from '../../../contracts/step/step-contract';
 import type { Step } from '../../../contracts/step/step-contract';
 import type { StepIndex } from '../../../contracts/step-index/step-index-contract';
-import { epochMsContract } from '../../../contracts/epoch-ms/epoch-ms-contract';
 import { stepReadingContract } from '../../../contracts/step-reading/step-reading-contract';
 import type { StepReading } from '../../../contracts/step-reading/step-reading-contract';
 import { stepOutputNameContract } from '../../../contracts/step-output-name/step-output-name-contract';
@@ -171,7 +170,7 @@ export const runExecuteStepLayerBroker = async ({
       timedOut: false,
     };
   } catch (error: unknown) {
-    const nowMs = epochMsContract.parse(Date.now());
+    const nowMs = Date.now();
     // `stepDispatchBroker` wraps a real failure whose failure-path capture was actually attempted
     // in `StepFailureCaptureError`, carrying whether that specific `session.capture` call landed.
     // Unwrapped here, before anything else reads `error`, so the message extraction and the

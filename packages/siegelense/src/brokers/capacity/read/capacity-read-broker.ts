@@ -35,7 +35,6 @@
 import { capacityAnswerContract } from '../../../contracts/capacity-answer/capacity-answer-contract';
 import type { CapacityAnswer } from '../../../contracts/capacity-answer/capacity-answer-contract';
 import { capacityMeasuredContract } from '../../../contracts/capacity-measured/capacity-measured-contract';
-import { epochMsContract } from '../../../contracts/epoch-ms/epoch-ms-contract';
 import { profilePoolSizeContract } from '../../../contracts/profile-pool-size/profile-pool-size-contract';
 import type { ProfilePoolSize } from '../../../contracts/profile-pool-size/profile-pool-size-contract';
 import { readingCountContract } from '../../../contracts/reading-count/reading-count-contract';
@@ -70,7 +69,7 @@ export const capacityReadBroker = async ({
   const machine = await machineReadBroker();
   const specProfile = await profileReadBroker({ specName });
 
-  const nowMs = epochMsContract.parse(Date.now());
+  const nowMs = Date.now();
   const liveEntries = registry.instances.filter(
     (entry) =>
       entry.state === 'alive' &&

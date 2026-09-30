@@ -35,7 +35,6 @@ import { SiegeInstanceIdStub } from '@dungeonmaster/shared/contracts/siege-insta
 import { SiegeRunIdStub } from '@dungeonmaster/shared/contracts/siege-run-id/siege-run-id.stub';
 
 import { evidenceAgeHarness } from '../../../test/harnesses/evidence-age/evidence-age.harness';
-import { EpochMsStub } from '../../contracts/epoch-ms/epoch-ms.stub';
 import { InstanceIdStub } from '../../contracts/instance-id/instance-id.stub';
 import { RegistryEntryStub } from '../../contracts/registry-entry/registry-entry.stub';
 import { RegistryStub } from '../../contracts/registry/registry.stub';
@@ -139,7 +138,7 @@ describe('SiegelensePruneLayerFlow', () => {
   let boundaryPastWindowAnswer: unknown = null;
   let boundaryLogAfterTooYoungSweep: ReturnType<typeof testbed.readFile> = null;
   let videoDefaultWindowResult: Awaited<ReturnType<typeof SiegelensePruneLayerFlow>> | null = null;
-  let videoDefaultWindowMtimeAfterBackdate: ReturnType<typeof EpochMsStub> | null = null;
+  let videoDefaultWindowMtimeAfterBackdate: number | null = null;
   let videoDefaultWindowFileAfter: ReturnType<typeof testbed.readFile> = null;
 
   beforeAll(async () => {
@@ -185,9 +184,9 @@ describe('SiegelensePruneLayerFlow', () => {
                 state: 'alive',
                 questId: null,
                 guildId: null,
-                reservedAtMs: EpochMsStub({ value: Date.now() - 120_000 }),
-                bootedAtMs: EpochMsStub({ value: Date.now() - 120_000 }),
-                lastBeatMs: EpochMsStub({ value: Date.now() - 2_000 }),
+                reservedAtMs: (Date.now() - 120_000),
+                bootedAtMs: (Date.now() - 120_000),
+                lastBeatMs: (Date.now() - 2_000),
               }),
               RegistryEntryStub({ id: CITED_ID, state: 'killed', questId: QUEST, guildId: GUILD }),
               RegistryEntryStub({

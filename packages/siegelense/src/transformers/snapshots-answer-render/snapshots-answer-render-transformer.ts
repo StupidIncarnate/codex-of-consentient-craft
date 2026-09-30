@@ -14,8 +14,6 @@
  */
 
 
-import { epochMsContract } from '../../contracts/epoch-ms/epoch-ms-contract';
-import type { EpochMs } from '../../contracts/epoch-ms/epoch-ms-contract';
 import type { SnapshotsAnswer } from '../../contracts/snapshots-answer/snapshots-answer-contract';
 import { snapshotsTableStatics } from '../../statics/snapshots-table/snapshots-table-statics';
 import { elapsedRenderTransformer } from '../elapsed-render/elapsed-render-transformer';
@@ -25,7 +23,7 @@ export const snapshotsAnswerRenderTransformer = ({
   nowMs,
 }: {
   answer: SnapshotsAnswer;
-  nowMs?: EpochMs | undefined;
+  nowMs?: number | undefined;
 }): string => {
   const instanceLine = `INSTANCE: ${answer.instanceId} (${answer.instanceState})`;
 
@@ -43,7 +41,7 @@ export const snapshotsAnswerRenderTransformer = ({
       (nowMs === undefined
         ? '-'
         : elapsedRenderTransformer({
-            elapsedMs: epochMsContract.parse(Math.max(0, nowMs - snapshot.atMs)),
+            elapsedMs: Math.max(0, nowMs - snapshot.atMs),
           }));
     const manual = snapshot.manual ? 'true' : 'false';
     return [snapshot.name, age, manual];

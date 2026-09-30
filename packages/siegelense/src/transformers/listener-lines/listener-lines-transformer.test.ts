@@ -1,5 +1,4 @@
 import { listenerLinesTransformer } from './listener-lines-transformer';
-import { EpochMsStub } from '../../contracts/epoch-ms/epoch-ms.stub';
 
 describe('listenerLinesTransformer', () => {
   describe('isBodySkippedResourceType()', () => {
@@ -81,7 +80,7 @@ describe('listenerLinesTransformer', () => {
       const linesBuild = listenerLinesTransformer();
 
       const result = linesBuild.consoleLine({
-        at: EpochMsStub({ value: 1_700_000_000_000 }),
+        at: 1_700_000_000_000,
         type: 'log',
         text: 'hi',
         url: 'http://x/app.js',
@@ -99,7 +98,7 @@ describe('listenerLinesTransformer', () => {
       const linesBuild = listenerLinesTransformer();
 
       const result = linesBuild.pageErrorLine({
-        at: EpochMsStub({ value: 1_700_000_000_000 }),
+        at: 1_700_000_000_000,
         type: 'TypeError',
         text: 'x is not a function',
         stack: 'TypeError: x is not a function\n at app.js:1:1',
@@ -116,7 +115,7 @@ describe('listenerLinesTransformer', () => {
       const linesBuild = listenerLinesTransformer();
 
       const result = linesBuild.networkLine({
-        at: EpochMsStub({ value: 1_700_000_000_000 }),
+        at: 1_700_000_000_000,
         method: 'GET',
         url: 'http://x/api/quests',
         resourceType: 'fetch',
@@ -136,7 +135,7 @@ describe('listenerLinesTransformer', () => {
       const linesBuild = listenerLinesTransformer();
 
       const result = linesBuild.requestFailedLine({
-        at: EpochMsStub({ value: 1_700_000_000_000 }),
+        at: 1_700_000_000_000,
         method: 'GET',
         url: 'http://x/api/quests',
         resourceType: 'fetch',
@@ -155,7 +154,7 @@ describe('listenerLinesTransformer', () => {
       const linesBuild = listenerLinesTransformer();
 
       const result = linesBuild.websocketFrameLine({
-        at: EpochMsStub({ value: 1_700_000_000_000 }),
+        at: 1_700_000_000_000,
         url: 'ws://x/socket',
         direction: 'sent',
         payload: linesBuild.truncatePayload({ text: '{"type":"ping"}' }),
@@ -172,7 +171,7 @@ describe('listenerLinesTransformer', () => {
       const linesBuild = listenerLinesTransformer();
 
       const result = linesBuild.websocketCloseLine({
-        at: EpochMsStub({ value: 1_700_000_000_000 }),
+        at: 1_700_000_000_000,
         url: 'ws://x/socket',
       });
 

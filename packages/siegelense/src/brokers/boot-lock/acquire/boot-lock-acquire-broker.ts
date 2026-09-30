@@ -43,8 +43,6 @@ import { locationsBootLockPathFindBroker } from '../../locations/boot-lock-path-
 import { locationsRootPathFindBroker } from '../../locations/root-path-find/locations-root-path-find-broker';
 import { bootLockContract } from '../../../contracts/boot-lock/boot-lock-contract';
 import type { BootLock } from '../../../contracts/boot-lock/boot-lock-contract';
-import { epochMsContract } from '../../../contracts/epoch-ms/epoch-ms-contract';
-import type { EpochMs } from '../../../contracts/epoch-ms/epoch-ms-contract';
 import { instanceLifecycleStatics } from '../../../statics/instance-lifecycle/instance-lifecycle-statics';
 import { BootLockHeldError } from '../../../errors/boot-lock-held/boot-lock-held-error';
 import { processIdContract } from '@dungeonmaster/shared/contracts';
@@ -56,13 +54,13 @@ export const bootLockAcquireBroker = async ({
   tookOverStaleSoFar,
 }: {
   instanceId: SiegeInstance['id'];
-  waitStartedAtMs?: EpochMs;
+  waitStartedAtMs?: number;
   tookOverStaleSoFar?: boolean;
 }): Promise<{ lock: BootLock; tookOverStale: boolean }> => {
-  const startedAtMs = waitStartedAtMs ?? epochMsContract.parse(now());
+  const startedAtMs = waitStartedAtMs ?? now();
   const rootPath = locationsRootPathFindBroker();
   const bootLockPath = locationsBootLockPathFindBroker();
-  const nowMs = epochMsContract.parse(now());
+  const nowMs = now();
   const tookOverStale = tookOverStaleSoFar ?? false;
 
   const newLock = bootLockContract.parse({

@@ -2,7 +2,6 @@
 import { instanceStartBootPollLayerBroker } from './instance-start-boot-poll-layer-broker';
 import { instanceStartBootPollLayerBrokerProxy } from './instance-start-boot-poll-layer-broker.proxy';
 import { BootFailureMarkerStub } from '../../../contracts/boot-failure-marker/boot-failure-marker.stub';
-import { EpochMsStub } from '../../../contracts/epoch-ms/epoch-ms.stub';
 
 const SOCKET_PATH = '/tmp/dm-siege-sockets/inst_7f3a9c21.sock';
 const EVIDENCE_PATH = '/home/user/.dungeonmaster/siegelense/unowned/instances/inst_7f3a9c21';
@@ -15,7 +14,7 @@ describe('instanceStartBootPollLayerBroker', () => {
 
       const result = await instanceStartBootPollLayerBroker({
         socketPath: SOCKET_PATH,
-        deadlineMs: EpochMsStub({ value: 1_700_000_180_000 }),
+        deadlineMs: 1_700_000_180_000,
         evidencePath: EVIDENCE_PATH,
       });
 
@@ -37,7 +36,7 @@ describe('instanceStartBootPollLayerBroker', () => {
 
       const result = await instanceStartBootPollLayerBroker({
         socketPath: SOCKET_PATH,
-        deadlineMs: EpochMsStub({ value: deadlineMs }),
+        deadlineMs: deadlineMs,
         evidencePath: EVIDENCE_PATH,
       });
 
@@ -62,7 +61,7 @@ describe('instanceStartBootPollLayerBroker', () => {
       // deadline, never by waiting the timeout path out.
       const result = await instanceStartBootPollLayerBroker({
         socketPath: SOCKET_PATH,
-        deadlineMs: EpochMsStub({ value: 9_999_999_999_999 }),
+        deadlineMs: 9_999_999_999_999,
         evidencePath: EVIDENCE_PATH,
       });
 

@@ -42,7 +42,6 @@ import { z } from '#gateway/npm/zod';
 
 import { absoluteFilePathContract, siegeInstanceContract } from '@dungeonmaster/shared/contracts';
 
-import { epochMsContract } from '../epoch-ms/epoch-ms-contract';
 import { readingCountContract } from '../reading-count/reading-count-contract';
 import { repoLocalPathContract } from '../repo-local-path/repo-local-path-contract';
 import { seedResultContract } from '../seed-result/seed-result-contract';
@@ -67,9 +66,9 @@ export const instanceManifestContract = z.object({
     web: repoLocalPathContract,
   }),
   seeded: seedResultContract.nullable(),
-  queuedMs: epochMsContract,
+  queuedMs: z.number().int().nonnegative().brand<'InstanceManifestQueuedMs'>(),
   aheadOfMe: readingCountContract,
-  bootMs: epochMsContract,
+  bootMs: z.number().int().nonnegative().brand<'InstanceManifestBootMs'>(),
 });
 
 export type InstanceManifest = z.infer<typeof instanceManifestContract>;

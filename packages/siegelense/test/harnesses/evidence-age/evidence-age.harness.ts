@@ -26,8 +26,6 @@ import type { SiegeInstance } from '@dungeonmaster/shared/contracts';
 
 import { locationsInstanceEvidencePathFindBroker } from '../../../src/brokers/locations/instance-evidence-path-find/locations-instance-evidence-path-find-broker';
 import { registryUpdateBroker } from '../../../src/brokers/registry/update/registry-update-broker';
-import { EpochMsStub } from '../../../src/contracts/epoch-ms/epoch-ms.stub';
-import type { EpochMs } from '../../../src/contracts/epoch-ms/epoch-ms-contract';
 import { InstanceIdStub } from '../../../src/contracts/instance-id/instance-id.stub';
 import { InstanceOwnerStub } from '../../../src/contracts/instance-owner/instance-owner.stub';
 import { PortPairStub } from '../../../src/contracts/port-pair/port-pair.stub';
@@ -46,7 +44,7 @@ const PORT_STRIDE = 10;
 
 export const evidenceAgeHarness = (): {
   backdateFile: (params: { filePath: string; daysOld: number }) => Promise<void>;
-  mtimeMs: (params: { filePath: string }) => Promise<EpochMs>;
+  mtimeMs: (params: { filePath: string }) => Promise<number>;
   exists: (params: { filePath: string }) => boolean;
   seedAgingInstance: (params: { daysOld: number }) => Promise<{
     instanceId: SiegeInstance['id'];
@@ -68,9 +66,9 @@ export const evidenceAgeHarness = (): {
     await utimes(String(filePath), when, when);
   };
 
-  const mtimeMs = async ({ filePath }: { filePath: string }): Promise<EpochMs> => {
+  const mtimeMs = async ({ filePath }: { filePath: string }): Promise<number> => {
     const fileStat = await stat(String(filePath));
-    return EpochMsStub({ value: fileStat.modifiedAtMs });
+    return fileStat.modifiedAtMs;
   };
 
   const exists = ({ filePath }: { filePath: string }): boolean =>
@@ -118,7 +116,7 @@ export const evidenceAgeHarness = (): {
             state: 'killed',
             questId: null,
             guildId: null,
-            reservedAtMs: EpochMsStub({ value: Date.now() - DAY_SECONDS * 1000 * (daysOld + 1) }),
+            reservedAtMs: (Date.now() - DAY_SECONDS * 1000 * (daysOld + 1)),
             bootedAtMs: null,
             lastBeatMs: null,
             prunedAtMs: null,

@@ -12,12 +12,11 @@
 
 import { z } from '#gateway/npm/zod';
 
-import { epochMsContract } from '../epoch-ms/epoch-ms-contract';
 import { readingCountContract } from '../reading-count/reading-count-contract';
 
 export const rawSettleProbeContract = z.object({
-  nowMs: epochMsContract,
-  lastMutationAtMs: epochMsContract.nullable(),
+  nowMs: z.number().int().nonnegative().brand<'RawSettleProbeNowMs'>(),
+  lastMutationAtMs: z.number().int().nonnegative().brand<'RawSettleProbeLastMutationAtMs'>().nullable(),
   runningAnimations: readingCountContract,
 });
 

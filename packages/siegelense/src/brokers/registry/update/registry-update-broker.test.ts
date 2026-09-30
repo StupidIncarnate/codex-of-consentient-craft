@@ -1,7 +1,6 @@
 import { InstanceIdStub } from '../../../contracts/instance-id/instance-id.stub';
 import { RegistryEntryStub } from '../../../contracts/registry-entry/registry-entry.stub';
 import { RegistryStub } from '../../../contracts/registry/registry.stub';
-import { EpochMsStub } from '../../../contracts/epoch-ms/epoch-ms.stub';
 
 import { registryUpdateBroker } from './registry-update-broker';
 import { registryUpdateBrokerProxy } from './registry-update-broker.proxy';
@@ -57,7 +56,7 @@ describe('registryUpdateBroker', () => {
 
     it('EDGE: {a stale lock} => takes it over', async () => {
       const proxy = registryUpdateBrokerProxy();
-      const nowMs = EpochMsStub();
+      const nowMs = 1;
       const current = RegistryStub();
       proxy.setupCurrentRegistryWithStaleLock({ json: JSON.stringify(current), nowMs });
 

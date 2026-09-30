@@ -1,6 +1,5 @@
 import { TimeoutMsStub } from '@dungeonmaster/shared/contracts/timeout-ms/timeout-ms.stub';
 
-import { EpochMsStub } from '../../../contracts/epoch-ms/epoch-ms.stub';
 
 import { DriverIdleWaitLayerResponder } from './driver-idle-wait-layer-responder';
 import { DriverIdleWaitLayerResponderProxy } from './driver-idle-wait-layer-responder.proxy';
@@ -24,8 +23,8 @@ describe('DriverIdleWaitLayerResponder', () => {
   describe('the kill signal settles first', () => {
     it('VALID: {killSignal already resolved} => resolves true without needing the deadline to pass', async () => {
       const proxy = DriverIdleWaitLayerResponderProxy();
-      proxy.setupLaneReady({ nowMs: EpochMsStub({ value: 1_000 }) });
-      proxy.stageNow({ ms: EpochMsStub({ value: 2_000 }) });
+      proxy.setupLaneReady({ nowMs: 1_000 });
+      proxy.stageNow({ ms: 2_000 });
       const killSignal = Promise.resolve(true as const);
 
       const wasKilled = await DriverIdleWaitLayerResponder({ killSignal });
@@ -38,13 +37,13 @@ describe('DriverIdleWaitLayerResponder', () => {
     it('VALID: {idleTimeoutMs: 1_800_000, nowMs past the DEFAULT 900s deadline but before the raised one} => keeps waiting instead of tearing down', async () => {
       const proxy = DriverIdleWaitLayerResponderProxy();
       proxy.setupLaneReadyWithIdleTimeout({
-        nowMs: EpochMsStub({ value: 1_000 }),
+        nowMs: 1_000,
         idleTimeoutMs: TimeoutMsStub({ value: 1_800_000 }),
       });
       // 901_000 is past the DEFAULT deadline (1_000 + 900_000) but well before the raised one
       // (1_000 + 1_800_000 = 1_801_000) — resolving false here would mean the override never
       // reached the deadline computation.
-      proxy.stageNow({ ms: EpochMsStub({ value: 901_000 }) });
+      proxy.stageNow({ ms: 901_000 });
       proxy.stageSleepNeverFires({ ms: TimeoutMsStub({ value: 1_801_000 - 901_000 }) });
       const killSignal = new Promise<true>(() => {
         // Never resolves — only the scheduled sleep is observed.
@@ -64,8 +63,8 @@ describe('DriverIdleWaitLayerResponder', () => {
   describe('the idle window has already elapsed', () => {
     it('VALID: {nowMs past the deadline} => resolves false without scheduling a sleep', async () => {
       const proxy = DriverIdleWaitLayerResponderProxy();
-      proxy.setupLaneReady({ nowMs: EpochMsStub({ value: 1_000 }) });
-      proxy.stageNow({ ms: EpochMsStub({ value: 901_001 }) });
+      proxy.setupLaneReady({ nowMs: 1_000 });
+      proxy.stageNow({ ms: 901_001 });
       const killSignal = new Promise<true>(() => {
         // Never resolves — the deadline has already passed on the first check.
       });
@@ -79,12 +78,12 @@ describe('DriverIdleWaitLayerResponder', () => {
   describe('activity touched the state before the deadline check', () => {
     it('VALID: {nowMs past the ORIGINAL deadline but before the extended one} => schedules another sleep instead of tearing down', async () => {
       const proxy = DriverIdleWaitLayerResponderProxy();
-      proxy.setupLaneReady({ nowMs: EpochMsStub({ value: 1_000 }) });
-      proxy.touch({ nowMs: EpochMsStub({ value: 500_000 }) });
+      proxy.setupLaneReady({ nowMs: 1_000 });
+      proxy.touch({ nowMs: 500_000 });
       // 901_500 is past the ORIGINAL deadline (1_000 + 900_000 = 901_000) but well before the
       // extended one (500_000 + 900_000 = 1_400_000) — resolving false here would be the exact bug
       // this test exists to catch.
-      proxy.stageNow({ ms: EpochMsStub({ value: 901_500 }) });
+      proxy.stageNow({ ms: 901_500 });
       proxy.stageSleepNeverFires({ ms: TimeoutMsStub({ value: 1_400_000 - 901_500 }) });
       const killSignal = new Promise<true>(() => {
         // Never resolves in this test — only the scheduled sleep is observed.

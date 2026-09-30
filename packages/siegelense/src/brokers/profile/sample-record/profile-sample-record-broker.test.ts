@@ -1,5 +1,4 @@
 
-import { EpochMsStub } from '../../../contracts/epoch-ms/epoch-ms.stub';
 import { InstanceIdStub } from '../../../contracts/instance-id/instance-id.stub';
 import { MegabytesStub } from '../../../contracts/megabytes/megabytes.stub';
 import { RegistryEntryStub } from '../../../contracts/registry-entry/registry-entry.stub';
@@ -32,7 +31,7 @@ describe('profileSampleRecordBroker', () => {
         instanceId: INSTANCE_ID,
         specName: HEADLESS_SPEC,
         rssMB: null,
-        beatAtMs: EpochMsStub({ value: FIRST_BEAT_MS }),
+        beatAtMs: FIRST_BEAT_MS,
       });
 
       expect(result).toBe(null);
@@ -48,7 +47,7 @@ describe('profileSampleRecordBroker', () => {
           RegistryEntryStub({
             id: INSTANCE_ID,
             state: 'alive',
-            bootedAtMs: EpochMsStub({ value: FIRST_BEAT_MS - 20_000 }),
+            bootedAtMs: (FIRST_BEAT_MS - 20_000),
           }),
         ],
       });
@@ -58,7 +57,7 @@ describe('profileSampleRecordBroker', () => {
         instanceId: INSTANCE_ID,
         specName: HEADLESS_SPEC,
         rssMB: MegabytesStub({ value: 2600 }),
-        beatAtMs: EpochMsStub({ value: FIRST_BEAT_MS }),
+        beatAtMs: FIRST_BEAT_MS,
       });
 
       expect(result).toStrictEqual({
@@ -83,17 +82,17 @@ describe('profileSampleRecordBroker', () => {
           RegistryEntryStub({
             id: INSTANCE_ID,
             state: 'alive',
-            bootedAtMs: EpochMsStub({ value: FIRST_BEAT_MS - 20_000 }),
+            bootedAtMs: (FIRST_BEAT_MS - 20_000),
           }),
           RegistryEntryStub({
             id: InstanceIdStub({ value: 'inst_aaaa1111' }),
             state: 'alive',
-            bootedAtMs: EpochMsStub({ value: FIRST_BEAT_MS - 30_000 }),
+            bootedAtMs: (FIRST_BEAT_MS - 30_000),
           }),
           RegistryEntryStub({
             id: InstanceIdStub({ value: 'inst_bbbb2222' }),
             state: 'alive',
-            bootedAtMs: EpochMsStub({ value: FIRST_BEAT_MS - 40_000 }),
+            bootedAtMs: (FIRST_BEAT_MS - 40_000),
           }),
         ],
       });
@@ -103,7 +102,7 @@ describe('profileSampleRecordBroker', () => {
         instanceId: INSTANCE_ID,
         specName: HEADLESS_SPEC,
         rssMB: MegabytesStub({ value: 2810 }),
-        beatAtMs: EpochMsStub({ value: FIRST_BEAT_MS }),
+        beatAtMs: FIRST_BEAT_MS,
       });
 
       expect(result?.pools).toStrictEqual([
@@ -119,7 +118,7 @@ describe('profileSampleRecordBroker', () => {
           RegistryEntryStub({
             id: INSTANCE_ID,
             state: 'alive',
-            bootedAtMs: EpochMsStub({ value: FIRST_BEAT_MS - 20_000 }),
+            bootedAtMs: (FIRST_BEAT_MS - 20_000),
           }),
           // A reservation: alive, but nothing has booted behind it yet.
           RegistryEntryStub({
@@ -131,7 +130,7 @@ describe('profileSampleRecordBroker', () => {
           RegistryEntryStub({
             id: InstanceIdStub({ value: 'inst_bbbb2222' }),
             state: 'killed',
-            bootedAtMs: EpochMsStub({ value: FIRST_BEAT_MS - 90_000 }),
+            bootedAtMs: (FIRST_BEAT_MS - 90_000),
           }),
         ],
       });
@@ -141,7 +140,7 @@ describe('profileSampleRecordBroker', () => {
         instanceId: INSTANCE_ID,
         specName: HEADLESS_SPEC,
         rssMB: MegabytesStub({ value: 2600 }),
-        beatAtMs: EpochMsStub({ value: FIRST_BEAT_MS }),
+        beatAtMs: FIRST_BEAT_MS,
       });
 
       expect(result?.pools).toStrictEqual([
@@ -160,7 +159,7 @@ describe('profileSampleRecordBroker', () => {
           RegistryEntryStub({
             id: INSTANCE_ID,
             state: 'alive',
-            bootedAtMs: EpochMsStub({ value: FIRST_BEAT_MS - 20_000 }),
+            bootedAtMs: (FIRST_BEAT_MS - 20_000),
           }),
         ],
       });
@@ -181,7 +180,7 @@ describe('profileSampleRecordBroker', () => {
         instanceId: INSTANCE_ID,
         specName: HEADLESS_SPEC,
         rssMB: MegabytesStub({ value: 1800 }),
-        beatAtMs: EpochMsStub({ value: FIRST_BEAT_MS + profileStatics.settle.afterMs }),
+        beatAtMs: (FIRST_BEAT_MS + profileStatics.settle.afterMs),
       });
 
       expect(result).toStrictEqual({
@@ -201,7 +200,7 @@ describe('profileSampleRecordBroker', () => {
           RegistryEntryStub({
             id: INSTANCE_ID,
             state: 'alive',
-            bootedAtMs: EpochMsStub({ value: FIRST_BEAT_MS - 20_000 }),
+            bootedAtMs: (FIRST_BEAT_MS - 20_000),
           }),
         ],
       });
@@ -216,7 +215,7 @@ describe('profileSampleRecordBroker', () => {
         instanceId: INSTANCE_ID,
         specName: HEADLESS_SPEC,
         rssMB: MegabytesStub({ value: 1800 }),
-        beatAtMs: EpochMsStub({ value: FIRST_BEAT_MS + profileStatics.settle.afterMs }),
+        beatAtMs: (FIRST_BEAT_MS + profileStatics.settle.afterMs),
       });
 
       expect(result?.pools).toStrictEqual([

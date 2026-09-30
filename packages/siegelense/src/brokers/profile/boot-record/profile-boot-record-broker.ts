@@ -19,8 +19,6 @@
 import { ensureDir, writeFile } from '#gateway/node/fs__promises';
 import { join } from '#gateway/node/path';
 
-import { epochMsContract } from '../../../contracts/epoch-ms/epoch-ms-contract';
-import type { EpochMs } from '../../../contracts/epoch-ms/epoch-ms-contract';
 import { profileBootContract } from '../../../contracts/profile-boot/profile-boot-contract';
 import type { ProfileBoot } from '../../../contracts/profile-boot/profile-boot-contract';
 import type { SpecHash } from '../../../contracts/spec-hash/spec-hash-contract';
@@ -35,7 +33,7 @@ export const profileBootRecordBroker = async ({
 }: {
   instanceId: SiegeInstance['id'];
   specHash: SpecHash;
-  bootMs: EpochMs;
+  bootMs: number;
 }): Promise<ProfileBoot> => {
   const { bootsDir } = locationsProfileDirsFindBroker({ specHash });
 
@@ -45,7 +43,7 @@ export const profileBootRecordBroker = async ({
     instanceId,
     specHash,
     bootMs,
-    recordedAtMs: epochMsContract.parse(Date.now()),
+    recordedAtMs: Date.now(),
   });
 
   await ensureDir(bootsDir);

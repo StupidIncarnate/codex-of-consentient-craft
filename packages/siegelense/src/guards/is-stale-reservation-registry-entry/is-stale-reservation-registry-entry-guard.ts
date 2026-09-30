@@ -20,7 +20,6 @@
  * // Returns true once nowMs - reservedAtMs exceeds instanceLifecycleStatics.reservation.staleAfterMs
  */
 
-import type { EpochMs } from '../../contracts/epoch-ms/epoch-ms-contract';
 import type { RegistryEntry } from '../../contracts/registry-entry/registry-entry-contract';
 import { isReservedRegistryEntryGuard } from '../is-reserved-registry-entry/is-reserved-registry-entry-guard';
 import { instanceLifecycleStatics } from '../../statics/instance-lifecycle/instance-lifecycle-statics';
@@ -30,7 +29,7 @@ export const isStaleReservationRegistryEntryGuard = ({
   nowMs,
 }: {
   entry?: RegistryEntry;
-  nowMs?: EpochMs;
+  nowMs?: number;
 }): boolean => {
   if (!entry || nowMs === undefined) {
     return false;

@@ -1,5 +1,4 @@
 
-import { EpochMsStub } from '../../../contracts/epoch-ms/epoch-ms.stub';
 import { InstanceIdStub } from '../../../contracts/instance-id/instance-id.stub';
 import { SpecHashStub } from '../../../contracts/spec-hash/spec-hash.stub';
 
@@ -30,7 +29,7 @@ describe('profileBootRecordBroker', () => {
       const record = await profileBootRecordBroker({
         instanceId,
         specHash,
-        bootMs: EpochMsStub({ value: 20_000 }),
+        bootMs: 20_000,
       });
 
       expect(record).toStrictEqual({
@@ -61,7 +60,7 @@ describe('profileBootRecordBroker', () => {
       await profileBootRecordBroker({
         instanceId,
         specHash,
-        bootMs: EpochMsStub({ value: 31_500 }),
+        bootMs: 31_500,
       });
 
       expect(proxy.getWrittenRecord({ profilesPath, instanceId })).toBe(

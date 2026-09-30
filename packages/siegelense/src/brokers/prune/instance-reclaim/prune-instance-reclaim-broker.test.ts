@@ -1,6 +1,5 @@
 
 import { CitationGapStub } from '../../../contracts/citation-gap/citation-gap.stub';
-import { EpochMsStub } from '../../../contracts/epoch-ms/epoch-ms.stub';
 import { InstanceIdStub } from '../../../contracts/instance-id/instance-id.stub';
 import { PruneQueryStub } from '../../../contracts/prune-query/prune-query.stub';
 import { RegistryEntryStub } from '../../../contracts/registry-entry/registry-entry.stub';
@@ -36,12 +35,12 @@ describe('pruneInstanceReclaimBroker', () => {
           state: 'alive',
           questId: null,
           guildId: null,
-          bootedAtMs: EpochMsStub({ value: NOW_MS - 120_000 }),
-          lastBeatMs: EpochMsStub({ value: NOW_MS - 2000 }),
+          bootedAtMs: (NOW_MS - 120_000),
+          lastBeatMs: (NOW_MS - 2000),
         }),
         query: PruneQueryStub(),
-        olderThanMs: EpochMsStub({ value: SEVEN_DAYS_MS }),
-        nowMs: EpochMsStub({ value: NOW_MS }),
+        olderThanMs: SEVEN_DAYS_MS,
+        nowMs: NOW_MS,
       });
 
       expect(result).toStrictEqual({
@@ -60,13 +59,13 @@ describe('pruneInstanceReclaimBroker', () => {
           state: 'alive',
           questId: null,
           guildId: null,
-          reservedAtMs: EpochMsStub({ value: NOW_MS - 1000 }),
+          reservedAtMs: (NOW_MS - 1000),
           bootedAtMs: null,
           lastBeatMs: null,
         }),
         query: PruneQueryStub(),
-        olderThanMs: EpochMsStub({ value: SEVEN_DAYS_MS }),
-        nowMs: EpochMsStub({ value: NOW_MS }),
+        olderThanMs: SEVEN_DAYS_MS,
+        nowMs: NOW_MS,
       });
 
       expect(result).toStrictEqual({
@@ -96,12 +95,12 @@ describe('pruneInstanceReclaimBroker', () => {
           state: 'alive',
           questId: null,
           guildId: null,
-          bootedAtMs: EpochMsStub({ value: NOW_MS - 120_000 }),
-          lastBeatMs: EpochMsStub({ value: NOW_MS - 2000 }),
+          bootedAtMs: (NOW_MS - 120_000),
+          lastBeatMs: (NOW_MS - 2000),
         }),
         query: PruneQueryStub(),
-        olderThanMs: EpochMsStub({ value: SEVEN_DAYS_MS }),
-        nowMs: EpochMsStub({ value: NOW_MS }),
+        olderThanMs: SEVEN_DAYS_MS,
+        nowMs: NOW_MS,
       });
 
       expect(result.removal).toBe(null);
@@ -126,12 +125,12 @@ describe('pruneInstanceReclaimBroker', () => {
           state: 'killed',
           questId: null,
           guildId: null,
-          bootedAtMs: EpochMsStub({ value: NOW_MS - 120_000 }),
+          bootedAtMs: (NOW_MS - 120_000),
           lastBeatMs: null,
         }),
         query: PruneQueryStub(),
-        olderThanMs: EpochMsStub({ value: SEVEN_DAYS_MS }),
-        nowMs: EpochMsStub({ value: NOW_MS }),
+        olderThanMs: SEVEN_DAYS_MS,
+        nowMs: NOW_MS,
       });
 
       expect(result).toStrictEqual({ removal: null, refusal: null, gaps: [] });
@@ -158,12 +157,12 @@ describe('pruneInstanceReclaimBroker', () => {
           state: 'killed',
           questId: null,
           guildId: null,
-          bootedAtMs: EpochMsStub({ value: NOW_MS - 120_000 }),
+          bootedAtMs: (NOW_MS - 120_000),
           lastBeatMs: null,
         }),
         query: PruneQueryStub(),
-        olderThanMs: EpochMsStub({ value: SEVEN_DAYS_MS }),
-        nowMs: EpochMsStub({ value: NOW_MS }),
+        olderThanMs: SEVEN_DAYS_MS,
+        nowMs: NOW_MS,
       });
 
       expect(result).toStrictEqual({ removal: null, refusal: null, gaps: [] });
@@ -196,12 +195,12 @@ describe('pruneInstanceReclaimBroker', () => {
           state: 'killed',
           questId: null,
           guildId: null,
-          bootedAtMs: EpochMsStub({ value: NOW_MS - 120_000 }),
+          bootedAtMs: (NOW_MS - 120_000),
           lastBeatMs: null,
         }),
         query: PruneQueryStub(),
-        olderThanMs: EpochMsStub({ value: SEVEN_DAYS_MS }),
-        nowMs: EpochMsStub({ value: NOW_MS }),
+        olderThanMs: SEVEN_DAYS_MS,
+        nowMs: NOW_MS,
       });
 
       expect(result).toStrictEqual({
@@ -239,12 +238,12 @@ describe('pruneInstanceReclaimBroker', () => {
           state: 'killed',
           questId: null,
           guildId: null,
-          bootedAtMs: EpochMsStub({ value: NOW_MS - 120_000 }),
+          bootedAtMs: (NOW_MS - 120_000),
           lastBeatMs: null,
         }),
         query: PruneQueryStub(),
-        olderThanMs: EpochMsStub({ value: SEVEN_DAYS_MS }),
-        nowMs: EpochMsStub({ value: NOW_MS }),
+        olderThanMs: SEVEN_DAYS_MS,
+        nowMs: NOW_MS,
         dryRun: true,
       });
 
@@ -298,12 +297,12 @@ describe('pruneInstanceReclaimBroker', () => {
           state: 'killed',
           questId: null,
           guildId: null,
-          bootedAtMs: EpochMsStub({ value: NOW_MS - 120_000 }),
+          bootedAtMs: (NOW_MS - 120_000),
           lastBeatMs: null,
         }),
         query: PruneQueryStub({ kind: 'shot' }),
-        olderThanMs: EpochMsStub({ value: SEVEN_DAYS_MS }),
-        nowMs: EpochMsStub({ value: NOW_MS }),
+        olderThanMs: SEVEN_DAYS_MS,
+        nowMs: NOW_MS,
       });
 
       expect(result).toStrictEqual({
@@ -363,12 +362,12 @@ describe('pruneInstanceReclaimBroker', () => {
           state: 'killed',
           questId: null,
           guildId: null,
-          bootedAtMs: EpochMsStub({ value: NOW_MS - 120_000 }),
+          bootedAtMs: (NOW_MS - 120_000),
           lastBeatMs: null,
         }),
         query: PruneQueryStub({ kind: 'transcript' }),
-        olderThanMs: EpochMsStub({ value: SEVEN_DAYS_MS }),
-        nowMs: EpochMsStub({ value: NOW_MS }),
+        olderThanMs: SEVEN_DAYS_MS,
+        nowMs: NOW_MS,
       });
 
       expect(result).toStrictEqual({ removal: null, refusal: null, gaps: [] });
@@ -411,12 +410,12 @@ describe('pruneInstanceReclaimBroker', () => {
           state: 'killed',
           questId: null,
           guildId: null,
-          bootedAtMs: EpochMsStub({ value: NOW_MS - 120_000 }),
+          bootedAtMs: (NOW_MS - 120_000),
           lastBeatMs: null,
         }),
         query: PruneQueryStub({ kind: 'video' }),
-        olderThanMs: EpochMsStub({ value: SEVEN_DAYS_MS }),
-        nowMs: EpochMsStub({ value: NOW_MS }),
+        olderThanMs: SEVEN_DAYS_MS,
+        nowMs: NOW_MS,
       });
 
       expect(result).toStrictEqual({

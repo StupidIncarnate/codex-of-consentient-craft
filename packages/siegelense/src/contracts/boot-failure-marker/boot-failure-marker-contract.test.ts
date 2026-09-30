@@ -1,5 +1,4 @@
 
-import { EpochMsStub } from '../epoch-ms/epoch-ms.stub';
 import { bootFailureMarkerContract } from './boot-failure-marker-contract';
 import { BootFailureMarkerStub } from './boot-failure-marker.stub';
 
@@ -10,7 +9,7 @@ describe('bootFailureMarkerContract', () => {
     it('VALID: {message, atMs} => parses successfully', () => {
       const marker: BootFailureMarker = BootFailureMarkerStub({
         message: 'Refusing to boot against the real CLI',
-        atMs: EpochMsStub({ value: 1_700_000_000_000 }),
+        atMs: 1_700_000_000_000,
       });
 
       const result = bootFailureMarkerContract.parse(marker);

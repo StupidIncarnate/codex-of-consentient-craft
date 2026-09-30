@@ -23,7 +23,6 @@
  * // Returns { reaped, portsReleased, lockReleased, assetsAged, leftAlone }
  */
 
-import { epochMsContract } from '../../../contracts/epoch-ms/epoch-ms-contract';
 import { cleanupAnswerContract } from '../../../contracts/cleanup-answer/cleanup-answer-contract';
 import type { CleanupAnswer } from '../../../contracts/cleanup-answer/cleanup-answer-contract';
 import { leftAloneContract } from '../../../contracts/left-alone/left-alone-contract';
@@ -37,7 +36,7 @@ import { lockReleaseLayerBroker } from './lock-release-layer-broker';
 import { staleReapLayerBroker } from './stale-reap-layer-broker';
 
 export const cleanupRunBroker = async (): Promise<CleanupAnswer> => {
-  const nowMs = epochMsContract.parse(Date.now());
+  const nowMs = Date.now();
   const registry = await registryReadBroker();
 
   const aliveEntries = registry.instances.filter((entry) => entry.state === 'alive');
@@ -65,7 +64,7 @@ export const cleanupRunBroker = async (): Promise<CleanupAnswer> => {
           entry.lastBeatMs === null
             ? 'reserved — booting, no beat yet'
             : `live — last beat ${elapsedRenderTransformer({
-                elapsedMs: epochMsContract.parse(nowMs - entry.lastBeatMs),
+                elapsedMs: (nowMs - entry.lastBeatMs),
               })} ago`,
       }),
     );

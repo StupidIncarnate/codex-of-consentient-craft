@@ -25,7 +25,6 @@ import { z } from '#gateway/npm/zod';
 
 import { processIdContract, siegeInstanceContract } from '@dungeonmaster/shared/contracts';
 
-import { epochMsContract } from '../epoch-ms/epoch-ms-contract';
 import { megabytesContract } from '../megabytes/megabytes-contract';
 import { processGroupIdContract } from '../process-group-id/process-group-id-contract';
 
@@ -33,7 +32,7 @@ export const instanceHeartbeatContract = z.object({
   instanceId: siegeInstanceContract.shape.id,
   pid: processIdContract,
   pgids: z.array(processGroupIdContract).readonly(),
-  beatAtMs: epochMsContract,
+  beatAtMs: z.number().int().nonnegative().brand<'InstanceHeartbeatBeatAtMs'>(),
   rssMB: megabytesContract.nullable(),
 });
 

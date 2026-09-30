@@ -22,7 +22,6 @@ import { z } from '#gateway/npm/zod';
 
 import { siegeInstanceContract, siegeRunContract } from '@dungeonmaster/shared/contracts';
 
-import { epochMsContract } from '../epoch-ms/epoch-ms-contract';
 import { instanceStateContract } from '../instance-state/instance-state-contract';
 import { readingCountContract } from '../reading-count/reading-count-contract';
 import { resultKindContract } from '../result-kind/result-kind-contract';
@@ -37,7 +36,7 @@ export const resultsAnswerContract = z.object({
   kind: resultKindContract.nullable(),
   step: stepIndexContract.nullable(),
   verb: stepVerbContract.nullable(),
-  prunedAtMs: epochMsContract.nullable(),
+  prunedAtMs: z.number().int().nonnegative().brand<'ResultsAnswerPrunedAtMs'>().nullable(),
   prunedByRule: z.string().brand<'ResultsAnswerPrunedByRule'>().nullable(),
   matched: readingCountContract,
   returned: readingCountContract,

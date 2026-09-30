@@ -20,7 +20,6 @@ import { join } from '#gateway/node/path';
 import { locationsStatics } from '@dungeonmaster/shared/statics';
 
 import { writeFile } from '#gateway/node/fs__promises';
-import { epochMsContract } from '../../../contracts/epoch-ms/epoch-ms-contract';
 import { shutdownReasonContract } from '../../../contracts/shutdown-reason/shutdown-reason-contract';
 import type { ShutdownReason } from '../../../contracts/shutdown-reason/shutdown-reason-contract';
 
@@ -35,7 +34,7 @@ export const shutdownReasonWriteBroker = async ({
 
   const marker = shutdownReasonContract.parse({
     reason,
-    atMs: epochMsContract.parse(Date.now()),
+    atMs: Date.now(),
   });
 
   const contents = `${JSON.stringify(marker)}\n`;

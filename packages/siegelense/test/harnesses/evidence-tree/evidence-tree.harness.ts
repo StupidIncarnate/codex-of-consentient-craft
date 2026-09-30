@@ -59,7 +59,6 @@ import { resultsReadBroker } from '../../../src/brokers/results/read/results-rea
 import { shotBlankReadBroker } from '../../../src/brokers/shot/blank-read/shot-blank-read-broker';
 import { shotChangeReadBroker } from '../../../src/brokers/shot/change-read/shot-change-read-broker';
 import { statusReadBroker } from '../../../src/brokers/status/read/status-read-broker';
-import { EpochMsStub } from '../../../src/contracts/epoch-ms/epoch-ms.stub';
 import { InstanceHeartbeatStub } from '../../../src/contracts/instance-heartbeat/instance-heartbeat.stub';
 import { InstanceIdStub } from '../../../src/contracts/instance-id/instance-id.stub';
 import { InstanceOwnerStub } from '../../../src/contracts/instance-owner/instance-owner.stub';
@@ -327,8 +326,8 @@ export const evidenceTreeHarness = (): {
         blank: true,
         blankColour: BLANK_HEX,
         serverWindow: serverLog.step1Window,
-        startedAtMs: EpochMsStub({ value: 1_700_000_000_000 }),
-        endedAtMs: EpochMsStub({ value: 1_700_000_000_100 }),
+        startedAtMs: 1_700_000_000_000,
+        endedAtMs: 1_700_000_000_100,
       }),
       StepReadingStub({
         step: StepIndexStub({ value: 2 }),
@@ -342,8 +341,8 @@ export const evidenceTreeHarness = (): {
         blank: null,
         blankColour: null,
         serverWindow: serverLog.step2Window,
-        startedAtMs: EpochMsStub({ value: 1_700_000_000_100 }),
-        endedAtMs: EpochMsStub({ value: 1_700_000_000_200 }),
+        startedAtMs: 1_700_000_000_100,
+        endedAtMs: 1_700_000_000_200,
       }),
       StepReadingStub({
         step: StepIndexStub({ value: 3 }),
@@ -357,8 +356,8 @@ export const evidenceTreeHarness = (): {
         blank: null,
         blankColour: null,
         serverWindow: serverLog.step3Window,
-        startedAtMs: EpochMsStub({ value: 1_700_000_000_200 }),
-        endedAtMs: EpochMsStub({ value: 1_700_000_000_300 }),
+        startedAtMs: 1_700_000_000_200,
+        endedAtMs: 1_700_000_000_300,
       }),
     ];
   };
@@ -378,8 +377,8 @@ export const evidenceTreeHarness = (): {
         blank: false,
         blankColour: null,
         serverWindow: serverLog.run2Window,
-        startedAtMs: EpochMsStub({ value: 1_700_000_001_000 }),
-        endedAtMs: EpochMsStub({ value: 1_700_000_001_100 }),
+        startedAtMs: 1_700_000_001_000,
+        endedAtMs: 1_700_000_001_100,
       }),
     ];
   };
@@ -447,7 +446,7 @@ export const evidenceTreeHarness = (): {
       socketPath: null,
       ports: PortPairStub({ api: 40_001, web: 40_002 }),
       state: 'killed',
-      reservedAtMs: EpochMsStub({ value: Date.now() - 600_000 }),
+      reservedAtMs: (Date.now() - 600_000),
       bootedAtMs: null,
       lastBeatMs: null,
       prunedAtMs: null,
@@ -465,7 +464,7 @@ export const evidenceTreeHarness = (): {
       socketPath: null,
       ports: PortPairStub({ api: 40_011, web: 40_012 }),
       state: 'alive',
-      reservedAtMs: EpochMsStub(),
+      reservedAtMs: 1,
       bootedAtMs: Date.now() - 120_000,
       lastBeatMs: Date.now() - 2_000,
       prunedAtMs: null,
@@ -485,7 +484,7 @@ export const evidenceTreeHarness = (): {
       instanceId: KILLED_INSTANCE_ID,
       pid: ProcessIdStub(),
       pgids: [],
-      beatAtMs: EpochMsStub(),
+      beatAtMs: 1,
       rssMB: 1_840,
     });
     writeFileSync(
@@ -591,7 +590,7 @@ export const evidenceTreeHarness = (): {
       instanceId: STALE_INSTANCE_ID,
       pid: ProcessIdStub(),
       pgids: [stalePgid],
-      beatAtMs: EpochMsStub(),
+      beatAtMs: 1,
       rssMB: null,
     });
     writeFileSync(
@@ -612,7 +611,7 @@ export const evidenceTreeHarness = (): {
       socketPath: `${evidenceDir}/x.sock`,
       ports: PortPairStub({ api: 40_021, web: 40_022 }),
       state: 'alive',
-      reservedAtMs: EpochMsStub(),
+      reservedAtMs: 1,
       bootedAtMs: Date.now() - 600_000,
       lastBeatMs: Date.now() - STALE_LAST_BEAT_MS_AGO,
       prunedAtMs: null,

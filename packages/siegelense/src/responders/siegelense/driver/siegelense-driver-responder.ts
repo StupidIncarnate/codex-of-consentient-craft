@@ -49,10 +49,10 @@ import { locationsInstanceHomePathFindBroker } from '../../../brokers/locations/
 import { locationsSocketPathFindBroker } from '../../../brokers/locations/socket-path-find/locations-socket-path-find-broker';
 import { registryReadBroker } from '../../../brokers/registry/read/registry-read-broker';
 import { registryUpdateBroker } from '../../../brokers/registry/update/registry-update-broker';
-import { epochMsContract } from '../../../contracts/epoch-ms/epoch-ms-contract';
 import type { LaneSession } from '../../../contracts/lane-session/lane-session-contract';
 import { InstanceUnknownError } from '../../../errors/instance-unknown/instance-unknown-error';
 import { DriverServeLayerResponder } from './driver-serve-layer-responder';
+import { registryContract } from '../../../contracts/registry/registry-contract';
 
 export const SiegelenseDriverResponder = async ({
   instanceId,
@@ -126,19 +126,19 @@ export const SiegelenseDriverResponder = async ({
   const socketPath = locationsSocketPathFindBroker({ instanceId });
 
   await registryUpdateBroker({
-    mutate: (current) => ({
+    mutate: (current) => (registryContract.parse({
       instances: current.instances.map((row) =>
         row.id === instanceId
           ? {
               ...row,
-              bootedAtMs: epochMsContract.parse(Date.now()),
+              bootedAtMs: Date.now(),
               pid: processIdContract.parse(String(getPid())),
               pgids: lane.pgids,
               socketPath,
             }
           : row,
       ),
-    }),
+    })),
   });
 
   await bootLockReleaseBroker({ instanceId });

@@ -2,7 +2,6 @@ import type { DirEntrySync } from '#gateway/node/fs';
 import { FsErrorStub } from '#gateway/node/fs/is-fs-error/fs-error.stub';
 import { FileNameStub } from '@dungeonmaster/shared/contracts/file-name/file-name.stub';
 
-import { EpochMsStub } from '../../../contracts/epoch-ms/epoch-ms.stub';
 import { FileSizeBytesStub } from '../../../contracts/file-size-bytes/file-size-bytes.stub';
 import { snapshotRestoreLayerBroker } from './snapshot-restore-layer-broker';
 import { snapshotRestoreLayerBrokerProxy } from './snapshot-restore-layer-broker.proxy';
@@ -29,7 +28,7 @@ describe('snapshotRestoreLayerBroker', () => {
     const filePathHome = `${String(homePath)}/${String(fileName)}`;
     const filePathPayload = `${String(payloadPath)}/${String(fileName)}`;
     const sizeBytes = FileSizeBytesStub({ value: 256 });
-    const modifiedAtMs = EpochMsStub({ value: 1700000000000 });
+    const modifiedAtMs = 1700000000000;
 
     proxy.setupDirectories({
       dirs: [
@@ -83,11 +82,11 @@ describe('snapshotRestoreLayerBroker', () => {
     // exactly the shape `snapshot` immediately followed by `reset level: 'state'` produces on disk.
     proxy.setupFileStats({
       stats: [
-        { filePath: filePathHome, sizeBytes, modifiedAtMs: EpochMsStub({ value: 1700000000000 }) },
+        { filePath: filePathHome, sizeBytes, modifiedAtMs: 1700000000000 },
         {
           filePath: filePathPayload,
           sizeBytes,
-          modifiedAtMs: EpochMsStub({ value: 1700000005000 }),
+          modifiedAtMs: 1700000005000,
         },
       ],
     });
@@ -127,11 +126,11 @@ describe('snapshotRestoreLayerBroker', () => {
     });
     proxy.setupFileStats({
       stats: [
-        { filePath: filePathHome, sizeBytes, modifiedAtMs: EpochMsStub({ value: 1700000000000 }) },
+        { filePath: filePathHome, sizeBytes, modifiedAtMs: 1700000000000 },
         {
           filePath: filePathPayload,
           sizeBytes,
-          modifiedAtMs: EpochMsStub({ value: 1700000000000 }),
+          modifiedAtMs: 1700000000000,
         },
       ],
     });
@@ -164,7 +163,7 @@ describe('snapshotRestoreLayerBroker', () => {
     const existingFilePathHome = `${String(homePath)}/${String(existingFileName)}`;
     const existingFilePathPayload = `${String(payloadPath)}/${String(existingFileName)}`;
     const sizeBytes = FileSizeBytesStub({ value: 100 });
-    const modifiedAtMs = EpochMsStub({ value: 1700000000000 });
+    const modifiedAtMs = 1700000000000;
 
     proxy.setupDirectories({
       dirs: [
@@ -233,17 +232,17 @@ describe('snapshotRestoreLayerBroker', () => {
         {
           filePath: modifiedHome,
           sizeBytes: FileSizeBytesStub({ value: 50 }),
-          modifiedAtMs: EpochMsStub({ value: 1700000000000 }),
+          modifiedAtMs: 1700000000000,
         },
         {
           filePath: modifiedPayload,
           sizeBytes: FileSizeBytesStub({ value: 100 }),
-          modifiedAtMs: EpochMsStub({ value: 1700000000000 }),
+          modifiedAtMs: 1700000000000,
         },
         {
           filePath: removedPayload,
           sizeBytes: FileSizeBytesStub({ value: 200 }),
-          modifiedAtMs: EpochMsStub({ value: 1700000000000 }),
+          modifiedAtMs: 1700000000000,
         },
       ],
     });
@@ -269,7 +268,7 @@ describe('snapshotRestoreLayerBroker', () => {
     const homeFilePath = `${String(homePath)}/${String(fileName)}`;
     const payloadFilePath = `${String(payloadPath)}/${String(fileName)}`;
     const sizeBytes = FileSizeBytesStub({ value: 500 });
-    const modifiedAtMs = EpochMsStub({ value: 1700000000000 });
+    const modifiedAtMs = 1700000000000;
 
     proxy.setupDirectories({
       dirs: [
@@ -324,7 +323,7 @@ describe('snapshotRestoreLayerBroker', () => {
         {
           filePath: `${String(payloadPath)}/${String(firstName)}`,
           sizeBytes: FileSizeBytesStub({ value: 100 }),
-          modifiedAtMs: EpochMsStub({ value: 1700000000000 }),
+          modifiedAtMs: 1700000000000,
         },
       ],
     });

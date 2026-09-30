@@ -1,6 +1,5 @@
 
 import { BootFailureMarkerStub } from '../../../contracts/boot-failure-marker/boot-failure-marker.stub';
-import { EpochMsStub } from '../../../contracts/epoch-ms/epoch-ms.stub';
 
 import { bootFailureMarkerWriteBroker } from './boot-failure-marker-write-broker';
 import { bootFailureMarkerWriteBrokerProxy } from './boot-failure-marker-write-broker.proxy';
@@ -18,7 +17,7 @@ describe('bootFailureMarkerWriteBroker', () => {
 
       const expectedMarker = BootFailureMarkerStub({
         message,
-        atMs: EpochMsStub({ value: nowMs }),
+        atMs: nowMs,
       });
 
       expect(result).toStrictEqual(expectedMarker);

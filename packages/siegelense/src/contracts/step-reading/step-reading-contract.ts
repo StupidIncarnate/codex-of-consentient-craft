@@ -40,7 +40,6 @@ import { z } from '#gateway/npm/zod';
 import { absoluteFilePathContract } from '@dungeonmaster/shared/contracts';
 
 import { elementDeltaContract } from '../element-delta/element-delta-contract';
-import { epochMsContract } from '../epoch-ms/epoch-ms-contract';
 import { hexColourContract } from '../hex-colour/hex-colour-contract';
 import { keyListingContract } from '../key-listing/key-listing-contract';
 import { nodeLabelContract } from '../node-label/node-label-contract';
@@ -64,8 +63,8 @@ export const stepReadingContract = z.object({
   previousReading: keyListingContract.nullable().default(null),
   delta: elementDeltaContract.nullable().default(null),
   serverWindow: serverLogWindowContract,
-  startedAtMs: epochMsContract,
-  endedAtMs: epochMsContract,
+  startedAtMs: z.number().int().nonnegative().brand<'StepReadingStartedAtMs'>(),
+  endedAtMs: z.number().int().nonnegative().brand<'StepReadingEndedAtMs'>(),
 });
 
 export type StepReading = z.infer<typeof stepReadingContract>;

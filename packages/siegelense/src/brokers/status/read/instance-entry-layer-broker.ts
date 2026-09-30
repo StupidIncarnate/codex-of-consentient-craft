@@ -36,8 +36,6 @@ import { locationsStatics } from '@dungeonmaster/shared/statics';
 
 import { readdirIfExists, readFile, statIfExists } from '#gateway/node/fs__promises';
 import { shutdownReasonReadBroker } from '../../shutdown-reason/read/shutdown-reason-read-broker';
-import { epochMsContract } from '../../../contracts/epoch-ms/epoch-ms-contract';
-import type { EpochMs } from '../../../contracts/epoch-ms/epoch-ms-contract';
 import { instanceEvidenceListingContract } from '../../../contracts/instance-evidence-listing/instance-evidence-listing-contract';
 import { instanceStatusContract } from '../../../contracts/instance-status/instance-status-contract';
 import type { InstanceStatus } from '../../../contracts/instance-status/instance-status-contract';
@@ -68,7 +66,7 @@ export const instanceEntryLayerBroker = async ({
   entry: RegistryEntry;
   state: InstanceState;
   named: boolean;
-  nowMs: EpochMs;
+  nowMs: number;
   oomKillsSinceBoot: ReadingCount | null;
 }): Promise<InstanceStatus> => {
   const evidenceDir = locationsInstanceEvidencePathFindBroker({
@@ -99,13 +97,13 @@ export const instanceEntryLayerBroker = async ({
 
   const uptime =
     state === 'alive' && entry.bootedAtMs !== null
-      ? elapsedRenderTransformer({ elapsedMs: epochMsContract.parse(nowMs - entry.bootedAtMs) })
+      ? elapsedRenderTransformer({ elapsedMs: (nowMs - entry.bootedAtMs) })
       : null;
 
   const lastBeat =
     entry.lastBeatMs === null
       ? null
-      : elapsedRenderTransformer({ elapsedMs: epochMsContract.parse(nowMs - entry.lastBeatMs) });
+      : elapsedRenderTransformer({ elapsedMs: (nowMs - entry.lastBeatMs) });
 
   const rssAtLastBeat = state === 'alive' ? null : (heartbeat?.rssMB ?? null);
 
