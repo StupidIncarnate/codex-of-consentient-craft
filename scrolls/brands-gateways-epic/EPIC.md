@@ -179,7 +179,21 @@ process, 16G heap); the R7 rule crashed on a tuple leaf (39101c111, its parent w
   (concession 25), or they re-demand what was removed; the pre-edit hook enforces them on new edits today.
   B0003 rewrote `require-contract-validation`'s path check as `startsWith('/' | './' | '../')`, a guess at the
   deleted `filePathContract`: re-check it in the lint stage.
-- Next: ward typecheck + unit over the whole repo, then unit fixer rounds.
+- Unit (ward 1790758329010-05c9): 66 of 4,098 files red, mostly INVALID tests that stopped throwing because the
+  standalone brands that carried a check were deleted. c1e1ae7a4 (19 agents) put each check back in the owning
+  contract field; 0bb52a52c fixed the last `contract.parse(promise)` a script left (missing `await`;
+  `bigbang/promise-parse-scan.cjs` finds 0 now). Ward 1790759435398-543c: typecheck and unit green.
+- Lint (ward 1790759724422-55df): 1,530 errors, 1,429 of them `no-unnecessary-type-conversion` (`String(x)` where
+  x is plain now); f1fa88ef9 applied ESLint's suggestions by script (`bigbang/apply-suggestions.cjs`, 1,410) plus
+  ward's `--fix` formatting. 45ad2ccca (31 agents), c76fe799e (3 opus), b95fb0fd2, 486e1d2b3: **typecheck, unit
+  and lint green repo-wide** (ward 1790763698559-1046 plus the harness fix).
+- `@gateway/node`'s `dynamicImportProxy` gained `loadsReal({ path })`, a path-addressed real load, used by testing's
+  modules-isolate middleware proxy.
+- Integration (ward 1790764221906-5e38): 16 of 226 files red (hooks 41 errors, siegelense 14, cli 3,
+  eslint-plugin 2, mcp 2, testing 1, browser 1). Opus round in flight, one agent per package (hooks with
+  eslint-plugin, since hooks' integration runs the real rules).
+- Then: R2/R7 learn concession 25; web e2e with opus fixers; full bare ward; `build:clean`, `check:consumer`,
+  `check:published`; the scripts made portable for assayer.
 
 **After segment C (user, 2026-09-29 20:55): make the scripts portable and commit them.** The user will run the same
 migration on `/home/brutus-home/projects/assayer` (npm workspaces, packages `app`, `cli`, `core`, `desktop`,
