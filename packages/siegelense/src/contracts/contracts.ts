@@ -82,7 +82,6 @@ export * from './orphan-reading/orphan-reading-contract';
 
 export * from './status-answer/status-answer-contract';
 
-export * from './pixel-count/pixel-count-contract';
 
 export * from './cleanup-answer/cleanup-answer-contract';
 

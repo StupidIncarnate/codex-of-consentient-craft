@@ -1,7 +1,6 @@
 import type { StubArgument } from '@dungeonmaster/shared/@types';
 
 import { PixelCoordinateStub } from '../pixel-coordinate/pixel-coordinate.stub';
-import { PixelCountStub } from '../pixel-count/pixel-count.stub';
 import { RefStub } from '../ref/ref.stub';
 import { boxReadingContract } from './box-reading-contract';
 import type { BoxReading } from './box-reading-contract';
@@ -11,11 +10,11 @@ export const BoxReadingStub = ({ ...props }: StubArgument<BoxReading> = {}): Box
     ref: RefStub({ value: 26 }),
     x: PixelCoordinateStub({ value: 607 }),
     y: PixelCoordinateStub({ value: 472 }),
-    width: PixelCountStub({ value: 66 }),
-    height: PixelCountStub({ value: 27 }),
+    width: 66,
+    height: 27,
     viewport: {
-      width: PixelCountStub({ value: 1280 }),
-      height: PixelCountStub({ value: 720 }),
+      width: 1280,
+      height: 720,
     },
     visible: true,
     inViewport: true,

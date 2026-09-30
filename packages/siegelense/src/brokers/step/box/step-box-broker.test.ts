@@ -1,6 +1,5 @@
 import { BoxReadingStub } from '../../../contracts/box-reading/box-reading.stub';
 import { PixelCoordinateStub } from '../../../contracts/pixel-coordinate/pixel-coordinate.stub';
-import { PixelCountStub } from '../../../contracts/pixel-count/pixel-count.stub';
 import { RefStub } from '../../../contracts/ref/ref.stub';
 import { stepBoxBroker } from './step-box-broker';
 import { stepBoxBrokerProxy } from './step-box-broker.proxy';
@@ -12,11 +11,11 @@ describe('stepBoxBroker', () => {
       ref: RefStub({ value: 26 }),
       x: PixelCoordinateStub({ value: 607 }),
       y: PixelCoordinateStub({ value: 472 }),
-      width: PixelCountStub({ value: 66 }),
-      height: PixelCountStub({ value: 27 }),
+      width: 66,
+      height: 27,
       viewport: {
-        width: PixelCountStub({ value: 1280 }),
-        height: PixelCountStub({ value: 720 }),
+        width: 1280,
+        height: 720,
       },
       visible: true,
       inViewport: true,
