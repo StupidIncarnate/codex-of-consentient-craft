@@ -131,8 +131,9 @@ More rules for the operator:
 
 ### Now (updated at every event; last 2026-09-30 12:50)
 
-| Running (1, in merge worktree W) | Owns |
+| Running (2, in merge worktree W) | Owns |
 |---|---|
+| merge round 2: server and orchestrator (opus) | `StartOrchestratorProxy` addGuild/updateGuild read-backs, DEF-136/137 never-called assertions back, request-log flow on `#gateway/npm/hono` |
 | merge fix: siegelense brokers A (opus) | `brokers/{lane,served-build,instance,browser-session}` |
 
 Every fixer follows `merge-master/FIXER-BRIEF.md`: keep master's DEF behaviour, restore pivot edits from `lost-ours`,
