@@ -7,7 +7,6 @@
 
 import { GuildIdStub } from '@dungeonmaster/shared/contracts/guild-id/guild-id.stub';
 import { GuildListItemStub } from '@dungeonmaster/shared/contracts/guild-list-item/guild-list-item.stub';
-import { QuestBranchNameStub } from '@dungeonmaster/shared/contracts/quest-branch-name/quest-branch-name.stub';
 import { QuestIdStub } from '@dungeonmaster/shared/contracts/quest-id/quest-id.stub';
 import { QuestStub } from '@dungeonmaster/shared/contracts/quest/quest.stub';
 import { WorkItemStub } from '@dungeonmaster/shared/contracts/work-item/work-item.stub';
@@ -614,7 +613,7 @@ describe('RecoverGuildLayerResponder', () => {
       const guildId = GuildIdStub({ value: '16692911-4a9a-799a-9c35-e3ad9a3e2ab9' });
       const guildPath = '/home/user/test-guild';
       const questId = QuestIdStub({ value: 'quest-drifted-branch' });
-      const branchName = QuestBranchNameStub({ value: 'quest/drifted-branch-quest-drifted-b' });
+      const branchName = 'quest/drifted-branch-quest-drifted-b';
       const worktreePath = '/repo/worktrees/drifted-branch-quest';
       const quest = QuestStub({
         id: questId,
@@ -655,7 +654,7 @@ describe('RecoverGuildLayerResponder', () => {
       const guildId = GuildIdStub({ value: '16692911-4a9a-799a-9c35-e3ad9a3e2ab9' });
       const guildPath = '/home/user/test-guild';
       const questId = QuestIdStub({ value: 'quest-drifted-restore-fails' });
-      const branchName = QuestBranchNameStub({ value: 'quest/drifted-restore-fails-d1e2f3a4' });
+      const branchName = 'quest/drifted-restore-fails-d1e2f3a4';
       const worktreePath = '/repo/worktrees/drifted-restore-fails-quest';
       const quest = QuestStub({
         id: questId,

@@ -10,7 +10,7 @@
 import { stderrProxy } from '#gateway/node/process/stderr/stderr.proxy';
 import { randomUUID } from '#gateway/node/crypto';
 import { GuildStub } from '@dungeonmaster/shared/contracts/guild/guild.stub';
-import type { ProcessId, QuestBranchName, Guild } from '@dungeonmaster/shared/contracts';
+import type { ProcessId, Guild } from '@dungeonmaster/shared/contracts';
 import type { QuestStub } from '@dungeonmaster/shared/contracts/quest/quest.stub';
 import {
   registerMock,
@@ -85,7 +85,7 @@ export const RecoverGuildLayerResponderProxy = (): {
   setupWorktreeDrifted: (params: {
     quest: Quest;
     worktreePath: string;
-    branchName: QuestBranchName;
+    branchName: string;
     currentBranchName: string;
   }) => void;
   // Same drift setup as setupWorktreeDrifted, but the checkout itself fails — proves the sweep
@@ -93,7 +93,7 @@ export const RecoverGuildLayerResponderProxy = (): {
   setupWorktreeRestoreFails: (params: {
     quest: Quest;
     worktreePath: string;
-    branchName: QuestBranchName;
+    branchName: string;
     currentBranchName: string;
     output: string;
   }) => void;
@@ -214,7 +214,7 @@ export const RecoverGuildLayerResponderProxy = (): {
     }: {
       quest: Quest;
       worktreePath: string;
-      branchName: QuestBranchName;
+      branchName: string;
       currentBranchName: string;
     }): void => {
       cwdResolveMock.onceFor([{ questId: quest.id }]).resolves(
@@ -239,7 +239,7 @@ export const RecoverGuildLayerResponderProxy = (): {
     }: {
       quest: Quest;
       worktreePath: string;
-      branchName: QuestBranchName;
+      branchName: string;
       currentBranchName: string;
       output: string;
     }): void => {
@@ -304,7 +304,7 @@ export const RecoverGuildLayerResponderProxy = (): {
     // The exact {worktreePath, branchName} the shared restore step was handed for this sweep.
     getWorktreeRestoreCalls: (): readonly unknown[] =>
       worktreeRestoreMock.callsMatching([]).map((call) => {
-        const [params] = call as [{ worktreePath: string; branchName: QuestBranchName }];
+        const [params] = call as [{ worktreePath: string; branchName: string }];
         return params;
       }),
 

@@ -1,6 +1,5 @@
 import { installTestbedCreateBroker } from '@dungeonmaster/testing';
 import { OperationItemStub } from '@dungeonmaster/shared/contracts/operation-item/operation-item.stub';
-import { QuestBranchNameStub } from '@dungeonmaster/shared/contracts/quest-branch-name/quest-branch-name.stub';
 import { QuestIdStub } from '@dungeonmaster/shared/contracts/quest-id/quest-id.stub';
 import { QuestStub } from '@dungeonmaster/shared/contracts/quest/quest.stub';
 import { QuestTitleStub } from '@dungeonmaster/shared/contracts/quest-title/quest-title.stub';
@@ -110,7 +109,7 @@ describe('OrchestrationStartResponder (integration) — real quest.json + real g
         id: questId,
         folder: '001-startable-counterexample',
         status: 'approved',
-        branchName: QuestBranchNameStub({ value: 'quest/already-recorded-aaaaaaaa' }),
+        branchName: 'quest/already-recorded-aaaaaaaa',
         worktreePath: '/tmp/already-recorded-worktree',
         operations: [OperationItemStub({ role: 'ward', status: 'pending', locked: true })],
       });

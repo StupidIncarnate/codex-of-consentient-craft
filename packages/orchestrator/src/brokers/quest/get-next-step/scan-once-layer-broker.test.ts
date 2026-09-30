@@ -2,7 +2,6 @@ import { GuildIdStub } from '@dungeonmaster/shared/contracts/guild-id/guild-id.s
 import { GuildListItemStub } from '@dungeonmaster/shared/contracts/guild-list-item/guild-list-item.stub';
 import { OperationItemIdStub } from '@dungeonmaster/shared/contracts/operation-item-id/operation-item-id.stub';
 import { OperationItemStub } from '@dungeonmaster/shared/contracts/operation-item/operation-item.stub';
-import { QuestBranchNameStub } from '@dungeonmaster/shared/contracts/quest-branch-name/quest-branch-name.stub';
 import { QuestIdStub } from '@dungeonmaster/shared/contracts/quest-id/quest-id.stub';
 import { QuestStub } from '@dungeonmaster/shared/contracts/quest/quest.stub';
 import { QuestWorkItemIdStub } from '@dungeonmaster/shared/contracts/quest-work-item-id/quest-work-item-id.stub';
@@ -825,7 +824,7 @@ describe('scanOnceLayerBroker', () => {
       const guildItem = GuildListItemStub({ id: guildId, valid: true });
       const questId = QuestIdStub({ value: 'q-scan-drift-restore' });
       const cwId = QuestWorkItemIdStub({ value: 'a1b2c3d4-1111-4222-9333-444444444444' });
-      const branchName = QuestBranchNameStub({ value: 'quest/scan-drift-restore-a1b2c3d4' });
+      const branchName = 'quest/scan-drift-restore-a1b2c3d4';
       const worktreePath = '/repo/worktrees/scan-drift-restore-a1b2c3d4';
       const quest = QuestStub({
         id: questId,
@@ -896,7 +895,7 @@ describe('scanOnceLayerBroker', () => {
       const guildItem = GuildListItemStub({ id: guildId, valid: true });
       const questId = QuestIdStub({ value: 'q-scan-on-branch' });
       const cwId = QuestWorkItemIdStub({ value: 'b2c3d4e5-1111-4222-9333-444444444444' });
-      const branchName = QuestBranchNameStub({ value: 'quest/scan-on-branch-b2c3d4e5' });
+      const branchName = 'quest/scan-on-branch-b2c3d4e5';
       const worktreePath = '/repo/worktrees/scan-on-branch-b2c3d4e5';
       const quest = QuestStub({
         id: questId,
@@ -954,9 +953,7 @@ describe('scanOnceLayerBroker', () => {
       // Hostile fixture member (FIXTURE REQUIREMENTS), kept to what git will actually accept as a
       // ref: non-ASCII plus the punctuation `git check-ref-format` allows mid-segment. The PATH
       // carries the spaces and parentheses, and is far longer than any happy-path fixture.
-      const branchName = QuestBranchNameStub({
-        value: 'quest/ütf8-ünïcode+dots.and_underscores-ff00ff00',
-      });
+      const branchName = 'quest/ütf8-ünïcode+dots.and_underscores-ff00ff00';
       const longWorktreeValue = `/repo/worktrees/${'deeply-nested-segment/'.repeat(12)}ütf8 quest (dir)-ff00ff00`;
       const worktreePath = longWorktreeValue;
       const quest = QuestStub({
@@ -1000,7 +997,7 @@ describe('scanOnceLayerBroker', () => {
       const guildItem = GuildListItemStub({ id: guildId, valid: true });
       const questId = QuestIdStub({ value: 'q-scan-restore-fails' });
       const cwId = QuestWorkItemIdStub({ value: 'd4e5f6a7-1111-4222-9333-444444444444' });
-      const branchName = QuestBranchNameStub({ value: 'quest/scan-restore-fails-d4e5f6a7' });
+      const branchName = 'quest/scan-restore-fails-d4e5f6a7';
       const worktreePath = '/repo/worktrees/scan-restore-fails-d4e5f6a7';
       const output =
         "error: pathspec 'quest/scan-restore-fails-d4e5f6a7' did not match any file(s) known to git";

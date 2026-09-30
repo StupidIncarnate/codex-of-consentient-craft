@@ -17,7 +17,7 @@
  */
 
 import { cwdResolveBroker, locationsWorktreePathFindBroker } from '@dungeonmaster/shared/brokers';
-import { fileNameContract, questBranchNameContract } from '@dungeonmaster/shared/contracts';
+import { fileNameContract } from '@dungeonmaster/shared/contracts';
 import { pathExists } from '#gateway/node/fs__promises';
 import { cwd } from '#gateway/node/process';
 
@@ -51,7 +51,7 @@ export const WorktreeCreateResponder = async ({
     await worktreePrepareBroker({
       repoRoot,
       worktreePath,
-      branchName: questBranchNameContract.parse(name),
+      branchName: name,
       baseBranch,
     });
   }

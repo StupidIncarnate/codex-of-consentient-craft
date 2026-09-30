@@ -1,6 +1,5 @@
 import { checkoutProxy } from '#gateway/bin/git/checkout/checkout.proxy';
 import { currentBranchProxy } from '#gateway/bin/git/current-branch/current-branch.proxy';
-import type { QuestBranchName } from '@dungeonmaster/shared/contracts';
 
 const extractArgs = (call: readonly unknown[]): readonly unknown[] => {
   const [first] = call;
@@ -11,14 +10,14 @@ const extractArgs = (call: readonly unknown[]): readonly unknown[] => {
 };
 
 export const worktreeResumeRestoreBrokerProxy = (): {
-  setupOnBranch: (params: { branchName: QuestBranchName }) => void;
+  setupOnBranch: (params: { branchName: string }) => void;
   setupDrifted: (params: { currentBranchName: string }) => void;
   setupDetachedHead: () => void;
   setupRevParseFails: (params: { output: string }) => void;
-  setupCheckoutSucceeds: (params: { branchName: QuestBranchName }) => void;
-  setupCheckoutFails: (params: { branchName: QuestBranchName; output: string }) => void;
+  setupCheckoutSucceeds: (params: { branchName: string }) => void;
+  setupCheckoutFails: (params: { branchName: string; output: string }) => void;
   setupBranchWithTrailingWarning: (params: {
-    branchName: QuestBranchName;
+    branchName: string;
     warning: string;
   }) => void;
   getSpawnedArgsList: () => readonly unknown[];
@@ -27,7 +26,7 @@ export const worktreeResumeRestoreBrokerProxy = (): {
   const checkout = checkoutProxy();
 
   return {
-    setupOnBranch: ({ branchName }: { branchName: QuestBranchName }): void => {
+    setupOnBranch: ({ branchName }: { branchName: string }): void => {
       currentBranch.setupBranch({ branch: String(branchName) });
     },
 
@@ -43,7 +42,7 @@ export const worktreeResumeRestoreBrokerProxy = (): {
       currentBranch.setupFailure({ exitCode: 128, output });
     },
 
-    setupCheckoutSucceeds: ({ branchName }: { branchName: QuestBranchName }): void => {
+    setupCheckoutSucceeds: ({ branchName }: { branchName: string }): void => {
       checkout.setupResult({ branchName: String(branchName), exitCode: 0, output: '' });
     },
 
@@ -51,7 +50,7 @@ export const worktreeResumeRestoreBrokerProxy = (): {
       branchName,
       output,
     }: {
-      branchName: QuestBranchName;
+      branchName: string;
       output: string;
     }): void => {
       checkout.setupResult({ branchName: String(branchName), exitCode: 128, output });
@@ -61,7 +60,7 @@ export const worktreeResumeRestoreBrokerProxy = (): {
       branchName,
       warning,
     }: {
-      branchName: QuestBranchName;
+      branchName: string;
       warning: string;
     }): void => {
       currentBranch.setupBranch({ branch: `${String(branchName)}\n${warning}` });

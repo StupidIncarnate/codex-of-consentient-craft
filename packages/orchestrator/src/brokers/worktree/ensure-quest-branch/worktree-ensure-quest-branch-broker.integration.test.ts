@@ -1,5 +1,4 @@
 import { installTestbedCreateBroker } from '@dungeonmaster/testing';
-import { QuestBranchNameStub } from '@dungeonmaster/shared/contracts/quest-branch-name/quest-branch-name.stub';
 import { QuestIdStub } from '@dungeonmaster/shared/contracts/quest-id/quest-id.stub';
 import { QuestStub } from '@dungeonmaster/shared/contracts/quest/quest.stub';
 
@@ -29,7 +28,7 @@ describe('worktreeEnsureQuestBranchBroker (integration) — real drift restore a
 
     const worktreeValue = `${testbed.guildPath}/worktrees/weqb-drift-11112222`;
     const worktreePath = worktreeValue;
-    const branchName = QuestBranchNameStub({ value: 'quest/weqb-drift-11112222' });
+    const branchName = 'quest/weqb-drift-11112222';
     await worktreeAdd({
       cwd: repoPath,
       worktreePath,
@@ -84,7 +83,7 @@ describe('worktreeEnsureQuestBranchBroker (integration) — real drift restore a
 
     const worktreeValue = `${testbed.guildPath}/worktrees/weqb-skip-33334444`;
     const worktreePath = worktreeValue;
-    const branchName = QuestBranchNameStub({ value: 'quest/weqb-skip-33334444' });
+    const branchName = 'quest/weqb-skip-33334444';
     await worktreeAdd({
       cwd: repoPath,
       worktreePath,
@@ -136,9 +135,7 @@ describe('worktreeEnsureQuestBranchBroker (integration) — real drift restore a
     // Hostile fixture member, kept to what git will actually accept as a ref: non-ASCII plus the
     // punctuation `git check-ref-format` allows mid-segment. The DIRECTORY carries the spaces and
     // parentheses instead, so both the cwd and the branch argument have to survive argv unquoted.
-    const branchName = QuestBranchNameStub({
-      value: 'quest/ütf8-ünïcode+dots.and_underscores-55556666',
-    });
+    const branchName = 'quest/ütf8-ünïcode+dots.and_underscores-55556666';
     await worktreeAdd({
       cwd: repoPath,
       worktreePath,

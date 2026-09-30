@@ -1,4 +1,3 @@
-import { QuestBranchNameStub } from '@dungeonmaster/shared/contracts/quest-branch-name/quest-branch-name.stub';
 import { QuestIdStub } from '@dungeonmaster/shared/contracts/quest-id/quest-id.stub';
 import { QuestStub } from '@dungeonmaster/shared/contracts/quest/quest.stub';
 
@@ -12,7 +11,7 @@ describe('worktreeEnsureQuestBranchBroker', () => {
   describe('worktree present, quest carries a branch name', () => {
     it('VALID: {worktree drifted onto another branch} => checks the quest branch back out and reports it restored', async () => {
       const proxy = worktreeEnsureQuestBranchBrokerProxy();
-      const branchName = QuestBranchNameStub({ value: 'quest/ensure-drift-11112222' });
+      const branchName = 'quest/ensure-drift-11112222';
       const trigger = 'dispatch-scan';
       const quest = QuestStub({
         id: QuestIdStub({ value: 'ensure-drift' }),
@@ -47,7 +46,7 @@ describe('worktreeEnsureQuestBranchBroker', () => {
 
     it('VALID: {worktree already on the quest branch} => probes the branch once and runs no checkout', async () => {
       const proxy = worktreeEnsureQuestBranchBrokerProxy();
-      const branchName = QuestBranchNameStub({ value: 'quest/ensure-on-branch-33334444' });
+      const branchName = 'quest/ensure-on-branch-33334444';
       const trigger = 'orchestration-resume';
       const quest = QuestStub({
         id: QuestIdStub({ value: 'ensure-on-branch' }),
@@ -78,7 +77,7 @@ describe('worktreeEnsureQuestBranchBroker', () => {
 
     it('ERROR: {git rev-parse itself exits non-zero} => reports restored false and never reaches a checkout', async () => {
       const proxy = worktreeEnsureQuestBranchBrokerProxy();
-      const branchName = QuestBranchNameStub({ value: 'quest/ensure-revparse-fail-bbbbcccc' });
+      const branchName = 'quest/ensure-revparse-fail-bbbbcccc';
       const trigger = 'recover-guild-layer-responder';
       const questId = QuestIdStub({ value: 'ensure-revparse-fail' });
       const quest = QuestStub({
@@ -119,7 +118,7 @@ describe('worktreeEnsureQuestBranchBroker', () => {
   describe.each(questResumeTriggerStatics.triggers)('trigger: %s', (triggerValue) => {
     it('ERROR: {drifted worktree, checkout exits non-zero} => reports restored false and logs under this triggers own prefix', async () => {
       const proxy = worktreeEnsureQuestBranchBrokerProxy();
-      const branchName = QuestBranchNameStub({ value: 'quest/ensure-fail-55556666' });
+      const branchName = 'quest/ensure-fail-55556666';
       const trigger = QuestResumeTriggerStub({ value: triggerValue });
       const questId = QuestIdStub({ value: `ensure-fail-${triggerValue}` });
       const quest = QuestStub({
@@ -163,7 +162,7 @@ describe('worktreeEnsureQuestBranchBroker', () => {
       const proxy = worktreeEnsureQuestBranchBrokerProxy();
       const quest = QuestStub({
         id: QuestIdStub({ value: 'ensure-repo-root' }),
-        branchName: QuestBranchNameStub({ value: 'quest/ensure-repo-root-77778888' }),
+        branchName: 'quest/ensure-repo-root-77778888',
       });
 
       const result = await worktreeEnsureQuestBranchBroker({
@@ -204,7 +203,7 @@ describe('worktreeEnsureQuestBranchBroker', () => {
       const proxy = worktreeEnsureQuestBranchBrokerProxy();
       const quest = QuestStub({
         id: QuestIdStub({ value: 'ensure-missing-worktree' }),
-        branchName: QuestBranchNameStub({ value: 'quest/ensure-missing-worktree-aaaabbbb' }),
+        branchName: 'quest/ensure-missing-worktree-aaaabbbb',
       });
 
       const result = await worktreeEnsureQuestBranchBroker({

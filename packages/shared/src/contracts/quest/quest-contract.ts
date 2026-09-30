@@ -16,7 +16,6 @@ import { operationItemContract } from '../operation-item/operation-item-contract
 import { operationPlanContract } from '../operation-plan/operation-plan-contract';
 import { packageGraphEntryContract } from '../package-graph-entry/package-graph-entry-contract';
 import { questBlightLedgerEntryContract } from '../quest-blight-ledger-entry/quest-blight-ledger-entry-contract';
-import { questBranchNameContract } from '../quest-branch-name/quest-branch-name-contract';
 import { questCommentContract } from '../quest-comment/quest-comment-contract';
 import { questContractEntryContract } from '../quest-contract-entry/quest-contract-entry-contract';
 import { questNoteContract } from '../quest-note/quest-note-contract';
@@ -103,7 +102,7 @@ export const questContract = z.object({
     .describe(
       "The fork-point sha the quest's branch was created from, stamped from the worktree's own creation point rather than the server process cwd. It stays the base the review diff is measured from, so a whole-quest review scope remains stable as the base branch moves ahead with other work.",
     ),
-  branchName: questBranchNameContract
+  branchName: z.string().min(1).brand<'QuestBranchName'>()
     .optional()
     .describe(
       "The branch the quest's work lives on, written once at Start and never changed. Every later dispatch, ward run and chat spawned for the quest targets this branch.",

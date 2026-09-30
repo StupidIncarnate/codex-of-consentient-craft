@@ -57,7 +57,6 @@ export * from './quest-title/quest-title-contract';
 
 export * from './quest-status/quest-status-contract';
 
-export * from './quest-branch-name/quest-branch-name-contract';
 
 export * from './base-branch-name/base-branch-name-contract';
 

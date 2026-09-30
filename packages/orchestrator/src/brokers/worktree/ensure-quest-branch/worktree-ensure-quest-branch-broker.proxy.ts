@@ -1,14 +1,13 @@
 import { stderrProxy } from '#gateway/node/process/stderr/stderr.proxy';
-import type { QuestBranchName } from '@dungeonmaster/shared/contracts';
 
 import type { QuestResumeTrigger } from '../../../contracts/quest-resume-trigger/quest-resume-trigger-contract';
 import { worktreeResumeRestoreBrokerProxy } from '../resume-restore/worktree-resume-restore-broker.proxy';
 
 export const worktreeEnsureQuestBranchBrokerProxy = (): {
-  setupOnBranch: (params: { branchName: QuestBranchName }) => void;
+  setupOnBranch: (params: { branchName: string }) => void;
   setupDrifted: (params: { currentBranchName: string }) => void;
-  setupCheckoutSucceeds: (params: { branchName: QuestBranchName }) => void;
-  setupCheckoutFails: (params: { branchName: QuestBranchName; output: string }) => void;
+  setupCheckoutSucceeds: (params: { branchName: string }) => void;
+  setupCheckoutFails: (params: { branchName: string; output: string }) => void;
   setupRevParseFails: (params: { output: string }) => void;
   getSpawnedArgsList: () => readonly unknown[];
   getStderrWrites: (params: { trigger: QuestResumeTrigger }) => readonly unknown[];

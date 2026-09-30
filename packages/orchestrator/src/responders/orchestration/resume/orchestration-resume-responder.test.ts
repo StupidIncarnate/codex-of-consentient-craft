@@ -1,6 +1,5 @@
 import { OperationItemIdStub } from '@dungeonmaster/shared/contracts/operation-item-id/operation-item-id.stub';
 import { OperationItemStub } from '@dungeonmaster/shared/contracts/operation-item/operation-item.stub';
-import { QuestBranchNameStub } from '@dungeonmaster/shared/contracts/quest-branch-name/quest-branch-name.stub';
 import { QuestIdStub } from '@dungeonmaster/shared/contracts/quest-id/quest-id.stub';
 import { QuestStub } from '@dungeonmaster/shared/contracts/quest/quest.stub';
 import { QuestWorkItemIdStub } from '@dungeonmaster/shared/contracts/quest-work-item-id/quest-work-item-id.stub';
@@ -356,7 +355,7 @@ describe('OrchestrationResumeResponder', () => {
   describe('resuming a quest whose worktree is present', () => {
     it('VALID: {worktree present but left on another branch} => the quest branch is re-checked-out before the loop launches', async () => {
       const questId = QuestIdStub({ value: 'resume-worktree-drifted' });
-      const branchName = QuestBranchNameStub({ value: 'quest/resume-worktree-drifted-a1b2c3d4' });
+      const branchName = 'quest/resume-worktree-drifted-a1b2c3d4';
       const worktreeCwd = '/repo/worktrees/resume-worktree-drifted';
       const quest = QuestStub({
         id: questId,
@@ -388,7 +387,7 @@ describe('OrchestrationResumeResponder', () => {
 
     it('VALID: {worktree present and already on the quest branch} => resume proceeds and the loop launches', async () => {
       const questId = QuestIdStub({ value: 'resume-worktree-on-branch' });
-      const branchName = QuestBranchNameStub({ value: 'quest/resume-worktree-on-branch-a1b2c3d4' });
+      const branchName = 'quest/resume-worktree-on-branch-a1b2c3d4';
       const worktreeCwd = '/repo/worktrees/resume-worktree-on-branch';
       const quest = QuestStub({
         id: questId,
@@ -414,9 +413,7 @@ describe('OrchestrationResumeResponder', () => {
 
     it('EDGE: {worktree present, checkout back onto the quest branch fails} => resume still proceeds, logging the branch and git output instead of blocking', async () => {
       const questId = QuestIdStub({ value: 'resume-worktree-restore-fails' });
-      const branchName = QuestBranchNameStub({
-        value: 'quest/resume-worktree-restore-fails-a1b2c3d4',
-      });
+      const branchName = 'quest/resume-worktree-restore-fails-a1b2c3d4';
       const worktreeCwd = '/repo/worktrees/resume-worktree-restore-fails';
       const quest = QuestStub({
         id: questId,

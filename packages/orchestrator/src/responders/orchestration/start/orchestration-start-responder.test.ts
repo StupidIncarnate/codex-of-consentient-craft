@@ -1,7 +1,6 @@
 import { GuildIdStub } from '@dungeonmaster/shared/contracts/guild-id/guild-id.stub';
 import { OperationItemStub } from '@dungeonmaster/shared/contracts/operation-item/operation-item.stub';
 import { PackageGraphEntryStub } from '@dungeonmaster/shared/contracts/package-graph-entry/package-graph-entry.stub';
-import { QuestBranchNameStub } from '@dungeonmaster/shared/contracts/quest-branch-name/quest-branch-name.stub';
 import { QuestIdStub } from '@dungeonmaster/shared/contracts/quest-id/quest-id.stub';
 import { QuestStub } from '@dungeonmaster/shared/contracts/quest/quest.stub';
 import { WorkItemStub } from '@dungeonmaster/shared/contracts/work-item/work-item.stub';
@@ -53,7 +52,7 @@ const PRIOR_RIFTCARVER_OP_UUID = 'dddd0000-58cc-4372-a567-0e02b2c3d479';
 // The git context an already-carved quest carries. The idempotency describe block below models a
 // quest a previous Start already seeded and a previous riftcarver already carved, so its quest.json
 // holds both — Start reads neither and writes neither.
-const EXISTING_BRANCH_NAME = QuestBranchNameStub({ value: 'quest/add-auth-f47ac10b' });
+const EXISTING_BRANCH_NAME = 'quest/add-auth-f47ac10b';
 const EXISTING_WORKTREE_PATH = '/repo/worktrees/add-auth-f47ac10b';
 
 // The entry family's own text — `questFlowStatics.feature.families.riftcarver.text`, identical for

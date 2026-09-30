@@ -1,4 +1,3 @@
-import { QuestBranchNameStub } from '@dungeonmaster/shared/contracts/quest-branch-name/quest-branch-name.stub';
 
 import { worktreeResumeRestoreBroker } from './worktree-resume-restore-broker';
 import { worktreeResumeRestoreBrokerProxy } from './worktree-resume-restore-broker.proxy';
@@ -8,7 +7,7 @@ describe('worktreeResumeRestoreBroker', () => {
     it('VALID: {worktree already on the quest branch} => returns restored true and runs no checkout', async () => {
       const proxy = worktreeResumeRestoreBrokerProxy();
       const worktreePath = '/repo/worktrees/add-auth-7bc217a1';
-      const branchName = QuestBranchNameStub({ value: 'quest/add-auth-7bc217a1' });
+      const branchName = 'quest/add-auth-7bc217a1';
       proxy.setupOnBranch({ branchName });
 
       const result = await worktreeResumeRestoreBroker({ worktreePath, branchName });
@@ -26,7 +25,7 @@ describe('worktreeResumeRestoreBroker', () => {
     it('VALID: {worktree on some other branch} => runs `git checkout <branch>` with exactly [checkout, branchName] and returns restored true', async () => {
       const proxy = worktreeResumeRestoreBrokerProxy();
       const worktreePath = '/repo/worktrees/add-auth-7bc217a1';
-      const branchName = QuestBranchNameStub({ value: 'quest/add-auth-7bc217a1' });
+      const branchName = 'quest/add-auth-7bc217a1';
       proxy.setupDrifted({ currentBranchName: 'main' });
       proxy.setupCheckoutSucceeds({ branchName });
 
@@ -44,7 +43,7 @@ describe('worktreeResumeRestoreBroker', () => {
     it('EDGE: {rev-parse prints "HEAD" from a detached worktree} => runs checkout and returns restored true', async () => {
       const proxy = worktreeResumeRestoreBrokerProxy();
       const worktreePath = '/repo/worktrees/add-auth-7bc217a1';
-      const branchName = QuestBranchNameStub({ value: 'quest/add-auth-7bc217a1' });
+      const branchName = 'quest/add-auth-7bc217a1';
       proxy.setupDetachedHead();
       proxy.setupCheckoutSucceeds({ branchName });
 
@@ -62,7 +61,7 @@ describe('worktreeResumeRestoreBroker', () => {
     it('ERROR: {git rev-parse exits non-zero} => returns restored false and runs no checkout', async () => {
       const proxy = worktreeResumeRestoreBrokerProxy();
       const worktreePath = '/repo/worktrees/add-auth-7bc217a1';
-      const branchName = QuestBranchNameStub({ value: 'quest/add-auth-7bc217a1' });
+      const branchName = 'quest/add-auth-7bc217a1';
       proxy.setupRevParseFails({
         output: 'fatal: not a git repository (or any of the parent directories): .git',
       });
@@ -82,7 +81,7 @@ describe('worktreeResumeRestoreBroker', () => {
     it('ERROR: {git checkout exits non-zero} => returns restored false carrying gits stderr text in output', async () => {
       const proxy = worktreeResumeRestoreBrokerProxy();
       const worktreePath = '/repo/worktrees/add-auth-7bc217a1';
-      const branchName = QuestBranchNameStub({ value: 'quest/add-auth-7bc217a1' });
+      const branchName = 'quest/add-auth-7bc217a1';
       proxy.setupDrifted({ currentBranchName: 'main' });
       proxy.setupCheckoutFails({
         branchName,
@@ -107,7 +106,7 @@ describe('worktreeResumeRestoreBroker', () => {
     it('EDGE: {rev-parse output carries a git warning line after the branch name} => branch name is read from the first line so no redundant checkout runs', async () => {
       const proxy = worktreeResumeRestoreBrokerProxy();
       const worktreePath = '/repo/worktrees/add-auth-7bc217a1';
-      const branchName = QuestBranchNameStub({ value: 'quest/add-auth-7bc217a1' });
+      const branchName = 'quest/add-auth-7bc217a1';
       proxy.setupBranchWithTrailingWarning({
         branchName,
         warning: 'warning: adjusting to origin/quest/add-auth-7bc217a1',

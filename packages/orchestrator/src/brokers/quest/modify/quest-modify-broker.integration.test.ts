@@ -2,7 +2,6 @@ import { installTestbedCreateBroker } from '@dungeonmaster/testing';
 import { GetQuestInputStub } from '@dungeonmaster/shared/contracts/get-quest-input/get-quest-input.stub';
 import { ModifyQuestInputStub } from '@dungeonmaster/shared/contracts/modify-quest-input/modify-quest-input.stub';
 import { QuestBlightLedgerEntryStub } from '@dungeonmaster/shared/contracts/quest-blight-ledger-entry/quest-blight-ledger-entry.stub';
-import { QuestBranchNameStub } from '@dungeonmaster/shared/contracts/quest-branch-name/quest-branch-name.stub';
 
 import { QuestBlueprintStub } from '../../../contracts/quest-blueprint/quest-blueprint.stub';
 import { smoketestBlueprintsStatics } from '../../../statics/smoketest-blueprints/smoketest-blueprints-statics';
@@ -244,7 +243,7 @@ describe('questModifyBroker vs questOperationsUpdateBroker (integration — real
     const ledgerEntry = QuestBlightLedgerEntryStub({
       itemId: 'packages/orchestrator/src/brokers/quest/modify/quest-modify-broker.ts:integrity',
     });
-    const branchName = QuestBranchNameStub({ value: 'quest/cross-writer-race' });
+    const branchName = 'quest/cross-writer-race';
 
     const [modifyResult] = await Promise.all([
       questModifyBroker({

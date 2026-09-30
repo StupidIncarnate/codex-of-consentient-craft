@@ -30,7 +30,7 @@ import { getEnv, stderr } from '#gateway/node/process';
 import { randomUUID } from '#gateway/node/crypto';
 import { locationsWorktreePathFindBroker } from '@dungeonmaster/shared/brokers';
 import { streamLines } from '#gateway/node/child_process';
-import { getQuestInputContract, questContract, relatedDataItemContract, riftcarverResultContract, type BaseBranchName, type Quest, type QuestBranchName } from '@dungeonmaster/shared/contracts';
+import { getQuestInputContract, questContract, relatedDataItemContract, riftcarverResultContract, type BaseBranchName, type Quest } from '@dungeonmaster/shared/contracts';
 
 import { currentBranch, headSha, push, upstreamSha, verifyRef } from '#gateway/bin/git';
 import { pathExists } from '#gateway/node/fs__promises';
@@ -65,7 +65,7 @@ type WorktreePrepareStepValue = (typeof STEPS)[keyof typeof STEPS];
 type CarveResult =
   | {
       ok: true;
-      branchName: QuestBranchName;
+      branchName: string;
       baseBranch: BaseBranchName;
       worktreePath: string;
       baseRef: NonNullable<Quest['baseRef']>;

@@ -27,7 +27,7 @@ import { upstreamShaProxy } from '#gateway/bin/git/upstream-sha/upstream-sha.pro
 import { verifyRefProxy } from '#gateway/bin/git/verify-ref/verify-ref.proxy';
 
 import { locationsWorktreePathFindBrokerProxy } from '@dungeonmaster/shared/brokers/locations/worktree-path-find/locations-worktree-path-find-broker.proxy';
-import { baseBranchNameContract, questBranchNameContract, riftcarverResultContract, type Quest } from '@dungeonmaster/shared/contracts';
+import { baseBranchNameContract, riftcarverResultContract, type Quest } from '@dungeonmaster/shared/contracts';
 import { GuildIdStub } from '@dungeonmaster/shared/contracts/guild-id/guild-id.stub';
 import type { QuestStub } from '@dungeonmaster/shared/contracts/quest/quest.stub';
 import { registerMock, registerSpyOn } from '@dungeonmaster/testing/register-mock';
@@ -145,7 +145,7 @@ export const stepHandlerRiftcarverBrokerProxy = (): {
   };
   const stageCarve = (): void => {
     stageBranchProbe();
-    const branchName = questBranchNameContract.parse(BRANCH_NAME);
+    const branchName = BRANCH_NAME;
     const baseBranch = baseBranchNameContract.parse(BASE_BRANCH);
     if (questBranch.addFailureOutput !== null) {
       prepareProxy.setupWorktreeAddFails({

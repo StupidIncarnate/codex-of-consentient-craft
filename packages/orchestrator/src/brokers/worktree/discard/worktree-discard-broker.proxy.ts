@@ -8,7 +8,6 @@
  * const result = await worktreeDiscardBroker({ repoRoot, worktreePath, branchName });
  */
 
-import type { QuestBranchName } from '@dungeonmaster/shared/contracts';
 
 import { branchDeleteProxy } from '#gateway/bin/git/branch-delete/branch-delete.proxy';
 import { worktreeRemoveProxy } from '#gateway/bin/git/worktree-remove/worktree-remove.proxy';
@@ -24,12 +23,12 @@ const extractArgs = (call: readonly unknown[]): readonly unknown[] => {
 export const worktreeDiscardBrokerProxy = (): {
   setupBothSucceed: (params: {
     worktreePath: string;
-    branchName: QuestBranchName;
+    branchName: string;
   }) => void;
   setupRemoveFails: (params: { worktreePath: string; output: string }) => void;
   setupDeleteFails: (params: {
     worktreePath: string;
-    branchName: QuestBranchName;
+    branchName: string;
     output: string;
   }) => void;
   getSpawnedArgsList: () => readonly unknown[];
@@ -44,7 +43,7 @@ export const worktreeDiscardBrokerProxy = (): {
       branchName,
     }: {
       worktreePath: string;
-      branchName: QuestBranchName;
+      branchName: string;
     }): void => {
       state.worktreePath = worktreePath;
       removeProxy.setupResult({ worktreePath: String(worktreePath), exitCode: 0, output: '' });
@@ -68,7 +67,7 @@ export const worktreeDiscardBrokerProxy = (): {
       output,
     }: {
       worktreePath: string;
-      branchName: QuestBranchName;
+      branchName: string;
       output: string;
     }): void => {
       state.worktreePath = worktreePath;

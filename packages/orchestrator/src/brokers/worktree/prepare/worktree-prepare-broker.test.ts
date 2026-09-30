@@ -1,4 +1,3 @@
-import { QuestBranchNameStub } from '@dungeonmaster/shared/contracts/quest-branch-name/quest-branch-name.stub';
 
 import { worktreePrepareBroker } from './worktree-prepare-broker';
 import { worktreePrepareBrokerProxy } from './worktree-prepare-broker.proxy';
@@ -9,7 +8,7 @@ describe('worktreePrepareBroker', () => {
       const proxy = worktreePrepareBrokerProxy();
       const repoRoot = '/repo';
       const worktreePath = '/repo/worktrees/add-auth-7bc217a1';
-      const branchName = QuestBranchNameStub({ value: 'quest/add-auth-7bc217a1' });
+      const branchName = 'quest/add-auth-7bc217a1';
       const baseBranch = 'main';
       const sha = '1234567890abcdef1234567890abcdef12345678';
       proxy.setupHappyPath({ repoRoot, worktreePath, branchName, baseBranch, sha });
@@ -37,7 +36,7 @@ describe('worktreePrepareBroker', () => {
       const proxy = worktreePrepareBrokerProxy();
       const repoRoot = '/repo';
       const worktreePath = '/repo/worktrees/add-auth-7bc217a1';
-      const branchName = QuestBranchNameStub({ value: 'quest/add-auth-7bc217a1' });
+      const branchName = 'quest/add-auth-7bc217a1';
       const baseBranch = 'main';
       const sha = 'fedcba9876543210fedcba9876543210fedcba98';
       proxy.setupAttachExistingBranch({ repoRoot, worktreePath, branchName, sha });
@@ -62,7 +61,7 @@ describe('worktreePrepareBroker', () => {
       const proxy = worktreePrepareBrokerProxy();
       const repoRoot = '/repo';
       const worktreePath = '/repo/worktrees/add-auth-7bc217a1';
-      const branchName = QuestBranchNameStub({ value: 'quest/add-auth-7bc217a1' });
+      const branchName = 'quest/add-auth-7bc217a1';
       const baseBranch = 'main';
       proxy.setupAttachExistingBranchHeadShaFails({ worktreePath, branchName });
 
@@ -92,7 +91,7 @@ describe('worktreePrepareBroker', () => {
       const proxy = worktreePrepareBrokerProxy();
       const repoRoot = '/repo';
       const worktreePath = '/repo/worktrees/add-auth-7bc217a1';
-      const branchName = QuestBranchNameStub({ value: 'quest/add-auth-7bc217a1' });
+      const branchName = 'quest/add-auth-7bc217a1';
       const baseBranch = 'main';
       proxy.setupWorktreeAddFails({
         worktreePath,
@@ -124,7 +123,7 @@ describe('worktreePrepareBroker', () => {
       const proxy = worktreePrepareBrokerProxy();
       const repoRoot = '/repo';
       const worktreePath = '/repo/worktrees/add-auth-7bc217a1';
-      const branchName = QuestBranchNameStub({ value: 'quest/add-auth-7bc217a1' });
+      const branchName = 'quest/add-auth-7bc217a1';
       const baseBranch = 'main';
       proxy.setupHeadShaFailsDiscardSucceeds({ worktreePath, branchName, baseBranch });
 
@@ -154,7 +153,7 @@ describe('worktreePrepareBroker', () => {
       const proxy = worktreePrepareBrokerProxy();
       const repoRoot = '/repo';
       const worktreePath = '/repo/worktrees/add-auth-7bc217a1';
-      const branchName = QuestBranchNameStub({ value: 'quest/add-auth-7bc217a1' });
+      const branchName = 'quest/add-auth-7bc217a1';
       const baseBranch = 'main';
       proxy.setupHeadShaFailsDiscardAlsoFails({
         worktreePath,
@@ -190,7 +189,7 @@ describe('worktreePrepareBroker', () => {
       const proxy = worktreePrepareBrokerProxy();
       const repoRoot = '/repo';
       const worktreePath = '/repo/worktrees/add-auth-7bc217a1';
-      const branchName = QuestBranchNameStub({ value: 'quest/add-auth-7bc217a1' });
+      const branchName = 'quest/add-auth-7bc217a1';
       const baseBranch = 'main';
       const sha = '1234567890abcdef1234567890abcdef12345678';
       proxy.setupHappyPath({ repoRoot, worktreePath, branchName, baseBranch, sha });
@@ -215,7 +214,7 @@ describe('worktreePrepareBroker', () => {
       const proxy = worktreePrepareBrokerProxy();
       const repoRoot = '/repo';
       const worktreePath = '/repo/worktrees/add-auth-7bc217a1';
-      const branchName = QuestBranchNameStub({ value: 'quest/add-auth-7bc217a1' });
+      const branchName = 'quest/add-auth-7bc217a1';
       const baseBranch = 'main';
       const sha = '1234567890abcdef1234567890abcdef12345678';
       proxy.setupHappyPath({ repoRoot, worktreePath, branchName, baseBranch, sha });
@@ -241,7 +240,7 @@ describe('worktreePrepareBroker', () => {
       const proxy = worktreePrepareBrokerProxy();
       const repoRoot = '/repo';
       const worktreePath = '/repo/worktrees/add-auth-7bc217a1';
-      const branchName = QuestBranchNameStub({ value: 'quest/add-auth-7bc217a1' });
+      const branchName = 'quest/add-auth-7bc217a1';
       const baseBranch = 'main';
       const sha = '1234567890abcdef1234567890abcdef12345678';
       proxy.setupHappyPath({ repoRoot, worktreePath, branchName, baseBranch, sha });

@@ -1,4 +1,4 @@
-import { type BaseBranchName, type QuestBranchName } from '@dungeonmaster/shared/contracts';
+import { type BaseBranchName } from '@dungeonmaster/shared/contracts';
 
 import { headShaProxy } from '#gateway/bin/git/head-sha/head-sha.proxy';
 import { verifyRefProxy } from '#gateway/bin/git/verify-ref/verify-ref.proxy';
@@ -27,34 +27,34 @@ export const worktreePrepareBrokerProxy = (): {
   setupHappyPath: (params: {
     repoRoot: string;
     worktreePath: string;
-    branchName: QuestBranchName;
+    branchName: string;
     baseBranch: BaseBranchName;
     sha: string;
   }) => void;
   setupAttachExistingBranch: (params: {
     repoRoot: string;
     worktreePath: string;
-    branchName: QuestBranchName;
+    branchName: string;
     sha: string;
   }) => void;
   setupAttachExistingBranchHeadShaFails: (params: {
     worktreePath: string;
-    branchName: QuestBranchName;
+    branchName: string;
   }) => void;
   setupWorktreeAddFails: (params: {
     worktreePath: string;
-    branchName: QuestBranchName;
+    branchName: string;
     baseBranch: BaseBranchName;
     output: string;
   }) => void;
   setupHeadShaFailsDiscardSucceeds: (params: {
     worktreePath: string;
-    branchName: QuestBranchName;
+    branchName: string;
     baseBranch: BaseBranchName;
   }) => void;
   setupHeadShaFailsDiscardAlsoFails: (params: {
     worktreePath: string;
-    branchName: QuestBranchName;
+    branchName: string;
     baseBranch: BaseBranchName;
     removeFailureOutput: string;
   }) => void;
@@ -89,7 +89,7 @@ export const worktreePrepareBrokerProxy = (): {
 
   // The create-vs-attach mode probe, staged per scenario because the ref it names is only known
   // once a setup method hands its branchName over.
-  const stageBranchMissing = ({ branchName }: { branchName: QuestBranchName }): void => {
+  const stageBranchMissing = ({ branchName }: { branchName: string }): void => {
     verifyProxy.setupResult({ ref: String(branchName), exitCode: 128 });
   };
 
@@ -99,7 +99,7 @@ export const worktreePrepareBrokerProxy = (): {
     baseBranch,
   }: {
     worktreePath: string;
-    branchName: QuestBranchName;
+    branchName: string;
     baseBranch: BaseBranchName;
   }): void => {
     stageBranchMissing({ branchName });
@@ -117,7 +117,7 @@ export const worktreePrepareBrokerProxy = (): {
     branchName,
   }: {
     worktreePath: string;
-    branchName: QuestBranchName;
+    branchName: string;
   }): void => {
     verifyProxy.setupResult({ ref: String(branchName), exitCode: 0 });
     pruneProxy.setupResult({ exitCode: 0, output: '' });

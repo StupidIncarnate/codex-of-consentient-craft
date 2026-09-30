@@ -16,7 +16,6 @@
  * // discarded is true only when both `git worktree remove` and `git branch -D` exited 0
  */
 
-import { type QuestBranchName } from '@dungeonmaster/shared/contracts';
 
 import { branchDelete, worktreeRemove } from '#gateway/bin/git';
 
@@ -27,7 +26,7 @@ export const worktreeDiscardBroker = async ({
 }: {
   repoRoot: string;
   worktreePath: string;
-  branchName: QuestBranchName;
+  branchName: string;
 }): Promise<{ discarded: boolean; output: string }> => {
   const removeResult = await worktreeRemove({ cwd: repoRoot, worktreePath });
 

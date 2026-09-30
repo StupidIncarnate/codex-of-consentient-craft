@@ -1,5 +1,4 @@
 import { installTestbedCreateBroker } from '@dungeonmaster/testing';
-import { QuestBranchNameStub } from '@dungeonmaster/shared/contracts/quest-branch-name/quest-branch-name.stub';
 
 import { worktreePrepareBroker } from './worktree-prepare-broker';
 import { gitWorktreeFixtureHarness } from '../../../../test/harnesses/git-worktree-fixture/git-worktree-fixture.harness';
@@ -36,7 +35,7 @@ describe('worktreePrepareBroker (integration) — real git worktree creation', (
     });
 
     const worktreePath = `${testbed.guildPath}/worktrees/add-auth-11112222`;
-    const branchName = QuestBranchNameStub({ value: 'quest/add-auth-11112222' });
+    const branchName = 'quest/add-auth-11112222';
     const baseBranch = 'main';
 
     const { baseRef } = await worktreePrepareBroker({
@@ -110,7 +109,7 @@ describe('worktreePrepareBroker (integration) — real git worktree creation', (
     });
 
     const worktreePath = `${testbed.guildPath}/worktrees/no-leak-33334444`;
-    const branchName = QuestBranchNameStub({ value: 'quest/no-leak-33334444' });
+    const branchName = 'quest/no-leak-33334444';
     const baseBranch = 'main';
 
     await worktreePrepareBroker({
@@ -149,7 +148,7 @@ describe('worktreePrepareBroker (integration) — real git worktree creation', (
       packageNames: ['shared', 'web'],
     });
 
-    const branchName = QuestBranchNameStub({ value: 'quest/reattach-88889999' });
+    const branchName = 'quest/reattach-88889999';
     const baseBranch = 'main';
     await git.createBranchAt({
       repoPath,

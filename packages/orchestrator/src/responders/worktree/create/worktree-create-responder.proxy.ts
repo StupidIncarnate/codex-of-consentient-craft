@@ -1,7 +1,6 @@
 import { cwdResolveBrokerProxy } from '@dungeonmaster/shared/brokers/cwd/resolve/cwd-resolve-broker.proxy';
 import { locationsWorktreePathFindBrokerProxy } from '@dungeonmaster/shared/brokers/locations/worktree-path-find/locations-worktree-path-find-broker.proxy';
 import { BaseBranchNameStub } from '@dungeonmaster/shared/contracts/base-branch-name/base-branch-name.stub';
-import { QuestBranchNameStub } from '@dungeonmaster/shared/contracts/quest-branch-name/quest-branch-name.stub';
 import { pathExistsProxy } from '#gateway/node/fs__promises/path-exists/path-exists.proxy';
 import { cwdProxy } from '#gateway/node/process/cwd/cwd.proxy';
 
@@ -52,7 +51,7 @@ export const WorktreeCreateResponderProxy = (): {
       prepareProxy.setupHappyPath({
         repoRoot,
         worktreePath,
-        branchName: QuestBranchNameStub({ value: name }),
+        branchName: name,
         baseBranch: BaseBranchNameStub({ value: 'main' }),
         sha,
       });

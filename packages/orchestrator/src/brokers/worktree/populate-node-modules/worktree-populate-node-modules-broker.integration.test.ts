@@ -1,5 +1,4 @@
 import { installTestbedCreateBroker } from '@dungeonmaster/testing';
-import { QuestBranchNameStub } from '@dungeonmaster/shared/contracts/quest-branch-name/quest-branch-name.stub';
 
 import { worktreePopulateNodeModulesBroker } from './worktree-populate-node-modules-broker';
 import { worktreePrepareBroker } from '../prepare/worktree-prepare-broker';
@@ -40,7 +39,7 @@ describe('worktreePopulateNodeModulesBroker (integration) — real fs mirroring'
     await worktreePrepareBroker({
       repoRoot: repoPath,
       worktreePath,
-      branchName: QuestBranchNameStub({ value: 'quest/mirror-11112222' }),
+      branchName: 'quest/mirror-11112222',
       baseBranch: 'main',
     });
 
@@ -118,7 +117,7 @@ describe('worktreePopulateNodeModulesBroker (integration) — real fs mirroring'
     await worktreePrepareBroker({
       repoRoot: repoPath,
       worktreePath,
-      branchName: QuestBranchNameStub({ value: 'quest/rerun-33334444' }),
+      branchName: 'quest/rerun-33334444',
       baseBranch: 'main',
     });
 

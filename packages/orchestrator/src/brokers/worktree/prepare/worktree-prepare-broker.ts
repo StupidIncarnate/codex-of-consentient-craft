@@ -37,7 +37,7 @@
  * // Rejects with WorktreePrepareError, naming the failing step, on any failure
  */
 
-import { questContract, type BaseBranchName, type Quest, type QuestBranchName } from '@dungeonmaster/shared/contracts';
+import { questContract, type BaseBranchName, type Quest } from '@dungeonmaster/shared/contracts';
 
 import { headSha, verifyRef, worktreeAdd, worktreePrune } from '#gateway/bin/git';
 import { WorktreePrepareError } from '../../../errors/worktree-prepare/worktree-prepare-error';
@@ -59,7 +59,7 @@ export const worktreePrepareBroker = async ({
 }: {
   repoRoot: string;
   worktreePath: string;
-  branchName: QuestBranchName;
+  branchName: string;
   baseBranch: BaseBranchName;
 }): Promise<{ baseRef: GitBaseRef }> => {
   // The REAL probe, not the quest record: git is the only authority on whether this branch exists

@@ -15,7 +15,6 @@
  * // restored is true once the worktree is confirmed on branchName, whether or not a checkout ran
  */
 
-import { type QuestBranchName } from '@dungeonmaster/shared/contracts';
 import { checkout, currentBranch } from '#gateway/bin/git';
 
 const COLON_SEPARATOR = ': ';
@@ -26,7 +25,7 @@ export const worktreeResumeRestoreBroker = async ({
   branchName,
 }: {
   worktreePath: string;
-  branchName: QuestBranchName;
+  branchName: string;
 }): Promise<{ restored: boolean; currentBranch: string; output: string }> => {
   const branchAttempt = await (async () => {
     try {

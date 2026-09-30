@@ -1,4 +1,3 @@
-import { QuestBranchNameStub } from '@dungeonmaster/shared/contracts/quest-branch-name/quest-branch-name.stub';
 
 import { worktreeDiscardBroker } from './worktree-discard-broker';
 import { worktreeDiscardBrokerProxy } from './worktree-discard-broker.proxy';
@@ -9,7 +8,7 @@ describe('worktreeDiscardBroker', () => {
       const proxy = worktreeDiscardBrokerProxy();
       const repoRoot = '/repo';
       const worktreePath = '/repo/worktrees/add-auth-7bc217a1';
-      const branchName = QuestBranchNameStub({ value: 'quest/add-auth-7bc217a1' });
+      const branchName = 'quest/add-auth-7bc217a1';
       proxy.setupBothSucceed({ worktreePath, branchName });
 
       const result = await worktreeDiscardBroker({ repoRoot, worktreePath, branchName });
@@ -27,7 +26,7 @@ describe('worktreeDiscardBroker', () => {
       const proxy = worktreeDiscardBrokerProxy();
       const repoRoot = '/repo';
       const worktreePath = '/repo/worktrees/add-auth-7bc217a1';
-      const branchName = QuestBranchNameStub({ value: 'quest/add-auth-7bc217a1' });
+      const branchName = 'quest/add-auth-7bc217a1';
       proxy.setupRemoveFails({ worktreePath, output: 'fatal: working tree is dirty' });
 
       const result = await worktreeDiscardBroker({ repoRoot, worktreePath, branchName });
@@ -44,7 +43,7 @@ describe('worktreeDiscardBroker', () => {
       const proxy = worktreeDiscardBrokerProxy();
       const repoRoot = '/repo';
       const worktreePath = '/repo/worktrees/add-auth-7bc217a1';
-      const branchName = QuestBranchNameStub({ value: 'quest/add-auth-7bc217a1' });
+      const branchName = 'quest/add-auth-7bc217a1';
       proxy.setupDeleteFails({
         worktreePath,
         branchName,

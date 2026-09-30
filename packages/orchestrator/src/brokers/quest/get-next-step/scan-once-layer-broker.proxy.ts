@@ -1,4 +1,4 @@
-import type { GuildListItem, QuestBranchName } from '@dungeonmaster/shared/contracts';
+import type { GuildListItem } from '@dungeonmaster/shared/contracts';
 import type { QuestStub } from '@dungeonmaster/shared/contracts/quest/quest.stub';
 import { registerMock, registerModuleMock } from '@dungeonmaster/testing/register-mock';
 
@@ -55,7 +55,7 @@ export const scanOnceLayerBrokerProxy = (): {
   setupQuestWorktreeDrifted: (params: {
     quest: Quest;
     worktreeCwd: RepoRootCwd;
-    branchName: QuestBranchName;
+    branchName: string;
     currentBranchName: string;
   }) => void;
   // The drift-free half: rev-parse already reports the quest branch, so the real broker returns
@@ -63,14 +63,14 @@ export const scanOnceLayerBrokerProxy = (): {
   setupQuestWorktreeOnBranch: (params: {
     quest: Quest;
     worktreeCwd: RepoRootCwd;
-    branchName: QuestBranchName;
+    branchName: string;
   }) => void;
   // Drifted, but the checkout itself fails — the branch stays wrong and the shared restore logs
   // its trigger-prefixed warning instead of halting the scan.
   setupQuestWorktreeRestoreFails: (params: {
     quest: Quest;
     worktreeCwd: RepoRootCwd;
-    branchName: QuestBranchName;
+    branchName: string;
     currentBranchName: string;
     output: string;
   }) => void;
@@ -175,7 +175,7 @@ export const scanOnceLayerBrokerProxy = (): {
     }: {
       quest: Quest;
       worktreeCwd: RepoRootCwd;
-      branchName: QuestBranchName;
+      branchName: string;
       currentBranchName: string;
     }): void => {
       cwdResolveMock
@@ -191,7 +191,7 @@ export const scanOnceLayerBrokerProxy = (): {
     }: {
       quest: Quest;
       worktreeCwd: RepoRootCwd;
-      branchName: QuestBranchName;
+      branchName: string;
     }): void => {
       cwdResolveMock
         .onceFor([{ questId: quest.id }])
@@ -207,7 +207,7 @@ export const scanOnceLayerBrokerProxy = (): {
     }: {
       quest: Quest;
       worktreeCwd: RepoRootCwd;
-      branchName: QuestBranchName;
+      branchName: string;
       currentBranchName: string;
       output: string;
     }): void => {
