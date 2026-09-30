@@ -8,7 +8,6 @@
 
 
 
-export * from './copies-target/copies-target-contract';
 
 
 
