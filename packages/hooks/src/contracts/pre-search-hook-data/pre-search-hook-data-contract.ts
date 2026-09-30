@@ -10,8 +10,8 @@ import { sessionContract } from '@dungeonmaster/shared/contracts';
 
 export const preSearchHookDataContract = z.object({
   session_id: sessionContract.shape.id,
-  transcript_path: z.string().min(1).brand<'TranscriptPath'>(),
-  cwd: z.string().min(1).brand<'Cwd'>(),
+  transcript_path: z.string().min(1).brand<'PreSearchHookDataTranscriptPath'>(),
+  cwd: z.string().min(1).brand<'PreSearchHookDataCwd'>(),
   hook_event_name: z.literal('PreToolUse'),
   tool_name: z.string().min(1).brand<'PreSearchHookDataToolName'>(),
   tool_input: z.unknown(),

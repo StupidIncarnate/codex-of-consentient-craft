@@ -10,9 +10,9 @@ import { sessionContract } from '@dungeonmaster/shared/contracts';
 
 export const baseHookDataContract = z.object({
   session_id: sessionContract.shape.id,
-  transcript_path: z.string().min(1).brand<'TranscriptPath'>(),
-  cwd: z.string().min(1).brand<'Cwd'>(),
-  hook_event_name: z.string().min(1).brand<'HookEventName'>(),
+  transcript_path: z.string().min(1).brand<'BaseHookDataTranscriptPath'>(),
+  cwd: z.string().min(1).brand<'BaseHookDataCwd'>(),
+  hook_event_name: z.string().min(1).brand<'BaseHookDataHookEventName'>(),
 }).brand<'BaseHookData'>();
 
 export type BaseHookData = z.infer<typeof baseHookDataContract>;

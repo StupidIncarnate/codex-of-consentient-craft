@@ -8,8 +8,8 @@
 import { z } from '#gateway/npm/zod';
 
 export const bashToolInputContract = z.object({
-  command: z.string().min(1).brand<'BashCommand'>(),
-  timeout: z.number().int().positive().brand<'BashTimeout'>().optional(),
+  command: z.string().min(1).brand<'BashToolInputCommand'>(),
+  timeout: z.number().int().positive().brand<'BashToolInputTimeout'>().optional(),
   run_in_background: z.boolean().optional(),
 }).brand<'BashToolInput'>();
 

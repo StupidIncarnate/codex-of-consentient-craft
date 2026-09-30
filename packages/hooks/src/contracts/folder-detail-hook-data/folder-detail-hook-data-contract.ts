@@ -14,8 +14,8 @@ export const folderDetailHookDataContract = z
   .object({
     hook_event_name: z.literal('PreToolUse'),
     tool_name: z.string().min(1).brand<'FolderDetailHookDataToolName'>(),
-    tool_input: z.object({ file_path: z.string().min(1).brand<'FolderDetailHookDataToolInputFilePath'>() }).loose(),
-    transcript_path: z.string().min(1).brand<'TranscriptPath'>(),
+    tool_input: z.object({ file_path: z.string().min(1).brand<'FolderDetailHookDataToolInputFilePath'>() }).brand<'FolderDetailHookDataToolInput'>().loose(),
+    transcript_path: z.string().min(1).brand<'FolderDetailHookDataTranscriptPath'>(),
     agent_id: agentContract.shape.id.optional(),
   })
   .loose().brand<'FolderDetailHookData'>();

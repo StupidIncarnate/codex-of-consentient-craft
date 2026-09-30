@@ -8,10 +8,10 @@
 import { z } from '#gateway/npm/zod';
 
 export const violationDetailContract = z.object({
-  ruleId: z.string().min(1).brand<'RuleId'>(),
-  line: z.number().int().positive().brand<'LineNumber'>(),
-  column: z.number().int().nonnegative().brand<'ColumnNumber'>(),
-  message: z.string().min(1).brand<'ViolationMessage'>(),
+  ruleId: z.string().min(1).brand<'ViolationDetailRuleId'>(),
+  line: z.number().int().positive().brand<'ViolationDetailLine'>(),
+  column: z.number().int().nonnegative().brand<'ViolationDetailColumn'>(),
+  message: z.string().min(1).brand<'ViolationDetailMessage'>(),
 }).brand<'ViolationDetail'>();
 
 export type ViolationDetail = z.infer<typeof violationDetailContract>;

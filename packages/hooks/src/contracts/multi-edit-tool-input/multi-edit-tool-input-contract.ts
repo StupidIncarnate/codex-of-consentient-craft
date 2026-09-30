@@ -11,10 +11,10 @@ export const multiEditToolInputContract = z.object({
   file_path: z.string().min(1).brand<'MultiEditToolInputFilePath'>(),
   edits: z.array(
     z.object({
-      old_string: z.string().brand<'OldString'>(),
-      new_string: z.string().brand<'NewString'>(),
+      old_string: z.string().brand<'MultiEditToolInputEditsOldString'>(),
+      new_string: z.string().brand<'MultiEditToolInputEditsNewString'>(),
       replace_all: z.boolean().optional(),
-    }),
+    }).brand<'MultiEditToolInputEdits'>(),
   ),
 }).brand<'MultiEditToolInput'>();
 

@@ -10,10 +10,10 @@ import { z } from '#gateway/npm/zod';
 
 const transcriptContentItemContract = z
   .object({
-    type: z.string().brand<'TranscriptContentType'>(),
-    name: z.string().min(1).brand<'TranscriptToolName'>().optional(),
-    input: z.record(z.string().brand<'TranscriptContentItemInput'>(), z.unknown()).optional(),
-  })
+    type: z.string().brand<'TranscriptContentItemType'>(),
+    name: z.string().min(1).brand<'TranscriptContentItemName'>().optional(),
+    input: z.record(z.string().brand<'TranscriptContentItemInputKey'>(), z.unknown()).optional(),
+  }).brand<'TranscriptContentItem'>()
   .loose();
 
 export const transcriptLineContract = z
@@ -21,10 +21,10 @@ export const transcriptLineContract = z
     message: z
       .object({
         content: z.union([
-          z.string().brand<'TranscriptTextContent'>(),
+          z.string().brand<'TranscriptLineMessageContent'>(),
           z.array(transcriptContentItemContract),
         ]),
-      })
+      }).brand<'TranscriptLineMessage'>()
       .loose(),
   })
   .loose().brand<'TranscriptLine'>();

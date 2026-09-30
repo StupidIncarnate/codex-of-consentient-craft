@@ -9,7 +9,7 @@
 import { z } from '#gateway/npm/zod';
 
 export const questBySessionResponseContract = z.object({
-  questId: z.string().min(1).brand<'QuestBySessionQuestId'>(),
+  questId: z.string().min(1).brand<'QuestBySessionResponseQuestId'>(),
 }).brand<'QuestBySessionResponse'>();
 
 export type QuestBySessionResponse = z.infer<typeof questBySessionResponseContract>;

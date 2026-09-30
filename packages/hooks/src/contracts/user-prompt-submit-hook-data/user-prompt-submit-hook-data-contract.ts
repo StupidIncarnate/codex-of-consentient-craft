@@ -10,10 +10,10 @@ import { sessionContract } from '@dungeonmaster/shared/contracts';
 
 export const userPromptSubmitHookDataContract = z.object({
   session_id: sessionContract.shape.id,
-  transcript_path: z.string().min(1).brand<'TranscriptPath'>(),
-  cwd: z.string().min(1).brand<'Cwd'>(),
+  transcript_path: z.string().min(1).brand<'UserPromptSubmitHookDataTranscriptPath'>(),
+  cwd: z.string().min(1).brand<'UserPromptSubmitHookDataCwd'>(),
   hook_event_name: z.literal('UserPromptSubmit'),
-  user_prompt: z.string().brand<'UserPrompt'>(),
+  user_prompt: z.string().brand<'UserPromptSubmitHookDataUserPrompt'>(),
 }).brand<'UserPromptSubmitHookData'>();
 
 export type UserPromptSubmitHookData = z.infer<typeof userPromptSubmitHookDataContract>;

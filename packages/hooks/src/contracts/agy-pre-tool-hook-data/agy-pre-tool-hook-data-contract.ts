@@ -19,7 +19,7 @@ export const agyPreToolHookDataContract = z
       .object({
         name: z.string().optional(),
         args: z.record(z.string(), z.unknown()).optional(),
-      })
+      }).brand<'AgyPreToolHookDataToolCall'>()
       .optional(),
   })
   .brand<'AgyPreToolHookData'>();

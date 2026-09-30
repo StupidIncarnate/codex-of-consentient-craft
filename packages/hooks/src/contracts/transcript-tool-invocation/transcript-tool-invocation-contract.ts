@@ -8,8 +8,8 @@
 import { z } from '#gateway/npm/zod';
 
 export const transcriptToolInvocationContract = z.object({
-  name: z.string().min(1).brand<'TranscriptToolName'>(),
-  workItemId: z.string().min(1).brand<'TranscriptWorkItemId'>().nullable(),
+  name: z.string().min(1).brand<'TranscriptToolInvocationName'>(),
+  workItemId: z.string().min(1).brand<'TranscriptToolInvocationWorkItemId'>().nullable(),
 }).brand<'TranscriptToolInvocation'>();
 
 export type TranscriptToolInvocation = z.infer<typeof transcriptToolInvocationContract>;

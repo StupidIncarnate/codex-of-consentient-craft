@@ -9,7 +9,7 @@ import { z } from '#gateway/npm/zod';
 
 export const hookToolResponseContract = z
   .object({
-    filePath: z.string().brand<'ToolResponseFilePath'>().optional(),
+    filePath: z.string().brand<'HookToolResponseFilePath'>().optional(),
     success: z.boolean().optional(),
     // Additional fields depend on the specific tool
   })

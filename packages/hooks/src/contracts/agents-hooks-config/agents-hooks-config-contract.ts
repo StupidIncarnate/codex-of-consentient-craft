@@ -18,17 +18,17 @@ export const agentsHooksConfigContract = z
             z.object({
               type: z.literal('command'),
               command: z.string(),
-            }),
+            }).brand<'AgentsHooksConfigDungeonmasterGuardPreToolUseHooks'>(),
           ),
-        }),
+        }).brand<'AgentsHooksConfigDungeonmasterGuardPreToolUse'>(),
       ),
       Stop: z.array(
         z.object({
           type: z.literal('command'),
           command: z.string(),
-        }),
+        }).brand<'AgentsHooksConfigDungeonmasterGuardStop'>(),
       ),
-    }),
+    }).brand<'AgentsHooksConfigDungeonmasterGuard'>(),
   })
   .brand<'AgentsHooksConfig'>();
 

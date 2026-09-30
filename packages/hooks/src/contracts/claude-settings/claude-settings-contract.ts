@@ -26,45 +26,45 @@ const hookEntryContract = z
   .object({
     type: hookTypeContract,
     command: hookCommandContract.optional(),
-  })
+  }).brand<'HookEntry'>()
   .loose();
 
 const preToolUseHookContract = z
   .object({
     matcher: hookMatcherContract.optional(),
     hooks: z.array(hookEntryContract),
-  })
+  }).brand<'PreToolUseHook'>()
   .loose();
 
 const sessionStartHookContract = z
   .object({
     hooks: z.array(hookEntryContract),
-  })
+  }).brand<'SessionStartHook'>()
   .loose();
 
 const postToolUseHookContract = z
   .object({
     matcher: hookMatcherContract.optional(),
     hooks: z.array(hookEntryContract),
-  })
+  }).brand<'PostToolUseHook'>()
   .loose();
 
 const worktreeCreateHookContract = z
   .object({
     hooks: z.array(hookEntryContract),
-  })
+  }).brand<'WorktreeCreateHook'>()
   .loose();
 
 const subagentStartHookContract = z
   .object({
     hooks: z.array(hookEntryContract),
-  })
+  }).brand<'SubagentStartHook'>()
   .loose();
 
 const subagentStopHookContract = z
   .object({
     hooks: z.array(hookEntryContract),
-  })
+  }).brand<'SubagentStopHook'>()
   .loose();
 
 const hooksConfigContract = z
@@ -75,7 +75,7 @@ const hooksConfigContract = z
     SubagentStart: z.array(subagentStartHookContract).optional(),
     SubagentStop: z.array(subagentStopHookContract).optional(),
     WorktreeCreate: z.array(worktreeCreateHookContract).optional(),
-  })
+  }).brand<'HooksConfig'>()
   .loose();
 
 const permissionStringContract = z.string().brand<'PermissionString'>();
@@ -84,12 +84,12 @@ const permissionsConfigContract = z
   .object({
     allow: z.array(permissionStringContract).optional(),
     deny: z.array(permissionStringContract).optional(),
-  })
+  }).brand<'PermissionsConfig'>()
   .loose();
 
 const envValueContract = z.string().brand<'EnvValue'>();
 
-const envConfigContract = z.record(z.string().brand<'EnvVarName'>(), envValueContract);
+const envConfigContract = z.record(z.string().brand<'EnvConfigKey'>(), envValueContract);
 
 // Plain strings, not enums: Claude Code owns these values and adds new ones. Init writes its own
 // default only when the consumer's file carries none, and reads neither, so a value newer than this
