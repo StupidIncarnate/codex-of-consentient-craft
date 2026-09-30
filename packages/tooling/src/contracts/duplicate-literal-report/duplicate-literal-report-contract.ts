@@ -6,13 +6,12 @@
  * // Returns: DuplicateLiteralReport (object with value, type, occurrences array, and count)
  */
 import { z } from '#gateway/npm/zod';
-import { literalValueContract } from '../literal-value/literal-value-contract';
 import { literalTypeContract } from '../literal-type/literal-type-contract';
 import { literalOccurrenceContract } from '../literal-occurrence/literal-occurrence-contract';
 import { occurrenceCountStatics } from '../../statics/occurrence-count/occurrence-count-statics';
 
 export const duplicateLiteralReportContract = z.object({
-  value: literalValueContract,
+  value: z.string().brand<'DuplicateLiteralReportValue'>(),
   type: literalTypeContract,
   occurrences: z.array(literalOccurrenceContract),
   count: z

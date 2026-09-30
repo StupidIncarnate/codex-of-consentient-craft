@@ -1,10 +1,9 @@
 import { isRegexLiteralGuard } from './is-regex-literal-guard';
-import { LiteralValueStub } from '../../contracts/literal-value/literal-value.stub';
 
 describe('isRegexLiteralGuard', () => {
   describe('valid regex patterns', () => {
     it('VALID: {value: "/test/g"} => returns true', () => {
-      const value = LiteralValueStub({ value: '/test/g' });
+      const value = '/test/g';
 
       const result = isRegexLiteralGuard({ value });
 
@@ -12,7 +11,7 @@ describe('isRegexLiteralGuard', () => {
     });
 
     it('VALID: {value: "/test/"} => returns true', () => {
-      const value = LiteralValueStub({ value: '/test/' });
+      const value = '/test/';
 
       const result = isRegexLiteralGuard({ value });
 
@@ -20,7 +19,7 @@ describe('isRegexLiteralGuard', () => {
     });
 
     it('VALID: {value: "/test/gimsu"} => returns true', () => {
-      const value = LiteralValueStub({ value: '/test/gimsu' });
+      const value = '/test/gimsu';
 
       const result = isRegexLiteralGuard({ value });
 
@@ -28,7 +27,7 @@ describe('isRegexLiteralGuard', () => {
     });
 
     it('VALID: {value: "/^[a-z]+$/i"} => returns true', () => {
-      const value = LiteralValueStub({ value: '/^[a-z]+$/i' });
+      const value = '/^[a-z]+$/i';
 
       const result = isRegexLiteralGuard({ value });
 
@@ -38,7 +37,7 @@ describe('isRegexLiteralGuard', () => {
 
   describe('non-regex patterns', () => {
     it('VALID: {value: "test"} => returns false', () => {
-      const value = LiteralValueStub({ value: 'test' });
+      const value = 'test';
 
       const result = isRegexLiteralGuard({ value });
 
@@ -46,7 +45,7 @@ describe('isRegexLiteralGuard', () => {
     });
 
     it('VALID: {value: "/test"} => returns false', () => {
-      const value = LiteralValueStub({ value: '/test' });
+      const value = '/test';
 
       const result = isRegexLiteralGuard({ value });
 
@@ -54,7 +53,7 @@ describe('isRegexLiteralGuard', () => {
     });
 
     it('VALID: {value: "test/"} => returns false', () => {
-      const value = LiteralValueStub({ value: 'test/' });
+      const value = 'test/';
 
       const result = isRegexLiteralGuard({ value });
 

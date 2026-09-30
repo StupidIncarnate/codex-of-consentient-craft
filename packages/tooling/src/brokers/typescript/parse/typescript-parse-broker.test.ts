@@ -1,6 +1,5 @@
 import { typescriptParseBroker } from './typescript-parse-broker';
 import { typescriptParseBrokerProxy } from './typescript-parse-broker.proxy';
-import { LiteralValueStub } from '../../../contracts/literal-value/literal-value.stub';
 
 describe('typescriptParseBroker', () => {
   it('VALID: {sourceCode with string literals} => returns map with literal occurrences', () => {
@@ -10,7 +9,7 @@ describe('typescriptParseBroker', () => {
 
     const result = typescriptParseBroker({ sourceCode, filePath });
 
-    const testOccurrences = result.get(LiteralValueStub({ value: 'test' }));
+    const testOccurrences = result.get('test');
 
     expect(testOccurrences).toStrictEqual([
       {
@@ -33,7 +32,7 @@ describe('typescriptParseBroker', () => {
 
     const result = typescriptParseBroker({ sourceCode, filePath });
 
-    const regexOccurrences = result.get(LiteralValueStub({ value: '/test/g' }));
+    const regexOccurrences = result.get('/test/g');
 
     expect(regexOccurrences).toStrictEqual([
       {
@@ -51,8 +50,8 @@ describe('typescriptParseBroker', () => {
 
     const result = typescriptParseBroker({ sourceCode, filePath, minLength: 5 });
 
-    expect(result.has(LiteralValueStub({ value: 'hi' }))).toBe(false);
-    expect(result.has(LiteralValueStub({ value: 'hello' }))).toBe(true);
+    expect(result.has('hi')).toBe(false);
+    expect(result.has('hello')).toBe(true);
   });
 
   it('EMPTY: {sourceCode without literals} => returns empty map', () => {
@@ -74,7 +73,7 @@ const type = "error";`;
 
     const result = typescriptParseBroker({ sourceCode, filePath });
 
-    const errorOccurrences = result.get(LiteralValueStub({ value: 'error' }));
+    const errorOccurrences = result.get('error');
 
     expect(errorOccurrences).toStrictEqual([
       { filePath: '/file.ts', line: 3, column: 13 },
@@ -91,7 +90,7 @@ const type = "error";`;
 
       const result = typescriptParseBroker({ sourceCode, filePath });
 
-      const uniqueOccurrences = result.get(LiteralValueStub({ value: 'unique' }));
+      const uniqueOccurrences = result.get('unique');
 
       expect(uniqueOccurrences).toStrictEqual([{ filePath: '/file.ts', line: 1, column: 10 }]);
     });
@@ -103,7 +102,7 @@ const type = "error";`;
 
       const result = typescriptParseBroker({ sourceCode, filePath });
 
-      const repeatOccurrences = result.get(LiteralValueStub({ value: 'repeat' }));
+      const repeatOccurrences = result.get('repeat');
 
       expect(repeatOccurrences).toStrictEqual([
         { filePath: '/file.ts', line: 1, column: 50 },
@@ -152,7 +151,7 @@ const type = "error";`;
 
       const result = typescriptParseBroker({ sourceCode, filePath });
 
-      const deepOccurrences = result.get(LiteralValueStub({ value: 'deep' }));
+      const deepOccurrences = result.get('deep');
 
       expect(deepOccurrences).toStrictEqual([
         { filePath: '/file.ts', line: 1, column: 65 },
@@ -167,7 +166,7 @@ const type = "error";`;
 
       const result = typescriptParseBroker({ sourceCode, filePath });
 
-      const itemOccurrences = result.get(LiteralValueStub({ value: 'item' }));
+      const itemOccurrences = result.get('item');
 
       expect(itemOccurrences).toStrictEqual([
         { filePath: '/file.ts', line: 1, column: 29 },
@@ -183,7 +182,7 @@ const type = "error";`;
 
       const result = typescriptParseBroker({ sourceCode, filePath });
 
-      const defaultOccurrences = result.get(LiteralValueStub({ value: 'default' }));
+      const defaultOccurrences = result.get('default');
 
       expect(defaultOccurrences).toStrictEqual([
         { filePath: '/file.ts', line: 1, column: 31 },
@@ -198,8 +197,8 @@ const type = "error";`;
 
       const result = typescriptParseBroker({ sourceCode, filePath });
 
-      const textOccurrences = result.get(LiteralValueStub({ value: 'text' }));
-      const titleOccurrences = result.get(LiteralValueStub({ value: 'title' }));
+      const textOccurrences = result.get('text');
+      const titleOccurrences = result.get('title');
 
       expect(textOccurrences).toStrictEqual([
         { filePath: '/file.tsx', line: 1, column: 65 },
@@ -215,7 +214,7 @@ const type = "error";`;
 
       const result = typescriptParseBroker({ sourceCode, filePath });
 
-      const moduleOccurrences = result.get(LiteralValueStub({ value: 'module' }));
+      const moduleOccurrences = result.get('module');
 
       expect(moduleOccurrences).toStrictEqual([
         { filePath: '/file.ts', line: 1, column: 46 },
@@ -230,8 +229,8 @@ const type = "error";`;
 
       const result = typescriptParseBroker({ sourceCode, filePath });
 
-      const activeOccurrences = result.get(LiteralValueStub({ value: 'active' }));
-      const inactiveOccurrences = result.get(LiteralValueStub({ value: 'inactive' }));
+      const activeOccurrences = result.get('active');
+      const inactiveOccurrences = result.get('inactive');
 
       expect(activeOccurrences).toStrictEqual([
         { filePath: '/file.ts', line: 1, column: 57 },
@@ -248,7 +247,7 @@ const type = "error";`;
 
       const result = typescriptParseBroker({ sourceCode, filePath, minLength: 3 });
 
-      const abcOccurrences = result.get(LiteralValueStub({ value: 'abc' }));
+      const abcOccurrences = result.get('abc');
 
       expect(abcOccurrences).toStrictEqual([
         { filePath: '/file.ts', line: 1, column: 27 },
@@ -263,7 +262,7 @@ const type = "error";`;
 
       const result = typescriptParseBroker({ sourceCode, filePath, minLength: 3 });
 
-      expect(result.has(LiteralValueStub({ value: 'ab' }))).toBe(false);
+      expect(result.has('ab')).toBe(false);
     });
   });
 
@@ -275,7 +274,7 @@ const type = "error";`;
 
       const result = typescriptParseBroker({ sourceCode, filePath, minLength: 0 });
 
-      const emptyOccurrences = result.get(LiteralValueStub({ value: '' }));
+      const emptyOccurrences = result.get('');
 
       expect(emptyOccurrences).toStrictEqual([
         { filePath: '/file.ts', line: 1, column: 24 },
@@ -290,7 +289,7 @@ const type = "error";`;
 
       const result = typescriptParseBroker({ sourceCode, filePath, minLength: 1 });
 
-      const aOccurrences = result.get(LiteralValueStub({ value: 'a' }));
+      const aOccurrences = result.get('a');
 
       expect(aOccurrences).toStrictEqual([
         { filePath: '/file.ts', line: 1, column: 25 },
@@ -305,7 +304,7 @@ const type = "error";`;
 
       const result = typescriptParseBroker({ sourceCode, filePath, minLength: 1000 });
 
-      expect(result.has(LiteralValueStub({ value: 'short' }))).toBe(false);
+      expect(result.has('short')).toBe(false);
     });
   });
 
@@ -317,7 +316,7 @@ const type = "error";`;
 
       const result = typescriptParseBroker({ sourceCode, filePath });
 
-      const unicodeOccurrences = result.get(LiteralValueStub({ value: 'Hello 👋' }));
+      const unicodeOccurrences = result.get('Hello 👋');
 
       expect(unicodeOccurrences).toStrictEqual([
         { filePath: '/file.ts', line: 1, column: 32 },
@@ -332,7 +331,7 @@ const type = "error";`;
 
       const result = typescriptParseBroker({ sourceCode, filePath });
 
-      const pathOccurrences = result.get(LiteralValueStub({ value: 'path\\to\\file' }));
+      const pathOccurrences = result.get('path\\to\\file');
 
       expect(pathOccurrences).toStrictEqual([
         { filePath: '/file.ts', line: 1, column: 38 },
@@ -347,7 +346,7 @@ const type = "error";`;
 
       const result = typescriptParseBroker({ sourceCode, filePath });
 
-      const newlineOccurrences = result.get(LiteralValueStub({ value: 'line1\nline2' }));
+      const newlineOccurrences = result.get('line1\nline2');
 
       expect(newlineOccurrences).toStrictEqual([
         { filePath: '/file.ts', line: 1, column: 36 },
@@ -363,7 +362,7 @@ const type = "error";`;
 
       const result = typescriptParseBroker({ sourceCode, filePath });
 
-      const longOccurrences = result.get(LiteralValueStub({ value: longString }));
+      const longOccurrences = result.get(longString);
 
       expect(longOccurrences).toStrictEqual([
         { filePath: '/file.ts', line: 1, column: 10024 },
@@ -378,7 +377,7 @@ const type = "error";`;
 
       const result = typescriptParseBroker({ sourceCode, filePath });
 
-      const whitespaceOccurrences = result.get(LiteralValueStub({ value: '   ' }));
+      const whitespaceOccurrences = result.get('   ');
 
       expect(whitespaceOccurrences).toStrictEqual([
         { filePath: '/file.ts', line: 1, column: 27 },
@@ -395,7 +394,7 @@ const type = "error";`;
 
       const result = typescriptParseBroker({ sourceCode, filePath });
 
-      const errorOccurrences = result.get(LiteralValueStub({ value: 'error' }));
+      const errorOccurrences = result.get('error');
 
       expect(errorOccurrences).toStrictEqual([
         { filePath: '/file.ts', line: 1, column: 29 },
@@ -410,7 +409,7 @@ const type = "error";`;
 
       const result = typescriptParseBroker({ sourceCode, filePath });
 
-      const completeOccurrences = result.get(LiteralValueStub({ value: 'complete' }));
+      const completeOccurrences = result.get('complete');
 
       expect(completeOccurrences).toStrictEqual([
         { filePath: '/file.ts', line: 1, column: 32 },
@@ -425,8 +424,8 @@ const type = "error";`;
 
       const result = typescriptParseBroker({ sourceCode, filePath });
 
-      const singleOccurrences = result.get(LiteralValueStub({ value: 'single' }));
-      const doubleOccurrences = result.get(LiteralValueStub({ value: 'double' }));
+      const singleOccurrences = result.get('single');
+      const doubleOccurrences = result.get('double');
 
       expect(singleOccurrences).toStrictEqual([
         { filePath: '/file.ts', line: 1, column: 50 },
@@ -444,8 +443,8 @@ const type = "error";`;
 
       const result = typescriptParseBroker({ sourceCode, filePath });
 
-      const giOccurrences = result.get(LiteralValueStub({ value: '/test/gi' }));
-      const mOccurrences = result.get(LiteralValueStub({ value: '/test/m' }));
+      const giOccurrences = result.get('/test/gi');
+      const mOccurrences = result.get('/test/m');
 
       expect(giOccurrences).toStrictEqual([
         { filePath: '/file.ts', line: 1, column: 52 },
@@ -462,7 +461,7 @@ const type = "error";`;
       const result = typescriptParseBroker({ sourceCode, filePath });
 
       const emailOccurrences = result.get(
-        LiteralValueStub({ value: '/^[a-zA-Z0-9]+@[a-zA-Z0-9]+\\.[a-z]{2,}$/' }),
+        '/^[a-zA-Z0-9]+@[a-zA-Z0-9]+\\.[a-z]{2,}$/',
       );
 
       expect(emailOccurrences).toStrictEqual([
@@ -478,7 +477,7 @@ const type = "error";`;
 
       const result = typescriptParseBroker({ sourceCode, filePath });
 
-      const digitOccurrences = result.get(LiteralValueStub({ value: '/\\d+/' }));
+      const digitOccurrences = result.get('/\\d+/');
 
       expect(digitOccurrences).toStrictEqual([
         { filePath: '/file.ts', line: 1, column: 65 },
@@ -495,7 +494,7 @@ const type = "error";`;
 
       const result = typescriptParseBroker({ sourceCode, filePath });
 
-      const decimalOccurrences = result.get(LiteralValueStub({ value: '/\\d+\\.\\d+/' }));
+      const decimalOccurrences = result.get('/\\d+\\.\\d+/');
 
       expect(decimalOccurrences).toStrictEqual([
         { filePath: '/file.ts', line: 1, column: 57 },

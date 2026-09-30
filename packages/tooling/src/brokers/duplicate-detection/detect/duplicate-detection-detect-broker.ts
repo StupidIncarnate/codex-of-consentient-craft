@@ -7,7 +7,6 @@
  */
 import type { DuplicateLiteralReport } from '../../../contracts/duplicate-literal-report/duplicate-literal-report-contract';
 import type { LiteralOccurrence } from '../../../contracts/literal-occurrence/literal-occurrence-contract';
-import type { LiteralValue } from '../../../contracts/literal-value/literal-value-contract';
 import type { OccurrenceThreshold } from '../../../contracts/occurrence-threshold/occurrence-threshold-contract';
 import { glob } from '#gateway/npm/glob';
 import { readFile } from '#gateway/node/fs__promises';
@@ -41,7 +40,7 @@ export const duplicateDetectionDetectBroker = async ({
   const filePaths = matches.map((match) => match);
 
   // Aggregate literals across all files
-  const globalLiteralsMap = new Map<LiteralValue, LiteralOccurrence[]>();
+  const globalLiteralsMap = new Map<string, LiteralOccurrence[]>();
 
   // Process all files in parallel
   const fileResults = await Promise.all(

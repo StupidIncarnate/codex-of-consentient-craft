@@ -1,12 +1,11 @@
 import { duplicateLiteralReportContract as _duplicateLiteralReportContract } from './duplicate-literal-report-contract';
 import { DuplicateLiteralReportStub } from './duplicate-literal-report.stub';
-import { LiteralValueStub } from '../literal-value/literal-value.stub';
 import { LiteralTypeStub } from '../literal-type/literal-type.stub';
 import { LiteralOccurrenceStub } from '../literal-occurrence/literal-occurrence.stub';
 
 describe('duplicateLiteralReportContract', () => {
   it('VALID: {value, type, occurrences, count: 2} => parses successfully', () => {
-    const value = LiteralValueStub({ value: 'test' });
+    const value = 'test';
     const type = LiteralTypeStub({ value: 'string' });
     const filePath = '/file.ts';
     const occurrences = [
@@ -28,7 +27,7 @@ describe('duplicateLiteralReportContract', () => {
   });
 
   it('VALID: {value, type: "regex", occurrences, count: 5} => parses successfully', () => {
-    const value = LiteralValueStub({ value: '/test/g' });
+    const value = '/test/g';
     const type = LiteralTypeStub({ value: 'regex' });
     const filePath1 = '/file1.ts';
     const filePath2 = '/file2.ts';
@@ -57,7 +56,7 @@ describe('duplicateLiteralReportContract', () => {
   });
 
   it('VALID: {value, type, occurrences, count: 150} => parses successfully', () => {
-    const value = LiteralValueStub({ value: 'error' });
+    const value = 'error';
     const type = LiteralTypeStub({ value: 'string' });
     const filePath = '/large/file.ts';
     const occurrences = Array.from({ length: 150 }, (_, i) => {
@@ -81,7 +80,7 @@ describe('duplicateLiteralReportContract', () => {
   });
 
   it('VALID: {value: "", type, occurrences, count: 3} => parses successfully', () => {
-    const value = LiteralValueStub({ value: '' });
+    const value = '';
     const type = LiteralTypeStub({ value: 'string' });
     const filePath = '/file.ts';
     const occurrences = [
@@ -106,7 +105,7 @@ describe('duplicateLiteralReportContract', () => {
 
   it('VALID: {value: very long string, type, occurrences, count: 2} => parses successfully', () => {
     const longValue = 'a'.repeat(5000);
-    const value = LiteralValueStub({ value: longValue });
+    const value = longValue;
     const type = LiteralTypeStub({ value: 'string' });
     const filePath = '/file.ts';
     const occurrences = [
@@ -128,7 +127,7 @@ describe('duplicateLiteralReportContract', () => {
   });
 
   it('VALID: {value: "special!@#$%chars", type, occurrences, count: 2} => parses successfully', () => {
-    const value = LiteralValueStub({ value: 'special!@#$%chars' });
+    const value = 'special!@#$%chars';
     const type = LiteralTypeStub({ value: 'string' });
     const filePath = '/file.ts';
     const occurrences = [

@@ -9,9 +9,7 @@
  */
 import * as ts from '#gateway/npm/typescript';
 import type { LiteralOccurrence } from '../../../contracts/literal-occurrence/literal-occurrence-contract';
-import type { LiteralValue } from '../../../contracts/literal-value/literal-value-contract';
 import { literalOccurrenceContract } from '../../../contracts/literal-occurrence/literal-occurrence-contract';
-import { literalValueContract } from '../../../contracts/literal-value/literal-value-contract';
 
 export const typescriptParseBroker = ({
   sourceCode,
@@ -21,10 +19,10 @@ export const typescriptParseBroker = ({
   sourceCode: string;
   filePath: string;
   minLength?: number;
-}): ReadonlyMap<LiteralValue, readonly LiteralOccurrence[]> => {
+}): ReadonlyMap<string, readonly LiteralOccurrence[]> => {
   const sourceFile = ts.createSourceFile(filePath, sourceCode, ts.ScriptTarget.Latest, true);
 
-  const literalsMap = new Map<LiteralValue, LiteralOccurrence[]>();
+  const literalsMap = new Map<string, LiteralOccurrence[]>();
   const nodesToVisit: ts.Node[] = [sourceFile];
 
   // Iterative AST traversal using stack
@@ -48,7 +46,7 @@ export const typescriptParseBroker = ({
           column: position.character,
         });
 
-        const key = literalValueContract.parse(value);
+        const key = value;
         const existing = literalsMap.get(key);
         if (existing) {
           existing.push(occurrence);
@@ -68,7 +66,7 @@ export const typescriptParseBroker = ({
         column: position.character,
       });
 
-      const key = literalValueContract.parse(value);
+      const key = value;
       const existing = literalsMap.get(key);
       if (existing) {
         existing.push(occurrence);
