@@ -9,7 +9,6 @@ import { locationsStatics } from '@dungeonmaster/shared/statics';
 import { registerMock, requireActual } from '@dungeonmaster/testing/register-mock';
 import type { MockHandle } from '@dungeonmaster/testing/register-mock';
 
-import { SpawnOptionsEnvNameStub } from '../../../contracts/spawn-options-env-name/spawn-options-env-name.stub';
 import { spawnedOptionsSnapshotTransformer } from '../../../transformers/spawned-options-snapshot/spawned-options-snapshot-transformer';
 
 type MockProcess = ReturnType<ReturnType<typeof spawnStreamJsonProxy>['setupSpawn']>['mockProcess'];
@@ -146,7 +145,7 @@ export const agentSpawnStreamJsonBrokerProxy = (): {
     getSpawnedStderrMode: (): unknown => lastSpawnOptions().stdio?.[2],
 
     getSpawnedEnvValue: ({ name }: { name: string }): unknown =>
-      lastSpawnOptions().env?.[SpawnOptionsEnvNameStub({ value: name })],
+      lastSpawnOptions().env?.[name],
 
     getSettingsReads: (): readonly unknown[][] => [
       ...settingsProxy.getCallsFor({ path: isSettingsFilePath }),
