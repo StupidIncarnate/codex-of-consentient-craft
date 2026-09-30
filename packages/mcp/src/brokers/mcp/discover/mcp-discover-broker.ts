@@ -10,8 +10,6 @@ import { discoverInputContract } from '../../../contracts/discover-input/discove
 import type { DiscoverInput } from '../../../contracts/discover-input/discover-input-contract';
 import { discoverResultItemContract } from '../../../contracts/discover-result-item/discover-result-item-contract';
 import type { DiscoverResultItem } from '../../../contracts/discover-result-item/discover-result-item-contract';
-import { resultCountContract } from '../../../contracts/result-count/result-count-contract';
-import type { ResultCount } from '../../../contracts/result-count/result-count-contract';
 import { fileScannerBroker } from '../../file/scanner/file-scanner-broker';
 import { treeFormatterTransformer } from '../../../transformers/tree-formatter/tree-formatter-transformer';
 import { glob as globFind } from '#gateway/npm/glob';
@@ -38,7 +36,7 @@ export const mcpDiscoverBroker = async ({
   rootPath?: string;
 }): Promise<{
   results: DiscoverResultItem[] | string;
-  count: ResultCount;
+  count: number;
 }> => {
   // Validate input
   const validated = discoverInputContract.parse(input);
@@ -71,7 +69,7 @@ export const mcpDiscoverBroker = async ({
   if (validated.verbose === true) {
     return {
       results: resultItems,
-      count: resultCountContract.parse(resultItems.length),
+      count: resultItems.length,
     };
   }
 
@@ -115,7 +113,7 @@ export const mcpDiscoverBroker = async ({
         ];
         return {
           results: hintLines.join('\n'),
-          count: resultCountContract.parse(0),
+          count: 0,
         };
       }
     }
@@ -143,13 +141,13 @@ export const mcpDiscoverBroker = async ({
       ];
       return {
         results: hintLines.join('\n'),
-        count: resultCountContract.parse(0),
+        count: 0,
       };
     }
   }
 
   return {
     results: treeOutput,
-    count: resultCountContract.parse(fileResults.length),
+    count: fileResults.length,
   };
 };
