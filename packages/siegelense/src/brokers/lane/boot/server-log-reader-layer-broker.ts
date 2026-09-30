@@ -18,8 +18,6 @@
 
 import { readFileSync } from '#gateway/node/fs';
 
-import { serverLogByteCountContract } from '../../../contracts/server-log-byte-count/server-log-byte-count-contract';
-import type { ServerLogByteCount } from '../../../contracts/server-log-byte-count/server-log-byte-count-contract';
 import { Buffer } from '#gateway/node/buffer';
 
 export const serverLogReaderLayerBroker = ({
@@ -28,11 +26,11 @@ export const serverLogReaderLayerBroker = ({
   logPath: string;
 }): {
   readServerLogSince: ({ fromByte }: { fromByte: number }) => readonly string[];
-  serverLogLength: () => ServerLogByteCount;
+  serverLogLength: () => number;
 } => ({
-  serverLogLength: (): ServerLogByteCount => {
+  serverLogLength: (): number => {
     const content = readFileSync(logPath);
-    return serverLogByteCountContract.parse(Buffer.byteLength(content, 'utf8'));
+    return Buffer.byteLength(content, 'utf8');
   },
 
   readServerLogSince: ({ fromByte }: { fromByte: number }): readonly string[] => {

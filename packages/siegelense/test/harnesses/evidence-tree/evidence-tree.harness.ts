@@ -65,7 +65,6 @@ import { PortPairStub } from '../../../src/contracts/port-pair/port-pair.stub';
 import { RegistryEntryStub } from '../../../src/contracts/registry-entry/registry-entry.stub';
 import { RunIdStub } from '../../../src/contracts/run-id/run-id.stub';
 import { RunResultStub } from '../../../src/contracts/run-result/run-result.stub';
-import { ServerLogByteCountStub } from '../../../src/contracts/server-log-byte-count/server-log-byte-count.stub';
 import { ShotListingStub } from '../../../src/contracts/shot-listing/shot-listing.stub';
 import { StepReadingStub } from '../../../src/contracts/step-reading/step-reading.stub';
 import type { BlankReading } from '../../../src/contracts/blank-reading/blank-reading-contract';
@@ -79,6 +78,7 @@ import type { RunResult } from '../../../src/contracts/run-result/run-result-con
 import type { ServerLogWindow } from '../../../src/contracts/server-log-window/server-log-window-contract';
 import type { StatusAnswer } from '../../../src/contracts/status-answer/status-answer-contract';
 import type { StepReading } from '../../../src/contracts/step-reading/step-reading-contract';
+import { ServerLogWindowStub } from '../../../src/contracts/server-log-window/server-log-window.stub';
 
 const KILLED_INSTANCE_ID = InstanceIdStub({ value: 'inst_1111dead' });
 const LIVE_INSTANCE_ID = InstanceIdStub({ value: 'inst_2222c0de' });
@@ -262,15 +262,15 @@ export const evidenceTreeHarness = (): {
     const afterStep3 = `${afterStep2}${SERVER_LINE_STEP3}\n`;
     const afterRun2 = `${afterStep3}${SERVER_LINE_RUN2}\n`;
 
-    const byteCount = (text: string): ReturnType<typeof ServerLogByteCountStub> =>
-      ServerLogByteCountStub({ value: Buffer.byteLength(text, 'utf8') });
+    const byteCount = (text: string): number =>
+      Buffer.byteLength(text, 'utf8');
 
     return {
       content: afterRun2,
-      step1Window: { fromByte: byteCount(''), toByte: byteCount(afterStep1) },
-      step2Window: { fromByte: byteCount(afterStep1), toByte: byteCount(afterStep2) },
-      step3Window: { fromByte: byteCount(afterStep2), toByte: byteCount(afterStep3) },
-      run2Window: { fromByte: byteCount(afterStep3), toByte: byteCount(afterRun2) },
+      step1Window: ServerLogWindowStub({ fromByte: byteCount(''), toByte: byteCount(afterStep1) }),
+      step2Window: ServerLogWindowStub({ fromByte: byteCount(afterStep1), toByte: byteCount(afterStep2) }),
+      step3Window: ServerLogWindowStub({ fromByte: byteCount(afterStep2), toByte: byteCount(afterStep3) }),
+      run2Window: ServerLogWindowStub({ fromByte: byteCount(afterStep3), toByte: byteCount(afterRun2) }),
     };
   };
 

@@ -5,8 +5,6 @@ import type { LaneSession } from './lane-session-contract';
 import { BrowserSessionStub } from '../browser-session/browser-session.stub';
 import { PortPairStub } from '../port-pair/port-pair.stub';
 import { ProcessGroupIdStub } from '../process-group-id/process-group-id.stub';
-import { serverLogByteCountContract } from '../server-log-byte-count/server-log-byte-count-contract';
-import type { ServerLogByteCount } from '../server-log-byte-count/server-log-byte-count-contract';
 
 export const LaneSessionStub = ({
   ...props
@@ -23,11 +21,11 @@ export const LaneSessionStub = ({
   const { readServerLogSince, serverLogLength, serverLogLengthSequence, ...dataProps } = props;
 
   let serverLogLengthCallCount = 0;
-  const readOneFromSequence = (): ServerLogByteCount => {
+  const readOneFromSequence = (): number => {
     const sequence = serverLogLengthSequence ?? [];
     const entryIndex = Math.min(serverLogLengthCallCount, sequence.length - 1);
     serverLogLengthCallCount += 1;
-    return serverLogByteCountContract.parse(sequence[entryIndex]);
+    return sequence[entryIndex];
   };
 
   return {
@@ -55,7 +53,7 @@ export const LaneSessionStub = ({
     serverLogLength:
       serverLogLength ??
       (serverLogLengthSequence === undefined
-        ? (): ServerLogByteCount => serverLogByteCountContract.parse(0)
+        ? (): number => 0
         : readOneFromSequence),
   };
 };

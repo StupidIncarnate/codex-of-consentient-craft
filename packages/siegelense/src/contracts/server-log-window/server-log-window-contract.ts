@@ -13,11 +13,10 @@
 
 import { z } from '#gateway/npm/zod';
 
-import { serverLogByteCountContract } from '../server-log-byte-count/server-log-byte-count-contract';
 
 export const serverLogWindowContract = z.object({
-  fromByte: serverLogByteCountContract,
-  toByte: serverLogByteCountContract,
+  fromByte: z.number().int().nonnegative().brand<'ServerLogWindowFromByte'>(),
+  toByte: z.number().int().nonnegative().brand<'ServerLogWindowToByte'>(),
 });
 
 export type ServerLogWindow = z.infer<typeof serverLogWindowContract>;

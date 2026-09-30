@@ -28,7 +28,6 @@ import { absoluteFilePathContract } from '@dungeonmaster/shared/contracts';
 import type { BrowserSession } from '../browser-session/browser-session-contract';
 import { fileDescriptorContract } from '../file-descriptor/file-descriptor-contract';
 import { portPairContract } from '../port-pair/port-pair-contract';
-import type { ServerLogByteCount } from '../server-log-byte-count/server-log-byte-count-contract';
 
 export const laneSessionContract = z
   .object({
@@ -50,5 +49,5 @@ export const laneSessionContract = z
 
 export type LaneSession = z.infer<typeof laneSessionContract> & {
   readServerLogSince: ({ fromByte }: { fromByte: number }) => readonly string[];
-  serverLogLength: () => ServerLogByteCount;
+  serverLogLength: () => number;
 };
