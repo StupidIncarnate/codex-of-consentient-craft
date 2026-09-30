@@ -6,10 +6,6 @@
  * // Returns ContinuationContext with continuation point and trimmed agent output, or null if both are empty
  */
 
-import {
-  continuationContextContract,
-  type ContinuationContext,
-} from '../../contracts/continuation-context/continuation-context-contract';
 import type { StreamText } from '../../contracts/stream-text/stream-text-contract';
 
 const OUTPUT_TAIL_LINE_COUNT = 50;
@@ -20,7 +16,7 @@ export const buildContinuationContextTransformer = ({
 }: {
   continuationPoint?: string;
   capturedOutput: readonly StreamText[];
-}): ContinuationContext | null => {
+}): string | null => {
   const outputTail = capturedOutput.slice(-OUTPUT_TAIL_LINE_COUNT);
 
   const hasContinuation = continuationPoint !== undefined;
@@ -36,8 +32,8 @@ export const buildContinuationContextTransformer = ({
     hasContinuation && outputSection !== null
       ? `${continuationPoint}\n\n${outputSection}`
       : hasContinuation
-        ? (continuationPoint as unknown as ContinuationContext)
-        : continuationContextContract.parse(outputSection);
+        ? (continuationPoint as unknown as string)
+        : outputSection;
 
-  return continuationContextContract.parse(combined);
+  return combined;
 };
