@@ -83,13 +83,22 @@ export const environmentHarness = ({
   // no e2e mock ever answers. A bare sibling repo gives the fixture something real to push to,
   // outside `guildPath` so `clearWorktrees`/`ensureFixtureRepo` (which only ever touch the guild
   // path itself) never disturb it across runs.
+  //
+  // Runs on EVERY setup, not only when the fixture repo is first created. `global-setup.ts` sweeps
+  // any `/tmp/dm-e2e-*` entry whose mtime is over six hours old, and the two directories age apart:
+  // every test rewrites `<guildPath>/worktrees`, so the guild path stays fresh, while a push only
+  // writes inside the bare repo's subdirectories and never touches its own mtime. So the sweep
+  // removes the remote and keeps the guild repo that points at it, and a check made only at repo
+  // creation never notices. `git config` rather than `git remote add`, because the second setup of a
+  // repo already carrying `origin` would otherwise refuse the add.
   const remotePath = `${guildPath}-origin.git`;
 
   const ensureRemote = (): void => {
     if (!fs.existsSync(remotePath)) {
       execFileSync('git', ['init', '--bare', '-b', 'main', remotePath], { stdio: 'ignore' });
     }
-    runGit(['remote', 'add', 'origin', remotePath]);
+    runGit(['config', 'remote.origin.url', remotePath]);
+    runGit(['config', 'remote.origin.fetch', '+refs/heads/*:refs/remotes/origin/*']);
   };
 
   // The dispatcher's deterministic `carve` step (packages/orchestrator's stepHandlerRiftcarverBroker)
@@ -116,7 +125,6 @@ export const environmentHarness = ({
     }
 
     runGit(['init', '-b', 'main']);
-    ensureRemote();
 
     fs.writeFileSync(
       path.join(guildPath, '.dungeonmaster.json'),
@@ -202,6 +210,7 @@ export const environmentHarness = ({
     clearStaleJsonlForGuild();
     fs.mkdirSync(guildPath, { recursive: true });
     ensureFixtureRepo();
+    ensureRemote();
     clearWorktrees();
   };
 
