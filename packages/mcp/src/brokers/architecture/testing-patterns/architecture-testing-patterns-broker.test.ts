@@ -201,7 +201,7 @@ describe('architectureTestingPatternsBroker', () => {
       expect(result).toMatch(/^## Proxy Architecture$/mu);
       expect(result).toMatch(/^### Core Rule$/mu);
       expect(result).toMatch(
-        /^\*\*Mock only at I\/O boundaries\. Everything else runs REAL\.\*\*$/mu,
+        /^\*\*Mock only what the I\/O trap or MSW catches\. Everything else runs REAL\.\*\*$/mu,
       );
     });
 
@@ -223,13 +223,13 @@ describe('architectureTestingPatternsBroker', () => {
 
       expect(result).toMatch(/^### Quick Reference: What Needs Proxies\?$/mu);
       expect(result).toMatch(
-        /^\| Contracts\s+\| ❌ No\s+\| Use stubs \(\.stub\.ts files\) - includes service objects with methods\s+\|$/mu,
+        /^\| Contracts\s+\| ❌ No\s+\| Use stubs \(\.stub\.ts files\)\. An outside type comes from the gateway's stub, imported from its own file\s+\|$/mu,
       );
       expect(result).toMatch(
-        /^\| Adapters\s+\| ✅ Sometimes\s+\| \*\*Mock npm dependency\*\* \(axios, fs, etc\.\)\. Empty proxy if no mocking needed \(simple re-exports\)\s*\|$/mu,
+        /^\| Brokers\s+\| ✅ Sometimes\s+\| Compose the proxies of the gateway wrappers the broker calls, each imported from its own `\.proxy` file, and provide semantic setup\. Empty proxy if no dependencies mocked\s+\|$/mu,
       );
       expect(result).toMatch(
-        /^\| Brokers\s+\| ✅ Sometimes\s+\| Compose adapter proxies, provide semantic setup\. Empty proxy if no dependencies mocked\s+\|$/mu,
+        /^\| Middleware\s+\| ✅ Yes\s+\| Delegate to gateway wrapper proxies\s+\|$/mu,
       );
     });
 
@@ -240,7 +240,7 @@ describe('architectureTestingPatternsBroker', () => {
 
       expect(result).toMatch(/^### Detailed Proxy Patterns$/mu);
       expect(result).toMatch(
-        /^\*\*Detailed proxy patterns for each folder type\*\* - Use `get-folder-detail\(\{ folderType: "\.\.\." \}\)` to see specific examples: adapters, brokers, bindings, widgets, responders, middleware, state, guards\.$/mu,
+        /^\*\*Detailed proxy patterns for each folder type\*\* - Use `get-folder-detail\(\{ folderType: "\.\.\." \}\)` to see specific examples: brokers, bindings, widgets, responders, middleware, state, guards\.$/mu,
       );
       expect(result).toMatch(/^\*\*Empty Proxy Pattern:\*\*$/mu);
       expect(result).toMatch(
@@ -357,7 +357,7 @@ describe('architectureTestingPatternsBroker', () => {
         /^\| `fs` reads\/writes \(`readFile`, `writeFile`, `existsSync`, `readdir`, …\) \| the PATH \(arg 0\); write body is arg 1 \(`callsMatching\(\[path\]\)\.at\(-1\)\?\.\[1\]`\) \|$/mu,
       );
       expect(result).toMatch(
-        /^\| `crypto\.randomUUID`, `Date\.now`, `Date\.prototype\.toISOString`, `Math\.random`, `process\.cwd`, `os\.homedir` \| NO argument — `calledWith\(\[\]\)` is honest, not lazy \|$/mu,
+        /^\| `crypto\.randomUUID`, `Date\.now`, `Date\.prototype\.toISOString`, `Math\.random`, `process\.cwd` \| NO argument — `calledWith\(\[\]\)` is honest, not lazy \|$/mu,
       );
     });
 
@@ -506,7 +506,7 @@ describe('architectureTestingPatternsBroker', () => {
 
       const result: ContentText = architectureTestingPatternsBroker();
       const messageNeedle = 're-submit the ENTIRE corrected edit, not a surgical follow-up';
-      const ruleNeedle = '`@dungeonmaster/ban-primitives`';
+      const ruleNeedle = '`@dungeonmaster/ban-invented-failures`';
 
       expect(result).toMatch(/^## Lint Rules That BLOCK Your Edit \(pre-edit hook\)$/mu);
       expect(
@@ -538,7 +538,7 @@ describe('architectureTestingPatternsBroker', () => {
 
       expect(result).toMatch(/^### Statics Proxy Pattern$/mu);
       expect(result).toMatch(
-        /^\*\*Statics proxies\*\* override immutable values for edge case testing\. Use `Reflect\.set\(\)` to mutate readonly constants at runtime, or `registerSpyOn` for getters\.$/mu,
+        /^\*\*A statics proxy is empty\.\*\* It mutates nothing, because a constant is immutable\. To exercise an edge value, pass it into the function under test\. Use `registerSpyOn` only for a getter\.$/mu,
       );
     });
 
@@ -560,7 +560,7 @@ describe('architectureTestingPatternsBroker', () => {
 
       expect(result).toMatch(/^## EndpointMock \(HTTP Mocking for Frontend Tests\)$/mu);
       expect(result).toMatch(
-        /^Use `StartEndpointMock` for \*\*any test that needs to mock HTTP responses\*\* — broker tests, widget integration tests, or any layer that ultimately calls a fetch adapter\. \*\*Always via the broker proxy layer\*\* — never call it directly in a test file\.$/mu,
+        /^Use `StartEndpointMock` for \*\*any test that needs to mock HTTP responses\*\* — broker tests, widget integration tests, or any layer that ultimately calls a fetch gateway wrapper\. \*\*Always via the broker proxy layer\*\* — never call it directly in a test file\.$/mu,
       );
     });
 
@@ -628,16 +628,177 @@ describe('architectureTestingPatternsBroker', () => {
       expect(result).toMatch(/^### The `\.harness\.ts` Pattern$/mu);
     });
 
-    it('VALID: {} => bans any/as/@ts-ignore and names the two allowed escape hatches', () => {
+    it('VALID: {} => bans any/as/@ts-ignore and names the one allowed escape hatch', () => {
       architectureTestingPatternsBrokerProxy();
 
       const result: ContentText = architectureTestingPatternsBroker();
 
       expect(result).toMatch(
-        /^\*\*Never silence a type error with `any`, `as`, or `@ts-ignore`\.\*\* Two escape hatches are allowed:$/mu,
+        /^\*\*Never silence a type error with `any`, `as`, or `@ts-ignore`\.\*\* One escape hatch is allowed:$/mu,
       );
       expect(result).toMatch(
         /^- \[ \] No `any`, `as` or `@ts-ignore` used to silence a type error$/mu,
+      );
+    });
+
+    it('VALID: {} => names the two kinds of mocked things and leaves pass-throughs real', () => {
+      architectureTestingPatternsBrokerProxy();
+
+      const result: ContentText = architectureTestingPatternsBroker();
+
+      expect(result).toMatch(
+        /^1\. \*\*A call the I\/O trap or MSW catches\*\* - compose the gateway wrapper's proxy, imported from its own file, in the proxy of the file that calls the wrapper\. A pass-through wrapper \(one that only re-exports an outside function, such as `path`\) runs real and has no proxy\.$/mu,
+      );
+      expect(result).toMatch(
+        /^Mocked: what the I\/O trap or MSW catches, and globals a test pins\. Everything else runs real\.$/mu,
+      );
+    });
+
+    it('VALID: {} => gives a constructor calledWith([]) only to a function that takes no arguments', () => {
+      architectureTestingPatternsBrokerProxy();
+
+      const result: ContentText = architectureTestingPatternsBroker();
+
+      expect(result).toMatch(
+        /^A constructor-level `calledWith\(\[\]\)` belongs only to a function that takes no arguments \(`randomUUID`, `Date\.now`, `process\.cwd`\), where `\[\]` is the only address there is\. A function that takes arguments never gets a constructor default: an unstaged call must throw, so the I\/O trap can name the call the proxy forgot\. `ban-proxy-empty-called-with` and `ban-proxy-catch-all-defaults` refuse both the empty address and a predicate that is always true\.$/mu,
+      );
+    });
+
+    it('VALID: {} => shows a plain value staged by its address and a composed gateway proxy', () => {
+      architectureTestingPatternsBrokerProxy();
+
+      const result: ContentText = architectureTestingPatternsBroker();
+
+      expect(result).toMatch(
+        /^A loose string or number needs no brand and no stub in a mock: `handle\.calledWith\(\[filePath\]\)\.resolves\('content'\)`\.$/mu,
+      );
+      expect(result).toMatch(
+        /^import \{ readFileProxy \} from '#gateway\/node\/fs__promises\/read-file\/read-file\.proxy';$/mu,
+      );
+      expect(result).toMatch(
+        /^proxy\.returns\(\{path: '\/repo\/config\.json', contents: '\{\}'\}\);$/mu,
+      );
+    });
+
+    it('VALID: {} => says MSW loads in every package from the root Jest base config', () => {
+      architectureTestingPatternsBrokerProxy();
+
+      const result: ContentText = architectureTestingPatternsBroker();
+
+      expect(result).toMatch(
+        /^\*\*MSW lifecycle:\*\* MSW loads in every package, server included, from the root Jest base config, and `StartEndpointMockSetup` handles start, per-test handler reset and close\. A package adds no setup file for it\.$/mu,
+      );
+      expect(result).toMatch(
+        /^import \{ fetchJsonProxy \} from '#gateway\/browser\/fetch\/fetch-json\/fetch-json\.proxy';$/mu,
+      );
+    });
+
+    it('VALID: {} => includes the gateway proxies and test support section', () => {
+      architectureTestingPatternsBrokerProxy();
+
+      const result: ContentText = architectureTestingPatternsBroker();
+
+      expect(result).toMatch(/^## Gateway Proxies and Test Support$/mu);
+      expect(result).toMatch(/^### Import each stub and proxy from its own file$/mu);
+      expect(result).toMatch(
+        /^No production barrel exports a stub or a proxy\. A test or proxy file imports each one from the file beside the thing it fakes: `@dungeonmaster\/orchestrator\/startup\/start-orchestrator\.proxy`, `#gateway\/node\/fs\/file-missing-error\/file-missing-error\.stub`\. A stub of our own type parses through its contract; a stub of an outside type comes from the gateway, imported from its own file\.$/mu,
+      );
+    });
+
+    it('VALID: {} => tells a proxy to compose the gateway wrapper proxy, never re-mock it', () => {
+      architectureTestingPatternsBrokerProxy();
+
+      const result: ContentText = architectureTestingPatternsBroker();
+
+      expect(result).toMatch(
+        /^The proxy of a file that calls a gateway wrapper composes that wrapper's proxy, imported from the `\.proxy` file beside the wrapper\. A pass-through wrapper runs real and has no proxy\. Tests import outside packages through the gateway too\.$/mu,
+      );
+      expect(result).toMatch(
+        /^import \{ globProxy \} from '#gateway\/npm\/glob\/glob\/glob\.proxy';$/mu,
+      );
+      expect(result).toMatch(
+        /^A caller's proxy never `registerMock`s the wrapper's underlying outside function itself: only the wrapper's own proxy does that\.$/mu,
+      );
+    });
+
+    it('VALID: {} => bans catch-all answers and names the two opt-in shapes that stay', () => {
+      architectureTestingPatternsBrokerProxy();
+
+      const result: ContentText = architectureTestingPatternsBroker();
+
+      expect(result).toMatch(/^### No catch-all answers$/mu);
+      expect(result).toMatch(
+        /^No `calledWith\(\[\]\)`, and no predicate that is always true, in a proxy constructor for a function that takes arguments\. Stage each call by its arguments, so a call the proxy forgot throws\. Two opt-in shapes stay inside that rule because nothing stages them by default: a scenario method that answers any path for a virtual file tree \(`setupImplementation`\), and a wrapper proxy's lower-ranked fallback addressed by the path alone \(`returnsOnceFallback` on `readFileProxy`\)\. Every exact stage outranks both\.$/mu,
+      );
+    });
+
+    it('VALID: {} => teaches the gateway stub for a gateway-branded field', () => {
+      architectureTestingPatternsBrokerProxy();
+
+      const result: ContentText = architectureTestingPatternsBroker();
+
+      expect(result).toMatch(
+        /^### A contract field branded `'#Gateway<Type>'` takes the gateway's stub$/mu,
+      );
+      expect(result).toMatch(
+        /^A stub argument for such a field takes the gateway's stub, imported from its own file\. A partial fake does not compile\.$/mu,
+      );
+      expect(result).toMatch(
+        /^const result = UseQuestSummaryResultStub\(\{ error: ErrorStub\(\) \}\);$/mu,
+      );
+    });
+
+    it('VALID: {} => builds failures from a named scenario or a recorded-failure stub', () => {
+      architectureTestingPatternsBrokerProxy();
+
+      const result: ContentText = architectureTestingPatternsBroker();
+
+      expect(result).toMatch(
+        /^A failure comes from a wrapper proxy's named scenario, such as `readFileProxy\(\)\.missing\(\{ path \}\)`, or from a recorded-failure stub in the gateway, such as `FileMissingErrorStub`\. Never a hand-made `Error`: its shape is the one you imagined, not the one Node produces, and `ban-invented-failures` refuses it\.$/mu,
+      );
+      expect(result).toMatch(/^fileProxy\.missing\(\{ path: '\/repo\/config\.json' \}\);$/mu);
+    });
+
+    it('VALID: {} => forbids mocking another workspace package export and names its shipped proxy', () => {
+      architectureTestingPatternsBrokerProxy();
+
+      const result: ContentText = architectureTestingPatternsBroker();
+
+      expect(result).toMatch(
+        /^Never `registerMock` another workspace package's export\. Compose the proxy it ships beside its API, such as `StartOrchestratorProxy`\. `ban-workspace-export-mocks` refuses the mock\.$/mu,
+      );
+      expect(result).toMatch(
+        /^import \{ StartOrchestratorProxy \} from '@dungeonmaster\/orchestrator\/startup\/start-orchestrator\.proxy';$/mu,
+      );
+    });
+
+    it('VALID: {} => states the first two home sandbox rules and that os.homedir needs no mock', () => {
+      architectureTestingPatternsBrokerProxy();
+
+      const result: ContentText = architectureTestingPatternsBroker();
+
+      expect(result).toMatch(/^## Jest Home Sandbox$/mu);
+      expect(result).toMatch(
+        /^1\. \*\*Do not mock `os\.homedir\(\)` for isolation\.\*\* `os\.homedir` needs no mock for isolation; it already returns the sandbox\. Mock it only to pin a value\.$/mu,
+      );
+      expect(result).toMatch(
+        /^2\. \*\*A proxy that needs an expected path under the home calls the real `homedir\(\)`,\*\* as it calls `join`\.$/mu,
+      );
+    });
+
+    it('VALID: {} => states the last three home sandbox rules', () => {
+      architectureTestingPatternsBrokerProxy();
+
+      const result: ContentText = architectureTestingPatternsBroker();
+
+      expect(result).toMatch(
+        /^3\. \*\*The sandbox `HOME` is one directory for the whole run, shared by every worker\.\*\* Never assume it is empty\. Write under a directory the test owns, such as a testbed from `installTestbedCreateBroker`\.$/mu,
+      );
+      expect(result).toMatch(
+        /^4\. \*\*To give a spawned process a different home, pass it in that spawn's options:\*\* `env: \{ \.\.\.process\.env, HOME: dir \}`\. Assigning `process\.env\.HOME` inside a test does nothing\.$/mu,
+      );
+      expect(result).toMatch(
+        /^5\. \*\*A test that changes `DUNGEONMASTER_HOME` restores it and never deletes it\.\*\*$/mu,
       );
     });
 

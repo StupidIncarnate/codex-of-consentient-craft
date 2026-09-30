@@ -30,10 +30,11 @@ const processUser = ({user}: {user: User}): void => { /* ... */ };
 
 **Why:** Stubs are the single source of truth for test data, and they return typed values already.
 
-**Never silence a type error with \`any\`, \`as\`, or \`@ts-ignore\`.** Two escape hatches are allowed:
+**Never silence a type error with \`any\`, \`as\`, or \`@ts-ignore\`.** One escape hatch is allowed:
 
-- **Branded types in mocks** — pass a stub, not an assertion. \`handle.calledWith([]).resolves(FileContentsStub({value: 'content'}))\`, never \`.resolves('content' as FileContents)\`.
-- **Deliberately invalid input** — \`as never\`, never \`as string\` (that violates \`ban-primitives\`). \`expect(() => MyStub({value: 123 as never})).toThrow(/Expected string/u)\`.
+- **Deliberately invalid input** — \`as never\`, never \`as string\` (it types a wrong input as the wrong type). \`expect(() => MyStub({value: 123 as never})).toThrow(/Expected string/u)\`.
+
+A loose string or number needs no brand and no stub in a mock: \`handle.calledWith([filePath]).resolves('content')\`.
 
 **exactOptionalPropertyTypes: OMIT an optional property, never pass \`undefined\`.** Your training says \`optional?: string\` accepts \`undefined\`; this tsconfig setting fails at runtime when you pass it. Write \`myGuard({value: 'test'})\`, not \`myGuard({value: 'test', optional: undefined})\`.`;
 
@@ -62,7 +63,7 @@ it.each(NOT_PAUSE_RESUME_STATUSES)(
   'EMPTY: {status: %s} => neither PAUSE nor RESUME button visible',
   (status) => {
     const proxy = ExecutionPanelWidgetProxy();
-    mantineRenderAdapter({ ui: <ExecutionPanelWidget quest={QuestStub({ status })} /> });
+    mantineRenderMiddleware({ ui: <ExecutionPanelWidget quest={QuestStub({ status })} /> });
     expect(proxy.hasPauseButton()).toBe(false);
     expect(proxy.hasResumeButton()).toBe(false);
   },
@@ -216,11 +217,11 @@ Assert VALUES, not existence — \`expect(userId).toBe('f47ac10b-58cc-4372-a567-
 | \`expect(fn).toHaveBeenCalledTimes(2)\` alone | pair it with \`.toHaveBeenCalledWith()\` in the same test |`;
 
   // Proxy Architecture - Core Rule
-  const proxyCore = `**Mock only at I/O boundaries. Everything else runs REAL.**
+  const proxyCore = `**Mock only what the I/O trap or MSW catches. Everything else runs REAL.**
 
-When testing any layer, only two types of things are mocked:
-1. **Adapters** - Mock npm dependencies (axios, fs, etc.) at adapter boundary
-2. **Global functions** - Mock non-deterministic globals (Date.now(), crypto.randomUUID(), etc.)
+When testing any layer, only two kinds of things are mocked:
+1. **A call the I/O trap or MSW catches** - compose the gateway wrapper's proxy, imported from its own file, in the proxy of the file that calls the wrapper. A pass-through wrapper (one that only re-exports an outside function, such as \`path\`) runs real and has no proxy.
+2. **Globals a test pins** - non-deterministic globals (Date.now(), crypto.randomUUID(), etc.)
 
 All business logic, transformers, guards, brokers, bindings, and React hooks run with real code to ensure contract integrity.`;
 
@@ -233,37 +234,36 @@ Widget                   (REAL)     ← Test renders this
           ├─ Date.now()  (MOCKED)   ← Mock global function
           ├─ Transformer (REAL)     ← Real pure function
           ├─ Guard       (REAL)     ← Real boolean check
-          └─ httpAdapter (REAL)     ← Real adapter code
-              └─ axios   (MOCKED)   ← Mock npm dependency (I/O)
+          └─ readFileIfExists (REAL) ← Real gateway wrapper code
+              └─ fs.promises.readFile (MOCKED) ← Caught by the I/O trap, staged through the wrapper's proxy
 
-Only 2 things mocked: I/O npm dependencies + global functions
-*Exception: DSL/query adapters (ESLint, SQL, GraphQL) run fully real to validate logic
+Mocked: what the I/O trap or MSW catches, and globals a test pins. Everything else runs real.
+*Exception: logic in an external system's DSL/query language (ESLint, SQL, GraphQL) runs against the real system in an integration test
 \`\`\``;
 
   // Quick Reference Table
   const quickReference = `| Category | Needs Proxy? | Purpose |
 |---|---|---|
-| Contracts | ❌ No | Use stubs (.stub.ts files) - includes service objects with methods |
+| Contracts | ❌ No | Use stubs (.stub.ts files). An outside type comes from the gateway's stub, imported from its own file |
 | Errors | ❌ No | Throw directly in tests |
-| Adapters | ✅ Sometimes | **Mock npm dependency** (axios, fs, etc.). Empty proxy if no mocking needed (simple re-exports) |
-| Brokers | ✅ Sometimes | Compose adapter proxies, provide semantic setup. Empty proxy if no dependencies mocked |
+| Brokers | ✅ Sometimes | Compose the proxies of the gateway wrappers the broker calls, each imported from its own \`.proxy\` file, and provide semantic setup. Empty proxy if no dependencies mocked |
 | Guards | ❌ No | Pure boolean functions - run real. Optional proxy only to build semantic test data |
 | Transformers | ❌ No | Pure data transformation - run real, no mocking needed |
 | Statics | ❌ No | Immutable values - test with actual values |
 | State | ✅ Yes | Spy on methods, clear state in the constructor, mock external stores |
 | Bindings | ✅ Yes | Delegate to broker proxies |
-| Middleware | ✅ Yes | Delegate to adapter proxies |
+| Middleware | ✅ Yes | Delegate to gateway wrapper proxies |
 | Responders | ✅ Yes | Delegate to broker proxies |
 | Widgets | ✅ Yes | Delegate to bindings + provide UI triggers/selectors |
 | Flows/Startup | ✅ Sometimes | Integration tests with .integration.proxy.ts for complex setup (spawning processes, clients) |`;
 
   // Proxy Patterns Overview
-  const proxyPatterns = `**Detailed proxy patterns for each folder type** - Use \`get-folder-detail({ folderType: "..." })\` to see specific examples: adapters, brokers, bindings, widgets, responders, middleware, state, guards.
+  const proxyPatterns = `**Detailed proxy patterns for each folder type** - Use \`get-folder-detail({ folderType: "..." })\` to see specific examples: brokers, bindings, widgets, responders, middleware, state, guards.
 
 **Empty Proxy Pattern:**
 
 \`\`\`typescript
-// Pure functions, DSL adapters - no mocking needed
+// Pure functions, pass-through wrappers - no mocking needed
 export const pureTransformerProxy = (): Record<PropertyKey, never> => ({});
 \`\`\`
 
@@ -291,18 +291,20 @@ const proxy = userFetchBrokerProxy();
 
 **Assignment vs just calling:** assign the proxy to a variable when you call setup methods on it (the common case). Just call it without assigning when it returns \`{}\` and has no setup methods — rare, usually pure functions and transformers.
 
-A constructor-level \`calledWith([])\` catch-all answers EVERY call you did not describe more specifically, which silences the throw. Stage one only when a parent proxy builds this adapter without describing any call of its own, or when a spy exists purely to record-and-swallow output the test asserts separately via \`callsMatching\`.
+A constructor-level \`calledWith([])\` belongs only to a function that takes no arguments (\`randomUUID\`, \`Date.now\`, \`process.cwd\`), where \`[]\` is the only address there is. A function that takes arguments never gets a constructor default: an unstaged call must throw, so the I/O trap can name the call the proxy forgot. \`ban-proxy-empty-called-with\` and \`ban-proxy-catch-all-defaults\` refuse both the empty address and a predicate that is always true.
 
 **No direct mock manipulation:** tests call semantic proxy methods. \`registerMock\`, \`jest.mocked()\`, \`jest.spyOn()\` and \`jest.mock()\` belong inside the proxy, never in a test file.
 
 \`\`\`typescript
-// ✅ CORRECT - semantic method; registerMock lives inside the proxy
-const proxy = axiosGetAdapterProxy();
-proxy.returns({url: UrlStub('/users/123'), data: user});
+// ✅ CORRECT - semantic method; registerMock lives inside the gateway wrapper's proxy
+import { readFileProxy } from '#gateway/node/fs__promises/read-file/read-file.proxy';
+
+const proxy = readFileProxy();
+proxy.returns({path: '/repo/config.json', contents: '{}'});
 
 // ❌ WRONG - either of these in a test file
-jest.mocked(axios.get).mockResolvedValue({data: user});
-registerMock({ fn: readFile }).calledWith([]).resolves(Buffer.from(''));
+jest.mocked(readFile).mockResolvedValue('{}');
+registerMock({ fn: readFile }).calledWith(['/repo/config.json', 'utf8']).resolves('{}');
 \`\`\``;
 
   // Child Proxy Creation
@@ -310,23 +312,24 @@ registerMock({ fn: readFile }).calledWith([]).resolves(Buffer.from(''));
 
 **When to just call it without assignment:** empty proxies returning \`{}\`, needed only to satisfy \`enforce-proxy-child-creation\`, which you never interact with.
 
-Assign first, then call setup on the Identifier — \`const httpProxy = httpAdapterProxy(); httpProxy.returns(...)\`. Never chain setup off the constructor call: \`enforce-proxy-patterns\` only recognises the Identifier form. The Global Function Mocking example below shows the whole shape.`;
+Assign first, then call setup on the Identifier — \`const fileProxy = readFileProxy(); fileProxy.returns(...)\`. Never chain setup off the constructor call: \`enforce-proxy-patterns\` only recognises the Identifier form. The Global Function Mocking example below shows the whole shape.`;
 
   // Global Function Mocking
   const globalMocking = `ANY proxy can mock globals if the code being tested uses them. Not just brokers! Use \`registerMock\` exactly as you do for module mocks:
 
 \`\`\`typescript
-import { randomUUID } from 'crypto';
+import { randomUUID } from '#gateway/node/crypto';
+import { writeFileProxy } from '#gateway/node/fs__promises/write-file/write-file.proxy';
 import { registerMock } from '@dungeonmaster/testing/register-mock';
 
 export const userCreateBrokerProxy = () => {
-  const httpProxy = httpAdapterProxy();
+  const fileProxy = writeFileProxy();
   // calls are matched on arguments, so globals collide with nothing
   const uuidHandle = registerMock({ fn: randomUUID });
   uuidHandle.calledWith([]).returns('f47ac10b-...'); // no args to key on — the honest catch-all
 
   return {
-    setupUserCreate: ({user}) => httpProxy.returns({url: '/users', data: user}),
+    setupUserCreate: ({path}: {path: string}): void => fileProxy.succeeds({path}),
   };
 };
 \`\`\`
@@ -360,49 +363,125 @@ export const questExecuteBrokerProxy = () => {
 **Why:** each test knows only its direct proxy, internal restructuring stops breaking tests, and a test then describes WHAT scenario it sets up rather than HOW to navigate proxy internals.`;
 
   // Statics Proxy Pattern
-  const staticsProxy = `**Statics proxies** override immutable values for edge case testing. Use \`Reflect.set()\` to mutate readonly constants at runtime, or \`registerSpyOn\` for getters.
+  const staticsProxy = `**A statics proxy is empty.** It mutates nothing, because a constant is immutable. To exercise an edge value, pass it into the function under test. Use \`registerSpyOn\` only for a getter.
 
 \`\`\`typescript
-import {registerSpyOn} from '@dungeonmaster/testing/register-mock';
+export const mcpServerStaticsProxy = (): Record<PropertyKey, never> => ({});
+\`\`\``;
 
-// Reflect.set for direct properties
-export const userStaticsProxy = () => ({
-  setupUnlimitedAttempts: (): void =>
-    Reflect.set(userStatics.limits, 'maxLoginAttempts', Infinity),
-});
+  // Gateway Proxies and Test Support
+  const gatewayProxies = `### Import each stub and proxy from its own file
 
-// registerSpyOn for getters
-export const apiStaticsProxy = () => {
-  registerSpyOn({object: apiStatics, method: 'timeout'}).calledWith([]).returns(0);
-  return {};
+No production barrel exports a stub or a proxy. A test or proxy file imports each one from the file beside the thing it fakes: \`@dungeonmaster/orchestrator/startup/start-orchestrator.proxy\`, \`#gateway/node/fs/file-missing-error/file-missing-error.stub\`. A stub of our own type parses through its contract; a stub of an outside type comes from the gateway, imported from its own file.
+
+### Compose the gateway wrapper's proxy
+
+The proxy of a file that calls a gateway wrapper composes that wrapper's proxy, imported from the \`.proxy\` file beside the wrapper. A pass-through wrapper runs real and has no proxy. Tests import outside packages through the gateway too.
+
+\`\`\`typescript
+// brokers/file/scanner/file-scanner-broker.proxy.ts
+import { globProxy } from '#gateway/npm/glob/glob/glob.proxy';
+import { readFileProxy } from '#gateway/node/fs__promises/read-file/read-file.proxy';
+
+export const fileScannerBrokerProxy = () => {
+  const readFileGateway = readFileProxy();
+  const globGateway = globProxy();
+
+  return {
+    setupFiles: ({ files, root, pattern, ignore }) => {
+      globGateway.returns({
+        pattern: \`\${root}/\${pattern}\`,
+        options: { cwd: root, ignore },
+        matches: files.map((f) => f.filepath),
+      });
+      for (const { filepath, contents } of files) {
+        readFileGateway.returns({ path: filepath, contents });
+      }
+    },
+  };
+};
+\`\`\`
+
+A caller's proxy never \`registerMock\`s the wrapper's underlying outside function itself: only the wrapper's own proxy does that.
+
+### No catch-all answers
+
+No \`calledWith([])\`, and no predicate that is always true, in a proxy constructor for a function that takes arguments. Stage each call by its arguments, so a call the proxy forgot throws. Two opt-in shapes stay inside that rule because nothing stages them by default: a scenario method that answers any path for a virtual file tree (\`setupImplementation\`), and a wrapper proxy's lower-ranked fallback addressed by the path alone (\`returnsOnceFallback\` on \`readFileProxy\`). Every exact stage outranks both.
+
+### A contract field branded \`'#Gateway<Type>'\` takes the gateway's stub
+
+A stub argument for such a field takes the gateway's stub, imported from its own file. A partial fake does not compile.
+
+\`\`\`typescript
+import { ErrorStub } from '#gateway/browser/Error/error.stub';
+
+const result = UseQuestSummaryResultStub({ error: ErrorStub() });
+\`\`\`
+
+### Build a failure from a recorded one
+
+A failure comes from a wrapper proxy's named scenario, such as \`readFileProxy().missing({ path })\`, or from a recorded-failure stub in the gateway, such as \`FileMissingErrorStub\`. Never a hand-made \`Error\`: its shape is the one you imagined, not the one Node produces, and \`ban-invented-failures\` refuses it.
+
+\`\`\`typescript
+import { FileMissingErrorStub } from '#gateway/node/fs/file-missing-error/file-missing-error.stub';
+
+const fileProxy = readFileProxy();
+fileProxy.missing({ path: '/repo/config.json' });
+fileProxy.throwsMatchingPath({ path: '/repo/other.json', error: FileMissingErrorStub({ path: '/repo/other.json' }) });
+\`\`\`
+
+### Never mock another workspace package's export
+
+Never \`registerMock\` another workspace package's export. Compose the proxy it ships beside its API, such as \`StartOrchestratorProxy\`. \`ban-workspace-export-mocks\` refuses the mock.
+
+\`\`\`typescript
+// responders/quest/handle/get-quest-work-layer-responder.proxy.ts
+import { StartOrchestratorProxy } from '@dungeonmaster/orchestrator/startup/start-orchestrator.proxy';
+
+export const GetQuestWorkLayerResponderProxy = () => {
+  const orchestrator = StartOrchestratorProxy();
+  // ...semantic methods that delegate to orchestrator
 };
 \`\`\``;
+
+  // Jest Home Sandbox
+  const homeSandbox = `Every Jest run gets a sandbox \`HOME\`, so \`os.homedir()\` already returns a throwaway directory. A test author does nothing to turn it on, and follows these rules:
+
+1. **Do not mock \`os.homedir()\` for isolation.** \`os.homedir\` needs no mock for isolation; it already returns the sandbox. Mock it only to pin a value.
+2. **A proxy that needs an expected path under the home calls the real \`homedir()\`,** as it calls \`join\`.
+3. **The sandbox \`HOME\` is one directory for the whole run, shared by every worker.** Never assume it is empty. Write under a directory the test owns, such as a testbed from \`installTestbedCreateBroker\`.
+4. **To give a spawned process a different home, pass it in that spawn's options:** \`env: { ...process.env, HOME: dir }\`. Assigning \`process.env.HOME\` inside a test does nothing.
+5. **A test that changes \`DUNGEONMASTER_HOME\` restores it and never deletes it.**`;
 
   // No Magic Numbers
   const noMagicNumbers = `**Extract magic numbers to statics files.** Tests and implementation should reference statics, not inline constants.
 
 \`\`\`typescript
 // ❌ WRONG - magic number in the contract
-export const exitCodeContract = z.number().int().min(0).max(255).brand<'ExitCode'>();
+export const processResultContract = z.object({
+  exitCode: z.number().int().min(0).max(255).brand<'ProcessResultExitCode'>(),
+});
 
-// ✅ CORRECT - statics/exit-code/exit-code-statics.ts
-export const exitCodeStatics = { limits: { max: 255 } } as const;
+// ✅ CORRECT - statics/process-result/process-result-statics.ts
+export const processResultStatics = { limits: { maxExitCode: 255 } } as const;
 
-// ✅ contracts/exit-code/exit-code-contract.ts
-export const exitCodeContract = z
-  .number()
-  .int()
-  .min(0)
-  .max(exitCodeStatics.limits.max)
-  .brand<'ExitCode'>();
+// ✅ contracts/process-result/process-result-contract.ts
+export const processResultContract = z.object({
+  exitCode: z
+    .number()
+    .int()
+    .min(0)
+    .max(processResultStatics.limits.maxExitCode)
+    .brand<'ProcessResultExitCode'>(),
+});
 \`\`\`
 
 **Same principle applies to lists and enumerations** — see Parameterize State Matrices above for the full \`it.each\` derive-from-statics rule.`;
 
   // EndpointMock (StartEndpointMock)
-  const endpointMock = `Use \`StartEndpointMock\` for **any test that needs to mock HTTP responses** — broker tests, widget integration tests, or any layer that ultimately calls a fetch adapter. **Always via the broker proxy layer** — never call it directly in a test file.
+  const endpointMock = `Use \`StartEndpointMock\` for **any test that needs to mock HTTP responses** — broker tests, widget integration tests, or any layer that ultimately calls a fetch gateway wrapper. **Always via the broker proxy layer** — never call it directly in a test file.
 
-**Do NOT use it for:** server-side tests (the server package mocks Hono's \`serve()\`, not fetch), or non-HTTP I/O (filesystem, child process — those use adapter proxies with \`registerMock\`).
+**Do NOT use it for** non-HTTP I/O (filesystem, child process — those use the gateway wrapper proxies).
 
 | Method | Response |
 |---|---|
@@ -412,21 +491,24 @@ export const exitCodeContract = z
 | \`networkError()\` | Connection refused / DNS failure |
 
 \`\`\`typescript
-export const projectFetchBrokerProxy = () => {
-  const endpoint = StartEndpointMock.listen({method: 'get', url: '/api/projects'});
+// A broker proxy composes the fetch wrapper's proxy; it never calls StartEndpointMock itself.
+import { fetchJsonProxy } from '#gateway/browser/fetch/fetch-json/fetch-json.proxy';
+
+export const questMergeBrokerProxy = () => {
+  const jsonFetchProxy = fetchJsonProxy();
+  const address = { method: 'post', url: webConfigStatics.api.routes.questMerge } as const;
 
   return {
-    setupProjects: ({projects}: { projects: readonly Project[] }): void =>
-      endpoint.resolves({data: projects}),
-    setupNotFound: (): void =>
-      endpoint.responds({status: 404, body: {error: 'Not found'}}),
+    setupMerge: ({ merging }: { merging: boolean }): void =>
+      jsonFetchProxy.setupSuccess({ ...address, body: { merging } }),
+    setupError: (): void => jsonFetchProxy.setupConnectionRefused(address),
   };
 };
 \`\`\`
 
-**The full chain:** Test → Widget Proxy → Binding Proxy → Broker Proxy → \`StartEndpointMock.listen()\` → MSW. Each layer delegates setup to the layer below, and the broker proxy is the only layer that knows about \`StartEndpointMock\`.
+**The full chain:** Test → Widget Proxy → Binding Proxy → Broker Proxy → the fetch wrapper's proxy → \`StartEndpointMock.listen()\` → MSW. Each layer delegates setup to the layer below, and the fetch wrapper's proxy (\`fetchJsonProxy\` in \`@gateway/browser\`) is the only layer that calls \`StartEndpointMock\`.
 
-**MSW lifecycle:** \`StartEndpointMockSetup\` handles start, per-test handler reset and close. To enable EndpointMock in a package, add \`start-endpoint-mock-setup.ts\` to \`setupFilesAfterEnv\` in \`jest.config.js\`.`;
+**MSW lifecycle:** MSW loads in every package, server included, from the root Jest base config, and \`StartEndpointMockSetup\` handles start, per-test handler reset and close. A package adds no setup file for it.`;
 
   // E2E Testing (Playwright)
   const e2eTesting = `E2E tests run the full stack (real server, real browser, real WebSocket). Only external dependencies (LLMs, third-party APIs) are mocked.
@@ -554,7 +636,7 @@ export const guildHarness = () => {
 
 ### Import Boundaries
 
-- \`*.harness.ts\` → node:fs/path/os, contracts/stubs, other harnesses, test framework APIs
+- \`*.harness.ts\` → gateway wrappers (\`#gateway/node/fs\`, \`#gateway/node/path\`, ...), contracts/stubs, other harnesses, test framework APIs. An outside package, Node built-ins included, is imported through the gateway here too.
 - \`*.e2e.ts\` / \`*.integration.test.ts\` → harnesses and contracts/stubs only
 - **Scenario files CANNOT import:** node:fs, node:path, node:os, node:child_process, .proxy.ts files
 - **Harness files CANNOT import:** .proxy.ts files, contract value imports (use .stub.ts)
@@ -565,7 +647,7 @@ export const guildHarness = () => {
 Only mock external services that are: not under your control, have no test mode, and are non-deterministic or costly.
 
 **Valid mocks:** LLM CLI → fake binary, payment processor without sandbox → stub HTTP server
-**Invalid mocks:** Your own HTTP endpoints, your own WebSocket messages, your own brokers/adapters
+**Invalid mocks:** Your own HTTP endpoints, your own WebSocket messages, your own brokers or gateway wrappers
 
 ### Scenario File Rules
 
@@ -580,7 +662,6 @@ Scenario files are **scenario descriptions only** — test blocks and assertions
 
 **Critical stub rules:**
 - Object Stubs: Use \`StubArgument<Type>\` with spread operator + \`contract.parse()\`
-- Branded Strings: Use single \`value\` property + \`contract.parse(value)\`
 - Mixed Data + Functions: Destructure functions from data, preserve function references for \`jest.fn()\`
 - Extract properties: ALWAYS use destructuring (\`const { x } = Stub()\`, never \`.property\`)
 - Optional fields: Omit defaults (don't set \`undefined\`)
@@ -617,21 +698,21 @@ Describing fewer arguments than the call passes is a PREFIX match — \`['/a/f.j
 | Target | The address |
 |---|---|
 | \`fs\` reads/writes (\`readFile\`, \`writeFile\`, \`existsSync\`, \`readdir\`, …) | the PATH (arg 0); write body is arg 1 (\`callsMatching([path]).at(-1)?.[1]\`) |
-| \`crypto.randomUUID\`, \`Date.now\`, \`Date.prototype.toISOString\`, \`Math.random\`, \`process.cwd\`, \`os.homedir\` | NO argument — \`calledWith([])\` is honest, not lazy |
+| \`crypto.randomUUID\`, \`Date.now\`, \`Date.prototype.toISOString\`, \`Math.random\`, \`process.cwd\` | NO argument — \`calledWith([])\` is honest, not lazy |
 
-**Check the arguments you describe are the ones the function really receives.** \`calledWith([X])\` only fires if X equals what the npm function is actually called with, and callers often change it on the way down — a broker joining a cwd onto a glob pattern. Read the adapter to confirm.
+**Check the arguments you describe are the ones the function really receives.** \`calledWith([X])\` only fires if X equals what the outside function is actually called with, and callers often change it on the way down — a broker joining a cwd onto a glob pattern. Read the gateway wrapper to confirm.
 
 \`\`\`typescript
-// Adapter proxy at an I/O boundary
-export const fsWriteFileAdapterProxy = () => {
+// The gateway wrapper's own proxy, at the I/O boundary
+export const writeFileProxy = () => {
   const handle = registerMock({ fn: writeFile });
 
   return {
-    succeeds: ({ filePath }: { filePath: FilePath }): void =>
-      handle.calledWith([filePath]).resolves(undefined),
+    succeeds: ({ path }: { path: string }): void =>
+      handle.calledWith([path]).resolves(undefined),
     // Answers for this path only
-    getWrittenFor: ({ filePath }: { filePath: FilePath }): unknown =>
-      handle.callsMatching([filePath]).at(-1)?.[1],
+    writtenContentsFor: ({ path }: { path: string }): unknown =>
+      handle.callsMatching([path]).at(-1)?.[1],
   };
 };
 \`\`\`
@@ -646,7 +727,7 @@ Globals work identically — see Global Function Mocking above.
 import { registerSpyOn } from '@dungeonmaster/testing/register-mock';
 
 const stdoutSpy = registerSpyOn({ object: process.stdout, method: 'write' });
-stdoutSpy.calledWith([]).returns(true); // record-and-swallow: assert text via callsMatching
+stdoutSpy.calledWith(['done\\n']).returns(true); // addressed by the written string; assert it via callsMatching
 
 // passthrough: true — real implementation runs by default, still overridable per address
 const timerSpy = registerSpyOn({ object: globalThis, method: 'setTimeout', passthrough: true });
@@ -663,19 +744,20 @@ const timerSpy = registerSpyOn({ object: globalThis, method: 'setTimeout', passt
 | \`registerIsolateModules\` | Testing an entry point with top-level side effects. Wraps \`jest.isolateModules\` + \`jest.doMock\`. |
 
 \`\`\`typescript
-registerModuleMock({ module: 'eslint-plugin-jest', factory: () => ({ rules: {} }) });
-
-const realPath = requireActual({ module: 'path' });
-handle.calledWith([]).implement((...args) => realPath.join(...args));
+// The factory carries every name the module's barrel re-exports; a name missing here reads undefined.
+registerModuleMock({
+  module: 'eslint-plugin-jest',
+  factory: () => ({ default: { rules: {}, configs: {} }, rules: {}, configs: {}, environments: {}, meta: {} }),
+});
 \`\`\``;
 
   // Integration Testing
   const integrationTesting = `**CRITICAL:** Integration tests are **ONLY for startup files and flows**. Use \`.integration.test.ts\` extension, colocated with the file under test — never in a separate test directory.
 
 - **Startup files** — validate that the startup wires up the entire application correctly.
-- **Flows** — validate that the flow wires its responders/middleware/adapters correctly across the slice it owns (e.g., HTTP route → responder → broker, MCP request → handler, hook entry → responder).
+- **Flows** — validate that the flow wires its responders/middleware correctly across the slice it owns (e.g., HTTP route → responder → broker, MCP request → handler, hook entry → responder).
 
-**All other code** (brokers, guards, transformers, widgets, responders, adapters, etc.) uses **unit tests** (\`.test.ts\`) with colocated proxies.
+**All other code** (brokers, guards, transformers, widgets, responders, etc.) uses **unit tests** (\`.test.ts\`) with colocated proxies.
 
 \`\`\`
 src/startup/
@@ -747,9 +829,12 @@ expect(result.output).toMatch(/^\\{/u);
   const editBlockingRules = `The pre-edit-lint hook runs these rules BEFORE your Edit/Write lands. A violation BLOCKS the edit — the file is NOT written, so re-submit the ENTIRE corrected edit, not a surgical follow-up (nothing was applied). Top offenders when writing tests:
 
 - **Conditionals in tests** (\`jest/no-conditional-in-test\`, upstream): no \`if\`/ternary/\`&&\`/\`switch\`/\`try-catch\` in a test body — split into \`it\` blocks or \`it.each\`.
-- **Ad-hoc / inline structural types** (\`@dungeonmaster/ban-adhoc-types\`): no local \`interface\` and no \`x as { foo: string }\` — define types in contracts/ and import them.
+- **Ad-hoc / inline structural types** (\`@dungeonmaster/ban-adhoc-types\`): no local \`interface\` and no \`x as { foo: string }\` — define our types in contracts/ and import them.
 - **Non-exported / nested functions** (\`@dungeonmaster/forbid-non-exported-functions\`): every function must be the file's primary export — no helper declared inside a test or proxy.
-- **Raw primitives** (\`@dungeonmaster/ban-primitives\`): return types must be branded; to test invalid inputs use \`as never\`, never \`as string\`.`;
+- **Invented failures** (\`@dungeonmaster/ban-invented-failures\`): no hand-made \`Error\` given to a mock's \`rejects\`, \`throws\` or a throwing \`implement\`. Stage the wrapper proxy's named scenario or the gateway's recorded-failure stub.
+- **Test support in production** (\`@dungeonmaster/ban-test-support-in-production\`): a stub or proxy is imported only from a test or proxy file.
+- **Workspace export mocks** (\`@dungeonmaster/ban-workspace-export-mocks\`): no \`registerMock\` of another workspace package's export.
+- **Catch-all answers** (\`@dungeonmaster/ban-proxy-catch-all-defaults\`): no always-true predicate in a proxy's \`calledWith\`. Ward's \`ban-proxy-empty-called-with\` adds the empty address for a function that takes arguments.`;
 
   // No Hooks or Conditionals
   const noHooksConditionals = `**CRITICAL:** in a UNIT test, \`beforeEach\`, \`afterEach\`, \`beforeAll\` and \`afterAll\` are forbidden — \`jest/no-hooks\` and \`jest/require-hook\` refuse them, along with any statement at describe scope. All setup and teardown goes inline in each test.
@@ -881,6 +966,14 @@ ${childProxies}
 
 ${globalMocking}
 
+## Gateway Proxies and Test Support
+
+${gatewayProxies}
+
+## Jest Home Sandbox
+
+${homeSandbox}
+
 ## No Magic Numbers
 
 ${noMagicNumbers}
@@ -934,6 +1027,8 @@ Before writing any test, verify:
 - [ ] No \`any\`, \`as\` or \`@ts-ignore\` used to silence a type error
 - [ ] Proxies use registerMock/registerSpyOn (not jest.mocked/jest.spyOn) and set up in constructor
 - [ ] Tests use semantic proxy methods (never registerMock/jest.mocked directly in tests)
+- [ ] Each stub and proxy imported from its own file; a gateway wrapper's proxy composed, never re-mocked
+- [ ] No \`calledWith([])\` or always-true predicate for a function that takes arguments; failures from a named scenario or a recorded stub
 - [ ] Used toStrictEqual for objects/arrays (no weak matchers)
 - [ ] No beforeEach/afterEach hooks
 - [ ] No conditionals in tests
