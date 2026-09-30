@@ -1,5 +1,4 @@
 import { BoxReadingStub } from '../../../contracts/box-reading/box-reading.stub';
-import { PixelCoordinateStub } from '../../../contracts/pixel-coordinate/pixel-coordinate.stub';
 import { RefStub } from '../../../contracts/ref/ref.stub';
 import { stepBoxBroker } from './step-box-broker';
 import { stepBoxBrokerProxy } from './step-box-broker.proxy';
@@ -9,8 +8,8 @@ describe('stepBoxBroker', () => {
     const proxy = stepBoxBrokerProxy();
     const reading = BoxReadingStub({
       ref: RefStub({ value: 26 }),
-      x: PixelCoordinateStub({ value: 607 }),
-      y: PixelCoordinateStub({ value: 472 }),
+      x: 607,
+      y: 472,
       width: 66,
       height: 27,
       viewport: {

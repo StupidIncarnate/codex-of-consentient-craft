@@ -20,14 +20,13 @@
 
 import { z } from '#gateway/npm/zod';
 
-import { pixelCoordinateContract } from '../pixel-coordinate/pixel-coordinate-contract';
 import { refContract } from '../ref/ref-contract';
 
 export const boxReadingContract = z
   .object({
     ref: refContract,
-    x: pixelCoordinateContract,
-    y: pixelCoordinateContract,
+    x: z.number().int().brand<'BoxReadingX'>(),
+    y: z.number().int().brand<'BoxReadingY'>(),
     width: z.number().int().nonnegative().brand<'BoxReadingWidth'>(),
     height: z.number().int().nonnegative().brand<'BoxReadingHeight'>(),
     viewport: z

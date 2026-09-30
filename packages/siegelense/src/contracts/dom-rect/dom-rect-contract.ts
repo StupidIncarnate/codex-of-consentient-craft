@@ -9,12 +9,11 @@
 
 import { z } from '#gateway/npm/zod';
 
-import { pixelCoordinateContract } from '../pixel-coordinate/pixel-coordinate-contract';
 
 export const domRectContract = z
   .object({
-    x: pixelCoordinateContract,
-    y: pixelCoordinateContract,
+    x: z.number().int().brand<'DomRectX'>(),
+    y: z.number().int().brand<'DomRectY'>(),
     width: z.number().int().nonnegative().brand<'DomRectWidth'>(),
     height: z.number().int().nonnegative().brand<'DomRectHeight'>(),
   })
