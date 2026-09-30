@@ -19,9 +19,9 @@ export const commentBatchResponseContract = z.object({
   chatProcessId: z.string().min(1).brand<'CommentBatchResponseChatProcessId'>().optional(),
   // The markdown turn the agent actually received, echoed back so the panel can render the user's
   // own entry immediately instead of waiting for a reload to replay it from the session file.
-  deliveredMessage: z.string().min(1).brand<'DeliveredCommentMessage'>().optional(),
+  deliveredMessage: z.string().min(1).brand<'CommentBatchResponseDeliveredMessage'>().optional(),
   staleAnchors: z.array(commentAnchorContract).optional(),
-  error: z.string().min(1).brand<'CommentBatchErrorMessage'>().optional(),
+  error: z.string().min(1).brand<'CommentBatchResponseError'>().optional(),
 }).brand<'CommentBatchResponse'>();
 
 export type CommentBatchResponse = z.infer<typeof commentBatchResponseContract>;

@@ -15,8 +15,8 @@ import { z } from '#gateway/npm/zod';
 import { composerAttachmentContract } from '../composer-attachment/composer-attachment-contract';
 
 export const composerSegmentContract = z.discriminatedUnion('kind', [
-  z.object({ kind: z.literal('text'), text: z.string().brand<'ComposerSegmentText'>() }),
-  z.object({ kind: z.literal('image'), attachmentId: composerAttachmentContract.shape.attachmentId }),
+  z.object({ kind: z.literal('text'), text: z.string().brand<'ComposerSegmentText'>() }).brand<'ComposerSegment'>(),
+  z.object({ kind: z.literal('image'), attachmentId: composerAttachmentContract.shape.attachmentId }).brand<'ComposerSegment'>(),
 ]);
 
 export type ComposerSegment = z.infer<typeof composerSegmentContract>;

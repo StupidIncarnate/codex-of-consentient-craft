@@ -18,7 +18,7 @@ import { reactFlowPackageChipContract } from '../react-flow-package-chip/react-f
 export const flowObservableNodeDataContract = z.object({
   observableId: flowObservableContract.shape.id,
   outcomeType: outcomeTypeContract,
-  description: z.string().brand<'FlowObservableNodeDescription'>(),
+  description: z.string().brand<'FlowObservableNodeDataDescription'>(),
   // Singular where the parent card's is plural, and painted on the same row as the type tag: a
   // glue node's card names both packages, and its assertion cards are the only surface that says
   // WHICH side each criterion is read on. Without it a two-package card leaves the reviewer unable

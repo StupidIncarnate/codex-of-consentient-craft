@@ -9,11 +9,11 @@
 import { z } from '#gateway/npm/zod';
 
 export const questModifyResponseContract = z.union([
-  z.object({ success: z.literal(true) }),
+  z.object({ success: z.literal(true) }).brand<'QuestModifyResponse'>(),
   z.object({
     success: z.literal(false),
     error: z.string().min(1).brand<'QuestModifyResponseError'>().optional(),
-  }),
+  }).brand<'QuestModifyResponse'>(),
 ]);
 
 export type QuestModifyResponse = z.infer<typeof questModifyResponseContract>;

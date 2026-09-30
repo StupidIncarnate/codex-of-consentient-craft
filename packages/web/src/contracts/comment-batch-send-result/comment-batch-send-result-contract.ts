@@ -21,13 +21,13 @@ export const commentBatchSendResultContract = z.discriminatedUnion('outcome', [
     // The markdown turn the agent received. Optional so an older server that does not echo it back
     // still parses as a success — the batch WAS delivered either way, and the panel simply falls
     // back to showing nothing extra rather than the send appearing to fail.
-    deliveredMessage: z.string().min(1).brand<'DeliveredCommentMessage'>().optional(),
-  }),
-  z.object({ outcome: z.literal('stale'), staleAnchors: z.array(commentAnchorContract).min(1) }),
+    deliveredMessage: z.string().min(1).brand<'CommentBatchSendResultDeliveredMessage'>().optional(),
+  }).brand<'CommentBatchSendResult'>(),
+  z.object({ outcome: z.literal('stale'), staleAnchors: z.array(commentAnchorContract).min(1) }).brand<'CommentBatchSendResult'>(),
   z.object({
     outcome: z.literal('failed'),
-    error: z.string().min(1).brand<'CommentBatchErrorMessage'>(),
-  }),
+    error: z.string().min(1).brand<'CommentBatchSendResultError'>(),
+  }).brand<'CommentBatchSendResult'>(),
 ]);
 
 export type CommentBatchSendResult = z.infer<typeof commentBatchSendResultContract>;

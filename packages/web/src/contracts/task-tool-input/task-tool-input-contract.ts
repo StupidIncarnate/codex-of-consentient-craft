@@ -10,7 +10,7 @@ import { z } from '#gateway/npm/zod';
 
 export const taskToolInputContract = z
   .object({
-    description: z.string().brand<'ChainDescription'>(),
+    description: z.string().brand<'TaskToolInputDescription'>(),
   })
   .loose().brand<'TaskToolInput'>();
 

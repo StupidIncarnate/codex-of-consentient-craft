@@ -12,8 +12,8 @@
 import { z } from '#gateway/npm/zod';
 
 export const formattedToolFieldContract = z.object({
-  key: z.string().min(1).brand<'ToolFieldKey'>(),
-  value: z.string().brand<'ToolFieldValue'>(),
+  key: z.string().min(1).brand<'FormattedToolFieldKey'>(),
+  value: z.string().brand<'FormattedToolFieldValue'>(),
   isLong: z.boolean(),
 }).brand<'FormattedToolField'>();
 

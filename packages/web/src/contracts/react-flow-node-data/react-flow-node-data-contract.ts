@@ -14,7 +14,7 @@ import { reactFlowPackageChipContract } from '../react-flow-package-chip/react-f
 
 export const reactFlowNodeDataContract = z.object({
   nodeId: flowNodeContract.shape.id,
-  label: z.string().min(1).brand<'FlowNodeLabel'>(),
+  label: z.string().min(1).brand<'ReactFlowNodeDataLabel'>(),
   nodeType: flowNodeTypeContract,
   // Where this node's work lands, painted on the card itself rather than behind a click: this is
   // what the reviewer signs off at the review_flows gate, and a node carrying more than one entry is

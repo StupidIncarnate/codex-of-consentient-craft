@@ -22,7 +22,7 @@ export const questResumeOutcomeContract = z.object({
   dispatch: z.object({
     started: z.boolean(),
     reason: z.string().brand<'QuestResumeOutcomeDispatchReason'>().optional(),
-  }),
+  }).brand<'QuestResumeOutcomeDispatch'>(),
 }).brand<'QuestResumeOutcome'>();
 
 export type QuestResumeOutcome = z.infer<typeof questResumeOutcomeContract>;

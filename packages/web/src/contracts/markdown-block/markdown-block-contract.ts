@@ -24,36 +24,36 @@ export const markdownBlockContract = z.discriminatedUnion('kind', [
       .int()
       .min(markdownSyntaxStatics.minHeadingLevel)
       .max(markdownSyntaxStatics.maxHeadingLevel)
-      .brand<'MarkdownHeadingLevel'>(),
+      .brand<'MarkdownBlockLevel'>(),
     spans: spansContract,
-  }),
+  }).brand<'MarkdownBlock'>(),
   z.object({
     kind: z.literal('paragraph'),
     spans: spansContract,
-  }),
+  }).brand<'MarkdownBlock'>(),
   z.object({
     kind: z.literal('list-item'),
-    marker: z.string().min(1).brand<'MarkdownListMarker'>(),
+    marker: z.string().min(1).brand<'MarkdownBlockMarker'>(),
     depth: z
       .number()
       .int()
       .min(0)
       .max(markdownSyntaxStatics.maxListDepth)
-      .brand<'MarkdownListDepth'>(),
+      .brand<'MarkdownBlockDepth'>(),
     spans: spansContract,
-  }),
+  }).brand<'MarkdownBlock'>(),
   z.object({
     kind: z.literal('quote'),
     spans: spansContract,
-  }),
+  }).brand<'MarkdownBlock'>(),
   z.object({
     kind: z.literal('code-block'),
-    language: z.string().brand<'MarkdownCodeLanguage'>(),
-    content: z.string().brand<'MarkdownCodeContent'>(),
-  }),
+    language: z.string().brand<'MarkdownBlockLanguage'>(),
+    content: z.string().brand<'MarkdownBlockContent'>(),
+  }).brand<'MarkdownBlock'>(),
   z.object({
     kind: z.literal('rule'),
-  }),
+  }).brand<'MarkdownBlock'>(),
 ]);
 
 export type MarkdownBlock = z.infer<typeof markdownBlockContract>;

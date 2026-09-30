@@ -17,7 +17,7 @@ import { questContract } from '@dungeonmaster/shared/contracts';
 export const questNewResponseContract = z.object({
   questId: questContract.shape.id.optional(),
   chatProcessId: z.string().min(1).brand<'QuestNewResponseChatProcessId'>().optional(),
-  error: z.string().min(1).brand<'QuestNewErrorMessage'>().optional(),
+  error: z.string().min(1).brand<'QuestNewResponseError'>().optional(),
 }).brand<'QuestNewResponse'>();
 
 export type QuestNewResponse = z.infer<typeof questNewResponseContract>;

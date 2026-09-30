@@ -14,7 +14,7 @@ const elkPositionYContract = z.number().brand<'ElkPositionY'>();
 const elkPositionEntryContract = z.object({
   x: elkPositionXContract,
   y: elkPositionYContract,
-});
+}).brand<'ElkPositionEntry'>();
 
 export const elkPositionMapContract = z
   .record(z.string(), elkPositionEntryContract)

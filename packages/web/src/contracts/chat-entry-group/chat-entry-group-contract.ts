@@ -14,13 +14,13 @@ import { chatEntryContract } from '@dungeonmaster/shared/contracts';
 const singleGroupContract = z.object({
   kind: z.literal('single'),
   entry: chatEntryContract,
-});
+}).brand<'SingleGroup'>();
 
 const baseSubagentChainGroupContract = z.object({
   kind: z.literal('subagent-chain'),
   // Empty is legal: a Task line that carries no toolUseId still becomes a chain, keyed by ''.
-  agentId: z.string().brand<'ChainAgentId'>(),
-  description: z.string().brand<'ChainDescription'>(),
+  agentId: z.string().brand<'SubagentChainGroupAgentId'>(),
+  description: z.string().brand<'SubagentChainGroupDescription'>(),
   taskToolUse: chatEntryContract.nullable(),
   taskNotification: chatEntryContract.nullable(),
   // What the Task's completion tool_result reported it took. OPTIONAL rather than nullable —
@@ -30,17 +30,17 @@ const baseSubagentChainGroupContract = z.object({
     .number()
     .int()
     .nonnegative()
-    .brand<'ChainCompletionDurationMs'>()
+    .brand<'SubagentChainGroupCompletionDurationMs'>()
     .optional(),
-  entryCount: z.number().int().nonnegative().brand<'ChainEntryCount'>(),
-  contextTokens: z.number().int().nonnegative().brand<'BaseSubagentChainGroupContextTokens'>().nullable(),
+  entryCount: z.number().int().nonnegative().brand<'SubagentChainGroupEntryCount'>(),
+  contextTokens: z.number().int().nonnegative().brand<'SubagentChainGroupContextTokens'>().nullable(),
 });
 
 export type SingleGroup = z.infer<typeof singleGroupContract>;
 
 type SubagentChainGroupSelf = z.infer<typeof baseSubagentChainGroupContract> & {
   innerGroups: ChatEntryGroupSelf[];
-};
+} & z.$brand<'SubagentChainGroup'>;
 type ChatEntryGroupSelf = SingleGroup | SubagentChainGroupSelf;
 
 // A getter, not `z.lazy` + a cast — the getter's return type wraps `z.core.$ZodType`, which is
@@ -54,7 +54,7 @@ const subagentChainGroupContract = z.object({
   get innerGroups(): z.ZodArray<z.core.$ZodType<ChatEntryGroupSelf>> {
     return z.array(z.union([singleGroupContract, subagentChainGroupContract]));
   },
-});
+}).brand<'SubagentChainGroup'>();
 
 export const chatEntryGroupContract = z.union([singleGroupContract, subagentChainGroupContract]);
 

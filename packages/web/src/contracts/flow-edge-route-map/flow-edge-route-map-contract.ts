@@ -12,9 +12,9 @@
 import { z } from '#gateway/npm/zod';
 
 const routePointContract = z.object({
-  x: z.number().brand<'ElkRouteX'>(),
-  y: z.number().brand<'ElkRouteY'>(),
-});
+  x: z.number().brand<'RoutePointX'>(),
+  y: z.number().brand<'RoutePointY'>(),
+}).brand<'RoutePoint'>();
 
 export const flowEdgeRouteMapContract = z
   .record(z.string(), z.array(routePointContract))

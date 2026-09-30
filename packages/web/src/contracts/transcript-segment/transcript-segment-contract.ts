@@ -13,12 +13,12 @@
 import { z } from '#gateway/npm/zod';
 
 export const transcriptSegmentContract = z.discriminatedUnion('kind', [
-  z.object({ kind: z.literal('text'), text: z.string().brand<'TranscriptSegmentText'>() }),
+  z.object({ kind: z.literal('text'), text: z.string().brand<'TranscriptSegmentText'>() }).brand<'TranscriptSegment'>(),
   z.object({
     kind: z.literal('image'),
     ordinal: z.number().int().positive().brand<'TranscriptSegmentOrdinal'>(),
     src: z.string().min(1).brand<'TranscriptSegmentSrc'>(),
-  }),
+  }).brand<'TranscriptSegment'>(),
   // `.strict()` — this member carries no `src` at all, unlike `image`, so a caller that hands one
   // over (stale broken-image data still carrying the field it lost) is refused rather than having
   // the field silently dropped, which would mask the bug that produced it.
@@ -27,7 +27,7 @@ export const transcriptSegmentContract = z.discriminatedUnion('kind', [
       kind: z.literal('broken-image'),
       ordinal: z.number().int().positive().brand<'TranscriptSegmentOrdinal'>(),
     })
-    .strict(),
+    .strict().brand<'TranscriptSegment'>(),
 ]);
 
 export type TranscriptSegment = z.infer<typeof transcriptSegmentContract>;
