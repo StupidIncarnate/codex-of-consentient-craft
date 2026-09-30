@@ -1,6 +1,5 @@
 import { FileMissingErrorStub } from '#gateway/node/fs/file-missing-error/file-missing-error.stub';
 import { FsErrorStub } from '#gateway/node/fs/is-fs-error/fs-error.stub';
-import { FileNameStub } from '@dungeonmaster/shared/contracts/file-name/file-name.stub';
 import { ProcessIdStub } from '@dungeonmaster/shared/contracts/process-id/process-id.stub';
 import { QuestIdStub } from '@dungeonmaster/shared/contracts/quest-id/quest-id.stub';
 import { SessionIdStub } from '@dungeonmaster/shared/contracts/session-id/session-id.stub';
@@ -58,11 +57,11 @@ describe('scanSubagentsDirLayerBroker', () => {
 
     proxy.setupSubagentDirFiles({
       subagentsDir,
-      files: [FileNameStub({ value: 'agent-zeta.jsonl' })],
+      files: ['agent-zeta.jsonl'],
     });
     proxy.setupFirstLineRead({
       subagentsDir,
-      fileName: FileNameStub({ value: 'agent-zeta.jsonl' }),
+      fileName: 'agent-zeta.jsonl',
       content:
         '{"type":"user","uuid":"zeta-prompt-line","timestamp":"2026-05-13T10:00:01.000Z","message":{"role":"user","content":"zeta slice prompt"}}',
     });
@@ -191,14 +190,14 @@ describe('scanSubagentsDirLayerBroker', () => {
     proxy.setupSubagentDirFiles({
       subagentsDir,
       files: [
-        FileNameStub({ value: 'notes.txt' }),
-        FileNameStub({ value: 'agent-omega.jsonl' }),
-        FileNameStub({ value: 'agent-no-ext' }),
+        'notes.txt',
+        'agent-omega.jsonl',
+        'agent-no-ext',
       ],
     });
     proxy.setupFirstLineRead({
       subagentsDir,
-      fileName: FileNameStub({ value: 'agent-omega.jsonl' }),
+      fileName: 'agent-omega.jsonl',
       content:
         '{"type":"user","uuid":"omega-prompt-line","timestamp":"2026-05-13T10:00:01.000Z","message":{"role":"user","content":"omega slice prompt"}}',
     });
@@ -265,21 +264,21 @@ describe('scanSubagentsDirLayerBroker', () => {
     proxy.setupSubagentDirFiles({
       subagentsDir,
       files: [
-        FileNameStub({ value: 'agent-stale-from-prior-run.jsonl' }),
-        FileNameStub({ value: 'agent-live-agent.jsonl' }),
+        'agent-stale-from-prior-run.jsonl',
+        'agent-live-agent.jsonl',
       ],
     });
     // The stale leftover's first line matches no outstanding Task prompt — a prior run's
     // sub-agent, or content this run never spawned.
     proxy.setupFirstLineRead({
       subagentsDir,
-      fileName: FileNameStub({ value: 'agent-stale-from-prior-run.jsonl' }),
+      fileName: 'agent-stale-from-prior-run.jsonl',
       content:
         '{"type":"user","uuid":"stale-prompt-line","timestamp":"2026-05-13T09:00:00.000Z","message":{"role":"user","content":"a prompt from a run that already ended"}}',
     });
     proxy.setupFirstLineRead({
       subagentsDir,
-      fileName: FileNameStub({ value: 'agent-live-agent.jsonl' }),
+      fileName: 'agent-live-agent.jsonl',
       content:
         '{"type":"user","uuid":"live-prompt-line","timestamp":"2026-05-13T10:00:01.000Z","message":{"role":"user","content":"live agent slice prompt"}}',
     });
@@ -349,13 +348,13 @@ describe('scanSubagentsDirLayerBroker', () => {
 
     proxy.setupSubagentDirFiles({
       subagentsDir,
-      files: [FileNameStub({ value: 'agent-realnestedb.jsonl' })],
+      files: ['agent-realnestedb.jsonl'],
     });
     // First-line read: Claude CLI writes the Task prompt verbatim as the sub-agent JSONL's
     // first user-text line.
     proxy.setupFirstLineRead({
       subagentsDir,
-      fileName: FileNameStub({ value: 'agent-realnestedb.jsonl' }),
+      fileName: 'agent-realnestedb.jsonl',
       content:
         '{"type":"user","uuid":"nested-prompt-line","timestamp":"2026-05-13T10:00:01.000Z","message":{"role":"user","content":"nested slice prompt"}}',
     });

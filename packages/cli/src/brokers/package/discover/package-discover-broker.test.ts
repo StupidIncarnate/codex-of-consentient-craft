@@ -5,7 +5,6 @@
 import { packageDiscoverBroker } from './package-discover-broker';
 import { packageDiscoverBrokerProxy } from './package-discover-broker.proxy';
 import { PackageNameStub } from '@dungeonmaster/shared/contracts/package-name/package-name.stub';
-import { FileNameStub } from '@dungeonmaster/shared/contracts/file-name/file-name.stub';
 
 describe('packageDiscoverBroker', () => {
   describe('discovering packages', () => {
@@ -17,18 +16,18 @@ describe('packageDiscoverBroker', () => {
         packagesPath: '/home/user/dungeonmaster/packages',
         packages: [
           {
-            name: FileNameStub({ value: 'cli' }),
+            name: 'cli',
             standardPath: '/home/user/dungeonmaster/packages/cli/dist/startup/start-install.js',
             installerLocation: 'standard',
           },
           {
-            name: FileNameStub({ value: 'shared' }),
+            name: 'shared',
             standardPath: '/home/user/dungeonmaster/packages/shared/dist/startup/start-install.js',
             alternatePath: '/home/user/dungeonmaster/packages/shared/dist/src/startup/start-install.js',
             installerLocation: 'none',
           },
           {
-            name: FileNameStub({ value: 'hooks' }),
+            name: 'hooks',
             standardPath: '/home/user/dungeonmaster/packages/hooks/dist/startup/start-install.js',
             installerLocation: 'standard',
           },
@@ -59,13 +58,13 @@ describe('packageDiscoverBroker', () => {
         packagesPath: '/dm/packages',
         packages: [
           {
-            name: FileNameStub({ value: 'cli' }),
+            name: 'cli',
             standardPath: '/dm/packages/cli/dist/startup/start-install.js',
             alternatePath: '/dm/packages/cli/dist/src/startup/start-install.js',
             installerLocation: 'none',
           },
           {
-            name: FileNameStub({ value: 'shared' }),
+            name: 'shared',
             standardPath: '/dm/packages/shared/dist/startup/start-install.js',
             alternatePath: '/dm/packages/shared/dist/src/startup/start-install.js',
             installerLocation: 'none',
@@ -101,20 +100,20 @@ describe('packageDiscoverBroker', () => {
         packagesPath: '/home/user/dungeonmaster/packages',
         packages: [
           {
-            name: FileNameStub({ value: 'cli' }),
+            name: 'cli',
             standardPath: '/home/user/dungeonmaster/packages/cli/dist/startup/start-install.js',
             installerLocation: 'standard',
           },
           {
-            name: FileNameStub({ value: '@gateway' }),
+            name: '@gateway',
             children: [
               {
-                name: FileNameStub({ value: 'npm' }),
+                name: 'npm',
                 standardPath: '/home/user/dungeonmaster/packages/@gateway/npm/dist/startup/start-install.js',
                 installerLocation: 'standard',
               },
               {
-                name: FileNameStub({ value: 'node' }),
+                name: 'node',
                 standardPath: '/home/user/dungeonmaster/packages/@gateway/node/dist/startup/start-install.js',
                 installerLocation: 'none',
               },
@@ -149,27 +148,27 @@ describe('packageDiscoverBroker', () => {
         dungeonmasterRoot,
         packages: [
           {
-            name: FileNameStub({ value: '@dungeonmaster' }),
+            name: '@dungeonmaster',
             children: [
               {
-                name: FileNameStub({ value: 'cli' }),
+                name: 'cli',
                 standardPath: '/consumer/node_modules/@dungeonmaster/cli/dist/startup/start-install.js',
                 installerLocation: 'standard',
               },
               {
-                name: FileNameStub({ value: 'orchestrator' }),
+                name: 'orchestrator',
                 standardPath: '/consumer/node_modules/@dungeonmaster/orchestrator/dist/startup/start-install.js',
                 installerLocation: 'standard',
               },
               {
-                name: FileNameStub({ value: 'shared' }),
+                name: 'shared',
                 standardPath: '/consumer/node_modules/@dungeonmaster/shared/dist/startup/start-install.js',
                 installerLocation: 'none',
               },
             ],
           },
           {
-            name: FileNameStub({ value: 'zod' }),
+            name: 'zod',
             standardPath: '/consumer/node_modules/zod/dist/startup/start-install.js',
             installerLocation: 'none',
           },
@@ -202,7 +201,7 @@ describe('packageDiscoverBroker', () => {
         packagesPath: '/dm/packages',
         packages: [
           {
-            name: FileNameStub({ value: 'siegelense' }),
+            name: 'siegelense',
             standardPath: '/dm/packages/siegelense/dist/startup/start-install.js',
             installerLocation: 'standard',
             hasFinalize: true,
@@ -229,7 +228,7 @@ describe('packageDiscoverBroker', () => {
         packagesPath: '/dm/packages',
         packages: [
           {
-            name: FileNameStub({ value: 'siegelense' }),
+            name: 'siegelense',
             standardPath: '/dm/packages/siegelense/dist/startup/start-install.js',
             installerLocation: 'alternate',
             hasFinalize: true,
@@ -258,7 +257,7 @@ describe('packageDiscoverBroker', () => {
         packagesPath: '/path/with spaces/packages',
         packages: [
           {
-            name: FileNameStub({ value: 'cli' }),
+            name: 'cli',
             standardPath: '/path/with spaces/packages/cli/dist/startup/start-install.js',
             installerLocation: 'standard',
           },

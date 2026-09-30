@@ -2,7 +2,6 @@ import { stdoutProxy } from '#gateway/node/process/stdout/stdout.proxy';
 import type { InstallResultStub } from '@dungeonmaster/shared/contracts/install-result/install-result.stub';
 import { registerMock } from '@dungeonmaster/testing/register-mock';
 import { installRunBrokerProxy } from '../../../brokers/install/run/install-run-broker.proxy';
-import { FileNameStub } from '@dungeonmaster/shared/contracts/file-name/file-name.stub';
 import { CliInitResponder } from './cli-init-responder';
 
 type InstallResult = ReturnType<typeof InstallResultStub>;
@@ -28,7 +27,7 @@ export const CliInitResponderProxy = (): {
 
     setupInstallResults: ({ results }: { results: InstallResult[] }): void => {
       const packages = results.map((_result, index) => ({
-        name: FileNameStub({ value: `package-${String(index)}` }),
+        name: `package-${String(index)}`,
         standardPath: `/dm/packages/package-${String(index)}/dist/startup/start-install.js`,
         installerLocation: 'standard' as const,
       }));

@@ -5,7 +5,6 @@ import { homedir } from '#gateway/node/os';
 import { claudeLineNormalizeBrokerProxy } from '@dungeonmaster/shared/brokers/claude-line/normalize/claude-line-normalize-broker.proxy';
 import { cwdResolveBrokerProxy } from '@dungeonmaster/shared/brokers/cwd/resolve/cwd-resolve-broker.proxy';
 import type { Quest, Session } from '@dungeonmaster/shared/contracts';
-import type { FileNameStub } from '@dungeonmaster/shared/contracts/file-name/file-name.stub';
 import { repoRootCwdContract, sessionContract } from '@dungeonmaster/shared/contracts';
 import { dungeonmasterHomeStatics } from '@dungeonmaster/shared/statics';
 import {
@@ -13,7 +12,7 @@ import {
   stripJsonlSuffixTransformer,
 } from '@dungeonmaster/shared/transformers';
 
-type FileName = ReturnType<typeof FileNameStub>;
+type FileName = string;
 import { registerMock, registerModuleMock } from '@dungeonmaster/testing/register-mock';
 
 import { QuestCwdResolutionStub } from '../../../contracts/quest-cwd-resolution/quest-cwd-resolution.stub';

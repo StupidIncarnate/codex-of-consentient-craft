@@ -8,7 +8,6 @@
 
 import { z } from '#gateway/npm/zod';
 
-import { fileNameContract } from '../file-name/file-name-contract';
 import { packageNameContract } from '../package-name/package-name-contract';
 import { pieceIdContract } from '../piece-id/piece-id-contract';
 import { relatedDataItemContract } from '../related-data-item/related-data-item-contract';
@@ -45,7 +44,7 @@ export const workItemContract = z.object({
   attempt: z.number().int().nonnegative().default(0).brand<'Attempt'>(),
   maxAttempts: z.number().int().positive().default(1).brand<'MaxAttempts'>(),
   retryCount: z.number().int().nonnegative().default(0).brand<'FailCount'>(),
-  lastWardRunId: fileNameContract.optional(),
+  lastWardRunId: z.string().brand<'WorkItemLastWardRunId'>().optional(),
   createdAt: z.iso.datetime().brand<'IsoTimestamp'>(),
   // `.nullish()`, not `.optional()` — a quest.json written before this field existed, or a
   // producer that stamps `null` instead of omitting the key, sends an explicit `null` here.

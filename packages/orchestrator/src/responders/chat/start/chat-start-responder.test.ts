@@ -10,7 +10,6 @@ import { QuestIdStub } from '@dungeonmaster/shared/contracts/quest-id/quest-id.s
 import { QuestStub } from '@dungeonmaster/shared/contracts/quest/quest.stub';
 import { WorkItemStub } from '@dungeonmaster/shared/contracts/work-item/work-item.stub';
 
-import { FileNameStub } from '@dungeonmaster/shared/contracts/file-name/file-name.stub';
 import { pastedImageStatics } from '@dungeonmaster/shared/statics';
 import { orchestrationProcessesState } from '../../../state/orchestration-processes/orchestration-processes-state';
 import { ChatStartResponderProxy } from './chat-start-responder.proxy';
@@ -181,7 +180,7 @@ describe('ChatStartResponder', () => {
           homeDir: '/home/testuser',
           homePath: '/home/testuser/.dungeonmaster',
           questsPath: `/home/testuser/.dungeonmaster/guilds/${guildId}/quests`,
-          questFiles: [FileNameStub({ value: '001-quest-inflight' })],
+          questFiles: ['001-quest-inflight'],
           questFilePath: `/home/testuser/.dungeonmaster/guilds/${guildId}/quests/001-quest-inflight/quest.json`,
           questJson: JSON.stringify({
             id: questId,
@@ -242,7 +241,7 @@ describe('ChatStartResponder', () => {
           homeDir: '/home/testuser',
           homePath: '/home/testuser/.dungeonmaster',
           questsPath: `/home/testuser/.dungeonmaster/guilds/${guildId}/quests`,
-          questFiles: [FileNameStub({ value: '001-quest-no-proc' })],
+          questFiles: ['001-quest-no-proc'],
           questFilePath: `/home/testuser/.dungeonmaster/guilds/${guildId}/quests/001-quest-no-proc/quest.json`,
           questJson: JSON.stringify({
             id: questId,
@@ -312,7 +311,7 @@ describe('ChatStartResponder', () => {
           homeDir: '/home/testuser',
           homePath: '/home/testuser/.dungeonmaster',
           questsPath: `/home/testuser/.dungeonmaster/guilds/${guildId}/quests`,
-          questFiles: [FileNameStub({ value: '001-quest-this-session' })],
+          questFiles: ['001-quest-this-session'],
           questFilePath: `/home/testuser/.dungeonmaster/guilds/${guildId}/quests/001-quest-this-session/quest.json`,
           questJson: JSON.stringify({
             id: questId,

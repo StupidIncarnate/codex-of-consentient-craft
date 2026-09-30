@@ -1,6 +1,5 @@
 import { GuildIdStub } from '@dungeonmaster/shared/contracts/guild-id/guild-id.stub';
 import { QuestStub } from '@dungeonmaster/shared/contracts/quest/quest.stub';
-import { FileNameStub } from '@dungeonmaster/shared/contracts/file-name/file-name.stub';
 
 import { QuestListWithSkipsResponderProxy } from './quest-list-with-skips-responder.proxy';
 
@@ -15,9 +14,9 @@ describe('QuestListWithSkipsResponder', () => {
         homePath: '/home/testuser/.dungeonmaster',
         questsPath: '/home/testuser/.dungeonmaster/guilds/guild-1/quests',
       });
-      proxy.setupQuestDirectories({ files: [FileNameStub({ value: '001-add-auth' })] });
+      proxy.setupQuestDirectories({ files: ['001-add-auth'] });
       proxy.setupQuestFilePath({
-        folderName: FileNameStub({ value: '001-add-auth' }),
+        folderName: '001-add-auth',
         result: '/home/testuser/.dungeonmaster/guilds/guild-1/quests/001-add-auth/quest.json',
       });
       proxy.setupQuestFile({ questJson: JSON.stringify(quest) });
@@ -40,15 +39,15 @@ describe('QuestListWithSkipsResponder', () => {
         questsPath: '/home/testuser/.dungeonmaster/guilds/guild-1/quests',
       });
       proxy.setupQuestDirectories({
-        files: [FileNameStub({ value: '001-broken' }), FileNameStub({ value: '002-good' })],
+        files: ['001-broken', '002-good'],
       });
       proxy.setupQuestFilePath({
-        folderName: FileNameStub({ value: '001-broken' }),
+        folderName: '001-broken',
         result: '/home/testuser/.dungeonmaster/guilds/guild-1/quests/001-broken/quest.json',
       });
       proxy.setupQuestFile({ questJson: '{ not valid json' });
       proxy.setupQuestFilePath({
-        folderName: FileNameStub({ value: '002-good' }),
+        folderName: '002-good',
         result: '/home/testuser/.dungeonmaster/guilds/guild-1/quests/002-good/quest.json',
       });
       proxy.setupQuestFile({ questJson: JSON.stringify(quest) });
@@ -74,9 +73,9 @@ describe('QuestListWithSkipsResponder', () => {
         homePath: '/home/testuser/.dungeonmaster',
         questsPath: '/home/testuser/.dungeonmaster/guilds/guild-1/quests',
       });
-      proxy.setupQuestDirectories({ files: [FileNameStub({ value: '001-legacy' })] });
+      proxy.setupQuestDirectories({ files: ['001-legacy'] });
       proxy.setupQuestFilePath({
-        folderName: FileNameStub({ value: '001-legacy' }),
+        folderName: '001-legacy',
         result: '/home/testuser/.dungeonmaster/guilds/guild-1/quests/001-legacy/quest.json',
       });
       // `pathseeker` is no longer in workItemRoleContract, and relatedDataItems is a bare uuid

@@ -1,4 +1,3 @@
-import { FileNameStub } from '@dungeonmaster/shared/contracts/file-name/file-name.stub';
 import { InstallSetupGatewayResponder } from './install-setup-gateway-responder';
 import { InstallSetupGatewayResponderProxy } from './install-setup-gateway-responder.proxy';
 import { InstallContextStub } from '@dungeonmaster/shared/contracts/install-context/install-context.stub';
@@ -56,7 +55,7 @@ describe('InstallSetupGatewayResponder', () => {
 
     proxy.setupExistingPackages({
       packagesDir: '/repo/packages',
-      packages: [{ name: FileNameStub({ value: 'app' }), hasPackageJson: true }],
+      packages: [{ name: 'app', hasPackageJson: true }],
     });
 
     proxy.setupPackageJson({
@@ -163,7 +162,7 @@ describe('InstallSetupGatewayResponder', () => {
 
     proxy.setupExistingPackages({
       packagesDir: '/repo/packages',
-      packages: [{ name: FileNameStub({ value: 'app' }), hasPackageJson: true }],
+      packages: [{ name: 'app', hasPackageJson: true }],
     });
 
     proxy.setupPackageJson({

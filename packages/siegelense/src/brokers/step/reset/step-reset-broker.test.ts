@@ -1,5 +1,4 @@
 import type { DirEntrySync } from '#gateway/node/fs';
-import { FileNameStub } from '@dungeonmaster/shared/contracts/file-name/file-name.stub';
 
 import { BrowserSessionStub } from '../../../contracts/browser-session/browser-session.stub';
 import { FileSizeBytesStub } from '../../../contracts/file-size-bytes/file-size-bytes.stub';
@@ -9,7 +8,7 @@ import { SnapshotRecordStub } from '../../../contracts/snapshot-record/snapshot-
 import { stepResetBroker } from './step-reset-broker';
 import { stepResetBrokerProxy } from './step-reset-broker.proxy';
 
-type FileName = ReturnType<typeof FileNameStub>;
+type FileName = string;
 
 const makeFileEntry = ({ name }: { name: FileName }): DirEntrySync => ({
   name,
@@ -75,7 +74,7 @@ describe('stepResetBroker', () => {
         ],
       });
 
-      const fileName = FileNameStub({ value: 'db.json' });
+      const fileName = 'db.json';
       const homeFile = `${String(lane.homePath)}/${String(fileName)}`;
       const payloadFile = `${String(payloadPath)}/${String(fileName)}`;
 
@@ -276,7 +275,7 @@ describe('stepResetBroker', () => {
         ],
       });
 
-      const seededFileName = FileNameStub({ value: 'guild-1.json' });
+      const seededFileName = 'guild-1.json';
       const seededFilePath = `${String(lane.homePath)}/${String(seededFileName)}`;
 
       proxy.setupRestoreDirectories({

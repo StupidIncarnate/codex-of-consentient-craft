@@ -1,5 +1,4 @@
 import type { StubArgument } from '@dungeonmaster/shared/@types';
-import { FileNameStub } from '@dungeonmaster/shared/contracts/file-name/file-name.stub';
 
 import { HttpMethodStub } from '../http-method/http-method.stub';
 import { LocatorStateStub } from '../locator-state/locator-state.stub';
@@ -52,7 +51,7 @@ const STEP_DEFAULTS = {
   screenshot: {
     step: 'screenshot',
     // `.png` is required by the contract, and `FileNameStub`'s own default is `test-file.txt`.
-    name: FileNameStub({ value: 'step1.png' }),
+    name: 'step1.png',
     node: null,
     expect: StepExpectationStub(),
   },

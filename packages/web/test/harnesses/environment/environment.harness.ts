@@ -18,7 +18,6 @@ import { gitRunSync } from '#gateway/bin/git';
 import * as fs from '#gateway/node/fs';
 import * as path from '#gateway/node/path';
 
-import { FileNameStub } from '@dungeonmaster/shared/contracts/file-name/file-name.stub';
 import { locationsStatics } from '@dungeonmaster/shared/statics';
 import { claudePathSlugEncoderTransformer } from '@dungeonmaster/shared/transformers';
 import { homedir } from '#gateway/node/os';
@@ -239,7 +238,7 @@ export const environmentHarness = ({
     return fs
       .readdirSync(worktreesDir)
       .sort()
-      .map((entry) => FileNameStub({ value: entry }));
+      .map((entry) => entry);
   };
 
   // Stands the fixture repo up in the state a GREEN riftcarver leaves it in: a real

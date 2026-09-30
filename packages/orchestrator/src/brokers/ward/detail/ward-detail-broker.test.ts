@@ -1,4 +1,3 @@
-import { FileNameStub } from '@dungeonmaster/shared/contracts/file-name/file-name.stub';
 
 import { wardDetailBroker } from './ward-detail-broker';
 import { wardDetailBrokerProxy } from './ward-detail-broker.proxy';
@@ -8,7 +7,7 @@ describe('wardDetailBroker', () => {
     it('VALID: {valid JSON output} => returns parsed output as ErrorMessage', async () => {
       const proxy = wardDetailBrokerProxy();
       const startPath = '/project';
-      const runId = FileNameStub({ value: '1773805659495-6b06' });
+      const runId = '1773805659495-6b06';
       const jsonOutput = JSON.stringify({ checks: [], runId: '123' });
 
       proxy.setupSuccess({ output: jsonOutput });
@@ -21,7 +20,7 @@ describe('wardDetailBroker', () => {
     it('VALID: {output with whitespace} => returns trimmed JSON', async () => {
       const proxy = wardDetailBrokerProxy();
       const startPath = '/project';
-      const runId = FileNameStub({ value: 'run-abc' });
+      const runId = 'run-abc';
       const jsonOutput = JSON.stringify({ checks: [{ checkType: 'lint' }] });
 
       proxy.setupSuccess({ output: `  ${jsonOutput}  \n` });
@@ -36,7 +35,7 @@ describe('wardDetailBroker', () => {
     it('VALID: {startPath, runId} => spawns with detail, runId, and --json args', async () => {
       const proxy = wardDetailBrokerProxy();
       const startPath = '/project';
-      const runId = FileNameStub({ value: '1773805659495-6b06' });
+      const runId = '1773805659495-6b06';
       const jsonOutput = JSON.stringify({ checks: [] });
 
       proxy.setupSuccess({ output: jsonOutput });
@@ -52,7 +51,7 @@ describe('wardDetailBroker', () => {
     it('ERROR: {non-zero exit code} => returns null', async () => {
       const proxy = wardDetailBrokerProxy();
       const startPath = '/project';
-      const runId = FileNameStub({ value: 'run-fail' });
+      const runId = 'run-fail';
 
       proxy.setupFailure();
 
@@ -64,7 +63,7 @@ describe('wardDetailBroker', () => {
     it('ERROR: {empty output} => returns null', async () => {
       const proxy = wardDetailBrokerProxy();
       const startPath = '/project';
-      const runId = FileNameStub({ value: 'run-empty' });
+      const runId = 'run-empty';
 
       proxy.setupSuccess({ output: '' });
 
@@ -76,7 +75,7 @@ describe('wardDetailBroker', () => {
     it('ERROR: {non-JSON output} => returns null', async () => {
       const proxy = wardDetailBrokerProxy();
       const startPath = '/project';
-      const runId = FileNameStub({ value: 'run-bad' });
+      const runId = 'run-bad';
 
       proxy.setupSuccess({ output: 'not valid json' });
 
@@ -88,7 +87,7 @@ describe('wardDetailBroker', () => {
     it('ERROR: {whitespace-only output} => returns null', async () => {
       const proxy = wardDetailBrokerProxy();
       const startPath = '/project';
-      const runId = FileNameStub({ value: 'run-whitespace' });
+      const runId = 'run-whitespace';
 
       proxy.setupSuccess({ output: '   \n  \t  ' });
 

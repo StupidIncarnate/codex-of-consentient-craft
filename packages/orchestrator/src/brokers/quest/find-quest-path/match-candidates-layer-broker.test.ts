@@ -1,4 +1,3 @@
-import { FileNameStub } from '@dungeonmaster/shared/contracts/file-name/file-name.stub';
 import { QuestIdStub } from '@dungeonmaster/shared/contracts/quest-id/quest-id.stub';
 import { QuestStub } from '@dungeonmaster/shared/contracts/quest/quest.stub';
 
@@ -25,7 +24,7 @@ describe('matchCandidatesLayerBroker', () => {
           {
             questFilePath,
             questFolderPath: `/home/guilds/${GUILD_A}/quests/q`,
-            guildDirName: FileNameStub({ value: GUILD_A }),
+            guildDirName: GUILD_A,
           },
         ],
         questId,
@@ -57,12 +56,12 @@ describe('matchCandidatesLayerBroker', () => {
           {
             questFilePath: firstFilePath,
             questFolderPath: `/home/guilds/${GUILD_A}/quests/a`,
-            guildDirName: FileNameStub({ value: GUILD_A }),
+            guildDirName: GUILD_A,
           },
           {
             questFilePath: secondFilePath,
             questFolderPath: `/home/guilds/${GUILD_B}/quests/b`,
-            guildDirName: FileNameStub({ value: GUILD_B }),
+            guildDirName: GUILD_B,
           },
         ],
         questId,
@@ -96,7 +95,7 @@ describe('matchCandidatesLayerBroker', () => {
           {
             questFilePath,
             questFolderPath: `/home/guilds/${GUILD_A}/quests/q`,
-            guildDirName: FileNameStub({ value: GUILD_A }),
+            guildDirName: GUILD_A,
           },
         ],
         questId,
@@ -135,7 +134,7 @@ describe('matchCandidatesLayerBroker', () => {
           {
             questFilePath,
             questFolderPath: `/home/guilds/${GUILD_A}/quests/q`,
-            guildDirName: FileNameStub({ value: GUILD_A }),
+            guildDirName: GUILD_A,
           },
         ],
         questId: QuestIdStub({ value: 'nonexistent' }),
@@ -155,7 +154,7 @@ describe('matchCandidatesLayerBroker', () => {
           {
             questFilePath,
             questFolderPath: `/home/guilds/${GUILD_A}/quests/q`,
-            guildDirName: FileNameStub({ value: GUILD_A }),
+            guildDirName: GUILD_A,
           },
         ],
         questId: QuestIdStub({ value: 'add-auth' }),
@@ -178,7 +177,7 @@ describe('matchCandidatesLayerBroker', () => {
           {
             questFilePath,
             questFolderPath: `/home/guilds/${GUILD_A}/quests/q`,
-            guildDirName: FileNameStub({ value: GUILD_A }),
+            guildDirName: GUILD_A,
           },
         ],
         questId: QuestIdStub({ value: 'add-auth' }),
@@ -201,7 +200,7 @@ describe('matchCandidatesLayerBroker', () => {
           {
             questFilePath,
             questFolderPath: `/home/guilds/${GUILD_A}/quests/q`,
-            guildDirName: FileNameStub({ value: GUILD_A }),
+            guildDirName: GUILD_A,
           },
         ],
         questId: QuestIdStub({ value: 'add-auth' }),

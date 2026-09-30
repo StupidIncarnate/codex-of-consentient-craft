@@ -2,7 +2,6 @@ import {
   AssistantTaskToolUseStreamLineStub,
   AssistantTextStreamLineStub,
 } from '@dungeonmaster/shared/contracts/assistant-stream-line/assistant-stream-line.stub';
-import { FileNameStub } from '@dungeonmaster/shared/contracts/file-name/file-name.stub';
 import { GuildConfigStub } from '@dungeonmaster/shared/contracts/guild-config/guild-config.stub';
 import { GuildIdStub } from '@dungeonmaster/shared/contracts/guild-id/guild-id.stub';
 import { GuildStub } from '@dungeonmaster/shared/contracts/guild/guild.stub';
@@ -129,7 +128,7 @@ describe('chatHistoryReplayBroker', () => {
 
       proxy.setupGuild({ config, sessionId, homeDir: '/home/user' });
       proxy.setupMainSessionMissing();
-      proxy.setupSubagentDir({ files: [FileNameStub({ value: `agent-${agentId}.jsonl` })] });
+      proxy.setupSubagentDir({ files: [`agent-${agentId}.jsonl`] });
       proxy.setupSubagentFile({
         content: JSON.stringify(
           AssistantTextStreamLineStub({
@@ -831,7 +830,7 @@ describe('chatHistoryReplayBroker', () => {
       proxy.setupMainSession({
         content: [userLine, taskToolUseLine, taskResultLine].join('\n'),
       });
-      proxy.setupSubagentDir({ files: [FileNameStub({ value: `agent-${realAgentId}.jsonl` })] });
+      proxy.setupSubagentDir({ files: [`agent-${realAgentId}.jsonl`] });
       proxy.setupSubagentFile({ content: subagentLine });
 
       const batches: unknown[] = [];
@@ -960,7 +959,7 @@ describe('chatHistoryReplayBroker', () => {
       proxy.setupMainSession({
         content: [userLine, taskToolUseLine, taskResultLine].join('\n'),
       });
-      proxy.setupSubagentDir({ files: [FileNameStub({ value: `agent-${realAgentId}.jsonl` })] });
+      proxy.setupSubagentDir({ files: [`agent-${realAgentId}.jsonl`] });
       proxy.setupSubagentFile({ content: subagentLine });
 
       const batches: unknown[] = [];
@@ -1066,7 +1065,7 @@ describe('chatHistoryReplayBroker', () => {
         content: [userLine, mainReplyLine].join('\n'),
       });
       proxy.setupSubagentDir({
-        files: [FileNameStub({ value: `agent-${orphanRealAgentId}.jsonl` })],
+        files: [`agent-${orphanRealAgentId}.jsonl`],
       });
       proxy.setupSubagentFile({ content: orphanSubagentLine });
 
@@ -1204,7 +1203,7 @@ describe('chatHistoryReplayBroker', () => {
           '\n',
         ),
       });
-      proxy.setupSubagentDir({ files: [FileNameStub({ value: `agent-${realAgentId}.jsonl` })] });
+      proxy.setupSubagentDir({ files: [`agent-${realAgentId}.jsonl`] });
       proxy.setupSubagentFile({ content: subagentLine });
 
       const batches: unknown[] = [];
@@ -1369,7 +1368,7 @@ describe('chatHistoryReplayBroker', () => {
       proxy.setupMainSession({
         content: [userLine, taskToolUseLine].join('\n'),
       });
-      proxy.setupSubagentDir({ files: [FileNameStub({ value: `agent-${realAgentId}.jsonl` })] });
+      proxy.setupSubagentDir({ files: [`agent-${realAgentId}.jsonl`] });
       proxy.setupSubagentFile({
         content: [subagentPromptLine, subagentTextLine].join('\n'),
       });
@@ -1532,8 +1531,8 @@ describe('chatHistoryReplayBroker', () => {
       proxy.setupMainSession({ content: [userLine, cwTaskLine, cwResultLine].join('\n') });
       proxy.setupSubagentDir({
         files: [
-          FileNameStub({ value: `agent-${cwRealAgentId}.jsonl` }),
-          FileNameStub({ value: `agent-${helperRealAgentId}.jsonl` }),
+          `agent-${cwRealAgentId}.jsonl`,
+          `agent-${helperRealAgentId}.jsonl`,
         ],
       });
       // FIFO order must match the files array above: codeweaver stream first, helper stream second.
@@ -1659,8 +1658,8 @@ describe('chatHistoryReplayBroker', () => {
       proxy.setupMainSession({ content: [mainUserLine, aTaskLine, aResultLine].join('\n') });
       proxy.setupSubagentDir({
         files: [
-          FileNameStub({ value: `agent-${aReal}.jsonl` }),
-          FileNameStub({ value: `agent-${bReal}.jsonl` }),
+          `agent-${aReal}.jsonl`,
+          `agent-${bReal}.jsonl`,
         ],
       });
       // FIFO: agent-realA file content first, agent-realB file content second (matching files order).
@@ -1732,7 +1731,7 @@ describe('chatHistoryReplayBroker', () => {
 
       proxy.setupGuild({ config, sessionId, homeDir: '/home/user' });
       proxy.setupMainSession({ content: mainUserLine });
-      proxy.setupSubagentDir({ files: [FileNameStub({ value: `agent-${aReal}.jsonl` })] });
+      proxy.setupSubagentDir({ files: [`agent-${aReal}.jsonl`] });
       proxy.setupSubagentFile({ content: [bResultInA, aTextLine].join('\n') });
 
       const allEntries: unknown[] = [];

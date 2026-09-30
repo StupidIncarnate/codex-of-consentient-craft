@@ -1,5 +1,4 @@
 import { installTestbedCreateBroker } from '@dungeonmaster/testing';
-import { FileNameStub } from '@dungeonmaster/shared/contracts/file-name/file-name.stub';
 import { QuestBranchNameStub } from '@dungeonmaster/shared/contracts/quest-branch-name/quest-branch-name.stub';
 import { RepoRelativePathStub } from '@dungeonmaster/shared/contracts/repo-relative-path/repo-relative-path.stub';
 
@@ -23,13 +22,13 @@ describe('worktreePrepareBroker (integration) — real git worktree creation', (
 
     await git.initRepoWithPackages({
       repoPath,
-      initialBranchName: FileNameStub({ value: 'main' }),
-      packageNames: [FileNameStub({ value: 'shared' }), FileNameStub({ value: 'web' })],
+      initialBranchName: 'main',
+      packageNames: ['shared', 'web'],
     });
     // A second branch pinned at the FIRST commit, so main can diverge from it below — this is
     // what proves quest-branch-created-at-base-tip reads main's own tip rather than any branch
     // that happens to exist in the repo.
-    await git.createBranchAt({ repoPath, branchName: FileNameStub({ value: 'develop' }) });
+    await git.createBranchAt({ repoPath, branchName: 'develop' });
     const { sha: mainTipSha } = await git.commitFile({
       repoPath,
       relativePath: RepoRelativePathStub({ value: 'README.md' }),
@@ -96,8 +95,8 @@ describe('worktreePrepareBroker (integration) — real git worktree creation', (
 
     await git.initRepoWithPackages({
       repoPath,
-      initialBranchName: FileNameStub({ value: 'main' }),
-      packageNames: [FileNameStub({ value: 'shared' }), FileNameStub({ value: 'web' })],
+      initialBranchName: 'main',
+      packageNames: ['shared', 'web'],
     });
     const committedReadme = git.readTextFile({
       absolutePath: `${repoPath}/README.md`,
@@ -147,15 +146,15 @@ describe('worktreePrepareBroker (integration) — real git worktree creation', (
 
     await git.initRepoWithPackages({
       repoPath,
-      initialBranchName: FileNameStub({ value: 'main' }),
-      packageNames: [FileNameStub({ value: 'shared' }), FileNameStub({ value: 'web' })],
+      initialBranchName: 'main',
+      packageNames: ['shared', 'web'],
     });
 
     const branchName = QuestBranchNameStub({ value: 'quest/reattach-88889999' });
     const baseBranch = 'main';
     await git.createBranchAt({
       repoPath,
-      branchName: FileNameStub({ value: 'quest/reattach-88889999' }),
+      branchName: 'quest/reattach-88889999',
     });
     // main moves on AFTER the quest branch was cut, so a `-b`-style re-fork would visibly land on a
     // different sha than the branch's own tip — which is what makes the assertion below meaningful.

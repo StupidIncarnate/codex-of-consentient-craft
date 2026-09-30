@@ -15,7 +15,6 @@
 
 import { join } from '#gateway/node/path';
 
-import { FileNameStub } from '@dungeonmaster/shared/contracts/file-name/file-name.stub';
 import { GuildIdStub } from '@dungeonmaster/shared/contracts/guild-id/guild-id.stub';
 import type { OperationItem } from '@dungeonmaster/shared/contracts';
 import type { QuestStub } from '@dungeonmaster/shared/contracts/quest/quest.stub';
@@ -58,11 +57,11 @@ export const questGetWorkPlanBrokerProxy = (): {
       guildsDir: `${HOME_DIR}/.dungeonmaster/guilds`,
       guilds: [
         {
-          dirName: FileNameStub({ value: guildId }),
+          dirName: guildId,
           questsDirPath,
           questFolders: [
             {
-              folderName: FileNameStub({ value: quest.folder }),
+              folderName: quest.folder,
               questFilePath,
               questFolderPath,
               contents: JSON.stringify(quest),

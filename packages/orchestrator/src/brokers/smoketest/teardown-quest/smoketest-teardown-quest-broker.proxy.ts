@@ -1,6 +1,5 @@
 import type { FsError } from '#gateway/node/fs';
 import { rmProxy } from '#gateway/node/fs__promises/rm/rm.proxy';
-import { FileNameStub } from '@dungeonmaster/shared/contracts/file-name/file-name.stub';
 import { QuestStub } from '@dungeonmaster/shared/contracts/quest/quest.stub';
 import type { Guild } from '@dungeonmaster/shared/contracts';
 
@@ -47,11 +46,11 @@ export const smoketestTeardownQuestBrokerProxy = (): {
         guildsDir,
         guilds: [
           {
-            dirName: FileNameStub({ value: guildId }),
+            dirName: guildId,
             questsDirPath,
             questFolders: [
               {
-                folderName: FileNameStub({ value: quest.folder }),
+                folderName: quest.folder,
                 questFilePath,
                 questFolderPath,
                 contents: JSON.stringify(quest),

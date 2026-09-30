@@ -1,6 +1,5 @@
 import { locationsShotPathFindBroker } from './locations-shot-path-find-broker';
 import { locationsShotPathFindBrokerProxy } from './locations-shot-path-find-broker.proxy';
-import { FileNameStub } from '@dungeonmaster/shared/contracts/file-name/file-name.stub';
 import { StepIndexStub } from '../../../contracts/step-index/step-index.stub';
 import { RunIdStub } from '../../../contracts/run-id/run-id.stub';
 import { locationsRunPathsFindBroker } from '../run-paths-find/locations-run-paths-find-broker';
@@ -37,7 +36,7 @@ describe('locationsShotPathFindBroker', () => {
       locationsShotPathFindBrokerProxy();
       const shotsDir = '/repo/.dungeonmaster-assets/siegelense-assets/guilds/g1/instances/inst_7f3a9c21/runs/run_2';
       const step = StepIndexStub({ value: 2 });
-      const name = FileNameStub({ value: 'after-create.png' });
+      const name = 'after-create.png';
 
       const result = locationsShotPathFindBroker({ shotsDir, step, name });
 
@@ -50,7 +49,7 @@ describe('locationsShotPathFindBroker', () => {
       locationsShotPathFindBrokerProxy();
       const evidencePath = '/repo/.dungeonmaster-assets/siegelense-assets/guilds/g1/instances/inst_7f3a9c21';
       const step = StepIndexStub({ value: 1 });
-      const name = FileNameStub({ value: 'shot.png' });
+      const name = 'shot.png';
 
       const firstRunPaths = locationsRunPathsFindBroker({
         evidencePath,

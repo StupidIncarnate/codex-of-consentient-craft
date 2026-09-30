@@ -3,7 +3,6 @@ import { pathExistsProxy } from '#gateway/node/fs__promises/path-exists/path-exi
 import { readFileIfExistsProxy } from '#gateway/node/fs__promises/read-file-if-exists/read-file-if-exists.proxy';
 import { dirname, resolve } from '#gateway/node/path';
 
-import { FileNameStub } from '@dungeonmaster/shared/contracts/file-name/file-name.stub';
 import { architecturePackageTypeDetectBrokerProxy } from '@dungeonmaster/shared/brokers/architecture/package-type-detect/architecture-package-type-detect-broker.proxy';
 import { registerMock, requireActual } from '@dungeonmaster/testing/register-mock';
 import { FileMissingErrorStub } from '#gateway/node/fs/file-missing-error/file-missing-error.stub';
@@ -92,7 +91,7 @@ export const resolvePackageEntryFactsLayerBrokerProxy = (): {
     }): void => {
       readdirProxy.returns({
         path: root,
-        names: packages.map(({ dirName }) => FileNameStub({ value: dirName })),
+        names: packages.map(({ dirName }) => dirName),
       });
 
       for (const entry of packages) {

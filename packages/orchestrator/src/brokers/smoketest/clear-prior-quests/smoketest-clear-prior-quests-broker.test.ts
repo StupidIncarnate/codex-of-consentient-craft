@@ -1,4 +1,3 @@
-import { FileNameStub } from '@dungeonmaster/shared/contracts/file-name/file-name.stub';
 import { GuildConfigStub } from '@dungeonmaster/shared/contracts/guild-config/guild-config.stub';
 import { GuildIdStub } from '@dungeonmaster/shared/contracts/guild-id/guild-id.stub';
 import { GuildStub } from '@dungeonmaster/shared/contracts/guild/guild.stub';
@@ -127,9 +126,9 @@ describe('smoketestClearPriorQuestsBroker', () => {
       primeGuildAndQuestsPath({ proxy });
       proxy.setupQuestFolderListing({
         files: [
-          FileNameStub({ value: questA.folder }),
-          FileNameStub({ value: questB.folder }),
-          FileNameStub({ value: questC.folder }),
+          questA.folder,
+          questB.folder,
+          questC.folder,
         ],
       });
       proxy.setupQuestFile({ questJson: JSON.stringify(questA) });
@@ -173,7 +172,7 @@ describe('smoketestClearPriorQuestsBroker', () => {
 
       primeGuildAndQuestsPath({ proxy });
       proxy.setupQuestFolderListing({
-        files: [FileNameStub({ value: questA.folder }), FileNameStub({ value: questB.folder })],
+        files: [questA.folder, questB.folder],
       });
       proxy.setupQuestFile({ questJson: JSON.stringify(questA) });
       proxy.setupQuestFile({ questJson: JSON.stringify(questB) });
@@ -220,7 +219,7 @@ describe('smoketestClearPriorQuestsBroker', () => {
 
       primeGuildAndQuestsPath({ proxy });
       proxy.setupQuestFolderListing({
-        files: [FileNameStub({ value: questA.folder }), FileNameStub({ value: questB.folder })],
+        files: [questA.folder, questB.folder],
       });
       proxy.setupQuestFile({ questJson: JSON.stringify(questA) });
       proxy.setupQuestFile({ questJson: JSON.stringify(questB) });

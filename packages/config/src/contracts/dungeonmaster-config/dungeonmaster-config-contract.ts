@@ -41,7 +41,7 @@ export const dungeonmasterConfigContract = z
             z.object({ add: z.array(z.string().brand<'PackageName'>()).optional() }),
           )
           .optional(),
-        allowedRootFiles: z.array(z.string().brand<'FileName'>()).optional(),
+        allowedRootFiles: z.array(z.string().brand<'DungeonmasterConfigArchitectureAllowedRootFiles'>()).optional(),
         booleanFunctionPrefixes: z.array(z.string().brand<'FunctionPrefix'>()).optional(),
       })
       .optional(),

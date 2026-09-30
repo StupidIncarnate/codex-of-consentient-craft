@@ -1,4 +1,3 @@
-import { FileNameStub } from '@dungeonmaster/shared/contracts/file-name/file-name.stub';
 import { gatewayExistingPackagesListBroker } from './gateway-existing-packages-list-broker';
 import { gatewayExistingPackagesListBrokerProxy } from './gateway-existing-packages-list-broker.proxy';
 
@@ -20,8 +19,8 @@ describe('gatewayExistingPackagesListBroker', () => {
     proxy.setupPackages({
       packagesDir,
       packages: [
-        { name: FileNameStub({ value: 'app' }), hasPackageJson: true },
-        { name: FileNameStub({ value: 'shared' }), hasPackageJson: true },
+        { name: 'app', hasPackageJson: true },
+        { name: 'shared', hasPackageJson: true },
       ],
     });
 
@@ -37,8 +36,8 @@ describe('gatewayExistingPackagesListBroker', () => {
     proxy.setupPackages({
       packagesDir,
       packages: [
-        { name: FileNameStub({ value: 'app' }), hasPackageJson: true },
-        { name: FileNameStub({ value: 'not-a-package' }), hasPackageJson: false },
+        { name: 'app', hasPackageJson: true },
+        { name: 'not-a-package', hasPackageJson: false },
       ],
     });
 
@@ -57,8 +56,8 @@ describe('gatewayExistingPackagesListBroker', () => {
     proxy.setupPackages({
       packagesDir,
       packages: [
-        { name: FileNameStub({ value: 'app' }), hasPackageJson: true },
-        { name: FileNameStub({ value: '@gateway' }), hasPackageJson: true },
+        { name: 'app', hasPackageJson: true },
+        { name: '@gateway', hasPackageJson: true },
       ],
     });
 
@@ -75,8 +74,8 @@ describe('gatewayExistingPackagesListBroker', () => {
       packagesDir,
       packages: [
         {
-          name: FileNameStub({ value: '@acme' }),
-          children: [{ name: FileNameStub({ value: 'widgets' }), hasPackageJson: true }],
+          name: '@acme',
+          children: [{ name: 'widgets', hasPackageJson: true }],
         },
       ],
     });

@@ -1,5 +1,4 @@
 import { installTestbedCreateBroker } from '@dungeonmaster/testing';
-import { FileNameStub } from '@dungeonmaster/shared/contracts/file-name/file-name.stub';
 import { QuestBranchNameStub } from '@dungeonmaster/shared/contracts/quest-branch-name/quest-branch-name.stub';
 import { QuestIdStub } from '@dungeonmaster/shared/contracts/quest-id/quest-id.stub';
 import { QuestStub } from '@dungeonmaster/shared/contracts/quest/quest.stub';
@@ -23,10 +22,10 @@ describe('worktreeEnsureQuestBranchBroker (integration) — real drift restore a
 
     await git.initRepoWithPackages({
       repoPath,
-      initialBranchName: FileNameStub({ value: 'main' }),
-      packageNames: [FileNameStub({ value: 'shared' })],
+      initialBranchName: 'main',
+      packageNames: ['shared'],
     });
-    const strayBranch = FileNameStub({ value: 'stray-branch' });
+    const strayBranch = 'stray-branch';
     await git.createBranchAt({ repoPath, branchName: strayBranch });
 
     const worktreeValue = `${testbed.guildPath}/worktrees/weqb-drift-11112222`;
@@ -78,10 +77,10 @@ describe('worktreeEnsureQuestBranchBroker (integration) — real drift restore a
 
     await git.initRepoWithPackages({
       repoPath,
-      initialBranchName: FileNameStub({ value: 'main' }),
-      packageNames: [FileNameStub({ value: 'shared' })],
+      initialBranchName: 'main',
+      packageNames: ['shared'],
     });
-    const strayBranch = FileNameStub({ value: 'stray-branch' });
+    const strayBranch = 'stray-branch';
     await git.createBranchAt({ repoPath, branchName: strayBranch });
 
     const worktreeValue = `${testbed.guildPath}/worktrees/weqb-skip-33334444`;
@@ -127,10 +126,10 @@ describe('worktreeEnsureQuestBranchBroker (integration) — real drift restore a
 
     await git.initRepoWithPackages({
       repoPath,
-      initialBranchName: FileNameStub({ value: 'main' }),
-      packageNames: [FileNameStub({ value: 'shared' })],
+      initialBranchName: 'main',
+      packageNames: ['shared'],
     });
-    const strayBranch = FileNameStub({ value: 'stray-branch' });
+    const strayBranch = 'stray-branch';
     await git.createBranchAt({ repoPath, branchName: strayBranch });
 
     const worktreeValue = `${testbed.guildPath}/worktrees/weqb hostile (dir)-55556666`;

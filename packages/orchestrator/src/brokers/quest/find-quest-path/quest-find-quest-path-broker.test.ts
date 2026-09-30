@@ -1,4 +1,3 @@
-import { FileNameStub } from '@dungeonmaster/shared/contracts/file-name/file-name.stub';
 import { GuildIdStub } from '@dungeonmaster/shared/contracts/guild-id/guild-id.stub';
 import { QuestIdStub } from '@dungeonmaster/shared/contracts/quest-id/quest-id.stub';
 import { QuestStub } from '@dungeonmaster/shared/contracts/quest/quest.stub';
@@ -20,11 +19,11 @@ describe('questFindQuestPathBroker', () => {
         guildsDir: '/home/user/.dungeonmaster/guilds',
         guilds: [
           {
-            dirName: FileNameStub({ value: guildId }),
+            dirName: guildId,
             questsDirPath: `/home/user/.dungeonmaster/guilds/${guildId}/quests`,
             questFolders: [
               {
-                folderName: FileNameStub({ value: '001-add-auth' }),
+                folderName: '001-add-auth',
                 questFilePath: `/home/user/.dungeonmaster/guilds/${guildId}/quests/001-add-auth/quest.json`,
                 questFolderPath: `/home/user/.dungeonmaster/guilds/${guildId}/quests/001-add-auth`,
                 contents: JSON.stringify(quest),
@@ -56,11 +55,11 @@ describe('questFindQuestPathBroker', () => {
         guildsDir: '/home/user/.dungeonmaster/guilds',
         guilds: [
           {
-            dirName: FileNameStub({ value: guildId1 }),
+            dirName: guildId1,
             questsDirPath: `/home/user/.dungeonmaster/guilds/${guildId1}/quests`,
             questFolders: [
               {
-                folderName: FileNameStub({ value: '001-add-auth' }),
+                folderName: '001-add-auth',
                 questFilePath: `/home/user/.dungeonmaster/guilds/${guildId1}/quests/001-add-auth/quest.json`,
                 questFolderPath: `/home/user/.dungeonmaster/guilds/${guildId1}/quests/001-add-auth`,
                 contents: JSON.stringify(quest1),
@@ -68,11 +67,11 @@ describe('questFindQuestPathBroker', () => {
             ],
           },
           {
-            dirName: FileNameStub({ value: guildId2 }),
+            dirName: guildId2,
             questsDirPath: `/home/user/.dungeonmaster/guilds/${guildId2}/quests`,
             questFolders: [
               {
-                folderName: FileNameStub({ value: '001-fix-bug' }),
+                folderName: '001-fix-bug',
                 questFilePath: `/home/user/.dungeonmaster/guilds/${guildId2}/quests/001-fix-bug/quest.json`,
                 questFolderPath: `/home/user/.dungeonmaster/guilds/${guildId2}/quests/001-fix-bug`,
                 contents: JSON.stringify(quest2),
@@ -134,11 +133,11 @@ describe('questFindQuestPathBroker', () => {
         guildsDir: '/home/user/.dungeonmaster/guilds',
         guilds: [
           {
-            dirName: FileNameStub({ value: guildId }),
+            dirName: guildId,
             questsDirPath: `/home/user/.dungeonmaster/guilds/${guildId}/quests`,
             questFolders: [
               {
-                folderName: FileNameStub({ value: '001-add-auth' }),
+                folderName: '001-add-auth',
                 questFilePath: `/home/user/.dungeonmaster/guilds/${guildId}/quests/001-add-auth/quest.json`,
                 questFolderPath: `/home/user/.dungeonmaster/guilds/${guildId}/quests/001-add-auth`,
                 contents: JSON.stringify(quest),
@@ -176,11 +175,11 @@ describe('questFindQuestPathBroker', () => {
         guildsDir: '/home/user/.dungeonmaster/guilds',
         guilds: [
           {
-            dirName: FileNameStub({ value: guildId }),
+            dirName: guildId,
             questsDirPath: `/home/user/.dungeonmaster/guilds/${guildId}/quests`,
             questFolders: [
               {
-                folderName: FileNameStub({ value: '001-add-auth' }),
+                folderName: '001-add-auth',
                 questFilePath: `/home/user/.dungeonmaster/guilds/${guildId}/quests/001-add-auth/quest.json`,
                 questFolderPath: `/home/user/.dungeonmaster/guilds/${guildId}/quests/001-add-auth`,
                 contents: unloadableQuestJson,
@@ -215,11 +214,11 @@ describe('questFindQuestPathBroker', () => {
         guildsDir: '/home/user/.dungeonmaster/guilds',
         guilds: [
           {
-            dirName: FileNameStub({ value: guildId }),
+            dirName: guildId,
             questsDirPath: `/home/user/.dungeonmaster/guilds/${guildId}/quests`,
             questFolders: [
               {
-                folderName: FileNameStub({ value: '001-add-auth' }),
+                folderName: '001-add-auth',
                 questFilePath: `/home/user/.dungeonmaster/guilds/${guildId}/quests/001-add-auth/quest.json`,
                 questFolderPath: `/home/user/.dungeonmaster/guilds/${guildId}/quests/001-add-auth`,
                 contents: unloadableQuestJson,
@@ -245,11 +244,11 @@ describe('questFindQuestPathBroker', () => {
         guildsDir: '/home/user/.dungeonmaster/guilds',
         guilds: [
           {
-            dirName: FileNameStub({ value: guildId }),
+            dirName: guildId,
             questsDirPath: `/home/user/.dungeonmaster/guilds/${guildId}/quests`,
             questFolders: [
               {
-                folderName: FileNameStub({ value: '001-add-auth' }),
+                folderName: '001-add-auth',
                 questFilePath: `/home/user/.dungeonmaster/guilds/${guildId}/quests/001-add-auth/quest.json`,
                 questFolderPath: `/home/user/.dungeonmaster/guilds/${guildId}/quests/001-add-auth`,
                 contents: '{ not json }',
@@ -281,7 +280,7 @@ describe('questFindQuestPathBroker', () => {
         guildsDir: '/home/user/.dungeonmaster/guilds',
         guilds: [
           {
-            dirName: FileNameStub({ value: guildId }),
+            dirName: guildId,
             questsDirPath: questsDirPath,
             probe: {
               questFolderPath: `${questsDirPath}/${String(questId)}`,
@@ -316,7 +315,7 @@ describe('questFindQuestPathBroker', () => {
         guildsDir: '/home/user/.dungeonmaster/guilds',
         guilds: [
           {
-            dirName: FileNameStub({ value: guildId1 }),
+            dirName: guildId1,
             questsDirPath: questsDir1,
             probe: {
               questFolderPath: `${questsDir1}/${String(questId)}`,
@@ -326,7 +325,7 @@ describe('questFindQuestPathBroker', () => {
             questFolders: [],
           },
           {
-            dirName: FileNameStub({ value: guildId2 }),
+            dirName: guildId2,
             questsDirPath: questsDir2,
             probe: {
               questFolderPath: `${questsDir2}/${String(questId)}`,
@@ -359,7 +358,7 @@ describe('questFindQuestPathBroker', () => {
         guildsDir: '/home/user/.dungeonmaster/guilds',
         guilds: [
           {
-            dirName: FileNameStub({ value: guildId }),
+            dirName: guildId,
             questsDirPath: questsDirPath,
             // A folder whose NAME is the id we want, holding a file that records another one.
             // The probe must not trust the name.
@@ -371,7 +370,7 @@ describe('questFindQuestPathBroker', () => {
             },
             questFolders: [
               {
-                folderName: FileNameStub({ value: '001-add-auth' }),
+                folderName: '001-add-auth',
                 questFilePath: `${questsDirPath}/001-add-auth/quest.json`,
                 questFolderPath: `${questsDirPath}/001-add-auth`,
                 contents: JSON.stringify(QuestStub({ id: 'add-auth', folder: '001-add-auth' })),
@@ -404,11 +403,11 @@ describe('questFindQuestPathBroker', () => {
         stageProbe: false,
         guilds: [
           {
-            dirName: FileNameStub({ value: guildId }),
+            dirName: guildId,
             questsDirPath: questsDirPath,
             questFolders: [
               {
-                folderName: FileNameStub({ value: '001-odd' }),
+                folderName: '001-odd',
                 questFilePath: `${questsDirPath}/001-odd/quest.json`,
                 questFolderPath: `${questsDirPath}/001-odd`,
                 contents: JSON.stringify(QuestStub({ id: '../../etc/passwd', folder: '001-odd' })),
@@ -437,7 +436,7 @@ describe('questFindQuestPathBroker', () => {
         homeDir: '/home/user',
         homePath: '/home/user/.dungeonmaster',
         guildsDir: '/home/user/.dungeonmaster/guilds',
-        guildDirName: FileNameStub({ value: guildId }),
+        guildDirName: guildId,
         questsDirPath: `/home/user/.dungeonmaster/guilds/${guildId}/quests`,
       });
 

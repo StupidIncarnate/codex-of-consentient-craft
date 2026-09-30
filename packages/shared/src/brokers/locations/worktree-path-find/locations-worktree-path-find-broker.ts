@@ -13,14 +13,13 @@
 
 import { join } from '#gateway/node/path';
 import { locationsStatics } from '../../../statics/locations/locations-statics';
-import type { FileName } from '../../../contracts/file-name/file-name-contract';
 
 export const locationsWorktreePathFindBroker = ({
   repoRoot,
   worktreeDirName,
 }: {
   repoRoot: string;
-  worktreeDirName: FileName;
+  worktreeDirName: string;
 }): string => {
   const joined = join(repoRoot, locationsStatics.repoRoot.worktreesDir, worktreeDirName);
 

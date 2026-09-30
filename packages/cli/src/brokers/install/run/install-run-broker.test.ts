@@ -7,7 +7,6 @@ import { installRunBrokerProxy } from './install-run-broker.proxy';
 import { InstallContextStub } from '@dungeonmaster/shared/contracts/install-context/install-context.stub';
 import { InstallResultStub } from '@dungeonmaster/shared/contracts/install-result/install-result.stub';
 
-import { FileNameStub } from '@dungeonmaster/shared/contracts/file-name/file-name.stub';
 
 describe('installRunBroker', () => {
   describe('running installation', () => {
@@ -25,12 +24,12 @@ describe('installRunBroker', () => {
         packagesPath: '/dm/packages',
         packages: [
           {
-            name: FileNameStub({ value: 'cli' }),
+            name: 'cli',
             standardPath: '/dm/packages/cli/dist/startup/start-install.js',
             installerLocation: 'standard',
           },
           {
-            name: FileNameStub({ value: 'hooks' }),
+            name: 'hooks',
             standardPath: '/dm/packages/hooks/dist/startup/start-install.js',
             installerLocation: 'standard',
           },
@@ -120,13 +119,13 @@ describe('installRunBroker', () => {
         packagesPath: '/dm/packages',
         packages: [
           {
-            name: FileNameStub({ value: 'siegelense' }),
+            name: 'siegelense',
             standardPath: siegelenseInstallPath,
             installerLocation: 'standard',
             hasFinalize: true,
           },
           {
-            name: FileNameStub({ value: 'writes-devdeps' }),
+            name: 'writes-devdeps',
             standardPath: laterInstallPath,
             installerLocation: 'standard',
           },

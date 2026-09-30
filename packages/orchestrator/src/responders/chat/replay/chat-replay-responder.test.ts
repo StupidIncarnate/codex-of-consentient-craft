@@ -5,7 +5,6 @@ import { SessionIdStub } from '@dungeonmaster/shared/contracts/session-id/sessio
 import { GuildIdStub } from '@dungeonmaster/shared/contracts/guild-id/guild-id.stub';
 import { GuildConfigStub } from '@dungeonmaster/shared/contracts/guild-config/guild-config.stub';
 import { GuildStub } from '@dungeonmaster/shared/contracts/guild/guild.stub';
-import { FileNameStub } from '@dungeonmaster/shared/contracts/file-name/file-name.stub';
 import { QuestStub } from '@dungeonmaster/shared/contracts/quest/quest.stub';
 import { WorkItemStub } from '@dungeonmaster/shared/contracts/work-item/work-item.stub';
 import { pastedImageStatics } from '@dungeonmaster/shared/statics';
@@ -91,10 +90,10 @@ describe('ChatReplayResponder', () => {
         questsPath,
       });
       proxy.setupQuestDirectories({
-        files: [FileNameStub({ value: quest.folder })],
+        files: [quest.folder],
       });
       proxy.setupQuestFilePath({
-        folderName: FileNameStub({ value: quest.folder }),
+        folderName: quest.folder,
         result: `${questsPath}/${quest.folder}/quest.json`,
       });
       proxy.setupQuestFile({
@@ -150,10 +149,10 @@ describe('ChatReplayResponder', () => {
         questsPath,
       });
       proxy.setupQuestDirectories({
-        files: [FileNameStub({ value: quest.folder })],
+        files: [quest.folder],
       });
       proxy.setupQuestFilePath({
-        folderName: FileNameStub({ value: quest.folder }),
+        folderName: quest.folder,
         result: `${questsPath}/${quest.folder}/quest.json`,
       });
       proxy.setupQuestFile({
@@ -319,10 +318,10 @@ describe('ChatReplayResponder', () => {
         questsPath,
       });
       proxy.setupQuestDirectories({
-        files: [FileNameStub({ value: quest.folder })],
+        files: [quest.folder],
       });
       proxy.setupQuestFilePath({
-        folderName: FileNameStub({ value: quest.folder }),
+        folderName: quest.folder,
         result: `${questsPath}/${quest.folder}/quest.json`,
       });
       proxy.setupQuestFile({
@@ -612,10 +611,10 @@ describe('ChatReplayResponder', () => {
         questsPath,
       });
       proxy.setupQuestDirectories({
-        files: [FileNameStub({ value: quest.folder })],
+        files: [quest.folder],
       });
       proxy.setupQuestFilePath({
-        folderName: FileNameStub({ value: quest.folder }),
+        folderName: quest.folder,
         result: `${questsPath}/${quest.folder}/quest.json`,
       });
       proxy.setupQuestFile({
@@ -752,10 +751,10 @@ describe('ChatReplayResponder', () => {
         questsPath,
       });
       proxy.setupQuestDirectories({
-        files: [FileNameStub({ value: quest.folder })],
+        files: [quest.folder],
       });
       proxy.setupQuestFilePath({
-        folderName: FileNameStub({ value: quest.folder }),
+        folderName: quest.folder,
         result: `${questsPath}/${quest.folder}/quest.json`,
       });
       proxy.setupQuestFile({
@@ -792,10 +791,10 @@ describe('ChatReplayResponder', () => {
         questsPath,
       });
       proxy.setupQuestDirectories({
-        files: [FileNameStub({ value: quest.folder })],
+        files: [quest.folder],
       });
       proxy.setupQuestFilePath({
-        folderName: FileNameStub({ value: quest.folder }),
+        folderName: quest.folder,
         result: `${questsPath}/${quest.folder}/quest.json`,
       });
       proxy.setupQuestFile({

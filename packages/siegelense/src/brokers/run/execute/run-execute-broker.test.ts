@@ -1,6 +1,5 @@
 import { FsErrorStub } from '#gateway/node/fs/is-fs-error/fs-error.stub';
 import { ContentTextStub } from '@dungeonmaster/shared/contracts/content-text/content-text.stub';
-import { FileNameStub } from '@dungeonmaster/shared/contracts/file-name/file-name.stub';
 import { GuildStub } from '@dungeonmaster/shared/contracts/guild/guild.stub';
 import { registerSpyOn } from '@dungeonmaster/testing/register-mock';
 
@@ -859,7 +858,7 @@ describe('runExecuteBroker', () => {
       proxy.stagePaths({ runId });
       const evidencePath = proxy.evidencePath();
       const { lane, captureCalls } = proxy.laneCapturingShots();
-      const shotName = FileNameStub({ value: 'after-create.png' });
+      const shotName = 'after-create.png';
 
       const result = await runExecuteBroker({
         lane,
@@ -901,7 +900,7 @@ describe('runExecuteBroker', () => {
       const runId = RunIdStub({ value: 'run_1' });
       proxy.stagePaths({ runId });
       const { lane } = proxy.laneCapturingShots();
-      const shotName = FileNameStub({ value: 'lone-shot.png' });
+      const shotName = 'lone-shot.png';
 
       const result = await runExecuteBroker({
         lane,
@@ -928,7 +927,7 @@ describe('runExecuteBroker', () => {
       proxy.stagePaths({ runId: firstRunId });
       proxy.stagePaths({ runId: secondRunId });
       const evidencePath = proxy.evidencePath();
-      const shotName = FileNameStub({ value: 'shot.png' });
+      const shotName = 'shot.png';
 
       const firstResult = await runExecuteBroker({
         lane: proxy.laneCapturingShots().lane,

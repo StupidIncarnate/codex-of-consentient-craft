@@ -1,5 +1,4 @@
 import { FsErrorStub } from '#gateway/node/fs/is-fs-error/fs-error.stub';
-import { FileNameStub } from '@dungeonmaster/shared/contracts/file-name/file-name.stub';
 
 import { ElementDeltaStub } from '../../../contracts/element-delta/element-delta.stub';
 import { KeyListingStub } from '../../../contracts/key-listing/key-listing.stub';
@@ -979,7 +978,7 @@ describe('stepDispatchBroker', () => {
     it('VALID: {screenshot} => the reading is the shot path, captured exactly once', async () => {
       const proxy = stepDispatchBrokerProxy();
       const { lane, captureCallArgs } = proxy.happyLane();
-      const step = StepStub({ step: 'screenshot', name: FileNameStub({ value: 'step1.png' }) });
+      const step = StepStub({ step: 'screenshot', name: 'step1.png' });
       const shotPath = '/repo/.dungeonmaster-assets/siegelense-assets/guilds/g1/instances/inst_1/runs/run_1/step1.png';
       const backgroundPixel = [0x0d, 0x09, 0x07, 255];
       const pixels = new Uint8Array(Array.from({ length: 8 }, () => backgroundPixel).flat());

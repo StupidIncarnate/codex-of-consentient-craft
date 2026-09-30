@@ -1,5 +1,4 @@
 import { ExitCodeStub } from '@dungeonmaster/shared/contracts/exit-code/exit-code.stub';
-import { FileNameStub } from '@dungeonmaster/shared/contracts/file-name/file-name.stub';
 import { QuestIdStub } from '@dungeonmaster/shared/contracts/quest-id/quest-id.stub';
 import { QuestWorkItemIdStub } from '@dungeonmaster/shared/contracts/quest-work-item-id/quest-work-item-id.stub';
 import { wardExitCodeStatics } from '@dungeonmaster/shared/statics';
@@ -16,7 +15,7 @@ describe('stepHandlerWardBroker', () => {
   describe('exit 0 with a run id', () => {
     it('VALID: {exit 0, run: <id>} => classifies done', async () => {
       const proxy = stepHandlerWardBrokerProxy();
-      const runId = FileNameStub({ value: '1780108054226-a080' });
+      const runId = '1780108054226-a080';
       proxy.wardExits({
         questId: QUEST_ID,
         exitCode: ExitCodeStub({ value: wardExitCodeStatics.exitCodes.pass }),
@@ -36,7 +35,7 @@ describe('stepHandlerWardBroker', () => {
 
     it('VALID: {exit 0, run: <id>} => resultRef points at the wardResults ref', async () => {
       const proxy = stepHandlerWardBrokerProxy();
-      const runId = FileNameStub({ value: '1780108054226-a080' });
+      const runId = '1780108054226-a080';
       proxy.wardExits({
         questId: QUEST_ID,
         exitCode: ExitCodeStub({ value: wardExitCodeStatics.exitCodes.pass }),
@@ -173,7 +172,7 @@ describe('stepHandlerWardBroker', () => {
       proxy.wardExits({
         questId: QUEST_ID,
         exitCode: ExitCodeStub({ value: wardExitCodeStatics.exitCodes.pass }),
-        runId: FileNameStub({ value: '1780108054226-a080' }),
+        runId: '1780108054226-a080',
         detailJson: '{"checks":[]}',
       });
       const seenLines: ContentText[] = [];

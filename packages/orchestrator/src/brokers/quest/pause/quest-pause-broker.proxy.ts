@@ -30,7 +30,6 @@ import { stderrProxy } from '#gateway/node/process/stderr/stderr.proxy';
 import { join } from '#gateway/node/path';
 
 import { questContract } from '@dungeonmaster/shared/contracts';
-import { FileNameStub } from '@dungeonmaster/shared/contracts/file-name/file-name.stub';
 import { GuildIdStub } from '@dungeonmaster/shared/contracts/guild-id/guild-id.stub';
 import type { QuestStub } from '@dungeonmaster/shared/contracts/quest/quest.stub';
 import { locationsStatics } from '@dungeonmaster/shared/statics';
@@ -114,11 +113,11 @@ export const questPauseBrokerProxy = (): {
         guildsDir,
         guilds: [
           {
-            dirName: FileNameStub({ value: guildId }),
+            dirName: guildId,
             questsDirPath,
             questFolders: [
               {
-                folderName: FileNameStub({ value: quest.folder }),
+                folderName: quest.folder,
                 questFilePath,
                 questFolderPath,
                 contents: JSON.stringify(quest),

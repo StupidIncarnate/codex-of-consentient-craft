@@ -20,7 +20,6 @@ import { FsErrorStub } from '#gateway/node/fs/is-fs-error/fs-error.stub';
 import { pathExistsProxy } from '#gateway/node/fs__promises/path-exists/path-exists.proxy';
 import { join, resolve } from '#gateway/node/path';
 
-import { FileNameStub } from '@dungeonmaster/shared/contracts/file-name/file-name.stub';
 import { GuildIdStub } from '@dungeonmaster/shared/contracts/guild-id/guild-id.stub';
 import { ModifyQuestResultStub } from '@dungeonmaster/shared/contracts/modify-quest-result/modify-quest-result.stub';
 import { RepoRootCwdStub } from '@dungeonmaster/shared/contracts/repo-root-cwd/repo-root-cwd.stub';
@@ -149,11 +148,11 @@ export const questModifyBrokerProxy = (): {
         guildsDir,
         guilds: [
           {
-            dirName: FileNameStub({ value: guildId }),
+            dirName: guildId,
             questsDirPath,
             questFolders: [
               {
-                folderName: FileNameStub({ value: quest.folder }),
+                folderName: quest.folder,
                 questFilePath,
                 questFolderPath,
                 contents: JSON.stringify(quest),

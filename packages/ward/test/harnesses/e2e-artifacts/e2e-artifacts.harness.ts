@@ -18,7 +18,6 @@ import { ensureDir, utimes, writeFile } from '#gateway/node/fs__promises';
 import { now } from '#gateway/node/Date';
 import { join } from '#gateway/node/path';
 
-import { FileNameStub } from '@dungeonmaster/shared/contracts/file-name/file-name.stub';
 
 const DAY_SECONDS = 86_400;
 
@@ -34,7 +33,7 @@ export const e2eArtifactsHarness = (): {
     daysOld: number;
   }) => Promise<void>;
   exists: (params: { packageRoot: string; relativePath: string }) => boolean;
-  listRoot: (params: { packageRoot: string }) => ReturnType<typeof FileNameStub>[];
+  listRoot: (params: { packageRoot: string }) => string[];
 } => {
   const absolute = ({
     packageRoot,
@@ -69,9 +68,9 @@ export const e2eArtifactsHarness = (): {
     },
     exists: ({ packageRoot, relativePath }): boolean =>
       existsSync(String(absolute({ packageRoot, relativePath }))),
-    listRoot: ({ packageRoot }): ReturnType<typeof FileNameStub>[] =>
+    listRoot: ({ packageRoot }): string[] =>
       readdirSync(String(packageRoot))
         .sort()
-        .map((name) => FileNameStub({ value: name })),
+        .map((name) => name),
   };
 };

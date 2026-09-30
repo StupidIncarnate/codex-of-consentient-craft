@@ -1,5 +1,4 @@
 import { FileMissingErrorStub } from '#gateway/node/fs/file-missing-error/file-missing-error.stub';
-import { FileNameStub } from '@dungeonmaster/shared/contracts/file-name/file-name.stub';
 import { ProcessIdStub } from '@dungeonmaster/shared/contracts/process-id/process-id.stub';
 import { QuestIdStub } from '@dungeonmaster/shared/contracts/quest-id/quest-id.stub';
 import { QuestWorkItemIdStub } from '@dungeonmaster/shared/contracts/quest-work-item-id/quest-work-item-id.stub';
@@ -360,7 +359,7 @@ describe('questMonitorJsonlWatcherBroker', () => {
       await flushImmediate();
 
       proxy.setupSubagentDirFiles({
-        files: [FileNameStub({ value: 'agent-late-1.jsonl' })],
+        files: ['agent-late-1.jsonl'],
       });
       proxy.setupFirstLineRead({
         content:
@@ -429,7 +428,7 @@ describe('questMonitorJsonlWatcherBroker', () => {
       // registered no outstanding Task yet (the main tail hasn't drained anything), so the
       // broker's initial fire-and-forget scan reads the first line and finds no match.
       proxy.setupSubagentDirFiles({
-        files: [FileNameStub({ value: 'agent-real-1.jsonl' })],
+        files: ['agent-real-1.jsonl'],
       });
       proxy.setupFirstLineRead({
         content:
@@ -740,7 +739,7 @@ describe('questMonitorJsonlWatcherBroker', () => {
       // A pre-existing sub-agent file whose first line pairs with the Task the main tail drains,
       // so subagentHandles is non-empty when stop() is called.
       proxy.setupSubagentDirFiles({
-        files: [FileNameStub({ value: 'agent-stop-1.jsonl' })],
+        files: ['agent-stop-1.jsonl'],
       });
       proxy.setupFirstLineRead({
         content:

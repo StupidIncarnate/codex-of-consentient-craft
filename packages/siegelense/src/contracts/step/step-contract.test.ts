@@ -1,4 +1,3 @@
-import { FileNameStub } from '@dungeonmaster/shared/contracts/file-name/file-name.stub';
 
 import { LocatorStateStub } from '../locator-state/locator-state.stub';
 import { SelectorStub } from '../selector/selector.stub';
@@ -13,7 +12,7 @@ const STEP_FIXTURES = [
   StepStub({ step: 'waitFor', target: SelectorStub(), state: LocatorStateStub() }),
   StepStub({ step: 'click', target: SelectorStub() }),
   StepStub({ step: 'type', target: SelectorStub(), value: 'Result text' }),
-  StepStub({ step: 'screenshot', name: FileNameStub({ value: 'step1.png' }) }),
+  StepStub({ step: 'screenshot', name: 'step1.png' }),
   StepStub({ step: 'eval', source: 'Result text' }),
   StepStub({ step: 'look' }),
   StepStub({ step: 'box' }),

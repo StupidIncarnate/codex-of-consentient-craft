@@ -1,6 +1,5 @@
 import { locationsNodeModulesBinPathFindBroker } from './locations-node-modules-bin-path-find-broker';
 import { locationsNodeModulesBinPathFindBrokerProxy } from './locations-node-modules-bin-path-find-broker.proxy';
-import { FileNameStub } from '../../../contracts/file-name/file-name.stub';
 
 describe('locationsNodeModulesBinPathFindBroker', () => {
   describe('binary path resolution', () => {
@@ -13,7 +12,7 @@ describe('locationsNodeModulesBinPathFindBroker', () => {
 
       const result = locationsNodeModulesBinPathFindBroker({
         rootPath: '/repo',
-        binName: FileNameStub({ value: 'jest' }),
+        binName: 'jest',
       });
 
       expect(result).toBe('/repo/node_modules/.bin/jest');
@@ -28,7 +27,7 @@ describe('locationsNodeModulesBinPathFindBroker', () => {
 
       const result = locationsNodeModulesBinPathFindBroker({
         rootPath: '/repo/packages/web',
-        binName: FileNameStub({ value: 'tsc' }),
+        binName: 'tsc',
       });
 
       expect(result).toBe(

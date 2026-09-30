@@ -1,5 +1,4 @@
 import { installTestbedCreateBroker } from '@dungeonmaster/testing';
-import { FileNameStub } from '@dungeonmaster/shared/contracts/file-name/file-name.stub';
 import { OperationItemStub } from '@dungeonmaster/shared/contracts/operation-item/operation-item.stub';
 import { QuestBranchNameStub } from '@dungeonmaster/shared/contracts/quest-branch-name/quest-branch-name.stub';
 import { QuestIdStub } from '@dungeonmaster/shared/contracts/quest-id/quest-id.stub';
@@ -146,8 +145,8 @@ describe('OrchestrationStartResponder (integration) — real quest.json + real g
 
       const { baseRef } = await git.initRepoWithPackages({
         repoPath,
-        initialBranchName: FileNameStub({ value: 'main' }),
-        packageNames: [FileNameStub({ value: 'shared' })],
+        initialBranchName: 'main',
+        packageNames: ['shared'],
       });
 
       // Pin the pre-existing branch at the FIRST commit, then advance main past it — a
@@ -155,7 +154,7 @@ describe('OrchestrationStartResponder (integration) — real quest.json + real g
       // same sha.
       await git.createBranchAt({
         repoPath,
-        branchName: FileNameStub({ value: TAKEN_BRANCH_NAME_STRING }),
+        branchName: TAKEN_BRANCH_NAME_STRING,
         fromRef: baseRef,
       });
       await git.commitFile({

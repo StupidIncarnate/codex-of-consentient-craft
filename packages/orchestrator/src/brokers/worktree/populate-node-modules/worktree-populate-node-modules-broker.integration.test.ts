@@ -1,5 +1,4 @@
 import { installTestbedCreateBroker } from '@dungeonmaster/testing';
-import { FileNameStub } from '@dungeonmaster/shared/contracts/file-name/file-name.stub';
 import { QuestBranchNameStub } from '@dungeonmaster/shared/contracts/quest-branch-name/quest-branch-name.stub';
 
 import { worktreePopulateNodeModulesBroker } from './worktree-populate-node-modules-broker';
@@ -25,15 +24,15 @@ describe('worktreePopulateNodeModulesBroker (integration) — real fs mirroring'
 
     await git.initRepoWithPackages({
       repoPath,
-      initialBranchName: FileNameStub({ value: 'main' }),
-      packageNames: [FileNameStub({ value: 'shared' }), FileNameStub({ value: 'web' })],
+      initialBranchName: 'main',
+      packageNames: ['shared', 'web'],
     });
     await git.writeWorkspaceNodeModulesFixture({
       repoPath,
-      workspacePackages: [FileNameStub({ value: 'shared' }), FileNameStub({ value: 'web' })],
+      workspacePackages: ['shared', 'web'],
       hoistedDep: {
-        packageName: FileNameStub({ value: 'web' }),
-        depName: FileNameStub({ value: 'react-router-dom' }),
+        packageName: 'web',
+        depName: 'react-router-dom',
       },
     });
 
@@ -103,15 +102,15 @@ describe('worktreePopulateNodeModulesBroker (integration) — real fs mirroring'
 
     await git.initRepoWithPackages({
       repoPath,
-      initialBranchName: FileNameStub({ value: 'main' }),
-      packageNames: [FileNameStub({ value: 'shared' }), FileNameStub({ value: 'web' })],
+      initialBranchName: 'main',
+      packageNames: ['shared', 'web'],
     });
     await git.writeWorkspaceNodeModulesFixture({
       repoPath,
-      workspacePackages: [FileNameStub({ value: 'shared' }), FileNameStub({ value: 'web' })],
+      workspacePackages: ['shared', 'web'],
       hoistedDep: {
-        packageName: FileNameStub({ value: 'web' }),
-        depName: FileNameStub({ value: 'react-router-dom' }),
+        packageName: 'web',
+        depName: 'react-router-dom',
       },
     });
 

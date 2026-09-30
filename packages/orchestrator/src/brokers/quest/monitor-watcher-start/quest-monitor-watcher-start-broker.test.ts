@@ -1,5 +1,4 @@
 import { QuestWorkItemIdStub } from '@dungeonmaster/shared/contracts/quest-work-item-id/quest-work-item-id.stub';
-import { FileNameStub } from '@dungeonmaster/shared/contracts/file-name/file-name.stub';
 import { QuestIdStub } from '@dungeonmaster/shared/contracts/quest-id/quest-id.stub';
 import { SessionIdStub } from '@dungeonmaster/shared/contracts/session-id/session-id.stub';
 import { WorkItemStub } from '@dungeonmaster/shared/contracts/work-item/work-item.stub';
@@ -137,7 +136,7 @@ describe('questMonitorWatcherStartBroker', () => {
         homeDir: '/home/user',
         projectDir: '/home/user/p',
         parentSessionId,
-        files: [FileNameStub({ value: 'agent-b9d4a2c8f7e6.jsonl' })],
+        files: ['agent-b9d4a2c8f7e6.jsonl'],
       });
       proxy.setupFirstLineRead({
         content:
@@ -159,7 +158,7 @@ describe('questMonitorWatcherStartBroker', () => {
         homeDir: '/home/user',
         projectDir: '/home/user/p',
         parentSessionId,
-        fileName: FileNameStub({ value: 'agent-b9d4a2c8f7e6.jsonl' }),
+        fileName: 'agent-b9d4a2c8f7e6.jsonl',
         lines: [
           '{"type":"assistant","uuid":"sub-agent-line","timestamp":"2026-05-13T10:00:00.000Z","message":{"content":[{"type":"text","text":"streamed sub-agent text"}]}}',
         ],

@@ -11,14 +11,13 @@
 
 import { join } from '#gateway/node/path';
 import { locationsStatics } from '../../../statics/locations/locations-statics';
-import type { FileName } from '../../../contracts/file-name/file-name-contract';
 
 export const locationsNodeModulesBinPathFindBroker = ({
   rootPath,
   binName,
 }: {
   rootPath: string;
-  binName: FileName;
+  binName: string;
 }): string => {
   const joined = join(rootPath, locationsStatics.repoRoot.nodeModulesBin, binName);
 

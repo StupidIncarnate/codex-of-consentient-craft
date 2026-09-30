@@ -1,9 +1,8 @@
 import { stderrProxy } from '#gateway/node/process/stderr/stderr.proxy';
-import { FileNameStub } from '@dungeonmaster/shared/contracts/file-name/file-name.stub';
 import { claudeLineNormalizeBrokerProxy } from '@dungeonmaster/shared/brokers/claude-line/normalize/claude-line-normalize-broker.proxy';
 import { stripJsonlSuffixTransformer } from '@dungeonmaster/shared/transformers';
 
-type FileName = ReturnType<typeof FileNameStub>;
+type FileName = string;
 
 import { tailFileProxy } from '#gateway/node/fs/tail-file/tail-file.proxy';
 
@@ -108,7 +107,7 @@ export const questMonitorJsonlWatcherBrokerProxy = (): {
       const [fileName] = lastStagedFileNamesRef.value;
       scanLayerProxy.setupFirstLineRead({
         subagentsDir: lastStagedSubagentsDirRef.value,
-        fileName: fileName ?? FileNameStub({ value: 'agent-unset.jsonl' }),
+        fileName: fileName ?? 'agent-unset.jsonl',
         content,
       });
     },

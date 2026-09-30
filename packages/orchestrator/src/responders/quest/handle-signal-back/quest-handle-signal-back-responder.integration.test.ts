@@ -1,6 +1,5 @@
 import { randomUUID } from '#gateway/node/crypto';
 import { installTestbedCreateBroker } from '@dungeonmaster/testing';
-import { FileNameStub } from '@dungeonmaster/shared/contracts/file-name/file-name.stub';
 import { FlowNodeStub } from '@dungeonmaster/shared/contracts/flow-node/flow-node.stub';
 import { FlowOffMapSignoffStub } from '@dungeonmaster/shared/contracts/flow-off-map-signoff/flow-off-map-signoff.stub';
 import { FlowStub } from '@dungeonmaster/shared/contracts/flow/flow.stub';
@@ -65,8 +64,8 @@ describe('QuestHandleSignalBackResponder (integration) — review coverage no lo
     const repoPath = testbed.guildPath;
     await git.initRepoWithPackages({
       repoPath,
-      initialBranchName: FileNameStub({ value: 'main' }),
-      packageNames: [FileNameStub({ value: 'shared' })],
+      initialBranchName: 'main',
+      packageNames: ['shared'],
     });
 
     const worktreePath = `${testbed.guildPath}/worktrees/review-clear-a1b2c3d4`;
@@ -187,8 +186,8 @@ describe('QuestHandleSignalBackResponder (integration) — review coverage no lo
       const repoPath = testbed.guildPath;
       await git.initRepoWithPackages({
         repoPath,
-        initialBranchName: FileNameStub({ value: 'main' }),
-        packageNames: [FileNameStub({ value: 'shared' })],
+        initialBranchName: 'main',
+        packageNames: ['shared'],
       });
 
       const worktreePath = `${testbed.guildPath}/worktrees/review-${disposition}-a1b2c3d4`;
@@ -356,8 +355,8 @@ describe('QuestHandleSignalBackResponder (integration) — review coverage no lo
     const repoPath = testbed.guildPath;
     await git.initRepoWithPackages({
       repoPath,
-      initialBranchName: FileNameStub({ value: 'main' }),
-      packageNames: [FileNameStub({ value: 'shared' })],
+      initialBranchName: 'main',
+      packageNames: ['shared'],
     });
 
     const worktreePath = `${testbed.guildPath}/worktrees/review-empty-a1b2c3d4`;
@@ -452,8 +451,8 @@ describe('QuestHandleSignalBackResponder (integration) — a dirty worktree no l
     const repoPath = testbed.guildPath;
     await git.initRepoWithPackages({
       repoPath,
-      initialBranchName: FileNameStub({ value: 'main' }),
-      packageNames: [FileNameStub({ value: 'shared' })],
+      initialBranchName: 'main',
+      packageNames: ['shared'],
     });
 
     const worktreePath = `${testbed.guildPath}/worktrees/dirty-tree-a1b2c3d4`;
@@ -548,8 +547,8 @@ describe('QuestHandleSignalBackResponder (integration) — a dirty worktree no l
     const repoPath = testbed.guildPath;
     await git.initRepoWithPackages({
       repoPath,
-      initialBranchName: FileNameStub({ value: 'main' }),
-      packageNames: [FileNameStub({ value: 'shared' })],
+      initialBranchName: 'main',
+      packageNames: ['shared'],
     });
 
     const worktreePath = `${testbed.guildPath}/worktrees/clean-tree-a1b2c3d4`;
@@ -904,8 +903,8 @@ describe('QuestHandleSignalBackResponder (integration) — warpgate merge comple
     const repoPath = testbed.guildPath;
     await git.initRepoWithPackages({
       repoPath,
-      initialBranchName: FileNameStub({ value: 'main' }),
-      packageNames: [FileNameStub({ value: 'shared' })],
+      initialBranchName: 'main',
+      packageNames: ['shared'],
     });
 
     const worktreePath = `${testbed.guildPath}/worktrees/warpgate-survives-a1b2c3d4`;

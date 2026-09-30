@@ -15,7 +15,6 @@
 
 import type { Quest } from '@dungeonmaster/shared/contracts';
 import { ExitCodeStub } from '@dungeonmaster/shared/contracts/exit-code/exit-code.stub';
-import { FileNameStub } from '@dungeonmaster/shared/contracts/file-name/file-name.stub';
 import { wardExitCodeStatics } from '@dungeonmaster/shared/statics';
 
 import { CleanupCliAnswerStub } from '../../../contracts/cleanup-answer/cleanup-answer.stub';
@@ -43,7 +42,7 @@ export const stepHandlerRunBrokerProxy = (): {
       wardProxy.wardExits({
         questId,
         exitCode: ExitCodeStub({ value: wardExitCodeStatics.exitCodes.pass }),
-        runId: FileNameStub({ value: '1780108054226-a080' }),
+        runId: '1780108054226-a080',
         detailJson: '{"checks":[]}',
       });
     },

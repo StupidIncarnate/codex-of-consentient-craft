@@ -1,5 +1,4 @@
 import { installTestbedCreateBroker } from '@dungeonmaster/testing';
-import { FileNameStub } from '@dungeonmaster/shared/contracts/file-name/file-name.stub';
 import { QuestBranchNameStub } from '@dungeonmaster/shared/contracts/quest-branch-name/quest-branch-name.stub';
 import { RepoRelativePathStub } from '@dungeonmaster/shared/contracts/repo-relative-path/repo-relative-path.stub';
 
@@ -20,10 +19,10 @@ describe('worktreeResumeRestoreBroker (integration) — real drift restore + unc
 
     await git.initRepoWithPackages({
       repoPath,
-      initialBranchName: FileNameStub({ value: 'main' }),
-      packageNames: [FileNameStub({ value: 'shared' }), FileNameStub({ value: 'web' })],
+      initialBranchName: 'main',
+      packageNames: ['shared', 'web'],
     });
-    const strayBranch = FileNameStub({ value: 'stray-branch' });
+    const strayBranch = 'stray-branch';
     await git.createBranchAt({ repoPath, branchName: strayBranch });
 
     const worktreePath = `${testbed.guildPath}/worktrees/drift-22223333`;
@@ -66,8 +65,8 @@ describe('worktreeResumeRestoreBroker (integration) — real drift restore + unc
 
     await git.initRepoWithPackages({
       repoPath,
-      initialBranchName: FileNameStub({ value: 'main' }),
-      packageNames: [FileNameStub({ value: 'shared' }), FileNameStub({ value: 'web' })],
+      initialBranchName: 'main',
+      packageNames: ['shared', 'web'],
     });
 
     const worktreePath = `${testbed.guildPath}/worktrees/preserve-55556666`;

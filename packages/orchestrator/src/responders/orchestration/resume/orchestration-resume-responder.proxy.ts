@@ -3,7 +3,6 @@ import { randomUUID } from '#gateway/node/crypto';
 import type { ProcessId } from '@dungeonmaster/shared/contracts';
 import type { QuestBranchNameStub } from '@dungeonmaster/shared/contracts/quest-branch-name/quest-branch-name.stub';
 import type { QuestStub } from '@dungeonmaster/shared/contracts/quest/quest.stub';
-import { FileNameStub } from '@dungeonmaster/shared/contracts/file-name/file-name.stub';
 import { GuildConfigStub } from '@dungeonmaster/shared/contracts/guild-config/guild-config.stub';
 import { GuildIdStub } from '@dungeonmaster/shared/contracts/guild-id/guild-id.stub';
 import { GuildStub } from '@dungeonmaster/shared/contracts/guild/guild.stub';
@@ -164,11 +163,11 @@ export const OrchestrationResumeResponderProxy = (): {
         guildsDir,
         guilds: [
           {
-            dirName: FileNameStub({ value: guildId }),
+            dirName: guildId,
             questsDirPath,
             questFolders: [
               {
-                folderName: FileNameStub({ value: quest.folder }),
+                folderName: quest.folder,
                 questFilePath,
                 questFolderPath,
                 contents: JSON.stringify(quest),

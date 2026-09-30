@@ -2,7 +2,6 @@ import { stderrProxy } from '#gateway/node/process/stderr/stderr.proxy';
 import { randomUUID } from '#gateway/node/crypto';
 import type { QuestStub } from '@dungeonmaster/shared/contracts/quest/quest.stub';
 import { registerMock } from '@dungeonmaster/testing/register-mock';
-import { FileNameStub } from '@dungeonmaster/shared/contracts/file-name/file-name.stub';
 import { GuildConfigStub } from '@dungeonmaster/shared/contracts/guild-config/guild-config.stub';
 import { GuildIdStub } from '@dungeonmaster/shared/contracts/guild-id/guild-id.stub';
 import { GuildStub } from '@dungeonmaster/shared/contracts/guild/guild.stub';
@@ -50,11 +49,11 @@ export const QuestModifyResponderProxy = (): {
       guildsDir,
       guilds: [
         {
-          dirName: FileNameStub({ value: guildId }),
+          dirName: guildId,
           questsDirPath,
           questFolders: [
             {
-              folderName: FileNameStub({ value: quest.folder }),
+              folderName: quest.folder,
               questFilePath,
               questFolderPath,
               contents: JSON.stringify(quest),

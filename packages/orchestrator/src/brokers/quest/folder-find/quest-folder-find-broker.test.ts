@@ -1,6 +1,5 @@
 import { QuestStub } from '@dungeonmaster/shared/contracts/quest/quest.stub';
 
-import { FileNameStub } from '@dungeonmaster/shared/contracts/file-name/file-name.stub';
 import { questFolderFindBroker } from './quest-folder-find-broker';
 import { questFolderFindBrokerProxy } from './quest-folder-find-broker.proxy';
 
@@ -13,7 +12,7 @@ describe('questFolderFindBroker', () => {
 
       proxy.setupQuestFolders({
         questsPath,
-        questFolders: [FileNameStub({ value: '001-add-auth' })],
+        questFolders: ['001-add-auth'],
         questFiles: [
           {
             folderPath: '/project/.dungeonmaster-quests/001-add-auth',
@@ -41,8 +40,8 @@ describe('questFolderFindBroker', () => {
       proxy.setupQuestFolders({
         questsPath,
         questFolders: [
-          FileNameStub({ value: '001-add-auth' }),
-          FileNameStub({ value: '002-fix-bug' }),
+          '001-add-auth',
+          '002-fix-bug',
         ],
         questFiles: [
           {
@@ -76,7 +75,7 @@ describe('questFolderFindBroker', () => {
 
       proxy.setupQuestFolders({
         questsPath,
-        questFolders: [FileNameStub({ value: '001-add-auth' })],
+        questFolders: ['001-add-auth'],
         questFiles: [
           {
             folderPath: '/project/.dungeonmaster-quests/001-add-auth',
@@ -123,8 +122,8 @@ describe('questFolderFindBroker', () => {
       proxy.setupQuestFoldersWithMissingFile({
         questsPath,
         questFolders: [
-          FileNameStub({ value: '001-invalid' }),
-          FileNameStub({ value: '002-add-auth' }),
+          '001-invalid',
+          '002-add-auth',
         ],
         missingFileFolder: '/project/.dungeonmaster-quests/001-invalid/quest.json',
         validQuestFile: {
