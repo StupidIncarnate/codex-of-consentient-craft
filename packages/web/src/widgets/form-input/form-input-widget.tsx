@@ -6,7 +6,6 @@
  * // Renders a styled input element with bg-deep background and border
  */
 
-import type { CssDimension } from '../../contracts/css-dimension/css-dimension-contract';
 import type { CssSpacing } from '../../contracts/css-spacing/css-spacing-contract';
 import type { FormPlaceholder } from '../../contracts/form-placeholder/form-placeholder-contract';
 import { emberDepthsThemeStatics } from '../../statics/ember-depths-theme/ember-depths-theme-statics';
@@ -19,7 +18,7 @@ export interface FormInputWidgetProps {
   value: string;
   onChange: (value: string) => void;
   placeholder?: FormPlaceholder;
-  width?: CssDimension;
+  width?: string;
   mt?: CssSpacing;
   color?: string;
   autoFocus?: boolean;
@@ -29,7 +28,7 @@ export const FormInputWidget = ({
   value,
   onChange,
   placeholder,
-  width = '100%' as CssDimension,
+  width = '100%' as string,
   mt = 0 as CssSpacing,
   color,
   autoFocus,

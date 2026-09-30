@@ -6,7 +6,6 @@
  * // Renders a styled select element with bg-deep background and border
  */
 
-import type { CssDimension } from '../../contracts/css-dimension/css-dimension-contract';
 import { emberDepthsThemeStatics } from '../../statics/ember-depths-theme/ember-depths-theme-statics';
 
 const FONT_SIZE = 11;
@@ -17,7 +16,7 @@ export interface FormDropdownWidgetProps {
   value: string;
   options: string[];
   onChange: (value: string) => void;
-  width?: CssDimension;
+  width?: string;
   color?: string;
 }
 
@@ -25,7 +24,7 @@ export const FormDropdownWidget = ({
   value,
   options,
   onChange,
-  width = 'auto' as CssDimension,
+  width = 'auto' as string,
   color,
 }: FormDropdownWidgetProps): React.JSX.Element => {
   const { colors } = emberDepthsThemeStatics;
