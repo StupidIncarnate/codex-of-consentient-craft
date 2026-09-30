@@ -129,11 +129,20 @@ More rules for the operator:
 
 ## START HERE — where the epic stands and what to do next
 
-### Now (updated at every event; last 2026-09-30 12:04, machine clock)
+### Now (updated at every event; last 2026-09-30 12:23, machine clock)
 
 | Running | Where |
 |---|---|
-| operator: second whole-tree ward, all five checks including e2e | merge worktree W |
+| Z10 USAGE comment sweep (sonnet) | gateway-pivot checkout |
+
+**MASTER IS MERGED INTO gateway-pivot.** Whole-tree ward on the merged tree, run 1790795085930-be73 (1,096 s): lint
+11,511, typecheck 11,477, unit 4,176, integration 230, e2e 131, all green (exit 1 only on slow-lint flags, rule 21).
+Merge commit b234bf3b5 (in `gp-merge-master`), then gateway-pivot merged into it cleanly (72f26a6f5), then
+gateway-pivot fast-forwarded to 72f26a6f5.
+
+**Left before master gets gateway-pivot:** Z10 (running); then the final gate: full `npm run ward`, `build:clean`,
+`check:consumer`, `check:published`; then merge into master, then `build:clean` and settings regeneration in the main
+checkout. The worktree `gp-merge-master` and its branch are removed after that.
 
 **Just landed:** merge r3 server and siegelense (gate 1790795010886-7542, integration 1790795063933-5150): master's `quest-start-body` on `#gateway/npm/zod` with a `QuestStartBodyPlay` leaf brand and its zod 4 message; the request-log harness on `#gateway/node/process`; siegelense's phantom `stderrProxy` gone. All round-3 reds are fixed. Also merge r3 web (gate 1790794958353-0e93): DEF-148's not-found flow and page on gateway imports, its test passes. Also merge r3 hydration-recipes (gate 1790794932742-3664): master's recipe `toolUseId`s parse through `toolUseContract.shape.id`; the remove-route test asserts `void` (the broker's return since B18); DEF-113/114 passes; web typecheck clean (1790794987677-5f6c).
 
