@@ -19,7 +19,6 @@ import {
   platformCrossingViolationContract,
   type PlatformCrossingViolation,
 } from '../../../contracts/platform-crossing-violation/platform-crossing-violation-contract';
-import type { PlatformCrossingChainHop } from '../../../contracts/platform-crossing-chain-hop/platform-crossing-chain-hop-contract';
 import type { PlatformCrossingWalkMemoKey } from '../../../contracts/platform-crossing-walk-memo-key/platform-crossing-walk-memo-key-contract';
 import { workspaceDiscoverBroker } from '../../workspace/discover/workspace-discover-broker';
 import { specifierMatchesPackageGuard } from '../../../guards/specifier-matches-package/specifier-matches-package-guard';
@@ -60,7 +59,7 @@ export const platformCrossingCheckBroker = async ({
   const resolveCache: ResolveSpecifierCache = new Map();
   const chainMemoByPlatform = new Map<
     'browser' | 'node',
-    Map<PlatformCrossingWalkMemoKey, Promise<readonly PlatformCrossingChainHop[][]>>
+    Map<PlatformCrossingWalkMemoKey, Promise<readonly string[][]>>
   >();
 
   const violationsPerFolder = await Promise.all(
@@ -79,9 +78,9 @@ export const platformCrossingCheckBroker = async ({
 
       const memo: Map<
         PlatformCrossingWalkMemoKey,
-        Promise<readonly PlatformCrossingChainHop[][]>
+        Promise<readonly string[][]>
       > = chainMemoByPlatform.get(platform) ??
-      new Map<PlatformCrossingWalkMemoKey, Promise<readonly PlatformCrossingChainHop[][]>>();
+      new Map<PlatformCrossingWalkMemoKey, Promise<readonly string[][]>>();
       if (!chainMemoByPlatform.has(platform)) {
         chainMemoByPlatform.set(platform, memo);
       }

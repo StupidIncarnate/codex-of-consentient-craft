@@ -41,10 +41,6 @@
 
 
 import type { ProjectFolder } from '../../../contracts/project-folder/project-folder-contract';
-import {
-  platformCrossingChainHopContract,
-  type PlatformCrossingChainHop,
-} from '../../../contracts/platform-crossing-chain-hop/platform-crossing-chain-hop-contract';
 import type { TypescriptModuleShape } from '../../../contracts/typescript-module-shape/typescript-module-shape-contract';
 import { isImplementationSourceFileGuard } from '../../../guards/is-implementation-source-file/is-implementation-source-file-guard';
 import { specifierMatchesPackageGuard } from '../../../guards/specifier-matches-package/specifier-matches-package-guard';
@@ -59,7 +55,7 @@ import {
 
 export type WalkGatewayCrossingsMemo = Map<
   string,
-  Promise<readonly PlatformCrossingChainHop[][]>
+  Promise<readonly string[][]>
 >;
 export type ModuleShapeCache = Map<string, TypescriptModuleShape>;
 export type { ResolveSpecifierCache };
@@ -80,13 +76,13 @@ export const walkGatewayCrossingsLayerBroker = async ({
   content: string;
   requestedNames: 'all' | readonly string[];
   pathHistory: readonly string[];
-  chainLabels: readonly PlatformCrossingChainHop[];
+  chainLabels: readonly string[];
   knownPackages: readonly ProjectFolder[];
   forbiddenPackageNames: readonly string[];
   memo?: WalkGatewayCrossingsMemo;
   moduleShapeCache?: ModuleShapeCache;
   resolveCache?: ResolveSpecifierCache;
-}): Promise<readonly PlatformCrossingChainHop[][]> => {
+}): Promise<readonly string[][]> => {
   const cachedShape = moduleShapeCache.get(filePath);
   const moduleShape =
     cachedShape ?? typescriptModuleShapeTransformer({ sourceText: content, fileName: filePath });
@@ -105,12 +101,12 @@ export const walkGatewayCrossingsLayerBroker = async ({
 
   const perDependencyChains = await Promise.all(
     moduleShape.dependencies.map(
-      async (dependency): Promise<readonly PlatformCrossingChainHop[][]> => {
+      async (dependency): Promise<readonly string[][]> => {
         const canonicalSpecifier = gatewaySpecifierCanonicalizeTransformer({
           specifier: dependency.specifier,
           knownPackages,
         });
-        const specifierHop = platformCrossingChainHopContract.parse(canonicalSpecifier);
+        const specifierHop = canonicalSpecifier;
         const isCrossing = forbiddenPackageNames.some((packageName) =>
           specifierMatchesPackageGuard({ specifier: canonicalSpecifier, packageName }),
         );
