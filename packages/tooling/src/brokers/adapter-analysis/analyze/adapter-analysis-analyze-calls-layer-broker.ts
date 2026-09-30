@@ -11,12 +11,10 @@
  */
 import * as ts from '#gateway/npm/typescript';
 import { adapterLogicReasonContract } from '../../../contracts/adapter-logic-reason/adapter-logic-reason-contract';
-import { exportNameContract } from '../../../contracts/export-name/export-name-contract';
 import { censusLanguageGlobalsStatics } from '../../../statics/census-language-globals/census-language-globals-statics';
 import { importOriginClassifyTransformer } from '../../../transformers/import-origin-classify/import-origin-classify-transformer';
 import type { AdapterLogicReason } from '../../../contracts/adapter-logic-reason/adapter-logic-reason-contract';
 import type { AdapterAnalysis } from '../../../contracts/adapter-analysis/adapter-analysis-contract';
-import type { ExportName } from '../../../contracts/export-name/export-name-contract';
 import type { OutsideCall } from '../../../contracts/outside-call/outside-call-contract';
 import { outsideCallContract } from '../../../contracts/outside-call/outside-call-contract';
 
@@ -28,8 +26,8 @@ export const adapterAnalysisAnalyzeCallsLayerBroker = ({
   workspacePackageNames,
 }: {
   nodes: readonly ts.Node[];
-  bindings: ReadonlyMap<ExportName, OutsideCall>;
-  declared: ReadonlySet<ExportName>;
+  bindings: ReadonlyMap<string, OutsideCall>;
+  declared: ReadonlySet<string>;
   workspaceScope: string | null;
   workspacePackageNames: readonly string[];
 }): AdapterAnalysis => {
@@ -41,7 +39,7 @@ export const adapterAnalysisAnalyzeCallsLayerBroker = ({
       continue;
     }
 
-    const props: ExportName[] = [];
+    const props: string[] = [];
     let root: ts.Expression = node.expression;
     let chained = false;
     while (
@@ -54,7 +52,7 @@ export const adapterAnalysisAnalyzeCallsLayerBroker = ({
       ts.isAwaitExpression(root)
     ) {
       if (ts.isPropertyAccessExpression(root) && !chained) {
-        props.unshift(exportNameContract.parse(root.name.text));
+        props.unshift(root.name.text);
       }
       chained ||= ts.isCallExpression(root) || ts.isNewExpression(root);
       root = root.expression;
@@ -76,7 +74,7 @@ export const adapterAnalysisAnalyzeCallsLayerBroker = ({
       continue;
     }
 
-    const rootName = exportNameContract.parse(root.text);
+    const rootName = root.text;
     const binding = bindings.get(rootName);
     const [firstProp] = props;
     const lastProp = props.at(-1);
@@ -97,10 +95,10 @@ export const adapterAnalysisAnalyzeCallsLayerBroker = ({
         }
       } else {
         const isNamed = binding.name !== 'default' && binding.name !== '*';
-        outsideCalls.push({
+        outsideCalls.push(outsideCallContract.parse({
           module: binding.module,
-          name: isNamed ? binding.name : exportNameContract.parse(props.join('.') || binding.name),
-        });
+          name: isNamed ? binding.name : (props.join('.') || binding.name),
+        }));
       }
     } else if (declared.has(rootName)) {
       reasons.add(

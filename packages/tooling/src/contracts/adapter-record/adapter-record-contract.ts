@@ -7,7 +7,6 @@
  * // Returns: AdapterRecord
  */
 import { z } from '#gateway/npm/zod';
-import { exportNameContract } from '../export-name/export-name-contract';
 import { adapterLogicReasonContract } from '../adapter-logic-reason/adapter-logic-reason-contract';
 import { outsideCallContract } from '../outside-call/outside-call-contract';
 import { gatewayExportContract } from '../gateway-export/gateway-export-contract';
@@ -16,7 +15,7 @@ import { catchAllSiteContract } from '../catch-all-site/catch-all-site-contract'
 
 export const adapterRecordContract = z.object({
   file: z.string().min(1).brand<'AdapterRecordFile'>(),
-  exportNames: z.array(exportNameContract),
+  exportNames: z.array(z.string().min(1).brand<'AdapterRecordExportNames'>()),
   shape: z.enum(['pass-through', 'logic']),
   reasons: z.array(adapterLogicReasonContract),
   outsideCalls: z.array(outsideCallContract),

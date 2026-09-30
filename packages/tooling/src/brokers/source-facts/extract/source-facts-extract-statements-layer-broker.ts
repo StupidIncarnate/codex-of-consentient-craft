@@ -8,8 +8,8 @@
  * // Returns { imports, reExports, exportNames }
  */
 import * as ts from '#gateway/npm/typescript';
-import { exportNameContract } from '../../../contracts/export-name/export-name-contract';
 import type { SourceFacts } from '../../../contracts/source-facts/source-facts-contract';
+import { sourceFactsContract } from '../../../contracts/source-facts/source-facts-contract';
 
 export const sourceFactsExtractStatementsLayerBroker = ({
   sourceFile,
@@ -37,7 +37,7 @@ export const sourceFactsExtractStatementsLayerBroker = ({
             ...(clause?.name === undefined ? [] : ['default']),
             ...(bindings !== undefined && ts.isNamespaceImport(bindings) ? ['*'] : []),
             ...named,
-          ].map((name) => exportNameContract.parse(name)),
+          ].map((name) => name),
         });
       }
     } else if (ts.isExportDeclaration(statement) && !statement.isTypeOnly) {
@@ -46,7 +46,7 @@ export const sourceFactsExtractStatementsLayerBroker = ({
         clause !== undefined && ts.isNamedExports(clause)
           ? clause.elements
               .filter((element) => !element.isTypeOnly)
-              .map((element) => exportNameContract.parse(element.name.text))
+              .map((element) => element.name.text)
           : [];
       if (
         statement.moduleSpecifier !== undefined &&
@@ -56,15 +56,15 @@ export const sourceFactsExtractStatementsLayerBroker = ({
           specifier: statement.moduleSpecifier.text,
           names:
             clause !== undefined && ts.isNamespaceExport(clause)
-              ? [exportNameContract.parse(clause.name.text)]
+              ? [clause.name.text]
               : names,
           isStar: clause === undefined,
         });
       } else {
-        exportNames.push(...names);
+        exportNames.push(sourceFactsContract.shape.exportNames.parse(sourceFactsContract.shape.exportNames.parse(sourceFactsContract.shape.exportNames.parse(...names))));
       }
     } else if (ts.isExportAssignment(statement)) {
-      exportNames.push(exportNameContract.parse('default'));
+      exportNames.push(sourceFactsContract.shape.exportNames.parse(sourceFactsContract.shape.exportNames.parse(sourceFactsContract.shape.exportNames.parse('default'))));
     } else if (
       ts.canHaveModifiers(statement) &&
       (ts.getModifiers(statement) ?? []).some((mod) => mod.kind === ts.SyntaxKind.ExportKeyword)
@@ -80,7 +80,7 @@ export const sourceFactsExtractStatementsLayerBroker = ({
         ts.isEnumDeclaration(statement)
           ? [statement.name?.text ?? 'default']
           : [];
-      exportNames.push(...[...declared, ...named].map((name) => exportNameContract.parse(name)));
+      exportNames.push(sourceFactsContract.shape.exportNames.parse(sourceFactsContract.shape.exportNames.parse(sourceFactsContract.shape.exportNames.parse(...[...declared, ...named].map((name) => name)))));
     }
   }
 

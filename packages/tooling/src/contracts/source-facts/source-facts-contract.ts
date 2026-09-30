@@ -8,21 +8,20 @@
  * // Returns: SourceFacts
  */
 import { z } from '#gateway/npm/zod';
-import { exportNameContract } from '../export-name/export-name-contract';
 import { catchAllSiteContract } from '../catch-all-site/catch-all-site-contract';
 
 export const sourceFactsContract = z.object({
   imports: z.array(
-    z.object({ specifier: z.string().min(1).brand<'SourceFactsImportsSpecifier'>(), names: z.array(exportNameContract) }),
+    z.object({ specifier: z.string().min(1).brand<'SourceFactsImportsSpecifier'>(), names: z.array(z.string().min(1).brand<'SourceFactsImportsNames'>()) }),
   ),
   reExports: z.array(
     z.object({
       specifier: z.string().min(1).brand<'SourceFactsReExportsSpecifier'>(),
-      names: z.array(exportNameContract),
+      names: z.array(z.string().min(1).brand<'SourceFactsReExportsNames'>()),
       isStar: z.boolean(),
     }),
   ),
-  exportNames: z.array(exportNameContract),
+  exportNames: z.array(z.string().min(1).brand<'SourceFactsExportNames'>()),
   catchAllSites: z.array(catchAllSiteContract),
 });
 

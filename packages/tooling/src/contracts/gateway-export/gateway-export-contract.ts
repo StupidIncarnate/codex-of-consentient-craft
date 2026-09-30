@@ -9,11 +9,10 @@
  * // Returns: GatewayExport
  */
 import { z } from '#gateway/npm/zod';
-import { exportNameContract } from '../export-name/export-name-contract';
 
 export const gatewayExportContract = z.object({
   importPath: z.string().min(1).brand<'GatewayExportImportPath'>(),
-  name: exportNameContract,
+  name: z.string().min(1).brand<'GatewayExportName'>(),
   match: z.enum(['exact', 'related']),
 });
 

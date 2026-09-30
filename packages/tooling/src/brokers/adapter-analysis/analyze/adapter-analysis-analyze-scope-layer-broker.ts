@@ -9,8 +9,6 @@
  * // Returns { bindings, declared }
  */
 import * as ts from '#gateway/npm/typescript';
-import { exportNameContract } from '../../../contracts/export-name/export-name-contract';
-import type { ExportName } from '../../../contracts/export-name/export-name-contract';
 import type { OutsideCall } from '../../../contracts/outside-call/outside-call-contract';
 import { outsideCallContract } from '../../../contracts/outside-call/outside-call-contract';
 
@@ -20,9 +18,9 @@ export const adapterAnalysisAnalyzeScopeLayerBroker = ({
 }: {
   sourceFile: ts.SourceFile;
   nodes: readonly ts.Node[];
-}): { bindings: Map<ExportName, OutsideCall>; declared: Set<ExportName> } => {
-  const bindings = new Map<ExportName, OutsideCall>();
-  const declared = new Set<ExportName>();
+}): { bindings: Map<string, OutsideCall>; declared: Set<string> } => {
+  const bindings = new Map<string, OutsideCall>();
+  const declared = new Set<string>();
 
   for (const statement of sourceFile.statements) {
     if (!ts.isImportDeclaration(statement) || !ts.isStringLiteral(statement.moduleSpecifier)) {
@@ -34,23 +32,23 @@ export const adapterAnalysisAnalyzeScopeLayerBroker = ({
     }
     const module = statement.moduleSpecifier.text;
     if (clause.name !== undefined) {
-      bindings.set(exportNameContract.parse(clause.name.text), outsideCallContract.parse({
+      bindings.set(clause.name.text, outsideCallContract.parse({
         module,
-        name: exportNameContract.parse('default'),
+        name: 'default',
       }));
     }
     const named = clause.namedBindings;
     if (named !== undefined && ts.isNamespaceImport(named)) {
-      bindings.set(exportNameContract.parse(named.name.text), outsideCallContract.parse({
+      bindings.set(named.name.text, outsideCallContract.parse({
         module,
-        name: exportNameContract.parse('*'),
+        name: '*',
       }));
     }
     if (named !== undefined && ts.isNamedImports(named)) {
       for (const element of named.elements.filter((candidate) => !candidate.isTypeOnly)) {
-        bindings.set(exportNameContract.parse(element.name.text), outsideCallContract.parse({
+        bindings.set(element.name.text, outsideCallContract.parse({
           module,
-          name: exportNameContract.parse((element.propertyName ?? element.name).text),
+          name: (element.propertyName ?? element.name).text,
         }));
       }
     }
@@ -65,7 +63,7 @@ export const adapterAnalysisAnalyzeScopeLayerBroker = ({
       ts.isClassDeclaration(node);
     const name = isDeclaration ? node.name : undefined;
     if (name !== undefined && ts.isIdentifier(name)) {
-      declared.add(exportNameContract.parse(name.text));
+      declared.add(name.text);
     }
   }
 

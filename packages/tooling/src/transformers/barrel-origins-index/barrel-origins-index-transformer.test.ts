@@ -1,7 +1,6 @@
 import { barrelOriginsIndexTransformer } from './barrel-origins-index-transformer';
 import { CensusPackageStub } from '../../contracts/census-package/census-package.stub';
 import { SourceFactsStub } from '../../contracts/source-facts/source-facts.stub';
-import { ExportNameStub } from '../../contracts/export-name/export-name.stub';
 
 describe('barrelOriginsIndexTransformer', () => {
   const packages = [CensusPackageStub({ name: '@acme/api', dir: 'packages/api' })];
@@ -28,8 +27,8 @@ describe('barrelOriginsIndexTransformer', () => {
           ],
         }),
       ],
-      [readAdapter, SourceFactsStub({ exportNames: [ExportNameStub({ value: 'aAdapter' })] })],
-      [writeAdapter, SourceFactsStub({ exportNames: [ExportNameStub({ value: 'bAdapter' })] })],
+      [readAdapter, SourceFactsStub({ exportNames: ['aAdapter'] })],
+      [writeAdapter, SourceFactsStub({ exportNames: ['bAdapter'] })],
     ]);
 
     const result = barrelOriginsIndexTransformer({
@@ -53,7 +52,7 @@ describe('barrelOriginsIndexTransformer', () => {
           reExports: [
             {
               specifier: './src/adapters/a/a-adapter',
-              names: [ExportNameStub({ value: 'aAdapter' })],
+              names: ['aAdapter'],
               isStar: false,
             },
           ],
@@ -62,7 +61,7 @@ describe('barrelOriginsIndexTransformer', () => {
       [
         readAdapter,
         SourceFactsStub({
-          exportNames: [ExportNameStub({ value: 'aAdapter' }), ExportNameStub({ value: 'other' })],
+          exportNames: ['aAdapter', 'other'],
         }),
       ],
     ]);
@@ -106,7 +105,7 @@ describe('barrelOriginsIndexTransformer', () => {
           ],
         }),
       ],
-      [readAdapter, SourceFactsStub({ exportNames: [ExportNameStub({ value: 'aAdapter' })] })],
+      [readAdapter, SourceFactsStub({ exportNames: ['aAdapter'] })],
     ]);
 
     const result = barrelOriginsIndexTransformer({
@@ -116,7 +115,7 @@ describe('barrelOriginsIndexTransformer', () => {
       packages,
     });
 
-    expect(result.get(ExportNameStub({ value: 'aAdapter' }))).toBe(
+    expect(result.get('aAdapter')).toBe(
       'packages/api/src/adapters/a/a-adapter.ts',
     );
   });
@@ -140,7 +139,7 @@ describe('barrelOriginsIndexTransformer', () => {
           reExports: [
             {
               specifier: 'zod',
-              names: [ExportNameStub({ value: 'z' })],
+              names: ['z'],
               isStar: false,
             },
           ],
@@ -160,7 +159,7 @@ describe('barrelOriginsIndexTransformer', () => {
 
   it('EDGE: {a barrel that defines a name itself} => the name maps to the barrel', () => {
     const factsByFile = new Map([
-      [barrel, SourceFactsStub({ exportNames: [ExportNameStub({ value: 'local' })] })],
+      [barrel, SourceFactsStub({ exportNames: ['local'] })],
     ]);
 
     const result = barrelOriginsIndexTransformer({

@@ -13,7 +13,6 @@ import { importTargetResolveTransformer } from '../../../transformers/import-tar
 import type { CensusFileKind } from '../../../contracts/census-file-kind/census-file-kind-contract';
 import type { CensusRepoLayout } from '../../../contracts/census-repo-layout/census-repo-layout-contract';
 import type { CensusSourceEntry } from '../../../contracts/census-source-entry/census-source-entry-contract';
-import type { ExportName } from '../../../contracts/export-name/export-name-contract';
 import type { SourceFacts } from '../../../contracts/source-facts/source-facts-contract';
 
 export const adapterCensusBuildImportersLayerBroker = ({
@@ -31,7 +30,7 @@ export const adapterCensusBuildImportersLayerBroker = ({
   layout: CensusRepoLayout;
   adapterFiles: ReadonlySet<string>;
 }): ReadonlyMap<string, readonly string[]> => {
-  const barrelIndexes = new Map<string, ReadonlyMap<ExportName, string>>();
+  const barrelIndexes = new Map<string, ReadonlyMap<string, string>>();
   for (const { file } of sources) {
     if (kindByFile.get(file) === 'barrel' && (factsByFile.get(file)?.reExports.length ?? 0) > 0) {
       barrelIndexes.set(
