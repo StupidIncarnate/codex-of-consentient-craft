@@ -129,19 +129,21 @@ More rules for the operator:
 
 ## START HERE — where the epic stands and what to do next
 
-### Now (updated at every event; last 2026-09-30 12:30)
+### Now (updated at every event; last 2026-09-30 12:35)
 
-| Running (4, all in merge worktree W) | Owns |
+| Running (3, all in merge worktree W) | Owns |
 |---|---|
 | merge fix: siegelense brokers A (opus) | `brokers/{lane,served-build,instance,browser-session}` |
 | merge fix: siegelense brokers B (opus) | every other siegelense broker folder |
-| merge fix: siegelense contracts (opus) | `contracts/`, `test/harnesses/`; the validating brands moved into owner fields |
 | merge fix: siegelense transformers, responders, flows (opus) | incl. the missing `zodIssueParse`, `is-network-line-*` |
 
 Every fixer follows `merge-master/FIXER-BRIEF.md`: keep master's DEF behaviour, restore pivot edits from `lost-ours`,
 fix type errors, port unmapped adapters, gate lint/typecheck/unit from W, and report a DEF CHECK per DEF commit.
 
-**Just landed:** merge fix web, done in W (gate 1790793460396-72df; web typecheck 1,282 files clean):
+**Just landed:** merge fix siegelense contracts, done in W (lint and unit 1790793546199-4a24, 480 files; no type
+errors in contracts or harnesses): pivot brands restored around master's new fields (`killedAtMs`, `alreadyKilledAtMs`,
+memory, scroll, served-build-stale, lane-launch); DEF-160's pixel-count format on the owner fields; zod 4 messages in
+tests; `LaneSession` process calls return `void` (relayed to brokers A and transformers). Also: merge fix web, done in W (gate 1790793460396-72df; web typecheck 1,282 files clean):
 `mantineRenderMiddleware` everywhere, plain button labels restored, a web-local `guildCreateInputContract` keeps
 DEF-136's absolute-path check; DEF-136, DEF-128 and DEF-137 tests pass. Also: merge fix server and cli, done in W (gate 1790793390158-d902, integration 1790793425470-44df): guild
 add/update and quest-start call `StartOrchestrator`; new `processRequestLogBroker` replaces master's request-log adapter
