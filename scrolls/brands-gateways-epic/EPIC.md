@@ -129,7 +129,7 @@ More rules for the operator:
 
 ## START HERE — where the epic stands and what to do next
 
-### Now (updated at every event; last 2026-09-30 13:24, machine clock)
+### Now (updated at every event; last 2026-09-30 13:25, machine clock)
 
 **DONE: the epic's P0 and P1 work is on master** (788165421). Nothing is running.
 
@@ -141,10 +141,10 @@ More rules for the operator:
   the new snippets). Master and gateway-pivot point at the same commit.
 - Found on the way: `@gateway/npm` never declared `@types/pngjs` and `@types/pixelmatch` (fixed, d29d84382).
 
-**Waiting on the user:** removing the `gp-merge-master` worktree (`worktrees/gateway-pivot/worktrees/gp-merge-master`)
-and branch, and emptying `tmp/deletions/` (rule 20: deletions need approval).
+**Cleanup done (user approved):** the `gp-merge-master` worktree and branch are removed, and `tmp/deletions/` is
+emptied (43M; the moved files stay recoverable from git history).
 
-**Next (after the user's go):** P2 bundled with the defect swarm (the P2 row of "Merge to master" lists it, plus F130 to
+**Next:** P2 bundled with the defect swarm (the P2 row of "Merge to master" lists it, plus F130 to
 F132, the two-contract absolute-path check, F105's 5.2 s config load); then P3 and the rest of Phase 6.
 
 ### Merge to master (user, 2026-09-30 ~11:00) — THE CURRENT GOAL
