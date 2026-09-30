@@ -14,14 +14,12 @@
  */
 
 import { riftcarverDetailContract } from '../../contracts/riftcarver-detail/riftcarver-detail-contract';
-import { riftcarverLogLineContract } from '../../contracts/riftcarver-log-line/riftcarver-log-line-contract';
-import type { RiftcarverLogLine } from '../../contracts/riftcarver-log-line/riftcarver-log-line-contract';
 
 export const riftcarverLogToDisplayLinesTransformer = ({
   detail,
 }: {
   detail: unknown;
-}): RiftcarverLogLine[] => {
+}): string[] => {
   const parsed = riftcarverDetailContract.safeParse(detail);
 
   if (!parsed.success || parsed.data.log.length === 0) {
@@ -30,5 +28,5 @@ export const riftcarverLogToDisplayLinesTransformer = ({
 
   const trimmed = parsed.data.log.endsWith('\n') ? parsed.data.log.slice(0, -1) : parsed.data.log;
 
-  return trimmed.split('\n').map((line) => riftcarverLogLineContract.parse(line));
+  return trimmed.split('\n').map((line) => line);
 };
