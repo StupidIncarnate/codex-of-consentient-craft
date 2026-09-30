@@ -205,10 +205,28 @@ process, 16G heap); the R7 rule crashed on a tuple leaf (39101c111, its parent w
   `is-ast-inside-zod-function`, `is-ast-brand-exempt`).
 - e1d5fd9b8 W9: 132 dead re-parses in 60 files; two were deliberate (web collect-subagent-chains, F107; siegelense
   `SERVER_KIND`) and are restored. Ward 1790767412627-f3f5: typecheck 11,399, unit 4,144 green.
-- Next: W10 scans (R2, R4, R8, R9; R7 needs R7-f/g registration first), a fixer round to 0, switch-on, full bare
-  ward, `build:clean`, `check:consumer`, `check:published`, web e2e; then the scripts made portable for assayer.
+- W10: scans read R2 156, R4 1, R8 62, R9 24 (11 duplicate names), R7 unregistered. The R2 and R8 autofixes ran
+  one package per process (17 commits to 562369baa; R8 to 0). 6202a8a0e (17 agents): R2 leftovers per package
+  (file-local helper contracts inlined into owner+key fields; standalone scalars plain, their checks kept at the
+  boundary) and R7 registered off. e7530699e (2 opus): R7 and R4 to 0 (`ItemWithId` is a types-only contract;
+  web's quest-modified payload drops its duplicate `questId`); R9 to 0 (packageJson merged into shared,
+  signalBackInput lifted to shared, the rest renamed where the two copies are different data; two departures from
+  the B11 keeper table, both reasoned in the commit). 9393a8ecd: **the five rules are on at error** (R2, R4, R7, R8,
+  R9). Map keys are exempt too (concession 25 in the rules, b6047b634 plus the map-key guard).
+- Full bare ward 1790773961007-6f1f after the switch-on: unit 4,129 and e2e 131 green; lint 7 files, typecheck 5
+  and hooks integration 17 red. Cause: R2 and R7 disagree on brands on record values (R7's fix branded
+  `DependencyMapValue` and friends, R2 reports them), hydration's `test/type-fixtures` fall under R2, two orchestrator
+  error files break `enforce-import-dependencies`, and hooks' integration expectations follow the rules. One opus
+  agent owns all of it (in flight, 06:50).
+- 801340aa0, 11acb5d56: **the scripts are portable** (`--root` plus settings in
+  `phase34-scripts/lib/port-config.cjs`; run in place; portable `bigbang/run-all.sh` with segments A to D and W10fix;
+  `bigbang/PORTING.md`). Read-only trials on assayer passed. PORTING.md section 0 says what assayer still needs
+  (zod 4, a rebuilt and linked eslint-plugin, reviewed decision tables) and what is unproven (the driver end to end;
+  the W5 rewriter and W6 function-stripping bugs are documented, not yet fixed in the scripts).
+- Next: the final agent's round; full bare ward to exit 0; `build:clean`, `check:consumer`, `check:published`;
+  then the script fixes PORTING.md recommends before assayer runs.
 
-**After segment C (user, 2026-09-29 20:55): make the scripts portable and commit them.** The user will run the same
+**After segment C (user, 2026-09-29 20:55): make the scripts portable and commit them.** Done: 801340aa0, 11acb5d56. The user will run the same
 migration on `/home/brutus-home/projects/assayer` (npm workspaces, packages `app`, `cli`, `core`, `desktop`,
 `shared`; depends on this checkout's `@dungeonmaster/*` via `file:`). Before the fixer stage ends: repo root from
 cwd or a flag (not this worktree's path, in the drivers and in `lib/repo.cjs`'s fence), package scope and gateway
@@ -774,19 +792,19 @@ longer dispatched as whole items: their rules are chunks R1 to R9, and the B15 m
 | R4 | [`ban-join-id-beside-child`](items/b13-owner-field-reuse.md) | Phase 3 | 1 agent | done (the R4+R8+R9 commit) | Registered `off`, tagged `pre-edit`, no autofix; scan 0 in every package; on at W10. |
 | R5 | [`enforce-stub-usage` C5 extension](items/r05-enforce-stub-usage-outside-cast.md) | 3.5 | 1 agent | done (the R5 commit) | Gate 1790722102925-5d28; `outsideTypeCasts` on, scan 0 in all 21 packages. |
 | R6 | [Owner index](items/b10-owner-index.md) | R1 | 1 agent | done (the R6 commit) | Gate 1790691332510-4665; the index sees top-level keys only, so nested brands and `.extend()` contracts are missed. |
-| R7 | `require-object-contract-brands-indexed` | R6 | 1 agent | partial (R7-f, R7-g left) | Planned in `items/b12-*.md` "## Plan — R7": 24 files, 7 batches R7-a to R7-g, one agent at a time; lands off. R7-g and R5-c both edit the config broker: never together. R7-a to R7-e done (the R7-a..e commit: leaf half with autofix, layer half; not registered yet). Left: R7-f (create responder), R7-g (config off, enforce-on test, integration lists), then the scan. F119. |
+| R7 | `require-object-contract-brands-indexed` | R6 | 1 agent | done (R7-f/g in 6202a8a0e; on at error 9393a8ecd) | Planned in `items/b12-*.md` "## Plan — R7": 24 files, 7 batches R7-a to R7-g, one agent at a time; lands off. R7-g and R5-c both edit the config broker: never together. R7-a to R7-e done (the R7-a..e commit: leaf half with autofix, layer half; not registered yet). Left: R7-f (create responder), R7-g (config off, enforce-on test, integration lists), then the scan. F119. |
 | R8 | [`enforce-owner-field-reuse` with autofix](items/b13-owner-field-reuse.md) | R6 | 1 agent | done (the R4+R8+R9 commit) | Registered `off` (ward-only); scan 255; the nested-object and inline-enum copy checks are follow-up F100. |
 | R9 | [`enforce-unique-contract-names`](items/b11-unique-contract-names.md) | R6 | 1 agent | done (the R4+R8+R9 commit) | Registered `off` (ward-only); scan 24 violations; on at W10. |
-| W1 | [Plain brands](items/b15-brand-migration.md): 153 never-a-field brands go plain | R2, 4.0 | script | todo | fan-out 3,761 |
-| W2 | B11 object-contract merges | R9, 4.0 | script plus agent | todo | 14 names |
-| W3 | Owned-id brands become their owner's `id` | W1, R8 | script plus R8 autofix | todo | |
-| W4 | Ownerless ids: new owner or plain | W3, 4.0 | script plus agents | todo | |
-| W5 | Value brands: per-field derived brands, loose uses plain | W4 | script, then hand queue | todo | fan-out about 19,000; top five run alone as trials |
-| W6 | Object brands by R2's autofix, dependency order | W5, R7 | autofix, then hand queue | todo | 651 contracts |
-| W7 | [Ad-hoc shapes become contracts](items/b14-type-alias-and-adhoc-type-rules.md) | R3 | script, then hand queue | todo | 219 shapes, 125 generate clean; beside W1 to W5 |
-| W8 | `z.unknown()` replacements | 4.0 | hand queue | todo | 124 sites; beside W7 |
-| W9 | Dead re-parses, `as never`, stub unwraps | W6 | script | todo | 427 production dead re-parses |
-| W10 | Brand rules on; full ward, `build:clean`, `check:consumer` | W9 | operator | todo | |
+| W1 | [Plain brands](items/b15-brand-migration.md): 153 never-a-field brands go plain | R2, 4.0 | script | done (big-bang segment A, 18:48 to 19:00; 104 brands) | fan-out 3,761 |
+| W2 | B11 object-contract merges | R9, 4.0 | script plus agent | done (W2 renames 4a5b8b743, ef67a7930; merges and lifts by R9 in e7530699e) | 14 names |
+| W3 | Owned-id brands become their owner's `id` | W1, R8 | script plus R8 autofix | done (big-bang segment A; 18 brands) | |
+| W4 | Ownerless ids: new owner or plain | W3, 4.0 | script plus agents | done (big-bang segment A; 8 brands; ToolUseId, PieceId held: H2, H3) | |
+| W5 | Value brands: per-field derived brands, loose uses plain | W4 | script, then hand queue | done (big-bang segments B and C, 141 groups; rewriter wraps stripped d2d9af3a0) | fan-out about 19,000; top five run alone as trials |
+| W6 | Object brands by R2's autofix, dependency order | W5, R7 | autofix, then hand queue | done (08128697d fallout, then R2 and R7 autofix per package) | 651 contracts |
+| W7 | [Ad-hoc shapes become contracts](items/b14-type-alias-and-adhoc-type-rules.md) | R3 | script, then hand queue | done (dd4de93e4) | 219 shapes, 125 generate clean; beside W1 to W5 |
+| W8 | `z.unknown()` replacements | 4.0 | hand queue | done (abcb5b124 json/own; 15512dd7f responders) | 124 sites; beside W7 |
+| W9 | Dead re-parses, `as never`, stub unwraps | W6 | script | done (e1d5fd9b8; two deliberate parses restored) | 427 production dead re-parses |
+| W10 | Brand rules on; full ward, `build:clean`, `check:consumer` | W9 | operator | done: rules on 9393a8ecd; final full ward in progress | |
 | B16 | [An owner is a real object; an id is never re-branded](items/b16-real-owner-and-id-rebrand.md) | W10 | agents | todo | |
 | B17 | [No type predicate onto our types; parsed JSON goes straight into a parse](items/b17-predicates-and-json-parse.md) | G15, B01 | filler lane | partial (no agent running) | B17-2 to B17-9 done. Re-planned (the B17 re-plan commit): 47 batches in the item's `## Plan` (10 script runs, 31 hand batches, 5 rule batches, 1 teaching text); B17-24/30/31 obsolete; server `c.req.json()` into responders gets a narrow rule exemption, testing's endpoint-mock and `safe-json-parse-transformer.ts` too. Every batch runs after wave 3.3 for its package. Rule C4's extension lands last. Shared, testing, config, hydration-recipes, ward, cli, web done (the seven B17 commits; new contracts `gateway-lint-config-file`, `claude-settings`, `mcp-config`, `dm-response-body`, `eslint-raw-report`, `quest-chat-response`, `comment-queue-stored`); integration 1790697810534-eec0 62 of 62. Siegelense done (the B17-siegelense commit, ward 1790698697229-c3da). Left: orchestrator, hooks, server, eslint-plugin batches; rule batches R1a/R1b/R2a-c (R1b carries the `safe-json-parse-transformer.ts` and testing endpoint-mock exemptions); teaching text; web e2e. |
 | B18 | [A function returns what its calls told it](items/b18-returns-say-what-happened.md) | A19 | filler lane | done (the B18-finish commit) | 2c71f98f3 and the B18-finish commit; build shared, then run `check:consumer` (published API changed). |
@@ -878,3 +896,4 @@ One line per session: the date, what landed, and where the next session starts.
 | 2026-09-29 | Phase 2 finish session (operator): A18 finished in code — gateway units GB4, U1 to U3, GN13 to GN15, GBIN1, GNPM-vite; the A18 codemod; hand queues in every package; dependency removals (a1d6abed6 to a86065b08); A19 prep (0ba37e71e); F77, F78 closed; concessions 14, 15. The user stopped before the final ward. The last A18 diff (GN15, `vite` subpath, web's last spots) is uncommitted. Phase 3 and 4 plan merged into this file. Next: START HERE "Phase 2 handoff". |
 | 2026-09-29 | Operator session (day): Phase 2 closed (A18, A19 switch-on, P3-0 gate); waves 3.1 to 3.4 done; 3.3's layout with explicit per-barrel keys (concession 22) and `ban-test-support-in-production` (concession 23); 4.0 decisions; R1, R2, R3, R4, R6, R8, R9, T10, T2, T1, L0, L1; L3 and L4 for hooks, server, mcp; L2 part 1 on branch `gp-l2-tsestree`; every SD script; B17 and B18 in most packages; T05 swept; disk-full incident fixed (F95 to F97); about 60 follow-ups closed. Next: START HERE "Handoff (2026-09-29, evening)". |
 | 2026-09-29 | Operator session (afternoon, 10:58 to 17:10): L2 merged; wave 3.5 done; T05, T06, T08, B18 done with their rules on; R5 built and on; the R1 queue went from 122 to about 31 (all waiting on W1, W3, B06 or testing's quiet wave); F56, F57, F72, the F100 shared half, F108 to F114, F117, F118 closed; R7 a to e built. The user tabled slow tests to Phase 6 (rule 21, Z08) and proposed running every Phase 4 script up front, then fixing file by file. Operator recommendation: do it on a worktree branch (rule W), applying the scripts in wave order with each script's leftovers file as the queue; keep gateway-pivot green and merge the branch when it is green. Next: START HERE "Handoff (2026-09-29, 17:10)". |
+| 2026-09-30 | Big-bang run (operator, 2026-09-29 18:40 to 2026-09-30 07:00): every Phase 4 script applied back to back and committed red (segments A to C, 18:48 to 01:08), then repairs, then fixer rounds (typecheck 1,796 to 0 by 02:10; unit, lint, integration, e2e green by 04:00), W8 `--responders`, W9, W10 (five brand rules on at error), concession 25, the scripts made portable for assayer. Next: START HERE "Big-bang run". |
