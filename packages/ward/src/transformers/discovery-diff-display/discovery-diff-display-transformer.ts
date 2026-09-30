@@ -7,10 +7,6 @@
  */
 
 import type { GitRelativePath } from '../../contracts/git-relative-path/git-relative-path-contract';
-import {
-  wardSummaryContract,
-  type WardSummary,
-} from '../../contracts/ward-summary/ward-summary-contract';
 
 export const discoveryDiffDisplayTransformer = ({
   hasMismatch,
@@ -22,9 +18,9 @@ export const discoveryDiffDisplayTransformer = ({
   onlyProcessed: GitRelativePath[];
   onlyDiscovered: GitRelativePath[];
   maxDisplay: number;
-}): WardSummary => {
+}): string => {
   if (!hasMismatch) {
-    return wardSummaryContract.parse('');
+    return '';
   }
 
   const sections = [];
@@ -44,8 +40,8 @@ export const discoveryDiffDisplayTransformer = ({
   }
 
   if (sections.length === 0) {
-    return wardSummaryContract.parse('');
+    return '';
   }
 
-  return wardSummaryContract.parse(`\n${sections.join('\n')}`);
+  return `\n${sections.join('\n')}`;
 };

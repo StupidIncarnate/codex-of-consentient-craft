@@ -10,8 +10,6 @@ import type { AbsoluteFilePath } from '@dungeonmaster/shared/contracts';
 
 import { errorEntryContract } from '../../contracts/error-entry/error-entry-contract';
 import type { WardResult } from '../../contracts/ward-result/ward-result-contract';
-import type { WardSummary } from '../../contracts/ward-summary/ward-summary-contract';
-import { wardSummaryContract } from '../../contracts/ward-summary/ward-summary-contract';
 import { openHandleStackStatics } from '../../statics/open-handle-stack/open-handle-stack-statics';
 import { qualityGateStatics } from '../../statics/quality-gate/quality-gate-statics';
 import { inlineFailureStatics } from '../../statics/inline-failure/inline-failure-statics';
@@ -37,7 +35,7 @@ export const resultToSummaryTransformer = ({
 }: {
   wardResult: WardResult;
   cwd: AbsoluteFilePath;
-}): WardSummary => {
+}): string => {
   const totalDurationSuffix =
     Number(wardResult.durationMs) > 0
       ? `  (${(Number(wardResult.durationMs) / MS_PER_SECOND).toFixed(1)}s)`
@@ -342,13 +340,11 @@ export const resultToSummaryTransformer = ({
 
   const summaryLines = [runLine, ...checkLines];
 
-  return wardSummaryContract.parse(
-    [
+  return [
       ...summaryLines,
       ...outOfMemoryLines,
       ...slowFileLines,
       ...openHandleLines,
       ...detailLines,
-    ].join('\n'),
-  );
+    ].join('\n');
 };

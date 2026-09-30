@@ -6,7 +6,6 @@ import { ProjectResultStub } from '../../contracts/project-result/project-result
 import { ErrorEntryStub } from '../../contracts/error-entry/error-entry.stub';
 import { TestFailureStub } from '../../contracts/test-failure/test-failure.stub';
 import { FileTimingStub } from '../../contracts/file-timing/file-timing.stub';
-import { WardSummaryStub } from '../../contracts/ward-summary/ward-summary.stub';
 import { OpenHandleStub } from '../../contracts/open-handle/open-handle.stub';
 import { resultToSummaryTransformer } from './result-to-summary-transformer';
 
@@ -20,7 +19,7 @@ describe('resultToSummaryTransformer', () => {
         cwd: AbsoluteFilePathStub({ value: '/p' }),
       });
 
-      expect(result).toBe(WardSummaryStub({ value: 'run: 1739625600000-a3f1' }));
+      expect(result).toBe('run: 1739625600000-a3f1');
     });
   });
 
@@ -53,10 +52,7 @@ describe('resultToSummaryTransformer', () => {
       });
 
       expect(result).toBe(
-        WardSummaryStub({
-          value:
-            'run: 1739625600000-a3f1\nlint:      PASS  2 packages (147 files passed/0 files failed)',
-        }),
+        'run: 1739625600000-a3f1\nlint:      PASS  2 packages (147 files passed/0 files failed)',
       );
     });
   });
@@ -85,7 +81,7 @@ describe('resultToSummaryTransformer', () => {
       });
 
       expect(result).toBe(
-        WardSummaryStub({ value: 'run: 1739625600000-a3f1\nlint:      WARN  0 files run' }),
+        'run: 1739625600000-a3f1\nlint:      WARN  0 files run',
       );
     });
   });
@@ -125,10 +121,7 @@ describe('resultToSummaryTransformer', () => {
       });
 
       expect(result).toBe(
-        WardSummaryStub({
-          value:
-            'run: 1739625600000-a3f1\nunit:      FAIL  2 packages (18 files passed/2 files failed)  web (3), cli (1)\n\n--- unit ---\nsrc/index.test.ts\n  FAIL "test1"\n    Expected true to be false\nsrc/index.test.ts\n  FAIL "test2"\n    Expected true to be false\nsrc/index.test.ts\n  FAIL "test3"\n    Expected true to be false\n/p/cli/src/index.ts\n  Unexpected any (line 10)',
-        }),
+        'run: 1739625600000-a3f1\nunit:      FAIL  2 packages (18 files passed/2 files failed)  web (3), cli (1)\n\n--- unit ---\nsrc/index.test.ts\n  FAIL "test1"\n    Expected true to be false\nsrc/index.test.ts\n  FAIL "test2"\n    Expected true to be false\nsrc/index.test.ts\n  FAIL "test3"\n    Expected true to be false\n/p/cli/src/index.ts\n  Unexpected any (line 10)',
       );
     });
 
@@ -163,10 +156,7 @@ describe('resultToSummaryTransformer', () => {
       });
 
       expect(result).toBe(
-        WardSummaryStub({
-          value:
-            'run: 1739625600000-a3f1\nlint:      FAIL  1 packages (9 files passed/1 files failed)  cli (1)\n\n--- lint ---\nsrc/start-install.ts\n  @typescript-eslint/no-unsafe-assignment Unsafe assignment (line 55)',
-        }),
+        'run: 1739625600000-a3f1\nlint:      FAIL  1 packages (9 files passed/1 files failed)  cli (1)\n\n--- lint ---\nsrc/start-install.ts\n  @typescript-eslint/no-unsafe-assignment Unsafe assignment (line 55)',
       );
     });
 
@@ -200,10 +190,7 @@ describe('resultToSummaryTransformer', () => {
       });
 
       expect(result).toBe(
-        WardSummaryStub({
-          value:
-            'run: 1739625600000-a3f1\nunit:      FAIL  1 packages (9 files passed/1 files failed)  cli (1)\n\n--- unit ---\nsrc/guard.test.ts\n  FAIL "should return false"\n    Expected: false',
-        }),
+        'run: 1739625600000-a3f1\nunit:      FAIL  1 packages (9 files passed/1 files failed)  cli (1)\n\n--- unit ---\nsrc/guard.test.ts\n  FAIL "should return false"\n    Expected: false',
       );
     });
 
@@ -238,10 +225,7 @@ describe('resultToSummaryTransformer', () => {
       });
 
       expect(result).toBe(
-        WardSummaryStub({
-          value:
-            'run: 1739625600000-a3f1\nlint:      FAIL  1 packages (9 files passed/1 files failed)  cli (1)\n\n--- lint ---\npackages/cli/src/file.ts\n  @typescript-eslint/no-unused-vars Unused var (line 10)',
-        }),
+        'run: 1739625600000-a3f1\nlint:      FAIL  1 packages (9 files passed/1 files failed)  cli (1)\n\n--- lint ---\npackages/cli/src/file.ts\n  @typescript-eslint/no-unused-vars Unused var (line 10)',
       );
     });
   });
@@ -278,10 +262,7 @@ describe('resultToSummaryTransformer', () => {
       });
 
       expect(result).toBe(
-        WardSummaryStub({
-          value:
-            'run: 1739625600000-a3f1\nunit:      FAIL  1 packages (9 files passed/1 files failed)  cli (1)\n\n--- unit ---\nsrc/flow.integration.test.ts\n  FAIL "integration test hangs"\n    TIMEOUT: Test killed before reaching any expect() calls.',
-        }),
+        'run: 1739625600000-a3f1\nunit:      FAIL  1 packages (9 files passed/1 files failed)  cli (1)\n\n--- unit ---\nsrc/flow.integration.test.ts\n  FAIL "integration test hangs"\n    TIMEOUT: Test killed before reaching any expect() calls.',
       );
     });
   });
@@ -319,10 +300,7 @@ describe('resultToSummaryTransformer', () => {
       });
 
       expect(result).toBe(
-        WardSummaryStub({
-          value:
-            'run: 1739625600000-a3f1\nlint:      FAIL  1 packages (9 files passed/1 files failed)  cli (1)\n\n--- lint ---\nsrc/broken.ts\n  Parsing error: Unexpected token',
-        }),
+        'run: 1739625600000-a3f1\nlint:      FAIL  1 packages (9 files passed/1 files failed)  cli (1)\n\n--- lint ---\nsrc/broken.ts\n  Parsing error: Unexpected token',
       );
     });
   });
@@ -459,10 +437,7 @@ describe('resultToSummaryTransformer', () => {
       });
 
       expect(result).toBe(
-        WardSummaryStub({
-          value:
-            'run: 1739625600000-a3f1\nlint:      FAIL  0 files run\n\n--- lint ---\nsrc/index.ts\n  Unexpected any (line 10)',
-        }),
+        'run: 1739625600000-a3f1\nlint:      FAIL  0 files run\n\n--- lint ---\nsrc/index.ts\n  Unexpected any (line 10)',
       );
     });
 
@@ -492,10 +467,7 @@ describe('resultToSummaryTransformer', () => {
       });
 
       expect(result).toBe(
-        WardSummaryStub({
-          value:
-            'run: 1739625600000-a3f1\nunit:      FAIL  1 packages (5 files passed/0 files failed)  web (crash)\n\n--- unit ---\nweb\n  (crash) FATAL ERROR: out of memory',
-        }),
+        'run: 1739625600000-a3f1\nunit:      FAIL  1 packages (5 files passed/0 files failed)  web (crash)\n\n--- unit ---\nweb\n  (crash) FATAL ERROR: out of memory',
       );
     });
   });
@@ -524,9 +496,7 @@ describe('resultToSummaryTransformer', () => {
       });
 
       expect(result).toBe(
-        WardSummaryStub({
-          value: 'run: 1739625600000-a3f1',
-        }),
+        'run: 1739625600000-a3f1',
       );
     });
   });
@@ -578,10 +548,7 @@ describe('resultToSummaryTransformer', () => {
       });
 
       expect(result).toBe(
-        WardSummaryStub({
-          value:
-            'run: 1739625600000-a3f1\nlint:      PASS  1 packages (10 files passed/0 files failed)\nunit:      FAIL  1 packages (7 files passed/1 files failed)  cli (1)\ntypecheck: PASS  1 packages (2 files passed/0 files failed)\n\n--- unit ---\nsrc/index.test.ts\n  FAIL "should return valid result"\n    Expected true to be false',
-        }),
+        'run: 1739625600000-a3f1\nlint:      PASS  1 packages (10 files passed/0 files failed)\nunit:      FAIL  1 packages (7 files passed/1 files failed)  cli (1)\ntypecheck: PASS  1 packages (2 files passed/0 files failed)\n\n--- unit ---\nsrc/index.test.ts\n  FAIL "should return valid result"\n    Expected true to be false',
       );
     });
   });
@@ -611,10 +578,7 @@ describe('resultToSummaryTransformer', () => {
       });
 
       expect(result).toBe(
-        WardSummaryStub({
-          value:
-            'run: 1739625600000-a3f1\nlint:      PASS  1 packages (100 files passed/0 files failed, 100 discovered)',
-        }),
+        'run: 1739625600000-a3f1\nlint:      PASS  1 packages (100 files passed/0 files failed, 100 discovered)',
       );
     });
 
@@ -645,10 +609,7 @@ describe('resultToSummaryTransformer', () => {
       });
 
       expect(result).toBe(
-        WardSummaryStub({
-          value:
-            'run: 1739625600000-a3f1\nintegration: FAIL  0 files run, 12 discovered  DISCOVERY MISMATCH\n\n--- integration ---\nhooks\n  (crash) Jest crashed',
-        }),
+        'run: 1739625600000-a3f1\nintegration: FAIL  0 files run, 12 discovered  DISCOVERY MISMATCH\n\n--- integration ---\nhooks\n  (crash) Jest crashed',
       );
     });
 
@@ -677,10 +638,7 @@ describe('resultToSummaryTransformer', () => {
       });
 
       expect(result).toBe(
-        WardSummaryStub({
-          value:
-            'run: 1739625600000-a3f1\nunit:      PASS  1 packages (9 files passed/0 files failed, 209 discovered)',
-        }),
+        'run: 1739625600000-a3f1\nunit:      PASS  1 packages (9 files passed/0 files failed, 209 discovered)',
       );
     });
 
@@ -710,10 +668,7 @@ describe('resultToSummaryTransformer', () => {
       });
 
       expect(result).toBe(
-        WardSummaryStub({
-          value:
-            'run: 1739625600000-a3f1\nunit:      FAIL  1 packages (8 files passed/1 files failed, 209 discovered)  orchestrator (1)\n\n--- unit ---\norchestrator/src/index.test.ts\n  FAIL "broken test"\n    Expected true to be false',
-        }),
+        'run: 1739625600000-a3f1\nunit:      FAIL  1 packages (8 files passed/1 files failed, 209 discovered)  orchestrator (1)\n\n--- unit ---\norchestrator/src/index.test.ts\n  FAIL "broken test"\n    Expected true to be false',
       );
     });
 
@@ -745,10 +700,7 @@ describe('resultToSummaryTransformer', () => {
       });
 
       expect(result).toBe(
-        WardSummaryStub({
-          value:
-            'run: 1739625600000-a3f1\nunit:      FAIL  0 files run, 209 discovered  DISCOVERY MISMATCH\n\n--- unit ---\norchestrator\n  (crash) No tests found',
-        }),
+        'run: 1739625600000-a3f1\nunit:      FAIL  0 files run, 209 discovered  DISCOVERY MISMATCH\n\n--- unit ---\norchestrator\n  (crash) No tests found',
       );
     });
 
@@ -776,10 +728,7 @@ describe('resultToSummaryTransformer', () => {
       });
 
       expect(result).toBe(
-        WardSummaryStub({
-          value:
-            'run: 1739625600000-a3f1\nunit:      PASS  1 packages (5 files passed/0 files failed, 10 discovered)  DISCOVERY MISMATCH',
-        }),
+        'run: 1739625600000-a3f1\nunit:      PASS  1 packages (5 files passed/0 files failed, 10 discovered)  DISCOVERY MISMATCH',
       );
     });
 
@@ -808,10 +757,7 @@ describe('resultToSummaryTransformer', () => {
       });
 
       expect(result).toBe(
-        WardSummaryStub({
-          value:
-            'run: 1739625600000-a3f1\nlint:      PASS  1 packages (286 files passed/0 files failed, 285 discovered)  DISCOVERY MISMATCH\n  only processed: @types/error-cause.d.ts',
-        }),
+        'run: 1739625600000-a3f1\nlint:      PASS  1 packages (286 files passed/0 files failed, 285 discovered)  DISCOVERY MISMATCH\n  only processed: @types/error-cause.d.ts',
       );
     });
   });
@@ -846,10 +792,7 @@ describe('resultToSummaryTransformer', () => {
       });
 
       expect(result).toBe(
-        WardSummaryStub({
-          value:
-            'run: 1739625600000-a3f1\nlint:      PASS  2 packages (147 files passed/0 files failed)  4.2s',
-        }),
+        'run: 1739625600000-a3f1\nlint:      PASS  2 packages (147 files passed/0 files failed)  4.2s',
       );
     });
 
@@ -877,10 +820,7 @@ describe('resultToSummaryTransformer', () => {
       });
 
       expect(result).toBe(
-        WardSummaryStub({
-          value:
-            'run: 1739625600000-a3f1\nlint:      PASS  1 packages (10 files passed/0 files failed)',
-        }),
+        'run: 1739625600000-a3f1\nlint:      PASS  1 packages (10 files passed/0 files failed)',
       );
     });
 
@@ -909,10 +849,7 @@ describe('resultToSummaryTransformer', () => {
       });
 
       expect(result).toBe(
-        WardSummaryStub({
-          value:
-            'run: 1739625600000-a3f1\nunit:      FAIL  1 packages (8 files passed/1 files failed)  cli (1)  12.3s\n\n--- unit ---\ncli/src/index.test.ts\n  FAIL "broken"\n    Expected true to be false',
-        }),
+        'run: 1739625600000-a3f1\nunit:      FAIL  1 packages (8 files passed/1 files failed)  cli (1)  12.3s\n\n--- unit ---\ncli/src/index.test.ts\n  FAIL "broken"\n    Expected true to be false',
       );
     });
   });
@@ -929,7 +866,7 @@ describe('resultToSummaryTransformer', () => {
         cwd: AbsoluteFilePathStub({ value: '/p' }),
       });
 
-      expect(result).toBe(WardSummaryStub({ value: 'run: 1739625600000-a3f1  (23.4s)' }));
+      expect(result).toBe('run: 1739625600000-a3f1  (23.4s)');
     });
 
     it('EDGE: {wardResult: durationMs=0} => no duration on run line (backward compat)', () => {
@@ -943,7 +880,7 @@ describe('resultToSummaryTransformer', () => {
         cwd: AbsoluteFilePathStub({ value: '/p' }),
       });
 
-      expect(result).toBe(WardSummaryStub({ value: 'run: 1739625600000-a3f1' }));
+      expect(result).toBe('run: 1739625600000-a3f1');
     });
   });
 
@@ -994,10 +931,7 @@ describe('resultToSummaryTransformer', () => {
       });
 
       expect(result).toBe(
-        WardSummaryStub({
-          value:
-            'run: 1739625600000-a3f1\nunit:      PASS  1 packages (10 files passed/0 files failed)\n\n--- slow files (unit) ---\n  ranked on the slowest single test; the suite total and test count follow it, so a big file reads differently from a slow one\n  src/slow-flow.integration.test.ts  4.1s slowest test (2 tests, 8.1s total)\n  src/slow-widget.test.tsx  1.6s slowest test (3 tests, 2.4s total)',
-        }),
+        'run: 1739625600000-a3f1\nunit:      PASS  1 packages (10 files passed/0 files failed)\n\n--- slow files (unit) ---\n  ranked on the slowest single test; the suite total and test count follow it, so a big file reads differently from a slow one\n  src/slow-flow.integration.test.ts  4.1s slowest test (2 tests, 8.1s total)\n  src/slow-widget.test.tsx  1.6s slowest test (3 tests, 2.4s total)',
       );
     });
 
@@ -1040,10 +974,7 @@ describe('resultToSummaryTransformer', () => {
       });
 
       expect(result).toBe(
-        WardSummaryStub({
-          value:
-            'run: 1739625600000-a3f1\nunit:      PASS  1 packages (2 files passed/0 files failed)\n\n--- slow files (unit) ---\n  ranked on the slowest single test; the suite total and test count follow it, so a big file reads differently from a slow one\n  src/really-slow.test.ts  2.9s slowest test (2 tests, 2.9s total)',
-        }),
+        'run: 1739625600000-a3f1\nunit:      PASS  1 packages (2 files passed/0 files failed)\n\n--- slow files (unit) ---\n  ranked on the slowest single test; the suite total and test count follow it, so a big file reads differently from a slow one\n  src/really-slow.test.ts  2.9s slowest test (2 tests, 2.9s total)',
       );
     });
 
@@ -1086,10 +1017,7 @@ describe('resultToSummaryTransformer', () => {
       });
 
       expect(result).toBe(
-        WardSummaryStub({
-          value:
-            'run: 1739625600000-a3f1\nunit:      PASS  1 packages (5 files passed/0 files failed)',
-        }),
+        'run: 1739625600000-a3f1\nunit:      PASS  1 packages (5 files passed/0 files failed)',
       );
     });
 
@@ -1139,10 +1067,7 @@ describe('resultToSummaryTransformer', () => {
       });
 
       expect(result).toBe(
-        WardSummaryStub({
-          value:
-            'run: 1739625600000-a3f1\nunit:      PASS  2 packages (8 files passed/0 files failed)\n\n--- slow files (unit) ---\n  ranked on the slowest single test; the suite total and test count follow it, so a big file reads differently from a slow one\n  src/broker.test.ts  4.2s slowest test (1 tests, 4.2s total)\n  src/widget.test.tsx  1.4s slowest test (1 tests, 1.4s total)',
-        }),
+        'run: 1739625600000-a3f1\nunit:      PASS  2 packages (8 files passed/0 files failed)\n\n--- slow files (unit) ---\n  ranked on the slowest single test; the suite total and test count follow it, so a big file reads differently from a slow one\n  src/broker.test.ts  4.2s slowest test (1 tests, 4.2s total)\n  src/widget.test.tsx  1.4s slowest test (1 tests, 1.4s total)',
       );
     });
 
@@ -1177,10 +1102,7 @@ describe('resultToSummaryTransformer', () => {
       });
 
       expect(result).toBe(
-        WardSummaryStub({
-          value:
-            'run: 1739625600000-a3f1\nlint:      PASS  1 packages (5 files passed/0 files failed)\n\n--- slow files (lint) ---\n  ranked on rule time; wall also carries the TypeScript program build, charged to whichever file the parser reached first\n  src/big-widget.tsx  5.6s in rules (6.0s wall)',
-        }),
+        'run: 1739625600000-a3f1\nlint:      PASS  1 packages (5 files passed/0 files failed)\n\n--- slow files (lint) ---\n  ranked on rule time; wall also carries the TypeScript program build, charged to whichever file the parser reached first\n  src/big-widget.tsx  5.6s in rules (6.0s wall)',
       );
     });
 
@@ -1215,10 +1137,7 @@ describe('resultToSummaryTransformer', () => {
       });
 
       expect(result).toBe(
-        WardSummaryStub({
-          value:
-            'run: 1739625600000-a3f1\nlint:      PASS  1 packages (40 files passed/0 files failed)',
-        }),
+        'run: 1739625600000-a3f1\nlint:      PASS  1 packages (40 files passed/0 files failed)',
       );
     });
   });
@@ -1247,10 +1166,7 @@ describe('resultToSummaryTransformer', () => {
       });
 
       expect(result).toBe(
-        WardSummaryStub({
-          value:
-            'run: 1739625600000-a3f1\nunit:      PASS  1 packages (5 files passed/0 files failed)',
-        }),
+        'run: 1739625600000-a3f1\nunit:      PASS  1 packages (5 files passed/0 files failed)',
       );
     });
 
@@ -1278,10 +1194,7 @@ describe('resultToSummaryTransformer', () => {
       });
 
       expect(result).toBe(
-        WardSummaryStub({
-          value:
-            'run: 1739625600000-a3f1\nunit:      PASS  1 packages (5 files passed/0 files failed)\n\n--- open handles (unit) ---\n  these kept jest alive after the tests finished; --forceExit killed them\n  web  TCPSERVERWRAP\n      at Server.listen (src/startup/start-server.ts:12:5)',
-        }),
+        'run: 1739625600000-a3f1\nunit:      PASS  1 packages (5 files passed/0 files failed)\n\n--- open handles (unit) ---\n  these kept jest alive after the tests finished; --forceExit killed them\n  web  TCPSERVERWRAP\n      at Server.listen (src/startup/start-server.ts:12:5)',
       );
     });
 
@@ -1314,10 +1227,7 @@ describe('resultToSummaryTransformer', () => {
       });
 
       expect(result).toBe(
-        WardSummaryStub({
-          value:
-            'run: 1739625600000-a3f1\nunit:      PASS  1 packages (5 files passed/0 files failed)\n\n--- open handles (unit) ---\n  these kept jest alive after the tests finished; --forceExit killed them\n  web  FSREQCALLBACK\n      at first (a.ts:1:1)\n      at second (b.ts:2:2)',
-        }),
+        'run: 1739625600000-a3f1\nunit:      PASS  1 packages (5 files passed/0 files failed)\n\n--- open handles (unit) ---\n  these kept jest alive after the tests finished; --forceExit killed them\n  web  FSREQCALLBACK\n      at first (a.ts:1:1)\n      at second (b.ts:2:2)',
       );
     });
 
@@ -1345,10 +1255,7 @@ describe('resultToSummaryTransformer', () => {
       });
 
       expect(result).toBe(
-        WardSummaryStub({
-          value:
-            'run: 1739625600000-a3f1\nunit:      PASS  1 packages (5 files passed/0 files failed)\n\n--- open handles (unit) ---\n  these kept jest alive after the tests finished; --forceExit killed them\n  web  Timeout',
-        }),
+        'run: 1739625600000-a3f1\nunit:      PASS  1 packages (5 files passed/0 files failed)\n\n--- open handles (unit) ---\n  these kept jest alive after the tests finished; --forceExit killed them\n  web  Timeout',
       );
     });
 
@@ -1382,10 +1289,7 @@ describe('resultToSummaryTransformer', () => {
       });
 
       expect(result).toBe(
-        WardSummaryStub({
-          value:
-            'run: 1739625600000-a3f1\nunit:      PASS  2 packages (8 files passed/0 files failed)\n\n--- open handles (unit) ---\n  these kept jest alive after the tests finished; --forceExit killed them\n  web  TCPSERVERWRAP\n      at Server.listen (src/startup/start-server.ts:12:5)\n  cli  Timeout',
-        }),
+        'run: 1739625600000-a3f1\nunit:      PASS  2 packages (8 files passed/0 files failed)\n\n--- open handles (unit) ---\n  these kept jest alive after the tests finished; --forceExit killed them\n  web  TCPSERVERWRAP\n      at Server.listen (src/startup/start-server.ts:12:5)\n  cli  Timeout',
       );
     });
   });
