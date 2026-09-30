@@ -64,10 +64,10 @@
 import { z } from '#gateway/npm/zod';
 
 import { questNoteKindContract } from '../quest-note-kind/quest-note-kind-contract';
-import { siegeRunIdContract } from '../siege-run-id/siege-run-id-contract';
 import { workItemContract } from '../work-item/work-item-contract';
 import { flowContract } from '../flow/flow-contract';
 import { siegeInstanceContract } from '../siege-instance/siege-instance-contract';
+import { siegeRunContract } from '../siege-run/siege-run-contract';
 
 export const questNoteContract = z.object({
   id: z.string().min(1).brand<'QuestNoteId'>(),
@@ -103,7 +103,7 @@ export const questNoteContract = z.object({
         'every other kind. `.nullish()` because this contract also parses `quest.json` straight off ' +
         'disk, not only a fresh write.',
     ),
-  runId: siegeRunIdContract
+  runId: siegeRunContract.shape.id
     .nullish()
     .describe(
       'The run, within `instanceId`, that walked this path. Present exactly when `instanceId` is — ' +

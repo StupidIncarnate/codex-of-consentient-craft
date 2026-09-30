@@ -18,21 +18,21 @@
 
 import { readingCountContract } from '../../contracts/reading-count/reading-count-contract';
 import type { ReadingCount } from '../../contracts/reading-count/reading-count-contract';
-import { runIdContract } from '../../contracts/run-id/run-id-contract';
-import type { RunId } from '../../contracts/run-id/run-id-contract';
 import { evidenceFileStatics } from '../../statics/evidence-file/evidence-file-statics';
 import { instanceLifecycleStatics } from '../../statics/instance-lifecycle/instance-lifecycle-statics';
+import type { SiegeRun } from '@dungeonmaster/shared/contracts';
+import { siegeRunContract } from '@dungeonmaster/shared/contracts';
 
 export const runEvidenceComputeTransformer = ({
   entries,
 }: {
   entries: readonly string[];
-}): { runCount: ReadingCount; latestRunId: RunId | null; evidenceComplete: boolean } => {
-  const runIds: RunId[] = entries
+}): { runCount: ReadingCount; latestRunId: SiegeRun['id'] | null; evidenceComplete: boolean } => {
+  const runIds: SiegeRun['id'][] = entries
     .filter((entry) => entry.endsWith(evidenceFileStatics.extensions.transcript))
     .map((entry) => entry.slice(0, entry.length - evidenceFileStatics.extensions.transcript.length))
-    .filter((candidate) => runIdContract.safeParse(candidate).success)
-    .map((candidate) => runIdContract.parse(candidate));
+    .filter((candidate) => siegeRunContract.shape.id.safeParse(candidate).success)
+    .map((candidate) => siegeRunContract.shape.id.parse(candidate));
 
   if (runIds.length === 0) {
     return { runCount: readingCountContract.parse(0), latestRunId: null, evidenceComplete: true };

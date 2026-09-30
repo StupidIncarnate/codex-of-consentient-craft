@@ -44,7 +44,7 @@ import { PNG } from '#gateway/npm/pngjs';
 import { installTestbedCreateBroker } from '@dungeonmaster/testing';
 import { ContentTextStub } from '@dungeonmaster/shared/contracts/content-text/content-text.stub';
 import { ProcessIdStub } from '@dungeonmaster/shared/contracts/process-id/process-id.stub';
-import type { AbsoluteFilePath, ContentText, SiegeInstance } from '@dungeonmaster/shared/contracts';
+import type { AbsoluteFilePath, ContentText, SiegeInstance, SiegeRun } from '@dungeonmaster/shared/contracts';
 import { locationsStatics } from '@dungeonmaster/shared/statics';
 
 import { cleanupRunBroker } from '../../../src/brokers/cleanup/run/cleanup-run-broker';
@@ -84,7 +84,6 @@ import type { ProcessGroupId } from '../../../src/contracts/process-group-id/pro
 import type { Registry } from '../../../src/contracts/registry/registry-contract';
 import type { ResultsAnswer } from '../../../src/contracts/results-answer/results-answer-contract';
 import type { ResultsQuery } from '../../../src/contracts/results-query/results-query-contract';
-import type { RunId } from '../../../src/contracts/run-id/run-id-contract';
 import type { RunResult } from '../../../src/contracts/run-result/run-result-contract';
 import type { ServerLogWindow } from '../../../src/contracts/server-log-window/server-log-window-contract';
 import type { StatusAnswer } from '../../../src/contracts/status-answer/status-answer-contract';
@@ -186,8 +185,8 @@ export const evidenceTreeHarness = (): {
   staleInstanceId: () => SiegeInstance['id'];
   unknownInstanceId: () => SiegeInstance['id'];
   fakePgid: () => ProcessGroupId;
-  runOne: () => RunId;
-  runTwo: () => RunId;
+  runOne: () => SiegeRun['id'];
+  runTwo: () => SiegeRun['id'];
   killedInstanceEvidenceDir: () => AbsoluteFilePath;
   run1Shot1Path: () => AbsoluteFilePath;
   run2Shot1Path: () => AbsoluteFilePath;
@@ -311,7 +310,7 @@ export const evidenceTreeHarness = (): {
     step,
     text,
   }: {
-    runId: RunId;
+    runId: SiegeRun['id'];
     step: number;
     text: string;
   }): ContentText =>

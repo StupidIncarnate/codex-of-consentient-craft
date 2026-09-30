@@ -15,12 +15,11 @@
 
 import { join } from '#gateway/node/path';
 import { absoluteFilePathContract, fileNameContract } from '@dungeonmaster/shared/contracts';
-import type { AbsoluteFilePath } from '@dungeonmaster/shared/contracts';
+import type { AbsoluteFilePath, SiegeRun } from '@dungeonmaster/shared/contracts';
 
 import { readdirIfExists, statIfExists } from '#gateway/node/fs__promises';
 import { pruneAssetContract } from '../../../contracts/prune-asset/prune-asset-contract';
 import type { PruneAsset } from '../../../contracts/prune-asset/prune-asset-contract';
-import type { RunId } from '../../../contracts/run-id/run-id-contract';
 import { pruneAssetClassifyTransformer } from '../../../transformers/prune-asset-classify/prune-asset-classify-transformer';
 import { locationsRunPathsFindBroker } from '../../locations/run-paths-find/locations-run-paths-find-broker';
 
@@ -29,7 +28,7 @@ export const runShotsLayerBroker = async ({
   runId,
 }: {
   evidencePath: AbsoluteFilePath;
-  runId: RunId;
+  runId: SiegeRun['id'];
 }): Promise<readonly PruneAsset[]> => {
   const { shotsDir } = locationsRunPathsFindBroker({ evidencePath, runId });
   const entries = (await readdirIfExists(shotsDir)) ?? [];

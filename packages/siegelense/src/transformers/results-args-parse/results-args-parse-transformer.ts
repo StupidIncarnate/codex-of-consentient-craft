@@ -31,7 +31,7 @@
  * //   kind: 'network', where: null, fields: null, since: null, isJson: false }
  */
 
-import { arrayIndexContract, contentTextContract, siegeInstanceContract } from '@dungeonmaster/shared/contracts';
+import { arrayIndexContract, contentTextContract, siegeInstanceContract, siegeRunContract } from '@dungeonmaster/shared/contracts';
 
 import { httpMethodContract } from '../../contracts/http-method/http-method-contract';
 import { logLevelContract } from '../../contracts/log-level/log-level-contract';
@@ -42,7 +42,6 @@ import {
   resultsArgsContract,
   type ResultsArgs,
 } from '../../contracts/results-args/results-args-contract';
-import { runIdContract } from '../../contracts/run-id/run-id-contract';
 import { sinceMarkerContract } from '../../contracts/since-marker/since-marker-contract';
 import { stepIndexContract } from '../../contracts/step-index/step-index-contract';
 import { stepRangeContract } from '../../contracts/step-range/step-range-contract';
@@ -161,7 +160,7 @@ export const resultsArgsParseTransformer = ({ args }: { args: readonly string[] 
         ? null
         : flagContractParseTransformer({
             flag: RUN_FLAG,
-            parse: () => runIdContract.parse(runValue),
+            parse: () => siegeRunContract.shape.id.parse(runValue),
           }),
     step:
       stepValue === null

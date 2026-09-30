@@ -17,11 +17,10 @@
 
 import { compareArgsContract } from '../../contracts/compare-args/compare-args-contract';
 import type { CompareArgs } from '../../contracts/compare-args/compare-args-contract';
-import { runIdContract } from '../../contracts/run-id/run-id-contract';
 import { siegelenseOutputStatics } from '../../statics/siegelense-output/siegelense-output-statics';
 import { flagContractParseTransformer } from '../flag-contract-parse/flag-contract-parse-transformer';
 import { flagValueReadTransformer } from '../flag-value-read/flag-value-read-transformer';
-import { siegeInstanceContract } from '@dungeonmaster/shared/contracts';
+import { siegeInstanceContract, siegeRunContract } from '@dungeonmaster/shared/contracts';
 
 const INSTANCE_FLAG = '--instance';
 const RUN_A_FLAG = '--run-a';
@@ -96,11 +95,11 @@ export const compareArgsParseTransformer = ({ args }: { args: readonly string[] 
     }),
     runA: flagContractParseTransformer({
       flag: RUN_A_FLAG,
-      parse: () => runIdContract.parse(runAValue),
+      parse: () => siegeRunContract.shape.id.parse(runAValue),
     }),
     runB: flagContractParseTransformer({
       flag: RUN_B_FLAG,
-      parse: () => runIdContract.parse(runBValue),
+      parse: () => siegeRunContract.shape.id.parse(runBValue),
     }),
     isJson: args.includes(siegelenseOutputStatics.flags.json),
   });

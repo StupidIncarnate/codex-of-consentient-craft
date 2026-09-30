@@ -31,11 +31,11 @@ import { citationKindContract } from '../../../contracts/citation-kind/citation-
 import { citationResolutionContract } from '../../../contracts/citation-resolution/citation-resolution-contract';
 import type { CitationResolution } from '../../../contracts/citation-resolution/citation-resolution-contract';
 import type { RegistryEntry } from '../../../contracts/registry-entry/registry-entry-contract';
-import type { RunId } from '../../../contracts/run-id/run-id-contract';
 import { locationsCitationQuestFilePathFindBroker } from '../../locations/citation-quest-file-path-find/locations-citation-quest-file-path-find-broker';
 import { questRecordParseLayerBroker } from './quest-record-parse-layer-broker';
 import { verifiedPreludeLayerBroker } from './verified-prelude-layer-broker';
 import { walkedNoteLayerBroker } from './walked-note-layer-broker';
+import type { SiegeRun } from '@dungeonmaster/shared/contracts';
 
 // The gap that never closes with anything this package can write. It rides every resolution of a
 // quest-owned instance, and `prune`/`cleanup` carry it into their own answers, so a caller reading
@@ -63,7 +63,7 @@ export const citationResolveBroker = async ({
   runIds,
 }: {
   entry: RegistryEntry;
-  runIds: readonly RunId[];
+  runIds: readonly SiegeRun['id'][];
 }): Promise<CitationResolution> => {
   if (entry.questId === null) {
     return citationResolutionContract.parse({

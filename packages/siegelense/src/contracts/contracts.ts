@@ -6,7 +6,6 @@
  * import { ... } from '@dungeonmaster/siegelense/contracts';
  */
 
-export * from './run-id/run-id-contract';
 
 export * from './repo-local-path/repo-local-path-contract';
 

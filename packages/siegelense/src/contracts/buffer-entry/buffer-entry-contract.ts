@@ -14,14 +14,13 @@
 
 import { z } from '#gateway/npm/zod';
 
-import { contentTextContract } from '@dungeonmaster/shared/contracts';
+import { contentTextContract, siegeRunContract } from '@dungeonmaster/shared/contracts';
 
 import { epochMsContract } from '../epoch-ms/epoch-ms-contract';
-import { runIdContract } from '../run-id/run-id-contract';
 import { stepIndexContract } from '../step-index/step-index-contract';
 
 export const bufferEntryContract = z.object({
-  runId: runIdContract.nullable(),
+  runId: siegeRunContract.shape.id.nullable(),
   step: stepIndexContract.nullable(),
   atMs: epochMsContract,
   text: contentTextContract,

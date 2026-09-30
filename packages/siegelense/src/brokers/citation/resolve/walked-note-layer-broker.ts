@@ -18,13 +18,12 @@
  */
 
 import type { AbsoluteFilePath, Quest, SiegeInstance } from '@dungeonmaster/shared/contracts';
-import { contentTextContract, siegeInstanceContract } from '@dungeonmaster/shared/contracts';
+import { contentTextContract, siegeInstanceContract, siegeRunContract } from '@dungeonmaster/shared/contracts';
 import { questStatusMetadataStatics } from '@dungeonmaster/shared/statics';
 
 import { citationKindContract } from '../../../contracts/citation-kind/citation-kind-contract';
 import { citationReferenceContract } from '../../../contracts/citation-reference/citation-reference-contract';
 import type { CitationReference } from '../../../contracts/citation-reference/citation-reference-contract';
-import { runIdContract } from '../../../contracts/run-id/run-id-contract';
 import { citationStatics } from '../../../statics/citation/citation-statics';
 
 const WALKED_KIND = citationKindContract.parse('walked-note');
@@ -53,7 +52,7 @@ export const walkedNoteLayerBroker = ({
       return [];
     }
 
-    const noteRun = runIdContract.safeParse(String(note.runId));
+    const noteRun = siegeRunContract.shape.id.safeParse(String(note.runId));
     const runLabel = noteRun.success ? String(noteRun.data) : 'every run';
 
     return [

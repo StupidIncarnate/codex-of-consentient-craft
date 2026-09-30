@@ -33,16 +33,14 @@
  * // Returns the path set above, or null before the instance's first capture
  */
 
-import { timeoutMsContract } from '@dungeonmaster/shared/contracts';
-import type { AbsoluteFilePath, TimeoutMs } from '@dungeonmaster/shared/contracts';
+import { timeoutMsContract, siegeRunContract } from '@dungeonmaster/shared/contracts';
+import type { AbsoluteFilePath, TimeoutMs, SiegeRun } from '@dungeonmaster/shared/contracts';
 
 import { epochMsContract } from '../../contracts/epoch-ms/epoch-ms-contract';
 import type { EpochMs } from '../../contracts/epoch-ms/epoch-ms-contract';
 import type { LaneSession } from '../../contracts/lane-session/lane-session-contract';
 import { readingCountContract } from '../../contracts/reading-count/reading-count-contract';
 import type { ReadingCount } from '../../contracts/reading-count/reading-count-contract';
-import { runIdContract } from '../../contracts/run-id/run-id-contract';
-import type { RunId } from '../../contracts/run-id/run-id-contract';
 import { driverStatics } from '../../statics/driver/driver-statics';
 import { instanceLifecycleStatics } from '../../statics/instance-lifecycle/instance-lifecycle-statics';
 
@@ -66,9 +64,9 @@ export const driverSessionState = {
 
   idleTimeoutMs: (): TimeoutMs => idleTimeoutMsValue,
 
-  nextRunId: (): RunId => {
+  nextRunId: (): SiegeRun['id'] => {
     runCounter += 1;
-    return runIdContract.parse(`${instanceLifecycleStatics.ids.runPrefix}${String(runCounter)}`);
+    return siegeRunContract.shape.id.parse(`${instanceLifecycleStatics.ids.runPrefix}${String(runCounter)}`);
   },
 
   touch: (): void => {

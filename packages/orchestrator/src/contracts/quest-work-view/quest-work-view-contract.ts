@@ -38,7 +38,7 @@
  * off-map families — three of the four kinds, silently.
  */
 
-import { contentTextContract, filePathContract, operationItemContract, outcomeTypeContract, packageNameContract, pieceIdContract, qaChecklistItemContract, qaChecklistKindContract, qaWalkPathContract, questContract, questNoteContract, repoRelativePathContract, siegeRunIdContract, stepNameContract, unitMarkContract, unitObservationContract, unitObservationFieldsContract, wardResultContract, workItemContract, flowNodeContract, flowContract, flowEdgeContract, flowRecipeContract, siegeInstanceContract } from '@dungeonmaster/shared/contracts';
+import { contentTextContract, filePathContract, operationItemContract, outcomeTypeContract, packageNameContract, pieceIdContract, qaChecklistItemContract, qaChecklistKindContract, qaWalkPathContract, questContract, questNoteContract, repoRelativePathContract, stepNameContract, unitMarkContract, unitObservationContract, unitObservationFieldsContract, wardResultContract, workItemContract, flowNodeContract, flowContract, flowEdgeContract, flowRecipeContract, siegeInstanceContract, siegeRunContract } from '@dungeonmaster/shared/contracts';
 import { z } from '#gateway/npm/zod';
 
 import { agentFamilyNameContract } from '../agent-family-name/agent-family-name-contract';
@@ -101,7 +101,7 @@ const questWorkPiece = z.object({
 // row, so a walker can see the gap.
 const questWorkRecipe = z.object({
   name: flowRecipeContract.shape.id,
-  provenRunId: siegeRunIdContract.nullable(),
+  provenRunId: siegeRunContract.shape.id.nullable(),
 });
 
 // `scope` is read off the commit BODY's structured `work items: <ids>` line and is `null` when the
@@ -146,7 +146,7 @@ const questWorkBaseline = z.object({
   pieceId: pieceIdContract,
   workItemId: workItemContract.shape.id,
   instanceId: siegeInstanceContract.shape.id,
-  runId: siegeRunIdContract,
+  runId: siegeRunContract.shape.id,
 });
 
 const questWorkTruncation = z.object({

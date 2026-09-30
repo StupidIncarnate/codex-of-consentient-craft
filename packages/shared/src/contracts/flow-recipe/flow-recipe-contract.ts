@@ -16,13 +16,13 @@
 
 import { z } from '#gateway/npm/zod';
 
-import { siegeRunIdContract } from '../siege-run-id/siege-run-id-contract';
 import { siegeInstanceContract } from '../siege-instance/siege-instance-contract';
+import { siegeRunContract } from '../siege-run/siege-run-contract';
 
 export const flowRecipeContract = z.object({
   id: z.string().regex(/^[a-z0-9]+(?:-[a-z0-9]+)*$/u, 'Recipe name must be kebab-case …').brand<'FlowRecipeId'>(),
   instanceId: siegeInstanceContract.shape.id,
-  runId: siegeRunIdContract,
+  runId: siegeRunContract.shape.id,
 });
 
 export type FlowRecipe = z.infer<typeof flowRecipeContract>;

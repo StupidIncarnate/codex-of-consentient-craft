@@ -25,15 +25,13 @@
  * // Returns the ContentText JSON lines tagged run_2, step 7
  */
 
-import type { ContentText } from '@dungeonmaster/shared/contracts';
+import type { ContentText, AbsoluteFilePath, SiegeRun } from '@dungeonmaster/shared/contracts';
 
 import { readFileIfExists } from '#gateway/node/fs__promises';
 import { bufferEntryContract } from '../../../contracts/buffer-entry/buffer-entry-contract';
 import type { BufferEntry } from '../../../contracts/buffer-entry/buffer-entry-contract';
-import type { AbsoluteFilePath } from '@dungeonmaster/shared/contracts';
 import { resultRowContract } from '../../../contracts/result-row/result-row-contract';
 import type { ResultWhere } from '../../../contracts/result-where/result-where-contract';
-import type { RunId } from '../../../contracts/run-id/run-id-contract';
 import type { StepIndex } from '../../../contracts/step-index/step-index-contract';
 import { resultsStatics } from '../../../statics/results/results-statics';
 import { stepRangeExpandTransformer } from '../../../transformers/step-range-expand/step-range-expand-transformer';
@@ -46,7 +44,7 @@ export const bufferReadLayerBroker = async ({
   where,
 }: {
   bufferPath: AbsoluteFilePath;
-  runId: RunId | null;
+  runId: SiegeRun['id'] | null;
   sinceBoot: boolean;
   step: StepIndex | null;
   where: ResultWhere | null;

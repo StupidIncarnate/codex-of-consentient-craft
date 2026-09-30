@@ -12,7 +12,7 @@
  * proxy.stageRunSucceeds({ runId });
  */
 
-import type { AbsoluteFilePath } from '@dungeonmaster/shared/contracts';
+import type { AbsoluteFilePath, SiegeRun } from '@dungeonmaster/shared/contracts';
 
 import type { LaneSession } from '../../../contracts/lane-session/lane-session-contract';
 import { LaneSessionStub } from '../../../contracts/lane-session/lane-session.stub';
@@ -20,7 +20,6 @@ import { KillResultStub } from '../../../contracts/kill-result/kill-result.stub'
 import { ProcessGroupIdStub } from '../../../contracts/process-group-id/process-group-id.stub';
 import type { ReadingCount } from '../../../contracts/reading-count/reading-count-contract';
 import { RegistryStub } from '../../../contracts/registry/registry.stub';
-import type { RunId } from '../../../contracts/run-id/run-id-contract';
 import { RunResultStub } from '../../../contracts/run-result/run-result.stub';
 import { instanceReleaseBrokerProxy } from '../../instance/release/instance-release-broker.proxy';
 import { laneTeardownBrokerProxy } from '../../lane/teardown/lane-teardown-broker.proxy';
@@ -30,7 +29,7 @@ const KILL_LANE_PGID = ProcessGroupIdStub({ value: 4821 });
 
 export const driverHandleRequestBrokerProxy = (): {
   laneForRun: () => LaneSession;
-  stageRunSucceeds: (params: { runId: RunId }) => void;
+  stageRunSucceeds: (params: { runId: SiegeRun['id'] }) => void;
   laneForKill: (params: { homePath: AbsoluteFilePath }) => LaneSession;
   stageKillSucceeds: (params: { homePath: AbsoluteFilePath; registryJson: string }) => void;
   getReleasedRegistry: () => ReturnType<typeof RegistryStub>;
@@ -61,7 +60,7 @@ export const driverHandleRequestBrokerProxy = (): {
     lastShotPath: runExecuteProxy.lastShotPath,
     setLastShotPath: runExecuteProxy.setLastShotPath,
 
-    stageRunSucceeds: ({ runId }: { runId: RunId }): void => {
+    stageRunSucceeds: ({ runId }: { runId: SiegeRun['id'] }): void => {
       runExecuteProxy.stagePaths({ runId });
     },
 

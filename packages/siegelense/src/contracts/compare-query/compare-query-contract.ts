@@ -14,14 +14,13 @@
 
 import { z } from '#gateway/npm/zod';
 
-import { runIdContract } from '../run-id/run-id-contract';
-import { siegeInstanceContract } from '@dungeonmaster/shared/contracts';
+import { siegeInstanceContract, siegeRunContract } from '@dungeonmaster/shared/contracts';
 
 export const compareQueryContract = z
   .object({
     instanceId: siegeInstanceContract.shape.id,
-    runA: runIdContract,
-    runB: runIdContract,
+    runA: siegeRunContract.shape.id,
+    runB: siegeRunContract.shape.id,
   })
   .strict();
 

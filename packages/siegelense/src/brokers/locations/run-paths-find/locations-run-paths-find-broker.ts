@@ -22,15 +22,15 @@
 import { join } from '#gateway/node/path';
 import { locationsStatics } from '@dungeonmaster/shared/statics';
 import { absoluteFilePathContract, type AbsoluteFilePath } from '@dungeonmaster/shared/contracts';
-import type { RunId } from '../../../contracts/run-id/run-id-contract';
 import { evidenceFileStatics } from '../../../statics/evidence-file/evidence-file-statics';
+import type { SiegeRun } from '@dungeonmaster/shared/contracts';
 
 export const locationsRunPathsFindBroker = ({
   evidencePath,
   runId,
 }: {
   evidencePath: AbsoluteFilePath;
-  runId: RunId;
+  runId: SiegeRun['id'];
 }): {
   transcript: AbsoluteFilePath;
   storedReturn: AbsoluteFilePath;

@@ -15,16 +15,14 @@
  */
 
 import { join } from '#gateway/node/path';
-import { absoluteFilePathContract, contentTextContract } from '@dungeonmaster/shared/contracts';
-import type { AbsoluteFilePath, SiegeInstance } from '@dungeonmaster/shared/contracts';
+import { absoluteFilePathContract, contentTextContract, siegeRunContract } from '@dungeonmaster/shared/contracts';
+import type { AbsoluteFilePath, SiegeInstance, SiegeRun } from '@dungeonmaster/shared/contracts';
 
 import { readFile, readdirIfExists } from '#gateway/node/fs__promises';
 import { isNativeError } from '#gateway/node/util__types';
 import { citationKindContract } from '../../../contracts/citation-kind/citation-kind-contract';
 import { citationReferenceContract } from '../../../contracts/citation-reference/citation-reference-contract';
 import type { CitationReference } from '../../../contracts/citation-reference/citation-reference-contract';
-import { runIdContract } from '../../../contracts/run-id/run-id-contract';
-import type { RunId } from '../../../contracts/run-id/run-id-contract';
 import { citationStatics } from '../../../statics/citation/citation-statics';
 import { locationsCitationQuestPlansPathFindBroker } from '../../locations/citation-quest-plans-path-find/locations-citation-quest-plans-path-find-broker';
 
@@ -37,7 +35,7 @@ export const verifiedPreludeLayerBroker = async ({
 }: {
   instanceId: SiegeInstance['id'];
   worktreePath: AbsoluteFilePath;
-  runIds: readonly RunId[];
+  runIds: readonly SiegeRun['id'][];
 }): Promise<readonly CitationReference[]> => {
   const plansDir = locationsCitationQuestPlansPathFindBroker({ worktreePath });
   const topEntries = (await readdirIfExists(plansDir)) ?? [];
@@ -108,7 +106,7 @@ export const verifiedPreludeLayerBroker = async ({
         citationReferenceContract.parse({
           kind: PRELUDE_KIND,
           instanceId,
-          runId: citedRun === undefined ? null : runIdContract.parse(String(citedRun)),
+          runId: citedRun === undefined ? null : siegeRunContract.shape.id.parse(String(citedRun)),
           citingFile: filePath,
           why: contentTextContract.parse(
             `${citedRun === undefined ? String(instanceId) : String(citedRun)} cited by a ` +

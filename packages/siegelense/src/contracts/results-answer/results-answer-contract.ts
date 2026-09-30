@@ -20,13 +20,12 @@
 
 import { z } from '#gateway/npm/zod';
 
-import { contentTextContract, siegeInstanceContract } from '@dungeonmaster/shared/contracts';
+import { contentTextContract, siegeInstanceContract, siegeRunContract } from '@dungeonmaster/shared/contracts';
 
 import { epochMsContract } from '../epoch-ms/epoch-ms-contract';
 import { instanceStateContract } from '../instance-state/instance-state-contract';
 import { readingCountContract } from '../reading-count/reading-count-contract';
 import { resultKindContract } from '../result-kind/result-kind-contract';
-import { runIdContract } from '../run-id/run-id-contract';
 import { runResultContract } from '../run-result/run-result-contract';
 import { stepIndexContract } from '../step-index/step-index-contract';
 import { stepVerbContract } from '../step-verb/step-verb-contract';
@@ -34,7 +33,7 @@ import { stepVerbContract } from '../step-verb/step-verb-contract';
 export const resultsAnswerContract = z.object({
   instanceId: siegeInstanceContract.shape.id,
   instanceState: instanceStateContract,
-  runId: runIdContract.nullable(),
+  runId: siegeRunContract.shape.id.nullable(),
   kind: resultKindContract.nullable(),
   step: stepIndexContract.nullable(),
   verb: stepVerbContract.nullable(),

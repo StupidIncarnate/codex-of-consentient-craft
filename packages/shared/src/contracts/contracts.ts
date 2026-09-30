@@ -355,7 +355,6 @@ export * from './unit-observation/unit-observation-contract';
 // none of which close a unit)
 
 
-export * from './siege-run-id/siege-run-id-contract';
 
 export * from './quest-note-kind/quest-note-kind-contract';
 
@@ -560,3 +559,4 @@ export * from './owner-index-usage/owner-index-usage-contract';
 export * from './schema-object-entry/schema-object-entry-contract';
 export * from './agent/agent-contract';
 export * from './siege-instance/siege-instance-contract';
+export * from './siege-run/siege-run-contract';

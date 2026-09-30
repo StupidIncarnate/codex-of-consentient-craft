@@ -42,7 +42,6 @@ import { resultsAnswerContract } from '../../../contracts/results-answer/results
 import type { ResultsAnswer } from '../../../contracts/results-answer/results-answer-contract';
 import type { ResultsQuery } from '../../../contracts/results-query/results-query-contract';
 import { runResultContract } from '../../../contracts/run-result/run-result-contract';
-import type { RunId } from '../../../contracts/run-id/run-id-contract';
 import { RunIdRequiredError } from '../../../errors/run-id-required/run-id-required-error';
 import { UnknownResultKindError } from '../../../errors/unknown-result-kind/unknown-result-kind-error';
 import { resultsStatics } from '../../../statics/results/results-statics';
@@ -57,6 +56,7 @@ import { runListLayerBroker } from './run-list-layer-broker';
 import { runMissingCheckLayerBroker } from './run-missing-check-layer-broker';
 import { serverWindowReadLayerBroker } from './server-window-read-layer-broker';
 import { transcriptReadLayerBroker } from './transcript-read-layer-broker';
+import type { SiegeRun } from '@dungeonmaster/shared/contracts';
 
 // Compared against below rather than a bare 'server' literal — resultsStatics.kinds.all's own
 // third entry is one of nine role-bearing package names (packages/server) the repo-wide
@@ -131,7 +131,7 @@ export const resultsReadBroker = async ({
     throw new RunIdRequiredError({ instanceId: query.instanceId, instanceState: state, runCount });
   }
 
-  const effectiveRunId: RunId | null =
+  const effectiveRunId: SiegeRun['id'] | null =
     query.runId === null ? (sinceBoot ? null : latestRunId) : query.runId;
 
   if (query.kind === 'console' || query.kind === 'network' || query.kind === 'ws') {

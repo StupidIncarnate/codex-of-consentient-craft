@@ -61,14 +61,13 @@
 
 import { ensureDir } from '#gateway/node/fs__promises';
 import { stderr } from '#gateway/node/process';
-import type { AbsoluteFilePath, ContentText, SiegeInstance } from '@dungeonmaster/shared/contracts';
+import type { AbsoluteFilePath, ContentText, SiegeInstance, SiegeRun } from '@dungeonmaster/shared/contracts';
 
 import { bufferEntryContract } from '../../../contracts/buffer-entry/buffer-entry-contract';
 import { epochMsContract } from '../../../contracts/epoch-ms/epoch-ms-contract';
 import type { LaneSession } from '../../../contracts/lane-session/lane-session-contract';
 import { readingCountContract } from '../../../contracts/reading-count/reading-count-contract';
 import type { ReadingCount } from '../../../contracts/reading-count/reading-count-contract';
-import type { RunId } from '../../../contracts/run-id/run-id-contract';
 import { runResultContract } from '../../../contracts/run-result/run-result-contract';
 import type { RunResult } from '../../../contracts/run-result/run-result-contract';
 import { snapshotBoundaryContract } from '../../../contracts/snapshot-boundary/snapshot-boundary-contract';
@@ -110,7 +109,7 @@ export const runExecuteBroker = async ({
 }: {
   lane: LaneSession;
   instanceId: SiegeInstance['id'];
-  runId: RunId;
+  runId: SiegeRun['id'];
   steps: readonly Step[];
   stopOn: StopOn;
   flushCursor: () => {

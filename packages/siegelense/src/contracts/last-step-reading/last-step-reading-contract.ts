@@ -12,12 +12,12 @@
 
 import { z } from '#gateway/npm/zod';
 
-import { runIdContract } from '../run-id/run-id-contract';
 import { stepIndexContract } from '../step-index/step-index-contract';
 import { stepVerbContract } from '../step-verb/step-verb-contract';
+import { siegeRunContract } from '@dungeonmaster/shared/contracts';
 
 export const lastStepReadingContract = z.object({
-  run: runIdContract,
+  run: siegeRunContract.shape.id,
   step: stepIndexContract,
   verb: stepVerbContract,
 });

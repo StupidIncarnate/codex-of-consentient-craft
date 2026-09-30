@@ -14,20 +14,19 @@
  */
 
 import { join } from '#gateway/node/path';
-import { absoluteFilePathContract, fileNameContract } from '@dungeonmaster/shared/contracts';
+import { absoluteFilePathContract, fileNameContract, siegeRunContract } from '@dungeonmaster/shared/contracts';
 
 import { readdirIfExists, statIfExists } from '#gateway/node/fs__promises';
 import { pruneAssetContract } from '../../../contracts/prune-asset/prune-asset-contract';
 import type { PruneAsset } from '../../../contracts/prune-asset/prune-asset-contract';
 import { pruneAssetKindContract } from '../../../contracts/prune-asset-kind/prune-asset-kind-contract';
 import type { RegistryEntry } from '../../../contracts/registry-entry/registry-entry-contract';
-import { runIdContract } from '../../../contracts/run-id/run-id-contract';
-import type { RunId } from '../../../contracts/run-id/run-id-contract';
 import { evidenceFileStatics } from '../../../statics/evidence-file/evidence-file-statics';
 import { pruneAssetClassifyTransformer } from '../../../transformers/prune-asset-classify/prune-asset-classify-transformer';
 import { locationsInstanceEvidencePathFindBroker } from '../../locations/instance-evidence-path-find/locations-instance-evidence-path-find-broker';
 import { locationsPruneAssetPathsFindBroker } from '../../locations/prune-asset-paths-find/locations-prune-asset-paths-find-broker';
 import { runShotsLayerBroker } from './run-shots-layer-broker';
+import type { SiegeRun } from '@dungeonmaster/shared/contracts';
 
 // A run's files are `run_2.jsonl` and `run_2.json`; its shots live in a directory named `run_2`
 // with no extension at all. Stripping either suffix and re-parsing is what makes all three forms
@@ -43,7 +42,7 @@ export const pruneAssetsListBroker = async ({
   entry,
 }: {
   entry: RegistryEntry;
-}): Promise<{ assets: readonly PruneAsset[]; runIds: readonly RunId[] }> => {
+}): Promise<{ assets: readonly PruneAsset[]; runIds: readonly SiegeRun['id'][] }> => {
   const evidencePath = locationsInstanceEvidencePathFindBroker({
     instanceId: entry.id,
     guildId: entry.guildId,
@@ -91,11 +90,11 @@ export const pruneAssetsListBroker = async ({
 
   const runIdValues = new Set(
     runsEntries.flatMap((fileName) => {
-      const parsed = runIdContract.safeParse(fileName.replace(RUN_FILE_SUFFIX, ''));
+      const parsed = siegeRunContract.shape.id.safeParse(fileName.replace(RUN_FILE_SUFFIX, ''));
       return parsed.success ? [String(parsed.data)] : [];
     }),
   );
-  const runIds = [...runIdValues].sort().map((value) => runIdContract.parse(value));
+  const runIds = [...runIdValues].sort().map((value) => siegeRunContract.shape.id.parse(value));
 
   const runFileRows = await Promise.all(
     runsEntries.map(async (entryName) => {

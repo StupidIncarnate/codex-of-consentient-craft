@@ -14,17 +14,17 @@
  * // Returns 'run_4:start' as a branded SnapshotName
  */
 
-import type { RunId } from '../../contracts/run-id/run-id-contract';
 import type { SnapshotBoundary } from '../../contracts/snapshot-boundary/snapshot-boundary-contract';
 import { snapshotNameContract } from '../../contracts/snapshot-name/snapshot-name-contract';
 import type { SnapshotName } from '../../contracts/snapshot-name/snapshot-name-contract';
 import { snapshotStatics } from '../../statics/snapshot/snapshot-statics';
+import type { SiegeRun } from '@dungeonmaster/shared/contracts';
 
 export const snapshotAutoNameTransformer = ({
   runId,
   boundary,
 }: {
-  runId: RunId;
+  runId: SiegeRun['id'];
   boundary: SnapshotBoundary;
 }): SnapshotName => {
   const suffix =

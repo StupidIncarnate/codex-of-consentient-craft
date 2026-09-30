@@ -19,18 +19,17 @@
 import { join } from '#gateway/node/path';
 import { locationsStatics } from '@dungeonmaster/shared/statics';
 import { absoluteFilePathContract } from '@dungeonmaster/shared/contracts';
-import type { AbsoluteFilePath } from '@dungeonmaster/shared/contracts';
+import type { AbsoluteFilePath, SiegeRun } from '@dungeonmaster/shared/contracts';
 
 import { readdirIfExists } from '#gateway/node/fs__promises';
 import type { ReadingCount } from '../../../contracts/reading-count/reading-count-contract';
-import type { RunId } from '../../../contracts/run-id/run-id-contract';
 import { runEvidenceComputeTransformer } from '../../../transformers/run-evidence-compute/run-evidence-compute-transformer';
 
 export const runListLayerBroker = async ({
   evidencePath,
 }: {
   evidencePath: AbsoluteFilePath;
-}): Promise<{ runCount: ReadingCount; latestRunId: RunId | null; evidenceComplete: boolean }> => {
+}): Promise<{ runCount: ReadingCount; latestRunId: SiegeRun['id'] | null; evidenceComplete: boolean }> => {
   const runsDir = absoluteFilePathContract.parse(
     join(evidencePath, locationsStatics.siegelense.runsDir),
   );

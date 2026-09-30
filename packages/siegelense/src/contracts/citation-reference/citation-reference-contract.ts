@@ -20,15 +20,14 @@
 
 import { z } from '#gateway/npm/zod';
 
-import { absoluteFilePathContract, contentTextContract, siegeInstanceContract } from '@dungeonmaster/shared/contracts';
+import { absoluteFilePathContract, contentTextContract, siegeInstanceContract, siegeRunContract } from '@dungeonmaster/shared/contracts';
 
 import { citationKindContract } from '../citation-kind/citation-kind-contract';
-import { runIdContract } from '../run-id/run-id-contract';
 
 export const citationReferenceContract = z.object({
   kind: citationKindContract,
   instanceId: siegeInstanceContract.shape.id,
-  runId: runIdContract.nullable(),
+  runId: siegeRunContract.shape.id.nullable(),
   citingFile: absoluteFilePathContract,
   why: contentTextContract,
 });

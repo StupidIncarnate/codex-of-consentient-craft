@@ -22,7 +22,7 @@
  * // Returns a DriverResponse — ok:true with an empty payload for a ping
  */
 
-import type { AbsoluteFilePath, SiegeInstance } from '@dungeonmaster/shared/contracts';
+import type { AbsoluteFilePath, SiegeInstance, SiegeRun } from '@dungeonmaster/shared/contracts';
 
 import { driverResponseContract } from '../../../contracts/driver-response/driver-response-contract';
 import type { DriverResponse } from '../../../contracts/driver-response/driver-response-contract';
@@ -31,7 +31,6 @@ import type { LaneSession } from '../../../contracts/lane-session/lane-session-c
 import type { ReadingCount } from '../../../contracts/reading-count/reading-count-contract';
 import { runRequestContract } from '../../../contracts/run-request/run-request-contract';
 import type { RunRequest } from '../../../contracts/run-request/run-request-contract';
-import type { RunId } from '../../../contracts/run-id/run-id-contract';
 import { instanceReleaseBroker } from '../../instance/release/instance-release-broker';
 import { laneTeardownBroker } from '../../lane/teardown/lane-teardown-broker';
 import { runExecuteBroker } from '../../run/execute/run-execute-broker';
@@ -51,7 +50,7 @@ export const driverHandleRequestBroker = async ({
   request: DriverRequest;
   instanceId: SiegeInstance['id'];
   lane: LaneSession;
-  mintRunId: () => RunId;
+  mintRunId: () => SiegeRun['id'];
   flushCursor: () => {
     consoleLines: ReadingCount;
     networkLines: ReadingCount;

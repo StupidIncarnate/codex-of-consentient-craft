@@ -7,19 +7,13 @@ import { absoluteFilePathContract } from '@dungeonmaster/shared/contracts';
 import { AbsoluteFilePathStub } from '@dungeonmaster/shared/contracts/absolute-file-path/absolute-file-path.stub';
 import { ContentTextStub } from '@dungeonmaster/shared/contracts/content-text/content-text.stub';
 import { FilePathStub } from '@dungeonmaster/shared/contracts/file-path/file-path.stub';
-import type {
-  AbsoluteFilePath,
-  ContentText,
-  FilePath,
-  Guild,
-} from '@dungeonmaster/shared/contracts';
+import type { AbsoluteFilePath, ContentText, FilePath, Guild, SiegeRun } from '@dungeonmaster/shared/contracts';
 
 import { BufferLengthsStub } from '../../../contracts/buffer-lengths/buffer-lengths.stub';
 import { LaneSessionStub } from '../../../contracts/lane-session/lane-session.stub';
 import type { LaneSession } from '../../../contracts/lane-session/lane-session-contract';
 import { ReadingCountStub } from '../../../contracts/reading-count/reading-count.stub';
 import type { ReadingCount } from '../../../contracts/reading-count/reading-count-contract';
-import type { RunId } from '../../../contracts/run-id/run-id-contract';
 import { SnapshotRecordStub } from '../../../contracts/snapshot-record/snapshot-record.stub';
 import { bufferAppendBrokerProxy } from '../../buffer/append/buffer-append-broker.proxy';
 import { snapshotCaptureBroker } from '../../snapshot/capture/snapshot-capture-broker';
@@ -88,7 +82,7 @@ const REPO_LOCAL_EVIDENCE_PATH = AbsoluteFilePathStub({
 
 export const runExecuteBrokerProxy = (): {
   evidencePath: () => AbsoluteFilePath;
-  stagePaths: (params: { runId: RunId; evidencePath?: AbsoluteFilePath }) => {
+  stagePaths: (params: { runId: SiegeRun['id']; evidencePath?: AbsoluteFilePath }) => {
     transcript: AbsoluteFilePath;
     storedReturn: AbsoluteFilePath;
     shotsDir: AbsoluteFilePath;
@@ -237,7 +231,7 @@ export const runExecuteBrokerProxy = (): {
       runId,
       evidencePath = EVIDENCE_PATH,
     }: {
-      runId: RunId;
+      runId: SiegeRun['id'];
       evidencePath?: AbsoluteFilePath;
     }): {
       transcript: AbsoluteFilePath;
