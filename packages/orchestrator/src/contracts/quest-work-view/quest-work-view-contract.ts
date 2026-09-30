@@ -42,7 +42,6 @@ import { operationItemContract, outcomeTypeContract, pieceIdContract, qaChecklis
 import { z } from '#gateway/npm/zod';
 
 import { questWorkInstanceContract } from '../quest-work-instance/quest-work-instance-contract';
-import { recipeIdContract } from '../recipe-id/recipe-id-contract';
 import { workPlanPieceContract } from '../work-plan-piece/work-plan-piece-contract';
 
 // `flowId` is SINGULAR and nullable, not the operation item's `flowIds` array. Every fan-out mints
@@ -87,7 +86,7 @@ const questWorkPiece = z.object({
   pieceId: pieceIdContract,
   step: z.string().min(1).brand<'QuestWorkPieceStep'>(),
   context: workPlanPieceContract.shape.context,
-  recipeId: recipeIdContract.nullable(),
+  recipeId: z.string().min(1).regex(/^[a-z][a-z0-9]*(-[a-z0-9]+)*$/u).brand<'QuestWorkPieceRecipeId'>().nullable(),
   baselineFor: pieceIdContract.nullable(),
   contextUnitIds: z.array(qaChecklistItemContract.shape.id).default([]),
   payload: z.record(z.string().brand<'QuestWorkPiecePayloadKey'>(), z.unknown()),

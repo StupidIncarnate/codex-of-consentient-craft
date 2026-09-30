@@ -52,7 +52,6 @@
 import { pieceIdContract, qaChecklistItemContract } from '@dungeonmaster/shared/contracts';
 import { z } from '#gateway/npm/zod';
 
-import { recipeIdContract } from '../recipe-id/recipe-id-contract';
 
 export const workPlanPieceContract = z.object({
   id: pieceIdContract,
@@ -76,7 +75,7 @@ export const workPlanPieceContract = z.object({
     .array(qaChecklistItemContract.shape.id)
     .default([])
     .describe('The units this piece must READ and build against, and may NOT mark.'),
-  recipeId: recipeIdContract.optional(),
+  recipeId: z.string().min(1).regex(/^[a-z][a-z0-9]*(-[a-z0-9]+)*$/u).brand<'WorkPlanPieceRecipeId'>().optional(),
   baselineFor: pieceIdContract
     .optional()
     .describe('Adversarial pieces only — the happy-walk piece this attack measures against.'),
