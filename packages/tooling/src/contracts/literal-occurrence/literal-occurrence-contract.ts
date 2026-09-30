@@ -9,8 +9,8 @@ import { z } from '#gateway/npm/zod';
 
 export const literalOccurrenceContract = z.object({
   filePath: z.string().brand<'LiteralOccurrenceFilePath'>(),
-  line: z.number().int().positive().brand<'LineNumber'>(),
-  column: z.number().int().nonnegative().brand<'ColumnNumber'>(),
+  line: z.number().int().positive().brand<'LiteralOccurrenceLine'>(),
+  column: z.number().int().nonnegative().brand<'LiteralOccurrenceColumn'>(),
 }).brand<'LiteralOccurrence'>();
 
 export type LiteralOccurrence = z.infer<typeof literalOccurrenceContract>;

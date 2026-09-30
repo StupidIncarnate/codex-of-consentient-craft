@@ -18,7 +18,7 @@ export const duplicateLiteralReportContract = z.object({
     .number()
     .int()
     .min(occurrenceCountStatics.minimumForDuplicate)
-    .brand<'OccurrenceCount'>(),
+    .brand<'DuplicateLiteralReportCount'>(),
 }).brand<'DuplicateLiteralReport'>();
 
 export type DuplicateLiteralReport = z.infer<typeof duplicateLiteralReportContract>;

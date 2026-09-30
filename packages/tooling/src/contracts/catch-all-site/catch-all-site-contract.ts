@@ -9,9 +9,9 @@
 import { z } from '#gateway/npm/zod';
 
 export const catchAllSiteContract = z.object({
-  line: z.number().int().positive().brand<'SourceLine'>(),
+  line: z.number().int().positive().brand<'CatchAllSiteLine'>(),
   kind: z.enum(['empty-address', 'accept-all-predicate', 'read-all']),
-  snippet: z.string().brand<'CodeSnippet'>(),
+  snippet: z.string().brand<'CatchAllSiteSnippet'>(),
 }).brand<'CatchAllSite'>();
 
 export type CatchAllSite = z.infer<typeof catchAllSiteContract>;

@@ -10,7 +10,7 @@
 import { z } from '#gateway/npm/zod';
 
 export const censusRootPackageContract = z.object({
-  name: z.string().min(1).brand<'CensusPackageName'>().optional(),
+  name: z.string().min(1).brand<'CensusRootPackageName'>().optional(),
 }).brand<'CensusRootPackage'>();
 
 export type CensusRootPackage = z.infer<typeof censusRootPackageContract>;

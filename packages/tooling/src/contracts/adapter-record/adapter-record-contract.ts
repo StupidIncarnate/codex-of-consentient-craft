@@ -28,7 +28,7 @@ export const adapterRecordContract = z.object({
       file: z.string().min(1).brand<'AdapterRecordAdapterProxyFile'>(),
       catchAll: z.array(catchAllSiteContract),
       composedBy: z.array(z.string().min(1).brand<'AdapterRecordAdapterProxyComposedBy'>()),
-    })
+    }).brand<'AdapterRecordAdapterProxy'>()
     .nullable(),
 }).brand<'AdapterRecord'>();
 
