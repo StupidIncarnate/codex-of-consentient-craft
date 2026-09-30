@@ -1,7 +1,6 @@
 import { GuildStub } from '@dungeonmaster/shared/contracts/guild/guild.stub';
 import { QuestStub } from '@dungeonmaster/shared/contracts/quest/quest.stub';
 
-import { RecipeNameStub } from '../../../contracts/recipe-name/recipe-name.stub';
 import { recipeSeedRunBroker } from './recipe-seed-run-broker';
 import { recipeSeedRunBrokerProxy } from './recipe-seed-run-broker.proxy';
 
@@ -26,7 +25,7 @@ describe('recipeSeedRunBroker', () => {
       proxy.guildWithThreeQuestsAnswers({ guild, questCreated, questInProgress, questComplete });
 
       const result = await recipeSeedRunBroker({
-        recipe: RecipeNameStub({ value: 'guild-with-three-quests' }),
+        recipe: 'guild-with-three-quests',
         apiBaseUrl: API,
         homePath: HOME,
         parameters: {},
@@ -46,7 +45,7 @@ describe('recipeSeedRunBroker', () => {
 
       await expect(
         recipeSeedRunBroker({
-          recipe: RecipeNameStub({ value: 'guild-with-three-quests' }),
+          recipe: 'guild-with-three-quests',
           apiBaseUrl: API,
           homePath: HOME,
           parameters: {},
@@ -60,7 +59,7 @@ describe('recipeSeedRunBroker', () => {
 
       await expect(
         recipeSeedRunBroker({
-          recipe: RecipeNameStub({ value: 'guild-with-three-quests' }),
+          recipe: 'guild-with-three-quests',
           apiBaseUrl: API,
           homePath: HOME,
           parameters: {},

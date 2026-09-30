@@ -40,11 +40,10 @@ import type { StubArgument } from '@dungeonmaster/shared/@types';
 import { dungeonmasterHomeStatics, recipesConventionStatics } from '@dungeonmaster/shared/statics';
 import { installTestbedCreateBroker } from '@dungeonmaster/testing';
 
-import type { RecipeNameStub } from '../../../src/contracts/recipe-name/recipe-name.stub';
 import { SeedResultStub } from '../../../src/contracts/seed-result/seed-result.stub';
 import { recipesLocateBroker } from '../../../src/brokers/recipes/locate/recipes-locate-broker';
 
-type RecipeName = ReturnType<typeof RecipeNameStub>;
+type RecipeName = string;
 type SeedResult = ReturnType<typeof SeedResultStub>;
 
 const EMPTY_GUILD_CONFIG = { guilds: [] };

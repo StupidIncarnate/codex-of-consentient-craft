@@ -2,7 +2,6 @@ import type { StubArgument } from '@dungeonmaster/shared/@types';
 
 import { HttpMethodStub } from '../http-method/http-method.stub';
 import { LocatorStateStub } from '../locator-state/locator-state.stub';
-import { RecipeNameStub } from '../recipe-name/recipe-name.stub';
 import { RefStub } from '../ref/ref.stub';
 import { ResetLevelStub } from '../reset-level/reset-level.stub';
 import { StepExpectationStub } from '../step-expectation/step-expectation.stub';
@@ -81,7 +80,7 @@ const STEP_DEFAULTS = {
   },
   seed: {
     step: 'seed',
-    recipe: RecipeNameStub(),
+    recipe: 'guild-mid-execution',
     params: null,
     as: null,
     node: null,

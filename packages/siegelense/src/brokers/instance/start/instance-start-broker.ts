@@ -82,7 +82,6 @@ import { type TimeoutMs } from '@dungeonmaster/shared/contracts';
 import { environmentStatics, locationsStatics } from '@dungeonmaster/shared/statics';
 import { cwdResolveBroker } from '@dungeonmaster/shared/brokers';
 
-import type { RecipeName } from '../../../contracts/recipe-name/recipe-name-contract';
 
 import { tmpdir } from '#gateway/node/os';
 import { cliPackageBinResolveBroker } from '../../cli-package/bin-resolve/cli-package-bin-resolve-broker';
@@ -126,7 +125,7 @@ export const instanceStartBroker = async ({
   specName: string;
   questId: Quest['id'] | null;
   guildId: Guild['id'] | null;
-  seed: RecipeName | null;
+  seed: string | null;
   idleTimeoutMs?: TimeoutMs;
 }): Promise<InstanceManifest> => {
   const spec = await laneSpecFindBroker({ specName });

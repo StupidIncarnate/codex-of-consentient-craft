@@ -8,17 +8,13 @@
  * // Returns one entry per recipe this repo declares: recipeName, description, inputKeys, runs, makes
  */
 
-import type {
-  PlanMakesEntry,
-  PlanRunsResult,
-  RecipeName,
-} from '@dungeonmaster/hydration/contracts';
+import type { PlanMakesEntry, PlanRunsResult } from '@dungeonmaster/hydration/contracts';
 import type { RecipeDescription } from '../../../contracts/recipe-catalog-entry/recipe-catalog-entry-contract';
 import type { RecipeInputKey } from '../../../contracts/recipe-input-key/recipe-input-key-contract';
 import { recipesCatalogBroker } from '../../recipes/catalog/recipes-catalog-broker';
 
 export const recipesListingBuildBroker = (): readonly {
-  recipeName: RecipeName;
+  recipeName: string;
   description: RecipeDescription;
   inputKeys: readonly RecipeInputKey[];
   runs: PlanRunsResult;

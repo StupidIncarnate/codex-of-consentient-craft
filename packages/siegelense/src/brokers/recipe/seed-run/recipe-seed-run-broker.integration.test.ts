@@ -9,7 +9,6 @@
  * id.
  */
 
-import { RecipeNameStub } from '../../../contracts/recipe-name/recipe-name.stub';
 import { seedHomeHarness } from '../../../../test/harnesses/seed-home/seed-home.harness';
 
 describe('the recipes seam — a real recipe run against seedResultContract', () => {
@@ -17,7 +16,7 @@ describe('the recipes seam — a real recipe run against seedResultContract', ()
 
   it('VALID: {guild-empty, a real temp home} => the real producer output parses, carrying the minted guild id and its derived name/urlSlug', async () => {
     const result = (await seedHome.runRecipe({
-      recipeName: RecipeNameStub({ value: 'guild-empty' }),
+      recipeName: 'guild-empty',
     })) as Record<PropertyKey, unknown>;
     const guild = result.guild as Record<PropertyKey, unknown>;
 
@@ -30,7 +29,7 @@ describe('the recipes seam — a real recipe run against seedResultContract', ()
 
   it('ERROR: {guild-with-three-quests, a real temp home} => a write-only target cannot walk the quest to "in_progress", so the run throws HydrationTransitionRefusedError naming the gate', async () => {
     await expect(
-      seedHome.runRecipe({ recipeName: RecipeNameStub({ value: 'guild-with-three-quests' }) }),
+      seedHome.runRecipe({ recipeName: 'guild-with-three-quests' }),
     ).rejects.toThrow(
       new Error(
         'recipe "guild-with-three-quests": ingredient "quest" cannot go to "in_progress" from "approved": questReachRouteBroker: a write-only target cannot walk a quest to "in_progress" — seeding the operations relay needs POST /api/quests/:questId/start, which has no in-process equivalent exported from @dungeonmaster/orchestrator. Use an api target instead.',

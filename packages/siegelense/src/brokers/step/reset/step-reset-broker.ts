@@ -37,7 +37,6 @@
  */
 
 
-import { recipeNameContract } from '../../../contracts/recipe-name/recipe-name-contract';
 
 import type { LaneSession } from '../../../contracts/lane-session/lane-session-contract';
 import type { ResetLevel } from '../../../contracts/reset-level/reset-level-contract';
@@ -151,7 +150,7 @@ export const stepResetBroker = async ({
 
   if (reseed !== null) {
     await recipeSeedRunBroker({
-      recipe: recipeNameContract.parse(reseed),
+      recipe: reseed,
       apiBaseUrl: lane.apiBaseUrl,
       homePath: lane.homePath,
       parameters: {},

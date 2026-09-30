@@ -8,11 +8,10 @@
  * // Returns HydrationPlan
  */
 import { z } from '#gateway/npm/zod';
-import { recipeNameContract } from '../recipe-name/recipe-name-contract';
 import { hydrationOpContract } from '../hydration-op/hydration-op-contract';
 
 export const hydrationPlanContract = z.object({
-  recipeName: recipeNameContract,
+  recipeName: z.string().min(1).brand<'HydrationPlanRecipeName'>(),
   ops: z.array(hydrationOpContract),
 });
 

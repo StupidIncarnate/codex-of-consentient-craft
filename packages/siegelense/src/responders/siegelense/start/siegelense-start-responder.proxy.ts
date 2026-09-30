@@ -18,7 +18,6 @@ import { stdoutProxy } from '#gateway/node/process/stdout/stdout.proxy';
 import { registerMock } from '@dungeonmaster/testing/register-mock';
 import type { Quest, Guild } from '@dungeonmaster/shared/contracts';
 
-import type { RecipeName } from '../../../contracts/recipe-name/recipe-name-contract';
 
 import { instanceStartBroker } from '../../../brokers/instance/start/instance-start-broker';
 import { instanceStartBrokerProxy } from '../../../brokers/instance/start/instance-start-broker.proxy';
@@ -44,7 +43,7 @@ export const SiegelenseStartResponderProxy = (): {
     specName: SpecName;
     questId: Quest['id'] | null;
     guildId: Guild['id'] | null;
-    seed: RecipeName | null;
+    seed: string | null;
   }) => unknown[][];
   getOwningGuildFindCallsMatching: (params: { questId: Quest['id'] }) => unknown[][];
 } => {
@@ -99,7 +98,7 @@ export const SiegelenseStartResponderProxy = (): {
       specName: SpecName;
       questId: Quest['id'] | null;
       guildId: Guild['id'] | null;
-      seed: RecipeName | null;
+      seed: string | null;
     }): unknown[][] => instanceStartHandle.callsMatching([{ specName, questId, guildId, seed }]),
 
     getOwningGuildFindCallsMatching: ({ questId }: { questId: Quest['id'] }): unknown[][] =>

@@ -29,7 +29,6 @@ import { z } from '#gateway/npm/zod';
 
 import { timeoutMsContract, questContract, guildContract } from '@dungeonmaster/shared/contracts';
 
-import { recipeNameContract } from '../recipe-name/recipe-name-contract';
 
 export const startArgsContract = z
   .object({
@@ -40,7 +39,7 @@ export const startArgsContract = z
     // (siegelense-tooling.md line 2303). `.nullable()` for the same reason questId and guildId
     // are: the parser always decides a value, so no reader ever has "was this left unset" as a
     // live question.
-    seed: recipeNameContract.nullable(),
+    seed: z.string().min(1).regex( /^[a-z0-9]+(?:-[a-z0-9]+)*$/u, 'Recipe name must be kebab-case — lower-case letters, digits and single hyphens, such as "guild-with-three-quests"', ).brand<'StartArgsSeed'>().nullable(),
     idleTimeoutMs: timeoutMsContract.optional(),
     isJson: z.boolean().default(false),
   })

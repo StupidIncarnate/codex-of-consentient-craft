@@ -14,13 +14,12 @@
  * // Returns { recipeName: RecipeName, records: Map<RowRef, unknown>, saved: Map<SavedRecordName, unknown> }
  */
 import { z } from '#gateway/npm/zod';
-import { recipeNameContract } from '../recipe-name/recipe-name-contract';
 import { rowRefContract } from '../row-ref/row-ref-contract';
 
 const resolvedRecordContract = z.custom<unknown>();
 
 export const hydrationRunStateContract = z.object({
-  recipeName: recipeNameContract,
+  recipeName: z.string().min(1).brand<'HydrationRunStateRecipeName'>(),
   records: z.map(rowRefContract, resolvedRecordContract),
   saved: z.map(z.string().min(1).brand<'HydrationRunStateSaved'>(), resolvedRecordContract),
 });

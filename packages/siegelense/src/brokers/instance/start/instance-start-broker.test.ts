@@ -9,7 +9,6 @@ import { EpochMsStub } from '../../../contracts/epoch-ms/epoch-ms.stub';
 import { InstanceIdStub } from '../../../contracts/instance-id/instance-id.stub';
 import { LaneProcessNameStub } from '../../../contracts/lane-process-name/lane-process-name.stub';
 import { PortPairStub } from '../../../contracts/port-pair/port-pair.stub';
-import { RecipeNameStub } from '../../../contracts/recipe-name/recipe-name.stub';
 import { RegistryEntryStub } from '../../../contracts/registry-entry/registry-entry.stub';
 import { RegistryStub } from '../../../contracts/registry/registry.stub';
 import { DriverBootFailedError } from '../../../errors/driver-boot-failed/driver-boot-failed-error';
@@ -657,7 +656,7 @@ describe('instanceStartBroker', () => {
       const proxy = instanceStartBrokerProxy();
       const instanceId = proxy.mintInstanceId();
       const specName = 'api';
-      const seed = RecipeNameStub({ value: 'guild-with-three-quests' });
+      const seed = 'guild-with-three-quests';
       const missingMessage =
         'No recipes package found at /default/cwd/packages/hydration-recipes. Run "dungeonmaster init" to scaffold packages/hydration-recipes.';
       proxy.setupHappyBoot({
@@ -678,7 +677,7 @@ describe('instanceStartBroker', () => {
       const proxy = instanceStartBrokerProxy();
       const instanceId = proxy.mintInstanceId();
       const specName = 'api';
-      const seed = RecipeNameStub({ value: 'guild-with-three-quests' });
+      const seed = 'guild-with-three-quests';
       const missingMessage =
         'No recipes package found at /default/cwd/packages/hydration-recipes. Run "dungeonmaster init" to scaffold packages/hydration-recipes.';
       proxy.setupHappyBoot({

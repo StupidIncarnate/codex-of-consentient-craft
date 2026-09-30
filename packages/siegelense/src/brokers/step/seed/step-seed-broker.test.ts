@@ -2,7 +2,6 @@
 import { LaneSessionStub } from '../../../contracts/lane-session/lane-session.stub';
 import { RecipeInputKeyStub } from '../../../contracts/recipe-input-key/recipe-input-key.stub';
 import { RecipeListingEntryStub } from '../../../contracts/recipe-listing-entry/recipe-listing-entry.stub';
-import { RecipeNameStub } from '../../../contracts/recipe-name/recipe-name.stub';
 import { StepStub } from '../../../contracts/step/step.stub';
 
 import { stepSeedBroker } from './step-seed-broker';
@@ -14,7 +13,7 @@ describe('stepSeedBroker', () => {
       const proxy = stepSeedBrokerProxy();
       proxy.stagesListing({
         listing: [
-          RecipeListingEntryStub({ recipeName: RecipeNameStub({ value: 'guild-mid-execution' }) }),
+          RecipeListingEntryStub({ recipeName: 'guild-mid-execution' }),
         ],
       });
       const seedRun = proxy.stagesSeedRun({ result: { guild: { id: 'g1', urlSlug: 'guild-1' } } });
@@ -24,7 +23,7 @@ describe('stepSeedBroker', () => {
       });
       const step = StepStub({
         step: 'seed',
-        recipe: RecipeNameStub({ value: 'guild-mid-execution' }),
+        recipe: 'guild-mid-execution',
       });
 
       const reading = await stepSeedBroker({ lane, step });
@@ -48,14 +47,14 @@ describe('stepSeedBroker', () => {
       const proxy = stepSeedBrokerProxy();
       proxy.stagesListing({
         listing: [
-          RecipeListingEntryStub({ recipeName: RecipeNameStub({ value: 'guild-mid-execution' }) }),
+          RecipeListingEntryStub({ recipeName: 'guild-mid-execution' }),
         ],
       });
       proxy.stagesSeedRun({ result: { guild: { id: 'g1' } } });
       const lane = LaneSessionStub({ browser: null });
       const step = StepStub({
         step: 'seed',
-        recipe: RecipeNameStub({ value: 'guild-mid-execution' }),
+        recipe: 'guild-mid-execution',
       });
 
       const reading = await stepSeedBroker({ lane, step });
@@ -69,11 +68,11 @@ describe('stepSeedBroker', () => {
       const proxy = stepSeedBrokerProxy();
       proxy.stagesListing({
         listing: [
-          RecipeListingEntryStub({ recipeName: RecipeNameStub({ value: 'guild-mid-execution' }) }),
+          RecipeListingEntryStub({ recipeName: 'guild-mid-execution' }),
         ],
       });
       const lane = LaneSessionStub();
-      const step = StepStub({ step: 'seed', recipe: RecipeNameStub({ value: 'nope' }) });
+      const step = StepStub({ step: 'seed', recipe: 'nope' });
 
       const error = await stepSeedBroker({ lane, step }).then(
         (): never => {
@@ -94,14 +93,14 @@ describe('stepSeedBroker', () => {
       const proxy = stepSeedBrokerProxy();
       proxy.stagesListing({
         listing: [
-          RecipeListingEntryStub({ recipeName: RecipeNameStub({ value: 'guild-mid-execution' }) }),
+          RecipeListingEntryStub({ recipeName: 'guild-mid-execution' }),
         ],
       });
       const seedRun = proxy.stagesSeedRun({ result: {} });
       const lane = LaneSessionStub();
       const step = StepStub({
         step: 'seed',
-        recipe: RecipeNameStub({ value: 'guild-mid-execution' }),
+        recipe: 'guild-mid-execution',
         params: { x: 1 },
       });
 
@@ -131,7 +130,7 @@ describe('stepSeedBroker', () => {
       proxy.stagesListing({
         listing: [
           RecipeListingEntryStub({
-            recipeName: RecipeNameStub({ value: 'session-with-nested-chain' }),
+            recipeName: 'session-with-nested-chain',
             inputKeys: [RecipeInputKeyStub({ value: 'guildPath' })],
           }),
         ],
@@ -140,7 +139,7 @@ describe('stepSeedBroker', () => {
       const lane = LaneSessionStub();
       const step = StepStub({
         step: 'seed',
-        recipe: RecipeNameStub({ value: 'session-with-nested-chain' }),
+        recipe: 'session-with-nested-chain',
         params: { wrong: 1 },
       });
 
@@ -165,7 +164,7 @@ describe('stepSeedBroker', () => {
       proxy.stagesListing({
         listing: [
           RecipeListingEntryStub({
-            recipeName: RecipeNameStub({ value: 'session-with-nested-chain' }),
+            recipeName: 'session-with-nested-chain',
             inputKeys: [RecipeInputKeyStub({ value: 'guildPath' })],
           }),
         ],
@@ -174,7 +173,7 @@ describe('stepSeedBroker', () => {
       const lane = LaneSessionStub();
       const step = StepStub({
         step: 'seed',
-        recipe: RecipeNameStub({ value: 'session-with-nested-chain' }),
+        recipe: 'session-with-nested-chain',
       });
 
       const error = await stepSeedBroker({ lane, step }).then(
@@ -203,7 +202,7 @@ describe('stepSeedBroker', () => {
       proxy.stagesListing({
         listing: [
           RecipeListingEntryStub({
-            recipeName: RecipeNameStub({ value: 'session-with-nested-chain' }),
+            recipeName: 'session-with-nested-chain',
             inputKeys: [RecipeInputKeyStub({ value: 'guildPath' })],
           }),
         ],
@@ -216,7 +215,7 @@ describe('stepSeedBroker', () => {
       const lane = LaneSessionStub();
       const step = StepStub({
         step: 'seed',
-        recipe: RecipeNameStub({ value: 'session-with-nested-chain' }),
+        recipe: 'session-with-nested-chain',
         params: { guildPath: 123 },
       });
 

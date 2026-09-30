@@ -9,7 +9,6 @@
  * // Returns RecipeDefData
  */
 import { z } from '#gateway/npm/zod';
-import { recipeNameContract } from '../recipe-name/recipe-name-contract';
 import type { Plan } from '../hydration-plan/hydration-plan-contract';
 
 const recipeDescriptionContract = z.string().min(1).brand<'RecipeDescription'>();
@@ -22,7 +21,7 @@ const zodSchemaContract = z.custom((value) => value instanceof z.ZodType, {
 });
 
 export const recipeDefContract = z.object({
-  recipeName: recipeNameContract,
+  recipeName: z.string().min(1).brand<'RecipeDefRecipeName'>(),
   description: recipeDescriptionContract,
   inputs: zodSchemaContract.optional(),
 });

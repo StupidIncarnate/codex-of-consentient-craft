@@ -41,7 +41,6 @@ import { httpMethodContract } from '../http-method/http-method-contract';
 import { locatorStateContract } from '../locator-state/locator-state-contract';
 import { nodeLabelContract } from '../node-label/node-label-contract';
 import { recipeInputKeyContract } from '../recipe-input-key/recipe-input-key-contract';
-import { recipeNameContract } from '../recipe-name/recipe-name-contract';
 import { refContract } from '../ref/ref-contract';
 import { stepOutputNameContract } from '../step-output-name/step-output-name-contract';
 import { stepRefContract } from '../step-ref/step-ref-contract';
@@ -193,7 +192,7 @@ export const stepContract = z
     z
       .object({
         step: z.literal('seed'),
-        recipe: recipeNameContract,
+        recipe: z.string().min(1).regex( /^[a-z0-9]+(?:-[a-z0-9]+)*$/u, 'Recipe name must be kebab-case — lower-case letters, digits and single hyphens, such as "guild-with-three-quests"', ).brand<'StepRecipe'>(),
         // Its own object, never flattened onto the step — a recipe input named `as`, `step` or
         // `recipe` would shadow the step's own keys, and the collision would be silent
         // (siegelense-tooling.md lines 882-883).

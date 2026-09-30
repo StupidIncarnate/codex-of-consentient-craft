@@ -67,7 +67,6 @@ export * from './recipe-def/recipe-def-contract';
 
 export * from './recipe-manifest/recipe-manifest-contract';
 
-export * from './recipe-name/recipe-name-contract';
 
 export * from './route-failure/route-failure-contract';
 

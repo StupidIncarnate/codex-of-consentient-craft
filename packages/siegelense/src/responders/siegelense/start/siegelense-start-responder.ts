@@ -42,7 +42,6 @@
 import { stdout } from '#gateway/node/process';
 import type { TimeoutMs, Quest, Guild } from '@dungeonmaster/shared/contracts';
 
-import type { RecipeName } from '../../../contracts/recipe-name/recipe-name-contract';
 
 import { instanceStartBroker } from '../../../brokers/instance/start/instance-start-broker';
 import { questOwningGuildFindBroker } from '../../../brokers/quest/owning-guild-find/quest-owning-guild-find-broker';
@@ -63,7 +62,7 @@ export const SiegelenseStartResponder = async ({
   specName: string;
   questId: Quest['id'] | null;
   guildId: Guild['id'] | null;
-  seed: RecipeName | null;
+  seed: string | null;
   // `| undefined`, not bare `?:`, because this is called with a whole `StartArgs` object —
   // `startArgsContract`'s own `.optional()` field infers as `TimeoutMs | undefined`, and
   // `exactOptionalPropertyTypes` refuses a narrower `idleTimeoutMs?: TimeoutMs` as an incompatible

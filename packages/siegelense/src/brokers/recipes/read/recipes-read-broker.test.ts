@@ -3,7 +3,6 @@ import { recipesConventionStatics } from '@dungeonmaster/shared/statics';
 import { recipesReadBroker } from './recipes-read-broker';
 import { recipesReadBrokerProxy } from './recipes-read-broker.proxy';
 import { RecipeListingEntryStub } from '../../../contracts/recipe-listing-entry/recipe-listing-entry.stub';
-import { RecipeNameStub } from '../../../contracts/recipe-name/recipe-name.stub';
 import { RecipesListingExportInvalidError } from '../../../errors/recipes-listing-export-invalid/recipes-listing-export-invalid-error';
 
 const ENTRY_PATH = '/repo/packages/hydration-recipes/dist/index.js';
@@ -16,10 +15,10 @@ describe('recipesReadBroker', () => {
     it('VALID: {a module exporting a listing of two recipes} => returns both entries complete', async () => {
       const proxy = recipesReadBrokerProxy();
       const entryA = RecipeListingEntryStub({
-        recipeName: RecipeNameStub({ value: 'guild-mid-execution' }),
+        recipeName: 'guild-mid-execution',
       });
       const entryB = RecipeListingEntryStub({
-        recipeName: RecipeNameStub({ value: 'quest-advances-one-step' }),
+        recipeName: 'quest-advances-one-step',
       });
 
       proxy.setupModule({

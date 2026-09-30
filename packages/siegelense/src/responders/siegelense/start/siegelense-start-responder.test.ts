@@ -5,7 +5,6 @@ import { locationsStatics } from '@dungeonmaster/shared/statics';
 import { InstanceIdStub } from '../../../contracts/instance-id/instance-id.stub';
 import { InstanceManifestStub } from '../../../contracts/instance-manifest/instance-manifest.stub';
 import { RecipeListingEntryStub } from '../../../contracts/recipe-listing-entry/recipe-listing-entry.stub';
-import { RecipeNameStub } from '../../../contracts/recipe-name/recipe-name.stub';
 import { RepoLocalPathStub } from '../../../contracts/repo-local-path/repo-local-path.stub';
 import { SeedResultStub } from '../../../contracts/seed-result/seed-result.stub';
 import { RecipeUnknownError } from '../../../errors/recipe-unknown/recipe-unknown-error';
@@ -169,7 +168,7 @@ describe('SiegelenseStartResponder', () => {
     it('VALID: {seed, seeded: bare id} => forwards seed and writes a SEEDED line carrying just that id', async () => {
       const proxy = SiegelenseStartResponderProxy();
       const specName = 'dungeonmaster-stack';
-      const seed = RecipeNameStub();
+      const seed = 'guild-mid-execution';
       const seeded = SeedResultStub({ guild: 'a1b2c3d4-5e6f-4890-abcd-ef1234567890' });
       const manifest = InstanceManifestStub({ specName, seeded });
       proxy.stageRecipeListing({
@@ -188,7 +187,7 @@ describe('SiegelenseStartResponder', () => {
     it('VALID: {seed, seeded: bare id, isJson: true} => the JSON document carries the bare id', async () => {
       const proxy = SiegelenseStartResponderProxy();
       const specName = 'dungeonmaster-stack';
-      const seed = RecipeNameStub();
+      const seed = 'guild-mid-execution';
       const seeded = SeedResultStub({ guild: 'a1b2c3d4-5e6f-4890-abcd-ef1234567890' });
       const manifest = InstanceManifestStub({ specName, seeded });
       proxy.stageRecipeListing({
@@ -214,7 +213,7 @@ describe('SiegelenseStartResponder', () => {
     it('VALID: {seed, seeded: full row} => forwards seed and writes a SEEDED line with the id and identity fields', async () => {
       const proxy = SiegelenseStartResponderProxy();
       const specName = 'dungeonmaster-stack';
-      const seed = RecipeNameStub();
+      const seed = 'guild-mid-execution';
       const seeded = SeedResultStub();
       const manifest = InstanceManifestStub({ specName, seeded });
       proxy.stageRecipeListing({
@@ -233,7 +232,7 @@ describe('SiegelenseStartResponder', () => {
     it('VALID: {seed, seeded: full row, isJson: true} => the JSON document carries the whole saved row', async () => {
       const proxy = SiegelenseStartResponderProxy();
       const specName = 'dungeonmaster-stack';
-      const seed = RecipeNameStub();
+      const seed = 'guild-mid-execution';
       const seeded = SeedResultStub();
       const manifest = InstanceManifestStub({ specName, seeded });
       proxy.stageRecipeListing({
@@ -259,7 +258,7 @@ describe('SiegelenseStartResponder', () => {
     it('VALID: {seed, listing entry present with inputKeys: []} => proceeds and forwards seed unchanged', async () => {
       const proxy = SiegelenseStartResponderProxy();
       const specName = 'dungeonmaster-stack';
-      const seed = RecipeNameStub();
+      const seed = 'guild-mid-execution';
       const seeded = SeedResultStub();
       const manifest = InstanceManifestStub({ specName, seeded });
       proxy.stageRecipeListing({
@@ -279,7 +278,7 @@ describe('SiegelenseStartResponder', () => {
     it('ERROR: {seed, listing entry present with inputKeys: [guildId]} => refuses before instanceStartBroker ever runs', async () => {
       const proxy = SiegelenseStartResponderProxy();
       const specName = 'dungeonmaster-stack';
-      const seed = RecipeNameStub({ value: 'quest-advances-one-step' });
+      const seed = 'quest-advances-one-step';
       proxy.stageRecipeListing({
         entries: [RecipeListingEntryStub({ recipeName: seed, inputKeys: ['guildId'] })],
       });
@@ -301,7 +300,7 @@ describe('SiegelenseStartResponder', () => {
     it("ERROR: {seed: nope, empty listing} => refuses with the run seed step's own wording, naming every known recipe", async () => {
       const proxy = SiegelenseStartResponderProxy();
       const specName = 'dungeonmaster-stack';
-      const seed = RecipeNameStub({ value: 'nope' });
+      const seed = 'nope';
       proxy.stageRecipeListing({
         entries: [
           RecipeListingEntryStub({ recipeName: 'guild-empty' }),

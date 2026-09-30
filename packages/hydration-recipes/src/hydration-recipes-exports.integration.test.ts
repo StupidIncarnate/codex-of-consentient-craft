@@ -21,7 +21,7 @@ const makesCountShape = z.number().int().positive().brand<'MakesCount'>();
 const recipesListingShape = z.array(
   z
     .object({
-      recipeName: z.string().min(1).brand<'RecipeName'>(),
+      recipeName: z.string().min(1).brand<'RecipesListingShapeRecipeName'>(),
       description: z.string().min(1).brand<'RecipeDescription'>(),
       inputKeys: z.array(z.string().min(1).brand<'RecipeInputKey'>()),
       runs: z.discriminatedUnion('serverless', [

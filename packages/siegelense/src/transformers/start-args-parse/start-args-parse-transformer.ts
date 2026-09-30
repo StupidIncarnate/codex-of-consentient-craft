@@ -33,7 +33,6 @@
 
 import { timeoutMsContract, questContract, guildContract } from '@dungeonmaster/shared/contracts';
 
-import { recipeNameContract } from '../../contracts/recipe-name/recipe-name-contract';
 import { startArgsContract } from '../../contracts/start-args/start-args-contract';
 import type { StartArgs } from '../../contracts/start-args/start-args-contract';
 import { driverStatics } from '../../statics/driver/driver-statics';
@@ -133,7 +132,7 @@ export const startArgsParseTransformer = ({ args }: { args: readonly string[] })
         ? null
         : flagContractParseTransformer({
             flag: SEED_FLAG,
-            parse: () => recipeNameContract.parse(seedValue),
+            parse: () => seedValue,
           }),
     // Omitted entirely, never set to null, when absent — startArgsContract's own header says why
     // the KEY'S absence is what leaves the served lane's idle ceiling at driverStatics.idle.timeoutMs.

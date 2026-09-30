@@ -12,7 +12,6 @@
  */
 
 import { z } from '#gateway/npm/zod';
-import { recipeNameContract } from '@dungeonmaster/hydration/contracts';
 import type {
   HydrationRunResult,
   PlanMakesEntry,
@@ -33,7 +32,7 @@ const zodSchemaContract = z.custom((value) => value instanceof z.ZodType, {
 });
 
 export const recipeCatalogEntryContract = z.object({
-  recipeName: recipeNameContract,
+  recipeName: z.string().min(1).brand<'RecipeCatalogEntryRecipeName'>(),
   description: recipeDescriptionContract,
   inputs: zodSchemaContract.optional(),
 });
