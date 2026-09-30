@@ -12,11 +12,10 @@ import { z } from '#gateway/npm/zod';
 
 import { unitMarkContract } from '@dungeonmaster/shared/contracts';
 
-import { displayLabelContract } from '../display-label/display-label-contract';
 
 export const unitChurnStepContract = z.object({
   mark: unitMarkContract,
-  workItemLabel: displayLabelContract,
+  workItemLabel: z.string().brand<'UnitChurnStepWorkItemLabel'>(),
 });
 
 export type UnitChurnStep = z.infer<typeof unitChurnStepContract>;

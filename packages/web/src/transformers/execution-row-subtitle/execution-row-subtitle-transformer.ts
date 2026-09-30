@@ -6,8 +6,6 @@
  * // Returns "└─ depends on: step-1, step-2" or "└─ src/auth.ts"
  */
 
-import type { DisplayLabel } from '../../contracts/display-label/display-label-contract';
-import { displayLabelContract } from '../../contracts/display-label/display-label-contract';
 import type { ExecutionStepStatus } from '../../contracts/execution-step-status/execution-step-status-contract';
 
 export const executionRowSubtitleTransformer = ({
@@ -18,17 +16,15 @@ export const executionRowSubtitleTransformer = ({
   status: ExecutionStepStatus;
   dependsOn: string[];
   files: string[];
-}): DisplayLabel => {
+}): string => {
   if (status === 'queued' && dependsOn.length > 0) {
-    return displayLabelContract.parse(
-      `\u2514\u2500 waiting for slot (depends on: ${dependsOn.join(', ')})`,
-    );
+    return `\u2514\u2500 waiting for slot (depends on: ${dependsOn.join(', ')})`;
   }
   if (status === 'pending' && dependsOn.length > 0) {
-    return displayLabelContract.parse(`\u2514\u2500 depends on: ${dependsOn.join(', ')}`);
+    return `\u2514\u2500 depends on: ${dependsOn.join(', ')}`;
   }
   if (files.length > 0) {
-    return displayLabelContract.parse(`\u2514\u2500 ${files.join(', ')}`);
+    return `\u2514\u2500 ${files.join(', ')}`;
   }
-  return displayLabelContract.parse('');
+  return '';
 };

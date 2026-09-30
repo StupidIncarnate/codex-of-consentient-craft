@@ -19,7 +19,6 @@
  */
 import type { Page } from '#gateway/npm/playwright__test';
 
-import type { DisplayLabel } from '../../../src/contracts/display-label/display-label-contract';
 
 export const executionRowStatusHarness = ({
   page,
@@ -27,13 +26,13 @@ export const executionRowStatusHarness = ({
   page: Page;
 }): {
   recordStatuses: (params: { rowTexts: string[] }) => Promise<void>;
-  readStatuses: (params: { rowText: string }) => Promise<DisplayLabel[]>;
+  readStatuses: (params: { rowText: string }) => Promise<string[]>;
 } => ({
   recordStatuses: async ({ rowTexts }: { rowTexts: string[] }): Promise<void> => {
     await page.addInitScript((texts) => {
       // Index-aligned with `texts` rather than keyed by it, so the page-side store needs no
       // dictionary whose keys would be raw strings.
-      const byRowIndex: DisplayLabel[][] = texts.map(() => []);
+      const byRowIndex: string[][] = texts.map(() => []);
       Object.assign(globalThis, {
         __executionRowTexts: texts,
         __executionRowStatuses: byRowIndex,
@@ -61,7 +60,7 @@ export const executionRowStatusHarness = ({
           }
           const seen = byRowIndex[index] ?? [];
           if (seen[seen.length - 1] !== label) {
-            seen.push(label as DisplayLabel);
+            seen.push(label as string);
           }
         });
       };
@@ -82,13 +81,13 @@ export const executionRowStatusHarness = ({
     }, rowTexts);
   },
 
-  readStatuses: async ({ rowText }: { rowText: string }): Promise<DisplayLabel[]> =>
+  readStatuses: async ({ rowText }: { rowText: string }): Promise<string[]> =>
     page.evaluate((text) => {
       const store = globalThis as unknown as {
-        __executionRowTexts?: DisplayLabel[];
-        __executionRowStatuses?: DisplayLabel[][];
+        __executionRowTexts?: string[];
+        __executionRowStatuses?: string[][];
       };
-      const index = (store.__executionRowTexts ?? []).indexOf(text as DisplayLabel);
+      const index = (store.__executionRowTexts ?? []).indexOf(text as string);
       return index === -1 ? [] : (store.__executionRowStatuses?.[index] ?? []);
     }, rowText),
 });

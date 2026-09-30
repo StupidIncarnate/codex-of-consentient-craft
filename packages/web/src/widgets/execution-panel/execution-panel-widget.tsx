@@ -25,8 +25,6 @@ import type { ButtonLabel } from '../../contracts/button-label/button-label-cont
 import { completedCountContract, workItemPayloadKeyContract, totalCountContract } from '@dungeonmaster/shared/contracts';
 import type { DependencyLabel } from '../../contracts/dependency-label/dependency-label-contract';
 import type { DisplayFilePath } from '../../contracts/display-file-path/display-file-path-contract';
-import type { DisplayLabel } from '../../contracts/display-label/display-label-contract';
-import { displayLabelContract } from '../../contracts/display-label/display-label-contract';
 import { executionRoleContract } from '../../contracts/execution-role/execution-role-contract';
 import type { ExecutionRole } from '../../contracts/execution-role/execution-role-contract';
 import { executionStepStatusContract } from '../../contracts/execution-step-status/execution-step-status-contract';
@@ -123,7 +121,7 @@ const NOOP_FOLLOWUP_HANDLERS = {
 const SCOPE_HOLDS_MULTIPLE_SESSIONS = 2;
 // Sentinel piece-group key for a work item with no `pieceId` at all — real piece labels (a
 // payload's own name, or `pieceId` itself) are never empty, so '' cannot collide with one.
-const NO_PIECE_GROUP_KEY = displayLabelContract.parse('');
+const NO_PIECE_GROUP_KEY = '';
 
 export const ExecutionPanelWidget = ({
   quest,
@@ -273,18 +271,16 @@ export const ExecutionPanelWidget = ({
   // ExecutionPanelWidget's, which is what keeps the component itself under this repo's complexity
   // ceiling without moving the logic to a second file.
   const scopeGroups = new Map<
-    DisplayLabel,
+    string,
     { workItems: WorkItem[]; operation?: (typeof quest.operations)[0] }
   >();
-  const workItemScopeKey = new Map<WorkItem['id'], DisplayLabel>();
+  const workItemScopeKey = new Map<WorkItem['id'], string>();
   visibleWorkItems.forEach((wi) => {
     const operationRef = wi.relatedDataItems.find((ref) => ref.startsWith(OPERATIONS_PREFIX));
     const rawOperationId = operationRef?.slice(OPERATIONS_PREFIX_LENGTH) as
       (typeof quest.operations)[0]['id'] | undefined;
     const operation = rawOperationId === undefined ? undefined : operationsById.get(rawOperationId);
-    const scopeKey = displayLabelContract.parse(
-      operation ? `op:${operation.id}` : `role:${wi.role}`,
-    );
+    const scopeKey = (operation ? `op:${operation.id}` : `role:${wi.role}`);
     workItemScopeKey.set(wi.id, scopeKey);
     const existing = scopeGroups.get(scopeKey);
     if (existing) {
@@ -302,10 +298,10 @@ export const ExecutionPanelWidget = ({
   // `agentFlowStatics` (orchestrator-only), so `workItem.step` is read exactly as stored — it is
   // already the real step key.
   const headerInfoByScopeKey = new Map<
-    DisplayLabel,
-    { name: DisplayLabel; role: WorkItem['role']; status: ExecutionStepStatus }
+    string,
+    { name: string; role: WorkItem['role']; status: ExecutionStepStatus }
   >();
-  const stepLabelByWorkItemId = new Map<WorkItem['id'], DisplayLabel>();
+  const stepLabelByWorkItemId = new Map<WorkItem['id'], string>();
   scopeGroups.forEach(({ workItems: group, operation }, scopeKey) => {
     if (group.length < SCOPE_HOLDS_MULTIPLE_SESSIONS) {
       return;
@@ -319,10 +315,8 @@ export const ExecutionPanelWidget = ({
     // to read a status off) folds its children worst-first: any failure outranks any run, which
     // outranks a clean sweep, matching the order agentFlowStatics' own outcome words fold in.
     const headerName = operation
-      ? displayLabelContract.parse(operation.text)
-      : displayLabelContract.parse(
-          `${firstItem.role.charAt(0).toUpperCase()}${firstItem.role.slice(1)}`,
-        );
+      ? operation.text
+      : `${firstItem.role.charAt(0).toUpperCase()}${firstItem.role.slice(1)}`;
     const headerStatus: ExecutionStepStatus = operation
       ? (operation.status as ExecutionStepStatus)
       : group.some((wi) => isFailureWorkItemStatusGuard({ status: wi.status }))
@@ -339,9 +333,9 @@ export const ExecutionPanelWidget = ({
     });
 
     // Tier 2/3/4: group by STEP first, then by PIECE within a shared step.
-    const stepGroups = new Map<DisplayLabel, WorkItem[]>();
+    const stepGroups = new Map<string, WorkItem[]>();
     group.forEach((wi) => {
-      const stepKey = displayLabelContract.parse(wi.step ?? `${wi.role} role`);
+      const stepKey = (wi.step ?? `${wi.role} role`);
       const stepGroup = stepGroups.get(stepKey);
       if (stepGroup) {
         stepGroup.push(wi);
@@ -365,7 +359,7 @@ export const ExecutionPanelWidget = ({
       // not import), so `pieceName` is the one key checked defensively, re-parsed through the
       // branded key contract to read it off the record. A work item with no `pieceId` at all groups
       // under the sentinel.
-      const pieceGroups = new Map<DisplayLabel, WorkItem[]>();
+      const pieceGroups = new Map<string, WorkItem[]>();
       stepGroup.forEach((wi) => {
         const payloadPieceName = wi.payload?.[workItemPayloadKeyContract.parse('pieceName')];
         const pieceLabel =
@@ -375,7 +369,7 @@ export const ExecutionPanelWidget = ({
               ? payloadPieceName
               : wi.pieceId;
         const pieceKey =
-          pieceLabel === undefined ? NO_PIECE_GROUP_KEY : displayLabelContract.parse(pieceLabel);
+          pieceLabel === undefined ? NO_PIECE_GROUP_KEY : pieceLabel;
         const pieceGroup = pieceGroups.get(pieceKey);
         if (pieceGroup) {
           pieceGroup.push(wi);
@@ -386,7 +380,7 @@ export const ExecutionPanelWidget = ({
       if (pieceGroups.size < SCOPE_HOLDS_MULTIPLE_SESSIONS) {
         // Every item in this step shares one piece (or none at all) — a true duplicate.
         stepGroup.forEach((wi, idx) => {
-          stepLabelByWorkItemId.set(wi.id, displayLabelContract.parse(`${stepKey} pt: ${idx + 1}`));
+          stepLabelByWorkItemId.set(wi.id, `${stepKey} pt: ${idx + 1}`);
         });
         return;
       }
@@ -397,7 +391,7 @@ export const ExecutionPanelWidget = ({
           pieceGroup.forEach((wi, idx) => {
             stepLabelByWorkItemId.set(
               wi.id,
-              displayLabelContract.parse(`${stepKey} pt: ${idx + 1}`),
+              `${stepKey} pt: ${idx + 1}`,
             );
           });
           return;
@@ -408,11 +402,11 @@ export const ExecutionPanelWidget = ({
         // Tier 3 — this piece is unique within the step: `step - piece`.
         const resolvedPieceLabel =
           pieceKey === NO_PIECE_GROUP_KEY
-            ? displayLabelContract.parse(solePieceItem.sessionId ?? solePieceItem.id)
+            ? (solePieceItem.sessionId ?? solePieceItem.id)
             : pieceKey;
         stepLabelByWorkItemId.set(
           solePieceItem.id,
-          displayLabelContract.parse(`${stepKey} - ${resolvedPieceLabel}`),
+          `${stepKey} - ${resolvedPieceLabel}`,
         );
       });
     });
@@ -424,12 +418,12 @@ export const ExecutionPanelWidget = ({
   // skip guard while its own label is still the right one to show. A nested row's label is the tier
   // label already computed above; a bare row falls back to the identical scope-label rule
   // ExecutionWorkItemRowLayerWidget applies for its own name (operation text, or the capitalized role).
-  const workItemIdToDisplayLabel = new Map<WorkItem['id'], DisplayLabel>();
+  const workItemIdToDisplayLabel = new Map<WorkItem['id'], string>();
   // The dependency label's own SCOPE (T2-9a) — operation text, or the capitalized role — never the
   // tier label, so a row can tell whether a dependency it depends on sits in ITS OWN scope or a
   // different one. workItemIdToDisplayLabel above stays the row's own rendered name (tier label
   // when nested, else this same scope label) and the back-edge badge's source of truth.
-  const workItemIdToScopeLabel = new Map<WorkItem['id'], DisplayLabel>();
+  const workItemIdToScopeLabel = new Map<WorkItem['id'], string>();
   quest.workItems.forEach((wi) => {
     const operationRef = wi.relatedDataItems.find((ref) => ref.startsWith(OPERATIONS_PREFIX));
     const operation =
@@ -439,8 +433,8 @@ export const ExecutionPanelWidget = ({
             operationRef.slice(OPERATIONS_PREFIX_LENGTH) as (typeof quest.operations)[0]['id'],
           );
     const scopeLabel = operation
-      ? displayLabelContract.parse(operation.text)
-      : displayLabelContract.parse(`${wi.role.charAt(0).toUpperCase()}${wi.role.slice(1)}`);
+      ? operation.text
+      : `${wi.role.charAt(0).toUpperCase()}${wi.role.slice(1)}`;
     workItemIdToScopeLabel.set(wi.id, scopeLabel);
     const tierLabel = stepLabelByWorkItemId.get(wi.id);
     workItemIdToDisplayLabel.set(wi.id, tierLabel ?? scopeLabel);
@@ -452,19 +446,19 @@ export const ExecutionPanelWidget = ({
   // skipped here and rendered together with its first, via `emittedScopeKeys`), then every
   // still-unclaimed operation continues the same running number.
   type ExecutionRenderRow =
-    | { kind: 'header'; scopeKey: DisplayLabel; order: RowOrder }
+    | { kind: 'header'; scopeKey: string; order: RowOrder }
     | {
         kind: 'workItem';
         workItem: WorkItem;
         order?: RowOrder;
         indented?: boolean;
-        stepLabel?: DisplayLabel;
-        mintedByLabel?: DisplayLabel;
+        stepLabel?: string;
+        mintedByLabel?: string;
       }
     | { kind: 'unclaimed'; operation: (typeof quest.operations)[0]; order: RowOrder };
 
   const renderRows: ExecutionRenderRow[] = [];
-  const emittedScopeKeys = new Set<DisplayLabel>();
+  const emittedScopeKeys = new Set<string>();
   let nextRowOrder = 1;
   visibleWorkItems.forEach((wi) => {
     const scopeKey = workItemScopeKey.get(wi.id);
@@ -644,7 +638,7 @@ export const ExecutionPanelWidget = ({
                   <ExecutionRowLayerWidget
                     key={row.operation.id}
                     order={row.order}
-                    name={displayLabelContract.parse(row.operation.text)}
+                    name={row.operation.text}
                     role={row.operation.role as unknown as ExecutionRole}
                     status={row.operation.status as ExecutionStepStatus}
                     files={[] as DisplayFilePath[]}

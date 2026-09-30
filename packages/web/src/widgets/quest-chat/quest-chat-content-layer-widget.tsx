@@ -37,7 +37,6 @@ import { questNewBroker } from '../../brokers/quest/new/quest-new-broker';
 import { questPauseBroker } from '../../brokers/quest/pause/quest-pause-broker';
 import { questResumeBroker } from '../../brokers/quest/resume/quest-resume-broker';
 import { questStartBroker } from '../../brokers/quest/start/quest-start-broker';
-import { displayLabelContract } from '../../contracts/display-label/display-label-contract';
 import type { UploadProgressHandler } from '../../contracts/upload-progress-post/upload-progress-post-contract';
 import { hasEquivalentChatEntryGuard } from '../../guards/has-equivalent-chat-entry/has-equivalent-chat-entry-guard';
 import { emberDepthsThemeStatics } from '../../statics/ember-depths-theme/ember-depths-theme-statics';
@@ -52,10 +51,8 @@ import { QuestLoadErrorWidget } from '../quest-load-error/quest-load-error-widge
 import { QuestSpecPanelWidget } from '../quest-spec-panel/quest-spec-panel-widget';
 import { QuestSummaryWidget } from '../quest-summary/quest-summary-widget';
 
-const NO_QUEST_BANNER_MESSAGE = displayLabelContract.parse(
-  'Quests are created in your Claude session. Run this slash command to start a spec conversation:',
-);
-const DUMPSTER_CREATE_COMMAND = displayLabelContract.parse('/dumpster-create');
+const NO_QUEST_BANNER_MESSAGE = 'Quests are created in your Claude session. Run this slash command to start a spec conversation:';
+const DUMPSTER_CREATE_COMMAND = '/dumpster-create';
 
 const FLOWS_APPROVED_FOLLOWUP_MESSAGE =
   'Flows approved. Proceed to observables and contracts.' as string;

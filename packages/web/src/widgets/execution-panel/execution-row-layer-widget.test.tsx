@@ -17,7 +17,6 @@ import {
 } from '@dungeonmaster/shared/contracts/chat-entry/chat-entry.stub';
 import { DependencyLabelStub } from '../../contracts/dependency-label/dependency-label.stub';
 import { DisplayFilePathStub } from '../../contracts/display-file-path/display-file-path.stub';
-import { DisplayLabelStub } from '../../contracts/display-label/display-label.stub';
 import { ExecutionStepStatusStub } from '../../contracts/execution-step-status/execution-step-status.stub';
 import { RowOrderStub } from '../../contracts/row-order/row-order.stub';
 import { executionStepStatusConfigStatics } from '../../statics/execution-step-status-config/execution-step-status-config-statics';
@@ -29,7 +28,7 @@ type Props = ExecutionRowLayerWidgetProps;
 
 const defaultProps = (): Props => ({
   order: RowOrderStub({ value: 1 }),
-  name: DisplayLabelStub({ value: 'Build auth flow' }),
+  name: 'Build auth flow',
   role: 'codeweaver',
   status: 'pending',
   files: [],
@@ -1495,7 +1494,7 @@ describe('ExecutionRowLayerWidget', () => {
         ui: (
           <ExecutionRowLayerWidget
             {...defaultProps()}
-            mintedByLabel={DisplayLabelStub({ value: 'walk pt: 1' })}
+            mintedByLabel={'walk pt: 1'}
           />
         ),
       });

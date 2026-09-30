@@ -13,27 +13,23 @@
 import { elapsedDisplayConfigStatics } from '../../statics/elapsed-display-config/elapsed-display-config-statics';
 
 import type { ElapsedParts } from '../../contracts/elapsed-parts/elapsed-parts-contract';
-import type { DisplayLabel } from '../../contracts/display-label/display-label-contract';
-import { displayLabelContract } from '../../contracts/display-label/display-label-contract';
 
 export const durationDisplayTransformer = ({
   elapsedParts,
 }: {
   elapsedParts: ElapsedParts;
-}): DisplayLabel => {
+}): string => {
   const { minuteThresholdSeconds, hourThresholdMinutes } = elapsedDisplayConfigStatics.thresholds;
   const { hours, minutes, seconds } = elapsedParts;
   const totalMinutes = Number(hours) * hourThresholdMinutes + Number(minutes);
   const totalSeconds = totalMinutes * minuteThresholdSeconds + Number(seconds);
 
   if (totalSeconds < minuteThresholdSeconds) {
-    return displayLabelContract.parse('<1m');
+    return '<1m';
   }
   if (totalMinutes < hourThresholdMinutes) {
-    return displayLabelContract.parse(`${String(totalMinutes)}m`);
+    return `${String(totalMinutes)}m`;
   }
   // A whole hour prints `1h`, not `1h0m` — the zero carries no information.
-  return displayLabelContract.parse(
-    Number(minutes) === 0 ? `${String(hours)}h` : `${String(hours)}h${String(minutes)}m`,
-  );
+  return (Number(minutes) === 0 ? `${String(hours)}h` : `${String(hours)}h${String(minutes)}m`);
 };

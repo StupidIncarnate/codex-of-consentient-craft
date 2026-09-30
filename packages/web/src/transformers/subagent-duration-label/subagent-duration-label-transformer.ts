@@ -14,7 +14,6 @@
  */
 
 import type { SubagentElapsedInput } from '../../contracts/subagent-elapsed-input/subagent-elapsed-input-contract';
-import type { DisplayLabel } from '../../contracts/display-label/display-label-contract';
 import { elapsedPartsTransformer } from '../elapsed-parts/elapsed-parts-transformer';
 import { durationDisplayTransformer } from '../duration-display/duration-display-transformer';
 
@@ -22,7 +21,7 @@ export const subagentDurationLabelTransformer = ({
   input,
 }: {
   input: SubagentElapsedInput;
-}): DisplayLabel | null => {
+}): string | null => {
   const startedAtMs = new Date(String(input.startedAt)).getTime();
 
   // The two REPORTED figures both win over any timestamp arithmetic, because each is the CLI's

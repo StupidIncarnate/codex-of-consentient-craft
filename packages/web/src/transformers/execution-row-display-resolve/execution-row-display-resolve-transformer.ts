@@ -20,8 +20,6 @@
 
 import type { StepName, WorkItem } from '@dungeonmaster/shared/contracts';
 
-import type { DisplayLabel } from '../../contracts/display-label/display-label-contract';
-import { displayLabelContract } from '../../contracts/display-label/display-label-contract';
 import type { ExecutionRole } from '../../contracts/execution-role/execution-role-contract';
 import type { ExecutionStepStatus } from '../../contracts/execution-step-status/execution-step-status-contract';
 import type { emberDepthsThemeStatics } from '../../statics/ember-depths-theme/ember-depths-theme-statics';
@@ -38,7 +36,7 @@ export const executionRowDisplayResolveTransformer = ({
   role: ExecutionRole;
   workItem: WorkItem | undefined;
 }): {
-  statusLabel: DisplayLabel;
+  statusLabel: string;
   statusColor: keyof typeof emberDepthsThemeStatics.colors;
   roleColor: keyof typeof emberDepthsThemeStatics.colors;
 } => {
@@ -64,7 +62,7 @@ export const executionRowDisplayResolveTransformer = ({
   const stepColor = workItem?.step === undefined ? undefined : stepColorLookup[workItem.step];
   const roleColor = stepColor ?? roleColorLookup[role] ?? FALLBACK_COLOR;
   return {
-    statusLabel: displayLabelContract.parse(statusCfg.label),
+    statusLabel: statusCfg.label,
     statusColor: statusCfg.color,
     roleColor,
   };

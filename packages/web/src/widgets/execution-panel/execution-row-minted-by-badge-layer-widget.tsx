@@ -11,7 +11,6 @@
 
 import { Text } from '#gateway/npm/mantine__core';
 
-import type { DisplayLabel } from '../../contracts/display-label/display-label-contract';
 import { emberDepthsThemeStatics } from '../../statics/ember-depths-theme/ember-depths-theme-statics';
 
 const FONT_SIZE = 9;
@@ -22,7 +21,7 @@ export interface ExecutionRowMintedByBadgeLayerWidgetProps {
   // repo's `complexity: max 50` ceiling, and `exactOptionalPropertyTypes` would otherwise force it
   // to wrap every call in a `{...(x === undefined ? {} : {mintedByLabel: x})}` spread, which costs a
   // branch there. Passing `undefined` straight through to a required prop costs nothing.
-  mintedByLabel: DisplayLabel | undefined;
+  mintedByLabel: string | undefined;
 }
 
 export const ExecutionRowMintedByBadgeLayerWidget = ({

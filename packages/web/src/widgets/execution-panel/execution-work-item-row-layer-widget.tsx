@@ -31,8 +31,6 @@
 import type { ChatEntry, OperationItem, RiftcarverResult, UrlSlug, WardResult, WorkItem, Quest, Session } from '@dungeonmaster/shared/contracts';
 import { riftcarverResultContract } from '@dungeonmaster/shared/contracts';
 
-import type { DisplayLabel } from '../../contracts/display-label/display-label-contract';
-import { displayLabelContract } from '../../contracts/display-label/display-label-contract';
 import type { ExecutionRole } from '../../contracts/execution-role/execution-role-contract';
 import { executionStepStatusContract } from '../../contracts/execution-step-status/execution-step-status-contract';
 import { mergeDescendantSubagentEntriesTransformer } from '../../transformers/merge-descendant-subagent-entries/merge-descendant-subagent-entries-transformer';
@@ -66,11 +64,11 @@ export interface ExecutionWorkItemRowLayerWidgetProps {
   // label (T2-1) when it renders nested, else its scope label — the SAME map the back-edge badge
   // reads. Distinguishes duplicate roles inside one dependsOn list, which a role-only lookup could
   // not (T2-9a's regression: two codeweaver dependencies used to read "codeweaver, codeweaver").
-  workItemIdToLabel: Map<WorkItem['id'], DisplayLabel>;
+  workItemIdToLabel: Map<WorkItem['id'], string>;
   // The dependency's SCOPE alone (operation text, or capitalized role) — never its tier label — so
   // this row can tell whether a dependency sits in ITS OWN scope (this row's own `scopeLabel` below)
   // or a different one, and prefix the cross-scope case with the dependency's scope name (T2-9a).
-  workItemIdToScopeLabel: Map<WorkItem['id'], DisplayLabel>;
+  workItemIdToScopeLabel: Map<WorkItem['id'], string>;
   wardResultsById: Map<WardResult['id'], WardResult>;
   riftcarverResultsById: Map<RiftcarverResult['id'], RiftcarverResult>;
   operationsById: Map<OperationItem['id'], OperationItem>;
@@ -78,13 +76,13 @@ export interface ExecutionWorkItemRowLayerWidgetProps {
   // more than one visible work item — the panel is the one place that can see every sibling at once.
   // A row on a scope nothing else is working never receives one, so its name renders the bare scope
   // label exactly as before. See the panel's own tiering comment for how this value is computed.
-  stepLabel?: DisplayLabel;
+  stepLabel?: string;
   // Mirrors ExecutionRowLayerWidgetProps.indented — set together with `stepLabel` by the panel.
   indented?: boolean;
   // The back-edge badge's text: the panel's own resolved label for `workItem.mintedBy`, the SAME
   // four-tier text (T2-1) that minting row renders for itself — see the panel's own
   // `workItemIdToDisplayLabel` comment. Undefined when this work item carries no `mintedBy`.
-  mintedByLabel?: DisplayLabel;
+  mintedByLabel?: string;
   // The panel's own choice of which running row currently holds the auto-expand focus (T2-9a) —
   // forwarded to ExecutionRowLayerWidget as-is. Omitted keeps that row's default (every running row
   // with a transcript auto-expands); the panel passes an explicit `false` for every OTHER running
@@ -148,11 +146,9 @@ export const ExecutionWorkItemRowLayerWidget = ({
   // role fallback. `stepLabel` REPLACES that name entirely, rather than appending to it, once the
   // panel's operation header is already carrying the scope's text — see this file's own PURPOSE.
   const scopeLabel = operation
-    ? displayLabelContract.parse(operation.text)
-    : displayLabelContract.parse(
-        `${workItem.role.charAt(0).toUpperCase()}${workItem.role.slice(1)}`,
-      );
-  const name = displayLabelContract.parse(stepLabel ?? scopeLabel);
+    ? operation.text
+    : `${workItem.role.charAt(0).toUpperCase()}${workItem.role.slice(1)}`;
+  const name = (stepLabel ?? scopeLabel);
   // Session identity for a dependency (T2-9a): the dependency's OWN row label, prefixed with its
   // scope only when that scope differs from BOTH this row's own scope (same-scope dependencies need
   // no prefix) and the dependency's row label (a bare dependency's row label already IS its scope,

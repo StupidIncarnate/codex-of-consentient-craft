@@ -11,7 +11,6 @@ import { WardResultStub } from '@dungeonmaster/shared/contracts/ward-result/ward
 import { WorkItemStub } from '@dungeonmaster/shared/contracts/work-item/work-item.stub';
 
 import { mantineRenderMiddleware } from '@dungeonmaster/testing/middleware/mantine-render';
-import { DisplayLabelStub } from '../../contracts/display-label/display-label.stub';
 import { RowOrderStub } from '../../contracts/row-order/row-order.stub';
 import { userEventStatics } from '../../statics/user-event/user-event-statics';
 import { ExecutionWorkItemRowLayerWidget } from './execution-work-item-row-layer-widget';
@@ -98,7 +97,7 @@ describe('ExecutionWorkItemRowLayerWidget', () => {
           <ExecutionWorkItemRowLayerWidget
             {...defaultParams({ workItem })}
             operationsById={new Map([[operation.id, operation]])}
-            stepLabel={DisplayLabelStub({ value: 'work - login broker' })}
+            stepLabel={'work - login broker'}
           />
         ),
       });
@@ -118,7 +117,7 @@ describe('ExecutionWorkItemRowLayerWidget', () => {
         ui: (
           <ExecutionWorkItemRowLayerWidget
             {...defaultParams({ workItem })}
-            stepLabel={DisplayLabelStub({ value: 'work pt: 2' })}
+            stepLabel={'work pt: 2'}
           />
         ),
       });
@@ -141,7 +140,7 @@ describe('ExecutionWorkItemRowLayerWidget', () => {
           <ExecutionWorkItemRowLayerWidget
             {...defaultParams({ workItem })}
             operationsById={new Map([[operation.id, operation]])}
-            stepLabel={DisplayLabelStub({ value: 'plan' })}
+            stepLabel={'plan'}
             indented={true}
           />
         ),
@@ -165,7 +164,7 @@ describe('ExecutionWorkItemRowLayerWidget', () => {
         ui: (
           <ExecutionWorkItemRowLayerWidget
             {...defaultParams({ workItem })}
-            mintedByLabel={DisplayLabelStub({ value: 'walk pt: 1' })}
+            mintedByLabel={'walk pt: 1'}
           />
         ),
       });
@@ -204,8 +203,8 @@ describe('ExecutionWorkItemRowLayerWidget', () => {
         ui: (
           <ExecutionWorkItemRowLayerWidget
             {...defaultParams({ workItem })}
-            workItemIdToLabel={new Map([[depId, DisplayLabelStub({ value: 'work pt: 1' })]])}
-            workItemIdToScopeLabel={new Map([[depId, DisplayLabelStub({ value: 'Codeweaver' })]])}
+            workItemIdToLabel={new Map([[depId, 'work pt: 1']])}
+            workItemIdToScopeLabel={new Map([[depId, 'Codeweaver']])}
           />
         ),
       });
@@ -229,8 +228,8 @@ describe('ExecutionWorkItemRowLayerWidget', () => {
         ui: (
           <ExecutionWorkItemRowLayerWidget
             {...defaultParams({ workItem })}
-            workItemIdToLabel={new Map([[depId, DisplayLabelStub({ value: 'ward pt: 2' })]])}
-            workItemIdToScopeLabel={new Map([[depId, DisplayLabelStub({ value: 'Other scope' })]])}
+            workItemIdToLabel={new Map([[depId, 'ward pt: 2']])}
+            workItemIdToScopeLabel={new Map([[depId, 'Other scope']])}
           />
         ),
       });
@@ -254,8 +253,8 @@ describe('ExecutionWorkItemRowLayerWidget', () => {
         ui: (
           <ExecutionWorkItemRowLayerWidget
             {...defaultParams({ workItem })}
-            workItemIdToLabel={new Map([[depId, DisplayLabelStub({ value: 'Other scope' })]])}
-            workItemIdToScopeLabel={new Map([[depId, DisplayLabelStub({ value: 'Other scope' })]])}
+            workItemIdToLabel={new Map([[depId, 'Other scope']])}
+            workItemIdToScopeLabel={new Map([[depId, 'Other scope']])}
           />
         ),
       });
@@ -301,14 +300,14 @@ describe('ExecutionWorkItemRowLayerWidget', () => {
             {...defaultParams({ workItem })}
             workItemIdToLabel={
               new Map([
-                [dep1Id, DisplayLabelStub({ value: 'work pt: 1' })],
-                [dep2Id, DisplayLabelStub({ value: 'work pt: 2' })],
+                [dep1Id, 'work pt: 1'],
+                [dep2Id, 'work pt: 2'],
               ])
             }
             workItemIdToScopeLabel={
               new Map([
-                [dep1Id, DisplayLabelStub({ value: 'Codeweaver' })],
-                [dep2Id, DisplayLabelStub({ value: 'Codeweaver' })],
+                [dep1Id, 'Codeweaver'],
+                [dep2Id, 'Codeweaver'],
               ])
             }
           />

@@ -1,4 +1,3 @@
-import { DisplayLabelStub } from '../display-label/display-label.stub';
 import { unitChurnStepContract } from './unit-churn-step-contract';
 import { UnitChurnStepStub } from './unit-churn-step.stub';
 
@@ -13,7 +12,7 @@ describe('unitChurnStepContract', () => {
 
     it('VALID: {workItemLabel: "review"} => parses to itself', () => {
       expect(
-        UnitChurnStepStub({ workItemLabel: DisplayLabelStub({ value: 'review' }) }).workItemLabel,
+        UnitChurnStepStub({ workItemLabel: 'review' }).workItemLabel,
       ).toBe('review');
     });
   });

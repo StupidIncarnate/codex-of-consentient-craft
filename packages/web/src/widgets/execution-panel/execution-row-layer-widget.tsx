@@ -21,7 +21,6 @@ import type { ContractName, RiftcarverResult, WardResult, WorkItem, ChatEntry, C
 
 import { cssPixelsContract } from '@dungeonmaster/shared/contracts';
 import { isCommandWorkItemRoleGuard } from '@dungeonmaster/shared/guards';
-import type { DisplayLabel } from '../../contracts/display-label/display-label-contract';
 import type { ExecutionRole } from '../../contracts/execution-role/execution-role-contract';
 import type { ExecutionStepStatus } from '../../contracts/execution-step-status/execution-step-status-contract';
 import { emberDepthsThemeStatics } from '../../statics/ember-depths-theme/ember-depths-theme-statics';
@@ -46,7 +45,7 @@ import { WardResultRowLayerWidget } from './ward-result-row-layer-widget';
 export interface ExecutionRowLayerWidgetProps {
   // Omitted for a step row nested under an operation header — the header alone is numbered.
   order?: number;
-  name: DisplayLabel;
+  name: string;
   role: ExecutionRole;
   status: ExecutionStepStatus;
   files: string[];
@@ -58,7 +57,7 @@ export interface ExecutionRowLayerWidgetProps {
   // The back-edge badge: set when `workItem.mintedBy` names a real predecessor, resolved by the
   // panel to that row's own four-tier label (T2-1) rather than a raw id. Never derived from
   // `insertedBy` — that field means a retry splice superseding a failed item, a different edge.
-  mintedByLabel?: DisplayLabel;
+  mintedByLabel?: string;
   errorMessage?: string;
   // Carries summary, attempt, maxAttempts, startedAt, completedAt and actualSignal as ONE object
   // rather than six flattened WorkItem['x'] properties, so a caller passes the work item it already
