@@ -12,7 +12,6 @@
 import { toolBriefContract, type ToolBrief } from '../../contracts/tool-brief/tool-brief-contract';
 import { toolBriefKeyStatics } from '../../statics/tool-brief-key/tool-brief-key-statics';
 import { digestDefaultStatics } from '../../statics/digest-default/digest-default-statics';
-import { transcriptRecordToolInputKeyContract } from '../../contracts/transcript-record-tool-input-key/transcript-record-tool-input-key-contract';
 import type { TranscriptRecordContentBlock } from '../../contracts/transcript-record-content-block/transcript-record-content-block-contract';
 
 export const toolUseToBriefTransformer = ({
@@ -30,7 +29,7 @@ export const toolUseToBriefTransformer = ({
   }
 
   const renderedPairs = toolBriefKeyStatics.interestingKeys
-    .map((key) => transcriptRecordToolInputKeyContract.parse(key))
+    .map((key) => key)
     .filter((key): boolean => input[key] !== undefined)
     .map((key) => {
       const raw = input[key];
