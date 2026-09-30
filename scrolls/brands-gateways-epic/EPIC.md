@@ -133,7 +133,11 @@ More rules for the operator:
 
 | Running | Where |
 |---|---|
-| operator: `check:consumer` | background |
+| operator: the last full `npm run ward` before merging into master | gateway-pivot checkout |
+
+**Final gate:** `build:clean` pass; `check:published` pass; `check:consumer` 174 of 174 (148 local, 26 global);
+full ward 1790796592908-a9ef had two integration reds, both fixed since (0d81eabc0, f6bcd0bd6). If this last full
+ward is green, master gets gateway-pivot.
 
 **Just landed:** hooks pre-edit integration fixed (the hooks-timeout commit): its `beforeAll` ran three cold hook processes serially (about 7 s each, 5.2 s of it loading `eslint.config.js`) against ward's 30 s limit; the warm-up now overlaps the smokes and the limits are explicit; green under load (1790797859346-97a3). Red 2 is fixed. Also: `get-testing-patterns` is 44,941 bytes, under the 50 KB cap (was 56,046; no rule dropped; the margin under 45 KB is thin, so the next addition needs matching cuts). Red 1 is fixed.
 
