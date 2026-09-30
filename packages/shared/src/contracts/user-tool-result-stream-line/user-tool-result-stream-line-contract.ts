@@ -9,6 +9,7 @@ import { z } from '#gateway/npm/zod';
 
 import { toolResultBlockParamContract } from '../tool-result-block-param/tool-result-block-param-contract';
 import { textBlockParamContract } from '../text-block-param/text-block-param-contract';
+import { agentContract } from '../agent/agent-contract';
 
 export const userToolResultStreamLineContract = z
   .object({
@@ -35,7 +36,7 @@ export const userToolResultStreamLineContract = z
       .union([
         z
           .object({
-            agentId: z.string().brand<'UserToolResultStreamLineToolUseResultAgentId'>().optional(),
+            agentId: agentContract.shape.id.optional(),
           })
           .brand<'UserToolResultStreamLineToolUseResult'>()
           .loose(),

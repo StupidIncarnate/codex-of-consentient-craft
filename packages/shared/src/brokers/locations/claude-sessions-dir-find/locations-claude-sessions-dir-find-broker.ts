@@ -8,11 +8,12 @@
 
 import { homedir } from '#gateway/node/os';
 import { claudePathSlugEncoderTransformer } from '../../../transformers/claude-path-slug-encoder/claude-path-slug-encoder-transformer';
+import type { Guild } from '../../../contracts/guild/guild-contract';
 
 export const locationsClaudeSessionsDirFindBroker = ({
   guildPath,
 }: {
-  guildPath: string;
+  guildPath: Guild['path'];
 }): string =>
   claudePathSlugEncoderTransformer({
     homeDir: homedir(),

@@ -25,7 +25,7 @@ export const questQueueEntryContract = z
       .min(1)
       .regex(/^[a-z0-9]+(?:-[a-z0-9]+)*$/u)
       .brand<'QuestQueueEntryGuildSlug'>(),
-    questTitle: z.string().min(1).brand<'QuestQueueEntryQuestTitle'>(),
+    questTitle: questContract.shape.title,
     status: questStatusContract,
     questSource: questSourceContract.optional(),
     activeSessionId: sessionContract.shape.id.optional(),

@@ -17,7 +17,7 @@ export const sessionListItemContract = z
     summary: z.string().brand<'SessionListItemSummary'>().optional(),
     startedAt: z.iso.datetime().brand<'SessionListItemStartedAt'>(),
     questId: questContract.shape.id.optional(),
-    questTitle: z.string().brand<'SessionListItemQuestTitle'>().optional(),
+    questTitle: questContract.shape.title.optional(),
     questStatus: z.string().brand<'SessionListItemQuestStatus'>().optional(),
   })
   .brand<'SessionListItem'>();

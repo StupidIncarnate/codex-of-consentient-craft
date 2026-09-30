@@ -15,13 +15,14 @@ import { join } from '#gateway/node/path';
 import { locationsStatics } from '../../../statics/locations/locations-statics';
 import type { Agent } from '../../../contracts/agent/agent-contract';
 import type { Session } from '../../../contracts/session/session-contract';
+import type { Guild } from '../../../contracts/guild/guild-contract';
 
 export const locationsClaudeSubagentSessionFilePathFindBroker = ({
   guildPath,
   sessionId,
   agentId,
 }: {
-  guildPath: string;
+  guildPath: Guild['path'];
   sessionId: Session['id'];
   agentId: Agent['id'];
 }): string => {

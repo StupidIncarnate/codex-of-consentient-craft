@@ -19,12 +19,13 @@
  * // Returns undefined — nothing to derive a scope from
  */
 import { packageScopeFromNameTransformer } from '../package-scope-from-name/package-scope-from-name-transformer';
+import type { PackageJson } from '../../contracts/package-json/package-json-contract';
 
 export const workspaceScopeFromRootNameTransformer = ({
   rootPackageJsonName,
   fallbackName,
 }: {
-  rootPackageJsonName: string | undefined;
+  rootPackageJsonName: PackageJson['name'] | undefined;
   fallbackName?: string;
 }): string | undefined => {
   const candidate =

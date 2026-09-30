@@ -15,6 +15,7 @@
  */
 
 import { z } from '#gateway/npm/zod';
+import { agentContract } from '../agent/agent-contract';
 
 const chatUsageContract = z
   .object({
@@ -53,8 +54,8 @@ const userEntryContract = z
     content: z.string().min(1).brand<'UserEntryContent'>(),
     isInjectedPrompt: z.boolean().optional(),
     source: sourceContract,
-    agentId: agentIdContract,
-    parentAgentId: agentIdContract,
+    agentId: agentContract.shape.id,
+    parentAgentId: agentContract.shape.id,
     uuid: uuidContract,
     timestamp: timestampContract,
   })
@@ -68,8 +69,8 @@ const assistantTextEntryContract = z
     model: modelContract,
     usage: chatUsageContract.optional(),
     source: sourceContract,
-    agentId: agentIdContract,
-    parentAgentId: agentIdContract,
+    agentId: agentContract.shape.id,
+    parentAgentId: agentContract.shape.id,
     uuid: uuidContract,
     timestamp: timestampContract,
   })
@@ -85,8 +86,8 @@ const assistantToolUseEntryContract = z
     model: modelContract,
     usage: chatUsageContract.optional(),
     source: sourceContract,
-    agentId: agentIdContract,
-    parentAgentId: agentIdContract,
+    agentId: agentContract.shape.id,
+    parentAgentId: agentContract.shape.id,
     uuid: uuidContract,
     timestamp: timestampContract,
   })
@@ -99,8 +100,8 @@ const assistantThinkingEntryContract = z
     content: z.string().brand<'AssistantThinkingEntryContent'>(),
     model: modelContract,
     source: sourceContract,
-    agentId: agentIdContract,
-    parentAgentId: agentIdContract,
+    agentId: agentContract.shape.id,
+    parentAgentId: agentContract.shape.id,
     uuid: uuidContract,
     timestamp: timestampContract,
   })
@@ -125,8 +126,8 @@ const assistantToolResultEntryContract = z
       .brand<'AssistantToolResultEntryDurationMs'>()
       .optional(),
     source: sourceContract,
-    agentId: agentIdContract,
-    parentAgentId: agentIdContract,
+    agentId: agentContract.shape.id,
+    parentAgentId: agentContract.shape.id,
     uuid: uuidContract,
     timestamp: timestampContract,
   })
@@ -154,8 +155,8 @@ const taskNotificationEntryContract = z
       .brand<'TaskNotificationEntryDurationMs'>()
       .optional(),
     source: sourceContract,
-    agentId: agentIdContract,
-    parentAgentId: agentIdContract,
+    agentId: agentContract.shape.id,
+    parentAgentId: agentContract.shape.id,
     uuid: uuidContract,
     timestamp: timestampContract,
   })
@@ -167,8 +168,8 @@ const systemErrorEntryContract = z
     type: z.literal('error'),
     content: z.string().min(1).brand<'SystemErrorEntryContent'>(),
     source: sourceContract,
-    agentId: agentIdContract,
-    parentAgentId: agentIdContract,
+    agentId: agentContract.shape.id,
+    parentAgentId: agentContract.shape.id,
     uuid: uuidContract,
     timestamp: timestampContract,
   })

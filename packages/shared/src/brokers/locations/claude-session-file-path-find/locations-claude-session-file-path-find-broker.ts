@@ -12,12 +12,13 @@
 import { locationsClaudeSessionsDirFindBroker } from '../claude-sessions-dir-find/locations-claude-sessions-dir-find-broker';
 import { join } from '#gateway/node/path';
 import type { Session } from '../../../contracts/session/session-contract';
+import type { Guild } from '../../../contracts/guild/guild-contract';
 
 export const locationsClaudeSessionFilePathFindBroker = ({
   guildPath,
   sessionId,
 }: {
-  guildPath: string;
+  guildPath: Guild['path'];
   sessionId: Session['id'];
 }): string => {
   const sessionsDir = locationsClaudeSessionsDirFindBroker({ guildPath });
