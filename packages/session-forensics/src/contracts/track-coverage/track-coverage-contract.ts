@@ -17,10 +17,11 @@
  * });
  */
 import { z } from '#gateway/npm/zod';
+import { flowContract } from '@dungeonmaster/shared/contracts';
 
 export const trackCoverageContract = z
   .object({
-    flowId: z.string(),
+    flowId: flowContract.shape.id,
     track: z.enum(['codeweaver', 'flowrider', 'siegemaster']),
     owed: z.number().int().nonnegative().brand<'TrackCoverageOwed'>(),
     signed: z.number().int().nonnegative().brand<'TrackCoverageSigned'>(),

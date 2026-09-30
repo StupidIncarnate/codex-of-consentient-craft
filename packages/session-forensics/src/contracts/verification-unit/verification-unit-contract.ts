@@ -23,11 +23,11 @@
  */
 import { z } from '#gateway/npm/zod';
 
-import { unitMarkContract } from '@dungeonmaster/shared/contracts';
+import { unitMarkContract, flowContract } from '@dungeonmaster/shared/contracts';
 
 export const verificationUnitContract = z
   .object({
-    flowId: z.string(),
+    flowId: flowContract.shape.id,
     flowType: z.enum(['runtime', 'operational']),
     kind: z.enum(['terminal', 'branch', 'observable', 'off-map']),
     unitId: z.string().brand<'VerificationUnitUnitId'>(),
