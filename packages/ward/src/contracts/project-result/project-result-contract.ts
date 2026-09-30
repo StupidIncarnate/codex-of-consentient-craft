@@ -16,7 +16,7 @@ import { fileTimingContract } from '../file-timing/file-timing-contract';
 import { passingTestContract } from '../passing-test/passing-test-contract';
 import { openHandleContract } from '../open-handle/open-handle-contract';
 import { testNamePatternMatchContract } from '../test-name-pattern-match/test-name-pattern-match-contract';
-import { durationMsContract } from '../duration-ms/duration-ms-contract';
+import { projectResultContract } from './project-result-contract';
 
 export const projectResultContract = z.object({
   projectFolder: projectFolderContract,
@@ -51,7 +51,7 @@ export const projectResultContract = z.object({
   // that one is the whole check across every package (see multi-package-layer-broker). Defaults
   // to 0 so parses that predate this field (saved .ward/ results, precomputed typecheck results with
   // no per-package split) keep working.
-  durationMs: durationMsContract.default(durationMsContract.parse(0)),
+  durationMs: z.number().nonnegative().brand<'ProjectResultDurationMs'>().default(projectResultContract.shape.durationMs.parse(0)),
 });
 
 export type ProjectResult = z.infer<typeof projectResultContract>;

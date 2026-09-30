@@ -12,7 +12,7 @@ export const resultStreamLineContract = z.object({
   type: z.literal('result'),
   session_id: sessionContract.shape.id,
   cost_usd: z.number().brand<'CostUsd'>().optional(),
-  duration_ms: z.number().brand<'DurationMs'>().optional(),
+  duration_ms: z.number().brand<'ResultStreamLineDurationMs'>().optional(),
   num_turns: z.number().brand<'NumTurns'>().optional(),
 });
 

@@ -1,5 +1,4 @@
 import { CheckResultStub } from '../../contracts/check-result/check-result.stub';
-import { DurationMsStub } from '../../contracts/duration-ms/duration-ms.stub';
 import { ProjectResultStub } from '../../contracts/project-result/project-result.stub';
 
 import { checkResultBuildTransformer } from './check-result-build-transformer';
@@ -66,7 +65,7 @@ describe('checkResultBuildTransformer', () => {
     it('VALID: {durationMs provided} => includes durationMs in result', () => {
       const checkType = 'lint';
       const projectResults = [ProjectResultStub({ status: 'pass' })];
-      const durationMs = DurationMsStub({ value: 4200 });
+      const durationMs = 4200;
 
       const result = checkResultBuildTransformer({ checkType, projectResults, durationMs });
 

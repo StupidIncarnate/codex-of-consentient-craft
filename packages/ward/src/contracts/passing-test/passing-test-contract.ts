@@ -7,12 +7,12 @@
  */
 
 import { z } from '#gateway/npm/zod';
-import { durationMsContract } from '../duration-ms/duration-ms-contract';
+import { passingTestContract } from './passing-test-contract';
 
 export const passingTestContract = z.object({
   suitePath: z.string().brand<'SuitePath'>(),
   testName: z.string().brand<'TestName'>(),
-  durationMs: durationMsContract.default(durationMsContract.parse(0)),
+  durationMs: z.number().nonnegative().brand<'PassingTestDurationMs'>().default(passingTestContract.shape.durationMs.parse(0)),
 });
 
 export type PassingTest = z.infer<typeof passingTestContract>;

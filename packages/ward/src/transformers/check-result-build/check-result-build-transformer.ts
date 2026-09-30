@@ -11,7 +11,6 @@ import {
   type CheckResult,
 } from '../../contracts/check-result/check-result-contract';
 import type { CheckType } from '../../contracts/check-type/check-type-contract';
-import type { DurationMs } from '../../contracts/duration-ms/duration-ms-contract';
 import type { ProjectResult } from '../../contracts/project-result/project-result-contract';
 
 export const checkResultBuildTransformer = ({
@@ -21,7 +20,7 @@ export const checkResultBuildTransformer = ({
 }: {
   checkType: CheckType;
   projectResults: ProjectResult[];
-  durationMs?: DurationMs;
+  durationMs?: number;
 }): CheckResult => {
   const hasFail = projectResults.some((pr) => pr.status === 'fail');
   const allSkip = projectResults.length > 0 && projectResults.every((pr) => pr.status === 'skip');

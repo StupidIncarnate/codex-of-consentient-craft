@@ -14,7 +14,6 @@ import {
 } from '../../../contracts/ward-result/ward-result-contract';
 import type { WardConfig } from '../../../contracts/ward-config/ward-config-contract';
 import type { ProjectFolder } from '../../../contracts/project-folder/project-folder-contract';
-import { durationMsContract } from '../../../contracts/duration-ms/duration-ms-contract';
 import { allCheckTypesStatics } from '../../../statics/all-check-types/all-check-types-statics';
 import { msPerSecondStatics } from '../../../statics/ms-per-second/ms-per-second-statics';
 import { runIdGenerateTransformer } from '../../../transformers/run-id-generate/run-id-generate-transformer';
@@ -128,7 +127,7 @@ export const singlePackageLayerBroker = async ({
         checkResultBuildTransformer({
           checkType,
           projectResults: [projectResult],
-          durationMs: durationMsContract.parse(checkDurationMs),
+          durationMs: checkDurationMs,
         }),
       ];
     },
@@ -161,7 +160,7 @@ export const singlePackageLayerBroker = async ({
       ...(hasPassthrough ? { passthrough: config.passthrough } : {}),
     },
     checks: foldedChecks,
-    durationMs: durationMsContract.parse(totalDurationMs),
+    durationMs: totalDurationMs,
   });
 
   await storageSaveBroker({ rootPath, wardResult });

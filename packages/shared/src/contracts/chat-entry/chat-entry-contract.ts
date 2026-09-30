@@ -103,7 +103,7 @@ const assistantToolResultEntryContract = z.object({
   // lands milliseconds after dispatch — and sends a `<task-notification>` carrying `durationMs`
   // when the agent finishes. So the two duration sources are mutually exclusive per call, and a
   // chain that has neither is one still running.
-  durationMs: z.number().int().nonnegative().brand<'DurationMs'>().optional(),
+  durationMs: z.number().int().nonnegative().brand<'AssistantToolResultEntryDurationMs'>().optional(),
   source: sourceContract,
   agentId: agentIdContract,
   parentAgentId: agentIdContract,
@@ -120,7 +120,7 @@ const taskNotificationEntryContract = z.object({
   result: z.string().brand<'TaskResult'>().optional(),
   totalTokens: z.number().int().nonnegative().brand<'TotalTokens'>().optional(),
   toolUses: z.number().int().nonnegative().brand<'ToolUses'>().optional(),
-  durationMs: z.number().int().nonnegative().brand<'DurationMs'>().optional(),
+  durationMs: z.number().int().nonnegative().brand<'TaskNotificationEntryDurationMs'>().optional(),
   source: sourceContract,
   agentId: agentIdContract,
   parentAgentId: agentIdContract,

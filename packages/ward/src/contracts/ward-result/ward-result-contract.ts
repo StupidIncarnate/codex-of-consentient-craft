@@ -9,14 +9,14 @@
 import { z } from '#gateway/npm/zod';
 import { runFiltersContract } from '../run-filters/run-filters-contract';
 import { checkResultContract } from '../check-result/check-result-contract';
-import { durationMsContract } from '../duration-ms/duration-ms-contract';
+import { wardRunResultContract } from './ward-result-contract';
 
 export const wardRunResultContract = z.object({
   runId: z.string().regex(/^\d+-[a-f0-9]+$/u, 'Invalid RunId format: expected timestamp-hex pattern').brand<'WardResultRunId'>(),
   timestamp: z.number().brand<'Timestamp'>(),
   filters: runFiltersContract,
   checks: z.array(checkResultContract),
-  durationMs: durationMsContract.default(durationMsContract.parse(0)),
+  durationMs: z.number().nonnegative().brand<'WardRunResultDurationMs'>().default(wardRunResultContract.shape.durationMs.parse(0)),
 });
 
 export type WardRunResult = z.infer<typeof wardRunResultContract>;

@@ -20,7 +20,6 @@ import type { WardConfig } from '../../../contracts/ward-config/ward-config-cont
 import type { ProjectFolder } from '../../../contracts/project-folder/project-folder-contract';
 import type { CheckResult } from '../../../contracts/check-result/check-result-contract';
 import type { CheckType } from '../../../contracts/check-type/check-type-contract';
-import { durationMsContract } from '../../../contracts/duration-ms/duration-ms-contract';
 import { allCheckTypesStatics } from '../../../statics/all-check-types/all-check-types-statics';
 import { wardSpawnCommandStatics } from '../../../statics/ward-spawn-command/ward-spawn-command-statics';
 import { runIdGenerateTransformer } from '../../../transformers/run-id-generate/run-id-generate-transformer';
@@ -34,6 +33,7 @@ import { childCrashLayerBroker } from './child-crash-layer-broker';
 import { storageLoadBroker } from '../../storage/load/storage-load-broker';
 import { storageSaveBroker } from '../../storage/save/storage-save-broker';
 import { storagePruneBroker } from '../../storage/prune/storage-prune-broker';
+import { fileTimingContract } from '../../../contracts/file-timing/file-timing-contract';
 
 export const multiPackageLayerBroker = async ({
   config,
@@ -214,8 +214,8 @@ export const multiPackageLayerBroker = async ({
     const aggregatedDurationMs = Math.max(0, ...bucket.map((c) => Number(c.durationMs)));
     return checkResultBuildTransformer({
       checkType,
-      projectResults,
-      durationMs: durationMsContract.parse(aggregatedDurationMs),
+      projectResults: fileTimingContract.shape.durationMs.parse(projectResults),
+      durationMs: aggregatedDurationMs,
     });
   });
 
@@ -246,7 +246,7 @@ export const multiPackageLayerBroker = async ({
       ...(hasPassthrough ? { passthrough: config.passthrough } : {}),
     },
     checks: foldedChecks,
-    durationMs: durationMsContract.parse(totalDurationMs),
+    durationMs: totalDurationMs,
   });
 
   await storageSaveBroker({ rootPath, wardResult });
